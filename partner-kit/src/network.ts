@@ -29,12 +29,12 @@ export type Endpoints = {
   readonly proofServer: string;
 };
 
-/** A proof server on this machine: `docker run -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:8.0.3@sha256:8e6c36c3c175ef6e1b337952155b30470f252af79a20c3f65153a86a983e17ab midnight-proof-server -v`. */
+/** A proof server on this machine: `docker run -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:8.1.3@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c midnight-proof-server -v`. */
 export const DEFAULT_PROOF_SERVER = 'http://127.0.0.1:6300';
 
 /** The proof server image VeilCore's own tools run, by tag. */
 export const PROOF_SERVER_IMAGE =
-  'midnightntwrk/proof-server:8.0.3@sha256:8e6c36c3c175ef6e1b337952155b30470f252af79a20c3f65153a86a983e17ab';
+  'midnightntwrk/proof-server:8.1.3@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c';
 
 /** The networks served only through Blockfrost: mainnet since 30 September 2026, preprod since 9 October 2026. */
 export type BlockfrostNetwork = 'mainnet' | 'preprod';
