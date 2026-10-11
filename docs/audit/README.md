@@ -97,7 +97,7 @@ is what the tests and the clients run.
 | Compact compiler | `compactc` 0.31.1, language version 0.23 (`pragma language_version 0.23` in both contracts) | `.github/workflows/ci.yaml` |
 | Node.js | 24.11.1 | `.nvmrc`; CI uses it |
 | npm | 11.6.2 (ships with Node 24.11.1) | CI fails on any other |
-| Proof server (only for live networks) | `midnightntwrk/proof-server:8.0.3`, pinned by digest (`sha256:8e6c36c3…17ab`) | runbook, `bboard-cli/proof-server.yml` |
+| Proof server (only for live networks) | `midnightntwrk/proof-server:8.1.3` (the 2 Oct 2026 security patch, GHSA-wr7g-rr4v-jmj8), pinned by digest (`sha256:0f4ab071…115c`, from Midnight's signed build manifest) | runbook, `bboard-cli/proof-server.yml` |
 | midnight-js | 4.1.1; ledger 8 | root `package.json` |
 
 Install the compiler the way CI does: the Linux release asset, checked against the SHA-256

@@ -71,6 +71,11 @@ the evening of 5 October (kept outside the repo).
   (`bboard-cli/compose.yml`, `partner-kit/local/compose.yml`, the proof-server files, the
   docs and the tools' instructions). The digests were read with `docker pull` and
   `docker inspect` on Hunter's Mac on 9 October; a re-pushed tag no longer changes what runs.
+  On 11 October the proof server moved to **8.1.3**, Midnight's 2 October security patch
+  (GHSA-wr7g-rr4v-jmj8), paired with midnight-js 4.1.1 in Midnight's support matrix. Its
+  digest `sha256:0f4ab071…115c` comes from the signed `build-manifest.json` on the
+  `proof-server-8.1.3` release, verified with Midnight's signing key
+  (fingerprint `2D55 ACA7 93E9 495E 4288 9A35 4523 91B0 57AD D8C7`).
 - **SDK release hygiene:** no `v0.15.0` git tag, no npm provenance. The tarball itself
   rebuilds byte-identical from `db91cc7`.
 - **Demo service** (`demo-real`, `762cd6f`): not merged into `main` (46 commits behind on 5 October), not

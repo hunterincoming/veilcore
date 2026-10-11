@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Proof server 8.1.3 (11 Oct 2026)
+
+- Every pinned proof server image moves from 8.0.3 to `midnightntwrk/proof-server:8.1.3`
+  (`sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c`), Midnight's
+  2 October security patch for GHSA-wr7g-rr4v-jmj8 and the version Midnight's support matrix
+  pairs with midnight-js 4.1.1 and Compact 0.31.1. The digest is from Midnight's signed build
+  manifest (key fingerprint 2D55 ACA7 93E9 495E 4288 9A35 4523 91B0 57AD D8C7), checked here.
+  Hunter: confirm with `docker pull midnightntwrk/proof-server:8.1.3` that Docker Hub prints
+  the same digest.
+- The advisory concerns contracts that use a `Set` or `Map` keyed by a `Field`,
+  `MerkleTreeDigest` or `JubjubPoint` as a one-time guard. VeilCore's contracts key every map
+  and set by `Bytes<32>` or `Uint<64>`, and the claims contract keeps no state: not affected.
+
 ### Preprod through Blockfrost (9 Oct 2026)
 
 - Midnight shut its own preprod indexer and RPC (`indexer.preprod.midnight.network`,
