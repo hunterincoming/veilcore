@@ -131,17 +131,12 @@ The first sync can take a long time.
 1. The proving parameters, checked:
    ```
    cd ~/Desktop/veilcore/bboard-ui
-   node scripts/fetch-params.mjs --pin
+   node scripts/fetch-params.mjs
    ```
-   It prints two SHA-256 values and writes them to `scripts/params.sha256.json`. Compare
-   them with the copies the Compact compiler already downloaded:
-   ```
-   find ~ -name "bls_midnight_2p1[34]" -not -path "*/veilcore/*" 2>/dev/null | xargs shasum -a 256
-   ```
-   **The values must match.** If they don't, stop and tell Claude. If the `find` line
-   prints nothing, the compiler keeps them somewhere else: tell Claude, don't skip it. Don't
-   commit `scripts/params.sha256.json` yourself: paste the two values back and Claude
-   commits them.
+   It downloads two files from srs.midnight.network (or Midnight's backup host) and checks each against the SHA-256
+   already pinned in `scripts/params.sha256.json` (copied from Midnight's own proof server
+   source). It worked when it prints `SHA-256 matches the pin` twice. Anything else: stop and
+   tell Claude.
 2. Build and start the site in test mode. The settings go on the build line itself, not
    `export`, so nothing stays in the terminal for a later deploy (a mainnet build refuses
    them anyway). The browser reads the chain through Blockfrost too, so this build carries

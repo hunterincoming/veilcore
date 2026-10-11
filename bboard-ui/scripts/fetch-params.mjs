@@ -3,15 +3,18 @@
 // them itself: the page's security policy allows only its own origin for these, and the
 // site does not depend on a third-party host at proving time.
 //
-// The files are public and the same for everyone (Midnight publishes them). Each one is
-// checked against the SHA-256 pinned in params.sha256.json before it is used: a file
-// that does not match is deleted and the script stops. Midnight's own clients do not
-// check these files, so the pins are ours.
+// The files are public and the same for everyone. They come from srs.midnight.network,
+// the host Midnight's own proof server uses by default, and each one is checked against
+// the SHA-256 pinned in params.sha256.json before it is used: a file that does not match
+// is deleted and the script stops. The pins are copied from Midnight's proof server source
+// (midnight-ledger, base-crypto/src/data_provider.rs, EXPECTED_DATA), which checks every
+// file the same way. Midnight's browser prover (wallet-sdk-prover-client) fetches the same
+// files from a development bucket and checks nothing, which is why the site serves its own.
 //
 // Usage:
 //   node scripts/fetch-params.mjs           download what is missing, check every file
-//   node scripts/fetch-params.mjs --pin     first time only: record the SHA-256 of files
-//                                           with no pin yet (then commit params.sha256.json)
+//   node scripts/fetch-params.mjs --pin     record the SHA-256 of a file with no pin yet
+//                                           (only for a new k; k=13 and k=14 are pinned)
 //
 // Not kept in git (public/params is ignored): run this before `npm run build` for a build
 // with VITE_REAL_CHAIN=1.
@@ -22,7 +25,10 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const SOURCE = 'https://midnight-s3-fileshare-dev-eu-west-1.s3.eu-west-1.amazonaws.com';
+// Tried in order. The pin decides whether a file is good, not the host it came from, so a
+// second host is only a fallback for availability (the development bucket is the one
+// Midnight's browser prover uses).
+const SOURCES = ['https://srs.midnight.network', 'https://midnight-s3-fileshare-dev-eu-west-1.s3.eu-west-1.amazonaws.com'];
 const K = [13, 14];
 const here = dirname(fileURLToPath(import.meta.url));
 const out = join(here, '..', 'public', 'params');
@@ -40,9 +46,19 @@ for (const k of K) {
   let bytes;
   if (existsSync(file)) bytes = readFileSync(file);
   else {
-    const res = await fetch(`${SOURCE}/${name}`);
-    if (!res.ok) throw new Error(`k=${k}: the download answered ${res.status}`);
-    bytes = new Uint8Array(await res.arrayBuffer());
+    const tried = [];
+    for (const source of SOURCES) {
+      try {
+        const res = await fetch(`${source}/${name}`);
+        if (!res.ok) { tried.push(`${source} answered ${res.status}`); continue; }
+        bytes = new Uint8Array(await res.arrayBuffer());
+        console.log(`k=${k}: downloaded from ${source}`);
+        break;
+      } catch (e) {
+        tried.push(`${source}: ${e?.cause?.code ?? e?.message ?? e}`);
+      }
+    }
+    if (!bytes) throw new Error(`k=${k}: could not download ${name} (${tried.join('; ')})`);
     writeFileSync(file, bytes);
   }
   const got = sha(bytes);
@@ -51,8 +67,8 @@ for (const k of K) {
     if (!pinning) {
       rmSync(file, { force: true });
       throw new Error(
-        `k=${k}: no pinned SHA-256 for ${name} in scripts/params.sha256.json. Run once with --pin, compare the ` +
-          'printed value with a second source (the copy the Compact compiler downloaded), and commit the file.',
+        `k=${k}: no pinned SHA-256 for ${name} in scripts/params.sha256.json. Copy it from Midnight's ` +
+          'base-crypto/src/data_provider.rs (EXPECTED_DATA), or run once with --pin and compare with that file.',
       );
     }
     pins[name] = got;
