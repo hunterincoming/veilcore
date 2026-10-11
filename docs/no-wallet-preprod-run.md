@@ -61,8 +61,8 @@ All three go in the same Railway project as the registry. None of them touches t
 production registry.
 
 **A. A proof server.** New → Docker Image →
-`midnightntwrk/proof-server:8.0.3@sha256:8e6c36c3c175ef6e1b337952155b30470f252af79a20c3f65153a86a983e17ab`
-(the exact version you looked up today). Start command `midnight-proof-server -v`. Name it
+`midnightntwrk/proof-server:8.1.3` (Railway refuses a tag and a digest together; 8.1.3 is
+Midnight's 2 October security patch, digest `sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c`). Start command `midnight-proof-server -v`. Name it
 `proof-server`. No public domain.
 
 **B. A preprod registry** (a second copy of the registry, for test records only). New →

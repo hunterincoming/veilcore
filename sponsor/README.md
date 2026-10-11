@@ -133,11 +133,12 @@ Also note your deployer wallet's two addresses: run the tool with the deployer w
 Those go in `SPONSOR_FORBIDDEN_ADDRESSES`.
 
 **4. On Railway, add a proof server** in the same project: New → Docker Image →
-`midnightntwrk/proof-server:8.0.3@sha256:8e6c36c3c175ef6e1b337952155b30470f252af79a20c3f65153a86a983e17ab`, start command
-`midnight-proof-server -v`, name it `proof-server`. Get the digest once with
-`docker buildx imagetools inspect midnightntwrk/proof-server:8.0.3` (the `Digest:` line):
-a tag can be re-pushed, a digest cannot. Don't give it a public domain. Its private
-address is `http://proof-server.railway.internal:6300`.
+`midnightntwrk/proof-server@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c` (8.1.3, Midnight's 2 October security patch; the digest is
+from Midnight's signed build manifest). Railway refuses a tag and a digest together; if it
+refuses the digest form too, use `midnightntwrk/proof-server:8.1.3` and never click its
+"upgrade" offers without checking Midnight's support matrix first. Start command
+`midnight-proof-server -v`, name it `proof-server`. Don't give it a public domain. Its
+private address is `http://proof-server.railway.internal:6300`.
 
 **5. Stage the sponsor** (on your Mac, from the repo root):
 `npm run stage -w sponsor`. It builds the service and makes a folder next to the repo,
