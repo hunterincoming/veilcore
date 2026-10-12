@@ -34,6 +34,7 @@ import type { UnboundTransaction } from '@midnight-ntwrk/midnight-js-types';
 import type { SealedTx } from './policy.js';
 import { NotSentError, type PayingWallet } from './sponsor.js';
 import { log } from './log.js';
+import { StallTracker, type SyncPart } from './sync-stall.js';
 
 type Keystore = ReturnType<typeof createKeystore>;
 
@@ -78,6 +79,13 @@ const isStrictlyComplete = (progress: unknown): boolean =>
   progress !== null &&
   typeof (progress as { isStrictlyComplete?: unknown }).isStrictlyComplete === 'function' &&
   (progress as { isStrictlyComplete: () => boolean }).isStrictlyComplete();
+
+/** Each wallet's progress and whether it has finished, for the stall tracker (sync-stall.ts). */
+const syncParts = (s: FacadeState): SyncPart[] =>
+  [s.shielded.state.progress, s.dust.state.progress, s.unshielded.progress].map((progress) => ({
+    progress,
+    complete: isStrictlyComplete(progress),
+  }));
 
 export const isFacadeSynced = (s: FacadeState): boolean =>
   isStrictlyComplete(s.shielded.state.progress) &&
@@ -125,6 +133,16 @@ class ProgressFile {
     writeFileSync(`${this.path}.tmp`, Buffer.concat([iv, c.getAuthTag(), body]), { mode: 0o600 });
     renameSync(`${this.path}.tmp`, this.path);
   }
+  /** Move the saved progress out of the way (kept, never deleted). The new name, or undefined. */
+  setAside(now = Date.now()): string | undefined {
+    const to = `${this.path}.stalled-${now}`;
+    try {
+      renameSync(this.path, to);
+      return to;
+    } catch {
+      return undefined;
+    }
+  }
 }
 
 export type WalletEndpoints = {
@@ -140,6 +158,9 @@ export class FacadeWallet implements PayingWallet {
   private latest: FacadeState | undefined;
   private sub: Rx.Subscription | undefined;
   private saveTimer: NodeJS.Timeout | undefined;
+  private stallTimer: NodeJS.Timeout | undefined;
+  private readonly stall = new StallTracker();
+  private stallWarned = false;
 
   private constructor(
     readonly facade: WalletFacade,
@@ -147,18 +168,21 @@ export class FacadeWallet implements PayingWallet {
     private readonly dustKey: DustSecretKey,
     private readonly keystore: Keystore,
     private readonly progress: ProgressFile,
+    /** Whether this run resumed from saved progress (a stall then means that progress is bad). */
+    private readonly restored: boolean,
     /** Public addresses of this wallet (not secrets), for the forbidden-wallet check and the logs. */
     readonly addresses: { readonly unshielded: string; readonly dust: string },
   ) {}
 
   /** Tests only: a wallet around a stand-in facade, with no keys and no network. */
-  static forTests(facade: unknown): FacadeWallet {
+  static forTests(facade: unknown, opts: { restored?: boolean; stateDir?: string } = {}): FacadeWallet {
     return new FacadeWallet(
       facade as WalletFacade,
       {} as ZswapSecretKeys,
       {} as DustSecretKey,
       { signData: () => 'signature' } as unknown as Keystore,
-      new ProgressFile('/nonexistent', 'test', 'test'),
+      new ProgressFile(opts.stateDir ?? '/nonexistent', 'test', 'test'),
+      opts.restored ?? false,
       { unshielded: '', dust: '' },
     );
   }
@@ -203,12 +227,12 @@ export class FacadeWallet implements PayingWallet {
         log('warn', 'wallet: saved progress unusable; syncing from the start', { error: (e as Error).message });
       }
     }
-    parts ??= {
+    const restored = parts !== undefined;
+    const p = (parts ??= {
       shielded: shieldedB.startWithSeed(seeds.shielded),
       unshielded: unshieldedB.startWithPublicKey(PublicKey.fromKeyStore(keystore)),
       dust: dustB.startWithSeed(seeds.dust, LedgerParameters.initialParameters().dust),
-    };
-    const p = parts;
+    });
     const facade = await WalletFacade.init({
       configuration: config as never,
       shielded: () => p.shielded as never,
@@ -216,7 +240,7 @@ export class FacadeWallet implements PayingWallet {
       dust: () => p.dust as never,
     });
     const dustKey = DustSecretKey.fromSeed(seeds.dust);
-    return new FacadeWallet(facade, ZswapSecretKeys.fromSeed(seeds.shielded), dustKey, keystore, progress, {
+    return new FacadeWallet(facade, ZswapSecretKeys.fromSeed(seeds.shielded), dustKey, keystore, progress, restored, {
       unshielded: keystore.getBech32Address().asString(),
       dust: DustAddress.encodePublicKey(ep.network, dustKey.publicKey),
     });
@@ -227,6 +251,7 @@ export class FacadeWallet implements PayingWallet {
     this.sub = this.facade.state().subscribe({
       next: (s) => {
         this.latest = s;
+        this.stall.see(syncParts(s));
       },
       error: (e: unknown) => {
         this.latest = undefined;
@@ -235,6 +260,44 @@ export class FacadeWallet implements PayingWallet {
     });
     this.saveTimer = setInterval(() => void this.saveProgress(), 120_000);
     this.saveTimer.unref();
+    this.stallTimer = setInterval(() => this.checkStall(), 60_000);
+    this.stallTimer.unref();
+  }
+
+  /** True while the sync has applied nothing for 30 minutes without being synced. */
+  syncStalled(): boolean {
+    return this.stall.stalled();
+  }
+
+  /**
+   * A stalled sync that resumed from saved progress: that progress is the likely cause
+   * (preprod, 10-11 Oct 2026). Set it aside (kept, renamed) and exit, so the platform
+   * restarts the service and it syncs from the start. Exactly once: a run that started
+   * from the start has no saved progress to blame, and restarting it again would only loop,
+   * so it is reported instead (log and the status page) for the operator.
+   */
+  checkStall(exit: (code: number) => void = (c) => process.exit(c)): void {
+    if (!this.stall.stalled()) {
+      this.stallWarned = false;
+      return;
+    }
+    if (this.restored) {
+      if (this.saveTimer) clearInterval(this.saveTimer); // never write the stuck state back
+      if (this.stallTimer) clearInterval(this.stallTimer);
+      const kept = this.progress.setAside();
+      log('error', 'wallet: sync stalled on saved progress; set it aside, restarting to sync from the start', {
+        minutesStill: this.stall.minutesStill(),
+        keptAs: kept ?? 'not moved',
+      });
+      exit(1);
+      return;
+    }
+    if (!this.stallWarned) {
+      this.stallWarned = true;
+      log('error', 'wallet: sync stalled from the start; check the indexer (Blockfrost) and the deploy log', {
+        minutesStill: this.stall.minutesStill(),
+      });
+    }
   }
 
   async saveProgress(): Promise<void> {
@@ -251,6 +314,7 @@ export class FacadeWallet implements PayingWallet {
 
   async stop(): Promise<void> {
     if (this.saveTimer) clearInterval(this.saveTimer);
+    if (this.stallTimer) clearInterval(this.stallTimer);
     await Promise.race([this.saveProgress(), new Promise((r) => setTimeout(r, 15_000).unref())]);
     this.sub?.unsubscribe();
     await this.facade.stop();

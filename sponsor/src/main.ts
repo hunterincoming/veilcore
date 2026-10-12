@@ -153,6 +153,8 @@ const main = async (): Promise<void> => {
       extraStatus: (detail) => ({
         network: cfg.network,
         contractAddress: cfg.contractAddress,
+        // True while the wallet sync has applied nothing for 30 minutes (wallet.ts checkStall).
+        syncStalled: wallet.syncStalled(),
         anchorer: anchorer
           ? detail
             ? { enabled: true, ...anchorer.status() }
