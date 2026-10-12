@@ -23,6 +23,7 @@ import { FaucetClient, type EnvironmentConfiguration } from '@midnight-ntwrk/tes
 import { Logger } from 'pino';
 import { UnshieldedAddress } from '@midnight-ntwrk/wallet-sdk-address-format';
 import { getNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { type SyncPart, watchSync } from './sync-watch';
 
 export const getInitialShieldedState = async (
   logger: Logger,
@@ -51,6 +52,13 @@ const isProgressStrictlyComplete = (progress: unknown): boolean => {
   return (candidate.isStrictlyComplete as () => boolean)();
 };
 
+/** Each wallet's progress and whether it has finished, for the stall watch (sync-watch.ts). */
+const syncParts = (state: FacadeState): SyncPart[] =>
+  [state.shielded.state.progress, state.dust.state.progress, state.unshielded.progress].map((progress) => ({
+    progress,
+    complete: isProgressStrictlyComplete(progress),
+  }));
+
 const isFacadeStateSynced = (state: FacadeState): boolean =>
   isProgressStrictlyComplete(state.shielded.state.progress) &&
   isProgressStrictlyComplete(state.dust.state.progress) &&
@@ -58,9 +66,13 @@ const isFacadeStateSynced = (state: FacadeState): boolean =>
 
 export const syncWallet = (logger: Logger, wallet: WalletFacade, throttleTime = 2_000) => {
   logger.info('Syncing wallet...');
+  // Says so if the sync stops moving (it can loop silently for hours): sync-watch.ts.
+  const watch = watchSync(logger, getNetworkId());
 
   return Rx.firstValueFrom(
     wallet.state().pipe(
+      Rx.tap((state: FacadeState) => watch.see(syncParts(state))),
+      Rx.finalize(() => watch.stop()),
       Rx.tap((state: FacadeState) => {
         const shieldedSynced = isProgressStrictlyComplete(state.shielded.state.progress);
         const unshieldedSynced = isProgressStrictlyComplete(state.unshielded.progress);
@@ -114,8 +126,11 @@ export const waitForUnshieldedFunds = async (
   if (initialBalance === undefined || initialBalance === 0n) {
     logger.info(`Your wallet initial balance is: 0 (not yet initialized)`);
     logger.info(`Waiting to receive tokens...`);
+    const watch = watchSync(logger, getNetworkId());
     return Rx.firstValueFrom(
       wallet.state().pipe(
+        Rx.tap((state: FacadeState) => watch.see(syncParts(state))),
+        Rx.finalize(() => watch.stop()),
         Rx.tap((state: FacadeState) => {
           const balance = state.unshielded.balances[tokenType.raw] ?? 0n;
           logger.debug(
