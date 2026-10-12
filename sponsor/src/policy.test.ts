@@ -54,6 +54,17 @@ describe('sponsor policy: hostile transactions are refused', () => {
     const bytes = await sealedCall('anchor', ttlIn(60_000));
     expect(code(bytes, config, new Date(Date.now() + 120_000))).toBe('expired');
   });
+  it('a transaction with midnight-js\'s own one-hour expiry passes under the default limit (12 Oct 2026)', async () => {
+    const { loadConfig } = await import('./config.js');
+    const limit = loadConfig({
+      SPONSOR_SEED: '11'.repeat(32),
+      SPONSOR_FORBIDDEN_ADDRESSES: 'mn_addr_preprod1deployer',
+      VEILCORE_CONTRACT_ADDRESS: VC,
+      PROOF_SERVER_URL: 'http://proof-server.railway.internal:6300',
+      BLOCKFROST_PROJECT_ID: 'preprodTestProjectId123',
+    }).maxTtlMs;
+    expect(code(await sealedCall('anchor', ttlIn(60 * 60_000)), { ...config, maxTtlMs: limit })).toBe('ok');
+  });
   it('a transaction that expires too far ahead', async () => {
     expect(code(await sealedCall('anchor', ttlIn(3 * 60 * 60_000)))).toBe('ttl-too-far');
   });

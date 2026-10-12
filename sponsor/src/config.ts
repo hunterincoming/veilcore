@@ -117,6 +117,17 @@ const dust = (s: string | undefined, dflt: bigint, name: string, problems: strin
   return BigInt(m[1]) * SPECKS_PER_DUST + BigInt((m[2] ?? '').padEnd(15, '0') || '0');
 };
 
+/** The shortest MAX_TTL_MINUTES that still accepts a transaction built with midnight-js's one-hour expiry. */
+export const MIN_TTL_MINUTES = 61;
+const minTtl = (minutes: number, problems: string[]): number => {
+  if (minutes < MIN_TTL_MINUTES) {
+    problems.push(
+      `MAX_TTL_MINUTES must be at least ${MIN_TTL_MINUTES}: midnight-js gives every transaction a one-hour expiry, so anything shorter refuses every transaction the site sends.`,
+    );
+  }
+  return minutes;
+};
+
 export const loadConfig = (env: Record<string, string | undefined>): Config => {
   const problems: string[] = [];
 
@@ -211,7 +222,11 @@ export const loadConfig = (env: Record<string, string | undefined>): Config => {
     allowedOrigins: origins,
     allowedCircuits,
     maxTxBytes: int(env.MAX_TX_BYTES, 64_000, 1_000, 1_000_000, 'MAX_TX_BYTES', problems),
-    maxTtlMs: int(env.MAX_TTL_MINUTES, 30, 1, 120, 'MAX_TTL_MINUTES', problems) * 60_000,
+    // midnight-js gives every call it builds a one-hour expiry (ttlOneHour), and the site
+    // cannot choose another. Below an hour, every transaction from the site was refused
+    // ("expires too far in the future": first live preprod run, 12 Oct 2026). 65 minutes
+    // leaves room for the browser's proving time; MIN_TTL_MINUTES enforces the floor.
+    maxTtlMs: minTtl(int(env.MAX_TTL_MINUTES, 65, 1, 120, 'MAX_TTL_MINUTES', problems), problems) * 60_000,
     maxFeeSpecks: dust(env.MAX_FEE_DUST, 5n * SPECKS_PER_DUST, 'MAX_FEE_DUST', problems),
     dailyBudgetSpecks: dust(env.DAILY_BUDGET_DUST, 50n * SPECKS_PER_DUST, 'DAILY_BUDGET_DUST', problems),
     powDifficulty: int(env.POW_DIFFICULTY, 18, 0, 28, 'POW_DIFFICULTY', problems),

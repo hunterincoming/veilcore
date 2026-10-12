@@ -103,3 +103,13 @@ describe('wallet safety checks', () => {
     ).not.toThrow();
   });
 });
+
+describe('MAX_TTL_MINUTES (first live preprod run, 12 Oct 2026)', () => {
+  it('defaults to 65 minutes, above midnight-js\'s one-hour expiry', () => {
+    expect(loadConfig(base).maxTtlMs).toBe(65 * 60_000);
+  });
+  it('refuses a limit under an hour, which would refuse every transaction from the site', () => {
+    expect(problems({ ...base, MAX_TTL_MINUTES: '30' }).join(' ')).toMatch(/at least 61/);
+    expect(problems({ ...base, MAX_TTL_MINUTES: '61' })).toEqual([]);
+  });
+});
