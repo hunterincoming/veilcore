@@ -63,9 +63,12 @@ the evening of 5 October (kept outside the repo).
 - **No CI** on `veilcore-sdk`, `veilcore-api` or `veilcore-rs`. The registry deploys `main`
   to Railway with no CI. (This repository's CI and scan pass on `main`, `149484e`.)
 - **No branch protection** on any of the four repositories.
-- **Dependabot:** `tools/vercel/package-lock.json` (added in round D) audits at 1 critical
-  and 24 high, all inside `vercel`'s own dependency tree. Deploy-time tooling, not shipped,
-  but counted. No `.github/dependabot.yml`.
+- **Dependabot:** `tools/vercel/package-lock.json` (added in round D) audits at 24 high and
+  8 moderate (11 Oct; the critical one is gone with the `tar` override), all inside `vercel`'s
+  own dependency tree: denial-of-service and slow-regex issues in its build helpers. Checked
+  11 Oct: the newest CLI (63.1.2) audits the same, so upgrading changes nothing; the app's own
+  lockfile audits clean. Deploy-time tooling run only on Hunter's Mac against our own files,
+  not shipped to visitors. No `.github/dependabot.yml`.
 - **Docker images pinned by digest** (9 October): proof-server 8.0.3, midnight-node 0.22.3
   and indexer-standalone 4.0.1 are named by tag and SHA-256 digest everywhere they are used
   (`bboard-cli/compose.yml`, `partner-kit/local/compose.yml`, the proof-server files, the
