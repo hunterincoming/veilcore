@@ -92,7 +92,10 @@ export const Step2PairDna: React.FC<{
         )}
         <Alert severity="success" variant="outlined">
           Paired. Your lab report&apos;s fingerprint is saved with the record, as your statement that this report
-          belongs to it. It is not a check of the genetics, and in {THIS_SITE} the pairing isn&apos;t dated yet.
+          belongs to it. It is not a check of the genetics.{' '}
+          {REAL_CHAIN
+            ? 'It is not dated yet: date it below if you want the pairing on the network.'
+            : `In ${THIS_SITE} the pairing isn’t dated yet.`}
         </Alert>
         {REAL_CHAIN && <PairDnaOnChainPanel recordId={paired.id} />}
         <Box>
@@ -123,8 +126,10 @@ export const Step2PairDna: React.FC<{
 
       <Alert icon={<ScienceIcon />} severity="info" variant="outlined">
         VeilCore doesn&apos;t test DNA: you pair the report your testing lab gave you. It&apos;s read and fingerprinted
-        on your device; the file is never uploaded. Its fingerprint and file name are saved with your record. In{' '}
-        {THIS_SITE} the pairing isn&apos;t dated yet; on VeilCore&apos;s contract it is.
+        on your device; the file is never uploaded. Its fingerprint and file name are saved with your record.{' '}
+        {REAL_CHAIN
+          ? 'Afterwards you can also date the pairing on the network.'
+          : `In ${THIS_SITE} the pairing isn’t dated yet; on VeilCore’s contract it is.`}
       </Alert>
 
       <Dropzone

@@ -92,9 +92,24 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
               </>
             )}
             {!keys ? (
-              <Button variant="outlined" disabled={!keeps && !privateOk} onClick={() => ensureKeys(recordId)}>
-                1. Make this record’s keys (in this browser)
-              </Button>
+              <>
+                {/* Restore comes first (no-wallet run, 13 Oct 2026): after "Remove" the page
+                    offered only "Make this record's keys", and the restore button was not
+                    on the page at all. New keys would be a second, unrelated identity. */}
+                <RecordKeysPanel record={record} />
+                <Typography variant="body2" color="text.secondary">
+                  Only for a record that has never had keys: if you anchored it before, or made its keys in another
+                  browser, restore them from your backup above instead. New keys would be a different identity.
+                </Typography>
+                <Button
+                  variant="outlined"
+                  disabled={!keeps && !privateOk}
+                  onClick={() => ensureKeys(recordId)}
+                  sx={{ alignSelf: 'flex-start' }}
+                >
+                  1. Make this record’s keys (in this browser)
+                </Button>
+              </>
             ) : (
               <>
                 <RecordKeysPanel record={record} />
