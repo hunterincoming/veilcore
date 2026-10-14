@@ -24,7 +24,11 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import { offerTransfer, shareCodeFor } from '../veilcore/transfers';
 import type { StrainRecord } from '../veilcore/records';
 
-export const SendToLab: React.FC<{ record: StrainRecord }> = ({ record }) => {
+export const SendToLab: React.FC<{
+  record: StrainRecord;
+  /** Draw the opener yourself (the plant page's action list); default is a button. */
+  trigger?: (open: () => void) => React.ReactNode;
+}> = ({ record, trigger }) => {
   const [open, setOpen] = useState(false);
   const [handle, setHandle] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -65,9 +69,13 @@ export const SendToLab: React.FC<{ record: StrainRecord }> = ({ record }) => {
 
   return (
     <>
-      <Button variant="outlined" startIcon={<SendIcon />} onClick={() => setOpen(true)}>
-        Send to a lab
-      </Button>
+      {trigger ? (
+        trigger(() => setOpen(true))
+      ) : (
+        <Button variant="outlined" startIcon={<SendIcon />} onClick={() => setOpen(true)}>
+          Send to a lab
+        </Button>
+      )}
 
       <Dialog open={open} onClose={reset} maxWidth="sm" fullWidth>
         <DialogTitle>{transferId ? 'Ready to send' : `Send ${record.strainName}`}</DialogTitle>
@@ -95,9 +103,13 @@ export const SendToLab: React.FC<{ record: StrainRecord }> = ({ record }) => {
               <Button size="small" variant="outlined" startIcon={<ContentCopyIcon />} onClick={copyCode}>
                 {copied ? 'Copied' : 'Copy code'}
               </Button>
+              <Alert severity="warning" variant="outlined">
+                <b>Text or email it to them. Don&apos;t write it on the package:</b> whoever has this code can confirm
+                the delivery.
+              </Alert>
               <Typography variant="caption" color="text.secondary">
                 Nothing has changed yet. The transfer completes when they enter the code; until then your record is
-                unchanged. The code includes a secret part: send it only to them, the same way you agreed the transfer.
+                unchanged. They can paste it into the box on VeilCore&apos;s Home.
               </Typography>
             </Stack>
           ) : (

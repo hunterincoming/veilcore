@@ -222,3 +222,19 @@ export const retract = async (
     return { error: 'could not reach the registry' };
   }
 };
+
+/**
+ * Adopt a lab's signing profile from the one-file backup (backup.ts) on a new device.
+ * Refuses to replace a different key already in this browser: a published key replaced
+ * that way could never sign again. True when it was adopted, false when already held.
+ */
+export const adoptAttester = (p: unknown): boolean => {
+  if (!isAttesterProfile(p)) throw new Error('The lab signature in that file is damaged. Nothing was changed.');
+  const current = loadAttester();
+  if (current && current.keypair.publicKey !== p.keypair.publicKey) {
+    throw new Error('This browser already has a different lab signature. Nothing was changed.');
+  }
+  if (current) return false;
+  save(p);
+  return true;
+};

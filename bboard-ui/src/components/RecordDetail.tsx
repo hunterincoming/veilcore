@@ -4,16 +4,20 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useState } from 'react';
-import { Alert, Box, Button, Chip, Divider, Link, Paper, Stack, Typography } from '@mui/material';
-import { Link as RouterLink, useParams, useNavigate } from 'react-router-dom';
+import { Alert, Box, Button, Collapse, Divider, Link, Paper, Stack, Typography } from '@mui/material';
+import { Link as RouterLink, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
-import ScienceIcon from '@mui/icons-material/ScienceOutlined';
-import DescriptionIcon from '@mui/icons-material/DescriptionOutlined';
-import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import CodeIcon from '@mui/icons-material/DataObjectOutlined';
-import GavelIcon from '@mui/icons-material/GavelOutlined';
-import ShareIcon from '@mui/icons-material/ShareOutlined';
-import { useRecords, getRecord, exportEnvelope } from '../veilcore/records';
+import { useRecords, getRecord, exportEnvelope, childrenOf } from '../veilcore/records';
+import { useRecordKeys } from '../veilcore/record-keys';
+import { ProveOwnershipPanel } from './chain/ProveOwnershipPanel';
+import { BackupStep } from './flow/BackupStep';
+import { SectionBand, type Section } from './flow/FlowFrame';
+import { ActionRow, PlantStatus } from './flow/PlantParts';
+import { PRACTICE_LABEL } from '../config/copy';
+import HomeIcon from '@mui/icons-material/HomeOutlined';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { useLicenses, licensesForRecord, activeLicenseCount, agreementType } from '../veilcore/licenses';
 import { shortFingerprint } from '../veilcore/commitment';
 import { StatusChain } from './StatusChain';
@@ -37,7 +41,19 @@ import { Step4CheckReport } from './wizard/Step4CheckReport';
 import { Step5ProveDisclosure } from './wizard/Step5ProveDisclosure';
 import { utcStamp as fmt } from '../veilcore/time';
 
-type Mode = 'overview' | 'pair' | 'cert' | 'check' | 'share';
+type Mode = 'overview' | 'pair' | 'cert' | 'check' | 'share' | 'backup' | 'stamp' | 'prove' | 'tree';
+
+/** Which section each screen of this page belongs to: its band says so. */
+const MODE_SECTION: Record<Exclude<Mode, 'overview'>, Section> = {
+  pair: 'log',
+  check: 'log',
+  backup: 'log',
+  stamp: 'log',
+  tree: 'log',
+  cert: 'prove',
+  share: 'prove',
+  prove: 'prove',
+};
 
 const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <Box>
@@ -53,9 +69,14 @@ export const RecordDetail: React.FC = () => {
   useLicenses();
   const { id = '' } = useParams();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<Mode>('overview');
+  // The paste box sends a proof request here as ?prove=<challenge>.
+  const [params] = useSearchParams();
+  const pastedChallenge = params.get('prove') ?? undefined;
+  const [mode, setMode] = useState<Mode>(pastedChallenge ? 'prove' : 'overview');
   const [exportError, setExportError] = useState<string | null>(null);
+  const [details, setDetails] = useState(false);
   const record = getRecord(id);
+  const keys = useRecordKeys()[id];
 
   if (!record) {
     return (
@@ -84,23 +105,23 @@ export const RecordDetail: React.FC = () => {
 
   const back = () => setMode('overview');
   const licenses = licensesForRecord(record.id);
+  const hasFamily = (record.parents?.length ?? 0) > 0 || childrenOf(record.id).length > 0;
 
   return (
-    <Box>
+    <Box sx={{ maxWidth: 680, mx: 'auto' }}>
       <AppHeader />
 
-      <Button component={RouterLink} to="/records" size="small" startIcon={<ArrowBackIcon />} sx={{ mb: 2 }}>
-        All records
+      <Button component={RouterLink} to="/records" startIcon={<HomeIcon />} sx={{ mb: 1.5, minHeight: 44 }}>
+        Home
       </Button>
 
-      <Stack direction="row" sx={{ alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', mb: 1 }}>
-        <Typography variant="h4">{record.strainName}</Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
-          {record.id}
-        </Typography>
-      </Stack>
       <Box sx={{ mb: 2.5 }}>
-        <StatusChain record={record} licenseCount={activeLicenseCount(record.id)} />
+        <Typography variant="h4" component="h1" sx={{ overflowWrap: 'anywhere' }}>
+          {record.strainName}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
+          {record.receivedFrom ? `Received from ${record.receivedFrom}` : `Bred by ${record.bredBy}`} · {record.id}
+        </Typography>
       </Box>
 
       {mode === 'overview' && (
@@ -127,80 +148,69 @@ export const RecordDetail: React.FC = () => {
             </Alert>
           )}
 
+          <PlantStatus record={record} keys={keys} />
+
+          {/* One thing to do next, worked out from where the plant stands. */}
           <NextStep
             record={record}
+            keys={keys}
+            onBackup={() => setMode('backup')}
+            onStamp={() => setMode('stamp')}
             onPairDna={() => setMode('pair')}
             onAgreement={() => navigate(`/record/${record.id}/license?type=license`)}
           />
 
-          <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
-            <Stack spacing={2}>
-              <Field label="Bred by">{record.bredBy}</Field>
-              {record.taxon && <Field label="Species">{record.taxon}</Field>}
-              {record.breedingMethod && <Field label="Breeding method">{record.breedingMethod}</Field>}
-              {record.parents && record.parents.length > 0 && (
-                <Field label="Parents">{record.parents.map((p) => p.name).join(' × ')}</Field>
+          {/* Everything else, in one plain list: a row per thing, its section's icon
+              first, so the same job looks the same here and on Home. */}
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+              More you can do
+            </Typography>
+            <Paper sx={{ px: { xs: 1.5, md: 2 } }}>
+              <ActionRow
+                section="prove"
+                label="Show someone"
+                hint="Pick what they see"
+                onClick={() => setMode('share')}
+              />
+              {REAL_CHAIN && keys?.anchor && (
+                <ActionRow
+                  section="prove"
+                  label="Someone asked me to prove I hold it"
+                  onClick={() => setMode('prove')}
+                />
               )}
-              <Field label="Stated creation date (breeder's claim)">{record.dateCreated}</Field>
-              <Field label="Sealed (this device's clock)">{fmt(record.loggedAt)}</Field>
-              {record.refId && <Field label="Reference / lot ID">{record.refId}</Field>}
-              {record.photoFingerprints && record.photoFingerprints.length > 0 && (
-                <Field label="Photos">
-                  {record.photoFingerprints.length} sealed (fingerprints only; the images were never uploaded)
-                </Field>
+              <ActionRow section="prove" label="Certificate" onClick={() => setMode('cert')} />
+              <SendToLab
+                record={record}
+                trigger={(open) => <ActionRow section="send" label="Send it to a lab or breeder" onClick={open} />}
+              />
+              <ActionRow
+                section="license"
+                label="License it"
+                tag={PRACTICE_LABEL}
+                onClick={() => navigate(`/record/${record.id}/license?type=license`)}
+              />
+              {!record.dnaFingerprint && (
+                <ActionRow section="log" label="Add a lab report" onClick={() => setMode('pair')} />
               )}
-              {record.notes && <Field label="Notes">{record.notes}</Field>}
-              <Field label="DNA report">
-                {record.dnaFingerprint
-                  ? `paired (${record.dnaFileName ?? 'file'}) · ${shortFingerprint(record.dnaFingerprint)}`
-                  : 'not paired yet'}
-              </Field>
-              <Divider />
-              <Field label="Record fingerprint">
-                <Box component="span" sx={{ fontFamily: '"Space Grotesk", monospace' }}>
-                  {shortFingerprint(record.recordFingerprint)}
-                </Box>
-              </Field>
-            </Stack>
-          </Paper>
-
-          <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
-            <AttestationPanel record={record} />
-          </Paper>
-
-          <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
-            <SettlementStatus record={record} />
-            {REAL_CHAIN && <AnchorOnChainPanel recordId={record.id} />}
-          </Paper>
-
-          {/* Every other panel answers "what is true now". A dispute asks "what happened,
-              and in what order" — a different question the app could not answer. */}
-          {/* Its own panel, drawn only when there is a history to show. */}
-          <RecordHistory record={record} />
-
-          {/* Only rendered when there is lineage. An empty panel saying "no lineage
-              recorded" is a row the reader has to process to learn nothing. */}
-          {(record.parents?.length ?? 0) > 0 && (
-            <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
-              <Typography variant="overline" sx={{ display: 'block', mb: 1.5 }}>
-                Lineage · {record.parents?.length} parent{record.parents?.length === 1 ? '' : 's'}
-              </Typography>
-              <LineageGraph record={record} />
+              <ActionRow section="log" label="Check a report matches" onClick={() => setMode('check')} />
+              {hasFamily && <ActionRow section="log" label="Family tree" onClick={() => setMode('tree')} />}
+              {REAL_CHAIN && keys && (
+                <ActionRow section="log" label="Save a fresh backup" onClick={() => setMode('backup')} />
+              )}
+              {/* A holder who mistypes something needs a path that is not deletion. */}
+              <CorrectRecord
+                record={record}
+                trigger={(open) => <ActionRow section="log" label="Fix a mistake" last onClick={open} />}
+              />
             </Paper>
-          )}
-
-          {/* Only when an agreement exists that could carry an obligation. Otherwise
-              this is a panel explaining a feature nobody has used yet. */}
-          {licenses.length > 0 && (
-            <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
-              <HeritableRights record={record} />
-            </Paper>
-          )}
+          </Box>
 
           {licenses.length > 0 && (
             <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
               <Typography variant="overline" sx={{ display: 'block', mb: 1.5 }}>
-                Agreements
+                Agreements {PRACTICE_LABEL && `· ${PRACTICE_LABEL}`}
               </Typography>
               <Stack spacing={1}>
                 {licenses.map((l) => (
@@ -231,85 +241,113 @@ export const RecordDetail: React.FC = () => {
             </Paper>
           )}
 
-          <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
-            {!record.dnaFingerprint && (
-              <Button variant="contained" startIcon={<ScienceIcon />} onClick={() => setMode('pair')}>
-                Pair DNA report
-              </Button>
-            )}
-            <Button variant="outlined" startIcon={<DescriptionIcon />} onClick={() => setMode('cert')}>
-              Certificate
-            </Button>
-            <Button variant="outlined" startIcon={<VerifiedIcon />} onClick={() => setMode('check')}>
-              Check a report matches
-            </Button>
-            <SendToLab record={record} />
-            {/* A holder who mistypes something needs a path that is not deletion. */}
-            <CorrectRecord record={record} />
-            {/* The wire format. Any implementation can read this and recompute the
-                commitment without our code, our chain, or our permission. */}
-            <Button
-              variant="text"
-              startIcon={<CodeIcon />}
-              onClick={() => {
-                setExportError(null);
-                exportEnvelope(record.id).catch((e: unknown) =>
-                  setExportError(e instanceof Error ? e.message : 'The record could not be exported.'),
-                );
-              }}
-            >
-              Export record
-            </Button>
-            {/* The grant is kept on the registry, so it has to be changeable after the
-                wizard, not only during it. */}
-            <Button variant="outlined" startIcon={<ShareIcon />} onClick={() => setMode('share')}>
-              What others see
-            </Button>
-          </Stack>
-          {exportError && (
-            <Alert severity="error" variant="outlined">
-              {exportError}
-            </Alert>
-          )}
-
+          {/* The detail a dispute or a technical reader needs, one tap away rather than
+              in front of everyone. Nothing here is hidden from the holder. */}
           <Box>
-            <Typography variant="overline" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-              Start an agreement: terms attached to this record
-            </Typography>
-            <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
-              <Button
-                variant="contained"
-                startIcon={<GavelIcon />}
-                onClick={() => navigate(`/record/${record.id}/license?type=license`)}
-              >
-                License
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<ScienceIcon />}
-                onClick={() => navigate(`/record/${record.id}/license?type=lab-transfer`)}
-              >
-                Send to a lab
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<ShareIcon />}
-                onClick={() => navigate(`/record/${record.id}/license?type=breeder-share`)}
-              >
-                Share with a breeder
-              </Button>
-            </Stack>
+            <Button
+              onClick={() => setDetails(!details)}
+              color="inherit"
+              endIcon={details ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              sx={{ minHeight: 44 }}
+            >
+              Technical details
+            </Button>
+            <Collapse in={details}>
+              <Stack spacing={2.5} sx={{ pt: 1 }}>
+                <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
+                  <Stack spacing={2}>
+                    <Field label="Bred by">{record.bredBy}</Field>
+                    {record.taxon && <Field label="Species">{record.taxon}</Field>}
+                    {record.breedingMethod && <Field label="Breeding method">{record.breedingMethod}</Field>}
+                    {record.parents && record.parents.length > 0 && (
+                      <Field label="Parents">{record.parents.map((p) => p.name).join(' × ')}</Field>
+                    )}
+                    <Field label="Stated creation date (breeder's claim)">{record.dateCreated}</Field>
+                    <Field label="Sealed (this device's clock)">{fmt(record.loggedAt)}</Field>
+                    {record.refId && <Field label="Reference / lot ID">{record.refId}</Field>}
+                    {record.photoFingerprints && record.photoFingerprints.length > 0 && (
+                      <Field label="Photos">
+                        {record.photoFingerprints.length} sealed (fingerprints only; the images were never uploaded)
+                      </Field>
+                    )}
+                    {record.notes && <Field label="Notes">{record.notes}</Field>}
+                    <Field label="DNA report">
+                      {record.dnaFingerprint
+                        ? `paired (${record.dnaFileName ?? 'file'}) · ${shortFingerprint(record.dnaFingerprint)}`
+                        : 'not paired yet'}
+                    </Field>
+                    <Divider />
+                    <Field label="Record fingerprint">
+                      <Box component="span" sx={{ fontFamily: '"Space Grotesk", monospace' }}>
+                        {shortFingerprint(record.recordFingerprint)}
+                      </Box>
+                    </Field>
+                    <StatusChain record={record} licenseCount={activeLicenseCount(record.id)} />
+                  </Stack>
+                </Paper>
+                <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
+                  <AttestationPanel record={record} />
+                </Paper>
+                <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
+                  <SettlementStatus record={record} />
+                  {REAL_CHAIN && <AnchorOnChainPanel recordId={record.id} />}
+                </Paper>
+                {/* Every other panel answers "what is true now". A dispute asks "what
+                    happened, and in what order". */}
+                <RecordHistory record={record} />
+                {licenses.length > 0 && (
+                  <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
+                    <HeritableRights record={record} />
+                  </Paper>
+                )}
+                {/* The wire format. Any implementation can read this and recompute the
+                    commitment without our code, our chain, or our permission. */}
+                <Box>
+                  <Button
+                    variant="text"
+                    startIcon={<CodeIcon />}
+                    onClick={() => {
+                      setExportError(null);
+                      exportEnvelope(record.id).catch((e: unknown) =>
+                        setExportError(e instanceof Error ? e.message : 'The record could not be exported.'),
+                      );
+                    }}
+                  >
+                    Export record
+                  </Button>
+                  {exportError && (
+                    <Alert severity="error" variant="outlined">
+                      {exportError}
+                    </Alert>
+                  )}
+                </Box>
+              </Stack>
+            </Collapse>
           </Box>
         </Stack>
       )}
 
       {mode !== 'overview' && (
-        <Paper sx={{ p: { xs: 2.5, md: 4 } }}>
-          {mode === 'pair' && <Step2PairDna recordId={record.id} onBack={back} onDone={back} />}
-          {mode === 'cert' && <Step3Certificate recordId={record.id} onBack={back} onDone={back} />}
-          {mode === 'check' && <Step4CheckReport onBack={back} onRestart={back} />}
-          {mode === 'share' && <Step5ProveDisclosure recordId={record.id} onBack={back} onDone={back} />}
-        </Paper>
+        <Box>
+          <SectionBand section={MODE_SECTION[mode]} />
+          <Paper sx={{ p: { xs: 2.25, md: 3.5 }, mt: 1.5 }}>
+            {mode === 'pair' && (
+              <Step2PairDna recordId={record.id} onBack={back} onDone={back} doneLabel="Back to the plant" />
+            )}
+            {mode === 'cert' && <Step3Certificate recordId={record.id} onBack={back} onDone={back} />}
+            {mode === 'check' && <Step4CheckReport onBack={back} onRestart={back} />}
+            {mode === 'share' && <Step5ProveDisclosure recordId={record.id} onBack={back} onDone={back} />}
+            {mode === 'backup' && <BackupStep title="Save your backup" finishLabel="Back to the plant" onDone={back} />}
+            {mode === 'stamp' && <AnchorOnChainPanel recordId={record.id} />}
+            {mode === 'prove' && <ProveOwnershipPanel recordId={record.id} initialChallenge={pastedChallenge} />}
+            {mode === 'tree' && <LineageGraph record={record} />}
+          </Paper>
+          {(mode === 'stamp' || mode === 'prove' || mode === 'tree') && (
+            <Button onClick={back} startIcon={<ArrowBackIcon />} sx={{ mt: 1.5, minHeight: 44 }}>
+              Back to the plant
+            </Button>
+          )}
+        </Box>
       )}
     </Box>
   );

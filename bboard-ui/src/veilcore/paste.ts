@@ -1,0 +1,43 @@
+// The one box for anything someone sent you. It works out what was pasted, so nobody has
+// to know the difference between a delivery code, a record link, a proof request and an
+// agreement to sign (the kiosk rule: show one code, the system decides).
+//
+// Links keep only their path: the app opens its own page for it, whatever host the link
+// was written with, so a pasted link can never send anyone to another site.
+// SPDX-License-Identifier: Apache-2.0
+
+export type Pasted =
+  | { readonly kind: 'delivery'; readonly code: string }
+  | { readonly kind: 'record-link'; readonly path: string }
+  | { readonly kind: 'agreement-to-sign'; readonly path: string }
+  | { readonly kind: 'prove-request'; readonly challenge: string }
+  | { readonly kind: 'unknown' };
+
+const DELIVERY = /^TR-[0-9A-F]{8}(\.[0-9a-z]+)?$/i;
+const CHALLENGE = /^(0x)?[0-9a-f]{64}$/i;
+
+const pathOf = (raw: string): string | undefined => {
+  // "veilcore.org/verify/…" copied without its https:// is still a link.
+  const withScheme = /^[a-z0-9.-]+\.[a-z]{2,}(:\d+)?\//i.test(raw) ? `https://${raw}` : raw;
+  try {
+    const u = new URL(withScheme, 'https://paste.invalid');
+    return `${u.pathname}${u.search}${u.hash}`;
+  } catch {
+    return undefined;
+  }
+};
+
+export const recognise = (raw: string): Pasted => {
+  const v = raw.trim();
+  if (!v) return { kind: 'unknown' };
+  if (DELIVERY.test(v)) return { kind: 'delivery', code: v };
+  if (CHALLENGE.test(v)) return { kind: 'prove-request', challenge: v.replace(/^0x/i, '').toLowerCase() };
+  if (v.includes('/')) {
+    const path = pathOf(v);
+    if (path && /^\/verify\/[^/?#]+/.test(path) && !path.startsWith('/verify/example')) {
+      return { kind: 'record-link', path };
+    }
+    if (path && /^\/license\/[^/?#]+\/sign(\/|$|\?|#)/.test(path)) return { kind: 'agreement-to-sign', path };
+  }
+  return { kind: 'unknown' };
+};

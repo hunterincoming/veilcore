@@ -25,7 +25,11 @@ export const Step2PairDna: React.FC<{
   onDone: () => void;
   onBack: () => void;
   onSkip?: () => void;
-}> = ({ recordId, onDone, onBack, onSkip }) => {
+  /** The button after pairing; the old wizard went on to the certificate. */
+  doneLabel?: string;
+  /** Shown above the drop zone, e.g. in the logging flow, before a lab ever got a cutting. */
+  intro?: React.ReactNode;
+}> = ({ recordId, onDone, onBack, onSkip, doneLabel = 'Continue: see the certificate', intro }) => {
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [paired, setPaired] = useState<StrainRecord>();
@@ -100,7 +104,7 @@ export const Step2PairDna: React.FC<{
         {REAL_CHAIN && <PairDnaOnChainPanel recordId={paired.id} />}
         <Box>
           <Button variant="contained" size="large" onClick={onDone}>
-            Continue: see the certificate
+            {doneLabel}
           </Button>
         </Box>
       </Stack>
@@ -123,6 +127,8 @@ export const Step2PairDna: React.FC<{
           </Typography>
         )}
       </Box>
+
+      {intro}
 
       <Alert icon={<ScienceIcon />} severity="info" variant="outlined">
         VeilCore doesn&apos;t test DNA: you pair the report your testing lab gave you. It&apos;s read and fingerprinted

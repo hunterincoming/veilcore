@@ -1,74 +1,46 @@
-// AppHeader — shared top bar: wordmark (to the public home page), your records, quick "New record", agreements, a lab's own actions, and the network badge.
+// AppHeader: the wordmark (to Home), the language and the network badge. Nothing else.
+//
+// It used to carry New record, Agreements, Receive, Signing key and Holder key: five
+// controls on every screen, the "this is all over" Hunter named on 13 Oct 2026. Each now
+// has one home: Log new and agreements on Home, a lab's two jobs in Home's lab panel, the
+// holder key inside the one-file backup (Save your backup / Get your plants back). The
+// receive and signing dialogs stay mounted here, without buttons, so Home and the paste
+// box can open them from anywhere.
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
-import { Box, Button, Stack, Typography } from '@mui/material';
-import { HolderKeyPanel } from './HolderKeyPanel';
+import { Box, Stack, Typography } from '@mui/material';
 import { ClaimTransfer } from './ClaimTransfer';
 import { AttesterSetup } from './AttesterSetup';
-import { useRole, isLab } from '../veilcore/role';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
-import AddIcon from '@mui/icons-material/Add';
+import { Link as RouterLink } from 'react-router-dom';
 import { WalletBadge } from './veilcore/WalletBadge';
 import { TEAL } from '../config/theme';
 import { NETWORK } from '../config/network';
-import { useI18n } from '../i18n';
 import { LanguagePicker } from '../i18n/LanguagePicker';
 
-export const AppHeader: React.FC = () => {
-  const loc = useLocation();
-  const { t } = useI18n();
-  const role = useRole();
-  return (
+export const AppHeader: React.FC = () => (
+  <Stack
+    direction="row"
+    sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5, mb: { xs: 3, md: 4 } }}
+  >
     <Stack
+      component={RouterLink}
+      to="/records"
+      aria-label="VeilCore: your plants"
       direction="row"
-      sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5, mb: { xs: 4, md: 5 } }}
+      spacing={1.25}
+      sx={{ alignItems: 'center', textDecoration: 'none', minHeight: 44 }}
     >
-      <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', columnGap: 3, rowGap: 1 }}>
-        <Stack
-          component={RouterLink}
-          to="/"
-          aria-label="VeilCore home"
-          direction="row"
-          spacing={1.25}
-          sx={{ alignItems: 'center', textDecoration: 'none', minHeight: { xs: 44, sm: 0 } }}
-        >
-          <Box sx={{ width: 12, height: 12, borderRadius: '50%', background: TEAL, boxShadow: `0 0 14px ${TEAL}` }} />
-          <Typography variant="h6" sx={{ letterSpacing: '0.3em', fontWeight: 600, color: 'text.primary' }}>
-            VEILCORE
-          </Typography>
-        </Stack>
-        {loc.pathname !== '/records' && (
-          <Button component={RouterLink} to="/records" size="small" variant="text">
-            {t('footer.yourRecords')}
-          </Button>
-        )}
-        {loc.pathname !== '/new' && (
-          <Button component={RouterLink} to="/new" size="small" variant="outlined" startIcon={<AddIcon />}>
-            {t('nav.newCultivar')}
-          </Button>
-        )}
-        {loc.pathname !== '/licenses' && (
-          <Button component={RouterLink} to="/licenses" size="small" variant="text">
-            {t('nav.licenses')}
-          </Button>
-        )}
-        {/* A recipient may have no records at all — receiving has to be reachable
-            from anywhere, not buried inside a cultivar they do not own yet. */}
-        {/* Receiving and attesting are a lab's job. Showing them to a breeder is
-            offering controls for work they will never do. */}
-        {isLab(role) && (
-          <>
-            <ClaimTransfer />
-            <AttesterSetup />
-          </>
-        )}
-        <HolderKeyPanel />
-      </Stack>
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-        <LanguagePicker />
-        <WalletBadge network={NETWORK} />
-      </Stack>
+      <Box sx={{ width: 12, height: 12, borderRadius: '50%', background: TEAL, boxShadow: `0 0 14px ${TEAL}` }} />
+      <Typography variant="h6" sx={{ letterSpacing: '0.3em', fontWeight: 600, color: 'text.primary' }}>
+        VEILCORE
+      </Typography>
     </Stack>
-  );
-};
+    <ClaimTransfer hideButton />
+    <AttesterSetup hideButton />
+    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+      <LanguagePicker />
+      <WalletBadge network={NETWORK} />
+    </Stack>
+  </Stack>
+);

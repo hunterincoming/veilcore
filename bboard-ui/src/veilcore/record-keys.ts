@@ -214,6 +214,14 @@ export const downloadBackup = (keys: RecordKeys, extra: Parameters<typeof backup
 export const restoreBackup = async (file: File): Promise<RecordKeys> => {
   const parsed = JSON.parse(await file.text()) as Record<string, unknown>;
   if (parsed.format !== 'veilcore-record-keys') throw new Error('That is not a VeilCore record-keys file.');
+  return restoreKeysEntry(parsed);
+};
+
+/**
+ * Restore one record's keys from a parsed backup entry: the single-record file above, or
+ * one entry of the one-file backup (backup.ts). Shared so both read keys the same way.
+ */
+export const restoreKeysEntry = (parsed: Record<string, unknown>): RecordKeys => {
   const str = (v: unknown): string => (typeof v === 'string' ? v : '');
   const keys = {
     recordId: str(parsed.recordId),
@@ -258,6 +266,29 @@ export const restoreBackup = async (file: File): Promise<RecordKeys> => {
   if (!writeAll({ ...all, [keys.recordId]: merged })) sessionOnly = { ...sessionOnly, [keys.recordId]: merged };
   changed();
   return merged;
+};
+
+/** Every record's keys this browser holds. */
+export const allKeys = (): RecordKeys[] => Object.values(readAll());
+
+/** One backup entry for a record's keys: what the one-file backup stores per record. */
+export const keysEntry = (keys: RecordKeys) => ({
+  recordId: keys.recordId,
+  identity: keys.anchor?.identity,
+  anchor: keys.anchor,
+  dnaOnChain: keys.dnaOnChain,
+  recordSecret: keys.recordSecret,
+  recoverySecret: keys.recoverySecret,
+  createdAt: new Date(keys.createdAt).toISOString(),
+});
+
+/** Mark these records as held in a backup that was checked to open (backup.ts). */
+export const markBackedUp = (recordIds: readonly string[], at = Date.now()): void => {
+  const all = readAll();
+  const next = { ...all };
+  for (const id of recordIds) if (next[id]) next[id] = { ...next[id], backedUpAt: at };
+  if (!writeAll(next)) for (const id of recordIds) if (next[id]) sessionOnly = { ...sessionOnly, [id]: next[id] };
+  changed();
 };
 
 /** Record where the identity was anchored (after the anchor lands). */

@@ -43,7 +43,11 @@ const FIELD_LABEL: Record<string, string> = {
   holder: 'holder',
 };
 
-export const CorrectRecord: React.FC<{ record: StrainRecord }> = ({ record }) => {
+export const CorrectRecord: React.FC<{
+  record: StrainRecord;
+  /** Draw the opener yourself (the plant page's action list); default is a button. */
+  trigger?: (open: () => void) => React.ReactNode;
+}> = ({ record, trigger }) => {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
@@ -84,9 +88,13 @@ export const CorrectRecord: React.FC<{ record: StrainRecord }> = ({ record }) =>
 
   return (
     <>
-      <Button variant="text" startIcon={<EditIcon />} onClick={() => setOpen(true)}>
-        Correct this record
-      </Button>
+      {trigger ? (
+        trigger(() => setOpen(true))
+      ) : (
+        <Button variant="text" startIcon={<EditIcon />} onClick={() => setOpen(true)}>
+          Correct this record
+        </Button>
+      )}
 
       <Dialog open={open} onClose={reset} maxWidth="sm" fullWidth>
         <DialogTitle>Correct {record.id}</DialogTitle>

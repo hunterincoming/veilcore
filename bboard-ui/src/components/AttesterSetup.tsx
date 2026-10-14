@@ -41,7 +41,11 @@ const ROLE_LABEL: Record<string, string> = {
 /** Opens the header's signing-key dialog from elsewhere on the page (a lab's first screen). */
 export const OPEN_SIGNING_KEY_EVENT = 'veilcore:open-signing-key';
 
-export const AttesterSetup: React.FC<{ variant?: 'button' | 'text' }> = ({ variant = 'text' }) => {
+export const AttesterSetup: React.FC<{
+  variant?: 'button' | 'text';
+  /** Mounted for Home's lab panel only: no button of its own. */
+  hideButton?: boolean;
+}> = ({ variant = 'text', hideButton }) => {
   const [open, setOpen] = useState(false);
   const [profile, setProfile] = useState<AttesterProfile | null>(loadAttester());
   const [name, setName] = useState('');
@@ -106,13 +110,15 @@ export const AttesterSetup: React.FC<{ variant?: 'button' | 'text' }> = ({ varia
 
   return (
     <>
-      <Button
-        variant={variant === 'button' ? 'outlined' : 'text'}
-        startIcon={<BadgeIcon />}
-        onClick={() => setOpen(true)}
-      >
-        {profile ? 'Your signing key' : 'Set up your signing key'}
-      </Button>
+      {!hideButton && (
+        <Button
+          variant={variant === 'button' ? 'outlined' : 'text'}
+          startIcon={<BadgeIcon />}
+          onClick={() => setOpen(true)}
+        >
+          {profile ? 'Your signing key' : 'Set up your signing key'}
+        </Button>
+      )}
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{profile ? 'Your signing key' : 'Set up your signing key'}</DialogTitle>

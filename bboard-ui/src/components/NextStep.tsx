@@ -10,6 +10,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
+import SaveIcon from '@mui/icons-material/SaveOutlined';
+import type { RecordKeys } from '../veilcore/record-keys';
+import { REAL_CHAIN } from '../veilcore/chain/config';
 import { Box, Button, Paper, Stack, Typography } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/ScienceOutlined';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
@@ -34,7 +37,11 @@ export const NextStep: React.FC<{
   record: StrainRecord;
   onPairDna: () => void;
   onAgreement: () => void;
-}> = ({ record, onPairDna, onAgreement }) => {
+  /** This record's keys in this browser, on builds that use them (test networks). */
+  keys?: RecordKeys;
+  onBackup?: () => void;
+  onStamp?: () => void;
+}> = ({ record, onPairDna, onAgreement, keys, onBackup, onStamp }) => {
   let step: Step;
 
   // A record that arrived through a transfer belongs to the recipient. Telling them to
@@ -42,7 +49,25 @@ export const NextStep: React.FC<{
   // page has to know which side of the transfer the reader is on.
   const isReceived = Boolean(record.receivedFrom);
 
-  if (isReceived && !record.attestation) {
+  // Keys that live only in this browser come first: everything else can wait, a lost
+  // browser can't be undone. Then the date stamp, which the logging flow normally did.
+  if (REAL_CHAIN && keys && !keys.backedUpAt && onBackup) {
+    step = {
+      title: 'Save your backup',
+      why: 'This plant’s keys are only on this device right now. If it breaks or the browser is cleared, nobody can prove you hold it. Saving takes a minute.',
+      action: 'Save my backup',
+      icon: <SaveIcon />,
+      onClick: onBackup,
+    };
+  } else if (REAL_CHAIN && !isReceived && !keys?.anchor && onStamp) {
+    step = {
+      title: 'Add the date stamp',
+      why: 'It’s sealed, but it doesn’t have its public date yet. It takes about a minute and it’s free.',
+      action: 'Add the date stamp',
+      icon: <VerifiedIcon />,
+      onClick: onStamp,
+    };
+  } else if (isReceived && !record.attestation) {
     step = {
       title: 'Confirm what you received',
       why: 'You hold this material now. Attaching your signed report to the sender’s record is what turns their record into evidence: signed by you, not recorded on your behalf.',

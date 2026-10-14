@@ -34,3 +34,13 @@ export const LICENSE_PROOF_NOTE = `Proving that a license is live, without showi
 
 /** The one line every simulated agreement screen carries. */
 export const AGREEMENTS_SIMULATED = `Simulated in ${THIS_SITE}: the other party doesn’t sign anything here, and nothing is sent to Midnight.`;
+
+/**
+ * THE switch for agreements. False until there is a filing, a lawyer's view and both
+ * founders' sign-off: every "Practice only" label and "not legally binding" line in the
+ * app reads from here, so going live is one change, reviewed in one place.
+ */
+export const AGREEMENTS_LIVE = false;
+
+/** The label agreements carry while AGREEMENTS_LIVE is false. */
+export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';

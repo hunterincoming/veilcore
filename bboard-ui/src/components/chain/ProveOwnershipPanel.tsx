@@ -14,11 +14,14 @@ import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { useChainCall } from './useChainCall';
 import { ChainStatusLine } from './ChainStatusLine';
 
-export const ProveOwnershipPanel: React.FC<{ recordId: string }> = ({ recordId }) => {
+export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?: string }> = ({
+  recordId,
+  initialChallenge = '',
+}) => {
   useRecords();
   const record = getRecord(recordId);
   const keys = useRecordKeys()[recordId];
-  const [challenge, setChallenge] = useState('');
+  const [challenge, setChallenge] = useState(initialChallenge);
   const call = useChainCall<ChainReceipt>();
   if (!record || chainNotReady()) return null;
 

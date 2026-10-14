@@ -49,7 +49,11 @@ type Stage =
   | { step: 'sign'; subject: CustodySubject; attester: AttesterProfile }
   | { step: 'refused'; recordId: string; reason: string };
 
-export const ClaimTransfer: React.FC<{ variant?: 'button' | 'text' }> = ({ variant = 'text' }) => {
+export const ClaimTransfer: React.FC<{
+  variant?: 'button' | 'text';
+  /** Mounted for the paste box only: no button of its own (a breeder's header). */
+  hideButton?: boolean;
+}> = ({ variant = 'text', hideButton }) => {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
@@ -61,7 +65,12 @@ export const ClaimTransfer: React.FC<{ variant?: 'button' | 'text' }> = ({ varia
   // One dialog, in the header, which stays mounted while the page under it changes (a
   // lab's first screen gives way to its records list the moment a transfer is claimed).
   useEffect(() => {
-    const show = () => setOpen(true);
+    // The paste box sends the code it recognised, so nobody types it twice.
+    const show = (e: Event) => {
+      const pasted = (e as CustomEvent<{ code?: string } | undefined>).detail?.code;
+      if (pasted) setCode(pasted);
+      setOpen(true);
+    };
     window.addEventListener(OPEN_RECEIVE_EVENT, show);
     return () => window.removeEventListener(OPEN_RECEIVE_EVENT, show);
   }, []);
@@ -138,13 +147,15 @@ export const ClaimTransfer: React.FC<{ variant?: 'button' | 'text' }> = ({ varia
 
   return (
     <>
-      <Button
-        variant={variant === 'button' ? 'outlined' : 'text'}
-        startIcon={<InboxIcon />}
-        onClick={() => setOpen(true)}
-      >
-        Receive material
-      </Button>
+      {!hideButton && (
+        <Button
+          variant={variant === 'button' ? 'outlined' : 'text'}
+          startIcon={<InboxIcon />}
+          onClick={() => setOpen(true)}
+        >
+          Receive material
+        </Button>
+      )}
 
       <Dialog open={open} onClose={close} maxWidth="sm" fullWidth>
         <DialogTitle>{stage.step === 'sign' ? 'Sign what you received?' : 'Receive material'}</DialogTitle>
