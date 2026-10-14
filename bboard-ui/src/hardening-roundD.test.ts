@@ -652,6 +652,7 @@ type PwPage = {
   evaluate<R, A = undefined>(f: (a: A) => R, a?: A): Promise<R>;
   getByRole(role: string, o: { name: string | RegExp }): PwLocator;
   getByLabel(label: string): PwLocator;
+  getByText(text: string | RegExp): PwLocator;
   locator(selector: string): PwLocator;
 };
 type PwContext = { newPage(): Promise<PwPage>; close(): Promise<void> };
@@ -659,11 +660,17 @@ type PwBrowser = { newContext(o?: object): Promise<PwContext>; close(): Promise<
 
 const DIST = path.resolve(HERE, '../dist');
 const API = 'https://veilcore-api-production.up.railway.app';
-const PW = ['/opt/node-tools/node_modules/playwright', '/home/claude/.npm-global/lib/node_modules/playwright'].find(
-  (p) => fs.existsSync(p),
-);
-const CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
-const haveBrowser = Boolean(PW) && fs.existsSync(path.join(DIST, 'index.html')) && fs.existsSync(CHROME);
+// The repository's own Playwright (@playwright/test brings it), so this runs in CI too, with
+// the browser `npx playwright install chromium` put in place. Older machine-wide installs
+// are still used when present.
+const PW = [
+  path.resolve(HERE, '../../node_modules/playwright'),
+  '/opt/node-tools/node_modules/playwright',
+  '/home/claude/.npm-global/lib/node_modules/playwright',
+].find((p) => fs.existsSync(path.join(p, 'package.json')));
+const PINNED_CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const CHROME = fs.existsSync(PINNED_CHROME) ? PINNED_CHROME : undefined;
+const haveBrowser = Boolean(PW) && fs.existsSync(path.join(DIST, 'index.html'));
 
 // The headers of the site as deployed: without vitest.config.ts's real-chain test values,
 // which only the chain module's unit tests are meant to see.
@@ -724,7 +731,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     const { chromium } = createRequire(import.meta.url)(PW as string) as {
       chromium: { launch: (o: object) => Promise<PwBrowser> };
     };
-    browser = await chromium.launch({ executablePath: CHROME });
+    browser = await chromium.launch(CHROME ? { executablePath: CHROME } : {});
   }, 60_000);
 
   afterAll(async () => {
@@ -1250,7 +1257,8 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
         },
       );
       await pg.goto(`${origin}/record/VEIL-A`, { waitUntil: 'networkidle' });
-      await pg.getByRole('button', { name: 'What others see' }).click();
+      // The simple flow (13 Oct): the share screen is "Show someone" on the plant's page.
+      await pg.getByText('Show someone').click();
       await pg.getByLabel('Parent cultivar names').check();
       await pg.getByRole('button', { name: /Save this choice/ }).click();
       if (refuse) {
@@ -1383,7 +1391,8 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     await pg.goto(`${origin}/records`, { waitUntil: 'networkidle' });
     await pg.evaluate((p: string) => localStorage.setItem('veilcore.attester.v1', p), profile);
     await pg.goto(`${origin}/records`, { waitUntil: 'networkidle' });
-    await pg.getByRole('button', { name: 'Receive material' }).click();
+    // The simple flow (13 Oct): a lab's Home has "Confirm a delivery" (the header button went).
+    await pg.getByRole('button', { name: 'Confirm a delivery' }).click();
     await pg.getByLabel('Transfer code').fill('TR-1.abc');
     await pg.getByRole('button', { name: 'Receive it' }).click();
     await pg.waitForSelector('text=Sign what you received?', { timeout: 15_000 });

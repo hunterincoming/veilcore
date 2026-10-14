@@ -107,7 +107,8 @@ export const AppHome: React.FC = () => {
         Your lab&apos;s jobs
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-        Confirm what arrives. Your confirmation is signed with your lab&apos;s own key, not by us.
+        Confirm what arrives, then send results back from the plant&apos;s page. Both are signed with your lab&apos;s
+        own key, not by us, and results are locked so only the breeder can open them.
       </Typography>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
         <Button

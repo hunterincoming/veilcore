@@ -22,6 +22,8 @@ import {
 import SendIcon from '@mui/icons-material/SendOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import { offerTransfer, shareCodeFor } from '../veilcore/transfers';
+import { ensureKeys } from '../veilcore/record-keys';
+import { resultRecipientFor } from '../veilcore/lab-results';
 import type { StrainRecord } from '../veilcore/records';
 
 export const SendToLab: React.FC<{
@@ -47,7 +49,12 @@ export const SendToLab: React.FC<{
       note: note.trim() || undefined,
     });
     if ('error' in res) setError(res.error);
-    else setTransferId(shareCodeFor(res.transferId, res.claimCode));
+    else {
+      // The plant's lock goes in the code, so the lab can send results back that only
+      // this plant's holder can open (lab-results.ts).
+      const lock = await resultRecipientFor(ensureKeys(record.id).recordSecret).catch(() => undefined);
+      setTransferId(shareCodeFor(res.transferId, res.claimCode, lock));
+    }
     setBusy(false);
   };
 
@@ -84,7 +91,7 @@ export const SendToLab: React.FC<{
             <Stack spacing={2} sx={{ pt: 1 }}>
               <Alert severity="success" variant="outlined">
                 Give this code to {handle}. When they enter it, they confirm they received the material, and that
-                confirmation is added to your record.
+                confirmation is added to your record. It also lets a lab send results back that only you can open.
               </Alert>
               <Box
                 sx={{

@@ -52,18 +52,24 @@ const auth = () => ({ 'Content-Type': 'application/json', 'x-holder-key': holder
 const unexpected = { error: 'unexpected response from the registry' } as const;
 
 /**
- * What the sender hands the recipient: the transfer id and its secret claim code in one
- * string, so there is one thing to copy. The registry requires the code to claim (only
- * transfers made before it existed claim without one), and the app used to show and
- * send only the id, so no transfer made in the app could be claimed in the app.
+ * What the sender hands the recipient: the transfer id, its secret claim code and, for a
+ * lab, the plant's lock for sending results back (lab-results.ts), in one string, so
+ * there is one thing to copy. The registry requires the code to claim (only transfers
+ * made before it existed claim without one), and the app used to show and send only the
+ * id, so no transfer made in the app could be claimed in the app. The lock travels here,
+ * not through the registry, so the registry can't hand the lab a lock of its own.
  */
-export const shareCodeFor = (transferId: string, claimCode?: string): string =>
-  claimCode ? `${transferId}.${claimCode}` : transferId;
+export const shareCodeFor = (transferId: string, claimCode?: string, resultLock?: string): string =>
+  [transferId, claimCode, claimCode ? resultLock : undefined].filter(Boolean).join('.');
 
-/** Split a pasted share code back into the id and the claim code. */
-export const parseShareCode = (code: string): { transferId: string; claimCode?: string } => {
-  const [id, claim] = code.trim().split('.', 2);
-  return { transferId: id.toUpperCase(), ...(claim ? { claimCode: claim.toLowerCase() } : {}) };
+/** Split a pasted share code back into the id, the claim code and the results lock. */
+export const parseShareCode = (code: string): { transferId: string; claimCode?: string; resultLock?: string } => {
+  const [id, claim, lock] = code.trim().split('.', 3);
+  return {
+    transferId: id.toUpperCase(),
+    ...(claim ? { claimCode: claim.toLowerCase() } : {}),
+    ...(lock && /^age1[02-9ac-hj-np-z]{58}$/.test(lock.toLowerCase()) ? { resultLock: lock.toLowerCase() } : {}),
+  };
 };
 
 /** Offer a record to a recipient. Nothing moves until they claim it. */

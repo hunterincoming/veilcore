@@ -107,9 +107,14 @@ jobs:
         run: |
           npm run ci
 
-      - name: Site unit tests
+      # The unit tests include the built site under the production headers
+      # (src/hardening-roundD.test.ts), so build it first, against the address those tests
+      # stand in for. Nothing is deployed from here.
+      - name: Site unit tests, and the built site under production headers
         working-directory: bboard-ui
         run: |
+          VITE_API_BASE=https://veilcore-api-production.up.railway.app npm run build
+          npx playwright install --with-deps chromium
           npm test
 
       # The built site in a real browser at phone size, with a stand-in registry and every
@@ -119,5 +124,4 @@ jobs:
         working-directory: bboard-ui
         run: |
           npm run e2e:build
-          npx playwright install --with-deps chromium
           npm run e2e

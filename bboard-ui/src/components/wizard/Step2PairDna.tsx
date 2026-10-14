@@ -29,8 +29,10 @@ export const Step2PairDna: React.FC<{
   doneLabel?: string;
   /** Shown above the drop zone, e.g. in the logging flow, before a lab ever got a cutting. */
   intro?: React.ReactNode;
-}> = ({ recordId, onDone, onBack, onSkip, doneLabel = 'Continue: see the certificate', intro }) => {
-  const [file, setFile] = useState<File | null>(null);
+  /** A report already in hand (a lab result just opened), so nobody picks it again. */
+  initialFile?: File;
+}> = ({ recordId, onDone, onBack, onSkip, doneLabel = 'Continue: see the certificate', intro, initialFile }) => {
+  const [file, setFile] = useState<File | null>(initialFile ?? null);
   const [busy, setBusy] = useState(false);
   const [paired, setPaired] = useState<StrainRecord>();
   const [conflicts, setConflicts] = useState<StrainRecord[]>([]);

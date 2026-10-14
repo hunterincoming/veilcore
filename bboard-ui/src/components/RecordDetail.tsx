@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { Alert, Box, Button, Collapse, Divider, Link, Paper, Stack, Typography } from '@mui/material';
+import LockIcon from '@mui/icons-material/LockOutlined';
 import { Link as RouterLink, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/DataObjectOutlined';
@@ -39,9 +40,21 @@ import { Step2PairDna } from './wizard/Step2PairDna';
 import { Step3Certificate } from './wizard/Step3Certificate';
 import { Step4CheckReport } from './wizard/Step4CheckReport';
 import { Step5ProveDisclosure } from './wizard/Step5ProveDisclosure';
+import { LabResultsPanel, SendResultsPanel, useArrivedResults } from './flow/LabResults';
 import { utcStamp as fmt } from '../veilcore/time';
 
-type Mode = 'overview' | 'pair' | 'cert' | 'check' | 'share' | 'backup' | 'stamp' | 'prove' | 'tree';
+type Mode =
+  | 'overview'
+  | 'pair'
+  | 'cert'
+  | 'check'
+  | 'share'
+  | 'backup'
+  | 'stamp'
+  | 'prove'
+  | 'tree'
+  | 'results'
+  | 'sendResults';
 
 /** Which section each screen of this page belongs to: its band says so. */
 const MODE_SECTION: Record<Exclude<Mode, 'overview'>, Section> = {
@@ -53,6 +66,8 @@ const MODE_SECTION: Record<Exclude<Mode, 'overview'>, Section> = {
   cert: 'prove',
   share: 'prove',
   prove: 'prove',
+  results: 'send',
+  sendResults: 'send',
 };
 
 const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
@@ -77,6 +92,9 @@ export const RecordDetail: React.FC = () => {
   const [details, setDetails] = useState(false);
   const record = getRecord(id);
   const keys = useRecordKeys()[id];
+  // Results labs sent back for one of the holder's own plants (lab-results.ts).
+  const arrived = useArrivedResults(record?.id, !!record && !record.receivedFrom);
+  const [pairFile, setPairFile] = useState<File>();
 
   if (!record) {
     return (
@@ -150,6 +168,22 @@ export const RecordDetail: React.FC = () => {
 
           <PlantStatus record={record} keys={keys} />
 
+          {arrived && arrived.length > 0 && (
+            <Alert
+              severity="success"
+              variant="outlined"
+              icon={<LockIcon />}
+              action={
+                <Button color="inherit" onClick={() => setMode('results')} sx={{ minHeight: 40 }}>
+                  Open
+                </Button>
+              }
+            >
+              {arrived.length === 1 ? 'A lab result came back' : `${arrived.length} lab results came back`}, locked so
+              only you can open it.
+            </Alert>
+          )}
+
           {/* One thing to do next, worked out from where the plant stands. */}
           <NextStep
             record={record}
@@ -181,6 +215,17 @@ export const RecordDetail: React.FC = () => {
                 />
               )}
               <ActionRow section="prove" label="Certificate" onClick={() => setMode('cert')} />
+              {record.receivedFrom && record.transferId && (
+                <ActionRow
+                  section="send"
+                  label="Send results back to the breeder"
+                  hint="Signed by you, locked for them"
+                  onClick={() => setMode('sendResults')}
+                />
+              )}
+              {arrived && arrived.length > 0 && (
+                <ActionRow section="send" label="Lab results" onClick={() => setMode('results')} />
+              )}
               <SendToLab
                 record={record}
                 trigger={(open) => <ActionRow section="send" label="Send it to a lab or breeder" onClick={open} />}
@@ -332,8 +377,25 @@ export const RecordDetail: React.FC = () => {
           <SectionBand section={MODE_SECTION[mode]} />
           <Paper sx={{ p: { xs: 2.25, md: 3.5 }, mt: 1.5 }}>
             {mode === 'pair' && (
-              <Step2PairDna recordId={record.id} onBack={back} onDone={back} doneLabel="Back to the plant" />
+              <Step2PairDna
+                recordId={record.id}
+                onBack={back}
+                onDone={back}
+                doneLabel="Back to the plant"
+                initialFile={pairFile}
+              />
             )}
+            {mode === 'results' && (
+              <LabResultsPanel
+                record={record}
+                keys={keys}
+                onPair={(f) => {
+                  setPairFile(f);
+                  setMode('pair');
+                }}
+              />
+            )}
+            {mode === 'sendResults' && <SendResultsPanel record={record} onDone={back} />}
             {mode === 'cert' && <Step3Certificate recordId={record.id} onBack={back} onDone={back} />}
             {mode === 'check' && <Step4CheckReport onBack={back} onRestart={back} />}
             {mode === 'share' && <Step5ProveDisclosure recordId={record.id} onBack={back} onDone={back} />}
@@ -342,7 +404,7 @@ export const RecordDetail: React.FC = () => {
             {mode === 'prove' && <ProveOwnershipPanel recordId={record.id} initialChallenge={pastedChallenge} />}
             {mode === 'tree' && <LineageGraph record={record} />}
           </Paper>
-          {(mode === 'stamp' || mode === 'prove' || mode === 'tree') && (
+          {(mode === 'stamp' || mode === 'prove' || mode === 'tree' || mode === 'results') && (
             <Button onClick={back} startIcon={<ArrowBackIcon />} sx={{ mt: 1.5, minHeight: 44 }}>
               Back to the plant
             </Button>

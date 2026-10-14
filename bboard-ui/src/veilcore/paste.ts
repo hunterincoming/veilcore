@@ -14,7 +14,7 @@ export type Pasted =
   | { readonly kind: 'prove-link'; readonly path: string }
   | { readonly kind: 'unknown' };
 
-const DELIVERY = /^TR-[0-9A-F]{8}(\.[0-9a-z]+)?$/i;
+const DELIVERY = /^TR-[0-9A-F]{8}(\.[0-9a-z]+(\.age1[02-9ac-hj-np-z]{58})?)?$/i;
 const CHALLENGE = /^(0x)?[0-9a-f]{64}$/i;
 const PROVE_ID = /^PR-[0-9A-F]{32}$/i;
 

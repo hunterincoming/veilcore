@@ -108,12 +108,34 @@ that a test fails when the behaviour it covers is broken. Found on the way: a fa
 stamp left the logging flow with only "Try again"; it now also offers "Do the date stamp
 later", which carries on to the backup.
 
-## Next (step 2: server pieces)
+## Lab results, signed and locked (14 Oct; registry `feat/lab-results`)
 
-- **Lab results locked to the breeder**: the delivery code carries the breeder's
-  encryption key; the lab's browser encrypts the report to it and signs its fingerprint;
-  the registry stores only the locked file and the signature; the breeder's plant page
-  opens it.
+- Each plant has a lock made from its own record secret (HKDF, `veilcore/lab-results.ts`).
+  Nothing new to back up: the backup already holds the secret.
+- "Send it to a lab" puts the lock's public half in the delivery code
+  (`TR-….<claim>.age1…`). It travels with the code, not through the registry, so the
+  registry never gets the chance to give the lab a lock of its own. Old codes still work;
+  a lab with one can't send locked results and is told to ask for a new code.
+- The lab, on the received plant's page: **Send results back to the breeder** → choose
+  the file → **Sign, lock and send**. Its browser signs the file's fingerprint with the
+  lab's key (a `laboratory-report` attestation, public), locks the file (the open `age`
+  format, X25519), and uploads only the locked file.
+- The registry (`lineage/lab-results.mjs`) refuses anything that isn't an age file, lets
+  only the delivery's receiver add, only its sender read or delete; 5 per delivery, 15 MB.
+- The breeder: the plant's page says a result came back → **Open**. Their browser opens it
+  with the plant's secret and calls it the lab's only if the lab signed that exact file
+  (and says when the same lab also confirmed receiving the sample). **Save the report**,
+  or **Pair it with this plant** (the pairing screen with the file already chosen).
+- Anyone can open a result outside VeilCore with the free `age` tool and the plant's key.
+- Tested: unit tests (lock/open, wrong plant refused, code format), registry tests
+  (who may do what, readable files refused, limits), and the whole round trip in a browser
+  against a real registry (`e2e/flow.spec.ts`), including that the stored file can't be
+  read.
+- Also: the older browser suite (`src/hardening-roundD.test.ts`) was skipping without a
+  build and still pointed at screens the simple flow removed. It now follows the new
+  screens, uses the repository's own Playwright, and runs in CI on a fresh build.
+
+## Next (step 2: server pieces)
 
 Then the examiner's "prove it's distinct" screens, and the company side of signing.
 

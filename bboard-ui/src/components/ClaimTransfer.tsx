@@ -40,6 +40,7 @@ import {
 } from '../veilcore/transfers';
 import { hydrate, sealReceived } from '../veilcore/records';
 import { loadAttester, attestRecord, type AttesterProfile } from '../veilcore/attester-keys';
+import { rememberDelivery } from '../veilcore/lab-results';
 
 /** Opens the header's receive dialog from elsewhere on the page (a lab's first screen). */
 export const OPEN_RECEIVE_EVENT = 'veilcore:open-receive';
@@ -90,7 +91,7 @@ export const ClaimTransfer: React.FC<{
 
   const claim = async () => {
     if (!code.trim()) return;
-    const { transferId, claimCode } = parseShareCode(code);
+    const { transferId, claimCode, resultLock } = parseShareCode(code);
     setBusy(true);
     setError(null);
     const res = await claimTransfer(transferId, claimCode);
@@ -104,6 +105,15 @@ export const ClaimTransfer: React.FC<{
     // copying the sender's evidence — they are committing to what they received:
     // this material, this quantity, this date, from this source.
     const sealed = await sealReceived(res.recordId);
+    // Kept so this lab can send results back later, locked to the breeder (lab-results.ts).
+    rememberDelivery({
+      transferId,
+      receivedRecordId: res.recordId,
+      sourceRecordId: res.descendedFrom,
+      ...(sealed?.receivedFromCommitment ? { sourceCommitment: sealed.receivedFromCommitment } : {}),
+      ...(resultLock ? { recipient: resultLock } : {}),
+      receivedAt: Date.now(),
+    });
 
     const attester = loadAttester();
     if (!attester) {
