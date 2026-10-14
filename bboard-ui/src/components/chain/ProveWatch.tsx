@@ -2,15 +2,19 @@
 //
 // Every answer is checked against the challenge and identity this browser kept when it
 // made the request (prove-relay.ts), never against what the registry hands back.
+//
+// It looks every 5 seconds for 2 minutes (from opening, or from the latest new answer),
+// then every 30 seconds, and stops when the request expires. Each look checks each
+// answer not yet refused once.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material';
 import ShareIcon from '@mui/icons-material/IosShareOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
-import { checkAnswers, getProveRequest, proveLink, type MyAsk } from '../../veilcore/prove-relay';
+import { checkAnswers, getProveRequest, nextPollMs, proveLink, type MyAsk } from '../../veilcore/prove-relay';
 
-const POLL_MS = 5_000;
+const WEEK = 7 * 24 * 60 * 60_000;
 const when = (t: number) => new Date(t).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
 export const SendLink: React.FC<{ link: string; asker?: string }> = ({ link, asker }) => {
@@ -58,6 +62,31 @@ export const SendLink: React.FC<{ link: string; asker?: string }> = ({ link, ask
   );
 };
 
+/** The key, shortened (first 8…last 6), with a button to copy all of it. */
+const KeyLine: React.FC<{ identity: string }> = ({ identity }) => {
+  const [copied, setCopied] = useState(false);
+  return (
+    <Stack direction="row" spacing={1} sx={{ mt: 0.75, alignItems: 'center', flexWrap: 'wrap' }}>
+      <Typography variant="body2">
+        Key:{' '}
+        <Box component="span" sx={{ fontFamily: 'monospace' }} title={identity}>
+          {identity.slice(0, 8)}…{identity.slice(-6)}
+        </Box>
+      </Typography>
+      <Button
+        size="small"
+        startIcon={<ContentCopyIcon />}
+        onClick={() => {
+          void navigator.clipboard.writeText(identity);
+          setCopied(true);
+        }}
+      >
+        {copied ? 'Copied' : 'Copy'}
+      </Button>
+    </Stack>
+  );
+};
+
 type State = 'waiting' | 'expired' | 'unreachable';
 
 export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boolean }> = ({
@@ -72,11 +101,22 @@ export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boole
   const [pending, setPending] = useState(false);
   const running = useRef(false);
 
-  useEffect(() => setAsk(initial), [initial]);
+  // When the fast polling window started, the answers seen so far, and when the request ends.
+  const since = useRef(Date.now());
+  const known = useRef(new Set<string>());
+  const expiresAt = useRef(initial.createdAt + WEEK);
+
+  useEffect(() => {
+    setAsk(initial);
+    since.current = Date.now();
+    known.current = new Set();
+    expiresAt.current = initial.createdAt + WEEK;
+  }, [initial]);
 
   useEffect(() => {
     if (ask.confirmed) return;
     let live = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const tick = async () => {
       if (running.current || (typeof document !== 'undefined' && document.visibilityState === 'hidden')) return;
       running.current = true;
@@ -86,42 +126,67 @@ export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boole
         if (r === null) return setState('expired');
         if ('error' in r) return setState('unreachable');
         setState('waiting');
-        if (!r.answers.some((t) => !ask.refused?.[t])) return;
+        expiresAt.current = r.expiresAt;
+        const fresh = r.answers.filter((a) => !known.current.has(a.txId));
+        if (fresh.length > 0) {
+          for (const a of fresh) known.current.add(a.txId);
+          since.current = Date.now(); // something new: look often again for a while
+        }
+        if (!r.answers.some((a) => !ask.refused?.[a.txId])) return;
         setChecking(true);
         const deps = await import('../../veilcore/chain/ownership-check');
         const next = await checkAnswers(ask, r.answers, deps);
         if (!live) return;
-        setPending(!next.confirmed && r.answers.some((t) => !next.refused?.[t]));
+        setPending(!next.confirmed && r.answers.some((a) => !next.refused?.[a.txId]));
         if (next !== ask) setAsk(next);
       } finally {
         running.current = false;
         if (live) setChecking(false);
       }
     };
-    void tick();
-    const t = setInterval(() => void tick(), POLL_MS);
+    const loop = async () => {
+      await tick();
+      if (!live) return;
+      const wait = nextPollMs(since.current, Date.now(), expiresAt.current);
+      if (wait === null) return setState('expired');
+      timer = setTimeout(() => void loop(), wait);
+    };
+    void loop();
     return () => {
       live = false;
-      clearInterval(t);
+      if (timer) clearTimeout(timer);
     };
   }, [ask]);
 
   const refusals = Object.values(ask.refused ?? {});
 
   if (ask.confirmed) {
+    // What this shows, and no more: the key named in the link is held by whoever answered.
+    // That the key belongs to this plant's record is the holder's own statement today
+    // (the record's fingerprint doesn't cover it yet; ownership-check.ts).
     return (
       <Alert severity="success" variant="outlined">
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
           Confirmed
         </Typography>
         <Typography variant="body2" sx={{ mt: 0.5 }}>
-          Whoever answered holds this plant&apos;s record right now.
-          {ask.confirmed.anchor === true && ' Its date stamp checks out too, so they have held it since then.'}
-          {ask.confirmed.anchor === false && ' The date stamp named in the link could not be confirmed.'}
+          Whoever answered controls the key named in this link, right now.
         </Typography>
+        {ask.confirmed.anchor === true && (
+          <Typography variant="body2" sx={{ mt: 0.75 }}>
+            That key was registered on the network earlier.
+          </Typography>
+        )}
+        {ask.confirmed.anchor === false && (
+          <Typography variant="body2" sx={{ mt: 0.75 }}>
+            The key&apos;s registration named in the link could not be confirmed.
+          </Typography>
+        )}
         <Typography variant="body2" sx={{ mt: 0.75 }}>
-          It doesn&apos;t prove who bred the plant, or who the person is.
+          That this key belongs to this plant&apos;s record is the holder&apos;s statement for now. It doesn&apos;t show
+          who they are or who bred the plant.
         </Typography>
+        <KeyLine identity={ask.identity} />
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
           Checked {when(ask.confirmed.at)} on the test network, which can be reset: practice only, no evidential weight.
         </Typography>
@@ -131,7 +196,7 @@ export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boole
 
   return (
     <Stack spacing={1.5}>
-      {showLink && state !== 'expired' && <SendLink link={proveLink(ask.id)} asker={asker} />}
+      {showLink && state !== 'expired' && <SendLink link={proveLink(ask.id, ask.token)} asker={asker} />}
       {state === 'expired' ? (
         <Alert severity="info" variant="outlined">
           This request expired without an answer. Make a new one.
@@ -143,7 +208,7 @@ export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boole
             {checking && !pending
               ? 'An answer came in. Checking it on the network…'
               : pending
-                ? 'An answer came in. The network hasn’t shown it yet, so this keeps checking every few seconds.'
+                ? 'An answer came in. The network hasn’t shown it yet, so this keeps checking.'
                 : state === 'unreachable'
                   ? 'Can’t reach VeilCore right now. Still trying.'
                   : 'Waiting for them to prove it. You can close this page: open the same link again in this browser to see the answer.'}

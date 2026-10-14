@@ -7,14 +7,15 @@
 // email, Drive or Files; elsewhere, plain words say where.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useRef, useState } from 'react';
+import React, { useId, useRef, useState } from 'react';
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material';
 import DoneIcon from '@mui/icons-material/CheckCircle';
 import { backupContents, backupFileName, checkBackup, downloadBackupAll } from '../../veilcore/backup';
+import { ScreenHeading, softDisabled } from './FlowFrame';
 
 const Done: React.FC<{ text: string; sub?: string }> = ({ text, sub }) => (
   <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
-    <DoneIcon color="primary" />
+    <DoneIcon color="primary" aria-hidden="true" />
     <Box>
       <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
         {text}
@@ -28,10 +29,11 @@ const Done: React.FC<{ text: string; sub?: string }> = ({ text, sub }) => (
   </Stack>
 );
 
-const Part: React.FC<React.PropsWithChildren<{ n: number; title: string; active: boolean }>> = ({
+const Part: React.FC<React.PropsWithChildren<{ n: number; title: string; active: boolean; level: 'h2' | 'h3' }>> = ({
   n,
   title,
   active,
+  level,
   children,
 }) => (
   <Box
@@ -43,18 +45,25 @@ const Part: React.FC<React.PropsWithChildren<{ n: number; title: string; active:
       opacity: active ? 1 : 0.92,
     }}
   >
-    <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+    <Typography variant="subtitle1" component={level} sx={{ fontWeight: 700, mb: 1, fontSize: '1rem' }}>
       {n}. {title}
     </Typography>
     {children}
   </Box>
 );
 
-export const BackupStep: React.FC<{ title: string; finishLabel: string; onDone: () => void }> = ({
-  title,
-  finishLabel,
-  onDone,
-}) => {
+export const BackupStep: React.FC<{
+  title: string;
+  finishLabel: string;
+  onDone: () => void;
+  /** The flow's step counter, read with the heading. */
+  stepLabel?: string;
+  /** h1 on its own screen; h2 inside the plant's page, under the plant's name. */
+  headingComponent?: 'h1' | 'h2';
+}> = ({ title, finishLabel, onDone, stepLabel, headingComponent = 'h1' }) => {
+  const saveHint = useId();
+  const finishHint = useId();
+  const partLevel = headingComponent === 'h1' ? 'h2' : 'h3';
   const [saved, setSaved] = useState<string>();
   const [copied, setCopied] = useState(false);
   const [checked, setChecked] = useState<number>();
@@ -93,16 +102,16 @@ export const BackupStep: React.FC<{ title: string; finishLabel: string; onDone: 
   return (
     <Stack spacing={2}>
       <Box>
-        <Typography variant="h4" component="h1" sx={{ fontSize: { xs: '1.8rem', md: '2.2rem' } }}>
+        <ScreenHeading step={stepLabel} component={headingComponent}>
           {title}
-        </Typography>
+        </ScreenHeading>
         <Typography variant="body1" sx={{ mt: 0.5 }}>
           <b>This file is the only way to prove you hold your plants</b>, and to get them back on a new phone or
           computer. VeilCore can&apos;t recover it or make another.
         </Typography>
       </Box>
 
-      <Part n={1} title="Save it" active={!saved}>
+      <Part n={1} level={partLevel} title="Save it" active={!saved}>
         {saved ? (
           <Done text="Saved" sub={`${saved} · one file for everything`} />
         ) : (
@@ -118,7 +127,12 @@ export const BackupStep: React.FC<{ title: string; finishLabel: string; onDone: 
         )}
       </Part>
 
-      <Part n={2} title="Put a copy somewhere else" active={!!saved && !copied && checked === undefined}>
+      <Part
+        n={2}
+        level={partLevel}
+        title="Put a copy somewhere else"
+        active={!!saved && !copied && checked === undefined}
+      >
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
           If this phone or computer breaks, that copy is your way back.
         </Typography>
@@ -127,8 +141,8 @@ export const BackupStep: React.FC<{ title: string; finishLabel: string; onDone: 
             variant="outlined"
             size="large"
             fullWidth
-            disabled={!saved}
-            onClick={() => void share()}
+            {...softDisabled(!saved, saveHint)}
+            onClick={() => saved && void share()}
             sx={{ py: 1.3 }}
           >
             {copied ? 'Sent a copy ✓' : 'Send a copy (email, Drive, Files…)'}
@@ -140,19 +154,23 @@ export const BackupStep: React.FC<{ title: string; finishLabel: string; onDone: 
         )}
       </Part>
 
-      <Part n={3} title="Check it works" active={!!saved && checked === undefined}>
-        {checked !== undefined ? (
-          <Done
-            text="It works."
-            sub={
-              checked === 0
-                ? 'Your records are in it.'
-                : checked === 1
-                  ? 'Your plant is in it.'
-                  : `All ${checked} of your plants are in it.`
-            }
-          />
-        ) : (
+      <Part n={3} level={partLevel} title="Check it works" active={!!saved && checked === undefined}>
+        {/* Always there, so the result is announced when it arrives. */}
+        <Box role="status">
+          {checked !== undefined && (
+            <Done
+              text="It works."
+              sub={
+                checked === 0
+                  ? 'Your records are in it.'
+                  : checked === 1
+                    ? 'Your plant is in it.'
+                    : `All ${checked} of your plants are in it.`
+              }
+            />
+          )}
+        </Box>
+        {checked === undefined && (
           <>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
               Open the copy you just saved. We&apos;ll make sure it opens and has everything. Nothing is uploaded.
@@ -161,8 +179,8 @@ export const BackupStep: React.FC<{ title: string; finishLabel: string; onDone: 
               variant="outlined"
               size="large"
               fullWidth
-              disabled={!saved || busy}
-              onClick={() => pick.current?.click()}
+              {...softDisabled(!saved || busy, saveHint)}
+              onClick={() => saved && !busy && pick.current?.click()}
               startIcon={busy ? <CircularProgress size={18} color="inherit" /> : undefined}
               sx={{ py: 1.3 }}
             >
@@ -179,6 +197,11 @@ export const BackupStep: React.FC<{ title: string; finishLabel: string; onDone: 
                 if (f) void check(f);
               }}
             />
+            {!saved && (
+              <Typography id={saveHint} variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
+                Save the backup file first.
+              </Typography>
+            )}
           </>
         )}
         {problem && (
@@ -192,14 +215,14 @@ export const BackupStep: React.FC<{ title: string; finishLabel: string; onDone: 
         variant="contained"
         size="large"
         fullWidth
-        disabled={checked === undefined}
-        onClick={onDone}
+        {...softDisabled(checked === undefined, finishHint)}
+        onClick={() => checked !== undefined && onDone()}
         sx={{ py: 1.6 }}
       >
         {finishLabel}
       </Button>
       {checked === undefined && (
-        <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+        <Typography id={finishHint} variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
           This turns on once the check passes.
         </Typography>
       )}

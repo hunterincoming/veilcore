@@ -25,6 +25,19 @@ import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerF
 
 const TESTNET_REPO = 'https://github.com/hunterincoming/veilcore-midnight-testnet';
 
+/** Read by screen readers, not shown. */
+const SR_ONLY: React.CSSProperties = {
+  position: 'absolute',
+  width: 1,
+  height: 1,
+  margin: -1,
+  padding: 0,
+  overflow: 'hidden',
+  clip: 'rect(0 0 0 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+};
+
 const Fingerprint: React.FC = () => {
   const { t } = useI18n();
   const [cultivar, setCultivar] = useState('Harbour Mist');
@@ -32,6 +45,22 @@ const Fingerprint: React.FC = () => {
   const [hash, setHash] = useState('');
   const prev = useRef('');
   const [nonce] = useState(() => newNonce());
+  // The digest changes on every keystroke; reading 64 characters each time drowns out the
+  // typing. Instead, once typing pauses, a short line says it changed.
+  const [announce, setAnnounce] = useState('');
+  const seen = useRef(false);
+  useEffect(() => {
+    if (!hash) return;
+    if (!seen.current) {
+      seen.current = true;
+      return;
+    }
+    // The same words twice in a row aren't read again, so every other time it ends in a
+    // no-break space a screen reader doesn't speak.
+    const said = t('m.hero.fpUpdated');
+    const timer = window.setTimeout(() => setAnnounce((a) => (a === said ? `${said}\u00a0` : said)), 800);
+    return () => window.clearTimeout(timer);
+  }, [hash, t]);
 
   useEffect(() => {
     let live = true;
@@ -93,7 +122,7 @@ const Fingerprint: React.FC = () => {
             </svg>
             {t('m.hero.goes')}
           </p>
-          <div className="digest" aria-live="polite">
+          <div className="digest">
             {hash
               ? [...hash].map((c, i) =>
                   prev.current && prev.current[i] !== c ? (
@@ -106,6 +135,9 @@ const Fingerprint: React.FC = () => {
                 )
               : '—'}
           </div>
+          <span role="status" style={SR_ONLY}>
+            {announce}
+          </span>
         </div>
       </div>
       <p className="note">
@@ -121,7 +153,7 @@ const Contracts: React.FC = () => {
   const { t } = useI18n();
   return (
     <div className="contracts">
-      <h4>{t('m.addr.title')}</h4>
+      <h3>{t('m.addr.title')}</h3>
       <dl>
         <div>
           <dt>{t('m.addr.main')}</dt>
@@ -160,6 +192,58 @@ const Post: React.FC<{
     <span className="go">{p.go}</span>
   </a>
 );
+
+/**
+ * What's live where: one row per feature, and for each the sites it works on. Read from
+ * the code and docs on 14 October 2026 (i18n/en.ts, "What's live where"); a cell left out
+ * means the feature isn't there. A list rather than a table, so it stacks on a phone.
+ */
+const LIVE_ROWS = [
+  ['stamp', true, true, false],
+  ['share', true, true, false],
+  ['lab', true, true, false],
+  ['results', false, true, true],
+  ['dna', true, true, false],
+  ['prove', false, true, true],
+  ['claims', true, false, true],
+  ['lic', true, true, true],
+] as const;
+
+const LiveWhere: React.FC = () => {
+  const { t } = useI18n();
+  const cols = [
+    ['main', 'chip live', t('m.live.colMain')],
+    ['test', 'chip', t('m.live.colTest')],
+    ['not', 'chip', t('m.live.colNot')],
+  ] as const;
+  return (
+    <section id="live">
+      <div className="wrap">
+        <div className="label">{t('m.live.label')}</div>
+        <h2>
+          {t('m.live.title1')} <em>{t('m.live.title2')}</em>
+        </h2>
+        <p className="lede">{t('m.live.lede')}</p>
+        <dl className="audiences">
+          {LIVE_ROWS.map(([row, ...has]) => (
+            <div key={row}>
+              <dt>{t(`m.live.${row}.t`)}</dt>
+              <dd>
+                {cols.map(([col, chip, name], i) =>
+                  has[i] ? (
+                    <p key={col}>
+                      <span className={chip}>{name}</span> {t(`m.live.${row}.${col}` as Parameters<typeof t>[0])}
+                    </p>
+                  ) : null,
+                )}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  );
+};
 
 export const Home: React.FC = () => {
   const { t, lang } = useI18n();
@@ -280,7 +364,7 @@ export const Home: React.FC = () => {
           </h2>
           <div className="isnt">
             <div className="y">
-              <h4>{t('m.get.title')}</h4>
+              <h3>{t('m.get.title')}</h3>
               <ul>
                 {(['1', '2', '3'] as const).map((n) => (
                   <FoldItem key={n} lead={t(`m.get.${n}a`)}>
@@ -290,7 +374,7 @@ export const Home: React.FC = () => {
               </ul>
             </div>
             <div className="lim">
-              <h4>{t('m.stops.title')}</h4>
+              <h3>{t('m.stops.title')}</h3>
               <ul>
                 {(['1', '2', '3', '4'] as const).map((n) => (
                   <FoldItem key={n} lead={t(`m.stops.${n}a`)}>
@@ -487,15 +571,33 @@ export const Home: React.FC = () => {
           </h2>
           <div className="posts">
             <Post
-              href={`${TESTNET_REPO}/blob/main/docs/preprod-run-4oct.md`}
-              iso="2026-10-04"
-              date={t('m.post0.date')}
-              tag={t('m.post0.tag')}
-              title={t('m.post0.title')}
-              text={t('m.post0.text')}
+              href={`${TESTNET_REPO}/blob/main/docs/mainnet-completeness.md`}
+              iso="2026-10-11"
+              date={t('m.postB.date')}
+              tag={t('m.postB.tag')}
+              title={t('m.postB.title')}
+              text={t('m.postB.text')}
+              go={t('m.updates.read')}
+            />
+            <Post
+              href={`${TESTNET_REPO}/blob/main/docs/deployment-record-revision-4.md`}
+              iso="2026-10-08"
+              date={t('m.postA.date')}
+              tag={t('m.postA.tag')}
+              title={t('m.postA.title')}
+              text={t('m.postA.text')}
               go={t('m.updates.read')}
             />
             <FoldGroup label={t('m.updates.more')}>
+              <Post
+                href={`${TESTNET_REPO}/blob/main/docs/preprod-run-4oct.md`}
+                iso="2026-10-04"
+                date={t('m.post0.date')}
+                tag={t('m.post0.tag')}
+                title={t('m.post0.title')}
+                text={t('m.post0.text')}
+                go={t('m.updates.read')}
+              />
               <Post
                 href={`${TESTNET_REPO}/blob/main/docs/self-audit-3oct.md`}
                 iso="2026-10-03"
@@ -565,6 +667,8 @@ export const Home: React.FC = () => {
           </FoldItem>
         </div>
       </section>
+
+      <LiveWhere />
 
       <section id="contact">
         <div className="wrap">

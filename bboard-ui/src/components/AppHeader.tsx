@@ -31,8 +31,12 @@ export const AppHeader: React.FC = () => (
       spacing={1.25}
       sx={{ alignItems: 'center', textDecoration: 'none', minHeight: 44 }}
     >
-      <Box sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }} />
-      <Typography variant="h6" sx={{ letterSpacing: '0.3em', fontWeight: 600, color: 'text.primary' }}>
+      <Box
+        aria-hidden="true"
+        sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }}
+      />
+      {/* The wordmark is a link home, not a heading: each page's own h1 says where you are. */}
+      <Typography variant="h6" component="span" sx={{ letterSpacing: '0.3em', fontWeight: 600, color: 'text.primary' }}>
         VEILCORE
       </Typography>
     </Stack>

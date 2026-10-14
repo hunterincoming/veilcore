@@ -4,7 +4,7 @@
 // that this report belongs to this record; it is not a check of the genetics.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { Alert, Box, Button, Chip, CircularProgress, Stack, Typography } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/ScienceOutlined';
 import LinkIcon from '@mui/icons-material/LinkOutlined';
@@ -17,27 +17,52 @@ import { THIS_SITE } from '../../config/copy';
 import { utcDate } from '../../veilcore/time';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { PairDnaOnChainPanel } from '../chain/PairDnaOnChainPanel';
+import { ScreenHeading, focusScreenHeading, isTouch, softDisabled } from '../flow/FlowFrame';
 
 const MChip = motion(Chip);
 
 export const Step2PairDna: React.FC<{
   recordId: string;
   onDone: () => void;
-  onBack: () => void;
+  /** Left out where there is nothing to go back to (logging, after the date stamp). */
+  onBack?: () => void;
   onSkip?: () => void;
+  /** h1 when this is the whole screen (logging), h2 inside the plant's page. */
+  headingComponent?: 'h1' | 'h2';
+  /** The flow's step counter, read with the heading. */
+  stepLabel?: string;
   /** The button after pairing; the old wizard went on to the certificate. */
   doneLabel?: string;
   /** Shown above the drop zone, e.g. in the logging flow, before a lab ever got a cutting. */
   intro?: React.ReactNode;
   /** A report already in hand (a lab result just opened), so nobody picks it again. */
   initialFile?: File;
-}> = ({ recordId, onDone, onBack, onSkip, doneLabel = 'Continue: see the certificate', intro, initialFile }) => {
+}> = ({
+  recordId,
+  onDone,
+  onBack,
+  onSkip,
+  doneLabel = 'Continue: see the certificate',
+  intro,
+  initialFile,
+  headingComponent = 'h2',
+  stepLabel,
+}) => {
   const [file, setFile] = useState<File | null>(initialFile ?? null);
+  const hintId = useId();
+  const pairedOnce = useRef(false);
   const [busy, setBusy] = useState(false);
   const [paired, setPaired] = useState<StrainRecord>();
   const [conflicts, setConflicts] = useState<StrainRecord[]>([]);
   const [error, setError] = useState<string>();
   const record = getRecord(recordId);
+
+  // Pairing changes the whole screen: start it at the top, focus on its heading.
+  useEffect(() => {
+    if (!paired || pairedOnce.current) return;
+    pairedOnce.current = true;
+    return focusScreenHeading();
+  }, [paired]);
 
   const onPair = async () => {
     if (!file) return;
@@ -47,7 +72,7 @@ export const Step2PairDna: React.FC<{
       const dnaHex = await fingerprintFile(file);
       const found = conflictsFor(dnaHex, recordId);
       const updated = pairDna(recordId, dnaHex, file.name);
-      if (!updated) throw new Error('Could not find the record to pair.');
+      if (!updated) throw new Error('Could not find the plant to save it to.');
       setConflicts(found);
       setPaired(updated);
     } catch (e) {
@@ -62,6 +87,9 @@ export const Step2PairDna: React.FC<{
     const yoursFirst = priority.id === paired.id;
     return (
       <Stack spacing={2}>
+        <ScreenHeading step={stepLabel} component={headingComponent} variant={headingComponent === 'h1' ? 'h4' : 'h5'}>
+          Lab report saved to this plant
+        </ScreenHeading>
         <FingerprintReveal
           fingerprint={paired.dnaFingerprint}
           headline="The report file stayed on your device."
@@ -89,7 +117,7 @@ export const Step2PairDna: React.FC<{
         </Stack>
         {conflicts.length > 0 && (
           <Alert severity="warning" variant="outlined">
-            Heads up: this report fingerprint is also paired with {conflicts.length} other record
+            Heads up: this lab report is also saved to {conflicts.length} other record
             {conflicts.length === 1 ? '' : 's'} you hold
             {yoursFirst
               ? '. This record was sealed earliest, by the clocks of the devices that sealed them.'
@@ -97,8 +125,8 @@ export const Step2PairDna: React.FC<{
           </Alert>
         )}
         <Alert severity="success" variant="outlined">
-          Paired. Your lab report&apos;s fingerprint is saved with the record, as your statement that this report
-          belongs to it. It is not a check of the genetics.{' '}
+          Saved. Your lab report&apos;s fingerprint is saved with this plant&apos;s record, as your statement that this
+          report belongs to it. It is not a check of the genetics.{' '}
           {REAL_CHAIN
             ? 'It is not dated yet: date it below if you want the pairing on the network.'
             : `In ${THIS_SITE} the pairing isn’t dated yet.`}
@@ -116,16 +144,20 @@ export const Step2PairDna: React.FC<{
   return (
     <Stack spacing={2.5}>
       <Box>
-        <Typography variant="h5" sx={{ mb: 0.5 }}>
-          Pair your lab report
-        </Typography>
+        <ScreenHeading
+          step={stepLabel}
+          component={headingComponent}
+          variant={headingComponent === 'h1' ? 'h4' : 'h5'}
+          mb={0.5}
+        >
+          Save your lab report to this plant
+        </ScreenHeading>
         <Typography variant="body2" color="text.secondary">
-          Got your DNA test back from the lab? Pair the report with this record, so it can later be compared against a
-          fresh test.
+          Got your lab report back? Save it to this plant, so it can later be compared against a fresh test.
         </Typography>
         {record && (
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-            Pairing to: <b>{record.strainName}</b> · bred by {record.bredBy}
+            Saving to: <b>{record.strainName}</b> · bred by {record.bredBy}
           </Typography>
         )}
       </Box>
@@ -133,8 +165,9 @@ export const Step2PairDna: React.FC<{
       {intro}
 
       <Alert icon={<ScienceIcon />} severity="info" variant="outlined">
-        VeilCore doesn&apos;t test DNA: you pair the report your testing lab gave you. It&apos;s read and fingerprinted
-        on your device; the file is never uploaded. Its fingerprint and file name are saved with your record.{' '}
+        VeilCore doesn&apos;t test DNA: you save the lab report your testing lab gave you. It&apos;s read and
+        fingerprinted on your device; the file is never uploaded. Its fingerprint and file name are saved with your
+        record.{' '}
         {REAL_CHAIN
           ? 'Afterwards you can also date the pairing on the network.'
           : `In ${THIS_SITE} the pairing isn’t dated yet; on VeilCore’s contract it is.`}
@@ -143,7 +176,7 @@ export const Step2PairDna: React.FC<{
       <Dropzone
         file={file}
         onFile={setFile}
-        title="Drag your lab report here, or click to choose"
+        title={isTouch() ? 'Tap to choose your lab report' : 'Drag your lab report here, or click to choose'}
         hint="The report file your testing lab returned — read locally, never uploaded."
       />
 
@@ -154,29 +187,43 @@ export const Step2PairDna: React.FC<{
       )}
 
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-        A lab can also sign a report with its own key; a signed report carries more weight than one you pair yourself.
-        Here, pair the report file you have.
+        A lab can also sign a lab report with its own key; a signed one carries more weight than one you save yourself.
+        Here, save the lab report file you have.
       </Typography>
 
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-        <Button variant="text" onClick={onBack}>
-          Back
-        </Button>
+      <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
+        {onBack && (
+          <Button variant="text" onClick={onBack} sx={{ minHeight: 44 }}>
+            Back
+          </Button>
+        )}
         <Button
           variant="contained"
           size="large"
-          disabled={busy || !file}
+          {...softDisabled(busy || !file, hintId)}
           startIcon={busy ? <CircularProgress size={18} color="inherit" /> : undefined}
-          onClick={onPair}
+          onClick={() => {
+            if (!busy && file) void onPair();
+          }}
         >
-          {busy ? 'Fingerprinting on your device…' : 'Pair this report'}
+          {busy ? 'Fingerprinting on your device…' : 'Save it to this plant'}
         </Button>
         {onSkip && (
-          <Button variant="text" color="inherit" onClick={onSkip}>
+          <Button variant="text" color="inherit" onClick={onSkip} sx={{ minHeight: 44 }}>
             No report yet: skip
           </Button>
         )}
       </Stack>
+      {!file && (
+        <Typography id={hintId} variant="caption" color="text.secondary">
+          Choose the lab report file first.
+        </Typography>
+      )}
+      {busy && (
+        <Typography id={hintId} variant="caption" color="text.secondary" role="status">
+          Fingerprinting on your device…
+        </Typography>
+      )}
     </Stack>
   );
 };

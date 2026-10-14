@@ -14,6 +14,7 @@ import { fingerprintFile } from '../../veilcore/commitment';
 import { findByDnaFingerprint } from '../../veilcore/records';
 import { Dropzone } from './Dropzone';
 import { FingerprintReveal } from './FingerprintReveal';
+import { isTouch } from '../flow/FlowFrame';
 
 export const Step4CheckReport: React.FC<{ onBack: () => void; onRestart: () => void; onDone?: () => void }> = ({
   onBack,
@@ -44,7 +45,7 @@ export const Step4CheckReport: React.FC<{ onBack: () => void; onRestart: () => v
   return (
     <Stack spacing={2.5}>
       <Box>
-        <Typography variant="h5" sx={{ mb: 0.5 }}>
+        <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="" sx={{ mb: 0.5 }}>
           Check a report matches this record
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -62,7 +63,7 @@ export const Step4CheckReport: React.FC<{ onBack: () => void; onRestart: () => v
         <Dropzone
           file={file}
           onFile={setFile}
-          title="Drag the lab report here, or click to choose"
+          title={isTouch() ? 'Tap to choose the lab report' : 'Drag the lab report here, or click to choose'}
           hint="Read and fingerprinted locally, never uploaded."
         />
       )}
@@ -75,7 +76,7 @@ export const Step4CheckReport: React.FC<{ onBack: () => void; onRestart: () => v
 
       {result && !result.ok && (
         <Alert icon={<GppBadIcon />} severity="error" variant="outlined">
-          None of your records has this report paired. Pair it with the right record first, then check again.
+          None of your records has this lab report saved to it. Save it to the right plant first, then check again.
         </Alert>
       )}
 

@@ -55,14 +55,17 @@ export const en = {
 
   'm.hero.label': 'Proof of what you hold',
   'm.hero.title1': 'Prove you had it first.',
-  'm.hero.title2': 'Without showing anyone what it is.',
+  // Not "without showing anyone what it is": the plant name is on every record's public
+  // check page. What stays hidden is the genetics.
+  'm.hero.title2': 'Without showing anyone your genetics.',
   'm.hero.lede':
-    'For breeders, seed companies and labs working with plant and animal genetics. Your genetic data stays on your computer. Only a fingerprint goes on Midnight, which dates it. Free to check. No sign-up, no wallet.',
+    "For breeders, seed companies and labs working with plant and animal genetics. Genetic data and lab files never leave your computer. Only a fingerprint goes on Midnight, which dates it. The plant name and breeder you type are kept on VeilCore's server, and anyone with a record's link sees its name. Free to check. No sign-up, no wallet.",
   'm.hero.how': 'How it works',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Bred by',
   'm.hero.bredByDefault': 'Your name here',
   'm.hero.demoLabel': 'Live fingerprint demo',
+  'm.hero.fpUpdated': 'Fingerprint updated',
   // The two halves of the fingerprint box.
   'm.hero.typed': 'What you type',
   'm.hero.goes': 'What goes on Midnight',
@@ -84,7 +87,7 @@ export const en = {
   'm.for.2link': 'How a claim works →',
   'm.for.3t': "Material in a lab's hands.",
   'm.for.3p':
-    "Put terms on material before it ships: what it's for, no propagation, return or destroy it after. Through VeilCore's contract on Midnight, the lab confirms receipt with its own key, so the record shows a second party, which protects the lab as much as the client. In the web demo this is simulated.",
+    "Send material with a lab code. When the lab enters it, the lab signs a receipt with its own key, so the record shows a second party, which protects the lab as much as the client. The receipt is a real signature, kept by VeilCore's registry, not on the chain. Terms such as what it's for, no propagation, and return or destroy it after are practice only in the web demo.",
   'm.for.4t': 'Lab results, back to you.',
   'm.for.4p':
     "The lab signs your results and locks them so only you can open them. No PDF sits in anyone's inbox: VeilCore only holds the locked file. The signature covers that exact file and the record it's about. VeilCore records who signed; it doesn't vouch for the result. New, and still being tested.",
@@ -141,12 +144,13 @@ export const en = {
   'm.get.title2': 'and where it stops.',
   'm.get.title': 'What you get',
   'm.get.1a': 'A date nobody can backdate,',
-  'm.get.1b': 'for a record of what you hold, without showing what it is.',
+  'm.get.1b': 'for a record of what you hold, without showing your genetics.',
   'm.get.2a': 'Terms that travel.',
   'm.get.2b':
     "Licenses and lab agreements attach to the record. A licensee can prove they hold a live license without showing which one. An obligation on a parent, such as a royalty, shows on every offspring both holders confirmed; VeilCore records it and doesn't collect it. Tested on a Midnight test network; simulated in the web demo.",
   'm.get.3a': 'Lineage both sides agreed to.',
-  'm.get.3b': 'A parent link counts only when both holders confirm it.',
+  'm.get.3b':
+    "A parent link counts only when both holders confirm it. On this website, VeilCore's registry records it, not the chain.",
   'm.stops.title': 'Where it stops, and what covers the rest',
   'm.stops.1a': "It's evidence, not a title.",
   'm.stops.1b': 'It creates no new legal right. It backs up the rights and contracts you already have.',
@@ -167,9 +171,9 @@ export const en = {
   'm.open.1p':
     'Free to implement, permanently. TypeScript, Python and Rust agree on all 100 record-format test vectors (Rust does not run the newer report-pairing one yet), and anyone can run them. We wrote all three; one written by someone else is the test we most want.',
   'm.open.1link': 'All three implementations →',
-  'm.open.2t': "Your record doesn't need us.",
+  'm.open.2t': "Checking a record doesn't need us.",
   'm.open.2p':
-    'Anyone holding the record and its inclusion proof (a small file showing the record is in an anchored batch) can check it with SHA-256, the open spec and a look-up on a Midnight explorer, even if VeilCore is gone.',
+    "Keep two files from your plant's page: the exported record and its inclusion proof (a small file showing the record is in a dated batch). With both, anyone can check it with SHA-256, the open spec and a look-up on a Midnight explorer, even if VeilCore is gone. Your backup file holds your keys, not these.",
   'm.open.3t': "We don't vouch for results.",
   'm.open.3p':
     "A record shows which key signed it, the name and accreditor registered with that key, and whether we've checked that the key belongs to that name. Whoever checks it decides what that's worth.",
@@ -184,7 +188,7 @@ export const en = {
   'm.faq.title2': 'people ask.',
   'm.faq.1q': 'What stops someone logging my cultivar?',
   'm.faq.1a':
-    "Once records are anchored, anyone can check which was anchored first. Pair your lab report, so a later test can be compared with it. When you send material out, the receiver confirms it with their own key. A record is evidence, not a registration: it shows what you had and when, but doesn't settle a dispute on its own.",
+    "Once records are anchored, anyone can check which was anchored first. Pair your lab report, so a later test can be compared with it. When you send material out, the receiver confirms it with their own key. A record is evidence, not a registration: it shows you had this record by that date, not that you had the plant, and doesn't settle a dispute on its own.",
   'm.faq.2q': 'Do I need crypto or a wallet?',
   'm.faq.2a':
     'No. Making a record in the demo and checking any record need no wallet, no sign-up and nothing to buy. Your browser keeps a random key that finds your demo records on our server. The fingerprint goes on Midnight, a blockchain built for privacy. You never deal with it directly.',
@@ -197,7 +201,7 @@ export const en = {
   'm.faq.4link2': 'Integration guide →',
   'm.faq.5q': 'What if VeilCore disappears?',
   'm.faq.5a':
-    "Records you've kept a copy of still check. The spec is open, the TypeScript, Python and Rust code is published, and checking needs SHA-256, the record's inclusion proof (a small file showing it's in an anchored batch) and a look-up on a Midnight explorer. A one-click download of everything we hold for you is coming.",
+    "The dates stay: a batch fingerprint anchored on Midnight's main network, or stamped on Bitcoin, can't be removed by anyone, us included. To check a record without us, you need two files that only our server holds unless you save them: the record (Export record) and its inclusion proof (Download inclusion proof), both on your plant's page under Technical details. Your backup file holds your keys, not these. The spec is open and the TypeScript, Python and Rust code is published. A one-click evidence bundle is coming.",
   'm.faq.6q': 'What does it cost?',
   'm.faq.6a': 'Making a record on this site costs nothing today. Checking a record is free, always.',
 
@@ -239,11 +243,23 @@ export const en = {
   'm.updates.more': 'All updates',
   'm.updates.all': 'Record-format changes on GitHub →',
   'm.updates.follow': 'Follow',
+  // Dated posts. Facts from docs/mainnet-completeness.md (R4, M2) and
+  // docs/deployment-record-revision-4.md ("Mainnet deployment").
+  'm.postB.date': '11 Oct 2026',
+  'm.postB.tag': 'Registry',
+  'm.postB.title': 'First batch dated on Bitcoin too',
+  'm.postB.text':
+    "The registry's first batches were anchored on Midnight's main network, by hand. One of them, five of our own test records, also has its root stamped on Bitcoin, in block 971004. A check with the official OpenTimestamps tool is still to do.",
+  'm.postA.date': '8 Oct 2026',
+  'm.postA.tag': 'Launch',
+  'm.postA.title': "Live on Midnight's main network",
+  'm.postA.text':
+    "Both contracts are deployed on Midnight's main network. The claims contract has no maintenance key: nobody, including us, can change it.",
   'm.post0.date': '4 Oct 2026',
   'm.post0.tag': 'Contract',
   'm.post0.title': 'Proving one fact, keeping the rest',
   'm.post0.text':
-    "Both contracts passed all 37 end-to-end checks on Midnight's preprod test network, including the new claims: a value, a range, a difference, an unchanged correction and a signature from a test lab key. Made-up marker data; not on the main network yet.",
+    "Both contracts passed all 37 end-to-end checks on Midnight's preprod test network, including the new claims: a value, a range, a difference, an unchanged correction and a signature from a test lab key. Made-up marker data.",
   'm.post1.date': '3 Oct 2026',
   'm.post1.tag': 'Format',
   'm.post1.title': 'Three implementations, one answer',
@@ -277,6 +293,44 @@ export const en = {
     "One maintenance key can change how VeilCore's contract on Midnight works. Whoever holds it can add or replace the contract's operations, which could take over any record's identity, add licenses for any issuer, add or remove obligations and parent links, or switch operations off. It cannot backdate the network's block times, and every change shows on chain. Today the key is on paper, one copy with each founder, and either copy alone can use it. Moving it to a group of keys that must agree is planned, not done. Every use is announced publicly, under a written maintenance policy.",
   'm.status.keyLink': 'Read the maintenance policy →',
 
+  // What's live where (home page, after the status). The same on every build: it names
+  // both sites. Only what the code and docs support; a feature missing from a column is
+  // not there. No "test network" wording: the mainnet site shows this table too.
+  'm.live.label': "What's live where",
+  'm.live.title1': 'What works,',
+  'm.live.title2': 'and where.',
+  'm.live.lede':
+    "veilcore.org runs on Midnight's main network, and records made there are real. The test site is for practice: more of it works there, and its records carry no weight.",
+  'm.live.colMain': 'veilcore.org (main network)',
+  'm.live.colTest': 'Test site',
+  'm.live.colNot': 'Not yet',
+  'm.live.stamp.t': 'A date stamp for your record',
+  'm.live.stamp.main':
+    'Yes. VeilCore dates records in batches, by hand for now. Your browser sends nothing to the chain.',
+  'm.live.stamp.test': 'Yes. Your browser stamps each record, and batches are dated automatically.',
+  'm.live.share.t': 'Choosing what others see',
+  'm.live.share.main': 'Yes. The plant name always shows.',
+  'm.live.share.test': 'Yes. The plant name always shows.',
+  'm.live.lab.t': 'Lab code and signed receipt',
+  'm.live.lab.main': "Yes. The lab signs with its own key. VeilCore's registry keeps the receipt, not the chain.",
+  'm.live.lab.test': 'Yes, the same way.',
+  'm.live.results.t': 'Lab reports locked to you',
+  'm.live.results.test': 'Yes. New, and still being tested.',
+  'm.live.results.not': 'On veilcore.org.',
+  'm.live.dna.t': 'A date for your DNA report pairing',
+  'm.live.dna.main': 'Saved with your record, not dated.',
+  'm.live.dna.test': 'Yes, sent from your browser.',
+  'm.live.prove.t': 'Prove it by link',
+  'm.live.prove.test': 'Yes. Their page checks on the network that you hold the record.',
+  'm.live.prove.not': 'On veilcore.org: it needs your browser to send a transaction.',
+  'm.live.claims.t': 'Proving one fact (claims)',
+  'm.live.claims.main': 'The contract is on the main network, with no maintenance key. The website can’t use it yet.',
+  'm.live.claims.not': 'Using it from the website.',
+  'm.live.lic.t': 'Licenses and royalties',
+  'm.live.lic.main': 'Practice only.',
+  'm.live.lic.test': 'Practice only.',
+  'm.live.lic.not': 'Real licenses from the website. They are built into the contract.',
+
   'm.contact.label': 'Get in touch',
   'm.contact.title1': 'Tell us',
   'm.contact.title2': 'where it fails.',
@@ -297,7 +351,7 @@ export const en = {
   'm.foot.build': 'Build',
   'm.foot.contact': 'Contact',
   'm.foot.verify': 'Verify a record',
-  'm.foot.fine': 'Proof of prior possession, not ownership.',
+  'm.foot.fine': 'Evidence you held a record by a date. Not a title to the plant.',
   'm.foot.privacy': 'Demo privacy',
 
   'm.verify.label': 'Verify',
@@ -313,7 +367,7 @@ export const en = {
 
   'm.founders.label': 'Founders',
   'm.founders.lede':
-    'VeilCore is an evidentiary record format for plant and animal genetics. It gives evidence of prior possession without anyone handing over their genetic data.',
+    'VeilCore is an evidentiary record format for plant and animal genetics. It gives evidence that you held a record of your material by a given date, without handing over your genetic data.',
   'm.founders.leads': 'Leads',
   'm.founders.also': 'Also',
   'm.founders.languages': 'Languages',

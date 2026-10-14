@@ -108,7 +108,7 @@ export const VerifyExample: React.FC = () => (
           <Typography variant="overline" color="text.secondary" sx={{ display: 'block' }}>
             Shared by the holder · reported by the registry
           </Typography>
-          <Fact ok={false}>The holder paired a DNA report fingerprint with this record. Not confirmed by a lab.</Fact>
+          <Fact ok={false}>The holder saved a lab report fingerprint to this record. Not confirmed by a lab.</Fact>
           <Note>The holder chooses which facts appear here. Anything not shared is listed as not shared.</Note>
           <Divider sx={{ my: 0.5 }} />
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>

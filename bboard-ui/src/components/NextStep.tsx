@@ -17,9 +17,14 @@ import { Box, Button, Paper, Stack, Typography } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/ScienceOutlined';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import SendIcon from '@mui/icons-material/SendOutlined';
+import LockIcon from '@mui/icons-material/LockOutlined';
+import BadgeIcon from '@mui/icons-material/VerifiedUserOutlined';
 import type { StrainRecord } from '../veilcore/records';
+import type { BreederReceipt, LabReceipt } from '../veilcore/custody';
+import { loadAttester } from '../veilcore/attester-keys';
 import { SendToLab } from './SendToLab';
-import { AttachReport } from './AttachReport';
+import { OPEN_SIGNING_KEY_EVENT } from './AttesterSetup';
+import type { ArrivedResult } from './flow/LabResults';
 import { ACCENT } from '../config/theme';
 
 type Step = {
@@ -28,9 +33,9 @@ type Step = {
   title: string;
   /** What this gets them. Never a description of the state they can already see. */
   why: string;
-  action: string;
-  icon: React.ReactNode;
-  onClick: () => void;
+  action?: string;
+  icon?: React.ReactNode;
+  onClick?: () => void;
 };
 
 export const NextStep: React.FC<{
@@ -41,13 +46,39 @@ export const NextStep: React.FC<{
   keys?: RecordKeys;
   onBackup?: () => void;
   onStamp?: () => void;
-}> = ({ record, onPairDna, onAgreement, keys, onBackup, onStamp }) => {
-  let step: Step;
+  /** The breeder's: lab reports back on this plant, not yet opened on this device. */
+  waiting?: readonly ArrivedResult[];
+  onOpenResult?: (resultId: string) => void;
+  /** From verified signatures only (veilcore/custody.ts). null or absent while loading. */
+  receipt?: BreederReceipt | LabReceipt | null;
+  /** The lab's: lab reports it sent on this delivery that still stand. */
+  labSent?: number;
+  onSendResults?: () => void;
+  onSignReceipt?: () => void;
+  /** A lab-only account: no breeder actions (send to a lab, agreements). */
+  labOnly?: boolean;
+}> = ({
+  record,
+  onPairDna,
+  onAgreement,
+  keys,
+  onBackup,
+  onStamp,
+  waiting,
+  onOpenResult,
+  receipt,
+  labSent,
+  onSendResults,
+  onSignReceipt,
+  labOnly,
+}) => {
+  let step: Step | null;
 
-  // A record that arrived through a transfer belongs to the recipient. Telling them to
-  // "send it to a lab for confirmation" is telling the lab to send it to a lab — the
-  // page has to know which side of the transfer the reader is on.
+  // A record that arrived through a delivery is the lab's (or the next holder's). Telling
+  // them to "send it to a lab for confirmation" is telling the lab to send it to a lab —
+  // the page has to know which side of the delivery the reader is on.
   const isReceived = Boolean(record.receivedFrom);
+  const firstWaiting = waiting?.[0];
 
   // Keys that live only in this browser come first: everything else can wait, a lost
   // browser can't be undone. Then the date stamp, which the logging flow normally did.
@@ -67,54 +98,87 @@ export const NextStep: React.FC<{
       icon: <VerifiedIcon />,
       onClick: onStamp,
     };
-  } else if (isReceived && !record.attestation) {
-    step = {
-      title: 'Confirm what you received',
-      why: 'You hold this material now. Attaching your signed report to the sender’s record is what turns their record into evidence: signed by you, not recorded on your behalf.',
-      action: 'Attach a report',
-      icon: <ScienceIcon />,
-      onClick: () => {},
-      // The lab's report belongs on the sender's record, not their own.
-      custom: <AttachReport record={record} />,
-    };
   } else if (isReceived) {
+    const lab = receipt as LabReceipt | null | undefined;
+    if (!lab) {
+      // Still checking the lab's own signature: say nothing rather than the wrong thing.
+      step = null;
+    } else if (lab.kind === 'rejected') {
+      step = {
+        title: 'You turned this sample away',
+        why: 'Nothing was signed. VeilCore doesn’t tell the breeder: let them know yourself, so they can send another.',
+      };
+    } else if (lab.kind === 'not-signed' && !loadAttester()) {
+      step = {
+        title: 'Set up your lab’s signature',
+        why: 'Then you can sign that this sample arrived, and send the lab report back signed by your lab.',
+        action: 'Set it up',
+        icon: <BadgeIcon />,
+        onClick: () => window.dispatchEvent(new Event(OPEN_SIGNING_KEY_EVENT)),
+      };
+    } else if (lab.kind === 'not-signed' && onSignReceipt) {
+      step = {
+        title: 'Sign that it arrived',
+        why: 'Your signed receipt is what lets the breeder trust a lab report from you: it shows your key had the sample.',
+        action: 'Sign receipt',
+        icon: <VerifiedIcon />,
+        onClick: onSignReceipt,
+      };
+    } else {
+      // The locked flow: signed by the lab, locked so only the breeder can open it.
+      step = {
+        title: (labSent ?? 0) > 0 ? 'Lab report sent' : 'Send results back to the breeder',
+        why:
+          (labSent ?? 0) > 0
+            ? 'Only the breeder can open it. You can withdraw it, or send a corrected file.'
+            : 'Signed with your lab’s key and locked so only the breeder can open it. VeilCore can’t read it.',
+        action: (labSent ?? 0) > 0 ? 'See what you sent' : 'Send results back',
+        icon: <LockIcon />,
+        onClick: onSendResults,
+      };
+    }
+  } else if (firstWaiting && onOpenResult) {
     step = {
-      title: 'Received and confirmed',
-      why: 'Your confirmation is on the sender’s record. You can send this material onward, or license what you produce from it.',
-      action: 'Start an agreement',
-      icon: <SendIcon />,
-      onClick: onAgreement,
+      title: `Open the lab report from ${firstWaiting.transfer.to_handle}`,
+      why: 'It’s locked so only you can open it, with this plant’s key. Opening it checks the lab’s signature here.',
+      action: 'Open',
+      icon: <LockIcon />,
+      onClick: () => onOpenResult(firstWaiting.result.id),
     };
-  } else if (!record.attestation) {
-    // No second party yet, whether or not a report is paired: a report the holder paired
-    // is still the holder's own statement.
+  } else if (labOnly) {
+    // Read-only for a lab-only account: the breeder's next steps aren't theirs.
+    step = null;
+  } else if ((receipt as BreederReceipt | null | undefined)?.kind !== 'signed') {
+    // No lab signature yet, whether or not a lab report is saved: a report the holder
+    // saved is still the holder's own statement, and a used code is nobody's statement.
     step = {
       title: 'Send a sample to a lab',
       why: record.dnaFingerprint
-        ? 'You’ve paired a lab report, which is your own statement. A lab confirming receipt with its own key adds a second party to the record, which is stronger evidence than your statement alone.'
-        : 'Right now this record is your own account of the cultivar. A lab confirming receipt with its own key, and returning a report, makes it stronger evidence than your own account.',
+        ? 'You’ve saved a lab report to this plant, which is your own statement. A lab signing that it received a sample adds a second party, which is stronger evidence than your statement alone.'
+        : 'Right now this record is your own account of the plant. A lab signing that it received a sample, and sending a lab report back, makes it stronger evidence than your own account.',
       action: 'Send to a lab',
       icon: <VerifiedIcon />,
-      onClick: () => {},
       custom: <SendToLab record={record} />,
     };
   } else if (!record.dnaFingerprint) {
     step = {
-      title: 'Pair the lab’s report',
-      why: 'A second party has taken delivery. When the report comes back, pair it with this record so a later test can be compared with it.',
-      action: 'Pair DNA report',
+      title: 'Save the lab report to this plant',
+      why: 'A lab signed that it received a sample. When its lab report comes back, save it to this plant so a later test can be compared with it.',
+      action: 'Save it to this plant',
       icon: <ScienceIcon />,
       onClick: onPairDna,
     };
   } else {
     step = {
       title: 'This record is ready to use',
-      why: 'A second party has taken delivery, and a report is paired. What the delivery shows is that somebody received this material, not who they are. You can send material onward or license it, with terms that apply to offspring declared from this record.',
+      why: 'A lab signed that it received a sample, and a lab report is saved to this plant. You can send material onward or license it, with terms that apply to offspring declared from this record.',
       action: 'Start an agreement',
       icon: <SendIcon />,
       onClick: onAgreement,
     };
   }
+
+  if (!step) return null;
 
   return (
     <Paper sx={{ p: { xs: 2.5, md: 3 }, borderColor: ACCENT, borderWidth: 1, borderStyle: 'solid' }}>
@@ -123,20 +187,22 @@ export const NextStep: React.FC<{
           <Typography variant="overline" sx={{ color: ACCENT, display: 'block' }}>
             Next step
           </Typography>
-          <Typography variant="h6" sx={{ mb: 0.5 }}>
+          <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
             {step.title}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {step.why}
           </Typography>
         </Box>
-        <Box sx={{ flexShrink: 0 }}>
-          {step.custom ?? (
-            <Button variant="contained" startIcon={step.icon} onClick={step.onClick}>
-              {step.action}
-            </Button>
-          )}
-        </Box>
+        {(step.custom || (step.action && step.onClick)) && (
+          <Box sx={{ flexShrink: 0 }}>
+            {step.custom ?? (
+              <Button variant="contained" startIcon={step.icon} onClick={step.onClick} sx={{ minHeight: 44 }}>
+                {step.action}
+              </Button>
+            )}
+          </Box>
+        )}
       </Stack>
     </Paper>
   );

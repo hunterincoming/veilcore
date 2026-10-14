@@ -3,7 +3,7 @@
 // record pages (config/theme.ts). The record pages keep their own layout.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material';
 import { useI18n } from '../../i18n';
@@ -39,6 +39,18 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
+  const menuBtn = useRef<HTMLButtonElement>(null);
+  // Escape closes the open menu, on every public page, and puts focus back on its button.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      setOpen(false);
+      menuBtn.current?.focus();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
   // The language picker and the draft banner are MUI parts: give them the light theme too.
   return (
     <ThemeProvider theme={lightTheme}>
@@ -51,6 +63,7 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
             </RouterLink>
             <div className="nav-right">
               <button
+                ref={menuBtn}
                 type="button"
                 className="menu-btn"
                 aria-expanded={open}
@@ -109,7 +122,7 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
                 <p className="foot-about">{t('m.foot.about')}</p>
               </div>
               <div>
-                <h4>{t('m.foot.explore')}</h4>
+                <h3>{t('m.foot.explore')}</h3>
                 <ul>
                   <li>
                     <Section id="about">{t('m.nav.about')}</Section>
@@ -123,10 +136,13 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
                   <li>
                     <Section id="updates">{t('m.nav.updates')}</Section>
                   </li>
+                  <li>
+                    <Section id="live">{t('m.live.label')}</Section>
+                  </li>
                 </ul>
               </div>
               <div>
-                <h4>{t('m.foot.build')}</h4>
+                <h3>{t('m.foot.build')}</h3>
                 <ul>
                   <li>
                     <RouterLink to="/docs/spec">{t('footer.spec')}</RouterLink>
@@ -151,7 +167,7 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
                 </ul>
               </div>
               <div>
-                <h4>{t('m.foot.contact')}</h4>
+                <h3>{t('m.foot.contact')}</h3>
                 <ul>
                   <li>
                     <a href="mailto:mako@veilcore.org">mako@veilcore.org</a>

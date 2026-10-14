@@ -421,7 +421,8 @@ const run = async () => {
     const stamp = await waitFor(
       {
         done: b.getByText('Date stamped', { exact: true }),
-        error: b.getByText(/That didn.t go through/),
+        // The screen shows plain words; the raw error is on the alert's data-error.
+        error: b.locator('[data-error]').first(),
         notReady: b.getByText(/Its public date stamp comes when its batch is dated/),
         backupFirst: b.getByText('Save your backup first'),
       },
@@ -435,7 +436,8 @@ const run = async () => {
       await tap(b, b.getByRole('button', { name: 'Do the date stamp later' }));
       await toTop(b);
     } else if (stamp === 'error') {
-      const why = (await b.getByText(/That didn.t go through/).innerText()).trim();
+      const box = b.locator('[data-error]').first();
+      const why = ((await box.getAttribute('data-error')) || (await box.innerText())).trim();
       fail(`The date stamp didn't go through. The site said: "${why}" Nothing was retried, so nothing was sent twice.`);
     } else if (stamp === 'notReady') {
       fail(
@@ -503,7 +505,7 @@ const run = async () => {
     await caption(b, CAPTIONS.share);
     await tap(b, b.getByRole('button', { name: /Show someone/ }));
     await toTop(b);
-    await tap(b, b.getByRole('button', { name: 'Save this choice & get the link' }), 600);
+    await tap(b, b.getByRole('button', { name: 'Get the link' }), 600);
     const linkBox = b.locator('input[readonly]').first();
     await linkBox.waitFor({ timeout: 20_000 });
     const ask = b.getByLabel('Let them check the date stamp and ask me to prove I hold it');
@@ -537,8 +539,9 @@ const run = async () => {
     await tap(c, c.getByRole('button', { name: 'Make a link to send them' }), 600);
     const proveText = c.getByText(/\/prove\/PR-/).first();
     await proveText.waitFor({ timeout: 20_000 });
-    const id = /PR-[0-9A-F]{32}/.exec(await proveText.innerText())?.[0];
-    if (!id) fail('The checker’s page made a link that doesn’t look right.');
+    // The id, and the answer token in the link's fragment: without it the answer can't go back.
+    const [, id, token] = /\/prove\/(PR-[0-9A-F]{32})#t=([A-Za-z0-9_-]{22})/.exec(await proveText.innerText()) ?? [];
+    if (!id || !token) fail('The checker’s page made a link that doesn’t look right.');
     await proveText.scrollIntoViewIfNeeded();
     await sleep(2200);
 
@@ -547,10 +550,13 @@ const run = async () => {
     say('Opening the prove link as the breeder…');
     await caption(c, '');
     await caption(b, CAPTIONS.tap);
-    await b.goto(`${SITE}/prove/${id}`);
+    await b.goto(`${SITE}/prove/${id}#t=${token}`);
     const proveBtn = b.getByRole('button', { name: 'Prove it', exact: true });
     const which = await waitFor(
-      { prove: proveBtn, other: b.getByText(/Someone wants you to prove|request has ended|Can’t open this/) },
+      {
+        prove: proveBtn,
+        other: b.getByText(/Someone wants you to prove|request has ended|Can’t open this|missing its last part/),
+      },
       30_000,
       'The prove link didn’t open on the breeder’s phone.',
     );
@@ -564,7 +570,7 @@ const run = async () => {
       {
         done: b.getByRole('heading', { name: 'Done', exact: true }),
         notSent: b.getByText(/Proved, but the answer didn.t send/),
-        error: b.locator('.MuiAlert-colorError, .MuiAlert-outlinedError'),
+        error: b.locator('[data-error]').first(),
       },
       PROVE_WAIT,
       `The proof didn't finish within ${PROVE_WAIT / MIN} minutes. Nothing was retried.`,
@@ -573,7 +579,8 @@ const run = async () => {
     if (proved === 'error' && DRY_RUN) {
       say('  (dry run: no network here, so the proof failed, as expected)');
     } else if (proved === 'error') {
-      const why = (await b.locator('.MuiAlert-colorError, .MuiAlert-outlinedError').first().innerText()).trim();
+      const box = b.locator('[data-error]').first();
+      const why = ((await box.getAttribute('data-error')) || (await box.innerText())).trim();
       fail(`The proof didn't go through. The site said: "${why}" Nothing was retried.`);
     } else if (proved === 'notSent') {
       fail('The proof went on the network, but the answer didn’t reach the checker’s page. Nothing was retried.');

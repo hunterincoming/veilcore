@@ -1,0 +1,8 @@
+{
+  "//": "For the editor and eslint's typed rules only: Playwright compiles these itself.",
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["*.ts"]
+}

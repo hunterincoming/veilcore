@@ -43,8 +43,8 @@ const META: Record<AttentionState, { label: string; why: string }> = {
     why: 'An unpaid obligation in its declared ancestry. It can’t show a clear ancestry until the obligation is ended.',
   },
   'needs-dna': {
-    label: 'No report paired',
-    why: 'Without one the record is only what you typed. A paired report lets a later test be compared with it.',
+    label: 'No lab report saved',
+    why: 'Without one the record is only what you typed. A saved lab report lets a later test be compared with it.',
   },
   'needs-attester': {
     label: 'Awaiting a second party',

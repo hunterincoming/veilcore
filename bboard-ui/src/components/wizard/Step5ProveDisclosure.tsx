@@ -8,9 +8,12 @@
 // sealed locally" token on screen was a hash that went nowhere. The grant applies to the
 // record, so to everyone with its id — this link, the certificate QR code, anything
 // forwarded — and the copy says that rather than "a recipient-specific proof".
+//
+// One thing to press: "Get the link" saves the choice and shows the link. On a phone the
+// link can go straight to the share sheet.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Box,
@@ -27,6 +30,7 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
+import ShareIcon from '@mui/icons-material/IosShareOutlined';
 import VisibilityIcon from '@mui/icons-material/VisibilityOutlined';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import { getRecord } from '../../veilcore/records';
@@ -49,11 +53,12 @@ import { useRecordKeys } from '../../veilcore/record-keys';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { DisclosedFacts } from '../verify/DisclosedFacts';
 
-export const Step5ProveDisclosure: React.FC<{ recordId: string; onDone: () => void; onBack: () => void }> = ({
-  recordId,
-  onDone,
-  onBack,
-}) => {
+export const Step5ProveDisclosure: React.FC<{
+  recordId: string;
+  /** Kept for callers; this screen ends with "Back to the plant". */
+  onDone?: () => void;
+  onBack: () => void;
+}> = ({ recordId, onBack }) => {
   const record = getRecord(recordId);
   const [disclosure, setDisclosure] = useState<Disclosure>(defaultDisclosure());
   // What the registry holds now, so the switches start from the truth rather than from
@@ -69,6 +74,11 @@ export const Step5ProveDisclosure: React.FC<{ recordId: string; onDone: () => vo
   const anchor = useRecordKeys()[recordId]?.anchor;
   const canAskProof = REAL_CHAIN && !!anchor;
   const [askable, setAskable] = useState(true);
+  // The button that made the link goes away; focus goes to the link it made.
+  const linkInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (result) linkInput.current?.focus();
+  }, [result]);
 
   useEffect(() => {
     let live = true;
@@ -134,6 +144,16 @@ export const Step5ProveDisclosure: React.FC<{ recordId: string; onDone: () => vo
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+  const share = async () => {
+    if (!link) return;
+    try {
+      await navigator.share({ title: `${record.strainName} · VeilCore`, url: link.absolute });
+    } catch {
+      /* closed the share sheet: nothing to say */
+    }
+  };
+
   const unsaved =
     stored === 'loading' || stored === 'unknown' || stored.updatedAt === null
       ? true
@@ -143,8 +163,10 @@ export const Step5ProveDisclosure: React.FC<{ recordId: string; onDone: () => vo
     <Stack spacing={2.5}>
       <Box>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
-          <VerifiedIcon sx={{ color: 'primary.main' }} />
-          <Typography variant="h5">Choose what a stranger sees</Typography>
+          <VerifiedIcon sx={{ color: 'primary.main' }} aria-hidden="true" />
+          <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="">
+            Choose what a stranger sees
+          </Typography>
         </Stack>
         <Typography variant="body2" color="text.secondary">
           Anyone who has this record&apos;s id — from a link you send, the QR code on its certificate, or a message
@@ -164,8 +186,9 @@ export const Step5ProveDisclosure: React.FC<{ recordId: string; onDone: () => vo
             {DISCLOSURE_FIELDS.map((f) => (
               <FormControlLabel
                 key={f.key}
-                control={<Switch checked={disclosure[f.key]} onChange={() => toggle(f.key)} size="small" />}
+                control={<Switch checked={disclosure[f.key]} onChange={() => toggle(f.key)} />}
                 label={<Typography variant="body2">{f.label}</Typography>}
+                sx={{ minHeight: 44, mr: 0 }}
               />
             ))}
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mt: 1, opacity: 0.7 }}>
@@ -205,10 +228,12 @@ export const Step5ProveDisclosure: React.FC<{ recordId: string; onDone: () => vo
       )}
 
       {result && !unsaved ? (
-        <Alert severity="success" variant="outlined" icon={<VerifiedIcon />}>
-          <Typography variant="subtitle2">Saved on the registry</Typography>
+        <Alert severity="success" variant="outlined" icon={<VerifiedIcon />} role="region" aria-label="Your link">
+          <Typography variant="subtitle2" component="p">
+            Saved on the registry
+          </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1 }}>
-            Anyone who opens this link, or has this record&apos;s id any other way, sees the facts on the right and
+            Anyone who opens this link, or has this record&apos;s id any other way, sees the facts in the preview and
             nothing else; the registry does not send the rest, and editing the link cannot add to it. The genetics are
             never disclosed. This choice controls what the verify page shows. Proving one hidden value (a marker, a
             range, or that two varieties differ) without showing the rest is done by VeilCore&apos;s claims contract.{' '}
@@ -216,31 +241,42 @@ export const Step5ProveDisclosure: React.FC<{ recordId: string; onDone: () => vo
           </Typography>
           {canAskProof && (
             <FormControlLabel
-              control={<Switch checked={askable} onChange={() => setAskable((v) => !v)} size="small" />}
+              control={<Switch checked={askable} onChange={() => setAskable((v) => !v)} />}
               label={
                 <Typography variant="body2">Let them check the date stamp and ask me to prove I hold it</Typography>
               }
-              sx={{ mb: 1 }}
+              sx={{ mb: 1, minHeight: 44, mr: 0 }}
             />
           )}
           <TextField
             value={link?.absolute ?? result.absolute}
             fullWidth
             size="small"
-            slotProps={{ input: { readOnly: true } }}
+            inputRef={linkInput}
+            slotProps={{ input: { readOnly: true }, htmlInput: { 'aria-label': 'The link' } }}
             sx={{ mb: 1 }}
           />
-          <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
-            <Button size="small" variant="outlined" startIcon={<ContentCopyIcon />} onClick={copy}>
+          <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1.5 }}>
+            {canShare && (
+              <Button variant="contained" startIcon={<ShareIcon />} onClick={() => void share()} sx={{ minHeight: 44 }}>
+                Share
+              </Button>
+            )}
+            <Button
+              variant={canShare ? 'outlined' : 'contained'}
+              startIcon={<ContentCopyIcon />}
+              onClick={copy}
+              sx={{ minHeight: 44 }}
+            >
               {copied ? 'Copied' : 'Copy link'}
             </Button>
             <Button
-              size="small"
               variant="text"
               startIcon={<VisibilityIcon />}
               component={RouterLink}
               to={link?.relative ?? result.relative}
               target="_blank"
+              sx={{ minHeight: 44 }}
             >
               Open what they&apos;ll see
             </Button>
@@ -255,20 +291,17 @@ export const Step5ProveDisclosure: React.FC<{ recordId: string; onDone: () => vo
             startIcon={busy ? <CircularProgress size={18} color="inherit" /> : undefined}
             onClick={() => void onSave()}
           >
-            {busy ? 'Saving…' : 'Save this choice & get the link'}
+            {busy ? 'Saving…' : 'Get the link'}
           </Button>
         </Box>
       )}
 
       <Divider />
-      <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
-        <Button variant="text" onClick={onBack}>
-          Back
+      <Box>
+        <Button variant="text" onClick={onBack} sx={{ minHeight: 44, px: 0 }}>
+          Back to the plant
         </Button>
-        <Button variant="contained" onClick={onDone}>
-          Continue: share or license
-        </Button>
-      </Stack>
+      </Box>
     </Stack>
   );
 };

@@ -26,13 +26,24 @@ export const SORTS: { key: SortKey; label: string }[] = [
 /**
  * Search across the fields a person actually remembers.
  *
- * Cultivar, breeder, the record identifier, and any internal reference - because a lab
- * looking for a record has their own sample number, not ours.
+ * Plant name, breeder, the record identifier, any internal reference - because a lab
+ * looking for a sample has its own accession number, not ours - and for a received
+ * sample the lab code it came under and the breeder's note.
  */
 export const matchesQuery = (r: StrainRecord, q: string): boolean => {
   const needle = q.trim().toLowerCase();
   if (!needle) return true;
-  return [r.strainName, r.bredBy, r.id, r.refId, r.breedingMethod]
+  return [
+    r.strainName,
+    r.bredBy,
+    r.id,
+    r.refId,
+    r.breedingMethod,
+    r.labRef,
+    r.transferId,
+    r.deliveryNote,
+    r.receivedFrom,
+  ]
     .filter(Boolean)
     .some((v) => String(v).toLowerCase().includes(needle));
 };
@@ -61,17 +72,19 @@ export const RecordFinder: React.FC<{
   showSearch: boolean;
   matched: number;
   total: number;
-}> = ({ query, onQuery, sort, onSort, showSearch, matched, total }) => (
+  /** A lab's list: the search names what a lab looks things up by. */
+  lab?: boolean;
+}> = ({ query, onQuery, sort, onSort, showSearch, matched, total, lab }) => (
   <Box sx={{ mb: 2 }}>
     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
       {showSearch && (
         <TextField
           size="small"
-          placeholder="Cultivar, breeder, or your own reference"
-          value={query}
-          onChange={(e) => onQuery(e.target.value)}
-          fullWidth
+          placeholder={
+            lab ? 'Plant name, breeder, TR code, note or your accession no.' : 'Plant, breeder, or your own reference'
+          }
           slotProps={{
+            htmlInput: { 'aria-label': 'Search' },
             input: {
               startAdornment: (
                 <InputAdornment position="start">
@@ -80,6 +93,9 @@ export const RecordFinder: React.FC<{
               ),
             },
           }}
+          value={query}
+          onChange={(e) => onQuery(e.target.value)}
+          fullWidth
         />
       )}
       <TextField
@@ -100,7 +116,7 @@ export const RecordFinder: React.FC<{
     {query.trim() && (
       <Box sx={{ mt: 1, fontSize: 13, color: 'text.secondary' }}>
         {matched === 0
-          ? `Nothing matches "${query.trim()}". Search covers the cultivar, who bred it, the record identifier, and your own reference.`
+          ? `Nothing matches "${query.trim()}". Search covers the plant name, who bred it, the record identifier, your own reference, and for a received sample its lab code and the breeder's note.`
           : `${matched} of ${total}`}
       </Box>
     )}

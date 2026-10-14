@@ -24,7 +24,7 @@ const BASE = import.meta.env.VITE_API_BASE ?? '';
 
 export type DisclosureKey =
   | 'existence' // a sealed record exists, held by this party from this date
-  | 'attestation-status' // whether the holder paired a DNA report
+  | 'attestation-status' // whether the holder saved a lab report
   | 'descent-clean' // free of unmet obligations through declared ancestry
   | 'sealed-at' // when the holder says it was sealed
   | 'parent-names' // the parent cultivar names
@@ -43,7 +43,7 @@ export const DISCLOSURE_FIELDS: { key: DisclosureKey; label: string; def: boolea
   // the holder choosing and by the stranger on the verify page, so they say neither "you"
   // nor "the holder".
   { key: 'existence', label: 'Prior possession (shown only once anchored)', def: true },
-  { key: 'attestation-status', label: 'Whether a DNA report is paired', def: true },
+  { key: 'attestation-status', label: 'Whether a lab report is saved', def: true },
   { key: 'descent-clean', label: 'Lineage status, as the registry reports it', def: true },
   { key: 'sealed-at', label: 'When it was sealed (the holder’s device clock)', def: true },
   { key: 'parent-names', label: 'Parent cultivar names', def: false },

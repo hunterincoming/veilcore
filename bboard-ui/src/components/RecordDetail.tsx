@@ -3,7 +3,7 @@
 // pull the evidence summary, or check a report file against an existing record.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, Collapse, Divider, Link, Paper, Stack, Typography } from '@mui/material';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import { Link as RouterLink, useParams, useNavigate, useSearchParams } from 'react-router-dom';
@@ -13,7 +13,7 @@ import { useRecords, getRecord, exportEnvelope, childrenOf } from '../veilcore/r
 import { useRecordKeys } from '../veilcore/record-keys';
 import { ProveOwnershipPanel } from './chain/ProveOwnershipPanel';
 import { BackupStep } from './flow/BackupStep';
-import { SectionBand, type Section } from './flow/FlowFrame';
+import { SectionBand, focusScreenHeading, type Section } from './flow/FlowFrame';
 import { ActionRow, PlantStatus } from './flow/PlantParts';
 import { PRACTICE_LABEL } from '../config/copy';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
@@ -40,7 +40,19 @@ import { Step2PairDna } from './wizard/Step2PairDna';
 import { Step3Certificate } from './wizard/Step3Certificate';
 import { Step4CheckReport } from './wizard/Step4CheckReport';
 import { Step5ProveDisclosure } from './wizard/Step5ProveDisclosure';
-import { LabResultsPanel, SendResultsPanel, useArrivedResults } from './flow/LabResults';
+import {
+  LabResultsPanel,
+  ReceivedFacts,
+  SendResultsPanel,
+  useBreederReceipt,
+  useDeliveries,
+  useLabCardFacts,
+  useLabReceipt,
+  waitingReports,
+} from './flow/LabResults';
+import { SignReceiptPanel } from './ClaimTransfer';
+import { WaitingDeliveries } from './SendToLab';
+import { useRole, isBreeder, isLab } from '../veilcore/role';
 import { utcStamp as fmt } from '../veilcore/time';
 
 type Mode =
@@ -54,7 +66,8 @@ type Mode =
   | 'prove'
   | 'tree'
   | 'results'
-  | 'sendResults';
+  | 'sendResults'
+  | 'signReceipt';
 
 /** Which section each screen of this page belongs to: its band says so. */
 const MODE_SECTION: Record<Exclude<Mode, 'overview'>, Section> = {
@@ -68,6 +81,7 @@ const MODE_SECTION: Record<Exclude<Mode, 'overview'>, Section> = {
   prove: 'prove',
   results: 'send',
   sendResults: 'send',
+  signReceipt: 'send',
 };
 
 const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
@@ -92,16 +106,37 @@ export const RecordDetail: React.FC = () => {
   const [details, setDetails] = useState(false);
   const record = getRecord(id);
   const keys = useRecordKeys()[id];
-  // Results labs sent back for one of the holder's own plants (lab-results.ts).
-  const arrived = useArrivedResults(record?.id, !!record && !record.receivedFrom);
+  const role = useRole();
+  const labOnly = isLab(role) && !isBreeder(role);
+  const received = !!record?.receivedFrom;
+  // The breeder's: open codes, and lab reports labs sent back (lab-results.ts).
+  const deliveries = useDeliveries(record?.id, !!record && !received);
+  const arrived = deliveries?.arrived ?? null;
+  const waiting = waitingReports(arrived ?? undefined);
+  // Who signed for the sample: from signatures checked here, never record.attestation.
+  const breederReceipt = useBreederReceipt(record, !!record && !received);
+  const labReceipt = useLabReceipt(record, received);
+  const labSent = useLabCardFacts(record && received ? [record] : [], received)[id]?.sent;
   const [pairFile, setPairFile] = useState<File>();
+  const [autoOpen, setAutoOpen] = useState<string>();
+  // Opening a panel ("Show someone", "Certificate", …) or going back is a new screen: move
+  // focus to its heading (or the plant's name), so a screen reader says where they are.
+  // The first render is the route's, and App already focuses that.
+  const firstMode = useRef(true);
+  useEffect(() => {
+    if (firstMode.current) {
+      firstMode.current = false;
+      return;
+    }
+    return focusScreenHeading();
+  }, [mode]);
 
   if (!record) {
     return (
       <Box>
         <AppHeader />
         <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>
+          <Typography variant="h6" component="h1" sx={{ mb: 1 }}>
             This record isn&apos;t in this browser
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 480, mx: 'auto', mb: 2 }}>
@@ -122,6 +157,10 @@ export const RecordDetail: React.FC = () => {
   }
 
   const back = () => setMode('overview');
+  const openResult = (resultId?: string) => {
+    setAutoOpen(resultId);
+    setMode('results');
+  };
   const licenses = licensesForRecord(record.id);
   const hasFamily = (record.parents?.length ?? 0) > 0 || childrenOf(record.id).length > 0;
 
@@ -166,23 +205,36 @@ export const RecordDetail: React.FC = () => {
             </Alert>
           )}
 
-          <PlantStatus record={record} keys={keys} />
+          <PlantStatus
+            record={record}
+            keys={keys}
+            arrived={arrived}
+            waiting={waiting.length}
+            receipt={received ? labReceipt : breederReceipt}
+            labSent={labSent}
+          />
 
-          {arrived && arrived.length > 0 && (
+          {/* The next step says "Open the lab report" unless the backup or date stamp comes
+              first; then this says it, so a lab report never waits unseen. */}
+          {waiting.length > 0 && REAL_CHAIN && (!keys?.backedUpAt || !keys?.anchor) && (
             <Alert
               severity="success"
               variant="outlined"
               icon={<LockIcon />}
               action={
-                <Button color="inherit" onClick={() => setMode('results')} sx={{ minHeight: 40 }}>
+                <Button color="inherit" onClick={() => openResult(waiting[0].result.id)} sx={{ minHeight: 40 }}>
                   Open
                 </Button>
               }
             >
-              {arrived.length === 1 ? 'A lab result came back' : `${arrived.length} lab results came back`}, locked so
-              only you can open it.
+              {waiting.length === 1 ? 'A lab report came back' : `${waiting.length} lab reports came back`}, locked so
+              only you can open {waiting.length === 1 ? 'it' : 'them'}.
             </Alert>
           )}
+
+          {deliveries && <WaitingDeliveries open={deliveries.open} />}
+
+          {received && <ReceivedFacts record={record} />}
 
           {/* One thing to do next, worked out from where the plant stands. */}
           <NextStep
@@ -192,6 +244,13 @@ export const RecordDetail: React.FC = () => {
             onStamp={() => setMode('stamp')}
             onPairDna={() => setMode('pair')}
             onAgreement={() => navigate(`/record/${record.id}/license?type=license`)}
+            waiting={waiting}
+            onOpenResult={openResult}
+            receipt={received ? labReceipt : breederReceipt}
+            labSent={labSent}
+            onSendResults={() => setMode('sendResults')}
+            onSignReceipt={() => setMode('signReceipt')}
+            labOnly={labOnly}
           />
 
           {/* Everything else, in one plain list: a row per thing, its section's icon
@@ -223,21 +282,33 @@ export const RecordDetail: React.FC = () => {
                   onClick={() => setMode('sendResults')}
                 />
               )}
-              {arrived && arrived.length > 0 && (
-                <ActionRow section="send" label="Lab results" onClick={() => setMode('results')} />
+              {received && labReceipt?.kind === 'not-signed' && (
+                <ActionRow
+                  section="send"
+                  label="Sign receipt"
+                  hint="Sign that this sample arrived, or turn it away"
+                  onClick={() => setMode('signReceipt')}
+                />
               )}
-              <SendToLab
-                record={record}
-                trigger={(open) => <ActionRow section="send" label="Send it to a lab or breeder" onClick={open} />}
-              />
-              <ActionRow
-                section="license"
-                label="License it"
-                tag={PRACTICE_LABEL}
-                onClick={() => navigate(`/record/${record.id}/license?type=license`)}
-              />
-              {!record.dnaFingerprint && (
-                <ActionRow section="log" label="Add a lab report" onClick={() => setMode('pair')} />
+              {arrived && arrived.length > 0 && (
+                <ActionRow section="send" label="Lab reports" onClick={() => openResult()} />
+              )}
+              {!labOnly && (
+                <SendToLab
+                  record={record}
+                  trigger={(open) => <ActionRow section="send" label="Send it to a lab or breeder" onClick={open} />}
+                />
+              )}
+              {!labOnly && (
+                <ActionRow
+                  section="license"
+                  label="License it"
+                  tag={PRACTICE_LABEL}
+                  onClick={() => navigate(`/record/${record.id}/license?type=license`)}
+                />
+              )}
+              {!record.dnaFingerprint && !received && (
+                <ActionRow section="log" label="Save a lab report to this plant" onClick={() => setMode('pair')} />
               )}
               <ActionRow section="log" label="Check a report matches" onClick={() => setMode('check')} />
               {hasFamily && <ActionRow section="log" label="Family tree" onClick={() => setMode('tree')} />}
@@ -291,13 +362,15 @@ export const RecordDetail: React.FC = () => {
           <Box>
             <Button
               onClick={() => setDetails(!details)}
+              aria-expanded={details}
+              aria-controls="record-technical-details"
               color="inherit"
               endIcon={details ? <ExpandLessIcon /> : <ExpandMoreIcon />}
               sx={{ minHeight: 44 }}
             >
               Technical details
             </Button>
-            <Collapse in={details}>
+            <Collapse in={details} id="record-technical-details">
               <Stack spacing={2.5} sx={{ pt: 1 }}>
                 <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
                   <Stack spacing={2}>
@@ -316,10 +389,10 @@ export const RecordDetail: React.FC = () => {
                       </Field>
                     )}
                     {record.notes && <Field label="Notes">{record.notes}</Field>}
-                    <Field label="DNA report">
+                    <Field label="Lab report">
                       {record.dnaFingerprint
-                        ? `paired (${record.dnaFileName ?? 'file'}) · ${shortFingerprint(record.dnaFingerprint)}`
-                        : 'not paired yet'}
+                        ? `saved to this plant (${record.dnaFileName ?? 'file'}) · ${shortFingerprint(record.dnaFingerprint)}`
+                        : 'not saved yet'}
                     </Field>
                     <Divider />
                     <Field label="Record fingerprint">
@@ -389,22 +462,39 @@ export const RecordDetail: React.FC = () => {
               <LabResultsPanel
                 record={record}
                 keys={keys}
+                arrived={arrived}
+                autoOpen={autoOpen}
                 onPair={(f) => {
                   setPairFile(f);
                   setMode('pair');
                 }}
               />
             )}
-            {mode === 'sendResults' && <SendResultsPanel record={record} onDone={back} />}
+            {mode === 'sendResults' && (
+              <SendResultsPanel record={record} onDone={back} onSignReceipt={() => setMode('signReceipt')} />
+            )}
+            {mode === 'signReceipt' && <SignReceiptPanel record={record} onDone={back} />}
             {mode === 'cert' && <Step3Certificate recordId={record.id} onBack={back} onDone={back} />}
             {mode === 'check' && <Step4CheckReport onBack={back} onRestart={back} />}
             {mode === 'share' && <Step5ProveDisclosure recordId={record.id} onBack={back} onDone={back} />}
-            {mode === 'backup' && <BackupStep title="Save your backup" finishLabel="Back to the plant" onDone={back} />}
+            {mode === 'backup' && (
+              <BackupStep
+                title="Save your backup"
+                finishLabel="Back to the plant"
+                onDone={back}
+                headingComponent="h2"
+              />
+            )}
             {mode === 'stamp' && <AnchorOnChainPanel recordId={record.id} />}
             {mode === 'prove' && <ProveOwnershipPanel recordId={record.id} initialChallenge={pastedChallenge} />}
             {mode === 'tree' && <LineageGraph record={record} />}
           </Paper>
-          {(mode === 'stamp' || mode === 'prove' || mode === 'tree' || mode === 'results') && (
+          {(mode === 'stamp' ||
+            mode === 'prove' ||
+            mode === 'tree' ||
+            mode === 'results' ||
+            mode === 'sendResults' ||
+            mode === 'signReceipt') && (
             <Button onClick={back} startIcon={<ArrowBackIcon />} sx={{ mt: 1.5, minHeight: 44 }}>
               Back to the plant
             </Button>

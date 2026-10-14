@@ -5,7 +5,9 @@
 // field data says that fails: people click "saved" without saving (Höltervennhoff et al.,
 // USENIX Security 2024), and many files multiply the chance one is lost. So:
 //
-//   - one file holds the holder key, every record's keys, and a lab's signing key;
+//   - one file holds the holder key, every record's keys, a lab's signing key, the locks
+//     a lab received with each delivery (so a lab on a new device can still send lab
+//     reports back), and the lab codes a breeder made (so "Show code again" survives);
 //   - downloading it does NOT count as backed up; opening the saved copy and checking it
 //     (checkBackup) does. That proves the file exists, opens, and holds everything now;
 //   - restoreAny reads this file and the older files (record keys, holder key text), so
@@ -18,6 +20,8 @@
 import { holderKeyIfAny, setHolderKey } from './holder';
 import { allKeys, keysEntry, keysFor, markBackedUp, restoreKeysEntry, type RecordKeys } from './record-keys';
 import { adoptAttester, loadAttester } from './attester-keys';
+import { allDeliveries, deliveriesMissingFrom, mergeDeliveries } from './lab-results';
+import { allSentCodes, mergeSentCodes } from './transfers';
 
 export const BACKUP_FORMAT = 'veilcore-backup';
 export const BACKUP_VERSION = 2;
@@ -31,6 +35,10 @@ export type BackupContents = {
   readonly holderKey?: string;
   readonly records: ReturnType<typeof keysEntry>[];
   readonly labSignature?: unknown;
+  /** A lab's deliveries and the breeder's lock each came with, by transfer id. */
+  readonly labDeliveries?: Record<string, unknown>;
+  /** The lab codes this browser made, by transfer id. */
+  readonly sentCodes?: Record<string, string>;
 };
 
 const WARNING =
@@ -41,6 +49,8 @@ const WARNING =
 export const backupContents = (now = Date.now()): BackupContents => {
   const holderKey = holderKeyIfAny() ?? undefined;
   const lab = loadAttester();
+  const deliveries = allDeliveries();
+  const codes = allSentCodes();
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
@@ -49,6 +59,8 @@ export const backupContents = (now = Date.now()): BackupContents => {
     ...(holderKey ? { holderKey: holderKey.toLowerCase() } : {}),
     records: allKeys().map(keysEntry),
     ...(lab ? { labSignature: lab } : {}),
+    ...(Object.keys(deliveries).length ? { labDeliveries: deliveries } : {}),
+    ...(Object.keys(codes).length ? { sentCodes: codes } : {}),
   };
 };
 
@@ -62,7 +74,10 @@ export const backupFileName = (now = Date.now()): string => {
 
 /** True when there is anything worth backing up. */
 export const hasAnythingToBackUp = (): boolean =>
-  holderKeyIfAny() !== null || allKeys().length > 0 || loadAttester() !== null;
+  holderKeyIfAny() !== null ||
+  allKeys().length > 0 ||
+  loadAttester() !== null ||
+  Object.keys(allDeliveries()).length > 0;
 
 /**
  * Save the file. Deliberately does not mark anything as backed up: only checkBackup
@@ -146,6 +161,12 @@ export const checkBackup = async (file: File): Promise<CheckResult> => {
   if (lab && !same((v.labSignature as { keypair?: unknown } | undefined)?.keypair, lab.keypair)) {
     return { ok: false, reason: "That backup doesn't hold your lab's signature. Save a new one and check that." };
   }
+  // A lab's deliveries: without the breeder's lock, a lab on a new device can't send a
+  // lab report back. A lab code a breeder made isn't checked: losing one only means
+  // making a new code.
+  if (deliveriesMissingFrom(v.labDeliveries).length > 0) {
+    return { ok: false, reason: "That backup doesn't hold your latest deliveries. Save a new one and check that." };
+  }
   markBackedUp(held.map((k) => k.recordId));
   return { ok: true, records: held.length };
 };
@@ -154,6 +175,9 @@ export type RestoreResult = {
   readonly records: number;
   readonly holderKey: 'restored' | 'already' | 'none';
   readonly labSignature: boolean;
+  /** Deliveries (a lab's) and lab codes (a breeder's) added from the file. */
+  readonly deliveries?: number;
+  readonly sentCodes?: number;
 };
 
 /**
@@ -199,7 +223,10 @@ export const restoreAny = async (file: File): Promise<RestoreResult> => {
   const holder = fileKey ? adoptHolderKey(fileKey) : 'none';
   for (const e of entries) restoreKeysEntry(e);
   const labAdopted = lab ? adoptAttester(lab) : false;
-  return { records: entries.length, holderKey: holder, labSignature: labAdopted };
+  // Merged, never replacing an entry already here (a lock this browser has stays).
+  const deliveries = mergeDeliveries(v.labDeliveries);
+  const sentCodes = mergeSentCodes(v.sentCodes);
+  return { records: entries.length, holderKey: holder, labSignature: labAdopted, deliveries, sentCodes };
 };
 
 const adoptHolderKey = (key: string): 'restored' | 'already' => {

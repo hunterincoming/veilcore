@@ -59,7 +59,7 @@ type VerifyResult = {
   id?: string;
   cultivar?: string;
   recordFingerprint?: string;
-  /** The holder paired a DNA report fingerprint themselves. Not a lab's confirmation. */
+  /** The holder saved a lab report fingerprint themselves. Not a lab's confirmation. */
   dnaPairedByHolder?: boolean;
   /**
    * Older field. From a current registry it means attestedByVettedLab; from an older one
@@ -244,7 +244,8 @@ export const VerifyPage: React.FC = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
+      {/* IDs, fingerprints and hashes are long unbroken strings: they wrap, the page never scrolls sideways. */}
+      <Container component="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, overflowWrap: 'anywhere' }}>
         <Stack
           component={RouterLink}
           to="/"
@@ -263,9 +264,10 @@ export const VerifyPage: React.FC = () => {
           }}
         >
           <Box
+            aria-hidden="true"
             sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }}
           />
-          <Typography variant="h6" sx={{ letterSpacing: '0.3em', fontWeight: 600 }}>
+          <Typography variant="h6" component="span" sx={{ letterSpacing: '0.3em', fontWeight: 600 }}>
             VEILCORE
           </Typography>
         </Stack>
@@ -284,11 +286,11 @@ export const VerifyPage: React.FC = () => {
 
         {loading ? (
           <Paper sx={{ p: 6, textAlign: 'center' }}>
-            <CircularProgress size={28} sx={{ color: ACCENT }} />
+            <CircularProgress size={28} sx={{ color: ACCENT }} aria-label="Checking the record" />
           </Paper>
         ) : !result?.found ? (
           <Paper sx={{ p: 4, textAlign: 'center' }}>
-            <Typography variant="h6" sx={{ mb: 1 }}>
+            <Typography variant="h6" component="h1" sx={{ mb: 1, overflowWrap: 'anywhere' }}>
               No record found for {idText(id)}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -304,16 +306,16 @@ export const VerifyPage: React.FC = () => {
           // some other record (or none), so nothing on it is checked or shown as this one.
           <Paper sx={{ p: { xs: 3, md: 4 } }}>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
-              <VerifiedIcon data-checked="no" sx={{ color: 'text.disabled', fontSize: 30 }} />
-              <Typography variant="overline" sx={{ color: 'error.main' }}>
+              <VerifiedIcon data-checked="no" aria-hidden="true" sx={{ color: 'text.disabled', fontSize: 30 }} />
+              <Typography variant="overline" component="h1" sx={{ color: 'error.main', lineHeight: 1.6 }}>
                 Fingerprint does not match this link · nothing checked
               </Typography>
             </Stack>
             <Alert severity="error" variant="outlined" data-mismatch="yes">
-              <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+              <Typography variant="subtitle2" component="p" sx={{ mb: 0.5 }}>
                 Do not rely on this page.
               </Typography>
-              <Typography variant="body2">
+              <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>
                 {binding.linked
                   ? `This link was made for the record with fingerprint ${shortFingerprint(binding.linked)}, `
                   : 'This link carries a fingerprint that is not valid (it should be 64 hexadecimal characters); it may have been cut short or changed, '}
@@ -327,7 +329,7 @@ export const VerifyPage: React.FC = () => {
             {/* Only a well-formed fingerprint (64 hex characters) is shown; anything else
                 in the link is never echoed. */}
             {binding.linked && (
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', overflowWrap: 'anywhere' }}>
                 Fingerprint in the link: {binding.linked}
               </Typography>
             )}
@@ -347,11 +349,16 @@ export const VerifyPage: React.FC = () => {
                   (ANCHOR_CHECKED_ON_CHAIN), which it cannot do yet, so the mark is grey.
                   The lines below still tick what this browser did check. */}
               <VerifiedIcon
+                aria-hidden="true"
                 data-checked={seal ? 'yes' : 'no'}
                 sx={{ color: seal ? ACCENT : 'text.disabled', fontSize: 30 }}
               />
               <Box>
-                <Typography variant="overline" sx={{ color: seal ? ACCENT : 'text.secondary' }}>
+                <Typography
+                  variant="overline"
+                  component="h1"
+                  sx={{ color: seal ? ACCENT : 'text.secondary', lineHeight: 1.6, display: 'block' }}
+                >
                   {!result.recordFingerprint
                     ? 'Record found — nothing sealed'
                     : !bound
@@ -382,7 +389,7 @@ export const VerifyPage: React.FC = () => {
               </Typography>
             )}
             {RECORD_ID.test(result.id ?? '') && (
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2, overflowWrap: 'anywhere' }}>
                 Record ID: {result.id}
               </Typography>
             )}

@@ -1,9 +1,12 @@
 // The progress line under a real call, and its error. Says what is happening, in order:
 // preparing, proving on this device, the sponsor paying the fee, waiting for the network.
+// The error is shown in plain words (chainProblem); the raw error stays on the element's
+// data-error attribute for test scripts and support, not on screen.
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
 import { Alert, CircularProgress, Stack, Typography } from '@mui/material';
+import { chainProblem } from '../flow/log-flow-state';
 
 export const ChainStatusLine: React.FC<{ busy: boolean; progress?: string; error?: string }> = ({
   busy,
@@ -20,8 +23,8 @@ export const ChainStatusLine: React.FC<{ busy: boolean; progress?: string; error
       </Stack>
     )}
     {error && (
-      <Alert severity="error" variant="outlined">
-        {error}
+      <Alert severity="error" variant="outlined" data-error={error}>
+        {chainProblem(error).text}
       </Alert>
     )}
   </>

@@ -53,8 +53,9 @@ export const VerifierChallengePanel: React.FC<{ claim?: ClaimedChainAnchor | nul
               Ask them to prove they hold it
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              You send them a link. They open it and tap Prove it. The answer shows up here, and this page checks it on
-              the network itself: VeilCore can&apos;t fake a yes. Test network only.
+              You send them a link. They open it and tap Prove it. The answer shows up here. This page checks the answer
+              on the network itself, through a Midnight indexer (on the test site, reached through VeilCore&apos;s
+              relay). For a decision that matters, check the transaction on a second indexer. Test network only.
             </Typography>
           </Box>
 

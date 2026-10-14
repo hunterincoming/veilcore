@@ -114,4 +114,63 @@ describe('one backup file', () => {
     expect(keys.keysFor('VEIL-1')).toBeDefined();
     await expect(backup.restoreAny(fileOf('{"format":"something-else"}'))).rejects.toThrow(/isn't a VeilCore backup/);
   });
+
+  it('carries a lab’s delivery locks and a breeder’s lab codes, checks the locks, and merges them on restore', async () => {
+    const { keys, backup } = await setup();
+    const lab = await import('./lab-results');
+    const transfers = await import('./transfers');
+    const lock = await lab.resultRecipientFor('3f'.repeat(32), 'TR-0A1B2C3D');
+    const delivery = {
+      transferId: 'TR-0A1B2C3D',
+      receivedRecordId: 'VEIL-R',
+      sourceCommitment: 'b'.repeat(64),
+      recipient: lock,
+      receivedAt: 1,
+    };
+    const stale = JSON.stringify(backup.backupContents()); // saved before the delivery arrived
+    lab.rememberDelivery(delivery);
+    transfers.rememberSentCode(`TR-11111111.9f8e7d6c.${lock}`);
+    const contents = backup.backupContents();
+    expect(contents.labDeliveries).toEqual({ 'TR-0A1B2C3D': delivery });
+    expect(contents.sentCodes).toEqual({ 'TR-11111111': `TR-11111111.9f8e7d6c.${lock}` });
+
+    // A copy without the lab's latest delivery doesn't pass; the current one does.
+    expect((await backup.checkBackup(fileOf(stale))).ok).toBe(false);
+    expect(keys.keysWithoutBackup()).toHaveLength(2);
+    expect((await backup.checkBackup(fileOf(JSON.stringify(contents)))).ok).toBe(true);
+
+    // A new device gets both back.
+    local.clear();
+    keys.__resetRecordKeysForTests();
+    const r = await backup.restoreAny(fileOf(JSON.stringify(contents)));
+    expect(r).toMatchObject({ deliveries: 1, sentCodes: 1 });
+    expect(lab.deliveryForRecord('VEIL-R')?.recipient).toBe(lock);
+    expect(transfers.sentCodeFor('TR-11111111')).toBe(`TR-11111111.9f8e7d6c.${lock}`);
+  });
+
+  it('restoring never replaces a delivery lock or a lab code already here', async () => {
+    const { backup } = await setup();
+    const lab = await import('./lab-results');
+    const transfers = await import('./transfers');
+    const mine = await lab.resultRecipientFor('3f'.repeat(32), 'TR-0A1B2C3D');
+    const theirs = await lab.resultRecipientFor('40'.repeat(32), 'TR-0A1B2C3D');
+    lab.rememberDelivery({ transferId: 'TR-0A1B2C3D', receivedRecordId: 'VEIL-R', recipient: mine, receivedAt: 1 });
+    transfers.rememberSentCode(`TR-11111111.aaaa.${mine}`);
+    const file = {
+      ...backup.backupContents(),
+      labDeliveries: {
+        'TR-0A1B2C3D': { transferId: 'TR-0A1B2C3D', receivedRecordId: 'VEIL-R', recipient: theirs, receivedAt: 2 },
+        'TR-22222222': { transferId: 'TR-22222222', receivedRecordId: 'VEIL-Q', recipient: theirs, receivedAt: 3 },
+        'TR-BAD': { transferId: 'TR-OTHER', receivedRecordId: 'VEIL-Z', receivedAt: 3 },
+      },
+      sentCodes: { 'TR-11111111': `TR-11111111.bbbb.${theirs}`, 'TR-33333333': 'TR-33333333.cccc' },
+    };
+    const r = await backup.restoreAny(fileOf(JSON.stringify(file)));
+    expect(r).toMatchObject({ deliveries: 1, sentCodes: 1 });
+    expect(lab.deliveryForRecord('VEIL-R')?.recipient).toBe(mine);
+    expect(lab.deliveryForRecord('VEIL-Q')?.recipient).toBe(theirs);
+    expect(lab.deliveryForRecord('VEIL-Z')).toBeUndefined();
+    expect(transfers.sentCodeFor('TR-11111111')).toBe(`TR-11111111.aaaa.${mine}`);
+    expect(transfers.sentCodeFor('TR-33333333')).toBe('TR-33333333.cccc');
+  });
 });

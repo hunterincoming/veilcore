@@ -34,6 +34,13 @@ const config = tseslint.config(
       },
     },
   },
+  // The recording script (e2e/record-walkthrough.mjs) is plain JavaScript run by Node: no
+  // types to check it against, and Node's globals (process, Buffer) are its own.
+  {
+    files: ['e2e/**/*.mjs'],
+    ...tseslint.configs.disableTypeChecked,
+    rules: { ...tseslint.configs.disableTypeChecked.rules, 'no-undef': 'off' },
+  },
 );
 
 export default config;

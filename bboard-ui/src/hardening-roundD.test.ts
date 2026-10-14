@@ -1063,7 +1063,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     await pg.goto(`${origin}/verify/VEIL-X?show=existence,parent-names,breeding-method`, { waitUntil: 'networkidle' });
     await pg.waitForSelector('text=Not shared by the holder', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
-    expect(text).toMatch(/Not shared by the holder: Whether a DNA report is paired/);
+    expect(text).toMatch(/Not shared by the holder: Whether a lab report is saved/);
     expect(text).not.toMatch(/not (yet )?paired/i);
     expect(text).toMatch(
       /This link asked for Parent cultivar names; Breeding method, which the holder has not chosen to share/,
@@ -1260,7 +1260,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
       // The simple flow (13 Oct): the share screen is "Show someone" on the plant's page.
       await pg.getByText('Show someone').click();
       await pg.getByLabel('Parent cultivar names').check();
-      await pg.getByRole('button', { name: /Save this choice/ }).click();
+      await pg.getByRole('button', { name: /Get the link/ }).click();
       if (refuse) {
         await pg.waitForSelector('text=Your choice was not saved, so no link was made', { timeout: 15_000 });
         expect(await pg.locator('input[value*="/verify/"]').count()).toBe(0);
@@ -1393,17 +1393,17 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     await pg.goto(`${origin}/records`, { waitUntil: 'networkidle' });
     // The simple flow (13 Oct): a lab's Home has "Confirm a delivery" (the header button went).
     await pg.getByRole('button', { name: 'Confirm a delivery' }).click();
-    await pg.getByLabel('Transfer code').fill('TR-1.abc');
+    await pg.getByLabel('Lab code').fill('TR-1.abc');
     await pg.getByRole('button', { name: 'Receive it' }).click();
     await pg.waitForSelector('text=Sign what you received?', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
     expect(text).toContain(B);
     expect(text).toContain(lab.publicKey);
-    expect(text).toMatch(/I received 10 cuttings of Blue from record VEIL-S/);
+    expect(text).toMatch(/A sample labelled “Blue” \(10 cuttings, as the breeder wrote it\) arrived under code TR-1\./);
     expect(external.some((e) => e.url.endsWith('/attestations'))).toBe(false);
     await pg.getByLabel('I physically received this material.').check();
     await pg.getByRole('button', { name: 'Sign with my key' }).click();
-    await pg.waitForSelector('text=your signed confirmation was not: registry down', { timeout: 15_000 });
+    await pg.waitForSelector('text=your signed receipt was not recorded: registry down', { timeout: 15_000 });
     const posted = external.find((e) => e.url.endsWith('/attestations'));
     expect((JSON.parse(posted?.body ?? '{}') as { subjectCommitment?: string }).subjectCommitment).toBe(B);
     expect(errors).toEqual([]);

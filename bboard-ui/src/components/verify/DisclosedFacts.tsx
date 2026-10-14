@@ -83,8 +83,8 @@ export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }>
       {shared.has('dna') && (
         <Fact ok={false}>
           {data.dnaPairedByHolder
-            ? 'The holder paired a DNA report fingerprint with this record. Not confirmed by a lab.'
-            : 'The holder has not paired a DNA report with this record.'}
+            ? 'The holder saved a lab report fingerprint to this record. Not confirmed by a lab.'
+            : 'The holder has not saved a lab report to this record.'}
         </Fact>
       )}
       {/* No tick: "intact" is the registry's say-so, and this page walks no descent

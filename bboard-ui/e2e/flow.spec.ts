@@ -34,28 +34,31 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   await holder.getByRole('button', { name: /Next: check it/ }).click();
   await holder.getByRole('button', { name: /Seal it/ }).click();
   // The network is blocked, so the date stamp can't go out: it must say so plainly.
-  await expect(holder.getByText(/That didn.t go through/)).toBeVisible({ timeout: 90_000 });
-  await expect(holder.getByText(/Nothing is lost/)).toBeVisible();
+  await expect(holder.getByText(/Couldn.t reach the network/)).toBeVisible({ timeout: 90_000 });
+  await expect(holder.getByText(/Your plant is saved/)).toBeVisible();
   // ...and never leave them stuck: they can carry on and save the backup.
   await holder.getByRole('button', { name: /Do the date stamp later/ }).click();
   await holder.getByRole('button', { name: /No report yet: skip/ }).click();
   await expect(holder.getByRole('button', { name: /Save backup file/ })).toBeVisible();
 
   const recordId = await holder.evaluate(
-    () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}'))[0],
+    () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
   );
   expect(recordId).toMatch(/^VEIL-/);
   // What the network would have done: the record's identity anchored.
   await holder.evaluate(
     ({ recordId, identity, tx }) => {
-      const all = JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}');
-      all[recordId].anchor = {
-        identity,
-        network: 'preview',
-        contractAddress: '0'.repeat(64),
-        txId: tx,
-        txHash: tx,
-        blockHeight: 1,
+      const all = JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as Record<string, object>;
+      all[recordId] = {
+        ...all[recordId],
+        anchor: {
+          identity,
+          network: 'preview',
+          contractAddress: '0'.repeat(64),
+          txId: tx,
+          txHash: tx,
+          blockHeight: 1,
+        },
       };
       localStorage.setItem('veilcore.record-keys.v1', JSON.stringify(all));
     },
@@ -65,7 +68,7 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   // Share it, with the date stamp in the link.
   await holder.goto(`/record/${recordId}`);
   await holder.getByRole('button', { name: /Show someone/ }).click();
-  await holder.getByRole('button', { name: /Save this choice/ }).click();
+  await holder.getByRole('button', { name: /Get the link/ }).click();
   await expect(holder.getByLabel(/Let them check the date stamp/)).toBeChecked();
   const link = await holder.locator('input[readonly]').first().inputValue();
   expect(link).toContain(`chain=${IDENTITY}`);
@@ -82,11 +85,13 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   await checker.getByLabel(/Your name or business/).fill('E2E Lab');
   await checker.getByRole('button', { name: /Make a link to send them/ }).click();
   const proveLink = (await checker.getByText(/\/prove\/PR-/).innerText()).trim();
-  const id = proveLink.split('/prove/')[1];
-  expect(id).toMatch(/^PR-[0-9A-F]{32}$/);
+  // The id, and the answer token in the fragment (16 bytes, base64url: 22 characters).
+  const parts = /\/prove\/(PR-[0-9A-F]{32})#t=([A-Za-z0-9_-]{22})/.exec(proveLink);
+  expect(parts, 'the link carries its id and answer token').toBeTruthy();
+  const [, id, token] = parts!;
 
-  // The holder opens it.
-  await holder.goto(`/prove/${id}`);
+  // The holder opens it, the whole link.
+  await holder.goto(`/prove/${id}#t=${token}`);
   await expect(holder.getByRole('heading', { name: new RegExp(`Prove you hold ${name}`) })).toBeVisible();
   await expect(holder.getByText(/E2E Lab/)).toBeVisible();
 
@@ -94,7 +99,7 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   const posted = await fetch(`${API}/prove-requests/${id}/answers`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ txId: 'cd'.repeat(32) }),
+    body: JSON.stringify({ txId: 'cd'.repeat(32), token }),
   });
   expect(posted.status).toBe(200);
   await expect(checker.getByText(/hasn.t shown it yet/)).toBeVisible({ timeout: 60_000 });
@@ -131,12 +136,12 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await breeder.getByRole('button', { name: /Seal it/ }).click();
   await breeder.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
   const recordId = await breeder.evaluate(
-    () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}'))[0],
+    () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
   );
   await breeder.goto(`/record/${recordId}`);
   await breeder.getByText('Send it to a lab or breeder').click();
   await breeder.getByLabel(/Who are you sending it to/).fill('lab@e2e');
-  await breeder.getByRole('button', { name: /Create transfer/ }).click();
+  await breeder.getByRole('button', { name: /Make a code for the lab/ }).click();
   const codeEl = breeder.getByText(/^TR-[0-9A-F]{8}\./);
   await expect(codeEl).toBeVisible();
   const code = /^TR-[0-9A-F]{8}\.[0-9a-z]+\.age1[02-9ac-hj-np-z]{58}$/.exec((await codeEl.innerText()).trim())?.[0];
@@ -195,12 +200,11 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await breeder.goto(`/record/${recordId}`);
   await breeder
     .getByRole('alert')
-    .filter({ hasText: /lab result came back/ })
+    .filter({ hasText: /lab report came back/ })
     .getByRole('button', { name: 'Open' })
     .click();
-  await breeder.getByRole('button', { name: /^Open$/ }).click();
   await expect(breeder.getByText(/Signed by E2E Lab/)).toBeVisible();
-  await expect(breeder.getByText(/same lab confirmed receiving the sample/)).toBeVisible();
+  await expect(breeder.getByText(/The same key signed that it received this (sample|plant)/)).toBeVisible();
   await shot(breeder, 'breeder-2-opened');
   const [dl] = await Promise.all([
     breeder.waitForEvent('download'),
@@ -211,8 +215,10 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   for await (const c of saved) chunks.push(c as Buffer);
   expect(Buffer.concat(chunks)).toEqual(report);
   expect(dl.suggestedFilename()).toMatch(/\.pdf$/);
-  await breeder.getByRole('button', { name: /Pair it with this plant/ }).click();
-  await expect(breeder.getByRole('button', { name: /Pair this report/ })).toBeEnabled();
+  await breeder.getByRole('button', { name: /Save it to this plant/ }).click();
+  // Its own screen, with the file already chosen: one press saves it.
+  await expect(breeder.getByRole('heading', { name: /Save your lab report to this plant/ })).toBeVisible();
+  await expect(breeder.getByRole('button', { name: /Save it to this plant/ })).toBeEnabled();
 
   expectNoErrors(breederErrors);
   expectNoErrors(labErrors);

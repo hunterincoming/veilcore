@@ -29,19 +29,24 @@ import { linkCard } from '../a11y';
 import { PRACTICE_LABEL } from '../../config/copy';
 import { SECTIONS } from './FlowFrame';
 import { PasteBox } from './PasteBox';
+import { labCardLine, useLabCardFacts, useWaitingByRecord } from './LabResults';
+import { quantityPhrase } from '../../veilcore/transfers';
 import { TrustPanel } from '../TrustPanel';
 
 const day = (ms: number) => new Date(ms).toLocaleDateString();
 
-/** One line saying where a plant stands, worst news first. */
+/**
+ * One line saying where a plant stands, worst news first. Nothing here says a lab
+ * confirmed anything: that needs a signature checked on the plant's page, and a used
+ * code (record.attestation) is not one.
+ */
 const statusLine = (r: StrainRecord, keys?: RecordKeys): { text: string; unfinished: boolean } => {
   if (REAL_CHAIN && keys && !keys.backedUpAt)
     return { text: 'Not finished · next: save your backup', unfinished: true };
   if (REAL_CHAIN && !r.receivedFrom && !keys?.anchor)
     return { text: 'Not finished · next: the date stamp', unfinished: true };
   const bits = [r.receivedFrom ? `Received from ${r.receivedFrom}` : `Sealed ${day(r.loggedAt)}`];
-  if (r.dnaFingerprint) bits.push('lab report');
-  if (r.attestation) bits.push(r.receivedFrom ? 'you confirmed it' : 'lab confirmed it');
+  if (r.dnaFingerprint) bits.push('lab report saved');
   return { text: bits.join(' · '), unfinished: false };
 };
 
@@ -60,10 +65,14 @@ export const AppHome: React.FC = () => {
 
   const unbacked = REAL_CHAIN ? keysWithoutBackup() : [];
   const labOnly = isLab(role) && !isBreeder(role);
+  const lab = isLab(role);
   const visible = sortRecords(
     records.filter((r) => matchesQuery(r, query)),
     sort,
   );
+  // A breeder's plants with a lab report waiting; a lab's received samples at a glance.
+  const waiting = useWaitingByRecord(isBreeder(role) && records.some((r) => !r.receivedFrom));
+  const labFacts = useLabCardFacts(visible, lab);
 
   const onImport = async (file: File | null | undefined) => {
     if (!file) return;
@@ -190,11 +199,13 @@ export const AppHome: React.FC = () => {
       <Stack spacing={2.5}>
         <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
           <Typography variant="h4" component="h1">
-            Your plants
+            {labOnly ? 'Samples received' : 'Your plants'}
           </Typography>
-          <Button component={RouterLink} to="/new" variant="contained" startIcon={<AddIcon />} sx={{ minHeight: 48 }}>
-            Log new
-          </Button>
+          {!labOnly && (
+            <Button component={RouterLink} to="/new" variant="contained" startIcon={<AddIcon />} sx={{ minHeight: 48 }}>
+              Log new
+            </Button>
+          )}
         </Stack>
 
         {unbacked.length > 0 && (
@@ -219,21 +230,27 @@ export const AppHome: React.FC = () => {
 
         {isLab(role) && labPanel}
 
-        {records.length >= 5 && (
+        {/* A lab looks samples up by its own number or the breeder: search from 3. */}
+        {records.length >= (lab ? 3 : 5) && (
           <RecordFinder
             query={query}
             onQuery={setQuery}
             sort={sort}
             onSort={setSort}
-            showSearch={records.length >= 8}
+            showSearch={records.length >= (lab ? 3 : 8)}
             matched={visible.length}
             total={records.length}
+            lab={lab}
           />
         )}
 
         <Stack spacing={1.25}>
           {visible.map((r) => {
-            const s = statusLine(r, keys[r.id]);
+            const s =
+              lab && r.receivedFrom
+                ? { text: labCardLine(r, labFacts[r.id]), unfinished: false }
+                : statusLine(r, keys[r.id]);
+            const reportWaiting = (waiting[r.id]?.length ?? 0) > 0;
             return (
               <Paper
                 key={r.id}
@@ -259,7 +276,30 @@ export const AppHome: React.FC = () => {
                     >
                       {s.text}
                     </Typography>
+                    {lab && r.receivedFrom && (r.quantity || r.deliveryNote) && (
+                      <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+                        {[quantityPhrase(r.quantity), r.deliveryNote && `“${r.deliveryNote}”`]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </Typography>
+                    )}
                   </Box>
+                  {reportWaiting && (
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontWeight: 700,
+                        px: 1,
+                        py: 0.25,
+                        borderRadius: 5,
+                        background: '#E3F1E8',
+                        color: '#1E5B36',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      Lab report waiting
+                    </Typography>
+                  )}
                   <ChevronIcon sx={{ color: 'text.secondary' }} />
                 </Stack>
               </Paper>
@@ -269,26 +309,32 @@ export const AppHome: React.FC = () => {
 
         <PasteBox />
 
-        <Paper
-          {...linkCard(() => void navigate('/licenses'), 'Open my agreements')}
-          sx={{ p: 2, cursor: 'pointer', '&:hover, &:focus-visible': { borderColor: 'primary.main', outline: 'none' } }}
-        >
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-            <SECTIONS.license.Icon sx={{ color: SECTIONS.license.color }} />
-            <Typography variant="body1" sx={{ flex: 1, fontWeight: 700 }}>
-              My agreements ({licenses.length})
-            </Typography>
-            {PRACTICE_LABEL && (
-              <Typography
-                variant="caption"
-                sx={{ fontWeight: 700, px: 1, py: 0.25, borderRadius: 5, background: '#FFF1D6', color: '#6B4100' }}
-              >
-                {PRACTICE_LABEL}
+        {!labOnly && (
+          <Paper
+            {...linkCard(() => void navigate('/licenses'), 'Open my agreements')}
+            sx={{
+              p: 2,
+              cursor: 'pointer',
+              '&:hover, &:focus-visible': { borderColor: 'primary.main', outline: 'none' },
+            }}
+          >
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+              <SECTIONS.license.Icon sx={{ color: SECTIONS.license.color }} />
+              <Typography variant="body1" sx={{ flex: 1, fontWeight: 700 }}>
+                My agreements ({licenses.length})
               </Typography>
-            )}
-            <ChevronIcon sx={{ color: 'text.secondary' }} />
-          </Stack>
-        </Paper>
+              {PRACTICE_LABEL && (
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 700, px: 1, py: 0.25, borderRadius: 5, background: '#FFF1D6', color: '#6B4100' }}
+                >
+                  {PRACTICE_LABEL}
+                </Typography>
+              )}
+              <ChevronIcon sx={{ color: 'text.secondary' }} />
+            </Stack>
+          </Paper>
+        )}
 
         <Divider />
         <Stack spacing={0.5} sx={{ alignItems: 'center' }}>

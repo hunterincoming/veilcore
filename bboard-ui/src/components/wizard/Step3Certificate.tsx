@@ -4,6 +4,10 @@
 // uses veilcore-records' canonical serialisation), and the anchor line asks the registry
 // for the batch proof and verifies it locally. Nothing is printed as a pass unless it was
 // checked. The time is this device's clock until the record is anchored.
+//
+// The card is drawn in fixed light colours (the site's light design), not the theme's, so
+// the screen and the downloaded image look the same and stay readable wherever the image
+// ends up. A test-network build marks the card as practice: a test record is not evidence.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -15,7 +19,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { toPng } from 'html-to-image';
 import { getRecord, checkIntegrity, type IntegrityCheck } from '../../veilcore/records';
 import { proofFor, type ProofState } from '../../veilcore/proofs';
-import { NETWORK, networkLabel, canonicalUrl } from '../../config/network';
+import { IS_MAINNET, NETWORK, networkLabel, canonicalUrl } from '../../config/network';
 import { useLicenses, activeLicenseCount, licensesForRecord } from '../../veilcore/licenses';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { verifyPath } from '../../veilcore/verify-link';
@@ -25,12 +29,35 @@ import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { ProveOwnershipPanel } from '../chain/ProveOwnershipPanel';
 import { useRecordKeys } from '../../veilcore/record-keys';
 
-const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
-  <Box>
-    <Typography variant="overline" sx={{ display: 'block', mb: 0.25 }}>
+// The certificate's own colours: dark text on white, every pair at least 4.5:1.
+const CERT = {
+  ground: '#FFFFFF',
+  ink: '#16201B',
+  muted: '#4A564F',
+  line: '#DADFD8',
+  accent: ACCENT,
+  error: '#B3261E',
+  practice: '#9A5B00',
+} as const;
+
+const MONO = '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+
+/** The practice mark on a test-network certificate. */
+export const PRACTICE_BAND = 'TEST NETWORK — PRACTICE ONLY, NOT EVIDENCE';
+const PRACTICE_WATERMARK = `url("data:image/svg+xml,${encodeURIComponent(
+  "<svg xmlns='http://www.w3.org/2000/svg' width='640' height='420'><text x='320' y='210' text-anchor='middle' dominant-baseline='middle' transform='rotate(-28 320 210)' font-family='Arial, sans-serif' font-weight='900' font-size='50' letter-spacing='4' fill='#9A5B00' fill-opacity='0.08'>PRACTICE · TEST NETWORK</text></svg>",
+)}")`;
+export const IMAGE_NOT_EVIDENCE = 'This image is not evidence. The record file and the network transaction are.';
+
+const Field: React.FC<{ label: string; children: React.ReactNode; mono?: boolean }> = ({ label, children, mono }) => (
+  <Box sx={{ minWidth: 0 }}>
+    <Typography variant="overline" sx={{ display: 'block', mb: 0.25, color: CERT.muted, lineHeight: 1.6 }}>
       {label}
     </Typography>
-    <Typography variant="body2" sx={{ color: 'text.primary' }}>
+    <Typography
+      variant="body2"
+      sx={{ color: CERT.ink, overflowWrap: 'anywhere', ...(mono ? { fontFamily: MONO, fontSize: '0.8125rem' } : {}) }}
+    >
       {children}
     </Typography>
   </Box>
@@ -94,31 +121,34 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
     ? `Delivery taken via a transfer code on ${utcDate(record.attestation.attestedAt)} (unsigned; does not identify who)`
     : 'none recorded';
 
+  // A summary, not evidence: the record file and the network transaction are. It carries
+  // no "it matches" line: a file can say anything about itself, so a check written into
+  // it proves nothing. Whoever opens it recomputes the fingerprint (docs/spec).
   const downloadJson = () => {
     const data = {
+      ...(IS_MAINNET ? {} : { practice: PRACTICE_BAND }),
       record,
       licenses: licensesForRecord(record.id),
-      integrity: integrityLine,
       anchored: anchorLine,
       secondParty: deliveryLine,
       sealedAtSource: "the sealing device's clock",
       generatedAt: new Date().toISOString(),
-      note: 'VeilCore record summary. No genetic data or lab files; it contains the record details.',
+      note: `VeilCore record summary. No genetic data or lab files; it contains the record details. ${IMAGE_NOT_EVIDENCE.replace('This image', 'This summary')}`,
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${record.id}-evidence.json`;
+    a.download = `${record.id}-summary.json`;
     a.click();
     URL.revokeObjectURL(url);
-    setToast('Evidence data (JSON) downloaded.');
+    setToast('Summary (JSON) downloaded.');
   };
 
   const download = async () => {
     if (!certRef.current) return;
     try {
-      const dataUrl = await toPng(certRef.current, { pixelRatio: 2, backgroundColor: '#0a1114', cacheBust: true });
+      const dataUrl = await toPng(certRef.current, { pixelRatio: 2, backgroundColor: CERT.ground, cacheBust: true });
       const a = document.createElement('a');
       a.download = `${record.id}-veilcore-certificate.png`;
       a.href = dataUrl;
@@ -137,7 +167,7 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
   return (
     <Stack spacing={2.5}>
       <Box>
-        <Typography variant="h5" sx={{ mb: 0.5 }}>
+        <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="" sx={{ mb: 0.5 }}>
           Certificate
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -150,111 +180,149 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
       {/* the certificate itself (captured for download) */}
       <Box
         ref={certRef}
+        data-certificate=""
         sx={{
-          p: 3.5,
+          position: 'relative',
+          overflow: 'hidden',
           borderRadius: 3,
-          background: 'linear-gradient(160deg, #0b1417 0%, #060b0d 100%)',
-          border: `1px solid ${ACCENT}55`,
-          boxShadow: `0 0 40px rgba(47,240,207,0.10)`,
+          backgroundColor: CERT.ground,
+          // Across the middle as well as the band, so cropping the band off doesn't make a
+          // practice certificate look real. A faint picture, not text: the words over it
+          // keep their contrast, and screen readers already have the band.
+          ...(IS_MAINNET
+            ? {}
+            : {
+                backgroundImage: PRACTICE_WATERMARK,
+                backgroundRepeat: 'repeat-y',
+                backgroundSize: '100% auto',
+                backgroundPosition: 'center top',
+              }),
+          color: CERT.ink,
+          border: `1px solid ${CERT.line}`,
         }}
       >
-        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-          <Box>
-            <Typography variant="overline" sx={{ color: ACCENT }}>
-              VeilCore
-            </Typography>
-            <Typography variant="h5" sx={{ lineHeight: 1.1 }}>
-              Record summary
-            </Typography>
+        {!IS_MAINNET && (
+          <Box
+            data-practice=""
+            sx={{
+              background: CERT.practice,
+              color: '#FFFFFF',
+              px: 2,
+              py: 1,
+              textAlign: 'center',
+              fontWeight: 800,
+              letterSpacing: '0.06em',
+              fontSize: '0.875rem',
+            }}
+          >
+            {PRACTICE_BAND}
           </Box>
-          {/* No seal: this site does not read the chain, so a reported anchor is the
-              registry's word (proofs.ts). A neutral mark, labelled as exactly that. */}
-          {anchor !== 'checking' && anchor.status === 'anchor-reported' && (
-            <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', color: 'text.secondary' }}>
-              <ReportedIcon sx={{ fontSize: 20 }} />
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                Anchor reported by the registry
+        )}
+        <Box sx={{ p: { xs: 2.5, sm: 3.5 }, position: 'relative' }}>
+          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, gap: 1 }}>
+            <Box>
+              <Typography variant="overline" sx={{ color: CERT.accent }}>
+                VeilCore
               </Typography>
-            </Stack>
-          )}
-        </Stack>
+              <Typography variant="h5" component="p" sx={{ lineHeight: 1.1, color: CERT.ink }}>
+                Record summary
+              </Typography>
+            </Box>
+            {/* No seal: this site does not read the chain, so a reported anchor is the
+                registry's word (proofs.ts). A neutral mark, labelled as exactly that. */}
+            {anchor !== 'checking' && anchor.status === 'anchor-reported' && (
+              <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', color: CERT.muted }}>
+                <ReportedIcon sx={{ fontSize: 20 }} />
+                <Typography variant="caption" sx={{ color: CERT.muted }}>
+                  Anchor reported by the registry
+                </Typography>
+              </Stack>
+            )}
+          </Stack>
 
-        <Divider sx={{ mb: 2.5 }} />
+          <Divider sx={{ mb: 2.5, borderColor: CERT.line }} />
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
-          <Stack spacing={2} sx={{ flex: 1 }}>
-            <Field label="Cultivar">{record.strainName}</Field>
-            <Field label="Bred by">{record.bredBy}</Field>
-            <Field label="Stated creation date (breeder's claim)">{record.dateCreated}</Field>
-            {record.taxon && <Field label="Species">{record.taxon}</Field>}
-            <Field label="Logged (the sealing device's clock)">{fmtStamp(record.loggedAt)}</Field>
-            <Field label="Anchored">
-              <Box
-                component="span"
-                sx={{
-                  color: 'text.secondary',
-                  overflowWrap: 'anywhere',
-                }}
-              >
-                {anchorLine}
-              </Box>
-            </Field>
-            {REAL_CHAIN && anchorHere && (
-              <Field label="On-chain identity (test network)">
-                <Box component="span" sx={{ wordBreak: 'break-all' }}>
-                  {shortFingerprint(anchorHere.identity)} · block {anchorHere.blockHeight}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
+            <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
+              <Field label="Cultivar">{record.strainName}</Field>
+              <Field label="Bred by">{record.bredBy}</Field>
+              <Field label="Stated creation date (breeder's claim)">{record.dateCreated}</Field>
+              {record.taxon && <Field label="Species">{record.taxon}</Field>}
+              <Field label="Logged (the sealing device's clock)">{fmtStamp(record.loggedAt)}</Field>
+              <Field label="Anchored">
+                <Box component="span" sx={{ color: CERT.muted }}>
+                  {anchorLine}
                 </Box>
               </Field>
-            )}
-            <Field label="DNA report paired">
-              {record.dnaFingerprint ? (
-                <Box component="span" sx={{ color: ACCENT }}>
-                  ✓ paired {record.dnaPairedAt ? `· ${utcDate(record.dnaPairedAt)}` : ''}
-                </Box>
-              ) : (
-                'not paired'
+              {REAL_CHAIN && anchorHere && (
+                <Field label={IS_MAINNET ? 'On-chain identity' : 'On-chain identity (test network)'}>
+                  {shortFingerprint(anchorHere.identity)} · block {anchorHere.blockHeight}
+                </Field>
               )}
-            </Field>
-            <Field label="Unchanged since sealing">
-              <Box
-                component="span"
-                sx={{
-                  color: integrity === 'match' ? ACCENT : integrity === 'mismatch' ? 'error.main' : 'text.secondary',
-                }}
-              >
-                {integrityLine}
-              </Box>
-            </Field>
-            <Field label="Second-party confirmation">{deliveryLine}</Field>
-            <Field label="Active licenses">{activeLicenseCount(record.id)}</Field>
-            <Field label="Record ID">
-              <Box component="span" sx={{ fontFamily: '"Space Grotesk", monospace' }}>
+              <Field label="Lab report saved">
+                {record.dnaFingerprint ? (
+                  <Box component="span" sx={{ color: CERT.accent }}>
+                    ✓ saved {record.dnaPairedAt ? `· ${utcDate(record.dnaPairedAt)}` : ''}
+                  </Box>
+                ) : (
+                  'not saved'
+                )}
+              </Field>
+              <Field label="Unchanged since sealing">
+                <Box
+                  component="span"
+                  sx={{
+                    color: integrity === 'match' ? CERT.accent : integrity === 'mismatch' ? CERT.error : CERT.muted,
+                  }}
+                >
+                  {integrityLine}
+                </Box>
+              </Field>
+              <Field label="Second-party confirmation">{deliveryLine}</Field>
+              <Field label="Active licenses">{activeLicenseCount(record.id)}</Field>
+              <Field label="Record ID" mono>
                 {record.id}
+              </Field>
+              <Field label="Fingerprint (SHA-256)" mono>
+                <Box component="span" data-fingerprint="">
+                  {record.recordFingerprint}
+                </Box>
+              </Field>
+            </Stack>
+
+            <Stack spacing={1} sx={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Box sx={{ p: 1.5, background: '#fff', borderRadius: 2, border: `1px solid ${CERT.line}` }}>
+                {/* Drawn larger than before: the link now carries the 64-character fingerprint. */}
+                <QRCodeSVG
+                  value={verifyLink}
+                  size={144}
+                  bgColor="#ffffff"
+                  fgColor="#04070a"
+                  level="M"
+                  role="img"
+                  aria-label="QR code that opens this record's public check page"
+                  title="QR code that opens this record's public check page"
+                />
               </Box>
-            </Field>
+              <Typography variant="caption" sx={{ color: CERT.muted }}>
+                Scan to check the record
+              </Typography>
+            </Stack>
           </Stack>
 
-          <Stack spacing={1} sx={{ alignItems: 'center', justifyContent: 'center' }}>
-            <Box sx={{ p: 1.5, background: '#fff', borderRadius: 2 }}>
-              {/* Drawn larger than before: the link now carries the 64-character fingerprint. */}
-              <QRCodeSVG value={verifyLink} size={144} bgColor="#ffffff" fgColor="#04070a" level="M" />
-            </Box>
-            <Typography variant="caption" color="text.secondary">
-              Scan to verify
-            </Typography>
-          </Stack>
-        </Stack>
-
-        <Divider sx={{ my: 2.5 }} />
-        <Typography variant="caption" color="text.secondary">
-          The record is tamper-evident; this image is not. Scan the code to check it. · No genetic data or lab files on
-          this summary · fingerprint {shortFingerprint(record.recordFingerprint)}
-        </Typography>
+          <Divider sx={{ my: 2.5, borderColor: CERT.line }} />
+          <Typography variant="body2" sx={{ color: CERT.ink, fontWeight: 700 }}>
+            {IMAGE_NOT_EVIDENCE}
+          </Typography>
+          <Typography variant="caption" sx={{ color: CERT.muted, display: 'block', mt: 0.5 }}>
+            Scan the code to check the record. No genetic data or lab files on this summary.
+          </Typography>
+        </Box>
       </Box>
 
       {REAL_CHAIN && <ProveOwnershipPanel recordId={recordId} />}
 
-      <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
+      <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1.5 }}>
         <Button variant="text" onClick={onBack}>
           Back
         </Button>
@@ -265,7 +333,7 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
           Download (PNG)
         </Button>
         <Button variant="outlined" startIcon={<DownloadIcon />} onClick={downloadJson}>
-          Download data (JSON)
+          Download summary (JSON)
         </Button>
         <Button variant="contained" onClick={onDone}>
           Continue: choose what others see

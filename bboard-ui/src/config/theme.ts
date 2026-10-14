@@ -13,7 +13,30 @@ const MUTED = '#7f9a95';
 /** Below MUI's "sm" breakpoint (600px). */
 const PHONE = '@media (max-width:599.95px)';
 
+/**
+ * Whether the person asked their device for less motion. Read once, when the page loads:
+ * a change in the setting applies on the next load. Both themes then drop MUI's ripple and
+ * every transition (collapses, menus and dialogs open at once).
+ */
+export const REDUCED_MOTION: boolean = (() => {
+  try {
+    return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    return false;
+  }
+})();
+
+const motionOptions = (reduce: boolean) =>
+  reduce
+    ? {
+        transitions: { create: () => 'none' },
+        ripple: { MuiButtonBase: { defaultProps: { disableRipple: true, disableTouchRipple: true } } },
+      }
+    : { transitions: {}, ripple: {} };
+const MOTION = motionOptions(REDUCED_MOTION);
+
 export const theme = createTheme({
+  transitions: MOTION.transitions,
   palette: {
     mode: 'dark',
     primary: {
@@ -53,6 +76,7 @@ export const theme = createTheme({
     caption: { [PHONE]: { fontSize: '0.8125rem' } },
   },
   components: {
+    ...MOTION.ripple,
     MuiPaper: {
       styleOverrides: {
         root: {
@@ -109,7 +133,22 @@ const L_MUTED = '#4A564F';
 const L_GROUND = '#F5F6F2';
 const L_LINE = '#DADFD8';
 
+/**
+ * One visible focus ring for everything a keyboard can reach on the light pages: 2px of
+ * the accent, 2px clear of the element. MUI marks keyboard focus with .Mui-focusVisible
+ * (buttons, list buttons, chips, switches); plain links and clickable cards use
+ * :focus-visible. Nothing on these pages turns the outline off.
+ */
+export const FOCUS_RING = { outline: `2px solid ${ACCENT}`, outlineOffset: 2 } as const;
+
+/** The same ring for elements MUI doesn't draw (plain links, cards with a role). Used by App.tsx. */
+export const lightFocusStyles = {
+  'a:focus-visible, [role="button"]:focus-visible, [role="link"]:focus-visible, summary:focus-visible, [tabindex]:not([tabindex="-1"]):focus-visible':
+    FOCUS_RING,
+} as const;
+
 export const lightTheme = createTheme({
+  transitions: MOTION.transitions,
   palette: {
     mode: 'light',
     primary: { main: ACCENT, light: '#2E9C7E', dark: '#005C45', contrastText: '#FFFFFF' },
@@ -138,6 +177,24 @@ export const lightTheme = createTheme({
     caption: { fontSize: '0.875rem', color: L_MUTED },
   },
   components: {
+    MuiButtonBase: {
+      defaultProps: REDUCED_MOTION ? { disableRipple: true, disableTouchRipple: true } : {},
+      styleOverrides: { root: { '&.Mui-focusVisible': FOCUS_RING } },
+    },
+    // A switch's focus lands on its hidden input; the ring goes on the thumb's button.
+    MuiSwitch: {
+      styleOverrides: { switchBase: { '&.Mui-focusVisible': FOCUS_RING } },
+    },
+    MuiLink: {
+      styleOverrides: { root: { '&:focus-visible': FOCUS_RING } },
+    },
+    MuiCardActionArea: {
+      styleOverrides: { root: { '&.Mui-focusVisible': FOCUS_RING } },
+    },
+    // Subtitles are emphasis, not headings: as h6 they broke the heading outline.
+    MuiTypography: {
+      defaultProps: { variantMapping: { subtitle1: 'p', subtitle2: 'p' } },
+    },
     MuiPaper: {
       styleOverrides: { root: { backgroundImage: 'none', border: `1px solid ${L_LINE}` } },
     },

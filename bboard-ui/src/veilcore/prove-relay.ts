@@ -10,6 +10,12 @@
 // its own browser kept, never the copy the registry hands back, so the registry can make
 // a check fail but never pass. No holder key is sent either way: it would tie the
 // holder's account to the record's on-chain identity.
+//
+// Only someone with the link can answer (round 2). The checker's browser makes a random
+// answer token and puts it in the link's fragment, /prove/<id>#t=<token>; browsers never
+// send a fragment to a server. The registry gets only the token's SHA-256 and takes an
+// answer only with the token, so someone who saw just the id can't fill the answer slots
+// with junk.
 // SPDX-License-Identifier: Apache-2.0
 
 import { isObject, isString, isNumber, readJson } from './json';
@@ -20,6 +26,17 @@ const ASKS = 'veilcore.prove-asks.v1';
 const WEEK = 7 * 24 * 60 * 60_000;
 const HEX64 = /^[0-9a-f]{64}$/;
 export const PROVE_ID = /^PR-[0-9A-F]{32}$/;
+/** The answer token: 16 random bytes, base64url without padding. */
+const TOKEN = /^[A-Za-z0-9_-]{22}$/;
+
+/** How long a transaction the network doesn't know yet is given to appear. */
+export const NOT_INDEXED_GRACE_MS = 15 * 60_000;
+/** Polling: every 5 seconds for 2 minutes after something new, then every 30 seconds. */
+export const POLL_FAST_MS = 5_000;
+export const POLL_SLOW_MS = 30_000;
+export const POLL_FAST_FOR_MS = 2 * 60_000;
+
+export type ProveAnswer = { readonly txId: string; readonly answeredAt: number };
 
 export type ProveRequest = {
   readonly id: string;
@@ -28,7 +45,7 @@ export type ProveRequest = {
   readonly asker: string;
   readonly createdAt: number;
   readonly expiresAt: number;
-  readonly answers: readonly string[];
+  readonly answers: readonly ProveAnswer[];
 };
 
 /** What this browser remembers about a request it made. */
@@ -36,6 +53,8 @@ export type MyAsk = {
   readonly id: string;
   readonly identity: string;
   readonly challenge: string;
+  /** The answer token in the link's fragment, so this browser can show the link again. */
+  readonly token?: string;
   readonly recordId?: string;
   readonly anchorTx?: string;
   readonly createdAt: number;
@@ -54,7 +73,7 @@ const isRequest = (v: unknown): v is ProveRequest =>
   isNumber(v.createdAt) &&
   isNumber(v.expiresAt) &&
   Array.isArray(v.answers) &&
-  v.answers.every(isString);
+  v.answers.every((a) => isObject(a) && isString(a.txId) && isNumber(a.answeredAt));
 
 const errorOf = async (res: Response): Promise<string> => {
   const body = await readJson(res).catch(() => undefined);
@@ -94,6 +113,29 @@ export const updateMyAsk = (id: string, change: (a: MyAsk) => MyAsk): MyAsk | un
   return all[i];
 };
 
+// --- the answer token -----------------------------------------------------------------
+
+const base64url = (bytes: Uint8Array): string =>
+  btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+/** A fresh answer token: 128 random bits. */
+export const newAnswerToken = (): string => base64url(crypto.getRandomValues(new Uint8Array(16)));
+
+/** What the registry keeps instead of the token: SHA-256 of the token's text, as hex. */
+export const answerTokenHash = async (token: string): Promise<string> => {
+  const d = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token)));
+  return Array.from(d, (b) => b.toString(16).padStart(2, '0')).join('');
+};
+
+/** The token from a link's fragment (`location.hash`, e.g. "#t=…"); undefined when it has none. */
+export const tokenFromHash = (hash: string): string | undefined => {
+  const t = new URLSearchParams(hash.replace(/^#/, '')).get('t') ?? '';
+  return TOKEN.test(t) ? t : undefined;
+};
+
 // --- the checker ----------------------------------------------------------------------
 
 /** Ask the holder of an on-chain identity to prove it. Returns the link to send them. */
@@ -106,12 +148,18 @@ export const askToProve = async (input: {
   const identity = input.identity.trim().toLowerCase();
   if (!HEX64.test(identity)) return { error: 'this link names no on-chain identity to check' };
   const challenge = newChallenge(Date.now(), { lasting: true });
+  const token = newAnswerToken();
   let res: Response;
   try {
     res = await fetch(`${BASE}/prove-requests`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identity, challenge, asker: input.asker?.trim() ?? '' }),
+      body: JSON.stringify({
+        identity,
+        challenge,
+        answerTokenHash: await answerTokenHash(token),
+        asker: input.asker?.trim() ?? '',
+      }),
     });
   } catch {
     return { error: unreachable };
@@ -125,16 +173,18 @@ export const askToProve = async (input: {
     id: body.id,
     identity,
     challenge,
+    token,
     ...(input.recordId ? { recordId: input.recordId } : {}),
     ...(input.anchorTx ? { anchorTx: input.anchorTx } : {}),
     createdAt: Date.now(),
   };
   writeAsks([...readAsks(), ask]);
-  return { ask, link: proveLink(ask.id) };
+  return { ask, link: proveLink(ask.id, token) };
 };
 
-export const proveLink = (id: string): string =>
-  `${typeof window === 'undefined' ? '' : window.location.origin}/prove/${id}`;
+/** The holder's link. The token rides in the fragment, which is never sent to a server. */
+export const proveLink = (id: string, token?: string): string =>
+  `${typeof window === 'undefined' ? '' : window.location.origin}/prove/${id}${token ? `#t=${token}` : ''}`;
 
 // --- both sides -----------------------------------------------------------------------
 
@@ -156,16 +206,24 @@ export const getProveRequest = async (id: string): Promise<ProveRequest | null |
 
 // --- the holder -----------------------------------------------------------------------
 
-/** Send the id of the holder's proveOwnership transaction back to the checker. */
-export const answerProveRequest = async (id: string, txId: string): Promise<{ ok: true } | { error: string }> => {
+/**
+ * Send the id of the holder's proveOwnership transaction back to the checker, with the
+ * token from the link's fragment (tokenFromHash).
+ */
+export const answerProveRequest = async (
+  id: string,
+  txId: string,
+  token: string,
+): Promise<{ ok: true } | { error: string }> => {
   const t = txId.trim().toLowerCase().replace(/^0x/, '');
   if (!HEX64.test(t)) return { error: 'that is not a transaction id' };
+  if (!TOKEN.test(token)) return { error: 'the link is missing its last part; open the whole link you were sent' };
   let res: Response;
   try {
     res = await fetch(`${BASE}/prove-requests/${id}/answers`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ txId: t }),
+      body: JSON.stringify({ txId: t, token }),
     });
   } catch {
     return { error: unreachable };
@@ -174,12 +232,24 @@ export const answerProveRequest = async (id: string, txId: string): Promise<{ ok
 };
 
 /**
- * A refusal worth trying again: the network or the indexer was not ready, or a
- * transaction posted a moment ago has not reached the indexer yet. Anything else is a
- * verdict about that answer.
+ * A refusal worth trying again: the network or the indexer was not ready. Anything else
+ * is a verdict about that answer, except "No such transaction" (notIndexedYet).
  */
 export const worthRetrying = (reason: string): boolean =>
-  /could not reach|could not read|try again|No such transaction|indexer answered 5|timed? ?out/i.test(reason);
+  /could not reach|could not read|try again|indexer answered 5|timed? ?out/i.test(reason);
+
+/** The network doesn't know the transaction (yet): fine just after it was sent, not for long. */
+export const notIndexedYet = (reason: string): boolean => /No such transaction/i.test(reason);
+
+export const NEVER_APPEARED =
+  'The network still has no such transaction, 15 minutes after the answer came in. It may not be real.';
+
+/**
+ * When to look again: every 5 seconds for 2 minutes after `since` (the watch started, or
+ * a new answer came in), then every 30 seconds. Null once the request has expired.
+ */
+export const nextPollMs = (since: number, now: number, expiresAt: number): number | null =>
+  now >= expiresAt ? null : now - since < POLL_FAST_FOR_MS ? POLL_FAST_MS : POLL_SLOW_MS;
 
 export type AnswerCheck = {
   readonly checkOwnership: (input: {
@@ -194,22 +264,34 @@ export type AnswerCheck = {
  * Check the answers the registry holds for one of this browser's requests, and return
  * the request as it now stands (also saved). Each answer is checked against the
  * challenge and identity this browser kept, never the registry's copy, so a registry
- * that lies can make a check fail but never pass. An answer refused for a passing reason
- * (the indexer not ready yet) is left to try again.
+ * that lies can make a check fail but never pass. Each answer is checked at most once a
+ * call (the caller calls once per poll). An answer refused for a passing reason (the
+ * indexer not reachable) is left to try again; one the network doesn't know is given 15
+ * minutes from when it came in (answeredAt), then refused.
  */
-export const checkAnswers = async (ask: MyAsk, answers: readonly string[], check: AnswerCheck): Promise<MyAsk> => {
+export const checkAnswers = async (
+  ask: MyAsk,
+  answers: readonly ProveAnswer[],
+  check: AnswerCheck,
+  clock: () => number = Date.now,
+): Promise<MyAsk> => {
   let now = ask;
   if (now.confirmed) return now;
-  for (const raw of answers) {
-    const txId = raw.trim().toLowerCase().replace(/^0x/, '');
-    if (now.refused?.[txId]) continue;
+  const seen = new Set<string>();
+  for (const a of answers) {
+    const txId = a.txId.trim().toLowerCase().replace(/^0x/, '');
+    if (seen.has(txId) || now.refused?.[txId]) continue;
+    seen.add(txId);
     const v = await check.checkOwnership({ txId, identity: ask.identity, challenge: ask.challenge });
     if (v.accepted) {
       const anchor = ask.anchorTx ? await check.checkAnchor(ask.anchorTx, ask.identity) : undefined;
-      now = { ...now, confirmed: { txId, at: Date.now(), ...(anchor === undefined ? {} : { anchor }) } };
+      now = { ...now, confirmed: { txId, at: clock(), ...(anchor === undefined ? {} : { anchor }) } };
       break;
     }
-    if (!worthRetrying(v.reason)) now = { ...now, refused: { ...now.refused, [txId]: v.reason } };
+    if (notIndexedYet(v.reason)) {
+      if (clock() - a.answeredAt > NOT_INDEXED_GRACE_MS)
+        now = { ...now, refused: { ...now.refused, [txId]: NEVER_APPEARED } };
+    } else if (!worthRetrying(v.reason)) now = { ...now, refused: { ...now.refused, [txId]: v.reason } };
   }
   if (now !== ask) {
     const result = now;

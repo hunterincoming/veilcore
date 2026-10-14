@@ -50,13 +50,96 @@ export const SectionBand: React.FC<{ section: Section; step?: string; extra?: Re
         {s.name}
       </Typography>
       {extra}
+      {/* Shown here, read with the screen's heading (ScreenHeading), so it isn't read twice. */}
       {step && (
-        <Typography variant="body2" sx={{ fontWeight: 700, color: s.color }}>
+        <Typography variant="body2" aria-hidden="true" sx={{ fontWeight: 700, color: s.color }}>
           {step}
         </Typography>
       )}
     </Stack>
   );
+};
+
+/** Read by screen readers, not shown. */
+export const visuallyHidden: React.CSSProperties = {
+  border: 0,
+  clip: 'rect(0 0 0 0)',
+  height: 1,
+  margin: -1,
+  overflow: 'hidden',
+  padding: 0,
+  position: 'absolute',
+  whiteSpace: 'nowrap',
+  width: 1,
+};
+
+/**
+ * Start a new screen at the top with focus on its heading (the h1, or the screen heading a
+ * flow marks), so a screen reader says where they are and Tab starts from there. The
+ * heading can arrive a moment later (a page that loads its record first), so it looks for
+ * a second before giving up. Returns a cancel function for an effect's cleanup.
+ */
+export const focusScreenHeading = (): (() => void) => {
+  if (typeof window === 'undefined') return () => undefined;
+  window.scrollTo(0, 0);
+  let tries = 0;
+  let timer: number | undefined;
+  const attempt = () => {
+    const h =
+      document.querySelector<HTMLElement>('[data-screen-heading]') ??
+      document.querySelector<HTMLElement>('main h1, h1');
+    if (h) {
+      if (!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1');
+      h.focus({ preventScroll: true });
+      window.scrollTo(0, 0);
+      return;
+    }
+    if (++tries < 20) timer = window.setTimeout(attempt, 50);
+  };
+  timer = window.setTimeout(attempt, 0);
+  return () => window.clearTimeout(timer);
+};
+
+/**
+ * A flow screen's heading. It takes focus when the screen changes (tabIndex -1: reachable
+ * by script, not by Tab), and a step counter, when there is one, is part of what a screen
+ * reader reads: "Step 3 of 4: Adding your date stamp".
+ */
+export const ScreenHeading: React.FC<
+  React.PropsWithChildren<{ step?: string; component?: 'h1' | 'h2'; variant?: 'h4' | 'h5'; mb?: number }>
+> = ({ step, component = 'h1', variant = 'h4', mb, children }) => (
+  <Typography
+    variant={variant}
+    component={component}
+    tabIndex={-1}
+    data-screen-heading=""
+    sx={{
+      ...(variant === 'h4' ? { fontSize: { xs: '1.8rem', md: '2.2rem' } } : {}),
+      overflowWrap: 'anywhere',
+      scrollMarginTop: 16,
+      ...(mb === undefined ? {} : { mb }),
+    }}
+  >
+    {step && <span style={visuallyHidden}>{step}: </span>}
+    {children}
+  </Typography>
+);
+
+/**
+ * A button that can't be used yet but can still be reached with Tab: it says it is
+ * unavailable (aria-disabled), points at the line that says why (aria-describedby), and
+ * looks disabled. The caller's onClick must check the same condition.
+ */
+export const softDisabled = (off: boolean, hintId: string) =>
+  off ? { 'aria-disabled': true as const, 'aria-describedby': hintId, className: 'Mui-disabled' } : {};
+
+/** A phone or tablet: say "tap", not "drag or click". */
+export const isTouch = (): boolean => {
+  try {
+    return typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches;
+  } catch {
+    return false;
+  }
 };
 
 /** One screen of a flow: the section band, the screen, and a way home that loses nothing. */

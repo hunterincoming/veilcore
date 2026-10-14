@@ -3,12 +3,21 @@
 // The person who asked (this browser made the request) sees whether it has been answered.
 // The holder (this browser holds the plant whose on-chain identity it names) sees what
 // is being asked and one button. Anyone else is told plainly why there's nothing to do.
+// The link carries an answer token in its fragment (#t=…, never sent to a server); the
+// answer is accepted only with it, so a link missing it is caught before anything is
+// put on the network.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
-import { useParams, Link as RouterLink } from 'react-router-dom';
+import { useLocation, useParams, Link as RouterLink } from 'react-router-dom';
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material';
-import { getProveRequest, answerProveRequest, myAsk, type ProveRequest } from '../../veilcore/prove-relay';
+import {
+  getProveRequest,
+  answerProveRequest,
+  myAsk,
+  tokenFromHash,
+  type ProveRequest,
+} from '../../veilcore/prove-relay';
 import { hexBytes, useRecordKeys } from '../../veilcore/record-keys';
 import { getRecord, useRecords } from '../../veilcore/records';
 import { chainNotReady } from '../../veilcore/chain/config';
@@ -25,6 +34,8 @@ const Title: React.FC<React.PropsWithChildren> = ({ children }) => (
 
 export const ProvePage: React.FC = () => {
   const { id = '' } = useParams();
+  const { hash } = useLocation();
+  const token = tokenFromHash(hash);
   const mine = myAsk(id);
   const [req, setReq] = useState<ProveRequest | null | 'loading' | { error: string }>('loading');
   useRecords();
@@ -85,8 +96,22 @@ export const ProvePage: React.FC = () => {
   const record = match ? getRecord(match.recordId) : undefined;
   return (
     <FlowFrame section="prove">
-      {match ? (
-        <Answer req={req} recordId={match.recordId} name={record?.strainName} secret={match.recordSecret} />
+      {match && !token ? (
+        <>
+          <Title>This link is missing its last part</Title>
+          <Typography variant="body1">
+            The answer can only go back with the whole link. Open the link exactly as they sent it, or ask them to send
+            it again.
+          </Typography>
+        </>
+      ) : match && token ? (
+        <Answer
+          req={req}
+          token={token}
+          recordId={match.recordId}
+          name={record?.strainName}
+          secret={match.recordSecret}
+        />
       ) : (
         <>
           <Title>Someone wants you to prove you hold a plant</Title>
@@ -104,8 +129,9 @@ export const ProvePage: React.FC = () => {
   );
 };
 
-const Answer: React.FC<{ req: ProveRequest; recordId: string; name?: string; secret: string }> = ({
+const Answer: React.FC<{ req: ProveRequest; token: string; recordId: string; name?: string; secret: string }> = ({
   req,
+  token,
   recordId,
   name,
   secret,
@@ -118,7 +144,7 @@ const Answer: React.FC<{ req: ProveRequest; recordId: string; name?: string; sec
       const { proveOwnershipOnChain } = await import('../../veilcore/chain/actions');
       const receipt = await proveOwnershipOnChain(hexBytes(secret), req.challenge, { progress });
       progress('Sending the answer back…');
-      const posted = await answerProveRequest(req.id, receipt.txId);
+      const posted = await answerProveRequest(req.id, receipt.txId, token);
       return 'error' in posted
         ? { txId: receipt.txId, sent: false as const, why: posted.error }
         : { txId: receipt.txId, sent: true as const };
@@ -129,8 +155,8 @@ const Answer: React.FC<{ req: ProveRequest; recordId: string; name?: string; sec
       <>
         <Title>Done</Title>
         <Typography variant="body1" sx={{ mb: 2 }}>
-          They&apos;ll see the answer on their page. Nothing about the plant or you was sent: only proof that you hold
-          its record.
+          They&apos;ll see the answer on their page. Nothing about the plant was sent: only proof that you hold its
+          record.
         </Typography>
         <Button variant="contained" size="large" component={RouterLink} to={`/record/${recordId}`} sx={{ py: 1.3 }}>
           Back to {name ?? 'the plant'}
@@ -178,16 +204,21 @@ const Answer: React.FC<{ req: ProveRequest; recordId: string; name?: string; sec
           Proving works on the test version only right now.
         </Alert>
       ) : (
-        <Button
-          variant="contained"
-          size="large"
-          fullWidth
-          disabled={call.busy}
-          onClick={() => void prove()}
-          sx={{ py: 1.6 }}
-        >
-          {call.busy ? 'Proving…' : 'Prove it'}
-        </Button>
+        <>
+          <Typography variant="body2">
+            Answering tells whoever sent you this link that you hold this plant&apos;s record.
+          </Typography>
+          <Button
+            variant="contained"
+            size="large"
+            fullWidth
+            disabled={call.busy}
+            onClick={() => void prove()}
+            sx={{ py: 1.6 }}
+          >
+            {call.busy ? 'Proving…' : 'Prove it'}
+          </Button>
+        </>
       )}
       <ChainStatusLine busy={call.busy} progress={call.progress} error={call.error} />
       <Typography variant="caption" color="text.secondary">

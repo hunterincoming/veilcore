@@ -3,7 +3,7 @@
 // verification.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Home } from './components/site/Home';
 import { Founders, VerifyLookup } from './components/site/Founders';
 import { Privacy } from './components/site/Privacy';
@@ -12,8 +12,10 @@ import { DocPage } from './components/DocPage';
 import { Implementations } from './components/Implementations';
 import { AppFooter } from './components/AppFooter';
 import { RolePicker } from './components/RolePicker';
-import { Box, Container, ThemeProvider } from '@mui/material';
-import { lightTheme } from './config/theme';
+import { Box, Container, GlobalStyles, ThemeProvider } from '@mui/material';
+import { MotionConfig } from 'framer-motion';
+import { lightFocusStyles, lightTheme } from './config/theme';
+import { focusScreenHeading } from './components/flow/FlowFrame';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AppHome } from './components/flow/AppHome';
 import { RestorePage } from './components/flow/RestorePage';
@@ -60,7 +62,8 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
       {/* Asked once, on first use. Without it the app has to guess who is reading,
         which is how a lab was told to send its own sample to a lab. */}
       <RolePicker ask={askRole} />
-      <Container maxWidth="md" sx={{ py: { xs: 3, md: 6 } }}>
+      {/* The one main landmark: the header, the page and its notices. The footer stays outside. */}
+      <Container component="main" maxWidth="md" sx={{ py: { xs: 3, md: 6 } }}>
         <SaveProblemBar />
         {children}
       </Container>
@@ -78,6 +81,7 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
  */
 const Light: React.FC<React.PropsWithChildren> = ({ children }) => (
   <ThemeProvider theme={lightTheme}>
+    <GlobalStyles styles={lightFocusStyles} />
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>{children}</Box>
   </ThemeProvider>
 );
@@ -116,9 +120,29 @@ const PageTitle: React.FC = () => {
   return null;
 };
 
+/**
+ * A new page starts at the top, with focus on its heading, so a screen reader announces it
+ * and the next Tab starts from it. Not on the first load (the browser does that), and not
+ * for a link to a section of a page (/#about scrolls there itself).
+ */
+const NewPageFocus: React.FC = () => {
+  const { pathname, hash } = useLocation();
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    if (hash) return;
+    return focusScreenHeading();
+  }, [pathname]);
+  return null;
+};
+
 const App: React.FC = () => (
-  <>
+  <MotionConfig reducedMotion="user">
     <PageTitle />
+    <NewPageFocus />
     <Routes>
       {/* A stranger arriving from a specification or a government submission needs
         somewhere to understand what this is. The dashboard assumes you already do. */}
@@ -166,7 +190,7 @@ const App: React.FC = () => (
       {/* Anything else: say so, rather than render an empty page. */}
       <Route path="*" element={<NotFound />} />
     </Routes>
-  </>
+  </MotionConfig>
 );
 
 export default App;

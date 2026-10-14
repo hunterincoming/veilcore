@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
-import { Box, Paper, Stack, Typography } from '@mui/material';
+import { Box, Link, Paper, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import EastIcon from '@mui/icons-material/East';
 import { motion } from 'framer-motion';
@@ -25,7 +25,7 @@ export const LicensingHub: React.FC = () => {
   return (
     <Box>
       <AppHeader />
-      <Typography variant="h4" sx={{ mb: 0.5 }}>
+      <Typography variant="h4" component="h1" sx={{ mb: 0.5 }}>
         Agreements
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -38,9 +38,9 @@ export const LicensingHub: React.FC = () => {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
             No agreements yet. Open one of your records and choose License, Send to a lab, or Share with a breeder.
           </Typography>
-          <RouterLink to="/records" style={{ color: '#2ff0cf' }}>
+          <Link component={RouterLink} to="/records" sx={{ color: 'primary.main', fontWeight: 700 }}>
             Go to your records
-          </RouterLink>
+          </Link>
         </Paper>
       ) : (
         <Stack spacing={1.5}>
@@ -55,7 +55,7 @@ export const LicensingHub: React.FC = () => {
                 sx={{
                   p: 2.5,
                   cursor: 'pointer',
-                  '&:hover, &:focus-visible': { borderColor: 'primary.main', outline: 'none' },
+                  '&:hover, &:focus-visible': { borderColor: 'primary.main' },
                 }}
               >
                 <Stack
@@ -63,10 +63,10 @@ export const LicensingHub: React.FC = () => {
                   sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1.5, flexWrap: 'wrap' }}
                 >
                   <Box sx={{ minWidth: 0 }}>
-                    <Typography variant="h6" noWrap>
+                    <Typography variant="h6" component="h2" noWrap>
                       {record?.strainName ?? l.recordId} → {l.terms.licensee || 'unnamed counterparty'}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
                       {l.id} · {l.terms.startDate} → {l.terms.endDate}
                     </Typography>
                   </Box>

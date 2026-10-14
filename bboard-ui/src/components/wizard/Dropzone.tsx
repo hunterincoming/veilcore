@@ -55,7 +55,6 @@ export const Dropzone: React.FC<{
         '&:hover, &:focus-visible': {
           borderColor: 'primary.main',
           background: 'rgba(47,240,207,0.04)',
-          outline: 'none',
         },
       }}
     >

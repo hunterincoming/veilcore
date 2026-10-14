@@ -1,6 +1,12 @@
 // Logging a plant, one thing per screen: the plant → check it → seal and date stamp →
 // (lab report) → save the backup and check it → the plant's page.
 //
+// The counter says "Step n of 4" for the four screens everyone sees; the lab report is
+// marked Optional and not counted. Each new screen starts at the top with focus on its
+// heading, and the heading carries the step for screen readers (FlowFrame.ScreenHeading).
+// What is typed on the first screen is kept as it is typed (log-flow-state.ts), so going
+// Home loses nothing; once sealed, the plant itself is saved and the draft goes.
+//
 // Why this order (docs/simple-flow.md):
 //   - a check-your-answers screen comes before the one action that can't be undone;
 //   - sealing and the date stamp are one button: two buttons for one intent is a chance to
@@ -13,7 +19,7 @@
 //     is opened and read back (backup.ts, checkBackup).
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import {
   Alert,
   Autocomplete,
@@ -42,14 +48,17 @@ import { useChainCall } from '../chain/useChainCall';
 import { Step2PairDna } from '../wizard/Step2PairDna';
 import { AppHeader } from '../AppHeader';
 import { BackupStep } from './BackupStep';
-import { FlowFrame } from './FlowFrame';
+import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled } from './FlowFrame';
 import { OUR_SERVER, DATED_ON } from '../../config/copy';
-
-/** Today on the person's own calendar, not UTC: at 9pm in New Jersey it is still today. */
-const today = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
+import {
+  type Draft,
+  clearDraft,
+  draftHasContent,
+  emptyDraft,
+  loadDraft,
+  saveDraft,
+  stampProblem,
+} from './log-flow-state';
 
 const BREEDING_METHODS = [
   'Seed — F1',
@@ -63,60 +72,77 @@ const BREEDING_METHODS = [
   'Other',
 ];
 
-type Draft = {
-  strainName: string;
-  bredBy: string;
-  dateCreated: string;
-  parents: ParentRef[];
-  taxon: string;
-  breedingMethod: string;
-  refId: string;
-  notes: string;
-  photos: File[];
-};
-
-const emptyDraft = (): Draft => ({
-  strainName: '',
-  bredBy: '',
-  dateCreated: today(),
-  parents: [],
-  taxon: '',
-  breedingMethod: '',
-  refId: '',
-  notes: '',
-  photos: [],
-});
-
 type Screen = 'plant' | 'review' | 'stamp' | 'report' | 'backup';
+
+/** The counter. The lab report is optional, so it is not counted. */
+export const STEP: Record<Screen, string> = {
+  plant: 'Step 1 of 4',
+  review: 'Step 2 of 4',
+  stamp: 'Step 3 of 4',
+  report: 'Optional',
+  backup: 'Step 4 of 4',
+};
 
 export const LogFlow: React.FC = () => {
   const [screen, setScreen] = useState<Screen>('plant');
-  const [draft, setDraft] = useState<Draft>(emptyDraft);
+  const [restored] = useState(loadDraft);
+  const [draft, setDraftState] = useState<Draft>(() => restored ?? emptyDraft());
   const [recordId, setRecordId] = useState<string>();
   const navigate = useNavigate();
+  const firstScreen = useRef(true);
+
+  const setDraft = (d: Draft) => {
+    setDraftState(d);
+    saveDraft(d);
+  };
+
+  // A new screen starts at the top, focus on its heading. The first one is the page's own
+  // (App.tsx does that on arrival).
+  useEffect(() => {
+    if (firstScreen.current) {
+      firstScreen.current = false;
+      return;
+    }
+    return focusScreenHeading();
+  }, [screen]);
+
+  const step = STEP[screen];
 
   const body = (() => {
     switch (screen) {
       case 'plant':
-        return <PlantForm draft={draft} setDraft={setDraft} onNext={() => setScreen('review')} />;
+        return (
+          <PlantForm
+            step={step}
+            draft={draft}
+            setDraft={setDraft}
+            restored={!!restored && draftHasContent(draft)}
+            onNext={() => setScreen('review')}
+          />
+        );
       case 'review':
         return (
           <Review
+            step={step}
             draft={draft}
             onChange={() => setScreen('plant')}
             onSealed={(id) => {
+              clearDraft();
               setRecordId(id);
               setScreen('stamp');
             }}
           />
         );
       case 'stamp':
-        return recordId ? <Stamp recordId={recordId} onNext={() => setScreen('report')} /> : null;
+        return recordId ? <Stamp step={step} recordId={recordId} onNext={() => setScreen('report')} /> : null;
       case 'report':
+        // No Back here: behind this screen is the date stamp, which has already happened
+        // (or been put off). Skip is the way on.
         return recordId ? (
           <Step2PairDna
             recordId={recordId}
-            onBack={() => setScreen('stamp')}
+            headingComponent="h1"
+            stepLabel={step}
             onDone={() => setScreen('backup')}
             onSkip={() => setScreen('backup')}
             doneLabel="Next: save your backup"
@@ -132,20 +158,13 @@ export const LogFlow: React.FC = () => {
         return (
           <BackupStep
             title="Save your backup"
+            stepLabel={step}
             finishLabel="Finish"
             onDone={() => (recordId ? navigate(`/record/${recordId}`) : navigate('/records'))}
           />
         );
     }
   })();
-
-  const step = {
-    plant: 'Step 1 of 3',
-    review: 'Step 1 of 3',
-    stamp: 'Step 2 of 3',
-    report: 'Optional',
-    backup: 'Step 3 of 3',
-  }[screen];
 
   return (
     <Box>
@@ -159,30 +178,58 @@ export const LogFlow: React.FC = () => {
 
 // ---------------------------------------------------------------------------------------
 
-const PlantForm: React.FC<{ draft: Draft; setDraft: (d: Draft) => void; onNext: () => void }> = ({
-  draft,
-  setDraft,
-  onNext,
-}) => {
+const PlantForm: React.FC<{
+  step: string;
+  draft: Draft;
+  setDraft: (d: Draft) => void;
+  restored: boolean;
+  onNext: () => void;
+}> = ({ step, draft, setDraft, restored, onNext }) => {
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft({ ...draft, [k]: v });
   const hasMore = Boolean(
     draft.parents.length || draft.taxon || draft.breedingMethod || draft.refId || draft.notes || draft.photos.length,
   );
   const [more, setMore] = useState(hasMore);
+  const [reading, setReading] = useState(false);
   const photoRef = useRef<HTMLInputElement>(null);
   const parentOptions: ParentRef[] = allRecords().map((r) => ({ recordId: r.id, name: r.strainName }));
-  const ready = draft.strainName.trim() && draft.bredBy.trim();
+  const ready = Boolean(draft.strainName.trim() && draft.bredBy.trim()) && !reading;
+  const moreId = useId();
+  const hintId = useId();
+
+  // Photos are fingerprinted as they are added: only the fingerprints are ever sealed, and
+  // a fingerprint can be kept with the draft where a photo can't.
+  const addPhotos = async (files: File[]) => {
+    if (!files.length) return;
+    setReading(true);
+    try {
+      const added = await Promise.all(
+        files.map(async (f) => ({ name: f.name, fingerprint: await fingerprintFile(f) })),
+      );
+      set('photos', [...draft.photos, ...added]);
+    } finally {
+      setReading(false);
+    }
+  };
 
   return (
     <Stack spacing={2.5}>
       <Box>
-        <Typography variant="h4" component="h1" sx={{ fontSize: { xs: '1.8rem', md: '2.2rem' } }}>
-          Log your plant
-        </Typography>
+        <ScreenHeading step={step}>Log your plant</ScreenHeading>
         <Typography variant="body1" color="text.secondary">
           Fill in what you know. You&apos;ll check it on the next screen.
         </Typography>
       </Box>
+      {restored && (
+        <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            We kept what you typed last time.
+          </Typography>
+          <Button variant="text" size="small" onClick={() => setDraft(emptyDraft())} sx={{ minHeight: 44 }}>
+            Start over
+          </Button>
+        </Stack>
+      )}
       <TextField
         label="Plant or line name"
         required
@@ -190,7 +237,6 @@ const PlantForm: React.FC<{ draft: Draft; setDraft: (d: Draft) => void; onNext: 
         value={draft.strainName}
         onChange={(e) => set('strainName', e.target.value)}
         fullWidth
-        autoFocus
       />
       <TextField
         label="Bred by"
@@ -211,10 +257,16 @@ const PlantForm: React.FC<{ draft: Draft; setDraft: (d: Draft) => void; onNext: 
       />
 
       <Box>
-        <Button variant="text" onClick={() => setMore(!more)} sx={{ px: 0 }}>
+        <Button
+          variant="text"
+          onClick={() => setMore(!more)}
+          aria-expanded={more}
+          aria-controls={moreId}
+          sx={{ px: 0, minHeight: 44 }}
+        >
           {more ? '− Fewer details' : '+ Add parents, species, photos or notes'}
         </Button>
-        <Collapse in={more}>
+        <Collapse in={more} id={moreId}>
           <Stack spacing={2.5} sx={{ pt: 1.5 }}>
             <Autocomplete<ParentRef, true, false, true>
               multiple
@@ -258,8 +310,13 @@ const PlantForm: React.FC<{ draft: Draft; setDraft: (d: Draft) => void; onNext: 
               ))}
             </TextField>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-              <Button variant="outlined" onClick={() => photoRef.current?.click()}>
-                Add photos
+              <Button
+                variant="outlined"
+                onClick={() => photoRef.current?.click()}
+                disabled={reading}
+                startIcon={reading ? <CircularProgress size={16} color="inherit" /> : undefined}
+              >
+                {reading ? 'Reading photos…' : 'Add photos'}
               </Button>
               {draft.photos.length > 0 && (
                 <Chip
@@ -274,8 +331,9 @@ const PlantForm: React.FC<{ draft: Draft; setDraft: (d: Draft) => void; onNext: 
                 multiple
                 hidden
                 onChange={(e) => {
-                  set('photos', [...draft.photos, ...Array.from(e.target.files ?? [])]);
+                  const files = Array.from(e.target.files ?? []);
                   e.target.value = '';
+                  void addPhotos(files);
                 }}
               />
             </Stack>
@@ -300,12 +358,21 @@ const PlantForm: React.FC<{ draft: Draft; setDraft: (d: Draft) => void; onNext: 
         </Collapse>
       </Box>
 
-      <Button variant="contained" size="large" fullWidth disabled={!ready} onClick={onNext} sx={{ py: 1.6 }}>
+      {/* Not disabled: a disabled button can't be reached by Tab, so a keyboard or screen
+          reader user would never hear why. It says it's unavailable and points at the hint. */}
+      <Button
+        variant="contained"
+        size="large"
+        fullWidth
+        {...softDisabled(!ready, hintId)}
+        onClick={() => ready && onNext()}
+        sx={{ py: 1.6 }}
+      >
         Next: check it
       </Button>
       {!ready && (
-        <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-          A name and who bred it are all you need.
+        <Typography id={hintId} variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+          {reading ? 'Reading your photos…' : 'A name and who bred it are all you need.'}
         </Typography>
       )}
     </Stack>
@@ -343,7 +410,8 @@ const Line: React.FC<{ k: string; v: string; empty?: boolean; onChange: () => vo
   </Stack>
 );
 
-const Review: React.FC<{ draft: Draft; onChange: () => void; onSealed: (id: string) => void }> = ({
+const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSealed: (id: string) => void }> = ({
+  step,
   draft,
   onChange,
   onSealed,
@@ -356,7 +424,7 @@ const Review: React.FC<{ draft: Draft; onChange: () => void; onSealed: (id: stri
     setError(undefined);
     try {
       const loggedAt = Date.now();
-      const photoFingerprints = await Promise.all(draft.photos.map((f) => fingerprintFile(f)));
+      const photoFingerprints = draft.photos.map((p) => p.fingerprint);
       // The nonce is committed with the record and stored on it: without it nobody could
       // recompute the commitment, so the record would be unverifiable by anyone.
       const nonce = newNonce();
@@ -394,9 +462,7 @@ const Review: React.FC<{ draft: Draft; onChange: () => void; onSealed: (id: stri
   return (
     <Stack spacing={2.5}>
       <Box>
-        <Typography variant="h4" component="h1" sx={{ fontSize: { xs: '1.8rem', md: '2.2rem' } }}>
-          Is this right?
-        </Typography>
+        <ScreenHeading step={step}>Is this right?</ScreenHeading>
         <Typography variant="body1" color="text.secondary">
           Fix anything now.
         </Typography>
@@ -442,7 +508,7 @@ const Review: React.FC<{ draft: Draft; onChange: () => void; onSealed: (id: stri
 
 // ---------------------------------------------------------------------------------------
 
-const Stamp: React.FC<{ recordId: string; onNext: () => void }> = ({ recordId, onNext }) => {
+const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = ({ step, recordId, onNext }) => {
   const keys = useRecordKeys()[recordId];
   const anchored = keys?.anchor;
   const call = useChainCall<void>();
@@ -481,7 +547,7 @@ const Stamp: React.FC<{ recordId: string; onNext: () => void }> = ({ recordId, o
   if (!REAL_CHAIN || notReady) {
     return (
       <Stack spacing={2.5}>
-        <DoneTitle title="Sealed" />
+        <DoneTitle step={step} title="Sealed" />
         <Typography variant="body1" color="text.secondary">
           Its public date stamp comes when its batch is dated on {DATED_ON}. Your plant&apos;s page shows when that has
           happened. Nothing for you to do.
@@ -502,8 +568,12 @@ const Stamp: React.FC<{ recordId: string; onNext: () => void }> = ({ recordId, o
         </Alert>
         <BackupStep
           title="Save your backup first"
+          stepLabel={step}
           finishLabel="Now add the date stamp"
-          onDone={() => setBackupFirstDone(true)}
+          onDone={() => {
+            setBackupFirstDone(true);
+            focusScreenHeading();
+          }}
         />
       </Stack>
     );
@@ -512,7 +582,7 @@ const Stamp: React.FC<{ recordId: string; onNext: () => void }> = ({ recordId, o
   if (anchored) {
     return (
       <Stack spacing={2.5}>
-        <DoneTitle title="Date stamped" />
+        <DoneTitle step={step} title="Date stamped" />
         <Typography variant="body1" color="text.secondary">
           On {DATED_ON}
           {anchored.anchoredAt ? `, ${new Date(anchored.anchoredAt).toLocaleString()}` : ''}. Only a fingerprint went
@@ -525,26 +595,30 @@ const Stamp: React.FC<{ recordId: string; onNext: () => void }> = ({ recordId, o
     );
   }
 
+  const problem = call.error ? stampProblem(call.error) : undefined;
   return (
     <Stack spacing={2.5}>
       <Box>
-        <Typography variant="h4" component="h1" sx={{ fontSize: { xs: '1.8rem', md: '2.2rem' } }}>
-          Adding your date stamp
-        </Typography>
+        <ScreenHeading step={step}>{problem ? 'No date stamp yet' : 'Getting your date stamp…'}</ScreenHeading>
         <Typography variant="body1" color="text.secondary">
           Only a fingerprint of the record goes out. Free: VeilCore pays the network fee.
         </Typography>
       </Box>
-      {call.busy && <LinearProgress sx={{ height: 10, borderRadius: 5 }} />}
-      {call.progress && <Typography variant="body1">{call.progress}</Typography>}
-      {call.error ? (
+      {call.busy && <LinearProgress aria-label="Getting your date stamp" sx={{ height: 10, borderRadius: 5 }} />}
+      <Typography variant="body1" role="status" sx={{ minHeight: call.busy ? '1.5em' : 0 }}>
+        {call.progress ?? ''}
+      </Typography>
+      {problem ? (
         <>
-          <Alert severity="error" variant="outlined">
-            That didn&apos;t go through: {call.error}. Nothing is lost. Try again.
+          {/* The raw error stays on the element for test scripts and support, not on screen. */}
+          <Alert severity="error" variant="outlined" data-error={call.error}>
+            {problem.text}
           </Alert>
-          <Button variant="contained" size="large" fullWidth onClick={() => void anchor()} sx={{ py: 1.6 }}>
-            Try again
-          </Button>
+          {problem.retry && (
+            <Button variant="contained" size="large" fullWidth onClick={() => void anchor()} sx={{ py: 1.6 }}>
+              Try again
+            </Button>
+          )}
           {/* Never a dead end: the network or the fee service can be down for a while.
               The plant's page offers the date stamp again, and the backup still gets saved. */}
           <Button variant="text" color="inherit" onClick={onNext} sx={{ minHeight: 48 }}>
@@ -562,11 +636,9 @@ const Stamp: React.FC<{ recordId: string; onNext: () => void }> = ({ recordId, o
   );
 };
 
-const DoneTitle: React.FC<{ title: string }> = ({ title }) => (
+const DoneTitle: React.FC<{ step: string; title: string }> = ({ step, title }) => (
   <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-    <DoneIcon color="primary" sx={{ fontSize: 40 }} />
-    <Typography variant="h4" component="h1" sx={{ fontSize: { xs: '1.8rem', md: '2.2rem' } }}>
-      {title}
-    </Typography>
+    <DoneIcon color="primary" sx={{ fontSize: 40 }} aria-hidden="true" />
+    <ScreenHeading step={step}>{title}</ScreenHeading>
   </Stack>
 );

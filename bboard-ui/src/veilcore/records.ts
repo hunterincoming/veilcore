@@ -84,7 +84,22 @@ export type StrainRecord = {
   readonly transferId?: string;
   readonly quantity?: string;
   readonly licenseIds?: string[]; // Phase 3
+
+  // The receiver's own notes on a received record. None of these is in the record's
+  // fingerprint (commitment.ts committedRecordFields), so writing them never changes what
+  // the lab signed; they are kept in the receiver's own set, not shown publicly.
+  /** The sender's note that came with the delivery (the claim gives it to the receiver only). */
+  readonly deliveryNote?: string;
+  /** The lab's own reference or accession number. Not refId: refId is in the fingerprint. */
+  readonly labRef?: string;
+  /** The breeder's lock for lab reports, from the delivery code (a public key). */
+  readonly resultLock?: string;
+  /** The lab turned the sample away: nothing was signed. */
+  readonly receiptRejected?: { readonly reason: 'damaged' | 'wrong-sample'; readonly at: number };
 };
+
+/** The receiver's own notes on a received record: outside the fingerprint, so safe to change. */
+export type ReceivedNotes = Partial<Pick<StrainRecord, 'deliveryNote' | 'labRef' | 'resultLock' | 'receiptRejected'>>;
 
 /**
  * A stored record, checked on the way in.
@@ -421,15 +436,36 @@ export const useRecords = (): StrainRecord[] => useSyncExternalStore(subscribe, 
  * received record arrives with no commitment. This creates theirs: a commitment over
  * what they actually received — the material, the quantity, the date, the source.
  */
-export const sealReceived = async (id: string): Promise<StrainRecord | undefined> => {
+export const sealReceived = async (id: string, notes: ReceivedNotes = {}): Promise<StrainRecord | undefined> => {
   const r = getRecord(id);
-  if (!r || r.recordFingerprint) return r;
+  if (!r) return r;
+  if (r.recordFingerprint) {
+    if (Object.keys(notes).length) updateReceivedNotes(id, notes);
+    return getRecord(id);
+  }
   const nonce = newNonce();
   const recordFingerprint = await fingerprintRecord({ ...r, nonce });
-  records = records.map((x) => (x.id === id ? { ...x, nonce, recordFingerprint } : x));
+  records = records.map((x) => (x.id === id ? { ...x, ...notes, nonce, recordFingerprint } : x));
   persist();
   notify();
   return getRecord(id);
+};
+
+/**
+ * Change the receiver's own notes on a received record (a note, an accession number, the
+ * breeder's lock, a rejection). Only fields outside the fingerprint; `undefined` clears one.
+ */
+export const updateReceivedNotes = (id: string, notes: ReceivedNotes): StrainRecord | undefined => {
+  let updated: StrainRecord | undefined;
+  records = records.map((r) => {
+    if (r.id !== id || !r.receivedFrom) return r;
+    const next: Record<string, unknown> = { ...r, ...notes };
+    for (const k of Object.keys(notes)) if (next[k] === undefined) delete next[k];
+    updated = next as StrainRecord;
+    return updated;
+  });
+  if (updated) persist();
+  return updated;
 };
 
 /**

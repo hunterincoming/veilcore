@@ -66,7 +66,7 @@ const common: Overlay = {
   'm.for.1p':
     "Seal a record and pair its DNA report. If the plant turns up under another name, a lab can compare a new test with your report. When you pair through VeilCore's contract on Midnight, the pairing is dated too: it shows that whoever controlled your record at that date had that report, or its SHA-256, by then. What goes on chain is tied to your record and hides the report, so nobody can copy your pairing to their own record. On this website the pairing is saved with your record but not yet dated. VeilCore doesn't test DNA.",
   'm.for.3p':
-    "Put terms on material before it ships: what it's for, no propagation, return or destroy it after. Through VeilCore's contract on Midnight, the lab confirms receipt with its own key, so the record shows a second party, which protects the lab as much as the client. On this website it is simulated.",
+    "Send material with a lab code. When the lab enters it, the lab signs a receipt with its own key, so the record shows a second party, which protects the lab as much as the client. The receipt is a real signature, kept by VeilCore's registry, not on the chain. Terms such as what it's for, no propagation, and return or destroy it after are practice only on this website.",
   'm.for.5p':
     "Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. The format covers animals; this website is set up for plants, and the animal record fields aren't published yet.",
   // "Prove it" by link needs the browser to send a transaction, which this site doesn't.

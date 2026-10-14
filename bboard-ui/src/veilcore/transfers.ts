@@ -26,7 +26,11 @@ export type PendingTransfer = {
   readonly note?: string;
 };
 
-export type SentTransfer = PendingTransfer & { readonly claimed_at?: number };
+export type SentTransfer = PendingTransfer & {
+  readonly claimed_at?: number;
+  /** The record the claim created, when the registry says (sender only). */
+  readonly received_record?: string;
+};
 
 const isPendingTransfer = (v: unknown): v is PendingTransfer =>
   isObject(v) &&
@@ -38,7 +42,9 @@ const isPendingTransfer = (v: unknown): v is PendingTransfer =>
   optional(v.note, isString);
 
 const isSentTransfer = (v: unknown): v is SentTransfer =>
-  isPendingTransfer(v) && optional((v as Record<string, unknown>).claimed_at, isNumber);
+  isPendingTransfer(v) &&
+  optional((v as Record<string, unknown>).claimed_at, isNumber) &&
+  optional((v as Record<string, unknown>).received_record, isString);
 
 const auth = () => ({ 'Content-Type': 'application/json', 'x-holder-key': holderKey() });
 
@@ -108,6 +114,8 @@ export type ClaimResult = {
   /** The source record's commitment as the registry gave it with the claim, when it did. */
   parentCommitment?: string;
   quantity?: string;
+  /** The sender's note, given to the recipient only (it is not on the public list). */
+  note?: string;
 };
 
 export const claimTransfer = async (
@@ -128,6 +136,7 @@ export const claimTransfer = async (
         descendedFrom: body.descendedFrom,
         ...(isString(body.parentCommitment) ? { parentCommitment: body.parentCommitment } : {}),
         ...(isString(body.quantity) ? { quantity: body.quantity } : {}),
+        ...(isString(body.note) && body.note ? { note: body.note } : {}),
       };
     }
     if (isString(body.error)) return { error: body.error };
@@ -135,6 +144,71 @@ export const claimTransfer = async (
   } catch {
     return { error: 'could not reach the registry' };
   }
+};
+
+// --- lab codes this browser made -------------------------------------------------------
+//
+// The registry keeps only a digest of the claim code, so a code nobody wrote down can't
+// be shown again from the registry. The whole code is kept here when it is made (and in
+// the backup), so "Show code again" works until the lab uses it.
+
+const SENT_CODES = 'veilcore.sent-codes.v1';
+
+const readCodes = (): Record<string, string> => {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(SENT_CODES) ?? '{}');
+    if (!isObject(v)) return {};
+    return Object.fromEntries(
+      Object.entries(v).filter(([id, c]) => isString(c) && parseShareCode(c).transferId === id),
+    ) as Record<string, string>;
+  } catch {
+    return {};
+  }
+};
+
+export const rememberSentCode = (code: string): void => {
+  const { transferId } = parseShareCode(code);
+  try {
+    localStorage.setItem(SENT_CODES, JSON.stringify({ ...readCodes(), [transferId]: code }));
+  } catch {
+    /* private window: the code can't be shown again later, only now */
+  }
+};
+
+/** The whole code made for a delivery, if this browser (or its backup) has it. */
+export const sentCodeFor = (transferId: string): string | undefined => readCodes()[transferId.toUpperCase()];
+
+export const allSentCodes = (): Record<string, string> => readCodes();
+
+/** Add codes from a backup; one already here is never replaced. Returns how many were added. */
+export const mergeSentCodes = (incoming: unknown): number => {
+  if (!isObject(incoming)) return 0;
+  const here = readCodes();
+  let added = 0;
+  for (const [id, c] of Object.entries(incoming)) {
+    if (here[id] || !isString(c) || parseShareCode(c).transferId !== id) continue;
+    here[id] = c;
+    added++;
+  }
+  if (added) {
+    try {
+      localStorage.setItem(SENT_CODES, JSON.stringify(here));
+    } catch {
+      return 0;
+    }
+  }
+  return added;
+};
+
+/**
+ * The sender's quantity as written, with "1 cuttings" read as "1 cutting". Free text, so
+ * only the plain "1 <word>s" case is changed.
+ */
+export const quantityPhrase = (q?: string): string | undefined => {
+  const t = q?.trim();
+  if (!t) return undefined;
+  const one = /^(1|one)\s+([a-z]{3,})$/i.exec(t);
+  return one && /[^su]s$/i.test(one[2]) ? `${one[1]} ${one[2].slice(0, -1)}` : t;
 };
 
 /** Transfers waiting for a handle. */

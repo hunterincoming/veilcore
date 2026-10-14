@@ -5,13 +5,18 @@ import { x25519 } from '@noble/curves/ed25519.js';
 import { bech32 } from '@scure/base';
 import {
   RECIPIENT,
+  RESULT_CAP,
+  RESULT_ROWS_CAP,
   lockReport,
   openReport,
   reportFingerprint,
   resultIdentityFor,
   resultRecipientFor,
+  resultState,
+  sendRefusal,
+  type ResultSummary,
 } from './lab-results';
-import { parseShareCode, shareCodeFor } from './transfers';
+import { parseShareCode, quantityPhrase, shareCodeFor } from './transfers';
 import { recognise } from './paste';
 
 const SECRET = '3f'.repeat(32);
@@ -39,6 +44,26 @@ describe('the plant’s lock', () => {
     expect(reportFingerprint(report)).toMatch(/^[0-9a-f]{64}$/);
   });
 
+  it('is one lock per delivery: another delivery of the same plant can’t open it, older per-plant codes still open', async () => {
+    const one = await resultRecipientFor(SECRET, 'TR-0A1B2C3D');
+    const two = await resultRecipientFor(SECRET, 'TR-99999999');
+    expect(one).toMatch(RECIPIENT);
+    expect(new Set([one, two, await resultRecipientFor(SECRET)]).size).toBe(3);
+    // The label is the documented one: HKDF info "veilcore:v1:lab-results:x25519:<transferId>".
+    expect(resultIdentityFor(SECRET, 'tr-0a1b2c3d')).toBe(resultIdentityFor(SECRET, 'TR-0A1B2C3D'));
+
+    const locked = await lockReport(report, one);
+    expect(await openReport(locked, SECRET, 'TR-0A1B2C3D')).toEqual(report);
+    // Opened as a different delivery, or as the plant without the delivery: refused.
+    await expect(openReport(locked, SECRET, 'TR-99999999')).rejects.toThrow(/not locked for this plant/);
+    await expect(openReport(locked, SECRET)).rejects.toThrow(/not locked for this plant/);
+    await expect(openReport(locked, OTHER, 'TR-0A1B2C3D')).rejects.toThrow(/not locked for this plant/);
+
+    // A code made before per-delivery locks carries the per-plant lock: still opens.
+    const older = await lockReport(report, await resultRecipientFor(SECRET));
+    expect(await openReport(older, SECRET, 'TR-0A1B2C3D')).toEqual(report);
+  });
+
   it('refuses to lock without a lock', async () => {
     await expect(lockReport(report, 'age1nope')).rejects.toThrow(/no lock/);
   });
@@ -54,5 +79,59 @@ describe('the delivery code carries the lock', () => {
     expect(parseShareCode('TR-0A1B2C3D.9f8e7d6c')).toEqual({ transferId: 'TR-0A1B2C3D', claimCode: '9f8e7d6c' });
     expect(parseShareCode('TR-0A1B2C3D.9f8e7d6c.age1junk').resultLock).toBeUndefined();
     expect(shareCodeFor('TR-0A1B2C3D', undefined, lock)).toBe('TR-0A1B2C3D');
+  });
+});
+
+const r = (id: string, extra: Partial<ResultSummary> = {}): ResultSummary => ({
+  id,
+  size: 100,
+  sha256: 'c'.repeat(64),
+  createdAt: 1,
+  ...extra,
+});
+
+describe('a lab report’s state, as the breeder and the lab see it', () => {
+  it('is live, withdrawn by the lab, or replaced by a corrected file', () => {
+    const list = [
+      r('LR-A', { attestationId: 'att_a' }),
+      r('LR-B', { withdrawnAt: 5 }),
+      r('LR-C', { replaces: 'LR-A' }),
+    ];
+    expect(resultState(list[0], list)).toBe('replaced');
+    expect(resultState(list[1], list)).toBe('withdrawn');
+    expect(resultState(list[2], list)).toBe('live');
+    // A correction that was itself withdrawn doesn't replace anything.
+    const undone = [r('LR-A'), r('LR-C', { replaces: 'LR-A', withdrawnAt: 9 })];
+    expect(resultState(undone[0], undone)).toBe('live');
+  });
+});
+
+describe('checked before the lab signs anything', () => {
+  const sha = 'd'.repeat(64);
+  it('refuses the same file twice, a full delivery, and correcting one that is gone', () => {
+    const signed = new Map([['att_a', sha]]);
+    expect(sendRefusal(sha, [r('LR-A', { attestationId: 'att_a' })], signed)).toMatch(/already sent this exact file/);
+    // The same file again is fine once the first was withdrawn.
+    expect(sendRefusal(sha, [r('LR-A', { attestationId: 'att_a', withdrawnAt: 2 })], signed)).toBeNull();
+    const full = Array.from({ length: RESULT_CAP }, (_, i) => r(`LR-${i}`));
+    expect(sendRefusal(sha, full, new Map())).toMatch(/most it can take/);
+    // Withdrawn ones don't count toward the five, but every row counts toward twenty.
+    const withdrawn = Array.from({ length: RESULT_ROWS_CAP }, (_, i) => r(`LR-${i}`, { withdrawnAt: 3 }));
+    expect(sendRefusal(sha, withdrawn.slice(0, 6), new Map())).toBeNull();
+    expect(sendRefusal(sha, withdrawn, new Map())).toMatch(/new lab code/);
+    expect(sendRefusal(sha, [r('LR-A', { withdrawnAt: 2 })], new Map(), 'LR-A')).toMatch(/already been withdrawn/);
+    expect(sendRefusal(sha, [r('LR-A')], new Map(), 'LR-A')).toBeNull();
+    expect(sendRefusal('e'.repeat(64), [r('LR-A', { attestationId: 'att_a' })], signed)).toBeNull();
+  });
+});
+
+describe('the quantity, as the breeder wrote it', () => {
+  it('reads “1 cuttings” as “1 cutting” and leaves anything else alone', () => {
+    expect(quantityPhrase('1 cuttings')).toBe('1 cutting');
+    expect(quantityPhrase('one seeds')).toBe('one seed');
+    expect(quantityPhrase('10 cuttings')).toBe('10 cuttings');
+    expect(quantityPhrase('1 glass')).toBe('1 glass');
+    expect(quantityPhrase('1 tube of tissue')).toBe('1 tube of tissue');
+    expect(quantityPhrase('  ')).toBeUndefined();
   });
 });

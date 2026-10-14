@@ -30,12 +30,13 @@ export const es: Strings = {
   'm.nav.menu': 'Menú',
   'm.hero.label': 'Prueba de lo que usted tiene',
   'm.hero.title1': 'Demuestre que lo tuvo primero.',
-  'm.hero.title2': 'Sin mostrarle a nadie qué es.',
+  'm.hero.title2': 'Sin mostrarle a nadie su genética.',
   'm.hero.how': 'Cómo funciona',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Obtenido por',
   'm.hero.bredByDefault': 'Su nombre aquí',
   'm.hero.demoLabel': 'Demo de huella en vivo',
+  'm.hero.fpUpdated': 'Huella actualizada',
   'm.hero.typed': 'Lo que usted escribe',
   'm.hero.goes': 'Lo que va a Midnight',
   'm.foot.demo': 'Demo',
@@ -102,7 +103,7 @@ export const es: Strings = {
   'm.foot.build': 'Desarrollo',
   'm.foot.contact': 'Contacto',
   'm.foot.verify': 'Verificar un registro',
-  'm.foot.fine': 'Prueba de posesión previa, no de propiedad.',
+  'm.foot.fine': 'Prueba de que usted tenía un registro en una fecha. No es un título sobre la planta.',
   'm.foot.privacy': 'Privacidad de la demo',
   'm.verify.label': 'Verificar',
   'm.verify.title': 'Compruebe un registro',
@@ -169,4 +170,95 @@ export const es: Strings = {
     'No hay ninguna página en esta dirección. Si alguien le dio un enlace a un registro, compruebe que esté completo.',
   'm.notfound.home': 'Inicio de VeilCore →',
   'm.privacy.contact': 'Preguntas: hunter@veilcore.org',
+  // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
+  'm.hero.lede':
+    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal y animal. Los datos genéticos y los archivos de laboratorio nunca salen de su computadora. Solo una huella va a Midnight, que la fecha. El nombre de la planta y el obtentor que usted escribe se guardan en el servidor de VeilCore, y cualquiera que tenga el enlace de un registro ve su nombre. Verificar es gratis. Sin registro, sin billetera.',
+  'm.for.3p':
+    'Envíe material con un código de laboratorio. Cuando el laboratorio lo ingresa, firma un acuse de recibo con su propia clave, así el registro muestra a una segunda parte, lo que protege al laboratorio tanto como al cliente. El acuse es una firma real, guardada por el servidor de registros de VeilCore, no en la cadena. Condiciones como el uso previsto, la prohibición de propagar y la devolución o destrucción posterior son solo de práctica en la demo web.',
+  'm.get.1b': 'para un registro de lo que usted tiene, sin mostrar su genética.',
+  'm.get.3b':
+    'Un vínculo de parentesco cuenta solo cuando ambos titulares lo confirman. En este sitio lo anota el servidor de registros de VeilCore, no la cadena.',
+  'm.open.2t': 'Verificar un registro no depende de nosotros.',
+  'm.open.2p':
+    'Guarde dos archivos desde la página de su planta: el registro exportado y su prueba de inclusión (un archivo pequeño que muestra que el registro está en un lote fechado). Con ambos, cualquiera puede verificarlo con SHA-256, la especificación abierta y una consulta en un explorador de Midnight, aunque VeilCore ya no exista. Su archivo de respaldo contiene sus claves, no estos archivos.',
+  'm.faq.1a':
+    'Una vez anclados los registros, cualquiera puede comprobar cuál se ancló primero. Vincule su informe de laboratorio, para que una prueba posterior pueda compararse con él. Cuando envíe material, el receptor lo confirma con su propia clave. Un registro es una prueba, no una inscripción: muestra que usted tenía este registro en esa fecha, no que tenía la planta, y por sí solo no resuelve una disputa.',
+  'm.faq.5a':
+    'Las fechas permanecen: nadie, ni siquiera nosotros, puede borrar la huella de un lote anclada en la red principal de Midnight o sellada en Bitcoin. Para verificar un registro sin nosotros, necesita dos archivos que solo tiene nuestro servidor mientras usted no los guarde: el registro («Export record») y su prueba de inclusión («Download inclusion proof»), ambos en la página de su planta, en «Technical details». Su archivo de respaldo contiene sus claves, no estos archivos. La especificación es abierta y el código en TypeScript, Python y Rust está publicado. Pronto habrá un paquete de evidencia en un clic.',
+  'm.post0.date': '4 oct 2026',
+  'm.post0.tag': 'Contrato',
+  'm.post0.title': 'Probar un hecho, guardar el resto',
+  'm.post0.text':
+    'Ambos contratos pasaron las 37 comprobaciones de extremo a extremo en la red de pruebas preprod de Midnight, incluidas las nuevas pruebas de un hecho: un valor, un rango, una diferencia, una corrección que deja el resto intacto y una firma de una clave de laboratorio de prueba. Datos de marcadores inventados.',
+  'm.postA.date': '8 oct 2026',
+  'm.postA.tag': 'Lanzamiento',
+  'm.postA.title': 'En la red principal de Midnight',
+  'm.postA.text':
+    'Ambos contratos están desplegados en la red principal de Midnight. El contrato de pruebas de un hecho no tiene clave de mantenimiento: nadie, ni siquiera nosotros, puede cambiarlo.',
+  'm.postB.date': '11 oct 2026',
+  'm.postB.tag': 'Registro',
+  'm.postB.title': 'Primer lote fechado también en Bitcoin',
+  'm.postB.text':
+    'Los primeros lotes del servidor de registros se anclaron a mano en la red principal de Midnight. Uno de ellos, con cinco de nuestros propios registros de prueba, también tiene su raíz sellada en Bitcoin, en el bloque 971004. Aún falta comprobarlo con la herramienta oficial de OpenTimestamps.',
+  'm.founders.lede':
+    'VeilCore es un formato de registro probatorio para genética vegetal y animal. Prueba que usted tenía un registro de su material en una fecha determinada, sin entregar sus datos genéticos.',
+  'm.live.label': 'Qué funciona dónde',
+  'm.live.title1': 'Qué funciona,',
+  'm.live.title2': 'y dónde.',
+  'm.live.lede':
+    'veilcore.org funciona en la red principal de Midnight, y los registros hechos allí son reales. El sitio de prueba es para practicar: allí funciona más, y sus registros no tienen valor probatorio.',
+  'm.live.colMain': 'veilcore.org (red principal)',
+  'm.live.colTest': 'Sitio de prueba',
+  'm.live.colNot': 'Todavía no',
+  'm.live.stamp.t': 'Un sello de fecha para su registro',
+  'm.live.stamp.main':
+    'Sí. VeilCore fecha los registros por lotes, a mano por ahora. Su navegador no envía nada a la cadena.',
+  'm.live.stamp.test': 'Sí. Su navegador sella cada registro, y los lotes se fechan automáticamente.',
+  'm.live.share.t': 'Elegir qué ven los demás',
+  'm.live.share.main': 'Sí. El nombre de la planta siempre se muestra.',
+  'm.live.share.test': 'Sí. El nombre de la planta siempre se muestra.',
+  'm.live.lab.t': 'Código de laboratorio y acuse firmado',
+  'm.live.lab.main':
+    'Sí. El laboratorio firma con su propia clave. El servidor de registros de VeilCore guarda el acuse, no la cadena.',
+  'm.live.lab.test': 'Sí, de la misma forma.',
+  'm.live.results.t': 'Informes de laboratorio que solo usted abre',
+  'm.live.results.test': 'Sí. Nuevo, todavía en pruebas.',
+  'm.live.results.not': 'En veilcore.org.',
+  'm.live.dna.t': 'Una fecha para la vinculación de su informe de ADN',
+  'm.live.dna.main': 'Se guarda con su registro, sin fecha.',
+  'm.live.dna.test': 'Sí, enviada desde su navegador.',
+  'm.live.prove.t': 'Probarlo con un enlace',
+  'm.live.prove.test': 'Sí. La página de la otra persona comprueba en la red que usted tiene el registro.',
+  'm.live.prove.not': 'En veilcore.org: requiere que su navegador envíe una transacción.',
+  'm.live.claims.t': 'Probar un solo hecho',
+  'm.live.claims.main':
+    'El contrato está en la red principal, sin clave de mantenimiento. El sitio web todavía no puede usarlo.',
+  'm.live.claims.not': 'Usarlo desde el sitio web.',
+  'm.live.lic.t': 'Licencias y regalías',
+  'm.live.lic.main': 'Solo de práctica.',
+  'm.live.lic.test': 'Solo de práctica.',
+  'm.live.lic.not': 'Licencias reales desde el sitio web. Están integradas en el contrato.',
+};
+
+/** The public test site (en-testchain.ts), in this language. Draft, like the rest of this file. */
+export const esTestchain: Strings = {
+  'm.hero.status':
+    'Este es el sitio de prueba: los sellos de fecha, los códigos de laboratorio y los enlaces para probarlo funcionan de verdad, en la red de pruebas de Midnight. Los registros de aquí son de práctica, no evidencia.',
+  'm.claims.status':
+    'Un segundo contrato de Midnight. Pasó todas las comprobaciones de extremo a extremo en la red de pruebas preprod de Midnight el 4 de octubre de 2026, con datos de marcadores inventados, y está en la red principal de Midnight desde el 8 de octubre de 2026. Todavía no está en este sitio web.',
+  'm.faq.3a':
+    'Está hecho para servir como prueba, y nuestra nota para abogados dice qué prueba y qué no. Este sitio de prueba fecha los registros en la red de pruebas de Midnight, y una fecha en una red de pruebas no tiene valor probatorio. Los registros reales van en veilcore.org, que funciona en la red principal de Midnight.',
+  'm.stat2.b': 'Sitio de prueba',
+  'm.stat2.s':
+    'Este sitio funciona en la red de pruebas preprod de Midnight, para practicar. Ambos contratos están en la red principal de Midnight desde el 8 de octubre de 2026.',
+  'm.foot.about':
+    'Un formato de registro abierto para genética vegetal y animal. Este es el sitio de prueba, en una red de pruebas de Midnight; veilcore.org funciona en la red principal de Midnight.',
+  'm.for.1p':
+    'Selle un registro y vincule su informe de ADN. Si la planta aparece con otro nombre, un laboratorio puede comparar una prueba nueva con su informe. Cuando vincula a través del contrato de VeilCore en Midnight, la vinculación también queda fechada: muestra que quien controlaba su registro en esa fecha tenía ese informe, o su SHA-256, para entonces. Lo que va a la cadena está atado a su registro y oculta el informe, así que nadie puede copiar su vinculación a su propio registro. En este sitio de prueba puede fechar la vinculación desde su navegador. VeilCore no hace pruebas de ADN.',
+  'm.demo.lede':
+    'Sin registro, sin billetera. Este es el sitio de prueba, así que use datos inventados. Su navegador sella cada registro en la red de pruebas de Midnight (VeilCore paga la tarifa), y los lotes se anclan automáticamente. También puede fechar la vinculación de un informe de ADN. El acuse de un laboratorio es una firma real con la propia clave del laboratorio, guardada fuera de la cadena. Las licencias y los acuerdos de laboratorio son solo de práctica.',
+  'm.privacy.test.text':
+    'Este sitio usa la red de pruebas preprod de Midnight, no la principal. Su navegador envía cada sello de fecha a esa red a través del servicio de tarifas de VeilCore; lo que usted escribió y sus archivos nunca se envían allí. Una red de pruebas puede reiniciarse, y los datos de prueba pueden borrarse.',
+  'm.privacy.hosts.text':
+    'Este sitio web está alojado en Vercel, que registra direcciones IP y solicitudes. Nuestro servidor de registros, y el servicio que paga las tarifas de la red de pruebas y transmite las lecturas de la red de esta página, funcionan en Railway, que registra solicitudes. Ese servicio lee la red a través de Blockfrost.',
 };

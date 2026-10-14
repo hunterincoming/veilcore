@@ -612,14 +612,14 @@ html:has(.vcm) {
 .vcm .isnt .lim {
   border-top: 3px solid var(--ink);
 }
-.vcm .isnt h4 {
+.vcm .isnt h3 {
   font-family: var(--display);
   font-size: 1.0625rem;
   font-weight: 700;
   color: var(--ink);
   margin-bottom: 8px;
 }
-.vcm .isnt .y h4 {
+.vcm .isnt .y h3 {
   color: var(--accent);
 }
 .vcm .isnt ul {
@@ -975,7 +975,7 @@ html:has(.vcm) {
   border-radius: var(--radius);
   padding: 22px 24px;
 }
-.vcm .contracts h4 {
+.vcm .contracts h3 {
   margin: 0 0 12px;
   font-family: var(--display);
   font-size: 1.0625rem;
@@ -1071,7 +1071,7 @@ html:has(.vcm) {
   margin-top: 12px;
   max-width: 36ch;
 }
-.vcm .foot h4 {
+.vcm .foot h3 {
   font-family: var(--sans);
   font-size: 14px;
   font-weight: 600;
@@ -1728,10 +1728,10 @@ html:has(.vcm) {
   .vcm .isnt > div {
     padding: 12px 16px 4px;
   }
-  .vcm .isnt .y h4 {
+  .vcm .isnt .y h3 {
     display: none;
   }
-  .vcm .isnt .lim h4 {
+  .vcm .isnt .lim h3 {
     font-size: 1rem;
     margin: 6px 0 2px;
   }
@@ -1946,7 +1946,7 @@ html:has(.vcm) {
   .vcm .foot > div:nth-child(2) {
     display: none;
   }
-  .vcm .foot h4 {
+  .vcm .foot h3 {
     margin-bottom: 0;
   }
   .vcm .foot ul {

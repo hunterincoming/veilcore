@@ -12,7 +12,7 @@ type Seg = { label: string; done: boolean };
 
 export const chainOf = (r: StrainRecord, licenseCount = 0): Seg[] => [
   { label: 'Sealed', done: true },
-  { label: 'Report paired', done: !!r.dnaFingerprint },
+  { label: 'Lab report saved', done: !!r.dnaFingerprint },
   // Lit by a transfer claim, which shows that someone holding the sender's code took
   // delivery — not that a lab, or anyone identified, confirmed anything.
   { label: 'Receipt confirmed', done: !!r.attestation },

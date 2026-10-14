@@ -21,7 +21,9 @@ import {
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/SendOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
-import { offerTransfer, shareCodeFor } from '../veilcore/transfers';
+import ShareIcon from '@mui/icons-material/IosShareOutlined';
+import { offerTransfer, rememberSentCode, sentCodeFor, shareCodeFor, type SentTransfer } from '../veilcore/transfers';
+import { labChanged } from '../veilcore/lab-results';
 import { ensureKeys } from '../veilcore/record-keys';
 import { resultRecipientFor } from '../veilcore/lab-results';
 import type { StrainRecord } from '../veilcore/records';
@@ -50,10 +52,14 @@ export const SendToLab: React.FC<{
     });
     if ('error' in res) setError(res.error);
     else {
-      // The plant's lock goes in the code, so the lab can send results back that only
-      // this plant's holder can open (lab-results.ts).
-      const lock = await resultRecipientFor(ensureKeys(record.id).recordSecret).catch(() => undefined);
-      setTransferId(shareCodeFor(res.transferId, res.claimCode, lock));
+      // This delivery's own lock goes in the code, so the lab can send lab reports back
+      // that only this plant's holder can open (lab-results.ts).
+      const lock = await resultRecipientFor(ensureKeys(record.id).recordSecret, res.transferId).catch(() => undefined);
+      const code = shareCodeFor(res.transferId, res.claimCode, lock);
+      // Kept here (and in the backup): the registry can't show the code again.
+      rememberSentCode(code);
+      setTransferId(code);
+      labChanged();
     }
     setBusy(false);
   };
@@ -74,6 +80,8 @@ export const SendToLab: React.FC<{
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
   return (
     <>
       {trigger ? (
@@ -90,8 +98,8 @@ export const SendToLab: React.FC<{
           {transferId ? (
             <Stack spacing={2} sx={{ pt: 1 }}>
               <Alert severity="success" variant="outlined">
-                Give this code to {handle}. When they enter it, they confirm they received the material, and that
-                confirmation is added to your record. It also lets a lab send results back that only you can open.
+                Give this lab code to {handle}. When they enter it, they can sign that the sample arrived, and send a
+                lab report back that only you can open.
               </Alert>
               <Box
                 sx={{
@@ -107,27 +115,36 @@ export const SendToLab: React.FC<{
               >
                 {transferId}
               </Box>
-              <Button size="small" variant="outlined" startIcon={<ContentCopyIcon />} onClick={copyCode}>
-                {copied ? 'Copied' : 'Copy code'}
-              </Button>
+              <Stack direction="row" spacing={1}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<ContentCopyIcon />}
+                  onClick={() => void copyCode()}
+                  sx={{ flex: 1, minHeight: 40 }}
+                >
+                  {copied ? 'Copied' : 'Copy code'}
+                </Button>
+                {canShare && <ShareCodeButton code={transferId} name={record.strainName} />}
+              </Stack>
               <Alert severity="warning" variant="outlined">
                 <b>Text or email it to them. Don&apos;t write it on the package:</b> whoever has this code can confirm
                 the delivery.
               </Alert>
               <Typography variant="caption" color="text.secondary">
-                Nothing has changed yet. The transfer completes when they enter the code; until then your record is
-                unchanged. They can paste it into the box on VeilCore&apos;s Home.
+                Nothing has changed yet. Your plant&apos;s page shows “waiting” until they enter the code, and can show
+                this code again. They paste it into the box on VeilCore&apos;s Home.
               </Typography>
             </Stack>
           ) : (
             <Stack spacing={2} sx={{ pt: 1 }}>
               <Typography variant="body2" color="text.secondary">
-                They get their own record of what they received, linked to yours. When they confirm receipt, it is
-                recorded under their key, not yours: a second party on your record.
+                They get their own record of what they received, linked to yours. When they sign that it arrived, it is
+                signed with their key, not yours: a second party on your record.
               </Typography>
               <TextField
                 label="Who are you sending it to?"
-                helperText="A name or handle for them, so you both know which transfer this is."
+                helperText="A name or handle for them, so you both know which delivery this is."
                 value={handle}
                 onChange={(e) => setHandle(e.target.value)}
                 fullWidth
@@ -139,7 +156,13 @@ export const SendToLab: React.FC<{
                 onChange={(e) => setQuantity(e.target.value)}
                 fullWidth
               />
-              <TextField label="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} fullWidth />
+              <TextField
+                label="Note for the lab (optional)"
+                helperText="Only the lab sees it, once they enter the code."
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                fullWidth
+              />
               {error && (
                 <Alert severity="warning" variant="outlined">
                   {error}
@@ -152,11 +175,91 @@ export const SendToLab: React.FC<{
           <Button onClick={reset}>{transferId ? 'Done' : 'Cancel'}</Button>
           {!transferId && (
             <Button variant="contained" onClick={send} disabled={busy || !handle.trim()}>
-              Create transfer
+              Make a code for the lab
             </Button>
           )}
         </DialogActions>
       </Dialog>
     </>
+  );
+};
+
+const ShareCodeButton: React.FC<{ code: string; name: string }> = ({ code, name }) => (
+  <Button
+    size="small"
+    variant="outlined"
+    startIcon={<ShareIcon />}
+    sx={{ flex: 1, minHeight: 40 }}
+    onClick={() => {
+      // Cancelling the share sheet rejects; nothing to tell anyone.
+      navigator.share({ title: `Lab code for ${name}`, text: code }).catch(() => undefined);
+    }}
+  >
+    Share
+  </Button>
+);
+
+/**
+ * "Sent to <handle>, waiting" on the breeder's plant page, for codes nobody has used yet,
+ * with the code shown again when this browser (or the backup it came from) has it.
+ */
+export const WaitingDeliveries: React.FC<{ open: readonly SentTransfer[] }> = ({ open }) => {
+  const [shown, setShown] = useState<string>();
+  if (open.length === 0) return null;
+  return (
+    <Stack spacing={1}>
+      {open.map((t) => {
+        const code = sentCodeFor(t.id);
+        return (
+          <Alert
+            key={t.id}
+            severity="info"
+            variant="outlined"
+            icon={<SendIcon />}
+            action={
+              code ? (
+                <Button
+                  color="inherit"
+                  onClick={() => setShown(shown === t.id ? undefined : t.id)}
+                  sx={{ minHeight: 40 }}
+                >
+                  {shown === t.id ? 'Hide' : 'Show code again'}
+                </Button>
+              ) : undefined
+            }
+          >
+            <b>Sent to {t.to_handle}, waiting</b> since {new Date(t.created_at).toLocaleDateString()}.
+            {!code && ' This code was made in another browser and isn’t in this one; make a new one if it’s lost.'}
+            {shown === t.id && code && (
+              <Box sx={{ mt: 1 }}>
+                <Box
+                  sx={{
+                    p: 1.25,
+                    borderRadius: 1,
+                    background: 'rgba(22,32,27,0.04)',
+                    fontFamily: 'monospace',
+                    wordBreak: 'break-all',
+                  }}
+                >
+                  {code}
+                </Box>
+                <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<ContentCopyIcon />}
+                    onClick={() => void navigator.clipboard.writeText(code)}
+                    sx={{ minHeight: 40 }}
+                  >
+                    Copy code
+                  </Button>
+                  {typeof navigator.share === 'function' && <ShareCodeButton code={code} name={t.to_handle} />}
+                </Stack>
+              </Box>
+            )}
+          </Alert>
+        );
+      })}
+    </Stack>
   );
 };

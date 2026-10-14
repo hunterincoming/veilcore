@@ -36,18 +36,212 @@ import {
   custodySubject,
   parseShareCode,
   publicFingerprintOf,
+  quantityPhrase,
   type CustodySubject,
 } from '../veilcore/transfers';
-import { hydrate, sealReceived } from '../veilcore/records';
+import { hydrate, sealReceived, updateReceivedNotes, type StrainRecord } from '../veilcore/records';
 import { loadAttester, attestRecord, type AttesterProfile } from '../veilcore/attester-keys';
-import { rememberDelivery } from '../veilcore/lab-results';
+import { labChanged, rememberDelivery } from '../veilcore/lab-results';
 
 /** Opens the header's receive dialog from elsewhere on the page (a lab's first screen). */
 export const OPEN_RECEIVE_EVENT = 'veilcore:open-receive';
 
+/**
+ * What the lab's receipt says, in words a lab can stand behind. It used to read "I
+ * received 1 cuttings of X from record VEIL-…": a lab knows what label was on the
+ * package and which code it came under, not what the plant is or which record it is.
+ */
+export const receiptWords = (subject: CustodySubject, transferId?: string): string => {
+  const qty = quantityPhrase(subject.quantity);
+  return `A sample labelled “${subject.cultivar || 'unlabelled'}”${qty ? ` (${qty}, as the breeder wrote it)` : ''} arrived${transferId ? ` under code ${transferId}` : ''}.`;
+};
+
+/** The exact receipt, shown in full before anything is signed. */
+const ReceiptStatement: React.FC<{ subject: CustodySubject; attester: AttesterProfile; transferId?: string }> = ({
+  subject,
+  attester,
+  transferId,
+}) => (
+  <Box sx={{ p: 1.5, borderRadius: 1, background: 'rgba(22,32,27,0.04)', fontSize: 13 }}>
+    <Typography variant="body2">“{receiptWords(subject, transferId)}”</Typography>
+    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+      About the breeder&apos;s record {subject.sourceRecordId}, fingerprint
+    </Typography>
+    <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
+      {subject.sourceCommitment}
+    </Typography>
+    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+      Pointing at your received record
+    </Typography>
+    <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
+      {subject.receivedRecordFingerprint}
+    </Typography>
+    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+      Signed by your key ({attester.displayName ?? 'unnamed'})
+    </Typography>
+    <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
+      {attester.keypair.publicKey}
+    </Typography>
+  </Box>
+);
+
+/** Sign the receipt, or turn the sample away (signs nothing). Both the dialog and the plant page use it. */
+const ReceiptChoice: React.FC<{
+  subject: CustodySubject;
+  attester: AttesterProfile;
+  transferId?: string;
+  busy: boolean;
+  onSign: () => void;
+  onReject: (reason: 'damaged' | 'wrong-sample') => void;
+  /** The dialog's "Don't sign": go to the record without deciding. */
+  onLater?: () => void;
+}> = ({ subject, attester, transferId, busy, onSign, onReject, onLater }) => {
+  const [received, setReceived] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  return (
+    <Stack spacing={1.5}>
+      <Typography variant="body2" color="text.secondary">
+        Your key can sign a receipt for this delivery. This is exactly what the receipt says:
+      </Typography>
+      <ReceiptStatement subject={subject} attester={attester} transferId={transferId} />
+      <Typography variant="caption" color="text.secondary">
+        The fingerprint came from the registry and matches what its public page reports for {subject.sourceRecordId}. If
+        the breeder gave you a fingerprint, compare it before signing.
+      </Typography>
+      <FormControlLabel
+        control={<Checkbox checked={received} onChange={(e) => setReceived(e.target.checked)} />}
+        label={<Typography variant="body2">I physically received this material.</Typography>}
+      />
+      <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, justifyContent: 'flex-end' }}>
+        {onLater && (
+          <Button onClick={onLater} disabled={busy}>
+            Don&apos;t sign
+          </Button>
+        )}
+        <Button variant="contained" onClick={onSign} disabled={busy || !received}>
+          Sign with my key
+        </Button>
+      </Stack>
+      {rejecting ? (
+        <Stack spacing={1}>
+          <Typography variant="body2">
+            Turn it away? Nothing is signed and the breeder isn&apos;t told by VeilCore: let them know yourself.
+          </Typography>
+          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+            <Button variant="outlined" onClick={() => onReject('damaged')} disabled={busy}>
+              It arrived damaged
+            </Button>
+            <Button variant="outlined" onClick={() => onReject('wrong-sample')} disabled={busy}>
+              It&apos;s the wrong sample
+            </Button>
+            <Button onClick={() => setRejecting(false)} disabled={busy}>
+              Cancel
+            </Button>
+          </Stack>
+        </Stack>
+      ) : (
+        <Button color="inherit" size="small" onClick={() => setRejecting(true)} sx={{ alignSelf: 'flex-start' }}>
+          Received but rejected (damaged or wrong sample)
+        </Button>
+      )}
+    </Stack>
+  );
+};
+
+const signReceipt = async (attester: AttesterProfile, subject: CustodySubject): Promise<string | null> => {
+  const out = await attestRecord(
+    attester,
+    subject.sourceCommitment,
+    subject.receivedRecordFingerprint,
+    'chain-of-custody',
+  );
+  if (out.error || !out.attestationId) return out.error ?? 'no answer from the registry';
+  labChanged();
+  return null;
+};
+
+const rejectReceipt = (recordId: string, reason: 'damaged' | 'wrong-sample') => {
+  updateReceivedNotes(recordId, { receiptRejected: { reason, at: Date.now() } });
+  labChanged();
+};
+
+/** The plant page's "Sign receipt", for a lab that didn't sign when it received the sample. */
+export const SignReceiptPanel: React.FC<{ record: StrainRecord; onDone: () => void }> = ({ record, onDone }) => {
+  const attester = loadAttester();
+  const [subject, setSubject] = useState<CustodySubject | { refuse: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+
+  useEffect(() => {
+    if (!record.receivedFrom) return;
+    let live = true;
+    void publicFingerprintOf(record.receivedFrom).then((publicFingerprint) => {
+      if (!live) return;
+      setSubject(
+        custodySubject({
+          receivedRecordId: record.id,
+          sealed: record,
+          claim: { descendedFrom: record.receivedFrom ?? '' },
+          publicFingerprint,
+        }),
+      );
+    });
+    return () => {
+      live = false;
+    };
+  }, [record]);
+
+  if (!attester) {
+    return (
+      <Alert severity="info" variant="outlined">
+        Set up your lab&apos;s signature first; then you can sign that this sample arrived.
+      </Alert>
+    );
+  }
+  if (subject === null) return <Typography variant="body2">Checking the breeder&apos;s record…</Typography>;
+  if ('refuse' in subject) {
+    return (
+      <Alert severity="warning" variant="outlined">
+        {subject.refuse}
+      </Alert>
+    );
+  }
+  return (
+    <Stack spacing={2}>
+      <Typography variant="h5" component="h2">
+        Sign receipt
+      </Typography>
+      <ReceiptChoice
+        subject={subject}
+        attester={attester}
+        transferId={record.transferId}
+        busy={busy}
+        onSign={() => {
+          setBusy(true);
+          setError(undefined);
+          void signReceipt(attester, subject).then((err) => {
+            setBusy(false);
+            if (err) setError(`Your receipt was not recorded: ${err}.`);
+            else onDone();
+          });
+        }}
+        onReject={(reason) => {
+          rejectReceipt(record.id, reason);
+          onDone();
+        }}
+      />
+      {error && (
+        <Alert severity="warning" variant="outlined">
+          {error}
+        </Alert>
+      )}
+    </Stack>
+  );
+};
+
 type Stage =
   | { step: 'code' }
-  | { step: 'sign'; subject: CustodySubject; attester: AttesterProfile }
+  | { step: 'sign'; subject: CustodySubject; attester: AttesterProfile; transferId: string }
   | { step: 'refused'; recordId: string; reason: string };
 
 export const ClaimTransfer: React.FC<{
@@ -60,7 +254,6 @@ export const ClaimTransfer: React.FC<{
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stage, setStage] = useState<Stage>({ step: 'code' });
-  const [received, setReceived] = useState(false);
   const navigate = useNavigate();
 
   // One dialog, in the header, which stays mounted while the page under it changes (a
@@ -79,7 +272,6 @@ export const ClaimTransfer: React.FC<{
   const close = () => {
     setOpen(false);
     setStage({ step: 'code' });
-    setReceived(false);
     setError(null);
   };
 
@@ -103,9 +295,14 @@ export const ClaimTransfer: React.FC<{
     await hydrate();
     // Seal the received record with the recipient's own commitment. They are not
     // copying the sender's evidence — they are committing to what they received:
-    // this material, this quantity, this date, from this source.
-    const sealed = await sealReceived(res.recordId);
-    // Kept so this lab can send results back later, locked to the breeder (lab-results.ts).
+    // this material, this quantity, this date, from this source. The breeder's note and
+    // lock are kept beside it, outside the fingerprint, in the lab's own set.
+    const sealed = await sealReceived(res.recordId, {
+      ...(res.note ? { deliveryNote: res.note.slice(0, 2000) } : {}),
+      ...(resultLock ? { resultLock } : {}),
+    });
+    // Also kept in this browser (and its backup), so this lab can send lab reports back
+    // even if the record's copy is missing (lab-results.ts).
     rememberDelivery({
       transferId,
       receivedRecordId: res.recordId,
@@ -131,7 +328,7 @@ export const ClaimTransfer: React.FC<{
     setStage(
       'refuse' in subject
         ? { step: 'refused', recordId: res.recordId, reason: subject.refuse }
-        : { step: 'sign', subject, attester },
+        : { step: 'sign', subject, attester, transferId },
     );
   };
 
@@ -139,16 +336,11 @@ export const ClaimTransfer: React.FC<{
     if (stage.step !== 'sign') return;
     setBusy(true);
     setError(null);
-    const out = await attestRecord(
-      stage.attester,
-      stage.subject.sourceCommitment,
-      stage.subject.receivedRecordFingerprint,
-      'chain-of-custody',
-    );
+    const err = await signReceipt(stage.attester, stage.subject);
     setBusy(false);
-    if (out.error || !out.attestationId) {
+    if (err) {
       setError(
-        `Receipt recorded, but your signed confirmation was not: ${out.error ?? 'no answer from the registry'}.`,
+        `Delivery received, but your signed receipt was not recorded: ${err}. You can sign it later from the plant’s page.`,
       );
       return;
     }
@@ -173,12 +365,12 @@ export const ClaimTransfer: React.FC<{
           {stage.step === 'code' && (
             <Stack spacing={2} sx={{ pt: 1 }}>
               <Typography variant="body2" color="text.secondary">
-                Enter the transfer code the sender gave you. You get your own record of what you received, linked to
-                theirs, and the registry records that someone holding this code took delivery. If you have a signing
-                key, you see exactly what you would sign before anything is signed.
+                Enter the lab code the breeder gave you. You get your own record of what you received, linked to theirs,
+                and the registry records that someone holding this code took delivery. If you have a signing key, you
+                see exactly what you would sign before anything is signed.
               </Typography>
               <TextField
-                label="Transfer code"
+                label="Lab code"
                 placeholder="TR-XXXXXXXX.xxxxxxxx…"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
@@ -192,48 +384,25 @@ export const ClaimTransfer: React.FC<{
           )}
 
           {stage.step === 'sign' && (
-            <Stack spacing={1.5} sx={{ pt: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                The transfer is claimed. Your key can now sign a receipt for it. This is exactly what the receipt says:
-              </Typography>
-              <Box sx={{ p: 1.5, borderRadius: 1, background: 'rgba(22,32,27,0.04)', fontSize: 13 }}>
-                <Typography variant="body2">
-                  “I received {stage.subject.quantity ? `${stage.subject.quantity} of ` : ''}
-                  {stage.subject.cultivar || 'this material'} from record {stage.subject.sourceRecordId}.”
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                  About the record with fingerprint
-                </Typography>
-                <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
-                  {stage.subject.sourceCommitment}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                  Pointing at your received record
-                </Typography>
-                <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
-                  {stage.subject.receivedRecordFingerprint}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                  Signed by your key ({stage.attester.displayName ?? 'unnamed'})
-                </Typography>
-                <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
-                  {stage.attester.keypair.publicKey}
-                </Typography>
-              </Box>
-              <Typography variant="caption" color="text.secondary">
-                The fingerprint came from the registry and matches what its public page reports for{' '}
-                {stage.subject.sourceRecordId}. If the sender gave you a fingerprint, compare it before signing.
-              </Typography>
-              <FormControlLabel
-                control={<Checkbox checked={received} onChange={(e) => setReceived(e.target.checked)} />}
-                label={<Typography variant="body2">I physically received this material.</Typography>}
+            <Box sx={{ pt: 1 }}>
+              <ReceiptChoice
+                subject={stage.subject}
+                attester={stage.attester}
+                transferId={stage.transferId}
+                busy={busy}
+                onSign={() => void sign()}
+                onReject={(reason) => {
+                  rejectReceipt(stage.subject.receivedRecordId, reason);
+                  finish(stage.subject.receivedRecordId);
+                }}
+                onLater={() => finish(stage.subject.receivedRecordId)}
               />
-            </Stack>
+            </Box>
           )}
 
           {stage.step === 'refused' && (
             <Alert severity="warning" variant="outlined" sx={{ mt: 1 }}>
-              The transfer is claimed and your record created. {stage.reason}
+              The delivery is received and your record created. {stage.reason}
             </Alert>
           )}
 
@@ -254,16 +423,6 @@ export const ClaimTransfer: React.FC<{
               <Button onClick={close}>Cancel</Button>
               <Button variant="contained" onClick={() => void claim()} disabled={busy || !code.trim()}>
                 Receive it
-              </Button>
-            </>
-          )}
-          {stage.step === 'sign' && (
-            <>
-              <Button onClick={() => finish(stage.subject.receivedRecordId)} disabled={busy}>
-                Don&apos;t sign
-              </Button>
-              <Button variant="contained" onClick={() => void sign()} disabled={busy || !received}>
-                Sign with my key
               </Button>
             </>
           )}

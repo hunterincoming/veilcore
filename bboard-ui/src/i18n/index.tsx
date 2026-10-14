@@ -13,30 +13,57 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { en, type StringKey, type Strings } from './en';
-import { es } from './es';
-import { ja } from './ja';
-import { de } from './de';
-import { fr } from './fr';
+import { es, esTestchain } from './es';
+import { ja, jaTestchain } from './ja';
+import { de, deTestchain } from './de';
+import { fr, frTestchain } from './fr';
 import { mainnetStrings } from './en-mainnet';
+import { testchainStrings } from './en-testchain';
 import { IS_MAINNET, CLAIMS_ON_MAINNET, MAINTENANCE_POLICY_APPROVED } from '../config/network';
-
-/**
- * In a mainnet build, the strings that describe the network (en-mainnet.ts) replace the
- * test-network ones in every language. Empty in every other build.
- */
-const NETWORK_OVERLAY: Strings = IS_MAINNET
-  ? mainnetStrings({ claimsOnMainnet: CLAIMS_ON_MAINNET, policyApproved: MAINTENANCE_POLICY_APPROVED })
-  : {};
+import { REAL_CHAIN } from '../veilcore/chain/config';
 
 export const LANGUAGES = {
-  en: { label: 'English', short: 'EN', strings: en as Strings },
-  es: { label: 'Español', short: 'ES', strings: es },
-  ja: { label: '日本語', short: 'JA', strings: ja },
-  de: { label: 'Deutsch', short: 'DE', strings: de },
-  fr: { label: 'Français', short: 'FR', strings: fr },
+  en: { label: 'English', short: 'EN', strings: en as Strings, testchain: {} as Strings },
+  es: { label: 'Español', short: 'ES', strings: es, testchain: esTestchain },
+  ja: { label: '日本語', short: 'JA', strings: ja, testchain: jaTestchain },
+  de: { label: 'Deutsch', short: 'DE', strings: de, testchain: deTestchain },
+  fr: { label: 'Français', short: 'FR', strings: fr, testchain: frTestchain },
 } as const;
 
 export type Lang = keyof typeof LANGUAGES;
+
+/** What kind of build this is, for choosing the network strings. */
+export type BuildKind = {
+  isMainnet: boolean;
+  /** VITE_REAL_CHAIN=1: the browser sends transactions (the public test site). */
+  realChain: boolean;
+  claimsOnMainnet: boolean;
+  policyApproved: boolean;
+};
+
+/**
+ * The strings that replace a language's own for this build. Exported for tests.
+ *
+ *   - mainnet build: en-mainnet.ts, in English in every language (a draft translation of
+ *     the test-network sentence would be wrong there);
+ *   - real-chain test build (test.veilcore.org): en-testchain.ts, with the language's own
+ *     translation of it where it has one. The English overlay still beats the language's
+ *     ordinary strings, which describe the demo;
+ *   - every other build: nothing; en.ts and the translations as they are.
+ */
+export const networkOverlay = (build: BuildKind, lang: Lang): Strings => {
+  if (build.isMainnet)
+    return mainnetStrings({ claimsOnMainnet: build.claimsOnMainnet, policyApproved: build.policyApproved });
+  if (build.realChain) return { ...testchainStrings, ...LANGUAGES[lang].testchain };
+  return {};
+};
+
+const THIS_BUILD: BuildKind = {
+  isMainnet: IS_MAINNET,
+  realChain: REAL_CHAIN && !IS_MAINNET,
+  claimsOnMainnet: CLAIMS_ON_MAINNET,
+  policyApproved: MAINTENANCE_POLICY_APPROVED,
+};
 
 const isLang = (x: string): x is Lang => Object.prototype.hasOwnProperty.call(LANGUAGES, x);
 
@@ -127,10 +154,11 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const value = useMemo<Ctx>(() => {
     const strings = LANGUAGES[lang].strings;
+    const overlay = networkOverlay(THIS_BUILD, lang);
     return {
       lang,
       setLang,
-      t: (key, vars) => format(NETWORK_OVERLAY[key] ?? strings[key] ?? en[key], vars),
+      t: (key, vars) => format(overlay[key] ?? strings[key] ?? en[key], vars),
       choices: showDrafts() ? (Object.keys(LANGUAGES) as Lang[]) : published,
       isDraft: !published.includes(lang),
     };
