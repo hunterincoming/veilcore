@@ -9,6 +9,8 @@ import {
   createIndexerRelay,
   hasMutation,
   operationCount,
+  queryProblem,
+  readDocument,
   MAX_QUERY_BYTES,
 } from "./indexer-relay.js";
 
@@ -277,6 +279,112 @@ describe("reads over HTTP", () => {
     expect(hasMutation("# mutation in a comment\nquery { a }")).toBe(false);
     expect(hasMutation('query { a(name: "mutation { x }") }')).toBe(false);
     expect(hasMutation("query { mutationCount }")).toBe(false);
+  });
+});
+
+// Round 3: ",mutation{…}" got past the old expression; commas are ignored tokens in
+// GraphQL, like spaces. Documents are now read token by token (readDocument).
+describe("reading a document as GraphQL does", () => {
+  const verdict = (query: string, transport?: "http" | "socket") =>
+    queryProblem({ query }, transport);
+  const READS_ONLY = { status: 403, message: "Reads only." };
+
+  it("a leading comma, or commas anywhere, don't hide a mutation", () => {
+    for (const q of [
+      ",mutation{connect}",
+      ",,, mutation { connect }",
+      "{ a },mutation{ b }",
+      "mutation,{ connect }",
+      "mutation,M,{ connect }",
+    ]) {
+      expect(hasMutation(q), q).toBe(true);
+      expect(verdict(q), q).toEqual(READS_ONLY);
+    }
+  });
+
+  it("comments are skipped to the end of the line, \\n or \\r, and hide only what is on that line", () => {
+    expect(hasMutation("# a comment\nmutation { x }")).toBe(true);
+    expect(hasMutation("# a comment\rmutation { x }")).toBe(true);
+    expect(hasMutation("#\r\n,mutation{x}")).toBe(true);
+    expect(hasMutation("query { a } # mutation { x }")).toBe(false);
+    expect(verdict("query { a } # mutation { x }")).toBeUndefined();
+    expect(verdict("# just a comment")).toEqual({ status: 400, message: "No operation." });
+  });
+
+  it("a byte order mark, tabs and line ends are skipped like spaces", () => {
+    expect(verdict("\uFEFFmutation { x }")).toEqual(READS_ONLY);
+    expect(verdict("\uFEFF{ a }")).toBeUndefined();
+    expect(verdict("\tmutation\n{ x }")).toEqual(READS_ONLY);
+    expect(verdict("\r\nmutation\r{ x }")).toEqual(READS_ONLY);
+    expect(verdict("{\ta\r\n}\t")).toBeUndefined();
+    expect(verdict("{ a }\u{FEFF}mutation{ b }")).toEqual(READS_ONLY);
+    // Other white space the spec doesn't allow is refused, not guessed at.
+    for (const q of ["\fmutation { x }", "\vquery { a }", "\u00A0{ a }", "\u2028mutation{x}"])
+      expect(verdict(q), JSON.stringify(q)).toEqual({ status: 400, message: "Not a query this relay can read." });
+  });
+
+  it("keywords inside strings and block strings don't count, and neither do braces", () => {
+    expect(verdict('{ a(s: "query") }')).toBeUndefined();
+    expect(verdict('{ a(s: "mutation { x }") }')).toBeUndefined();
+    expect(verdict('{ a(s: "} mutation { x } {") }')).toBeUndefined();
+    expect(verdict('{ a(s: """ } mutation { x } { """) }')).toBeUndefined();
+    expect(verdict('{ a(s: """ \\""" mutation { x } """) }')).toBeUndefined();
+    expect(verdict('{ a(s: "\\" mutation { x }") }')).toBeUndefined();
+    expect(verdict('{ a(s: "#") } mutation { x }')).toEqual(READS_ONLY);
+    // A string where a definition should start is not a query.
+    expect(verdict('"query" { a }')?.status).toBe(400);
+    // Unterminated or multi-line strings are refused.
+    for (const q of ['{ a(s: "x) }', '{ a(s: "x\n") }', '{ a(s: "x\\\n") }', '{ a(s: """x) }'])
+      expect(verdict(q), q).toEqual({ status: 400, message: "Not a query this relay can read." });
+  });
+
+  it("an anonymous { } query is allowed, and `mutation` as a field, argument or name is just a name", () => {
+    expect(verdict("{ a }")).toBeUndefined();
+    expect(verdict("{ block { height } }")).toBeUndefined();
+    expect(verdict("query { mutation { a } }")).toBeUndefined();
+    expect(verdict("{ mutation }")).toBeUndefined();
+    expect(verdict("{ a(mutation: 1) { mutation } }")).toBeUndefined();
+    expect(verdict("query mutation { a }")).toBeUndefined();
+    expect(verdict("query Q($mutation: Int = 1) @mutation { a }")).toBeUndefined();
+    expect(verdict("query { ...mutation } fragment mutation on T { a }")).toBeUndefined();
+    expect(hasMutation("query { mutation { a } }")).toBe(false);
+  });
+
+  it("fragments alone, schema language and unknown first tokens are refused", () => {
+    expect(verdict("fragment F on T { a }")).toEqual({ status: 400, message: "No operation." });
+    for (const q of [
+      "extend type Query { a: Int }",
+      "type Query { a: Int }",
+      "schema { query: Q }",
+      "@dir { a }",
+      "Query { a }",
+      "{ a } }",
+      "{ a ",
+      "query Q",
+      "fragment on on T { a }",
+      "1 { a }",
+      ". { a }",
+      "{ a ( }",
+    ])
+      expect(verdict(q), q).toEqual({ status: 400, message: "Not a query this relay can read." });
+    expect(operationCount("type Query { a: Int }")).toBe(-1);
+    expect(readDocument("query A { a } fragment F on T { b }")).toEqual({ operations: ["query"], fragments: 1 });
+  });
+
+  it("a subscription goes over the socket, never HTTP", () => {
+    expect(verdict("subscription { a }")).toEqual({ status: 400, message: "Subscriptions go over the socket." });
+    expect(verdict("subscription { a }", "socket")).toBeUndefined();
+    expect(verdict("{ a }", "socket")).toBeUndefined();
+    expect(verdict(",mutation { a }", "socket")).toEqual(READS_ONLY);
+  });
+
+  it("over HTTP, the comma form is refused before it reaches the indexer", async () => {
+    const { up, url } = await sponsorWith();
+    for (const query of [",mutation{connect}", "\uFEFF,\t# x\nmutation{connect}", "subscription { a }"]) {
+      const res = await post(url, { query });
+      expect(res.status, query).toBe(query.startsWith("subscription") ? 400 : 403);
+    }
+    expect(up.seen).toHaveLength(0);
   });
 });
 

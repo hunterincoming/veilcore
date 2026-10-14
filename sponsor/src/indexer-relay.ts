@@ -10,8 +10,10 @@
 // It only reads. Mutations are refused: the indexer's mutations open wallet sessions
 // (viewing keys), which a website never needs and the sponsor must never relay. Each
 // request carries one query of at most 16 KB, with no `extensions` or persisted-query
-// fields; over the socket only the graphql-transport-ws messages a reader needs pass
-// (connection_init with no payload, subscribe, complete, ping, pong).
+// fields, read token by token as GraphQL reads it (readDocument), and refused if it can't
+// be read. Over HTTP only a query; a subscription only over the socket, where only the
+// graphql-transport-ws messages a reader needs pass (connection_init with no payload,
+// subscribe, complete, ping, pong).
 //
 // What limits use of the key: each address gets its own allowance per minute, and sockets
 // are capped per address and in total. The Origin check only stops other websites'
@@ -68,47 +70,202 @@ const CLIENT_MESSAGES = new Set([
 /** The fields a query may carry. No `extensions` (persisted queries live there), no `id`/`documentId`. */
 const QUERY_FIELDS = new Set(["query", "variables", "operationName"]);
 
-/**
- * Comments and string contents removed, so words and braces inside them don't count. One
- * pass, left to right, so a # inside a string is not taken for a comment, nor a quote
- * inside a comment for a string.
- */
-const bareDocument = (query: string): string =>
-  query.replace(/"""[\s\S]*?"""|"(?:\\.|[^"\\\n])*"|#[^\n\r]*/g, (m) =>
-    m.startsWith("#") ? " " : '""',
-  );
+// ---- reading a GraphQL document -------------------------------------------------------
+//
+// Round 3: hasMutation was a regular expression, and a leading comma got past it:
+// ",mutation{…}" is a mutation (commas are ignored tokens in GraphQL, like spaces), but the
+// expression wanted a space or a brace before the word. What is relayed is now decided by
+// reading the document the way the GraphQL spec does (October 2021, section 2.1): split it
+// into tokens, skipping ignored ones, then read the keyword that starts each top-level
+// definition. A document this can't read is refused, never guessed at. graphql-js is not a
+// dependency of the sponsor, so this is a small reader of its own rather than its parser.
 
-/** True when a GraphQL document contains a mutation (comments and strings aside). */
-export const hasMutation = (query: string): boolean =>
-  /(^|[\s{}])mutation(?=[\s({]|$)/.test(bareDocument(query));
+type Token = { readonly kind: "name" | "punct" | "string" | "number"; readonly value: string };
+
+const NAME_START = /[_A-Za-z]/;
+const NAME_CHAR = /[_0-9A-Za-z]/;
+const DIGIT = /[0-9]/;
+const PUNCT = new Set(["!", "$", "&", "(", ")", ":", "=", "@", "[", "]", "{", "|", "}"]);
 
 /**
- * How many operations a document defines: each top-level `{ … }` block that is not a
- * fragment. Braces inside (…) (an argument's or a variable default's object value) are
- * not blocks. Comments and strings are removed first.
+ * The tokens of a GraphQL document, or why it isn't one. Skipped, as the spec says: the
+ * byte order mark, spaces, tabs, line ends, commas, and comments (# to the end of the
+ * line). Strings ("…" and block strings """…""") are one token each, so no word, brace or
+ * # inside one counts. Anything the spec doesn't allow outside a string or a comment (a
+ * form feed, a non-ASCII letter, a lone dot) is an error.
  */
-export const operationCount = (query: string): number => {
-  const bare = bareDocument(query);
-  let depth = 0;
-  let parens = 0;
-  let header = "";
-  let n = 0;
-  for (const ch of bare) {
-    if (ch === "(") parens++;
-    else if (ch === ")") parens = Math.max(0, parens - 1);
-    if (depth === 0 && parens === 0 && ch !== "{") {
-      header += ch;
+export const graphqlTokens = (src: string): Token[] | { error: string } => {
+  const out: Token[] = [];
+  let i = 0;
+  while (i < src.length) {
+    const c = src[i];
+    if (c === "\uFEFF" || c === " " || c === "\t" || c === "\n" || c === "\r" || c === ",") {
+      i++;
       continue;
     }
-    if (ch === "{" && parens === 0) {
-      if (depth === 0 && !/^\s*fragment\b/.test(header)) n++;
-      depth++;
-    } else if (ch === "}" && parens === 0) {
-      depth = Math.max(0, depth - 1);
-      if (depth === 0) header = "";
+    if (c === "#") {
+      while (i < src.length && src[i] !== "\n" && src[i] !== "\r") i++;
+      continue;
+    }
+    if (c === '"') {
+      if (src.startsWith('"""', i)) {
+        // Block string: ends at the next """ that isn't escaped as \""".
+        let j = i + 3;
+        for (;;) {
+          if (j >= src.length) return { error: "unterminated block string" };
+          if (src.startsWith('\\"""', j)) j += 4;
+          else if (src.startsWith('"""', j)) break;
+          else j++;
+        }
+        out.push({ kind: "string", value: src.slice(i, j + 3) });
+        i = j + 3;
+        continue;
+      }
+      // String: one line, backslash escapes the next character.
+      let j = i + 1;
+      for (;;) {
+        if (j >= src.length || src[j] === "\n" || src[j] === "\r") return { error: "unterminated string" };
+        if (src[j] === "\\") {
+          // An escape never covers a line end (the spec refuses one there too).
+          if (j + 1 >= src.length || src[j + 1] === "\n" || src[j + 1] === "\r") return { error: "unterminated string" };
+          j += 2;
+        } else if (src[j] === '"') break;
+        else j++;
+      }
+      out.push({ kind: "string", value: src.slice(i, j + 1) });
+      i = j + 1;
+      continue;
+    }
+    if (src.startsWith("...", i)) {
+      out.push({ kind: "punct", value: "..." });
+      i += 3;
+      continue;
+    }
+    if (PUNCT.has(c)) {
+      out.push({ kind: "punct", value: c });
+      i++;
+      continue;
+    }
+    if (NAME_START.test(c)) {
+      let j = i + 1;
+      while (j < src.length && NAME_CHAR.test(src[j])) j++;
+      out.push({ kind: "name", value: src.slice(i, j) });
+      i = j;
+      continue;
+    }
+    if (c === "-" || DIGIT.test(c)) {
+      const m = /^-?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?/.exec(src.slice(i, i + 400));
+      if (!m) return { error: "bad number" };
+      const after = src[i + m[0].length];
+      // The spec forbids a name start or a dot right after a number (a digit can't follow: the match took them all).
+      if (after !== undefined && (NAME_START.test(after) || after === ".")) return { error: "bad number" };
+      out.push({ kind: "number", value: m[0] });
+      i += m[0].length;
+      continue;
+    }
+    return { error: "character not allowed here" };
+  }
+  return out;
+};
+
+const OPEN_CLOSE: Record<string, string> = { "{": "}", "(": ")", "[": "]" };
+const CLOSERS = new Set(["}", ")", "]"]);
+
+/** The index after the group opened at tokens[i] ({, ( or [), or -1 if it never closes properly. */
+const skipGroup = (tokens: readonly Token[], i: number): number => {
+  const stack: string[] = [];
+  for (let j = i; j < tokens.length; j++) {
+    const t = tokens[j];
+    if (t.kind !== "punct") continue;
+    const close = OPEN_CLOSE[t.value];
+    if (close) stack.push(close);
+    else if (CLOSERS.has(t.value)) {
+      if (stack.pop() !== t.value) return -1;
+      if (stack.length === 0) return j + 1;
     }
   }
-  return n;
+  return -1;
+};
+
+export type OperationKind = "query" | "mutation" | "subscription";
+
+/**
+ * The operations a document defines, in order, and how many fragments, or why it can't
+ * be read. Each top-level definition must start with `{` (a query with no keyword),
+ * `query`, `mutation`, `subscription` or `fragment`; anything else (a schema definition,
+ * `extend`, a stray token) is refused. A `mutation` anywhere else (a field, an argument,
+ * an operation's name) is just a name and doesn't count.
+ */
+export const readDocument = (
+  query: string,
+): { operations: OperationKind[]; fragments: number } | { error: string } => {
+  const tokens = graphqlTokens(query);
+  if (!Array.isArray(tokens)) return tokens;
+  const operations: OperationKind[] = [];
+  let fragments = 0;
+  const is = (i: number, kind: Token["kind"], value?: string) =>
+    tokens[i]?.kind === kind && (value === undefined || tokens[i].value === value);
+  /** Directives (@name, @name(args)) from i; the index after them. */
+  const directives = (i: number): number => {
+    while (is(i, "punct", "@")) {
+      if (!is(i + 1, "name")) return -1;
+      i += 2;
+      if (is(i, "punct", "(")) {
+        i = skipGroup(tokens, i);
+        if (i < 0) return -1;
+      }
+    }
+    return i;
+  };
+  let i = 0;
+  while (i < tokens.length) {
+    const t = tokens[i];
+    if (t.kind === "punct" && t.value === "{") {
+      i = skipGroup(tokens, i);
+      if (i < 0) return { error: "unbalanced braces" };
+      operations.push("query");
+      continue;
+    }
+    if (t.kind === "name" && (t.value === "query" || t.value === "mutation" || t.value === "subscription")) {
+      i++;
+      if (is(i, "name")) i++;
+      if (is(i, "punct", "(")) {
+        i = skipGroup(tokens, i);
+        if (i < 0) return { error: "unbalanced variable definitions" };
+      }
+      i = directives(i);
+      if (i < 0 || !is(i, "punct", "{")) return { error: `${t.value} without a selection` };
+      i = skipGroup(tokens, i);
+      if (i < 0) return { error: "unbalanced braces" };
+      operations.push(t.value);
+      continue;
+    }
+    if (t.kind === "name" && t.value === "fragment") {
+      if (!is(i + 1, "name") || tokens[i + 1].value === "on" || !is(i + 2, "name", "on") || !is(i + 3, "name")) {
+        return { error: "malformed fragment" };
+      }
+      i = directives(i + 4);
+      if (i < 0 || !is(i, "punct", "{")) return { error: "fragment without a selection" };
+      i = skipGroup(tokens, i);
+      if (i < 0) return { error: "unbalanced braces" };
+      fragments++;
+      continue;
+    }
+    return { error: "not a query, a subscription or a fragment" };
+  }
+  return { operations, fragments };
+};
+
+/** True when a document defines a mutation (comments, strings and field names aside). */
+export const hasMutation = (query: string): boolean => {
+  const doc = readDocument(query);
+  return !("error" in doc) && doc.operations.includes("mutation");
+};
+
+/** How many operations a document defines (fragments not counted); -1 if it can't be read. */
+export const operationCount = (query: string): number => {
+  const doc = readDocument(query);
+  return "error" in doc ? -1 : doc.operations.length;
 };
 
 const isPlainObject = (v: unknown): v is Record<string, unknown> =>
@@ -116,10 +273,12 @@ const isPlainObject = (v: unknown): v is Record<string, unknown> =>
 
 /**
  * Why a query can't be relayed, or undefined when it can: one read-only operation of at
- * most 16 KB, carrying only query, variables and operationName.
+ * most 16 KB, carrying only query, variables and operationName. Over HTTP only a query; a
+ * subscription only over the socket (`transport: "socket"`), where it can be answered.
  */
 export const queryProblem = (
   payload: unknown,
+  transport: "http" | "socket" = "http",
 ): { status: 400 | 403; message: string } | undefined => {
   if (!isPlainObject(payload)) return { status: 400, message: "No query." };
   if (Object.keys(payload).some((k) => !QUERY_FIELDS.has(k)))
@@ -143,9 +302,17 @@ export const queryProblem = (
     typeof operationName !== "string"
   )
     return { status: 400, message: "operationName must be text." };
-  if (hasMutation(query)) return { status: 403, message: "Reads only." };
-  if (operationCount(query) !== 1)
+  const doc = readDocument(query);
+  if ("error" in doc)
+    return { status: 400, message: "Not a query this relay can read." };
+  if (doc.operations.includes("mutation"))
+    return { status: 403, message: "Reads only." };
+  if (doc.operations.length === 0)
+    return { status: 400, message: "No operation." };
+  if (doc.operations.length !== 1)
     return { status: 400, message: "One operation per request." };
+  if (doc.operations[0] === "subscription" && transport !== "socket")
+    return { status: 400, message: "Subscriptions go over the socket." };
   return undefined;
 };
 
@@ -428,7 +595,7 @@ export const createIndexerRelay = (cfg: RelayConfig): IndexerRelay => {
               if (m.type === "subscribe") {
                 if (typeof m.id !== "string")
                   return finish(4400, "Message not allowed.");
-                const problem = queryProblem(m.payload);
+                const problem = queryProblem(m.payload, "socket");
                 if (problem)
                   return finish(
                     problem.status === 403 ? 4403 : 4400,
