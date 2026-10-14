@@ -30,6 +30,7 @@ export const PasteBox: React.FC = () => {
         return;
       case 'record-link':
       case 'agreement-to-sign':
+      case 'prove-link':
         void navigate(p.path);
         return;
       case 'prove-request':

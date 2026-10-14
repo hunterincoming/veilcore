@@ -19,6 +19,7 @@ import { AppHome } from './components/flow/AppHome';
 import { RestorePage } from './components/flow/RestorePage';
 import { BackupPage } from './components/flow/BackupPage';
 import { LogFlow } from './components/flow/LogFlow';
+import { ProvePage } from './components/flow/ProvePage';
 import { RecordDetail } from './components/RecordDetail';
 import { VerifyPage } from './pages/VerifyPage';
 import { VerifyExample } from './components/verify/VerifyExample';
@@ -132,6 +133,7 @@ const App: React.FC = () => (
       <Route path="/docs/:doc" element={withLayout(<DocPage />)} />
       <Route path="/implementations" element={withLayout(<Implementations />)} />
       <Route path="/new" element={withLayout(<LogFlow />)} />
+      <Route path="/prove/:id" element={withLayout(<ProvePage />)} />
       <Route path="/record/:id" element={withLayout(<RecordDetail />)} />
       <Route path="/record/:id/license" element={withLayout(<TermsBuilder />)} />
       <Route path="/licenses" element={withLayout(<LicensingHub />)} />

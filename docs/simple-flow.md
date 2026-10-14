@@ -66,10 +66,38 @@ Removed: the six-step wizard (`WizardShell`, `ProgressPath`, `Step1LogStrain`,
   Blockfrost key, which stays on Hunter's Mac). It calls the same `anchorOnChain` the old
   panel did; run it locally before merging.
 
+## Step 2a: "Prove it" by link (`feat/prove-by-link`, registry `feat/prove-relay`)
+
+- The checker, on the plant's check page, taps **Make a link to send them** (optional
+  name). Their browser makes the challenge and keeps it for a week
+  (`chain/challenge-book.ts`); the registry stores the request (`POST /prove-requests`)
+  and gives an id. The link is `/prove/PR-…`.
+- The holder opens it (or pastes it in the Home box). If this device holds the plant it
+  names: who asked (marked "VeilCore hasn't checked that"), what proving sends, one
+  **Prove it** button. The transaction id goes back by itself. No plant here: restore.
+- The checker's page checks every few seconds, and checks each answer on chain against
+  the challenge and identity *its own browser kept* (`prove-relay.ts` `checkAnswers`),
+  never the registry's copy. The registry can make a check fail, never pass. Opening the
+  same link again in the checker's browser shows the request and its answer.
+- No holder key is sent either way (it would tie the holder's account to the plant's
+  on-chain identity). Requests last a week and take at most five answers.
+- The share screen has a switch, on by default for date-stamped plants: "Let them check
+  the date stamp and ask me to prove I hold it". It adds the plant's on-chain identity to
+  the link; without it the check page cannot offer the button. Only people with the link
+  can match the holder's proofs to the plant.
+- Copying codes by hand is still there under "Do it by hand instead".
+- **Bug found on the way, fixed**: the checker's check imported Node's `crypto` (through
+  `contract/src/pairing.ts` and `api/src/state-check.ts`), which the browser replaced
+  with a stub that throws, so checking an answer failed in the browser, by link or by
+  hand. Site builds now get SHA-256 from `src/shims/node-crypto.ts` (tested against
+  Node's own).
+- Walked at phone size against a local registry with a test-chain build (network calls
+  blocked): ask → link → holder's page → stranger's page → paste box → answer arrives →
+  checker reopens the link → expired link. **Not run**: a real proof and a real check on
+  preprod (needs the Blockfrost key on Hunter's Mac).
+
 ## Next (step 2: server pieces)
 
-- **"Prove it" without copy-paste**: the checker's request reaches the holder as a link;
-  the answer goes back through the registry and the checker's page updates.
 - **Lab results locked to the breeder**: the delivery code carries the breeder's
   encryption key; the lab's browser encrypts the report to it and signs its fingerprint;
   the registry stores only the locked file and the signature; the breeder's plant page

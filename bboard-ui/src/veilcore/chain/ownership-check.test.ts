@@ -5,11 +5,17 @@ import { identityOf, recoveryCommitmentOf } from './actions';
 import { contractStateAfter } from './test-chain';
 
 const store = new Map<string, string>();
+const lasting = new Map<string, string>();
 beforeEach(() => {
   store.clear();
+  lasting.clear();
   vi.stubGlobal('sessionStorage', {
     getItem: (k: string) => store.get(k) ?? null,
     setItem: (k: string, v: string) => void store.set(k, v),
+  });
+  vi.stubGlobal('localStorage', {
+    getItem: (k: string) => lasting.get(k) ?? null,
+    setItem: (k: string, v: string) => void lasting.set(k, v),
   });
 });
 
@@ -36,6 +42,20 @@ describe('verifier: checking a holder’s answer', () => {
     expect(await checkOwnership(input, deps)).toMatchObject({ accepted: true });
     const again = await checkOwnership(input, deps);
     expect(again.accepted).toBe(false);
+    expect(again.reason).toMatch(/already answered/);
+  });
+
+  it('a challenge sent as a link still works in a new tab of this browser, once', async () => {
+    const challenge = newChallenge(Date.now(), { lasting: true });
+    store.clear(); // the tab that made it is closed
+    vi.resetModules();
+    const fresh = await import('./ownership-check');
+    const after = afterProof(RECORD, challenge);
+    const deps = { stateAfter: () => Promise.resolve(after), latest: () => Promise.resolve(after) };
+    const input = { txId: 'aa'.repeat(32), identity: identityOf(RECORD), challenge };
+    expect(await fresh.checkOwnership(input, deps)).toMatchObject({ accepted: true });
+    vi.resetModules();
+    const again = await (await import('./ownership-check')).checkOwnership(input, deps);
     expect(again.reason).toMatch(/already answered/);
   });
 

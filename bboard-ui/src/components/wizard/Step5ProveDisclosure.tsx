@@ -45,6 +45,8 @@ import {
 import { canonicalUrl } from '../../config/network';
 import { CLAIMS_WHERE } from '../../config/copy';
 import { verifyPath } from '../../veilcore/verify-link';
+import { useRecordKeys } from '../../veilcore/record-keys';
+import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { DisclosedFacts } from '../verify/DisclosedFacts';
 
 export const Step5ProveDisclosure: React.FC<{ recordId: string; onDone: () => void; onBack: () => void }> = ({
@@ -61,6 +63,12 @@ export const Step5ProveDisclosure: React.FC<{ recordId: string; onDone: () => vo
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ absolute: string; relative: string }>();
   const [copied, setCopied] = useState(false);
+  // A date-stamped plant's link can carry its on-chain identity, so whoever gets it can
+  // check the date stamp and ask the holder to prove it. Only the people sent the link
+  // can then match the holder's proofs to this plant (record-keys.ts keeps it off the record).
+  const anchor = useRecordKeys()[recordId]?.anchor;
+  const canAskProof = REAL_CHAIN && !!anchor;
+  const [askable, setAskable] = useState(true);
 
   useEffect(() => {
     let live = true;
@@ -110,9 +118,18 @@ export const Step5ProveDisclosure: React.FC<{ recordId: string; onDone: () => vo
     }
   };
 
+  const link = (() => {
+    if (!result || !record) return undefined;
+    const relative =
+      canAskProof && askable && anchor
+        ? verifyPath(record.id, record.recordFingerprint, { chain: anchor.identity, anchorTx: anchor.txId })
+        : result.relative;
+    return { relative, absolute: canonicalUrl(relative) };
+  })();
+
   const copy = async () => {
-    if (!result) return;
-    await navigator.clipboard.writeText(result.absolute);
+    if (!link) return;
+    await navigator.clipboard.writeText(link.absolute);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -197,8 +214,17 @@ export const Step5ProveDisclosure: React.FC<{ recordId: string; onDone: () => vo
             range, or that two varieties differ) without showing the rest is done by VeilCore&apos;s claims contract.{' '}
             {CLAIMS_WHERE}
           </Typography>
+          {canAskProof && (
+            <FormControlLabel
+              control={<Switch checked={askable} onChange={() => setAskable((v) => !v)} size="small" />}
+              label={
+                <Typography variant="body2">Let them check the date stamp and ask me to prove I hold it</Typography>
+              }
+              sx={{ mb: 1 }}
+            />
+          )}
           <TextField
-            value={result.absolute}
+            value={link?.absolute ?? result.absolute}
             fullWidth
             size="small"
             slotProps={{ input: { readOnly: true } }}
@@ -213,7 +239,7 @@ export const Step5ProveDisclosure: React.FC<{ recordId: string; onDone: () => vo
               variant="text"
               startIcon={<VisibilityIcon />}
               component={RouterLink}
-              to={result.relative}
+              to={link?.relative ?? result.relative}
               target="_blank"
             >
               Open what they&apos;ll see

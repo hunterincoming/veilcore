@@ -535,6 +535,7 @@ export const VerifyPage: React.FC = () => {
         {REAL_CHAIN && result?.found && params.get('chain') && (
           <VerifierChallengePanel
             claim={{ identity: params.get('chain') ?? '', txId: params.get('anchorTx') ?? undefined }}
+            recordId={id}
           />
         )}
       </Container>

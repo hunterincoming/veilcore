@@ -20,49 +20,10 @@ import { acceptOwnership } from '../../../../contract/src/verify';
 import { callState } from '../../../../api/src/presentation-lookup';
 import { CHAIN_CONTRACT, INDEXER_HTTP } from './config';
 
-const BOOK = 'veilcore.verifier-challenges.v1';
-const LIFETIME_MS = 24 * 60 * 60_000;
-
-type Book = Record<string, { issuedAt: number; used?: boolean }>;
-
-const read = (): Book => {
-  try {
-    const raw = sessionStorage.getItem(BOOK);
-    return raw ? (JSON.parse(raw) as Book) : {};
-  } catch {
-    return {};
-  }
-};
-const write = (b: Book): void => {
-  try {
-    sessionStorage.setItem(BOOK, JSON.stringify(b));
-  } catch {
-    /* private mode: the challenge works for this page only */
-  }
-};
-const memory: Book = {};
+import { lookupChallenge, useChallenge } from './challenge-book';
+export { newChallenge } from './challenge-book';
 
 const hexToBytes = (hex: string): Uint8Array => Uint8Array.from(hex.match(/../g) ?? [], (b) => parseInt(b, 16));
-
-/** A fresh challenge, remembered by this tab. */
-export const newChallenge = (now = Date.now()): string => {
-  const c = Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, '0')).join('');
-  const book = { ...read(), [c]: { issuedAt: now } };
-  for (const [k, v] of Object.entries(book)) if (now - v.issuedAt > LIFETIME_MS) delete book[k];
-  memory[c] = { issuedAt: now };
-  write(book);
-  return c;
-};
-
-const lookupChallenge = (c: string) => read()[c] ?? memory[c];
-const useChallenge = (c: string): void => {
-  memory[c] = { ...(memory[c] ?? { issuedAt: Date.now() }), used: true };
-  const b = read();
-  if (b[c]) {
-    b[c] = { ...b[c], used: true };
-    write(b);
-  }
-};
 
 export type OwnershipVerdict = { readonly accepted: boolean; readonly reason: string };
 

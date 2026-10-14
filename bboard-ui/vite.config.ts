@@ -105,6 +105,18 @@ export default defineConfig(({ mode, command }) => {
       },
     },
     plugins: [
+      // The shared checking code hashes with node:crypto; the browser gets SHA-256 from
+      // src/shims/node-crypto.ts instead of Vite's stub, which throws when used. A plugin,
+      // not resolve.alias: Vite settles node: built-ins before aliases apply.
+      {
+        name: 'browser-node-crypto',
+        enforce: 'pre' as const,
+        resolveId(source: string) {
+          return source === 'node:crypto'
+            ? new URL('./src/shims/node-crypto.ts', import.meta.url).pathname
+            : null;
+        },
+      },
       siteDescription(mode),
       react(),
       // Configure WASM plugin with more options

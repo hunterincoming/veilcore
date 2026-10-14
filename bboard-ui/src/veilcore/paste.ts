@@ -11,10 +11,12 @@ export type Pasted =
   | { readonly kind: 'record-link'; readonly path: string }
   | { readonly kind: 'agreement-to-sign'; readonly path: string }
   | { readonly kind: 'prove-request'; readonly challenge: string }
+  | { readonly kind: 'prove-link'; readonly path: string }
   | { readonly kind: 'unknown' };
 
 const DELIVERY = /^TR-[0-9A-F]{8}(\.[0-9a-z]+)?$/i;
 const CHALLENGE = /^(0x)?[0-9a-f]{64}$/i;
+const PROVE_ID = /^PR-[0-9A-F]{32}$/i;
 
 const pathOf = (raw: string): string | undefined => {
   // "veilcore.org/verify/…" copied without its https:// is still a link.
@@ -31,12 +33,15 @@ export const recognise = (raw: string): Pasted => {
   const v = raw.trim();
   if (!v) return { kind: 'unknown' };
   if (DELIVERY.test(v)) return { kind: 'delivery', code: v };
+  if (PROVE_ID.test(v)) return { kind: 'prove-link', path: `/prove/${v.toUpperCase()}` };
   if (CHALLENGE.test(v)) return { kind: 'prove-request', challenge: v.replace(/^0x/i, '').toLowerCase() };
   if (v.includes('/')) {
     const path = pathOf(v);
     if (path && /^\/verify\/[^/?#]+/.test(path) && !path.startsWith('/verify/example')) {
       return { kind: 'record-link', path };
     }
+    const prove = path && /^\/prove\/(PR-[0-9A-F]{32})(?:[/?#]|$)/i.exec(path);
+    if (prove) return { kind: 'prove-link', path: `/prove/${prove[1].toUpperCase()}` };
     if (path && /^\/license\/[^/?#]+\/sign(\/|$|\?|#)/.test(path)) return { kind: 'agreement-to-sign', path };
   }
   return { kind: 'unknown' };
