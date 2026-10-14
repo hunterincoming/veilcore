@@ -34,6 +34,8 @@ export const fr: Strings = {
   'm.hero.bredBy': 'Obtenu par',
   'm.hero.bredByDefault': 'Votre nom ici',
   'm.hero.demoLabel': "Démo d'empreinte en direct",
+  'm.hero.typed': 'Ce que vous saisissez',
+  'm.hero.goes': 'Ce qui va sur Midnight',
   'm.foot.demo': 'Démo',
   'm.step1.n': '01 · Enregistrement',
   'm.step2.n': '02 · Empreinte',
@@ -43,15 +45,17 @@ export const fr: Strings = {
   'm.demo.label': 'Démo',
   'm.demo.title1': 'Choisissez comment',
   'm.demo.title2': 'vous voulez le voir.',
-  'm.demo.create.title': 'Créer un enregistrement',
-  'm.demo.create.text': "Remplissez un enregistrement d'exemple, générez son empreinte et téléchargez le certificat.",
+  'm.demo.create.title': 'Enregistrer une plante',
+  'm.demo.create.text':
+    'Enregistrez une plante fictive, sauvegardez votre copie de secours, puis découvrez la page de votre plante.',
   'm.demo.verify.title': 'Vérifier un enregistrement',
   'm.demo.verify.text':
     "Saisissez l'identifiant d'un enregistrement et voyez ce que son détenteur a divulgué et s'il est ancré.",
-  'm.demo.video.title': 'Voir la présentation',
+  'm.demo.video.title': 'Voir comment cela fonctionne',
   'm.demo.video.text':
-    'Tout le parcours en 75 secondes : sceller un enregistrement, y associer un rapport de laboratoire, le vérifier, et les conditions de licence.',
+    "Une animation de 60 secondes sur l'idée : ce qui reste chez vous, ce qui va sur Midnight, et comment quelqu'un le vérifie.",
   'm.chip.video': 'Vidéo',
+  'm.chip.60s': '60 s',
   'm.chip.75s': '75 s',
   'm.chip.interactive': 'Interactif',
   'm.chip.3min': '~3 min',
@@ -64,7 +68,7 @@ export const fr: Strings = {
   'm.mako.short':
     "Responsable commercial : organismes de normalisation et de protection des obtentions végétales au Japon et dans l'UE.",
   'm.hunter.role': 'Cofondateur et COO · New Jersey',
-  'm.hunter.short': "Développe le contrat, l'application et l'API. Mène les prises de contact aux États-Unis.",
+  'm.hunter.short': "Développe le contrat, le site et l'API. Mène les prises de contact aux États-Unis.",
   'm.updates.label': 'Actualités',
   'm.updates.title1': 'Les dernières nouvelles',
   'm.updates.title2': 'du développement.',
@@ -136,10 +140,10 @@ export const fr: Strings = {
     "Cette note concerne la démo de ce site. Il s'agit d'un test, sur le réseau de test de Midnight. Merci d'utiliser des données fictives.",
   'm.privacy.stored.title': 'Conservé sur notre serveur de test',
   'm.privacy.stored.text':
-    "Ce que vous saisissez et ce que l'application en calcule : noms de cultivars et d'obtenteurs, l'espèce si vous en indiquez une, dates, notes, numéros de référence, parents, empreintes des enregistrements, des photos et des rapports de laboratoire, noms de fichier des rapports de laboratoire, conditions et contreparties des accords, le matériel que vous envoyez à un laboratoire (à qui il est adressé et la quantité) et, pour les laboratoires, la clé publique de signature et les attestations qu'ils publient. Également votre clé de détenteur, que l'application envoie à chaque enregistrement pour que le serveur retrouve vos enregistrements. Le serveur est le registre de test de VeilCore, hébergé chez Railway.",
+    "Ce que vous saisissez et ce que votre navigateur en calcule : noms de cultivars et d'obtenteurs, l'espèce si vous en indiquez une, dates, notes, numéros de référence, parents, empreintes des enregistrements, des photos et des rapports de laboratoire, noms de fichier des rapports de laboratoire, conditions et contreparties des accords, le matériel que vous envoyez à un laboratoire (à qui il est adressé et la quantité) et, pour les laboratoires, la clé publique de signature et les attestations qu'ils publient. Également votre clé de détenteur, que votre navigateur envoie à chaque enregistrement pour que le serveur retrouve vos enregistrements. Le serveur est le registre de test de VeilCore, hébergé chez Railway.",
   'm.privacy.local.title': 'Ne quitte jamais votre navigateur',
   'm.privacy.local.text':
-    "Les données génétiques, les fichiers de rapports de laboratoire et d'ADN, et les photos. L'application les lit dans votre navigateur pour calculer leurs empreintes. Les fichiers eux-mêmes ne sont jamais envoyés.",
+    "Les données génétiques, les fichiers de rapports de laboratoire et d'ADN, et les photos. Votre navigateur les lit pour calculer leurs empreintes. Les fichiers eux-mêmes ne sont jamais envoyés.",
   'm.privacy.test.title': 'Un réseau de test',
   'm.privacy.test.text':
     'La démo utilise le réseau de test de Midnight, pas le réseau en production. Les données de la démo peuvent être supprimées lorsque le réseau de test est réinitialisé.',

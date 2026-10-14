@@ -58,7 +58,7 @@ const common: Overlay = {
   'm.demo.label': 'Use it',
   'm.demo.title1': 'Pick where',
   'm.demo.title2': 'to start.',
-  'm.demo.create.text': 'Fill in a record, generate its fingerprint and download the certificate.',
+  'm.demo.create.text': "Log a plant, save your backup, then see your plant's page.",
   'm.demo.privacy': 'What this site keeps →',
   'm.faq.4link1': 'What this site keeps →',
   'm.faq.2a':
@@ -69,6 +69,9 @@ const common: Overlay = {
     "Put terms on material before it ships: what it's for, no propagation, return or destroy it after. Through VeilCore's contract on Midnight, the lab confirms receipt with its own key, so the record shows a second party, which protects the lab as much as the client. On this website it is simulated.",
   'm.for.5p':
     "Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. The format covers animals; this website is set up for plants, and the animal record fields aren't published yet.",
+  // "Prove it" by link needs the browser to send a transaction, which this site doesn't.
+  'm.for.6p':
+    "They send you a link. You tap once, and their page checks on the network that you hold the record. It shows you hold it, not that you bred it. This website can't do it yet.",
   'footer.privacy': 'Site privacy',
   'm.foot.privacy': 'Site privacy',
   'm.privacy.label': 'Site privacy',
@@ -78,7 +81,7 @@ const common: Overlay = {
     "This note covers this website. Records you seal here are real records: they go into batches that we anchor on Midnight's main network by hand.",
   'm.privacy.stored.title': 'Stored on our server',
   'm.privacy.stored.text':
-    "What you type and what the app computes from it: cultivar and breeder names, species if you enter one, dates, notes, reference numbers, parents, fingerprints of records, fingerprints of photos and lab reports (only the fingerprints, never the files), lab report file names, agreement terms and counterparties, material you send to a lab (who it is addressed to, and the quantity), and, for labs, the public signing key and the attestations they publish. Also your holder key, which the app sends with every save so the server can find your records. The server is VeilCore's registry, hosted on Railway.",
+    "What you type and what your browser computes from it: cultivar and breeder names, species if you enter one, dates, notes, reference numbers, parents, fingerprints of records, fingerprints of photos and lab reports (only the fingerprints, never the files), lab report file names, agreement terms and counterparties, material you send to a lab (who it is addressed to, and the quantity), and, for labs, the public signing key and the attestations they publish. Also your holder key, which your browser sends with every save so the server can find your records. The server is VeilCore's registry, hosted on Railway.",
   'm.privacy.test.title': "Dated on Midnight's main network",
   'm.privacy.test.text':
     "Your record's fingerprint goes into a batch, and we anchor the batch on Midnight's main network, by hand for now, so it can take a while. Only the batch's fingerprint goes on the network, never what you typed. Once anchored, it is permanent: nobody, including us, can delete it.",

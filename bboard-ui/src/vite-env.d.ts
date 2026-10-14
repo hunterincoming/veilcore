@@ -26,6 +26,8 @@ declare global {
     /** Optional indexer override; the network's public indexer otherwise. */
     readonly VITE_INDEXER_URL?: string;
     readonly VITE_INDEXER_WS_URL?: string;
+    /** Test-network builds hosted at their own address (test.veilcore.org): the origin shared links use. */
+    readonly VITE_CANONICAL_ORIGIN?: string;
   }
 
   interface ImportMeta {

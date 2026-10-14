@@ -63,6 +63,9 @@ export const en = {
   'm.hero.bredBy': 'Bred by',
   'm.hero.bredByDefault': 'Your name here',
   'm.hero.demoLabel': 'Live fingerprint demo',
+  // The two halves of the fingerprint box.
+  'm.hero.typed': 'What you type',
+  'm.hero.goes': 'What goes on Midnight',
   'm.hero.note':
     'Type in either box; nothing is sent. The green line is the fingerprint, the part that goes on Midnight. Nobody can work back from it to what you typed.',
 
@@ -82,9 +85,12 @@ export const en = {
   'm.for.3t': "Material in a lab's hands.",
   'm.for.3p':
     "Put terms on material before it ships: what it's for, no propagation, return or destroy it after. Through VeilCore's contract on Midnight, the lab confirms receipt with its own key, so the record shows a second party, which protects the lab as much as the client. In the web demo this is simulated.",
-  'm.for.4t': 'Signing test results.',
+  'm.for.4t': 'Lab results, back to you.',
   'm.for.4p':
-    "The signature covers the exact report file and the record it's about, so it can't be moved or kept on an edited copy. Only the lab can withdraw it. VeilCore records who signed; it doesn't vouch for the result.",
+    "The lab signs your results and locks them so only you can open them. No PDF sits in anyone's inbox: VeilCore only holds the locked file. The signature covers that exact file and the record it's about. VeilCore records who signed; it doesn't vouch for the result. New, and still being tested.",
+  'm.for.6t': 'Someone asks for proof.',
+  'm.for.6p':
+    'They send you a link. You tap once, and their page checks on the network that you hold the record. It shows you hold it, not that you bred it. This works on a Midnight test network for now.',
   'm.for.5t': 'Animal lines.',
   'm.for.5p':
     "Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. The format covers animals; this demo is set up for plants, and the animal record fields aren't published yet.",
@@ -201,14 +207,16 @@ export const en = {
   'm.demo.lede':
     "No sign-up, no wallet. It's a test version, so use made-up details. Records are anchored in batches, by hand for now; licenses and lab agreements are simulated, and DNA report pairings aren't dated yet.",
   'm.demo.privacy': 'What the demo keeps →',
-  'm.demo.create.title': 'Create a record',
-  'm.demo.create.text': 'Fill in a sample record, generate its fingerprint and download the certificate.',
+  'm.demo.create.title': 'Log a plant',
+  'm.demo.create.text': "Log a made-up plant, save your backup, then see your plant's page.",
   'm.demo.verify.title': 'Verify a record',
   'm.demo.verify.text': "Enter a record's identifier and see what its holder disclosed and whether it is anchored.",
-  'm.demo.video.title': 'Watch the walkthrough',
+  'm.demo.video.title': 'Watch how it works',
   'm.demo.video.text':
-    'The whole flow in 75 seconds: sealing a record, pairing a lab report, checking it, and license terms.',
+    'A 60-second animation of the idea: what stays with you, what goes on Midnight, and how someone checks it.',
   'm.chip.video': 'Video',
+  'm.chip.60s': '60 s',
+  // No longer shown (the video is 60 seconds now); kept so older translations still type-check.
   'm.chip.75s': '75 s',
   'm.chip.interactive': 'Interactive',
   'm.chip.3min': '~3 min',
@@ -221,7 +229,7 @@ export const en = {
   'm.mako.role': 'Co-Founder & CEO · Tokyo',
   'm.mako.short': 'Commercial lead: standards and plant-rights bodies in Japan and the EU.',
   'm.hunter.role': 'Co-Founder & COO · New Jersey',
-  'm.hunter.short': 'Builds the contract, app and API. Leads US outreach.',
+  'm.hunter.short': 'Builds the contract, the site and the API. Leads US outreach.',
 
   'm.updates.label': 'Updates',
   'm.updates.title1': 'Latest from',
@@ -336,10 +344,10 @@ export const en = {
     "This note covers the demo on this site. It is a test, on Midnight's test network. Please use made-up data.",
   'm.privacy.stored.title': 'Stored on our test server',
   'm.privacy.stored.text':
-    "What you type and what the app computes from it: cultivar and breeder names, species if you enter one, dates, notes, reference numbers, parents, fingerprints of records, fingerprints of photos and lab reports (only the fingerprints, never the files), lab report file names, agreement terms and counterparties, material you send to a lab (who it is addressed to, and the quantity), and, for labs, the public signing key and the attestations they publish. Also your holder key, which the app sends with every save so the server can find your records. The server is VeilCore's test registry, hosted on Railway.",
+    "What you type and what your browser computes from it: cultivar and breeder names, species if you enter one, dates, notes, reference numbers, parents, fingerprints of records, fingerprints of photos and lab reports (only the fingerprints, never the files), lab report file names, agreement terms and counterparties, material you send to a lab (who it is addressed to, and the quantity), and, for labs, the public signing key and the attestations they publish. Also your holder key, which your browser sends with every save so the server can find your records. The server is VeilCore's test registry, hosted on Railway.",
   'm.privacy.local.title': 'Never leaves your browser',
   'm.privacy.local.text':
-    'Genetic data, lab and DNA report files, and photos. The app reads them in your browser to compute their fingerprints. The files themselves are never uploaded.',
+    'Genetic data, lab and DNA report files, and photos. Your browser reads them to compute their fingerprints. The files themselves are never uploaded.',
   'm.privacy.test.title': 'A test network',
   'm.privacy.test.text':
     "The demo uses Midnight's test network, not the live one. Demo data may be deleted when the test network is reset.",

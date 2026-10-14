@@ -86,7 +86,20 @@ export const MAINTENANCE_POLICY_APPROVED: boolean =
  * window.location.origin, so a certificate printed from a preview deployment, or from
  * a copy of the static bundle hosted anywhere, sent whoever scanned it to that host.
  */
-export const CANONICAL_ORIGIN = 'https://veilcore.org';
+const canonicalOrigin = (): string => {
+  // A test-network site hosted elsewhere (test.veilcore.org, scripts/deploy-test-site.mjs)
+  // names itself, or its links would send a checker to the mainnet site, where its records
+  // don't exist. A mainnet build always points at veilcore.org, whatever the setting says.
+  const v = (import.meta.env.VITE_CANONICAL_ORIGIN ?? '').trim();
+  if (IS_MAINNET || !v) return 'https://veilcore.org';
+  try {
+    const u = new URL(v);
+    return u.protocol === 'https:' && u.pathname === '/' && !u.search ? u.origin : 'https://veilcore.org';
+  } catch {
+    return 'https://veilcore.org';
+  }
+};
+export const CANONICAL_ORIGIN = canonicalOrigin();
 
 /** An absolute link on the canonical site, for a path that starts with "/". */
 export const canonicalUrl = (path: string): string => `${CANONICAL_ORIGIN}${path}`;

@@ -35,6 +35,8 @@ export const de: Strings = {
   'm.hero.bredBy': 'Gezüchtet von',
   'm.hero.bredByDefault': 'Ihr Name',
   'm.hero.demoLabel': 'Live-Demo des Fingerabdrucks',
+  'm.hero.typed': 'Was Sie eingeben',
+  'm.hero.goes': 'Was auf Midnight kommt',
   'm.foot.demo': 'Demo',
   'm.step1.n': '01 · Datensatz',
   'm.step2.n': '02 · Fingerabdruck',
@@ -44,16 +46,17 @@ export const de: Strings = {
   'm.demo.label': 'Demo',
   'm.demo.title1': 'Wählen Sie, wie Sie',
   'm.demo.title2': 'es sehen möchten.',
-  'm.demo.create.title': 'Datensatz erstellen',
+  'm.demo.create.title': 'Eine Pflanze erfassen',
   'm.demo.create.text':
-    'Füllen Sie einen Beispieldatensatz aus, erzeugen Sie seinen Fingerabdruck und laden Sie das Zertifikat herunter.',
+    'Erfassen Sie eine erfundene Pflanze, speichern Sie Ihre Sicherungskopie und sehen Sie dann die Seite Ihrer Pflanze.',
   'm.demo.verify.title': 'Datensatz prüfen',
   'm.demo.verify.text':
     'Geben Sie die Kennung eines Datensatzes ein und sehen Sie, was sein Inhaber offengelegt hat und ob er verankert ist.',
-  'm.demo.video.title': 'Rundgang ansehen',
+  'm.demo.video.title': 'Ansehen, wie es funktioniert',
   'm.demo.video.text':
-    'Der ganze Ablauf in 75 Sekunden: einen Datensatz versiegeln, einen Laborbericht zuordnen, ihn prüfen und die Lizenzbedingungen.',
+    'Eine 60-Sekunden-Animation der Idee: was bei Ihnen bleibt, was auf Midnight kommt und wie jemand es prüft.',
   'm.chip.video': 'Video',
+  'm.chip.60s': '60 s',
   'm.chip.75s': '75 s',
   'm.chip.interactive': 'Interaktiv',
   'm.chip.3min': '~3 Min.',
@@ -65,7 +68,7 @@ export const de: Strings = {
   'm.mako.role': 'Mitgründer & CEO · Tokio',
   'm.mako.short': 'Kommerzielle Leitung: Normungs- und Sortenschutzgremien in Japan und der EU.',
   'm.hunter.role': 'Mitgründer & COO · New Jersey',
-  'm.hunter.short': 'Entwickelt den Contract, die App und die API. Leitet die Kontaktarbeit in den USA.',
+  'm.hunter.short': 'Entwickelt den Contract, die Website und die API. Leitet die Kontaktarbeit in den USA.',
   'm.updates.label': 'Neuigkeiten',
   'm.updates.title1': 'Neues aus',
   'm.updates.title2': 'der Entwicklung.',
@@ -137,10 +140,10 @@ export const de: Strings = {
     'Dieser Hinweis gilt für die Demo auf dieser Website. Sie ist ein Test, auf dem Testnetzwerk von Midnight. Bitte verwenden Sie erfundene Daten.',
   'm.privacy.stored.title': 'Auf unserem Testserver gespeichert',
   'm.privacy.stored.text':
-    'Was Sie eingeben und was die App daraus berechnet: Sorten- und Züchternamen, die Art, falls Sie eine angeben, Datumsangaben, Notizen, Referenznummern, Eltern, Fingerabdrücke von Datensätzen, Fotos und Laborberichten, Dateinamen von Laborberichten, Vertragsbedingungen und Vertragspartner, Material, das Sie an ein Labor senden (an wen es adressiert ist und die Menge), und bei Laboren der öffentliche Signaturschlüssel und die Bestätigungen, die sie veröffentlichen. Außerdem Ihr Inhaberschlüssel, den die App bei jedem Speichern mitsendet, damit der Server Ihre Datensätze findet. Der Server ist das Testregister von VeilCore, gehostet bei Railway.',
+    'Was Sie eingeben und was Ihr Browser daraus berechnet: Sorten- und Züchternamen, die Art, falls Sie eine angeben, Datumsangaben, Notizen, Referenznummern, Eltern, Fingerabdrücke von Datensätzen, Fotos und Laborberichten, Dateinamen von Laborberichten, Vertragsbedingungen und Vertragspartner, Material, das Sie an ein Labor senden (an wen es adressiert ist und die Menge), und bei Laboren der öffentliche Signaturschlüssel und die Bestätigungen, die sie veröffentlichen. Außerdem Ihr Inhaberschlüssel, den Ihr Browser bei jedem Speichern mitsendet, damit der Server Ihre Datensätze findet. Der Server ist das Testregister von VeilCore, gehostet bei Railway.',
   'm.privacy.local.title': 'Verlässt nie Ihren Browser',
   'm.privacy.local.text':
-    'Genetische Daten, Labor- und DNA-Berichtsdateien sowie Fotos. Die App liest sie in Ihrem Browser, um ihre Fingerabdrücke zu berechnen. Die Dateien selbst werden nie hochgeladen.',
+    'Genetische Daten, Labor- und DNA-Berichtsdateien sowie Fotos. Ihr Browser liest sie, um ihre Fingerabdrücke zu berechnen. Die Dateien selbst werden nie hochgeladen.',
   'm.privacy.test.title': 'Ein Testnetzwerk',
   'm.privacy.test.text':
     'Die Demo nutzt das Testnetzwerk von Midnight, nicht das Live-Netzwerk. Demodaten können gelöscht werden, wenn das Testnetzwerk zurückgesetzt wird.',

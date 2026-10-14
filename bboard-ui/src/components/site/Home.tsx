@@ -63,30 +63,50 @@ const Fingerprint: React.FC = () => {
   }, [cultivar, bredBy, nonce]);
 
   return (
-    <div className="hash-demo" aria-label={t('m.hero.demoLabel')}>
-      <div className="fields">
-        <div className="field">
-          <label htmlFor="cv">{t('m.hero.cultivar')}</label>
-          <input id="cv" value={cultivar} autoComplete="off" onChange={(e) => setCultivar(e.target.value)} />
+    <div className="hash-demo" role="group" aria-label={t('m.hero.demoLabel')}>
+      <div className="hd-card">
+        <div className="hd-in">
+          <p className="hd-zone">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="12" rx="2" />
+              <path d="M8 20h8M12 16v4" />
+            </svg>
+            {t('m.hero.typed')}
+          </p>
+          <div className="fields">
+            <div className="field">
+              <label htmlFor="cv">{t('m.hero.cultivar')}</label>
+              <input id="cv" value={cultivar} autoComplete="off" onChange={(e) => setCultivar(e.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="by">{t('m.hero.bredBy')}</label>
+              <input id="by" value={bredBy} autoComplete="off" onChange={(e) => setBredBy(e.target.value)} />
+            </div>
+          </div>
         </div>
-        <div className="field">
-          <label htmlFor="by">{t('m.hero.bredBy')}</label>
-          <input id="by" value={bredBy} autoComplete="off" onChange={(e) => setBredBy(e.target.value)} />
+        <div className="arrow" aria-hidden="true" />
+        <div className="hd-out">
+          <p className="hd-zone">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3.5" y="5" width="17" height="15" rx="2" />
+              <path d="M3.5 10h17M8 3v4M16 3v4" />
+            </svg>
+            {t('m.hero.goes')}
+          </p>
+          <div className="digest" aria-live="polite">
+            {hash
+              ? [...hash].map((c, i) =>
+                  prev.current && prev.current[i] !== c ? (
+                    <span key={`${i}-${c}`} className="chg">
+                      {c}
+                    </span>
+                  ) : (
+                    <React.Fragment key={i}>{c}</React.Fragment>
+                  ),
+                )
+              : '—'}
+          </div>
         </div>
-      </div>
-      <div className="arrow" aria-hidden="true" />
-      <div className="digest" aria-live="polite">
-        {hash
-          ? [...hash].map((c, i) =>
-              prev.current && prev.current[i] !== c ? (
-                <span key={i} className="chg">
-                  {c}
-                </span>
-              ) : (
-                <React.Fragment key={i}>{c}</React.Fragment>
-              ),
-            )
-          : '—'}
       </div>
       <p className="note">
         <span className="note-long">{t('m.hero.note')}</span>
@@ -154,20 +174,22 @@ export const Home: React.FC = () => {
   return (
     <SiteShell>
       <header className={`wrap hero${lang === 'ja' ? ' cjk' : ''}`} id="top">
-        <div className="label">{t('m.hero.label')}</div>
-        <h1>
-          {t('m.hero.title1')} <em>{t('m.hero.title2')}</em>
-        </h1>
-        <p className="lede">{t('m.hero.lede')}</p>
-        <div className="hero-actions">
-          <a className="btn solid" href="#demo">
-            {t('m.nav.demo')}
-          </a>
-          <a className="btn" href="#how">
-            {t('m.hero.how')}
-          </a>
+        <div className="hero-text">
+          <div className="label">{t('m.hero.label')}</div>
+          <h1>
+            {t('m.hero.title1')} <em>{t('m.hero.title2')}</em>
+          </h1>
+          <p className="lede">{t('m.hero.lede')}</p>
+          <div className="hero-actions">
+            <a className="btn solid" href="#demo">
+              {t('m.nav.demo')}
+            </a>
+            <a className="btn" href="#how">
+              {t('m.hero.how')}
+            </a>
+          </div>
+          <p className="hero-status">{t('m.hero.status')}</p>
         </div>
-        <p className="hero-status">{t('m.hero.status')}</p>
         <Fingerprint key={lang} />
       </header>
 
@@ -191,7 +213,10 @@ export const Home: React.FC = () => {
             <FoldPoint mode="hide" title={t('m.for.4t')}>
               {t('m.for.4p')}
             </FoldPoint>
-            <FoldPoint mode="hide" title={t('m.for.5t')} wide>
+            <FoldPoint mode="hide" title={t('m.for.6t')}>
+              {t('m.for.6p')}
+            </FoldPoint>
+            <FoldPoint mode="hide" title={t('m.for.5t')}>
               {t('m.for.5p')}{' '}
               <a href={`${FOUNDERS_MAIL}&subject=${encodeURIComponent('Animal records')}`}>{t('m.for.5ask')}</a>
             </FoldPoint>
@@ -402,7 +427,7 @@ export const Home: React.FC = () => {
               <p>{t('m.demo.video.text')}</p>
               <div className="meta-row">
                 <span className="chip">{t('m.chip.video')}</span>
-                <span className="chip">{t('m.chip.75s')}</span>
+                <span className="chip">{t('m.chip.60s')}</span>
               </div>
             </button>
           </div>
@@ -498,7 +523,7 @@ export const Home: React.FC = () => {
             <span>·</span>
             <span>
               {t('m.updates.follow')}{' '}
-              <a href={X_HANDLE} rel="noopener noreferrer" target="_blank" style={{ color: 'var(--mint)' }}>
+              <a className="x-link" href={X_HANDLE} rel="noopener noreferrer" target="_blank">
                 @VeilCoreProof
               </a>
             </span>

@@ -88,6 +88,8 @@ const env = {
   VITE_INDEXER_URL: `${sponsor}/indexer`,
   VITE_INDEXER_WS_URL: `${wss}/indexer/ws`,
   VITE_API_BASE: registry,
+  // Shared links and QR codes point at the test site, not at veilcore.org (config/network.ts).
+  VITE_CANONICAL_ORIGIN: `https://${DOMAIN}`,
 };
 const run = (cmd, args, opts = {}) => execFileSync(cmd, args, { stdio: 'inherit', env, ...opts });
 
