@@ -63,3 +63,8 @@ contract/src/lineage-shallow.compact
 /bboard-cli/package-lock.json
 /bboard-ui/package-lock.json
 /contract/package-lock.json
+
+# Browser test build and reports (bboard-ui/e2e)
+bboard-ui/e2e-dist/
+bboard-ui/test-results/
+bboard-ui/playwright-report/

@@ -106,3 +106,18 @@ jobs:
         working-directory: bboard-ui
         run: |
           npm run ci
+
+      - name: Site unit tests
+        working-directory: bboard-ui
+        run: |
+          npm test
+
+      # The built site in a real browser at phone size, with a stand-in registry and every
+      # other network request refused (bboard-ui/e2e/README.md). Catches what only breaks
+      # in a browser: bundling, storage, the chain code loading, pages that come up blank.
+      - name: Site in a browser
+        working-directory: bboard-ui
+        run: |
+          npm run e2e:build
+          npx playwright install --with-deps chromium
+          npm run e2e

@@ -99,6 +99,15 @@ Removed: the six-step wizard (`WizardShell`, `ProgressPath`, `Step1LogStrain`,
   checker reopens the link → expired link. **Not run**: a real proof and a real check on
   preprod (needs the Blockfrost key on Hunter's Mac).
 
+## Browser tests (14 Oct)
+
+`bboard-ui/e2e` (README there): the built site in Chromium at phone size, every other
+request refused. CI now runs the site's unit tests and `site.spec.ts` (stand-in registry);
+`flow.spec.ts` runs the whole journey against a real registry before merging. Checked
+that a test fails when the behaviour it covers is broken. Found on the way: a failed date
+stamp left the logging flow with only "Try again"; it now also offers "Do the date stamp
+later", which carries on to the backup.
+
 ## Next (step 2: server pieces)
 
 - **Lab results locked to the breeder**: the delivery code carries the breeder's

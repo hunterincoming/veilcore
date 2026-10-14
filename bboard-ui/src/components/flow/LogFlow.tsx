@@ -545,6 +545,11 @@ const Stamp: React.FC<{ recordId: string; onNext: () => void }> = ({ recordId, o
           <Button variant="contained" size="large" fullWidth onClick={() => void anchor()} sx={{ py: 1.6 }}>
             Try again
           </Button>
+          {/* Never a dead end: the network or the fee service can be down for a while.
+              The plant's page offers the date stamp again, and the backup still gets saved. */}
+          <Button variant="text" color="inherit" onClick={onNext} sx={{ minHeight: 48 }}>
+            Do the date stamp later
+          </Button>
         </>
       ) : (
         <Typography variant="body2" color="text.secondary">

@@ -18,7 +18,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "preview": "vite preview",
     "prepack": "yarn build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "e2e:build": "tsc && VITE_REAL_CHAIN=1 VITE_REAL_CHAIN_CONTRACT_ADDRESS=0000000000000000000000000000000000000000000000000000000000000000 VITE_SPONSOR_URL=http://sponsor.e2e.invalid VITE_API_BASE=${E2E_API_BASE:-http://registry.e2e.invalid} vite build --mode preview --outDir e2e-dist --emptyOutDir",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -48,6 +50,7 @@
     "veilcore-records": "0.15.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.56.0",
     "@swc/core": "^1.15.41",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
