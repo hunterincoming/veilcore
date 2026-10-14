@@ -86,11 +86,14 @@ Removed: the six-step wizard (`WizardShell`, `ProgressPath`, `Step1LogStrain`,
   the link; without it the check page cannot offer the button. Only people with the link
   can match the holder's proofs to the plant.
 - Copying codes by hand is still there under "Do it by hand instead".
-- **Bug found on the way, fixed**: the checker's check imported Node's `crypto` (through
-  `contract/src/pairing.ts` and `api/src/state-check.ts`), which the browser replaced
-  with a stub that throws, so checking an answer failed in the browser, by link or by
-  hand. Site builds now get SHA-256 from `src/shims/node-crypto.ts` (tested against
-  Node's own).
+- **Correction to the commit message of 9f19804**: it says the checker's check failed in
+  the browser. It failed on the local development server only, where Vite's stand-in for
+  Node's `crypto` (imported through `contract/src/pairing.ts` and
+  `api/src/state-check.ts`) throws as soon as the module loads. A built site only calls
+  it if a SHA-256 is actually needed there, which the possession check doesn't: Hunter's
+  13 Oct preprod run (built site) said Accepted. Site builds and the dev server now get
+  SHA-256 from `src/shims/node-crypto.ts` (tested against Node's), so neither can trip
+  on it.
 - Walked at phone size against a local registry with a test-chain build (network calls
   blocked): ask → link → holder's page → stranger's page → paste box → answer arrives →
   checker reopens the link → expired link. **Not run**: a real proof and a real check on
