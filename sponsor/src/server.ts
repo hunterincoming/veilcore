@@ -1,4 +1,4 @@
-// The HTTP surface: three small routes and nothing else.
+// The HTTP surface: three small routes, plus the indexer relay (indexer-relay.ts).
 //   GET  /sponsor/challenge  a proof-of-work challenge
 //   POST /sponsor            { tx, ticket, challenge, nonce } -> { txId } or a refusal
 //   GET  /sponsor/status     public: synced, accepting, queue depth, anchoring job outcome code.
@@ -13,6 +13,7 @@ import type { Sponsor } from './sponsor.js';
 import type { ProofOfWork } from './pow.js';
 import { clientBucket, type Limits } from './limits.js';
 import { log } from './log.js';
+import type { IndexerRelay } from './indexer-relay.js';
 
 export type ServerDeps = {
   readonly sponsor: Pick<Sponsor, 'handle' | 'status'>;
@@ -26,6 +27,8 @@ export type ServerDeps = {
   /** How many proxies in front add an X-Forwarded-For entry (Railway: 1). */
   readonly trustProxyHops: number;
   readonly maxBodyBytes: number;
+  /** The indexer relay (indexer-relay.ts): POST /indexer and the /indexer/ws socket. */
+  readonly indexerRelay?: IndexerRelay;
 };
 
 /**
@@ -112,6 +115,10 @@ export const handler = (deps: ServerDeps) => async (req: IncomingMessage, res: S
       return send(res, 200, { ...deps.sponsor.status(detail), ...deps.extraStatus(detail) }, cors);
     }
     const ip = clientIp(req, deps.trustProxyHops);
+    if (deps.indexerRelay && path === '/indexer') {
+      await deps.indexerRelay.http(req, res, ip, cors);
+      return;
+    }
     if (ip === undefined && (path === '/sponsor/challenge' || path === '/sponsor')) {
       if (!warnedNoForward) {
         warnedNoForward = true;
@@ -149,6 +156,7 @@ export const handler = (deps: ServerDeps) => async (req: IncomingMessage, res: S
 
 export const startServer = (deps: ServerDeps, port: number): Server => {
   const server = createServer((req, res) => void handler(deps)(req, res));
+  deps.indexerRelay?.attach(server, (req) => clientIp(req, deps.trustProxyHops));
   server.requestTimeout = 120_000;
   server.headersTimeout = 20_000;
   server.listen(port);

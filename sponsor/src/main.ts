@@ -15,6 +15,7 @@ import { ProofOfWork } from './pow.js';
 import { DailyBudget, Limits, MINUTE, SingleFlight, type BudgetState } from './limits.js';
 import { Sponsor } from './sponsor.js';
 import { startServer } from './server.js';
+import { createIndexerRelay } from './indexer-relay.js';
 import { JsonFile } from './state-file.js';
 import { Anchorer, type Attempt } from './anchorer.js';
 import { HttpRegistry } from './registry.js';
@@ -167,6 +168,12 @@ const main = async (): Promise<void> => {
       allowedOrigins: cfg.allowedOrigins,
       trustProxyHops: cfg.trustProxyHops,
       maxBodyBytes: Math.ceil((cfg.maxTxBytes * 4) / 3) + 4096,
+      // A hosted test site reads the chain through here, so its page carries no key.
+      indexerRelay: createIndexerRelay({
+        indexer: cfg.indexer,
+        indexerWS: cfg.indexerWS,
+        allowedOrigins: cfg.allowedOrigins,
+      }),
     },
     cfg.port,
   );
