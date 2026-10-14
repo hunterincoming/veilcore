@@ -175,7 +175,7 @@ export const Step5ProveDisclosure: React.FC<{ recordId: string; onDone: () => vo
           <Typography variant="overline" color="text.secondary">
             What a stranger with the id will see
           </Typography>
-          <Paper variant="outlined" sx={{ p: 2, mt: 0.5, background: 'rgba(255,255,255,0.02)' }}>
+          <Paper variant="outlined" sx={{ p: 2, mt: 0.5, background: 'rgba(22,32,27,0.02)' }}>
             <DisclosedFacts record={record} disclosure={disclosure} />
           </Paper>
         </Box>

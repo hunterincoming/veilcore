@@ -28,7 +28,7 @@ import EditIcon from '@mui/icons-material/EditOutlined';
 import { useNavigate } from 'react-router-dom';
 import { previewCorrection, type CorrectionPreview } from '../veilcore/corrections';
 import { issueCorrection, type StrainRecord } from '../veilcore/records';
-import { TEAL } from '../config/theme';
+import { ACCENT } from '../config/theme';
 
 const FIELD_LABEL: Record<string, string> = {
   'profileData.cultivarName': 'cultivar name',
@@ -146,8 +146,8 @@ export const CorrectRecord: React.FC<{
             />
 
             {preview && (
-              <Box sx={{ p: 2, borderRadius: 1, border: `1px solid ${TEAL}` }}>
-                <Typography variant="overline" sx={{ color: TEAL, display: 'block' }}>
+              <Box sx={{ p: 2, borderRadius: 1, border: `1px solid ${ACCENT}` }}>
+                <Typography variant="overline" sx={{ color: ACCENT, display: 'block' }}>
                   What this correction does
                 </Typography>
                 <Stack direction="row" spacing={1} sx={{ my: 1, flexWrap: 'wrap', gap: 0.5 }}>

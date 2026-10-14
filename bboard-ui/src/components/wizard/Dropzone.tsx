@@ -6,7 +6,7 @@ import React, { useRef, useState } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFileOutlined';
 import DescriptionIcon from '@mui/icons-material/DescriptionOutlined';
-import { TEAL } from '../../config/theme';
+import { ACCENT } from '../../config/theme';
 
 export const Dropzone: React.FC<{
   onFile: (file: File) => void;
@@ -47,8 +47,8 @@ export const Dropzone: React.FC<{
         cursor: 'pointer',
         borderRadius: 3,
         border: '2px dashed',
-        borderColor: over ? TEAL : 'divider',
-        background: over ? 'rgba(47,240,207,0.06)' : 'rgba(255,255,255,0.02)',
+        borderColor: over ? ACCENT : 'divider',
+        background: over ? 'rgba(47,240,207,0.06)' : 'rgba(22,32,27,0.02)',
         p: 4,
         textAlign: 'center',
         transition: 'all 0.2s',

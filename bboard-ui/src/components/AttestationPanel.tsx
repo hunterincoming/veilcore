@@ -64,7 +64,7 @@ export const AttestationPanel: React.FC<{ record: StrainRecord }> = ({ record })
       {items.map((a) => {
         const s = strengthLabel(a);
         return (
-          <Box key={a.attestationId} sx={{ pl: 1.5, borderLeft: '2px solid rgba(255,255,255,0.12)' }}>
+          <Box key={a.attestationId} sx={{ pl: 1.5, borderLeft: '2px solid rgba(22,32,27,0.12)' }}>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', mb: 0.5 }}>
               <Chip size="small" variant="outlined" color={s.ok ? 'primary' : 'default'} label={s.label} />
               <Typography variant="caption" color="text.secondary">

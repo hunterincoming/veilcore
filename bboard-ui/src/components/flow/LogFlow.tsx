@@ -45,7 +45,11 @@ import { BackupStep } from './BackupStep';
 import { FlowFrame } from './FlowFrame';
 import { OUR_SERVER, DATED_ON } from '../../config/copy';
 
-const today = () => new Date().toISOString().slice(0, 10);
+/** Today on the person's own calendar, not UTC: at 9pm in New Jersey it is still today. */
+const today = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 const BREEDING_METHODS = [
   'Seed — F1',

@@ -15,19 +15,19 @@ import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import LockIcon from '@mui/icons-material/LockOutlined';
-import { TEAL } from '../../config/theme';
+import { ACCENT } from '../../config/theme';
 import { IS_MAINNET, networkLabel } from '../../config/network';
 import { Fact } from './DisclosedFacts';
 import { GENETICS_LABEL } from '../../veilcore/disclosure';
 
 const Note: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <Typography variant="caption" sx={{ display: 'block', color: TEAL, pl: 3.25, mt: -0.5, mb: 0.5 }}>
+  <Typography variant="caption" sx={{ display: 'block', color: ACCENT, pl: 3.25, mt: -0.5, mb: 0.5 }}>
     {children}
   </Typography>
 );
 
 export const VerifyExample: React.FC = () => (
-  <Box sx={{ minHeight: '100vh', background: '#04070a' }}>
+  <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
     <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
       <Stack
         component={RouterLink}
@@ -46,7 +46,7 @@ export const VerifyExample: React.FC = () => (
           color: 'text.primary',
         }}
       >
-        <Box sx={{ width: 12, height: 12, borderRadius: '50%', background: TEAL, boxShadow: `0 0 14px ${TEAL}` }} />
+        <Box sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }} />
         <Typography variant="h6" sx={{ letterSpacing: '0.3em', fontWeight: 600 }}>
           VEILCORE
         </Typography>
@@ -122,7 +122,7 @@ export const VerifyExample: React.FC = () => (
         <Divider sx={{ my: 2.5 }} />
         <Stack spacing={1}>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <CheckCircleIcon sx={{ fontSize: 18, color: TEAL }} />
+            <CheckCircleIcon sx={{ fontSize: 18, color: ACCENT }} />
             <Typography variant="body2" color="text.secondary">
               A tick: this page checked the line itself, in your browser.
             </Typography>
@@ -137,10 +137,10 @@ export const VerifyExample: React.FC = () => (
       </Paper>
 
       <Stack direction="row" spacing={3} sx={{ justifyContent: 'center', mt: 3, flexWrap: 'wrap', rowGap: 1 }}>
-        <Box component={RouterLink} to="/verify" sx={{ color: TEAL, py: 1 }}>
+        <Box component={RouterLink} to="/verify" sx={{ color: ACCENT, py: 1 }}>
           Check a real record
         </Box>
-        <Box component={RouterLink} to="/" sx={{ color: TEAL, py: 1 }}>
+        <Box component={RouterLink} to="/" sx={{ color: ACCENT, py: 1 }}>
           What is VeilCore?
         </Box>
       </Stack>

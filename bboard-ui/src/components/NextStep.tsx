@@ -20,7 +20,7 @@ import SendIcon from '@mui/icons-material/SendOutlined';
 import type { StrainRecord } from '../veilcore/records';
 import { SendToLab } from './SendToLab';
 import { AttachReport } from './AttachReport';
-import { TEAL } from '../config/theme';
+import { ACCENT } from '../config/theme';
 
 type Step = {
   /** Some steps render their own control rather than a plain button. */
@@ -117,10 +117,10 @@ export const NextStep: React.FC<{
   }
 
   return (
-    <Paper sx={{ p: { xs: 2.5, md: 3 }, borderColor: TEAL, borderWidth: 1, borderStyle: 'solid' }}>
+    <Paper sx={{ p: { xs: 2.5, md: 3 }, borderColor: ACCENT, borderWidth: 1, borderStyle: 'solid' }}>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: { sm: 'center' } }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="overline" sx={{ color: TEAL, display: 'block' }}>
+          <Typography variant="overline" sx={{ color: ACCENT, display: 'block' }}>
             Next step
           </Typography>
           <Typography variant="h6" sx={{ mb: 0.5 }}>

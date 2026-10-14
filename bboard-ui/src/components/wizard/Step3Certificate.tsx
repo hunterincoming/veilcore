@@ -19,7 +19,7 @@ import { NETWORK, networkLabel, canonicalUrl } from '../../config/network';
 import { useLicenses, activeLicenseCount, licensesForRecord } from '../../veilcore/licenses';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { verifyPath } from '../../veilcore/verify-link';
-import { TEAL } from '../../config/theme';
+import { ACCENT } from '../../config/theme';
 import { utcDate, utcStamp as fmtStamp } from '../../veilcore/time';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { ProveOwnershipPanel } from '../chain/ProveOwnershipPanel';
@@ -154,13 +154,13 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
           p: 3.5,
           borderRadius: 3,
           background: 'linear-gradient(160deg, #0b1417 0%, #060b0d 100%)',
-          border: `1px solid ${TEAL}55`,
+          border: `1px solid ${ACCENT}55`,
           boxShadow: `0 0 40px rgba(47,240,207,0.10)`,
         }}
       >
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
           <Box>
-            <Typography variant="overline" sx={{ color: TEAL }}>
+            <Typography variant="overline" sx={{ color: ACCENT }}>
               VeilCore
             </Typography>
             <Typography variant="h5" sx={{ lineHeight: 1.1 }}>
@@ -208,7 +208,7 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
             )}
             <Field label="DNA report paired">
               {record.dnaFingerprint ? (
-                <Box component="span" sx={{ color: TEAL }}>
+                <Box component="span" sx={{ color: ACCENT }}>
                   ✓ paired {record.dnaPairedAt ? `· ${utcDate(record.dnaPairedAt)}` : ''}
                 </Box>
               ) : (
@@ -219,7 +219,7 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
               <Box
                 component="span"
                 sx={{
-                  color: integrity === 'match' ? TEAL : integrity === 'mismatch' ? 'error.main' : 'text.secondary',
+                  color: integrity === 'match' ? ACCENT : integrity === 'mismatch' ? 'error.main' : 'text.secondary',
                 }}
               >
                 {integrityLine}

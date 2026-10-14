@@ -107,7 +107,7 @@ export const ActionRow: React.FC<{
         borderBottom: last ? 0 : '1px solid',
         borderColor: 'divider',
         borderRadius: 0,
-        '&:hover, &:focus-visible': { background: 'rgba(255,255,255,0.04)' },
+        '&:hover, &:focus-visible': { background: 'rgba(22,32,27,0.04)' },
       }}
     >
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', width: '100%', px: 0.5 }}>

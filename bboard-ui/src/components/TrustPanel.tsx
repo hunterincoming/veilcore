@@ -7,7 +7,7 @@ import { Box, Paper, Stack, Typography } from '@mui/material';
 import ScheduleIcon from '@mui/icons-material/ScheduleOutlined';
 import ScienceIcon from '@mui/icons-material/ScienceOutlined';
 import GroupIcon from '@mui/icons-material/GroupOutlined';
-import { TEAL } from '../config/theme';
+import { ACCENT } from '../config/theme';
 import { THIS_SITE } from '../config/copy';
 
 const POINTS = [
@@ -32,7 +32,7 @@ export const TrustPanel: React.FC = () => (
   <Paper sx={{ p: { xs: 2.5, md: 3.5 } }}>
     <Typography variant="h6" sx={{ mb: 0.5 }}>
       “What stops me from logging{' '}
-      <Box component="span" sx={{ color: TEAL }}>
+      <Box component="span" sx={{ color: ACCENT }}>
         your
       </Box>{' '}
       cultivar?”
@@ -43,7 +43,7 @@ export const TrustPanel: React.FC = () => (
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
       {POINTS.map((p) => (
         <Stack key={p.title} direction="row" spacing={1.5}>
-          <Box sx={{ color: TEAL, mt: 0.25 }}>{p.icon}</Box>
+          <Box sx={{ color: ACCENT, mt: 0.25 }}>{p.icon}</Box>
           <Box>
             <Typography variant="subtitle2">{p.title}</Typography>
             <Typography variant="body2" color="text.secondary">

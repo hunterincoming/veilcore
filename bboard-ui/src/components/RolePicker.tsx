@@ -12,7 +12,7 @@ import React, { useEffect, useState } from 'react';
 import { ButtonBase, Dialog, DialogContent, DialogTitle, Stack, Typography } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getRole, setRole, ROLE_COPY, CHANGE_ROLE_EVENT, isLab, isBreeder, type Role } from '../veilcore/role';
-import { TEAL } from '../config/theme';
+import { ACCENT } from '../config/theme';
 
 /** `ask`: open on its own when no role is set (app pages). Elsewhere it opens only when asked to. */
 export const RolePicker: React.FC<{ ask: boolean }> = ({ ask }) => {
@@ -63,8 +63,8 @@ export const RolePicker: React.FC<{ ask: boolean }> = ({ ask }) => {
                 p: 2,
                 borderRadius: 1,
                 border: '1px solid',
-                borderColor: r === current ? TEAL : 'rgba(255,255,255,0.12)',
-                '&:hover, &.Mui-focusVisible': { borderColor: TEAL },
+                borderColor: r === current ? ACCENT : 'rgba(22,32,27,0.12)',
+                '&:hover, &.Mui-focusVisible': { borderColor: ACCENT },
               }}
             >
               <Typography variant="subtitle1" component="span" sx={{ display: 'block' }}>

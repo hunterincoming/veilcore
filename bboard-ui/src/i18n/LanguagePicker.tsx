@@ -6,7 +6,6 @@ import { Box, Button, MenuItem, TextField, Typography } from '@mui/material';
 import TranslateIcon from '@mui/icons-material/Translate';
 import { LANGUAGES, useI18n, type Lang } from './index';
 import { en } from './en';
-import { TEAL } from '../config/theme';
 
 export const LanguagePicker: React.FC = () => {
   const { lang, setLang, choices, t } = useI18n();
@@ -22,7 +21,7 @@ export const LanguagePicker: React.FC = () => {
         select: {
           renderValue: (v) => (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <TranslateIcon sx={{ fontSize: 16, color: TEAL }} />
+              <TranslateIcon sx={{ fontSize: 16, color: 'primary.main' }} />
               {LANGUAGES[v as Lang].short}
             </Box>
           ),

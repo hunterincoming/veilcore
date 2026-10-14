@@ -21,7 +21,7 @@ import {
   agreementRows,
   AGREEMENT_LABEL,
 } from '../../veilcore/licenses';
-import { TEAL } from '../../config/theme';
+import { ACCENT } from '../../config/theme';
 import { startRecordSync } from '../../veilcore/records';
 import { AGREEMENTS_SIMULATED, LICENSE_PROOF_NOTE, SIMULATED_TAG, THIS_SITE } from '../../config/copy';
 
@@ -50,10 +50,12 @@ export const CounterSignPage: React.FC = () => {
   }, [license]);
 
   return (
-    <Box sx={{ minHeight: '100vh', background: '#04070a' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
         <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center', justifyContent: 'center', mb: 4 }}>
-          <Box sx={{ width: 12, height: 12, borderRadius: '50%', background: TEAL, boxShadow: `0 0 14px ${TEAL}` }} />
+          <Box
+            sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }}
+          />
           <Typography variant="h6" sx={{ letterSpacing: '0.3em', fontWeight: 600 }}>
             VEILCORE
           </Typography>

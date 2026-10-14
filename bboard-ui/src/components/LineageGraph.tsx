@@ -5,7 +5,7 @@
 import React from 'react';
 import { Box, Chip, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import { TEAL } from '../config/theme';
+import { ACCENT } from '../config/theme';
 import { childrenOf, type StrainRecord, type ParentRef } from '../veilcore/records';
 
 const Connector: React.FC = () => (
@@ -45,7 +45,7 @@ export const LineageGraph: React.FC<{ record: StrainRecord }> = ({ record }) => 
         </>
       )}
 
-      <Chip label={record.strainName} sx={{ background: TEAL, color: '#02110d', fontWeight: 700, px: 1 }} />
+      <Chip label={record.strainName} sx={{ background: ACCENT, color: '#02110d', fontWeight: 700, px: 1 }} />
 
       {kids.length > 0 && (
         <>

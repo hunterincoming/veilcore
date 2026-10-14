@@ -1,7 +1,8 @@
 // The four sections of the app, and the frame every step screen sits in.
 //
 // Each section always looks the same wherever it appears: its icon, its name, its colour.
-// The colours are the Okabe–Ito set, chosen to stay distinct for colour-blind readers, and
+// The colours are darkened Okabe–Ito hues (readable as text on white), chosen to stay
+// distinct for colour-blind readers, and
 // never carry meaning alone: the icon and the name always come with them.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -13,15 +14,15 @@ import BoxIcon from '@mui/icons-material/Inventory2Outlined';
 import DocIcon from '@mui/icons-material/DescriptionOutlined';
 import CheckIcon from '@mui/icons-material/ManageSearchOutlined';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
-import { TEAL } from '../../config/theme';
+import { ACCENT } from '../../config/theme';
 
 export type Section = 'log' | 'send' | 'license' | 'prove';
 
 export const SECTIONS: Record<Section, { name: string; color: string; Icon: typeof SpaIcon }> = {
-  log: { name: 'Log', color: TEAL, Icon: SpaIcon },
-  send: { name: 'Send & receive', color: '#56B4E9', Icon: BoxIcon },
-  license: { name: 'License & royalties', color: '#CC79A7', Icon: DocIcon },
-  prove: { name: 'Prove & check', color: '#E69F00', Icon: CheckIcon },
+  log: { name: 'Log', color: ACCENT, Icon: SpaIcon },
+  send: { name: 'Send & receive', color: '#0060A0', Icon: BoxIcon },
+  license: { name: 'License & royalties', color: '#9C3F78', Icon: DocIcon },
+  prove: { name: 'Prove & check', color: '#A84300', Icon: CheckIcon },
 };
 
 export const SectionBand: React.FC<{ section: Section; step?: string; extra?: React.ReactNode }> = ({

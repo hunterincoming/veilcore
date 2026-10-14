@@ -33,7 +33,7 @@ export const AppFooter: React.FC = () => {
       component="footer"
       sx={{
         borderTop: '1px solid',
-        borderColor: 'rgba(255,255,255,0.07)',
+        borderColor: 'rgba(22,32,27,0.07)',
         mt: { xs: 6, sm: 10 },
         py: { xs: 4, sm: 5 },
       }}

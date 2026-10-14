@@ -14,7 +14,7 @@ import { ClaimTransfer } from './ClaimTransfer';
 import { AttesterSetup } from './AttesterSetup';
 import { Link as RouterLink } from 'react-router-dom';
 import { WalletBadge } from './veilcore/WalletBadge';
-import { TEAL } from '../config/theme';
+import { ACCENT } from '../config/theme';
 import { NETWORK } from '../config/network';
 import { LanguagePicker } from '../i18n/LanguagePicker';
 
@@ -31,7 +31,7 @@ export const AppHeader: React.FC = () => (
       spacing={1.25}
       sx={{ alignItems: 'center', textDecoration: 'none', minHeight: 44 }}
     >
-      <Box sx={{ width: 12, height: 12, borderRadius: '50%', background: TEAL, boxShadow: `0 0 14px ${TEAL}` }} />
+      <Box sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }} />
       <Typography variant="h6" sx={{ letterSpacing: '0.3em', fontWeight: 600, color: 'text.primary' }}>
         VEILCORE
       </Typography>

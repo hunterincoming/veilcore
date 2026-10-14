@@ -28,7 +28,7 @@ import { fingerprintFile, shortFingerprint } from '../veilcore/commitment';
 import { loadAttester, attestRecord } from '../veilcore/attester-keys';
 import type { StrainRecord } from '../veilcore/records';
 import { Dropzone } from './wizard/Dropzone';
-import { TEAL } from '../config/theme';
+import { ACCENT } from '../config/theme';
 
 export const AttachReport: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const [open, setOpen] = useState(false);
@@ -95,7 +95,7 @@ export const AttachReport: React.FC<{ record: StrainRecord }> = ({ record }) => 
                 {attester?.displayName ?? 'you'}, with your signature.
               </Alert>
               <Box>
-                <Typography variant="overline" sx={{ display: 'block', color: TEAL }}>
+                <Typography variant="overline" sx={{ display: 'block', color: ACCENT }}>
                   Document fingerprint
                 </Typography>
                 <Typography sx={{ fontFamily: 'monospace', fontSize: 13 }}>{shortFingerprint(done.hash)}</Typography>
@@ -139,7 +139,7 @@ export const AttachReport: React.FC<{ record: StrainRecord }> = ({ record }) => 
               />
               {/* What the signature is over, in full, before it is made (attack round D). */}
               {record.receivedFromCommitment && (
-                <Box sx={{ p: 1.5, borderRadius: 1, background: 'rgba(255,255,255,0.04)' }}>
+                <Box sx={{ p: 1.5, borderRadius: 1, background: 'rgba(22,32,27,0.04)' }}>
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                     Your key signs that this report is about record {record.receivedFrom ?? 'the sender’s record'}, with
                     fingerprint

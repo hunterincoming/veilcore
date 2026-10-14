@@ -225,7 +225,7 @@ export const RecordDetail: React.FC = () => {
                       gap: 1,
                       p: 1,
                       borderRadius: 1,
-                      '&:hover, &:focus-visible': { background: 'rgba(255,255,255,0.05)', outline: 'none' },
+                      '&:hover, &:focus-visible': { background: 'rgba(22,32,27,0.05)', outline: 'none' },
                     }}
                   >
                     <Typography variant="body2" sx={{ minWidth: 0 }} noWrap>

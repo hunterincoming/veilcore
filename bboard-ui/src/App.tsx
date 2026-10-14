@@ -12,7 +12,8 @@ import { DocPage } from './components/DocPage';
 import { Implementations } from './components/Implementations';
 import { AppFooter } from './components/AppFooter';
 import { RolePicker } from './components/RolePicker';
-import { Box, Container } from '@mui/material';
+import { Box, Container, ThemeProvider } from '@mui/material';
+import { lightTheme } from './config/theme';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AppHome } from './components/flow/AppHome';
 import { RestorePage } from './components/flow/RestorePage';
@@ -52,9 +53,7 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: `radial-gradient(1100px 620px at 78% -8%, rgba(47,240,207,0.10), transparent 60%),
-                   radial-gradient(900px 500px at 8% 108%, rgba(138,125,255,0.06), transparent 55%),
-                   #04070a`,
+        bgcolor: 'background.default',
       }}
     >
       {/* Asked once, on first use. Without it the app has to guess who is reading,
@@ -71,7 +70,22 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   );
 };
 
-const withLayout = (el: React.ReactNode) => <AppLayout>{el}</AppLayout>;
+/**
+ * The app's pages, and the pages people are sent to (a record to check, an agreement to
+ * sign), are light: dark text on a light ground reads better for longer and in daylight.
+ * The public site keeps the dark brand (lightTheme, config/theme.ts).
+ */
+const Light: React.FC<React.PropsWithChildren> = ({ children }) => (
+  <ThemeProvider theme={lightTheme}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>{children}</Box>
+  </ThemeProvider>
+);
+
+const withLayout = (el: React.ReactNode) => (
+  <Light>
+    <AppLayout>{el}</AppLayout>
+  </Light>
+);
 
 /** The browser tab's title for each page; the home page keeps the one in index.html. */
 const PAGE_TITLES: [RegExp, string][] = [
@@ -122,10 +136,31 @@ const App: React.FC = () => (
       <Route path="/record/:id/license" element={withLayout(<TermsBuilder />)} />
       <Route path="/licenses" element={withLayout(<LicensingHub />)} />
       <Route path="/license/:id" element={withLayout(<LicenseDetail />)} />
-      <Route path="/license/:id/sign" element={<CounterSignPage />} />
+      <Route
+        path="/license/:id/sign"
+        element={
+          <Light>
+            <CounterSignPage />
+          </Light>
+        }
+      />
       {/* A made-up record, labelled as one, for a visitor with no record id yet. */}
-      <Route path="/verify/example" element={<VerifyExample />} />
-      <Route path="/verify/:id" element={<VerifyPage />} />
+      <Route
+        path="/verify/example"
+        element={
+          <Light>
+            <VerifyExample />
+          </Light>
+        }
+      />
+      <Route
+        path="/verify/:id"
+        element={
+          <Light>
+            <VerifyPage />
+          </Light>
+        }
+      />
       {/* Anything else: say so, rather than render an empty page. */}
       <Route path="*" element={<NotFound />} />
     </Routes>

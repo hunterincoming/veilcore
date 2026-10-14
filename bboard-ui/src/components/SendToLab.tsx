@@ -90,7 +90,7 @@ export const SendToLab: React.FC<{
                 sx={{
                   p: 2,
                   borderRadius: 1,
-                  background: 'rgba(255,255,255,0.04)',
+                  background: 'rgba(22,32,27,0.04)',
                   fontFamily: 'monospace',
                   fontSize: 20,
                   textAlign: 'center',

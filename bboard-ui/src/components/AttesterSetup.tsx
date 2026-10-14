@@ -28,7 +28,7 @@ import BadgeIcon from '@mui/icons-material/VerifiedUserOutlined';
 import DownloadIcon from '@mui/icons-material/FileDownloadOutlined';
 import { createAttester, publishAttester, loadAttester, type AttesterProfile } from '../veilcore/attester-keys';
 import { Link as RouterLink } from 'react-router-dom';
-import { TEAL } from '../config/theme';
+import { ACCENT } from '../config/theme';
 
 const ROLE_LABEL: Record<string, string> = {
   laboratory: 'Laboratory',
@@ -143,7 +143,7 @@ export const AttesterSetup: React.FC<{
                 </Alert>
               )}
               <Box>
-                <Typography variant="overline" sx={{ display: 'block', color: TEAL }}>
+                <Typography variant="overline" sx={{ display: 'block', color: ACCENT }}>
                   Public key
                 </Typography>
                 <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>

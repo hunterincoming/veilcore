@@ -26,7 +26,7 @@ import { shortFingerprint } from '../veilcore/commitment';
 import { DISCLOSURE_FIELDS, LEGACY_NAME, toDisclosureKey, labelOf } from '../veilcore/disclosure';
 import { proofFor, type ProofState } from '../veilcore/proofs';
 import { attestationsFor, countsAsSigned, type ResolvedAttestation } from '../veilcore/attesters';
-import { TEAL } from '../config/theme';
+import { ACCENT } from '../config/theme';
 import { NETWORK, isTestNetwork, networkLabel } from '../config/network';
 import { Fact, SharedFacts } from '../components/verify/DisclosedFacts';
 import { bindingOf, linkFingerprint } from '../veilcore/verify-link';
@@ -243,7 +243,7 @@ export const VerifyPage: React.FC = () => {
   const name = displayName(result?.cultivar);
 
   return (
-    <Box sx={{ minHeight: '100vh', background: '#04070a' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
         <Stack
           component={RouterLink}
@@ -262,7 +262,9 @@ export const VerifyPage: React.FC = () => {
             color: 'text.primary',
           }}
         >
-          <Box sx={{ width: 12, height: 12, borderRadius: '50%', background: TEAL, boxShadow: `0 0 14px ${TEAL}` }} />
+          <Box
+            sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }}
+          />
           <Typography variant="h6" sx={{ letterSpacing: '0.3em', fontWeight: 600 }}>
             VEILCORE
           </Typography>
@@ -275,14 +277,14 @@ export const VerifyPage: React.FC = () => {
         >
           This page checks a VeilCore record: a fingerprint of a description of genetic material, dated once it&apos;s
           anchored, published without the genetics. Checking is free and needs no account.{' '}
-          <Box component={RouterLink} to="/" sx={{ color: TEAL, whiteSpace: 'nowrap' }}>
+          <Box component={RouterLink} to="/" sx={{ color: ACCENT, whiteSpace: 'nowrap' }}>
             What is VeilCore?
           </Box>
         </Typography>
 
         {loading ? (
           <Paper sx={{ p: 6, textAlign: 'center' }}>
-            <CircularProgress size={28} sx={{ color: TEAL }} />
+            <CircularProgress size={28} sx={{ color: ACCENT }} />
           </Paper>
         ) : !result?.found ? (
           <Paper sx={{ p: 4, textAlign: 'center' }}>
@@ -293,7 +295,7 @@ export const VerifyPage: React.FC = () => {
               This verification link doesn&apos;t match any record in the registry. Check the link is complete and
               unmodified.
             </Typography>
-            <Box component={RouterLink} to="/" sx={{ display: 'inline-block', mt: 2, py: 1, color: TEAL }}>
+            <Box component={RouterLink} to="/" sx={{ display: 'inline-block', mt: 2, py: 1, color: ACCENT }}>
               Go to veilcore.org
             </Box>
           </Paper>
@@ -346,10 +348,10 @@ export const VerifyPage: React.FC = () => {
                   The lines below still tick what this browser did check. */}
               <VerifiedIcon
                 data-checked={seal ? 'yes' : 'no'}
-                sx={{ color: seal ? TEAL : 'text.disabled', fontSize: 30 }}
+                sx={{ color: seal ? ACCENT : 'text.disabled', fontSize: 30 }}
               />
               <Box>
-                <Typography variant="overline" sx={{ color: seal ? TEAL : 'text.secondary' }}>
+                <Typography variant="overline" sx={{ color: seal ? ACCENT : 'text.secondary' }}>
                   {!result.recordFingerprint
                     ? 'Record found — nothing sealed'
                     : !bound

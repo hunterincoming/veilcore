@@ -19,7 +19,7 @@ import BlockIcon from '@mui/icons-material/BlockOutlined';
 import { verifyDescent, lineageRoot, type DescentVerdict } from '../veilcore/lineage';
 import { allLicenses, createsHeritableObligation } from '../veilcore/licenses';
 import { allRecords, type StrainRecord } from '../veilcore/records';
-import { TEAL } from '../config/theme';
+import { ACCENT } from '../config/theme';
 
 export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const [root, setRoot] = useState<string | null>(null);
@@ -49,8 +49,8 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
   return (
     <Stack spacing={2}>
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-        <GavelIcon sx={{ color: TEAL, fontSize: 20 }} />
-        <Typography variant="overline" sx={{ color: TEAL }}>
+        <GavelIcon sx={{ color: ACCENT, fontSize: 20 }} />
+        <Typography variant="overline" sx={{ color: ACCENT }}>
           Obligations on offspring
         </Typography>
       </Stack>

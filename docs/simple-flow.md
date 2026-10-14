@@ -39,6 +39,11 @@ The research behind each choice is in the report "Simple record app UX research"
   now also backup and date stamp), then one list, each row with its section's icon.
   Fingerprints, attestations, settlement, history and export are under Technical details.
 - **Header**: wordmark, language, network badge. Its five buttons each moved to one home.
+- **Light app pages** (`lightTheme`, `config/theme.ts`): dark text on a light ground for
+  the app and for the pages people are sent to (check a record, sign an agreement). The
+  public site keeps the dark brand. Hunter's call after comparing the light mockup with the
+  dark build; easier to read for longer and in daylight. The neon teal, unreadable as text
+  on white, became `ACCENT` (#00785A) on these pages.
 - **Sections** (`components/flow/FlowFrame.tsx`): Log, Send & receive, License &
   royalties, Prove & check; Okabe–Ito colours, always with icon and name.
 - **Delivery codes**: "Text or email it. Don't write it on the package: whoever has this

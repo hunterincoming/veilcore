@@ -186,7 +186,7 @@ export const ClaimTransfer: React.FC<{
               <Typography variant="body2" color="text.secondary">
                 The transfer is claimed. Your key can now sign a receipt for it. This is exactly what the receipt says:
               </Typography>
-              <Box sx={{ p: 1.5, borderRadius: 1, background: 'rgba(255,255,255,0.04)', fontSize: 13 }}>
+              <Box sx={{ p: 1.5, borderRadius: 1, background: 'rgba(22,32,27,0.04)', fontSize: 13 }}>
                 <Typography variant="body2">
                   “I received {stage.subject.quantity ? `${stage.subject.quantity} of ` : ''}
                   {stage.subject.cultivar || 'this material'} from record {stage.subject.sourceRecordId}.”

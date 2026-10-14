@@ -13,7 +13,7 @@ import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/CodeOutlined';
-import { TEAL } from '../config/theme';
+import { ACCENT } from '../config/theme';
 import { DOCS, DOCS_COMMIT, DOCS_VERSION, REPO_VIEW, docHtml } from '../veilcore/docs';
 
 /** Phones only. Desktop styles are the ones above, unchanged. */
@@ -59,7 +59,7 @@ export const DocPage: React.FC = () => {
         Back
       </Button>
 
-      <Typography variant="overline" sx={{ color: TEAL, display: 'block', mb: 1 }}>
+      <Typography variant="overline" sx={{ color: ACCENT, display: 'block', mb: 1 }}>
         Published document
       </Typography>
       <Typography variant="h3" sx={{ fontSize: { xs: 30, md: 40 }, mb: 2, lineHeight: { xs: 1.15, sm: 1.167 } }}>
@@ -151,7 +151,7 @@ export const DocPage: React.FC = () => {
             '& p': { fontSize: 15.5, lineHeight: 1.75, mb: 2, color: 'text.secondary' },
             '& li': { fontSize: 15.5, lineHeight: 1.75, mb: 0.75, color: 'text.secondary' },
             '& strong': { color: 'text.primary', fontWeight: 600 },
-            '& a': { color: TEAL },
+            '& a': { color: ACCENT },
             '& code': {
               fontFamily: 'ui-monospace, Menlo, monospace',
               fontSize: 13,
@@ -161,7 +161,7 @@ export const DocPage: React.FC = () => {
               borderRadius: 0.5,
             },
             '& pre': {
-              background: 'rgba(255,255,255,0.03)',
+              background: 'rgba(22,32,27,0.03)',
               p: 2,
               borderRadius: 1,
               overflowX: 'auto',
@@ -188,7 +188,7 @@ export const DocPage: React.FC = () => {
             '& hr': { border: 0, borderTop: '1px solid', borderColor: 'divider', my: 4 },
             '& blockquote': {
               borderLeft: '2px solid',
-              borderColor: TEAL,
+              borderColor: ACCENT,
               pl: 2,
               ml: 0,
               color: 'text.secondary',

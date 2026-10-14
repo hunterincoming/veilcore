@@ -16,7 +16,7 @@ import LockIcon from '@mui/icons-material/LockOutlined';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { DISCLOSURE_FIELDS, GENETICS_LABEL, LEGACY_NAME, keysOn, type Disclosure } from '../../veilcore/disclosure';
 import type { StrainRecord } from '../../veilcore/records';
-import { TEAL } from '../../config/theme';
+import { ACCENT } from '../../config/theme';
 import { networkLabel, isTestNetwork } from '../../config/network';
 import { displayName } from '../../veilcore/display-name';
 import { utcStamp as fmt } from '../../veilcore/time';
@@ -25,7 +25,7 @@ import { utcStamp as fmt } from '../../veilcore/time';
 export const Fact: React.FC<{ ok?: boolean; children: React.ReactNode }> = ({ ok = true, children }) => (
   <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }} data-fact={ok ? 'checked' : 'reported'}>
     {ok ? (
-      <CheckCircleIcon sx={{ fontSize: 18, color: TEAL, mt: '2px' }} />
+      <CheckCircleIcon sx={{ fontSize: 18, color: ACCENT, mt: '2px' }} />
     ) : (
       <CancelIcon sx={{ fontSize: 18, color: 'text.secondary', mt: '2px' }} />
     )}

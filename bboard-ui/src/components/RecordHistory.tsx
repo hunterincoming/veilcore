@@ -13,7 +13,7 @@ import { Box, Paper, Stack, Typography } from '@mui/material';
 import { attestationsFor, strengthLabel } from '../veilcore/attesters';
 import { proofFor } from '../veilcore/proofs';
 import type { StrainRecord } from '../veilcore/records';
-import { TEAL } from '../config/theme';
+import { ACCENT } from '../config/theme';
 import { utcStamp } from '../veilcore/time';
 
 type Event = { at: number; title: string; detail: string; strong?: boolean };
@@ -98,7 +98,7 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
               pl: 2.5,
               ml: 0.5,
               pb: i === events.length - 1 ? 0 : 2.5,
-              borderLeft: i === events.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.12)',
+              borderLeft: i === events.length - 1 ? 'none' : '1px solid rgba(22,32,27,0.12)',
             }}
           >
             <Box
@@ -109,7 +109,7 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                background: e.strong ? TEAL : 'rgba(255,255,255,0.3)',
+                background: e.strong ? ACCENT : 'rgba(22,32,27,0.3)',
               }}
             />
             <Typography variant="body2" sx={{ fontWeight: 500 }}>
