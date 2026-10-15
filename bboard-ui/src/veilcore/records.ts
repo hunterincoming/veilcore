@@ -175,7 +175,8 @@ export type NewRecordInput = {
 export const childrenOf = (id: string): StrainRecord[] =>
   records.filter((r) => (r.parents ?? []).some((p) => p.recordId === id));
 
-const KEY = 'veilcore.records.v1';
+/** The registry's records collection: the holder's whole set is saved and read under it. */
+export const RECORDS_KEY = 'veilcore.records.v1';
 
 let records: StrainRecord[] = [];
 const listeners = new Set<() => void>();
@@ -185,7 +186,7 @@ const notify = () => listeners.forEach((l) => l());
 /** Re-fetch from the registry. Used on start, after a claim, and by the sync below. */
 export const hydrate = async (): Promise<void> => {
   try {
-    records = await store.load(KEY, isStrainRecord);
+    records = await store.load(RECORDS_KEY, isStrainRecord);
   } catch {
     return; // the registry could not answer now: keep what is shown, try again at the next sync
   }
@@ -221,7 +222,7 @@ export const startRecordSync = (): void => {
  * refusal the set is reloaded from the registry — the rollback — and the holder is told.
  */
 const saveAll = async (): Promise<SaveResult> => {
-  const result = await store.save(KEY, records);
+  const result = await store.save(RECORDS_KEY, records);
   reportSave('records', result);
   if (!result.ok && !result.offline) await hydrate();
   return result;
@@ -249,6 +250,23 @@ export const createRecord = (input: NewRecordInput): StrainRecord => {
   records = [record, ...records];
   persist();
   return record;
+};
+
+/**
+ * Save many new records in one save, awaited: a whole collection is sent in batches
+ * (bulk-import.ts), and one save per record would pass the registry's write limits. The
+ * batch goes first in the set, then every record already here that is not in it, as every
+ * save in the app sends the whole set. A record already sent (same id) is sent again as
+ * the same record: the registry stores by id. Unlike createRecord, nothing is shown
+ * before the registry has it: the set is read back after the save, unless the registry
+ * could not be reached or refused the whole save, and the caller words what happened.
+ */
+export const createRecords = async (inputs: readonly NewRecordInput[]): Promise<SaveResult> => {
+  const batch: StrainRecord[] = inputs.map((input) => ({ licenseIds: [], ...input, id: input.id ?? newRecordId() }));
+  const ids = new Set(batch.map((r) => r.id));
+  const result = await store.save(RECORDS_KEY, [...batch, ...records.filter((r) => !ids.has(r.id))]);
+  if (!result.offline && !result.refused.some((r) => r.id === '*')) await hydrate();
+  return result;
 };
 
 /**
@@ -564,13 +582,13 @@ export const issueCorrection = async (
   // Awaited, not fire-and-forget: a correction only exists once the registry holds both
   // halves. If it refused either, put everything back as it was — locally and on the
   // registry — and say why, rather than showing a correction nobody can verify.
-  const result = await store.save(KEY, records);
+  const result = await store.save(RECORDS_KEY, records);
   const refusedHere = result.refused.filter((x) => x.id === '*' || x.id === corrected.id || x.id === originalId);
   if (!result.offline && refusedHere.length) {
     records = previous;
     forgetKeys(id); // made for the correction above; nothing was sealed under them
     notify();
-    await store.save(KEY, records);
+    await store.save(RECORDS_KEY, records);
     await hydrate();
     throw new Error(`The registry refused this correction, so nothing was changed. ${describeRefusals(refusedHere)}`);
   }

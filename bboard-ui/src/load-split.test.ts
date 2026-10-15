@@ -90,6 +90,13 @@ describe('which pages wait for the fingerprint circuit (App.tsx `circuit`)', () 
     expect(sourceClosure('components/RecordDetail.tsx').has('veilcore/chain/identity.ts')).toBe(true);
   });
 
+  it('the collection import is one of them, with its own title ahead of "Your plants"', () => {
+    expect(pages.map((p) => p.name)).toContain('BulkImportPage');
+    const at = (t: string) => app.indexOf(t);
+    expect(at("[/^\\/records\\/import/, 'Date your collection']")).toBeGreaterThan(-1);
+    expect(at("[/^\\/records\\/import/, 'Date your collection']")).toBeLessThan(at("[/^\\/records/, 'Your plants']"));
+  });
+
   it('a page that does not wait loads none of the synchronous users', () => {
     for (const p of pages) {
       if (p.circuit === 'wait' || HANDLED.includes(p.name)) continue;

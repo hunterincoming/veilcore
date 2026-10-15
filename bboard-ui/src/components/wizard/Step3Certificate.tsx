@@ -28,7 +28,7 @@ import { utcDate, utcStamp as fmtStamp } from '../../veilcore/time';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { ProveOwnershipPanel } from '../chain/ProveOwnershipPanel';
 import { useRecordKeys } from '../../veilcore/record-keys';
-import { custodyLines, receiptLineFor } from '../../veilcore/custody';
+import { custodyLines, custodySummary, receiptLineFor } from '../../veilcore/custody';
 import { signerLabel } from '../../veilcore/attesters';
 import { NameCheckText } from '../NameCheckText';
 import { useBreederReceipt, useSavedReport } from '../flow/LabResults';
@@ -139,6 +139,8 @@ export const Step3Certificate: React.FC<{
   // A summary, not evidence: the record file and the network transaction are. It carries
   // no "it matches" line: a file can say anything about itself, so a check written into
   // it proves nothing. Whoever opens it recomputes the fingerprint (docs/spec).
+  const sampleCustody =
+    !record.receivedFrom && receipt?.kind === 'signed' ? custodySummary(receipt.custody) : undefined;
   const downloadJson = () => {
     const data = {
       ...(IS_MAINNET ? {} : { practice: PRACTICE_BAND }),
@@ -146,6 +148,8 @@ export const Step3Certificate: React.FC<{
       licenses: licensesForRecord(record.id),
       anchored: anchorLine,
       secondParty: deliveryLine,
+      // The sample sent, what the lab found on arrival, and any differences, as the certificate shows them.
+      ...(sampleCustody ? { sampleCustody } : {}),
       ...(record.dnaFingerprint && saved ? { labReportSaved: savedReportSentence(saved) } : {}),
       sealedAtSource: "the sealing device's clock",
       generatedAt: new Date().toISOString(),

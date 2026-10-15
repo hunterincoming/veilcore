@@ -4,8 +4,8 @@
 // the logging flow again is the cost that stops them, so this reads the file in the
 // browser, lets them say which column is which, and seals every row as an ordinary record:
 // the same fields, the same fingerprint and the same key binding as logging one plant by
-// hand (LogFlow.tsx, Review.seal). Nothing about the file leaves the browser except those
-// record fields, which the registry stores for any record.
+// hand, because both seal through seal-record.ts. Nothing about the file leaves the
+// browser except those record fields, which the registry stores for any record.
 //
 // What keeps it safe to run on 500 rows:
 //   - each row is known by a hash of the values it would be sealed with (rowHashOf), and a
@@ -24,12 +24,10 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import { strFromU8, unzipSync } from 'fflate';
-import { fingerprintRecord, newNonce } from './commitment';
-import { allRecords, hydrate, newRecordId, type ParentRef, type StrainRecord } from './records';
-import { ensureKeys, forgetKeys, keysFor } from './record-keys';
-import { bindingForSecret } from './key-binding';
-import { PLANT_VARIETY_PROFILE } from './envelope';
-import { store, type SaveRefusal } from './store';
+import { allRecords, createRecords, type ParentRef, type StrainRecord } from './records';
+import { forgetKeys, keysFor } from './record-keys';
+import { sealRecord } from './seal-record';
+import type { SaveRefusal } from './store';
 import { verifyPath } from './verify-link';
 
 // ── Limits ─────────────────────────────────────────────────────────────────────────────
@@ -817,37 +815,26 @@ export const checkRows = (
 // ── Sealing ────────────────────────────────────────────────────────────────────────────
 
 /**
- * The record for one row: the same steps and fields as sealing a plant in the logging
- * flow (LogFlow.tsx, Review.seal). The record's key is made first, so the record names it
- * (keyBinding) and the fingerprint covers that; the nonce is stored on the record so
- * anyone can recompute the fingerprint.
+ * The record for one row, sealed exactly as the logging flow seals one plant: the same
+ * function (seal-record.ts), so the same fields, fingerprint and key binding. A row has no
+ * breeding method and no photos. The shape is the one createRecord gives a record.
  */
 export const sealRowRecord = async (f: RowFields, now = Date.now()): Promise<StrainRecord> => {
-  const id = newRecordId();
-  try {
-    const { keyBinding } = bindingForSecret(ensureKeys(id, now).recordSecret);
-    const fields = {
-      nonce: newNonce(),
-      keyBinding,
+  const sealed = await sealRecord(
+    {
       strainName: f.strainName,
       bredBy: f.bredBy,
       dateCreated: f.dateCreated,
       notes: f.notes,
-      loggedAt: now,
       parents: f.parents,
       breedingMethod: '',
-      photoFingerprints: [] as string[],
+      photoFingerprints: [],
       refId: f.refId,
-      profile: PLANT_VARIETY_PROFILE,
-      taxon: f.taxon || undefined,
-    };
-    const recordFingerprint = await fingerprintRecord(fields);
-    // The shape createRecord gives a record (records.ts).
-    return { licenseIds: [], ...fields, id, recordFingerprint };
-  } catch (e) {
-    forgetKeys(id); // nothing was sealed under them
-    throw e;
-  }
+      taxon: f.taxon,
+    },
+    now,
+  );
+  return { licenseIds: [], ...sealed };
 };
 
 /** What happened to one batch at the registry. */
@@ -862,23 +849,19 @@ export type CommitResult = {
 
 export type Committer = (batch: StrainRecord[]) => Promise<CommitResult>;
 
-/** The registry's records collection (records.ts KEY). */
-const RECORDS_KEY = 'veilcore.records.v1';
-
 /**
- * Send a batch: one save of the whole set with the batch in it (as every save in the app
- * is), then read the set back so the app shows the new records. Awaited, so the next batch
+ * Send a batch: one save of the whole set with the batch in it (records.ts createRecords,
+ * which reads the set back so the app shows the new records). Awaited, so the next batch
  * never reads the set before this one is in it.
  */
 export const registryCommit: Committer = async (batch) => {
   const ids = new Set(batch.map((r) => r.id));
-  const result = await store.save(RECORDS_KEY, [...batch, ...allRecords().filter((r) => !ids.has(r.id))]);
+  const result = await createRecords(batch);
   if (result.offline) return { stored: [], refused: [], retry: "Couldn't reach VeilCore's server." };
   const whole = result.refused.find((r) => r.id === '*');
   if (whole) return { stored: [], refused: [], retry: whole.reason };
   const refused = result.refused.filter((r) => ids.has(r.id));
   const no = new Set(refused.map((r) => r.id));
-  await hydrate();
   return { stored: batch.filter((r) => !no.has(r.id)).map((r) => r.id), refused };
 };
 

@@ -63,6 +63,7 @@ const page = <P extends object = object>(
 const AppHome = page(() => import('./components/flow/AppHome'), 'AppHome', 'wait');
 const RecordDetail = page(() => import('./components/RecordDetail'), 'RecordDetail', 'wait');
 const LogFlow = page(() => import('./components/flow/LogFlow'), 'LogFlow', 'after');
+const BulkImportPage = page(() => import('./components/lab-import/BulkImportPage'), 'BulkImportPage');
 const RestorePage = page(() => import('./components/flow/RestorePage'), 'RestorePage');
 const BackupPage = page(() => import('./components/flow/BackupPage'), 'BackupPage');
 const ProvePage = page(() => import('./components/flow/ProvePage'), 'ProvePage');
@@ -151,6 +152,7 @@ const PAGE_TITLES: [RegExp, string][] = [
   [/^\/privacy/, IS_MAINNET ? 'Site privacy' : 'Demo privacy'],
   [/^\/verify\/example/, 'Example record'],
   [/^\/verify/, 'Check a record'],
+  [/^\/records\/import/, 'Date your collection'],
   [/^\/records/, 'Your plants'],
   [/^\/restore/, 'Get your plants back'],
   [/^\/backup/, 'Save your backup'],
@@ -202,12 +204,7 @@ const routes = (
     <Route path="/partners" element={<PartnersPage />} />
     <Route path="/verify" element={<VerifyLookup />} />
     <Route path="/records" element={withLayout(<AppHome />)} />
-    <Route
-      path="/records/import"
-      element={withLayout(
-        React.createElement(page(() => import('./components/lab-import/BulkImportPage'), 'BulkImportPage')),
-      )}
-    />
+    <Route path="/records/import" element={withLayout(<BulkImportPage />)} />
     <Route path="/restore" element={withLayout(<RestorePage />)} />
     <Route path="/backup" element={withLayout(<BackupPage />)} />
     {/* Documents read here rather than in a code repository. */}

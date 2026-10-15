@@ -7,10 +7,10 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { canonicalise, sha256Hex, signAttestation } from 'veilcore-records';
+import { canonicalise, sha256Hex } from 'veilcore-records';
 import { holderKey, holderKeyIfAny } from './holder';
 import { readJson, isObject, isString, isNumber, optional, arrayField } from './json';
-import type { AttesterProfile } from './attester-keys';
+import { attestRecord, type AttesterProfile } from './attester-keys';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
@@ -391,37 +391,24 @@ export const setArrival = async (
 
 /**
  * Sign the lab's receipt (a chain-of-custody attestation over the breeder's source record
- * and the lab's received record, exactly as attester-keys.ts attestRecord signs one) and
- * post it. With `digest`, its id carries the sample details it covers.
+ * and the lab's received record, signed by attester-keys.ts attestRecord like any other)
+ * and post it. With `digest`, its id carries the sample details it covers.
  */
 export const signReceiptWith = async (
   p: AttesterProfile,
   subject: { sourceCommitment: string; receivedRecordFingerprint: string },
   digest?: string,
 ): Promise<{ attestationId: string } | { error: string }> => {
-  const base = `att_${crypto.randomUUID().replace(/-/g, '').slice(0, 16)}`;
   try {
-    const signed = await signAttestation(
-      {
-        attestationId: digest ? `${base}_sc1_${digest}` : base,
-        type: 'chain-of-custody',
-        subjectCommitment: subject.sourceCommitment,
-        attester: { publicKey: p.keypair.publicKey, displayName: p.displayName, role: p.role },
-        documentHash: subject.receivedRecordFingerprint,
-        hashAlgorithm: 'sha256',
-        issuedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
-      },
-      p.keypair.privateKey,
+    const out = await attestRecord(
+      p,
+      subject.sourceCommitment,
+      subject.receivedRecordFingerprint,
+      'chain-of-custody',
+      digest ? `_sc1_${digest}` : '',
     );
-    const res = await fetch(`${BASE}/attestations`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(signed),
-    });
-    const body = await readJson(res);
-    if (!isObject(body)) return unexpected;
-    if (isString(body.error)) return { error: body.error };
-    if (isString(body.attestationId)) return { attestationId: body.attestationId };
+    if (out.error !== undefined) return { error: out.error };
+    if (out.attestationId !== undefined) return { attestationId: out.attestationId };
     return unexpected;
   } catch {
     return { error: 'could not reach the registry' };

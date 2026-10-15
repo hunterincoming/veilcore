@@ -37,13 +37,11 @@ import {
 import LockIcon from '@mui/icons-material/LockOutlined';
 import DoneIcon from '@mui/icons-material/CheckCircleOutlined';
 import { useNavigate } from 'react-router-dom';
-import { fingerprintFile, fingerprintRecord, newNonce } from '../../veilcore/commitment';
-import { allRecords, createRecord, getRecord, newRecordId, type ParentRef } from '../../veilcore/records';
+import { fingerprintFile } from '../../veilcore/commitment';
+import { allRecords, createRecord, getRecord, type ParentRef } from '../../veilcore/records';
+import { sealRecord } from '../../veilcore/seal-record';
 import { localStamp } from '../../veilcore/time';
-import { bindingForSecret } from '../../veilcore/key-binding';
-import { PLANT_VARIETY_PROFILE } from '../../veilcore/envelope';
 import {
-  ensureKeys,
   ensureKeysFor,
   forgetKeys,
   hexBytes,
@@ -67,6 +65,7 @@ import {
   emptyDraft,
   loadDraft,
   saveDraft,
+  sealInputOf,
   stampProblem,
 } from './log-flow-state';
 
@@ -443,35 +442,19 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
     setBusy(true);
     setError(undefined);
     let id: string | undefined;
+    let created = false;
     try {
-      const loggedAt = Date.now();
-      const photoFingerprints = draft.photos.map((p) => p.fingerprint);
-      // The nonce is committed with the record and stored on it: without it nobody could
-      // recompute the commitment, so the record would be unverifiable by anyone.
-      const nonce = newNonce();
-      // The record's key comes first, so the record can name it and the fingerprint covers
-      // that (key-binding.ts): nobody can later pair this record with another key.
-      id = newRecordId();
-      const { keyBinding } = bindingForSecret(ensureKeys(id).recordSecret);
-      const fields = {
-        nonce,
-        keyBinding,
-        strainName: draft.strainName.trim(),
-        bredBy: draft.bredBy.trim(),
-        dateCreated: draft.dateCreated,
-        notes: draft.notes.trim(),
-        loggedAt,
-        parents: draft.parents,
-        breedingMethod: draft.breedingMethod,
-        photoFingerprints,
-        refId: draft.refId.trim(),
-        profile: PLANT_VARIETY_PROFILE,
-        taxon: draft.taxon.trim() || undefined,
-      };
-      const recordFingerprint = await fingerprintRecord(fields);
-      onSealed(createRecord({ ...fields, id, recordFingerprint }).id);
+      // One sealing for every new record (seal-record.ts): the record names its key and the
+      // fingerprint covers that, and the nonce is stored so anyone can recompute it.
+      const sealed = await sealRecord(sealInputOf(draft));
+      id = sealed.id;
+      const record = createRecord(sealed);
+      created = true;
+      onSealed(record.id);
     } catch (e) {
-      if (id) forgetKeys(id); // nothing was sealed under them
+      // Forget the keys only if no record was made with them; once it exists, its key is the
+      // only way to prove holding it.
+      if (id && !created) forgetKeys(id);
       setError(e instanceof Error ? e.message : String(e));
       setBusy(false);
     }

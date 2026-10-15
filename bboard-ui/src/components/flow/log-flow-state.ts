@@ -7,6 +7,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { ParentRef } from '../../veilcore/records';
+import type { SealInput } from '../../veilcore/seal-record';
 
 export const DRAFT_KEY = 'veilcore.log-draft.v1';
 
@@ -100,6 +101,19 @@ export const parseDraft = (raw: string | null): Draft | undefined => {
     return undefined;
   }
 };
+
+/** What a draft is sealed as (seal-record.ts): text trimmed, photos as their fingerprints only. */
+export const sealInputOf = (draft: Draft): SealInput => ({
+  strainName: draft.strainName.trim(),
+  bredBy: draft.bredBy.trim(),
+  dateCreated: draft.dateCreated,
+  notes: draft.notes.trim(),
+  parents: draft.parents,
+  breedingMethod: draft.breedingMethod,
+  photoFingerprints: draft.photos.map((p) => p.fingerprint),
+  refId: draft.refId.trim(),
+  taxon: draft.taxon.trim(),
+});
 
 export const loadDraft = (): Draft | undefined => {
   try {

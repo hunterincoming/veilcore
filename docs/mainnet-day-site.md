@@ -100,6 +100,8 @@ If any of these still say "test network", send Claude a screenshot.
   builds the test-network version, so it now refuses once the registry anchors on mainnet
   (`NOT DEPLOYED. The registry anchors on mainnet now … Use npm run deploy:mainnet
   instead.`). If you see that, nothing was changed; run `npm run deploy:mainnet`.
+- Deploy the registry before the site: the site's sample custody fields (the sample details a
+  lab sees, and what it notes on arrival) use the registry's `/transfers/:id/custody` route.
 - New records stay unanchored until someone anchors a batch (registry README, "Anchoring a
   batch on mainnet": seal, CLI option 29, then one curl). The site says this is done by
   hand; decide with Mako how often, so "a while" stays short.

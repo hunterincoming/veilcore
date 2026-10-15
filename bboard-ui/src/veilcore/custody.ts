@@ -166,6 +166,32 @@ export const custodyHeadline = (v: CustodyView | undefined): string | undefined 
     .filter((l) => !/^(Sent|Received): /.test(l))
     .join(' ') || undefined;
 
+/**
+ * The sample details for a downloaded summary (the certificate's "Download summary"): what
+ * the certificate shows under the receipt, as data. What arrived is given only when the
+ * receipt covers it, as on the certificate; `lines` are the certificate's own words.
+ */
+export const custodySummary = (
+  v: CustodyView | undefined,
+):
+  | {
+      sent?: SampleDetails;
+      onArrival?: ArrivalDetails;
+      coveredByReceipt: boolean;
+      differences: string[];
+      lines: string[];
+    }
+  | undefined => {
+  if (!v) return undefined;
+  return {
+    ...(hasDetails(v.sample) ? { sent: v.sample } : {}),
+    ...(v.signed === 'covered' && hasDetails(v.arrival) ? { onArrival: v.arrival } : {}),
+    coveredByReceipt: v.signed === 'covered',
+    differences: [...v.differences],
+    lines: custodyLines(v),
+  };
+};
+
 export type BreederReceipt =
   | {
       readonly kind: 'signed';

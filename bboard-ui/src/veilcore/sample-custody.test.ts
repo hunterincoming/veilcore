@@ -20,12 +20,13 @@ import {
   custodyDifferences,
   custodyHeadline,
   custodyLines,
+  custodySummary,
   custodyView,
   receiptLineFor,
   sampleLine,
 } from './custody';
 import type { ResolvedAttestation } from './attesters';
-import type { AttesterProfile } from './attester-keys';
+import { attestRecord, type AttesterProfile } from './attester-keys';
 import type { StrainRecord } from './records';
 
 const SAMPLE: SampleDetails = {
@@ -131,6 +132,83 @@ describe('the signed receipt', () => {
     expect(signed.attestationId).toMatch(/^att_[0-9a-f]{16}$/);
     expect(receiptCustodyDigest(signed.attestationId)).toBeNull();
     expect(await verifyAttestation(signed)).toBe(true);
+  });
+});
+
+describe('one signing for a receipt and any other attestation (attester-keys.ts attestRecord)', () => {
+  let posted: Record<string, unknown>[] = [];
+  let answer: () => Promise<Response> = () => Promise.reject(new Error('unset'));
+  beforeEach(() => {
+    posted = [];
+    vi.stubGlobal('fetch', (_url: string, init: RequestInit) => {
+      posted.push(JSON.parse(init.body as string) as Record<string, unknown>);
+      return answer();
+    });
+  });
+  afterEach(() => vi.unstubAllGlobals());
+  const json = (body: unknown) =>
+    Promise.resolve(
+      new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } }),
+    );
+
+  it('a suffix goes at the end of the id, inside what is signed; without one the id is as before', async () => {
+    const lab: AttesterProfile = { keypair: await generateKeypair(), displayName: 'Lab', role: 'laboratory' };
+    answer = () => json({ attestationId: posted.at(-1)?.attestationId, strength: 'signed' });
+    const plain = await attestRecord(lab, BREEDER, RECEIVED, 'laboratory-report');
+    expect(plain.attestationId).toMatch(/^att_[0-9a-f]{16}$/);
+    expect(plain.strength).toBe('signed');
+    const suffixed = await attestRecord(lab, BREEDER, RECEIVED, 'chain-of-custody', `_sc1_${REGISTRY_DIGEST}`);
+    expect(suffixed.attestationId).toMatch(new RegExp(`^att_[0-9a-f]{16}_sc1_${REGISTRY_DIGEST}$`));
+    for (const signed of posted as unknown as Parameters<typeof verifyAttestation>[0][]) {
+      expect(await verifyAttestation(signed)).toBe(true);
+    }
+  });
+
+  it('the receipt says what went wrong in the same words as before', async () => {
+    const lab: AttesterProfile = { keypair: await generateKeypair(), displayName: 'Lab' };
+    const subject = { sourceCommitment: BREEDER, receivedRecordFingerprint: RECEIVED };
+    answer = () => json({ error: 'not a lab key' });
+    expect(await signReceiptWith(lab, subject)).toEqual({ error: 'not a lab key' });
+    answer = () => json({ nothing: true });
+    expect(await signReceiptWith(lab, subject)).toEqual({ error: 'unexpected response from the registry' });
+    answer = () => Promise.reject(new TypeError('Failed to fetch'));
+    expect(await signReceiptWith(lab, subject)).toEqual({ error: 'could not reach the registry' });
+    // A key that can't sign is said the same way, never thrown.
+    const broken: AttesterProfile = { keypair: { publicKey: lab.keypair.publicKey, privateKey: 'zz' } };
+    expect(await signReceiptWith(broken, subject)).toEqual({ error: 'could not reach the registry' });
+    // Only the id comes back, as before.
+    answer = () => json({ attestationId: 'att_0123456789abcdef', strength: 'signed' });
+    expect(await signReceiptWith(lab, subject)).toEqual({ attestationId: 'att_0123456789abcdef' });
+  });
+});
+
+describe('the sample details in the downloaded summary (custodySummary)', () => {
+  it('what was sent, what arrived and the differences, with the certificate’s own words', async () => {
+    const id = `att_0123456789abcdef_sc1_${REGISTRY_DIGEST}`;
+    const r = breederReceipt(plant(), [receiptAtt(id)], [await delivery(id)]);
+    if (r.kind !== 'signed') throw new Error('expected a signed receipt');
+    expect(custodySummary(r.custody)).toEqual({
+      sent: SAMPLE,
+      onArrival: ARRIVED,
+      coveredByReceipt: true,
+      differences: ['Seal number differs: sent 4471, received 4417'],
+      lines: custodyLines(r.custody),
+    });
+  });
+
+  it('arrival details the receipt doesn’t cover are left out, as on the certificate', async () => {
+    const id = `att_0123456789abcdef_sc1_${REGISTRY_DIGEST}`;
+    const v = custodyView(await delivery(id, SAMPLE, { ...ARRIVED, sealNumber: '4471' }), id);
+    expect(custodySummary(v)).toEqual({
+      sent: SAMPLE,
+      coveredByReceipt: false,
+      differences: [],
+      lines: [
+        `Sent: ${sampleLine(SAMPLE)}`,
+        'The lab changed its arrival details after signing, so its receipt doesn’t cover them.',
+      ],
+    });
+    expect(custodySummary(undefined)).toBeUndefined();
   });
 });
 

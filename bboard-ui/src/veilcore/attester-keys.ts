@@ -139,16 +139,23 @@ export const publishAttester = async (p: AttesterProfile): Promise<{ attesterId?
   }
 };
 
-/** Sign an attestation about a record and submit it. */
+/**
+ * Sign an attestation about a record and submit it.
+ *
+ * `idSuffix` is added to the attestation's id, inside what is signed, so it can't be
+ * changed without breaking the signature. A lab's receipt uses it to carry the sample
+ * details it covers (transfers.ts signReceiptWith). Without it the id is as it always was.
+ */
 export const attestRecord = async (
   p: AttesterProfile,
   subjectCommitment: string,
   documentHash: string,
   type: 'laboratory-report' | 'genetic-fingerprint' | 'inspection' | 'chain-of-custody' = 'laboratory-report',
+  idSuffix = '',
 ): Promise<{ attestationId?: string; strength?: string; error?: string }> => {
   const signed = await signAttestation(
     {
-      attestationId: `att_${crypto.randomUUID().replace(/-/g, '').slice(0, 16)}`,
+      attestationId: `att_${crypto.randomUUID().replace(/-/g, '').slice(0, 16)}${idSuffix}`,
       type,
       subjectCommitment,
       attester: { publicKey: p.keypair.publicKey, displayName: p.displayName, role: p.role },

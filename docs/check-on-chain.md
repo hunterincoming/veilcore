@@ -100,6 +100,8 @@ railway up ../veilcore-sponsor-deploy --path-as-root --service veilcore-indexer-
 VITE_INDEXER_RELAY_URL=https://<relay address>/indexer npm run deploy:mainnet
 ```
 
+Deploy the registry before the site: the site's sample custody fields (the sample details a lab sees, and what it notes on arrival) use the registry's `/transfers/:id/custody` route.
+
 The address must be given on every mainnet deploy from now on. Left out, the site still
 works and goes back to calling the date the registry's report. The deploy refuses an
 address that isn't https or that carries a key.

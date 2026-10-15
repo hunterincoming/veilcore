@@ -37,6 +37,7 @@ const PAGES: [string, RegExp][] = [
   ['/verify', /check/i],
   ['/verify/example', /example/i],
   ['/records', /log your first plant|your plants/i],
+  ['/records/import', /date your whole collection/i],
   ['/new', /plant or line name/i],
   ['/restore', /backup/i],
   ['/backup', /backup/i],
@@ -54,6 +55,12 @@ for (const [path, text] of PAGES) {
     expectNoErrors(errors);
   });
 }
+
+test('/records/import has its own title, not "Your plants"', async ({ page }) => {
+  await isolate(page);
+  await page.goto('/records/import');
+  await expect(page).toHaveTitle('Date your collection · VeilCore');
+});
 
 test.describe('stand-in registry', () => {
   test.skip(REAL_REGISTRY, 'these use the stand-in registry');

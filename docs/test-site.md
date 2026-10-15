@@ -19,6 +19,8 @@ hosted.
    command it prints (linked to `veilcore-sponsor`).
 3. `VEILCORE_TEST_REGISTRY=https://<preprod registry> VEILCORE_TEST_SPONSOR=https://<sponsor> npm run deploy:test`
 
+Deploy the registry before the site: the site's sample custody fields (the sample details a lab sees, and what it notes on arrival) use the registry's `/transfers/:id/custody` route.
+
 `deploy:test` refuses unless the registry and the sponsor both say preprod, the sponsor
 uses the practice contract, the relay answers for test.veilcore.org, and the proving files
 are on this computer. It makes a preview deployment (never `--prod`) and aliases it to
