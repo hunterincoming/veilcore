@@ -85,7 +85,7 @@ const common: Overlay = {
   // m.privacy.local.text and m.privacy.who.text here, and m.live.results.* in en.ts,
   // change with it; copy-truth.test.ts fails until they do.
   'm.for.4p':
-    "The lab signs your report and locks it so only you can open it. No PDF sits in anyone's inbox. VeilCore holds only the locked file and records who signed; it doesn't vouch for the result. Not on this website yet: it's on the test site first.",
+    "The lab signs your report and locks it so only you can open it. No PDF sits in anyone's inbox. The locked file waits on VeilCore's server for you to open; VeilCore can't read it, and records who signed; it doesn't vouch for the result. Not on this website yet: it's on the test site first.",
   'm.faq.4a':
     "Your genetic data: nothing. It's fingerprinted on your computer, as are the files you add, and they aren't uploaded. This website keeps what you type (names, dates, notes, agreement terms) and your lab files' names, so you can come back to them, and a record's public check page shows its cultivar name. Labs and developers can seal records inside their own systems, so only the fingerprint goes out.",
   'm.privacy.local.text':

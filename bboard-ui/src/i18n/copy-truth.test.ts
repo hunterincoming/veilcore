@@ -612,6 +612,47 @@ describe('round 3: what a page may claim', () => {
         expect(s[k], k).not.toMatch(/180 days|sends it back/);
     }
   });
+  it('a locked lab report waits on our server unread; nothing says VeilCore "holds" it', () => {
+    // Read as "VeilCore keeps people's files". Only a lab report coming back is ever on our
+    // server, locked in the lab's browser, and VeilCore can't open it.
+    const holds = /holds only the locked file|only ever holds the locked file|holds the locked file/i;
+    for (const [site, s] of Object.entries(SITES)) {
+      expect(offenders(s, holds), site).toEqual([]);
+      expect(s['m.for.4p'], site).toMatch(
+        /The locked file waits on VeilCore's server for you to open; VeilCore can't read it, and records who signed; it doesn't vouch for the result\./,
+      );
+    }
+    const old: Record<Exclude<Lang, 'en'>, RegExp> = {
+      de: /VeilCore hält nur die verschlossene Datei/,
+      fr: /VeilCore ne garde que le fichier verrouillé/,
+      es: /VeilCore solo guarda el archivo cerrado/,
+      ja: /VeilCoreが保持するのは鍵のかかったファイル/,
+    };
+    const cantRead: Record<Exclude<Lang, 'en'>, RegExp> = {
+      de: /VeilCore kann sie nicht lesen/,
+      fr: /VeilCore ne peut pas le lire/,
+      es: /VeilCore no puede leerlo/,
+      ja: /VeilCoreには読めません/,
+    };
+    for (const lang of ['de', 'fr', 'es', 'ja'] as const) {
+      const { strings, testchain } = LANGUAGES[lang];
+      const shown = { ...strings, ...testchain } as Record<string, string>;
+      expect(offenders(shown, old[lang]), lang).toEqual([]);
+      expect(strings['m.for.4p'], lang).toMatch(cantRead[lang]);
+    }
+    // The Japanese mainnet overlay has its own m.for.4p.
+    const jaMain = networkOverlay(MAINNET, 'ja') as Record<string, string>;
+    expect(jaMain['m.for.4p']).toMatch(cantRead.ja);
+    expect(offenders(jaMain, old.ja)).toEqual([]);
+    const lab = fs.readFileSync(path.join(SRC, 'components/flow/LabResults.tsx'), 'utf8');
+    expect(lab).not.toMatch(holds);
+    expect(lab).toContain(
+      'The locked file waits on VeilCore’s server for the breeder to open; VeilCore can’t read it.',
+    );
+    const video = fs.readFileSync(path.join(SRC, '..', 'media-src/explainer/explainer.html'), 'utf8');
+    expect(video).not.toMatch(holds);
+    expect(video).toContain('>VeilCore can’t read it</div>');
+  });
   it('the mainnet wording above holds only while lab reports are off on mainnet', () => {
     // If this flips, the mainnet overlay (m.for.4p, m.faq.4a, m.privacy.*) and
     // m.live.results.* must change with it.

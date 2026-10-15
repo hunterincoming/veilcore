@@ -1014,7 +1014,7 @@ export const SendResultsPanel: React.FC<{
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           {replacing
             ? `It replaces ${shortResultId(replacing.id)}, the lab report you sent ${when(replacing.createdAt)}. The old one is withdrawn: its file is removed and your signature on it is marked replaced.`
-            : 'Your browser signs the lab report’s fingerprint with your lab’s key and locks the file so only the breeder can open it. VeilCore only ever holds the locked file.'}
+            : 'Your browser signs the lab report’s fingerprint with your lab’s key and locks the file so only the breeder can open it. The locked file waits on VeilCore’s server for the breeder to open; VeilCore can’t read it.'}
         </Typography>
         {replacing && (
           <Button size="small" onClick={() => setReplacing(undefined)} sx={{ mt: 0.5 }}>

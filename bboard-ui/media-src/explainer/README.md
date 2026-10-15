@@ -29,6 +29,7 @@ and say nothing it doesn't:
   neither yet).
 - Lab receipts are signed with the lab's own key and kept by VeilCore's registry, not the
   chain. A lab report reaches VeilCore's server only when a lab sends it back, locked so
-  only the holder can open it. VeilCore doesn't vouch for results.
+  only the holder can open it; VeilCore can't read it, and never says it "holds" the
+  file. VeilCore doesn't vouch for results.
 - No customers or partners claimed; nothing about licensing; all names and dates are made
   up.

@@ -96,7 +96,7 @@ export const en = {
     "Send material with a lab code. The lab signs a receipt with its own key, so the record shows a second party. The receipt is a real signature, kept by VeilCore's registry, not on the chain. Terms such as no propagation are practice only in the web demo.",
   'm.for.4t': 'Lab results, back to you.',
   'm.for.4p':
-    "The lab signs your report and locks it so only you can open it. No PDF sits in anyone's inbox. VeilCore holds only the locked file and records who signed; it doesn't vouch for the result. New, and still being tested.",
+    "The lab signs your report and locks it so only you can open it. No PDF sits in anyone's inbox. The locked file waits on VeilCore's server for you to open; VeilCore can't read it, and records who signed; it doesn't vouch for the result. New, and still being tested.",
   'm.for.6t': 'Someone asks for proof.',
   'm.for.6p':
     "They send you a link. You tap once, and their page checks on the network that you control your plant's own key. Your record named that key when it was sealed, so it can't be swapped. It says nothing about who you are or who bred the plant. This works on a Midnight test network for now.",

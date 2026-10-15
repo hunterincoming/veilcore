@@ -274,7 +274,7 @@ export const de: Strings = {
   'm.for.3t': 'Material in den Händen eines Labors.',
   'm.for.4t': 'Laborergebnisse, zurück zu Ihnen.',
   'm.for.4p':
-    'Das Labor signiert Ihren Bericht und verschließt ihn so, dass nur Sie ihn öffnen können. Kein PDF liegt in irgendeinem Posteingang. VeilCore hält nur die verschlossene Datei und erfasst, wer signiert hat; für das Ergebnis bürgt VeilCore nicht. Neu und noch in der Erprobung.',
+    'Das Labor signiert Ihren Bericht und verschließt ihn so, dass nur Sie ihn öffnen können. Kein PDF liegt in irgendeinem Posteingang. Die verschlossene Datei wartet auf dem Server von VeilCore darauf, dass Sie sie öffnen; VeilCore kann sie nicht lesen und erfasst, wer signiert hat; für das Ergebnis bürgt VeilCore nicht. Neu und noch in der Erprobung.',
   'm.for.6t': 'Jemand verlangt einen Nachweis.',
   'm.for.6p':
     'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihrer Pflanze kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht. Das funktioniert vorerst in einem Testnetz von Midnight.',

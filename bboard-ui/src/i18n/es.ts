@@ -274,7 +274,7 @@ export const es: Strings = {
   'm.for.3t': 'Material en manos de un laboratorio.',
   'm.for.4t': 'Resultados de laboratorio, de vuelta a usted.',
   'm.for.4p':
-    'El laboratorio firma su informe y lo cierra para que solo usted pueda abrirlo. Ningún PDF queda en la bandeja de entrada de nadie. VeilCore solo guarda el archivo cerrado y anota quién firmó; no responde por el resultado. Nuevo, y todavía en pruebas.',
+    'El laboratorio firma su informe y lo cierra para que solo usted pueda abrirlo. Ningún PDF queda en la bandeja de entrada de nadie. El archivo cerrado espera en el servidor de VeilCore a que usted lo abra; VeilCore no puede leerlo, y anota quién firmó; no responde por el resultado. Nuevo, y todavía en pruebas.',
   'm.for.6t': 'Alguien le pide una prueba.',
   'm.for.6p':
     'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su planta. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta. Por ahora esto funciona en una red de pruebas de Midnight.',
