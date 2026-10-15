@@ -7,7 +7,7 @@
 //   - lab        the saved file is a lab report the lab signed, and the signature stands;
 //   - replaced   the lab sent a corrected file in its place (or withdrew its signature as
 //                superseded);
-//   - withdrawn  the lab withdrew it; the breeder kept it saved;
+//   - withdrawn  the lab withdrew it, and it is still the file saved;
 //   - self       no lab signature matches the saved file: the breeder's own statement.
 //
 // The match is on the file's plain SHA-256, which is what a lab signs. The plant's
@@ -144,8 +144,17 @@ export const savedReportRow = (s: SavedReport): { done: boolean; value: string }
 const day = (t?: number) => (t ? `${new Date(t).toISOString().slice(0, 10)} (UTC)` : '');
 
 /**
+ * What happened to a saved report the lab no longer stands behind, in the same words on the
+ * certificate, the Show someone preview and the public check page (round 6). Facts only:
+ * what the lab did and when, and what is saved now. It never says the holder "kept" it:
+ * the holder may not have had the chance to do anything yet.
+ */
+const REPLACED_TAIL = 'The holder hasn’t saved the corrected one yet.';
+const WITHDRAWN_TAIL = 'It is still the file saved here; the lab no longer stands behind it.';
+
+/**
  * One plain sentence about the saved report, for the certificate and Show someone. Said
- * plainly when the breeder kept a report the lab replaced or withdrew.
+ * plainly when the lab replaced or withdrew the report that is saved.
  */
 export const savedReportSentence = (s: SavedReport): string => {
   switch (s.kind) {
@@ -158,9 +167,9 @@ export const savedReportSentence = (s: SavedReport): string => {
     case 'self':
       return 'A lab report file is saved to this plant. No lab signature matches it, so it is the holder’s own statement.';
     case 'replaced':
-      return `The lab report saved to this plant was replaced by the lab${s.at ? ` on ${day(s.at)}` : ''} with a corrected one${s.newer ? ', which is not saved yet' : ''}. The holder kept the old one saved.`;
+      return `The lab report saved to this plant was replaced by the lab${s.at ? ` on ${day(s.at)}` : ''} with a corrected one. ${REPLACED_TAIL}`;
     case 'withdrawn':
-      return `The lab report saved to this plant was withdrawn by the lab${s.at ? ` on ${day(s.at)}` : ''}. The holder kept it saved.`;
+      return `The lab report saved to this plant was withdrawn by the lab${s.at ? ` on ${day(s.at)}` : ''}. ${WITHDRAWN_TAIL}`;
   }
 };
 
@@ -187,42 +196,51 @@ const HEX64 = /^[0-9a-f]{64}$/;
  * counted: it says whether the saved file is that signed report, matched on the file's
  * SHA-256 (what a lab signs).
  *
- * Which file is saved comes from, in order: the registry's pairing fingerprint, when it
- * sends one (the page recomputes it from a signature's SHA-256 or the link's); else the
- * file SHA-256 the holder's link names (`rs`), as of when the link was made.
+ * Which file is saved comes from the registry, as it is now (round 6): its pairing
+ * fingerprint for the saved file, and the file's SHA-256 when the record keeps it. The page
+ * takes the SHA-256 whose pairing fingerprint it recomputes to the registry's, from the
+ * registry's SHA-256, the link's or a lab signature's. The link's SHA-256 (`rs`) is only a
+ * hint from when the link was made: never shown as current when the registry says another
+ * file is saved now. Only a registry too old to send the pairing leaves the link's word,
+ * and then the line says "as of when this link was made".
  */
 export const publicReportLine = (input: {
   paired: boolean | undefined;
   /** The file SHA-256 named in the link (`rs`), if any. */
   linkSha?: string | null;
-  /** The registry's pairing fingerprint for the saved file, if it sends one. */
+  /** The registry's pairing fingerprint for the file saved now, if it sends one. */
   pairingFingerprint?: string | null;
+  /** The registry's SHA-256 of the file saved now, if the record keeps it. */
+  fileSha?: string | null;
   atts: readonly ResolvedAttestation[];
   /** The link's fingerprint matches the registry's: checks may be ticked. */
   bound: boolean;
 }): { status: FactStatus; text: string } => {
   if (!input.paired) return { status: 'reported', text: 'The holder has not saved a lab report to this record.' };
   const reports = input.atts.filter((a) => a.type === 'laboratory-report' && a.signatureValid);
-  const linkSha = input.linkSha && HEX64.test(input.linkSha.toLowerCase()) ? input.linkSha.toLowerCase() : undefined;
-  const pfp = input.pairingFingerprint && HEX64.test(input.pairingFingerprint) ? input.pairingFingerprint : undefined;
+  const hex = (v?: string | null) => (v && HEX64.test(v.toLowerCase()) ? v.toLowerCase() : undefined);
+  const linkSha = hex(input.linkSha);
+  const pfp = hex(input.pairingFingerprint);
+  const regSha = hex(input.fileSha);
 
   let sha: string | undefined;
-  let source: 'registry' | 'link' | undefined;
-  let stale = false;
+  let fromLink = false;
   if (pfp) {
-    if (linkSha && pairingFingerprintOfSha(linkSha) === pfp) sha = linkSha;
-    else sha = reports.find((a) => pairingFingerprintOfSha(a.documentHash) === pfp)?.documentHash;
-    source = 'registry';
-    stale = !!linkSha && sha !== linkSha;
+    sha = [regSha, linkSha, ...reports.map((a) => a.documentHash.toLowerCase())].find(
+      (c) => c !== undefined && pairingFingerprintOfSha(c) === pfp,
+    );
   } else if (linkSha) {
     sha = linkSha;
-    source = 'link';
+    fromLink = true;
   }
-  const asOf = source === 'link' ? ' (as of when this link was made)' : '';
-  const staleNote = stale ? ' The holder has saved a different file since this link was made.' : '';
+  const stale = !!pfp && !!linkSha && pairingFingerprintOfSha(linkSha) !== pfp;
+  const asOf = fromLink ? ' (as of when this link was made)' : '';
+  const staleNote = stale
+    ? ' This link was made when a different file was saved; this line is about the one saved now.'
+    : '';
 
   if (sha) {
-    const matching = reports.filter((a) => a.documentHash === sha);
+    const matching = reports.filter((a) => a.documentHash.toLowerCase() === sha);
     const live = matching.find(countsAsSigned);
     if (live) {
       const l = signerLabel(live, 'signed by');
@@ -233,13 +251,14 @@ export const publicReportLine = (input: {
     }
     const gone = matching.find((a) => a.retraction);
     if (gone?.retraction) {
-      const on = gone.retraction.retractedAt.slice(0, 10);
+      const on = `${gone.retraction.retractedAt.slice(0, 10)} (UTC)`;
+      const which = `The lab report saved to this record${asOf} (SHA-256 ${shortHex(sha)})`;
       return {
         status: 'failed',
         text:
           gone.retraction.reason === 'superseded'
-            ? `The lab report the holder saved${asOf} (SHA-256 ${shortHex(sha)}) was replaced by its lab on ${on} (UTC): the lab withdrew its signature on it as replaced by a corrected one. The holder kept the old one saved.${staleNote}`
-            : `The lab report the holder saved${asOf} (SHA-256 ${shortHex(sha)}) was withdrawn by its lab on ${on} (UTC). The holder kept it saved.${staleNote}`,
+            ? `${which} was replaced by its lab on ${on} with a corrected one. ${REPLACED_TAIL}${staleNote}`
+            : `${which} was withdrawn by its lab on ${on}. ${WITHDRAWN_TAIL}${staleNote}`,
       };
     }
     return {
@@ -250,13 +269,49 @@ export const publicReportLine = (input: {
   if (pfp) {
     return {
       status: 'reported',
-      text: 'The holder saved a lab report file to this record. No lab signature on this record matches it, so it is the holder’s own statement.',
+      text: `The holder saved a lab report file to this record. No lab signature on this record matches it, so it is the holder’s own statement.${staleNote}`,
     };
   }
+  // A registry too old to say which file is saved, and a link that doesn't name it.
   return {
     status: 'reported',
     text: reports.some(countsAsSigned)
       ? 'The holder saved a lab report to this record. This link doesn’t name the file, so this page can’t tell whether it is the signed lab report listed above.'
-      : 'The holder saved a lab report to this record. No lab has signed a lab report about this record, so it is the holder’s own statement.',
+      : reports.length > 0
+        ? 'The holder saved a lab report to this record. This link doesn’t name the file, and every lab report signed about this record was withdrawn by its lab, so it is the holder’s own statement.'
+        : 'The holder saved a lab report to this record. No lab has signed a lab report about this record, so it is the holder’s own statement.',
   };
+};
+
+/** What a signature is, counted (one/many), for the withdrawn line. */
+const kindWords = (a: ResolvedAttestation, n: number): string =>
+  a.type === 'chain-of-custody'
+    ? n === 1
+      ? 'a lab’s receipt'
+      : `${n} lab receipts`
+    : a.type === 'laboratory-report'
+      ? n === 1
+        ? 'a lab report'
+        : `${n} lab reports`
+      : n === 1
+        ? 'a signed statement'
+        : `${n} signed statements`;
+
+/**
+ * The check page's line about withdrawn signatures, saying what each was (round 6), so it
+ * can be read beside the lab report line: "2 signatures were withdrawn… : 2 lab reports".
+ * Null when none was withdrawn.
+ */
+export const withdrawnSignaturesLine = (atts: readonly ResolvedAttestation[]): string | null => {
+  const gone = atts.filter((a) => a.signatureValid && a.retraction);
+  if (gone.length === 0) return null;
+  const groups = new Map<string, ResolvedAttestation[]>();
+  for (const a of gone) {
+    const k = a.type === 'chain-of-custody' || a.type === 'laboratory-report' ? a.type : 'other';
+    groups.set(k, [...(groups.get(k) ?? []), a]);
+  }
+  const what = [...groups.values()].map((g) => kindWords(g[0], g.length)).join(' and ');
+  return gone.length === 1
+    ? `One signature was withdrawn by its signer, so it is not counted: ${what}.`
+    : `${gone.length} signatures were withdrawn by their signers, so they are not counted: ${what}.`;
 };

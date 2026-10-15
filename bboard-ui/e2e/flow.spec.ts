@@ -35,8 +35,9 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   const holderErrors = watch(holder);
   await isolate(holder);
   await holder.goto('/records');
-  const role = holder.getByRole('button', { name: /I breed/i }).first();
-  if (await role.isVisible().catch(() => false)) await role.click();
+  // A fresh browser is asked who it is; the question can open a moment after the page, so
+  // wait for it rather than checking once (that raced and the dialog then blocked "Start").
+  await holder.getByRole('button', { name: /I breed or hold genetics/ }).click();
   await holder.getByText('Start', { exact: true }).click();
   const name = `E2E ${Date.now()}`;
   await holder.getByLabel(/Plant or line name/).fill(name);
@@ -149,6 +150,26 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
 test('a lab sends results back: signed by the lab, locked for the breeder, opened only by them', async ({
   browser,
 }) => {
+  /**
+   * Round 6: what a stranger's check page says about the saved lab report, opened from a
+   * link in a fresh browser. The page describes the file saved NOW (the registry's answer),
+   * whatever the link was made with.
+   */
+  const buyerLine = async (path: string, name: string) => {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    const errors = watch(page);
+    await isolate(page);
+    await page.goto(path);
+    await expect(page.getByText('Shared by the holder · reported by the registry')).toBeVisible();
+    // Wait for the signatures to be checked: the lab's receipt always has a line.
+    await expect(page.getByText(/Lab.s receipt for a sample, signature verified in this browser/)).toBeVisible();
+    const text = await page.locator('main').innerText();
+    await shot(page, name);
+    expectNoErrors(errors);
+    await ctx.close();
+    return text;
+  };
   const report = Buffer.concat([Buffer.from('%PDF-1.7\n'), Buffer.from(`E2E report ${Date.now()} markers A12 B7`)]);
 
   // The breeder logs a plant and sends it to a lab.
@@ -195,6 +216,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await lab.getByLabel(/I physically received this material/).check();
   await lab.getByRole('button', { name: /Sign with my key/ }).click();
   await expect(lab).toHaveURL(/\/record\//);
+  const labPlantUrl = new URL(lab.url()).pathname;
 
   // The lab sends the result back.
   await lab.getByRole('button', { name: /^Send results back to the breeder/ }).click();
@@ -252,6 +274,8 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   // Round 5: the download names its local time and the report's short id, shown on the list too.
   expect(dl.suggestedFilename()).toMatch(/^Lab report \d{4}-\d{2}-\d{2} \d{2}-\d{2} LR-[0-9A-F]{4}\.pdf$/);
   const shortId = /LR-[0-9A-F]{4}/.exec(dl.suggestedFilename())![0];
+  // Round 6: the list says what type the file is, worked out from its bytes.
+  await expect(breeder.getByText(/^PDF · file SHA-256 /)).toBeVisible();
   await expect(breeder.getByText(new RegExp(`From lab@e2e · ${shortId}`))).toBeVisible();
   await breeder.getByRole('button', { name: /Save it to this plant/ }).click();
   // Its own screen, with the file already chosen: one press saves it.
@@ -273,6 +297,13 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await breeder.getByRole('button', { name: /Get the link/ }).click();
   const shareLink = await breeder.locator('input[readonly]').first().inputValue();
   expect(shareLink).toContain(`rs=${reportSha}`);
+  // The link made now, kept for later (an "older link"), and the certificate's (fingerprint only).
+  const oldLink = new URL(shareLink).pathname + new URL(shareLink).search;
+  const certLink = `${new URL(shareLink).pathname}?fp=${new URL(shareLink).searchParams.get('fp')}`;
+  const correctedSha = createHash('sha256')
+    .update(Buffer.concat([report, Buffer.from(' corrected')]))
+    .digest('hex');
+  const shortOf = (h: string) => `${h.slice(0, 8)}…${h.slice(-6)}`;
   {
     const buyerCtx = await browser.newContext();
     const buyer = await buyerCtx.newPage();
@@ -317,6 +348,15 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
     'replaced by the lab — save the corrected one',
   );
   await shot(breeder, 'breeder-3-saved-replaced');
+  // Round 6: the older link, before the breeder has done anything: what the lab did, no intent.
+  {
+    const t = await buyerLine(oldLink, 'buyer-2-oldlink-replaced');
+    expect(t).toContain(
+      `The lab report saved to this record (SHA-256 ${shortOf(reportSha)}) was replaced by its lab on`,
+    );
+    expect(t).toContain('The holder hasn’t saved the corrected one yet.');
+    expect(t).not.toMatch(/kept|as of when this link was made/);
+  }
   // The backup comes first on this plant's next step, so the page also says it here.
   await expect(breeder.getByText(/The lab report saved to this plant was replaced by the lab/)).toBeVisible();
   await breeder
@@ -331,6 +371,14 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await expect(breeder.locator('[data-status-row="Lab report"]')).toContainText(
     'saved · matches the lab’s signed report',
   );
+  // Round 6: the older link (it names the first file) now describes the corrected one, saved now.
+  {
+    const t = await buyerLine(oldLink, 'buyer-3-oldlink-after-save');
+    expect(t).toContain(`Its file (SHA-256 ${shortOf(correctedSha)}) matches the lab report signed by`);
+    expect(t).toContain('This link was made when a different file was saved; this line is about the one saved now.');
+    expect(t).not.toMatch(/was replaced by its lab|kept|hasn’t saved/);
+    expect(t).toContain('One signature was withdrawn by its signer, so it is not counted: a lab report.');
+  }
 
   await lab.reload();
   await lab.getByRole('button', { name: /^Send results back to the breeder/ }).click();
@@ -347,6 +395,11 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await expect(lab.getByText('Replaced by your corrected file.')).toBeVisible();
   await expect(lab.getByText(/Not signed by the key in this browser/)).toHaveCount(0);
   await expect(lab.getByRole('button', { name: /^Withdraw$/ })).toHaveCount(0);
+  // Round 6: the lab's plant page says it was withdrawn, not "not yet", and still shows what was sent.
+  await lab.goto(labPlantUrl);
+  await expect(lab.locator('[data-status-row="Lab report"]')).toContainText('withdrawn (you can send a new one)');
+  await expect(lab.getByRole('button', { name: /See what you sent/ })).toBeVisible();
+  await shot(lab, 'lab-4-plant-after-withdraw');
   {
     const after = await fetch(`${API}/transfers/${transferId}/results`, {
       headers: { 'x-holder-key': await breeder.evaluate(() => localStorage.getItem('veilcore.holder.v1') ?? '') },
@@ -372,6 +425,24 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await breeder.getByText('Certificate', { exact: true }).click();
   await expect(breeder.locator('[data-saved-report="withdrawn"]')).toContainText('Withdrawn by the lab');
   await shot(breeder, 'breeder-5-certificate-withdrawn');
+  // Round 6: the certificate's link (fingerprint only) tells the same story as the certificate,
+  // and the withdrawn-signatures line agrees with it.
+  {
+    const t = await buyerLine(certLink, 'buyer-4-certlink-withdrawn');
+    expect(t).toContain(
+      `The lab report saved to this record (SHA-256 ${shortOf(correctedSha)}) was withdrawn by its lab on`,
+    );
+    expect(t).toContain('It is still the file saved here; the lab no longer stands behind it.');
+    expect(t).not.toMatch(/No lab has signed a lab report|kept/);
+    expect(t).toContain('2 signatures were withdrawn by their signers, so they are not counted: 2 lab reports.');
+  }
+  // The older link: the withdrawn correction, saved now, never the replaced first file.
+  {
+    const t = await buyerLine(oldLink, 'buyer-5-oldlink-withdrawn');
+    expect(t).toContain(`(SHA-256 ${shortOf(correctedSha)}) was withdrawn by its lab on`);
+    expect(t).not.toContain(shortOf(reportSha) + ') was replaced');
+    expect(t).not.toMatch(/kept/);
+  }
 
   expectNoErrors(breederErrors);
   expectNoErrors(labErrors);

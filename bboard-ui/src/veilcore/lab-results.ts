@@ -430,21 +430,157 @@ const pad = (n: number) => String(n).padStart(2, '0');
 /** A time on a lab report screen: local, with the zone's short name (time.ts). */
 export { localStamp } from './time';
 
+/** What kind of file a lab report is, worked out from its bytes once opened (round 6). */
+export type ReportFileType = {
+  /** The download's extension, without the dot. */
+  readonly ext: 'pdf' | 'png' | 'jpg' | 'xlsx' | 'docx' | 'pptx' | 'zip' | 'csv' | 'tsv' | 'txt' | 'bin';
+  /** Shown on the lab reports list: "PDF", "CSV"… */
+  readonly label: string;
+  /** For the download. */
+  readonly mime: string;
+};
+
+const TYPES: Record<ReportFileType['ext'], Omit<ReportFileType, 'ext'>> = {
+  pdf: { label: 'PDF', mime: 'application/pdf' },
+  png: { label: 'PNG image', mime: 'image/png' },
+  jpg: { label: 'JPEG image', mime: 'image/jpeg' },
+  xlsx: { label: 'Excel (XLSX)', mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
+  docx: { label: 'Word (DOCX)', mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
+  pptx: {
+    label: 'PowerPoint (PPTX)',
+    mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  },
+  zip: { label: 'ZIP', mime: 'application/zip' },
+  csv: { label: 'CSV', mime: 'text/csv' },
+  tsv: { label: 'TSV (tab-separated)', mime: 'text/tab-separated-values' },
+  txt: { label: 'Text', mime: 'text/plain' },
+  bin: { label: 'Unknown type', mime: 'application/octet-stream' },
+};
+const typeOf = (ext: ReportFileType['ext']): ReportFileType => ({ ext, ...TYPES[ext] });
+
+const u16 = (b: Uint8Array, i: number) => b[i] | (b[i + 1] << 8);
+const u32 = (b: Uint8Array, i: number) => (b[i] | (b[i + 1] << 8) | (b[i + 2] << 16)) + b[i + 3] * 0x1000000;
+const latin1 = (b: Uint8Array, from: number, len: number): string => {
+  const end = Math.min(b.length, from + len);
+  let out = '';
+  for (let i = from; i < end; i += 8192) out += String.fromCharCode(...b.subarray(i, Math.min(end, i + 8192)));
+  return out;
+};
+
+/**
+ * The names inside a ZIP file: from its central directory, or, if that can't be read (a
+ * cut-off file), from the local headers. At most 4,000; only names are read, nothing is
+ * unpacked.
+ */
+export const zipEntryNames = (b: Uint8Array): string[] => {
+  const names: string[] = [];
+  // The end-of-central-directory record: within the last 64 KiB + 22 bytes.
+  for (let i = b.length - 22; i >= Math.max(0, b.length - 65_557); i--) {
+    if (b[i] !== 0x50 || b[i + 1] !== 0x4b || b[i + 2] !== 0x05 || b[i + 3] !== 0x06) continue;
+    let p = u32(b, i + 16);
+    const count = u16(b, i + 10);
+    for (let n = 0; n < count && n < 4000 && p + 46 <= b.length; n++) {
+      if (u32(b, p) !== 0x02014b50) break;
+      const nameLen = u16(b, p + 28);
+      names.push(latin1(b, p + 46, nameLen));
+      p += 46 + nameLen + u16(b, p + 30) + u16(b, p + 32);
+    }
+    if (names.length) return names;
+    break;
+  }
+  for (let p = 0; p + 30 <= b.length && names.length < 4000; p++) {
+    if (b[p] === 0x50 && b[p + 1] === 0x4b && b[p + 2] === 0x03 && b[p + 3] === 0x04) {
+      const nameLen = u16(b, p + 26);
+      names.push(latin1(b, p + 30, nameLen));
+      p += 29 + nameLen;
+    }
+  }
+  return names;
+};
+
+/** Plain text, if these bytes read as text: UTF-8 (or Latin-1) with no control characters to speak of. */
+const asText = (bytes: Uint8Array): string | undefined => {
+  let b = bytes.subarray(0, 64 * 1024);
+  if (b.length === 0 || b.includes(0)) return undefined;
+  if (b[0] === 0xef && b[1] === 0xbb && b[2] === 0xbf) b = b.subarray(3);
+  let text: string | undefined;
+  // A sample cut inside a character: try again a byte or three shorter.
+  for (let cut = 0; cut <= 3 && text === undefined; cut++) {
+    if (cut > 0 && bytes.length <= 64 * 1024) break;
+    try {
+      text = new TextDecoder('utf-8', { fatal: true }).decode(b.subarray(0, b.length - cut));
+    } catch {
+      /* not UTF-8 (yet) */
+    }
+  }
+  text ??= latin1(b, 0, b.length);
+  let odd = 0;
+  for (const ch of text) {
+    const c = ch.codePointAt(0) ?? 0;
+    if ((c < 0x20 && c !== 0x09 && c !== 0x0a && c !== 0x0d && c !== 0x0c) || (c >= 0x7f && c < 0xa0)) odd++;
+  }
+  return text.trim().length > 0 && odd / text.length <= 0.02 ? text : undefined;
+};
+
+/** How many times `sep` splits a line, outside double quotes. */
+const fields = (line: string, sep: string): number => {
+  let n = 0;
+  let quoted = false;
+  for (const ch of line) {
+    if (ch === '"') quoted = !quoted;
+    else if (ch === sep && !quoted) n++;
+  }
+  return n;
+};
+
+/** Lines split the same way by `sep`: a table. Needs two lines or more. */
+const isTable = (lines: readonly string[], sep: string): boolean => {
+  if (lines.length < 2) return false;
+  const counts = lines.map((l) => fields(l, sep));
+  const withSep = counts.filter((c) => c > 0).length;
+  if (withSep / lines.length < 0.8) return false;
+  const tally = new Map<number, number>();
+  for (const c of counts) tally.set(c, (tally.get(c) ?? 0) + 1);
+  return Math.max(...tally.values()) / lines.length >= 0.8;
+};
+
+/**
+ * What kind of file a lab report is, from its bytes (round 6). Lab reports came back named
+ * ".bin" or ".zip" when they were a CSV or a spreadsheet, so they didn't open with a
+ * double-click. PDF; PNG and JPEG; ZIP-based files by what's inside (a spreadsheet, a Word
+ * document or a slide deck carry [Content_Types].xml and their own folder, anything else
+ * is a ZIP); text that splits into columns by commas or semicolons (CSV) or tabs (TSV), or
+ * other text; anything else is "Unknown type", saved as .bin.
+ */
+export const reportFileType = (bytes: Uint8Array): ReportFileType => {
+  const head = latin1(bytes, 0, 1024);
+  if (head.includes('%PDF-')) return typeOf('pdf');
+  if (head.startsWith('\x89PNG\r\n\x1a\n')) return typeOf('png');
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return typeOf('jpg');
+  if (head.startsWith('PK\x03\x04') || head.startsWith('PK\x05\x06')) {
+    const names = zipEntryNames(bytes);
+    if (names.includes('[Content_Types].xml')) {
+      if (names.some((n) => n.startsWith('xl/'))) return typeOf('xlsx');
+      if (names.some((n) => n.startsWith('word/'))) return typeOf('docx');
+      if (names.some((n) => n.startsWith('ppt/'))) return typeOf('pptx');
+    }
+    return typeOf('zip');
+  }
+  const text = asText(bytes);
+  if (text === undefined) return typeOf('bin');
+  const all = text.split(/\r\n|\n|\r/);
+  // A sample cut short may end mid-line: leave that line out.
+  const lines = (bytes.length > 64 * 1024 ? all.slice(0, -1) : all).filter((l) => l.trim() !== '').slice(0, 200);
+  if (isTable(lines, '\t')) return typeOf('tsv');
+  if (isTable(lines, ',') || isTable(lines, ';')) return typeOf('csv');
+  return typeOf('txt');
+};
+
 /** A downloaded lab report's name: local date, time and its short id, so two never share one. */
 export const reportFileName = (bytes: Uint8Array, at: number, resultId: string): string => {
-  const head = new TextDecoder().decode(bytes.slice(0, 8));
-  const ext = head.startsWith('%PDF')
-    ? 'pdf'
-    : bytes[0] === 0x89 && head.slice(1, 4) === 'PNG'
-      ? 'png'
-      : bytes[0] === 0xff && bytes[1] === 0xd8
-        ? 'jpg'
-        : head.startsWith('PK')
-          ? 'zip'
-          : 'bin';
   const d = new Date(at);
   const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}-${pad(d.getMinutes())}`;
-  return `Lab report ${stamp} ${shortResultId(resultId)}.${ext}`;
+  return `Lab report ${stamp} ${shortResultId(resultId)}.${reportFileType(bytes).ext}`;
 };
 
 /** Said before a lab withdraws a correction (round 5): nothing from it stands afterwards. */

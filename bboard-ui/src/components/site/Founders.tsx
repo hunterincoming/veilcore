@@ -56,13 +56,15 @@ const FOUNDERS: Founder[] = [
 ];
 
 export const Founders: React.FC = () => {
-  const { t } = useI18n();
+  const { t, sp } = useI18n();
   return (
     <SiteShell>
       <header className="wrap page">
         <div className="label">{t('m.founders.label')}</div>
         <h1>
-          {t('m.team.title1')} <em>{t('m.team.title2')}</em>
+          {t('m.team.title1')}
+          {sp}
+          <em>{t('m.team.title2')}</em>
         </h1>
         <p>{t('m.founders.lede')}</p>
       </header>
@@ -130,7 +132,11 @@ export const Founders: React.FC = () => {
         <div className="wrap">
           <div className="label">{t('m.contact.label')}</div>
           <h2 id="founders-contact">
-            {t('m.founders.band1')} <em>{t('m.founders.band2')}</em> {t('m.founders.band3')}
+            {t('m.founders.band1')}
+            {sp}
+            <em>{t('m.founders.band2')}</em>
+            {sp}
+            {t('m.founders.band3')}
           </h2>
           <p>{t('m.founders.bandText')}</p>
           <div className="contact">
@@ -152,7 +158,7 @@ export const Founders: React.FC = () => {
 
 /** /verify with no identifier: ask for one, then open /verify/:id. */
 export const VerifyLookup: React.FC = () => {
-  const { t } = useI18n();
+  const { t, sp } = useI18n();
   const navigate = useNavigate();
   const [id, setId] = React.useState('');
   const go = (e: React.FormEvent) => {
@@ -167,7 +173,9 @@ export const VerifyLookup: React.FC = () => {
         <h1>{t('m.verify.title')}</h1>
         <p>{t('m.verify.lede')}</p>
         <p className="verify-what">
-          {t('m.verify.what')} <RouterLink to="/">{t('m.verify.home')}</RouterLink>
+          {t('m.verify.what')}
+          {sp}
+          <RouterLink to="/">{t('m.verify.home')}</RouterLink>
         </p>
         <form className="lookup" onSubmit={go}>
           <div className="field">

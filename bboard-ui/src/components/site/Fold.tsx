@@ -11,6 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useId, useRef, useState } from 'react';
+import { useI18n } from '../../i18n';
 
 const PHONE = '(max-width: 599.98px)';
 
@@ -121,6 +122,7 @@ export const FoldItem: React.FC<{
   className?: string;
   children: React.ReactNode;
 }> = ({ lead, mode = 'clamp', tag = 'li', className, children }) => {
+  const { sp } = useI18n();
   const phone = usePhone();
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -128,7 +130,9 @@ export const FoldItem: React.FC<{
   if (!phone)
     return (
       <Tag className={className}>
-        <strong>{lead}</strong> {children}
+        <strong>{lead}</strong>
+        {sp}
+        {children}
       </Tag>
     );
   return (

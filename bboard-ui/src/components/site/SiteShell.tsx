@@ -36,7 +36,7 @@ const Section: React.FC<{ id: string; className?: string; children: React.ReactN
 };
 
 export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   const menuBtn = useRef<HTMLButtonElement>(null);
@@ -54,7 +54,8 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
   // The language picker and the draft banner are MUI parts: give them the light theme too.
   return (
     <ThemeProvider theme={lightTheme}>
-      <div className="vcm">
+      {/* lang here as well as on <html>: site.css sets Japanese line breaking with :lang(ja). */}
+      <div className="vcm" lang={lang}>
         <nav className="top" aria-label="Main">
           <div className="nav-in">
             <RouterLink className="brand" to="/">

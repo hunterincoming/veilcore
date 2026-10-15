@@ -16,9 +16,9 @@ import type { BreederReceipt, LabReceipt } from '../../veilcore/custody';
 import { signerLabel } from '../../veilcore/attesters';
 import type { ArrivedResult } from './LabResults';
 import { savedReportRow, type SavedReport } from '../../veilcore/saved-report';
-import { keyStampLine, labReceiptRow } from './plant-status-words';
+import { keyStampLine, labReceiptRow, labSentRow } from './plant-status-words';
 
-export { keyStampLine, labReceiptRow };
+export { keyStampLine, labReceiptRow, labSentRow };
 
 const day = (ms?: number | string) => (ms === undefined ? '' : new Date(ms).toLocaleDateString());
 
@@ -100,9 +100,11 @@ export const PlantStatus: React.FC<{
   receipt?: BreederReceipt | LabReceipt | null;
   /** The lab's: lab reports it sent on this delivery that still stand. */
   labSent?: number;
+  /** The lab's: every lab report it sent on this delivery, withdrawn ones too. */
+  labSentEver?: number;
   /** The breeder's: where the lab report saved to this plant stands (null while loading). */
   saved?: SavedReport | null;
-}> = ({ record, keys, arrived, waiting, receipt, labSent, saved }) => {
+}> = ({ record, keys, arrived, waiting, receipt, labSent, labSentEver, saved }) => {
   const [proof, setProof] = useState<ProofState>({ status: 'none' });
   useEffect(() => {
     if (record.recordFingerprint) void proofFor(record.recordFingerprint).then(setProof);
@@ -133,13 +135,7 @@ export const PlantStatus: React.FC<{
       : breederReceiptRow(receipt as BreederReceipt | null | undefined),
     ...(received
       ? LAB_RESULTS_ENABLED
-        ? [
-            {
-              done: (labSent ?? 0) > 0,
-              label: 'Lab report sent',
-              value: labSent === undefined ? 'checking…' : labSent > 0 ? `${labSent} sent` : 'not yet',
-            },
-          ]
+        ? [labSentRow(labSent, labSentEver)]
         : []
       : [{ label: 'Lab report', ...reportRow(record, arrived, waiting, saved) }]),
     ...(REAL_CHAIN && keys

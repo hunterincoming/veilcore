@@ -401,6 +401,7 @@ export const de: Strings = {
   'm.open.6link': 'Spezifikation lesen →',
   'm.updates.older': 'Ältere Neuigkeiten',
   'm.live.colTestNote': '(geht diese Woche online)',
+  'm.live.colTestHere': 'Diese Test-Website (test.veilcore.org)',
   'm.live.feature': 'Funktion',
   'm.live.show': 'Liste anzeigen',
   'm.tech.title': 'Für technisch Interessierte',

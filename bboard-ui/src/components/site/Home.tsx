@@ -24,7 +24,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { computeCommitment, newNonce } from 'veilcore-records';
-import { useI18n } from '../../i18n';
+import { IS_TEST_SITE, useI18n } from '../../i18n';
 import { FOUNDERS_MAIL, SDK_REPO, SiteShell, X_HANDLE } from './SiteShell';
 import { FoldGroup, FoldItem, FoldPoint, usePhone } from './Fold';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
@@ -223,7 +223,7 @@ const LIVE_ROWS = [
 ] as const;
 
 const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
-  const { t } = useI18n();
+  const { t, sp } = useI18n();
   const cols = [
     ['main', 'chip live', t('m.live.colMain')],
     ['test', 'chip', t('m.live.colTest')],
@@ -238,10 +238,18 @@ const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
           </th>
           <th scope="col">{t('m.live.colMain')}</th>
           <th scope="col">
-            <a href={TEST_SITE_URL} rel="noopener noreferrer" target="_blank">
-              {t('m.live.colTest')}
-            </a>{' '}
-            <span className="soon">{t('m.live.colTestNote')}</span>
+            {/* On the test site itself, a link to itself and "going live this week" read oddly. */}
+            {IS_TEST_SITE ? (
+              t('m.live.colTestHere')
+            ) : (
+              <>
+                <a href={TEST_SITE_URL} rel="noopener noreferrer" target="_blank">
+                  {t('m.live.colTest')}
+                </a>
+                {sp}
+                <span className="soon">{t('m.live.colTestNote')}</span>
+              </>
+            )}
           </th>
           <th scope="col">{t('m.live.colNot')}</th>
         </tr>
@@ -269,7 +277,9 @@ const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
   return (
     <div className="live-where" id="live">
       <h3 className="sub-h">
-        {t('m.live.title1')} <em>{t('m.live.title2')}</em>
+        {t('m.live.title1')}
+        {sp}
+        <em>{t('m.live.title2')}</em>
       </h3>
       <p className="lede">{t('m.live.lede')}</p>
       {/* On a phone the list stays one tap away, so the page reads in a few minutes. */}
@@ -287,7 +297,7 @@ const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
 
 /** Everything a technical reader wants, in one block that stays closed until asked for. */
 const Technical: React.FC = () => {
-  const { t } = useI18n();
+  const { t, sp } = useI18n();
   return (
     <section id="technical">
       <div className="wrap">
@@ -299,13 +309,17 @@ const Technical: React.FC = () => {
             <div className="pt">
               <h3>{t('m.tech.check.t')}</h3>
               <p>
-                {t('m.tech.check.p')} <RouterLink to="/docs/spec">{t('m.open.6link')}</RouterLink>
+                {t('m.tech.check.p')}
+                {sp}
+                <RouterLink to="/docs/spec">{t('m.open.6link')}</RouterLink>
               </p>
             </div>
             <div className="pt">
               <h3>{t('m.tech.impl.t')}</h3>
               <p>
-                {t('m.tech.impl.p')} <RouterLink to="/implementations">{t('m.open.1link')}</RouterLink>
+                {t('m.tech.impl.p')}
+                {sp}
+                <RouterLink to="/implementations">{t('m.open.1link')}</RouterLink>
               </p>
             </div>
             <div className="pt">
@@ -323,7 +337,8 @@ const Technical: React.FC = () => {
             <div className="pt wide">
               <h3>{t('m.status.keyTitle')}</h3>
               <p>
-                {t('m.status.keyText')}{' '}
+                {t('m.status.keyText')}
+                {sp}
                 <a
                   href={`${TESTNET_REPO}/blob/main/docs/maintenance-policy.md`}
                   rel="noopener noreferrer"
@@ -342,7 +357,7 @@ const Technical: React.FC = () => {
 };
 
 export const Home: React.FC = () => {
-  const { t, lang } = useI18n();
+  const { t, lang, sp } = useI18n();
   const { hash } = useLocation();
   const [showVideo, setShowVideo] = useState(false);
   const phone = usePhone();
@@ -377,7 +392,9 @@ export const Home: React.FC = () => {
         <div className="hero-text">
           <div className="label">{t('m.hero.label')}</div>
           <h1>
-            {t('m.hero.title1')} <em>{t('m.hero.title2')}</em>
+            {t('m.hero.title1')}
+            {sp}
+            <em>{t('m.hero.title2')}</em>
           </h1>
           <p className="lede">{t('m.hero.lede')}</p>
           <div className="hero-actions">
@@ -397,7 +414,9 @@ export const Home: React.FC = () => {
         <div className="wrap">
           <div className="label">{t('m.for.label')}</div>
           <h2 className="wide">
-            {t('m.for.title1')} <em>{t('m.for.title2')}</em>
+            {t('m.for.title1')}
+            {sp}
+            <em>{t('m.for.title2')}</em>
           </h2>
           <p className="lede">{t('m.for.lede')}</p>
           <div className="points three">
@@ -405,7 +424,9 @@ export const Home: React.FC = () => {
               {t('m.for.1p')}
             </FoldPoint>
             <FoldPoint mode="hide" title={t('m.for.2t')}>
-              {t('m.for.2p')} <a href="#claims">{t('m.for.2link')}</a>
+              {t('m.for.2p')}
+              {sp}
+              <a href="#claims">{t('m.for.2link')}</a>
             </FoldPoint>
             <FoldPoint mode="hide" title={t('m.for.3t')}>
               {t('m.for.3p')}
@@ -417,7 +438,8 @@ export const Home: React.FC = () => {
               {t('m.for.6p')}
             </FoldPoint>
             <FoldPoint mode="hide" title={t('m.for.5t')}>
-              {t('m.for.5p')}{' '}
+              {t('m.for.5p')}
+              {sp}
               <a href={`${FOUNDERS_MAIL}&subject=${encodeURIComponent('Animal records')}`}>{t('m.for.5ask')}</a>
             </FoldPoint>
           </div>
@@ -428,7 +450,9 @@ export const Home: React.FC = () => {
         <div className="wrap">
           <div className="label">{t('m.how.label')}</div>
           <h2>
-            {t('m.how.title1')} <em>{t('m.how.title2')}</em>
+            {t('m.how.title1')}
+            {sp}
+            <em>{t('m.how.title2')}</em>
           </h2>
           <div className="steps">
             {(['1', '2', '3', '4'] as const).map((n) => (
@@ -446,7 +470,9 @@ export const Home: React.FC = () => {
         <div className="wrap">
           <div className="label">{t('m.claims.label')}</div>
           <h2>
-            {t('m.claims.title1')} <em>{t('m.claims.title2')}</em>
+            {t('m.claims.title1')}
+            {sp}
+            <em>{t('m.claims.title2')}</em>
           </h2>
           <p className="lede">{t('m.claims.lede')}</p>
           <div className="claims">
@@ -473,7 +499,9 @@ export const Home: React.FC = () => {
         <div className="wrap">
           <div className="label">{t('m.get.label')}</div>
           <h2>
-            {t('m.get.title1')} <em>{t('m.get.title2')}</em>
+            {t('m.get.title1')}
+            {sp}
+            <em>{t('m.get.title2')}</em>
           </h2>
           <div className="isnt">
             <div className="y">
@@ -506,7 +534,9 @@ export const Home: React.FC = () => {
         <div className="wrap">
           <div className="label">{t('m.open.label')}</div>
           <h2>
-            {t('m.open.title1')} <em>{t('m.open.title2')}</em>
+            {t('m.open.title1')}
+            {sp}
+            <em>{t('m.open.title2')}</em>
           </h2>
           <div className="points">
             <FoldPoint mode="clamp" title={t('m.open.1t')}>
@@ -516,7 +546,9 @@ export const Home: React.FC = () => {
               {t('m.open.2p')}
             </FoldPoint>
             <FoldPoint mode="clamp" title={t('m.open.6t')}>
-              {t('m.open.6p')} <RouterLink to="/docs/spec">{t('m.open.6link')}</RouterLink>
+              {t('m.open.6p')}
+              {sp}
+              <RouterLink to="/docs/spec">{t('m.open.6link')}</RouterLink>
             </FoldPoint>
             <FoldPoint mode="clamp" title={t('m.open.4t')}>
               {t('m.open.4p')}
@@ -529,7 +561,9 @@ export const Home: React.FC = () => {
         <div className="wrap">
           <div className="label">{t('m.faq.label')}</div>
           <h2>
-            {t('m.faq.title1')} <em>{t('m.faq.title2')}</em>
+            {t('m.faq.title1')}
+            {sp}
+            <em>{t('m.faq.title2')}</em>
           </h2>
           <div className="faq">
             <details>
@@ -543,13 +577,17 @@ export const Home: React.FC = () => {
             <details>
               <summary>{t('m.faq.3q')}</summary>
               <p>
-                {t('m.faq.3a')} <RouterLink to="/docs/evidence">{t('m.faq.3link')}</RouterLink>
+                {t('m.faq.3a')}
+                {sp}
+                <RouterLink to="/docs/evidence">{t('m.faq.3link')}</RouterLink>
               </p>
             </details>
             <details>
               <summary>{t('m.faq.4q')}</summary>
               <p>
-                {t('m.faq.4a')} <RouterLink to="/privacy">{t('m.faq.4link1')}</RouterLink>{' '}
+                {t('m.faq.4a')}
+                {sp}
+                <RouterLink to="/privacy">{t('m.faq.4link1')}</RouterLink>{' '}
                 <RouterLink to="/docs/integrate">{t('m.faq.4link2')}</RouterLink>
               </p>
             </details>
@@ -565,10 +603,13 @@ export const Home: React.FC = () => {
         <div className="wrap">
           <div className="label">{t('m.demo.label')}</div>
           <h2>
-            {t('m.demo.title1')} <em>{t('m.demo.title2')}</em>
+            {t('m.demo.title1')}
+            {sp}
+            <em>{t('m.demo.title2')}</em>
           </h2>
           <p className="lede">
-            {t('m.demo.lede')}{' '}
+            {t('m.demo.lede')}
+            {sp}
             <RouterLink to="/privacy" className="inline">
               {t('m.demo.privacy')}
             </RouterLink>
@@ -643,7 +684,9 @@ export const Home: React.FC = () => {
         <div className="wrap">
           <div className="label">{t('m.status.label')}</div>
           <h2>
-            {t('m.status.title1')} <em>{t('m.status.title2')}</em>
+            {t('m.status.title1')}
+            {sp}
+            <em>{t('m.status.title2')}</em>
           </h2>
           <p className="lede">{t('m.status.lede')}</p>
           <div className="status three">
@@ -668,7 +711,9 @@ export const Home: React.FC = () => {
         <div className="wrap">
           <div className="label">{t('m.updates.label')}</div>
           <h2>
-            {t('m.updates.title1')} <em>{t('m.updates.title2')}</em>
+            {t('m.updates.title1')}
+            {sp}
+            <em>{t('m.updates.title2')}</em>
           </h2>
           {phone ? (
             <div className="posts">
@@ -711,7 +756,9 @@ export const Home: React.FC = () => {
         <div className="wrap">
           <div className="label">{t('m.contact.label')}</div>
           <h2>
-            {t('m.contact.title1')} <em>{t('m.contact.title2')}</em>
+            {t('m.contact.title1')}
+            {sp}
+            <em>{t('m.contact.title2')}</em>
           </h2>
           <dl className="audiences two">
             <div>
@@ -757,7 +804,12 @@ export const Home: React.FC = () => {
               </dd>
             </div>
           </dl>
-          <div className="team-row" id="team" role="group" aria-label={`${t('m.team.title1')} ${t('m.team.title2')}`}>
+          <div
+            className="team-row"
+            id="team"
+            role="group"
+            aria-label={`${t('m.team.title1')}${sp}${t('m.team.title2')}`}
+          >
             <div className="team">
               {(
                 [

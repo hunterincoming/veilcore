@@ -2238,3 +2238,115 @@ html:has(.vcm) {
     padding: 18px 0;
   }
 }
+
+/* ------------------------------------------------------------------ Japanese
+   Japanese puts no spaces between words, so a browser may break a line anywhere, even
+   inside a word ("デ／ータ"). Headings and other short lines break between phrases instead
+   (word-break: auto-phrase, Chromium 119 and later). Where that isn't supported, keep-all
+   keeps runs of text together and breaks at punctuation, and overflow-wrap: anywhere
+   breaks a run only when it would not fit otherwise. Body text keeps the ordinary Japanese
+   rules, where breaking between any two characters is normal.
+   The headings' tight tracking, short line height and width in `ch` are set for Space
+   Grotesk, which has no Japanese: Japanese headings get the system font's own spacing
+   and a width in `em` (one character each). Applies wherever lang="ja" (SiteShell). */
+.vcm:lang(ja)
+  :is(
+    h1,
+    h2,
+    h3,
+    h4,
+    summary,
+    dt,
+    th,
+    .label,
+    .btn,
+    .chip,
+    .nav-links a,
+    .menu-btn,
+    .foot h3,
+    .foot li,
+    .fine,
+    .fold-btn,
+    .stat b,
+    .role,
+    .more,
+    .go,
+    .tag,
+    .soon,
+    .note-short,
+    .hd-zone,
+    .claim-list strong,
+    .isnt strong
+  ) {
+  line-break: strict;
+  word-break: auto-phrase;
+}
+@supports not (word-break: auto-phrase) {
+  .vcm:lang(ja)
+    :is(
+      h1,
+      h2,
+      h3,
+      h4,
+      summary,
+      dt,
+      th,
+      .label,
+      .btn,
+      .chip,
+      .nav-links a,
+      .menu-btn,
+      .foot h3,
+      .foot li,
+      .fine,
+      .fold-btn,
+      .stat b,
+      .role,
+      .more,
+      .go,
+      .tag,
+      .soon,
+      .note-short,
+      .hd-zone,
+      .claim-list strong,
+      .isnt strong
+    ) {
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+}
+.vcm:lang(ja) :is(h1, h2, h3, h4) {
+  letter-spacing: 0;
+}
+.vcm:lang(ja) h2,
+.vcm:lang(ja) main:has(> header.hero) > section h2 {
+  line-height: 1.4;
+  max-width: 21em;
+}
+.vcm:lang(ja) h3.sub-h {
+  line-height: 1.4;
+  max-width: 24em;
+}
+.vcm:lang(ja) header.page h1 {
+  font-size: clamp(1.875rem, 4.4vw, 3.25rem);
+  line-height: 1.3;
+  max-width: 14em;
+}
+/* The status tiles' headline is sized for a short English word; in three columns a
+   Japanese phrase such as テストサイト doesn't fit at that size. Phones keep their own. */
+@media (min-width: 600px) {
+  .vcm:lang(ja) .stat b {
+    font-size: clamp(1.125rem, 2vw, 1.625rem);
+    line-height: 1.3;
+    letter-spacing: 0;
+  }
+}
+/* Phones run each step's title into its text with an English full stop: a Japanese one. */
+@media (max-width: 599.98px) {
+  .vcm:lang(ja) .step h3::after {
+    content: '。';
+  }
+  .vcm:lang(ja) .step p {
+    margin-left: 0;
+  }
+}

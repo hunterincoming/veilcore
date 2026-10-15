@@ -324,6 +324,8 @@ export const en = {
   'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Not yet',
   'm.live.colTestNote': '(going live this week)',
+  // The same column's heading on the test site itself (no link to itself, no "going live").
+  'm.live.colTestHere': 'This test site (test.veilcore.org)',
   'm.live.feature': 'Feature',
   'm.live.show': 'Show the list',
   'm.live.stamp.t': 'A date stamp for your record',

@@ -34,7 +34,7 @@ import { attestationsFor, countsAsSigned, signerLabel, type ResolvedAttestation 
 import { ACCENT } from '../config/theme';
 import { NETWORK, isTestNetwork, networkLabel } from '../config/network';
 import { Fact, FactKey, SharedFacts } from '../components/verify/DisclosedFacts';
-import { publicReportLine } from '../veilcore/saved-report';
+import { publicReportLine, withdrawnSignaturesLine } from '../veilcore/saved-report';
 import { bindingOf, checkedSummary, linkFingerprint, verifyHeading } from '../veilcore/verify-link';
 import { displayName } from '../veilcore/display-name';
 import { utcStamp as fmt } from '../veilcore/time';
@@ -108,6 +108,8 @@ type VerifyResult = {
    * the holder shares whether one is saved and the registry sends it. Not the file's SHA-256.
    */
   dnaPairingFingerprint?: string | null;
+  /** The saved lab report file's SHA-256, as it is now, when the record keeps it (round 6). */
+  dnaFileSha256?: string | null;
 };
 
 /**
@@ -150,7 +152,8 @@ const isVerifyResult = (v: unknown): v is VerifyResult => {
     str(r.lineageNote) &&
     str(r.unavailableReason) &&
     bool(r.keyBound) &&
-    str(r.dnaPairingFingerprint)
+    str(r.dnaPairingFingerprint) &&
+    str(r.dnaFileSha256)
   );
 };
 
@@ -270,12 +273,15 @@ export const VerifyPage: React.FC = () => {
   const signed = (atts ?? []).filter(countsAsSigned);
   // Round 5: what each signature is, said on its own line and counted the same way in the
   // footer: a lab's receipt, a lab report, or some other signed statement.
-  const withdrawnSigs = (atts ?? []).filter((a) => a.signatureValid && a.retraction).length;
+  const withdrawnLine = withdrawnSignaturesLine(atts ?? []);
   const badSigs = (atts ?? []).filter((a) => !a.signatureValid).length;
+  // Round 6: which file is saved comes from the registry as it is now; the link's `rs` is
+  // only a hint from when the link was made (saved-report.ts publicReportLine).
   const labReport = publicReportLine({
     paired: result?.dnaPairedByHolder,
     linkSha: params.get('rs'),
     pairingFingerprint: result?.dnaPairingFingerprint,
+    fileSha: result?.dnaFileSha256,
     atts: atts ?? [],
     bound,
   });
@@ -529,13 +535,7 @@ export const VerifyPage: React.FC = () => {
                     ) : (
                       <Fact ok={false}>No lab&apos;s receipt or lab report has been signed about this record.</Fact>
                     ))}
-                  {withdrawnSigs > 0 && (
-                    <Fact ok={false}>
-                      {withdrawnSigs === 1
-                        ? 'One signature was withdrawn by its signer, so it is not counted.'
-                        : `${withdrawnSigs} signatures were withdrawn by their signers, so they are not counted.`}
-                    </Fact>
-                  )}
+                  {withdrawnLine && <Fact ok={false}>{withdrawnLine}</Fact>}
                   {badSigs > 0 && (
                     <Fact status="failed">
                       {badSigs === 1

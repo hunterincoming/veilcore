@@ -10,7 +10,7 @@ Version 0.1 - August 2026, revised 14 October 2026 (section 3.6.1: a record that
 
 This is a draft specification, published for comment. It describes a record format and a verification procedure. It is not a description of a product.
 
-**The format is open.** Anyone may implement it. There is no licence fee, no certification requirement, and no dependency on any company for the format to function. Three implementations - in TypeScript, Python and Rust - pass the same 101 conformance vectors. All three have the same author, so they show the vectors hold across languages, not that a third party can implement the format from this document alone. An implementation by an unrelated party is the test this document most needs. The vectors cover canonicalisation, commitment computation, inclusion proofs, rejections, attestation payloads, field sets and (since October 2026) the report pairing of section 3.7; corrections and resolution are implemented in the reference implementation and are not yet part of the vector set.
+**The format is open.** Anyone may implement it. There is no license fee, no certification requirement, and no dependency on any company for the format to function. Three implementations - in TypeScript, Python and Rust - pass the same 101 conformance vectors. All three have the same author, so they show the vectors hold across languages, not that a third party can implement the format from this document alone. An implementation by an unrelated party is the test this document most needs. The vectors cover canonicalisation, commitment computation, inclusion proofs, rejections, attestation payloads, field sets and (since October 2026) the report pairing of section 3.7; corrections and resolution are implemented in the reference implementation and are not yet part of the vector set.
 
 **Verification is free and requires no account, permanently.** This is a design constraint rather than a pricing decision: a record whose verification can be withheld is not evidence.
 
@@ -129,9 +129,9 @@ The instruction is recorded. Performance is not: nothing in this format moves fu
 
 ### 3.6 Ledger identity
 
-A ledger contract may keep licences, lineage and obligations under an identity of its own, separate from the record's content commitment (VeilCore on Midnight does: the identity is a commitment to a secret only the holder knows, and it survives key changes). Fields: `chain`, `identity` (64 lowercase hex characters), and optionally `contractAddress` (64 lowercase hex characters).
+A ledger contract may keep licenses, lineage and obligations under an identity of its own, separate from the record's content commitment (VeilCore on Midnight does: the identity is a commitment to a secret only the holder knows, and it survives key changes). Fields: `chain`, `identity` (64 lowercase hex characters), and optionally `contractAddress` (64 lowercase hex characters).
 
-**`ledgerIdentity` is committed.** It binds the record's content to that identity: anyone shown the record learns which identity speaks for it, and only the holder of that identity can act for it on the ledger. Without it, the link between a record's content and its ledger identity is the holder's statement, and a holder could point one identity's licences at a different record.
+**`ledgerIdentity` is committed.** It binds the record's content to that identity: anyone shown the record learns which identity speaks for it, and only the holder of that identity can act for it on the ledger. Without it, the link between a record's content and its ledger identity is the holder's statement, and a holder could point one identity's licenses at a different record.
 
 The identity's own anchor date says nothing about who holds the record now, or about this record's content. A record can change hands through a key rotation or a recovery, which on the ledger looks the same as a holder replacing their own key; and the content is dated only by its own commitment's anchor.
 
@@ -609,7 +609,7 @@ Recorded because they explain choices that would otherwise look arbitrary, and b
 
 **Verification is free and requires no account, permanently.** A record whose verification can be withheld is not evidence. Fees may attach to creating a record; never to checking one.
 
-**The format itself is free to implement, permanently.** There is no licence fee for using this specification and no permission required. Certification that an implementation is conformant would be a separate service that anyone could offer; none is offered today. The conformance vectors are published, so any party can test any implementation without asking. A format that charges for its own use does not become infrastructure.
+**The format itself is free to implement, permanently.** There is no license fee for using this specification and no permission required. Certification that an implementation is conformant would be a separate service that anyone could offer; none is offered today. The conformance vectors are published, so any party can test any implementation without asking. A format that charges for its own use does not become infrastructure.
 
 **The subject never leaves the holder.** Only commitments and document hashes are published.
 

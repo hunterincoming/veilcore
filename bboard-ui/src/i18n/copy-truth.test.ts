@@ -20,6 +20,10 @@
 //     own declaration; the Bitcoin stamp file is described the way the plant page really
 //     offers it (or doesn't); the test site is named and linked; the privacy note's
 //     "everything we hold" download matches what the site really has.
+//   - (round 6) the test site's own column reads "This test site (test.veilcore.org)";
+//     US spelling only ("license"); Japanese: headings join without a stray space and
+//     break between phrases, one term per idea, and a Japanese mainnet overlay so the
+//     mainnet site in Japanese is not half English.
 // Run: npx vitest run src/i18n/copy-truth.test.ts
 // SPDX-License-Identifier: Apache-2.0
 
@@ -31,6 +35,7 @@ import { en, type StringKey } from './en';
 import { mainnetStrings, DATED_POSTS } from './en-mainnet';
 import { testchainStrings } from './en-testchain';
 import { networkOverlay, LANGUAGES, type Lang } from './index';
+import { ja, jaMainnet, jaTestchain } from './ja';
 import { labResultsEnabledFor } from '../config/network';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -361,6 +366,20 @@ describe("what's live where", () => {
     // Until it is actually live.
     expect(en['m.live.colTestNote']).toBe('(going live this week)');
   });
+  it('on the test site itself, the column is "This test site", with no link to itself (round 6)', () => {
+    expect(en['m.live.colTestHere']).toBe('This test site (test.veilcore.org)');
+    // The test site shows colTestHere; every other build the link and "(going live this week)".
+    const th = home.match(/\{IS_TEST_SITE \? \(([\s\S]*?)\) : \(([\s\S]*?)\)\}\s*<\/th>/);
+    expect(th, 'the test column heading branches on IS_TEST_SITE').toBeTruthy();
+    expect(th?.[1]).toContain("t('m.live.colTestHere')");
+    expect(th?.[1]).not.toMatch(/TEST_SITE_URL|colTestNote/);
+    expect(th?.[2]).toMatch(/<a href=\{TEST_SITE_URL\}[\s\S]*m\.live\.colTest'[\s\S]*m\.live\.colTestNote/);
+    // IS_TEST_SITE is the same test as the one that picks en-testchain.ts.
+    expect(fs.readFileSync(path.join(HERE, 'index.tsx'), 'utf8')).toMatch(
+      /export const IS_TEST_SITE = THIS_BUILD\.realChain;/,
+    );
+    expect(ja['m.live.colTestHere']).toBe('このテストサイト（test.veilcore.org）');
+  });
   it('shows on the mainnet site too, so it carries no test-network or demo wording', () => {
     const shown = Object.entries(en).filter(([k]) => /^m\.(live|postA|postB)\./.test(k));
     for (const [k, v] of shown) {
@@ -439,6 +458,94 @@ describe('round 3: what a page may claim', () => {
     // (labResultsEnabledFor in config/network.ts, builder F's flag.)
     expect(labResultsEnabledFor('mainnet')).toBe(false);
     expect(labResultsEnabledFor('preprod')).toBe(true);
+  });
+});
+
+describe('US spelling (round 6)', () => {
+  it('"license", never "licence", in every English the site shows', () => {
+    const files = ['en.ts', 'en-mainnet.ts', 'en-testchain.ts'].map((f) => fs.readFileSync(path.join(HERE, f), 'utf8'));
+    for (const f of files) expect(f).not.toMatch(/licenc/i);
+    for (const s of ALL_ENGLISH) expect(offenders(s, /licenc/i)).toEqual([]);
+  });
+});
+
+describe('Japanese (round 6)', () => {
+  const FLAGS = [true, false].flatMap((claimsOnMainnet) =>
+    [true, false].map((policyApproved) => ({ claimsOnMainnet, policyApproved })),
+  );
+  /** The Japanese page as each build shows it. */
+  const jaOn = (build: typeof MAINNET) => ({ ...ja, ...networkOverlay(build, 'ja') }) as Record<string, string>;
+  const jaMainnetSites = FLAGS.map((f) => jaOn({ ...MAINNET, ...f }));
+  const jaSites = [ja as Record<string, string>, jaOn(TEST_SITE), ...jaMainnetSites];
+
+  it('headings in two halves join with a space only in languages that use spaces', () => {
+    expect(LANGUAGES.ja.spaces).toBe(false);
+    for (const l of ['en', 'de', 'fr', 'es'] as Lang[]) expect(LANGUAGES[l].spaces, l).toBe(true);
+    // No language without spaces other than Japanese (Chinese would need the same).
+    expect(Object.keys(LANGUAGES).sort()).toEqual(['de', 'en', 'es', 'fr', 'ja']);
+    for (const f of ['Home.tsx', 'Founders.tsx', 'Fold.tsx']) {
+      const src = fs.readFileSync(path.join(SRC, 'components/site', f), 'utf8');
+      // `{t('…')} <em>` or `</strong> {children}` would put an ASCII space into Japanese.
+      expect(src, f).not.toMatch(/\)\} <em>|<\/em> \{t\(|<\/strong> \{children\}/);
+    }
+    // No Japanese string carries a space between two Japanese characters.
+    for (const s of jaSites)
+      expect(offenders(s, /[\u3040-\u30ff\u3400-\u9fff] [\u3040-\u30ff\u3400-\u9fff]/)).toEqual([]);
+  });
+  it('headings and short lines break between phrases in Japanese, with a fallback', () => {
+    const css = fs.readFileSync(path.join(SRC, 'components/site/site.css'), 'utf8');
+    const block = css.slice(css.indexOf('.vcm:lang(ja)'));
+    expect(block).toMatch(
+      /:is\(\s*h1,\s*h2,\s*h3,\s*h4,\s*summary,\s*dt,\s*th,[\s\S]*?\)\s*\{\s*line-break: strict;\s*word-break: auto-phrase;/,
+    );
+    expect(block).toMatch(
+      /@supports not \(word-break: auto-phrase\) \{[\s\S]*?word-break: keep-all;\s*overflow-wrap: anywhere;/,
+    );
+    // The lang the CSS keys on is on the page's own root, not only on <html>.
+    expect(fs.readFileSync(path.join(SRC, 'components/site/SiteShell.tsx'), 'utf8')).toMatch(
+      /<div className="vcm" lang=\{lang\}>/,
+    );
+  });
+  it('uses one term per idea', () => {
+    const all = [ja, jaTestchain, ...FLAGS.map((f) => jaMainnet(f))] as Record<string, string>[];
+    const OTHER_TERMS =
+      /育種家|育種者|ブラウザー|受領確認|ラボ報告書|DNA検査報告書|テストネット(?!ワーク)|ラボ契約|固定|所有|植物を登録/;
+    for (const s of all) expect(offenders(s, OTHER_TERMS)).toEqual([]);
+    expect(ja['m.hero.bredBy']).toBe('育成者');
+    expect(ja['m.contact.1t']).toBe('育成者とラボの方');
+    expect(ja['m.hero.lede']).toMatch(/育成者、種苗会社、ラボのために/);
+  });
+  it('the mainnet site in Japanese is in Japanese, and says what the English says', () => {
+    for (const f of FLAGS) {
+      const o = jaMainnet(f);
+      // Every sentence the English mainnet overlay changes has its Japanese.
+      expect(Object.keys(o).sort()).toEqual(
+        [...new Set([...Object.keys(mainnetStrings(f)), 'm.status.keyTitle'])].sort(),
+      );
+      expect(networkOverlay({ ...MAINNET, ...f }, 'ja')).toEqual({ ...mainnetStrings(f), ...o });
+      for (const k of ['m.hero.status', 'm.demo.lede', 'm.stat2.s', 'm.privacy.test.text'] as const)
+        expect(o[k], k).toMatch(/手作業/);
+      expect(o['m.status.keyText']).toMatch(
+        f.policyApproved ? /書面のメンテナンスポリシーに基づき公表します/ : /提案段階/,
+      );
+      expect(`${o['m.status.keyText']}${o['m.status.keyLink']}`).not.toMatch(f.policyApproved ? /提案/ : /基づき公表/);
+      expect(o['m.status.keyText']?.includes('クレーム用コントラクトにはメンテナンス鍵がなく')).toBe(f.claimsOnMainnet);
+      expect(o['m.claims.status']).toMatch(
+        f.claimsOnMainnet ? /メインネットワーク上にあります/ : /メインネットワークにはまだなく/,
+      );
+      expect(o['m.for.4p']).toMatch(/まずテストサイトで提供しています。$/);
+      for (const k of ['m.faq.4a', 'm.privacy.local.text', 'm.privacy.who.text', 'm.privacy.stored.text'] as const)
+        expect(o[k], k).not.toMatch(/180日|返送/);
+    }
+    // Outside the dated posts, nothing on the Japanese mainnet page says test network or demo.
+    for (const s of jaMainnetSites) {
+      const shown = Object.entries(s).filter(([k]) => !(DATED_POSTS as readonly string[]).includes(k));
+      expect(
+        shown.filter(([, v]) => /テストネットワーク|preprod|テストサーバー|テスト用レジストリ|テスト版|デモ/.test(v)),
+      ).toEqual([]);
+    }
+    // Other languages keep the English overlay until someone translates it.
+    for (const l of ['de', 'fr', 'es'] as Lang[]) expect(networkOverlay(MAINNET, l)).toEqual(mainnetStrings(BUILD));
   });
 });
 

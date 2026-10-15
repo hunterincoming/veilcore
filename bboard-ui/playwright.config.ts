@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 import { defineConfig } from '@playwright/test';
 
-const PORT = 4317;
+// E2E_PORT and E2E_OUT_DIR let two runs share a checkout without sharing a port or a build.
+const PORT = Number(process.env.E2E_PORT ?? 4317);
+const OUT_DIR = process.env.E2E_OUT_DIR ?? 'e2e-dist';
 
 export default defineConfig({
   testDir: './e2e',
@@ -20,7 +22,7 @@ export default defineConfig({
   webServer: {
     // Serves the build `npm run e2e:build` made; it never builds by itself, so a test run
     // can't quietly test something other than what was built.
-    command: `npx vite preview --mode preview --outDir e2e-dist --port ${PORT} --strictPort --host 127.0.0.1`,
+    command: `npx vite preview --mode preview --outDir ${OUT_DIR} --port ${PORT} --strictPort --host 127.0.0.1`,
     url: `http://127.0.0.1:${PORT}`,
     reuseExistingServer: false,
     timeout: 60_000,

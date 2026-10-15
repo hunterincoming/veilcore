@@ -403,6 +403,7 @@ export const fr: Strings = {
   'm.open.6link': 'Lire la spécification →',
   'm.updates.older': 'Actualités plus anciennes',
   'm.live.colTestNote': '(en ligne cette semaine)',
+  'm.live.colTestHere': 'Ce site de test (test.veilcore.org)',
   'm.live.feature': 'Fonction',
   'm.live.show': 'Afficher la liste',
   'm.tech.title': 'Pour les lecteurs techniques',

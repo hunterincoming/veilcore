@@ -14,7 +14,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { en, type StringKey, type Strings } from './en';
 import { es, esTestchain } from './es';
-import { ja, jaTestchain } from './ja';
+import { ja, jaMainnet, jaTestchain } from './ja';
 import { de, deTestchain } from './de';
 import { fr, frTestchain } from './fr';
 import { mainnetStrings } from './en-mainnet';
@@ -22,13 +22,24 @@ import { testchainStrings } from './en-testchain';
 import { IS_MAINNET, CLAIMS_ON_MAINNET, MAINTENANCE_POLICY_APPROVED } from '../config/network';
 import { REAL_CHAIN } from '../veilcore/chain/config';
 
-export const LANGUAGES = {
-  en: { label: 'English', short: 'EN', strings: en as Strings, testchain: {} as Strings },
-  es: { label: 'Español', short: 'ES', strings: es, testchain: esTestchain },
-  ja: { label: '日本語', short: 'JA', strings: ja, testchain: jaTestchain },
-  de: { label: 'Deutsch', short: 'DE', strings: de, testchain: deTestchain },
-  fr: { label: 'Français', short: 'FR', strings: fr, testchain: frTestchain },
-} as const;
+/** The mainnet overlay in a language that has translated it (en-mainnet.ts's flags). */
+type MainnetOverlay = (o: { claimsOnMainnet: boolean; policyApproved: boolean }) => Strings;
+
+/**
+ * `spaces`: whether the language puts a space between words. Headings written in two
+ * halves (`title1` and `title2`) join with a space only where it does; Japanese joins them
+ * with nothing, or a stray space shows in the middle of the heading.
+ */
+export const LANGUAGES: Record<
+  'en' | 'es' | 'ja' | 'de' | 'fr',
+  { label: string; short: string; strings: Strings; testchain: Strings; mainnet?: MainnetOverlay; spaces: boolean }
+> = {
+  en: { label: 'English', short: 'EN', strings: en, testchain: {}, spaces: true },
+  es: { label: 'Español', short: 'ES', strings: es, testchain: esTestchain, spaces: true },
+  ja: { label: '日本語', short: 'JA', strings: ja, testchain: jaTestchain, mainnet: jaMainnet, spaces: false },
+  de: { label: 'Deutsch', short: 'DE', strings: de, testchain: deTestchain, spaces: true },
+  fr: { label: 'Français', short: 'FR', strings: fr, testchain: frTestchain, spaces: true },
+};
 
 export type Lang = keyof typeof LANGUAGES;
 
@@ -44,26 +55,32 @@ export type BuildKind = {
 /**
  * The strings that replace a language's own for this build. Exported for tests.
  *
- *   - mainnet build: en-mainnet.ts, in English in every language (a draft translation of
- *     the test-network sentence would be wrong there);
+ *   - mainnet build: en-mainnet.ts, with the language's own translation of it where it has
+ *     one (Japanese, ja.ts `jaMainnet`); otherwise in English (the language's ordinary
+ *     strings describe a test network, which would be wrong there);
  *   - real-chain test build (test.veilcore.org): en-testchain.ts, with the language's own
  *     translation of it where it has one. The English overlay still beats the language's
  *     ordinary strings, which describe the demo;
  *   - every other build: nothing; en.ts and the translations as they are.
  */
 export const networkOverlay = (build: BuildKind, lang: Lang): Strings => {
-  if (build.isMainnet)
-    return mainnetStrings({ claimsOnMainnet: build.claimsOnMainnet, policyApproved: build.policyApproved });
+  if (build.isMainnet) {
+    const flags = { claimsOnMainnet: build.claimsOnMainnet, policyApproved: build.policyApproved };
+    return { ...mainnetStrings(flags), ...(LANGUAGES[lang].mainnet?.(flags) ?? {}) };
+  }
   if (build.realChain) return { ...testchainStrings, ...LANGUAGES[lang].testchain };
   return {};
 };
 
-const THIS_BUILD: BuildKind = {
+export const THIS_BUILD: BuildKind = {
   isMainnet: IS_MAINNET,
   realChain: REAL_CHAIN && !IS_MAINNET,
   claimsOnMainnet: CLAIMS_ON_MAINNET,
   policyApproved: MAINTENANCE_POLICY_APPROVED,
 };
+
+/** This build is the public test site (test.veilcore.org): it sends real transactions on a test network. */
+export const IS_TEST_SITE = THIS_BUILD.realChain;
 
 const isLang = (x: string): x is Lang => Object.prototype.hasOwnProperty.call(LANGUAGES, x);
 
@@ -130,6 +147,8 @@ type Ctx = {
   choices: Lang[];
   /** The current language is a draft nobody fluent has checked yet. */
   isDraft: boolean;
+  /** What goes between the two halves of a heading: a space, or nothing in Japanese. */
+  sp: string;
 };
 
 const LanguageContext = createContext<Ctx | null>(null);
@@ -161,6 +180,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       t: (key, vars) => format(overlay[key] ?? strings[key] ?? en[key], vars),
       choices: showDrafts() ? (Object.keys(LANGUAGES) as Lang[]) : published,
       isDraft: !published.includes(lang),
+      sp: LANGUAGES[lang].spaces ? ' ' : '',
     };
   }, [lang, setLang, published]);
 

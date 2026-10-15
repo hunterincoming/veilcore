@@ -119,7 +119,10 @@ export const RecordDetail: React.FC = () => {
   // Who signed for the sample: from signatures checked here, never record.attestation.
   const breederReceipt = useBreederReceipt(record, !!record && !received);
   const labReceipt = useLabReceipt(record, received);
-  const labSent = useLabCardFacts(record && received ? [record] : [], received)[id]?.sent;
+  const labFacts = useLabCardFacts(record && received ? [record] : [], received)[id];
+  const labSent = labFacts?.sent;
+  // Sent at some point, withdrawn ones included: "withdrawn", never "not yet" (round 6).
+  const labSentEver = labFacts?.sentEver;
   // Where the lab report saved to this plant stands: the lab may have replaced or withdrawn it.
   const saved = useSavedReport(received ? undefined : record, arrived);
   const [pairFile, setPairFile] = useState<{ file: File; from?: { resultId: string; sha: string } }>();
@@ -217,6 +220,7 @@ export const RecordDetail: React.FC = () => {
             waiting={waiting.length}
             receipt={received ? labReceipt : breederReceipt}
             labSent={labSent}
+            labSentEver={labSentEver}
             saved={saved}
           />
 
@@ -258,6 +262,7 @@ export const RecordDetail: React.FC = () => {
             onOpenResult={openResult}
             receipt={received ? labReceipt : breederReceipt}
             labSent={labSent}
+            labSentEver={labSentEver}
             onSendResults={() => setMode('sendResults')}
             onSignReceipt={() => setMode('signReceipt')}
             labOnly={labOnly}

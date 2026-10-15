@@ -20,12 +20,16 @@ export const OUR_SERVER = IS_MAINNET ? 'VeilCore’s server' : 'VeilCore’s tes
 /** Where this site's records are dated, as a phrase. */
 export const DATED_ON = IS_MAINNET ? 'Midnight’s main network' : 'a Midnight test network';
 
-/** Where the claims contract stands, for the line under the disclosure choice. */
-export const CLAIMS_WHERE = CLAIMS_ON_MAINNET
-  ? 'It’s on Midnight’s main network but isn’t in this web app yet.'
-  : IS_MAINNET
-    ? 'It isn’t on Midnight’s main network yet, and isn’t in this web app.'
-    : 'It’s tested on Midnight’s preprod test network but isn’t in this web demo yet.';
+/**
+ * Where the claims contract stands, for the line under the disclosure choice. The same
+ * facts as the landing page (i18n en-testchain.ts / en-mainnet.ts): on Midnight's main
+ * network since 8 October 2026, not usable from this website yet. A mainnet build whose
+ * claims address isn't pinned says what its landing page says: the claims contract follows.
+ */
+export const CLAIMS_WHERE =
+  CLAIMS_ON_MAINNET || !IS_MAINNET
+    ? 'It has been on Midnight’s main network since 8 October 2026, but it can’t be used from this website yet.'
+    : 'It isn’t on Midnight’s main network yet, and can’t be used from this website.';
 
 /** What the contract can do for licenses that this website cannot. */
 export const LICENSE_PROOF_NOTE = `Proving that a license is live, without showing its terms, is done by VeilCore’s contract on ${

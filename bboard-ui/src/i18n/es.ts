@@ -397,6 +397,7 @@ export const es: Strings = {
   'm.open.6link': 'Leer la especificación →',
   'm.updates.older': 'Novedades anteriores',
   'm.live.colTestNote': '(se publica esta semana)',
+  'm.live.colTestHere': 'Este sitio de prueba (test.veilcore.org)',
   'm.live.feature': 'Función',
   'm.live.show': 'Ver la lista',
   'm.tech.title': 'Para lectores técnicos',

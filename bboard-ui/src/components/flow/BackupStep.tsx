@@ -7,7 +7,7 @@
 // email, Drive or Files; elsewhere, plain words say where.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useId, useRef, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material';
 import DoneIcon from '@mui/icons-material/CheckCircle';
 import { backupContents, backupFileName, checkBackup, downloadBackupAll } from '../../veilcore/backup';
@@ -70,6 +70,16 @@ export const BackupStep: React.FC<{
   const [problem, setProblem] = useState<string>();
   const [busy, setBusy] = useState(false);
   const pick = useRef<HTMLInputElement>(null);
+  // Round 6: the button pressed goes away once it has done its job (Save, then Open my saved
+  // copy), so focus moves to what it said: "Saved", then "It works." Tab goes on from there.
+  const savedRef = useRef<HTMLDivElement>(null);
+  const worksRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (saved) savedRef.current?.focus();
+  }, [saved]);
+  useEffect(() => {
+    if (checked !== undefined) worksRef.current?.focus();
+  }, [checked]);
 
   const fileForSharing = (): File =>
     new File([JSON.stringify(backupContents(), null, 2)], backupFileName(), { type: 'application/json' });
@@ -113,7 +123,9 @@ export const BackupStep: React.FC<{
 
       <Part n={1} level={partLevel} title="Save it" active={!saved}>
         {saved ? (
-          <Done text="Saved" sub={`${saved} · one file for everything`} />
+          <Box ref={savedRef} tabIndex={-1} role="status" sx={{ outline: 'none' }}>
+            <Done text="Saved" sub={`${saved} · one file for everything`} />
+          </Box>
         ) : (
           <Button
             variant="contained"
@@ -159,7 +171,7 @@ export const BackupStep: React.FC<{
 
       <Part n={3} level={partLevel} title="Check it works" active={!!saved && checked === undefined}>
         {/* Always there, so the result is announced when it arrives. */}
-        <Box role="status">
+        <Box role="status" ref={worksRef} tabIndex={checked !== undefined ? -1 : undefined} sx={{ outline: 'none' }}>
           {checked !== undefined && (
             <Done
               text="It works."

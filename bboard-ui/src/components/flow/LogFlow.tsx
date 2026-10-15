@@ -59,7 +59,7 @@ import { useChainCall } from '../chain/useChainCall';
 import { Step2PairDna } from '../wizard/Step2PairDna';
 import { AppHeader } from '../AppHeader';
 import { BackupStep } from './BackupStep';
-import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled } from './FlowFrame';
+import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled, visuallyHidden } from './FlowFrame';
 import { OUR_SERVER, DATED_ON } from '../../config/copy';
 import {
   type Draft,
@@ -236,7 +236,16 @@ const PlantForm: React.FC<{
           <Typography variant="body2" color="text.secondary">
             We kept what you typed last time.
           </Typography>
-          <Button variant="text" size="small" onClick={() => setDraft(emptyDraft())} sx={{ minHeight: 44 }}>
+          <Button
+            variant="text"
+            size="small"
+            onClick={() => {
+              setDraft(emptyDraft());
+              // The button goes away with the kept draft: focus the screen's heading (round 6).
+              focusScreenHeading();
+            }}
+            sx={{ minHeight: 44 }}
+          >
             Start over
           </Button>
         </Stack>
@@ -431,6 +440,7 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
   const [error, setError] = useState<string>();
 
   const seal = async () => {
+    if (busy) return;
     setBusy(true);
     setError(undefined);
     let id: string | undefined;
@@ -509,11 +519,13 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
           {error}
         </Alert>
       )}
+      {/* Round 6: not `disabled` while sealing, which dropped focus to the page: it says it is
+          busy (aria-disabled) and keeps focus until the next screen's heading takes it. */}
       <Button
         variant="contained"
         size="large"
         fullWidth
-        disabled={busy}
+        {...(busy ? { 'aria-disabled': true as const, className: 'Mui-disabled' } : {})}
         onClick={() => void seal()}
         startIcon={busy ? <CircularProgress size={18} color="inherit" /> : undefined}
         sx={{ py: 1.6 }}
@@ -521,6 +533,9 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
       >
         {busy ? 'Sealing…' : 'Seal it'}
       </Button>
+      <span role="status" style={visuallyHidden}>
+        {busy ? 'Sealing your plant…' : ''}
+      </span>
       {/* Round 5: one button, one name. Dating the key is part of sealing, said here, not
           a second "date stamp it" that reads like a second date for the record. */}
       {REAL_CHAIN && (
@@ -543,6 +558,14 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
   const notReady = REAL_CHAIN ? chainNotReady() : undefined;
   const keeps = storageKeeps();
   const [backupFirstDone, setBackupFirstDone] = useState(false);
+  // Round 6: when the date stamp lands, this screen is redrawn as "Sealed" and the heading
+  // that had focus is gone: give focus to the new one.
+  const wasAnchored = useRef(!!anchored);
+  useEffect(() => {
+    if (!anchored || wasAnchored.current) return;
+    wasAnchored.current = true;
+    return focusScreenHeading();
+  }, [anchored]);
 
   const anchor = () =>
     call.run(async (progress) => {

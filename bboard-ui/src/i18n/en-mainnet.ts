@@ -1,6 +1,8 @@
 // The English strings that differ in a mainnet build (`--mode mainnet`). en.ts holds the
 // test-network wording; in a mainnet build every key here replaces it, in every language,
-// because a draft translation of the test-network sentence would be wrong on mainnet.
+// because a draft translation of the test-network sentence would be wrong on mainnet. A
+// language that has translated this overlay shows its own (Japanese: ja.ts, jaMainnet);
+// change both together.
 //
 // Written to be true whether or not the first mainnet batch has been anchored yet: the
 // main contract is on Midnight's main network, and records sealed here go into batches

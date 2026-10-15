@@ -48,7 +48,7 @@ export const PairDnaOnChainPanel: React.FC<{ recordId: string }> = ({ recordId }
   if (!keys.anchor) {
     return (
       <Typography variant="caption" color="text.secondary">
-        Anchor the record on the test network first if you also want to date this pairing there.
+        Add your plant&apos;s date stamp first (from its page) if you also want to date this lab report on the network.
       </Typography>
     );
   }

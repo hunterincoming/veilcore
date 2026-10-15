@@ -291,7 +291,9 @@ test.describe('stand-in registry', () => {
       .fill(`https://elsewhere.example/prove/PR-${'0A'.repeat(16)}#t=${TOKEN}`);
     await page.getByRole('button', { name: /^Go$/ }).click();
     // Our own page, and the answer token kept: without it the holder couldn't answer.
-    await expect(page).toHaveURL(new RegExp(`127\\.0\\.0\\.1:4317/prove/PR-${'0A'.repeat(16)}#t=${TOKEN}$`));
+    await expect(page).toHaveURL(
+      new RegExp(`127\\.0\\.0\\.1:${process.env.E2E_PORT ?? 4317}/prove/PR-${'0A'.repeat(16)}#t=${TOKEN}$`),
+    );
     expectNoErrors(errors);
   });
 });

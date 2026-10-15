@@ -6,7 +6,7 @@ import { expect, type Page, type Route } from '@playwright/test';
 /** The registry the build was made for (e2e:build): a real one, or the stand-in address. */
 export const API = (process.env.E2E_API_BASE ?? 'http://registry.e2e.invalid').replace(/\/$/, '');
 export const REAL_REGISTRY = !!process.env.E2E_API_BASE;
-const SITE = 'http://127.0.0.1:4317';
+const SITE = `http://127.0.0.1:${process.env.E2E_PORT ?? 4317}`;
 
 /** Collect script errors; the test fails on any at the end (`expectNoErrors`). */
 export const watch = (page: Page): string[] => {

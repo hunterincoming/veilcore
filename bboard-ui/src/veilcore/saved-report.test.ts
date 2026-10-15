@@ -8,6 +8,7 @@ import {
   savedReportRow,
   savedReportSentence,
   savedReportStatus,
+  withdrawnSignaturesLine,
   type ArrivedLike,
 } from './saved-report';
 import { pairingFingerprintOfSha } from './commitment';
@@ -128,7 +129,7 @@ describe('where the saved lab report stands', () => {
     expect(s.newer?.result.id).toBe('LR-BBBB');
     expect(savedReportRow(s)).toEqual({ done: false, value: 'replaced by the lab — save the corrected one' });
     expect(savedReportSentence(s)).toMatch(
-      /was replaced by the lab on 2026-10-15 \(UTC\) with a corrected one, which is not saved yet\. The holder kept the old one saved\./,
+      /was replaced by the lab on 2026-10-15 \(UTC\) with a corrected one\. The holder hasn’t saved the corrected one yet\./,
     );
   });
 
@@ -141,7 +142,7 @@ describe('where the saved lab report stands', () => {
     expect(s.kind).toBe('withdrawn');
     expect(savedReportRow(s)).toEqual({ done: false, value: 'withdrawn by the lab' });
     expect(savedReportSentence(s)).toMatch(
-      /was withdrawn by the lab on 2026-10-15 \(UTC\)\. The holder kept it saved\./,
+      /was withdrawn by the lab on 2026-10-15 \(UTC\)\. It is still the file saved here; the lab no longer stands behind it\./,
     );
   });
 
@@ -206,7 +207,9 @@ describe('the public check page’s lab report line', () => {
       bound: true,
     });
     expect(replaced.status).toBe('failed');
-    expect(replaced.text).toMatch(/was replaced by its lab on 2026-10-15 \(UTC\).*The holder kept the old one saved\./);
+    expect(replaced.text).toMatch(
+      /was replaced by its lab on 2026-10-15 \(UTC\) with a corrected one\. The holder hasn’t saved the corrected one yet\./,
+    );
     const withdrawn = publicReportLine({
       paired: true,
       linkSha: SHA_V1,
@@ -214,7 +217,9 @@ describe('the public check page’s lab report line', () => {
       bound: true,
     });
     expect(withdrawn.status).toBe('failed');
-    expect(withdrawn.text).toMatch(/was withdrawn by its lab on 2026-10-15 \(UTC\)\. The holder kept it saved\./);
+    expect(withdrawn.text).toMatch(
+      /was withdrawn by its lab on 2026-10-15 \(UTC\)\. It is still the file saved here; the lab no longer stands behind it\./,
+    );
   });
 
   it('no matching signature, or no file named, is said as exactly that', () => {
@@ -236,7 +241,142 @@ describe('the public check page’s lab report line', () => {
     expect(l.status).toBe('checked');
     expect(l.text).not.toMatch(/as of when this link was made/);
     const stale = publicReportLine({ paired: true, pairingFingerprint: pfp, linkSha: SHA_V2, atts: [v1], bound: true });
-    expect(stale.text).toMatch(/The holder has saved a different file since this link was made\./);
+    expect(stale.text).toMatch(
+      /This link was made when a different file was saved; this line is about the one saved now\./,
+    );
+  });
+});
+
+describe('round 6: the check page describes the file saved NOW, from the registry', () => {
+  // The scenario the final review reproduced: the breeder saved v1; the lab replaced it
+  // with v2; the breeder saved v2; the lab withdrew v2.
+  const v1 = att({ attestationId: 'att_v1', documentHash: SHA_V1 });
+  const v2 = att({ attestationId: 'att_v2', documentHash: SHA_V2 });
+  const pfp1 = pairingFingerprintOfSha(SHA_V1);
+  const pfp2 = pairingFingerprintOfSha(SHA_V2);
+  const finalAtts = [retracted(v1, 'superseded'), retracted(v2, 'issued-in-error')];
+
+  it('the certificate’s link (fingerprint only) after a withdrawal says withdrawn, like the certificate', () => {
+    const l = publicReportLine({
+      paired: true,
+      pairingFingerprint: pfp2,
+      fileSha: SHA_V2,
+      atts: finalAtts,
+      bound: true,
+    });
+    expect(l.status).toBe('failed');
+    expect(l.text).toMatch(
+      /^The lab report saved to this record \(SHA-256 7c1e0422…222222\) was withdrawn by its lab on 2026-10-15 \(UTC\)\./,
+    );
+    expect(l.text).not.toMatch(/No lab has signed|holder kept|as of when this link was made/);
+    // The same story as the certificate, which reads it from the breeder's side.
+    const cert = savedReportStatus(savedV1({ dnaFileSha256: SHA_V2, dnaFingerprint: pfp2 }), [], finalAtts);
+    expect(cert.kind).toBe('withdrawn');
+    expect(savedReportSentence(cert)).toContain('It is still the file saved here; the lab no longer stands behind it.');
+    expect(l.text).toContain('It is still the file saved here; the lab no longer stands behind it.');
+    // Without the registry's SHA-256 (an older pairing), the signature's is used.
+    expect(publicReportLine({ paired: true, pairingFingerprint: pfp2, atts: finalAtts, bound: true }).text).toMatch(
+      /\(SHA-256 7c1e0422…222222\) was withdrawn by its lab/,
+    );
+  });
+
+  it('the withdrawn-signatures line says what was withdrawn, and agrees with the lab report line', () => {
+    expect(withdrawnSignaturesLine(finalAtts)).toBe(
+      '2 signatures were withdrawn by their signers, so they are not counted: 2 lab reports.',
+    );
+    const receipt = att({ attestationId: 'att_r', type: 'chain-of-custody', documentHash: 'c'.repeat(64) });
+    expect(withdrawnSignaturesLine([retracted(receipt, 'issued-in-error'), retracted(v1, 'superseded'), v2])).toBe(
+      '2 signatures were withdrawn by their signers, so they are not counted: a lab’s receipt and a lab report.',
+    );
+    expect(withdrawnSignaturesLine([retracted(v1, 'superseded')])).toBe(
+      'One signature was withdrawn by its signer, so it is not counted: a lab report.',
+    );
+    expect(withdrawnSignaturesLine([v1, v2])).toBeNull();
+    // A signature that doesn't verify isn't counted as withdrawn either.
+    expect(withdrawnSignaturesLine([{ ...retracted(v1, 'superseded'), signatureValid: false }])).toBeNull();
+  });
+
+  it('an old link after the breeder saved the corrected one: describes the corrected one, never "replaced"', () => {
+    const l = publicReportLine({
+      paired: true,
+      linkSha: SHA_V1,
+      pairingFingerprint: pfp2,
+      fileSha: SHA_V2,
+      atts: [retracted(v1, 'superseded'), v2],
+      bound: true,
+    });
+    expect(l.status).toBe('checked');
+    expect(l.text).toMatch(/Its file \(SHA-256 7c1e0422…222222\) matches the lab report signed by/);
+    expect(l.text).toMatch(
+      /This link was made when a different file was saved; this line is about the one saved now\./,
+    );
+    expect(l.text).not.toMatch(/replaced|kept|as of when this link was made/);
+  });
+
+  it('an old link after the lab withdrew the correction: describes the withdrawn correction, not the replaced original', () => {
+    const l = publicReportLine({
+      paired: true,
+      linkSha: SHA_V1,
+      pairingFingerprint: pfp2,
+      fileSha: SHA_V2,
+      atts: finalAtts,
+      bound: true,
+    });
+    expect(l.status).toBe('failed');
+    expect(l.text).toMatch(/\(SHA-256 7c1e0422…222222\) was withdrawn by its lab on 2026-10-15 \(UTC\)/);
+    expect(l.text).not.toMatch(/3bb6af|replaced|kept/);
+    expect(l.text).toMatch(/This link was made when a different file was saved/);
+  });
+
+  it('a link made before the lab replaced the saved report: factual, no intent', () => {
+    const l = publicReportLine({
+      paired: true,
+      linkSha: SHA_V1,
+      pairingFingerprint: pfp1,
+      fileSha: SHA_V1,
+      atts: [retracted(v1, 'superseded'), v2],
+      bound: true,
+    });
+    expect(l.status).toBe('failed');
+    expect(l.text).toBe(
+      'The lab report saved to this record (SHA-256 3bb6af11…111111) was replaced by its lab on 2026-10-15 (UTC) with a corrected one. The holder hasn’t saved the corrected one yet.',
+    );
+  });
+
+  it('a registry SHA-256 that doesn’t recompute to its pairing fingerprint is not believed', () => {
+    const l = publicReportLine({ paired: true, pairingFingerprint: pfp1, fileSha: SHA_V2, atts: [v2], bound: true });
+    expect(l.status).toBe('reported');
+    expect(l.text).toMatch(/No lab signature on this record matches it, so it is the holder’s own statement/);
+    expect(l.text).not.toMatch(/7c1e04/);
+  });
+
+  it('the link’s file is believed only when the registry is too old to say, and then said as of the link', () => {
+    const l = publicReportLine({ paired: true, linkSha: SHA_V1, atts: [v1], bound: true });
+    expect(l.text).toMatch(/\(as of when this link was made\)/);
+    // The registry says a different file is saved now: the link's file is never described.
+    const now = publicReportLine({ paired: true, linkSha: SHA_V1, pairingFingerprint: pfp2, atts: [v1], bound: true });
+    expect(now.status).toBe('reported');
+    expect(now.text).not.toMatch(/3bb6af|matches the lab report/);
+  });
+
+  it('an older registry and a link naming no file: never "No lab has signed" beside withdrawn lab reports', () => {
+    const l = publicReportLine({ paired: true, atts: finalAtts, bound: true });
+    expect(l.text).not.toMatch(/No lab has signed/);
+    expect(l.text).toMatch(/every lab report signed about this record was withdrawn by its lab/);
+  });
+
+  it('the breeder’s preview, the certificate and the check page use the same words', () => {
+    const replacedHolder = savedReportSentence({ kind: 'replaced', lab: 'acme-lab', at: Date.UTC(2026, 9, 15) });
+    const replacedPublic = publicReportLine({
+      paired: true,
+      pairingFingerprint: pfp1,
+      fileSha: SHA_V1,
+      atts: [retracted(v1, 'superseded')],
+      bound: true,
+    }).text;
+    for (const t of [replacedHolder, replacedPublic]) {
+      expect(t).toMatch(/2026-10-15 \(UTC\) with a corrected one\. The holder hasn’t saved the corrected one yet\.$/);
+    }
   });
 });
 

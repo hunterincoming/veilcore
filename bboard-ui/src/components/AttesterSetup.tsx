@@ -151,10 +151,10 @@ export const AttesterSetup: React.FC<{
                 </Typography>
               </Box>
               <Alert severity="warning" variant="outlined">
-                Your private key is stored in this browser&apos;s storage, unencrypted, and nowhere else. Anything that
-                can run in this site, or a browser extension with access to it, could read it. If you lose it you
-                can&apos;t sign anything new; what you signed before stays valid. Back it up somewhere safe. That&apos;s
-                fine for trying it out. A lab using it for real would sign inside its own systems: see the{' '}
+                Your private key is stored in this browser&apos;s storage, unencrypted, and nowhere else. That&apos;s
+                fine for trying it out. Anything that can run in this site, or a browser extension with access to it,
+                could read it. If you lose it you can&apos;t sign anything new; what you signed before stays valid, so
+                back it up somewhere safe. A lab using it for real would sign inside its own systems: see the{' '}
                 <Link component={RouterLink} to="/docs/integrate">
                   integration guide
                 </Link>

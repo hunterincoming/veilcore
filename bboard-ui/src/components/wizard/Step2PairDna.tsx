@@ -22,7 +22,8 @@ import { FingerprintReveal } from './FingerprintReveal';
 import { Dropzone } from './Dropzone';
 import { THIS_SITE } from '../../config/copy';
 import { utcDate } from '../../veilcore/time';
-import { REAL_CHAIN } from '../../veilcore/chain/config';
+import { REAL_CHAIN, chainNotReady } from '../../veilcore/chain/config';
+import { useRecordKeys } from '../../veilcore/record-keys';
 import { PairDnaOnChainPanel } from '../chain/PairDnaOnChainPanel';
 import { ScreenHeading, focusScreenHeading, isTouch, softDisabled } from '../flow/FlowFrame';
 
@@ -68,6 +69,9 @@ export const Step2PairDna: React.FC<{
   const [fileSha, setFileSha] = useState<string>();
   const [labMatch, setLabMatch] = useState<ResolvedAttestation | null>();
   const record = getRecord(recordId);
+  const keys = useRecordKeys()[recordId];
+  // The file came from a lab through VeilCore (opened from a lab report), not picked by hand.
+  const fromLab = !!from && !!initialFile;
   // A lab report already saved to this plant, when this screen opened: saving replaces it.
   const [existing] = useState(() =>
     record?.dnaFingerprint ? { name: record.dnaFileName ?? 'a file', at: record.dnaPairedAt } : undefined,
@@ -110,6 +114,9 @@ export const Step2PairDna: React.FC<{
   };
 
   if (paired && paired.dnaFingerprint) {
+    // "Below" only when the panel below can date it now (round 6): it says nothing on a build
+    // that can't send, and only explains when the plant's key has no date stamp yet.
+    const datableBelow = REAL_CHAIN && !chainNotReady() && !!keys?.anchor;
     const priority = [paired, ...conflicts].slice().sort((a, b) => a.loggedAt - b.loggedAt)[0];
     const yoursFirst = priority.id === paired.id;
     return (
@@ -120,8 +127,12 @@ export const Step2PairDna: React.FC<{
         <FingerprintReveal
           fingerprint={paired.dnaFingerprint}
           label="PAIRING FINGERPRINT"
-          headline="The report file stayed on your device."
-          sub="It was read and fingerprinted here in your browser. Its fingerprint and file name were saved with your record."
+          headline={fromLab ? 'Opened and saved here, on your device.' : 'The report file stayed on your device.'}
+          sub={
+            fromLab
+              ? 'The lab sent it locked so only you could open it. Only its fingerprint and file name were saved with your record.'
+              : 'It was read and fingerprinted here in your browser. Its fingerprint and file name were saved with your record.'
+          }
         />
         {fileSha && (
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', overflowWrap: 'anywhere' }}>
@@ -172,9 +183,11 @@ export const Step2PairDna: React.FC<{
         <Alert severity="success" variant="outlined">
           Saved. Your lab report&apos;s fingerprint is saved with this plant&apos;s record, as your statement that this
           report belongs to it. It is not a check of the genetics.{' '}
-          {REAL_CHAIN
+          {datableBelow
             ? 'It is not dated yet: date it below if you want the pairing on the network.'
-            : `In ${THIS_SITE} the pairing isn’t dated yet.`}
+            : REAL_CHAIN
+              ? 'It is not dated yet.'
+              : `In ${THIS_SITE} the pairing isn’t dated yet.`}
         </Alert>
         {REAL_CHAIN && <PairDnaOnChainPanel recordId={paired.id} />}
         <Box>
@@ -243,9 +256,12 @@ export const Step2PairDna: React.FC<{
         </Alert>
       )}
 
+      {/* A lab report that came from the lab through VeilCore is already the lab's signed
+          one: its signature is checked once it's saved (round 6). */}
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-        A lab can also sign a lab report with its own key; a signed one carries more weight than one you save yourself.
-        Here, save the lab report file you have.
+        {fromLab
+          ? 'This is the lab report your lab sent through VeilCore. Once it’s saved, this page checks it against the lab’s signature.'
+          : 'A lab can also sign a lab report with its own key; a signed one carries more weight than one you save yourself. Here, save the lab report file you have.'}
       </Typography>
 
       <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>

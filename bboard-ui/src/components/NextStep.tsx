@@ -55,6 +55,8 @@ export const NextStep: React.FC<{
   receipt?: BreederReceipt | LabReceipt | null;
   /** The lab's: lab reports it sent on this delivery that still stand. */
   labSent?: number;
+  /** The lab's: every lab report it sent on this delivery, withdrawn ones too. */
+  labSentEver?: number;
   onSendResults?: () => void;
   onSignReceipt?: () => void;
   /** A lab-only account: no breeder actions (send to a lab, agreements). */
@@ -72,6 +74,7 @@ export const NextStep: React.FC<{
   onOpenResult,
   receipt,
   labSent,
+  labSentEver,
   onSendResults,
   onSignReceipt,
   labOnly,
@@ -146,12 +149,20 @@ export const NextStep: React.FC<{
     } else {
       // The locked flow: signed by the lab, locked so only the breeder can open it.
       step = {
-        title: (labSent ?? 0) > 0 ? 'Lab report sent' : 'Send results back to the breeder',
+        title:
+          (labSent ?? 0) > 0
+            ? 'Lab report sent'
+            : (labSentEver ?? 0) > 0
+              ? 'Lab report withdrawn'
+              : 'Send results back to the breeder',
         why:
           (labSent ?? 0) > 0
             ? 'Only the breeder can open it. You can withdraw it, or send a corrected file.'
-            : 'Signed with your lab’s key and locked so only the breeder can open it. VeilCore can’t read it.',
-        action: (labSent ?? 0) > 0 ? 'See what you sent' : 'Send results back',
+            : (labSentEver ?? 0) > 0
+              ? 'You withdrew what you sent, so the breeder has no current lab report from you. You can send a new one.'
+              : 'Signed with your lab’s key and locked so only the breeder can open it. VeilCore can’t read it.',
+        // Round 6: after a withdrawal the lab can still see what it sent (and send a new one).
+        action: (labSentEver ?? 0) > 0 ? 'See what you sent' : 'Send results back',
         icon: <LockIcon />,
         onClick: onSendResults,
       };

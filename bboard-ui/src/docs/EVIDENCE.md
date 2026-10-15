@@ -48,7 +48,7 @@ The consequence is that a claim rests on a specific analysis rather than only on
 
 ### 1.3 Descent, and obligations that travel with it
 
-A record can declare what it descends from. Where a licence carried an obligation on offspring - a royalty on descendants, a restriction on further propagation - that obligation is recorded against the record, and reaches descendants that are declared from it, rather than ending with the transaction.
+A record can declare what it descends from. Where a license carried an obligation on offspring - a royalty on descendants, a restriction on further propagation - that obligation is recorded against the record, and reaches descendants that are declared from it, rather than ending with the transaction.
 
 **The practical problem this addresses:** genetic material is self-replicating. A licensee who buys a cutting can produce a thousand more, and the licensor is paid once. Terms that bind only the original transaction bind almost nothing.
 
@@ -72,7 +72,7 @@ The system carries an agreement lifecycle: draft, issued, countersigned by both 
 
 **Royalty obligations are recorded as live obligations** with a running owed amount. The system records what is owed; it does not process payments and does not hold funds.
 
-**Revocation is the enforcement mechanism, and it is worth understanding why.** Nobody can police an unreported grow - not the licensor, and not any records system. But a licensee whose licence is revoked cannot show a live licence to the next buyer, the next laboratory, or any scheme that requires a record for entry. The licensor is not policing the plant. They are making the licensee's paper worthless.
+**Revocation is the enforcement mechanism, and it is worth understanding why.** Nobody can police an unreported grow - not the licensor, and not any records system. But a licensee whose license is revoked cannot show a live license to the next buyer, the next laboratory, or any scheme that requires a record for entry. The licensor is not policing the plant. They are making the licensee's paper worthless.
 
 This is the honest answer to "royalties on genetics are unenforceable." They are unenforceable by pursuit. They are enforceable by making non-compliance visible at the point where the licensee needs to prove something to someone else.
 

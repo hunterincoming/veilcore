@@ -49,6 +49,8 @@ import {
   openReport,
   rememberDelivery,
   reportFileName,
+  reportFileType,
+  type ReportFileType,
   reportFingerprint,
   resultState,
   sendLockedResult,
@@ -61,6 +63,7 @@ import {
   type ResultSummary,
 } from '../../veilcore/lab-results';
 import { correctionWithdrawn, savedReportStatus, type SavedReport } from '../../veilcore/saved-report';
+import { labSentPhrase } from './plant-status-words';
 
 const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-6)}`;
 /** Every time on a lab report screen: local, with the zone's short name (round 5). */
@@ -68,7 +71,6 @@ const when = (t: number) => localStamp(t);
 const day = (t: number | string) => new Date(t).toLocaleDateString(undefined, { dateStyle: 'medium' });
 const mb = (n: number) =>
   n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`;
-const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 /** A counter that moves whenever LAB_CHANGED_EVENT fires, for hooks to reload on. */
 const useLabVersion = (): number => {
@@ -81,8 +83,8 @@ const useLabVersion = (): number => {
   return v;
 };
 
-const download = (bytes: Uint8Array, name: string) => {
-  const url = URL.createObjectURL(new Blob([bytes as BlobPart]));
+const download = (bytes: Uint8Array, name: string, mime = 'application/octet-stream') => {
+  const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: mime }));
   const a = document.createElement('a');
   a.href = url;
   a.download = name;
@@ -201,7 +203,12 @@ export const useAttestations = (commitment: string | undefined): ResolvedAttesta
   return out;
 };
 
-export type LabCardFacts = { signed: boolean; sent: number };
+/**
+ * `sent`: lab reports that still stand. `sentEver`: every one sent on the delivery, withdrawn
+ * and replaced ones too, so a lab whose reports were all withdrawn is told that, not "not yet"
+ * (round 6).
+ */
+export type LabCardFacts = { signed: boolean; sent: number; sentEver: number };
 
 /** Home, for a lab: per received plant, whether its receipt is signed and how many lab reports went back. */
 export const useLabCardFacts = (records: readonly StrainRecord[], enabled: boolean): Record<string, LabCardFacts> => {
@@ -225,6 +232,7 @@ export const useLabCardFacts = (records: readonly StrainRecord[], enabled: boole
           signed: labReceipt(r, atts, me).kind === 'signed',
           // Only reports that still stand: not withdrawn, not replaced by a correction.
           sent: 'error' in list ? 0 : liveResults(list.results).length,
+          sentEver: 'error' in list ? 0 : list.results.length,
         };
         if (live) setOut({ ...facts });
       }
@@ -333,7 +341,7 @@ export const SavedReportAlert: React.FC<{ saved: SavedReport | null; onOpen?: (r
 
 // --- the breeder's side ------------------------------------------------------------------
 
-type Opened = { bytes: Uint8Array; name: string; sha: string; signer: ReportSigner };
+type Opened = { bytes: Uint8Array; name: string; sha: string; signer: ReportSigner; type: ReportFileType };
 
 /** What the breeder is told once, when a lab report first arrives: what others can see. */
 const SEEN_VISIBILITY = 'veilcore.lab-visibility-seen.v1';
@@ -347,7 +355,7 @@ const seenVisibility = (): boolean => {
 
 /** Exactly what a stranger with a link sees about a lab report (VerifyPage.tsx). */
 export const PUBLIC_REPORT_WORDS =
-  'The lab’s signature is public; the report isn’t. Anyone with a link to this plant’s check page sees that a lab report about it was signed, the report file’s SHA-256, and the lab’s name only if VeilCore’s operator matched it to a public listing (otherwise “a key named … (name not checked)”). If you save the report to this plant and share “Whether a lab report is saved” in Show someone, they also see that the saved file matches it.';
+  'The lab’s signature is public; the report isn’t. Anyone with a link to this plant’s check page sees that a lab report about it was signed, the report file’s SHA-256, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If you save the report to this plant and share “Whether a lab report is saved” in Show someone, they also see that the saved file matches it.';
 
 const SignerLine: React.FC<{ signer: ReportSigner }> = ({ signer }) => {
   if (signer.kind === 'unsigned') {
@@ -426,7 +434,13 @@ export const LabResultsPanel: React.FC<{
         markOpened(result.id);
         setOpened((o) => ({
           ...o,
-          [result.id]: { bytes, sha, name: reportFileName(bytes, result.createdAt, result.id), signer },
+          [result.id]: {
+            bytes,
+            sha,
+            name: reportFileName(bytes, result.createdAt, result.id),
+            signer,
+            type: reportFileType(bytes),
+          },
         }));
       } catch (e) {
         setProblem(e instanceof Error ? e.message : String(e));
@@ -485,7 +499,7 @@ export const LabResultsPanel: React.FC<{
                 }
                 setToldVisibility(true);
               }}
-              sx={{ minHeight: 40 }}
+              sx={{ minHeight: 40, whiteSpace: 'nowrap', flexShrink: 0 }}
             >
               Got it
             </Button>
@@ -554,17 +568,24 @@ export const LabResultsPanel: React.FC<{
                 <Stack spacing={1.25} sx={{ mt: 1.5 }}>
                   <SignerLine signer={o.signer} />
                   <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
-                    File SHA-256 {short(o.sha)} · downloads as “{o.name}”
+                    {o.type.label} · file SHA-256 {short(o.sha)} · downloads as “{o.name}”
                   </Typography>
                   <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-                    <Button variant="outlined" onClick={() => download(o.bytes, o.name)} sx={{ minHeight: 44 }}>
+                    <Button
+                      variant="outlined"
+                      onClick={() => download(o.bytes, o.name, o.type.mime)}
+                      sx={{ minHeight: 44 }}
+                    >
                       Download the file
                     </Button>
                     {!isSaved && (
                       <Button
                         variant="contained"
                         onClick={() =>
-                          onPair(new File([o.bytes as BlobPart], o.name), { resultId: a.result.id, sha: o.sha })
+                          onPair(new File([o.bytes as BlobPart], o.name, { type: o.type.mime }), {
+                            resultId: a.result.id,
+                            sha: o.sha,
+                          })
                         }
                         sx={{ minHeight: 44 }}
                       >
@@ -844,8 +865,9 @@ export const SendResultsPanel: React.FC<{
           plant&apos;s check page sees that a lab report about it was signed, and its SHA-256 ({short(file.sha)}).
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          They see your lab&apos;s name only if VeilCore&apos;s operator has matched it to a public licence listing.
-          Until then they see “a key named “{attester?.displayName ?? 'your lab'}” (name not checked)”.
+          They also see the name your key is registered under. Until VeilCore&apos;s operator matches it to a public
+          license or accreditation listing, it shows as “a key named “{attester?.displayName ?? 'your lab'}” (name not
+          checked)”.
         </Typography>
         {note && (
           <Alert severity="warning" variant="outlined">
@@ -1068,7 +1090,7 @@ export const labCardLine = (r: StrainRecord, facts?: LabCardFacts): string =>
         : facts.signed
           ? 'receipt signed ✓'
           : 'receipt not signed yet',
-    facts && facts.sent > 0 ? `${plural(facts.sent, 'lab report')} sent` : undefined,
+    labSentPhrase(facts),
     r.labRef ? `ref ${r.labRef}` : undefined,
   ]
     .filter(Boolean)

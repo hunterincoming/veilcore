@@ -28,3 +28,27 @@ export const labReceiptRow = (receipt: LabReceipt | null | undefined) => {
 /** The key's date stamp, as a second line under the record's date (round 5). */
 export const keyStampLine = (keys?: RecordKeys): string =>
   `Key date stamped: ${keys?.anchor ? day(keys.anchor.anchoredAt) || 'done' : 'not yet'}. Your plant’s key is dated too, so you can prove you hold it later.`;
+
+/**
+ * The lab's "Lab report sent" line. A lab whose lab reports were all withdrawn (or replaced
+ * by a correction it then withdrew) is told that, and that it can send a new one: it used
+ * to read "not yet", as if it had never sent anything (round 6).
+ */
+export const labSentRow = (live?: number, ever?: number) =>
+  live === undefined
+    ? { done: false, label: 'Lab report sent', value: 'checking…' }
+    : live > 0
+      ? { done: true, label: 'Lab report sent', value: `${live} sent` }
+      : (ever ?? 0) > 0
+        ? { done: false, label: 'Lab report', value: 'withdrawn (you can send a new one)' }
+        : { done: false, label: 'Lab report sent', value: 'not yet' };
+
+/** Home's card words for what a lab sent back on a delivery (round 6: "withdrawn", not nothing). */
+export const labSentPhrase = (facts?: { sent: number; sentEver: number }): string | undefined =>
+  !facts
+    ? undefined
+    : facts.sent > 0
+      ? `${facts.sent} lab report${facts.sent === 1 ? '' : 's'} sent`
+      : facts.sentEver > 0
+        ? 'lab report withdrawn'
+        : undefined;

@@ -27,7 +27,7 @@ import { OPEN_RECEIVE_EVENT } from '../ClaimTransfer';
 import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
 import { linkCard } from '../a11y';
 import { PRACTICE_LABEL } from '../../config/copy';
-import { SECTIONS } from './FlowFrame';
+import { SECTIONS, focusScreenHeading } from './FlowFrame';
 import { PasteBox } from './PasteBox';
 import { labCardLine, useLabCardFacts, useWaitingByRecord } from './LabResults';
 import { quantityPhrase } from '../../veilcore/transfers';
@@ -111,6 +111,8 @@ export const AppHome: React.FC = () => {
       startOver();
       clearLoadedLicenses();
       setToast('Started over. Restore your old records any time from the holder key file.');
+      // The menu that held "Start over" goes with the old set: focus the page's heading (round 6).
+      focusScreenHeading();
     }
   };
 
