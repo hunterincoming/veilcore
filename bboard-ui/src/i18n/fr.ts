@@ -179,9 +179,9 @@ export const fr: Strings = {
   'm.get.1b': 'pour un enregistrement de ce que vous détenez, sans montrer votre génétique.',
   'm.get.3b':
     "Un lien de parenté ne compte que si les deux détenteurs le confirment. Sur ce site, c'est le registre de VeilCore qui l'enregistre, pas la chaîne.",
-  'm.open.2t': 'Gardez trois fichiers.',
+  'm.open.2t': 'Gardez un seul fichier.',
   'm.open.2p':
-    "Sur la page de votre plante, sous « Technical details » : « Export record », « Download inclusion proof » (elle montre que l'enregistrement est dans un lot daté) et, sur veilcore.org, « Download Bitcoin stamp file ». Votre fichier de sauvegarde contient vos clés, pas ces fichiers. Un dossier de preuve en un clic est en préparation.",
+    "Sur la page de votre plante : « Download evidence bundle ». Un seul .zip avec l'enregistrement tel qu'il a été scellé, sa preuve d'inclusion, l'empreinte du lot, l'endroit où le lot a été inscrit, le fichier d'horodatage Bitcoin s'il y en a un, et une page qui vérifie le tout hors ligne. Votre fichier de sauvegarde contient vos clés, pas ces fichiers. Les fichiers séparés restent sous « Technical details » : « Export record », « Download inclusion proof », « Download Bitcoin stamp file ».",
   'm.faq.1a':
     "Une fois les enregistrements ancrés, chacun peut vérifier lequel a été ancré en premier. Associez votre rapport de laboratoire, pour qu'un test ultérieur puisse y être comparé. Quand vous envoyez du matériel, le destinataire signe un accusé de réception avec sa propre clé. Un enregistrement est une preuve, pas une inscription : il montre que vous déteniez cet enregistrement à cette date, pas que vous déteniez la plante, et ne tranche pas un litige à lui seul.",
   'm.post0.date': '4 oct. 2026',
@@ -237,11 +237,14 @@ export const fr: Strings = {
   'm.live.lic.main': "Pour s'entraîner seulement.",
   'm.live.lic.test': "Pour s'entraîner seulement.",
   'm.live.lic.not': 'De vraies licences depuis le site. Elles sont intégrées au contrat.',
+  'm.live.chain.t': 'La page de vérification lit Midnight elle-même',
+  'm.live.chain.main': 'Pas encore : il faut notre relais en lecture seule.',
+  'm.live.chain.test': 'Oui.',
   // Round 3 (14 Oct 2026): the rest of the landing page, so no English shows through.
   'nav.newCultivar': 'Nouvel enregistrement',
   'nav.licenses': 'Contrats',
   'footer.about':
-    "Un format d'enregistrement ouvert pour la génétique végétale et animale. Recalculer l'empreinte d'un enregistrement ne demande que SHA-256 et la spécification ouverte ; vérifier sa date demande aussi une consultation sur un explorateur Midnight. Rechercher un enregistrement par son identifiant sur ce site passe par notre serveur.",
+    "Un format d'enregistrement ouvert pour la génétique végétale et animale. Recalculer l'empreinte d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa date vient d'une transaction sur Midnight : la page de vérification la consulte elle-même quand elle peut joindre Midnight, et sinon indique que la date est celle que rapporte notre registre. Rechercher un enregistrement par son identifiant sur ce site passe par notre serveur.",
   'm.hero.status':
     "Lancement sur le réseau principal de Midnight. Aujourd'hui, les enregistrements sont datés sur un réseau de test de Midnight, ce qui ne prouve encore rien.",
   'm.claims.status':
@@ -399,7 +402,7 @@ export const fr: Strings = {
   // Round 5 (15 Oct 2026): landing page rework, keys added.
   'm.open.6t': 'Vérifier sans nous.',
   'm.open.6p':
-    "Avec ces fichiers, n'importe qui peut vérifier un enregistrement avec la spécification ouverte et un explorateur Midnight. Les enregistrements scellés depuis le 14 octobre demandent aussi la section 3.6.1 de la spécification, publiée dans la spécification sur ce site ; le SDK et ses trois implémentations l'intégreront dans leur prochaine version.",
+    "Avec ce dossier de preuve, n'importe qui peut vérifier un enregistrement hors ligne : ouvrir son verify.html, puis consulter sur un explorateur Midnight la transaction qu'il nomme. Les enregistrements scellés depuis le 14 octobre demandent aussi la section 3.6.1 de la spécification, publiée dans la spécification sur ce site ; le SDK et ses trois implémentations l'intégreront dans leur prochaine version.",
   'm.open.6link': 'Lire la spécification →',
   'm.updates.older': 'Actualités plus anciennes',
   'm.live.colTestNote': '(en ligne cette semaine)',
@@ -411,7 +414,7 @@ export const fr: Strings = {
   'm.tech.show': 'Afficher le détail',
   'm.tech.check.t': 'Vérifier un enregistrement à la main',
   'm.tech.check.p':
-    "Recalculer l'empreinte d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa preuve d'inclusion relie cette empreinte à une empreinte de lot ancrée sur Midnight, et une consultation sur un explorateur Midnight donne la date du lot. Les enregistrements scellés depuis le 14 octobre nomment leur propre clé ; les vérifier demande donc aussi la section 3.6.1, publiée dans la spécification sur ce site ; le SDK et ses trois implémentations l'intégreront dans leur prochaine version.",
+    "Recalculer l'empreinte d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa preuve d'inclusion relie cette empreinte à une empreinte de lot ancrée sur Midnight, et la transaction qui l'a ancrée donne la date du lot. Le verify.html du dossier de preuve refait ce calcul hors ligne et nomme la transaction et l'empreinte de lot à consulter. La page de vérification consulte elle-même cette transaction sur Midnight quand elle peut joindre Midnight ; sinon, elle indique que la date est celle que rapporte notre registre, et vous pouvez la consulter sur un explorateur Midnight. Les enregistrements scellés depuis le 14 octobre nomment leur propre clé ; les vérifier demande donc aussi la section 3.6.1, publiée dans la spécification sur ce site ; le SDK et ses trois implémentations l'intégreront dans leur prochaine version.",
   'm.tech.impl.t': 'Une spécification, trois implémentations',
   'm.tech.impl.p':
     "Libre à implémenter, pour toujours. TypeScript, Python et Rust s'accordent sur les 100 vecteurs de test du format d'enregistrement sur GitHub, et chacun peut les exécuter ; un 101e, pour l'association de rapports, n'est pas encore dans Rust. Un seul auteur a écrit les trois, et la version TypeScript est sur npm en 0.15.0. Une implémentation écrite par quelqu'un d'autre est le test que nous souhaitons le plus.",
@@ -444,4 +447,8 @@ export const frTestchain: Strings = {
     "Ce site utilise le réseau de test preprod de Midnight, pas le réseau principal. Votre navigateur envoie chaque horodatage à ce réseau via le service de frais de VeilCore ; ce que vous avez saisi et vos fichiers n'y sont jamais envoyés. Un réseau de test peut être réinitialisé, et les données de test peuvent être supprimées.",
   'm.privacy.hosts.text':
     'Ce site est hébergé chez Vercel, qui enregistre les adresses IP et les requêtes. Notre serveur de registre, et le service qui paie les frais du réseau de test et relaie les lectures du réseau faites par cette page, fonctionnent chez Railway, qui enregistre les requêtes. Ce service lit le réseau via Blockfrost.',
+  'footer.about':
+    "Un format d'enregistrement ouvert pour la génétique végétale et animale. Recalculer l'empreinte d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa date vient d'une transaction sur Midnight, et la page de vérification consulte elle-même cette transaction sur Midnight. Rechercher un enregistrement par son identifiant sur ce site passe par notre serveur.",
+  'm.tech.check.p':
+    "Recalculer l'empreinte d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa preuve d'inclusion relie cette empreinte à une empreinte de lot ancrée sur Midnight, et la transaction qui l'a ancrée donne la date du lot. Le verify.html du dossier de preuve refait ce calcul hors ligne et nomme la transaction et l'empreinte de lot à consulter. La page de vérification consulte elle-même cette transaction sur Midnight. Les enregistrements scellés depuis le 14 octobre nomment leur propre clé ; les vérifier demande donc aussi la section 3.6.1, publiée dans la spécification sur ce site ; le SDK et ses trois implémentations l'intégreront dans leur prochaine version.",
 };

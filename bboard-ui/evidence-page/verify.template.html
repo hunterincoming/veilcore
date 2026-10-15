@@ -1,0 +1,388 @@
+<!doctype html>
+<!--
+  VeilCore evidence bundle: the offline check page (docs/evidence-bundle.md).
+  Everything it needs is in this file. It makes no network requests: the
+  Content-Security-Policy below forbids them, and the checks use only the
+  browser's own SHA-256 and Ed25519. Read the script at the bottom to see
+  exactly what it does.
+  SPDX-License-Identifier: Apache-2.0
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Check this record (offline)</title>
+<style>
+  :root { --ink: #16201b; --muted: #55625b; --line: #d9dfdb; --ok: #1d6b3a; --bad: #a12a1f; --bg: #fbfcfb; --card: #ffffff; --note: #f2f5f3; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: var(--bg); }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; overflow-wrap: anywhere; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  h2 { font-size: 1.15rem; margin: 32px 0 8px; }
+  p { margin: 8px 0; }
+  .muted { color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin: 10px 0; }
+  .row { display: flex; gap: 12px; align-items: flex-start; }
+  .mark { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; }
+  .mark.ok { background: var(--ok); }
+  .mark.bad { background: var(--bad); }
+  .mark.info { background: var(--muted); }
+  .headline { font-weight: 700; font-size: 1.05rem; }
+  .ok-text { color: var(--ok); }
+  .bad-text { color: var(--bad); }
+  code, .hex { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.86rem; overflow-wrap: anywhere; }
+  .hex { word-break: break-all; }
+  .hex { background: var(--note); border-radius: 6px; padding: 2px 6px; }
+  .note { background: var(--note); border-radius: 10px; padding: 12px 16px; }
+  ol, ul { padding-left: 22px; }
+  li { margin: 6px 0; }
+  dl { margin: 6px 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; }
+  dt { color: var(--muted); }
+  dd { margin: 0; min-width: 0; }
+  @media (max-width: 520px) { dl { grid-template-columns: 1fr; } dt { margin-top: 6px; } }
+  input[type=file] { margin-top: 8px; max-width: 100%; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Check this record</h1>
+  <p class="muted" id="intro">This page works with no internet and nothing from VeilCore. It checks the files in this bundle against each other. The date itself comes from one lookup you do yourself (below).</p>
+  <div id="summary"></div>
+
+  <h2>The checks</h2>
+  <div id="checks"><p class="muted">Checking…</p></div>
+
+  <h2>What to look up to date it</h2>
+  <div id="lookups"></div>
+
+  <h2>Lab signatures</h2>
+  <div id="signatures"></div>
+
+  <h2>What this does not show</h2>
+  <div class="note">
+    <ul>
+      <li>That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.</li>
+      <li>Who holds the plant or the record now.</li>
+      <li>That a signing key belongs to the lab it names. VeilCore doesn’t vouch for anyone, and neither does this page.</li>
+      <li>Any date at all, until you find the batch root in the transaction named above (or the Bitcoin stamp checks). Until then the files only agree with each other.</li>
+      <li>When a lab report was saved to the plant. That came after sealing and isn’t inside the record’s fingerprint, so the batch doesn’t date it.</li>
+    </ul>
+  </div>
+
+  <h2>Check other files</h2>
+  <p>To check the files themselves rather than the copy inside this page, choose them here: <code>evidence.json</code>, or any of <code>record/sealed-fields.json</code>, <code>record/sealed-fields.canonical.json</code>, <code>record/fingerprint.txt</code>, <code>proof/inclusion-proof.json</code>, <code>proof/batch-root.txt</code>, <code>proof/root.bin</code>, <code>key/key-binding.json</code>, <code>lab/signatures.json</code>, or a lab report file. Nothing is sent anywhere.</p>
+  <input type="file" id="files" multiple aria-label="Choose files to check">
+  <div id="filechecks"></div>
+</main>
+
+<script type="application/json" id="veilcore-evidence">@@EVIDENCE_JSON@@</script>
+<script>
+// The published SDK's canonicalisation (veilcore-records @@SDK_VERSION@@, dist/canonical.js), copied in unchanged
+// except for its one `export` keyword.
+var canonicalise = (function () {
+/*@@CANONICAL@@*/
+return canonicalise;
+})();
+</script>
+<script>
+/*@@VERIFY_CORE@@*/
+</script>
+<script>
+(function () {
+  'use strict';
+  var embedded = null;
+  try {
+    embedded = JSON.parse(document.getElementById('veilcore-evidence').textContent);
+  } catch (e) {
+    embedded = null;
+  }
+  var current = embedded;
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = text;
+    return n;
+  }
+  function clear(id) {
+    var n = document.getElementById(id);
+    while (n.firstChild) n.removeChild(n.firstChild);
+    return n;
+  }
+  function hex(text) {
+    return el('span', 'hex', text);
+  }
+  function para(parts) {
+    var p = el('p');
+    for (var i = 0; i < parts.length; i++) p.appendChild(typeof parts[i] === 'string' ? document.createTextNode(parts[i]) : parts[i]);
+    return p;
+  }
+  function result(kind, headline, details, testid) {
+    var card = el('div', 'card');
+    if (testid) card.setAttribute('data-check', testid);
+    var row = el('div', 'row');
+    var mark = el('span', 'mark ' + kind, kind === 'ok' ? '✓' : kind === 'bad' ? '✗' : 'i');
+    mark.setAttribute('aria-hidden', 'true');
+    row.appendChild(mark);
+    var body = el('div');
+    body.appendChild(el('div', 'headline ' + (kind === 'ok' ? 'ok-text' : kind === 'bad' ? 'bad-text' : ''), headline));
+    for (var i = 0; i < details.length; i++) body.appendChild(details[i]);
+    row.appendChild(body);
+    card.appendChild(row);
+    return card;
+  }
+  function facts(pairs) {
+    var dl = el('dl');
+    for (var i = 0; i < pairs.length; i++) {
+      if (pairs[i][1] === null || pairs[i][1] === undefined || pairs[i][1] === '') continue;
+      dl.appendChild(el('dt', null, pairs[i][0]));
+      var dd = el('dd');
+      dd.appendChild(typeof pairs[i][1] === 'string' ? document.createTextNode(pairs[i][1]) : pairs[i][1]);
+      dl.appendChild(dd);
+    }
+    return dl;
+  }
+  var NETWORKS = { mainnet: 'Midnight’s main network', preprod: 'Midnight preprod (a test network)', preview: 'Midnight Preview (a test network)' };
+  function networkName(n) {
+    return NETWORKS[n] || 'the Midnight network “' + n + '”';
+  }
+  var TYPES = { 'laboratory-report': 'a lab report', 'chain-of-custody': 'a receipt for a sample', 'genetic-fingerprint': 'a genetic fingerprint' };
+
+  function render(ev, report) {
+    var rec = ev && ev.record ? ev.record : {};
+    var name = rec.sealedFields && typeof rec.sealedFields.strainName === 'string' ? rec.sealedFields.strainName : '';
+    var title = name ? name + (rec.id ? ' · ' + rec.id : '') : rec.id || 'this record';
+    document.title = 'Check ' + title + ' (offline)';
+    var summary = clear('summary');
+    summary.appendChild(para(['Record: ', el('strong', null, title)]));
+
+    // 1. Fingerprint
+    var checks = clear('checks');
+    var f = report.fingerprint;
+    if (f.ok) {
+      checks.appendChild(result('ok', 'Fingerprint matches', [
+        para([f.form === 'key-bound'
+          ? 'Worked out again from the sealed fields: the SHA-256 of their canonical form, with the record’s key binding folded in at the top (the key-bound form, spec section 3.6.1).'
+          : 'Worked out again from the sealed fields: the SHA-256 of their canonical form (spec section 4.4).']),
+        facts([['Fingerprint', hex(f.computed)]]),
+      ], 'fingerprint'));
+    } else {
+      checks.appendChild(result('bad', 'Fingerprint does not match', [
+        para([f.reason || 'The fingerprint could not be worked out.']),
+        facts([['Stated', f.stated ? hex(f.stated) : '(none)'], ['Worked out', f.computed ? hex(f.computed) : '(could not)']]),
+      ], 'fingerprint'));
+    }
+
+    // 2. Proof
+    var p = report.proof;
+    if (p.status === 'ok') {
+      checks.appendChild(result('ok', 'Proof leads to the batch root', [
+        para(['The record’s fingerprint is in batch ' + (p.batchId || '(unnamed)') + ': its path of ' + p.depth + ' step' + (p.depth === 1 ? '' : 's') + ' leads to the batch root (spec section 5.4).']),
+        facts([['Batch root', hex(p.root)]]),
+      ], 'proof'));
+    } else if (p.status === 'none') {
+      checks.appendChild(result('info', 'Not in a batch yet', [
+        para(['This bundle has no inclusion proof, so nothing in it dates the record yet. Once the record is in a dated batch, download a new bundle.']),
+      ], 'proof'));
+    } else {
+      checks.appendChild(result('bad', 'Proof does not lead to the batch root', [para([p.reason || 'The proof does not check.'])], 'proof'));
+    }
+
+    // 3. Key
+    var k = report.key;
+    if (k.status === 'ok') {
+      checks.appendChild(result('ok', 'The record’s key matches', [
+        para(['The record named this key when it was sealed (spec section 3.6.1). Anything this key does on the network is by the key this record named. It doesn’t show who controls the key now.']),
+        facts([['Key', hex(k.identity)]]),
+      ], 'key'));
+    } else if (k.status === 'fail') {
+      checks.appendChild(result('bad', 'The key does not match', [para([k.reason])], 'key'));
+    } else if (rec.sealedFields && typeof rec.sealedFields.keyBinding === 'string') {
+      checks.appendChild(result('info', 'The record’s key isn’t in this bundle', [
+        para(['This record names its own key, but the holder chose not to include it. The checks above don’t need it.']),
+      ], 'key'));
+    }
+
+    // 4. Lab report pairing
+    var lab = ev && ev.labReport;
+    var pr = report.pairing;
+    if (lab && pr.status === 'ok') {
+      checks.appendChild(result('ok', 'Lab report pairing matches', [
+        para(['The lab report saved to this plant has this SHA-256, and it leads to the pairing fingerprint saved with the plant (spec section 3.7). The report itself ' + (lab.fileIncluded ? 'is in this bundle: ' + lab.fileIncluded + '. Choose it below to check it.' : 'isn’t in this bundle.')]),
+        facts([['Lab report SHA-256', hex(lab.fileSha256)], ['Pairing fingerprint', hex(lab.pairingFingerprint)]]),
+      ], 'pairing'));
+    } else if (lab && pr.status === 'no-sha') {
+      checks.appendChild(result('info', 'Lab report saved, SHA-256 not kept', [
+        para(['A lab report was saved to this plant before its SHA-256 was kept, so only its pairing fingerprint is here.']),
+        facts([['Pairing fingerprint', lab.pairingFingerprint ? hex(String(lab.pairingFingerprint)) : '(none)']]),
+      ], 'pairing'));
+    } else if (lab && pr.status === 'fail') {
+      checks.appendChild(result('bad', 'Lab report pairing does not match', [para([pr.reason])], 'pairing'));
+    }
+
+    // Look-ups
+    var lk = clear('lookups');
+    var L = report.lookups;
+    if (!L.root) {
+      lk.appendChild(para(['Nothing to look up yet: the record isn’t in a batch.']));
+    } else {
+      if (L.midnight.length === 0) {
+        lk.appendChild(para(['The batch hasn’t been recorded on Midnight yet, so there is no transaction to look up. Download a new bundle once it has.']));
+      }
+      for (var i = 0; i < L.midnight.length; i++) {
+        var a = L.midnight[i];
+        var steps = el('ol');
+        steps.appendChild(el('li', null, 'Open a Midnight explorer for ' + networkName(a.network) + (a.explorer ? ', for example ' + a.explorer + ' (type the address yourself: this page opens nothing).' : '.')));
+        var s2 = el('li');
+        s2.appendChild(document.createTextNode('Find transaction '));
+        s2.appendChild(hex(a.txHash));
+        s2.appendChild(document.createTextNode(a.blockHeight !== null ? ' (block ' + a.blockHeight + ').' : '.'));
+        steps.appendChild(s2);
+        var s3 = el('li');
+        s3.appendChild(document.createTextNode('Check that it calls contract '));
+        s3.appendChild(hex(a.contractAddress || '(not given)'));
+        s3.appendChild(document.createTextNode(' and records this value, the batch root: '));
+        s3.appendChild(hex(a.root));
+        steps.appendChild(s3);
+        steps.appendChild(el('li', null, 'If it does, this record existed, unchanged, by that transaction’s time: whoever had it sealed held this record by then. If it doesn’t, the date isn’t shown.'));
+        var head = a.current ? 'Recorded on ' + networkName(a.network) : 'Recorded earlier on ' + networkName(a.network) + (a.replacedAt ? ' (replaced ' + a.replacedAt + ')' : '');
+        var extra = [];
+        if (a.testNetwork) extra.push(para(['This is a test network. It can be reset, and its dates carry no weight: treat this record as practice data.']));
+        extra.push(para(['VeilCore’s registry reported this transaction' + (a.anchoredAt ? ' (at ' + a.anchoredAt + ')' : '') + '. Nobody has checked it on the chain for you: that is what the steps above are for.']));
+        var card = result('info', head, [steps].concat(extra), 'lookup-midnight');
+        lk.appendChild(card);
+      }
+      if (L.bitcoin) {
+        var b = L.bitcoin;
+        var bl = el('ol');
+        bl.appendChild(el('li', null, 'The batch root was also stamped on Bitcoin with OpenTimestamps. The stamp file is ' + b.file + ', and the file it stamps is proof/root.bin (the batch root as 32 bytes).'));
+        bl.appendChild(el('li', null, 'Easiest: on opentimestamps.org, drop in root.bin.ots and then root.bin.'));
+        var cmd = el('li');
+        cmd.appendChild(document.createTextNode('Or with the official OpenTimestamps client, in the proof folder: '));
+        cmd.appendChild(el('code', null, 'ots verify root.bin.ots'));
+        cmd.appendChild(document.createTextNode(b.status === 'pending' ? ' (run ' : ''));
+        if (b.status === 'pending') {
+          cmd.appendChild(el('code', null, 'ots upgrade root.bin.ots'));
+          cmd.appendChild(document.createTextNode(' first).'));
+        }
+        bl.appendChild(cmd);
+        var bnote = b.status === 'pending'
+          ? 'This stamp was still pending when the bundle was made: a promise from the stamping servers, not yet in a Bitcoin block. Upgrading it needs the internet once.'
+          : 'This stamp is in Bitcoin block ' + (b.bitcoinBlockHeight || '(see the file)') + ', so it checks against Bitcoin alone.';
+        lk.appendChild(result('info', 'Bitcoin stamp file', [bl, para([bnote])], 'lookup-bitcoin'));
+      } else {
+        lk.appendChild(para(['No Bitcoin stamp file in this bundle.']));
+      }
+    }
+
+    // Signatures
+    var sg = clear('signatures');
+    if (report.signatures.length === 0) {
+      sg.appendChild(para(['No lab signatures about this record are in this bundle.']));
+    }
+    for (var j = 0; j < report.signatures.length; j++) {
+      var s = report.signatures[j];
+      var what = TYPES[s.type] || (s.type ? '“' + s.type + '”' : 'something');
+      var who = s.displayName ? ' (it calls itself “' + s.displayName + '”; not checked)' : '';
+      if (s.signature === 'unsupported') {
+        sg.appendChild(result('info', 'Signature not checked here', [para(['This browser can’t check Ed25519 signatures. Open this page in a current Chrome or Firefox.'])], 'signature'));
+        continue;
+      }
+      if (s.signature !== 'valid') {
+        sg.appendChild(result('bad', 'A signature that does not check', [para(['A signature in this bundle (' + s.attestationId + ') does not check. Ignore it.'])], 'signature'));
+        continue;
+      }
+      if (!s.aboutThisRecord) {
+        sg.appendChild(result('bad', 'A signature about another record', [para(['Signature ' + s.attestationId + ' checks, but it is about a different fingerprint. It says nothing about this record.'])], 'signature'));
+        continue;
+      }
+      var withdrawn = s.retraction && s.retraction.signature === 'valid';
+      var lines = [
+        para(['The key ', hex(s.publicKey), who + ' signed ' + what + ' with SHA-256 ', hex(s.documentHash), ', about this record, at ' + s.issuedAt + ' (the signer’s own clock).']),
+      ];
+      if (withdrawn) lines.push(para(['The same key withdrew it' + (s.retraction.retractedAt ? ' at ' + s.retraction.retractedAt : '') + (s.retraction.reason ? ' (' + s.retraction.reason + ')' : '') + '.']));
+      else if (s.retraction) lines.push(para(['A withdrawal is attached that this key did not sign. It is ignored.']));
+      if (ev.labReport && ev.labReport.fileSha256 === s.documentHash) lines.push(para(['It is the lab report saved to this plant.']));
+      sg.appendChild(result(withdrawn ? 'info' : 'ok', withdrawn ? 'Signed, then withdrawn' : 'Signature checks', lines, 'signature'));
+    }
+  }
+
+  function renderFiles(report) {
+    var out = clear('filechecks');
+    for (var i = 0; i < report.files.length; i++) {
+      var f = report.files[i];
+      if (f.is === 'root.bin') {
+        out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? 'root.bin is the batch root' : 'root.bin is not the batch root', [para(['SHA-256 of the file: ', hex(f.sha256)])], 'file'));
+      } else if (f.is === 'lab report?') {
+        out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? f.name + ' is the lab report saved to this plant' : f.name + ' is not the lab report saved to this plant', [para(['Its SHA-256: ', hex(f.sha256)])], 'file'));
+      } else {
+        out.appendChild(result('info', f.name, [para(['Its SHA-256: ', hex(f.sha256), '. Nothing in this bundle to compare it with.'])], 'file'));
+      }
+    }
+  }
+
+  function run(ev, files) {
+    return VeilcoreVerify.checkAll(ev, files || []).then(function (report) {
+      render(ev, report);
+      renderFiles(report);
+      document.body.setAttribute('data-checked', 'yes');
+      return report;
+    }).catch(function (e) {
+      var checks = clear('checks');
+      checks.appendChild(result('bad', 'This page could not run its checks', [para([e && e.message ? e.message : String(e)])]));
+      document.body.setAttribute('data-checked', 'error');
+    });
+  }
+
+  function readFile(file) {
+    return new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onload = function () { resolve({ name: file.name, bytes: new Uint8Array(r.result) }); };
+      r.onerror = function () { reject(r.error); };
+      r.readAsArrayBuffer(file);
+    });
+  }
+  var dec = new TextDecoder();
+  function jsonOf(bytes) {
+    return JSON.parse(dec.decode(bytes));
+  }
+
+  document.getElementById('files').addEventListener('change', function (event) {
+    var picked = Array.prototype.slice.call(event.target.files || []);
+    Promise.all(picked.map(readFile)).then(function (read) {
+      var ev = JSON.parse(JSON.stringify(current || {}));
+      ev.record = ev.record || {};
+      var others = [];
+      for (var i = 0; i < read.length; i++) {
+        var f = read[i];
+        var n = f.name;
+        try {
+          if (/evidence\.json$/.test(n)) ev = jsonOf(f.bytes);
+          else if (/sealed-fields\.canonical\.json$/.test(n)) ev.record.canonical = dec.decode(f.bytes);
+          else if (/sealed-fields\.json$/.test(n)) ev.record.sealedFields = jsonOf(f.bytes);
+          else if (/fingerprint\.txt$/.test(n)) ev.record.fingerprint = dec.decode(f.bytes).trim();
+          else if (/inclusion-proof\.json$/.test(n)) ev.proof = jsonOf(f.bytes);
+          else if (/batch-root\.txt$/.test(n)) { ev.batch = ev.batch || {}; ev.batch.root = dec.decode(f.bytes).trim(); }
+          else if (/key-binding\.json$/.test(n)) ev.key = jsonOf(f.bytes);
+          else if (/signatures\.json$/.test(n)) ev.signatures = jsonOf(f.bytes);
+          else others.push(f);
+        } catch (e) {
+          others.push(f);
+        }
+      }
+      return run(ev, others);
+    });
+  });
+
+  if (embedded) {
+    run(embedded, []);
+  } else {
+    clear('checks').appendChild(result('bad', 'This page has no evidence in it', [para(['Choose evidence.json from the bundle below.'])]));
+    document.body.setAttribute('data-checked', 'error');
+  }
+})();
+</script>
+</body>
+</html>

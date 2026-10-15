@@ -87,12 +87,14 @@ export const VerifyExample: React.FC = () => (
           </Fact>
           <Note>On a real record this line has a tick: your own browser checks that the record is in the batch.</Note>
           <Fact ok={false}>
-            The registry reports that root was recorded on {networkLabel(IS_MAINNET ? 'mainnet' : 'preprod')}, in a
-            transaction it names.
+            Checked on Midnight: this batch root was written by transaction 9c41e0…b27d in block 2973563 at 2026-10-11
+            14:03 UTC.{IS_MAINNET ? '' : ' A test network can be reset and its dates carry no evidential weight.'}
           </Fact>
           <Note>
-            That transaction is what dates the record. Look it up on a Midnight explorer, such as midnightexplorer.com,
-            before relying on the date.
+            That transaction, on {networkLabel(IS_MAINNET ? 'mainnet' : 'preprod')}, is what dates the record. On a real
+            record your browser asks a Midnight indexer for it and checks it wrote this batch root to VeilCore&apos;s
+            contract. If no indexer answers, the line says so and the date is only the registry&apos;s report: look the
+            transaction up on a Midnight explorer, such as midnightexplorer.com, before relying on it.
           </Note>
           <Fact ok={false}>
             Lab report (file SHA-256 7c1e04d2…9b3a51), signature verified in this browser. Signed by a key named

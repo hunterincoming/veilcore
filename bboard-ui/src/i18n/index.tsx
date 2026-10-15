@@ -20,10 +20,10 @@ import { fr, frTestchain } from './fr';
 import { mainnetStrings } from './en-mainnet';
 import { testchainStrings } from './en-testchain';
 import { IS_MAINNET, CLAIMS_ON_MAINNET, MAINTENANCE_POLICY_APPROVED } from '../config/network';
-import { REAL_CHAIN } from '../veilcore/chain/config';
+import { CHAIN_READS, REAL_CHAIN } from '../veilcore/chain/config';
 
 /** The mainnet overlay in a language that has translated it (en-mainnet.ts's flags). */
-type MainnetOverlay = (o: { claimsOnMainnet: boolean; policyApproved: boolean }) => Strings;
+type MainnetOverlay = (o: { claimsOnMainnet: boolean; policyApproved: boolean; chainReads?: boolean }) => Strings;
 
 /**
  * `spaces`: whether the language puts a space between words. Headings written in two
@@ -50,6 +50,8 @@ export type BuildKind = {
   realChain: boolean;
   claimsOnMainnet: boolean;
   policyApproved: boolean;
+  /** The check page reads Midnight itself (mainnet: a read-only relay is configured). */
+  chainReads?: boolean;
 };
 
 /**
@@ -65,7 +67,11 @@ export type BuildKind = {
  */
 export const networkOverlay = (build: BuildKind, lang: Lang): Strings => {
   if (build.isMainnet) {
-    const flags = { claimsOnMainnet: build.claimsOnMainnet, policyApproved: build.policyApproved };
+    const flags = {
+      claimsOnMainnet: build.claimsOnMainnet,
+      policyApproved: build.policyApproved,
+      chainReads: build.chainReads ?? false,
+    };
     return { ...mainnetStrings(flags), ...(LANGUAGES[lang].mainnet?.(flags) ?? {}) };
   }
   if (build.realChain) return { ...testchainStrings, ...LANGUAGES[lang].testchain };
@@ -77,6 +83,7 @@ export const THIS_BUILD: BuildKind = {
   realChain: REAL_CHAIN && !IS_MAINNET,
   claimsOnMainnet: CLAIMS_ON_MAINNET,
   policyApproved: MAINTENANCE_POLICY_APPROVED,
+  chainReads: CHAIN_READS,
 };
 
 /** This build is the public test site (test.veilcore.org): it sends real transactions on a test network. */

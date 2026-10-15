@@ -633,3 +633,186 @@ export const createIndexerRelay = (cfg: RelayConfig): IndexerRelay => {
     sockets: () => open,
   };
 };
+
+// ---- the relay on its own, for veilcore.org's check page (relay-main.ts) ---------------
+//
+// The public check page looks up a batch root's date stamp on Midnight itself
+// (bboard-ui/src/veilcore/chain/anchor-check.ts). On mainnet the only indexer is
+// Blockfrost's, which needs a project id, so the page reads through this relay. The sponsor
+// service can't be pointed at mainnet (config.ts refuses it: it pays fees, and needs a
+// wallet), so the same relay also runs alone: no wallet, no seed, no proof server, no
+// registry token. It holds one secret, the Blockfrost project id, and only relays reads.
+// docs/check-on-chain.md says how to deploy it.
+
+export type ReadRelayNetwork = "mainnet" | "preprod" | "preview";
+
+export type ReadRelayConfig = {
+  readonly network: ReadRelayNetwork;
+  readonly port: number;
+  readonly indexer: string;
+  readonly indexerWS: string;
+  readonly allowedOrigins: readonly string[];
+  readonly trustProxyHops: number;
+  /** Values kept out of the logs (the project id). */
+  readonly secrets: readonly string[];
+};
+
+/** Blockfrost's Midnight indexer for a network. The id rides in the URLs, so they are secrets. */
+export const blockfrostIndexer = (
+  network: "mainnet" | "preprod",
+  projectId: string,
+): { indexer: string; indexerWS: string } => {
+  const q = `?project_id=${encodeURIComponent(projectId)}`;
+  return {
+    indexer: `https://midnight-${network}.blockfrost.io/api/v0${q}`,
+    indexerWS: `wss://midnight-${network}.blockfrost.io/api/v0/ws${q}`,
+  };
+};
+
+/** Settings that mean someone pointed a wallet or an operator token at the read-only relay. */
+const NOT_HERE = [
+  /SEED/i,
+  /MNEMONIC/i,
+  /^REGISTRY_OPERATOR_TOKEN$/,
+  /^SPONSOR_STATUS_TOKEN$/,
+  /MAINTENANCE/i,
+  /PRIVATE_KEY/i,
+];
+
+/** The read-only relay's settings, from the environment, or every problem with them. */
+export const loadReadRelayConfig = (
+  env: Record<string, string | undefined>,
+): { ok: true; config: ReadRelayConfig } | { ok: false; problems: string[] } => {
+  const problems: string[] = [];
+  const held = Object.keys(env).filter(
+    (k) => (env[k] ?? "").trim() !== "" && NOT_HERE.some((r) => r.test(k)),
+  );
+  if (held.length > 0)
+    problems.push(
+      `Remove ${held.join(", ")}: this is the read-only relay. It must hold no wallet, seed or operator token.`,
+    );
+
+  const raw = (env.RELAY_NETWORK ?? "").trim().toLowerCase();
+  const network = (["mainnet", "preprod", "preview"] as const).find(
+    (n) => n === raw,
+  );
+  if (!network)
+    problems.push(
+      `RELAY_NETWORK must be mainnet, preprod or preview (got "${raw}").`,
+    );
+
+  const id = (env.BLOCKFROST_PROJECT_ID ?? "").trim();
+  const ownUrl = (env.INDEXER_URL ?? "").trim();
+  const ownWs = (env.INDEXER_WS_URL ?? "").trim();
+  let ep: { indexer: string; indexerWS: string } = { indexer: "", indexerWS: "" };
+  if (ownUrl || ownWs) {
+    if (!/^https:\/\//.test(ownUrl) || !/^wss:\/\//.test(ownWs))
+      problems.push(
+        "INDEXER_URL (https://…) and INDEXER_WS_URL (wss://…) must be given together.",
+      );
+    else ep = { indexer: ownUrl, indexerWS: ownWs };
+  } else if (network === "preview") {
+    ep = {
+      indexer: "https://indexer.preview.midnight.network/api/v4/graphql",
+      indexerWS: "wss://indexer.preview.midnight.network/api/v4/graphql/ws",
+    };
+  } else if (network) {
+    if (!/^[A-Za-z0-9_-]{8,}$/.test(id))
+      problems.push(
+        `BLOCKFROST_PROJECT_ID is required: a Blockfrost "Midnight ${network === "mainnet" ? "Mainnet" : "Preprod"}" project id (blockfrost.io). Midnight runs no keyless ${network} indexer.`,
+      );
+    else {
+      // A mainnet id has the network in it (Blockfrost ids start "mainnet…", "preprod…").
+      const other = network === "mainnet" ? "preprod" : "mainnet";
+      if (id.toLowerCase().startsWith(other))
+        problems.push(
+          `BLOCKFROST_PROJECT_ID looks like a ${other} project; ${network} needs its own (they are not interchangeable).`,
+        );
+      else ep = blockfrostIndexer(network, id);
+    }
+  }
+
+  const origins = (env.ALLOWED_ORIGINS ?? "https://veilcore.org,https://www.veilcore.org")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (origins.length === 0) problems.push("ALLOWED_ORIGINS is empty.");
+  for (const o of origins)
+    if (!/^https:\/\/[^/]+$/.test(o))
+      problems.push(`ALLOWED_ORIGINS: "${o}" is not an https origin.`);
+
+  const int = (v: string | undefined, d: number, lo: number, hi: number, name: string) => {
+    if (v === undefined || v.trim() === "") return d;
+    const n = Number(v);
+    if (!Number.isInteger(n) || n < lo || n > hi) {
+      problems.push(`${name} must be a whole number from ${lo} to ${hi}.`);
+      return d;
+    }
+    return n;
+  };
+  const port = int(env.PORT, 8080, 1, 65535, "PORT");
+  const trustProxyHops = int(env.TRUST_PROXY_HOPS, 1, 0, 5, "TRUST_PROXY_HOPS");
+
+  if (problems.length > 0 || !network) return { ok: false, problems };
+  return {
+    ok: true,
+    config: {
+      network,
+      port,
+      ...ep,
+      allowedOrigins: origins,
+      trustProxyHops,
+      secrets: id ? [id] : [],
+    },
+  };
+};
+
+/**
+ * The read-only relay's routes: GET /health (and the network it reads), the CORS
+ * preflight, and POST /indexer. Everything else is 404. The socket (/indexer/ws) is
+ * attached to the server by relay.attach.
+ */
+export const readRelayHandler =
+  (
+    relay: IndexerRelay,
+    cfg: Pick<ReadRelayConfig, "network" | "allowedOrigins">,
+    clientIp: (req: IncomingMessage) => string | undefined,
+  ) =>
+  async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
+    const origin = typeof req.headers.origin === "string" ? req.headers.origin : undefined;
+    const cors: Record<string, string> =
+      origin !== undefined && cfg.allowedOrigins.includes(origin)
+        ? { "access-control-allow-origin": origin, vary: "Origin" }
+        : { vary: "Origin" };
+    const path = (req.url ?? "/").split("?")[0];
+    const send = (status: number, body: unknown, extra: Record<string, string> = {}) => {
+      res.writeHead(status, {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store",
+        "x-content-type-options": "nosniff",
+        ...extra,
+      });
+      res.end(JSON.stringify(body));
+    };
+    try {
+      if (req.method === "OPTIONS") {
+        res.writeHead(204, {
+          ...cors,
+          "access-control-allow-methods": "POST",
+          "access-control-allow-headers": "content-type, accept",
+          "access-control-max-age": "600",
+        });
+        res.end();
+        return;
+      }
+      if (req.method === "GET" && path === "/health")
+        return send(200, { ok: true, readsOnly: true, network: cfg.network }, cors);
+      if (path === "/indexer") {
+        await relay.http(req, res, clientIp(req), cors);
+        return;
+      }
+      send(404, { ok: false, reason: "Not found." }, cors);
+    } catch {
+      if (!res.headersSent) send(500, { ok: false, reason: "Something went wrong on the relay." }, cors);
+    }
+  };

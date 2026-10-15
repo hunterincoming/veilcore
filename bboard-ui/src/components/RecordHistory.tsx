@@ -57,13 +57,14 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
 
       const proof = await proofFor(record.recordFingerprint);
       // Only a proof checked here (bound to this record, path folding to its root) is
-      // listed, and the anchor in it is the registry's report: this page has not looked
-      // the transaction up, so it is not presented as fixing the date.
+      // listed, and the anchor in it is the registry's report: this list does not look the
+      // transaction up (the "Date on Midnight" section above does, SettlementStatus.tsx),
+      // so it is not presented as fixing the date.
       if (proof.status === 'anchor-reported' && proof.proof.anchor?.anchoredAt) {
         out.push({
           at: new Date(proof.proof.anchor.anchoredAt).getTime(),
           title: 'Anchor reported by the registry',
-          detail: `Included in batch ${proof.proof.batchId} (inclusion checked in this browser). The registry reports the batch root was recorded on ${proof.proof.anchor.chain} ${proof.proof.anchor.network}; this page has not checked the chain, so look the transaction up before relying on the date.`,
+          detail: `Included in batch ${proof.proof.batchId} (inclusion checked in this browser). The registry reports the batch root was recorded on ${proof.proof.anchor.chain} ${proof.proof.anchor.network}. This list doesn't look the transaction up: the Date on Midnight section above does, when it can reach Midnight. Until that finds it, don't rely on the date.`,
         });
       }
 

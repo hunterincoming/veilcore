@@ -26,6 +26,7 @@ import { LineageGraph } from './LineageGraph';
 import { HeritableRights } from './HeritableRights';
 import { NextStep } from './NextStep';
 import { SettlementStatus } from './SettlementStatus';
+import { EvidenceBundle, DOWNLOAD_EVIDENCE_LABEL } from './EvidenceBundle';
 import { REAL_CHAIN } from '../veilcore/chain/config';
 import { AnchorOnChainPanel } from './chain/AnchorOnChainPanel';
 import { AttestationPanel } from './AttestationPanel';
@@ -223,6 +224,24 @@ export const RecordDetail: React.FC = () => {
             labSentEver={labSentEver}
             saved={saved}
           />
+
+          {/* Right under the record's date: everything needed to check it without us. */}
+          {record.recordFingerprint && record.nonce && (
+            <EvidenceBundle
+              record={record}
+              keys={keys}
+              trigger={(open) => (
+                <Typography variant="body2" sx={{ mt: -1.5 }}>
+                  <Link component="button" type="button" onClick={open} sx={{ verticalAlign: 'baseline' }}>
+                    {DOWNLOAD_EVIDENCE_LABEL}
+                  </Link>{' '}
+                  <Box component="span" sx={{ color: 'text.secondary' }}>
+                    to check this record’s date without VeilCore
+                  </Box>
+                </Typography>
+              )}
+            />
+          )}
 
           {/* The next step says "Open the lab report" unless the backup or date stamp comes
               first; then this says it, so a lab report never waits unseen. */}
@@ -446,6 +465,22 @@ export const RecordDetail: React.FC = () => {
                     <HeritableRights record={record} />
                   </Paper>
                 )}
+                {/* Everything here in one file, with a page that checks it offline. */}
+                <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
+                  <Stack spacing={1}>
+                    <Typography variant="overline" sx={{ display: 'block' }}>
+                      Evidence bundle
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      The record as sealed, its inclusion proof, the batch root, where the batch was recorded, the
+                      Bitcoin stamp file if there is one, and lab signatures about it, in one .zip. Its verify.html
+                      checks it with no internet and nothing from VeilCore, and says what to look up to date it.
+                    </Typography>
+                    <Box>
+                      <EvidenceBundle record={record} keys={keys} />
+                    </Box>
+                  </Stack>
+                </Paper>
                 {/* The wire format. Any implementation can read this and recompute the
                     commitment without our code, our chain, or our permission. */}
                 <Box>

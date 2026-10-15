@@ -178,9 +178,9 @@ export const es: Strings = {
   'm.get.1b': 'para un registro de lo que usted tiene, sin mostrar su genética.',
   'm.get.3b':
     'Un vínculo de parentesco cuenta solo cuando ambos titulares lo confirman. En este sitio lo anota el servidor de registros de VeilCore, no la cadena.',
-  'm.open.2t': 'Guarde tres archivos.',
+  'm.open.2t': 'Guarde un solo archivo.',
   'm.open.2p':
-    'En la página de su planta, en «Technical details»: «Export record», «Download inclusion proof» (muestra que el registro está en un lote fechado) y, en veilcore.org, «Download Bitcoin stamp file». Su archivo de respaldo contiene sus claves, no estos archivos. Pronto habrá un paquete de evidencia con un clic.',
+    'En la página de su planta: «Download evidence bundle». Un solo .zip con el registro tal como se selló, su prueba de inclusión, la huella del lote, dónde se registró el lote, el archivo de sello de Bitcoin si lo hay, y una página que lo comprueba todo sin conexión. Su archivo de respaldo contiene sus claves, no estos archivos. Los archivos sueltos siguen en «Technical details»: «Export record», «Download inclusion proof», «Download Bitcoin stamp file».',
   'm.faq.1a':
     'Una vez anclados los registros, cualquiera puede comprobar cuál se ancló primero. Vincule su informe de laboratorio, para que una prueba posterior pueda compararse con él. Cuando envíe material, el receptor firma un acuse de recibo con su propia clave. Un registro es una prueba, no una inscripción: muestra que usted tenía este registro en esa fecha, no que tenía la planta, y por sí solo no resuelve una disputa.',
   'm.post0.date': '4 oct 2026',
@@ -236,11 +236,14 @@ export const es: Strings = {
   'm.live.lic.main': 'Solo de práctica.',
   'm.live.lic.test': 'Solo de práctica.',
   'm.live.lic.not': 'Licencias reales desde el sitio. Están integradas en el contrato.',
+  'm.live.chain.t': 'La página de comprobación lee Midnight por sí misma',
+  'm.live.chain.main': 'Todavía no: necesita nuestro relé de solo lectura.',
+  'm.live.chain.test': 'Sí.',
   // Round 3 (14 Oct 2026): the rest of the landing page, so no English shows through.
   'nav.newCultivar': 'Nuevo registro',
   'nav.licenses': 'Acuerdos',
   'footer.about':
-    'Un formato de registro abierto para genética vegetal y animal. Recalcular la huella de un registro solo requiere SHA-256 y la especificación abierta; comprobar su fecha requiere además una consulta en un explorador de Midnight. Buscar un registro por su identificador en este sitio usa nuestro servidor.',
+    'Un formato de registro abierto para genética vegetal y animal. Recalcular la huella de un registro solo requiere SHA-256 y la especificación abierta. Su fecha viene de una transacción en Midnight: la página de comprobación la consulta por sí misma cuando puede llegar a Midnight y, si no, dice que la fecha es la que informa nuestro registro. Buscar un registro por su identificador en este sitio usa nuestro servidor.',
   'm.hero.status':
     'Lanzamiento en la red principal de Midnight. Hoy los registros se fechan en una red de pruebas de Midnight, lo que todavía no prueba nada.',
   'm.claims.status':
@@ -393,7 +396,7 @@ export const es: Strings = {
   // Round 5 (15 Oct 2026): landing page rework, keys added.
   'm.open.6t': 'Comprobar sin nosotros.',
   'm.open.6p':
-    'Con esos archivos, cualquiera puede comprobar un registro con la especificación abierta y un explorador de Midnight. Los registros sellados desde el 14 de octubre también necesitan la sección 3.6.1 de la especificación, publicada en la especificación de este sitio; el SDK y sus tres implementaciones la incorporarán en su próxima versión.',
+    'Con ese paquete de evidencia, cualquiera puede comprobar un registro sin conexión: abrir su verify.html y luego buscar en un explorador de Midnight la única transacción que nombra. Los registros sellados desde el 14 de octubre también necesitan la sección 3.6.1 de la especificación, publicada en la especificación de este sitio; el SDK y sus tres implementaciones la incorporarán en su próxima versión.',
   'm.open.6link': 'Leer la especificación →',
   'm.updates.older': 'Novedades anteriores',
   'm.live.colTestNote': '(se publica esta semana)',
@@ -405,7 +408,7 @@ export const es: Strings = {
   'm.tech.show': 'Ver el detalle',
   'm.tech.check.t': 'Comprobar un registro a mano',
   'm.tech.check.p':
-    'Recalcular la huella de un registro solo requiere SHA-256 y la especificación abierta. Su prueba de inclusión une esa huella con la huella de un lote anclada en Midnight, y una consulta en un explorador de Midnight da la fecha del lote. Los registros sellados desde el 14 de octubre nombran su propia clave, así que comprobarlos también requiere la sección 3.6.1, publicada en la especificación de este sitio; el SDK y sus tres implementaciones la incorporarán en su próxima versión.',
+    'Recalcular la huella de un registro solo requiere SHA-256 y la especificación abierta. Su prueba de inclusión une esa huella con la huella de un lote anclada en Midnight, y la transacción que la ancló da la fecha del lote. El verify.html del paquete de evidencia rehace ese cálculo sin conexión y nombra la transacción y la huella del lote que hay que buscar. La página de comprobación consulta esa transacción en Midnight por sí misma cuando puede llegar a Midnight; si no, dice que la fecha es la que informa nuestro registro, y usted puede buscarla en un explorador de Midnight. Los registros sellados desde el 14 de octubre nombran su propia clave, así que comprobarlos también requiere la sección 3.6.1, publicada en la especificación de este sitio; el SDK y sus tres implementaciones la incorporarán en su próxima versión.',
   'm.tech.impl.t': 'Una especificación, tres implementaciones',
   'm.tech.impl.p':
     'Libre de implementar, para siempre. TypeScript, Python y Rust coinciden en los 100 vectores de prueba del formato de registro en GitHub, y cualquiera puede ejecutarlos; un 101.º, para la vinculación de informes, aún no está en Rust. Un mismo autor escribió las tres, y la de TypeScript está en npm como 0.15.0. Una escrita por otra persona es la prueba que más deseamos.',
@@ -438,4 +441,8 @@ export const esTestchain: Strings = {
     'Este sitio usa la red de pruebas preprod de Midnight, no la principal. Su navegador envía cada sello de fecha a esa red a través del servicio de tarifas de VeilCore; lo que usted escribió y sus archivos nunca se envían allí. Una red de pruebas puede reiniciarse, y los datos de prueba pueden borrarse.',
   'm.privacy.hosts.text':
     'Este sitio web está alojado en Vercel, que registra direcciones IP y solicitudes. Nuestro servidor de registros, y el servicio que paga las tarifas de la red de pruebas y transmite las lecturas de la red de esta página, funcionan en Railway, que registra solicitudes. Ese servicio lee la red a través de Blockfrost.',
+  'footer.about':
+    'Un formato de registro abierto para genética vegetal y animal. Recalcular la huella de un registro solo requiere SHA-256 y la especificación abierta. Su fecha viene de una transacción en Midnight, y la página de comprobación consulta esa transacción en Midnight por sí misma. Buscar un registro por su identificador en este sitio usa nuestro servidor.',
+  'm.tech.check.p':
+    'Recalcular la huella de un registro solo requiere SHA-256 y la especificación abierta. Su prueba de inclusión une esa huella con la huella de un lote anclada en Midnight, y la transacción que la ancló da la fecha del lote. El verify.html del paquete de evidencia rehace ese cálculo sin conexión y nombra la transacción y la huella del lote que hay que buscar. La página de comprobación consulta esa transacción en Midnight por sí misma. Los registros sellados desde el 14 de octubre nombran su propia clave, así que comprobarlos también requiere la sección 3.6.1, publicada en la especificación de este sitio; el SDK y sus tres implementaciones la incorporarán en su próxima versión.',
 };

@@ -3,7 +3,8 @@
 Prepared 6 October 2026 for Guvenkaya's review of the VeilCore contracts. Everything here
 was checked against the code at `a3d1884` on 6 October; where a number was measured, the
 command that measured it is given. Where another document in this repository says
-something different, section 10 lists it.
+something different, section 10 lists it. Section 12 (added 15 October) lists what has
+changed in the code since then.
 
 Contents:
 
@@ -18,6 +19,7 @@ Contents:
 9. Open questions for you
 10. Statements elsewhere in this repository that are out of date
 11. Claims-only scope
+12. Changes since 6 October (added 15 October 2026)
 
 Security contact: `SECURITY.md` (hunter@veilcore.org, or GitHub private vulnerability
 reporting).
@@ -693,3 +695,190 @@ by `api/test-maintenance.mjs`).
 **Not needed:** `veilcore.compact`, `witnesses.ts`, `verify.ts`. The claims contract does
 not read the main contract; a verifier checks that a record is anchored separately (check
 2).
+
+---
+
+## 12. Changes since 6 October (added 15 October 2026)
+
+Read from the history of both repositories on 15 October: this repository from `a3d1884`
+to `19674df` (branch `feat/lab-results`), and the registry (`veilcore-api`) from 6 October
+to `1f35505` (its branch `feat/lab-results`). Sections 1 to 11 above are unchanged and still
+describe `a3d1884`.
+
+### Where things stand
+
+- **The contracts are unchanged.** `veilcore.compact`, `veilcore-claims.compact` and
+  `schnorr.compact` are byte-identical at `a3d1884`, `main` and `19674df`. These are the
+  contracts deployed on mainnet on 8 October (`docs/deployment-record-revision-4.md`).
+- **`main`** has, in `contract/` and `api/`, only the mainnet address pins and a build fix
+  (`api/src/deploy-guard.ts`: `799c765`, `5722fdb`, `a1885db`). `contract/src` on `main` is
+  identical to `a3d1884`.
+- **Everything else below is on `feat/lab-results`**, in both repositories, not merged to
+  `main` and not live. The site on it is a test-network build. Lab results are switched off
+  for mainnet (`labResultsEnabledFor` in `bboard-ui/src/config/network.ts`).
+- **Four of the ten in-scope files changed** on `feat/lab-results`: `verify.ts` (463 to 837
+  lines), `verify-claims.ts` (694 to 766), `field-schema.ts` (464 to 496), `witnesses.ts`
+  (175 to 193). One new file sits next to them: `contract/src/pairing.ts` (254). The other
+  six are byte-identical to `a3d1884`.
+- **Reviews since 6 October** were internal AI-assisted reviews (8 to 10 October on the
+  verifier, API and registry; rounds 2 to 6 on 14 and 15 October on the site, registry and
+  sponsor). Commit messages from those days sometimes call them "independent"; they were
+  not.
+  None is an audit. Their write-ups are kept outside the repository; the commit messages and
+  the tests named below are the record here.
+
+### In-scope files: verifier changes (8 and 9 October)
+
+- **Rule 5, issuer-scoped** (`acceptPresentationScoped`, `6abe229`, `327c542`). Someone
+  keeping one revocation of their own waiting, plus cheap root changes, could make rule 5
+  refuse every honest presentation proved against an older root. Given the contract's state
+  after every call since the last seal, the scoped rule accepts such a presentation unless
+  the issuer asked about revoked a leaf at that root, its active count fell, or a leaf of
+  that root was replaced other than by a real transfer. It refuses when the history does
+  not reach the root or is not one state per call (merged steps, counters jumping or going
+  down). Without a history, the original strict rule stays the default. The history being
+  one state per call is the caller's job; gaps cannot be detected in general.
+- **Licence requests against the issuer's current head** (`currentHead`, `6f14ae2`). A
+  licence built against an issuer's origin after a rotation could never be countersigned.
+- **Rule 9, bound DNA pairing** (`contract/src/pairing.ts`, `acceptPairing`; `d296a4b`,
+  `19a2409`). `pairDna` publishes any 32 bytes, so a raw report hash can be copied from a
+  pending transaction and paired to another record first. The client now pairs
+  `H("veilcore:v1:dnapair", reportHash, identity, salt)`. The verdict says only that
+  whoever controlled the identity at that date had the report, or its SHA-256, by then;
+  it names any raw pairing of the same hash made earlier, and says when the identity's key
+  has changed since. The contract did not change. `witnesses.ts` keeps the pairing salt in
+  private state, saved before the call is sent (`b6aaf3e`).
+- **Claims check 8** (`verify-claims.ts`, `2515e36`, `704ce67`). An `unchanged` claim whose
+  mask covers every slot the schema describes now fails, as one over all 16 did.
+  `supersedes` is matched by the original's commitment when given, otherwise by `recordId`
+  and the same holder; a holder change is accepted only when the correction declares it.
+- **Canonical JSON** (`field-schema.ts`, `ba88a71`) refuses array holes, binary data and
+  self-containing values, as `veilcore-records` 0.15 does.
+
+### Adjacent, on the trust path (outside the ten files)
+
+- **Verifier keys and the maintenance authority** (`api/src/state-check.ts`, new;
+  `fb688f8`, `bbccbee`, `c786b30`). A key holder could swap a circuit's verifier key, act,
+  and restore it. The lookup now compares every verifier key in the state a verdict rests
+  on with the pinned build (`docs/fingerprints.md`), refuses on any difference, and reports
+  the authority (committee size, threshold, counter) at the proof's own state. On mainnet a
+  caller cannot replace the pins; it can add a required counter (`authorityCounter`) or a
+  second indexer.
+- **Second indexer** (`api/src/presentation-lookup.ts`, `3d8df10`): when given, it must
+  report the same call, block, state and block time, or the lookup is refused.
+- **Pairing history** (`api/src/pairing-history.ts`, new, `7ebbd11`): reads every call on
+  the contract from the indexer's subscription, to find raw pairings made before a bound
+  one.
+
+### Site, registry and sponsor (new since 6 October)
+
+1. **Prove it by link, with answer tokens.** A checker's browser makes a challenge and keeps
+   it; the registry stores a request (`POST /prove-requests`) and the holder opens
+   `/prove/PR-…`, proves on chain (`proveOwnership`) and posts the transaction id back. The
+   checker's page accepts only an answer to a challenge it made itself, read from the
+   network: a `proveOwnership` call answering that challenge from that identity
+   (`bboard-ui/src/veilcore/prove-relay.ts`, `chain/ownership-check.ts`). Answering needs a
+   random token the checker's browser makes; the registry stores only its SHA-256, and the
+   token travels in the link's fragment (`#t=…`). 128-bit ids and tokens, 7-day expiry, at
+   most 5 answers, 50,000 live requests, 100 a day per address. No holder key either way.
+   Registry: `lineage/prove-requests.mjs`.
+2. **Lab results, locked per delivery.** The breeder's delivery code carries an age X25519
+   public key derived by HKDF from the plant's record secret and the delivery id (one lock
+   per delivery; older codes carry a per-plant lock, still opened). The lab signs a
+   `laboratory-report` attestation over the file's SHA-256 and uploads only the age file;
+   the registry refuses anything that is not one. The breeder's browser decrypts and shows
+   "Signed by" only when a verified attestation matches the exact file. The lab can withdraw
+   a result or send a corrected one (`replaces`). Limits: 5 per delivery, 15 MB each,
+   180 days, per-lab and per-sender caps. Site: `bboard-ui/src/veilcore/lab-results.ts`;
+   registry: `lineage/lab-results.mjs`.
+3. **Receipt binding.** A lab's signed receipt (a `chain-of-custody` attestation) is attached
+   to a delivery (`POST /transfers/:id/receipt`) only by whoever claimed it, and only if its
+   subject is the fingerprint the delivery was offered and claimed with and its document is
+   the sealed fingerprint of the record the lab's claim created; withdrawn attestations are
+   refused (`receiptProblem`, registry `lineage/transfer.mjs`). "Confirmed by a lab" shows
+   only from a verified receipt linked to the breeder's own delivery. The registry cannot
+   check who holds the signing key.
+4. **Key-bound records, SPEC 3.6.1** (`docs/identity-in-record.md`). A record sealed since
+   14 October carries `keyBinding = H(keybind, key, keySalt)`, and its fingerprint is
+   `H(keyrecord, keyBinding, SHA-256 of the canonical sealed fields)`. The share link adds
+   `ks` and `cd`; the check page recomputes the fingerprint from the link's key and refuses
+   a key the record did not name. A bound record whose link leaves `ks`/`cd` out is refused,
+   not downgraded. Older records still verify, labelled as not key-bound. The registry
+   checks only the shape (`lineage/key-binding.mjs`); it never sees the key or salt.
+   Vectors: `contract/vectors/key-bound-v1.json`, `contract/scripts/key-bound-vectors.mjs`.
+5. **Lab-name checks** (`docs/lab-name-checks.md`). Any key can register under any name.
+   Only the registry operator (operator token, `POST /attesters/:publicKey/vetting`) can
+   mark a key, after the written procedure: the lab found in a public licence or
+   accreditation listing, and confirmed from an address on the lab's own domain. A mark
+   records what was checked and when, and expires after 12 months; unmarked signatures show
+   as "name not checked". The grade comes from the mark, never from what the signer wrote
+   (`strengthFor`, registry `lineage/attesters.mjs`).
+6. **Maintenance committee tooling** (`docs/maintenance-committee.md`). Offline key tool
+   and install/request/sign/submit for moving the main contract's authority to three keys,
+   two needed (`scripts/committee/core.mjs`, `cli.mjs`, `submit.mjs`;
+   `bboard-cli/src/launcher/committee.ts`). Tested against Midnight's ledger-v8 WebAssembly
+   with proofs and fees off; never run on a live network, not even preprod. Mainnet still
+   has one key on paper.
+7. **Sponsor service and indexer relay** (`sponsor/src`). The sponsor pays the fee for a few
+   VeilCore calls and anchors batch roots on a schedule, only for a registry that publishes
+   the same network and contract (`dc8f8d1`). Its relay (`POST /indexer`, `/indexer/ws`,
+   `indexer-relay.ts`) lets a hosted test site read the chain without carrying the Blockfrost
+   key: reads only, one query of at most 16 KB, parsed token by token by a GraphQL lexer
+   (`66d466f` closed a leading-comma mutation bypass), an allowlist of socket messages,
+   per-address allowance and socket caps, fixed error bodies, no redirects. The Origin check
+   only limits browsers.
+8. **Registry storage.** On registry `main` (8 to 11 October): holder keys stored as
+   digests (`ad0ca25`); per-holder record and byte ceilings, paged reads, unpaged reads
+   limited by bytes per address; daily encrypted off-site backups (`96fdda8`, `8b8c2ee`); an
+   anchor is never overwritten (`cc93f66`). On `feat/lab-results`: tables for prove
+   requests and lab-result details; the locked lab-result files kept outside SQLite, one per
+   result, in `LAB_RESULTS_DIR` (not in the off-site backup), with a 2 GiB total and a
+   per-sender cap; `/verify` returns the record's current lab-report pairing (`1f35505`).
+
+### Where to look hardest
+
+- Scoped rule 5: can a history that passes the one-state-per-call checks still hide a
+  revocation, or can a griefer still force refusals?
+- Rule 9 and `pairing-history.ts`: anything that makes an earlier raw pairing invisible, or
+  a bound pairing verify for another identity.
+- `state-check.ts`: any verifier-key difference that is not caught; whether the pins can be
+  bypassed on mainnet.
+- Prove-by-link: whether the registry or another party can make a check pass (it should
+  only be able to make one fail); replay of an answer across requests or challenges.
+- Lab results: the HKDF derivation and its labels; whether a swapped, replayed or
+  cross-delivery file can be shown as signed; withdraw and `replaces`.
+- Receipt binding: an attestation about another plant or another delivery accepted as a
+  receipt.
+- Key binding: a link whose key, `ks` or `cd` is changed yet still matches; a bound record
+  shown as an older, unbound one.
+- The sponsor relay: any request that is not a read, or that spends the key beyond the
+  allowance.
+- The committee tools: signatures, threshold, counter and request checks in `core.mjs`.
+
+### Where the tests are
+
+This repository, branch `feat/lab-results`:
+
+```sh
+cd contract && npx vitest run src/test/presentation-scoped.test.ts src/test/pairing.test.ts \
+  src/test/verify-claims.test.ts src/test/field-schema.test.ts src/test/interface.test.ts
+cd api && npm test                         # includes test-state-check.mjs and test-presentation-lookup.mjs
+cd bboard-ui && npm test                   # unit: src/veilcore/prove-relay, chain/ownership-check,
+                                           #   key-binding, lab-results, saved-report, custody,
+                                           #   attesters, backup, chain/pairing; src/round5, round6
+cd bboard-ui && npm run e2e:build && npm run e2e   # built site in Chromium; e2e/site.spec.ts runs in CI,
+                                           #   e2e/flow.spec.ts needs a real registry (e2e/README.md)
+cd sponsor && npm test                     # includes src/indexer-relay.test.ts
+node --test scripts/committee/committee.test.mjs
+cd bboard-cli && npx vitest run src/launcher/committee.test.ts
+```
+
+Registry (`veilcore-api`, branch `feat/lab-results`): `npm test` (it sets
+`VEILCORE_OTS=off`). New files: `test/prove-requests.test.mjs`,
+`test/lab-results.test.mjs`, `test/round3.test.mjs` (receipt binding),
+`test/key-binding.test.mjs`, `test/name-checks.test.mjs`,
+`test/verify-current-pairing.test.mjs`; from 8 to 11 October,
+`test/deepdive-8oct.test.mjs`, `test/deepdive-8oct-round2.test.mjs`,
+`test/holder-key-migration.test.mjs`, `test/backup.test.mjs`.
+
+Test counts were not re-measured for this section.

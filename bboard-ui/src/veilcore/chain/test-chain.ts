@@ -37,7 +37,11 @@ export const standInVerifierKey = (circuit: string): Uint8Array =>
 
 /** The contract's state after `steps` run locally (e.g. an anchor). */
 export const contractStateAfter = (
-  steps: { secret: Uint8Array; circuit: 'anchor' | 'proveOwnership' | 'pairDna'; args: Uint8Array[] }[] = [],
+  steps: {
+    secret: Uint8Array;
+    circuit: 'anchor' | 'proveOwnership' | 'pairDna' | 'anchorBatch';
+    args: Uint8Array[];
+  }[] = [],
 ): ContractState => {
   const initial = new Contract(veilcoreWitnesses).initialState(
     createConstructorContext(createVeilcorePrivateState(new Uint8Array(32).fill(9)), COIN),

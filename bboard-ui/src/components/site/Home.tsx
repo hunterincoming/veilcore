@@ -213,6 +213,10 @@ const LIVE_ROWS = [
   // offers the batch's stamp file (round 5). The test site's registry runs with it off
   // (docs/no-wallet-run-12oct.md), so no test-site cell.
   ['btc', true, false, false],
+  // The check page looking the date up on Midnight itself (docs/check-on-chain.md): on the
+  // test site through the sponsor's relay; on veilcore.org once the read-only relay is live
+  // (its cell says "Not yet" in en.ts, "Yes." from the mainnet overlay on a build with one).
+  ['chain', true, true, false],
   ['share', true, true, false],
   ['lab', true, true, false],
   ['results', false, true, true],

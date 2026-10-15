@@ -14,10 +14,12 @@
 //     A proof for any other commitment folds to its own root just as well, and was shown
 //     as this record's anchor;
 //   - that the path folds to the root it names (verifyInclusion, offline);
-//   - NOT that the root is on a chain. The site has no chain lookup, so the anchor in a
-//     proof is the registry's report and is labelled that way. It is never shown as
-//     "Anchored", never printed on a certificate as a fact, and never offered as proof
-//     of a date.
+//   - NOT that the root is on a chain. Here the anchor in a proof is the registry's
+//     report, and this module labels it that way. The pages that show it look the
+//     transaction up on Midnight themselves (veilcore/chain/anchor-check.ts: the check
+//     page and the plant page's "Date on Midnight" section) and only then call the date
+//     checked; until then, or with no indexer to ask, it is never shown as "Anchored",
+//     never printed on a certificate as a fact, and never offered as proof of a date.
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -38,8 +40,8 @@ export type ProofState =
   | { status: 'pending'; proof: InclusionProof }
   /**
    * In a sealed batch, checked here, and the registry REPORTS the batch root was recorded
-   * in a transaction. This page has not looked the transaction up, so it is not shown as
-   * anchored.
+   * in a transaction. This module does not look the transaction up; a page that shows it
+   * calls the date checked only after checkAnchorOnChain (chain/anchor-check.ts) confirms it.
    */
   | { status: 'anchor-reported'; proof: InclusionProof };
 

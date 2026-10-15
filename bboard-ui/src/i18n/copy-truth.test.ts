@@ -24,6 +24,10 @@
 //     US spelling only ("license"); Japanese: headings join without a stray space and
 //     break between phrases, one term per idea, and a Japanese mainnet overlay so the
 //     mainnet site in Japanese is not half English.
+//   - (round 7) one file to keep: the evidence bundle the plant page really offers, never
+//     "coming"; the check page reading Midnight itself is said per build: the test site
+//     does, veilcore.org will once its read-only relay is live (and says so until then),
+//     and nothing says checking a date "needs" an explorer any more.
 // Run: npx vitest run src/i18n/copy-truth.test.ts
 // SPDX-License-Identifier: Apache-2.0
 
@@ -37,6 +41,7 @@ import { testchainStrings } from './en-testchain';
 import { networkOverlay, LANGUAGES, type Lang } from './index';
 import { ja, jaMainnet, jaTestchain } from './ja';
 import { labResultsEnabledFor } from '../config/network';
+import { readIndexersFor } from '../veilcore/chain/config';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.resolve(HERE, '..');
@@ -50,8 +55,13 @@ const DEMO = { ...BUILD, isMainnet: false, realChain: false };
 const merged = (overlay: Partial<Record<StringKey, string>>): Record<string, string> => ({ ...en, ...overlay });
 const testSite = merged(networkOverlay(TEST_SITE, 'en'));
 const mainnetVariants = [true, false].flatMap((claimsOnMainnet) =>
-  [true, false].map((policyApproved) => merged(mainnetStrings({ claimsOnMainnet, policyApproved }))),
+  [true, false].flatMap((policyApproved) =>
+    [true, false].map((chainReads) => merged(mainnetStrings({ claimsOnMainnet, policyApproved, chainReads }))),
+  ),
 );
+/** veilcore.org before and after its read-only relay (VITE_INDEXER_RELAY_URL). */
+const mainnetNoRelay = merged(mainnetStrings({ ...BUILD, chainReads: false }));
+const mainnetRelay = merged(mainnetStrings({ ...BUILD, chainReads: true }));
 const ALL_ENGLISH: Record<string, string>[] = [en, testSite, ...mainnetVariants];
 
 const offenders = (strings: Record<string, string>, re: RegExp) =>
@@ -213,8 +223,42 @@ describe('what to keep if VeilCore is gone', () => {
     expect(en[k], k).toMatch(/backup file holds your keys, not (these|them)/);
     expect(en[k], k).not.toMatch(/Records you've kept a copy of still check/);
     expect(en['m.open.2t']).not.toMatch(/Your record doesn't need us/);
-    expect(en[k]).toMatch(/one-click evidence bundle .*is coming/);
     expect(en[k]).toMatch(/Bitcoin stamp file/);
+  });
+  it('one file: the evidence bundle the plant page really offers, never "coming" (round 7)', () => {
+    const label = /DOWNLOAD_EVIDENCE_LABEL = '([^']+)'/.exec(source('components/EvidenceBundle.tsx'))?.[1];
+    expect(label).toBe('Download evidence bundle');
+    // The plant page shows it: once right under the record's date, once in its own panel.
+    expect(source('components/RecordDetail.tsx').match(/<EvidenceBundle\b/g)?.length).toBe(2);
+    expect(en['m.open.2t']).toBe('Keep one file.');
+    expect(en['m.open.2p']).toMatch(new RegExp(`^From your plant's page: ${label}\\. One \\.zip with `));
+    // What the bundle really holds (veilcore/evidence/bundle.ts) and its offline page.
+    const bundle = source('veilcore/evidence/bundle.ts');
+    for (const f of ['record/sealed-fields.json', 'proof/inclusion-proof.json', 'proof/anchors.json', 'verify.html'])
+      expect(bundle, f).toContain(f);
+    expect(bundle).toMatch(/root\.bin\.ots/);
+    expect(en['m.open.2p']).toMatch(
+      /the record as sealed, its inclusion proof, the batch root, where the batch was recorded, the Bitcoin stamp file when there is one, and a page that checks it offline/,
+    );
+    expect(en['m.open.2p']).toMatch(
+      /The single files are still under Technical details: Export record, Download inclusion proof, Download Bitcoin stamp file\.$/,
+    );
+    expect(en['m.open.6p']).toMatch(
+      /^With that bundle, anyone can check a record offline: open its verify\.html, then look up the one transaction it names on a Midnight explorer\./,
+    );
+    // No English says the bundle is still to come, and no translation either.
+    for (const s of ALL_ENGLISH) expect(offenders(s, /bundle[^.]*(is coming|coming soon)|one-click/i)).toEqual([]);
+    const COMING: Record<string, RegExp> = {
+      de: /in Vorbereitung|drei Dateien/,
+      fr: /en préparation|trois fichiers/,
+      es: /Pronto habrá|tres archivos/,
+      ja: /準備中|3つのファイル/,
+    };
+    for (const lang of ['de', 'fr', 'es', 'ja'] as Lang[])
+      for (const k of ['m.open.2t', 'm.open.2p'] as const) {
+        expect(LANGUAGES[lang].strings[k], `${lang} ${k}`).not.toMatch(COMING[lang]);
+        expect(LANGUAGES[lang].strings[k], `${lang} ${k}`).toContain(k === 'm.open.2p' ? label : '');
+      }
   });
   it('describes the Bitcoin stamp file the way the plant page really offers it', () => {
     if (stampButton) {
@@ -305,6 +349,7 @@ describe("what's live where", () => {
     expect(rows.map((r) => r.row)).toEqual([
       'stamp',
       'btc',
+      'chain',
       'share',
       'lab',
       'results',
@@ -329,6 +374,15 @@ describe("what's live where", () => {
     expect(e['m.live.stamp.test']).toMatch(/date stamps your plant's own key, which dates only the key/);
     expect(e['m.live.claims.main']).toMatch(/no maintenance key.*can’t use it yet/);
     expect(e['m.live.lic.main']).toBe('Practice only.');
+    // The check page reads Midnight itself on the test site; on veilcore.org only with the
+    // read-only relay (round 7, docs/check-on-chain.md).
+    expect(rows.find((r) => r.row === 'chain')?.has).toEqual([true, true, false]);
+    expect(e['m.live.chain.t']).toBe('The check page reads Midnight itself');
+    expect(e['m.live.chain.main']).toBe('Not yet: needs our read-only relay.');
+    expect(e['m.live.chain.test']).toBe('Yes.');
+    expect(testSite['m.live.chain.main']).toBe('Not yet: needs our read-only relay.');
+    expect(mainnetNoRelay['m.live.chain.main']).toBe('Not yet: needs our read-only relay.');
+    expect(mainnetRelay['m.live.chain.main']).toBe('Yes.');
     expect(e['m.live.lic.test']).toBe('Practice only.');
     expect(e['m.live.dna.main']).toMatch(/not dated/);
     // Lab reports are off on veilcore.org (LAB_RESULTS_ENABLED), on on the test site.
@@ -385,6 +439,77 @@ describe("what's live where", () => {
     for (const [k, v] of shown) {
       expect(v, k).not.toMatch(/test[ -]network|preprod|\bpreview\b|test server|test registry|test version/i);
       expect(v, k).not.toMatch(/\bdemos?\b/i);
+    }
+  });
+});
+
+describe('the check page reading Midnight itself, per build (round 7)', () => {
+  const CHECK_KEYS = ['footer.about', 'm.tech.check.p'] as const;
+  /** The text around the check page's sentence (and the date sentence it hangs off). */
+  const around = (v: string): string => {
+    const i = v.search(/ Its date comes from one transaction on Midnight| The check page /);
+    const j = v.search(/ (Looking a record up by its identifier|Records sealed since 14 October)/);
+    expect(i, v).toBeGreaterThan(0);
+    expect(j, v).toBeGreaterThan(i);
+    return v.slice(0, i) + v.slice(j);
+  };
+  it('nothing says checking a date needs an explorer look-up any more', () => {
+    for (const s of ALL_ENGLISH) {
+      expect(
+        offenders(s, /also needs a look-up on a Midnight explorer|a look-up on a Midnight explorer gives/i),
+      ).toEqual([]);
+    }
+  });
+  it('en.ts (every build without an overlay) says it reads Midnight only when it can', () => {
+    expect(en['footer.about']).toMatch(
+      /Its date comes from one transaction on Midnight: the check page looks it up itself when it can reach Midnight, and otherwise says the date is our registry's report\./,
+    );
+    expect(en['m.tech.check.p']).toMatch(
+      /The check page looks that transaction up on Midnight itself when it can reach Midnight; otherwise it says the date is our registry's report, and you can look it up on a Midnight explorer\./,
+    );
+    expect(en['m.tech.check.p']).toMatch(
+      /The evidence bundle's verify\.html does the recomputing offline and names the transaction and root to look up\./,
+    );
+  });
+  it('the test site says it reads Midnight itself, which it does through the sponsor relay', () => {
+    for (const k of CHECK_KEYS) {
+      expect(testSite[k], k).toMatch(/looks that transaction up on Midnight itself\./);
+      expect(testSite[k], k).not.toMatch(/when it can reach|once our read-only relay/);
+    }
+    // A test build reads through the indexer its chain features use (the sponsor's relay).
+    expect(readIndexersFor('preprod', { indexer: 'https://sponsor.example/indexer' })).toEqual([
+      'https://sponsor.example/indexer',
+    ]);
+  });
+  it('veilcore.org says it will, until a build has the read-only relay; then that it does', () => {
+    for (const k of CHECK_KEYS) {
+      expect(mainnetNoRelay[k], k).toMatch(
+        /The check page will read Midnight itself once our read-only relay is live; until then it says the date is our registry's report, and you can look the transaction up yourself( on a Midnight explorer)?\./,
+      );
+      expect(mainnetNoRelay[k], k).not.toMatch(/looks that transaction up on Midnight itself/);
+      expect(mainnetRelay[k], k).toMatch(/looks that transaction up on Midnight itself\./);
+      expect(mainnetRelay[k], k).not.toMatch(/once our read-only relay/);
+    }
+    // On mainnet only the relay counts: a leftover test indexer never makes it "read".
+    expect(readIndexersFor('mainnet', { indexer: 'https://sponsor.example/indexer' })).toEqual([]);
+    expect(readIndexersFor('mainnet', { relay: 'https://relay.example/indexer' })).toEqual([
+      'https://relay.example/indexer',
+    ]);
+    // The flag the build uses is that same list being non-empty.
+    const config = fs.readFileSync(path.join(SRC, 'veilcore/chain/config.ts'), 'utf8');
+    expect(config).toMatch(/export const CHAIN_READS: boolean = READ_INDEXERS\.length > 0;/);
+    expect(fs.readFileSync(path.join(HERE, 'index.tsx'), 'utf8')).toMatch(/chainReads: CHAIN_READS,/);
+  });
+  it('the overlays change only the check page sentence', () => {
+    for (const s of [testSite, mainnetNoRelay, mainnetRelay])
+      for (const k of CHECK_KEYS) expect(around(s[k]), k).toBe(around(en[k]));
+  });
+  it('the Japanese mainnet overlay follows the relay flag too', () => {
+    for (const chainReads of [true, false]) {
+      const o = jaMainnet({ ...BUILD, chainReads });
+      expect(o['m.tech.check.p']).toMatch(chainReads ? /Midnight上で自ら照会します/ : /読み取り専用リレーが稼働すれば/);
+      expect(o['footer.about']).toMatch(chainReads ? /Midnight上で自ら照会します/ : /読み取り専用リレーが稼働すれば/);
+      expect(o['m.live.chain.main']).toBe(chainReads ? 'あり。' : undefined);
     }
   });
 });
@@ -471,7 +596,9 @@ describe('US spelling (round 6)', () => {
 
 describe('Japanese (round 6)', () => {
   const FLAGS = [true, false].flatMap((claimsOnMainnet) =>
-    [true, false].map((policyApproved) => ({ claimsOnMainnet, policyApproved })),
+    [true, false].flatMap((policyApproved) =>
+      [true, false].map((chainReads) => ({ claimsOnMainnet, policyApproved, chainReads })),
+    ),
   );
   /** The Japanese page as each build shows it. */
   const jaOn = (build: typeof MAINNET) => ({ ...ja, ...networkOverlay(build, 'ja') }) as Record<string, string>;
@@ -584,6 +711,8 @@ describe('translations', () => {
     'm.founders.lede',
     ...(Object.keys(en).filter((k) => /^m\.(live|postA|postB)\./.test(k)) as StringKey[]),
   ];
+  // Round 7: the check page reading Midnight itself.
+  CHANGED.push('footer.about');
   CHANGED.push(
     'm.step2.text',
     'm.for.6p',

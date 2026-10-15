@@ -1,0 +1,53 @@
+{
+  "block1": {
+    "headerHex": "010000006fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000982051fd1e4ba744bbbe680e1fee14677ba1a3c3540bf7b1cdb606e857233e0e61bc6649ffff001d01e36299",
+    "merkleRootFromLibraryTest": "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098"
+  },
+  "block586": {
+    "attestations": [
+      {
+        "height": 586,
+        "kind": "bitcoin",
+        "merkleRootExplorer": "197b3d968ce463aa5da7d8eeba8af35eba80ded4e4fe6808e6cc0dd1c069594d",
+        "msgHex": "4d5969c0d10dcce60868fee4d4de80ba5ef38abaeed8a75daa63e48c963d7b19"
+      }
+    ],
+    "fileDigestHex": "0f40f5e65e115eb4bdb3007f0fb8beaa404cf7ae45de16074e8acc9b69bbf0c3",
+    "fileHashOp": "sha256",
+    "headerHex": "0100000038babc9586a5fcd60713573494f4377e7c401c33aa24729a4f6cff46000000004d5969c0d10dcce60868fee4d4de80ba5ef38abaeed8a75daa63e48c963d7b1950476f49ffff001d2d979137",
+    "merkleRootFromLibraryTest": "197b3d968ce463aa5da7d8eeba8af35eba80ded4e4fe6808e6cc0dd1c069594d"
+  },
+  "pending": {
+    "attestations": [
+      {
+        "kind": "pending",
+        "msgHex": "cdd26995358368effaec3d2caafea5fb752ae4a6b60fb5da3bec68635b92d6cf",
+        "uri": "https://bob.btc.calendar.opentimestamps.org"
+      }
+    ],
+    "fileDigestHex": "bdad524239feec98c15303d8150623dfa2bf2503304c7a7afe37b34f8fb21cba",
+    "fileHashOp": "sha256"
+  },
+  "synthetic": {
+    "attestations": [
+      {
+        "height": 971004,
+        "kind": "bitcoin",
+        "merkleRootExplorer": "c81893630c2ab2e3acf1ef6617c19fd4e1f877d6473d0a3a4bcc1438dd3f7327",
+        "msgHex": "27733fdd3814cc4b3a0a3d47d677f8e1d49fc11766eff1ace3b22a0c639318c8"
+      },
+      {
+        "kind": "pending",
+        "msgHex": "09baff56d7eeafea64b553300c9da0e77bdc4159",
+        "uri": "https://alice.btc.calendar.opentimestamps.org"
+      },
+      {
+        "kind": "unknown",
+        "msgHex": "c823fbffbf66c535ba522db15d4ba2060afc1fe932885b3ddea6808922d5a9f9",
+        "tagHex": "0102030405060708"
+      }
+    ],
+    "fileDigestHex": "dbbda9970437ff1248aaff3955b15d3041845b562623096563a68e0163c74c97",
+    "fileHashOp": "sha256"
+  }
+}

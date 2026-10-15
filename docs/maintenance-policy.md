@@ -101,6 +101,7 @@ becomes a refusal.
 **TODO (not yet recorded):** the main contract's counter on mainnet today. Read it from
 the chain with `readAuthority({ network: 'mainnet', ... })` and record it here and in the
 deployment record. Until then this document gives no expected value.
+*15 Oct 2026: still not read: it can't be read without a key (mainnet's indexer is reachable only through Blockfrost or GetBlock, both keyed, since Midnight's own was retired 30 Sep; the community Midnight Explorer documents no maintenance-authority view, and a third party's page would not be the chain's own word anyway). Hunter reads it, sending nothing and needing no wallet, from `bboard-cli` with his Blockfrost id in his terminal: `npm run committee -- mainnet show` (`docs/maintenance-committee.md` expects 16, from the 16 maintenance transactions after the deploy; not yet confirmed on chain).*
 
 ## If a key is lost or exposed
 

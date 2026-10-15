@@ -26,6 +26,13 @@ declare global {
     /** Optional indexer override; the network's public indexer otherwise. */
     readonly VITE_INDEXER_URL?: string;
     readonly VITE_INDEXER_WS_URL?: string;
+    /**
+     * The check page's indexer relay (sponsor relay-main, docs/check-on-chain.md): the only
+     * indexer a mainnet build reads. No key in it (veilcore/chain/config.ts ignores one).
+     */
+    readonly VITE_INDEXER_RELAY_URL?: string;
+    /** Optional second, independent indexer: both must give the same answer. */
+    readonly VITE_INDEXER_SECOND_URL?: string;
     /** Test-network builds hosted at their own address (test.veilcore.org): the origin shared links use. */
     readonly VITE_CANONICAL_ORIGIN?: string;
   }

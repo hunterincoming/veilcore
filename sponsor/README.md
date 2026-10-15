@@ -63,6 +63,18 @@ waiting.
 | `POST /sponsor` | `{ tx, ticket, challenge, nonce }` → `{ txId }` or a refusal with a plain reason |
 | `GET /health` | `{ ok: true }` |
 
+## The read-only indexer relay (for veilcore.org's check page)
+
+The same relay code also runs on its own, read-only: `node dist/relay-main.js`
+(`src/relay-main.ts`). No wallet, no seed, no fees, no anchoring: it only passes the check
+page's reads of Midnight (`POST /indexer`, `/indexer/ws`, `GET /health`) to Blockfrost with
+the project id kept on the server. It is what lets veilcore.org's check page look a
+record's date up on Midnight itself; the sponsor can't do that there, because it refuses
+mainnet. Its settings are `RELAY_NETWORK`, `BLOCKFROST_PROJECT_ID`, `ALLOWED_ORIGINS` and
+`TRUST_PROXY_HOPS` only, and it refuses to start if it sees a seed, a private key, a
+maintenance setting or an operator token. How to deploy it and point the site at it
+(`VITE_INDEXER_RELAY_URL`): **`docs/check-on-chain.md`**.
+
 ## Settings (environment variables)
 
 Required:

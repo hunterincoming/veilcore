@@ -12,7 +12,8 @@
 //
 // Facts: the main network launch (both contracts, 8 October 2026) is from
 // docs/deployment-record-revision-4.md, "Mainnet deployment"; the test site from
-// docs/test-site.md. copy-truth.test.ts keeps the stale wording out.
+// docs/test-site.md. The check page reads Midnight itself through the sponsor's indexer
+// relay (docs/check-on-chain.md). copy-truth.test.ts keeps the stale wording out.
 // SPDX-License-Identifier: Apache-2.0
 
 import type { StringKey } from './en';
@@ -38,5 +39,10 @@ export const testchainStrings: Overlay = {
   'm.privacy.test.text':
     "This site uses Midnight's preprod test network, not the main one. Your browser sends each date stamp to that network through VeilCore's fee service; what you typed and your files are never sent to it. A test network can be reset, and test data may be deleted.",
   'm.privacy.hosts.text':
-    "This website is hosted on Vercel, which logs IP addresses and requests. Our registry server, and the service that pays test-network fees and passes this page's reads of the network, run on Railway, which logs requests. That service reads the network through Blockfrost.",
+    "This website is hosted on Vercel, which logs IP addresses and requests. Our registry server, and the service that pays test-network fees and passes this page's reads of the network, run on Railway, which logs requests. That service reads the network through Blockfrost.", // The check page reads Midnight itself here, through the sponsor's indexer relay
+  // (docs/check-on-chain.md): en.ts says "when it can reach Midnight".
+  'footer.about':
+    "An open record format for plant and animal genetics. Recomputing a record's fingerprint needs only SHA-256 and the open specification. Its date comes from one transaction on Midnight, and the check page looks that transaction up on Midnight itself. Looking a record up by its identifier on this site uses our server.",
+  'm.tech.check.p':
+    "Recomputing a record's fingerprint needs only SHA-256 and the open spec. Its inclusion proof ties that fingerprint to a batch fingerprint anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up. The check page looks that transaction up on Midnight itself. Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release.",
 };

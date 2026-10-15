@@ -179,9 +179,9 @@ export const de: Strings = {
   'm.get.1b': 'für einen Datensatz dessen, was Sie haben, ohne Ihre Genetik zu zeigen.',
   'm.get.3b':
     'Eine Elternverknüpfung zählt nur, wenn beide Inhaber sie bestätigen. Auf dieser Website erfasst sie das Register von VeilCore, nicht die Chain.',
-  'm.open.2t': 'Bewahren Sie drei Dateien auf.',
+  'm.open.2t': 'Bewahren Sie eine Datei auf.',
   'm.open.2p':
-    'Auf der Seite Ihrer Pflanze unter „Technical details“: „Export record“, „Download inclusion proof“ (er zeigt, dass der Datensatz in einem datierten Stapel ist) und, auf veilcore.org, „Download Bitcoin stamp file“. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Ein Beweispaket mit einem Klick ist in Vorbereitung.',
+    'Auf der Seite Ihrer Pflanze: „Download evidence bundle“. Eine .zip-Datei mit dem Datensatz, wie er versiegelt wurde, seinem Einschlussnachweis, dem Fingerabdruck des Stapels, dem Ort, an dem der Stapel festgehalten wurde, der Bitcoin-Stempeldatei, falls es eine gibt, und einer Seite, die alles offline prüft. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Die einzelnen Dateien gibt es weiterhin unter „Technical details“: „Export record“, „Download inclusion proof“, „Download Bitcoin stamp file“.',
   'm.faq.1a':
     'Sobald Datensätze verankert sind, kann jeder prüfen, welcher zuerst verankert wurde. Koppeln Sie Ihren Laborbericht, damit ein späterer Test damit verglichen werden kann. Wenn Sie Material versenden, signiert der Empfänger mit seinem eigenen Schlüssel eine Empfangsbestätigung. Ein Datensatz ist ein Beweismittel, keine Registrierung: Er zeigt, dass Sie diesen Datensatz zu diesem Datum hatten, nicht, dass Sie die Pflanze hatten, und entscheidet einen Streit nicht allein.',
   'm.post0.date': '4. Okt. 2026',
@@ -237,11 +237,14 @@ export const de: Strings = {
   'm.live.lic.main': 'Nur zum Üben.',
   'm.live.lic.test': 'Nur zum Üben.',
   'm.live.lic.not': 'Echte Lizenzen über die Website. Sie sind in den Contract eingebaut.',
+  'm.live.chain.t': 'Die Prüfseite liest Midnight selbst',
+  'm.live.chain.main': 'Noch nicht: Dafür braucht es unseren Relaisdienst, der nur liest.',
+  'm.live.chain.test': 'Ja.',
   // Round 3 (14 Oct 2026): the rest of the landing page, so no English shows through.
   'nav.newCultivar': 'Neuer Datensatz',
   'nav.licenses': 'Vereinbarungen',
   'footer.about':
-    'Ein offenes Datensatzformat für pflanzliche und tierische Genetik. Um den Fingerabdruck eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation; um sein Datum zu prüfen, zusätzlich eine Abfrage in einem Midnight-Explorer. Wer auf dieser Website einen Datensatz über seine Kennung nachschlägt, nutzt dafür unseren Server.',
+    'Ein offenes Datensatzformat für pflanzliche und tierische Genetik. Um den Fingerabdruck eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Datum stammt aus einer Transaktion auf Midnight: Die Prüfseite schlägt sie selbst nach, wenn sie Midnight erreicht, und sagt sonst, dass das Datum die Angabe unseres Registers ist. Wer auf dieser Website einen Datensatz über seine Kennung nachschlägt, nutzt dafür unseren Server.',
   'm.hero.status':
     'Start im Hauptnetz von Midnight. Heute werden Datensätze in einem Testnetz von Midnight datiert, und das beweist noch nichts.',
   'm.claims.status':
@@ -397,7 +400,7 @@ export const de: Strings = {
   // Round 5 (15 Oct 2026): landing page rework, keys added.
   'm.open.6t': 'Prüfen ohne uns.',
   'm.open.6p':
-    'Mit diesen Dateien kann jeder einen Datensatz mit der offenen Spezifikation und einem Midnight-Explorer prüfen. Datensätze, die seit dem 14. Oktober versiegelt wurden, brauchen außerdem Abschnitt 3.6.1 der Spezifikation, veröffentlicht in der Spezifikation auf dieser Website; das SDK und seine drei Implementierungen erhalten ihn mit ihrer nächsten Version.',
+    'Mit diesem Beweispaket kann jeder einen Datensatz offline prüfen: seine verify.html öffnen und dann die eine Transaktion, die sie nennt, in einem Midnight-Explorer nachschlagen. Datensätze, die seit dem 14. Oktober versiegelt wurden, brauchen außerdem Abschnitt 3.6.1 der Spezifikation, veröffentlicht in der Spezifikation auf dieser Website; das SDK und seine drei Implementierungen erhalten ihn mit ihrer nächsten Version.',
   'm.open.6link': 'Spezifikation lesen →',
   'm.updates.older': 'Ältere Neuigkeiten',
   'm.live.colTestNote': '(geht diese Woche online)',
@@ -410,7 +413,7 @@ export const de: Strings = {
   'm.tech.show': 'Details anzeigen',
   'm.tech.check.t': 'Einen Datensatz von Hand prüfen',
   'm.tech.check.p':
-    'Um den Fingerabdruck eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Einschlussnachweis verbindet diesen Fingerabdruck mit einem Stapel-Fingerabdruck, der auf Midnight verankert ist, und eine Abfrage in einem Midnight-Explorer liefert das Datum des Stapels. Datensätze, die seit dem 14. Oktober versiegelt wurden, benennen ihren eigenen Schlüssel; ihre Prüfung braucht deshalb auch Abschnitt 3.6.1, veröffentlicht in der Spezifikation auf dieser Website; das SDK und seine drei Implementierungen erhalten ihn mit ihrer nächsten Version.',
+    'Um den Fingerabdruck eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Einschlussnachweis verbindet diesen Fingerabdruck mit einem Stapel-Fingerabdruck, der auf Midnight verankert ist, und die Transaktion, die ihn verankert hat, liefert das Datum des Stapels. Die verify.html im Beweispaket rechnet das offline nach und nennt die Transaktion und den Stapel-Fingerabdruck, die nachzuschlagen sind. Die Prüfseite schlägt diese Transaktion selbst auf Midnight nach, wenn sie Midnight erreicht; sonst sagt sie, dass das Datum die Angabe unseres Registers ist, und Sie können es in einem Midnight-Explorer nachschlagen. Datensätze, die seit dem 14. Oktober versiegelt wurden, benennen ihren eigenen Schlüssel; ihre Prüfung braucht deshalb auch Abschnitt 3.6.1, veröffentlicht in der Spezifikation auf dieser Website; das SDK und seine drei Implementierungen erhalten ihn mit ihrer nächsten Version.',
   'm.tech.impl.t': 'Eine Spezifikation, drei Implementierungen',
   'm.tech.impl.p':
     'Dauerhaft kostenlos zu implementieren. TypeScript, Python und Rust stimmen bei allen 100 Testvektoren des Datensatzformats auf GitHub überein, und jeder kann sie ausführen; ein 101., für die Kopplung von Berichten, fehlt in Rust noch. Ein Autor hat alle drei geschrieben, und die TypeScript-Version ist auf npm als 0.15.0. Eine Implementierung von jemand anderem ist der Test, den wir uns am meisten wünschen.',
@@ -443,4 +446,8 @@ export const deTestchain: Strings = {
     'Diese Website nutzt das Preprod-Testnetz von Midnight, nicht das Hauptnetz. Ihr Browser sendet jeden Datumsstempel über den Gebührendienst von VeilCore an dieses Netz; was Sie eingegeben haben und Ihre Dateien werden nie dorthin gesendet. Ein Testnetz kann zurückgesetzt werden, und Testdaten können gelöscht werden.',
   'm.privacy.hosts.text':
     'Diese Website wird bei Vercel gehostet, das IP-Adressen und Anfragen protokolliert. Unser Registerserver und der Dienst, der die Gebühren im Testnetz zahlt und die Netzabfragen dieser Seite weiterreicht, laufen bei Railway, das Anfragen protokolliert. Dieser Dienst liest das Netz über Blockfrost.',
+  'footer.about':
+    'Ein offenes Datensatzformat für pflanzliche und tierische Genetik. Um den Fingerabdruck eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Datum stammt aus einer Transaktion auf Midnight, und die Prüfseite schlägt diese Transaktion selbst auf Midnight nach. Wer auf dieser Website einen Datensatz über seine Kennung nachschlägt, nutzt dafür unseren Server.',
+  'm.tech.check.p':
+    'Um den Fingerabdruck eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Einschlussnachweis verbindet diesen Fingerabdruck mit einem Stapel-Fingerabdruck, der auf Midnight verankert ist, und die Transaktion, die ihn verankert hat, liefert das Datum des Stapels. Die verify.html im Beweispaket rechnet das offline nach und nennt die Transaktion und den Stapel-Fingerabdruck, die nachzuschlagen sind. Die Prüfseite schlägt diese Transaktion selbst auf Midnight nach. Datensätze, die seit dem 14. Oktober versiegelt wurden, benennen ihren eigenen Schlüssel; ihre Prüfung braucht deshalb auch Abschnitt 3.6.1, veröffentlicht in der Spezifikation auf dieser Website; das SDK und seine drei Implementierungen erhalten ihn mit ihrer nächsten Version.',
 };

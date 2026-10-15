@@ -33,6 +33,21 @@ if (REAL_CHAIN) {
   chainOrigins.push(new URL(sponsor).origin, indexer.origin, `${indexerWs.protocol}//${indexerWs.host}`);
 }
 
+// The check page reads Midnight itself (bboard-ui/src/veilcore/chain/anchor-check.ts), on
+// every network and with or without the flag: VITE_INDEXER_RELAY_URL (on mainnet the only
+// way, through VeilCore's relay, docs/check-on-chain.md) and an optional second indexer,
+// VITE_INDEXER_SECOND_URL. Without them the page says the date is the registry's report.
+// Never a key in either: the page would publish it.
+for (const name of ['VITE_INDEXER_RELAY_URL', 'VITE_INDEXER_SECOND_URL']) {
+  const v = (process.env[name] || '').trim();
+  if (!v) continue;
+  if (/[?&](project_id|api[_-]?key|token)=/i.test(v))
+    throw new Error(`${name} carries a key (project_id=…). The page would publish it; point it at the relay instead.`);
+  const u = new URL(v);
+  if (u.protocol !== 'https:') throw new Error(`${name} must be an https address.`);
+  if (!chainOrigins.includes(u.origin)) chainOrigins.push(u.origin);
+}
+
 // The content security policy. Checked against the built site in headless Chromium
 // (every main page, zero violations; bboard-ui/src/hardening-roundD.test.ts) before each
 // tightening:

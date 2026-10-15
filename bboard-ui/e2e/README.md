@@ -34,6 +34,11 @@ safely (the network is blocked) and a way past it, sharing with the date stamp i
 link, a checker asking by link, the holder opening it, an answer arriving, the checker
 coming back in a new tab. The stand-in tests are skipped.
 
+`evidence-bundle.spec.ts` downloads a record's evidence bundle from the plant page and opens
+its `verify.html` from `file://` with the network off. Against a real registry it also
+needs an operator token and an anchor contract (`E2E_OPERATOR_TOKEN`,
+`E2E_ANCHOR_CONTRACT`): how to start one for it is in `docs/evidence-bundle.md`.
+
 ## Not covered
 
 A real date stamp or a real proof on the network: those need the sponsor and a Blockfrost

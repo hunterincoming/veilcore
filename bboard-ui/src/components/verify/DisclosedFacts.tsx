@@ -99,6 +99,8 @@ export type SharedFactsData = {
   /** Only for a registry too old to send `anchored`, where it meant "anchored on any network". */
   priorPossession?: boolean;
   anchorNetwork?: string;
+  /** This page found the batch root's anchor on Midnight itself (veilcore/chain/anchor-check.ts). */
+  anchorCheckedOnChain?: boolean;
   dnaPairedByHolder?: boolean;
   lineageIntact?: boolean | null;
   sealedAt?: number | string;
@@ -127,7 +129,10 @@ export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }>
         ) : (data.anchored ?? data.priorPossession) ? (
           <Fact ok={false}>
             Prior possession: the registry reports this record&apos;s batch anchored on{' '}
-            {networkLabel(data.anchorNetwork ?? '')}. This page has not checked the chain.
+            {networkLabel(data.anchorNetwork ?? '')}.
+            {data.anchorCheckedOnChain
+              ? ' This page found that date stamp on Midnight itself (above). It dates the record, not who held it.'
+              : ' This page has not confirmed it on the chain.'}
             {isTestNetwork(data.anchorNetwork ?? '')
               ? ' A test network can be reset and its dates carry no evidential weight.'
               : ''}

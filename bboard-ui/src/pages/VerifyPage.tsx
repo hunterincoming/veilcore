@@ -11,9 +11,14 @@
 //     verification). A link whose fingerprint the registry does not report gets no
 //     checks and a warning; an old link without `fp` gets the checks worded as the
 //     registry's report, with no ticks;
+//   - looked up on Midnight by this browser (round 2 of the 15 Oct review): the
+//     transaction the registry says dated the batch root. It must be VeilCore's date stamp
+//     call at the pinned contract and have written exactly that root; its block is the
+//     date (veilcore/chain/anchor-check.ts). Only then does the mark turn teal. If no
+//     indexer answers, the date is worded as the registry's report;
 //   - reported by the registry: everything else — that a record with this fingerprint
-//     exists, when the registry first stored it, an anchor, whether a key is vetted, and
-//     the facts the holder chose to share. Worded as reports, never as checks.
+//     exists, when the registry first stored it, whether a key is vetted, and the facts the
+//     holder chose to share. Worded as reports, never as checks.
 // The footer says exactly which of those checks ran (round 3: it used to say "nothing on
 // this page could be checked" under a line saying a signature was verified here).
 // Opened by the plant's own holder (the record is in this browser), the page also shows
@@ -38,7 +43,15 @@ import { publicReportLine, withdrawnSignaturesLine } from '../veilcore/saved-rep
 import { bindingOf, checkedSummary, linkFingerprint, verifyHeading } from '../veilcore/verify-link';
 import { displayName } from '../veilcore/display-name';
 import { utcStamp as fmt } from '../veilcore/time';
-import { REAL_CHAIN } from '../veilcore/chain/config';
+import { ANCHOR_CONTRACT, READ_INDEXERS, REAL_CHAIN } from '../veilcore/chain/config';
+import { checkAnchorOnChain } from '../veilcore/chain/anchor-check';
+import {
+  anchorConfirmed,
+  anchorHeading,
+  anchorLine,
+  anchorSummary,
+  type AnchorState,
+} from '../components/verify/anchor-words';
 import { VerifierChallengePanel } from '../components/chain/VerifierChallengePanel';
 import { useRecords } from '../veilcore/records';
 import { useBreederReceipt } from '../components/flow/LabResults';
@@ -53,15 +66,6 @@ const API = import.meta.env.VITE_API_BASE ?? '';
  */
 const RECORD_ID = /^VEIL-[0-9A-F]{32}$/i;
 const idText = (v: string | undefined): string => (v && RECORD_ID.test(v) ? v : 'this ID');
-
-/**
- * Whether this page checked the batch root's anchor on chain itself. It cannot yet: it
- * reads no chain, so an anchor is always the registry's report. The seal turns teal only
- * when this is true, so today it never does. Checking the record's own inclusion proof,
- * up to the registry's batch root, is not enough for the seal: that root could be anything
- * until its anchor is looked up.
- */
-const ANCHOR_CHECKED_ON_CHAIN = false;
 
 type VerifyResult = {
   found: boolean;
@@ -205,6 +209,9 @@ export const VerifyPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [proof, setProof] = useState<ProofState | 'checking'>('checking');
   const [atts, setAtts] = useState<ResolvedAttestation[] | null>(null);
+  // The batch root's anchor, looked up on Midnight by this browser (anchor-check.ts).
+  // Undefined until the inclusion proof names a transaction to look up.
+  const [anchor, setAnchor] = useState<AnchorState | undefined>(undefined);
   // The holder's own plant, when this browser has it loaded: its linked lab receipt.
   const own = useRecords().find((r) => r.id === id.toUpperCase() && !r.receivedFrom);
   const receipt = useBreederReceipt(own, !!own);
@@ -260,6 +267,29 @@ export const VerifyPage: React.FC = () => {
     };
   }, [fingerprint]);
 
+  // Once the inclusion proof leads to a batch root and the registry names the transaction
+  // that wrote it, this browser looks that transaction up on Midnight itself: it must be
+  // VeilCore's date stamp call, at the contract this build pins, and have written exactly
+  // this root. Its block gives the date. Until then, or if no indexer answers, the date is
+  // the registry's report and is worded that way.
+  useEffect(() => {
+    const reported = proof !== 'checking' && proof.status === 'anchor-reported' ? proof.proof : undefined;
+    const a = reported?.anchor;
+    if (!reported || !a?.txHash) {
+      setAnchor(undefined);
+      return;
+    }
+    let live = true;
+    setAnchor('checking');
+    void checkAnchorOnChain(
+      { network: a.network, txId: a.txHash, contractAddress: ANCHOR_CONTRACT, expectedRoot: reported.root },
+      { buildNetwork: NETWORK, indexers: READ_INDEXERS },
+    ).then((r) => live && setAnchor(r));
+    return () => {
+      live = false;
+    };
+  }, [proof]);
+
   // A tick (and the teal mark) only for a check against the link's own fingerprint.
   const checked = bound && proof !== 'checking' && proof.status !== 'none';
   // Before the link's fingerprint is known to match, say whose fingerprint was used.
@@ -288,8 +318,16 @@ export const VerifyPage: React.FC = () => {
   // A verified signature against the link's own fingerprint is a check this browser made;
   // whether its name was matched is said in words on its line (round 5).
   const ticked = checked || (bound && signed.length > 0);
-  // The seal: only for an anchor checked on chain by this page (none today).
-  const seal = checked && ANCHOR_CHECKED_ON_CHAIN;
+  // The seal: only when this page checked the record into its batch against the link's own
+  // fingerprint AND found that batch root's anchor on Midnight itself. The inclusion proof
+  // alone is not enough: its root could be anything until its anchor is looked up.
+  const anchorCheckedOnChain = anchorConfirmed(anchor);
+  // The line under the registry's report: checking, ✓, ⊗, or ○ when no indexer answered.
+  // Nothing extra when this build reads no indexer for that network: the report says so.
+  const anchorText =
+    anchor === undefined ? undefined : anchorLine(anchor, { network: reportedNetwork ?? NETWORK, bound });
+  const anchorLooked = anchorText !== undefined;
+  const seal = checked && anchorCheckedOnChain;
   const name = displayName(result?.cultivar);
 
   return (
@@ -395,9 +433,9 @@ export const VerifyPage: React.FC = () => {
         ) : (
           <Paper sx={{ p: { xs: 3, md: 4 } }}>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
-              {/* Teal only when this page checked the batch root's anchor on chain
-                  (ANCHOR_CHECKED_ON_CHAIN), which it cannot do yet, so the mark is grey.
-                  The lines below still tick what this browser did check. */}
+              {/* Teal only when this page found the batch root's anchor on Midnight itself
+                  (anchorCheckedOnChain). Otherwise grey; the lines below still tick what
+                  this browser did check. */}
               <VerifiedIcon
                 aria-hidden="true"
                 data-checked={seal ? 'yes' : 'no'}
@@ -409,11 +447,15 @@ export const VerifyPage: React.FC = () => {
                   component="h1"
                   sx={{ color: seal ? ACCENT : 'text.primary', lineHeight: 1.4, display: 'block' }}
                 >
-                  {verifyHeading({
-                    sealed: !!result.recordFingerprint,
+                  {anchorHeading(
+                    verifyHeading({
+                      sealed: !!result.recordFingerprint,
+                      bound,
+                      proof: proof === 'checking' ? 'checking' : proof.status,
+                    }),
+                    anchor,
                     bound,
-                    proof: proof === 'checking' ? 'checking' : proof.status,
-                  })}
+                  )}
                 </Typography>
               </Box>
             </Stack>
@@ -489,14 +531,27 @@ export const VerifyPage: React.FC = () => {
                       </Fact>
                     )}
                     {proof.status === 'anchor-reported' ? (
-                      <Fact ok={false}>
-                        The registry reports that root was recorded on {networkLabel(reportedNetwork ?? NETWORK)}
-                        {proof.proof.anchor?.txHash ? ` in transaction ${proof.proof.anchor.txHash}` : ''}. This page
-                        has not looked it up; do that before relying on the date.
-                        {isTestNetwork(reportedNetwork ?? NETWORK)
-                          ? ' A test network can be reset and its dates carry no evidential weight.'
-                          : ''}
-                      </Fact>
+                      <>
+                        {/* What the registry claims, until this browser has confirmed it. */}
+                        {!anchorCheckedOnChain && (
+                          <Fact ok={false}>
+                            The registry reports that root was recorded on {networkLabel(reportedNetwork ?? NETWORK)}
+                            {proof.proof.anchor?.txHash ? ` in transaction ${proof.proof.anchor.txHash}` : ''}.
+                            {anchorLooked ? '' : ' This page has not looked it up; do that before relying on the date.'}
+                            {isTestNetwork(reportedNetwork ?? NETWORK)
+                              ? ' A test network can be reset and its dates carry no evidential weight.'
+                              : ''}
+                          </Fact>
+                        )}
+                        {anchorText && (
+                          <Box data-anchor-check={anchor === 'checking' ? 'checking' : anchor?.status}>
+                            <Fact status={anchorText.status}>
+                              {anchor === 'checking' ? '' : forWhom}
+                              {anchorText.text}
+                            </Fact>
+                          </Box>
+                        )}
+                      </>
                     ) : (
                       <Fact ok={false}>The batch has not been anchored on Midnight yet.</Fact>
                     )}
@@ -565,6 +620,7 @@ export const VerifyPage: React.FC = () => {
                   anchored: result.anchored,
                   priorPossession: result.priorPossession,
                   anchorNetwork: reportedNetwork,
+                  anchorCheckedOnChain,
                   dnaPairedByHolder: result.dnaPairedByHolder,
                   lineageIntact: result.lineageIntact,
                   sealedAt: result.sealedAt ?? result.loggedAtClaimedByHolder ?? undefined,
@@ -599,12 +655,16 @@ export const VerifyPage: React.FC = () => {
                 size="small"
                 variant="outlined"
                 data-ticked={ticked ? 'yes' : 'no'}
-                label={checkedSummary({
-                  bound,
-                  proofChecked: proof !== 'checking' && proof.status !== 'none',
-                  signaturesChecked: signed.length,
-                  signatureKinds: signed.map(signatureKind),
-                })}
+                data-anchor-checked={anchorCheckedOnChain ? 'yes' : 'no'}
+                label={anchorSummary(
+                  checkedSummary({
+                    bound,
+                    proofChecked: proof !== 'checking' && proof.status !== 'none',
+                    signaturesChecked: signed.length,
+                    signatureKinds: signed.map(signatureKind),
+                  }),
+                  anchor,
+                )}
                 sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', py: 0.5 } }}
               />
             </Box>

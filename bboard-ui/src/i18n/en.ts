@@ -8,7 +8,7 @@ export const en = {
   'nav.licenses': 'Agreements',
   'nav.language': 'Language',
   'footer.about':
-    "An open record format for plant and animal genetics. Recomputing a record's fingerprint needs only SHA-256 and the open specification; checking its date also needs a look-up on a Midnight explorer. Looking a record up by its identifier on this site uses our server.",
+    "An open record format for plant and animal genetics. Recomputing a record's fingerprint needs only SHA-256 and the open specification. Its date comes from one transaction on Midnight: the check page looks it up itself when it can reach Midnight, and otherwise says the date is our registry's report. Looking a record up by its identifier on this site uses our server.",
   'footer.documents': 'Documents',
   'footer.spec': 'Specification',
   'footer.evidence': 'Records in evidence',
@@ -177,9 +177,9 @@ export const en = {
   'm.open.1p':
     "A batch fingerprint anchored on Midnight's main network, or stamped on Bitcoin, can't be removed by anyone, us included.",
   'm.open.1link': 'All three implementations →',
-  'm.open.2t': 'Keep three files.',
+  'm.open.2t': 'Keep one file.',
   'm.open.2p':
-    "From your plant's page, under Technical details: Export record, Download inclusion proof (it shows the record is in a dated batch) and, on veilcore.org, Download Bitcoin stamp file. Your backup file holds your keys, not these. A one-click evidence bundle is coming.",
+    "From your plant's page: Download evidence bundle. One .zip with the record as sealed, its inclusion proof, the batch root, where the batch was recorded, the Bitcoin stamp file when there is one, and a page that checks it offline. Your backup file holds your keys, not these. The single files are still under Technical details: Export record, Download inclusion proof, Download Bitcoin stamp file.",
   'm.open.3t': "We don't vouch for results.",
   'm.open.3p':
     "A record shows which key signed it, the name it was registered under, any accreditation its holder declared (we don't check that), and whether VeilCore's operator has matched that name to a public license or accreditation listing, and on what day. VeilCore doesn't vouch for any lab: whoever checks a record decides what a signature is worth.",
@@ -188,7 +188,7 @@ export const en = {
     "The format lets a lab, certifier or rights body run its own, under its own web domain, and anchor without asking us. Our own registry code isn't published.",
   'm.open.6t': 'Checking without us.',
   'm.open.6p':
-    'With those files, anyone can check a record using the open spec and a Midnight explorer. Records sealed since 14 October also need spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release.',
+    'With that bundle, anyone can check a record offline: open its verify.html, then look up the one transaction it names on a Midnight explorer. Records sealed since 14 October also need spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release.',
   'm.open.6link': 'Read the spec →',
 
   'm.faq.label': 'Questions',
@@ -301,7 +301,7 @@ export const en = {
   'm.tech.show': 'Show the detail',
   'm.tech.check.t': 'Checking a record by hand',
   'm.tech.check.p':
-    "Recomputing a record's fingerprint needs only SHA-256 and the open spec. Its inclusion proof ties that fingerprint to a batch fingerprint anchored on Midnight, and a look-up on a Midnight explorer gives the batch's date. Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release.",
+    "Recomputing a record's fingerprint needs only SHA-256 and the open spec. Its inclusion proof ties that fingerprint to a batch fingerprint anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up. The check page looks that transaction up on Midnight itself when it can reach Midnight; otherwise it says the date is our registry's report, and you can look it up on a Midnight explorer. Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release.",
   'm.tech.impl.t': 'One spec, three implementations',
   'm.tech.impl.p':
     "Free to implement, permanently. TypeScript, Python and Rust agree on all 100 record-format test vectors on GitHub, and anyone can run them; a 101st, for report pairing, isn't in Rust yet. One author wrote all three, and the TypeScript one is on npm as 0.15.0. One written by someone else is the test we most want.",
@@ -358,6 +358,12 @@ export const en = {
   'm.live.lic.main': 'Practice only.',
   'm.live.lic.test': 'Practice only.',
   'm.live.lic.not': "Real licenses from the website. They're built into the contract.",
+  // The check page looking a record's date up on Midnight itself (docs/check-on-chain.md).
+  // On veilcore.org it needs the read-only relay; the mainnet overlay says "Yes." once a
+  // build has one (CHAIN_READS).
+  'm.live.chain.t': 'The check page reads Midnight itself',
+  'm.live.chain.main': 'Not yet: needs our read-only relay.',
+  'm.live.chain.test': 'Yes.',
 
   'm.contact.label': 'Get in touch',
   'm.contact.title1': 'Tell us',

@@ -25,6 +25,12 @@
 // The dated update posts keep the network they ran on (Midnight's preprod test
 // network): they are history, and the tests exempt them by key (DATED_POSTS).
 //
+// The check page reading Midnight itself (docs/check-on-chain.md): on mainnet it needs the
+// read-only indexer relay, given at build time as VITE_INDEXER_RELAY_URL. `chainReads` is
+// true when this build has one (CHAIN_READS, veilcore/chain/config.ts); until then the
+// strings say the page will read Midnight once the relay is live, and that the date it
+// shows is the registry's report.
+//
 // Every user-visible string here is listed for fact-checking in
 // scratchpad/site-mainnet/new-copy.md.
 // SPDX-License-Identifier: Apache-2.0
@@ -145,15 +151,43 @@ const keyStrings = (claimsOnMainnet: boolean, policyApproved: boolean): Overlay 
   'm.status.keyLink': policyApproved ? 'Read the maintenance policy →' : 'Read the proposed policy →',
 });
 
+const ABOUT_HEAD =
+  "An open record format for plant and animal genetics. Recomputing a record's fingerprint needs only SHA-256 and the open specification.";
+const ABOUT_TAIL = ' Looking a record up by its identifier on this site uses our server.';
+const TECH_HEAD =
+  "Recomputing a record's fingerprint needs only SHA-256 and the open spec. Its inclusion proof ties that fingerprint to a batch fingerprint anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up.";
+const TECH_TAIL =
+  ' Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release.';
+/** Before the relay: what the check page does today, and that you can look it up yourself. */
+const RELAY_PENDING =
+  " The check page will read Midnight itself once our read-only relay is live; until then it says the date is our registry's report, and you can look the transaction up yourself.";
+
+/** Whether the check page reads Midnight itself in this build. */
+const chainStrings = (chainReads: boolean): Overlay =>
+  chainReads
+    ? {
+        'footer.about': `${ABOUT_HEAD} Its date comes from one transaction on Midnight, and the check page looks that transaction up on Midnight itself.${ABOUT_TAIL}`,
+        'm.tech.check.p': `${TECH_HEAD} The check page looks that transaction up on Midnight itself.${TECH_TAIL}`,
+        'm.live.chain.main': 'Yes.',
+      }
+    : {
+        'footer.about': `${ABOUT_HEAD} Its date comes from one transaction on Midnight.${RELAY_PENDING}${ABOUT_TAIL}`,
+        'm.tech.check.p': `${TECH_HEAD}${RELAY_PENDING.replace(/\.$/, ' on a Midnight explorer.')}${TECH_TAIL}`,
+      };
+
 /** The overlay for a mainnet build. */
 export const mainnetStrings = ({
   claimsOnMainnet,
   policyApproved,
+  chainReads = false,
 }: {
   claimsOnMainnet: boolean;
   policyApproved: boolean;
+  /** The check page reads Midnight itself (a read-only relay is configured). */
+  chainReads?: boolean;
 }): Overlay => ({
   ...common,
   ...(claimsOnMainnet ? claimsLive : claimsPending),
   ...keyStrings(claimsOnMainnet, policyApproved),
+  ...chainStrings(chainReads),
 });
