@@ -94,12 +94,16 @@ export const BackupStep: React.FC<{
     }
   })();
 
+  const [shareFailed, setShareFailed] = useState(false);
   const share = async () => {
+    setShareFailed(false);
     try {
       await navigator.share({ files: [fileForSharing()], title: 'VeilCore backup' });
       setCopied(true);
-    } catch {
-      /* closed the share sheet: nothing to say */
+    } catch (e) {
+      // Closing the share sheet is a choice, not a failure. Anything else (some desktop
+      // browsers say they can share files and then refuse) gets the by-hand way, said plainly.
+      if (!(e instanceof DOMException && e.name === 'AbortError')) setShareFailed(true);
     }
   };
 
@@ -165,9 +169,16 @@ export const BackupStep: React.FC<{
           >
             {copied ? 'Sent a copy ✓' : 'Send a copy (email, Drive, Files…)'}
           </Button>
-        ) : (
+        ) : null}
+        {canShare && shareFailed && (
+          <Typography variant="body2" role="status" sx={{ mt: 1 }}>
+            This browser couldn&apos;t open its share menu.
+          </Typography>
+        )}
+        {(!canShare || shareFailed) && (
           <Typography variant="body1">
-            Email it to yourself, or put it on Google Drive, iCloud or a USB stick.
+            Email it to yourself, or put it on Google Drive, iCloud or a USB stick. It&apos;s the file you just saved,
+            in your Downloads folder.
           </Typography>
         )}
       </Part>
