@@ -8,6 +8,8 @@ const OUT_DIR = process.env.E2E_OUT_DIR ?? 'e2e-dist';
 
 export default defineConfig({
   testDir: './e2e',
+  // Refuses to start without room on the disk the browsers' downloads go to (e2e/global-setup.ts).
+  globalSetup: './e2e/global-setup.ts',
   timeout: 120_000,
   expect: { timeout: 20_000 },
   fullyParallel: false,

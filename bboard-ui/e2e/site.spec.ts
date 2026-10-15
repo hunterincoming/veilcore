@@ -289,11 +289,15 @@ test.describe('stand-in registry', () => {
 
   test('the paste box opens a prove link on this site, whatever host it names', async ({ page }) => {
     const errors = watch(page);
+    // A role already chosen, so the role question never opens over the paste box. Clicking
+    // it away "if it is showing" raced its opening: checked a moment too early, it then
+    // opened, and with it open the page behind is hidden from the accessibility tree, so
+    // the Go button was never found.
+    await page.addInitScript(() => localStorage.setItem('veilcore.role.v1', 'breeder'));
     await isolate(page);
     await page.goto('/records');
     await expect(page.getByText(/Someone sent you a code or link/).first()).toBeVisible();
-    const role = page.getByRole('button', { name: /I breed/i }).first();
-    if (await role.isVisible().catch(() => false)) await role.click();
+    await expect(page.getByRole('dialog', { name: 'Which describes you?' })).toHaveCount(0);
     await page
       .getByLabel(/Someone sent you a code or link/)
       .fill(`https://elsewhere.example/prove/PR-${'0A'.repeat(16)}#t=${TOKEN}`);

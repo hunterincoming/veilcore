@@ -12,7 +12,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { expect, test, firefox, type Browser, type Page } from '@playwright/test';
+import { expect, test, firefox, type Browser, type Download, type Locator, type Page } from '@playwright/test';
 import { unzipSync } from 'fflate';
 import { buildBatch, canonicalise, generateKeypair, signAttestation } from 'veilcore-records';
 import { API, REAL_REGISTRY, expectNoErrors, isolate, json, watch } from './helpers';
@@ -316,6 +316,28 @@ const openPlant = async (page: Page, setup: Setup, id: string) => {
   ).toBeVisible();
 };
 
+/**
+ * Press Download in the bundle dialog and take what the browser downloads. The page's own
+ * word on it is waited for first ("Downloaded …", or why not), so a refusal fails here with
+ * the page's words rather than sitting out the two-minute test timeout waiting for a
+ * download that was never going to start. The download is then read only once the browser
+ * has finished writing it (download.path(), in unzipTo).
+ *
+ * The one way left for the download event never to come is the browser's own: Chromium
+ * starts no download, and Playwright reports none, when the disk its downloads go to is full
+ * (seen on 15 Oct 2026; e2e/global-setup.ts refuses to start a run without room).
+ */
+const takeDownload = async (page: Page, dialog: Locator): Promise<Download> => {
+  const download = page.waitForEvent('download');
+  download.catch(() => undefined); // not left unhandled when the page refuses and the test ends
+  await dialog.getByRole('button', { name: /^Download$/ }).click();
+  const done = dialog.getByText(/^Downloaded .+\.zip\./);
+  const refused = dialog.getByRole('alert').filter({ hasNotText: /^Downloaded / });
+  await expect(done.or(refused)).toBeVisible();
+  if (!(await done.isVisible())) throw new Error(`the page made no bundle: ${await refused.innerText()}`);
+  return download;
+};
+
 /** Unzip a download into its own folder; the folder the bundle made. */
 const unzipTo = async (download: import('@playwright/test').Download, dir: string): Promise<string> => {
   const zip = fs.readFileSync(await download.path());
@@ -420,10 +442,7 @@ test.describe('evidence bundle', () => {
       mimeType: 'text/plain',
       buffer: LAB_FILE,
     });
-    const [download] = await Promise.all([
-      page.waitForEvent('download'),
-      dialog.getByRole('button', { name: /^Download$/ }).click(),
-    ]);
+    const download = await takeDownload(page, dialog);
     expect(download.suggestedFilename()).toBe(`${bound.id}-evidence.zip`);
     await expect(dialog.getByText(/Open verify\.html inside it/)).toBeVisible();
     expectNoErrors(errors);
@@ -644,22 +663,24 @@ test.describe('evidence bundle', () => {
       await t.ctx.close();
     }
 
-    // Firefox too, where Playwright's Firefox is installed.
-    let ff: Browser | undefined;
-    try {
-      ff = await firefox.launch();
-    } catch {
+    // Firefox too, where Playwright's Firefox is installed. Looked for first: a launch that
+    // fails still leaves an empty profile folder behind in the system's temporary folder,
+    // one per run. Closed whatever happens, so a failed check leaves no browser running.
+    if (fs.existsSync(firefox.executablePath())) {
+      const ff = await firefox.launch();
+      try {
+        const f = await openOffline(ff, verifyFile);
+        await expect(f.page.getByText('Fingerprint matches', { exact: true })).toBeVisible();
+        await expect(f.page.getByText('Proof leads to the batch root', { exact: true })).toBeVisible();
+        expect(f.requests.filter((u) => !u.startsWith('file:'))).toEqual([]);
+      } finally {
+        await ff.close();
+      }
+    } else {
       info.annotations.push({
         type: 'firefox',
         description: 'not installed here: verify.html checked in Chromium only',
       });
-    }
-    if (ff) {
-      const f = await openOffline(ff, verifyFile);
-      await expect(f.page.getByText('Fingerprint matches', { exact: true })).toBeVisible();
-      await expect(f.page.getByText('Proof leads to the batch root', { exact: true })).toBeVisible();
-      expect(f.requests.filter((u) => !u.startsWith('file:'))).toEqual([]);
-      await ff.close();
     }
   });
 
@@ -674,11 +695,10 @@ test.describe('evidence bundle', () => {
     await expect(page.getByRole('button', { name: 'Export record' })).toBeVisible();
     await page.getByRole('button', { name: 'Download evidence bundle' }).last().click();
     const dialog = page.getByRole('dialog', { name: 'Download evidence bundle' });
+    await expect(dialog).toBeVisible();
     await expect(dialog.getByRole('checkbox')).toHaveCount(0);
-    const [download] = await Promise.all([
-      page.waitForEvent('download'),
-      dialog.getByRole('button', { name: /^Download$/ }).click(),
-    ]);
+    const download = await takeDownload(page, dialog);
+    expect(download.suggestedFilename()).toBe(`${older.id}-evidence.zip`);
     const dir = await unzipTo(download, info.outputPath('bundle'));
     const names = listFiles(dir);
     expect(names).not.toContain('key/key-binding.json');
