@@ -4,6 +4,7 @@ import {
   DRAFT_KEY,
   chainProblem,
   clearDraft,
+  draftHeading,
   emptyDraft,
   loadDraft,
   parseDraft,
@@ -89,6 +90,17 @@ describe('the draft', () => {
     } finally {
       (globalThis as unknown as { localStorage: unknown }).localStorage = real;
     }
+  });
+});
+
+describe('Home, with a draft in this browser', () => {
+  beforeEach(() => mem.clear());
+  it('offers to continue it by name instead of logging a first plant', () => {
+    expect(draftHeading(loadDraft())).toBe('Let’s log your first plant');
+    saveDraft({ ...emptyDraft(), strainName: '  Blue Dream ' });
+    expect(draftHeading(loadDraft())).toBe('Continue your draft: Blue Dream');
+    saveDraft({ ...emptyDraft(), notes: 'started, no name yet' });
+    expect(draftHeading(loadDraft())).toBe('Continue your draft');
   });
 });
 

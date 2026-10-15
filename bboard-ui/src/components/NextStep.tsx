@@ -21,6 +21,7 @@ import LockIcon from '@mui/icons-material/LockOutlined';
 import BadgeIcon from '@mui/icons-material/VerifiedUserOutlined';
 import type { StrainRecord } from '../veilcore/records';
 import type { BreederReceipt, LabReceipt } from '../veilcore/custody';
+import { LAB_RESULTS_ENABLED } from '../config/network';
 import { loadAttester } from '../veilcore/attester-keys';
 import { SendToLab } from './SendToLab';
 import { OPEN_SIGNING_KEY_EVENT } from './AttesterSetup';
@@ -123,6 +124,19 @@ export const NextStep: React.FC<{
         action: 'Sign receipt',
         icon: <VerifiedIcon />,
         onClick: onSignReceipt,
+      };
+    } else if (lab.kind === 'signed' && !lab.linked && onSignReceipt) {
+      step = {
+        title: 'Link your receipt to the delivery',
+        why: 'Your receipt is signed, but the breeder’s page only counts a receipt linked to their delivery. Only whoever used the lab code can link it.',
+        action: 'Link it',
+        icon: <VerifiedIcon />,
+        onClick: onSignReceipt,
+      };
+    } else if (!LAB_RESULTS_ENABLED) {
+      step = {
+        title: 'Receipt signed',
+        why: 'The breeder sees your signed receipt. Lab reports can’t be sent back through VeilCore on this network yet: send yours the way you usually do.',
       };
     } else {
       // The locked flow: signed by the lab, locked so only the breeder can open it.

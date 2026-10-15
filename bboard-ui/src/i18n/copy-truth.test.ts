@@ -8,7 +8,12 @@
 //     own (AI) reviews, "prior possession" only of a record;
 //   - the hero doesn't say the plant is hidden: its name is on every public check page;
 //   - what the FAQ tells people to keep matches buttons the app really has;
-//   - every changed or added key is translated, and the test overlay too.
+//   - every changed or added key is translated, and the test overlay too;
+//   - (round 3) no "lab files never leave" (a lab's locked report is uploaded), no
+//     "that you hold the record" for prove-by-link (it checks a key), no lab called
+//     "confirmed" or "checked" by VeilCore, the Bitcoin stamp file named as a third file
+//     that only our server has, lab reports off on veilcore.org, no ownership words in
+//     de/fr/es/ja, and no landing key missing from de/fr/es/ja.
 // Run: npx vitest run src/i18n/copy-truth.test.ts
 // SPDX-License-Identifier: Apache-2.0
 
@@ -20,6 +25,7 @@ import { en, type StringKey } from './en';
 import { mainnetStrings, DATED_POSTS } from './en-mainnet';
 import { testchainStrings } from './en-testchain';
 import { networkOverlay, LANGUAGES, type Lang } from './index';
+import { labResultsEnabledFor } from '../config/network';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.resolve(HERE, '..');
@@ -144,8 +150,30 @@ describe('privacy, said plainly', () => {
     for (const s of ALL_ENGLISH) expect(offenders(s, HIDDEN_WHAT)).toEqual([]);
     expect(en['m.hero.title2']).toMatch(/genetics/);
   });
+  it('the hero title is the one the CTO chose, and never "had it first"', () => {
+    for (const s of ALL_ENGLISH) {
+      expect(s['m.hero.title1']).toBe('Date your record.');
+      expect(s['m.hero.title2']).toBe('Keep your genetics.');
+      expect(offenders(s, /had it first/i)).toEqual([]);
+    }
+    const OLD_TITLE1: Record<string, string> = {
+      de: 'Beweisen Sie, dass Sie es zuerst hatten.',
+      fr: "Prouvez que vous l'aviez en premier.",
+      es: 'Demuestre que lo tuvo primero.',
+      ja: '先に持っていたことを証明する。',
+    };
+    for (const lang of ['de', 'fr', 'es', 'ja'] as Lang[]) {
+      const t1 = LANGUAGES[lang].strings['m.hero.title1'];
+      expect(t1, lang).toBeTruthy();
+      expect(t1, lang).not.toBe(OLD_TITLE1[lang]);
+      expect(t1, lang).not.toMatch(/zuerst|en premier|primero|先に/);
+    }
+  });
   it('the hero says the name and breeder are kept on our server, and the name is shown', () => {
-    expect(en['m.hero.lede']).toMatch(/Genetic data and lab files never leave your computer/);
+    expect(en['m.hero.lede']).toMatch(/Genetic data never leaves your computer/);
+    expect(en['m.hero.lede']).toMatch(
+      /A lab report reaches our server only when a lab sends it back to you, locked so only you can open it/,
+    );
     expect(en['m.hero.lede']).toMatch(/plant name and breeder you type are kept on VeilCore's server/);
     expect(en['m.hero.lede']).toMatch(/anyone with a record's link sees its name/);
   });
@@ -163,7 +191,12 @@ describe('what to keep if VeilCore is gone', () => {
       expect(en[k], k).not.toMatch(/Records you've kept a copy of still check/);
     }
     expect(en['m.open.2t']).not.toMatch(/Your record doesn't need us/);
-    expect(en['m.faq.5a']).toMatch(/one-click evidence bundle is coming/);
+    expect(en['m.faq.5a']).toMatch(/one-click evidence bundle .*is coming/);
+    // The Bitcoin date needs the batch's .ots file too, and only our server has it.
+    for (const k of ['m.faq.5a', 'm.open.2p'] as const) {
+      expect(en[k], k).toMatch(/Bitcoin stamp file/);
+      expect(en[k], k).toMatch(/only on our server/);
+    }
   });
   it('the buttons the FAQ names are the ones on the plant page', () => {
     // If these move or are renamed, the FAQ must follow.
@@ -187,7 +220,17 @@ describe("what's live where", () => {
   const COLS = ['main', 'test', 'not'] as const;
 
   it('every cell the page shows has text, and no text sits in a hidden cell', () => {
-    expect(rows.map((r) => r.row)).toEqual(['stamp', 'share', 'lab', 'results', 'dna', 'prove', 'claims', 'lic']);
+    expect(rows.map((r) => r.row)).toEqual([
+      'stamp',
+      'btc',
+      'share',
+      'lab',
+      'results',
+      'dna',
+      'prove',
+      'claims',
+      'lic',
+    ]);
     for (const { row, has } of rows) {
       expect(Object.prototype.hasOwnProperty.call(en, `m.live.${row}.t`), row).toBe(true);
       COLS.forEach((c, i) =>
@@ -203,6 +246,22 @@ describe("what's live where", () => {
     expect(e['m.live.lic.main']).toBe('Practice only.');
     expect(e['m.live.lic.test']).toBe('Practice only.');
     expect(e['m.live.dna.main']).toMatch(/not dated/);
+    // Lab reports are off on veilcore.org (LAB_RESULTS_ENABLED), on on the test site.
+    expect(rows.find((r) => r.row === 'results')?.has).toEqual([false, true, true]);
+    expect(e['m.live.results.not']).toMatch(/^On veilcore\.org: turned off for now, on the test site first\.$/);
+    // Prove-by-link checks a key, not the record.
+    expect(e['m.live.prove.test']).toMatch(/you control the key you registered for this record/);
+    expect(e['m.live.prove.test']).toMatch(/your statement for now/);
+    // Bitcoin: the live registry stamps every sealed batch; the test site's registry runs
+    // with OpenTimestamps off (docs/no-wallet-run-12oct.md), so there is no test cell.
+    expect(rows.find((r) => r.row === 'btc')?.has).toEqual([true, false, true]);
+    expect(e['m.live.btc.main']).toMatch(/block 971004 on 11 October/);
+    expect(e['m.live.btc.main']).toMatch(/official OpenTimestamps tool is still to do/);
+    expect(e['m.live.btc.not']).toMatch(/only on our server/);
+    const docs = path.resolve(SRC, '../../docs');
+    expect(fs.readFileSync(path.join(docs, 'no-wallet-run-12oct.md'), 'utf8')).toMatch(
+      /veilcore-api-preprod.*OpenTimestamps off/s,
+    );
   });
   it('shows on the mainnet site too, so it carries no test-network or demo wording', () => {
     const shown = Object.entries(en).filter(([k]) => /^m\.(live|postA|postB)\./.test(k));
@@ -210,6 +269,52 @@ describe("what's live where", () => {
       expect(v, k).not.toMatch(/test[ -]network|preprod|\bpreview\b|test server|test registry|test version/i);
       expect(v, k).not.toMatch(/\bdemos?\b/i);
     }
+  });
+});
+
+describe('round 3: what a page may claim', () => {
+  const SITES = { en, testSite, ...Object.fromEntries(mainnetVariants.map((m, i) => [`mainnet${i}`, m])) };
+  it('never says lab files never leave your computer (a lab report is uploaded, locked)', () => {
+    for (const [site, s] of Object.entries(SITES)) {
+      expect(offenders(s, /lab files never leave|lab files (and genetic data )?(stay|remain) on/i), site).toEqual([]);
+      expect(offenders(s, /Lab files and genetic data files never leave/i), site).toEqual([]);
+    }
+  });
+  it('prove-by-link says it checks a key, never that you hold the record', () => {
+    for (const [site, s] of Object.entries(SITES)) {
+      expect(offenders(s, /that you hold the record|shows you hold it/i), site).toEqual([]);
+      expect(s['m.for.6p'], site).toMatch(/you control the key you registered for this record/);
+      expect(s['m.for.6p'], site).toMatch(/That the key belongs to the record is your statement for now/);
+    }
+  });
+  it('no lab is called confirmed or checked by VeilCore', () => {
+    for (const [site, s] of Object.entries(SITES)) {
+      expect(offenders(s, /confirmed by a lab|lab[- ]confirmed|receiver confirms it/i), site).toEqual([]);
+      expect(offenders(s, /we've checked that the key|VeilCore (has )?checked/i), site).toEqual([]);
+      expect(s['m.open.3p'], site).toMatch(/VeilCore doesn't vouch for any lab/);
+    }
+  });
+  it('the demo and test site say a locked lab report is kept 180 days; veilcore.org has none yet', () => {
+    for (const s of [en, testSite]) {
+      expect(s['m.privacy.stored.text']).toMatch(
+        /Locked lab reports a lab sends you: stored unreadable to us, and deleted after 180 days/,
+      );
+      expect(s['m.privacy.local.text']).toMatch(/A lab report reaches our server only when a lab sends it back to you/);
+      expect(s['m.faq.4a']).toMatch(/deleted after 180 days/);
+      expect(s['m.privacy.who.text']).toMatch(/deleted 180 days after they arrive/);
+    }
+    for (const s of mainnetVariants) {
+      expect(s['m.for.4p']).toMatch(/Not on this website yet: it's on the test site first\.$/);
+      for (const k of ['m.faq.4a', 'm.privacy.local.text', 'm.privacy.who.text', 'm.privacy.stored.text'] as const)
+        expect(s[k], k).not.toMatch(/180 days|sends it back/);
+    }
+  });
+  it('the mainnet wording above holds only while lab reports are off on mainnet', () => {
+    // If this flips, the mainnet overlay (m.for.4p, m.faq.4a, m.privacy.*) and
+    // m.live.results.* must change with it.
+    // (labResultsEnabledFor in config/network.ts, builder F's flag.)
+    expect(labResultsEnabledFor('mainnet')).toBe(false);
+    expect(labResultsEnabledFor('preprod')).toBe(true);
   });
 });
 
@@ -234,6 +339,7 @@ describe('the updates', () => {
 describe('translations', () => {
   /** Keys this pass changed or added: each language must have its own text for them. */
   const CHANGED: StringKey[] = [
+    'm.hero.title1',
     'm.hero.title2',
     'm.hero.lede',
     'm.for.3p',
@@ -248,6 +354,15 @@ describe('translations', () => {
     'm.founders.lede',
     ...(Object.keys(en).filter((k) => /^m\.(live|postA|postB)\./.test(k)) as StringKey[]),
   ];
+  CHANGED.push(
+    'm.step2.text',
+    'm.for.6p',
+    'm.open.3p',
+    'm.faq.4a',
+    'm.privacy.stored.text',
+    'm.privacy.local.text',
+    'm.privacy.who.text',
+  );
   /** Allowed to read the same as the English (names, a tag that is the same word). */
   const SAME_OK = new Set(['de:m.postA.tag', 'de:m.post0.tag']);
 
@@ -263,6 +378,17 @@ describe('translations', () => {
         expect(testchain[k], `${lang} testchain ${k}`).toBeTruthy();
         expect(testchain[k], `${lang} testchain ${k}`).not.toBe(testchainStrings[k]);
       }
+      // Every key the landing pages use, so no English shows through a draft.
+      expect(Object.keys(en).filter((k) => !strings[k as StringKey])).toEqual([]);
+      // No ownership words: a record shows what you held, not what you own.
+      const OWN: Record<string, RegExp> = {
+        de: /besitz|eigentum|eigentümer/i,
+        fr: /posséd|possed|propriét/i,
+        es: /\bposee|\bposeer|\bposeí|propiedad|propietari|dueñ/i,
+        ja: /所有/,
+      };
+      for (const [k, v] of [...Object.entries(strings), ...Object.entries(testchain)])
+        expect(OWN[lang].test(v ?? ''), `${lang} ${k}: ${v}`).toBe(false);
       // The old "what it is" title is gone in this language too.
       expect(strings['m.hero.title2']).not.toBe(
         {

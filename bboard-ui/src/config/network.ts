@@ -85,21 +85,48 @@ export const MAINTENANCE_POLICY_APPROVED: boolean =
  * The origin every shared link and QR code points at. Links used to be built from
  * window.location.origin, so a certificate printed from a preview deployment, or from
  * a copy of the static bundle hosted anywhere, sent whoever scanned it to that host.
+ *
+ * A mainnet build always points at veilcore.org, whatever the setting says. A test-network
+ * site names itself with VITE_CANONICAL_ORIGIN (test.veilcore.org,
+ * scripts/deploy-test-site.mjs); one that doesn't (a local or preview build) points at
+ * wherever it is being served from, because its records don't exist on veilcore.org and
+ * a link there would tell the person checking it that there is no such record (round 3).
  */
-const canonicalOrigin = (): string => {
-  // A test-network site hosted elsewhere (test.veilcore.org, scripts/deploy-test-site.mjs)
-  // names itself, or its links would send a checker to the mainnet site, where its records
-  // don't exist. A mainnet build always points at veilcore.org, whatever the setting says.
-  const v = (import.meta.env.VITE_CANONICAL_ORIGIN ?? '').trim();
-  if (IS_MAINNET || !v) return 'https://veilcore.org';
+export const canonicalOriginFor = (input: {
+  mainnet: boolean;
+  configured?: string;
+  /** window.location.origin, when there is a window. */
+  here?: string;
+}): string => {
+  const MAIN = 'https://veilcore.org';
+  if (input.mainnet) return MAIN;
+  const v = (input.configured ?? '').trim();
+  const fallback = input.here && /^https?:\/\//.test(input.here) ? input.here : MAIN;
+  if (!v) return fallback;
   try {
     const u = new URL(v);
-    return u.protocol === 'https:' && u.pathname === '/' && !u.search ? u.origin : 'https://veilcore.org';
+    return u.protocol === 'https:' && u.pathname === '/' && !u.search ? u.origin : fallback;
   } catch {
-    return 'https://veilcore.org';
+    return fallback;
   }
 };
+
+const canonicalOrigin = (): string =>
+  canonicalOriginFor({
+    mainnet: IS_MAINNET,
+    configured: import.meta.env.VITE_CANONICAL_ORIGIN,
+    here: typeof window !== 'undefined' ? window.location.origin : undefined,
+  });
 export const CANONICAL_ORIGIN = canonicalOrigin();
 
 /** An absolute link on the canonical site, for a path that starts with "/". */
 export const canonicalUrl = (path: string): string => `${CANONICAL_ORIGIN}${path}`;
+
+/**
+ * Lab reports sent back through the registry (veilcore/lab-results.ts). Off on mainnet
+ * until the production registry has them: with it off, delivery codes carry no lock, and
+ * "Send results back" and the breeder's lab report panels are hidden. To turn it on for
+ * mainnet, change labResultsEnabledFor to return true.
+ */
+export const labResultsEnabledFor = (n: string): boolean => n !== 'mainnet';
+export const LAB_RESULTS_ENABLED: boolean = labResultsEnabledFor(NETWORK);

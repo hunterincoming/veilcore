@@ -12,8 +12,9 @@
 //   - a retraction counts only if the attester signed it. An unsigned "retraction" in
 //     the registry's answer used to make a genuine attestation read as withdrawn.
 //
-// What is still the registry's word: whether VeilCore has checked who holds a key
-// (`vettedAttester`). That is a statement by the operator, labelled as one.
+// What is still the registry's word: whether VeilCore's operator added a key's name
+// (`vettedAttester`). That is a statement by the operator, labelled as one, and VeilCore
+// doesn't vouch for the lab (round 3: it used to say "VeilCore has checked").
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -167,8 +168,8 @@ export const strengthLabel = (a: ResolvedAttestation): { label: string; why: str
   if (a.vettedAttester === true) {
     const acc = a.registeredAs?.accreditation;
     return {
-      label: 'Signed · checked by VeilCore',
-      why: `Signed by ${a.registeredAs?.displayName ?? 'a second party'}; the signature was verified in this browser. VeilCore says it has checked that this key belongs to them.${acc ? ` They list ${acc.scheme} accreditation from ${acc.accreditor}; confirm that with ${acc.accreditor}.` : ''}${unverifiedRetraction}`,
+      label: 'Signed · name added by VeilCore’s operator',
+      why: `Signed by ${a.registeredAs?.displayName ?? 'a second party'}; the signature was verified in this browser. Name added by VeilCore’s operator; VeilCore doesn’t vouch for the lab.${acc ? ` They list ${acc.scheme} accreditation from ${acc.accreditor}; confirm that with ${acc.accreditor}.` : ''}${unverifiedRetraction}`,
       ok: true,
     };
   }

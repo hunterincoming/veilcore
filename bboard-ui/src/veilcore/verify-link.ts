@@ -63,3 +63,42 @@ export const bindingOf = (link: LinkFingerprint, reported: string | undefined): 
     ? { kind: 'bound', fingerprint: link.fingerprint }
     : { kind: 'mismatch', linked: link.fingerprint, reported: reported || undefined };
 };
+
+/**
+ * The footer: exactly what this browser checked, and that the rest is the registry's
+ * report. Never "nothing could be checked" when a line above says something was.
+ */
+export const checkedSummary = (c: { bound: boolean; proofChecked: boolean; signaturesChecked: number }): string => {
+  const done = [
+    ...(c.bound ? ['the link’s fingerprint matches the one the registry reports'] : []),
+    ...(c.proofChecked ? ['the record is in its batch'] : []),
+    ...(c.signaturesChecked > 0
+      ? [c.signaturesChecked === 1 ? 'one signature about it' : `${c.signaturesChecked} signatures about it`]
+      : []),
+  ];
+  if (done.length === 0)
+    return 'Nothing on this page could be checked in this browser: it is all the VeilCore registry’s report.';
+  const list = done.length === 1 ? done[0] : `${done.slice(0, -1).join(', ')} and ${done[done.length - 1]}`;
+  return (
+    `Checked in this browser: ${list}. Everything else is the VeilCore registry’s report.` +
+    (c.bound ? '' : ' This link names no fingerprint, so those checks used the registry’s own and nothing is ticked.')
+  );
+};
+
+/** The heading: plain words for where the record stands. */
+export const verifyHeading = (s: {
+  sealed: boolean;
+  bound: boolean;
+  proof: 'checking' | 'none' | 'pending' | 'anchor-reported';
+}): string =>
+  !s.sealed
+    ? 'Record found, nothing sealed'
+    : !s.bound
+      ? 'The registry’s report: this link has no fingerprint to check against'
+      : s.proof === 'checking'
+        ? 'Checking…'
+        : s.proof === 'anchor-reported'
+          ? 'In a dated batch: the date is the registry’s report, not checked here'
+          : s.proof === 'pending'
+            ? 'In a batch, not dated yet'
+            : 'Not dated yet';

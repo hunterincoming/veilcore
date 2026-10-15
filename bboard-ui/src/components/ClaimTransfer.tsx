@@ -32,6 +32,7 @@ import {
 import InboxIcon from '@mui/icons-material/MoveToInboxOutlined';
 import { useNavigate } from 'react-router-dom';
 import {
+  attachReceipt,
   claimTransfer,
   custodySubject,
   parseShareCode,
@@ -41,7 +42,14 @@ import {
 } from '../veilcore/transfers';
 import { hydrate, sealReceived, updateReceivedNotes, type StrainRecord } from '../veilcore/records';
 import { loadAttester, attestRecord, type AttesterProfile } from '../veilcore/attester-keys';
-import { labChanged, rememberDelivery } from '../veilcore/lab-results';
+import {
+  deliveryForRecord,
+  labChanged,
+  markReceiptLinked,
+  rememberDelivery,
+  type LabDelivery,
+} from '../veilcore/lab-results';
+import type { LabReceipt } from '../veilcore/custody';
 
 /** Opens the header's receive dialog from elsewhere on the page (a lab's first screen). */
 export const OPEN_RECEIVE_EVENT = 'veilcore:open-receive';
@@ -53,7 +61,7 @@ export const OPEN_RECEIVE_EVENT = 'veilcore:open-receive';
  */
 export const receiptWords = (subject: CustodySubject, transferId?: string): string => {
   const qty = quantityPhrase(subject.quantity);
-  return `A sample labelled “${subject.cultivar || 'unlabelled'}”${qty ? ` (${qty}, as the breeder wrote it)` : ''} arrived${transferId ? ` under code ${transferId}` : ''}.`;
+  return `A sample labelled “${subject.cultivar || 'unlabelled'}”${qty ? ` (${qty}, as the breeder wrote it)` : ''} arrived${transferId ? ` under lab code ${transferId}` : ''}.`;
 };
 
 /** The exact receipt, shown in full before anything is signed. */
@@ -148,16 +156,85 @@ const ReceiptChoice: React.FC<{
   );
 };
 
-const signReceipt = async (attester: AttesterProfile, subject: CustodySubject): Promise<string | null> => {
+/** What this browser knows about the delivery a received record came from. */
+const deliveryOf = (record: StrainRecord, transferId: string): LabDelivery =>
+  deliveryForRecord(record.id) ?? {
+    transferId,
+    receivedRecordId: record.id,
+    ...(record.receivedFrom ? { sourceRecordId: record.receivedFrom } : {}),
+    ...(record.receivedFromCommitment ? { sourceCommitment: record.receivedFromCommitment } : {}),
+    ...(record.resultLock ? { recipient: record.resultLock } : {}),
+    receivedAt: record.receivedAt ?? Date.now(),
+  };
+
+/**
+ * Tie a signed receipt to its delivery (round 3). Until it is tied, the breeder's page
+ * doesn't call it a receipt: a signature over a public fingerprint is something anyone
+ * can make; tying it to the delivery needs the key that used the lab code.
+ */
+const linkReceipt = async (delivery: LabDelivery, attestationId: string): Promise<string | null> => {
+  const out = await attachReceipt(delivery.transferId, attestationId);
+  if ('error' in out) return out.error;
+  markReceiptLinked(delivery, attestationId);
+  labChanged();
+  return null;
+};
+
+type Signed = { attestationId: string } | { error: string };
+
+const signReceipt = async (attester: AttesterProfile, subject: CustodySubject): Promise<Signed> => {
   const out = await attestRecord(
     attester,
     subject.sourceCommitment,
     subject.receivedRecordFingerprint,
     'chain-of-custody',
   );
-  if (out.error || !out.attestationId) return out.error ?? 'no answer from the registry';
+  if (out.error || !out.attestationId) return { error: out.error ?? 'no answer from the registry' };
   labChanged();
-  return null;
+  return { attestationId: out.attestationId };
+};
+
+const unlinkedWords = (err: string) =>
+  `Your receipt is signed, but it couldn’t be linked to this delivery (${err}), so the breeder can’t see it yet. Try again, or link it later from the plant’s page.`;
+
+/** "Link it": for a receipt that is signed but not tied to its delivery yet. */
+const LinkReceipt: React.FC<{ delivery: LabDelivery; attestationId: string; onDone: () => void }> = ({
+  delivery,
+  attestationId,
+  onDone,
+}) => {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+  return (
+    <Stack spacing={1.5}>
+      <Typography variant="body2">
+        Your receipt is signed. Link it to this delivery so the breeder sees it: until then their page doesn&apos;t
+        count it, because anyone can sign a statement about a plant, but only whoever used the lab code can link one to
+        the delivery.
+      </Typography>
+      <Button
+        variant="contained"
+        disabled={busy}
+        sx={{ alignSelf: 'flex-start', minHeight: 44 }}
+        onClick={() => {
+          setBusy(true);
+          setError(undefined);
+          void linkReceipt(delivery, attestationId).then((err) => {
+            setBusy(false);
+            if (err) setError(unlinkedWords(err));
+            else onDone();
+          });
+        }}
+      >
+        {busy ? 'Linking…' : 'Link it'}
+      </Button>
+      {error && (
+        <Alert severity="warning" variant="outlined">
+          {error}
+        </Alert>
+      )}
+    </Stack>
+  );
 };
 
 const rejectReceipt = (recordId: string, reason: 'damaged' | 'wrong-sample') => {
@@ -166,11 +243,19 @@ const rejectReceipt = (recordId: string, reason: 'damaged' | 'wrong-sample') => 
 };
 
 /** The plant page's "Sign receipt", for a lab that didn't sign when it received the sample. */
-export const SignReceiptPanel: React.FC<{ record: StrainRecord; onDone: () => void }> = ({ record, onDone }) => {
+export const SignReceiptPanel: React.FC<{
+  record: StrainRecord;
+  /** The lab's own receipt as the plant page read it; a signed, unlinked one is linked here. */
+  receipt?: LabReceipt | null;
+  onDone: () => void;
+}> = ({ record, receipt, onDone }) => {
   const attester = loadAttester();
   const [subject, setSubject] = useState<CustodySubject | { refuse: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  // Signed here, but not linked to the delivery: the next step is linking, not signing again.
+  const [unlinked, setUnlinked] = useState<string>();
+  const transferId = record.transferId ?? deliveryForRecord(record.id)?.transferId;
 
   useEffect(() => {
     if (!record.receivedFrom) return;
@@ -191,6 +276,17 @@ export const SignReceiptPanel: React.FC<{ record: StrainRecord; onDone: () => vo
     };
   }, [record]);
 
+  const toLink = unlinked ?? (receipt?.kind === 'signed' && !receipt.linked ? receipt.attestationId : undefined);
+  if (toLink && transferId) {
+    return (
+      <Stack spacing={2}>
+        <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="">
+          Link your receipt
+        </Typography>
+        <LinkReceipt delivery={deliveryOf(record, transferId)} attestationId={toLink} onDone={onDone} />
+      </Stack>
+    );
+  }
   if (!attester) {
     return (
       <Alert severity="info" variant="outlined">
@@ -208,7 +304,7 @@ export const SignReceiptPanel: React.FC<{ record: StrainRecord; onDone: () => vo
   }
   return (
     <Stack spacing={2}>
-      <Typography variant="h5" component="h2">
+      <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="">
         Sign receipt
       </Typography>
       <ReceiptChoice
@@ -219,11 +315,22 @@ export const SignReceiptPanel: React.FC<{ record: StrainRecord; onDone: () => vo
         onSign={() => {
           setBusy(true);
           setError(undefined);
-          void signReceipt(attester, subject).then((err) => {
+          void (async () => {
+            const signed = await signReceipt(attester, subject);
+            if ('error' in signed) {
+              setBusy(false);
+              setError(`Your receipt was not recorded: ${signed.error}.`);
+              return;
+            }
+            const err = transferId
+              ? await linkReceipt(deliveryOf(record, transferId), signed.attestationId)
+              : 'this plant has no lab code on this device';
             setBusy(false);
-            if (err) setError(`Your receipt was not recorded: ${err}.`);
-            else onDone();
-          });
+            if (err) {
+              setUnlinked(signed.attestationId);
+              setError(unlinkedWords(err));
+            } else onDone();
+          })();
         }}
         onReject={(reason) => {
           rejectReceipt(record.id, reason);
@@ -242,6 +349,7 @@ export const SignReceiptPanel: React.FC<{ record: StrainRecord; onDone: () => vo
 type Stage =
   | { step: 'code' }
   | { step: 'sign'; subject: CustodySubject; attester: AttesterProfile; transferId: string }
+  | { step: 'unlinked'; delivery: LabDelivery; attestationId: string; recordId: string }
   | { step: 'refused'; recordId: string; reason: string };
 
 export const ClaimTransfer: React.FC<{
@@ -336,15 +444,29 @@ export const ClaimTransfer: React.FC<{
     if (stage.step !== 'sign') return;
     setBusy(true);
     setError(null);
-    const err = await signReceipt(stage.attester, stage.subject);
-    setBusy(false);
-    if (err) {
+    const signed = await signReceipt(stage.attester, stage.subject);
+    if ('error' in signed) {
+      setBusy(false);
       setError(
-        `Delivery received, but your signed receipt was not recorded: ${err}. You can sign it later from the plant’s page.`,
+        `Delivery received, but your signed receipt was not recorded: ${signed.error}. You can sign it later from the plant’s page.`,
       );
       return;
     }
-    finish(stage.subject.receivedRecordId);
+    // Tie it to the delivery, so the breeder's page counts it (round 3).
+    const recordId = stage.subject.receivedRecordId;
+    const delivery = deliveryForRecord(recordId) ?? {
+      transferId: stage.transferId,
+      receivedRecordId: recordId,
+      receivedAt: Date.now(),
+    };
+    const err = await linkReceipt(delivery, signed.attestationId);
+    setBusy(false);
+    if (err) {
+      setStage({ step: 'unlinked', delivery, attestationId: signed.attestationId, recordId });
+      setError(unlinkedWords(err));
+      return;
+    }
+    finish(recordId);
   };
 
   return (
@@ -360,7 +482,13 @@ export const ClaimTransfer: React.FC<{
       )}
 
       <Dialog open={open} onClose={close} maxWidth="sm" fullWidth>
-        <DialogTitle>{stage.step === 'sign' ? 'Sign what you received?' : 'Receive material'}</DialogTitle>
+        <DialogTitle>
+          {stage.step === 'sign'
+            ? 'Sign what you received?'
+            : stage.step === 'unlinked'
+              ? 'Link your receipt'
+              : 'Receive material'}
+        </DialogTitle>
         <DialogContent>
           {stage.step === 'code' && (
             <Stack spacing={2} sx={{ pt: 1 }}>
@@ -400,6 +528,16 @@ export const ClaimTransfer: React.FC<{
             </Box>
           )}
 
+          {stage.step === 'unlinked' && (
+            <Box sx={{ pt: 1 }}>
+              <LinkReceipt
+                delivery={stage.delivery}
+                attestationId={stage.attestationId}
+                onDone={() => finish(stage.recordId)}
+              />
+            </Box>
+          )}
+
           {stage.step === 'refused' && (
             <Alert severity="warning" variant="outlined" sx={{ mt: 1 }}>
               The delivery is received and your record created. {stage.reason}
@@ -426,8 +564,8 @@ export const ClaimTransfer: React.FC<{
               </Button>
             </>
           )}
-          {stage.step === 'refused' && (
-            <Button variant="contained" onClick={() => finish(stage.recordId)}>
+          {(stage.step === 'refused' || stage.step === 'unlinked') && (
+            <Button variant={stage.step === 'refused' ? 'contained' : 'text'} onClick={() => finish(stage.recordId)}>
               Go to the record
             </Button>
           )}

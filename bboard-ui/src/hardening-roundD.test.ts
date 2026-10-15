@@ -219,7 +219,7 @@ describe('F2 attestationsFor: bound to this record; only signed retractions coun
     expect(a.retraction).toBeNull();
     expect(a.retractionUnverified).toBe(true);
     expect(countsAsSigned(a)).toBe(true);
-    expect(strengthLabel(a).label).toBe('Signed · checked by VeilCore');
+    expect(strengthLabel(a).label).toBe('Signed · name added by VeilCore’s operator');
     expect(strengthLabel(a).why).toMatch(/not signed by the attester, so it is ignored/);
   });
 
@@ -954,7 +954,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
             : undefined,
     );
     await pg.goto(`${origin}/verify/VEIL-X`, { waitUntil: 'networkidle' });
-    await pg.waitForSelector('text=No inclusion proof this page could check', { timeout: 15_000 });
+    await pg.waitForSelector('text=Not dated yet, as far as this page can tell', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
     const badge = await pg.evaluate(() => document.querySelector('[data-checked]')?.getAttribute('data-checked'));
     expect(text).not.toMatch(/Anchored on/);
@@ -971,7 +971,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
         u.startsWith('/verify/') ? { found: true, cultivar: 'Unsealed', disclosed: [] } : undefined,
       );
       await pg.goto(`${origin}/verify/VEIL-Y`, { waitUntil: 'networkidle' });
-      await pg.waitForSelector('text=Record found — nothing sealed', { timeout: 15_000 });
+      await pg.waitForSelector('text=Record found, nothing sealed', { timeout: 15_000 });
       expect(await pg.evaluate(() => document.querySelector('[data-checked]')?.getAttribute('data-checked'))).toBe(
         'no',
       );
@@ -994,7 +994,9 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
           : undefined,
     );
     await pg.goto(`${origin}/verify/VEIL-Z?fp=${FP}`, { waitUntil: 'networkidle' });
-    await pg.waitForSelector('text=In a sealed batch · anchor reported, not checked', { timeout: 15_000 });
+    await pg.waitForSelector('text=In a dated batch: the date is the registry’s report, not checked here', {
+      timeout: 15_000,
+    });
     const text = await pg.evaluate(() => document.body.innerText);
     expect(text).toMatch(/Checked in this browser: this fingerprint is in batch real/);
     expect(text).toMatch(/This page has not looked it up/);
@@ -1140,7 +1142,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     await pg.goto(`${origin}/verify/VEIL-Y?fp=${Y}`, { waitUntil: 'networkidle' });
     await pg.waitForSelector('text=Do not rely on this page.', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
-    expect(text).toMatch(/Fingerprint does not match this link · nothing checked/i);
+    expect(text).toMatch(/This link's fingerprint doesn't match the record: nothing checked/i);
     expect(text).toContain(`This link was made for the record with fingerprint ${Y.slice(0, 12)}`);
     expect(text).toMatch(/the registry reports fingerprint dddd/);
     // None of the registry's answer is shown as this record's.
@@ -1178,7 +1180,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     const { api } = await lyingRegistry();
     const { ctx, pg, violations, errors } = await page(api);
     await pg.goto(`${origin}/verify/VEIL-Y`, { waitUntil: 'networkidle' });
-    await pg.waitForSelector('text=Registry report · this link carries no fingerprint to check against', {
+    await pg.waitForSelector('text=The registry’s report: this link has no fingerprint to check against', {
       timeout: 15_000,
     });
     await pg.waitForSelector('text=Signed attestation, signature verified in this browser', { timeout: 15_000 });
@@ -1186,10 +1188,17 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     expect(text).toMatch(/Borrowed Name/); // the page still opens
     expect(text).toMatch(/For the fingerprint the registry reports: it is in batch genuine-x/);
     expect(text).toMatch(
-      /For the fingerprint the registry reports: Signed attestation, signature verified in this browser, from a key VeilCore says it has checked/,
+      /For the fingerprint the registry reports: Signed attestation, signature verified in this browser, from a key whose name VeilCore's\s+operator added\. VeilCore doesn't vouch for the signer\./,
     );
     expect(text).toMatch(/This link does not name the record's fingerprint/);
-    expect(text).toMatch(/this link names no fingerprint, so nothing on this page is ticked/);
+    expect(text).toMatch(
+      /This link names no fingerprint, so those checks used the registry’s own and nothing is ticked/,
+    );
+    // The footer never says nothing was checked under a line saying a signature was (round 3).
+    expect(text).not.toMatch(/Nothing on this page could be checked/);
+    expect(text).toMatch(
+      /Checked in this browser: the record is in its batch and (one signature|\d+ signatures) about it/,
+    );
     expect(text).not.toMatch(/Checked in this browser: this fingerprint/);
     // The registry's "lineage intact" is its report, not a tick (DisclosedFacts).
     expect(text).toMatch(/The registry reports the lineage intact/);
@@ -1206,14 +1215,18 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     const { X, api } = await lyingRegistry();
     const { ctx, pg, violations, errors } = await page(api);
     await pg.goto(`${origin}/verify/VEIL-Y?fp=${X}`, { waitUntil: 'networkidle' });
-    await pg.waitForSelector('text=In a sealed batch · anchor reported, not checked', { timeout: 15_000 });
-    await pg.waitForSelector('text=from a key VeilCore says it has checked', { timeout: 15_000 });
+    await pg.waitForSelector('text=In a dated batch: the date is the registry’s report, not checked here', {
+      timeout: 15_000,
+    });
+    await pg.waitForSelector("text=VeilCore doesn't vouch for the signer", { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
     expect(text).toMatch(/This link was made for fingerprint dddd.*and the registry\s+reports the same fingerprint/s);
     expect(text).toMatch(/Checked in this browser: this fingerprint is in batch genuine-x/);
     expect(text).not.toMatch(/For the fingerprint the registry reports/);
     expect(text).toMatch(/The registry reports the lineage intact/);
-    expect(text).toMatch(/Ticked lines checked in this browser/);
+    expect(text).toMatch(
+      /Checked in this browser: the link’s fingerprint matches the one the registry reports, the record is in its batch and (one signature|\d+ signatures) about it\. Everything else is the VeilCore registry’s report\./,
+    );
     // Exactly two ticks: the inclusion proof and the signed attestation. Not the lineage line.
     expect(await ticks(pg)).toBe(2);
     // Ticked lines, but a grey seal: no anchor was checked on chain here.
@@ -1268,7 +1281,8 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
         await pg.waitForSelector('text=Saved on the registry', { timeout: 15_000 });
         // The link names the record's fingerprint, so the page checks against it.
         expect(
-          await pg.locator(`input[value="https://veilcore.org/verify/VEIL-A?fp=${record.recordFingerprint}"]`).count(),
+          // A test-network build with no VITE_CANONICAL_ORIGIN links to the site it is served from (round 3).
+          await pg.locator(`input[value="${origin}/verify/VEIL-A?fp=${record.recordFingerprint}"]`).count(),
         ).toBe(1);
         expect(
           await pg.locator(`a[href="/verify/VEIL-A?fp=${record.recordFingerprint}"]`).count(),
@@ -1327,17 +1341,19 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     });
     await pg.goto(`${origin}/record/VEIL-C`, { waitUntil: 'networkidle' });
     await pg.getByRole('button', { name: 'Certificate' }).click();
-    await pg.waitForSelector('text=Second-party confirmation', { timeout: 15_000 });
+    await pg.waitForSelector('text=Lab receipt', { timeout: 15_000 });
     await pg.waitForTimeout(500);
     const text = await pg.evaluate(() => document.body.innerText);
     expect(text).not.toMatch(/undefined/);
     expect(text).not.toMatch(/anchored on|tx dead/i);
-    expect(text).toMatch(/Delivery taken via a transfer code/);
+    // A used lab code is not a receipt (round 3): no signer is named.
+    expect(text).toMatch(/Lab code used on .+; no receipt signed, so it doesn’t show who/);
+    expect(text).not.toMatch(/Confirmed by a lab|Receipt signed by/);
     expect(text).toMatch(/fingerprint recomputed from the stored fields: it matches/);
     // The certificate's link (and the QR code drawn from the same value) names the fingerprint.
     await pg.getByRole('button', { name: /Copy (verification )?link/i }).click();
     expect(await pg.evaluate(() => (window as unknown as { __copied?: string }).__copied)).toBe(
-      `https://veilcore.org/verify/VEIL-C?fp=${record.recordFingerprint}`,
+      `${origin}/verify/VEIL-C?fp=${record.recordFingerprint}`,
     );
     await pg.getByRole('button', { name: 'Download (PNG)' }).click();
     await pg.waitForSelector('text=Certificate downloaded.', { timeout: 20_000 });
@@ -1399,13 +1415,99 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     const text = await pg.evaluate(() => document.body.innerText);
     expect(text).toContain(B);
     expect(text).toContain(lab.publicKey);
-    expect(text).toMatch(/A sample labelled “Blue” \(10 cuttings, as the breeder wrote it\) arrived under code TR-1\./);
+    expect(text).toMatch(
+      /A sample labelled “Blue” \(10 cuttings, as the breeder wrote it\) arrived under lab code TR-1\./,
+    );
     expect(external.some((e) => e.url.endsWith('/attestations'))).toBe(false);
     await pg.getByLabel('I physically received this material.').check();
     await pg.getByRole('button', { name: 'Sign with my key' }).click();
     await pg.waitForSelector('text=your signed receipt was not recorded: registry down', { timeout: 15_000 });
     const posted = external.find((e) => e.url.endsWith('/attestations'));
     expect((JSON.parse(posted?.body ?? '{}') as { subjectCommitment?: string }).subjectCommitment).toBe(B);
+    expect(errors).toEqual([]);
+    await ctx.close();
+  }, 90_000);
+
+  it('claiming as a lab: a signed receipt is linked to the delivery, and a failed link is retried, not re-signed (round 3)', async () => {
+    const { generateKeypair } = await import('veilcore-records');
+    const lab = await generateKeypair();
+    const B = 'b'.repeat(64);
+    const profile = JSON.stringify({ keypair: lab, displayName: 'Test Lab', role: 'laboratory', registeredAt: 1 });
+    let claimed = false;
+    let receiptCalls = 0;
+    const received = {
+      id: 'VEIL-R',
+      strainName: 'Blue',
+      bredBy: 'S',
+      dateCreated: '2026-01-01',
+      notes: '',
+      breedingMethod: '',
+      parents: [],
+      photoFingerprints: [],
+      refId: '',
+      loggedAt: Date.UTC(2026, 9, 4),
+      nonce: '4'.repeat(64),
+      recordFingerprint: '',
+      receivedFrom: 'VEIL-S',
+      receivedFromCommitment: B,
+      transferId: 'TR-1',
+    };
+    const { ctx, pg, external, errors } = await page(
+      (u, method) => {
+        if (u === '/transfers/TR-1/claim' && method === 'POST') {
+          claimed = true;
+          return { recordId: 'VEIL-R', descendedFrom: 'VEIL-S', parentCommitment: B };
+        }
+        if (u === '/api/records' && method === 'GET') return claimed ? [received] : [];
+        if (u === '/api/records' && method === 'PUT') return { ok: true, count: 1 };
+        if (u === '/api/licenses') return [];
+        if (u.startsWith('/verify/VEIL-S')) return { found: true, recordFingerprint: B, disclosed: [] };
+        if (u === '/attestations' && method === 'POST') return { attestationId: 'att_receipt1', strength: 'signed' };
+        if (u === '/transfers/TR-1/receipt' && method === 'POST') {
+          receiptCalls++;
+          return receiptCalls === 1
+            ? { __status: 409, body: { error: 'the received record is not sealed yet' } }
+            : { ok: true, receiptAttestationId: 'att_receipt1' };
+        }
+        return undefined;
+      },
+      () => {
+        localStorage.setItem('veilcore.holder.v1', '6'.repeat(64));
+        localStorage.setItem('veilcore.role.v1', 'lab');
+      },
+    );
+    await pg.goto(`${origin}/records`, { waitUntil: 'networkidle' });
+    await pg.evaluate((p: string) => localStorage.setItem('veilcore.attester.v1', p), profile);
+    await pg.goto(`${origin}/records`, { waitUntil: 'networkidle' });
+    await pg.getByRole('button', { name: 'Confirm a delivery' }).click();
+    await pg.getByLabel('Lab code').fill(`TR-1.${'ab'.repeat(16)}`);
+    await pg.getByRole('button', { name: 'Receive it' }).click();
+    await pg.waitForSelector('text=Sign what you received?', { timeout: 15_000 });
+    await pg.getByLabel('I physically received this material.').check();
+    await pg.getByRole('button', { name: 'Sign with my key' }).click();
+    // The first link fails: the dialog says so and offers to link again.
+    await pg.waitForSelector('text=Your receipt is signed, but it couldn’t be linked to this delivery', {
+      timeout: 15_000,
+    });
+    const first = external.filter((e) => e.url.endsWith('/transfers/TR-1/receipt'));
+    expect(first).toHaveLength(1);
+    expect(JSON.parse(first[0].body ?? '{}')).toEqual({ attestationId: 'att_receipt1' });
+    await pg.getByRole('button', { name: 'Link it' }).click();
+    await pg.waitForSelector('text=Received from VEIL-S', { timeout: 15_000 });
+    expect(await pg.evaluate(() => location.pathname)).toBe('/record/VEIL-R');
+    expect(receiptCalls).toBe(2);
+    // Signed once: linking again never signs again.
+    expect(external.filter((e) => e.url.endsWith('/attestations') && e.method === 'POST')).toHaveLength(1);
+    const linked = await pg.evaluate(
+      () =>
+        (
+          JSON.parse(localStorage.getItem('veilcore.lab-deliveries.v1') ?? '{}') as Record<
+            string,
+            { receiptLinked?: string }
+          >
+        )['TR-1']?.receiptLinked,
+    );
+    expect(linked).toBe('att_receipt1');
     expect(errors).toEqual([]);
     await ctx.close();
   }, 90_000);

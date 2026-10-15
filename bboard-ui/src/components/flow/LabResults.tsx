@@ -22,10 +22,20 @@ import {
   quantityPhrase,
   type SentTransfer,
 } from '../../veilcore/transfers';
-import { attestationsFor, countsAsSigned, strengthLabel, type ResolvedAttestation } from '../../veilcore/attesters';
+import { attestationsFor, countsAsSigned, type ResolvedAttestation } from '../../veilcore/attesters';
 import { loadAttester, attestRecord, retract } from '../../veilcore/attester-keys';
-import { breederReceipt, labReceipt, reportSigner, signerName, type ReportSigner } from '../../veilcore/custody';
+import {
+  breederReceipt,
+  labReceipt,
+  OPERATOR_NAMED,
+  reportSigner,
+  signedByWords,
+  type BreederReceipt,
+  type ReportSigner,
+} from '../../veilcore/custody';
+import { LAB_RESULTS_ENABLED } from '../../config/network';
 import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
+import { focusScreenHeading } from './FlowFrame';
 import {
   deleteResult,
   deliveryForRecord,
@@ -33,6 +43,7 @@ import {
   LAB_CHANGED_EVENT,
   labChanged,
   listResults,
+  liveResults,
   lockReport,
   markOpened,
   openReport,
@@ -40,6 +51,7 @@ import {
   reportFingerprint,
   resultState,
   sendLockedResult,
+  sentRowWords,
   sendRefusal,
   wasOpened,
   type ResultState,
@@ -96,9 +108,13 @@ export type ArrivedResult = {
   state: ResultState;
   /** The record the lab's claim made, when the registry says. */
   receivedRecord?: string;
+  /** The lab's receipt tied to this delivery, when there is one (custody.ts reportSigner). */
+  receiptAttestationId?: string;
 };
 
 export type Deliveries = {
+  /** Every delivery of this plant (for the receipt: custody.ts breederReceipt). */
+  sent: SentTransfer[];
   /** Codes made for this plant that nobody has used yet. */
   open: SentTransfer[];
   /** Every lab report sent back on this plant's deliveries, withdrawn and replaced ones included. */
@@ -111,19 +127,25 @@ const arrivedOn = async (transfers: readonly SentTransfer[]): Promise<ArrivedRes
     const r = await listResults(transfer.id);
     if ('error' in r) continue;
     const receivedRecord = r.receivedRecord ?? transfer.received_record;
+    const receiptAttestationId = r.receiptAttestationId ?? transfer.receipt_attestation_id ?? undefined;
     for (const result of r.results) {
       all.push({
         transfer,
         result,
         state: resultState(result, r.results),
         ...(receivedRecord ? { receivedRecord } : {}),
+        ...(receiptAttestationId ? { receiptAttestationId } : {}),
       });
     }
   }
   return all.sort((a, b) => b.result.createdAt - a.result.createdAt);
 };
 
-/** A plant's deliveries: open codes, and lab reports that came back. null while loading. */
+/**
+ * A plant's deliveries: open codes, and lab reports that came back. null while loading.
+ * With lab reports off (config/network.ts LAB_RESULTS_ENABLED) nothing is asked about
+ * them and `arrived` is empty, so no lab report panel shows.
+ */
 export const useDeliveries = (recordId: string | undefined, enabled: boolean): Deliveries | null => {
   const [out, setOut] = useState<Deliveries | null>(null);
   const version = useLabVersion();
@@ -132,8 +154,8 @@ export const useDeliveries = (recordId: string | undefined, enabled: boolean): D
     let live = true;
     void (async () => {
       const mine = (await sentByMe()).filter((t) => t.source_record === recordId);
-      const arrived = await arrivedOn(mine.filter((t) => t.claimed_at));
-      if (live) setOut({ open: mine.filter((t) => !t.claimed_at), arrived });
+      const arrived = LAB_RESULTS_ENABLED ? await arrivedOn(mine.filter((t) => t.claimed_at)) : [];
+      if (live) setOut({ sent: mine, open: mine.filter((t) => !t.claimed_at), arrived });
     })();
     return () => {
       live = false;
@@ -151,7 +173,7 @@ export const useWaitingByRecord = (enabled: boolean): Record<string, ArrivedResu
   const [out, setOut] = useState<Record<string, ArrivedResult[]>>({});
   const version = useLabVersion();
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !LAB_RESULTS_ENABLED) return;
     let live = true;
     void (async () => {
       // The most recent deliveries that were received: older ones rarely get new reports.
@@ -208,10 +230,11 @@ export const useLabCardFacts = (records: readonly StrainRecord[], enabled: boole
       const facts: Record<string, LabCardFacts> = {};
       for (const r of records.filter((x) => ids.split(',').includes(x.id))) {
         const atts = await attestationsFor(r.receivedFromCommitment);
-        const list = r.transferId ? await listResults(r.transferId) : { results: [] };
+        const list = r.transferId && LAB_RESULTS_ENABLED ? await listResults(r.transferId) : { results: [] };
         facts[r.id] = {
           signed: labReceipt(r, atts, me).kind === 'signed',
-          sent: 'error' in list ? 0 : list.results.filter((x) => resultState(x, list.results) === 'live').length,
+          // Only reports that still stand: not withdrawn, not replaced by a correction.
+          sent: 'error' in list ? 0 : liveResults(list.results).length,
         };
         if (live) setOut({ ...facts });
       }
@@ -224,16 +247,40 @@ export const useLabCardFacts = (records: readonly StrainRecord[], enabled: boole
   return out;
 };
 
-/** The breeder's receipt line, for the plant's status. */
-export const useBreederReceipt = (record: StrainRecord | undefined, enabled: boolean) => {
-  const atts = useAttestations(enabled ? record?.recordFingerprint : undefined);
-  return atts === null || !record ? null : breederReceipt(record, atts);
+/** The holder's own deliveries (GET /transfers/sent), reloaded when lab work changes here. null while loading. */
+const useSent = (enabled: boolean): SentTransfer[] | null => {
+  const [out, setOut] = useState<SentTransfer[] | null>(null);
+  const version = useLabVersion();
+  useEffect(() => {
+    if (!enabled) return;
+    let live = true;
+    void sentByMe().then((t) => {
+      if (live) setOut(t);
+    });
+    return () => {
+      live = false;
+    };
+  }, [enabled, version]);
+  return out;
+};
+
+/**
+ * The breeder's receipt line, for the plant's status, the certificate and the check page:
+ * only a receipt the lab tied to one of the breeder's own deliveries (custody.ts).
+ */
+export const useBreederReceipt = (record: StrainRecord | undefined, enabled: boolean): BreederReceipt | null => {
+  const on = enabled && !!record;
+  const atts = useAttestations(on ? record?.recordFingerprint : undefined);
+  const sent = useSent(on);
+  return atts === null || sent === null || !record ? null : breederReceipt(record, atts, sent);
 };
 
 /** The lab's own receipt line for a received plant. */
 export const useLabReceipt = (record: StrainRecord | undefined, enabled: boolean) => {
   const atts = useAttestations(enabled ? record?.receivedFromCommitment : undefined);
-  return atts === null || !record ? null : labReceipt(record, atts, loadAttester()?.keypair.publicKey);
+  return atts === null || !record
+    ? null
+    : labReceipt(record, atts, loadAttester()?.keypair.publicKey, deliveryForRecord(record.id)?.receiptLinked);
 };
 
 // --- the breeder's side ------------------------------------------------------------------
@@ -249,29 +296,27 @@ const SignerLine: React.FC<{ signer: ReportSigner }> = ({ signer }) => {
       </Alert>
     );
   }
-  if (signer.kind === 'other-key') {
+  if (signer.kind === 'other-key' || signer.kind === 'no-receipt') {
     return (
       <Alert severity="warning" variant="outlined">
-        <b>Signed by a lab key that didn&apos;t confirm receiving this sample.</b> The file matches that key&apos;s
-        signature, but nothing shows the key ever had your sample. Ask the lab before relying on it.
+        <b>
+          Signed by {signedByWords(signer.report)}, but{' '}
+          {signer.kind === 'no-receipt'
+            ? 'the lab hasn’t signed a receipt for this delivery.'
+            : 'not by the key that signed the receipt for this delivery.'}
+        </b>{' '}
+        The file matches that key&apos;s signature, but nothing shows the key ever had your sample. Ask the lab before
+        relying on it.
       </Alert>
     );
   }
   const a = signer.report;
-  const { name, checked } = signerName(a);
-  const label = strengthLabel(a);
+  const checked = a.vettedAttester === true;
   return (
     <Alert severity={checked ? 'success' : 'info'} variant="outlined" icon={<VerifiedIcon />}>
-      <b>Signed by {checked ? name : (a.registeredAs?.displayName ?? a.attester.displayName ?? 'a lab')}</b> (key{' '}
-      {short(a.attester.publicKey)}), checked here.{' '}
-      {signer.kind === 'this-delivery'
-        ? 'The same key signed that it received this sample.'
-        : 'The same key signed that it received this plant.'}{' '}
-      {checked
-        ? 'VeilCore says it has checked that this key belongs to them.'
-        : label.ok
-          ? ''
-          : 'The name is self-registered, not verified by VeilCore: anyone can register a key under any name.'}
+      <b>Signed by {signedByWords(a)}</b> (key {short(a.attester.publicKey)}), checked here. The same key signed the
+      receipt for this delivery.{' '}
+      {checked ? OPERATOR_NAMED : 'Anyone can register a key under any name, so the name doesn’t show who signed.'}
     </Alert>
   );
 };
@@ -290,7 +335,7 @@ export const LabResultsPanel: React.FC<{
   const tried = useRef(false);
 
   const open = useCallback(
-    async ({ transfer, result, receivedRecord }: ArrivedResult) => {
+    async ({ transfer, result, receiptAttestationId }: ArrivedResult) => {
       if (!keys) return;
       setBusy(result.id);
       setProblem(undefined);
@@ -300,12 +345,11 @@ export const LabResultsPanel: React.FC<{
         const bytes = await openReport(locked, keys.recordSecret, transfer.id);
         const sha = reportFingerprint(bytes);
         const atts = await attestationsFor(record.recordFingerprint);
-        const receivedFingerprint = receivedRecord ? await publicFingerprintOf(receivedRecord) : null;
         const signer = reportSigner(atts, {
           sha,
           attestationId: result.attestationId,
           subject: record.recordFingerprint,
-          receivedFingerprint,
+          receiptAttestationId,
         });
         markOpened(result.id);
         setOpened((o) => ({ ...o, [result.id]: { bytes, name: nameFor(bytes, result.createdAt), signer } }));
@@ -394,7 +438,7 @@ export const LabResultsPanel: React.FC<{
                   <SignerLine signer={o.signer} />
                   <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
                     <Button variant="outlined" onClick={() => download(o.bytes, o.name)} sx={{ minHeight: 44 }}>
-                      Save the report
+                      Download the file
                     </Button>
                     {!record.dnaFingerprint && (
                       <Button
@@ -492,9 +536,8 @@ const loadMySent = async (transferId: string, subject: string): Promise<MySent |
 /** The lab's side: what it sent, and sending a lab report back on a delivery it received. */
 export const SendResultsPanel: React.FC<{
   record: StrainRecord;
-  onDone: () => void;
   onSignReceipt: () => void;
-}> = ({ record, onDone, onSignReceipt }) => {
+}> = ({ record, onSignReceipt }) => {
   const stored = deliveryForRecord(record.id);
   const [lock, setLock] = useState(record.resultLock ?? stored?.recipient);
   const [code, setCode] = useState('');
@@ -506,6 +549,9 @@ export const SendResultsPanel: React.FC<{
   const [mySent, setMySent] = useState<MySent | null>(null);
   const [replacing, setReplacing] = useState<ResultSummary>();
   const [confirm, setConfirm] = useState<string>();
+  // Moves when the screen changes under the person (sent, withdrawn, a file chosen): focus
+  // then goes to the new screen's heading, so a screen reader says where they are.
+  const [screen, setScreen] = useState(0);
   const pick = useRef<HTMLInputElement>(null);
   const attester = loadAttester();
   const receipt = useLabReceipt(record, true);
@@ -523,6 +569,19 @@ export const SendResultsPanel: React.FC<{
     void reload();
   }, [reload]);
 
+  useEffect(() => {
+    if (screen > 0) return focusScreenHeading();
+  }, [screen]);
+
+  if (!LAB_RESULTS_ENABLED) {
+    return (
+      <Alert severity="info" variant="outlined">
+        Lab reports can&apos;t be sent back through VeilCore on this network yet. Send it to the breeder the way you
+        usually do.
+      </Alert>
+    );
+  }
+
   if (!transferId || !subject) {
     return (
       <Alert severity="info" variant="outlined">
@@ -533,8 +592,9 @@ export const SendResultsPanel: React.FC<{
 
   const useCode = () => {
     const p = parseShareCode(code);
-    if (p.transferId !== transferId) return setProblem('That code is for a different delivery.');
-    if (!p.resultLock) return setProblem('That code has no lock in it. Ask the breeder to send it again from the app.');
+    if (p.transferId !== transferId) return setProblem('That lab code is for a different delivery.');
+    if (!p.resultLock)
+      return setProblem('That lab code has no lock in it. Ask the breeder to send it again from the app.');
     rememberDelivery({
       transferId,
       receivedRecordId: record.id,
@@ -553,6 +613,7 @@ export const SendResultsPanel: React.FC<{
     const bytes = new Uint8Array(await f.arrayBuffer());
     if (bytes.length > 14 * 1024 * 1024) return setProblem('That file is over 14 MB.');
     setFile({ name: f.name, bytes, sha: reportFingerprint(bytes) });
+    setScreen((n) => n + 1);
   };
 
   /** Withdraw: the signature first (so it never stands for a file that's gone), then the file. */
@@ -580,6 +641,7 @@ export const SendResultsPanel: React.FC<{
       setBusy(undefined);
       labChanged();
       await reload();
+      setScreen((n) => n + 1);
     }
   };
 
@@ -615,15 +677,24 @@ export const SendResultsPanel: React.FC<{
             : `The file didn’t send (${out.error}). Your signature on it was withdrawn, so nothing points at a file the breeder never got. Try again.`,
         );
       }
-      if (replacing?.attestationId && fresh.signed.has(replacing.attestationId)) {
-        const old = await retract(attester, replacing.attestationId, 'superseded');
-        if (old.error) {
+      // The old report goes as a whole (round 3): its signature withdrawn as replaced, and
+      // its file withdrawn at the registry too, so the breeder can't open the wrong one.
+      if (replacing) {
+        const left: string[] = [];
+        if (replacing.attestationId && fresh.signed.has(replacing.attestationId)) {
+          const old = await retract(attester, replacing.attestationId, 'superseded');
+          if (old.error) left.push(`your signature on it couldn’t be withdrawn (${old.error})`);
+        }
+        const gone = await deleteResult(transferId, replacing.id);
+        if ('error' in gone) left.push(`its file is still with the registry (${gone.error})`);
+        if (left.length) {
           setNote(
-            `The corrected file was sent, but your signature on the old one couldn’t be withdrawn (${old.error}). Withdraw the old one from this page.`,
+            `The corrected file was sent, but the old one isn’t fully withdrawn: ${left.join(', and ')}. Withdraw the old one from this page.`,
           );
         }
       }
       setSent(true);
+      setScreen((n) => n + 1);
       labChanged();
     } catch (e) {
       setProblem(e instanceof Error ? e.message : String(e));
@@ -635,7 +706,7 @@ export const SendResultsPanel: React.FC<{
   if (sent && file) {
     return (
       <Stack spacing={2}>
-        <Typography variant="h5" component="h2">
+        <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="">
           Sent
         </Typography>
         <Typography variant="body1">
@@ -648,9 +719,6 @@ export const SendResultsPanel: React.FC<{
             {note}
           </Alert>
         )}
-        <Button variant="contained" size="large" onClick={onDone} sx={{ py: 1.3 }}>
-          Back to the plant
-        </Button>
       </Stack>
     );
   }
@@ -674,13 +742,7 @@ export const SendResultsPanel: React.FC<{
                     {r.replaces ? ' · a corrected file' : ''}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {state === 'withdrawn'
-                      ? `You withdrew it on ${day(r.withdrawnAt ?? r.createdAt)}.`
-                      : state === 'replaced'
-                        ? 'Replaced by a corrected file.'
-                        : r.attestationId && mySent?.signed.has(r.attestationId)
-                          ? `Signed by your key · fingerprint ${short(mySent.signed.get(r.attestationId) ?? '')}`
-                          : 'Not signed by the key in this browser.'}
+                    {sentRowWords(state, r, mySent)}
                   </Typography>
                   {state === 'live' && attester && (
                     <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}>
@@ -718,6 +780,7 @@ export const SendResultsPanel: React.FC<{
                             onClick={() => {
                               setReplacing(r);
                               setFile(undefined);
+                              setScreen((n) => n + 1);
                             }}
                             sx={{ minHeight: 40 }}
                           >
@@ -746,12 +809,12 @@ export const SendResultsPanel: React.FC<{
       )}
 
       <Box>
-        <Typography variant="h5" component="h2">
+        <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="">
           {replacing ? 'Send a corrected file' : 'Send results back to the breeder'}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           {replacing
-            ? `It replaces the lab report you sent ${when(replacing.createdAt)}. Your signature on the old one is withdrawn as replaced.`
+            ? `It replaces the lab report you sent ${when(replacing.createdAt)}. The old one is withdrawn: your signature on it, as replaced, and its file.`
             : 'Your browser signs the lab report’s fingerprint with your lab’s key and locks the file so only the breeder can open it. VeilCore only ever holds the locked file.'}
         </Typography>
         {replacing && (
@@ -779,7 +842,7 @@ export const SendResultsPanel: React.FC<{
           </Typography>
           <TextField label="Lab code" value={code} onChange={(e) => setCode(e.target.value)} fullWidth />
           <Button variant="outlined" onClick={useCode} disabled={!code.trim()} sx={{ alignSelf: 'flex-start' }}>
-            Use this code
+            Use this lab code
           </Button>
         </Stack>
       ) : (
@@ -796,6 +859,19 @@ export const SendResultsPanel: React.FC<{
             >
               You haven&apos;t signed that this sample arrived. Until you do, the breeder sees your lab report as signed
               by a key that didn&apos;t confirm receiving the sample.
+            </Alert>
+          )}
+          {receipt?.kind === 'signed' && !receipt.linked && (
+            <Alert
+              severity="warning"
+              variant="outlined"
+              action={
+                <Button color="inherit" onClick={onSignReceipt} sx={{ minHeight: 40 }}>
+                  Link it
+                </Button>
+              }
+            >
+              Your receipt is signed but not linked to this delivery yet, so the breeder can&apos;t see it.
             </Alert>
           )}
           {file ? (

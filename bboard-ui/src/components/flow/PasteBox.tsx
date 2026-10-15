@@ -1,7 +1,7 @@
 // "Someone sent you a code or link? Paste it here." One box; the app works out what it is
 // (veilcore/paste.ts) and opens the screen for it.
 //
-// A delivery code this browser sent (the breeder pasting their own code to test it) is
+// A lab code this browser sent (the breeder pasting their own code to test it) is
 // not opened: receiving it would make the breeder the lab. sentByMe() is the registry's
 // list of this holder's own transfers; nothing is changed by asking.
 // SPDX-License-Identifier: Apache-2.0
@@ -29,7 +29,7 @@ export const PasteBox: React.FC = () => {
     if (busy || !value.trim()) return;
     setProblem(undefined);
     setChoose(undefined);
-    const p = recognise(value);
+    const p = recognise(value, (id) => records.some((r) => r.id === id));
     switch (p.kind) {
       case 'delivery': {
         setBusy(true);
@@ -48,7 +48,7 @@ export const PasteBox: React.FC = () => {
         return;
       }
       case 'delivery-cut-off':
-        setProblem('That code looks cut off. Copy the whole code they sent you.');
+        setProblem('That code looks cut off. Copy the whole lab code they sent you.');
         return;
       case 'record-link':
       case 'agreement-to-sign':
@@ -100,7 +100,7 @@ export const PasteBox: React.FC = () => {
         </Button>
       </Stack>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
-        A delivery code, a record link, a request to prove a plant, or an agreement to sign. We&apos;ll work out which.
+        A lab code, a record link, a request to prove a plant, or an agreement to sign. We&apos;ll work out which.
       </Typography>
       <Box role="status" aria-live="polite">
         {problem && (

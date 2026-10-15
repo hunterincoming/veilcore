@@ -22,7 +22,15 @@ import {
 import SendIcon from '@mui/icons-material/SendOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import ShareIcon from '@mui/icons-material/IosShareOutlined';
-import { offerTransfer, rememberSentCode, sentCodeFor, shareCodeFor, type SentTransfer } from '../veilcore/transfers';
+import {
+  offerTransfer,
+  rememberSentCode,
+  sentCodeFor,
+  shareCodeFor,
+  userFacingError,
+  type SentTransfer,
+} from '../veilcore/transfers';
+import { LAB_RESULTS_ENABLED } from '../config/network';
 import { labChanged } from '../veilcore/lab-results';
 import { ensureKeys } from '../veilcore/record-keys';
 import { resultRecipientFor } from '../veilcore/lab-results';
@@ -50,11 +58,15 @@ export const SendToLab: React.FC<{
       quantity: quantity.trim() || undefined,
       note: note.trim() || undefined,
     });
-    if ('error' in res) setError(res.error);
+    if ('error' in res) setError(userFacingError(res.error));
     else {
       // This delivery's own lock goes in the code, so the lab can send lab reports back
-      // that only this plant's holder can open (lab-results.ts).
-      const lock = await resultRecipientFor(ensureKeys(record.id).recordSecret, res.transferId).catch(() => undefined);
+      // that only this plant's holder can open (lab-results.ts). Not where lab reports are
+      // off (config/network.ts): a code with a lock would promise something the registry
+      // can't do there.
+      const lock = LAB_RESULTS_ENABLED
+        ? await resultRecipientFor(ensureKeys(record.id).recordSecret, res.transferId).catch(() => undefined)
+        : undefined;
       const code = shareCodeFor(res.transferId, res.claimCode, lock);
       // Kept here (and in the backup): the registry can't show the code again.
       rememberSentCode(code);
@@ -98,8 +110,8 @@ export const SendToLab: React.FC<{
           {transferId ? (
             <Stack spacing={2} sx={{ pt: 1 }}>
               <Alert severity="success" variant="outlined">
-                Give this lab code to {handle}. When they enter it, they can sign that the sample arrived, and send a
-                lab report back that only you can open.
+                Give this lab code to {handle}. When they enter it, they can sign that the sample arrived
+                {LAB_RESULTS_ENABLED ? ', and send a lab report back that only you can open' : ''}.
               </Alert>
               <Box
                 sx={{
@@ -128,8 +140,8 @@ export const SendToLab: React.FC<{
                 {canShare && <ShareCodeButton code={transferId} name={record.strainName} />}
               </Stack>
               <Alert severity="warning" variant="outlined">
-                <b>Text or email it to them. Don&apos;t write it on the package:</b> whoever has this code can confirm
-                the delivery.
+                <b>Text or email it to them. Don&apos;t write it on the package:</b> whoever has this lab code can
+                confirm the delivery.
               </Alert>
               <Typography variant="caption" color="text.secondary">
                 Nothing has changed yet. Your plant&apos;s page shows “waiting” until they enter the code, and can show

@@ -30,6 +30,12 @@ export type SentTransfer = PendingTransfer & {
   readonly claimed_at?: number;
   /** The record the claim created, when the registry says (sender only). */
   readonly received_record?: string;
+  /**
+   * The chain-of-custody signature the lab tied to this delivery (sender only): the
+   * registry checked it is the lab's receipt for this delivery's sample. The only lab
+   * signature a breeder's page calls a receipt (custody.ts breederReceipt).
+   */
+  readonly receipt_attestation_id?: string | null;
 };
 
 const isPendingTransfer = (v: unknown): v is PendingTransfer =>
@@ -44,7 +50,8 @@ const isPendingTransfer = (v: unknown): v is PendingTransfer =>
 const isSentTransfer = (v: unknown): v is SentTransfer =>
   isPendingTransfer(v) &&
   optional((v as Record<string, unknown>).claimed_at, isNumber) &&
-  optional((v as Record<string, unknown>).received_record, isString);
+  optional((v as Record<string, unknown>).received_record, isString) &&
+  optional((v as Record<string, unknown>).receipt_attestation_id, isString);
 
 const auth = () => ({ 'Content-Type': 'application/json', 'x-holder-key': holderKey() });
 
@@ -56,6 +63,34 @@ const auth = () => ({ 'Content-Type': 'application/json', 'x-holder-key': holder
  * never existed, so saying so here is the only place it can be said usefully.
  */
 const unexpected = { error: 'unexpected response from the registry' } as const;
+
+/**
+ * The registry's error, in the words the screens use. It says "transfer" and "claim
+ * code"; a person was only ever given a "lab code" (round 3: one name for it everywhere).
+ * Anything not recognised is passed on as the registry wrote it.
+ */
+export const userFacingError = (error: string): string => {
+  const e = error.trim();
+  const known: [RegExp, string][] = [
+    [/^no such (transfer|delivery)$/i, 'No delivery has that lab code. Check you copied the whole code.'],
+    [/already been claimed/i, 'This lab code has already been used.'],
+    [/claim code does not match/i, 'That lab code doesn’t match. Ask the breeder for the code they were given.'],
+    [/made before claim codes existed/i, 'This lab code is too old to use. Ask the breeder to make a new one.'],
+    [/source record no longer exists/i, 'The breeder’s record for this lab code is gone. Ask them to make a new code.'],
+    [
+      /fingerprint has changed since this offer/i,
+      'The breeder changed this plant’s record after making the lab code. Ask them for a new code.',
+    ],
+    [/has not been received yet/i, 'Nobody has used this lab code yet.'],
+    [/^only whoever received this delivery/i, 'Only the lab that used this lab code can do that.'],
+    [
+      /unclaimed offers/i,
+      'You have too many lab codes nobody has used yet. Wait for some to be used, or for older ones to run out.',
+    ],
+  ];
+  for (const [re, words] of known) if (re.test(e)) return words;
+  return e;
+};
 
 /**
  * What the sender hands the recipient: the transfer id, its secret claim code and, for a
@@ -95,7 +130,7 @@ export const offerTransfer = async (
     if (isString(body.transferId)) {
       return { transferId: body.transferId, ...(isString(body.claimCode) ? { claimCode: body.claimCode } : {}) };
     }
-    if (isString(body.error)) return { error: body.error };
+    if (isString(body.error)) return { error: userFacingError(body.error) };
     return unexpected;
   } catch {
     return { error: 'could not reach the registry' };
@@ -121,12 +156,17 @@ export type ClaimResult = {
 export const claimTransfer = async (
   transferId: string,
   claimCode?: string,
+  /** A receipt already signed for this delivery. The app signs after claiming, so it uses attachReceipt. */
+  receiptAttestationId?: string,
 ): Promise<ClaimResult | { error: string }> => {
   try {
     const res = await fetch(`${BASE}/transfers/${encodeURIComponent(transferId)}/claim`, {
       method: 'POST',
       headers: auth(),
-      body: JSON.stringify(claimCode ? { claimCode } : {}),
+      body: JSON.stringify({
+        ...(claimCode ? { claimCode } : {}),
+        ...(receiptAttestationId ? { receiptAttestationId } : {}),
+      }),
     });
     const body = await readJson(res);
     if (!isObject(body)) return unexpected;
@@ -139,8 +179,44 @@ export const claimTransfer = async (
         ...(isString(body.note) && body.note ? { note: body.note } : {}),
       };
     }
-    if (isString(body.error)) return { error: body.error };
+    if (isString(body.error)) return { error: userFacingError(body.error) };
     return unexpected;
+  } catch {
+    return { error: 'could not reach the registry' };
+  }
+};
+
+/**
+ * Tie the lab's signed receipt to the delivery it received (round 3). The breeder's page
+ * calls a signature a lab's receipt only when it is tied to one of the breeder's own
+ * deliveries this way: anyone can sign a chain-of-custody statement about a public
+ * fingerprint, but only whoever used this delivery's lab code can tie one to it. The
+ * registry checks the signature is a chain-of-custody one, not withdrawn, about this
+ * delivery's source record and pointing at the claimant's sealed received record, and
+ * authenticates the claimant the same way as the claim (x-holder-key). A later
+ * withdrawal doesn't clear what it stored, so the breeder's page checks that itself
+ * (custody.ts breederReceipt counts only unwithdrawn, verified signatures).
+ */
+export const attachReceipt = async (
+  transferId: string,
+  attestationId: string,
+): Promise<{ ok: true } | { error: string }> => {
+  try {
+    const res = await fetch(`${BASE}/transfers/${encodeURIComponent(transferId)}/receipt`, {
+      method: 'POST',
+      headers: auth(),
+      body: JSON.stringify({ attestationId }),
+    });
+    if (res.ok) return { ok: true };
+    const body = await readJson(res).catch(() => undefined);
+    return {
+      error:
+        isObject(body) && isString(body.error)
+          ? userFacingError(body.error)
+          : res.status === 404
+            ? 'this registry can’t tie a receipt to a delivery yet'
+            : `the registry answered ${res.status}`,
+    };
   } catch {
     return { error: 'could not reach the registry' };
   }

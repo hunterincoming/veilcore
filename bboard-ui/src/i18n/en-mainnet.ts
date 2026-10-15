@@ -71,7 +71,17 @@ const common: Overlay = {
     "Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. The format covers animals; this website is set up for plants, and the animal record fields aren't published yet.",
   // "Prove it" by link needs the browser to send a transaction, which this site doesn't.
   'm.for.6p':
-    "They send you a link. You tap once, and their page checks on the network that you hold the record. It shows you hold it, not that you bred it. This website can't do it yet.",
+    "They send you a link. You tap once, and their page checks on the network that you control the key you registered for this record. That the key belongs to the record is your statement for now. It says nothing about who bred the plant. This website can't do it yet.",
+  // Lab reports sent back through the registry are off on mainnet for now
+  // (LAB_RESULTS_ENABLED in config/network.ts). When that flips, m.for.4p, m.faq.4a,
+  // m.privacy.local.text and m.privacy.who.text here, and m.live.results.* in en.ts,
+  // change with it; copy-truth.test.ts fails until they do.
+  'm.for.4p':
+    "The lab signs your results and locks them so only you can open them. No PDF sits in anyone's inbox: VeilCore only holds the locked file. The signature covers that exact file and the record it's about. VeilCore records who signed; it doesn't vouch for the result. Not on this website yet: it's on the test site first.",
+  'm.faq.4a':
+    "Your genetic data: nothing. It's fingerprinted on your computer, as are the files you add, and they aren't uploaded. This website keeps what you type (names, dates, notes, agreement terms) and your lab files' names, so you can come back to them, and a record's public check page shows its cultivar name. Labs and developers can seal records inside their own systems, so only the fingerprint goes out.",
+  'm.privacy.local.text':
+    'Genetic data, and the lab reports, DNA reports and photos you add. Your browser reads them to compute their fingerprints; the files themselves are never uploaded.',
   'footer.privacy': 'Site privacy',
   'm.foot.privacy': 'Site privacy',
   'm.privacy.label': 'Site privacy',
@@ -87,7 +97,9 @@ const common: Overlay = {
     "Your record's fingerprint goes into a batch, and we anchor the batch on Midnight's main network, by hand for now, so it can take a while. Only the batch's fingerprint goes on the network, never what you typed. Once anchored, it is permanent: nobody, including us, can delete it.",
   'm.privacy.madeup.title': 'Type only what you are happy for us to keep',
   'm.privacy.madeup.text':
-    "Everything you type is kept on our server, and a record's cultivar name is shown on its public check page. Don't type anything you need to keep secret. Genetic data and lab files stay on your computer.",
+    "Everything you type is kept on our server, and a record's cultivar name is shown on its public check page. Don't type anything you need to keep secret. Genetic data never leaves your computer.",
+  'm.privacy.who.text':
+    "VeilCore isn't incorporated yet, so VeilCore's founders run this site and the registry. There is no set retention period: what the registry holds stays there until you ask us to delete it. Contact: hunter@veilcore.org.",
   'm.privacy.delete.text':
     "We can delete what our server holds for your records: email hunter@veilcore.org with the records' identifiers. A batch fingerprint already anchored on Midnight stays there.",
 };

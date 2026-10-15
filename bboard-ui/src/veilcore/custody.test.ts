@@ -1,6 +1,16 @@
 // What a plant's page may say about a lab: only what a signature checked here supports.
 import { describe, expect, it } from 'vitest';
-import { breederReceipt, labReceipt, reportSigner, signerName } from './custody';
+import {
+  breederReceipt,
+  labReceipt,
+  OPERATOR_NAMED,
+  receiptLineFor,
+  receiptSignedLine,
+  reportSigner,
+  signedByWords,
+  signerName,
+} from './custody';
+import type { SentTransfer } from './transfers';
 import type { ResolvedAttestation } from './attesters';
 import type { StrainRecord } from './records';
 
@@ -39,35 +49,113 @@ const plant = (over: Partial<StrainRecord> = {}): StrainRecord => ({
   ...over,
 });
 
-describe('the breeder’s “Confirmed by a lab” line', () => {
-  it('says yes only on a verified, unwithdrawn receipt signature about this plant', () => {
-    expect(breederReceipt(plant(), [att({})])).toMatchObject({ kind: 'signed' });
-    expect(breederReceipt(plant(), [])).toEqual({ kind: 'none' });
+/** The breeder's deliveries of plant VEIL-1, as GET /transfers/sent lists them. */
+const sentWith = (receiptId?: string, over: Partial<SentTransfer> = {}): SentTransfer[] => [
+  {
+    id: 'TR-0A1B2C3D',
+    source_record: 'VEIL-1',
+    to_handle: 'lab',
+    created_at: 1,
+    claimed_at: 2,
+    ...(receiptId ? { receipt_attestation_id: receiptId } : {}),
+    ...over,
+  },
+];
+
+describe('the breeder’s receipt line', () => {
+  it('counts only a receipt the lab linked to one of the breeder’s own deliveries of this plant', () => {
+    const r = att({ attestationId: 'att_receipt' });
+    expect(breederReceipt(plant(), [r], sentWith('att_receipt'))).toMatchObject({
+      kind: 'signed',
+      transferId: 'TR-0A1B2C3D',
+      others: 0,
+    });
+    expect(breederReceipt(plant(), [], [])).toEqual({ kind: 'none', others: 0 });
     // A signature that doesn't verify, a withdrawn one, another plant's, or a lab report: no.
     for (const bad of [
-      att({ signatureValid: false }),
+      att({ attestationId: 'att_receipt', signatureValid: false }),
       att({
+        attestationId: 'att_receipt',
         retraction: { attestationId: 'x', attesterPublicKey: LAB, reason: 'other', retractedAt: 'x', signature: 's' },
       }),
-      att({ subjectCommitment: 'f'.repeat(64) }),
-      att({ type: 'laboratory-report' }),
+      att({ attestationId: 'att_receipt', subjectCommitment: 'f'.repeat(64) }),
+      att({ attestationId: 'att_receipt', type: 'laboratory-report' }),
     ]) {
-      expect(breederReceipt(plant(), [bad]).kind).toBe('none');
+      expect(breederReceipt(plant(), [bad], sentWith('att_receipt')).kind).toBe('code-used');
     }
   });
 
-  it('a used code with no signature (the breeder themself, or a lab that didn’t sign) is only “code used”', () => {
-    const used = plant({ attestation: { attestedAt: 1, type: 'receipt-confirmed', addressedTo: 'lab' } });
-    expect(breederReceipt(used, [])).toEqual({ kind: 'code-used' });
-    expect(breederReceipt(used, [att({})]).kind).toBe('signed');
+  it('an attacker’s key named “Acme Labs” signing over the public fingerprint is never a receipt', () => {
+    // Self-registered, signed, verifies, unwithdrawn, about this plant: everything but linked.
+    const acme = att({
+      key: OTHER,
+      attestationId: 'att_acme',
+      registeredAs: { displayName: 'Acme Labs' },
+      attester: { publicKey: OTHER, displayName: 'Acme Labs' },
+    });
+    expect(breederReceipt(plant(), [acme], [])).toEqual({ kind: 'none', others: 1 });
+    expect(breederReceipt(plant(), [acme], sentWith())).toEqual({ kind: 'code-used', others: 1 });
+    // Even a key VeilCore's operator named doesn't count unless it is the linked receipt.
+    const vettedAcme = { ...acme, vettedAttester: true };
+    expect(breederReceipt(plant(), [vettedAcme], sentWith('att_receipt')).kind).toBe('code-used');
+    // A delivery of ANOTHER plant listing the attacker's id doesn't make it this plant's receipt.
+    expect(breederReceipt(plant(), [acme], sentWith('att_acme', { source_record: 'VEIL-2' })).kind).toBe('none');
+    // Beside a real receipt, it is only counted.
+    const real = att({ attestationId: 'att_receipt' });
+    const r = breederReceipt(plant(), [acme, real], sentWith('att_receipt'));
+    expect(r.kind === 'signed' && r.by.attestationId).toBe('att_receipt');
+    expect(r.others).toBe(1);
   });
 
-  it('prefers a key VeilCore has checked, and names others as self-named', () => {
+  it('a used code with no linked receipt (the breeder themself, or a lab that didn’t sign) is only “code used”', () => {
+    const used = plant({ attestation: { attestedAt: 1, type: 'receipt-confirmed', addressedTo: 'lab' } });
+    expect(breederReceipt(used, [], [])).toEqual({ kind: 'code-used', others: 0 });
+    expect(breederReceipt(used, [att({ attestationId: 'att_receipt' })], sentWith('att_receipt')).kind).toBe('signed');
+  });
+
+  it('names the signer plainly only for a key VeilCore’s operator named; never vouches', () => {
     const vetted = att({ key: OTHER, vettedAttester: true, registeredAs: { displayName: 'Checked Lab' } });
-    const r = breederReceipt(plant(), [att({}), vetted]);
-    expect(r.kind === 'signed' && r.by.attester.publicKey).toBe(OTHER);
+    const plain = att({ registeredAs: { displayName: 'Acme Labs' } });
+    expect(receiptSignedLine(vetted)).toBe('Receipt signed by Checked Lab');
+    expect(receiptSignedLine(plain)).toBe('Receipt signed by a key named “Acme Labs” (name not checked)');
+    expect(receiptSignedLine(att({ registeredAs: null, attester: { publicKey: LAB } }))).toBe(
+      'Receipt signed by a key nobody has named',
+    );
+    // Withdrawn, a vetted key's statement no longer reads as named.
+    const withdrawn = att({
+      key: OTHER,
+      vettedAttester: true,
+      registeredAs: { displayName: 'Checked Lab' },
+      retraction: { attestationId: 'x', attesterPublicKey: OTHER, reason: 'other', retractedAt: 'x', signature: 's' },
+    });
+    expect(signedByWords(withdrawn)).toMatch(/name not checked/);
+    expect(OPERATOR_NAMED).not.toMatch(/checked|vouches for|verified/i);
+    // Two linked receipts: the named key first.
+    const two = breederReceipt(
+      plant(),
+      [att({ attestationId: 'a1' }), { ...vetted, attestationId: 'a2' }],
+      [...sentWith('a1'), ...sentWith('a2', { id: 'TR-11111111' })],
+    );
+    expect(two.kind === 'signed' && two.by.attestationId).toBe('a2');
     expect(signerName(vetted)).toEqual({ name: 'Checked Lab', checked: true });
-    expect(signerName(att({}))).toEqual({ name: 'a lab key self-named “Test Lab”', checked: false });
+  });
+});
+
+describe('the certificate’s receipt line', () => {
+  it('prints a linked receipt as signed, with the same named/unnamed wording, and a used code as only that', () => {
+    const named = att({ attestationId: 'a', vettedAttester: true, registeredAs: { displayName: 'Checked Lab' } });
+    const signed = breederReceipt(plant(), [named], sentWith('a'));
+    expect(receiptLineFor(plant(), signed)).toMatch(
+      /^Receipt signed by Checked Lab, .+ \(signature checked in this browser\)$/,
+    );
+    const acme = att({ attestationId: 'b', registeredAs: { displayName: 'Acme Labs' } });
+    expect(receiptLineFor(plant(), breederReceipt(plant(), [acme], sentWith('b')))).toMatch(
+      /^Receipt signed by a key named “Acme Labs” \(name not checked\)/,
+    );
+    // Unlinked, Acme is never on the certificate.
+    expect(receiptLineFor(plant(), breederReceipt(plant(), [acme], sentWith()))).toMatch(/^Lab code used; no receipt/);
+    expect(receiptLineFor(plant(), breederReceipt(plant(), [acme], []))).toBe('none yet');
+    expect(receiptLineFor(plant(), null)).toBe('checking…');
   });
 });
 
@@ -82,7 +170,15 @@ describe('the lab’s “You confirmed receipt” line', () => {
   });
 
   it('reads the lab’s own signature for this sample, nothing else', () => {
-    expect(labReceipt(received, [att({})], LAB)).toMatchObject({ kind: 'signed' });
+    expect(labReceipt(received, [att({ attestationId: 'att_mine' })], LAB)).toMatchObject({
+      kind: 'signed',
+      attestationId: 'att_mine',
+      linked: false,
+    });
+    expect(labReceipt(received, [att({ attestationId: 'att_mine' })], LAB, 'att_mine')).toMatchObject({
+      kind: 'signed',
+      linked: true,
+    });
     expect(labReceipt(received, [], LAB)).toEqual({ kind: 'not-signed' });
     // Another key's receipt, or this key's receipt for a different sample of the plant.
     expect(labReceipt(received, [att({ key: OTHER })], LAB).kind).toBe('not-signed');
@@ -101,27 +197,31 @@ describe('who signed a lab report', () => {
   const report = (key = LAB, id = 'att_r') =>
     att({ key, type: 'laboratory-report', documentHash: SHA, attestationId: id });
 
-  it('is the lab only when the same key signed receipt of this delivery’s sample', () => {
-    const input = { sha: SHA, attestationId: 'att_r', subject: BREEDER, receivedFingerprint: RECEIVED };
-    expect(reportSigner([report(), att({})], input).kind).toBe('this-delivery');
-    // A key that only signed the report, or signed receipt of another delivery: not the lab's.
-    expect(reportSigner([report()], input).kind).toBe('other-key');
-    expect(reportSigner([report(), att({ documentHash: '9'.repeat(64) })], input).kind).toBe('other-key');
-    expect(reportSigner([report(OTHER), att({})], input).kind).toBe('other-key');
-  });
-
-  it('without the delivery’s record, the key must at least have signed for this plant', () => {
-    const input = { sha: SHA, attestationId: 'att_r', subject: BREEDER };
-    expect(reportSigner([report(), att({ documentHash: '9'.repeat(64) })], input).kind).toBe('this-plant');
-    expect(reportSigner([report()], input).kind).toBe('other-key');
+  it('is the lab only when its key is the key of the receipt linked to this delivery', () => {
+    const input = { sha: SHA, attestationId: 'att_r', subject: BREEDER, receiptAttestationId: 'att_receipt' };
+    const receipt = att({ attestationId: 'att_receipt' });
+    expect(reportSigner([report(), receipt], input).kind).toBe('this-delivery');
+    // No linked receipt: nothing shows the key had the sample.
+    expect(reportSigner([report()], input).kind).toBe('no-receipt');
+    expect(reportSigner([report(), receipt], { ...input, receiptAttestationId: undefined }).kind).toBe('no-receipt');
+    // A receipt signed by this key but not the linked one (e.g. an attacker's own receipt over the
+    // public fingerprint, then a report): no.
+    expect(reportSigner([report(OTHER), att({ key: OTHER }), receipt], input).kind).toBe('other-key');
+    // The linked receipt withdrawn: no longer a receipt.
+    const withdrawn = att({
+      attestationId: 'att_receipt',
+      retraction: { attestationId: 'x', attesterPublicKey: LAB, reason: 'other', retractedAt: 'x', signature: 's' },
+    });
+    expect(reportSigner([report(), withdrawn], input).kind).toBe('no-receipt');
   });
 
   it('no verified signature over this exact file, linked to this result, is unsigned', () => {
-    const base = { sha: SHA, subject: BREEDER, receivedFingerprint: RECEIVED };
-    expect(reportSigner([att({})], base).kind).toBe('unsigned');
-    expect(reportSigner([report(), att({})], { ...base, sha: '6'.repeat(64) }).kind).toBe('unsigned');
-    expect(reportSigner([report(), att({})], { ...base, attestationId: 'att_other' }).kind).toBe('unsigned');
-    expect(reportSigner([{ ...report(), signatureValid: false }, att({})], base).kind).toBe('unsigned');
+    const base = { sha: SHA, subject: BREEDER, receiptAttestationId: 'att_receipt' };
+    const receipt = att({ attestationId: 'att_receipt' });
+    expect(reportSigner([receipt], base).kind).toBe('unsigned');
+    expect(reportSigner([report(), receipt], { ...base, sha: '6'.repeat(64) }).kind).toBe('unsigned');
+    expect(reportSigner([report(), receipt], { ...base, attestationId: 'att_other' }).kind).toBe('unsigned');
+    expect(reportSigner([{ ...report(), signatureValid: false }, receipt], base).kind).toBe('unsigned');
   });
 });
 

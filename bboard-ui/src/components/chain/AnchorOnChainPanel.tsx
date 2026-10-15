@@ -77,7 +77,8 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
             <Typography variant="body2" color="text.secondary">
               This gives the record an identity on the network that only this browser can act as. Your browser builds
               and proves the transaction itself; VeilCore pays the network fee and sees only what the network publishes.
-              You need no wallet and no crypto. Later you can prove you held it since this block, to someone who asks.
+              You need no wallet and no crypto. Later you can show someone who asks that your key existed by this block
+              and that you still control it.
             </Typography>
             {!keeps && (
               <>

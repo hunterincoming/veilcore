@@ -144,8 +144,8 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await breeder.getByRole('button', { name: /Make a code for the lab/ }).click();
   const codeEl = breeder.getByText(/^TR-[0-9A-F]{8}\./);
   await expect(codeEl).toBeVisible();
-  const code = /^TR-[0-9A-F]{8}\.[0-9a-z]+\.age1[02-9ac-hj-np-z]{58}$/.exec((await codeEl.innerText()).trim())?.[0];
-  expect(code, 'the delivery code carries the plant’s lock').toBeTruthy();
+  const code = /^TR-[0-9A-F]{8}\.[0-9a-f]{32}\.age1[02-9ac-hj-np-z]{58}$/.exec((await codeEl.innerText()).trim())?.[0];
+  expect(code, 'the lab code carries the plant’s lock').toBeTruthy();
   await breeder.getByRole('button', { name: /^Done$/ }).click();
 
   // The lab: its signature, then the delivery.
@@ -167,7 +167,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await expect(lab).toHaveURL(/\/record\//);
 
   // The lab sends the result back.
-  await lab.getByText('Send results back to the breeder').click();
+  await lab.getByRole('button', { name: /^Send results back to the breeder/ }).click();
   const chooser = lab.waitForEvent('filechooser');
   await lab.getByRole('button', { name: /Choose the report/ }).click();
   await (await chooser).setFiles({ name: 'report.pdf', mimeType: 'application/pdf', buffer: report });
@@ -196,19 +196,24 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
     expect(bytes.includes(Buffer.from('markers'))).toBe(false);
   }
 
-  // The breeder opens it.
+  // The breeder's plant: the lab's receipt, linked to this delivery, named as unchecked.
   await breeder.goto(`/record/${recordId}`);
+  await expect(breeder.getByText('Receipt signed', { exact: true })).toBeVisible();
+  await expect(breeder.getByText('by a key named “E2E Lab” (name not checked)', { exact: true })).toBeVisible();
+  await expect(breeder.getByText(/Confirmed by a lab/)).toHaveCount(0);
+
+  // The breeder opens it.
   await breeder
     .getByRole('alert')
     .filter({ hasText: /lab report came back/ })
     .getByRole('button', { name: 'Open' })
     .click();
-  await expect(breeder.getByText(/Signed by E2E Lab/)).toBeVisible();
-  await expect(breeder.getByText(/The same key signed that it received this (sample|plant)/)).toBeVisible();
+  await expect(breeder.getByText(/Signed by a key named “E2E Lab” \(name not checked\)/)).toBeVisible();
+  await expect(breeder.getByText(/The same key signed the receipt for this delivery/)).toBeVisible();
   await shot(breeder, 'breeder-2-opened');
   const [dl] = await Promise.all([
     breeder.waitForEvent('download'),
-    breeder.getByRole('button', { name: /Save the report/ }).click(),
+    breeder.getByRole('button', { name: /Download the file/ }).click(),
   ]);
   const saved = await dl.createReadStream();
   const chunks: Buffer[] = [];
@@ -219,6 +224,49 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   // Its own screen, with the file already chosen: one press saves it.
   await expect(breeder.getByRole('heading', { name: /Save your lab report to this plant/ })).toBeVisible();
   await expect(breeder.getByRole('button', { name: /Save it to this plant/ })).toBeEnabled();
+
+  // The lab corrects it, then withdraws the correction (round 3): the old report stays
+  // replaced, its file withdrawn at the registry, and nothing is live.
+  await lab.reload();
+  await lab.getByRole('button', { name: /^Send results back to the breeder/ }).click();
+  await lab.getByRole('button', { name: /Send a corrected file/ }).click();
+  const chooser2 = lab.waitForEvent('filechooser');
+  await lab.getByRole('button', { name: /Choose the corrected file/ }).click();
+  await (
+    await chooser2
+  ).setFiles({
+    name: 'report-v2.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.concat([report, Buffer.from(' corrected')]),
+  });
+  await lab.getByRole('button', { name: /Sign, lock and send/ }).click();
+  await expect(lab.getByRole('heading', { name: /^Sent$/ })).toBeVisible();
+  await expect(lab.getByRole('button', { name: /Back to the plant/ })).toHaveCount(1);
+  await lab.reload();
+  await lab.getByRole('button', { name: /^Send results back to the breeder/ }).click();
+  await expect(lab.getByText('Replaced by your corrected file.')).toBeVisible();
+  await expect(lab.getByRole('button', { name: /^Withdraw$/ })).toHaveCount(1);
+  await lab.getByRole('button', { name: /^Withdraw$/ }).click();
+  await lab.getByRole('button', { name: /Yes, withdraw it/ }).click();
+  await expect(lab.getByText(/^Withdrawn on /)).toBeVisible();
+  await expect(lab.getByText('Replaced by your corrected file.')).toBeVisible();
+  await expect(lab.getByText(/Not signed by the key in this browser/)).toHaveCount(0);
+  await expect(lab.getByRole('button', { name: /^Withdraw$/ })).toHaveCount(0);
+  {
+    const after = await fetch(`${API}/transfers/${transferId}/results`, {
+      headers: { 'x-holder-key': await breeder.evaluate(() => localStorage.getItem('veilcore.holder.v1') ?? '') },
+    });
+    const { results } = (await after.json()) as { results: { id: string; withdrawnAt?: number | null }[] };
+    expect(results).toHaveLength(2);
+    // Both files withdrawn: the old one when the correction was sent, the correction by hand.
+    expect(results.every((r) => typeof r.withdrawnAt === 'number')).toBe(true);
+  }
+  await breeder.goto(`/record/${recordId}`);
+  await expect(breeder.getByRole('button', { name: /^Lab reports/ })).toBeVisible();
+  await breeder.getByRole('button', { name: /^Lab reports/ }).click();
+  await expect(breeder.getByText('Replaced by a newer lab report')).toBeVisible();
+  await expect(breeder.getByText(/Withdrawn by the lab on/)).toBeVisible();
+  await expect(breeder.getByRole('button', { name: /^Open$/ })).toHaveCount(0);
 
   expectNoErrors(breederErrors);
   expectNoErrors(labErrors);

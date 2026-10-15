@@ -55,8 +55,8 @@ export const Step4CheckReport: React.FC<{ onBack: () => void; onRestart: () => v
 
       <Alert icon={<FactCheckIcon />} severity="info" variant="outlined">
         This check runs only in your browser and sends nothing, so it is for you. It shows you have a file matching the
-        report paired with a record. It does not show ownership, and nobody else can verify it from here. Others check a
-        record on its verify page, and its date once the record is anchored.
+        report paired with a record. It doesn&apos;t show who holds the plant, and nobody else can verify it from here.
+        Others check a record on its verify page, and its date once the record is anchored.
       </Alert>
 
       {!result?.ok && (

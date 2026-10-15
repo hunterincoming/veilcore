@@ -28,6 +28,8 @@ import { utcDate, utcStamp as fmtStamp } from '../../veilcore/time';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { ProveOwnershipPanel } from '../chain/ProveOwnershipPanel';
 import { useRecordKeys } from '../../veilcore/record-keys';
+import { receiptLineFor } from '../../veilcore/custody';
+import { useBreederReceipt } from '../flow/LabResults';
 
 // The certificate's own colours: dark text on white, every pair at least 4.5:1.
 const CERT = {
@@ -75,6 +77,7 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
   const anchorHere = useRecordKeys()[recordId]?.anchor;
   const [integrity, setIntegrity] = useState<IntegrityCheck | 'checking'>('checking');
   const [anchor, setAnchor] = useState<ProofState | 'checking'>('checking');
+  const receipt = useBreederReceipt(record, !!record && !record.receivedFrom);
 
   useEffect(() => {
     if (!record) return;
@@ -113,13 +116,10 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
   // proof and attestations against it, not against the registry's answer.
   const verifyLink = canonicalUrl(verifyPath(record.id, record.recordFingerprint));
 
-  // What a delivery confirmation actually is. The registry writes it when someone
-  // holding the sender's claim code takes delivery; it carries no lab name and no
-  // signature, so "✓ <lab>" printed "✓ undefined" for a real one and a typed-in name for
-  // a forged one. Signed attestations are listed on the record page, checked there.
-  const deliveryLine = record.attestation
-    ? `Delivery taken via a transfer code on ${utcDate(record.attestation.attestedAt)} (unsigned; does not identify who)`
-    : 'none recorded';
+  // A used lab code is not a receipt: the registry writes it when anyone holding the code
+  // takes delivery, with no name and no signature. Only a receipt the lab linked to the
+  // delivery, checked here, is printed as one.
+  const deliveryLine = receiptLineFor(record, receipt);
 
   // A summary, not evidence: the record file and the network transaction are. It carries
   // no "it matches" line: a file can say anything about itself, so a check written into
@@ -172,7 +172,7 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
         </Typography>
         <Typography variant="body2" color="text.secondary">
           For your files and your lawyer: the sealed record, a fresh check that it hasn&apos;t changed, whether it is
-          anchored, the report pairing, any delivery confirmation and active licenses. It carries the record details but
+          anchored, the lab report saved to it, any lab receipt and active licenses. It carries the record details but
           no genetic data or lab files. The QR code opens the record&apos;s public check page.
         </Typography>
       </Box>
@@ -278,7 +278,7 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
                   {integrityLine}
                 </Box>
               </Field>
-              <Field label="Second-party confirmation">{deliveryLine}</Field>
+              <Field label="Lab receipt">{deliveryLine}</Field>
               <Field label="Active licenses">{activeLicenseCount(record.id)}</Field>
               <Field label="Record ID" mono>
                 {record.id}

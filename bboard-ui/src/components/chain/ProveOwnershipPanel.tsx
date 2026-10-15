@@ -38,19 +38,19 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
   return (
     <Paper variant="outlined" sx={{ p: 2.5 }}>
       <Stack spacing={1.5}>
-        <Typography variant="subtitle1">
-          Prove you have held this record since it was anchored (test network)
-        </Typography>
+        <Typography variant="subtitle1">Prove you hold this plant’s key (test network)</Typography>
         {!anchored ? (
           <Typography variant="body2" color="text.secondary">
-            Anchor the record first (step 1). The proof is about its on-chain identity.
+            Add the date stamp first: press “Add the date stamp” on the plant’s page. The proof is about the plant’s
+            on-chain identity, which the date stamp creates.
           </Typography>
         ) : (
           <>
             <Typography variant="body2" color="text.secondary">
               The person checking makes a challenge on the record’s verify page and sends it to you. You answer it here;
               your browser proves you hold the record’s secret without revealing it, and you send them the transaction
-              id. Together with the anchor, that shows you have held it since block {anchored.blockHeight}.
+              id. Together with the date stamp, that shows the key existed by block {anchored.blockHeight} and that you
+              control it now.
             </Typography>
             <Box>
               <Button

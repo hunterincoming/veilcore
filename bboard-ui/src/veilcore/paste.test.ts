@@ -2,9 +2,14 @@
 import { describe, expect, it } from 'vitest';
 import { recognise } from './paste';
 
+/** A claim code as the registry makes it: 16 random bytes, hex (lineage/transfer.mjs). */
+const CLAIM = '9f8e7d6c'.repeat(4);
+
 describe('recognise', () => {
-  it('delivery codes, with or without the claim part', () => {
-    expect(recognise(' TR-0A1B2C3D.9f8e7d6c ')).toEqual({ kind: 'delivery', code: 'TR-0A1B2C3D.9f8e7d6c' });
+  it('lab codes, with or without the claim part', () => {
+    expect(recognise(` TR-0A1B2C3D.${CLAIM} `)).toEqual({ kind: 'delivery', code: `TR-0A1B2C3D.${CLAIM}` });
+    expect(recognise(`TR-0A1B2C3D.${CLAIM.toUpperCase()}`).kind).toBe('delivery');
+    // Made before claim codes existed: the id alone.
     expect(recognise('tr-0a1b2c3d').kind).toBe('delivery');
   });
   it('a proof request is the 64-character challenge', () => {
@@ -65,19 +70,32 @@ describe('recognise', () => {
       expect(recognise(v).kind).toBe('unknown');
     }
   });
-  it('a cut-off or garbled delivery code is told apart, not opened', () => {
+  it('a cut-off or garbled lab code is told apart, not opened', () => {
     for (const v of ['TR-123', 'TR-0A1B2C3D.', 'tr-0a1b2c3d.9f8e.age1short', 'TR-0A1B2C3Dx']) {
       expect(recognise(v)).toEqual({ kind: 'delivery-cut-off' });
     }
   });
+  it('a code cut inside its middle part is cut off, not a whole code (round 3)', () => {
+    for (let n = 1; n < 32; n++) {
+      expect(recognise(`TR-0A1B2C3D.${CLAIM.slice(0, n)}`)).toEqual({ kind: 'delivery-cut-off' });
+    }
+    // Too long, or not hex, is not a code the site made either.
+    expect(recognise(`TR-0A1B2C3D.${CLAIM}0`)).toEqual({ kind: 'delivery-cut-off' });
+    expect(recognise(`TR-0A1B2C3D.${CLAIM.slice(0, 31)}g`)).toEqual({ kind: 'delivery-cut-off' });
+    // Cut inside the lock, with a whole middle: still cut off.
+    expect(recognise(`TR-0A1B2C3D.${CLAIM}.age1${'q'.repeat(40)}`)).toEqual({ kind: 'delivery-cut-off' });
+  });
   it('codes and links wrapped across lines by email still work', () => {
     const lock = `age1${'q'.repeat(58)}`;
-    const code = `TR-0A1B2C3D.9f8e7d6c.${lock}`;
-    expect(recognise(`TR-0A1B2C3D.9f8e7d6c.age1${'q'.repeat(30)}\n${'q'.repeat(28)}`)).toEqual({
+    const code = `TR-0A1B2C3D.${CLAIM}.${lock}`;
+    expect(recognise(`TR-0A1B2C3D.${CLAIM}.age1${'q'.repeat(30)}\n${'q'.repeat(28)}`)).toEqual({
       kind: 'delivery',
       code,
     });
-    expect(recognise(`  TR-0A1B2C3D .\t9f8e7d6c `)).toEqual({ kind: 'delivery', code: 'TR-0A1B2C3D.9f8e7d6c' });
+    expect(recognise(`  TR-0A1B2C3D .\t${CLAIM.slice(0, 16)}\n${CLAIM.slice(16)} `)).toEqual({
+      kind: 'delivery',
+      code: `TR-0A1B2C3D.${CLAIM}`,
+    });
     const fp = 'ab'.repeat(32);
     expect(recognise(`https://veilcore.org/verify/VEIL-1?fp=${fp.slice(0, 40)}\r\n${fp.slice(40)}`)).toEqual({
       kind: 'record-link',
@@ -86,6 +104,20 @@ describe('recognise', () => {
     expect(recognise(`PR-${'0A'.repeat(8)}\n${'0A'.repeat(8)}`)).toEqual({
       kind: 'prove-link',
       path: `/prove/PR-${'0A'.repeat(16)}`,
+    });
+  });
+  it('a record ID of one of this browser’s own plants opens the plant’s page, not the check page', () => {
+    const id = `VEIL-${'C7'.repeat(16)}`;
+    const mine = (x: string) => x === id;
+    expect(recognise(id.toLowerCase(), mine)).toEqual({ kind: 'record-link', path: `/record/${id}` });
+    expect(recognise(`VEIL-${'D8'.repeat(16)}`, mine)).toEqual({
+      kind: 'record-link',
+      path: `/verify/VEIL-${'D8'.repeat(16)}`,
+    });
+    // A link is opened as the link says, whoever holds the record.
+    expect(recognise(`https://veilcore.org/verify/${id}`, mine)).toEqual({
+      kind: 'record-link',
+      path: `/verify/${id}`,
     });
   });
   it('a record ID on its own opens its check page, in capitals', () => {

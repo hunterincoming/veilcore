@@ -42,11 +42,15 @@ export const holderKey = (): string => {
   return k;
 };
 
-/** Adopt an existing holder key, e.g. restoring on a new device. */
+/**
+ * Adopt an existing holder key, e.g. restoring on a new device. Kept in lower case, as
+ * every key this site makes is and as the registry reads keys (holder-key.js
+ * canonicalHolderKey, round 3): a key typed in capitals is the same key.
+ */
 export const setHolderKey = (k: string): void => {
   const v = k.trim();
   if (!HEX64.test(v)) throw new Error('A holder key is 64 hexadecimal characters.');
-  localStorage.setItem(KEY, v);
+  localStorage.setItem(KEY, v.toLowerCase());
 };
 
 /**

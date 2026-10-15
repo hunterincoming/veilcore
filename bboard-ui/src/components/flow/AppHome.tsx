@@ -32,6 +32,7 @@ import { PasteBox } from './PasteBox';
 import { labCardLine, useLabCardFacts, useWaitingByRecord } from './LabResults';
 import { quantityPhrase } from '../../veilcore/transfers';
 import { TrustPanel } from '../TrustPanel';
+import { draftHeading, loadDraft } from './log-flow-state';
 
 const day = (ms: number) => new Date(ms).toLocaleDateString();
 
@@ -62,6 +63,8 @@ export const AppHome: React.FC = () => {
   const [why, setWhy] = useState(false);
   const [toast, setToast] = useState<string>();
   const importRef = useRef<HTMLInputElement>(null);
+  // A plant half-logged in this browser: Home offers to finish it, not to start another.
+  const [draft] = useState(() => (records.length === 0 ? loadDraft() : undefined));
 
   const unbacked = REAL_CHAIN ? keysWithoutBackup() : [];
   const labOnly = isLab(role) && !isBreeder(role);
@@ -110,9 +113,15 @@ export const AppHome: React.FC = () => {
     }
   };
 
-  const labPanel = (
+  // The lab's panel is the page's heading when nothing has arrived yet (a real h1), and a
+  // section under "Samples received" after.
+  const labPanel = (heading: 'h1' | 'h2') => (
     <Paper sx={{ p: { xs: 2, md: 2.5 }, borderLeft: `6px solid ${SECTIONS.send.color}` }}>
-      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+      <Typography
+        variant={heading === 'h1' ? 'h4' : 'subtitle1'}
+        component={heading}
+        sx={{ fontWeight: 700, mb: heading === 'h1' ? 0.5 : 0 }}
+      >
         Your lab&apos;s jobs
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
@@ -146,14 +155,20 @@ export const AppHome: React.FC = () => {
         <AppHeader />
         <Stack spacing={2.5}>
           {labOnly ? (
-            labPanel
+            labPanel('h1')
           ) : (
             <Stack spacing={2} sx={{ textAlign: 'center', py: { xs: 2, md: 4 } }}>
-              <Typography variant="h3" component="h1" sx={{ fontSize: { xs: '2rem', md: '2.6rem' } }}>
-                Let&apos;s log your first plant
+              <Typography
+                variant="h3"
+                component="h1"
+                sx={{ fontSize: { xs: '2rem', md: '2.6rem' }, overflowWrap: 'anywhere' }}
+              >
+                {draftHeading(draft)}
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                About 3 minutes. When you&apos;re done it has a public date stamp, and you hold the only key.
+                {draft
+                  ? 'What you typed is kept in this browser. Pick up where you left off.'
+                  : 'About 3 minutes. When you’re done it has a public date stamp, and you hold the only key.'}
               </Typography>
               <Button
                 component={RouterLink}
@@ -164,7 +179,7 @@ export const AppHome: React.FC = () => {
                 startIcon={<AddIcon />}
                 sx={{ py: 1.7, fontSize: '1.1rem' }}
               >
-                Start
+                {draft ? 'Continue' : 'Start'}
               </Button>
             </Stack>
           )}
@@ -228,7 +243,7 @@ export const AppHome: React.FC = () => {
           </Alert>
         )}
 
-        {isLab(role) && labPanel}
+        {isLab(role) && labPanel('h2')}
 
         {/* A lab looks samples up by its own number or the breeder: search from 3. */}
         {records.length >= (lab ? 3 : 5) && (

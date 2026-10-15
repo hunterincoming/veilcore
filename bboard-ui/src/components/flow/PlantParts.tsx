@@ -9,10 +9,11 @@ import ChevronIcon from '@mui/icons-material/ChevronRight';
 import type { StrainRecord } from '../../veilcore/records';
 import type { RecordKeys } from '../../veilcore/record-keys';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
+import { LAB_RESULTS_ENABLED } from '../../config/network';
 import { proofFor, type ProofState } from '../../veilcore/proofs';
 import { SECTIONS, type Section } from './FlowFrame';
 import type { BreederReceipt, LabReceipt } from '../../veilcore/custody';
-import { signerName } from '../../veilcore/custody';
+import { signedByWords } from '../../veilcore/custody';
 import type { ArrivedResult } from './LabResults';
 
 const day = (ms?: number | string) => (ms === undefined ? '' : new Date(ms).toLocaleDateString());
@@ -54,23 +55,17 @@ const reportRow = (record: StrainRecord, arrived?: readonly ArrivedResult[] | nu
   return { done: false, value: 'none yet' };
 };
 
-/** The breeder's receipt line: only a lab's verified signature says "Confirmed by a lab". */
-const breederReceiptRow = (receipt: BreederReceipt | null | undefined) => {
-  if (receipt === null || receipt === undefined)
-    return { done: false, label: 'Confirmed by a lab', value: 'checking…' };
-  if (receipt.kind === 'signed') {
-    const { name, checked } = signerName(receipt.by);
-    const shown = checked ? name : (receipt.by.registeredAs?.displayName ?? receipt.by.attester.displayName);
-    return {
-      done: true,
-      label: 'Confirmed by a lab',
-      value: shown ? `signed by ${shown}${checked ? '' : ' (name not checked)'}` : 'signed by an unnamed key',
-    };
-  }
-  if (receipt.kind === 'code-used') {
-    return { done: false, label: 'Code used', value: 'someone took delivery (not signed)' };
-  }
-  return { done: false, label: 'Confirmed by a lab', value: 'not yet' };
+/**
+ * The breeder's receipt line: only a receipt the lab linked to one of this plant's
+ * deliveries, verified here (custody.ts breederReceipt). It names the signer only when
+ * VeilCore's operator added the name; never "Confirmed by a lab" (round 3).
+ */
+export const breederReceiptRow = (receipt: BreederReceipt | null | undefined) => {
+  if (receipt === null || receipt === undefined) return { done: false, label: 'Lab receipt', value: 'checking…' };
+  if (receipt.kind === 'signed')
+    return { done: true, label: 'Receipt signed', value: `by ${signedByWords(receipt.by)}` };
+  if (receipt.kind === 'code-used') return { done: false, label: 'Lab code used', value: 'no receipt signed' };
+  return { done: false, label: 'Lab receipt', value: 'not signed yet' };
 };
 
 /** The lab's own receipt line for a received sample: its own key's signature, nothing else. */
@@ -78,7 +73,11 @@ const labReceiptRow = (receipt: LabReceipt | null | undefined) => {
   if (receipt === null || receipt === undefined)
     return { done: false, label: 'You confirmed receipt', value: 'checking…' };
   if (receipt.kind === 'signed')
-    return { done: true, label: 'You confirmed receipt', value: `signed ${day(receipt.at)}` };
+    return {
+      done: receipt.linked,
+      label: 'You confirmed receipt',
+      value: receipt.linked ? `signed ${day(receipt.at)}` : `signed ${day(receipt.at)}, not linked to the delivery yet`,
+    };
   if (receipt.kind === 'rejected') return { done: true, label: 'You turned it away', value: REJECTED[receipt.reason] };
   return { done: false, label: 'You confirmed receipt', value: 'not signed yet' };
 };
@@ -117,13 +116,17 @@ export const PlantStatus: React.FC<{
     received
       ? labReceiptRow(receipt as LabReceipt | null | undefined)
       : breederReceiptRow(receipt as BreederReceipt | null | undefined),
-    received
-      ? {
-          done: (labSent ?? 0) > 0,
-          label: 'Lab report sent',
-          value: labSent === undefined ? 'checking…' : labSent > 0 ? `${labSent} sent` : 'not yet',
-        }
-      : { label: 'Lab report', ...reportRow(record, arrived, waiting) },
+    ...(received
+      ? LAB_RESULTS_ENABLED
+        ? [
+            {
+              done: (labSent ?? 0) > 0,
+              label: 'Lab report sent',
+              value: labSent === undefined ? 'checking…' : labSent > 0 ? `${labSent} sent` : 'not yet',
+            },
+          ]
+        : []
+      : [{ label: 'Lab report', ...reportRow(record, arrived, waiting) }]),
     ...(REAL_CHAIN && keys
       ? [
           {

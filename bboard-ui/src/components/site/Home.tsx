@@ -200,6 +200,9 @@ const Post: React.FC<{
  */
 const LIVE_ROWS = [
   ['stamp', true, true, false],
+  // The registry stamps every sealed batch on Bitcoin (OpenTimestamps). The test site's
+  // registry runs with it off (docs/no-wallet-run-12oct.md), so no test-site cell.
+  ['btc', true, false, true],
   ['share', true, true, false],
   ['lab', true, true, false],
   ['results', false, true, true],

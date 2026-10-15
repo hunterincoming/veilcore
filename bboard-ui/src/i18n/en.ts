@@ -54,12 +54,14 @@ export const en = {
   'm.nav.menu': 'Menu',
 
   'm.hero.label': 'Proof of what you hold',
-  'm.hero.title1': 'Prove you had it first.',
-  // Not "without showing anyone what it is": the plant name is on every record's public
-  // check page. What stays hidden is the genetics.
-  'm.hero.title2': 'Without showing anyone your genetics.',
+  // Round 3 (CTO decision, 14 Oct): not "Prove you had it first." A record shows you had
+  // the record by a date, not that you had the plant first. Not "without showing anyone
+  // what it is" either: the plant name is on every record's public check page. What stays
+  // hidden is the genetics.
+  'm.hero.title1': 'Date your record.',
+  'm.hero.title2': 'Keep your genetics.',
   'm.hero.lede':
-    "For breeders, seed companies and labs working with plant and animal genetics. Genetic data and lab files never leave your computer. Only a fingerprint goes on Midnight, which dates it. The plant name and breeder you type are kept on VeilCore's server, and anyone with a record's link sees its name. Free to check. No sign-up, no wallet.",
+    "For breeders, seed companies and labs working with plant and animal genetics. Genetic data never leaves your computer. Only a fingerprint goes on Midnight, which dates it. The plant name and breeder you type are kept on VeilCore's server, and anyone with a record's link sees its name. A lab report reaches our server only when a lab sends it back to you, locked so only you can open it. Free to check. No sign-up, no wallet.",
   'm.hero.how': 'How it works',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Bred by',
@@ -93,7 +95,7 @@ export const en = {
     "The lab signs your results and locks them so only you can open them. No PDF sits in anyone's inbox: VeilCore only holds the locked file. The signature covers that exact file and the record it's about. VeilCore records who signed; it doesn't vouch for the result. New, and still being tested.",
   'm.for.6t': 'Someone asks for proof.',
   'm.for.6p':
-    'They send you a link. You tap once, and their page checks on the network that you hold the record. It shows you hold it, not that you bred it. This works on a Midnight test network for now.',
+    'They send you a link. You tap once, and their page checks on the network that you control the key you registered for this record. That the key belongs to the record is your statement for now. It says nothing about who bred the plant. This works on a Midnight test network for now.',
   'm.for.5t': 'Animal lines.',
   'm.for.5p':
     "Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. The format covers animals; this demo is set up for plants, and the animal record fields aren't published yet.",
@@ -107,7 +109,7 @@ export const en = {
   'm.step1.text': 'What it is and where it came from. Add lab reports as files.',
   'm.step2.n': '02 · Fingerprint',
   'm.step2.title': 'Fingerprint it',
-  'm.step2.text': 'Done on your computer. Lab files and genetic data files never leave it.',
+  'm.step2.text': 'Done on your computer. Genetic data never leaves it.',
   'm.step3.n': '03 · Anchor',
   'm.step3.title': 'Get a date',
   'm.step3.text':
@@ -173,10 +175,10 @@ export const en = {
   'm.open.1link': 'All three implementations →',
   'm.open.2t': "Checking a record doesn't need us.",
   'm.open.2p':
-    "Keep two files from your plant's page: the exported record and its inclusion proof (a small file showing the record is in a dated batch). With both, anyone can check it with SHA-256, the open spec and a look-up on a Midnight explorer, even if VeilCore is gone. Your backup file holds your keys, not these.",
+    "Keep two files from your plant's page: the exported record and its inclusion proof (a small file showing the record is in a dated batch). With both, anyone can check it with SHA-256, the open spec and a look-up on a Midnight explorer, even if VeilCore is gone. Your backup file holds your keys, not these. The Bitcoin date needs a third file, the batch's Bitcoin stamp file, which today is only on our server.",
   'm.open.3t': "We don't vouch for results.",
   'm.open.3p':
-    "A record shows which key signed it, the name and accreditor registered with that key, and whether we've checked that the key belongs to that name. Whoever checks it decides what that's worth.",
+    "A record shows which key signed it, the name and accreditor registered with that key, and whether VeilCore's operator has marked that name. VeilCore doesn't vouch for any lab: whoever checks a record decides what a signature is worth.",
   'm.open.4t': 'Anyone can run a registry.',
   'm.open.4p':
     "The format lets a lab, certifier or rights body run its own, under its own web domain, with its own field definitions, and anchor without asking us. Our own registry code isn't published.",
@@ -188,7 +190,7 @@ export const en = {
   'm.faq.title2': 'people ask.',
   'm.faq.1q': 'What stops someone logging my cultivar?',
   'm.faq.1a':
-    "Once records are anchored, anyone can check which was anchored first. Pair your lab report, so a later test can be compared with it. When you send material out, the receiver confirms it with their own key. A record is evidence, not a registration: it shows you had this record by that date, not that you had the plant, and doesn't settle a dispute on its own.",
+    "Once records are anchored, anyone can check which was anchored first. Pair your lab report, so a later test can be compared with it. When you send material out, the receiver signs a receipt with their own key. A record is evidence, not a registration: it shows you had this record by that date, not that you had the plant, and doesn't settle a dispute on its own.",
   'm.faq.2q': 'Do I need crypto or a wallet?',
   'm.faq.2a':
     'No. Making a record in the demo and checking any record need no wallet, no sign-up and nothing to buy. Your browser keeps a random key that finds your demo records on our server. The fingerprint goes on Midnight, a blockchain built for privacy. You never deal with it directly.',
@@ -196,12 +198,12 @@ export const en = {
   'm.faq.3link': 'Records in evidence →',
   'm.faq.4q': 'What do you see of my data?',
   'm.faq.4a':
-    "Your genetics and lab files: nothing. They're fingerprinted on your computer. This website keeps what you type (names, dates, notes, agreement terms) and your lab files' names, so you can come back to them, and a record's public check page shows its cultivar name. Labs and developers can seal records inside their own systems, so only the fingerprint goes out.",
+    "Your genetic data: nothing. It's fingerprinted on your computer, as are the files you add, and they aren't uploaded. A lab report reaches our server only when a lab sends it back to you: it's locked so only you can open it, and deleted after 180 days. This website keeps what you type (names, dates, notes, agreement terms) and your lab files' names, so you can come back to them, and a record's public check page shows its cultivar name. Labs and developers can seal records inside their own systems, so only the fingerprint goes out.",
   'm.faq.4link1': 'What the demo keeps →',
   'm.faq.4link2': 'Integration guide →',
   'm.faq.5q': 'What if VeilCore disappears?',
   'm.faq.5a':
-    "The dates stay: a batch fingerprint anchored on Midnight's main network, or stamped on Bitcoin, can't be removed by anyone, us included. To check a record without us, you need two files that only our server holds unless you save them: the record (Export record) and its inclusion proof (Download inclusion proof), both on your plant's page under Technical details. Your backup file holds your keys, not these. The spec is open and the TypeScript, Python and Rust code is published. A one-click evidence bundle is coming.",
+    "The dates stay: a batch fingerprint anchored on Midnight's main network, or stamped on Bitcoin, can't be removed by anyone, us included. To check a record without us, you need two files that only our server holds unless you save them: the record (Export record) and its inclusion proof (Download inclusion proof), both on your plant's page under Technical details. Your backup file holds your keys, not these. To check the Bitcoin date without us you also need the batch's Bitcoin stamp file, which today is only on our server; the plant's page doesn't offer it. The spec is open and the TypeScript, Python and Rust code is published. A one-click evidence bundle with all of it is coming.",
   'm.faq.6q': 'What does it cost?',
   'm.faq.6a': 'Making a record on this site costs nothing today. Checking a record is free, always.',
 
@@ -308,6 +310,10 @@ export const en = {
   'm.live.stamp.main':
     'Yes. VeilCore dates records in batches, by hand for now. Your browser sends nothing to the chain.',
   'm.live.stamp.test': 'Yes. Your browser stamps each record, and batches are dated automatically.',
+  'm.live.btc.t': 'A Bitcoin date stamp too',
+  'm.live.btc.main':
+    "Yes. Our registry stamps each sealed batch's fingerprint on Bitcoin with OpenTimestamps. The first reached Bitcoin block 971004 on 11 October; a check with the official OpenTimestamps tool is still to do.",
+  'm.live.btc.not': "Getting the stamp file from the website. Today it's only on our server.",
   'm.live.share.t': 'Choosing what others see',
   'm.live.share.main': 'Yes. The plant name always shows.',
   'm.live.share.test': 'Yes. The plant name always shows.',
@@ -316,12 +322,13 @@ export const en = {
   'm.live.lab.test': 'Yes, the same way.',
   'm.live.results.t': 'Lab reports locked to you',
   'm.live.results.test': 'Yes. New, and still being tested.',
-  'm.live.results.not': 'On veilcore.org.',
+  'm.live.results.not': 'On veilcore.org: turned off for now, on the test site first.',
   'm.live.dna.t': 'A date for your DNA report pairing',
   'm.live.dna.main': 'Saved with your record, not dated.',
   'm.live.dna.test': 'Yes, sent from your browser.',
   'm.live.prove.t': 'Prove it by link',
-  'm.live.prove.test': 'Yes. Their page checks on the network that you hold the record.',
+  'm.live.prove.test':
+    'Yes. Their page checks on the network that you control the key you registered for this record. That the key belongs to the record is your statement for now.',
   'm.live.prove.not': 'On veilcore.org: it needs your browser to send a transaction.',
   'm.live.claims.t': 'Proving one fact (claims)',
   'm.live.claims.main': 'The contract is on the main network, with no maintenance key. The website can’t use it yet.',
@@ -398,10 +405,10 @@ export const en = {
     "This note covers the demo on this site. It is a test, on Midnight's test network. Please use made-up data.",
   'm.privacy.stored.title': 'Stored on our test server',
   'm.privacy.stored.text':
-    "What you type and what your browser computes from it: cultivar and breeder names, species if you enter one, dates, notes, reference numbers, parents, fingerprints of records, fingerprints of photos and lab reports (only the fingerprints, never the files), lab report file names, agreement terms and counterparties, material you send to a lab (who it is addressed to, and the quantity), and, for labs, the public signing key and the attestations they publish. Also your holder key, which your browser sends with every save so the server can find your records. The server is VeilCore's test registry, hosted on Railway.",
+    "What you type and what your browser computes from it: cultivar and breeder names, species if you enter one, dates, notes, reference numbers, parents, fingerprints of records, fingerprints of the photos and lab reports you add (only the fingerprints, never the files), lab report file names, agreement terms and counterparties, material you send to a lab (who it is addressed to, and the quantity), and, for labs, the public signing key and the attestations they publish. Also your holder key, which your browser sends with every save so the server can find your records. Locked lab reports a lab sends you: stored unreadable to us, and deleted after 180 days. The server is VeilCore's test registry, hosted on Railway.",
   'm.privacy.local.title': 'Never leaves your browser',
   'm.privacy.local.text':
-    'Genetic data, lab and DNA report files, and photos. Your browser reads them to compute their fingerprints. The files themselves are never uploaded.',
+    'Genetic data, and the lab reports, DNA reports and photos you add. Your browser reads them to compute their fingerprints; the files themselves are never uploaded. A lab report reaches our server only when a lab sends it back to you, locked so only you can open it.',
   'm.privacy.test.title': 'A test network',
   'm.privacy.test.text':
     "The demo uses Midnight's test network, not the live one. Demo data may be deleted when the test network is reset.",
@@ -422,7 +429,7 @@ export const en = {
     'This website is hosted on Vercel, which logs IP addresses and requests. Our registry server runs on Railway, which logs requests.',
   'm.privacy.who.title': 'Who keeps it, and for how long',
   'm.privacy.who.text':
-    "VeilCore isn't incorporated yet, so VeilCore's founders run this site and the registry. There is no set retention period: what the registry holds stays there until you ask us to delete it. Contact: hunter@veilcore.org.",
+    "VeilCore isn't incorporated yet, so VeilCore's founders run this site and the registry. Locked lab reports are deleted 180 days after they arrive. Nothing else has a set retention period: it stays until you ask us to delete it. Contact: hunter@veilcore.org.",
   'm.notfound.title': 'Page not found.',
   'm.notfound.text':
     'There is no page at this address. If someone gave you a link to a record, check that it is complete.',

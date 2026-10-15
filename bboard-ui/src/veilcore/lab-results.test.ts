@@ -1,5 +1,5 @@
 // Lab results: locked to one plant, opened only with that plant's secret, and the lock
-// travels in the delivery code rather than through the registry.
+// travels in the lab code rather than through the registry.
 import { describe, expect, it } from 'vitest';
 import { x25519 } from '@noble/curves/ed25519.js';
 import { bech32 } from '@scure/base';
@@ -12,8 +12,10 @@ import {
   reportFingerprint,
   resultIdentityFor,
   resultRecipientFor,
+  liveResults,
   resultState,
   sendRefusal,
+  sentRowWords,
   type ResultSummary,
 } from './lab-results';
 import { parseShareCode, quantityPhrase, shareCodeFor } from './transfers';
@@ -69,12 +71,13 @@ describe('the plant’s lock', () => {
   });
 });
 
-describe('the delivery code carries the lock', () => {
+describe('the lab code carries the lock', () => {
   it('round-trips, stays one pasteable code, and old codes still read', async () => {
     const lock = await resultRecipientFor(SECRET);
-    const code = shareCodeFor('TR-0A1B2C3D', '9f8e7d6c', lock);
-    expect(code).toBe(`TR-0A1B2C3D.9f8e7d6c.${lock}`);
-    expect(parseShareCode(code)).toEqual({ transferId: 'TR-0A1B2C3D', claimCode: '9f8e7d6c', resultLock: lock });
+    const claim = '9f8e7d6c'.repeat(4); // the registry's claim code: 16 random bytes, hex
+    const code = shareCodeFor('TR-0A1B2C3D', claim, lock);
+    expect(code).toBe(`TR-0A1B2C3D.${claim}.${lock}`);
+    expect(parseShareCode(code)).toEqual({ transferId: 'TR-0A1B2C3D', claimCode: claim, resultLock: lock });
     expect(recognise(code)).toEqual({ kind: 'delivery', code });
     expect(parseShareCode('TR-0A1B2C3D.9f8e7d6c')).toEqual({ transferId: 'TR-0A1B2C3D', claimCode: '9f8e7d6c' });
     expect(parseShareCode('TR-0A1B2C3D.9f8e7d6c.age1junk').resultLock).toBeUndefined();
@@ -100,9 +103,40 @@ describe('a lab report’s state, as the breeder and the lab see it', () => {
     expect(resultState(list[0], list)).toBe('replaced');
     expect(resultState(list[1], list)).toBe('withdrawn');
     expect(resultState(list[2], list)).toBe('live');
-    // A correction that was itself withdrawn doesn't replace anything.
-    const undone = [r('LR-A'), r('LR-C', { replaces: 'LR-A', withdrawnAt: 9 })];
-    expect(resultState(undone[0], undone)).toBe('live');
+    // Withdrawing a correction doesn't bring the old report back (round 3): the lab withdrew
+    // its signature on the old one as replaced, and its file with it.
+    const undone = [r('LR-A', { withdrawnAt: 4 }), r('LR-C', { replaces: 'LR-A', withdrawnAt: 9 })];
+    expect(resultState(undone[0], undone)).toBe('replaced');
+    expect(resultState(undone[1], undone)).toBe('withdrawn');
+    expect(liveResults(undone)).toEqual([]);
+    // Even from an older registry that left the old file in place.
+    const kept = [r('LR-A'), r('LR-C', { replaces: 'LR-A', withdrawnAt: 9 })];
+    expect(resultState(kept[0], kept)).toBe('replaced');
+    expect(sendRefusal('d'.repeat(64), kept, new Map(), 'LR-A')).toMatch(/already been withdrawn or replaced/);
+  });
+
+  it('“N sent” counts only reports that still stand', () => {
+    const list = [r('LR-A'), r('LR-B', { withdrawnAt: 5 }), r('LR-C', { replaces: 'LR-A' })];
+    expect(liveResults(list).map((x) => x.id)).toEqual(['LR-C']);
+  });
+
+  it('the lab’s own list never calls a report it signed and withdrew or replaced “not signed”', () => {
+    const mine = { signed: new Map([['att_c', 'e'.repeat(64)]]), retracted: new Set(['att_a', 'att_b']) };
+    const list = [
+      r('LR-A', { attestationId: 'att_a', withdrawnAt: 4 }),
+      r('LR-B', { attestationId: 'att_b', withdrawnAt: 6 }),
+      r('LR-C', { attestationId: 'att_c', replaces: 'LR-A' }),
+    ];
+    const words = list.map((x) => sentRowWords(resultState(x, list), x, mine));
+    expect(words[0]).toBe('Replaced by your corrected file.');
+    expect(words[1]).toMatch(/^Withdrawn on /);
+    expect(words[2]).toMatch(/^Signed by your key/);
+    for (const w of words) expect(w).not.toMatch(/Not signed/);
+    // Signature withdrawn but the file not (a withdrawal cut short): it says what's left to do.
+    const half = r('LR-D', { attestationId: 'att_a' });
+    expect(sentRowWords('live', half, mine)).toMatch(/still with the registry/);
+    // Signed by some other key: only then "not signed by the key in this browser".
+    expect(sentRowWords('live', r('LR-E', { attestationId: 'att_zz' }), mine)).toMatch(/Not signed by the key/);
   });
 });
 

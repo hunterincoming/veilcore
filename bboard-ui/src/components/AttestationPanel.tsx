@@ -5,14 +5,65 @@
 // identically overstates the weakest, which is the failure the simulate button was.
 //
 // Signatures are verified in this browser rather than taken from the registry's word.
+//
+// On the breeder's own plant (round 3) only the receipt a lab tied to one of the
+// breeder's deliveries is shown as a receipt (custody.ts breederReceipt). The plant's
+// fingerprint is public, so anyone can sign a statement about it: other receipt
+// signatures are only counted, in a neutral line.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
 import { Alert, Box, Chip, Stack, Typography } from '@mui/material';
 import { attestationsFor, strengthLabel, type ResolvedAttestation } from '../veilcore/attesters';
+import { receiptSignedLine, type BreederReceipt } from '../veilcore/custody';
 import type { StrainRecord } from '../veilcore/records';
 
-export const AttestationPanel: React.FC<{ record: StrainRecord }> = ({ record }) => {
+/** The breeder's own plant: its tied receipt, and a count of anything else. */
+const BreederReceiptPanel: React.FC<{ receipt: BreederReceipt }> = ({ receipt }) => {
+  const s = receipt.kind === 'signed' ? strengthLabel(receipt.by) : undefined;
+  return (
+    <Stack spacing={1.5}>
+      <Typography variant="overline" sx={{ display: 'block' }}>
+        Lab receipt
+      </Typography>
+      {receipt.kind === 'signed' ? (
+        <Box sx={{ pl: 1.5, borderLeft: '2px solid rgba(22,32,27,0.12)' }}>
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            {receiptSignedLine(receipt.by)}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            {new Date(receipt.by.issuedAt).toLocaleDateString()} · linked to your delivery {receipt.transferId}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {s?.why}
+          </Typography>
+        </Box>
+      ) : receipt.kind === 'code-used' ? (
+        <Typography variant="body2" color="text.secondary">
+          Someone used your lab code, but no lab has signed a receipt for it. A used code doesn&apos;t show who took the
+          sample.
+        </Typography>
+      ) : (
+        <Typography variant="body2" color="text.secondary">
+          No lab has signed a receipt for this plant yet. A record only you stand behind is weaker evidence than one a
+          lab signs for. Send a sample to a lab: their receipt is signed with their key, not yours.
+        </Typography>
+      )}
+      {receipt.others > 0 && (
+        <Typography variant="body2" color="text.secondary" data-other-signatures="">
+          Other signatures name this record: {receipt.others}, not tied to your deliveries. Anyone can sign a statement
+          about a public fingerprint, so they aren&apos;t counted as a receipt.
+        </Typography>
+      )}
+    </Stack>
+  );
+};
+
+export const AttestationPanel: React.FC<{
+  record: StrainRecord;
+  /** The breeder's own plant: show only its tied receipt (custody.ts). Absent for a received record. */
+  receipt?: BreederReceipt | null;
+}> = ({ record, receipt }) => {
   const [items, setItems] = useState<ResolvedAttestation[] | null>(null);
 
   useEffect(() => {
@@ -22,13 +73,14 @@ export const AttestationPanel: React.FC<{ record: StrainRecord }> = ({ record })
   // The legacy transfer-claim attestation, which predates signing.
   const legacy = record.attestation;
 
+  if (receipt !== undefined) return receipt === null ? null : <BreederReceiptPanel receipt={receipt} />;
   if (items === null) return null;
 
   if (items.length === 0 && !legacy) {
     return (
       <Stack spacing={1}>
         <Typography variant="overline" sx={{ display: 'block' }}>
-          Confirmed by others
+          Signatures about this record
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Nobody else has confirmed this record yet. A record only you stand behind is weaker evidence than one a second
@@ -41,7 +93,7 @@ export const AttestationPanel: React.FC<{ record: StrainRecord }> = ({ record })
   return (
     <Stack spacing={2}>
       <Typography variant="overline" sx={{ display: 'block' }}>
-        Confirmed by others
+        Signatures about this record
       </Typography>
 
       {legacy && items.length === 0 && (

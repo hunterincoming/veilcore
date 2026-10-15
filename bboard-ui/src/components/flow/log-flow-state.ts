@@ -58,6 +58,13 @@ export const draftHasContent = (d: Draft): boolean =>
 const str = (v: unknown, max = 2000): string => (typeof v === 'string' ? v.slice(0, max) : '');
 const HEX64 = /^[0-9a-f]{64}$/;
 
+/** Home's first-visit heading: a draft in this browser is named, so it is finished, not started again. */
+export const draftHeading = (draft: Draft | undefined): string => {
+  if (!draft) return 'Let’s log your first plant';
+  const name = draft.strainName.trim();
+  return name ? `Continue your draft: ${name}` : 'Continue your draft';
+};
+
 /** Read a stored draft back, keeping only well-formed fields. */
 export const parseDraft = (raw: string | null): Draft | undefined => {
   if (!raw) return undefined;

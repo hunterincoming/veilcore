@@ -14,6 +14,11 @@
 //   - reported by the registry: everything else — that a record with this fingerprint
 //     exists, when the registry first stored it, an anchor, whether a key is vetted, and
 //     the facts the holder chose to share. Worded as reports, never as checks.
+// The footer says exactly which of those checks ran (round 3: it used to say "nothing on
+// this page could be checked" under a line saying a signature was verified here).
+// Opened by the plant's own holder (the record is in this browser), the page also shows
+// the lab's receipt linked to one of their deliveries (custody.ts); a stranger can't be
+// told which signature is a receipt, so for them signatures are only described.
 // The registry sends only the facts the holder granted (README "Disclosure"); a ?show=
 // in the link can narrow that and never widen it. Genetics are never sent.
 // SPDX-License-Identifier: Apache-2.0
@@ -29,11 +34,14 @@ import { attestationsFor, countsAsSigned, type ResolvedAttestation } from '../ve
 import { ACCENT } from '../config/theme';
 import { NETWORK, isTestNetwork, networkLabel } from '../config/network';
 import { Fact, SharedFacts } from '../components/verify/DisclosedFacts';
-import { bindingOf, linkFingerprint } from '../veilcore/verify-link';
+import { bindingOf, checkedSummary, linkFingerprint, verifyHeading } from '../veilcore/verify-link';
 import { displayName } from '../veilcore/display-name';
 import { utcStamp as fmt } from '../veilcore/time';
 import { REAL_CHAIN } from '../veilcore/chain/config';
 import { VerifierChallengePanel } from '../components/chain/VerifierChallengePanel';
+import { useRecords } from '../veilcore/records';
+import { useBreederReceipt } from '../components/flow/LabResults';
+import { receiptSignedLine } from '../veilcore/custody';
 
 const API = import.meta.env.VITE_API_BASE ?? '';
 
@@ -173,6 +181,9 @@ export const VerifyPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [proof, setProof] = useState<ProofState | 'checking'>('checking');
   const [atts, setAtts] = useState<ResolvedAttestation[] | null>(null);
+  // The holder's own plant, when this browser has it loaded: its linked lab receipt.
+  const own = useRecords().find((r) => r.id === id.toUpperCase() && !r.receivedFrom);
+  const receipt = useBreederReceipt(own, !!own);
 
   useEffect(() => {
     let cancelled = false;
@@ -307,8 +318,8 @@ export const VerifyPage: React.FC = () => {
           <Paper sx={{ p: { xs: 3, md: 4 } }}>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
               <VerifiedIcon data-checked="no" aria-hidden="true" sx={{ color: 'text.disabled', fontSize: 30 }} />
-              <Typography variant="overline" component="h1" sx={{ color: 'error.main', lineHeight: 1.6 }}>
-                Fingerprint does not match this link · nothing checked
+              <Typography variant="h6" component="h1" sx={{ color: 'error.main', lineHeight: 1.4 }}>
+                This link&apos;s fingerprint doesn&apos;t match the record: nothing checked
               </Typography>
             </Stack>
             <Alert severity="error" variant="outlined" data-mismatch="yes">
@@ -355,21 +366,15 @@ export const VerifyPage: React.FC = () => {
               />
               <Box>
                 <Typography
-                  variant="overline"
+                  variant="h6"
                   component="h1"
-                  sx={{ color: seal ? ACCENT : 'text.secondary', lineHeight: 1.6, display: 'block' }}
+                  sx={{ color: seal ? ACCENT : 'text.primary', lineHeight: 1.4, display: 'block' }}
                 >
-                  {!result.recordFingerprint
-                    ? 'Record found — nothing sealed'
-                    : !bound
-                      ? 'Registry report · this link carries no fingerprint to check against'
-                      : proof === 'checking'
-                        ? 'Checking…'
-                        : proof.status === 'anchor-reported'
-                          ? 'In a sealed batch · anchor reported, not checked'
-                          : proof.status === 'pending'
-                            ? 'In a sealed batch · not yet anchored'
-                            : 'Fingerprint on file · not in a batch this page could check'}
+                  {verifyHeading({
+                    sealed: !!result.recordFingerprint,
+                    bound,
+                    proof: proof === 'checking' ? 'checking' : proof.status,
+                  })}
                 </Typography>
               </Box>
             </Stack>
@@ -427,8 +432,8 @@ export const VerifyPage: React.FC = () => {
               {result.recordFingerprint &&
                 (proof === 'checking' ? null : proof.status === 'none' ? (
                   <Fact ok={false}>
-                    No inclusion proof this page could check: the record is not in a sealed batch yet, so it is not
-                    anchored.
+                    Not dated yet, as far as this page can tell: there is no proof here that the record is in a dated
+                    batch, so there is no public date stamp to check.
                   </Fact>
                 ) : (
                   <>
@@ -465,13 +470,13 @@ export const VerifyPage: React.FC = () => {
                 atts !== null &&
                 (signedVetted.length > 0 ? (
                   <Fact ok={bound}>
-                    {forWhom}Signed attestation, signature verified in this browser, from a key VeilCore says it has
-                    checked.
+                    {forWhom}Signed attestation, signature verified in this browser, from a key whose name
+                    VeilCore&apos;s operator added. VeilCore doesn&apos;t vouch for the signer.
                   </Fact>
                 ) : signed.length > 0 ? (
                   <Fact ok={false}>
-                    {forWhom}Signed attestation, signature verified in this browser, from a key not verified by VeilCore
-                    — it does not show who signed.
+                    {forWhom}Signed attestation, signature verified in this browser, from a key whose name isn&apos;t
+                    checked. It doesn&apos;t show who signed.
                   </Fact>
                 ) : result.signedAttestation === true ||
                   result.attestedByVettedLab === true ||
@@ -482,6 +487,14 @@ export const VerifyPage: React.FC = () => {
                 ) : (
                   <Fact ok={false}>No signed attestation.</Fact>
                 ))}
+
+              {/* The holder's own plant: the lab receipt linked to one of their deliveries. */}
+              {own && receipt?.kind === 'signed' && (
+                <Fact ok={false}>
+                  {receiptSignedLine(receipt.by)}, linked to your delivery {receipt.transferId}. You see this because
+                  the plant is in this browser; someone you send the link to sees only the signature line above.
+                </Fact>
+              )}
 
               <Divider sx={{ my: 0.5 }} />
               <Typography variant="overline" color="text.secondary" sx={{ display: 'block' }}>
@@ -525,13 +538,12 @@ export const VerifyPage: React.FC = () => {
               <Chip
                 size="small"
                 variant="outlined"
-                label={
-                  ticked
-                    ? 'Ticked lines checked in this browser; the rest reported by the VeilCore registry'
-                    : !bound && result.recordFingerprint
-                      ? 'Reported by the VeilCore registry — this link names no fingerprint, so nothing on this page is ticked'
-                      : 'Reported by the VeilCore registry — nothing on this page could be checked'
-                }
+                data-ticked={ticked ? 'yes' : 'no'}
+                label={checkedSummary({
+                  bound,
+                  proofChecked: proof !== 'checking' && proof.status !== 'none',
+                  signaturesChecked: signed.length,
+                })}
                 sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', py: 0.5 } }}
               />
             </Box>

@@ -6,7 +6,7 @@
 // Now:
 //   1. Each delivery has its own lock, made from the plant's record secret (which never
 //      leaves the breeder's devices, and is in their backup file) and the delivery's id.
-//      Sending to a lab puts the lock's public half in the delivery code. One lock per
+//      Sending to a lab puts the lock's public half in the lab code. One lock per
 //      delivery (round 2): two labs sent the same plant hold different locks, so a report
 //      can be tied to the delivery it was locked for. Codes made before this carry the
 //      per-plant lock, and the breeder's browser still opens those.
@@ -27,6 +27,7 @@ import { bech32 } from '@scure/base';
 import { hkdf } from '@noble/hashes/hkdf.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { holderKey } from './holder';
+import { userFacingError } from './transfers';
 import { readJson, isObject, isString, isNumber, optional } from './json';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
@@ -60,7 +61,7 @@ export const reportFingerprint = (bytes: Uint8Array): string => hexOf(sha256(byt
 
 /** Lock a report so only the plant's holder can open it. */
 export const lockReport = async (bytes: Uint8Array, recipient: string): Promise<Uint8Array> => {
-  if (!RECIPIENT.test(recipient)) throw new Error('The delivery code has no lock for results in it.');
+  if (!RECIPIENT.test(recipient)) throw new Error('The lab code has no lock for lab reports in it.');
   const e = new Encrypter();
   e.addRecipient(recipient);
   return e.encrypt(bytes);
@@ -96,9 +97,11 @@ export type LabDelivery = {
   readonly sourceRecordId?: string;
   /** The breeder's record fingerprint the results are about (what the lab signs over). */
   readonly sourceCommitment?: string;
-  /** The breeder's lock, from the delivery code. Missing for codes made before locks. */
+  /** The breeder's lock, from the lab code. Missing for codes made before locks. */
   readonly recipient?: string;
   readonly receivedAt: number;
+  /** The signed receipt this browser tied to the delivery (transfers.ts attachReceipt). */
+  readonly receiptLinked?: string;
 };
 
 const isDelivery = (v: unknown): v is LabDelivery =>
@@ -108,7 +111,8 @@ const isDelivery = (v: unknown): v is LabDelivery =>
   optional(v.sourceRecordId, isString) &&
   optional(v.sourceCommitment, isString) &&
   optional(v.recipient, isString) &&
-  isNumber(v.receivedAt);
+  isNumber(v.receivedAt) &&
+  optional(v.receiptLinked, isString);
 
 const readDeliveries = (): Record<string, LabDelivery> => {
   try {
@@ -169,6 +173,15 @@ export const rememberDelivery = (d: LabDelivery): void => {
   }
 };
 
+/**
+ * Note that the lab's signed receipt is tied to its delivery. A delivery this browser has
+ * no note of (received in another browser) is noted from the record.
+ */
+export const markReceiptLinked = (base: LabDelivery, attestationId: string): void => {
+  const here = readDeliveries()[base.transferId] ?? base;
+  rememberDelivery({ ...here, receiptLinked: attestationId });
+};
+
 /** The delivery a received record came from, if this browser received it. */
 export const deliveryForRecord = (receivedRecordId: string): LabDelivery | undefined =>
   Object.values(readDeliveries()).find((d) => d.receivedRecordId === receivedRecordId);
@@ -205,13 +218,44 @@ export const RESULT_ROWS_CAP = 20;
 
 export type ResultState = 'live' | 'withdrawn' | 'replaced';
 
-/** Where one result stands: replaced by a newer one, withdrawn by the lab, or live. */
+/**
+ * Where one result stands: replaced by a newer one, withdrawn by the lab, or live.
+ *
+ * Replaced stays replaced (round 3). It used to count only while the correction stood, so
+ * withdrawing a correction brought the old report back as live, though the lab had
+ * withdrawn its signature on it as superseded. Withdrawing a correction now leaves the
+ * delivery with no live report from that line, which is what the lab did.
+ */
 export const resultState = (r: ResultSummary, all: readonly ResultSummary[]): ResultState =>
-  all.some((o) => o.id !== r.id && o.replaces === r.id && !o.withdrawnAt)
+  all.some((o) => o.id !== r.id && o.replaces === r.id)
     ? 'replaced'
     : r.withdrawnAt !== undefined
       ? 'withdrawn'
       : 'live';
+
+/** The reports that still stand on a delivery: what "N sent" counts. */
+export const liveResults = (all: readonly ResultSummary[]): ResultSummary[] =>
+  all.filter((r) => resultState(r, all) === 'live');
+
+/**
+ * What the lab's own list says about one report it sent. A report it signed and then
+ * withdrew or replaced says so, never "not signed by the key in this browser" (round 3).
+ */
+export const sentRowWords = (
+  state: ResultState,
+  r: ResultSummary,
+  mine: { signed: ReadonlyMap<string, string>; retracted: ReadonlySet<string> } | null,
+): string => {
+  if (state === 'replaced') return 'Replaced by your corrected file.';
+  if (state === 'withdrawn')
+    return `Withdrawn on ${new Date(r.withdrawnAt ?? r.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}.`;
+  if (!mine) return '';
+  const fp = r.attestationId ? mine.signed.get(r.attestationId) : undefined;
+  if (fp) return `Signed by your key · fingerprint ${fp.slice(0, 8)}…${fp.slice(-6)}`;
+  if (r.attestationId && mine.retracted.has(r.attestationId))
+    return 'Your signature on it is withdrawn, but the file is still with the registry. Withdraw it to finish.';
+  return 'Not signed by the key in this browser.';
+};
 
 /**
  * Why a report can't be sent on this delivery, checked BEFORE anything is signed, or
@@ -224,7 +268,7 @@ export const sendRefusal = (
   signedHere: ReadonlyMap<string, string>,
   replaces?: string,
 ): string | null => {
-  const live = results.filter((r) => resultState(r, results) === 'live');
+  const live = liveResults(results);
   if (replaces && !live.some((r) => r.id === replaces)) {
     return 'The lab report you are correcting has already been withdrawn or replaced.';
   }
@@ -242,7 +286,7 @@ export const sendRefusal = (
 
 const errorOf = async (res: Response): Promise<string> => {
   const body = await readJson(res).catch(() => undefined);
-  return isObject(body) && isString(body.error) ? body.error : `the registry answered ${res.status}`;
+  return isObject(body) && isString(body.error) ? userFacingError(body.error) : `the registry answered ${res.status}`;
 };
 const unreachable = 'could not reach the VeilCore registry; check your connection and try again';
 
@@ -286,6 +330,8 @@ export type ResultList = {
    * breeder looks up its public fingerprint to find the lab's receipt for THIS delivery.
    */
   readonly receivedRecord?: string;
+  /** The lab's receipt tied to this delivery (the sender's view), when there is one. */
+  readonly receiptAttestationId?: string;
 };
 
 /** The results on a delivery (sender or receiver), withdrawn ones included. */
@@ -305,6 +351,7 @@ export const listResults = async (transferId: string): Promise<ResultList | { er
   return {
     results: body.results.filter(isSummary).map(normalise),
     ...(isString(body.receivedRecord) ? { receivedRecord: body.receivedRecord } : {}),
+    ...(isString(body.receiptAttestationId) ? { receiptAttestationId: body.receiptAttestationId } : {}),
   };
 };
 

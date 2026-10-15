@@ -54,6 +54,7 @@ import { SignReceiptPanel } from './ClaimTransfer';
 import { WaitingDeliveries } from './SendToLab';
 import { useRole, isBreeder, isLab } from '../veilcore/role';
 import { utcStamp as fmt } from '../veilcore/time';
+import { LAB_RESULTS_ENABLED } from '../config/network';
 
 type Mode =
   | 'overview'
@@ -274,7 +275,7 @@ export const RecordDetail: React.FC = () => {
                 />
               )}
               <ActionRow section="prove" label="Certificate" onClick={() => setMode('cert')} />
-              {record.receivedFrom && record.transferId && (
+              {LAB_RESULTS_ENABLED && record.receivedFrom && record.transferId && (
                 <ActionRow
                   section="send"
                   label="Send results back to the breeder"
@@ -287,6 +288,14 @@ export const RecordDetail: React.FC = () => {
                   section="send"
                   label="Sign receipt"
                   hint="Sign that this sample arrived, or turn it away"
+                  onClick={() => setMode('signReceipt')}
+                />
+              )}
+              {received && labReceipt?.kind === 'signed' && !labReceipt.linked && (
+                <ActionRow
+                  section="send"
+                  label="Link your receipt"
+                  hint="Your receipt is signed; link it to the delivery so the breeder sees it"
                   onClick={() => setMode('signReceipt')}
                 />
               )}
@@ -404,7 +413,7 @@ export const RecordDetail: React.FC = () => {
                   </Stack>
                 </Paper>
                 <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
-                  <AttestationPanel record={record} />
+                  <AttestationPanel record={record} receipt={received ? undefined : breederReceipt} />
                 </Paper>
                 <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
                   <SettlementStatus record={record} />
@@ -471,9 +480,9 @@ export const RecordDetail: React.FC = () => {
               />
             )}
             {mode === 'sendResults' && (
-              <SendResultsPanel record={record} onDone={back} onSignReceipt={() => setMode('signReceipt')} />
+              <SendResultsPanel record={record} onSignReceipt={() => setMode('signReceipt')} />
             )}
-            {mode === 'signReceipt' && <SignReceiptPanel record={record} onDone={back} />}
+            {mode === 'signReceipt' && <SignReceiptPanel record={record} receipt={labReceipt} onDone={back} />}
             {mode === 'cert' && <Step3Certificate recordId={record.id} onBack={back} onDone={back} />}
             {mode === 'check' && <Step4CheckReport onBack={back} onRestart={back} />}
             {mode === 'share' && <Step5ProveDisclosure recordId={record.id} onBack={back} onDone={back} />}

@@ -51,8 +51,8 @@ const META: Record<AttentionState, { label: string; why: string }> = {
     why: 'A record you signed alone is weaker than one a lab confirms they received.',
   },
   'in-transit': {
-    label: 'Out on transfer',
-    why: 'Sent, but the recipient hasn’t entered the transfer code yet.',
+    label: 'Sent, waiting for the lab',
+    why: 'Sent, but the recipient hasn’t entered the lab code yet.',
   },
   complete: {
     label: 'Complete',
