@@ -36,6 +36,13 @@ import { TrustPanel } from '../TrustPanel';
 import { RegistryExportButton } from '../RegistryExportButton';
 import { draftHeading, loadDraft } from './log-flow-state';
 import { homeStatusLine } from './plant-status-words';
+import {
+  datingCardLine,
+  datingHomeStatus,
+  homeList,
+  isLabReportRecord,
+  keysOnlyHereSubject,
+} from '../stage/record-kinds';
 
 export const AppHome: React.FC = () => {
   const records = useRecords();
@@ -55,9 +62,15 @@ export const AppHome: React.FC = () => {
   const unbacked = REAL_CHAIN ? keysWithoutBackup() : [];
   const labOnly = isLab(role) && !isBreeder(role);
   const lab = isLab(role);
+  // Plants as cards; a record that dates a lab report shows under its plant, not as a plant.
+  const { cards, datingsOf } = homeList(records);
   const visible = sortRecords(
-    records.filter((r) => matchesQuery(r, query)),
+    cards.filter((r) => matchesQuery(r, query)),
     sort,
+  );
+  const keysOnlyHere = keysOnlyHereSubject(
+    unbacked.map((k) => k.recordId),
+    records,
   );
   // A breeder's plants with a lab report waiting; a lab's received samples at a glance.
   const waiting = useWaitingByRecord(isBreeder(role) && records.some((r) => !r.receivedFrom));
@@ -84,7 +97,7 @@ export const AppHome: React.FC = () => {
     const key = holderKeyIfAny();
     const keysWarning =
       unbacked.length > 0
-        ? `\n\n${unbacked.length} plant${unbacked.length === 1 ? ' has' : 's have'} keys with no checked backup. Save your backup first: clearing the browser later would lose them for good.`
+        ? `\n\n${keysOnlyHere} keys with no checked backup. Save your backup first: clearing the browser later would lose them for good.`
         : '';
     if (
       window.confirm(
@@ -231,33 +244,42 @@ export const AppHome: React.FC = () => {
               </Button>
             }
           >
-            <b>Finish: save your backup.</b> {unbacked.length === 1 ? 'A plant has' : `${unbacked.length} plants have`}{' '}
-            keys only on this device.
+            <b>Finish: save your backup.</b> {keysOnlyHere} keys only on this device.
           </Alert>
         )}
 
         {isLab(role) && labPanel('h2')}
 
         {/* A lab looks samples up by its own number or the breeder: search from 3. */}
-        {records.length >= (lab ? 3 : 5) && (
+        {cards.length >= (lab ? 3 : 5) && (
           <RecordFinder
             query={query}
             onQuery={setQuery}
             sort={sort}
             onSort={setSort}
-            showSearch={records.length >= (lab ? 3 : 8)}
+            showSearch={cards.length >= (lab ? 3 : 8)}
             matched={visible.length}
-            total={records.length}
+            total={cards.length}
             lab={lab}
           />
         )}
 
         <Stack spacing={1.25}>
           {visible.map((r) => {
-            const s =
-              lab && r.receivedFrom
+            const own = isLabReportRecord(r);
+            const s = own
+              ? (() => {
+                  const d = datingHomeStatus(r, keys[r.id], REAL_CHAIN);
+                  return { text: `${datingCardLine(r)} · ${d.text}`, unfinished: d.unfinished };
+                })()
+              : lab && r.receivedFrom
                 ? { text: labCardLine(r, labFacts[r.id]), unfinished: false }
                 : homeStatusLine(r, keys[r.id], { realChain: REAL_CHAIN, queued: imported.has(r.id) });
+            const datings = (datingsOf.get(r.id) ?? []).map((d) => ({
+              id: d.id,
+              ...datingHomeStatus(d, keys[d.id], REAL_CHAIN),
+            }));
+            const unfinished = s.unfinished || datings.some((d) => d.unfinished);
             const reportWaiting = (waiting[r.id]?.length ?? 0) > 0;
             return (
               <Paper
@@ -266,7 +288,7 @@ export const AppHome: React.FC = () => {
                 sx={{
                   p: 2,
                   cursor: 'pointer',
-                  borderColor: s.unfinished ? 'warning.main' : undefined,
+                  borderColor: unfinished ? 'warning.main' : undefined,
                   '&:hover, &:focus-visible': { borderColor: 'primary.main', outline: 'none' },
                 }}
               >
@@ -284,6 +306,19 @@ export const AppHome: React.FC = () => {
                     >
                       {s.text}
                     </Typography>
+                    {datings.map((d) => (
+                      <Typography
+                        key={d.id}
+                        variant="body2"
+                        data-home-dated={d.id}
+                        sx={{
+                          color: d.unfinished ? 'warning.main' : 'text.secondary',
+                          fontWeight: d.unfinished ? 700 : 400,
+                        }}
+                      >
+                        {d.text}
+                      </Typography>
+                    ))}
                     {lab && r.receivedFrom && (r.quantity || r.deliveryNote) && (
                       <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
                         {[quantityPhrase(r.quantity), r.deliveryNote && `“${r.deliveryNote}”`]

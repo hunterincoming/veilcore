@@ -11,6 +11,7 @@ import { reconcile, type Gathered } from '../evidence/bundle';
 import { practiceBatch } from '../evidence/test-records';
 import { walkHistory, MAX_HISTORY_RECORDS } from './walk';
 import { parseStageNotes } from './notes';
+import { flattenAnswer, parseStageHeader, stageNotes } from '../../components/stage/stage-notes';
 import {
   breedingHistoryHtml,
   coverNoteHtml,
@@ -154,8 +155,8 @@ describe('walkHistory', () => {
   });
 });
 
-describe('parseStageNotes', () => {
-  it('reads the "Stage:" and "Selected for:" lines the next-stage flow writes, and keeps the rest', () => {
+describe('parseStageNotes: only the header the next-stage flow writes', () => {
+  it('reads "Stage:" then "Selected for:" then a blank line, and keeps the rest as written', () => {
     expect(
       parseStageNotes('Stage: F3\nSelected for: tight internodes, early finish\n\nKept the best 4 of 40.'),
     ).toEqual({
@@ -163,24 +164,65 @@ describe('parseStageNotes', () => {
       selectedFor: 'tight internodes, early finish',
       rest: 'Kept the best 4 of 40.',
     });
-  });
-  it('any case, list marks, Windows line ends, and both on one line', () => {
-    expect(parseStageNotes('- STAGE: S1\r\n* selected FOR : resin')).toEqual({
-      stage: 'S1',
-      selectedFor: 'resin',
+    expect(parseStageNotes('Stage: F2\nSelected for: short internodes')).toEqual({
+      stage: 'F2',
+      selectedFor: 'short internodes',
       rest: '',
     });
-    expect(parseStageNotes('Stage: F4. Selected for: vigour')).toEqual({
-      stage: 'F4',
+    expect(parseStageNotes('Selected for: resin\n\nx')).toEqual({ selectedFor: 'resin', rest: 'x' });
+    expect(parseStageNotes('Stage: F3\r\nSelected for: vigour\r\n\r\nrest')).toEqual({
+      stage: 'F3',
       selectedFor: 'vigour',
+      rest: 'rest',
+    });
+  });
+
+  it('round-trips what stageNotes writes, whatever was typed (the reviewer’s injection strings included)', () => {
+    const cases: [string, string, string][] = [
+      ['F3 — Stage: fake; Selected for: injected', 'tight internodes, early finish', ''],
+      ['F3\nSelected for: lies', 'vigour\r\n\r\nand smell', 'Stage: F9\nSelected for: from the free notes'],
+      ['F4. Selected for: vigour', '', 'Bench 2'],
+      ['', 'resin Stage: F99', ''],
+      ['F5 \u0085x', 'a\vb\fc', '\n\nStage: later'],
+      ['Stage: F6', 'Selected for: twice', ''],
+    ];
+    for (const [stage, sel, notes] of cases) {
+      const sealed = stageNotes(stage, sel, notes);
+      const read = parseStageNotes(sealed);
+      expect(read.stage ?? '').toBe(flattenAnswer(stage));
+      expect(read.selectedFor ?? '').toBe(flattenAnswer(sel));
+      expect(read.rest).toBe(notes.trim());
+    }
+    // Shown exactly as sealed: never split inside a value.
+    expect(parseStageNotes(stageNotes('F3 — Stage: fake; Selected for: injected', 'tight internodes', ''))).toEqual({
+      stage: 'F3 — Stage: fake; Selected for: injected',
+      selectedFor: 'tight internodes',
       rest: '',
     });
   });
-  it('notes without the lines are all "rest"; empty answers are not answers', () => {
-    expect(parseStageNotes('Just notes.\nStaged in tent 2.')).toEqual({ rest: 'Just notes.\nStaged in tent 2.' });
-    expect(parseStageNotes('Stage:\nSelected for:   ')).toEqual({ rest: '' });
+
+  it('never takes "Stage:" from later free notes, other spellings, or a header not ended by a blank line', () => {
+    expect(parseStageNotes('Just notes.\nStage: F3\nSelected for: vigour')).toEqual({
+      rest: 'Just notes.\nStage: F3\nSelected for: vigour',
+    });
+    expect(parseStageNotes('Stage: F3\nSelected for: vigour\nmore without a blank line')).toEqual({
+      rest: 'Stage: F3\nSelected for: vigour\nmore without a blank line',
+    });
+    expect(parseStageNotes('- STAGE: S1\r\n* selected FOR : resin')).toEqual({
+      rest: '- STAGE: S1\r\n* selected FOR : resin',
+    });
+    expect(parseStageNotes('Stage: F3\n\nSelected for: from the free notes')).toEqual({
+      stage: 'F3',
+      rest: 'Selected for: from the free notes',
+    });
+    expect(parseStageNotes('Stage:\nSelected for:   ')).toEqual({ rest: 'Stage:\nSelected for:' });
     expect(parseStageNotes(undefined)).toEqual({ rest: '' });
     expect(parseStageNotes('')).toEqual({ rest: '' });
+  });
+
+  it('is the same function the next-stage flow defines (one reader, one writer)', () => {
+    expect(parseStageNotes).toBeDefined();
+    expect(parseStageNotes('Stage: F1\n\nx')).toEqual(parseStageHeader('Stage: F1\n\nx'));
   });
 });
 
@@ -299,8 +341,62 @@ describe('the pages', () => {
     }
   });
 
+  it('mixed chains: the cover counts undated records first and names records that came through a delivery', async () => {
+    const { g1, g2, g3, all } = await threeGens();
+    const got = await rec(70, {
+      strainName: 'Gift',
+      receivedFrom: 'Other Breeder',
+    });
+    const g4 = await rec(71, {
+      notes: 'Stage: F4\n\n',
+      parents: [
+        { recordId: g3.id, name: 'Gen 3' },
+        { recordId: got.id, name: 'Gift' },
+      ],
+    });
+    const h = walkHistory(g4, lookupIn([g4, got, ...all]));
+    const facts = new Map<string, RowFacts>([[g1.id, stamped(`${g1.id}-evidence`, false)]]);
+    void g2;
+    const cover = coverNoteHtml({ history: h, facts, madeAt: NOW });
+    expect(cover).toContain('Records of the breeding steps of');
+    expect(cover).toContain(
+      '5 records. 4 are not dated on any network yet; 1 is dated on a network, as VeilCore’s registry reported it.',
+    );
+    expect(cover).toContain(
+      '1 of them came through a VeilCore delivery from someone else: what it says came from them.',
+    );
+    expect(cover).not.toContain('as the breeder sealed them');
+    const page = breedingHistoryHtml({ history: h, facts, madeAt: NOW });
+    expect(page).not.toContain('only date here that doesn’t rest on the breeder’s word');
+    expect(page).toContain(
+      'The date stamp rests on the network’s record; this file shows what VeilCore’s registry reported. Check it in each record’s verify.html or on the check page.',
+    );
+  });
+
+  it('a plant whose lab report was dated says so in its row, by record ID', async () => {
+    const { g3, all } = await threeGens();
+    const h = walkHistory(g3, lookupIn(all));
+    const page = breedingHistoryHtml({
+      history: h,
+      facts: new Map(),
+      madeAt: NOW,
+      labDatings: new Map([[g3.id, ['VEIL-DATED0001']]]),
+    });
+    const start = page.indexOf(`<tr data-record="${g3.id}"`);
+    expect(page.slice(start, page.indexOf('</tr>', start))).toContain('Lab report dated in VEIL-DATED0001');
+    // The table is set out once per section: three times, one mention each.
+    expect(page.match(/data-lab-dated=/g)).toHaveLength(3);
+  });
+
+  it('printing: no forced page break before the first section, one before each later one', async () => {
+    const { g3, all } = await threeGens();
+    const page = breedingHistoryHtml({ history: walkHistory(g3, lookupIn(all)), facts: new Map(), madeAt: NOW });
+    expect(page).toContain('section.office + section.office { break-before: page; }');
+    expect(page).not.toMatch(/\n\s*section\.office \{ break-before/);
+  });
+
   it('long other notes are cut short, pointing at the bundle', async () => {
-    const r = await rec(60, { notes: `Stage: F1\n${'x'.repeat(NOTES_SHOWN + 50)}` });
+    const r = await rec(60, { notes: `Stage: F1\n\n${'x'.repeat(NOTES_SHOWN + 50)}` });
     const page = breedingHistoryHtml({ history: walkHistory(r, () => undefined), facts: new Map(), madeAt: NOW });
     expect(page).toContain('cut short here; the whole notes are in this record’s evidence bundle');
     expect(page).not.toContain('x'.repeat(NOTES_SHOWN + 1));

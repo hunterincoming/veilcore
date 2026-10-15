@@ -9,7 +9,7 @@ import LockIcon from '@mui/icons-material/LockOutlined';
 import { Link as RouterLink, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/DataObjectOutlined';
-import { useRecords, getRecord, exportEnvelope, childrenOf } from '../veilcore/records';
+import { useRecords, getRecord, exportEnvelope, childrenOf, allRecords } from '../veilcore/records';
 import { useRecordKeys } from '../veilcore/record-keys';
 import { ProveOwnershipPanel } from './chain/ProveOwnershipPanel';
 import { BackupStep } from './flow/BackupStep';
@@ -19,13 +19,23 @@ import { PRACTICE_LABEL } from '../config/copy';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { useLicenses, licensesForRecord, activeLicenseCount, agreementType } from '../veilcore/licenses';
+import {
+  useLicenses,
+  licensesForRecord,
+  activeLicenseCount,
+  agreementType,
+  allLicenses,
+  createsHeritableObligation,
+} from '../veilcore/licenses';
 import { shortFingerprint } from '../veilcore/commitment';
 import { StatusChain } from './StatusChain';
 import { LineageGraph } from './LineageGraph';
 import { HeritableRights } from './HeritableRights';
 import { NextStep } from './NextStep';
 import { StageRows } from './stage/StageRows';
+import { LabReportOverview } from './stage/LabReportOverview';
+import { isLabReportRecord } from './stage/record-kinds';
+import { upstreamOwnRoyalties } from './stage/self-chain';
 import { SettlementStatus } from './SettlementStatus';
 import { EvidenceBundle, DOWNLOAD_EVIDENCE_LABEL } from './EvidenceBundle';
 import { BreedingHistory } from './history/BreedingHistory';
@@ -174,6 +184,15 @@ export const RecordDetail: React.FC = () => {
   };
   const licenses = licensesForRecord(record.id);
   const hasFamily = (record.parents?.length ?? 0) > 0 || childrenOf(record.id).length > 0;
+  const datesReport = isLabReportRecord(record);
+  // A later stage of the breeder's own line shows the obligations panel when a record
+  // upstream carries an offspring royalty, even with no agreement of its own.
+  const upstreamRoyalty =
+    upstreamOwnRoyalties(record, allRecords(), (rid) =>
+      allLicenses().filter(
+        (l) => l.recordId === rid && l.state === 'active' && createsHeritableObligation(l.type, l.terms),
+      ),
+    ).length > 0;
 
   return (
     <Box sx={{ maxWidth: 680, mx: 'auto' }}>
@@ -192,7 +211,17 @@ export const RecordDetail: React.FC = () => {
         </Typography>
       </Box>
 
-      {mode === 'overview' && (
+      {/* A record that dates a lab report is not a plant: its own short page (components/stage). */}
+      {mode === 'overview' && datesReport && (
+        <LabReportOverview
+          record={record}
+          keys={keys}
+          onShare={() => setMode('share')}
+          onBackup={() => setMode('backup')}
+        />
+      )}
+
+      {mode === 'overview' && !datesReport && (
         <Stack spacing={2.5}>
           {/* A superseded record must say so. Someone opening it years later needs to
               know a correction exists, and a correcting record needs to point back. */}
@@ -464,7 +493,7 @@ export const RecordDetail: React.FC = () => {
                 {/* Every other panel answers "what is true now". A dispute asks "what
                     happened, and in what order". */}
                 <RecordHistory record={record} />
-                {licenses.length > 0 && (
+                {(licenses.length > 0 || upstreamRoyalty) && (
                   <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
                     <HeritableRights record={record} />
                   </Paper>
@@ -552,12 +581,18 @@ export const RecordDetail: React.FC = () => {
             {mode === 'cert' && <Step3Certificate recordId={record.id} onBack={back} onDone={back} saved={saved} />}
             {mode === 'check' && <Step4CheckReport onBack={back} onRestart={back} />}
             {mode === 'share' && (
-              <Step5ProveDisclosure recordId={record.id} onBack={back} onDone={back} saved={saved} />
+              <Step5ProveDisclosure
+                recordId={record.id}
+                onBack={back}
+                onDone={back}
+                saved={saved}
+                {...(datesReport ? { backLabel: 'Back to the record' } : {})}
+              />
             )}
             {mode === 'backup' && (
               <BackupStep
                 title="Save your backup"
-                finishLabel="Back to the plant"
+                finishLabel={datesReport ? 'Back to the record' : 'Back to the plant'}
                 onDone={back}
                 headingComponent="h2"
               />

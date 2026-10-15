@@ -8,7 +8,7 @@
 
 import type { ParentRef, StrainRecord } from '../../veilcore/records';
 import type { SealInput } from '../../veilcore/seal-record';
-import { stageNotes } from '../stage/stage-notes';
+import { parseStageHeader, stageNotes } from '../stage/stage-notes';
 
 export const DRAFT_KEY = 'veilcore.log-draft.v1';
 
@@ -135,12 +135,13 @@ export const sealInputOf = (draft: Draft): SealInput => ({
 
 /**
  * The first screen of the next generation or selection of a plant: this plant as its linked
- * parent (the way the parents box links a logged plant), its name, breeder and species
- * carried over to edit, today's date, and the stage questions empty.
+ * parent (the way the parents box links a logged plant), its breeder and species carried
+ * over to edit, today's date. The name, "How it was made" and the stage questions start
+ * empty: they are this stage's, not the parent's. The name box suggests one as a
+ * placeholder only (nextStageNamePlaceholder), never as text that would be sealed unread.
  */
 export const nextStageDraft = (parent: Pick<StrainRecord, 'id' | 'strainName' | 'bredBy' | 'taxon'>): Draft => ({
   ...emptyDraft(),
-  strainName: parent.strainName,
   bredBy: parent.bredBy,
   taxon: parent.taxon ?? '',
   parents: [{ recordId: parent.id, name: parent.strainName }],
@@ -149,30 +150,79 @@ export const nextStageDraft = (parent: Pick<StrainRecord, 'id' | 'strainName' | 
   selectedFor: '',
 });
 
-export const loadDraft = (): Draft | undefined => {
+/**
+ * The name box's placeholder for a next stage: "e.g. Harbour Mist F3" when the parent's
+ * generation is known (its sealed "Stage: F2", or a name ending in F2), else
+ * "e.g. Harbour Mist, next selection".
+ */
+export const nextStageNamePlaceholder = (parent: Pick<StrainRecord, 'strainName' | 'notes'>): string => {
+  const name = parent.strainName.trim();
+  const fromStage = /^F(\d{1,2})$/i.exec(parseStageHeader(parent.notes).stage ?? '');
+  const fromName = /^(.*?)\s*\bF(\d{1,2})$/i.exec(name);
+  if (fromStage) {
+    const base = fromName ? fromName[1] : name;
+    return `e.g. ${base} F${Number(fromStage[1]) + 1}`;
+  }
+  if (fromName) return `e.g. ${fromName[1]} F${Number(fromName[2]) + 1}`;
+  return `e.g. ${name}, next selection`;
+};
+
+/**
+ * Where a draft is kept. A plant logged from scratch (/new) and the next stage of a plant
+ * (/new?next=<its id>) are kept apart, each next stage under its parent's id: starting a next
+ * stage never replaces a plant half-logged (recheck 6: "Add the next generation" silently
+ * replaced an unsaved draft).
+ */
+export const draftKeyFor = (nextOf?: string): string => (nextOf ? `${DRAFT_KEY}.next.${nextOf}` : DRAFT_KEY);
+
+export const loadDraft = (nextOf?: string): Draft | undefined => {
   try {
-    return parseDraft(localStorage.getItem(DRAFT_KEY));
+    return parseDraft(localStorage.getItem(draftKeyFor(nextOf)));
   } catch {
     return undefined;
   }
 };
 
-export const saveDraft = (d: Draft): void => {
+export const saveDraft = (d: Draft, nextOf?: string): void => {
   try {
-    if (draftHasContent(d)) localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
-    else localStorage.removeItem(DRAFT_KEY);
+    if (draftHasContent(d)) localStorage.setItem(draftKeyFor(nextOf), JSON.stringify(d));
+    else localStorage.removeItem(draftKeyFor(nextOf));
   } catch {
     /* a browser that keeps nothing: the draft lives only on this screen */
   }
 };
 
-export const clearDraft = (): void => {
+export const clearDraft = (nextOf?: string): void => {
   try {
-    localStorage.removeItem(DRAFT_KEY);
+    localStorage.removeItem(draftKeyFor(nextOf));
   } catch {
     /* nothing kept, nothing to clear */
   }
 };
+
+/**
+ * How the next stage of `parent` starts:
+ *   - its own draft, if one is kept (picking up where they left off);
+ *   - the plain draft, if that already is this plant's next stage (kept by an older version
+ *     of the site under the plain key): it moves to its own key (`adopt`);
+ *   - a fresh one. If a different plant is half-logged, `conflict` names it: the screen asks
+ *     before going on, and that draft is never touched.
+ */
+export const nextStageStart = (
+  parent: Pick<StrainRecord, 'id' | 'strainName' | 'bredBy' | 'taxon'>,
+  plain: Draft | undefined,
+  own: Draft | undefined,
+): { draft: Draft; resumed: boolean; adopt?: true; conflict?: Draft } => {
+  if (own) return { draft: own, resumed: true };
+  if (plain?.stageOf === parent.id) return { draft: plain, resumed: true, adopt: true };
+  const fresh = nextStageDraft(parent);
+  if (plain && draftHasContent(plain)) return { draft: fresh, resumed: false, conflict: plain };
+  return { draft: fresh, resumed: false };
+};
+
+/** The question when a different plant is half-logged: its name, or that it has none yet. */
+export const unsavedPlantLine = (d: Draft): string =>
+  `You have an unsaved plant: ${d.strainName.trim() || '(no name yet)'}.`;
 
 // ---------------------------------------------------------------------------------------
 

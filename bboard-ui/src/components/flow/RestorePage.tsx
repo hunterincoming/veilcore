@@ -7,7 +7,8 @@ import { Alert, Box, Button, CircularProgress, Collapse, Stack, TextField, Typog
 import { Link as RouterLink } from 'react-router-dom';
 import DoneIcon from '@mui/icons-material/CheckCircle';
 import { restoreAny, type RestoreResult } from '../../veilcore/backup';
-import { hydrate } from '../../veilcore/records';
+import { allRecords, hydrate } from '../../veilcore/records';
+import { restoredKeysLine } from '../stage/record-kinds';
 import { holderKeyIfAny, setHolderKey } from '../../veilcore/holder';
 import { AppHeader } from '../AppHeader';
 import { FlowFrame, ScreenHeading } from './FlowFrame';
@@ -90,7 +91,9 @@ export const RestorePage: React.FC = () => {
                 </Typography>
               </Stack>
               <Typography variant="body1" color="text.secondary">
-                {done.records > 0 ? `Keys for ${done.records} plant${done.records === 1 ? '' : 's'} restored. ` : ''}
+                {done.records > 0
+                  ? `${restoredKeysLine(done.recordIds ?? Array.from({ length: done.records }, () => ''), allRecords())} `
+                  : ''}
                 {done.labSignature ? "Your lab's signature is back too. " : ''}
                 {labWork(done) ? `${labWork(done)} restored. ` : ''}
                 Everything works like before.

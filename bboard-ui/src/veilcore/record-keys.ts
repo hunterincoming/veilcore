@@ -119,9 +119,48 @@ const readAll = (): Record<string, RecordKeys> => {
   }
 };
 
-const writeAll = (all: Record<string, RecordKeys>): boolean => {
+/** What is stored right now, nothing from memory: what another tab wrote a moment ago included. */
+const readStored = (): Record<string, RecordKeys> => {
   try {
-    localStorage.setItem(KEY, JSON.stringify(all));
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const out: Record<string, RecordKeys> = {};
+    for (const [id, v] of Object.entries(parsed)) if (isKeys(v)) out[id] = v;
+    return out;
+  } catch {
+    return {};
+  }
+};
+
+/**
+ * What a write may store, given what is stored at that moment. Keys are never lost or
+ * replaced by a write that didn't mean to: two tabs each read the whole set, added their own
+ * record's keys and wrote the whole set back, and the later write dropped the earlier tab's
+ * new key (recheck 6: two records sealed for one lab report, one left with no key). So:
+ *   - an entry stored now that the write doesn't name is kept (unless it is the one being forgotten);
+ *   - an entry stored now is kept, unchanged, if the write would give that record other secrets;
+ *   - an entry filed under another record's id is never written.
+ * Same secrets: the write's version wins (an anchor, a pairing, a backup mark).
+ */
+export const mergeForWrite = (
+  stored: Readonly<Record<string, RecordKeys>>,
+  next: Readonly<Record<string, RecordKeys>>,
+  forget?: string,
+): Record<string, RecordKeys> => {
+  const out: Record<string, RecordKeys> = {};
+  for (const [id, k] of Object.entries(next)) if (k.recordId === id && id !== forget) out[id] = k;
+  for (const [id, k] of Object.entries(stored)) {
+    if (id === forget) continue;
+    const mine = out[id];
+    if (!mine || mine.recordSecret !== k.recordSecret || mine.recoverySecret !== k.recoverySecret) out[id] = k;
+  }
+  return out;
+};
+
+const writeAll = (all: Record<string, RecordKeys>, forget?: string): boolean => {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(mergeForWrite(readStored(), all, forget)));
     return true;
   } catch {
     return false;
@@ -161,7 +200,8 @@ export const ensureKeys = (recordId: string, now = Date.now()): RecordKeys => {
   const next = { ...all, [recordId]: keys };
   if (!writeAll(next)) sessionOnly = { ...sessionOnly, [recordId]: keys };
   changed();
-  return keys;
+  // What is stored is what counts: never hand back keys the store didn't keep.
+  return readAll()[recordId] ?? keys;
 };
 
 /**
@@ -345,7 +385,7 @@ export const forgetKeys = (recordId: string): void => {
   const { [recordId]: _dropped, ...rest } = sessionOnly;
   void _dropped;
   sessionOnly = rest;
-  writeAll(all);
+  writeAll(all, recordId);
   changed();
 };
 
@@ -353,6 +393,13 @@ const subscribe = (l: () => void): (() => void) => {
   listeners.add(l);
   return () => listeners.delete(l);
 };
+
+// Another tab saved or forgot keys: show what is stored now.
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  window.addEventListener('storage', (e: StorageEvent) => {
+    if (e.key === KEY || e.key === null) changed();
+  });
+}
 
 /** React: the keys this browser holds, by record id. */
 export const useRecordKeys = (): Record<string, RecordKeys> => useSyncExternalStore(subscribe, () => snapshot);

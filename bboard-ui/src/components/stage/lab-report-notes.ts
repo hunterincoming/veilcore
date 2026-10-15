@@ -47,7 +47,7 @@ export const parseLabReportNotes = (notes: string | undefined): LabReportFacts |
 };
 
 /** A record that dates a lab report, not a plant: method "Lab report" and the notes above. */
-export const isLabReportRecord = (r: Pick<StrainRecord, 'breedingMethod' | 'notes' | 'parents'>): boolean =>
+export const isLabReportRecord = (r: Partial<Pick<StrainRecord, 'breedingMethod' | 'notes' | 'parents'>>): boolean =>
   r.breedingMethod === LAB_REPORT_METHOD && (r.parents?.length ?? 0) === 1 && !!parseLabReportNotes(r.notes);
 
 /** The record already dating this report on this plant, if there is one (the newest, if ever two). */

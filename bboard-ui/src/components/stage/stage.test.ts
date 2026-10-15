@@ -12,11 +12,23 @@ import { checkIntegrity, type StrainRecord } from '../../veilcore/records';
 import { sealRecord } from '../../veilcore/seal-record';
 import { __resetRecordKeysForTests, keysFor } from '../../veilcore/record-keys';
 import type { SavedReport } from '../../veilcore/saved-report';
-import { DRAFT_KEY, loadDraft, nextStageDraft, saveDraft, sealInputOf } from '../flow/log-flow-state';
+import {
+  DRAFT_KEY,
+  clearDraft,
+  draftKeyFor,
+  loadDraft,
+  nextStageDraft,
+  nextStageNamePlaceholder,
+  saveDraft,
+  sealInputOf,
+} from '../flow/log-flow-state';
 import { recordDateRow } from '../flow/plant-status-words';
 import {
   LAB_REPORT_METHOD,
+  SEALING_ELSEWHERE,
+  SEALING_ELSEWHERE_MS,
   dateLabReportWith,
+  datingKey,
   datedReportsOf,
   datingRecordFor,
   isLabReportRecord,
@@ -29,6 +41,7 @@ import {
 } from './lab-report-date';
 import { SEAL_EACH_STAGE, canAddNextStage, nextStagePath, stageNotes } from './stage-notes';
 import {
+  RECORDS_NOT_JUDGES,
   ancestryVerdictText,
   offspringOf,
   ownAncestorsOf,
@@ -74,10 +87,12 @@ const SHA = '3f'.repeat(32);
 describe('Add the next generation or selection: the prefilled first screen', () => {
   const parent = rec({ strainName: 'Harbour Mist F2', bredBy: 'Test Breeder', taxon: 'Cannabis sativa' });
 
-  it('links this plant as the parent (as the parents box does) and carries name, breeder and species', () => {
+  it('links this plant as the parent (as the parents box does) and carries breeder and species, not the name', () => {
     const d = nextStageDraft(parent);
     expect(d.parents).toEqual([{ recordId: parent.id, name: 'Harbour Mist F2' }]);
-    expect(d.strainName).toBe('Harbour Mist F2');
+    // The name and how it was made are this stage's: left empty, the name only suggested.
+    expect(d.strainName).toBe('');
+    expect(d.breedingMethod).toBe('');
     expect(d.bredBy).toBe('Test Breeder');
     expect(d.taxon).toBe('Cannabis sativa');
     expect(d.stageOf).toBe(parent.id);
@@ -88,11 +103,26 @@ describe('Add the next generation or selection: the prefilled first screen', () 
     expect(nextStagePath(parent.id)).toBe(`/new?next=${parent.id}`);
   });
 
-  it('is kept as typed, the stage answers included, and comes back after a reload', () => {
+  it('is kept as typed under its parent’s own key, the stage answers included, and comes back after a reload', () => {
     const d = { ...nextStageDraft(parent), strainName: 'Harbour Mist F3', stage: 'F3', selectedFor: 'vigour' };
-    saveDraft(d);
-    expect(local.has(DRAFT_KEY)).toBe(true);
-    expect(loadDraft()).toEqual(d);
+    saveDraft(d, parent.id);
+    expect(local.has(draftKeyFor(parent.id))).toBe(true);
+    expect(local.has(DRAFT_KEY)).toBe(false);
+    expect(loadDraft(parent.id)).toEqual(d);
+    expect(loadDraft()).toBeUndefined();
+    clearDraft(parent.id);
+    expect(loadDraft(parent.id)).toBeUndefined();
+  });
+
+  it('suggests a name as a placeholder only: the next F number when the parent’s is known', () => {
+    expect(nextStageNamePlaceholder(parent)).toBe('e.g. Harbour Mist F3');
+    expect(nextStageNamePlaceholder(rec({ strainName: 'Gen line', notes: 'Stage: F4\n\nKept 4.' }))).toBe(
+      'e.g. Gen line F5',
+    );
+    expect(nextStageNamePlaceholder(rec({ strainName: 'Mother' }))).toBe('e.g. Mother, next selection');
+    const flow = source('flow/LogFlow.tsx');
+    expect(flow).toContain('placeholder={namePlaceholder');
+    expect(flow).toMatch(/How was this stage made\?/);
   });
 
   it('says plainly on its first screen what a record can and cannot date', () => {
@@ -245,13 +275,26 @@ describe('Date this lab report: never twice for the same report', () => {
   const plant = rec({ strainName: 'Harbour Mist' });
   const facts = { sha: SHA, resultId: 'LR-ab12', lab: 'Test Lab' };
 
-  const harness = () => {
+  // Two tabs share the registry, the key store and the lock; each has its own list on screen.
+  const registry: StrainRecord[] = [];
+  let lockTail: Promise<unknown> = Promise.resolve();
+  const sharedLock = <T>(_name: string, fn: () => Promise<T>): Promise<T> => {
+    const run = lockTail.then(fn, fn);
+    lockTail = run.catch(() => undefined);
+    return run;
+  };
+  const marks = new Map<string, { recordId: string; at: number }>();
+  const keysHeld = new Set<string>();
+
+  const harness = (opts: { lock?: DateLabReportDeps['lock'] } = {}) => {
     const held: StrainRecord[] = [plant];
     const seal = vi.fn(async (input: Parameters<DateLabReportDeps['seal']>[0]) => {
       await new Promise((r) => setTimeout(r, 5));
+      const id = `VEIL-D${String(++n)}`;
+      keysHeld.add(id);
       return {
         ...input,
-        id: `VEIL-D${String(++n)}`,
+        id,
         nonce: '11'.repeat(32),
         keyBinding: '22'.repeat(32),
         loggedAt: n,
@@ -260,17 +303,36 @@ describe('Date this lab report: never twice for the same report', () => {
     });
     const deps: DateLabReportDeps = {
       all: () => held,
+      refresh: () => {
+        for (const r of registry) if (!held.some((h) => h.id === r.id)) held.unshift(r);
+        return Promise.resolve();
+      },
+      lock: opts.lock ?? sharedLock,
       seal,
-      create: (s) => {
+      create: async (s) => {
+        await new Promise((r) => setTimeout(r, 5));
         const r = { ...s, id: s.id } as StrainRecord;
+        registry.unshift(r);
         held.unshift(r);
         return r;
       },
-      forget: vi.fn(),
+      forget: vi.fn((id: string) => void keysHeld.delete(id)),
+      hasKeys: (id) => keysHeld.has(id),
+      marks: {
+        get: (k) => marks.get(k),
+        set: (k, v) => void marks.set(k, v),
+        clear: (k) => void marks.delete(k),
+      },
+      now: () => 1_000_000,
       today: () => '2026-10-15',
     };
     return { held, seal, deps };
   };
+  beforeEach(() => {
+    registry.length = 0;
+    marks.clear();
+    keysHeld.clear();
+  });
 
   it('two taps at once seal one record; a later tap gets the same one', async () => {
     const h = harness();
@@ -298,12 +360,44 @@ describe('Date this lab report: never twice for the same report', () => {
     expect(h.seal).toHaveBeenCalledTimes(3);
   });
 
+  it('two tabs at once seal one record: the second waits, reads the registry back and finds the first', async () => {
+    const tabA = harness();
+    const tabB = harness();
+    const [a, b] = await Promise.all([
+      dateLabReportWith(tabA.deps, plant, facts),
+      dateLabReportWith(tabB.deps, plant, facts),
+    ]);
+    expect(a.id).toBe(b.id);
+    expect(tabA.seal.mock.calls.length + tabB.seal.mock.calls.length).toBe(1);
+    expect(registry.filter((r) => isLabReportRecord(r))).toHaveLength(1);
+    expect(keysHeld.size).toBe(1);
+    expect(marks.size).toBe(0);
+  });
+
+  it('another tab sealing it moments ago, not on the registry yet: says so and seals nothing', async () => {
+    const h = harness();
+    keysHeld.add('VEIL-ELSEWHERE');
+    marks.set(datingKey(plant.id, SHA), { recordId: 'VEIL-ELSEWHERE', at: 1_000_000 - 1_000 });
+    await expect(dateLabReportWith(h.deps, plant, facts)).rejects.toThrow(SEALING_ELSEWHERE);
+    expect(h.seal).not.toHaveBeenCalled();
+    // A note from long ago, or for keys this browser doesn't hold (the tab closed mid-way), holds nobody back.
+    marks.set(datingKey(plant.id, SHA), { recordId: 'VEIL-ELSEWHERE', at: 1_000_000 - SEALING_ELSEWHERE_MS });
+    await dateLabReportWith(h.deps, plant, facts);
+    expect(h.seal).toHaveBeenCalledTimes(1);
+  });
+
+  it('the page uses the shared lock, the registry and the key store', () => {
+    const page = source('stage/DateLabReport.tsx');
+    expect(page).toContain('lock: withTabLock');
+    expect(page).toContain('refresh: hydrate');
+    expect(page).toContain('hasKeys: (id) => !!keysFor(id)');
+    expect(page).toContain('createRecordSaved(');
+  });
+
   it('a record sealed but refused on saving forgets its key and can be tried again', async () => {
     const h = harness();
     const create = h.deps.create;
-    h.deps.create = () => {
-      throw new Error('refused');
-    };
+    h.deps.create = () => Promise.reject(new Error('refused'));
     await expect(dateLabReportWith(h.deps, plant, facts)).rejects.toThrow('refused');
     expect(h.deps.forget).toHaveBeenCalledTimes(1);
     h.deps.create = create;
@@ -345,28 +439,54 @@ describe('a breeder’s own selection chain: no royalty owed to themselves, lab 
     parents: [{ recordId: f1.id, name: 'HM F1' }],
   });
   const all = [f1, f2, f3, dated, received];
-  const royaltyOnF1 = (id: string) => (id === f1.id ? [{ id: 'LIC-1' }] : []);
+  const lic = { id: 'LIC-1', terms: { licensee: 'Test Grower' } };
+  const royaltyOnF1 = (id: string) => (id === f1.id ? [lic] : []);
+  // Words that would be a legal conclusion VeilCore can't make (recheck 6).
+  const CONCLUSION = /in your favou?r|owed by|not by you|isn’t owed|you owe|unpaid/i;
 
   it('offspring leave out the records that date a lab report', () => {
     expect(offspringOf(f1.id, all).map((r) => r.strainName)).toEqual(['HM F2', 'From a friend']);
   });
 
-  it('an offspring royalty on F1 names the next generations the breeder sealed and says it is in their favour', () => {
-    expect(ownOffspringNote(f1, all)).toBe(
-      'Next generations you sealed from it yourself (HM F2): the royalty in your agreement is in your favour, owed by the other party on what they breed, not by you.',
+  it('an offspring royalty on F1: names the breeder’s own next generations and the counterparty, as facts only', () => {
+    const note = ownOffspringNote(f1, all, [lic]);
+    expect(note).toBe(
+      'This next generation is your own record: HM F2. The agreement on this plant names Test Grower; whether its royalty applies to your own records is a question for the agreement’s terms, not something VeilCore decides.',
     );
-    expect(ownOffspringNote(f3, all)).toBeUndefined();
-    expect(ownOffspringNote(received, all)).toBeUndefined();
+    expect(note).not.toMatch(CONCLUSION);
+    expect(
+      ownOffspringNote(
+        f1,
+        [...all, rec({ strainName: 'HM F2b', parents: [{ recordId: f1.id, name: 'HM F1' }] })],
+        [lic, { id: 'LIC-2', terms: { licensee: 'Other Grower' } }],
+      ),
+    ).toBe(
+      'These next generations are your own records: HM F2, HM F2b. The agreements on this plant name Test Grower and Other Grower; whether their royalties apply to your own records is a question for the agreements’ terms, not something VeilCore decides.',
+    );
+    expect(ownOffspringNote(f1, all, [])).toBeUndefined();
+    expect(ownOffspringNote(f3, all, [lic])).toBeUndefined();
+    expect(ownOffspringNote(received, all, [lic])).toBeUndefined();
   });
 
-  it('a later stage says the royalty upstream is in the breeder’s favour, not owed by them', () => {
+  it('a later stage names the agreement upstream and whom it names, without saying who owes what', () => {
     expect(ownAncestorsOf(f3, all).map((r) => r.strainName)).toEqual(['HM F2', 'HM F1']);
-    expect(upstreamOwnRoyaltyNote(f3, all, royaltyOnF1)).toBe(
-      'HM F1 upstream is a record you sealed yourself, with an offspring royalty in your favour. It isn’t owed by you on this plant.',
+    const note = upstreamOwnRoyaltyNote(f3, all, royaltyOnF1);
+    expect(note).toBe(
+      'HM F1 upstream is your own record, with an offspring royalty in an agreement. The agreement on HM F1 names Test Grower; whether its royalty applies to your own records is a question for the agreement’s terms, not something VeilCore decides.',
     );
+    expect(note).not.toMatch(CONCLUSION);
     expect(upstreamOwnRoyaltyNote(f2, all, () => [])).toBeUndefined();
     // Material that came from someone else: their line, not a self-chain.
     expect(upstreamOwnRoyaltyNote(received, all, royaltyOnF1)).toBeUndefined();
+  });
+
+  it('the panel shows on a later stage with no agreement of its own when upstream carries one', () => {
+    const page = source('RecordDetail.tsx');
+    expect(page).toMatch(/licenses\.length > 0 \|\| upstreamRoyalty/);
+    const panel = source('HeritableRights.tsx');
+    expect(panel).not.toMatch(/can&apos;t show an ancestry|free of unpaid|Obligation outstanding/);
+    expect(panel).toContain('RECORDS_NOT_JUDGES');
+    expect(RECORDS_NOT_JUDGES).toBe('The registry records obligations; it doesn’t judge who owes them.');
   });
 
   it('walks a chain that loops without hanging, and stops at a received record', () => {
@@ -381,14 +501,26 @@ describe('a breeder’s own selection chain: no royalty owed to themselves, lab 
 
   it('"Check its ancestry" says nothing upstream was checked when the registry walked no confirmed link', () => {
     expect(ancestryVerdictText({ ok: true, generationsChecked: 0 }, 1)).toBe(
-      'The registry reports no unpaid obligation on this record. It has no confirmed link to its parents, so nothing upstream was checked.',
+      'The registry reports no obligation in force on this record. It has no confirmed link to its parents, so nothing upstream was checked.',
     );
     expect(ancestryVerdictText({ ok: true, generationsChecked: 2 }, 1)).toBe(
-      'No unpaid obligations found in its declared ancestry (2 generations checked, as the registry reports).',
+      'No obligation in force found in its declared ancestry (2 generations checked, as the registry reports).',
     );
     expect(ancestryVerdictText({ ok: false, reason: 'an ancestor carries an unmet obligation' }, 1)).toBe(
       'an ancestor carries an unmet obligation',
     );
+  });
+
+  it('on a self-chain it names the breeder’s own agreements and says the registry records, not judges', () => {
+    const own = [{ name: 'HM F1', agreements: [lic] }];
+    expect(ancestryVerdictText({ ok: false, reason: 'an ancestor carries an unmet obligation' }, 1, own)).toBe(
+      'an ancestor carries an unmet obligation. Your own agreements with an offspring royalty on this line: LIC-1 on HM F1. The registry records obligations; it doesn’t judge who owes them.',
+    );
+    const quiet = ancestryVerdictText({ ok: true, generationsChecked: 0 }, 1, own);
+    expect(quiet).toContain(
+      'nothing upstream was checked. Your own agreements with an offspring royalty on this line: LIC-1 on HM F1.',
+    );
+    expect(quiet).not.toMatch(CONCLUSION);
   });
 
   it('the obligations panel and the family tree use these', () => {

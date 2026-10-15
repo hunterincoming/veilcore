@@ -161,7 +161,7 @@ describe('importing a 25-row accession log, end to end', () => {
     const inBackup = new Set(contents.records.map((e) => e.recordId));
     for (const id of ids) expect(inBackup.has(id)).toBe(true);
     const saved = { text: () => Promise.resolve(JSON.stringify(contents)) } as unknown as File;
-    expect(await tab.backup.checkBackup(saved)).toEqual({ ok: true, records: 25 });
+    expect(await tab.backup.checkBackup(saved)).toMatchObject({ ok: true, records: 25 });
     expect(tab.keys.keysWithoutBackup()).toHaveLength(0);
 
     // ── The results file: each original row, its record, fingerprint and check link ──

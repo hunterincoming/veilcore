@@ -3,13 +3,21 @@
 //
 // A breeding history is a chain of records: each stage is its own record, with the stage
 // before it as its linked parent, sealed when it happens. There are no stage fields yet,
-// so the two answers go into the notes, one line each, in a form that can be read back
-// (veilcore/breeding-history/notes.ts parseStageNotes reads the same lines):
+// so the two answers go first in the notes, as a header, then a blank line, then the rest:
 //
 //   Stage: F3
 //   Selected for: tight internodes, early finish
 //
 //   <anything else the breeder wrote>
+//
+// Written by stageNotes and read back by parseStageHeader, here, and nowhere else
+// (veilcore/breeding-history/notes.ts uses parseStageHeader). Only that header is read:
+// the first line exactly "Stage: …" and/or the next exactly "Selected for: …", ended by a
+// blank line or the end of the notes. "Stage:" further down, in the breeder's own notes,
+// is the breeder's text, never a stage (recheck 6). Each answer is flattened to one line
+// when it is written (every kind of line break becomes a space), so an answer can never
+// start a line of its own, and a value is shown exactly as sealed: never split, never
+// trimmed of anything but the spaces around it.
 //
 // Kept apart from the components so the tests load it without the UI library.
 // SPDX-License-Identifier: Apache-2.0
@@ -24,8 +32,50 @@ export const SELECTED_PROMPT = 'What did you select for?';
 export const SEAL_EACH_STAGE =
   'A record dates nothing earlier than the day it’s sealed. Seal each stage when it happens.';
 
-/** One line: a line break typed into an answer would start a line of its own and be read as something else. */
-const oneLine = (s: string | undefined): string => (s ?? '').replace(/\s*[\r\n]+\s*/g, ' ').trim();
+/**
+ * One line: a line break typed into an answer would start a line of its own and be read as
+ * something else. Every kind of line break, the ones a browser shows as one included.
+ */
+export const flattenAnswer = (s: string | undefined): string =>
+  (s ?? '').replace(/\s*[\r\n\u2028\u2029\u0085\v\f]+\s*/g, ' ').trim();
+const oneLine = flattenAnswer;
+
+const STAGE_LABEL = 'Stage: ';
+const SELECTED_LABEL = 'Selected for: ';
+
+export type StageHeader = {
+  /** What the breeder answered to "What stage is this?", as sealed. */
+  readonly stage?: string;
+  /** What the breeder answered to "What did you select for?", as sealed. */
+  readonly selectedFor?: string;
+  /** The notes after the header, as written (the whole notes when there is no header). */
+  readonly rest: string;
+};
+
+/**
+ * Read the header stageNotes writes, and only that. Anything else (no header, a header not
+ * ended by a blank line, "Stage:" anywhere but the first line) is the breeder's own notes,
+ * returned whole as `rest`.
+ */
+export const parseStageHeader = (notes: unknown): StageHeader => {
+  if (typeof notes !== 'string' || !notes) return { rest: '' };
+  const lines = notes.split(/\r\n|\r|\n/);
+  let i = 0;
+  let stage: string | undefined;
+  let selectedFor: string | undefined;
+  if (lines[i]?.startsWith(STAGE_LABEL)) stage = lines[i++].slice(STAGE_LABEL.length).trim();
+  if (lines[i]?.startsWith(SELECTED_LABEL)) selectedFor = lines[i++].slice(SELECTED_LABEL.length).trim();
+  const ended = i === lines.length || lines[i] === '';
+  if (i === 0 || !ended || (!stage && !selectedFor)) return { rest: notes.trim() };
+  return {
+    ...(stage ? { stage } : {}),
+    ...(selectedFor ? { selectedFor } : {}),
+    rest: lines
+      .slice(i + 1)
+      .join('\n')
+      .trim(),
+  };
+};
 
 /**
  * The notes a next stage is sealed with: "Stage:" and "Selected for:" first, one line each
@@ -34,8 +84,8 @@ const oneLine = (s: string | undefined): string => (s ?? '').replace(/\s*[\r\n]+
  */
 export const stageNotes = (stage: string | undefined, selectedFor: string | undefined, notes: string): string => {
   const lines = [
-    ...(oneLine(stage) ? [`Stage: ${oneLine(stage)}`] : []),
-    ...(oneLine(selectedFor) ? [`Selected for: ${oneLine(selectedFor)}`] : []),
+    ...(oneLine(stage) ? [`${STAGE_LABEL}${oneLine(stage)}`] : []),
+    ...(oneLine(selectedFor) ? [`${SELECTED_LABEL}${oneLine(selectedFor)}`] : []),
   ];
   const rest = notes.trim();
   if (!lines.length) return rest;

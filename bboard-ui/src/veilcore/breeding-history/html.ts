@@ -47,6 +47,11 @@ export type HistoryPages = {
   /** By record ID. A record with no entry is treated as not dated. */
   readonly facts: ReadonlyMap<string, RowFacts>;
   readonly madeAt: Date;
+  /**
+   * By plant record ID: the records held here that date one of its lab reports
+   * (components/stage/lab-report-date.ts). Named in the plant's row; the report isn't in this export.
+   */
+  readonly labDatings?: ReadonlyMap<string, readonly string[]>;
 };
 
 const nameOf = (n: HistoryNode): string => oneLine(n.record.strainName || '(no name)') || '(no name)';
@@ -164,6 +169,9 @@ export const stageTable = (pages: HistoryPages): string => {
       bundle && 'refused' in bundle
         ? `<span class="warn-text">No evidence bundle: ${escapeHtml(bundle.refused)}</span>`
         : '',
+      ...(pages.labDatings?.get(r.id) ?? []).map(
+        (id) => `<span data-lab-dated="${escapeHtml(id)}">Lab report dated in ${escapeHtml(id)}</span>`,
+      ),
     ]
       .filter(Boolean)
       .join('<br>');
@@ -315,7 +323,7 @@ const STYLE = `
   .blank .space { min-height: 5.5em; }
   ul { padding-left: 20px; margin: 4px 0; }
   li { margin: 2px 0; }
-  section.office { break-before: page; }
+  section.office + section.office { break-before: page; }
   @media (max-width: 640px) {
     table.stages thead, table.plain thead { display: none; }
     table.stages tr, table.stages td, table.plain tr, table.plain td { display: block; width: auto; }
@@ -400,7 +408,7 @@ export const breedingHistoryHtml = (pages: HistoryPages): string => {
     'muted',
   )}`;
   const table = `<h3>Stages, one row per record</h3>${p(
-    'Oldest generation first. The stated date, stage, what was selected for and how it was made are the breeder’s own words, sealed in the record. The date stamp is the only date here that doesn’t rest on the breeder’s word.',
+    'Oldest generation first. The stated date, stage, what was selected for and how it was made are the words sealed in each record. The date stamp rests on the network’s record; this file shows what VeilCore’s registry reported. Check it in each record’s verify.html or on the check page.',
     'muted',
   )}${stageTable(pages)}`;
   const outside = outsideTable(h.outside);
@@ -438,6 +446,7 @@ export const coverNoteHtml = (pages: HistoryPages): string => {
   const name = oneLine(h.root.strainName || '(no name)') || '(no name)';
   const made = utcWords(pages.madeAt.toISOString()) ?? pages.madeAt.toISOString();
   const { n, dated } = counts(pages);
+  const received = h.nodes.filter((x) => !!x.record.receivedFrom).length;
   const theirs = h.outside.filter((o) => o.kind === 'theirs').length;
   const named = h.outside.filter((o) => o.kind === 'named').length;
   const leftOut = h.outside.filter((o) => o.kind === 'left-out').length;
@@ -447,7 +456,7 @@ ${p(DRAFT_LINE, 'draft')}
 ${p(`Made ${made} by the VeilCore site, from the holder’s own copy of the records.`, 'muted')}
 ${datingNote(pages)}
 <h2>What this is</h2>
-${p(`Dated records of the breeding steps of ${name}, as the breeder sealed them in VeilCore, one record per step: ${n} record${n === 1 ? '' : 's'}, ${dated} of them dated on a network. Each record comes with its own evidence bundle, which anyone can check without VeilCore. An applicant may add this as supporting material (for example to US PVP Exhibit D, or as an annex to a technical questionnaire). No office requires it or has endorsed it.`)}
+${p(`Records of the breeding steps of ${name}, one record per step, from the holder’s own copy: ${n} record${n === 1 ? '' : 's'}. ${n - dated} ${n - dated === 1 ? 'is' : 'are'} not dated on any network yet; ${dated} ${dated === 1 ? 'is' : 'are'} dated on a network, as VeilCore’s registry reported it.${received ? ` ${received} of them came through a VeilCore delivery from someone else: what ${received === 1 ? 'it says' : 'they say'} came from them.` : ''} Each record comes with its own evidence bundle, which anyone can check without VeilCore. An applicant may add this as supporting material (for example to US PVP Exhibit D, or as an annex to a technical questionnaire). No office requires it or has endorsed it.`)}
 <h2>What it shows</h2>
 ${list([
   'For each record with a date stamp, once the stamp is looked up (each record’s verify.html says how): that record existed, unchanged, by that date. So the pedigree, stage and selection the breeder wrote in it existed by then.',

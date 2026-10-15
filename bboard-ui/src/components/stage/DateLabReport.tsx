@@ -7,9 +7,10 @@ import React, { useState } from 'react';
 import { Alert, Box, Button, CircularProgress, Link, Stack, Typography } from '@mui/material';
 import EventIcon from '@mui/icons-material/EventAvailableOutlined';
 import { Link as RouterLink } from 'react-router-dom';
-import { allRecords, createRecord, useRecords, type StrainRecord } from '../../veilcore/records';
-import { sealRecord } from '../../veilcore/seal-record';
-import { forgetKeys } from '../../veilcore/record-keys';
+import { allRecords, createRecordSaved, hydrate, useRecords, type StrainRecord } from '../../veilcore/records';
+import { sealRecord, type SealedRecord } from '../../veilcore/seal-record';
+import { forgetKeys, keysFor } from '../../veilcore/record-keys';
+import { withTabLock } from '../../veilcore/tab-lock';
 import type { SavedReport } from '../../veilcore/saved-report';
 import { useRecordDate } from '../verify/useAnchorCheck';
 import { recordDateRow } from '../flow/plant-status-words';
@@ -20,7 +21,30 @@ import {
   datingRecordFor,
   labReportDatedLine,
   labReportFacts,
+  localMarks,
+  type DateLabReportDeps,
 } from './lab-report-date';
+
+/** Saved and answered by the registry; a refusal throws, so nothing half-made is shown. */
+const createAndSave = async (sealed: SealedRecord): Promise<StrainRecord> => {
+  const { record, result } = await createRecordSaved(sealed);
+  const refused = result.refused.find((r) => r.id === record.id || r.id === '*');
+  if (refused) throw new Error(`The registry didn’t save it (${refused.reason}). Nothing was dated. Try again.`);
+  return record;
+};
+
+const DEPS: DateLabReportDeps = {
+  all: allRecords,
+  refresh: hydrate,
+  lock: withTabLock,
+  seal: sealRecord,
+  create: createAndSave,
+  forget: forgetKeys,
+  hasKeys: (id) => !!keysFor(id),
+  marks: localMarks,
+  now: Date.now,
+  today,
+};
 
 const PREFIX = 'Lab report dated: in ';
 
@@ -60,11 +84,7 @@ export const DateLabReport: React.FC<{
     setBusy(true);
     setError(undefined);
     try {
-      await dateLabReportWith(
-        { all: allRecords, seal: sealRecord, create: createRecord, forget: forgetKeys, today },
-        record,
-        facts,
-      );
+      await dateLabReportWith(DEPS, record, facts);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {

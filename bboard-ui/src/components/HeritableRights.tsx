@@ -10,8 +10,10 @@
 // ancestry, never the terms, never the genetics.
 //
 // A breeder's own selection chain (F1, then F2 sealed with F1 as its parent) must not read
-// as royalties owed to themselves: the panel names their own next generations and says a
-// royalty in their own agreement is in their favour (components/stage/self-chain.ts).
+// as royalties owed to themselves, and VeilCore must not decide that either way: the panel
+// says, as facts, which records are their own, which agreement the royalty is in and whom it
+// names, and that the registry records obligations without judging them
+// (components/stage/self-chain.ts).
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
@@ -23,7 +25,13 @@ import BlockIcon from '@mui/icons-material/BlockOutlined';
 import { verifyDescent, lineageRoot, type DescentVerdict } from '../veilcore/lineage';
 import { allLicenses, createsHeritableObligation } from '../veilcore/licenses';
 import { allRecords, type StrainRecord } from '../veilcore/records';
-import { ancestryVerdictText, ownOffspringNote, upstreamOwnRoyaltyNote } from './stage/self-chain';
+import {
+  RECORDS_NOT_JUDGES,
+  ancestryVerdictText,
+  ownOffspringNote,
+  upstreamOwnRoyalties,
+  upstreamOwnRoyaltyNote,
+} from './stage/self-chain';
 import { ACCENT } from '../config/theme';
 
 export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) => {
@@ -44,8 +52,16 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
     allLicenses().filter(
       (l) => l.recordId === recordId && l.state === 'active' && createsHeritableObligation(l.type, l.terms),
     );
-  const ownOffspring = heritable.length > 0 ? ownOffspringNote(record, allRecords()) : undefined;
+  const ownOffspring = ownOffspringNote(record, allRecords(), heritable);
   const upstreamOwn = upstreamOwnRoyaltyNote(record, allRecords(), heritableOn);
+  // The breeder's own agreements on this line, for the ancestry check's words.
+  const ownLine = [
+    ...(heritable.length && !record.receivedFrom ? [{ name: record.strainName, agreements: heritable }] : []),
+    ...upstreamOwnRoyalties(record, allRecords(), heritableOn).map((u) => ({
+      name: u.record.strainName,
+      agreements: u.agreements,
+    })),
+  ];
 
   const parentIds = (record.parents ?? []).map((p) => p.recordId).filter(Boolean) as string[];
   const parentFingerprints = allRecords()
@@ -68,16 +84,17 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
       </Stack>
 
       <Typography variant="body2" color="text.secondary">
-        An offspring royalty applies to offspring declared from this cultivar: records sealed with it as a parent, with
-        both holders confirming the link. Until the obligation is ended, those offspring can&apos;t show an ancestry
-        free of unpaid obligations. Propagation nobody declares isn&apos;t detected.
+        An agreement with an offspring royalty records an obligation on offspring declared from this cultivar: records
+        sealed with it as a parent, with both holders confirming the link. While the agreement is active, an ancestry
+        check on those offspring reports the obligation. {RECORDS_NOT_JUDGES} Propagation nobody declares isn&apos;t
+        detected.
       </Typography>
 
       {heritable.length > 0 ? (
         <Stack spacing={1}>
           {heritable.map((l) => (
             <Stack key={l.id} direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-              <Chip size="small" variant="outlined" color="warning" label="Obligation outstanding" />
+              <Chip size="small" variant="outlined" color="warning" label="Obligation recorded" />
               <Typography variant="body2">{l.terms.offspringRoyaltyPct}% of offspring revenue</Typography>
               <Button size="small" component={RouterLink} to={`/license/${l.id}`}>
                 {l.id}
@@ -125,7 +142,7 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
           icon={verdict.ok ? <CheckCircleIcon /> : <BlockIcon />}
           variant="outlined"
         >
-          {ancestryVerdictText(verdict, parentFingerprints.length)}
+          {ancestryVerdictText(verdict, parentFingerprints.length, ownLine)}
         </Alert>
       )}
 

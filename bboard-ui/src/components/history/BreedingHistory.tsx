@@ -16,7 +16,8 @@ import {
   Typography,
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/FileDownloadOutlined';
-import { getRecord, type StrainRecord } from '../../veilcore/records';
+import { allRecords, getRecord, type StrainRecord } from '../../veilcore/records';
+import { datedReportsOf } from '../stage/lab-report-notes';
 import { downloadBreedingHistory } from '../../veilcore/breeding-history/export';
 import { walkHistory, MAX_HISTORY_RECORDS } from '../../veilcore/breeding-history/walk';
 
@@ -47,7 +48,10 @@ export const BreedingHistory: React.FC<{ record: StrainRecord }> = ({ record }) 
     setError(null);
     setDone(null);
     try {
-      const out = await downloadBreedingHistory(record, { lookup: getRecord });
+      const out = await downloadBreedingHistory(record, {
+        lookup: getRecord,
+        labDatingsOf: (id) => datedReportsOf(id, allRecords()),
+      });
       if ('error' in out) setError(out.error);
       else setDone(out.name);
     } finally {
@@ -106,8 +110,10 @@ export const BreedingHistory: React.FC<{ record: StrainRecord }> = ({ record }) 
               </Typography>
             )}
             <Typography variant="caption" color="text.secondary">
-              Your records’ keys and lab report files are not put in. VeilCore doesn’t vouch for anything a record says.
-              Draft. Not legal advice.
+              Your records’ keys and lab report files are not put in. Where a lab report is saved to a plant, its
+              evidence bundle does hold the report’s SHA-256 and the fingerprint that pairs it with the plant, so anyone
+              later shown the file can match it. VeilCore doesn’t vouch for anything a record says. Draft. Not legal
+              advice.
             </Typography>
             {error && (
               <Alert severity="error" variant="outlined">

@@ -19,7 +19,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { ParentRef, StrainRecord } from '../../veilcore/records';
-import { LAB_REPORT_METHOD, datingRecordFor, labReportNotes, type LabReportFacts } from './lab-report-notes';
+import {
+  LAB_REPORT_METHOD,
+  datingRecordFor,
+  isLabReportRecord,
+  labReportNotes,
+  type LabReportFacts,
+} from './lab-report-notes';
 import type { SealInput, SealedRecord } from '../../veilcore/seal-record';
 import type { SavedReport } from '../../veilcore/saved-report';
 import { signerLabel } from '../../veilcore/attesters';
@@ -38,10 +44,13 @@ export const DATE_REPORT_WHY = 'So you can show this report existed by that date
  * before its SHA-256 was kept can't be dated: there is no SHA-256 to seal.
  */
 export const labReportFacts = (
-  record: Pick<StrainRecord, 'dnaFingerprint' | 'dnaResultId' | 'receivedFrom'>,
+  record: Pick<StrainRecord, 'dnaFingerprint' | 'dnaResultId' | 'receivedFrom'> &
+    Partial<Pick<StrainRecord, 'breedingMethod' | 'notes' | 'parents'>>,
   saved: SavedReport | null | undefined,
 ): LabReportFacts | undefined => {
   if (!saved || record.receivedFrom || !record.dnaFingerprint) return undefined;
+  // A record that dates a lab report is not a plant: it has no lab report of its own to date.
+  if (isLabReportRecord(record)) return undefined;
   if (saved.kind === 'lab') {
     const resultId = saved.resultId ?? record.dnaResultId;
     return {
@@ -91,20 +100,84 @@ export const labReportDatedLine = (recordId: string, row: { mark: RowMark; value
 // --- sealing it once ---------------------------------------------------------------------
 
 export type DateLabReportDeps = {
+  /** The records shown in this tab now. */
   all: () => readonly StrainRecord[];
+  /** Read the set back from the registry (records.ts hydrate): what another tab saved included. */
+  refresh: () => Promise<void>;
+  /** Run the work while no other tab of this browser runs the same (veilcore/tab-lock.ts). */
+  lock: <T>(name: string, fn: () => Promise<T>) => Promise<T>;
   seal: (input: SealInput) => Promise<SealedRecord>;
-  create: (sealed: SealedRecord) => StrainRecord;
+  /**
+   * Save the sealed record and wait for the registry's answer (records.ts createRecordSaved).
+   * Throws when the registry refused it: nothing was saved.
+   */
+  create: (sealed: SealedRecord) => Promise<StrainRecord>;
   /** Forget the keys made for a record that was sealed but never saved (as LogFlow.tsx does). */
   forget: (id: string) => void;
+  /** Whether this browser holds keys for a record (record-keys.ts keysFor). */
+  hasKeys: (id: string) => boolean;
+  /** A note shared by every tab: which record is being sealed for which report, and since when. */
+  marks: {
+    get: (key: string) => { recordId: string; at: number } | undefined;
+    set: (key: string, v: { recordId: string; at: number }) => void;
+    clear: (key: string) => void;
+  };
+  now: () => number;
   today: () => string;
 };
 
-const inFlight = new Map<string, Promise<StrainRecord>>();
+/** How long a note that another tab is sealing this report holds others back. */
+export const SEALING_ELSEWHERE_MS = 2 * 60_000;
+
+export const SEALING_ELSEWHERE =
+  'This lab report is being dated in another tab or window. Wait a minute, then look again: it will show here.';
+
+/** The one name the lock and the shared note go by: this plant and this report. */
+export const datingKey = (plantId: string, sha: string): string => `date-lab-report:${plantId}:${sha.toLowerCase()}`;
+
+/** Shared notes in localStorage; nothing kept where the browser keeps nothing. */
+const MARKS_KEY = 'veilcore.lab-report-dating.v1';
+const readMarks = (): Record<string, { recordId: string; at: number }> => {
+  try {
+    const v = JSON.parse(localStorage.getItem(MARKS_KEY) ?? '{}') as unknown;
+    return v && typeof v === 'object' ? (v as Record<string, { recordId: string; at: number }>) : {};
+  } catch {
+    return {};
+  }
+};
+const writeMarks = (m: Record<string, { recordId: string; at: number }>): void => {
+  try {
+    if (Object.keys(m).length) localStorage.setItem(MARKS_KEY, JSON.stringify(m));
+    else localStorage.removeItem(MARKS_KEY);
+  } catch {
+    /* a browser that keeps nothing */
+  }
+};
+export const localMarks: DateLabReportDeps['marks'] = {
+  get: (key) => {
+    const v = readMarks()[key];
+    return v && typeof v.recordId === 'string' && typeof v.at === 'number' ? v : undefined;
+  },
+  set: (key, v) => writeMarks({ ...readMarks(), [key]: v }),
+  clear: (key) => {
+    const { [key]: _gone, ...rest } = readMarks();
+    void _gone;
+    writeMarks(rest);
+  },
+};
+
+/** Work under way in this tab, per set of deps (one set per tab in the app; the tests make two "tabs"). */
+const inFlightFor = new WeakMap<DateLabReportDeps, Map<string, Promise<StrainRecord>>>();
 
 /**
- * Seal the follow-up record for this plant's report, once. A record already dating the same
- * report on the same plant is returned instead of a second one, and a second tap (or the
- * other button, on the lab reports screen) while the first is sealing waits for the same one.
+ * Seal the follow-up record for this plant's report, once, across every tab of this browser.
+ *
+ * A record already dating the same report on the same plant is returned instead of a second
+ * one. A second tap (or the other button, on the lab reports screen) while the first is
+ * sealing waits for the same one. Another tab waits for the lock, then reads the set back
+ * from the registry and the key store before sealing anything, so it finds the record the
+ * first tab made (recheck 6: two tabs sealed two records for one file). If another tab
+ * sealed one moments ago that the registry doesn't show yet, it says so and seals nothing.
  */
 export const dateLabReportWith = async (
   deps: DateLabReportDeps,
@@ -113,18 +186,31 @@ export const dateLabReportWith = async (
 ): Promise<StrainRecord> => {
   const existing = datingRecordFor(plant.id, f.sha, deps.all());
   if (existing) return existing;
-  const key = `${plant.id}:${f.sha.toLowerCase()}`;
+  const key = datingKey(plant.id, f.sha);
+  const inFlight = inFlightFor.get(deps) ?? new Map<string, Promise<StrainRecord>>();
+  inFlightFor.set(deps, inFlight);
   const pending = inFlight.get(key);
   if (pending) return pending;
-  const run = (async () => {
+  const run = deps.lock(key, async () => {
+    await deps.refresh();
+    const found = datingRecordFor(plant.id, f.sha, deps.all());
+    if (found) return found;
+    const mark = deps.marks.get(key);
+    if (mark && deps.now() - mark.at < SEALING_ELSEWHERE_MS && deps.hasKeys(mark.recordId)) {
+      throw new Error(SEALING_ELSEWHERE);
+    }
     const sealed = await deps.seal(labReportSealInput(plant, f, deps.today()));
+    deps.marks.set(key, { recordId: sealed.id, at: deps.now() });
     try {
-      return deps.create(sealed);
+      const made = await deps.create(sealed);
+      deps.marks.clear(key);
+      return made;
     } catch (e) {
       deps.forget(sealed.id);
+      deps.marks.clear(key);
       throw e;
     }
-  })();
+  });
   inFlight.set(key, run);
   try {
     return await run;

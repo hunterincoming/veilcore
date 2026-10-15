@@ -110,7 +110,7 @@ const str = (v: unknown): string => (typeof v === 'string' ? v : '');
 const same = (a: unknown, b: unknown): boolean => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
 export type CheckResult =
-  | { readonly ok: true; readonly records: number }
+  | { readonly ok: true; readonly records: number; readonly recordIds?: readonly string[] }
   | { readonly ok: false; readonly reason: string };
 
 /**
@@ -154,7 +154,7 @@ export const checkBackup = async (file: File): Promise<CheckResult> => {
       reason:
         missing.length === held.length
           ? "That backup doesn't hold your records as they are now. Save a new one and check that."
-          : `That backup is missing the latest for ${missing.length} of your plants. Save a new one and check that.`,
+          : `That backup is missing the latest for ${missing.length} of your records. Save a new one and check that.`,
     };
   }
   const lab = loadAttester();
@@ -168,11 +168,13 @@ export const checkBackup = async (file: File): Promise<CheckResult> => {
     return { ok: false, reason: "That backup doesn't hold your latest deliveries. Save a new one and check that." };
   }
   markBackedUp(held.map((k) => k.recordId));
-  return { ok: true, records: held.length };
+  return { ok: true, records: held.length, recordIds: held.map((k) => k.recordId) };
 };
 
 export type RestoreResult = {
   readonly records: number;
+  /** The records whose keys came back (to word them: plants, or records dating a lab report). */
+  readonly recordIds?: readonly string[];
   readonly holderKey: 'restored' | 'already' | 'none';
   readonly labSignature: boolean;
   /** Deliveries (a lab's) and lab codes (a breeder's) added from the file. */
@@ -193,8 +195,8 @@ export const restoreAny = async (file: File): Promise<RestoreResult> => {
   }
   const v = parse(text);
   if (v.format === 'veilcore-record-keys') {
-    restoreKeysEntry(v);
-    return { records: 1, holderKey: 'none', labSignature: false };
+    const k = restoreKeysEntry(v);
+    return { records: 1, recordIds: [k.recordId], holderKey: 'none', labSignature: false };
   }
   if (v.format !== BACKUP_FORMAT)
     throw new Error("That file isn't a VeilCore backup. Pick the file you saved from VeilCore.");
@@ -221,12 +223,12 @@ export const restoreAny = async (file: File): Promise<RestoreResult> => {
   }
 
   const holder = fileKey ? adoptHolderKey(fileKey) : 'none';
-  for (const e of entries) restoreKeysEntry(e);
+  const recordIds = entries.map((e) => restoreKeysEntry(e).recordId);
   const labAdopted = lab ? adoptAttester(lab) : false;
   // Merged, never replacing an entry already here (a lock this browser has stays).
   const deliveries = mergeDeliveries(v.labDeliveries);
   const sentCodes = mergeSentCodes(v.sentCodes);
-  return { records: entries.length, holderKey: holder, labSignature: labAdopted, deliveries, sentCodes };
+  return { records: entries.length, recordIds, holderKey: holder, labSignature: labAdopted, deliveries, sentCodes };
 };
 
 const adoptHolderKey = (key: string): 'restored' | 'already' => {

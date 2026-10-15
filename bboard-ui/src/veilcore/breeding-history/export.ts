@@ -37,6 +37,8 @@ export type HistoryDeps = {
   readonly gather: (record: StrainRecord) => Promise<Gathered | { error: string }>;
   /** The holder's sent deliveries, for the sample details in each bundle (transfers.ts sentByMe). */
   readonly deliveries: () => Promise<readonly SentTransfer[]>;
+  /** Records held here that date a lab report of this plant (components/stage/lab-report-notes.ts datedReportsOf). */
+  readonly labDatingsOf?: (plantId: string) => readonly StrainRecord[];
   readonly now?: Date;
   readonly limit?: number;
 };
@@ -106,7 +108,12 @@ export const breedingHistoryFiles = async (root: StrainRecord, deps: HistoryDeps
     }
   }
 
-  const pages = { history, facts, madeAt: now };
+  const labDatings = new Map<string, string[]>();
+  for (const node of history.nodes) {
+    const ids = (deps.labDatingsOf?.(node.record.id) ?? []).map((d) => d.id);
+    if (ids.length) labDatings.set(node.record.id, ids);
+  }
+  const pages = { history, facts, madeAt: now, labDatings };
   files[`${top}/${HISTORY_FILE}`] = strToU8(breedingHistoryHtml(pages));
   files[`${top}/${COVER_FILE}`] = strToU8(coverNoteHtml(pages));
   return { history, facts, files };

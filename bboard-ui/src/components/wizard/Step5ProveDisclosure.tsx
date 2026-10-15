@@ -62,7 +62,9 @@ export const Step5ProveDisclosure: React.FC<{
   onBack: () => void;
   /** Where the saved lab report stands, when the page already knows (else loaded here). */
   saved?: SavedReport | null;
-}> = ({ recordId, onBack, saved: given }) => {
+  /** The way back's words: "Back to the plant", or "Back to the record" for a record that isn't a plant. */
+  backLabel?: string;
+}> = ({ recordId, onBack, saved: given, backLabel = 'Back to the plant' }) => {
   const record = getRecord(recordId);
   const loadedSaved = useSavedReport(given === undefined ? record : undefined);
   const saved = given === undefined ? loadedSaved : given;
@@ -327,7 +329,7 @@ export const Step5ProveDisclosure: React.FC<{
       <Divider />
       <Box>
         <Button variant="text" onClick={onBack} sx={{ minHeight: 44, px: 0 }}>
-          Back to the plant
+          {backLabel}
         </Button>
       </Box>
     </Stack>

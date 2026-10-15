@@ -29,6 +29,7 @@ import {
   CircularProgress,
   Collapse,
   LinearProgress,
+  Link,
   MenuItem,
   Stack,
   TextField,
@@ -36,9 +37,9 @@ import {
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import DoneIcon from '@mui/icons-material/CheckCircleOutlined';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
 import { fingerprintFile } from '../../veilcore/commitment';
-import { allRecords, createRecord, getRecord, useRecords, type ParentRef } from '../../veilcore/records';
+import { createRecord, getRecord, useRecords, type ParentRef } from '../../veilcore/records';
 import { sealRecord } from '../../veilcore/seal-record';
 import { localStamp } from '../../veilcore/time';
 import {
@@ -65,10 +66,14 @@ import {
   emptyDraft,
   loadDraft,
   nextStageDraft,
+  nextStageNamePlaceholder,
+  nextStageStart,
   saveDraft,
   sealInputOf,
   stampProblem,
+  unsavedPlantLine,
 } from './log-flow-state';
+import { parentOptionsOf } from '../stage/record-kinds';
 import { SEAL_EACH_STAGE, SELECTED_PROMPT, STAGE_PROMPT } from '../stage/stage-notes';
 
 const BREEDING_METHODS = [
@@ -95,43 +100,57 @@ export const STEP: Record<Screen, string> = {
 };
 
 export const LogFlow: React.FC = () => {
-  const [screen, setScreen] = useState<Screen>('plant');
-  const [restored] = useState(loadDraft);
-  // "Add the next generation or selection" on a plant's page opens /new?next=<its id>: the
-  // first screen starts prefilled from that plant (components/stage). Once used, the draft
-  // is kept as usual and the address loses `next`, so a reload keeps what was typed.
+  // "Add the next generation or selection" on a plant's page opens /new?next=<its id>. Each
+  // address is its own flow, with its own draft (log-flow-state.ts draftKeyFor): a new key,
+  // so moving between them starts the screen afresh.
   const [params] = useSearchParams();
   const nextOf = params.get('next') ?? undefined;
-  useRecords(); // the plant may arrive after this page does (a reload)
-  const nextParent = nextOf ? getRecord(nextOf) : undefined;
-  const prefilled = useRef(false);
-  const [draft, setDraftState] = useState<Draft>(() => {
-    if (nextParent) {
-      prefilled.current = true;
-      return nextStageDraft(nextParent);
+  return <LogFlowFor key={nextOf ?? ''} nextOf={nextOf} />;
+};
+
+/** How the first screen starts: undecided while a next stage's parent is still loading. */
+type Start =
+  | { readonly kind: 'ready'; readonly draft: Draft; readonly resumed: boolean }
+  | { readonly kind: 'ask'; readonly draft: Draft; readonly other: Draft }
+  | { readonly kind: 'waiting' };
+
+const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
+  const [screen, setScreen] = useState<Screen>('plant');
+  const records = useRecords(); // the plant may arrive after this page does (a reload)
+  const nextParent = nextOf ? records.find((r) => r.id === nextOf) : undefined;
+  const startFor = (): Start => {
+    if (!nextOf) {
+      const plain = loadDraft();
+      return { kind: 'ready', draft: plain ?? emptyDraft(), resumed: !!plain };
     }
-    return restored ?? emptyDraft();
-  });
+    const own = loadDraft(nextOf);
+    if (!nextParent) return own ? { kind: 'ready', draft: own, resumed: true } : { kind: 'waiting' };
+    const s = nextStageStart(nextParent, loadDraft(), own);
+    if (s.adopt) {
+      saveDraft(s.draft, nextOf);
+      clearDraft();
+    }
+    if (s.conflict) return { kind: 'ask', draft: s.draft, other: s.conflict };
+    if (!s.resumed) saveDraft(s.draft, nextOf);
+    return { kind: 'ready', draft: s.draft, resumed: s.resumed };
+  };
+  const [start, setStart] = useState<Start>(startFor);
+  useEffect(() => {
+    if (start.kind === 'waiting' && nextParent) setStart(startFor());
+  }, [nextParent, start.kind]);
+
+  const [draft, setDraftState] = useState<Draft>(() => (start.kind === 'waiting' ? emptyDraft() : start.draft));
+  useEffect(() => {
+    if (start.kind !== 'waiting') setDraftState(start.draft);
+  }, [start]);
   const [recordId, setRecordId] = useState<string>();
   const navigate = useNavigate();
   const firstScreen = useRef(true);
 
   const setDraft = (d: Draft) => {
     setDraftState(d);
-    saveDraft(d);
+    saveDraft(d, nextOf);
   };
-
-  useEffect(() => {
-    if (!nextOf || !nextParent) return;
-    if (!prefilled.current) {
-      prefilled.current = true;
-      setDraftState(nextStageDraft(nextParent));
-      saveDraft(nextStageDraft(nextParent));
-    } else {
-      saveDraft(draft);
-    }
-    void navigate('/new', { replace: true });
-  }, [nextOf, nextParent]);
 
   // A new screen starts at the top, focus on its heading. The first one is the page's own
   // (App.tsx does that on arrival).
@@ -148,12 +167,28 @@ export const LogFlow: React.FC = () => {
   const body = (() => {
     switch (screen) {
       case 'plant':
+        if (start.kind === 'waiting') return <OpeningParent nextOf={nextOf ?? ''} />;
+        if (start.kind === 'ask')
+          return (
+            <UnsavedPlantChoice
+              step={step}
+              other={start.other}
+              onKeep={() => {
+                saveDraft(start.draft, nextOf);
+                setStart({ kind: 'ready', draft: start.draft, resumed: false });
+              }}
+              onContinue={() => void navigate('/new')}
+            />
+          );
         return (
           <PlantForm
             step={step}
             draft={draft}
             setDraft={setDraft}
-            restored={!!restored && !prefilled.current && draftHasContent(draft)}
+            restored={start.resumed && draftHasContent(draft)}
+            startOver={nextParent ? () => nextStageDraft(nextParent) : emptyDraft}
+            namePlaceholder={nextParent ? nextStageNamePlaceholder(nextParent) : undefined}
+            parentOptions={parentOptionsOf(records)}
             onNext={() => setScreen('review')}
           />
         );
@@ -164,7 +199,7 @@ export const LogFlow: React.FC = () => {
             draft={draft}
             onChange={() => setScreen('plant')}
             onSealed={(id) => {
-              clearDraft();
+              clearDraft(nextOf);
               setRecordId(id);
               setScreen('stamp');
             }}
@@ -215,13 +250,62 @@ export const LogFlow: React.FC = () => {
 
 // ---------------------------------------------------------------------------------------
 
+/** A next stage's parent not in this browser yet (a reload, before the records arrive). */
+const OpeningParent: React.FC<{ nextOf: string }> = ({ nextOf }) => (
+  <Stack spacing={2}>
+    <ScreenHeading>Log the next generation or selection</ScreenHeading>
+    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }} role="status">
+      <CircularProgress size={18} />
+      <Typography variant="body1" sx={{ overflowWrap: 'anywhere' }}>
+        Opening {nextOf}…
+      </Typography>
+    </Stack>
+    <Typography variant="body2" color="text.secondary">
+      If it doesn&apos;t open, that plant isn&apos;t in this browser.{' '}
+      <Link component={RouterLink} to="/new">
+        Log a new plant instead
+      </Link>
+    </Typography>
+  </Stack>
+);
+
+/** A different plant is half-logged: keep it, and ask before starting the next stage. */
+const UnsavedPlantChoice: React.FC<{
+  step: string;
+  other: Draft;
+  onKeep: () => void;
+  onContinue: () => void;
+}> = ({ step, other, onKeep, onContinue }) => (
+  <Stack spacing={2} data-unsaved-plant="">
+    <ScreenHeading step={step}>Log the next generation or selection</ScreenHeading>
+    <Typography variant="body1" sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
+      {unsavedPlantLine(other)}
+    </Typography>
+    <Typography variant="body2" color="text.secondary">
+      It stays kept in this browser either way.
+    </Typography>
+    <Button variant="contained" size="large" fullWidth onClick={onKeep} sx={{ py: 1.4 }}>
+      Keep it and start the next stage
+    </Button>
+    <Button variant="outlined" size="large" fullWidth onClick={onContinue} sx={{ py: 1.4 }}>
+      Continue that plant
+    </Button>
+  </Stack>
+);
+
 const PlantForm: React.FC<{
   step: string;
   draft: Draft;
   setDraft: (d: Draft) => void;
   restored: boolean;
+  /** What "Start over" goes back to: an empty plant, or a fresh next stage of the same parent. */
+  startOver: () => Draft;
+  /** A suggested name for a next stage, shown only as a placeholder. */
+  namePlaceholder?: string;
+  /** Plants this one can name as a parent: never a record that dates a lab report. */
+  parentOptions: ParentRef[];
   onNext: () => void;
-}> = ({ step, draft, setDraft, restored, onNext }) => {
+}> = ({ step, draft, setDraft, restored, startOver, namePlaceholder, parentOptions, onNext }) => {
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft({ ...draft, [k]: v });
   const hasMore = Boolean(
     draft.parents.length || draft.taxon || draft.breedingMethod || draft.refId || draft.notes || draft.photos.length,
@@ -229,7 +313,6 @@ const PlantForm: React.FC<{
   const [more, setMore] = useState(hasMore);
   const [reading, setReading] = useState(false);
   const photoRef = useRef<HTMLInputElement>(null);
-  const parentOptions: ParentRef[] = allRecords().map((r) => ({ recordId: r.id, name: r.strainName }));
   const ready = Boolean(draft.strainName.trim() && draft.bredBy.trim()) && !reading;
   const moreId = useId();
   const hintId = useId();
@@ -275,7 +358,7 @@ const PlantForm: React.FC<{
             variant="text"
             size="small"
             onClick={() => {
-              setDraft(emptyDraft());
+              setDraft(startOver());
               // The button goes away with the kept draft: focus the screen's heading (round 6).
               focusScreenHeading();
             }}
@@ -288,7 +371,7 @@ const PlantForm: React.FC<{
       <TextField
         label="Plant or line name"
         required
-        placeholder="e.g. Harbour Mist"
+        placeholder={namePlaceholder ?? 'e.g. Harbour Mist'}
         value={draft.strainName}
         onChange={(e) => set('strainName', e.target.value)}
         fullWidth
@@ -375,6 +458,11 @@ const PlantForm: React.FC<{
               label="How it was made"
               value={draft.breedingMethod}
               onChange={(e) => set('breedingMethod', e.target.value)}
+              helperText={
+                stageOf && !draft.breedingMethod
+                  ? 'How was this stage made? It isn’t carried over from the parent.'
+                  : undefined
+              }
               fullWidth
             >
               <MenuItem value="">Not saying</MenuItem>

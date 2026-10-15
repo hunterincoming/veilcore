@@ -12,6 +12,8 @@ import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/ma
 import DoneIcon from '@mui/icons-material/CheckCircle';
 import { backupContents, backupFileName, checkBackup, downloadBackupAll } from '../../veilcore/backup';
 import { ScreenHeading, softDisabled } from './FlowFrame';
+import { useRecords } from '../../veilcore/records';
+import { backupHoldsLine } from '../stage/record-kinds';
 
 const Done: React.FC<{ text: string; sub?: string }> = ({ text, sub }) => (
   <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
@@ -66,7 +68,8 @@ export const BackupStep: React.FC<{
   const partLevel = headingComponent === 'h1' ? 'h2' : 'h3';
   const [saved, setSaved] = useState<string>();
   const [copied, setCopied] = useState(false);
-  const [checked, setChecked] = useState<number>();
+  const [checked, setChecked] = useState<readonly string[]>();
+  const records = useRecords();
   const [problem, setProblem] = useState<string>();
   const [busy, setBusy] = useState(false);
   const pick = useRef<HTMLInputElement>(null);
@@ -105,7 +108,7 @@ export const BackupStep: React.FC<{
     setProblem(undefined);
     const r = await checkBackup(f);
     setBusy(false);
-    if (r.ok) setChecked(r.records);
+    if (r.ok) setChecked(r.recordIds ?? []);
     else setProblem(r.reason);
   };
 
@@ -172,18 +175,7 @@ export const BackupStep: React.FC<{
       <Part n={3} level={partLevel} title="Check it works" active={!!saved && checked === undefined}>
         {/* Always there, so the result is announced when it arrives. */}
         <Box role="status" ref={worksRef} tabIndex={checked !== undefined ? -1 : undefined} sx={{ outline: 'none' }}>
-          {checked !== undefined && (
-            <Done
-              text="It works."
-              sub={
-                checked === 0
-                  ? 'Your records are in it.'
-                  : checked === 1
-                    ? 'Your plant is in it.'
-                    : `All ${checked} of your plants are in it.`
-              }
-            />
-          )}
+          {checked !== undefined && <Done text="It works." sub={backupHoldsLine(checked, records)} />}
         </Box>
         {checked === undefined && (
           <>

@@ -253,6 +253,21 @@ export const createRecord = (input: NewRecordInput): StrainRecord => {
 };
 
 /**
+ * createRecord, with the save awaited: for a caller that must know the registry has the
+ * record before it lets another tab go on (lab-report-date.ts). Shown at once, as
+ * createRecord does; on a refusal the set is read back from the registry, so it goes.
+ */
+export const createRecordSaved = async (
+  input: NewRecordInput,
+): Promise<{ readonly record: StrainRecord; readonly result: SaveResult }> => {
+  const record: StrainRecord = { licenseIds: [], ...input, id: input.id ?? newRecordId() };
+  records = [record, ...records];
+  notify();
+  const result = await saveAll();
+  return { record, result };
+};
+
+/**
  * Save many new records in one save, awaited: a whole collection is sent in batches
  * (bulk-import.ts), and one save per record would pass the registry's write limits. The
  * batch goes first in the set, then every record already here that is not in it, as every

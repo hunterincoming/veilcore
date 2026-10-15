@@ -44,7 +44,7 @@ describe('one backup file', () => {
     expect(keys.keysWithoutBackup()).toHaveLength(2); // saving is not the same as having it
 
     const ok = await backup.checkBackup(fileOf(text));
-    expect(ok).toEqual({ ok: true, records: 2 });
+    expect(ok).toEqual({ ok: true, records: 2, recordIds: ['VEIL-1', 'VEIL-2'] });
     expect(keys.keysWithoutBackup()).toHaveLength(0);
   });
 

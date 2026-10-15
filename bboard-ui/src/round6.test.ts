@@ -119,7 +119,7 @@ describe('the smaller wording fixes', () => {
 describe('focus goes somewhere when the pressed button goes away', () => {
   it('Start over (the kept draft) focuses the screen heading', () => {
     expect(source('components/flow/LogFlow.tsx')).toMatch(
-      /setDraft\(emptyDraft\(\)\);[^}]*focusScreenHeading\(\);[\s\S]{0,40}\}\}[\s\S]{0,80}Start over/,
+      /setDraft\(startOver\(\)\);[^}]*focusScreenHeading\(\);[\s\S]{0,40}\}\}[\s\S]{0,80}Start over/,
     );
   });
 
