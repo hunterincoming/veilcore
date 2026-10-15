@@ -89,6 +89,70 @@ describe('record secrets stay in the browser', () => {
   });
 });
 
+describe('a record that names its own key', () => {
+  it('sends the binding to the registry, never the key, its salt or the secrets (a correction too)', async () => {
+    const records = await import('./records');
+    const { ensureKeys, keysFor } = await import('./record-keys');
+    const { bindingForSecret } = await import('./key-binding');
+    const { fingerprintRecord, newNonce } = await import('./commitment');
+    sent.length = 0;
+    // As the logging flow seals: the key first, then the record naming it.
+    const id = records.newRecordId();
+    const keys = ensureKeys(id);
+    const { identity, keySalt, keyBinding } = bindingForSecret(keys.recordSecret);
+    const fields = {
+      nonce: newNonce(),
+      keyBinding,
+      strainName: 'Bound cultivar',
+      bredBy: 'Tester',
+      dateCreated: '2026-10-14',
+      notes: '',
+      loggedAt: Date.now(),
+    };
+    const rec = records.createRecord({ ...fields, id, recordFingerprint: await fingerprintRecord(fields) });
+    expect(rec.id).toBe(id);
+    expect(await records.checkIntegrity(rec)).toBe('match');
+    const fixed = await records.issueCorrection(rec.id, { notes: 'fixed' }, 'typo');
+    await new Promise((r) => setTimeout(r, 50));
+
+    // The correction is a new record with a key of its own, never the original's.
+    const theirs = bindingForSecret(keysFor(fixed!.id)!.recordSecret);
+    expect(fixed?.keyBinding).toBe(theirs.keyBinding);
+    expect(fixed?.keyBinding).not.toBe(keyBinding);
+    expect(await records.checkIntegrity(fixed!)).toBe('match');
+
+    const puts = sent.filter((x) => x.includes('/api/records'));
+    expect(puts.some((x) => x.includes(keyBinding))).toBe(true);
+    const k2 = keysFor(fixed!.id)!;
+    for (const value of [
+      keys.recordSecret,
+      keys.recoverySecret,
+      identity,
+      keySalt,
+      k2.recordSecret,
+      k2.recoverySecret,
+      theirs.identity,
+      theirs.keySalt,
+    ]) {
+      for (const f of forms(value)) for (const x of sent) expect(x.includes(f)).toBe(false);
+    }
+  });
+
+  it('only its own key is used on chain: lost keys are restored, never remade', async () => {
+    const { ensureKeys, ensureKeysFor, forgetKeys, keysFitRecord } = await import('./record-keys');
+    const { bindingForSecret } = await import('./key-binding');
+    const k = ensureKeys('VEIL-BOUND');
+    const record = { id: 'VEIL-BOUND', keyBinding: bindingForSecret(k.recordSecret).keyBinding };
+    expect(keysFitRecord(k, record)).toBe(true);
+    expect(ensureKeysFor(record)).toEqual(k);
+    expect(keysFitRecord({ recordSecret: 'ee'.repeat(32) }, record)).toBe(false);
+    forgetKeys('VEIL-BOUND');
+    expect(() => ensureKeysFor(record)).toThrow(/backup file/);
+    // An older record (no binding) gets keys made, as before.
+    expect(ensureKeysFor({ id: 'VEIL-OLDER' }).recordId).toBe('VEIL-OLDER');
+  });
+});
+
 describe('record keys', () => {
   it('are made once per record and kept apart from the records', async () => {
     const { ensureKeys, keysFor, keysWithoutBackup } = await import('./record-keys');

@@ -214,7 +214,8 @@ export const de: Strings = {
   'm.live.stamp.t': 'Ein Datumsstempel für Ihren Datensatz',
   'm.live.stamp.main':
     'Ja. VeilCore datiert Datensätze in Stapeln, vorerst von Hand. Ihr Browser sendet nichts an die Chain.',
-  'm.live.stamp.test': 'Ja. Ihr Browser stempelt jeden Datensatz, und Stapel werden automatisch datiert.',
+  'm.live.stamp.test':
+    'Ja. Stapel werden automatisch datiert, und das datiert Ihren Datensatz. Ihr Browser versieht außerdem den eigenen Schlüssel Ihrer Pflanze mit einem Datumsstempel; der datiert nur den Schlüssel.',
   'm.live.share.t': 'Wählen, was andere sehen',
   'm.live.share.main': 'Ja. Der Sortenname ist immer sichtbar.',
   'm.live.share.test': 'Ja. Der Sortenname ist immer sichtbar.',
@@ -230,7 +231,7 @@ export const de: Strings = {
   'm.live.dna.test': 'Ja, aus Ihrem Browser gesendet.',
   'm.live.prove.t': 'Nachweis per Link',
   'm.live.prove.test':
-    'Ja. Die Seite der anderen Person prüft im Netzwerk, dass Sie den Schlüssel kontrollieren, den Sie für diesen Datensatz registriert haben. Dass der Schlüssel zum Datensatz gehört, ist vorerst Ihre Angabe.',
+    'Ja. Die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel des Datensatzes kontrollieren. Der Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen.',
   'm.live.prove.not': 'Auf veilcore.org: Dafür muss Ihr Browser eine Transaktion senden.',
   'm.live.claims.t': 'Eine Tatsache beweisen (Claims)',
   'm.live.claims.main':
@@ -276,7 +277,7 @@ export const de: Strings = {
     'Das Labor signiert Ihre Ergebnisse und verschließt sie so, dass nur Sie sie öffnen können. Kein PDF liegt in irgendeinem Posteingang: VeilCore hält nur die verschlossene Datei. Die Signatur deckt genau diese Datei und den Datensatz ab, um den es geht. VeilCore hält fest, wer signiert hat; für das Ergebnis bürgt es nicht. Neu und noch in der Erprobung.',
   'm.for.6t': 'Jemand verlangt einen Nachweis.',
   'm.for.6p':
-    'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den Schlüssel kontrollieren, den Sie für diesen Datensatz registriert haben. Dass der Schlüssel zum Datensatz gehört, ist vorerst Ihre Angabe. Wer die Pflanze gezüchtet hat, zeigt es nicht. Das funktioniert vorerst in einem Testnetz von Midnight.',
+    'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihrer Pflanze kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht. Das funktioniert vorerst in einem Testnetz von Midnight.',
   'm.for.5t': 'Tierlinien.',
   'm.for.5p':
     'Herdbücher führen die Abstammung. Ein Datensatz kann jedem Eintrag ein Datum geben, das niemand zurückdatieren kann, ohne den Genotyp zu veröffentlichen. Das Format deckt Tiere ab; diese Demo ist für Pflanzen eingerichtet, und die Felder für Tierdatensätze sind noch nicht veröffentlicht.',
@@ -346,7 +347,7 @@ export const de: Strings = {
   'm.open.1link': 'Alle drei Implementierungen →',
   'm.open.3t': 'Wir bürgen nicht für Ergebnisse.',
   'm.open.3p':
-    'Ein Datensatz zeigt, welcher Schlüssel ihn signiert hat, den Namen und die Akkreditierungsstelle, die mit diesem Schlüssel registriert sind, und ob der Betreiber von VeilCore diesen Namen markiert hat. VeilCore bürgt für kein Labor: Wer einen Datensatz prüft, entscheidet, was eine Signatur wert ist.',
+    'Ein Datensatz zeigt, welcher Schlüssel ihn signiert hat, den Namen und die Akkreditierungsstelle, die mit diesem Schlüssel registriert sind, und ob der Betreiber von VeilCore diesen Namen mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat, und an welchem Tag. VeilCore bürgt für kein Labor: Wer einen Datensatz prüft, entscheidet, was eine Signatur wert ist.',
   'm.open.4t': 'Jeder kann ein Register betreiben.',
   'm.open.4p':
     'Das Format erlaubt es einem Labor, einer Anerkennungsstelle oder einer Rechteorganisation, ein eigenes zu betreiben, unter der eigenen Webdomain, mit eigenen Felddefinitionen, und zu verankern, ohne uns zu fragen. Der Code unseres eigenen Registers ist nicht veröffentlicht.',
@@ -421,7 +422,7 @@ export const deTestchain: Strings = {
   'm.for.1p':
     'Versiegeln Sie einen Datensatz und koppeln Sie seinen DNA-Bericht. Taucht die Pflanze unter anderem Namen auf, kann ein Labor einen neuen Test mit Ihrem Bericht vergleichen. Wenn Sie über den VeilCore-Contract auf Midnight koppeln, wird auch die Kopplung datiert: Sie zeigt, dass, wer Ihren Datensatz zu diesem Datum kontrollierte, diesen Bericht oder seinen SHA-256 bis dahin hatte. Was auf die Chain kommt, ist an Ihren Datensatz gebunden und verbirgt den Bericht, sodass niemand Ihre Kopplung auf seinen eigenen Datensatz kopieren kann. Auf dieser Test-Website können Sie die Kopplung aus Ihrem Browser datieren. VeilCore führt keine DNA-Tests durch.',
   'm.demo.lede':
-    'Keine Anmeldung, keine Wallet. Dies ist die Test-Website, verwenden Sie also erfundene Angaben. Ihr Browser stempelt jeden Datensatz im Testnetz von Midnight (VeilCore zahlt die Gebühr), und Stapel werden automatisch verankert. Auch die Kopplung eines DNA-Berichts können Sie datieren. Die Empfangsbestätigung eines Labors ist eine echte Signatur mit dem eigenen Schlüssel des Labors, außerhalb der Chain gespeichert. Lizenzen und Laborvereinbarungen sind nur zum Üben.',
+    'Keine Anmeldung, keine Wallet. Dies ist die Test-Website, verwenden Sie also erfundene Angaben. Stapel werden im Testnetz von Midnight automatisch verankert, und das datiert Ihre Datensätze. Ihr Browser versieht außerdem den eigenen Schlüssel jeder Pflanze mit einem Datumsstempel, der nur den Schlüssel datiert (VeilCore zahlt die Gebühr). Auch die Kopplung eines DNA-Berichts können Sie datieren. Die Empfangsbestätigung eines Labors ist eine echte Signatur mit dem eigenen Schlüssel des Labors, außerhalb der Chain gespeichert. Lizenzen und Laborvereinbarungen sind nur zum Üben.',
   'm.privacy.test.text':
     'Diese Website nutzt das Preprod-Testnetz von Midnight, nicht das Hauptnetz. Ihr Browser sendet jeden Datumsstempel über den Gebührendienst von VeilCore an dieses Netz; was Sie eingegeben haben und Ihre Dateien werden nie dorthin gesendet. Ein Testnetz kann zurückgesetzt werden, und Testdaten können gelöscht werden.',
   'm.privacy.hosts.text':

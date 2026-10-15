@@ -125,15 +125,17 @@ Changed on 3 October (site accuracy pass), please re-check: `footer.about`, `m.h
 
 ## hero.title1
 
-**EN:** Prove you had it first.
+**EN:** Date your record.
 
-**JA:** 先に持っていたことを証明する。
+**JA:** 記録に日付を。
+
+_Headline changed on 14 October 2026. The translation shown is the one now in the site's language file; please check it._
 
 ## hero.title2
 
-**EN:** Without showing anyone what it is.
+**EN:** Keep your genetics.
 
-**JA:** それが何であるかを、誰にも見せずに。
+**JA:** 遺伝情報は手元に。
 
 ## hero.lead
 
@@ -520,15 +522,17 @@ Some headings are split in two or three parts; the later part is shown in colour
 
 ### m.hero.title1
 
-**EN:** Prove you had it first.
+**EN:** Date your record.
 
-**JA:** 先に持っていたことを証明する。
+**JA:** 記録に日付を。
+
+_Headline changed on 14 October 2026. The translation shown is the one now in the site's language file; please check it._
 
 ### m.hero.title2
 
-**EN:** Without showing anyone what it is.
+**EN:** Keep your genetics.
 
-**JA:** それが何かは誰にも見せずに。
+**JA:** 遺伝情報は手元に。
 
 ### m.hero.lede
 

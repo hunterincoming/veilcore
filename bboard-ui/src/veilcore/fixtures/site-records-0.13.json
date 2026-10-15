@@ -1,0 +1,148 @@
+{
+  "note": "Records shaped as bboard-ui (records.ts, commitment.ts) writes them, fingerprinted with veilcore-records 0.13.0 before the registry moved to 0.15.0. Generated once; do not regenerate with a newer SDK.",
+  "sdk": "0.13.0",
+  "records": [
+    {
+      "id": "VEIL-3F2A9C",
+      "nonce": "3f1257252eaf9b4425baa812e12744b4a37dcd1f036303f812a0fc957559974f",
+      "strainName": "Blue Dream x OG #4",
+      "bredBy": "Chunk’s Trees",
+      "dateCreated": "2026-07-14",
+      "notes": "F2 pheno hunt, keeper #4.\nMother kept in TC.",
+      "loggedAt": 1758800000000,
+      "parents": [],
+      "breedingMethod": "Selfed F1, selected from 40 seeds",
+      "refId": "CT-2026-004",
+      "photoFingerprints": [
+        "434d937e11f1af6d5c8f8294f92b97a679b0490638ea51fc89c44f76c5f61013",
+        "5a05e0b297586340036385c3f2296be3d55c3df6ed12b405a37dbef43afab4e8"
+      ],
+      "recordFingerprint": "1bf7aa365ec6f55ff808bf833480579b47a4c4f8121b6bd8d667d0afad6dca1d",
+      "dnaFingerprint": "cb11695c6470e998e024f2ef995de2f582ef78b92f3327497ad44db9ba7bd134",
+      "dnaFileName": "report.pdf",
+      "dnaPairedAt": 1758900000000
+    },
+    {
+      "id": "VEIL-6A9FF1832ED2EA2D6C3454EC689783D0",
+      "nonce": "53c29a43a56083e05a00a41aaaa9cfc72850090011c970007900a326d2b94f86",
+      "strainName": "Orange Cookies",
+      "bredBy": "Tester",
+      "dateCreated": "2026-10-02",
+      "notes": "",
+      "loggedAt": 1759480000000,
+      "parents": [
+        {
+          "recordId": "VEIL-3F2A9C",
+          "name": "Blue Dream x OG #4"
+        },
+        {
+          "name": "Unknown landrace"
+        }
+      ],
+      "breedingMethod": "Cross",
+      "refId": "",
+      "photoFingerprints": [],
+      "profile": "veilcore/profile/plant-variety/v1",
+      "taxon": "Cannabis sativa L.",
+      "recordFingerprint": "468136ab1a45508ab63164155f0fdede9d63c7e6f0107d9cf18f1e36e09dbd05"
+    },
+    {
+      "id": "VEIL-C548FB4436302A8836484034FD8F469B",
+      "nonce": "b2b523f98b9ec93d7d2d9d3b75d98b6ff23eded42c18f652065a0afbc60b8619",
+      "strainName": "Hop Latent Clean Line",
+      "bredBy": "Lab",
+      "dateCreated": "2026-10-03",
+      "notes": "meristem",
+      "loggedAt": 1759500000000,
+      "profile": "veilcore/profile/plant-variety/v1",
+      "recordFingerprint": "fb55efe53c25d21779276a65237bcd5eb1f9ddbdaf90ca887274052ec357c45b"
+    },
+    {
+      "id": "VEIL-4C891F0D2DC319E76D176EC9BC366A0F",
+      "nonce": "3946b6237e4f7e760cc9c258b31fd073cc4cc14d21a50129845764ae71054b8d",
+      "strainName": "Café Ørange 🌱",
+      "bredBy": "Jürgen Müller",
+      "dateCreated": "2026-10-04",
+      "notes": "Notes with \"quotes\", \\ backslash, tab\tand   separator",
+      "loggedAt": 1759560000000,
+      "parents": [],
+      "breedingMethod": "",
+      "refId": "ref/é",
+      "photoFingerprints": [
+        "2933538bedbf52389f8668ac4bdbeaec1305766fef9393e1fe4c5efe29eac4c1"
+      ],
+      "profile": "veilcore/profile/cannabis/v0.1",
+      "taxon": "Cannabis sativa L. subsp. indica",
+      "recordFingerprint": "44a6314c21e1ef5b13500401f0bf97d73d9b45962e2d7ac9b9ab802a965ac1d6"
+    },
+    {
+      "id": "VEIL-AE18E902831B3686127A444FE0D3804C",
+      "nonce": "5e7ab668ab270efcca8e2a118c9531ea8648fff3555cf6228c77da557ff5fe5a",
+      "strainName": "Gelato 41",
+      "bredBy": "B",
+      "dateCreated": "2026-09-01",
+      "notes": "typo in date",
+      "loggedAt": 1759000000000,
+      "parents": [],
+      "breedingMethod": "m",
+      "refId": "",
+      "recordFingerprint": "419b96160a90abe8b37e9f3c29c939346ca6965f0212c6e59df688dd75013a22",
+      "supersededBy": "VEIL-AE18E902831B3686127A444FE0D3804C-C1"
+    },
+    {
+      "id": "VEIL-AE18E902831B3686127A444FE0D3804C-C1",
+      "nonce": "f39939cf050053501623d1abc2d285be1535d774e615c1aa45ee875e9cc61ef8",
+      "strainName": "Gelato 41",
+      "bredBy": "B",
+      "dateCreated": "2026-08-01",
+      "notes": "corrected date",
+      "loggedAt": 1759100000000,
+      "parents": [
+        {
+          "recordId": "VEIL-AE18E902831B3686127A444FE0D3804C",
+          "name": "Gelato 41"
+        }
+      ],
+      "breedingMethod": "m",
+      "refId": "",
+      "profile": "veilcore/profile/plant-variety/v1",
+      "recordFingerprint": "8dfd8b49f8d4224d7e6edea697575a6379704e6aea279db9f8a53175adf586a9",
+      "supersedes": {
+        "recordId": "VEIL-AE18E902831B3686127A444FE0D3804C",
+        "reason": "wrong date",
+        "descentSeverity": "cosmetic",
+        "termsSeverity": "cosmetic",
+        "effectiveAt": "2026-09-02T00:00:00.000Z",
+        "changedFields": [
+          "dateCreated"
+        ]
+      }
+    },
+    {
+      "id": "VEIL-0169295B01CA8D706DBCFE3E4B589529",
+      "nonce": "a9260b499ebd24557e3928b08ad57cb1379cbd470251f56df5b9baf4f20d4ccc",
+      "strainName": "Orange Cookies",
+      "bredBy": "Tester",
+      "dateCreated": "2026-10-02",
+      "notes": "",
+      "loggedAt": 1759600000000,
+      "profile": "veilcore/profile/plant-variety/v1",
+      "taxon": "Cannabis sativa L.",
+      "receivedFrom": "VEIL-3CB1F2500792AAD1C36958A01726418E",
+      "receivedFromCommitment": "cc72e9632c8f6e911482109129cbee2a23c4d578df33100df5bd2c95632ec39a",
+      "receivedAt": 1759590000000,
+      "transferId": "T-d7601c9d5425591e",
+      "quantity": "10 clones",
+      "licenseIds": [],
+      "recordFingerprint": "9a800497f031f65445383ed0b8390a6452b167524e7b65ef75030a8173d540bb"
+    },
+    {
+      "id": "VEIL-0001",
+      "strainName": "Very Old Record",
+      "bredBy": "B",
+      "dateCreated": "2025-01-01",
+      "notes": "",
+      "loggedAt": 1736000000000
+    }
+  ]
+}

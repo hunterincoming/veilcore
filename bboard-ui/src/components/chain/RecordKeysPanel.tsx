@@ -6,7 +6,14 @@ import React, { useRef, useState } from 'react';
 import { Alert, Button, Stack, Typography } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/FileDownloadOutlined';
 import UploadIcon from '@mui/icons-material/FileUploadOutlined';
-import { downloadBackup, forgetKeys, hexBytes, restoreBackup, useRecordKeys } from '../../veilcore/record-keys';
+import {
+  downloadBackup,
+  forgetKeys,
+  hexBytes,
+  keysFitRecord,
+  restoreBackup,
+  useRecordKeys,
+} from '../../veilcore/record-keys';
 import { identityOf } from '../../veilcore/chain/identity';
 import type { StrainRecord } from '../../veilcore/records';
 import { NETWORK } from '../../config/network';
@@ -28,7 +35,9 @@ export const RecordKeysPanel: React.FC<{ record: StrainRecord }> = ({ record }) 
     try {
       const k = await restoreBackup(f);
       if (k.recordId !== record.id) setMsg(`Restored keys for ${k.recordId}.`);
-      else if (k.anchor && identityOf(hexBytes(k.recordSecret)) !== k.anchor.identity) {
+      else if (!keysFitRecord(k, record)) {
+        setMsg('Restored, but these aren’t the keys this record names. Check you chose the right file.');
+      } else if (k.anchor && identityOf(hexBytes(k.recordSecret)) !== k.anchor.identity) {
         setMsg('Restored, but these keys are not this record’s on-chain identity. Check you chose the right file.');
       } else setMsg('Keys restored to this browser.');
     } catch (e) {

@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { pureCircuits } from '../../../contract/src/managed/veilcore/contract/index.js';
+import { isHex64, keyBoundFingerprint } from './key-binding';
 
 /** Hex-encode bytes (no 0x prefix). */
 export const toHex = (bytes: Uint8Array): string => Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
@@ -69,6 +70,16 @@ export type CommittedRecordInput = {
   profile?: string;
   taxon?: string;
   nonce: string;
+  /**
+   * H(keybind, the record's key, its salt): the record names its own key (key-binding.ts).
+   * Absent on records sealed before 14 October 2026, whose fingerprint is unchanged.
+   */
+  keyBinding?: string;
+};
+
+const checkedBinding = (v: unknown): string => {
+  if (!isHex64(v)) throw new Error('keyBinding must be 64 lowercase hex characters.');
+  return v;
 };
 
 /**
@@ -90,11 +101,25 @@ export const committedRecordFields = (r: CommittedRecordInput): Record<string, u
   // recompute to the fingerprint they were sealed with.
   ...(r.profile ? { profile: r.profile } : {}),
   ...(r.taxon ? { taxon: r.taxon } : {}),
+  // Sealed when present, and only then: an older record's fields and fingerprint stay
+  // exactly as they were. A malformed one is refused rather than sealed.
+  ...(r.keyBinding !== undefined ? { keyBinding: checkedBinding(r.keyBinding) } : {}),
 });
 
-export const fingerprintRecord = async (r: CommittedRecordInput): Promise<string> => {
+/** SHA-256 of the canonical sealed fields: the whole fingerprint of an older record. */
+export const contentHashOf = async (r: CommittedRecordInput): Promise<string> => {
   const { canonicalise: canon } = await import('veilcore-records');
   return toHex(await sha256(new TextEncoder().encode(canon(committedRecordFields(r)))));
+};
+
+/**
+ * The record's fingerprint. A record that names its key (keyBinding) folds the key in at
+ * the top, H(keyrecord, keyBinding, contentHash), so a checker can match the key to the
+ * fingerprint from hashes alone (key-binding.ts). Any other record: the content hash.
+ */
+export const fingerprintRecord = async (r: CommittedRecordInput): Promise<string> => {
+  const content = await contentHashOf(r);
+  return r.keyBinding !== undefined ? keyBoundFingerprint(checkedBinding(r.keyBinding), content) : content;
 };
 
 /** Short display form of a fingerprint. */

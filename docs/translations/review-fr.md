@@ -125,15 +125,17 @@ Changed on 3 October (site accuracy pass), please re-check: `footer.about`, `m.h
 
 ## hero.title1
 
-**EN:** Prove you had it first.
+**EN:** Date your record.
 
-**FR:** Prouvez que vous l'aviez en premier.
+**FR:** Datez votre enregistrement.
+
+_Headline changed on 14 October 2026. The translation shown is the one now in the site's language file; please check it._
 
 ## hero.title2
 
-**EN:** Without showing anyone what it is.
+**EN:** Keep your genetics.
 
-**FR:** Sans montrer à quiconque de quoi il s'agit.
+**FR:** Gardez votre génétique.
 
 ## hero.lead
 
@@ -520,15 +522,17 @@ Some headings are split in two or three parts; the later part is shown in colour
 
 ### m.hero.title1
 
-**EN:** Prove you had it first.
+**EN:** Date your record.
 
-**FR:** Prouvez que vous l'aviez en premier.
+**FR:** Datez votre enregistrement.
+
+_Headline changed on 14 October 2026. The translation shown is the one now in the site's language file; please check it._
 
 ### m.hero.title2
 
-**EN:** Without showing anyone what it is.
+**EN:** Keep your genetics.
 
-**FR:** Sans montrer à personne ce que c'est.
+**FR:** Gardez votre génétique.
 
 ### m.hero.lede
 

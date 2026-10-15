@@ -241,7 +241,10 @@ describe("what's live where", () => {
   it('says what the code does', () => {
     const e = en as Record<string, string>;
     expect(e['m.live.stamp.main']).toMatch(/by hand for now.*Your browser sends nothing to the chain/);
-    expect(e['m.live.stamp.test']).toMatch(/Your browser stamps each record.*automatically/);
+    // The record is dated by its batch; the browser's date stamp dates only the plant's key
+    // (docs/identity-in-record.md, "Dates").
+    expect(e['m.live.stamp.test']).toMatch(/Batches are dated automatically, and that dates your record/);
+    expect(e['m.live.stamp.test']).toMatch(/date stamps your plant's own key, which dates only the key/);
     expect(e['m.live.claims.main']).toMatch(/no maintenance key.*can’t use it yet/);
     expect(e['m.live.lic.main']).toBe('Practice only.');
     expect(e['m.live.lic.test']).toBe('Practice only.');
@@ -250,8 +253,10 @@ describe("what's live where", () => {
     expect(rows.find((r) => r.row === 'results')?.has).toEqual([false, true, true]);
     expect(e['m.live.results.not']).toMatch(/^On veilcore\.org: turned off for now, on the test site first\.$/);
     // Prove-by-link checks a key, not the record.
-    expect(e['m.live.prove.test']).toMatch(/you control the key you registered for this record/);
-    expect(e['m.live.prove.test']).toMatch(/your statement for now/);
+    // The record names its own key (SPEC 3.6.1, docs/identity-in-record.md).
+    expect(e['m.live.prove.test']).toBe(
+      "Yes. Their page checks on the network that you control the record's own key. The record named that key when it was sealed, so it can't be swapped.",
+    );
     // Bitcoin: the live registry stamps every sealed batch; the test site's registry runs
     // with OpenTimestamps off (docs/no-wallet-run-12oct.md), so there is no test cell.
     expect(rows.find((r) => r.row === 'btc')?.has).toEqual([true, false, true]);
@@ -283,8 +288,12 @@ describe('round 3: what a page may claim', () => {
   it('prove-by-link says it checks a key, never that you hold the record', () => {
     for (const [site, s] of Object.entries(SITES)) {
       expect(offenders(s, /that you hold the record|shows you hold it/i), site).toEqual([]);
-      expect(s['m.for.6p'], site).toMatch(/you control the key you registered for this record/);
-      expect(s['m.for.6p'], site).toMatch(/That the key belongs to the record is your statement for now/);
+      expect(s['m.for.6p'], site).toMatch(
+        /you control your plant's own key\. Your record named that key when it was sealed, so it can't be swapped\./,
+      );
+      expect(s['m.for.6p'], site).toMatch(/It says nothing about who you are or who bred the plant\./);
+      // The old "your statement" wording predates the record naming its key.
+      expect(offenders(s, /key you registered for this record|your statement for now/i), site).toEqual([]);
     }
   });
   it('no lab is called confirmed or checked by VeilCore', () => {
@@ -292,6 +301,25 @@ describe('round 3: what a page may claim', () => {
       expect(offenders(s, /confirmed by a lab|lab[- ]confirmed|receiver confirms it/i), site).toEqual([]);
       expect(offenders(s, /we've checked that the key|VeilCore (has )?checked/i), site).toEqual([]);
       expect(s['m.open.3p'], site).toMatch(/VeilCore doesn't vouch for any lab/);
+      // A mark says exactly what was checked (docs/lab-name-checks.md).
+      expect(s['m.open.3p'], site).toMatch(
+        /matched that name to a public license or accreditation listing, and on what day/,
+      );
+      expect(
+        offenders(s, /operator has marked that name|verified lab|approved lab|certified by VeilCore/i),
+        site,
+      ).toEqual([]);
+    }
+  });
+  it("a key's own date stamp is never said to date the record", () => {
+    for (const [site, s] of Object.entries(SITES)) {
+      expect(
+        offenders(
+          s,
+          /browser (date[- ])?stamps each record|browser date-stamps each record|stamps? (each|your) record from the browser/i,
+        ),
+        site,
+      ).toEqual([]);
     }
   });
   it('the demo and test site say a locked lab report is kept 180 days; veilcore.org has none yet', () => {

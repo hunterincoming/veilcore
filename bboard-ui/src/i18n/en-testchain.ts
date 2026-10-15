@@ -1,8 +1,9 @@
 // The English strings that differ on the public test site (test.veilcore.org): a build
 // with VITE_REAL_CHAIN=1 on a test network. There the browser sends real transactions
-// (VeilCore's sponsor pays the fee), so en.ts's demo wording would be wrong: each record
-// is date-stamped from the browser, batches are anchored automatically (the sponsor's
-// anchoring job, docs/no-wallet-run-12oct.md), a DNA report pairing can be dated, and
+// (VeilCore's sponsor pays the fee), so en.ts's demo wording would be wrong: batches are
+// anchored automatically (the sponsor's anchoring job, docs/no-wallet-run-12oct.md), which
+// dates each record; the browser date stamps each plant's own key, which dates only the key
+// (docs/identity-in-record.md, "Dates"); a DNA report pairing can be dated, and
 // "prove it" by link works. Licenses and lab agreements are still practice only.
 //
 // Order in i18n/index.tsx: en, then this overlay (and its translation, where a language
@@ -33,7 +34,7 @@ export const testchainStrings: Overlay = {
   'm.for.1p':
     "Seal a record and pair its DNA report. If the plant turns up under another name, a lab can compare a new test with your report. When you pair through VeilCore's contract on Midnight, the pairing is dated too: it shows that whoever controlled your record at that date had that report, or its SHA-256, by then. What goes on chain is tied to your record and hides the report, so nobody can copy your pairing to their own record. On this test site you can date the pairing from your browser. VeilCore doesn't test DNA.",
   'm.demo.lede':
-    "No sign-up, no wallet. This is the test site, so use made-up details. Your browser date-stamps each record on Midnight's test network (VeilCore pays the fee), and batches are anchored automatically. You can date a DNA report pairing too. A lab's receipt is a real signature with the lab's own key, kept off the chain. Licenses and lab agreements are practice only.",
+    "No sign-up, no wallet. This is the test site, so use made-up details. Batches are anchored on Midnight's test network automatically, and that dates your records. Your browser also date stamps each plant's own key, which dates only the key (VeilCore pays the fee). You can date a DNA report pairing too. A lab's receipt is a real signature with the lab's own key, kept off the chain. Licenses and lab agreements are practice only.",
   'm.privacy.test.text':
     "This site uses Midnight's preprod test network, not the main one. Your browser sends each date stamp to that network through VeilCore's fee service; what you typed and your files are never sent to it. A test network can be reset, and test data may be deleted.",
   'm.privacy.hosts.text':

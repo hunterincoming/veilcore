@@ -13,7 +13,7 @@ import { LAB_RESULTS_ENABLED } from '../../config/network';
 import { proofFor, type ProofState } from '../../veilcore/proofs';
 import { SECTIONS, type Section } from './FlowFrame';
 import type { BreederReceipt, LabReceipt } from '../../veilcore/custody';
-import { signedByWords } from '../../veilcore/custody';
+import { signerLabel } from '../../veilcore/attesters';
 import type { ArrivedResult } from './LabResults';
 
 const day = (ms?: number | string) => (ms === undefined ? '' : new Date(ms).toLocaleDateString());
@@ -57,13 +57,14 @@ const reportRow = (record: StrainRecord, arrived?: readonly ArrivedResult[] | nu
 
 /**
  * The breeder's receipt line: only a receipt the lab linked to one of this plant's
- * deliveries, verified here (custody.ts breederReceipt). It names the signer only when
- * VeilCore's operator added the name; never "Confirmed by a lab" (round 3).
+ * deliveries, verified here (custody.ts breederReceipt). It names the signer plainly only
+ * with a current name check, and then says what was matched, where and when
+ * (attesters.ts signerLabel, round 4); never "Confirmed by a lab" (round 3).
  */
 export const breederReceiptRow = (receipt: BreederReceipt | null | undefined) => {
   if (receipt === null || receipt === undefined) return { done: false, label: 'Lab receipt', value: 'checking…' };
   if (receipt.kind === 'signed')
-    return { done: true, label: 'Receipt signed', value: `by ${signedByWords(receipt.by)}` };
+    return { done: true, label: 'Receipt signed', value: signerLabel(receipt.by, 'by').text };
   if (receipt.kind === 'code-used') return { done: false, label: 'Lab code used', value: 'no receipt signed' };
   return { done: false, label: 'Lab receipt', value: 'not signed yet' };
 };
@@ -97,22 +98,33 @@ export const PlantStatus: React.FC<{
 }> = ({ record, keys, arrived, waiting, receipt, labSent }) => {
   const [proof, setProof] = useState<ProofState>({ status: 'none' });
   useEffect(() => {
-    if (!REAL_CHAIN) void proofFor(record.recordFingerprint).then(setProof);
+    if (record.recordFingerprint) void proofFor(record.recordFingerprint).then(setProof);
   }, [record.recordFingerprint]);
 
   const received = Boolean(record.receivedFrom);
-  const stamp: { done: boolean; value: string } = REAL_CHAIN
-    ? keys?.anchor
-      ? { done: true, value: day(keys.anchor.anchoredAt) || 'done' }
-      : { done: false, value: 'not yet' }
-    : proof.status === 'anchor-reported'
+  // Two different dates, never mixed (docs/identity-in-record.md): the record's own date is
+  // its fingerprint's batch (which covers its key too, for a record that names one); the
+  // key's date stamp, on test builds, dates the key only. Neither date is made up here:
+  // the batch's comes from its inclusion proof, the key's from its anchor.
+  const batch: { done: boolean; value: string } =
+    proof.status === 'anchor-reported'
       ? { done: true, value: day(proof.proof.anchor?.anchoredAt) || 'in a dated batch' }
       : proof.status === 'pending'
         ? { done: false, value: 'in a batch, waiting' }
         : { done: false, value: 'waiting for a batch' };
+  const key: { done: boolean; value: string } = keys?.anchor
+    ? { done: true, value: day(keys.anchor.anchoredAt) || 'done' }
+    : { done: false, value: 'not yet' };
 
   const rows = [
-    ...(received ? [] : [{ done: stamp.done, label: 'Public date stamp', value: stamp.value }]),
+    ...(received
+      ? []
+      : REAL_CHAIN
+        ? [
+            { done: key.done, label: 'Key date stamped', value: key.value },
+            { done: batch.done, label: 'Record dated', value: batch.value },
+          ]
+        : [{ done: batch.done, label: 'Public date stamp', value: batch.value }]),
     received
       ? labReceiptRow(receipt as LabReceipt | null | undefined)
       : breederReceiptRow(receipt as BreederReceipt | null | undefined),

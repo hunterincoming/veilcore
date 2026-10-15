@@ -86,6 +86,23 @@ Removed: the six-step wizard (`WizardShell`, `ProgressPath`, `Step1LogStrain`,
   the link; without it the check page cannot offer the button. Only people with the link
   can match the holder's proofs to the plant.
 - Copying codes by hand is still there under "Do it by hand instead".
+- **The record names its own key (14 Oct, `docs/identity-in-record.md`, SPEC 3.6.1).** A
+  plant's key is made before it is sealed, and the sealed record carries `keyBinding`
+  (the key, hidden with a salt from the record secret); the fingerprint is built around
+  it. The share link adds the key's salt (`ks`) and the hash of the sealed details (`cd`).
+  The check page recomputes the fingerprint from the link's key, `ks` and `cd`, and makes
+  no request unless it matches the link's fingerprint (which must match the registry's):
+  "The key in this link isn't the one this record names." Each answer is checked against
+  it again. Confirmed then says: "Whoever answered controls this record's own key, right
+  now. The record named that key when it was sealed, so it can't be swapped." Older
+  records keep the earlier wording, labelled "Older record: key not bound to this
+  record."; a bound record whose link leaves `ks`/`cd` out is refused, not downgraded
+  (the registry's `/verify` says `keyBound`). New keys are never made for a bound record:
+  only its backup brings its key back.
+- **What the date stamp dates.** The date stamp on test builds (`anchor`) dates the plant's
+  key, not its details: a key can be named by a record sealed later. The record and its
+  key are dated together when its fingerprint's batch is dated. The plant screens now say
+  "your plant's key" for the first.
 - **Correction to the commit message of 9f19804**: it says the checker's check failed in
   the browser. It failed on the local development server only, where Vite's stand-in for
   Node's `crypto` (imported through `contract/src/pairing.ts` and

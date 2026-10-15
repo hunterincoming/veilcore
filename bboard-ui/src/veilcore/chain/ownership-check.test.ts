@@ -3,6 +3,7 @@ import { ledger, type Ledger } from '../../../../contract/src/managed/veilcore/c
 import { checkAnchor, checkOwnership, newChallenge } from './ownership-check';
 import { identityOf, recoveryCommitmentOf } from './actions';
 import { contractStateAfter } from './test-chain';
+import { KEY_NOT_THIS_RECORDS, bindingForSecret, keyBoundFingerprint } from '../key-binding';
 
 const store = new Map<string, string>();
 const lasting = new Map<string, string>();
@@ -107,5 +108,49 @@ describe('verifier: checking a holder’s answer', () => {
     const after = ledger(contractStateAfter([{ secret: RECORD, circuit: 'anchor', args: [RCV] }]).data);
     expect(await checkAnchor('aa', identityOf(RECORD), { stateAfter: () => Promise.resolve(after) })).toBe(true);
     expect(await checkAnchor('aa', identityOf(OTHER), { stateAfter: () => Promise.resolve(after) })).toBe(false);
+  });
+});
+
+// A record that names its own key (key-binding.ts): the whole path on the test chain.
+describe('verifier: a record that names its own key', () => {
+  const hexOf = (b: Uint8Array) => Buffer.from(b).toString('hex');
+  // The victim's record, sealed naming RECORD's key; the attacker controls OTHER.
+  const sealed = () => {
+    const { keySalt, keyBinding } = bindingForSecret(hexOf(RECORD));
+    const contentHash = 'c4'.repeat(32);
+    return { fingerprint: keyBoundFingerprint(keyBinding, contentHash), keySalt, contentHash };
+  };
+
+  it('accepts the record’s own key, answering this challenge', async () => {
+    const challenge = newChallenge();
+    const after = afterProof(RECORD, challenge);
+    const deps = { stateAfter: () => Promise.resolve(after), latest: () => Promise.resolve(after) };
+    const v = await checkOwnership(
+      { txId: 'aa'.repeat(32), identity: identityOf(RECORD), challenge, record: sealed() },
+      deps,
+    );
+    expect(v.accepted).toBe(true);
+  });
+
+  it('refuses a real, valid proof from a key the record never named (the swapped chain=), without reading the chain', async () => {
+    const challenge = newChallenge();
+    const after = afterProof(OTHER, challenge); // OTHER genuinely proved, answering this challenge
+    let read = false;
+    const deps = {
+      stateAfter: () => ((read = true), Promise.resolve(after)),
+      latest: () => Promise.resolve(after),
+    };
+    // Without the record, the old check accepts it: control of the key the link names.
+    expect(
+      (await checkOwnership({ txId: 'aa'.repeat(32), identity: identityOf(OTHER), challenge }, deps)).accepted,
+    ).toBe(true);
+    read = false;
+    const again = newChallenge();
+    const v = await checkOwnership(
+      { txId: 'aa'.repeat(32), identity: identityOf(OTHER), challenge: again, record: sealed() },
+      { ...deps, stateAfter: () => ((read = true), Promise.resolve(afterProof(OTHER, again))) },
+    );
+    expect(v).toEqual({ accepted: false, reason: KEY_NOT_THIS_RECORDS });
+    expect(read).toBe(false);
   });
 });

@@ -161,16 +161,20 @@ export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boole
   const refusals = Object.values(ask.refused ?? {});
 
   if (ask.confirmed) {
-    // What this shows, and no more: the key named in the link is held by whoever answered.
-    // That the key belongs to this plant's record is the holder's own statement today
-    // (the record's fingerprint doesn't cover it yet; ownership-check.ts).
+    // What this shows, and no more. A record that names its own key (ask.record, checked
+    // against its fingerprint before asking and again with the answer): whoever answered
+    // controls that key. An older record: the key named in the link, which the holder
+    // chose (key-binding.ts, ownership-check.ts).
+    const bound = !!ask.record;
     return (
       <Alert severity="success" variant="outlined">
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
           Confirmed
         </Typography>
         <Typography variant="body2" sx={{ mt: 0.5 }}>
-          Whoever answered controls the key named in this link, right now.
+          {bound
+            ? 'Whoever answered controls this record’s own key, right now. The record named that key when it was sealed, so it can’t be swapped.'
+            : 'Whoever answered controls the key named in this link, right now.'}
         </Typography>
         {ask.confirmed.anchor === true && (
           <Typography variant="body2" sx={{ mt: 0.75 }}>
@@ -182,10 +186,21 @@ export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boole
             The key&apos;s registration named in the link could not be confirmed.
           </Typography>
         )}
-        <Typography variant="body2" sx={{ mt: 0.75 }}>
-          That this key belongs to this plant&apos;s record is the holder&apos;s statement for now. It doesn&apos;t show
-          who they are or who bred the plant.
-        </Typography>
+        {bound ? (
+          <Typography variant="body2" sx={{ mt: 0.75 }}>
+            It doesn&apos;t show who they are or who bred the plant.
+          </Typography>
+        ) : (
+          <>
+            <Typography variant="body2" sx={{ mt: 0.75, fontWeight: 700 }}>
+              Older record: key not bound to this record.
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 0.25 }}>
+              That this key belongs to this plant&apos;s record is the holder&apos;s statement for now. It doesn&apos;t
+              show who they are or who bred the plant.
+            </Typography>
+          </>
+        )}
         <KeyLine identity={ask.identity} />
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
           Checked {when(ask.confirmed.at)} on the test network, which can be reset: practice only, no evidential weight.

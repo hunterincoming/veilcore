@@ -16,10 +16,15 @@
 // send a fragment to a server. The registry gets only the token's SHA-256 and takes an
 // answer only with the token, so someone who saw just the id can't fill the answer slots
 // with junk.
+//
+// A record that names its own key (key-binding.ts): the request keeps the record's
+// fingerprint and the parts that tie the key to it, and every answer is checked against
+// them too. A key that isn't the record's is refused before anything is asked.
 // SPDX-License-Identifier: Apache-2.0
 
 import { isObject, isString, isNumber, readJson } from './json';
 import { newChallenge } from './chain/challenge-book';
+import { KEY_NOT_THIS_RECORDS, keyMatchesRecord, type KeyedRecord } from './key-binding';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 const ASKS = 'veilcore.prove-asks.v1';
@@ -57,6 +62,8 @@ export type MyAsk = {
   readonly token?: string;
   readonly recordId?: string;
   readonly anchorTx?: string;
+  /** The record named this key when it was sealed: what ties the two (key-binding.ts). */
+  readonly record?: KeyedRecord;
   readonly createdAt: number;
   /** Set once an answer checks out on chain. */
   readonly confirmed?: { readonly txId: string; readonly at: number; readonly anchor?: boolean };
@@ -144,9 +151,13 @@ export const askToProve = async (input: {
   asker?: string;
   recordId?: string;
   anchorTx?: string;
+  /** For a record that names its key: checked here, before anything is asked. */
+  record?: KeyedRecord;
 }): Promise<{ ask: MyAsk; link: string } | { error: string }> => {
   const identity = input.identity.trim().toLowerCase();
   if (!HEX64.test(identity)) return { error: 'this link names no on-chain identity to check' };
+  if (input.record && !keyMatchesRecord(identity, input.record))
+    return { error: KEY_NOT_THIS_RECORDS.charAt(0).toLowerCase() + KEY_NOT_THIS_RECORDS.slice(1) };
   const challenge = newChallenge(Date.now(), { lasting: true });
   const token = newAnswerToken();
   let res: Response;
@@ -176,6 +187,7 @@ export const askToProve = async (input: {
     token,
     ...(input.recordId ? { recordId: input.recordId } : {}),
     ...(input.anchorTx ? { anchorTx: input.anchorTx } : {}),
+    ...(input.record ? { record: input.record } : {}),
     createdAt: Date.now(),
   };
   writeAsks([...readAsks(), ask]);
@@ -256,6 +268,7 @@ export type AnswerCheck = {
     txId: string;
     identity: string;
     challenge: string;
+    record?: KeyedRecord;
   }) => Promise<{ accepted: boolean; reason: string }>;
   readonly checkAnchor: (txId: string, identity: string) => Promise<boolean>;
 };
@@ -282,7 +295,12 @@ export const checkAnswers = async (
     const txId = a.txId.trim().toLowerCase().replace(/^0x/, '');
     if (seen.has(txId) || now.refused?.[txId]) continue;
     seen.add(txId);
-    const v = await check.checkOwnership({ txId, identity: ask.identity, challenge: ask.challenge });
+    const v = await check.checkOwnership({
+      txId,
+      identity: ask.identity,
+      challenge: ask.challenge,
+      ...(ask.record ? { record: ask.record } : {}),
+    });
     if (v.accepted) {
       const anchor = ask.anchorTx ? await check.checkAnchor(ask.anchorTx, ask.identity) : undefined;
       now = { ...now, confirmed: { txId, at: clock(), ...(anchor === undefined ? {} : { anchor }) } };

@@ -78,6 +78,7 @@ const PATHS={
  cal:'<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
  seal:'<circle cx="12" cy="9" r="6"/><path d="M9.2 14.3L8 21l4-2 4 2-1.2-6.7"/>',
  ledger:'<rect x="3.5" y="4" width="17" height="4.5" rx="1.2"/><rect x="3.5" y="10" width="17" height="4.5" rx="1.2"/><rect x="3.5" y="16" width="17" height="4.5" rx="1.2"/>',
+ cloud:'<path d="M7 18.5h10.5a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.6 9.6 4.5 4.5 0 0 0 7 18.5z"/>',
  eyeoff:'<path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6 0 9.5 7 9.5 7a17 17 0 0 1-2.6 3.4M6.6 6.6C3.9 8.4 2.5 12 2.5 12s3.5 7 9.5 7a9 9 0 0 0 4.4-1.1"/>',
  arrowR:'<path d="M5 12h14M13 6l6 6-6 6"/>'
 };
@@ -103,20 +104,31 @@ const HEX='d637 717f 2249 f6a1 4592 24dc';
 function scramble(t,t0,per=0.032,settle=0.3){let o='';for(let i=0;i<HEX.length;i++){const c=HEX[i];if(c===' '){o+=' ';continue;}const ts=t0+i*per+settle;if(t>=ts)o+=c;else if(t<t0+i*per*0.5)o+=' ';else o+='0123456789abcdef'[hash(i*977+Math.floor(t*18)*131)%16];}return o;}
 
 // ---------- timeline ----------
-const DUR=61;
-const SC=[[0,7.5],[7.5,14.5],[14.5,22.5],[22.5,30],[30,37],[37,45.5],[45.5,53.5],[53.5,61]];
+// Every line follows the landing page (bboard-ui/src/i18n/en.ts: hero, "What it's for",
+// "How it works"). A record shows you had THIS RECORD by a date, not that you had the
+// plant first; the plant name is on every check page; only genetic data stays on your
+// computer. Don't add a claim here that the landing page doesn't make.
+const DUR=60;
+const SC=[[0,7.5],[7.5,14.5],[14.5,22.5],[22.5,30],[30,37],[37,45.5],[45.5,53.5],[53.5,60]];
 const CAPS=[
- 'Whoever bred it usually can’t prove they had it first.',
- 'Log a plant. Your browser makes a fingerprint of the record.',
- 'Only the fingerprint goes on Midnight, which dates it. The genetics never leave you.',
- 'Show someone just what you choose.',
+ 'Many genetics disputes come down to one question: what did you have, and when?',
+ 'Log a plant. Its fingerprint is made on your computer.',
+ 'Only the fingerprint goes on Midnight, which dates it.',
+ 'Choose what else a checker sees. The name is always shown; the genetics never are.',
  'Someone checking sends you a link. You tap once.',
- 'Their page checks the network itself: you hold this plant’s record, and have since its date.',
- 'Send it to a lab. Results come back signed by the lab, and locked so only you can open them.',
- 'Prove you had it first, without showing what it is.'
+ 'Their page checks on the network that you control the key registered for this record.',
+ 'Send material to a lab with a lab code. The report comes back signed, locked so only you can open it.',
+ 'Date your record. Keep your genetics.'
 ];
-const NOTE6='It shows you hold it, not who bred it.';
-const GROUPS=[['g1',0,7.5],['g23',7.5,22.5],['g4',22.5,30],['g56',30,45.5],['g7',45.5,53.5],['g8',53.5,61]];
+// Second, smaller line under a caption: [scene, text, seconds after the scene starts].
+const NOTES=[
+ [0,'Notebooks and files are dated by whoever keeps them, so they’re easy to doubt.',3.0],
+ [1,'The plant name you type is kept on VeilCore’s server. Genetic data never leaves your computer.',4.9],
+ [2,'It goes in a batch with others. The date shows the record existed by then.',3.4],
+ [5,'It says nothing about who bred the plant.',3.9],
+ [6,'The lab signs with its own key. VeilCore doesn’t vouch for the result.',4.4]
+];
+const GROUPS=[['g1',0,7.5],['g23',7.5,22.5],['g4',22.5,30],['g56',30,45.5],['g7',45.5,53.5],['g8',53.5,60]];
 const LABELS=[['lbLog',7.5,22.5,'Log',C.acc],['lbProve',22.5,45.5,'Prove & check',C.prove],['lbSend',45.5,53.5,'Send & receive',C.send]];
 
 // ---------- build DOM ----------
@@ -135,7 +147,7 @@ for(let r=0;r<G1.rows;r++)for(let c=0;c<G1.cols;c++){
    <div class="row" style="gap:10px">${iconTile('sprout',32,C.acc,C.accsoft)}<div class="sg" style="font-weight:600;font-size:18px">Harbour Mist</div></div>
    <div style="font-size:14px;color:${C.ink2};margin-top:12px">HM-7 &middot; cutting</div>
    <div style="margin-top:10px;height:6px;width:76%;border-radius:3px;background:#E9ECE7"></div>
-   <div id="t1_${i}" class="pill" style="position:absolute;right:-10px;top:-12px;font-size:13px;padding:4px 10px;background:${C.accsoft};color:${C.acc};border:1px solid #BFDCCD">Original</div>
+   <div id="t1_${i}" class="pill" style="position:absolute;right:-10px;top:-12px;font-size:13px;padding:4px 10px;background:#FFF;color:${C.ink2};border:1px solid ${C.line}">Since ${2016+hash(i*13+5)%8}</div>
   </div>`;
 }
 html+='</div>';
@@ -145,15 +157,16 @@ const PX0=600,PY=130,PW=720,PH=620;
 html+=`<div id="g23" class="grp">
 <svg class="lines">${lineSVG('l3',880,440,1132,440)}</svg>
 <div id="panel" class="card" style="left:${PX0}px;top:${PY}px;width:${PW}px;height:${PH}px;background:#FBFCFA">
-  <div class="row" style="position:absolute;left:28px;top:24px;gap:10px">${ic('laptop',22,C.ink2)}<div class="eyebrow">Your device</div></div>
+  <div class="row" style="position:absolute;left:28px;top:24px;gap:10px">${ic('laptop',22,C.ink2)}<div class="eyebrow">Your computer</div></div>
   <div id="rec" class="card" style="left:28px;top:66px;width:664px;height:300px;overflow:hidden;box-shadow:none">
     <div class="row" style="position:absolute;left:28px;top:22px;gap:12px">${iconTile('sprout',36,C.acc,C.accsoft)}<div class="h2" style="font-size:26px">Plant record</div></div>
-    <div id="recLock" class="pill" style="position:absolute;right:22px;top:24px;font-size:15px;background:${C.accsoft};color:${C.acc}">${ic('lock',16,C.acc,2.2)}Private</div>
     ${[['Name','Harbour Mist'],['Parents','HM-3 × Line 7'],['Method','Tissue culture'],['Genetics','']].map(([k,v],i)=>`
     <div id="r2_${i}" class="row" style="position:absolute;left:28px;right:28px;top:${84+i*52}px;height:52px;border-top:1px solid #EEF0EC">
       <div style="width:150px;font-size:17px;color:${C.ink2}">${k}</div>
-      ${i<3?`<div id="v2_${i}" style="font-size:21px;font-weight:500" data-full="${v}"></div>`:
-      `<div id="gen" class="row" style="gap:14px;position:relative"><div id="strip">${markerStrip(32,11)}</div><div id="genSize" style="font-size:16px;color:${C.ink2}">2.4 MB</div><div id="genLock" class="pill" style="white-space:nowrap;position:absolute;left:268px;top:-2px;font-size:15px;padding:5px 12px;background:${C.accsoft};color:${C.acc}">${ic('lock',15,C.acc,2.2)}Local only</div></div>`}
+      ${i<3?`<div id="v2_${i}" style="font-size:21px;font-weight:500" data-full="${v}"></div>
+      <div id="srv${i}" class="row" style="position:absolute;right:0;top:15px;gap:7px;font-size:15px;color:${C.ink2}">${ic('cloud',18,C.ink2,1.9)}VeilCore’s server</div>`:
+      `<div id="gen" class="row" style="gap:14px;position:relative"><div id="strip">${markerStrip(24,11)}</div></div>
+      <div id="genLock" class="pill" style="white-space:nowrap;position:absolute;right:-6px;top:10px;font-size:15px;padding:5px 12px;background:${C.accsoft};color:${C.acc}">${ic('lock',15,C.acc,2.2)}Your computer only</div>`}
     </div>`).join('')}
     <div id="scan" style="position:absolute;left:0;right:0;top:0;height:46px;background:linear-gradient(180deg,rgba(0,120,90,0) 0%,rgba(0,120,90,.07) 100%);border-bottom:2px solid ${C.acc}"></div>
   </div>
@@ -162,34 +175,36 @@ html+=`<div id="g23" class="grp">
     <div class="eyebrow" style="position:absolute;left:28px;top:20px">Fingerprint</div>
     <div class="row" style="position:absolute;left:28px;top:56px;gap:20px">${fpGlyph(54,C.acc,'fr2')}<div id="hex2" class="hex" style="font-size:32px;color:${C.ink}"></div></div>
   </div>
-  <div id="stay" class="row" style="position:absolute;left:28px;top:570px;gap:10px">${ic('lock',20,C.acc,2.2)}<div class="sg" style="font-weight:600;font-size:19px;color:${C.acc}">Genetics stay on this device</div></div>
+  <div id="stay" class="row" style="position:absolute;left:28px;top:570px;gap:10px">${ic('lock',20,C.acc,2.2)}<div class="sg" style="font-weight:600;font-size:19px;color:${C.acc}">Genetic data never leaves your computer</div></div>
 </div>
 <div id="mbox" class="card" style="left:1140px;top:190px;width:620px;height:500px">
   <div class="row" style="position:absolute;left:28px;top:26px;gap:14px">${iconTile('ledger',44,C.ink,C.well)}<div><div class="h2">Midnight</div><div class="sub" style="font-size:16px;margin-top:2px">Public network</div></div></div>
   ${['a91c 07be 3d52 … 03fe','5b20 9e14 c7a0 … e7d1'].map((h,i)=>`<div class="row" style="position:absolute;left:28px;top:${112+i*60}px;width:564px;height:48px;border-radius:10px;background:${C.well};padding:0 18px;justify-content:space-between"><div class="row" style="gap:12px">${fpGlyph(24,'#AEB8B0','frx')}<div class="hex" style="font-size:18px;color:#8A948D">${h}</div></div><div style="font-size:15px;color:#8A948D">${i?'13':'11'} Oct 2026</div></div>`).join('')}
   <div id="slot3" class="slot" style="left:28px;top:236px;width:564px;height:76px"></div>
   <div id="date3" class="row" style="position:absolute;left:30px;top:334px;gap:12px">${ic('cal',24,C.acc,2)}<div style="font-size:22px;font-weight:500">Dated 14 Oct 2026, 09:41 UTC</div></div>
-  <div id="mfoot" style="position:absolute;left:30px;top:430px;font-size:17px;color:${C.ink2}">Holds fingerprints and dates. Nothing else.</div>
+  <div id="mfoot" style="position:absolute;left:30px;top:430px;font-size:17px;color:${C.ink2}">A date nobody can backdate.</div>
 </div>
 <div id="chip3" class="chip row" style="width:564px;height:76px;padding:0 20px;gap:16px;z-index:9">${fpGlyph(40,C.acc,'frc')}<div class="hex" style="font-size:25px">${HEX}</div></div>
 </div>`;
 
 // ===== G4: choose what they see =====
 const SX=200,SY=160,SW=820;
-const ROWS4=[['Record exists','That this record is there'],['Date','14 Oct 2026'],['Parent names','HM-3 × Line 7'],['Genetics','Marker data']];
+// Row 0 (the plant name) is always shown on a record's check page; row 3 (genetics) is never shared.
+const ROWS4=[['Plant name','On every check page'],['Date','14 Oct 2026'],['Parent names','HM-3 × Line 7'],['Genetics','Marker data']];
 html+=`<div id="g4" class="grp">
 <svg class="lines">${lineSVG('l4',1028,440,1152,440)}</svg>
 <div id="spanel" class="card" style="left:${SX}px;top:${SY}px;width:${SW}px;height:540px">
   <div style="position:absolute;left:36px;top:28px"><div class="h2">Share settings</div><div class="sub" style="margin-top:4px">Harbour Mist</div></div>
   ${ROWS4.map(([a,b],i)=>`<div id="r4_${i}" style="position:absolute;left:0;right:0;top:${112+i*104}px;height:104px;border-top:1px solid #ECEFEA">
      <div style="position:absolute;left:36px;top:24px"><div style="font-size:24px;font-weight:500">${a}</div><div style="font-size:17px;color:${C.ink2};margin-top:4px">${b}</div></div>
-     ${i<3?`<div id="tg${i}" class="tg" style="right:36px;top:33px"><div class="k"></div></div>`:
-     `<div id="lk4" class="pill" style="position:absolute;right:36px;top:30px;font-size:17px;background:${C.well};color:${C.ink2};border:1px solid ${C.line};padding:8px 16px">${ic('lock',18,C.ink2,2.2)}Always private</div>`}
+     ${i===0?`<div class="pill" style="position:absolute;right:36px;top:30px;font-size:17px;background:${C.accsoft};color:${C.acc};border:1px solid #BFDCCD;padding:8px 16px">${ic('check',18,C.acc,2.4)}Always shown</div>`:
+     i<3?`<div id="tg${i}" class="tg" style="right:36px;top:33px"><div class="k"></div></div>`:
+     `<div id="lk4" class="pill" style="position:absolute;right:36px;top:30px;font-size:17px;background:${C.well};color:${C.ink2};border:1px solid ${C.line};padding:8px 16px">${ic('lock',18,C.ink2,2.2)}Never shared</div>`}
   </div>`).join('')}
 </div>
 <div id="vcard" class="card" style="left:1160px;top:240px;width:560px;height:400px">
   <div class="eyebrow" style="position:absolute;left:36px;top:32px">What they see</div>
-  <div id="vi0" class="row" style="position:absolute;left:36px;top:84px;gap:14px">${chk(34)}<div style="font-size:24px;font-weight:500">Record exists</div></div>
+  <div id="vi0" class="row" style="position:absolute;left:36px;top:84px;gap:14px">${chk(34)}<div style="font-size:24px;font-weight:500">Harbour Mist</div></div>
   <div id="vi1" class="row" style="position:absolute;left:36px;top:144px;gap:14px">${chk(34)}<div style="font-size:24px;font-weight:500">Dated 14 Oct 2026</div></div>
   <div style="position:absolute;left:36px;right:36px;top:216px;border-top:1px solid #ECEFEA"></div>
   <div class="row" style="position:absolute;left:36px;right:36px;top:240px;justify-content:space-between"><div class="row" style="gap:14px">${ic('eyeoff',26,'#8A948D',1.9)}<div style="font-size:22px;color:#6E7972">Parent names</div></div><div style="font-size:18px;color:#8A948D">Hidden</div></div>
@@ -219,8 +234,8 @@ html+=`<div id="g56" class="grp">
     <div id="busy6" class="row" style="position:absolute;left:40px;top:150px;gap:16px"><div id="dots6" class="row" style="gap:8px"><div style="width:12px;height:12px;border-radius:50%;background:${C.acc}"></div><div style="width:12px;height:12px;border-radius:50%;background:${C.acc}"></div><div style="width:12px;height:12px;border-radius:50%;background:${C.acc}"></div></div><div style="font-size:22px;color:${C.ink2}">Checking the network directly</div></div>
     <div id="ok6" class="row" style="position:absolute;left:40px;top:134px;gap:18px">${chk(58)}<div class="sg" style="font-weight:600;font-size:42px;color:${C.acc};letter-spacing:-.01em">Confirmed</div></div>
     <div style="position:absolute;left:40px;right:40px;top:226px;border-top:1px solid #ECEFEA"></div>
-    <div id="r6_0" class="row" style="position:absolute;left:40px;top:252px;gap:14px">${ic('check',28,C.acc,2.6)}<div style="font-size:24px;font-weight:500">They hold this plant’s record</div></div>
-    <div id="r6_1" class="row" style="position:absolute;left:40px;top:312px;gap:14px">${ic('check',28,C.acc,2.6)}<div style="font-size:24px;font-weight:500">Held since 14 Oct 2026</div></div>
+    <div id="r6_0" class="row" style="position:absolute;left:40px;top:252px;gap:14px">${ic('check',28,C.acc,2.6)}<div style="font-size:24px;font-weight:500">They control the record’s registered key</div></div>
+    <div id="r6_1" class="row" style="position:absolute;left:40px;top:312px;gap:14px">${ic('check',28,C.acc,2.6)}<div style="font-size:24px;font-weight:500">Record dated 14 Oct 2026</div></div>
   </div>
 </div>
 <div id="lchip" class="chip row" style="height:50px;padding:0 18px;gap:10px;border-radius:25px;z-index:8">${ic('link',20,C.acc,2.2)}<div class="sg" style="font-weight:600;font-size:18px">Request link</div></div>
@@ -233,7 +248,7 @@ html+=`<div id="g56" class="grp">
     <div id="req" class="card" style="left:16px;right:16px;top:160px;height:300px;padding:24px">
       <div class="eyebrow" style="font-size:13px">Proof request</div>
       <div class="sg" style="font-size:24px;font-weight:500;line-height:1.25;margin-top:12px">Someone wants to check <span style="font-weight:700">Harbour Mist</span>.</div>
-      <div style="font-size:16px;color:${C.ink2};margin-top:12px;line-height:1.4">Shares: record exists, date</div>
+      <div style="font-size:16px;color:${C.ink2};margin-top:12px;line-height:1.4">Their page checks that you control this record’s key.</div>
       <div id="pbtn" class="row sg" style="position:absolute;left:24px;right:24px;bottom:24px;height:66px;border-radius:14px;background:${C.acc};color:#fff;font-weight:600;font-size:24px;justify-content:center;gap:10px"><span id="pbtnA">Prove it</span><span id="pbtnB" class="row" style="gap:8px;position:absolute">${ic('check',24,'#fff',2.8)}Done</span></div>
     </div>
     <div id="tap" style="position:absolute;left:150px;top:403px;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(22,32,27,.18);border:2px solid rgba(22,32,27,.35)"></div>
@@ -252,29 +267,30 @@ html+=`<div id="g56" class="grp">
 // ===== G7: lab =====
 html+=`<div id="g7" class="grp">
 <svg class="lines">${lineSVG('l7a',728,300,1192,300)}${lineSVG('l7b',1192,560,728,560)}</svg>
-<div id="l7aLbl" class="abs sg" style="left:0;width:1920px;top:258px;text-align:center;font-size:17px;font-weight:600;letter-spacing:.14em;color:#8A948D">SAMPLE</div>
-<div id="l7bLbl" class="abs sg" style="left:0;width:1920px;top:576px;text-align:center;font-size:17px;font-weight:600;letter-spacing:.14em;color:#8A948D">SIGNED RESULTS</div>
+<div id="l7aLbl" class="abs sg" style="left:0;width:1920px;top:258px;text-align:center;font-size:17px;font-weight:600;letter-spacing:.14em;color:#8A948D">SAMPLE + LAB CODE</div>
+<div id="l7bLbl" class="abs sg" style="left:0;width:1920px;top:576px;text-align:center;font-size:17px;font-weight:600;letter-spacing:.14em;color:#8A948D">SIGNED, LOCKED REPORT</div>
 <div id="ycard" class="card" style="left:200px;top:170px;width:520px;height:500px">
   <div class="row" style="position:absolute;left:32px;top:30px;gap:14px">${iconTile('person',48,C.ink,C.well)}<div class="h2">You</div></div>
   <div class="row" style="position:absolute;left:32px;right:32px;top:104px;height:80px;border-radius:12px;border:1px solid ${C.line};padding:0 20px;gap:14px">${iconTile('sprout',40,C.acc,C.accsoft)}<div><div style="font-size:22px;font-weight:500">Harbour Mist</div><div style="font-size:15px;color:${C.ink2};margin-top:2px">Plant record</div></div></div>
-  <div class="eyebrow" style="position:absolute;left:32px;top:220px">Results</div>
+  <div class="eyebrow" style="position:absolute;left:32px;top:220px">Lab report</div>
   <div id="slot7" class="slot" style="left:32px;top:254px;width:456px;height:104px"></div>
-  <div id="only7" class="row" style="position:absolute;left:34px;top:384px;gap:10px">${ic('unlock',20,C.acc,2.2)}<div class="sg" style="font-weight:600;font-size:19px;color:${C.acc}">Opened with your key</div></div>
+  <div id="only7" class="row" style="position:absolute;left:34px;top:384px;gap:10px">${ic('unlock',20,C.acc,2.2)}<div class="sg" style="font-weight:600;font-size:19px;color:${C.acc}">Only you can open it</div></div>
 </div>
 <div id="labcard" class="card" style="left:1200px;top:170px;width:520px;height:500px">
   <div class="row" style="position:absolute;left:32px;top:30px;gap:14px">${iconTile('flask',48,C.send,C.sendsoft)}<div><div class="h2">Lab</div><div class="sub" style="font-size:16px;margin-top:2px">Testing lab</div></div></div>
-  <div id="lb0" class="row" style="position:absolute;left:32px;top:126px;gap:14px">${ic('check',24,C.send,2.6)}<div style="font-size:21px;font-weight:500">Sample received</div></div>
+  <div id="lb0" class="row" style="position:absolute;left:32px;top:126px;gap:14px">${ic('check',24,C.send,2.6)}<div style="font-size:21px;font-weight:500">Receipt signed with the lab’s key</div></div>
   <div id="lb1" style="position:absolute;left:32px;right:32px;top:186px"><div style="font-size:21px;font-weight:500">Testing</div><div style="margin-top:12px;height:8px;border-radius:4px;background:#E8ECE7;overflow:hidden"><div id="bar7" style="height:100%;width:0;background:${C.send};border-radius:4px"></div></div></div>
-  <div id="lb2" class="row" style="position:absolute;left:32px;top:276px;gap:14px">${ic('seal',24,C.send,2)}<div style="font-size:21px;font-weight:500">Results signed by the lab</div></div>
-  <div id="lb3" class="row" style="position:absolute;left:32px;top:330px;gap:14px">${ic('lock',24,C.send,2)}<div style="font-size:21px;font-weight:500">Locked to your key</div></div>
+  <div id="lb2" class="row" style="position:absolute;left:32px;top:276px;gap:14px">${ic('seal',24,C.send,2)}<div style="font-size:21px;font-weight:500">Report signed by the lab</div></div>
+  <div id="lb3" class="row" style="position:absolute;left:32px;top:330px;gap:14px">${ic('lock',24,C.send,2)}<div style="font-size:21px;font-weight:500">Locked so only you can open it</div></div>
+  <div id="lb4" style="position:absolute;left:32px;right:32px;top:404px;font-size:16px;line-height:1.4;color:${C.ink2}">The receipt is kept by VeilCore’s registry, not the chain.</div>
 </div>
 <div id="schip" class="chip row" style="height:52px;padding:0 20px;gap:10px;border-radius:26px;z-index:8">${ic('tube',22,C.send,2)}<div class="sg" style="font-weight:600;font-size:18px">Sample</div></div>
 <div id="dchip" class="chip row" style="width:456px;height:104px;padding:0 22px;gap:16px;z-index:9">
   ${iconTile('doc',52,C.ink,C.well)}
-  <div style="flex:1"><div class="sg" style="font-weight:600;font-size:22px">Lab results</div><div class="pill" style="margin-top:8px;font-size:14px;padding:4px 10px;gap:6px;background:${C.sendsoft};color:${C.send}">${ic('seal',15,C.send,2.2)}Signed by the lab</div></div>
+  <div style="flex:1"><div class="sg" style="font-weight:600;font-size:22px">Lab report</div><div class="pill" style="margin-top:8px;font-size:14px;padding:4px 10px;gap:6px;background:${C.sendsoft};color:${C.send}">${ic('seal',15,C.send,2.2)}Signed by the lab</div></div>
   <div id="dlk" style="position:relative;width:44px;height:44px;border-radius:50%;background:${C.well}"><div id="dl1" style="position:absolute;left:10px;top:10px">${ic('lock',24,C.ink,2.1)}</div><div id="dl2" style="position:absolute;left:10px;top:10px">${ic('unlock',24,C.acc,2.1)}</div></div>
 </div>
-<div id="nomail" class="abs row" style="left:0;width:1920px;top:630px;justify-content:center;gap:12px"><div style="position:relative">${ic('mail',28,'#8A948D',1.8)}<div style="position:absolute;left:0;top:0">${ic('strike',28,'#6E7972',2)}</div></div><div style="font-size:21px;color:${C.ink2}">No emailed PDFs</div></div>
+<div id="nomail" class="abs row" style="left:0;width:1920px;top:630px;justify-content:center;gap:12px">${ic('lock',26,'#6E7972',1.9)}<div style="font-size:21px;color:${C.ink2}">VeilCore holds only the locked file</div></div>
 </div>`;
 
 // ===== G8: end card =====
@@ -285,7 +301,7 @@ html+=`<div id="g8" class="grp">
 </div>`;
 
 // captions
-html+=`<div id="caps" class="abs" style="left:0;right:0;bottom:92px;height:0">`+CAPS.map((c,i)=>`<div id="cap${i}" class="cap"><div class="main">${c}</div>${i===5?`<div id="note6" class="note">${NOTE6}</div>`:''}</div>`).join('')+`</div>`;
+html+=`<div id="caps" class="abs" style="left:0;right:0;bottom:92px;height:0">`+CAPS.map((c,i)=>{const n=NOTES.find(x=>x[0]===i);return `<div id="cap${i}" class="cap"><div class="main">${c}</div>${n?`<div id="note${i}" class="note">${n[1]}</div>`:''}</div>`;}).join('')+`</div>`;
 $('root').innerHTML=html;
 
 // ---------- scene renderers ----------
@@ -342,30 +358,25 @@ function r23(t){
   const sl=$('slot3');sl.style.opacity=1-land;
   ap('date3',t,10.25,0.5,10);
   ap('mfoot',t,11.6,0.5,8);
-  // lock
-  const klk=ap('recLock',t,11.0,0.45,0,{});st('recLock',{o:klk,s:lerp(.8,1,klk)});
-  const kgl=P(t,11.1,11.5);$('genLock').style.opacity=kgl;$('genSize').style.opacity=1-kgl;$('strip').style.opacity=1-0.6*kgl;
-  ap('stay',t,11.35,0.5,10);
+  // where each part is kept: typed fields on VeilCore's server, genetic data on this computer
+  for(let i=0;i<3;i++)ap('srv'+i,t,4.9+i*0.18,0.4,6);
+  const kgl=P(t,5.5,5.95,eout);st('genLock',{o:kgl,s:lerp(.85,1,kgl)});
+  ap('stay',t,5.9,0.5,10);
 }
 function r4(t){
   const k1=ap('spanel',t,0.1,0.6,16);const k2=P(t,0.35,0.95,eout);st('vcard',{x:(1-k2)*30,o:k2});
   for(let i=0;i<4;i++)ap('r4_'+i,t,0.35+i*0.12,0.45,8);
   drawLine('l4',P(t,0.8,1.2));
-  const tog=[P(t,1.42,1.68),P(t,2.02,2.28),0];
-  for(let i=0;i<3;i++){const el=$('tg'+i);el.style.background=mix('#C9CFC8',C.acc,tog[i]);el.firstElementChild.style.transform=`translateX(${(tog[i]*30).toFixed(2)}px)`;}
-  const v0=P(t,1.55,2.0,eout),v1=P(t,2.15,2.6,eout);
+  // the date is switched on; parent names are left off
+  const tog=[0,P(t,1.82,2.08),0];
+  for(let i=1;i<3;i++){const el=$('tg'+i);el.style.background=mix('#C9CFC8',C.acc,tog[i]);el.firstElementChild.style.transform=`translateX(${(tog[i]*30).toFixed(2)}px)`;}
+  const v0=P(t,0.95,1.4,eout),v1=P(t,1.95,2.4,eout);
   st('vi0',{o:v0,x:(1-v0)*-14});st('vi1',{o:v1,x:(1-v1)*-14});
-  // cursor
-  const K=[[0.6,1190,820],[1.3,950,330],[1.85,950,434],[2.95,880,642],[4.4,1080,780]];
-  let cx=K[0][1],cy=K[0][2];
-  for(let i=0;i<K.length-1;i++){if(t>=K[i][0]){const k=P(t,K[i][0],K[i+1][0]);cx=lerp(K[i][1],K[i+1][1],k);cy=lerp(K[i][2],K[i+1][2],k);}}
-  const holds=[[1.3,1.42],[1.85,2.02],[2.95,3.2]];
-  holds.forEach(([a,b])=>{if(t>=a&&t<=b){}});
-  // hold at keyframes (pause before click)
-  if(t>=1.3&&t<1.85){const k=P(t,1.5,1.85);cx=lerp(950,950,k);cy=lerp(330,434,k);}
-  if(t>=1.85&&t<2.95){const k=P(t,2.15,2.95);cx=lerp(950,880,k);cy=lerp(434,642,k);}
-  if(t>=2.95&&t<4.4){const k=P(t,3.75,4.4);cx=lerp(880,1080,k);cy=lerp(642,780,k);}
-  const clicks=[1.4,2.0,3.15];let cs=1,rip=0,rk=1;
+  // cursor: in, click the date toggle, pause, click the genetics lock, out
+  const W=[[0.6,1190,820],[1.6,950,434],[2.2,950,434],[2.95,880,642],[3.75,880,642],[4.4,1080,780]];
+  let cx=W[0][1],cy=W[0][2];
+  for(let i=0;i<W.length-1;i++){if(t>=W[i][0]){const k=P(t,W[i][0],W[i+1][0]);cx=lerp(W[i][1],W[i+1][1],k);cy=lerp(W[i][2],W[i+1][2],k);}}
+  const clicks=[1.8,3.15];let cs=1,rip=0,rk=1;
   clicks.forEach(c=>{const d=t-c;if(d>-0.08&&d<0.12)cs=0.86;if(d>=0&&d<0.45){rip=1-d/0.45;rk=d/0.45;}});
   st('cur4',{x:cx,y:cy,o:P(t,0.5,0.8)*(1-P(t,5.6,6.0)),s:cs});
   const r=$('rip4');r.style.opacity=(rip*0.7).toFixed(3);r.style.transform=`scale(${lerp(.3,1.3,eout(rk)).toFixed(3)})`;
@@ -432,6 +443,7 @@ function r7(t){
   $('dlk').style.background=mix(C.well,C.accsoft,ku);
   ap('only7',t,6.35,0.45,8);
   ap('nomail',t,6.6,0.5,8);
+  ap('lb4',t,2.75,0.45,6);
 }
 function r8(t){
   document.querySelectorAll('.fre').forEach((c,i)=>{c.style.opacity=P(t,0.2+i*0.1,0.6+i*0.1);});
@@ -454,7 +466,7 @@ function render(t){
   st('brand',{o:P(t,0.2,0.8)*(1-P(t,53.0,53.5))});
   CAPS.forEach((c,i)=>{const [a,b]=SC[i];const kin=P(t,a+0.35,a+0.95,eout);const kout=i===CAPS.length-1?0:P(t,b-0.5,b-0.1);
     st('cap'+i,{o:kin*(1-kout),y:(1-kin)*14});});
-  st('note6',{o:P(t,SC[5][0]+3.9,SC[5][0]+4.5,eout),y:(1-P(t,SC[5][0]+3.9,SC[5][0]+4.5,eout))*8});
+  NOTES.forEach(([i,,d])=>{const k=P(t,SC[i][0]+d,SC[i][0]+d+0.6,eout);st('note'+i,{o:k,y:(1-k)*8});});
 }
 window.render=render;window.DUR=DUR;window.SC=SC;
 render(0);

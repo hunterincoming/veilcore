@@ -102,6 +102,18 @@ jobs:
         run: |
           npm run ci
 
+      # The 2-of-3 maintenance committee (docs/maintenance-committee.md): the signing and
+      # request scripts, then the launcher against the ledger's own code. Nothing is sent.
+      # The test file is named: `node --test scripts/committee` fails on Node 22.
+      - name: Maintenance committee scripts
+        run: |
+          node --test scripts/committee/committee.test.mjs
+
+      - name: Maintenance committee launcher
+        working-directory: bboard-cli
+        run: |
+          npx vitest run src/launcher/committee.test.ts
+
       - name: Compile bboard-ui
         working-directory: bboard-ui
         run: |

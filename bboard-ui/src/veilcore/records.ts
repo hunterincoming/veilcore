@@ -10,6 +10,8 @@ import { holderPartyId, forgetHolderKey } from './holder';
 import { proofFor } from './proofs';
 import { reportSave, describeRefusals } from './save-status';
 import { newNonce, fingerprintRecord } from './commitment';
+import { ensureKeys, forgetKeys } from './record-keys';
+import { bindingForSecret } from './key-binding';
 
 /**
  * A second party confirming they received this material.
@@ -46,6 +48,12 @@ export type StrainRecord = {
   readonly notes: string;
   readonly loggedAt: number; // when it was sealed, by this device's clock (not a trusted time until anchored)
   readonly recordFingerprint: string;
+  /**
+   * The record names its own key (key-binding.ts, SPEC 3.6.1): H(keybind, key, salt), sealed
+   * and inside the fingerprint. Says nothing about the key without the salt, which stays
+   * in this browser's record keys. Absent on records sealed before 14 October 2026.
+   */
+  readonly keyBinding?: string;
   readonly parents?: ParentRef[];
   readonly breedingMethod?: string;
   /**
@@ -126,6 +134,7 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
     str(r.dnaFingerprint) &&
     str(r.profile) &&
     str(r.taxon) &&
+    str(r.keyBinding) &&
     num(r.loggedAt) &&
     num(r.dnaPairedAt) &&
     (r.parents === undefined || Array.isArray(r.parents))
@@ -133,6 +142,9 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
 };
 
 export type NewRecordInput = {
+  /** Made with newRecordId() when the record's key had to exist before sealing. */
+  id?: string;
+  keyBinding?: string;
   nonce?: string;
   strainName: string;
   bredBy: string;
@@ -215,14 +227,14 @@ const persist = () => {
  * was refused for that id and, for a correction, the original ended up pointing at the
  * attacker's record (attack round 11). Older short ids stay valid; only new ones change.
  */
-const genId = (): string =>
+export const newRecordId = (): string =>
   'VEIL-' +
   Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0'))
     .join('')
     .toUpperCase();
 
 export const createRecord = (input: NewRecordInput): StrainRecord => {
-  const record: StrainRecord = { id: genId(), licenseIds: [], ...input };
+  const record: StrainRecord = { licenseIds: [], ...input, id: input.id ?? newRecordId() };
   records = [record, ...records];
   persist();
   return record;
@@ -338,6 +350,7 @@ const IMPORTABLE = [
   'notes',
   'loggedAt',
   'recordFingerprint',
+  'keyBinding',
   'parents',
   'breedingMethod',
   'profile',
@@ -489,13 +502,18 @@ export const issueCorrection = async (
   const { supersedesFor } = await import('veilcore-records');
 
   const nonce = newNonce();
+  // A correction is a new record, so it names a key of its own, made now (never the
+  // original's binding, which is about the original's key).
+  const id = newRecordId();
+  const { keyBinding } = bindingForSecret(ensureKeys(id).recordSecret);
   // The draft is not sealed yet, so it has no commitment. Typed loosely here for that
   // reason; the sealed record below has one.
   const draft = {
     ...before,
     ...edits,
-    id: genId(),
+    id,
     nonce,
+    keyBinding,
     loggedAt: Date.now(),
     supersededBy: undefined,
   } as StrainRecord;
@@ -520,6 +538,7 @@ export const issueCorrection = async (
   const refusedHere = result.refused.filter((x) => x.id === '*' || x.id === corrected.id || x.id === originalId);
   if (!result.offline && refusedHere.length) {
     records = previous;
+    forgetKeys(id); // made for the correction above; nothing was sealed under them
     notify();
     await store.save(KEY, records);
     await hydrate();

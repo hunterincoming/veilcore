@@ -4,6 +4,7 @@
 // and the sponsor are still blocked: the date stamp is put in place by the test, as the
 // network would, and the answer is checked only as far as "not on the network yet".
 // SPDX-License-Identifier: Apache-2.0
+import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { API, REAL_REGISTRY, expectNoErrors, isolate, watch } from './helpers';
@@ -15,8 +16,17 @@ const shot = async (page: Page, name: string) => {
 
 test.skip(!REAL_REGISTRY, 'needs a real registry: set E2E_API_BASE and build with it');
 
-const IDENTITY = 'e2'.repeat(32);
+/** A key the holder controls that this plant's record never named. */
+const OTHER_KEY = 'e2'.repeat(32);
 const ANCHOR_TX = 'a8'.repeat(32);
+/** The plant's key, commit(record secret): SHA-256 over the padded tag and the secret. */
+const identityOf = (secret: string) => {
+  const t = Buffer.alloc(32);
+  t.write('veilcore:v1:commit', 'utf8');
+  return createHash('sha256')
+    .update(Buffer.concat([t, Buffer.from(secret, 'hex')]))
+    .digest('hex');
+};
 
 test('log, share, ask by link, open as the holder, answer arrives', async ({ browser }) => {
   // The holder.
@@ -41,10 +51,17 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   await holder.getByRole('button', { name: /No report yet: skip/ }).click();
   await expect(holder.getByRole('button', { name: /Save backup file/ })).toBeVisible();
 
-  const recordId = await holder.evaluate(
-    () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
-  );
+  const [recordId, secret] = await holder.evaluate(() => {
+    const all = JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as Record<
+      string,
+      { recordSecret: string }
+    >;
+    const id = Object.keys(all)[0];
+    return [id, all[id]?.recordSecret ?? ''];
+  });
   expect(recordId).toMatch(/^VEIL-/);
+  // The key was made before sealing, and the sealed record names it.
+  const IDENTITY = identityOf(secret);
   // What the network would have done: the record's identity anchored.
   await holder.evaluate(
     ({ recordId, identity, tx }) => {
@@ -73,6 +90,9 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   const link = await holder.locator('input[readonly]').first().inputValue();
   expect(link).toContain(`chain=${IDENTITY}`);
   expect(link).toContain(`anchorTx=${ANCHOR_TX}`);
+  // What ties the key to the record: its salt and the hash of the sealed details.
+  expect(link).toMatch(/[?&]ks=[0-9a-f]{64}/);
+  expect(link).toMatch(/[?&]cd=[0-9a-f]{64}/);
   const path = new URL(link).pathname + new URL(link).search;
 
   // The checker, in another browser.
@@ -80,8 +100,18 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   const checker = await checkerCtx.newPage();
   const checkerErrors = watch(checker);
   await isolate(checker);
+  // A link with another key put in: refused by the check page, nothing asked.
+  await checker.goto(path.replace(`chain=${IDENTITY}`, `chain=${OTHER_KEY}`));
+  await expect(checker.getByText(name)).toBeVisible();
+  await expect(checker.getByText(/The key in this link isn.t the one this record names/)).toBeVisible();
+  await expect(checker.getByRole('button', { name: /Make a link to send them/ })).toHaveCount(0);
+  // The registry says the record names its key, so a link with the parts cut off is refused too.
+  await checker.goto(path.replace(/&ks=[0-9a-f]{64}/, '').replace(/&cd=[0-9a-f]{64}/, ''));
+  await expect(checker.getByText(/names its own key, but this link leaves out/)).toBeVisible();
+
   await checker.goto(path);
   await expect(checker.getByText(name)).toBeVisible();
+  await expect(checker.getByText(/This record named its own key when it was sealed/)).toBeVisible();
   await checker.getByLabel(/Your name or business/).fill('E2E Lab');
   await checker.getByRole('button', { name: /Make a link to send them/ }).click();
   const proveLink = (await checker.getByText(/\/prove\/PR-/).innerText()).trim();

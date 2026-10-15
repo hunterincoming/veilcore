@@ -383,7 +383,11 @@ Since 8 October every lookup a verdict rests on (`api/src/presentation-lookup.ts
    it up as in rule 5 (successful, its only call on this contract) and accept only if
    `lastOwnershipChallenge` is your challenge and `lastOwnershipProof` is the live,
    anchored head of the identity you asked about (`acceptOwnership`;
-   `VeilcoreAPI.checkOwnership`). Never accept a proof made for someone else's challenge:
+   `VeilcoreAPI.checkOwnership`). Whether that identity is a given registry record's is a
+   separate check: a record that names its own key (SPEC 3.6.1) lets you recompute its
+   fingerprint from the identity, the key's salt and the record's content hash, and you
+   should refuse to read a proof as being about the record unless it matches; for any
+   other record it is the holder's statement. Never accept a proof made for someone else's challenge:
    anyone can point you at the real holder's. The challenge becomes public with the
    proof, so never use one challenge for both a control proof and a licence
    presentation: published, it would let anyone recognise the presentation's tag and

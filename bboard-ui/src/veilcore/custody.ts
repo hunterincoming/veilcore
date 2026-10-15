@@ -14,8 +14,9 @@
 //     of this plant (POST /transfers/:id/receipt, which only whoever used that delivery's
 //     lab code can do; GET /transfers/sent lists it as receipt_attestation_id), that
 //     verified here and was not withdrawn by its signer;
-//   - it reads "Receipt signed by <name>" only for a key VeilCore's operator named; any
-//     other key reads "a key named <name> (name not checked)";
+//   - it reads "Receipt signed by <name>" only for a key whose name VeilCore's operator
+//     matched to a public listing, with what was matched, where and when (round 4,
+//     attesters.ts signerLabel); any other key reads "a key named <name> (name not checked)";
 //   - other signatures over the fingerprint are only counted, never called a receipt;
 //   - a used code with no receipt says just that: someone took delivery, unsigned;
 //   - a lab's own "You confirmed receipt" needs ITS key's signature, for THIS sample;
@@ -26,35 +27,27 @@
 
 import type { StrainRecord } from './records';
 import type { SentTransfer } from './transfers';
-import { countsAsSigned, strengthLabel, type ResolvedAttestation } from './attesters';
+import { countsAsSigned, nameChecked, signerLabel, type ResolvedAttestation } from './attesters';
 import { utcDate } from './time';
 
 const custodyOn = (atts: readonly ResolvedAttestation[]) =>
   atts.filter((a) => a.type === 'chain-of-custody' && countsAsSigned(a));
 
-/** A signer's name as the page should say it: checked names plainly, others as self-named. */
+/** A signer's name as the page should say it: a checked name plainly, any other as "not checked". */
 export const signerName = (a: ResolvedAttestation): { name: string; checked: boolean } => {
-  const name = a.registeredAs?.displayName ?? a.attester.displayName;
-  const checked = a.vettedAttester === true && strengthLabel(a).ok;
-  if (checked) return { name: name ?? 'a lab', checked };
-  return { name: name ? `a lab key self-named “${name}”` : 'a lab key nobody has named', checked };
+  const s = signerLabel(a);
+  return { name: s.who, checked: s.checked };
 };
 
 /**
- * Who signed, in the words that follow "signed by": the name alone only for a key
- * VeilCore's operator named; otherwise "a key named X (name not checked)".
+ * Who signed, in the words that follow "signed by": the name alone only for a key whose
+ * name check is current (attesters.ts signerLabel); otherwise "a key named X (name not
+ * checked)". Where the name is printed plainly, the page also prints signerLabel's `rest`.
  */
-export const signedByWords = (a: ResolvedAttestation): string => {
-  const name = (a.registeredAs?.displayName ?? a.attester.displayName)?.trim();
-  if (a.vettedAttester === true && strengthLabel(a).ok) return name || 'a lab key VeilCore’s operator named';
-  return name ? `a key named “${name}” (name not checked)` : 'a key nobody has named';
-};
+export const signedByWords = (a: ResolvedAttestation): string => signerLabel(a).who;
 
-/** The whole receipt line: "Receipt signed by …". */
-export const receiptSignedLine = (a: ResolvedAttestation): string => `Receipt signed by ${signedByWords(a)}`;
-
-/** What the page may say about VeilCore and a named key. VeilCore never vouches. */
-export const OPERATOR_NAMED = 'Name added by VeilCore’s operator; VeilCore doesn’t vouch for the lab.';
+/** The whole receipt label (attesters.ts signerLabel): "Receipt signed by …". */
+export const receiptSignedLine = (a: ResolvedAttestation): string => signerLabel(a).text;
 
 export type BreederReceipt =
   | {
@@ -91,10 +84,8 @@ export const breederReceipt = (
   const about = custodyOn(atts).filter((a) => a.subjectCommitment === record.recordFingerprint);
   const signed = about.filter((a) => tied.has(a.attestationId));
   const others = about.length - signed.length;
-  // A key VeilCore's operator named comes first; then the earliest.
-  const by =
-    signed.find((a) => a.vettedAttester === true) ??
-    [...signed].sort((a, b) => a.issuedAt.localeCompare(b.issuedAt))[0];
+  // A key with a current name check comes first; then the earliest.
+  const by = signed.find((a) => nameChecked(a)) ?? [...signed].sort((a, b) => a.issuedAt.localeCompare(b.issuedAt))[0];
   if (by) return { kind: 'signed', by, transferId: tied.get(by.attestationId) ?? '', others };
   const used = sent.some((t) => t.source_record === record.id && t.claimed_at);
   if (record.attestation || used) return { kind: 'code-used', others };
@@ -104,7 +95,8 @@ export const breederReceipt = (
 /**
  * The certificate's receipt line (round 3): a lab's receipt only when the lab linked it to
  * one of the breeder's deliveries and its signature checked here (custody.ts), named only
- * for a key VeilCore's operator named. A used lab code without one says just that.
+ * for a key with a current name check, and then saying what was checked (round 4). A used
+ * lab code without one says just that.
  */
 export const receiptLineFor = (record: StrainRecord, receipt: BreederReceipt | null | undefined): string => {
   if (record.receivedFrom) {
@@ -113,8 +105,10 @@ export const receiptLineFor = (record: StrainRecord, receipt: BreederReceipt | n
       : 'none recorded';
   }
   if (!receipt) return 'checking…';
-  if (receipt.kind === 'signed')
-    return `${receiptSignedLine(receipt.by)}, ${utcDate(receipt.by.issuedAt)} (signature checked in this browser)`;
+  if (receipt.kind === 'signed') {
+    const s = signerLabel(receipt.by);
+    return `${s.lead}, ${utcDate(receipt.by.issuedAt)} (signature checked in this browser)${s.checked ? `.${s.rest}` : ''}`;
+  }
   if (receipt.kind === 'code-used')
     return record.attestation
       ? `Lab code used on ${utcDate(record.attestation.attestedAt)}; no receipt signed, so it doesn’t show who`

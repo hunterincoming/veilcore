@@ -22,19 +22,18 @@ import {
   quantityPhrase,
   type SentTransfer,
 } from '../../veilcore/transfers';
-import { attestationsFor, countsAsSigned, type ResolvedAttestation } from '../../veilcore/attesters';
+import { attestationsFor, countsAsSigned, signerLabel, type ResolvedAttestation } from '../../veilcore/attesters';
 import { loadAttester, attestRecord, retract } from '../../veilcore/attester-keys';
 import {
   breederReceipt,
   labReceipt,
-  OPERATOR_NAMED,
   reportSigner,
-  signedByWords,
   type BreederReceipt,
   type ReportSigner,
 } from '../../veilcore/custody';
 import { LAB_RESULTS_ENABLED } from '../../config/network';
 import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
+import { NameCheckText } from '../NameCheckText';
 import { focusScreenHeading } from './FlowFrame';
 import {
   deleteResult,
@@ -300,23 +299,30 @@ const SignerLine: React.FC<{ signer: ReportSigner }> = ({ signer }) => {
     return (
       <Alert severity="warning" variant="outlined">
         <b>
-          Signed by {signedByWords(signer.report)}, but{' '}
+          Signed by {signerLabel(signer.report).who}, but{' '}
           {signer.kind === 'no-receipt'
             ? 'the lab hasn’t signed a receipt for this delivery.'
             : 'not by the key that signed the receipt for this delivery.'}
         </b>{' '}
         The file matches that key&apos;s signature, but nothing shows the key ever had your sample. Ask the lab before
         relying on it.
+        <NameCheckText label={signerLabel(signer.report)} />
       </Alert>
     );
   }
   const a = signer.report;
-  const checked = a.vettedAttester === true;
+  // One label for every screen (attesters.ts signerLabel): a checked name says what was
+  // matched, where and when; any other reads "name not checked".
+  const label = signerLabel(a, 'Signed by');
   return (
-    <Alert severity={checked ? 'success' : 'info'} variant="outlined" icon={<VerifiedIcon />}>
-      <b>Signed by {signedByWords(a)}</b> (key {short(a.attester.publicKey)}), checked here. The same key signed the
-      receipt for this delivery.{' '}
-      {checked ? OPERATOR_NAMED : 'Anyone can register a key under any name, so the name doesn’t show who signed.'}
+    <Alert severity={label.checked ? 'success' : 'info'} variant="outlined" icon={<VerifiedIcon />}>
+      <b>{label.lead}</b> (key {short(a.attester.publicKey)}), signature checked in this browser. The same key signed
+      the receipt for this delivery.
+      {label.checked ? (
+        <NameCheckText label={label} />
+      ) : (
+        ' Anyone can register a key under any name, so the name doesn’t show who signed.'
+      )}
     </Alert>
   );
 };

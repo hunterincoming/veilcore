@@ -9,7 +9,15 @@
 import React, { useState } from 'react';
 import { Alert, Button, Checkbox, FormControlLabel, Paper, Stack, Typography } from '@mui/material';
 import LinkIcon from '@mui/icons-material/LinkOutlined';
-import { ensureKeys, hexBytes, setAnchor, storageKeeps, useRecordKeys } from '../../veilcore/record-keys';
+import {
+  KEYS_NOT_THIS_RECORDS,
+  ensureKeys,
+  ensureKeysFor,
+  hexBytes,
+  setAnchor,
+  storageKeeps,
+  useRecordKeys,
+} from '../../veilcore/record-keys';
 import { getRecord, useRecords } from '../../veilcore/records';
 import { CHAIN_CONTRACT, chainNotReady } from '../../veilcore/chain/config';
 import { NETWORK, networkLabel } from '../../config/network';
@@ -32,7 +40,8 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
 
   const anchor = () =>
     call.run(async (progress) => {
-      const k = ensureKeys(recordId);
+      // A record that names its key is anchored only with that key (key-binding.ts).
+      const k = ensureKeysFor(record);
       const { anchorOnChain } = await import('../../veilcore/chain/actions');
       const secret = hexBytes(k.recordSecret);
       const receipt = await anchorOnChain(secret, hexBytes(k.recoverySecret), { progress });
@@ -92,7 +101,15 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
                 />
               </>
             )}
-            {!keys ? (
+            {!keys && record.keyBinding ? (
+              <>
+                {/* This record named its key when it was sealed: a new key would never match. */}
+                <RecordKeysPanel record={record} />
+                <Typography variant="body2" color="text.secondary">
+                  {KEYS_NOT_THIS_RECORDS}
+                </Typography>
+              </>
+            ) : !keys ? (
               <>
                 {/* Restore comes first (no-wallet run, 13 Oct 2026): after "Remove" the page
                     offered only "Make this record's keys", and the restore button was not

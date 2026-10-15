@@ -19,6 +19,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useSyncExternalStore } from 'react';
+import { bindingForSecret } from './key-binding';
 
 const KEY = 'veilcore.record-keys.v1';
 
@@ -161,6 +162,28 @@ export const ensureKeys = (recordId: string, now = Date.now()): RecordKeys => {
   if (!writeAll(next)) sessionOnly = { ...sessionOnly, [recordId]: keys };
   changed();
   return keys;
+};
+
+/**
+ * Whether these keys are the ones a record named when it was sealed (key-binding.ts). A
+ * record sealed before keys were named in records (no keyBinding) fits any keys.
+ */
+export const keysFitRecord = (keys: Pick<RecordKeys, 'recordSecret'>, record: { keyBinding?: string }): boolean =>
+  record.keyBinding === undefined || bindingForSecret(keys.recordSecret).keyBinding === record.keyBinding;
+
+export const KEYS_NOT_THIS_RECORDS =
+  'This plant’s key isn’t in this browser. Get it back from your backup file: a new key wouldn’t match the sealed record.';
+
+/**
+ * The record's keys for an on-chain step. A record that names its key gets only that key:
+ * new keys would be a key the record never named, and every proof made with them would be
+ * refused. Older records get theirs made now if they have none, as before.
+ */
+export const ensureKeysFor = (record: { id: string; keyBinding?: string }): RecordKeys => {
+  if (record.keyBinding === undefined) return ensureKeys(record.id);
+  const k = keysFor(record.id);
+  if (!k || !keysFitRecord(k, record)) throw new Error(KEYS_NOT_THIS_RECORDS);
+  return k;
 };
 
 const update = (recordId: string, f: (k: RecordKeys) => RecordKeys): void => {

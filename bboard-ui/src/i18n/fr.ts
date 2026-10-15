@@ -214,7 +214,8 @@ export const fr: Strings = {
   'm.live.stamp.t': 'Un horodatage pour votre enregistrement',
   'm.live.stamp.main':
     "Oui. VeilCore date les enregistrements par lots, à la main pour l'instant. Votre navigateur n'envoie rien à la chaîne.",
-  'm.live.stamp.test': 'Oui. Votre navigateur horodate chaque enregistrement, et les lots sont datés automatiquement.',
+  'm.live.stamp.test':
+    'Oui. Les lots sont datés automatiquement, ce qui date votre enregistrement. Votre navigateur horodate aussi la clé propre à votre plante ; cet horodatage ne date que la clé.',
   'm.live.share.t': 'Choisir ce que les autres voient',
   'm.live.share.main': 'Oui. Le nom de la plante est toujours visible.',
   'm.live.share.test': 'Oui. Le nom de la plante est toujours visible.',
@@ -230,7 +231,7 @@ export const fr: Strings = {
   'm.live.dna.test': 'Oui, envoyée depuis votre navigateur.',
   'm.live.prove.t': 'Le prouver par un lien',
   'm.live.prove.test':
-    "Oui. Leur page vérifie sur le réseau que vous contrôlez la clé que vous avez déclarée pour cet enregistrement. Que cette clé corresponde à l'enregistrement, c'est pour l'instant votre déclaration.",
+    "Oui. Leur page vérifie sur le réseau que vous contrôlez la clé propre à l'enregistrement. L'enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée.",
   'm.live.prove.not': 'Sur veilcore.org : il faut que votre navigateur envoie une transaction.',
   'm.live.claims.t': 'Prouver un seul fait',
   'm.live.claims.main':
@@ -277,7 +278,7 @@ export const fr: Strings = {
     "Le laboratoire signe vos résultats et les verrouille pour que vous seul puissiez les ouvrir. Aucun PDF ne traîne dans une boîte de réception : VeilCore ne garde que le fichier verrouillé. La signature couvre exactement ce fichier et l'enregistrement concerné. VeilCore enregistre qui a signé ; il ne se porte pas garant du résultat. Nouveau, encore en test.",
   'm.for.6t': "Quelqu'un demande une preuve.",
   'm.for.6p':
-    "On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé que vous avez déclarée pour cet enregistrement. Que cette clé corresponde à l'enregistrement, c'est pour l'instant votre déclaration. Cela ne dit rien de qui a obtenu la plante. Cela fonctionne pour l'instant sur un réseau de test de Midnight.",
+    "On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre plante. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante. Cela fonctionne pour l'instant sur un réseau de test de Midnight.",
   'm.for.5t': 'Lignées animales.',
   'm.for.5p':
     'Les livres généalogiques conservent le pedigree. Un enregistrement peut donner à chaque entrée une date que personne ne peut antidater, sans publier le génotype. Le format couvre les animaux ; cette démo est configurée pour les plantes, et les champs des enregistrements animaux ne sont pas encore publiés.',
@@ -347,7 +348,7 @@ export const fr: Strings = {
   'm.open.1link': 'Les trois implémentations →',
   'm.open.3t': 'Nous ne nous portons pas garants des résultats.',
   'm.open.3p':
-    "Un enregistrement montre quelle clé l'a signé, le nom et l'organisme d'accréditation enregistrés avec cette clé, et si l'opérateur de VeilCore a marqué ce nom. VeilCore ne se porte garant d'aucun laboratoire : c'est la personne qui vérifie un enregistrement qui décide de ce que vaut une signature.",
+    "Un enregistrement montre quelle clé l'a signé, le nom et l'organisme d'accréditation enregistrés avec cette clé, et si l'opérateur de VeilCore a rapproché ce nom d'une liste publique de licences ou d'accréditations, et à quelle date. VeilCore ne se porte garant d'aucun laboratoire : c'est la personne qui vérifie un enregistrement qui décide de ce que vaut une signature.",
   'm.open.4t': 'Chacun peut tenir un registre.',
   'm.open.4p':
     "Le format permet à un laboratoire, un organisme de certification ou un organisme de gestion de droits de tenir le sien, sous son propre domaine web, avec ses propres définitions de champs, et d'ancrer sans nous demander. Le code de notre propre registre n'est pas publié.",
@@ -423,7 +424,7 @@ export const frTestchain: Strings = {
   'm.for.1p':
     "Scellez un enregistrement et associez-y son rapport ADN. Si la plante réapparaît sous un autre nom, un laboratoire peut comparer un nouveau test avec votre rapport. Quand vous l'associez via le contrat de VeilCore sur Midnight, l'association est datée elle aussi : elle montre que la personne qui contrôlait votre enregistrement à cette date avait ce rapport, ou son SHA-256, à ce moment-là. Ce qui va sur la chaîne est lié à votre enregistrement et cache le rapport, si bien que personne ne peut copier votre association sur son propre enregistrement. Sur ce site de test, vous pouvez dater l'association depuis votre navigateur. VeilCore ne fait pas de tests ADN.",
   'm.demo.lede':
-    "Sans inscription, sans portefeuille. Ceci est le site de test : utilisez des informations fictives. Votre navigateur horodate chaque enregistrement sur le réseau de test de Midnight (VeilCore paie les frais), et les lots sont ancrés automatiquement. Vous pouvez aussi dater l'association d'un rapport ADN. L'accusé de réception d'un laboratoire est une vraie signature avec sa propre clé, conservée hors de la chaîne. Les licences et les accords de laboratoire servent seulement à s'entraîner.",
+    "Sans inscription, sans portefeuille. Ceci est le site de test : utilisez des informations fictives. Les lots sont ancrés automatiquement sur le réseau de test de Midnight, ce qui date vos enregistrements. Votre navigateur horodate aussi la clé propre à chaque plante, ce qui ne date que la clé (VeilCore paie les frais). Vous pouvez aussi dater l'association d'un rapport ADN. L'accusé de réception d'un laboratoire est une vraie signature avec sa propre clé, conservée hors de la chaîne. Les licences et les accords de laboratoire servent seulement à s'entraîner.",
   'm.privacy.test.text':
     "Ce site utilise le réseau de test preprod de Midnight, pas le réseau principal. Votre navigateur envoie chaque horodatage à ce réseau via le service de frais de VeilCore ; ce que vous avez saisi et vos fichiers n'y sont jamais envoyés. Un réseau de test peut être réinitialisé, et les données de test peuvent être supprimées.",
   'm.privacy.hosts.text':

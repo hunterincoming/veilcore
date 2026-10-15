@@ -50,6 +50,7 @@ import { canonicalUrl } from '../../config/network';
 import { CLAIMS_WHERE } from '../../config/copy';
 import { verifyPath } from '../../veilcore/verify-link';
 import { useRecordKeys } from '../../veilcore/record-keys';
+import { proveLinkParams } from '../../veilcore/prove-link';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { DisclosedFacts } from '../verify/DisclosedFacts';
 
@@ -71,8 +72,22 @@ export const Step5ProveDisclosure: React.FC<{
   // A date-stamped plant's link can carry its on-chain identity, so whoever gets it can
   // check the date stamp and ask the holder to prove it. Only the people sent the link
   // can then match the holder's proofs to this plant (record-keys.ts keeps it off the record).
-  const anchor = useRecordKeys()[recordId]?.anchor;
-  const canAskProof = REAL_CHAIN && !!anchor;
+  // A record that names its key (key-binding.ts) also carries the key's salt (ks) and the
+  // hash of its sealed fields (cd), so the check page can match the key to the fingerprint.
+  const keys = useRecordKeys()[recordId];
+  const [proveParams, setProveParams] = useState<Record<string, string> | null>(null);
+  useEffect(() => {
+    let live = true;
+    setProveParams(null);
+    if (!record) return;
+    void proveLinkParams(record, keys)
+      .then((p) => live && setProveParams(p))
+      .catch(() => live && setProveParams(null));
+    return () => {
+      live = false;
+    };
+  }, [record, keys]);
+  const canAskProof = REAL_CHAIN && !!proveParams;
   const [askable, setAskable] = useState(true);
   // The button that made the link goes away; focus goes to the link it made.
   const linkInput = useRef<HTMLInputElement>(null);
@@ -131,8 +146,8 @@ export const Step5ProveDisclosure: React.FC<{
   const link = (() => {
     if (!result || !record) return undefined;
     const relative =
-      canAskProof && askable && anchor
-        ? verifyPath(record.id, record.recordFingerprint, { chain: anchor.identity, anchorTx: anchor.txId })
+      canAskProof && askable && proveParams
+        ? verifyPath(record.id, record.recordFingerprint, proveParams)
         : result.relative;
     return { relative, absolute: canonicalUrl(relative) };
   })();

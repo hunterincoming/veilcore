@@ -71,7 +71,7 @@ const common: Overlay = {
     "Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. The format covers animals; this website is set up for plants, and the animal record fields aren't published yet.",
   // "Prove it" by link needs the browser to send a transaction, which this site doesn't.
   'm.for.6p':
-    "They send you a link. You tap once, and their page checks on the network that you control the key you registered for this record. That the key belongs to the record is your statement for now. It says nothing about who bred the plant. This website can't do it yet.",
+    "They send you a link. You tap once, and their page checks on the network that you control your plant's own key. Your record named that key when it was sealed, so it can't be swapped. It says nothing about who you are or who bred the plant. This website can't do it yet.",
   // Lab reports sent back through the registry are off on mainnet for now
   // (LAB_RESULTS_ENABLED in config/network.ts). When that flips, m.for.4p, m.faq.4a,
   // m.privacy.local.text and m.privacy.who.text here, and m.live.results.* in en.ts,

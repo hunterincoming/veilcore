@@ -261,3 +261,44 @@ describe('how often the checker looks', () => {
     expect(relay.nextPollMs(since, expires, expires)).toBeNull();
   });
 });
+
+// A record that names its own key (key-binding.ts).
+describe('a record that names its own key', () => {
+  const sealedFor = async (secret: string) => {
+    const kb = await import('./key-binding');
+    const { identity, keySalt, keyBinding } = kb.bindingForSecret(secret);
+    const contentHash = 'c4'.repeat(32);
+    return { identity, record: { fingerprint: kb.keyBoundFingerprint(keyBinding, contentHash), keySalt, contentHash } };
+  };
+
+  it('asks nothing when the link’s key isn’t the record’s (an attacker swapped chain=)', async () => {
+    vi.stubGlobal('fetch', (url: string, init?: RequestInit) => {
+      sent.push({ url, init });
+      return respond(200, { id: ID });
+    });
+    const relay = await import('./prove-relay');
+    const { record } = await sealedFor('11'.repeat(32));
+    const r = await relay.askToProve({ identity: IDENTITY, record });
+    expect(r).toEqual({ error: expect.stringMatching(/isn’t the one this record names/) as unknown });
+    expect(sent).toHaveLength(0);
+    expect(relay.myAsks()).toEqual([]);
+  });
+
+  it('keeps the record with the request and checks every answer against it', async () => {
+    vi.stubGlobal('fetch', () => respond(200, { id: ID }));
+    const relay = await import('./prove-relay');
+    const { identity, record } = await sealedFor('22'.repeat(32));
+    const r = await relay.askToProve({ identity, record });
+    if ('error' in r) throw new Error(r.error);
+    expect(relay.myAsk(ID)?.record).toEqual(record);
+    const seen: unknown[] = [];
+    await relay.checkAnswers(r.ask, [answer(TX)], {
+      checkOwnership: (input) => {
+        seen.push(input);
+        return Promise.resolve({ accepted: true, reason: '' });
+      },
+      checkAnchor: () => Promise.resolve(true),
+    });
+    expect(seen).toEqual([{ txId: TX, identity, challenge: r.ask.challenge, record }]);
+  });
+});

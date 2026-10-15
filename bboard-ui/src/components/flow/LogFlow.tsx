@@ -38,9 +38,19 @@ import LockIcon from '@mui/icons-material/LockOutlined';
 import DoneIcon from '@mui/icons-material/CheckCircleOutlined';
 import { useNavigate } from 'react-router-dom';
 import { fingerprintFile, fingerprintRecord, newNonce } from '../../veilcore/commitment';
-import { allRecords, createRecord, type ParentRef } from '../../veilcore/records';
+import { allRecords, createRecord, getRecord, newRecordId, type ParentRef } from '../../veilcore/records';
+import { bindingForSecret } from '../../veilcore/key-binding';
 import { PLANT_VARIETY_PROFILE } from '../../veilcore/envelope';
-import { ensureKeys, hexBytes, keysFor, setAnchor, storageKeeps, useRecordKeys } from '../../veilcore/record-keys';
+import {
+  ensureKeys,
+  ensureKeysFor,
+  forgetKeys,
+  hexBytes,
+  keysFor,
+  setAnchor,
+  storageKeeps,
+  useRecordKeys,
+} from '../../veilcore/record-keys';
 import { CHAIN_CONTRACT, REAL_CHAIN, chainNotReady } from '../../veilcore/chain/config';
 import { NETWORK } from '../../config/network';
 import { identityOf } from '../../veilcore/chain/identity';
@@ -422,14 +432,20 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
   const seal = async () => {
     setBusy(true);
     setError(undefined);
+    let id: string | undefined;
     try {
       const loggedAt = Date.now();
       const photoFingerprints = draft.photos.map((p) => p.fingerprint);
       // The nonce is committed with the record and stored on it: without it nobody could
       // recompute the commitment, so the record would be unverifiable by anyone.
       const nonce = newNonce();
+      // The record's key comes first, so the record can name it and the fingerprint covers
+      // that (key-binding.ts): nobody can later pair this record with another key.
+      id = newRecordId();
+      const { keyBinding } = bindingForSecret(ensureKeys(id).recordSecret);
       const fields = {
         nonce,
+        keyBinding,
         strainName: draft.strainName.trim(),
         bredBy: draft.bredBy.trim(),
         dateCreated: draft.dateCreated,
@@ -443,8 +459,9 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
         taxon: draft.taxon.trim() || undefined,
       };
       const recordFingerprint = await fingerprintRecord(fields);
-      onSealed(createRecord({ ...fields, recordFingerprint }).id);
+      onSealed(createRecord({ ...fields, id, recordFingerprint }).id);
     } catch (e) {
+      if (id) forgetKeys(id); // nothing was sealed under them
       setError(e instanceof Error ? e.message : String(e));
       setBusy(false);
     }
@@ -519,7 +536,8 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
 
   const anchor = () =>
     call.run(async (progress) => {
-      const k = ensureKeys(recordId);
+      // The key the record named when it was sealed, never a new one.
+      const k = ensureKeysFor(getRecord(recordId) ?? { id: recordId });
       const { anchorOnChain } = await import('../../veilcore/chain/actions');
       const secret = hexBytes(k.recordSecret);
       const receipt = await anchorOnChain(secret, hexBytes(k.recoverySecret), { progress });
@@ -540,7 +558,6 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
   useEffect(() => {
     if (!canStart || anchored || started.current) return;
     started.current = true;
-    ensureKeys(recordId);
     void anchor();
   }, [canStart]);
 
@@ -583,10 +600,14 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
     return (
       <Stack spacing={2.5}>
         <DoneTitle step={step} title="Date stamped" />
+        {/* What this dates is the plant's key (anchor), not its details: a key can be named
+            by a record sealed later. The sealed record names this key, so it can't be
+            swapped (docs/identity-in-record.md). */}
         <Typography variant="body1" color="text.secondary">
-          On {DATED_ON}
-          {anchored.anchoredAt ? `, ${new Date(anchored.anchoredAt).toLocaleString()}` : ''}. Only a fingerprint went
-          out. Nobody can read your details from it.
+          Your plant&apos;s key is dated on {DATED_ON}
+          {anchored.anchoredAt ? `, ${new Date(anchored.anchoredAt).toLocaleString()}` : ''}.
+          {getRecord(recordId)?.keyBinding ? ' The sealed record names this key, so nobody can swap in another.' : ''}{' '}
+          Nothing about the plant went out.
         </Typography>
         <Button variant="contained" size="large" fullWidth onClick={onNext} sx={{ py: 1.6 }}>
           Next
@@ -601,7 +622,8 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
       <Box>
         <ScreenHeading step={step}>{problem ? 'No date stamp yet' : 'Getting your date stamp…'}</ScreenHeading>
         <Typography variant="body1" color="text.secondary">
-          Only a fingerprint of the record goes out. Free: VeilCore pays the network fee.
+          Only a fingerprint of your plant&apos;s key goes out, nothing about the plant. Free: VeilCore pays the network
+          fee.
         </Typography>
       </Box>
       {call.busy && <LinearProgress aria-label="Getting your date stamp" sx={{ height: 10, borderRadius: 5 }} />}

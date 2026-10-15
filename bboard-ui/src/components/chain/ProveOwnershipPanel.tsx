@@ -3,7 +3,7 @@
 // answers a challenge the holder chose shows nothing, since anyone could replay it.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
@@ -13,6 +13,8 @@ import { chainNotReady } from '../../veilcore/chain/config';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { useChainCall } from './useChainCall';
 import { ChainStatusLine } from './ChainStatusLine';
+import { proveLinkParams } from '../../veilcore/prove-link';
+import { verifyPath } from '../../veilcore/verify-link';
 
 export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?: string }> = ({
   recordId,
@@ -23,11 +25,21 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
   const keys = useRecordKeys()[recordId];
   const [challenge, setChallenge] = useState(initialChallenge);
   const call = useChainCall<ChainReceipt>();
+  // The checker's link: for a record that names its key, with what ties the key to it
+  // (prove-link.ts), so the check page can match them.
+  const [params, setParams] = useState<Record<string, string> | null>(null);
+  useEffect(() => {
+    let live = true;
+    if (record) void proveLinkParams(record, keys).then((p) => live && setParams(p));
+    return () => {
+      live = false;
+    };
+  }, [record, keys]);
   if (!record || chainNotReady()) return null;
 
   const valid = /^(0x)?[0-9a-fA-F]{64}$/.test(challenge.trim());
   const anchored = keys?.anchor;
-  const checkerLink = anchored ? `/verify/${record.id}?chain=${anchored.identity}&anchorTx=${anchored.txId}` : '';
+  const checkerLink = params ? verifyPath(record.id, record.recordFingerprint, params) : '';
   const prove = () =>
     call.run(async (progress) => {
       if (!keys) throw new Error('This browser does not hold the record’s keys.');
@@ -52,7 +64,7 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
               id. Together with the date stamp, that shows the key existed by block {anchored.blockHeight} and that you
               control it now.
             </Typography>
-            <Box>
+            <Box sx={{ display: checkerLink ? undefined : 'none' }}>
               <Button
                 size="small"
                 startIcon={<ContentCopyIcon />}

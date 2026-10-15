@@ -1,0 +1,271 @@
+{
+  "about": "Records that name their own key (SPEC 3.6.1). H(tag, a, b, ...) is SHA-256 over the tag in UTF-8 right-padded with zero bytes to 32, then each 32-byte piece. identity = H(\"veilcore:v1:commit\", recordSecret); keySalt = H(\"veilcore:v1:keysalt\", recordSecret); keyBinding = H(\"veilcore:v1:keybind\", identity, keySalt); contentHash = SHA-256 of the canonical serialisation of fields (keyBinding included); fingerprint = H(\"veilcore:v1:keyrecord\", keyBinding, contentHash), or contentHash when fields has no keyBinding. A check matches when the fingerprint recomputed from identity, keySalt and contentHash equals the fingerprint; inputs are 64 lowercase hex characters, anything else does not match. A record whose keyBinding is present but not 64 lowercase hex is refused.",
+  "source": "contract/scripts/key-bound-vectors.mjs (node:crypto and veilcore-records canonicalise); regenerate, never edit by hand",
+  "keys": [
+    {
+      "recordSecret": "1111111111111111111111111111111111111111111111111111111111111111",
+      "identity": "c4d3cc4dc297bf3297f4e7a544f92d7ad69a996096c3d72b89a60c5fdd235b07",
+      "keySalt": "3e36b6ee74a1e864291a1b1a93a436ff33e0d2397168ca2386e53e9ee801eb4f",
+      "keyBinding": "52bf1360c320921bb479ddd3f98d53b85d5f90b00da03e01d932c808af2c8db0"
+    },
+    {
+      "recordSecret": "7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a7a03030303030303030303030303030303",
+      "identity": "ebc8f8ed09210efe6c813812be41db4656f481fe710d83eb69606427520fd37a",
+      "keySalt": "38ff7c502d97bc09f408e4b25c9c53d7763d101f557314a1bc069cfc8b64b3f7",
+      "keyBinding": "1667e447f40c685ac81cf80b773b0b45024f9bcd4b11b30894a3bfbf16defd82"
+    }
+  ],
+  "records": [
+    {
+      "name": "an older record: no keyBinding, the fingerprint is the content hash",
+      "algorithm": "sha256/canonical-json/v1",
+      "fields": {
+        "breedingMethod": "",
+        "bredBy": "Example Farm",
+        "dateCreated": "2026-10-14",
+        "loggedAt": 1760400000000,
+        "nonce": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+        "notes": "",
+        "parents": [],
+        "photoFingerprints": [],
+        "refId": "",
+        "strainName": "Harbour Mist",
+        "profile": "veilcore/profile/plant-variety/v1"
+      },
+      "canonical": "{\"bredBy\":\"Example Farm\",\"breedingMethod\":\"\",\"dateCreated\":\"2026-10-14\",\"loggedAt\":1760400000000,\"nonce\":\"5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e\",\"notes\":\"\",\"parents\":[],\"photoFingerprints\":[],\"profile\":\"veilcore/profile/plant-variety/v1\",\"refId\":\"\",\"strainName\":\"Harbour Mist\"}",
+      "contentHash": "9266ea6d3cf176e2822d5b923a27f5b2c8b6d7cf995602e7055d7a1f162cad4f",
+      "fingerprint": "9266ea6d3cf176e2822d5b923a27f5b2c8b6d7cf995602e7055d7a1f162cad4f"
+    },
+    {
+      "name": "a record naming key 0",
+      "algorithm": "sha256/key-bound/v1",
+      "fields": {
+        "breedingMethod": "",
+        "bredBy": "Example Farm",
+        "dateCreated": "2026-10-14",
+        "loggedAt": 1760400000000,
+        "nonce": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+        "notes": "",
+        "parents": [],
+        "photoFingerprints": [],
+        "refId": "",
+        "strainName": "Harbour Mist",
+        "profile": "veilcore/profile/plant-variety/v1",
+        "keyBinding": "52bf1360c320921bb479ddd3f98d53b85d5f90b00da03e01d932c808af2c8db0"
+      },
+      "canonical": "{\"bredBy\":\"Example Farm\",\"breedingMethod\":\"\",\"dateCreated\":\"2026-10-14\",\"keyBinding\":\"52bf1360c320921bb479ddd3f98d53b85d5f90b00da03e01d932c808af2c8db0\",\"loggedAt\":1760400000000,\"nonce\":\"5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e\",\"notes\":\"\",\"parents\":[],\"photoFingerprints\":[],\"profile\":\"veilcore/profile/plant-variety/v1\",\"refId\":\"\",\"strainName\":\"Harbour Mist\"}",
+      "contentHash": "3f5603618b45ba68d7fad7ea4190dfc54e85c2139e5bd28a53b7dd1110543fa9",
+      "fingerprint": "f68ee4d001fe4de3de7ea64baf8e1ee9cc7fdb5006d96cf64b408b9605ef4fe3"
+    },
+    {
+      "name": "the same details naming key 1",
+      "algorithm": "sha256/key-bound/v1",
+      "fields": {
+        "breedingMethod": "",
+        "bredBy": "Example Farm",
+        "dateCreated": "2026-10-14",
+        "loggedAt": 1760400000000,
+        "nonce": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+        "notes": "",
+        "parents": [],
+        "photoFingerprints": [],
+        "refId": "",
+        "strainName": "Harbour Mist",
+        "profile": "veilcore/profile/plant-variety/v1",
+        "keyBinding": "1667e447f40c685ac81cf80b773b0b45024f9bcd4b11b30894a3bfbf16defd82"
+      },
+      "canonical": "{\"bredBy\":\"Example Farm\",\"breedingMethod\":\"\",\"dateCreated\":\"2026-10-14\",\"keyBinding\":\"1667e447f40c685ac81cf80b773b0b45024f9bcd4b11b30894a3bfbf16defd82\",\"loggedAt\":1760400000000,\"nonce\":\"5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e\",\"notes\":\"\",\"parents\":[],\"photoFingerprints\":[],\"profile\":\"veilcore/profile/plant-variety/v1\",\"refId\":\"\",\"strainName\":\"Harbour Mist\"}",
+      "contentHash": "1daa67302d3f7d2e346d31afa35fee69399d2f2a570a366a978dae10d5c0546d",
+      "fingerprint": "9e4d689c648e8cc1f39febf2d48182f55f851e16c6e2ad3bed14761d1800bf37"
+    },
+    {
+      "name": "parents, photos, taxon and key 1",
+      "algorithm": "sha256/key-bound/v1",
+      "fields": {
+        "breedingMethod": "",
+        "bredBy": "Example Farm",
+        "dateCreated": "2026-10-14",
+        "loggedAt": 1760400000000,
+        "nonce": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+        "notes": "",
+        "parents": [
+          {
+            "name": "Seed parent"
+          }
+        ],
+        "photoFingerprints": [
+          "abababababababababababababababababababababababababababababababab"
+        ],
+        "refId": "",
+        "strainName": "Harbour Mist",
+        "profile": "veilcore/profile/plant-variety/v1",
+        "taxon": "Solanum lycopersicum",
+        "keyBinding": "1667e447f40c685ac81cf80b773b0b45024f9bcd4b11b30894a3bfbf16defd82"
+      },
+      "canonical": "{\"bredBy\":\"Example Farm\",\"breedingMethod\":\"\",\"dateCreated\":\"2026-10-14\",\"keyBinding\":\"1667e447f40c685ac81cf80b773b0b45024f9bcd4b11b30894a3bfbf16defd82\",\"loggedAt\":1760400000000,\"nonce\":\"5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e\",\"notes\":\"\",\"parents\":[{\"name\":\"Seed parent\"}],\"photoFingerprints\":[\"abababababababababababababababababababababababababababababababab\"],\"profile\":\"veilcore/profile/plant-variety/v1\",\"refId\":\"\",\"strainName\":\"Harbour Mist\",\"taxon\":\"Solanum lycopersicum\"}",
+      "contentHash": "429686e994e54e1b0d5dcce9aa23216a85e77b1c0671702988dc7fbe70222087",
+      "fingerprint": "0047a4b20b9a072a764f766698bcd868ee74fe184f4f48d1aad9ba900937368f"
+    }
+  ],
+  "checks": [
+    {
+      "name": "the record’s own key",
+      "identity": "c4d3cc4dc297bf3297f4e7a544f92d7ad69a996096c3d72b89a60c5fdd235b07",
+      "fingerprint": "f68ee4d001fe4de3de7ea64baf8e1ee9cc7fdb5006d96cf64b408b9605ef4fe3",
+      "keySalt": "3e36b6ee74a1e864291a1b1a93a436ff33e0d2397168ca2386e53e9ee801eb4f",
+      "contentHash": "3f5603618b45ba68d7fad7ea4190dfc54e85c2139e5bd28a53b7dd1110543fa9",
+      "matches": true
+    },
+    {
+      "name": "another record’s own key",
+      "identity": "ebc8f8ed09210efe6c813812be41db4656f481fe710d83eb69606427520fd37a",
+      "fingerprint": "9e4d689c648e8cc1f39febf2d48182f55f851e16c6e2ad3bed14761d1800bf37",
+      "keySalt": "38ff7c502d97bc09f408e4b25c9c53d7763d101f557314a1bc069cfc8b64b3f7",
+      "contentHash": "1daa67302d3f7d2e346d31afa35fee69399d2f2a570a366a978dae10d5c0546d",
+      "matches": true
+    },
+    {
+      "name": "a key the holder controls, put next to someone else’s record (chain= swapped)",
+      "identity": "ebc8f8ed09210efe6c813812be41db4656f481fe710d83eb69606427520fd37a",
+      "fingerprint": "f68ee4d001fe4de3de7ea64baf8e1ee9cc7fdb5006d96cf64b408b9605ef4fe3",
+      "keySalt": "3e36b6ee74a1e864291a1b1a93a436ff33e0d2397168ca2386e53e9ee801eb4f",
+      "contentHash": "3f5603618b45ba68d7fad7ea4190dfc54e85c2139e5bd28a53b7dd1110543fa9",
+      "matches": false
+    },
+    {
+      "name": "swapped key and its own salt",
+      "identity": "ebc8f8ed09210efe6c813812be41db4656f481fe710d83eb69606427520fd37a",
+      "fingerprint": "f68ee4d001fe4de3de7ea64baf8e1ee9cc7fdb5006d96cf64b408b9605ef4fe3",
+      "keySalt": "38ff7c502d97bc09f408e4b25c9c53d7763d101f557314a1bc069cfc8b64b3f7",
+      "contentHash": "3f5603618b45ba68d7fad7ea4190dfc54e85c2139e5bd28a53b7dd1110543fa9",
+      "matches": false
+    },
+    {
+      "name": "the wrong salt",
+      "identity": "c4d3cc4dc297bf3297f4e7a544f92d7ad69a996096c3d72b89a60c5fdd235b07",
+      "fingerprint": "f68ee4d001fe4de3de7ea64baf8e1ee9cc7fdb5006d96cf64b408b9605ef4fe3",
+      "keySalt": "38ff7c502d97bc09f408e4b25c9c53d7763d101f557314a1bc069cfc8b64b3f7",
+      "contentHash": "3f5603618b45ba68d7fad7ea4190dfc54e85c2139e5bd28a53b7dd1110543fa9",
+      "matches": false
+    },
+    {
+      "name": "another record’s content hash",
+      "identity": "c4d3cc4dc297bf3297f4e7a544f92d7ad69a996096c3d72b89a60c5fdd235b07",
+      "fingerprint": "f68ee4d001fe4de3de7ea64baf8e1ee9cc7fdb5006d96cf64b408b9605ef4fe3",
+      "keySalt": "3e36b6ee74a1e864291a1b1a93a436ff33e0d2397168ca2386e53e9ee801eb4f",
+      "contentHash": "1daa67302d3f7d2e346d31afa35fee69399d2f2a570a366a978dae10d5c0546d",
+      "matches": false
+    },
+    {
+      "name": "an older record (nothing to match)",
+      "identity": "c4d3cc4dc297bf3297f4e7a544f92d7ad69a996096c3d72b89a60c5fdd235b07",
+      "fingerprint": "9266ea6d3cf176e2822d5b923a27f5b2c8b6d7cf995602e7055d7a1f162cad4f",
+      "keySalt": "3e36b6ee74a1e864291a1b1a93a436ff33e0d2397168ca2386e53e9ee801eb4f",
+      "contentHash": "9266ea6d3cf176e2822d5b923a27f5b2c8b6d7cf995602e7055d7a1f162cad4f",
+      "matches": false
+    },
+    {
+      "name": "an upper-case key",
+      "identity": "C4D3CC4DC297BF3297F4E7A544F92D7AD69A996096C3D72B89A60C5FDD235B07",
+      "fingerprint": "f68ee4d001fe4de3de7ea64baf8e1ee9cc7fdb5006d96cf64b408b9605ef4fe3",
+      "keySalt": "3e36b6ee74a1e864291a1b1a93a436ff33e0d2397168ca2386e53e9ee801eb4f",
+      "contentHash": "3f5603618b45ba68d7fad7ea4190dfc54e85c2139e5bd28a53b7dd1110543fa9",
+      "matches": false
+    },
+    {
+      "name": "a short salt",
+      "identity": "c4d3cc4dc297bf3297f4e7a544f92d7ad69a996096c3d72b89a60c5fdd235b07",
+      "fingerprint": "f68ee4d001fe4de3de7ea64baf8e1ee9cc7fdb5006d96cf64b408b9605ef4fe3",
+      "keySalt": "36b6ee74a1e864291a1b1a93a436ff33e0d2397168ca2386e53e9ee801eb4f",
+      "contentHash": "3f5603618b45ba68d7fad7ea4190dfc54e85c2139e5bd28a53b7dd1110543fa9",
+      "matches": false
+    }
+  ],
+  "refusals": [
+    {
+      "name": "an upper-case keyBinding",
+      "fields": {
+        "breedingMethod": "",
+        "bredBy": "Example Farm",
+        "dateCreated": "2026-10-14",
+        "loggedAt": 1760400000000,
+        "nonce": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+        "notes": "",
+        "parents": [],
+        "photoFingerprints": [],
+        "refId": "",
+        "strainName": "Harbour Mist",
+        "profile": "veilcore/profile/plant-variety/v1",
+        "keyBinding": "52BF1360C320921BB479DDD3F98D53B85D5F90B00DA03E01D932C808AF2C8DB0"
+      }
+    },
+    {
+      "name": "a short keyBinding",
+      "fields": {
+        "breedingMethod": "",
+        "bredBy": "Example Farm",
+        "dateCreated": "2026-10-14",
+        "loggedAt": 1760400000000,
+        "nonce": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+        "notes": "",
+        "parents": [],
+        "photoFingerprints": [],
+        "refId": "",
+        "strainName": "Harbour Mist",
+        "profile": "veilcore/profile/plant-variety/v1",
+        "keyBinding": "bf1360c320921bb479ddd3f98d53b85d5f90b00da03e01d932c808af2c8db0"
+      }
+    },
+    {
+      "name": "a 0x keyBinding",
+      "fields": {
+        "breedingMethod": "",
+        "bredBy": "Example Farm",
+        "dateCreated": "2026-10-14",
+        "loggedAt": 1760400000000,
+        "nonce": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+        "notes": "",
+        "parents": [],
+        "photoFingerprints": [],
+        "refId": "",
+        "strainName": "Harbour Mist",
+        "profile": "veilcore/profile/plant-variety/v1",
+        "keyBinding": "0xbf1360c320921bb479ddd3f98d53b85d5f90b00da03e01d932c808af2c8db0"
+      }
+    },
+    {
+      "name": "a null keyBinding",
+      "fields": {
+        "breedingMethod": "",
+        "bredBy": "Example Farm",
+        "dateCreated": "2026-10-14",
+        "loggedAt": 1760400000000,
+        "nonce": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+        "notes": "",
+        "parents": [],
+        "photoFingerprints": [],
+        "refId": "",
+        "strainName": "Harbour Mist",
+        "profile": "veilcore/profile/plant-variety/v1",
+        "keyBinding": null
+      }
+    },
+    {
+      "name": "a numeric keyBinding",
+      "fields": {
+        "breedingMethod": "",
+        "bredBy": "Example Farm",
+        "dateCreated": "2026-10-14",
+        "loggedAt": 1760400000000,
+        "nonce": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+        "notes": "",
+        "parents": [],
+        "photoFingerprints": [],
+        "refId": "",
+        "strainName": "Harbour Mist",
+        "profile": "veilcore/profile/plant-variety/v1",
+        "keyBinding": 5
+      }
+    }
+  ]
+}

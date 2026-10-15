@@ -2,7 +2,7 @@
 
 **A specification for evidence of prior possession of plant and animal genetic material**
 
-Version 0.1 - August 2026, revised October 2026
+Version 0.1 - August 2026, revised 14 October 2026 (section 3.6.1: a record that names its own key; the record format version is unchanged)
 
 ---
 
@@ -136,6 +136,28 @@ A ledger contract may keep licences, lineage and obligations under an identity o
 The identity's own anchor date says nothing about who holds the record now, or about this record's content. A record can change hands through a key rotation or a recovery, which on the ledger looks the same as a holder replacing their own key; and the content is dated only by its own commitment's anchor.
 
 It reveals nothing about the secret behind the identity. It does link the record's content to everything that identity does on the ledger, for anyone shown the record; a holder who wants a record unlinkable leaves it out.
+
+#### 3.6.1 A record that names its own key, without showing it
+
+`ledgerIdentity` puts the identity in the record for anyone shown the record. A registry that stores whole records, and knows which account holds each, could then join an account to everything that identity does on the ledger. And a verifier asked to check a control proof (rule 8 of the VeilCore design note) usually holds only the record's fingerprint, not its content. This section binds the identity to the record for both cases, revealing it to neither.
+
+**Where it applies.** To committed JSON whose fingerprint is anchored on its own: VeilCore's registry anchors the record fields an export carries in its `org.veilcore.registered-fingerprint` extension this way, and `keyBinding` is then one of those fields. It is not an envelope field; the envelope's committed fields (section 4.2) and `formatVersion` are unchanged, and an envelope names its identity with `ledgerIdentity` as above.
+
+`H` is as in section 3.7. All values are 64 lowercase hex characters; anything else shall be refused.
+
+    identity    = H("veilcore:v1:commit",    recordSecret)     on VeilCore's contract, commit()
+    keySalt     = H("veilcore:v1:keysalt",   recordSecret)
+    keyBinding  = H("veilcore:v1:keybind",   identity, keySalt)
+    contentHash = SHA-256 of the canonical serialisation (section 4.4) of the committed fields, keyBinding included
+    fingerprint = H("veilcore:v1:keyrecord", keyBinding, contentHash)
+
+**`keyBinding` is a committed field, and the fingerprint is built around it.** The identity can be computed before anything is put on a ledger, so a record is sealed naming it. `keyBinding` reveals nothing about the identity without `keySalt`, which the holder keeps and never places in the record; deriving it from the record secret means the holder's existing backup restores it. Because `keyBinding` is inside the committed fields and also at the top of the fingerprint, as `fieldSetRoot` is in section 4.5, one set of committed fields cannot be paired with two keys, and a verifier can match a key to a fingerprint from hashes alone. The algorithm identifier for such a fingerprint is `sha256/key-bound/v1`; a fingerprint over committed fields with no `keyBinding` is `contentHash` itself, as before.
+
+**What a verifier checks.** Given the fingerprint (from a source it trusts for that record, such as the link the holder sent, matched against the registry's answer), an identity, `keySalt` and `contentHash`: recompute `H("veilcore:v1:keyrecord", H("veilcore:v1:keybind", identity, keySalt), contentHash)`. If it differs from the fingerprint, the identity is not the record's and a verifier shall refuse to treat any proof by it as a proof about the record. If it matches, a control proof by that identity is a proof by the key the record named when it was sealed. `contentHash` reveals nothing about the record's content: the content includes the nonce of section 4.3.
+
+**Records sealed without `keyBinding` remain valid** and their fingerprints are unchanged. For them the link between an identity and the record stays the holder's statement, and a verifier shall say so. A verifier told by a registry that a record carries a `keyBinding` shall not fall back to that weaker reading when a holder's link leaves `keySalt` and `contentHash` out.
+
+**What it does not establish.** That whoever controls the key now is the person who sealed the record (section 3.6: rotations, recoveries and sales look alike), who that person is, or who bred the subject. And the identity's own anchor dates the key, not the record: a key anchored early can be named by a record sealed later. The record and its key are dated together by the record's fingerprint's own anchor (section 5).
 
 ### 3.7 A report paired on a ledger
 
@@ -540,7 +562,7 @@ Stated plainly, because a claim that overreaches is worse than no claim.
 
 **It does not establish that the record is true.** A commitment proves that a description existed on a date and is unaltered. It does not establish that the description is accurate. Accuracy comes from attestations by parties with something to lose.
 
-**It establishes prior possession of the record, not of material.** What is shown is that a party held this description, with its nonce, by the date of the anchor. It does not show that the party presenting it now is that party: a ledger identity's anchor date says nothing about who holds the record today (section 3.6). Nor does the earlier of two records or ledger pairings carrying the same raw report hash show who had the report first; a hash, once seen, can be copied. A pairing bound to an identity (section 3.7) shows that whoever controlled that identity at its date had the report, or its SHA-256, by then - unless the raw hash was on the ledger earlier. It does not show that any material is the subject described, or that material was ever in their hands.
+**It establishes prior possession of the record, not of material.** What is shown is that a party held this description, with its nonce, by the date of the anchor. It does not show that the party presenting it now is that party: a ledger identity's anchor date says nothing about who holds the record today (section 3.6). A record that names its own key (section 3.6.1) lets a control proof be tied to the record, which shows that whoever answered controls the key the record named, not that they sealed it. Nor does the earlier of two records or ledger pairings carrying the same raw report hash show who had the report first; a hash, once seen, can be copied. A pairing bound to an identity (section 3.7) shows that whoever controlled that identity at its date had the report, or its SHA-256, by then - unless the raw hash was on the ledger earlier. It does not show that any material is the subject described, or that material was ever in their hands.
 
 **It does not identify material physically.** Whether a specimen is the subject described requires comparison of characteristics or genetic analysis. What the record establishes is that the description, and any analysis attached to it, existed before the dispute - which is what makes a later comparison meaningful rather than circular.
 
@@ -569,7 +591,7 @@ A conformance profile covering party conduct is not defined here (section 12).
 
 An implementation is conformant if it reproduces the published test vectors exactly.
 
-Vectors cover canonicalisation - key ordering, omitted versus null, array order preservation, NFC normalisation, nested sorting, numeric and boolean forms - commitment computation across a range of record shapes, including the requirement that changing the anchor does not change the commitment, and inclusion proofs across batch sizes chosen so that an implementation which duplicates an odd node rather than promoting it will disagree. Field-set vectors (section 4.5) cover schema ids, slot values including the number 0 against an absent value, NFC text, salts, set roots and openings, with refusals for every validation rule and for field-set records missing their bindings. Together these are the 100 record-format vectors. One further vector (`pairings`) gives the binding of section 3.7 for fixed inputs; it is not part of the record format, and an implementation that does not offer ledger pairings may leave it out and say so.
+Vectors cover canonicalisation - key ordering, omitted versus null, array order preservation, NFC normalisation, nested sorting, numeric and boolean forms - commitment computation across a range of record shapes, including the requirement that changing the anchor does not change the commitment, and inclusion proofs across batch sizes chosen so that an implementation which duplicates an odd node rather than promoting it will disagree. Field-set vectors (section 4.5) cover schema ids, slot values including the number 0 against an absent value, NFC text, salts, set roots and openings, with refusals for every validation rule and for field-set records missing their bindings. Together these are the 100 record-format vectors. One further vector (`pairings`) gives the binding of section 3.7 for fixed inputs; it is not part of the record format, and an implementation that does not offer ledger pairings may leave it out and say so. Vectors for section 3.6.1 (`key-bound-v1.json`: keys, record fingerprints old and new, matches and refusals) are published with the VeilCore web application, checked there and by the VeilCore registry, in TypeScript, JavaScript and Python; they are not yet in the three implementations' shared set.
 
 **Conformance is demonstrated, not asserted.** The vector set and a runner are published with the reference implementation. The runner communicates with an implementation over standard input and output, so implementations in any language can be tested.
 

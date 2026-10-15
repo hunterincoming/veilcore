@@ -14,6 +14,21 @@ const ANSWER_TX = 'cd'.repeat(32);
 const TOKEN = 'Abcdefghijklmnopqrstu_';
 const TOKEN_RE = /^[A-Za-z0-9_-]{22}$/;
 const sha256 = (s: string) => createHash('sha256').update(s, 'utf8').digest('hex');
+/** H(tag, ...) of SPEC 3.6.1: SHA-256 over the zero-padded tag and 32-byte pieces. */
+const H = (tag: string, ...hex: string[]) => {
+  const t = Buffer.alloc(32);
+  t.write(tag, 'utf8');
+  return createHash('sha256')
+    .update(Buffer.concat([t, ...hex.map((h) => Buffer.from(h, 'hex'))]))
+    .digest('hex');
+};
+/** A record sealed naming the key made from `secret`: what its share link carries. */
+const boundRecord = (secret: string) => {
+  const identity = H('veilcore:v1:commit', secret);
+  const ks = H('veilcore:v1:keysalt', secret);
+  const cd = 'c4'.repeat(32);
+  return { identity, ks, cd, fp: H('veilcore:v1:keyrecord', H('veilcore:v1:keybind', identity, ks), cd) };
+};
 
 const PAGES: [string, RegExp][] = [
   ['/', /VEILCORE/i],
@@ -134,6 +149,68 @@ test.describe('stand-in registry', () => {
     // browser) can't find it yet and must say so and keep trying, not crash or give up.
     expect(await answer(token!)).toBe(200);
     await expect(page.getByText(/hasn.t shown it yet/)).toBeVisible({ timeout: 60_000 });
+    expectNoErrors(errors);
+  });
+
+  test('a record that names its own key: the link’s key is checked against it before anything is asked', async ({
+    page,
+  }) => {
+    const errors = watch(page);
+    const rec = boundRecord('11'.repeat(32));
+    const asked: unknown[] = [];
+    await isolate(page, {
+      'GET /verify/:record': (route) =>
+        json(route, 200, { found: true, id: RECORD, cultivar: 'E2E Plant', recordFingerprint: rec.fp, keyBound: true }),
+      'POST /prove-requests': (route, _url, body) => {
+        asked.push(body);
+        return json(route, 200, { id: `PR-${'AB'.repeat(16)}`, expiresAt: Date.now() + 1e9 });
+      },
+      'GET /prove-requests/:id': (route) =>
+        json(route, 200, {
+          id: `PR-${'AB'.repeat(16)}`,
+          identity: rec.identity,
+          challenge: 'ee'.repeat(32),
+          answers: [],
+          asker: '',
+          createdAt: Date.now(),
+          expiresAt: Date.now() + 1e9,
+        }),
+    });
+    const link = (chain: string, extra = `&ks=${rec.ks}&cd=${rec.cd}`) =>
+      `/verify/${RECORD}?fp=${rec.fp}&chain=${chain}&anchorTx=${ANCHOR_TX}${extra}`;
+
+    // Someone puts a key they control next to this record: refused, nothing asked.
+    const attacker = boundRecord('99'.repeat(32)).identity;
+    await page.goto(link(attacker));
+    await expect(page.getByText(/Can.t ask for a proof from this link/)).toBeVisible();
+    await expect(page.getByText(/The key in this link isn.t the one this record names/)).toBeVisible();
+    await expect(page.getByRole('button', { name: /Make a link to send them/ })).toHaveCount(0);
+
+    // The same record's link with the key's parts left out: refused too, not downgraded.
+    await page.goto(link(rec.identity, ''));
+    await expect(page.getByText(/names its own key, but this link leaves out/)).toBeVisible();
+    await expect(page.getByRole('button', { name: /Make a link to send them/ })).toHaveCount(0);
+    expect(asked).toHaveLength(0);
+
+    // The record's own key: the page says so, and asks.
+    await page.goto(link(rec.identity));
+    await expect(page.getByText(/This record named its own key when it was sealed/)).toBeVisible();
+    await page.getByRole('button', { name: /Make a link to send them/ }).click();
+    await expect(page.getByText(/\/prove\/PR-/)).toBeVisible();
+    expect(asked).toHaveLength(1);
+    expect((asked[0] as { identity: string }).identity).toBe(rec.identity);
+    expectNoErrors(errors);
+  });
+
+  test('an older record (no key in it): the earlier wording, labelled as an older record', async ({ page }) => {
+    const errors = watch(page);
+    await isolate(page, {
+      'GET /verify/:record': (route) =>
+        json(route, 200, { found: true, id: RECORD, cultivar: 'E2E Plant', keyBound: false }),
+    });
+    await page.goto(`/verify/${RECORD}?chain=${IDENTITY}&anchorTx=${ANCHOR_TX}`);
+    await expect(page.getByText(/Older record: key not bound to this record/)).toBeVisible();
+    await expect(page.getByRole('button', { name: /Make a link to send them/ })).toBeVisible();
     expectNoErrors(errors);
   });
 

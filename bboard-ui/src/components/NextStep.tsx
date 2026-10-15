@@ -94,7 +94,8 @@ export const NextStep: React.FC<{
   } else if (REAL_CHAIN && !isReceived && !keys?.anchor && onStamp) {
     step = {
       title: 'Add the date stamp',
-      why: 'It’s sealed, but it doesn’t have its public date yet. It takes about a minute and it’s free.',
+      // The date stamp here dates the plant's key (what proving uses), not its details.
+      why: 'It’s sealed. Its key isn’t date stamped yet, and you need that to prove you hold it. It takes about a minute and it’s free.',
       action: 'Add the date stamp',
       icon: <VerifiedIcon />,
       onClick: onStamp,

@@ -12,9 +12,11 @@
 //   - a retraction counts only if the attester signed it. An unsigned "retraction" in
 //     the registry's answer used to make a genuine attestation read as withdrawn.
 //
-// What is still the registry's word: whether VeilCore's operator added a key's name
-// (`vettedAttester`). That is a statement by the operator, labelled as one, and VeilCore
-// doesn't vouch for the lab (round 3: it used to say "VeilCore has checked").
+// What is still the registry's word: whether VeilCore's operator matched a key's name to
+// a public licence or accreditation listing (`vettedAttester` with `registeredAs.nameCheck`,
+// round 4; the procedure is docs/lab-name-checks.md). The label says exactly that: where,
+// which licence, on what day. VeilCore doesn't vouch for the lab's work. A mark with no
+// check record, or an expired one, reads "name not checked" (signerLabel below).
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -25,6 +27,26 @@ import { readJson, isObject, isString } from './json';
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
 const HEX64 = /^[0-9a-f]{64}$/;
+
+/**
+ * What VeilCore's operator recorded when matching a key's name (registry round 4,
+ * docs/lab-name-checks.md): the public listing, the licence or certificate number there,
+ * the lab's own email domain the code came back from, the day, and who.
+ */
+export type NameCheck = {
+  source: 'licence-listing' | 'accreditation';
+  sourceUrl: string;
+  licenceNo?: string;
+  emailDomain: string;
+  /** YYYY-MM-DD */
+  checkedAt: string;
+  /** Initials. */
+  checkedBy: string;
+  /** YYYY-MM-DD; the check stops counting at the start of this day (UTC). */
+  expiresAt: string;
+  /** The registered name the check was for. */
+  checkedName: string;
+};
 
 export type ResolvedAttestation = SignedAttestation & {
   strength: AttestationStrength;
@@ -38,6 +60,9 @@ export type ResolvedAttestation = SignedAttestation & {
     /** The attester's own claim, recorded and not verified. */
     accreditation?: { scheme: string; identifier: string; accreditor: string } | null;
     vetted?: boolean;
+    /** The operator's record of the name check (round 4). Absent from older registries. */
+    nameCheck?: NameCheck | null;
+    nameCheckStatus?: 'checked' | 'expired' | 'not-checked' | 'withdrawn';
   } | null;
   /** A retraction, present only when its signature verified against this attestation. */
   retraction: Retraction | null;
@@ -135,6 +160,118 @@ export const attestationsFor = async (commitment?: string): Promise<ResolvedAtte
 /** Signed, verified here, bound to the record, and not withdrawn by its signer. */
 export const countsAsSigned = (a: ResolvedAttestation): boolean => a.signatureValid && a.retraction === null;
 
+// ---- what a page may say about a signer's name (round 4) ----
+
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+const dayMs = (s: unknown): number => (typeof s === 'string' && DAY.test(s) ? Date.parse(`${s}T00:00:00Z`) : NaN);
+/** 12 months, with a day to spare for a leap year. The registry refuses longer; so does this page. */
+const MAX_CHECK_MS = 366 * 86_400_000;
+
+/**
+ * The name check behind a signer, if it counts here and now: the registry marked the key,
+ * sent a check record for the name the key is registered under, the record's listing is an
+ * https address, and it hasn't expired by this browser's clock. Otherwise null, and the
+ * page says "name not checked". The record is the registry's word; the dates and the link
+ * are checked here so an old or malformed record never reads as current.
+ */
+export const currentNameCheck = (
+  a: ResolvedAttestation,
+  now: number = Date.now(),
+): (NameCheck & { sourceHost: string }) | null => {
+  if (a.vettedAttester !== true) return null;
+  const c: unknown = a.registeredAs?.nameCheck;
+  if (!isObject(c)) return null;
+  const name = a.registeredAs?.displayName;
+  if (!isString(name) || !name.trim() || c.checkedName !== name) return null;
+  if (c.source !== 'licence-listing' && c.source !== 'accreditation') return null;
+  if (!isString(c.emailDomain) || !c.emailDomain || !isString(c.checkedBy)) return null;
+  if (c.licenceNo !== undefined && !isString(c.licenceNo)) return null;
+  const at = dayMs(c.checkedAt);
+  const until = dayMs(c.expiresAt);
+  if (!Number.isFinite(at) || !Number.isFinite(until)) return null;
+  if (until <= now || at > now + 86_400_000 || until <= at || until - at > MAX_CHECK_MS) return null;
+  let url: URL;
+  try {
+    url = new URL(c.sourceUrl as string);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== 'https:' || url.username || url.password) return null;
+  return {
+    source: c.source,
+    sourceUrl: url.href,
+    ...(c.licenceNo ? { licenceNo: c.licenceNo } : {}),
+    emailDomain: c.emailDomain,
+    checkedAt: c.checkedAt as string,
+    checkedBy: c.checkedBy,
+    expiresAt: c.expiresAt as string,
+    checkedName: name,
+    sourceHost: url.hostname.replace(/^www\./, ''),
+  };
+};
+
+/** A name check that counts, on a signature that counts. Used everywhere a page names a signer. */
+export const nameChecked = (a: ResolvedAttestation, now: number = Date.now()): boolean =>
+  countsAsSigned(a) && currentNameCheck(a, now) !== null;
+
+export type SignerLabel = {
+  checked: boolean;
+  /**
+   * "<lead> Acme Labs", or "<lead> a key named “Acme Labs” (name not checked)", or
+   * "<lead> a key nobody has named". No full stop, so a page can continue the sentence.
+   */
+  lead: string;
+  /** Who, in the words that follow "signed by". */
+  who: string;
+  /** Only when checked: what the operator matched, in pieces so a page can link the listing. */
+  match: { before: string; host: string; href: string; after: string } | null;
+  /** Only when checked. */
+  disclaimer: string | null;
+  /** What follows the lead's full stop: '' or " VeilCore’s operator matched … VeilCore doesn’t vouch …". */
+  rest: string;
+  /** The whole label as plain text. */
+  text: string;
+};
+
+/**
+ * The one label for a signer, used on every screen (round 4).
+ *
+ *   checked:     "Receipt signed by Acme Labs. VeilCore’s operator matched this name to
+ *                 cannabis.example.gov (license TL-1) on 2026-10-14. VeilCore doesn’t vouch
+ *                 for the lab’s work."
+ *   not checked: "Receipt signed by a key named “Acme Labs” (name not checked)"
+ *
+ * "Not checked" covers no mark, a mark with no check record (every mark made before round
+ * 4), an expired check, a withdrawn signature and a signature that doesn't verify.
+ */
+export const signerLabel = (
+  a: ResolvedAttestation,
+  leadWords = 'Receipt signed by',
+  now: number = Date.now(),
+): SignerLabel => {
+  const check = countsAsSigned(a) ? currentNameCheck(a, now) : null;
+  if (check) {
+    const who = check.checkedName.trim();
+    const lead = `${leadWords} ${who}`;
+    const number = check.licenceNo
+      ? ` (${check.source === 'accreditation' ? 'certificate' : 'license'} ${check.licenceNo})`
+      : '';
+    const match = {
+      before: 'VeilCore’s operator matched this name to ',
+      host: check.sourceHost,
+      href: check.sourceUrl,
+      after: `${number} on ${check.checkedAt}.`,
+    };
+    const disclaimer = 'VeilCore doesn’t vouch for the lab’s work.';
+    const rest = ` ${match.before}${match.host}${match.after} ${disclaimer}`;
+    return { checked: true, lead, who, match, disclaimer, rest, text: `${lead}.${rest}` };
+  }
+  const name = (a.registeredAs?.displayName ?? a.attester.displayName)?.trim();
+  const who = name ? `a key named “${name}” (name not checked)` : 'a key nobody has named';
+  const lead = `${leadWords} ${who}`;
+  return { checked: false, lead, who, match: null, disclaimer: null, rest: '', text: lead };
+};
+
 /** What to tell a breeder about how much an attestation is worth. */
 export const strengthLabel = (a: ResolvedAttestation): { label: string; why: string; ok: boolean } => {
   if (!a.signature) {
@@ -161,23 +298,29 @@ export const strengthLabel = (a: ResolvedAttestation): { label: string; why: str
   const unverifiedRetraction = a.retractionUnverified
     ? ' The registry also reports a retraction that is not signed by the attester, so it is ignored here.'
     : '';
-  // Only a key the registry operator has checked is described as the party it names.
-  // Anyone can register a key under a lab's name and sign their own record, and the
+  // A signer is described by its name only with a current name check behind it (round 4):
+  // anyone can register a key under a lab's name and sign their own record, and the
   // accreditation inside an attestation is whatever the signer typed — "Signed ·
   // accredited attester" used to be shown on exactly that (attack round 11).
-  if (a.vettedAttester === true) {
+  const s = signerLabel(a, 'Signed by');
+  if (s.checked) {
     const acc = a.registeredAs?.accreditation;
     return {
-      label: 'Signed · name added by VeilCore’s operator',
-      why: `Signed by ${a.registeredAs?.displayName ?? 'a second party'}; the signature was verified in this browser. Name added by VeilCore’s operator; VeilCore doesn’t vouch for the lab.${acc ? ` They list ${acc.scheme} accreditation from ${acc.accreditor}; confirm that with ${acc.accreditor}.` : ''}${unverifiedRetraction}`,
+      label: 'Signed · name matched to a public listing',
+      why: `${s.text} The signature was verified in this browser.${acc ? ` They list ${acc.scheme} accreditation from ${acc.accreditor}; confirm that with ${acc.accreditor}.` : ''}${unverifiedRetraction}`,
       ok: true,
     };
   }
+  const record: unknown = a.registeredAs?.nameCheck;
+  const expired =
+    a.registeredAs?.nameCheckStatus === 'expired' || (isObject(record) && dayMs(record.expiresAt) <= Date.now())
+      ? ' An earlier check of this name has expired.'
+      : '';
   return {
-    label: 'Signed · signer not verified',
+    label: 'Signed · name not checked',
     why:
       (a.registeredAs?.displayName
-        ? `Signed by a key self-registered as “${a.registeredAs.displayName}” — not verified by VeilCore. Anyone can register a key under any name, so this does not show who signed.`
+        ? `${s.text}. Anyone can register a key under any name, so this doesn’t show who signed.${expired}`
         : 'Signed by a key nobody has registered. The signature is valid; who holds the key is not known.') +
       unverifiedRetraction,
     ok: false,

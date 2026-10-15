@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import {
   breederReceipt,
   labReceipt,
-  OPERATOR_NAMED,
   receiptLineFor,
   receiptSignedLine,
   reportSigner,
@@ -37,6 +36,20 @@ const att = (over: Partial<ResolvedAttestation> & { key?: string }): ResolvedAtt
     ...rest,
   };
 };
+
+/** A current name check for `name` (round 4): the registry's record behind a mark. */
+const checkFor = (name: string) => ({
+  source: 'licence-listing' as const,
+  sourceUrl: 'https://www.cannabis.example.gov/testing-labs',
+  licenceNo: 'TL-000123',
+  emailDomain: 'checkedlab.example',
+  checkedAt: new Date(Date.now() - 86_400_000).toISOString().slice(0, 10),
+  checkedBy: 'HR',
+  expiresAt: new Date(Date.now() + 200 * 86_400_000).toISOString().slice(0, 10),
+  checkedName: name,
+});
+const MATCHED =
+  /^VeilCore’s operator matched this name to cannabis\.example\.gov \(license TL-000123\) on \d{4}-\d{2}-\d{2}\. VeilCore doesn’t vouch for the lab’s work\.$/;
 
 const plant = (over: Partial<StrainRecord> = {}): StrainRecord => ({
   id: 'VEIL-1',
@@ -96,7 +109,11 @@ describe('the breeder’s receipt line', () => {
     expect(breederReceipt(plant(), [acme], [])).toEqual({ kind: 'none', others: 1 });
     expect(breederReceipt(plant(), [acme], sentWith())).toEqual({ kind: 'code-used', others: 1 });
     // Even a key VeilCore's operator named doesn't count unless it is the linked receipt.
-    const vettedAcme = { ...acme, vettedAttester: true };
+    const vettedAcme = {
+      ...acme,
+      vettedAttester: true,
+      registeredAs: { displayName: 'Acme Labs', nameCheck: checkFor('Acme Labs') },
+    };
     expect(breederReceipt(plant(), [vettedAcme], sentWith('att_receipt')).kind).toBe('code-used');
     // A delivery of ANOTHER plant listing the attacker's id doesn't make it this plant's receipt.
     expect(breederReceipt(plant(), [acme], sentWith('att_acme', { source_record: 'VEIL-2' })).kind).toBe('none');
@@ -113,11 +130,20 @@ describe('the breeder’s receipt line', () => {
     expect(breederReceipt(used, [att({ attestationId: 'att_receipt' })], sentWith('att_receipt')).kind).toBe('signed');
   });
 
-  it('names the signer plainly only for a key VeilCore’s operator named; never vouches', () => {
-    const vetted = att({ key: OTHER, vettedAttester: true, registeredAs: { displayName: 'Checked Lab' } });
+  it('names the signer plainly only with a current name check, saying what was matched; never vouches', () => {
+    const vetted = att({
+      key: OTHER,
+      vettedAttester: true,
+      registeredAs: { displayName: 'Checked Lab', nameCheck: checkFor('Checked Lab') },
+    });
     const plain = att({ registeredAs: { displayName: 'Acme Labs' } });
-    expect(receiptSignedLine(vetted)).toBe('Receipt signed by Checked Lab');
+    const line = receiptSignedLine(vetted);
+    expect(line.startsWith('Receipt signed by Checked Lab. ')).toBe(true);
+    expect(line.slice('Receipt signed by Checked Lab. '.length)).toMatch(MATCHED);
     expect(receiptSignedLine(plain)).toBe('Receipt signed by a key named “Acme Labs” (name not checked)');
+    // A mark with no check record behind it (every mark made before round 4) is not checked.
+    const bareMark = att({ key: OTHER, vettedAttester: true, registeredAs: { displayName: 'Checked Lab' } });
+    expect(receiptSignedLine(bareMark)).toBe('Receipt signed by a key named “Checked Lab” (name not checked)');
     expect(receiptSignedLine(att({ registeredAs: null, attester: { publicKey: LAB } }))).toBe(
       'Receipt signed by a key nobody has named',
     );
@@ -125,11 +151,11 @@ describe('the breeder’s receipt line', () => {
     const withdrawn = att({
       key: OTHER,
       vettedAttester: true,
-      registeredAs: { displayName: 'Checked Lab' },
+      registeredAs: { displayName: 'Checked Lab', nameCheck: checkFor('Checked Lab') },
       retraction: { attestationId: 'x', attesterPublicKey: OTHER, reason: 'other', retractedAt: 'x', signature: 's' },
     });
     expect(signedByWords(withdrawn)).toMatch(/name not checked/);
-    expect(OPERATOR_NAMED).not.toMatch(/checked|vouches for|verified/i);
+    expect(line).not.toMatch(/VeilCore (has )?(checked|verified)|vouches for/i);
     // Two linked receipts: the named key first.
     const two = breederReceipt(
       plant(),
@@ -143,14 +169,18 @@ describe('the breeder’s receipt line', () => {
 
 describe('the certificate’s receipt line', () => {
   it('prints a linked receipt as signed, with the same named/unnamed wording, and a used code as only that', () => {
-    const named = att({ attestationId: 'a', vettedAttester: true, registeredAs: { displayName: 'Checked Lab' } });
+    const named = att({
+      attestationId: 'a',
+      vettedAttester: true,
+      registeredAs: { displayName: 'Checked Lab', nameCheck: checkFor('Checked Lab') },
+    });
     const signed = breederReceipt(plant(), [named], sentWith('a'));
     expect(receiptLineFor(plant(), signed)).toMatch(
-      /^Receipt signed by Checked Lab, .+ \(signature checked in this browser\)$/,
+      /^Receipt signed by Checked Lab, .+ \(signature checked in this browser\)\. VeilCore’s operator matched this name to cannabis\.example\.gov \(license TL-000123\) on .+\. VeilCore doesn’t vouch for the lab’s work\.$/,
     );
     const acme = att({ attestationId: 'b', registeredAs: { displayName: 'Acme Labs' } });
     expect(receiptLineFor(plant(), breederReceipt(plant(), [acme], sentWith('b')))).toMatch(
-      /^Receipt signed by a key named “Acme Labs” \(name not checked\)/,
+      /^Receipt signed by a key named “Acme Labs” \(name not checked\), .+ \(signature checked in this browser\)$/,
     );
     // Unlinked, Acme is never on the certificate.
     expect(receiptLineFor(plant(), breederReceipt(plant(), [acme], sentWith()))).toMatch(/^Lab code used; no receipt/);

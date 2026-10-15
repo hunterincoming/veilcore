@@ -213,7 +213,8 @@ export const es: Strings = {
   'm.live.stamp.t': 'Un sello de fecha para su registro',
   'm.live.stamp.main':
     'Sí. VeilCore fecha los registros por lotes, a mano por ahora. Su navegador no envía nada a la cadena.',
-  'm.live.stamp.test': 'Sí. Su navegador sella cada registro, y los lotes se fechan automáticamente.',
+  'm.live.stamp.test':
+    'Sí. Los lotes se fechan automáticamente, y eso fecha su registro. Su navegador también pone un sello de fecha a la clave propia de su planta; ese sello fecha solo la clave.',
   'm.live.share.t': 'Elegir qué ven los demás',
   'm.live.share.main': 'Sí. El nombre de la planta siempre se muestra.',
   'm.live.share.test': 'Sí. El nombre de la planta siempre se muestra.',
@@ -229,7 +230,7 @@ export const es: Strings = {
   'm.live.dna.test': 'Sí, enviada desde su navegador.',
   'm.live.prove.t': 'Probarlo con un enlace',
   'm.live.prove.test':
-    'Sí. La página de la otra persona comprueba en la red que usted controla la clave que asoció a este registro. Que la clave corresponda al registro es, por ahora, su declaración.',
+    'Sí. La página de la otra persona comprueba en la red que usted controla la clave propia del registro. El registro nombró esa clave al sellarse, así que no se puede cambiar por otra.',
   'm.live.prove.not': 'En veilcore.org: requiere que su navegador envíe una transacción.',
   'm.live.claims.t': 'Probar un solo hecho',
   'm.live.claims.main':
@@ -276,7 +277,7 @@ export const es: Strings = {
     'El laboratorio firma sus resultados y los cierra para que solo usted pueda abrirlos. Ningún PDF queda en la bandeja de entrada de nadie: VeilCore solo guarda el archivo cerrado. La firma cubre exactamente ese archivo y el registro al que se refiere. VeilCore anota quién firmó; no responde por el resultado. Nuevo, y todavía en pruebas.',
   'm.for.6t': 'Alguien le pide una prueba.',
   'm.for.6p':
-    'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave que asoció a este registro. Que la clave corresponda al registro es, por ahora, su declaración. No dice nada sobre quién obtuvo la planta. Por ahora esto funciona en una red de pruebas de Midnight.',
+    'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su planta. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta. Por ahora esto funciona en una red de pruebas de Midnight.',
   'm.for.5t': 'Líneas animales.',
   'm.for.5p':
     'Los libros genealógicos guardan el pedigrí. Un registro puede dar a cada entrada una fecha que nadie puede antedatar, sin publicar el genotipo. El formato cubre animales; esta demo está preparada para plantas, y los campos de los registros animales aún no están publicados.',
@@ -344,7 +345,7 @@ export const es: Strings = {
   'm.open.1link': 'Las tres implementaciones →',
   'm.open.3t': 'No respondemos por los resultados.',
   'm.open.3p':
-    'Un registro muestra qué clave lo firmó, el nombre y el organismo de acreditación registrados con esa clave, y si el operador de VeilCore ha marcado ese nombre. VeilCore no responde por ningún laboratorio: quien comprueba un registro decide cuánto vale una firma.',
+    'Un registro muestra qué clave lo firmó, el nombre y el organismo de acreditación registrados con esa clave, y si el operador de VeilCore ha cotejado ese nombre con un listado público de licencias o acreditaciones, y en qué fecha. VeilCore no responde por ningún laboratorio: quien comprueba un registro decide cuánto vale una firma.',
   'm.open.4t': 'Cualquiera puede gestionar un servidor de registros.',
   'm.open.4p':
     'El formato permite que un laboratorio, una entidad certificadora o un organismo de derechos gestione el suyo, con su propio dominio web y sus propias definiciones de campos, y ancle sin pedirnos permiso. El código de nuestro propio servidor de registros no está publicado.',
@@ -417,7 +418,7 @@ export const esTestchain: Strings = {
   'm.for.1p':
     'Selle un registro y vincule su informe de ADN. Si la planta aparece con otro nombre, un laboratorio puede comparar una prueba nueva con su informe. Cuando vincula a través del contrato de VeilCore en Midnight, la vinculación también queda fechada: muestra que quien controlaba su registro en esa fecha tenía ese informe, o su SHA-256, para entonces. Lo que va a la cadena está atado a su registro y oculta el informe, así que nadie puede copiar su vinculación a su propio registro. En este sitio de prueba puede fechar la vinculación desde su navegador. VeilCore no hace pruebas de ADN.',
   'm.demo.lede':
-    'Sin registro, sin billetera. Este es el sitio de prueba, así que use datos inventados. Su navegador sella cada registro en la red de pruebas de Midnight (VeilCore paga la tarifa), y los lotes se anclan automáticamente. También puede fechar la vinculación de un informe de ADN. El acuse de un laboratorio es una firma real con la propia clave del laboratorio, guardada fuera de la cadena. Las licencias y los acuerdos de laboratorio son solo de práctica.',
+    'Sin registro, sin billetera. Este es el sitio de prueba, así que use datos inventados. Los lotes se anclan automáticamente en la red de pruebas de Midnight, y eso fecha sus registros. Su navegador también pone un sello de fecha a la clave propia de cada planta, que fecha solo la clave (VeilCore paga la tarifa). También puede fechar la vinculación de un informe de ADN. El acuse de un laboratorio es una firma real con la propia clave del laboratorio, guardada fuera de la cadena. Las licencias y los acuerdos de laboratorio son solo de práctica.',
   'm.privacy.test.text':
     'Este sitio usa la red de pruebas preprod de Midnight, no la principal. Su navegador envía cada sello de fecha a esa red a través del servicio de tarifas de VeilCore; lo que usted escribió y sus archivos nunca se envían allí. Una red de pruebas puede reiniciarse, y los datos de prueba pueden borrarse.',
   'm.privacy.hosts.text':

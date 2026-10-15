@@ -32,6 +32,7 @@ import { computeCommitment } from 'veilcore-records';
 import { FORMAT_VERSION, COMMITMENT_ALGORITHM } from 'veilcore-records';
 import type { StrainRecord } from './records';
 import { committedRecordFields } from './commitment';
+import { KEY_BOUND_ALGORITHM } from './key-binding';
 
 /** The profile every new record is sealed under: plant varieties, any crop. */
 export const PLANT_VARIETY_PROFILE = 'veilcore/profile/plant-variety/v1';
@@ -196,8 +197,17 @@ export const exportEnvelopeFor = async (
     r.recordFingerprint && integrity === 'match' && r.nonce
       ? {
           fingerprint: r.recordFingerprint,
-          algorithm: COMMITMENT_ALGORITHM,
-          recompute: 'sha256 over the canonical serialisation (SPEC section 3) of `fields`',
+          // A record that names its own key folds it in at the top (SPEC 3.6.1).
+          ...(r.keyBinding
+            ? {
+                algorithm: KEY_BOUND_ALGORITHM,
+                recompute:
+                  'H("veilcore:v1:keyrecord", fields.keyBinding, sha256 over the canonical serialisation (SPEC section 4.4) of `fields`), H as in SPEC section 3.6.1',
+              }
+            : {
+                algorithm: COMMITMENT_ALGORITHM,
+                recompute: 'sha256 over the canonical serialisation (SPEC section 3) of `fields`',
+              }),
           fields: committedRecordFields({ ...r, nonce: r.nonce }),
           sealedAt: rfc3339(r.loggedAt),
           notCovered: [

@@ -9,9 +9,15 @@
 //    must be anchored and still live. Nothing here takes the holder's word.
 //
 // What it shows: whoever answered holds the secret of that on-chain identity now. With
-// the identity's anchor transaction, it shows they have held it since that block. The
-// link between the identity and this record's content is the holder's statement until
-// the sealed record format carries the identity.
+// the identity's anchor transaction, it shows the key existed by that block (not who held
+// it then, and nothing about the record's content).
+//
+// Whether the identity is this record's: a record sealed since 14 October 2026 names its
+// own key (key-binding.ts, SPEC 3.6.1). Given the record's fingerprint, the key's salt
+// and the hash of its sealed fields, the check first recomputes the fingerprint around
+// the identity and refuses unless it matches, so a holder can't put a key they control
+// next to someone else's record. For an older record, with nothing to match, the link
+// between identity and record stays the holder's statement, and the page says so.
 // SPDX-License-Identifier: Apache-2.0
 
 import { ContractState } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
@@ -19,6 +25,7 @@ import { ledger } from '../../../../contract/src/managed/veilcore/contract/index
 import { acceptOwnership } from '../../../../contract/src/verify';
 import { callState } from '../../../../api/src/presentation-lookup';
 import { CHAIN_CONTRACT, INDEXER_HTTP } from './config';
+import { KEY_NOT_THIS_RECORDS, keyMatchesRecord, type KeyedRecord } from '../key-binding';
 
 import { lookupChallenge, useChallenge } from './challenge-book';
 export { newChallenge } from './challenge-book';
@@ -51,7 +58,7 @@ const defaultLatest = async () => {
 
 /** Check a holder's answer to this tab's challenge. */
 export const checkOwnership = async (
-  input: { txId: string; identity: string; challenge: string },
+  input: { txId: string; identity: string; challenge: string; record?: KeyedRecord },
   deps: CheckDeps = {},
 ): Promise<OwnershipVerdict> => {
   const challenge = input.challenge.trim().toLowerCase();
@@ -59,6 +66,9 @@ export const checkOwnership = async (
   const txId = input.txId.trim().toLowerCase().replace(/^0x/, '');
   if (!/^[0-9a-f]{64}$/.test(identity))
     return { accepted: false, reason: 'This record has no on-chain identity to check.' };
+  // Before the network is asked anything: is this the key the record named?
+  if (input.record && !keyMatchesRecord(identity, input.record))
+    return { accepted: false, reason: KEY_NOT_THIS_RECORDS };
   const issued = lookupChallenge(challenge);
   if (!issued) return { accepted: false, reason: 'This page did not make that challenge. Make a new one and send it.' };
   if (issued.used) return { accepted: false, reason: 'That challenge was already answered once. Make a new one.' };

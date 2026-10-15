@@ -29,6 +29,8 @@ import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { ProveOwnershipPanel } from '../chain/ProveOwnershipPanel';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { receiptLineFor } from '../../veilcore/custody';
+import { signerLabel } from '../../veilcore/attesters';
+import { NameCheckText } from '../NameCheckText';
 import { useBreederReceipt } from '../flow/LabResults';
 
 // The certificate's own colours: dark text on white, every pair at least 4.5:1.
@@ -120,6 +122,13 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
   // takes delivery, with no name and no signature. Only a receipt the lab linked to the
   // delivery, checked here, is printed as one.
   const deliveryLine = receiptLineFor(record, receipt);
+  // On screen, a checked name's listing is a link (round 4). The line ends with the label's
+  // `rest` exactly when the name is checked; that tail is drawn by NameCheckText instead.
+  const receiptLabel = !record.receivedFrom && receipt?.kind === 'signed' ? signerLabel(receipt.by) : null;
+  const deliveryHead =
+    receiptLabel?.checked && deliveryLine.endsWith(receiptLabel.rest)
+      ? deliveryLine.slice(0, deliveryLine.length - receiptLabel.rest.length)
+      : null;
 
   // A summary, not evidence: the record file and the network transaction are. It carries
   // no "it matches" line: a file can say anything about itself, so a check written into
@@ -278,7 +287,16 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
                   {integrityLine}
                 </Box>
               </Field>
-              <Field label="Lab receipt">{deliveryLine}</Field>
+              <Field label="Lab receipt">
+                {deliveryHead !== null && receiptLabel ? (
+                  <>
+                    {deliveryHead}
+                    <NameCheckText label={receiptLabel} />
+                  </>
+                ) : (
+                  deliveryLine
+                )}
+              </Field>
               <Field label="Active licenses">{activeLicenseCount(record.id)}</Field>
               <Field label="Record ID" mono>
                 {record.id}

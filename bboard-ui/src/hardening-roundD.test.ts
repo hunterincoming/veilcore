@@ -68,6 +68,21 @@ globalThis.fetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Respo
 const route = (method: string, re: RegExp, reply: Handler) =>
   routes.push({ match: (u, m) => m === method && re.test(u), reply });
 
+/** A current name check record (round 4) as the registry serves it with a marked key. */
+const nameCheckFor = (checkedName: string) => {
+  const today = new Date().toISOString().slice(0, 10);
+  return {
+    source: 'licence-listing',
+    sourceUrl: 'https://cannabis.example.gov/testing-labs',
+    licenceNo: 'TL-1',
+    emailDomain: 'reallab.example',
+    checkedAt: today,
+    checkedBy: 'HR',
+    expiresAt: new Date(Date.now() + 300 * 86_400_000).toISOString().slice(0, 10),
+    checkedName,
+  };
+};
+
 beforeEach(() => {
   routes = [];
   calls.length = 0;
@@ -191,7 +206,13 @@ describe('F2 attestationsFor: bound to this record; only signed retractions coun
   };
   const listing = (a: object, retraction: unknown = null) => ({
     attestations: [
-      { ...a, strength: 'signed', vettedAttester: true, registeredAs: { displayName: 'Real Lab' }, retraction },
+      {
+        ...a,
+        strength: 'signed',
+        vettedAttester: true,
+        registeredAs: { displayName: 'Real Lab', nameCheck: nameCheckFor('Real Lab') },
+        retraction,
+      },
     ],
   });
 
@@ -219,7 +240,7 @@ describe('F2 attestationsFor: bound to this record; only signed retractions coun
     expect(a.retraction).toBeNull();
     expect(a.retractionUnverified).toBe(true);
     expect(countsAsSigned(a)).toBe(true);
-    expect(strengthLabel(a).label).toBe('Signed · name added by VeilCore’s operator');
+    expect(strengthLabel(a).label).toBe('Signed · name matched to a public listing');
     expect(strengthLabel(a).why).toMatch(/not signed by the attester, so it is ignored/);
   });
 
@@ -1123,7 +1144,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
                     ...att,
                     strength: 'signed',
                     vettedAttester: true,
-                    registeredAs: { displayName: 'Real Lab' },
+                    registeredAs: { displayName: 'Real Lab', nameCheck: nameCheckFor('Real Lab') },
                     retraction: null,
                   },
                 ],
@@ -1188,7 +1209,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     expect(text).toMatch(/Borrowed Name/); // the page still opens
     expect(text).toMatch(/For the fingerprint the registry reports: it is in batch genuine-x/);
     expect(text).toMatch(
-      /For the fingerprint the registry reports: Signed attestation, signature verified in this browser, from a key whose name VeilCore's\s+operator added\. VeilCore doesn't vouch for the signer\./,
+      /For the fingerprint the registry reports: Signed attestation, signature verified in this browser\. Signed by Real Lab\.\s+VeilCore’s operator matched this name to cannabis\.example\.gov \(license TL-1\) on \d{4}-\d{2}-\d{2}\.\s+VeilCore doesn’t vouch for the lab’s work\./,
     );
     expect(text).toMatch(/This link does not name the record's fingerprint/);
     expect(text).toMatch(
@@ -1218,7 +1239,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     await pg.waitForSelector('text=In a dated batch: the date is the registry’s report, not checked here', {
       timeout: 15_000,
     });
-    await pg.waitForSelector("text=VeilCore doesn't vouch for the signer", { timeout: 15_000 });
+    await pg.waitForSelector('text=VeilCore doesn’t vouch for the lab’s work', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
     expect(text).toMatch(/This link was made for fingerprint dddd.*and the registry\s+reports the same fingerprint/s);
     expect(text).toMatch(/Checked in this browser: this fingerprint is in batch genuine-x/);

@@ -95,7 +95,7 @@ export const en = {
     "The lab signs your results and locks them so only you can open them. No PDF sits in anyone's inbox: VeilCore only holds the locked file. The signature covers that exact file and the record it's about. VeilCore records who signed; it doesn't vouch for the result. New, and still being tested.",
   'm.for.6t': 'Someone asks for proof.',
   'm.for.6p':
-    'They send you a link. You tap once, and their page checks on the network that you control the key you registered for this record. That the key belongs to the record is your statement for now. It says nothing about who bred the plant. This works on a Midnight test network for now.',
+    "They send you a link. You tap once, and their page checks on the network that you control your plant's own key. Your record named that key when it was sealed, so it can't be swapped. It says nothing about who you are or who bred the plant. This works on a Midnight test network for now.",
   'm.for.5t': 'Animal lines.',
   'm.for.5p':
     "Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. The format covers animals; this demo is set up for plants, and the animal record fields aren't published yet.",
@@ -178,7 +178,7 @@ export const en = {
     "Keep two files from your plant's page: the exported record and its inclusion proof (a small file showing the record is in a dated batch). With both, anyone can check it with SHA-256, the open spec and a look-up on a Midnight explorer, even if VeilCore is gone. Your backup file holds your keys, not these. The Bitcoin date needs a third file, the batch's Bitcoin stamp file, which today is only on our server.",
   'm.open.3t': "We don't vouch for results.",
   'm.open.3p':
-    "A record shows which key signed it, the name and accreditor registered with that key, and whether VeilCore's operator has marked that name. VeilCore doesn't vouch for any lab: whoever checks a record decides what a signature is worth.",
+    "A record shows which key signed it, the name and accreditor registered with that key, and whether VeilCore's operator has matched that name to a public license or accreditation listing, and on what day. VeilCore doesn't vouch for any lab: whoever checks a record decides what a signature is worth.",
   'm.open.4t': 'Anyone can run a registry.',
   'm.open.4p':
     "The format lets a lab, certifier or rights body run its own, under its own web domain, with its own field definitions, and anchor without asking us. Our own registry code isn't published.",
@@ -309,7 +309,8 @@ export const en = {
   'm.live.stamp.t': 'A date stamp for your record',
   'm.live.stamp.main':
     'Yes. VeilCore dates records in batches, by hand for now. Your browser sends nothing to the chain.',
-  'm.live.stamp.test': 'Yes. Your browser stamps each record, and batches are dated automatically.',
+  'm.live.stamp.test':
+    "Yes. Batches are dated automatically, and that dates your record. Your browser also date stamps your plant's own key, which dates only the key.",
   'm.live.btc.t': 'A Bitcoin date stamp too',
   'm.live.btc.main':
     "Yes. Our registry stamps each sealed batch's fingerprint on Bitcoin with OpenTimestamps. The first reached Bitcoin block 971004 on 11 October; a check with the official OpenTimestamps tool is still to do.",
@@ -328,7 +329,7 @@ export const en = {
   'm.live.dna.test': 'Yes, sent from your browser.',
   'm.live.prove.t': 'Prove it by link',
   'm.live.prove.test':
-    'Yes. Their page checks on the network that you control the key you registered for this record. That the key belongs to the record is your statement for now.',
+    "Yes. Their page checks on the network that you control the record's own key. The record named that key when it was sealed, so it can't be swapped.",
   'm.live.prove.not': 'On veilcore.org: it needs your browser to send a transaction.',
   'm.live.claims.t': 'Proving one fact (claims)',
   'm.live.claims.main': 'The contract is on the main network, with no maintenance key. The website can’t use it yet.',

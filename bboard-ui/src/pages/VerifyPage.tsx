@@ -30,7 +30,13 @@ import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import { shortFingerprint } from '../veilcore/commitment';
 import { DISCLOSURE_FIELDS, LEGACY_NAME, toDisclosureKey, labelOf } from '../veilcore/disclosure';
 import { proofFor, type ProofState } from '../veilcore/proofs';
-import { attestationsFor, countsAsSigned, type ResolvedAttestation } from '../veilcore/attesters';
+import {
+  attestationsFor,
+  countsAsSigned,
+  nameChecked,
+  signerLabel,
+  type ResolvedAttestation,
+} from '../veilcore/attesters';
 import { ACCENT } from '../config/theme';
 import { NETWORK, isTestNetwork, networkLabel } from '../config/network';
 import { Fact, SharedFacts } from '../components/verify/DisclosedFacts';
@@ -41,7 +47,7 @@ import { REAL_CHAIN } from '../veilcore/chain/config';
 import { VerifierChallengePanel } from '../components/chain/VerifierChallengePanel';
 import { useRecords } from '../veilcore/records';
 import { useBreederReceipt } from '../components/flow/LabResults';
-import { receiptSignedLine } from '../veilcore/custody';
+import { NameCheckText } from '../components/NameCheckText';
 
 const API = import.meta.env.VITE_API_BASE ?? '';
 
@@ -100,6 +106,8 @@ type VerifyResult = {
   unavailableReason?: string;
   parents?: string[];
   breedingMethod?: string | null;
+  /** The registry's report that the record names its own key (key-binding.ts). */
+  keyBound?: boolean;
 };
 
 /**
@@ -140,7 +148,8 @@ const isVerifyResult = (v: unknown): v is VerifyResult => {
     (r.notGranted === undefined || Array.isArray(r.notGranted)) &&
     (r.anchor === undefined || r.anchor === null || (typeof r.anchor === 'object' && !Array.isArray(r.anchor))) &&
     str(r.lineageNote) &&
-    str(r.unavailableReason)
+    str(r.unavailableReason) &&
+    bool(r.keyBound)
   );
 };
 
@@ -247,7 +256,8 @@ export const VerifyPage: React.FC = () => {
         ? result.anchor.network
         : undefined;
   const signed = (atts ?? []).filter(countsAsSigned);
-  const signedVetted = signed.filter((a) => a.vettedAttester === true);
+  // A current name check (round 4): an old mark with no check record, or an expired one, doesn't count.
+  const signedVetted = signed.filter((a) => nameChecked(a));
   const ticked = checked || (bound && signedVetted.length > 0);
   // The seal: only for an anchor checked on chain by this page (none today).
   const seal = checked && ANCHOR_CHECKED_ON_CHAIN;
@@ -470,8 +480,9 @@ export const VerifyPage: React.FC = () => {
                 atts !== null &&
                 (signedVetted.length > 0 ? (
                   <Fact ok={bound}>
-                    {forWhom}Signed attestation, signature verified in this browser, from a key whose name
-                    VeilCore&apos;s operator added. VeilCore doesn&apos;t vouch for the signer.
+                    {forWhom}Signed attestation, signature verified in this browser.{' '}
+                    {signerLabel(signedVetted[0], 'Signed by').lead}.
+                    <NameCheckText label={signerLabel(signedVetted[0], 'Signed by')} />
                   </Fact>
                 ) : signed.length > 0 ? (
                   <Fact ok={false}>
@@ -491,8 +502,9 @@ export const VerifyPage: React.FC = () => {
               {/* The holder's own plant: the lab receipt linked to one of their deliveries. */}
               {own && receipt?.kind === 'signed' && (
                 <Fact ok={false}>
-                  {receiptSignedLine(receipt.by)}, linked to your delivery {receipt.transferId}. You see this because
-                  the plant is in this browser; someone you send the link to sees only the signature line above.
+                  {signerLabel(receipt.by).lead}, linked to your delivery {receipt.transferId}.
+                  <NameCheckText label={signerLabel(receipt.by)} /> You see this because the plant is in this browser;
+                  someone you send the link to sees only the signature line above.
                 </Fact>
               )}
 
@@ -550,10 +562,19 @@ export const VerifyPage: React.FC = () => {
           </Paper>
         )}
         {/* Real-chain builds: the holder's link may name the record's on-chain identity
-            (?chain=…&anchorTx=…). It is their statement; the panel checks it on chain. */}
+            (?chain=…&anchorTx=…), and for a record that names its key, what ties the two
+            (&ks=…&cd=…). The panel matches the key to the link's fingerprint (only when the
+            registry reports the same one), then checks the proof on chain. */}
         {REAL_CHAIN && result?.found && params.get('chain') && (
           <VerifierChallengePanel
-            claim={{ identity: params.get('chain') ?? '', txId: params.get('anchorTx') ?? undefined }}
+            claim={{
+              identity: params.get('chain') ?? '',
+              txId: params.get('anchorTx') ?? undefined,
+              keySalt: params.get('ks'),
+              contentHash: params.get('cd'),
+              fingerprint: bound ? binding.fingerprint : undefined,
+              keyBound: result.keyBound === true,
+            }}
             recordId={id}
           />
         )}

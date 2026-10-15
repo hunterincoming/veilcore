@@ -14,13 +14,15 @@
 
 import React, { useEffect, useState } from 'react';
 import { Alert, Box, Chip, Stack, Typography } from '@mui/material';
-import { attestationsFor, strengthLabel, type ResolvedAttestation } from '../veilcore/attesters';
-import { receiptSignedLine, type BreederReceipt } from '../veilcore/custody';
+import { attestationsFor, signerLabel, strengthLabel, type ResolvedAttestation } from '../veilcore/attesters';
+import type { BreederReceipt } from '../veilcore/custody';
+import { NameCheckText } from './NameCheckText';
 import type { StrainRecord } from '../veilcore/records';
 
 /** The breeder's own plant: its tied receipt, and a count of anything else. */
 const BreederReceiptPanel: React.FC<{ receipt: BreederReceipt }> = ({ receipt }) => {
-  const s = receipt.kind === 'signed' ? strengthLabel(receipt.by) : undefined;
+  // One label for every screen (attesters.ts signerLabel, round 4).
+  const s = receipt.kind === 'signed' ? signerLabel(receipt.by) : undefined;
   return (
     <Stack spacing={1.5}>
       <Typography variant="overline" sx={{ display: 'block' }}>
@@ -29,13 +31,22 @@ const BreederReceiptPanel: React.FC<{ receipt: BreederReceipt }> = ({ receipt })
       {receipt.kind === 'signed' ? (
         <Box sx={{ pl: 1.5, borderLeft: '2px solid rgba(22,32,27,0.12)' }}>
           <Typography variant="body2" sx={{ fontWeight: 700 }}>
-            {receiptSignedLine(receipt.by)}
+            {s?.lead}
+            {s?.checked ? '.' : ''}
           </Typography>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
             {new Date(receipt.by.issuedAt).toLocaleDateString()} · linked to your delivery {receipt.transferId}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {s?.why}
+            The signature was verified in this browser.
+            {s?.checked ? (
+              <NameCheckText label={s} />
+            ) : (
+              ' Anyone can register a key under any name, so the name doesn’t show who signed.'
+            )}
+            {receipt.by.retractionUnverified
+              ? ' The registry also reports a retraction that is not signed by the lab, so it is ignored here.'
+              : ''}
           </Typography>
         </Box>
       ) : receipt.kind === 'code-used' ? (
