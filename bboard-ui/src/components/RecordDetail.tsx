@@ -25,8 +25,10 @@ import { StatusChain } from './StatusChain';
 import { LineageGraph } from './LineageGraph';
 import { HeritableRights } from './HeritableRights';
 import { NextStep } from './NextStep';
+import { StageRows } from './stage/StageRows';
 import { SettlementStatus } from './SettlementStatus';
 import { EvidenceBundle, DOWNLOAD_EVIDENCE_LABEL } from './EvidenceBundle';
+import { BreedingHistory } from './history/BreedingHistory';
 import { REAL_CHAIN } from '../veilcore/chain/config';
 import { AnchorOnChainPanel } from './chain/AnchorOnChainPanel';
 import { AttestationPanel } from './AttestationPanel';
@@ -353,6 +355,8 @@ export const RecordDetail: React.FC = () => {
               {!record.dnaFingerprint && !received && (
                 <ActionRow section="log" label="Save a lab report to this plant" onClick={() => setMode('pair')} />
               )}
+              {/* The next stage of a breeding history, and dating the saved lab report (components/stage). */}
+              <StageRows record={record} labOnly={labOnly} saved={saved} />
               <ActionRow section="log" label="Check a report matches" onClick={() => setMode('check')} />
               {hasFamily && <ActionRow section="log" label="Family tree" onClick={() => setMode('tree')} />}
               {REAL_CHAIN && keys && (
@@ -481,6 +485,12 @@ export const RecordDetail: React.FC = () => {
                     </Box>
                   </Stack>
                 </Paper>
+                {/* This plant and its linked parents held here, for a variety application. */}
+                {!labOnly && record.recordFingerprint && record.nonce && (
+                  <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
+                    <BreedingHistory record={record} />
+                  </Paper>
+                )}
                 {/* The wire format. Any implementation can read this and recompute the
                     commitment without our code, our chain, or our permission. */}
                 <Box>

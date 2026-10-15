@@ -1,12 +1,16 @@
 // LineageGraph — a simple family tree for a cultivar: its parents above, children below.
 // Linked (logged) relatives are clickable. This is what makes renaming detectable.
+// A record that dates a lab report has the plant as its parent but is not offspring: it is
+// listed apart, as a dated lab report (components/stage/self-chain.ts).
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
 import { Box, Chip, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { ACCENT } from '../config/theme';
-import { childrenOf, type StrainRecord, type ParentRef } from '../veilcore/records';
+import { allRecords, type StrainRecord, type ParentRef } from '../veilcore/records';
+import { offspringOf } from './stage/self-chain';
+import { datedReportsOf } from './stage/lab-report-notes';
 
 const Connector: React.FC = () => (
   <Box sx={{ width: 2, height: 20, mx: 'auto', background: 'rgba(47,240,207,0.35)' }} />
@@ -21,9 +25,10 @@ const RelChip: React.FC<{ label: string; to?: string }> = ({ label, to }) =>
 
 export const LineageGraph: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const parents: ParentRef[] = record.parents ?? [];
-  const kids = childrenOf(record.id);
+  const kids = offspringOf(record.id, allRecords());
+  const reports = datedReportsOf(record.id, allRecords());
 
-  if (parents.length === 0 && kids.length === 0) {
+  if (parents.length === 0 && kids.length === 0 && reports.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary">
         No lineage recorded yet. Add parent cultivars when logging to build the family tree.
@@ -57,6 +62,17 @@ export const LineageGraph: React.FC<{ record: StrainRecord }> = ({ record }) => 
             ))}
           </Stack>
         </>
+      )}
+
+      {reports.length > 0 && (
+        <Box sx={{ mt: 2 }} data-dated-reports="">
+          <Typography variant="overline">Dated lab reports (not offspring)</Typography>
+          <Stack direction="row" spacing={1} sx={{ justifyContent: 'center', flexWrap: 'wrap', mt: 0.5 }}>
+            {reports.map((r) => (
+              <RelChip key={r.id} label={r.strainName} to={`/record/${r.id}`} />
+            ))}
+          </Stack>
+        </Box>
       )}
     </Box>
   );

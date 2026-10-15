@@ -28,6 +28,8 @@ import { OPEN_SIGNING_KEY_EVENT } from './AttesterSetup';
 import type { ArrivedResult } from './flow/LabResults';
 import { ACCENT } from '../config/theme';
 import type { SavedReport } from '../veilcore/saved-report';
+import { useNavigate } from 'react-router-dom';
+import { isLabReportRecord } from './stage/lab-report-notes';
 
 type Step = {
   /** Some steps render their own control rather than a plain button. */
@@ -81,6 +83,11 @@ export const NextStep: React.FC<{
   saved,
 }) => {
   let step: Step | null;
+  const navigate = useNavigate();
+  // A record that dates a lab report (components/stage/lab-report-date.ts) is not a plant:
+  // no lab, agreement or key date stamp for it. Its batch is what dates the report.
+  const datesReport = isLabReportRecord(record);
+  const reportPlant = datesReport ? record.parents?.[0] : undefined;
 
   // A record that arrived through a delivery is the lab's (or the next holder's). Telling
   // them to "send it to a lab for confirmation" is telling the lab to send it to a lab —
@@ -97,6 +104,18 @@ export const NextStep: React.FC<{
       action: 'Save my backup',
       icon: <SaveIcon />,
       onClick: onBackup,
+    };
+  } else if (datesReport) {
+    step = {
+      title: 'This record dates a lab report',
+      why: 'It holds only the report’s SHA-256, its lab report code and the lab’s name as signed, never the report. When its batch is dated, it shows the report existed by then, without showing anyone the markers.',
+      ...(reportPlant?.recordId
+        ? {
+            action: `Back to ${reportPlant.name}`,
+            icon: <ScienceIcon />,
+            onClick: () => navigate(`/record/${reportPlant.recordId ?? ''}`),
+          }
+        : {}),
     };
   } else if (REAL_CHAIN && !isReceived && !keys?.anchor && onStamp) {
     step = {

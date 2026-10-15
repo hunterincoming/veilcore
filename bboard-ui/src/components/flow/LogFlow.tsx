@@ -36,9 +36,9 @@ import {
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import DoneIcon from '@mui/icons-material/CheckCircleOutlined';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { fingerprintFile } from '../../veilcore/commitment';
-import { allRecords, createRecord, getRecord, type ParentRef } from '../../veilcore/records';
+import { allRecords, createRecord, getRecord, useRecords, type ParentRef } from '../../veilcore/records';
 import { sealRecord } from '../../veilcore/seal-record';
 import { localStamp } from '../../veilcore/time';
 import {
@@ -64,10 +64,12 @@ import {
   draftHasContent,
   emptyDraft,
   loadDraft,
+  nextStageDraft,
   saveDraft,
   sealInputOf,
   stampProblem,
 } from './log-flow-state';
+import { SEAL_EACH_STAGE, SELECTED_PROMPT, STAGE_PROMPT } from '../stage/stage-notes';
 
 const BREEDING_METHODS = [
   'Seed — F1',
@@ -95,7 +97,21 @@ export const STEP: Record<Screen, string> = {
 export const LogFlow: React.FC = () => {
   const [screen, setScreen] = useState<Screen>('plant');
   const [restored] = useState(loadDraft);
-  const [draft, setDraftState] = useState<Draft>(() => restored ?? emptyDraft());
+  // "Add the next generation or selection" on a plant's page opens /new?next=<its id>: the
+  // first screen starts prefilled from that plant (components/stage). Once used, the draft
+  // is kept as usual and the address loses `next`, so a reload keeps what was typed.
+  const [params] = useSearchParams();
+  const nextOf = params.get('next') ?? undefined;
+  useRecords(); // the plant may arrive after this page does (a reload)
+  const nextParent = nextOf ? getRecord(nextOf) : undefined;
+  const prefilled = useRef(false);
+  const [draft, setDraftState] = useState<Draft>(() => {
+    if (nextParent) {
+      prefilled.current = true;
+      return nextStageDraft(nextParent);
+    }
+    return restored ?? emptyDraft();
+  });
   const [recordId, setRecordId] = useState<string>();
   const navigate = useNavigate();
   const firstScreen = useRef(true);
@@ -104,6 +120,18 @@ export const LogFlow: React.FC = () => {
     setDraftState(d);
     saveDraft(d);
   };
+
+  useEffect(() => {
+    if (!nextOf || !nextParent) return;
+    if (!prefilled.current) {
+      prefilled.current = true;
+      setDraftState(nextStageDraft(nextParent));
+      saveDraft(nextStageDraft(nextParent));
+    } else {
+      saveDraft(draft);
+    }
+    void navigate('/new', { replace: true });
+  }, [nextOf, nextParent]);
 
   // A new screen starts at the top, focus on its heading. The first one is the page's own
   // (App.tsx does that on arrival).
@@ -125,7 +153,7 @@ export const LogFlow: React.FC = () => {
             step={step}
             draft={draft}
             setDraft={setDraft}
-            restored={!!restored && draftHasContent(draft)}
+            restored={!!restored && !prefilled.current && draftHasContent(draft)}
             onNext={() => setScreen('review')}
           />
         );
@@ -205,6 +233,9 @@ const PlantForm: React.FC<{
   const ready = Boolean(draft.strainName.trim() && draft.bredBy.trim()) && !reading;
   const moreId = useId();
   const hintId = useId();
+  // A next stage (components/stage): the plant it follows, linked as its parent.
+  const stageOf = draft.stageOf;
+  const stageParent = stageOf ? draft.parents.find((p) => p.recordId === stageOf)?.name : undefined;
 
   // Photos are fingerprinted as they are added: only the fingerprints are ever sealed, and
   // a fingerprint can be kept with the draft where a photo can't.
@@ -224,11 +255,17 @@ const PlantForm: React.FC<{
   return (
     <Stack spacing={2.5}>
       <Box>
-        <ScreenHeading step={step}>Log your plant</ScreenHeading>
+        <ScreenHeading step={step}>{stageOf ? 'Log the next generation or selection' : 'Log your plant'}</ScreenHeading>
         <Typography variant="body1" color="text.secondary">
           Fill in what you know. You&apos;ll check it on the next screen.
         </Typography>
       </Box>
+      {stageOf && (
+        <Alert severity="info" variant="outlined" data-seal-each-stage="">
+          <b>{SEAL_EACH_STAGE}</b>
+          {stageParent ? ` Its parent is ${stageParent}, already linked below.` : ''}
+        </Alert>
+      )}
       {restored && (
         <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
           <Typography variant="body2" color="text.secondary">
@@ -273,6 +310,26 @@ const PlantForm: React.FC<{
         slotProps={{ inputLabel: { shrink: true } }}
         fullWidth
       />
+      {stageOf && (
+        <>
+          <TextField
+            label={STAGE_PROMPT}
+            value={draft.stage ?? ''}
+            onChange={(e) => set('stage', e.target.value)}
+            helperText="Sealed in the notes as “Stage: …”."
+            fullWidth
+          />
+          <TextField
+            label={SELECTED_PROMPT}
+            value={draft.selectedFor ?? ''}
+            onChange={(e) => set('selectedFor', e.target.value)}
+            helperText="Sealed in the notes as “Selected for: …”."
+            multiline
+            minRows={2}
+            fullWidth
+          />
+        </>
+      )}
 
       <Box>
         <Button
@@ -461,6 +518,8 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
   };
 
   const extras = [
+    draft.stage?.trim() ? `Stage: ${draft.stage.trim()}` : '',
+    draft.selectedFor?.trim() ? `Selected for: ${draft.selectedFor.trim()}` : '',
     draft.parents.length ? `Parents: ${draft.parents.map((p) => p.name).join(' × ')}` : '',
     draft.taxon ? `Species: ${draft.taxon}` : '',
     draft.breedingMethod ? `Made by: ${draft.breedingMethod}` : '',

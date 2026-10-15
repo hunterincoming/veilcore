@@ -27,7 +27,8 @@ import {
   type License,
 } from '../../veilcore/licenses';
 import { canonicalUrl } from '../../config/network';
-import { getRecord, childrenOf } from '../../veilcore/records';
+import { getRecord, allRecords } from '../../veilcore/records';
+import { offspringOf } from '../stage/self-chain';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { AppHeader } from '../AppHeader';
 import { LicenseStateChip } from './LicenseStateChip';
@@ -89,7 +90,7 @@ export const LicenseDetail: React.FC = () => {
   // Breeder-share lineage: if the counterparty may breed with the material, any cultivar
   // they later log with this one as a parent is exposed through the lineage graph.
   const showLineageNote = type === 'breeder-share' && license.terms.mayBreed;
-  const knownDerivatives = showLineageNote ? childrenOf(license.recordId).length : 0;
+  const knownDerivatives = showLineageNote ? offspringOf(license.recordId, allRecords()).length : 0;
 
   const copy = async (text: string, msg: string) => {
     await navigator.clipboard.writeText(text);

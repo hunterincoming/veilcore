@@ -69,6 +69,7 @@ import {
   type ResultSummary,
 } from '../../veilcore/lab-results';
 import { correctionWithdrawn, savedReportStatus, type SavedReport } from '../../veilcore/saved-report';
+import { DateLabReport } from '../stage/DateLabReport';
 import { labSentPhrase } from './plant-status-words';
 
 const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-6)}`;
@@ -607,6 +608,8 @@ export const LabResultsPanel: React.FC<{
                   )}
                 </Stack>
               )}
+              {/* The saved lab report: date it, or where it was dated (components/stage). */}
+              {isSaved && !gone && <DateLabReport record={record} saved={saved} variant="card" />}
             </Box>
           );
         })

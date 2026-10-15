@@ -6,8 +6,9 @@
 // stored. The draft goes once the plant is sealed.
 // SPDX-License-Identifier: Apache-2.0
 
-import type { ParentRef } from '../../veilcore/records';
+import type { ParentRef, StrainRecord } from '../../veilcore/records';
 import type { SealInput } from '../../veilcore/seal-record';
+import { stageNotes } from '../stage/stage-notes';
 
 export const DRAFT_KEY = 'veilcore.log-draft.v1';
 
@@ -23,6 +24,15 @@ export type Draft = {
   refId: string;
   notes: string;
   photos: DraftPhoto[];
+  /**
+   * The next generation or selection of this record (components/stage): its first screen
+   * says a record dates nothing earlier than its sealing, and asks the two questions below.
+   */
+  stageOf?: string;
+  /** "What stage is this?": sealed as the notes' "Stage:" line (stage-notes.ts). */
+  stage?: string;
+  /** "What did you select for?": sealed as the notes' "Selected for:" line. */
+  selectedFor?: string;
 };
 
 /** Today on the person's own calendar, not UTC: at 9pm in New Jersey it is still today. */
@@ -53,6 +63,8 @@ export const draftHasContent = (d: Draft): boolean =>
     d.breedingMethod ||
     d.refId.trim() ||
     d.notes.trim() ||
+    d.stage?.trim() ||
+    d.selectedFor?.trim() ||
     d.photos.length,
   );
 
@@ -95,6 +107,9 @@ export const parseDraft = (raw: string | null): Draft | undefined => {
       refId: str(v.refId, 200),
       notes: str(v.notes),
       photos,
+      ...(typeof v.stageOf === 'string' && v.stageOf ? { stageOf: str(v.stageOf, 100) } : {}),
+      ...(typeof v.stage === 'string' ? { stage: str(v.stage, 200) } : {}),
+      ...(typeof v.selectedFor === 'string' ? { selectedFor: str(v.selectedFor, 500) } : {}),
     };
     return draftHasContent(d) ? d : undefined;
   } catch {
@@ -102,17 +117,36 @@ export const parseDraft = (raw: string | null): Draft | undefined => {
   }
 };
 
-/** What a draft is sealed as (seal-record.ts): text trimmed, photos as their fingerprints only. */
+/**
+ * What a draft is sealed as (seal-record.ts): text trimmed, photos as their fingerprints only.
+ * A next stage's two answers go first in the notes, one line each (stage-notes.ts).
+ */
 export const sealInputOf = (draft: Draft): SealInput => ({
   strainName: draft.strainName.trim(),
   bredBy: draft.bredBy.trim(),
   dateCreated: draft.dateCreated,
-  notes: draft.notes.trim(),
+  notes: stageNotes(draft.stage, draft.selectedFor, draft.notes),
   parents: draft.parents,
   breedingMethod: draft.breedingMethod,
   photoFingerprints: draft.photos.map((p) => p.fingerprint),
   refId: draft.refId.trim(),
   taxon: draft.taxon.trim(),
+});
+
+/**
+ * The first screen of the next generation or selection of a plant: this plant as its linked
+ * parent (the way the parents box links a logged plant), its name, breeder and species
+ * carried over to edit, today's date, and the stage questions empty.
+ */
+export const nextStageDraft = (parent: Pick<StrainRecord, 'id' | 'strainName' | 'bredBy' | 'taxon'>): Draft => ({
+  ...emptyDraft(),
+  strainName: parent.strainName,
+  bredBy: parent.bredBy,
+  taxon: parent.taxon ?? '',
+  parents: [{ recordId: parent.id, name: parent.strainName }],
+  stageOf: parent.id,
+  stage: '',
+  selectedFor: '',
 });
 
 export const loadDraft = (): Draft | undefined => {

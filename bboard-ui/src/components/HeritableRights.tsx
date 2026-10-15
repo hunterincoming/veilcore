@@ -8,6 +8,10 @@
 //
 // A buyer checking clean descent learns only accepted or rejected — never the
 // ancestry, never the terms, never the genetics.
+//
+// A breeder's own selection chain (F1, then F2 sealed with F1 as its parent) must not read
+// as royalties owed to themselves: the panel names their own next generations and says a
+// royalty in their own agreement is in their favour (components/stage/self-chain.ts).
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
@@ -19,6 +23,7 @@ import BlockIcon from '@mui/icons-material/BlockOutlined';
 import { verifyDescent, lineageRoot, type DescentVerdict } from '../veilcore/lineage';
 import { allLicenses, createsHeritableObligation } from '../veilcore/licenses';
 import { allRecords, type StrainRecord } from '../veilcore/records';
+import { ancestryVerdictText, ownOffspringNote, upstreamOwnRoyaltyNote } from './stage/self-chain';
 import { ACCENT } from '../config/theme';
 
 export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) => {
@@ -34,6 +39,13 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
   const heritable = allLicenses().filter(
     (l) => l.recordId === record.id && l.state === 'active' && createsHeritableObligation(l.type, l.terms),
   );
+
+  const heritableOn = (recordId: string) =>
+    allLicenses().filter(
+      (l) => l.recordId === recordId && l.state === 'active' && createsHeritableObligation(l.type, l.terms),
+    );
+  const ownOffspring = heritable.length > 0 ? ownOffspringNote(record, allRecords()) : undefined;
+  const upstreamOwn = upstreamOwnRoyaltyNote(record, allRecords(), heritableOn);
 
   const parentIds = (record.parents ?? []).map((p) => p.recordId).filter(Boolean) as string[];
   const parentFingerprints = allRecords()
@@ -75,11 +87,22 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
           <Typography variant="caption" color="text.secondary">
             Ended by revoking the agreement. The terms are never sent, only their fingerprint.
           </Typography>
+          {ownOffspring && (
+            <Typography variant="body2" color="text.secondary" data-own-offspring="">
+              {ownOffspring}
+            </Typography>
+          )}
         </Stack>
       ) : (
         <Typography variant="body2" color="text.secondary">
           No obligation on this cultivar&apos;s offspring. An agreement with an offspring royalty creates one when it
           becomes active.
+        </Typography>
+      )}
+
+      {upstreamOwn && (
+        <Typography variant="body2" color="text.secondary" data-upstream-own="">
+          {upstreamOwn}
         </Typography>
       )}
 
@@ -98,13 +121,11 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
 
       {verdict && (
         <Alert
-          severity={verdict.ok ? 'success' : 'warning'}
+          severity={verdict.ok ? ((verdict.generationsChecked ?? 0) > 0 ? 'success' : 'info') : 'warning'}
           icon={verdict.ok ? <CheckCircleIcon /> : <BlockIcon />}
           variant="outlined"
         >
-          {verdict.ok
-            ? `No unpaid obligations found in its declared ancestry (${verdict.generationsChecked ?? 0} generation${verdict.generationsChecked === 1 ? '' : 's'} checked, as the registry reports).`
-            : verdict.reason}
+          {ancestryVerdictText(verdict, parentFingerprints.length)}
         </Alert>
       )}
 
