@@ -155,6 +155,32 @@ describe("reads over HTTP", () => {
     ]);
   });
 
+  it("accepts what Apollo Client 4 sends (extensions.clientLibrary) and never forwards it", async () => {
+    const { up, url } = await sponsorWith();
+    const apollo = {
+      operationName: "Block",
+      variables: {},
+      query: "query Block { block { height } }",
+      extensions: { clientLibrary: { name: "@apollo/client", version: "4.2.3" } },
+    };
+    const res = await post(url, apollo);
+    expect(res.status).toBe(200);
+    expect(up.seen).toHaveLength(1);
+    expect(up.seen[0].body).not.toContain("extensions");
+    expect(up.seen[0].body).not.toContain("clientLibrary");
+    // Anything beyond that one shape is still refused.
+    for (const extensions of [
+      { clientLibrary: { name: "x", version: "1" }, persistedQuery: { version: 1 } },
+      { clientLibrary: { name: "x", version: "1", extra: "y" } },
+      { clientLibrary: { name: 1 } },
+      { clientLibrary: "x" },
+    ]) {
+      const bad = await post(url, { query: "{ a }", extensions });
+      expect(bad.status).toBe(400);
+    }
+    expect(up.seen).toHaveLength(1);
+  });
+
   it("refuses other sites, mutations, junk and floods", async () => {
     const { up, url } = await sponsorWith(2); // the bad requests above count against it too
     expect(
@@ -495,6 +521,15 @@ describe("subscriptions over the socket", () => {
       await closeCodeFor(
         ws,
         sub({ query: "subscription { a }", extensions: {} }),
+      ),
+    ).toBe(4400);
+    expect(
+      await closeCodeFor(
+        ws,
+        sub({
+          query: "subscription { a }",
+          extensions: { clientLibrary: { name: "x", version: "1" }, other: 1 },
+        }),
       ),
     ).toBe(4400);
     expect(

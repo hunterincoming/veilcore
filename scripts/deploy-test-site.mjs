@@ -71,12 +71,20 @@ if (status.contractAddress && String(status.contractAddress).toLowerCase() !== C
 const relay = await fetch(`${sponsor}/indexer`, {
   method: 'POST',
   headers: { 'content-type': 'application/json', origin: `https://${DOMAIN}` },
-  body: JSON.stringify({ query: '{ block { height } }' }),
+  // The exact shape Midnight's indexer client (Apollo Client 4) sends, extensions included.
+  body: JSON.stringify({
+    operationName: 'Probe',
+    variables: {},
+    query: 'query Probe { block { height } }',
+    extensions: { clientLibrary: { name: '@apollo/client', version: '4.2.3' } },
+  }),
 }).catch(() => undefined);
 if (!relay || relay.status === 404)
   fail('The sponsor has no indexer relay yet: redeploy it with the latest code first (railway up from the sponsor stage step).');
 if (relay.status === 403)
   fail(`The sponsor refuses https://${DOMAIN}: add it to the sponsor's ALLOWED_ORIGINS on Railway (comma-separated), then try again.`);
+if (!relay.ok)
+  fail(`The sponsor's indexer relay answered ${relay.status} to the kind of read the site makes. Redeploy the sponsor with the latest code (npm run stage -w sponsor, then railway up), then try again.`);
 
 const wss = sponsor.replace(/^https:/, 'wss:');
 const env = {

@@ -73,6 +73,26 @@ const CLIENT_MESSAGES = new Set([
 /** The fields a query may carry. No `extensions` (persisted queries live there), no `id`/`documentId`. */
 const QUERY_FIELDS = new Set(["query", "variables", "operationName"]);
 
+/**
+ * Apollo Client 4 (used by Midnight's indexer client) adds
+ * `extensions: { clientLibrary: { name, version } }` to every request by default. That one
+ * shape is accepted and then dropped: only query, variables and operationName are ever
+ * forwarded. Any other `extensions` (persisted queries included) is still refused.
+ */
+const isClientLibraryOnly = (ext: unknown): boolean => {
+  if (!isPlainObject(ext)) return false;
+  const keys = Object.keys(ext);
+  if (keys.length !== 1 || keys[0] !== "clientLibrary") return false;
+  const lib = ext.clientLibrary;
+  if (!isPlainObject(lib)) return false;
+  return Object.entries(lib).every(
+    ([k, v]) =>
+      (k === "name" || k === "version") &&
+      typeof v === "string" &&
+      v.length <= 100,
+  );
+};
+
 // ---- reading a GraphQL document -------------------------------------------------------
 //
 // Round 3: hasMutation was a regular expression, and a leading comma got past it:
@@ -284,7 +304,13 @@ export const queryProblem = (
   transport: "http" | "socket" = "http",
 ): { status: 400 | 403; message: string } | undefined => {
   if (!isPlainObject(payload)) return { status: 400, message: "No query." };
-  if (Object.keys(payload).some((k) => !QUERY_FIELDS.has(k)))
+  if (
+    Object.keys(payload).some(
+      (k) =>
+        !QUERY_FIELDS.has(k) &&
+        !(k === "extensions" && isClientLibraryOnly(payload.extensions)),
+    )
+  )
     return {
       status: 400,
       message: "Only query, variables and operationName are relayed.",
