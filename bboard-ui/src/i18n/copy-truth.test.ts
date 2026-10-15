@@ -403,11 +403,35 @@ describe("what's live where", () => {
     );
     expect(rows.find((r) => r.row === 'btc')?.has).toEqual([true, false, !stampButton]);
     expect(e['m.live.btc.main']).toMatch(/block 971004 on 11 October/);
-    expect(e['m.live.btc.main']).toMatch(/official tool is still to do/);
+    // Checked on 15 October with VeilCore's own script against two block explorers
+    // (docs/bitcoin-stamp-check-11oct.md); the official client with a full node is not done,
+    // and the copy keeps saying so until it is.
+    expect(e['m.live.btc.main']).toMatch(/checked against two block explorers on 15 October/);
+    expect(e['m.live.btc.main']).toMatch(/A check with the official tool and a full node is still to do\.$/);
     // The tool is named for technical readers.
     expect(e['m.tech.btc.p']).toMatch(
-      /block 971004 on 11 October; a check with the official OpenTimestamps tool is still to do/,
+      /block 971004 on 11 October\. Checked on 15 October against two block explorers: the stamp leads to Bitcoin blocks 971004 and 971005\. A check with the official OpenTimestamps tool and a full Bitcoin node is still to do\./,
     );
+    // The official-tool caveat stays wherever the explorer check is mentioned, in every
+    // language, until docs/bitcoin-stamp-check-11oct.md records an official-client pass.
+    const stampDoc = fs.readFileSync(path.resolve(SRC, '../../docs/bitcoin-stamp-check-11oct.md'), 'utf8');
+    expect(stampDoc).toMatch(/^## Result \(15 Oct 2026\)/m);
+    expect(stampDoc).toMatch(/Not yet checked with the\s+official OpenTimestamps client and a full Bitcoin node\./);
+    const CAVEAT: Record<Lang, RegExp> = {
+      en: /official (OpenTimestamps )?tool and a full (Bitcoin )?node is still to do/,
+      de: /offiziellen (OpenTimestamps-)?Werkzeug und einem vollständigen (Bitcoin-)?Knoten steht noch aus/,
+      fr: /outil officiel (OpenTimestamps )?et un nœud (Bitcoin )?complet reste à faire/,
+      es: /Aún falta comprobarlo con la herramienta oficial (de OpenTimestamps )?y un nodo completo( de Bitcoin)?\./,
+      ja: /公式ツールと(Bitcoinの)?フルノード(による|での)確認はまだです/,
+    };
+    const BTC_KEYS = ['m.postB.text', 'm.tech.btc.p', 'm.live.btc.main'] as const;
+    for (const l of Object.keys(CAVEAT) as Lang[]) {
+      for (const k of BTC_KEYS) {
+        const v = LANGUAGES[l].strings[k];
+        expect(v, `${l} ${k}`).toMatch(/971004/);
+        expect(v, `${l} ${k}`).toMatch(CAVEAT[l]);
+      }
+    }
     const docs = path.resolve(SRC, '../../docs');
     expect(fs.readFileSync(path.join(docs, 'no-wallet-run-12oct.md'), 'utf8')).toMatch(
       /veilcore-api-preprod.*OpenTimestamps off/s,
@@ -694,6 +718,9 @@ describe('the updates', () => {
     expect(en['m.postA.text']).toMatch(/The claims contract has no maintenance key/);
     expect(en['m.postB.date']).toBe('11 Oct 2026');
     expect(en['m.postB.text']).toMatch(/block 971004/);
+    expect(en['m.postB.text']).toMatch(
+      /Checked on 15 October against two block explorers: the stamp leads to Bitcoin blocks 971004 and 971005\. A check with the official OpenTimestamps tool and a full Bitcoin node is still to do\.$/,
+    );
     const docs = path.resolve(SRC, '../../docs');
     expect(fs.readFileSync(path.join(docs, 'mainnet-completeness.md'), 'utf8')).toMatch(/Bitcoin block 971004/);
     expect(fs.readFileSync(path.join(docs, 'deployment-record-revision-4.md'), 'utf8')).toMatch(

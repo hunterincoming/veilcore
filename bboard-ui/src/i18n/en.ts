@@ -255,7 +255,7 @@ export const en = {
   'm.postB.tag': 'Registry',
   'm.postB.title': 'First batch dated on Bitcoin too',
   'm.postB.text':
-    "The registry's first batches were anchored on Midnight's main network, by hand. One of them, five of our own test records, also has its root stamped on Bitcoin, in block 971004. A check with the official OpenTimestamps tool is still to do.",
+    "The registry's first batches were anchored on Midnight's main network, by hand. One of them, five of our own test records, also has its root stamped on Bitcoin, in block 971004. Checked on 15 October against two block explorers: the stamp leads to Bitcoin blocks 971004 and 971005. A check with the official OpenTimestamps tool and a full Bitcoin node is still to do.",
   'm.postA.date': '8 Oct 2026',
   'm.postA.tag': 'Launch',
   'm.postA.title': "Live on Midnight's main network",
@@ -307,7 +307,7 @@ export const en = {
     "Free to implement, permanently. TypeScript, Python and Rust agree on all 100 record-format test vectors on GitHub, and anyone can run them; a 101st, for report pairing, isn't in Rust yet. One author wrote all three, and the TypeScript one is on npm as 0.15.0. One written by someone else is the test we most want.",
   'm.tech.btc.t': 'The Bitcoin stamp',
   'm.tech.btc.p':
-    "Our registry stamps each sealed batch's fingerprint on Bitcoin with OpenTimestamps. The first reached Bitcoin block 971004 on 11 October; a check with the official OpenTimestamps tool is still to do. The stamp file is the batch's .ots file: Download Bitcoin stamp file, on the plant's page. The test site's registry doesn't stamp on Bitcoin.",
+    "Our registry stamps each sealed batch's fingerprint on Bitcoin with OpenTimestamps. The first reached Bitcoin block 971004 on 11 October. Checked on 15 October against two block explorers: the stamp leads to Bitcoin blocks 971004 and 971005. A check with the official OpenTimestamps tool and a full Bitcoin node is still to do. The stamp file is the batch's .ots file: Download Bitcoin stamp file, on the plant's page. The test site's registry doesn't stamp on Bitcoin.",
   'm.tech.dna.t': 'Report pairing and lab signatures',
   'm.tech.dna.p':
     "When a DNA report pairing goes through VeilCore's contract on Midnight, it is dated: it shows that whoever controlled the record at that date had that report, or its SHA-256, by then. What goes on chain is tied to the record and hides the report, so nobody can copy the pairing to their own record. A lab's signature on a locked report covers that exact file and the record it's about.",
@@ -334,7 +334,7 @@ export const en = {
     "Yes. Batches are dated automatically, and that dates your record. Your browser also date stamps your plant's own key, which dates only the key.",
   'm.live.btc.t': 'A Bitcoin date stamp too',
   'm.live.btc.main':
-    'Yes, every sealed batch. The first reached block 971004 on 11 October; checking it with the official tool is still to do.',
+    'Yes, every sealed batch. The first reached block 971004 on 11 October and was checked against two block explorers on 15 October. A check with the official tool and a full node is still to do.',
   'm.live.share.t': 'Choosing what others see',
   'm.live.share.main': 'Yes. The plant name always shows.',
   'm.live.share.test': 'Yes. The plant name always shows.',

@@ -198,7 +198,7 @@ export const de: Strings = {
   'm.postB.tag': 'Register',
   'm.postB.title': 'Erster Stapel auch auf Bitcoin datiert',
   'm.postB.text':
-    'Die ersten Stapel des Registers wurden von Hand im Hauptnetz von Midnight verankert. Bei einem davon, mit fünf unserer eigenen Testdatensätze, ist die Wurzel zusätzlich auf Bitcoin gestempelt, in Block 971004. Eine Prüfung mit dem offiziellen OpenTimestamps-Werkzeug steht noch aus.',
+    'Die ersten Stapel des Registers wurden von Hand im Hauptnetz von Midnight verankert. Bei einem davon, mit fünf unserer eigenen Testdatensätze, ist die Wurzel zusätzlich auf Bitcoin gestempelt, in Block 971004. Am 15. Oktober mit zwei Block-Explorern geprüft: Der Stempel führt zu den Bitcoin-Blöcken 971004 und 971005. Eine Prüfung mit dem offiziellen OpenTimestamps-Werkzeug und einem vollständigen Bitcoin-Knoten steht noch aus.',
   'm.founders.lede':
     'VeilCore ist ein Datensatzformat für Beweiszwecke, für pflanzliche und tierische Genetik. Es belegt, dass Sie einen Datensatz Ihres Materials zu einem bestimmten Datum hatten, ohne dass Sie Ihre genetischen Daten herausgeben.',
   'm.live.label': 'Was wo läuft',
@@ -382,7 +382,7 @@ export const de: Strings = {
   'm.addr.explorer': 'Auf midnightexplorer.com nachschlagen (betrieben von TexLabs) →',
   'm.live.btc.t': 'Auch ein Datumsstempel auf Bitcoin',
   'm.live.btc.main':
-    'Ja, jeder versiegelte Stapel. Der erste kam am 11. Oktober in Block 971004; eine Prüfung mit dem offiziellen Werkzeug steht noch aus.',
+    'Ja, jeder versiegelte Stapel. Der erste kam am 11. Oktober in Block 971004 und wurde am 15. Oktober mit zwei Block-Explorern geprüft. Eine Prüfung mit dem offiziellen Werkzeug und einem vollständigen Knoten steht noch aus.',
   'm.contact.1t': 'Züchter und Labore',
   'm.contact.1p':
     'Probieren Sie es mit erfundenen Datensätzen aus und sagen Sie uns dann, was es für Ihre echten bräuchte.',
@@ -419,7 +419,7 @@ export const de: Strings = {
     'Dauerhaft kostenlos zu implementieren. TypeScript, Python und Rust stimmen bei allen 100 Testvektoren des Datensatzformats auf GitHub überein, und jeder kann sie ausführen; ein 101., für die Kopplung von Berichten, fehlt in Rust noch. Ein Autor hat alle drei geschrieben, und die TypeScript-Version ist auf npm als 0.15.0. Eine Implementierung von jemand anderem ist der Test, den wir uns am meisten wünschen.',
   'm.tech.btc.t': 'Der Bitcoin-Stempel',
   'm.tech.btc.p':
-    'Unser Register stempelt den Fingerabdruck jedes versiegelten Stapels mit OpenTimestamps auf Bitcoin. Der erste kam am 11. Oktober in Bitcoin-Block 971004; eine Prüfung mit dem offiziellen OpenTimestamps-Werkzeug steht noch aus. Die Stempeldatei ist die .ots-Datei des Stapels: „Download Bitcoin stamp file“ auf der Seite der Pflanze. Das Register der Test-Website stempelt nicht auf Bitcoin.',
+    'Unser Register stempelt den Fingerabdruck jedes versiegelten Stapels mit OpenTimestamps auf Bitcoin. Der erste kam am 11. Oktober in Bitcoin-Block 971004. Am 15. Oktober mit zwei Block-Explorern geprüft: Der Stempel führt zu den Bitcoin-Blöcken 971004 und 971005. Eine Prüfung mit dem offiziellen OpenTimestamps-Werkzeug und einem vollständigen Bitcoin-Knoten steht noch aus. Die Stempeldatei ist die .ots-Datei des Stapels: „Download Bitcoin stamp file“ auf der Seite der Pflanze. Das Register der Test-Website stempelt nicht auf Bitcoin.',
   'm.tech.dna.t': 'Kopplung von Berichten und Laborsignaturen',
   'm.tech.dna.p':
     'Läuft die Kopplung eines DNA-Berichts über den VeilCore-Contract auf Midnight, wird sie datiert: Sie zeigt, dass, wer den Datensatz zu diesem Datum kontrollierte, diesen Bericht oder seinen SHA-256 bis dahin hatte. Was auf die Chain kommt, ist an den Datensatz gebunden und verbirgt den Bericht, sodass niemand die Kopplung auf seinen eigenen Datensatz kopieren kann. Die Signatur eines Labors auf einem verschlossenen Bericht umfasst genau diese Datei und den Datensatz, um den es geht.',

@@ -197,7 +197,7 @@ export const es: Strings = {
   'm.postB.tag': 'Registro',
   'm.postB.title': 'Primer lote fechado también en Bitcoin',
   'm.postB.text':
-    'Los primeros lotes del servidor de registros se anclaron a mano en la red principal de Midnight. Uno de ellos, con cinco de nuestros propios registros de prueba, también tiene su raíz sellada en Bitcoin, en el bloque 971004. Aún falta comprobarlo con la herramienta oficial de OpenTimestamps.',
+    'Los primeros lotes del servidor de registros se anclaron a mano en la red principal de Midnight. Uno de ellos, con cinco de nuestros propios registros de prueba, también tiene su raíz sellada en Bitcoin, en el bloque 971004. Comprobado el 15 de octubre con dos exploradores de bloques: el sello lleva a los bloques 971004 y 971005 de Bitcoin. Aún falta comprobarlo con la herramienta oficial de OpenTimestamps y un nodo completo de Bitcoin.',
   'm.founders.lede':
     'VeilCore es un formato de registro probatorio para genética vegetal y animal. Prueba que usted tenía un registro de su material en una fecha determinada, sin entregar sus datos genéticos.',
   'm.live.label': 'Qué funciona dónde',
@@ -379,7 +379,7 @@ export const es: Strings = {
   'm.addr.explorer': 'Consúltelos en midnightexplorer.com (gestionado por TexLabs) →',
   'm.live.btc.t': 'También un sello de fecha en Bitcoin',
   'm.live.btc.main':
-    'Sí, cada lote sellado. El primero entró en el bloque 971004 el 11 de octubre; aún falta comprobarlo con la herramienta oficial.',
+    'Sí, cada lote sellado. El primero entró en el bloque 971004 el 11 de octubre y se comprobó con dos exploradores de bloques el 15 de octubre. Aún falta comprobarlo con la herramienta oficial y un nodo completo.',
   'm.contact.1t': 'Obtentores y laboratorios',
   'm.contact.1p': 'Pruébelo con registros inventados y luego díganos qué necesitaría para sus registros reales.',
   'm.contact.2t': 'Certificadores de semillas, examinadores y organismos de derechos',
@@ -414,7 +414,7 @@ export const es: Strings = {
     'Libre de implementar, para siempre. TypeScript, Python y Rust coinciden en los 100 vectores de prueba del formato de registro en GitHub, y cualquiera puede ejecutarlos; un 101.º, para la vinculación de informes, aún no está en Rust. Un mismo autor escribió las tres, y la de TypeScript está en npm como 0.15.0. Una escrita por otra persona es la prueba que más deseamos.',
   'm.tech.btc.t': 'El sello de Bitcoin',
   'm.tech.btc.p':
-    'Nuestro registro sella en Bitcoin la huella de cada lote sellado, con OpenTimestamps. El primero entró en el bloque 971004 de Bitcoin el 11 de octubre; aún falta comprobarlo con la herramienta oficial de OpenTimestamps. El archivo de sello es el archivo .ots del lote: «Download Bitcoin stamp file», en la página de la planta. El registro del sitio de prueba no sella en Bitcoin.',
+    'Nuestro registro sella en Bitcoin la huella de cada lote sellado, con OpenTimestamps. El primero entró en el bloque 971004 de Bitcoin el 11 de octubre. Comprobado el 15 de octubre con dos exploradores de bloques: el sello lleva a los bloques 971004 y 971005 de Bitcoin. Aún falta comprobarlo con la herramienta oficial de OpenTimestamps y un nodo completo de Bitcoin. El archivo de sello es el archivo .ots del lote: «Download Bitcoin stamp file», en la página de la planta. El registro del sitio de prueba no sella en Bitcoin.',
   'm.tech.dna.t': 'Vinculación de informes y firmas de laboratorio',
   'm.tech.dna.p':
     'Cuando la vinculación de un informe de ADN pasa por el contrato de VeilCore en Midnight, queda fechada: muestra que quien controlaba el registro en esa fecha tenía ese informe, o su SHA-256, para entonces. Lo que va a la cadena está atado al registro y oculta el informe, así que nadie puede copiar la vinculación a su propio registro. La firma de un laboratorio en un informe cerrado cubre exactamente ese archivo y el registro al que se refiere.',

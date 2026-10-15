@@ -198,7 +198,7 @@ export const fr: Strings = {
   'm.postB.tag': 'Registre',
   'm.postB.title': 'Premier lot daté aussi sur Bitcoin',
   'm.postB.text':
-    "Les premiers lots du registre ont été ancrés à la main sur le réseau principal de Midnight. L'un d'eux, cinq de nos propres enregistrements de test, a aussi sa racine horodatée sur Bitcoin, dans le bloc 971004. Une vérification avec l'outil officiel OpenTimestamps reste à faire.",
+    "Les premiers lots du registre ont été ancrés à la main sur le réseau principal de Midnight. L'un d'eux, cinq de nos propres enregistrements de test, a aussi sa racine horodatée sur Bitcoin, dans le bloc 971004. Vérifié le 15 octobre avec deux explorateurs de blocs : l'horodatage mène aux blocs Bitcoin 971004 et 971005. Une vérification avec l'outil officiel OpenTimestamps et un nœud Bitcoin complet reste à faire.",
   'm.founders.lede':
     "VeilCore est un format d'enregistrement probatoire pour la génétique végétale et animale. Il prouve que vous déteniez un enregistrement de votre matériel à une date donnée, sans remettre vos données génétiques.",
   'm.live.label': 'Ce qui marche où',
@@ -384,7 +384,7 @@ export const fr: Strings = {
   'm.addr.explorer': 'Les consulter sur midnightexplorer.com (géré par TexLabs) →',
   'm.live.btc.t': 'Un horodatage sur Bitcoin, en plus',
   'm.live.btc.main':
-    "Oui, chaque lot scellé. Le premier est arrivé dans le bloc 971004 le 11 octobre ; la vérification avec l'outil officiel reste à faire.",
+    "Oui, chaque lot scellé. Le premier est arrivé dans le bloc 971004 le 11 octobre et a été vérifié avec deux explorateurs de blocs le 15 octobre. La vérification avec l'outil officiel et un nœud complet reste à faire.",
   'm.contact.1t': 'Obtenteurs et laboratoires',
   'm.contact.1p':
     "Essayez-le sur des enregistrements fictifs, puis dites-nous ce qu'il lui faudrait pour vos vrais enregistrements.",
@@ -420,7 +420,7 @@ export const fr: Strings = {
     "Libre à implémenter, pour toujours. TypeScript, Python et Rust s'accordent sur les 100 vecteurs de test du format d'enregistrement sur GitHub, et chacun peut les exécuter ; un 101e, pour l'association de rapports, n'est pas encore dans Rust. Un seul auteur a écrit les trois, et la version TypeScript est sur npm en 0.15.0. Une implémentation écrite par quelqu'un d'autre est le test que nous souhaitons le plus.",
   'm.tech.btc.t': "L'horodatage Bitcoin",
   'm.tech.btc.p':
-    "Notre registre horodate sur Bitcoin l'empreinte de chaque lot scellé, avec OpenTimestamps. Le premier est arrivé dans le bloc Bitcoin 971004 le 11 octobre ; une vérification avec l'outil officiel OpenTimestamps reste à faire. Le fichier d'horodatage est le fichier .ots du lot : « Download Bitcoin stamp file », sur la page de la plante. Le registre du site de test n'horodate pas sur Bitcoin.",
+    "Notre registre horodate sur Bitcoin l'empreinte de chaque lot scellé, avec OpenTimestamps. Le premier est arrivé dans le bloc Bitcoin 971004 le 11 octobre. Vérifié le 15 octobre avec deux explorateurs de blocs : l'horodatage mène aux blocs Bitcoin 971004 et 971005. Une vérification avec l'outil officiel OpenTimestamps et un nœud Bitcoin complet reste à faire. Le fichier d'horodatage est le fichier .ots du lot : « Download Bitcoin stamp file », sur la page de la plante. Le registre du site de test n'horodate pas sur Bitcoin.",
   'm.tech.dna.t': 'Association de rapports et signatures de laboratoire',
   'm.tech.dna.p':
     "Quand l'association d'un rapport ADN passe par le contrat VeilCore sur Midnight, elle est datée : elle montre que la personne qui contrôlait l'enregistrement à cette date avait ce rapport, ou son SHA-256, à ce moment-là. Ce qui va sur la chaîne est lié à l'enregistrement et cache le rapport, de sorte que personne ne peut copier l'association sur son propre enregistrement. La signature d'un laboratoire sur un rapport verrouillé couvre exactement ce fichier et l'enregistrement concerné.",
