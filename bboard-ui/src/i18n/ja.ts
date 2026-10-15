@@ -14,6 +14,7 @@ export const ja: Strings = {
   'nav.language': '言語',
   'footer.documents': '文書',
   'footer.spec': '仕様書',
+  'footer.partners': '記録の提出を求める',
   'footer.evidence': '証拠としての記録',
   'footer.integrate': '統合ガイド',
   'footer.source': 'ソースコード',

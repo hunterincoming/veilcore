@@ -77,6 +77,35 @@ const siteDescription = (mode: string): Plugin => ({
     html.replace('%VEILCORE_DESCRIPTION%', mode === 'mainnet' ? DESCRIPTION.mainnet : DESCRIPTION.test),
 });
 
+// The fonts the first screen is drawn in, asked for with the page instead of after the
+// script has run and the browser has worked out which ones it needs: body text (Inter 400)
+// and the landing page's headings (Space Grotesk 700). Latin only; the other subsets and
+// weights stay as @fontsource declares them (font-display: swap, fetched only when a page
+// uses them). Same-origin files, so the Content-Security-Policy's font-src 'self' covers them.
+const PRELOAD_FONTS = [/^inter-latin-400-normal-[\w-]+\.woff2$/, /^space-grotesk-latin-700-normal-[\w-]+\.woff2$/];
+const preloadFonts = (): Plugin => ({
+  name: 'veilcore-preload-fonts',
+  apply: 'build',
+  transformIndexHtml: {
+    order: 'post',
+    handler: (_html, ctx) => {
+      const files = Object.keys(ctx.bundle ?? {});
+      return PRELOAD_FONTS.flatMap((re) => {
+        const file = files.find((f) => re.test(f.split('/').pop() ?? ''));
+        return file
+          ? [
+              {
+                tag: 'link',
+                attrs: { rel: 'preload', href: `/${file}`, as: 'font', type: 'font/woff2', crossorigin: '' },
+                injectTo: 'head' as const,
+              },
+            ]
+          : [];
+      });
+    },
+  },
+});
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, command }) => {
   const pins = mainnetBuild(mode, command);
@@ -118,6 +147,7 @@ export default defineConfig(({ mode, command }) => {
         },
       },
       siteDescription(mode),
+      preloadFonts(),
       react(),
       // Configure WASM plugin with more options
       wasm(),
@@ -191,6 +221,8 @@ export default defineConfig(({ mode, command }) => {
       // Ensure WASM files are loaded properly
       extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.wasm'],
       mainFields: ['browser', 'module', 'main'],
+      // partner-kit carries its own copy of veilcore-records; use one.
+      dedupe: ['veilcore-records'],
     },
   };
 });

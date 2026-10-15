@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Test intake form (test data)</title>
+    <script type="module" src="/veilcore-record-check.js"></script>
+    <script type="module" src="/page.js"></script>
+  </head>
+  <body>
+    <h1>Membership application (test page)</h1>
+    <form id="apply" action="/submitted" method="get">
+      <veilcore-record-check name="veilcore_link" required></veilcore-record-check>
+      <button id="submit" type="submit">Apply</button>
+    </form>
+    <pre id="seen"></pre>
+  </body>
+</html>

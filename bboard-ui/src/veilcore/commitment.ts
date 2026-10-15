@@ -5,8 +5,38 @@
 // what the on-chain contract would record. Raw inputs never leave the device.
 // SPDX-License-Identifier: Apache-2.0
 
-import { pureCircuits } from '../../../contract/src/managed/veilcore/contract/index.js';
 import { isHex64, keyBoundFingerprint } from './key-binding';
+
+// The compiled `commit` circuit runs on Midnight's on-chain runtime, about 1.4 MB of
+// WebAssembly. It is loaded the first time it is needed, not with every page that imports
+// this file: most of what is here (shortFingerprint, fingerprintRecord, ...) is plain
+// SHA-256, and the landing page and a check page that computes no fingerprint should not
+// download it (App.tsx). fingerprintText and fingerprintFile load it themselves; the one
+// synchronous use, pairingFingerprintOfSha, needs loadFingerprintCircuit() to have finished
+// first. The record app's pages that compute one as they draw wait for it (App.tsx
+// `circuit: 'wait'`), and the check page waits for it when the record it shows has a saved
+// lab report to match (pages/VerifyPage.tsx).
+type Circuits = typeof import('../../../contract/src/managed/veilcore/contract/index.js').pureCircuits;
+let circuits: Circuits | undefined;
+let loading: Promise<void> | undefined;
+
+/** Load the `commit` circuit (once). A failed load is tried again on the next call. */
+export const loadFingerprintCircuit = (): Promise<void> => {
+  loading ??= import('../../../contract/src/managed/veilcore/contract/index.js').then(
+    (m) => {
+      circuits = m.pureCircuits;
+    },
+    (e: unknown) => {
+      loading = undefined;
+      throw e;
+    },
+  );
+  return loading;
+};
+
+// Outside a browser (unit tests, scripts) there is nothing to save by waiting: load it now,
+// so the synchronous pairing check works there as it always has.
+if (typeof window === 'undefined') await loadFingerprintCircuit();
 
 /** Hex-encode bytes (no 0x prefix). */
 export const toHex = (bytes: Uint8Array): string => Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
@@ -15,11 +45,17 @@ const sha256 = async (bytes: Uint8Array): Promise<Uint8Array> =>
   new Uint8Array(await crypto.subtle.digest('SHA-256', bytes as unknown as BufferSource));
 
 /** Turn a 32-byte secret into its on-chain fingerprint (runs the `commit` circuit). */
-const fingerprintOf = (secret: Uint8Array): string => toHex(pureCircuits.commit(secret));
+const fingerprintOf = (secret: Uint8Array): string => {
+  if (!circuits) throw new Error('The fingerprint code has not loaded yet (loadFingerprintCircuit).');
+  return toHex(circuits.commit(secret));
+};
 
 /** Fingerprint arbitrary text. */
-export const fingerprintText = async (text: string): Promise<string> =>
-  fingerprintOf(await sha256(new TextEncoder().encode(text)));
+export const fingerprintText = async (text: string): Promise<string> => {
+  const digest = await sha256(new TextEncoder().encode(text));
+  await loadFingerprintCircuit();
+  return fingerprintOf(digest);
+};
 
 /**
  * The largest file fingerprinted in the browser. The whole file is read into memory on
@@ -43,7 +79,9 @@ export const fingerprintFile = async (file: File): Promise<string> => {
       `${file.name || 'That file'} is larger than 200 MB, so it was not read. Nothing was fingerprinted.`,
     );
   }
-  return fingerprintOf(await sha256(new Uint8Array(await file.arrayBuffer())));
+  const digest = await sha256(new Uint8Array(await file.arrayBuffer()));
+  await loadFingerprintCircuit();
+  return fingerprintOf(digest);
 };
 
 /**

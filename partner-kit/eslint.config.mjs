@@ -5,6 +5,8 @@ import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 import globals from 'globals';
 
 const config = tseslint.config(
+  // The record-check test page is plain browser script served as is; its build output is generated.
+  { ignores: ['record-check/e2e/page/**', 'record-check/dist/**', 'record-check/test-results/**'] },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   reactPlugin.configs.flat.recommended,
@@ -41,7 +43,7 @@ const config = tseslint.config(
   {
     // The examples and scripts: plain JavaScript for Node. Their types come from the package
     // (tsconfig.examples.json checks them); the no-unsafe rules only flag JavaScript as JavaScript.
-    files: ['examples/**/*.mjs', 'scripts/**/*.mjs'],
+    files: ['examples/**/*.mjs', 'scripts/**/*.mjs', 'record-check/scripts/**/*.mjs', 'record-check/e2e/**/*.mjs'],
     languageOptions: { globals: globals.node },
     rules: {
       '@typescript-eslint/no-unsafe-call': 'off',

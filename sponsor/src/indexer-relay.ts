@@ -21,7 +21,10 @@
 // any Origin it likes, so it is not a limit on who can use the relay.
 //
 // Upstream answers that aren't a success come back as one fixed error, never Blockfrost's
-// own body, and an upstream redirect is refused rather than followed.
+// own body, and an upstream redirect is refused rather than followed. A success is rebuilt,
+// not passed on: `data` as the indexer wrote it, `errors` in a fixed shape whose messages
+// are replaced if they could carry a URL, a host name or a key (safeResult), and none of
+// the upstream's headers. Socket messages are rebuilt the same way (safeServerMessage).
 // Nothing here is believed by the site any more than the indexer itself was: the same
 // checks run on what comes back (ownership-check.ts, presentation-lookup.ts).
 // SPDX-License-Identifier: Apache-2.0
@@ -369,6 +372,220 @@ const UPSTREAM_FAILED = {
   errors: [{ message: "The network indexer could not answer that." }],
 };
 
+// ---- what comes back -------------------------------------------------------------------
+//
+// Round E: a 200 answer (or a socket `next`/`error`) was passed on as the indexer wrote it.
+// GraphQL errors are free text; if the upstream ever echoed its own URL or headers into one,
+// the project id would reach the browser. Now an answer is rebuilt: `data` byte for byte
+// (re-serialising could round big numbers), `errors` in a fixed shape, nothing else.
+
+/** What replaces an error message that might carry something of the upstream's. */
+export const SAFE_ERROR_MESSAGE = "The indexer returned an error.";
+
+/**
+ * Text that must never appear in an error passed on, lower-cased: the upstream's host names
+ * (and each parent domain, e.g. blockfrost.io), and any credential in its URLs (query values,
+ * user name, password), plain and percent-encoded. The project id rides in the query.
+ */
+export const upstreamLeaks = (urls: readonly string[]): string[] => {
+  const out = new Set<string>();
+  const add = (v: string, min: number) => {
+    if (v.length < min) return;
+    out.add(v.toLowerCase());
+    out.add(encodeURIComponent(v).toLowerCase());
+  };
+  for (const u of urls) {
+    let url: URL;
+    try {
+      url = new URL(u);
+    } catch {
+      continue;
+    }
+    const host = url.hostname.replace(/^\[|\]$/g, "");
+    add(host, 1);
+    if (!/^[\d.]+$/.test(host) && !host.includes(":")) {
+      const labels = host.split(".");
+      for (let i = 1; i < labels.length - 1; i++) add(labels.slice(i).join("."), 1);
+    }
+    for (const v of url.searchParams.values()) add(v, 6);
+    add(decodeURIComponent(url.username), 6);
+    add(decodeURIComponent(url.password), 6);
+  }
+  return [...out];
+};
+
+/**
+ * True when an upstream error's text can be shown as it is: no URL, no mention of a project
+ * id, none of the upstream's host names or credentials, and no run of 20 or more
+ * token-like characters (a key, a hash, a signed value). Anything else is replaced.
+ */
+export const safeErrorText = (s: string, leaks: readonly string[]): boolean => {
+  if (/[a-z][a-z0-9+.-]*:\/\//i.test(s) || /\bwww\./i.test(s)) return false;
+  if (/project[\s_-]?id/i.test(s)) return false;
+  if (/[A-Za-z0-9_\-+/=]{20,}/.test(s)) return false;
+  const lower = s.toLowerCase();
+  return !leaks.some((l) => lower.includes(l));
+};
+
+type SafeError = {
+  message: string;
+  locations?: { line: number; column: number }[];
+  path?: (string | number)[];
+};
+
+/**
+ * A GraphQL `errors` value in a fixed shape: each error's message (when safeErrorText
+ * passes, else SAFE_ERROR_MESSAGE), its locations (line and column only) and its path (when
+ * every part is a whole number or safe text). `extensions` and anything else is dropped.
+ */
+export const safeErrors = (errors: unknown, leaks: readonly string[]): SafeError[] => {
+  if (!Array.isArray(errors)) return [{ message: SAFE_ERROR_MESSAGE }];
+  return errors.map((e): SafeError => {
+    if (!isPlainObject(e)) return { message: SAFE_ERROR_MESSAGE };
+    const out: SafeError = {
+      message:
+        typeof e.message === "string" && safeErrorText(e.message, leaks)
+          ? e.message
+          : SAFE_ERROR_MESSAGE,
+    };
+    const { locations, path } = e;
+    if (
+      Array.isArray(locations) &&
+      locations.every(
+        (l) => isPlainObject(l) && Number.isInteger(l.line) && Number.isInteger(l.column),
+      )
+    )
+      out.locations = (locations as { line: number; column: number }[]).map(
+        ({ line, column }) => ({ line, column }),
+      );
+    if (
+      Array.isArray(path) &&
+      path.every(
+        (p) => Number.isInteger(p) || (typeof p === "string" && safeErrorText(p, leaks)),
+      )
+    )
+      out.path = path as (string | number)[];
+    return out;
+  });
+};
+
+const skipSpace = (t: string, i: number): number => {
+  while (i < t.length && (t[i] === " " || t[i] === "\t" || t[i] === "\n" || t[i] === "\r")) i++;
+  return i;
+};
+const stringEnd = (t: string, i: number): number => {
+  let j = i + 1;
+  while (j < t.length && t[j] !== '"') j += t[j] === "\\" ? 2 : 1;
+  return j + 1;
+};
+const valueEnd = (t: string, i: number): number => {
+  if (t[i] === '"') return stringEnd(t, i);
+  if (t[i] === "{" || t[i] === "[") {
+    let depth = 0;
+    for (let j = i; j < t.length; ) {
+      const c = t[j];
+      if (c === '"') {
+        j = stringEnd(t, j);
+        continue;
+      }
+      if (c === "{" || c === "[") depth++;
+      else if (c === "}" || c === "]") if (--depth === 0) return j + 1;
+      j++;
+    }
+    return -1;
+  }
+  let j = i;
+  while (j < t.length && !",}] \t\n\r".includes(t[j])) j++;
+  return j;
+};
+
+/**
+ * The members of a JSON object as their raw text, so a value can be passed on byte for
+ * byte. Only called on text JSON.parse accepted with no key twice; undefined if not an object.
+ */
+export const jsonMembers = (text: string): Map<string, string> | undefined => {
+  let i = skipSpace(text, 0);
+  if (text[i] !== "{") return undefined;
+  const out = new Map<string, string>();
+  i = skipSpace(text, i + 1);
+  if (text[i] === "}") return out;
+  for (;;) {
+    if (text[i] !== '"') return undefined;
+    const keyEnd = stringEnd(text, i);
+    const key = JSON.parse(text.slice(i, keyEnd)) as string;
+    i = skipSpace(text, keyEnd);
+    if (text[i] !== ":") return undefined;
+    i = skipSpace(text, i + 1);
+    const end = valueEnd(text, i);
+    if (end < 0) return undefined;
+    out.set(key, text.slice(i, end));
+    i = skipSpace(text, end);
+    if (text[i] === ",") i = skipSpace(text, i + 1);
+    else return text[i] === "}" ? out : undefined;
+  }
+};
+
+/** Parsed JSON with no key twice, or undefined. */
+const parseOnce = (text: string): unknown => {
+  try {
+    const v: unknown = JSON.parse(text);
+    return duplicateJsonKey(text) === undefined ? v : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * A GraphQL result rebuilt for the browser: `data` exactly as the indexer wrote it, `errors`
+ * through safeErrors, nothing else (top-level `extensions` included). Undefined when the
+ * text isn't a JSON object with data or errors, or has a key twice.
+ */
+export const safeResult = (text: string, leaks: readonly string[]): string | undefined => {
+  const parsed = parseOnce(text);
+  if (!isPlainObject(parsed)) return undefined;
+  const members = jsonMembers(text);
+  if (!members) return undefined;
+  const parts: string[] = [];
+  const data = members.get("data");
+  if (data !== undefined) parts.push(`"data":${data}`);
+  if ("errors" in parsed)
+    parts.push(`"errors":${JSON.stringify(safeErrors(parsed.errors, leaks))}`);
+  return parts.length === 0 ? undefined : `{${parts.join(",")}}`;
+};
+
+/**
+ * A graphql-transport-ws message from the indexer, rebuilt for the browser, or undefined if
+ * it isn't one a reader expects. `next` carries a result (safeResult), `error` a list of
+ * errors (safeErrors); both, and `complete`, only for an id the browser subscribed with.
+ * connection_ack, ping and pong go on without their payloads.
+ */
+export const safeServerMessage = (
+  text: string,
+  leaks: readonly string[],
+  knownId: (id: string) => boolean,
+): string | undefined => {
+  const m = parseOnce(text);
+  if (!isPlainObject(m) || typeof m.type !== "string") return undefined;
+  if (m.type === "connection_ack" || m.type === "ping" || m.type === "pong")
+    return JSON.stringify({ type: m.type });
+  if (typeof m.id !== "string" || !knownId(m.id)) return undefined;
+  const id = m.id;
+  if (m.type === "complete") return JSON.stringify({ type: "complete", id });
+  if (m.type === "error")
+    return JSON.stringify({ type: "error", id, payload: safeErrors(m.payload, leaks) });
+  if (m.type === "next") {
+    const raw = jsonMembers(text)?.get("payload");
+    const payload = raw === undefined ? undefined : safeResult(raw, leaks);
+    return payload === undefined
+      ? undefined
+      : `{"type":"next","id":${JSON.stringify(id)},"payload":${payload}}`;
+  }
+  return undefined;
+};
+
+/** Subscription ids remembered per socket; a browser asking for more is closed. */
+const MAX_IDS_PER_SOCKET = 1000;
+
 export type IndexerRelay = {
   /** Handles POST /indexer; false for any other path. */
   http(
@@ -390,6 +607,7 @@ export const createIndexerRelay = (cfg: RelayConfig): IndexerRelay => {
   const o = { ...DEFAULTS, ...cfg };
   const doFetch = cfg.fetch ?? fetch;
   const now = cfg.now ?? Date.now;
+  const leaks = upstreamLeaks([o.indexer, o.indexerWS]);
   const minute = new Map<string, { at: number; n: number }>();
   const perBucket = new Map<string, number>();
   let open = 0;
@@ -537,7 +755,14 @@ export const createIndexerRelay = (cfg: RelayConfig): IndexerRelay => {
           reply(res, 502, UPSTREAM_FAILED, cors);
           return true;
         }
-        const out = await up.text();
+        // Rebuilt, never passed on as written: data as is, errors in a fixed shape. No
+        // header of the upstream's is passed on either; these are the relay's own.
+        const out = safeResult(await up.text(), leaks);
+        if (out === undefined) {
+          log("warn", "indexer relay: upstream answered something that isn't a GraphQL result");
+          reply(res, 502, UPSTREAM_FAILED, cors);
+          return true;
+        }
         res.writeHead(200, {
           "content-type": "application/json; charset=utf-8",
           "cache-control": "no-store",
@@ -593,6 +818,8 @@ export const createIndexerRelay = (cfg: RelayConfig): IndexerRelay => {
               client.protocol || "graphql-transport-ws",
             );
             const queued: string[] = [];
+            /** Ids this browser subscribed with: the only ones answers are passed on for. */
+            const ids = new Set<string>();
             let idle: NodeJS.Timeout | undefined;
             let done = false;
             const finish = (code = 1000, reason = "") => {
@@ -661,6 +888,11 @@ export const createIndexerRelay = (cfg: RelayConfig): IndexerRelay => {
                     problem.message,
                   );
                 payload = forwardedQuery(m.payload as Record<string, unknown>);
+                if (!ids.has(m.id)) {
+                  if (ids.size >= MAX_IDS_PER_SOCKET)
+                    return finish(4429, "Too many subscriptions.");
+                  ids.add(m.id);
+                }
               }
               // Never the raw frame: the message that was checked, serialised again.
               const out = JSON.stringify({ type: m.type, id: m.id, payload });
@@ -673,8 +905,15 @@ export const createIndexerRelay = (cfg: RelayConfig): IndexerRelay => {
             });
             upstream.on("message", (data: RawData, binary: boolean) => {
               touch();
-              if (client.readyState === WebSocket.OPEN)
-                client.send(data, { binary });
+              // Rebuilt, never the raw frame (safeServerMessage). Anything else ends the socket.
+              const out = binary
+                ? undefined
+                : safeServerMessage(data.toString(), leaks, (id) => ids.has(id));
+              if (out === undefined) {
+                log("warn", "indexer relay: upstream sent a socket message a reader doesn't expect");
+                return finish(1011, "The network indexer did not answer.");
+              }
+              if (client.readyState === WebSocket.OPEN) client.send(out);
             });
             upstream.on("close", (code) =>
               finish(code === 1005 || code === 1006 ? 1011 : code),

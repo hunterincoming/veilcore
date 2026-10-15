@@ -7,6 +7,7 @@ export const es: Strings = {
   'nav.language': 'Idioma',
   'footer.documents': 'Documentos',
   'footer.spec': 'Especificación',
+  'footer.partners': 'Exigir un registro',
   'footer.evidence': 'Registros como prueba',
   'footer.integrate': 'Guía de integración',
   'footer.source': 'Código fuente',

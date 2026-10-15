@@ -1,0 +1,64 @@
+{
+  "name": "@veilcore/partner-kit",
+  "version": "0.1.0",
+  "description": "Require a VeilCore record: check a record from its check link in one call (Node, browser, CLI), and a copy-paste form field for intake forms. Free, no account, no key.",
+  "author": "VeilCore",
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hunterincoming/veilcore-midnight-testnet.git",
+    "directory": "partner-kit/record-check"
+  },
+  "homepage": "https://github.com/hunterincoming/veilcore-midnight-testnet/blob/main/docs/partners/require-a-record.md",
+  "keywords": [
+    "veilcore",
+    "provenance",
+    "genetics",
+    "verification"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/types/node.d.ts",
+      "browser": "./dist/index.js",
+      "node": "./dist/node.js",
+      "default": "./dist/index.js"
+    },
+    "./element": "./dist/veilcore-record-check.js",
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/types/node.d.ts",
+  "bin": {
+    "partner-kit": "./dist/cli.js"
+  },
+  "files": [
+    "dist/index.js",
+    "dist/node.js",
+    "dist/cli.js",
+    "dist/veilcore-record-check.js",
+    "dist/types/**/*.d.ts",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "e2e": "node scripts/build.mjs && npx playwright test -c e2e/playwright.config.ts && node --test e2e/cli.e2e.test.mjs",
+    "prepack": "node scripts/build.mjs"
+  },
+  "dependencies": {
+    "veilcore-records": "0.15.0"
+  },
+  "peerDependencies": {
+    "@veilcore/contracts": "0.2.0"
+  },
+  "peerDependenciesMeta": {
+    "@veilcore/contracts": {
+      "optional": true
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["examples/**/*.mjs", "scripts/**/*.mjs", "scripts/**/*.ts"],
+  "include": ["examples/**/*.mjs", "scripts/**/*.mjs", "scripts/**/*.ts", "record-check/scripts/**/*.mjs", "record-check/e2e/**/*.mjs"],
   "compilerOptions": {
     "noEmit": true,
     "allowJs": true,

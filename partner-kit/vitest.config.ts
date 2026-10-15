@@ -5,7 +5,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['test/**/*.test.ts'],
+    include: ['test/**/*.test.ts', 'record-check/test/**/*.test.ts'],
     testTimeout: 5 * 60_000,
     hookTimeout: 5 * 60_000,
   },

@@ -13,6 +13,14 @@ import {
   queryProblem,
   readDocument,
   MAX_QUERY_BYTES,
+  SAFE_ERROR_MESSAGE,
+  blockfrostIndexer,
+  loadReadRelayConfig,
+  safeErrorText,
+  safeErrors,
+  safeResult,
+  safeServerMessage,
+  upstreamLeaks,
 } from "./indexer-relay.js";
 
 const SITE = "https://test.veilcore.org";
@@ -35,7 +43,9 @@ const OK: Mode = {
 const fakeIndexer = async () => {
   const seen: { url: string; body: string }[] = [];
   const wsSeen: string[] = [];
-  const mode: { now: Mode } = { now: OK };
+  const mode: { now: Mode; ws?: (id: string | undefined) => (string | Buffer)[] } = {
+    now: OK,
+  };
   const up = createServer((req, res) => {
     let body = "";
     req.on("data", (c: Buffer) => (body += c.toString()));
@@ -52,6 +62,8 @@ const fakeIndexer = async () => {
     server: up,
     handleProtocols: () => "graphql-transport-ws",
   });
+  // A header of the upstream's own on its handshake: never reaches the browser.
+  wss.on("headers", (h) => h.push("X-Upstream-Project: SECRETKEY"));
   wss.on("connection", (ws, req) => {
     wsSeen.push(`connect ${req.url}`);
     ws.on("message", (d) => {
@@ -59,7 +71,9 @@ const fakeIndexer = async () => {
       const m = JSON.parse(d.toString()) as { type: string; id?: string };
       if (m.type === "connection_init")
         ws.send(JSON.stringify({ type: "connection_ack" }));
-      if (m.type === "subscribe")
+      if (m.type === "subscribe" && mode.ws)
+        for (const f of mode.ws(m.id)) ws.send(f, { binary: Buffer.isBuffer(f) });
+      else if (m.type === "subscribe")
         ws.send(
           JSON.stringify({
             type: "next",
@@ -75,11 +89,16 @@ const fakeIndexer = async () => {
   return { seen, wsSeen, mode, port: portOf(up) };
 };
 
-const sponsorWith = async (perMinute = 240, maxSocketsPerBucket = 6) => {
+const sponsorWith = async (
+  perMinute = 240,
+  maxSocketsPerBucket = 6,
+  projectId = "SECRETKEY",
+) => {
   const up = await fakeIndexer();
+  const q = `?project_id=${encodeURIComponent(projectId)}`;
   const relay = createIndexerRelay({
-    indexer: `http://127.0.0.1:${up.port}/api/v0?project_id=SECRETKEY`,
-    indexerWS: `ws://127.0.0.1:${up.port}/api/v0/ws?project_id=SECRETKEY`,
+    indexer: `http://127.0.0.1:${up.port}/api/v0${q}`,
+    indexerWS: `ws://127.0.0.1:${up.port}/api/v0/ws${q}`,
     allowedOrigins: [SITE],
     perMinute,
     maxSocketsPerBucket,
@@ -696,5 +715,355 @@ describe("what is checked is what is forwarded", () => {
       '{"type":"subscribe","id":"7","payload":{"query":"subscription { blocks { height } }","variables":{"n":1}}}',
     ]);
     c.close();
+  });
+});
+
+// Round E: a 200 answer, or a socket `next`/`error`, was passed on as the indexer wrote it.
+// If the upstream ever echoed its URL or headers into a GraphQL error, the project id would
+// reach the browser. Now `data` goes on byte for byte, `errors` in a fixed shape, nothing else.
+describe("what comes back is rebuilt, never passed on as written", () => {
+  /** The id as the read-only relay gets it: from its environment, short enough that only the exact match catches it. */
+  const ENV = { RELAY_NETWORK: "preprod", BLOCKFROST_PROJECT_ID: "preprodK3yX9" };
+  const envConfig = () => {
+    const loaded = loadReadRelayConfig(ENV);
+    if (!loaded.ok) throw new Error(loaded.problems.join("; "));
+    return loaded.config;
+  };
+  const ENV_ID = ENV.BLOCKFROST_PROJECT_ID;
+  const LEAKS = upstreamLeaks(Object.values(blockfrostIndexer("preprod", ENV_ID)));
+  const G = SAFE_ERROR_MESSAGE;
+  const noIdIn = (text: string, id: string) =>
+    expect(text.toLowerCase()).not.toContain(id.toLowerCase());
+
+  it("knows what to keep out: the project id, the host and its parent domain", () => {
+    expect(LEAKS).toEqual(
+      expect.arrayContaining(["midnight-preprod.blockfrost.io", "blockfrost.io", ENV_ID.toLowerCase()]),
+    );
+    expect(envConfig().secrets).toEqual([ENV_ID]);
+  });
+
+  it("keeps an ordinary GraphQL message; replaces one with a URL, a project id, a host or a token", () => {
+    for (const ok of [
+      'Cannot query field "x" on type "Block".',
+      'Variable "$h" got invalid value "abc"; Int cannot represent non-integer value: "abc"',
+      "Syntax Error: Expected Name, found <EOF>.",
+      "e.g. a short id like abc123 is fine",
+    ])
+      expect(safeErrorText(ok, LEAKS), ok).toBe(true);
+    for (const bad of [
+      "upstream https://midnight-preprod.blockfrost.io/api/v0 failed",
+      "see wss://x.example/ws",
+      "redirected to //www.example.com",
+      "missing project_id",
+      "invalid projectId",
+      "Invalid Project-ID header",
+      "the project id is wrong",
+      "midnight-preprod.blockfrost.io refused",
+      "Blockfrost.IO is down",
+      `key ${ENV_ID} over quota`,
+      `key ${ENV_ID.toUpperCase()} over quota`,
+      "header x-auth: aBcDeFgHiJkLmNoPqRsTuV",
+      "hash 0123456789abcdef0123456789abcdef",
+      "token eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIx",
+    ])
+      expect(safeErrorText(bad, LEAKS), bad).toBe(false);
+  });
+
+  it("errors get a fixed shape: message kept or replaced, locations and path kept, extensions dropped", () => {
+    expect(
+      safeErrors(
+        [
+          {
+            message: 'Cannot query field "x" on type "Block".',
+            locations: [{ line: 1, column: 3, extra: "y" }],
+            path: ["block", 0, "x"],
+            extensions: { code: "BAD", headers: { project_id: ENV_ID } },
+          },
+          { message: `GET https://midnight-preprod.blockfrost.io/api/v0?project_id=${ENV_ID} 500` },
+          { message: 42 },
+          "a bare string",
+          { message: "ok", locations: "1:3", path: ["block", ENV_ID] },
+          { message: "ok", locations: [{ line: "1", column: 3 }], path: [1.5] },
+        ],
+        LEAKS,
+      ),
+    ).toEqual([
+      {
+        message: 'Cannot query field "x" on type "Block".',
+        locations: [{ line: 1, column: 3 }],
+        path: ["block", 0, "x"],
+      },
+      { message: G },
+      { message: G },
+      { message: G },
+      { message: "ok" },
+      { message: "ok" },
+    ]);
+    // Not a list at all: one fixed error.
+    for (const v of [undefined, null, "boom", { message: "x" }])
+      expect(safeErrors(v, LEAKS)).toEqual([{ message: G }]);
+    expect(safeErrors([], LEAKS)).toEqual([]);
+  });
+
+  it("data goes on byte for byte (big numbers too); top-level extensions and anything else are dropped", () => {
+    const text =
+      '{ "data" : {"n":12345678901234567890123,"s":"x\\"}y", "a":[1, {"b":null}]} ,"extensions":{"url":"https://x/?project_id=k"},"other":1}';
+    expect(safeResult(text, LEAKS)).toBe(
+      '{"data":{"n":12345678901234567890123,"s":"x\\"}y", "a":[1, {"b":null}]}}',
+    );
+    expect(safeResult('{"data":null,"errors":[{"message":"m","extensions":{}}]}', LEAKS)).toBe(
+      '{"data":null,"errors":[{"message":"m"}]}',
+    );
+    expect(safeResult('{"errors":"boom"}', LEAKS)).toBe(`{"errors":[{"message":"${G}"}]}`);
+    // Not a GraphQL result: refused, and the relay answers with its own fixed error.
+    for (const bad of ["not json", "[1]", "null", "{}", '{"extensions":{}}', '{"data":1,"data":2}'])
+      expect(safeResult(bad, LEAKS), bad).toBeUndefined();
+  });
+
+  it("HTTP: a 200 with errors comes back rebuilt; the id, the host and extensions never do", async () => {
+    const { up, url } = await sponsorWith();
+    up.mode.now = {
+      status: 200,
+      body: JSON.stringify({
+        data: { block: null },
+        errors: [
+          { message: 'Cannot query field "x" on type "Block".', locations: [{ line: 1, column: 9 }], path: ["block"] },
+          { message: `upstream http://127.0.0.1:${up.port}/api/v0?project_id=SECRETKEY failed` },
+          { message: "bad key SECRETKEY" },
+          { message: "rejected by 127.0.0.1" },
+          { message: "fine", extensions: { request: { headers: { "x-project": "SECRETKEY" } } } },
+        ],
+        extensions: { trace: "SECRETKEY" },
+      }),
+      headers: {
+        "x-project-id": "SECRETKEY",
+        "set-cookie": "s=SECRETKEY",
+        server: "blockfrost-edge",
+        "access-control-allow-origin": "*",
+        "content-type": "text/plain",
+      },
+    };
+    const res = await post(url, { query: "{ block { x } }" });
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(JSON.parse(text)).toEqual({
+      data: { block: null },
+      errors: [
+        { message: 'Cannot query field "x" on type "Block".', locations: [{ line: 1, column: 9 }], path: ["block"] },
+        { message: G },
+        { message: G },
+        { message: G },
+        { message: "fine" },
+      ],
+    });
+    for (const leak of ["SECRETKEY", "127.0.0.1", "project_id", "extensions"])
+      expect(text).not.toContain(leak);
+    // No header of the upstream's: these are the relay's own.
+    expect(res.headers.get("content-type")).toBe("application/json; charset=utf-8");
+    expect(res.headers.get("access-control-allow-origin")).toBe(SITE);
+    for (const h of ["x-project-id", "set-cookie", "server"]) expect(res.headers.get(h), h).toBeNull();
+    for (const [k, v] of res.headers) expect(`${k}: ${v}`).not.toContain("SECRETKEY");
+  });
+
+  it("HTTP: a 200 that isn't a GraphQL result gets the relay's own fixed error", async () => {
+    const { up, url } = await sponsorWith();
+    for (const body of [
+      "<html>SECRETKEY</html>",
+      '"SECRETKEY"',
+      '{"message":"SECRETKEY"}',
+      '{"data":{},"data":{"k":"SECRETKEY"}}',
+    ]) {
+      up.mode.now = { status: 200, body };
+      const res = await post(url, { query: "{ a }" });
+      expect(res.status, body).toBe(502);
+      const text = await res.text();
+      expect(JSON.parse(text)).toEqual({ errors: [{ message: "The network indexer could not answer that." }] });
+      expect(text).not.toContain("SECRETKEY");
+    }
+  });
+
+  it("HTTP, the read-only relay as configured from its environment: the project id never comes back", async () => {
+    const cfg = envConfig();
+    expect(cfg.indexer).toContain(ENV_ID);
+    let upstreamBody = "";
+    const relay = createIndexerRelay({
+      indexer: cfg.indexer,
+      indexerWS: cfg.indexerWS,
+      allowedOrigins: [SITE],
+      fetch: (async () =>
+        new Response(upstreamBody, {
+          status: 200,
+          headers: { "content-type": "application/json", "x-blockfrost-project": ENV_ID },
+        })) as unknown as typeof fetch,
+    });
+    const { Readable } = await import("node:stream");
+    const call = async () => {
+      const req = Object.assign(Readable.from([Buffer.from('{"query":"{ a }"}')]), {
+        url: "/indexer",
+        method: "POST",
+        headers: { origin: SITE, "content-type": "application/json" },
+      });
+      let status = 0;
+      let headers: Record<string, string> = {};
+      let body = "";
+      const res = {
+        writeHead: (s: number, h: Record<string, string>) => void ((status = s), (headers = h)),
+        end: (b: string) => void (body = b),
+        setHeader() {},
+      };
+      await relay.http(req as never, res as never, "203.0.113.9", {});
+      return { status, headers, body };
+    };
+    upstreamBody = JSON.stringify({
+      data: { a: 1 },
+      errors: [
+        { message: `request to ${cfg.indexer} failed` },
+        { message: `project ${ENV_ID} is over its plan` },
+        { message: `PROJECT ${ENV_ID.toUpperCase()} SUSPENDED` },
+        { message: "midnight-preprod.blockfrost.io: 403" },
+        { message: "ok", path: ["a", ENV_ID] },
+        { message: "ok", extensions: { project: ENV_ID } },
+      ],
+      extensions: { project_id: ENV_ID },
+    });
+    const out = await call();
+    expect(out.status).toBe(200);
+    expect(JSON.parse(out.body)).toEqual({
+      data: { a: 1 },
+      errors: [{ message: G }, { message: G }, { message: G }, { message: G }, { message: "ok" }, { message: "ok" }],
+    });
+    noIdIn(out.body, ENV_ID);
+    noIdIn(JSON.stringify(out.headers), ENV_ID);
+    expect(Object.keys(out.headers).sort()).toEqual(["cache-control", "content-type"]);
+  });
+
+  describe("over the socket", () => {
+    const open = (ws: string) =>
+      new WebSocket(ws, "graphql-transport-ws", { headers: { origin: SITE, ...XFF } });
+    /** Connect, subscribe as id "s1", and collect what arrives until the socket closes or settles. */
+    const run = async (ws: string, settleMs = 400) => {
+      const c = open(ws);
+      const raw: string[] = [];
+      let upgradeHeaders: Record<string, unknown> = {};
+      c.on("upgrade", (res) => (upgradeHeaders = res.headers));
+      c.on("message", (d) => raw.push(d.toString()));
+      const closed = new Promise<number>((r) => c.once("close", (code) => r(code)));
+      await new Promise((r) => c.once("open", r));
+      c.send(JSON.stringify({ type: "connection_init" }));
+      c.send(JSON.stringify({ type: "subscribe", id: "s1", payload: { query: "subscription { blocks { height } }" } }));
+      const code = await Promise.race([closed, new Promise<"open">((r) => setTimeout(() => r("open"), settleMs))]);
+      if (code === "open") {
+        c.close();
+        await closed;
+      }
+      return { raw, code, upgradeHeaders };
+    };
+
+    it("next and error messages are rebuilt; the id from the environment never reaches the browser", async () => {
+      const id = envConfig().secrets[0];
+      const { up, ws } = await sponsorWith(240, 6, id);
+      up.mode.ws = (sid) => [
+        // A number too big for a double, written by the indexer as digits.
+        JSON.stringify({
+          type: "next",
+          id: sid,
+          payload: {
+            data: { blocks: { height: "BIG" } },
+            errors: [
+              { message: "partial result", path: ["blocks"], extensions: { project_id: id } },
+              { message: `quota for ${id} exceeded` },
+            ],
+            extensions: { upstream: `ws://127.0.0.1/api/v0/ws?project_id=${id}` },
+          },
+        }).replace('"BIG"', "12345678901234567890"),
+        JSON.stringify({
+          type: "error",
+          id: sid,
+          payload: [
+            { message: `connect ws://127.0.0.1:${up.port}/api/v0/ws?project_id=${id}`, extensions: { id } },
+            { message: 'Unknown field "x"', locations: [{ line: 1, column: 16 }] },
+          ],
+        }),
+        JSON.stringify({ type: "complete", id: sid }),
+      ];
+      const { raw, upgradeHeaders } = await run(ws);
+      expect(raw.map((r) => JSON.parse(r) as unknown)).toEqual([
+        { type: "connection_ack" },
+        {
+          type: "next",
+          id: "s1",
+          payload: {
+            data: { blocks: { height: 12345678901234567890 } },
+            errors: [{ message: "partial result", path: ["blocks"] }, { message: G }],
+          },
+        },
+        {
+          type: "error",
+          id: "s1",
+          payload: [{ message: G }, { message: 'Unknown field "x"', locations: [{ line: 1, column: 16 }] }],
+        },
+        { type: "complete", id: "s1" },
+      ]);
+      // The data went on as written, digit for digit.
+      expect(raw[1]).toContain('"height":12345678901234567890}');
+      for (const r of raw) {
+        noIdIn(r, id);
+        expect(r).not.toContain("extensions");
+        expect(r).not.toContain("127.0.0.1");
+      }
+      // The upstream's handshake headers never reach the browser.
+      expect(upgradeHeaders["x-upstream-project"]).toBeUndefined();
+      expect(JSON.stringify(upgradeHeaders)).not.toContain("SECRETKEY");
+      // And the upstream was asked with the id (it is only kept from the browser).
+      expect(up.wsSeen[0]).toBe(`connect /api/v0/ws?project_id=${id}`);
+    });
+
+    it("connection_ack, ping and pong go on without their payloads", async () => {
+      const { up, ws } = await sponsorWith();
+      up.mode.ws = () => [
+        JSON.stringify({ type: "ping", payload: { server: "SECRETKEY" } }),
+        JSON.stringify({ type: "pong", payload: "SECRETKEY" }),
+      ];
+      const { raw } = await run(ws);
+      expect(raw).toEqual(['{"type":"connection_ack"}', '{"type":"ping"}', '{"type":"pong"}']);
+    });
+
+    it("anything else from the upstream ends the socket and never reaches the browser", async () => {
+      const cases: (string | Buffer)[][] = [
+        // An id the browser never subscribed with (where an id could be smuggled).
+        [JSON.stringify({ type: "next", id: "SECRETKEY", payload: { data: {} } })],
+        [JSON.stringify({ type: "error", id: "SECRETKEY", payload: [] })],
+        [JSON.stringify({ type: "complete", id: "SECRETKEY" })],
+        // Not a message a reader expects, not JSON, binary, a key twice, a next with no result.
+        [JSON.stringify({ type: "debug", payload: "SECRETKEY" })],
+        ["SECRETKEY"],
+        [Buffer.from(JSON.stringify({ type: "next", id: "s1", payload: { data: "SECRETKEY" } }))],
+        ['{"type":"next","id":"s1","payload":{"data":{}},"payload":{"data":"SECRETKEY"}}'],
+        [JSON.stringify({ type: "next", id: "s1", payload: { message: "SECRETKEY" } })],
+      ];
+      for (const frames of cases) {
+        const { up, ws } = await sponsorWith();
+        up.mode.ws = () => frames;
+        const { raw, code } = await run(ws);
+        const label = String(frames[0]);
+        expect(code, label).toBe(1011);
+        expect(raw, label).toEqual(['{"type":"connection_ack"}']);
+      }
+    });
+
+    it("safeServerMessage, directly: only known ids, fixed shapes", () => {
+      const known = (id: string) => id === "a";
+      expect(safeServerMessage('{"type":"connection_ack","payload":{"x":1}}', LEAKS, known)).toBe(
+        '{"type":"connection_ack"}',
+      );
+      expect(safeServerMessage('{"type":"next","id":"a","payload":{"data":{"n":1}}}', LEAKS, known)).toBe(
+        '{"type":"next","id":"a","payload":{"data":{"n":1}}}',
+      );
+      expect(safeServerMessage('{"type":"next","id":"b","payload":{"data":{}}}', LEAKS, known)).toBeUndefined();
+      expect(safeServerMessage('{"type":"error","id":"a","payload":"x"}', LEAKS, known)).toBe(
+        `{"type":"error","id":"a","payload":[{"message":"${G}"}]}`,
+      );
+      expect(safeServerMessage('{"type":"complete","id":7}', LEAKS, known)).toBeUndefined();
+    });
   });
 });

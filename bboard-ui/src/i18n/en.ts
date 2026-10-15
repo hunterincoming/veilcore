@@ -11,6 +11,7 @@ export const en = {
     "An open record format for plant and animal genetics. Recomputing a record's fingerprint needs only SHA-256 and the open specification. Its date comes from one transaction on Midnight: the check page looks it up itself when it can reach Midnight, and otherwise says the date is our registry's report. Looking a record up by its identifier on this site uses our server.",
   'footer.documents': 'Documents',
   'footer.spec': 'Specification',
+  'footer.partners': 'Require a record',
   'footer.evidence': 'Records in evidence',
   'footer.integrate': 'Integration guide',
   'footer.source': 'Source',

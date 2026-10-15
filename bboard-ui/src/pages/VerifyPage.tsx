@@ -32,7 +32,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Box, Chip, CircularProgress, Container, Divider, Paper, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useParams, useSearchParams } from 'react-router-dom';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
-import { shortFingerprint } from '../veilcore/commitment';
+import { loadFingerprintCircuit, shortFingerprint } from '../veilcore/commitment';
 import { DISCLOSURE_FIELDS, LEGACY_NAME, toDisclosureKey, labelOf } from '../veilcore/disclosure';
 import { proofFor, type ProofState } from '../veilcore/proofs';
 import { attestationsFor, countsAsSigned, signerLabel, type ResolvedAttestation } from '../veilcore/attesters';
@@ -222,7 +222,10 @@ export const VerifyPage: React.FC = () => {
     const url = `${API}/verify/${encodeURIComponent(id)}${show !== null ? `?show=${encodeURIComponent(show)}` : ''}`;
     fetch(url)
       .then((r): Promise<unknown> => r.json())
-      .then((data) => {
+      .then(async (data) => {
+        // A saved lab report is matched through its pairing fingerprint, which the
+        // `commit` circuit computes (publicReportLine): loaded only for such a record.
+        if (isVerifyResult(data) && data.dnaPairingFingerprint) await loadFingerprintCircuit();
         if (!cancelled) {
           // A shareable link is opened by someone who has no other way to check what
           // they are being shown. A body that is not a verdict is treated as no

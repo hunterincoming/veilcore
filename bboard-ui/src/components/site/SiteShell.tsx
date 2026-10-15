@@ -8,7 +8,7 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material';
 import { useI18n } from '../../i18n';
 import { lightTheme } from '../../config/theme';
-import { DraftBanner, LanguagePicker } from '../../i18n/LanguagePicker';
+import { DraftBanner, LanguagePicker } from '../../i18n/lazy-picker';
 import '@fontsource/space-grotesk/700.css';
 import './site.css';
 
@@ -147,6 +147,9 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
                 <ul>
                   <li>
                     <RouterLink to="/docs/spec">{t('footer.spec')}</RouterLink>
+                  </li>
+                  <li>
+                    <RouterLink to="/partners">{t('footer.partners')}</RouterLink>
                   </li>
                   <li>
                     <RouterLink to="/docs/integrate">{t('footer.integrate')}</RouterLink>

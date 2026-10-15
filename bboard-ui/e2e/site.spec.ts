@@ -284,6 +284,7 @@ test.describe('stand-in registry', () => {
     const errors = watch(page);
     await isolate(page);
     await page.goto('/records');
+    await expect(page.getByText(/Someone sent you a code or link/).first()).toBeVisible();
     const role = page.getByRole('button', { name: /I breed/i }).first();
     if (await role.isVisible().catch(() => false)) await role.click();
     await page

@@ -22,7 +22,9 @@
 // not from the registry, so the registry never had a chance to hand the lab its own.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Decrypter, Encrypter, identityToRecipient } from 'age-encryption';
+// The age encryption library (and the curve code under it) is loaded when a report is
+// locked or opened, not with every page that shows a lab result line (the check page).
+const age = () => import('age-encryption');
 import { bech32 } from '@scure/base';
 import { hkdf } from '@noble/hashes/hkdf.js';
 import { sha256 } from '@noble/hashes/sha2.js';
@@ -53,8 +55,10 @@ export const resultIdentityFor = (recordSecretHex: string, transferId?: string):
 };
 
 /** The lock (age recipient) for one delivery, safe to give the lab. */
-export const resultRecipientFor = (recordSecretHex: string, transferId?: string): Promise<string> =>
-  identityToRecipient(resultIdentityFor(recordSecretHex, transferId));
+export const resultRecipientFor = (recordSecretHex: string, transferId?: string): Promise<string> => {
+  const identity = resultIdentityFor(recordSecretHex, transferId);
+  return age().then((m) => m.identityToRecipient(identity));
+};
 
 /** The report's fingerprint: SHA-256 of its bytes, hex. What the lab signs. */
 export const reportFingerprint = (bytes: Uint8Array): string => hexOf(sha256(bytes));
@@ -62,6 +66,7 @@ export const reportFingerprint = (bytes: Uint8Array): string => hexOf(sha256(byt
 /** Lock a report so only the plant's holder can open it. */
 export const lockReport = async (bytes: Uint8Array, recipient: string): Promise<Uint8Array> => {
   if (!RECIPIENT.test(recipient)) throw new Error('The lab code has no lock for lab reports in it.');
+  const { Encrypter } = await age();
   const e = new Encrypter();
   e.addRecipient(recipient);
   return e.encrypt(bytes);
@@ -77,6 +82,7 @@ export const openReport = async (
   recordSecretHex: string,
   transferId?: string,
 ): Promise<Uint8Array> => {
+  const { Decrypter } = await age();
   const d = new Decrypter();
   if (transferId) d.addIdentity(resultIdentityFor(recordSecretHex, transferId));
   d.addIdentity(resultIdentityFor(recordSecretHex));

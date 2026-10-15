@@ -61,6 +61,10 @@ await vc.useRecordSecret(recordSecret);
 await vc.anchor(commit.recovery(recoverySecretKeptOffline));
 ```
 
+Requiring applicants to bring a VeilCore record (a membership, a library, a registry, a lab's
+intake)? The lighter `record-check/` package checks a record from its check link in one call,
+with a copy-paste form field: see [docs/partners/require-a-record.md](https://github.com/hunterincoming/veilcore-midnight-testnet/blob/main/docs/partners/require-a-record.md).
+
 Verifying needs no wallet:
 
 ```js

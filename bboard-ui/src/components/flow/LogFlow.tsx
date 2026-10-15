@@ -54,7 +54,6 @@ import {
 } from '../../veilcore/record-keys';
 import { CHAIN_CONTRACT, REAL_CHAIN, chainNotReady } from '../../veilcore/chain/config';
 import { NETWORK } from '../../config/network';
-import { identityOf } from '../../veilcore/chain/identity';
 import { useChainCall } from '../chain/useChainCall';
 import { Step2PairDna } from '../wizard/Step2PairDna';
 import { AppHeader } from '../AppHeader';
@@ -571,7 +570,7 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
     call.run(async (progress) => {
       // The key the record named when it was sealed, never a new one.
       const k = ensureKeysFor(getRecord(recordId) ?? { id: recordId });
-      const { anchorOnChain } = await import('../../veilcore/chain/actions');
+      const { anchorOnChain, identityOf } = await import('../../veilcore/chain/actions');
       const secret = hexBytes(k.recordSecret);
       const receipt = await anchorOnChain(secret, hexBytes(k.recoverySecret), { progress });
       setAnchor(recordId, {

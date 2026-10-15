@@ -6,6 +6,7 @@ export const fr: Strings = {
   'nav.language': 'Langue',
   'footer.documents': 'Documents',
   'footer.spec': 'Spécification',
+  'footer.partners': 'Exiger un enregistrement',
   'footer.evidence': 'Les enregistrements comme preuve',
   'footer.integrate': "Guide d'intégration",
   'footer.source': 'Code source',

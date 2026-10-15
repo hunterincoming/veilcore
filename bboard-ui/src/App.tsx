@@ -3,36 +3,83 @@
 // verification.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useEffect, useRef } from 'react';
+import React, { Suspense, lazy, useEffect, useRef } from 'react';
 import { Home } from './components/site/Home';
 import { Founders, VerifyLookup } from './components/site/Founders';
 import { Privacy } from './components/site/Privacy';
 import { NotFound } from './components/site/NotFound';
-import { DocPage } from './components/DocPage';
-import { Implementations } from './components/Implementations';
-import { AppFooter } from './components/AppFooter';
-import { RolePicker } from './components/RolePicker';
 import { Box, Container, GlobalStyles, ThemeProvider } from '@mui/material';
 import { MotionConfig } from 'framer-motion';
 import { lightFocusStyles, lightTheme } from './config/theme';
 import { focusScreenHeading } from './components/flow/FlowFrame';
-import { Routes, Route, useLocation } from 'react-router-dom';
-import { AppHome } from './components/flow/AppHome';
-import { RestorePage } from './components/flow/RestorePage';
-import { BackupPage } from './components/flow/BackupPage';
-import { LogFlow } from './components/flow/LogFlow';
-import { ProvePage } from './components/flow/ProvePage';
-import { RecordDetail } from './components/RecordDetail';
-import { VerifyPage } from './pages/VerifyPage';
-import { VerifyExample } from './components/verify/VerifyExample';
-import { TermsBuilder } from './components/licensing/TermsBuilder';
-import { LicenseDetail } from './components/licensing/LicenseDetail';
-import { CounterSignPage } from './components/licensing/CounterSignPage';
-import { LicensingHub } from './components/licensing/LicensingHub';
-import { SaveProblemBar } from './components/SaveProblemBar';
-import { startRecordSync } from './veilcore/records';
-import { startLicenseSync } from './veilcore/licenses';
+import { Routes, Route, createRoutesFromChildren, matchRoutes, useLocation } from 'react-router-dom';
 import { IS_MAINNET } from './config/network';
+
+// Loading. The public pages above come with the first file; every other page is its own
+// file, fetched when it is opened, so a visitor reading the landing page on a phone does
+// not download the record app, the documents or the checking code.
+//
+// Midnight's WebAssembly for the `commit` circuit (about 1.4 MB, veilcore/commitment.ts)
+// never comes with the landing page or the documents. `circuit` says how a page gets it:
+//   'wait'   the page computes a fingerprint as it draws (a saved lab report matched to
+//            its plant, a record's identity): its files and the circuit, then the page;
+//   'after'  the page makes one when asked (a lab report dropped in, an agreement's
+//            certificate): the page draws first and the circuit is fetched straight after,
+//            so the fingerprint is as quick as before;
+//   none     the page does not draw with one; if it makes one after all, fingerprintText
+//            and fingerprintFile fetch the circuit then. The check page fetches it only for
+//            a record that has a saved lab report to match (pages/VerifyPage.tsx) or a date
+//            stamp to read on Midnight (veilcore/chain/anchor-decode.ts).
+// load-split.test.ts follows each page's imports and fails if a page without 'wait' loads
+// a file that calls the circuit synchronously.
+//
+// One Suspense boundary around the routes: on a link from one page to another the router
+// keeps the current page on screen until the next one has loaded (a transition), so no
+// page goes blank in between, and focus moves only once the new page is there.
+type Preloadable = { preload: () => Promise<unknown> };
+const loadCircuit = () => import('./veilcore/commitment').then((m) => m.loadFingerprintCircuit());
+const page = <P extends object = object>(
+  load: () => Promise<Record<string, unknown>>,
+  name: string,
+  circuit?: 'wait' | 'after',
+) => {
+  let files: Promise<{ default: React.ComponentType<P> }> | undefined;
+  const preload = () => {
+    files ??= Promise.all([load(), circuit === 'wait' ? loadCircuit() : undefined]).then(
+      ([mod]) => {
+        // Not awaited: a failure here is met again, and reported, where a fingerprint is made.
+        if (circuit === 'after') loadCircuit().catch(() => undefined);
+        return { default: mod[name] as React.ComponentType<P> };
+      },
+      (e: unknown) => {
+        files = undefined;
+        throw e;
+      },
+    );
+    return files;
+  };
+  return Object.assign(lazy(preload), { preload });
+};
+const AppHome = page(() => import('./components/flow/AppHome'), 'AppHome', 'wait');
+const RecordDetail = page(() => import('./components/RecordDetail'), 'RecordDetail', 'wait');
+const LogFlow = page(() => import('./components/flow/LogFlow'), 'LogFlow', 'after');
+const RestorePage = page(() => import('./components/flow/RestorePage'), 'RestorePage');
+const BackupPage = page(() => import('./components/flow/BackupPage'), 'BackupPage');
+const ProvePage = page(() => import('./components/flow/ProvePage'), 'ProvePage');
+const PartnersPage = page(() => import('./components/partners/PartnersPage'), 'PartnersPage');
+const TermsBuilder = page(() => import('./components/licensing/TermsBuilder'), 'TermsBuilder');
+const LicenseDetail = page(() => import('./components/licensing/LicenseDetail'), 'LicenseDetail', 'after');
+const CounterSignPage = page(() => import('./components/licensing/CounterSignPage'), 'CounterSignPage');
+const LicensingHub = page(() => import('./components/licensing/LicensingHub'), 'LicensingHub');
+const DocPage = page(() => import('./components/DocPage'), 'DocPage');
+const Implementations = page(() => import('./components/Implementations'), 'Implementations');
+const VerifyPage = page(() => import('./pages/VerifyPage'), 'VerifyPage');
+const VerifyExample = page(() => import('./components/verify/VerifyExample'), 'VerifyExample');
+// The app frame's parts: one file, so the frame arrives in one request.
+const layoutParts = () => import('./app-layout-parts');
+const RolePicker = page<{ ask: boolean }>(layoutParts, 'RolePicker');
+const SaveProblemBar = page(layoutParts, 'SaveProblemBar');
+const AppFooter = page(layoutParts, 'AppFooter');
 
 /** Pages where someone is using the app, as opposed to reading about it. */
 const APP_PAGE = /^\/(new|records|record\/|licenses|license\/|restore|backup)/;
@@ -49,8 +96,8 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   // verify page and the documents do not (attack round D). Without a holder key in this
   // browser nothing is requested at all.
   useEffect(() => {
-    startRecordSync();
-    startLicenseSync();
+    void import('./veilcore/records').then((m) => m.startRecordSync());
+    void import('./veilcore/licenses').then((m) => m.startLicenseSync());
   }, []);
   return (
     <Box
@@ -74,6 +121,11 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   );
 };
 
+/** The frame's own files, fetched with the page's (preloadPage). */
+const layoutPreload: Preloadable = {
+  preload: () => Promise.all([RolePicker.preload(), SaveProblemBar.preload(), AppFooter.preload()]),
+};
+
 /**
  * The app's pages, and the pages people are sent to (a record to check, an agreement to
  * sign), are light: dark text on a light ground reads better for longer and in daylight.
@@ -86,9 +138,10 @@ const Light: React.FC<React.PropsWithChildren> = ({ children }) => (
   </ThemeProvider>
 );
 
+const LayoutFrame = Object.assign(AppLayout, layoutPreload);
 const withLayout = (el: React.ReactNode) => (
   <Light>
-    <AppLayout>{el}</AppLayout>
+    <LayoutFrame>{el}</LayoutFrame>
   </Light>
 );
 
@@ -139,57 +192,83 @@ const NewPageFocus: React.FC = () => {
   return null;
 };
 
+const routes = (
+  <>
+    {/* A stranger arriving from a specification or a government submission needs
+    somewhere to understand what this is. The dashboard assumes you already do. */}
+    <Route path="/" element={<Home />} />
+    <Route path="/founders" element={<Founders />} />
+    <Route path="/privacy" element={<Privacy />} />
+    <Route path="/partners" element={<PartnersPage />} />
+    <Route path="/verify" element={<VerifyLookup />} />
+    <Route path="/records" element={withLayout(<AppHome />)} />
+    <Route path="/restore" element={withLayout(<RestorePage />)} />
+    <Route path="/backup" element={withLayout(<BackupPage />)} />
+    {/* Documents read here rather than in a code repository. */}
+    <Route path="/docs/:doc" element={withLayout(<DocPage />)} />
+    <Route path="/implementations" element={withLayout(<Implementations />)} />
+    <Route path="/new" element={withLayout(<LogFlow />)} />
+    <Route path="/prove/:id" element={withLayout(<ProvePage />)} />
+    <Route path="/record/:id" element={withLayout(<RecordDetail />)} />
+    <Route path="/record/:id/license" element={withLayout(<TermsBuilder />)} />
+    <Route path="/licenses" element={withLayout(<LicensingHub />)} />
+    <Route path="/license/:id" element={withLayout(<LicenseDetail />)} />
+    <Route
+      path="/license/:id/sign"
+      element={
+        <Light>
+          <CounterSignPage />
+        </Light>
+      }
+    />
+    {/* A made-up record, labelled as one, for a visitor with no record id yet. */}
+    <Route
+      path="/verify/example"
+      element={
+        <Light>
+          <VerifyExample />
+        </Light>
+      }
+    />
+    <Route
+      path="/verify/:id"
+      element={
+        <Light>
+          <VerifyPage />
+        </Light>
+      }
+    />
+    {/* Anything else: say so, rather than render an empty page. */}
+    <Route path="*" element={<NotFound />} />
+  </>
+);
+
+/**
+ * Fetch the files the page at `pathname` needs (its own, the app frame's, and the
+ * fingerprint circuit for the record app), so main.tsx can draw it in one go once they are
+ * here, as when everything came in one file. Found from the routes themselves: every lazy
+ * part in the matched route's elements has a `preload`.
+ */
+export const preloadPage = (pathname: string): Promise<unknown> => {
+  const wanted: Promise<unknown>[] = [];
+  const walk = (node: React.ReactNode): void =>
+    React.Children.forEach(node, (n) => {
+      if (!React.isValidElement(n)) return;
+      const pre = (n.type as Partial<Preloadable>).preload;
+      if (pre) wanted.push(pre());
+      walk((n.props as { children?: React.ReactNode }).children);
+    });
+  for (const m of matchRoutes(createRoutesFromChildren(routes), pathname) ?? []) walk(m.route.element);
+  return Promise.all(wanted);
+};
+
 const App: React.FC = () => (
   <MotionConfig reducedMotion="user">
     <PageTitle />
     <NewPageFocus />
-    <Routes>
-      {/* A stranger arriving from a specification or a government submission needs
-        somewhere to understand what this is. The dashboard assumes you already do. */}
-      <Route path="/" element={<Home />} />
-      <Route path="/founders" element={<Founders />} />
-      <Route path="/privacy" element={<Privacy />} />
-      <Route path="/verify" element={<VerifyLookup />} />
-      <Route path="/records" element={withLayout(<AppHome />)} />
-      <Route path="/restore" element={withLayout(<RestorePage />)} />
-      <Route path="/backup" element={withLayout(<BackupPage />)} />
-      {/* Documents read here rather than in a code repository. */}
-      <Route path="/docs/:doc" element={withLayout(<DocPage />)} />
-      <Route path="/implementations" element={withLayout(<Implementations />)} />
-      <Route path="/new" element={withLayout(<LogFlow />)} />
-      <Route path="/prove/:id" element={withLayout(<ProvePage />)} />
-      <Route path="/record/:id" element={withLayout(<RecordDetail />)} />
-      <Route path="/record/:id/license" element={withLayout(<TermsBuilder />)} />
-      <Route path="/licenses" element={withLayout(<LicensingHub />)} />
-      <Route path="/license/:id" element={withLayout(<LicenseDetail />)} />
-      <Route
-        path="/license/:id/sign"
-        element={
-          <Light>
-            <CounterSignPage />
-          </Light>
-        }
-      />
-      {/* A made-up record, labelled as one, for a visitor with no record id yet. */}
-      <Route
-        path="/verify/example"
-        element={
-          <Light>
-            <VerifyExample />
-          </Light>
-        }
-      />
-      <Route
-        path="/verify/:id"
-        element={
-          <Light>
-            <VerifyPage />
-          </Light>
-        }
-      />
-      {/* Anything else: say so, rather than render an empty page. */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <Suspense fallback={null}>
+      <Routes>{routes}</Routes>
+    </Suspense>
   </MotionConfig>
 );
 
