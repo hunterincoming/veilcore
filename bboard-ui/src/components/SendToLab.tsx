@@ -24,6 +24,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import ShareIcon from '@mui/icons-material/IosShareOutlined';
 import {
   CUSTODY_LIMITS,
+  custodyProblems,
   offerTransfer,
   rememberSentCode,
   sampleDetailsOf,
@@ -57,8 +58,12 @@ export const SendToLab: React.FC<{
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // A value the registry would refuse (a line break, a hidden character, 31 February) is
+  // said under the form, and the code isn't made until it is fixed.
+  const problems = custodyProblems('sample', sample);
+
   const send = async () => {
-    if (!handle.trim()) return;
+    if (!handle.trim() || problems.length) return;
     setBusy(true);
     setError(null);
     const res = await offerTransfer(record.id, handle.trim(), {
@@ -228,6 +233,15 @@ export const SendToLab: React.FC<{
                   Add the sample&apos;s label and seal (optional)
                 </Button>
               )}
+              {problems.length > 0 && (
+                <Alert severity="warning" variant="outlined" data-sample-problem="">
+                  {problems.map((p) => (
+                    <Box key={p} component="span" sx={{ display: 'block' }}>
+                      {p}
+                    </Box>
+                  ))}
+                </Alert>
+              )}
               {error && (
                 <Alert severity="warning" variant="outlined">
                   {error}
@@ -239,7 +253,7 @@ export const SendToLab: React.FC<{
         <DialogActions>
           <Button onClick={reset}>{transferId ? 'Done' : 'Cancel'}</Button>
           {!transferId && (
-            <Button variant="contained" onClick={send} disabled={busy || !handle.trim()}>
+            <Button variant="contained" onClick={send} disabled={busy || !handle.trim() || problems.length > 0}>
               Make a code for the lab
             </Button>
           )}

@@ -40,6 +40,7 @@ import {
   CUSTODY_LIMITS,
   custodyDigest,
   custodyOf,
+  custodyProblems,
   custodySubject,
   hasDetails,
   parseShareCode,
@@ -47,6 +48,8 @@ import {
   MISSING_LOCK_WORDS,
   publicFingerprintOf,
   quantityPhrase,
+  sameDetails,
+  sampleDetailsOf,
   setArrival,
   signReceiptWith,
   type ArrivalDetails,
@@ -184,7 +187,13 @@ const ArrivalForm: React.FC<{ value: ArrivalInput; onChange: (v: ArrivalInput) =
         slotProps={{ inputLabel: { shrink: true } }}
         {...field('arrivedOn')}
       />
-      <TextField label="Condition" placeholder="e.g. cold, bag dry, roots intact" {...field('condition')} />
+      <TextField
+        label="Condition"
+        placeholder="e.g. cold, bag dry, roots intact"
+        multiline
+        maxRows={4}
+        {...field('condition')}
+      />
       <TextField
         label="Your accession no."
         helperText="Goes on your receipt, so the breeder sees it."
@@ -214,10 +223,22 @@ const ReceiptChoice: React.FC<{
   const [rejecting, setRejecting] = useState(false);
   const [input, setInput] = useState<ArrivalInput>(() => arrivalStart(custody?.sample ?? {}, custody?.arrival ?? {}));
   const arrival = custody ? arrivalDetailsOf(input) : undefined;
+  // A value the registry would refuse (a tab, a hidden character, 31 February) is said here,
+  // and nothing is signed until it is fixed: arrivalDetailsOf would otherwise drop it.
+  const problems = custody ? custodyProblems('arrival', input) : [];
   const differs = custody && arrival ? custodyDifferences(custody.sample, arrival) : [];
   return (
     <Stack spacing={1.5}>
       {custody && <ArrivalForm value={input} onChange={setInput} disabled={busy} />}
+      {problems.length > 0 && (
+        <Alert severity="warning" variant="outlined" data-arrival-problem="">
+          {problems.map((p) => (
+            <Box key={p} component="span" sx={{ display: 'block' }}>
+              {p}
+            </Box>
+          ))}
+        </Alert>
+      )}
       {differs.length > 0 && (
         <Alert severity="info" variant="outlined" data-arrival-differs="">
           Different from what the breeder wrote. The breeder sees this on your receipt:
@@ -252,7 +273,7 @@ const ReceiptChoice: React.FC<{
             Don&apos;t sign
           </Button>
         )}
-        <Button variant="contained" onClick={() => onSign(arrival)} disabled={busy || !received}>
+        <Button variant="contained" onClick={() => onSign(arrival)} disabled={busy || !received || problems.length > 0}>
           Sign with my key
         </Button>
       </Stack>
@@ -310,8 +331,12 @@ type Signed = { attestationId: string } | { error: string };
 
 /**
  * Sign the receipt. With sample details on the delivery, the lab's arrival details are
- * stored first and the receipt is signed over both sides exactly as the registry now holds
- * them (transfers.ts custodyDigest), so the registry links it only while they are unchanged.
+ * stored first, and the receipt is signed over what the lab saw and typed: the breeder's
+ * details as shown on this screen and the lab's own entries, normalised as the registry
+ * stores them (transfers.ts custodyDigest). Round 2 of the 15 Oct review: it used to sign
+ * whatever the registry echoed back, so a registry that changed a value got the lab's
+ * signature over something the lab never wrote. Now, if the echo differs from either, nothing
+ * is signed.
  */
 const signReceipt = async (
   attester: AttesterProfile,
@@ -320,14 +345,24 @@ const signReceipt = async (
 ): Promise<Signed> => {
   let digest: string | undefined;
   if (custody && (hasDetails(custody.sample) || hasDetails(custody.arrival))) {
-    const stored = await setArrival(custody.transferId, custody.arrival);
+    const problems = custodyProblems('arrival', custody.arrival);
+    if (problems.length) return { error: `${problems.join(' ')} Nothing was signed` };
+    const shown = sampleDetailsOf(custody.sample);
+    const typed = arrivalDetailsOf(custody.arrival);
+    const stored = await setArrival(custody.transferId, typed);
     if ('error' in stored) {
       // A registry from before sample details: with nothing from the breeder, sign as before.
       if (!(/can’t keep sample details/.test(stored.error) && !hasDetails(custody.sample))) {
         return { error: `your arrival details weren’t saved (${stored.error}), so nothing was signed` };
       }
     } else {
-      digest = await custodyDigest(custody.transferId, stored.sample, stored.arrival);
+      if (!sameDetails(stored.arrival, typed) || !sameDetails(stored.sample, shown)) {
+        return {
+          error:
+            'the registry saved sample details different from the ones on this screen, so nothing was signed. Reload the page and check them again',
+        };
+      }
+      digest = await custodyDigest(custody.transferId, shown, typed);
     }
   }
   const out = await signReceiptWith(attester, subject, digest);

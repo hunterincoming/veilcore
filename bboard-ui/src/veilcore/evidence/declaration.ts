@@ -11,7 +11,7 @@
 
 import { isNumber, isString } from '../json';
 import type { Evidence, SignatureLine } from './bundle';
-import { networkWords, utcWords, wrap } from './words';
+import { networkWords, oneLine, utcWords, wrap } from './words';
 import { CUSTODY_LABELS, SEAL_WORDS } from './examiner';
 
 export const DECLARATION_FILE = 'DECLARATION-TEMPLATE.txt';
@@ -34,9 +34,13 @@ export const declarationText = async (
   files: Readonly<Record<string, Uint8Array>>,
 ): Promise<string> => {
   const fields = ev.record.sealedFields;
-  const name = isString(fields.strainName) && fields.strainName ? fields.strainName : '[plant name]';
+  // Everything anyone other than VeilCore typed is put on one line (words.ts oneLine), so no
+  // value can start a line, a paragraph or a schedule of its own in the text someone signs
+  // (round 2 of the 15 Oct review: a line break in a lab's notes or a signer's name did).
+  const t = (v: unknown): string => oneLine(v);
+  const name = isString(fields.strainName) && t(fields.strainName) ? t(fields.strainName) : '[plant name]';
   const anchor = ev.batch?.anchor ?? null;
-  const tx = anchor && isString(anchor.txHash) ? anchor.txHash : null;
+  const tx = anchor && isString(anchor.txHash) ? t(anchor.txHash) : null;
   const test = anchor ? anchor.network !== 'mainnet' : true;
   const ots = ev.batch && hasOts ? ev.batch.opentimestamps : null;
   const made = utcWords(ev.createdAt) ?? ev.createdAt;
@@ -51,18 +55,62 @@ export const declarationText = async (
   const L: string[] = [];
   const add = (...lines: string[]) => L.push(...lines);
   const rule = '='.repeat(78);
-  /** Custody fields in words: "sample ID BLU-07, seal number 4471". */
+  /** Custody fields in words, each typed value in quotes on one line: 'sample ID "BLU-07", seal number "4471"'. */
   const custodyWords = (d: Readonly<Record<string, string>>): string =>
     Object.entries(d)
-      .filter(([, v]) => v !== '')
+      .filter(([, v]) => t(v) !== '')
       .map(
         ([k, v]) =>
-          `${(CUSTODY_LABELS[k] ?? k)
+          `${t(CUSTODY_LABELS[k] ?? k)
             .replace(/ \(.*\)$/, '')
             .toLowerCase()
-            .replace(/\bid\b/, 'ID')} ${k === 'sealIntact' ? (SEAL_WORDS[v] ?? v) : v}`,
+            .replace(
+              /\bid\b/,
+              'ID',
+            )} ${k === 'sealIntact' ? t(SEAL_WORDS[v] ?? v) : k === 'takenOn' || k === 'arrivedOn' ? t(v) : `"${t(v)}"`}`,
       )
       .join(', ');
+
+  /**
+   * One delivery, in words (round 2 of the 15 Oct review): whether the lab code was used,
+   * whether a lab signed a receipt for it, and whether that signature covers what each side
+   * wrote. What the lab wrote on arrival is given only when the signature covers it, with
+   * any difference said plainly; otherwise the coverage is said instead.
+   */
+  const deliveryLine = (c: (typeof custody)[number]): string => {
+    const sent = custodyWords(c.sample);
+    const got = custodyWords(c.arrival);
+    const id = t(c.transferId);
+    const wrote = ` When I made the lab code I wrote: ${sent || '[nothing]'}.`;
+    const how = ' [Describe how the sample was taken, sealed and sent, and who saw it.]';
+    if (c.received === false) {
+      return `   - Delivery ${id}: the lab code was never used, so no lab received a sample through it.${sent ? wrote : ''}`;
+    }
+    const receipt = c.receiptAttestationId ? t(c.receiptAttestationId) : null;
+    if (c.covered === 'covered' && receipt) {
+      const diffs = c.differences.map(t);
+      const matched = [
+        c.sample.sampleId && c.arrival.sampleId ? 'sample ID' : null,
+        c.sample.sealNumber && c.arrival.sealNumber ? 'seal number' : null,
+      ].filter((x): x is string => !!x);
+      const compare = diffs.length
+        ? ` What arrived differs from what was sent: ${diffs.join('; ')}.`
+        : matched.length
+          ? ` The ${matched.join(' and ')} the lab wrote ${matched.length > 1 ? 'match' : 'matches'} what I wrote.`
+          : '';
+      return `   - Delivery ${id}: a lab signed a receipt for it (signature ${receipt}, in lab/signatures.json), and its signature covers what each of us wrote.${wrote} The lab wrote on arrival: ${got || '[nothing]'}.${compare}${how}`;
+    }
+    const used = c.received ? ' The lab code was used.' : '';
+    const coverage =
+      c.covered === 'changed'
+        ? ` A lab signed a receipt for it (signature ${receipt ?? '[none]'}), but then changed what it wrote on arrival, so its signature doesn't cover that; it is left out here.`
+        : c.covered === 'not-covered'
+          ? ` A lab signed a receipt for it (signature ${receipt ?? '[none]'}) before receipts covered sample details, so its signature doesn't cover what it wrote on arrival; that is left out here.`
+          : receipt
+            ? ` A receipt (signature ${receipt}) is linked to it, but its signature doesn't check in this bundle or its signer withdrew it, so nothing the lab wrote is covered; it is left out here.`
+            : ` No lab signed a receipt for it, so nothing the lab wrote is covered${got ? '; it is left out here' : ''}.`;
+    return `   - Delivery ${id}:${used}${coverage}${wrote}${how}`;
+  };
 
   add(rule, DECLARATION_WARNING, rule, '');
   add(
@@ -75,7 +123,7 @@ export const declarationText = async (
     add(
       '',
       anchor
-        ? `NOTE: this record is dated on ${networkWords(anchor.network)}. A test network can be reset and its dates carry no weight. This bundle is practice data: do not use it as evidence.`
+        ? `NOTE: this record is dated on ${t(networkWords(anchor.network))}. A test network can be reset and its dates carry no weight. This bundle is practice data: do not use it as evidence.`
         : 'NOTE: this record is not dated on any network yet. Until it is, nothing in this bundle dates it.',
     );
   }
@@ -90,19 +138,19 @@ export const declarationText = async (
     '',
     '1. Who I am. I am [of legal age]. I live or work in [city, country]. I [bred / hold / keep the breeding records for] the plant material this record describes. [My role, for example: breeder; I run ___; employee of ___ working as ___.] I know the facts below myself [or: I know them because ___].',
     '',
-    `2. The record. On or about [date], I [or: ___, acting for me,] made an electronic record of the plant "${name}" on the VeilCore website at [web address], using [device and browser]. The website sealed the record on that device. Its record ID is ${ev.record.id}. Its fingerprint is:`,
-    `   ${ev.record.fingerprint}`,
-    `   The sealing time inside the record, by that device's clock, is ${utcWords(ev.record.sealedAtDeviceClock) ?? ev.record.sealedAtDeviceClock}. The record's contents, exactly as sealed, are in record/sealed-fields.json in the bundle and are shown in EXAMINER-SUMMARY.html. [I typed them myself / ___ typed them from ___.] [They were true to the best of my knowledge when they were typed.]`,
+    `2. The record. On or about [date], I [or: ___, acting for me,] made an electronic record of the plant "${name}" on the VeilCore website at [web address], using [device and browser]. The website sealed the record on that device. Its record ID is ${t(ev.record.id)}. Its fingerprint is:`,
+    `   ${t(ev.record.fingerprint)}`,
+    `   The sealing time inside the record, by that device's clock, is ${utcWords(ev.record.sealedAtDeviceClock) ?? t(ev.record.sealedAtDeviceClock)}. The record's contents, exactly as sealed, are in record/sealed-fields.json in the bundle and are shown in EXAMINER-SUMMARY.html. [I typed them myself / ___ typed them from ___.] [They were true to the best of my knowledge when they were typed.]`,
     '',
   );
   if (ev.batch) {
     add(
-      `3. How the record was dated. VeilCore's registry put the record's fingerprint in batch ${ev.batch.batchId}. The batch root, one fingerprint that stands for every record in the batch, is:`,
-      `   ${ev.batch.root}`,
+      `3. How the record was dated. VeilCore's registry put the record's fingerprint in batch ${t(ev.batch.batchId)}. The batch root, one fingerprint that stands for every record in the batch, is:`,
+      `   ${t(ev.batch.root)}`,
     );
     if (tx && anchor) {
       add(
-        `   The registry reported that this batch root was recorded on ${networkWords(anchor.network)}${isNumber(anchor.blockHeight) ? `, in block ${anchor.blockHeight}` : ''}${utcWords(anchor.anchoredAt) ? `, at ${utcWords(anchor.anchoredAt)}` : ''}, in transaction:`,
+        `   The registry reported that this batch root was recorded on ${t(networkWords(anchor.network))}${isNumber(anchor.blockHeight) ? `, in block ${anchor.blockHeight}` : ''}${utcWords(anchor.anchoredAt) ? `, at ${utcWords(anchor.anchoredAt)}` : ''}, in transaction:`,
         `   ${tx}`,
         '   [On [date] I / ___ looked that transaction up on [explorer or indexer] and saw that it succeeded, that it called contract [address], and that it was in block [number] at [time]. / I have not looked it up myself.]',
       );
@@ -122,11 +170,11 @@ export const declarationText = async (
     );
   }
   add(
-    `4. How the files in the bundle were made. On ${made}, I [or: ___] downloaded this bundle, the folder ${ev.record.id}-evidence, from the VeilCore website's page for this record, in [browser] on [device]. The website made the files from my browser's copy of the record and from what VeilCore's registry returned. It checked that the record's fingerprint matches its contents before making them.`,
+    `4. How the files in the bundle were made. On ${made}, I [or: ___] downloaded this bundle, the folder ${t(ev.record.id)}-evidence, from the VeilCore website's page for this record, in [browser] on [device]. The website made the files from my browser's copy of the record and from what VeilCore's registry returned. It checked that the record's fingerprint matches its contents before making them.`,
   );
   if (ev.labReport?.fileIncluded)
     add(
-      `   I chose to include the lab report file ${ev.labReport.fileIncluded}. [It is the file I received from [lab] on [date] by [email / ___].]`,
+      `   I chose to include the lab report file ${t(ev.labReport.fileIncluded)}. [It is the file I received from [lab] on [date] by [email / ___].]`,
     );
   if (ev.key) add("   I chose to include the record's key (key/key-binding.json).");
   add(
@@ -138,19 +186,14 @@ export const declarationText = async (
   );
   let n = 7;
   if (okSigs.length || custody.length) {
-    add(`${n++}. Lab signatures and sample receipts.`);
+    add(`${n++}. Lab signatures, deliveries and sample receipts.`);
     for (const s of okSigs) {
+      const doc = t(s.documentHash ?? '[none]');
       add(
-        `   - A key that calls itself ${s.displayName ? `"${s.displayName}"` : '[no name given]'} signed ${s.what ?? 'a statement'} about this record at ${s.issuedAt ?? '[time]'} (the signer's own clock).${s.withdrawn ? ' The same key later withdrew it.' : ''} The signed document's SHA-256 is ${s.documentHash ?? '[none]'}. [I know / I do not know who controls that key.] [I sent the sample to [lab] on [date] by [courier, tracking number].]`,
+        `   - A key that calls itself ${s.displayName ? `"${t(s.displayName)}"` : '[no name given]'} signed ${t(s.what ?? 'a statement')} about this record at ${t(s.issuedAt ?? '[time]')} (the signer's own clock).${s.withdrawn ? ' The same key later withdrew it.' : ''} ${s.type === 'chain-of-custody' ? `What it signed for the delivery is the fingerprint ${doc}: the lab's own record of the delivery, not a hash of the sample.` : `The signed document's SHA-256 is ${doc}.`} [I know / I do not know who controls that key.] [I sent the sample to [lab] on [date] by [courier, tracking number].]`,
       );
     }
-    for (const c of custody) {
-      const sent = custodyWords(c.sample);
-      const got = custodyWords(c.arrival);
-      add(
-        `   - Delivery ${c.transferId}: when I made the lab code I wrote: ${sent || '[nothing]'}.${got ? ` The lab wrote on arrival: ${got}.` : ''} [Describe how the sample was taken, sealed and sent, and who saw it.]`,
-      );
-    }
+    for (const c of custody) add(deliveryLine(c));
     add('');
   }
   add(
@@ -175,7 +218,7 @@ export const declarationText = async (
     '',
     '1. Who I am. [Qualifications: training, work, experience with cryptographic hashes, blockchains or digital evidence.] I am not employed by VeilCore [or: describe any connection to VeilCore or to the parties].',
     '',
-    `2. What I received. On [date] I received the bundle, the folder ${ev.record.id}-evidence, from [name], by [means]. I worked on [a copy / the original] on [computer, operating system].`,
+    `2. What I received. On [date] I received the bundle, the folder ${t(ev.record.id)}-evidence, from [name], by [means]. I worked on [a copy / the original] on [computer, operating system].`,
     '',
     '3. What I checked, and how.',
     '   a. I computed the SHA-256 of each file with [tool and version]. [They match / do not match] Schedule A.',
@@ -183,7 +226,7 @@ export const declarationText = async (
   );
   if (tx && anchor) {
     add(
-      `   c. On [date] I looked up transaction ${tx} on ${networkWords(anchor.network)} using [explorer or indexer, and its address]. It [succeeded / did not], called contract [address], was in block [number] at [time], and [did / did not] write the batch root above.`,
+      `   c. On [date] I looked up transaction ${tx} on ${t(networkWords(anchor.network))} using [explorer or indexer, and its address]. It [succeeded / did not], called contract [address], was in block [number] at [time], and [did / did not] write the batch root above.`,
     );
   } else {
     add('   c. [The look-up of the network transaction, once there is one.]');
@@ -210,7 +253,7 @@ export const declarationText = async (
     'SCHEDULE A: THE FILES IN THE BUNDLE AND THEIR SHA-256',
     rule,
     '',
-    `The folder ${ev.record.id}-evidence, as downloaded ${made}. This file (${DECLARATION_FILE}) is not listed: it is the one you edit.`,
+    `The folder ${t(ev.record.id)}-evidence, as downloaded ${made}. This file (${DECLARATION_FILE}) is not listed: it is the one you edit.`,
     '',
     ...schedule,
     '',

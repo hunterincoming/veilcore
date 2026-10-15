@@ -131,7 +131,8 @@ export const arrivalLine = (a: ArrivalDetails): string =>
           .join(', ')
       : undefined,
     a.arrivedOn ? `arrived ${a.arrivedOn}` : undefined,
-    a.condition ? `condition: ${a.condition}` : undefined,
+    // A lab's condition may have line breaks (the only field that may): one line here.
+    a.condition ? `condition: ${a.condition.replace(/\s*\n\s*/g, ' ')}` : undefined,
     a.labRef ? `lab no. ${a.labRef}` : undefined,
   ]
     .filter(Boolean)
@@ -158,6 +159,52 @@ export const custodyLines = (v: CustodyView | undefined): string[] => {
     ...sent,
     ...got,
   ];
+};
+
+/**
+ * One linked receipt's sample details as the public /verify reports them, under the holder's
+ * lab-status grant (round 2 of the 15 Oct review): whether the receipt covers them and where
+ * what arrived differs from what was sent, never the details themselves. The registry's word:
+ * a stranger can't recompute the digest without the details.
+ */
+export type PublicCustody = {
+  readonly receiptAttestationId: string;
+  readonly covered: 'covered' | 'changed' | 'not-covered';
+  readonly differences: readonly string[];
+};
+
+const COVERED_STATES: readonly string[] = ['covered', 'changed', 'not-covered'];
+const HIDDEN = /[\p{Cc}\p{Cf}\u2028\u2029]+/gu;
+
+/** /verify's `custody`, by receipt id; anything not in shape is left out. */
+export const publicCustodyOf = (v: unknown): Map<string, PublicCustody> => {
+  const out = new Map<string, PublicCustody>();
+  if (!Array.isArray(v)) return out;
+  for (const x of v.slice(0, 100)) {
+    if (typeof x !== 'object' || x === null) continue;
+    const c = x as Record<string, unknown>;
+    if (typeof c.receiptAttestationId !== 'string' || typeof c.covered !== 'string') continue;
+    if (!COVERED_STATES.includes(c.covered) || !Array.isArray(c.differences)) continue;
+    out.set(c.receiptAttestationId, {
+      receiptAttestationId: c.receiptAttestationId,
+      covered: c.covered as PublicCustody['covered'],
+      differences: c.differences
+        .filter((d): d is string => typeof d === 'string')
+        .slice(0, 10)
+        .map((d) => d.replace(HIDDEN, ' ').slice(0, 300)),
+    });
+  }
+  return out;
+};
+
+/** The lines under a receipt on the public check page: differences plainly, or the coverage. */
+export const publicCustodyLines = (c: PublicCustody | undefined): string[] => {
+  if (!c) return [];
+  if (c.covered === 'changed')
+    return ['The lab changed its arrival details after signing, so its receipt doesn’t cover them.'];
+  if (c.covered === 'not-covered') return ['The lab’s receipt doesn’t cover the sample details.'];
+  if (c.differences.length) return c.differences.map((d) => `${d}.`);
+  return ['No difference between the sample details sent and those the lab wrote on arrival.'];
 };
 
 /** custodyLines without the "Sent:" and "Received:" detail: the plant page's one line under the receipt. */

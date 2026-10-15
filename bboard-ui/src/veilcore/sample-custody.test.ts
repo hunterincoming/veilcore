@@ -6,8 +6,12 @@ import { attestationPayload, canonicalise, generateKeypair, sha256Hex, verifyAtt
 import {
   arrivalDetailsOf,
   custodyDigest,
+  custodyProblems,
+  isCalendarDate,
+  offerTransfer,
   receiptCustodyDigest,
   sampleDetailsOf,
+  setArrival,
   sentByMe,
   signReceiptWith,
   type ArrivalDetails,
@@ -28,6 +32,7 @@ import {
 import type { ResolvedAttestation } from './attesters';
 import { attestRecord, type AttesterProfile } from './attester-keys';
 import type { StrainRecord } from './records';
+import { CROSS_ARRIVAL, CROSS_ARRIVAL_IN, CROSS_DIGEST, CROSS_SAMPLE, CROSS_SAMPLE_IN } from './custody-vectors';
 
 const SAMPLE: SampleDetails = {
   sampleId: 'BLU-07',
@@ -385,5 +390,79 @@ describe('the sender’s list', () => {
     expect(a.sample_custody).toEqual(SAMPLE);
     expect(b.sample_custody).toBeUndefined();
     expect(b.custodyDigest).toBe(await custodyDigest('TR-00000002', {}, {}));
+  });
+});
+
+describe('round 2 of the 15 Oct review: values as the registry stores them', () => {
+  it('cross-check vector: normalised exactly as the registry normalises it, and the same digest', async () => {
+    expect(sampleDetailsOf(CROSS_SAMPLE_IN)).toEqual(CROSS_SAMPLE);
+    expect(arrivalDetailsOf(CROSS_ARRIVAL_IN)).toEqual(CROSS_ARRIVAL);
+    expect(await custodyDigest('TR-0A1B2C3D', CROSS_SAMPLE_IN, CROSS_ARRIVAL_IN)).toBe(CROSS_DIGEST);
+    expect(await custodyDigest('TR-0A1B2C3D', CROSS_SAMPLE, CROSS_ARRIVAL)).toBe(CROSS_DIGEST);
+    expect(custodyDifferences(CROSS_SAMPLE, CROSS_ARRIVAL)).toEqual([
+      'Seal number differs: sent 4471, received 4417',
+      'Seal not intact on arrival',
+    ]);
+  });
+
+  it('a line break, tab or hidden character is refused in a form, and never read from the registry', () => {
+    const hidden = [
+      '\n',
+      '\r',
+      '\t',
+      '\u0085',
+      '\u2028',
+      '\u2029',
+      '\u202e',
+      '\u202a',
+      '\u2066',
+      '\u2069',
+      '\u200b',
+      '\u200e',
+      '\u2060',
+      '\ufeff',
+      '\u00ad',
+    ];
+    for (const c of hidden) {
+      expect(custodyProblems('sample', { witness: `J. Doe${c}I declare` })).toEqual([
+        'Witness can’t contain line breaks, tabs or hidden characters (such as direction marks).',
+      ]);
+      expect(sampleDetailsOf({ witness: `J. Doe${c}I declare`, sampleId: 'A' })).toEqual({ sampleId: 'A' });
+    }
+    // A lab's condition may have plain line breaks, nothing else.
+    expect(custodyProblems('arrival', { condition: 'cold\r\nbag dry' })).toEqual([]);
+    expect(arrivalDetailsOf({ condition: 'cold\r\n\r\n\r\nbag dry  ' })).toEqual({ condition: 'cold\n\nbag dry' });
+    expect(custodyProblems('arrival', { condition: 'cold\u202ebag' })).toEqual([
+      'Condition can’t contain tabs or hidden characters (such as direction marks).',
+    ]);
+    expect(custodyProblems('arrival', { labRef: 'ACC\n9' })).toHaveLength(1);
+  });
+
+  it('dates are real calendar days', () => {
+    expect(isCalendarDate('2026-02-31')).toBe(false);
+    expect(isCalendarDate('2026-02-29')).toBe(false);
+    expect(isCalendarDate('2024-02-29')).toBe(true);
+    expect(custodyProblems('sample', { takenOn: '2026-02-31' })).toEqual(['Taken on must be a real date.']);
+    expect(custodyProblems('arrival', { arrivedOn: '2026-09-31' })).toEqual(['Arrived on must be a real date.']);
+    expect(sampleDetailsOf({ takenOn: '2026-02-31' })).toEqual({});
+  });
+
+  it('offering a lab code or saving arrival details with a refused value sends nothing', async () => {
+    const calls: string[] = [];
+    vi.stubGlobal('fetch', (url: string) => {
+      calls.push(url);
+      return Promise.resolve(new Response('{}', { status: 200 }));
+    });
+    try {
+      const o = await offerTransfer('VEIL-1', 'lab', { sample: { witness: 'J. Doe\n\nI declare' } });
+      expect(o).toEqual({
+        error: 'Witness can’t contain line breaks, tabs or hidden characters (such as direction marks).',
+      });
+      const a = await setArrival('TR-1', { arrivedOn: '2026-02-31' });
+      expect(a).toEqual({ error: 'Arrived on must be a real date.' });
+      expect(calls).toEqual([]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

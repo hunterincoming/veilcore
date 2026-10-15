@@ -9,11 +9,19 @@
 //   </form>
 //
 // Attributes: name (form field name), required (the form won't submit until a record is
-// found whose fingerprint matches the link), registry (default: VeilCore's public
-// registry), check-page (where "Open the full check page" points; default
-// https://veilcore.org), label, value.
-// Properties: value (the link), result (the last answer, or null). Event: `veilcore-check`
-// (bubbles, composed) with the answer in `detail`, so the page can keep it with the form.
+// found whose fingerprint matches the link and nothing contradicts it: see `acceptable`),
+// registry (default: VeilCore's public registry), check-page (where "Open the full check
+// page" points; default https://veilcore.org), label, value,
+// allow-test-network (accept a record dated on a test network; for trying the field out),
+// when-unreachable="allow" (if the registry can't be reached, let the form send the link
+// marked as not checked: the form also gets `<name>-unchecked=registry-unreachable`, and
+// the event's detail is { checked: false, reason: 'registry-unreachable', … }. Without it,
+// a required field blocks the form while the registry is down).
+// Properties: value (the link), result (the answer for the link in the box now, or null),
+// unchecked (true while the link goes unchecked under when-unreachable="allow").
+// Event: `veilcore-check` (bubbles, composed) with the answer in `detail`, so the page can
+// keep it with the form. An answer counts only for the link it was made for: typing in
+// the box drops it, and an answer that comes back after the link changed is thrown away.
 //
 // No key, no account, no cookies, no tracking: the only requests are the three public
 // registry reads, with no credentials and no referrer. Nothing is written as HTML (no
@@ -22,7 +30,16 @@
 // script is served from, connect-src for the registry.
 // SPDX-License-Identifier: Apache-2.0
 
-import { checkRecord, DEFAULT_REGISTRY, LinkError, RegistryError, type RecordCheck } from './check.js';
+import {
+  acceptable,
+  checkRecord,
+  DEFAULT_REGISTRY,
+  FORMAT,
+  LinkError,
+  RegistryError,
+  type RecordCheck,
+} from './check.js';
+import { CUT } from './link.js';
 
 const CSS = `
 :host{display:block;font:inherit;color:var(--vc-ink,#16201b);--_accent:var(--vc-accent,#00785a);--_muted:var(--vc-muted,#4a564f);--_line:var(--vc-line,#c7cec8);--_paper:var(--vc-paper,#ffffff);--_bad:var(--vc-bad,#a61b1b);--_warn:var(--vc-warn,#7a4700);max-width:40rem}
@@ -52,8 +69,20 @@ summary{cursor:pointer;color:var(--_muted);padding:.7rem 0}
 a{color:var(--_accent)}
 `;
 
-/** The fields a form gets. Exported for tests. */
-export const acceptable = (c: RecordCheck | null): boolean => !!c && c.recordExists && c.fingerprintMatches === true;
+export { acceptable };
+
+/** The event detail when the registry could not be reached and the form allows that. */
+export type UncheckedLink = {
+  readonly format: typeof FORMAT;
+  readonly checked: false;
+  readonly reason: 'registry-unreachable';
+  readonly link: string;
+  readonly message: string;
+  readonly at: string;
+};
+
+/** What the field holds an answer for: always tied to the exact link it was made for. */
+type State = { readonly link: string; readonly result: RecordCheck } | { readonly link: string; readonly down: string };
 
 const el = <K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -82,17 +111,18 @@ let seq = 0;
 export class VeilcoreRecordCheck extends HTMLElement {
   static formAssociated = true;
   static get observedAttributes(): string[] {
-    return ['label', 'required', 'value'];
+    return ['label', 'required', 'value', 'allow-test-network', 'when-unreachable', 'name'];
   }
 
   #internals: ElementInternals | null = null;
   #fallback: HTMLInputElement | null = null;
+  #fallbackUnchecked: HTMLInputElement | null = null;
   #input: HTMLInputElement;
   #button: HTMLButtonElement;
   #out: HTMLDivElement;
   #status: HTMLParagraphElement;
   #label: HTMLLabelElement;
-  #result: RecordCheck | null = null;
+  #state: State | null = null;
   #run = 0;
   #pending: { link: string; p: Promise<RecordCheck | null> } | null = null;
 
@@ -155,12 +185,16 @@ export class VeilcoreRecordCheck extends HTMLElement {
         void this.check();
       }
     });
-    this.#input.addEventListener('change', () => void this.check());
-    this.#input.addEventListener('paste', () => setTimeout(() => void this.check(), 0));
-    this.#input.addEventListener('input', () => {
-      if (this.#result) this.#setResult(null);
-      this.#sync();
+    // Leaving the box (as a click on the form's submit button does) checks a link not yet
+    // tried; it doesn't retry one the registry didn't answer for, which would hold up a
+    // form that accepts unchecked links. Enter or the button retries.
+    this.#input.addEventListener('change', () => {
+      if (!this.#current()) void this.check();
     });
+    this.#input.addEventListener('paste', () => setTimeout(() => void this.check(), 0));
+    // Any edit drops the answer and cancels a check in flight: an answer is only ever
+    // for the link it was made for.
+    this.#input.addEventListener('input', () => this.#drop());
   }
 
   connectedCallback(): void {
@@ -179,14 +213,19 @@ export class VeilcoreRecordCheck extends HTMLElement {
   disconnectedCallback(): void {
     this.#fallback?.remove();
     this.#fallback = null;
+    this.#fallbackUnchecked?.remove();
+    this.#fallbackUnchecked = null;
   }
 
   attributeChangedCallback(name: string, _old: string | null, value: string | null): void {
     if (name === 'label' && value) this.#label.textContent = value;
     if (name === 'value' && value !== null && value !== this.#input.value) {
       this.#input.value = value;
-      this.#setResult(null);
+      this.#drop();
     }
+    // The rules changed under an answer already shown: show it again by the new rules.
+    if ((name === 'allow-test-network' || name === 'when-unreachable' || name === 'required') && this.#state)
+      this.#show(this.#state);
     this.#sync();
   }
 
@@ -195,20 +234,28 @@ export class VeilcoreRecordCheck extends HTMLElement {
   }
   set value(v: string) {
     this.#input.value = String(v ?? '');
-    this.#setResult(null);
-    this.#sync();
+    this.#drop();
   }
-  /** The last answer, or null before a check (or after the link changed). */
+  /** The answer for the link in the box now; null before a check, or after the link changed. */
   get result(): RecordCheck | null {
-    return this.#result;
+    const st = this.#current();
+    return st && 'result' in st ? st.result : null;
+  }
+  /** True while the link goes with the form unchecked (registry unreachable, when-unreachable="allow"). */
+  get unchecked(): boolean {
+    const st = this.#current();
+    return !!st && 'down' in st && this.#allowUnreachable();
   }
   get form(): HTMLFormElement | null {
     return this.#internals?.form ?? null;
   }
   checkValidity(): boolean {
-    return this.#internals
-      ? this.#internals.checkValidity()
-      : !this.hasAttribute('required') || acceptable(this.#result);
+    return this.#internals ? this.#internals.checkValidity() : !this.hasAttribute('required') || this.#ok();
+  }
+  /** Why the form refuses the link now ('' when it doesn't). */
+  get validationMessage(): string {
+    if (this.#internals) return this.#internals.validationMessage;
+    return this.checkValidity() ? '' : this.#why();
   }
   reportValidity(): boolean {
     return this.#internals ? this.#internals.reportValidity() : this.checkValidity();
@@ -217,7 +264,7 @@ export class VeilcoreRecordCheck extends HTMLElement {
     this.value = '';
   }
 
-  /** Run the check now. Resolves with the answer (null when nothing could be checked). */
+  /** Run the check now. Resolves with the answer (null when nothing could be checked, or the link changed meanwhile). */
   check(): Promise<RecordCheck | null> {
     const link = this.value;
     // A paste fires both paste and change: one request, not two.
@@ -229,94 +276,218 @@ export class VeilcoreRecordCheck extends HTMLElement {
     return p;
   }
 
+  #allowUnreachable(): boolean {
+    return (this.getAttribute('when-unreachable') ?? '').trim().toLowerCase() === 'allow';
+  }
+  #allowTestNetwork(): boolean {
+    return this.hasAttribute('allow-test-network');
+  }
+  /** The state, only if it is about the link in the box now. */
+  #current(): State | null {
+    return this.#state && this.#state.link === this.value ? this.#state : null;
+  }
+  #ok(): boolean {
+    const st = this.#current();
+    if (!st) return false;
+    if ('down' in st) return this.#allowUnreachable();
+    return acceptable(st.result, { allowTestNetwork: this.#allowTestNetwork() });
+  }
+
+  /** Drop the answer and cancel any check in flight. */
+  #drop(): void {
+    ++this.#run;
+    this.#pending = null;
+    this.#state = null;
+    this.#out.replaceChildren();
+    this.#out.dataset.state = 'empty';
+    this.#status.textContent = '';
+    this.#button.removeAttribute('aria-disabled');
+    this.#sync();
+  }
+
   async #check(link: string): Promise<RecordCheck | null> {
-    const run = ++this.#run;
-    if (!link) {
-      this.#setResult(null);
-      this.#status.textContent = '';
-      return null;
-    }
-    if (this.#result && this.#input.dataset.checked === link) return this.#result;
+    const st = this.#current();
+    if (st && 'result' in st && st.link === link) return st.result;
+    // Clear first: nothing about another link (or an earlier try) stands while this runs.
+    this.#drop();
+    const run = this.#run;
+    if (!link) return null;
     // aria-disabled, not disabled: disabling the focused button would drop keyboard focus.
     this.#button.setAttribute('aria-disabled', 'true');
     this.#status.textContent = 'Checking…';
-    this.#out.replaceChildren();
     this.#out.dataset.state = 'checking';
+    // Only an answer for the link still in the box, from the latest check, is kept.
+    const stale = () => run !== this.#run || this.value !== link;
     try {
       const c = await checkRecord(link, { registry: this.getAttribute('registry') || DEFAULT_REGISTRY });
-      if (run !== this.#run) return null;
-      this.#input.dataset.checked = link;
-      this.#setResult(c);
-      this.#render(c);
-      this.#status.textContent = c.summary;
+      if (stale()) return null;
+      this.#state = { link, result: c };
+      this.#show(this.#state);
+      this.#sync();
       this.dispatchEvent(new CustomEvent<RecordCheck>('veilcore-check', { detail: c, bubbles: true, composed: true }));
       return c;
     } catch (e) {
-      if (run !== this.#run) return null;
-      this.#setResult(null);
-      const msg =
-        e instanceof LinkError || e instanceof RegistryError
-          ? e.message
-          : 'The check could not run. Nothing was checked; try again.';
+      if (stale()) return null;
+      if (e instanceof RegistryError) {
+        this.#state = { link, down: e.message };
+        this.#show(this.#state);
+        this.#sync();
+        const detail: UncheckedLink = {
+          format: FORMAT,
+          checked: false,
+          reason: 'registry-unreachable',
+          link,
+          message: e.message,
+          at: new Date().toISOString(),
+        };
+        if (this.#allowUnreachable())
+          this.dispatchEvent(
+            new CustomEvent<UncheckedLink>('veilcore-check', { detail, bubbles: true, composed: true }),
+          );
+        return null;
+      }
+      const msg = e instanceof LinkError ? e.message : 'The check could not run. Nothing was checked; try again.';
       this.#out.replaceChildren(el('ul', {}, line('bad', 'Not checked:', msg)));
       this.#out.dataset.state = 'error';
       this.#status.textContent = msg;
+      this.#sync();
       return null;
     } finally {
       if (run === this.#run) this.#button.removeAttribute('aria-disabled');
     }
   }
 
-  #setResult(c: RecordCheck | null): void {
-    this.#result = c;
-    if (!c) {
-      delete this.#input.dataset.checked;
-      this.#out.replaceChildren();
-      this.#out.dataset.state = 'empty';
+  #show(st: State): void {
+    if ('result' in st) {
+      this.#render(st.result);
+      this.#status.textContent = st.result.summary;
+      return;
     }
-    this.#sync();
+    const items = [line('bad', 'Not checked:', st.down)];
+    if (this.#allowUnreachable())
+      items.push(
+        line(
+          'warn',
+          'Sent unchecked:',
+          'this form accepts the link while the registry is not answering. It goes with the form marked as not checked.',
+        ),
+      );
+    else if (this.hasAttribute('required'))
+      items.push(line('info', 'Try again:', 'the form can be sent once the link has been checked.'));
+    this.#out.replaceChildren(el('ul', {}, ...items));
+    this.#out.dataset.state = 'unreachable';
+    this.#status.textContent = st.down;
   }
 
-  /** Form value and validity. */
+  /** Why the form refuses the link now, in plain words. */
+  #why(): string {
+    const v = this.value;
+    if (!v) return 'Paste the VeilCore record’s check link.';
+    const st = this.#current();
+    if (!st) return 'Check the VeilCore record link first.';
+    if ('down' in st)
+      return 'The VeilCore registry did not answer, so the link could not be checked. Try again shortly.';
+    const c = st.result;
+    if (c.linkLooksCut) return CUT;
+    if (!c.recordExists) return 'The registry has no record for this link. Check the link is complete.';
+    if (c.fingerprintMatches !== true)
+      return c.fingerprintMatches === null
+        ? 'This link names no fingerprint. Ask for the check link the site makes (it contains ?fp=).'
+        : 'This link does not lead to a VeilCore record whose fingerprint matches it.';
+    if (c.dated.status === 'proof-fails') return 'The registry’s proof for this record does not check out.';
+    if (c.dated.status === 'not-confirmed') return 'The record’s date stamp was not confirmed on Midnight.';
+    if (c.disclosedFieldsMatch === false || c.keyBound.keyInLink === 'does-not-match')
+      return 'Something in the link does not match the record.';
+    if (c.dated.testNetwork === true)
+      return 'This record is dated on a test network (practice data). This form does not accept it.';
+    return 'This link was not accepted.';
+  }
+
+  /** Form value and validity, from the answer for the link in the box now. */
   #sync(): void {
     const v = this.value;
+    const name = this.getAttribute('name') ?? '';
     const required = this.hasAttribute('required');
-    const ok = acceptable(this.#result);
-    if (this.#fallback) this.#fallback.value = v;
+    const st = this.#current();
+    const ok = this.#ok();
+    const unchecked = !!st && 'down' in st && this.#allowUnreachable();
+    if (this.#fallback) {
+      this.#fallback.value = v;
+      if (unchecked && name && !this.#fallbackUnchecked) {
+        this.#fallbackUnchecked = el('input', {
+          attrs: { type: 'hidden', name: `${name}-unchecked`, value: 'registry-unreachable' },
+        });
+        this.#fallback.after(this.#fallbackUnchecked);
+      } else if (!unchecked && this.#fallbackUnchecked) {
+        this.#fallbackUnchecked.remove();
+        this.#fallbackUnchecked = null;
+      }
+    }
     if (this.#internals) {
-      this.#internals.setFormValue(v);
-      if (required && !ok)
-        this.#internals.setValidity(
-          { customError: true },
-          v
-            ? this.#result
-              ? 'This link does not lead to a VeilCore record whose fingerprint matches it.'
-              : 'Check the VeilCore record link first.'
-            : 'Paste the VeilCore record’s check link.',
-          this.#input,
-        );
+      if (unchecked && name) {
+        const fd = new FormData();
+        fd.append(name, v);
+        fd.append(`${name}-unchecked`, 'registry-unreachable');
+        this.#internals.setFormValue(fd);
+      } else this.#internals.setFormValue(v);
+      if (required && !ok) this.#internals.setValidity({ customError: true }, this.#why(), this.#input);
       else this.#internals.setValidity({});
     }
-    this.#input.setAttribute('aria-invalid', String(!!this.#result && !ok));
+    this.#input.setAttribute('aria-invalid', String(!!st && 'result' in st && !ok));
     if (required) this.#input.setAttribute('aria-required', 'true');
     else this.#input.removeAttribute('aria-required');
+  }
+
+  #receiptLine(r: RecordCheck['labReceipts'][number]): HTMLLIElement {
+    if (r.kind === 'custody-statement') return line('info', 'Not counted:', r.words);
+    if (!r.counts) return line('warn', 'Not counted:', r.words);
+    const cu = r.custody;
+    if (cu && !cu.clean) {
+      if (cu.covered === 'changed') return line('bad', 'Changed after signing:', r.words);
+      if (cu.differences.length) return line('bad', 'Does not match:', r.words);
+      return line('info', 'Receipt:', r.words);
+    }
+    return line('ok', 'Checked:', r.words);
   }
 
   #render(c: RecordCheck): void {
     const items: HTMLLIElement[] = [];
     let heading: string;
     let headKind: 'ok' | 'bad' | 'warn';
-    if (!c.recordExists) {
+    const allowTest = this.#allowTestNetwork();
+    if (c.linkLooksCut) {
+      heading = 'This link looks cut off';
+      headKind = 'bad';
+      items.push(line('bad', 'Not checked:', 'Ask for the whole link.'));
+    } else if (!c.recordExists) {
       heading = 'No record found';
       headKind = 'bad';
       items.push(line('bad', 'Not found:', `The registry has no record ${c.recordId}. Check the link is complete.`));
     } else if (c.fingerprintMatches === false) {
       heading = 'This link does not match the record';
       headKind = 'bad';
-      items.push(line('bad', 'Do not rely on it:', c.summary));
+      items.push(
+        line(
+          'bad',
+          'Do not rely on it:',
+          'the link was made for a different fingerprint than the registry reports for this record. Nothing else was checked. Ask for the record’s current check link.',
+        ),
+      );
     } else {
-      heading = c.fingerprintMatches ? 'Record found, link matches' : 'Record found, link not tied to it';
-      headKind = c.fingerprintMatches ? 'ok' : 'warn';
+      const d = c.dated;
+      if (!c.fingerprintMatches) {
+        heading = 'Record found, link not tied to it';
+        headKind = 'warn';
+      } else if (d.status === 'proof-fails' || d.status === 'not-confirmed') {
+        heading = 'Record found, but its date does not check out';
+        headKind = 'bad';
+      } else if (d.testNetwork && !allowTest) {
+        heading = 'Record found, dated on a test network';
+        headKind = 'warn';
+      } else {
+        heading = 'Record found, link matches';
+        headKind = 'ok';
+      }
       items.push(
         c.fingerprintMatches
           ? line('ok', 'Checked:', 'the link’s fingerprint is the one the registry reports for this record.')
@@ -326,7 +497,6 @@ export class VeilcoreRecordCheck extends HTMLElement {
               'the link names no fingerprint, so the lines below are about the registry’s fingerprint.',
             ),
       );
-      const d = c.dated;
       items.push(
         d.status === 'checked-on-chain'
           ? line(d.testNetwork ? 'warn' : 'ok', 'Checked on Midnight:', d.reason)
@@ -334,13 +504,22 @@ export class VeilcoreRecordCheck extends HTMLElement {
             ? line('info', 'Registry’s word:', `${d.inBatch ? `in batch ${d.batch} (checked here); ` : ''}${d.reason}`)
             : d.status === 'not-confirmed'
               ? line('bad', 'Not confirmed:', d.reason)
-              : line('info', 'Date:', `${d.inBatch ? `in batch ${d.batch} (checked here). ` : ''}${d.reason}`),
+              : d.status === 'proof-fails'
+                ? line('bad', 'Proof does not check out:', d.reason)
+                : line('info', 'Date:', `${d.inBatch ? `in batch ${d.batch} (checked here). ` : ''}${d.reason}`),
       );
       if (d.testNetwork)
-        items.push(line('warn', 'Test network:', 'practice data; its dates carry no evidential weight.'));
+        items.push(
+          line(
+            'warn',
+            'Test network:',
+            allowTest || !this.hasAttribute('required')
+              ? 'practice data; its dates carry no evidential weight.'
+              : 'practice data; its dates carry no evidential weight, so this form does not accept it.',
+          ),
+        );
       const shown = c.labReceipts.slice(0, 5);
-      for (const r of shown)
-        items.push(line(r.counts ? 'ok' : 'warn', r.counts ? 'Checked:' : 'Not counted:', r.words));
+      for (const r of shown) items.push(this.#receiptLine(r));
       if (c.labReceipts.length > shown.length)
         items.push(
           line('info', 'And', `${c.labReceipts.length - shown.length} more signatures (see the full check page).`),
@@ -351,11 +530,12 @@ export class VeilcoreRecordCheck extends HTMLElement {
       if (c.supersededBy)
         items.push(line('warn', 'Replaced:', `the holder has replaced this record with ${c.supersededBy}.`));
     }
-    for (const p of c.problems) items.push(line('warn', 'Note:', p));
+    // The cut-off line already says it all.
+    for (const p of c.problems) if (!(c.linkLooksCut && p === CUT)) items.push(line('warn', 'Note:', p));
 
     const page = (this.getAttribute('check-page') || 'https://veilcore.org').replace(/\/+$/, '');
     const children: Node[] = [el('h3', { className: headKind, text: heading }), el('ul', {}, ...items)];
-    if (c.recordExists && c.fingerprint && /^https:\/\/[^/?#]+$/.test(page)) {
+    if (c.recordExists && c.fingerprint && !c.linkLooksCut && /^https:\/\/[^/?#]+$/.test(page)) {
       // Built from the id and fingerprint, never from the pasted link's host.
       const href = `${page}/verify/${encodeURIComponent(c.recordId)}?fp=${c.fingerprint}`;
       children.push(
@@ -380,13 +560,16 @@ export class VeilcoreRecordCheck extends HTMLElement {
       }),
     );
     this.#out.replaceChildren(...children);
-    this.#out.dataset.state = !c.recordExists
-      ? 'not-found'
-      : c.fingerprintMatches === false
-        ? 'mismatch'
-        : c.fingerprintMatches
-          ? 'matches'
-          : 'unbound';
+    this.#out.dataset.state = c.linkLooksCut
+      ? 'cut'
+      : !c.recordExists
+        ? 'not-found'
+        : c.fingerprintMatches === false
+          ? 'mismatch'
+          : c.fingerprintMatches
+            ? 'matches'
+            : 'unbound';
+    this.#out.dataset.accepted = String(acceptable(c, { allowTestNetwork: allowTest }));
   }
 }
 

@@ -1,4 +1,4 @@
-// EXAMINER-SUMMARY.html for the evidence bundle: one printable page for a lawyer, an
+// EXAMINER-SUMMARY.html for the evidence bundle: a printable summary for a lawyer, an
 // examiner or a court clerk, with the record as sealed, its identifiers, how it was
 // checked, the lab signatures and sample receipts, the Bitcoin stamp, and what it shows
 // and doesn't (docs/evidence-bundle.md, docs/evidence-in-practice.md).
@@ -12,12 +12,19 @@
 
 import { isNumber, isObject, isString } from '../json';
 import type { Evidence, SignatureLine } from './bundle';
-import { anchorLookup, bitcoinSteps, midnightSteps, networkWords, utcWords } from './words';
+import { anchorLookup, bitcoinSteps, midnightSteps, networkWords, oneLine, utcWords } from './words';
 
 export const EXAMINER_FILE = 'EXAMINER-SUMMARY.html';
 
-/** Every character that could start markup or end an attribute, as an entity. */
-export const escapeHtml = (v: unknown): string => String(v).replace(/[&<>"'`]/g, (c) => `&#${c.charCodeAt(0)};`);
+/**
+ * Every character that could start markup or end an attribute, as an entity; and every
+ * control or format character (a direction mark such as U+202E reorders the text after it,
+ * even in HTML) and line or paragraph separator as a space (round 2 of the 15 Oct review).
+ */
+export const escapeHtml = (v: unknown): string =>
+  String(v)
+    .replace(/[\p{Cc}\p{Cf}\u2028\u2029]/gu, ' ')
+    .replace(/[&<>"'`]/g, (c) => `&#${c.charCodeAt(0)};`);
 
 /** The sealed fields in plain words, in the order verify.html shows them. */
 const FIELD_LABELS: [string, string][] = [
@@ -32,9 +39,13 @@ const FIELD_LABELS: [string, string][] = [
   ['photoFingerprints', 'Photos'],
   ['profile', 'Kind of record'],
   ['loggedAt', 'Sealed at (the breeder’s device clock)'],
-  ['keyBinding', 'Names its own key'],
+  ['keyBinding', 'Names a key'],
   ['nonce', 'Random salt (keeps the fingerprint unguessable)'],
 ];
+
+/** What a record that names its key says about it, here and in verify.html (word for word). */
+export const KEY_NAMED =
+  'Yes. The record names a key; the key itself is in this bundle only if the holder included it.';
 
 /** One sealed field as text, as verify.html says it (fieldText there). */
 export const fieldText = (key: string, v: unknown): string => {
@@ -55,7 +66,10 @@ export const fieldText = (key: string, v: unknown): string => {
       : `${v.length} photo${v.length === 1 ? '' : 's'}, sealed by fingerprint: ${v.map(String).join(', ')}`;
   }
   if (key === 'loggedAt' && isNumber(v)) return `${utcWords(v) ?? String(v)} (the breeder’s word only)`;
-  if (key === 'keyBinding' && isString(v)) return `Yes: ${v}`;
+  // The same words as verify.html (its fieldText): the record names a key; whether the key
+  // itself is here depends on the holder (round 2 of the 15 Oct review: "Yes: 4bcad…" read as
+  // the key being in the bundle, beside verify.html saying it wasn't).
+  if (key === 'keyBinding' && isString(v)) return `${KEY_NAMED} Key binding: ${v}`;
   if (isString(v)) return v;
   return JSON.stringify(v);
 };
@@ -114,31 +128,45 @@ const custodyRows = (side: string, d: Readonly<Record<string, unknown>>): [strin
       k === 'sealIntact' ? (SEAL_WORDS[String(d[k])] ?? String(d[k])) : String(d[k]),
     ]);
 
-/** The sample receipts' details, when the bundle has them (Evidence.custody). */
+/** Whether the receipt's signature covers a delivery's details, in the summary's words. */
+export const coveredWords = (c: {
+  covered: string;
+  received?: boolean;
+  receiptAttestationId: string | null;
+}): string =>
+  c.received === false
+    ? 'No: the lab code was never used'
+    : c.covered === 'covered'
+      ? 'Yes: the receipt’s signature covers these details. Checked in the holder’s browser when the bundle was made; verify.html, in this folder, rechecks it offline.'
+      : c.covered === 'changed'
+        ? 'No: the lab changed its arrival details after signing. verify.html, in this folder, rechecks this offline.'
+        : c.covered === 'unsigned'
+          ? c.receiptAttestationId
+            ? 'No: the receipt’s signature in this bundle doesn’t check, or its signer withdrew it'
+            : 'No: no receipt was signed for this delivery'
+          : 'No: the receipt was signed before receipts covered sample details. verify.html, in this folder, rechecks this offline.';
+
+/** The deliveries and what was written about each sample, when the bundle has them (Evidence.custody). */
 const custodySection = (ev: Evidence): string => {
   const items = ev.custody ?? [];
   if (!items.length) return '';
-  const out: string[] = ['<h3>Sample receipts: what was written about the sample</h3>'];
+  const out: string[] = ['<h3>Deliveries and sample receipts: what was written about the sample</h3>'];
   for (const c of items) {
+    const covered = c.covered === 'covered';
+    const anything = Object.keys(c.sample).length > 0 || Object.keys(c.arrival).length > 0;
     const rows: [string, string | null][] = [
       ['Delivery', c.transferId],
+      ['Lab code used', c.received === undefined ? null : c.received ? 'Yes' : 'No: nobody used it'],
       ['Receipt signature', c.receiptAttestationId ?? '(no receipt signed)'],
-      [
-        'Covered by the lab’s signature',
-        c.covered === 'covered'
-          ? 'Yes: the receipt’s signature covers these details (checked in the holder’s browser)'
-          : c.covered === 'changed'
-            ? 'No: the lab changed its arrival details after signing'
-            : c.covered === 'unsigned'
-              ? 'No: no receipt signature that checks is in this bundle'
-              : 'No: the receipt doesn’t cover the sample details',
-      ],
+      ['Covered by the lab’s signature', coveredWords(c)],
+      ['Sample details', anything ? null : 'None written'],
       ...custodyRows('Sent', c.sample),
-      ...custodyRows('Received', c.arrival),
+      // What the lab wrote, labelled as not covered unless the signature covers it.
+      ...custodyRows(covered ? 'Received' : 'Received (not covered by the lab’s signature)', c.arrival),
     ];
     out.push(`<div class="custody" data-custody="${escapeHtml(c.covered)}">${table(rows)}</div>`);
     if (c.differences.length) out.push(list(c.differences));
-    else if (c.covered === 'covered') {
+    else if (covered) {
       const matched = [
         c.sample.sampleId && c.arrival.sampleId ? 'Sample ID' : null,
         c.sample.sealNumber && c.arrival.sealNumber ? 'seal number' : null,
@@ -161,7 +189,7 @@ const custodySection = (ev: Evidence): string => {
  */
 export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[], hasOts: boolean): string => {
   const fields = ev.record.sealedFields;
-  const name = isString(fields.strainName) && fields.strainName ? fields.strainName : ev.record.id;
+  const name = isString(fields.strainName) && fields.strainName ? oneLine(fields.strainName) : ev.record.id;
   const anchor = ev.batch?.anchor ?? null;
   const tx = anchor && isString(anchor.txHash) ? anchor.txHash : null;
   const test = anchor ? anchor.network !== 'mainnet' : true;
@@ -262,7 +290,12 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
       ['What was signed', `${s.what ?? s.type ?? ''}${s.savedReport ? ' (the lab report saved to this plant)' : ''}`],
       ['Signing key', s.publicKey ?? null],
       ['Name it gives itself', s.displayName ? `${s.displayName} (not checked)` : null],
-      ['Document SHA-256', s.documentHash ?? null],
+      [
+        s.type === 'chain-of-custody'
+          ? 'Signed fingerprint (the lab’s record of the delivery, not the sample)'
+          : 'Document SHA-256',
+        s.documentHash ?? null,
+      ],
       ['Signed at', s.issuedAt ? `${s.issuedAt} (the signer’s own clock)` : null],
       ['Signature ID', s.attestationId ?? null],
       [
@@ -280,7 +313,10 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     'The sealed fields above are exactly what was fingerprinted: any change to them, even one character, gives a different fingerprint.',
   ];
   if (ev.key) shows.push('The record named this key when it was sealed, so the key can’t have been swapped since.');
-  if (okSigs) shows.push('Each signature that checks was made with the key shown, over the document SHA-256 shown.');
+  if (okSigs)
+    shows.push(
+      'Each signature that checks was made with the key shown, over the SHA-256 shown. For a receipt, that is the fingerprint of the lab’s own record of the delivery, not of the sample.',
+    );
   const doesNot: string[] = [
     'That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.',
     'Who holds the plant or the record now.',

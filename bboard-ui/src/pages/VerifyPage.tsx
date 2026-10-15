@@ -55,7 +55,7 @@ import { useAnchorCheck } from '../components/verify/useAnchorCheck';
 import { VerifierChallengePanel } from '../components/chain/VerifierChallengePanel';
 import { useRecords } from '../veilcore/records';
 import { useBreederReceipt } from '../components/flow/LabResults';
-import { custodyLines } from '../veilcore/custody';
+import { custodyLines, publicCustodyLines, publicCustodyOf } from '../veilcore/custody';
 import { NameCheckText } from '../components/NameCheckText';
 
 const API = import.meta.env.VITE_API_BASE ?? '';
@@ -117,6 +117,11 @@ type VerifyResult = {
   dnaPairingFingerprint?: string | null;
   /** The saved lab report file's SHA-256, as it is now, when the record keeps it (round 6). */
   dnaFileSha256?: string | null;
+  /**
+   * Per lab receipt linked to the holder's deliveries, under the same grant: whether it covers
+   * the sample details and where they differ (custody.ts publicCustodyOf). Never the details.
+   */
+  custody?: unknown;
 };
 
 /**
@@ -290,6 +295,9 @@ export const VerifyPage: React.FC = () => {
         ? result.anchor.network
         : undefined;
   const signed = (atts ?? []).filter(countsAsSigned);
+  // Round 2 of the 15 Oct review: the check page used to drop a seal mismatch the breeder's
+  // own page showed. The registry's report of each receipt's sample details, by receipt.
+  const publicCustody = publicCustodyOf(result?.custody);
   // Round 5: what each signature is, said on its own line and counted the same way in the
   // footer: a lab's receipt, a lab report, or some other signed statement.
   const withdrawnLine = withdrawnSignaturesLine(atts ?? []);
@@ -569,6 +577,20 @@ export const VerifyPage: React.FC = () => {
                         <NameCheckText label={label} />
                         {!label.checked &&
                           ' Anyone can register a key under any name, so the name doesn’t show who signed.'}
+                        {a.type === 'chain-of-custody' &&
+                          !(own && receipt?.kind === 'signed' && receipt.by.attestationId === a.attestationId) &&
+                          publicCustody.has(a.attestationId) && (
+                            <Box component="span" sx={{ display: 'block', mt: 0.5 }} data-public-custody="">
+                              <Box component="span" sx={{ display: 'block', color: 'text.secondary' }}>
+                                Sample details, as the registry reports them:
+                              </Box>
+                              {publicCustodyLines(publicCustody.get(a.attestationId)).map((l) => (
+                                <Box component="span" key={l} sx={{ display: 'block' }} data-custody-line="">
+                                  {l}
+                                </Box>
+                              ))}
+                            </Box>
+                          )}
                       </Fact>
                     );
                   })}

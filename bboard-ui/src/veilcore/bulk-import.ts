@@ -23,8 +23,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { sha256 } from '@noble/hashes/sha2.js';
-import { strFromU8, unzipSync } from 'fflate';
+import { inflateSync, strFromU8, unzipSync } from 'fflate';
 import { allRecords, createRecords, type ParentRef, type StrainRecord } from './records';
+import { loadLedger, saveLedger, type Ledger } from './bulk-import-ledger';
 import { forgetKeys, keysFor } from './record-keys';
 import { sealRecord } from './seal-record';
 import type { SaveRefusal } from './store';
@@ -36,6 +37,10 @@ import { verifyPath } from './verify-link';
 export const MAX_ROWS = 500;
 /** The largest file read. A 500-row log is far smaller, even as .xlsx. */
 export const MAX_FILE_BYTES = 5 * 1024 * 1024;
+/** Columns read from a file. An accession log has a few dozen at most. */
+export const MAX_COLUMNS = 100;
+/** Lines of a CSV read before stopping: far more than MAX_ROWS, so a file over it is still named as one. */
+const MAX_CSV_LINES = 20_000;
 /** The registry hands back at most 1,000 records in one read (server.js WHOLE_SET.max). */
 export const MAX_SET = 1000;
 /** Per field, as the logging flow keeps them (log-flow-state.ts parseDraft). */
@@ -65,6 +70,14 @@ export type Sheet = {
   /** The CSV's separator; a comma for .xlsx. The results file uses the same one. */
   readonly delimiter: string;
   readonly warnings: string[];
+  /** The row the column names were taken from (as the spreadsheet numbers it); 0 for an empty file. */
+  readonly headerLine: number;
+  /** Every row with anything in it, the column names' row and anything above it included. */
+  readonly raw: SheetRow[];
+  /** What reading the file itself said, kept apart so picking another header row doesn't repeat it. */
+  readonly fileWarnings: string[];
+  /** Set when reading stopped early because the file has far more rows than an import takes. */
+  readonly moreRows?: boolean;
 };
 
 /** Bytes to text: UTF-8 (BOM dropped), UTF-16 with a BOM, else Windows-1252 (Excel's "CSV" on Windows). */
@@ -96,14 +109,18 @@ const detectDelimiter = (text: string): string => {
 /**
  * CSV to rows. Quoted cells may hold the separator, line breaks and doubled quotes; lines
  * end in CRLF, LF or CR; the separator is a comma, semicolon or tab (Excel in much of
- * Europe writes semicolons), or what an Excel "sep=" first line names.
+ * Europe writes semicolons), or what an Excel "sep=" first line names: a comma, semicolon,
+ * tab or bar only. Any other "sep=" (an "=" or a quote would turn the results file's lines
+ * into formulas) is dropped and the separator found as usual.
  */
-export const parseCsv = (input: string): { rows: string[][]; delimiter: string; warnings: string[] } => {
+export const parseCsv = (
+  input: string,
+): { rows: string[][]; delimiter: string; warnings: string[]; moreRows?: boolean } => {
   let text = input.replace(/^\uFEFF/, '');
   let delimiter: string | undefined;
   const sep = /^sep=(.)\r?\n/i.exec(text);
   if (sep) {
-    delimiter = sep[1];
+    if ([',', ';', '\t', '|'].includes(sep[1])) delimiter = sep[1];
     text = text.slice(sep[0].length);
   }
   delimiter ??= detectDelimiter(text);
@@ -153,6 +170,7 @@ export const parseCsv = (input: string): { rows: string[][]; delimiter: string; 
       rows.push(row);
       row = [];
       i += c === '\r' && text[i + 1] === '\n' ? 2 : 1;
+      if (rows.length >= MAX_CSV_LINES && i < text.length) return { rows, delimiter, warnings, moreRows: true };
       continue;
     }
     // Text after a closing quote ("abc" def) is kept, as Excel does.
@@ -179,36 +197,93 @@ const columnName = (i: number): string => {
   return s;
 };
 
-/** Rows to a sheet: the first row with anything in it is the header; empty rows are dropped. */
+const isFilled = (cells: string[]) => cells.some((c) => c.trim() !== '');
+const filledCount = (cells: string[]) => cells.reduce((n, c) => (c.trim() ? n + 1 : n), 0);
+
+/** How far down a file the column names are looked for. */
+export const HEADER_SCAN = 20;
+
+/**
+ * A cell that reads like a column name this page knows ("Cultivar / Line", "Acc. #",
+ * "Date"). Not one with a number in it: "Plant 7" and "ID-0042" are values ("Parent 1"
+ * and "Parent 2" excepted).
+ */
+const knownColumnName = (v: string): boolean => {
+  const t = v.trim();
+  return (
+    t !== '' &&
+    t.length <= 60 &&
+    !/\d/.test(t.replace(/parent\s*[12]\b/gi, '')) &&
+    GUESSES.some(([, re]) => re.test(words(t)))
+  );
+};
+
+/**
+ * Which of the first rows holds the column names. A spreadsheet often starts with a title
+ * ("Green Valley Lab — Accession Register", often merged across the columns, so one cell),
+ * a date or a blank row, and the names come after. The pick: the first row that is about as
+ * wide as the table and has at least two names this page knows; else the first row that is
+ * about as wide as the table; else the first row. `rows` are the filled rows, in order.
+ */
+export const detectHeaderRow = (rows: readonly SheetRow[]): number => {
+  const top = rows.slice(0, HEADER_SCAN);
+  if (top.length === 0) return 0;
+  const widest = Math.max(...top.map((r) => filledCount(r.cells)));
+  const wide = widest <= 1 ? 1 : Math.max(2, Math.ceil(widest / 2));
+  const named = top.findIndex((r) => filledCount(r.cells) >= wide && r.cells.filter(knownColumnName).length >= 2);
+  if (named >= 0) return named;
+  const first = top.findIndex((r) => filledCount(r.cells) >= wide);
+  return first >= 0 ? first : 0;
+};
+
+/**
+ * Rows to a sheet. The column names come from `headerLine` when given (the row the person
+ * picked), else from detectHeaderRow; rows above them are left out, and so are empty rows.
+ */
 export const toSheet = (
   raw: { line: number; cells: string[] }[],
   kind: Sheet['kind'],
   delimiter: string,
   warnings: string[] = [],
+  opts: { headerLine?: number; moreRows?: boolean } = {},
 ): Sheet => {
-  const filled = (cells: string[]) => cells.some((c) => c.trim() !== '');
-  const headerAt = raw.findIndex((r) => filled(r.cells));
-  if (headerAt < 0) return { kind, headers: [], rows: [], delimiter, warnings };
-  const body = raw.slice(headerAt + 1).filter((r) => filled(r.cells));
+  const filledRows = raw.filter((r) => isFilled(r.cells));
+  const base = { kind, delimiter, raw: filledRows, fileWarnings: warnings, moreRows: opts.moreRows || undefined };
+  if (filledRows.length === 0) return { ...base, headers: [], rows: [], warnings, headerLine: 0 };
+  const picked = opts.headerLine === undefined ? -1 : filledRows.findIndex((r) => r.line === opts.headerLine);
+  const headerAt = picked >= 0 ? picked : detectHeaderRow(filledRows);
+  const header = filledRows[headerAt];
+  const body = filledRows.slice(headerAt + 1);
   const lastFilled = (cells: string[]) => {
     let n = cells.length;
     while (n > 0 && cells[n - 1].trim() === '') n--;
     return n;
   };
-  const width = Math.max(lastFilled(raw[headerAt].cells), ...body.map((r) => lastFilled(r.cells)));
+  const fullWidth = body.reduce((w, r) => Math.max(w, lastFilled(r.cells)), lastFilled(header.cells));
+  const width = Math.min(fullWidth, MAX_COLUMNS);
   const seen = new Map<string, number>();
   const headers = Array.from({ length: width }, (_, i) => {
-    const base = (raw[headerAt].cells[i] ?? '').replace(/\s+/g, ' ').trim() || `Column ${columnName(i)}`;
-    const n = (seen.get(base.toLowerCase()) ?? 0) + 1;
-    seen.set(base.toLowerCase(), n);
-    return n === 1 ? base : `${base} (${n})`;
+    const name = (header.cells[i] ?? '').replace(/\s+/g, ' ').trim() || `Column ${columnName(i)}`;
+    const n = (seen.get(name.toLowerCase()) ?? 0) + 1;
+    seen.set(name.toLowerCase(), n);
+    return n === 1 ? name : `${name} (${n})`;
   });
   const rows = body.map((r) => ({
     line: r.line,
     cells: Array.from({ length: width }, (_, i) => r.cells[i] ?? ''),
   }));
-  return { kind, headers, rows, delimiter, warnings };
+  const own =
+    fullWidth > MAX_COLUMNS
+      ? [
+          `Only the first ${MAX_COLUMNS} columns are read. The columns after ${columnName(MAX_COLUMNS - 1)} are left out.`,
+        ]
+      : [];
+  return { ...base, headers, rows, warnings: [...warnings, ...own], headerLine: header.line };
 };
+
+/** The same file with its column names taken from another row (the "Which row" step). */
+export const withHeaderRow = (sheet: Sheet, line: number): Sheet =>
+  toSheet(sheet.raw, sheet.kind, sheet.delimiter, sheet.fileWarnings, { headerLine: line, moreRows: sheet.moreRows });
 
 // ── .xlsx ──────────────────────────────────────────────────────────────────────────────
 // An .xlsx file is a zip of XML files. Only what a table of text needs is read: the
@@ -237,26 +312,127 @@ export const unescapeXml = (s: string): string =>
     )
     .replace(/_x([0-9a-f]{4})_/gi, (_, h: string) => fromCodePoint(parseInt(h, 16)));
 
+// The XML is read by hand, in one pass, not with regular expressions: a lazy "anything up
+// to </row>" pattern goes back over the rest of the file for every <row> that is never
+// closed, and a 1.4 KB .xlsx of unclosed tags froze the tab (round 2). Every scan below
+// moves forward only.
+
+const isSpace = (c: string) => c === ' ' || c === '\t' || c === '\n' || c === '\r';
+const isNameChar = (c: string) => /[\w:.-]/.test(c);
+/** Attributes read from one tag; more than this is no spreadsheet's. */
+const MAX_ATTRS = 64;
+
+/** A tag's attributes: name="value" or name='value'. */
 const attrsOf = (s: string): Record<string, string> => {
   const out: Record<string, string> = {};
-  for (const m of s.matchAll(/([\w:.-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)) out[m[1]] = unescapeXml(m[2] ?? m[3] ?? '');
+  let n = 0;
+  let i = 0;
+  while (i < s.length && n < MAX_ATTRS) {
+    while (i < s.length && !isNameChar(s[i])) i++;
+    const from = i;
+    while (i < s.length && isNameChar(s[i])) i++;
+    const name = s.slice(from, i);
+    while (i < s.length && isSpace(s[i])) i++;
+    if (s[i] !== '=') continue;
+    i++;
+    while (i < s.length && isSpace(s[i])) i++;
+    const q = s[i];
+    if (q !== '"' && q !== "'") continue;
+    const end = s.indexOf(q, i + 1);
+    if (end < 0) break;
+    if (name) {
+      out[name] = unescapeXml(s.slice(i + 1, end));
+      n++;
+    }
+    i = end + 1;
+  }
   return out;
 };
 
-/** Elements named `tag` (with or without a namespace prefix): their attributes and inner XML. */
-const elements = (xml: string, tag: string): { attrs: Record<string, string>; inner: string }[] => {
-  const re = new RegExp(`<(?:[\\w-]+:)?${tag}\\b([^>]*?)(?:/>|>([\\s\\S]*?)</(?:[\\w-]+:)?${tag}>)`, 'g');
-  return [...xml.matchAll(re)].map((m) => ({ attrs: attrsOf(m[1]), inner: m[2] ?? '' }));
+type Element = {
+  readonly attrs: Record<string, string>;
+  readonly inner: string;
+  readonly start: number;
+  readonly end: number;
+};
+
+/**
+ * Elements named `tag` (with or without a namespace prefix), in order: attributes, inner
+ * XML, and where each starts and ends. Linear in the length of `xml`: once one element is
+ * never closed, no later one can be (its closing tag would have been found), so the search
+ * for closing tags stops there; and a tag never ended (no ">") ends the scan.
+ */
+function* scanElements(xml: string, tag: string): Generator<Element> {
+  const open = new RegExp(`<(?:([\\w-]+):)?${tag}(?=[\\s/>])`, 'g');
+  let unclosed = false;
+  for (let m = open.exec(xml); m; m = open.exec(xml)) {
+    // The end of the opening tag, outside quoted values.
+    let i = m.index + m[0].length;
+    let quote = '';
+    for (; i < xml.length; i++) {
+      const c = xml[i];
+      if (quote) {
+        if (c === quote) quote = '';
+      } else if (c === '"' || c === "'") quote = c;
+      else if (c === '>') break;
+    }
+    if (i >= xml.length) return;
+    const selfClosing = xml[i - 1] === '/';
+    const attrText = xml.slice(m.index + m[0].length, selfClosing ? i - 1 : i);
+    open.lastIndex = i + 1;
+    if (selfClosing) {
+      yield { attrs: attrsOf(attrText), inner: '', start: m.index, end: i + 1 };
+      continue;
+    }
+    if (unclosed) continue;
+    const close = `</${m[1] ? `${m[1]}:` : ''}${tag}`;
+    let from = i + 1;
+    let at = -1;
+    let after = -1;
+    while (at < 0) {
+      const k = xml.indexOf(close, from);
+      if (k < 0) break;
+      let p = k + close.length;
+      while (p < xml.length && isSpace(xml[p])) p++;
+      if (xml[p] === '>') {
+        at = k;
+        after = p + 1;
+      } else from = k + close.length;
+    }
+    if (at < 0) {
+      unclosed = true;
+      continue;
+    }
+    open.lastIndex = after;
+    yield { attrs: attrsOf(attrText), inner: xml.slice(i + 1, at), start: m.index, end: after };
+  }
+}
+
+const elements = (xml: string, tag: string, limit = Infinity): Element[] => {
+  const out: Element[] = [];
+  if (limit <= 0) return out;
+  for (const e of scanElements(xml, tag)) {
+    out.push(e);
+    if (out.length >= limit) break;
+  }
+  return out;
+};
+
+/** `xml` with every element named `tag` taken out. */
+const without = (xml: string, tag: string): string => {
+  let out = '';
+  let at = 0;
+  for (const e of scanElements(xml, tag)) {
+    out += xml.slice(at, e.start);
+    at = e.end;
+  }
+  return out + xml.slice(at);
 };
 
 /** The text of a string item: every <t>, phonetic guides (<rPh>) left out. */
 const textOf = (inner: string): string =>
-  [
-    ...inner
-      .replace(/<(?:[\w-]+:)?rPh\b[\s\S]*?<\/(?:[\w-]+:)?rPh>/g, '')
-      .matchAll(/<(?:[\w-]+:)?t(?:\s[^>]*)?>([\s\S]*?)<\/(?:[\w-]+:)?t>/g),
-  ]
-    .map((m) => unescapeXml(m[1]))
+  elements(inner.includes('rPh') ? without(inner, 'rPh') : inner, 't')
+    .map((t) => unescapeXml(t.inner))
     .join('');
 
 /** Excel's built-in date formats (not the time-only ones). */
@@ -299,19 +475,77 @@ const cellColumn = (ref: string | undefined): number | undefined => {
 };
 
 /** The largest single file inside an .xlsx that is unpacked (a zip can claim any size). */
-const MAX_XML_BYTES = 40 * 1024 * 1024;
+const MAX_XML_BYTES = 20 * 1024 * 1024;
+/** Rows with anything in them read from a sheet: room for a title and the column names over MAX_ROWS. */
+const MAX_XLSX_ROWS = MAX_ROWS + HEADER_SCAN;
+/** Rows and cells looked at in one sheet, filled or not, before it is called too large. */
+const MAX_XLSX_TAGS = 1_000_000;
+/** Shared strings read from a workbook. */
+const MAX_SHARED_STRINGS = 500_000;
 
-/** The first sheet of an .xlsx, as rows of text. */
-export const parseXlsx = (bytes: Uint8Array): { line: number; cells: string[] }[] => {
-  const wanted = (name: string) =>
-    name === 'xl/workbook.xml' ||
-    name === 'xl/_rels/workbook.xml.rels' ||
-    name === 'xl/sharedStrings.xml' ||
-    name === 'xl/styles.xml' ||
-    /^xl\/worksheets\/[^/]+\.xml$/.test(name);
-  let files: Record<string, Uint8Array>;
+const NOT_XLSX = "That file couldn't be opened as an Excel (.xlsx) file. Save it as .xlsx or CSV and try again.";
+const TOO_LARGE = 'That spreadsheet is too large to read here. Save it with fewer rows and try again.';
+const CUT_SHORT =
+  'Part of this file is damaged or cut short, so only the first part of the sheet was read. Open it in Excel, save it again, and pick the new file.';
+
+const u16 = (b: Uint8Array, i: number) => b[i] | (b[i + 1] << 8);
+const u32 = (b: Uint8Array, i: number) => (b[i] | (b[i + 1] << 8) | (b[i + 2] << 16) | (b[i + 3] << 24)) >>> 0;
+
+/**
+ * The files `wanted` from a zip, read through its central directory. Each is unpacked into
+ * room for one byte more than the size the zip states: a zip can state any size, and fflate
+ * stops quietly where the room ends, so a file that fills that extra byte was longer than
+ * stated. It is kept cut at the stated size and named in `cut`. A ZIP64 file (sizes over
+ * 4 GB, which no spreadsheet has) goes through fflate's own reader, still with the size cap.
+ */
+const unzipWanted = (
+  bytes: Uint8Array,
+  wanted: (name: string) => boolean,
+): { files: Record<string, Uint8Array>; cut: string[] } => {
+  let e = bytes.length - 22;
+  const stop = Math.max(0, bytes.length - 22 - 0xffff);
+  while (e >= stop && u32(bytes, e) !== 0x06054b50) e--;
+  if (e < stop) throw new Error(NOT_XLSX);
+  const files: Record<string, Uint8Array> = {};
+  const cut: string[] = [];
+  let at = u32(bytes, e + 16);
+  for (let n = u16(bytes, e + 10); n > 0; n--) {
+    if (at + 46 > bytes.length || u32(bytes, at) !== 0x02014b50) throw new Error(NOT_XLSX);
+    const method = u16(bytes, at + 10);
+    const packed = u32(bytes, at + 20);
+    const size = u32(bytes, at + 24);
+    const nameLength = u16(bytes, at + 28);
+    const local = u32(bytes, at + 42);
+    const name = strFromU8(bytes.subarray(at + 46, at + 46 + nameLength), true);
+    at += 46 + nameLength + u16(bytes, at + 30) + u16(bytes, at + 32);
+    if (!wanted(name)) continue;
+    if (packed === 0xffffffff || size === 0xffffffff || local === 0xffffffff)
+      return { files: unzipFallback(bytes, wanted), cut: [] };
+    if (size > MAX_XML_BYTES) throw new Error(TOO_LARGE);
+    if (local + 30 > bytes.length || u32(bytes, local) !== 0x04034b50) throw new Error(NOT_XLSX);
+    const from = local + 30 + u16(bytes, local + 26) + u16(bytes, local + 28);
+    const data = bytes.subarray(from, Math.min(bytes.length, from + packed));
+    let out: Uint8Array;
+    if (method === 0) out = data.slice(0, size + 1);
+    else if (method === 8) {
+      try {
+        out = inflateSync(data, { out: new Uint8Array(size + 1) });
+      } catch {
+        throw new Error(NOT_XLSX);
+      }
+    } else throw new Error(NOT_XLSX);
+    if (out.length > size) {
+      cut.push(name);
+      out = out.subarray(0, size);
+    }
+    files[name] = out;
+  }
+  return { files, cut };
+};
+
+const unzipFallback = (bytes: Uint8Array, wanted: (name: string) => boolean): Record<string, Uint8Array> => {
   try {
-    files = unzipSync(bytes, {
+    return unzipSync(bytes, {
       filter: (f) => {
         if (!wanted(f.name)) return false;
         if (f.originalSize > MAX_XML_BYTES) throw new Error('too large');
@@ -319,23 +553,52 @@ export const parseXlsx = (bytes: Uint8Array): { line: number; cells: string[] }[
       },
     });
   } catch (e) {
-    throw new Error(
-      (e as Error).message === 'too large'
-        ? 'That spreadsheet is too large to read here. Save it with fewer rows and try again.'
-        : "That file couldn't be opened as an Excel (.xlsx) file. Save it as .xlsx or CSV and try again.",
-    );
+    throw new Error((e as Error).message === 'too large' ? TOO_LARGE : NOT_XLSX);
   }
+};
+
+export type XlsxRead = {
+  readonly rows: SheetRow[];
+  readonly warnings: string[];
+  /** Reading stopped at MAX_XLSX_ROWS filled rows: the sheet has more. */
+  readonly moreRows: boolean;
+};
+
+/**
+ * The first sheet of an .xlsx, as rows of text: the filled rows only, at most
+ * MAX_XLSX_ROWS of them and MAX_COLUMNS columns.
+ */
+export const readXlsx = (bytes: Uint8Array): XlsxRead => {
+  const wanted = (name: string) =>
+    name === 'xl/workbook.xml' ||
+    name === 'xl/_rels/workbook.xml.rels' ||
+    name === 'xl/sharedStrings.xml' ||
+    name === 'xl/styles.xml' ||
+    /^xl\/worksheets\/[^/]+\.xml$/.test(name);
+  let unzipped: { files: Record<string, Uint8Array>; cut: string[] };
+  try {
+    unzipped = unzipWanted(bytes, wanted);
+  } catch (e) {
+    throw new Error((e as Error).message === TOO_LARGE ? TOO_LARGE : NOT_XLSX);
+  }
+  const { files } = unzipped;
+  const warnings = unzipped.cut.length ? [CUT_SHORT] : [];
   const text = (name: string) => (files[name] ? strFromU8(files[name]) : '');
   const workbook = text('xl/workbook.xml');
-  if (!workbook)
-    throw new Error("That file couldn't be opened as an Excel (.xlsx) file. Save it as .xlsx or CSV and try again.");
-  const date1904 = /<(?:[\w-]+:)?workbookPr\b[^>]*\bdate1904\s*=\s*["'](1|true)["']/i.test(workbook);
+  if (!workbook) throw new Error(NOT_XLSX);
+  const date1904 = /^(1|true)$/i.test(elements(workbook, 'workbookPr', 1)[0]?.attrs.date1904 ?? '');
 
   // The first sheet in the workbook's own order, through its relationship.
-  const firstSheet = elements(workbook, 'sheet')[0];
+  const firstSheet = elements(workbook, 'sheet', 1)[0];
   const rid =
     firstSheet && (firstSheet.attrs['r:id'] ?? Object.entries(firstSheet.attrs).find(([k]) => /:id$/.test(k))?.[1]);
-  const rel = elements(text('xl/_rels/workbook.xml.rels'), 'Relationship').find((r) => r.attrs.Id === rid);
+  let rel: Element | undefined;
+  for (const r of scanElements(text('xl/_rels/workbook.xml.rels'), 'Relationship')) {
+    if (r.attrs.Id === rid) {
+      rel = r;
+      break;
+    }
+  }
   let sheetPath: string | undefined;
   if (rel?.attrs.Target) {
     const t = rel.attrs.Target.replace(/\\/g, '/');
@@ -348,31 +611,39 @@ export const parseXlsx = (bytes: Uint8Array): { line: number; cells: string[] }[
   }
   if (!sheetPath) throw new Error('That spreadsheet has no sheet in it.');
 
-  const shared = elements(text('xl/sharedStrings.xml'), 'si').map((si) => textOf(si.inner));
+  const shared = elements(text('xl/sharedStrings.xml'), 'si', MAX_SHARED_STRINGS + 1).map((si) => textOf(si.inner));
+  if (shared.length > MAX_SHARED_STRINGS) throw new Error(TOO_LARGE);
 
   // Which cell styles are dates.
   const styles = text('xl/styles.xml');
   const customFormats = new Map(
-    elements(styles, 'numFmt').map((f) => [Number(f.attrs.numFmtId), f.attrs.formatCode] as const),
+    elements(styles, 'numFmt', 10_000).map((f) => [Number(f.attrs.numFmtId), f.attrs.formatCode] as const),
   );
-  const cellXfs = elements(styles, 'cellXfs')[0]?.inner ?? '';
-  const dateStyles = elements(cellXfs, 'xf').map((xf) => {
+  const cellXfs = elements(styles, 'cellXfs', 1)[0]?.inner ?? '';
+  const dateStyles = elements(cellXfs, 'xf', 100_000).map((xf) => {
     const id = Number(xf.attrs.numFmtId ?? 0);
     return isDateFormat(id, customFormats.get(id));
   });
 
-  const out: { line: number; cells: string[] }[] = [];
+  const rows: SheetRow[] = [];
+  let tags = 0;
   let nextRow = 1;
-  for (const row of elements(text(sheetPath), 'row')) {
+  for (const row of scanElements(text(sheetPath), 'row')) {
+    if (++tags > MAX_XLSX_TAGS) throw new Error(TOO_LARGE);
     const line = Number(row.attrs.r) || nextRow;
     nextRow = line + 1;
     const cells: string[] = [];
     let nextCol = 0;
-    for (const c of elements(row.inner, 'c')) {
+    for (const c of scanElements(row.inner, 'c')) {
+      if (++tags > MAX_XLSX_TAGS) throw new Error(TOO_LARGE);
       const col = cellColumn(c.attrs.r) ?? nextCol;
       nextCol = col + 1;
-      if (col > 16_383) continue;
-      const v = /<(?:[\w-]+:)?v(?:\s[^>]*)?>([\s\S]*?)<\/(?:[\w-]+:)?v>/.exec(c.inner)?.[1];
+      // Past the columns read (cells run left to right, so the rest of the row is too).
+      if (col >= MAX_COLUMNS) {
+        if (c.attrs.r !== undefined) break;
+        continue;
+      }
+      const v = elements(c.inner, 'v', 1)[0]?.inner;
       const raw = v === undefined ? undefined : unescapeXml(v);
       let value = '';
       switch (c.attrs.t) {
@@ -380,7 +651,7 @@ export const parseXlsx = (bytes: Uint8Array): { line: number; cells: string[] }[
           value = shared[Number(raw)] ?? '';
           break;
         case 'inlineStr':
-          value = textOf(elements(c.inner, 'is')[0]?.inner ?? '');
+          value = textOf(elements(c.inner, 'is', 1)[0]?.inner ?? '');
           break;
         case 'b':
           value = raw === undefined ? '' : raw === '1' ? 'TRUE' : 'FALSE';
@@ -402,10 +673,15 @@ export const parseXlsx = (bytes: Uint8Array): { line: number; cells: string[] }[
       while (cells.length < col) cells.push('');
       cells[col] = value;
     }
-    out.push({ line, cells });
+    if (!isFilled(cells)) continue;
+    if (rows.length >= MAX_XLSX_ROWS) return { rows, warnings, moreRows: true };
+    rows.push({ line, cells });
   }
-  return out;
+  return { rows, warnings, moreRows: false };
 };
+
+/** The first sheet of an .xlsx, as its filled rows of text. */
+export const parseXlsx = (bytes: Uint8Array): SheetRow[] => readXlsx(bytes).rows;
 
 const isXlsx = (name: string, bytes: Uint8Array) =>
   /\.xlsx$/i.test(name) || (bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04);
@@ -421,15 +697,23 @@ export const readSheet = async (file: Pick<File, 'name' | 'size' | 'arrayBuffer'
     throw new Error('That kind of spreadsheet isn’t read here. Save it as Excel (.xlsx) or CSV and pick that.');
   }
   const bytes = new Uint8Array(await file.arrayBuffer());
-  if (isXlsx(file.name, bytes)) return toSheet(parseXlsx(bytes), 'xlsx', ',');
-  const { rows, delimiter, warnings } = parseCsv(decodeText(bytes));
+  if (isXlsx(file.name, bytes)) {
+    const x = readXlsx(bytes);
+    return toSheet(x.rows, 'xlsx', ',', x.warnings, { moreRows: x.moreRows });
+  }
+  const { rows, delimiter, warnings, moreRows } = parseCsv(decodeText(bytes));
   return toSheet(
     rows.map((cells, i) => ({ line: i + 1, cells })),
     'csv',
     delimiter,
     warnings,
+    { moreRows },
   );
 };
+
+/** What to say about a file with more rows than one import takes. */
+export const tooManyRows = (sheet: Pick<Sheet, 'rows' | 'moreRows'>): string =>
+  `This file has ${sheet.moreRows ? `more than ${MAX_ROWS}` : sheet.rows.length} rows. Import up to ${MAX_ROWS} at a time: split the file and import the rest after.`;
 
 // ── Which column is which ──────────────────────────────────────────────────────────────
 
@@ -501,12 +785,21 @@ const GUESSES: [FieldKey, RegExp][] = [
   ['strainName', / (cultivar|variety|strain|plant|line|genotype|clone|selection|accession name|label) /],
 ];
 
+const MOTHER = / (mother|female|dam|maternal|seed parent|parent 1|parent1) /;
+const FATHER = / (father|male|pollen|sire|paternal|pollen parent|parent 2|parent2) /;
+
 /** Guess which column is which from the header names. Each column is used once. */
 export const guessMapping = (headers: string[]): Mapping => {
   const m = emptyMapping();
   const columns = { ...m.columns };
   headers.forEach((h, i) => {
     const w = words(h);
+    // A column naming both parents ("Parentage (Mother x Father)") holds both: it is the
+    // parents column, not the second parent's because "father" is in its name (round 2).
+    if (MOTHER.test(w) && FATHER.test(w)) {
+      if (columns.parents === null) columns.parents = i;
+      return;
+    }
     for (const [field, re] of GUESSES) {
       if (columns[field] !== null) continue;
       if (re.test(w)) {
@@ -716,6 +1009,30 @@ export type Checked = {
   readonly ambiguousDates: number;
   /** Set when the import can't go ahead at all: too many rows, or no name column. */
   readonly blocked?: string;
+  /** Rows left out because they read like column names, not a plant (as the spreadsheet numbers them). */
+  readonly headerRows: number[];
+};
+
+/** The same text compared as column names are: case, spaces and punctuation aside. */
+const sameName = (a: string, b: string) => words(a).trim() !== '' && words(a) === words(b);
+
+/**
+ * Whether a row reads like column names rather than a plant: its name cell is one, and so
+ * are more than two thirds of its filled cells (two at least); or two of its cells are this file's
+ * own column names, in their own columns; or its name cell is its column's name. A title
+ * row taken for the column names leaves the real ones in the rows, and sealing them would
+ * make a record named "Cultivar / Line" that can never be taken back (round 2).
+ */
+export const looksLikeColumnNames = (row: SheetRow, headers: readonly string[], nameColumn: number | null): boolean => {
+  const filledCells = row.cells.filter((c) => c.trim() !== '');
+  const echoes = row.cells.filter((c, i) => headers[i] !== undefined && sameName(c, headers[i])).length;
+  if (echoes >= 2) return true;
+  if (nameColumn === null) return false;
+  const name = row.cells[nameColumn] ?? '';
+  if (sameName(name, headers[nameColumn] ?? '')) return true;
+  if (!knownColumnName(name)) return false;
+  const named = filledCells.filter(knownColumnName).length;
+  return named >= 2 && named * 3 > filledCells.length * 2;
 };
 
 const tooLong = (what: string, v: string, max: number) =>
@@ -740,10 +1057,19 @@ export const checkRows = (
     if (!r.supersededBy) byNameId.set(nameIdKey(oneLine(r.strainName ?? ''), oneLine(r.refId ?? '')), r);
   }
   const seenInFile = new Map<string, number>();
+  const headerRows: number[] = [];
   const rows: PreparedRow[] = sheet.rows.map((row) => {
     const { dateAmbiguous, ...fields } = rowFields(row, mapping, order);
     const hash = rowHashOf(fields);
     const base = { line: row.line, cells: row.cells, fields, hash, dateAmbiguous };
+    if (looksLikeColumnNames(row, sheet.headers, mapping.columns.strainName)) {
+      headerRows.push(row.line);
+      return {
+        ...base,
+        status: 'problem' as const,
+        problems: ['This row looks like column names, not a plant, so it is left out.'],
+      };
+    }
     const problems: string[] = [];
     if (!fields.strainName) problems.push('No plant name.');
     for (const p of [
@@ -795,8 +1121,8 @@ export const checkRows = (
 
   const count = (s: RowStatus) => rows.filter((r) => r.status === s).length;
   let blocked: string | undefined;
-  if (sheet.rows.length > MAX_ROWS) {
-    blocked = `This file has ${sheet.rows.length} rows. Import up to ${MAX_ROWS} at a time: split the file and import the rest after.`;
+  if (sheet.rows.length > MAX_ROWS || sheet.moreRows) {
+    blocked = tooManyRows(sheet);
   } else if (mapping.columns.strainName === null) {
     blocked = 'Pick the column that has the plant or line name.';
   } else if (ctx.existing.length + count('ready') > MAX_SET) {
@@ -809,6 +1135,7 @@ export const checkRows = (
     problems: count('problem'),
     ambiguousDates: rows.filter((r) => r.dateAmbiguous && r.status !== 'problem').length,
     blocked,
+    headerRows,
   };
 };
 
@@ -987,38 +1314,10 @@ export const sealRows = async (
 
 // ── What this browser keeps: the ledger and the job ────────────────────────────────────
 
-const LEDGER_KEY = 'veilcore.bulk-import.v1';
-
-export type LedgerEntry = {
-  readonly recordId: string;
-  readonly fingerprint: string;
-  readonly state: 'pending' | 'sealed';
-  readonly at: number;
-  /** The whole record while it is waiting to be confirmed (it is what the registry gets anyway). */
-  readonly record?: StrainRecord;
-};
-
-export type Ledger = { version: 1; rows: Record<string, LedgerEntry> };
-
-export const loadLedger = (): Ledger => {
-  try {
-    const v = JSON.parse(localStorage.getItem(LEDGER_KEY) ?? 'null') as Ledger | null;
-    if (v && v.version === 1 && v.rows && typeof v.rows === 'object') return v;
-  } catch {
-    /* nothing kept, or unreadable: start empty */
-  }
-  return { version: 1, rows: {} };
-};
-
-/** False when this browser won't keep it (private window, full storage). */
-export const saveLedger = (l: Ledger): boolean => {
-  try {
-    localStorage.setItem(LEDGER_KEY, JSON.stringify(l));
-    return true;
-  } catch {
-    return false;
-  }
-};
+// The ledger (which rows became which records) lives in bulk-import-ledger.ts, so Home can
+// read it without loading this file.
+export { importedRecordIds, loadLedger, saveLedger } from './bulk-import-ledger';
+export type { Ledger, LedgerEntry } from './bulk-import-ledger';
 
 const JOB_KEY = 'veilcore.bulk-import.job.v1';
 
@@ -1144,7 +1443,24 @@ export const resultsFileName = (fileName: string): string =>
 
 const STAMPS_KEY = 'veilcore.bulk-import.stamps.v1';
 
-export type StampQueueState = { readonly pauseUntil?: number; readonly stopped?: string };
+/**
+ * Key date stamps one browser gets from the free fee service in a day: the sponsor's
+ * per-browser quota for the anchor call (sponsor/src/limits.ts DEFAULT_LIMITS.perTicketDay).
+ * The network a browser is on has its own, larger caps (3 an hour, 10 a day).
+ */
+export const KEY_STAMPS_PER_DAY = 3;
+
+/** How long `waiting` key stamps take from one browser, in days (at least one). */
+export const keyStampDays = (waiting: number): number => Math.max(1, Math.ceil(waiting / KEY_STAMPS_PER_DAY));
+
+/**
+ * Why the queue is waiting: the fee service didn't answer ('unreachable'); the network, or
+ * the network or the fee service (a failed fetch doesn't say which), couldn't be reached
+ * ('offline'); the free quota is used for now ('quota'); or something else.
+ */
+export type StampPause = 'unreachable' | 'offline' | 'quota' | 'other';
+
+export type StampQueueState = { readonly pauseUntil?: number; readonly why?: StampPause; readonly stopped?: string };
 
 export const loadStampState = (): StampQueueState => {
   try {
@@ -1188,5 +1504,30 @@ export const stampWait = (e: unknown, now = Date.now()): StampQueueState => {
             ? 60
             : 5 * 60;
   seconds = Math.min(Math.max(seconds, 60), 24 * 3600);
-  return { pauseUntil: now + seconds * 1000 };
+  return { pauseUntil: now + seconds * 1000, why: stampPauseOf(e, msg) };
 };
+
+const OFFLINE =
+  /reach|Failed to fetch|NetworkError|Load failed|timed? ?out|ECONN|ENOTFOUND|fetch failed|aborted|ERR_[A-Z_]+/i;
+
+const stampPauseOf = (e: unknown, msg: string): StampPause => {
+  const code = (e as { code?: unknown } | null)?.code;
+  const status = (e as { status?: unknown } | null)?.status;
+  // The sponsor client's own "not answering" (sponsor-client.ts): the fee service itself.
+  if (code === 'unreachable' || /sponsor is not answering/i.test(msg)) return 'unreachable';
+  if (code === 'rate' || status === 429 || /free (transactions|\w+ calls)|used (today|this hour)/i.test(msg))
+    return 'quota';
+  if ((e instanceof Error && /^(TypeError|AbortError|TimeoutError)$/.test(e.name)) || OFFLINE.test(msg))
+    return 'offline';
+  return 'other';
+};
+
+/** The queue's waiting line, by why it waits. */
+export const stampPauseWords = (why: StampPause | undefined, nextTry: string): string =>
+  why === 'unreachable'
+    ? `Couldn't reach the fee service; trying again later. Next try: ${nextTry}.`
+    : why === 'offline'
+      ? `Couldn't reach the network or the fee service; trying again later. Next try: ${nextTry}.`
+      : why === 'quota'
+        ? `The free key stamps are used up for now. Next try: ${nextTry}.`
+        : `A key stamp didn't go through. Next try: ${nextTry}.`;

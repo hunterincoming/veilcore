@@ -27,7 +27,14 @@ import {
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Contract } from '../../../contract/src/managed/veilcore/contract/index.js';
 import { PREPROD_ADDRESSES } from '../../src/network';
-import { checkRecord as checkCore, LinkError, parseCheckLink, RegistryError, type RecordCheck } from '../src/index';
+import {
+  checkRecord as checkCore,
+  CUT,
+  LinkError,
+  parseCheckLink,
+  RegistryError,
+  type RecordCheck,
+} from '../src/index';
 import { checkRecord, onChainChecker } from '../src/node';
 import { asText, exitCodeOf, main } from '../src/cli';
 
@@ -176,6 +183,16 @@ const run = (link: string, a: Answers = {}, extra: Parameters<typeof checkCore>[
   return checkCore(link, { registry: REG, fetch: r.fetch, now: NOW, ...extra }).then((c) => ({ c, asked: r.asked }));
 };
 
+/** The registry's /verify answer when the holder shares lab status, with its delivery receipts. */
+const withCustody = (custody: unknown) => ({
+  found: true,
+  id: ID,
+  cultivar: 'Practice record',
+  recordFingerprint: FP,
+  keyBound: true,
+  custody,
+});
+
 /** Words the product never uses about a record (README "product copy rules"). */
 const FORBIDDEN = [
   /\bown(s|ed|er|ership)?\b/i,
@@ -202,7 +219,8 @@ describe('the link', () => {
       show: 'existence',
       key: { key: KEY, keySalt: KEY_SALT, contentHash: CONTENT },
     });
-    expect(parseCheckLink(`${LINK.slice(0, -3)}`).fingerprint).toEqual({ state: 'invalid' });
+    expect(parseCheckLink(`${LINK.slice(0, -3)}`).fingerprint).toEqual({ state: 'invalid', cut: true });
+    expect(parseCheckLink(`${LINK}zz`).fingerprint).toEqual({ state: 'invalid' });
   });
 
   it('refuses what names no record', () => {
@@ -249,7 +267,9 @@ describe('dated', () => {
     });
     expect(c.whatThisDoesNotShow.join(' ')).toMatch(/test network/);
     expect(c.whatThisDoesNotShow.join(' ')).toMatch(/until the transaction is looked up on Midnight/);
-    expect(exitCodeOf(c)).toBe(0);
+    // A test network date: exit 1 unless the partner allows test networks.
+    expect(exitCodeOf(c)).toBe(1);
+    expect(exitCodeOf(c, { allowTestNetwork: true })).toBe(0);
     expectPlainWords(c);
   });
 
@@ -296,7 +316,7 @@ describe('dated', () => {
     expect(c.dated.status).toBe('not-looked-up');
     const t = await run(LINK, {}, { checkAnchor: async () => Promise.reject(new Error('boom')) });
     expect(t.c.dated).toMatchObject({ status: 'not-looked-up', reason: 'boom' });
-    expect(exitCodeOf(t.c)).toBe(0);
+    expect(exitCodeOf(t.c, { allowTestNetwork: true })).toBe(0);
   });
 });
 
@@ -330,9 +350,43 @@ describe('tampered', () => {
   });
 
   it('a damaged fingerprint in the link', async () => {
-    const { c } = await run(`https://veilcore.org/verify/${ID}?fp=${FP.slice(2)}`);
+    const { c } = await run(`https://veilcore.org/verify/${ID}?fp=${FP.slice(2)}zz`);
     expect(c.fingerprintMatches).toBe(false);
+    expect(c.linkLooksCut).toBe(false);
     expect(c.problems.join(' ')).toMatch(/damaged/);
+  });
+
+  it('a link cut off: said so, not called a different fingerprint', async () => {
+    for (const cut of [
+      `https://veilcore.org/verify/${ID}?fp=${FP.slice(0, 40)}`,
+      `https://veilcore.org/verify/${ID}?fp=${FP.slice(0, 12)}…`,
+      `https://veilcore.org/verify/${ID}?fp=${FP.slice(0, 12)}...`,
+      `https://veilcore.org/verify/${ID}?fp=`,
+      `https://veilcore.org/verify/${ID}?fp`,
+      `https://veilcore.org/verify/${ID}?f`,
+      `https://veilcore.org/verify/${ID}?`,
+    ]) {
+      const { c } = await run(cut);
+      expect(c.linkLooksCut, cut).toBe(true);
+      expect(c.fingerprintMatches, cut).toBe(false);
+      expect(c.summary, cut).toBe(`${CUT} Nothing was checked.`);
+      expect(c.summary).not.toMatch(/different fingerprint/);
+      expect(c.problems).toEqual([CUT]);
+      expect(exitCodeOf(c)).toBe(1);
+    }
+    // Cut before the record id is whole: refused as a link, in the same words.
+    for (const cut of [
+      'https://veilcore.org/verif',
+      'https://veilcore.org/verify/',
+      `https://veilcore.org/verify/VEIL-AB12…`,
+    ])
+      expect(() => parseCheckLink(cut), cut).toThrow(CUT);
+    // A record with no such id, from a cut link, says the link looks cut off.
+    const nf = await run(`https://veilcore.org/verify/${ID}?fp=${FP.slice(0, 30)}`, {
+      verifyStatus: 404,
+      verify: { found: false },
+    });
+    expect(nf.c.summary).toBe(`${CUT} Nothing was checked.`);
   });
 
   it('a proof about another record, or one that does not fold, is not this record’s date', async () => {
@@ -341,15 +395,46 @@ describe('tampered', () => {
       { ...proof, root: OTHER_FP },
       { ...proof, path: [{ sibling: hex(), siblingIsLeft: true }] },
     ]) {
-      const { c } = await run(LINK, { proof: bad });
-      expect(c.dated).toMatchObject({ status: 'not-in-a-batch', inBatch: false, checkedOnChain: false });
+      // Even with a date stamp "confirmed" on mainnet: the proof doesn't tie it to this record.
+      const { c } = await run(
+        LINK,
+        { proof: { ...bad, anchor: { ...ANCHOR, network: 'mainnet' } } },
+        { checkAnchor: async () => ({ status: 'checked', blockTime: NOW }) },
+      );
+      expect(c.dated).toMatchObject({ status: 'proof-fails', inBatch: false, checkedOnChain: false });
       expect(c.problems.join(' ')).toMatch(/inclusion proof does not check out/);
+      expect(c.summary).toMatch(/inclusion proof does NOT check out/);
+      expect(exitCodeOf(c)).toBe(1);
+      expect(exitCodeOf(c, { allowTestNetwork: true })).toBe(1);
     }
   });
 
   it('disclosed fields: matching ones hash to the fingerprint; one changed field does not', async () => {
     expect((await run(LINK, {}, { fields: FIELDS })).c.disclosedFieldsMatch).toBe(true);
-    expect((await run(LINK, {}, { fields: { fields: FIELDS, fingerprint: FP } })).c.disclosedFieldsMatch).toBe(true);
+    // An export's registered-fingerprint block, exactly as the site writes it, is unwrapped.
+    const block = {
+      fingerprint: FP,
+      algorithm: 'sha256/key-bound/v1',
+      recompute: 'H(…)',
+      fields: FIELDS,
+      sealedAt: '2026-10-01T00:00:00Z',
+      notCovered: [],
+    };
+    expect((await run(LINK, {}, { fields: block })).c.disclosedFieldsMatch).toBe(true);
+    // Anything else holding `fields` is hashed whole: fake fields beside the real ones don't pass.
+    for (const wrapped of [
+      { strainName: 'Rare Elite Cut', bredBy: 'Famous Breeder', fields: FIELDS },
+      { fields: FIELDS, fingerprint: FP },
+      { ...block, strainName: 'Rare Elite Cut' },
+      { ...block, algorithm: 'sha1' },
+    ]) {
+      const w = await run(LINK, {}, { fields: wrapped });
+      expect(w.c.disclosedFieldsMatch, JSON.stringify(Object.keys(wrapped))).toBe(false);
+      expect(exitCodeOf(w.c, { allowTestNetwork: true })).toBe(1);
+    }
+    expect((await run(LINK, {}, { fields: { strainName: 'x', fields: FIELDS } })).c.problems.join(' ')).toMatch(
+      /hashed whole, as given/,
+    );
     const { c } = await run(LINK, {}, { fields: { ...FIELDS, strainName: 'Something else' } });
     expect(c.disclosedFieldsMatch).toBe(false);
     expect(exitCodeOf(c)).toBe(1);
@@ -369,7 +454,10 @@ describe('tampered', () => {
 
 describe('lab receipts', () => {
   it('a checked name: named, with the listing, and VeilCore doesn’t vouch', async () => {
-    const { c } = await run(LINK, { attestations: [served(receipt)] });
+    const { c } = await run(LINK, {
+      verify: withCustody([{ receiptAttestationId: 'att_receipt', covered: 'covered', differences: [] }]),
+      attestations: [served(receipt)],
+    });
     const r = c.labReceipts[0];
     expect(r).toMatchObject({
       kind: 'lab-receipt',
@@ -386,8 +474,9 @@ describe('lab receipts', () => {
       },
     });
     expect(r.words).toBe(
-      'Lab’s receipt for a sample, signature verified, signed by Practice Lab. VeilCore’s operator matched this name to cannabis.example.gov (license TL-1) on 2026-10-01. VeilCore doesn’t vouch for the lab’s work.',
+      'Lab’s receipt for a sample, signature verified, signed by Practice Lab. VeilCore’s operator matched this name to cannabis.example.gov (license TL-1) on 2026-10-01. VeilCore doesn’t vouch for the lab’s work. Its signature covers the sample details, and what arrived matches what was sent.',
     );
+    expect(r.custody).toEqual({ covered: 'covered', differences: [], clean: true });
     expect(c.summary).toMatch(/1 lab signature verified \(1 with a name VeilCore’s operator checked\)/);
     expectPlainWords(c);
   });
@@ -418,7 +507,7 @@ describe('lab receipts', () => {
       [{ vettedAttester: false, registeredAs: null }, 'not-checked'],
     ];
     for (const [over, status] of cases) {
-      const { c } = await run(LINK, { attestations: [served(receipt, over)] });
+      const { c } = await run(LINK, { attestations: [served(report, over)] });
       const r = c.labReceipts[0];
       expect(r.signer.nameCheck, JSON.stringify(over)).toBe(status);
       expect(r.nameCheckRecord).toBeNull();
@@ -450,7 +539,8 @@ describe('lab receipts', () => {
       },
       lab.privateKey,
     );
-    const { c } = await run(LINK, { attestations: [served(receipt, { retraction })] });
+    const tied = withCustody([{ receiptAttestationId: 'att_receipt', covered: 'covered', differences: [] }]);
+    const { c } = await run(LINK, { verify: tied, attestations: [served(receipt, { retraction })] });
     expect(c.labReceipts[0]).toMatchObject({
       withdrawn: true,
       counts: false,
@@ -467,7 +557,7 @@ describe('lab receipts', () => {
       notTheirs,
       { ...retraction, attestationId: 'att_other' },
     ]) {
-      const t = await run(LINK, { attestations: [served(receipt, { retraction: fake })] });
+      const t = await run(LINK, { verify: tied, attestations: [served(receipt, { retraction: fake })] });
       expect(t.c.labReceipts[0]).toMatchObject({ withdrawn: false, withdrawalNotSigned: true, counts: true });
     }
   });
@@ -500,6 +590,94 @@ describe('lab receipts', () => {
         })
       ).c.labReceipts[0].matchesSavedReport,
     ).toBe(false);
+  });
+});
+
+describe('chain of custody: a receipt only when tied to a delivery', () => {
+  it('a chain-of-custody signature the registry ties to no delivery: a signed statement, not counted', async () => {
+    // Anyone can register a key under a lab-like name and sign one about any fingerprint.
+    const stranger = await generateKeypair();
+    const selfMade = await signAttestation(
+      {
+        attestationId: 'att_selfmade',
+        type: 'chain-of-custody',
+        subjectCommitment: FP,
+        attester: { publicKey: stranger.publicKey, displayName: 'Acme Analytical Labs' },
+        documentHash: sha256('whatever'),
+        hashAlgorithm: 'sha256',
+        issuedAt: '2026-10-15T00:00:00Z',
+      },
+      stranger.privateKey,
+    );
+    for (const verify of [
+      undefined,
+      withCustody([]),
+      withCustody([{ receiptAttestationId: 'att_selfmad', covered: 'covered', differences: [] }]),
+      withCustody([{ receiptAttestationId: 'att_selfmade', covered: 'yes', differences: [] }]),
+      withCustody('att_selfmade'),
+    ]) {
+      const { c } = await run(LINK, {
+        verify,
+        attestations: [served(selfMade, { vettedAttester: false, registeredAs: null })],
+      });
+      const r = c.labReceipts[0];
+      expect(r, JSON.stringify(verify)).toMatchObject({
+        kind: 'custody-statement',
+        signatureVerified: true,
+        counts: false,
+      });
+      expect(r.custody).toBeUndefined();
+      expect(r.words).toBe(
+        'Signed custody statement (not tied to a delivery): signature verified, signed by a key named “Acme Analytical Labs” (name not checked). The registry ties it to no delivery of this record, and anyone can sign one, so it is not counted.',
+      );
+      expect(r.words).not.toMatch(/receipt for a sample/);
+      expect(c.summary).toMatch(/No lab signature counts for it/);
+    }
+  });
+
+  it('tied to a delivery: a receipt; what differs, or a change after signing, is said plainly and never clean', async () => {
+    const cases: [unknown, Record<string, unknown>, RegExp][] = [
+      [
+        {
+          receiptAttestationId: 'att_receipt',
+          covered: 'covered',
+          differences: ['Seal number differs: sent 4471, received 4417'],
+        },
+        { covered: 'covered', clean: false },
+        /What arrived does NOT match what was sent: Seal number differs: sent 4471, received 4417\.$/,
+      ],
+      [
+        { receiptAttestationId: 'att_receipt', covered: 'changed', differences: [] },
+        { covered: 'changed', clean: false },
+        /changed its arrival details after signing, so its signature does NOT cover them\.$/,
+      ],
+      [
+        { receiptAttestationId: 'att_receipt', covered: 'not-covered', differences: [] },
+        { covered: 'not-covered', clean: false },
+        /doesn’t cover the sample details \(an older receipt\)\.$/,
+      ],
+    ];
+    for (const [entry, custody, words] of cases) {
+      const { c } = await run(LINK, { verify: withCustody([entry]), attestations: [served(receipt)] });
+      const r = c.labReceipts[0];
+      expect(r.kind).toBe('lab-receipt');
+      expect(r.counts).toBe(true);
+      expect(r.custody).toMatchObject(custody);
+      expect(r.words).toMatch(words);
+      if ((custody.covered as string) !== 'not-covered')
+        expect(c.summary).toMatch(
+          /1 lab receipt for a sample does NOT match what was sent, or was changed after signing/,
+        );
+      else expect(c.summary).not.toMatch(/does NOT match/);
+    }
+    // A difference with a control character is cleaned before it is printed.
+    const { c } = await run(LINK, {
+      verify: withCustody([
+        { receiptAttestationId: 'att_receipt', covered: 'covered', differences: ['Seal\u202e differs', 7, null] },
+      ]),
+      attestations: [served(receipt)],
+    });
+    expect(c.labReceipts[0].custody?.differences).toEqual(['Seal differs']);
   });
 });
 
@@ -654,5 +832,21 @@ describe('the CLI', () => {
     expect(await main(['check', LINK, '--timeout', '0'], o.stream, e.stream)).toBe(2);
     expect(await main(['--help'], o.stream, e.stream)).toBe(0);
     expect(o.text()).toMatch(/partner-kit check <check link or record id>/);
+    expect(o.text()).toMatch(/--allow-test-network/);
+    expect(o.text()).toMatch(/inclusion proof doesn't check out/);
+  });
+
+  it('a test network date: exit 1, or 0 with --allow-test-network; a proof that fails: exit 1', async () => {
+    const o = capture();
+    const e = capture();
+    vi.stubGlobal('fetch', registry().fetch);
+    try {
+      expect(await main(['check', LINK, '--registry', REG], o.stream, e.stream)).toBe(1);
+      expect(await main(['check', LINK, '--registry', REG, '--allow-test-network'], o.stream, e.stream)).toBe(0);
+      vi.stubGlobal('fetch', registry({ proof: otherProof }).fetch);
+      expect(await main(['check', LINK, '--registry', REG, '--allow-test-network'], o.stream, e.stream)).toBe(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

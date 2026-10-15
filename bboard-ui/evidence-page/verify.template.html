@@ -67,6 +67,11 @@
   <h2>Lab signatures</h2>
   <div id="signatures"></div>
 
+  <div id="custody-section" hidden>
+    <h2>Deliveries and sample receipts</h2>
+    <div id="custody"></div>
+  </div>
+
   <h2>What this does not show</h2>
   <div class="note">
     <ul>
@@ -80,7 +85,7 @@
   </div>
 
   <h2>Other files in this folder</h2>
-  <p id="other-files"><code>README.txt</code> explains every file. <code>EXAMINER-SUMMARY.html</code> is one printable page for a lawyer or examiner: open it and print it to PDF. It checks nothing itself; this page does the checks. <code>DECLARATION-TEMPLATE.txt</code> is sample text for a written declaration about this record and bundle. It is not legal advice: have a lawyer where you are adapt it.</p>
+  <p id="other-files"><code>README.txt</code> explains every file. <code>EXAMINER-SUMMARY.html</code> is a printable summary for a lawyer or examiner: open it and print it to PDF. It checks nothing itself; this page does the checks. <code>DECLARATION-TEMPLATE.txt</code> is sample text for a written declaration about this record and bundle. It is not legal advice: have a lawyer where you are adapt it.</p>
 
   <h2>Check other files</h2>
   <p>To check the files themselves rather than the copy inside this page, choose them here: <code>evidence.json</code>, or any of <code>record/sealed-fields.json</code>, <code>record/sealed-fields.canonical.json</code>, <code>record/fingerprint.txt</code>, <code>proof/inclusion-proof.json</code>, <code>proof/batch-root.txt</code>, <code>proof/root.bin</code>, <code>proof/root.bin.ots</code>, <code>key/key-binding.json</code>, <code>lab/signatures.json</code>, or the lab report file. Nothing is sent anywhere.</p>
@@ -169,6 +174,15 @@ return canonicalise;
     }
     return dl;
   }
+  /**
+   * Text someone else typed (a signer's name, a lab's notes), on one line: control and format
+   * characters (line breaks, tabs, direction marks such as U+202E that reorder the text after
+   * them, zero-width characters) become spaces. The examiner summary and the declaration do
+   * the same (the site's evidence/words.ts oneLine).
+   */
+  function plain(v) {
+    return String(v).replace(/[\p{Cc}\p{Cf}\u2028\u2029]+/gu, ' ').replace(/ {2,}/g, ' ').trim();
+  }
   function networkName(n) {
     return VeilcoreVerify.networkWords(n);
   }
@@ -207,7 +221,7 @@ return canonicalise;
     ['photoFingerprints', 'Photos'],
     ['profile', 'Kind of record'],
     ['loggedAt', 'Sealed at (the breeder’s device clock)'],
-    ['keyBinding', 'Names its own key'],
+    ['keyBinding', 'Names a key'],
     ['nonce', 'Random salt (keeps the fingerprint unguessable)'],
   ];
   function fieldText(key, v) {
@@ -227,8 +241,9 @@ return canonicalise;
       var when = VeilcoreVerify.utc(v);
       return (when || String(v)) + ' (the breeder’s word only)';
     }
-    if (key === 'keyBinding' && typeof v === 'string') return 'Yes: ' + v;
-    if (typeof v === 'string') return v;
+    // The same words as EXAMINER-SUMMARY.html (the site's examiner.ts KEY_NAMED).
+    if (key === 'keyBinding' && typeof v === 'string') return 'Yes. The record names a key; the key itself is in this bundle only if the holder included it. Key binding: ' + v;
+    if (typeof v === 'string') return plain(v);
     return JSON.stringify(v);
   }
   function sealedTable(fields) {
@@ -413,8 +428,8 @@ return canonicalise;
     }
     for (var j = 0; j < report.signatures.length; j++) {
       var s = report.signatures[j];
-      var what = TYPES[s.type] || (s.type ? '“' + s.type + '”' : 'something');
-      var who = s.displayName ? ' (it calls itself “' + s.displayName + '”; not checked)' : '';
+      var what = TYPES[s.type] || (s.type ? '“' + plain(s.type) + '”' : 'something');
+      var who = s.displayName ? ' (it calls itself “' + plain(s.displayName) + '”; not checked)' : '';
       if (s.signature === 'unsupported') {
         sg.appendChild(result('info', 'Signature not checked here', [para(['This browser can’t check Ed25519 signatures. Open this page in a current Chrome or Firefox.'])], 'signature'));
         continue;
@@ -429,13 +444,99 @@ return canonicalise;
       }
       var withdrawn = s.retraction && s.retraction.signature === 'valid';
       var lines = [
-        para(['The key ', hex(s.publicKey), who + ' signed ' + what + ' with SHA-256 ', hex(s.documentHash), ', about this record, at ' + s.issuedAt + ' (the signer’s own clock).']),
+        s.type === 'chain-of-custody'
+          ? para(['The key ', hex(s.publicKey), who + ' signed ' + what + ' about this record at ' + plain(s.issuedAt) + ' (the signer’s own clock). Its signed SHA-256, ', hex(plain(s.documentHash)), ', is the fingerprint of the lab’s own record of the delivery, not a hash of the sample.'])
+          : para(['The key ', hex(s.publicKey), who + ' signed ' + what + ' with SHA-256 ', hex(plain(s.documentHash)), ', about this record, at ' + plain(s.issuedAt) + ' (the signer’s own clock).']),
       ];
-      if (withdrawn) lines.push(para(['The same key withdrew it' + (s.retraction.retractedAt ? ' at ' + s.retraction.retractedAt : '') + (s.retraction.reason ? ' (' + s.retraction.reason + ')' : '') + '.']));
+      if (withdrawn) lines.push(para(['The same key withdrew it' + (s.retraction.retractedAt ? ' at ' + plain(s.retraction.retractedAt) : '') + (s.retraction.reason ? ' (' + plain(s.retraction.reason) + ')' : '') + '.']));
       else if (s.retraction) lines.push(para(['A withdrawal is attached that this key did not sign. It is ignored.']));
       if (ev.labReport && ev.labReport.fileSha256 === s.documentHash) lines.push(para(['It is the lab report saved to this plant.']));
       sg.appendChild(result(withdrawn ? 'info' : 'ok', withdrawn ? 'Signed, then withdrawn' : 'Signature checks', lines, 'signature'));
     }
+
+    // Deliveries: the sample details each side wrote, and whether the lab's receipt covers
+    // them, worked out again here (VeilcoreVerify.checkCustody).
+    var cs = clear('custody');
+    document.getElementById('custody-section').hidden = report.custody.length === 0;
+    for (var ci = 0; ci < report.custody.length; ci++) cs.appendChild(custodyCard(report.custody[ci]));
+  }
+
+  var CUSTODY_LABELS = {
+    sampleId: 'Sample ID', sealNumber: 'Seal number', takenFrom: 'Taken from', takenOn: 'Taken on',
+    witness: 'Witness (VeilCore doesn’t check this)', sealIntact: 'Seal on arrival', arrivedOn: 'Arrived on',
+    condition: 'Condition', labRef: 'Lab number',
+  };
+  var SEAL = { yes: 'intact', no: 'not intact', 'no-seal': 'no seal' };
+  function custodyFacts(side, d) {
+    var pairs = [];
+    var order = Object.keys(CUSTODY_LABELS);
+    var keys = Object.keys(d).sort(function (a, b) {
+      var ia = order.indexOf(a), ib = order.indexOf(b);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || (a < b ? -1 : a > b ? 1 : 0);
+    });
+    for (var i = 0; i < keys.length; i++) {
+      var v = d[keys[i]];
+      if (v === '') continue;
+      pairs.push([side + ': ' + (CUSTODY_LABELS[keys[i]] || plain(keys[i])), keys[i] === 'sealIntact' ? (SEAL[v] || plain(v)) : plain(v)]);
+    }
+    return facts(pairs);
+  }
+  var CUSTODY_WORDS = {
+    covered: 'covered by the lab’s receipt',
+    changed: 'changed after the lab signed',
+    'not-covered': 'not covered: the receipt is from before sample details',
+    unsigned: 'not covered by any receipt signature here',
+    'never-used': 'lab code never used',
+    malformed: 'unreadable',
+  };
+  function custodyCard(c) {
+    var details = [];
+    var id = plain(c.transferId);
+    if (c.status === 'covered') {
+      details.push(para(['Worked out again on this page: the SHA-256 of these sample details (format veilcore/sample-custody/v1, canonical JSON) is ', hex(c.computed), '. The lab’s signed receipt ', hex(plain(c.receiptAttestationId)), ' ends with that value, and its signature checks above. So the lab signed for exactly what is shown here.']));
+      details.push(custodyFacts('Sent', c.sample));
+      details.push(custodyFacts('Received', c.arrival));
+      if (c.differences.length) {
+        var ul = el('ul');
+        for (var i = 0; i < c.differences.length; i++) ul.appendChild(el('li', null, plain(c.differences[i]) + '.'));
+        details.push(para(['What arrived differs from what was sent:']));
+        details.push(ul);
+      }
+    } else if (c.status === 'changed') {
+      details.push(para(['The lab’s signed receipt ', hex(plain(c.receiptAttestationId)), ' ends with ', hex(c.carried), ', but these sample details give ', hex(c.computed), '. What the lab wrote on arrival was changed after it signed, so the receipt doesn’t cover it.']));
+      details.push(custodyFacts('Sent', c.sample));
+      details.push(custodyFacts('Received (not covered by the receipt)', c.arrival));
+    } else if (c.status === 'not-covered') {
+      details.push(para(['The lab’s receipt was signed before receipts covered sample details, so it covers none of them.']));
+      details.push(custodyFacts('Sent', c.sample));
+      details.push(custodyFacts('Received (not covered by the receipt)', c.arrival));
+    } else if (c.status === 'never-used') {
+      details.push(para(['Nobody used this lab code, so no lab received a sample through it.']));
+      details.push(custodyFacts('Sent', c.sample));
+    } else if (c.status === 'unsigned') {
+      details.push(para([c.receiptAttestationId
+        ? 'A receipt is named for this delivery, but its signature isn’t in this bundle, doesn’t check, or was withdrawn by its signer. Nothing the lab wrote is covered.'
+        : 'No lab signed a receipt for this delivery. Nothing the lab wrote is covered.']));
+      details.push(custodyFacts('Sent', c.sample));
+      details.push(custodyFacts('Received (not covered by any signature)', c.arrival));
+    } else {
+      details.push(para(['This delivery’s sample details in the bundle can’t be read.' + (c.reason ? ' ' + plain(c.reason) : '')]));
+    }
+    if (c.stated && c.stated !== c.status && c.status !== 'never-used') {
+      details.push(para(['The bundle says this delivery is “' + (CUSTODY_WORDS[c.stated] || plain(c.stated)) + '”; this page worked out “' + CUSTODY_WORDS[c.status] + '”. Go by this page.']));
+    }
+    details.push(para(['These are what the breeder and the lab each typed. VeilCore doesn’t check them, and nothing here shows they are true.']));
+    var kind = c.status === 'covered' ? 'ok' : c.status === 'changed' || c.status === 'malformed' ? 'bad' : 'info';
+    var head = c.status === 'covered'
+      ? 'Delivery ' + id + ': the receipt covers the sample details'
+      : c.status === 'changed'
+        ? 'Delivery ' + id + ': the receipt doesn’t cover what the lab wrote on arrival'
+        : c.status === 'never-used'
+          ? 'Delivery ' + id + ': lab code never used'
+          : 'Delivery ' + id + ': ' + CUSTODY_WORDS[c.status];
+    var card = result(kind, head, details, 'custody');
+    card.setAttribute('data-custody', c.status);
+    return card;
   }
 
   function renderFiles(report) {

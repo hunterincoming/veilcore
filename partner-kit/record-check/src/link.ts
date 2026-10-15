@@ -18,8 +18,12 @@ const MAX_LINK = 4096;
 
 export type CheckLink = {
   readonly recordId: string;
-  /** The fingerprint the link was made for: 'absent' on an old link or a bare id. */
-  readonly fingerprint: { state: 'given'; value: string } | { state: 'absent' } | { state: 'invalid' };
+  /**
+   * The fingerprint the link was made for: 'absent' on an old link or a bare id. 'invalid'
+   * with `cut`: the link looks cut off (the fingerprint stops short, or the link ends where
+   * it should begin), so the whole link is needed.
+   */
+  readonly fingerprint: { state: 'given'; value: string } | { state: 'absent' } | { state: 'invalid'; cut?: true };
   /** `show=`: narrows what the registry sends; it can never widen the holder's grant. */
   readonly show?: string;
   /** The record's key and what ties it to the fingerprint, when the holder put them in the link. */
@@ -28,12 +32,27 @@ export type CheckLink = {
 
 export class LinkError extends Error {}
 
+/** What a partner is told about a link that stops short. */
+export const CUT = 'This link looks cut off. Ask for the whole link.';
+
 const hexParam = (q: URLSearchParams, name: string): string | undefined => {
   const v = q.get(name);
   if (v === null) return undefined;
   const h = v.trim().toLowerCase();
   return isHex64(h) ? h : 'invalid';
 };
+
+/**
+ * A fingerprint that stops short: the start of one (hexadecimal, fewer than 64
+ * characters), possibly with the "…" or "..." a screen or a chat app put where it cut it.
+ */
+const fingerprintCut = (fp: string): boolean => {
+  const h = fp.trim().replace(/(\u2026|\.{2,})$/, '');
+  return /^[0-9a-fA-F]{0,63}$/.test(h);
+};
+
+/** A link that ends where its fingerprint should begin: "…/VEIL-…?", "?f", "?fp", "&". */
+const endsCut = (raw: string): boolean => /(\?|\?f|&|&f|\u2026|\.{2,})$/.test(raw);
 
 /**
  * Read a check link (or a bare record id). Throws LinkError, in plain words, for anything
@@ -54,24 +73,32 @@ export const parseCheckLink = (input: string): CheckLink => {
   if (url.protocol !== 'https:' && url.protocol !== 'http:')
     throw new LinkError('That is not a check link. It should start with https://.');
   const m = /\/verify\/([^/?#]+)\/?$/.exec(url.pathname);
-  if (!m)
+  if (!m) {
+    // "https://veilcore.org/ver", "…/verify/": it stops before the record id.
+    if (url.pathname.length > 1 && '/verify/'.startsWith(url.pathname)) throw new LinkError(CUT);
     throw new LinkError('That link does not point at a record. A check link contains /verify/ and the record id.');
+  }
   let id: string;
   try {
     id = decodeURIComponent(m[1]);
   } catch {
     throw new LinkError('The record id in that link is damaged.');
   }
+  if (/(\u2026|\.{2,})$/.test(id)) throw new LinkError(CUT);
   if (!RECORD_ID.test(id)) throw new LinkError('The record id in that link is not one a registry makes.');
 
   const q = url.searchParams;
   const fp = q.get('fp');
   const fingerprint: CheckLink['fingerprint'] =
     fp === null
-      ? { state: 'absent' }
+      ? endsCut(raw)
+        ? { state: 'invalid', cut: true }
+        : { state: 'absent' }
       : isHex64(fp.trim().toLowerCase())
         ? { state: 'given', value: fp.trim().toLowerCase() }
-        : { state: 'invalid' };
+        : fingerprintCut(fp)
+          ? { state: 'invalid', cut: true }
+          : { state: 'invalid' };
   const key = hexParam(q, 'chain');
   const keySalt = hexParam(q, 'ks');
   const contentHash = hexParam(q, 'cd');

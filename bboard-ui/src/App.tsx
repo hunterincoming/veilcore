@@ -83,7 +83,7 @@ const SaveProblemBar = page(layoutParts, 'SaveProblemBar');
 const AppFooter = page(layoutParts, 'AppFooter');
 
 /** Pages where someone is using the app, as opposed to reading about it. */
-const APP_PAGE = /^\/(new|records|record\/|licenses|license\/|restore|backup)/;
+const APP_PAGE = /^\/(new|records(?!\/import)|record\/|licenses|license\/|restore|backup)/;
 
 const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   // The role question belongs to the app: making records, holding them, licensing them.

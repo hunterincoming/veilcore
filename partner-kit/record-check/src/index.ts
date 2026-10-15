@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export {
+  acceptable,
   checkRecord,
   summaryOf,
   DEFAULT_REGISTRY,
@@ -17,6 +18,6 @@ export {
   type KeyBound,
   type RecordCheck,
 } from './check.js';
-export { parseCheckLink, type CheckLink } from './link.js';
-export { type LabReceipt, type NameCheck, type NameCheckStatus } from './signatures.js';
+export { CUT, parseCheckLink, type CheckLink } from './link.js';
+export { type CustodyEntry, type LabReceipt, type NameCheck, type NameCheckStatus } from './signatures.js';
 export { fingerprintOfFields, keyMatchesFingerprint, pairingFingerprintOfSha } from './hash.js';

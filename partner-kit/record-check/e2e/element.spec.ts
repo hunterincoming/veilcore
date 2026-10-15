@@ -55,14 +55,14 @@ test.afterAll(async () => {
   await new Promise((r) => server?.close(r));
 });
 
-const open = async (page: Page) => {
+const open = async (page: Page, params: Record<string, string> = {}) => {
   const hosts = new Set<string>();
   const errors: string[] = [];
   page.on('request', (r) => hosts.add(new URL(r.url()).origin));
   page.on('pageerror', (e) => errors.push(e.message));
   // A 404 from the registry (no such record, not batched yet) is an answer, not a script error.
   page.on('console', (m) => m.type() === 'error' && !/Failed to load resource/.test(m.text()) && errors.push(m.text()));
-  await page.goto(`${SITE}/?registry=${encodeURIComponent(REG)}`);
+  await page.goto(`${SITE}/?${new URLSearchParams({ registry: REG, ...params }).toString()}`);
   const field = page.getByLabel('VeilCore record check link');
   await expect(field).toBeVisible();
   return { field, hosts, errors };
@@ -72,9 +72,14 @@ const lastAnswer = (page: Page) =>
   page.evaluate(() => (window as unknown as { __last?: Record<string, unknown> }).__last);
 const violations = (page: Page) => page.evaluate(() => (window as unknown as { __violations: string[] }).__violations);
 const out = (page: Page) => page.locator('veilcore-record-check .out');
+const submitted = (page: Page) =>
+  page.evaluate(() => (window as unknown as { __submitted?: string }).__submitted ?? null);
+const valid = (page: Page) =>
+  page.locator('veilcore-record-check').evaluate((e) => (e as HTMLObjectElement).checkValidity());
 
 test('a matching link: the plain answer, the form submits, nothing but the registry is asked', async ({ page }) => {
-  const { field, hosts, errors } = await open(page);
+  // The local registry dates on preprod, a test network: this form accepts test data.
+  const { field, hosts, errors } = await open(page, { allowTest: '1' });
   // Required and empty: the form does not submit.
   await page.locator('#submit').click();
   expect(await page.evaluate(() => (window as unknown as { __submitted?: string }).__submitted)).toBeUndefined();
@@ -92,6 +97,23 @@ test('a matching link: the plain answer, the form submits, nothing but the regis
     'signed by Test Lab (checked). VeilCore’s operator matched this name to cannabis.example.gov (license TL-1)',
   );
   await expect(out(page)).toContainText('It is the report file saved to this record now.');
+  // Receipts tied to deliveries of the record: one whose sample details match, one whose seal doesn't.
+  await expect(out(page)).toContainText(
+    'Checked: Lab’s receipt for a sample, signature verified, signed by Test Lab (checked).',
+  );
+  await expect(out(page)).toContainText(
+    'Its signature covers the sample details, and what arrived matches what was sent.',
+  );
+  await expect(out(page).locator('li[data-kind="bad"]')).toContainText(
+    'Does not match: Lab’s receipt for a sample, signature verified',
+  );
+  await expect(out(page).locator('li[data-kind="bad"]')).toContainText(
+    'What arrived does NOT match what was sent: Seal number differs: sent 5500, received 5505.',
+  );
+  // A custody signature tied to no delivery: a signed statement, not counted, never green.
+  await expect(out(page).locator('li[data-kind="info"]', { hasText: 'Signed custody statement' })).toContainText(
+    'Not counted: Signed custody statement (not tied to a delivery): signature verified',
+  );
   await expect(out(page)).toContainText('Key: Matched here: the record named this key when it was sealed.');
   await expect(page.getByRole('status')).toContainText('Record found, and the link’s fingerprint matches');
   // "What this does not show" is there, folded.
@@ -126,6 +148,7 @@ test('a link someone edited: do not rely on it, and the form will not submit', a
   await expect(out(page)).toHaveAttribute('data-state', 'mismatch');
   await expect(out(page).getByRole('heading', { name: 'This link does not match the record' })).toBeVisible();
   await expect(out(page)).toContainText('Do not rely on it:');
+  await expect(out(page)).not.toContainText('Do not rely on it: Do not rely');
   await expect(out(page)).not.toContainText('Test Lab');
   await expect(field).toHaveAttribute('aria-invalid', 'true');
   expect(await page.locator('veilcore-record-check').evaluate((e) => (e as HTMLObjectElement).checkValidity())).toBe(
@@ -143,7 +166,7 @@ test('a withdrawn receipt, an undated record, a missing record, a bare id and no
   await field.press('Enter');
   await expect(out(page)).toHaveAttribute('data-state', 'matches');
   await expect(out(page)).toContainText(
-    'Not counted: Lab’s receipt for a sample: withdrawn by its signer, so it is not counted.',
+    'Not counted: Signed custody statement (not tied to a delivery): withdrawn by its signer, so it is not counted.',
   );
 
   await field.fill(reg.links.undated);
@@ -182,4 +205,95 @@ test('keyboard only: tab to the field, paste, and the answer is announced', asyn
   await page.keyboard.press('Tab'); // change fires: the check runs
   await expect(page.getByRole('status')).toContainText('Record found');
   await expect(page.getByRole('button', { name: 'Check' })).toBeFocused();
+});
+
+test('a test network date: shown, and refused unless the form allows test data', async ({ page }) => {
+  const { field } = await open(page);
+  await field.fill(reg.links.bound);
+  await field.press('Enter');
+  await expect(out(page).getByRole('heading', { name: 'Record found, dated on a test network' })).toBeVisible();
+  await expect(out(page)).toContainText('so this form does not accept it');
+  expect(await valid(page)).toBe(false);
+  expect(
+    await page
+      .locator('veilcore-record-check')
+      .evaluate((e) => (e as unknown as { validationMessage: string }).validationMessage),
+  ).toMatch(/test network/);
+  await page.locator('#submit').click();
+  expect(await submitted(page)).toBeNull();
+});
+
+test('an answer for the old link never validates a new one typed while it was being checked', async ({ page }) => {
+  const { field } = await open(page, { allowTest: '1' });
+  let release!: () => void;
+  const gate = new Promise<void>((r) => (release = r));
+  await page.route(
+    (u) => u.pathname === `/verify/${reg.records.bound.id}`,
+    async (route) => {
+      await gate;
+      await route.continue();
+    },
+  );
+  await field.fill(reg.links.bound);
+  await field.press('Enter');
+  await expect(page.getByRole('status')).toHaveText('Checking…');
+  // The applicant replaces the link before the answer comes back.
+  await field.fill(reg.links.missing);
+  release();
+  await page.waitForTimeout(500);
+  await expect(out(page)).toHaveAttribute('data-state', 'empty');
+  expect(await lastAnswer(page)).toBeUndefined();
+  expect(await valid(page)).toBe(false);
+  // Submitting blurs the box: the new link is checked, and the form still won't go.
+  await page.locator('#submit').click();
+  expect(await submitted(page)).toBeNull();
+  await expect(out(page)).toHaveAttribute('data-state', 'not-found');
+  expect(await valid(page)).toBe(false);
+  expect(await lastAnswer(page)).toMatchObject({ recordExists: false });
+});
+
+test('a cut-off link: said once, plainly', async ({ page }) => {
+  const { field } = await open(page);
+  await field.fill(reg.links.bound.slice(0, -24));
+  await field.press('Enter');
+  await expect(out(page)).toHaveAttribute('data-state', 'cut');
+  await expect(out(page).getByRole('heading', { name: 'This link looks cut off' })).toBeVisible();
+  await expect(out(page)).toContainText('Not checked: Ask for the whole link.');
+  await expect(out(page)).not.toContainText('different fingerprint');
+  await expect(page.getByRole('status')).toHaveText(
+    'This link looks cut off. Ask for the whole link. Nothing was checked.',
+  );
+});
+
+test('the registry down: a required field blocks the form by default', async ({ page }) => {
+  const { field } = await open(page, { allowTest: '1' });
+  await page.route(`${REG}/**`, (route) => route.abort('connectionrefused'));
+  await field.fill(reg.links.bound);
+  await field.press('Enter');
+  await expect(out(page)).toHaveAttribute('data-state', 'unreachable');
+  await expect(out(page)).toContainText('Not checked: The registry did not answer.');
+  expect(await valid(page)).toBe(false);
+  await page.locator('#submit').click();
+  expect(await submitted(page)).toBeNull();
+});
+
+test('the registry down, with when-unreachable="allow": the form goes, the link marked as not checked', async ({
+  page,
+}) => {
+  const { field } = await open(page, { unreachable: 'allow' });
+  await page.route(`${REG}/**`, (route) => route.abort('connectionrefused'));
+  await field.fill(reg.links.bound);
+  await field.press('Enter');
+  await expect(out(page)).toContainText('Sent unchecked:');
+  expect(await valid(page)).toBe(true);
+  expect(await lastAnswer(page)).toMatchObject({
+    checked: false,
+    reason: 'registry-unreachable',
+    link: reg.links.bound,
+  });
+  await page.locator('#submit').click();
+  expect(await submitted(page)).toBe(reg.links.bound);
+  expect(await page.evaluate(() => (window as unknown as { __unchecked?: string }).__unchecked)).toBe(
+    'registry-unreachable',
+  );
 });

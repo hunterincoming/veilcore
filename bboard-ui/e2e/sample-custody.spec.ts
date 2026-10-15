@@ -174,6 +174,34 @@ test('a different seal number: said plainly on the breeder’s plant page, certi
   await expect(r.breeder.locator('[data-custody-line]').first()).toHaveText(line);
   await shot(r.breeder, 'custody-differs-6-check');
 
+  // A stranger's check page (round 2 of the 15 Oct review): with the holder sharing the lab
+  // status, the registry reports the difference under the receipt, never the details.
+  const breederKey = await r.breeder.evaluate(() => localStorage.getItem('veilcore.holder.v1') ?? '');
+  const publicView = async () => (await (await fetch(`${API}/verify/${r.recordId}`)).json()) as { custody?: unknown };
+  expect((await publicView()).custody).toBeUndefined();
+  const granted = await fetch(`${API}/api/records/${r.recordId}/disclosure`, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json', 'x-holder-key': breederKey },
+    body: JSON.stringify({ show: ['existence', 'attestation-status'] }),
+  });
+  expect(granted.status).toBe(200);
+  const shared = await publicView();
+  expect(shared.custody).toEqual([
+    {
+      receiptAttestationId: expect.stringMatching(/^att_[0-9a-f]{16}_sc1_[0-9a-f]{64}$/) as unknown,
+      covered: 'covered',
+      differences: ['Seal number differs: sent 4471, received 4417'],
+    },
+  ]);
+  for (const secret of ['Mother M3', 'J. Doe', 'Cold, bag dry', 'ACC-differs', r.transferId])
+    expect(JSON.stringify(shared)).not.toContain(secret);
+  const strangerCtx = await browser.newContext();
+  const stranger = await strangerCtx.newPage();
+  const strangerErrors = watch(stranger);
+  await stranger.goto(`/verify/${r.recordId}`);
+  await expect(stranger.locator('[data-public-custody]')).toContainText(line);
+  await shot(stranger, 'custody-differs-7-public-check');
+
   // Changing the lab's side after signing: no longer shown as covered.
   const labKey = await r.lab.evaluate(() => localStorage.getItem('veilcore.holder.v1') ?? '');
   const changed = await fetch(`${API}/transfers/${r.transferId}/custody`, {
@@ -186,6 +214,12 @@ test('a different seal number: said plainly on the breeder’s plant page, certi
   await expect(r.breeder.locator('[data-status-row="Receipt signed"]')).toContainText(
     'The lab changed its arrival details after signing, so its receipt doesn’t cover them.',
   );
+  await stranger.reload();
+  await expect(stranger.locator('[data-public-custody]')).toContainText(
+    'The lab changed its arrival details after signing, so its receipt doesn’t cover them.',
+  );
+  expectNoErrors(strangerErrors);
+  await strangerCtx.close();
 
   expectNoErrors(r.breederErrors);
   expectNoErrors(r.labErrors);

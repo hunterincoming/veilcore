@@ -18,10 +18,10 @@
 // which facts were checked and which are someone's word, and the partner decides.
 // SPDX-License-Identifier: Apache-2.0
 
-import { verifyInclusion, type InclusionProof } from 'veilcore-records';
+import { COMMITMENT_ALGORITHM, verifyInclusion, type InclusionProof } from 'veilcore-records';
 import { fingerprintOfFields, isHex64, keyMatchesFingerprint } from './hash.js';
-import { LinkError, parseCheckLink, type CheckLink } from './link.js';
-import { checkSignatures, cleanName, type LabReceipt } from './signatures.js';
+import { CUT, LinkError, parseCheckLink, type CheckLink } from './link.js';
+import { checkSignatures, cleanName, type CustodyEntry, type LabReceipt } from './signatures.js';
 
 /** VeilCore's public registry. A partner may name another (or a copy it runs). */
 export const DEFAULT_REGISTRY = 'https://veilcore-api-production.up.railway.app';
@@ -49,9 +49,11 @@ export type CheckOptions = {
   /** The registry to ask. Default: VeilCore's public registry. Never taken from the link. */
   readonly registry?: string;
   /**
-   * The record's sealed fields, when the depositor disclosed them (the evidence bundle's
-   * record/sealed-fields.json, or an export's registered-fingerprint `fields`). They are
-   * hashed here and must give the link's fingerprint.
+   * The record's sealed fields, when the depositor disclosed them: the evidence bundle's
+   * record/sealed-fields.json, or an export's `org.veilcore.registered-fingerprint` block
+   * (whose `fields` are then used). They are hashed here, exactly as given, and must give
+   * the link's fingerprint. Any other object is hashed whole: a `fields` key inside
+   * something else is not unwrapped.
    */
   readonly fields?: unknown;
   /** Looks the date stamp up on Midnight. Without it the date is the registry's report. */
@@ -70,6 +72,8 @@ export type DatedStatus =
   | 'reported'
   /** Looked up, and the chain does not bear the registry's report out. */
   | 'not-confirmed'
+  /** The registry sent an inclusion proof and it does not check out for this fingerprint. */
+  | 'proof-fails'
   /** The look-up could not be made (indexer unreachable, network not supported). */
   | 'not-looked-up'
   /** In a sealed batch; no date stamp yet. */
@@ -127,6 +131,8 @@ export type RecordCheck = {
    * false: do not rely on anything about this record; nothing else was checked.
    */
   readonly fingerprintMatches: boolean | null;
+  /** The link looks cut off (its fingerprint stops short): ask for the whole link. */
+  readonly linkLooksCut: boolean;
   readonly fingerprint: string | null;
   /** The disclosed sealed fields hash to the fingerprint (null: none were given). */
   readonly disclosedFieldsMatch: boolean | null;
@@ -189,6 +195,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
   const timeoutMs = opts.timeoutMs ?? 15_000;
   const now = opts.now ?? Date.now();
   const problems: string[] = [];
+  const cut = link.fingerprint.state === 'invalid' && link.fingerprint.cut === true;
 
   const get = async (path: string): Promise<{ status: number; body: unknown }> => {
     const res = await doFetch(`${registry}${path}`, {
@@ -223,6 +230,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
       recordId: link.recordId,
       recordExists: false,
       fingerprintMatches: null,
+      linkLooksCut: cut,
       fingerprint: link.fingerprint.state === 'given' ? link.fingerprint.value : null,
       disclosedFieldsMatch: null,
       dated: notChecked('No record with this id in the registry.'),
@@ -243,6 +251,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
     registry,
     recordId: link.recordId,
     recordExists: true as const,
+    linkLooksCut: cut,
     registryFirstSeen: typeof r.registryFirstSeen === 'string' ? r.registryFirstSeen : null,
     supersededBy:
       typeof r.supersededBy === 'string' && r.supersededBy.length <= 128 ? cleanName(r.supersededBy, 128) : null,
@@ -260,7 +269,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
   } else if (link.fingerprint.state === 'invalid') {
     fingerprintMatches = false;
     fingerprint = null;
-    problems.push('The fingerprint in the link is damaged (it should be 64 hexadecimal characters).');
+    problems.push(cut ? CUT : 'The fingerprint in the link is damaged (it should be 64 hexadecimal characters).');
   } else {
     fingerprintMatches = null;
     fingerprint = reported;
@@ -271,14 +280,17 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
   let disclosedFieldsMatch: boolean | null = null;
   let fieldsContentHash: string | undefined;
   if (opts.fields !== undefined) {
-    const fields = isObject(opts.fields) && isObject(opts.fields.fields) ? opts.fields.fields : opts.fields;
+    const block = registeredBlock(opts.fields);
+    const fields = block ? block.fields : opts.fields;
     try {
       const f = await fingerprintOfFields(fields);
       fieldsContentHash = f.contentHash;
       disclosedFieldsMatch = fingerprint !== null && f.fingerprint === fingerprint;
       if (!disclosedFieldsMatch)
         problems.push(
-          'The sealed fields given do not hash to the record’s fingerprint: they are not the fields it was sealed with.',
+          isObject(opts.fields) && 'fields' in opts.fields && !block
+            ? 'The sealed fields given do not hash to the record’s fingerprint. They were hashed whole, as given: give record/sealed-fields.json from the evidence bundle, or an export’s org.veilcore.registered-fingerprint block as it is.'
+            : 'The sealed fields given do not hash to the record’s fingerprint: they are not the fields it was sealed with.',
         );
     } catch (e) {
       disclosedFieldsMatch = false;
@@ -302,9 +314,11 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
       fingerprint: link.fingerprint.state === 'given' ? link.fingerprint.value : reported,
       disclosedFieldsMatch,
       dated: notChecked(
-        fingerprintMatches === false
-          ? 'The link and the registry disagree about the fingerprint.'
-          : 'Nothing is sealed.',
+        cut
+          ? 'The link looks cut off, so there is no fingerprint to check.'
+          : fingerprintMatches === false
+            ? 'The link and the registry disagree about the fingerprint.'
+            : 'Nothing is sealed.',
       ),
       keyBound,
       labReceipts: [],
@@ -333,6 +347,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
     const savedShared = typeof r.dnaPairedByHolder === 'boolean';
     const out = await checkSignatures(attRes.body.attestations, fingerprint, {
       now,
+      custody: custodyOf(r.custody),
       savedReport: savedShared
         ? {
             paired: r.dnaPairedByHolder === true,
@@ -359,6 +374,45 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
     labReceiptsTotal,
     problems,
   });
+};
+
+/** The key-bound algorithm name an export's registered-fingerprint block uses (the site's KEY_BOUND_ALGORITHM). */
+const KEY_BOUND_ALGORITHM = 'sha256/key-bound/v1';
+const BLOCK_KEYS = new Set(['fingerprint', 'algorithm', 'recompute', 'fields', 'sealedAt', 'notCovered']);
+
+/**
+ * An export's org.veilcore.registered-fingerprint block, exactly: its algorithm marker, an
+ * object of fields, and no keys the export doesn't write. Anything else is not unwrapped.
+ */
+const registeredBlock = (v: unknown): { fields: Record<string, unknown> } | null =>
+  isObject(v) &&
+  isObject(v.fields) &&
+  (v.algorithm === COMMITMENT_ALGORITHM || v.algorithm === KEY_BOUND_ALGORITHM) &&
+  Object.keys(v).every((k) => BLOCK_KEYS.has(k))
+    ? { fields: v.fields }
+    : null;
+
+/**
+ * The registry's list of lab receipts tied to deliveries of this record (sent when the
+ * holder shares lab status): which receipt, whether its signature covers the sample details
+ * recorded on the delivery, and how what arrived differs from what was sent. Anything out
+ * of shape is dropped.
+ */
+const custodyOf = (v: unknown): CustodyEntry[] | undefined => {
+  if (!Array.isArray(v)) return undefined;
+  const out: CustodyEntry[] = [];
+  for (const e of v.slice(0, 200)) {
+    if (!isObject(e) || typeof e.receiptAttestationId !== 'string' || !e.receiptAttestationId) continue;
+    if (e.covered !== 'covered' && e.covered !== 'changed' && e.covered !== 'not-covered') continue;
+    const differences = Array.isArray(e.differences)
+      ? e.differences
+          .slice(0, 20)
+          .map((d) => cleanName(d, 300))
+          .filter((d): d is string => d !== null)
+      : [];
+    out.push({ receiptAttestationId: e.receiptAttestationId, covered: e.covered, differences });
+  }
+  return out;
 };
 
 const notChecked = (reason: string): Dated => ({
@@ -395,7 +449,10 @@ const dateOf = async (
     problems.push(
       'The registry’s inclusion proof does not check out for this fingerprint, so the date was not checked.',
     );
-    return { ...notChecked('The inclusion proof does not check out for this fingerprint.'), status: 'not-in-a-batch' };
+    return {
+      ...notChecked('The registry sent an inclusion proof that does not check out for this fingerprint.'),
+      status: 'proof-fails',
+    };
   }
   const a = isObject(p.anchor) ? p.anchor : null;
   const anchors: unknown = (p as unknown as Record<string, unknown>).anchors;
@@ -517,8 +574,27 @@ const finish = (p: Parts): RecordCheck => {
   };
 };
 
+/**
+ * Whether an answer is one a partner can accept without reading further: the record
+ * exists, the link's fingerprint matches, and nothing contradicts it (the sealed fields
+ * given, the key in the link, the registry's inclusion proof, the date stamp when looked
+ * up), and the date is not on a test network unless `allowTestNetwork`. The CLI's exit 0
+ * and the form field's validity. Not a verdict about the material.
+ */
+export const acceptable = (c: RecordCheck | null, o: { allowTestNetwork?: boolean } = {}): boolean =>
+  !!c &&
+  c.recordExists &&
+  c.fingerprintMatches === true &&
+  !c.linkLooksCut &&
+  c.disclosedFieldsMatch !== false &&
+  c.keyBound.keyInLink !== 'does-not-match' &&
+  c.dated.status !== 'not-confirmed' &&
+  c.dated.status !== 'proof-fails' &&
+  (o.allowTestNetwork === true || c.dated.testNetwork !== true);
+
 /** One plain paragraph. Never says the material is anything. */
 export const summaryOf = (p: Parts): string => {
+  if (p.linkLooksCut) return `${CUT} Nothing was checked.`;
   if (!p.recordExists) return `No record with id ${p.recordId} in the registry. Check the link is complete.`;
   if (p.fingerprintMatches === false)
     return 'Do not rely on this link: it was made for a different fingerprint than the registry reports for this record. Nothing was checked. Ask the depositor for the record’s current check link.';
@@ -539,11 +615,13 @@ export const summaryOf = (p: Parts): string => {
         ? `In batch ${d.batch}; the registry reports a date stamp on ${d.network}${d.testNetwork ? ' (a test network)' : ''}, not looked up here.`
         : d.status === 'not-confirmed'
           ? 'The date stamp the registry reports was NOT confirmed on chain.'
-          : d.status === 'not-looked-up'
-            ? `In batch ${d.batch}; the date stamp could not be looked up, so the date is the registry’s word.`
-            : d.status === 'no-date-stamp'
-              ? `In batch ${d.batch}; no date stamp yet.`
-              : 'Not in a batch yet: no date stamp.',
+          : d.status === 'proof-fails'
+            ? 'The registry’s inclusion proof does NOT check out for this fingerprint, so there is no date.'
+            : d.status === 'not-looked-up'
+              ? `In batch ${d.batch}; the date stamp could not be looked up, so the date is the registry’s word.`
+              : d.status === 'no-date-stamp'
+                ? `In batch ${d.batch}; no date stamp yet.`
+                : 'Not in a batch yet: no date stamp.',
   );
   const counted = p.labReceipts.filter((x) => x.counts);
   const named = counted.filter((x) => x.signer.nameCheck === 'checked');
@@ -554,6 +632,13 @@ export const summaryOf = (p: Parts): string => {
       : `${counted.length} lab signature${counted.length === 1 ? '' : 's'} verified (${named.length} with a name VeilCore’s operator checked).`,
   );
   if (withdrawn) parts.push(`${withdrawn} withdrawn by ${withdrawn === 1 ? 'its signer' : 'their signers'}.`);
+  const custodyIssues = p.labReceipts.filter(
+    (x) => x.counts && x.custody && (x.custody.covered === 'changed' || x.custody.differences.length > 0),
+  ).length;
+  if (custodyIssues)
+    parts.push(
+      `${custodyIssues} lab receipt${custodyIssues === 1 ? '' : 's'} for a sample ${custodyIssues === 1 ? 'does' : 'do'} NOT match what was sent, or ${custodyIssues === 1 ? 'was' : 'were'} changed after signing.`,
+    );
   if (p.keyBound.keyInLink === 'matches') parts.push('The key in the link is the one the record named.');
   if (p.keyBound.keyInLink === 'does-not-match') parts.push('The key in the link is NOT the one the record named.');
   if (p.supersededBy) parts.push(`The holder has replaced this record with a corrected one: ${p.supersededBy}.`);

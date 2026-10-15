@@ -5,7 +5,7 @@
 // and an agreement menu on every card; those are still here, under "More".
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Alert, Box, Button, Collapse, Divider, Paper, Snackbar, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
@@ -14,11 +14,12 @@ import InboxIcon from '@mui/icons-material/MoveToInboxOutlined';
 import BadgeIcon from '@mui/icons-material/VerifiedUserOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { useRecords, exportRecords, importRecords, startOver, type StrainRecord } from '../../veilcore/records';
+import { useRecords, exportRecords, importRecords, startOver } from '../../veilcore/records';
 import { holderKeyIfAny, downloadHolderKey } from '../../veilcore/holder';
 import { useLicenses, clearLoadedLicenses } from '../../veilcore/licenses';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
-import { keysWithoutBackup, useRecordKeys, type RecordKeys } from '../../veilcore/record-keys';
+import { keysWithoutBackup, useRecordKeys } from '../../veilcore/record-keys';
+import { importedRecordIds } from '../../veilcore/bulk-import-ledger';
 import { useRole, isBreeder, isLab, requestRoleChange } from '../../veilcore/role';
 import { loadAttester } from '../../veilcore/attester-keys';
 import { RecordFinder, matchesQuery, sortRecords, type SortKey } from '../RecordFinder';
@@ -34,23 +35,7 @@ import { quantityPhrase } from '../../veilcore/transfers';
 import { TrustPanel } from '../TrustPanel';
 import { RegistryExportButton } from '../RegistryExportButton';
 import { draftHeading, loadDraft } from './log-flow-state';
-
-const day = (ms: number) => new Date(ms).toLocaleDateString();
-
-/**
- * One line saying where a plant stands, worst news first. Nothing here says a lab
- * confirmed anything: that needs a signature checked on the plant's page, and a used
- * code (record.attestation) is not one.
- */
-const statusLine = (r: StrainRecord, keys?: RecordKeys): { text: string; unfinished: boolean } => {
-  if (REAL_CHAIN && keys && !keys.backedUpAt)
-    return { text: 'Not finished · next: save your backup', unfinished: true };
-  if (REAL_CHAIN && !r.receivedFrom && !keys?.anchor)
-    return { text: 'Not finished · next: the date stamp', unfinished: true };
-  const bits = [r.receivedFrom ? `Received from ${r.receivedFrom}` : `Sealed ${day(r.loggedAt)}`];
-  if (r.dnaFingerprint) bits.push('lab report saved');
-  return { text: bits.join(' · '), unfinished: false };
-};
+import { homeStatusLine } from './plant-status-words';
 
 export const AppHome: React.FC = () => {
   const records = useRecords();
@@ -76,6 +61,8 @@ export const AppHome: React.FC = () => {
   );
   // A breeder's plants with a lab report waiting; a lab's received samples at a glance.
   const waiting = useWaitingByRecord(isBreeder(role) && records.some((r) => !r.receivedFrom));
+  // Plants a collection import made: their key stamps are queued (/records/import), a few a day.
+  const imported = useMemo(() => new Set(REAL_CHAIN ? importedRecordIds() : []), [records]);
   const labFacts = useLabCardFacts(visible, lab);
 
   const onImport = async (file: File | null | undefined) => {
@@ -270,7 +257,7 @@ export const AppHome: React.FC = () => {
             const s =
               lab && r.receivedFrom
                 ? { text: labCardLine(r, labFacts[r.id]), unfinished: false }
-                : statusLine(r, keys[r.id]);
+                : homeStatusLine(r, keys[r.id], { realChain: REAL_CHAIN, queued: imported.has(r.id) });
             const reportWaiting = (waiting[r.id]?.length ?? 0) > 0;
             return (
               <Paper

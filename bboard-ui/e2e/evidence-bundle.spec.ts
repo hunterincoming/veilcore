@@ -480,6 +480,15 @@ test.describe('evidence bundle', () => {
     await expect(v.getByText('Lab report pairing matches', { exact: true })).toBeVisible();
     // The lab report's signature and, on the stand-in, the lab's sample receipt.
     await expect(v.getByText('Signature checks', { exact: true })).toHaveCount(setup.sent ? 2 : 1);
+    if (setup.sent) {
+      // The sample details on the delivery: the page works the digest out again and finds it
+      // in the lab's signed receipt id.
+      const custody = v.locator('[data-check="custody"][data-custody="covered"]');
+      await expect(custody).toContainText(DELIVERY);
+      await expect(custody).toContainText('veilcore/sample-custody/v1');
+      await expect(custody).toContainText(CUSTODY_DIGEST);
+      await expect(custody.locator('dt', { hasText: 'Sent: Seal number' })).toBeVisible();
+    }
     await expect(v.locator('[data-check="lookup-midnight"]')).toContainText(ANCHOR_TX);
     await expect(v.locator('[data-check="lookup-midnight"]')).toContainText(setup.batchRoot);
     await expect(v.locator('[data-check="lookup-midnight"]')).toContainText(/test network/);
@@ -513,6 +522,22 @@ test.describe('evidence bundle', () => {
       buffer: Buffer.from(JSON.stringify(tamperedFields)),
     });
     await expect(v.getByText('Fingerprint does not match', { exact: true })).toBeVisible();
+    if (setup.sent) {
+      // evidence.json with the lab's seal number changed: the receipt no longer covers it,
+      // whatever the file says.
+      const ev = JSON.parse(fs.readFileSync(path.join(dir, 'evidence.json'), 'utf8')) as {
+        custody: { arrival: Record<string, string>; covered: string }[];
+      };
+      ev.custody[0].arrival.sealNumber = '9999';
+      await v.locator('#files').setInputFiles({
+        name: 'evidence.json',
+        mimeType: 'application/json',
+        buffer: Buffer.from(JSON.stringify(ev)),
+      });
+      await expect(v.locator('[data-check="custody"][data-custody="changed"]')).toContainText(
+        'the receipt doesn’t cover what the lab wrote on arrival',
+      );
+    }
     expect(run.requests.filter((u) => !u.startsWith('file:'))).toEqual([]);
     expectNoErrors(run.errors);
     await run.ctx.close();

@@ -86,6 +86,20 @@ export const bitcoinSteps = (pending: boolean): string[] => [
     (pending ? ' (run ots upgrade root.bin.ots first; that needs the internet once).' : '.'),
 ];
 
+/**
+ * Text someone else typed (a plant's name, a signer's name, a lab's notes), made safe to put
+ * on one line of README.txt, the examiner summary or the declaration (round 2 of the 15 Oct
+ * review): every control or format character (line breaks, tabs, direction marks such as
+ * U+202E, zero-width characters) and line or paragraph separator becomes a space, and runs
+ * of spaces one. A line break in a lab's notes used to start a paragraph of its own in the
+ * declaration, and a direction mark reversed the text after it.
+ */
+export const oneLine = (v: unknown): string =>
+  String(v)
+    .replace(/[\p{Cc}\p{Cf}\u2028\u2029]+/gu, ' ')
+    .replace(/ {2,}/g, ' ')
+    .trim();
+
 export const wrap = (text: string, width = 78): string =>
   text
     .split('\n')

@@ -1,6 +1,7 @@
 // "Date your whole collection" (/records/import): a CSV or Excel log of what a lab or a
-// breeder holds, one record per row. Pick the file → say which column is which → check
-// the rows as they will be sealed → seal them → save the backup → the results file.
+// breeder holds, one record per row. Pick the file → say which row has the column names →
+// say which column is which → check the rows as they will be sealed → seal them → save the
+// backup → the results file.
 //
 // The file is read in this browser and never uploaded. Each row becomes an ordinary
 // record, sealed exactly as the logging flow seals one plant (veilcore/bulk-import.ts),
@@ -37,12 +38,16 @@ import { localStamp } from '../../veilcore/time';
 import {
   FIELDS,
   FIELD_LABELS,
+  HEADER_SCAN,
+  KEY_STAMPS_PER_DAY,
   MAX_ROWS,
   checkRows,
   clearJob,
   dateOrderFor,
   guessMapping,
+  importedRecordIds,
   jobRecordIds,
+  keyStampDays,
   jobSummary,
   loadJob,
   readSheet,
@@ -50,6 +55,9 @@ import {
   resultsFileName,
   saveJob,
   sealRows,
+  stampPauseWords,
+  tooManyRows,
+  withHeaderRow,
   type DateOrder,
   type FieldKey,
   type Job,
@@ -61,15 +69,16 @@ import {
 } from '../../veilcore/bulk-import';
 import { useKeyStampQueue } from './useKeyStampQueue';
 
-type Screen = 'file' | 'columns' | 'check' | 'seal' | 'sealed' | 'backup' | 'done';
+type Screen = 'file' | 'header' | 'columns' | 'check' | 'seal' | 'sealed' | 'backup' | 'done';
 
 const STEP: Record<Screen, string | undefined> = {
-  file: 'Step 1 of 5',
-  columns: 'Step 2 of 5',
-  check: 'Step 3 of 5',
-  seal: 'Step 4 of 5',
-  sealed: 'Step 4 of 5',
-  backup: 'Step 5 of 5',
+  file: 'Step 1 of 6',
+  header: 'Step 2 of 6',
+  columns: 'Step 3 of 6',
+  check: 'Step 4 of 6',
+  seal: 'Step 5 of 6',
+  sealed: 'Step 5 of 6',
+  backup: 'Step 6 of 6',
   done: undefined,
 };
 
@@ -112,10 +121,24 @@ export const BulkImportPage: React.FC = () => {
               setSheet(s);
               setFileName(name);
               setMapping(guessMapping(s.headers));
-              setScreen('columns');
+              setScreen('header');
             }}
           />
         );
+      case 'header':
+        return sheet ? (
+          <HeaderRow
+            step={step}
+            sheet={sheet}
+            onPick={(line) => {
+              const s = withHeaderRow(sheet, line);
+              setSheet(s);
+              setMapping(guessMapping(s.headers));
+            }}
+            onBack={() => setScreen('file')}
+            onNext={() => setScreen('columns')}
+          />
+        ) : null;
       case 'columns':
         return sheet && mapping ? (
           <Columns
@@ -123,7 +146,7 @@ export const BulkImportPage: React.FC = () => {
             sheet={sheet}
             mapping={mapping}
             onChange={setMapping}
-            onBack={() => setScreen('file')}
+            onBack={() => setScreen('header')}
             onNext={() => setScreen('check')}
           />
         ) : null;
@@ -134,6 +157,7 @@ export const BulkImportPage: React.FC = () => {
             sheet={sheet}
             mapping={mapping}
             onBack={() => setScreen('columns')}
+            onHeaderRow={() => setScreen('header')}
             onSeal={(rows) => {
               setJob({
                 version: 1,
@@ -225,12 +249,12 @@ const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => vo
     setError(undefined);
     try {
       const s = await readSheet(f);
-      if (s.headers.length === 0 || s.rows.length === 0) {
-        setError('That file has no rows under its header row. The first row should name the columns.');
-      } else if (s.rows.length > MAX_ROWS) {
+      if (s.raw.length < 2) {
         setError(
-          `That file has ${s.rows.length} rows. Import up to ${MAX_ROWS} at a time: split the file and import the rest after.`,
+          'That file has no rows under its column names. One row should name the columns, with a row per plant under it.',
         );
+      } else if (s.rows.length > MAX_ROWS || s.moreRows) {
+        setError(tooManyRows(s));
       } else onRead(s, f.name);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -249,8 +273,8 @@ const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => vo
         </Typography>
       </Box>
       <Typography variant="body1">
-        A CSV or Excel (.xlsx) file, first sheet only, with the column names in the first row. Up to {MAX_ROWS} rows at
-        a time.
+        A CSV or Excel (.xlsx) file, first sheet only, with a row that names the columns (a title above it is fine). Up
+        to {MAX_ROWS} rows at a time.
       </Typography>
       {!keeps && (
         <Alert severity="warning" variant="outlined">
@@ -300,6 +324,100 @@ const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => vo
           This is a test site: records made here are test data.
         </Typography>
       )}
+      <EarlierKeyStamps />
+    </Stack>
+  );
+};
+
+/** Key stamps still queued from earlier imports: they carry on while this page is open. */
+const EarlierKeyStamps: React.FC = () => {
+  const keys = useRecordKeys();
+  const ids = useMemo(() => importedRecordIds(), []);
+  const waiting = ids.some((id) => keys[id] && !keys[id].anchor);
+  if (!REAL_CHAIN || chainNotReady() || !waiting) return null;
+  return <KeyStamps ids={ids} heading="Key date stamps from earlier imports" />;
+};
+
+// ---------------------------------------------------------------------------------------
+
+/** One row as a line of text: its first filled cells. */
+const rowText = (cells: readonly string[], max = 90): string => {
+  const t = cells
+    .map((c) => c.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .join(' · ');
+  return t.length > max ? `${t.slice(0, max - 1)}…` : t;
+};
+
+const HeaderRow: React.FC<{
+  step?: string;
+  sheet: Sheet;
+  onPick: (line: number) => void;
+  onBack: () => void;
+  onNext: () => void;
+}> = ({ step, sheet, onPick, onBack, onNext }) => {
+  const hintId = useId();
+  const choices = sheet.raw.slice(0, HEADER_SCAN);
+  const first = sheet.rows[0];
+  const above = sheet.raw.filter((r) => r.line < sheet.headerLine).length;
+  const ready = sheet.rows.length > 0;
+  return (
+    <Stack spacing={2.5}>
+      <Box>
+        <ScreenHeading step={step}>Which row has the column names?</ScreenHeading>
+        <Typography variant="body1" color="text.secondary">
+          We picked the row that looks like the column names. Rows above it, like a title, are left out.
+        </Typography>
+      </Box>
+      <TextField
+        select
+        label="The column names are in"
+        value={String(sheet.headerLine)}
+        onChange={(e) => onPick(Number(e.target.value))}
+        fullWidth
+      >
+        {choices.map((r) => (
+          <MenuItem key={r.line} value={String(r.line)} sx={{ whiteSpace: 'normal' }}>
+            Row {r.line}: {rowText(r.cells, 70)}
+          </MenuItem>
+        ))}
+      </TextField>
+      <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 1.5 }} data-header-preview="">
+        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+          Column names (row {sheet.headerLine})
+        </Typography>
+        <Typography variant="body2" sx={{ fontWeight: 700, wordBreak: 'break-word', mb: 1 }}>
+          {rowText(sheet.headers, 300)}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+          {first ? `First plant (row ${first.line})` : 'First plant'}
+        </Typography>
+        <Typography variant="body2" sx={{ wordBreak: 'break-word', color: first ? undefined : 'text.secondary' }}>
+          {first ? rowText(first.cells, 300) : 'No rows under this one.'}
+        </Typography>
+      </Box>
+      <Typography variant="body2" color="text.secondary">
+        {plural(sheet.rows.length, 'row')} under the column names
+        {above ? `; ${plural(above, 'row')} above ${above === 1 ? 'it is' : 'them are'} left out` : ''}.
+      </Typography>
+      <Button
+        variant="contained"
+        size="large"
+        fullWidth
+        {...softDisabled(!ready, hintId)}
+        onClick={() => ready && onNext()}
+        sx={{ py: 1.6 }}
+      >
+        Next: which column is which
+      </Button>
+      {!ready && (
+        <Typography id={hintId} variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+          Pick a row with plants under it.
+        </Typography>
+      )}
+      <Button variant="text" color="inherit" onClick={onBack} sx={{ minHeight: 48 }}>
+        Pick a different file
+      </Button>
     </Stack>
   );
 };
@@ -412,7 +530,7 @@ const Columns: React.FC<{
         </Typography>
       )}
       <Button variant="text" color="inherit" onClick={onBack} sx={{ minHeight: 48 }}>
-        Pick a different file
+        Change the column names row
       </Button>
     </Stack>
   );
@@ -468,8 +586,9 @@ const Check: React.FC<{
   sheet: Sheet;
   mapping: Mapping;
   onBack: () => void;
+  onHeaderRow: () => void;
   onSeal: (rows: PreparedRow[]) => void;
-}> = ({ step, sheet, mapping, onBack, onSeal }) => {
+}> = ({ step, sheet, mapping, onBack, onHeaderRow, onSeal }) => {
   const records = useRecords();
   const hintId = useId();
   const checked = useMemo(() => checkRows(sheet, mapping, { existing: records }), [sheet, mapping, records]);
@@ -490,6 +609,23 @@ const Check: React.FC<{
       {checked.blocked && (
         <Alert severity="error" variant="outlined" role="alert">
           {checked.blocked}
+        </Alert>
+      )}
+      {checked.headerRows.length > 0 && (
+        <Alert
+          severity="warning"
+          variant="outlined"
+          action={
+            <Button color="inherit" onClick={onHeaderRow} sx={{ minHeight: 44 }}>
+              Pick the row
+            </Button>
+          }
+        >
+          {checked.headerRows.length === 1
+            ? `Row ${checked.headerRows[0]} looks like column names, not a plant, so it is left out.`
+            : `Rows ${checked.headerRows.join(', ')} look like column names, not plants, so they are left out.`}{' '}
+          If your column names are in {checked.headerRows.length === 1 ? 'that row' : 'one of them'}, pick it as the
+          column names row.
         </Alert>
       )}
       {preview.length > 0 && (
@@ -551,7 +687,7 @@ const Check: React.FC<{
         onClick={() => can && onSeal(checked.rows)}
         sx={{ py: 1.6 }}
       >
-        {checked.ready > 0 ? `Seal ${plural(checked.ready, 'plant')}` : 'Nothing to seal'}
+        {checked.ready > 0 ? `Seal ${plural(checked.ready, 'record')}` : 'Nothing to seal'}
       </Button>
       {!can && (
         <Typography id={hintId} variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
@@ -625,7 +761,7 @@ const Seal: React.FC<{
     <Stack spacing={2.5}>
       <Box>
         <ScreenHeading step={step}>
-          {running ? 'Sealing your plants…' : stopped ? 'Sealing paused' : 'Pick up where you stopped'}
+          {running ? 'Sealing your records…' : stopped ? 'Sealing paused' : 'Pick up where you stopped'}
         </ScreenHeading>
         <Typography variant="body1" color="text.secondary">
           {job.fileName}: {plural(total, 'row')} to seal.
@@ -634,7 +770,7 @@ const Seal: React.FC<{
       <LinearProgress
         variant="determinate"
         value={pct}
-        aria-label="Sealing your plants"
+        aria-label="Sealing your records"
         sx={{ height: 10, borderRadius: 5 }}
       />
       <Typography variant="body1" role="status">
@@ -685,7 +821,7 @@ const Summary: React.FC<{ step?: string; job: Job; onNext: () => void }> = ({ st
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
         <DoneIcon color="primary" sx={{ fontSize: 40 }} aria-hidden="true" />
         <ScreenHeading step={step}>
-          {s.sealed ? `Sealed ${plural(s.sealed, 'plant')}` : 'Nothing new sealed'}
+          {s.sealed ? `Sealed ${plural(s.sealed, 'record')}` : 'Nothing new sealed'}
         </ScreenHeading>
       </Stack>
       <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
@@ -722,7 +858,7 @@ const Summary: React.FC<{ step?: string; job: Job; onNext: () => void }> = ({ st
       {s.sealed > 0 && (
         <Typography variant="body1" color="text.secondary">
           {stampsFromHere
-            ? `Each record's date comes when its batch is dated on ${DATED_ON}. Each plant's key is also date stamped from this browser, a few a day; that starts after your backup.`
+            ? `Your records are already sealed and will be dated by their batch on ${DATED_ON}; that doesn't depend on their key stamps. Each plant's key also gets its own date stamp from this browser, about ${KEY_STAMPS_PER_DAY} a day, so ${s.sealed} queued take about ${plural(keyStampDays(s.sealed), 'day')}. They start after your backup.`
             : `Their public date stamp comes when their batch is dated on ${DATED_ON}. Nothing for you to do.`}
         </Typography>
       )}
@@ -750,17 +886,91 @@ const downloadText = (text: string, name: string) => {
   URL.revokeObjectURL(url);
 };
 
-const Finished: React.FC<{ job: Job; onAnother: () => void }> = ({ job, onAnother }) => {
-  const ids = useMemo(() => jobRecordIds(job), [job]);
-  const stampsFromHere = REAL_CHAIN && !chainNotReady();
-  const queue = useKeyStampQueue(ids, stampsFromHere);
+/**
+ * Key date stamps for imported records, from this browser, while this page is open. The
+ * rate is said as it is: about KEY_STAMPS_PER_DAY a day, so a big import takes weeks. The
+ * records themselves don't wait for these: each is dated by its batch (round 2).
+ */
+const KeyStamps: React.FC<{ ids: readonly string[]; heading: string }> = ({ ids, heading }) => {
+  const queue = useKeyStampQueue(ids, true);
   const keys = useRecordKeys();
-  const s = jobSummary(job);
+  const waiting = queue.total - queue.stamped;
   // A key stamp that landed after the backup was checked isn't in that backup.
   const newSinceBackup = ids.filter((id) => {
     const k = keys[id];
     return k?.anchor && k.backedUpAt !== undefined && (k.anchor.anchoredAt ?? Number.MAX_SAFE_INTEGER) > k.backedUpAt;
   }).length;
+  return (
+    <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2 }} data-key-stamps="">
+      <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
+        {heading}: {queue.stamped} of {queue.total}
+      </Typography>
+      <LinearProgress
+        variant="determinate"
+        value={queue.total ? Math.round((100 * queue.stamped) / queue.total) : 0}
+        aria-label={heading}
+        sx={{ height: 8, borderRadius: 4, my: 1 }}
+      />
+      <Typography variant="body2" color="text.secondary">
+        Your records are already sealed and will be dated by their batch on {DATED_ON}. That doesn&apos;t depend on
+        these key stamps.
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        Each plant&apos;s key also gets a date stamp from this browser, so you can prove you hold it later. The free fee
+        service does about {KEY_STAMPS_PER_DAY} a day from each browser
+        {waiting > 0 ? `, so ${waiting} queued take about ${plural(keyStampDays(waiting), 'day')}` : ''}. They go out
+        while this page is open. Each plant&apos;s own page can do its stamp too.
+      </Typography>
+      <Typography variant="body2" role="status" sx={{ mt: 1 }}>
+        {queue.stopped
+          ? ''
+          : queue.current
+            ? `Date stamping ${queue.current.name}…${queue.current.progress ? ` ${queue.current.progress}` : ''}`
+            : queue.pauseUntil
+              ? stampPauseWords(queue.why, localStamp(queue.pauseUntil))
+              : queue.stamped === queue.total
+                ? 'All done.'
+                : ''}
+      </Typography>
+      {queue.stopped && (
+        <Alert
+          severity="warning"
+          variant="outlined"
+          sx={{ mt: 1 }}
+          action={
+            <Button color="inherit" onClick={queue.resume} sx={{ minHeight: 44 }}>
+              Go on
+            </Button>
+          }
+        >
+          {queue.stopped}
+        </Alert>
+      )}
+      {newSinceBackup > 0 && (
+        <Alert
+          severity="info"
+          variant="outlined"
+          sx={{ mt: 1 }}
+          action={
+            <Button color="inherit" component={RouterLink} to="/backup" sx={{ minHeight: 44 }}>
+              Save it
+            </Button>
+          }
+        >
+          {plural(newSinceBackup, 'key date stamp')} landed after your backup. Save a new backup to keep{' '}
+          {newSinceBackup === 1 ? 'it' : 'them'}.
+        </Alert>
+      )}
+    </Box>
+  );
+};
+
+const Finished: React.FC<{ job: Job; onAnother: () => void }> = ({ job, onAnother }) => {
+  const ids = useMemo(() => jobRecordIds(job), [job]);
+  // This import's records first, then any earlier import's still waiting: Home says they are queued.
+  const queued = useMemo(() => [...new Set([...ids, ...importedRecordIds()])], [ids]);
+  const stampsFromHere = REAL_CHAIN && !chainNotReady();
+  const s = jobSummary(job);
 
   return (
     <Stack spacing={2.5}>
@@ -789,63 +999,8 @@ const Finished: React.FC<{ job: Job; onAnother: () => void }> = ({ job, onAnothe
         </Typography>
       </Box>
 
-      {stampsFromHere && ids.length > 0 ? (
-        <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2 }}>
-          <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
-            Key date stamps: {queue.stamped} of {queue.total}
-          </Typography>
-          <LinearProgress
-            variant="determinate"
-            value={queue.total ? Math.round((100 * queue.stamped) / queue.total) : 0}
-            aria-label="Key date stamps"
-            sx={{ height: 8, borderRadius: 4, my: 1 }}
-          />
-          <Typography variant="body2" color="text.secondary">
-            Each plant&apos;s key is date stamped from this browser, so you can prove you hold it later. The free fee
-            service dates only a few a day from each browser, so these arrive over the coming days while this page is
-            open. Each plant&apos;s own page can do its stamp too.
-          </Typography>
-          <Typography variant="body2" role="status" sx={{ mt: 1 }}>
-            {queue.stopped
-              ? ''
-              : queue.current
-                ? `Date stamping ${queue.current.name}…${queue.current.progress ? ` ${queue.current.progress}` : ''}`
-                : queue.pauseUntil
-                  ? `Waiting for the fee service. Next try: ${localStamp(queue.pauseUntil)}.`
-                  : queue.stamped === queue.total
-                    ? 'All done.'
-                    : ''}
-          </Typography>
-          {queue.stopped && (
-            <Alert
-              severity="warning"
-              variant="outlined"
-              sx={{ mt: 1 }}
-              action={
-                <Button color="inherit" onClick={queue.resume} sx={{ minHeight: 44 }}>
-                  Go on
-                </Button>
-              }
-            >
-              {queue.stopped}
-            </Alert>
-          )}
-          {newSinceBackup > 0 && (
-            <Alert
-              severity="info"
-              variant="outlined"
-              sx={{ mt: 1 }}
-              action={
-                <Button color="inherit" component={RouterLink} to="/backup" sx={{ minHeight: 44 }}>
-                  Save it
-                </Button>
-              }
-            >
-              {plural(newSinceBackup, 'key date stamp')} landed after your backup. Save a new backup to keep{' '}
-              {newSinceBackup === 1 ? 'it' : 'them'}.
-            </Alert>
-          )}
-        </Box>
+      {stampsFromHere && queued.length > 0 ? (
+        <KeyStamps ids={queued} heading="Key date stamps" />
       ) : (
         ids.length > 0 && (
           <Typography variant="body1" color="text.secondary">

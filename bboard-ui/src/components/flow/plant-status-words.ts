@@ -4,6 +4,7 @@
 
 import type { LabReceipt } from '../../veilcore/custody';
 import type { RecordKeys } from '../../veilcore/record-keys';
+import type { StrainRecord } from '../../veilcore/records';
 import type { ProofState } from '../../veilcore/proofs';
 import type { AnchorState } from '../verify/anchor-words';
 import { isTestNetwork } from '../../config/network';
@@ -30,6 +31,28 @@ export const labReceiptRow = (receipt: LabReceipt | null | undefined) => {
     };
   if (receipt.kind === 'rejected') return { done: true, label: 'You turned it away', value: REJECTED[receipt.reason] };
   return { done: false, label: 'Receipt not signed yet', value: '' };
+};
+
+/**
+ * Home's one line for a plant, worst news first. Only a missing backup is "Not finished":
+ * the record is sealed and its date comes from its batch, so a key not yet date stamped
+ * is a quiet note, not a step left undone. A collection import queues its key stamps at
+ * about 3 a day, and 120 plants all marked "Not finished" for 40 days said something false
+ * (round 2). Nothing here says a lab confirmed anything: that needs a signature checked on
+ * the plant's page, and a used code (record.attestation) is not one.
+ */
+export const homeStatusLine = (
+  r: Pick<StrainRecord, 'receivedFrom' | 'loggedAt' | 'dnaFingerprint'>,
+  keys: RecordKeys | undefined,
+  opts: { realChain: boolean; queued?: boolean },
+): { text: string; unfinished: boolean } => {
+  if (opts.realChain && keys && !keys.backedUpAt)
+    return { text: 'Not finished · next: save your backup', unfinished: true };
+  const bits = [r.receivedFrom ? `Received from ${r.receivedFrom}` : `Sealed ${day(r.loggedAt)}`];
+  if (r.dnaFingerprint) bits.push('lab report saved');
+  if (opts.realChain && !r.receivedFrom && keys && !keys.anchor)
+    bits.push(opts.queued ? 'key date stamp queued' : 'key not date stamped yet');
+  return { text: bits.join(' · '), unfinished: false };
 };
 
 /** The key's date stamp, as a second line under the record's date (round 5). */

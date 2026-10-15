@@ -9,12 +9,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { SiteShell } from '../site/SiteShell';
 import './partners.css';
 
 const API: string = import.meta.env.VITE_API_BASE ?? '';
 const GUIDE = 'https://github.com/hunterincoming/veilcore-midnight-testnet/blob/main/docs/partners/require-a-record.md';
 const KIT = 'https://github.com/hunterincoming/veilcore-midnight-testnet/tree/main/partner-kit/record-check';
+/** The site's contact address (the privacy page's). */
+const CONTACT = 'hunter@veilcore.org';
 
 const TEXT = {
   label: 'For partners',
@@ -34,7 +37,7 @@ const TEXT = {
       ],
       [
         'Lab signatures, checked',
-        'Receipts for samples and lab reports, each signature checked, and whether VeilCore’s operator matched the lab’s name to a public listing.',
+        'Receipts for samples and lab reports, each signature checked, and whether VeilCore’s operator matched the lab’s name to a public listing. A receipt counts only when the registry ties it to a delivery of the record, and you see whether what arrived matches what was sent.',
       ],
       ['The same check for everyone', 'Every applicant’s link is checked the same way, by your page.'],
     ],
@@ -77,9 +80,40 @@ const TEXT = {
   },
   form: {
     title: 'Add it to your form',
-    lede: 'One file, about 33 KB, on your own site. With “required”, the form will not submit until the link leads to a record that matches it.',
+    lede: 'One file, about 40 KB, served from your site. With “required”, the form will not submit until the link leads to a record that matches it and nothing contradicts it. If the applicant changes the link, it has to be checked again.',
+    options: [
+      [
+        'allow-test-network',
+        'Also accept records dated on a test network. For trying it out: test dates carry no weight, so by default they are refused.',
+      ],
+      [
+        'when-unreachable="allow"',
+        'If VeilCore’s registry can’t be reached, let the form go with the link marked as not checked (the form also sends <name>-unchecked). Without it, a required field blocks the whole form while the registry is down.',
+      ],
+    ],
     csp: 'Your Content Security Policy needs script-src for wherever you serve the file and connect-src for the registry. No style, image or frame exceptions; it works with Trusted Types. No cookies, no storage, no tracking.',
-    status: 'Not on npm yet: build it from partner-kit/record-check in the VeilCore repository.',
+    status:
+      'Not on npm yet: build it from partner-kit/record-check in the VeilCore repository and serve the file from your site.',
+  },
+  facts: {
+    title: 'Before you rely on it',
+    cost: ['Cost', 'Checking is free, for you and for everyone else. No account, no key, no contract.'],
+    support: ['Support', 'Email', 'There is no support agreement or response time.'],
+    data: [
+      'Data',
+      'A check sends the registry the record’s id and fingerprint, nothing about the applicant or your form. Like any website, the registry gets the visitor’s network address with each request, for rate limits. What VeilCore keeps is on the',
+      'privacy page',
+      'Fuller data terms are a draft being reviewed; until they are published, the privacy page is what applies.',
+    ],
+    down: [
+      'If the registry is down',
+      'Nothing can be checked. By default a required field then blocks the form until the registry answers again. With when-unreachable="allow" the form goes through with the link marked as not checked, and you check it later on this page.',
+    ],
+    gone: [
+      'If VeilCore stops',
+      'The field and the check pages on veilcore.org stop working. Records can still be checked from their evidence bundles, which check offline against an open format. Ask for evidence bundles if your program must not depend on VeilCore.',
+    ],
+    npm: ['Not on npm yet', 'Build the kit from the VeilCore repository and serve the field’s file from your site.'],
   },
   policy: {
     title: 'Sample policy wording',
@@ -100,10 +134,13 @@ const TEXT = {
         'On Midnight',
         'In Node, with @veilcore/contracts installed, the date stamp is looked up on chain: VeilCore’s pinned contract, the pinned build, exactly this batch root.',
       ],
-      ['Command line', 'partner-kit check <link> prints the same answer; exit status 0, 1 or 2.'],
+      [
+        'Command line',
+        'partner-kit check <link> prints the same answer. Exit 0: the record exists, the link matches and nothing contradicts it. Exit 1: something does not hold, including a date on a test network (unless --allow-test-network) or an inclusion proof that does not check out. Exit 2: nothing could be checked.',
+      ],
       [
         'Without VeilCore',
-        'The record’s evidence bundle checks offline, and the format is open. Records still check if VeilCore is gone.',
+        'A record’s evidence bundle checks offline, and the format is open. If VeilCore is gone, records whose evidence bundles you hold still check.',
       ],
     ],
     guide: 'Read the full guide',
@@ -214,8 +251,50 @@ export const PartnersPage: React.FC = () => (
           <pre className="pk-code" tabIndex={0} aria-label="Example HTML">
             <code>{SNIPPET}</code>
           </pre>
+          <dl className="pk-list">
+            {TEXT.form.options.map(([t, d]) => (
+              <div key={t}>
+                <dt>
+                  <code>{t}</code>
+                </dt>
+                <dd>{d}</dd>
+              </div>
+            ))}
+          </dl>
           <p className="pk-muted">{TEXT.form.csp}</p>
           <p className="pk-muted">{TEXT.form.status}</p>
+        </div>
+      </section>
+
+      <section aria-labelledby="pk-facts">
+        <div className="wrap pk-narrow">
+          <h2 id="pk-facts">{TEXT.facts.title}</h2>
+          <dl className="pk-list">
+            {[TEXT.facts.cost, TEXT.facts.down].map(([t, d]) => (
+              <div key={t}>
+                <dt>{t}</dt>
+                <dd>{d}</dd>
+              </div>
+            ))}
+            <div>
+              <dt>{TEXT.facts.support[0]}</dt>
+              <dd>
+                {TEXT.facts.support[1]} <a href={`mailto:${CONTACT}`}>{CONTACT}</a>. {TEXT.facts.support[2]}
+              </dd>
+            </div>
+            <div>
+              <dt>{TEXT.facts.data[0]}</dt>
+              <dd>
+                {TEXT.facts.data[1]} <RouterLink to="/privacy">{TEXT.facts.data[2]}</RouterLink>. {TEXT.facts.data[3]}
+              </dd>
+            </div>
+            {[TEXT.facts.gone, TEXT.facts.npm].map(([t, d]) => (
+              <div key={t}>
+                <dt>{t}</dt>
+                <dd>{d}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 

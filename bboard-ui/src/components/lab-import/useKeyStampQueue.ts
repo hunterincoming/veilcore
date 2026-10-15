@@ -1,8 +1,9 @@
 // Key date stamps for an imported collection, one at a time, while the page is open.
 //
 // On a test build each record's key is date stamped from this browser, and the fee
-// service pays (LogFlow.tsx, Stamp). It gives each browser and each network only a few
-// a day, so a collection's key stamps arrive over days, not minutes. This queue sends one,
+// service pays (LogFlow.tsx, Stamp). It gives each browser about 3 a day (KEY_STAMPS_PER_DAY),
+// so a collection's key stamps arrive over days or weeks, not minutes. The records don't
+// wait for them: each is dated by its batch. This queue sends one,
 // waits for it, then the next; when the fee service says "not now" it waits as long as it
 // was told (kept in this browser, so a reopened page waits too). A stamp that may have
 // gone out stops the queue: sending again could send it twice. Each plant's own page can
@@ -14,7 +15,13 @@ import { getRecord } from '../../veilcore/records';
 import { ensureKeysFor, hexBytes, setAnchor, useRecordKeys } from '../../veilcore/record-keys';
 import { CHAIN_CONTRACT } from '../../veilcore/chain/config';
 import { NETWORK } from '../../config/network';
-import { loadStampState, saveStampState, stampWait, type StampQueueState } from '../../veilcore/bulk-import';
+import {
+  loadStampState,
+  saveStampState,
+  stampWait,
+  type StampPause,
+  type StampQueueState,
+} from '../../veilcore/bulk-import';
 
 export type KeyStampQueue = {
   readonly total: number;
@@ -22,6 +29,8 @@ export type KeyStampQueue = {
   /** The plant being stamped now, and the latest progress line. */
   readonly current?: { name: string; progress?: string };
   readonly pauseUntil?: number;
+  /** Why it is waiting: the fee service couldn't be reached, its quota is used, or something else. */
+  readonly why?: StampPause;
   readonly stopped?: string;
   /** Go on after a stop the holder has checked. */
   readonly resume: () => void;
@@ -102,6 +111,7 @@ export const useKeyStampQueue = (recordIds: readonly string[], enabled: boolean)
     stamped: withKeys.length - waiting.length,
     current,
     pauseUntil: paused ? state.pauseUntil : undefined,
+    why: paused ? state.why : undefined,
     stopped: state.stopped,
     resume: () => setState({}),
   };

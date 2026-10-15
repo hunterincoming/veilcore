@@ -25,6 +25,9 @@ import { checkProof } from '../proofs';
 import type { StrainRecord } from '../records';
 import { canonicalScript, embedJson, verifyPageHtml } from './verify-page';
 import { loadPageVerifier, practiceBatch, practiceRecords, RECORD_COUNT, secretFor } from './test-records';
+import { custodyDigest } from '../transfers';
+import { custodyDifferences } from '../custody';
+import { CROSS_ARRIVAL, CROSS_DIGEST, CROSS_SAMPLE } from '../custody-vectors';
 
 type Report = {
   fingerprint: {
@@ -515,5 +518,116 @@ describe('the Bitcoin stamp file, read by the page', () => {
     };
     expect(chosen.files[0]).toMatchObject({ is: 'root.bin.ots', ok: true });
     expect(chosen.stamp).toMatchObject({ status: 'bitcoin' });
+  });
+});
+
+describe('the sample details on deliveries, rechecked by the page (round 2 of the 15 Oct review)', async () => {
+  type CustodyCheck = {
+    transferId: string;
+    status: string;
+    computed: string | null;
+    carried: string | null;
+    stated: string | null;
+    differences: string[];
+  };
+  const CV = loadPageVerifier<{ checkAll: (ev: unknown) => Promise<Report & { custody: CustodyCheck[] }> }>();
+  const records = await practiceRecords();
+  const r = records[0];
+  const sample = {
+    sampleId: 'BLU-07',
+    sealNumber: '4471',
+    takenFrom: 'Mother M3',
+    takenOn: '2026-10-14',
+    witness: 'J. Doe',
+  };
+  const arrival = {
+    sampleId: 'BLU-07',
+    sealNumber: '4417',
+    sealIntact: 'yes' as const,
+    arrivedOn: '2026-10-15',
+    condition: 'Cold\n\nbag dry',
+  };
+  const digest = await custodyDigest('TR-0A1B2C3D', sample, arrival);
+  const lab = await generateKeypair();
+  const receipt = await signAttestation(
+    {
+      attestationId: `att_${'ab'.repeat(8)}_sc1_${digest}`,
+      type: 'chain-of-custody',
+      subjectCommitment: r.recordFingerprint,
+      documentHash: 'e1'.repeat(32),
+      hashAlgorithm: 'sha256',
+      issuedAt: '2026-10-15T12:30:00Z',
+      attester: { publicKey: lab.publicKey, displayName: 'Practice Lab' },
+    },
+    lab.privateKey,
+  );
+  const entry = {
+    transferId: 'TR-0A1B2C3D',
+    received: true,
+    receiptAttestationId: receipt.attestationId,
+    covered: 'covered',
+    sample,
+    arrival,
+    differences: ['Seal number differs: sent 4471, received 4417'],
+  };
+  const run = async (custody: unknown[], signatures: unknown[] = [receipt]) =>
+    (await CV.checkAll({ ...evidenceOf(r, null), signatures, custody })).custody;
+
+  it('works the digest out again, as the site and the registry do, and finds it in the signed receipt id', async () => {
+    const [c] = await run([entry]);
+    expect(c.computed).toBe(digest);
+    expect(c.carried).toBe(digest);
+    expect(c.status).toBe('covered');
+    expect(c.differences).toEqual(custodyDifferences(sample, arrival));
+    // The registry's own vector (sample-custody.test.ts CROSS_CHECK) gives the same value here.
+    const [x] = await run(
+      [{ ...entry, sample: CROSS_SAMPLE, arrival: CROSS_ARRIVAL, receiptAttestationId: `att_x_sc1_${CROSS_DIGEST}` }],
+      [],
+    );
+    expect(x.computed).toBe(CROSS_DIGEST);
+  });
+
+  it('a value changed in the bundle, or by the lab after signing, is "changed", whatever the bundle says', async () => {
+    const [c] = await run([{ ...entry, arrival: { ...arrival, sealNumber: '4471' } }]);
+    expect(c.status).toBe('changed');
+    expect(c.stated).toBe('covered');
+    expect(c.differences).toEqual([]);
+  });
+
+  it('no receipt signature here, a forged or withdrawn one, an older receipt, an unused code', async () => {
+    expect((await run([entry], []))[0].status).toBe('unsigned');
+    expect((await run([entry], [{ ...receipt, issuedAt: '2020-01-01T00:00:00Z' }]))[0].status).toBe('unsigned');
+    const withdrawn = await signRetraction(
+      {
+        attestationId: receipt.attestationId,
+        attesterPublicKey: lab.publicKey,
+        reason: 'issued-in-error',
+        retractedAt: '2026-10-16T00:00:00Z',
+      },
+      lab.privateKey,
+    );
+    expect((await run([entry], [{ ...receipt, retraction: withdrawn }]))[0].status).toBe('unsigned');
+    const old = await signAttestation(
+      {
+        attestationId: 'att_0123456789abcdef',
+        type: 'chain-of-custody',
+        subjectCommitment: r.recordFingerprint,
+        documentHash: 'e1'.repeat(32),
+        hashAlgorithm: 'sha256',
+        issuedAt: '2026-10-15T12:30:00Z',
+        attester: { publicKey: lab.publicKey },
+      },
+      lab.privateKey,
+    );
+    expect((await run([{ ...entry, receiptAttestationId: old.attestationId }], [old]))[0].status).toBe('not-covered');
+    expect((await run([{ ...entry, received: false, receiptAttestationId: null }], []))[0].status).toBe('never-used');
+    expect((await run([{ ...entry, sample: { sampleId: 7 } }]))[0].status).toBe('malformed');
+  });
+
+  it('the page shows the values and the result, and the summary points to it', () => {
+    const html = verifyPageHtml({ ...evidenceOf(r, null), signatures: [receipt], custody: [entry] });
+    expect(html).toContain('id="custody"');
+    expect(html).toContain('veilcore/sample-custody/v1');
+    expect(html).toContain('the key itself is in this bundle only if the holder included it');
   });
 });

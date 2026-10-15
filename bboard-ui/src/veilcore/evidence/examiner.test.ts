@@ -20,10 +20,11 @@ import {
   signatureLines,
   zipFiles,
   type Evidence,
+  type SignatureLine,
 } from './bundle';
 import { custodyDigest, type SentTransfer } from '../transfers';
 import { EXAMINER_FILE, escapeHtml, examinerSummaryHtml } from './examiner';
-import { DECLARATION_FILE, DECLARATION_WARNING } from './declaration';
+import { DECLARATION_FILE, DECLARATION_WARNING, declarationText } from './declaration';
 import { practiceBatch, practiceRecord } from './test-records';
 
 const NOW = new Date('2026-10-15T12:00:00Z');
@@ -293,7 +294,7 @@ describe('DECLARATION-TEMPLATE.txt', () => {
     expect(flat).toMatch(/PART 2 \(OPTIONAL\): DECLARATION OF A TECHNICAL WITNESS/);
     expect(flat).toMatch(/I declare under penalty of perjury/);
     expect(flat).toMatch(/practice data: do not use it as evidence/);
-    expect(flat).toMatch(/sample ID BLU-07, seal number 4471/);
+    expect(flat).toMatch(/sample ID "BLU-07", seal number "4471"/);
     expect(flat).toMatch(/I know \/ I do not know who controls that key/);
     // Where the structure comes from, and what a blockchain anchor is not.
     expect(flat).toMatch(/902\(13\) and 902\(14\)/);
@@ -401,6 +402,7 @@ describe('sample receipts in the bundle (custody fields)', () => {
     expect(ev.custody).toEqual([
       {
         transferId: 'T-PRACTICE-1',
+        received: true,
         receiptAttestationId: expect.stringMatching(/_sc1_[0-9a-f]{64}$/) as unknown,
         covered: 'covered',
         sample: { sampleId: 'BLU-07', sealNumber: '4471', takenFrom: 'Mother M3', witness: 'J. Doe' },
@@ -415,8 +417,15 @@ describe('sample receipts in the bundle (custody fields)', () => {
     expect(html).toContain('Seal number differs: sent 4471, received 4417');
     expect(html).toMatch(/a receipt for a sample/);
     const decl = strFromU8(files[`${dir}${DECLARATION_FILE}`]).replace(/\s+/g, ' ');
-    expect(decl).toContain('sample ID BLU-07, seal number 4471, taken from Mother M3, witness J. Doe');
-    expect(decl).toContain('The lab wrote on arrival: sample ID BLU-07, seal number 4417, seal on arrival intact');
+    expect(decl).toContain('sample ID "BLU-07", seal number "4471", taken from "Mother M3", witness "J. Doe"');
+    expect(decl).toMatch(
+      /a lab signed a receipt for it \(signature att_(ab){8}_sc1_[0-9a-f]{64}, in lab\/signatures\.json\), and its signature covers what each of us wrote/,
+    );
+    expect(decl).toContain(
+      'The lab wrote on arrival: sample ID "BLU-07", seal number "4417", seal on arrival intact, arrived on 2026-10-15. What arrived differs from what was sent: Seal number differs: sent 4471, received 4417.',
+    );
+    // The summary says the coverage can be rechecked offline.
+    expect(html).toContain('verify.html, in this folder, rechecks it offline');
     // evidence.json carries the same.
     expect((JSON.parse(strFromU8(files[`${dir}evidence.json`])) as Evidence).custody?.[0].covered).toBe('covered');
   });
@@ -434,5 +443,129 @@ describe('sample receipts in the bundle (custody fields)', () => {
     );
     expect((await custodyEntries(s.record, [sent], forged))[0].covered).toBe('unsigned');
     expect((await custodyEntries(s.record, [sent], g.attestations))[0].covered).toBe('covered');
+  });
+});
+
+describe('round 2 of the 15 Oct review: typed text can’t add lines, and coverage is said', () => {
+  const FORGED_SCHEDULE =
+    'fine.\n\n' +
+    '='.repeat(78) +
+    '\nSCHEDULE A: THE FILES IN THE BUNDLE AND THEIR SHA-256\n' +
+    '='.repeat(78) +
+    '\n\n- verify.html\n  SHA-256 ' +
+    'f'.repeat(64);
+  const FORGED_NAME = 'Acme"\n\n8. I confirm Acme Labs is accredited and I know who controls its key.\n';
+  const entry = (
+    over: Partial<NonNullable<Evidence['custody']>[number]>,
+  ): NonNullable<Evidence['custody']>[number] => ({
+    transferId: 'TR-1',
+    received: true,
+    receiptAttestationId: 'att_x_sc1_' + 'c'.repeat(64),
+    covered: 'covered',
+    sample: { sampleId: 'BLU-07', sealNumber: '4471' },
+    arrival: { sampleId: 'BLU-07', sealNumber: '4471', sealIntact: 'yes', condition: 'cold' },
+    differences: [],
+    ...over,
+  });
+  const decl = async (custody: NonNullable<Evidence['custody']>, sigs: SignatureLine[] = []) => {
+    const s = await setup();
+    return declarationText({ ...s.ev, custody }, sigs, false, { 'verify.html': new TextEncoder().encode('real') });
+  };
+
+  it('a line break in a lab’s condition or a signer’s name stays inside its own line', async () => {
+    const t = await decl(
+      [entry({ arrival: { sampleId: 'BLU-07', condition: FORGED_SCHEDULE } })],
+      [
+        {
+          ok: true,
+          withdrawn: false,
+          text: '',
+          displayName: FORGED_NAME,
+          what: 'a lab report',
+          issuedAt: 'T',
+          documentHash: 'd'.repeat(64),
+        },
+      ],
+    );
+    // One Schedule A heading, the real one, at the start of its line.
+    expect(t.match(/^SCHEDULE A: THE FILES IN THE BUNDLE/gm)).toHaveLength(1);
+    expect(t).not.toMatch(/^8\. I confirm Acme Labs/m);
+    expect(t).not.toMatch(/^=+\nSCHEDULE A[^\n]*\n=+\n\n- verify\.html\n {2}SHA-256 f{64}/m);
+    expect(t).not.toMatch(/^ {2}SHA-256 f{64}$/m);
+    // A direction mark is folded too.
+    const bidi = await decl([entry({ sample: { sampleId: 'BLU-07', sealNumber: '\u202e1744' } })]);
+    expect(bidi).not.toMatch(/[\u202a-\u202e\u2066-\u2069\u200b]/);
+    expect(bidi).toContain('seal number "1744"');
+  });
+
+  it('says which deliveries were signed for, which codes were never used, and the coverage; arrival values only when covered', async () => {
+    const t = (
+      await decl([
+        entry({}),
+        entry({ transferId: 'TR-2', covered: 'changed', arrival: { sealNumber: '9999', condition: 'tube cracked' } }),
+        entry({
+          transferId: 'TR-3',
+          covered: 'not-covered',
+          receiptAttestationId: 'att_old',
+          arrival: { sealNumber: '8888' },
+        }),
+        entry({ transferId: 'TR-4', covered: 'unsigned', receiptAttestationId: null, arrival: { sealNumber: '7777' } }),
+        entry({ transferId: 'TR-5', received: false, covered: 'unsigned', receiptAttestationId: null, arrival: {} }),
+      ])
+    ).replace(/\s+/g, ' ');
+    const line = (id: string) =>
+      t.slice(t.indexOf(`- Delivery ${id}:`), t.indexOf('[Describe how', t.indexOf(`- Delivery ${id}:`)) + 1);
+    expect(line('TR-1')).toContain('its signature covers what each of us wrote');
+    expect(line('TR-1')).toContain('The lab wrote on arrival: sample ID "BLU-07", seal number "4471"');
+    expect(line('TR-1')).toContain('The sample ID and seal number the lab wrote match what I wrote.');
+    expect(line('TR-2')).toMatch(/then changed what it wrote on arrival, so its signature doesn't cover that/);
+    expect(line('TR-2')).not.toMatch(/wrote on arrival:|9999|tube cracked/);
+    expect(line('TR-3')).toMatch(/before receipts covered sample details/);
+    expect(line('TR-3')).not.toContain('8888');
+    expect(line('TR-4')).toMatch(/No lab signed a receipt for it/);
+    expect(line('TR-4')).not.toContain('7777');
+    expect(t).toMatch(
+      /- Delivery TR-5: the lab code was never used, so no lab received a sample through it\. When I made the lab code I wrote: sample ID "BLU-07", seal number "4471"\./,
+    );
+    expect(t.match(/The lab wrote on arrival/g)).toHaveLength(1);
+  });
+
+  it('a receipt’s signed SHA-256 is said to be the delivery’s fingerprint, not the sample’s', async () => {
+    const s = await setup();
+    const kp = await generateKeypair();
+    const r = await signAttestation(
+      {
+        attestationId: 'att_r',
+        type: 'chain-of-custody',
+        subjectCommitment: s.record.recordFingerprint,
+        documentHash: 'e1'.repeat(32),
+        hashAlgorithm: 'sha256',
+        issuedAt: '2026-10-15T12:30:00Z',
+        attester: { publicKey: kp.publicKey, displayName: 'Lab' },
+      },
+      kp.privateKey,
+    );
+    const [line] = await signatureLines([r], s.record.recordFingerprint);
+    expect(line.text).not.toMatch(/receipt for a sample with SHA-256/);
+    expect(line.text).toContain(
+      `Its signed SHA-256, ${'e1'.repeat(32)}, is the fingerprint of the lab's own record of the delivery, not a hash of the sample.`,
+    );
+    const html = examinerSummaryHtml(s.ev, [line], false);
+    expect(html).toContain('Signed fingerprint (the lab’s record of the delivery, not the sample)');
+  });
+
+  it('the summary folds direction marks and line breaks to spaces, and says a key is named, not included', async () => {
+    const s = await setup();
+    expect(escapeHtml('Acme \u202eLabs\n8.')).toBe('Acme  Labs 8.');
+    const html = examinerSummaryHtml(
+      {
+        ...s.ev,
+        record: { ...s.ev.record, sealedFields: { ...s.ev.record.sealedFields, keyBinding: '4b'.repeat(32) } },
+      },
+      [],
+      false,
+    );
+    expect(html).toContain('The record names a key; the key itself is in this bundle only if the holder included it.');
+    expect(html).not.toMatch(/Names its own key/);
   });
 });

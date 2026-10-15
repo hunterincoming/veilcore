@@ -109,13 +109,83 @@ const SAMPLE_KEYS = ['sampleId', 'sealNumber', 'takenFrom', 'takenOn', 'witness'
 const ARRIVAL_KEYS = ['sampleId', 'sealNumber', 'sealIntact', 'arrivedOn', 'condition', 'labRef'] as const;
 const SEAL_STATES: readonly string[] = ['yes', 'no', 'no-seal'];
 
-/** Only the known string fields, trimmed, empty ones dropped: the form the registry stores. */
+/** Control and format characters (Cc, Cf: tabs, line breaks, direction marks, zero-width) and U+2028/2029. */
+const HIDDEN = /[\p{Cc}\p{Cf}\u2028\u2029]/u;
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_FIELDS: readonly string[] = ['takenOn', 'arrivedOn'];
+
+/** A real calendar day: 2026-02-31 is refused, not read as 3 March (the registry's isCalendarDate). */
+export const isCalendarDate = (t: string): boolean => {
+  if (!DATE.test(t)) return false;
+  const [y, m, d] = t.split('-').map(Number);
+  const at = new Date(Date.UTC(y, m - 1, d));
+  return at.getUTCFullYear() === y && at.getUTCMonth() === m - 1 && at.getUTCDate() === d;
+};
+
+const FIELD_WORDS: Record<string, string> = {
+  sampleId: 'Sample ID',
+  sealNumber: 'Seal number',
+  takenFrom: 'Taken from',
+  takenOn: 'Taken on',
+  witness: 'Witness',
+  arrivedOn: 'Arrived on',
+  condition: 'Condition',
+  labRef: 'Accession no.',
+  sealIntact: 'Seal intact',
+};
+
+/**
+ * One field's value as the registry stores it, or the words for why it can't be (round 2 of
+ * the 15 Oct review). The registry's transfer.mjs custodyValue is the same function, and the
+ * receipt's digest is over these values, so the two must agree to the character (the tests
+ * on both sides share one vector):
+ *   - every field: trimmed, then NFC;
+ *   - `condition`: CR LF and CR become LF, spaces at line ends go, three or more line breaks
+ *     become two, before the trim;
+ *   - refused if it has a tab, line break or hidden character (a direction mark, a zero-width
+ *     space; plain line breaks are allowed in `condition`), is too long, or is not a real date.
+ */
+export const custodyValue = (key: string, raw: string): { value: string } | { error: string } => {
+  let t = raw;
+  if (key === 'condition') {
+    t = t
+      .replace(/\r\n?/g, '\n')
+      .split('\n')
+      .map((l) => l.trimEnd())
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n');
+  }
+  t = t.trim().normalize('NFC');
+  const label = FIELD_WORDS[key] ?? key;
+  if (!t) return { value: '' };
+  if (HIDDEN.test(key === 'condition' ? t.replace(/\n/g, '') : t)) {
+    return {
+      error:
+        key === 'condition'
+          ? `${label} can’t contain tabs or hidden characters (such as direction marks).`
+          : `${label} can’t contain line breaks, tabs or hidden characters (such as direction marks).`,
+    };
+  }
+  if (DATE_FIELDS.includes(key) && !isCalendarDate(t)) return { error: `${label} must be a real date.` };
+  const limit =
+    (CUSTODY_LIMITS.sample as Record<string, number>)[key] ?? (CUSTODY_LIMITS.arrival as Record<string, number>)[key];
+  if (limit !== undefined && t.length > limit) return { error: `${label} can be at most ${limit} characters.` };
+  return { value: t };
+};
+
+/**
+ * Only the known string fields, normalised as the registry stores them (custodyValue), empty
+ * ones dropped. A value the registry would refuse is dropped too: one stored before it
+ * refused them then reads as missing, never as text with hidden characters in it.
+ */
 const fieldsOf = (v: unknown, keys: readonly string[]): Record<string, string> => {
   if (!isObject(v)) return {};
   const out: Record<string, string> = {};
   for (const k of keys) {
     const x = v[k];
-    if (isString(x) && x.trim()) out[k] = x.trim().normalize('NFC');
+    if (!isString(x)) continue;
+    const r = custodyValue(k, x);
+    if ('value' in r && r.value) out[k] = r.value;
   }
   return out;
 };
@@ -127,6 +197,26 @@ export const arrivalDetailsOf = (v: unknown): ArrivalDetails => {
     ? { ...rest, sealIntact: sealIntact as NonNullable<ArrivalDetails['sealIntact']> }
     : rest;
 };
+
+/** What a form's values can't be sent as, one plain sentence each; [] when they can. */
+export const custodyProblems = (
+  side: 'sample' | 'arrival',
+  v: Readonly<Record<string, string | undefined>>,
+): string[] => {
+  const keys = side === 'sample' ? SAMPLE_KEYS : ARRIVAL_KEYS;
+  const out: string[] = [];
+  for (const k of keys) {
+    const x = v[k];
+    if (!isString(x) || k === 'sealIntact') continue;
+    const r = custodyValue(k, x);
+    if ('error' in r) out.push(r.error);
+  }
+  return out;
+};
+
+/** Two sides' values are the same as stored: compared field by field after normalising. */
+export const sameDetails = (a: SampleDetails | ArrivalDetails, b: SampleDetails | ArrivalDetails): boolean =>
+  canonicalise(a) === canonicalise(b);
 export const hasDetails = (d: SampleDetails | ArrivalDetails | undefined): boolean =>
   !!d && Object.values(d).some((x) => typeof x === 'string' && x !== '');
 
@@ -230,6 +320,9 @@ export const offerTransfer = async (
   opts: { quantity?: string; note?: string; sample?: SampleDetails } = {},
 ): Promise<{ transferId: string; claimCode?: string } | { error: string }> => {
   const { sample, ...rest } = opts;
+  // A value the registry would refuse is said here, not dropped (sampleDetailsOf drops it).
+  const problems = sample ? custodyProblems('sample', sample) : [];
+  if (problems.length) return { error: problems.join(' ') };
   const details = sampleDetailsOf(sample);
   try {
     const res = await fetch(`${BASE}/transfers`, {
@@ -369,11 +462,16 @@ export const custodyOf = async (transferId: string): Promise<DeliveryCustody | {
   }
 };
 
-/** The lab writes how the sample arrived (it signs its receipt over what comes back). */
+/**
+ * The lab writes how the sample arrived. Returns both sides as the registry now stores them;
+ * the lab signs over what it typed (ClaimTransfer.tsx signReceipt), not over this echo.
+ */
 export const setArrival = async (
   transferId: string,
   arrival: ArrivalDetails,
 ): Promise<DeliveryCustody | { error: string }> => {
+  const problems = custodyProblems('arrival', arrival);
+  if (problems.length) return { error: problems.join(' ') };
   try {
     const res = await fetch(`${BASE}/transfers/${encodeURIComponent(transferId)}/custody`, {
       method: 'POST',

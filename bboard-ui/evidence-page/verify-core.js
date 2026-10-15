@@ -303,6 +303,92 @@ var VeilcoreVerify = (function () {
     return out;
   }
 
+  // ---- 5b. the sample details on deliveries (evidence.json `custody`) --------------------
+  //
+  // A lab's receipt covers what the breeder wrote about the sample and what the lab wrote on
+  // arrival through its signed id, which ends `_sc1_<digest>`: SHA-256 of the canonical JSON
+  // of { format: 'veilcore/sample-custody/v1', transferId, sample, arrival } (the site's
+  // transfers.ts custodyDigest and the registry's transfer.mjs custodyDigest). Worked out
+  // again here from the values in the bundle, so "covered" never rests on the bundle's word.
+
+  var CUSTODY_FORMAT = 'veilcore/sample-custody/v1';
+
+  function stringFields(v) {
+    if (!isObject(v)) return null;
+    var keys = Object.keys(v);
+    for (var i = 0; i < keys.length; i++) if (typeof v[keys[i]] !== 'string') return null;
+    return v;
+  }
+  function samePlain(a, b) {
+    return a.replace(/\s+/g, ' ').trim().toLowerCase() === b.replace(/\s+/g, ' ').trim().toLowerCase();
+  }
+  /** Where what arrived differs from what was sent (the site's custody.ts custodyDifferences, word for word). */
+  function custodyDifferences(sample, arrival) {
+    var out = [];
+    function pair(label, sent, got) {
+      if (sent && got && !samePlain(sent, got)) out.push(label + ' differs: sent ' + sent + ', received ' + got);
+      else if (sent && !got) out.push(label + ' not confirmed on arrival (sent ' + sent + ')');
+    }
+    pair('Sample ID', sample.sampleId, arrival.sampleId);
+    if (arrival.sealIntact === 'no-seal') {
+      if (sample.sealNumber) out.push('No seal on arrival (sent with seal ' + sample.sealNumber + ')');
+    } else {
+      pair('Seal number', sample.sealNumber, arrival.sealNumber);
+    }
+    if (arrival.sealIntact === 'no') out.push('Seal not intact on arrival');
+    return out;
+  }
+
+  /**
+   * One delivery: 'covered' (the digest of these values is the one the receipt's signed id
+   * carries, and that signature checks here, is about this record and isn't withdrawn),
+   * 'changed' (the id carries the digest of other values), 'not-covered' (a receipt from
+   * before sample details), 'unsigned' (no receipt signature here that checks), 'never-used'
+   * (nobody used the lab code), or 'malformed'. `signatures` are checkSignature's results.
+   */
+  async function checkCustody(entry, signatures, attestations) {
+    var out = {
+      transferId: isObject(entry) && typeof entry.transferId === 'string' ? entry.transferId : '(no delivery id)',
+      received: isObject(entry) && typeof entry.received === 'boolean' ? entry.received : null,
+      receiptAttestationId: isObject(entry) && typeof entry.receiptAttestationId === 'string' ? entry.receiptAttestationId : null,
+      stated: isObject(entry) && typeof entry.covered === 'string' ? entry.covered : null,
+      status: 'malformed',
+      computed: null,
+      carried: null,
+      sample: {},
+      arrival: {},
+      differences: [],
+    };
+    try {
+      var sample = isObject(entry) ? stringFields(entry.sample || {}) : null;
+      var arrival = isObject(entry) ? stringFields(entry.arrival || {}) : null;
+      if (!sample || !arrival || typeof entry.transferId !== 'string') return out;
+      out.sample = sample;
+      out.arrival = arrival;
+      out.computed = await sha256Text(canonicalise({ format: CUSTODY_FORMAT, transferId: entry.transferId, sample: sample, arrival: arrival }));
+      if (out.received === false && !out.receiptAttestationId) {
+        out.status = 'never-used';
+        return out;
+      }
+      var m = out.receiptAttestationId ? /_sc1_([0-9a-f]{64})$/.exec(out.receiptAttestationId) : null;
+      out.carried = m ? m[1] : null;
+      var sig = null;
+      for (var i = 0; i < signatures.length; i++) {
+        if (signatures[i].attestationId === out.receiptAttestationId && attestations[i] && attestations[i].attestationId === out.receiptAttestationId) sig = signatures[i];
+      }
+      var good = !!sig && sig.signature === 'valid' && sig.aboutThisRecord && sig.type === 'chain-of-custody' &&
+        !(sig.retraction && sig.retraction.signature === 'valid');
+      if (!good) out.status = 'unsigned';
+      else if (out.carried === null) out.status = 'not-covered';
+      else out.status = out.carried === out.computed ? 'covered' : 'changed';
+      if (out.status === 'covered') out.differences = custodyDifferences(sample, arrival);
+    } catch (e) {
+      out.status = 'malformed';
+      out.reason = messageOf(e);
+    }
+    return out;
+  }
+
   // ---- 6. the Bitcoin stamp file (OpenTimestamps) ---------------------------------------
   //
   // Read here, so the page says only what the file itself shows: whether it is about this
@@ -569,7 +655,7 @@ var VeilcoreVerify = (function () {
    * picked to check as well: { name, bytes } (a lab report, root.bin).
    */
   async function checkAll(ev, files, opts) {
-    var out = { fingerprint: null, proof: null, key: null, pairing: null, signatures: [], lookups: null, files: [], stamp: null, datable: null };
+    var out = { fingerprint: null, proof: null, key: null, pairing: null, signatures: [], custody: [], lookups: null, files: [], stamp: null, datable: null };
     if (!isObject(ev)) {
       out.fingerprint = { ok: false, reason: 'This is not a VeilCore evidence file.' };
       out.proof = { status: 'none' };
@@ -588,6 +674,8 @@ var VeilcoreVerify = (function () {
     out.pairing = await checkPairing(ev.labReport);
     var sigs = Array.isArray(ev.signatures) ? ev.signatures : [];
     for (var i = 0; i < sigs.length; i++) out.signatures.push(await checkSignature(sigs[i], fingerprint));
+    var custody = Array.isArray(ev.custody) ? ev.custody : [];
+    for (var c = 0; c < custody.length; c++) out.custody.push(await checkCustody(custody[c], out.signatures, sigs));
     out.lookups = lookups(ev);
     out.datable = datable(out);
     var embeddedOts = opts && opts.ots instanceof Uint8Array ? opts.ots : null;
@@ -628,6 +716,8 @@ var VeilcoreVerify = (function () {
     checkKey: checkKey,
     checkPairing: checkPairing,
     checkSignature: checkSignature,
+    checkCustody: checkCustody,
+    custodyDifferences: custodyDifferences,
     fingerprintOf: fingerprintOf,
     foldProof: foldProof,
     lookups: lookups,

@@ -53,10 +53,18 @@ after(async () => {
 });
 
 describe('partner-kit check, against a local registry', () => {
-  it('a matching link with the key and the sealed fields: exit 0, the JSON answer', async () => {
+  it('a matching link with the key and the sealed fields: exit 0 (test data allowed), the JSON answer', async () => {
     const fields = path.join(work, 'sealed-fields.json');
     writeFileSync(fields, JSON.stringify(reg.fields.bound));
-    const r = await cli('check', reg.links.boundWithKey, '--registry', reg.base, '--fields', fields);
+    const r = await cli(
+      'check',
+      reg.links.boundWithKey,
+      '--registry',
+      reg.base,
+      '--fields',
+      fields,
+      '--allow-test-network',
+    );
     assert.equal(r.code, 0, r.stderr);
     const c = JSON.parse(r.stdout);
     assert.equal(c.format, 'veilcore-record-check/v1');
@@ -87,10 +95,21 @@ describe('partner-kit check, against a local registry', () => {
     assert.deepEqual(
       c.labReceipts.map((x) => [x.kind, x.counts, x.signer.nameCheck, x.matchesSavedReport ?? null]).sort(),
       [
+        ['custody-statement', false, 'checked', null],
+        ['lab-receipt', true, 'checked', null],
         ['lab-receipt', true, 'checked', null],
         ['lab-report', true, 'checked', true],
       ],
     );
+    // The receipts tied to deliveries, with their sample details as the registry reports them.
+    const byId = Object.fromEntries(c.labReceipts.map((x) => [x.attestationId, x]));
+    assert.deepEqual(byId[reg.receipts.matching].custody, { covered: 'covered', differences: [], clean: true });
+    assert.deepEqual(byId[reg.receipts.sealDiffers].custody, {
+      covered: 'covered',
+      differences: ['Seal number differs: sent 5500, received 5505'],
+      clean: false,
+    });
+    assert.match(c.summary, /1 lab receipt for a sample does NOT match what was sent/);
     assert.ok(c.whatThisDoesNotShow.length >= 6);
   });
 
@@ -104,8 +123,20 @@ describe('partner-kit check, against a local registry', () => {
     assert.equal(undated.dated.status, 'not-in-a-batch');
   });
 
+  it('a date on a test network: exit 1 unless --allow-test-network', async () => {
+    const r = await cli('check', reg.links.bound, '--registry', reg.base);
+    assert.equal(r.code, 1, r.stderr);
+    assert.equal(JSON.parse(r.stdout).dated.testNetwork, true);
+  });
+
+  it('a cut-off link: exit 1, said plainly', async () => {
+    const r = await cli('check', reg.links.bound.slice(0, -20), '--registry', reg.base, '--text');
+    assert.equal(r.code, 1);
+    assert.match(r.stdout, /^This link looks cut off\. Ask for the whole link\./);
+  });
+
   it('plain words with --text', async () => {
-    const r = await cli('check', reg.links.bound, '--registry', reg.base, '--text');
+    const r = await cli('check', reg.links.bound, '--registry', reg.base, '--text', '--allow-test-network');
     assert.equal(r.code, 0);
     assert.match(r.stdout, /^Record found, and the link’s fingerprint matches the registry’s\./);
     assert.match(r.stdout, /VeilCore’s operator matched this name to cannabis\.example\.gov \(license TL-1\)/);

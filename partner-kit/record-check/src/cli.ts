@@ -1,15 +1,16 @@
 // npx @veilcore/partner-kit check <check link> [options]
 //
 // Prints the check as JSON (or plain words with --text). Exit status: 0 when the record
-// exists, the link's fingerprint matches, and nothing given contradicts it (sealed fields,
-// the key in the link, the date stamp when looked up); 1 when the check ran and any of
-// that is not so; 2 when nothing could be checked (a bad link, the registry unreachable,
-// wrong options). Exit 0 is not a verdict about the material: read the answer.
+// exists, the link's fingerprint matches, and nothing contradicts it (sealed fields, the
+// key in the link, the inclusion proof, the date stamp when looked up) and the date is not
+// on a test network (unless --allow-test-network); 1 when the check ran and any of that is
+// not so; 2 when nothing could be checked (a bad link, the registry unreachable, wrong
+// options). Exit 0 is not a verdict about the material: read the answer.
 // SPDX-License-Identifier: Apache-2.0
 
 import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
-import { checkRecord, LinkError, RegistryError, type RecordCheck } from './node.js';
+import { acceptable, checkRecord, LinkError, RegistryError, type RecordCheck } from './node.js';
 
 const USAGE = `Check a VeilCore record from its check link. Free, no account, no key.
 
@@ -27,22 +28,25 @@ Options:
   --indexer <url>                the Midnight indexer to ask (implies --on-chain).
   --second-indexer <url>         a second indexer; both must agree.
   --blockfrost-project-id <id>   or VEILCORE_BLOCKFROST_PROJECT_ID.
+  --allow-test-network           exit 0 even when the date is on a test network (for
+                                 trying the kit out; test dates carry no evidential weight).
   --text                         plain words instead of JSON.
   --timeout <seconds>            per request (default 15).
 
-Exit status: 0 the record exists and the link's fingerprint matches (and nothing given
-contradicts it); 1 the check ran and that is not so; 2 nothing could be checked.
+Exit status:
+  0  the record exists, the link's fingerprint matches, and nothing contradicts it.
+  1  the check ran and something does not hold: no such record, the link doesn't match or
+     looks cut off, the sealed fields or the key in the link don't match, the registry's
+     inclusion proof doesn't check out, the date stamp was not confirmed on chain, or the
+     date is on a test network (unless --allow-test-network).
+  2  nothing could be checked: a bad link, the registry unreachable, wrong options.
 VeilCore never vouches: the answer says what was checked and what is someone's word.`;
 
-/** Exit 0 only when nothing in the answer contradicts the link. */
-export const exitCodeOf = (c: RecordCheck): 0 | 1 =>
-  c.recordExists &&
-  c.fingerprintMatches === true &&
-  c.disclosedFieldsMatch !== false &&
-  c.keyBound.keyInLink !== 'does-not-match' &&
-  c.dated.status !== 'not-confirmed'
-    ? 0
-    : 1;
+/**
+ * Exit 0 only when nothing in the answer contradicts the link, and the date is not on a
+ * test network (unless allowed). The same rule as the form field's `acceptable`.
+ */
+export const exitCodeOf = (c: RecordCheck, o: { allowTestNetwork?: boolean } = {}): 0 | 1 => (acceptable(c, o) ? 0 : 1);
 
 /** The answer in plain words. */
 export const asText = (c: RecordCheck): string => {
@@ -86,6 +90,7 @@ export const main = async (
         'second-indexer': { type: 'string' },
         'blockfrost-project-id': { type: 'string' },
         text: { type: 'boolean' },
+        'allow-test-network': { type: 'boolean' },
         timeout: { type: 'string' },
         help: { type: 'boolean', short: 'h' },
       },
@@ -135,7 +140,7 @@ export const main = async (
         : undefined,
     });
     out.write(v.text ? `${asText(c)}\n` : `${JSON.stringify(c, null, 2)}\n`);
-    return exitCodeOf(c);
+    return exitCodeOf(c, { allowTestNetwork: v['allow-test-network'] === true });
   } catch (e) {
     if (e instanceof LinkError || e instanceof RegistryError) {
       err.write(`${e.message}\n`);

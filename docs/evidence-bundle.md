@@ -24,7 +24,7 @@ One folder, `VEIL-…-evidence/`:
 |---|---|
 | `README.txt` | Plain English: what each file is, how to check it, what it proves and what it does not. |
 | `verify.html` | The offline check page. Everything it needs is inside it. |
-| `EXAMINER-SUMMARY.html` | One printable page for a lawyer, examiner or clerk: the record as sealed, fingerprint, batch, transaction and network, how and when it was checked, lab signatures and sample receipts (with the sample details each side wrote, when the holder's deliveries could be read), the Bitcoin stamp, and what it shows and doesn't. Text only: no script, nothing loaded, every value escaped (`evidence/examiner.ts`). Prints to PDF from the browser (two or three sheets for a record with a lab report and a receipt). |
+| `EXAMINER-SUMMARY.html` | A printable summary for a lawyer, examiner or clerk: the record as sealed, fingerprint, batch, transaction and network, how and when it was checked, lab signatures and sample receipts (with the sample details each side wrote, when the holder's deliveries could be read), the Bitcoin stamp, and what it shows and doesn't. Text only: no script, nothing loaded, every value escaped (`evidence/examiner.ts`). Prints to PDF from the browser (two or three sheets for a record with a lab report and a receipt). |
 | `DECLARATION-TEMPLATE.txt` | Fill-in-the-blanks sample text for a declaration by the record holder and, optionally, a technical witness, with the bundle's facts filled in and Schedule A listing every other file's SHA-256 (`evidence/declaration.ts`). "Sample text. Not legal advice." at the top and bottom. How to use both, and the sources behind the template: [`evidence-in-practice.md`](evidence-in-practice.md). |
 | `evidence.json` | Everything below in one machine-readable file. `verify.html` carries a copy. |
 | `record/sealed-fields.json` | The record exactly as it was fingerprinted. |
@@ -57,7 +57,16 @@ in: only the sealed fields.
    - The lab report pairing: the saved file's SHA-256 leads to the pairing fingerprint
      (spec 3.7).
    - Each lab signature: checked with the signer's key, whether it is about this record,
-     and whether the same key withdrew it.
+     and whether the same key withdrew it. A receipt's signed SHA-256 is the fingerprint of
+     the lab's own record of the delivery, not a hash of the sample.
+   - Each delivery of the plant, when the bundle has them (`custody` in `evidence.json`):
+     the sample details the breeder and the lab wrote, and whether the lab's receipt covers
+     them. The page works the digest out again, SHA-256 of the canonical JSON of
+     `{ format: "veilcore/sample-custody/v1", transferId, sample, arrival }`, and compares it
+     with the `_sc1_<digest>` end of the receipt's signed id. "Covered" only when they match
+     and that receipt's signature checks and isn't withdrawn; "changed" when the id carries
+     the digest of other values (the lab changed them after signing). What the lab wrote is
+     labelled "not covered" otherwise. A lab code nobody used is said too.
    Under "Check other files" you can choose the bundle's own files (or someone's copy of
    them) to check those instead of the copy inside the page, plus the lab report file and
    `root.bin`.

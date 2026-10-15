@@ -3,8 +3,10 @@
 // database and lab-results folder, stopped by PID. Nothing here reaches a network.
 //
 // Seeded (all test data):
-//   bound    names its key, a lab report saved; a receipt and a lab report from a key whose
-//            name VeilCore's operator checked; in a batch dated on preprod
+//   bound    names its key, a lab report saved; from a key whose name VeilCore's operator
+//            checked: a lab report, a custody statement tied to no delivery, and two lab
+//            receipts tied to deliveries of the record (one whose sample details match what
+//            was sent, one whose seal number doesn't); in a batch dated on preprod
 //   older    an older record (no key); a receipt from a key nobody checked, then withdrawn
 //            by that key; same batch
 //   undated  sealed after the batch: in no batch
@@ -103,7 +105,12 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
     const call = async (method, p, body, headers = {}) => {
       const res = await fetch(`${base}${p}`, {
         method,
-        headers: { 'content-type': 'application/json', ...headers },
+        // A client address of its own per call: seeding makes more writes than one address may in a minute.
+        headers: {
+          'content-type': 'application/json',
+          'x-forwarded-for': `10.${[...randomBytes(3)].join('.')}`,
+          ...headers,
+        },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
       const text = await res.text();
@@ -223,6 +230,54 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
         documentHash: LAB_SHA,
       }),
     );
+    // Deliveries of `bound` to a lab, each with the sample details the breeder wrote, the
+    // lab's arrival details, and the lab's receipt over both (its id carries their digest,
+    // as the site signs it), attached to the delivery.
+    const deliver = async (sample, arrival) => {
+      const labHolder = { 'x-holder-key': randomBytes(32).toString('hex') };
+      const offer = await call(
+        'POST',
+        '/transfers',
+        { sourceRecord: bound.id, toHandle: 'lab@e2e.test', sample },
+        holder,
+      );
+      const claim = await call(
+        'POST',
+        `/transfers/${offer.transferId}/claim`,
+        { claimCode: offer.claimCode },
+        labHolder,
+      );
+      const got = (await call('GET', '/api/records', undefined, labHolder)).find((r) => r.id === claim.recordId);
+      const received = seal(got);
+      await call('PUT', '/api/records', [received], labHolder);
+      await call('POST', `/transfers/${offer.transferId}/custody`, { arrival }, labHolder);
+      const digest = sha256(
+        canonicalise({ format: 'veilcore/sample-custody/v1', transferId: offer.transferId, sample, arrival }),
+      );
+      const attestationId = `att_d_${randomBytes(4).toString('hex')}_sc1_${digest}`;
+      await call(
+        'POST',
+        '/attestations',
+        await sign(checkedLab, {
+          attestationId,
+          type: 'chain-of-custody',
+          subjectCommitment: bound.recordFingerprint,
+          documentHash: received.recordFingerprint,
+        }),
+      );
+      await call('POST', `/transfers/${offer.transferId}/receipt`, { attestationId }, labHolder);
+      return attestationId;
+    };
+    const arrivedOn = today();
+    const receiptMatching = await deliver(
+      { sampleId: 'E2E-1', sealNumber: '4471' },
+      { sampleId: 'E2E-1', sealNumber: '4471', sealIntact: 'yes', arrivedOn },
+    );
+    const receiptSealDiffers = await deliver(
+      { sampleId: 'E2E-2', sealNumber: '5500' },
+      { sampleId: 'E2E-2', sealNumber: '5505', sealIntact: 'yes', arrivedOn },
+    );
+
     const withdrawnId = `att_w_${randomBytes(4).toString('hex')}`;
     await call(
       'POST',
@@ -281,6 +336,7 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
       batchId: sealed.batchId,
       txId: TX,
       records: { bound, older, undated },
+      receipts: { matching: receiptMatching, sealDiffers: receiptSealDiffers },
       fields: { bound: committed(bound) },
       links: {
         bound: link(bound),

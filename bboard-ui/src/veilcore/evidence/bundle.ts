@@ -31,13 +31,13 @@ import { bindingForSecret, isHex64, KEY_BOUND_ALGORITHM } from '../key-binding';
 import { checkProof } from '../proofs';
 import { holderKeyIfAny } from '../holder';
 import { custodyView } from '../custody';
-import { sentByMe, type SentTransfer } from '../transfers';
+import { receiptCustodyDigest, sentByMe, type SentTransfer } from '../transfers';
 import { isObject, isString, isNumber, readJson } from '../json';
 import { DOCS, DOCS_COMMIT, DOCS_VERSION, REPO_VIEW } from '../docs';
 import { verifyPageHtml, SDK_VERSION } from './verify-page';
 import { EXAMINER_FILE, examinerSummaryHtml } from './examiner';
 import { DECLARATION_FILE, declarationText } from './declaration';
-import { anchorLookup, bitcoinSteps, midnightSteps, networkWords, utcWords, wrap } from './words';
+import { anchorLookup, bitcoinSteps, midnightSteps, networkWords, oneLine, utcWords, wrap } from './words';
 
 export { anchorLookup, bitcoinSteps, midnightSteps } from './words';
 export type { AnchorLookup } from './words';
@@ -265,6 +265,11 @@ export type EvidenceOptions = {
 /** One delivery's sample details, as the breeder and the lab each wrote them. */
 export type CustodyEntry = {
   readonly transferId: string;
+  /**
+   * Whether the lab code was used (the registry's claimed_at). Absent in bundles made before
+   * it was kept; false: nobody used the code, so no lab received anything through it.
+   */
+  readonly received?: boolean;
   /** The lab's receipt signature tied to this delivery, if any. */
   readonly receiptAttestationId: string | null;
   /**
@@ -378,9 +383,11 @@ const savedSha = (record: StrainRecord, attestations: readonly Record<string, un
 export class BundleRefusal extends Error {}
 
 /**
- * The sample details on the holder's deliveries of this plant, beside the lab's receipt
- * for each (custody.ts custodyView). "covered" only when the receipt's signature is in the
- * bundle, checks here, is about this record and isn't withdrawn by its signer.
+ * Every delivery of this plant the holder made, with the sample details each side wrote and
+ * the lab's receipt for it (custody.ts custodyView): the declaration says which were signed
+ * for and which lab codes were never used (round 2 of the 15 Oct review). "covered" only when
+ * the receipt's signature is in the bundle, checks here, is about this record and isn't
+ * withdrawn by its signer.
  */
 export const custodyEntries = async (
   record: Pick<StrainRecord, 'id' | 'recordFingerprint'>,
@@ -391,8 +398,20 @@ export const custodyEntries = async (
   for (const t of deliveries) {
     if (t.source_record !== record.id) continue;
     const receiptId = t.receipt_attestation_id ?? undefined;
-    const view = custodyView(t, receiptId);
-    if (!view) continue;
+    // A delivery with no sample details written: still listed, with whether a receipt's id
+    // carries the digest of "nothing written" (it then covers that).
+    const digest = receiptId ? receiptCustodyDigest(receiptId) : null;
+    const view = custodyView(t, receiptId) ?? {
+      sample: {},
+      arrival: {},
+      signed:
+        digest === null
+          ? ('not-covered' as const)
+          : digest === t.custodyDigest
+            ? ('covered' as const)
+            : ('changed' as const),
+      differences: [],
+    };
     let covered: CustodyEntry['covered'] = view.signed;
     if (receiptId) {
       const a = attestations.find((x) => x.attestationId === receiptId);
@@ -409,6 +428,7 @@ export const custodyEntries = async (
       Object.fromEntries(Object.entries(d).filter((e): e is [string, string] => isString(e[1]) && e[1] !== ''));
     out.push({
       transferId: t.id,
+      received: typeof t.claimed_at === 'number',
       receiptAttestationId: receiptId ?? null,
       covered,
       sample: strings(view.sample),
@@ -550,6 +570,11 @@ export type SignatureLine = {
   type?: string;
   /** "a lab report", "a receipt for a sample", or the type in quotes. */
   what?: string;
+  /**
+   * What the signed SHA-256 (documentHash) is of, in words: a lab report file's, or, for a
+   * receipt, the lab's own record of the delivery (never the sample itself).
+   */
+  documentWords?: string;
   publicKey?: string;
   /** The name the key gives itself: not checked. */
   displayName?: string;
@@ -580,30 +605,43 @@ export const signatureLines = async (
       out.push({
         ok: false,
         withdrawn: false,
-        text: `A signature (${String(a.attestationId)}) that does not check. Ignore it.`,
+        text: `A signature (${oneLine(a.attestationId)}) that does not check. Ignore it.`,
       });
       continue;
     }
     const r = isObject(a.retraction) ? (a.retraction as unknown as Retraction) : null;
     const withdrawn = r ? await verifyRetraction(r, a as unknown as SignedAttestation).catch(() => false) : false;
-    const what = TYPE_WORDS[String(a.type)] ?? `"${String(a.type)}"`;
-    const name = isString(attester.displayName) ? ` (it calls itself "${attester.displayName}"; not checked)` : '';
+    // Everything the signer typed goes on one line: a line break or direction mark in a name
+    // or a type can't start lines of its own in README.txt or the declaration (words.ts oneLine).
+    const what = TYPE_WORDS[String(a.type)] ?? `"${oneLine(a.type)}"`;
+    const displayName = isString(attester.displayName) ? oneLine(attester.displayName) : undefined;
+    const name = displayName !== undefined ? ` (it calls itself "${displayName}"; not checked)` : '';
     const saved = savedFileSha && a.documentHash === savedFileSha ? ' It is the lab report saved to this plant.' : '';
+    const doc = oneLine(a.documentHash);
+    const receipt = a.type === 'chain-of-custody';
+    const documentWords = receipt
+      ? 'the fingerprint of the lab’s own record of the delivery (not a hash of the sample)'
+      : a.type === 'laboratory-report'
+        ? 'the SHA-256 of the lab report file'
+        : 'the SHA-256 of the signed document';
     const text =
-      `The key ${key}${name} signed ${what} with SHA-256 ${String(a.documentHash)}, about this record, at ${String(a.issuedAt)} (the signer's own clock).${saved}` +
-      (withdrawn && r ? ` The same key withdrew it at ${r.retractedAt} (${r.reason}).` : '');
+      (receipt
+        ? `The key ${key}${name} signed ${what} about this record at ${oneLine(a.issuedAt)} (the signer's own clock). Its signed SHA-256, ${doc}, is the fingerprint of the lab's own record of the delivery, not a hash of the sample.`
+        : `The key ${key}${name} signed ${what} with SHA-256 ${doc}, about this record, at ${oneLine(a.issuedAt)} (the signer's own clock).${saved}`) +
+      (withdrawn && r ? ` The same key withdrew it at ${oneLine(r.retractedAt)} (${oneLine(r.reason)}).` : '');
     out.push({
       ok: true,
       withdrawn,
       text,
-      attestationId: String(a.attestationId),
-      type: String(a.type),
+      attestationId: oneLine(a.attestationId),
+      type: oneLine(a.type),
       what,
+      documentWords,
       publicKey: key,
-      ...(isString(attester.displayName) ? { displayName: attester.displayName } : {}),
-      documentHash: String(a.documentHash),
-      issuedAt: String(a.issuedAt),
-      ...(withdrawn && r ? { withdrawnAt: r.retractedAt, withdrawnReason: r.reason } : {}),
+      ...(displayName !== undefined ? { displayName } : {}),
+      documentHash: doc,
+      issuedAt: oneLine(a.issuedAt),
+      ...(withdrawn && r ? { withdrawnAt: oneLine(r.retractedAt), withdrawnReason: oneLine(r.reason) } : {}),
       savedReport: !!saved,
     });
   }
@@ -620,7 +658,7 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
     },
     {
       path: EXAMINER_FILE,
-      what: 'one printable page for a lawyer or examiner: the record as sealed, its fingerprint, batch and transaction, how it was checked, lab signatures, and what it shows and does not. Open it in a browser and print it to PDF. It checks nothing itself.',
+      what: 'a printable summary for a lawyer or examiner: the record as sealed, its fingerprint, batch and transaction, how it was checked, lab signatures and sample receipts, and what it shows and does not. Open it in a browser and print it to PDF. It checks nothing itself; verify.html rechecks what it reports.',
     },
     {
       path: DECLARATION_FILE,
@@ -674,7 +712,7 @@ export const readmeText = (
   sigs: readonly SignatureLine[],
   hasOts = !!ev.batch?.opentimestamps.available,
 ): string => {
-  const name = isString(ev.record.sealedFields.strainName) ? ev.record.sealedFields.strainName : ev.record.id;
+  const name = oneLine(isString(ev.record.sealedFields.strainName) ? ev.record.sealedFields.strainName : ev.record.id);
   const anchor = ev.batch?.anchor ?? null;
   const tx = anchor && isString(anchor.txHash) ? anchor.txHash : null;
   const test = anchor ? anchor.network !== 'mainnet' : true;

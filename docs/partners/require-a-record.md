@@ -31,7 +31,10 @@ They send you a **check link**. Anyone can open it.
   existed by. The date comes from Midnight, not from VeilCore and not from the applicant.
 - **Lab signatures, checked.** If a lab signed a receipt for a sample, or a lab report,
   you see it, and whether VeilCore's operator matched the lab's name to a public licence
-  or accreditation listing.
+  or accreditation listing. A receipt is shown as one only when the registry ties it to a
+  delivery of the record, and then you also see whether what arrived matches what was
+  sent. A custody signature tied to no delivery is shown as a signed statement and not
+  counted: anyone can sign one.
 - **A key.** Records made since 14 October 2026 name the depositor's key. They can later
   prove they still control the record.
 - **The same check for everyone.** Every applicant's link is checked the same way, by your
@@ -50,7 +53,8 @@ It does not show:
 - parentage. Parents named in a record are the depositor's word;
 - any right, licence or legal status.
 
-A date on a test network ("preprod") is practice data and carries no weight.
+A date on a test network ("preprod") is practice data and carries no weight. The field
+and the command refuse it unless you say you accept test data (Part 2).
 
 ### What the applicant does
 
@@ -74,15 +78,37 @@ download from the record's page). It lets you check everything with no VeilCore 
 |---|---|
 | Basic | the record exists and the link matches it |
 | Dated | …and it has a date stamp on Midnight's main network |
-| Lab-backed | …and a lab whose name VeilCore's operator checked signed a receipt for a sample |
+| Lab-backed | …and a lab whose name VeilCore's operator checked signed a receipt for a sample, tied to a delivery, and what arrived matches what was sent |
 | Full | …and the applicant gave you the sealed description (from the evidence bundle), and it matches |
 
 3. Keep the check result with the application. The form field hands it to your page.
 
-### Cost
+### If VeilCore's registry is down
 
-Free to check, for you and for everyone else. No account, no key, no contract with
-VeilCore. The field and the library are open source (Apache-2.0).
+The field checks each link against VeilCore's registry. If the registry can't be reached,
+nothing can be checked. **By default a required field then blocks the whole form**: the
+applicant sees "The VeilCore registry did not answer" and can't send the form until it
+answers again. If you'd rather not lose applications during an outage, turn on
+`when-unreachable="allow"` (Part 2): the form then goes through with the link marked as
+not checked, and you check it later (on veilcore.org/partners, or with the command).
+
+### Cost, support, data, and if VeilCore stops
+
+- **Cost.** Checking is free, for you and for everyone else. No account, no key, no
+  contract with VeilCore. The field and the library are open source (Apache-2.0).
+- **Support.** Email hunter@veilcore.org. There is no support agreement or response
+  time.
+- **Data.** A check sends the registry the record's id and fingerprint, nothing about the
+  applicant or your form. Like any website, the registry gets the visitor's network
+  address with each request (it is used for rate limits). What VeilCore keeps is on the
+  site's privacy page, https://veilcore.org/privacy. Fuller data terms are a draft being
+  reviewed; until they are published, the privacy page is what applies.
+- **If VeilCore stops.** The field, the command's default registry and the check pages on
+  veilcore.org stop working. Records can still be checked from their **evidence bundles**:
+  each one checks offline, and the format is open (see "Checking without VeilCore" below).
+  Ask for evidence bundles if your program must not depend on VeilCore being there.
+- **Not on npm yet.** Build the kit from the VeilCore repository and serve the field's
+  file from your own site (Part 2).
 
 ### Sample policy wording
 
@@ -124,7 +150,7 @@ copy the files below.
 
 ### The form field
 
-One self-contained file, `veilcore-record-check.js` (about 33 KB). Put it on your own
+One self-contained file, `veilcore-record-check.js` (about 40 KB). Put it on your own
 site (don't load it from someone else's), then:
 
 ```html
@@ -137,20 +163,35 @@ site (don't load it from someone else's), then:
 ```
 
 - `required`: the form won't submit until the link leads to a record that exists and
-  matches the link.
+  matches the link, and nothing contradicts it: the registry's inclusion proof checks out,
+  and the date is not on a test network. An answer counts only for the link it was made
+  for: if the applicant changes the link, the answer is dropped and the new link has to be
+  checked before the form will go.
+- `allow-test-network`: also accept a record dated on a test network. For trying the
+  field out; test dates carry no weight.
+- `when-unreachable="allow"`: if the registry can't be reached, let the form go with the
+  link marked as not checked. The form then also sends `<name>-unchecked` with the value
+  `registry-unreachable`, and the `veilcore-check` event's `detail` is
+  `{ "checked": false, "reason": "registry-unreachable", "link": "…", "message": "…", "at": "…" }`.
+  Without it (the default), a required field blocks the form while the registry is down.
 - `name`: the field's name in the submitted form. The value is the link.
 - `registry`: which registry to ask. Default: VeilCore's public registry. It is never
   taken from the pasted link: a stranger's link must not choose who answers for it.
 - `check-page`: where "Open the full check page" points. Default `https://veilcore.org`.
 - `label`, `value`: the field's label and starting value.
 - Event `veilcore-check` (bubbles out of the field): `event.detail` is the full answer
-  (below). Keep it with the application, or apply stricter rules than `required`:
+  (below), or, with `when-unreachable="allow"`, the not-checked note above
+  (`detail.checked === false`). Keep it with the application, or apply stricter rules than
+  `required`:
 
 ```js
 document.addEventListener('veilcore-check', (e) => {
   const c = e.detail;
+  if (c.checked === false) return; // the registry was down: check this link later
   const dated = c.dated.checkedOnChain && !c.dated.testNetwork;
-  const labBacked = c.labReceipts.some((r) => r.counts && r.kind === 'lab-receipt' && r.signer.nameCheck === 'checked');
+  const labBacked = c.labReceipts.some(
+    (r) => r.counts && r.kind === 'lab-receipt' && r.custody?.clean && r.signer.nameCheck === 'checked',
+  );
   // your rule here
 });
 ```
@@ -184,7 +225,7 @@ targets are 44 px. Colours can be changed with CSS custom properties on the elem
 import { checkRecord } from '@veilcore/partner-kit';
 
 const c = await checkRecord('https://veilcore.org/verify/VEIL-…?fp=…', {
-  fields,                           // optional: the sealed description (record/sealed-fields.json)
+  fields,                           // optional: the sealed description (see below)
   chain: { blockfrostProjectId },   // optional, Node: look the date stamp up on Midnight
 });
 ```
@@ -196,8 +237,16 @@ names), carry the pinned build's verifier keys, and leave exactly this batch roo
 contract. Give `chain.indexer` and `chain.secondIndexer` to ask indexers you choose; with
 two, both must agree.
 
+`fields` is the record's sealed description as the applicant gave it: the evidence
+bundle's `record/sealed-fields.json`, or an export's `org.veilcore.registered-fingerprint`
+block exactly as the export wrote it (its `fields` are then used). Anything else is
+hashed whole, as given: a `fields` key inside some other object is not unwrapped, so a
+file can't show one description and hash another.
+
 It throws `LinkError` for a link that names no record and `RegistryError` when the
-registry can't be asked. Everything else is in the answer:
+registry can't be asked. Everything else is in the answer. `acceptable(c)` applies the
+same rule as the field's `required` and the command's exit 0
+(`acceptable(c, { allowTestNetwork: true })` to accept test data):
 
 ```jsonc
 {
@@ -205,10 +254,11 @@ registry can't be asked. Everything else is in the answer:
   "recordId": "VEIL-…",
   "recordExists": true,
   "fingerprintMatches": true,          // null: the link names no fingerprint; false: don't rely on it
+  "linkLooksCut": false,               // true: the link stops short; ask for the whole link
   "fingerprint": "…",
   "disclosedFieldsMatch": null,        // true/false when you passed `fields`
   "dated": {
-    "status": "checked-on-chain",      // or reported, not-confirmed, not-looked-up, no-date-stamp, not-in-a-batch, not-checked
+    "status": "checked-on-chain",      // or reported, not-confirmed, proof-fails, not-looked-up, no-date-stamp, not-in-a-batch, not-checked
     "checkedOnChain": true,
     "inBatch": true, "batch": "B-…", "batchRoot": "…",
     "network": "mainnet", "testNetwork": false,
@@ -219,11 +269,12 @@ registry can't be asked. Everything else is in the answer:
   },
   "keyBound": { "recordNamesKey": true, "keyInLink": "matches", "key": "…", "reason": "…" },
   "labReceipts": [{
-    "kind": "lab-receipt",             // or lab-report, signed-statement
+    "kind": "lab-receipt",             // tied to a delivery; or custody-statement (tied to none: not counted), lab-report, signed-statement
     "signatureVerified": true, "withdrawn": false, "counts": true,
     "signer": { "publicKey": "…", "registeredName": "…", "nameCheck": "checked" },  // or not-checked, expired, withdrawn
     "nameCheckRecord": { "listing": "https://…", "listingHost": "…", "number": "TL-1", "numberKind": "license", "checkedOn": "…", "expiresOn": "…" },
     "matchesSavedReport": null,         // lab reports: is it the report saved to the record now?
+    "custody": { "covered": "covered", "differences": [], "clean": true },  // lab receipts: the delivery's sample details (the registry's report)
     "words": "Lab's receipt for a sample, signature verified, signed by … VeilCore doesn't vouch for the lab's work."
   }],
   "labReceiptsTotal": 1,
@@ -234,6 +285,14 @@ registry can't be asked. Everything else is in the answer:
   "problems": []
 }
 ```
+
+A lab receipt is a chain-of-custody signature whose id the registry ties to a delivery of
+this record (the `custody` list in `/verify`, sent when the holder shares lab status).
+`custody.covered` is `covered` when the signature covers the sample details the delivery
+records, `changed` when the lab changed them after signing, `not-covered` for an older
+receipt; `differences` says how what arrived differs from what was sent. `clean` is true
+only for `covered` with no differences. Which delivery a receipt belongs to is the
+registry's word.
 
 What is checked where: the link's fingerprint against the registry's answer, the
 inclusion proof (the fingerprint is in the batch and folds to its root), every signature
@@ -251,9 +310,15 @@ npx @veilcore/partner-kit check 'https://veilcore.org/verify/VEIL-…?fp=…'
 npx @veilcore/partner-kit check '<link>' --fields sealed-fields.json --on-chain --text
 ```
 
-JSON by default, plain words with `--text`. Exit status 0: the record exists, the link
-matches, and nothing you gave contradicts it; 1: the check ran and that is not so; 2:
-nothing could be checked. Exit 0 is not a verdict about the material: read the answer.
+JSON by default, plain words with `--text`. Exit 0 is not a verdict about the material:
+read the answer.
+
+| Exit | When |
+|---|---|
+| 0 | The record exists, the link's fingerprint matches, and nothing contradicts it. |
+| 1 | The check ran and something does not hold: no such record; the link doesn't match or looks cut off; the sealed fields or the key in the link don't match; the registry's inclusion proof doesn't check out; the date stamp was not confirmed on Midnight; or the date is on a test network (add `--allow-test-network` to accept test data). |
+| 2 | Nothing could be checked: a bad link, the registry unreachable, wrong options. |
+
 `--indexer`, `--second-indexer`, `--blockfrost-project-id` (or
 `VEILCORE_BLOCKFROST_PROJECT_ID`) and `--registry` as in the library.
 
@@ -263,7 +328,7 @@ All are free, need no key, and allow any origin (CORS).
 
 | Route | What it answers |
 |---|---|
-| `GET /verify/:id[?show=…]` | The record as its holder chose to share it: fingerprint, whether it names its key, lab report pairing (if shared), the registry's anchor report. |
+| `GET /verify/:id[?show=…]` | The record as its holder chose to share it: fingerprint, whether it names its key, lab report pairing and delivery receipts (`custody`, if lab status is shared), the registry's anchor report. |
 | `GET /proof/:fingerprint` | The inclusion proof: batch, path, root, the anchor the operator reported, the Bitcoin stamp status. |
 | `GET /attestations/subject/:fingerprint?limit=&offset=` | Lab signatures about the fingerprint, with withdrawals and name check records (100 a page, `total`). |
 | `GET /records/:id` | The public view of a record. |
@@ -284,5 +349,6 @@ Ask the applicant for the record's **evidence bundle** (`docs/evidence-bundle.md
 the batch proof, the key, the lab report pairing and every signature. It then says which
 transaction to look up on a Midnight explorer and how to check the Bitcoin stamp with the
 OpenTimestamps client. The format is open (`SPEC.md` in veilcore-sdk), and the SDK
-(`veilcore-records`) and this kit are Apache-2.0: if VeilCore disappeared, records would
-still check.
+(`veilcore-records`) and this kit are Apache-2.0. If VeilCore disappeared, the field and
+the check pages would stop working, but a record whose evidence bundle you hold would
+still check this way.

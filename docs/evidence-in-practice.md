@@ -12,7 +12,7 @@
 The evidence bundle is one `.zip` you download from a plant's page on the VeilCore site
 (**Download evidence bundle**). It lets anyone check, without VeilCore, that your record
 existed, unchanged, by the date of a public transaction. It now also holds two files for
-people who are not technical: **`EXAMINER-SUMMARY.html`**, one page you can print to PDF
+people who are not technical: **`EXAMINER-SUMMARY.html`**, a printable summary you can print to PDF
 for a lawyer, an examiner or a court clerk, and **`DECLARATION-TEMPLATE.txt`**, sample text
 for a written declaration about the record and the bundle. The bundle shows *when* a record
 existed and that it hasn't changed. It doesn't show that what the record says is true, and
@@ -25,7 +25,7 @@ The full list is in [`evidence-bundle.md`](evidence-bundle.md). The parts that m
 | File | Who it is for | What it does |
 |---|---|---|
 | `verify.html` | Anyone | Checks the files against each other on your own computer, with the internet off. |
-| `EXAMINER-SUMMARY.html` | A lawyer, examiner, clerk | One printable page: the record as sealed, its fingerprint, batch, transaction and network, how it was checked and when, lab signatures, sample receipts, the Bitcoin stamp, and "what this shows / what this does not show". Text only: it has no script and loads nothing. Open it in a browser and print to PDF. |
+| `EXAMINER-SUMMARY.html` | A lawyer, examiner, clerk | A printable summary: the record as sealed, its fingerprint, batch, transaction and network, how it was checked and when, lab signatures, sample receipts, the Bitcoin stamp, and "what this shows / what this does not show". Text only: it has no script and loads nothing. Open it in a browser and print to PDF. |
 | `DECLARATION-TEMPLATE.txt` | You, your lawyer, a technical witness | Fill-in-the-blanks sample text. The bundle's facts are filled in (record ID, fingerprint, batch root, transaction) and Schedule A lists every other file with its SHA-256. Marked "Sample text. Not legal advice." at the top and bottom. |
 | `README.txt` | Anyone | What each file is, how to check it, what it proves and what it doesn't. |
 
@@ -115,8 +115,12 @@ how the data was captured and that the platform was neutral
 What this means for you: fill in the sample details when you make a lab code (sample ID,
 seal number, where and when it was taken, who saw it), use a numbered tamper-evident bag,
 and keep the courier receipt. When the lab signs its receipt, the bundle and the examiner
-summary carry what each side wrote and whether the lab's signature covers it. VeilCore
-doesn't check any of it: it records who wrote what, and when.
+summary carry what each side wrote and whether the lab's signature covers it, and
+`verify.html` rechecks that offline: it works out the digest of the sample details again and
+compares it with the one in the lab's signed receipt. The declaration template says which
+deliveries a lab signed for, which lab codes were never used, and gives what the lab wrote on
+arrival only where its signature covers it. VeilCore doesn't check any of it: it records who
+wrote what, and when.
 
 ## What courts and rule-makers have said
 
@@ -144,8 +148,10 @@ Nowhere does a bare blockchain date settle a case by itself. Don't describe the 
   a legal presumption that the date and the data are right. The usual format is an RFC 3161
   token ([IETF RFC 3161](https://www.rfc-editor.org/rfc/rfc3161)).
 - A **blockchain anchor** (what VeilCore does on Midnight, plus a Bitcoin stamp through
-  OpenTimestamps) records a fingerprint in a public ledger that nobody controls. Anyone can
-  check it without trusting VeilCore, and it outlives VeilCore. But no supervisor has checked
+  OpenTimestamps) records a fingerprint in a transaction on a public network. Once a
+  transaction is confirmed, no single party can rewrite it, VeilCore included; that rests
+  on each network's consensus rules, not on anyone's promise. Anyone can check it without
+  trusting VeilCore, and it outlives VeilCore. But no supervisor has checked
   it and, in the EU, it carries no legal presumption: it is evidence a judge weighs.
 - They can be combined: the same batch root can carry both. The bundle today has only the
   blockchain anchors. A qualified time stamp is a possible addition (the SDK already reads
