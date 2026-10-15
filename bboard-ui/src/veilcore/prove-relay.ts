@@ -25,6 +25,7 @@
 import { isObject, isString, isNumber, readJson } from './json';
 import { newChallenge } from './chain/challenge-book';
 import { KEY_NOT_THIS_RECORDS, keyMatchesRecord, type KeyedRecord } from './key-binding';
+import { localStamp } from './time';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 const ASKS = 'veilcore.prove-asks.v1';
@@ -66,7 +67,13 @@ export type MyAsk = {
   readonly record?: KeyedRecord;
   readonly createdAt: number;
   /** Set once an answer checks out on chain. */
-  readonly confirmed?: { readonly txId: string; readonly at: number; readonly anchor?: boolean };
+  readonly confirmed?: {
+    readonly txId: string;
+    readonly at: number;
+    readonly anchor?: boolean;
+    /** When the key's date stamp went in (block time, ms), when the check learned it. */
+    readonly anchoredAt?: number;
+  };
   /** Answers that were checked and refused, with the reason. */
   readonly refused?: Readonly<Record<string, string>>;
 };
@@ -317,3 +324,12 @@ export const checkAnswers = async (
   }
   return now;
 };
+
+/**
+ * What the key's date stamp shows (round 5): a date for the key, never for the record.
+ * The date is shown when the check learned it; otherwise the plain fallback.
+ */
+export const keyStampWords = (bound: boolean, anchoredAt?: number): string =>
+  anchoredAt
+    ? `${bound ? 'Your plant’s key' : 'That key'} was date stamped on ${localStamp(anchoredAt)}. That dates the key, not the record.`
+    : `${bound ? 'This plant’s key' : 'That key'} was date stamped on the network earlier. That dates the key, not the record.`;

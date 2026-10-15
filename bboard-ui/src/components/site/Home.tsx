@@ -1,16 +1,22 @@
-// The home page, laid out from Mako's 25 September template. Order (5 October review,
-// site-review/PLAN.md): hero with the live fingerprint and a one-line status, what it's
-// for (one situation per reader), how it works, proving one fact (the claims contract),
-// what you get and where it stops, built to outlast us, questions, demos, team, updates,
-// status, contact by audience.
+// The home page, laid out from Mako's 25 September template. Order (round 5, 15 October:
+// shorter, plain headings, breeders first): hero with the live fingerprint and a one-line
+// status, what it's for (one situation per reader), how it works, sharing proof instead of
+// data (the claims contract), what you get and where it stops, if VeilCore disappears,
+// questions, the demo, where things stand with what's live where, updates, one collapsed
+// section for technical readers, contact by audience with the two founders.
+//
+// Technical detail (SHA-256, test vectors, OpenTimestamps, the contract addresses, the
+// claims contract's status, the maintenance key) lives only in "For technical readers":
+// still on the page, still true, but out of a breeder's way.
 //
 // The fingerprint in the hero is a real record commitment (veilcore-records), not a
 // stand-in hash: what a visitor sees change is what the format publishes.
 //
 // Content rules (Mako's): "prior possession", never "ownership"; no customer, pilot or
 // partner claims; plant AND animal genetics; the three implementations have one author and
-// are never called independent; the status tiles stay honest and current, and the status
-// block says plainly who holds the maintenance key (docs/maintenance-policy.md, APPROVED 7 Oct).
+// are never called independent; the status tiles stay honest and current, and the
+// technical section says plainly who holds the maintenance key (docs/maintenance-policy.md,
+// APPROVED 7 Oct).
 // Strings that flip on mainnet day are grouped in i18n/en.ts under "MAINNET DAY".
 //
 // SPDX-License-Identifier: Apache-2.0
@@ -20,10 +26,12 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { computeCommitment, newNonce } from 'veilcore-records';
 import { useI18n } from '../../i18n';
 import { FOUNDERS_MAIL, SDK_REPO, SiteShell, X_HANDLE } from './SiteShell';
-import { FoldGroup, FoldItem, FoldPoint } from './Fold';
+import { FoldGroup, FoldItem, FoldPoint, usePhone } from './Fold';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
 
 const TESTNET_REPO = 'https://github.com/hunterincoming/veilcore-midnight-testnet';
+/** The public test site (docs/test-site.md). It goes live with this release. */
+const TEST_SITE_URL = 'https://test.veilcore.org';
 
 /** Read by screen readers, not shown. */
 const SR_ONLY: React.CSSProperties = {
@@ -196,13 +204,15 @@ const Post: React.FC<{
 /**
  * What's live where: one row per feature, and for each the sites it works on. Read from
  * the code and docs on 14 October 2026 (i18n/en.ts, "What's live where"); a cell left out
- * means the feature isn't there. A list rather than a table, so it stacks on a phone.
+ * means the feature isn't there (a dash on wide screens, nothing on a phone). A table on
+ * wide screens; on a phone each row stacks, and each cell names its site.
  */
 const LIVE_ROWS = [
   ['stamp', true, true, false],
-  // The registry stamps every sealed batch on Bitcoin (OpenTimestamps). The test site's
-  // registry runs with it off (docs/no-wallet-run-12oct.md), so no test-site cell.
-  ['btc', true, false, true],
+  // The registry stamps every sealed batch on Bitcoin (OpenTimestamps), and the plant page
+  // offers the batch's stamp file (round 5). The test site's registry runs with it off
+  // (docs/no-wallet-run-12oct.md), so no test-site cell.
+  ['btc', true, false, false],
   ['share', true, true, false],
   ['lab', true, true, false],
   ['results', false, true, true],
@@ -212,37 +222,120 @@ const LIVE_ROWS = [
   ['lic', true, true, true],
 ] as const;
 
-const LiveWhere: React.FC = () => {
+const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
   const { t } = useI18n();
   const cols = [
     ['main', 'chip live', t('m.live.colMain')],
     ['test', 'chip', t('m.live.colTest')],
     ['not', 'chip', t('m.live.colNot')],
   ] as const;
+  const table = (
+    <table className="live-table">
+      <thead>
+        <tr>
+          <th scope="col">
+            <span style={SR_ONLY}>{t('m.live.feature')}</span>
+          </th>
+          <th scope="col">{t('m.live.colMain')}</th>
+          <th scope="col">
+            <a href={TEST_SITE_URL} rel="noopener noreferrer" target="_blank">
+              {t('m.live.colTest')}
+            </a>{' '}
+            <span className="soon">{t('m.live.colTestNote')}</span>
+          </th>
+          <th scope="col">{t('m.live.colNot')}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {LIVE_ROWS.map(([row, ...has]) => (
+          <tr key={row}>
+            <th scope="row">{t(`m.live.${row}.t`)}</th>
+            {cols.map(([col, chip, name], i) =>
+              has[i] ? (
+                <td key={col}>
+                  <span className={chip}>{name}</span> {t(`m.live.${row}.${col}` as Parameters<typeof t>[0])}
+                </td>
+              ) : (
+                <td key={col} className="no">
+                  <span aria-hidden="true">—</span>
+                </td>
+              ),
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
   return (
-    <section id="live">
+    <div className="live-where" id="live">
+      <h3 className="sub-h">
+        {t('m.live.title1')} <em>{t('m.live.title2')}</em>
+      </h3>
+      <p className="lede">{t('m.live.lede')}</p>
+      {/* On a phone the list stays one tap away, so the page reads in a few minutes. */}
+      {phone ? (
+        <details className="older-posts live-fold">
+          <summary>{t('m.live.show')}</summary>
+          {table}
+        </details>
+      ) : (
+        table
+      )}
+    </div>
+  );
+};
+
+/** Everything a technical reader wants, in one block that stays closed until asked for. */
+const Technical: React.FC = () => {
+  const { t } = useI18n();
+  return (
+    <section id="technical">
       <div className="wrap">
-        <div className="label">{t('m.live.label')}</div>
-        <h2>
-          {t('m.live.title1')} <em>{t('m.live.title2')}</em>
-        </h2>
-        <p className="lede">{t('m.live.lede')}</p>
-        <dl className="audiences">
-          {LIVE_ROWS.map(([row, ...has]) => (
-            <div key={row}>
-              <dt>{t(`m.live.${row}.t`)}</dt>
-              <dd>
-                {cols.map(([col, chip, name], i) =>
-                  has[i] ? (
-                    <p key={col}>
-                      <span className={chip}>{name}</span> {t(`m.live.${row}.${col}` as Parameters<typeof t>[0])}
-                    </p>
-                  ) : null,
-                )}
-              </dd>
+        <h2>{t('m.tech.title')}</h2>
+        <p className="lede">{t('m.tech.lede')}</p>
+        <details className="tech">
+          <summary className="btn">{t('m.tech.show')}</summary>
+          <div className="points">
+            <div className="pt">
+              <h3>{t('m.tech.check.t')}</h3>
+              <p>
+                {t('m.tech.check.p')} <RouterLink to="/docs/spec">{t('m.open.6link')}</RouterLink>
+              </p>
             </div>
-          ))}
-        </dl>
+            <div className="pt">
+              <h3>{t('m.tech.impl.t')}</h3>
+              <p>
+                {t('m.tech.impl.p')} <RouterLink to="/implementations">{t('m.open.1link')}</RouterLink>
+              </p>
+            </div>
+            <div className="pt">
+              <h3>{t('m.tech.btc.t')}</h3>
+              <p>{t('m.tech.btc.p')}</p>
+            </div>
+            <div className="pt">
+              <h3>{t('m.tech.dna.t')}</h3>
+              <p>{t('m.tech.dna.p')}</p>
+            </div>
+            <div className="pt wide">
+              <h3>{t('m.claims.statusTitle')}</h3>
+              <p>{t('m.claims.status')}</p>
+            </div>
+            <div className="pt wide">
+              <h3>{t('m.status.keyTitle')}</h3>
+              <p>
+                {t('m.status.keyText')}{' '}
+                <a
+                  href={`${TESTNET_REPO}/blob/main/docs/maintenance-policy.md`}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  {t('m.status.keyLink')}
+                </a>
+              </p>
+            </div>
+          </div>
+          {IS_MAINNET && <Contracts />}
+        </details>
       </div>
     </section>
   );
@@ -252,11 +345,31 @@ export const Home: React.FC = () => {
   const { t, lang } = useI18n();
   const { hash } = useLocation();
   const [showVideo, setShowVideo] = useState(false);
+  const phone = usePhone();
 
   // Arriving from another page at /#section: the router does not scroll to it.
   useEffect(() => {
     if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
   }, [hash]);
+
+  const post = (k: 'postB' | 'postA' | 'post0' | 'post1' | 'post2', doc: string, iso: string) => (
+    <Post
+      key={k}
+      href={`${TESTNET_REPO}/blob/main/docs/${doc}`}
+      iso={iso}
+      date={t(`m.${k}.date`)}
+      tag={t(`m.${k}.tag`)}
+      title={t(`m.${k}.title`)}
+      text={t(`m.${k}.text`)}
+      go={t('m.updates.read')}
+    />
+  );
+  const latest = [
+    post('postB', 'mainnet-completeness.md', '2026-10-11'),
+    post('postA', 'deployment-record-revision-4.md', '2026-10-08'),
+  ];
+  const third = post('post0', 'preprod-run-4oct.md', '2026-10-04');
+  const older = [post('post1', 'self-audit-3oct.md', '2026-10-03'), post('post2', 'preprod-run-2oct.md', '2026-10-02')];
 
   return (
     <SiteShell>
@@ -287,7 +400,7 @@ export const Home: React.FC = () => {
             {t('m.for.title1')} <em>{t('m.for.title2')}</em>
           </h2>
           <p className="lede">{t('m.for.lede')}</p>
-          <div className="points">
+          <div className="points three">
             <FoldPoint mode="hide" defaultOpen title={t('m.for.1t')}>
               {t('m.for.1p')}
             </FoldPoint>
@@ -348,9 +461,6 @@ export const Home: React.FC = () => {
               <FoldItem tag="div" className="claim-limits" lead={t('m.claims.limitsTitle')}>
                 {t('m.claims.limits')}
               </FoldItem>
-              <p>
-                <strong>{t('m.claims.statusTitle')}</strong> {t('m.claims.status')}
-              </p>
               <RouterLink className="more" to="/docs/spec">
                 {t('m.claims.link')}
               </RouterLink>
@@ -384,6 +494,8 @@ export const Home: React.FC = () => {
                     {t(`m.stops.${n}b`)}
                   </FoldItem>
                 ))}
+                {/* Where VeilCore stops with labs: it shows who signed, never vouches. */}
+                <FoldItem lead={t('m.open.3t')}>{t('m.open.3p')}</FoldItem>
               </ul>
             </div>
           </div>
@@ -396,21 +508,18 @@ export const Home: React.FC = () => {
           <h2>
             {t('m.open.title1')} <em>{t('m.open.title2')}</em>
           </h2>
-          <div className="points three">
-            <FoldPoint mode="clamp" title={t('m.open.1t')} span2>
-              {t('m.open.1p')} <RouterLink to="/implementations">{t('m.open.1link')}</RouterLink>
+          <div className="points">
+            <FoldPoint mode="clamp" title={t('m.open.1t')}>
+              {t('m.open.1p')}
             </FoldPoint>
             <FoldPoint mode="clamp" title={t('m.open.2t')}>
               {t('m.open.2p')}
             </FoldPoint>
-            <FoldPoint mode="clamp" title={t('m.open.3t')}>
-              {t('m.open.3p')}
+            <FoldPoint mode="clamp" title={t('m.open.6t')}>
+              {t('m.open.6p')} <RouterLink to="/docs/spec">{t('m.open.6link')}</RouterLink>
             </FoldPoint>
             <FoldPoint mode="clamp" title={t('m.open.4t')}>
               {t('m.open.4p')}
-            </FoldPoint>
-            <FoldPoint mode="clamp" title={t('m.open.5t')}>
-              {t('m.open.5p')}
             </FoldPoint>
           </div>
         </div>
@@ -443,10 +552,6 @@ export const Home: React.FC = () => {
                 {t('m.faq.4a')} <RouterLink to="/privacy">{t('m.faq.4link1')}</RouterLink>{' '}
                 <RouterLink to="/docs/integrate">{t('m.faq.4link2')}</RouterLink>
               </p>
-            </details>
-            <details>
-              <summary>{t('m.faq.5q')}</summary>
-              <p>{t('m.faq.5a')}</p>
             </details>
             <details>
               <summary>{t('m.faq.6q')}</summary>
@@ -534,35 +639,28 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      <section id="team">
+      <section id="status">
         <div className="wrap">
-          <div className="label">{t('m.team.label')}</div>
+          <div className="label">{t('m.status.label')}</div>
           <h2>
-            {t('m.team.title1')} <em>{t('m.team.title2')}</em>
+            {t('m.status.title1')} <em>{t('m.status.title2')}</em>
           </h2>
-          <div className="team">
-            {(
-              [
-                ['Mako Steiner', 'MS', '/team/mako.jpg', 'm.mako.role', 'm.mako.short'],
-                ['Hunter Roberts', 'HR', '/team/hunter.jpg', 'm.hunter.role', 'm.hunter.short'],
-              ] as const
-            ).map(([name, initials, photo, role, short]) => (
-              <RouterLink className="person" to="/founders" key={name}>
-                <span className="avatar">
-                  {initials}
-                  <img src={photo} alt="" loading="lazy" onError={(e) => e.currentTarget.remove()} />
-                </span>
-                <span>
-                  <h3>{name}</h3>
-                  <span className="role">{t(role)}</span>
-                  <p>{t(short)}</p>
-                </span>
-              </RouterLink>
-            ))}
+          <p className="lede">{t('m.status.lede')}</p>
+          <div className="status three">
+            <div className="stat ok">
+              <b>{t('m.stat2.b')}</b>
+              <span>{t('m.stat2.s')}</span>
+            </div>
+            <div className="stat">
+              <b>{t('m.stat3.b')}</b>
+              <span>{t('m.stat3.s')}</span>
+            </div>
+            <div className="stat">
+              <b>{t('m.stat4.b')}</b>
+              <span>{t('m.stat4.s')}</span>
+            </div>
           </div>
-          <RouterLink className="more" to="/founders">
-            {t('m.team.more')}
-          </RouterLink>
+          <LiveWhere phone={phone} />
         </div>
       </section>
 
@@ -572,55 +670,26 @@ export const Home: React.FC = () => {
           <h2>
             {t('m.updates.title1')} <em>{t('m.updates.title2')}</em>
           </h2>
-          <div className="posts">
-            <Post
-              href={`${TESTNET_REPO}/blob/main/docs/mainnet-completeness.md`}
-              iso="2026-10-11"
-              date={t('m.postB.date')}
-              tag={t('m.postB.tag')}
-              title={t('m.postB.title')}
-              text={t('m.postB.text')}
-              go={t('m.updates.read')}
-            />
-            <Post
-              href={`${TESTNET_REPO}/blob/main/docs/deployment-record-revision-4.md`}
-              iso="2026-10-08"
-              date={t('m.postA.date')}
-              tag={t('m.postA.tag')}
-              title={t('m.postA.title')}
-              text={t('m.postA.text')}
-              go={t('m.updates.read')}
-            />
-            <FoldGroup label={t('m.updates.more')}>
-              <Post
-                href={`${TESTNET_REPO}/blob/main/docs/preprod-run-4oct.md`}
-                iso="2026-10-04"
-                date={t('m.post0.date')}
-                tag={t('m.post0.tag')}
-                title={t('m.post0.title')}
-                text={t('m.post0.text')}
-                go={t('m.updates.read')}
-              />
-              <Post
-                href={`${TESTNET_REPO}/blob/main/docs/self-audit-3oct.md`}
-                iso="2026-10-03"
-                date={t('m.post1.date')}
-                tag={t('m.post1.tag')}
-                title={t('m.post1.title')}
-                text={t('m.post1.text')}
-                go={t('m.updates.read')}
-              />
-              <Post
-                href={`${TESTNET_REPO}/blob/main/docs/preprod-run-2oct.md`}
-                iso="2026-10-02"
-                date={t('m.post2.date')}
-                tag={t('m.post2.tag')}
-                title={t('m.post2.title')}
-                text={t('m.post2.text')}
-                go={t('m.updates.read')}
-              />
-            </FoldGroup>
-          </div>
+          {phone ? (
+            <div className="posts">
+              {latest}
+              <FoldGroup label={t('m.updates.more')}>
+                {third}
+                {older}
+              </FoldGroup>
+            </div>
+          ) : (
+            <>
+              <div className="posts">
+                {latest}
+                {third}
+              </div>
+              <details className="older-posts">
+                <summary>{t('m.updates.older')}</summary>
+                <div className="posts">{older}</div>
+              </details>
+            </>
+          )}
           <div className="subscribe">
             <a className="more" href={`${SDK_REPO}/commits/main`} rel="noopener noreferrer" target="_blank">
               {t('m.updates.all')}
@@ -636,42 +705,7 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      <section id="status">
-        <div className="wrap">
-          <div className="label">{t('m.status.label')}</div>
-          <h2>
-            {t('m.status.title1')} <em>{t('m.status.title2')}</em>
-          </h2>
-          <p className="lede">{t('m.status.lede')}</p>
-          <div className="status">
-            <div className="stat ok">
-              <b>{t('m.stat1.b')}</b>
-              <span>{t('m.stat1.s')}</span>
-            </div>
-            <div className="stat">
-              <b>{t('m.stat2.b')}</b>
-              <span>{t('m.stat2.s')}</span>
-            </div>
-            <div className="stat">
-              <b>{t('m.stat3.b')}</b>
-              <span>{t('m.stat3.s')}</span>
-            </div>
-            <div className="stat">
-              <b>{t('m.stat4.b')}</b>
-              <span>{t('m.stat4.s')}</span>
-            </div>
-          </div>
-          {IS_MAINNET && <Contracts />}
-          <FoldItem tag="div" className="status-key" lead={t('m.status.keyTitle')}>
-            {t('m.status.keyText')}{' '}
-            <a href={`${TESTNET_REPO}/blob/main/docs/maintenance-policy.md`} rel="noopener noreferrer" target="_blank">
-              {t('m.status.keyLink')}
-            </a>
-          </FoldItem>
-        </div>
-      </section>
-
-      <LiveWhere />
+      <Technical />
 
       <section id="contact">
         <div className="wrap">
@@ -679,7 +713,7 @@ export const Home: React.FC = () => {
           <h2>
             {t('m.contact.title1')} <em>{t('m.contact.title2')}</em>
           </h2>
-          <dl className="audiences">
+          <dl className="audiences two">
             <div>
               <dt>{t('m.contact.1t')}</dt>
               <dd>
@@ -723,6 +757,31 @@ export const Home: React.FC = () => {
               </dd>
             </div>
           </dl>
+          <div className="team-row" id="team" role="group" aria-label={`${t('m.team.title1')} ${t('m.team.title2')}`}>
+            <div className="team">
+              {(
+                [
+                  ['Mako Steiner', 'MS', '/team/mako.jpg', 'm.mako.role', 'm.mako.short'],
+                  ['Hunter Roberts', 'HR', '/team/hunter.jpg', 'm.hunter.role', 'm.hunter.short'],
+                ] as const
+              ).map(([name, initials, photo, role, short]) => (
+                <RouterLink className="person" to="/founders" key={name}>
+                  <span className="avatar">
+                    {initials}
+                    <img src={photo} alt="" loading="lazy" onError={(e) => e.currentTarget.remove()} />
+                  </span>
+                  <span>
+                    <h3>{name}</h3>
+                    <span className="role">{t(role)}</span>
+                    <p>{t(short)}</p>
+                  </span>
+                </RouterLink>
+              ))}
+            </div>
+            <RouterLink className="more" to="/founders">
+              {t('m.team.more')}
+            </RouterLink>
+          </div>
         </div>
       </section>
     </SiteShell>

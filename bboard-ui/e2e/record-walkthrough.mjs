@@ -406,10 +406,11 @@ const run = async () => {
     await sleep(800);
 
     step = 'Date stamping the plant';
-    const seal = b.getByRole('button', { name: 'Seal it and date stamp it' });
+    // "Seal it" also date stamps the key on a real-chain build; the button says so (data-stamps-key).
+    const seal = b.locator('button[data-stamps-key]');
     if (!(await seal.isVisible().catch(() => false))) {
       fail(
-        'This site isn’t set up to add date stamps right now (there is no "Seal it and date stamp it" button). Nothing was sent.',
+        'This site isn’t set up to add date stamps right now (its "Seal it" button doesn’t date stamp). Nothing was sent.',
       );
     }
     await caption(b, CAPTIONS.stamp);
@@ -420,7 +421,7 @@ const run = async () => {
     const stampFrom = waiting();
     const stamp = await waitFor(
       {
-        done: b.getByText('Date stamped', { exact: true }),
+        done: b.locator('[data-key-stamped]'),
         // The screen shows plain words; the raw error is on the alert's data-error.
         error: b.locator('[data-error]').first(),
         notReady: b.getByText(/Its public date stamp comes when its batch is dated/),

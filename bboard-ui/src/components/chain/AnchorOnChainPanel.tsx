@@ -19,6 +19,7 @@ import {
   useRecordKeys,
 } from '../../veilcore/record-keys';
 import { getRecord, useRecords } from '../../veilcore/records';
+import { localStamp } from '../../veilcore/time';
 import { CHAIN_CONTRACT, chainNotReady } from '../../veilcore/chain/config';
 import { NETWORK, networkLabel } from '../../config/network';
 import { identityOf } from '../../veilcore/chain/identity';
@@ -69,10 +70,9 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
             <Alert severity="success" variant="outlined">
               Anchored. Its on-chain identity is {anchored.identity.slice(0, 16)}…, recorded at block{' '}
               {anchored.blockHeight}
-              {anchored.anchoredAt ? ` (${new Date(anchored.anchoredAt).toLocaleString()}, the chain’s clock)` : ''}.
-              The identity is kept in this browser and in your backup, not on VeilCore’s server: you share it by sending
-              someone a checker’s link. This is a test network: it can be reset, and its dates carry no evidential
-              weight.
+              {anchored.anchoredAt ? ` (${localStamp(anchored.anchoredAt)}, the chain’s clock)` : ''}. The identity is
+              kept in this browser and in your backup, not on VeilCore’s server: you share it by sending someone a
+              checker’s link. This is a test network: it can be reset, and its dates carry no evidential weight.
             </Alert>
             <TxLine label="Anchor" txHash={anchored.txHash} blockHeight={anchored.blockHeight} />
             <RecordKeysPanel record={record} />

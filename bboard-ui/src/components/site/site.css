@@ -1014,6 +1014,184 @@ html:has(.vcm) {
   white-space: nowrap;
 }
 
+/* Home page rhythm (round 5): tighter on wider screens, so the page reads in a few
+   minutes. Phones keep their own spacing (below). */
+@media (min-width: 600px) {
+  .vcm main:has(> header.hero) > section {
+    padding-block: clamp(44px, 4.5vw, 60px);
+  }
+  .vcm main:has(> header.hero) > section h2 {
+    max-width: 32ch;
+  }
+  .vcm main:has(> header.hero) :is(.points, .steps, .claims) {
+    margin-top: 32px;
+  }
+  .vcm main:has(> header.hero) :is(.isnt, .faq, .demos, .posts, .status, .audiences, .team, .live-table) {
+    margin-top: 28px;
+  }
+}
+/* Contact on the home page: four audiences in two columns on wide screens. */
+@media (min-width: 721px) {
+  .vcm .audiences.two {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 48px;
+    border-bottom: 0;
+  }
+  .vcm .audiences.two > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    align-content: start;
+  }
+}
+/* A second heading inside a section (what's live where; the founders under contact). */
+.vcm h3.sub-h {
+  font-family: var(--display);
+  font-size: clamp(1.375rem, 2.2vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  max-width: 30ch;
+}
+.vcm h3.sub-h em {
+  font-style: normal;
+}
+.vcm .live-where {
+  margin-top: clamp(40px, 5vw, 64px);
+}
+.vcm .team-row {
+  margin-top: 8px;
+}
+.vcm .live-where .lede {
+  margin-top: 12px;
+}
+
+/* Three tiles since round 5: the test-vector tile moved to "For technical readers". */
+.vcm .status.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* ------------------------------------------------------------------ what's live where
+   A table on wide screens: one row per feature, one column per site, a dash where a
+   feature isn't there. Below 720px each row stacks and each cell names its site (the
+   chip, hidden on wide screens because the column heading says it). */
+
+.vcm .live-table {
+  width: 100%;
+  margin-top: 40px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.vcm .live-table th,
+.vcm .live-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 20px 12px 0;
+  border-top: 1px solid var(--line-strong);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.vcm .live-table thead th {
+  border-top: 0;
+  padding-top: 0;
+  padding-bottom: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.vcm .live-table thead th:first-child {
+  width: 21%;
+}
+.vcm .live-table thead th:last-child {
+  width: 19%;
+}
+.vcm .live-table thead a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.vcm .live-table thead .soon {
+  font-weight: 500;
+  color: var(--muted);
+}
+.vcm .live-table tbody th {
+  font-family: var(--display);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.vcm .live-table tbody tr:last-child > * {
+  border-bottom: 1px solid var(--line-strong);
+}
+.vcm .live-table td .chip {
+  display: none;
+}
+.vcm .live-table td.no {
+  color: var(--line-strong);
+}
+
+/* ------------------------------------------------------------------ for technical readers */
+
+.vcm details.tech {
+  margin-top: 28px;
+}
+.vcm details.tech > summary {
+  list-style: none;
+  gap: 10px;
+}
+.vcm details.tech > summary::-webkit-details-marker {
+  display: none;
+}
+.vcm details.tech > summary::after {
+  content: '+';
+  color: var(--accent);
+  font-weight: 500;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.vcm details.tech[open] > summary::after {
+  content: '\2212';
+}
+.vcm details.tech .points {
+  margin-top: 28px;
+}
+.vcm details.tech .contracts {
+  margin-top: 8px;
+}
+
+/* older updates, behind one toggle on wide screens (phones fold them in Fold.tsx) */
+.vcm details.older-posts {
+  margin-top: 16px;
+}
+.vcm details.older-posts > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.vcm details.older-posts > summary::-webkit-details-marker {
+  display: none;
+}
+.vcm details.older-posts > summary::after {
+  content: '+';
+  font-weight: 500;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.vcm details.older-posts[open] > summary::after {
+  content: '\2212';
+}
+.vcm details.older-posts .posts {
+  margin-top: 8px;
+}
+
 /* ------------------------------------------------------------------ contact, by audience */
 
 .vcm .audiences {
@@ -1371,6 +1549,9 @@ html:has(.vcm) {
   .vcm .status {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .vcm .status.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
   .vcm .points.three {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1451,6 +1632,52 @@ html:has(.vcm) {
   .vcm .step + .step {
     border-left: none;
     border-top: 1px solid var(--line);
+  }
+  .vcm .status.three {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .vcm .live-table,
+  .vcm .live-table thead,
+  .vcm .live-table tbody,
+  .vcm .live-table tr,
+  .vcm .live-table th,
+  .vcm .live-table td {
+    display: block;
+    width: auto;
+  }
+  .vcm .live-table thead tr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+  }
+  .vcm .live-table thead th {
+    padding: 0;
+  }
+  .vcm .live-table thead th:first-child {
+    display: none;
+  }
+  .vcm .live-table tbody {
+    margin-top: 16px;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .vcm .live-table tbody tr {
+    padding: 14px 0;
+    border-top: 1px solid var(--line-strong);
+  }
+  .vcm .live-table tbody th,
+  .vcm .live-table td,
+  .vcm .live-table tbody tr:last-child > * {
+    border: 0;
+    padding: 0;
+  }
+  .vcm .live-table td {
+    margin-top: 6px;
+  }
+  .vcm .live-table td.no {
+    display: none;
+  }
+  .vcm .live-table td .chip {
+    display: inline;
   }
 }
 

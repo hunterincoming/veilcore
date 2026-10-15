@@ -84,9 +84,9 @@ missing. The usual ones:
 Open **veilcore.org** (pull down to refresh; if it still looks old, open it in a private tab).
 
 1. Home page, under the buttons: *"Now on Midnight's main network: we anchor records there in batches, by hand for now."*
-2. Scroll to **Straight about where we are**: the second box says **Main network**, and below
-   the boxes are the two contract addresses. They match your paper. Under them, "Who can
-   change the contract" says *"proposed, not decided"* (or *"Both founders have approved"*
+2. Scroll to **Where things stand**: the second box says **Main network**. Then near the end,
+   open **For technical readers** → **Show the detail**: the two contract addresses are there.
+   They match your paper. Under them, "Who can change the contract" says *"proposed, not decided"* (or *"Both founders have approved"*
    if you did step 4).
 3. Tap **Try the demo**, then **Create a record** (answer the "Which describes you?" question
    if it appears). The chips at the top say **Web demo** and **Main network** (not "Test network").

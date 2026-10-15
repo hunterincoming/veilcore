@@ -32,6 +32,7 @@ import { PasteBox } from './PasteBox';
 import { labCardLine, useLabCardFacts, useWaitingByRecord } from './LabResults';
 import { quantityPhrase } from '../../veilcore/transfers';
 import { TrustPanel } from '../TrustPanel';
+import { RegistryExportButton } from '../RegistryExportButton';
 import { draftHeading, loadDraft } from './log-flow-state';
 
 const day = (ms: number) => new Date(ms).toLocaleDateString();
@@ -378,6 +379,7 @@ export const AppHome: React.FC = () => {
               <Button variant="text" color="inherit" onClick={onReset}>
                 Start over
               </Button>
+              <RegistryExportButton />
               <input
                 ref={importRef}
                 type="file"

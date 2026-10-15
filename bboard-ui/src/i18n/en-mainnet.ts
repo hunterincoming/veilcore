@@ -40,7 +40,7 @@ const common: Overlay = {
   'm.foot.about':
     "An open record format for plant and animal genetics. Records are dated by anchoring on Midnight's main network.",
   'm.get.2b':
-    "Licenses and lab agreements attach to the record. A licensee can prove they hold a live license without showing which one. An obligation on a parent, such as a royalty, shows on every offspring both holders confirmed; VeilCore records it and doesn't collect it. Built into the contract on Midnight's main network; simulated on this website.",
+    "They attach to the record. A licensee can prove they hold a live license without showing which one. A royalty or other obligation on a parent shows on every offspring both holders confirmed; VeilCore records it and doesn't collect it. Built into the contract on Midnight's main network; simulated on this website.",
   'm.demo.lede':
     "No sign-up, no wallet. Records you seal here are real records: each goes into a batch that we anchor on Midnight's main network, by hand for now, so a new record can wait a while; its check page shows when its batch is anchored. Checking is free. Licenses and lab agreements are simulated, and DNA report pairings aren't dated. Don't type anything you need to keep secret.",
   // Dated posts: history, so they name the network the run was on (see DATED_POSTS).
@@ -56,19 +56,19 @@ const common: Overlay = {
   'm.foot.demo': 'Make a record',
   'm.hero.demoLabel': 'Live fingerprint',
   'm.demo.label': 'Use it',
-  'm.demo.title1': 'Pick where',
-  'm.demo.title2': 'to start.',
+  'm.demo.title1': 'Make a record',
+  'm.demo.title2': 'or check one.',
   'm.demo.create.text': "Log a plant, save your backup, then see your plant's page.",
   'm.demo.privacy': 'What this site keeps →',
   'm.faq.4link1': 'What this site keeps →',
   'm.faq.2a':
     'No. Making a record on this site and checking any record need no wallet, no sign-up and nothing to buy. Your browser keeps a random key that finds your records on our server. The fingerprint goes on Midnight, a blockchain built for privacy. You never deal with it directly.',
   'm.for.1p':
-    "Seal a record and pair its DNA report. If the plant turns up under another name, a lab can compare a new test with your report. When you pair through VeilCore's contract on Midnight, the pairing is dated too: it shows that whoever controlled your record at that date had that report, or its SHA-256, by then. What goes on chain is tied to your record and hides the report, so nobody can copy your pairing to their own record. On this website the pairing is saved with your record but not yet dated. VeilCore doesn't test DNA.",
+    "Seal a record and pair its DNA report. If the plant turns up under another name, a lab can compare a new test with your report. On this website the pairing is saved with your record but not yet dated. VeilCore doesn't test DNA.",
   'm.for.3p':
-    "Send material with a lab code. When the lab enters it, the lab signs a receipt with its own key, so the record shows a second party, which protects the lab as much as the client. The receipt is a real signature, kept by VeilCore's registry, not on the chain. Terms such as what it's for, no propagation, and return or destroy it after are practice only on this website.",
+    "Send material with a lab code. The lab signs a receipt with its own key, so the record shows a second party. The receipt is a real signature, kept by VeilCore's registry, not on the chain. Terms such as no propagation are practice only on this website.",
   'm.for.5p':
-    "Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. The format covers animals; this website is set up for plants, and the animal record fields aren't published yet.",
+    "Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. This website is set up for plants; the animal record fields aren't published yet.",
   // "Prove it" by link needs the browser to send a transaction, which this site doesn't.
   'm.for.6p':
     "They send you a link. You tap once, and their page checks on the network that you control your plant's own key. Your record named that key when it was sealed, so it can't be swapped. It says nothing about who you are or who bred the plant. This website can't do it yet.",
@@ -77,7 +77,7 @@ const common: Overlay = {
   // m.privacy.local.text and m.privacy.who.text here, and m.live.results.* in en.ts,
   // change with it; copy-truth.test.ts fails until they do.
   'm.for.4p':
-    "The lab signs your results and locks them so only you can open them. No PDF sits in anyone's inbox: VeilCore only holds the locked file. The signature covers that exact file and the record it's about. VeilCore records who signed; it doesn't vouch for the result. Not on this website yet: it's on the test site first.",
+    "The lab signs your report and locks it so only you can open it. No PDF sits in anyone's inbox. VeilCore holds only the locked file and records who signed; it doesn't vouch for the result. Not on this website yet: it's on the test site first.",
   'm.faq.4a':
     "Your genetic data: nothing. It's fingerprinted on your computer, as are the files you add, and they aren't uploaded. This website keeps what you type (names, dates, notes, agreement terms) and your lab files' names, so you can come back to them, and a record's public check page shows its cultivar name. Labs and developers can seal records inside their own systems, so only the fingerprint goes out.",
   'm.privacy.local.text':

@@ -44,8 +44,8 @@ export const fr: Strings = {
   'm.step4.n': '04 · Vérification',
   'm.step4.title': 'Le présenter plus tard',
   'm.demo.label': 'Démo',
-  'm.demo.title1': 'Choisissez comment',
-  'm.demo.title2': 'vous voulez le voir.',
+  'm.demo.title1': 'Essayez',
+  'm.demo.title2': 'la démo.',
   'm.demo.create.title': 'Enregistrer une plante',
   'm.demo.create.text':
     'Enregistrez une plante fictive, sauvegardez votre copie de secours, puis découvrez la page de votre plante.',
@@ -87,8 +87,8 @@ export const fr: Strings = {
   'm.post2.text':
     'Le contrat a été déployé sur le réseau de test de Midnight et a passé les 26 vérifications de bout en bout, en utilisant 16 de ses 24 opérations avec de vraies preuves.',
   'm.status.label': 'Où nous en sommes',
-  'm.status.title1': 'Franchement,',
-  'm.status.title2': 'où nous en sommes.',
+  'm.status.title1': 'Où en sont',
+  'm.status.title2': 'les choses.',
   'm.status.lede': "Ce qui est fait, et ce qui ne l'est pas encore.",
   'm.stat3.b': 'Aucun audit',
   'm.status.keyTitle': 'Qui peut modifier le contrat.',
@@ -153,7 +153,7 @@ export const fr: Strings = {
     'Merci de ne saisir ni vrais noms, ni vraies variétés, ni rien de confidentiel. La démo sert à essayer le format.',
   'm.privacy.export.title': 'Export',
   'm.privacy.export.text':
-    "Votre page d'enregistrements comporte un bouton « Export » qui télécharge les enregistrements détenus par ce navigateur. Un téléchargement unique de tout ce que notre serveur conserve pour vous est en préparation ; il n'est pas encore disponible.",
+    "Sur votre page d'enregistrements, sous « More » : « Export all records » télécharge les enregistrements que ce navigateur détient, et « Download everything VeilCore holds for you » télécharge tout ce que notre serveur conserve pour vous.",
   'm.privacy.delete.title': 'Suppression',
   'm.privacy.delete.text':
     'Pour faire supprimer vos données de démo de notre serveur, écrivez à hunter@veilcore.org en indiquant les identifiants de vos enregistrements.',
@@ -173,19 +173,17 @@ export const fr: Strings = {
   'm.privacy.contact': 'Questions : hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    "Pour les obtenteurs, les semenciers et les laboratoires qui travaillent avec la génétique végétale et animale. Les données génétiques ne quittent jamais votre ordinateur. Seule une empreinte va sur Midnight, qui la date. Le nom de la plante et l'obtenteur que vous saisissez sont conservés sur le serveur de VeilCore, et toute personne qui a le lien d'un enregistrement voit son nom. Un rapport de laboratoire n'arrive sur notre serveur que lorsqu'un laboratoire vous le renvoie, verrouillé pour que vous seul puissiez l'ouvrir. Vérification gratuite. Sans inscription, sans portefeuille.",
+    'Pour les sélectionneurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale et animale : donnez à vos enregistrements une date que personne ne peut antidater. Vos données génétiques restent sur votre ordinateur. Seule une empreinte va sur Midnight, qui la date.',
   'm.for.3p':
-    "Envoyez du matériel avec un code de laboratoire. Quand le laboratoire le saisit, il signe un accusé de réception avec sa propre clé : l'enregistrement montre ainsi une seconde partie, ce qui protège le laboratoire autant que le client. L'accusé est une vraie signature, conservée par le registre de VeilCore, pas sur la chaîne. Les conditions, comme l'usage prévu, l'interdiction de multiplier, et le retour ou la destruction après, ne servent qu'à s'entraîner dans la démo web.",
+    "Envoyez du matériel avec un code laboratoire. Le laboratoire signe un accusé de réception avec sa propre clé, et l'enregistrement montre ainsi une seconde partie. L'accusé est une vraie signature, conservée par le registre de VeilCore, pas sur la chaîne. Des conditions comme l'interdiction de multiplier ne sont qu'un exercice dans la démo web.",
   'm.get.1b': 'pour un enregistrement de ce que vous détenez, sans montrer votre génétique.',
   'm.get.3b':
     "Un lien de parenté ne compte que si les deux détenteurs le confirment. Sur ce site, c'est le registre de VeilCore qui l'enregistre, pas la chaîne.",
-  'm.open.2t': 'Vérifier un enregistrement ne dépend pas de nous.',
+  'm.open.2t': 'Gardez trois fichiers.',
   'm.open.2p':
-    "Conservez deux fichiers depuis la page de votre plante : l'enregistrement exporté et sa preuve d'inclusion (un petit fichier montrant que l'enregistrement est dans un lot daté). Avec les deux, n'importe qui peut le vérifier avec SHA-256, la spécification ouverte et une consultation sur un explorateur Midnight, même si VeilCore a disparu. Votre fichier de sauvegarde contient vos clés, pas ces fichiers. La date Bitcoin demande un troisième fichier, le fichier d'horodatage Bitcoin du lot, qui n'existe aujourd'hui que sur notre serveur.",
+    "Sur la page de votre plante, sous « Technical details » : « Export record », « Download inclusion proof » (elle montre que l'enregistrement est dans un lot daté) et, sur veilcore.org, « Download Bitcoin stamp file ». Votre fichier de sauvegarde contient vos clés, pas ces fichiers. Un dossier de preuve en un clic est en préparation.",
   'm.faq.1a':
     "Une fois les enregistrements ancrés, chacun peut vérifier lequel a été ancré en premier. Associez votre rapport de laboratoire, pour qu'un test ultérieur puisse y être comparé. Quand vous envoyez du matériel, le destinataire signe un accusé de réception avec sa propre clé. Un enregistrement est une preuve, pas une inscription : il montre que vous déteniez cet enregistrement à cette date, pas que vous déteniez la plante, et ne tranche pas un litige à lui seul.",
-  'm.faq.5a':
-    "Les dates restent : une empreinte de lot ancrée sur le réseau principal de Midnight, ou horodatée sur Bitcoin, ne peut être supprimée par personne, nous compris. Pour vérifier un enregistrement sans nous, il vous faut deux fichiers que seul notre serveur détient tant que vous ne les enregistrez pas : l'enregistrement (« Export record ») et sa preuve d'inclusion (« Download inclusion proof »), tous deux sur la page de votre plante, sous « Technical details ». Votre fichier de sauvegarde contient vos clés, pas ces fichiers. Pour vérifier la date Bitcoin sans nous, il vous faut aussi le fichier d'horodatage Bitcoin du lot, qui n'existe aujourd'hui que sur notre serveur ; la page de la plante ne le propose pas. La spécification est ouverte et le code TypeScript, Python et Rust est publié. Un dossier de preuve en un clic, avec tout cela, arrive bientôt.",
   'm.post0.date': '4 oct. 2026',
   'm.post0.tag': 'Contrat',
   'm.post0.title': 'Prouver un fait, garder le reste',
@@ -209,11 +207,10 @@ export const fr: Strings = {
   'm.live.lede':
     "veilcore.org fonctionne sur le réseau principal de Midnight, et les enregistrements qui y sont faits sont réels. Le site de test sert à s'entraîner : davantage y fonctionne, et ses enregistrements n'ont aucune valeur probante.",
   'm.live.colMain': 'veilcore.org (réseau principal)',
-  'm.live.colTest': 'Site de test',
+  'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Pas encore',
   'm.live.stamp.t': 'Un horodatage pour votre enregistrement',
-  'm.live.stamp.main':
-    "Oui. VeilCore date les enregistrements par lots, à la main pour l'instant. Votre navigateur n'envoie rien à la chaîne.",
+  'm.live.stamp.main': "Oui, par lots, à la main pour l'instant. Votre navigateur n'envoie rien à la chaîne.",
   'm.live.stamp.test':
     'Oui. Les lots sont datés automatiquement, ce qui date votre enregistrement. Votre navigateur horodate aussi la clé propre à votre plante ; cet horodatage ne date que la clé.',
   'm.live.share.t': 'Choisir ce que les autres voient',
@@ -234,8 +231,7 @@ export const fr: Strings = {
     "Oui. Leur page vérifie sur le réseau que vous contrôlez la clé propre à l'enregistrement. L'enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée.",
   'm.live.prove.not': 'Sur veilcore.org : il faut que votre navigateur envoie une transaction.',
   'm.live.claims.t': 'Prouver un seul fait',
-  'm.live.claims.main':
-    "Le contrat est sur le réseau principal, sans clé de maintenance. Le site ne peut pas encore l'utiliser.",
+  'm.live.claims.main': "Sur le réseau principal, sans clé de maintenance. Le site ne peut pas encore l'utiliser.",
   'm.live.claims.not': "L'utiliser depuis le site.",
   'm.live.lic.t': 'Licences et redevances',
   'm.live.lic.main': "Pour s'entraîner seulement.",
@@ -254,11 +250,11 @@ export const fr: Strings = {
     "Il est conçu pour servir de preuve, et notre note pour les juristes dit ce qu'il prouve et ce qu'il ne prouve pas. Aujourd'hui, les enregistrements sont datés sur un réseau de test de Midnight, et une date sur un réseau de test n'a aucune valeur probante. Le lancement sur le réseau principal est proche.",
   'm.stat2.b': 'Réseau de test',
   'm.stat2.s':
-    'Les deux contrats ont été testés de bout en bout sur le réseau de test preprod de Midnight. Pas encore sur le réseau principal.',
+    'Les deux contrats testés de bout en bout sur un réseau de test de Midnight. Pas encore sur le réseau principal.',
   'm.foot.about':
     "Un format d'enregistrement ouvert pour la génétique végétale et animale. Conçu pour s'ancrer sur Midnight ; en test sur un réseau de test de Midnight.",
   'm.for.2p':
-    "Les obtenteurs veulent utiliser leurs marqueurs pour montrer qu'une variété est distincte, et traitent ces marqueurs comme des secrets d'affaires. Une preuve VeilCore établit un fait à leur sujet sans montrer le reste. Aucun office d'examen ni organisme de certification ne l'accepte encore ; nous avons écrit à certains pour leur demander ce qu'il leur faudrait.",
+    "Les sélectionneurs veulent utiliser leurs marqueurs pour montrer qu'une variété est distincte, et les gardent comme secrets d'affaires. Une revendication VeilCore prouve un fait à leur sujet sans montrer le reste. Aucun office d'examen ni organisme de certification ne l'accepte encore.",
   'm.hero.note':
     "Tapez dans l'un ou l'autre champ ; rien n'est envoyé. La ligne verte est l'empreinte, la partie qui va sur Midnight. Personne ne peut remonter de celle-ci à ce que vous avez saisi.",
   'm.hero.noteShort': 'Seule la ligne verte va sur Midnight.',
@@ -266,28 +262,29 @@ export const fr: Strings = {
   'm.for.title1': 'Beaucoup de litiges sur la génétique se ramènent à une question :',
   'm.for.title2': "qu'aviez-vous, et quand ?",
   'm.for.lede':
-    "Carnets et fichiers sont datés par ceux qui les tiennent, et sont donc faciles à mettre en doute. Déposer le matériel lui-même, c'est remettre ce que vous voulez protéger. VeilCore donne à votre enregistrement une date que personne ne peut antidater, et la génétique reste chez vous.",
+    "Les carnets et les fichiers sont datés par ceux qui les tiennent, ils sont donc faciles à mettre en doute. Enregistrer le matériel lui-même, c'est remettre ce que vous cherchez à protéger.",
   'm.for.1t': 'Une bouture disparaît.',
   'm.for.1p':
-    "Scellez un enregistrement et associez-y son rapport ADN. Si la plante réapparaît sous un autre nom, un laboratoire peut comparer un nouveau test avec votre rapport. Quand vous l'associez via le contrat de VeilCore sur Midnight, l'association est datée elle aussi : elle montre que la personne qui contrôlait votre enregistrement à cette date avait ce rapport, ou son SHA-256, à ce moment-là. Ce qui va sur la chaîne est lié à votre enregistrement et cache le rapport, si bien que personne ne peut copier votre association sur son propre enregistrement. Dans cette démo web, l'association est conservée avec votre enregistrement mais pas encore datée. VeilCore ne fait pas de tests ADN.",
+    "Scellez un enregistrement et associez-y son rapport ADN. Si la plante réapparaît sous un autre nom, un laboratoire peut comparer un nouveau test avec votre rapport. Dans la démo web, l'association est enregistrée avec votre enregistrement mais pas encore datée. VeilCore ne fait pas de tests ADN.",
   'm.for.2t': 'Protection des obtentions et certification.',
   'm.for.2link': 'Comment fonctionne une preuve →',
   'm.for.3t': "Du matériel entre les mains d'un laboratoire.",
   'm.for.4t': 'Les résultats du laboratoire, renvoyés vers vous.',
   'm.for.4p':
-    "Le laboratoire signe vos résultats et les verrouille pour que vous seul puissiez les ouvrir. Aucun PDF ne traîne dans une boîte de réception : VeilCore ne garde que le fichier verrouillé. La signature couvre exactement ce fichier et l'enregistrement concerné. VeilCore enregistre qui a signé ; il ne se porte pas garant du résultat. Nouveau, encore en test.",
+    "Le laboratoire signe votre rapport et le verrouille pour que vous seul puissiez l'ouvrir. Aucun PDF ne traîne dans une boîte de réception. VeilCore ne garde que le fichier verrouillé et enregistre qui a signé ; il ne se porte pas garant du résultat. Nouveau, encore en test.",
   'm.for.6t': "Quelqu'un demande une preuve.",
   'm.for.6p':
     "On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre plante. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante. Cela fonctionne pour l'instant sur un réseau de test de Midnight.",
   'm.for.5t': 'Lignées animales.',
   'm.for.5p':
-    'Les livres généalogiques conservent le pedigree. Un enregistrement peut donner à chaque entrée une date que personne ne peut antidater, sans publier le génotype. Le format couvre les animaux ; cette démo est configurée pour les plantes, et les champs des enregistrements animaux ne sont pas encore publiés.',
+    "Les livres généalogiques tiennent le pedigree. Un enregistrement peut donner à chaque entrée une date que personne ne peut antidater, sans publier le génotype. Cette démo est prévue pour les plantes ; les champs d'enregistrement pour les animaux ne sont pas encore publiés.",
   'm.for.5ask': 'Si vous élevez des animaux, dites-nous ce dont vos enregistrements ont besoin.',
   'm.how.label': 'Comment ça marche',
   'm.how.title1': 'Quatre étapes.',
   'm.how.title2': 'La génétique reste chez vous.',
   'm.step1.title': 'Le noter',
-  'm.step1.text': "Ce que c'est et d'où ça vient. Ajoutez des rapports de laboratoire en fichiers.",
+  'm.step1.text':
+    "Ce que c'est et d'où ça vient. Le nom de la plante et l'obtenteur que vous saisissez sont conservés sur le serveur de VeilCore, et toute personne ayant le lien de l'enregistrement voit le nom.",
   'm.step2.title': "En faire l'empreinte",
   'm.step2.text': 'Sur votre ordinateur. Les données génétiques ne le quittent jamais.',
   'm.step3.title': 'Obtenir une date',
@@ -296,8 +293,8 @@ export const fr: Strings = {
   'm.step4.text':
     'Donnez-le à un acheteur, un examinateur ou un tribunal. Ils peuvent le vérifier gratuitement, sans compte.',
   'm.claims.label': 'Prouver un fait',
-  'm.claims.title1': 'Montrer la réponse.',
-  'm.claims.title2': 'Garder les données.',
+  'm.claims.title1': 'Partager la preuve,',
+  'm.claims.title2': 'pas les données.',
   'm.claims.lede':
     "Un enregistrement peut sceller jusqu'à seize valeurs, comme des résultats de marqueurs ou un taux de germination. Plus tard, vous prouvez un fait à leur sujet. Rien d'autre n'est montré.",
   'm.claims.1t': 'Une valeur est bien ce que vous dites.',
@@ -316,16 +313,16 @@ export const fr: Strings = {
   'm.claims.limitsTitle': 'Limites.',
   'm.claims.limits':
     "Seize valeurs par enregistrement. Comparer deux variétés demande une partie qui détient les deux séries, comme l'obtenteur ou un laboratoire qui a testé les deux. Toute personne à qui vous donnez une valeur scellée peut aussi faire des preuves à son sujet. Ce n'est pas adapté aux comparaisons sur des milliers de valeurs. Sans la signature d'un laboratoire, les valeurs ne sont que la parole du détenteur.",
-  'm.claims.statusTitle': 'État.',
+  'm.claims.statusTitle': 'Le contrat de revendications',
   'm.claims.link': 'Comment fonctionnent les preuves, dans la spécification →',
   'm.get.label': 'Ce que ça fait',
   'm.get.title1': 'Ce que vous obtenez,',
   'm.get.title2': "et où ça s'arrête.",
   'm.get.title': 'Ce que vous obtenez',
   'm.get.1a': 'Une date que personne ne peut antidater,',
-  'm.get.2a': "Des conditions qui suivent l'enregistrement.",
+  'm.get.2a': 'Licences et accords de laboratoire.',
   'm.get.2b':
-    "Les licences et les accords de laboratoire sont attachés à l'enregistrement. Un licencié peut prouver qu'il détient une licence en vigueur sans montrer laquelle. Une obligation sur un parent, comme une redevance, apparaît sur chaque descendant confirmé par les deux détenteurs ; VeilCore l'enregistre et ne la perçoit pas. Testé sur un réseau de test de Midnight ; simulé dans la démo web.",
+    "Ils sont attachés à l'enregistrement. Un licencié peut prouver qu'il détient une licence en vigueur sans montrer laquelle. Une redevance ou autre obligation sur un parent apparaît sur chaque descendant confirmé par les deux détenteurs ; VeilCore l'enregistre et ne la perçoit pas. Testé sur un réseau de test de Midnight ; simulé dans la démo web.",
   'm.get.3a': 'Une lignée acceptée des deux côtés.',
   'm.stops.title': "Où ça s'arrête, et ce qui couvre le reste",
   'm.stops.1a': "C'est une preuve, pas un titre.",
@@ -340,20 +337,18 @@ export const fr: Strings = {
   'm.stops.4b':
     "Une multiplication discrète n'est pas détectée. Mais une fois que vous révoquez une licence, un acheteur ou un laboratoire qui vérifie correctement ne l'acceptera plus comme valide.",
   'm.open.label': 'Format ouvert',
-  'm.open.title1': 'Conçu pour',
-  'm.open.title2': 'nous survivre.',
-  'm.open.1t': 'Une spécification ouverte, trois implémentations.',
+  'm.open.title1': 'Si VeilCore',
+  'm.open.title2': 'disparaît.',
+  'm.open.1t': 'Les dates restent.',
   'm.open.1p':
-    "Libre à implémenter, pour toujours. TypeScript, Python et Rust s'accordent sur les 100 vecteurs de test du format d'enregistrement (Rust n'exécute pas encore le plus récent, sur l'association de rapports), et chacun peut les exécuter. Nous avons écrit les trois ; une implémentation écrite par quelqu'un d'autre est le test que nous souhaitons le plus.",
+    'Une empreinte de lot ancrée sur le réseau principal de Midnight, ou horodatée sur Bitcoin, ne peut être supprimée par personne, nous compris.',
   'm.open.1link': 'Les trois implémentations →',
   'm.open.3t': 'Nous ne nous portons pas garants des résultats.',
   'm.open.3p':
-    "Un enregistrement montre quelle clé l'a signé, le nom et l'organisme d'accréditation enregistrés avec cette clé, et si l'opérateur de VeilCore a rapproché ce nom d'une liste publique de licences ou d'accréditations, et à quelle date. VeilCore ne se porte garant d'aucun laboratoire : c'est la personne qui vérifie un enregistrement qui décide de ce que vaut une signature.",
+    "Un enregistrement montre quelle clé l'a signé, le nom sous lequel elle a été enregistrée, toute accréditation déclarée par son détenteur (nous ne la vérifions pas), et si l'opérateur de VeilCore a rapproché ce nom d'une liste publique de licences ou d'accréditations, et à quelle date. VeilCore ne se porte garant d'aucun laboratoire : c'est la personne qui vérifie un enregistrement qui décide de ce que vaut une signature.",
   'm.open.4t': 'Chacun peut tenir un registre.',
   'm.open.4p':
-    "Le format permet à un laboratoire, un organisme de certification ou un organisme de gestion de droits de tenir le sien, sous son propre domaine web, avec ses propres définitions de champs, et d'ancrer sans nous demander. Le code de notre propre registre n'est pas publié.",
-  'm.open.5t': 'Vérifier est gratuit, toujours.',
-  'm.open.5p': 'Ni compte, ni paiement, pour personne.',
+    "Le format permet à un laboratoire, un organisme de certification ou un organisme de droits de gérer son propre registre, sous son propre domaine web, et d'ancrer sans nous demander. Le code de notre propre registre n'est pas publié.",
   'm.faq.label': 'Questions',
   'm.faq.title1': 'Les questions',
   'm.faq.title2': "qu'on nous pose.",
@@ -368,7 +363,6 @@ export const fr: Strings = {
     "De vos données génétiques : rien. Leur empreinte est calculée sur votre ordinateur, comme celle des fichiers que vous ajoutez, et rien de cela n'est téléversé. Un rapport de laboratoire n'arrive sur notre serveur que lorsqu'un laboratoire vous le renvoie : il est verrouillé pour que vous seul puissiez l'ouvrir, et supprimé après 180 jours. Ce site conserve ce que vous saisissez (noms, dates, notes, conditions des accords) et les noms de vos fichiers de laboratoire, pour que vous puissiez y revenir, et la page de vérification publique d'un enregistrement montre son nom de cultivar. Les laboratoires et les développeurs peuvent sceller des enregistrements dans leurs propres systèmes, pour que seule l'empreinte sorte.",
   'm.faq.4link1': 'Ce que la démo conserve →',
   'm.faq.4link2': "Guide d'intégration →",
-  'm.faq.5q': 'Et si VeilCore disparaît ?',
   'm.faq.6q': 'Combien ça coûte ?',
   'm.faq.6a':
     "Créer un enregistrement sur ce site ne coûte rien aujourd'hui. Vérifier un enregistrement est gratuit, toujours.",
@@ -376,9 +370,6 @@ export const fr: Strings = {
     "Sans inscription, sans portefeuille. C'est une version de test : utilisez des informations fictives. Les enregistrements sont ancrés par lots, à la main pour l'instant ; les licences et les accords de laboratoire sont simulés, et les associations de rapports ADN ne sont pas encore datées.",
   'm.demo.privacy': 'Ce que la démo conserve →',
   'm.updates.more': 'Toutes les actualités',
-  'm.stat1.b': '100 / 100',
-  'm.stat1.s':
-    "vecteurs de test du format d'enregistrement réussis en TypeScript, Python et Rust sur GitHub (un seul auteur a écrit les trois ; TypeScript est sur npm en version 0.15.0). Un 101e, pour l'association de rapports, n'est pas encore en Rust",
   'm.stat3.s': "Pas encore d'audit de sécurité indépendant. Nos propres revues sont publiques.",
   'm.stat4.b': 'Premiers utilisateurs recherchés',
   'm.stat4.s':
@@ -390,8 +381,7 @@ export const fr: Strings = {
   'm.addr.explorer': 'Les consulter sur midnightexplorer.com (géré par TexLabs) →',
   'm.live.btc.t': 'Un horodatage sur Bitcoin, en plus',
   'm.live.btc.main':
-    "Oui. Notre registre horodate sur Bitcoin l'empreinte de chaque lot scellé, avec OpenTimestamps. Le premier est arrivé dans le bloc Bitcoin 971004 le 11 octobre ; une vérification avec l'outil officiel OpenTimestamps reste à faire.",
-  'm.live.btc.not': "Récupérer le fichier d'horodatage depuis le site. Aujourd'hui, il n'est que sur notre serveur.",
+    "Oui, chaque lot scellé. Le premier est arrivé dans le bloc 971004 le 11 octobre ; la vérification avec l'outil officiel reste à faire.",
   'm.contact.1t': 'Obtenteurs et laboratoires',
   'm.contact.1p':
     "Essayez-le sur des enregistrements fictifs, puis dites-nous ce qu'il lui faudrait pour vos vrais enregistrements.",
@@ -406,6 +396,30 @@ export const fr: Strings = {
     'Un enregistrement VeilCore décrit du matériel génétique sans contenir la génétique. Seule son empreinte est publiée, et elle reçoit une date une fois ancrée sur Midnight. En vérifier un est gratuit et ne demande aucun compte.',
   'm.verify.home': "Qu'est-ce que VeilCore ? →",
   'm.verify.example': "Vous ne savez pas ce que vous allez voir ? Regardez d'abord un exemple →",
+  // Round 5 (15 Oct 2026): landing page rework, keys added.
+  'm.open.6t': 'Vérifier sans nous.',
+  'm.open.6p':
+    "Avec ces fichiers, n'importe qui peut vérifier un enregistrement avec la spécification ouverte et un explorateur Midnight. Les enregistrements scellés depuis le 14 octobre demandent aussi la section 3.6.1 de la spécification, publiée dans la spécification sur ce site ; le SDK et ses trois implémentations l'intégreront dans leur prochaine version.",
+  'm.open.6link': 'Lire la spécification →',
+  'm.updates.older': 'Actualités plus anciennes',
+  'm.live.colTestNote': '(en ligne cette semaine)',
+  'm.live.feature': 'Fonction',
+  'm.live.show': 'Afficher la liste',
+  'm.tech.title': 'Pour les lecteurs techniques',
+  'm.tech.lede': "Comment vérifier à la main, le code, l'horodatage Bitcoin et qui peut modifier les contrats.",
+  'm.tech.show': 'Afficher le détail',
+  'm.tech.check.t': 'Vérifier un enregistrement à la main',
+  'm.tech.check.p':
+    "Recalculer l'empreinte d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa preuve d'inclusion relie cette empreinte à une empreinte de lot ancrée sur Midnight, et une consultation sur un explorateur Midnight donne la date du lot. Les enregistrements scellés depuis le 14 octobre nomment leur propre clé ; les vérifier demande donc aussi la section 3.6.1, publiée dans la spécification sur ce site ; le SDK et ses trois implémentations l'intégreront dans leur prochaine version.",
+  'm.tech.impl.t': 'Une spécification, trois implémentations',
+  'm.tech.impl.p':
+    "Libre à implémenter, pour toujours. TypeScript, Python et Rust s'accordent sur les 100 vecteurs de test du format d'enregistrement sur GitHub, et chacun peut les exécuter ; un 101e, pour l'association de rapports, n'est pas encore dans Rust. Un seul auteur a écrit les trois, et la version TypeScript est sur npm en 0.15.0. Une implémentation écrite par quelqu'un d'autre est le test que nous souhaitons le plus.",
+  'm.tech.btc.t': "L'horodatage Bitcoin",
+  'm.tech.btc.p':
+    "Notre registre horodate sur Bitcoin l'empreinte de chaque lot scellé, avec OpenTimestamps. Le premier est arrivé dans le bloc Bitcoin 971004 le 11 octobre ; une vérification avec l'outil officiel OpenTimestamps reste à faire. Le fichier d'horodatage est le fichier .ots du lot : « Download Bitcoin stamp file », sur la page de la plante. Le registre du site de test n'horodate pas sur Bitcoin.",
+  'm.tech.dna.t': 'Association de rapports et signatures de laboratoire',
+  'm.tech.dna.p':
+    "Quand l'association d'un rapport ADN passe par le contrat VeilCore sur Midnight, elle est datée : elle montre que la personne qui contrôlait l'enregistrement à cette date avait ce rapport, ou son SHA-256, à ce moment-là. Ce qui va sur la chaîne est lié à l'enregistrement et cache le rapport, de sorte que personne ne peut copier l'association sur son propre enregistrement. La signature d'un laboratoire sur un rapport verrouillé couvre exactement ce fichier et l'enregistrement concerné.",
 };
 
 /** The public test site (en-testchain.ts), in this language. Draft, like the rest of this file. */
@@ -418,13 +432,13 @@ export const frTestchain: Strings = {
     "Il est conçu pour servir de preuve, et notre note pour les juristes dit ce qu'il prouve et ce qu'il ne prouve pas. Ce site de test date les enregistrements sur le réseau de test de Midnight, et une date sur un réseau de test n'a aucune valeur probante. Les vrais enregistrements vont sur veilcore.org, qui fonctionne sur le réseau principal de Midnight.",
   'm.stat2.b': 'Site de test',
   'm.stat2.s':
-    "Ce site fonctionne sur le réseau de test preprod de Midnight, pour s'entraîner. Les deux contrats sont sur le réseau principal de Midnight depuis le 8 octobre 2026.",
+    "Ce site fonctionne sur un réseau de test de Midnight, pour s'exercer. Les deux contrats sont sur le réseau principal de Midnight depuis le 8 octobre 2026.",
   'm.foot.about':
     "Un format d'enregistrement ouvert pour la génétique végétale et animale. Ceci est le site de test, sur un réseau de test de Midnight ; veilcore.org fonctionne sur le réseau principal de Midnight.",
   'm.for.1p':
-    "Scellez un enregistrement et associez-y son rapport ADN. Si la plante réapparaît sous un autre nom, un laboratoire peut comparer un nouveau test avec votre rapport. Quand vous l'associez via le contrat de VeilCore sur Midnight, l'association est datée elle aussi : elle montre que la personne qui contrôlait votre enregistrement à cette date avait ce rapport, ou son SHA-256, à ce moment-là. Ce qui va sur la chaîne est lié à votre enregistrement et cache le rapport, si bien que personne ne peut copier votre association sur son propre enregistrement. Sur ce site de test, vous pouvez dater l'association depuis votre navigateur. VeilCore ne fait pas de tests ADN.",
+    "Scellez un enregistrement et associez-y son rapport ADN. Si la plante réapparaît sous un autre nom, un laboratoire peut comparer un nouveau test avec votre rapport. Sur ce site de test, vous pouvez dater l'association depuis votre navigateur, et personne ne peut la copier sur son propre enregistrement. VeilCore ne fait pas de tests ADN.",
   'm.demo.lede':
-    "Sans inscription, sans portefeuille. Ceci est le site de test : utilisez des informations fictives. Les lots sont ancrés automatiquement sur le réseau de test de Midnight, ce qui date vos enregistrements. Votre navigateur horodate aussi la clé propre à chaque plante, ce qui ne date que la clé (VeilCore paie les frais). Vous pouvez aussi dater l'association d'un rapport ADN. L'accusé de réception d'un laboratoire est une vraie signature avec sa propre clé, conservée hors de la chaîne. Les licences et les accords de laboratoire servent seulement à s'entraîner.",
+    "Pas d'inscription, pas de portefeuille. Ceci est le site de test, utilisez donc des données inventées. Les lots sont ancrés automatiquement sur le réseau de test de Midnight, ce qui date vos enregistrements. L'accusé de réception d'un laboratoire est une vraie signature avec la propre clé du laboratoire, conservée hors chaîne. Les licences et les accords de laboratoire ne sont qu'un exercice.",
   'm.privacy.test.text':
     "Ce site utilise le réseau de test preprod de Midnight, pas le réseau principal. Votre navigateur envoie chaque horodatage à ce réseau via le service de frais de VeilCore ; ce que vous avez saisi et vos fichiers n'y sont jamais envoyés. Un réseau de test peut être réinitialisé, et les données de test peuvent être supprimées.",
   'm.privacy.hosts.text':

@@ -28,6 +28,14 @@ export const fingerprintText = async (text: string): Promise<string> =>
  */
 export const MAX_FINGERPRINT_BYTES = 200 * 1024 * 1024;
 
+/**
+ * The pairing fingerprint for a file whose plain SHA-256 is known (hex): the same value
+ * fingerprintFile gives for the file itself. A lab signs the SHA-256; the plant stores
+ * this, so a saved report is matched to a lab's signature through it (round 5).
+ */
+export const pairingFingerprintOfSha = (sha256Hex: string): string | undefined =>
+  isHex64(sha256Hex) ? fingerprintOf(Uint8Array.from(sha256Hex.match(/../g) ?? [], (b) => parseInt(b, 16))) : undefined;
+
 /** Fingerprint a file's bytes locally (used for the DNA lab report). */
 export const fingerprintFile = async (file: File): Promise<string> => {
   if (file.size > MAX_FINGERPRINT_BYTES) {

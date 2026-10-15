@@ -113,6 +113,21 @@ export const parseShareCode = (code: string): { transferId: string; claimCode?: 
   };
 };
 
+/**
+ * A lab code that has its id and claim part but not the lock for lab reports (round 5):
+ * cut short when copied, or made before locks. The sample can still be received; a lab
+ * report can't be sent back until the lab has the full code.
+ */
+export const codeMissingLock = (code: string): boolean => {
+  const parts = code.trim().split('.');
+  if (parts.length < 2 || !parts[0] || !parts[1]) return false;
+  return !parseShareCode(code).resultLock;
+};
+
+/** What the lab is told at Receive when the code has no lock part. */
+export const MISSING_LOCK_WORDS =
+  'This code is missing its last part; you can receive the sample but can’t send a report back until you have the full code.';
+
 /** Offer a record to a recipient. Nothing moves until they claim it. */
 export const offerTransfer = async (
   sourceRecord: string,

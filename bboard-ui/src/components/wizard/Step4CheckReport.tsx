@@ -91,7 +91,7 @@ export const Step4CheckReport: React.FC<{ onBack: () => void; onRestart: () => v
             <Typography variant="subtitle2">This file matches the report paired with {result.name}.</Typography>
             <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary' }}>
               Record {result.id}. A match means the file is byte-for-byte the one you paired; it says nothing about the
-              genetics and nothing about ownership.
+              genetics and nothing about who holds the plant.
             </Typography>
           </Alert>
         </Stack>

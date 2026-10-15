@@ -23,3 +23,23 @@ export const utcDate = (t: number | string): string => {
   const d = parse(t);
   return d ? `${d.toISOString().slice(0, 10)} (UTC)` : 'an unknown date';
 };
+
+/**
+ * A time for the person at this screen (round 5): their local date and time, with the
+ * zone's short name, so it is never read as another zone's ("15 Oct 2026, 14:32 EDT").
+ * Public pages and certificates use utcStamp instead, labelled UTC.
+ */
+export const localStamp = (t: number | string, locale?: string): string => {
+  const d = parse(t);
+  return d
+    ? // dateStyle/timeStyle can't be combined with timeZoneName (it throws), so the parts are named.
+      d.toLocaleString(locale, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short',
+      })
+    : 'an unknown time';
+};

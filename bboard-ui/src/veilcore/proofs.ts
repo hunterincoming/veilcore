@@ -117,3 +117,24 @@ export const downloadProof = (proof: InclusionProof, recordId: string): void => 
   a.click();
   URL.revokeObjectURL(url);
 };
+
+/**
+ * The batch's Bitcoin stamp file (OpenTimestamps), when the registry reports one in the
+ * proof's `anchors` (round 5). The file comes from the registry's public route for the
+ * proof's own batch, never from an address in the answer. `pending` is a calendar's
+ * promise, not yet a Bitcoin timestamp.
+ */
+export const bitcoinStampFor = (
+  proof: InclusionProof,
+): { otsUrl: string; rootUrl: string; status: 'bitcoin' | 'pending' } | undefined => {
+  const anchors: unknown = (proof as unknown as Record<string, unknown>).anchors;
+  if (!Array.isArray(anchors)) return undefined;
+  const ots = anchors.find((a) => isObject(a) && a.kind === 'opentimestamps') as Record<string, unknown> | undefined;
+  if (!ots) return undefined;
+  const batch = `${BASE}/batches/${encodeURIComponent(proof.batchId)}`;
+  return {
+    otsUrl: `${batch}/root.bin.ots`,
+    rootUrl: `${batch}/root.bin`,
+    status: ots.status === 'bitcoin' ? 'bitcoin' : 'pending',
+  };
+};

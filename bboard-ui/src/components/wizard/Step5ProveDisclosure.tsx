@@ -42,9 +42,8 @@ import {
   keysOn,
   loadGrant,
   saveGrant,
-  labelOf,
+  sharedNowWords,
   type Disclosure,
-  type DisclosureKey,
 } from '../../veilcore/disclosure';
 import { canonicalUrl } from '../../config/network';
 import { CLAIMS_WHERE } from '../../config/copy';
@@ -53,14 +52,20 @@ import { useRecordKeys } from '../../veilcore/record-keys';
 import { proveLinkParams } from '../../veilcore/prove-link';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { DisclosedFacts } from '../verify/DisclosedFacts';
+import { useSavedReport } from '../flow/LabResults';
+import { savedReportSentence, type SavedReport } from '../../veilcore/saved-report';
 
 export const Step5ProveDisclosure: React.FC<{
   recordId: string;
   /** Kept for callers; this screen ends with "Back to the plant". */
   onDone?: () => void;
   onBack: () => void;
-}> = ({ recordId, onBack }) => {
+  /** Where the saved lab report stands, when the page already knows (else loaded here). */
+  saved?: SavedReport | null;
+}> = ({ recordId, onBack, saved: given }) => {
   const record = getRecord(recordId);
+  const loadedSaved = useSavedReport(given === undefined ? record : undefined);
+  const saved = given === undefined ? loadedSaved : given;
   const [disclosure, setDisclosure] = useState<Disclosure>(defaultDisclosure());
   // What the registry holds now, so the switches start from the truth rather than from
   // defaults that may not be what strangers currently see.
@@ -115,6 +120,12 @@ export const Step5ProveDisclosure: React.FC<{
 
   if (!record) return <Typography>Record not found.</Typography>;
 
+  // Round 5: with "Whether a lab report is saved" shared, the link names the saved file's
+  // SHA-256 (`rs`), so the check page can match it to a lab's signature, which names the
+  // same SHA-256. Nothing new is published: a lab's signature already shows it.
+  const savedSha = saved && saved.kind !== 'none' ? saved.sha : undefined;
+  const reportParam: Record<string, string> = disclosure['attestation-status'] && savedSha ? { rs: savedSha } : {};
+
   const toggle = (key: keyof Disclosure) => {
     setDisclosure((p) => ({ ...p, [key]: !p[key] }));
     setResult(undefined); // selection changed — not saved until the button is pressed
@@ -136,7 +147,7 @@ export const Step5ProveDisclosure: React.FC<{
       setStored(out);
       // The link names the record's fingerprint, so the page checks against the record
       // this holder means rather than whatever fingerprint the registry answers with.
-      const relative = verifyPath(record.id, record.recordFingerprint);
+      const relative = verifyPath(record.id, record.recordFingerprint, reportParam);
       setResult({ absolute: canonicalUrl(relative), relative });
     } finally {
       setBusy(false);
@@ -147,7 +158,7 @@ export const Step5ProveDisclosure: React.FC<{
     if (!result || !record) return undefined;
     const relative =
       canAskProof && askable && proveParams
-        ? verifyPath(record.id, record.recordFingerprint, proveParams)
+        ? verifyPath(record.id, record.recordFingerprint, { ...proveParams, ...reportParam })
         : result.relative;
     return { relative, absolute: canonicalUrl(relative) };
   })();
@@ -214,14 +225,7 @@ export const Step5ProveDisclosure: React.FC<{
             </Stack>
           </Stack>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-            {stored === 'loading'
-              ? 'Checking what is shared now…'
-              : stored === 'unknown'
-                ? 'Could not read what is shared now from the registry.'
-                : stored.updatedAt === null
-                  ? 'Nothing beyond the basics is shared yet.'
-                  : `Saved choice: ${stored.show.length ? stored.show.map((k) => labelOf(k as DisclosureKey)).join('; ') : 'nothing beyond the basics'}.`}
-            {unsaved && stored !== 'loading' ? ' The switches above are not saved yet.' : ''}
+            {sharedNowWords(stored, unsaved)}
           </Typography>
         </Box>
 
@@ -231,10 +235,19 @@ export const Step5ProveDisclosure: React.FC<{
             What a stranger with the id will see
           </Typography>
           <Paper variant="outlined" sx={{ p: 2, mt: 0.5, background: 'rgba(22,32,27,0.02)' }}>
-            <DisclosedFacts record={record} disclosure={disclosure} />
+            <DisclosedFacts record={record} disclosure={disclosure} saved={saved} />
           </Paper>
         </Box>
       </Stack>
+
+      {saved && (saved.kind === 'replaced' || saved.kind === 'withdrawn') && (
+        <Alert severity="warning" variant="outlined" data-saved-report={saved.kind}>
+          {savedReportSentence(saved)}{' '}
+          {disclosure['attestation-status']
+            ? 'With “Whether a lab report is saved” on, the check page says so.'
+            : 'With “Whether a lab report is saved” off, the check page says nothing about it.'}
+        </Alert>
+      )}
 
       {error && (
         <Alert severity="error" variant="outlined">

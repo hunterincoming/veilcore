@@ -31,7 +31,8 @@ import { useRecordKeys } from '../../veilcore/record-keys';
 import { receiptLineFor } from '../../veilcore/custody';
 import { signerLabel } from '../../veilcore/attesters';
 import { NameCheckText } from '../NameCheckText';
-import { useBreederReceipt } from '../flow/LabResults';
+import { useBreederReceipt, useSavedReport } from '../flow/LabResults';
+import { savedReportSentence, type SavedReport } from '../../veilcore/saved-report';
 
 // The certificate's own colours: dark text on white, every pair at least 4.5:1.
 const CERT = {
@@ -67,11 +68,13 @@ const Field: React.FC<{ label: string; children: React.ReactNode; mono?: boolean
   </Box>
 );
 
-export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; onBack: () => void }> = ({
-  recordId,
-  onDone,
-  onBack,
-}) => {
+export const Step3Certificate: React.FC<{
+  recordId: string;
+  onDone: () => void;
+  onBack: () => void;
+  /** Where the saved lab report stands, when the page already knows (else loaded here). */
+  saved?: SavedReport | null;
+}> = ({ recordId, onDone, onBack, saved: given }) => {
   useLicenses();
   const certRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<string>();
@@ -80,6 +83,9 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
   const [integrity, setIntegrity] = useState<IntegrityCheck | 'checking'>('checking');
   const [anchor, setAnchor] = useState<ProofState | 'checking'>('checking');
   const receipt = useBreederReceipt(record, !!record && !record.receivedFrom);
+  // Round 5: a saved lab report the lab replaced or withdrew is never printed as a tick.
+  const loadedSaved = useSavedReport(given === undefined ? record : undefined);
+  const saved = given === undefined ? loadedSaved : given;
 
   useEffect(() => {
     if (!record) return;
@@ -140,6 +146,7 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
       licenses: licensesForRecord(record.id),
       anchored: anchorLine,
       secondParty: deliveryLine,
+      ...(record.dnaFingerprint && saved ? { labReportSaved: savedReportSentence(saved) } : {}),
       sealedAtSource: "the sealing device's clock",
       generatedAt: new Date().toISOString(),
       note: `VeilCore record summary. No genetic data or lab files; it contains the record details. ${IMAGE_NOT_EVIDENCE.replace('This image', 'This summary')}`,
@@ -269,12 +276,24 @@ export const Step3Certificate: React.FC<{ recordId: string; onDone: () => void; 
                 </Field>
               )}
               <Field label="Lab report saved">
-                {record.dnaFingerprint ? (
-                  <Box component="span" sx={{ color: CERT.accent }}>
-                    ✓ saved {record.dnaPairedAt ? `· ${utcDate(record.dnaPairedAt)}` : ''}
+                {!record.dnaFingerprint ? (
+                  'not saved'
+                ) : saved === null || saved === undefined ? (
+                  'checking…'
+                ) : saved.kind === 'replaced' || saved.kind === 'withdrawn' ? (
+                  <Box component="span" sx={{ color: CERT.error }} data-saved-report={saved.kind}>
+                    ✗ {saved.kind === 'replaced' ? 'Replaced by the lab' : 'Withdrawn by the lab'}.{' '}
+                    {savedReportSentence(saved)}
                   </Box>
                 ) : (
-                  'not saved'
+                  <Box
+                    component="span"
+                    sx={{ color: saved.kind === 'lab' ? CERT.accent : CERT.ink }}
+                    data-saved-report={saved.kind}
+                  >
+                    {saved.kind === 'lab' ? '✓ ' : ''}saved{' '}
+                    {record.dnaPairedAt ? `· ${utcDate(record.dnaPairedAt)}` : ''}. {savedReportSentence(saved)}
+                  </Box>
                 )}
               </Field>
               <Field label="Unchanged since sealing">

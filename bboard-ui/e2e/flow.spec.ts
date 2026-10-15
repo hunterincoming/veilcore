@@ -249,11 +249,49 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   const chunks: Buffer[] = [];
   for await (const c of saved) chunks.push(c as Buffer);
   expect(Buffer.concat(chunks)).toEqual(report);
-  expect(dl.suggestedFilename()).toMatch(/\.pdf$/);
+  // Round 5: the download names its local time and the report's short id, shown on the list too.
+  expect(dl.suggestedFilename()).toMatch(/^Lab report \d{4}-\d{2}-\d{2} \d{2}-\d{2} LR-[0-9A-F]{4}\.pdf$/);
+  const shortId = /LR-[0-9A-F]{4}/.exec(dl.suggestedFilename())![0];
+  await expect(breeder.getByText(new RegExp(`From lab@e2e · ${shortId}`))).toBeVisible();
   await breeder.getByRole('button', { name: /Save it to this plant/ }).click();
   // Its own screen, with the file already chosen: one press saves it.
   await expect(breeder.getByRole('heading', { name: /Save your lab report to this plant/ })).toBeVisible();
   await expect(breeder.getByRole('button', { name: /Save it to this plant/ })).toBeEnabled();
+  await breeder.getByRole('button', { name: /Save it to this plant/ }).click();
+  // Two fingerprints, each named; the saved file is matched to the lab's signature by SHA-256.
+  await expect(breeder.getByText('PAIRING FINGERPRINT', { exact: true })).toBeVisible();
+  const reportSha = createHash('sha256').update(report).digest('hex');
+  await expect(breeder.getByText(new RegExp(`File SHA-256: ${reportSha.slice(0, 12)}`))).toBeVisible();
+  await expect(breeder.locator('[data-lab-match]')).toContainText('signed by a key named “E2E Lab”');
+  await breeder.getByRole('button', { name: /Back to the plant/ }).click();
+  await expect(breeder.locator('[data-status-row="Lab report"]')).toContainText(
+    'saved · matches the lab’s signed report',
+  );
+
+  // The buyer's page: the saved report matches a report the lab signed; no "Not confirmed by a lab".
+  await breeder.getByRole('button', { name: /Show someone/ }).click();
+  await breeder.getByRole('button', { name: /Get the link/ }).click();
+  const shareLink = await breeder.locator('input[readonly]').first().inputValue();
+  expect(shareLink).toContain(`rs=${reportSha}`);
+  {
+    const buyerCtx = await browser.newContext();
+    const buyer = await buyerCtx.newPage();
+    const buyerErrors = watch(buyer);
+    await isolate(buyer);
+    await buyer.goto(new URL(shareLink).pathname + new URL(shareLink).search);
+    await expect(
+      buyer.getByText(/Its file \(SHA-256 [0-9a-f]{8}…[0-9a-f]{6}\) matches the lab report signed by/),
+    ).toBeVisible();
+    await expect(buyer.getByText(/Lab.s receipt for a sample, signature verified in this browser/)).toBeVisible();
+    await expect(buyer.getByText(/Lab report \(file SHA-256/)).toBeVisible();
+    await expect(buyer.getByText(/Not confirmed by a lab/)).toHaveCount(0);
+    await shot(buyer, 'buyer-1-saved-report-matches');
+    await expect(
+      buyer.getByText(/2 signatures about it \((a lab’s receipt, a lab report|a lab report, a lab’s receipt)\)/),
+    ).toBeVisible();
+    expectNoErrors(buyerErrors);
+    await buyerCtx.close();
+  }
 
   // The lab corrects it, then withdraws the correction (round 3): the old report stays
   // replaced, its file withdrawn at the registry, and nothing is live.
@@ -272,11 +310,38 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await lab.getByRole('button', { name: /Sign, lock and send/ }).click();
   await expect(lab.getByRole('heading', { name: /^Sent$/ })).toBeVisible();
   await expect(lab.getByRole('button', { name: /Back to the plant/ })).toHaveCount(1);
+
+  // Round 5: the breeder's saved report is now replaced: no tick, and the corrected one can be saved.
+  await breeder.goto(`/record/${recordId}`);
+  await expect(breeder.locator('[data-status-row="Lab report"]')).toContainText(
+    'replaced by the lab — save the corrected one',
+  );
+  await shot(breeder, 'breeder-3-saved-replaced');
+  // The backup comes first on this plant's next step, so the page also says it here.
+  await expect(breeder.getByText(/The lab report saved to this plant was replaced by the lab/)).toBeVisible();
+  await breeder
+    .getByRole('button', { name: /Open the corrected one/ })
+    .first()
+    .click();
+  await breeder.getByRole('button', { name: /Save it to this plant/ }).click();
+  await expect(breeder.locator('[data-replaces]')).toContainText('Saving this one replaces it');
+  await breeder.getByRole('button', { name: /Replace the saved lab report/ }).click();
+  await expect(breeder.locator('[data-lab-match]')).toBeVisible();
+  await breeder.getByRole('button', { name: /Back to the plant/ }).click();
+  await expect(breeder.locator('[data-status-row="Lab report"]')).toContainText(
+    'saved · matches the lab’s signed report',
+  );
+
   await lab.reload();
   await lab.getByRole('button', { name: /^Send results back to the breeder/ }).click();
   await expect(lab.getByText('Replaced by your corrected file.')).toBeVisible();
   await expect(lab.getByRole('button', { name: /^Withdraw$/ })).toHaveCount(1);
   await lab.getByRole('button', { name: /^Withdraw$/ }).click();
+  // Withdrawing a correction leaves the breeder with nothing from this lab: said before it happens.
+  await expect(
+    lab.getByText('The original stays replaced. The breeder will have no live report from you until you send one.'),
+  ).toBeVisible();
+  await shot(lab, 'lab-3-withdraw-correction');
   await lab.getByRole('button', { name: /Yes, withdraw it/ }).click();
   await expect(lab.getByText(/^Withdrawn on /)).toBeVisible();
   await expect(lab.getByText('Replaced by your corrected file.')).toBeVisible();
@@ -297,6 +362,16 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await expect(breeder.getByText('Replaced by a newer lab report')).toBeVisible();
   await expect(breeder.getByText(/Withdrawn by the lab on/)).toBeVisible();
   await expect(breeder.getByRole('button', { name: /^Open$/ })).toHaveCount(0);
+  await expect(
+    breeder.getByText('No current report from lab@e2e: the original was replaced and the correction withdrawn.'),
+  ).toBeVisible();
+  await shot(breeder, 'breeder-4-no-current-report');
+  // The breeder kept the correction, which the lab then withdrew: said plainly, on the plant and the certificate.
+  await breeder.goto(`/record/${recordId}`);
+  await expect(breeder.locator('[data-status-row="Lab report"]')).toContainText('withdrawn by the lab');
+  await breeder.getByText('Certificate', { exact: true }).click();
+  await expect(breeder.locator('[data-saved-report="withdrawn"]')).toContainText('Withdrawn by the lab');
+  await shot(breeder, 'breeder-5-certificate-withdrawn');
 
   expectNoErrors(breederErrors);
   expectNoErrors(labErrors);

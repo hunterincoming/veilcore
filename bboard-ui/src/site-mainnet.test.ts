@@ -317,7 +317,7 @@ describe('builds', () => {
     expect(mainHtml).not.toMatch(TEST_WORDING);
     expect(mainHtml).not.toMatch(/%VEILCORE_DESCRIPTION%/);
     const preHtml = fs.readFileSync(path.join(preDist, 'index.html'), 'utf8');
-    expect(preHtml).toMatch(/Pre-launch: tested on a Midnight test network/);
+    expect(preHtml).toMatch(/Test site: practice records on a Midnight test network\. No security audit yet\./);
 
     // The addresses are compiled into the mainnet bundle only.
     const js = (dir: string) =>

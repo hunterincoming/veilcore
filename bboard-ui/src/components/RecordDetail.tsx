@@ -43,11 +43,13 @@ import { Step5ProveDisclosure } from './wizard/Step5ProveDisclosure';
 import {
   LabResultsPanel,
   ReceivedFacts,
+  SavedReportAlert,
   SendResultsPanel,
   useBreederReceipt,
   useDeliveries,
   useLabCardFacts,
   useLabReceipt,
+  useSavedReport,
   waitingReports,
 } from './flow/LabResults';
 import { SignReceiptPanel } from './ClaimTransfer';
@@ -118,7 +120,9 @@ export const RecordDetail: React.FC = () => {
   const breederReceipt = useBreederReceipt(record, !!record && !received);
   const labReceipt = useLabReceipt(record, received);
   const labSent = useLabCardFacts(record && received ? [record] : [], received)[id]?.sent;
-  const [pairFile, setPairFile] = useState<File>();
+  // Where the lab report saved to this plant stands: the lab may have replaced or withdrawn it.
+  const saved = useSavedReport(received ? undefined : record, arrived);
+  const [pairFile, setPairFile] = useState<{ file: File; from?: { resultId: string; sha: string } }>();
   const [autoOpen, setAutoOpen] = useState<string>();
   // Opening a panel ("Show someone", "Certificate", …) or going back is a new screen: move
   // focus to its heading (or the plant's name), so a screen reader says where they are.
@@ -141,8 +145,8 @@ export const RecordDetail: React.FC = () => {
             This record isn&apos;t in this browser
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 480, mx: 'auto', mb: 2 }}>
-            If you sealed it in another browser, copy the holder key there (Holder key, in the header) and restore it
-            here. If it is someone else&apos;s record, open the verify link they gave you instead.
+            If you sealed it in another browser, save a backup there and open it here (Get your plants back). If it is
+            someone else&apos;s record, open the verify link they gave you instead.
           </Typography>
           <Stack direction="row" spacing={1} sx={{ justifyContent: 'center', flexWrap: 'wrap', gap: 1 }}>
             <Button component={RouterLink} to="/records" startIcon={<ArrowBackIcon />}>
@@ -213,6 +217,7 @@ export const RecordDetail: React.FC = () => {
             waiting={waiting.length}
             receipt={received ? labReceipt : breederReceipt}
             labSent={labSent}
+            saved={saved}
           />
 
           {/* The next step says "Open the lab report" unless the backup or date stamp comes
@@ -233,6 +238,10 @@ export const RecordDetail: React.FC = () => {
             </Alert>
           )}
 
+          {/* Same for a saved lab report the lab replaced or withdrew (round 5): when the
+              backup or date stamp is the next step, this says it. */}
+          {REAL_CHAIN && (!keys?.backedUpAt || !keys?.anchor) && <SavedReportAlert saved={saved} onOpen={openResult} />}
+
           {deliveries && <WaitingDeliveries open={deliveries.open} />}
 
           {received && <ReceivedFacts record={record} />}
@@ -252,6 +261,7 @@ export const RecordDetail: React.FC = () => {
             onSendResults={() => setMode('sendResults')}
             onSignReceipt={() => setMode('signReceipt')}
             labOnly={labOnly}
+            saved={saved}
           />
 
           {/* Everything else, in one plain list: a row per thing, its section's icon
@@ -400,7 +410,11 @@ export const RecordDetail: React.FC = () => {
                     {record.notes && <Field label="Notes">{record.notes}</Field>}
                     <Field label="Lab report">
                       {record.dnaFingerprint
-                        ? `saved to this plant (${record.dnaFileName ?? 'file'}) · ${shortFingerprint(record.dnaFingerprint)}`
+                        ? `saved to this plant (${record.dnaFileName ?? 'file'}) · pairing fingerprint ${shortFingerprint(record.dnaFingerprint)}${
+                            saved && saved.kind !== 'none' && saved.sha
+                              ? ` · file SHA-256 ${shortFingerprint(saved.sha)}`
+                              : ''
+                          }`
                         : 'not saved yet'}
                     </Field>
                     <Divider />
@@ -464,7 +478,8 @@ export const RecordDetail: React.FC = () => {
                 onBack={back}
                 onDone={back}
                 doneLabel="Back to the plant"
-                initialFile={pairFile}
+                initialFile={pairFile?.file}
+                from={pairFile?.from}
               />
             )}
             {mode === 'results' && (
@@ -473,8 +488,9 @@ export const RecordDetail: React.FC = () => {
                 keys={keys}
                 arrived={arrived}
                 autoOpen={autoOpen}
-                onPair={(f) => {
-                  setPairFile(f);
+                saved={saved}
+                onPair={(file, from) => {
+                  setPairFile({ file, from });
                   setMode('pair');
                 }}
               />
@@ -483,9 +499,11 @@ export const RecordDetail: React.FC = () => {
               <SendResultsPanel record={record} onSignReceipt={() => setMode('signReceipt')} />
             )}
             {mode === 'signReceipt' && <SignReceiptPanel record={record} receipt={labReceipt} onDone={back} />}
-            {mode === 'cert' && <Step3Certificate recordId={record.id} onBack={back} onDone={back} />}
+            {mode === 'cert' && <Step3Certificate recordId={record.id} onBack={back} onDone={back} saved={saved} />}
             {mode === 'check' && <Step4CheckReport onBack={back} onRestart={back} />}
-            {mode === 'share' && <Step5ProveDisclosure recordId={record.id} onBack={back} onDone={back} />}
+            {mode === 'share' && (
+              <Step5ProveDisclosure recordId={record.id} onBack={back} onDone={back} saved={saved} />
+            )}
             {mode === 'backup' && (
               <BackupStep
                 title="Save your backup"

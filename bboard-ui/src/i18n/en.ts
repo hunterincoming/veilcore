@@ -39,11 +39,11 @@ export const en = {
   'm.faq.3a':
     "It's built to be evidence, and our note for lawyers says what it proves and what it doesn't. Today records are dated on a Midnight test network, and a test-network date carries no evidentiary weight. The main network launch is close.",
   'm.stat2.b': 'Test network',
-  'm.stat2.s': "Both contracts tested end to end on Midnight's preprod test network. Not on the main network yet.",
+  'm.stat2.s': 'Both contracts tested end to end on a Midnight test network. Not on the main network yet.',
   'm.foot.about':
     'An open record format for plant and animal genetics. Designed to anchor on Midnight; testing on a Midnight test network.',
   'm.for.2p':
-    "Breeders want to use their markers to show a variety is distinct, and treat those markers as trade secrets. A VeilCore claim proves one fact about them without showing the rest. No examining office or certifier accepts it yet; we've written to some to ask what they would need.",
+    'Breeders want to use their markers to show a variety is distinct, and keep those markers as trade secrets. A VeilCore claim proves one fact about them without showing the rest. No examining office or certifier accepts it yet.',
   // End of the network wording.
 
   'm.nav.about': 'About',
@@ -58,10 +58,13 @@ export const en = {
   // the record by a date, not that you had the plant first. Not "without showing anyone
   // what it is" either: the plant name is on every record's public check page. What stays
   // hidden is the genetics.
+  // Round 5 (15 Oct): the hero lede is three short sentences: who it's for, what it does,
+  // and the one privacy line. What the server keeps (plant name and breeder) is in step 1
+  // of "How it works"; lab reports reaching the server are in the FAQ and the privacy note.
   'm.hero.title1': 'Date your record.',
   'm.hero.title2': 'Keep your genetics.',
   'm.hero.lede':
-    "For breeders, seed companies and labs working with plant and animal genetics. Genetic data never leaves your computer. Only a fingerprint goes on Midnight, which dates it. The plant name and breeder you type are kept on VeilCore's server, and anyone with a record's link sees its name. A lab report reaches our server only when a lab sends it back to you, locked so only you can open it. Free to check. No sign-up, no wallet.",
+    'For breeders, seed companies and labs working with plant and animal genetics: give your records a date nobody can backdate. Your genetic data stays on your computer. Only a fingerprint goes on Midnight, which dates it.',
   'm.hero.how': 'How it works',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Bred by',
@@ -81,24 +84,24 @@ export const en = {
   'm.for.title1': 'Many genetics disputes come down to one question:',
   'm.for.title2': 'what did you have, and when?',
   'm.for.lede':
-    "Notebooks and files are dated by whoever keeps them, so they're easy to doubt. Registering the material itself means handing over what you're protecting. VeilCore gives your record a date nobody can backdate, and the genetics stay with you.",
+    "Notebooks and files are dated by whoever keeps them, so they're easy to doubt. Registering the material itself means handing over what you're protecting.",
   'm.for.1t': 'A cutting walks out the door.',
   'm.for.1p':
-    "Seal a record and pair its DNA report. If the plant turns up under another name, a lab can compare a new test with your report. When you pair through VeilCore's contract on Midnight, the pairing is dated too: it shows that whoever controlled your record at that date had that report, or its SHA-256, by then. What goes on chain is tied to your record and hides the report, so nobody can copy your pairing to their own record. In this web demo the pairing is saved with your record but not yet dated. VeilCore doesn't test DNA.",
+    "Seal a record and pair its DNA report. If the plant turns up under another name, a lab can compare a new test with your report. In this web demo the pairing is saved with your record but not yet dated. VeilCore doesn't test DNA.",
   'm.for.2t': 'Variety protection and certification.',
   'm.for.2link': 'How a claim works →',
   'm.for.3t': "Material in a lab's hands.",
   'm.for.3p':
-    "Send material with a lab code. When the lab enters it, the lab signs a receipt with its own key, so the record shows a second party, which protects the lab as much as the client. The receipt is a real signature, kept by VeilCore's registry, not on the chain. Terms such as what it's for, no propagation, and return or destroy it after are practice only in the web demo.",
+    "Send material with a lab code. The lab signs a receipt with its own key, so the record shows a second party. The receipt is a real signature, kept by VeilCore's registry, not on the chain. Terms such as no propagation are practice only in the web demo.",
   'm.for.4t': 'Lab results, back to you.',
   'm.for.4p':
-    "The lab signs your results and locks them so only you can open them. No PDF sits in anyone's inbox: VeilCore only holds the locked file. The signature covers that exact file and the record it's about. VeilCore records who signed; it doesn't vouch for the result. New, and still being tested.",
+    "The lab signs your report and locks it so only you can open it. No PDF sits in anyone's inbox. VeilCore holds only the locked file and records who signed; it doesn't vouch for the result. New, and still being tested.",
   'm.for.6t': 'Someone asks for proof.',
   'm.for.6p':
     "They send you a link. You tap once, and their page checks on the network that you control your plant's own key. Your record named that key when it was sealed, so it can't be swapped. It says nothing about who you are or who bred the plant. This works on a Midnight test network for now.",
   'm.for.5t': 'Animal lines.',
   'm.for.5p':
-    "Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. The format covers animals; this demo is set up for plants, and the animal record fields aren't published yet.",
+    "Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. This demo is set up for plants; the animal record fields aren't published yet.",
   'm.for.5ask': 'If you breed animals, tell us what your records need.',
 
   'm.how.label': 'How it works',
@@ -106,7 +109,8 @@ export const en = {
   'm.how.title2': 'The genetics stay with you.',
   'm.step1.n': '01 · Record',
   'm.step1.title': 'Write it down',
-  'm.step1.text': 'What it is and where it came from. Add lab reports as files.',
+  'm.step1.text':
+    "What it is and where it came from. The plant name and breeder you type are kept on VeilCore's server, and anyone with the record's link sees the name.",
   'm.step2.n': '02 · Fingerprint',
   'm.step2.title': 'Fingerprint it',
   'm.step2.text': 'Done on your computer. Genetic data never leaves it.',
@@ -119,8 +123,8 @@ export const en = {
   'm.step4.text': 'Give it to a buyer, examiner or court. They can check it, free, with no account.',
 
   'm.claims.label': 'Prove one fact',
-  'm.claims.title1': 'Show the answer.',
-  'm.claims.title2': 'Keep the data.',
+  'm.claims.title1': 'Share proof,',
+  'm.claims.title2': 'not data.',
   'm.claims.lede':
     'A record can seal up to sixteen values, like marker results or a germination rate. Later you prove one fact about them. Nothing else is shown.',
   'm.claims.1t': 'A value is what you say it is.',
@@ -138,7 +142,7 @@ export const en = {
   'm.claims.limitsTitle': 'Limits.',
   'm.claims.limits':
     "Sixteen values per record. Comparing two varieties needs one party who holds both sets, such as the breeder or a lab that tested both. Anyone you give a sealed value to can make claims about it too. It doesn't fit comparisons across thousands of values. Without a lab's signature, the values are only the holder's word.",
-  'm.claims.statusTitle': 'Status.',
+  'm.claims.statusTitle': 'The claims contract',
   'm.claims.link': 'How claims work, in the spec →',
 
   'm.get.label': 'What it does',
@@ -147,9 +151,9 @@ export const en = {
   'm.get.title': 'What you get',
   'm.get.1a': 'A date nobody can backdate,',
   'm.get.1b': 'for a record of what you hold, without showing your genetics.',
-  'm.get.2a': 'Terms that travel.',
+  'm.get.2a': 'Licenses and lab agreements.',
   'm.get.2b':
-    "Licenses and lab agreements attach to the record. A licensee can prove they hold a live license without showing which one. An obligation on a parent, such as a royalty, shows on every offspring both holders confirmed; VeilCore records it and doesn't collect it. Tested on a Midnight test network; simulated in the web demo.",
+    "They attach to the record. A licensee can prove they hold a live license without showing which one. A royalty or other obligation on a parent shows on every offspring both holders confirmed; VeilCore records it and doesn't collect it. Tested on a Midnight test network; simulated in the web demo.",
   'm.get.3a': 'Lineage both sides agreed to.',
   'm.get.3b':
     "A parent link counts only when both holders confirm it. On this website, VeilCore's registry records it, not the chain.",
@@ -167,23 +171,25 @@ export const en = {
     "Quiet propagation isn't detected. But once you revoke a license, a buyer or lab who checks properly won't accept it as live.",
 
   'm.open.label': 'Open format',
-  'm.open.title1': 'Built to',
-  'm.open.title2': 'outlast us.',
-  'm.open.1t': 'An open specification, three implementations.',
+  'm.open.title1': 'If VeilCore',
+  'm.open.title2': 'disappears.',
+  'm.open.1t': 'The dates stay.',
   'm.open.1p':
-    'Free to implement, permanently. TypeScript, Python and Rust agree on all 100 record-format test vectors (Rust does not run the newer report-pairing one yet), and anyone can run them. We wrote all three; one written by someone else is the test we most want.',
+    "A batch fingerprint anchored on Midnight's main network, or stamped on Bitcoin, can't be removed by anyone, us included.",
   'm.open.1link': 'All three implementations →',
-  'm.open.2t': "Checking a record doesn't need us.",
+  'm.open.2t': 'Keep three files.',
   'm.open.2p':
-    "Keep two files from your plant's page: the exported record and its inclusion proof (a small file showing the record is in a dated batch). With both, anyone can check it with SHA-256, the open spec and a look-up on a Midnight explorer, even if VeilCore is gone. Your backup file holds your keys, not these. The Bitcoin date needs a third file, the batch's Bitcoin stamp file, which today is only on our server.",
+    "From your plant's page, under Technical details: Export record, Download inclusion proof (it shows the record is in a dated batch) and, on veilcore.org, Download Bitcoin stamp file. Your backup file holds your keys, not these. A one-click evidence bundle is coming.",
   'm.open.3t': "We don't vouch for results.",
   'm.open.3p':
-    "A record shows which key signed it, the name and accreditor registered with that key, and whether VeilCore's operator has matched that name to a public license or accreditation listing, and on what day. VeilCore doesn't vouch for any lab: whoever checks a record decides what a signature is worth.",
+    "A record shows which key signed it, the name it was registered under, any accreditation its holder declared (we don't check that), and whether VeilCore's operator has matched that name to a public license or accreditation listing, and on what day. VeilCore doesn't vouch for any lab: whoever checks a record decides what a signature is worth.",
   'm.open.4t': 'Anyone can run a registry.',
   'm.open.4p':
-    "The format lets a lab, certifier or rights body run its own, under its own web domain, with its own field definitions, and anchor without asking us. Our own registry code isn't published.",
-  'm.open.5t': 'Checking is free, always.',
-  'm.open.5p': 'No account, no payment, for anyone.',
+    "The format lets a lab, certifier or rights body run its own, under its own web domain, and anchor without asking us. Our own registry code isn't published.",
+  'm.open.6t': 'Checking without us.',
+  'm.open.6p':
+    'With those files, anyone can check a record using the open spec and a Midnight explorer. Records sealed since 14 October also need spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release.',
+  'm.open.6link': 'Read the spec →',
 
   'm.faq.label': 'Questions',
   'm.faq.title1': 'Questions',
@@ -201,15 +207,12 @@ export const en = {
     "Your genetic data: nothing. It's fingerprinted on your computer, as are the files you add, and they aren't uploaded. A lab report reaches our server only when a lab sends it back to you: it's locked so only you can open it, and deleted after 180 days. This website keeps what you type (names, dates, notes, agreement terms) and your lab files' names, so you can come back to them, and a record's public check page shows its cultivar name. Labs and developers can seal records inside their own systems, so only the fingerprint goes out.",
   'm.faq.4link1': 'What the demo keeps →',
   'm.faq.4link2': 'Integration guide →',
-  'm.faq.5q': 'What if VeilCore disappears?',
-  'm.faq.5a':
-    "The dates stay: a batch fingerprint anchored on Midnight's main network, or stamped on Bitcoin, can't be removed by anyone, us included. To check a record without us, you need two files that only our server holds unless you save them: the record (Export record) and its inclusion proof (Download inclusion proof), both on your plant's page under Technical details. Your backup file holds your keys, not these. To check the Bitcoin date without us you also need the batch's Bitcoin stamp file, which today is only on our server; the plant's page doesn't offer it. The spec is open and the TypeScript, Python and Rust code is published. A one-click evidence bundle with all of it is coming.",
   'm.faq.6q': 'What does it cost?',
   'm.faq.6a': 'Making a record on this site costs nothing today. Checking a record is free, always.',
 
   'm.demo.label': 'Demo',
-  'm.demo.title1': 'Pick how you',
-  'm.demo.title2': 'want to see it.',
+  'm.demo.title1': 'Try the',
+  'm.demo.title2': 'demo.',
   'm.demo.lede':
     "No sign-up, no wallet. It's a test version, so use made-up details. Records are anchored in batches, by hand for now; licenses and lab agreements are simulated, and DNA report pairings aren't dated yet.",
   'm.demo.privacy': 'What the demo keeps →',
@@ -243,6 +246,7 @@ export const en = {
   'm.updates.read': 'Read →',
   // Phones only: the toggle that opens the older updates.
   'm.updates.more': 'All updates',
+  'm.updates.older': 'Older updates',
   'm.updates.all': 'Record-format changes on GitHub →',
   'm.updates.follow': 'Follow',
   // Dated posts. Facts from docs/mainnet-completeness.md (R4, M2) and
@@ -274,17 +278,14 @@ export const en = {
     "The contract deployed to Midnight's test network and passed all 26 end-to-end checks, using 16 of its 24 operations with real proofs.",
 
   'm.status.label': 'Where this is',
-  'm.status.title1': 'Straight about',
-  'm.status.title2': 'where we are.',
+  'm.status.title1': 'Where things',
+  'm.status.title2': 'stand.',
   'm.status.lede': "What is done, and what isn't yet.",
-  'm.stat1.b': '100 / 100',
-  'm.stat1.s':
-    'record-format test vectors passed in TypeScript, Python and Rust on GitHub (one author wrote all three; TypeScript is on npm as 0.15.0). A 101st, for report pairing, is not in Rust yet',
   'm.stat3.b': 'No audit',
   'm.stat3.s': 'No independent security audit yet. Our own reviews are public.',
   'm.stat4.b': 'First users wanted',
   'm.stat4.s': "Nobody uses it for real records yet. We're looking for the first breeders and labs.",
-  // Mainnet builds only: the contract addresses under the status tiles.
+  // Mainnet builds only: the contract addresses, in "For technical readers".
   'm.addr.title': 'The contracts, for anyone who wants to check them.',
   'm.addr.main': 'Main contract',
   'm.addr.claims': 'Claims contract',
@@ -294,6 +295,22 @@ export const en = {
   'm.status.keyText':
     "One maintenance key can change how VeilCore's contract on Midnight works. Whoever holds it can add or replace the contract's operations, which could take over any record's identity, add licenses for any issuer, add or remove obligations and parent links, or switch operations off. It cannot backdate the network's block times, and every change shows on chain. Today the key is on paper, one copy with each founder, and either copy alone can use it. Moving it to a group of keys that must agree is planned, not done. Every use is announced publicly, under a written maintenance policy.",
   'm.status.keyLink': 'Read the maintenance policy →',
+  // "For technical readers" (home page, near the end): collapsed until opened.
+  'm.tech.title': 'For technical readers',
+  'm.tech.lede': 'How checking works by hand, the code, the Bitcoin stamp, and who can change the contracts.',
+  'm.tech.show': 'Show the detail',
+  'm.tech.check.t': 'Checking a record by hand',
+  'm.tech.check.p':
+    "Recomputing a record's fingerprint needs only SHA-256 and the open spec. Its inclusion proof ties that fingerprint to a batch fingerprint anchored on Midnight, and a look-up on a Midnight explorer gives the batch's date. Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release.",
+  'm.tech.impl.t': 'One spec, three implementations',
+  'm.tech.impl.p':
+    "Free to implement, permanently. TypeScript, Python and Rust agree on all 100 record-format test vectors on GitHub, and anyone can run them; a 101st, for report pairing, isn't in Rust yet. One author wrote all three, and the TypeScript one is on npm as 0.15.0. One written by someone else is the test we most want.",
+  'm.tech.btc.t': 'The Bitcoin stamp',
+  'm.tech.btc.p':
+    "Our registry stamps each sealed batch's fingerprint on Bitcoin with OpenTimestamps. The first reached Bitcoin block 971004 on 11 October; a check with the official OpenTimestamps tool is still to do. The stamp file is the batch's .ots file: Download Bitcoin stamp file, on the plant's page. The test site's registry doesn't stamp on Bitcoin.",
+  'm.tech.dna.t': 'Report pairing and lab signatures',
+  'm.tech.dna.p':
+    "When a DNA report pairing goes through VeilCore's contract on Midnight, it is dated: it shows that whoever controlled the record at that date had that report, or its SHA-256, by then. What goes on chain is tied to the record and hides the report, so nobody can copy the pairing to their own record. A lab's signature on a locked report covers that exact file and the record it's about.",
 
   // What's live where (home page, after the status). The same on every build: it names
   // both sites. Only what the code and docs support; a feature missing from a column is
@@ -304,17 +321,18 @@ export const en = {
   'm.live.lede':
     "veilcore.org runs on Midnight's main network, and records made there are real. The test site is for practice: more of it works there, and its records carry no weight.",
   'm.live.colMain': 'veilcore.org (main network)',
-  'm.live.colTest': 'Test site',
+  'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Not yet',
+  'm.live.colTestNote': '(going live this week)',
+  'm.live.feature': 'Feature',
+  'm.live.show': 'Show the list',
   'm.live.stamp.t': 'A date stamp for your record',
-  'm.live.stamp.main':
-    'Yes. VeilCore dates records in batches, by hand for now. Your browser sends nothing to the chain.',
+  'm.live.stamp.main': 'Yes, in batches, by hand for now. Your browser sends nothing to the chain.',
   'm.live.stamp.test':
     "Yes. Batches are dated automatically, and that dates your record. Your browser also date stamps your plant's own key, which dates only the key.",
   'm.live.btc.t': 'A Bitcoin date stamp too',
   'm.live.btc.main':
-    "Yes. Our registry stamps each sealed batch's fingerprint on Bitcoin with OpenTimestamps. The first reached Bitcoin block 971004 on 11 October; a check with the official OpenTimestamps tool is still to do.",
-  'm.live.btc.not': "Getting the stamp file from the website. Today it's only on our server.",
+    'Yes, every sealed batch. The first reached block 971004 on 11 October; checking it with the official tool is still to do.',
   'm.live.share.t': 'Choosing what others see',
   'm.live.share.main': 'Yes. The plant name always shows.',
   'm.live.share.test': 'Yes. The plant name always shows.',
@@ -332,12 +350,12 @@ export const en = {
     "Yes. Their page checks on the network that you control the record's own key. The record named that key when it was sealed, so it can't be swapped.",
   'm.live.prove.not': 'On veilcore.org: it needs your browser to send a transaction.',
   'm.live.claims.t': 'Proving one fact (claims)',
-  'm.live.claims.main': 'The contract is on the main network, with no maintenance key. The website can’t use it yet.',
+  'm.live.claims.main': 'On the main network, with no maintenance key. The website can’t use it yet.',
   'm.live.claims.not': 'Using it from the website.',
   'm.live.lic.t': 'Licenses and royalties',
   'm.live.lic.main': 'Practice only.',
   'm.live.lic.test': 'Practice only.',
-  'm.live.lic.not': 'Real licenses from the website. They are built into the contract.',
+  'm.live.lic.not': "Real licenses from the website. They're built into the contract.",
 
   'm.contact.label': 'Get in touch',
   'm.contact.title1': 'Tell us',
@@ -418,7 +436,7 @@ export const en = {
     "Please don't enter real names, real varieties or anything confidential. The demo is for trying the format.",
   'm.privacy.export.title': 'Export',
   'm.privacy.export.text':
-    'Your records page has an Export button that downloads the records this browser holds. A single download of everything our server holds for you is coming; it is not available yet.',
+    'On your records page, under More: Export all records downloads the records this browser holds, and Download everything VeilCore holds for you downloads everything our server holds for you.',
   'm.privacy.delete.title': 'Deletion',
   'm.privacy.delete.text':
     'To have your demo data deleted from our server, email hunter@veilcore.org with the identifiers of your records.',

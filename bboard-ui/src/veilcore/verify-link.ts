@@ -68,12 +68,26 @@ export const bindingOf = (link: LinkFingerprint, reported: string | undefined): 
  * The footer: exactly what this browser checked, and that the rest is the registry's
  * report. Never "nothing could be checked" when a line above says something was.
  */
-export const checkedSummary = (c: { bound: boolean; proofChecked: boolean; signaturesChecked: number }): string => {
+export const checkedSummary = (c: {
+  bound: boolean;
+  proofChecked: boolean;
+  signaturesChecked: number;
+  /** What each checked signature is (VerifyPage signatureKind), so the footer names them as the lines do. */
+  signatureKinds?: readonly string[];
+}): string => {
+  const kinds = (c.signatureKinds ?? []).map((k) =>
+    /^Lab report/.test(k) ? 'a lab report' : /^Lab’s receipt/.test(k) ? 'a lab’s receipt' : 'a signed statement',
+  );
+  const counted = [...new Set(kinds)].map((k) => {
+    const n = kinds.filter((x) => x === k).length;
+    return n === 1 ? k : `${n} × ${k.replace(/^an? /, '')}`;
+  });
+  const what = counted.length ? ` (${counted.join(', ')})` : '';
   const done = [
     ...(c.bound ? ['the link’s fingerprint matches the one the registry reports'] : []),
     ...(c.proofChecked ? ['the record is in its batch'] : []),
     ...(c.signaturesChecked > 0
-      ? [c.signaturesChecked === 1 ? 'one signature about it' : `${c.signaturesChecked} signatures about it`]
+      ? [(c.signaturesChecked === 1 ? 'one signature about it' : `${c.signaturesChecked} signatures about it`) + what]
       : []),
   ];
   if (done.length === 0)

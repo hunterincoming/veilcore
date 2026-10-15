@@ -8,11 +8,12 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ButtonBase, Dialog, DialogContent, DialogTitle, Stack, Typography } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getRole, setRole, ROLE_COPY, CHANGE_ROLE_EVENT, isLab, isBreeder, type Role } from '../veilcore/role';
 import { ACCENT } from '../config/theme';
+import { focusScreenHeading } from './flow/FlowFrame';
 
 /** `ask`: open on its own when no role is set (app pages). Elsewhere it opens only when asked to. */
 export const RolePicker: React.FC<{ ask: boolean }> = ({ ask }) => {
@@ -20,6 +21,9 @@ export const RolePicker: React.FC<{ ask: boolean }> = ({ ask }) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const current = getRole();
+  // After a choice, focus goes to the next screen's heading (round 5), not back to wherever
+  // it was before the dialog opened, so a screen reader says where they've landed.
+  const chosen = useRef(false);
 
   useEffect(() => {
     const reopen = () => setOpen(true);
@@ -29,6 +33,7 @@ export const RolePicker: React.FC<{ ask: boolean }> = ({ ask }) => {
 
   const choose = (r: Role) => {
     setRole(r);
+    chosen.current = true;
     setOpen(false);
     // A lab arriving at the record wizard would be asked to seal a cultivar; its own
     // first screen is the records page, which shows receiving and signing.
@@ -43,6 +48,17 @@ export const RolePicker: React.FC<{ ask: boolean }> = ({ ask }) => {
       // Closable only once there is an answer to fall back on.
       onClose={current ? () => setOpen(false) : undefined}
       aria-labelledby="role-title"
+      // Read on the render that closes it: true only when a role was just chosen.
+      disableRestoreFocus={chosen.current}
+      slotProps={{
+        transition: {
+          onExited: () => {
+            if (!chosen.current) return;
+            chosen.current = false;
+            focusScreenHeading();
+          },
+        },
+      }}
     >
       <DialogTitle id="role-title">Which describes you?</DialogTitle>
       <DialogContent>

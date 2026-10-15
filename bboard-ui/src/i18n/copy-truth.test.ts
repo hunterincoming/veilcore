@@ -14,6 +14,12 @@
 //     "confirmed" or "checked" by VeilCore, the Bitcoin stamp file named as a third file
 //     that only our server has, lab reports off on veilcore.org, no ownership words in
 //     de/fr/es/ja, and no landing key missing from de/fr/es/ja.
+//   - (round 5) the hero is three short sentences with the one privacy line, and what the
+//     server keeps is said in "How it works"; "checking without us" names spec 3.6.1 and
+//     says the SDK gets it in its next release; the accreditation shown is the holder's
+//     own declaration; the Bitcoin stamp file is described the way the plant page really
+//     offers it (or doesn't); the test site is named and linked; the privacy note's
+//     "everything we hold" download matches what the site really has.
 // Run: npx vitest run src/i18n/copy-truth.test.ts
 // SPDX-License-Identifier: Apache-2.0
 
@@ -169,13 +175,22 @@ describe('privacy, said plainly', () => {
       expect(t1, lang).not.toMatch(/zuerst|en premier|primero|先に/);
     }
   });
-  it('the hero says the name and breeder are kept on our server, and the name is shown', () => {
-    expect(en['m.hero.lede']).toMatch(/Genetic data never leaves your computer/);
-    expect(en['m.hero.lede']).toMatch(
-      /A lab report reaches our server only when a lab sends it back to you, locked so only you can open it/,
+  it('the hero is short and makes the one privacy claim precisely (round 5)', () => {
+    const lede = en['m.hero.lede'];
+    // Who it's for and what it does, then the privacy line: genetic data, not "everything".
+    expect(lede).toMatch(
+      /Your genetic data stays on your computer\. Only a fingerprint goes on Midnight, which dates it\.$/,
     );
-    expect(en['m.hero.lede']).toMatch(/plant name and breeder you type are kept on VeilCore's server/);
-    expect(en['m.hero.lede']).toMatch(/anyone with a record's link sees its name/);
+    expect(lede.split(/(?<=\.)\s+/).length).toBeLessThanOrEqual(3);
+    // No lab-report sentence next to "stays on your computer" (it read as a contradiction):
+    // that is said in the FAQ and the privacy note, below.
+    expect(lede).not.toMatch(/lab report/i);
+    expect(lede).not.toMatch(/nothing (is )?(sent|leaves)|never leaves your computer\. ?$/i);
+  });
+  it('what the server keeps is said on the page, right under the hero (How it works)', () => {
+    expect(en['m.step1.text']).toMatch(/plant name and breeder you type are kept on VeilCore's server/);
+    expect(en['m.step1.text']).toMatch(/anyone with the record's link sees the name/);
+    expect(en['m.faq.4a']).toMatch(/A lab report reaches our server only when a lab sends it back to you/);
   });
   it('lineage on the website is the registry’s record, not the chain’s', () => {
     expect(en['m.get.3b']).toMatch(/VeilCore's registry records it, not the chain/);
@@ -184,29 +199,91 @@ describe('privacy, said plainly', () => {
 
 describe('what to keep if VeilCore is gone', () => {
   const source = (f: string) => fs.readFileSync(path.join(SRC, f), 'utf8');
-  it('names the two files, says the backup holds keys only, and makes no promise for a copy you lack', () => {
-    for (const k of ['m.faq.5a', 'm.open.2p'] as const) {
-      expect(en[k], k).toMatch(/inclusion proof/);
-      expect(en[k], k).toMatch(/backup file holds your keys, not (these|them)/);
-      expect(en[k], k).not.toMatch(/Records you've kept a copy of still check/);
-    }
+  /** Builder P's plant page offers the batch's .ots file once this label is there. */
+  const plantPage = () => source('components/RecordDetail.tsx') + source('components/SettlementStatus.tsx');
+  const stampButton = /Download Bitcoin stamp file/.test(plantPage());
+  it('names the files, says the backup holds keys only, and makes no promise for a copy you lack', () => {
+    const k = 'm.open.2p';
+    expect(en[k], k).toMatch(/inclusion proof/);
+    expect(en[k], k).toMatch(/backup file holds your keys, not (these|them)/);
+    expect(en[k], k).not.toMatch(/Records you've kept a copy of still check/);
     expect(en['m.open.2t']).not.toMatch(/Your record doesn't need us/);
-    expect(en['m.faq.5a']).toMatch(/one-click evidence bundle .*is coming/);
-    // The Bitcoin date needs the batch's .ots file too, and only our server has it.
-    for (const k of ['m.faq.5a', 'm.open.2p'] as const) {
-      expect(en[k], k).toMatch(/Bitcoin stamp file/);
-      expect(en[k], k).toMatch(/only on our server/);
+    expect(en[k]).toMatch(/one-click evidence bundle .*is coming/);
+    expect(en[k]).toMatch(/Bitcoin stamp file/);
+  });
+  it('describes the Bitcoin stamp file the way the plant page really offers it', () => {
+    if (stampButton) {
+      // The button exists: no page may still say the file is only on our server.
+      expect(en['m.open.2p']).toContain('Download Bitcoin stamp file');
+      expect(en['m.tech.btc.p']).toContain('Download Bitcoin stamp file');
+      for (const s of ALL_ENGLISH) expect(offenders(s, /only on our server/i)).toEqual([]);
+    } else {
+      // Not yet: say so, and don't name a button that isn't there.
+      for (const k of ['m.open.2p', 'm.tech.btc.p', 'm.live.btc.not'] as const) {
+        expect((en as Record<string, string>)[k], k).toMatch(/only on our server/);
+        expect((en as Record<string, string>)[k], k).not.toContain('Download Bitcoin stamp file');
+      }
     }
   });
-  it('the buttons the FAQ names are the ones on the plant page', () => {
-    // If these move or are renamed, the FAQ must follow.
+  it('the buttons the page names are the ones on the plant page', () => {
+    // If these move or are renamed, the copy must follow.
     const detail = source('components/RecordDetail.tsx');
     expect(detail).toMatch(/Technical details/);
     expect(detail).toMatch(/Export record/);
     expect(detail).toMatch(/<SettlementStatus /);
     expect(source('components/SettlementStatus.tsx')).toMatch(/Download inclusion proof/);
     for (const label of ['Export record', 'Download inclusion proof', 'Technical details'])
-      expect(en['m.faq.5a']).toContain(label);
+      expect(en['m.open.2p']).toContain(label);
+  });
+  it('"checking without us" says what is published where (spec 3.6.1, round 5)', () => {
+    for (const s of ALL_ENGLISH) expect(offenders(s, /doesn't need us|does not need us/i)).toEqual([]);
+    for (const k of ['m.open.6p', 'm.tech.check.p'] as const) {
+      expect(en[k], k).toMatch(/Records sealed since 14 October/);
+      expect(en[k], k).toMatch(/section 3\.6\.1, published in the spec on this site/);
+      expect(en[k], k).toMatch(/the SDK and its three implementations get it in their next release/);
+    }
+    // The section really is in the spec this site serves.
+    expect(source('docs/SPEC.md')).toMatch(/#### 3\.6\.1 A record that names its own key/);
+    // The 100 vectors are never offered as the whole check on their own.
+    expect(en['m.tech.impl.p']).toMatch(/100 record-format test vectors/);
+    for (const s of ALL_ENGLISH)
+      for (const [k, v] of Object.entries(s))
+        if (/100 (record-format )?(test )?vectors/.test(v)) expect(k).toBe('m.tech.impl.p');
+  });
+});
+
+describe('the privacy note on downloading everything', () => {
+  /** A call to the registry's full export from the site's own code (not a comment). */
+  const files = (dir: string): string[] =>
+    fs.readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
+      const f = path.join(dir, d.name);
+      if (d.isDirectory()) return d.name === 'i18n' ? [] : files(f);
+      return /\.tsx?$/.test(d.name) && !/\.test\.tsx?$/.test(d.name) ? [f] : [];
+    });
+  const callsExport = files(SRC).some((f) =>
+    fs
+      .readFileSync(f, 'utf8')
+      .split('\n')
+      .some((l) => !/^\s*(\/\/|\*)/.test(l) && /['"`][^'"`]*\/api\/export/.test(l)),
+  );
+  it('says there is a button only when the site has one', () => {
+    const text = en['m.privacy.export.text'];
+    if (callsExport) {
+      expect(text).not.toMatch(/no button yet|not available yet|is coming/);
+      // It names the button by its real label, and where it is.
+      const label = /REGISTRY_EXPORT_LABEL = '([^']+)'/.exec(
+        fs.readFileSync(path.join(SRC, 'components/RegistryExportButton.tsx'), 'utf8'),
+      )?.[1];
+      expect(label).toBeTruthy();
+      expect(text).toContain(label as string);
+      expect(fs.readFileSync(path.join(SRC, 'components/flow/AppHome.tsx'), 'utf8')).toMatch(/<RegistryExportButton/);
+      expect(text).toMatch(/^On your records page/);
+    } else {
+      expect(text).toMatch(
+        /Our server can produce one download of everything it holds for you; the site has no button yet/,
+      );
+      expect(text).toMatch(/hunter@veilcore\.org/);
+    }
   });
 });
 
@@ -259,14 +336,30 @@ describe("what's live where", () => {
     );
     // Bitcoin: the live registry stamps every sealed batch; the test site's registry runs
     // with OpenTimestamps off (docs/no-wallet-run-12oct.md), so there is no test cell.
-    expect(rows.find((r) => r.row === 'btc')?.has).toEqual([true, false, true]);
+    // The "Not yet" cell (getting the stamp file from the website) goes once the plant page
+    // offers it.
+    const stampButton = /Download Bitcoin stamp file/.test(
+      fs.readFileSync(path.join(SRC, 'components/RecordDetail.tsx'), 'utf8') +
+        fs.readFileSync(path.join(SRC, 'components/SettlementStatus.tsx'), 'utf8'),
+    );
+    expect(rows.find((r) => r.row === 'btc')?.has).toEqual([true, false, !stampButton]);
     expect(e['m.live.btc.main']).toMatch(/block 971004 on 11 October/);
-    expect(e['m.live.btc.main']).toMatch(/official OpenTimestamps tool is still to do/);
-    expect(e['m.live.btc.not']).toMatch(/only on our server/);
+    expect(e['m.live.btc.main']).toMatch(/official tool is still to do/);
+    // The tool is named for technical readers.
+    expect(e['m.tech.btc.p']).toMatch(
+      /block 971004 on 11 October; a check with the official OpenTimestamps tool is still to do/,
+    );
     const docs = path.resolve(SRC, '../../docs');
     expect(fs.readFileSync(path.join(docs, 'no-wallet-run-12oct.md'), 'utf8')).toMatch(
       /veilcore-api-preprod.*OpenTimestamps off/s,
     );
+  });
+  it('names and links the test site (round 5)', () => {
+    expect(home).toContain("const TEST_SITE_URL = 'https://test.veilcore.org';");
+    expect(home).toMatch(/<a href=\{TEST_SITE_URL\}/);
+    expect(en['m.live.colTest']).toBe('test.veilcore.org');
+    // Until it is actually live.
+    expect(en['m.live.colTestNote']).toBe('(going live this week)');
   });
   it('shows on the mainnet site too, so it carries no test-network or demo wording', () => {
     const shown = Object.entries(en).filter(([k]) => /^m\.(live|postA|postB)\./.test(k));
@@ -305,6 +398,9 @@ describe('round 3: what a page may claim', () => {
       expect(s['m.open.3p'], site).toMatch(
         /matched that name to a public license or accreditation listing, and on what day/,
       );
+      // The accreditation shown is whatever the key's holder declared; nobody checks it.
+      expect(s['m.open.3p'], site).toMatch(/any accreditation its holder declared \(we don't check that\)/);
+      expect(offenders(s, /name and accreditor registered/i), site).toEqual([]);
       expect(
         offenders(s, /operator has marked that name|verified lab|approved lab|certified by VeilCore/i),
         site,
@@ -376,7 +472,6 @@ describe('translations', () => {
     'm.open.2t',
     'm.open.2p',
     'm.faq.1a',
-    'm.faq.5a',
     'm.post0.text',
     'm.foot.fine',
     'm.founders.lede',
@@ -391,8 +486,36 @@ describe('translations', () => {
     'm.privacy.local.text',
     'm.privacy.who.text',
   );
+  // Round 5: the landing page rework.
+  CHANGED.push(
+    ...(Object.keys(en).filter((k) => /^m\.(tech|open)\./.test(k)) as StringKey[]),
+    'm.hero.lede',
+    'm.for.lede',
+    'm.for.1p',
+    'm.for.2p',
+    'm.for.4p',
+    'm.for.5p',
+    'm.step1.text',
+    'm.claims.title1',
+    'm.claims.title2',
+    'm.claims.statusTitle',
+    'm.get.2a',
+    'm.get.2b',
+    'm.demo.title1',
+    'm.demo.title2',
+    'm.status.title1',
+    'm.status.title2',
+    'm.stat2.s',
+    'm.updates.older',
+    'm.privacy.export.text',
+  );
   /** Allowed to read the same as the English (names, a tag that is the same word). */
-  const SAME_OK = new Set(['de:m.postA.tag', 'de:m.post0.tag']);
+  const SAME_OK = new Set([
+    'de:m.postA.tag',
+    'de:m.post0.tag',
+    // A domain name.
+    ...['de', 'fr', 'es', 'ja'].map((l) => `${l}:m.live.colTest`),
+  ]);
 
   for (const lang of ['de', 'fr', 'es', 'ja'] as Lang[]) {
     it(`${lang} translates every changed key and the test-site overlay`, () => {

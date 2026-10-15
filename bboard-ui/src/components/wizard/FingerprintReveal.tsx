@@ -16,7 +16,9 @@ export const FingerprintReveal: React.FC<{
   fingerprint: string;
   headline?: string;
   sub?: string;
-}> = ({ fingerprint, headline = 'Fingerprinted in your browser.', sub }) => (
+  /** What kind of fingerprint this is: a lab report's pairing fingerprint is not a sealed record's. */
+  label?: string;
+}> = ({ fingerprint, headline = 'Fingerprinted in your browser.', sub, label = 'SEALED FINGERPRINT' }) => (
   <MBox
     initial={{ opacity: 0, scale: 0.96 }}
     animate={{ opacity: 1, scale: 1 }}
@@ -59,7 +61,7 @@ export const FingerprintReveal: React.FC<{
 
     <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
       <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: '0.18em' }}>
-        SEALED FINGERPRINT
+        {label}
       </Typography>
       <Typography
         variant="body2"

@@ -36,6 +36,8 @@ import {
   claimTransfer,
   custodySubject,
   parseShareCode,
+  codeMissingLock,
+  MISSING_LOCK_WORDS,
   publicFingerprintOf,
   quantityPhrase,
   type CustodySubject,
@@ -50,6 +52,7 @@ import {
   type LabDelivery,
 } from '../veilcore/lab-results';
 import type { LabReceipt } from '../veilcore/custody';
+import { LAB_RESULTS_ENABLED } from '../config/network';
 
 /** Opens the header's receive dialog from elsewhere on the page (a lab's first screen). */
 export const OPEN_RECEIVE_EVENT = 'veilcore:open-receive';
@@ -508,6 +511,11 @@ export const ClaimTransfer: React.FC<{
                 fullWidth
                 slotProps={{ htmlInput: { style: { fontFamily: 'monospace', letterSpacing: 1 } } }}
               />
+              {LAB_RESULTS_ENABLED && codeMissingLock(code) && (
+                <Alert severity="warning" variant="outlined" data-missing-lock="">
+                  {MISSING_LOCK_WORDS}
+                </Alert>
+              )}
             </Stack>
           )}
 

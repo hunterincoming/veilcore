@@ -12,12 +12,10 @@ import React from 'react';
 import { Alert, Box, Container, Divider, Paper, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import { ACCENT } from '../../config/theme';
 import { IS_MAINNET, networkLabel } from '../../config/network';
-import { Fact } from './DisclosedFacts';
+import { Fact, FactKey } from './DisclosedFacts';
 import { GENETICS_LABEL } from '../../veilcore/disclosure';
 
 const Note: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -97,18 +95,22 @@ export const VerifyExample: React.FC = () => (
             before relying on the date.
           </Note>
           <Fact ok={false}>
-            Signed attestation, signature verified in this browser, from a key not verified by VeilCore.
+            Lab report (file SHA-256 7c1e04d2…9b3a51), signature verified in this browser. Signed by a key named
+            “Example Lab” (name not checked).
           </Fact>
           <Note>
-            A lab can sign a record with its own key. The page checks the signature; whether the key is a lab you trust
-            is your call.
+            A lab can sign its receipt for a sample, and its lab report, with its own key. Each line says which it is.
+            The page checks the signature; whether the key is a lab you trust is your call.
           </Note>
 
           <Divider sx={{ my: 0.5 }} />
           <Typography variant="overline" color="text.secondary" sx={{ display: 'block' }}>
             Shared by the holder · reported by the registry
           </Typography>
-          <Fact ok={false}>The holder saved a lab report fingerprint to this record. Not confirmed by a lab.</Fact>
+          <Fact ok={false}>
+            The holder saved a lab report to this record. Its file (SHA-256 7c1e04d2…9b3a51) matches the lab report
+            signed by a key named “Example Lab” (name not checked): signature checked in this browser.
+          </Fact>
           <Note>The holder chooses which facts appear here. Anything not shared is listed as not shared.</Note>
           <Divider sx={{ my: 0.5 }} />
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -121,18 +123,11 @@ export const VerifyExample: React.FC = () => (
 
         <Divider sx={{ my: 2.5 }} />
         <Stack spacing={1}>
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <CheckCircleIcon sx={{ fontSize: 18, color: ACCENT }} />
-            <Typography variant="body2" color="text.secondary">
-              A tick: this page checked the line itself, in your browser.
-            </Typography>
-          </Stack>
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <CancelIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-            <Typography variant="body2" color="text.secondary">
-              A grey mark: VeilCore&apos;s registry reports it; this page didn&apos;t check it.
-            </Typography>
-          </Stack>
+          <FactKey />
+          <Typography variant="body2" color="text.secondary">
+            ✓ this page checked the line itself, in your browser. ○ VeilCore&apos;s registry or the holder reports it;
+            this page didn&apos;t check it. ⊗ a check failed, or a lab withdrew what it signed.
+          </Typography>
         </Stack>
       </Paper>
 

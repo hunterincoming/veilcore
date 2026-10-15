@@ -39,6 +39,7 @@ import DoneIcon from '@mui/icons-material/CheckCircleOutlined';
 import { useNavigate } from 'react-router-dom';
 import { fingerprintFile, fingerprintRecord, newNonce } from '../../veilcore/commitment';
 import { allRecords, createRecord, getRecord, newRecordId, type ParentRef } from '../../veilcore/records';
+import { localStamp } from '../../veilcore/time';
 import { bindingForSecret } from '../../veilcore/key-binding';
 import { PLANT_VARIETY_PROFILE } from '../../veilcore/envelope';
 import {
@@ -516,9 +517,18 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
         onClick={() => void seal()}
         startIcon={busy ? <CircularProgress size={18} color="inherit" /> : undefined}
         sx={{ py: 1.6 }}
+        {...(REAL_CHAIN ? { 'data-stamps-key': '', 'aria-describedby': 'seal-stamps-key' } : {})}
       >
-        {busy ? 'Sealing…' : REAL_CHAIN ? 'Seal it and date stamp it' : 'Seal it'}
+        {busy ? 'Sealing…' : 'Seal it'}
       </Button>
+      {/* Round 5: one button, one name. Dating the key is part of sealing, said here, not
+          a second "date stamp it" that reads like a second date for the record. */}
+      {REAL_CHAIN && (
+        <Typography id="seal-stamps-key" variant="body2" color="text.secondary">
+          Sealing also date stamps your plant&apos;s key, so you can prove you hold it later. Only a fingerprint of the
+          key goes out.
+        </Typography>
+      )}
     </Stack>
   );
 };
@@ -552,7 +562,7 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
       });
     });
 
-  // Start on arrival: the button that brought them here already said "date stamp it".
+  // Start on arrival: the seal button already said sealing date stamps the key.
   // A browser that won't keep the keys gets the backup first instead.
   const canStart = REAL_CHAIN && !notReady && (keeps || backupFirstDone);
   useEffect(() => {
@@ -599,14 +609,25 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
   if (anchored) {
     return (
       <Stack spacing={2.5}>
-        <DoneTitle step={step} title="Date stamped" />
-        {/* What this dates is the plant's key (anchor), not its details: a key can be named
-            by a record sealed later. The sealed record names this key, so it can't be
-            swapped (docs/identity-in-record.md). */}
-        <Typography variant="body1" color="text.secondary">
-          Your plant&apos;s key is dated on {DATED_ON}
-          {anchored.anchoredAt ? `, ${new Date(anchored.anchoredAt).toLocaleString()}` : ''}.
-          {getRecord(recordId)?.keyBinding ? ' The sealed record names this key, so nobody can swap in another.' : ''}{' '}
+        <DoneTitle step={step} title="Sealed" />
+        {/* Round 5: the record's date is the main one. What the stamp dates is the plant's
+            key (anchor), not its details: a key can be named by a record sealed later. The
+            sealed record names this key, so it can't be swapped (docs/identity-in-record.md). */}
+        <Box>
+          <Typography variant="body1" sx={{ fontWeight: 700 }}>
+            Record dated: waiting for a batch
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Its public date comes when its batch is dated on {DATED_ON}. Your plant&apos;s page shows it then.
+          </Typography>
+        </Box>
+        <Typography variant="body2" color="text.secondary" data-key-stamped="">
+          Key date stamped
+          {anchored.anchoredAt ? `: ${localStamp(anchored.anchoredAt)}` : ''}. Your plant&apos;s key is dated too, so
+          you can prove you hold it later.
+          {getRecord(recordId)?.keyBinding
+            ? ' The sealed record names this key, so nobody can swap in another.'
+            : ''}{' '}
           Nothing about the plant went out.
         </Typography>
         <Button variant="contained" size="large" fullWidth onClick={onNext} sx={{ py: 1.6 }}>
@@ -620,13 +641,15 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
   return (
     <Stack spacing={2.5}>
       <Box>
-        <ScreenHeading step={step}>{problem ? 'No date stamp yet' : 'Getting your date stamp…'}</ScreenHeading>
+        <ScreenHeading step={step}>
+          {problem ? 'Sealed. Key not date stamped yet' : 'Sealed. Date stamping your plant’s key…'}
+        </ScreenHeading>
         <Typography variant="body1" color="text.secondary">
           Only a fingerprint of your plant&apos;s key goes out, nothing about the plant. Free: VeilCore pays the network
           fee.
         </Typography>
       </Box>
-      {call.busy && <LinearProgress aria-label="Getting your date stamp" sx={{ height: 10, borderRadius: 5 }} />}
+      {call.busy && <LinearProgress aria-label="Date stamping your plant’s key" sx={{ height: 10, borderRadius: 5 }} />}
       <Typography variant="body1" role="status" sx={{ minHeight: call.busy ? '1.5em' : 0 }}>
         {call.progress ?? ''}
       </Typography>

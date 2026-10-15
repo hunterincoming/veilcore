@@ -65,9 +65,18 @@ export type StrainRecord = {
   readonly taxon?: string;
   readonly photoFingerprints?: string[]; // photos hashed locally, never uploaded
   readonly refId?: string; // breeder's own reference / lot ID
+  /**
+   * The pairing fingerprint: the contract's `commit` over the report file's SHA-256
+   * (commitment.ts fingerprintFile), so the pairing can be dated on the network. It is NOT
+   * the file's SHA-256; a lab signs the SHA-256 (dnaFileSha256).
+   */
   readonly dnaFingerprint?: string;
   readonly dnaFileName?: string;
   readonly dnaPairedAt?: number;
+  /** The saved report file's plain SHA-256, hex: what a lab's signature names. Absent on pairings saved before 15 October 2026. */
+  readonly dnaFileSha256?: string;
+  /** The lab report (registry result id) the saved file came from, when it was saved from one. */
+  readonly dnaResultId?: string;
   readonly attestation?: Attestation; // Phase 2.4
 
   // Set by the registry when a record arrives through a transfer. The recipient holds
@@ -132,6 +141,8 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
     str(r.recordFingerprint) &&
     str(r.nonce) &&
     str(r.dnaFingerprint) &&
+    str(r.dnaFileSha256) &&
+    str(r.dnaResultId) &&
     str(r.profile) &&
     str(r.taxon) &&
     str(r.keyBinding) &&
@@ -250,11 +261,28 @@ export const createRecord = (input: NewRecordInput): StrainRecord => {
  * fingerprint does not cover it (envelope.ts exportEnvelopeFor), rather than under the
  * original sealing date.
  */
-export const pairDna = (id: string, dnaFingerprint: string, dnaFileName: string): StrainRecord | undefined => {
+export const pairDna = (
+  id: string,
+  dnaFingerprint: string,
+  dnaFileName: string,
+  /** The file's plain SHA-256, and the lab report it came from (round 5): what a lab's signature is matched on. */
+  extra: { fileSha256?: string; resultId?: string } = {},
+): StrainRecord | undefined => {
   let updated: StrainRecord | undefined;
   records = records.map((r) => {
     if (r.id !== id) return r;
-    updated = { ...r, dnaFingerprint, dnaFileName, dnaPairedAt: Date.now() };
+    // A new pairing replaces the old one whole: never the new file with the old lab report's id.
+    const { dnaFileSha256: _s, dnaResultId: _r, ...rest } = r;
+    void _s;
+    void _r;
+    updated = {
+      ...rest,
+      dnaFingerprint,
+      dnaFileName,
+      dnaPairedAt: Date.now(),
+      ...(extra.fileSha256 ? { dnaFileSha256: extra.fileSha256.toLowerCase() } : {}),
+      ...(extra.resultId ? { dnaResultId: extra.resultId } : {}),
+    };
     return updated;
   });
   if (updated) persist();
@@ -360,6 +388,8 @@ const IMPORTABLE = [
   'dnaFingerprint',
   'dnaFileName',
   'dnaPairedAt',
+  'dnaFileSha256',
+  'dnaResultId',
   'supersedes',
   'supersededBy',
 ] as const;

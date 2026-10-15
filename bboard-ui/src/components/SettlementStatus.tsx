@@ -15,7 +15,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/FileDownloadOutlined';
 import LinkIcon from '@mui/icons-material/LaunchOutlined';
-import { proofFor, downloadProof, type ProofState } from '../veilcore/proofs';
+import { bitcoinStampFor, proofFor, downloadProof, type ProofState } from '../veilcore/proofs';
 import type { StrainRecord } from '../veilcore/records';
 import { NETWORK, explorerFor, isTestNetwork, networkLabel } from '../config/network';
 import { OUR_SERVER } from '../config/copy';
@@ -47,6 +47,7 @@ export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record })
   // The proof names its own network; fall back to this build's only if it does not.
   const network = proof.anchor?.network ?? NETWORK;
   const explorer = explorerFor(network);
+  const stamp = bitcoinStampFor(proof);
 
   return (
     <Stack spacing={1.5}>
@@ -86,6 +87,11 @@ export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record })
         >
           Download inclusion proof
         </Button>
+        {stamp && (
+          <Button size="small" variant="outlined" startIcon={<DownloadIcon />} href={stamp.otsUrl} download>
+            Download Bitcoin stamp file
+          </Button>
+        )}
         {reported && proof.anchor?.txHash && explorer && (
           <Button size="small" variant="text" startIcon={<LinkIcon />} href={explorer} target="_blank" rel="noopener">
             Open the explorer for {networkLabel(network)}
@@ -97,6 +103,19 @@ export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record })
         The file shows your record is in this batch. It is evidence of a date only once the batch root is found in the
         named transaction, which needs the open-source package and a lookup on the network, not this site.
       </Typography>
+      {stamp && (
+        <Typography variant="caption" color="text.secondary">
+          The Bitcoin stamp file dates this batch&apos;s root on Bitcoin with the free OpenTimestamps tool:{' '}
+          <code>ots verify root.bin.ots</code>, next to{' '}
+          <a href={stamp.rootUrl} download>
+            the batch root file (root.bin)
+          </a>
+          .{' '}
+          {stamp.status === 'pending'
+            ? 'It is still pending: a promise from the stamping servers, not yet in a Bitcoin block. Run `ots upgrade` on it once Bitcoin confirms.'
+            : 'It is in a Bitcoin block, so it checks against Bitcoin alone.'}
+        </Typography>
+      )}
     </Stack>
   );
 };

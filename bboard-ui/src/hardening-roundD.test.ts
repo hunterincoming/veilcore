@@ -1168,7 +1168,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     expect(text).toMatch(/the registry reports fingerprint dddd/);
     // None of the registry's answer is shown as this record's.
     expect(text).not.toMatch(
-      /Borrowed Name|Signed attestation|sealed batch|Lineage|lineage intact|Checked in this browser/,
+      /Borrowed Name|Signed attestation|Lab report \(file|sealed batch|Lineage|lineage intact|Checked in this browser/,
     );
     expect(await ticks(pg)).toBe(0);
     expect(await badge(pg)).toBe('no');
@@ -1204,12 +1204,13 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     await pg.waitForSelector('text=The registry’s report: this link has no fingerprint to check against', {
       timeout: 15_000,
     });
-    await pg.waitForSelector('text=Signed attestation, signature verified in this browser', { timeout: 15_000 });
+    // Round 5: each signature says what it is (here a lab report, by its file's SHA-256).
+    await pg.waitForSelector('text=signature verified in this browser', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
     expect(text).toMatch(/Borrowed Name/); // the page still opens
     expect(text).toMatch(/For the fingerprint the registry reports: it is in batch genuine-x/);
     expect(text).toMatch(
-      /For the fingerprint the registry reports: Signed attestation, signature verified in this browser\. Signed by Real Lab\.\s+VeilCore’s operator matched this name to cannabis\.example\.gov \(license TL-1\) on \d{4}-\d{2}-\d{2}\.\s+VeilCore doesn’t vouch for the lab’s work\./,
+      /For the fingerprint the registry reports: Lab report \(file SHA-256 eeeeeeee…eeeeee\), signature verified in this browser\. Signed by Real Lab\.\s+VeilCore’s operator matched this name to cannabis\.example\.gov \(license TL-1\) on \d{4}-\d{2}-\d{2}\.\s+VeilCore doesn’t vouch for the lab’s work\./,
     );
     expect(text).toMatch(/This link does not name the record's fingerprint/);
     expect(text).toMatch(
@@ -1246,7 +1247,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     expect(text).not.toMatch(/For the fingerprint the registry reports/);
     expect(text).toMatch(/The registry reports the lineage intact/);
     expect(text).toMatch(
-      /Checked in this browser: the link’s fingerprint matches the one the registry reports, the record is in its batch and (one signature|\d+ signatures) about it\. Everything else is the VeilCore registry’s report\./,
+      /Checked in this browser: the link’s fingerprint matches the one the registry reports, the record is in its batch and (one signature|\d+ signatures) about it \(a lab report\)\. Everything else is the VeilCore registry’s report\./,
     );
     // Exactly two ticks: the inclusion proof and the signed attestation. Not the lineage line.
     expect(await ticks(pg)).toBe(2);

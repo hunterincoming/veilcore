@@ -139,12 +139,12 @@ export const RestorePage: React.FC = () => {
                   aria-controls={keyBoxId}
                   sx={{ minHeight: 44, px: 0 }}
                 >
-                  Have only a key written on paper?
+                  Have only your holder key (64 characters)?
                 </Button>
                 <Collapse in={typing} id={keyBoxId}>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ pt: 1 }}>
                     <TextField
-                      label="The key from your paper (64 characters)"
+                      label="Your holder key (64 characters)"
                       value={typed}
                       onChange={(e) => setTyped(e.target.value)}
                       fullWidth
@@ -162,14 +162,15 @@ export const RestorePage: React.FC = () => {
                     </Button>
                   </Stack>
                   <Typography variant="caption" color="text.secondary">
-                    That brings back your records. A plant&apos;s date-stamp keys are only in the backup file.
+                    Only if you copied it from an older version of this site: it isn&apos;t shown anywhere now. That
+                    brings back your records. A plant&apos;s date-stamp keys are only in the backup file.
                   </Typography>
                 </Collapse>
               </Box>
               <Alert severity="info" variant="outlined">
                 <b>Can&apos;t find the file?</b> Then nobody can bring the plants back, us included: we never had your
-                key. That&apos;s what keeps them yours. If your old device still works, open VeilCore there and save a
-                new backup.
+                key. That&apos;s what lets you prove you hold them. If your old device still works, open VeilCore there
+                and save a new backup.
               </Alert>
             </>
           )}

@@ -416,3 +416,37 @@ export const markOpened = (resultId: string): void => {
     /* private window: it shows as not opened again next time, which is harmless */
   }
 };
+
+// --- naming a lab report the same way on both sides (round 5) ----------------------------
+
+/** A short, readable id for a lab report, the same on the breeder's and the lab's lists: "LR-3F2A". */
+export const shortResultId = (resultId: string): string => {
+  const hex = resultId.replace(/^LR-/i, '').replace(/[^0-9a-f]/gi, '');
+  return `LR-${(hex || resultId).slice(0, 4).toUpperCase()}`;
+};
+
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/** A time on a lab report screen: local, with the zone's short name (time.ts). */
+export { localStamp } from './time';
+
+/** A downloaded lab report's name: local date, time and its short id, so two never share one. */
+export const reportFileName = (bytes: Uint8Array, at: number, resultId: string): string => {
+  const head = new TextDecoder().decode(bytes.slice(0, 8));
+  const ext = head.startsWith('%PDF')
+    ? 'pdf'
+    : bytes[0] === 0x89 && head.slice(1, 4) === 'PNG'
+      ? 'png'
+      : bytes[0] === 0xff && bytes[1] === 0xd8
+        ? 'jpg'
+        : head.startsWith('PK')
+          ? 'zip'
+          : 'bin';
+  const d = new Date(at);
+  const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}-${pad(d.getMinutes())}`;
+  return `Lab report ${stamp} ${shortResultId(resultId)}.${ext}`;
+};
+
+/** Said before a lab withdraws a correction (round 5): nothing from it stands afterwards. */
+export const WITHDRAW_CORRECTION_WARNING =
+  'The original stays replaced. The breeder will have no live report from you until you send one.';

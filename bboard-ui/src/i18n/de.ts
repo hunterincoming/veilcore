@@ -45,8 +45,8 @@ export const de: Strings = {
   'm.step4.n': '04 · Prüfen',
   'm.step4.title': 'Später vorlegen',
   'm.demo.label': 'Demo',
-  'm.demo.title1': 'Wählen Sie, wie Sie',
-  'm.demo.title2': 'es sehen möchten.',
+  'm.demo.title1': 'Probieren Sie',
+  'm.demo.title2': 'die Demo.',
   'm.demo.create.title': 'Eine Pflanze erfassen',
   'm.demo.create.text':
     'Erfassen Sie eine erfundene Pflanze, speichern Sie Ihre Sicherungskopie und sehen Sie dann die Seite Ihrer Pflanze.',
@@ -87,8 +87,8 @@ export const de: Strings = {
   'm.post2.text':
     'Der Contract wurde im Testnetz von Midnight bereitgestellt und hat alle 26 End-to-End-Prüfungen bestanden, wobei 16 seiner 24 Operationen mit echten Beweisen genutzt wurden.',
   'm.status.label': 'Wo wir stehen',
-  'm.status.title1': 'Ehrlich darüber,',
-  'm.status.title2': 'wo wir stehen.',
+  'm.status.title1': 'Wo die Dinge',
+  'm.status.title2': 'stehen.',
   'm.status.lede': 'Was fertig ist und was noch nicht.',
   'm.stat3.b': 'Kein Audit',
   'm.status.keyTitle': 'Wer den Contract ändern kann.',
@@ -153,7 +153,7 @@ export const de: Strings = {
     'Bitte geben Sie keine echten Namen, echten Sorten oder vertraulichen Angaben ein. Die Demo dient dazu, das Format auszuprobieren.',
   'm.privacy.export.title': 'Export',
   'm.privacy.export.text':
-    'Auf Ihrer Datensatzseite gibt es eine Schaltfläche „Export“, die die Datensätze herunterlädt, die dieser Browser hält. Ein einzelner Download von allem, was unser Server für Sie speichert, ist in Vorbereitung; er ist noch nicht verfügbar.',
+    'Auf Ihrer Datensatzseite unter „More“: „Export all records“ lädt die Datensätze herunter, die dieser Browser hält, und „Download everything VeilCore holds for you“ lädt alles herunter, was unser Server für Sie speichert.',
   'm.privacy.delete.title': 'Löschung',
   'm.privacy.delete.text':
     'Wenn Sie Ihre Demodaten von unserem Server löschen lassen möchten, schreiben Sie an hunter@veilcore.org und nennen Sie die Kennungen Ihrer Datensätze.',
@@ -173,19 +173,17 @@ export const de: Strings = {
   'm.privacy.contact': 'Fragen: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher und tierischer Genetik arbeiten. Genetische Daten verlassen nie Ihren Computer. Nur ein Fingerabdruck kommt auf Midnight, das ihn datiert. Sortenname und Züchter, die Sie eingeben, speichert VeilCore auf seinem Server, und wer den Link zu einem Datensatz hat, sieht dessen Namen. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt, verschlossen, sodass nur Sie ihn öffnen können. Kostenlos zu prüfen. Keine Anmeldung, keine Wallet.',
+    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher und tierischer Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand zurückdatieren kann. Ihre genetischen Daten bleiben auf Ihrem Computer. Nur ein Fingerabdruck kommt auf Midnight, das ihn datiert.',
   'm.for.3p':
-    'Senden Sie Material mit einem Laborcode. Wenn das Labor ihn eingibt, signiert es eine Empfangsbestätigung mit seinem eigenen Schlüssel. So zeigt der Datensatz eine zweite Partei, was das Labor ebenso schützt wie den Auftraggeber. Die Bestätigung ist eine echte Signatur, gespeichert im Register von VeilCore, nicht auf der Chain. Bedingungen wie der Verwendungszweck, keine Vermehrung und Rückgabe oder Vernichtung danach sind in der Web-Demo nur zum Üben.',
+    'Senden Sie Material mit einem Laborcode. Das Labor signiert eine Empfangsbestätigung mit seinem eigenen Schlüssel, sodass der Datensatz eine zweite Partei zeigt. Die Bestätigung ist eine echte Signatur, gespeichert im Register von VeilCore, nicht auf der Chain. Bedingungen wie „keine Vermehrung“ sind in der Web-Demo nur zum Üben.',
   'm.get.1b': 'für einen Datensatz dessen, was Sie haben, ohne Ihre Genetik zu zeigen.',
   'm.get.3b':
     'Eine Elternverknüpfung zählt nur, wenn beide Inhaber sie bestätigen. Auf dieser Website erfasst sie das Register von VeilCore, nicht die Chain.',
-  'm.open.2t': 'Zum Prüfen braucht es uns nicht.',
+  'm.open.2t': 'Bewahren Sie drei Dateien auf.',
   'm.open.2p':
-    'Bewahren Sie zwei Dateien von der Seite Ihrer Pflanze auf: den exportierten Datensatz und seinen Einschlussnachweis (eine kleine Datei, die zeigt, dass der Datensatz in einem datierten Stapel ist). Mit beiden kann jeder ihn mit SHA-256, der offenen Spezifikation und einer Abfrage in einem Midnight-Explorer prüfen, auch wenn es VeilCore nicht mehr gibt. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Für das Bitcoin-Datum braucht es eine dritte Datei, die Bitcoin-Stempeldatei des Stapels, die heute nur auf unserem Server liegt.',
+    'Auf der Seite Ihrer Pflanze unter „Technical details“: „Export record“, „Download inclusion proof“ (er zeigt, dass der Datensatz in einem datierten Stapel ist) und, auf veilcore.org, „Download Bitcoin stamp file“. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Ein Beweispaket mit einem Klick ist in Vorbereitung.',
   'm.faq.1a':
     'Sobald Datensätze verankert sind, kann jeder prüfen, welcher zuerst verankert wurde. Koppeln Sie Ihren Laborbericht, damit ein späterer Test damit verglichen werden kann. Wenn Sie Material versenden, signiert der Empfänger mit seinem eigenen Schlüssel eine Empfangsbestätigung. Ein Datensatz ist ein Beweismittel, keine Registrierung: Er zeigt, dass Sie diesen Datensatz zu diesem Datum hatten, nicht, dass Sie die Pflanze hatten, und entscheidet einen Streit nicht allein.',
-  'm.faq.5a':
-    'Die Datierungen bleiben: Einen Stapel-Fingerabdruck, der im Hauptnetz von Midnight verankert oder auf Bitcoin gestempelt ist, kann niemand entfernen, auch wir nicht. Um einen Datensatz ohne uns zu prüfen, brauchen Sie zwei Dateien, die nur unser Server hat, solange Sie sie nicht speichern: den Datensatz („Export record“) und seinen Einschlussnachweis („Download inclusion proof“), beide auf der Seite Ihrer Pflanze unter „Technical details“. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Um das Bitcoin-Datum ohne uns zu prüfen, brauchen Sie außerdem die Bitcoin-Stempeldatei des Stapels, die heute nur auf unserem Server liegt; die Seite der Pflanze bietet sie nicht an. Die Spezifikation ist offen, und der Code in TypeScript, Python und Rust ist veröffentlicht. Ein Beweispaket mit einem Klick, das all das enthält, ist in Vorbereitung.',
   'm.post0.date': '4. Okt. 2026',
   'm.post0.tag': 'Contract',
   'm.post0.title': 'Eine Tatsache beweisen, den Rest behalten',
@@ -209,11 +207,10 @@ export const de: Strings = {
   'm.live.lede':
     'veilcore.org läuft im Hauptnetz von Midnight, und Datensätze dort sind echt. Die Test-Website ist zum Üben: Dort funktioniert mehr, und ihre Datensätze haben kein Gewicht.',
   'm.live.colMain': 'veilcore.org (Hauptnetz)',
-  'm.live.colTest': 'Test-Website',
+  'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Noch nicht',
   'm.live.stamp.t': 'Ein Datumsstempel für Ihren Datensatz',
-  'm.live.stamp.main':
-    'Ja. VeilCore datiert Datensätze in Stapeln, vorerst von Hand. Ihr Browser sendet nichts an die Chain.',
+  'm.live.stamp.main': 'Ja, in Stapeln, vorerst von Hand. Ihr Browser sendet nichts an die Chain.',
   'm.live.stamp.test':
     'Ja. Stapel werden automatisch datiert, und das datiert Ihren Datensatz. Ihr Browser versieht außerdem den eigenen Schlüssel Ihrer Pflanze mit einem Datumsstempel; der datiert nur den Schlüssel.',
   'm.live.share.t': 'Wählen, was andere sehen',
@@ -234,13 +231,12 @@ export const de: Strings = {
     'Ja. Die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel des Datensatzes kontrollieren. Der Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen.',
   'm.live.prove.not': 'Auf veilcore.org: Dafür muss Ihr Browser eine Transaktion senden.',
   'm.live.claims.t': 'Eine Tatsache beweisen (Claims)',
-  'm.live.claims.main':
-    'Der Contract ist im Hauptnetz, ohne Wartungsschlüssel. Die Website kann ihn noch nicht nutzen.',
+  'm.live.claims.main': 'Im Hauptnetz, ohne Wartungsschlüssel. Die Website kann ihn noch nicht nutzen.',
   'm.live.claims.not': 'Ihn über die Website nutzen.',
   'm.live.lic.t': 'Lizenzen und Lizenzgebühren',
   'm.live.lic.main': 'Nur zum Üben.',
   'm.live.lic.test': 'Nur zum Üben.',
-  'm.live.lic.not': 'Echte Lizenzen über die Website. Sie sind im Contract eingebaut.',
+  'm.live.lic.not': 'Echte Lizenzen über die Website. Sie sind in den Contract eingebaut.',
   // Round 3 (14 Oct 2026): the rest of the landing page, so no English shows through.
   'nav.newCultivar': 'Neuer Datensatz',
   'nav.licenses': 'Vereinbarungen',
@@ -253,11 +249,11 @@ export const de: Strings = {
   'm.faq.3a':
     'Es ist als Beweismittel gebaut, und unser Hinweis für Juristen sagt, was es beweist und was nicht. Heute werden Datensätze in einem Testnetz von Midnight datiert, und ein Datum aus einem Testnetz hat keine Beweiskraft. Der Start im Hauptnetz steht kurz bevor.',
   'm.stat2.b': 'Testnetz',
-  'm.stat2.s': 'Beide Contracts wurden im Preprod-Testnetz von Midnight durchgängig getestet. Noch nicht im Hauptnetz.',
+  'm.stat2.s': 'Beide Contracts in einem Testnetz von Midnight durchgehend getestet. Noch nicht im Hauptnetz.',
   'm.foot.about':
     'Ein offenes Datensatzformat für pflanzliche und tierische Genetik. Gebaut für die Verankerung auf Midnight; getestet in einem Testnetz von Midnight.',
   'm.for.2p':
-    'Züchter wollen mit ihren Markern zeigen, dass eine Sorte unterscheidbar ist, und behandeln diese Marker als Geschäftsgeheimnisse. Ein VeilCore-Claim beweist eine Tatsache über sie, ohne den Rest zu zeigen. Noch akzeptiert ihn kein Prüfamt und keine Anerkennungsstelle; wir haben einige angeschrieben und gefragt, was sie bräuchten.',
+    'Züchter möchten mit ihren Markern zeigen, dass eine Sorte unterscheidbar ist, und behandeln diese Marker als Geschäftsgeheimnis. Ein VeilCore-Claim beweist eine Tatsache über sie, ohne den Rest zu zeigen. Noch akzeptiert keine Prüfstelle und keine Anerkennungsstelle ihn.',
   'm.hero.note':
     'Tippen Sie in eines der beiden Felder; nichts wird gesendet. Die grüne Zeile ist der Fingerabdruck, der Teil, der auf Midnight kommt. Niemand kann daraus zurückrechnen, was Sie eingegeben haben.',
   'm.hero.noteShort': 'Nur die grüne Zeile kommt auf Midnight.',
@@ -265,28 +261,29 @@ export const de: Strings = {
   'm.for.title1': 'Viele Streitigkeiten um Genetik laufen auf eine Frage hinaus:',
   'm.for.title2': 'Was hatten Sie, und wann?',
   'm.for.lede':
-    'Notizbücher und Dateien datiert, wer sie führt, deshalb lassen sie sich leicht anzweifeln. Das Material selbst zu registrieren heißt, herzugeben, was Sie schützen wollen. VeilCore gibt Ihrem Datensatz ein Datum, das niemand zurückdatieren kann, und die Genetik bleibt bei Ihnen.',
+    'Notizbücher und Dateien datiert, wer sie führt, deshalb lassen sie sich leicht anzweifeln. Das Material selbst zu registrieren heißt, genau das herauszugeben, was Sie schützen wollen.',
   'm.for.1t': 'Ein Steckling verschwindet.',
   'm.for.1p':
-    'Versiegeln Sie einen Datensatz und koppeln Sie seinen DNA-Bericht. Taucht die Pflanze unter anderem Namen auf, kann ein Labor einen neuen Test mit Ihrem Bericht vergleichen. Wenn Sie über den VeilCore-Contract auf Midnight koppeln, wird auch die Kopplung datiert: Sie zeigt, dass, wer Ihren Datensatz zu diesem Datum kontrollierte, diesen Bericht oder seinen SHA-256 bis dahin hatte. Was auf die Chain kommt, ist an Ihren Datensatz gebunden und verbirgt den Bericht, sodass niemand Ihre Kopplung auf seinen eigenen Datensatz kopieren kann. In dieser Web-Demo wird die Kopplung mit Ihrem Datensatz gespeichert, aber noch nicht datiert. VeilCore führt keine DNA-Tests durch.',
+    'Versiegeln Sie einen Datensatz und koppeln Sie seinen DNA-Bericht. Taucht die Pflanze unter anderem Namen auf, kann ein Labor einen neuen Test mit Ihrem Bericht vergleichen. In der Web-Demo wird die Kopplung mit Ihrem Datensatz gespeichert, aber noch nicht datiert. VeilCore führt keine DNA-Tests durch.',
   'm.for.2t': 'Sortenschutz und Anerkennung.',
   'm.for.2link': 'So funktioniert ein Claim →',
   'm.for.3t': 'Material in den Händen eines Labors.',
   'm.for.4t': 'Laborergebnisse, zurück zu Ihnen.',
   'm.for.4p':
-    'Das Labor signiert Ihre Ergebnisse und verschließt sie so, dass nur Sie sie öffnen können. Kein PDF liegt in irgendeinem Posteingang: VeilCore hält nur die verschlossene Datei. Die Signatur deckt genau diese Datei und den Datensatz ab, um den es geht. VeilCore hält fest, wer signiert hat; für das Ergebnis bürgt es nicht. Neu und noch in der Erprobung.',
+    'Das Labor signiert Ihren Bericht und verschließt ihn so, dass nur Sie ihn öffnen können. Kein PDF liegt in irgendeinem Posteingang. VeilCore hält nur die verschlossene Datei und erfasst, wer signiert hat; für das Ergebnis bürgt VeilCore nicht. Neu und noch in der Erprobung.',
   'm.for.6t': 'Jemand verlangt einen Nachweis.',
   'm.for.6p':
     'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihrer Pflanze kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht. Das funktioniert vorerst in einem Testnetz von Midnight.',
   'm.for.5t': 'Tierlinien.',
   'm.for.5p':
-    'Herdbücher führen die Abstammung. Ein Datensatz kann jedem Eintrag ein Datum geben, das niemand zurückdatieren kann, ohne den Genotyp zu veröffentlichen. Das Format deckt Tiere ab; diese Demo ist für Pflanzen eingerichtet, und die Felder für Tierdatensätze sind noch nicht veröffentlicht.',
+    'Herdbücher führen die Abstammung. Ein Datensatz kann jedem Eintrag ein Datum geben, das niemand zurückdatieren kann, ohne den Genotyp zu veröffentlichen. Diese Demo ist für Pflanzen eingerichtet; die Datensatzfelder für Tiere sind noch nicht veröffentlicht.',
   'm.for.5ask': 'Wenn Sie Tiere züchten, sagen Sie uns, was Ihre Datensätze brauchen.',
   'm.how.label': 'So funktioniert es',
   'm.how.title1': 'Vier Schritte.',
   'm.how.title2': 'Die Genetik bleibt bei Ihnen.',
   'm.step1.title': 'Aufschreiben',
-  'm.step1.text': 'Was es ist und woher es kommt. Fügen Sie Laborberichte als Dateien hinzu.',
+  'm.step1.text':
+    'Was es ist und woher es stammt. Sortenname und Züchter, die Sie eingeben, speichert VeilCore auf seinem Server, und wer den Link zum Datensatz hat, sieht den Namen.',
   'm.step2.title': 'Fingerabdruck erstellen',
   'm.step2.text': 'Auf Ihrem Computer. Genetische Daten verlassen ihn nie.',
   'm.step3.title': 'Ein Datum bekommen',
@@ -295,8 +292,8 @@ export const de: Strings = {
   'm.step4.text':
     'Geben Sie ihn einem Käufer, einer Prüfstelle oder einem Gericht. Dort kann man ihn kostenlos prüfen, ohne Konto.',
   'm.claims.label': 'Eine Tatsache beweisen',
-  'm.claims.title1': 'Die Antwort zeigen.',
-  'm.claims.title2': 'Die Daten behalten.',
+  'm.claims.title1': 'Nachweis teilen,',
+  'm.claims.title2': 'nicht die Daten.',
   'm.claims.lede':
     'Ein Datensatz kann bis zu sechzehn Werte versiegeln, etwa Markerergebnisse oder eine Keimrate. Später beweisen Sie eine Tatsache über sie. Sonst wird nichts gezeigt.',
   'm.claims.1t': 'Ein Wert ist, was Sie sagen.',
@@ -315,16 +312,16 @@ export const de: Strings = {
   'm.claims.limitsTitle': 'Grenzen.',
   'm.claims.limits':
     'Sechzehn Werte pro Datensatz. Um zwei Sorten zu vergleichen, braucht es eine Partei, die beide Wertesätze hat, etwa den Züchter oder ein Labor, das beide getestet hat. Wem Sie einen versiegelten Wert geben, der kann ebenfalls Claims darüber machen. Für Vergleiche über Tausende von Werten ist es nicht gemacht. Ohne Signatur eines Labors sind die Werte nur das Wort des Inhabers.',
-  'm.claims.statusTitle': 'Stand.',
+  'm.claims.statusTitle': 'Der Claims-Contract',
   'm.claims.link': 'Wie Claims funktionieren, in der Spezifikation →',
   'm.get.label': 'Was es leistet',
   'm.get.title1': 'Was Sie bekommen,',
   'm.get.title2': 'und wo es endet.',
   'm.get.title': 'Was Sie bekommen',
   'm.get.1a': 'Ein Datum, das niemand zurückdatieren kann,',
-  'm.get.2a': 'Bedingungen, die mitreisen.',
+  'm.get.2a': 'Lizenzen und Laborvereinbarungen.',
   'm.get.2b':
-    'Lizenzen und Laborvereinbarungen hängen am Datensatz. Ein Lizenznehmer kann beweisen, dass er eine gültige Lizenz hält, ohne zu zeigen, welche. Eine Verpflichtung an einem Elternteil, etwa eine Lizenzgebühr, erscheint bei jedem Nachkommen, den beide Inhaber bestätigt haben; VeilCore hält sie fest und zieht sie nicht ein. Getestet in einem Testnetz von Midnight; in der Web-Demo simuliert.',
+    'Sie hängen am Datensatz. Ein Lizenznehmer kann beweisen, dass er eine gültige Lizenz hält, ohne zu zeigen, welche. Eine Lizenzgebühr oder andere Verpflichtung auf einem Elternteil erscheint bei jedem Nachkommen, den beide Inhaber bestätigt haben; VeilCore erfasst sie und zieht sie nicht ein. Getestet in einem Testnetz von Midnight; in der Web-Demo simuliert.',
   'm.get.3a': 'Abstammung, der beide Seiten zugestimmt haben.',
   'm.stops.title': 'Wo es endet, und was den Rest abdeckt',
   'm.stops.1a': 'Es ist ein Beweismittel, kein Rechtstitel.',
@@ -339,20 +336,18 @@ export const de: Strings = {
   'm.stops.4b':
     'Stille Vermehrung wird nicht erkannt. Aber sobald Sie eine Lizenz widerrufen, akzeptiert ein Käufer oder Labor, das richtig prüft, sie nicht mehr als gültig.',
   'm.open.label': 'Offenes Format',
-  'm.open.title1': 'Gebaut, um',
-  'm.open.title2': 'uns zu überdauern.',
-  'm.open.1t': 'Eine offene Spezifikation, drei Implementierungen.',
+  'm.open.title1': 'Wenn es VeilCore',
+  'm.open.title2': 'nicht mehr gibt.',
+  'm.open.1t': 'Die Datierungen bleiben.',
   'm.open.1p':
-    'Dauerhaft frei implementierbar. TypeScript, Python und Rust stimmen bei allen 100 Testvektoren des Datensatzformats überein (Rust führt den neueren zur Berichtskopplung noch nicht aus), und jeder kann sie laufen lassen. Wir haben alle drei geschrieben; eine Implementierung von jemand anderem ist der Test, den wir uns am meisten wünschen.',
+    'Einen Stapel-Fingerabdruck, der im Hauptnetz von Midnight verankert oder auf Bitcoin gestempelt ist, kann niemand entfernen, auch wir nicht.',
   'm.open.1link': 'Alle drei Implementierungen →',
   'm.open.3t': 'Wir bürgen nicht für Ergebnisse.',
   'm.open.3p':
-    'Ein Datensatz zeigt, welcher Schlüssel ihn signiert hat, den Namen und die Akkreditierungsstelle, die mit diesem Schlüssel registriert sind, und ob der Betreiber von VeilCore diesen Namen mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat, und an welchem Tag. VeilCore bürgt für kein Labor: Wer einen Datensatz prüft, entscheidet, was eine Signatur wert ist.',
+    'Ein Datensatz zeigt, welcher Schlüssel ihn signiert hat, unter welchem Namen dieser registriert wurde, eine Akkreditierung, die sein Inhaber angegeben hat (das prüfen wir nicht), und ob der Betreiber von VeilCore diesen Namen mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat, und an welchem Tag. VeilCore bürgt für kein Labor: Wer einen Datensatz prüft, entscheidet, was eine Signatur wert ist.',
   'm.open.4t': 'Jeder kann ein Register betreiben.',
   'm.open.4p':
-    'Das Format erlaubt es einem Labor, einer Anerkennungsstelle oder einer Rechteorganisation, ein eigenes zu betreiben, unter der eigenen Webdomain, mit eigenen Felddefinitionen, und zu verankern, ohne uns zu fragen. Der Code unseres eigenen Registers ist nicht veröffentlicht.',
-  'm.open.5t': 'Prüfen ist kostenlos, immer.',
-  'm.open.5p': 'Kein Konto, keine Zahlung, für niemanden.',
+    'Das Format erlaubt einem Labor, einer Anerkennungsstelle oder einem Sortenschutzgremium, ein eigenes Register unter eigener Webdomain zu betreiben und zu verankern, ohne uns zu fragen. Unser eigener Registercode ist nicht veröffentlicht.',
   'm.faq.label': 'Fragen',
   'm.faq.title1': 'Fragen,',
   'm.faq.title2': 'die man uns stellt.',
@@ -367,7 +362,6 @@ export const de: Strings = {
     'Von Ihren genetischen Daten: nichts. Deren Fingerabdruck wird auf Ihrem Computer berechnet, ebenso der Fingerabdruck der Dateien, die Sie hinzufügen; hochgeladen wird nichts davon. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt: verschlossen, sodass nur Sie ihn öffnen können, und nach 180 Tagen gelöscht. Diese Website speichert, was Sie eingeben (Namen, Daten, Notizen, Vertragsbedingungen), und die Namen Ihrer Labordateien, damit Sie darauf zurückkommen können, und die öffentliche Prüfseite eines Datensatzes zeigt seinen Sortennamen. Labore und Entwickler können Datensätze in ihren eigenen Systemen versiegeln, sodass nur der Fingerabdruck hinausgeht.',
   'm.faq.4link1': 'Was die Demo speichert →',
   'm.faq.4link2': 'Integrationsleitfaden →',
-  'm.faq.5q': 'Was, wenn es VeilCore nicht mehr gibt?',
   'm.faq.6q': 'Was kostet es?',
   'm.faq.6a':
     'Einen Datensatz auf dieser Website anzulegen, kostet heute nichts. Einen Datensatz zu prüfen, ist immer kostenlos.',
@@ -375,9 +369,6 @@ export const de: Strings = {
     'Keine Anmeldung, keine Wallet. Es ist eine Testversion, verwenden Sie also erfundene Angaben. Datensätze werden in Stapeln verankert, vorerst von Hand; Lizenzen und Laborvereinbarungen sind simuliert, und Kopplungen von DNA-Berichten werden noch nicht datiert.',
   'm.demo.privacy': 'Was die Demo speichert →',
   'm.updates.more': 'Alle Neuigkeiten',
-  'm.stat1.b': '100 / 100',
-  'm.stat1.s':
-    'Testvektoren des Datensatzformats in TypeScript, Python und Rust auf GitHub bestanden (ein Autor hat alle drei geschrieben; TypeScript ist auf npm als 0.15.0). Ein 101., zur Berichtskopplung, ist noch nicht in Rust',
   'm.stat3.s': 'Noch kein unabhängiges Sicherheitsaudit. Unsere eigenen Prüfungen sind öffentlich.',
   'm.stat4.b': 'Erste Nutzer gesucht',
   'm.stat4.s': 'Noch nutzt es niemand für echte Datensätze. Wir suchen die ersten Züchter und Labore.',
@@ -388,8 +379,7 @@ export const de: Strings = {
   'm.addr.explorer': 'Auf midnightexplorer.com nachschlagen (betrieben von TexLabs) →',
   'm.live.btc.t': 'Auch ein Datumsstempel auf Bitcoin',
   'm.live.btc.main':
-    'Ja. Unser Register stempelt den Fingerabdruck jedes versiegelten Stapels mit OpenTimestamps auf Bitcoin. Der erste landete am 11. Oktober in Bitcoin-Block 971004; eine Prüfung mit dem offiziellen OpenTimestamps-Werkzeug steht noch aus.',
-  'm.live.btc.not': 'Die Stempeldatei über die Website bekommen. Heute liegt sie nur auf unserem Server.',
+    'Ja, jeder versiegelte Stapel. Der erste kam am 11. Oktober in Block 971004; eine Prüfung mit dem offiziellen Werkzeug steht noch aus.',
   'm.contact.1t': 'Züchter und Labore',
   'm.contact.1p':
     'Probieren Sie es mit erfundenen Datensätzen aus und sagen Sie uns dann, was es für Ihre echten bräuchte.',
@@ -404,6 +394,31 @@ export const de: Strings = {
     'Ein VeilCore-Datensatz beschreibt genetisches Material, ohne die Genetik zu enthalten. Nur sein Fingerabdruck wird veröffentlicht, und er erhält ein Datum, sobald er auf Midnight verankert ist. Einen Datensatz zu prüfen, ist kostenlos und braucht kein Konto.',
   'm.verify.home': 'Was ist VeilCore? →',
   'm.verify.example': 'Nicht sicher, was Sie sehen werden? Sehen Sie sich zuerst ein Beispiel an →',
+  // Round 5 (15 Oct 2026): landing page rework, keys added.
+  'm.open.6t': 'Prüfen ohne uns.',
+  'm.open.6p':
+    'Mit diesen Dateien kann jeder einen Datensatz mit der offenen Spezifikation und einem Midnight-Explorer prüfen. Datensätze, die seit dem 14. Oktober versiegelt wurden, brauchen außerdem Abschnitt 3.6.1 der Spezifikation, veröffentlicht in der Spezifikation auf dieser Website; das SDK und seine drei Implementierungen erhalten ihn mit ihrer nächsten Version.',
+  'm.open.6link': 'Spezifikation lesen →',
+  'm.updates.older': 'Ältere Neuigkeiten',
+  'm.live.colTestNote': '(geht diese Woche online)',
+  'm.live.feature': 'Funktion',
+  'm.live.show': 'Liste anzeigen',
+  'm.tech.title': 'Für technisch Interessierte',
+  'm.tech.lede':
+    'Wie die Prüfung von Hand funktioniert, der Code, der Bitcoin-Stempel und wer die Contracts ändern kann.',
+  'm.tech.show': 'Details anzeigen',
+  'm.tech.check.t': 'Einen Datensatz von Hand prüfen',
+  'm.tech.check.p':
+    'Um den Fingerabdruck eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Einschlussnachweis verbindet diesen Fingerabdruck mit einem Stapel-Fingerabdruck, der auf Midnight verankert ist, und eine Abfrage in einem Midnight-Explorer liefert das Datum des Stapels. Datensätze, die seit dem 14. Oktober versiegelt wurden, benennen ihren eigenen Schlüssel; ihre Prüfung braucht deshalb auch Abschnitt 3.6.1, veröffentlicht in der Spezifikation auf dieser Website; das SDK und seine drei Implementierungen erhalten ihn mit ihrer nächsten Version.',
+  'm.tech.impl.t': 'Eine Spezifikation, drei Implementierungen',
+  'm.tech.impl.p':
+    'Dauerhaft kostenlos zu implementieren. TypeScript, Python und Rust stimmen bei allen 100 Testvektoren des Datensatzformats auf GitHub überein, und jeder kann sie ausführen; ein 101., für die Kopplung von Berichten, fehlt in Rust noch. Ein Autor hat alle drei geschrieben, und die TypeScript-Version ist auf npm als 0.15.0. Eine Implementierung von jemand anderem ist der Test, den wir uns am meisten wünschen.',
+  'm.tech.btc.t': 'Der Bitcoin-Stempel',
+  'm.tech.btc.p':
+    'Unser Register stempelt den Fingerabdruck jedes versiegelten Stapels mit OpenTimestamps auf Bitcoin. Der erste kam am 11. Oktober in Bitcoin-Block 971004; eine Prüfung mit dem offiziellen OpenTimestamps-Werkzeug steht noch aus. Die Stempeldatei ist die .ots-Datei des Stapels: „Download Bitcoin stamp file“ auf der Seite der Pflanze. Das Register der Test-Website stempelt nicht auf Bitcoin.',
+  'm.tech.dna.t': 'Kopplung von Berichten und Laborsignaturen',
+  'm.tech.dna.p':
+    'Läuft die Kopplung eines DNA-Berichts über den VeilCore-Contract auf Midnight, wird sie datiert: Sie zeigt, dass, wer den Datensatz zu diesem Datum kontrollierte, diesen Bericht oder seinen SHA-256 bis dahin hatte. Was auf die Chain kommt, ist an den Datensatz gebunden und verbirgt den Bericht, sodass niemand die Kopplung auf seinen eigenen Datensatz kopieren kann. Die Signatur eines Labors auf einem verschlossenen Bericht umfasst genau diese Datei und den Datensatz, um den es geht.',
 };
 
 /** The public test site (en-testchain.ts), in this language. Draft, like the rest of this file. */
@@ -416,13 +431,13 @@ export const deTestchain: Strings = {
     'Es ist als Beweismittel gebaut, und unser Hinweis für Juristen sagt, was es beweist und was nicht. Diese Test-Website datiert Datensätze im Testnetz von Midnight, und ein Datum aus einem Testnetz hat keine Beweiskraft. Echte Datensätze gehören auf veilcore.org, das im Hauptnetz von Midnight läuft.',
   'm.stat2.b': 'Test-Website',
   'm.stat2.s':
-    'Diese Website läuft im Preprod-Testnetz von Midnight, zum Üben. Beide Contracts sind seit dem 8. Oktober 2026 im Hauptnetz von Midnight.',
+    'Diese Website läuft in einem Testnetz von Midnight, zum Üben. Beide Contracts sind seit dem 8. Oktober 2026 im Hauptnetz von Midnight.',
   'm.foot.about':
     'Ein offenes Datensatzformat für pflanzliche und tierische Genetik. Dies ist die Test-Website, in einem Testnetz von Midnight; veilcore.org läuft im Hauptnetz von Midnight.',
   'm.for.1p':
-    'Versiegeln Sie einen Datensatz und koppeln Sie seinen DNA-Bericht. Taucht die Pflanze unter anderem Namen auf, kann ein Labor einen neuen Test mit Ihrem Bericht vergleichen. Wenn Sie über den VeilCore-Contract auf Midnight koppeln, wird auch die Kopplung datiert: Sie zeigt, dass, wer Ihren Datensatz zu diesem Datum kontrollierte, diesen Bericht oder seinen SHA-256 bis dahin hatte. Was auf die Chain kommt, ist an Ihren Datensatz gebunden und verbirgt den Bericht, sodass niemand Ihre Kopplung auf seinen eigenen Datensatz kopieren kann. Auf dieser Test-Website können Sie die Kopplung aus Ihrem Browser datieren. VeilCore führt keine DNA-Tests durch.',
+    'Versiegeln Sie einen Datensatz und koppeln Sie seinen DNA-Bericht. Taucht die Pflanze unter anderem Namen auf, kann ein Labor einen neuen Test mit Ihrem Bericht vergleichen. Auf dieser Test-Website können Sie die Kopplung aus Ihrem Browser datieren, und niemand kann sie auf seinen eigenen Datensatz kopieren. VeilCore führt keine DNA-Tests durch.',
   'm.demo.lede':
-    'Keine Anmeldung, keine Wallet. Dies ist die Test-Website, verwenden Sie also erfundene Angaben. Stapel werden im Testnetz von Midnight automatisch verankert, und das datiert Ihre Datensätze. Ihr Browser versieht außerdem den eigenen Schlüssel jeder Pflanze mit einem Datumsstempel, der nur den Schlüssel datiert (VeilCore zahlt die Gebühr). Auch die Kopplung eines DNA-Berichts können Sie datieren. Die Empfangsbestätigung eines Labors ist eine echte Signatur mit dem eigenen Schlüssel des Labors, außerhalb der Chain gespeichert. Lizenzen und Laborvereinbarungen sind nur zum Üben.',
+    'Keine Anmeldung, keine Wallet. Dies ist die Test-Website, verwenden Sie also erfundene Angaben. Stapel werden im Testnetz von Midnight automatisch verankert, und das datiert Ihre Datensätze. Die Empfangsbestätigung eines Labors ist eine echte Signatur mit dem eigenen Schlüssel des Labors, außerhalb der Chain gespeichert. Lizenzen und Laborvereinbarungen sind nur zum Üben.',
   'm.privacy.test.text':
     'Diese Website nutzt das Preprod-Testnetz von Midnight, nicht das Hauptnetz. Ihr Browser sendet jeden Datumsstempel über den Gebührendienst von VeilCore an dieses Netz; was Sie eingegeben haben und Ihre Dateien werden nie dorthin gesendet. Ein Testnetz kann zurückgesetzt werden, und Testdaten können gelöscht werden.',
   'm.privacy.hosts.text':

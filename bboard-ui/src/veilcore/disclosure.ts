@@ -153,3 +153,21 @@ export const saveGrant = async (recordId: string, d: Disclosure): Promise<Grant 
     return { error: 'could not reach the registry' };
   }
 };
+
+/**
+ * What is shared now, and what pressing the button does (round 5): the switches can start
+ * on (the defaults) while nothing is saved yet, and the words used to read as if that
+ * contradicted them.
+ */
+export const sharedNowWords = (
+  stored: { show: string[]; updatedAt: string | null } | 'loading' | 'unknown',
+  unsaved: boolean,
+): string => {
+  if (stored === 'loading') return 'Checking what is shared now…';
+  const save = ' “Get the link” saves the switches above, and the check page then shows exactly that.';
+  if (stored === 'unknown') return `Couldn’t read what is shared now from the registry.${save}`;
+  if (stored.updatedAt === null)
+    return `Shared now: only the basics. The switches above are a suggestion and aren’t saved yet.${save}`;
+  const now = stored.show.length ? stored.show.map((k) => labelOf(k as DisclosureKey)).join('; ') : 'only the basics';
+  return `Shared now: ${now}.${unsaved ? ` The switches above differ from that.${save}` : ''}`;
+};

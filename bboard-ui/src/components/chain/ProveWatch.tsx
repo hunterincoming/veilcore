@@ -12,10 +12,18 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material';
 import ShareIcon from '@mui/icons-material/IosShareOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
-import { checkAnswers, getProveRequest, nextPollMs, proveLink, type MyAsk } from '../../veilcore/prove-relay';
+import { localStamp } from '../../veilcore/time';
+import {
+  checkAnswers,
+  getProveRequest,
+  keyStampWords,
+  nextPollMs,
+  proveLink,
+  type MyAsk,
+} from '../../veilcore/prove-relay';
 
 const WEEK = 7 * 24 * 60 * 60_000;
-const when = (t: number) => new Date(t).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+const when = (t: number) => localStamp(t);
 
 export const SendLink: React.FC<{ link: string; asker?: string }> = ({ link, asker }) => {
   const [copied, setCopied] = useState(false);
@@ -178,12 +186,12 @@ export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boole
         </Typography>
         {ask.confirmed.anchor === true && (
           <Typography variant="body2" sx={{ mt: 0.75 }}>
-            That key was registered on the network earlier.
+            {keyStampWords(bound, ask.confirmed.anchoredAt)}
           </Typography>
         )}
         {ask.confirmed.anchor === false && (
           <Typography variant="body2" sx={{ mt: 0.75 }}>
-            The key&apos;s registration named in the link could not be confirmed.
+            The key&apos;s date stamp named in the link could not be confirmed.
           </Typography>
         )}
         {bound ? (
@@ -226,7 +234,7 @@ export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boole
                 ? 'An answer came in. The network hasn’t shown it yet, so this keeps checking.'
                 : state === 'unreachable'
                   ? 'Can’t reach VeilCore right now. Still trying.'
-                  : 'Waiting for them to prove it. You can close this page: open the same link again in this browser to see the answer.'}
+                  : 'Waiting for them to prove it. You can close this page: to see the answer, open the link you sent them, in this browser.'}
           </Typography>
         </Stack>
       )}

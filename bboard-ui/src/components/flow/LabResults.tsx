@@ -43,22 +43,28 @@ import {
   labChanged,
   listResults,
   liveResults,
+  localStamp,
   lockReport,
   markOpened,
   openReport,
   rememberDelivery,
+  reportFileName,
   reportFingerprint,
   resultState,
   sendLockedResult,
   sentRowWords,
   sendRefusal,
+  shortResultId,
   wasOpened,
+  WITHDRAW_CORRECTION_WARNING,
   type ResultState,
   type ResultSummary,
 } from '../../veilcore/lab-results';
+import { correctionWithdrawn, savedReportStatus, type SavedReport } from '../../veilcore/saved-report';
 
 const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-6)}`;
-const when = (t: number) => new Date(t).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+/** Every time on a lab report screen: local, with the zone's short name (round 5). */
+const when = (t: number) => localStamp(t);
 const day = (t: number | string) => new Date(t).toLocaleDateString(undefined, { dateStyle: 'medium' });
 const mb = (n: number) =>
   n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`;
@@ -73,21 +79,6 @@ const useLabVersion = (): number => {
     return () => window.removeEventListener(LAB_CHANGED_EVENT, bump);
   }, []);
   return v;
-};
-
-/** A sensible file name for an opened lab report, from what the bytes are. */
-const nameFor = (bytes: Uint8Array, at: number): string => {
-  const head = new TextDecoder().decode(bytes.slice(0, 8));
-  const ext = head.startsWith('%PDF')
-    ? 'pdf'
-    : bytes[0] === 0x89 && head.slice(1, 4) === 'PNG'
-      ? 'png'
-      : bytes[0] === 0xff && bytes[1] === 0xd8
-        ? 'jpg'
-        : head.startsWith('PK')
-          ? 'zip'
-          : 'bin';
-  return `Lab report ${new Date(at).toISOString().slice(0, 10)}.${ext}`;
 };
 
 const download = (bytes: Uint8Array, name: string) => {
@@ -282,9 +273,81 @@ export const useLabReceipt = (record: StrainRecord | undefined, enabled: boolean
     : labReceipt(record, atts, loadAttester()?.keypair.publicKey, deliveryForRecord(record.id)?.receiptLinked);
 };
 
+// --- the lab report saved to the plant (veilcore/saved-report.ts) ------------------------
+
+/**
+ * Where the lab report saved to this plant stands, for the plant page, next step,
+ * certificate and Show someone. null while loading. Pass `arrived` when the page already
+ * has it; otherwise it is loaded here.
+ */
+export const useSavedReport = (
+  record: StrainRecord | undefined,
+  arrived?: readonly ArrivedResult[] | null,
+): SavedReport | null => {
+  const own = !!record && !record.receivedFrom;
+  const loaded = useDeliveries(record?.id, own && arrived === undefined);
+  const atts = useAttestations(own && record?.dnaFingerprint ? record.recordFingerprint : undefined);
+  if (!record || !own) return null;
+  if (!record.dnaFingerprint) return { kind: 'none' };
+  const list = arrived === undefined ? (loaded?.arrived ?? null) : arrived;
+  if (list === null || atts === null) return null;
+  return savedReportStatus(record, list, atts);
+};
+
+/** What the breeder is told about a saved report the lab replaced or withdrew. */
+export const SavedReportAlert: React.FC<{ saved: SavedReport | null; onOpen?: (resultId: string) => void }> = ({
+  saved,
+  onOpen,
+}) => {
+  if (!saved || (saved.kind !== 'replaced' && saved.kind !== 'withdrawn')) return null;
+  const newer = saved.newer;
+  return (
+    <Alert
+      severity="warning"
+      variant="outlined"
+      action={
+        newer && onOpen ? (
+          <Button color="inherit" onClick={() => onOpen(newer.result.id)} sx={{ minHeight: 40 }}>
+            {saved.kind === 'replaced' ? 'Open the corrected one' : 'Open the newer one'}
+          </Button>
+        ) : undefined
+      }
+    >
+      {saved.kind === 'replaced' ? (
+        <>
+          <b>The lab report saved to this plant was replaced by the lab.</b>{' '}
+          {newer
+            ? 'Save the corrected one: open it, then tap “Save it to this plant”.'
+            : `No current report from ${saved.lab}: the original was replaced and the correction withdrawn.`}
+        </>
+      ) : (
+        <>
+          <b>The lab report saved to this plant was withdrawn by the lab.</b> It stays saved until you save another, and
+          your certificate and links say it was withdrawn.
+          {newer ? ' A newer lab report is here: open it, then save it to this plant.' : ''}
+        </>
+      )}
+    </Alert>
+  );
+};
+
 // --- the breeder's side ------------------------------------------------------------------
 
-type Opened = { bytes: Uint8Array; name: string; signer: ReportSigner };
+type Opened = { bytes: Uint8Array; name: string; sha: string; signer: ReportSigner };
+
+/** What the breeder is told once, when a lab report first arrives: what others can see. */
+const SEEN_VISIBILITY = 'veilcore.lab-visibility-seen.v1';
+const seenVisibility = (): boolean => {
+  try {
+    return localStorage.getItem(SEEN_VISIBILITY) === '1';
+  } catch {
+    return false;
+  }
+};
+
+/** Exactly what a stranger with a link sees about a lab report (VerifyPage.tsx). */
+export const PUBLIC_REPORT_WORDS =
+  'The lab’s signature is public; the report isn’t. Anyone with a link to this plant’s check page sees that a lab report about it was signed, the report file’s SHA-256, and the lab’s name only if VeilCore’s operator matched it to a public listing (otherwise “a key named … (name not checked)”). If you save the report to this plant and share “Whether a lab report is saved” in Show someone, they also see that the saved file matches it.';
 
 const SignerLine: React.FC<{ signer: ReportSigner }> = ({ signer }) => {
   if (signer.kind === 'unsigned') {
@@ -333,11 +396,14 @@ export const LabResultsPanel: React.FC<{
   keys?: RecordKeys;
   arrived: ArrivedResult[] | null;
   autoOpen?: string;
-  onPair: (file: File) => void;
-}> = ({ record, keys, arrived, autoOpen, onPair }) => {
+  /** Where the lab report saved to this plant stands (useSavedReport). */
+  saved?: SavedReport | null;
+  onPair: (file: File, from: { resultId: string; sha: string }) => void;
+}> = ({ record, keys, arrived, autoOpen, saved, onPair }) => {
   const [opened, setOpened] = useState<Record<string, Opened>>({});
   const [busy, setBusy] = useState<string>();
   const [problem, setProblem] = useState<string>();
+  const [toldVisibility, setToldVisibility] = useState(seenVisibility);
   const tried = useRef(false);
 
   const open = useCallback(
@@ -358,7 +424,10 @@ export const LabResultsPanel: React.FC<{
           receiptAttestationId,
         });
         markOpened(result.id);
-        setOpened((o) => ({ ...o, [result.id]: { bytes, name: nameFor(bytes, result.createdAt), signer } }));
+        setOpened((o) => ({
+          ...o,
+          [result.id]: { bytes, sha, name: reportFileName(bytes, result.createdAt, result.id), signer },
+        }));
       } catch (e) {
         setProblem(e instanceof Error ? e.message : String(e));
       } finally {
@@ -376,6 +445,15 @@ export const LabResultsPanel: React.FC<{
     if (a) void open(a);
   }, [autoOpen, arrived, keys, open]);
 
+  const savedSha = saved && saved.kind !== 'none' ? saved.sha : undefined;
+  const savedId = record.dnaResultId ?? (saved?.kind === 'lab' ? saved.resultId : undefined) ?? undefined;
+  // Deliveries where nothing from the lab stands: the original replaced, the correction withdrawn.
+  const emptied = arrived
+    ? [...new Map(arrived.map((a) => [a.transfer.id, a.transfer])).values()].filter((t) =>
+        correctionWithdrawn(arrived.filter((a) => a.transfer.id === t.id).map((a) => a.result)),
+      )
+    : [];
+
   return (
     <Stack spacing={2}>
       <Box>
@@ -392,6 +470,36 @@ export const LabResultsPanel: React.FC<{
           <RouterLink to="/restore">Get your plants back from your backup</RouterLink> first.
         </Alert>
       )}
+      {arrived && arrived.length > 0 && !toldVisibility && (
+        <Alert
+          severity="info"
+          variant="outlined"
+          action={
+            <Button
+              color="inherit"
+              onClick={() => {
+                try {
+                  localStorage.setItem(SEEN_VISIBILITY, '1');
+                } catch {
+                  /* private window: it shows again next time, which is harmless */
+                }
+                setToldVisibility(true);
+              }}
+              sx={{ minHeight: 40 }}
+            >
+              Got it
+            </Button>
+          }
+        >
+          <b>What others can see.</b> {PUBLIC_REPORT_WORDS}
+        </Alert>
+      )}
+      {saved && (saved.kind === 'replaced' || saved.kind === 'withdrawn') && <SavedReportAlert saved={saved} />}
+      {emptied.map((t) => (
+        <Alert key={t.id} severity="warning" variant="outlined">
+          No current report from {t.to_handle}: the original was replaced and the correction withdrawn.
+        </Alert>
+      ))}
       {arrived === null ? (
         <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
           <CircularProgress size={18} />
@@ -405,6 +513,7 @@ export const LabResultsPanel: React.FC<{
         arrived.map((a) => {
           const o = opened[a.result.id];
           const gone = a.state !== 'live';
+          const isSaved = savedId ? savedId === a.result.id : !!o && !!savedSha && o.sha === savedSha;
           return (
             <Box
               key={a.result.id}
@@ -413,21 +522,23 @@ export const LabResultsPanel: React.FC<{
               <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                 <LockIcon fontSize="small" color={o || gone ? 'disabled' : 'primary'} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                  From {a.transfer.to_handle}
+                  From {a.transfer.to_handle} · {shortResultId(a.result.id)}
                 </Typography>
               </Stack>
               <Typography variant="body2" color="text.secondary">
                 Sent {when(a.result.createdAt)}
                 {gone ? '' : ` · ${mb(a.result.size)}`}
-                {a.result.replaces ? ' · a corrected file' : ''}
+                {a.result.replaces ? ` · corrects ${shortResultId(a.result.replaces)}` : ''}
+                {isSaved ? ' · saved to this plant' : ''}
               </Typography>
               {a.state === 'withdrawn' ? (
                 <Typography variant="body2" sx={{ mt: 1, fontWeight: 700 }}>
                   Withdrawn by the lab on {day(a.result.withdrawnAt ?? a.result.createdAt)}
+                  {isSaved ? '. It is still saved to this plant.' : ''}
                 </Typography>
               ) : a.state === 'replaced' ? (
                 <Typography variant="body2" sx={{ mt: 1, fontWeight: 700 }}>
-                  Replaced by a newer lab report
+                  Replaced by a newer lab report{isSaved ? '. It is still saved to this plant.' : ''}
                 </Typography>
               ) : !o ? (
                 <Button
@@ -442,20 +553,31 @@ export const LabResultsPanel: React.FC<{
               ) : (
                 <Stack spacing={1.25} sx={{ mt: 1.5 }}>
                   <SignerLine signer={o.signer} />
+                  <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
+                    File SHA-256 {short(o.sha)} · downloads as “{o.name}”
+                  </Typography>
                   <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
                     <Button variant="outlined" onClick={() => download(o.bytes, o.name)} sx={{ minHeight: 44 }}>
                       Download the file
                     </Button>
-                    {!record.dnaFingerprint && (
+                    {!isSaved && (
                       <Button
                         variant="contained"
-                        onClick={() => onPair(new File([o.bytes as BlobPart], o.name))}
+                        onClick={() =>
+                          onPair(new File([o.bytes as BlobPart], o.name), { resultId: a.result.id, sha: o.sha })
+                        }
                         sx={{ minHeight: 44 }}
                       >
                         Save it to this plant
                       </Button>
                     )}
                   </Stack>
+                  {!isSaved && record.dnaFingerprint && (
+                    <Typography variant="caption" color="text.secondary">
+                      A lab report is already saved to this plant. Saving this one replaces it; you confirm on the next
+                      screen.
+                    </Typography>
+                  )}
                 </Stack>
               )}
             </Box>
@@ -639,7 +761,9 @@ export const SendResultsPanel: React.FC<{
           `Your signature on it is withdrawn, but the file is still with the registry (${del.error}). Tap Withdraw again.`,
         );
       }
-      setNote('Withdrawn. The breeder sees that you withdrew it, and can no longer open it.');
+      setNote(
+        `Withdrawn. The breeder sees that you withdrew it, and can no longer open it.${r.replaces ? ` ${WITHDRAW_CORRECTION_WARNING}` : ''}`,
+      );
     } catch (e) {
       setProblem(e instanceof Error ? e.message : String(e));
     } finally {
@@ -716,9 +840,12 @@ export const SendResultsPanel: React.FC<{
           Sent
         </Typography>
         <Typography variant="body1">
-          Only the breeder can open it. Your signature is public: anyone checking this plant sees that{' '}
-          {attester?.displayName ?? 'your lab'} signed a lab report with fingerprint {short(file.sha)}, but not the
-          report.
+          Only the breeder can open it. Your signature is public, the report isn&apos;t: anyone with a link to this
+          plant&apos;s check page sees that a lab report about it was signed, and its SHA-256 ({short(file.sha)}).
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          They see your lab&apos;s name only if VeilCore&apos;s operator has matched it to a public licence listing.
+          Until then they see “a key named “{attester?.displayName ?? 'your lab'}” (name not checked)”.
         </Typography>
         {note && (
           <Alert severity="warning" variant="outlined">
@@ -744,8 +871,8 @@ export const SendResultsPanel: React.FC<{
               return (
                 <Box key={r.id} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 1.5 }}>
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    Sent {when(r.createdAt)}
-                    {r.replaces ? ' · a corrected file' : ''}
+                    {shortResultId(r.id)} · sent {when(r.createdAt)}
+                    {r.replaces ? ` · corrects ${shortResultId(r.replaces)}` : ''}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     {sentRowWords(state, r, mySent)}
@@ -800,6 +927,7 @@ export const SendResultsPanel: React.FC<{
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
                       Your signature on it is withdrawn (it stays on record as withdrawn) and the file is deleted. The
                       breeder sees “Withdrawn by the lab”.
+                      {r.replaces && <b> {WITHDRAW_CORRECTION_WARNING}</b>}
                     </Typography>
                   )}
                 </Box>
@@ -820,7 +948,7 @@ export const SendResultsPanel: React.FC<{
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           {replacing
-            ? `It replaces the lab report you sent ${when(replacing.createdAt)}. The old one is withdrawn: your signature on it, as replaced, and its file.`
+            ? `It replaces ${shortResultId(replacing.id)}, the lab report you sent ${when(replacing.createdAt)}. The old one is withdrawn: its file is removed and your signature on it is marked replaced.`
             : 'Your browser signs the lab report’s fingerprint with your lab’s key and locks the file so only the breeder can open it. VeilCore only ever holds the locked file.'}
         </Typography>
         {replacing && (

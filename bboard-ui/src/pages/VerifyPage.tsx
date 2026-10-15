@@ -30,16 +30,11 @@ import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import { shortFingerprint } from '../veilcore/commitment';
 import { DISCLOSURE_FIELDS, LEGACY_NAME, toDisclosureKey, labelOf } from '../veilcore/disclosure';
 import { proofFor, type ProofState } from '../veilcore/proofs';
-import {
-  attestationsFor,
-  countsAsSigned,
-  nameChecked,
-  signerLabel,
-  type ResolvedAttestation,
-} from '../veilcore/attesters';
+import { attestationsFor, countsAsSigned, signerLabel, type ResolvedAttestation } from '../veilcore/attesters';
 import { ACCENT } from '../config/theme';
 import { NETWORK, isTestNetwork, networkLabel } from '../config/network';
-import { Fact, SharedFacts } from '../components/verify/DisclosedFacts';
+import { Fact, FactKey, SharedFacts } from '../components/verify/DisclosedFacts';
+import { publicReportLine } from '../veilcore/saved-report';
 import { bindingOf, checkedSummary, linkFingerprint, verifyHeading } from '../veilcore/verify-link';
 import { displayName } from '../veilcore/display-name';
 import { utcStamp as fmt } from '../veilcore/time';
@@ -108,6 +103,11 @@ type VerifyResult = {
   breedingMethod?: string | null;
   /** The registry's report that the record names its own key (key-binding.ts). */
   keyBound?: boolean;
+  /**
+   * The saved lab report's pairing fingerprint (commitment.ts pairingFingerprintOfSha), when
+   * the holder shares whether one is saved and the registry sends it. Not the file's SHA-256.
+   */
+  dnaPairingFingerprint?: string | null;
 };
 
 /**
@@ -149,7 +149,8 @@ const isVerifyResult = (v: unknown): v is VerifyResult => {
     (r.anchor === undefined || r.anchor === null || (typeof r.anchor === 'object' && !Array.isArray(r.anchor))) &&
     str(r.lineageNote) &&
     str(r.unavailableReason) &&
-    bool(r.keyBound)
+    bool(r.keyBound) &&
+    str(r.dnaPairingFingerprint)
   );
 };
 
@@ -171,6 +172,17 @@ const sharedOf = (r: VerifyResult): string[] => {
   }
   return DISCLOSURE_FIELDS.map((f) => LEGACY_NAME[f.key]).filter((k) => names.has(k));
 };
+
+/** Most signatures given a line each; the rest are counted. */
+const SIGNATURE_LINES = 5;
+
+/** What a signature is, in plain words (its type is the signer's own statement). */
+export const signatureKind = (a: ResolvedAttestation): string =>
+  a.type === 'chain-of-custody'
+    ? 'Lab’s receipt for a sample'
+    : a.type === 'laboratory-report'
+      ? `Lab report (file SHA-256 ${a.documentHash.slice(0, 8)}…${a.documentHash.slice(-6)})`
+      : 'Signed statement';
 
 const labelsOf = (keys: readonly unknown[]): string =>
   keys
@@ -256,9 +268,20 @@ export const VerifyPage: React.FC = () => {
         ? result.anchor.network
         : undefined;
   const signed = (atts ?? []).filter(countsAsSigned);
-  // A current name check (round 4): an old mark with no check record, or an expired one, doesn't count.
-  const signedVetted = signed.filter((a) => nameChecked(a));
-  const ticked = checked || (bound && signedVetted.length > 0);
+  // Round 5: what each signature is, said on its own line and counted the same way in the
+  // footer: a lab's receipt, a lab report, or some other signed statement.
+  const withdrawnSigs = (atts ?? []).filter((a) => a.signatureValid && a.retraction).length;
+  const badSigs = (atts ?? []).filter((a) => !a.signatureValid).length;
+  const labReport = publicReportLine({
+    paired: result?.dnaPairedByHolder,
+    linkSha: params.get('rs'),
+    pairingFingerprint: result?.dnaPairingFingerprint,
+    atts: atts ?? [],
+    bound,
+  });
+  // A verified signature against the link's own fingerprint is a check this browser made;
+  // whether its name was matched is said in words on its line (round 5).
+  const ticked = checked || (bound && signed.length > 0);
   // The seal: only for an anchor checked on chain by this page (none today).
   const seal = checked && ANCHOR_CHECKED_ON_CHAIN;
   const name = displayName(result?.cultivar);
@@ -412,6 +435,7 @@ export const VerifyPage: React.FC = () => {
             <Divider sx={{ mb: 2 }} />
 
             <Stack spacing={1.25}>
+              <FactKey />
               {!result.recordFingerprint ? (
                 <Fact ok={false}>
                   This record carries no commitment, so nothing about it can be checked. It exists in the registry and
@@ -475,29 +499,52 @@ export const VerifyPage: React.FC = () => {
 
               {/* Base data: shown whatever the holder shared. Signatures are checked here;
                   who holds a key is the registry operator's word. Ticked only against the
-                  link's own fingerprint. */}
-              {result.recordFingerprint &&
-                atts !== null &&
-                (signedVetted.length > 0 ? (
-                  <Fact ok={bound}>
-                    {forWhom}Signed attestation, signature verified in this browser.{' '}
-                    {signerLabel(signedVetted[0], 'Signed by').lead}.
-                    <NameCheckText label={signerLabel(signedVetted[0], 'Signed by')} />
-                  </Fact>
-                ) : signed.length > 0 ? (
-                  <Fact ok={false}>
-                    {forWhom}Signed attestation, signature verified in this browser, from a key whose name isn&apos;t
-                    checked. It doesn&apos;t show who signed.
-                  </Fact>
-                ) : result.signedAttestation === true ||
-                  result.attestedByVettedLab === true ||
-                  result.attested === true ? (
-                  <Fact ok={false}>
-                    The registry reports a signed attestation, but none could be verified in this browser.
-                  </Fact>
-                ) : (
-                  <Fact ok={false}>No signed attestation.</Fact>
-                ))}
+                  link's own fingerprint. One line per signature, saying what it is. */}
+              {result.recordFingerprint && atts !== null && (
+                <>
+                  {signed.slice(0, SIGNATURE_LINES).map((a) => {
+                    const label = signerLabel(a, 'Signed by');
+                    return (
+                      <Fact key={a.attestationId} status={bound ? 'checked' : 'reported'}>
+                        {forWhom}
+                        {signatureKind(a)}, signature verified in this browser. {label.lead}.
+                        <NameCheckText label={label} />
+                        {!label.checked &&
+                          ' Anyone can register a key under any name, so the name doesn’t show who signed.'}
+                      </Fact>
+                    );
+                  })}
+                  {signed.length > SIGNATURE_LINES && (
+                    <Fact status={bound ? 'checked' : 'reported'}>
+                      {forWhom}And {signed.length - SIGNATURE_LINES} more signatures, each verified in this browser.
+                    </Fact>
+                  )}
+                  {signed.length === 0 &&
+                    (result.signedAttestation === true ||
+                    result.attestedByVettedLab === true ||
+                    result.attested === true ? (
+                      <Fact status="failed">
+                        The registry reports a signed attestation, but none could be verified in this browser.
+                      </Fact>
+                    ) : (
+                      <Fact ok={false}>No lab&apos;s receipt or lab report has been signed about this record.</Fact>
+                    ))}
+                  {withdrawnSigs > 0 && (
+                    <Fact ok={false}>
+                      {withdrawnSigs === 1
+                        ? 'One signature was withdrawn by its signer, so it is not counted.'
+                        : `${withdrawnSigs} signatures were withdrawn by their signers, so they are not counted.`}
+                    </Fact>
+                  )}
+                  {badSigs > 0 && (
+                    <Fact status="failed">
+                      {badSigs === 1
+                        ? 'One signature the registry reports doesn’t verify in this browser, so it is not counted.'
+                        : `${badSigs} signatures the registry reports don’t verify in this browser, so they are not counted.`}
+                    </Fact>
+                  )}
+                </>
+              )}
 
               {/* The holder's own plant: the lab receipt linked to one of their deliveries. */}
               {own && receipt?.kind === 'signed' && (
@@ -524,6 +571,7 @@ export const VerifyPage: React.FC = () => {
                   registryFirstSeen: result.registryFirstSeen,
                   parents: result.parents,
                   breedingMethod: result.breedingMethod,
+                  labReport,
                 }}
               />
 
@@ -555,6 +603,7 @@ export const VerifyPage: React.FC = () => {
                   bound,
                   proofChecked: proof !== 'checking' && proof.status !== 'none',
                   signaturesChecked: signed.length,
+                  signatureKinds: signed.map(signatureKind),
                 })}
                 sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', py: 0.5 } }}
               />

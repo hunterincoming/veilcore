@@ -136,6 +136,9 @@ export const BackupStep: React.FC<{
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
           If this phone or computer breaks, that copy is your way back.
         </Typography>
+        <Typography variant="body2" sx={{ mb: 1.25, fontWeight: 700 }} data-backup-warning="">
+          This file lets anyone who has it act as you. Keep it somewhere only you can open.
+        </Typography>
         {canShare ? (
           <Button
             variant="outlined"

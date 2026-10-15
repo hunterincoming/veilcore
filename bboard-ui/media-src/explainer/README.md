@@ -22,8 +22,11 @@ and say nothing it doesn't:
   "own").
 - Genetic data never leaves your computer. The plant name and other typed fields are kept
   on VeilCore's server, and the plant name is on every check page.
-- "Prove it" shows the person controls the key registered for the record. It says nothing
-  about who bred the plant.
+- "Prove it" shows the person controls the key the record names (spec 3.6.1). It says
+  nothing about who bred the plant. The checker's screen shows no record date, so the video
+  doesn't either.
+- The end card says "Prove it and lab reports: on the test site first." (veilcore.org has
+  neither yet).
 - Lab receipts are signed with the lab's own key and kept by VeilCore's registry, not the
   chain. A lab report reaches VeilCore's server only when a lab sends it back, locked so
   only the holder can open it. VeilCore doesn't vouch for results.

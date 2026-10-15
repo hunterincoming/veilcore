@@ -27,6 +27,7 @@ import { SendToLab } from './SendToLab';
 import { OPEN_SIGNING_KEY_EVENT } from './AttesterSetup';
 import type { ArrivedResult } from './flow/LabResults';
 import { ACCENT } from '../config/theme';
+import type { SavedReport } from '../veilcore/saved-report';
 
 type Step = {
   /** Some steps render their own control rather than a plain button. */
@@ -58,6 +59,8 @@ export const NextStep: React.FC<{
   onSignReceipt?: () => void;
   /** A lab-only account: no breeder actions (send to a lab, agreements). */
   labOnly?: boolean;
+  /** The breeder's: where the lab report saved to this plant stands (veilcore/saved-report.ts). */
+  saved?: SavedReport | null;
 }> = ({
   record,
   onPairDna,
@@ -72,6 +75,7 @@ export const NextStep: React.FC<{
   onSendResults,
   onSignReceipt,
   labOnly,
+  saved,
 }) => {
   let step: Step | null;
 
@@ -152,6 +156,33 @@ export const NextStep: React.FC<{
         onClick: onSendResults,
       };
     }
+  } else if (saved && (saved.kind === 'replaced' || saved.kind === 'withdrawn') && !labOnly) {
+    // Round 5: a saved report the lab no longer stands behind comes before anything else
+    // about lab work, and says what everyone else sees until it's fixed.
+    const newer = saved.newer;
+    step =
+      saved.kind === 'replaced'
+        ? newer
+          ? {
+              title: 'Save the corrected lab report',
+              why: 'The lab replaced the lab report saved to this plant. Until you save the corrected one, your plant page, certificate and links say the saved one was replaced.',
+              action: 'Open the corrected one',
+              icon: <LockIcon />,
+              onClick: onOpenResult ? () => onOpenResult(newer.result.id) : undefined,
+            }
+          : {
+              title: `No current lab report from ${saved.lab}`,
+              why: 'The original was replaced and the correction withdrawn. Ask the lab to send one again. Until then your certificate and links say the saved one was replaced.',
+            }
+        : {
+            title: 'The lab withdrew the lab report saved here',
+            why: newer
+              ? 'It stays saved to this plant, and your certificate and links say it was withdrawn. A newer lab report is here: open it and save it instead.'
+              : 'It stays saved to this plant, and your certificate and links say it was withdrawn. Ask the lab for a new one.',
+            ...(newer && onOpenResult
+              ? { action: 'Open the newer one', icon: <LockIcon />, onClick: () => onOpenResult(newer.result.id) }
+              : {}),
+          };
   } else if (firstWaiting && onOpenResult) {
     step = {
       title: `Open the lab report from ${firstWaiting.transfer.to_handle}`,

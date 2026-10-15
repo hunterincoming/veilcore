@@ -66,7 +66,7 @@ const mainnetBuild = (mode: string, command: string) => {
 
 // The page description search engines and link previews show, by mode.
 const DESCRIPTION = {
-  test: 'An open record format for plant and animal genetics. Seal a record on your own computer; only its fingerprint is dated on Midnight. Pre-launch: tested on a Midnight test network, no security audit yet.',
+  test: 'An open record format for plant and animal genetics. Seal a record on your own computer; only its fingerprint is dated on Midnight. Test site: practice records on a Midnight test network. No security audit yet.',
   mainnet:
     "An open record format for plant and animal genetics. Seal a record on your own computer; only its fingerprint is dated, on Midnight's main network. Free to check, no account.",
 };

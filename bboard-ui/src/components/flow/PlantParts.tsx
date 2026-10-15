@@ -15,41 +15,60 @@ import { SECTIONS, type Section } from './FlowFrame';
 import type { BreederReceipt, LabReceipt } from '../../veilcore/custody';
 import { signerLabel } from '../../veilcore/attesters';
 import type { ArrivedResult } from './LabResults';
+import { savedReportRow, type SavedReport } from '../../veilcore/saved-report';
+import { keyStampLine, labReceiptRow } from './plant-status-words';
+
+export { keyStampLine, labReceiptRow };
 
 const day = (ms?: number | string) => (ms === undefined ? '' : new Date(ms).toLocaleDateString());
 
-const Row: React.FC<{ done: boolean; label: string; value: string; last?: boolean }> = ({
+const Row: React.FC<{ done: boolean; label: string; value: string; sub?: string; last?: boolean }> = ({
   done,
   label,
   value,
+  sub,
   last,
 }) => (
-  <Stack
-    direction="row"
-    spacing={1.25}
-    sx={{ alignItems: 'center', py: 1.25, borderBottom: last ? 0 : '1px solid', borderColor: 'divider' }}
-  >
-    {done ? <DoneIcon color="primary" /> : <WaitIcon sx={{ color: 'text.secondary' }} />}
-    <Typography
-      variant="body1"
-      sx={{ flex: 1, fontWeight: done ? 700 : 500, color: done ? undefined : 'text.secondary' }}
-    >
-      {label}
-    </Typography>
-    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'right' }}>
-      {value}
-    </Typography>
-  </Stack>
+  <Box sx={{ py: 1.25, borderBottom: last ? 0 : '1px solid', borderColor: 'divider' }} data-status-row={label}>
+    <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
+      {done ? (
+        <DoneIcon color="primary" titleAccess="done" />
+      ) : (
+        <WaitIcon sx={{ color: 'text.secondary' }} titleAccess="not yet" />
+      )}
+      <Typography
+        variant="body1"
+        sx={{ flex: 1, fontWeight: done ? 700 : 500, color: done ? undefined : 'text.secondary' }}
+      >
+        {label}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'right' }}>
+        {value}
+      </Typography>
+    </Stack>
+    {sub && (
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', pl: 4.25, pt: 0.25 }}>
+        {sub}
+      </Typography>
+    )}
+  </Box>
 );
 
-const REJECTED: Record<'damaged' | 'wrong-sample', string> = {
-  damaged: 'arrived damaged',
-  'wrong-sample': 'wrong sample',
-};
-
-/** The breeder's "Lab report" line: saved to the plant, waiting to be opened, or none. */
-const reportRow = (record: StrainRecord, arrived?: readonly ArrivedResult[] | null, waiting = 0) => {
-  if (record.dnaFingerprint) return { done: true, value: record.dnaFileName ?? 'saved to this plant' };
+/**
+ * The breeder's "Lab report" line: saved to the plant (and whether the lab still stands
+ * behind it: round 5, a report the lab replaced or withdrew is never a tick), waiting to be
+ * opened, or none.
+ */
+export const reportRow = (
+  record: StrainRecord,
+  arrived?: readonly ArrivedResult[] | null,
+  waiting = 0,
+  saved?: SavedReport | null,
+) => {
+  if (record.dnaFingerprint) {
+    if (saved === null) return { done: false, value: 'checking…' };
+    return (saved && savedReportRow(saved)) ?? { done: true, value: record.dnaFileName ?? 'saved to this plant' };
+  }
   if (waiting > 0) return { done: false, value: 'arrived, not opened' };
   if (arrived?.some((a) => a.state === 'live')) return { done: false, value: 'opened, not saved to this plant' };
   return { done: false, value: 'none yet' };
@@ -69,20 +88,6 @@ export const breederReceiptRow = (receipt: BreederReceipt | null | undefined) =>
   return { done: false, label: 'Lab receipt', value: 'not signed yet' };
 };
 
-/** The lab's own receipt line for a received sample: its own key's signature, nothing else. */
-const labReceiptRow = (receipt: LabReceipt | null | undefined) => {
-  if (receipt === null || receipt === undefined)
-    return { done: false, label: 'You confirmed receipt', value: 'checking…' };
-  if (receipt.kind === 'signed')
-    return {
-      done: receipt.linked,
-      label: 'You confirmed receipt',
-      value: receipt.linked ? `signed ${day(receipt.at)}` : `signed ${day(receipt.at)}, not linked to the delivery yet`,
-    };
-  if (receipt.kind === 'rejected') return { done: true, label: 'You turned it away', value: REJECTED[receipt.reason] };
-  return { done: false, label: 'You confirmed receipt', value: 'not signed yet' };
-};
-
 /** Where the plant stands, in a few plain lines. One date: the public one. */
 export const PlantStatus: React.FC<{
   record: StrainRecord;
@@ -95,7 +100,9 @@ export const PlantStatus: React.FC<{
   receipt?: BreederReceipt | LabReceipt | null;
   /** The lab's: lab reports it sent on this delivery that still stand. */
   labSent?: number;
-}> = ({ record, keys, arrived, waiting, receipt, labSent }) => {
+  /** The breeder's: where the lab report saved to this plant stands (null while loading). */
+  saved?: SavedReport | null;
+}> = ({ record, keys, arrived, waiting, receipt, labSent, saved }) => {
   const [proof, setProof] = useState<ProofState>({ status: 'none' });
   useEffect(() => {
     if (record.recordFingerprint) void proofFor(record.recordFingerprint).then(setProof);
@@ -112,19 +119,15 @@ export const PlantStatus: React.FC<{
       : proof.status === 'pending'
         ? { done: false, value: 'in a batch, waiting' }
         : { done: false, value: 'waiting for a batch' };
-  const key: { done: boolean; value: string } = keys?.anchor
-    ? { done: true, value: day(keys.anchor.anchoredAt) || 'done' }
-    : { done: false, value: 'not yet' };
 
-  const rows = [
+  // Round 5: one main date, the record's. The key's stamp is a second line under it with
+  // one line of why, so a breeder never reads two competing "dates".
+  const rows: { done: boolean; label: string; value: string; sub?: string }[] = [
     ...(received
       ? []
       : REAL_CHAIN
-        ? [
-            { done: key.done, label: 'Key date stamped', value: key.value },
-            { done: batch.done, label: 'Record dated', value: batch.value },
-          ]
-        : [{ done: batch.done, label: 'Public date stamp', value: batch.value }]),
+        ? [{ done: batch.done, label: 'Record dated', value: batch.value, sub: keyStampLine(keys) }]
+        : [{ done: batch.done, label: 'Record dated', value: batch.value }]),
     received
       ? labReceiptRow(receipt as LabReceipt | null | undefined)
       : breederReceiptRow(receipt as BreederReceipt | null | undefined),
@@ -138,7 +141,7 @@ export const PlantStatus: React.FC<{
             },
           ]
         : []
-      : [{ label: 'Lab report', ...reportRow(record, arrived, waiting) }]),
+      : [{ label: 'Lab report', ...reportRow(record, arrived, waiting, saved) }]),
     ...(REAL_CHAIN && keys
       ? [
           {
