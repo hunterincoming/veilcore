@@ -4,6 +4,13 @@
 
 import type { LabReceipt } from '../../veilcore/custody';
 import type { RecordKeys } from '../../veilcore/record-keys';
+import type { ProofState } from '../../veilcore/proofs';
+import type { AnchorState } from '../verify/anchor-words';
+import { isTestNetwork } from '../../config/network';
+import { utcDate } from '../../veilcore/time';
+
+/** "2026-10-11 UTC": the day, labelled. */
+const utcDay = (t: number | string): string => utcDate(t).replace(' (UTC)', ' UTC');
 
 const day = (ms?: number | string) => (ms === undefined ? '' : new Date(ms).toLocaleDateString());
 
@@ -52,3 +59,44 @@ export const labSentPhrase = (facts?: { sent: number; sentEver: number }): strin
       : facts.sentEver > 0
         ? 'lab report withdrawn'
         : undefined;
+
+/** A status line's mark: ✓ checked, ○ reported or waiting (neutral), ⊗ failed. */
+export type RowMark = 'done' | 'reported' | 'wait' | 'failed';
+
+/**
+ * The plant page's "Record dated" line. One source of truth with the check page and the
+ * History: the date is ticked only when this browser found the batch root in the named
+ * transaction on Midnight (useAnchorCheck.ts); until then it is the registry's report,
+ * with a neutral mark; a look-up that contradicts the registry is a failure.
+ */
+export const recordDateRow = (
+  proof: ProofState | 'checking',
+  anchor: AnchorState | undefined,
+): { mark: RowMark; value: string; sub?: string } => {
+  if (proof === 'checking') return { mark: 'wait', value: 'checking…' };
+  if (proof.status === 'none') return { mark: 'wait', value: 'waiting for a batch' };
+  if (proof.status === 'pending') return { mark: 'wait', value: 'in a batch, waiting for its date stamp' };
+  const a = proof.proof.anchor;
+  const test = a && isTestNetwork(a.network) ? ' On a test network: practice data, not a real date.' : '';
+  const withTest = (sub?: string) => (sub ? `${sub}${test}` : test.trim() || undefined);
+  if (anchor !== undefined && anchor !== 'checking' && anchor.status === 'checked')
+    return { mark: 'done', value: `${utcDay(anchor.blockTime)} — checked on Midnight`, sub: withTest() };
+  if (anchor !== undefined && anchor !== 'checking' && anchor.status === 'failed')
+    return {
+      mark: 'failed',
+      value: 'date stamp not confirmed on Midnight',
+      sub: `${anchor.reason[0].toUpperCase()}${anchor.reason.slice(1)}. Don’t rely on the date the registry reports.`,
+    };
+  const reported = a?.anchoredAt && !Number.isNaN(Date.parse(a.anchoredAt)) ? utcDay(a.anchoredAt) : undefined;
+  const why =
+    anchor === 'checking'
+      ? 'Looking it up on Midnight…'
+      : anchor?.status === 'unreachable'
+        ? 'Couldn’t reach Midnight to check it.'
+        : 'Not checked on Midnight from this page.';
+  return {
+    mark: 'reported',
+    value: `${reported ?? 'date not given'} (VeilCore’s registry’s report)`,
+    sub: withTest(why),
+  };
+};

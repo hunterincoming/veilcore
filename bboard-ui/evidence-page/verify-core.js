@@ -303,7 +303,160 @@ var VeilcoreVerify = (function () {
     return out;
   }
 
-  // ---- 6. what to look up --------------------------------------------------------------
+  // ---- 6. the Bitcoin stamp file (OpenTimestamps) ---------------------------------------
+  //
+  // Read here, so the page says only what the file itself shows: whether it is about this
+  // batch root (it starts from SHA-256 of root.bin), and which Bitcoin block it names, with
+  // the value that block's merkle root must be. The format is python-opentimestamps' (the
+  // same reader as scripts/check-bitcoin-stamp.mjs). This page can't reach Bitcoin, so it
+  // never says the block holds that value: the OpenTimestamps tools check that.
+
+  var OTS_MAGIC = [0x00, 0x4f, 0x70, 0x65, 0x6e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x73, 0x00, 0x00,
+    0x50, 0x72, 0x6f, 0x6f, 0x66, 0x00, 0xbf, 0x89, 0xe2, 0xe8, 0x84, 0xe8, 0x92, 0x94];
+  var OTS_TAGS = { '0588960d73d71901': 'bitcoin', '83dfe30d2ef90c8e': 'pending', '06869a0d73d71b45': 'litecoin', '30fe8087b5c7ead7': 'ethereum' };
+  var OTS_FILE_HASH = { 0x02: { name: 'sha1', len: 20 }, 0x03: { name: 'ripemd160', len: 20 }, 0x08: { name: 'sha256', len: 32 } };
+  var OTS_OPS = { 0xf0: 'append', 0xf1: 'prepend', 0xf2: 'reverse', 0xf3: 'hexlify', 0x02: 'sha1', 0x03: 'ripemd160', 0x08: 'sha256', 0x67: 'keccak256' };
+  var OTS_MAX_MSG = 4096;
+  var OTS_MAX_ATTESTATIONS = 64;
+  var OTS_MAX_STEPS = 20000;
+
+  function otsReader(bytes) {
+    var pos = 0;
+    function take(n) {
+      if (pos + n > bytes.length) throw new Error('the file ends too early');
+      var b = bytes.subarray(pos, pos + n);
+      pos += n;
+      return b;
+    }
+    function varuint() {
+      var value = 0;
+      var mul = 1;
+      for (;;) {
+        var b = take(1)[0];
+        value += (b & 0x7f) * mul;
+        if (!(b & 0x80)) break;
+        mul *= 128;
+        if (mul > Math.pow(2, 49)) throw new Error('a number in the file is too large');
+      }
+      return value;
+    }
+    function varbytes(max, min) {
+      var n = varuint();
+      if (n > max) throw new Error('a field is too long');
+      if (n < (min || 0)) throw new Error('a field is too short');
+      return take(n);
+    }
+    return { take: take, varuint: varuint, varbytes: varbytes, byte: function () { return take(1)[0]; }, done: function () { return pos === bytes.length; } };
+  }
+
+  /** The file's structure: the digest it starts from and every attestation with the steps to it. */
+  function parseOts(bytes) {
+    if (!(bytes instanceof Uint8Array)) throw new Error('no stamp file');
+    var r = otsReader(bytes);
+    var head = r.take(OTS_MAGIC.length);
+    for (var i = 0; i < OTS_MAGIC.length; i++) if (head[i] !== OTS_MAGIC[i]) throw new Error('it is not an OpenTimestamps file');
+    if (r.varuint() !== 1) throw new Error('it is an OpenTimestamps version this page doesn’t read');
+    var fileHash = OTS_FILE_HASH[r.byte()];
+    if (!fileHash) throw new Error('it starts from a hash this page doesn’t know');
+    var digest = toHex(r.take(fileHash.len));
+    var attestations = [];
+    var steps = 0;
+    function attestation(path) {
+      var tag = toHex(r.take(8));
+      var payload = otsReader(r.varbytes(8192));
+      var kind = OTS_TAGS[tag] || 'unknown';
+      var a = { kind: kind, path: path };
+      if (kind === 'bitcoin' || kind === 'litecoin') a.height = payload.varuint();
+      else if (kind === 'pending') a.uri = new TextDecoder().decode(payload.varbytes(1000));
+      if (kind !== 'unknown' && !payload.done()) throw new Error('an attestation has bytes left over');
+      if (attestations.length >= OTS_MAX_ATTESTATIONS) throw new Error('it has too many attestations');
+      attestations.push(a);
+    }
+    function timestamp(path, depth) {
+      if (depth > 256) throw new Error('the stamp is nested too deeply');
+      function doTag(tag) {
+        if (tag === 0x00) return attestation(path);
+        var op = OTS_OPS[tag];
+        if (!op) throw new Error('it has an operation this page doesn’t know (0x' + tag.toString(16) + ')');
+        if (++steps > OTS_MAX_STEPS) throw new Error('it has too many steps');
+        var arg = op === 'append' || op === 'prepend' ? toHex(r.varbytes(OTS_MAX_MSG, 1)) : null;
+        timestamp(path.concat([{ op: op, arg: arg }]), depth + 1);
+      }
+      var tag = r.byte();
+      while (tag === 0xff) {
+        doTag(r.byte());
+        tag = r.byte();
+      }
+      doTag(tag);
+    }
+    timestamp([], 0);
+    if (!r.done()) throw new Error('it has unexpected bytes at the end');
+    return { fileHash: fileHash.name, digest: digest, attestations: attestations };
+  }
+
+  /** Follow one attestation's steps from the digest. null when a step needs a hash this browser lacks. */
+  async function runOtsPath(digestHex, path) {
+    var msg = hexToBytes(digestHex);
+    for (var i = 0; i < path.length; i++) {
+      var s = path[i];
+      if (s.op === 'append') msg = concatBytes(msg, hexToBytes(s.arg));
+      else if (s.op === 'prepend') msg = concatBytes(hexToBytes(s.arg), msg);
+      else if (s.op === 'reverse') msg = msg.slice().reverse();
+      else if (s.op === 'hexlify') msg = enc.encode(toHex(msg));
+      else if (s.op === 'sha256') msg = new Uint8Array(await subtle().digest('SHA-256', msg));
+      else if (s.op === 'sha1') msg = new Uint8Array(await subtle().digest('SHA-1', msg));
+      else return null;
+      if (msg.length > OTS_MAX_MSG) throw new Error('a step’s result is too long');
+    }
+    return msg;
+  }
+  function concatBytes(a, b) {
+    var out = new Uint8Array(a.length + b.length);
+    out.set(a);
+    out.set(b, a.length);
+    return out;
+  }
+
+  /**
+   * What a stamp file shows about a batch root: 'bitcoin' (it names Bitcoin blocks, with
+   * the merkle root each must have), 'pending' (only a stamping server's promise),
+   * 'other-root' (it is about some other file), or 'unreadable'.
+   */
+  async function readStamp(bytes, rootHex) {
+    var parsed;
+    try {
+      parsed = parseOts(bytes);
+    } catch (e) {
+      return { status: 'unreadable', reason: messageOf(e) };
+    }
+    if (!isHex64(rootHex)) return { status: 'unreadable', reason: 'there is no batch root to compare it with' };
+    if (parsed.fileHash !== 'sha256' || parsed.digest !== (await sha256Hex(hexToBytes(rootHex)))) {
+      return { status: 'other-root', reason: 'it does not start from SHA-256 of root.bin, so it is about some other file' };
+    }
+    var bitcoin = [];
+    var pending = [];
+    for (var i = 0; i < parsed.attestations.length; i++) {
+      var a = parsed.attestations[i];
+      if (a.kind === 'bitcoin') {
+        var msg;
+        try {
+          msg = await runOtsPath(parsed.digest, a.path);
+        } catch (e) {
+          return { status: 'unreadable', reason: messageOf(e) };
+        }
+        // The steps end on the merkle root as it sits in the block header; explorers print it reversed.
+        bitcoin.push({ height: a.height, merkleRoot: msg && msg.length === 32 ? toHex(msg.slice().reverse()) : null });
+      } else if (a.kind === 'pending') {
+        pending.push(a.uri);
+      }
+    }
+    bitcoin.sort(function (x, y) { return x.height - y.height; });
+    if (bitcoin.length) return { status: 'bitcoin', bitcoin: bitcoin, pending: pending };
+    if (pending.length) return { status: 'pending', bitcoin: [], pending: pending };
+    return { status: 'unreadable', reason: 'it names no Bitcoin block and no stamping server' };
+  }
+
+  // ---- 7. what to look up --------------------------------------------------------------
 
   var EXPLORERS = {
     mainnet: 'https://midnightexplorer.com/',
@@ -345,8 +498,68 @@ var VeilcoreVerify = (function () {
     return {
       root: root,
       midnight: midnight,
-      bitcoin: ots && ots.available ? { status: ots.status === 'bitcoin' ? 'bitcoin' : 'pending', file: ots.file || 'proof/root.bin.ots', bitcoinBlockHeight: ots.bitcoinBlockHeight || null } : null,
+      // The registry's report of the stamp, named as such; what the file itself shows is readStamp's.
+      bitcoin: ots && ots.available ? { status: ots.status === 'bitcoin' ? 'bitcoin' : 'pending', file: ots.file || 'proof/root.bin.ots', bitcoinBlockHeight: typeof ots.bitcoinBlockHeight === 'number' ? ots.bitcoinBlockHeight : null } : null,
     };
+  }
+
+  /** "2026-10-15 11:00 UTC", as the site prints times (time.ts utcStamp); null for no time. */
+  function utc(t) {
+    if (typeof t !== 'string' && typeof t !== 'number') return null;
+    var d = new Date(t);
+    if (isNaN(d.getTime())) return null;
+    var iso = d.toISOString();
+    return iso.slice(0, 10) + ' ' + iso.slice(11, 16) + ' UTC';
+  }
+
+  var NETWORK_WORDS = { mainnet: 'Midnight’s main network', preprod: 'Midnight preprod (a test network)', preview: 'Midnight Preview (a test network)' };
+  function networkWords(n) {
+    return NETWORK_WORDS[n] || 'the Midnight network “' + n + '”';
+  }
+
+  /**
+   * The steps to date the record on Midnight, in plain words, with every value written in.
+   * README.txt says the same steps (bundle.ts midnightSteps; the site's tests compare them).
+   */
+  function midnightSteps(a) {
+    var when = utc(a.anchoredAt);
+    var out = [];
+    out.push(a.explorer
+      ? 'Open the Midnight explorer for ' + networkWords(a.network) + ': ' + a.explorer + ' (type the address in yourself).'
+      : 'Open a Midnight explorer for ' + networkWords(a.network) + '.');
+    out.push('Search for transaction ' + a.txHash + '.' + (a.blockHeight !== null || when
+      ? ' VeilCore’s registry reports it is' + (a.blockHeight !== null ? ' in block ' + a.blockHeight : '') + (when ? (a.blockHeight !== null ? ',' : '') + ' at ' + when : '') + '; the explorer’s own block and time are the ones to rely on.'
+      : ''));
+    out.push('Check that the transaction succeeded and that it called VeilCore’s contract ' + (a.contractAddress || '(the bundle doesn’t name it)') + '. Note its block and time: that time is the date.');
+    out.push('Check that it wrote this batch root: ' + a.root + '. The batch root is one fingerprint that stands for every record in the batch; this record’s proof leads to it.');
+    out.push('The explorer may not show the batch root in plain text: it sits inside the contract’s state after the call. If you can’t see it there, read that state from a Midnight indexer yourself (README.txt, “For technical readers”, says how), or open this record’s check page on VeilCore’s site, which does that look-up in your own browser.');
+    out.push('If the transaction succeeded, called that contract and wrote that root, this record existed, unchanged, by that transaction’s time: whoever had it sealed held this record by then. If any of it doesn’t match, nothing here dates the record.');
+    return out;
+  }
+
+  /** The Bitcoin stamp's steps. README.txt says the same (bundle.ts bitcoinSteps). */
+  function bitcoinSteps(pending) {
+    return [
+      'The batch root was also stamped on Bitcoin with OpenTimestamps. The stamp file is proof/root.bin.ots; the file it stamps is proof/root.bin (the batch root as 32 bytes).',
+      'Easiest: on opentimestamps.org, drop in root.bin.ots and then root.bin.',
+      'Or with the official OpenTimestamps client, in the proof folder: ots verify root.bin.ots' +
+        (pending ? ' (run ots upgrade root.bin.ots first; that needs the internet once).' : '.'),
+    ];
+  }
+
+  /**
+   * Whether the bundle can be used to date the record at all: its fingerprint matches, its
+   * proof leads to the batch root, and the key, if it is included, matches. Otherwise the
+   * look-up steps are withheld and the page says which check failed.
+   */
+  function datable(report) {
+    var failed = [];
+    if (!report.fingerprint || !report.fingerprint.ok) failed.push('the fingerprint does not match the sealed fields');
+    if (report.proof && report.proof.status === 'fail') failed.push('the proof does not lead to the batch root');
+    if (report.key && report.key.status === 'fail') failed.push('the key does not match the record');
+    // Not in a batch yet: not a failure, but there is nothing to date it with either.
+    var notBatched = !report.proof || report.proof.status === 'none';
+    return { ok: failed.length === 0 && !notBatched, failed: failed, notBatched: notBatched };
   }
 
   // ---- everything ----------------------------------------------------------------------
@@ -355,14 +568,15 @@ var VeilcoreVerify = (function () {
    * Run every check on an evidence object (evidence.json). `files` are files the person
    * picked to check as well: { name, bytes } (a lab report, root.bin).
    */
-  async function checkAll(ev, files) {
-    var out = { fingerprint: null, proof: null, key: null, pairing: null, signatures: [], lookups: null, files: [] };
+  async function checkAll(ev, files, opts) {
+    var out = { fingerprint: null, proof: null, key: null, pairing: null, signatures: [], lookups: null, files: [], stamp: null, datable: null };
     if (!isObject(ev)) {
       out.fingerprint = { ok: false, reason: 'This is not a VeilCore evidence file.' };
       out.proof = { status: 'none' };
       out.key = { status: 'absent' };
       out.pairing = { status: 'none' };
       out.lookups = { root: null, midnight: [], bitcoin: null };
+      out.datable = datable(out);
       return out;
     }
     var record = isObject(ev.record) ? ev.record : null;
@@ -375,6 +589,9 @@ var VeilcoreVerify = (function () {
     var sigs = Array.isArray(ev.signatures) ? ev.signatures : [];
     for (var i = 0; i < sigs.length; i++) out.signatures.push(await checkSignature(sigs[i], fingerprint));
     out.lookups = lookups(ev);
+    out.datable = datable(out);
+    var embeddedOts = opts && opts.ots instanceof Uint8Array ? opts.ots : null;
+    if (embeddedOts) out.stamp = await readStamp(embeddedOts, out.lookups.root);
     var list = Array.isArray(files) ? files : [];
     for (var k = 0; k < list.length; k++) {
       var f = list[k];
@@ -383,6 +600,11 @@ var VeilcoreVerify = (function () {
       if (/(^|\/)root\.bin$/.test(f.name)) {
         entry.is = 'root.bin';
         entry.ok = out.lookups.root !== null && f.bytes.length === 32 && toHex(f.bytes) === out.lookups.root;
+      } else if (/(^|\/)root\.bin\.ots$/.test(f.name)) {
+        entry.is = 'root.bin.ots';
+        entry.stamp = await readStamp(f.bytes, out.lookups.root);
+        entry.ok = entry.stamp.status === 'bitcoin' || entry.stamp.status === 'pending';
+        if (!out.stamp) out.stamp = entry.stamp;
       } else if (isObject(ev.labReport) && isHex64(ev.labReport.fileSha256)) {
         entry.is = 'lab report?';
         entry.ok = sha === ev.labReport.fileSha256;
@@ -394,6 +616,13 @@ var VeilcoreVerify = (function () {
 
   return {
     checkAll: checkAll,
+    datable: datable,
+    midnightSteps: midnightSteps,
+    bitcoinSteps: bitcoinSteps,
+    readStamp: readStamp,
+    parseOts: parseOts,
+    networkWords: networkWords,
+    utc: utc,
     checkFingerprint: checkFingerprint,
     checkProof: checkProof,
     checkKey: checkKey,

@@ -11,7 +11,9 @@
 //   3. the contract state the network recorded right after that call: its lastBatchRoot cell
 //      must be the root the inclusion proof folds to. The contract keeps only the latest
 //      root, so the state after this one transaction is read, never the current state;
-//   4. the block that transaction is in: its height and time are the date.
+//   4. the block that transaction is in: its height and time are the date. An answer
+//      without both is refused: it dates nothing.
+// The same transaction listed twice with different contents is refused too.
 // With a second indexer configured, both are asked and must give the same answer.
 //
 // What it shows: the root (and so every record in the batch) existed by that block. Not
@@ -28,9 +30,10 @@ export type AnchorCheck =
   | {
       readonly status: 'checked';
       readonly txHash: string;
-      readonly blockHeight?: number;
+      /** Always there: an answer without its block's height and time is refused. */
+      readonly blockHeight: number;
       /** Milliseconds since 1970, from the block. */
-      readonly blockTime?: number;
+      readonly blockTime: number;
       /** How many independent indexers gave this same answer. */
       readonly indexers: number;
     }
@@ -120,9 +123,19 @@ export const isAnchorEntry = (raw: unknown): boolean => {
 
 /** One indexer's answer, judged on its own. */
 type Answer =
-  | { kind: 'ok'; txHash: string; blockHeight?: number; blockTime?: number; root: string }
+  | { kind: 'ok'; txHash: string; blockHeight: number; blockTime: number; root: string }
   | { kind: 'refused'; reason: string }
   | { kind: 'unreachable'; reason: string };
+
+/** JSON with object keys sorted, so two copies of one answer compare equal. */
+const stableJson = (v: unknown): string =>
+  JSON.stringify(v, (_k, x: unknown) =>
+    typeof x === 'object' && x !== null && !Array.isArray(x)
+      ? Object.fromEntries(
+          Object.entries(x as Record<string, unknown>).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+        )
+      : x,
+  );
 
 const asTxList = (v: unknown): Tx[] =>
   Array.isArray(v) ? v.filter((t): t is Tx => typeof t === 'object' && t !== null) : [];
@@ -154,13 +167,25 @@ const askOne = async (
   if (typeof body.data !== 'object' || body.data === null)
     return { kind: 'unreachable', reason: 'the indexer’s answer could not be read' };
 
-  // Every transaction the indexer returned that really is this one.
+  // Every transaction the indexer returned that really is this one. The same transaction
+  // may come back twice (by hash and by identifier); that is fine only when both entries
+  // say exactly the same. Two different entries for one hash are refused, never resolved
+  // by keeping whichever came last.
   const found = new Map<string, Tx>();
-  for (const t of asTxList(body.data.byHash)) if (norm(t.hash) === input.txId) found.set(norm(t.hash), t);
+  let conflicting = false;
+  const add = (t: Tx) => {
+    const h = norm(t.hash);
+    const seen = found.get(h);
+    if (seen !== undefined && stableJson(seen) !== stableJson(t)) conflicting = true;
+    else found.set(h, t);
+  };
+  for (const t of asTxList(body.data.byHash)) if (norm(t.hash) === input.txId) add(t);
   for (const t of asTxList(body.data.byId)) {
     const ids = Array.isArray(t.identifiers) ? t.identifiers.map(norm) : [];
-    if (ids.includes(input.txId) && HEX64.test(norm(t.hash))) found.set(norm(t.hash), t);
+    if (ids.includes(input.txId) && HEX64.test(norm(t.hash))) add(t);
   }
+  if (conflicting)
+    return { kind: 'refused', reason: `the indexer gave two different answers for transaction ${short(input.txId)}` };
   if (found.size === 0)
     return { kind: 'refused', reason: `Midnight’s indexer has no transaction ${short(input.txId)}` };
   if (found.size > 1) return { kind: 'refused', reason: `more than one transaction answers to ${short(input.txId)}` };
@@ -194,14 +219,16 @@ const askOne = async (
   if (written !== input.root)
     return { kind: 'refused', reason: `that transaction wrote a different batch root (${short(written)})` };
 
+  // The block is the date. An answer that doesn't say which block, or when, dates nothing.
   const h = tx.block?.height;
-  return {
-    kind: 'ok',
-    txHash,
-    blockHeight: typeof h === 'number' && Number.isSafeInteger(h) && h >= 0 ? h : undefined,
-    blockTime: blockTimeMs(tx.block?.timestamp),
-    root: written,
-  };
+  const blockHeight = typeof h === 'number' && Number.isSafeInteger(h) && h >= 0 ? h : undefined;
+  const blockTime = blockTimeMs(tx.block?.timestamp);
+  if (blockHeight === undefined || blockTime === undefined)
+    return {
+      kind: 'refused',
+      reason: 'the indexer didn’t say when: it gave no block height or time for that transaction',
+    };
+  return { kind: 'ok', txHash, blockHeight, blockTime, root: written };
 };
 
 const defaultRootOf = async (stateHex: string): Promise<string> =>

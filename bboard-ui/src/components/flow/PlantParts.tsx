@@ -1,44 +1,61 @@
 // The plant page's two plain parts: where the plant stands, and a row per thing to do.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Box, ButtonBase, Paper, Stack, Typography } from '@mui/material';
 import DoneIcon from '@mui/icons-material/CheckCircle';
 import WaitIcon from '@mui/icons-material/RadioButtonUnchecked';
+import FailIcon from '@mui/icons-material/HighlightOff';
 import ChevronIcon from '@mui/icons-material/ChevronRight';
 import type { StrainRecord } from '../../veilcore/records';
 import type { RecordKeys } from '../../veilcore/record-keys';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { LAB_RESULTS_ENABLED } from '../../config/network';
-import { proofFor, type ProofState } from '../../veilcore/proofs';
+import { useRecordDate } from '../verify/useAnchorCheck';
 import { SECTIONS, type Section } from './FlowFrame';
 import type { BreederReceipt, LabReceipt } from '../../veilcore/custody';
 import { signerLabel } from '../../veilcore/attesters';
 import type { ArrivedResult } from './LabResults';
 import { savedReportRow, type SavedReport } from '../../veilcore/saved-report';
-import { keyStampLine, labReceiptRow, labSentRow } from './plant-status-words';
+import { keyStampLine, labReceiptRow, labSentRow, recordDateRow, type RowMark } from './plant-status-words';
 
-export { keyStampLine, labReceiptRow, labSentRow };
+export { keyStampLine, labReceiptRow, labSentRow, recordDateRow };
 
 const day = (ms?: number | string) => (ms === undefined ? '' : new Date(ms).toLocaleDateString());
 
-const Row: React.FC<{ done: boolean; label: string; value: string; sub?: string; last?: boolean }> = ({
-  done,
-  label,
-  value,
-  sub,
-  last,
-}) => (
-  <Box sx={{ py: 1.25, borderBottom: last ? 0 : '1px solid', borderColor: 'divider' }} data-status-row={label}>
+const Row: React.FC<{
+  done: boolean;
+  /** Overrides `done`: ✓ done, ○ reported (the registry's word) or waiting, ⊗ failed. */
+  mark?: RowMark;
+  label: string;
+  value: string;
+  sub?: string;
+  last?: boolean;
+}> = ({ done, mark = done ? 'done' : 'wait', label, value, sub, last }) => (
+  <Box
+    sx={{ py: 1.25, borderBottom: last ? 0 : '1px solid', borderColor: 'divider' }}
+    data-status-row={label}
+    data-mark={mark}
+  >
     <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
-      {done ? (
+      {mark === 'done' ? (
         <DoneIcon color="primary" titleAccess="done" />
+      ) : mark === 'failed' ? (
+        <FailIcon color="error" titleAccess="not confirmed" />
       ) : (
-        <WaitIcon sx={{ color: 'text.secondary' }} titleAccess="not yet" />
+        <WaitIcon
+          sx={{ color: 'text.secondary' }}
+          titleAccess={mark === 'reported' ? 'reported by the registry, not checked' : 'not yet'}
+        />
       )}
       <Typography
         variant="body1"
-        sx={{ flex: 1, fontWeight: done ? 700 : 500, color: done ? undefined : 'text.secondary' }}
+        sx={{
+          flex: 1,
+          fontWeight: mark === 'done' ? 700 : 500,
+          color:
+            mark === 'done' || mark === 'reported' ? undefined : mark === 'failed' ? 'error.main' : 'text.secondary',
+        }}
       >
         {label}
       </Typography>
@@ -105,31 +122,26 @@ export const PlantStatus: React.FC<{
   /** The breeder's: where the lab report saved to this plant stands (null while loading). */
   saved?: SavedReport | null;
 }> = ({ record, keys, arrived, waiting, receipt, labSent, labSentEver, saved }) => {
-  const [proof, setProof] = useState<ProofState>({ status: 'none' });
-  useEffect(() => {
-    if (record.recordFingerprint) void proofFor(record.recordFingerprint).then(setProof);
-  }, [record.recordFingerprint]);
+  // The record's date, from the same look-up the "Date on Midnight" section, the History
+  // and the check page use (useAnchorCheck.ts): ✓ only once this browser found the batch
+  // root in the named transaction on Midnight, ○ while it is the registry's report.
+  const { proof, anchor } = useRecordDate(record.recordFingerprint);
 
   const received = Boolean(record.receivedFrom);
   // Two different dates, never mixed (docs/identity-in-record.md): the record's own date is
   // its fingerprint's batch (which covers its key too, for a record that names one); the
   // key's date stamp, on test builds, dates the key only. Neither date is made up here:
-  // the batch's comes from its inclusion proof, the key's from its anchor.
-  const batch: { done: boolean; value: string } =
-    proof.status === 'anchor-reported'
-      ? { done: true, value: day(proof.proof.anchor?.anchoredAt) || 'in a dated batch' }
-      : proof.status === 'pending'
-        ? { done: false, value: 'in a batch, waiting' }
-        : { done: false, value: 'waiting for a batch' };
+  // the batch's comes from its inclusion proof and Midnight, the key's from its anchor.
+  const dated = recordDateRow(proof, anchor);
+  const batch = { done: dated.mark === 'done', mark: dated.mark, value: dated.value };
+  const datedSub = (extra?: string) => [dated.sub, extra].filter(Boolean).join(' ') || undefined;
 
   // Round 5: one main date, the record's. The key's stamp is a second line under it with
   // one line of why, so a breeder never reads two competing "dates".
-  const rows: { done: boolean; label: string; value: string; sub?: string }[] = [
+  const rows: { done: boolean; mark?: RowMark; label: string; value: string; sub?: string }[] = [
     ...(received
       ? []
-      : REAL_CHAIN
-        ? [{ done: batch.done, label: 'Record dated', value: batch.value, sub: keyStampLine(keys) }]
-        : [{ done: batch.done, label: 'Record dated', value: batch.value }]),
+      : [{ ...batch, label: 'Record dated', sub: datedSub(REAL_CHAIN ? keyStampLine(keys) : undefined) }]),
     received
       ? labReceiptRow(receipt as LabReceipt | null | undefined)
       : breederReceiptRow(receipt as BreederReceipt | null | undefined),

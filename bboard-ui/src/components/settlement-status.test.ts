@@ -60,14 +60,19 @@ describe('the paragraph', () => {
 
 describe('the component', () => {
   const src = fs.readFileSync(path.join(HERE, 'SettlementStatus.tsx'), 'utf8');
-  it('looks the anchor up with the contract this build pins, never the registry’s', () => {
-    expect(src).toMatch(
-      /checkAnchorOnChain\(\s*\{ network: a\.network, txId: a\.txHash, contractAddress: ANCHOR_CONTRACT, expectedRoot: state\.proof\.root \},\s*\{ buildNetwork: NETWORK, indexers: READ_INDEXERS \},/,
-    );
+  it('looks the anchor up through the shared look-up (the contract this build pins, never the registry’s)', () => {
+    // record-date.test.ts checks lookUpAnchor itself; here, that this section uses it.
+    expect(src).toMatch(/useRecordDate\(record\.recordFingerprint\)/);
+    expect(src).not.toMatch(/checkAnchorOnChain|proofFor\(/);
     expect(src).not.toMatch(/contractAddress: a\.contractAddress/);
   });
   it('uses the check page’s words and marks (anchor-words.ts, Fact)', () => {
-    expect(src).toMatch(/anchorLine\(anchor, \{ network, bound: true \}\)/);
+    expect(src).toMatch(/anchorLine\(anchor, \{ network, bound: true, reportedAt: proof\.anchor\?\.anchoredAt \}\)/);
     expect(src).toMatch(/<Fact status=\{anchorText\.status\}>\{anchorText\.text\}<\/Fact>/);
+  });
+  it('points to the evidence bundle and the check page, not “the open-source package and a lookup”', () => {
+    expect(src).not.toMatch(/open-source package and a lookup on the network/);
+    expect(src).toMatch(/The evidence bundle has everything/);
+    expect(src).toMatch(/the check page does the look-up in the browser when it can reach Midnight/);
   });
 });

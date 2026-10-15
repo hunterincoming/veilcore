@@ -18,7 +18,11 @@ own browser looks it up on Midnight:
    reads the contract right after that transaction, not as it is today.
 4. If what was written is this record's batch root, the page says:
    **"Checked on Midnight: this batch root was written by transaction … in block … at … UTC."**
-   with a tick, and the mark at the top turns teal.
+   with a tick, and the mark at the top turns teal (amber, with a test-network heading, when the
+   record is on a test network, which carries no evidential weight).
+
+If no Midnight indexer can be reached, the page says **"Couldn't reach a Midnight indexer"** and
+gives the registry's reported date (UTC), labelled as the registry's report, with a neutral ○.
 
 If the transaction wrote a different root, failed, or isn't a date stamp on VeilCore's
 contract, the page says **"Not confirmed on Midnight: …"** with a cross and tells the

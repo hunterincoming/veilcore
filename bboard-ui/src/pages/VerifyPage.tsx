@@ -43,21 +43,23 @@ import { publicReportLine, withdrawnSignaturesLine } from '../veilcore/saved-rep
 import { bindingOf, checkedSummary, linkFingerprint, verifyHeading } from '../veilcore/verify-link';
 import { displayName } from '../veilcore/display-name';
 import { utcStamp as fmt } from '../veilcore/time';
-import { ANCHOR_CONTRACT, READ_INDEXERS, REAL_CHAIN } from '../veilcore/chain/config';
-import { checkAnchorOnChain } from '../veilcore/chain/anchor-check';
+import { REAL_CHAIN } from '../veilcore/chain/config';
 import {
   anchorConfirmed,
   anchorHeading,
   anchorLine,
   anchorSummary,
-  type AnchorState,
+  registryDateWords,
 } from '../components/verify/anchor-words';
+import { useAnchorCheck } from '../components/verify/useAnchorCheck';
 import { VerifierChallengePanel } from '../components/chain/VerifierChallengePanel';
 import { useRecords } from '../veilcore/records';
 import { useBreederReceipt } from '../components/flow/LabResults';
 import { NameCheckText } from '../components/NameCheckText';
 
 const API = import.meta.env.VITE_API_BASE ?? '';
+/** The mark for a date checked on a test network: amber, never mainnet's teal. */
+const TEST_MARK = '#8A5A00';
 
 /**
  * A record id as the site makes them: VEIL- and 128 random bits in hex (records.ts). Only
@@ -209,9 +211,6 @@ export const VerifyPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [proof, setProof] = useState<ProofState | 'checking'>('checking');
   const [atts, setAtts] = useState<ResolvedAttestation[] | null>(null);
-  // The batch root's anchor, looked up on Midnight by this browser (anchor-check.ts).
-  // Undefined until the inclusion proof names a transaction to look up.
-  const [anchor, setAnchor] = useState<AnchorState | undefined>(undefined);
   // The holder's own plant, when this browser has it loaded: its linked lab receipt.
   const own = useRecords().find((r) => r.id === id.toUpperCase() && !r.receivedFrom);
   const receipt = useBreederReceipt(own, !!own);
@@ -271,24 +270,10 @@ export const VerifyPage: React.FC = () => {
   // that wrote it, this browser looks that transaction up on Midnight itself: it must be
   // VeilCore's date stamp call, at the contract this build pins, and have written exactly
   // this root. Its block gives the date. Until then, or if no indexer answers, the date is
-  // the registry's report and is worded that way.
-  useEffect(() => {
-    const reported = proof !== 'checking' && proof.status === 'anchor-reported' ? proof.proof : undefined;
-    const a = reported?.anchor;
-    if (!reported || !a?.txHash) {
-      setAnchor(undefined);
-      return;
-    }
-    let live = true;
-    setAnchor('checking');
-    void checkAnchorOnChain(
-      { network: a.network, txId: a.txHash, contractAddress: ANCHOR_CONTRACT, expectedRoot: reported.root },
-      { buildNetwork: NETWORK, indexers: READ_INDEXERS },
-    ).then((r) => live && setAnchor(r));
-    return () => {
-      live = false;
-    };
-  }, [proof]);
+  // the registry's report and is worded that way. The same look-up the plant page uses
+  // (chain/anchor-lookup.ts), so the two never disagree. Undefined until the inclusion
+  // proof names a transaction to look up.
+  const anchor = useAnchorCheck(proof);
 
   // A tick (and the teal mark) only for a check against the link's own fingerprint.
   const checked = bound && proof !== 'checking' && proof.status !== 'none';
@@ -324,10 +309,15 @@ export const VerifyPage: React.FC = () => {
   const anchorCheckedOnChain = anchorConfirmed(anchor);
   // The line under the registry's report: checking, ✓, ⊗, or ○ when no indexer answered.
   // Nothing extra when this build reads no indexer for that network: the report says so.
+  const reportedAt =
+    proof !== 'checking' && proof.status === 'anchor-reported' ? proof.proof.anchor?.anchoredAt : undefined;
   const anchorText =
-    anchor === undefined ? undefined : anchorLine(anchor, { network: reportedNetwork ?? NETWORK, bound });
+    anchor === undefined ? undefined : anchorLine(anchor, { network: reportedNetwork ?? NETWORK, bound, reportedAt });
   const anchorLooked = anchorText !== undefined;
   const seal = checked && anchorCheckedOnChain;
+  // A date checked on a test network is practice data: its own mark, never mainnet's teal.
+  const testSeal = seal && isTestNetwork(reportedNetwork ?? NETWORK);
+  const sealColor = testSeal ? TEST_MARK : ACCENT;
   const name = displayName(result?.cultivar);
 
   return (
@@ -439,13 +429,14 @@ export const VerifyPage: React.FC = () => {
               <VerifiedIcon
                 aria-hidden="true"
                 data-checked={seal ? 'yes' : 'no'}
-                sx={{ color: seal ? ACCENT : 'text.disabled', fontSize: 30 }}
+                data-test-network={testSeal ? 'yes' : 'no'}
+                sx={{ color: seal ? sealColor : 'text.disabled', fontSize: 30 }}
               />
               <Box>
                 <Typography
                   variant="h6"
                   component="h1"
-                  sx={{ color: seal ? ACCENT : 'text.primary', lineHeight: 1.4, display: 'block' }}
+                  sx={{ color: seal ? sealColor : 'text.primary', lineHeight: 1.4, display: 'block' }}
                 >
                   {anchorHeading(
                     verifyHeading({
@@ -455,6 +446,7 @@ export const VerifyPage: React.FC = () => {
                     }),
                     anchor,
                     bound,
+                    reportedNetwork ?? NETWORK,
                   )}
                 </Typography>
               </Box>
@@ -514,8 +506,8 @@ export const VerifyPage: React.FC = () => {
               {result.recordFingerprint &&
                 (proof === 'checking' ? null : proof.status === 'none' ? (
                   <Fact ok={false}>
-                    Not dated yet, as far as this page can tell: there is no proof here that the record is in a dated
-                    batch, so there is no public date stamp to check.
+                    No date stamp yet, as far as this page can tell: there is no proof here that the record is in a
+                    batch with a date stamp, so there is nothing to check.
                   </Fact>
                 ) : (
                   <>
@@ -536,7 +528,8 @@ export const VerifyPage: React.FC = () => {
                         {!anchorCheckedOnChain && (
                           <Fact ok={false}>
                             The registry reports that root was recorded on {networkLabel(reportedNetwork ?? NETWORK)}
-                            {proof.proof.anchor?.txHash ? ` in transaction ${proof.proof.anchor.txHash}` : ''}.
+                            {proof.proof.anchor?.txHash ? ` in transaction ${proof.proof.anchor.txHash}` : ''}. Its
+                            date: {registryDateWords(reportedAt)}.
                             {anchorLooked ? '' : ' This page has not looked it up; do that before relying on the date.'}
                             {isTestNetwork(reportedNetwork ?? NETWORK)
                               ? ' A test network can be reset and its dates carry no evidential weight.'
@@ -553,7 +546,7 @@ export const VerifyPage: React.FC = () => {
                         )}
                       </>
                     ) : (
-                      <Fact ok={false}>The batch has not been anchored on Midnight yet.</Fact>
+                      <Fact ok={false}>The batch has no date stamp on Midnight yet.</Fact>
                     )}
                   </>
                 ))}

@@ -90,7 +90,7 @@ export const EvidenceBundle: React.FC<{
           <Stack spacing={1.5}>
             <Typography variant="body2">
               One file with everything someone needs to check this record’s date without VeilCore: the record as it was
-              sealed, the proof it is in a dated batch, where that batch was recorded, and a page that does the checks
+              sealed, proof that it’s in a dated batch, where that batch was recorded, and a page that does the checks
               offline. A README inside says what it shows and what it doesn’t.
             </Typography>
             {!sealed && (
@@ -111,6 +111,10 @@ export const EvidenceBundle: React.FC<{
                 label={
                   <Typography variant="body2">
                     Include the record’s key.{' '}
+                    <Typography component="span" variant="body2" color="text.secondary">
+                      (The record’s key is the public ID of the key made for this plant when you sealed it. Its secret
+                      part stays in your backup and never goes in the bundle.)
+                    </Typography>{' '}
                     {canKey
                       ? 'With it, anyone who has the bundle can tie this record to its key, and to everything that key does on the network. Leave it out unless they need it.'
                       : 'The key isn’t in this browser. Open your backup here to include it.'}

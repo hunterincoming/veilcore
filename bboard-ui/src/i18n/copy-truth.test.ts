@@ -471,10 +471,21 @@ describe('the check page reading Midnight itself, per build (round 7)', () => {
       /The evidence bundle's verify\.html does the recomputing offline and names the transaction and root to look up\./,
     );
   });
-  it('the test site says it reads Midnight itself, which it does through the sponsor relay', () => {
+  it('the test site says it reads Midnight itself through the sponsor relay, when it can reach Midnight', () => {
     for (const k of CHECK_KEYS) {
-      expect(testSite[k], k).toMatch(/looks that transaction up on Midnight itself\./);
-      expect(testSite[k], k).not.toMatch(/when it can reach|once our read-only relay/);
+      expect(testSite[k], k).toMatch(/looks that transaction up on Midnight itself when it can reach Midnight\./);
+      expect(testSite[k], k).not.toMatch(/once our read-only relay/);
+    }
+    // Every language's test-site overlay says the same.
+    const WHEN: Record<string, RegExp> = {
+      de: /selbst auf Midnight nach, wenn sie Midnight erreicht\./,
+      fr: /consulte elle-même cette transaction sur Midnight quand elle peut joindre Midnight\./,
+      es: /consulta esa transacción en Midnight por sí misma cuando puede llegar a Midnight\./,
+      ja: /Midnightに接続できればそのトランザクションをMidnight上で自ら照会します。/,
+    };
+    for (const [lang, re] of Object.entries(WHEN)) {
+      const o = networkOverlay(TEST_SITE, lang as Lang) as Record<string, string>;
+      for (const k of CHECK_KEYS) expect(o[k], `${lang} ${k}`).toMatch(re);
     }
     // A test build reads through the indexer its chain features use (the sponsor's relay).
     expect(readIndexersFor('preprod', { indexer: 'https://sponsor.example/indexer' })).toEqual([

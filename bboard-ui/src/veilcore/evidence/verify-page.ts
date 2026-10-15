@@ -5,7 +5,7 @@
 //   - the checks: bboard-ui/evidence-page/verify-core.js (plain browser JavaScript);
 //   - the canonicalisation of the published SDK, veilcore-records' own dist/canonical.js,
 //     the exact code the site and the registry hash with, minus its one `export` keyword.
-// and the bundle's evidence.json, put in as data. The page loads nothing else and its
+// and the bundle's evidence.json and Bitcoin stamp file, put in as data. The page loads nothing else and its
 // Content-Security-Policy forbids it to.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -53,8 +53,17 @@ const put = (html: string, marker: string, value: string): string => {
   return parts.join(value);
 };
 
-/** The page, with this evidence inside it. */
-export const verifyPageHtml = (evidence: unknown): string => {
+const toBase64 = (b: Uint8Array): string => {
+  let bin = '';
+  for (let i = 0; i < b.length; i += 0x8000) bin += String.fromCharCode(...b.subarray(i, i + 0x8000));
+  return btoa(bin);
+};
+
+/**
+ * The page, with this evidence inside it, and the bundle's Bitcoin stamp file (base64) so
+ * the page reads what the file itself shows rather than repeating the registry's report.
+ */
+export const verifyPageHtml = (evidence: unknown, stamp?: Uint8Array | null): string => {
   const canon = canonicalScript();
   if (CLOSES_SCRIPT.test(canon) || CLOSES_SCRIPT.test(core)) throw new Error('a script would end its own element');
   let html = template;
@@ -62,5 +71,6 @@ export const verifyPageHtml = (evidence: unknown): string => {
   html = put(html, '/*@@CANONICAL@@*/', canon);
   html = put(html, '/*@@VERIFY_CORE@@*/', core);
   html = put(html, '@@EVIDENCE_JSON@@', embedJson(evidence));
+  html = put(html, '@@STAMP_JSON@@', embedJson(stamp && stamp.length ? toBase64(stamp) : null));
   return html;
 };

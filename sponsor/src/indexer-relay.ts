@@ -316,6 +316,55 @@ export const queryProblem = (
   return undefined;
 };
 
+/**
+ * The first key that appears twice in one object of a JSON text, or undefined. Only called
+ * on text JSON.parse has already accepted. JSON.parse keeps the last of two equal keys, but
+ * an indexer might keep the first, so `{"query":"mutation…","query":"{a}"}` could be judged
+ * as one query and run as another. Such a body is refused outright. (What is forwarded is
+ * also rebuilt from the checked object, never the raw text: see forwardedQuery.)
+ */
+export const duplicateJsonKey = (text: string): string | undefined => {
+  const stack: { keys: Set<string> | undefined; wantKey: boolean }[] = [];
+  let i = 0;
+  while (i < text.length) {
+    const c = text[i];
+    if (c === '"') {
+      let j = i + 1;
+      while (j < text.length && text[j] !== '"') j += text[j] === "\\" ? 2 : 1;
+      const top = stack[stack.length - 1];
+      if (top?.keys && top.wantKey) {
+        // Decoded, so "\u0071uery" and "query" are the same key, as they are to JSON.parse.
+        const key = JSON.parse(text.slice(i, j + 1)) as string;
+        if (top.keys.has(key)) return key;
+        top.keys.add(key);
+        top.wantKey = false;
+      }
+      i = j + 1;
+      continue;
+    }
+    if (c === "{") stack.push({ keys: new Set(), wantKey: true });
+    else if (c === "[") stack.push({ keys: undefined, wantKey: false });
+    else if (c === "}" || c === "]") stack.pop();
+    else if (c === ",") {
+      const top = stack[stack.length - 1];
+      if (top?.keys) top.wantKey = true;
+    }
+    i++;
+  }
+  return undefined;
+};
+
+/**
+ * What goes upstream for a checked query: rebuilt from the object queryProblem passed, so
+ * the indexer gets exactly what was judged (no duplicate keys, nothing else from the raw
+ * body). Absent fields are left out.
+ */
+export const forwardedQuery = (payload: Record<string, unknown>) => ({
+  query: payload.query,
+  variables: payload.variables,
+  operationName: payload.operationName,
+});
+
 const UPSTREAM_FAILED = {
   errors: [{ message: "The network indexer could not answer that." }],
 };
@@ -453,6 +502,11 @@ export const createIndexerRelay = (cfg: RelayConfig): IndexerRelay => {
           true
         );
       }
+      if (duplicateJsonKey(text) !== undefined)
+        return (
+          reply(res, 400, { errors: [{ message: "A key appears twice." }] }, cors),
+          true
+        );
       const problem = queryProblem(body);
       if (problem)
         return (
@@ -471,7 +525,8 @@ export const createIndexerRelay = (cfg: RelayConfig): IndexerRelay => {
             "content-type": "application/json",
             accept: "application/json",
           },
-          body: text,
+          // Never the raw text: the object that was checked, serialised again.
+          body: JSON.stringify(forwardedQuery(body as Record<string, unknown>)),
           redirect: "error",
           signal: AbortSignal.timeout(20_000),
         });
@@ -537,7 +592,7 @@ export const createIndexerRelay = (cfg: RelayConfig): IndexerRelay => {
               o.indexerWS,
               client.protocol || "graphql-transport-ws",
             );
-            const queued: { data: RawData; binary: boolean }[] = [];
+            const queued: string[] = [];
             let idle: NodeJS.Timeout | undefined;
             let done = false;
             const finish = (code = 1000, reason = "") => {
@@ -567,12 +622,15 @@ export const createIndexerRelay = (cfg: RelayConfig): IndexerRelay => {
             client.on("message", (data: RawData, binary: boolean) => {
               touch();
               if (binary) return finish(4400, "Text messages only.");
+              const text = data.toString();
               let m: unknown;
               try {
-                m = JSON.parse(data.toString());
+                m = JSON.parse(text);
               } catch {
                 return finish(4400, "Not JSON.");
               }
+              if (duplicateJsonKey(text) !== undefined)
+                return finish(4400, "A key appears twice.");
               if (
                 !isPlainObject(m) ||
                 typeof m.type !== "string" ||
@@ -592,6 +650,7 @@ export const createIndexerRelay = (cfg: RelayConfig): IndexerRelay => {
                 )
                   return finish(4400, "No connection payload.");
               }
+              let payload: unknown = m.payload;
               if (m.type === "subscribe") {
                 if (typeof m.id !== "string")
                   return finish(4400, "Message not allowed.");
@@ -601,15 +660,16 @@ export const createIndexerRelay = (cfg: RelayConfig): IndexerRelay => {
                     problem.status === 403 ? 4403 : 4400,
                     problem.message,
                   );
+                payload = forwardedQuery(m.payload as Record<string, unknown>);
               }
-              if (upstream.readyState === WebSocket.OPEN)
-                upstream.send(data, { binary });
-              else if (queued.length < 32) queued.push({ data, binary });
+              // Never the raw frame: the message that was checked, serialised again.
+              const out = JSON.stringify({ type: m.type, id: m.id, payload });
+              if (upstream.readyState === WebSocket.OPEN) upstream.send(out);
+              else if (queued.length < 32) queued.push(out);
               else finish(4429, "Too fast.");
             });
             upstream.on("open", () => {
-              for (const q of queued.splice(0))
-                upstream.send(q.data, { binary: q.binary });
+              for (const q of queued.splice(0)) upstream.send(q);
             });
             upstream.on("message", (data: RawData, binary: boolean) => {
               touch();
@@ -669,27 +729,82 @@ export const blockfrostIndexer = (
   };
 };
 
-/** Settings that mean someone pointed a wallet or an operator token at the read-only relay. */
-const NOT_HERE = [
-  /SEED/i,
-  /MNEMONIC/i,
-  /^REGISTRY_OPERATOR_TOKEN$/,
-  /^SPONSOR_STATUS_TOKEN$/,
-  /MAINTENANCE/i,
-  /PRIVATE_KEY/i,
+/**
+ * Every setting the read-only relay reads (loadReadRelayConfig below; relay-main.ts reads
+ * nothing else). Only these may hold a secret here.
+ */
+export const READ_RELAY_SETTINGS: readonly string[] = [
+  "RELAY_NETWORK",
+  "BLOCKFROST_PROJECT_ID",
+  "INDEXER_URL",
+  "INDEXER_WS_URL",
+  "ALLOWED_ORIGINS",
+  "PORT",
+  "TRUST_PROXY_HOPS",
 ];
+
+/**
+ * The sponsor service's own settings (config.ts, main.ts) that the read-only relay doesn't
+ * use. Any of them set here means a sponsor's settings were copied onto the relay, secrets
+ * and all, so it refuses to start.
+ */
+const SPONSOR_ONLY_SETTINGS = new Set([
+  "SPONSOR_NETWORK",
+  "SPONSOR_SEED",
+  "SPONSOR_STATUS_TOKEN",
+  "SPONSOR_CIRCUITS",
+  "SPONSOR_FORBIDDEN_ADDRESSES",
+  "POW_SECRET",
+  "POW_DIFFICULTY",
+  "REGISTRY_OPERATOR_TOKEN",
+  "REGISTRY_URL",
+  "VEILCORE_CONTRACT_ADDRESS",
+  "VEILCORE_ARTIFACTS_DIR",
+  "PROOF_SERVER_URL",
+  "NODE_WS_URL",
+  "STATE_DIR",
+  "ANCHORER_ENABLED",
+  "ANCHOR_AT_PENDING",
+  "ANCHOR_EVERY_MINUTES",
+  "DAILY_BUDGET_DUST",
+  "MAX_FEE_DUST",
+  "MAX_TTL_MINUTES",
+  "MAX_TX_BYTES",
+  "QUEUE_DEPTH",
+  "LIMIT_PER_NETWORK_DAY",
+  "LIMIT_PER_NETWORK_HOUR",
+  "LIMIT_REQUESTS_PER_MINUTE",
+]);
+
+/** Names that look like a secret, or like a VeilCore sponsor/registry/anchor setting. */
+const LOOKS_SECRET =
+  /SECRET|TOKEN|SEED|MNEMONIC|PRIVATE|PASSWORD|PASSWD|PASSPHRASE|CREDENTIAL|API_?KEY|(^|_)KEY($|_)|MAINTENANCE|^(SPONSOR|REGISTRY|ANCHOR|POW|VEILCORE)_/i;
+
+/**
+ * Settings the read-only relay must not start with: anything not on its own list that is a
+ * sponsor setting or looks like a secret. Names only, never values. Platform settings
+ * (PATH, HOME, NODE_VERSION, RAILWAY_PUBLIC_DOMAIN, …) don't match and are left alone.
+ */
+export const settingsNotForReadRelay = (
+  env: Record<string, string | undefined>,
+): string[] =>
+  Object.keys(env)
+    .filter(
+      (k) =>
+        !READ_RELAY_SETTINGS.includes(k) &&
+        (env[k] ?? "").trim() !== "" &&
+        (SPONSOR_ONLY_SETTINGS.has(k) || LOOKS_SECRET.test(k)),
+    );
 
 /** The read-only relay's settings, from the environment, or every problem with them. */
 export const loadReadRelayConfig = (
   env: Record<string, string | undefined>,
 ): { ok: true; config: ReadRelayConfig } | { ok: false; problems: string[] } => {
   const problems: string[] = [];
-  const held = Object.keys(env).filter(
-    (k) => (env[k] ?? "").trim() !== "" && NOT_HERE.some((r) => r.test(k)),
-  );
+  const held = settingsNotForReadRelay(env);
   if (held.length > 0)
     problems.push(
-      `Remove ${held.join(", ")}: this is the read-only relay. It must hold no wallet, seed or operator token.`,
+      `Remove ${held.join(", ")}: this is the read-only relay. It holds one secret, BLOCKFROST_PROJECT_ID, and none of the sponsor's settings, wallet, seed or tokens. Its settings are ${READ_RELAY_SETTINGS.join(", ")}.`,
     );
 
   const raw = (env.RELAY_NETWORK ?? "").trim().toLowerCase();

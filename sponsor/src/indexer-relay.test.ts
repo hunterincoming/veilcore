@@ -7,6 +7,7 @@ import { WebSocket, WebSocketServer } from "ws";
 import { startServer } from "./server.js";
 import {
   createIndexerRelay,
+  duplicateJsonKey,
   hasMutation,
   operationCount,
   queryProblem,
@@ -584,5 +585,116 @@ describe("subscriptions over the socket", () => {
     ).toBe(429);
     first.close();
     await expect.poll(() => relay.sockets()).toBe(0);
+  });
+});
+
+// Round 2 (review): the relay checked the parsed body but forwarded the raw text. With a key
+// twice, JSON.parse keeps the last one and an indexer might keep the first, so
+// {"query":"mutation…","query":"{a}"} was judged as {a} and sent with the mutation first.
+// Now a body or socket message with a key twice is refused, and what goes upstream is
+// always the checked object serialised again.
+describe("what is checked is what is forwarded", () => {
+  const DUP = '{"query":"mutation{connect(viewingKey:\\"x\\")}","query":"{ a }"}';
+  const rawPost = (url: string, body: string) =>
+    fetch(`${url}/indexer`, {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: SITE, ...XFF },
+      body,
+    });
+
+  it("finds a key given twice, at any depth, escaped or not; nothing else", () => {
+    expect(duplicateJsonKey(DUP)).toBe("query");
+    expect(duplicateJsonKey('{"query":"{a}","\\u0071uery":"{b}"}')).toBe("query");
+    expect(duplicateJsonKey('{"query":"{a}","variables":{"x":1,"x":2}}')).toBe("x");
+    expect(duplicateJsonKey('{"variables":{"l":[{"k":1},{"k":2,"k":3}]}}')).toBe("k");
+    // The same key in two different objects, or a value equal to a key, is fine.
+    expect(duplicateJsonKey('{"a":{"k":1},"b":{"k":2},"c":["a","a"],"d":"a"}')).toBeUndefined();
+    expect(duplicateJsonKey('{"q":"x\\",\\"q\\":1","r":"{\\"q\\"}"}')).toBeUndefined();
+    expect(duplicateJsonKey('{"query":"{ a }","variables":{},"operationName":null}')).toBeUndefined();
+  });
+
+  it("HTTP: the reviewer's duplicate-key body is refused and never reaches the indexer", async () => {
+    const { up, url } = await sponsorWith();
+    const res = await rawPost(url, DUP);
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ errors: [{ message: "A key appears twice." }] });
+    // Also when the second copy is the mutation, and with an escaped key name.
+    expect((await rawPost(url, '{"query":"{ a }","query":"mutation { x }"}')).status).toBe(400);
+    expect((await rawPost(url, '{"query":"mutation { x }","\\u0071uery":"{ a }"}')).status).toBe(400);
+    expect(up.seen).toHaveLength(0);
+  });
+
+  it("HTTP: the indexer gets the checked object serialised again, never the raw text", async () => {
+    const { up, url } = await sponsorWith();
+    // Odd spacing, field order and escapes in the body; upstream gets one canonical form.
+    const raw = '{ "operationName" : "Q" , "variables" : { "h" : 1 } , "\\u0071uery" : "query Q { block { height } }" }';
+    expect((await rawPost(url, raw)).status).toBe(200);
+    expect(up.seen.map((s) => s.body)).toEqual([
+      '{"query":"query Q { block { height } }","variables":{"h":1},"operationName":"Q"}',
+    ]);
+  });
+
+  it("HTTP, in process: the reviewer's repro forwards nothing", async () => {
+    let forwarded: string | undefined;
+    const relay = createIndexerRelay({
+      indexer: "https://up.example/g?project_id=SECRET123",
+      indexerWS: "wss://up.example/ws",
+      allowedOrigins: [SITE],
+      fetch: (async (_u: string, init: RequestInit) => {
+        forwarded = String(init.body);
+        return new Response('{"data":{}}');
+      }) as unknown as typeof fetch,
+    });
+    const { Readable } = await import("node:stream");
+    const req = Object.assign(Readable.from([Buffer.from(DUP)]), {
+      url: "/indexer",
+      method: "POST",
+      headers: { origin: SITE, "content-type": "application/json" },
+    });
+    let status = 0;
+    const res = {
+      writeHead: (s: number) => void (status = s),
+      end() {},
+      setHeader() {},
+    };
+    await relay.http(req as never, res as never, "203.0.113.9", {});
+    expect(status).toBe(400);
+    expect(forwarded).toBeUndefined();
+  });
+
+  it("socket: a message with a key twice closes the socket; upstream gets the checked message", async () => {
+    const { up, ws } = await sponsorWith(240, 20);
+    const open = () =>
+      new WebSocket(ws, "graphql-transport-ws", { headers: { origin: SITE, ...XFF } });
+    const closeCode = async (frame: string) => {
+      const c = open();
+      await new Promise((r) => c.once("open", r));
+      const closed = new Promise<number>((r) => c.once("close", (code) => r(code)));
+      c.send(frame);
+      return closed;
+    };
+    // The payload with "query" twice, the message with "payload" or "type" twice.
+    const dupPayload =
+      '{"type":"subscribe","id":"1","payload":{"query":"mutation { connect }","query":"subscription { a }"}}';
+    const dupPayloadKey =
+      '{"type":"subscribe","id":"1","payload":{"query":"mutation { connect }"},"payload":{"query":"subscription { a }"}}';
+    const dupType = '{"type":"connection_init","type":"subscribe","id":"1","payload":{"query":"subscription { a }"}}';
+    for (const f of [dupPayload, dupPayloadKey, dupType]) expect(await closeCode(f)).toBe(4400);
+    await new Promise((r) => setTimeout(r, 100));
+    expect(up.wsSeen.filter((m) => !m.startsWith("connect "))).toEqual([]);
+
+    // A good subscribe, sent with odd spacing and an escaped key: forwarded in canonical form.
+    const c = open();
+    const got: unknown[] = [];
+    c.on("message", (d) => got.push(JSON.parse(d.toString())));
+    await new Promise((r) => c.once("open", r));
+    c.send('{ "type" : "connection_init" , "payload" : { } }');
+    c.send('{"payload":{"\\u0071uery":"subscription { blocks { height } }","variables":{"n":1}},"id":"7","type":"subscribe"}');
+    await expect.poll(() => got.length).toBe(2);
+    expect(up.wsSeen.filter((m) => !m.startsWith("connect "))).toEqual([
+      '{"type":"connection_init","payload":{}}',
+      '{"type":"subscribe","id":"7","payload":{"query":"subscription { blocks { height } }","variables":{"n":1}}}',
+    ]);
+    c.close();
   });
 });

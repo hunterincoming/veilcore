@@ -975,7 +975,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
             : undefined,
     );
     await pg.goto(`${origin}/verify/VEIL-X`, { waitUntil: 'networkidle' });
-    await pg.waitForSelector('text=Not dated yet, as far as this page can tell', { timeout: 15_000 });
+    await pg.waitForSelector('text=No date stamp yet, as far as this page can tell', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
     const badge = await pg.evaluate(() => document.querySelector('[data-checked]')?.getAttribute('data-checked'));
     expect(text).not.toMatch(/Anchored on/);
@@ -1015,7 +1015,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
           : undefined,
     );
     await pg.goto(`${origin}/verify/VEIL-Z?fp=${FP}`, { waitUntil: 'networkidle' });
-    await pg.waitForSelector('text=In a dated batch: the date is the registry’s report, not checked here', {
+    await pg.waitForSelector('text=Date stamp reported by the registry, not checked here', {
       timeout: 15_000,
     });
     const text = await pg.evaluate(() => document.body.innerText);
@@ -1237,7 +1237,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     const { X, api } = await lyingRegistry();
     const { ctx, pg, violations, errors } = await page(api);
     await pg.goto(`${origin}/verify/VEIL-Y?fp=${X}`, { waitUntil: 'networkidle' });
-    await pg.waitForSelector('text=In a dated batch: the date is the registry’s report, not checked here', {
+    await pg.waitForSelector('text=Date stamp reported by the registry, not checked here', {
       timeout: 15_000,
     });
     await pg.waitForSelector('text=VeilCore doesn’t vouch for the lab’s work', { timeout: 15_000 });

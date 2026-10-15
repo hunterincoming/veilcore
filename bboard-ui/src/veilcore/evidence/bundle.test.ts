@@ -14,6 +14,9 @@ import {
   bundleFiles,
   BundleRefusal,
   gatherEvidence,
+  anchorLookup,
+  bitcoinSteps,
+  midnightSteps,
   readmeText,
   reconcile,
   safeFileName,
@@ -288,7 +291,7 @@ describe('building the evidence', () => {
     const b = bindingForSecret(secretFor(2));
     expect(full.key).toMatchObject({ identity: b.identity, keySalt: b.keySalt, keyBinding: s.record.keyBinding });
     expect(full.key?.keyStamp).toMatchObject({ txHash: 'f1'.repeat(32), network: 'preprod' });
-    expect(full.labReport?.fileIncluded).toBe('lab/report.pdf');
+    expect(full.labReport?.fileIncluded).toBe('lab/report/report.pdf');
   });
 
   it('refuses, with words, rather than ship something that does not hold together', async () => {
@@ -345,8 +348,8 @@ describe('the bundle', () => {
         'README.txt',
         'evidence.json',
         'key/key-binding.json',
-        'lab/Lab report.pdf',
         'lab/lab-report-pairing.json',
+        'lab/report/Lab report.pdf',
         'lab/signatures.json',
         'proof/anchors.json',
         'proof/batch-root.txt',
@@ -364,7 +367,7 @@ describe('the bundle', () => {
     for (const [k, v] of Object.entries(files)) expect(Array.from(out[k]), k).toEqual(Array.from(v));
     expect(Array.from(out[`${dir}/proof/root.bin`])).toEqual(Array.from(Buffer.from(s.batch.root, 'hex')));
     expect(strFromU8(out[`${dir}/record/fingerprint.txt`]).trim()).toBe(s.record.recordFingerprint);
-    expect(Array.from(out[`${dir}/lab/Lab report.pdf`])).toEqual(Array.from(s.report));
+    expect(Array.from(out[`${dir}/lab/report/Lab report.pdf`])).toEqual(Array.from(s.report));
   });
 
   it('without the ticks: no key file, no lab report file; not in a batch: no proof files', async () => {
@@ -404,8 +407,16 @@ describe('the bundle', () => {
     const { s, files } = await make({ key: true, lab: true });
     const raw = strFromU8(files[`${s.record.id}-evidence/README.txt`]);
     const readme = raw.replace(/\s+/g, ' ');
-    expect(readme).toContain(`find transaction ${TX}`);
+    expect(readme).toContain(`Search for transaction ${TX}.`);
     expect(readme).toContain(s.batch.root);
+    // The registry's date, in UTC and labelled as its report; the explorer named for the network.
+    expect(readme).toContain("VeilCore's registry reports it is in block 77, at 2026-10-15 11:00 UTC");
+    expect(readme).toContain(
+      'Open the Midnight explorer for Midnight preprod (a test network): https://preprod.midnightexplorer.com/',
+    );
+    expect(readme).toMatch(/may not show the batch root in plain text/);
+    // "batch root" explained once, in plain words.
+    expect(readme.match(/one fingerprint that stands for every record/g)?.length).toBeGreaterThanOrEqual(1);
     expect(readme).toMatch(/existed, unchanged, by the date of that transaction/);
     expect(readme).toMatch(/held this record by that date/);
     expect(readme).toMatch(/test network.*practice data/);
@@ -423,6 +434,118 @@ describe('the bundle', () => {
     // Short lines for any text reader; a long value is never broken across two.
     expect(raw.split('\n').filter((l) => l.length > 78 && !/[0-9a-f]{64}/.test(l))).toEqual([]);
     expect(readme).toContain(`spec version 0.1`);
+  });
+
+  it('README: formulas only under “For technical readers”, at the end', async () => {
+    const { s, files } = await make({ key: true, lab: true });
+    const raw = strFromU8(files[`${s.record.id}-evidence/README.txt`]);
+    const at = raw.indexOf('FOR TECHNICAL READERS');
+    expect(at).toBeGreaterThan(0);
+    const body = raw.slice(0, at);
+    expect(body).not.toMatch(/H\(|veilcore:v1:|spec section|keyBinding|SHA-256 of the canonical/);
+    expect(raw.slice(at)).toMatch(/H\("veilcore:v1:keyrecord", keyBinding, contentHash\)/);
+    expect(raw.slice(at)).toMatch(/lastBatchRoot/);
+    // Nothing after it but technical lines.
+    expect(
+      raw
+        .slice(at)
+        .split('\n')
+        .filter((l) => /^[A-Z ]{6,}$/.test(l)),
+    ).toEqual(['FOR TECHNICAL READERS']);
+  });
+
+  it('README: no step 3 and no “or Bitcoin” when there is no stamp file', async () => {
+    const s = await setup();
+    const g = await reconcile(s.record.recordFingerprint, {
+      source: 'evidence-route',
+      proof: s.proof,
+      batch: { ...s.evidenceBody.batch, opentimestamps: { available: false, status: 'none' } },
+      ots: null,
+      attestations: [],
+    });
+    const options = { includeKey: false, now: NOW };
+    const ev = await buildEvidence(s.record, g, options);
+    const files = await bundleFiles(ev, g, options);
+    const readme = strFromU8(files[`${s.record.id}-evidence/README.txt`]).replace(/\s+/g, ' ');
+    expect(readme).not.toMatch(/\b3\. |step 3|Bitcoin block|root\.bin\.ots/);
+    expect(readme).toMatch(/WHAT THIS PROVES, once step 2 checks out/);
+    expect(Object.keys(files).some((k) => k.endsWith('root.bin.ots'))).toBe(false);
+  });
+
+  it('README says the same Midnight and Bitcoin steps as verify.html, word for word', async () => {
+    const { s, ev } = await make({ key: true });
+    const V = loadPageVerifier<{
+      checkAll: (e: unknown) => Promise<{ lookups: { midnight: Record<string, unknown>[] } }>;
+      midnightSteps: (a: unknown) => string[];
+      bitcoinSteps: (pending: boolean) => string[];
+    }>();
+    const plain = (t: string) => t.replace(/[’‘]/g, "'").replace(/[“”]/g, '"');
+    const page = await V.checkAll(JSON.parse(JSON.stringify(ev)));
+    expect(page.lookups.midnight.length).toBe(2);
+    const anchors = [ev.batch?.anchor, ...(ev.batch?.earlierAnchors ?? [])];
+    for (const [i, a] of page.lookups.midnight.entries()) {
+      const ours = anchorLookup(anchors[i] as Record<string, unknown>, s.batch.root);
+      expect(ours).not.toBe(null);
+      expect(midnightSteps(ours as NonNullable<typeof ours>)).toEqual(V.midnightSteps(a).map(plain));
+    }
+    // Without a block or time, and on a network with no explorer listed.
+    const bare = { network: 'undeployed', txHash: TX, root: s.batch.root };
+    const pageBare = await V.checkAll({
+      ...JSON.parse(JSON.stringify(ev)),
+      batch: { ...ev.batch, anchor: { chain: 'midnight', ...bare }, earlierAnchors: [] },
+    });
+    expect(midnightSteps(anchorLookup(bare, s.batch.root) as NonNullable<ReturnType<typeof anchorLookup>>)).toEqual(
+      V.midnightSteps(pageBare.lookups.midnight[0]).map(plain),
+    );
+    for (const pending of [true, false]) expect(bitcoinSteps(pending)).toEqual(V.bitcoinSteps(pending).map(plain));
+  });
+
+  it('README lists exactly the files in the zip, even when the lab report is named like a bundle file', async () => {
+    for (const name of [
+      'signatures.json',
+      'README.txt',
+      'lab-report-pairing.json',
+      'evidence.json',
+      '../verify.html',
+    ]) {
+      const s = await setup();
+      const g = await reconcile(s.record.recordFingerprint, {
+        source: 'evidence-route',
+        registryFirstSeen: s.evidenceBody.registryFirstSeen,
+        proof: s.proof,
+        batch: s.evidenceBody.batch,
+        ots: OTS,
+        attestations: s.evidenceBody.attestations,
+      });
+      const options = { includeKey: true, labFile: { name, bytes: s.report }, now: NOW };
+      const ev = await buildEvidence(s.record, g, options, s.keys);
+      const files = await bundleFiles(ev, g, options);
+      const dir = `${s.record.id}-evidence/`;
+      const inZip = Object.keys(unzipSync(zipFiles(files, NOW)))
+        .map((k) => k.slice(dir.length))
+        .sort();
+      const raw = strFromU8(files[`${dir}README.txt`]);
+      const section = raw.slice(raw.indexOf('WHAT EACH FILE IS\n') + 18, raw.indexOf('\n\nWHAT THIS PROVES'));
+      const listed = section
+        .split(/\n(?=- )/)
+        .map((entry) => entry.replace(/\n\s+/g, ' ').replace(/^- /, ''))
+        .map((entry) => entry.slice(0, entry.indexOf(': ')))
+        .sort();
+      expect(listed, name).toEqual(inZip);
+      // The bundle's own files are untouched; the lab report sits in its own folder.
+      expect(strFromU8(files[`${dir}lab/signatures.json`])).toMatch(/"attestationId"/);
+      expect(strFromU8(files[`${dir}README.txt`])).toMatch(/^VeilCore evidence bundle/);
+      expect(ev.labReport?.fileIncluded).toMatch(/^lab\/report\/[^/]+$/);
+      expect(Array.from(files[`${dir}${ev.labReport?.fileIncluded}`])).toEqual(Array.from(s.report));
+    }
+  });
+
+  it('verify.html carries the stamp file, so it reads what the file shows', async () => {
+    const { s, files } = await make();
+    const html = strFromU8(files[`${s.record.id}-evidence/verify.html`]);
+    const m = /id="veilcore-stamp">([^<]*)</.exec(html);
+    expect(m).not.toBe(null);
+    expect(JSON.parse((m as RegExpExecArray)[1])).toBe(btoa(String.fromCharCode(...OTS)));
   });
 
   it('README on mainnet says nothing about practice data; unbatched says nothing dates it yet', async () => {
@@ -472,5 +595,6 @@ describe('the bundle', () => {
     expect(safeFileName('../../etc/passwd')).toBe('..-..-etc-passwd'.replace(/^\.+/, ''));
     expect(safeFileName('Lab report: "final" é.pdf')).toBe('Lab report final .pdf');
     expect(safeFileName('')).toBe('lab-report.bin');
+    expect(safeFileName('a  :  b.pdf')).toBe('a b.pdf');
   });
 });

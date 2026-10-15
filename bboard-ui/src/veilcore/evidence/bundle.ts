@@ -37,6 +37,8 @@ import { verifyPageHtml, SDK_VERSION } from './verify-page';
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
 export const EVIDENCE_FORMAT = 'veilcore-evidence-bundle/v1';
+/** Where the lab report file goes, when the holder includes it: nothing else is in there. */
+export const LAB_FILE_DIR = 'lab/report';
 const CONTENT_ALGORITHM = 'sha256/canonical-json/v1';
 /** The OpenTimestamps file header: anything else from a registry is left out, not shipped. */
 const OTS_MAGIC = '\x00OpenTimestamps\x00\x00Proof\x00';
@@ -314,9 +316,11 @@ export const safeFileName = (name: string): string => {
   const cleaned = name
     .replace(/[\\/]/g, '-')
     .replace(/[^A-Za-z0-9 ._()-]/g, '')
+    .replace(/ {2,}/g, ' ')
     .replace(/^\.+/, '')
     .trim()
-    .slice(0, 120);
+    .slice(0, 120)
+    .trim();
   return cleaned || 'lab-report.bin';
 };
 
@@ -404,7 +408,8 @@ export const buildEvidence = async (
         );
       }
       fileSha256 = sha;
-      fileIncluded = `lab/${safeFileName(options.labFile.name)}`;
+      // In a folder of its own, so no name can land on another file in the bundle.
+      fileIncluded = `${LAB_FILE_DIR}/${safeFileName(options.labFile.name)}`;
     }
     labReport = {
       pairingFingerprint: record.dnaFingerprint,
@@ -497,12 +502,83 @@ const NETWORK_WORDS: Record<string, string> = {
 };
 const networkWords = (n: unknown): string => (isString(n) && NETWORK_WORDS[n]) || `the Midnight network "${String(n)}"`;
 
+/** The explorers verify.html names (verify-core.js EXPLORERS), by network. */
+const EXPLORERS: Record<string, string> = {
+  mainnet: 'https://midnightexplorer.com/',
+  preprod: 'https://preprod.midnightexplorer.com/',
+  preview: 'https://preview.midnightexplorer.com/',
+};
+
+/** "2026-10-15 11:00 UTC", as verify.html prints it; null for no time. */
+const utcWords = (t: unknown): string | null => {
+  if (!isString(t) && !isNumber(t)) return null;
+  const d = new Date(t);
+  if (Number.isNaN(d.getTime())) return null;
+  const i = d.toISOString();
+  return `${i.slice(0, 10)} ${i.slice(11, 16)} UTC`;
+};
+
+/** One anchor to look up, as verify.html's lookups() reads it from evidence.json. */
+export type AnchorLookup = {
+  readonly network: string;
+  readonly txHash: string;
+  readonly contractAddress: string | null;
+  readonly blockHeight: number | null;
+  readonly anchoredAt: string | null;
+  readonly explorer: string | null;
+  readonly root: string;
+};
+
+export const anchorLookup = (a: Record<string, unknown>, root: string): AnchorLookup | null =>
+  isString(a.txHash)
+    ? {
+        network: isString(a.network) ? a.network : 'unknown',
+        txHash: a.txHash,
+        contractAddress: isString(a.contractAddress) ? a.contractAddress : null,
+        blockHeight: isNumber(a.blockHeight) ? a.blockHeight : null,
+        anchoredAt: isString(a.anchoredAt) ? a.anchoredAt : null,
+        explorer: (isString(a.network) && EXPLORERS[a.network]) || null,
+        root,
+      }
+    : null;
+
+/**
+ * The steps to date the record on Midnight: the same steps, in the same words, as
+ * verify.html (verify-core.js midnightSteps; bundle.test.ts compares the two), in plain
+ * ASCII for any text reader.
+ */
+export const midnightSteps = (a: AnchorLookup): string[] => {
+  const when = utcWords(a.anchoredAt);
+  const block = a.blockHeight !== null;
+  return [
+    a.explorer
+      ? `Open the Midnight explorer for ${networkWords(a.network)}: ${a.explorer} (type the address in yourself).`
+      : `Open a Midnight explorer for ${networkWords(a.network)}.`,
+    `Search for transaction ${a.txHash}.` +
+      (block || when
+        ? ` VeilCore's registry reports it is${block ? ` in block ${a.blockHeight}` : ''}${when ? `${block ? ',' : ''} at ${when}` : ''}; the explorer's own block and time are the ones to rely on.`
+        : ''),
+    `Check that the transaction succeeded and that it called VeilCore's contract ${a.contractAddress ?? "(the bundle doesn't name it)"}. Note its block and time: that time is the date.`,
+    `Check that it wrote this batch root: ${a.root}. The batch root is one fingerprint that stands for every record in the batch; this record's proof leads to it.`,
+    `The explorer may not show the batch root in plain text: it sits inside the contract's state after the call. If you can't see it there, read that state from a Midnight indexer yourself (README.txt, "For technical readers", says how), or open this record's check page on VeilCore's site, which does that look-up in your own browser.`,
+    `If the transaction succeeded, called that contract and wrote that root, this record existed, unchanged, by that transaction's time: whoever had it sealed held this record by then. If any of it doesn't match, nothing here dates the record.`,
+  ];
+};
+
+/** The Bitcoin stamp's steps, as verify.html says them (verify-core.js bitcoinSteps). */
+export const bitcoinSteps = (pending: boolean): string[] => [
+  'The batch root was also stamped on Bitcoin with OpenTimestamps. The stamp file is proof/root.bin.ots; the file it stamps is proof/root.bin (the batch root as 32 bytes).',
+  'Easiest: on opentimestamps.org, drop in root.bin.ots and then root.bin.',
+  'Or with the official OpenTimestamps client, in the proof folder: ots verify root.bin.ots' +
+    (pending ? ' (run ots upgrade root.bin.ots first; that needs the internet once).' : '.'),
+];
+
 const wrap = (text: string, width = 78): string =>
   text
     .split('\n')
     .map((line) => {
       if (line.length <= width) return line;
-      const indent = /^\s*(- |\d+\. )?/.exec(line)?.[0].replace(/[^ ]/g, ' ') ?? '';
+      const indent = /^\s*(- |\d+\. |[a-z]\. )?/.exec(line)?.[0].replace(/[^ ]/g, ' ') ?? '';
       const words = line.split(' ');
       const lines: string[] = [];
       let cur = '';
@@ -517,20 +593,79 @@ const wrap = (text: string, width = 78): string =>
     })
     .join('\n');
 
-/** README.txt: what each file is, what it proves, what it doesn't. Plain words. */
-export const readmeText = (ev: Evidence, sigs: readonly SignatureLine[]): string => {
+/** Every file in the bundle, with what it is, in the order README.txt lists them. */
+export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: string }[] => {
+  const out: { path: string; what: string }[] = [
+    { path: 'README.txt', what: 'this file.' },
+    {
+      path: 'verify.html',
+      what: 'the offline check page. Everything it needs is inside it; read its script to see exactly what it does.',
+    },
+    { path: 'evidence.json', what: 'everything below in one machine-readable file (verify.html carries a copy).' },
+    { path: 'record/sealed-fields.json', what: 'the record exactly as it was fingerprinted, made readable.' },
+    { path: 'record/sealed-fields.canonical.json', what: 'the exact bytes that were fingerprinted.' },
+    {
+      path: 'record/fingerprint.txt',
+      what: `the record's fingerprint, worked out from the sealed fields${ev.record.fingerprintAlgorithm === KEY_BOUND_ALGORITHM ? " and the record's key" : ''}.`,
+    },
+  ];
+  if (ev.proof && ev.batch) {
+    out.push(
+      {
+        path: 'proof/inclusion-proof.json',
+        what: "the proof: the steps from the record's fingerprint to the batch root.",
+      },
+      { path: 'proof/batch-root.txt', what: 'the batch root, as text.' },
+      { path: 'proof/root.bin', what: 'the batch root as 32 bytes: the file the Bitcoin stamp covers.' },
+      { path: 'proof/anchors.json', what: "where the batch root was recorded, as VeilCore's registry reported it." },
+    );
+    if (hasOts) out.push({ path: 'proof/root.bin.ots', what: 'the Bitcoin stamp file (OpenTimestamps) for root.bin.' });
+  }
+  if (ev.labReport) {
+    out.push({
+      path: 'lab/lab-report-pairing.json',
+      what: `the lab report saved to this plant: its SHA-256${ev.labReport.fileSha256 ? '' : ' (not kept for this older pairing)'} and the fingerprint that pairs it with the plant.`,
+    });
+    if (ev.labReport.fileIncluded)
+      out.push({ path: ev.labReport.fileIncluded, what: 'the lab report file itself, included by the holder.' });
+  }
+  if (ev.signatures.length)
+    out.push({ path: 'lab/signatures.json', what: 'lab signatures about this record, as the registry stores them.' });
+  if (ev.key)
+    out.push({
+      path: 'key/key-binding.json',
+      what: "the record's key (its public ID) and the salt that ties it to the record. Included by the holder: with it, anyone can tie this record to everything its key does on the network.",
+    });
+  out.push({
+    path: 'spec/SPEC-sections.md',
+    what: `the parts of the record format these checks follow (spec ${ev.spec.version.replace(/^Version /, 'version ').replace(/ \(.*$/, '')}).`,
+  });
+  return out;
+};
+
+/** README.txt: what each file is, what it proves, what it doesn't. Plain words; formulas at the end. */
+export const readmeText = (
+  ev: Evidence,
+  sigs: readonly SignatureLine[],
+  hasOts = !!ev.batch?.opentimestamps.available,
+): string => {
   const name = isString(ev.record.sealedFields.strainName) ? ev.record.sealedFields.strainName : ev.record.id;
   const anchor = ev.batch?.anchor ?? null;
   const tx = anchor && isString(anchor.txHash) ? anchor.txHash : null;
   const test = anchor ? anchor.network !== 'mainnet' : true;
-  const bitcoin = ev.batch?.opentimestamps.available ? ev.batch.opentimestamps : null;
+  const bitcoin = ev.batch && hasOts ? ev.batch.opentimestamps : null;
   const L: string[] = [];
   L.push(`VeilCore evidence bundle: ${name} (${ev.record.id})`);
-  L.push(`Made ${ev.createdAt} by the VeilCore site, from the holder's own copy of the record.`);
+  L.push(
+    `Made ${utcWords(ev.createdAt) ?? ev.createdAt} by the VeilCore site, from the holder's own copy of the record.`,
+  );
   L.push('');
   L.push('WHAT THIS IS');
   L.push(
-    "Everything needed to check this record's date without VeilCore: the record exactly as it was sealed, the proof that its fingerprint is in a batch, where that batch was recorded, and verify.html, a page that does the checks on your own computer with no internet.",
+    "Everything needed to check this record's date without VeilCore: the record exactly as it was sealed, the proof that it's in a batch, where that batch was recorded, and verify.html, a page that does the checks on your own computer with no internet.",
+  );
+  L.push(
+    "A batch is a group of records dated together. Its batch root is one fingerprint that stands for every record in it: the batch root is what gets recorded on Midnight, and this record's proof leads from its own fingerprint to it.",
   );
   if (test) {
     L.push('');
@@ -543,12 +678,12 @@ export const readmeText = (ev: Evidence, sigs: readonly SignatureLine[]): string
   L.push('');
   L.push('HOW TO CHECK IT (nothing from VeilCore needed)');
   L.push(
-    '1. Open verify.html in Chrome or Firefox (double-click it). It works offline. It should say "Fingerprint matches" and, once the record is in a batch, "Proof leads to the batch root".',
+    '1. Open verify.html in Chrome or Firefox (double-click it). It works offline. It should say "The files agree with each other", "Fingerprint matches" and "Proof leads to the batch root". If it says "Don\'t use this to date the record", stop there: the files have been changed.',
   );
-  if (ev.batch && tx && anchor) {
-    L.push(
-      `2. Date it: on a Midnight explorer for ${networkWords(anchor.network)}, find transaction ${tx}${isNumber(anchor.blockHeight) ? ` (block ${anchor.blockHeight})` : ''}. Check that it calls contract ${isString(anchor.contractAddress) ? anchor.contractAddress : '(not given)'} and records the batch root ${ev.batch.root}. If it does, this record existed, unchanged, by that transaction's time.`,
-    );
+  const lookup = ev.batch && anchor ? anchorLookup(anchor, ev.batch.root) : null;
+  if (ev.batch && tx && lookup) {
+    L.push('2. Date it on Midnight. These are the same steps verify.html shows:');
+    midnightSteps(lookup).forEach((step, i) => L.push(`   ${String.fromCharCode(97 + i)}. ${step}`));
   } else if (ev.batch) {
     L.push(
       `2. Date it: the batch (${ev.batch.batchId}) isn't recorded on Midnight yet. Download a new bundle once it is.`,
@@ -557,57 +692,32 @@ export const readmeText = (ev: Evidence, sigs: readonly SignatureLine[]): string
     L.push("2. Date it: the record isn't in a batch yet. Download a new bundle once it is.");
   }
   if (bitcoin) {
+    const reported =
+      bitcoin.status === 'bitcoin'
+        ? `in Bitcoin block ${isNumber(bitcoin.bitcoinBlockHeight) ? bitcoin.bitcoinBlockHeight : '(not given)'}`
+        : 'pending, not yet in a Bitcoin block';
+    L.push('3. Bitcoin (a second, separate date):');
+    bitcoinSteps(bitcoin.status !== 'bitcoin').forEach((step, i) =>
+      L.push(`   ${String.fromCharCode(97 + i)}. ${step}`),
+    );
     L.push(
-      `3. Bitcoin: the batch root was also stamped with OpenTimestamps. Drop proof/root.bin.ots and proof/root.bin on opentimestamps.org, or run "ots verify root.bin.ots" in the proof folder with the official OpenTimestamps client.${bitcoin.status === 'bitcoin' ? '' : ' This stamp was still pending when the bundle was made: run "ots upgrade root.bin.ots" first (it needs the internet once).'}`,
+      `   VeilCore's registry reported the stamp as ${reported} when the bundle was made. verify.html reads the stamp file itself and says what it shows.`,
     );
   }
   if (ev.batch?.earlierAnchors && ev.batch.earlierAnchors.length) {
     for (const a of ev.batch.earlierAnchors) {
       L.push(
-        `   Earlier, the same root was recorded on ${networkWords(a.network)} in transaction ${String(a.txHash)}. A later anchor took its place; both are listed in proof/anchors.json.`,
+        `   Earlier, the same root was recorded on ${networkWords(a.network)} in transaction ${String(a.txHash)}. A later one took its place; both are listed in proof/anchors.json.`,
       );
     }
   }
   L.push('');
   L.push('WHAT EACH FILE IS');
-  L.push(
-    '- verify.html: the offline check page. Everything it needs is inside it; read its script to see exactly what it does.',
-  );
-  L.push('- evidence.json: everything below in one machine-readable file (verify.html carries a copy).');
-  L.push('- record/sealed-fields.json: the record exactly as it was fingerprinted, made readable.');
-  L.push('- record/sealed-fields.canonical.json: the exact bytes that were hashed (spec section 4.4).');
-  L.push(
-    `- record/fingerprint.txt: the record's fingerprint. ${ev.record.fingerprintAlgorithm === KEY_BOUND_ALGORITHM ? 'This record names its own key, so the fingerprint is H("veilcore:v1:keyrecord", keyBinding, SHA-256 of the canonical bytes) (spec section 3.6.1).' : 'It is the SHA-256 of the canonical bytes.'}`,
-  );
-  if (ev.proof) {
-    L.push('- proof/inclusion-proof.json: the path from the fingerprint to the batch root (spec section 5.4).');
-    L.push(
-      '- proof/batch-root.txt and proof/root.bin: the batch root, as text and as the 32 bytes the Bitcoin stamp covers.',
-    );
-    L.push("- proof/anchors.json: where the batch root was recorded, as VeilCore's registry reported it.");
-  }
-  if (bitcoin) L.push('- proof/root.bin.ots: the Bitcoin stamp file (OpenTimestamps) for root.bin.');
-  if (ev.labReport) {
-    L.push(
-      `- lab/lab-report-pairing.json: the lab report saved to this plant: its SHA-256${ev.labReport.fileSha256 ? '' : ' (not kept for this older pairing)'} and the pairing fingerprint (spec section 3.7).`,
-    );
-    if (ev.labReport.fileIncluded)
-      L.push(`- ${ev.labReport.fileIncluded}: the lab report file itself, included by the holder.`);
-  }
-  if (ev.signatures.length)
-    L.push('- lab/signatures.json: lab signatures about this record, as the registry stores them.');
-  if (ev.key) {
-    L.push(
-      "- key/key-binding.json: the record's key and the salt that ties it to the record. Included by the holder: with it, anyone can tie this record to everything its key does on the network.",
-    );
-  }
-  L.push(
-    `- spec/SPEC-sections.md: the parts of the record format these checks follow (spec ${ev.spec.version.replace(/^Version /, 'version ').replace(/ \(.*$/, '')}).`,
-  );
+  for (const f of fileList(ev, !!bitcoin)) L.push(`- ${f.path}: ${f.what}`);
   L.push('');
-  L.push('WHAT THIS PROVES, once step 2 or 3 checks out');
+  L.push(`WHAT THIS PROVES, once step 2${bitcoin ? ' or step 3' : ''} checks out`);
   L.push(
-    '- This record existed, unchanged, by the date of that transaction (or Bitcoin block). Whoever had it sealed held this record by that date.',
+    `- This record existed, unchanged, by the date of that transaction${bitcoin ? ' (or Bitcoin block)' : ''}. Whoever had it sealed held this record by that date.`,
   );
   if (ev.key) L.push("- The record named this key when it was sealed, so the key can't have been swapped since.");
   for (const s of sigs) L.push(`- ${s.text}`);
@@ -617,7 +727,7 @@ export const readmeText = (ev: Evidence, sigs: readonly SignatureLine[]): string
   L.push('- Who holds the plant or the record now.');
   L.push("- That a signing key belongs to the lab it names. VeilCore doesn't vouch for anyone.");
   L.push(
-    "- Any date at all until you find the batch root in the named transaction (or the Bitcoin stamp checks). VeilCore's registry reported the transaction; it has not been checked on the chain for you.",
+    `- Any date at all until you find the batch root in the named transaction${bitcoin ? ' (or the Bitcoin stamp checks)' : ''}. VeilCore's registry reported the transaction${anchor && utcWords(anchor.anchoredAt) ? `, and its time as ${utcWords(anchor.anchoredAt)}` : ''}; it has not been checked on the chain for you.`,
   );
   if (ev.labReport) {
     L.push(
@@ -626,11 +736,40 @@ export const readmeText = (ev: Evidence, sigs: readonly SignatureLine[]): string
   }
   if (ev.registry.firstSeen)
     L.push(
-      `- The registry first saw this record at ${ev.registry.firstSeen}. That is the registry's own clock, its word only.`,
+      `- The registry first saw this record at ${utcWords(ev.registry.firstSeen) ?? ev.registry.firstSeen}. That is the registry's own clock, its word only.`,
     );
   L.push(
-    `- The sealing time in the record (${ev.record.sealedAtDeviceClock}) is the holder's device clock, the holder's word only.`,
+    `- The sealing time in the record (${utcWords(ev.record.sealedAtDeviceClock) ?? ev.record.sealedAtDeviceClock}) is the holder's device clock, the holder's word only.`,
   );
+  L.push('');
+  L.push('FOR TECHNICAL READERS');
+  L.push(
+    '- H(tag, a, b, ...) below is SHA-256 over the tag padded with zero bytes to 32 bytes, then each 32-byte value in turn (spec section 3.6.1).',
+  );
+  L.push(
+    ev.record.fingerprintAlgorithm === KEY_BOUND_ALGORITHM
+      ? '- Fingerprint: this record names its own key, so it is H("veilcore:v1:keyrecord", keyBinding, contentHash), where contentHash is the SHA-256 of record/sealed-fields.canonical.json (spec sections 3.6.1 and 4.4).'
+      : '- Fingerprint: the SHA-256 of record/sealed-fields.canonical.json, the canonical JSON of the sealed fields (spec section 4.4).',
+  );
+  L.push(
+    '- Proof: start from SHA-256 of the text "00" + fingerprint; at each step take SHA-256 of "01" + left + right (hex text, the sibling on the side the step names); the result must be the batch root (spec section 5.4).',
+  );
+  if (ev.key)
+    L.push(
+      '- Key: keyBinding = H("veilcore:v1:keybind", identity, keySalt), from key/key-binding.json; it must equal the keyBinding in the sealed fields.',
+    );
+  if (ev.labReport)
+    L.push(
+      '- Lab report pairing: H("veilcore:v1:commit", SHA-256 of the lab report file) is the pairing fingerprint (spec section 3.7).',
+    );
+  if (tx)
+    L.push(
+      `- Reading the batch root from Midnight yourself: ask a Midnight indexer (GraphQL) for transactions(offset: { hash: "${tx}" }) with block { height timestamp } and, on a RegularTransaction, transactionResult { status } and contractActions { address state ... on ContractCall { entryPoint } }. The transaction must have status SUCCESS and exactly one call on the contract above, with entryPoint anchorBatch. Decode that call's state with VeilCore's compiled contract (its ledger) and read lastBatchRoot: it must be the batch root. Midnight's preprod and main network indexers are run by Blockfrost and need a project id.`,
+    );
+  if (bitcoin)
+    L.push(
+      '- Bitcoin stamp: proof/root.bin.ots starts from SHA-256 of proof/root.bin; its steps end on the merkle root of the Bitcoin block it names.',
+    );
   return wrap(L.join('\n')) + '\n';
 };
 
@@ -686,8 +825,9 @@ export const bundleFiles = async (
     files[`${dir}/${path}`] = bytes;
   };
   const sigs = await signatureLines(ev.signatures, ev.record.fingerprint, ev.labReport?.fileSha256);
-  add('README.txt', text(readmeText(ev, sigs)));
-  add('verify.html', text(verifyPageHtml(ev)));
+  const ots = ev.proof && ev.batch && gathered.ots && ev.batch.opentimestamps.available ? gathered.ots : null;
+  add('README.txt', text(readmeText(ev, sigs, ots !== null)));
+  add('verify.html', text(verifyPageHtml(ev, ots)));
   add('evidence.json', json(ev));
   add('record/sealed-fields.json', json(ev.record.sealedFields));
   add('record/sealed-fields.canonical.json', text(ev.record.canonical));
@@ -710,12 +850,15 @@ export const bundleFiles = async (
         opentimestamps: ev.batch.opentimestamps,
       }),
     );
-    if (gathered.ots && ev.batch.opentimestamps.available) add('proof/root.bin.ots', gathered.ots);
+    if (ots) add('proof/root.bin.ots', ots);
   }
   if (ev.labReport) {
     add('lab/lab-report-pairing.json', json(ev.labReport));
     if (options.labFile && ev.labReport.fileIncluded) {
-      files[`${dir}/${ev.labReport.fileIncluded}`] = options.labFile.bytes;
+      // lab/report/ holds only this file, so it can't replace another file in the bundle.
+      if (files[`${dir}/${ev.labReport.fileIncluded}`])
+        throw new BundleRefusal('The bundle couldn’t be made. Nothing was downloaded.');
+      add(ev.labReport.fileIncluded, options.labFile.bytes);
     }
   }
   if (ev.signatures.length) add('lab/signatures.json', json(ev.signatures));

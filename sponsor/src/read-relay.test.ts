@@ -8,7 +8,9 @@ import {
   blockfrostIndexer,
   createIndexerRelay,
   loadReadRelayConfig,
+  READ_RELAY_SETTINGS,
   readRelayHandler,
+  settingsNotForReadRelay,
 } from "./indexer-relay.js";
 
 const SITE = "https://veilcore.org";
@@ -64,6 +66,89 @@ describe("read-only relay settings", () => {
       ok: true,
       config: { indexer: "https://indexer.preview.midnight.network/api/v4/graphql", secrets: [] },
     });
+  });
+});
+
+// Round 2 (review): the relay refused only a few named secrets, so it started with a sponsor's
+// POW_SECRET (and any other sponsor setting) in reach. Now it reads a fixed list of
+// settings; anything else that is a sponsor setting or looks like a secret stops it, named
+// but never printed.
+describe("read-only relay: only its own settings", () => {
+  const MAIN = { RELAY_NETWORK: "mainnet", BLOCKFROST_PROJECT_ID: "mainnetAbc123xyz" };
+  const problems = (env: Record<string, string>) => {
+    const r = loadReadRelayConfig(env);
+    return r.ok ? [] : r.problems;
+  };
+
+  it("lists exactly the settings loadReadRelayConfig reads", () => {
+    expect([...READ_RELAY_SETTINGS].sort()).toEqual(
+      ["ALLOWED_ORIGINS", "BLOCKFROST_PROJECT_ID", "INDEXER_URL", "INDEXER_WS_URL", "PORT", "RELAY_NETWORK", "TRUST_PROXY_HOPS"],
+    );
+    // All of them set, nothing else: it starts.
+    expect(
+      loadReadRelayConfig({
+        ...MAIN,
+        ALLOWED_ORIGINS: "https://veilcore.org",
+        PORT: "8081",
+        TRUST_PROXY_HOPS: "1",
+      }).ok,
+    ).toBe(true);
+  });
+
+  it("refuses to start with the reviewer's POW_SECRET, naming it and never printing its value", () => {
+    const env = { ...MAIN, POW_SECRET: "sponsor-secret-value", VEILCORE_CONTRACT_ADDRESS: "aa" };
+    const r = loadReadRelayConfig(env);
+    expect(r.ok).toBe(false);
+    const text = r.ok ? "" : r.problems.join("\n");
+    expect(text).toMatch(/^Remove POW_SECRET, VEILCORE_CONTRACT_ADDRESS: this is the read-only relay/);
+    expect(text).not.toContain("sponsor-secret-value");
+    expect(text).not.toContain("mainnetAbc123xyz");
+  });
+
+  it("refuses every sponsor setting and anything that looks like a secret", () => {
+    for (const k of [
+      "POW_SECRET",
+      "POW_DIFFICULTY",
+      "SPONSOR_STATUS_TOKEN",
+      "SPONSOR_NETWORK",
+      "REGISTRY_URL",
+      "PROOF_SERVER_URL",
+      "NODE_WS_URL",
+      "STATE_DIR",
+      "DAILY_BUDGET_DUST",
+      "ANCHORER_ENABLED",
+      "WALLET_MNEMONIC",
+      "MY_PRIVATE_KEY",
+      "GITHUB_TOKEN",
+      "DB_PASSWORD",
+      "SOME_API_KEY",
+      "STRIPE_KEY",
+      "AWS_SECRET_ACCESS_KEY",
+      "VEILCORE_MAINTENANCE_SEED_SHARE",
+    ])
+      expect(problems({ ...MAIN, [k]: "value-" + k }), k).toEqual([
+        expect.stringMatching(new RegExp(`^Remove ${k}: `)),
+      ]);
+    // Empty values don't count (an unset variable on some platforms).
+    expect(problems({ ...MAIN, POW_SECRET: "  " })).toEqual([]);
+  });
+
+  it("leaves a platform's own settings alone", () => {
+    const platform = {
+      PATH: "/usr/bin",
+      HOME: "/root",
+      HOSTNAME: "abc",
+      NODE_ENV: "production",
+      NODE_VERSION: "22.11.0",
+      YARN_VERSION: "1.22.22",
+      RAILWAY_PUBLIC_DOMAIN: "x.up.railway.app",
+      RAILWAY_PROJECT_ID: "p",
+      RAILWAY_SERVICE_NAME: "relay",
+      RAILWAY_GIT_COMMIT_SHA: "e226a73",
+      npm_config_cache: "/tmp",
+    };
+    expect(settingsNotForReadRelay(platform)).toEqual([]);
+    expect(loadReadRelayConfig({ ...MAIN, ...platform }).ok).toBe(true);
   });
 });
 

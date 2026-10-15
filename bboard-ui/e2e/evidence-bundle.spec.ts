@@ -91,7 +91,46 @@ const older = seal({
   licenseIds: [],
 });
 
-const OTS = Buffer.concat([Buffer.from('\x00OpenTimestamps\x00\x00Proof\x00', 'latin1'), randomBytes(24)]);
+/**
+ * A Bitcoin stamp file for a batch root, in the OpenTimestamps format: SHA-256(root.bin),
+ * one append and a sha256, then a Bitcoin attestation for block STAMP_BLOCK. Made up (no
+ * such block holds it): the page only reads what the file says, it can't reach Bitcoin.
+ */
+const STAMP_BLOCK = 870001;
+const stampFor = (rootHex: string): Buffer => {
+  const leb = (n: number) => {
+    const out: number[] = [];
+    do {
+      let b = n & 0x7f;
+      n = Math.floor(n / 128);
+      if (n) b |= 0x80;
+      out.push(b);
+    } while (n);
+    return Buffer.from(out);
+  };
+  const magic = Buffer.concat([
+    Buffer.from([0]),
+    Buffer.from('OpenTimestamps'),
+    Buffer.from([0, 0]),
+    Buffer.from('Proof'),
+    Buffer.from([0, 0xbf, 0x89, 0xe2, 0xe8, 0x84, 0xe8, 0x92, 0x94]),
+  ]);
+  const digest = createHash('sha256').update(Buffer.from(rootHex, 'hex')).digest();
+  const x = randomBytes(16);
+  const height = leb(STAMP_BLOCK);
+  return Buffer.concat([
+    magic,
+    Buffer.from([1, 0x08]),
+    digest,
+    Buffer.from([0xf0]),
+    leb(x.length),
+    x,
+    Buffer.from([0x08, 0x00]),
+    Buffer.from('0588960d73d71901', 'hex'),
+    leb(height.length),
+    height,
+  ]);
+};
 
 /** What the registry holds for these records, from the stand-in or from a real registry. */
 type Setup = { batchRoot: string; evidence: Record<string, unknown>; ots: boolean };
@@ -136,7 +175,13 @@ const standIn = async (): Promise<Setup> => {
         recordCount: 2,
         anchor,
         earlierAnchors: [],
-        opentimestamps: { available: true, status: 'pending', calendars: [], ots: OTS.toString('base64') },
+        // The registry says "pending"; the file itself names a block. The page goes by the file.
+        opentimestamps: {
+          available: true,
+          status: 'pending',
+          calendars: [],
+          ots: stampFor(batch.root).toString('base64'),
+        },
       },
       attestations: r === bound ? [{ ...signed, retraction: null, registeredAs: null, strength: 'signed' }] : [],
       attestationsTotal: r === bound ? 1 : 0,
@@ -323,8 +368,8 @@ test.describe('evidence bundle', () => {
         'README.txt',
         'evidence.json',
         'key/key-binding.json',
-        'lab/Practice lab report.txt',
         'lab/lab-report-pairing.json',
+        'lab/report/Practice lab report.txt',
         'lab/signatures.json',
         'proof/anchors.json',
         'proof/batch-root.txt',
@@ -344,7 +389,8 @@ test.describe('evidence bundle', () => {
     );
     expect(fs.readFileSync(path.join(dir, 'proof/root.bin')).toString('hex')).toBe(setup.batchRoot);
     const readme = fs.readFileSync(path.join(dir, 'README.txt'), 'utf8').replace(/\s+/g, ' ');
-    expect(readme).toContain(`find transaction ${ANCHOR_TX}`);
+    expect(readme).toContain(`Search for transaction ${ANCHOR_TX}.`);
+    expect(readme).toContain('FOR TECHNICAL READERS');
     expect(readme).toMatch(/practice data/);
 
     // verify.html from disk, network off.
@@ -352,6 +398,14 @@ test.describe('evidence bundle', () => {
     const run = await openOffline(browser, verifyFile);
     const v = run.page;
     await expect(v.locator('body')).toHaveAttribute('data-checked', 'yes');
+    await expect(v.getByText('The files agree with each other', { exact: true })).toBeVisible();
+    await expect(v.locator('[data-check="lookups-withheld"]')).toHaveCount(0);
+    // What was sealed, as text: the name, who bred it, the notes with their "</script>".
+    const sealed = v.locator('table[data-sealed="matches"]');
+    await expect(sealed).toContainText(bound.strainName);
+    await expect(sealed.locator('tr', { hasText: 'Bred by' })).toContainText('E2E');
+    await expect(sealed.locator('tr', { hasText: 'Notes' })).toContainText('Practice data. "</script>" stays text.');
+    await expect(sealed.locator('tr', { hasText: 'Stated date' })).toContainText('2026-10-01');
     await expect(v.getByText('Fingerprint matches', { exact: true })).toBeVisible();
     await expect(v.getByText('Proof leads to the batch root', { exact: true })).toBeVisible();
     await expect(v.getByText('The record’s key matches', { exact: true })).toBeVisible();
@@ -360,13 +414,22 @@ test.describe('evidence bundle', () => {
     await expect(v.locator('[data-check="lookup-midnight"]')).toContainText(ANCHOR_TX);
     await expect(v.locator('[data-check="lookup-midnight"]')).toContainText(setup.batchRoot);
     await expect(v.locator('[data-check="lookup-midnight"]')).toContainText(/test network/);
-    if (setup.ots) await expect(v.locator('[data-check="lookup-bitcoin"]')).toContainText('ots verify root.bin.ots');
+    await expect(v.locator('[data-check="lookup-midnight"]')).toContainText(
+      'Open the Midnight explorer for Midnight preprod (a test network): https://preprod.midnightexplorer.com/',
+    );
+    if (setup.ots) {
+      const btc = v.locator('[data-check="lookup-bitcoin"]');
+      await expect(btc).toContainText('ots verify root.bin.ots');
+      // What the file shows, not the registry's "pending".
+      await expect(btc).toContainText(`names Bitcoin block ${STAMP_BLOCK}`);
+      await expect(btc).toContainText('This page can’t reach Bitcoin');
+    }
     // The plant's name is text, never markup.
     await expect(v.getByText(bound.strainName, { exact: false }).first()).toBeVisible();
     // The files themselves, chosen in the page: the lab report and root.bin match.
     await v
       .locator('#files')
-      .setInputFiles([path.join(dir, 'lab/Practice lab report.txt'), path.join(dir, 'proof/root.bin')]);
+      .setInputFiles([path.join(dir, 'lab/report/Practice lab report.txt'), path.join(dir, 'proof/root.bin')]);
     await expect(v.getByText('Practice lab report.txt is the lab report saved to this plant')).toBeVisible();
     await expect(v.getByText('root.bin is the batch root')).toBeVisible();
     // A tampered sealed-fields.json, chosen in the page: refused.
@@ -387,11 +450,24 @@ test.describe('evidence bundle', () => {
 
     // Tampered copies of the page itself.
     const html = fs.readFileSync(verifyFile, 'utf8');
-    const variants: { name: string; change: (ev: Record<string, any>) => void; expect: string[] }[] = [
+    const variants: {
+      name: string;
+      change: (ev: Record<string, any>) => void;
+      expect: string[];
+      withheld: string;
+    }[] = [
       {
         name: 'tampered-record',
         change: (ev) => (ev.record.sealedFields.notes = 'edited later'),
         expect: ['Fingerprint does not match', 'Proof does not lead to the batch root'],
+        withheld:
+          'Don’t use this to date the record: the fingerprint does not match the sealed fields; the proof does not lead to the batch root',
+      },
+      {
+        name: 'tampered-date',
+        change: (ev) => (ev.record.sealedFields.dateCreated = '2019-01-01'),
+        expect: ['Fingerprint does not match'],
+        withheld: 'Don’t use this to date the record: the fingerprint does not match the sealed fields',
       },
       {
         name: 'wrong-proof',
@@ -400,16 +476,19 @@ test.describe('evidence bundle', () => {
           else ev.proof.root = flip(ev.proof.root);
         },
         expect: ['Fingerprint matches', 'Proof does not lead to the batch root'],
+        withheld: 'Don’t use this to date the record: the proof does not lead to the batch root',
       },
       {
         name: 'wrong-root',
         change: (ev) => (ev.batch.root = flip(ev.batch.root)),
         expect: ['Fingerprint matches', 'Proof does not lead to the batch root'],
+        withheld: 'Don’t use this to date the record: the proof does not lead to the batch root',
       },
       {
         name: 'wrong-key',
         change: (ev) => (ev.key.identity = flip(ev.key.identity)),
         expect: ['Fingerprint matches', 'The key does not match'],
+        withheld: 'Don’t use this to date the record: the key does not match the record',
       },
     ];
     for (const variant of variants) {
@@ -418,6 +497,14 @@ test.describe('evidence bundle', () => {
       const t = await openOffline(browser, file);
       for (const headline of variant.expect)
         await expect(t.page.getByText(headline, { exact: true }), variant.name).toBeVisible();
+      // The look-up steps are withheld, and the page says which check failed.
+      await expect(t.page.getByText('Don’t use this to date the record', { exact: true }), variant.name).toBeVisible();
+      await expect(t.page.locator('[data-check="lookups-withheld"]'), variant.name).toContainText(variant.withheld);
+      await expect(t.page.locator('[data-check="lookup-midnight"]'), variant.name).toHaveCount(0);
+      await expect(t.page.locator('[data-check="lookup-bitcoin"]'), variant.name).toHaveCount(0);
+      await expect(t.page.locator('body'), variant.name).not.toContainText('existed, unchanged, by');
+      if (variant.name.startsWith('tampered'))
+        await expect(t.page.locator('table[data-sealed="changed"]'), variant.name).toBeVisible();
       expect(t.requests.filter((u) => !u.startsWith('file:'))).toEqual([]);
       expectNoErrors(t.errors);
       await t.ctx.close();

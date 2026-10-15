@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest';
 import fixture from './fixtures/anchor-indexer.json';
 import { ANCHOR_QUERY, checkAnchorOnChain, isAnchorEntry, type AnchorCheckDeps } from './anchor-check';
 import { lastBatchRootOf } from './anchor-decode';
-import { anchorContractFor, readIndexersFor } from './config';
+import { anchorContractFor, carriesKey, readIndexersFor, sameIndexer } from './config';
 import { contractStateAfter } from './test-chain';
 import { queryProblem } from '../../../../sponsor/src/indexer-relay';
 import { verifyInclusion } from 'veilcore-records';
@@ -186,6 +186,46 @@ describe('checkAnchorOnChain', () => {
     expect((v as { reason: string }).reason).toMatch(reason);
   });
 
+  it('the same transaction twice: fine when both entries agree, refused when they differ', async () => {
+    // By hash and by identifier, identical (keys in another order): one answer.
+    const same = anchorTx({ identifiers: [TX] });
+    const reordered = Object.fromEntries(Object.entries(anchorTx({ identifiers: [TX] })).reverse());
+    expect(await checkAnchorOnChain(input, deps({ [I1]: { byHash: [same], byId: [reordered] } }))).toMatchObject({
+      status: 'checked',
+    });
+    // Two entries for one hash that say different things: never "keep the last one".
+    for (const other of [
+      anchorTx({ contractActions: [{ address: CONTRACT, state: fixture.otherStateHex, entryPoint: 'anchorBatch' }] }),
+      anchorTx({ block: { height: 1, timestamp: BLOCK_MS } }),
+    ]) {
+      for (const reply of [
+        { byHash: [anchorTx(), other] },
+        { byHash: [other, anchorTx()] },
+        { byHash: [anchorTx()], byId: [{ ...other, identifiers: [TX] }] },
+      ]) {
+        const v = await checkAnchorOnChain(input, deps({ [I1]: reply }));
+        expect(v).toEqual({
+          status: 'failed',
+          reason: 'the indexer gave two different answers for transaction e13c88f5a2fb…',
+        });
+      }
+    }
+  });
+
+  it('a "checked" answer must say when: no block height or time is refused', async () => {
+    for (const block of [
+      null,
+      { height: 7 },
+      { timestamp: BLOCK_MS },
+      { height: -1, timestamp: BLOCK_MS },
+      { height: 7, timestamp: 0 },
+    ]) {
+      const v = await checkAnchorOnChain(input, deps({ [I1]: { byHash: [anchorTx({ block })] } }));
+      expect(v.status, JSON.stringify(block)).toBe('failed');
+      expect((v as { reason: string }).reason).toMatch(/^the indexer didn’t say when/);
+    }
+  });
+
   it('accepts the entry point given as the hex of its name', () => {
     expect(isAnchorEntry(Buffer.from('anchorBatch').toString('hex').toUpperCase())).toBe(true);
     expect(isAnchorEntry(Buffer.from('anchor').toString('hex'))).toBe(false);
@@ -278,6 +318,50 @@ describe('which indexers and contract the page uses', () => {
       'http://127.0.0.1:8080/indexer',
     ]);
     expect(readIndexersFor('mainnet', { relay: I1, second: 'https://x.example/?api_key=k' })).toEqual([I1]);
+  });
+
+  it('finds a key by its decoded parameter name, wherever it is in the address', () => {
+    for (const keyed of [
+      'https://x.example/graphql?project_id=abc',
+      'https://x.example/graphql?project%5Fid=abc',
+      'https://x.example/graphql?PROJECT-ID=abc',
+      'https://x.example/graphql?a=1&api_key=abc',
+      'https://x.example/graphql?apikey=abc',
+      'https://x.example/graphql?api%2Dkey=abc',
+      'https://x.example/graphql?key=abc',
+      'https://x.example/graphql?token=abc',
+      'https://x.example/graphql?access_token=abc',
+      'https://x.example/graphql#token=abc',
+      'https://user:pass@x.example/graphql',
+      'https://user@x.example/graphql',
+      'not a url ?project%5Fid=abc',
+    ])
+      expect(carriesKey(keyed), keyed).toBe(true);
+    for (const clean of [
+      I1,
+      I2,
+      'https://x.example/graphql?network=preprod',
+      'https://keyserver.example/token/graphql',
+    ])
+      expect(carriesKey(clean), clean).toBe(false);
+    expect(readIndexersFor('mainnet', { relay: 'https://x.example/graphql?project%5Fid=abc' })).toEqual([]);
+    expect(readIndexersFor('mainnet', { relay: I1, second: 'https://x.example/?key=k' })).toEqual([I1]);
+  });
+
+  it('the test-network fallback is held to the same rules: no key, https', () => {
+    expect(readIndexersFor('preprod', { indexer: 'https://x.blockfrost.io/api/v0?project_id=preprodX' })).toEqual([]);
+    expect(readIndexersFor('preview', { indexer: 'http://indexer.example/graphql' })).toEqual([]);
+    expect(readIndexersFor('preview', { indexer: 'https://indexer.example/graphql' })).toEqual([
+      'https://indexer.example/graphql',
+    ]);
+  });
+
+  it('the same indexer written two ways is one indexer, not two', () => {
+    for (const twin of [`${I1}/`, 'https://RELAY.example/indexer', 'https://relay.example:443/indexer//', `${I1}?x=1`])
+      expect(readIndexersFor('mainnet', { relay: I1, second: twin }), twin).toEqual([I1]);
+    expect(sameIndexer(I1, `${I1}/`)).toBe(true);
+    expect(sameIndexer(I1, 'https://relay.example/other')).toBe(false);
+    expect(readIndexersFor('mainnet', { relay: I1, second: I2 })).toEqual([I1, I2]);
   });
 
   it('the contract: mainnet’s pinned address, else the test build’s demo contract', () => {

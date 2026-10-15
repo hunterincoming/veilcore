@@ -11,6 +11,12 @@
 // 4. Asks two block explorers that don't share a backend (mempool.space, blockstream.info)
 //    for that block: its hash, its merkle root, and its raw 80-byte header. The header must
 //    hash to the block's hash, and carry the merkle root from step 3.
+// 5. The header must carry Bitcoin's proof of work: its hash at or under the target its own
+//    nBits field sets, that target no easier than Bitcoin's minimum, and, from block 800000
+//    on, at most 2^200 (see MIN_WORK below). Its previous-block hash must be the hash of the
+//    block one lower, asked of the OTHER explorer. So a made-up header, with the stamp's
+//    merkle root in it and no mining behind it, fails. Each explorer is asked on its own (no
+//    shared cache, nothing reused from one for the other).
 // Prints every value, then PASS, FAIL or NOT DONE (something couldn't be reached, or the
 // stamp hasn't reached Bitcoin yet). Exit code 0, 1 or 2.
 //
@@ -243,16 +249,65 @@ const sha256d = (b) => hashOf('sha256')(hashOf('sha256')(b));
 /** Internal byte order ↔ the hex explorers and Bitcoin Core print. */
 export const toExplorerHex = (internal) => Buffer.from(internal).reverse().toString('hex');
 
-/** What an 80-byte header says: its hash and merkle root as explorers print them, its time. */
+/**
+ * What an 80-byte header says: its hash, previous block and merkle root as explorers print
+ * them, its time, and its nBits (the compact target).
+ */
 export const readHeader = (hex) => {
   if (!/^[0-9a-f]{160}$/i.test(hex)) throw new Error('a block header is 80 bytes (160 hex characters)');
   const h = Buffer.from(hex, 'hex');
   return {
     hash: toExplorerHex(sha256d(h)),
+    prevHash: toExplorerHex(h.subarray(4, 36)),
     merkleRootInternal: h.subarray(36, 68),
     merkleRoot: toExplorerHex(h.subarray(36, 68)),
     time: h.readUInt32LE(68),
+    bits: h.readUInt32LE(72),
   };
+};
+
+/**
+ * The target a compact nBits value sets (Bitcoin Core's arith_uint256::SetCompact), or
+ * undefined if it is negative, zero or overflows 256 bits (Core refuses those too).
+ */
+export const compactTarget = (bits) => {
+  const size = bits >>> 24;
+  const word = bits & 0x007fffff;
+  if (word === 0 || bits & 0x00800000) return undefined;
+  const target = size <= 3 ? BigInt(word >>> (8 * (3 - size))) : BigInt(word) << BigInt(8 * (size - 3));
+  if (target === 0n || target >= 1n << 256n) return undefined;
+  return target;
+};
+
+/** Bitcoin mainnet's easiest allowed target (powLimit, nBits 0x1d00ffff, difficulty 1). */
+export const POW_LIMIT = 0xffffn << 208n;
+
+/**
+ * A floor on the work of a recent block. From height 800000 (mid-2023) on, every real
+ * mainnet target has been about 2^176 to 2^179 (difficulty of 5×10^13 and up). 2^200 is
+ * millions of times easier than any of them, so no real block fails it, while a header
+ * made up with an easy target (the reviewer's used nBits 0x207fffff, about 2^254) does.
+ * Older blocks are only held to POW_LIMIT.
+ */
+export const MIN_WORK = { fromHeight: 800_000, maxTarget: 1n << 200n };
+
+const log2 = (n) => n.toString(2).length - 1;
+
+/**
+ * Why a header doesn't carry the proof of work a real block at `height` would, or
+ * undefined when it does: hash ≤ its own target, target ≤ powLimit, and from
+ * MIN_WORK.fromHeight on, target ≤ MIN_WORK.maxTarget.
+ */
+export const proofOfWorkProblem = (headerHex, height) => {
+  const h = readHeader(headerHex);
+  const target = compactTarget(h.bits);
+  const bitsHex = `0x${h.bits.toString(16).padStart(8, '0')}`;
+  if (target === undefined) return `its nBits ${bitsHex} is not a valid target`;
+  if (target > POW_LIMIT) return `its target (nBits ${bitsHex}, about 2^${log2(target)}) is easier than Bitcoin allows`;
+  if (height >= MIN_WORK.fromHeight && target > MIN_WORK.maxTarget)
+    return `its target (nBits ${bitsHex}, about 2^${log2(target)}) is far easier than any real block at height ${height} (at most 2^200 from height ${MIN_WORK.fromHeight})`;
+  if (BigInt(`0x${h.hash}`) > target) return `it has no proof of work: its hash is above its own target (nBits ${bitsHex})`;
+  return undefined;
 };
 
 // ── The check ────────────────────────────────────────────────────────────────────────
@@ -268,6 +323,7 @@ const getter = (fetchImpl, timeoutMs) => async (url, as) => {
   try {
     const res = await fetchImpl(url, {
       signal: AbortSignal.timeout(timeoutMs),
+      cache: 'no-store',
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     if (as === 'bytes') return Buffer.from(await res.arrayBuffer());
@@ -289,6 +345,139 @@ const explorerBlock = async (get, explorer, height) => {
   return { hash, json, header };
 };
 
+/** A result being built: lines said, failures, things not done. */
+const report = () => {
+  const lines = [];
+  const say = (s = '') => lines.push(s);
+  const fails = [];
+  const notDone = [];
+  const fail = (s) => {
+    fails.push(s);
+    say(`  FAIL: ${s}`);
+  };
+  const finish = () => {
+    const result = fails.length ? 'FAIL' : notDone.length ? 'NOT DONE' : 'PASS';
+    say();
+    say(`Result: ${result}`);
+    for (const f of fails) say(`  - ${f}`);
+    if (!fails.length) for (const n of notDone) say(`  - not done: ${n}`);
+    return { result, lines };
+  };
+  return { lines, say, fail, notDone, finish };
+};
+
+/** Two explorers on different hosts, or why not. */
+const explorersProblem = (explorers) => {
+  const hosts = explorers.map((ex) => {
+    try {
+      return new URL(ex.base).host;
+    } catch {
+      return ex.base;
+    }
+  });
+  if (explorers.length < 2 || new Set(hosts).size !== explorers.length)
+    return 'the check needs two block explorers on different hosts';
+  return undefined;
+};
+
+/**
+ * Step 4 and 5 for one Bitcoin attestation: block `height` must have merkle root `msg`
+ * (header byte order), on each explorer, with a mined header that points to block
+ * height−1 as the OTHER explorer gives it. Each explorer is asked on its own.
+ */
+const checkAttestation = async ({ height, msg }, { get, explorers, say, fail, notDone }) => {
+  const a = { height, msg };
+  const hashes = [];
+  const expected = toExplorerHex(a.msg);
+  say(`  the stamp's steps end on (header byte order):   ${a.msg.toString('hex')}`);
+  say(`  so block ${a.height}'s merkle root must be (explorer order): ${expected}`);
+  for (const [i, ex] of explorers.entries()) {
+    const other = explorers[(i + 1) % explorers.length];
+    let block;
+    try {
+      block = await explorerBlock(get, ex, a.height);
+    } catch (e) {
+      if (!(e instanceof Unreachable)) throw e;
+      say(`  ${ex.name}: couldn't reach it (${e.message})`);
+      notDone.push(`${ex.name} couldn't be reached for block ${a.height}`);
+      continue;
+    }
+    say(`  ${ex.name}:`);
+    say(`    block hash:            ${block.hash}`);
+    say(`    merkle_root:           ${block.json?.merkle_root}`);
+    say(`    height:                ${block.json?.height}`);
+    say(`    timestamp:             ${block.json?.timestamp} (${utc(Number(block.json?.timestamp))})`);
+    say(`    header:                ${block.header}`);
+    let header;
+    try {
+      header = readHeader(block.header);
+    } catch (e) {
+      fail(`${ex.name}: ${e instanceof Error ? e.message : String(e)}`);
+      continue;
+    }
+    say(`    header hashes to:      ${header.hash}`);
+    say(`    header's merkle root:  ${header.merkleRoot}`);
+    say(`    header's time:         ${header.time} (${utc(header.time)})`);
+    say(`    header's previous block: ${header.prevHash}`);
+    const target = compactTarget(header.bits);
+    say(
+      `    header's target:       nBits 0x${header.bits.toString(16).padStart(8, '0')}${target === undefined ? ' (not valid)' : `, about 2^${log2(target)}`}`,
+    );
+    hashes.push(block.hash);
+    const pow = proofOfWorkProblem(block.header, a.height);
+    if (pow) fail(`${ex.name}: the header for block ${a.height} is not a mined block: ${pow}`);
+    else say('    proof of work:         the header hash is at or under its target');
+    // The block one lower, from the other explorer: this header must point to it.
+    let prevOk = false;
+    if (!Number.isSafeInteger(a.height) || a.height < 1) fail(`block ${a.height} has no block before it to check`);
+    else {
+      try {
+        const prev = await get(`${other.base}/block-height/${a.height - 1}`, 'text');
+        if (!/^[0-9a-f]{64}$/.test(prev)) throw new Unreachable(`${other.name}: not a block hash: ${prev.slice(0, 80)}`);
+        say(`    block ${a.height - 1} (from ${other.name}): ${prev}`);
+        if (prev !== header.prevHash)
+          fail(`${ex.name}: the header's previous block is not block ${a.height - 1} as ${other.name} gives it`);
+        else prevOk = true;
+      } catch (e) {
+        if (!(e instanceof Unreachable)) throw e;
+        say(`    block ${a.height - 1}: couldn't ask ${other.name} (${e.message})`);
+        notDone.push(`${other.name} couldn't be reached for block ${a.height - 1}`);
+      }
+    }
+    if (block.json?.height !== a.height) fail(`${ex.name}: the block it returned is at height ${block.json?.height}`);
+    if (block.json?.id !== undefined && block.json.id !== block.hash) fail(`${ex.name}: block id and hash differ`);
+    if (header.hash !== block.hash) fail(`${ex.name}: the header does not hash to the block hash`);
+    if (block.json?.merkle_root !== expected) fail(`${ex.name}: merkle_root is not the stamp's value`);
+    if (!header.merkleRootInternal.equals(a.msg))
+      fail(`${ex.name}: the header's merkle root is not the stamp's value`);
+    if (block.json?.timestamp !== header.time) fail(`${ex.name}: the timestamp and the header's time differ`);
+    if (
+      block.json?.merkle_root === expected &&
+      header.merkleRootInternal.equals(a.msg) &&
+      header.hash === block.hash &&
+      !pow &&
+      prevOk
+    )
+      say('    matches the stamp');
+  }
+  if (new Set(hashes).size > 1) fail(`the explorers give different blocks at height ${a.height}`);
+};
+
+/**
+ * Steps 4 and 5 on their own, for a block height and the merkle root a stamp ends on
+ * (header byte order): { result, lines } as runCheck gives them.
+ */
+export const checkBlock = async ({ height, msg, fetchImpl = globalThis.fetch, explorers = EXPLORERS, timeoutMs = 30_000 }) => {
+  const r = report();
+  const problem = explorersProblem(explorers);
+  if (problem) r.fail(problem);
+  else {
+    r.say(`Bitcoin block ${height}`);
+    await checkAttestation({ height, msg }, { ...r, get: getter(fetchImpl, timeoutMs), explorers });
+  }
+  return r.finish();
+};
+
 /**
  * Runs the check and returns { result: 'PASS' | 'FAIL' | 'NOT DONE', lines }. Every value
  * it read or worked out is in `lines`, in order.
@@ -301,23 +490,9 @@ export const runCheck = async ({
   explorers = EXPLORERS,
   timeoutMs = 30_000,
 }) => {
-  const lines = [];
-  const say = (s = '') => lines.push(s);
-  const fails = [];
-  const notDone = [];
-  const fail = (s) => {
-    fails.push(s);
-    say(`  FAIL: ${s}`);
-  };
+  const r = report();
+  const { say, fail, notDone, finish } = r;
   const get = getter(fetchImpl, timeoutMs);
-  const finish = () => {
-    const result = fails.length ? 'FAIL' : notDone.length ? 'NOT DONE' : 'PASS';
-    say();
-    say(`Result: ${result}`);
-    for (const f of fails) say(`  - ${f}`);
-    if (!fails.length) for (const n of notDone) say(`  - not done: ${n}`);
-    return { result, lines };
-  };
 
   // 1. The two files.
   let root;
@@ -382,7 +557,13 @@ export const runCheck = async ({
     return finish();
   }
 
-  // 4. Each Bitcoin attestation, against two explorers.
+  const explorersBad = explorersProblem(explorers);
+  if (explorersBad) {
+    fail(explorersBad);
+    return finish();
+  }
+
+  // 4 and 5. Each Bitcoin attestation, against two explorers.
   for (const a of btc) {
     say();
     say(`4. Bitcoin block ${a.height}`);
@@ -390,48 +571,7 @@ export const runCheck = async ({
       fail(`the path to block ${a.height} ends on ${a.msg.length} bytes, not a 32-byte merkle root`);
       continue;
     }
-    const expected = toExplorerHex(a.msg);
-    say(`  the stamp's steps end on (header byte order):   ${a.msg.toString('hex')}`);
-    say(`  so block ${a.height}'s merkle root must be (explorer order): ${expected}`);
-    const hashes = [];
-    for (const ex of explorers) {
-      let block;
-      try {
-        block = await explorerBlock(get, ex, a.height);
-      } catch (e) {
-        if (!(e instanceof Unreachable)) throw e;
-        say(`  ${ex.name}: couldn't reach it (${e.message})`);
-        notDone.push(`${ex.name} couldn't be reached for block ${a.height}`);
-        continue;
-      }
-      say(`  ${ex.name}:`);
-      say(`    block hash:            ${block.hash}`);
-      say(`    merkle_root:           ${block.json?.merkle_root}`);
-      say(`    height:                ${block.json?.height}`);
-      say(`    timestamp:             ${block.json?.timestamp} (${utc(Number(block.json?.timestamp))})`);
-      say(`    header:                ${block.header}`);
-      let header;
-      try {
-        header = readHeader(block.header);
-      } catch (e) {
-        fail(`${ex.name}: ${e instanceof Error ? e.message : String(e)}`);
-        continue;
-      }
-      say(`    header hashes to:      ${header.hash}`);
-      say(`    header's merkle root:  ${header.merkleRoot}`);
-      say(`    header's time:         ${header.time} (${utc(header.time)})`);
-      hashes.push(block.hash);
-      if (block.json?.height !== a.height) fail(`${ex.name}: the block it returned is at height ${block.json?.height}`);
-      if (block.json?.id !== undefined && block.json.id !== block.hash) fail(`${ex.name}: block id and hash differ`);
-      if (header.hash !== block.hash) fail(`${ex.name}: the header does not hash to the block hash`);
-      if (block.json?.merkle_root !== expected) fail(`${ex.name}: merkle_root is not the stamp's value`);
-      if (!header.merkleRootInternal.equals(a.msg))
-        fail(`${ex.name}: the header's merkle root is not the stamp's value`);
-      if (block.json?.timestamp !== header.time) fail(`${ex.name}: the timestamp and the header's time differ`);
-      if (block.json?.merkle_root === expected && header.merkleRootInternal.equals(a.msg) && header.hash === block.hash)
-        say('    matches the stamp');
-    }
-    if (new Set(hashes).size > 1) fail(`the explorers give different blocks at height ${a.height}`);
+    await checkAttestation(a, { get, explorers, say, fail, notDone });
   }
   return finish();
 };

@@ -51,13 +51,41 @@ export const INDEXER_WS: string | undefined = env.VITE_INDEXER_WS_URL?.trim() ||
 //   VITE_INDEXER_SECOND_URL=https://…          optional: a second, independent indexer.
 //                                              When set, both must give the same answer.
 //
-// Neither may carry a key: a URL with project_id=, api_key= or token= in it is ignored here
-// (and refused by scripts/vercel-config.mjs), so the page never publishes one.
+// None may carry a key: a URL with a key in it is ignored here (and refused by
+// scripts/vercel-config.mjs, which runs the same test), so the page never publishes one.
+// The test-network fallback (VITE_INDEXER_URL) goes through the same filter.
 
-const KEYED = /[?&](project_id|api[_-]?key|token)=/i;
-const readUrl = (v: string | undefined): string | undefined => {
+/**
+ * Query or fragment parameter names that hold a key. Compared after URLSearchParams has
+ * decoded them, so project%5Fid or API-KEY are caught as well as project_id.
+ */
+const KEY_PARAM =
+  /^(project[_-]?id|api[_-]?key|apikey|key|token|access[_-]?token|auth|authorization|secret|password)$/i;
+
+/** True when a URL carries a key: a key-named parameter, or a user name or password in it. */
+export const carriesKey = (v: string): boolean => {
+  let u: URL;
+  try {
+    u = new URL(v.trim());
+  } catch {
+    // Not a URL at all: look for the names in the raw text, decoded where it can be.
+    let raw = v;
+    try {
+      raw = decodeURIComponent(v);
+    } catch {
+      /* keep the raw text */
+    }
+    return /[?&#;](project[_-]?id|api[_-]?key|apikey|key|token|access[_-]?token|auth|secret|password)=/i.test(raw);
+  }
+  if (u.username || u.password) return true;
+  const names = [...new URLSearchParams(u.search).keys(), ...new URLSearchParams(u.hash.replace(/^#/, '')).keys()];
+  return names.some((n) => KEY_PARAM.test(n.trim()));
+};
+
+/** An indexer URL the page may read: https (or http on this computer only), no key in it. */
+export const readUrl = (v: string | undefined): string | undefined => {
   const s = (v ?? '').trim();
-  if (!s || KEYED.test(s)) return undefined;
+  if (!s || carriesKey(s)) return undefined;
   try {
     const u = new URL(s);
     const local = u.hostname === '127.0.0.1' || u.hostname === 'localhost';
@@ -67,17 +95,31 @@ const readUrl = (v: string | undefined): string | undefined => {
   }
 };
 
+/** The same indexer however it is written: origin and path, without a trailing slash. */
+export const sameIndexer = (a: string, b: string): boolean => {
+  const key = (s: string) => {
+    const u = new URL(s);
+    return `${u.origin}${u.pathname.replace(/\/+$/, '')}`;
+  };
+  try {
+    return key(a) === key(b);
+  } catch {
+    return a === b;
+  }
+};
+
 /** The indexers the check page reads, first one first. Empty when none is configured. */
 export const readIndexersFor = (
   network: string,
   e: { relay?: string; second?: string; indexer?: string },
 ): string[] => {
   // Mainnet reads only through the relay named for it, never a test build's leftover
-  // VITE_INDEXER_URL. A test network falls back to the indexer its chain features use.
-  const first = readUrl(e.relay) ?? (network === 'mainnet' ? undefined : e.indexer?.trim() || undefined);
+  // VITE_INDEXER_URL. A test network falls back to the indexer its chain features use,
+  // held to the same rules (no key, https).
+  const first = readUrl(e.relay) ?? (network === 'mainnet' ? undefined : readUrl(e.indexer));
   const second = readUrl(e.second);
   if (!first) return [];
-  return second && second !== first ? [first, second] : [first];
+  return second && !sameIndexer(second, first) ? [first, second] : [first];
 };
 
 export const READ_INDEXERS: readonly string[] = readIndexersFor(NETWORK, {

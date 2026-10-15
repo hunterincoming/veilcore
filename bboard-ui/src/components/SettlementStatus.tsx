@@ -18,46 +18,24 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/FileDownloadOutlined';
 import LinkIcon from '@mui/icons-material/LaunchOutlined';
-import { bitcoinStampFor, proofFor, downloadProof, type ProofState } from '../veilcore/proofs';
+import { bitcoinStampFor, downloadProof } from '../veilcore/proofs';
 import type { StrainRecord } from '../veilcore/records';
 import { NETWORK, explorerFor, networkLabel } from '../config/network';
 import { OUR_SERVER } from '../config/copy';
-import { ANCHOR_CONTRACT, READ_INDEXERS } from '../veilcore/chain/config';
-import { checkAnchorOnChain } from '../veilcore/chain/anchor-check';
-import { anchorConfirmed, anchorLine, type AnchorState } from './verify/anchor-words';
+import { anchorConfirmed, anchorLine } from './verify/anchor-words';
+import { useRecordDate } from './verify/useAnchorCheck';
 import { reportedText, settlementChip } from './settlement-words';
 import { Fact } from './verify/DisclosedFacts';
 
 export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record }) => {
-  const [state, setState] = useState<ProofState>({ status: 'none' });
-  const [anchor, setAnchor] = useState<AnchorState | undefined>(undefined);
-
-  useEffect(() => {
-    void proofFor(record.recordFingerprint).then(setState);
-  }, [record.recordFingerprint]);
-
-  // The registry's anchor, looked up on Midnight by this browser: the transaction must be
-  // VeilCore's date stamp call at the contract this build pins and have written this root.
-  useEffect(() => {
-    const a = state.status === 'anchor-reported' ? state.proof.anchor : undefined;
-    if (state.status !== 'anchor-reported' || !a?.txHash) {
-      setAnchor(undefined);
-      return;
-    }
-    let live = true;
-    setAnchor('checking');
-    void checkAnchorOnChain(
-      { network: a.network, txId: a.txHash, contractAddress: ANCHOR_CONTRACT, expectedRoot: state.proof.root },
-      { buildNetwork: NETWORK, indexers: READ_INDEXERS },
-    ).then((r) => live && setAnchor(r));
-    return () => {
-      live = false;
-    };
-  }, [state]);
+  // The record's proof and its anchor looked up on Midnight: the same answer the plant
+  // page's status card and History show (useAnchorCheck.ts, chain/anchor-lookup.ts).
+  const { proof: loaded, anchor } = useRecordDate(record.recordFingerprint);
+  const state = loaded === 'checking' ? ({ status: 'none' } as const) : loaded;
 
   if (state.status === 'none') {
     return (
@@ -82,7 +60,10 @@ export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record })
   const stamp = bitcoinStampFor(proof);
   // The proof was checked against this record's own fingerprint, so a confirmed anchor is
   // ticked (bound). Nothing extra when this build has no indexer for that network.
-  const anchorText = reported && anchor !== undefined ? anchorLine(anchor, { network, bound: true }) : undefined;
+  const anchorText =
+    reported && anchor !== undefined
+      ? anchorLine(anchor, { network, bound: true, reportedAt: proof.anchor?.anchoredAt })
+      : undefined;
   const confirmed = anchorConfirmed(anchor);
 
   return (
@@ -139,8 +120,8 @@ export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record })
 
       <Typography variant="caption" color="text.secondary">
         {confirmed
-          ? 'The file shows your record is in this batch. This page found the batch root in the named transaction on Midnight; anyone can repeat that with the open-source package and a lookup on the network, without this site.'
-          : 'The file shows your record is in this batch. It is evidence of a date only once the batch root is found in the named transaction, which needs the open-source package and a lookup on the network, not this site.'}
+          ? 'The file shows your record is in this batch. This page found the batch root in the named transaction on Midnight. Anyone can repeat that: the evidence bundle has everything they need and says how, and the check page does the same look-up in their own browser.'
+          : 'The file shows your record is in this batch. It dates the record only once the batch root is found in the named transaction. The evidence bundle has everything needed to look that up and says how, and the check page does the look-up in the browser when it can reach Midnight.'}
       </Typography>
       {stamp && (
         <Typography variant="caption" color="text.secondary">

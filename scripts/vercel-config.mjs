@@ -10,6 +10,49 @@ const API_ORIGIN = new URL(
   process.env.VEILCORE_API_ORIGIN || process.env.VITE_API_BASE || 'https://veilcore-api-production.up.railway.app',
 ).origin;
 
+// A key in any indexer address would be published inside the page for anyone to use. The
+// same test as bboard-ui/src/veilcore/chain/config.ts carriesKey: a key-named query or
+// fragment parameter, compared after decoding (so project%5Fid is caught as project_id),
+// or a user name or password in the address.
+const KEY_PARAM = /^(project[_-]?id|api[_-]?key|apikey|key|token|access[_-]?token|auth|authorization|secret|password)$/i;
+export const carriesKey = (v) => {
+  let u;
+  try {
+    u = new URL(String(v).trim());
+  } catch {
+    let raw = String(v);
+    try {
+      raw = decodeURIComponent(raw);
+    } catch {
+      /* keep the raw text */
+    }
+    return /[?&#;](project[_-]?id|api[_-]?key|apikey|key|token|access[_-]?token|auth|secret|password)=/i.test(raw);
+  }
+  if (u.username || u.password) return true;
+  const names = [...new URLSearchParams(u.search).keys(), ...new URLSearchParams(u.hash.replace(/^#/, '')).keys()];
+  return names.some((n) => KEY_PARAM.test(n.trim()));
+};
+
+// The chain features' indexer, and the check page's fallback on a test network
+// (config.ts readIndexersFor): never with a key, in any build (the page carries the
+// value whether or not VITE_REAL_CHAIN is set), and only over https / wss.
+for (const [name, scheme] of [
+  ['VITE_INDEXER_URL', 'https:'],
+  ['VITE_INDEXER_WS_URL', 'wss:'],
+]) {
+  const v = (process.env[name] || '').trim();
+  if (!v) continue;
+  if (carriesKey(v))
+    throw new Error(`${name} carries a key (project_id=…). That build is for your own computer only; it is never deployed.`);
+  let u;
+  try {
+    u = new URL(v);
+  } catch {
+    throw new Error(`${name} is not an address.`);
+  }
+  if (u.protocol !== scheme) throw new Error(`${name} must start with ${scheme}//.`);
+}
+
 // Real-chain builds (VITE_REAL_CHAIN=1, see bboard-ui/src/veilcore/chain/config.ts) also
 // talk to Midnight's indexer (https and wss) and to VeilCore's sponsor service. Proofs
 // are made in a worker from this site's own /keys, /zkir and /params, so nothing else
@@ -24,10 +67,6 @@ if (REAL_CHAIN) {
   // Midnight's own preprod indexer shut on 9 October 2026; preprod needs the indexer named.
   if (network === 'preprod' && !(process.env.VITE_INDEXER_URL && process.env.VITE_INDEXER_WS_URL))
     throw new Error('VITE_REAL_CHAIN=1 on preprod needs VITE_INDEXER_URL and VITE_INDEXER_WS_URL (Midnight runs no public preprod indexer).');
-  // A key in an indexer URL would be published inside the page for anyone to use.
-  for (const v of [process.env.VITE_INDEXER_URL, process.env.VITE_INDEXER_WS_URL])
-    if (v && /[?&](project_id|api[_-]?key|token)=/i.test(v))
-      throw new Error('VITE_INDEXER_URL carries a key (project_id=…). That build is for your own computer only; it is never deployed.');
   const indexer = new URL(process.env.VITE_INDEXER_URL || `https://indexer.${network}.midnight.network/api/v4/graphql`);
   const indexerWs = new URL(process.env.VITE_INDEXER_WS_URL || `wss://indexer.${network}.midnight.network/api/v4/graphql/ws`);
   chainOrigins.push(new URL(sponsor).origin, indexer.origin, `${indexerWs.protocol}//${indexerWs.host}`);
@@ -41,11 +80,28 @@ if (REAL_CHAIN) {
 for (const name of ['VITE_INDEXER_RELAY_URL', 'VITE_INDEXER_SECOND_URL']) {
   const v = (process.env[name] || '').trim();
   if (!v) continue;
-  if (/[?&](project_id|api[_-]?key|token)=/i.test(v))
+  if (carriesKey(v))
     throw new Error(`${name} carries a key (project_id=…). The page would publish it; point it at the relay instead.`);
-  const u = new URL(v);
+  let u;
+  try {
+    u = new URL(v);
+  } catch {
+    throw new Error(`${name} is not an address.`);
+  }
   if (u.protocol !== 'https:') throw new Error(`${name} must be an https address.`);
   if (!chainOrigins.includes(u.origin)) chainOrigins.push(u.origin);
+}
+// The second indexer counts only if it is another one: the page compares origin and path,
+// without a trailing slash, and drops a second that is the first written differently.
+{
+  const indexerKey = (v) => {
+    const u = new URL(v);
+    return `${u.origin}${u.pathname.replace(/\/+$/, '')}`;
+  };
+  const relay = (process.env.VITE_INDEXER_RELAY_URL || '').trim();
+  const second = (process.env.VITE_INDEXER_SECOND_URL || '').trim();
+  if (relay && second && indexerKey(relay) === indexerKey(second))
+    throw new Error('VITE_INDEXER_SECOND_URL is the same indexer as VITE_INDEXER_RELAY_URL; a second check needs a different one.');
 }
 
 // The content security policy. Checked against the built site in headless Chromium

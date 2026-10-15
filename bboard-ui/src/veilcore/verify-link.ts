@@ -112,7 +112,7 @@ export const verifyHeading = (s: {
       : s.proof === 'checking'
         ? 'Checking…'
         : s.proof === 'anchor-reported'
-          ? 'In a dated batch: the date is the registry’s report, not checked here'
+          ? 'Date stamp reported by the registry, not checked here'
           : s.proof === 'pending'
-            ? 'In a batch, not dated yet'
-            : 'Not dated yet';
+            ? 'In a batch, no date stamp yet'
+            : 'No date stamp yet';

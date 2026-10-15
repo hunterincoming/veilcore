@@ -18,8 +18,13 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import {
+  checkBlock,
+  compactTarget,
   EXPLORERS,
   HEADER_MAGIC,
+  MIN_WORK,
+  POW_LIMIT,
+  proofOfWorkProblem,
   keccak256,
   officialCommands,
   parseArgs,
@@ -162,8 +167,11 @@ const REG = 'https://registry.example';
 const ID = 'B-20261011-FE71';
 const btcOf = (ots) => parseOts(ots).attestations.find((a) => a.kind === 'bitcoin');
 
-/** Stand-in fetch: the registry's two files and each explorer's view of one block. */
-const standIn = ({ root, ots, blocks = {}, down = [] }) => {
+/**
+ * Stand-in fetch: the registry's two files and each explorer's view of one block and the
+ * hash of the block before it (`prev`). Every request is recorded in `calls`.
+ */
+const standIn = ({ root, ots, blocks = {}, down = [], calls = [] }) => {
   const urls = new Map();
   urls.set(`${REG}/batches/${ID}/root.bin`, root);
   urls.set(`${REG}/batches/${ID}/root.bin.ots`, ots);
@@ -173,14 +181,30 @@ const standIn = ({ root, ots, blocks = {}, down = [] }) => {
     urls.set(`${ex.base}/block-height/${b.height}`, b.hash);
     urls.set(`${ex.base}/block/${b.hash}`, JSON.stringify(b.json));
     urls.set(`${ex.base}/block/${b.hash}/header`, b.header);
+    if (b.prev !== undefined) urls.set(`${ex.base}/block-height/${b.height - 1}`, b.prev);
   }
-  return async (url) => {
+  return async (url, init) => {
+    calls.push({ url, init });
     if (down.some((d) => url.startsWith(d))) throw new TypeError('fetch failed');
     const body = urls.get(url);
     if (body === undefined) return new Response('not found', { status: 404 });
     return new Response(body, { status: 200 });
   };
 };
+
+/** A real block as both explorers would give it, from its real 80-byte header alone. */
+const realBlock = (headerHex, height) => {
+  const h = readHeader(headerHex);
+  return {
+    height,
+    hash: h.hash,
+    header: headerHex,
+    prev: h.prevHash,
+    json: { id: h.hash, height, timestamp: h.time, merkle_root: h.merkleRoot },
+  };
+};
+const both = (b) => ({ 'mempool.space': b, 'blockstream.info': b });
+const GENESIS = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f';
 
 const blockFor = (msg, height, { merkle } = {}) => {
   const time = Date.UTC(2026, 9, 11, 23, 55, 44) / 1000;
@@ -190,6 +214,7 @@ const blockFor = (msg, height, { merkle } = {}) => {
     height,
     hash,
     header,
+    prev: readHeader(header).prevHash,
     json: {
       id: hash,
       height,
@@ -198,6 +223,9 @@ const blockFor = (msg, height, { merkle } = {}) => {
     },
   };
 };
+
+/** The failures a run reported. */
+const failures = (lines) => lines.filter((l) => l.startsWith('  FAIL: ')).map((l) => l.slice(8));
 
 const synthetic = () => {
   const root = file('synthetic.root.bin');
@@ -210,14 +238,21 @@ const synthetic = () => {
   };
 };
 
-test('PASS when the files match and both explorers carry the stamp’s merkle root', async () => {
+test('the whole check prints every value; the synthetic stamp’s made-up block fails for want of proof of work', async () => {
   const { result, lines } = await runCheck({
     batchId: ID,
     registry: REG,
     fetchImpl: standIn(synthetic()),
   });
   const out = lines.join('\n');
-  assert.equal(result, 'PASS', out);
+  // Everything about the files and the merkle root matches; only the mining is missing.
+  assert.equal(result, 'FAIL', out);
+  assert.deepEqual(
+    failures(lines).map((f) => f.replace(/:.*/, '')),
+    ['mempool.space', 'blockstream.info'],
+  );
+  // Its stand-in header has nBits 0: no target at all.
+  for (const f of failures(lines)) assert.match(f, /is not a mined block: its nBits 0x00000000 is not a valid target$/);
   // Every value is printed.
   assert.match(out, /root\.bin: {6}32 bytes, contents [0-9a-f]{64}/);
   assert.match(out, new RegExp(`the stamp starts from \\(sha256\\): +${expected.synthetic.fileDigestHex}`));
@@ -226,7 +261,154 @@ test('PASS when the files match and both explorers carry the stamp’s merkle ro
   assert.match(out, /mempool\.space:[\s\S]*blockstream\.info:/);
   assert.match(out, /2026-10-11 23:55:44 UTC/);
   assert.match(out, /pending at https:\/\/alice\.btc\.calendar\.opentimestamps\.org/);
-  assert.equal((out.match(/matches the stamp/g) ?? []).length, 2);
+  assert.match(out, /header's previous block: 0{64}/);
+  assert.match(out, /block 971003 \(from blockstream\.info\): 0{64}/);
+  assert.equal((out.match(/matches the stamp/g) ?? []).length, 0);
+});
+
+// Round 2 (review): a header with no proof of work behind it passed. The reviewer's repro:
+// a stamp straight onto a Bitcoin attestation at 865000, and explorers serving a made-up
+// header (nBits 0x207fffff, nonce 0) whose merkle root is the stamp's digest.
+const reviewerFake = (bits = 0x207fffff, height = 865000) => {
+  const root = Buffer.alloc(32, 0x5a);
+  const digest = sha256(root);
+  const ots = Buffer.concat([
+    HEADER_MAGIC,
+    Buffer.from([1, 0x08]),
+    digest,
+    Buffer.from([0x00]),
+    Buffer.from('0588960d73d71901', 'hex'),
+    Buffer.from([3]),
+    Buffer.from([0xe8, 0xe5, 0x34]), // LEB128 865000
+  ]);
+  const h = Buffer.alloc(80);
+  h.writeUInt32LE(0x20000000, 0);
+  Buffer.alloc(32, 0x11).copy(h, 4); // a made-up previous block
+  digest.copy(h, 36);
+  h.writeUInt32LE(1700000000, 68);
+  h.writeUInt32LE(bits, 72);
+  const block = realBlock(h.toString('hex'), height); // shaped like a real one, mined it isn't
+  return { root, ots, blocks: both(block) };
+};
+
+test('FAIL: the reviewer’s made-up header (nBits 0x207fffff, no mining) at block 865000', async () => {
+  const f = reviewerFake();
+  assert.equal(parseOts(f.ots).attestations[0].height, 865000);
+  const { result, lines } = await runCheck({ batchId: ID, registry: REG, fetchImpl: standIn(f) });
+  assert.equal(result, 'FAIL', lines.join('\n'));
+  // Merkle root, block hash, time and previous block all line up: only the work is missing.
+  assert.deepEqual(failures(lines), [
+    'mempool.space: the header for block 865000 is not a mined block: its target (nBits 0x207fffff, about 2^254) is easier than Bitcoin allows',
+    'blockstream.info: the header for block 865000 is not a mined block: its target (nBits 0x207fffff, about 2^254) is easier than Bitcoin allows',
+  ]);
+});
+
+test('FAIL: a made-up header claiming a hard target but with no work behind it', async () => {
+  // nBits 0x170fffff is a target of about 2^179, as hard as a recent block; nonce 0, unmined.
+  const f = reviewerFake(0x170fffff);
+  const { result, lines } = await runCheck({ batchId: ID, registry: REG, fetchImpl: standIn(f) });
+  assert.equal(result, 'FAIL');
+  for (const x of failures(lines)) assert.match(x, /it has no proof of work: its hash is above its own target \(nBits 0x170fffff\)/);
+  assert.equal(failures(lines).length, 2);
+});
+
+test('proof of work: real headers pass at their height; too little work for a recent height fails', () => {
+  assert.equal(compactTarget(0x1d00ffff), POW_LIMIT);
+  assert.equal(compactTarget(0x1d00ffff), 0xffffn * 2n ** 208n);
+  assert.equal(compactTarget(0x03123456), 0x123456n);
+  assert.equal(compactTarget(0x02123456), 0x1234n);
+  for (const bad of [0, 0x1d000000, 0x1d80ffff, 0xff7fffff]) assert.equal(compactTarget(bad), undefined, bad.toString(16));
+  assert.equal(MIN_WORK.fromHeight, 800000);
+  assert.equal(MIN_WORK.maxTarget, 2n ** 200n);
+  // Blocks 1 and 586 (python-opentimestamps' test data): mined at difficulty 1.
+  assert.equal(proofOfWorkProblem(expected.block1.headerHex, 1), undefined);
+  assert.equal(proofOfWorkProblem(expected.block586.headerHex, 586), undefined);
+  assert.equal(proofOfWorkProblem(expected.block586.headerHex, 799999), undefined);
+  // The same real header claimed for a block from 800000 on: far too little work.
+  assert.match(proofOfWorkProblem(expected.block586.headerHex, 800000), /far easier than any real block at height 800000/);
+  // One bit of the nonce changed: the hash is no longer under the target.
+  const h = Buffer.from(expected.block586.headerHex, 'hex');
+  h[79] ^= 1;
+  assert.match(proofOfWorkProblem(h.toString('hex'), 586), /no proof of work/);
+});
+
+test('PASS on real blocks (586 and 1): mined, and pointing to the block before as the other explorer gives it', async () => {
+  const msg586 = btcOf(file('block586.root.bin.ots')).msg;
+  const b586 = realBlock(expected.block586.headerHex, 586);
+  const calls = [];
+  const r = await checkBlock({ height: 586, msg: msg586, fetchImpl: standIn({ blocks: both(b586), calls }) });
+  assert.equal(r.result, 'PASS', r.lines.join('\n'));
+  assert.equal((r.lines.join('\n').match(/matches the stamp/g) ?? []).length, 2);
+  assert.match(r.lines.join('\n'), new RegExp(`block 585 \\(from blockstream\\.info\\): ${b586.prev}`));
+  // Each explorer asked on its own, every request uncached; block 585 from the other one.
+  const [m, b] = EXPLORERS.map((ex) => ex.base);
+  assert.deepEqual(
+    calls.map((c) => c.url),
+    [
+      `${m}/block-height/586`,
+      `${m}/block/${b586.hash}`,
+      `${m}/block/${b586.hash}/header`,
+      `${b}/block-height/585`,
+      `${b}/block-height/586`,
+      `${b}/block/${b586.hash}`,
+      `${b}/block/${b586.hash}/header`,
+      `${m}/block-height/585`,
+    ],
+  );
+  for (const c of calls) assert.equal(c.init?.cache, 'no-store');
+  // Block 1: its previous block is the genesis block.
+  const b1 = realBlock(expected.block1.headerHex, 1);
+  assert.equal(b1.prev, GENESIS);
+  const r1 = await checkBlock({
+    height: 1,
+    msg: readHeader(expected.block1.headerHex).merkleRootInternal,
+    fetchImpl: standIn({ blocks: both(b1) }),
+  });
+  assert.equal(r1.result, 'PASS', r1.lines.join('\n'));
+});
+
+test('FAIL when the header’s previous block isn’t the other explorer’s block below it; NOT DONE when it can’t be asked', async () => {
+  const msg = btcOf(file('block586.root.bin.ots')).msg;
+  const b586 = realBlock(expected.block586.headerHex, 586);
+  // blockstream.info says block 585 is something else (here block 1's real hash).
+  const r = await checkBlock({
+    height: 586,
+    msg,
+    fetchImpl: standIn({
+      blocks: { 'mempool.space': b586, 'blockstream.info': { ...b586, prev: readHeader(expected.block1.headerHex).hash } },
+    }),
+  });
+  assert.equal(r.result, 'FAIL');
+  assert.deepEqual(failures(r.lines), [
+    "mempool.space: the header's previous block is not block 585 as blockstream.info gives it",
+  ]);
+  // Only block 585 can't be had from blockstream.info: not done, not passed.
+  const down = await checkBlock({
+    height: 586,
+    msg,
+    fetchImpl: standIn({ blocks: both(b586), down: [`${EXPLORERS[1].base}/block-height/585`] }),
+  });
+  assert.equal(down.result, 'NOT DONE', down.lines.join('\n'));
+  assert.match(down.lines.join('\n'), /blockstream\.info couldn't be reached for block 585/);
+  // The same real block served as block 865000 fails on work (and on its previous block).
+  const late = { ...b586, height: 865000, json: { ...b586.json, height: 865000 } };
+  const r2 = await checkBlock({ height: 865000, msg, fetchImpl: standIn({ blocks: both(late) }) });
+  assert.equal(r2.result, 'FAIL');
+  assert.match(failures(r2.lines)[0], /far easier than any real block at height 865000/);
+});
+
+test('FAIL unless the two explorers are on different hosts', async () => {
+  const msg = btcOf(file('block586.root.bin.ots')).msg;
+  const b586 = realBlock(expected.block586.headerHex, 586);
+  const same = [EXPLORERS[0], { name: 'mirror', base: `${EXPLORERS[0].base}/` }];
+  for (const explorers of [same, [EXPLORERS[0]]]) {
+    const r = await checkBlock({ height: 586, msg, explorers, fetchImpl: standIn({ blocks: both(b586) }) });
+    assert.equal(r.result, 'FAIL');
+    assert.deepEqual(failures(r.lines), ['the check needs two block explorers on different hosts']);
+    const full = await runCheck({ batchId: ID, registry: REG, explorers, fetchImpl: standIn(synthetic()) });
+    assert.equal(full.result, 'FAIL');
+    assert.match(full.lines.join('\n'), /two block explorers on different hosts/);
+  }
 });
 
 test('FAIL when root.bin is not the file the stamp is about', async () => {
@@ -300,13 +482,14 @@ test('NOT DONE when the registry or an explorer can’t be reached, or the stamp
   });
   assert.equal(r.result, 'NOT DONE');
   assert.match(r.lines.join('\n'), /couldn't download the batch files/);
-  r = await runCheck({
-    batchId: ID,
-    registry: REG,
-    fetchImpl: standIn({ ...s, down: ['https://blockstream.info'] }),
+  // An explorer down, on a real block (a made-up one would fail on work first).
+  r = await checkBlock({
+    height: 586,
+    msg: btcOf(file('block586.root.bin.ots')).msg,
+    fetchImpl: standIn({ blocks: both(realBlock(expected.block586.headerHex, 586)), down: ['https://blockstream.info'] }),
   });
   assert.equal(r.result, 'NOT DONE');
-  assert.match(r.lines.join('\n'), /blockstream\.info couldn't be reached/);
+  assert.match(r.lines.join('\n'), /blockstream\.info couldn't be reached for block 586/);
   r = await runCheck({
     batchId: ID,
     registry: REG,
@@ -321,6 +504,7 @@ test('NOT DONE when the registry or an explorer can’t be reached, or the stamp
 
 test('--files reads local files and downloads nothing from a registry', async () => {
   const s = synthetic();
+  const calls = [];
   const r = await runCheck({
     batchId: ID,
     registry: REG,
@@ -328,9 +512,14 @@ test('--files reads local files and downloads nothing from a registry', async ()
       root: path.join(FIX, 'synthetic.root.bin'),
       ots: path.join(FIX, 'synthetic.root.bin.ots'),
     },
-    fetchImpl: standIn({ ...s, down: [REG] }),
+    fetchImpl: standIn({ ...s, down: [REG], calls }),
   });
-  assert.equal(r.result, 'PASS', r.lines.join('\n'));
+  // The files are read and match; the synthetic block then fails only for want of work.
+  assert.match(r.lines.join('\n'), /root\.bin: +\/.*synthetic\.root\.bin\n/);
+  assert.match(r.lines.join('\n'), /\n {2}match\n/);
+  assert.equal(calls.filter((c) => c.url.startsWith(REG)).length, 0);
+  assert.equal(r.result, 'FAIL');
+  for (const f of failures(r.lines)) assert.match(f, /is not a mined block/);
 });
 
 test('arguments and the official commands', () => {

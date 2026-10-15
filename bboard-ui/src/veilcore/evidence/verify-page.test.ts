@@ -6,6 +6,10 @@
 // key-bound, and for every way a record, proof or root can be tampered with.
 // SPDX-License-Identifier: Apache-2.0
 
+import fs from 'node:fs';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { generateKeypair, signAttestation, signRetraction, verifyAttestation, verifyInclusion } from 'veilcore-records';
 import type { InclusionProof } from 'veilcore-records';
@@ -42,12 +46,26 @@ type Report = {
   files: { is: string; ok?: boolean }[];
 };
 type Verifier = {
-  checkAll: (ev: unknown, files?: { name: string; bytes: Uint8Array }[]) => Promise<Report>;
+  checkAll: (
+    ev: unknown,
+    files?: { name: string; bytes: Uint8Array }[],
+    opts?: { ots?: Uint8Array },
+  ) => Promise<Report>;
   checkFingerprint: (r: unknown) => Promise<Report['fingerprint']>;
   checkProof: (p: unknown, fp: string, root?: string) => Promise<Report['proof']>;
   checkKey: (k: unknown, f: unknown, ch: string, fp: string) => Promise<Report['key']>;
   checkSignature: (a: unknown, fp: string) => Promise<Report['signatures'][number]>;
   tagged: (tag: string, parts: string[]) => Promise<string>;
+  datable: (report: unknown) => { ok: boolean; failed: string[]; notBatched: boolean };
+  readStamp: (bytes: Uint8Array, root: string | null) => Promise<Stamp>;
+  parseOts: (bytes: Uint8Array) => { digest: string; attestations: { kind: string; height?: number; uri?: string }[] };
+  utc: (t: unknown) => string | null;
+};
+type Stamp = {
+  status: 'bitcoin' | 'pending' | 'other-root' | 'unreadable';
+  reason?: string;
+  bitcoin?: { height: number; merkleRoot: string | null }[];
+  pending?: string[];
 };
 
 /** The page's scripts, run as the page runs them: canonical.js, then the checks. */
@@ -346,5 +364,156 @@ describe('the page itself', () => {
     expect(data).not.toContain('<');
     expect(JSON.parse(data)).toEqual(JSON.parse(JSON.stringify(ev)));
     expect(embedJson(' ')).toBe('"\\u2028"');
+  });
+});
+
+describe('what the page lets you date', () => {
+  it('only a bundle whose fingerprint, proof and (if included) key all check gets the look-up steps', async () => {
+    const records = await practiceRecords(4);
+    const batch = await practiceBatch(records);
+    const r = records.find((x) => x.keyBinding) as StrainRecord;
+    const n = records.indexOf(r);
+    const proof = batch.proofs[r.recordFingerprint];
+    const b = bindingForSecret(secretFor(n));
+    const key = { identity: b.identity, keySalt: b.keySalt };
+    const good = await V.checkAll({ ...evidenceOf(r, proof), key });
+    expect(V.datable(good)).toEqual({ ok: true, failed: [], notBatched: false });
+
+    const tampered = await V.checkAll(evidenceOf({ ...r, notes: 'edited later' }, proof));
+    expect(V.datable(tampered).ok).toBe(false);
+    expect(V.datable(tampered).failed).toEqual([
+      'the fingerprint does not match the sealed fields',
+      'the proof does not lead to the batch root',
+    ]);
+    const wrongRoot = await V.checkAll(evidenceOf(r, proof, flip(batch.root)));
+    expect(V.datable(wrongRoot).failed).toEqual(['the proof does not lead to the batch root']);
+    const wrongKey = await V.checkAll({ ...evidenceOf(r, proof), key: { ...key, identity: flip(key.identity) } });
+    expect(V.datable(wrongKey).failed).toEqual(['the key does not match the record']);
+    // Not in a batch: nothing failed, but nothing to date it with either.
+    expect(V.datable(await V.checkAll(evidenceOf(r, null)))).toEqual({ ok: false, failed: [], notBatched: true });
+  });
+
+  it('prints times as the site does: UTC, labelled', () => {
+    expect(V.utc('2026-10-15T11:00:59.999Z')).toBe('2026-10-15 11:00 UTC');
+    expect(V.utc('not a date')).toBe(null);
+    expect(V.utc(undefined)).toBe(null);
+  });
+});
+
+describe('the Bitcoin stamp file, read by the page', () => {
+  const FIX = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../scripts/fixtures/ots');
+  const fixture = (name: string) => new Uint8Array(fs.readFileSync(path.join(FIX, name)));
+  const expected = JSON.parse(fs.readFileSync(path.join(FIX, 'expected.json'), 'utf8')) as Record<
+    string,
+    {
+      fileDigestHex: string;
+      attestations: { kind: string; height?: number; merkleRootExplorer?: string; uri?: string }[];
+    }
+  >;
+  const hexOf = (b: Uint8Array) => Buffer.from(b).toString('hex');
+  const MAGIC = Buffer.concat([
+    Buffer.from([0]),
+    Buffer.from('OpenTimestamps'),
+    Buffer.from([0, 0]),
+    Buffer.from('Proof'),
+    Buffer.from([0, 0xbf, 0x89, 0xe2, 0xe8, 0x84, 0xe8, 0x92, 0x94]),
+  ]);
+  const sha = (b: Buffer) => createHash('sha256').update(b).digest();
+  const leb = (n: number) => {
+    const out: number[] = [];
+    do {
+      let b = n & 0x7f;
+      n = Math.floor(n / 128);
+      if (n) b |= 0x80;
+      out.push(b);
+    } while (n);
+    return Buffer.from(out);
+  };
+  /** A stamp: SHA-256(root) → append x → sha256 → Bitcoin block `height` (and a pending branch). */
+  const makeStamp = (root: Buffer, height: number, withPending = false) => {
+    const x = Buffer.from('11'.repeat(16), 'hex');
+    const btc = Buffer.concat([
+      Buffer.from([0x00]),
+      Buffer.from('0588960d73d71901', 'hex'),
+      leb(leb(height).length),
+      leb(height),
+    ]);
+    const uri = Buffer.from('https://a.pool.opentimestamps.org');
+    const pending = Buffer.concat([
+      Buffer.from([0x00]),
+      Buffer.from('83dfe30d2ef90c8e', 'hex'),
+      leb(uri.length + 1),
+      leb(uri.length),
+      uri,
+    ]);
+    const tail = Buffer.concat([Buffer.from([0xf0]), leb(x.length), x, Buffer.from([0x08]), btc]);
+    const body = withPending ? Buffer.concat([Buffer.from([0xff]), pending, tail]) : tail;
+    const merkleInternal = sha(Buffer.concat([sha(root), x]));
+    return { file: new Uint8Array(Buffer.concat([MAGIC, Buffer.from([1, 0x08]), sha(root), body])), merkleInternal };
+  };
+
+  it('reads the format exactly as the OpenTimestamps library does (the stamp check script’s fixtures)', async () => {
+    for (const name of ['synthetic', 'pending']) {
+      const root = fixture(`${name}.root.bin`);
+      const p = V.parseOts(fixture(`${name}.root.bin.ots`));
+      expect(p.digest).toBe(expected[name].fileDigestHex);
+      expect(p.attestations.map((a) => a.kind).sort()).toEqual(expected[name].attestations.map((a) => a.kind).sort());
+      const st = await V.readStamp(fixture(`${name}.root.bin.ots`), hexOf(root));
+      if (name === 'synthetic') {
+        expect(st.status).toBe('bitcoin');
+        expect(st.bitcoin).toEqual([
+          { height: 971004, merkleRoot: expected.synthetic.attestations[0].merkleRootExplorer },
+        ]);
+        expect(st.pending).toEqual(['https://alice.btc.calendar.opentimestamps.org']);
+      } else {
+        expect(st).toEqual({
+          status: 'pending',
+          bitcoin: [],
+          pending: ['https://bob.btc.calendar.opentimestamps.org'],
+        });
+      }
+    }
+    const b586 = V.parseOts(fixture('block586.root.bin.ots'));
+    expect(b586.digest).toBe(expected.block586.fileDigestHex);
+    expect(b586.attestations.filter((a) => a.kind === 'bitcoin').map((a) => a.height)).toEqual([586]);
+  });
+
+  it('names the block and the merkle root the file leads to; never the registry’s word', async () => {
+    const root = Buffer.from('ab'.repeat(32), 'hex');
+    const { file, merkleInternal } = makeStamp(root, 865000, true);
+    const st = await V.readStamp(file, hexOf(root));
+    expect(st).toEqual({
+      status: 'bitcoin',
+      bitcoin: [{ height: 865000, merkleRoot: Buffer.from(merkleInternal).reverse().toString('hex') }],
+      pending: ['https://a.pool.opentimestamps.org'],
+    });
+  });
+
+  it('a stamp about another file, a broken file or no file is never read as a date', async () => {
+    const root = Buffer.from('ab'.repeat(32), 'hex');
+    const { file } = makeStamp(root, 865000);
+    expect((await V.readStamp(file, 'cd'.repeat(32))).status).toBe('other-root');
+    expect((await V.readStamp(file.subarray(0, file.length - 2), hexOf(root))).status).toBe('unreadable');
+    expect((await V.readStamp(new Uint8Array([1, 2, 3]), hexOf(root))).status).toBe('unreadable');
+    const extra = new Uint8Array([...file, 0]);
+    expect((await V.readStamp(extra, hexOf(root))).reason).toMatch(/unexpected bytes/);
+    expect((await V.readStamp(file, null)).status).toBe('unreadable');
+  });
+
+  it('checkAll reads the embedded stamp, and a chosen root.bin.ots', async () => {
+    const [r] = await practiceRecords(1);
+    const batch = await practiceBatch([r]);
+    const proof = batch.proofs[r.recordFingerprint];
+    const root = Buffer.from(batch.root, 'hex');
+    const { file } = makeStamp(root, 900001);
+    const ev = evidenceOf(r, proof);
+    const withEmbedded = (await V.checkAll(ev, [], { ots: file })) as Report & { stamp: Stamp };
+    expect(withEmbedded.stamp).toMatchObject({ status: 'bitcoin', bitcoin: [{ height: 900001 }] });
+    const chosen = (await V.checkAll(ev, [{ name: 'root.bin.ots', bytes: file }])) as Report & {
+      stamp: Stamp;
+      files: { is: string; ok?: boolean }[];
+    };
+    expect(chosen.files[0]).toMatchObject({ is: 'root.bin.ots', ok: true });
+    expect(chosen.stamp).toMatchObject({ status: 'bitcoin' });
   });
 });

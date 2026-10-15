@@ -8,10 +8,11 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Paper, Stack, Typography } from '@mui/material';
 import { attestationsFor, strengthLabel } from '../veilcore/attesters';
-import { proofFor } from '../veilcore/proofs';
+import { useRecordDate } from './verify/useAnchorCheck';
+import { anchorHistoryEvent } from './verify/anchor-words';
 import type { StrainRecord } from '../veilcore/records';
 import { ACCENT } from '../config/theme';
 import { utcStamp } from '../veilcore/time';
@@ -20,6 +21,9 @@ type Event = { at: number; title: string; detail: string; strong?: boolean };
 
 export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const [events, setEvents] = useState<Event[] | null>(null);
+  // The batch's date stamp: the same proof and Midnight look-up as the status card and the
+  // "Date on Midnight" section (useAnchorCheck.ts), so History never says something else.
+  const { proof, anchor } = useRecordDate(record.recordFingerprint);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,19 +59,6 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
         }
       }
 
-      const proof = await proofFor(record.recordFingerprint);
-      // Only a proof checked here (bound to this record, path folding to its root) is
-      // listed, and the anchor in it is the registry's report: this list does not look the
-      // transaction up (the "Date on Midnight" section above does, SettlementStatus.tsx),
-      // so it is not presented as fixing the date.
-      if (proof.status === 'anchor-reported' && proof.proof.anchor?.anchoredAt) {
-        out.push({
-          at: new Date(proof.proof.anchor.anchoredAt).getTime(),
-          title: 'Anchor reported by the registry',
-          detail: `Included in batch ${proof.proof.batchId} (inclusion checked in this browser). The registry reports the batch root was recorded on ${proof.proof.anchor.chain} ${proof.proof.anchor.network}. This list doesn't look the transaction up: the Date on Midnight section above does, when it can reach Midnight. Until that finds it, don't rely on the date.`,
-        });
-      }
-
       if (record.supersededBy) {
         out.push({
           at: Date.now(),
@@ -83,7 +74,22 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
     };
   }, [record]);
 
-  if (!events || events.length <= 1) return null;
+  const all = useMemo(() => {
+    if (!events) return null;
+    // Only a proof checked here (bound to this record, path folding to its root) is listed.
+    if (proof === 'checking' || proof.status !== 'anchor-reported') return events;
+    const p = proof.proof;
+    const e = anchorHistoryEvent(anchor, {
+      network: p.anchor?.network ?? '',
+      txHash: p.anchor?.txHash,
+      anchoredAt: p.anchor?.anchoredAt,
+      batchId: p.batchId,
+    });
+    if (e.at === undefined) return events;
+    return [...events, { at: e.at, title: e.title, detail: e.detail, strong: e.strong }].sort((a, b) => a.at - b.at);
+  }, [events, proof, anchor]);
+
+  if (!all || all.length <= 1) return null;
 
   return (
     <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
@@ -91,15 +97,15 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
         <Typography variant="overline" sx={{ display: 'block', mb: 1.5 }}>
           History
         </Typography>
-        {events.map((e, i) => (
+        {all.map((e, i) => (
           <Box
             key={i}
             sx={{
               position: 'relative',
               pl: 2.5,
               ml: 0.5,
-              pb: i === events.length - 1 ? 0 : 2.5,
-              borderLeft: i === events.length - 1 ? 'none' : '1px solid rgba(22,32,27,0.12)',
+              pb: i === all.length - 1 ? 0 : 2.5,
+              borderLeft: i === all.length - 1 ? 'none' : '1px solid rgba(22,32,27,0.12)',
             }}
           >
             <Box

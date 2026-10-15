@@ -36,8 +36,9 @@ describe('the check page heading', () => {
       verifyHeading({ sealed: true, bound: true, proof: 'pending' }),
       verifyHeading({ sealed: true, bound: true, proof: 'none' }),
     ];
-    expect(all[5]).toBe('Not dated yet');
-    expect(all[4]).toBe('In a batch, not dated yet');
+    expect(all[5]).toBe('No date stamp yet');
+    expect(all[4]).toBe('In a batch, no date stamp yet');
+    expect(all[3]).toBe('Date stamp reported by the registry, not checked here');
     for (const h of all) {
       expect(h).not.toMatch(/FINGERPRINT ON FILE|not in a batch this page could check|·/i);
       expect(h[0]).toBe(h[0].toUpperCase());

@@ -33,7 +33,7 @@ One folder, `VEIL-…-evidence/`:
 | `proof/anchors.json` | Where the batch root was recorded (network, contract, transaction, block), and any earlier anchor the batch had, as the registry reported them. |
 | `proof/root.bin.ots` | The batch's Bitcoin stamp file (OpenTimestamps), when the batch has one. |
 | `lab/lab-report-pairing.json` | When a lab report is saved to the plant: the pairing fingerprint and the file's SHA-256. |
-| `lab/<file>` | The lab report file itself, **only if the holder ticks "Include the lab report file"** and picks it. The site checks it is the saved file first. |
+| `lab/report/<file>` | The lab report file itself, **only if the holder ticks "Include the lab report file"** and picks it. The site checks it is the saved file first. |
 | `lab/signatures.json` | Lab signatures (receipts, lab reports) about this record's fingerprint. |
 | `key/key-binding.json` | The record's key and its salt, **only if the holder ticks "Include the record's key"**. With them, anyone can tie the record to everything its key does on the network, so it is off by default and the dialog says so. Only offered for records sealed since 14 October 2026 (they name their key). |
 | `spec/SPEC-sections.md` | The spec sections the checks follow (3.6.1, 3.7, 4.4, 5, 7, 9), with the spec's version line and the SDK commit they come from. |
@@ -59,11 +59,15 @@ in: only the sealed fields.
    Under "Check other files" you can choose the bundle's own files (or someone's copy of
    them) to check those instead of the copy inside the page, plus the lab report file and
    `root.bin`.
-2. **Date it.** The page says exactly what to look up: on a Midnight explorer for the
+2. **Date it.** Only if step 1 passed: if the fingerprint, the proof or an included key fails,
+   the page says "Don't use this to date the record" and names the failed check instead of
+   showing these steps. Otherwise the page says exactly what to look up: on a Midnight explorer for the
    named network, find the transaction, check it calls the named contract, and find the
    batch root in it. If it is there, the record existed, unchanged, by that transaction's
    time: whoever had it sealed held the record by then.
-3. **Bitcoin**, when there is a stamp file: drop `root.bin.ots` and `root.bin` on
+3. **Bitcoin**, when there is a stamp file: the page reads the stamp file itself (it must start
+   from SHA-256 of `root.bin`) and names the Bitcoin block and merkle root it points to. It can't
+   reach Bitcoin, so to finish: drop `root.bin.ots` and `root.bin` on
    opentimestamps.org, or run `ots verify root.bin.ots` in the `proof` folder with the
    official OpenTimestamps client (`ots upgrade` first if it was still pending).
 
