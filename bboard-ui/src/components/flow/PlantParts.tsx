@@ -13,7 +13,7 @@ import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { LAB_RESULTS_ENABLED } from '../../config/network';
 import { useRecordDate } from '../verify/useAnchorCheck';
 import { SECTIONS, type Section } from './FlowFrame';
-import type { BreederReceipt, LabReceipt } from '../../veilcore/custody';
+import { custodyHeadline, type BreederReceipt, type LabReceipt } from '../../veilcore/custody';
 import { signerLabel } from '../../veilcore/attesters';
 import type { ArrivedResult } from './LabResults';
 import { savedReportRow, type SavedReport } from '../../veilcore/saved-report';
@@ -95,12 +95,18 @@ export const reportRow = (
  * The breeder's receipt line: only a receipt the lab linked to one of this plant's
  * deliveries, verified here (custody.ts breederReceipt). It names the signer plainly only
  * with a current name check, and then says what was matched, where and when
- * (attesters.ts signerLabel, round 4); never "Confirmed by a lab" (round 3).
+ * (attesters.ts signerLabel, round 4); never "Confirmed by a lab" (round 3). Under it, the
+ * sample's chain of custody when the delivery has one: where what arrived differs from what
+ * was sent, plainly, or that it matches (custody.ts custodyHeadline).
  */
-export const breederReceiptRow = (receipt: BreederReceipt | null | undefined) => {
+export const breederReceiptRow = (
+  receipt: BreederReceipt | null | undefined,
+): { done: boolean; label: string; value: string; sub?: string } => {
   if (receipt === null || receipt === undefined) return { done: false, label: 'Lab receipt', value: 'checking…' };
-  if (receipt.kind === 'signed')
-    return { done: true, label: 'Receipt signed', value: signerLabel(receipt.by, 'by').text };
+  if (receipt.kind === 'signed') {
+    const sub = custodyHeadline(receipt.custody);
+    return { done: true, label: 'Receipt signed', value: signerLabel(receipt.by, 'by').text, ...(sub ? { sub } : {}) };
+  }
   if (receipt.kind === 'code-used') return { done: false, label: 'Lab code used', value: 'no receipt signed' };
   return { done: false, label: 'Lab receipt', value: 'not signed yet' };
 };

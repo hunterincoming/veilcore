@@ -188,6 +188,9 @@ export const AppHome: React.FC = () => {
           )}
           <PasteBox />
           <Stack spacing={1} sx={{ alignItems: 'center', pt: 1 }}>
+            <Button component={RouterLink} to="/records/import" sx={{ minHeight: 44 }}>
+              Have a spreadsheet? Date your whole collection
+            </Button>
             <Button component={RouterLink} to="/restore" sx={{ minHeight: 44 }}>
               New phone? Get your plants back
             </Button>
@@ -356,6 +359,9 @@ export const AppHome: React.FC = () => {
 
         <Divider />
         <Stack spacing={0.5} sx={{ alignItems: 'center' }}>
+          <Button component={RouterLink} to="/records/import" sx={{ minHeight: 44 }}>
+            Have a spreadsheet? Date your whole collection
+          </Button>
           <Button component={RouterLink} to="/restore" sx={{ minHeight: 44 }}>
             New phone? Get your plants back
           </Button>

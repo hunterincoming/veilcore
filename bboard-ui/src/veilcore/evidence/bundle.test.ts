@@ -345,6 +345,8 @@ describe('the bundle', () => {
     const dir = `${s.record.id}-evidence`;
     expect(Object.keys(files).sort()).toEqual(
       [
+        'DECLARATION-TEMPLATE.txt',
+        'EXAMINER-SUMMARY.html',
         'README.txt',
         'evidence.json',
         'key/key-binding.json',

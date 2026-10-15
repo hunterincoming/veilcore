@@ -55,6 +55,7 @@ import { useAnchorCheck } from '../components/verify/useAnchorCheck';
 import { VerifierChallengePanel } from '../components/chain/VerifierChallengePanel';
 import { useRecords } from '../veilcore/records';
 import { useBreederReceipt } from '../components/flow/LabResults';
+import { custodyLines } from '../veilcore/custody';
 import { NameCheckText } from '../components/NameCheckText';
 
 const API = import.meta.env.VITE_API_BASE ?? '';
@@ -603,6 +604,11 @@ export const VerifyPage: React.FC = () => {
                   {signerLabel(receipt.by).lead}, linked to your delivery {receipt.transferId}.
                   <NameCheckText label={signerLabel(receipt.by)} /> You see this because the plant is in this browser;
                   someone you send the link to sees only the signature line above.
+                  {custodyLines(receipt.custody).map((l) => (
+                    <Box component="span" key={l} sx={{ display: 'block', mt: 0.25 }} data-custody-line="">
+                      {l}
+                    </Box>
+                  ))}
                 </Fact>
               )}
 

@@ -16,17 +16,23 @@ import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import { updateReceivedNotes, type StrainRecord } from '../../veilcore/records';
 import type { RecordKeys } from '../../veilcore/record-keys';
 import {
+  custodyOf,
+  hasDetails,
   sentByMe,
   parseShareCode,
   publicFingerprintOf,
   quantityPhrase,
+  type DeliveryCustody,
   type SentTransfer,
 } from '../../veilcore/transfers';
 import { attestationsFor, countsAsSigned, signerLabel, type ResolvedAttestation } from '../../veilcore/attesters';
 import { loadAttester, attestRecord, retract } from '../../veilcore/attester-keys';
 import {
+  arrivalLine,
   breederReceipt,
+  custodyDifferences,
   labReceipt,
+  sampleLine,
   reportSigner,
   type BreederReceipt,
   type ReportSigner,
@@ -616,11 +622,30 @@ export const LabResultsPanel: React.FC<{
 
 // --- the lab's side ----------------------------------------------------------------------
 
+/** The delivery's sample details (GET /transfers/:id/custody), reloaded when lab work changes here. */
+const useDeliveryCustody = (transferId: string | undefined): DeliveryCustody | null => {
+  const [out, setOut] = useState<DeliveryCustody | null>(null);
+  const version = useLabVersion();
+  useEffect(() => {
+    if (!transferId) return;
+    let live = true;
+    void custodyOf(transferId).then((c) => {
+      if (live) setOut('error' in c ? null : c);
+    });
+    return () => {
+      live = false;
+    };
+  }, [transferId, version]);
+  return out;
+};
+
 /** What came with the delivery, and the lab's own reference for it. */
 export const ReceivedFacts: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const [ref, setRef] = useState(record.labRef ?? '');
   const [saved, setSaved] = useState(false);
   useEffect(() => setRef(record.labRef ?? ''), [record.labRef]);
+  const custody = useDeliveryCustody(record.transferId ?? deliveryForRecord(record.id)?.transferId);
+  const differs = custody && hasDetails(custody.arrival) ? custodyDifferences(custody.sample, custody.arrival) : [];
   const qty = quantityPhrase(record.quantity);
   const save = () => {
     updateReceivedNotes(record.id, { labRef: ref.trim() || undefined });
@@ -644,6 +669,21 @@ export const ReceivedFacts: React.FC<{ record: StrainRecord }> = ({ record }) =>
         <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>
           <b>Breeder&apos;s note:</b> {record.deliveryNote ?? 'none'}
         </Typography>
+        {custody && hasDetails(custody.sample) && (
+          <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }} data-sample-details="">
+            <b>The breeder wrote:</b> {sampleLine(custody.sample)}
+          </Typography>
+        )}
+        {custody && hasDetails(custody.arrival) && (
+          <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }} data-arrival-details="">
+            <b>On arrival (your receipt):</b> {arrivalLine(custody.arrival)}
+          </Typography>
+        )}
+        {differs.map((d) => (
+          <Typography key={d} variant="body2" data-custody-line="">
+            {d}.
+          </Typography>
+        ))}
         <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', pt: 1 }}>
           <TextField
             size="small"

@@ -25,6 +25,8 @@ import {
   DialogContent,
   DialogTitle,
   FormControlLabel,
+  Radio,
+  RadioGroup,
   Stack,
   TextField,
   Typography,
@@ -33,17 +35,26 @@ import InboxIcon from '@mui/icons-material/MoveToInboxOutlined';
 import { useNavigate } from 'react-router-dom';
 import {
   attachReceipt,
+  arrivalDetailsOf,
   claimTransfer,
+  CUSTODY_LIMITS,
+  custodyDigest,
+  custodyOf,
   custodySubject,
+  hasDetails,
   parseShareCode,
   codeMissingLock,
   MISSING_LOCK_WORDS,
   publicFingerprintOf,
   quantityPhrase,
+  setArrival,
+  signReceiptWith,
+  type ArrivalDetails,
   type CustodySubject,
+  type SampleDetails,
 } from '../veilcore/transfers';
 import { hydrate, sealReceived, updateReceivedNotes, type StrainRecord } from '../veilcore/records';
-import { loadAttester, attestRecord, type AttesterProfile } from '../veilcore/attester-keys';
+import { loadAttester, type AttesterProfile } from '../veilcore/attester-keys';
 import {
   deliveryForRecord,
   labChanged,
@@ -51,7 +62,7 @@ import {
   rememberDelivery,
   type LabDelivery,
 } from '../veilcore/lab-results';
-import type { LabReceipt } from '../veilcore/custody';
+import { arrivalLine, custodyDifferences, sampleLine, type LabReceipt } from '../veilcore/custody';
 import { LAB_RESULTS_ENABLED } from '../config/network';
 
 /** Opens the header's receive dialog from elsewhere on the page (a lab's first screen). */
@@ -68,13 +79,26 @@ export const receiptWords = (subject: CustodySubject, transferId?: string): stri
 };
 
 /** The exact receipt, shown in full before anything is signed. */
-const ReceiptStatement: React.FC<{ subject: CustodySubject; attester: AttesterProfile; transferId?: string }> = ({
-  subject,
-  attester,
-  transferId,
-}) => (
-  <Box sx={{ p: 1.5, borderRadius: 1, background: 'rgba(22,32,27,0.04)', fontSize: 13 }}>
+const ReceiptStatement: React.FC<{
+  subject: CustodySubject;
+  attester: AttesterProfile;
+  transferId?: string;
+  /** The sample details it covers (transfers.ts custodyDigest), when there are any. */
+  sample?: SampleDetails;
+  arrival?: ArrivalDetails;
+}> = ({ subject, attester, transferId, sample, arrival }) => (
+  <Box sx={{ p: 1.5, borderRadius: 1, background: 'rgba(22,32,27,0.04)', fontSize: 13 }} data-receipt-statement="">
     <Typography variant="body2">“{receiptWords(subject, transferId)}”</Typography>
+    {sample && hasDetails(sample) && (
+      <Typography variant="body2" sx={{ mt: 0.5, overflowWrap: 'anywhere' }}>
+        <b>The breeder wrote:</b> {sampleLine(sample)}
+      </Typography>
+    )}
+    {arrival && hasDetails(arrival) && (
+      <Typography variant="body2" sx={{ mt: 0.5, overflowWrap: 'anywhere' }}>
+        <b>On arrival:</b> {arrivalLine(arrival)}
+      </Typography>
+    )}
     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
       About the breeder&apos;s record {subject.sourceRecordId}, fingerprint
     </Typography>
@@ -96,25 +120,124 @@ const ReceiptStatement: React.FC<{ subject: CustodySubject; attester: AttesterPr
   </Box>
 );
 
+type ArrivalInput = Record<'sampleId' | 'sealNumber' | 'arrivedOn' | 'condition' | 'labRef', string> & {
+  sealIntact: '' | 'yes' | 'no' | 'no-seal';
+};
+
+/**
+ * The form starts from what the breeder wrote (the lab confirms or corrects each) and what
+ * the lab wrote before. Not from the lab's private reference on the plant page ("Only you
+ * see this"), and the date isn't filled in: a
+ * receipt nobody wrote anything on is signed exactly as before (no sample details, nothing
+ * sent to the registry first).
+ */
+const arrivalStart = (sample: SampleDetails, prior: ArrivalDetails): ArrivalInput => ({
+  sampleId: prior.sampleId ?? sample.sampleId ?? '',
+  sealNumber: prior.sealNumber ?? sample.sealNumber ?? '',
+  sealIntact: prior.sealIntact ?? '',
+  arrivedOn: prior.arrivedOn ?? '',
+  condition: prior.condition ?? '',
+  labRef: prior.labRef ?? '',
+});
+
+/** How the sample arrived: the lab confirms or corrects what the breeder wrote. */
+const ArrivalForm: React.FC<{ value: ArrivalInput; onChange: (v: ArrivalInput) => void; disabled: boolean }> = ({
+  value,
+  onChange,
+  disabled,
+}) => {
+  const field = (k: Exclude<keyof ArrivalInput, 'sealIntact'>) => ({
+    value: value[k],
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+      onChange({ ...value, [k]: e.target.value.slice(0, CUSTODY_LIMITS.arrival[k]) }),
+    fullWidth: true,
+    size: 'small' as const,
+    disabled,
+  });
+  return (
+    <Stack spacing={1.25} data-arrival-form="">
+      <Typography variant="subtitle2">How it arrived</Typography>
+      <Typography variant="caption" color="text.secondary" sx={{ mt: '0 !important' }}>
+        Check the tube or bag. Change anything that isn&apos;t what the breeder wrote. All optional.
+      </Typography>
+      <TextField label="Sample ID on arrival" {...field('sampleId')} />
+      <TextField label="Seal number on arrival" {...field('sealNumber')} />
+      <Box>
+        <Typography variant="body2" id="seal-intact-label">
+          Seal intact?
+        </Typography>
+        <RadioGroup
+          row
+          aria-labelledby="seal-intact-label"
+          value={value.sealIntact}
+          onChange={(e) => onChange({ ...value, sealIntact: e.target.value as ArrivalInput['sealIntact'] })}
+        >
+          <FormControlLabel value="yes" control={<Radio size="small" />} label="Yes" disabled={disabled} />
+          <FormControlLabel value="no" control={<Radio size="small" />} label="No" disabled={disabled} />
+          <FormControlLabel value="no-seal" control={<Radio size="small" />} label="No seal" disabled={disabled} />
+        </RadioGroup>
+      </Box>
+      <TextField
+        label="Arrived on"
+        type="date"
+        helperText="The day it reached you."
+        slotProps={{ inputLabel: { shrink: true } }}
+        {...field('arrivedOn')}
+      />
+      <TextField label="Condition" placeholder="e.g. cold, bag dry, roots intact" {...field('condition')} />
+      <TextField
+        label="Your accession no."
+        helperText="Goes on your receipt, so the breeder sees it."
+        {...field('labRef')}
+      />
+    </Stack>
+  );
+};
+
 /** Sign the receipt, or turn the sample away (signs nothing). Both the dialog and the plant page use it. */
 const ReceiptChoice: React.FC<{
   subject: CustodySubject;
   attester: AttesterProfile;
   transferId?: string;
+  /**
+   * The sample details on this delivery: what the breeder wrote, and what this lab wrote
+   * before. Absent where the delivery isn't known here: then the receipt covers none.
+   */
+  custody?: { sample: SampleDetails; arrival: ArrivalDetails };
   busy: boolean;
-  onSign: () => void;
+  onSign: (arrival?: ArrivalDetails) => void;
   onReject: (reason: 'damaged' | 'wrong-sample') => void;
   /** The dialog's "Don't sign": go to the record without deciding. */
   onLater?: () => void;
-}> = ({ subject, attester, transferId, busy, onSign, onReject, onLater }) => {
+}> = ({ subject, attester, transferId, custody, busy, onSign, onReject, onLater }) => {
   const [received, setReceived] = useState(false);
   const [rejecting, setRejecting] = useState(false);
+  const [input, setInput] = useState<ArrivalInput>(() => arrivalStart(custody?.sample ?? {}, custody?.arrival ?? {}));
+  const arrival = custody ? arrivalDetailsOf(input) : undefined;
+  const differs = custody && arrival ? custodyDifferences(custody.sample, arrival) : [];
   return (
     <Stack spacing={1.5}>
+      {custody && <ArrivalForm value={input} onChange={setInput} disabled={busy} />}
+      {differs.length > 0 && (
+        <Alert severity="info" variant="outlined" data-arrival-differs="">
+          Different from what the breeder wrote. The breeder sees this on your receipt:
+          {differs.map((d) => (
+            <Box key={d} component="span" sx={{ display: 'block' }}>
+              {d}.
+            </Box>
+          ))}
+        </Alert>
+      )}
       <Typography variant="body2" color="text.secondary">
         Your key can sign a receipt for this delivery. This is exactly what the receipt says:
       </Typography>
-      <ReceiptStatement subject={subject} attester={attester} transferId={transferId} />
+      <ReceiptStatement
+        subject={subject}
+        attester={attester}
+        transferId={transferId}
+        sample={custody?.sample}
+        arrival={arrival}
+      />
       <Typography variant="caption" color="text.secondary">
         The fingerprint came from the registry and matches what its public page reports for {subject.sourceRecordId}. If
         the breeder gave you a fingerprint, compare it before signing.
@@ -129,7 +252,7 @@ const ReceiptChoice: React.FC<{
             Don&apos;t sign
           </Button>
         )}
-        <Button variant="contained" onClick={onSign} disabled={busy || !received}>
+        <Button variant="contained" onClick={() => onSign(arrival)} disabled={busy || !received}>
           Sign with my key
         </Button>
       </Stack>
@@ -185,16 +308,32 @@ const linkReceipt = async (delivery: LabDelivery, attestationId: string): Promis
 
 type Signed = { attestationId: string } | { error: string };
 
-const signReceipt = async (attester: AttesterProfile, subject: CustodySubject): Promise<Signed> => {
-  const out = await attestRecord(
-    attester,
-    subject.sourceCommitment,
-    subject.receivedRecordFingerprint,
-    'chain-of-custody',
-  );
-  if (out.error || !out.attestationId) return { error: out.error ?? 'no answer from the registry' };
+/**
+ * Sign the receipt. With sample details on the delivery, the lab's arrival details are
+ * stored first and the receipt is signed over both sides exactly as the registry now holds
+ * them (transfers.ts custodyDigest), so the registry links it only while they are unchanged.
+ */
+const signReceipt = async (
+  attester: AttesterProfile,
+  subject: CustodySubject,
+  custody?: { transferId: string; sample: SampleDetails; arrival: ArrivalDetails },
+): Promise<Signed> => {
+  let digest: string | undefined;
+  if (custody && (hasDetails(custody.sample) || hasDetails(custody.arrival))) {
+    const stored = await setArrival(custody.transferId, custody.arrival);
+    if ('error' in stored) {
+      // A registry from before sample details: with nothing from the breeder, sign as before.
+      if (!(/can’t keep sample details/.test(stored.error) && !hasDetails(custody.sample))) {
+        return { error: `your arrival details weren’t saved (${stored.error}), so nothing was signed` };
+      }
+    } else {
+      digest = await custodyDigest(custody.transferId, stored.sample, stored.arrival);
+    }
+  }
+  const out = await signReceiptWith(attester, subject, digest);
+  if ('error' in out) return out;
   labChanged();
-  return { attestationId: out.attestationId };
+  return out;
 };
 
 const unlinkedWords = (err: string) =>
@@ -259,6 +398,20 @@ export const SignReceiptPanel: React.FC<{
   // Signed here, but not linked to the delivery: the next step is linking, not signing again.
   const [unlinked, setUnlinked] = useState<string>();
   const transferId = record.transferId ?? deliveryForRecord(record.id)?.transferId;
+  // The delivery's sample details (null while loading; undefined when the registry can't say).
+  const [custody, setCustody] = useState<{ sample: SampleDetails; arrival: ArrivalDetails } | null | undefined>(
+    transferId ? null : undefined,
+  );
+  useEffect(() => {
+    if (!transferId) return;
+    let live = true;
+    void custodyOf(transferId).then((c) => {
+      if (live) setCustody('error' in c ? undefined : { sample: c.sample, arrival: c.arrival });
+    });
+    return () => {
+      live = false;
+    };
+  }, [transferId]);
 
   useEffect(() => {
     if (!record.receivedFrom) return;
@@ -297,7 +450,8 @@ export const SignReceiptPanel: React.FC<{
       </Alert>
     );
   }
-  if (subject === null) return <Typography variant="body2">Checking the breeder&apos;s record…</Typography>;
+  if (subject === null || custody === null)
+    return <Typography variant="body2">Checking the breeder&apos;s record…</Typography>;
   if ('refuse' in subject) {
     return (
       <Alert severity="warning" variant="outlined">
@@ -314,12 +468,17 @@ export const SignReceiptPanel: React.FC<{
         subject={subject}
         attester={attester}
         transferId={record.transferId}
+        custody={custody}
         busy={busy}
-        onSign={() => {
+        onSign={(arrival) => {
           setBusy(true);
           setError(undefined);
           void (async () => {
-            const signed = await signReceipt(attester, subject);
+            const signed = await signReceipt(
+              attester,
+              subject,
+              transferId && custody && arrival ? { transferId, sample: custody.sample, arrival } : undefined,
+            );
             if ('error' in signed) {
               setBusy(false);
               setError(`Your receipt was not recorded: ${signed.error}.`);
@@ -351,7 +510,14 @@ export const SignReceiptPanel: React.FC<{
 
 type Stage =
   | { step: 'code' }
-  | { step: 'sign'; subject: CustodySubject; attester: AttesterProfile; transferId: string }
+  | {
+      step: 'sign';
+      subject: CustodySubject;
+      attester: AttesterProfile;
+      transferId: string;
+      /** What the breeder wrote about the sample (the claim's answer). */
+      sample: SampleDetails;
+    }
   | { step: 'unlinked'; delivery: LabDelivery; attestationId: string; recordId: string }
   | { step: 'refused'; recordId: string; reason: string };
 
@@ -439,15 +605,19 @@ export const ClaimTransfer: React.FC<{
     setStage(
       'refuse' in subject
         ? { step: 'refused', recordId: res.recordId, reason: subject.refuse }
-        : { step: 'sign', subject, attester, transferId },
+        : { step: 'sign', subject, attester, transferId, sample: res.sample ?? {} },
     );
   };
 
-  const sign = async () => {
+  const sign = async (arrival?: ArrivalDetails) => {
     if (stage.step !== 'sign') return;
     setBusy(true);
     setError(null);
-    const signed = await signReceipt(stage.attester, stage.subject);
+    const signed = await signReceipt(
+      stage.attester,
+      stage.subject,
+      arrival ? { transferId: stage.transferId, sample: stage.sample, arrival } : undefined,
+    );
     if ('error' in signed) {
       setBusy(false);
       setError(
@@ -525,8 +695,9 @@ export const ClaimTransfer: React.FC<{
                 subject={stage.subject}
                 attester={stage.attester}
                 transferId={stage.transferId}
+                custody={{ sample: stage.sample, arrival: {} }}
                 busy={busy}
-                onSign={() => void sign()}
+                onSign={(arrival) => void sign(arrival)}
                 onReject={(reason) => {
                   rejectReceipt(stage.subject.receivedRecordId, reason);
                   finish(stage.subject.receivedRecordId);

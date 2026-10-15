@@ -23,13 +23,17 @@ import SendIcon from '@mui/icons-material/SendOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import ShareIcon from '@mui/icons-material/IosShareOutlined';
 import {
+  CUSTODY_LIMITS,
   offerTransfer,
   rememberSentCode,
+  sampleDetailsOf,
   sentCodeFor,
   shareCodeFor,
   userFacingError,
+  type SampleDetails,
   type SentTransfer,
 } from '../veilcore/transfers';
+import { sampleLine } from '../veilcore/custody';
 import { LAB_RESULTS_ENABLED } from '../config/network';
 import { labChanged } from '../veilcore/lab-results';
 import { ensureKeys } from '../veilcore/record-keys';
@@ -45,6 +49,9 @@ export const SendToLab: React.FC<{
   const [handle, setHandle] = useState('');
   const [quantity, setQuantity] = useState('');
   const [note, setNote] = useState('');
+  // The sample's chain of custody (transfers.ts SampleDetails), all optional.
+  const [sample, setSample] = useState<Record<keyof SampleDetails, string>>(EMPTY_SAMPLE);
+  const [showSample, setShowSample] = useState(false);
   const [busy, setBusy] = useState(false);
   const [transferId, setTransferId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +64,7 @@ export const SendToLab: React.FC<{
     const res = await offerTransfer(record.id, handle.trim(), {
       quantity: quantity.trim() || undefined,
       note: note.trim() || undefined,
+      sample,
     });
     if ('error' in res) setError(userFacingError(res.error));
     else {
@@ -82,8 +90,17 @@ export const SendToLab: React.FC<{
     setHandle('');
     setQuantity('');
     setNote('');
+    setSample(EMPTY_SAMPLE);
+    setShowSample(false);
     setError(null);
   };
+  const sampleField = (k: keyof SampleDetails) => ({
+    value: sample[k],
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+      setSample({ ...sample, [k]: e.target.value.slice(0, CUSTODY_LIMITS.sample[k]) }),
+    fullWidth: true,
+    size: 'small' as const,
+  });
 
   const copyCode = async () => {
     if (!transferId) return;
@@ -143,6 +160,11 @@ export const SendToLab: React.FC<{
                 <b>Text or email it to them. Don&apos;t write it on the package:</b> whoever has this lab code can
                 confirm the delivery.
               </Alert>
+              {sampleLine(sampleDetailsOf(sample)) && (
+                <Typography variant="body2" data-sample-sent="">
+                  <b>The lab will check:</b> {sampleLine(sampleDetailsOf(sample))}.
+                </Typography>
+              )}
               <Typography variant="caption" color="text.secondary">
                 Nothing has changed yet. Your plant&apos;s page shows “waiting” until they enter the code, and can show
                 this code again. They paste it into the box on VeilCore&apos;s Home.
@@ -175,6 +197,37 @@ export const SendToLab: React.FC<{
                 onChange={(e) => setNote(e.target.value)}
                 fullWidth
               />
+              {showSample ? (
+                <Stack spacing={1.5} data-sample-details="">
+                  <Typography variant="subtitle2">The sample (optional)</Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: '0 !important' }}>
+                    The lab checks these when it arrives and confirms or corrects each one. Its signed receipt covers
+                    what you wrote and what it found.
+                  </Typography>
+                  <TextField label="Sample ID / label on the tube or bag" {...sampleField('sampleId')} />
+                  <TextField label="Seal or bag number" {...sampleField('sealNumber')} />
+                  <TextField
+                    label="Taken from"
+                    helperText="The mother plant or its location tag."
+                    {...sampleField('takenFrom')}
+                  />
+                  <TextField
+                    label="Taken on"
+                    type="date"
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    {...sampleField('takenOn')}
+                  />
+                  <TextField
+                    label="Witness (optional)"
+                    helperText="Who saw it taken and sealed. VeilCore doesn’t check this."
+                    {...sampleField('witness')}
+                  />
+                </Stack>
+              ) : (
+                <Button size="small" onClick={() => setShowSample(true)} sx={{ alignSelf: 'flex-start' }}>
+                  Add the sample&apos;s label and seal (optional)
+                </Button>
+              )}
               {error && (
                 <Alert severity="warning" variant="outlined">
                   {error}
@@ -194,6 +247,14 @@ export const SendToLab: React.FC<{
       </Dialog>
     </>
   );
+};
+
+const EMPTY_SAMPLE: Record<keyof SampleDetails, string> = {
+  sampleId: '',
+  sealNumber: '',
+  takenFrom: '',
+  takenOn: '',
+  witness: '',
 };
 
 const ShareCodeButton: React.FC<{ code: string; name: string }> = ({ code, name }) => (
@@ -241,6 +302,7 @@ export const WaitingDeliveries: React.FC<{ open: readonly SentTransfer[] }> = ({
             }
           >
             <b>Sent to {t.to_handle}, waiting</b> since {new Date(t.created_at).toLocaleDateString()}.
+            {t.sample_custody && ` ${sampleLine(t.sample_custody)}.`}
             {!code && ' This code was made in another browser and isn’t in this one; make a new one if it’s lost.'}
             {shown === t.id && code && (
               <Box sx={{ mt: 1 }}>

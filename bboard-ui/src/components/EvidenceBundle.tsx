@@ -1,5 +1,6 @@
 // "Download evidence bundle": one .zip with everything anyone needs to check this record's
-// date without VeilCore (veilcore/evidence/bundle.ts, docs/evidence-bundle.md). Two
+// date without VeilCore (veilcore/evidence/bundle.ts, docs/evidence-bundle.md), a printable
+// summary and a sample declaration (evidence/examiner.ts, evidence/declaration.ts). Two
 // choices, both off unless the holder ticks them: the record's key, and the lab report file.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -91,7 +92,8 @@ export const EvidenceBundle: React.FC<{
             <Typography variant="body2">
               One file with everything someone needs to check this record’s date without VeilCore: the record as it was
               sealed, proof that it’s in a dated batch, where that batch was recorded, and a page that does the checks
-              offline. A README inside says what it shows and what it doesn’t.
+              offline. It also has a one-page summary to print for a lawyer or examiner, and sample text for a written
+              declaration (not legal advice). A README inside says what it shows and what it doesn’t.
             </Typography>
             {!sealed && (
               <Alert severity="warning" variant="outlined">
@@ -159,7 +161,7 @@ export const EvidenceBundle: React.FC<{
             )}
             {done && (
               <Alert severity="success" variant="outlined">
-                Downloaded {done}. Open verify.html inside it to check it.
+                Downloaded {done}. Open verify.html inside it to check it, or EXAMINER-SUMMARY.html to print a summary.
               </Alert>
             )}
           </Stack>

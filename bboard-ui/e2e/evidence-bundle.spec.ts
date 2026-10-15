@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access -- tamper tests edit loosely typed evidence JSON on purpose */
 // The evidence bundle, end to end: download it from the plant page, unzip it, open its
 // verify.html from disk (file://) with the network off, and see the checks pass. Then the
-// same page refuses a tampered record, a wrong proof and a wrong root.
+// same page refuses a tampered record, a wrong proof and a wrong root. EXAMINER-SUMMARY.html
+// opens from disk offline as text, and prints; DECLARATION-TEMPLATE.txt lists every file's SHA-256.
 //
 // Runs against the stand-in registry (CI), or a real one (E2E_API_BASE, with
 // E2E_OPERATOR_TOKEN and E2E_ANCHOR_CONTRACT matching the registry's settings, see
@@ -133,7 +134,21 @@ const stampFor = (rootHex: string): Buffer => {
 };
 
 /** What the registry holds for these records, from the stand-in or from a real registry. */
-type Setup = { batchRoot: string; evidence: Record<string, unknown>; ots: boolean };
+type Setup = {
+  batchRoot: string;
+  evidence: Record<string, unknown>;
+  ots: boolean;
+  /** GET /transfers/sent for the holder: a delivery of `bound` with sample details (stand-in only). */
+  sent?: Record<string, unknown>[];
+};
+
+/** The sample details on a delivery, and the digest a lab's receipt id carries (transfers.ts custodyDigest). */
+const SAMPLE = { sampleId: 'E2E-07', sealNumber: '4471', takenFrom: 'Mother M3', witness: 'Practice witness' };
+const ARRIVAL = { sampleId: 'E2E-07', sealNumber: '4471', sealIntact: 'yes', arrivedOn: '2026-10-15' };
+const DELIVERY = `T-E2E-${randomBytes(4).toString('hex').toUpperCase()}`;
+const CUSTODY_DIGEST = sha256(
+  canonicalise({ format: 'veilcore/sample-custody/v1', transferId: DELIVERY, sample: SAMPLE, arrival: ARRIVAL }),
+);
 
 const standIn = async (): Promise<Setup> => {
   const batch = await buildBatch([bound.recordFingerprint, older.recordFingerprint], 'B-20261015-E2E0');
@@ -159,6 +174,32 @@ const standIn = async (): Promise<Setup> => {
     anchoredAt: new Date().toISOString(),
     testNetwork: true,
   };
+  // The lab's receipt for a delivery of `bound`, its id carrying the sample details' digest.
+  const lab = await generateKeypair();
+  const receipt = await signAttestation(
+    {
+      attestationId: `att_${randomBytes(8).toString('hex')}_sc1_${CUSTODY_DIGEST}`,
+      type: 'chain-of-custody',
+      subjectCommitment: bound.recordFingerprint,
+      documentHash: randomBytes(32).toString('hex'),
+      hashAlgorithm: 'sha256',
+      issuedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+      attester: { publicKey: lab.publicKey, displayName: 'Practice Lab' },
+    },
+    lab.privateKey,
+  );
+  const sent = [
+    {
+      id: DELIVERY,
+      source_record: bound.id,
+      to_handle: 'practice-lab',
+      created_at: Date.now() - 50_000,
+      claimed_at: Date.now() - 40_000,
+      sample_custody: SAMPLE,
+      arrival_custody: ARRIVAL,
+      receipt_attestation_id: receipt.attestationId,
+    },
+  ];
   const evidence: Record<string, unknown> = {};
   for (const r of [bound, older]) {
     const proof = { ...batch.proofs[r.recordFingerprint], anchor, anchors: [{ kind: 'ledger', ...anchor }] };
@@ -183,11 +224,17 @@ const standIn = async (): Promise<Setup> => {
           ots: stampFor(batch.root).toString('base64'),
         },
       },
-      attestations: r === bound ? [{ ...signed, retraction: null, registeredAs: null, strength: 'signed' }] : [],
-      attestationsTotal: r === bound ? 1 : 0,
+      attestations:
+        r === bound
+          ? [
+              { ...signed, retraction: null, registeredAs: null, strength: 'signed' },
+              { ...receipt, retraction: null, registeredAs: null, strength: 'signed' },
+            ]
+          : [],
+      attestationsTotal: r === bound ? 2 : 0,
     };
   }
-  return { batchRoot: batch.root, evidence, ots: true };
+  return { batchRoot: batch.root, evidence, ots: true, sent };
 };
 
 const real = async (): Promise<Setup> => {
@@ -261,6 +308,7 @@ const openPlant = async (page: Page, setup: Setup, id: string) => {
       const ev = setup.evidence[rid];
       return ev ? json(route, 200, ev) : json(route, 404, { error: 'no such record for this holder key' });
     },
+    'GET /transfers/sent': (route) => json(route, 200, { transfers: setup.sent ?? [] }),
   });
   await page.goto(`/record/${id}`);
   await expect(
@@ -305,6 +353,24 @@ const openOffline = async (browser: Browser, file: string) => {
   const errors = watch(page);
   await page.goto(`file://${file}`);
   await expect(page.locator('body[data-checked]')).toBeVisible({ timeout: 20_000 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  return { ctx, page, requests, errors };
+};
+
+/** EXAMINER-SUMMARY.html from disk with the network off: it has no script, so nothing to wait for. */
+const openSummary = async (browser: Browser, file: string) => {
+  const ctx = await browser.newContext({ offline: true, viewport: { width: 360, height: 800 } });
+  const requests: string[] = [];
+  await ctx.route('**/*', (route) =>
+    route.request().url().startsWith('file:')
+      ? route.continue()
+      : (requests.push(route.request().url()), route.abort()),
+  );
+  const page = await ctx.newPage();
+  page.on('request', (r) => requests.push(r.url()));
+  const errors = watch(page);
+  await page.goto(`file://${file}`);
+  await expect(page.locator('body[data-summary="veilcore-examiner-summary/v1"]')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   return { ctx, page, requests, errors };
 };
@@ -365,6 +431,8 @@ test.describe('evidence bundle', () => {
     const dir = await unzipTo(download, info.outputPath('bundle'));
     expect(listFiles(dir)).toEqual(
       [
+        'DECLARATION-TEMPLATE.txt',
+        'EXAMINER-SUMMARY.html',
         'README.txt',
         'evidence.json',
         'key/key-binding.json',
@@ -410,7 +478,8 @@ test.describe('evidence bundle', () => {
     await expect(v.getByText('Proof leads to the batch root', { exact: true })).toBeVisible();
     await expect(v.getByText('The record’s key matches', { exact: true })).toBeVisible();
     await expect(v.getByText('Lab report pairing matches', { exact: true })).toBeVisible();
-    await expect(v.getByText('Signature checks', { exact: true })).toBeVisible();
+    // The lab report's signature and, on the stand-in, the lab's sample receipt.
+    await expect(v.getByText('Signature checks', { exact: true })).toHaveCount(setup.sent ? 2 : 1);
     await expect(v.locator('[data-check="lookup-midnight"]')).toContainText(ANCHOR_TX);
     await expect(v.locator('[data-check="lookup-midnight"]')).toContainText(setup.batchRoot);
     await expect(v.locator('[data-check="lookup-midnight"]')).toContainText(/test network/);
@@ -447,6 +516,46 @@ test.describe('evidence bundle', () => {
     expect(run.requests.filter((u) => !u.startsWith('file:'))).toEqual([]);
     expectNoErrors(run.errors);
     await run.ctx.close();
+
+    // The examiner summary, from disk, network off: text only, no script, prints.
+    const summary = await openSummary(browser, path.join(dir, 'EXAMINER-SUMMARY.html'));
+    const sp = summary.page;
+    await expect(sp.locator('h1')).toContainText(bound.strainName);
+    await expect(sp.locator('h1')).toContainText(bound.id);
+    await expect(sp.locator('table.sealed tr', { hasText: 'Notes' })).toContainText(
+      'Practice data. "</script>" stays text.',
+    );
+    await expect(sp.locator('table.sealed tr', { hasText: 'Bred by' })).toContainText('E2E');
+    for (const value of [bound.recordFingerprint, setup.batchRoot, ANCHOR_TX, ANCHOR_CONTRACT])
+      await expect(sp.locator('main')).toContainText(value);
+    await expect(sp.getByText('How it was checked', { exact: false }).first()).toBeVisible();
+    await expect(sp.locator('main')).toContainText('Not checked for you: the Midnight transaction');
+    await expect(sp.locator('main')).toContainText(LAB_SHA);
+    await expect(sp.locator('main')).toContainText('Practice Lab (not checked)');
+    if (setup.sent) {
+      // The sample details on the delivery, beside the lab's receipt that covers them.
+      const custody = sp.locator('[data-custody="covered"]');
+      await expect(custody).toContainText(DELIVERY);
+      await expect(custody.locator('tr', { hasText: 'Sent: Seal number' })).toContainText('4471');
+      await expect(custody.locator('tr', { hasText: 'Received: Seal on arrival' })).toContainText('intact');
+      await expect(custody.locator('tr', { hasText: 'Sent: Witness' })).toContainText('Practice witness');
+      await expect(sp.locator('main')).toContainText('Sample ID and seal number match what was sent.');
+    }
+    await expect(sp.locator('[data-practice="yes"]')).toContainText('Practice data');
+    await expect(sp.getByRole('heading', { name: 'What this does not show' })).toBeVisible();
+    await expect(sp.locator('main')).toContainText('not legal advice');
+    expect(await sp.locator('script, link, img, iframe, a[href], [src]').count()).toBe(0);
+    // Prints to PDF from the browser.
+    const pdf = await sp.pdf({ format: 'A4' });
+    expect(pdf.subarray(0, 5).toString()).toBe('%PDF-');
+    expect(summary.requests.filter((u) => !u.startsWith('file:'))).toEqual([]);
+    expectNoErrors(summary.errors);
+    await summary.ctx.close();
+    const declaration = fs.readFileSync(path.join(dir, 'DECLARATION-TEMPLATE.txt'), 'utf8');
+    expect(declaration).toMatch(/^=+\nSAMPLE TEXT\. NOT LEGAL ADVICE\./);
+    expect(declaration.replace(/\s+/g, ' ')).toContain(bound.recordFingerprint);
+    for (const f of listFiles(dir).filter((n) => n !== 'DECLARATION-TEMPLATE.txt' && !n.startsWith('verify-')))
+      expect(declaration, f).toContain(`- ${f}\n  SHA-256 ${sha256(fs.readFileSync(path.join(dir, f)))}`);
 
     // Tampered copies of the page itself.
     const html = fs.readFileSync(verifyFile, 'utf8');
@@ -549,6 +658,12 @@ test.describe('evidence bundle', () => {
     const names = listFiles(dir);
     expect(names).not.toContain('key/key-binding.json');
     expect(names.filter((n) => n.startsWith('lab/'))).toEqual([]);
+    expect(names).toContain('EXAMINER-SUMMARY.html');
+    expect(names).toContain('DECLARATION-TEMPLATE.txt');
+    const summary = await openSummary(browser, path.join(dir, 'EXAMINER-SUMMARY.html'));
+    await expect(summary.page.locator('main')).toContainText('No lab report is saved to this plant.');
+    expect(summary.requests.filter((u) => !u.startsWith('file:'))).toEqual([]);
+    await summary.ctx.close();
     const run = await openOffline(browser, path.join(dir, 'verify.html'));
     await expect(run.page.getByText('Fingerprint matches', { exact: true })).toBeVisible();
     await expect(run.page.getByText('Proof leads to the batch root', { exact: true })).toBeVisible();

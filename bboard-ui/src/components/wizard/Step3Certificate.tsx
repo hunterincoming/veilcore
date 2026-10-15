@@ -28,7 +28,7 @@ import { utcDate, utcStamp as fmtStamp } from '../../veilcore/time';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { ProveOwnershipPanel } from '../chain/ProveOwnershipPanel';
 import { useRecordKeys } from '../../veilcore/record-keys';
-import { receiptLineFor } from '../../veilcore/custody';
+import { custodyLines, receiptLineFor } from '../../veilcore/custody';
 import { signerLabel } from '../../veilcore/attesters';
 import { NameCheckText } from '../NameCheckText';
 import { useBreederReceipt, useSavedReport } from '../flow/LabResults';
@@ -315,6 +315,14 @@ export const Step3Certificate: React.FC<{
                 ) : (
                   deliveryLine
                 )}
+                {/* The sample's chain of custody on that delivery: differences said plainly. */}
+                {!record.receivedFrom &&
+                  receipt?.kind === 'signed' &&
+                  custodyLines(receipt.custody).map((l) => (
+                    <Box component="span" key={l} sx={{ display: 'block', mt: 0.25 }} data-custody-line="">
+                      {l}
+                    </Box>
+                  ))}
               </Field>
               <Field label="Active licenses">{activeLicenseCount(record.id)}</Field>
               <Field label="Record ID" mono>

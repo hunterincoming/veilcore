@@ -202,6 +202,12 @@ const routes = (
     <Route path="/partners" element={<PartnersPage />} />
     <Route path="/verify" element={<VerifyLookup />} />
     <Route path="/records" element={withLayout(<AppHome />)} />
+    <Route
+      path="/records/import"
+      element={withLayout(
+        React.createElement(page(() => import('./components/lab-import/BulkImportPage'), 'BulkImportPage')),
+      )}
+    />
     <Route path="/restore" element={withLayout(<RestorePage />)} />
     <Route path="/backup" element={withLayout(<BackupPage />)} />
     {/* Documents read here rather than in a code repository. */}

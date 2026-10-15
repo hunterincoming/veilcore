@@ -30,9 +30,17 @@ import {
 import { bindingForSecret, isHex64, KEY_BOUND_ALGORITHM } from '../key-binding';
 import { checkProof } from '../proofs';
 import { holderKeyIfAny } from '../holder';
+import { custodyView } from '../custody';
+import { sentByMe, type SentTransfer } from '../transfers';
 import { isObject, isString, isNumber, readJson } from '../json';
 import { DOCS, DOCS_COMMIT, DOCS_VERSION, REPO_VIEW } from '../docs';
 import { verifyPageHtml, SDK_VERSION } from './verify-page';
+import { EXAMINER_FILE, examinerSummaryHtml } from './examiner';
+import { DECLARATION_FILE, declarationText } from './declaration';
+import { anchorLookup, bitcoinSteps, midnightSteps, networkWords, utcWords, wrap } from './words';
+
+export { anchorLookup, bitcoinSteps, midnightSteps } from './words';
+export type { AnchorLookup } from './words';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
@@ -247,6 +255,31 @@ export type EvidenceOptions = {
   readonly labFile?: { readonly name: string; readonly bytes: Uint8Array };
   /** For tests: when the bundle was made. */
   readonly now?: Date;
+  /**
+   * The holder's sent deliveries (transfers.ts sentByMe), for the sample details on this
+   * plant's deliveries. downloadEvidenceBundle reads them; absent, the bundle has none.
+   */
+  readonly deliveries?: readonly SentTransfer[];
+};
+
+/** One delivery's sample details, as the breeder and the lab each wrote them. */
+export type CustodyEntry = {
+  readonly transferId: string;
+  /** The lab's receipt signature tied to this delivery, if any. */
+  readonly receiptAttestationId: string | null;
+  /**
+   * Whether the receipt's signature covers these details, worked out in the holder's browser
+   * (custody.ts custodyView): `covered`, `changed` (the lab changed them after signing),
+   * `not-covered` (a receipt from before sample details), or `unsigned` (no receipt
+   * signature that checks, and isn't withdrawn, is in this bundle).
+   */
+  readonly covered: 'covered' | 'changed' | 'not-covered' | 'unsigned';
+  /** What the breeder wrote when making the lab code. */
+  readonly sample: Readonly<Record<string, string>>;
+  /** What the lab wrote on arrival. */
+  readonly arrival: Readonly<Record<string, string>>;
+  /** Where the two differ, one plain line each. */
+  readonly differences: readonly string[];
 };
 
 export type Evidence = {
@@ -283,6 +316,12 @@ export type Evidence = {
     readonly fileIncluded?: string;
   } | null;
   readonly signatures: Record<string, unknown>[];
+  /**
+   * The sample details on the holder's deliveries of this plant that a lab signed a receipt
+   * for, and whether the receipt covers them (custody.ts custodyView). Only in bundles made
+   * where the holder's deliveries could be read; absent otherwise.
+   */
+  readonly custody?: readonly CustodyEntry[];
   readonly key: {
     readonly identity: string;
     readonly keySalt: string;
@@ -337,6 +376,48 @@ const savedSha = (record: StrainRecord, attestations: readonly Record<string, un
 
 /** Thrown with words for the holder; nothing is downloaded. */
 export class BundleRefusal extends Error {}
+
+/**
+ * The sample details on the holder's deliveries of this plant, beside the lab's receipt
+ * for each (custody.ts custodyView). "covered" only when the receipt's signature is in the
+ * bundle, checks here, is about this record and isn't withdrawn by its signer.
+ */
+export const custodyEntries = async (
+  record: Pick<StrainRecord, 'id' | 'recordFingerprint'>,
+  deliveries: readonly SentTransfer[],
+  attestations: readonly Record<string, unknown>[],
+): Promise<CustodyEntry[]> => {
+  const out: CustodyEntry[] = [];
+  for (const t of deliveries) {
+    if (t.source_record !== record.id) continue;
+    const receiptId = t.receipt_attestation_id ?? undefined;
+    const view = custodyView(t, receiptId);
+    if (!view) continue;
+    let covered: CustodyEntry['covered'] = view.signed;
+    if (receiptId) {
+      const a = attestations.find((x) => x.attestationId === receiptId);
+      const valid =
+        !!a &&
+        a.type === 'chain-of-custody' &&
+        a.subjectCommitment === record.recordFingerprint &&
+        (await verifyAttestation(a as unknown as SignedAttestation).catch(() => false));
+      const r = a && isObject(a.retraction) ? (a.retraction as unknown as Retraction) : null;
+      const withdrawn = !!a && !!r && (await verifyRetraction(r, a as unknown as SignedAttestation).catch(() => false));
+      if (!valid || withdrawn) covered = 'unsigned';
+    } else covered = 'unsigned';
+    const strings = (d: object): Record<string, string> =>
+      Object.fromEntries(Object.entries(d).filter((e): e is [string, string] => isString(e[1]) && e[1] !== ''));
+    out.push({
+      transferId: t.id,
+      receiptAttestationId: receiptId ?? null,
+      covered,
+      sample: strings(view.sample),
+      arrival: strings(view.arrival),
+      differences: covered === 'covered' ? [...view.differences] : [],
+    });
+  }
+  return out;
+};
 
 export const buildEvidence = async (
   record: StrainRecord,
@@ -422,6 +503,8 @@ export const buildEvidence = async (
     throw new BundleRefusal('No lab report is saved to this plant, so there is nothing to include.');
   }
 
+  const custody = options.deliveries ? await custodyEntries(record, options.deliveries, gathered.attestations) : [];
+
   return {
     format: EVIDENCE_FORMAT,
     createdAt: now.toISOString(),
@@ -450,14 +533,33 @@ export const buildEvidence = async (
     batch: gathered.batch,
     labReport,
     signatures: gathered.attestations,
+    ...(custody.length ? { custody } : {}),
     key,
   };
 };
 
 // ---- the words ---------------------------------------------------------------------------
 
-/** A lab signature the holder's browser checked, for the README. */
-type SignatureLine = { ok: boolean; withdrawn: boolean; text: string };
+/** A lab signature the holder's browser checked, for README.txt, EXAMINER-SUMMARY.html and the declaration. */
+export type SignatureLine = {
+  ok: boolean;
+  withdrawn: boolean;
+  text: string;
+  /** The signed statement, as served, for the summary's table. Present when ok. */
+  attestationId?: string;
+  type?: string;
+  /** "a lab report", "a receipt for a sample", or the type in quotes. */
+  what?: string;
+  publicKey?: string;
+  /** The name the key gives itself: not checked. */
+  displayName?: string;
+  documentHash?: string;
+  issuedAt?: string;
+  withdrawnAt?: string;
+  withdrawnReason?: string;
+  /** It is about the lab report saved to this plant. */
+  savedReport?: boolean;
+};
 
 const TYPE_WORDS: Record<string, string> = {
   'laboratory-report': 'a lab report',
@@ -490,108 +592,23 @@ export const signatureLines = async (
     const text =
       `The key ${key}${name} signed ${what} with SHA-256 ${String(a.documentHash)}, about this record, at ${String(a.issuedAt)} (the signer's own clock).${saved}` +
       (withdrawn && r ? ` The same key withdrew it at ${r.retractedAt} (${r.reason}).` : '');
-    out.push({ ok: true, withdrawn, text });
+    out.push({
+      ok: true,
+      withdrawn,
+      text,
+      attestationId: String(a.attestationId),
+      type: String(a.type),
+      what,
+      publicKey: key,
+      ...(isString(attester.displayName) ? { displayName: attester.displayName } : {}),
+      documentHash: String(a.documentHash),
+      issuedAt: String(a.issuedAt),
+      ...(withdrawn && r ? { withdrawnAt: r.retractedAt, withdrawnReason: r.reason } : {}),
+      savedReport: !!saved,
+    });
   }
   return out;
 };
-
-const NETWORK_WORDS: Record<string, string> = {
-  mainnet: "Midnight's main network",
-  preprod: 'Midnight preprod (a test network)',
-  preview: 'Midnight Preview (a test network)',
-};
-const networkWords = (n: unknown): string => (isString(n) && NETWORK_WORDS[n]) || `the Midnight network "${String(n)}"`;
-
-/** The explorers verify.html names (verify-core.js EXPLORERS), by network. */
-const EXPLORERS: Record<string, string> = {
-  mainnet: 'https://midnightexplorer.com/',
-  preprod: 'https://preprod.midnightexplorer.com/',
-  preview: 'https://preview.midnightexplorer.com/',
-};
-
-/** "2026-10-15 11:00 UTC", as verify.html prints it; null for no time. */
-const utcWords = (t: unknown): string | null => {
-  if (!isString(t) && !isNumber(t)) return null;
-  const d = new Date(t);
-  if (Number.isNaN(d.getTime())) return null;
-  const i = d.toISOString();
-  return `${i.slice(0, 10)} ${i.slice(11, 16)} UTC`;
-};
-
-/** One anchor to look up, as verify.html's lookups() reads it from evidence.json. */
-export type AnchorLookup = {
-  readonly network: string;
-  readonly txHash: string;
-  readonly contractAddress: string | null;
-  readonly blockHeight: number | null;
-  readonly anchoredAt: string | null;
-  readonly explorer: string | null;
-  readonly root: string;
-};
-
-export const anchorLookup = (a: Record<string, unknown>, root: string): AnchorLookup | null =>
-  isString(a.txHash)
-    ? {
-        network: isString(a.network) ? a.network : 'unknown',
-        txHash: a.txHash,
-        contractAddress: isString(a.contractAddress) ? a.contractAddress : null,
-        blockHeight: isNumber(a.blockHeight) ? a.blockHeight : null,
-        anchoredAt: isString(a.anchoredAt) ? a.anchoredAt : null,
-        explorer: (isString(a.network) && EXPLORERS[a.network]) || null,
-        root,
-      }
-    : null;
-
-/**
- * The steps to date the record on Midnight: the same steps, in the same words, as
- * verify.html (verify-core.js midnightSteps; bundle.test.ts compares the two), in plain
- * ASCII for any text reader.
- */
-export const midnightSteps = (a: AnchorLookup): string[] => {
-  const when = utcWords(a.anchoredAt);
-  const block = a.blockHeight !== null;
-  return [
-    a.explorer
-      ? `Open the Midnight explorer for ${networkWords(a.network)}: ${a.explorer} (type the address in yourself).`
-      : `Open a Midnight explorer for ${networkWords(a.network)}.`,
-    `Search for transaction ${a.txHash}.` +
-      (block || when
-        ? ` VeilCore's registry reports it is${block ? ` in block ${a.blockHeight}` : ''}${when ? `${block ? ',' : ''} at ${when}` : ''}; the explorer's own block and time are the ones to rely on.`
-        : ''),
-    `Check that the transaction succeeded and that it called VeilCore's contract ${a.contractAddress ?? "(the bundle doesn't name it)"}. Note its block and time: that time is the date.`,
-    `Check that it wrote this batch root: ${a.root}. The batch root is one fingerprint that stands for every record in the batch; this record's proof leads to it.`,
-    `The explorer may not show the batch root in plain text: it sits inside the contract's state after the call. If you can't see it there, read that state from a Midnight indexer yourself (README.txt, "For technical readers", says how), or open this record's check page on VeilCore's site, which does that look-up in your own browser.`,
-    `If the transaction succeeded, called that contract and wrote that root, this record existed, unchanged, by that transaction's time: whoever had it sealed held this record by then. If any of it doesn't match, nothing here dates the record.`,
-  ];
-};
-
-/** The Bitcoin stamp's steps, as verify.html says them (verify-core.js bitcoinSteps). */
-export const bitcoinSteps = (pending: boolean): string[] => [
-  'The batch root was also stamped on Bitcoin with OpenTimestamps. The stamp file is proof/root.bin.ots; the file it stamps is proof/root.bin (the batch root as 32 bytes).',
-  'Easiest: on opentimestamps.org, drop in root.bin.ots and then root.bin.',
-  'Or with the official OpenTimestamps client, in the proof folder: ots verify root.bin.ots' +
-    (pending ? ' (run ots upgrade root.bin.ots first; that needs the internet once).' : '.'),
-];
-
-const wrap = (text: string, width = 78): string =>
-  text
-    .split('\n')
-    .map((line) => {
-      if (line.length <= width) return line;
-      const indent = /^\s*(- |\d+\. |[a-z]\. )?/.exec(line)?.[0].replace(/[^ ]/g, ' ') ?? '';
-      const words = line.split(' ');
-      const lines: string[] = [];
-      let cur = '';
-      for (const w of words) {
-        if (cur && (cur + ' ' + w).length > width) {
-          lines.push(cur);
-          cur = indent + w;
-        } else cur = cur ? `${cur} ${w}` : w;
-      }
-      if (cur) lines.push(cur);
-      return lines.join('\n');
-    })
-    .join('\n');
 
 /** Every file in the bundle, with what it is, in the order README.txt lists them. */
 export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: string }[] => {
@@ -600,6 +617,14 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
     {
       path: 'verify.html',
       what: 'the offline check page. Everything it needs is inside it; read its script to see exactly what it does.',
+    },
+    {
+      path: EXAMINER_FILE,
+      what: 'one printable page for a lawyer or examiner: the record as sealed, its fingerprint, batch and transaction, how it was checked, lab signatures, and what it shows and does not. Open it in a browser and print it to PDF. It checks nothing itself.',
+    },
+    {
+      path: DECLARATION_FILE,
+      what: "sample text for a written declaration about this record and bundle, with the bundle's facts and every file's SHA-256 filled in. Not legal advice: have a lawyer where you are adapt it.",
     },
     { path: 'evidence.json', what: 'everything below in one machine-readable file (verify.html carries a copy).' },
     { path: 'record/sealed-fields.json', what: 'the record exactly as it was fingerprinted, made readable.' },
@@ -864,6 +889,10 @@ export const bundleFiles = async (
   if (ev.signatures.length) add('lab/signatures.json', json(ev.signatures));
   if (ev.key) add('key/key-binding.json', json(ev.key));
   add('spec/SPEC-sections.md', text(specSectionsText()));
+  add(EXAMINER_FILE, text(examinerSummaryHtml(ev, sigs, ots !== null)));
+  // Last: it lists every other file with its SHA-256.
+  const others = Object.fromEntries(Object.entries(files).map(([k, v]) => [k.slice(dir.length + 1), v]));
+  add(DECLARATION_FILE, text(await declarationText(ev, sigs, ots !== null, others)));
   return files;
 };
 
@@ -881,9 +910,12 @@ export const downloadEvidenceBundle = async (
 ): Promise<{ ok: true; name: string } | { error: string }> => {
   const gathered = await gatherEvidence(record);
   if ('error' in gathered) return gathered;
+  // The sample details on this plant's deliveries: the holder's own, from the registry.
+  // None (an older registry, no network) leaves them out; nothing else depends on them.
+  const deliveries = options.deliveries ?? (await sentByMe());
   let zip: Uint8Array;
   try {
-    const ev = await buildEvidence(record, gathered, options, keys);
+    const ev = await buildEvidence(record, gathered, { ...options, deliveries }, keys);
     zip = zipFiles(await bundleFiles(ev, gathered, options), options.now ?? new Date());
   } catch (e) {
     return { error: e instanceof BundleRefusal ? e.message : 'The bundle couldn’t be made. Nothing was downloaded.' };

@@ -24,6 +24,8 @@ One folder, `VEIL-…-evidence/`:
 |---|---|
 | `README.txt` | Plain English: what each file is, how to check it, what it proves and what it does not. |
 | `verify.html` | The offline check page. Everything it needs is inside it. |
+| `EXAMINER-SUMMARY.html` | One printable page for a lawyer, examiner or clerk: the record as sealed, fingerprint, batch, transaction and network, how and when it was checked, lab signatures and sample receipts (with the sample details each side wrote, when the holder's deliveries could be read), the Bitcoin stamp, and what it shows and doesn't. Text only: no script, nothing loaded, every value escaped (`evidence/examiner.ts`). Prints to PDF from the browser (two or three sheets for a record with a lab report and a receipt). |
+| `DECLARATION-TEMPLATE.txt` | Fill-in-the-blanks sample text for a declaration by the record holder and, optionally, a technical witness, with the bundle's facts filled in and Schedule A listing every other file's SHA-256 (`evidence/declaration.ts`). "Sample text. Not legal advice." at the top and bottom. How to use both, and the sources behind the template: [`evidence-in-practice.md`](evidence-in-practice.md). |
 | `evidence.json` | Everything below in one machine-readable file. `verify.html` carries a copy. |
 | `record/sealed-fields.json` | The record exactly as it was fingerprinted. |
 | `record/sealed-fields.canonical.json` | The exact bytes that were hashed (spec 4.4). |

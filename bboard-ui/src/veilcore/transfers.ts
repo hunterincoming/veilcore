@@ -7,8 +7,10 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+import { canonicalise, sha256Hex, signAttestation } from 'veilcore-records';
 import { holderKey, holderKeyIfAny } from './holder';
 import { readJson, isObject, isString, isNumber, optional, arrayField } from './json';
+import type { AttesterProfile } from './attester-keys';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
@@ -28,6 +30,16 @@ export type PendingTransfer = {
 
 export type SentTransfer = PendingTransfer & {
   readonly claimed_at?: number;
+  /** What the breeder wrote about the sample when making the lab code (sender only). */
+  readonly sample_custody?: SampleDetails;
+  /** What the lab wrote on arrival (sender only). Its receipt says whether it signed them. */
+  readonly arrival_custody?: ArrivalDetails;
+  /**
+   * custodyDigest over this delivery's two sides as the registry listed them, worked out in
+   * this browser (sentByMe), not the registry's word: a receipt covers them only when its
+   * id carries this digest (custody.ts custodyView).
+   */
+  readonly custodyDigest?: string;
   /** The record the claim created, when the registry says (sender only). */
   readonly received_record?: string;
   /**
@@ -52,6 +64,89 @@ const isSentTransfer = (v: unknown): v is SentTransfer =>
   optional((v as Record<string, unknown>).claimed_at, isNumber) &&
   optional((v as Record<string, unknown>).received_record, isString) &&
   optional((v as Record<string, unknown>).receipt_attestation_id, isString);
+
+// --- the sample's chain of custody ---------------------------------------------------------
+//
+// Disputes over a lab result turn on the sample: which tube, sealed how, taken from which
+// plant, and whether what arrived is what left. The breeder writes the label and seal when
+// making the lab code; the lab confirms or corrects each on arrival. Both optional, plain
+// text, and VeilCore checks none of it: it records what each side wrote.
+//
+// The lab's receipt covers them. A receipt's signed fields are fixed, and its subject and
+// document must stay this delivery's two fingerprints (the registry's receiptProblem), so
+// the values are carried in the one signed field the lab chooses, its id:
+// `att_<16 hex>_sc1_<custodyDigest>`. Receipts without the suffix verify as before.
+
+/** What the breeder writes when making the lab code. */
+export type SampleDetails = {
+  readonly sampleId?: string;
+  readonly sealNumber?: string;
+  readonly takenFrom?: string;
+  /** YYYY-MM-DD */
+  readonly takenOn?: string;
+  readonly witness?: string;
+};
+
+/** What the lab writes when it arrives. */
+export type ArrivalDetails = {
+  readonly sampleId?: string;
+  readonly sealNumber?: string;
+  readonly sealIntact?: 'yes' | 'no' | 'no-seal';
+  /** YYYY-MM-DD */
+  readonly arrivedOn?: string;
+  readonly condition?: string;
+  /** The lab's own accession number. */
+  readonly labRef?: string;
+};
+
+/** Each field's limit, as the registry checks it (transfer.mjs CUSTODY_FIELDS). */
+export const CUSTODY_LIMITS = {
+  sample: { sampleId: 120, sealNumber: 120, takenFrom: 300, takenOn: 10, witness: 200 },
+  arrival: { sampleId: 120, sealNumber: 120, arrivedOn: 10, condition: 1000, labRef: 200 },
+} as const;
+
+const SAMPLE_KEYS = ['sampleId', 'sealNumber', 'takenFrom', 'takenOn', 'witness'] as const;
+const ARRIVAL_KEYS = ['sampleId', 'sealNumber', 'sealIntact', 'arrivedOn', 'condition', 'labRef'] as const;
+const SEAL_STATES: readonly string[] = ['yes', 'no', 'no-seal'];
+
+/** Only the known string fields, trimmed, empty ones dropped: the form the registry stores. */
+const fieldsOf = (v: unknown, keys: readonly string[]): Record<string, string> => {
+  if (!isObject(v)) return {};
+  const out: Record<string, string> = {};
+  for (const k of keys) {
+    const x = v[k];
+    if (isString(x) && x.trim()) out[k] = x.trim().normalize('NFC');
+  }
+  return out;
+};
+export const sampleDetailsOf = (v: unknown): SampleDetails => fieldsOf(v, SAMPLE_KEYS);
+export const arrivalDetailsOf = (v: unknown): ArrivalDetails => {
+  const f = fieldsOf(v, ARRIVAL_KEYS);
+  const { sealIntact, ...rest } = f;
+  return sealIntact !== undefined && SEAL_STATES.includes(sealIntact)
+    ? { ...rest, sealIntact: sealIntact as NonNullable<ArrivalDetails['sealIntact']> }
+    : rest;
+};
+export const hasDetails = (d: SampleDetails | ArrivalDetails | undefined): boolean =>
+  !!d && Object.values(d).some((x) => typeof x === 'string' && x !== '');
+
+/**
+ * What the lab's receipt id carries: SHA-256 of the canonical JSON of the delivery and both
+ * sides. The registry's transfer.mjs custodyDigest is the same function; they must agree.
+ */
+export const custodyDigest = (transferId: string, sample: SampleDetails, arrival: ArrivalDetails): Promise<string> =>
+  sha256Hex(
+    canonicalise({
+      format: 'veilcore/sample-custody/v1',
+      transferId,
+      sample: sampleDetailsOf(sample),
+      arrival: arrivalDetailsOf(arrival),
+    }),
+  );
+
+/** The custody digest a receipt's id carries, or null for a receipt without one (every older one). */
+export const receiptCustodyDigest = (attestationId: string): string | null =>
+  /_sc1_([0-9a-f]{64})$/.exec(attestationId)?.[1] ?? null;
 
 const auth = () => ({ 'Content-Type': 'application/json', 'x-holder-key': holderKey() });
 
@@ -132,13 +227,15 @@ export const MISSING_LOCK_WORDS =
 export const offerTransfer = async (
   sourceRecord: string,
   toHandle: string,
-  opts: { quantity?: string; note?: string } = {},
+  opts: { quantity?: string; note?: string; sample?: SampleDetails } = {},
 ): Promise<{ transferId: string; claimCode?: string } | { error: string }> => {
+  const { sample, ...rest } = opts;
+  const details = sampleDetailsOf(sample);
   try {
     const res = await fetch(`${BASE}/transfers`, {
       method: 'POST',
       headers: auth(),
-      body: JSON.stringify({ sourceRecord, toHandle, ...opts }),
+      body: JSON.stringify({ sourceRecord, toHandle, ...rest, ...(hasDetails(details) ? { sample: details } : {}) }),
     });
     const body = await readJson(res);
     if (!isObject(body)) return unexpected;
@@ -166,6 +263,8 @@ export type ClaimResult = {
   quantity?: string;
   /** The sender's note, given to the recipient only (it is not on the public list). */
   note?: string;
+  /** What the breeder wrote about the sample, for the lab to confirm or correct. */
+  sample?: SampleDetails;
 };
 
 export const claimTransfer = async (
@@ -192,6 +291,7 @@ export const claimTransfer = async (
         ...(isString(body.parentCommitment) ? { parentCommitment: body.parentCommitment } : {}),
         ...(isString(body.quantity) ? { quantity: body.quantity } : {}),
         ...(isString(body.note) && body.note ? { note: body.note } : {}),
+        ...(hasDetails(sampleDetailsOf(body.sample)) ? { sample: sampleDetailsOf(body.sample) } : {}),
       };
     }
     if (isString(body.error)) return { error: userFacingError(body.error) };
@@ -232,6 +332,97 @@ export const attachReceipt = async (
             ? 'this registry can’t tie a receipt to a delivery yet'
             : `the registry answered ${res.status}`,
     };
+  } catch {
+    return { error: 'could not reach the registry' };
+  }
+};
+
+/** Both sides of a delivery's sample details, as the registry stores them. */
+export type DeliveryCustody = {
+  sample: SampleDetails;
+  arrival: ArrivalDetails;
+  receiptAttestationId?: string;
+};
+
+const custodyBody = (body: unknown): DeliveryCustody | { error: string } => {
+  if (!isObject(body)) return unexpected;
+  if (isString(body.error)) return { error: userFacingError(body.error) };
+  if (!isString(body.transferId)) return unexpected;
+  return {
+    sample: sampleDetailsOf(body.sample),
+    arrival: arrivalDetailsOf(body.arrival),
+    ...(isString(body.receiptAttestationId) ? { receiptAttestationId: body.receiptAttestationId } : {}),
+  };
+};
+
+/** A delivery's sample details, for its sender or the lab that received it. */
+export const custodyOf = async (transferId: string): Promise<DeliveryCustody | { error: string }> => {
+  if (!holderKeyIfAny()) return { error: 'this browser has no key for that delivery' };
+  try {
+    const res = await fetch(`${BASE}/transfers/${encodeURIComponent(transferId)}/custody`, { headers: auth() });
+    if (res.status === 404 && !(res.headers.get('content-type') ?? '').includes('json')) {
+      return { error: 'this registry can’t keep sample details yet' };
+    }
+    return custodyBody(await readJson(res));
+  } catch {
+    return { error: 'could not reach the registry' };
+  }
+};
+
+/** The lab writes how the sample arrived (it signs its receipt over what comes back). */
+export const setArrival = async (
+  transferId: string,
+  arrival: ArrivalDetails,
+): Promise<DeliveryCustody | { error: string }> => {
+  try {
+    const res = await fetch(`${BASE}/transfers/${encodeURIComponent(transferId)}/custody`, {
+      method: 'POST',
+      headers: auth(),
+      body: JSON.stringify({ arrival: arrivalDetailsOf(arrival) }),
+    });
+    if (res.status === 404 && !(res.headers.get('content-type') ?? '').includes('json')) {
+      return { error: 'this registry can’t keep sample details yet' };
+    }
+    return custodyBody(await readJson(res));
+  } catch {
+    return { error: 'could not reach the registry' };
+  }
+};
+
+/**
+ * Sign the lab's receipt (a chain-of-custody attestation over the breeder's source record
+ * and the lab's received record, exactly as attester-keys.ts attestRecord signs one) and
+ * post it. With `digest`, its id carries the sample details it covers.
+ */
+export const signReceiptWith = async (
+  p: AttesterProfile,
+  subject: { sourceCommitment: string; receivedRecordFingerprint: string },
+  digest?: string,
+): Promise<{ attestationId: string } | { error: string }> => {
+  const base = `att_${crypto.randomUUID().replace(/-/g, '').slice(0, 16)}`;
+  try {
+    const signed = await signAttestation(
+      {
+        attestationId: digest ? `${base}_sc1_${digest}` : base,
+        type: 'chain-of-custody',
+        subjectCommitment: subject.sourceCommitment,
+        attester: { publicKey: p.keypair.publicKey, displayName: p.displayName, role: p.role },
+        documentHash: subject.receivedRecordFingerprint,
+        hashAlgorithm: 'sha256',
+        issuedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+      },
+      p.keypair.privateKey,
+    );
+    const res = await fetch(`${BASE}/attestations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(signed),
+    });
+    const body = await readJson(res);
+    if (!isObject(body)) return unexpected;
+    if (isString(body.error)) return { error: body.error };
+    if (isString(body.attestationId)) return { attestationId: body.attestationId };
+    return unexpected;
   } catch {
     return { error: 'could not reach the registry' };
   }
@@ -320,7 +511,20 @@ export const sentByMe = async (): Promise<SentTransfer[]> => {
   try {
     const res = await fetch(`${BASE}/transfers/sent`, { headers: auth() });
     if (!res.ok) return [];
-    return arrayField(await readJson(res), 'transfers', isSentTransfer);
+    const rows = arrayField(await readJson(res), 'transfers', isSentTransfer);
+    return await Promise.all(
+      rows.map(async (t): Promise<SentTransfer> => {
+        const sample = sampleDetailsOf(t.sample_custody);
+        const arrival = arrivalDetailsOf(t.arrival_custody);
+        // Only the registry's fields come from the registry: the digest is worked out here.
+        return {
+          ...t,
+          sample_custody: hasDetails(sample) ? sample : undefined,
+          arrival_custody: hasDetails(arrival) ? arrival : undefined,
+          custodyDigest: await custodyDigest(t.id, sample, arrival),
+        };
+      }),
+    );
   } catch {
     return [];
   }

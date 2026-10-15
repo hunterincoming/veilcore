@@ -26,7 +26,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { StrainRecord } from './records';
-import type { SentTransfer } from './transfers';
+import {
+  hasDetails,
+  receiptCustodyDigest,
+  type ArrivalDetails,
+  type SampleDetails,
+  type SentTransfer,
+} from './transfers';
 import { countsAsSigned, nameChecked, signerLabel, type ResolvedAttestation } from './attesters';
 import { utcDate } from './time';
 
@@ -49,12 +55,125 @@ export const signedByWords = (a: ResolvedAttestation): string => signerLabel(a).
 /** The whole receipt label (attesters.ts signerLabel): "Receipt signed by …". */
 export const receiptSignedLine = (a: ResolvedAttestation): string => signerLabel(a).text;
 
+// --- the sample's chain of custody (transfers.ts) ------------------------------------------
+
+/** Compare as a person reads them: spacing and letter case aside. */
+const same = (a: string, b: string) =>
+  a.replace(/\s+/g, ' ').trim().toLowerCase() === b.replace(/\s+/g, ' ').trim().toLowerCase();
+
+/**
+ * Where what arrived differs from what was sent, one plain line each, saying what each side
+ * wrote and nothing about why: "Seal number differs: sent 4471, received 4417". A field the
+ * breeder filled and the lab left empty is said too, so clearing it can't hide a change.
+ */
+export const custodyDifferences = (sample: SampleDetails, arrival: ArrivalDetails): string[] => {
+  const out: string[] = [];
+  const pair = (label: string, sent?: string, got?: string) => {
+    if (sent && got && !same(sent, got)) out.push(`${label} differs: sent ${sent}, received ${got}`);
+    else if (sent && !got) out.push(`${label} not confirmed on arrival (sent ${sent})`);
+  };
+  pair('Sample ID', sample.sampleId, arrival.sampleId);
+  if (arrival.sealIntact === 'no-seal') {
+    if (sample.sealNumber) out.push(`No seal on arrival (sent with seal ${sample.sealNumber})`);
+  } else {
+    pair('Seal number', sample.sealNumber, arrival.sealNumber);
+  }
+  if (arrival.sealIntact === 'no') out.push('Seal not intact on arrival');
+  return out;
+};
+
+/**
+ * What a delivery's sample details amount to, next to the lab's receipt for it:
+ *  - `covered`: the receipt's id carries the digest of exactly these values (worked out in
+ *    this browser: transfers.ts sentByMe), so the lab's signature covers them;
+ *  - `changed`: it carries a digest, of other values: the lab changed them after signing;
+ *  - `not-covered`: a receipt from before these existed; the lab's side isn't shown.
+ */
+export type CustodyView = {
+  readonly sample: SampleDetails;
+  readonly arrival: ArrivalDetails;
+  readonly signed: 'covered' | 'changed' | 'not-covered';
+  readonly differences: readonly string[];
+};
+
+export const custodyView = (t: SentTransfer | undefined, receiptId: string | undefined): CustodyView | undefined => {
+  if (!t) return undefined;
+  const sample = t.sample_custody ?? {};
+  const arrival = t.arrival_custody ?? {};
+  if (!hasDetails(sample) && !hasDetails(arrival)) return undefined;
+  const digest = receiptId ? receiptCustodyDigest(receiptId) : null;
+  const signed = digest === null ? 'not-covered' : digest === t.custodyDigest ? 'covered' : 'changed';
+  return { sample, arrival, signed, differences: signed === 'covered' ? custodyDifferences(sample, arrival) : [] };
+};
+
+const SEAL_WORDS = { yes: 'seal intact', no: 'seal not intact', 'no-seal': 'no seal' } as const;
+
+/** The breeder's side in one line: "Sample BLU-07 · seal 4471 · taken from Mother M3 on 2026-10-14 · witness J. Doe". */
+export const sampleLine = (s: SampleDetails): string =>
+  [
+    s.sampleId ? `Sample ${s.sampleId}` : undefined,
+    s.sealNumber ? `seal ${s.sealNumber}` : undefined,
+    s.takenFrom || s.takenOn
+      ? `taken${s.takenFrom ? ` from ${s.takenFrom}` : ''}${s.takenOn ? ` on ${s.takenOn}` : ''}`
+      : undefined,
+    s.witness ? `witness ${s.witness} (VeilCore doesn’t check this)` : undefined,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+/** The lab's side in one line: "Sample BLU-07 · seal 4417, seal intact · arrived 2026-10-15 · condition … · lab no. ACC-9". */
+export const arrivalLine = (a: ArrivalDetails): string =>
+  [
+    a.sampleId ? `Sample ${a.sampleId}` : undefined,
+    a.sealNumber || a.sealIntact
+      ? [a.sealNumber ? `seal ${a.sealNumber}` : undefined, a.sealIntact ? SEAL_WORDS[a.sealIntact] : undefined]
+          .filter(Boolean)
+          .join(', ')
+      : undefined,
+    a.arrivedOn ? `arrived ${a.arrivedOn}` : undefined,
+    a.condition ? `condition: ${a.condition}` : undefined,
+    a.labRef ? `lab no. ${a.labRef}` : undefined,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+/**
+ * The receipt's sample lines for the breeder's plant page, certificate and check page:
+ * differences first, plainly; otherwise that what arrived matches what was sent.
+ */
+export const custodyLines = (v: CustodyView | undefined): string[] => {
+  if (!v) return [];
+  const sent = hasDetails(v.sample) ? [`Sent: ${sampleLine(v.sample)}`] : [];
+  if (v.signed === 'not-covered') return [...sent, 'The lab’s receipt doesn’t cover the sample details.'];
+  if (v.signed === 'changed')
+    return [...sent, 'The lab changed its arrival details after signing, so its receipt doesn’t cover them.'];
+  const got = hasDetails(v.arrival) ? [`Received: ${arrivalLine(v.arrival)}`] : [];
+  if (v.differences.length) return [...v.differences.map((d) => `${d}.`), ...sent, ...got];
+  const matched = [
+    v.sample.sampleId && v.arrival.sampleId ? 'sample ID' : undefined,
+    v.sample.sealNumber && v.arrival.sealNumber ? 'seal number' : undefined,
+  ].filter(Boolean);
+  return [
+    ...(matched.length ? [`${matched.join(' and ').replace(/^./, (c) => c.toUpperCase())} match what was sent.`] : []),
+    ...sent,
+    ...got,
+  ];
+};
+
+/** custodyLines without the "Sent:" and "Received:" detail: the plant page's one line under the receipt. */
+export const custodyHeadline = (v: CustodyView | undefined): string | undefined =>
+  custodyLines(v)
+    .filter((l) => !/^(Sent|Received): /.test(l))
+    .join(' ') || undefined;
+
 export type BreederReceipt =
   | {
       readonly kind: 'signed';
       readonly by: ResolvedAttestation;
       /** The delivery it is tied to. */
       readonly transferId: string;
+      /** The sample details on that delivery, and whether the receipt covers them. */
+      readonly custody?: CustodyView;
       /** Other signatures over the fingerprint, not tied to any of the breeder's deliveries. */
       readonly others: number;
     }
@@ -86,7 +205,14 @@ export const breederReceipt = (
   const others = about.length - signed.length;
   // A key with a current name check comes first; then the earliest.
   const by = signed.find((a) => nameChecked(a)) ?? [...signed].sort((a, b) => a.issuedAt.localeCompare(b.issuedAt))[0];
-  if (by) return { kind: 'signed', by, transferId: tied.get(by.attestationId) ?? '', others };
+  if (by) {
+    const transferId = tied.get(by.attestationId) ?? '';
+    const custody = custodyView(
+      sent.find((t) => t.id === transferId),
+      by.attestationId,
+    );
+    return { kind: 'signed', by, transferId, others, ...(custody ? { custody } : {}) };
+  }
   const used = sent.some((t) => t.source_record === record.id && t.claimed_at);
   if (record.attestation || used) return { kind: 'code-used', others };
   return { kind: 'none', others };
