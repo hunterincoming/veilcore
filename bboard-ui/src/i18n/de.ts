@@ -281,8 +281,8 @@ export const de: Strings = {
   'm.for.2p':
     'Züchter möchten mit ihren Markern zeigen, dass eine Sorte unterscheidbar ist, und behandeln diese Marker als Geschäftsgeheimnis. Ein VeilCore-Claim beweist eine Tatsache über sie, ohne den Rest zu zeigen. Noch akzeptiert keine Prüfstelle und keine Anerkennungsstelle ihn.',
   'm.hero.note':
-    'Tippen Sie in eines der beiden Felder; nichts wird gesendet. Die grüne Zeile ist der Fingerabdruck, der Teil, der auf Midnight kommt. Niemand kann daraus zurückrechnen, was Sie eingegeben haben.',
-  'm.hero.noteShort': 'Nur die grüne Zeile kommt auf Midnight.',
+    'Tippen Sie in eines der beiden Felder; nichts wird gesendet. Die rote Zeile unten ist der Fingerabdruck, der Teil, der auf Midnight kommt. Niemand kann daraus zurückrechnen, was Sie eingegeben haben.',
+  'm.hero.noteShort': 'Nur die rote Zeile kommt auf Midnight.',
   'm.for.label': 'Wofür es da ist',
   'm.for.title1': 'Viele Streitigkeiten um Genetik laufen auf eine Frage hinaus:',
   'm.for.title2': 'Was hatten Sie, und wann?',

@@ -194,7 +194,7 @@ export const Step5ProveDisclosure: React.FC<{
     <Stack spacing={2.5}>
       <Box>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
-          <VerifiedIcon sx={{ color: 'primary.main' }} aria-hidden="true" />
+          <VerifiedIcon sx={{ color: 'success.main' }} aria-hidden="true" />
           <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="">
             {t('app.prove.share.title')}
           </Typography>
@@ -236,7 +236,7 @@ export const Step5ProveDisclosure: React.FC<{
           <Typography variant="overline" color="text.secondary">
             {t('app.prove.share.strangerSees')}
           </Typography>
-          <Paper variant="outlined" sx={{ p: 2, mt: 0.5, background: 'rgba(22,32,27,0.02)' }}>
+          <Paper variant="outlined" sx={{ p: 2, mt: 0.5, background: 'rgba(30,34,39,0.02)' }}>
             <DisclosedFacts record={record} disclosure={disclosure} saved={saved} />
           </Paper>
         </Box>

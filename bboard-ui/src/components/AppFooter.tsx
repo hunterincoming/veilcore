@@ -1,5 +1,5 @@
 // The footer. Since 15 October 2026 it is the public pages' footer band (site.css
-// footer.bottom): Leaf ink, light text, the plant-tag wordmark. The page ends the same way
+// footer.bottom): Graphite, light text, the tag wordmark. The page ends the same way
 // on the landing page and in the app, so they read as one product.
 //
 // Documents are reachable from the landing page and nowhere else, which means anyone
@@ -18,10 +18,10 @@ import { useI18n } from '../i18n';
 import { requestRoleChange, useRole } from '../veilcore/role';
 import { useT } from '../i18n/app';
 
-// On Leaf ink: 9.6:1 for the links, white for the group names, the light green for the
-// mark and the focus ring (9.4:1).
-const ON_DARK_MUTED = '#C9D6CD';
-const ON_DARK_ACCENT = '#9FE0B5';
+// On Graphite: 9.5:1 for the links, white for the group names and the focus ring, and the
+// stamp red lightened for a dark ground (5.3:1) on the mark's stub.
+const ON_DARK_MUTED = '#C3C8CF';
+const ON_DARK_ACCENT = '#EC6A80';
 const groupName = {
   display: 'block',
   fontSize: 15,
@@ -50,7 +50,7 @@ const Item: React.FC<{ to: string; children: React.ReactNode; external?: boolean
       color: ON_DARK_MUTED,
       fontSize: 15,
       '&:hover': { color: '#FFFFFF' },
-      '&:focus-visible': { outlineColor: ON_DARK_ACCENT },
+      '&:focus-visible': { outlineColor: '#FFFFFF' },
     }}
   >
     {children}
@@ -89,7 +89,7 @@ export const AppFooter: React.FC = () => {
                 letterSpacing: '-0.015em',
                 color: '#FFFFFF',
                 mb: 1.5,
-                '& svg': { color: ON_DARK_ACCENT },
+                '& svg': { color: '#FFFFFF', '--tm-stub': ON_DARK_ACCENT },
               }}
             >
               <TagMark />
@@ -142,7 +142,7 @@ export const AppFooter: React.FC = () => {
                 sx={{
                   color: ON_DARK_MUTED,
                   '&:hover': { color: '#FFFFFF' },
-                  '&:focus-visible': { outlineColor: ON_DARK_ACCENT },
+                  '&:focus-visible': { outlineColor: '#FFFFFF' },
                   ...linkBox,
                   fontSize: 15,
                   textAlign: 'left',

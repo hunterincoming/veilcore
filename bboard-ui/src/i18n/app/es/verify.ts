@@ -4,26 +4,26 @@
 import type { AppTranslation } from '../../translate';
 
 export const verify = {
-  'app.verify.report.notSaved': 'El titular no ha guardado un informe de laboratorio en este registro.',
+  'app.verify.report.notSaved': 'El titular no ha guardado un informe de ADN en este registro.',
   'app.verify.report.asOf': ' (a la fecha en que se hizo este enlace)',
   'app.verify.report.staleNote':
     ' Este enlace se hizo cuando había otro archivo guardado; esta línea trata del que está guardado ahora.',
   'app.verify.report.matches':
-    'El titular guardó un informe de laboratorio en este registro{asOf}. Su archivo (SHA-256 {sha}) coincide con el informe de laboratorio {lead}: firma comprobada en este navegador.{rest}{staleNote}',
-  'app.verify.report.which': 'El informe de laboratorio guardado en este registro{asOf} (SHA-256 {sha})',
+    'El titular guardó un informe de ADN en este registro{asOf}. Su archivo (SHA-256 {sha}) coincide con el informe de laboratorio {lead}: firma comprobada en este navegador.{rest}{staleNote}',
+  'app.verify.report.which': 'El informe de ADN guardado en este registro{asOf} (SHA-256 {sha})',
   'app.verify.report.replaced':
     '{which} fue reemplazado por su laboratorio el {on} por uno corregido. {tail}{staleNote}',
   'app.verify.report.withdrawn': '{which} fue retirado por su laboratorio el {on}. {tail}{staleNote}',
   'app.verify.report.ownSha':
-    'El titular guardó un archivo de informe de laboratorio en este registro{asOf} (SHA-256 {sha}). Ninguna firma de laboratorio de este registro coincide con él, así que es la propia declaración del titular.{staleNote}',
+    'El titular guardó un archivo de informe de ADN en este registro{asOf} (SHA-256 {sha}). Ninguna firma de laboratorio de este registro coincide con él, así que es la propia declaración del titular.{staleNote}',
   'app.verify.report.own':
-    'El titular guardó un archivo de informe de laboratorio en este registro. Ninguna firma de laboratorio de este registro coincide con él, así que es la propia declaración del titular.{staleNote}',
+    'El titular guardó un archivo de informe de ADN en este registro. Ninguna firma de laboratorio de este registro coincide con él, así que es la propia declaración del titular.{staleNote}',
   'app.verify.report.unnamedSigned':
-    'El titular guardó un informe de laboratorio en este registro. Este enlace no nombra el archivo, así que esta página no puede saber si es el informe firmado que aparece arriba.',
+    'El titular guardó un informe de ADN en este registro. Este enlace no nombra el archivo, así que esta página no puede saber si es el informe firmado que aparece arriba.',
   'app.verify.report.unnamedWithdrawn':
-    'El titular guardó un informe de laboratorio en este registro. Este enlace no nombra el archivo, y todos los informes firmados sobre este registro fueron retirados por su laboratorio, así que es la propia declaración del titular.',
+    'El titular guardó un informe de ADN en este registro. Este enlace no nombra el archivo, y todos los informes firmados sobre este registro fueron retirados por su laboratorio, así que es la propia declaración del titular.',
   'app.verify.report.unnamedNone':
-    'El titular guardó un informe de laboratorio en este registro. Ningún laboratorio ha firmado un informe sobre este registro, así que es la propia declaración del titular.',
+    'El titular guardó un informe de ADN en este registro. Ningún laboratorio ha firmado un informe sobre este registro, así que es la propia declaración del titular.',
   'app.verify.kind.receipts.one': 'un acuse de recibo de laboratorio',
   'app.verify.kind.receipts.other': '{count} acuses de recibo de laboratorio',
   'app.verify.kind.reports.one': 'un informe de laboratorio',
@@ -64,7 +64,7 @@ export const verify = {
     'Lote {batch}: el servidor de registros informa que la raíz del lote se registró en {where}{tx}. La fecha es {date}. {why} No confíe en la fecha hasta que se compruebe.{test}',
   'app.verify.anchor.summaryAdd': '{summary} Comprobado en Midnight: el sello de fecha de la raíz del lote.',
   'app.verify.field.existence': 'Tenencia previa (solo se muestra una vez anclado)',
-  'app.verify.field.attestation-status': 'Si hay un informe de laboratorio guardado',
+  'app.verify.field.attestation-status': 'Si hay un informe de ADN guardado',
   'app.verify.field.descent-clean': 'Estado del linaje, según el servidor de registros',
   'app.verify.field.sealed-at': 'Cuándo se selló (reloj del dispositivo del titular)',
   'app.verify.field.parent-names': 'Nombres de los cultivares padres',
@@ -173,7 +173,7 @@ export const verify = {
   'app.verify.own.notConfirmed': ' Esta página no lo ha confirmado en la cadena.',
   'app.verify.own.notAnchored':
     'Tenencia previa: todavía sin anclar, así que su fecha se basa en los registros de este servidor.',
-  'app.verify.dna.saved': 'El titular guardó un informe de laboratorio en este registro.',
+  'app.verify.dna.saved': 'El titular guardó un informe de ADN en este registro.',
   'app.verify.lineage.intact':
     'El servidor de registros informa el linaje intacto: una cadena sin cortes hasta el registro sellado. Esta página no lo ha comprobado.',
   'app.verify.lineage.notChecked':
@@ -211,7 +211,7 @@ export const verify = {
   'app.verify.ex.note4':
     'Un laboratorio puede firmar con su propia clave su acuse de recibo de una muestra y su informe de laboratorio. Cada línea dice cuál es. La página comprueba la firma; si la clave es de un laboratorio en el que confía, lo decide usted.',
   'app.verify.ex.fact5':
-    'El titular guardó un informe de laboratorio en este registro. Su archivo (SHA-256 7c1e04d2…9b3a51) coincide con el informe de laboratorio firmado por una clave llamada “Example Lab” (nombre no comprobado): firma comprobada en este navegador.',
+    'El titular guardó un informe de ADN en este registro. Su archivo (SHA-256 7c1e04d2…9b3a51) coincide con el informe de laboratorio firmado por una clave llamada “Example Lab” (nombre no comprobado): firma comprobada en este navegador.',
   'app.verify.ex.note5': 'El titular elige qué datos aparecen aquí. Lo que no se comparte aparece como no compartido.',
   'app.verify.ex.marks':
     '✓ esta página comprobó la línea por sí misma, en su navegador. ○ lo informa el servidor de registros de VeilCore o el titular; esta página no lo comprobó. ⊗ una comprobación falló, o un laboratorio retiró lo que firmó.',

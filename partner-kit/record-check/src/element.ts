@@ -41,8 +41,11 @@ import {
 } from './check.js';
 import { CUT } from './link.js';
 
+// Colours, each overridable by a --vc-* property on the element: --vc-accent (the button,
+// links, the focus ring; VeilCore's stamp red), --vc-ok (a check that passed), --vc-bad
+// (one that failed), --vc-warn, --vc-ink, --vc-muted, --vc-line, --vc-paper.
 const CSS = `
-:host{display:block;font:inherit;color:var(--vc-ink,#16201b);--_accent:var(--vc-accent,#00785a);--_muted:var(--vc-muted,#4a564f);--_line:var(--vc-line,#c7cec8);--_paper:var(--vc-paper,#ffffff);--_bad:var(--vc-bad,#a61b1b);--_warn:var(--vc-warn,#7a4700);max-width:40rem}
+:host{display:block;font:inherit;color:var(--vc-ink,#1e2227);--_accent:var(--vc-accent,#b3173b);--_ok:var(--vc-ok,#2e6b55);--_muted:var(--vc-muted,#575e66);--_line:var(--vc-line,#c2c7cd);--_paper:var(--vc-paper,#ffffff);--_bad:var(--vc-bad,#9e2a0b);--_warn:var(--vc-warn,#7a4700);max-width:40rem}
 :host([hidden]){display:none}
 .f{display:grid;gap:.5rem}
 label{font-weight:600}
@@ -60,7 +63,7 @@ button[aria-disabled=true]{opacity:.6;cursor:progress}
 .out ul{margin:.25rem 0;padding-left:1.1rem}
 .out li{margin:.2rem 0}
 .tag{font-weight:600}
-.ok .tag{color:var(--_accent)}
+.ok .tag{color:var(--_ok)}
 .bad .tag,.bad h3{color:var(--_bad)}
 .warn .tag{color:var(--_warn)}
 .small{font-size:.9em;color:var(--_muted)}

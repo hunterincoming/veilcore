@@ -6,7 +6,7 @@ import React, { useRef, useState } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFileOutlined';
 import DescriptionIcon from '@mui/icons-material/DescriptionOutlined';
-import { ACCENT } from '../../config/theme';
+import { INK_COLOR } from '../../config/theme';
 import { useT } from '../../i18n/app';
 
 export const Dropzone: React.FC<{
@@ -49,14 +49,14 @@ export const Dropzone: React.FC<{
         cursor: 'pointer',
         borderRadius: 3,
         border: '2px dashed',
-        borderColor: over ? ACCENT : 'divider',
-        background: over ? 'rgba(47,240,207,0.06)' : 'rgba(22,32,27,0.02)',
+        borderColor: over ? INK_COLOR : 'divider',
+        background: over ? 'rgba(30,34,39,0.05)' : 'rgba(30,34,39,0.02)',
         p: 4,
         textAlign: 'center',
         transition: 'all 0.2s',
         '&:hover, &:focus-visible': {
-          borderColor: 'primary.main',
-          background: 'rgba(47,240,207,0.04)',
+          borderColor: 'secondary.main',
+          background: 'rgba(30,34,39,0.04)',
         },
       }}
     >
@@ -71,7 +71,7 @@ export const Dropzone: React.FC<{
       />
       {file ? (
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', justifyContent: 'center' }}>
-          <DescriptionIcon sx={{ color: 'primary.main' }} />
+          <DescriptionIcon sx={{ color: 'text.secondary' }} />
           <Box sx={{ textAlign: 'left', minWidth: 0 }}>
             <Typography variant="subtitle2" noWrap>
               {file.name}

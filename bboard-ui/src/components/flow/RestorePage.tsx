@@ -82,7 +82,7 @@ export const RestorePage: React.FC = () => {
           {done ? (
             <Stack spacing={2}>
               <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
-                <DoneIcon color="primary" sx={{ fontSize: 36 }} aria-hidden="true" />
+                <DoneIcon color="success" sx={{ fontSize: 36 }} aria-hidden="true" />
                 <Typography variant="h6" component="h2" tabIndex={-1} ref={doneRef}>
                   {done.records > 0 || done.holderKey === 'restored'
                     ? t('app.backup.plantsBack')

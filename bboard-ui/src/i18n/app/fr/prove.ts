@@ -143,10 +143,9 @@ export const prove = {
     'Quiconque a l’identifiant de cet enregistrement — par un lien que vous envoyez, le QR code de son certificat ou un message transféré — peut ouvrir sa page de vérification. Choisissez les informations que cette page affiche. Le choix est enregistré avec l’enregistrement dans le registre de VeilCore et s’applique à tous ceux qui ont l’identifiant ; vous pouvez le changer ici à tout moment, et les liens déjà envoyés montrent alors le nouveau choix.',
   'app.prove.share.shownOn': 'Affiché sur la page de vérification',
   'app.prove.share.strangerSees': 'Ce que verra un inconnu qui a l’identifiant',
-  'app.prove.share.reportOn':
-    'Avec « Si un rapport de laboratoire est enregistré » activé, la page de vérification l’indique.',
+  'app.prove.share.reportOn': 'Avec « Si un rapport ADN est enregistré » activé, la page de vérification l’indique.',
   'app.prove.share.reportOff':
-    'Avec « Si un rapport de laboratoire est enregistré » désactivé, la page de vérification n’en dit rien.',
+    'Avec « Si un rapport ADN est enregistré » désactivé, la page de vérification n’en dit rien.',
   'app.prove.share.yourLink': 'Votre lien',
   'app.prove.share.savedOn': 'Enregistré dans le registre',
   'app.prove.share.savedText':

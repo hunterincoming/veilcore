@@ -1399,13 +1399,42 @@ export const csvCell = (v: string, delimiter: string): string => {
     : safe;
 };
 
-export const RESULT_COLUMNS = ['VeilCore record ID', 'Fingerprint', 'Check link', 'Result'] as const;
+export const RESULT_COLUMNS = ['VeilCore record ID', 'Fingerprint', 'Check link', 'Result', 'DNA report'] as const;
+
+/** The "DNA report" column for a record with none: what's missing and where to add it. */
+export const NO_DNA_REPORT =
+  'None yet, so the record is not tied to the plant. Add one on the plant’s page: Get a DNA fingerprint for this plant.';
+/** The "DNA report" column for a record with one saved. */
+export const DNA_REPORT_SAVED = 'Saved';
+
+/** The ids of the records a row became or already was: sealed now, or sealed before. */
+const rowRecordId = (r: PreparedRow, o: RowOutcome | undefined): string | undefined =>
+  r.status === 'already' ? r.existingId : r.status === 'ready' && o?.state === 'sealed' ? o.recordId : undefined;
+
+/**
+ * How many of this import's records (sealed now or before) have no DNA report saved, so
+ * aren't tied to the plant yet (veilcore/dna-tie.ts). A record sealed by the import never
+ * has one: an import seals what the sheet says, and a DNA report is added on the plant's page.
+ */
+export const noDnaReportCount = (
+  job: Pick<Job, 'rows' | 'outcomes'>,
+  hasDnaReport: (recordId: string) => boolean = () => false,
+): number =>
+  job.rows.filter((r) => {
+    const id = rowRecordId(r, job.outcomes[r.hash]);
+    return id !== undefined && !hasDnaReport(id);
+  }).length;
 
 /**
  * The results file: every row of the original, as it was, plus the record it became, its
- * fingerprint and a link anyone can open to check it. Same separator as the file read.
+ * fingerprint, a link anyone can open to check it, and whether a DNA report ties it to the
+ * plant yet. Same separator as the file read.
  */
-export const resultsCsv = (job: Pick<Job, 'headers' | 'delimiter' | 'rows' | 'outcomes'>, origin: string): string => {
+export const resultsCsv = (
+  job: Pick<Job, 'headers' | 'delimiter' | 'rows' | 'outcomes'>,
+  origin: string,
+  hasDnaReport: (recordId: string) => boolean = () => false,
+): string => {
   const d = job.delimiter || ',';
   const line = (cells: string[]) => cells.map((c) => csvCell(c, d)).join(d);
   const out = [line([...job.headers, ...RESULT_COLUMNS])];
@@ -1430,7 +1459,8 @@ export const resultsCsv = (job: Pick<Job, 'headers' | 'delimiter' | 'rows' | 'ou
       result = 'Not sealed yet';
     }
     const link = id ? `${origin.replace(/\/$/, '')}${verifyPath(id, fp)}` : '';
-    out.push(line([...job.headers.map((_, i) => r.cells[i] ?? ''), id, fp, link, result]));
+    const dna = id ? (hasDnaReport(id) ? DNA_REPORT_SAVED : NO_DNA_REPORT) : '';
+    out.push(line([...job.headers.map((_, i) => r.cells[i] ?? ''), id, fp, link, result, dna]));
   }
   return `\uFEFF${out.join('\r\n')}\r\n`;
 };

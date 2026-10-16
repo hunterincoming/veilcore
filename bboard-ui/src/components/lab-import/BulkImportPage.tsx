@@ -32,7 +32,7 @@ import { BackupStep } from '../flow/BackupStep';
 import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled } from '../flow/FlowFrame';
 import { IS_MAINNET } from '../../config/network';
 import { REAL_CHAIN, chainNotReady } from '../../veilcore/chain/config';
-import { useRecords } from '../../veilcore/records';
+import { getRecord, useRecords } from '../../veilcore/records';
 import { storageKeeps, useRecordKeys } from '../../veilcore/record-keys';
 import { localStamp } from '../../veilcore/time';
 import {
@@ -49,6 +49,7 @@ import {
   keyStampDays,
   jobSummary,
   loadJob,
+  noDnaReportCount,
   readSheet,
   resultsCsv,
   resultsFileName,
@@ -821,7 +822,7 @@ const Summary: React.FC<{ step?: string; job: Job; onNext: () => void }> = ({ st
   return (
     <Stack spacing={2.5}>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-        <DoneIcon color="primary" sx={{ fontSize: 40 }} aria-hidden="true" />
+        <DoneIcon color="success" sx={{ fontSize: 40 }} aria-hidden="true" />
         <ScreenHeading step={step}>
           {s.sealed ? tp('app.import.sum.sealed', s.sealed) : t('app.import.sum.nothingNew')}
         </ScreenHeading>
@@ -870,6 +871,7 @@ const Summary: React.FC<{ step?: string; job: Job; onNext: () => void }> = ({ st
             : t('app.import.sum.byBatch', { dated: t('app.copy.datedOn') })}
         </Typography>
       )}
+      <NoDnaReports job={job} />
       <Button variant="contained" size="large" fullWidth onClick={onNext} sx={{ py: 1.6 }}>
         {jobRecordIds(job).length > 0 ? t('app.log.nextSaveBackup') : t('app.common.next')}
       </Button>
@@ -879,6 +881,25 @@ const Summary: React.FC<{ step?: string; job: Job; onNext: () => void }> = ({ st
         </Typography>
       )}
     </Stack>
+  );
+};
+
+/** A record from this import, sealed now or before, with a DNA report saved to it. */
+const hasDnaReport = (id: string): boolean => !!getRecord(id)?.dnaFingerprint;
+
+/**
+ * How many of the import's plants aren't tied to the plant by a DNA report yet, and how
+ * to add one (veilcore/dna-tie.ts). Nothing when every one has a report.
+ */
+const NoDnaReports: React.FC<{ job: Job }> = ({ job }) => {
+  const { tp } = useT();
+  useRecords(); // a report saved in another tab shows here
+  const n = noDnaReportCount(job, hasDnaReport);
+  if (n === 0) return null;
+  return (
+    <Alert severity="info" variant="outlined" data-no-dna-report={n}>
+      {tp('app.import.sum.noDna', n)}
+    </Alert>
   );
 };
 
@@ -986,7 +1007,7 @@ const Finished: React.FC<{ job: Job; onAnother: () => void }> = ({ job, onAnothe
   return (
     <Stack spacing={2.5}>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-        <DoneIcon color="primary" sx={{ fontSize: 40 }} aria-hidden="true" />
+        <DoneIcon color="success" sx={{ fontSize: 40 }} aria-hidden="true" />
         <ScreenHeading>{t('app.import.done.title')}</ScreenHeading>
       </Stack>
       <Typography variant="body1">
@@ -1000,16 +1021,20 @@ const Finished: React.FC<{ job: Job; onAnother: () => void }> = ({ job, onAnothe
           variant="contained"
           size="large"
           fullWidth
-          onClick={() => downloadText(resultsCsv(job, window.location.origin), resultsFileName(job.fileName))}
+          onClick={() =>
+            downloadText(resultsCsv(job, window.location.origin, hasDnaReport), resultsFileName(job.fileName))
+          }
           sx={{ py: 1.6 }}
         >
           {t('app.import.done.download')}
         </Button>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
           {t('app.import.done.downloadText')}
+          {t('app.import.done.csvDna')}
           <InEnglishNote />
         </Typography>
       </Box>
+      <NoDnaReports job={job} />
 
       {stampsFromHere && queued.length > 0 ? (
         <KeyStamps ids={queued} heading={t('app.import.stamps.heading')} />

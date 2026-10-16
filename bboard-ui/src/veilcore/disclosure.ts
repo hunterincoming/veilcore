@@ -44,7 +44,7 @@ export const DISCLOSURE_FIELDS: { key: DisclosureKey; label: string; def: boolea
   // the holder choosing and by the stranger on the verify page, so they say neither "you"
   // nor "the holder".
   { key: 'existence', label: 'Prior possession (shown only once anchored)', def: true },
-  { key: 'attestation-status', label: 'Whether a lab report is saved', def: true },
+  { key: 'attestation-status', label: 'Whether a DNA report is saved', def: true },
   { key: 'descent-clean', label: 'Lineage status, as the registry reports it', def: true },
   { key: 'sealed-at', label: 'When it was sealed (the holder’s device clock)', def: true },
   { key: 'parent-names', label: 'Parent cultivar names', def: false },

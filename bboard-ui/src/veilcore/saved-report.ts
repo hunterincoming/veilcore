@@ -22,6 +22,7 @@ import { countsAsSigned, signerLabel, type ResolvedAttestation } from './atteste
 import { liveResults, resultState, type ResultState, type ResultSummary } from './lab-results';
 import { pairingFingerprintOfSha } from './commitment';
 import { enT, type Translator } from '../i18n/translate';
+import type { DnaTie } from './dna-tie';
 
 /** One lab report that came back on a delivery (LabResults.tsx ArrivedResult, structurally). */
 export type ArrivedLike = {
@@ -221,8 +222,13 @@ export const publicReportLine = (
     bound: boolean;
   },
   tr: Translator = enT,
-): { status: FactStatus; text: string } => {
-  if (!input.paired) return { status: 'reported', text: tr.t('app.verify.report.notSaved') };
+): {
+  status: FactStatus;
+  text: string;
+  /** Whether a DNA report ties the record to the plant, as this line finds it (veilcore/dna-tie.ts). */
+  tie: DnaTie;
+} => {
+  if (!input.paired) return { status: 'reported', text: tr.t('app.verify.report.notSaved'), tie: { state: 'none' } };
   const reports = input.atts.filter((a) => a.type === 'laboratory-report' && a.signatureValid);
   const hex = (v?: string | null) => (v && HEX64.test(v.toLowerCase()) ? v.toLowerCase() : undefined);
   const linkSha = hex(input.linkSha);
@@ -251,6 +257,7 @@ export const publicReportLine = (
       return {
         status: input.bound ? 'checked' : 'reported',
         text: tr.t('app.verify.report.matches', { asOf, sha: shortHex(sha), lead: l.lead, rest: l.rest, staleNote }),
+        tie: { state: 'lab', lead: l.lead },
       };
     }
     const gone = matching.find((a) => a.retraction);
@@ -259,6 +266,7 @@ export const publicReportLine = (
       const which = tr.t('app.verify.report.which', { asOf, sha: shortHex(sha) });
       return {
         status: 'failed',
+        tie: { state: gone.retraction.reason === 'superseded' ? 'replaced' : 'withdrawn' },
         text:
           gone.retraction.reason === 'superseded'
             ? tr.t('app.verify.report.replaced', { which, on, tail: tr.t('app.lab.replacedTail'), staleNote })
@@ -268,14 +276,17 @@ export const publicReportLine = (
     return {
       status: 'reported',
       text: tr.t('app.verify.report.ownSha', { asOf, sha: shortHex(sha), staleNote }),
+      tie: { state: 'self' },
     };
   }
   if (pfp) {
-    return { status: 'reported', text: tr.t('app.verify.report.own', { staleNote }) };
+    return { status: 'reported', text: tr.t('app.verify.report.own', { staleNote }), tie: { state: 'self' } };
   }
   // A registry too old to say which file is saved, and a link that doesn't name it.
   return {
     status: 'reported',
+    // Saved, but which file this page can't tell: tied, by a report the holder saved.
+    tie: { state: 'saved' },
     text: reports.some(countsAsSigned)
       ? tr.t('app.verify.report.unnamedSigned')
       : reports.length > 0

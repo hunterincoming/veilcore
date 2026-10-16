@@ -428,16 +428,16 @@ test.describe('evidence bundle', () => {
     const dialog = page.getByRole('dialog', { name: 'Download evidence bundle' });
     await expect(dialog).toBeVisible();
     await dialog.getByRole('checkbox', { name: /Include the record’s key/ }).check();
-    await dialog.getByRole('checkbox', { name: /Include the lab report file/ }).check();
+    await dialog.getByRole('checkbox', { name: /Include the DNA report file/ }).check();
     // The wrong file is refused before anything is downloaded.
-    await dialog.locator('input[aria-label="Lab report file"]').setInputFiles({
+    await dialog.locator('input[aria-label="DNA report file"]').setInputFiles({
       name: 'Other.txt',
       mimeType: 'text/plain',
       buffer: Buffer.from('not the lab report'),
     });
     await dialog.getByRole('button', { name: /^Download$/ }).click();
     await expect(dialog.getByText(/isn’t the lab report saved to this plant/)).toBeVisible();
-    await dialog.locator('input[aria-label="Lab report file"]').setInputFiles({
+    await dialog.locator('input[aria-label="DNA report file"]').setInputFiles({
       name: 'Practice lab report.txt',
       mimeType: 'text/plain',
       buffer: LAB_FILE,

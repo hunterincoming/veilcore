@@ -85,15 +85,15 @@ describe('Home: a dated lab report shows under its plant, not as a plant', () =>
     const { cards, datingsOf } = homeList(all);
     expect(cards.map((r) => r.id)).toEqual([plant.id, other.id, orphan.id]);
     expect(datingsOf.get(plant.id)?.map((r) => r.id)).toEqual([dating.id]);
-    expect(datingCardLine(orphan)).toBe('Dates a lab report for Gone');
+    expect(datingCardLine(orphan)).toBe('Dates a DNA report for Gone');
   });
 
-  it('the line under the plant: "Lab report dated", and only a missing backup is unfinished', () => {
+  it('the line under the plant: "DNA report dated", and only a missing backup is unfinished', () => {
     expect(datingHomeStatus(dating, { backedUpAt: undefined }, true)).toEqual({
-      text: 'Lab report dated · not finished · next: save your backup',
+      text: 'DNA report dated · not finished · next: save your backup',
       unfinished: true,
     });
-    expect(datingHomeStatus(dating, { backedUpAt: 1 }, true).text).toMatch(/^Lab report dated · sealed /);
+    expect(datingHomeStatus(dating, { backedUpAt: 1 }, true).text).toMatch(/^DNA report dated · sealed /);
     expect(datingHomeStatus(dating, undefined, false).unfinished).toBe(false);
   });
 
@@ -165,7 +165,7 @@ describe('the page of a record that dates a lab report', () => {
 
   it('is its own short page: show someone, evidence bundle, technical details, backup, nothing else', () => {
     const page = source('stage/LabReportOverview.tsx');
-    expect(page).toContain('This record dates a lab report for');
+    expect(page).toContain('This record dates a DNA report for');
     expect(page).toContain("label={'Show someone'}");
     expect(page).toContain(DOWNLOAD_EVIDENCE_LABEL);
     expect(page).toContain('Technical details');
@@ -174,8 +174,8 @@ describe('the page of a record that dates a lab report', () => {
       'Certificate',
       'Send it to a lab',
       'License it',
-      'Save a lab report',
-      'Date this lab report',
+      'Save a DNA report',
+      'Date this DNA report',
       'StageRows',
     ])
       expect(page).not.toContain(job);

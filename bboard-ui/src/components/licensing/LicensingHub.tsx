@@ -57,7 +57,8 @@ export const LicensingHub: React.FC = () => {
                 sx={{
                   p: 2.5,
                   cursor: 'pointer',
-                  '&:hover, &:focus-visible': { borderColor: 'primary.main' },
+                  '&:hover': { borderColor: 'secondary.main' },
+                  '&:focus-visible': { borderColor: 'primary.main' },
                 }}
               >
                 <Stack

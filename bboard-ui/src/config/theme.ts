@@ -1,6 +1,7 @@
-// VeilCore's themes. `theme` is the old dark brand, kept only as the baseline under the
-// pages (main.tsx); every page people see is drawn on `lightTheme` below or on the public
-// pages' site.css, which share one set of tokens (15 October 2026 redesign).
+// VeilCore's themes. `theme` is a dark baseline under the pages (main.tsx), on the same
+// graphite and stamp red; every page people see is drawn on `lightTheme` below or on the
+// public pages' site.css, which share one set of tokens (15 October 2026 redesign; palette
+// 16 October 2026).
 // SPDX-License-Identifier: Apache-2.0
 
 import { createTheme, alpha } from '@mui/material';
@@ -20,13 +21,13 @@ export const CODE_TEXT = {
   letterSpacing: '0.02em',
 } as const;
 
-// Signature accent — a bioluminescent teal evoking genetics + a privacy "veil".
-export const TEAL = '#2ff0cf';
-export const TEAL_DIM = '#12b39a';
-const INK = '#04070a'; // near-black canvas
-const PANEL = '#0a1114'; // raised surface
-const TEXT = '#e7f4f1';
-const MUTED = '#7f9a95';
+// The dark baseline: Graphite, with the stamp red lightened for a dark ground. (It was the
+// first brand's teal until 16 October 2026; no page people see is drawn on it.)
+const STAMP_ON_DARK = '#EC6A80';
+const INK = '#1E2227';
+const PANEL = '#262B31';
+const TEXT = '#F3F5F7';
+const MUTED = '#C3C8CF';
 /** Below MUI's "sm" breakpoint (600px). */
 const PHONE = '@media (max-width:599.95px)';
 
@@ -57,13 +58,11 @@ export const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: TEAL,
-      light: '#69f6de',
-      dark: TEAL_DIM,
-      contrastText: '#02110d',
+      main: STAMP_ON_DARK,
+      contrastText: INK,
     },
     secondary: {
-      main: '#8a7dff', // restrained violet complement, used sparingly
+      main: MUTED,
     },
     background: {
       default: INK,
@@ -73,9 +72,9 @@ export const theme = createTheme({
       primary: TEXT,
       secondary: MUTED,
     },
-    success: { main: TEAL },
-    error: { main: '#ff5c72' },
-    divider: alpha('#2ff0cf', 0.14),
+    success: { main: '#7BC4A6' },
+    error: { main: '#F4A27F' },
+    divider: alpha('#FFFFFF', 0.14),
   },
   shape: { borderRadius: 14 },
   typography: {
@@ -98,7 +97,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          border: `1px solid ${alpha(TEAL, 0.12)}`,
+          border: `1px solid ${alpha('#FFFFFF', 0.12)}`,
           backgroundColor: PANEL,
         },
       },
@@ -109,21 +108,16 @@ export const theme = createTheme({
           borderRadius: 999,
           paddingInline: 22,
           paddingBlock: 10,
-          '&.MuiButton-containedPrimary': {
-            boxShadow: `0 0 0 1px ${alpha(TEAL, 0.5)}, 0 8px 30px ${alpha(TEAL, 0.25)}`,
-          },
-          '&.MuiButton-containedPrimary:hover': {
-            boxShadow: `0 0 0 1px ${TEAL}, 0 10px 40px ${alpha(TEAL, 0.4)}`,
-          },
+          boxShadow: 'none',
         },
       },
     },
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          backgroundColor: alpha('#00120f', 0.5),
-          '& fieldset': { borderColor: alpha(TEAL, 0.2) },
-          '&:hover fieldset': { borderColor: alpha(TEAL, 0.45) },
+          backgroundColor: alpha('#000000', 0.2),
+          '& fieldset': { borderColor: alpha('#FFFFFF', 0.3) },
+          '&:hover fieldset': { borderColor: alpha('#FFFFFF', 0.5) },
         },
         input: { color: TEXT },
       },
@@ -137,34 +131,47 @@ export const theme = createTheme({
 });
 
 // ---------------------------------------------------------------------------------------
-// The app's light theme (13 Oct 2026; redrawn 15 Oct 2026 to match the public pages).
-// The landing page and the app are one product, so they use one set of tokens: the same
-// five colours, the same typeface, the same shapes. site.css repeats these values as CSS
-// variables (--ground, --tag, --ink, --muted, --accent, --wash).
+// The app's light theme (13 Oct 2026; redrawn 15 Oct 2026 to match the public pages;
+// palette 16 Oct 2026). The landing page and the app are one product, so they use one set
+// of tokens: the same colours, the same typeface, the same shapes. site.css repeats these
+// values as CSS variables (--ground, --tag, --ink, --muted, --accent, --wash).
 //
-//   Leaf ink     #1B2E24  text                         14.4:1 on Tag, 13.0:1 on Greenhouse
-//   Stem         #4D6156  secondary text                6.7:1 on Tag, 6.0:1 on Greenhouse
-//   Greenhouse   #F2F5EF  the page: the cool light under greenhouse glazing
-//   Tag          #FFFFFF  sheets, inputs: the white of a plastic plant tag
-//   Chlorophyll  #11733F  actions, links, done marks   5.9:1 on Tag; white on it 5.9:1
-//   Seedling     #E2ECDD  quiet fills: secondary buttons, the next step, hover
+// VeilCore is neutral infrastructure for plant and animal genetics, sold on one promise: a
+// date nobody can backdate. So the page is paper and graphite, and the one colour is the
+// red of a rubber date stamp, used only where something is dated or sealed.
 //
-// No outlines round every block: a sheet is told from the page by its white, not by a
-// border, and the rows inside it by space, not rules. Every text colour passes WCAG AA.
-export const ACCENT = '#11733F';
-export const ACCENT_DEEP = '#0B5A30';
-export const INK_COLOR = '#1B2E24';
-export const MUTED_COLOR = '#4D6156';
-export const GROUND = '#F2F5EF';
-export const WASH = '#E2ECDD';
-export const WASH_STRONG = '#D3E2CC';
+//   Paper     #F3F5F7  the page: cool register paper, not cream
+//   Tag       #FFFFFF  sheets, inputs: the white of a tag (plant tag or ear tag)
+//   Graphite  #1E2227  text                          16.0:1 on Tag, 14.6:1 on Paper
+//   Pencil    #575E66  secondary text                 6.6:1 on Tag, 6.0:1 on Paper
+//   Stamp     #B3173B  the fingerprint, dates, seals, the main button, links, the focus ring
+//                                                    6.8:1 on Tag, 6.2:1 on Paper; white on it 6.8:1
+//   Wash      #E6E9ED  quiet fills: secondary buttons, the next step, hover
+//
+// Stamp red is ink, never a tinted panel. An error is always a tinted note with an icon and
+// a sentence, in a browner red (#9E2A0B, 7.5:1 on Tag); a check that passed is a ✓ in a
+// quiet green (#2E6B55, 6.3:1), never the brand. Choosing something (a checkbox, a switch,
+// a role) is Graphite: it is not a date. Every text colour passes WCAG AA.
+export const ACCENT = '#B3173B';
+export const ACCENT_DEEP = '#8C1230';
+export const INK_COLOR = '#1E2227';
+export const MUTED_COLOR = '#575E66';
+export const GROUND = '#F3F5F7';
+export const WASH = '#E6E9ED';
+export const WASH_STRONG = '#D9DDE2';
+/** A check that passed (✓): its own quiet colour, not the brand's. */
+export const OK_COLOR = '#2E6B55';
+/** Something went wrong: browner and darker than the stamp, and always with an icon. */
+export const ERROR_COLOR = '#9E2A0B';
+/** Lines that join things in order (a lineage, a history): Wash-strong's darker step. */
+export const LINE_COLOR = '#C2C7CD';
 const L_INK = INK_COLOR;
 const L_MUTED = MUTED_COLOR;
 const L_GROUND = GROUND;
-/** The few rules left (inside technical detail): Seedling, so they separate without shouting. */
+/** The few rules left (inside technical detail): Wash, so they separate without shouting. */
 const L_LINE = WASH;
-/** Input edges: 3.3:1 on Tag, enough to see where to type (WCAG 1.4.11). */
-const L_EDGE = '#7E9187';
+/** Input edges: 3.7:1 on Tag, enough to see where to type (WCAG 1.4.11). */
+const L_EDGE = '#80868F';
 
 /**
  * One visible focus ring for everything a keyboard can reach on the light pages: 2px of
@@ -187,13 +194,14 @@ export const lightTheme = createTheme({
   transitions: MOTION.transitions,
   palette: {
     mode: 'light',
-    primary: { main: ACCENT, light: '#2E8F5A', dark: ACCENT_DEEP, contrastText: '#FFFFFF' },
-    secondary: { main: '#8E3B73' },
+    primary: { main: ACCENT, light: '#C9385A', dark: ACCENT_DEEP, contrastText: '#FFFFFF' },
+    // Choosing, not dating: checkboxes, switches, radios and progress are Graphite.
+    secondary: { main: L_INK, light: '#3E454D', dark: '#000000', contrastText: '#FFFFFF' },
     background: { default: L_GROUND, paper: '#FFFFFF' },
     text: { primary: L_INK, secondary: L_MUTED },
-    success: { main: ACCENT },
-    warning: { main: '#9A5B00' },
-    error: { main: '#B3261E' },
+    success: { main: OK_COLOR },
+    warning: { main: '#8F5500' },
+    error: { main: ERROR_COLOR },
     info: { main: '#1D5F96' },
     divider: L_LINE,
   },
@@ -231,6 +239,7 @@ export const lightTheme = createTheme({
     },
     // A switch's focus lands on its hidden input; the ring goes on the thumb's button.
     MuiSwitch: {
+      defaultProps: { color: 'secondary' },
       styleOverrides: { switchBase: { '&.Mui-focusVisible': FOCUS_RING } },
     },
     MuiLink: {
@@ -243,7 +252,7 @@ export const lightTheme = createTheme({
     MuiTypography: {
       defaultProps: { variantMapping: { subtitle1: 'p', subtitle2: 'p' } },
     },
-    // A sheet is white on the Greenhouse ground: no outline, no shadow. Menus and dialogs
+    // A sheet is white on the Paper ground: no outline, no shadow. Menus and dialogs
     // set their own elevation and keep the shadow that lifts them over the page.
     MuiPaper: {
       defaultProps: { elevation: 0 },
@@ -254,7 +263,7 @@ export const lightTheme = createTheme({
         rounded: { borderRadius: 12 },
       },
     },
-    // Filled, never outlined: the main action in Chlorophyll, the others in Seedling, as on
+    // Filled, never outlined: the main action in Stamp, the others in Wash, as on
     // the public pages. An outlined button keeps its variant (and behaviour); only its look
     // changes.
     MuiButton: {
@@ -297,17 +306,24 @@ export const lightTheme = createTheme({
       },
     },
     MuiChip: { styleOverrides: { root: { borderRadius: 6, fontWeight: 600 } } },
+    // Choosing something, or waiting for it, is not a date: these are Graphite (secondary),
+    // so the stamp red stays on what is dated, sealed, linked or pressed.
+    MuiCheckbox: { defaultProps: { color: 'secondary' } },
+    MuiRadio: { defaultProps: { color: 'secondary' } },
+    MuiCircularProgress: { defaultProps: { color: 'secondary' } },
+    MuiLinearProgress: { defaultProps: { color: 'secondary' } },
     // A notice is told apart by a tint of its own colour, not by an outline: an outlined
     // alert keeps its variant (and behaviour) and is drawn like a filled note. The text
-    // stays MUI's darkened severity colour, 7:1 or more on each tint.
+    // stays MUI's darkened severity colour, 7:1 or more on each tint. An error always has its
+    // icon and a sentence: that, not the hue alone, is how it differs from a date in Stamp.
     MuiAlert: {
       styleOverrides: { root: { fontSize: '1rem', borderRadius: 12 } },
       variants: (
         [
-          ['success', WASH],
+          ['success', '#E4EFEA'],
           ['info', '#E6EEF5'],
           ['warning', '#FAF0E1'],
-          ['error', '#FBEAE8'],
+          ['error', '#FBECE6'],
         ] as const
       ).map(([severity, tint]) => ({
         props: { variant: 'outlined' as const, severity },

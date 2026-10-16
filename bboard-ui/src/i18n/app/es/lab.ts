@@ -26,14 +26,14 @@ export const lab = {
   'app.lab.onDay': ' el {date}',
   'app.lab.replacedTail': 'El titular todavía no ha guardado el corregido.',
   'app.lab.withdrawnTail': 'Sigue siendo el archivo guardado aquí; el laboratorio ya no lo respalda.',
-  'app.lab.sentence.none': 'No hay ningún informe de laboratorio guardado en esta planta.',
+  'app.lab.sentence.none': 'No hay ningún informe de ADN guardado en esta planta.',
   'app.lab.sentence.lab':
-    'El informe de laboratorio guardado coincide con un informe de laboratorio {lead}, por su SHA-256 (firma comprobada en este navegador).{rest}',
+    'El informe de ADN guardado coincide con un informe de laboratorio {lead}, por su SHA-256 (firma comprobada en este navegador).{rest}',
   'app.lab.sentence.self':
-    'Hay un archivo de informe de laboratorio guardado en esta planta. Ninguna firma de laboratorio coincide con él, así que es la propia declaración del titular.',
+    'Hay un archivo de informe de ADN guardado en esta planta. Ninguna firma de laboratorio coincide con él, así que es la propia declaración del titular.',
   'app.lab.sentence.replaced':
-    'El laboratorio reemplazó{on} el informe guardado en esta planta por uno corregido. {tail}',
-  'app.lab.sentence.withdrawn': 'El laboratorio retiró{on} el informe guardado en esta planta. {tail}',
+    'El laboratorio reemplazó{on} el informe de ADN guardado en esta planta por uno corregido. {tail}',
+  'app.lab.sentence.withdrawn': 'El laboratorio retiró{on} el informe de ADN guardado en esta planta. {tail}',
   'app.lab.custody.sealIntact': 'precinto intacto',
   'app.lab.custody.sealNotIntact': 'precinto no intacto',
   'app.lab.custody.noSeal': 'sin precinto',
@@ -271,7 +271,7 @@ export const lab = {
     'La clave de esta planta no está en este dispositivo, así que aquí no se pueden abrir sus informes de laboratorio. Primero <link>recupere sus plantas desde su copia de seguridad</link>.',
   'app.lab.results.gotIt': 'Entendido',
   'app.lab.results.whatOthersSee':
-    '<b>Lo que otros pueden ver.</b> La firma del laboratorio es pública; el informe no. Cualquiera con un enlace a la página de comprobación de esta planta ve que se firmó un informe de laboratorio sobre ella, el SHA-256 del archivo del informe y el nombre con el que está registrada la clave del laboratorio: marcado “nombre no comprobado” salvo que el operador de VeilCore lo haya cotejado con un listado público de licencias o acreditaciones. Si guarda el informe en esta planta y comparte “Si hay un informe de laboratorio guardado” en Mostrar a alguien, también ven que el archivo guardado coincide.',
+    '<b>Lo que otros pueden ver.</b> La firma del laboratorio es pública; el informe no. Cualquiera con un enlace a la página de comprobación de esta planta ve que se firmó un informe de laboratorio sobre ella, el SHA-256 del archivo del informe y el nombre con el que está registrada la clave del laboratorio: marcado “nombre no comprobado” salvo que el operador de VeilCore lo haya cotejado con un listado público de licencias o acreditaciones. Si guarda el informe en esta planta y comparte “Si hay un informe de ADN guardado” en Mostrar a alguien, también ven que el archivo guardado coincide.',
   'app.lab.results.noCurrent': 'No hay informe vigente de {lab}: el original fue reemplazado y la corrección retirada.',
   'app.lab.results.looking': 'Buscando informes de laboratorio…',
   'app.lab.results.nothingYet':

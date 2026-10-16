@@ -26,15 +26,15 @@ export const lab = {
   'app.lab.onDay': ' am {date}',
   'app.lab.replacedTail': 'Der Inhaber hat den korrigierten noch nicht gespeichert.',
   'app.lab.withdrawnTail': 'Es ist weiterhin die hier gespeicherte Datei; das Labor steht nicht mehr dahinter.',
-  'app.lab.sentence.none': 'Bei dieser Pflanze ist kein Laborbericht gespeichert.',
+  'app.lab.sentence.none': 'Bei dieser Pflanze ist kein DNA-Bericht gespeichert.',
   'app.lab.sentence.lab':
-    'Der gespeicherte Laborbericht passt zu einem Laborbericht, {lead}, anhand seines SHA-256 (Signatur in diesem Browser geprüft).{rest}',
+    'Der gespeicherte DNA-Bericht passt zu einem Laborbericht, {lead}, anhand seines SHA-256 (Signatur in diesem Browser geprüft).{rest}',
   'app.lab.sentence.self':
-    'Bei dieser Pflanze ist eine Laborberichtsdatei gespeichert. Keine Laborsignatur passt dazu, daher ist sie die eigene Angabe des Inhabers.',
+    'Bei dieser Pflanze ist eine Datei eines DNA-Berichts gespeichert. Keine Laborsignatur passt dazu, daher ist sie die eigene Angabe des Inhabers.',
   'app.lab.sentence.replaced':
-    'Der bei dieser Pflanze gespeicherte Laborbericht wurde vom Labor{on} durch einen korrigierten ersetzt. {tail}',
+    'Der bei dieser Pflanze gespeicherte DNA-Bericht wurde vom Labor{on} durch einen korrigierten ersetzt. {tail}',
   'app.lab.sentence.withdrawn':
-    'Der bei dieser Pflanze gespeicherte Laborbericht wurde vom Labor{on} zurückgezogen. {tail}',
+    'Der bei dieser Pflanze gespeicherte DNA-Bericht wurde vom Labor{on} zurückgezogen. {tail}',
   'app.lab.custody.sealIntact': 'Siegel unversehrt',
   'app.lab.custody.sealNotIntact': 'Siegel nicht unversehrt',
   'app.lab.custody.noSeal': 'kein Siegel',
@@ -275,7 +275,7 @@ export const lab = {
     'Der Schlüssel dieser Pflanze ist nicht auf diesem Gerät, daher können ihre Laborberichte hier nicht geöffnet werden. <link>Holen Sie Ihre Pflanzen zuerst aus Ihrer Sicherungskopie zurück</link>.',
   'app.lab.results.gotIt': 'Verstanden',
   'app.lab.results.whatOthersSee':
-    '<b>Was andere sehen können.</b> Die Signatur des Labors ist öffentlich, der Bericht nicht. Wer einen Link zur Prüfseite dieser Pflanze hat, sieht, dass ein Laborbericht über sie signiert wurde, den SHA-256 der Berichtsdatei und den Namen, unter dem der Schlüssel des Labors registriert ist: markiert mit „Name nicht geprüft“, sofern der Betreiber von VeilCore ihn nicht mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat. Wenn Sie den Bericht bei dieser Pflanze speichern und unter „Jemandem zeigen“ „Ob ein Laborbericht gespeichert ist“ teilen, sieht man auch, dass die gespeicherte Datei dazu passt.',
+    '<b>Was andere sehen können.</b> Die Signatur des Labors ist öffentlich, der Bericht nicht. Wer einen Link zur Prüfseite dieser Pflanze hat, sieht, dass ein Laborbericht über sie signiert wurde, den SHA-256 der Berichtsdatei und den Namen, unter dem der Schlüssel des Labors registriert ist: markiert mit „Name nicht geprüft“, sofern der Betreiber von VeilCore ihn nicht mit einem öffentlichen Lizenz- oder Akkreditierungsverzeichnis abgeglichen hat. Wenn Sie den Bericht bei dieser Pflanze speichern und unter „Jemandem zeigen“ „Ob ein DNA-Bericht gespeichert ist“ teilen, sieht man auch, dass die gespeicherte Datei dazu passt.',
   'app.lab.results.noCurrent':
     'Kein aktueller Bericht von {lab}: Das Original wurde ersetzt und die Korrektur zurückgezogen.',
   'app.lab.results.looking': 'Laborberichte werden gesucht…',

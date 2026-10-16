@@ -17,7 +17,7 @@ export const log = {
   'app.log.method.other': 'Autre',
   'app.log.nextSaveBackup': 'Suivant : enregistrer votre copie de secours',
   'app.log.reportIntro':
-    '<b>Facultatif.</b> Vous avez déjà un rapport de laboratoire pour cette plante ? Ajoutez-le maintenant, il sera conservé avec l’enregistrement. Pas encore de rapport ? Passez. Vous pourrez en ajouter un à tout moment depuis la page de la plante.',
+    '<b>Facultatif.</b> Vous avez déjà un rapport ADN pour cette plante ? C’est ce qui lie votre enregistrement à la plante elle-même. Ajoutez-le maintenant, il sera conservé avec l’enregistrement. Pas encore de rapport ? Passez : la page de la plante indique comment en obtenir un.',
   'app.log.finish': 'Terminer',
   'app.log.nextStageTitle': 'Enregistrer la génération ou la sélection suivante',
   'app.log.opening': 'Ouverture de {id}…',

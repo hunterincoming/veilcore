@@ -38,6 +38,7 @@ import { verifyPageHtml, SDK_VERSION } from './verify-page';
 import { EXAMINER_FILE, examinerSummaryHtml } from './examiner';
 import { DECLARATION_FILE, declarationText } from './declaration';
 import { anchorLookup, bitcoinSteps, midnightSteps, networkWords, oneLine, utcWords, wrap } from './words';
+import { dnaTieMeaning, dnaTieSentence, isTied, type DnaTie } from '../dna-tie';
 
 export { anchorLookup, bitcoinSteps, midnightSteps } from './words';
 export type { AnchorLookup } from './words';
@@ -260,6 +261,11 @@ export type EvidenceOptions = {
    * plant's deliveries. downloadEvidenceBundle reads them; absent, the bundle has none.
    */
   readonly deliveries?: readonly SentTransfer[];
+  /**
+   * The id of the record that dates the DNA report saved to this plant ("Date this DNA
+   * report"), when there is one. README.txt says so; that record has its own bundle.
+   */
+  readonly dnaReportDatedBy?: string;
 };
 
 /** One delivery's sample details, as the breeder and the lab each wrote them. */
@@ -706,11 +712,54 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
   return out;
 };
 
+/**
+ * README.txt's "TIED TO THE PLANT": whether a DNA report ties this record to the plant
+ * (veilcore/dna-tie.ts, in the check page's neutral words), whether anything dates that
+ * report, and what a DNA report does and doesn't show. From the signatures checked when
+ * the bundle was made: a lab report signature on the saved file's SHA-256, withdrawn or not.
+ */
+export const tiedToPlantLines = (ev: Evidence, sigs: readonly SignatureLine[], datedBy?: string): string[] => {
+  let tie: DnaTie;
+  if (!ev.labReport) tie = { state: 'none' };
+  else if (!ev.labReport.fileSha256) tie = { state: 'saved' };
+  else {
+    const signed = sigs.filter((x) => x.ok && x.savedReport && x.type === 'laboratory-report');
+    const standing = signed.find((x) => !x.withdrawn);
+    const gone = signed.find((x) => x.withdrawn);
+    tie = standing
+      ? {
+          state: 'lab',
+          lead:
+            standing.displayName !== undefined
+              ? `signed by a key named “${standing.displayName}” (name not checked; key ${standing.publicKey ?? ''})`
+              : `signed by a key nobody has named (key ${standing.publicKey ?? ''})`,
+        }
+      : gone
+        ? { state: gone.withdrawnReason === 'superseded' ? 'replaced' : 'withdrawn' }
+        : { state: 'self' };
+  }
+  const out = [dnaTieSentence(tie, undefined, 'public')];
+  if (isTied(tie)) {
+    out.push(
+      datedBy
+        ? `A separate record, ${datedBy}, dates this DNA report's existence: it holds only the report's SHA-256. Its own evidence bundle has its date.`
+        : "Nothing dates this DNA report yet: it was saved after sealing, so this record's batch doesn't date it.",
+    );
+    out.push(dnaTieMeaning());
+  } else if (tie.state === 'none') {
+    out.push(
+      "A DNA report (a lab's genotype of the plant) is what ties a record to the plant itself. VeilCore doesn't test DNA.",
+    );
+  }
+  return out;
+};
+
 /** README.txt: what each file is, what it proves, what it doesn't. Plain words; formulas at the end. */
 export const readmeText = (
   ev: Evidence,
   sigs: readonly SignatureLine[],
   hasOts = !!ev.batch?.opentimestamps.available,
+  dnaReportDatedBy?: string,
 ): string => {
   const name = oneLine(isString(ev.record.sealedFields.strainName) ? ev.record.sealedFields.strainName : ev.record.id);
   const anchor = ev.batch?.anchor ?? null;
@@ -738,6 +787,9 @@ export const readmeText = (
         : 'This record is not dated on any network yet. Until it is, nothing here dates it.',
     );
   }
+  L.push('');
+  L.push('TIED TO THE PLANT');
+  L.push(...tiedToPlantLines(ev, sigs, dnaReportDatedBy));
   L.push('');
   L.push('HOW TO CHECK IT (nothing from VeilCore needed)');
   L.push(
@@ -889,7 +941,7 @@ export const bundleFiles = async (
   };
   const sigs = await signatureLines(ev.signatures, ev.record.fingerprint, ev.labReport?.fileSha256);
   const ots = ev.proof && ev.batch && gathered.ots && ev.batch.opentimestamps.available ? gathered.ots : null;
-  add('README.txt', text(readmeText(ev, sigs, ots !== null)));
+  add('README.txt', text(readmeText(ev, sigs, ots !== null, options.dnaReportDatedBy)));
   add('verify.html', text(verifyPageHtml(ev, ots)));
   add('evidence.json', json(ev));
   add('record/sealed-fields.json', json(ev.record.sealedFields));

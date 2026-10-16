@@ -13,7 +13,7 @@ import { Alert, Box, Container, Divider, Paper, Stack, Typography } from '@mui/m
 import { Link as RouterLink } from 'react-router-dom';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import LockIcon from '@mui/icons-material/LockOutlined';
-import { ACCENT } from '../../config/theme';
+import { ACCENT, MUTED_COLOR } from '../../config/theme';
 import { Wordmark } from '../Wordmark';
 import { IS_MAINNET } from '../../config/network';
 import { Fact, FactKey } from './DisclosedFacts';
@@ -23,7 +23,10 @@ import { networkWords } from '../../i18n/network-words';
 import { LanguageBar } from '../../i18n/LanguagePicker';
 
 const Note: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <Typography variant="caption" sx={{ display: 'block', color: ACCENT, pl: 3.25, mt: -0.5, mb: 0.5 }}>
+  <Typography
+    variant="caption"
+    sx={{ display: 'block', color: MUTED_COLOR, fontWeight: 600, pl: 3.25, mt: -0.5, mb: 0.5 }}
+  >
     {children}
   </Typography>
 );

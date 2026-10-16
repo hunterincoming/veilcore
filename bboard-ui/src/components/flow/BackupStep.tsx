@@ -19,7 +19,7 @@ import { backupMessageWords } from './backup-words';
 
 const Done: React.FC<{ text: string; sub?: string }> = ({ text, sub }) => (
   <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
-    <DoneIcon color="primary" aria-hidden="true" />
+    <DoneIcon color="success" aria-hidden="true" />
     <Box>
       <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
         {text}
@@ -43,7 +43,7 @@ const Part: React.FC<React.PropsWithChildren<{ n: number; title: string; active:
   <Box
     sx={{
       border: '1px solid',
-      borderColor: active ? 'primary.main' : 'divider',
+      borderColor: active ? 'secondary.main' : 'divider',
       borderRadius: 2,
       p: 2,
       opacity: active ? 1 : 0.92,

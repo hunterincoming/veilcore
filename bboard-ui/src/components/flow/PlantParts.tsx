@@ -17,7 +17,9 @@ import { WASH } from '../../config/theme';
 import { custodyHeadline, type BreederReceipt, type LabReceipt } from '../../veilcore/custody';
 import { signerLabel } from '../../veilcore/attesters';
 import type { ArrivedResult } from './LabResults';
-import { savedReportRow, type SavedReport } from '../../veilcore/saved-report';
+import type { SavedReport } from '../../veilcore/saved-report';
+import { dnaTieRow, type DnaDate, type DnaTie } from '../../veilcore/dna-tie';
+import { useDnaTie } from './useDnaTie';
 import { keyStampLine, labReceiptRow, labSentRow, recordDateRow, type RowMark } from './plant-status-words';
 import { useT } from '../../i18n/app';
 import { enT, type Translator } from '../../i18n/translate';
@@ -41,7 +43,7 @@ const Row: React.FC<{
     <Box sx={{ py: 1.25 }} data-status-row={id} data-mark={mark}>
       <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
         {mark === 'done' ? (
-          <DoneIcon color="primary" titleAccess={t('app.plant.mark.done')} />
+          <DoneIcon color="success" titleAccess={t('app.plant.mark.done')} />
         ) : mark === 'failed' ? (
           <FailIcon color="error" titleAccess={t('app.plant.mark.failed')} />
         ) : (
@@ -65,10 +67,17 @@ const Row: React.FC<{
         >
           {label}
         </Typography>
+        {/* The record's date, once it has one, is stamped: the one value in Stamp red. */}
         <Typography
           variant="body2"
-          color="text.secondary"
-          sx={{ flex: '0 1 auto', minWidth: 0, textAlign: 'right', overflowWrap: 'anywhere' }}
+          color={id === 'Record dated' && mark === 'done' ? 'primary' : 'text.secondary'}
+          sx={{
+            flex: '0 1 auto',
+            minWidth: 0,
+            textAlign: 'right',
+            overflowWrap: 'anywhere',
+            fontWeight: id === 'Record dated' && mark === 'done' ? 700 : undefined,
+          }}
         >
           {value}
         </Typography>
@@ -83,30 +92,27 @@ const Row: React.FC<{
 };
 
 /**
- * The breeder's "Lab report" line: saved to the plant (and whether the lab still stands
- * behind it: round 5, a report the lab replaced or withdrew is never a tick), waiting to be
- * opened, or none.
+ * The breeder's DNA report line: whether the record is tied to the plant by a DNA report
+ * (veilcore/dna-tie.ts), what ties it, and whether that report is dated. A report the lab
+ * replaced or withdrew is never a tick (round 5); one that came back and isn't saved yet
+ * is said, but doesn't tie anything until it is saved to the plant.
  */
-export const reportRow = (
-  record: StrainRecord,
+export const dnaReportRow = (
+  tie: DnaTie | null,
+  date: DnaDate,
   arrived?: readonly ArrivedResult[] | null,
   waiting = 0,
-  saved?: SavedReport | null,
   tr: Translator = enT,
-) => {
-  if (record.dnaFingerprint) {
-    if (saved === null) return { done: false, value: tr.t('app.plant.checking') };
-    return (
-      (saved && savedReportRow(saved, tr)) ?? {
-        done: true,
-        value: record.dnaFileName ?? tr.t('app.plant.savedToPlant'),
+): { done: boolean; mark: RowMark; id: string; label: string; value: string; sub?: string } =>
+  tie === null
+    ? {
+        done: false,
+        mark: 'wait',
+        id: 'DNA report',
+        label: tr.t('app.plant.dnaReport'),
+        value: tr.t('app.plant.checking'),
       }
-    );
-  }
-  if (waiting > 0) return { done: false, value: tr.t('app.plant.arrivedNotOpened') };
-  if (arrived?.some((a) => a.state === 'live')) return { done: false, value: tr.t('app.plant.openedNotSaved') };
-  return { done: false, value: tr.t('app.plant.noneYet') };
-};
+    : dnaTieRow(tie, date, { waiting, openedNotSaved: !!arrived?.some((a) => a.state === 'live') }, tr);
 
 /**
  * The breeder's receipt line: only a receipt the lab linked to one of this plant's
@@ -165,6 +171,8 @@ export const PlantStatus: React.FC<{
   const { proof, anchor } = useRecordDate(record.recordFingerprint);
   const tr = useT();
   const { t } = tr;
+  // Whether the record is tied to the plant by a DNA report, and that report's own date.
+  const dna = useDnaTie(record.receivedFrom ? undefined : record, saved, tr);
 
   const received = Boolean(record.receivedFrom);
   // Two different dates, never mixed (docs/identity-in-record.md): the record's own date is
@@ -187,15 +195,14 @@ export const PlantStatus: React.FC<{
             label: t('app.plant.recordDated'),
             sub: datedSub(REAL_CHAIN ? keyStampLine(keys, tr) : undefined),
           },
+          // Right under the record's date: a date shows a description existed; the DNA
+          // report is what ties the record to the plant itself.
+          dnaReportRow(dna.tie, dna.date, arrived, waiting, tr),
         ]),
     received
       ? labReceiptRow(receipt as LabReceipt | null | undefined, tr)
       : breederReceiptRow(receipt as BreederReceipt | null | undefined, tr),
-    ...(received
-      ? LAB_RESULTS_ENABLED
-        ? [labSentRow(labSent, labSentEver, tr)]
-        : []
-      : [{ id: 'Lab report', label: t('app.plant.labReport'), ...reportRow(record, arrived, waiting, saved, tr) }]),
+    ...(received && LAB_RESULTS_ENABLED ? [labSentRow(labSent, labSentEver, tr)] : []),
     ...(REAL_CHAIN && keys
       ? [
           {

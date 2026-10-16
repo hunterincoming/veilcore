@@ -2,7 +2,7 @@
    live <veilcore-record-check> field themed to match through its custom properties.
    15 October 2026: no rules and no outlined boxes, as on the home page. Lists are laid out
    like the home page's register (name left, text right); a card is a white sheet on the
-   Greenhouse ground; the policy quote sits on Seedling.
+   Paper ground; the policy quote sits on Wash.
    SPDX-License-Identifier: Apache-2.0 */
 
 /* Aligned with the page heading; text kept to a readable measure. */
@@ -66,6 +66,7 @@
 }
 .vcm .pk veilcore-record-check {
   --vc-accent: var(--accent);
+  --vc-ok: var(--ok);
   --vc-ink: var(--ink);
   --vc-muted: var(--muted);
   --vc-line: var(--edge);

@@ -13,8 +13,9 @@ import React from 'react';
 import SaveIcon from '@mui/icons-material/SaveOutlined';
 import type { RecordKeys } from '../veilcore/record-keys';
 import { REAL_CHAIN } from '../veilcore/chain/config';
-import { Box, Button, Paper, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/ScienceOutlined';
+import EventIcon from '@mui/icons-material/EventAvailableOutlined';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import SendIcon from '@mui/icons-material/SendOutlined';
 import LockIcon from '@mui/icons-material/LockOutlined';
@@ -26,10 +27,11 @@ import { loadAttester } from '../veilcore/attester-keys';
 import { SendToLab } from './SendToLab';
 import { OPEN_SIGNING_KEY_EVENT } from './AttesterSetup';
 import type { ArrivedResult } from './flow/LabResults';
-import { ACCENT_DEEP, WASH } from '../config/theme';
+import { WASH } from '../config/theme';
 import type { SavedReport } from '../veilcore/saved-report';
 import { useNavigate } from 'react-router-dom';
 import { isLabReportRecord } from './stage/lab-report-notes';
+import { dateErrorWords, useDateReport } from './stage/DateLabReport';
 import { useT } from '../i18n/app';
 
 type Step = {
@@ -41,6 +43,8 @@ type Step = {
   action?: string;
   icon?: React.ReactNode;
   onClick?: () => void;
+  /** Ways to do it, under the why, when there is more than one. */
+  paths?: React.ReactNode;
 };
 
 export const NextStep: React.FC<{
@@ -86,6 +90,8 @@ export const NextStep: React.FC<{
   let step: Step | null;
   const navigate = useNavigate();
   const { t } = useT();
+  // Dating the saved DNA report: the step after saving one (components/stage/DateLabReport.tsx).
+  const dateReport = useDateReport(record, saved);
   // A record that dates a lab report (components/stage/lab-report-date.ts) is not a plant:
   // no lab, agreement or key date stamp for it. Its batch is what dates the report.
   const datesReport = isLabReportRecord(record);
@@ -228,23 +234,85 @@ export const NextStep: React.FC<{
   } else if (labOnly) {
     // Read-only for a lab-only account: the breeder's next steps aren't theirs.
     step = null;
-  } else if ((receipt as BreederReceipt | null | undefined)?.kind !== 'signed') {
-    // No lab signature yet, whether or not a lab report is saved: a report the holder
-    // saved is still the holder's own statement, and a used code is nobody's statement.
-    step = {
-      title: t('app.plant.next.sample.title'),
-      why: record.dnaFingerprint ? t('app.plant.next.sample.whySaved') : t('app.plant.next.sample.why'),
-      action: t('app.plant.next.sample.action'),
-      icon: <VerifiedIcon />,
-      custom: <SendToLab record={record} />,
-    };
-  } else if (!record.dnaFingerprint) {
+  } else if (!record.dnaFingerprint && (receipt as BreederReceipt | null | undefined)?.kind === 'signed') {
+    // A lab signed for a sample: its DNA report is on its way. Save it when it comes.
     step = {
       title: t('app.plant.next.save.title'),
       why: t('app.plant.next.save.why'),
       action: t('app.plant.next.save.action'),
       icon: <ScienceIcon />,
       onClick: onPairDna,
+    };
+  } else if (!record.dnaFingerprint) {
+    // Sealed, and nothing ties the record to the plant yet. A dated record proves a
+    // description existed; a DNA report is what ties it to the material. Two ways to one:
+    // a lab code (the report comes back locked to the holder, where lab reports are on), or
+    // a report the holder already has.
+    step = {
+      title: t('app.plant.next.dna.title'),
+      why: t('app.plant.next.dna.why'),
+      paths: (
+        <Stack spacing={1.5} data-dna-paths="">
+          <Box>
+            <Typography variant="subtitle2" component="h3">
+              {t('app.plant.next.dna.labTitle')}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: LAB_RESULTS_ENABLED ? 1 : 0 }}>
+              {LAB_RESULTS_ENABLED ? t('app.plant.next.dna.labText') : t('app.plant.next.dna.labSoon')}
+            </Typography>
+            {LAB_RESULTS_ENABLED && <SendToLab record={record} />}
+          </Box>
+          <Box>
+            <Typography variant="subtitle2" component="h3">
+              {t('app.plant.next.dna.haveTitle')}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              {t('app.plant.next.dna.haveText')}
+            </Typography>
+            <Button variant="contained" startIcon={<ScienceIcon />} onClick={onPairDna} sx={{ minHeight: 44 }}>
+              {t('app.plant.next.dna.haveAction')}
+            </Button>
+          </Box>
+        </Stack>
+      ),
+    };
+  } else if (saved === null || saved === undefined) {
+    // Still checking whether the lab stands behind the saved report: say nothing yet
+    // rather than the wrong next step.
+    step = null;
+  } else if (dateReport.facts && !dateReport.dating) {
+    // Saved, not dated: date it, so the DNA report's existence has a date of its own.
+    step = {
+      title: t('app.plant.next.date.title'),
+      why: t('app.plant.next.date.why'),
+      custom: (
+        <Stack spacing={1} sx={{ alignItems: { sm: 'flex-end' } }}>
+          <Button
+            variant="contained"
+            startIcon={dateReport.busy ? <CircularProgress size={16} color="inherit" /> : <EventIcon />}
+            onClick={() => void dateReport.date()}
+            {...(dateReport.busy ? { 'aria-disabled': true as const, className: 'Mui-disabled' } : {})}
+            sx={{ minHeight: 44 }}
+          >
+            {dateReport.busy ? t('app.log.sealing') : t('app.plant.dated.action')}
+          </Button>
+          {dateReport.error && (
+            <Alert severity="error" variant="outlined">
+              {dateErrorWords(dateReport.error, t)}
+            </Alert>
+          )}
+        </Stack>
+      ),
+    };
+  } else if ((receipt as BreederReceipt | null | undefined)?.kind !== 'signed') {
+    // A DNA report is saved but no lab has signed for a sample: a report the holder saved
+    // is still the holder's own statement, and a used code is nobody's statement.
+    step = {
+      title: t('app.plant.next.sample.title'),
+      why: t('app.plant.next.sample.whySaved'),
+      action: t('app.plant.next.sample.action'),
+      icon: <VerifiedIcon />,
+      custom: <SendToLab record={record} />,
     };
   } else {
     step = {
@@ -259,11 +327,11 @@ export const NextStep: React.FC<{
   if (!step) return null;
 
   return (
-    // The one filled sheet on the plant page: Seedling, no outline. It is the next thing to do.
-    <Paper sx={{ p: { xs: 2.5, md: 3 }, bgcolor: WASH }}>
+    // The one filled sheet on the plant page: Wash, no outline. It is the next thing to do.
+    <Paper sx={{ p: { xs: 2.5, md: 3 }, bgcolor: WASH }} data-next-step="">
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: { sm: 'center' } }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="overline" sx={{ color: ACCENT_DEEP, display: 'block' }}>
+          <Typography variant="overline" sx={{ display: 'block' }}>
             {t('app.plant.next.label')}
           </Typography>
           <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
@@ -272,6 +340,7 @@ export const NextStep: React.FC<{
           <Typography variant="body2" color="text.secondary">
             {step.why}
           </Typography>
+          {step.paths && <Box sx={{ mt: 2 }}>{step.paths}</Box>}
         </Box>
         {(step.custom || (step.action && step.onClick)) && (
           <Box sx={{ flexShrink: 0 }}>

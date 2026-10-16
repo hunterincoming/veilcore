@@ -7,15 +7,13 @@
 import React from 'react';
 import { Box, Chip, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import { ACCENT } from '../config/theme';
+import { INK_COLOR, LINE_COLOR } from '../config/theme';
 import { allRecords, type StrainRecord, type ParentRef } from '../veilcore/records';
 import { offspringOf } from './stage/self-chain';
 import { datedReportsOf } from './stage/lab-report-notes';
 import { useT } from '../i18n/app';
 
-const Connector: React.FC = () => (
-  <Box sx={{ width: 2, height: 20, mx: 'auto', background: 'rgba(47,240,207,0.35)' }} />
-);
+const Connector: React.FC = () => <Box sx={{ width: 2, height: 20, mx: 'auto', background: LINE_COLOR }} />;
 
 const RelChip: React.FC<{ label: string; to?: string }> = ({ label, to }) =>
   to ? (
@@ -52,7 +50,7 @@ export const LineageGraph: React.FC<{ record: StrainRecord }> = ({ record }) => 
         </>
       )}
 
-      <Chip label={record.strainName} sx={{ background: ACCENT, color: '#FFFFFF', fontWeight: 700, px: 1 }} />
+      <Chip label={record.strainName} sx={{ background: INK_COLOR, color: '#FFFFFF', fontWeight: 700, px: 1 }} />
 
       {kids.length > 0 && (
         <>

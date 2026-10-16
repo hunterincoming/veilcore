@@ -13,7 +13,7 @@ import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/CodeOutlined';
-import { ACCENT } from '../config/theme';
+import { ACCENT, LINE_COLOR } from '../config/theme';
 import { DOCS, DOCS_COMMIT, DOCS_VERSION, REPO_VIEW, docHtml } from '../veilcore/docs';
 import { LanguageBar } from '../i18n/LanguagePicker';
 import { InEnglishPage, useT } from '../i18n/app';
@@ -65,7 +65,7 @@ export const DocPage: React.FC = () => {
         {t('app.common.back')}
       </Button>
 
-      <Typography variant="overline" sx={{ color: ACCENT, display: 'block', mb: 1 }}>
+      <Typography variant="overline" sx={{ display: 'block', mb: 1 }}>
         {t('app.common.doc.published')}
       </Typography>
       <Typography variant="h3" sx={{ fontSize: { xs: 30, md: 40 }, mb: 2, lineHeight: { xs: 1.15, sm: 1.167 } }}>
@@ -115,7 +115,7 @@ export const DocPage: React.FC = () => {
               font: 'inherit',
               fontSize: 16,
               color: 'text.primary',
-              bgcolor: 'rgba(0,18,15,0.5)',
+              bgcolor: '#FFFFFF',
               border: '1px solid',
               borderColor: 'divider',
               borderRadius: 1,
@@ -160,13 +160,13 @@ export const DocPage: React.FC = () => {
             '& code': {
               fontFamily: 'ui-monospace, Menlo, monospace',
               fontSize: 13,
-              background: 'rgba(47,240,207,0.07)',
+              background: 'rgba(30,34,39,0.06)',
               px: 0.7,
               py: 0.2,
               borderRadius: 0.5,
             },
             '& pre': {
-              background: 'rgba(22,32,27,0.03)',
+              background: 'rgba(30,34,39,0.03)',
               p: 2,
               borderRadius: 1,
               overflowX: 'auto',
@@ -193,7 +193,7 @@ export const DocPage: React.FC = () => {
             '& hr': { border: 0, borderTop: '1px solid', borderColor: 'divider', my: 4 },
             '& blockquote': {
               borderLeft: '2px solid',
-              borderColor: ACCENT,
+              borderColor: LINE_COLOR,
               pl: 2,
               ml: 0,
               color: 'text.secondary',

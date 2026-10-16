@@ -27,7 +27,7 @@ import { IS_MAINNET, NETWORK, networkLabel, canonicalUrl } from '../../config/ne
 import { useLicenses, activeLicenseCount, licensesForRecord } from '../../veilcore/licenses';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { verifyPath } from '../../veilcore/verify-link';
-import { ACCENT } from '../../config/theme';
+import { ERROR_COLOR, INK_COLOR, LINE_COLOR, MUTED_COLOR, OK_COLOR } from '../../config/theme';
 import { utcDate, utcStamp as fmtStamp } from '../../veilcore/time';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { ProveOwnershipPanel } from '../chain/ProveOwnershipPanel';
@@ -37,17 +37,20 @@ import { signerLabel } from '../../veilcore/attesters';
 import { NameCheckText } from '../NameCheckText';
 import { useBreederReceipt, useSavedReport } from '../flow/LabResults';
 import { savedReportSentence, type SavedReport } from '../../veilcore/saved-report';
+import { dnaTieMeaning, dnaTieSentence } from '../../veilcore/dna-tie';
+import { useDnaTie } from '../flow/useDnaTie';
 import { InEnglishNote, useT } from '../../i18n/app';
 
-// The certificate's own colours: dark text on white, every pair at least 4.5:1.
+// The certificate's own colours: dark text on white, every pair at least 4.5:1. A check
+// that passed is a ✓ in the quiet green; one that failed is a ✗ in the error red.
 const CERT = {
   ground: '#FFFFFF',
-  ink: '#16201B',
-  muted: '#4A564F',
-  line: '#DADFD8',
-  accent: ACCENT,
-  error: '#B3261E',
-  practice: '#9A5B00',
+  ink: INK_COLOR,
+  muted: MUTED_COLOR,
+  line: LINE_COLOR,
+  ok: OK_COLOR,
+  error: ERROR_COLOR,
+  practice: '#8F5500',
 } as const;
 
 const MONO = '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
@@ -92,6 +95,8 @@ export const Step3Certificate: React.FC<{
   // Round 5: a saved lab report the lab replaced or withdrew is never printed as a tick.
   const loadedSaved = useSavedReport(given === undefined ? record : undefined);
   const saved = given === undefined ? loadedSaved : given;
+  // The card is in English in every language (above), so the tie is too.
+  const dna = useDnaTie(record, saved);
 
   useEffect(() => {
     if (!record) return;
@@ -156,6 +161,8 @@ export const Step3Certificate: React.FC<{
       secondParty: deliveryLine,
       // The sample sent, what the lab found on arrival, and any differences, as the certificate shows them.
       ...(sampleCustody ? { sampleCustody } : {}),
+      // Whether a DNA report ties the record to the plant, and that report's date (veilcore/dna-tie.ts).
+      ...(dna.tie ? { dnaReport: dnaTieSentence(dna.tie, dna.date) } : {}),
       ...(record.dnaFingerprint && saved ? { labReportSaved: savedReportSentence(saved) } : {}),
       sealedAtSource: "the sealing device's clock",
       generatedAt: new Date().toISOString(),
@@ -248,7 +255,7 @@ export const Step3Certificate: React.FC<{
         <Box sx={{ p: { xs: 2.5, sm: 3.5 }, position: 'relative' }}>
           <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, gap: 1 }}>
             <Box>
-              <Typography variant="overline" sx={{ color: CERT.accent }}>
+              <Typography variant="overline" sx={{ color: CERT.ink }}>
                 VeilCore
               </Typography>
               <Typography variant="h5" component="p" sx={{ lineHeight: 1.1, color: CERT.ink }}>
@@ -286,24 +293,35 @@ export const Step3Certificate: React.FC<{
                   {shortFingerprint(anchorHere.identity)} · block {anchorHere.blockHeight}
                 </Field>
               )}
-              <Field label="Lab report saved">
+              {/* A dated record shows a description existed; the DNA report is what ties it
+                  to the plant. Said first, in one sentence, then what the saved file is. */}
+              <Field label="Tied to the plant (DNA report)">
                 {!record.dnaFingerprint ? (
-                  'not saved'
-                ) : saved === null || saved === undefined ? (
+                  <Box component="span" data-dna-tie="none">
+                    {dnaTieSentence({ state: 'none' }, dna.date)}
+                  </Box>
+                ) : saved === null || saved === undefined || !dna.tie ? (
                   'checking…'
                 ) : saved.kind === 'replaced' || saved.kind === 'withdrawn' ? (
-                  <Box component="span" sx={{ color: CERT.error }} data-saved-report={saved.kind}>
-                    ✗ {saved.kind === 'replaced' ? 'Replaced by the lab' : 'Withdrawn by the lab'}.{' '}
-                    {savedReportSentence(saved)}
+                  <Box
+                    component="span"
+                    sx={{ color: CERT.error }}
+                    data-saved-report={saved.kind}
+                    data-dna-tie={dna.tie.state}
+                  >
+                    ✗ {dnaTieSentence(dna.tie, dna.date)} {savedReportSentence(saved)}
                   </Box>
                 ) : (
                   <Box
                     component="span"
-                    sx={{ color: saved.kind === 'lab' ? CERT.accent : CERT.ink }}
+                    sx={{ color: saved.kind === 'lab' ? CERT.ok : CERT.ink }}
                     data-saved-report={saved.kind}
+                    data-dna-tie={dna.tie.state}
                   >
-                    {saved.kind === 'lab' ? '✓ ' : ''}saved{' '}
-                    {record.dnaPairedAt ? `· ${utcDate(record.dnaPairedAt)}` : ''}. {savedReportSentence(saved)}
+                    {saved.kind === 'lab' ? '✓ ' : ''}
+                    {dnaTieSentence(dna.tie, dna.date)} Saved
+                    {record.dnaPairedAt ? ` ${utcDate(record.dnaPairedAt)}` : ''}. {savedReportSentence(saved)}{' '}
+                    {dnaTieMeaning()}
                   </Box>
                 )}
               </Field>
@@ -311,7 +329,7 @@ export const Step3Certificate: React.FC<{
                 <Box
                   component="span"
                   sx={{
-                    color: integrity === 'match' ? CERT.accent : integrity === 'mismatch' ? CERT.error : CERT.muted,
+                    color: integrity === 'match' ? CERT.ok : integrity === 'mismatch' ? CERT.error : CERT.muted,
                   }}
                 >
                   {integrityLine}

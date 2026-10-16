@@ -7,7 +7,7 @@ import { Box, Paper, Stack, Typography } from '@mui/material';
 import ScheduleIcon from '@mui/icons-material/ScheduleOutlined';
 import ScienceIcon from '@mui/icons-material/ScienceOutlined';
 import GroupIcon from '@mui/icons-material/GroupOutlined';
-import { ACCENT } from '../config/theme';
+import { MUTED_COLOR } from '../config/theme';
 import { rich, useT } from '../i18n/app';
 import type { AppKey } from '../i18n/app/en';
 
@@ -24,7 +24,7 @@ export const TrustPanel: React.FC = () => {
       <Typography variant="h6" sx={{ mb: 0.5 }}>
         {rich(t('app.home.trust.title'), {
           em: (c) => (
-            <Box component="span" sx={{ color: ACCENT }}>
+            <Box component="em" sx={{ fontStyle: 'italic' }}>
               {c}
             </Box>
           ),
@@ -36,7 +36,7 @@ export const TrustPanel: React.FC = () => {
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
         {POINTS.map((p) => (
           <Stack key={p.title} direction="row" spacing={1.5}>
-            <Box sx={{ color: ACCENT, mt: 0.25 }}>{p.icon}</Box>
+            <Box sx={{ color: MUTED_COLOR, mt: 0.25 }}>{p.icon}</Box>
             <Box>
               <Typography variant="subtitle2">{t(p.title)}</Typography>
               <Typography variant="body2" color="text.secondary">

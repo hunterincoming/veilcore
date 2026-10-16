@@ -59,8 +59,9 @@ describe('Home’s line for a plant (test builds, where keys are date stamped fr
   });
 
   it('a build that sends nothing never mentions keys', () => {
+    // The DNA report is a line of its own (veilcore/dna-tie.ts), not a note on this one.
     expect(homeStatusLine({ loggedAt, dnaFingerprint: 'd7' }, keys(), { realChain: false })).toEqual({
-      text: `${sealed} · lab report saved`,
+      text: sealed,
       unfinished: false,
     });
   });

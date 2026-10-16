@@ -24,7 +24,7 @@ export const LanguagePicker: React.FC = () => {
         select: {
           renderValue: (v) => (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-              <TranslateIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+              <TranslateIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
               {LANGUAGE_NAMES[v as Lang].short}
             </Box>
           ),

@@ -358,7 +358,7 @@ const seenVisibility = (): boolean => {
 
 /** Exactly what a stranger with a link sees about a lab report (VerifyPage.tsx). (app.lab.results.publicWords.) */
 export const PUBLIC_REPORT_WORDS =
-  'The lab’s signature is public; the report isn’t. Anyone with a link to this plant’s check page sees that a lab report about it was signed, the report file’s SHA-256, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If you save the report to this plant and share “Whether a lab report is saved” in Show someone, they also see that the saved file matches it.';
+  'The lab’s signature is public; the report isn’t. Anyone with a link to this plant’s check page sees that a lab report about it was signed, the report file’s SHA-256, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If you save the report to this plant and share “Whether a DNA report is saved” in Show someone, they also see that the saved file matches it.';
 
 const SignerLine: React.FC<{ signer: ReportSigner }> = ({ signer }) => {
   const tr = useT();

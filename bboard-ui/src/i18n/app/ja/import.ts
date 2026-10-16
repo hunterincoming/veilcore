@@ -111,6 +111,8 @@ export const importing = {
   'app.import.sum.byBatch':
     '公開の日付スタンプは、バッチに{dated}で日付が付いたときに押されます。あなたがすることはありません。',
   'app.import.sum.untilSaved': '保存して確認するまで、新しい記録の鍵はこのブラウザにしかありません。',
+  'app.import.sum.noDna.other':
+    'このうち{count}件の植物にはまだDNA報告書がないため、植物そのものに結び付いていません。追加するには、植物のページを開いて「この植物のDNAフィンガープリントを取得する」に従ってください。ラボコードを付けてサンプルをラボに送るか、お手元の報告書を保存します。',
   'app.import.days.other': '{count}日',
   'app.import.stamps.heading': '鍵の日付スタンプ',
   'app.import.stamps.of': '{heading}：{total}件中{stamped}件',
@@ -132,6 +134,7 @@ export const importing = {
   'app.import.done.download': '結果をダウンロード（CSV）',
   'app.import.done.downloadText':
     '元のままの行に、それぞれの記録ID、フィンガープリント、誰でも開いて確認できるリンクを加えたものです。ここで作られ、何もアップロードされません。',
+  'app.import.done.csvDna': '「DNA報告書」の列で、まだ報告書のない記録がわかります。',
   'app.import.done.byBatch':
     '公開の日付スタンプは、バッチに{dated}で日付が付いたときに押されます。いつ押されたかは各植物のページに表示されます。あなたがすることはありません。',
   'app.import.done.dateStamp':

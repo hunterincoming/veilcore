@@ -827,7 +827,7 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
 
 const DoneTitle: React.FC<{ step: string; title: string }> = ({ step, title }) => (
   <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-    <DoneIcon color="primary" sx={{ fontSize: 40 }} aria-hidden="true" />
+    <DoneIcon color="success" sx={{ fontSize: 40 }} aria-hidden="true" />
     <ScreenHeading step={step}>{title}</ScreenHeading>
   </Stack>
 );

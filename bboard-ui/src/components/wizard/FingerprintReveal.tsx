@@ -35,7 +35,7 @@ export const FingerprintReveal: React.FC<{
           transition={{ duration: 0.6, ease: 'backOut' }}
           sx={{ display: 'inline-flex' }}
         >
-          <FingerprintIcon sx={{ fontSize: 92, color: ACCENT, filter: `drop-shadow(0 0 22px ${ACCENT})` }} />
+          <FingerprintIcon sx={{ fontSize: 92, color: ACCENT }} />
         </MBox>
         {/* scan sweep */}
         <MBox

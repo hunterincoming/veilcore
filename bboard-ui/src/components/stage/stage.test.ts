@@ -409,16 +409,16 @@ describe('Date this lab report: never twice for the same report', () => {
 
   it('the plant page’s line, in the record date row’s own words', () => {
     expect(labReportDatedLine('VEIL-D1', recordDateRow({ status: 'none' }, undefined))).toBe(
-      'Lab report dated: in VEIL-D1 (waiting for a batch)',
+      'DNA report dated: in VEIL-D1 (waiting for a batch)',
     );
     expect(labReportDatedLine('VEIL-D1', recordDateRow({ status: 'pending' } as never, undefined))).toBe(
-      'Lab report dated: in VEIL-D1 (in a batch, waiting for its date stamp)',
+      'DNA report dated: in VEIL-D1 (in a batch, waiting for its date stamp)',
     );
     expect(labReportDatedLine('VEIL-D1', { mark: 'done', value: '2026-10-11 UTC — checked on Midnight' })).toBe(
-      'Lab report dated: in VEIL-D1 (dated 2026-10-11 UTC — checked on Midnight)',
+      'DNA report dated: in VEIL-D1 (dated 2026-10-11 UTC — checked on Midnight)',
     );
     expect(labReportDatedLine('VEIL-D1', { mark: 'wait', value: 'checking…' })).toBe(
-      'Lab report dated: in VEIL-D1 (checking…)',
+      'DNA report dated: in VEIL-D1 (checking…)',
     );
   });
 });

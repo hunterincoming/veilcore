@@ -4,26 +4,26 @@
 import type { AppTranslation } from '../../translate';
 
 export const verify = {
-  'app.verify.report.notSaved': 'Der Inhaber hat keinen Laborbericht zu diesem Datensatz gespeichert.',
+  'app.verify.report.notSaved': 'Der Inhaber hat keinen DNA-Bericht zu diesem Datensatz gespeichert.',
   'app.verify.report.asOf': ' (zum Zeitpunkt, als dieser Link erstellt wurde)',
   'app.verify.report.staleNote':
     ' Dieser Link wurde erstellt, als eine andere Datei gespeichert war; diese Zeile betrifft die jetzt gespeicherte.',
   'app.verify.report.matches':
-    'Der Inhaber hat einen Laborbericht zu diesem Datensatz gespeichert{asOf}. Seine Datei (SHA-256 {sha}) passt zum Laborbericht {lead}: Signatur in diesem Browser geprüft.{rest}{staleNote}',
-  'app.verify.report.which': 'Der zu diesem Datensatz gespeicherte Laborbericht{asOf} (SHA-256 {sha})',
+    'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert{asOf}. Seine Datei (SHA-256 {sha}) passt zum Laborbericht {lead}: Signatur in diesem Browser geprüft.{rest}{staleNote}',
+  'app.verify.report.which': 'Der zu diesem Datensatz gespeicherte DNA-Bericht{asOf} (SHA-256 {sha})',
   'app.verify.report.replaced':
     '{which} wurde am {on} von seinem Labor durch einen korrigierten ersetzt. {tail}{staleNote}',
   'app.verify.report.withdrawn': '{which} wurde am {on} von seinem Labor zurückgezogen. {tail}{staleNote}',
   'app.verify.report.ownSha':
-    'Der Inhaber hat eine Laborberichtsdatei zu diesem Datensatz gespeichert{asOf} (SHA-256 {sha}). Keine Laborsignatur zu diesem Datensatz passt dazu, daher ist sie die eigene Angabe des Inhabers.{staleNote}',
+    'Der Inhaber hat eine Datei eines DNA-Berichts zu diesem Datensatz gespeichert{asOf} (SHA-256 {sha}). Keine Laborsignatur zu diesem Datensatz passt dazu, daher ist sie die eigene Angabe des Inhabers.{staleNote}',
   'app.verify.report.own':
-    'Der Inhaber hat eine Laborberichtsdatei zu diesem Datensatz gespeichert. Keine Laborsignatur zu diesem Datensatz passt dazu, daher ist sie die eigene Angabe des Inhabers.{staleNote}',
+    'Der Inhaber hat eine Datei eines DNA-Berichts zu diesem Datensatz gespeichert. Keine Laborsignatur zu diesem Datensatz passt dazu, daher ist sie die eigene Angabe des Inhabers.{staleNote}',
   'app.verify.report.unnamedSigned':
-    'Der Inhaber hat einen Laborbericht zu diesem Datensatz gespeichert. Dieser Link nennt die Datei nicht, daher kann diese Seite nicht sagen, ob es der oben aufgeführte signierte Laborbericht ist.',
+    'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Dieser Link nennt die Datei nicht, daher kann diese Seite nicht sagen, ob es der oben aufgeführte signierte Laborbericht ist.',
   'app.verify.report.unnamedWithdrawn':
-    'Der Inhaber hat einen Laborbericht zu diesem Datensatz gespeichert. Dieser Link nennt die Datei nicht, und jeder zu diesem Datensatz signierte Laborbericht wurde von seinem Labor zurückgezogen, daher ist es die eigene Angabe des Inhabers.',
+    'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Dieser Link nennt die Datei nicht, und jeder zu diesem Datensatz signierte Laborbericht wurde von seinem Labor zurückgezogen, daher ist es die eigene Angabe des Inhabers.',
   'app.verify.report.unnamedNone':
-    'Der Inhaber hat einen Laborbericht zu diesem Datensatz gespeichert. Kein Labor hat einen Laborbericht zu diesem Datensatz signiert, daher ist es die eigene Angabe des Inhabers.',
+    'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Kein Labor hat einen Laborbericht zu diesem Datensatz signiert, daher ist es die eigene Angabe des Inhabers.',
   'app.verify.kind.receipts.one': 'eine Empfangsbestätigung eines Labors',
   'app.verify.kind.receipts.other': '{count} Empfangsbestätigungen von Laboren',
   'app.verify.kind.reports.one': 'ein Laborbericht',
@@ -63,7 +63,7 @@ export const verify = {
     'Stapel {batch}: Das Register meldet, dass die Stapelwurzel auf {where}{tx} festgehalten wurde. Das Datum ist {date}. {why} Verlassen Sie sich nicht auf das Datum, bis es geprüft ist.{test}',
   'app.verify.anchor.summaryAdd': '{summary} Auf Midnight geprüft: der Datumsstempel der Stapelwurzel.',
   'app.verify.field.existence': 'Frühere Inhaberschaft (erst nach der Verankerung angezeigt)',
-  'app.verify.field.attestation-status': 'Ob ein Laborbericht gespeichert ist',
+  'app.verify.field.attestation-status': 'Ob ein DNA-Bericht gespeichert ist',
   'app.verify.field.descent-clean': 'Status der Abstammung, wie das Register meldet',
   'app.verify.field.sealed-at': 'Wann versiegelt wurde (Uhr des Geräts des Inhabers)',
   'app.verify.field.parent-names': 'Namen der Elternsorten',
@@ -173,7 +173,7 @@ export const verify = {
   'app.verify.own.notConfirmed': ' Diese Seite hat das nicht auf der Chain bestätigt.',
   'app.verify.own.notAnchored':
     'Frühere Inhaberschaft: noch nicht verankert, daher beruht sein Datum auf den Aufzeichnungen dieses Registers.',
-  'app.verify.dna.saved': 'Der Inhaber hat einen Laborbericht zu diesem Datensatz gespeichert.',
+  'app.verify.dna.saved': 'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert.',
   'app.verify.lineage.intact':
     'Das Register meldet die Abstammung als lückenlos – eine ununterbrochene Kette zurück zum versiegelten Datensatz. Diese Seite hat das nicht geprüft.',
   'app.verify.lineage.notChecked':
@@ -211,7 +211,7 @@ export const verify = {
   'app.verify.ex.note4':
     'Ein Labor kann seine Empfangsbestätigung für eine Probe und seinen Laborbericht mit seinem eigenen Schlüssel signieren. Jede Zeile sagt, welches von beiden es ist. Die Seite prüft die Signatur; ob der Schlüssel zu einem Labor gehört, dem Sie vertrauen, entscheiden Sie.',
   'app.verify.ex.fact5':
-    'Der Inhaber hat einen Laborbericht zu diesem Datensatz gespeichert. Seine Datei (SHA-256 7c1e04d2…9b3a51) passt zum Laborbericht, signiert von einem Schlüssel namens „Example Lab“ (Name nicht geprüft): Signatur in diesem Browser geprüft.',
+    'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Seine Datei (SHA-256 7c1e04d2…9b3a51) passt zum Laborbericht, signiert von einem Schlüssel namens „Example Lab“ (Name nicht geprüft): Signatur in diesem Browser geprüft.',
   'app.verify.ex.note5':
     'Der Inhaber wählt, welche Angaben hier erscheinen. Alles nicht Geteilte wird als nicht geteilt aufgeführt.',
   'app.verify.ex.marks':

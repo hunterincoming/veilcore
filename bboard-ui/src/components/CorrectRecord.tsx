@@ -28,7 +28,7 @@ import EditIcon from '@mui/icons-material/EditOutlined';
 import { useNavigate } from 'react-router-dom';
 import { previewCorrection, type CorrectionPreview } from '../veilcore/corrections';
 import { issueCorrection, type StrainRecord } from '../veilcore/records';
-import { ACCENT } from '../config/theme';
+import { INK_COLOR } from '../config/theme';
 import { useT } from '../i18n/app';
 import type { AppKey } from '../i18n/app/en';
 
@@ -150,8 +150,8 @@ export const CorrectRecord: React.FC<{
             />
 
             {preview && (
-              <Box sx={{ p: 2, borderRadius: 1, border: `1px solid ${ACCENT}` }}>
-                <Typography variant="overline" sx={{ color: ACCENT, display: 'block' }}>
+              <Box sx={{ p: 2, borderRadius: 1, border: `1px solid ${INK_COLOR}` }}>
+                <Typography variant="overline" sx={{ display: 'block' }}>
                   {t('app.plant.fix.does')}
                 </Typography>
                 <Stack direction="row" spacing={1} sx={{ my: 1, flexWrap: 'wrap', gap: 0.5 }}>

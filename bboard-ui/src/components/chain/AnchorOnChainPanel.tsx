@@ -64,7 +64,7 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
     <Paper variant="outlined" sx={{ p: 2.5 }}>
       <Stack spacing={1.5}>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-          <LinkIcon color="primary" />
+          <LinkIcon sx={{ color: 'text.secondary' }} />
           <Typography variant="subtitle1">
             {t('app.plant.anchor.title', { network: networkWords(undefined, tr) })}
           </Typography>

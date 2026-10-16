@@ -37,7 +37,7 @@ export const plant = {
   'app.plant.action.labReports': 'Rapports de laboratoire',
   'app.plant.action.sendToLab': 'L’envoyer à un laboratoire ou à un obtenteur',
   'app.plant.action.licenseIt': 'Accorder une licence',
-  'app.plant.action.saveReport': 'Enregistrer un rapport de laboratoire sur cette plante',
+  'app.plant.action.saveReport': 'Enregistrer un rapport ADN sur cette plante',
   'app.plant.action.checkReport': 'Vérifier qu’un rapport correspond',
   'app.plant.action.familyTree': 'Arbre généalogique',
   'app.plant.action.freshBackup': 'Enregistrer une nouvelle copie de secours',
@@ -70,6 +70,35 @@ export const plant = {
   'app.plant.mark.wait': 'pas encore',
   'app.plant.recordDated': 'Enregistrement daté',
   'app.plant.labReport': 'Rapport de laboratoire',
+  'app.plant.dnaReport': 'Rapport ADN',
+  'app.plant.tie.tied': 'Lié à la plante',
+  'app.plant.tie.notYet': 'Pas encore lié à la plante',
+  'app.plant.tie.notNow': 'Plus lié à la plante',
+  'app.plant.tie.lab': 'Rapport ADN {lead}',
+  'app.plant.tie.self': 'Rapport ADN que vous avez enregistré (aucune signature de laboratoire n’y correspond)',
+  'app.plant.tie.selfPublic':
+    'Rapport ADN enregistré par le détenteur (aucune signature de laboratoire n’y correspond)',
+  'app.plant.tie.savedHolder': 'Rapport ADN que vous avez enregistré',
+  'app.plant.tie.savedPublic': 'Rapport ADN enregistré par le détenteur',
+  'app.plant.tie.replaced': 'le laboratoire a remplacé le rapport ADN enregistré ici',
+  'app.plant.tie.withdrawn': 'le laboratoire a retiré le rapport ADN enregistré ici',
+  'app.plant.tie.add': 'ajoutez un rapport ADN',
+  'app.plant.tie.noneSaved': 'aucun rapport ADN n’est enregistré sur cet enregistrement',
+  'app.plant.tie.cameBack': 'un rapport de laboratoire est arrivé : ouvrez-le et enregistrez-le ici',
+  'app.plant.tie.openedNotSaved': 'un rapport de laboratoire est ouvert, pas enregistré sur cette plante',
+  'app.plant.tie.notDated': 'pas encore daté',
+  'app.plant.tie.dating': 'en cours de datation ({status})',
+  'app.plant.tie.datingPlain': 'en cours de datation',
+  'app.plant.tie.dated': 'daté : {date}',
+  'app.plant.tie.unconfirmed': 'non daté : {status}',
+  'app.plant.tie.sentence': 'Lié à la plante : {what}, {date}.',
+  'app.plant.tie.sentenceNoDate': 'Lié à la plante : {what}.',
+  'app.plant.tie.sentenceNone': 'Pas encore lié à la plante : {what}.',
+  'app.plant.tie.sentenceNot': 'Plus lié à la plante : {what}.',
+  'app.plant.tie.means':
+    'Un rapport ADN permet à un laboratoire de comparer avec lui un nouveau test d’une plante. À lui seul, il ne montre pas qu’une plante correspond.',
+  'app.plant.tie.sub': 'Rapport {date}. Un laboratoire peut comparer avec lui un nouveau test de la plante.',
+  'app.plant.tie.why': 'Un rapport ADN de votre laboratoire est ce qui lie un enregistrement à la plante elle-même.',
   'app.plant.backupChecked': 'Copie de secours vérifiée',
   'app.plant.checking': 'vérification…',
   'app.plant.savedToPlant': 'enregistré sur cette plante',
@@ -113,7 +142,7 @@ export const plant = {
   'app.plant.next.backup.why':
     'Les clés de cette plante ne sont pour l’instant que sur cet appareil. S’il casse ou si le navigateur est effacé, personne ne pourra prouver que vous la détenez. L’enregistrement prend une minute.',
   'app.plant.next.backup.action': 'Enregistrer ma copie de secours',
-  'app.plant.next.dates.title': 'Cet enregistrement date un rapport de laboratoire',
+  'app.plant.next.dates.title': 'Cet enregistrement date un rapport ADN',
   'app.plant.next.dates.why':
     'Il ne contient que le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé, jamais le rapport. Quand son lot est daté, il montre que le rapport existait à ce moment-là, sans montrer les marqueurs à personne.',
   'app.plant.next.stamp.why':
@@ -146,13 +175,13 @@ export const plant = {
     'Signé avec la clé de votre laboratoire et verrouillé pour que seul l’obtenteur puisse l’ouvrir. VeilCore ne peut pas le lire.',
   'app.plant.next.sent.action': 'Voir ce que vous avez envoyé',
   'app.plant.next.send.action': 'Renvoyer les résultats',
-  'app.plant.next.corrected.title': 'Enregistrez le rapport de laboratoire corrigé',
+  'app.plant.next.corrected.title': 'Enregistrez le rapport ADN corrigé',
   'app.plant.next.corrected.why':
-    'Le laboratoire a remplacé le rapport enregistré sur cette plante. Tant que vous n’enregistrez pas le rapport corrigé, la page de votre plante, son certificat et vos liens indiquent que celui enregistré a été remplacé.',
+    'Le laboratoire a remplacé le rapport ADN enregistré sur cette plante. Tant que vous n’enregistrez pas le rapport corrigé, la page de votre plante, son certificat et vos liens indiquent que celui enregistré a été remplacé.',
   'app.plant.next.corrected.action': 'Ouvrir le rapport corrigé',
   'app.plant.next.noCurrent.why':
     'L’original a été remplacé et la correction retirée. Demandez au laboratoire d’en renvoyer un. D’ici là, votre certificat et vos liens indiquent que celui enregistré a été remplacé.',
-  'app.plant.next.labWithdrew.title': 'Le laboratoire a retiré le rapport enregistré ici',
+  'app.plant.next.labWithdrew.title': 'Le laboratoire a retiré le rapport ADN enregistré ici',
   'app.plant.next.labWithdrew.whyNewer':
     'Il reste enregistré sur cette plante, et votre certificat et vos liens indiquent qu’il a été retiré. Un rapport plus récent est arrivé : ouvrez-le et enregistrez-le à la place.',
   'app.plant.next.labWithdrew.why':
@@ -162,27 +191,42 @@ export const plant = {
     'Il est verrouillé avec la clé de cette plante, pour que vous seul puissiez l’ouvrir. L’ouvrir vérifie ici la signature du laboratoire.',
   'app.plant.next.sample.title': 'Envoyer un échantillon à un laboratoire',
   'app.plant.next.sample.whySaved':
-    'Vous avez enregistré un rapport de laboratoire sur cette plante : c’est votre propre déclaration. Un laboratoire qui signe avoir reçu un échantillon ajoute une seconde partie, ce qui constitue une preuve plus solide que votre seule déclaration.',
+    'Vous avez enregistré un rapport ADN sur cette plante : c’est votre propre déclaration. Un laboratoire qui signe avoir reçu un échantillon ajoute une seconde partie, ce qui constitue une preuve plus solide que votre seule déclaration.',
   'app.plant.next.sample.why':
     'Pour l’instant, cet enregistrement est votre propre description de la plante. Un laboratoire qui signe avoir reçu un échantillon et renvoie un rapport en fait une preuve plus solide que votre seule description.',
   'app.plant.next.sample.action': 'Envoyer à un laboratoire',
-  'app.plant.next.save.title': 'Enregistrez le rapport de laboratoire sur cette plante',
+  'app.plant.next.dna.title': 'Obtenez une empreinte ADN de cette plante',
+  'app.plant.next.dna.why':
+    'Un enregistrement daté montre qu’une description existait. Un rapport ADN (l’empreinte génétique de la plante faite par un laboratoire) est ce qui lie votre enregistrement à la plante réelle. Deux façons d’en obtenir un :',
+  'app.plant.next.dna.labTitle': 'Envoyer un échantillon à un laboratoire',
+  'app.plant.next.dna.labText':
+    'Créez un code laboratoire et envoyez un échantillon avec. Le rapport ADN du laboratoire revient ici, verrouillé pour que vous seul puissiez l’ouvrir.',
+  'app.plant.next.dna.labSoon':
+    'Recevoir ici le rapport ADN du laboratoire, verrouillé pour que vous seul puissiez l’ouvrir, arrive bientôt sur ce site. Pour l’instant, demandez le rapport à votre laboratoire et enregistrez-le ici.',
+  'app.plant.next.dna.haveTitle': 'Vous avez déjà un rapport ADN ?',
+  'app.plant.next.dna.haveText':
+    'Enregistrez-le sur cette plante. Il est lu sur votre appareil ; le fichier n’est jamais envoyé.',
+  'app.plant.next.dna.haveAction': 'Enregistrer un rapport ADN',
+  'app.plant.next.date.title': 'Datez ce rapport ADN',
+  'app.plant.next.date.why':
+    'Il est enregistré sur cette plante, mais rien ne le date encore. Le dater montre que le rapport existait à cette date, sans montrer les marqueurs à personne.',
+  'app.plant.next.save.title': 'Enregistrez le rapport ADN sur cette plante',
   'app.plant.next.save.why':
-    'Un laboratoire a signé avoir reçu un échantillon. Quand son rapport reviendra, enregistrez-le sur cette plante pour pouvoir le comparer à un test ultérieur.',
+    'Un laboratoire a signé avoir reçu un échantillon. Quand son rapport ADN reviendra, enregistrez-le sur cette plante : c’est ce qui lie votre enregistrement à la plante, pour pouvoir le comparer à un test ultérieur.',
   'app.plant.next.save.action': 'L’enregistrer sur cette plante',
   'app.plant.next.ready.title': 'Cet enregistrement est prêt à servir',
   'app.plant.next.ready.why':
-    'Un laboratoire a signé avoir reçu un échantillon, et un rapport de laboratoire est enregistré sur cette plante. Vous pouvez transmettre du matériel ou accorder une licence, avec des conditions qui s’appliquent à la descendance déclarée à partir de cet enregistrement.',
+    'Un laboratoire a signé avoir reçu un échantillon, et un rapport ADN est enregistré sur cette plante. Vous pouvez transmettre du matériel ou accorder une licence, avec des conditions qui s’appliquent à la descendance déclarée à partir de cet enregistrement.',
   'app.plant.next.ready.action': 'Commencer un contrat',
   'app.plant.next.backTo': 'Retour à {name}',
-  'app.plant.next.noCurrent.title': 'Aucun rapport de laboratoire en vigueur de {lab}',
+  'app.plant.next.noCurrent.title': 'Aucun rapport ADN en vigueur de {lab}',
   'app.plant.next.open.title': 'Ouvrir le rapport de laboratoire de {lab}',
   'app.plant.next.label': 'Étape suivante',
   'app.plant.next.stamp.title': 'Ajouter l’horodatage',
   'app.plant.next.stamp.action': 'Ajouter l’horodatage',
   'app.plant.next.open.action': 'Ouvrir',
   'app.plant.chain.sealed': 'Scellé',
-  'app.plant.chain.reportSaved': 'Rapport de laboratoire enregistré',
+  'app.plant.chain.reportSaved': 'Rapport ADN enregistré',
   'app.plant.chain.receipt': 'Réception confirmée',
   'app.plant.chain.licensed': 'Sous licence',
   'app.plant.chain.licensedN': 'Sous licence ({n})',
@@ -232,21 +276,21 @@ export const plant = {
   'app.plant.tree.none':
     'Aucune lignée enregistrée pour l’instant. Ajoutez les cultivars parents lors de l’enregistrement pour construire l’arbre généalogique.',
   'app.plant.tree.offspring': 'Descendance',
-  'app.plant.tree.datedReports': 'Rapports de laboratoire datés (pas une descendance)',
+  'app.plant.tree.datedReports': 'Rapports ADN datés (pas une descendance)',
   'app.plant.action.nextStage': 'Ajouter la génération ou la sélection suivante',
   'app.plant.action.nextStageHint':
     'Un nouvel enregistrement avec cette plante comme parent. Scellez chaque étape au moment où elle a lieu.',
   'app.plant.dated.refused': 'Le registre ne l’a pas enregistré ({reason}). Rien n’a été daté. Réessayez.',
-  'app.plant.dated.line': 'Rapport de laboratoire daté : dans <link></link> ({status})',
+  'app.plant.dated.line': 'Rapport ADN daté : dans <link></link> ({status})',
   'app.plant.dated.dated': 'daté {value}',
-  'app.plant.dated.action': 'Dater ce rapport de laboratoire',
+  'app.plant.dated.action': 'Dater ce rapport ADN',
   'app.plant.dated.why':
     'Pour pouvoir montrer que ce rapport existait à cette date sans montrer les marqueurs à personne.',
   'app.plant.dated.seals':
     'Scelle un petit enregistrement contenant seulement le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé. Le rapport reste chez vous. Sa date vient quand son lot est daté.',
   'app.plant.dated.elsewhere':
-    'Ce rapport de laboratoire est en train d’être daté dans un autre onglet ou une autre fenêtre. Attendez une minute, puis regardez de nouveau : il apparaîtra ici.',
-  'app.plant.datingPage.title': 'Cet enregistrement date un rapport de laboratoire pour <plant></plant>',
+    'Ce rapport ADN est en train d’être daté dans un autre onglet ou une autre fenêtre. Attendez une minute, puis regardez de nouveau : il apparaîtra ici.',
+  'app.plant.datingPage.title': 'Cet enregistrement date un rapport ADN pour <plant></plant>',
   'app.plant.datingPage.holds':
     'Il ne contient que le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé, jamais le rapport. Quand son lot est daté, il montre que le rapport existait à ce moment-là, sans montrer les marqueurs à personne.',
   'app.plant.datingPage.recordDated': 'Enregistrement daté : {value}',
@@ -296,7 +340,7 @@ export const plant = {
     'Ce navigateur n’a pas les clés de cet enregistrement. Si vous les avez créées ailleurs, restaurez-les depuis votre fichier de copie de secours.',
   'app.plant.keys.restore': 'Restaurer les clés depuis une copie de secours',
   'app.plant.bundle.download': 'Télécharger le dossier de preuve',
-  'app.plant.bundle.chooseOrUntick': 'Choisissez le fichier du rapport de laboratoire, ou décochez la case.',
+  'app.plant.bundle.chooseOrUntick': 'Choisissez le fichier du rapport ADN, ou décochez la case.',
   'app.plant.bundle.tooBig': '{name} dépasse 200 Mo : il n’a donc pas été lu.',
   'app.plant.bundle.intro':
     'Un seul fichier avec tout ce qu’il faut pour vérifier la date de cet enregistrement sans VeilCore : l’enregistrement tel que scellé, la preuve qu’il est dans un lot daté, l’endroit où ce lot a été inscrit, et une page qui fait les vérifications hors ligne. Il contient aussi un résumé d’une page à imprimer pour un avocat ou un examinateur, et un exemple de texte pour une déclaration écrite (pas un conseil juridique). Un README à l’intérieur dit ce qu’il montre et ce qu’il ne montre pas.',
@@ -310,16 +354,16 @@ export const plant = {
   'app.plant.bundle.keyNotHere':
     'La clé n’est pas dans ce navigateur. Ouvrez ici votre copie de secours pour l’inclure.',
   'app.plant.bundle.includeLab':
-    'Inclure le fichier du rapport de laboratoire. Sans lui, le dossier ne contient que l’empreinte du rapport, pas ce qu’il dit.',
-  'app.plant.bundle.chooseLab': 'Choisir le fichier du rapport de laboratoire',
+    'Inclure le fichier du rapport ADN. Sans lui, le dossier ne contient que l’empreinte du rapport, pas ce qu’il dit.',
+  'app.plant.bundle.chooseLab': 'Choisir le fichier du rapport ADN',
   'app.plant.bundle.checkedAgainst': 'Il est comparé à celui enregistré sur cette plante avant d’être ajouté.',
-  'app.plant.bundle.labFileAria': 'Fichier du rapport de laboratoire',
+  'app.plant.bundle.labFileAria': 'Fichier du rapport ADN',
   'app.plant.bundle.downloaded':
     '{name} téléchargé. Ouvrez le verify.html qu’il contient pour le vérifier, ou EXAMINER-SUMMARY.html pour imprimer un résumé.',
   'app.plant.bundle.making': 'Création…',
   'app.plant.bundle.downloadButton': 'Télécharger',
   'app.plant.cert.intro':
-    'Pour vos dossiers et votre avocat : l’enregistrement scellé, une vérification récente qu’il n’a pas changé, s’il est ancré, le rapport de laboratoire enregistré, tout accusé de réception de laboratoire et les licences en vigueur. Il contient les détails de l’enregistrement, mais ni données génétiques ni fichiers de laboratoire. Le QR code ouvre la page de vérification publique de l’enregistrement.',
+    'Pour vos dossiers et votre avocat : l’enregistrement scellé, une vérification récente qu’il n’a pas changé, s’il est ancré, si un rapport ADN le lie à la plante, tout accusé de réception de laboratoire et les licences en vigueur. Il contient les détails de l’enregistrement, mais ni données génétiques ni fichiers de laboratoire. Le QR code ouvre la page de vérification publique de l’enregistrement.',
   'app.plant.cert.jsonDone': 'Résumé (JSON) téléchargé.',
   'app.plant.cert.pngDone': 'Certificat téléchargé.',
   'app.plant.cert.pngFailed': 'Impossible de créer l’image du certificat.',

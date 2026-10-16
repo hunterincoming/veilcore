@@ -1086,7 +1086,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     await pg.goto(`${origin}/verify/VEIL-X?show=existence,parent-names,breeding-method`, { waitUntil: 'networkidle' });
     await pg.waitForSelector('text=Not shared by the holder', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
-    expect(text).toMatch(/Not shared by the holder: Whether a lab report is saved/);
+    expect(text).toMatch(/Not shared by the holder: Whether a DNA report is saved/);
     expect(text).not.toMatch(/not (yet )?paired/i);
     expect(text).toMatch(
       /This link asked for Parent cultivar names; Breeding method, which the holder has not chosen to share/,

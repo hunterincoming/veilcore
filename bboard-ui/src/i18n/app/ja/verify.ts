@@ -4,25 +4,25 @@
 import type { AppTranslation } from '../../translate';
 
 export const verify = {
-  'app.verify.report.notSaved': '保有者はこの記録に検査報告書を保存していません。',
+  'app.verify.report.notSaved': '保有者はこの記録にDNA報告書を保存していません。',
   'app.verify.report.asOf': '（このリンクが作られた時点）',
   'app.verify.report.staleNote':
     'このリンクは別のファイルが保存されていたときに作られました。この行は、今保存されているファイルについてのものです。',
   'app.verify.report.matches':
-    '保有者はこの記録に検査報告書を保存しました{asOf}。そのファイル（SHA-256 {sha}）は{lead}検査報告書と一致します。署名はこのブラウザで確認しました。{rest}{staleNote}',
-  'app.verify.report.which': 'この記録に保存された検査報告書{asOf}（SHA-256 {sha}）',
+    '保有者はこの記録にDNA報告書を保存しました{asOf}。そのファイル（SHA-256 {sha}）は{lead}検査報告書と一致します。署名はこのブラウザで確認しました。{rest}{staleNote}',
+  'app.verify.report.which': 'この記録に保存されたDNA報告書{asOf}（SHA-256 {sha}）',
   'app.verify.report.replaced': '{which}は、{on}にラボにより訂正版に差し替えられました。{tail}{staleNote}',
   'app.verify.report.withdrawn': '{which}は、{on}にラボにより撤回されました。{tail}{staleNote}',
   'app.verify.report.ownSha':
-    '保有者はこの記録に検査報告書のファイルを保存しました{asOf}（SHA-256 {sha}）。この記録のラボの署名で一致するものはないため、保有者自身の陳述です。{staleNote}',
+    '保有者はこの記録にDNA報告書のファイルを保存しました{asOf}（SHA-256 {sha}）。この記録のラボの署名で一致するものはないため、保有者自身の陳述です。{staleNote}',
   'app.verify.report.own':
-    '保有者はこの記録に検査報告書のファイルを保存しました。この記録のラボの署名で一致するものはないため、保有者自身の陳述です。{staleNote}',
+    '保有者はこの記録にDNA報告書のファイルを保存しました。この記録のラボの署名で一致するものはないため、保有者自身の陳述です。{staleNote}',
   'app.verify.report.unnamedSigned':
-    '保有者はこの記録に検査報告書を保存しました。このリンクはファイルを示していないため、上に挙げた署名付きの検査報告書かどうかはこのページではわかりません。',
+    '保有者はこの記録にDNA報告書を保存しました。このリンクはファイルを示していないため、上に挙げた署名付きの検査報告書かどうかはこのページではわかりません。',
   'app.verify.report.unnamedWithdrawn':
-    '保有者はこの記録に検査報告書を保存しました。このリンクはファイルを示しておらず、この記録について署名された検査報告書はすべてラボにより撤回されたため、保有者自身の陳述です。',
+    '保有者はこの記録にDNA報告書を保存しました。このリンクはファイルを示しておらず、この記録について署名された検査報告書はすべてラボにより撤回されたため、保有者自身の陳述です。',
   'app.verify.report.unnamedNone':
-    '保有者はこの記録に検査報告書を保存しました。この記録についての検査報告書に署名したラボはないため、保有者自身の陳述です。',
+    '保有者はこの記録にDNA報告書を保存しました。この記録についての検査報告書に署名したラボはないため、保有者自身の陳述です。',
   'app.verify.kind.receipts.other': 'ラボの受領書{count}件',
   'app.verify.kind.reports.other': '検査報告書{count}件',
   'app.verify.kind.statements.other': '署名付きの陳述{count}件',
@@ -56,7 +56,7 @@ export const verify = {
     'バッチ {batch}：レジストリの報告では、バッチのルートは{where}に記録されました{tx}。日付は{date}です。{why}確認されるまで、日付に頼らないでください。{test}',
   'app.verify.anchor.summaryAdd': '{summary}Midnightで確認済み：バッチのルートの日付スタンプ。',
   'app.verify.field.existence': 'それ以前からの保有（アンカー後にのみ表示）',
-  'app.verify.field.attestation-status': '検査報告書が保存されているか',
+  'app.verify.field.attestation-status': 'DNA報告書が保存されているか',
   'app.verify.field.descent-clean': '系統の状態（レジストリの報告による）',
   'app.verify.field.sealed-at': '封印した日時（保有者の端末の時計）',
   'app.verify.field.parent-names': '親の品種名',
@@ -156,7 +156,7 @@ export const verify = {
   'app.verify.own.notConfirmed': 'このページはチェーン上で確認していません。',
   'app.verify.own.notAnchored':
     'それ以前からの保有：まだアンカーされていないため、日付はこのレジストリの記録に基づきます。',
-  'app.verify.dna.saved': '保有者はこの記録に検査報告書を保存しました。',
+  'app.verify.dna.saved': '保有者はこの記録にDNA報告書を保存しました。',
   'app.verify.lineage.intact':
     'レジストリの報告では、系統は途切れていません。封印された記録まで、途切れずにさかのぼれます。このページでは確認していません。',
   'app.verify.lineage.notChecked':
@@ -193,7 +193,7 @@ export const verify = {
   'app.verify.ex.note4':
     'ラボは、サンプルの受領書と検査報告書に、自分の鍵で署名できます。各行にどちらかが書かれています。ページは署名を確認します。その鍵が信頼できるラボかどうかは、あなたが判断します。',
   'app.verify.ex.fact5':
-    '保有者はこの記録に検査報告書を保存しました。そのファイル（SHA-256 7c1e04d2…9b3a51）は、「Example Lab」という名前の鍵（名前は未確認）が署名した検査報告書と一致します。署名はこのブラウザで確認しました。',
+    '保有者はこの記録にDNA報告書を保存しました。そのファイル（SHA-256 7c1e04d2…9b3a51）は、「Example Lab」という名前の鍵（名前は未確認）が署名した検査報告書と一致します。署名はこのブラウザで確認しました。',
   'app.verify.ex.note5':
     'ここに表示する事実は保有者が選びます。共有されていないものは、共有されていないと表示されます。',
   'app.verify.ex.marks':

@@ -449,7 +449,7 @@ export const RecordDetail: React.FC = () => {
                       gap: 1,
                       p: 1,
                       borderRadius: 1,
-                      '&:hover, &:focus-visible': { background: 'rgba(22,32,27,0.05)', outline: 'none' },
+                      '&:hover, &:focus-visible': { background: 'rgba(30,34,39,0.05)', outline: 'none' },
                     }}
                   >
                     <Typography variant="body2" sx={{ minWidth: 0 }} noWrap>
@@ -499,7 +499,7 @@ export const RecordDetail: React.FC = () => {
                       </Field>
                     )}
                     {record.notes && <Field label={t('app.log.notes')}>{record.notes}</Field>}
-                    <Field label={t('app.plant.labReport')}>
+                    <Field label={t('app.plant.dnaReport')}>
                       {record.dnaFingerprint
                         ? t('app.plant.f.reportSaved', {
                             file: record.dnaFileName ?? t('app.plant.f.file'),

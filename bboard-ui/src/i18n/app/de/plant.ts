@@ -37,7 +37,7 @@ export const plant = {
   'app.plant.action.labReports': 'Laborberichte',
   'app.plant.action.sendToLab': 'An ein Labor oder einen Züchter senden',
   'app.plant.action.licenseIt': 'Lizenzieren',
-  'app.plant.action.saveReport': 'Einen Laborbericht bei dieser Pflanze speichern',
+  'app.plant.action.saveReport': 'Einen DNA-Bericht bei dieser Pflanze speichern',
   'app.plant.action.checkReport': 'Prüfen, ob ein Bericht passt',
   'app.plant.action.familyTree': 'Stammbaum',
   'app.plant.action.freshBackup': 'Eine neue Sicherungskopie speichern',
@@ -70,6 +70,34 @@ export const plant = {
   'app.plant.mark.wait': 'noch nicht',
   'app.plant.recordDated': 'Datensatz datiert',
   'app.plant.labReport': 'Laborbericht',
+  'app.plant.dnaReport': 'DNA-Bericht',
+  'app.plant.tie.tied': 'Mit der Pflanze verknüpft',
+  'app.plant.tie.notYet': 'Noch nicht mit der Pflanze verknüpft',
+  'app.plant.tie.notNow': 'Nicht mehr mit der Pflanze verknüpft',
+  'app.plant.tie.lab': 'DNA-Bericht, {lead}',
+  'app.plant.tie.self': 'DNA-Bericht, den Sie gespeichert haben (keine Laborsignatur passt dazu)',
+  'app.plant.tie.selfPublic': 'DNA-Bericht, den der Inhaber gespeichert hat (keine Laborsignatur passt dazu)',
+  'app.plant.tie.savedHolder': 'DNA-Bericht, den Sie gespeichert haben',
+  'app.plant.tie.savedPublic': 'DNA-Bericht, den der Inhaber gespeichert hat',
+  'app.plant.tie.replaced': 'das Labor hat den hier gespeicherten DNA-Bericht ersetzt',
+  'app.plant.tie.withdrawn': 'das Labor hat den hier gespeicherten DNA-Bericht zurückgezogen',
+  'app.plant.tie.add': 'fügen Sie einen DNA-Bericht hinzu',
+  'app.plant.tie.noneSaved': 'zu diesem Datensatz ist kein DNA-Bericht gespeichert',
+  'app.plant.tie.cameBack': 'ein Laborbericht ist da: Öffnen Sie ihn und speichern Sie ihn hier',
+  'app.plant.tie.openedNotSaved': 'ein Laborbericht ist geöffnet, aber nicht bei dieser Pflanze gespeichert',
+  'app.plant.tie.notDated': 'noch nicht datiert',
+  'app.plant.tie.dating': 'wird datiert ({status})',
+  'app.plant.tie.datingPlain': 'wird datiert',
+  'app.plant.tie.dated': 'datiert: {date}',
+  'app.plant.tie.unconfirmed': 'nicht datiert: {status}',
+  'app.plant.tie.sentence': 'Mit der Pflanze verknüpft: {what}, {date}.',
+  'app.plant.tie.sentenceNoDate': 'Mit der Pflanze verknüpft: {what}.',
+  'app.plant.tie.sentenceNone': 'Noch nicht mit der Pflanze verknüpft: {what}.',
+  'app.plant.tie.sentenceNot': 'Nicht mehr mit der Pflanze verknüpft: {what}.',
+  'app.plant.tie.means':
+    'Mit einem DNA-Bericht kann ein Labor einen neuen Test einer Pflanze damit vergleichen. Allein zeigt er nicht, dass eine Pflanze übereinstimmt.',
+  'app.plant.tie.sub': 'Bericht {date}. Ein Labor kann einen neuen Test der Pflanze damit vergleichen.',
+  'app.plant.tie.why': 'Ein DNA-Bericht Ihres Labors ist das, was einen Datensatz mit der Pflanze selbst verknüpft.',
   'app.plant.backupChecked': 'Sicherungskopie geprüft',
   'app.plant.checking': 'wird geprüft…',
   'app.plant.savedToPlant': 'bei dieser Pflanze gespeichert',
@@ -113,7 +141,7 @@ export const plant = {
   'app.plant.next.backup.why':
     'Die Schlüssel dieser Pflanze sind gerade nur auf diesem Gerät. Wenn es kaputtgeht oder der Browser geleert wird, kann niemand beweisen, dass Sie sie halten. Das Speichern dauert eine Minute.',
   'app.plant.next.backup.action': 'Meine Sicherungskopie speichern',
-  'app.plant.next.dates.title': 'Dieser Datensatz datiert einen Laborbericht',
+  'app.plant.next.dates.title': 'Dieser Datensatz datiert einen DNA-Bericht',
   'app.plant.next.dates.why':
     'Er enthält nur den SHA-256 des Berichts, seinen Laborberichtscode und den Namen des Labors wie signiert, nie den Bericht. Wenn sein Stapel datiert ist, zeigt er, dass der Bericht bis dahin existierte, ohne jemandem die Marker zu zeigen.',
   'app.plant.next.stamp.why':
@@ -147,13 +175,13 @@ export const plant = {
     'Mit dem Schlüssel Ihres Labors signiert und so verschlossen, dass nur der Züchter ihn öffnen kann. VeilCore kann ihn nicht lesen.',
   'app.plant.next.sent.action': 'Ansehen, was Sie gesendet haben',
   'app.plant.next.send.action': 'Ergebnisse zurücksenden',
-  'app.plant.next.corrected.title': 'Den korrigierten Laborbericht speichern',
+  'app.plant.next.corrected.title': 'Den korrigierten DNA-Bericht speichern',
   'app.plant.next.corrected.why':
-    'Das Labor hat den bei dieser Pflanze gespeicherten Laborbericht ersetzt. Bis Sie den korrigierten speichern, sagen Ihre Pflanzenseite, Ihr Zertifikat und Ihre Links, dass der gespeicherte ersetzt wurde.',
+    'Das Labor hat den bei dieser Pflanze gespeicherten DNA-Bericht ersetzt. Bis Sie den korrigierten speichern, sagen Ihre Pflanzenseite, Ihr Zertifikat und Ihre Links, dass der gespeicherte ersetzt wurde.',
   'app.plant.next.corrected.action': 'Den korrigierten öffnen',
   'app.plant.next.noCurrent.why':
     'Das Original wurde ersetzt und die Korrektur zurückgezogen. Bitten Sie das Labor, erneut einen zu senden. Bis dahin sagen Ihr Zertifikat und Ihre Links, dass der gespeicherte ersetzt wurde.',
-  'app.plant.next.labWithdrew.title': 'Das Labor hat den hier gespeicherten Laborbericht zurückgezogen',
+  'app.plant.next.labWithdrew.title': 'Das Labor hat den hier gespeicherten DNA-Bericht zurückgezogen',
   'app.plant.next.labWithdrew.whyNewer':
     'Er bleibt bei dieser Pflanze gespeichert, und Ihr Zertifikat und Ihre Links sagen, dass er zurückgezogen wurde. Ein neuerer Laborbericht ist da: Öffnen Sie ihn und speichern Sie stattdessen diesen.',
   'app.plant.next.labWithdrew.why':
@@ -163,27 +191,42 @@ export const plant = {
     'Er ist mit dem Schlüssel dieser Pflanze so verschlossen, dass nur Sie ihn öffnen können. Beim Öffnen wird hier die Signatur des Labors geprüft.',
   'app.plant.next.sample.title': 'Eine Probe an ein Labor senden',
   'app.plant.next.sample.whySaved':
-    'Sie haben einen Laborbericht bei dieser Pflanze gespeichert; das ist Ihre eigene Angabe. Wenn ein Labor signiert, dass es eine Probe erhalten hat, kommt eine zweite Partei hinzu, und das ist ein stärkerer Nachweis als Ihre Angabe allein.',
+    'Sie haben einen DNA-Bericht bei dieser Pflanze gespeichert; das ist Ihre eigene Angabe. Wenn ein Labor signiert, dass es eine Probe erhalten hat, kommt eine zweite Partei hinzu, und das ist ein stärkerer Nachweis als Ihre Angabe allein.',
   'app.plant.next.sample.why':
     'Im Moment ist dieser Datensatz Ihre eigene Darstellung der Pflanze. Wenn ein Labor signiert, dass es eine Probe erhalten hat, und einen Laborbericht zurücksendet, wird daraus ein stärkerer Nachweis als Ihre eigene Darstellung.',
   'app.plant.next.sample.action': 'An ein Labor senden',
-  'app.plant.next.save.title': 'Den Laborbericht bei dieser Pflanze speichern',
+  'app.plant.next.dna.title': 'Einen DNA-Fingerabdruck für diese Pflanze bekommen',
+  'app.plant.next.dna.why':
+    'Ein datierter Datensatz zeigt, dass eine Beschreibung existierte. Ein DNA-Bericht (der genetische Fingerabdruck der Pflanze von einem Labor) verknüpft Ihren Datensatz mit der tatsächlichen Pflanze. Zwei Wege, einen zu bekommen:',
+  'app.plant.next.dna.labTitle': 'Eine Probe an ein Labor senden',
+  'app.plant.next.dna.labText':
+    'Erstellen Sie einen Laborcode und senden Sie eine Probe damit. Der DNA-Bericht des Labors kommt hierher zurück, verschlossen, sodass nur Sie ihn öffnen können.',
+  'app.plant.next.dna.labSoon':
+    'Den DNA-Bericht des Labors hier zu bekommen, verschlossen, sodass nur Sie ihn öffnen können, kommt bald auf diese Website. Bitten Sie bis dahin Ihr Labor um den Bericht und speichern Sie ihn hier.',
+  'app.plant.next.dna.haveTitle': 'Haben Sie schon einen DNA-Bericht?',
+  'app.plant.next.dna.haveText':
+    'Speichern Sie ihn bei dieser Pflanze. Er wird auf Ihrem Gerät gelesen; die Datei wird nie hochgeladen.',
+  'app.plant.next.dna.haveAction': 'Einen DNA-Bericht speichern',
+  'app.plant.next.date.title': 'Diesen DNA-Bericht datieren',
+  'app.plant.next.date.why':
+    'Er ist bei dieser Pflanze gespeichert, aber noch datiert ihn nichts. Ihn zu datieren zeigt, dass der Bericht zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
+  'app.plant.next.save.title': 'Den DNA-Bericht bei dieser Pflanze speichern',
   'app.plant.next.save.why':
-    'Ein Labor hat signiert, dass es eine Probe erhalten hat. Wenn sein Laborbericht zurückkommt, speichern Sie ihn bei dieser Pflanze, damit ein späterer Test damit verglichen werden kann.',
+    'Ein Labor hat signiert, dass es eine Probe erhalten hat. Wenn sein DNA-Bericht zurückkommt, speichern Sie ihn bei dieser Pflanze: Das verknüpft Ihren Datensatz mit der Pflanze, damit ein späterer Test damit verglichen werden kann.',
   'app.plant.next.save.action': 'Bei dieser Pflanze speichern',
   'app.plant.next.ready.title': 'Dieser Datensatz ist einsatzbereit',
   'app.plant.next.ready.why':
-    'Ein Labor hat signiert, dass es eine Probe erhalten hat, und ein Laborbericht ist bei dieser Pflanze gespeichert. Sie können Material weitergeben oder es lizenzieren, mit Bedingungen, die für aus diesem Datensatz angegebene Nachkommen gelten.',
+    'Ein Labor hat signiert, dass es eine Probe erhalten hat, und ein DNA-Bericht ist bei dieser Pflanze gespeichert. Sie können Material weitergeben oder es lizenzieren, mit Bedingungen, die für aus diesem Datensatz angegebene Nachkommen gelten.',
   'app.plant.next.ready.action': 'Eine Vereinbarung beginnen',
   'app.plant.next.backTo': 'Zurück zu {name}',
-  'app.plant.next.noCurrent.title': 'Kein aktueller Laborbericht von {lab}',
+  'app.plant.next.noCurrent.title': 'Kein aktueller DNA-Bericht von {lab}',
   'app.plant.next.open.title': 'Den Laborbericht von {lab} öffnen',
   'app.plant.next.label': 'Nächster Schritt',
   'app.plant.next.stamp.title': 'Den Datumsstempel setzen',
   'app.plant.next.stamp.action': 'Den Datumsstempel setzen',
   'app.plant.next.open.action': 'Öffnen',
   'app.plant.chain.sealed': 'Versiegelt',
-  'app.plant.chain.reportSaved': 'Laborbericht gespeichert',
+  'app.plant.chain.reportSaved': 'DNA-Bericht gespeichert',
   'app.plant.chain.receipt': 'Empfang bestätigt',
   'app.plant.chain.licensed': 'Lizenziert',
   'app.plant.chain.licensedN': 'Lizenziert ({n})',
@@ -233,22 +276,22 @@ export const plant = {
   'app.plant.tree.none':
     'Noch keine Abstammung erfasst. Fügen Sie beim Erfassen Elternsorten hinzu, um den Stammbaum aufzubauen.',
   'app.plant.tree.offspring': 'Nachkommen',
-  'app.plant.tree.datedReports': 'Datierte Laborberichte (keine Nachkommen)',
+  'app.plant.tree.datedReports': 'Datierte DNA-Berichte (keine Nachkommen)',
   'app.plant.action.nextStage': 'Die nächste Generation oder Selektion hinzufügen',
   'app.plant.action.nextStageHint':
     'Ein neuer Datensatz mit dieser Pflanze als Elternteil. Versiegeln Sie jede Stufe, wenn sie passiert.',
   'app.plant.dated.refused':
     'Das Register hat ihn nicht gespeichert ({reason}). Es wurde nichts datiert. Versuchen Sie es erneut.',
-  'app.plant.dated.line': 'Laborbericht datiert: in <link></link> ({status})',
+  'app.plant.dated.line': 'DNA-Bericht datiert: in <link></link> ({status})',
   'app.plant.dated.dated': 'datiert {value}',
-  'app.plant.dated.action': 'Diesen Laborbericht datieren',
+  'app.plant.dated.action': 'Diesen DNA-Bericht datieren',
   'app.plant.dated.why':
     'Damit Sie zeigen können, dass dieser Bericht zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
   'app.plant.dated.seals':
     'Versiegelt einen kleinen Datensatz mit nur dem SHA-256 des Berichts, seinem Laborberichtscode und dem Namen des Labors wie signiert. Der Bericht bleibt bei Ihnen. Sein Datum kommt, wenn sein Stapel datiert wird.',
   'app.plant.dated.elsewhere':
-    'Dieser Laborbericht wird gerade in einem anderen Tab oder Fenster datiert. Warten Sie eine Minute und sehen Sie dann wieder nach: Er wird hier erscheinen.',
-  'app.plant.datingPage.title': 'Dieser Datensatz datiert einen Laborbericht für <plant></plant>',
+    'Dieser DNA-Bericht wird gerade in einem anderen Tab oder Fenster datiert. Warten Sie eine Minute und sehen Sie dann wieder nach: Er wird hier erscheinen.',
+  'app.plant.datingPage.title': 'Dieser Datensatz datiert einen DNA-Bericht für <plant></plant>',
   'app.plant.datingPage.holds':
     'Er enthält nur den SHA-256 des Berichts, seinen Laborberichtscode und den Namen des Labors wie signiert, nie den Bericht. Wenn sein Stapel datiert ist, zeigt er, dass der Bericht bis dahin existierte, ohne jemandem die Marker zu zeigen.',
   'app.plant.datingPage.recordDated': 'Datensatz datiert: {value}',
@@ -298,7 +341,7 @@ export const plant = {
     'Dieser Browser hat die Schlüssel dieses Datensatzes nicht. Wenn Sie sie anderswo erstellt haben, stellen Sie sie aus Ihrer Sicherungsdatei wieder her.',
   'app.plant.keys.restore': 'Schlüssel aus einer Sicherungsdatei wiederherstellen',
   'app.plant.bundle.download': 'Nachweispaket herunterladen',
-  'app.plant.bundle.chooseOrUntick': 'Wählen Sie die Datei des Laborberichts, oder entfernen Sie das Häkchen.',
+  'app.plant.bundle.chooseOrUntick': 'Wählen Sie die Datei des DNA-Berichts, oder entfernen Sie das Häkchen.',
   'app.plant.bundle.tooBig': '{name} ist größer als 200 MB und wurde daher nicht gelesen.',
   'app.plant.bundle.intro':
     'Eine Datei mit allem, was jemand braucht, um das Datum dieses Datensatzes ohne VeilCore zu prüfen: der Datensatz wie versiegelt, der Nachweis, dass er in einem datierten Stapel ist, wo dieser Stapel festgehalten wurde, und eine Seite, die die Prüfungen offline durchführt. Dazu kommen eine einseitige Zusammenfassung zum Ausdrucken für eine Anwältin, einen Anwalt oder einen Prüfer und ein Mustertext für eine schriftliche Erklärung (keine Rechtsberatung). Eine README darin sagt, was es zeigt und was nicht.',
@@ -312,16 +355,16 @@ export const plant = {
   'app.plant.bundle.keyNotHere':
     'Der Schlüssel ist nicht in diesem Browser. Öffnen Sie hier Ihre Sicherungskopie, um ihn beizufügen.',
   'app.plant.bundle.includeLab':
-    'Die Datei des Laborberichts beifügen. Ohne sie enthält das Paket nur den Fingerabdruck des Berichts, nicht seinen Inhalt.',
-  'app.plant.bundle.chooseLab': 'Datei des Laborberichts wählen',
+    'Die Datei des DNA-Berichts beifügen. Ohne sie enthält das Paket nur den Fingerabdruck des Berichts, nicht seinen Inhalt.',
+  'app.plant.bundle.chooseLab': 'Datei des DNA-Berichts wählen',
   'app.plant.bundle.checkedAgainst': 'Sie wird vor dem Beifügen mit der bei dieser Pflanze gespeicherten abgeglichen.',
-  'app.plant.bundle.labFileAria': 'Datei des Laborberichts',
+  'app.plant.bundle.labFileAria': 'Datei des DNA-Berichts',
   'app.plant.bundle.downloaded':
     '{name} heruntergeladen. Öffnen Sie darin verify.html zum Prüfen oder EXAMINER-SUMMARY.html, um eine Zusammenfassung zu drucken.',
   'app.plant.bundle.making': 'Wird erstellt…',
   'app.plant.bundle.downloadButton': 'Herunterladen',
   'app.plant.cert.intro':
-    'Für Ihre Unterlagen und Ihre Anwältin oder Ihren Anwalt: der versiegelte Datensatz, eine frische Prüfung, dass er sich nicht geändert hat, ob er verankert ist, der gespeicherte Laborbericht, eine Empfangsbestätigung eines Labors und aktive Lizenzen. Es enthält die Details des Datensatzes, aber keine genetischen Daten oder Labordateien. Der QR-Code öffnet die öffentliche Prüfseite des Datensatzes.',
+    'Für Ihre Unterlagen und Ihre Anwältin oder Ihren Anwalt: der versiegelte Datensatz, eine frische Prüfung, dass er sich nicht geändert hat, ob er verankert ist, ob ein DNA-Bericht ihn mit der Pflanze verknüpft, eine Empfangsbestätigung eines Labors und aktive Lizenzen. Es enthält die Details des Datensatzes, aber keine genetischen Daten oder Labordateien. Der QR-Code öffnet die öffentliche Prüfseite des Datensatzes.',
   'app.plant.cert.jsonDone': 'Zusammenfassung (JSON) heruntergeladen.',
   'app.plant.cert.pngDone': 'Zertifikat heruntergeladen.',
   'app.plant.cert.pngFailed': 'Das Zertifikatsbild konnte nicht erstellt werden.',

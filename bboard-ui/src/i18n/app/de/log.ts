@@ -17,7 +17,7 @@ export const log = {
   'app.log.method.other': 'Sonstiges',
   'app.log.nextSaveBackup': 'Weiter: Sicherungskopie speichern',
   'app.log.reportIntro':
-    '<b>Optional.</b> Haben Sie schon einen Laborbericht zu dieser Pflanze? Fügen Sie ihn jetzt hinzu, dann wird er beim Datensatz aufbewahrt. Noch kein Bericht? Überspringen Sie den Schritt. Sie können jederzeit einen auf der Seite der Pflanze hinzufügen.',
+    '<b>Optional.</b> Haben Sie schon einen DNA-Bericht zu dieser Pflanze? Er verknüpft Ihren Datensatz mit der tatsächlichen Pflanze. Fügen Sie ihn jetzt hinzu, dann wird er beim Datensatz aufbewahrt. Noch kein Bericht? Überspringen Sie den Schritt: Die Seite der Pflanze zeigt, wie Sie einen bekommen.',
   'app.log.finish': 'Fertig',
   'app.log.nextStageTitle': 'Die nächste Generation oder Selektion erfassen',
   'app.log.opening': '{id} wird geöffnet…',

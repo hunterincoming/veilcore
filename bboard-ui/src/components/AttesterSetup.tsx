@@ -28,7 +28,6 @@ import BadgeIcon from '@mui/icons-material/VerifiedUserOutlined';
 import DownloadIcon from '@mui/icons-material/FileDownloadOutlined';
 import { createAttester, publishAttester, loadAttester, type AttesterProfile } from '../veilcore/attester-keys';
 import { Link as RouterLink } from 'react-router-dom';
-import { ACCENT } from '../config/theme';
 import { rich, useT } from '../i18n/app';
 import type { AppKey } from '../i18n/app/en';
 
@@ -147,7 +146,7 @@ export const AttesterSetup: React.FC<{
                 </Alert>
               )}
               <Box>
-                <Typography variant="overline" sx={{ display: 'block', color: ACCENT }}>
+                <Typography variant="overline" sx={{ display: 'block' }}>
                   {t('app.lab.key.publicKey')}
                 </Typography>
                 <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>

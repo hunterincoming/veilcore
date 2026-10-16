@@ -294,7 +294,7 @@ const SECTIONS: readonly Section[] = [
 ];
 
 const STYLE = `
-  :root { --ink: #16201b; --muted: #55625b; --line: #cfd6d2; --note: #f2f5f3; --warn: #8a4b00; }
+  :root { --ink: #1e2227; --muted: #575e66; --line: #c2c7cd; --note: #f3f5f7; --warn: #8a4b00; }
   * { box-sizing: border-box; }
   body { margin: 0; font: 13px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif; color: var(--ink); background: #fff; }
   table.page { width: 100%; max-width: 900px; margin: 0 auto; border-collapse: collapse; table-layout: fixed; }

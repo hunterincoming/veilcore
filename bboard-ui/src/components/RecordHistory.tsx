@@ -14,7 +14,7 @@ import { attestationsFor, strengthLabel } from '../veilcore/attesters';
 import { useRecordDate } from './verify/useAnchorCheck';
 import { anchorHistoryEvent } from './verify/anchor-words';
 import type { StrainRecord } from '../veilcore/records';
-import { ACCENT } from '../config/theme';
+import { LINE_COLOR, OK_COLOR } from '../config/theme';
 import { utcStamp } from '../veilcore/time';
 import { useT } from '../i18n/app';
 
@@ -114,7 +114,7 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
               pl: 2.5,
               ml: 0.5,
               pb: i === all.length - 1 ? 0 : 2.5,
-              borderLeft: i === all.length - 1 ? 'none' : '1px solid rgba(22,32,27,0.12)',
+              borderLeft: i === all.length - 1 ? 'none' : `1px solid ${LINE_COLOR}`,
             }}
           >
             <Box
@@ -125,7 +125,7 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                background: e.strong ? ACCENT : 'rgba(22,32,27,0.3)',
+                background: e.strong ? OK_COLOR : 'rgba(30,34,39,0.3)',
               }}
             />
             <Typography variant="body2" sx={{ fontWeight: 500 }}>

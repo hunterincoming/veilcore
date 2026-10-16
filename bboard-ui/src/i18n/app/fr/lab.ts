@@ -26,15 +26,15 @@ export const lab = {
   'app.lab.onDay': ' le {date}',
   'app.lab.replacedTail': 'Le détenteur n’a pas encore enregistré le rapport corrigé.',
   'app.lab.withdrawnTail': 'C’est toujours le fichier enregistré ici ; le laboratoire ne le soutient plus.',
-  'app.lab.sentence.none': 'Aucun rapport de laboratoire n’est enregistré sur cette plante.',
+  'app.lab.sentence.none': 'Aucun rapport ADN n’est enregistré sur cette plante.',
   'app.lab.sentence.lab':
-    'Le rapport de laboratoire enregistré correspond à un rapport de laboratoire {lead}, par son SHA-256 (signature vérifiée dans ce navigateur).{rest}',
+    'Le rapport ADN enregistré correspond à un rapport de laboratoire {lead}, par son SHA-256 (signature vérifiée dans ce navigateur).{rest}',
   'app.lab.sentence.self':
-    'Un fichier de rapport de laboratoire est enregistré sur cette plante. Aucune signature de laboratoire ne correspond : c’est la propre déclaration du détenteur.',
+    'Un fichier de rapport ADN est enregistré sur cette plante. Aucune signature de laboratoire ne correspond : c’est la propre déclaration du détenteur.',
   'app.lab.sentence.replaced':
-    'Le rapport de laboratoire enregistré sur cette plante a été remplacé par le laboratoire{on} par un rapport corrigé. {tail}',
+    'Le rapport ADN enregistré sur cette plante a été remplacé par le laboratoire{on} par un rapport corrigé. {tail}',
   'app.lab.sentence.withdrawn':
-    'Le rapport de laboratoire enregistré sur cette plante a été retiré par le laboratoire{on}. {tail}',
+    'Le rapport ADN enregistré sur cette plante a été retiré par le laboratoire{on}. {tail}',
   'app.lab.custody.sealIntact': 'scellé intact',
   'app.lab.custody.sealNotIntact': 'scellé non intact',
   'app.lab.custody.noSeal': 'sans scellé',
@@ -276,7 +276,7 @@ export const lab = {
     'La clé de cette plante n’est pas sur cet appareil : ses rapports de laboratoire ne peuvent donc pas être ouverts ici. <link>Récupérez d’abord vos plantes depuis votre copie de secours</link>.',
   'app.lab.results.gotIt': 'Compris',
   'app.lab.results.whatOthersSee':
-    '<b>Ce que les autres peuvent voir.</b> La signature du laboratoire est publique ; le rapport ne l’est pas. Quiconque a un lien vers la page de vérification de cette plante voit qu’un rapport de laboratoire la concernant a été signé, le SHA-256 du fichier du rapport et le nom sous lequel la clé du laboratoire est enregistrée : marqué « nom non vérifié » sauf si l’opérateur de VeilCore l’a rapproché d’une liste publique de licences ou d’accréditations. Si vous enregistrez le rapport sur cette plante et partagez « Si un rapport de laboratoire est enregistré » dans Montrer à quelqu’un, on voit aussi que le fichier enregistré y correspond.',
+    '<b>Ce que les autres peuvent voir.</b> La signature du laboratoire est publique ; le rapport ne l’est pas. Quiconque a un lien vers la page de vérification de cette plante voit qu’un rapport de laboratoire la concernant a été signé, le SHA-256 du fichier du rapport et le nom sous lequel la clé du laboratoire est enregistrée : marqué « nom non vérifié » sauf si l’opérateur de VeilCore l’a rapproché d’une liste publique de licences ou d’accréditations. Si vous enregistrez le rapport sur cette plante et partagez « Si un rapport ADN est enregistré » dans Montrer à quelqu’un, on voit aussi que le fichier enregistré y correspond.',
   'app.lab.results.noCurrent':
     'Aucun rapport en vigueur de {lab} : l’original a été remplacé et la correction retirée.',
   'app.lab.results.looking': 'Recherche des rapports de laboratoire…',

@@ -18,7 +18,8 @@ import {
   Typography,
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/FileDownloadOutlined';
-import type { StrainRecord } from '../veilcore/records';
+import { allRecords, type StrainRecord } from '../veilcore/records';
+import { datingOf } from './flow/useDnaTie';
 import type { RecordKeys } from '../veilcore/record-keys';
 import { downloadEvidenceBundle } from '../veilcore/evidence/bundle';
 import { MAX_FINGERPRINT_BYTES } from '../veilcore/commitment';
@@ -67,8 +68,11 @@ export const EvidenceBundle: React.FC<{
         setError(t('app.plant.bundle.tooBig', { name: labFile.name }));
         return;
       }
+      // The record dating the saved DNA report, if one does: README.txt names it.
+      const datedBy = datingOf(record, undefined, allRecords())?.id;
       const out = await downloadEvidenceBundle(record, keys, {
         includeKey: canKey && includeKey,
+        ...(datedBy ? { dnaReportDatedBy: datedBy } : {}),
         ...(includeLab && labFile
           ? { labFile: { name: labFile.name, bytes: new Uint8Array(await labFile.arrayBuffer()) } }
           : {}),

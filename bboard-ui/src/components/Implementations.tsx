@@ -13,7 +13,7 @@
 import React from 'react';
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import { ACCENT } from '../config/theme';
+import { INK_COLOR, MUTED_COLOR } from '../config/theme';
 import { LanguageBar } from '../i18n/LanguagePicker';
 import { InEnglishPage } from '../i18n/app';
 
@@ -28,13 +28,13 @@ const Impl: React.FC<{
   href: string;
   hrefLabel: string;
 }> = ({ name, lang, who, deps, note, href, hrefLabel }) => (
-  <Box sx={{ py: { xs: 3, sm: 4 }, borderTop: '1px solid', borderColor: 'rgba(22,32,27,0.07)' }}>
+  <Box sx={{ py: { xs: 3, sm: 4 }, borderTop: '1px solid', borderColor: 'rgba(30,34,39,0.07)' }}>
     <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 2, md: 5 }}>
       <Box sx={{ minWidth: { md: 190 } }}>
         <Typography variant="h6" sx={{ mb: 0.5 }}>
           {name}
         </Typography>
-        <Typography sx={{ fontFamily: MONO, fontSize: { xs: 13.5, sm: 12.5 }, color: ACCENT }}>{lang}</Typography>
+        <Typography sx={{ fontFamily: MONO, fontSize: { xs: 13.5, sm: 12.5 }, color: MUTED_COLOR }}>{lang}</Typography>
       </Box>
       <Box sx={{ flex: 1, maxWidth: 560 }}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, lineHeight: 1.75 }}>
@@ -47,7 +47,10 @@ const Impl: React.FC<{
         >
           Written by {who}
         </Typography>
-        <Typography variant="caption" sx={{ color: ACCENT, display: 'block', mb: 2, fontSize: { xs: 13.5, sm: 12 } }}>
+        <Typography
+          variant="caption"
+          sx={{ color: MUTED_COLOR, display: 'block', mb: 2, fontSize: { xs: 13.5, sm: 12 } }}
+        >
           Dependencies: {deps}
         </Typography>
         <Button
@@ -71,7 +74,7 @@ export const Implementations: React.FC = () => (
     <LanguageBar />
     <InEnglishPage />
     <Box sx={{ pt: { xs: 2, sm: 6, md: 9 }, pb: { xs: 3, sm: 4, md: 6 } }}>
-      <Typography variant="overline" sx={{ color: ACCENT, display: 'block', mb: 2 }}>
+      <Typography variant="overline" sx={{ display: 'block', mb: 2 }}>
         Implementations
       </Typography>
       <Typography
@@ -120,8 +123,8 @@ export const Implementations: React.FC = () => (
       />
     </Box>
 
-    <Box sx={{ pt: { xs: 7, md: 10 }, borderTop: '1px solid', borderColor: 'rgba(22,32,27,0.07)' }}>
-      <Typography variant="overline" sx={{ color: ACCENT, display: 'block', mb: 1.5 }}>
+    <Box sx={{ pt: { xs: 7, md: 10 }, borderTop: '1px solid', borderColor: 'rgba(30,34,39,0.07)' }}>
+      <Typography variant="overline" sx={{ display: 'block', mb: 1.5 }}>
         How they are checked
       </Typography>
       <Typography
@@ -145,15 +148,15 @@ export const Implementations: React.FC = () => (
           output for records whose fields happen to be in the right order, and silently wrong commitments for everything
           else. The suite catches it, including a Unicode case where two visually identical strings hash differently.
         </Typography>
-        <Typography variant="body1" sx={{ color: ACCENT, lineHeight: 1.8, fontSize: 16 }}>
+        <Typography variant="body1" sx={{ color: INK_COLOR, fontWeight: 600, lineHeight: 1.8, fontSize: 16 }}>
           Conformance is demonstrated, not asserted. The vectors are published; you do not need our permission or our
           involvement to test anything, including our own code.
         </Typography>
       </Stack>
     </Box>
 
-    <Box sx={{ pt: { xs: 7, md: 10 }, borderTop: '1px solid', borderColor: 'rgba(22,32,27,0.07)' }}>
-      <Typography variant="overline" sx={{ color: ACCENT, display: 'block', mb: 1.5 }}>
+    <Box sx={{ pt: { xs: 7, md: 10 }, borderTop: '1px solid', borderColor: 'rgba(30,34,39,0.07)' }}>
+      <Typography variant="overline" sx={{ display: 'block', mb: 1.5 }}>
         Adding your own
       </Typography>
       <Typography
@@ -176,8 +179,8 @@ export const Implementations: React.FC = () => (
           borderRadius: 1,
           mb: 3,
           border: '1px solid',
-          borderColor: 'rgba(22,32,27,0.07)',
-          background: 'rgba(22,32,27,0.02)',
+          borderColor: 'rgba(30,34,39,0.07)',
+          background: 'rgba(30,34,39,0.02)',
           overflowX: 'auto',
         }}
       >

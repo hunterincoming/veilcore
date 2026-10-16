@@ -26,6 +26,9 @@ import {
   readSheet,
   recordRowHash,
   resultsCsv,
+  noDnaReportCount,
+  NO_DNA_REPORT,
+  DNA_REPORT_SAVED,
   rowFields,
   rowHashOf,
   sealRowRecord,
@@ -596,7 +599,16 @@ describe('the results file', () => {
     );
     expect(csv.startsWith('\uFEFF')).toBe(true);
     const back = parseCsv(csv).rows.filter((r) => r.some(Boolean));
-    expect(back[0]).toEqual(['Name', 'ID', 'Extra', 'VeilCore record ID', 'Fingerprint', 'Check link', 'Result']);
+    expect(back[0]).toEqual([
+      'Name',
+      'ID',
+      'Extra',
+      'VeilCore record ID',
+      'Fingerprint',
+      'Check link',
+      'Result',
+      'DNA report',
+    ]);
     const a = out.outcomes[c.rows[0].hash];
     if (a.state !== 'sealed') throw new Error('row A was not sealed');
     expect(back[1]).toEqual([
@@ -607,9 +619,31 @@ describe('the results file', () => {
       a.recordId && a.fingerprint,
       `https://test.veilcore.org/verify/${a.recordId}?fp=${a.fingerprint}`,
       'Sealed',
+      NO_DNA_REPORT,
     ]);
-    expect(back[2]).toEqual(['', '2', '', '', '', '', 'Not sealed: No plant name.']);
+    expect(back[2]).toEqual(['', '2', '', '', '', '', 'Not sealed: No plant name.', '']);
     expect(back[3][2]).toBe("'=1+1");
+  });
+
+  it('says which records have no DNA report yet, and how many: none of a new import has one', async () => {
+    const s = sheetOf('Name\nA\nB\n\n');
+    const c = checkRows(s, mapAll(s), { existing: [] });
+    const out = await sealRows(c.rows, {
+      commit: (b) => Promise.resolve({ stored: b.map((r) => r.id), refused: [] }),
+      gapMs: 0,
+    });
+    const job = { headers: s.headers, delimiter: s.delimiter, rows: c.rows, outcomes: out.outcomes };
+    expect(noDnaReportCount(job)).toBe(2);
+    const a = out.outcomes[c.rows[0].hash];
+    if (a.state !== 'sealed') throw new Error('row A was not sealed');
+    // A report saved to one of them since (on its plant page) is counted and written as saved.
+    const has = (id: string) => id === a.recordId;
+    expect(noDnaReportCount(job, has)).toBe(1);
+    const back = parseCsv(resultsCsv(job, 'https://test.veilcore.org', has)).rows.filter((r) => r.some(Boolean));
+    expect(back.map((r) => r[r.length - 1])).toEqual(['DNA report', DNA_REPORT_SAVED, NO_DNA_REPORT]);
+    expect(NO_DNA_REPORT).toBe(
+      'None yet, so the record is not tied to the plant. Add one on the plant’s page: Get a DNA fingerprint for this plant.',
+    );
   });
 });
 

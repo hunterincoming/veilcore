@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 0 18 18">
+  <!-- VeilCore's mark (src/components/site/TagMark.tsx): a Graphite tag, its stub stamped red. -->
+  <style>
+    .t { fill: #1e2227; } .s { fill: #b3173b; }
+    @media (prefers-color-scheme: dark) { .t { fill: #f3f5f7; } .s { fill: #ec6a80; } }
+  </style>
+  <path class="t" fill-rule="evenodd" d="M4 0h6l4 4v8.6H0V4zM7 3.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6z"/>
+  <path class="s" d="M0 13.9h14V18H0z"/>
+</svg>

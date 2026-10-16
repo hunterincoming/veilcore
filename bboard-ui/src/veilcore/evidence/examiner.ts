@@ -355,7 +355,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
 <meta name="referrer" content="no-referrer">
 <title>${escapeHtml(title)}</title>
 <style>
-  :root { --ink: #16201b; --muted: #55625b; --line: #cfd6d2; --note: #f2f5f3; --warn: #8a4b00; }
+  :root { --ink: #1e2227; --muted: #575e66; --line: #c2c7cd; --note: #f3f5f7; --warn: #8a4b00; }
   * { box-sizing: border-box; }
   body { margin: 0; font: 13px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: #fff; }
   main { max-width: 820px; margin: 0 auto; padding: 20px 16px 40px; overflow-wrap: anywhere; }
@@ -373,7 +373,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   ol, ul { padding-left: 20px; margin: 4px 0; }
   li { margin: 2px 0; }
   .sig { margin: 6px 0; }
-  .sig.bad { color: #a12a1f; }
+  .sig.bad { color: #9e2a0b; }
   .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   footer { margin-top: 16px; font-size: 0.82rem; color: var(--muted); }
   @media (max-width: 560px) { th { width: 40%; } .cols { grid-template-columns: 1fr; } }

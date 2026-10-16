@@ -20,7 +20,8 @@ export const Wordmark: React.FC = () => (
       letterSpacing: '-0.015em',
       lineHeight: 1,
       color: INK_COLOR,
-      '& svg': { color: ACCENT },
+      // A Graphite tag, its stub stamped red (TagMark).
+      '& svg': { color: INK_COLOR, '--tm-stub': ACCENT },
     }}
   >
     <TagMark />

@@ -100,7 +100,7 @@ const ReceiptStatement: React.FC<{
   const { t } = tr;
   const b = (c: React.ReactNode) => <b>{c}</b>;
   return (
-    <Box sx={{ p: 1.5, borderRadius: 1, background: 'rgba(22,32,27,0.04)', fontSize: 13 }} data-receipt-statement="">
+    <Box sx={{ p: 1.5, borderRadius: 1, background: 'rgba(30,34,39,0.04)', fontSize: 13 }} data-receipt-statement="">
       <Typography variant="body2">{t('app.lab.recv.quoted', { v: receiptWords(subject, transferId, tr) })}</Typography>
       {sample && hasDetails(sample) && (
         <Typography variant="body2" sx={{ mt: 0.5, overflowWrap: 'anywhere' }}>

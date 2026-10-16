@@ -14,7 +14,7 @@
 //   - looked up on Midnight by this browser (round 2 of the 15 Oct review): the
 //     transaction the registry says dated the batch root. It must be VeilCore's date stamp
 //     call at the pinned contract and have written exactly that root; its block is the
-//     date (veilcore/chain/anchor-check.ts). Only then does the mark turn teal. If no
+//     date (veilcore/chain/anchor-check.ts). Only then does the mark turn stamp red. If no
 //     indexer answers, the date is worded as the registry's report;
 //   - reported by the registry: everything else — that a record with this fingerprint
 //     exists, when the registry first stored it, whether a key is vetted, and the facts the
@@ -36,7 +36,7 @@ import { loadFingerprintCircuit, shortFingerprint } from '../veilcore/commitment
 import { DISCLOSURE_FIELDS, LEGACY_NAME, toDisclosureKey, labelOf } from '../veilcore/disclosure';
 import { proofFor, type ProofState } from '../veilcore/proofs';
 import { attestationsFor, countsAsSigned, signerLabel, type ResolvedAttestation } from '../veilcore/attesters';
-import { ACCENT } from '../config/theme';
+import { ACCENT, INK_COLOR } from '../config/theme';
 import { Wordmark } from '../components/Wordmark';
 import { NETWORK, isTestNetwork } from '../config/network';
 import { Fact, FactKey, SharedFacts } from '../components/verify/DisclosedFacts';
@@ -64,7 +64,7 @@ import { networkWords } from '../i18n/network-words';
 import { LanguageBar } from '../i18n/LanguagePicker';
 
 const API = import.meta.env.VITE_API_BASE ?? '';
-/** The mark for a date checked on a test network: amber, never mainnet's teal. */
+/** The mark for a date checked on a test network: amber, never mainnet's stamp red. */
 const TEST_MARK = '#8A5A00';
 
 /**
@@ -295,7 +295,7 @@ export const VerifyPage: React.FC = () => {
   // proof names a transaction to look up.
   const anchor = useAnchorCheck(proof);
 
-  // A tick (and the teal mark) only for a check against the link's own fingerprint.
+  // A tick (and the stamp-red mark) only for a check against the link's own fingerprint.
   const checked = bound && proof !== 'checking' && proof.status !== 'none';
   // Before the link's fingerprint is known to match, say whose fingerprint was used.
   const forWhom = bound ? '' : t('app.verify.forWhom');
@@ -343,7 +343,7 @@ export const VerifyPage: React.FC = () => {
       : anchorLine(anchor, { network: reportedNetwork ?? NETWORK, bound, reportedAt }, tr);
   const anchorLooked = anchorText !== undefined;
   const seal = checked && anchorCheckedOnChain;
-  // A date checked on a test network is practice data: its own mark, never mainnet's teal.
+  // A date checked on a test network is practice data: its own mark, never mainnet's stamp red.
   const testSeal = seal && isTestNetwork(reportedNetwork ?? NETWORK);
   const sealColor = testSeal ? TEST_MARK : ACCENT;
   const name = displayName(result?.cultivar);
@@ -389,7 +389,7 @@ export const VerifyPage: React.FC = () => {
 
         {loading ? (
           <Paper sx={{ p: 6, textAlign: 'center' }}>
-            <CircularProgress size={28} sx={{ color: ACCENT }} aria-label={t('app.verify.checkingRecord')} />
+            <CircularProgress size={28} sx={{ color: INK_COLOR }} aria-label={t('app.verify.checkingRecord')} />
           </Paper>
         ) : !result?.found ? (
           <Paper sx={{ p: 4, textAlign: 'center' }}>
@@ -449,7 +449,7 @@ export const VerifyPage: React.FC = () => {
         ) : (
           <Paper sx={{ p: { xs: 3, md: 4 } }}>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
-              {/* Teal only when this page found the batch root's anchor on Midnight itself
+              {/* Stamp red only when this page found the batch root's anchor on Midnight itself
                   (anchorCheckedOnChain). Otherwise grey; the lines below still tick what
                   this browser did check. */}
               <VerifiedIcon

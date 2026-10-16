@@ -49,7 +49,7 @@ const DEPS: DateLabReportDeps = {
 };
 
 /**
- * "Lab report dated: in VEIL-… (waiting for a batch)", the id a link to that record. The
+ * "DNA report dated: in VEIL-… (waiting for a batch)", the id a link to that record. The
  * data attribute keeps the English line (labReportDatedLine) in every language.
  */
 const DatedLine: React.FC<{ dating: StrainRecord }> = ({ dating }) => {
@@ -76,23 +76,27 @@ const DatedLine: React.FC<{ dating: StrainRecord }> = ({ dating }) => {
   );
 };
 
-export const DateLabReport: React.FC<{
-  /** The plant the report is saved to. */
-  record: StrainRecord;
-  /** Where the saved report stands (LabResults.tsx useSavedReport); null while loading. */
-  saved: SavedReport | null | undefined;
-  /** 'row': a row in the plant page's list. 'card': inside the saved report's card. */
-  variant?: 'row' | 'card';
-}> = ({ record, saved, variant = 'row' }) => {
+/**
+ * Dating the DNA report saved to a plant, shared by this control and the plant page's next
+ * step (NextStep.tsx): what would be dated (`facts`, none for a report that can't be), the
+ * record already dating it, and `date()`, which seals that record once across every tab.
+ */
+export const useDateReport = (
+  record: StrainRecord,
+  saved: SavedReport | null | undefined,
+): {
+  facts: ReturnType<typeof labReportFacts>;
+  dating: StrainRecord | undefined;
+  busy: boolean;
+  error: string | undefined;
+  date: () => Promise<void>;
+} => {
   const records = useRecords();
-  const { t } = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const facts = labReportFacts(record, saved);
   const sha = facts?.sha ?? (saved && saved.kind !== 'none' ? saved.sha : undefined);
   const dating = sha ? datingRecordFor(record.id, sha, records) : undefined;
-  if (!dating && !facts) return null;
-
   const date = async () => {
     if (busy || !facts) return;
     setBusy(true);
@@ -105,6 +109,24 @@ export const DateLabReport: React.FC<{
       setBusy(false);
     }
   };
+  return { facts, dating, busy, error, date };
+};
+
+/** The words for a dating error: another tab at it, or the registry's refusal as given. */
+export const dateErrorWords = (error: string, t: (k: 'app.plant.dated.elsewhere') => string): string =>
+  error === SEALING_ELSEWHERE ? t('app.plant.dated.elsewhere') : error;
+
+export const DateLabReport: React.FC<{
+  /** The plant the report is saved to. */
+  record: StrainRecord;
+  /** Where the saved report stands (LabResults.tsx useSavedReport); null while loading. */
+  saved: SavedReport | null | undefined;
+  /** 'row': a row in the plant page's list. 'card': inside the saved report's card. */
+  variant?: 'row' | 'card';
+}> = ({ record, saved, variant = 'row' }) => {
+  const { t } = useT();
+  const { facts, dating, busy, error, date } = useDateReport(record, saved);
+  if (!dating && !facts) return null;
 
   return (
     <Box

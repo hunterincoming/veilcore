@@ -159,7 +159,7 @@ export const Step2PairDna: React.FC<{
             variant="outlined"
             label={t('app.pair.recordChip', { fp: shortFingerprint(paired.recordFingerprint) })}
           />
-          <LinkIcon sx={{ color: 'primary.main' }} />
+          <LinkIcon sx={{ color: 'text.secondary' }} />
           <MChip
             initial={{ x: 30, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}

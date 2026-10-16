@@ -1,20 +1,24 @@
 // The four sections of the app, and the frame every step screen sits in.
 //
 // Each section always looks the same wherever it appears: its icon, its name, its colour.
-// The colours are darkened Okabe–Ito hues (readable as text on white), chosen to stay
-// distinct for colour-blind readers, and
-// never carry meaning alone: the icon and the name always come with them.
+// The colours (16 October 2026) are the inks a register is kept in, not a rainbow: Log is
+// graphite (the pencil of the log book), Send blue-black, License violet (copying pencil),
+// Prove iron-gall brown. None is the stamp red, which is kept for what is actually dated or
+// sealed, so a page of jobs isn't a page of red. Each reads as text on white and on Wash
+// (5.6:1 or more), they stay apart for colour-blind readers, and they never carry meaning
+// alone: the icon and the name always come with them. Log's icon is a
+// calendar being written in, not a leaf: a record can be a plant or an animal.
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
 import { Box, Button, Paper, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import SpaIcon from '@mui/icons-material/SpaOutlined';
+import LogIcon from '@mui/icons-material/EditCalendarOutlined';
 import BoxIcon from '@mui/icons-material/Inventory2Outlined';
 import DocIcon from '@mui/icons-material/DescriptionOutlined';
 import CheckIcon from '@mui/icons-material/ManageSearchOutlined';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
-import { ACCENT } from '../../config/theme';
+import { INK_COLOR, WASH } from '../../config/theme';
 import { useI18n } from '../../i18n';
 
 export type Section = 'log' | 'send' | 'license' | 'prove';
@@ -24,11 +28,11 @@ export type Section = 'log' | 'send' | 'license' | 'prove';
  * The frame's words are with the public pages' text (i18n/en.ts, app.frame.*): this file
  * comes with the first download (App.tsx focusScreenHeading), the app's own text doesn't.
  */
-export const SECTIONS: Record<Section, { name: string; color: string; Icon: typeof SpaIcon }> = {
-  log: { name: 'Log', color: ACCENT, Icon: SpaIcon },
-  send: { name: 'Send & receive', color: '#0060A0', Icon: BoxIcon },
-  license: { name: 'License & royalties', color: '#9C3F78', Icon: DocIcon },
-  prove: { name: 'Prove & check', color: '#A84300', Icon: CheckIcon },
+export const SECTIONS: Record<Section, { name: string; color: string; Icon: typeof LogIcon }> = {
+  log: { name: 'Log', color: INK_COLOR, Icon: LogIcon },
+  send: { name: 'Send & receive', color: '#485B75', Icon: BoxIcon },
+  license: { name: 'License & royalties', color: '#542E61', Icon: DocIcon },
+  prove: { name: 'Prove & check', color: '#684F36', Icon: CheckIcon },
 };
 
 /** A section's name in the visitor's language. */
@@ -50,9 +54,10 @@ export const SectionBand: React.FC<{ section: Section; step?: string; extra?: Re
         px: 2,
         py: 1.1,
         borderRadius: 2,
-        // The job's colour as a tint, with its name and icon in the full colour: the band
-        // says which job you are in without an outline round it (15 October 2026).
-        background: `${s.color}14`,
+        // One quiet ground for every job, with its name and icon in the job's colour: the
+        // band says which job you are in without an outline round it (15 October 2026), and
+        // Log's band is never a pink panel that could be taken for an error (16 October 2026).
+        background: WASH,
       }}
     >
       <s.Icon sx={{ color: s.color }} />

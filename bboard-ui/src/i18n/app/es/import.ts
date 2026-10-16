@@ -128,6 +128,10 @@ export const importing = {
     'Su sello de fecha público llega cuando su lote se fecha en {dated}. No tiene que hacer nada.',
   'app.import.sum.untilSaved':
     'Hasta que la guarde y la compruebe, las claves de los registros nuevos están solo en este navegador.',
+  'app.import.sum.noDna.one':
+    '{count} de estas plantas aún no tiene informe de ADN, así que no está vinculada con la planta misma. Para añadir uno, abra la página de la planta y siga “Obtenga una huella de ADN de esta planta”: envíe una muestra a un laboratorio con un código de laboratorio, o guarde un informe que ya tenga.',
+  'app.import.sum.noDna.other':
+    '{count} de estas plantas aún no tienen informe de ADN, así que no están vinculadas con las plantas mismas. Para añadir uno, abra la página de una planta y siga “Obtenga una huella de ADN de esta planta”: envíe una muestra a un laboratorio con un código de laboratorio, o guarde un informe que ya tenga.',
   'app.import.days.one': '{count} día',
   'app.import.days.other': '{count} días',
   'app.import.stamps.heading': 'Sellos de fecha de las claves',
@@ -153,6 +157,7 @@ export const importing = {
   'app.import.done.download': 'Descargar los resultados (CSV)',
   'app.import.done.downloadText':
     'Sus filas tal como estaban, cada una con su ID de registro, su huella y un enlace que cualquiera puede abrir para comprobarlo. Hecho aquí; no se sube nada.',
+  'app.import.done.csvDna': ' Su columna “DNA report” indica qué registros aún no tienen uno.',
   'app.import.done.byBatch':
     'Su sello de fecha público llega cuando su lote se fecha en {dated}. La página de cada planta muestra cuándo ocurrió. No tiene que hacer nada.',
   'app.import.done.dateStamp':

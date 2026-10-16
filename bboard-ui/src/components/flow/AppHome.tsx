@@ -27,7 +27,7 @@ import { AppHeader } from '../AppHeader';
 import { OPEN_RECEIVE_EVENT } from '../ClaimTransfer';
 import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
 import { linkCard } from '../a11y';
-import { GROUND, WASH } from '../../config/theme';
+import { ACCENT, GROUND, WASH } from '../../config/theme';
 import { useT, rich } from '../../i18n/app';
 import { SECTIONS, focusScreenHeading } from './FlowFrame';
 import { PasteBox } from './PasteBox';
@@ -38,6 +38,25 @@ import { RegistryExportButton } from '../RegistryExportButton';
 import { draftHeading, loadDraft } from './log-flow-state';
 import { homeStatusLine } from './plant-status-words';
 import { datingCardLine, datingHomeStatus, homeList, isLabReportRecord, keysOnlyHereLine } from '../stage/record-kinds';
+import { useDnaTie, useSavedReports } from './useDnaTie';
+import { dnaTieSentence } from '../../veilcore/dna-tie';
+import type { StrainRecord } from '../../veilcore/records';
+import type { SavedReport } from '../../veilcore/saved-report';
+
+/**
+ * A plant's card line: "Tied to the plant: DNA report signed by …, not dated yet." or "Not
+ * tied to the plant yet: add a DNA report." Nothing while a saved report is being checked.
+ */
+const TieLine: React.FC<{ record: StrainRecord; saved?: SavedReport }> = ({ record, saved }) => {
+  const tr = useT();
+  const { tie, date } = useDnaTie(record, saved, tr);
+  if (!tie) return null;
+  return (
+    <Typography variant="body2" color="text.secondary" data-home-tie={tie.state}>
+      {dnaTieSentence(tie, date, 'holder', tr)}
+    </Typography>
+  );
+};
 
 export const AppHome: React.FC = () => {
   const records = useRecords();
@@ -71,6 +90,8 @@ export const AppHome: React.FC = () => {
   // Plants a collection import made: their key stamps are queued (/records/import), a few a day.
   const imported = useMemo(() => new Set(REAL_CHAIN ? importedRecordIds() : []), [records]);
   const labFacts = useLabCardFacts(visible, lab);
+  // Where each plant's saved DNA report stands: a lab may have replaced or withdrawn it.
+  const savedReports = useSavedReports(visible, !labOnly);
 
   const onImport = async (file: File | null | undefined) => {
     if (!file) return;
@@ -266,7 +287,7 @@ export const AppHome: React.FC = () => {
             return (
               // Each plant is drawn as a plant tag, the object on the landing page: a cut
               // end and an eyelet. The eyelet's ring is amber while something is left to do
-              // (the line under the name says what), Seedling when nothing is.
+              // (the line under the name says what), Wash when nothing is.
               <Paper
                 key={r.id}
                 {...linkCard(() => void navigate(`/record/${r.id}`), t('app.home.openPlant', { name: r.strainName }))}
@@ -280,7 +301,7 @@ export const AppHome: React.FC = () => {
                   clipPath: 'polygon(18px 0, 100% 0, 100% 100%, 18px 100%, 0 calc(100% - 18px), 0 18px)',
                   '&:hover': { bgcolor: WASH },
                   // The cut corners would clip an outline: the focus ring is drawn inside.
-                  '&:focus-visible': { outline: 'none', bgcolor: WASH, boxShadow: 'inset 0 0 0 2px #11733F' },
+                  '&:focus-visible': { outline: 'none', bgcolor: WASH, boxShadow: `inset 0 0 0 2px ${ACCENT}` },
                 }}
               >
                 <Box
@@ -313,6 +334,8 @@ export const AppHome: React.FC = () => {
                     >
                       {s.text}
                     </Typography>
+                    {/* The breeder's own plant: whether a DNA report ties the record to it. */}
+                    {!own && !r.receivedFrom && <TieLine record={r} saved={savedReports[r.id]} />}
                     {datings.map((d) => (
                       <Typography
                         key={d.id}
@@ -342,8 +365,9 @@ export const AppHome: React.FC = () => {
                         px: 1,
                         py: 0.25,
                         borderRadius: 5,
-                        background: '#E3F1E8',
-                        color: '#1E5B36',
+                        // A report has come in: news, in the info blue, not a date.
+                        background: '#E6EEF5',
+                        color: '#174C78',
                         whiteSpace: 'nowrap',
                       }}
                     >

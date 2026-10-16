@@ -138,10 +138,9 @@ export const prove = {
     'Cualquiera que tenga el ID de este registro (por un enlace que usted envíe, el código QR de su certificado o un mensaje que alguien reenvíe) puede abrir su página de verificación. Elija qué datos muestra esa página. La elección se guarda con el registro en el servidor de registros de VeilCore y se aplica a todos los que tengan el ID; puede cambiarla aquí cuando quiera, y los enlaces ya enviados muestran entonces la nueva elección.',
   'app.prove.share.shownOn': 'Se muestra en la página de verificación',
   'app.prove.share.strangerSees': 'Lo que verá un desconocido con el ID',
-  'app.prove.share.reportOn':
-    'Con “Si hay un informe de laboratorio guardado” activado, la página de comprobación lo dice.',
+  'app.prove.share.reportOn': 'Con “Si hay un informe de ADN guardado” activado, la página de comprobación lo dice.',
   'app.prove.share.reportOff':
-    'Con “Si hay un informe de laboratorio guardado” desactivado, la página de comprobación no dice nada al respecto.',
+    'Con “Si hay un informe de ADN guardado” desactivado, la página de comprobación no dice nada al respecto.',
   'app.prove.share.yourLink': 'Su enlace',
   'app.prove.share.savedOn': 'Guardado en el servidor de registros',
   'app.prove.share.savedText':

@@ -168,7 +168,7 @@ describe('importing a 25-row accession log, end to end', () => {
     const csv = tab.bi.resultsCsv(job, ORIGIN);
     const back = tab.bi.parseCsv(csv).rows.filter((r) => r.some(Boolean));
     expect(back).toHaveLength(26);
-    expect(back[0]).toEqual([...HEADERS, 'VeilCore record ID', 'Fingerprint', 'Check link', 'Result']);
+    expect(back[0]).toEqual([...HEADERS, 'VeilCore record ID', 'Fingerprint', 'Check link', 'Result', 'DNA report']);
     const byRef = new Map(mine.map((r) => [r.refId, r]));
     back.slice(1).forEach((row, i) => {
       expect(row.slice(0, 7)).toEqual(rowsIn[i]);
@@ -179,6 +179,7 @@ describe('importing a 25-row accession log, end to end', () => {
         r!.recordFingerprint,
         `${ORIGIN}/verify/${r!.id}?fp=${r!.recordFingerprint}`,
         'Sealed',
+        tab.bi.NO_DNA_REPORT,
       ]);
     });
 

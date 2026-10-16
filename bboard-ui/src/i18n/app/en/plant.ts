@@ -34,7 +34,7 @@ export const plant = {
   'app.plant.action.labReports': 'Lab reports',
   'app.plant.action.sendToLab': 'Send it to a lab or breeder',
   'app.plant.action.licenseIt': 'License it',
-  'app.plant.action.saveReport': 'Save a lab report to this plant',
+  'app.plant.action.saveReport': 'Save a DNA report to this plant',
   'app.plant.action.checkReport': 'Check a report matches',
   'app.plant.action.familyTree': 'Family tree',
   'app.plant.action.freshBackup': 'Save a fresh backup',
@@ -68,6 +68,34 @@ export const plant = {
   'app.plant.mark.wait': 'not yet',
   'app.plant.recordDated': 'Record dated',
   'app.plant.labReport': 'Lab report',
+  'app.plant.dnaReport': 'DNA report',
+  'app.plant.tie.tied': 'Tied to the plant',
+  'app.plant.tie.notYet': 'Not tied to the plant yet',
+  'app.plant.tie.notNow': 'Not tied to the plant now',
+  'app.plant.tie.lab': 'DNA report {lead}',
+  'app.plant.tie.self': 'DNA report you saved (no lab signature matches it)',
+  'app.plant.tie.selfPublic': 'DNA report the holder saved (no lab signature matches it)',
+  'app.plant.tie.savedHolder': 'DNA report you saved',
+  'app.plant.tie.savedPublic': 'DNA report the holder saved',
+  'app.plant.tie.replaced': 'the lab replaced the DNA report saved here',
+  'app.plant.tie.withdrawn': 'the lab withdrew the DNA report saved here',
+  'app.plant.tie.add': 'add a DNA report',
+  'app.plant.tie.noneSaved': 'no DNA report is saved to this record',
+  'app.plant.tie.cameBack': 'a lab report came back: open it and save it here',
+  'app.plant.tie.openedNotSaved': 'a lab report is open, not saved to this plant',
+  'app.plant.tie.notDated': 'not dated yet',
+  'app.plant.tie.dating': 'being dated ({status})',
+  'app.plant.tie.datingPlain': 'being dated',
+  'app.plant.tie.dated': 'dated {date}',
+  'app.plant.tie.unconfirmed': 'not dated: {status}',
+  'app.plant.tie.sentence': 'Tied to the plant: {what}, {date}.',
+  'app.plant.tie.sentenceNoDate': 'Tied to the plant: {what}.',
+  'app.plant.tie.sentenceNone': 'Not tied to the plant yet: {what}.',
+  'app.plant.tie.sentenceNot': 'Not tied to the plant now: {what}.',
+  'app.plant.tie.means':
+    'A DNA report lets a lab compare a new test of a plant with it. It doesn’t show by itself that a plant matches.',
+  'app.plant.tie.sub': 'Report {date}. A lab can compare a new test of the plant with it.',
+  'app.plant.tie.why': 'A DNA report from your lab is what ties a record to the plant itself.',
   'app.plant.backupChecked': 'Backup checked',
   'app.plant.checking': 'checking…',
   'app.plant.savedToPlant': 'saved to this plant',
@@ -113,7 +141,7 @@ export const plant = {
   'app.plant.next.backup.why':
     'This plant’s keys are only on this device right now. If it breaks or the browser is cleared, nobody can prove you hold it. Saving takes a minute.',
   'app.plant.next.backup.action': 'Save my backup',
-  'app.plant.next.dates.title': 'This record dates a lab report',
+  'app.plant.next.dates.title': 'This record dates a DNA report',
   'app.plant.next.dates.why':
     'It holds only the report’s SHA-256, its lab report code and the lab’s name as signed, never the report. When its batch is dated, it shows the report existed by then, without showing anyone the markers.',
   'app.plant.next.stamp.why':
@@ -146,13 +174,13 @@ export const plant = {
     'Signed with your lab’s key and locked so only the breeder can open it. VeilCore can’t read it.',
   'app.plant.next.sent.action': 'See what you sent',
   'app.plant.next.send.action': 'Send results back',
-  'app.plant.next.corrected.title': 'Save the corrected lab report',
+  'app.plant.next.corrected.title': 'Save the corrected DNA report',
   'app.plant.next.corrected.why':
-    'The lab replaced the lab report saved to this plant. Until you save the corrected one, your plant page, certificate and links say the saved one was replaced.',
+    'The lab replaced the DNA report saved to this plant. Until you save the corrected one, your plant page, certificate and links say the saved one was replaced.',
   'app.plant.next.corrected.action': 'Open the corrected one',
   'app.plant.next.noCurrent.why':
     'The original was replaced and the correction withdrawn. Ask the lab to send one again. Until then your certificate and links say the saved one was replaced.',
-  'app.plant.next.labWithdrew.title': 'The lab withdrew the lab report saved here',
+  'app.plant.next.labWithdrew.title': 'The lab withdrew the DNA report saved here',
   'app.plant.next.labWithdrew.whyNewer':
     'It stays saved to this plant, and your certificate and links say it was withdrawn. A newer lab report is here: open it and save it instead.',
   'app.plant.next.labWithdrew.why':
@@ -162,27 +190,41 @@ export const plant = {
     'It’s locked so only you can open it, with this plant’s key. Opening it checks the lab’s signature here.',
   'app.plant.next.sample.title': 'Send a sample to a lab',
   'app.plant.next.sample.whySaved':
-    'You’ve saved a lab report to this plant, which is your own statement. A lab signing that it received a sample adds a second party, which is stronger evidence than your statement alone.',
+    'You’ve saved a DNA report to this plant, which is your own statement. A lab signing that it received a sample adds a second party, which is stronger evidence than your statement alone.',
   'app.plant.next.sample.why':
     'Right now this record is your own account of the plant. A lab signing that it received a sample, and sending a lab report back, makes it stronger evidence than your own account.',
   'app.plant.next.sample.action': 'Send to a lab',
-  'app.plant.next.save.title': 'Save the lab report to this plant',
+  'app.plant.next.dna.title': 'Get a DNA fingerprint for this plant',
+  'app.plant.next.dna.why':
+    'A dated record shows a description existed. A DNA report (a lab’s genetic fingerprint of the plant) is what ties your record to the actual plant. Two ways to get one:',
+  'app.plant.next.dna.labTitle': 'Send a sample to a lab',
+  'app.plant.next.dna.labText':
+    'Make a lab code and send a sample with it. The lab’s DNA report comes back here, locked so only you can open it.',
+  'app.plant.next.dna.labSoon':
+    'Getting the lab’s DNA report back here, locked so only you can open it, is coming to this site soon. For now, ask your lab for the report and save it here.',
+  'app.plant.next.dna.haveTitle': 'Already have a DNA report?',
+  'app.plant.next.dna.haveText': 'Save it to this plant. It’s read on your device; the file is never uploaded.',
+  'app.plant.next.dna.haveAction': 'Save a DNA report',
+  'app.plant.next.date.title': 'Date this DNA report',
+  'app.plant.next.date.why':
+    'It’s saved to this plant, but nothing dates it yet. Dating it shows the report existed by that date, without showing anyone the markers.',
+  'app.plant.next.save.title': 'Save the DNA report to this plant',
   'app.plant.next.save.why':
-    'A lab signed that it received a sample. When its lab report comes back, save it to this plant so a later test can be compared with it.',
+    'A lab signed that it received a sample. When its DNA report comes back, save it to this plant: that is what ties your record to the plant, so a later test can be compared with it.',
   'app.plant.next.save.action': 'Save it to this plant',
   'app.plant.next.ready.title': 'This record is ready to use',
   'app.plant.next.ready.why':
-    'A lab signed that it received a sample, and a lab report is saved to this plant. You can send material onward or license it, with terms that apply to offspring declared from this record.',
+    'A lab signed that it received a sample, and a DNA report is saved to this plant. You can send material onward or license it, with terms that apply to offspring declared from this record.',
   'app.plant.next.ready.action': 'Start an agreement',
   'app.plant.next.backTo': 'Back to {name}',
-  'app.plant.next.noCurrent.title': 'No current lab report from {lab}',
+  'app.plant.next.noCurrent.title': 'No current DNA report from {lab}',
   'app.plant.next.open.title': 'Open the lab report from {lab}',
   'app.plant.next.label': 'Next step',
   'app.plant.next.stamp.title': 'Add the date stamp',
   'app.plant.next.stamp.action': 'Add the date stamp',
   'app.plant.next.open.action': 'Open',
   'app.plant.chain.sealed': 'Sealed',
-  'app.plant.chain.reportSaved': 'Lab report saved',
+  'app.plant.chain.reportSaved': 'DNA report saved',
   'app.plant.chain.receipt': 'Receipt confirmed',
   'app.plant.chain.licensed': 'Licensed',
   'app.plant.chain.licensedN': 'Licensed ({n})',
@@ -234,21 +276,21 @@ export const plant = {
   // LineageGraph.tsx and stage/StageRows.tsx
   'app.plant.tree.none': 'No lineage recorded yet. Add parent cultivars when logging to build the family tree.',
   'app.plant.tree.offspring': 'Offspring',
-  'app.plant.tree.datedReports': 'Dated lab reports (not offspring)',
+  'app.plant.tree.datedReports': 'Dated DNA reports (not offspring)',
   'app.plant.action.nextStage': 'Add the next generation or selection',
   'app.plant.action.nextStageHint': 'A new record with this plant as its parent. Seal each stage when it happens.',
   // stage/DateLabReport.tsx and lab-report-date.ts
   'app.plant.dated.refused': 'The registry didn’t save it ({reason}). Nothing was dated. Try again.',
-  'app.plant.dated.line': 'Lab report dated: in <link></link> ({status})',
+  'app.plant.dated.line': 'DNA report dated: in <link></link> ({status})',
   'app.plant.dated.dated': 'dated {value}',
-  'app.plant.dated.action': 'Date this lab report',
+  'app.plant.dated.action': 'Date this DNA report',
   'app.plant.dated.why': 'So you can show this report existed by that date without showing anyone the markers.',
   'app.plant.dated.seals':
     "Seals a small record with only the report's SHA-256, its lab report code and the lab's name as signed. The report stays with you. Its date comes when its batch is dated.",
   'app.plant.dated.elsewhere':
-    'This lab report is being dated in another tab or window. Wait a minute, then look again: it will show here.',
+    'This DNA report is being dated in another tab or window. Wait a minute, then look again: it will show here.',
   // stage/LabReportOverview.tsx: the page of a record that dates a lab report.
-  'app.plant.datingPage.title': 'This record dates a lab report for <plant></plant>',
+  'app.plant.datingPage.title': 'This record dates a DNA report for <plant></plant>',
   'app.plant.datingPage.holds':
     "It holds only the report's SHA-256, its lab report code and the lab's name as signed, never the report. When its batch is dated, it shows the report existed by then, without showing anyone the markers.",
   'app.plant.datingPage.recordDated': 'Record dated: {value}',
@@ -299,7 +341,7 @@ export const plant = {
   'app.plant.keys.restore': 'Restore keys from a backup file',
   // EvidenceBundle.tsx: the evidence bundle's dialog (the bundle itself is in English).
   'app.plant.bundle.download': 'Download evidence bundle',
-  'app.plant.bundle.chooseOrUntick': 'Choose the lab report file, or untick it.',
+  'app.plant.bundle.chooseOrUntick': 'Choose the DNA report file, or untick it.',
   'app.plant.bundle.tooBig': '{name} is larger than 200 MB, so it wasn’t read.',
   'app.plant.bundle.intro':
     'One file with everything someone needs to check this record’s date without VeilCore: the record as it was sealed, proof that it’s in a dated batch, where that batch was recorded, and a page that does the checks offline. It also has a one-page summary to print for a lawyer or examiner, and sample text for a written declaration (not legal advice). A README inside says what it shows and what it doesn’t.',
@@ -312,17 +354,17 @@ export const plant = {
     'With it, anyone who has the bundle can tie this record to its key, and to everything that key does on the network. Leave it out unless they need it.',
   'app.plant.bundle.keyNotHere': 'The key isn’t in this browser. Open your backup here to include it.',
   'app.plant.bundle.includeLab':
-    'Include the lab report file. Without it, the bundle has only the report’s fingerprint, not what it says.',
-  'app.plant.bundle.chooseLab': 'Choose the lab report file',
+    'Include the DNA report file. Without it, the bundle has only the report’s fingerprint, not what it says.',
+  'app.plant.bundle.chooseLab': 'Choose the DNA report file',
   'app.plant.bundle.checkedAgainst': 'It’s checked against the one saved to this plant before it goes in.',
-  'app.plant.bundle.labFileAria': 'Lab report file',
+  'app.plant.bundle.labFileAria': 'DNA report file',
   'app.plant.bundle.downloaded':
     'Downloaded {name}. Open verify.html inside it to check it, or EXAMINER-SUMMARY.html to print a summary.',
   'app.plant.bundle.making': 'Making it…',
   'app.plant.bundle.downloadButton': 'Download',
   // wizard/Step3Certificate.tsx: the screen around the certificate (the card stays in English).
   'app.plant.cert.intro':
-    "For your files and your lawyer: the sealed record, a fresh check that it hasn't changed, whether it is anchored, the lab report saved to it, any lab receipt and active licenses. It carries the record details but no genetic data or lab files. The QR code opens the record's public check page.",
+    "For your files and your lawyer: the sealed record, a fresh check that it hasn't changed, whether it is anchored, whether a DNA report ties it to the plant, any lab receipt and active licenses. It carries the record details but no genetic data or lab files. The QR code opens the record's public check page.",
   'app.plant.cert.jsonDone': 'Summary (JSON) downloaded.',
   'app.plant.cert.pngDone': 'Certificate downloaded.',
   'app.plant.cert.pngFailed': 'Could not render the certificate image.',

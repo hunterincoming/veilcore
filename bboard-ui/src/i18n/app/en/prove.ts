@@ -143,8 +143,8 @@ export const prove = {
     "Anyone who has this record's id — from a link you send, the QR code on its certificate, or a message someone forwards — can open its verify page. Pick which facts that page shows. The choice is saved with the record on VeilCore's registry and applies to everyone with the id; you can change it here at any time, and links already sent then show the new choice.",
   'app.prove.share.shownOn': 'Shown on the verify page',
   'app.prove.share.strangerSees': 'What a stranger with the id will see',
-  'app.prove.share.reportOn': 'With “Whether a lab report is saved” on, the check page says so.',
-  'app.prove.share.reportOff': 'With “Whether a lab report is saved” off, the check page says nothing about it.',
+  'app.prove.share.reportOn': 'With “Whether a DNA report is saved” on, the check page says so.',
+  'app.prove.share.reportOff': 'With “Whether a DNA report is saved” off, the check page says nothing about it.',
   'app.prove.share.yourLink': 'Your link',
   'app.prove.share.savedOn': 'Saved on the registry',
   'app.prove.share.savedText':

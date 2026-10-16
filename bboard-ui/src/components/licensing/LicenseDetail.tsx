@@ -313,7 +313,7 @@ export const LicenseDetail: React.FC = () => {
                 {license.royaltyLog.map((e, i) => {
                   const dv = dealValueOf(license, e.input);
                   return (
-                    <Box key={i} sx={{ p: 1, borderRadius: 1, background: 'rgba(22,32,27,0.02)' }}>
+                    <Box key={i} sx={{ p: 1, borderRadius: 1, background: 'rgba(30,34,39,0.02)' }}>
                       <Typography variant="caption" color="text.secondary">
                         {new Date(e.at).toLocaleDateString()}
                         {e.note ? ` · ${e.note}` : ''}

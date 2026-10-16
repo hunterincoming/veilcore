@@ -4,25 +4,25 @@
 
 export const verify = {
   // saved-report.ts publicReportLine and withdrawnSignaturesLine
-  'app.verify.report.notSaved': 'The holder has not saved a lab report to this record.',
+  'app.verify.report.notSaved': 'The holder has not saved a DNA report to this record.',
   'app.verify.report.asOf': ' (as of when this link was made)',
   'app.verify.report.staleNote':
     ' This link was made when a different file was saved; this line is about the one saved now.',
   'app.verify.report.matches':
-    'The holder saved a lab report to this record{asOf}. Its file (SHA-256 {sha}) matches the lab report {lead}: signature checked in this browser.{rest}{staleNote}',
-  'app.verify.report.which': 'The lab report saved to this record{asOf} (SHA-256 {sha})',
+    'The holder saved a DNA report to this record{asOf}. Its file (SHA-256 {sha}) matches the lab report {lead}: signature checked in this browser.{rest}{staleNote}',
+  'app.verify.report.which': 'The DNA report saved to this record{asOf} (SHA-256 {sha})',
   'app.verify.report.replaced': '{which} was replaced by its lab on {on} with a corrected one. {tail}{staleNote}',
   'app.verify.report.withdrawn': '{which} was withdrawn by its lab on {on}. {tail}{staleNote}',
   'app.verify.report.ownSha':
-    'The holder saved a lab report file to this record{asOf} (SHA-256 {sha}). No lab signature on this record matches it, so it is the holder’s own statement.{staleNote}',
+    'The holder saved a DNA report file to this record{asOf} (SHA-256 {sha}). No lab signature on this record matches it, so it is the holder’s own statement.{staleNote}',
   'app.verify.report.own':
-    'The holder saved a lab report file to this record. No lab signature on this record matches it, so it is the holder’s own statement.{staleNote}',
+    'The holder saved a DNA report file to this record. No lab signature on this record matches it, so it is the holder’s own statement.{staleNote}',
   'app.verify.report.unnamedSigned':
-    'The holder saved a lab report to this record. This link doesn’t name the file, so this page can’t tell whether it is the signed lab report listed above.',
+    'The holder saved a DNA report to this record. This link doesn’t name the file, so this page can’t tell whether it is the signed lab report listed above.',
   'app.verify.report.unnamedWithdrawn':
-    'The holder saved a lab report to this record. This link doesn’t name the file, and every lab report signed about this record was withdrawn by its lab, so it is the holder’s own statement.',
+    'The holder saved a DNA report to this record. This link doesn’t name the file, and every lab report signed about this record was withdrawn by its lab, so it is the holder’s own statement.',
   'app.verify.report.unnamedNone':
-    'The holder saved a lab report to this record. No lab has signed a lab report about this record, so it is the holder’s own statement.',
+    'The holder saved a DNA report to this record. No lab has signed a lab report about this record, so it is the holder’s own statement.',
   'app.verify.kind.receipts.one': 'a lab’s receipt',
   'app.verify.kind.receipts.other': '{count} lab receipts',
   'app.verify.kind.reports.one': 'a lab report',
@@ -61,7 +61,7 @@ export const verify = {
   'app.verify.anchor.summaryAdd': '{summary} Checked on Midnight: the batch root’s date stamp.',
   // veilcore/disclosure.ts: the facts a holder can share (Show someone and the check page).
   'app.verify.field.existence': 'Prior possession (shown only once anchored)',
-  'app.verify.field.attestation-status': 'Whether a lab report is saved',
+  'app.verify.field.attestation-status': 'Whether a DNA report is saved',
   'app.verify.field.descent-clean': 'Lineage status, as the registry reports it',
   'app.verify.field.sealed-at': 'When it was sealed (the holder’s device clock)',
   'app.verify.field.parent-names': 'Parent cultivar names',
@@ -168,7 +168,7 @@ export const verify = {
     ' This page found that date stamp on Midnight itself (above). It dates the record, not who held it.',
   'app.verify.own.notConfirmed': ' This page has not confirmed it on the chain.',
   'app.verify.own.notAnchored': "Prior possession: not anchored yet, so its date rests on this registry's records.",
-  'app.verify.dna.saved': 'The holder saved a lab report to this record.',
+  'app.verify.dna.saved': 'The holder saved a DNA report to this record.',
   'app.verify.lineage.intact':
     'The registry reports the lineage intact — an unbroken chain back to the sealed record. This page has not checked it.',
   'app.verify.lineage.notChecked':
@@ -206,7 +206,7 @@ export const verify = {
   'app.verify.ex.note4':
     'A lab can sign its receipt for a sample, and its lab report, with its own key. Each line says which it is. The page checks the signature; whether the key is a lab you trust is your call.',
   'app.verify.ex.fact5':
-    'The holder saved a lab report to this record. Its file (SHA-256 7c1e04d2…9b3a51) matches the lab report signed by a key named “Example Lab” (name not checked): signature checked in this browser.',
+    'The holder saved a DNA report to this record. Its file (SHA-256 7c1e04d2…9b3a51) matches the lab report signed by a key named “Example Lab” (name not checked): signature checked in this browser.',
   'app.verify.ex.note5': 'The holder chooses which facts appear here. Anything not shared is listed as not shared.',
   'app.verify.ex.marks':
     "✓ this page checked the line itself, in your browser. ○ VeilCore's registry or the holder reports it; this page didn't check it. ⊗ a check failed, or a lab withdrew what it signed.",

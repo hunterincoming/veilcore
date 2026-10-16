@@ -138,9 +138,9 @@ export const prove = {
     'この記録のIDを持つ人は誰でも（あなたが送ったリンク、証明書のQRコード、誰かが転送したメッセージなどから）その確認ページを開けます。そのページに表示する事実を選んでください。選んだ内容は記録と一緒にVeilCoreのレジストリに保存され、IDを持つ全員に適用されます。ここでいつでも変更でき、送信済みのリンクにも新しい内容が表示されます。',
   'app.prove.share.shownOn': '確認ページに表示',
   'app.prove.share.strangerSees': 'IDを持つ知らない人に見えるもの',
-  'app.prove.share.reportOn': '「検査報告書が保存されているか」がオンなので、確認ページにはそのことが表示されます。',
+  'app.prove.share.reportOn': '「DNA報告書が保存されているか」がオンなので、確認ページにはそのことが表示されます。',
   'app.prove.share.reportOff':
-    '「検査報告書が保存されているか」がオフなので、確認ページにはそれについて何も表示されません。',
+    '「DNA報告書が保存されているか」がオフなので、確認ページにはそれについて何も表示されません。',
   'app.prove.share.yourLink': 'あなたのリンク',
   'app.prove.share.savedOn': 'レジストリに保存しました',
   'app.prove.share.savedText':

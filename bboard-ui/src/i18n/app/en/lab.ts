@@ -28,14 +28,14 @@ export const lab = {
   'app.lab.onDay': ' on {date}',
   'app.lab.replacedTail': 'The holder hasn’t saved the corrected one yet.',
   'app.lab.withdrawnTail': 'It is still the file saved here; the lab no longer stands behind it.',
-  'app.lab.sentence.none': 'No lab report is saved to this plant.',
+  'app.lab.sentence.none': 'No DNA report is saved to this plant.',
   'app.lab.sentence.lab':
-    'The saved lab report matches a lab report {lead}, by its SHA-256 (signature checked in this browser).{rest}',
+    'The saved DNA report matches a lab report {lead}, by its SHA-256 (signature checked in this browser).{rest}',
   'app.lab.sentence.self':
-    'A lab report file is saved to this plant. No lab signature matches it, so it is the holder’s own statement.',
+    'A DNA report file is saved to this plant. No lab signature matches it, so it is the holder’s own statement.',
   'app.lab.sentence.replaced':
-    'The lab report saved to this plant was replaced by the lab{on} with a corrected one. {tail}',
-  'app.lab.sentence.withdrawn': 'The lab report saved to this plant was withdrawn by the lab{on}. {tail}',
+    'The DNA report saved to this plant was replaced by the lab{on} with a corrected one. {tail}',
+  'app.lab.sentence.withdrawn': 'The DNA report saved to this plant was withdrawn by the lab{on}. {tail}',
   // custody.ts
   'app.lab.custody.sealIntact': 'seal intact',
   'app.lab.custody.sealNotIntact': 'seal not intact',
@@ -267,7 +267,7 @@ export const lab = {
     "This plant's key isn't on this device, so its lab reports can't be opened here. <link>Get your plants back from your backup</link> first.",
   'app.lab.results.gotIt': 'Got it',
   'app.lab.results.whatOthersSee':
-    '<b>What others can see.</b> The lab’s signature is public; the report isn’t. Anyone with a link to this plant’s check page sees that a lab report about it was signed, the report file’s SHA-256, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If you save the report to this plant and share “Whether a lab report is saved” in Show someone, they also see that the saved file matches it.',
+    '<b>What others can see.</b> The lab’s signature is public; the report isn’t. Anyone with a link to this plant’s check page sees that a lab report about it was signed, the report file’s SHA-256, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If you save the report to this plant and share “Whether a DNA report is saved” in Show someone, they also see that the saved file matches it.',
   'app.lab.results.noCurrent': 'No current report from {lab}: the original was replaced and the correction withdrawn.',
   'app.lab.results.looking': 'Looking for lab reports…',
   'app.lab.results.nothingYet': 'Nothing yet. When a lab you sent this plant to sends a lab report, it shows up here.',

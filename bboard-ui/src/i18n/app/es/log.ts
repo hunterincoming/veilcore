@@ -17,7 +17,7 @@ export const log = {
   'app.log.method.other': 'Otro',
   'app.log.nextSaveBackup': 'Siguiente: guarde su copia de seguridad',
   'app.log.reportIntro':
-    '<b>Opcional.</b> ¿Ya tiene un informe de laboratorio de esta planta? Agréguelo ahora y se guardará con el registro. ¿Aún no tiene informe? Omita este paso. Puede agregar uno cuando quiera desde la página de la planta.',
+    '<b>Opcional.</b> ¿Ya tiene un informe de ADN de esta planta? Es lo que vincula su registro con la planta real. Agréguelo ahora y se guardará con el registro. ¿Aún no tiene informe? Omita este paso: la página de la planta muestra cómo conseguir uno.',
   'app.log.finish': 'Terminar',
   'app.log.nextStageTitle': 'Registre la siguiente generación o selección',
   'app.log.opening': 'Abriendo {id}…',

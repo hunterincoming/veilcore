@@ -4,26 +4,26 @@
 import type { AppTranslation } from '../../translate';
 
 export const verify = {
-  'app.verify.report.notSaved': 'Le détenteur n’a pas enregistré de rapport de laboratoire sur cet enregistrement.',
+  'app.verify.report.notSaved': 'Le détenteur n’a pas enregistré de rapport ADN sur cet enregistrement.',
   'app.verify.report.asOf': ' (au moment où ce lien a été créé)',
   'app.verify.report.staleNote':
     ' Ce lien a été créé quand un autre fichier était enregistré ; cette ligne concerne celui enregistré maintenant.',
   'app.verify.report.matches':
-    'Le détenteur a enregistré un rapport de laboratoire sur cet enregistrement{asOf}. Son fichier (SHA-256 {sha}) correspond au rapport de laboratoire {lead} : signature vérifiée dans ce navigateur.{rest}{staleNote}',
-  'app.verify.report.which': 'Le rapport de laboratoire enregistré sur cet enregistrement{asOf} (SHA-256 {sha})',
+    'Le détenteur a enregistré un rapport ADN sur cet enregistrement{asOf}. Son fichier (SHA-256 {sha}) correspond au rapport de laboratoire {lead} : signature vérifiée dans ce navigateur.{rest}{staleNote}',
+  'app.verify.report.which': 'Le rapport ADN enregistré sur cet enregistrement{asOf} (SHA-256 {sha})',
   'app.verify.report.replaced':
     '{which} a été remplacé par son laboratoire le {on} par un rapport corrigé. {tail}{staleNote}',
   'app.verify.report.withdrawn': '{which} a été retiré par son laboratoire le {on}. {tail}{staleNote}',
   'app.verify.report.ownSha':
-    'Le détenteur a enregistré un fichier de rapport de laboratoire sur cet enregistrement{asOf} (SHA-256 {sha}). Aucune signature de laboratoire sur cet enregistrement n’y correspond : c’est la propre déclaration du détenteur.{staleNote}',
+    'Le détenteur a enregistré un fichier de rapport ADN sur cet enregistrement{asOf} (SHA-256 {sha}). Aucune signature de laboratoire sur cet enregistrement n’y correspond : c’est la propre déclaration du détenteur.{staleNote}',
   'app.verify.report.own':
-    'Le détenteur a enregistré un fichier de rapport de laboratoire sur cet enregistrement. Aucune signature de laboratoire sur cet enregistrement n’y correspond : c’est la propre déclaration du détenteur.{staleNote}',
+    'Le détenteur a enregistré un fichier de rapport ADN sur cet enregistrement. Aucune signature de laboratoire sur cet enregistrement n’y correspond : c’est la propre déclaration du détenteur.{staleNote}',
   'app.verify.report.unnamedSigned':
-    'Le détenteur a enregistré un rapport de laboratoire sur cet enregistrement. Ce lien ne nomme pas le fichier : cette page ne peut donc pas dire s’il s’agit du rapport signé indiqué ci-dessus.',
+    'Le détenteur a enregistré un rapport ADN sur cet enregistrement. Ce lien ne nomme pas le fichier : cette page ne peut donc pas dire s’il s’agit du rapport signé indiqué ci-dessus.',
   'app.verify.report.unnamedWithdrawn':
-    'Le détenteur a enregistré un rapport de laboratoire sur cet enregistrement. Ce lien ne nomme pas le fichier, et chaque rapport signé au sujet de cet enregistrement a été retiré par son laboratoire : c’est donc la propre déclaration du détenteur.',
+    'Le détenteur a enregistré un rapport ADN sur cet enregistrement. Ce lien ne nomme pas le fichier, et chaque rapport signé au sujet de cet enregistrement a été retiré par son laboratoire : c’est donc la propre déclaration du détenteur.',
   'app.verify.report.unnamedNone':
-    'Le détenteur a enregistré un rapport de laboratoire sur cet enregistrement. Aucun laboratoire n’a signé de rapport au sujet de cet enregistrement : c’est donc la propre déclaration du détenteur.',
+    'Le détenteur a enregistré un rapport ADN sur cet enregistrement. Aucun laboratoire n’a signé de rapport au sujet de cet enregistrement : c’est donc la propre déclaration du détenteur.',
   'app.verify.kind.receipts.one': 'un accusé de réception de laboratoire',
   'app.verify.kind.receipts.other': '{count} accusés de réception de laboratoire',
   'app.verify.kind.reports.one': 'un rapport de laboratoire',
@@ -63,7 +63,7 @@ export const verify = {
     'Lot {batch} : le registre indique que la racine du lot a été inscrite sur {where}{tx}. La date est {date}. {why} Ne vous fiez pas à la date tant qu’elle n’est pas vérifiée.{test}',
   'app.verify.anchor.summaryAdd': '{summary} Vérifié sur Midnight : l’horodatage de la racine du lot.',
   'app.verify.field.existence': 'Détention antérieure (affichée seulement une fois ancré)',
-  'app.verify.field.attestation-status': 'Si un rapport de laboratoire est enregistré',
+  'app.verify.field.attestation-status': 'Si un rapport ADN est enregistré',
   'app.verify.field.descent-clean': 'État de la lignée, selon le registre',
   'app.verify.field.sealed-at': 'Quand il a été scellé (horloge de l’appareil du détenteur)',
   'app.verify.field.parent-names': 'Noms des cultivars parents',
@@ -173,7 +173,7 @@ export const verify = {
   'app.verify.own.notConfirmed': ' Cette page ne l’a pas confirmé sur la chaîne.',
   'app.verify.own.notAnchored':
     'Détention antérieure : pas encore ancré, sa date repose donc sur les données de ce registre.',
-  'app.verify.dna.saved': 'Le détenteur a enregistré un rapport de laboratoire sur cet enregistrement.',
+  'app.verify.dna.saved': 'Le détenteur a enregistré un rapport ADN sur cet enregistrement.',
   'app.verify.lineage.intact':
     'Le registre signale la lignée comme intacte — une chaîne ininterrompue jusqu’à l’enregistrement scellé. Cette page ne l’a pas vérifié.',
   'app.verify.lineage.notChecked':
@@ -211,7 +211,7 @@ export const verify = {
   'app.verify.ex.note4':
     'Un laboratoire peut signer avec sa propre clé son accusé de réception d’un échantillon et son rapport de laboratoire. Chaque ligne dit de quoi il s’agit. La page vérifie la signature ; c’est à vous de juger si la clé appartient à un laboratoire de confiance.',
   'app.verify.ex.fact5':
-    'Le détenteur a enregistré un rapport de laboratoire sur cet enregistrement. Son fichier (SHA-256 7c1e04d2…9b3a51) correspond au rapport de laboratoire signé par une clé nommée « Example Lab » (nom non vérifié) : signature vérifiée dans ce navigateur.',
+    'Le détenteur a enregistré un rapport ADN sur cet enregistrement. Son fichier (SHA-256 7c1e04d2…9b3a51) correspond au rapport de laboratoire signé par une clé nommée « Example Lab » (nom non vérifié) : signature vérifiée dans ce navigateur.',
   'app.verify.ex.note5':
     'Le détenteur choisit quelles informations apparaissent ici. Tout ce qui n’est pas partagé est indiqué comme non partagé.',
   'app.verify.ex.marks':

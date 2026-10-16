@@ -231,7 +231,7 @@ describe('the public check page’s lab report line', () => {
     );
     expect(publicReportLine({ paired: true, atts: [], bound: true }).text).toMatch(/No lab has signed a lab report/);
     expect(publicReportLine({ paired: false, atts: [v1], bound: true }).text).toBe(
-      'The holder has not saved a lab report to this record.',
+      'The holder has not saved a DNA report to this record.',
     );
   });
 
@@ -266,7 +266,7 @@ describe('round 6: the check page describes the file saved NOW, from the registr
     });
     expect(l.status).toBe('failed');
     expect(l.text).toMatch(
-      /^The lab report saved to this record \(SHA-256 7c1e0422…222222\) was withdrawn by its lab on 2026-10-15 \(UTC\)\./,
+      /^The DNA report saved to this record \(SHA-256 7c1e0422…222222\) was withdrawn by its lab on 2026-10-15 \(UTC\)\./,
     );
     expect(l.text).not.toMatch(/No lab has signed|holder kept|as of when this link was made/);
     // The same story as the certificate, which reads it from the breeder's side.
@@ -339,7 +339,7 @@ describe('round 6: the check page describes the file saved NOW, from the registr
     });
     expect(l.status).toBe('failed');
     expect(l.text).toBe(
-      'The lab report saved to this record (SHA-256 3bb6af11…111111) was replaced by its lab on 2026-10-15 (UTC) with a corrected one. The holder hasn’t saved the corrected one yet.',
+      'The DNA report saved to this record (SHA-256 3bb6af11…111111) was replaced by its lab on 2026-10-15 (UTC) with a corrected one. The holder hasn’t saved the corrected one yet.',
     );
   });
 

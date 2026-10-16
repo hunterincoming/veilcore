@@ -90,12 +90,12 @@ export const labReportSealInput = (
 };
 
 /**
- * The plant page's line: "Lab report dated: in VEIL-… (waiting for a batch)", or "(dated
+ * The plant page's line: "DNA report dated: in VEIL-… (waiting for a batch)", or "(dated
  * 2026-10-11 UTC — checked on Midnight)" once its batch is dated. The words in brackets are
  * the record's own date row (plant-status-words.ts recordDateRow), never made up here.
  */
 export const labReportDatedLine = (recordId: string, row: { mark: RowMark; value: string }): string =>
-  `Lab report dated: in ${recordId} (${row.mark === 'done' || row.mark === 'reported' ? `dated ${row.value}` : row.value})`;
+  `DNA report dated: in ${recordId} (${row.mark === 'done' || row.mark === 'reported' ? `dated ${row.value}` : row.value})`;
 
 // --- sealing it once ---------------------------------------------------------------------
 

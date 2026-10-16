@@ -6,7 +6,7 @@ import type { AppTranslation } from '../../translate';
 export const pair = {
   'app.pair.aFile': 'un archivo',
   'app.pair.noPlant': 'No se encontró la planta donde guardarlo.',
-  'app.pair.savedTitle': 'Informe de laboratorio guardado en esta planta',
+  'app.pair.savedTitle': 'Informe de ADN guardado en esta planta',
   'app.pair.fpLabel': 'HUELLA DEL VÍNCULO',
   'app.pair.openedHere': 'Abierto y guardado aquí, en su dispositivo.',
   'app.pair.stayed': 'El archivo del informe se quedó en su dispositivo.',
@@ -23,41 +23,41 @@ export const pair = {
   'app.pair.recordChip': 'Registro · {fp}',
   'app.pair.pairingChip': 'Vínculo · {fp}',
   'app.pair.conflicts.one':
-    'Atención: este informe de laboratorio también está guardado en {count} otro registro que usted tiene{tail}',
+    'Atención: este informe de ADN también está guardado en {count} otro registro que usted tiene{tail}',
   'app.pair.conflicts.other':
-    'Atención: este informe de laboratorio también está guardado en otros {count} registros que usted tiene{tail}',
+    'Atención: este informe de ADN también está guardado en otros {count} registros que usted tiene{tail}',
   'app.pair.earliest': '. Este registro se selló primero, según los relojes de los dispositivos que los sellaron.',
   'app.pair.earlier': '. {name} se selló antes ({date}, según el reloj de su dispositivo).',
   'app.pair.saved':
-    'Guardado. La huella de su informe de laboratorio se guarda con el registro de esta planta, como su declaración de que este informe le corresponde. No es una comprobación de la genética. {dated}',
+    'Guardado. La huella de su informe de ADN se guarda con el registro de esta planta, como su declaración de que este informe le corresponde. No es una comprobación de la genética. {dated}',
   'app.pair.dateBelow': 'Todavía no está fechado: féchelo abajo si quiere el vínculo en la red.',
   'app.pair.notDated': 'Todavía no está fechado.',
   'app.pair.notDatedHere': 'En {thisSite} el vínculo todavía no se fecha.',
   'app.pair.seeCertificate': 'Continuar: ver el certificado',
-  'app.pair.title': 'Guarde su informe de laboratorio en esta planta',
+  'app.pair.title': 'Guarde su informe de ADN en esta planta',
   'app.pair.intro':
-    '¿Ya le devolvieron su informe de laboratorio? Guárdelo en esta planta para poder compararlo más adelante con una prueba nueva.',
+    '¿Ya le devolvieron su informe de ADN? Guárdelo en esta planta. Es lo que vincula su registro con la planta real: más adelante se puede comparar con él una prueba nueva.',
   'app.pair.savingTo': 'Guardando en: <b>{name}</b> · obtenida por {by}',
   'app.pair.replaces':
-    '<b>Esta planta ya tiene un informe de laboratorio guardado: “{name}”{saved}.</b> Guardar este lo reemplaza. La página de su planta, su certificado y los enlaces que comparta mostrarán el nuevo, no el anterior. No se borra nada de su dispositivo.',
+    '<b>Esta planta ya tiene un informe de ADN guardado: “{name}”{saved}.</b> Guardar este lo reemplaza. La página de su planta, su certificado y los enlaces que comparta mostrarán el nuevo, no el anterior. No se borra nada de su dispositivo.',
   'app.pair.replacesChain':
-    '<b>Esta planta ya tiene un informe de laboratorio guardado: “{name}”{saved}.</b> Guardar este lo reemplaza. La página de su planta, su certificado y los enlaces que comparta mostrarán el nuevo, no el anterior. No se borra nada de su dispositivo. Si fechó el vínculo anterior en la red, esa fecha se queda allí.',
+    '<b>Esta planta ya tiene un informe de ADN guardado: “{name}”{saved}.</b> Guardar este lo reemplaza. La página de su planta, su certificado y los enlaces que comparta mostrarán el nuevo, no el anterior. No se borra nada de su dispositivo. Si fechó el vínculo anterior en la red, esa fecha se queda allí.',
   'app.pair.savedOn': ', guardado el {date}',
   'app.pair.noDna':
-    'VeilCore no hace pruebas de ADN: usted guarda el informe que le dio su laboratorio. Se lee y se le saca la huella en su dispositivo; el archivo nunca se sube. Su huella y su nombre de archivo se guardan con su registro. {after}',
+    'VeilCore no hace pruebas de ADN: usted guarda el informe de ADN que le dio su laboratorio. Se lee y se le saca la huella en su dispositivo; el archivo nunca se sube. Su huella y su nombre de archivo se guardan con su registro. {after}',
   'app.pair.afterChain': 'Después también puede fechar el vínculo en la red.',
   'app.pair.afterDemo': 'En {thisSite} el vínculo todavía no se fecha; con el contrato de VeilCore, sí.',
-  'app.pair.tap': 'Toque para elegir su informe de laboratorio',
-  'app.pair.drag': 'Arrastre aquí su informe de laboratorio, o haga clic para elegirlo',
+  'app.pair.tap': 'Toque para elegir su informe de ADN',
+  'app.pair.drag': 'Arrastre aquí su informe de ADN, o haga clic para elegirlo',
   'app.pair.dropHint': 'El archivo de informe que le devolvió su laboratorio: se lee en su equipo y nunca se sube.',
   'app.pair.fromLab':
     'Este es el informe de laboratorio que su laboratorio envió a través de VeilCore. Cuando lo guarde, esta página lo comprobará con la firma del laboratorio.',
   'app.pair.labCanSign':
-    'Un laboratorio también puede firmar un informe con su propia clave; uno firmado tiene más peso que uno que guarda usted. Aquí, guarde el archivo de informe que tiene.',
+    'Un laboratorio también puede firmar su informe con su propia clave; uno firmado tiene más peso que uno que guarda usted. Aquí, guarde el archivo del informe de ADN que tiene.',
   'app.pair.fingerprinting': 'Sacando la huella en su dispositivo…',
-  'app.pair.replace': 'Reemplazar el informe guardado',
+  'app.pair.replace': 'Reemplazar el informe de ADN guardado',
   'app.pair.skip': 'Aún no tengo informe: omitir',
-  'app.pair.chooseFirst': 'Elija primero el archivo del informe de laboratorio.',
+  'app.pair.chooseFirst': 'Elija primero el archivo del informe de ADN.',
   'app.pair.fingerprinted': 'Huella hecha en su navegador.',
   'app.pair.sealedFp': 'HUELLA SELLADA',
   'app.pair.chosen': '{title}. Elegido: {name}',

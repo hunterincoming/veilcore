@@ -22,7 +22,7 @@ export const log = {
   'app.log.method.other': 'Other',
   'app.log.nextSaveBackup': 'Next: save your backup',
   'app.log.reportIntro':
-    "<b>Optional.</b> Already have a lab report for this plant? Add it now and it's kept with the record. No report yet? Skip. You can add one any time from the plant's page.",
+    "<b>Optional.</b> Already have a DNA report for this plant? This is what ties your record to the actual plant. Add it now and it's kept with the record. No report yet? Skip: the plant's page shows how to get one.",
   'app.log.finish': 'Finish',
   'app.log.nextStageTitle': 'Log the next generation or selection',
   'app.log.opening': 'Opening {id}…',

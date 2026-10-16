@@ -40,7 +40,7 @@ export const SendLink: React.FC<{ link: string; asker?: string }> = ({ link, ask
           wordBreak: 'break-all',
           p: 1.25,
           borderRadius: 1,
-          bgcolor: 'rgba(22,32,27,0.05)',
+          bgcolor: 'rgba(30,34,39,0.05)',
         }}
       >
         {link}

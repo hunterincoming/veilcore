@@ -129,6 +129,10 @@ export const importing = {
   'app.import.sum.byBatch':
     'Their public date stamp comes when their batch is dated on {dated}. Nothing for you to do.',
   'app.import.sum.untilSaved': "Until it's saved and checked, the new records' keys are only in this browser.",
+  'app.import.sum.noDna.one':
+    '{count} of these plants has no DNA report yet, so it isn’t tied to the plant itself. To add one, open the plant’s page and follow “Get a DNA fingerprint for this plant”: send a sample to a lab with a lab code, or save a report you already have.',
+  'app.import.sum.noDna.other':
+    '{count} of these plants have no DNA report yet, so they aren’t tied to the plants themselves. To add one, open a plant’s page and follow “Get a DNA fingerprint for this plant”: send a sample to a lab with a lab code, or save a report you already have.',
   'app.import.days.one': '{count} day',
   'app.import.days.other': '{count} days',
   'app.import.stamps.heading': 'Key date stamps',
@@ -153,6 +157,7 @@ export const importing = {
   'app.import.done.download': 'Download the results (CSV)',
   'app.import.done.downloadText':
     'Your rows as they were, each with its record ID, fingerprint and a link anyone can open to check it. Made here; nothing is uploaded.',
+  'app.import.done.csvDna': ' Its “DNA report” column says which records have none yet.',
   'app.import.done.byBatch':
     "Their public date stamp comes when their batch is dated on {dated}. Each plant's page shows when that has happened. Nothing for you to do.",
   'app.import.done.dateStamp':

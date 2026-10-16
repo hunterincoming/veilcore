@@ -279,7 +279,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await expect(breeder.getByText(new RegExp(`From lab@e2e · ${shortId}`))).toBeVisible();
   await breeder.getByRole('button', { name: /Save it to this plant/ }).click();
   // Its own screen, with the file already chosen: one press saves it.
-  await expect(breeder.getByRole('heading', { name: /Save your lab report to this plant/ })).toBeVisible();
+  await expect(breeder.getByRole('heading', { name: /Save your DNA report to this plant/ })).toBeVisible();
   await expect(breeder.getByRole('button', { name: /Save it to this plant/ })).toBeEnabled();
   await breeder.getByRole('button', { name: /Save it to this plant/ }).click();
   // Two fingerprints, each named; the saved file is matched to the lab's signature by SHA-256.
@@ -288,8 +288,9 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await expect(breeder.getByText(new RegExp(`File SHA-256: ${reportSha.slice(0, 12)}`))).toBeVisible();
   await expect(breeder.locator('[data-lab-match]')).toContainText('signed by a key named “E2E Lab”');
   await breeder.getByRole('button', { name: /Back to the plant/ }).click();
-  await expect(breeder.locator('[data-status-row="Lab report"]')).toContainText(
-    'saved · matches the lab’s signed report',
+  await expect(breeder.locator('[data-status-row="DNA report"]')).toContainText('Tied to the plant');
+  await expect(breeder.locator('[data-status-row="DNA report"]')).toContainText(
+    'DNA report signed by a key named “E2E Lab”',
   );
 
   // The buyer's page: the saved report matches a report the lab signed; no "Not confirmed by a lab".
@@ -344,32 +345,34 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
 
   // Round 5: the breeder's saved report is now replaced: no tick, and the corrected one can be saved.
   await breeder.goto(`/record/${recordId}`);
-  await expect(breeder.locator('[data-status-row="Lab report"]')).toContainText(
-    'replaced by the lab — save the corrected one',
+  await expect(breeder.locator('[data-status-row="DNA report"]')).toContainText('Not tied to the plant now');
+  await expect(breeder.locator('[data-status-row="DNA report"]')).toContainText(
+    'the lab replaced the DNA report saved here',
   );
   await shot(breeder, 'breeder-3-saved-replaced');
   // Round 6: the older link, before the breeder has done anything: what the lab did, no intent.
   {
     const t = await buyerLine(oldLink, 'buyer-2-oldlink-replaced');
     expect(t).toContain(
-      `The lab report saved to this record (SHA-256 ${shortOf(reportSha)}) was replaced by its lab on`,
+      `The DNA report saved to this record (SHA-256 ${shortOf(reportSha)}) was replaced by its lab on`,
     );
     expect(t).toContain('The holder hasn’t saved the corrected one yet.');
     expect(t).not.toMatch(/kept|as of when this link was made/);
   }
   // The backup comes first on this plant's next step, so the page also says it here.
-  await expect(breeder.getByText(/The lab report saved to this plant was replaced by the lab/)).toBeVisible();
+  await expect(breeder.getByText(/The DNA report saved to this plant was replaced by the lab/)).toBeVisible();
   await breeder
     .getByRole('button', { name: /Open the corrected one/ })
     .first()
     .click();
   await breeder.getByRole('button', { name: /Save it to this plant/ }).click();
   await expect(breeder.locator('[data-replaces]')).toContainText('Saving this one replaces it');
-  await breeder.getByRole('button', { name: /Replace the saved lab report/ }).click();
+  await breeder.getByRole('button', { name: /Replace the saved DNA report/ }).click();
   await expect(breeder.locator('[data-lab-match]')).toBeVisible();
   await breeder.getByRole('button', { name: /Back to the plant/ }).click();
-  await expect(breeder.locator('[data-status-row="Lab report"]')).toContainText(
-    'saved · matches the lab’s signed report',
+  await expect(breeder.locator('[data-status-row="DNA report"]')).toContainText('Tied to the plant');
+  await expect(breeder.locator('[data-status-row="DNA report"]')).toContainText(
+    'DNA report signed by a key named “E2E Lab”',
   );
   // Round 6: the older link (it names the first file) now describes the corrected one, saved now.
   {
@@ -421,16 +424,20 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await shot(breeder, 'breeder-4-no-current-report');
   // The breeder kept the correction, which the lab then withdrew: said plainly, on the plant and the certificate.
   await breeder.goto(`/record/${recordId}`);
-  await expect(breeder.locator('[data-status-row="Lab report"]')).toContainText('withdrawn by the lab');
+  await expect(breeder.locator('[data-status-row="DNA report"]')).toContainText(
+    'the lab withdrew the DNA report saved here',
+  );
   await breeder.getByText('Certificate', { exact: true }).click();
-  await expect(breeder.locator('[data-saved-report="withdrawn"]')).toContainText('Withdrawn by the lab');
+  await expect(breeder.locator('[data-saved-report="withdrawn"]')).toContainText(
+    'Not tied to the plant now: the lab withdrew the DNA report saved here.',
+  );
   await shot(breeder, 'breeder-5-certificate-withdrawn');
   // Round 6: the certificate's link (fingerprint only) tells the same story as the certificate,
   // and the withdrawn-signatures line agrees with it.
   {
     const t = await buyerLine(certLink, 'buyer-4-certlink-withdrawn');
     expect(t).toContain(
-      `The lab report saved to this record (SHA-256 ${shortOf(correctedSha)}) was withdrawn by its lab on`,
+      `The DNA report saved to this record (SHA-256 ${shortOf(correctedSha)}) was withdrawn by its lab on`,
     );
     expect(t).toContain('It is still the file saved here; the lab no longer stands behind it.');
     expect(t).not.toMatch(/No lab has signed a lab report|kept/);

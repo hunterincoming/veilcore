@@ -27,11 +27,12 @@ import {
   type Disclosure,
 } from '../../veilcore/disclosure';
 import type { StrainRecord } from '../../veilcore/records';
-import { ACCENT } from '../../config/theme';
+import { OK_COLOR } from '../../config/theme';
 import { isTestNetwork } from '../../config/network';
 import { displayName } from '../../veilcore/display-name';
 import { utcStamp as fmt } from '../../veilcore/time';
 import { savedReportSentence, type FactStatus, type SavedReport } from '../../veilcore/saved-report';
+import { dnaTieMeaning, dnaTieOf, dnaTieSentence, isTied, type DnaTie } from '../../veilcore/dna-tie';
 import { useT, type Translator } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
 import { networkWords } from '../../i18n/network-words';
@@ -50,7 +51,7 @@ const MarkIcon: React.FC<{ status: FactStatus; label?: boolean }> = ({ status, l
   // beside it already say it.
   const a11y = label ? { titleAccess: t(FACT_WORDS[status]) } : { 'aria-hidden': true as const };
   return status === 'checked' ? (
-    <CheckCircleIcon {...a11y} sx={{ fontSize: 18, color: ACCENT, mt: '2px' }} />
+    <CheckCircleIcon {...a11y} sx={{ fontSize: 18, color: OK_COLOR, mt: '2px' }} />
   ) : status === 'failed' ? (
     <FailedIcon {...a11y} sx={{ fontSize: 18, color: 'error.main', mt: '2px' }} />
   ) : (
@@ -126,7 +127,28 @@ export type SharedFactsData = {
    * The lab report line, worked out by the page (saved-report.ts publicReportLine): whether
    * the saved file is a lab report a lab signed. Without it, a plain line that claims nothing.
    */
-  labReport?: { status: FactStatus; text: string };
+  labReport?: { status: FactStatus; text: string; tie?: DnaTie };
+};
+
+/**
+ * The line above it: whether the record is tied to the plant by a DNA report (veilcore/
+ * dna-tie.ts), in neutral words for whoever reads the check page, with the same mark as
+ * the report line. "Not tied yet" says only that none is saved; it blames no one.
+ */
+const TieFact: React.FC<{ tie: DnaTie; status: FactStatus }> = ({ tie, status }) => {
+  const tr = useT();
+  return (
+    <Stack spacing={0.25} data-dna-tie={tie.state}>
+      <Fact status={tie.state === 'none' ? 'reported' : status}>
+        <b>{dnaTieSentence(tie, undefined, 'public', tr)}</b>
+      </Fact>
+      {isTied(tie) && (
+        <Typography variant="caption" color="text.secondary" sx={{ pl: 3.25 }}>
+          {dnaTieMeaning(tr)}
+        </Typography>
+      )}
+    </Stack>
+  );
 };
 
 /** The shared facts, then what was not shared, then the genetics row. */
@@ -153,7 +175,11 @@ export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }>
         ))}
       {shared.has('dna') &&
         (data.labReport ? (
-          <Fact status={data.labReport.status}>{data.labReport.text}</Fact>
+          <>
+            {data.labReport.tie && <TieFact tie={data.labReport.tie} status={data.labReport.status} />}
+            {/* With nothing saved, the tie line already says so. */}
+            {data.labReport.tie?.state !== 'none' && <Fact status={data.labReport.status}>{data.labReport.text}</Fact>}
+          </>
         ) : (
           <Fact ok={false}>{data.dnaPairedByHolder ? t('app.verify.dna.saved') : t('app.verify.report.notSaved')}</Fact>
         ))}
@@ -215,12 +241,14 @@ export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }>
 const previewReportLine = (
   saved: SavedReport | null | undefined,
   tr: Translator,
-): { status: FactStatus; text: string } | undefined => {
-  if (!saved || saved.kind === 'none') return undefined;
+): { status: FactStatus; text: string; tie: DnaTie } | undefined => {
+  if (!saved) return undefined;
+  const tie = dnaTieOf(saved, tr);
+  if (saved.kind === 'none') return { status: 'reported', text: tr.t('app.verify.report.notSaved'), tie };
   if (saved.kind === 'replaced' || saved.kind === 'withdrawn')
-    return { status: 'failed', text: savedReportSentence(saved, tr) };
-  if (saved.kind === 'lab') return { status: 'checked', text: savedReportSentence(saved, tr) };
-  return { status: 'reported', text: savedReportSentence(saved, tr) };
+    return { status: 'failed', text: savedReportSentence(saved, tr), tie };
+  if (saved.kind === 'lab') return { status: 'checked', text: savedReportSentence(saved, tr), tie };
+  return { status: 'reported', text: savedReportSentence(saved, tr), tie };
 };
 
 /** The holder's preview: what the verify page will show under these switches. */

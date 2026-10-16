@@ -66,7 +66,7 @@ export const homeStatusLine = (
       ? tr.t('app.home.receivedFrom', { name: r.receivedFrom })
       : tr.t('app.home.sealedOn', { date: day(tr, r.loggedAt) }),
   ];
-  if (r.dnaFingerprint) bits.push(tr.t('app.home.labReportSaved'));
+  // Whether a DNA report ties it to the plant is a line of its own under this one (AppHome.tsx TieLine).
   if (opts.realChain && !r.receivedFrom && keys && !keys.anchor)
     bits.push(opts.queued ? tr.t('app.home.keyStampQueued') : tr.t('app.home.keyNotStamped'));
   return { text: bits.join(' · '), unfinished: false };

@@ -36,7 +36,7 @@ export const homeList = <R extends Rec>(records: readonly R[]): { cards: R[]; da
 };
 
 /** The line under a plant's card for each record dating one of its lab reports. */
-export const LAB_REPORT_DATED_HOME = 'Lab report dated';
+export const LAB_REPORT_DATED_HOME = 'DNA report dated';
 
 /** A dating record's own card on Home (its plant isn't in the list): what it is, not a plant. */
 export const datingCardLine = (r: Pick<Rec, 'parents'>, tr: Translator = enT): string =>

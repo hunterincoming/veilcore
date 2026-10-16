@@ -26,7 +26,6 @@ import {
 import ShareIcon from '@mui/icons-material/IosShareOutlined';
 import { exportCertificate, type LicenseGrant } from '../../veilcore/license-certificate';
 import type { License } from '../../veilcore/licenses';
-import { ACCENT } from '../../config/theme';
 import { THIS_SITE } from '../../config/copy';
 
 /** Named after what the recipient learns, not the field revealed. */
@@ -74,7 +73,7 @@ export const ShareLicense: React.FC<{ license: License }> = ({ license }) => {
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             <Box>
-              <Typography variant="overline" sx={{ color: ACCENT, display: 'block' }}>
+              <Typography variant="overline" sx={{ display: 'block' }}>
                 Always included
               </Typography>
               <Typography variant="body2" color="text.secondary">

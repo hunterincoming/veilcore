@@ -75,7 +75,7 @@ test('seal a plant, add the next stage from its page, and date its lab report on
     buffer: LAB_FILE,
   });
   await page.getByRole('button', { name: /^Save it to this plant$/ }).click();
-  await expect(page.getByRole('heading', { name: /Lab report saved to this plant/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /DNA report saved to this plant/ })).toBeVisible();
   const [f1Id] = await keyIds(page);
   expect(f1Id).toMatch(/^VEIL-/);
   await expect.poll(() => held.records.find((r) => r.id === f1Id)?.dnaFileSha256).toBe(LAB_SHA);
@@ -138,13 +138,13 @@ test('seal a plant, add the next stage from its page, and date its lab report on
     'So you can show this report existed by that date without showing anyone the markers.',
   );
   await Promise.all([
-    box.getByRole('button', { name: 'Date this lab report' }).click(),
-    tabB.locator('[data-date-lab-report]').getByRole('button', { name: 'Date this lab report' }).click(),
+    box.getByRole('button', { name: 'Date this DNA report' }).click(),
+    tabB.locator('[data-date-lab-report]').getByRole('button', { name: 'Date this DNA report' }).click(),
   ]);
   const dated = page.locator('[data-lab-report-dated]');
-  await expect(dated).toHaveText(/^Lab report dated: in VEIL-[0-9A-F]{32} \(waiting for a batch\)$/);
+  await expect(dated).toHaveText(/^DNA report dated: in VEIL-[0-9A-F]{32} \(waiting for a batch\)$/);
   await expect(tabB.locator('[data-lab-report-dated]')).toHaveText(
-    /^Lab report dated: in VEIL-[0-9A-F]{32} \(waiting for a batch\)$/,
+    /^DNA report dated: in VEIL-[0-9A-F]{32} \(waiting for a batch\)$/,
   );
   await expect.poll(() => held.records.filter((r) => r.breedingMethod === 'Lab report').length).toBe(1);
   const report = held.records.find((r) => r.breedingMethod === 'Lab report')!;
@@ -165,35 +165,35 @@ test('seal a plant, add the next stage from its page, and date its lab report on
   await page.reload();
   await expect(page.locator('[data-lab-report-dated]')).toContainText(report.id);
   await expect(
-    page.locator('[data-date-lab-report]').getByRole('button', { name: 'Date this lab report' }),
+    page.locator('[data-date-lab-report]').getByRole('button', { name: 'Date this DNA report' }),
   ).toHaveCount(0);
   expect(held.records.filter((r) => r.breedingMethod === 'Lab report')).toHaveLength(1);
 
   // The family tree: F2 is offspring; the record dating the report is not.
   await page.getByRole('button', { name: /Family tree/ }).click();
   await expect(page.getByRole('link', { name: f2 })).toBeVisible();
-  await expect(page.locator('[data-dated-reports]')).toContainText('Dated lab reports (not offspring)');
+  await expect(page.locator('[data-dated-reports]')).toContainText('Dated DNA reports (not offspring)');
   await expect(page.locator('[data-dated-reports]')).toContainText(report.strainName);
 
   // The dating record's own page: what it dates, and only what makes sense for it.
   await page.goto(`/record/${report.id}`);
   await expect(page.getByRole('heading', { name: report.strainName })).toBeVisible();
   const own = page.locator('[data-lab-report-page]');
-  await expect(own).toContainText(`This record dates a lab report for ${f1}`);
+  await expect(own).toContainText(`This record dates a DNA report for ${f1}`);
   await expect(own).toContainText(`Lab report SHA-256: ${LAB_SHA}`);
   await expect(own.getByRole('link', { name: f1 })).toBeVisible();
   await expect(page.getByRole('button', { name: /Show someone/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Technical details/ })).toBeVisible();
   await expect(
     page.getByRole('button', {
-      name: /Add the next generation|Certificate|Send it to a lab|License it|Save a lab report|Date this lab report|Family tree/,
+      name: /Add the next generation|Certificate|Send it to a lab|License it|Save a DNA report|Date this DNA report|Family tree/,
     }),
   ).toHaveCount(0);
 
   // Home: the dating record sits under its plant, not as a plant; counts say "records".
   await page.goto('/records');
   const f1Card = page.getByRole('link', { name: `Open ${f1}`, exact: true });
-  await expect(f1Card.locator(`[data-home-dated="${report.id}"]`)).toContainText('Lab report dated');
+  await expect(f1Card.locator(`[data-home-dated="${report.id}"]`)).toContainText('DNA report dated');
   await expect(page.getByRole('link', { name: `Open ${report.strainName}` })).toHaveCount(0);
   await expect(page.getByText(/3 records have keys only on this device/)).toBeVisible();
 
