@@ -25,7 +25,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { computeCommitment, newNonce } from 'veilcore-records';
 import { IS_TEST_SITE, useI18n } from '../../i18n';
-import { FOUNDERS_MAIL, SDK_REPO, SiteShell, X_HANDLE } from './SiteShell';
+import { FOUNDERS_MAIL, RoleLine, SDK_REPO, SiteShell, X_HANDLE } from './SiteShell';
 import { FoldGroup, FoldItem, FoldPoint, usePhone } from './Fold';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
 
@@ -44,6 +44,36 @@ const SR_ONLY: React.CSSProperties = {
   clip: 'rect(0 0 0 0)',
   whiteSpace: 'nowrap',
   border: 0,
+};
+
+/**
+ * A section laid out like an entry in a register or log book: the heading in a narrow left
+ * column (it stays in view while you read the section), the entry to its right. Sections
+ * start on the same left edge, so they are told apart by that edge and by space, not by
+ * rules (site.css, "the register"). Below 1100px the heading sits above the entry.
+ */
+const Entry: React.FC<{ title: React.ReactNode; h?: 'h2' | 'h3'; className?: string; children: React.ReactNode }> = ({
+  title,
+  h: H = 'h2',
+  className,
+  children,
+}) => (
+  <div className={`wrap reg${className ? ` ${className}` : ''}`}>
+    <H className="reg-h">{title}</H>
+    <div className="entry">{children}</div>
+  </div>
+);
+
+/** A heading written in two halves, read as one sentence. */
+const Two: React.FC<{ a: string; b: string }> = ({ a, b }) => {
+  const { sp } = useI18n();
+  return (
+    <>
+      {a}
+      {sp}
+      <em>{b}</em>
+    </>
+  );
 };
 
 const Fingerprint: React.FC = () => {
@@ -99,10 +129,32 @@ const Fingerprint: React.FC = () => {
     };
   }, [cultivar, bredBy, nonce]);
 
+  // The fingerprint in groups of eight, the way a long lab code is printed: easier to read
+  // aloud and to compare by eye. The characters themselves are unchanged.
+  const chars = [...hash].map((c, i) =>
+    prev.current && prev.current[i] !== c ? (
+      <span key={`${i}-${c}`} className="chg">
+        {c}
+      </span>
+    ) : (
+      <React.Fragment key={i}>{c}</React.Fragment>
+    ),
+  );
+  const groups: React.ReactNode[] = [];
+  for (let i = 0; i < chars.length; i += 8)
+    groups.push(
+      <span className="g" key={i}>
+        {chars.slice(i, i + 8)}
+      </span>,
+    );
+
+  // A tie-on plant tag: what you type is the tag, which stays with you; below the
+  // perforation is the stub, the only part that goes on Midnight (plan: the plant tag).
   return (
     <div className="hash-demo" role="group" aria-label={t('m.hero.demoLabel')}>
       <div className="hd-card">
         <div className="hd-in">
+          <span className="eyelet" aria-hidden="true" />
           <p className="hd-zone">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x="3" y="4" width="18" height="12" rx="2" />
@@ -121,7 +173,6 @@ const Fingerprint: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="arrow" aria-hidden="true" />
         <div className="hd-out">
           <p className="hd-zone">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -130,19 +181,7 @@ const Fingerprint: React.FC = () => {
             </svg>
             {t('m.hero.goes')}
           </p>
-          <div className="digest">
-            {hash
-              ? [...hash].map((c, i) =>
-                  prev.current && prev.current[i] !== c ? (
-                    <span key={`${i}-${c}`} className="chg">
-                      {c}
-                    </span>
-                  ) : (
-                    <React.Fragment key={i}>{c}</React.Fragment>
-                  ),
-                )
-              : '—'}
-          </div>
+          <div className="digest">{hash ? groups : '—'}</div>
           <span role="status" style={SR_ONLY}>
             {announce}
           </span>
@@ -181,6 +220,7 @@ const Contracts: React.FC = () => {
   );
 };
 
+/** One update, dated first: the site is about dates, so updates read like a log book. */
 const Post: React.FC<{
   href: string;
   date: string;
@@ -191,13 +231,15 @@ const Post: React.FC<{
   go: string;
 }> = (p) => (
   <a className="post" href={p.href} rel="noopener noreferrer" target="_blank">
-    <span>
+    <span className="when">
       <time dateTime={p.iso}>{p.date}</time>
       <span className="tag">{p.tag}</span>
     </span>
-    <h3>{p.title}</h3>
-    <p>{p.text}</p>
-    <span className="go">{p.go}</span>
+    <div className="what">
+      <h3>{p.title}</h3>
+      <p>{p.text}</p>
+      <span className="go">{p.go}</span>
+    </div>
   </a>
 );
 
@@ -280,21 +322,21 @@ const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
   );
   return (
     <div className="live-where" id="live">
-      <h3 className="sub-h">
-        {t('m.live.title1')}
-        {sp}
-        <em>{t('m.live.title2')}</em>
-      </h3>
-      <p className="lede">{t('m.live.lede')}</p>
-      {/* On a phone the list stays one tap away, so the page reads in a few minutes. */}
-      {phone ? (
-        <details className="older-posts live-fold">
-          <summary>{t('m.live.show')}</summary>
-          {table}
-        </details>
-      ) : (
-        table
-      )}
+      <Entry h="h3" title={<Two a={t('m.live.title1')} b={t('m.live.title2')} />}>
+        <p className="lede">{t('m.live.lede')}</p>
+      </Entry>
+      {/* A table this wide would wrap every cell in the entry column: it runs the full width.
+          On a phone the list stays one tap away, so the page reads in a few minutes. */}
+      <div className="wrap full">
+        {phone ? (
+          <details className="older-posts live-fold">
+            <summary>{t('m.live.show')}</summary>
+            {table}
+          </details>
+        ) : (
+          table
+        )}
+      </div>
     </div>
   );
 };
@@ -304,8 +346,7 @@ const Technical: React.FC = () => {
   const { t, sp } = useI18n();
   return (
     <section id="technical">
-      <div className="wrap">
-        <h2>{t('m.tech.title')}</h2>
+      <Entry title={t('m.tech.title')}>
         <p className="lede">{t('m.tech.lede')}</p>
         <details className="tech">
           <summary className="btn">{t('m.tech.show')}</summary>
@@ -355,7 +396,7 @@ const Technical: React.FC = () => {
           </div>
           {IS_MAINNET && <Contracts />}
         </details>
-      </div>
+      </Entry>
     </section>
   );
 };
@@ -394,7 +435,6 @@ export const Home: React.FC = () => {
     <SiteShell>
       <header className={`wrap hero${lang === 'ja' ? ' cjk' : ''}`} id="top">
         <div className="hero-text">
-          <div className="label">{t('m.hero.label')}</div>
           <h1>
             {t('m.hero.title1')}
             {sp}
@@ -415,15 +455,9 @@ export const Home: React.FC = () => {
       </header>
 
       <section id="about">
-        <div className="wrap">
-          <div className="label">{t('m.for.label')}</div>
-          <h2 className="wide">
-            {t('m.for.title1')}
-            {sp}
-            <em>{t('m.for.title2')}</em>
-          </h2>
+        <Entry title={<Two a={t('m.for.title1')} b={t('m.for.title2')} />}>
           <p className="lede">{t('m.for.lede')}</p>
-          <div className="points three">
+          <div className="points">
             <FoldPoint mode="hide" defaultOpen title={t('m.for.1t')}>
               {t('m.for.1p')}
             </FoldPoint>
@@ -447,66 +481,47 @@ export const Home: React.FC = () => {
               <a href={`${FOUNDERS_MAIL}&subject=${encodeURIComponent('Animal records')}`}>{t('m.for.5ask')}</a>
             </FoldPoint>
           </div>
-        </div>
+        </Entry>
       </section>
 
       <section id="how">
-        <div className="wrap">
-          <div className="label">{t('m.how.label')}</div>
-          <h2>
-            {t('m.how.title1')}
-            {sp}
-            <em>{t('m.how.title2')}</em>
-          </h2>
-          <div className="steps">
+        <Entry title={<Two a={t('m.how.title1')} b={t('m.how.title2')} />}>
+          {/* A real sequence, so an ordered list: the numerals are the list's own counter
+              (site.css), joined by one line down the left, the order of time. */}
+          <ol className="steps">
             {(['1', '2', '3', '4'] as const).map((n) => (
-              <div className="step" key={n}>
-                <span className="n">{t(`m.step${n}.n`)}</span>
+              <li className="step" key={n}>
                 <h3>{t(`m.step${n}.title`)}</h3>
                 <p>{t(`m.step${n}.text`)}</p>
-              </div>
+              </li>
             ))}
-          </div>
-        </div>
+          </ol>
+        </Entry>
       </section>
 
       <section id="claims">
-        <div className="wrap">
-          <div className="label">{t('m.claims.label')}</div>
-          <h2>
-            {t('m.claims.title1')}
-            {sp}
-            <em>{t('m.claims.title2')}</em>
-          </h2>
+        <Entry title={<Two a={t('m.claims.title1')} b={t('m.claims.title2')} />}>
           <p className="lede">{t('m.claims.lede')}</p>
-          <div className="claims">
-            <ul className="claim-list">
-              {(['1', '2', '3', '4', '5'] as const).map((n) => (
-                <FoldItem key={n} mode="hide" lead={t(`m.claims.${n}t`)}>
-                  {t(`m.claims.${n}p`)}
-                </FoldItem>
-              ))}
-            </ul>
-            <div className="claim-notes">
-              <FoldItem tag="div" className="claim-limits" lead={t('m.claims.limitsTitle')}>
-                {t('m.claims.limits')}
+          <ul className="claim-list">
+            {(['1', '2', '3', '4', '5'] as const).map((n) => (
+              <FoldItem key={n} mode="hide" lead={t(`m.claims.${n}t`)}>
+                {t(`m.claims.${n}p`)}
               </FoldItem>
-              <RouterLink className="more" to="/docs/spec">
-                {t('m.claims.link')}
-              </RouterLink>
-            </div>
+            ))}
+          </ul>
+          <div className="claim-notes">
+            <FoldItem tag="div" className="claim-limits" lead={t('m.claims.limitsTitle')}>
+              {t('m.claims.limits')}
+            </FoldItem>
+            <RouterLink className="more" to="/docs/spec">
+              {t('m.claims.link')}
+            </RouterLink>
           </div>
-        </div>
+        </Entry>
       </section>
 
       <section id="value">
-        <div className="wrap">
-          <div className="label">{t('m.get.label')}</div>
-          <h2>
-            {t('m.get.title1')}
-            {sp}
-            <em>{t('m.get.title2')}</em>
-          </h2>
+        <Entry title={<Two a={t('m.get.title1')} b={t('m.get.title2')} />}>
           <div className="isnt">
             <div className="y">
               <h3>{t('m.get.title')}</h3>
@@ -531,17 +546,11 @@ export const Home: React.FC = () => {
               </ul>
             </div>
           </div>
-        </div>
+        </Entry>
       </section>
 
       <section id="open">
-        <div className="wrap">
-          <div className="label">{t('m.open.label')}</div>
-          <h2>
-            {t('m.open.title1')}
-            {sp}
-            <em>{t('m.open.title2')}</em>
-          </h2>
+        <Entry title={<Two a={t('m.open.title1')} b={t('m.open.title2')} />}>
           <div className="points">
             <FoldPoint mode="clamp" title={t('m.open.1t')}>
               {t('m.open.1p')}
@@ -558,17 +567,11 @@ export const Home: React.FC = () => {
               {t('m.open.4p')}
             </FoldPoint>
           </div>
-        </div>
+        </Entry>
       </section>
 
       <section id="questions">
-        <div className="wrap">
-          <div className="label">{t('m.faq.label')}</div>
-          <h2>
-            {t('m.faq.title1')}
-            {sp}
-            <em>{t('m.faq.title2')}</em>
-          </h2>
+        <Entry title={<Two a={t('m.faq.title1')} b={t('m.faq.title2')} />}>
           <div className="faq">
             <details>
               <summary>{t('m.faq.1q')}</summary>
@@ -600,17 +603,12 @@ export const Home: React.FC = () => {
               <p>{t('m.faq.6a')}</p>
             </details>
           </div>
-        </div>
+        </Entry>
       </section>
 
-      <section id="demo">
-        <div className="wrap">
-          <div className="label">{t('m.demo.label')}</div>
-          <h2>
-            {t('m.demo.title1')}
-            {sp}
-            <em>{t('m.demo.title2')}</em>
-          </h2>
+      {/* One of the two bands of colour on the page: where both "Try the demo" buttons land. */}
+      <section id="demo" className="dark">
+        <Entry title={<Two a={t('m.demo.title1')} b={t('m.demo.title2')} />}>
           <p className="lede">
             {t('m.demo.lede')}
             {sp}
@@ -620,12 +618,6 @@ export const Home: React.FC = () => {
           </p>
           <div className="demos">
             <RouterLink className="demo" to="/new">
-              <span className="ic">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M5 4h10l4 4v12H5z" />
-                  <path d="M9 13l2 2 4-4" />
-                </svg>
-              </span>
               <h3>{t('m.demo.create.title')}</h3>
               <p>{t('m.demo.create.text')}</p>
               <div className="meta-row">
@@ -634,12 +626,6 @@ export const Home: React.FC = () => {
               </div>
             </RouterLink>
             <RouterLink className="demo" to="/verify">
-              <span className="ic">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <circle cx="11" cy="11" r="6.5" />
-                  <path d="M16 16l4.5 4.5" />
-                </svg>
-              </span>
               <h3>{t('m.demo.verify.title')}</h3>
               <p>{t('m.demo.verify.text')}</p>
               <div className="meta-row">
@@ -654,12 +640,6 @@ export const Home: React.FC = () => {
               aria-controls="walkthrough"
               onClick={() => setShowVideo(!showVideo)}
             >
-              <span className="ic">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <rect x="3" y="5" width="18" height="14" rx="2" />
-                  <path d="M10 9.5l5 2.5-5 2.5z" />
-                </svg>
-              </span>
               <h3>{t('m.demo.video.title')}</h3>
               <p>{t('m.demo.video.text')}</p>
               <div className="meta-row">
@@ -681,19 +661,13 @@ export const Home: React.FC = () => {
               />
             </div>
           )}
-        </div>
+        </Entry>
       </section>
 
       <section id="status">
-        <div className="wrap">
-          <div className="label">{t('m.status.label')}</div>
-          <h2>
-            {t('m.status.title1')}
-            {sp}
-            <em>{t('m.status.title2')}</em>
-          </h2>
+        <Entry title={<Two a={t('m.status.title1')} b={t('m.status.title2')} />}>
           <p className="lede">{t('m.status.lede')}</p>
-          <div className="status three">
+          <div className="status">
             <div className="stat ok">
               <b>{t('m.stat2.b')}</b>
               <span>{t('m.stat2.s')}</span>
@@ -707,18 +681,12 @@ export const Home: React.FC = () => {
               <span>{t('m.stat4.s')}</span>
             </div>
           </div>
-          <LiveWhere phone={phone} />
-        </div>
+        </Entry>
+        <LiveWhere phone={phone} />
       </section>
 
       <section id="updates">
-        <div className="wrap">
-          <div className="label">{t('m.updates.label')}</div>
-          <h2>
-            {t('m.updates.title1')}
-            {sp}
-            <em>{t('m.updates.title2')}</em>
-          </h2>
+        <Entry title={<Two a={t('m.updates.title1')} b={t('m.updates.title2')} />}>
           {phone ? (
             <div className="posts">
               {latest}
@@ -743,7 +711,6 @@ export const Home: React.FC = () => {
             <a className="more" href={`${SDK_REPO}/commits/main`} rel="noopener noreferrer" target="_blank">
               {t('m.updates.all')}
             </a>
-            <span>·</span>
             <span>
               {t('m.updates.follow')}{' '}
               <a className="x-link" href={X_HANDLE} rel="noopener noreferrer" target="_blank">
@@ -751,20 +718,14 @@ export const Home: React.FC = () => {
               </a>
             </span>
           </div>
-        </div>
+        </Entry>
       </section>
 
       <Technical />
 
       <section id="contact">
-        <div className="wrap">
-          <div className="label">{t('m.contact.label')}</div>
-          <h2>
-            {t('m.contact.title1')}
-            {sp}
-            <em>{t('m.contact.title2')}</em>
-          </h2>
-          <dl className="audiences two">
+        <Entry title={<Two a={t('m.contact.title1')} b={t('m.contact.title2')} />}>
+          <dl className="audiences">
             <div>
               <dt>{t('m.contact.1t')}</dt>
               <dd>
@@ -828,7 +789,7 @@ export const Home: React.FC = () => {
                   </span>
                   <span>
                     <h3>{name}</h3>
-                    <span className="role">{t(role)}</span>
+                    <RoleLine className="role" text={t(role)} />
                     <p>{t(short)}</p>
                   </span>
                 </RouterLink>
@@ -838,7 +799,7 @@ export const Home: React.FC = () => {
               {t('m.team.more')}
             </RouterLink>
           </div>
-        </div>
+        </Entry>
       </section>
     </SiteShell>
   );

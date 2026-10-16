@@ -77,12 +77,12 @@ const siteDescription = (mode: string): Plugin => ({
     html.replace('%VEILCORE_DESCRIPTION%', mode === 'mainnet' ? DESCRIPTION.mainnet : DESCRIPTION.test),
 });
 
-// The fonts the first screen is drawn in, asked for with the page instead of after the
-// script has run and the browser has worked out which ones it needs: body text (Inter 400)
-// and the landing page's headings (Space Grotesk 700). Latin only; the other subsets and
-// weights stay as @fontsource declares them (font-display: swap, fetched only when a page
-// uses them). Same-origin files, so the Content-Security-Policy's font-src 'self' covers them.
-const PRELOAD_FONTS = [/^inter-latin-400-normal-[\w-]+\.woff2$/, /^space-grotesk-latin-700-normal-[\w-]+\.woff2$/];
+// The font the first screen is drawn in, asked for with the page instead of after the
+// script has run and the browser has worked out which ones it needs: Atkinson Hyperlegible
+// Next, one variable file for body text and headings alike. Latin only; the latin-ext subset
+// stays as @fontsource declares it (font-display: swap, fetched only when a page uses it).
+// Same-origin files, so the Content-Security-Policy's font-src 'self' covers them.
+const PRELOAD_FONTS = [/^atkinson-hyperlegible-next-latin-wght-normal-[\w-]+\.woff2$/];
 const preloadFonts = (): Plugin => ({
   name: 'veilcore-preload-fonts',
   apply: 'build',

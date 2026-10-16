@@ -7,7 +7,7 @@ import React from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import { motion } from 'framer-motion';
-import { ACCENT } from '../../config/theme';
+import { ACCENT, CODE_TEXT } from '../../config/theme';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { useT } from '../../i18n/app';
 
@@ -66,10 +66,7 @@ export const FingerprintReveal: React.FC<{
         <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: '0.18em' }}>
           {label ?? t('app.pair.sealedFp')}
         </Typography>
-        <Typography
-          variant="body2"
-          sx={{ fontFamily: '"Space Grotesk", monospace', color: 'text.primary', wordBreak: 'break-all' }}
-        >
+        <Typography variant="body2" sx={{ ...CODE_TEXT, color: 'text.primary', wordBreak: 'break-all' }}>
           {shortFingerprint(fingerprint)}
         </Typography>
       </Stack>

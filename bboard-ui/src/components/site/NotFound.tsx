@@ -24,11 +24,15 @@ export const NotFound: React.FC = () => {
         <div className="label">404</div>
         <h1>{t('m.notfound.title')}</h1>
         <p>{t('m.notfound.text')}</p>
-        <p className="verify-what">
-          <RouterLink to="/">{t('m.notfound.home')}</RouterLink>
-          {' · '}
-          <RouterLink to="/verify">{t('m.foot.verify')}</RouterLink>
-        </p>
+        {/* Two ways on, as the page's two buttons (not two links joined by a dot). */}
+        <div className="contact">
+          <RouterLink className="btn solid" to="/">
+            {t('m.notfound.home')}
+          </RouterLink>
+          <RouterLink className="btn" to="/verify">
+            {t('m.foot.verify')}
+          </RouterLink>
+        </div>
       </header>
     </SiteShell>
   );

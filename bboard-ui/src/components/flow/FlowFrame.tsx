@@ -50,8 +50,8 @@ export const SectionBand: React.FC<{ section: Section; step?: string; extra?: Re
         px: 2,
         py: 1.1,
         borderRadius: 2,
-        border: `1px solid ${s.color}55`,
-        borderBottom: `3px solid ${s.color}`,
+        // The job's colour as a tint, with its name and icon in the full colour: the band
+        // says which job you are in without an outline round it (15 October 2026).
         background: `${s.color}14`,
       }}
     >

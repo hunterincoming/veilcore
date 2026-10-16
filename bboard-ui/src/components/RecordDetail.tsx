@@ -71,6 +71,7 @@ import { WaitingDeliveries } from './SendToLab';
 import { useRole, isBreeder, isLab } from '../veilcore/role';
 import { utcStamp as fmt } from '../veilcore/time';
 import { LAB_RESULTS_ENABLED } from '../config/network';
+import { CODE_TEXT } from '../config/theme';
 
 type Mode =
   | 'overview'
@@ -200,7 +201,12 @@ export const RecordDetail: React.FC = () => {
     <Box sx={{ maxWidth: 680, mx: 'auto' }}>
       <AppHeader />
 
-      <Button component={RouterLink} to="/records" startIcon={<HomeIcon />} sx={{ mb: 1.5, minHeight: 44 }}>
+      <Button
+        component={RouterLink}
+        to="/records"
+        startIcon={<HomeIcon />}
+        sx={{ mb: 1.5, ml: -1.5, minHeight: 44, px: 1.5 }}
+      >
         {t('app.plant.home')}
       </Button>
 
@@ -208,11 +214,15 @@ export const RecordDetail: React.FC = () => {
         <Typography variant="h4" component="h1" sx={{ overflowWrap: 'anywhere' }}>
           {record.strainName}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
+        {/* Who it came from, then the record's code on its own line in the code face, like
+            the two lines on a plant tag (no dot-joined meta string). */}
+        <Typography variant="body1" color="text.secondary" sx={{ overflowWrap: 'anywhere', mt: 0.5 }}>
           {record.receivedFrom
             ? t('app.home.receivedFrom', { name: record.receivedFrom })
-            : t('app.plant.bredByName', { name: record.bredBy })}{' '}
-          · {record.id}
+            : t('app.plant.bredByName', { name: record.bredBy })}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ ...CODE_TEXT, overflowWrap: 'anywhere' }}>
+          {record.id}
         </Typography>
       </Box>
 
@@ -340,10 +350,10 @@ export const RecordDetail: React.FC = () => {
           {/* Everything else, in one plain list: a row per thing, its section's icon
               first, so the same job looks the same here and on Home. */}
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+            <Typography variant="h6" component="p" sx={{ mb: 1 }}>
               {t('app.plant.moreYouCanDo')}
             </Typography>
-            <Paper sx={{ px: { xs: 1.5, md: 2 } }}>
+            <Paper sx={{ p: { xs: 0.75, md: 1 } }}>
               <ActionRow
                 section="prove"
                 label={t('app.plant.action.show')}
@@ -503,7 +513,7 @@ export const RecordDetail: React.FC = () => {
                     </Field>
                     <Divider />
                     <Field label={t('app.plant.f.recordFingerprint')}>
-                      <Box component="span" sx={{ fontFamily: '"Space Grotesk", monospace' }}>
+                      <Box component="span" sx={CODE_TEXT}>
                         {shortFingerprint(record.recordFingerprint)}
                       </Box>
                     </Field>

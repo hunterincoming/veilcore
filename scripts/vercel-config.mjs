@@ -113,7 +113,7 @@ for (const name of ['VITE_INDEXER_RELAY_URL', 'VITE_INDEXER_SECOND_URL']) {
 //                needed for styles (not for scripts). Rendered documents can no longer
 //                carry style attributes (DocPage forbids them), which is what made this
 //                a phishing-overlay risk.
-//   font-src     the Inter and Space Grotesk files are bundled by @fontsource; no
+//   font-src     the Atkinson Hyperlegible Next file is bundled by @fontsource; no
 //                Google Fonts. data: for any small font Vite inlines.
 //   img-src      data: and blob: for QR codes and certificate images (html-to-image).
 //   connect-src  our own origin (the .wasm file) and the registry API. Nothing on GitHub:

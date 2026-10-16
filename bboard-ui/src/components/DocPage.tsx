@@ -142,18 +142,17 @@ export const DocPage: React.FC = () => {
           dangerouslySetInnerHTML={{ __html: html }}
           sx={{
             minWidth: 0,
-            '& h1': { fontFamily: '"Space Grotesk", sans-serif', fontSize: 32, mt: 6, mb: 2, fontWeight: 600 },
+            '& h1': { fontSize: 32, mt: 6, mb: 2, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.15 },
             '& h2': {
-              fontFamily: '"Space Grotesk", sans-serif',
-              fontSize: 24,
-              mt: 5,
+              // A new part of the document starts with space, not a rule over every heading.
+              fontSize: 26,
+              mt: 7,
               mb: 2,
-              fontWeight: 600,
-              borderTop: '1px solid',
-              borderColor: 'divider',
-              pt: 4,
+              fontWeight: 800,
+              letterSpacing: '-0.015em',
+              lineHeight: 1.2,
             },
-            '& h3': { fontFamily: '"Space Grotesk", sans-serif', fontSize: 18, mt: 4, mb: 1.5, fontWeight: 600 },
+            '& h3': { fontSize: 19, mt: 4, mb: 1.5, fontWeight: 700 },
             '& p': { fontSize: 15.5, lineHeight: 1.75, mb: 2, color: 'text.secondary' },
             '& li': { fontSize: 15.5, lineHeight: 1.75, mb: 0.75, color: 'text.secondary' },
             '& strong': { color: 'text.primary', fontWeight: 600 },

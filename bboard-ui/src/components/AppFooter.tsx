@@ -1,4 +1,6 @@
-// The footer.
+// The footer. Since 15 October 2026 it is the public pages' footer band (site.css
+// footer.bottom): Leaf ink, light text, the plant-tag wordmark. The page ends the same way
+// on the landing page and in the app, so they read as one product.
 //
 // Documents are reachable from the landing page and nowhere else, which means anyone
 // who has started working has to leave what they are doing to find them. A lab needs
@@ -9,18 +11,47 @@
 
 import React from 'react';
 import { Box, Container, Link, Stack, Typography } from '@mui/material';
+import { INK_COLOR } from '../config/theme';
+import { TagMark } from './site/TagMark';
 import { Link as RouterLink } from 'react-router-dom';
 import { useI18n } from '../i18n';
 import { requestRoleChange, useRole } from '../veilcore/role';
 import { useT } from '../i18n/app';
 
+// On Leaf ink: 9.6:1 for the links, white for the group names, the light green for the
+// mark and the focus ring (9.4:1).
+const ON_DARK_MUTED = '#C9D6CD';
+const ON_DARK_ACCENT = '#9FE0B5';
+const groupName = {
+  display: 'block',
+  fontSize: 15,
+  fontWeight: 700,
+  color: '#FFFFFF',
+  textTransform: 'none',
+  letterSpacing: 0,
+  mb: { xs: 0, sm: 0.25 },
+  flexBasis: { xs: '100%', sm: 'auto' },
+} as const;
+// Phones: a group's links run in rows that wrap, each a full finger tall, as in the public
+// pages' footer (site.css), instead of one long column of single links.
+const group = { flexWrap: 'wrap', columnGap: 2.5, rowGap: { xs: 0, sm: 1 } } as const;
+const linkBox = {
+  display: { xs: 'inline-flex', sm: 'inline' },
+  alignItems: 'center',
+  minHeight: { xs: 44, sm: 'auto' },
+} as const;
+
 const Item: React.FC<{ to: string; children: React.ReactNode; external?: boolean }> = ({ to, children, external }) => (
   <Link
     {...(external ? { href: to, target: '_blank', rel: 'noopener' } : { component: RouterLink, to })}
     underline="hover"
-    color="text.secondary"
-    // Phones: each link a full finger-sized row. Desktop keeps the compact list.
-    sx={{ fontSize: { xs: 15, sm: 14 }, py: { xs: 1.25, sm: 0 }, display: { xs: 'block', sm: 'inline' } }}
+    sx={{
+      ...linkBox,
+      color: ON_DARK_MUTED,
+      fontSize: 15,
+      '&:hover': { color: '#FFFFFF' },
+      '&:focus-visible': { outlineColor: ON_DARK_ACCENT },
+    }}
   >
     {children}
   </Link>
@@ -34,10 +65,11 @@ export const AppFooter: React.FC = () => {
     <Box
       component="footer"
       sx={{
-        borderTop: '1px solid',
-        borderColor: 'rgba(22,32,27,0.07)',
-        mt: { xs: 6, sm: 10 },
-        py: { xs: 4, sm: 5 },
+        bgcolor: INK_COLOR,
+        color: ON_DARK_MUTED,
+        mt: { xs: 7, sm: 12 },
+        pt: { xs: 5, sm: 8 },
+        pb: { xs: 5, sm: 6 },
       }}
     >
       <Container maxWidth="lg">
@@ -46,18 +78,34 @@ export const AppFooter: React.FC = () => {
           spacing={{ xs: 3, md: 6 }}
           sx={{ justifyContent: 'space-between' }}
         >
-          <Box sx={{ maxWidth: 320 }}>
-            <Typography variant="overline" sx={{ display: 'block', mb: 1 }}>
+          <Box sx={{ maxWidth: 360 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '9px',
+                fontSize: 22,
+                fontWeight: 800,
+                letterSpacing: '-0.015em',
+                color: '#FFFFFF',
+                mb: 1.5,
+                '& svg': { color: ON_DARK_ACCENT },
+              }}
+            >
+              <TagMark />
               VeilCore
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.7, fontSize: { xs: 14, sm: 12 } }}>
+            </Box>
+            <Typography
+              variant="caption"
+              sx={{ display: 'block', color: ON_DARK_MUTED, lineHeight: 1.6, fontSize: 15 }}
+            >
               {t('footer.about')}
             </Typography>
           </Box>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 3, sm: 6 }}>
-            <Stack spacing={{ xs: 0, sm: 1 }}>
-              <Typography variant="overline" sx={{ fontSize: { xs: 13, sm: 10 } }}>
+            <Stack direction={{ xs: 'row', sm: 'column' }} useFlexGap sx={group}>
+              <Typography component="p" sx={groupName}>
                 {t('footer.documents')}
               </Typography>
               <Item to="/docs/spec">{t('footer.spec')}</Item>
@@ -65,8 +113,8 @@ export const AppFooter: React.FC = () => {
               <Item to="/docs/integrate">{t('footer.integrate')}</Item>
             </Stack>
 
-            <Stack spacing={{ xs: 0, sm: 1 }}>
-              <Typography variant="overline" sx={{ fontSize: { xs: 13, sm: 10 } }}>
+            <Stack direction={{ xs: 'row', sm: 'column' }} useFlexGap sx={group}>
+              <Typography component="p" sx={groupName}>
                 {t('footer.source')}
               </Typography>
               <Item to="/implementations">{t('footer.allImplementations')}</Item>
@@ -78,8 +126,8 @@ export const AppFooter: React.FC = () => {
               </Item>
             </Stack>
 
-            <Stack spacing={{ xs: 0, sm: 1 }}>
-              <Typography variant="overline" sx={{ fontSize: { xs: 13, sm: 10 } }}>
+            <Stack direction={{ xs: 'row', sm: 'column' }} useFlexGap sx={group}>
+              <Typography component="p" sx={groupName}>
                 {t('footer.thisSite')}
               </Typography>
               <Item to="/">{t('footer.whatThisIs')}</Item>
@@ -91,11 +139,12 @@ export const AppFooter: React.FC = () => {
                 type="button"
                 onClick={requestRoleChange}
                 underline="hover"
-                color="text.secondary"
                 sx={{
-                  fontSize: { xs: 15, sm: 14 },
-                  py: { xs: 1.25, sm: 0 },
-                  display: { xs: 'block', sm: 'inline' },
+                  color: ON_DARK_MUTED,
+                  '&:hover': { color: '#FFFFFF' },
+                  '&:focus-visible': { outlineColor: ON_DARK_ACCENT },
+                  ...linkBox,
+                  fontSize: 15,
                   textAlign: 'left',
                 }}
               >

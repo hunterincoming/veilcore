@@ -1,5 +1,8 @@
-/* /partners (PartnersPage.tsx): the site's light design (site.css tokens under .vcm), and
-   the live <veilcore-record-check> field themed to match through its custom properties.
+/* /partners (PartnersPage.tsx): the site's design (site.css tokens under .vcm), and the
+   live <veilcore-record-check> field themed to match through its custom properties.
+   15 October 2026: no rules and no outlined boxes, as on the home page. Lists are laid out
+   like the home page's register (name left, text right); a card is a white sheet on the
+   Greenhouse ground; the policy quote sits on Seedling.
    SPDX-License-Identifier: Apache-2.0 */
 
 /* Aligned with the page heading; text kept to a readable measure. */
@@ -7,7 +10,6 @@
   max-width: 820px;
 }
 .vcm .pk h3 {
-  font-family: var(--display);
   font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.3;
@@ -23,15 +25,14 @@
   margin-top: 28px;
 }
 .vcm .pk .pk-list {
-  margin-top: 24px;
-  border-top: 1px solid var(--line-strong);
+  margin-top: 28px;
+  display: grid;
+  gap: 22px;
 }
 .vcm .pk .pk-list > div {
   display: grid;
   grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
-  gap: 20px;
-  padding: 18px 0;
-  border-bottom: 1px solid var(--line);
+  gap: 24px;
 }
 .vcm .pk .pk-list dt {
   font-weight: 700;
@@ -41,9 +42,8 @@
   color: var(--muted);
 }
 .vcm .pk .pk-card {
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  background: var(--tag);
+  border-radius: var(--r-picture);
   padding: clamp(20px, 3vw, 28px);
 }
 .vcm .pk .pk-card p {
@@ -59,9 +59,8 @@
 }
 .vcm .pk .pk-demo {
   margin-top: 28px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  background: var(--tag);
+  border-radius: var(--r-picture);
   padding: clamp(18px, 3vw, 28px);
   min-height: 150px;
 }
@@ -69,7 +68,7 @@
   --vc-accent: var(--accent);
   --vc-ink: var(--ink);
   --vc-muted: var(--muted);
-  --vc-line: var(--line-strong);
+  --vc-line: var(--edge);
   --vc-paper: var(--ground);
   --vc-warn: var(--warn);
   max-width: none;
@@ -87,10 +86,10 @@
 .vcm .pk .pk-code {
   margin: 24px 0 0;
   padding: 18px 20px;
-  background: var(--sunk);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  font-family: var(--mono);
+  background: var(--wash);
+  border-radius: var(--r-control);
+  /* Real code a developer copies: the one place a monospace face is the right tool. */
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   font-size: 0.875rem;
   line-height: 1.6;
   overflow-x: auto;
@@ -98,8 +97,9 @@
 }
 .vcm .pk .pk-quote {
   margin: 20px 0 0;
-  padding: 4px 0 4px 20px;
-  border-left: 3px solid var(--line-strong);
+  padding: 18px 22px;
+  background: var(--wash);
+  border-radius: var(--r-control);
   display: grid;
   gap: 12px;
   color: var(--ink);

@@ -14,6 +14,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import { ACCENT } from '../../config/theme';
+import { Wordmark } from '../Wordmark';
 import { IS_MAINNET } from '../../config/network';
 import { Fact, FactKey } from './DisclosedFacts';
 import { geneticsLabel } from '../../veilcore/disclosure';
@@ -51,12 +52,7 @@ export const VerifyExample: React.FC = () => {
             color: 'text.primary',
           }}
         >
-          <Box
-            sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }}
-          />
-          <Typography variant="h6" sx={{ letterSpacing: '0.3em', fontWeight: 600 }}>
-            VEILCORE
-          </Typography>
+          <Wordmark />
         </Stack>
 
         <Alert severity="info" variant="outlined" sx={{ mb: 3 }}>

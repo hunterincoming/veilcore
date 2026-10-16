@@ -27,7 +27,6 @@ export const Privacy: React.FC = () => {
   return (
     <SiteShell>
       <header className="wrap page">
-        <div className="label">{t('m.privacy.label')}</div>
         <h1>{t('m.privacy.title')}</h1>
         <p>{t('m.privacy.lede')}</p>
       </header>

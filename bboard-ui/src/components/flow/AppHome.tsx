@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useMemo, useRef, useState } from 'react';
-import { Alert, Box, Button, Collapse, Divider, Paper, Snackbar, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Collapse, Paper, Snackbar, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
 import ChevronIcon from '@mui/icons-material/ChevronRight';
@@ -27,6 +27,7 @@ import { AppHeader } from '../AppHeader';
 import { OPEN_RECEIVE_EVENT } from '../ClaimTransfer';
 import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
 import { linkCard } from '../a11y';
+import { GROUND, WASH } from '../../config/theme';
 import { useT, rich } from '../../i18n/app';
 import { SECTIONS, focusScreenHeading } from './FlowFrame';
 import { PasteBox } from './PasteBox';
@@ -99,7 +100,7 @@ export const AppHome: React.FC = () => {
   // The lab's panel is the page's heading when nothing has arrived yet (a real h1), and a
   // section under "Samples received" after.
   const labPanel = (heading: 'h1' | 'h2') => (
-    <Paper sx={{ p: { xs: 2, md: 2.5 }, borderLeft: `6px solid ${SECTIONS.send.color}` }}>
+    <Paper sx={{ p: { xs: 2, md: 2.5 } }}>
       <Typography
         variant={heading === 'h1' ? 'h4' : 'subtitle1'}
         component={heading}
@@ -263,16 +264,41 @@ export const AppHome: React.FC = () => {
             const unfinished = s.unfinished || datings.some((d) => d.unfinished);
             const reportWaiting = (waiting[r.id]?.length ?? 0) > 0;
             return (
+              // Each plant is drawn as a plant tag, the object on the landing page: a cut
+              // end and an eyelet. The eyelet's ring is amber while something is left to do
+              // (the line under the name says what), Seedling when nothing is.
               <Paper
                 key={r.id}
                 {...linkCard(() => void navigate(`/record/${r.id}`), t('app.home.openPlant', { name: r.strainName }))}
+                data-unfinished={unfinished ? 'yes' : undefined}
                 sx={{
                   p: 2,
+                  pl: { xs: 5.5, sm: 6.5 },
                   cursor: 'pointer',
-                  borderColor: unfinished ? 'warning.main' : undefined,
-                  '&:hover, &:focus-visible': { borderColor: 'primary.main', outline: 'none' },
+                  position: 'relative',
+                  borderRadius: 0,
+                  clipPath: 'polygon(18px 0, 100% 0, 100% 100%, 18px 100%, 0 calc(100% - 18px), 0 18px)',
+                  '&:hover': { bgcolor: WASH },
+                  // The cut corners would clip an outline: the focus ring is drawn inside.
+                  '&:focus-visible': { outline: 'none', bgcolor: WASH, boxShadow: 'inset 0 0 0 2px #11733F' },
                 }}
               >
+                <Box
+                  aria-hidden="true"
+                  sx={{
+                    position: 'absolute',
+                    left: { xs: 16, sm: 20 },
+                    top: '50%',
+                    width: 16,
+                    height: 16,
+                    mt: '-8px',
+                    borderRadius: '50%',
+                    bgcolor: GROUND,
+                    border: '4px solid',
+                    borderColor: unfinished ? 'warning.main' : WASH,
+                    boxSizing: 'border-box',
+                  }}
+                />
                 <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography variant="h6" noWrap>
@@ -339,7 +365,7 @@ export const AppHome: React.FC = () => {
             sx={{
               p: 2,
               cursor: 'pointer',
-              '&:hover, &:focus-visible': { borderColor: 'primary.main', outline: 'none' },
+              '&:hover': { bgcolor: WASH },
             }}
           >
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
@@ -360,8 +386,7 @@ export const AppHome: React.FC = () => {
           </Paper>
         )}
 
-        <Divider />
-        <Stack spacing={0.5} sx={{ alignItems: 'center' }}>
+        <Stack spacing={0.5} sx={{ alignItems: 'center', pt: 2 }}>
           <Button component={RouterLink} to="/records/import" sx={{ minHeight: 44 }}>
             {t('app.home.spreadsheet')}
           </Button>

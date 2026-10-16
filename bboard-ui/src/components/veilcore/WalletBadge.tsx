@@ -18,7 +18,7 @@ import { useT } from '../../i18n/app';
 export const WalletBadge: React.FC<{ network: string }> = ({ network }) => {
   const { t } = useT();
   return (
-    <Stack direction="row" spacing={1}>
+    <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1 }}>
       <Chip
         size="small"
         icon={<ScienceIcon />}

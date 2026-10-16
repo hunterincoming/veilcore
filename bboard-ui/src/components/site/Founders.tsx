@@ -5,7 +5,7 @@ import React from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import type { StringKey } from '../../i18n/en';
-import { FOUNDERS_MAIL, SiteShell, X_HANDLE } from './SiteShell';
+import { FOUNDERS_MAIL, RoleLine, SiteShell, X_HANDLE } from './SiteShell';
 
 type Founder = {
   name: string;
@@ -60,7 +60,6 @@ export const Founders: React.FC = () => {
   return (
     <SiteShell>
       <header className="wrap page">
-        <div className="label">{t('m.founders.label')}</div>
         <h1>
           {t('m.team.title1')}
           {sp}
@@ -83,7 +82,7 @@ export const Founders: React.FC = () => {
             </div>
             <div className="fbody">
               <h2>{f.name}</h2>
-              <p className="role">{t(f.role)}</p>
+              <RoleLine as="p" className="role" text={t(f.role)} />
               <p className="bio first">{t(f.bio1)}</p>
               <p className="bio">{t(f.bio2)}</p>
               <dl className="meta">
@@ -130,7 +129,6 @@ export const Founders: React.FC = () => {
 
       <section className="band" aria-labelledby="founders-contact">
         <div className="wrap">
-          <div className="label">{t('m.contact.label')}</div>
           <h2 id="founders-contact">
             {t('m.founders.band1')}
             {sp}
@@ -169,7 +167,6 @@ export const VerifyLookup: React.FC = () => {
   return (
     <SiteShell>
       <header className="wrap page">
-        <div className="label">{t('m.verify.label')}</div>
         <h1>{t('m.verify.title')}</h1>
         <p>{t('m.verify.lede')}</p>
         <p className="verify-what">

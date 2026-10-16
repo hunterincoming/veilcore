@@ -13,6 +13,7 @@ import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { LAB_RESULTS_ENABLED } from '../../config/network';
 import { useRecordDate } from '../verify/useAnchorCheck';
 import { SECTIONS, useSectionName, type Section } from './FlowFrame';
+import { WASH } from '../../config/theme';
 import { custodyHeadline, type BreederReceipt, type LabReceipt } from '../../veilcore/custody';
 import { signerLabel } from '../../veilcore/attesters';
 import type { ArrivedResult } from './LabResults';
@@ -32,15 +33,12 @@ const Row: React.FC<{
   label: string;
   value: string;
   sub?: string;
+  /** Kept for callers; rows no longer draw a rule, so the last one needs nothing different. */
   last?: boolean;
-}> = ({ done, mark = done ? 'done' : 'wait', id, label, value, sub, last }) => {
+}> = ({ done, mark = done ? 'done' : 'wait', id, label, value, sub }) => {
   const { t } = useT();
   return (
-    <Box
-      sx={{ py: 1.25, borderBottom: last ? 0 : '1px solid', borderColor: 'divider' }}
-      data-status-row={id}
-      data-mark={mark}
-    >
+    <Box sx={{ py: 1.25 }} data-status-row={id} data-mark={mark}>
       <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
         {mark === 'done' ? (
           <DoneIcon color="primary" titleAccess={t('app.plant.mark.done')} />
@@ -210,7 +208,7 @@ export const PlantStatus: React.FC<{
       : []),
   ];
   return (
-    <Paper sx={{ px: { xs: 2, md: 2.5 }, py: 0.5 }}>
+    <Paper sx={{ px: { xs: 2, md: 2.5 }, py: { xs: 1, md: 1.25 } }}>
       {rows.map((r, i) => (
         <Row key={r.id} {...r} last={i === rows.length - 1} />
       ))}
@@ -226,7 +224,7 @@ export const ActionRow: React.FC<{
   tag?: string;
   last?: boolean;
   onClick: () => void;
-}> = ({ section, label, hint, tag, last, onClick }) => {
+}> = ({ section, label, hint, tag, onClick }) => {
   const s = SECTIONS[section];
   const name = useSectionName(section);
   return (
@@ -237,10 +235,10 @@ export const ActionRow: React.FC<{
         justifyContent: 'flex-start',
         textAlign: 'left',
         minHeight: 56,
-        borderBottom: last ? 0 : '1px solid',
-        borderColor: 'divider',
-        borderRadius: 0,
-        '&:hover, &:focus-visible': { background: 'rgba(22,32,27,0.04)' },
+        // Rows are told apart by their height and icon, not by a rule under each one.
+        borderRadius: 2,
+        px: { xs: 1, md: 1.25 },
+        '&:hover, &.Mui-focusVisible': { background: WASH },
       }}
     >
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', width: '100%', px: 0.5 }}>

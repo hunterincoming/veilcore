@@ -1,6 +1,7 @@
 // The frame of the public pages: navigation, language picker, draft banner, footer.
 // Laid out from Mako's 25 September templates; light since 14 October 2026, like the
-// record pages (config/theme.ts). The record pages keep their own layout.
+// record pages (config/theme.ts). Redesigned 15 October around the plant tag: the same
+// palette, typeface (main.tsx) and mark as the app. The record pages keep their own layout.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -9,12 +10,32 @@ import { ThemeProvider } from '@mui/material';
 import { useI18n } from '../../i18n';
 import { lightTheme } from '../../config/theme';
 import { DraftBanner, LanguagePicker } from '../../i18n/lazy-picker';
-import '@fontsource/space-grotesk/700.css';
+import { TagMark } from './TagMark';
 import './site.css';
 
 export const SDK_REPO = 'https://github.com/hunterincoming/veilcore-sdk';
 export const X_HANDLE = 'https://x.com/VeilCoreProof';
 export const FOUNDERS_MAIL = 'mailto:mako@veilcore.org?cc=hunter@veilcore.org';
+
+/**
+ * A founder's role as the translations write it, "Co-Founder & CEO · Tokyo": the title and
+ * the place are set on two lines instead of joined by a dot. The words are unchanged.
+ */
+export const roleParts = (text: string): string[] => text.split(/\s*·\s*/);
+
+export const RoleLine: React.FC<{ text: string; className?: string; as?: 'span' | 'p' }> = ({
+  text,
+  className,
+  as: Tag = 'span',
+}) => (
+  <Tag className={className}>
+    {roleParts(text).map((part, i) => (
+      <span className="role-part" key={i}>
+        {part}
+      </span>
+    ))}
+  </Tag>
+);
 
 /** An in-page section link that works from any public page: on home it scrolls, elsewhere it goes home first. */
 const Section: React.FC<{ id: string; className?: string; children: React.ReactNode; onClick?: () => void }> = ({
@@ -59,7 +80,7 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
         <nav className="top" aria-label={t('nav.main')}>
           <div className="nav-in">
             <RouterLink className="brand" to="/">
-              <i aria-hidden="true" />
+              <TagMark />
               VeilCore
             </RouterLink>
             <div className="nav-right">
@@ -117,7 +138,7 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
             <div className="foot">
               <div>
                 <RouterLink className="brand" to="/">
-                  <i aria-hidden="true" />
+                  <TagMark />
                   VeilCore
                 </RouterLink>
                 <p className="foot-about">{t('m.foot.about')}</p>

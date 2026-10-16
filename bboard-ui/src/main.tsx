@@ -35,12 +35,10 @@ import App, { preloadPage } from './App';
 import { LanguageProvider, preloadLanguage, startingLanguage } from './i18n';
 import CssBaseline from '@mui/material/CssBaseline';
 import { theme } from './config/theme';
-import '@fontsource/space-grotesk/400.css';
-import '@fontsource/space-grotesk/500.css';
-import '@fontsource/space-grotesk/600.css';
-import '@fontsource/inter/400.css';
-import '@fontsource/inter/500.css';
-import '@fontsource/inter/600.css';
+// One typeface for the whole site and app: Atkinson Hyperlegible Next, drawn so that
+// characters people mix up (I l 1, O 0, B 8) look different, for lab codes, record codes
+// and fingerprints read off a phone. One variable file covers every weight (config/theme.ts).
+import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
 
 // Only the public pages come in this file (App.tsx). For any other page, fetch its files
 // first and then draw it whole, as before the split: not a frame, then a page, then a

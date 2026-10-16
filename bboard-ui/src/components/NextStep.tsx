@@ -26,7 +26,7 @@ import { loadAttester } from '../veilcore/attester-keys';
 import { SendToLab } from './SendToLab';
 import { OPEN_SIGNING_KEY_EVENT } from './AttesterSetup';
 import type { ArrivedResult } from './flow/LabResults';
-import { ACCENT } from '../config/theme';
+import { ACCENT_DEEP, WASH } from '../config/theme';
 import type { SavedReport } from '../veilcore/saved-report';
 import { useNavigate } from 'react-router-dom';
 import { isLabReportRecord } from './stage/lab-report-notes';
@@ -259,10 +259,11 @@ export const NextStep: React.FC<{
   if (!step) return null;
 
   return (
-    <Paper sx={{ p: { xs: 2.5, md: 3 }, borderColor: ACCENT, borderWidth: 1, borderStyle: 'solid' }}>
+    // The one filled sheet on the plant page: Seedling, no outline. It is the next thing to do.
+    <Paper sx={{ p: { xs: 2.5, md: 3 }, bgcolor: WASH }}>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: { sm: 'center' } }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="overline" sx={{ color: ACCENT, display: 'block' }}>
+          <Typography variant="overline" sx={{ color: ACCENT_DEEP, display: 'block' }}>
             {t('app.plant.next.label')}
           </Typography>
           <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>

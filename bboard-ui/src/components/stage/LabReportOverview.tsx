@@ -21,6 +21,7 @@ import { EvidenceBundle } from '../EvidenceBundle';
 import { SettlementStatus } from '../SettlementStatus';
 import { labReportPageLines } from './record-kinds';
 import { rich, useT } from '../../i18n/app';
+import { CODE_TEXT } from '../../config/theme';
 
 const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <Box>
@@ -163,7 +164,7 @@ export const LabReportOverview: React.FC<{
                 </Field>
                 <Divider />
                 <Field label={t('app.plant.f.recordFingerprint')}>
-                  <Box component="span" sx={{ fontFamily: '"Space Grotesk", monospace' }}>
+                  <Box component="span" sx={CODE_TEXT}>
                     {shortFingerprint(record.recordFingerprint)}
                   </Box>
                 </Field>

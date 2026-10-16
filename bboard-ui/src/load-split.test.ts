@@ -192,10 +192,12 @@ describe.skipIf(!built)('the first download, in the built site (dist/)', () => {
     for (const src of text(closure([`assets/${verify[0]}`]))) expect(src).not.toMatch(/\.wasm\b/);
   });
 
-  it('the body text and landing headings fonts are preloaded, Latin only', () => {
+  it('the one typeface (body and headings) is preloaded, Latin only, as one variable file', () => {
     const fonts = [...html.matchAll(/rel="preload" href="\/([^"]+)" as="font"/g)].map((m) => m[1]);
-    expect(fonts).toHaveLength(2);
-    expect(fonts[0]).toMatch(/inter-latin-400-normal-.*\.woff2$/);
-    expect(fonts[1]).toMatch(/space-grotesk-latin-700-normal-.*\.woff2$/);
+    expect(fonts).toHaveLength(1);
+    expect(fonts[0]).toMatch(/atkinson-hyperlegible-next-latin-wght-normal-.*\.woff2$/);
+    // No other family is bundled: Inter and Space Grotesk were replaced on 15 October 2026.
+    const files = fs.readdirSync(path.join(DIST, 'assets'));
+    expect(files.filter((f) => /^(inter|space-grotesk)-/.test(f))).toEqual([]);
   });
 });

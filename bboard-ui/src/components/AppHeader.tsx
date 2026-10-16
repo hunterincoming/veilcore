@@ -9,12 +9,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
-import { Box, Stack, Typography } from '@mui/material';
+import { Stack } from '@mui/material';
 import { ClaimTransfer } from './ClaimTransfer';
 import { AttesterSetup } from './AttesterSetup';
 import { Link as RouterLink } from 'react-router-dom';
 import { WalletBadge } from './veilcore/WalletBadge';
-import { ACCENT } from '../config/theme';
+import { Wordmark } from './Wordmark';
 import { NETWORK } from '../config/network';
 import { DraftBanner, LanguagePicker } from '../i18n/LanguagePicker';
 import { useT } from '../i18n/app';
@@ -37,22 +37,14 @@ export const AppHeader: React.FC = () => {
           spacing={1.25}
           sx={{ alignItems: 'center', textDecoration: 'none', minHeight: 44 }}
         >
-          <Box
-            aria-hidden="true"
-            sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }}
-          />
-          {/* The wordmark is a link home, not a heading: each page's own h1 says where you are. */}
-          <Typography
-            variant="h6"
-            component="span"
-            sx={{ letterSpacing: '0.3em', fontWeight: 600, color: 'text.primary' }}
-          >
-            VEILCORE
-          </Typography>
+          {/* The wordmark is a link home, not a heading: each page's own h1 says where you are.
+              The same mark and type as the public pages' navigation. */}
+          <Wordmark />
         </Stack>
         <ClaimTransfer hideButton />
         <AttesterSetup hideButton />
-        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+        {/* Wraps on the narrowest phones (320px), where a Japanese network badge doesn't fit. */}
+        <Stack direction="row" useFlexGap sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1.5, minWidth: 0 }}>
           <LanguagePicker />
           <WalletBadge network={NETWORK} />
         </Stack>

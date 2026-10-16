@@ -37,6 +37,7 @@ import { DISCLOSURE_FIELDS, LEGACY_NAME, toDisclosureKey, labelOf } from '../vei
 import { proofFor, type ProofState } from '../veilcore/proofs';
 import { attestationsFor, countsAsSigned, signerLabel, type ResolvedAttestation } from '../veilcore/attesters';
 import { ACCENT } from '../config/theme';
+import { Wordmark } from '../components/Wordmark';
 import { NETWORK, isTestNetwork } from '../config/network';
 import { Fact, FactKey, SharedFacts } from '../components/verify/DisclosedFacts';
 import { publicReportLine, withdrawnSignaturesLine } from '../veilcore/saved-report';
@@ -369,13 +370,7 @@ export const VerifyPage: React.FC = () => {
             color: 'text.primary',
           }}
         >
-          <Box
-            aria-hidden="true"
-            sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }}
-          />
-          <Typography variant="h6" component="span" sx={{ letterSpacing: '0.3em', fontWeight: 600 }}>
-            VEILCORE
-          </Typography>
+          <Wordmark />
         </Stack>
         {/* One line for a stranger who arrived from a QR code or a shared link. */}
         <Typography

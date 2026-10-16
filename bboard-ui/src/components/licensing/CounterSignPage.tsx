@@ -21,7 +21,7 @@ import {
   agreementRows,
   AGREEMENT_LABEL,
 } from '../../veilcore/licenses';
-import { ACCENT } from '../../config/theme';
+import { Wordmark } from '../Wordmark';
 import { LanguageBar } from '../../i18n/LanguagePicker';
 import { InEnglishPage } from '../../i18n/app';
 import { startRecordSync } from '../../veilcore/records';
@@ -57,12 +57,7 @@ export const CounterSignPage: React.FC = () => {
         <LanguageBar />
         <InEnglishPage />
         <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center', justifyContent: 'center', mb: 4 }}>
-          <Box
-            sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }}
-          />
-          <Typography variant="h6" sx={{ letterSpacing: '0.3em', fontWeight: 600 }}>
-            VEILCORE
-          </Typography>
+          <Wordmark />
         </Stack>
 
         {!license ? (
