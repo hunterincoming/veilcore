@@ -475,7 +475,7 @@ export const en = {
     'To have your demo data deleted from our server, email hunter@veilcore.org with the identifiers of your records.',
   'm.privacy.browser.title': 'Kept in your browser',
   'm.privacy.browser.text':
-    "Your browser keeps, on this device: your holder key (a copy also goes to our server, as above); the key that locks your records, which is never sent to us; your own copy of your records; a lab's signing key if you set one up (its private half never leaves this device); the role you picked; and your language. Your backup file holds both keys. To remove them, clear this site's data in your browser settings. Save your backup first: without it, you can't find or open your records again.",
+    "Your browser keeps, on this device: your holder key (a copy also goes to our server, as above); the key that locks your records, which is never sent to us; your own copy of your records; a lab's signing key if you set one up (its private half is never sent to us); the role you picked; and your language. Your backup file holds a copy of each key. To remove them, clear this site's data in your browser settings. Save your backup first: without it, you can't find or open your records again.",
   'm.privacy.hosts.title': 'Hosting',
   'm.privacy.hosts.text':
     'This website is hosted on Vercel, which logs IP addresses and requests. Our registry server runs on Railway, which logs requests.',

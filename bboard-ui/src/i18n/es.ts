@@ -182,7 +182,7 @@ export const es: Strings = {
     'Para que eliminemos sus datos de la demo de nuestro servidor, escriba a hunter@veilcore.org con los identificadores de sus registros.',
   'm.privacy.browser.title': 'Se guarda en su navegador',
   'm.privacy.browser.text':
-    'Su navegador guarda, en este dispositivo: su clave de titular (también se envía una copia a nuestro servidor, como se indica arriba); la clave que bloquea sus registros, que nunca se nos envía; su propia copia de sus registros; la clave de firma de un laboratorio si configuró una (su parte privada nunca sale de este dispositivo); el rol que eligió; y su idioma. Su archivo de copia de seguridad contiene ambas claves. Para borrarlos, elimine los datos de este sitio en la configuración de su navegador. Guarde antes su copia de seguridad: sin ella, no podrá encontrar ni abrir sus registros de nuevo.',
+    'Su navegador guarda, en este dispositivo: su clave de titular (también se envía una copia a nuestro servidor, como se indica arriba); la clave que bloquea sus registros, que nunca se nos envía; su propia copia de sus registros; la clave de firma de un laboratorio si configuró una (su parte privada nunca se nos envía); el rol que eligió; y su idioma. Su archivo de copia de seguridad contiene una copia de cada clave. Para borrarlos, elimine los datos de este sitio en la configuración de su navegador. Guarde antes su copia de seguridad: sin ella, no podrá encontrar ni abrir sus registros de nuevo.',
   'm.privacy.hosts.title': 'Alojamiento',
   'm.privacy.hosts.text':
     'Este sitio web está alojado en Vercel, que registra direcciones IP y solicitudes. Nuestro servidor de registro funciona en Railway, que registra solicitudes.',

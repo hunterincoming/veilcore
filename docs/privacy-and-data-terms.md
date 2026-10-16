@@ -43,7 +43,7 @@ UK representative go here once VeilCore is incorporated.]*
 | Genetic data, DNA reports, lab report files, photos you add | Read by your browser to work out a fingerprint (SHA-256). Never uploaded. |
 | Each record's secret key (made when you seal a record that names its key) | Your browser and the backup file you save. Never sent to VeilCore. |
 | The vault key that locks your records and licences | Your browser and the backup file you save. Never sent to VeilCore. |
-| A lab's private signing key | The lab's own browser. Only the public key is sent. |
+| A lab's private signing key | The lab's own browser and its backup file. Only the public key is sent to VeilCore. |
 
 ## What your browser keeps
 
