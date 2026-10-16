@@ -480,7 +480,9 @@ describe('F6 importRecords: fabricated fields dropped, broken fingerprints refus
     const forged = { ...(await good('VEIL-FORGED')), recordFingerprint: 'f'.repeat(64) };
     await expect(records.importRecords(file([await good('VEIL-OK'), forged]))).rejects.toThrow(/does not match/);
     await new Promise((r) => setTimeout(r, 10));
-    expect(calls.some((c) => c.method === 'PUT')).toBe(false);
+    // No record is uploaded. Only record saves count: an agreement saved by the test above
+    // is sealed before it is sent (api-store.ts), and its save can land during this one.
+    expect(calls.some((c) => c.method === 'PUT' && c.url.endsWith('/api/records'))).toBe(false);
     expect(records.getRecord('VEIL-OK')).toBeUndefined();
   });
 
