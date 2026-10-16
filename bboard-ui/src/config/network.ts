@@ -123,19 +123,25 @@ export const CANONICAL_ORIGIN = canonicalOrigin();
 export const canonicalUrl = (path: string): string => `${CANONICAL_ORIGIN}${path}`;
 
 /**
- * Lab reports sent back through the registry (veilcore/lab-results.ts). Off on mainnet
- * until the production registry has them: with it off, delivery codes carry no lock, and
- * "Send results back" and the breeder's lab report panels are hidden. To turn it on for
- * mainnet, change labResultsEnabledFor to return true.
+ * Lab reports sent back through the registry (veilcore/lab-results.ts). On in every build,
+ * mainnet included (16 Oct 2026): the registry is deployed before the site, and both site
+ * deploys refuse a registry whose /health doesn't list "lab-results-v1"
+ * (scripts/registry-features.mjs). To turn it off on a network again, list the network in
+ * LAB_RESULTS_OFF and change the copy with it (copy-truth.test.ts): there, delivery codes
+ * carry no lock, and "Send results back" and the breeder's lab report panels are hidden.
  */
-export const labResultsEnabledFor = (n: string): boolean => n !== 'mainnet';
+const LAB_RESULTS_OFF: readonly string[] = [];
+export const labResultsEnabledFor = (n: string): boolean => !LAB_RESULTS_OFF.includes(n);
 export const LAB_RESULTS_ENABLED: boolean = labResultsEnabledFor(NETWORK);
 
 /**
- * Logging an animal (veilcore/animal-profile.ts, docs/animal-profile.md). Its record fields
- * are a draft, so it is offered on test builds only: with it off, the logging flow and the
- * collection import offer plants alone. Animal records that already exist (a backup, a lab
- * code, a check link) still show as animals in every build.
+ * Logging an animal (veilcore/animal-profile.ts, docs/animal-profile.md). On in every build,
+ * mainnet included (16 Oct 2026): veilcore/profile/animal-individual/v1 is final, and any
+ * later field change is a v2. Both site deploys refuse a registry whose /health doesn't list
+ * "animal-profile-v1". On a network listed in ANIMAL_RECORDS_OFF, the logging flow and the
+ * collection import would offer plants alone; animal records that already exist (a backup,
+ * a lab code, a check link) show as animals in every build.
  */
-export const animalRecordsEnabledFor = (n: string): boolean => n !== 'mainnet';
+const ANIMAL_RECORDS_OFF: readonly string[] = [];
+export const animalRecordsEnabledFor = (n: string): boolean => !ANIMAL_RECORDS_OFF.includes(n);
 export const ANIMAL_RECORDS_ENABLED: boolean = animalRecordsEnabledFor(NETWORK);

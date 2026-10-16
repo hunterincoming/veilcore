@@ -75,21 +75,9 @@ const common: Overlay = {
     "Seal a record and pair its DNA report. If the plant turns up under another name, a lab can compare a new test with your report. On this website the pairing is saved with your record but not yet dated. VeilCore doesn't test DNA.",
   'm.for.3p':
     "Send material with a lab code. The lab signs a receipt with its own key, so the record shows a second party. The receipt is a real signature, kept by VeilCore's registry, not on the chain. Terms such as no propagation are practice only on this website.",
-  'm.for.5p':
-    'Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. For now you can log an animal only on the test site (test.veilcore.org): its individual ID, sire and dam, and a DNA report. The animal record fields are a draft.',
   // "Prove it" by link needs the browser to send a transaction, which this site doesn't.
   'm.for.6p':
     "They send you a link. You tap once, and their page checks on the network that you control your plant's own key. Your record named that key when it was sealed, so it can't be swapped. It says nothing about who you are or who bred the plant. This website can't do it yet.",
-  // Lab reports sent back through the registry are off on mainnet for now
-  // (LAB_RESULTS_ENABLED in config/network.ts). When that flips, m.for.4p, m.faq.4a,
-  // m.privacy.local.text and m.privacy.who.text here, and m.live.results.* in en.ts,
-  // change with it; copy-truth.test.ts fails until they do.
-  'm.for.4p':
-    "The lab signs your report and locks it so only you can open it. No PDF sits in anyone's inbox. The locked file waits on VeilCore's server for you to open; VeilCore can't read it, and records who signed; it doesn't vouch for the result. Not on this website yet: it's on the test site first.",
-  'm.faq.4a':
-    "Your genetic data: nothing. It's fingerprinted on your computer, as are the files you add, and they aren't uploaded. This website keeps what you type (names, dates, notes, agreement terms) and your lab files' names, so you can come back to them, and a record's public check page shows its cultivar name. Labs and developers can seal records inside their own systems, so only the fingerprint goes out.",
-  'm.privacy.local.text':
-    'Genetic data, and the lab reports, DNA reports and photos you add. Your browser reads them to compute their fingerprints; the files themselves are never uploaded.',
   'footer.privacy': 'Site privacy',
   'title.privacy': 'Site privacy',
   'm.foot.privacy': 'Site privacy',
@@ -100,15 +88,13 @@ const common: Overlay = {
     "This note covers this website. Records you seal here are real records: they go into batches that we anchor on Midnight's main network by hand.",
   'm.privacy.stored.title': 'Stored on our server',
   'm.privacy.stored.text':
-    "What you type and what your browser computes from it: cultivar and breeder names, species if you enter one, dates, notes, reference numbers, parents, fingerprints of records, fingerprints of photos and lab reports (only the fingerprints, never the files), lab report file names, agreement terms and counterparties, material you send to a lab (who it is addressed to, and the quantity), and, for labs, the public signing key and the attestations they publish. Also your holder key, which your browser sends with every save so the server can find your records. The server is VeilCore's registry, hosted on Railway.",
+    "What you type and what your browser computes from it: cultivar and breeder names, species if you enter one, dates, notes, reference numbers, parents, fingerprints of records, fingerprints of photos and lab reports (only the fingerprints, never the files), lab report file names, agreement terms and counterparties, material you send to a lab (who it is addressed to, and the quantity), and, for labs, the public signing key and the attestations they publish. Also your holder key, which your browser sends with every save so the server can find your records. Locked lab reports a lab sends you: stored unreadable to us, and deleted after 180 days. The server is VeilCore's registry, hosted on Railway.",
   'm.privacy.test.title': "Dated on Midnight's main network",
   'm.privacy.test.text':
     "Your record's fingerprint goes into a batch, and we anchor the batch on Midnight's main network, by hand for now, so it can take a while. Only the batch's fingerprint goes on the network, never what you typed. Once anchored, it is permanent: nobody, including us, can delete it.",
   'm.privacy.madeup.title': 'Type only what you are happy for us to keep',
   'm.privacy.madeup.text':
     "Everything you type is kept on our server, and a record's cultivar name is shown on its public check page. Don't type anything you need to keep secret. Genetic data never leaves your computer.",
-  'm.privacy.who.text':
-    "VeilCore isn't incorporated yet, so VeilCore's founders run this site and the registry. There is no set retention period: what the registry holds stays there until you ask us to delete it. Contact: hunter@veilcore.org.",
   'm.privacy.delete.text':
     "We can delete what our server holds for your records: email hunter@veilcore.org with the records' identifiers. A batch fingerprint already anchored on Midnight stays there.",
 };

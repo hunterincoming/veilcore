@@ -126,7 +126,7 @@ export const en = {
     "They send you a link. You tap once, and their page checks on the network that you control your plant's own key. Your record named that key when it was sealed, so it can't be swapped. It says nothing about who you are or who bred the plant. This works on a Midnight test network for now.",
   'm.for.5t': 'Animal lines.',
   'm.for.5p':
-    'Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. You can log an animal on the test site: its individual ID, sire and dam, and a DNA report. The animal record fields are a draft.',
+    'Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. You can log an animal on this site: its individual ID, sire and dam, and a DNA report.',
   'm.for.5ask': 'If you breed animals, tell us what your records need.',
 
   'm.how.label': 'How it works',
@@ -367,8 +367,8 @@ export const en = {
   'm.live.lab.main': "Yes. The lab signs with its own key. VeilCore's registry keeps the receipt, not the chain.",
   'm.live.lab.test': 'Yes, the same way.',
   'm.live.results.t': 'Lab reports locked to you',
+  'm.live.results.main': 'Yes. New, and still being tested.',
   'm.live.results.test': 'Yes. New, and still being tested.',
-  'm.live.results.not': 'On veilcore.org: turned off for now, on the test site first.',
   'm.live.dna.t': 'A date for your DNA report pairing',
   'm.live.dna.main': 'Saved with your record, not dated.',
   'm.live.dna.test': 'Yes, sent from your browser.',

@@ -244,8 +244,8 @@ export const es: Strings = {
     'Sí. El laboratorio firma con su propia clave. El servidor de registros de VeilCore guarda el acuse, no la cadena.',
   'm.live.lab.test': 'Sí, de la misma forma.',
   'm.live.results.t': 'Informes de laboratorio que solo usted abre',
+  'm.live.results.main': 'Sí. Nuevo, todavía en pruebas.',
   'm.live.results.test': 'Sí. Nuevo, todavía en pruebas.',
-  'm.live.results.not': 'En veilcore.org: desactivado por ahora, primero en el sitio de prueba.',
   'm.live.dna.t': 'Una fecha para la vinculación de su informe de ADN',
   'm.live.dna.main': 'Se guarda con su registro, sin fecha.',
   'm.live.dna.test': 'Sí, enviada desde su navegador.',
@@ -303,7 +303,7 @@ export const es: Strings = {
     'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su planta. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta. Por ahora esto funciona en una red de pruebas de Midnight.',
   'm.for.5t': 'Líneas animales.',
   'm.for.5p':
-    'Los libros genealógicos llevan el pedigrí. Un registro puede dar a cada entrada una fecha que nadie puede antedatar, sin publicar el genotipo. En el sitio de prueba puede registrar un animal: su identificación individual, padre y madre, y un informe de ADN. Los campos de registro para animales son un borrador.',
+    'Los libros genealógicos llevan el pedigrí. Un registro puede dar a cada entrada una fecha que nadie puede antedatar, sin publicar el genotipo. En este sitio puede registrar un animal: su identificación individual, padre y madre, y un informe de ADN.',
   'm.for.5ask': 'Si usted cría animales, díganos qué necesitan sus registros.',
   'm.how.label': 'Cómo funciona',
   'm.how.title1': 'Cuatro pasos.',

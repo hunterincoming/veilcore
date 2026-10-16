@@ -20,6 +20,11 @@ your step (below).
   decided" until `docs/maintenance-policy.md` itself says `**Status: APPROVED`. The build
   reads that line; nobody edits the site's wording for it. Once the claims contract is
   pinned, the same box adds that the claims contract has no maintenance key.
+- Lab results work on veilcore.org, as on the test site: a lab can send a report back,
+  locked so only the breeder can open it. The privacy note says locked reports are deleted
+  after 180 days, and "What's live where" shows lab reports under veilcore.org.
+- "An animal" is offered when logging and in the collection import. The animal record fields
+  are final (`veilcore/profile/animal-individual/v1`, `docs/animal-profile.md`).
 - Still labelled, because it is still true: licenses and lab agreements in the web demo are
   simulated, and a DNA report pairing on the site is saved but not dated. Visitors still send
   no transactions themselves.

@@ -12,7 +12,7 @@
 //   - (round 3) no "lab files never leave" (a lab's locked report is uploaded), no
 //     "that you hold the record" for prove-by-link (it checks a key), no lab called
 //     "confirmed" or "checked" by VeilCore, the Bitcoin stamp file named as a third file
-//     that only our server has, lab reports off on veilcore.org, no ownership words in
+//     that only our server has, lab reports on veilcore.org too (16 Oct), no ownership words in
 //     de/fr/es/ja, and no landing key missing from de/fr/es/ja.
 //   - (round 5) the hero is three short sentences with the one privacy line, and what the
 //     server keeps is said in "How it works"; "checking without us" names spec 3.6.1 and
@@ -417,9 +417,13 @@ describe("what's live where", () => {
     expect(mainnetRelay['m.live.chain.main']).toBe('Yes.');
     expect(e['m.live.lic.test']).toBe('Practice only.');
     expect(e['m.live.dna.main']).toMatch(/not dated/);
-    // Lab reports are off on veilcore.org (LAB_RESULTS_ENABLED), on on the test site.
-    expect(rows.find((r) => r.row === 'results')?.has).toEqual([false, true, true]);
-    expect(e['m.live.results.not']).toMatch(/^On veilcore\.org: turned off for now, on the test site first\.$/);
+    // Lab reports are on on veilcore.org and the test site alike (LAB_RESULTS_ENABLED, 16 Oct).
+    expect(rows.find((r) => r.row === 'results')?.has).toEqual([labResultsEnabledFor('mainnet'), true, false]);
+    expect(e['m.live.results.main']).toBe('Yes. New, and still being tested.');
+    for (const s of [testSite, ...mainnetVariants]) expect(s['m.live.results.main']).toBe(e['m.live.results.main']);
+    expect(Object.values(LANGUAGES).map((l) => (l.strings as Record<string, string>)['m.live.results.not'])).toEqual(
+      Object.keys(LANGUAGES).map(() => undefined),
+    );
     // Prove-by-link checks a key, not the record.
     // The record names its own key (SPEC 3.6.1, docs/identity-in-record.md).
     expect(e['m.live.prove.test']).toBe(
@@ -630,20 +634,24 @@ describe('round 3: what a page may claim', () => {
       ).toEqual([]);
     }
   });
-  it('the demo and test site say a locked lab report is kept 180 days; veilcore.org has none yet', () => {
-    for (const s of [en, testSite]) {
+  it('every site, veilcore.org included, says a locked lab report is kept 180 days (16 Oct)', () => {
+    for (const s of [en, testSite, ...mainnetVariants]) {
       expect(s['m.privacy.stored.text']).toMatch(
         /Locked lab reports a lab sends you: stored unreadable to us, and deleted after 180 days/,
       );
       expect(s['m.privacy.local.text']).toMatch(/A lab report reaches our server only when a lab sends it back to you/);
       expect(s['m.faq.4a']).toMatch(/deleted after 180 days/);
       expect(s['m.privacy.who.text']).toMatch(/deleted 180 days after they arrive/);
+      expect(s['m.for.4p']).toMatch(/New, and still being tested\.$/);
+      expect(
+        offenders(s, /test site first|turned off for now|Not on this website yet: it's on the test site/i),
+      ).toEqual([]);
     }
-    for (const s of mainnetVariants) {
-      expect(s['m.for.4p']).toMatch(/Not on this website yet: it's on the test site first\.$/);
-      for (const k of ['m.faq.4a', 'm.privacy.local.text', 'm.privacy.who.text', 'm.privacy.stored.text'] as const)
-        expect(s[k], k).not.toMatch(/180 days|sends it back/);
-    }
+    // Japanese on veilcore.org says the same (its mainnet overlay no longer replaces these).
+    const jaMain = { ...ja, ...networkOverlay(MAINNET, 'ja') } as Record<string, string>;
+    expect(jaMain['m.privacy.stored.text']).toMatch(/180日後に削除します/);
+    expect(jaMain['m.faq.4a']).toMatch(/180日後に削除されます/);
+    expect(jaMain['m.for.4p']).not.toMatch(/まずテストサイト/);
   });
   it('a locked lab report waits on our server unread; nothing says VeilCore "holds" it', () => {
     // Read as "VeilCore keeps people's files". Only a lab report coming back is ever on our
@@ -673,8 +681,8 @@ describe('round 3: what a page may claim', () => {
       expect(offenders(shown, old[lang]), lang).toEqual([]);
       expect(strings['m.for.4p'], lang).toMatch(cantRead[lang]);
     }
-    // The Japanese mainnet overlay has its own m.for.4p.
-    const jaMain = networkOverlay(MAINNET, 'ja') as Record<string, string>;
+    // On veilcore.org in Japanese, m.for.4p is ja.ts's own (the mainnet overlay no longer replaces it).
+    const jaMain = { ...ja, ...networkOverlay(MAINNET, 'ja') } as Record<string, string>;
     expect(jaMain['m.for.4p']).toMatch(cantRead.ja);
     expect(offenders(jaMain, old.ja)).toEqual([]);
     const lab = fs.readFileSync(path.join(SRC, 'components/flow/LabResults.tsx'), 'utf8');
@@ -687,41 +695,33 @@ describe('round 3: what a page may claim', () => {
     expect(video).not.toMatch(holds);
     expect(video).toContain('>VeilCore can’t read it</div>');
   });
-  it('the mainnet wording above holds only while lab reports are off on mainnet', () => {
-    // If this flips, the mainnet overlay (m.for.4p, m.faq.4a, m.privacy.*) and
-    // m.live.results.* must change with it.
-    // (labResultsEnabledFor in config/network.ts, builder F's flag.)
-    expect(labResultsEnabledFor('mainnet')).toBe(false);
-    expect(labResultsEnabledFor('preprod')).toBe(true);
+  it('the wording above holds only while lab reports are on everywhere, mainnet included', () => {
+    // If one network is switched off again (labResultsEnabledFor in config/network.ts),
+    // m.for.4p, m.faq.4a, m.privacy.* and m.live.results.* must say so for that site.
+    for (const n of ['mainnet', 'preprod', 'preview', 'undeployed']) expect(labResultsEnabledFor(n), n).toBe(true);
   });
 });
 
 describe('animal records (16 Oct 2026): where they can be logged', () => {
   const OLD = {
-    en: /aren't published yet|set up for plants/,
-    de: /noch nicht veröffentlicht|für Pflanzen eingerichtet/,
-    es: /aún no están publicados|pensada para plantas/,
-    fr: /pas encore publiés|prévue pour les plantes/,
-    ja: /まだ公開されていません|植物向け/,
+    en: /aren't published yet|set up for plants|only on the test site|on the test site:|a draft/,
+    de: /noch nicht veröffentlicht|für Pflanzen eingerichtet|Testseite|Entwurf/,
+    es: /aún no están publicados|pensada para plantas|sitio de prueba|borrador/,
+    fr: /pas encore publiés|prévue pour les plantes|site de test|brouillon/,
+    ja: /まだ公開されていません|植物向け|テストサイト|草案/,
   };
-  it('the test site and the demo say animals can be logged on the test site, as a draft', () => {
-    for (const site of [en as Record<string, string>, testSite]) {
-      expect(site['m.for.5p']).toMatch(
-        /You can log an animal on the test site: its individual ID, sire and dam, and a DNA report\./,
-      );
-      expect(site['m.for.5p']).toMatch(/The animal record fields are a draft\.$/);
+  const NOW = /You can log an animal on this site: its individual ID, sire and dam, and a DNA report\.$/;
+  it('every site, veilcore.org included, says animals can be logged there; the fields are no draft', () => {
+    for (const site of [en as Record<string, string>, testSite, ...mainnetVariants]) {
+      expect(site['m.for.5p']).toMatch(NOW);
       expect(site['m.for.5p']).not.toMatch(OLD.en);
     }
-  });
-  it('veilcore.org says it is the test site only, for now', () => {
-    for (const site of mainnetVariants) {
-      expect(site['m.for.5p']).toMatch(/only on the test site \(test\.veilcore\.org\)/);
-      expect(site['m.for.5p']).toMatch(/a draft\.$/);
-      expect(site['m.for.5p']).not.toMatch(OLD.en);
+    // The mainnet overlays don't replace it any more: veilcore.org says what the test site says.
+    for (const f of [true, false]) {
+      const flags = { claimsOnMainnet: f, policyApproved: f };
+      expect(mainnetStrings(flags)['m.for.5p']).toBeUndefined();
+      expect(jaMainnet(flags)['m.for.5p']).toBeUndefined();
     }
-    expect(jaMainnet({ claimsOnMainnet: true, policyApproved: true })['m.for.5p']).toContain(
-      'テストサイト（test.veilcore.org）だけ',
-    );
   });
   it('only the last sentence changed: the paragraph still opens as before', () => {
     for (const site of [en as Record<string, string>, ...mainnetVariants])
@@ -729,18 +729,16 @@ describe('animal records (16 Oct 2026): where they can be logged', () => {
         /^Herd books keep the pedigree\. A record can give each entry a date nobody can backdate, without publishing the genotype\. /,
       );
   });
-  it('every translation drops the old sentence', () => {
+  it('every translation drops the old sentences', () => {
     for (const l of ['de', 'es', 'fr', 'ja'] as const) {
       expect(LANGUAGES[l].strings['m.for.5p'], l).not.toMatch(OLD[l]);
       expect(LANGUAGES[l].strings['m.for.5p'], l).not.toBe(en['m.for.5p']);
     }
-    expect(jaMainnet({ claimsOnMainnet: true, policyApproved: true })['m.for.5p']).not.toMatch(OLD.ja);
-    expect(ja['m.for.5p']).toContain('個体識別番号');
+    expect(ja['m.for.5p']).toContain('このサイトでは、動物の個体識別番号');
   });
-  it('the words follow the switch: animal logging is on for test builds, off on mainnet', () => {
-    // If this flips, m.for.5p in en-mainnet.ts (and jaMainnet) must change with it.
-    expect(animalRecordsEnabledFor('mainnet')).toBe(false);
-    for (const n of ['preprod', 'preview', 'undeployed']) expect(animalRecordsEnabledFor(n), n).toBe(true);
+  it('the words follow the switch: animal logging is on for every network, mainnet included', () => {
+    // If one network is switched off again, m.for.5p must say so for that site.
+    for (const n of ['mainnet', 'preprod', 'preview', 'undeployed']) expect(animalRecordsEnabledFor(n), n).toBe(true);
   });
 });
 
@@ -818,9 +816,12 @@ describe('Japanese (round 6)', () => {
       expect(o['m.claims.status']).toMatch(
         f.claimsOnMainnet ? /メインネットワーク上にあります/ : /メインネットワークにはまだなく/,
       );
-      expect(o['m.for.4p']).toMatch(/まずテストサイトで提供しています。$/);
-      for (const k of ['m.faq.4a', 'm.privacy.local.text', 'm.privacy.who.text', 'm.privacy.stored.text'] as const)
-        expect(o[k], k).not.toMatch(/180日|返送/);
+      // Lab reports are on veilcore.org too (16 Oct): ja.ts's own sentences apply there.
+      for (const k of ['m.for.4p', 'm.faq.4a', 'm.privacy.local.text', 'm.privacy.who.text'] as const)
+        expect(o[k], k).toBeUndefined();
+      expect(o['m.privacy.stored.text']).toMatch(
+        /180日後に削除します。サーバーはRailway上でホストされているVeilCoreのレジストリです。$/,
+      );
     }
     // Outside the dated posts, nothing on the Japanese mainnet page says test network or demo.
     for (const s of jaMainnetSites) {

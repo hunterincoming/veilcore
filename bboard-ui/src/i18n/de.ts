@@ -244,8 +244,8 @@ export const de: Strings = {
     'Ja. Das Labor signiert mit seinem eigenen Schlüssel. Das Register von VeilCore bewahrt die Bestätigung auf, nicht die Chain.',
   'm.live.lab.test': 'Ja, auf die gleiche Weise.',
   'm.live.results.t': 'Laborberichte, die nur Sie öffnen können',
+  'm.live.results.main': 'Ja. Neu und noch in der Erprobung.',
   'm.live.results.test': 'Ja. Neu und noch in der Erprobung.',
-  'm.live.results.not': 'Auf veilcore.org: vorerst abgeschaltet, zuerst auf der Test-Website.',
   'm.live.dna.t': 'Ein Datum für die Kopplung Ihres DNA-Berichts',
   'm.live.dna.main': 'Mit Ihrem Datensatz gespeichert, nicht datiert.',
   'm.live.dna.test': 'Ja, aus Ihrem Browser gesendet.',
@@ -302,7 +302,7 @@ export const de: Strings = {
     'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihrer Pflanze kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht. Das funktioniert vorerst in einem Testnetz von Midnight.',
   'm.for.5t': 'Tierlinien.',
   'm.for.5p':
-    'Herdbücher führen die Abstammung. Ein Datensatz kann jedem Eintrag ein Datum geben, das niemand zurückdatieren kann, ohne den Genotyp zu veröffentlichen. Auf der Testseite können Sie ein Tier erfassen: seine Einzeltierkennung, Vater und Mutter und einen DNA-Bericht. Die Datensatzfelder für Tiere sind ein Entwurf.',
+    'Herdbücher führen die Abstammung. Ein Datensatz kann jedem Eintrag ein Datum geben, das niemand zurückdatieren kann, ohne den Genotyp zu veröffentlichen. Auf dieser Website können Sie ein Tier erfassen: seine Einzeltierkennung, Vater und Mutter und einen DNA-Bericht.',
   'm.for.5ask': 'Wenn Sie Tiere züchten, sagen Sie uns, was Ihre Datensätze brauchen.',
   'm.how.label': 'So funktioniert es',
   'm.how.title1': 'Vier Schritte.',

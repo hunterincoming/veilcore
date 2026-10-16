@@ -261,7 +261,8 @@ const LIVE_ROWS = [
   ['chain', true, true, false],
   ['share', true, true, false],
   ['lab', true, true, false],
-  ['results', false, true, true],
+  // Lab reports locked to the breeder: on veilcore.org too since 16 Oct 2026 (config/network.ts).
+  ['results', true, true, false],
   ['dna', true, true, false],
   ['prove', false, true, true],
   ['claims', true, false, true],

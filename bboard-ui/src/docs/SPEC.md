@@ -2,7 +2,7 @@
 
 **A specification for evidence of prior possession of plant and animal genetic material**
 
-Version 0.1 - August 2026, revised 16 October 2026 (section 3.6.1: a record that names its own key; section 11.8, a draft: animal records; the record format version is unchanged)
+Version 0.1 - August 2026, revised 16 October 2026 (section 3.6.1: a record that names its own key; section 11.8: animal records; the record format version is unchanged)
 
 ---
 
@@ -48,7 +48,7 @@ A record has three layers. This separation is what allows the format to be used 
 
 **The envelope** is domain-blind. No field in it names a crop, an animal, a plant part, or any subject-specific concept. The test for any proposed envelope field is whether an ornamental propagator, a livestock herd book, and a microbial culture collection would all need it.
 
-**The profile** carries the subject fields. A profile is identified by a versioned string and defined by a JSON schema its publisher maintains. The plant-variety profile is one profile; a body working with fruit varieties or livestock defines its own and reuses everything else. One animal profile is drafted in section 11.8.
+**The profile** carries the subject fields. A profile is identified by a versioned string and defined by a JSON schema its publisher maintains. The plant-variety profile is one profile; a body working with fruit varieties or livestock defines its own and reuses everything else. One animal profile is defined in section 11.8.
 
 **The disclosure vocabulary** names what a holder may grant to a recipient, so that holder, recipient and any adjudicator describe the same disclosure in the same words.
 
@@ -698,9 +698,9 @@ A challenge carries: `challengeId`, `subjectCommitment`, `claimCommitment`, `gro
 
 **Nothing here is adjudicated.** A verifier is told that a record is contested, on what ground, and whether it was answered. Where a matter has been resolved, the resolution records which outside authority ruled and a reference a verifier can check for themselves. A registry that ruled on a contested claim would be substituting its judgement for a court's, and would stop being usable by either party the first time it did so.
 
-## 11.8 - Animal records: the animal-individual profile (draft)
+## 11.8 - Animal records: the animal-individual profile
 
-**This section is a draft, published for comment on 16 October 2026.** It defines one profile, `veilcore/profile/animal-individual/v1`, published by the authors of this specification. A record under it describes one animal, logged by its breeder, its holder or a registry. The record format version is unchanged.
+**Published 16 October 2026. Version 1 is final.** This section defines one profile, `veilcore/profile/animal-individual/v1`, published by the authors of this specification. Its committed fields will not change under that identifier: any change to them is a new profile, `veilcore/profile/animal-individual/v2`. A record under it describes one animal, logged by its breeder, its holder or a registry. The record format version is unchanged.
 
 **The fingerprint rules do not change.** A record's fingerprint is computed exactly as for any record: SHA-256 of the canonical serialisation (section 4.4) of its committed fields, and, when those fields carry a `keyBinding`, `H("veilcore:v1:keyrecord", keyBinding, contentHash)` (section 3.6.1). The profile says only which fields are committed and in what form. A record sealed under any other profile, or under none, is computed and checked exactly as before.
 

@@ -1,11 +1,14 @@
-# Animal records (16 Oct 2026, draft)
+# Animal records (16 Oct 2026)
 
 **In one line:** a breeder or a registry can log one animal, with its ID, its sire and dam,
 and tie a DNA report to it, dated, using everything plant records already use.
 
-The record fields are a draft (SPEC section 11.8). They are on the test site only: the
-mainnet site doesn't offer "An animal" yet (`ANIMAL_RECORDS_ENABLED` in
-`bboard-ui/src/config/network.ts`).
+**Version 1 is final.** The profile `veilcore/profile/animal-individual/v1` (SPEC section
+11.8) will not change: if a field is ever added, removed or changed, that is a new profile,
+`veilcore/profile/animal-individual/v2`, and v1 records keep checking exactly as they do
+today. "An animal" is offered on every site, veilcore.org included (`ANIMAL_RECORDS_ENABLED`
+in `bboard-ui/src/config/network.ts`). The site deploys refuse a registry whose `/health`
+doesn't list `animal-profile-v1` (`docs/mainnet-day-site.md`).
 
 ## The problem it answers
 

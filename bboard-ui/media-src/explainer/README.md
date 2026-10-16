@@ -25,8 +25,8 @@ and say nothing it doesn't:
 - "Prove it" shows the person controls the key the record names (spec 3.6.1). It says
   nothing about who bred the plant. The checker's screen shows no record date, so the video
   doesn't either.
-- The end card says "Prove it and lab reports: on the test site first." (veilcore.org has
-  neither yet).
+- The end card says "Prove it: on the test site first." (veilcore.org doesn't have it yet;
+  lab reports are on both sites since 16 October).
 - Lab receipts are signed with the lab's own key and kept by VeilCore's registry, not the
   chain. A lab report reaches VeilCore's server only when a lab sends it back, locked so
   only the holder can open it; VeilCore can't read it, and never says it "holds" the

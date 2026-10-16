@@ -1,5 +1,5 @@
 // An animal record: one animal, logged by its breeder or a registry (docs/animal-profile.md,
-// SPEC 11.8, draft).
+// SPEC 11.8). Version 1 is final: any change to the fields below is a new profile, v2.
 //
 // The fingerprint rules don't change. A profile says which fields are sealed and in what
 // form; for `veilcore/profile/animal-individual/v1` they are the ones below, hashed exactly

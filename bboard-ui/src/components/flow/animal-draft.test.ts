@@ -53,9 +53,8 @@ const DRAFT: AnimalDraft = {
 };
 
 describe('the animal form', () => {
-  it('is offered on test builds only: off on mainnet', () => {
-    expect(animalRecordsEnabledFor('mainnet')).toBe(false);
-    expect(animalRecordsEnabledFor('preprod')).toBe(true);
+  it('is offered on every network, mainnet included (16 Oct 2026)', () => {
+    for (const n of ['mainnet', 'preprod', 'preview', 'undeployed']) expect(animalRecordsEnabledFor(n), n).toBe(true);
     expect(ANIMAL_RECORDS_ENABLED).toBe(true); // the unit tests run as preprod
   });
 

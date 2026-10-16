@@ -42,23 +42,22 @@ describe('the origin shared links point at', () => {
 });
 
 describe('lab reports through the registry', () => {
-  it('are off on mainnet and on everywhere else', () => {
-    expect(labResultsEnabledFor('mainnet')).toBe(false);
-    for (const n of ['preprod', 'preview', 'undeployed']) expect(labResultsEnabledFor(n)).toBe(true);
+  it('are on for every network, mainnet included (16 Oct 2026)', () => {
+    for (const n of ['mainnet', 'preprod', 'preview', 'undeployed']) expect(labResultsEnabledFor(n), n).toBe(true);
     // This test build is preprod (vitest.config.ts).
     expect(NETWORK).toBe('preprod');
     expect(LAB_RESULTS_ENABLED).toBe(true);
   });
 
-  it('with them off, a lab code carries no lock (SendToLab passes none)', () => {
+  it('with them off on a network, a lab code carries no lock (SendToLab passes none)', () => {
     const claim = 'ab'.repeat(16);
     expect(shareCodeFor('TR-0A1B2C3D', claim, undefined)).toBe(`TR-0A1B2C3D.${claim}`);
   });
 });
 
 describe('every place that offers lab reports reads the one flag', () => {
-  // A cheap guard: a screen that offers lab reports without asking the flag would offer
-  // them on mainnet, where the registry has nowhere to put them.
+  // A cheap guard: a screen that offers lab reports without asking the flag would still
+  // offer them on a network where they are switched off again (config/network.ts).
   const SRC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const read = (f: string) => fs.readFileSync(path.join(SRC, f), 'utf8');
   it.each([

@@ -1,5 +1,5 @@
 // Regenerate contract/vectors/animal-individual-v1.json: records sealed under the animal
-// profile, veilcore/profile/animal-individual/v1 (docs/animal-profile.md, SPEC 11.8, draft).
+// profile, veilcore/profile/animal-individual/v1 (docs/animal-profile.md, SPEC 11.8; v1 is final).
 //   node contract/scripts/animal-individual-vectors.mjs
 // Written with node:crypto and the published canonicaliser only, so the checkers it tests
 // (bboard-ui veilcore/animal-profile.ts and commitment.ts, the registry's
@@ -166,7 +166,7 @@ writeFileSync(
   JSON.stringify(
     {
       about:
-        'Animal records (profile veilcore/profile/animal-individual/v1, SPEC 11.8, draft). The fingerprint is computed exactly as for any record (SPEC 3.6.1 and 4.4): contentHash = SHA-256 of the canonical serialisation of fields; fingerprint = H("veilcore:v1:keyrecord", keyBinding, contentHash) when fields has keyBinding, else contentHash. The profile adds validation only: a record in `refusals` must be refused before it is sealed or stored. `appRecord` is the VeilCore site\'s own stored shape for the same record (informational: an implementation that reads only `fields` can ignore it). All animals, names, IDs and farms are test data.',
+        'Animal records (profile veilcore/profile/animal-individual/v1, SPEC 11.8; v1 is final, and any change to its fields is a new profile, v2). The fingerprint is computed exactly as for any record (SPEC 3.6.1 and 4.4): contentHash = SHA-256 of the canonical serialisation of fields; fingerprint = H("veilcore:v1:keyrecord", keyBinding, contentHash) when fields has keyBinding, else contentHash. The profile adds validation only: a record in `refusals` must be refused before it is sealed or stored. `appRecord` is the VeilCore site\'s own stored shape for the same record (informational: an implementation that reads only `fields` can ignore it). All animals, names, IDs and farms are test data.',
       source: 'contract/scripts/animal-individual-vectors.mjs (node:crypto and veilcore-records canonicalise); regenerate, never edit by hand',
       profile: PROFILE,
       keys,
