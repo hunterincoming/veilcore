@@ -12,7 +12,7 @@
 //   undated  sealed after the batch: in no batch
 // SPDX-License-Identifier: Apache-2.0
 import { spawn } from 'node:child_process';
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes } from 'node:crypto';
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { canonicalise, generateKeypair, signAttestation, signRetraction } from 'veilcore-records';
@@ -79,6 +79,14 @@ const ungcm = (key, aad, box) => {
   d.setAuthTag(raw.subarray(raw.length - 16));
   return JSON.parse(Buffer.concat([d.update(raw.subarray(0, raw.length - 16)), d.final()]).toString('utf8'));
 };
+/**
+ * Who a delivery is for, as the site sends it (sealed records round 2, CONTRACT.md #15):
+ * a tag, HMAC-SHA256 under the sender's vault key, never the name. The registry refuses a name.
+ */
+const handleTag = (vault, handle) =>
+  createHmac('sha256', vault)
+    .update(`veilcore:handle:v1\0${handle.normalize('NFC').trim().toLowerCase()}`)
+    .digest('hex');
 const kidOf = (key) => sha256(Buffer.concat([Buffer.from('veilcore:vault-id:v1:'), key])).slice(0, 16);
 const sealedRow = (r, key) => {
   const kid = kidOf(key);
@@ -316,7 +324,7 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
       const offer = await call(
         'POST',
         '/transfers',
-        { sourceRecord: bound.id, toHandle: 'lab@e2e.test', sample, sealedOffer },
+        { sourceRecord: bound.id, toHandle: handleTag(VAULT, 'lab@e2e.test'), sample, sealedOffer },
         holder,
       );
       const claim = await call(
