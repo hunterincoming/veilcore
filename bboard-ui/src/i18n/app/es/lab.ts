@@ -248,9 +248,9 @@ export const lab = {
   'app.lab.key.accreditorPlaceholder': 'p. ej., A2LA, PJLA, organismo estatal',
   'app.lab.key.create': 'Crear mi clave',
   'app.lab.results.replacedNewer':
-    '<b>El laboratorio reemplazó el informe guardado en esta planta.</b> Guarde el corregido: ábralo y toque “Guardarlo en esta planta”.',
+    '<b>El laboratorio reemplazó el informe de ADN guardado en esta planta.</b> Guarde el corregido: ábralo y toque “Guardarlo en esta planta”.',
   'app.lab.results.replacedNone':
-    '<b>El laboratorio reemplazó el informe guardado en esta planta.</b> No hay informe vigente de {lab}: el original fue reemplazado y la corrección retirada.',
+    '<b>El laboratorio reemplazó el informe de ADN guardado en esta planta.</b> No hay informe vigente de {lab}: el original fue reemplazado y la corrección retirada.',
   'app.lab.results.withdrawn':
     '<b>El laboratorio retiró el informe guardado en esta planta.</b> Sigue guardado hasta que guarde otro, y su certificado y sus enlaces dicen que fue retirado.',
   'app.lab.results.withdrawnNewer':

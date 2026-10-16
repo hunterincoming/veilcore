@@ -245,9 +245,9 @@ export const lab = {
   'app.lab.key.create': 'Create my key',
   // flow/LabResults.tsx: lab reports back on a plant (the breeder's side).
   'app.lab.results.replacedNewer':
-    '<b>The lab report saved to this plant was replaced by the lab.</b> Save the corrected one: open it, then tap “Save it to this plant”.',
+    '<b>The DNA report saved to this plant was replaced by the lab.</b> Save the corrected one: open it, then tap “Save it to this plant”.',
   'app.lab.results.replacedNone':
-    '<b>The lab report saved to this plant was replaced by the lab.</b> No current report from {lab}: the original was replaced and the correction withdrawn.',
+    '<b>The DNA report saved to this plant was replaced by the lab.</b> No current report from {lab}: the original was replaced and the correction withdrawn.',
   'app.lab.results.withdrawn':
     '<b>The lab report saved to this plant was withdrawn by the lab.</b> It stays saved until you save another, and your certificate and links say it was withdrawn.',
   'app.lab.results.withdrawnNewer':

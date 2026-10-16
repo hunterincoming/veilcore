@@ -253,9 +253,9 @@ export const lab = {
   'app.lab.key.accreditorPlaceholder': 'p. ex. A2LA, PJLA, agence d’État',
   'app.lab.key.create': 'Créer ma clé',
   'app.lab.results.replacedNewer':
-    '<b>Le rapport de laboratoire enregistré sur cette plante a été remplacé par le laboratoire.</b> Enregistrez le rapport corrigé : ouvrez-le, puis touchez « L’enregistrer sur cette plante ».',
+    '<b>Le rapport ADN enregistré sur cette plante a été remplacé par le laboratoire.</b> Enregistrez le rapport corrigé : ouvrez-le, puis touchez « L’enregistrer sur cette plante ».',
   'app.lab.results.replacedNone':
-    '<b>Le rapport de laboratoire enregistré sur cette plante a été remplacé par le laboratoire.</b> Aucun rapport en vigueur de {lab} : l’original a été remplacé et la correction retirée.',
+    '<b>Le rapport ADN enregistré sur cette plante a été remplacé par le laboratoire.</b> Aucun rapport en vigueur de {lab} : l’original a été remplacé et la correction retirée.',
   'app.lab.results.withdrawn':
     '<b>Le rapport de laboratoire enregistré sur cette plante a été retiré par le laboratoire.</b> Il reste enregistré jusqu’à ce que vous en enregistriez un autre, et votre certificat et vos liens indiquent qu’il a été retiré.',
   'app.lab.results.withdrawnNewer':

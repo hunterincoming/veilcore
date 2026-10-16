@@ -195,8 +195,11 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await breeder.getByRole('button', { name: /Make a code for the lab/ }).click();
   const codeEl = breeder.getByText(/^TR-[0-9A-F]{8}\./);
   await expect(codeEl).toBeVisible();
-  const code = /^TR-[0-9A-F]{8}\.[0-9a-f]{32}\.age1[02-9ac-hj-np-z]{58}$/.exec((await codeEl.innerText()).trim())?.[0];
-  expect(code, 'the lab code carries the plant’s lock').toBeTruthy();
+  // TR-id . claim code . the plant's lock . o1 + the offer key (sealed records, CONTRACT.md #8).
+  const code = /^TR-[0-9A-F]{8}\.[0-9a-f]{32}\.age1[02-9ac-hj-np-z]{58}\.o1[A-Za-z0-9_-]{43}$/.exec(
+    (await codeEl.innerText()).trim(),
+  )?.[0];
+  expect(code, 'the lab code carries the plant’s lock and the offer key').toBeTruthy();
   await breeder.getByRole('button', { name: /^Done$/ }).click();
 
   // The lab: its signature, then the delivery.

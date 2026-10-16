@@ -213,9 +213,9 @@ export const animal = {
   'app.animal.v.app.lab.sentence.withdrawn':
     'Der bei diesem Tier gespeicherte DNA-Bericht wurde vom Labor{on} zurückgezogen. {tail}',
   'app.animal.v.app.lab.results.replacedNewer':
-    '<b>Der bei diesem Tier gespeicherte Laborbericht wurde vom Labor ersetzt.</b> Speichern Sie den korrigierten: Öffnen Sie ihn und tippen Sie dann auf „Bei diesem Tier speichern“.',
+    '<b>Der bei diesem Tier gespeicherte DNA-Bericht wurde vom Labor ersetzt.</b> Speichern Sie den korrigierten: Öffnen Sie ihn und tippen Sie dann auf „Bei diesem Tier speichern“.',
   'app.animal.v.app.lab.results.replacedNone':
-    '<b>Der bei diesem Tier gespeicherte Laborbericht wurde vom Labor ersetzt.</b> Kein aktueller Bericht von {lab}: Das Original wurde ersetzt und die Korrektur zurückgezogen.',
+    '<b>Der bei diesem Tier gespeicherte DNA-Bericht wurde vom Labor ersetzt.</b> Kein aktueller Bericht von {lab}: Das Original wurde ersetzt und die Korrektur zurückgezogen.',
   'app.animal.v.app.lab.results.withdrawn':
     '<b>Der bei diesem Tier gespeicherte Laborbericht wurde vom Labor zurückgezogen.</b> Er bleibt gespeichert, bis Sie einen anderen speichern, und Ihr Zertifikat und Ihre Links sagen, dass er zurückgezogen wurde.',
   'app.animal.v.app.lab.results.withdrawnNewer':

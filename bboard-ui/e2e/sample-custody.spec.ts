@@ -177,12 +177,24 @@ test('a different seal number: said plainly on the breeder’s plant page, certi
   // A stranger's check page (round 2 of the 15 Oct review): with the holder sharing the lab
   // status, the registry reports the difference under the receipt, never the details.
   const breederKey = await r.breeder.evaluate(() => localStorage.getItem('veilcore.holder.v1') ?? '');
-  const publicView = async () => (await (await fetch(`${API}/verify/${r.recordId}`)).json()) as { custody?: unknown };
-  expect((await publicView()).custody).toBeUndefined();
+  const publicView = async () =>
+    (await (await fetch(`${API}/verify/${r.recordId}`)).json()) as {
+      custody?: unknown;
+      recordFingerprint?: string;
+      staleGrant?: string[];
+    };
+  const before = await publicView();
+  expect(before.custody).toBeUndefined();
+  // What the app sends (disclosure.ts saveGrant): the keys, the fingerprint the values were
+  // read from, and the values. This plant has no DNA report saved, so there are none.
   const granted = await fetch(`${API}/api/records/${r.recordId}/disclosure`, {
     method: 'PUT',
     headers: { 'content-type': 'application/json', 'x-holder-key': breederKey },
-    body: JSON.stringify({ show: ['existence', 'attestation-status'] }),
+    body: JSON.stringify({
+      show: ['existence', 'attestation-status'],
+      forFingerprint: before.recordFingerprint,
+      values: {},
+    }),
   });
   expect(granted.status).toBe(200);
   const shared = await publicView();
@@ -193,6 +205,7 @@ test('a different seal number: said plainly on the breeder’s plant page, certi
       differences: ['Seal number differs: sent 4471, received 4417'],
     },
   ]);
+  expect(shared.staleGrant).toBeUndefined();
   for (const secret of ['Mother M3', 'J. Doe', 'Cold, bag dry', 'ACC-differs', r.transferId])
     expect(JSON.stringify(shared)).not.toContain(secret);
   const strangerCtx = await browser.newContext();

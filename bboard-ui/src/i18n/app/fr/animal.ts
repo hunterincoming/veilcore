@@ -218,9 +218,9 @@ export const animal = {
   'app.animal.v.app.lab.sentence.withdrawn':
     'Le rapport ADN enregistré sur cet animal a été retiré par le laboratoire{on}. {tail}',
   'app.animal.v.app.lab.results.replacedNewer':
-    '<b>Le rapport de laboratoire enregistré sur cet animal a été remplacé par le laboratoire.</b> Enregistrez le rapport corrigé : ouvrez-le, puis touchez « L’enregistrer sur cet animal ».',
+    '<b>Le rapport ADN enregistré sur cet animal a été remplacé par le laboratoire.</b> Enregistrez le rapport corrigé : ouvrez-le, puis touchez « L’enregistrer sur cet animal ».',
   'app.animal.v.app.lab.results.replacedNone':
-    '<b>Le rapport de laboratoire enregistré sur cet animal a été remplacé par le laboratoire.</b> Aucun rapport en vigueur de {lab} : l’original a été remplacé et la correction retirée.',
+    '<b>Le rapport ADN enregistré sur cet animal a été remplacé par le laboratoire.</b> Aucun rapport en vigueur de {lab} : l’original a été remplacé et la correction retirée.',
   'app.animal.v.app.lab.results.withdrawn':
     '<b>Le rapport de laboratoire enregistré sur cet animal a été retiré par le laboratoire.</b> Il reste enregistré jusqu’à ce que vous en enregistriez un autre, et votre certificat et vos liens indiquent qu’il a été retiré.',
   'app.animal.v.app.lab.results.withdrawnNewer':

@@ -207,9 +207,9 @@ export const animal = {
     'この動物に保存されたDNA報告書は、ラボにより訂正版に差し替えられました{on}。{tail}',
   'app.animal.v.app.lab.sentence.withdrawn': 'この動物に保存されたDNA報告書は、ラボにより撤回されました{on}。{tail}',
   'app.animal.v.app.lab.results.replacedNewer':
-    '<b>この動物に保存された検査報告書は、ラボにより差し替えられました。</b>訂正版を保存してください。開いて「この動物に保存する」をタップします。',
+    '<b>この動物に保存されたDNA報告書は、ラボにより差し替えられました。</b>訂正版を保存してください。開いて「この動物に保存する」をタップします。',
   'app.animal.v.app.lab.results.replacedNone':
-    '<b>この動物に保存された検査報告書は、ラボにより差し替えられました。</b>{lab}からの現在の報告書はありません。元の報告書は差し替えられ、訂正版は撤回されました。',
+    '<b>この動物に保存されたDNA報告書は、ラボにより差し替えられました。</b>{lab}からの現在の報告書はありません。元の報告書は差し替えられ、訂正版は撤回されました。',
   'app.animal.v.app.lab.results.withdrawn':
     '<b>この動物に保存された検査報告書は、ラボにより撤回されました。</b>別のものを保存するまで保存されたままで、証明書とリンクには撤回されたと表示されます。',
   'app.animal.v.app.lab.results.withdrawnNewer':

@@ -221,9 +221,9 @@ export const animal = {
     'The DNA report saved to this animal was replaced by the lab{on} with a corrected one. {tail}',
   'app.animal.v.app.lab.sentence.withdrawn': 'The DNA report saved to this animal was withdrawn by the lab{on}. {tail}',
   'app.animal.v.app.lab.results.replacedNewer':
-    '<b>The lab report saved to this animal was replaced by the lab.</b> Save the corrected one: open it, then tap “Save it to this animal”.',
+    '<b>The DNA report saved to this animal was replaced by the lab.</b> Save the corrected one: open it, then tap “Save it to this animal”.',
   'app.animal.v.app.lab.results.replacedNone':
-    '<b>The lab report saved to this animal was replaced by the lab.</b> No current report from {lab}: the original was replaced and the correction withdrawn.',
+    '<b>The DNA report saved to this animal was replaced by the lab.</b> No current report from {lab}: the original was replaced and the correction withdrawn.',
   'app.animal.v.app.lab.results.withdrawn':
     '<b>The lab report saved to this animal was withdrawn by the lab.</b> It stays saved until you save another, and your certificate and links say it was withdrawn.',
   'app.animal.v.app.lab.results.withdrawnNewer':

@@ -211,9 +211,9 @@ export const animal = {
   'app.animal.v.app.lab.sentence.withdrawn':
     'El laboratorio retiró{on} el informe de ADN guardado en este animal. {tail}',
   'app.animal.v.app.lab.results.replacedNewer':
-    '<b>El laboratorio reemplazó el informe guardado en este animal.</b> Guarde el corregido: ábralo y toque “Guardarlo en este animal”.',
+    '<b>El laboratorio reemplazó el informe de ADN guardado en este animal.</b> Guarde el corregido: ábralo y toque “Guardarlo en este animal”.',
   'app.animal.v.app.lab.results.replacedNone':
-    '<b>El laboratorio reemplazó el informe guardado en este animal.</b> No hay informe vigente de {lab}: el original fue reemplazado y la corrección retirada.',
+    '<b>El laboratorio reemplazó el informe de ADN guardado en este animal.</b> No hay informe vigente de {lab}: el original fue reemplazado y la corrección retirada.',
   'app.animal.v.app.lab.results.withdrawn':
     '<b>El laboratorio retiró el informe guardado en este animal.</b> Sigue guardado hasta que guarde otro, y su certificado y sus enlaces dicen que fue retirado.',
   'app.animal.v.app.lab.results.withdrawnNewer':
