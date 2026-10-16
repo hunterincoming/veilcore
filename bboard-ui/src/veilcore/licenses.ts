@@ -11,6 +11,7 @@ import { store } from './store';
 import { reportSave } from './save-status';
 import { holderPartyId } from './holder';
 import { canonicalise, newNonce } from './commitment';
+import { rowStateOf } from './api-store';
 
 export type LicenseState = 'draft' | 'sent' | 'active' | 'expired' | 'revoked';
 
@@ -119,7 +120,14 @@ const hydrate = async (): Promise<void> => {
   // Back-compat: agreements saved before types existed are license agreements.
   licenses = loaded.map((l: License) => ({ ...l, type: l.type ?? 'license' }));
   notify();
+  // Agreements the registry still holds in plain text (saved before sealing) are saved
+  // again, sealed (api-store.ts), once per session: a refusal is said, not retried in a loop.
+  if (!convertTried && licenses.some((l) => rowStateOf(KEY, l.id) === 'legacy')) {
+    convertTried = true;
+    persist();
+  }
 };
+let convertTried = false;
 
 /**
  * Load from the registry. Started by the pages that show agreements, not on import:

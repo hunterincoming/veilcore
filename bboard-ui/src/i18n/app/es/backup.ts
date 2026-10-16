@@ -52,7 +52,7 @@ export const backup = {
   'app.backup.keyLabel': 'Su clave de titular (64 caracteres)',
   'app.backup.useIt': 'Usarla',
   'app.backup.olderVersion':
-    'Solo si la copió de una versión anterior de este sitio: ahora no se muestra en ninguna parte. Eso recupera sus registros. Las claves de sello de fecha de cada planta solo están en el archivo de copia de seguridad.',
+    'Solo si la copió de una versión anterior de este sitio: ahora no se muestra en ninguna parte. Con ella se encuentran sus registros, pero siguen bloqueados hasta que abra su archivo de copia de seguridad. Las claves de sello de fecha de cada planta también están solo en ese archivo.',
   'app.backup.cantFind':
     '<b>¿No encuentra el archivo?</b> Entonces nadie puede recuperar las plantas, ni siquiera nosotros: nunca tuvimos su clave. Eso es lo que le permite demostrar que las tiene. Si su dispositivo anterior todavía funciona, abra VeilCore allí y guarde una copia de seguridad nueva.',
   'app.backup.holds.none': 'Sus registros están en él.',

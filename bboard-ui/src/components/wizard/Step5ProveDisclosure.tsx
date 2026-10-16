@@ -33,7 +33,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import ShareIcon from '@mui/icons-material/IosShareOutlined';
 import VisibilityIcon from '@mui/icons-material/VisibilityOutlined';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
-import { getRecord } from '../../veilcore/records';
+import { getRecord, integrityOf } from '../../veilcore/records';
 import {
   fieldsFor,
   geneticsLabel,
@@ -143,7 +143,9 @@ export const Step5ProveDisclosure: React.FC<{
     setError(null);
     setResult(undefined);
     try {
-      const out = await saveGrant(record.id, disclosure);
+      // The grant carries the values it publishes, read from this record here (the
+      // registry can't read it), and the fingerprint they were read from.
+      const out = await saveGrant(record, disclosure);
       if ('error' in out) {
         // No link without a stored grant: a link shown now would show strangers
         // whatever the registry held before, not what is on screen.
@@ -317,10 +319,16 @@ export const Step5ProveDisclosure: React.FC<{
         </Alert>
       ) : (
         <Box>
+          {/* Nothing is published from a record that doesn't match its fingerprint. */}
+          {integrityOf(record.id) === 'mismatch' && (
+            <Alert severity="error" variant="outlined" sx={{ mb: 1.5 }} data-integrity="mismatch">
+              {t('app.sealed.mismatch')}
+            </Alert>
+          )}
           <Button
             variant="contained"
             size="large"
-            disabled={busy}
+            disabled={busy || integrityOf(record.id) === 'mismatch'}
             startIcon={busy ? <CircularProgress size={18} color="inherit" /> : undefined}
             onClick={() => void onSave()}
           >

@@ -10,6 +10,11 @@
 // granted; a ?show= in a link can narrow that, never widen it. One grant per record:
 // it applies to everyone who has the id, from any link or certificate QR code.
 //
+// Sealed records (CONTRACT.md #7): the registry can't read a record, so a grant carries
+// the values it publishes (grantValuesFor), read from the record in this browser, and the
+// fingerprint they were read from. The registry answers a value only while that is still
+// the record's fingerprint; after a record changes, syncGrants sends the grant again.
+//
 // The keys are named after what the recipient LEARNS, not after the field being
 // revealed. `descent-clean` describes an outcome; `lineage` described our internal
 // shape. That distinction is what lets a registry in another domain reuse this
@@ -20,6 +25,8 @@
 import { holderKey, holderKeyIfAny } from './holder';
 import { readJson, isObject, isString } from './json';
 import { enT, type Translator } from '../i18n/translate';
+import { isAnimal } from './animal-profile';
+import type { StrainRecord } from './records';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
@@ -141,19 +148,61 @@ export const loadGrant = async (recordId: string): Promise<Grant | { error: stri
   }
 };
 
+/** The values a grant publishes (CONTRACT.md #7): only for the keys granted. */
+export type GrantValues = {
+  loggedAt?: number;
+  parents?: { name: string; role?: string; individualId?: string }[];
+  breedingMethod?: string;
+  individualId?: string;
+  idScheme?: string;
+  dnaFingerprint?: string;
+  dnaFileSha256?: string;
+};
+
+/**
+ * What a grant publishes, read from the record here. Only the granted keys' values, and
+ * never a parent's linked record id: no public answer uses it, and descent goes by
+ * fingerprint. existence and descent-clean are the registry's own facts and carry none.
+ */
+export const grantValuesFor = (r: StrainRecord, show: readonly DisclosureKey[]): GrantValues => {
+  const on = new Set(show);
+  const v: GrantValues = {};
+  if (on.has('sealed-at') && typeof r.loggedAt === 'number') v.loggedAt = r.loggedAt;
+  if (on.has('parent-names')) {
+    v.parents = (r.parents ?? []).map((p) => ({
+      name: p.name,
+      ...(p.role !== undefined ? { role: p.role } : {}),
+      ...(p.individualId !== undefined ? { individualId: p.individualId } : {}),
+    }));
+  }
+  if (on.has('breeding-method') && !isAnimal(r) && r.breedingMethod) v.breedingMethod = r.breedingMethod;
+  if (on.has('individual-id') && isAnimal(r)) {
+    if (r.refId) v.individualId = r.refId;
+    if (r.animal?.idScheme) v.idScheme = r.animal.idScheme;
+  }
+  if (on.has('attestation-status')) {
+    if (r.dnaFingerprint) v.dnaFingerprint = r.dnaFingerprint;
+    if (r.dnaFileSha256) v.dnaFileSha256 = r.dnaFileSha256;
+  }
+  return v;
+};
+
+const putGrant = (r: StrainRecord, show: DisclosureKey[]) =>
+  fetch(`${BASE}/api/records/${encodeURIComponent(r.id)}/disclosure`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'x-holder-key': holderKey() },
+    body: JSON.stringify({ show, forFingerprint: r.recordFingerprint || null, values: grantValuesFor(r, show) }),
+  });
+
 /**
  * Store the holder's choice as the record's grant. Replaces the previous one; [] withdraws
  * everything. Success only on the registry's positive answer echoing what it stored, so
  * the page never shows a link whose view the registry did not agree to.
  */
-export const saveGrant = async (recordId: string, d: Disclosure): Promise<Grant | { error: string }> => {
+export const saveGrant = async (record: StrainRecord, d: Disclosure): Promise<Grant | { error: string }> => {
   const show = keysOn(d);
   try {
-    const res = await fetch(`${BASE}/api/records/${encodeURIComponent(recordId)}/disclosure`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'x-holder-key': holderKey() },
-      body: JSON.stringify({ show }),
-    });
+    const res = await putGrant(record, show);
     if (!res.ok) return { error: await errorOf(res) };
     const body = await readJson(res);
     if (!isGrantBody(body)) return { error: 'unexpected response from the registry' };
@@ -167,6 +216,90 @@ export const saveGrant = async (recordId: string, d: Disclosure): Promise<Grant 
   } catch {
     return { error: 'could not reach the registry' };
   }
+};
+
+/** A grant as GET /api/disclosures lists it. */
+type ListedGrant = { recordId: string; show: string[]; forFingerprint: string | null };
+const isListedGrant = (v: unknown): v is ListedGrant =>
+  isObject(v) &&
+  isString(v.recordId) &&
+  Array.isArray(v.show) &&
+  v.show.every(isString) &&
+  (v.forFingerprint === null || v.forFingerprint === undefined || isString(v.forFingerprint));
+
+/** Grants whose values are worth sending: one that publishes a value. */
+const VALUE_KEYS: readonly DisclosureKey[] = [
+  'attestation-status',
+  'sealed-at',
+  'parent-names',
+  'breeding-method',
+  'individual-id',
+];
+
+let syncing: Promise<number> | null = null;
+let again: { force: Set<string> } | null = null;
+
+/**
+ * Send again the grants whose values were read from an older version of their record (or
+ * before grants carried values): GET /api/disclosures, then a PUT for each whose
+ * forFingerprint isn't the record's fingerprint now. `force` names records whose granted
+ * values changed without the fingerprint changing (a DNA report paired). Only records
+ * this browser holds, opened, and matching their fingerprint (api-store.ts): a value is
+ * never published from a record that doesn't. Returns how many were sent.
+ */
+export const syncGrants = (
+  getRecord: (id: string) => StrainRecord | undefined,
+  force: readonly string[] = [],
+  isIntact: (id: string) => boolean = () => true,
+): Promise<number> => {
+  if (!holderKeyIfAny()) return Promise.resolve(0);
+  if (syncing) {
+    // One at a time; a request made meanwhile runs once more after, with every forced id.
+    again ??= { force: new Set() };
+    for (const id of force) again.force.add(id);
+    return syncing;
+  }
+  const run = async (forced: ReadonlySet<string>): Promise<number> => {
+    const key = holderKeyIfAny();
+    if (!key) return 0;
+    let listed: ListedGrant[];
+    try {
+      const res = await fetch(`${BASE}/api/disclosures`, { headers: { 'x-holder-key': key } });
+      if (!res.ok) return 0;
+      const body = await readJson(res);
+      listed = Array.isArray(body) ? body.filter(isListedGrant) : [];
+    } catch {
+      return 0;
+    }
+    let sent = 0;
+    for (const g of listed) {
+      const r = getRecord(g.recordId);
+      if (!r || !r.recordFingerprint || !isIntact(r.id)) continue;
+      const show = keysOn(disclosureFrom(g.show));
+      if (!show.some((k) => VALUE_KEYS.includes(k))) continue;
+      if (g.forFingerprint === r.recordFingerprint && !forced.has(r.id)) continue;
+      try {
+        if ((await putGrant(r, show)).ok) sent++;
+      } catch {
+        /* tried again at the next sync */
+      }
+    }
+    return sent;
+  };
+  syncing = (async () => {
+    let total = 0;
+    let forced = new Set(force);
+    for (;;) {
+      total += await run(forced);
+      if (!again) break;
+      forced = again.force;
+      again = null;
+    }
+    return total;
+  })().finally(() => {
+    syncing = null;
+  });
+  return syncing;
 };
 
 /**

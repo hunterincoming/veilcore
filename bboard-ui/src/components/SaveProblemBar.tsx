@@ -20,7 +20,7 @@ export const SaveProblemBar: React.FC = () => {
         : problem.what;
   return (
     <Alert severity="warning" variant="outlined" onClose={clearSaveProblem} sx={{ mb: 2 }}>
-      {tr.t('app.home.saveProblem.text', { what, list: describeRefusals(problem.refused) })}
+      {tr.t('app.home.saveProblem.text', { what, list: describeRefusals(problem.refused, tr) })}
     </Alert>
   );
 };

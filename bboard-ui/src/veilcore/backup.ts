@@ -5,7 +5,8 @@
 // field data says that fails: people click "saved" without saving (Höltervennhoff et al.,
 // USENIX Security 2024), and many files multiply the chance one is lost. So:
 //
-//   - one file holds the holder key, every record's keys, a lab's signing key, the locks
+//   - one file holds the holder key, the vault key that opens the records (vault.ts; from
+//     version 3), every record's keys, a lab's signing key, the locks
 //     a lab received with each delivery (so a lab on a new device can still send lab
 //     reports back), and the lab codes a breeder made (so "Show code again" survives);
 //   - downloading it does NOT count as backed up; opening the saved copy and checking it
@@ -22,9 +23,12 @@ import { allKeys, keysEntry, keysFor, markBackedUp, restoreKeysEntry, type Recor
 import { adoptAttester, loadAttester } from './attester-keys';
 import { allDeliveries, deliveriesMissingFrom, mergeDeliveries } from './lab-results';
 import { allSentCodes, mergeSentCodes } from './transfers';
+import { isVaultKey, markVaultBackedUp, sealedRowsSeen, setVaultKey, vaultHasSealed, vaultKeyIfAny } from './vault';
+import { enT } from '../i18n/translate';
 
 export const BACKUP_FORMAT = 'veilcore-backup';
-export const BACKUP_VERSION = 2;
+/** 3: adds vaultKey (sealed records, CONTRACT.md #9). */
+export const BACKUP_VERSION = 3;
 const HEX64 = /^[0-9a-f]{64}$/i;
 
 export type BackupContents = {
@@ -33,6 +37,8 @@ export type BackupContents = {
   readonly warning: string;
   readonly savedAt: string;
   readonly holderKey?: string;
+  /** The vault key (base64url) that opens this holder's records. Never sent anywhere. */
+  readonly vaultKey?: string;
   readonly records: ReturnType<typeof keysEntry>[];
   readonly labSignature?: unknown;
   /** A lab's deliveries and the breeder's lock each came with, by transfer id. */
@@ -48,6 +54,7 @@ const WARNING =
 /** What goes in the file now. */
 export const backupContents = (now = Date.now()): BackupContents => {
   const holderKey = holderKeyIfAny() ?? undefined;
+  const vaultKey = vaultKeyIfAny() ?? undefined;
   const lab = loadAttester();
   const deliveries = allDeliveries();
   const codes = allSentCodes();
@@ -57,6 +64,7 @@ export const backupContents = (now = Date.now()): BackupContents => {
     warning: WARNING,
     savedAt: new Date(now).toISOString(),
     ...(holderKey ? { holderKey: holderKey.toLowerCase() } : {}),
+    ...(vaultKey ? { vaultKey } : {}),
     records: allKeys().map(keysEntry),
     ...(lab ? { labSignature: lab } : {}),
     ...(Object.keys(deliveries).length ? { labDeliveries: deliveries } : {}),
@@ -75,6 +83,7 @@ export const backupFileName = (now = Date.now()): string => {
 /** True when there is anything worth backing up. */
 export const hasAnythingToBackUp = (): boolean =>
   holderKeyIfAny() !== null ||
+  vaultKeyIfAny() !== null ||
   allKeys().length > 0 ||
   loadAttester() !== null ||
   Object.keys(allDeliveries()).length > 0;
@@ -132,6 +141,11 @@ export const checkBackup = async (file: File): Promise<CheckResult> => {
   if (current && str(v.holderKey).toLowerCase() !== current.toLowerCase()) {
     return { ok: false, reason: 'That backup belongs to a different set of records. Pick the one you just saved.' };
   }
+  // Without the vault key, a backup can't open the records on another device.
+  const vault = vaultKeyIfAny();
+  if (vault && v.vaultKey !== vault) {
+    return { ok: false, reason: NO_VAULT_KEY };
+  }
   const inFile = new Map<string, Record<string, unknown>>();
   for (const e of Array.isArray(v.records) ? v.records : []) {
     if (typeof e === 'object' && e !== null && typeof (e as { recordId?: unknown }).recordId === 'string') {
@@ -168,6 +182,7 @@ export const checkBackup = async (file: File): Promise<CheckResult> => {
     return { ok: false, reason: "That backup doesn't hold your latest deliveries. Save a new one and check that." };
   }
   markBackedUp(held.map((k) => k.recordId));
+  if (vault) markVaultBackedUp();
   return { ok: true, records: held.length, recordIds: held.map((k) => k.recordId) };
 };
 
@@ -176,6 +191,11 @@ export type RestoreResult = {
   /** The records whose keys came back (to word them: plants, or records dating a lab report). */
   readonly recordIds?: readonly string[];
   readonly holderKey: 'restored' | 'already' | 'none';
+  /**
+   * The vault key: 'none' when the file has none (a version 2 file, or an older holder-key
+   * file), so records sealed since stay locked until a newer backup is opened.
+   */
+  readonly vaultKey?: 'restored' | 'already' | 'none';
   readonly labSignature: boolean;
   /** Deliveries (a lab's) and lab codes (a breeder's) added from the file. */
   readonly deliveries?: number;
@@ -191,7 +211,21 @@ export const restoreAny = async (file: File): Promise<RestoreResult> => {
   // The older holder-key file is plain text with the key on its own line.
   const keyLine = text.split(/\r?\n/).find((l) => HEX64.test(l.trim()));
   if (text.startsWith('VeilCore holder key') && keyLine) {
-    return { records: 0, holderKey: adoptHolderKey(keyLine.trim()), labSignature: false };
+    // From sealed records on, the file also has a `vault key:` line (holder.ts).
+    const vaultLine = /^\s*vault key:\s*(\S+)\s*$/im.exec(text)?.[1];
+    const fileVault = vaultLine && isVaultKey(vaultLine) ? vaultLine : undefined;
+    const current = holderKeyIfAny();
+    if (current && current.toLowerCase() !== keyLine.trim().toLowerCase()) {
+      throw new Error('This browser is already using a different set of records. Nothing was changed.');
+    }
+    if (fileVault) checkVaultFits(fileVault);
+    const holder = adoptHolderKey(keyLine.trim());
+    return {
+      records: 0,
+      holderKey: holder,
+      vaultKey: fileVault ? adoptVaultKey(fileVault) : 'none',
+      labSignature: false,
+    };
   }
   const v = parse(text);
   if (v.format === 'veilcore-record-keys') {
@@ -221,14 +255,27 @@ export const restoreAny = async (file: File): Promise<RestoreResult> => {
   if (lab && currentLab && !same((lab as { keypair?: unknown }).keypair, currentLab.keypair)) {
     throw new Error('This browser already has a different lab signature. Nothing was changed.');
   }
+  // A version 2 file has no vault key: it restores the rest, and records sealed since stay
+  // locked until a newer backup is opened.
+  const fileVault = isVaultKey(v.vaultKey) ? v.vaultKey : undefined;
+  if (fileVault) checkVaultFits(fileVault);
 
   const holder = fileKey ? adoptHolderKey(fileKey) : 'none';
+  const vault = fileVault ? adoptVaultKey(fileVault) : 'none';
   const recordIds = entries.map((e) => restoreKeysEntry(e).recordId);
   const labAdopted = lab ? adoptAttester(lab) : false;
   // Merged, never replacing an entry already here (a lock this browser has stays).
   const deliveries = mergeDeliveries(v.labDeliveries);
   const sentCodes = mergeSentCodes(v.sentCodes);
-  return { records: entries.length, recordIds, holderKey: holder, labSignature: labAdopted, deliveries, sentCodes };
+  return {
+    records: entries.length,
+    recordIds,
+    holderKey: holder,
+    vaultKey: vault,
+    labSignature: labAdopted,
+    deliveries,
+    sentCodes,
+  };
 };
 
 const adoptHolderKey = (key: string): 'restored' | 'already' => {
@@ -236,5 +283,29 @@ const adoptHolderKey = (key: string): 'restored' | 'already' => {
   if (current && current.toLowerCase() === key.toLowerCase()) return 'already';
   if (current) throw new Error('This browser is already using a different set of records. Nothing was changed.');
   setHolderKey(key);
+  return 'restored';
+};
+
+/** backup.ts's words for a backup without the vault key (backup-words.ts translates them). */
+export const NO_VAULT_KEY = enT.t('app.sealed.backup.noVaultKey');
+export const DIFFERENT_VAULT = enT.t('app.sealed.backup.differentVault');
+
+/**
+ * A file's vault key may replace this browser's only while nothing here is sealed with it
+ * (CONTRACT.md #9): with sealed rows, the key here is the only one that opens them, and a
+ * restore that swapped it would lock them. Throws, before anything changes.
+ */
+const checkVaultFits = (fileVault: string): void => {
+  const here = vaultKeyIfAny();
+  if (!here || here === fileVault) return;
+  if (sealedRowsSeen() || vaultHasSealed()) throw new Error(DIFFERENT_VAULT);
+};
+
+const adoptVaultKey = (key: string): 'restored' | 'already' => {
+  if (vaultKeyIfAny() === key) {
+    markVaultBackedUp();
+    return 'already';
+  }
+  setVaultKey(key);
   return 'restored';
 };

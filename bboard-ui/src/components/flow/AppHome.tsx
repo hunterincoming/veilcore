@@ -35,6 +35,8 @@ import { PasteBox } from './PasteBox';
 import { labCardLine, useLabCardFacts, useWaitingByRecord } from './LabResults';
 import { quantityPhrase } from '../../veilcore/transfers';
 import { TrustPanel } from '../TrustPanel';
+import { LockedRecords, LoadNoticeBar } from '../LockedRecords';
+import { useVaultNeedsBackup } from '../../veilcore/vault';
 import { RegistryExportButton } from '../RegistryExportButton';
 import { draftHeading, loadDraft } from './log-flow-state';
 import { homeStatusLine } from './plant-status-words';
@@ -77,6 +79,8 @@ export const AppHome: React.FC = () => {
   const [draft] = useState(() => (records.length === 0 ? loadDraft() : undefined));
 
   const unbacked = REAL_CHAIN ? keysWithoutBackup() : [];
+  // Records are sealed with a key only this browser has until a backup holding it is checked.
+  const vaultUnbacked = useVaultNeedsBackup();
   const labOnly = isLab(role) && !isBreeder(role);
   const lab = isLab(role);
   // Plants as cards; a record that dates a lab report shows under its plant, not as a plant.
@@ -186,6 +190,8 @@ export const AppHome: React.FC = () => {
               </Button>
             </Stack>
           )}
+          <LoadNoticeBar />
+          <LockedRecords />
           <PasteBox />
           <Stack spacing={1} sx={{ alignItems: 'center', pt: 1 }}>
             <Button component={RouterLink} to="/records/import" sx={{ minHeight: 44 }}>
@@ -233,6 +239,28 @@ export const AppHome: React.FC = () => {
           )}
         </Stack>
 
+        <LoadNoticeBar />
+
+        {vaultUnbacked && unbacked.length === 0 && (
+          <Alert
+            severity="warning"
+            variant="outlined"
+            data-vault-backup=""
+            action={
+              <Button
+                color="inherit"
+                variant="outlined"
+                onClick={() => void navigate('/backup')}
+                sx={{ minHeight: 44 }}
+              >
+                {t('app.home.saveIt')}
+              </Button>
+            }
+          >
+            {rich(t('app.sealed.backupNeeded'), { b: (c) => <b>{c}</b> })}
+          </Alert>
+        )}
+
         {unbacked.length > 0 && (
           <Alert
             severity="warning"
@@ -255,6 +283,8 @@ export const AppHome: React.FC = () => {
             )}
           </Alert>
         )}
+
+        <LockedRecords />
 
         {isLab(role) && labPanel('h2')}
 

@@ -12,7 +12,23 @@ import { reportSave, describeRefusals } from './save-status';
 import { newNonce, fingerprintRecord } from './commitment';
 import { ensureKeys, forgetKeys } from './record-keys';
 import { bindingForSecret } from './key-binding';
-import type { AnimalDetails, ParentRole } from './animal-profile';
+import { isAnimal, type AnimalDetails, type ParentRole } from './animal-profile';
+import {
+  checkRecordIntegrity,
+  clearSealedState,
+  deleteRecords,
+  integrityOf as storedIntegrityOf,
+  loadNoticeOf,
+  lockedRowsOf,
+  onSealedStateChange,
+  rowStateOf,
+  type IntegrityCheck as StoredIntegrityCheck,
+  type LoadNotice,
+  type LockedRow,
+} from './api-store';
+import { vaultKeyIfAny } from './vault';
+import { syncGrants } from './disclosure';
+import { enT } from '../i18n/translate';
 
 /**
  * A second party confirming they received this material.
@@ -201,6 +217,50 @@ const listeners = new Set<() => void>();
 
 const notify = () => listeners.forEach((l) => l());
 
+/**
+ * What the last load found besides the records it could open (api-store.ts): records
+ * sealed with a key this browser doesn't have, and whether the set came back whole.
+ */
+export type SealedView = { readonly locked: readonly LockedRow[]; readonly notice: LoadNotice };
+let sealedView: SealedView = { locked: [], notice: { truncated: false, unreadable: 0 } };
+onSealedStateChange(() => {
+  sealedView = { locked: lockedRowsOf(RECORDS_KEY), notice: loadNoticeOf(RECORDS_KEY) };
+  notify();
+});
+
+/**
+ * Records this browser can't open (CONTRACT.md #11): sealed with a vault key it doesn't
+ * have. Shown by their public name, never sent back by a save, never edited or sent; they
+ * can be deleted. The backup file holding the key opens them again.
+ */
+export const lockedRecords = (): readonly LockedRow[] => sealedView.locked;
+
+/**
+ * A record's fingerprint check, worked out in this browser when it was loaded or saved:
+ * the registry can't read a record, so it no longer checks one. 'mismatch' means the
+ * contents don't match the fingerprint; such a record is never saved again or sent.
+ */
+export const integrityOf = (id: string): StoredIntegrityCheck | undefined => storedIntegrityOf(id);
+
+/** Ids whose plain-text (pre-sealing) row this session already tried to save sealed. */
+const converted = new Set<string>();
+let syncedOnce = false;
+
+/**
+ * Save again, sealed, the records the registry still holds in plain text (saved before
+ * sealing). Only when this browser can seal them under the key the holder's other rows
+ * use: with a vault key here, or with no sealed row yet, when one is made for them
+ * (api-store.ts). A key made now is in no backup yet, and the app says so (vault.ts
+ * vaultNeedsBackup) until a new backup is saved and checked.
+ */
+const convertLegacy = async (): Promise<void> => {
+  const legacy = records.filter((r) => rowStateOf(RECORDS_KEY, r.id) === 'legacy' && !converted.has(r.id));
+  if (legacy.length === 0) return;
+  if (!vaultKeyIfAny() && lockedRecords().some((l) => l.kid)) return; // the key is in a backup; restore it first
+  for (const r of legacy) converted.add(r.id);
+  await saveAll();
+};
+
 /** Re-fetch from the registry. Used on start, after a claim, and by the sync below. */
 export const hydrate = async (): Promise<void> => {
   try {
@@ -209,7 +269,16 @@ export const hydrate = async (): Promise<void> => {
     return; // the registry could not answer now: keep what is shown, try again at the next sync
   }
   notify();
+  await convertLegacy();
+  if (!syncedOnce) {
+    syncedOnce = true;
+    void resendGrants();
+  }
 };
+
+/** disclosure.ts syncGrants over this set: never from a record that doesn't match its fingerprint. */
+const resendGrants = (force: readonly string[] = []): Promise<number> =>
+  syncGrants(getRecord, force, (id) => integrityOf(id) !== 'mismatch');
 
 // Records change on the server without this browser doing anything — an attestation
 // lands when a recipient confirms receipt, which happens on someone else's machine.
@@ -239,10 +308,13 @@ export const startRecordSync = (): void => {
  * so a record the registry never stored stayed on screen as though it had been. On a
  * refusal the set is reloaded from the registry — the rollback — and the holder is told.
  */
-const saveAll = async (): Promise<SaveResult> => {
+const saveAll = async (grantsToResend: readonly string[] = []): Promise<SaveResult> => {
   const result = await store.save(RECORDS_KEY, records);
   reportSave('records', result);
   if (!result.ok && !result.offline) await hydrate();
+  // A grant's published values were read from the record as it was: send them again for
+  // the records whose fingerprint has changed since (disclosure.ts syncGrants).
+  if (!result.offline) void resendGrants(grantsToResend);
   return result;
 };
 
@@ -336,7 +408,12 @@ export const pairDna = (
     };
     return updated;
   });
-  if (updated) persist();
+  if (updated) {
+    // The pairing is outside the fingerprint, so a grant naming the report has to be sent
+    // again even though the fingerprint is unchanged.
+    void saveAll([id]);
+    notify();
+  }
   return updated;
 };
 
@@ -353,13 +430,8 @@ export const pairDna = (
  * was sealed with. This is the integrity check a certificate shows: it is computed, not
  * asserted. A record with no stored nonce (very early records) cannot be recomputed.
  */
-export type IntegrityCheck = 'match' | 'mismatch' | 'unsealed' | 'no-nonce';
-export const checkIntegrity = async (r: StrainRecord): Promise<IntegrityCheck> => {
-  if (!r.recordFingerprint) return 'unsealed';
-  if (!r.nonce) return 'no-nonce';
-  const recomputed = await fingerprintRecord({ ...r, nonce: r.nonce });
-  return recomputed === r.recordFingerprint ? 'match' : 'mismatch';
-};
+export type IntegrityCheck = StoredIntegrityCheck;
+export const checkIntegrity = (r: StrainRecord): Promise<IntegrityCheck> => checkRecordIntegrity(r);
 
 export const getRecord = (id: string): StrainRecord | undefined => records.find((r) => r.id === id);
 
@@ -514,7 +586,23 @@ export const importRecords = async (file: File): Promise<ImportResult> => {
 export const startOver = (): void => {
   forgetHolderKey();
   records = [];
+  clearSealedState();
+  converted.clear();
+  syncedOnce = false;
   notify();
+};
+
+/**
+ * Delete a locked record from VeilCore's registry (CONTRACT.md #11). The only thing a
+ * locked record allows: this browser can't open, edit or send it.
+ */
+export const deleteLockedRecord = async (id: string): Promise<{ ok: true } | { error: string }> => {
+  if (!lockedRecords().some((l) => l.id === id)) return { error: 'that record isn’t locked' };
+  const out = await deleteRecords([id]);
+  if ('error' in out) return out;
+  if (!out.removed.includes(id)) return { error: 'no such record under this holder key' };
+  await hydrate();
+  return { ok: true };
 };
 
 const subscribe = (l: () => void): (() => void) => {
@@ -524,23 +612,103 @@ const subscribe = (l: () => void): (() => void) => {
 
 export const useRecords = (): StrainRecord[] => useSyncExternalStore(subscribe, () => records);
 
+/** The locked records and whether the last load came back whole, for the pages that show them. */
+export const useSealedView = (): SealedView => useSyncExternalStore(subscribe, () => sealedView);
+
+/**
+ * What the sender's offer says about the material (CONTRACT.md #8): opened in the
+ * recipient's browser with the key from the delivery code, or, for a code made before
+ * offers were sealed, as the registry gave it with the claim (offerPlain).
+ */
+export type OfferFields = {
+  readonly strainName?: string;
+  readonly bredBy?: string;
+  readonly dateCreated?: string;
+  readonly profile?: string;
+  readonly taxon?: string;
+  readonly refId?: string;
+  readonly animal?: { readonly breed?: string; readonly idScheme?: string; readonly sex?: string };
+  readonly quantity?: string;
+  readonly note?: string;
+};
+
+const text = (v: unknown): string | undefined => (typeof v === 'string' ? v : undefined);
+
+/** An offer's fields, keeping only strings where strings belong. */
+export const offerFieldsOf = (v: unknown): OfferFields => {
+  if (typeof v !== 'object' || v === null || Array.isArray(v)) return {};
+  const o = v as Record<string, unknown>;
+  const a = typeof o.animal === 'object' && o.animal !== null ? (o.animal as Record<string, unknown>) : undefined;
+  const out: Record<string, unknown> = {};
+  for (const k of ['strainName', 'bredBy', 'dateCreated', 'profile', 'taxon', 'refId', 'quantity', 'note'] as const) {
+    const s = text(o[k]);
+    if (s !== undefined) out[k] = s;
+  }
+  if (a) out.animal = { breed: text(a.breed) ?? '', idScheme: text(a.idScheme) ?? '', sex: text(a.sex) ?? 'unknown' };
+  return out;
+};
+
+/**
+ * The received record, built in the recipient's browser from the claim's stub and the
+ * sender's offer. What crosses is what names the material and where it came from, as the
+ * registry's claim used to build it: the name, breeder, date, profile and taxon, and for
+ * an animal its individual ID, scheme, breed and sex. The sender's notes, parents, method
+ * and DNA report stay with the sender.
+ */
+const receivedFields = (r: StrainRecord, offer: OfferFields): StrainRecord => {
+  const base: Record<string, unknown> = {
+    ...r,
+    strainName: offer.strainName ?? r.strainName,
+    bredBy: offer.bredBy ?? (r.bredBy || ''),
+    dateCreated: offer.dateCreated ?? (r.dateCreated || ''),
+    notes: '',
+    breedingMethod: '',
+    parents: [],
+    photoFingerprints: [],
+    refId: '',
+    licenseIds: r.licenseIds ?? [],
+    loggedAt: r.receivedAt ?? r.loggedAt ?? Date.now(),
+  };
+  const profile = offer.profile ?? r.profile;
+  if (profile !== undefined) base.profile = profile;
+  if (offer.taxon !== undefined) base.taxon = offer.taxon;
+  if (offer.quantity) base.quantity = offer.quantity;
+  if (isAnimal(base)) {
+    base.refId = offer.refId ?? '';
+    base.animal = {
+      breed: offer.animal?.breed ?? '',
+      idScheme: offer.animal?.idScheme ?? '',
+      sex: offer.animal?.sex ?? 'unknown',
+      herd: '',
+    };
+  }
+  return base as StrainRecord;
+};
+
 /**
  * Seal a record received through a transfer.
  *
  * The recipient did not produce the sender's evidence and cannot claim it, so a
  * received record arrives with no commitment. This creates theirs: a commitment over
- * what they actually received — the material, the quantity, the date, the source.
+ * what they actually received — the material, the quantity, the date, the source. The
+ * claim leaves only a stub on the registry; with `offer`, the record is built here from it
+ * and the sender's offer, then fingerprinted and saved sealed.
  */
-export const sealReceived = async (id: string, notes: ReceivedNotes = {}): Promise<StrainRecord | undefined> => {
+export const sealReceived = async (
+  id: string,
+  notes: ReceivedNotes = {},
+  offer?: OfferFields,
+): Promise<StrainRecord | undefined> => {
   const r = getRecord(id);
   if (!r) return r;
   if (r.recordFingerprint) {
     if (Object.keys(notes).length) updateReceivedNotes(id, notes);
     return getRecord(id);
   }
+  const built = offer || rowStateOf(RECORDS_KEY, id) === 'stub' ? receivedFields(r, offer ?? {}) : r;
   const nonce = newNonce();
-  const recordFingerprint = await fingerprintRecord({ ...r, nonce });
-  records = records.map((x) => (x.id === id ? { ...x, ...notes, nonce, recordFingerprint } : x));
+  const recordFingerprint = await fingerprintRecord({ ...built, nonce });
+  records = records.map((x) => (x.id === id ? { ...built, ...notes, nonce, recordFingerprint } : x));
   persist();
   notify();
   return getRecord(id);
@@ -580,6 +748,8 @@ export const issueCorrection = async (
 ): Promise<StrainRecord | undefined> => {
   const before = getRecord(originalId);
   if (!before) return undefined;
+  // Made from the original's fields, so never from ones that don't match its fingerprint.
+  if (integrityOf(originalId) === 'mismatch') throw new Error(enT.t('app.sealed.mismatch'));
 
   const { supersedesFor } = await import('veilcore-records');
 

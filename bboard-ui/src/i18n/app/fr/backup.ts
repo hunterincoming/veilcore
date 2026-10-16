@@ -53,7 +53,7 @@ export const backup = {
   'app.backup.keyLabel': 'Votre clé de détenteur (64 caractères)',
   'app.backup.useIt': 'L’utiliser',
   'app.backup.olderVersion':
-    'Seulement si vous l’avez copiée depuis une ancienne version de ce site : elle n’est plus affichée nulle part. Elle rétablit vos enregistrements. Les clés d’horodatage d’une plante ne sont que dans le fichier de secours.',
+    'Seulement si vous l’avez copiée depuis une ancienne version de ce site : elle n’est plus affichée nulle part. Elle retrouve vos enregistrements, mais ils restent verrouillés jusqu’à ce que vous ouvriez votre fichier de secours. Les clés d’horodatage d’une plante ne sont, elles aussi, que dans ce fichier.',
   'app.backup.cantFind':
     '<b>Vous ne trouvez pas le fichier ?</b> Alors personne ne peut récupérer les plantes, pas même nous : nous n’avons jamais eu votre clé. C’est ce qui vous permet de prouver que vous les détenez. Si votre ancien appareil fonctionne encore, ouvrez-y VeilCore et enregistrez une nouvelle copie de secours.',
   'app.backup.holds.none': 'Vos enregistrements y sont.',

@@ -27,7 +27,7 @@ import {
 import EditIcon from '@mui/icons-material/EditOutlined';
 import { useNavigate } from 'react-router-dom';
 import { previewCorrection, type CorrectionPreview } from '../veilcore/corrections';
-import { issueCorrection, type StrainRecord } from '../veilcore/records';
+import { integrityOf, issueCorrection, type StrainRecord } from '../veilcore/records';
 import { INK_COLOR } from '../config/theme';
 import { useRecordT } from '../i18n/app';
 import { isAnimal } from '../veilcore/animal-profile';
@@ -200,6 +200,11 @@ export const CorrectRecord: React.FC<{
               variant="contained"
               disabled={busy || !reason.trim()}
               onClick={async () => {
+                // A correction is made from the record's fields: never from ones that don't match its fingerprint.
+                if (integrityOf(record.id) === 'mismatch') {
+                  setError(t('app.sealed.mismatch'));
+                  return;
+                }
                 setBusy(true);
                 setError(null);
                 try {

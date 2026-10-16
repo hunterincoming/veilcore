@@ -21,6 +21,9 @@ const KNOWN: [string, AppKey][] = [
   ],
   ['This browser is already using a different set of records. Nothing was changed.', 'app.backup.err.differentSet'],
   ['This browser already has a different lab signature. Nothing was changed.', 'app.backup.err.differentLab'],
+  // The vault key (sealed records): backup.ts words these from the keys themselves.
+  [enT.t('app.sealed.backup.noVaultKey'), 'app.sealed.backup.noVaultKey'],
+  [enT.t('app.sealed.backup.differentVault'), 'app.sealed.backup.differentVault'],
 ];
 
 const MISSING = /^That backup is missing the latest for (\d+) of your records\. Save a new one and check that\.$/;
