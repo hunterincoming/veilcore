@@ -16,7 +16,7 @@ import {
   Typography,
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/FileDownloadOutlined';
-import { allRecords, getRecord, type StrainRecord } from '../../veilcore/records';
+import { allRecords, getRecord, useSealedView, type StrainRecord } from '../../veilcore/records';
 import { datedReportsOf } from '../stage/lab-report-notes';
 import { downloadBreedingHistory } from '../../veilcore/breeding-history/export';
 import { walkHistory, MAX_HISTORY_RECORDS } from '../../veilcore/breeding-history/walk';
@@ -34,10 +34,16 @@ export const BreedingHistory: React.FC<{ record: StrainRecord }> = ({ record }) 
   const [done, setDone] = useState<string | null>(null);
   const sealed = !!record.recordFingerprint && !!record.nonce;
 
-  const summary = useMemo(() => (open ? walkHistory(record, getRecord) : null), [open, record]);
+  const { locked: lockedRows } = useSealedView();
+  const lockedIds = useMemo(() => new Set(lockedRows.map((l) => l.id)), [lockedRows]);
+  const summary = useMemo(
+    () => (open ? walkHistory(record, getRecord, MAX_HISTORY_RECORDS, lockedIds) : null),
+    [open, record, lockedIds],
+  );
   const theirs = summary?.outside.filter((o) => o.kind === 'theirs').length ?? 0;
   const named = summary?.outside.filter((o) => o.kind === 'named').length ?? 0;
   const leftOut = summary?.outside.filter((o) => o.kind === 'left-out').length ?? 0;
+  const locked = summary?.outside.filter((o) => o.kind === 'locked').length ?? 0;
 
   const close = () => {
     setOpen(false);
@@ -53,6 +59,7 @@ export const BreedingHistory: React.FC<{ record: StrainRecord }> = ({ record }) 
       const out = await downloadBreedingHistory(record, {
         lookup: getRecord,
         labDatingsOf: (id) => datedReportsOf(id, allRecords()),
+        locked: lockedIds,
       });
       if ('error' in out) setError(out.error);
       else setDone(out.name);
@@ -99,6 +106,7 @@ export const BreedingHistory: React.FC<{ record: StrainRecord }> = ({ record }) 
                 {theirs ? tp('app.history.theirs', theirs) : ''}
                 {named ? tp('app.history.named', named) : ''}
                 {leftOut ? tp('app.history.leftOut', leftOut, { max: MAX_HISTORY_RECORDS }) : ''}
+                {locked ? tp('app.history.locked', locked) : ''}
                 {t('app.history.end')}
               </Typography>
             )}

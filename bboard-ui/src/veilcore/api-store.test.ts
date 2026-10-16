@@ -13,6 +13,7 @@
 //   - grants carry their values and are sent again when their record changes.
 import { createCipheriv, randomBytes } from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { stubWebLocks } from './fixtures/web-locks';
 
 const local = new Map<string, string>();
 type Row = Record<string, unknown> & { id: string };
@@ -141,6 +142,7 @@ beforeEach(() => {
     removeItem: (k: string) => void local.delete(k),
   });
   vi.stubGlobal('fetch', registry);
+  stubWebLocks();
 });
 
 const settle = () => new Promise((r) => setTimeout(r, 30));
@@ -388,9 +390,9 @@ describe('locked rows', () => {
     const lockedBefore = structuredClone(rows.get('VEIL-LOCKED'));
     // Same holder, but this browser's key is a different one from the locked row's.
     await records.hydrate();
-    expect(records.lockedRecords()).toEqual([
-      { id: 'VEIL-LOCKED', strainName: 'Old plant', kid: 'f00dfacecafe0001', since: Date.UTC(2026, 9, 2) },
-    ]);
+    // No date: this browser didn't make the key that locked it, and a received date says
+    // nothing about the key (review L8).
+    expect(records.lockedRecords()).toEqual([{ id: 'VEIL-LOCKED', strainName: 'Old plant', kid: 'f00dfacecafe0001' }]);
     expect(records.getRecord('VEIL-LOCKED')).toBeUndefined();
     sent = [];
     records.createRecord(await plantInput({ strainName: 'Next' }));
@@ -495,8 +497,12 @@ describe('locked rows', () => {
   });
 });
 
+/** A file a test hands to checkBackup or restoreAny. */
+const fileOf = (text: string) =>
+  ({ text: () => Promise.resolve(text), size: text.length, name: 'f' }) as unknown as File;
+
 describe('rows saved in plain text before sealing', () => {
-  it('are saved again sealed after a load, under a new key that the app asks to back up', async () => {
+  it('wait for a checked backup of a new key, then are saved again sealed (CONTRACT.md #23)', async () => {
     const holder = await import('./holder');
     holder.holderKey();
     const plain = { id: 'VEIL-OLD', ...(await plantInput()), licenseIds: [] };
@@ -505,13 +511,21 @@ describe('rows saved in plain text before sealing', () => {
     expect(vault.vaultKeyIfAny()).toBeNull();
     await records.hydrate();
     await settle();
+    // A key is made, so there is something to back up; nothing is sealed with it yet.
     expect(vault.vaultKeyIfAny()).not.toBeNull();
     expect(vault.vaultNeedsBackup()).toBe(true);
+    expect(rows.get('VEIL-OLD')).toEqual(plain);
+    expect(sent.some((r) => r.method === 'PUT')).toBe(false);
+    // The backup is saved and checked: now they are sealed.
+    const { backupContents, checkBackup } = await import('./backup');
+    expect((await checkBackup(fileOf(JSON.stringify(backupContents())))).ok).toBe(true);
+    await settle();
+    await settle();
     const stored = rows.get('VEIL-OLD')!;
     expect(stored.sealed).toBeTruthy();
     expect(stored.bredBy).toBeUndefined();
     const put = sent.find((r) => r.method === 'PUT' && r.url.endsWith('/api/records'))!;
-    for (const s of Object.values(S)) expect(put.body.includes(s)).toBe(false);
+    for (const v of Object.values(S)) expect(put.body.includes(v)).toBe(false);
     await records.hydrate();
     expect(api.rowStateOf('veilcore.records.v1', 'VEIL-OLD')).toBe('open');
     expect(records.getRecord('VEIL-OLD')).toMatchObject({ bredBy: S.bredBy, notes: S.notes });
@@ -519,10 +533,10 @@ describe('rows saved in plain text before sealing', () => {
 });
 
 describe('agreements saved in plain text before sealing', () => {
-  it('are saved again sealed after they load', async () => {
+  it('are saved again sealed after a checked backup', async () => {
     const holder = await import('./holder');
     holder.holderKey();
-    licenses.set('LIC-OLD', {
+    const plainLicence = {
       id: 'LIC-OLD',
       type: 'license',
       recordId: 'VEIL-1',
@@ -532,9 +546,15 @@ describe('agreements saved in plain text before sealing', () => {
       createdAt: 1,
       terms: { licensee: S.licensee },
       royaltyLog: [],
-    });
+    };
+    licenses.set('LIC-OLD', plainLicence);
     const lic = await import('./licenses');
     lic.startLicenseSync();
+    await settle();
+    await settle();
+    expect(licenses.get('LIC-OLD')).toEqual(plainLicence);
+    const { backupContents, checkBackup } = await import('./backup');
+    expect((await checkBackup(fileOf(JSON.stringify(backupContents())))).ok).toBe(true);
     await settle();
     await settle();
     expect(Object.keys(licenses.get('LIC-OLD')!).sort()).toEqual(['id', 'sealed']);

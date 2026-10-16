@@ -385,4 +385,5 @@ export const lab = {
   'app.lab.card.signed': 'acuse de recibo firmado ✓',
   'app.lab.card.notSigned': 'acuse de recibo todavía sin firmar',
   'app.lab.card.ref': 'ref. {ref}',
+  'app.lab.send.theLab': 'el laboratorio',
 } satisfies Partial<AppTranslation>;

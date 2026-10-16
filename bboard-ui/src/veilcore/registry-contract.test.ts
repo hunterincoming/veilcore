@@ -584,7 +584,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     const before = await rowsOf(holderKey, 'records');
     const storage = new Map<string, string>([['veilcore.holder.v1', holderKey]]);
     const L = await browser(storage);
-    const wrongKey = L.vault.mintVault();
+    const wrongKey = L.vault.mintVault()!;
     secretKeys.push({ label: 'the wrong vault key', values: forms(wrongKey) });
     await L.records.hydrate();
     expect(L.records.allRecords()).toEqual([]);

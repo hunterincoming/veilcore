@@ -19,6 +19,7 @@ import {
   useSealedView,
 } from '../veilcore/records';
 import { LockedRecords } from './LockedRecords';
+import { FinishReceiving } from './FinishReceiving';
 import { useRecordKeys } from '../veilcore/record-keys';
 import { ProveOwnershipPanel } from './chain/ProveOwnershipPanel';
 import { BackupStep } from './flow/BackupStep';
@@ -289,6 +290,7 @@ export const RecordDetail: React.FC = () => {
           {t('app.sealed.mismatch')}
         </Alert>
       )}
+      <FinishReceiving record={record} />
 
       {/* A record that dates a lab report is not a plant: its own short page (components/stage). */}
       {mode === 'overview' && datesReport && (

@@ -55,4 +55,56 @@ export const sealed = {
     'Ce navigateur ouvre déjà vos enregistrements avec une autre clé. Rien n’a été modifié.',
   'app.sealed.backup.olderFile':
     'Ce fichier date d’avant le verrouillage des enregistrements, il ne contient donc pas leur clé. Les enregistrements verrouillés depuis restent verrouillés jusqu’à ce que vous ouvriez un fichier de secours plus récent.',
+  'app.sealed.refuse.backupFirst':
+    'il a été enregistré avant le verrouillage des enregistrements. Enregistrez d’abord une copie de secours et vérifiez-la ; ses modifications pourront ensuite être enregistrées',
+  'app.sealed.refuse.tooLarge': 'il est trop volumineux pour être enregistré. Raccourcissez ses notes et réessayez',
+  'app.sealed.refuse.unknown':
+    'VeilCore n’a pas pu être joint pour vérifier vos enregistrements, donc rien n’a été enregistré. Réessayez dans un instant.',
+  'app.sealed.refuse.cantStore':
+    'ce navigateur ne peut pas garder la clé qui verrouille vos enregistrements (une fenêtre privée, ou des données de site bloquées), donc rien n’a été enregistré',
+  'app.sealed.tooLarge':
+    'Cet enregistrement est trop volumineux pour être enregistré. Raccourcissez ses notes et réessayez. Rien de ce que vous avez saisi n’a été perdu.',
+  'app.sealed.size.near': '{used} Ko utilisés sur {max} Ko.',
+  'app.sealed.size.over': 'Trop volumineux pour être enregistré. Raccourcissez les notes.',
+  'app.sealed.older.pageTitle': 'Une copie plus ancienne de cet enregistrement',
+  'app.sealed.older': 'Le serveur a envoyé une copie plus ancienne de cet enregistrement.',
+  'app.sealed.olderKept.one':
+    'Le serveur a envoyé une copie plus ancienne de {count} enregistrement. Ce navigateur a gardé la copie plus récente et l’enregistre à nouveau.',
+  'app.sealed.olderKept.other':
+    'Le serveur a envoyé des copies plus anciennes de {count} enregistrements. Ce navigateur a gardé les copies plus récentes et les enregistre à nouveau.',
+  'app.sealed.importLocked.one': ' {count} enregistrement verrouillé a été ignoré : ce navigateur n’a pas sa clé.',
+  'app.sealed.importLocked.other':
+    ' {count} enregistrements verrouillés ont été ignorés : ce navigateur n’a pas leur clé.',
+  'app.sealed.backupBeforeLocking':
+    '<b>Enregistrez une copie de secours.</b> Vos anciens enregistrements seront verrouillés dès qu’un fichier de secours contiendra la clé qui les ouvre. D’ici là, ils restent sur le serveur de VeilCore tels qu’ils ont été enregistrés, lisibles par VeilCore, et leurs modifications ne peuvent pas être enregistrées.',
+  'app.sealed.cantStore':
+    'Ce navigateur ne peut pas garder la clé qui verrouille vos enregistrements (une fenêtre privée, ou des données de site bloquées). Vos anciens enregistrements n’ont donc pas été verrouillés, et rien de nouveau ne peut être enregistré ici. Ouvrez VeilCore dans une fenêtre normale.',
+  'app.sealed.lockedParents.one':
+    '{count} enregistrement parent est verrouillé dans ce navigateur ; il est donc laissé de côté.',
+  'app.sealed.lockedParents.other':
+    '{count} enregistrements parents sont verrouillés dans ce navigateur ; ils sont donc laissés de côté.',
+  'app.sealed.backup.cantCheck':
+    'VeilCore n’a pas pu être joint pour vérifier quelle clé utilisent vos enregistrements, donc rien n’a été changé. Réessayez une fois en ligne.',
+  'app.sealed.err.handleTag':
+    'Cette page et le serveur de VeilCore ne correspondent pas. Rechargez la page et réessayez.',
+  'app.sealed.recv.restoreFirst':
+    'Ce navigateur n’a pas la clé de vos enregistrements, il ne peut donc pas enregistrer ce que vous recevez. Restaurez d’abord votre fichier de secours, puis utilisez le code.',
+  'app.sealed.recv.cantCheck':
+    'VeilCore n’a pas pu être joint pour vérifier vos enregistrements, donc rien n’a été reçu. Réessayez dans un instant.',
+  'app.sealed.recv.cantStore':
+    'Ce navigateur ne peut pas garder la clé qui verrouille vos enregistrements (une fenêtre privée, ou des données de site bloquées), donc rien n’a été reçu. Ouvrez VeilCore dans une fenêtre normale.',
+  'app.sealed.recv.notFinished':
+    'Il a été reçu, mais son enregistrement n’a pas été enregistré, donc rien n’a été signé : {error}. Utilisez « Terminer la réception » sur l’enregistrement pour réessayer.',
+  'app.sealed.recv.failed': 'Un problème est survenu pendant la réception : {error}',
+  'app.sealed.recv.notAccepted':
+    'Cet enregistrement n’est pas encore enregistré chez VeilCore, il n’y a donc rien à signer. Terminez d’abord la réception.',
+  'app.sealed.recv.finishTitle': 'Cette livraison n’est pas terminée',
+  'app.sealed.recv.finishText':
+    'Elle a été reçue, mais son enregistrement n’est pas encore enregistré. Vérifiez le code laboratoire ci-dessous (collez-le à nouveau s’il est vide), puis terminez.',
+  'app.sealed.recv.finish': 'Terminer la réception',
+  'app.sealed.recv.finishing': 'En cours…',
+  'app.sealed.recv.noRecord': 'Cet enregistrement n’est pas dans ce navigateur.',
+  'app.sealed.recv.otherCode': 'Ce code est celui d’une autre livraison.',
+  'app.sealed.recv.offerMissing':
+    'VeilCore n’a pas envoyé les informations verrouillées de l’expéditeur pour ce code, donc l’enregistrement n’a pas été terminé. Réessayez « Terminer la réception » sur l’enregistrement plus tard, ou demandez à l’expéditeur.',
 } satisfies Partial<AppTranslation>;

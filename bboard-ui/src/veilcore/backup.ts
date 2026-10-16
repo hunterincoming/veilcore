@@ -23,7 +23,8 @@ import { allKeys, keysEntry, keysFor, markBackedUp, restoreKeysEntry, type Recor
 import { adoptAttester, loadAttester } from './attester-keys';
 import { allDeliveries, deliveriesMissingFrom, mergeDeliveries } from './lab-results';
 import { allSentCodes, mergeSentCodes } from './transfers';
-import { isVaultKey, markVaultBackedUp, sealedRowsSeen, setVaultKey, vaultHasSealed, vaultKeyIfAny } from './vault';
+import { isVaultKey, markVaultBackedUp, setVaultKey, vaultHasSealed, vaultKeyIfAny, vaultKid } from './vault';
+import { registryKids } from './api-store';
 import { enT } from '../i18n/translate';
 
 export const BACKUP_FORMAT = 'veilcore-backup';
@@ -218,7 +219,7 @@ export const restoreAny = async (file: File): Promise<RestoreResult> => {
     if (current && current.toLowerCase() !== keyLine.trim().toLowerCase()) {
       throw new Error('This browser is already using a different set of records. Nothing was changed.');
     }
-    if (fileVault) checkVaultFits(fileVault);
+    if (fileVault) await checkVaultFits(fileVault, keyLine.trim());
     const holder = adoptHolderKey(keyLine.trim());
     return {
       records: 0,
@@ -258,7 +259,7 @@ export const restoreAny = async (file: File): Promise<RestoreResult> => {
   // A version 2 file has no vault key: it restores the rest, and records sealed since stay
   // locked until a newer backup is opened.
   const fileVault = isVaultKey(v.vaultKey) ? v.vaultKey : undefined;
-  if (fileVault) checkVaultFits(fileVault);
+  if (fileVault) await checkVaultFits(fileVault, fileKey);
 
   const holder = fileKey ? adoptHolderKey(fileKey) : 'none';
   const vault = fileVault ? adoptVaultKey(fileVault) : 'none';
@@ -289,16 +290,26 @@ const adoptHolderKey = (key: string): 'restored' | 'already' => {
 /** backup.ts's words for a backup without the vault key (backup-words.ts translates them). */
 export const NO_VAULT_KEY = enT.t('app.sealed.backup.noVaultKey');
 export const DIFFERENT_VAULT = enT.t('app.sealed.backup.differentVault');
+export const CANT_CHECK_VAULT = enT.t('app.sealed.backup.cantCheck');
 
 /**
- * A file's vault key may replace this browser's only while nothing here is sealed with it
- * (CONTRACT.md #9): with sealed rows, the key here is the only one that opens them, and a
- * restore that swapped it would lock them. Throws, before anything changes.
+ * A file's vault key may replace this browser's whenever no row on the registry carries this
+ * browser's key (CONTRACT.md #9, #23): then nothing is sealed with it that a swap would lock.
+ * A key no accepted save used carries nothing; otherwise the registry is asked, and a
+ * registry that can't answer is not taken as "none". It used to refuse whenever any sealed
+ * row had been seen, rows locked under another key included, so a browser holding the
+ * wrong key could never take the right one (review L3). Throws, before anything changes.
  */
-const checkVaultFits = (fileVault: string): void => {
+const checkVaultFits = async (fileVault: string, fileHolder: string | undefined): Promise<void> => {
   const here = vaultKeyIfAny();
   if (!here || here === fileVault) return;
-  if (sealedRowsSeen() || vaultHasSealed()) throw new Error(DIFFERENT_VAULT);
+  if (!vaultHasSealed()) return;
+  const holder = holderKeyIfAny() ?? fileHolder;
+  if (!holder) return;
+  const kid = await vaultKid();
+  const kids = await registryKids(holder);
+  if (kids === 'unknown') throw new Error(CANT_CHECK_VAULT);
+  if (kid && kids.has(kid)) throw new Error(DIFFERENT_VAULT);
 };
 
 const adoptVaultKey = (key: string): 'restored' | 'already' => {

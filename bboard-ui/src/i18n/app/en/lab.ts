@@ -379,4 +379,5 @@ export const lab = {
   'app.lab.card.signed': 'receipt signed ✓',
   'app.lab.card.notSigned': 'receipt not signed yet',
   'app.lab.card.ref': 'ref {ref}',
+  'app.lab.send.theLab': 'the lab',
 };

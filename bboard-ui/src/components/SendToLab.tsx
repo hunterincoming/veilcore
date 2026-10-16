@@ -31,6 +31,7 @@ import {
   sentCodeFor,
   shareCodeFor,
   labErrorWords,
+  recipientName,
   type SampleDetails,
   type SentTransfer,
 } from '../veilcore/transfers';
@@ -340,7 +341,7 @@ export const WaitingDeliveries: React.FC<{ open: readonly SentTransfer[] }> = ({
             {rich(
               tr.t('app.lab.send.waiting'),
               { b: (c) => <b>{c}</b> },
-              { handle: t.to_handle, date: tr.date(t.created_at) },
+              { handle: recipientName(t, tr), date: tr.date(t.created_at) },
             )}
             {t.sample_custody && tr.t('app.lab.send.waitingSample', { line: sampleLine(t.sample_custody, tr) })}
             {!code && tr.t('app.lab.send.otherBrowser')}
@@ -367,7 +368,7 @@ export const WaitingDeliveries: React.FC<{ open: readonly SentTransfer[] }> = ({
                   >
                     {tr.t('app.lab.send.copy')}
                   </Button>
-                  {typeof navigator.share === 'function' && <ShareCodeButton code={code} name={t.to_handle} />}
+                  {typeof navigator.share === 'function' && <ShareCodeButton code={code} name={recipientName(t, tr)} />}
                 </Stack>
               </Box>
             )}

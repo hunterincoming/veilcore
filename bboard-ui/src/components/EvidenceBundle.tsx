@@ -18,10 +18,10 @@ import {
   Typography,
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/FileDownloadOutlined';
-import { allRecords, type StrainRecord } from '../veilcore/records';
+import { allRecords, useSealedView, type StrainRecord } from '../veilcore/records';
 import { datingOf } from './flow/useDnaTie';
 import type { RecordKeys } from '../veilcore/record-keys';
-import { downloadEvidenceBundle } from '../veilcore/evidence/bundle';
+import { downloadEvidenceBundle, lockedParentsOf } from '../veilcore/evidence/bundle';
 import { MAX_FINGERPRINT_BYTES } from '../veilcore/commitment';
 import { InEnglishNote, useRecordT } from '../i18n/app';
 
@@ -42,7 +42,10 @@ export const EvidenceBundle: React.FC<{
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
-  const { t } = useRecordT(record);
+  const { t, tp } = useRecordT(record);
+  const { locked } = useSealedView();
+  // The holder's own parent records locked in this browser: left out, and said (review L8).
+  const lockedParents = lockedParentsOf(record, new Set(locked.map((l) => l.id)));
   const label = t('app.plant.bundle.download');
 
   const canKey = !!record.keyBinding && !!keys?.recordSecret;
@@ -73,6 +76,7 @@ export const EvidenceBundle: React.FC<{
       const out = await downloadEvidenceBundle(record, keys, {
         includeKey: canKey && includeKey,
         ...(datedBy ? { dnaReportDatedBy: datedBy } : {}),
+        ...(lockedParents ? { lockedParents } : {}),
         ...(includeLab && labFile
           ? { labFile: { name: labFile.name, bytes: new Uint8Array(await labFile.arrayBuffer()) } }
           : {}),
@@ -105,6 +109,11 @@ export const EvidenceBundle: React.FC<{
               <Alert severity="warning" variant="outlined">
                 {t('app.plant.bundle.notSealed')}
               </Alert>
+            )}
+            {lockedParents > 0 && (
+              <Typography variant="body2" color="text.secondary" data-locked-parents="">
+                {tp('app.sealed.lockedParents', lockedParents)}
+              </Typography>
             )}
             {record.keyBinding && (
               <FormControlLabel

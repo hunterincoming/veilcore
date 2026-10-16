@@ -28,7 +28,8 @@ import { fingerprintFile } from '../../veilcore/commitment';
 import { ANIMAL_SEXES, parentLine, type AnimalSex } from '../../veilcore/animal-profile';
 import { ScreenHeading, focusScreenHeading, softDisabled } from './FlowFrame';
 import { useT, rich, type Translator } from '../../i18n/app';
-import { animalMissing, type AnimalDraft, type LogKind, type ParentDraft } from './animal-draft';
+import { animalMissing, animalSealInputOf, type AnimalDraft, type LogKind, type ParentDraft } from './animal-draft';
+import { draftSizeShare, sizeWords } from '../../veilcore/records';
 
 /** "What are you logging?": a plant or an animal. Radio semantics, one press. */
 export const KindChoice: React.FC<{ kind: LogKind; onKind: (k: LogKind) => void }> = ({ kind, onKind }) => {
@@ -135,7 +136,10 @@ export const AnimalForm: React.FC<{
   damOptions: ParentOption[];
   onNext: () => void;
 }> = ({ step, choice, draft, setDraft, restored, onStartOver, sireOptions, damOptions, onNext }) => {
-  const { t, tp } = useT();
+  const tr = useT();
+  const { t, tp } = tr;
+  // How full the record would be (CONTRACT.md #21): said only near the limit.
+  const share = draftSizeShare({ ...animalSealInputOf(draft) });
   const set = <K extends keyof AnimalDraft>(k: K, v: AnimalDraft[K]) => setDraft({ ...draft, [k]: v });
   const hasMore = Boolean(
     draft.sire.name ||
@@ -327,6 +331,8 @@ export const AnimalForm: React.FC<{
               multiline
               minRows={2}
               fullWidth
+              helperText={sizeWords(share, tr)}
+              error={share > 1}
             />
           </Stack>
         </Collapse>

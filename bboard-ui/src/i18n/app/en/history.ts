@@ -23,4 +23,6 @@ export const history = {
     'Your records’ keys and lab report files are not put in. Where a lab report is saved to a plant, its evidence bundle does hold the report’s SHA-256 and the fingerprint that pairs it with the plant, so anyone later shown the file can match it. VeilCore doesn’t vouch for anything a record says. Draft. Not legal advice.',
   'app.history.downloaded':
     'Downloaded {name}. Open COVER-NOTE.html inside it first, then breeding-history.html to print.',
+  'app.history.locked.one': ', {count} locked record left out (this browser doesn’t have its key)',
+  'app.history.locked.other': ', {count} locked records left out (this browser doesn’t have their key)',
 };

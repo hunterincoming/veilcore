@@ -20,4 +20,5 @@ export const history = {
     '記録の鍵と検査報告書のファイルは入れません。植物に検査報告書が保存されている場合、その証拠バンドルには報告書のSHA-256と、それを植物に紐付けるフィンガープリントが入るので、後でファイルを見せられた人は照合できます。VeilCoreは記録の内容を保証しません。草稿です。法的助言ではありません。',
   'app.history.downloaded':
     '{name}をダウンロードしました。まず中のCOVER-NOTE.htmlを開き、次にbreeding-history.htmlを印刷してください。',
+  'app.history.locked.other': '、含めなかったロックされた記録{count}件（このブラウザに鍵がありません）',
 } satisfies Partial<AppTranslation>;

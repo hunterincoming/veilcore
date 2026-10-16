@@ -19,6 +19,7 @@ import { sentByMe, type SentTransfer } from '../transfers';
 import {
   BundleRefusal,
   bundleFiles,
+  lockedParentsOf,
   bundleFolder,
   buildEvidence,
   gatherEvidence,
@@ -41,6 +42,8 @@ export type HistoryDeps = {
   readonly labDatingsOf?: (plantId: string) => readonly StrainRecord[];
   readonly now?: Date;
   readonly limit?: number;
+  /** The holder's records this browser can't open, by id: left out and counted, never shown as someone else's. */
+  readonly locked?: ReadonlySet<string>;
 };
 
 /** Thrown with words for the holder; nothing is downloaded. */
@@ -72,7 +75,7 @@ export type HistoryExport = {
 /** Walk, gather, and make every file. One registry look-up per record, one at a time. */
 export const breedingHistoryFiles = async (root: StrainRecord, deps: HistoryDeps): Promise<HistoryExport> => {
   const now = deps.now ?? new Date();
-  const history = walkHistory(root, deps.lookup, deps.limit ?? MAX_HISTORY_RECORDS);
+  const history = walkHistory(root, deps.lookup, deps.limit ?? MAX_HISTORY_RECORDS, deps.locked);
   const top = historyFolder(root.id);
   const files: Record<string, Uint8Array> = {};
   const facts = new Map<string, RowFacts>();
@@ -92,8 +95,13 @@ export const breedingHistoryFiles = async (root: StrainRecord, deps: HistoryDeps
     const stamp = stampOf(gathered);
     deliveries ??= await deps.deliveries();
     try {
+      const lockedParents = lockedParentsOf(r, deps.locked ?? new Set());
       const ev = await buildEvidence(r, gathered, { includeKey: false, deliveries, now });
-      const bundle = await bundleFiles(ev, gathered, { includeKey: false, now });
+      const bundle = await bundleFiles(ev, gathered, {
+        includeKey: false,
+        now,
+        ...(lockedParents ? { lockedParents } : {}),
+      });
       for (const [path, bytes] of Object.entries(bundle)) {
         const at = `${top}/evidence/${path}`;
         if (files[at]) throw new HistoryRefusal('The breeding history couldn’t be made. Nothing was downloaded.');

@@ -47,7 +47,8 @@ import {
   parseShareCode,
   codeMissingLock,
   codeMissingOfferKey,
-  openClaimOffer,
+  forgetReceivingCode,
+  keepReceivingCode,
   publicFingerprintOf,
   quantityPhrase,
   sameDetails,
@@ -58,14 +59,9 @@ import {
   type CustodySubject,
   type SampleDetails,
 } from '../veilcore/transfers';
-import {
-  getRecord,
-  hydrate,
-  offerFieldsOf,
-  sealReceived,
-  updateReceivedNotes,
-  type StrainRecord,
-} from '../veilcore/records';
+import { allRecords, hydrate, RECORDS_KEY, updateReceivedNotes, type StrainRecord } from '../veilcore/records';
+import { rowStateOf, vaultReadiness } from '../veilcore/api-store';
+import { finishReceiving } from '../veilcore/receive';
 import { loadAttester, type AttesterProfile } from '../veilcore/attester-keys';
 import {
   deliveryForRecord,
@@ -516,6 +512,14 @@ export const SignReceiptPanel: React.FC<{
       </Alert>
     );
   }
+  // Never over a fingerprint the registry doesn't hold (CONTRACT.md #22).
+  if (rowStateOf(RECORDS_KEY, record.id) !== 'open') {
+    return (
+      <Alert severity="warning" variant="outlined">
+        {t('app.sealed.recv.notAccepted')}
+      </Alert>
+    );
+  }
   if (subject === null || custody === null)
     return <Typography variant="body2">{t('app.lab.recv.checking')}</Typography>;
   if ('refuse' in subject) {
@@ -628,67 +632,87 @@ export const ClaimTransfer: React.FC<{
   };
 
   const claim = async () => {
-    if (!code.trim()) return;
-    const { transferId, claimCode, resultLock, offerKey } = parseShareCode(code);
+    if (!code.trim() || busy) return;
+    const { transferId, claimCode, resultLock } = parseShareCode(code);
     setBusy(true);
     setError(null);
-    const res = await claimTransfer(transferId, claimCode);
-    if ('error' in res) {
-      setError(labErrorWords(res.error, tr));
-      setBusy(false);
-      return;
-    }
-    await hydrate();
-    // The registry leaves only a stub (the name, where it came from); what the sender said
-    // about the material is in their sealed offer, opened here with the code's key. A code
-    // made before offers were sealed gets the same fields from the registry (offerPlain).
-    const offer = await openClaimOffer(res, offerKey, getRecord(res.recordId)?.receivedFromCommitment);
-    const fields = typeof offer === 'object' ? offerFieldsOf(offer.fields) : {};
-    const note = res.note ?? fields.note;
-    // Seal the received record with the recipient's own commitment. They are not
-    // copying the sender's evidence — they are committing to what they received:
-    // this material, this quantity, this date, from this source. The breeder's note and
-    // lock are kept beside it, outside the fingerprint, in the lab's own set.
-    const sealed = await sealReceived(
-      res.recordId,
-      {
-        ...(note ? { deliveryNote: note.slice(0, 2000) } : {}),
-        ...(resultLock ? { resultLock } : {}),
-      },
-      fields,
-    );
-    const notOpened = offer === 'unopened' ? t('app.sealed.recv.notOpened') : null;
-    // Also kept in this browser (and its backup), so this lab can send lab reports back
-    // even if the record's copy is missing (lab-results.ts).
-    rememberDelivery({
-      transferId,
-      receivedRecordId: res.recordId,
-      sourceRecordId: res.descendedFrom,
-      ...(sealed?.receivedFromCommitment ? { sourceCommitment: sealed.receivedFromCommitment } : {}),
-      ...(resultLock ? { recipient: resultLock } : {}),
-      receivedAt: Date.now(),
-    });
+    try {
+      // A claim can't be undone or made twice: first make sure the received record can be
+      // sealed and saved from this browser (CONTRACT.md #22).
+      const ready = await vaultReadiness();
+      if (ready === 'locked' || ready === 'unknown' || ready === 'cant-store') {
+        setError(
+          t(
+            ready === 'locked'
+              ? 'app.sealed.recv.restoreFirst'
+              : ready === 'unknown'
+                ? 'app.sealed.recv.cantCheck'
+                : 'app.sealed.recv.cantStore',
+          ),
+        );
+        return;
+      }
+      // Kept until the received record is sealed and accepted: the offer key and the lock
+      // are only in the code.
+      keepReceivingCode(code);
+      const res = await claimTransfer(transferId, claimCode);
+      if ('error' in res) {
+        const stub = allRecords().some((r) => r.transferId?.toUpperCase() === transferId);
+        if (!stub) forgetReceivingCode(transferId);
+        setError(labErrorWords(res.error, tr));
+        return;
+      }
+      // Also kept in this browser (and its backup), so this lab can send lab reports back
+      // even if the record's copy is missing (lab-results.ts). Before sealing: the lock is
+      // kept even if the record can't be finished now.
+      rememberDelivery({
+        transferId,
+        receivedRecordId: res.recordId,
+        sourceRecordId: res.descendedFrom,
+        ...(res.parentCommitment ? { sourceCommitment: res.parentCommitment } : {}),
+        ...(resultLock ? { recipient: resultLock } : {}),
+        receivedAt: Date.now(),
+      });
+      await hydrate();
+      // The registry leaves only a stub (the name, where it came from); what the sender said
+      // about the material is in their sealed offer, opened here with the code's key, and the
+      // received record is sealed with the recipient's own commitment and saved. Nothing goes
+      // further until the registry has accepted it.
+      const out = await finishReceiving(res.recordId, code, res, tr);
+      if ('error' in out) {
+        setStage({
+          step: 'refused',
+          recordId: res.recordId,
+          reason: t('app.sealed.recv.notFinished', { error: out.error }),
+        });
+        return;
+      }
+      const sealed = out.record;
+      const notOpened = out.offer === 'unopened' ? t('app.sealed.recv.notOpened') : null;
 
-    const attester = loadAttester();
-    if (!attester) {
+      const attester = loadAttester();
+      if (!attester) {
+        if (notOpened) setStage({ step: 'refused', recordId: res.recordId, reason: notOpened });
+        else finish(res.recordId);
+        return;
+      }
+      const subject = custodySubject({
+        receivedRecordId: res.recordId,
+        sealed,
+        claim: res,
+        publicFingerprint: sealed.receivedFrom ? await publicFingerprintOf(sealed.receivedFrom) : null,
+      });
+      if (notOpened && !('refuse' in subject)) setError(notOpened);
+      setStage(
+        'refuse' in subject
+          ? { step: 'refused', recordId: res.recordId, reason: [notOpened, subject.refuse].filter(Boolean).join(' ') }
+          : { step: 'sign', subject, attester, transferId, sample: res.sample ?? {} },
+      );
+    } catch (e) {
+      setError(t('app.sealed.recv.failed', { error: e instanceof Error ? e.message : String(e) }));
+    } finally {
       setBusy(false);
-      if (notOpened) setStage({ step: 'refused', recordId: res.recordId, reason: notOpened });
-      else finish(res.recordId);
-      return;
     }
-    const subject = custodySubject({
-      receivedRecordId: res.recordId,
-      sealed,
-      claim: res,
-      publicFingerprint: sealed?.receivedFrom ? await publicFingerprintOf(sealed.receivedFrom) : null,
-    });
-    setBusy(false);
-    if (notOpened && !('refuse' in subject)) setError(notOpened);
-    setStage(
-      'refuse' in subject
-        ? { step: 'refused', recordId: res.recordId, reason: [notOpened, subject.refuse].filter(Boolean).join(' ') }
-        : { step: 'sign', subject, attester, transferId, sample: res.sample ?? {} },
-    );
   };
 
   const sign = async (arrival?: ArrivalDetails) => {

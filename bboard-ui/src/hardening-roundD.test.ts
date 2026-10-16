@@ -10,6 +10,7 @@
 // Run one file at a time: npx vitest run --maxWorkers=1 src/hardening-roundD.test.ts
 // SPDX-License-Identifier: Apache-2.0
 
+import { stubWebLocks } from './veilcore/fixtures/web-locks';
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
@@ -86,6 +87,7 @@ const nameCheckFor = (checkedName: string) => {
 beforeEach(() => {
   routes = [];
   calls.length = 0;
+  stubWebLocks();
 });
 
 const sha256hex = async (s: string) =>
@@ -562,7 +564,7 @@ describe('F7 createAttester never replaces an existing key', () => {
 
 describe('F12 disclosure: the holder’s choice is saved as a grant before any link exists', () => {
   it('saveGrant PUTs exactly the switched-on keys, their values and the fingerprint, and reports refusals', async () => {
-    const { saveGrant, disclosureFrom } = await import('./veilcore/disclosure');
+    const { saveGrant, disclosureFrom, registerGrantKeeper } = await import('./veilcore/disclosure');
     const record = {
       id: 'VEIL-1',
       strainName: 'Cut',
@@ -573,6 +575,9 @@ describe('F12 disclosure: the holder’s choice is saved as a grant before any l
       recordFingerprint: 'f1'.repeat(32),
       breedingMethod: 'backcross',
     };
+    // The choice is kept in the record's sealed copy first (records.ts keepGrant, CONTRACT.md
+    // #19); here it is kept as asked, so this test sees only what saveGrant sends.
+    registerGrantKeeper((_id, show) => Promise.resolve({ ...record, grant: show }));
     route('PUT', /\/api\/records\/VEIL-1\/disclosure$/, (_u, init) => {
       const body = JSON.parse(init?.body as string) as { show: string[] };
       return { recordId: 'VEIL-1', show: body.show, updatedAt: '2026-10-04T00:00:00.000Z' };

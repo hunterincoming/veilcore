@@ -15,6 +15,13 @@
 // fingerprint they were read from. The registry answers a value only while that is still
 // the record's fingerprint; after a record changes, syncGrants sends the grant again.
 //
+// What is published comes only from the holder's choice kept inside the record's own sealed
+// copy (StrainRecord.grant, CONTRACT.md #19). The registry's list of grants
+// (GET /api/disclosures) is only a hint that one may need sending again: it can make this
+// browser send again a key the sealed copy grants, never add one. A registry that lists a
+// grant the holder never made gets nothing (attack review P1: it used to get parent names,
+// breeding method and the DNA pairing, in plain text).
+//
 // The keys are named after what the recipient LEARNS, not after the field being
 // revealed. `descent-clean` describes an outcome; `lineage` described our internal
 // shape. That distinction is what lets a registry in another domain reuse this
@@ -195,15 +202,42 @@ const putGrant = (r: StrainRecord, show: DisclosureKey[]) =>
     body: JSON.stringify({ show, forFingerprint: r.recordFingerprint || null, values: grantValuesFor(r, show) }),
   });
 
+/** The holder's choice for a record, as its sealed copy keeps it; null when it keeps none. */
+export const sealedGrantOf = (r: StrainRecord): DisclosureKey[] | null =>
+  Array.isArray(r.grant) ? keysOn(disclosureFrom(r.grant.filter(isString))) : null;
+
+/**
+ * Keeps a choice in the record's sealed copy and says when the registry has stored it
+ * (records.ts keepGrant registers itself here, so this module needn't import records.ts).
+ */
+type GrantKeeper = (id: string, show: DisclosureKey[]) => Promise<StrainRecord | { error: string }>;
+let keeper: GrantKeeper | null = null;
+export const registerGrantKeeper = (k: GrantKeeper): void => {
+  keeper = k;
+};
+
+/** Send a record's grant exactly as its sealed copy has it. True when the registry stored it. */
+export const sendGrant = async (r: StrainRecord, show: readonly DisclosureKey[]): Promise<boolean> => {
+  try {
+    return (await putGrant(r, keysOn(disclosureFrom(show)))).ok;
+  } catch {
+    return false;
+  }
+};
+
 /**
  * Store the holder's choice as the record's grant. Replaces the previous one; [] withdraws
- * everything. Success only on the registry's positive answer echoing what it stored, so
- * the page never shows a link whose view the registry did not agree to.
+ * everything. The choice is kept in the record's sealed copy first (CONTRACT.md #19), and
+ * only then published. Success only on the registry's positive answer echoing what it
+ * stored, so the page never shows a link whose view the registry did not agree to.
  */
 export const saveGrant = async (record: StrainRecord, d: Disclosure): Promise<Grant | { error: string }> => {
   const show = keysOn(d);
+  if (!keeper) return { error: 'the choice couldn’t be kept with the record, so nothing was shared' };
+  const kept = await keeper(record.id, show);
+  if ('error' in kept) return kept;
   try {
-    const res = await putGrant(record, show);
+    const res = await putGrant(kept, show);
     if (!res.ok) return { error: await errorOf(res) };
     const body = await readJson(res);
     if (!isGrantBody(body)) return { error: 'unexpected response from the registry' };
@@ -263,11 +297,28 @@ const VALUE_KEYS: readonly DisclosureKey[] = [
 let syncing: Promise<number> | null = null;
 let again: { force: Set<string> } | null = null;
 
+/** The registry's list of this holder's grants, or null when it can't say now. */
+export const listGrants = async (): Promise<ListedGrant[] | null> => {
+  const key = holderKeyIfAny();
+  if (!key) return [];
+  try {
+    const res = await fetch(`${BASE}/api/disclosures`, { headers: { 'x-holder-key': key } });
+    if (!res.ok) return null;
+    const body = await readJson(res);
+    return Array.isArray(body) ? body.filter(isListedGrant) : null;
+  } catch {
+    return null;
+  }
+};
+
 /**
- * Send again the grants whose published values are not what this browser would send now:
- * GET /api/disclosures, then a PUT for each whose forFingerprint isn't the record's
- * fingerprint now, or whose stored values differ from the values read from the record here.
- * A DNA pairing is outside the fingerprint, so pairing a new report changes the values
+ * Send again the grants whose published values are not what this browser would send now.
+ * GET /api/disclosures is the hint: a listed grant is sent again when its record's sealed
+ * copy keeps a choice (StrainRecord.grant) and the listing differs from it, its
+ * forFingerprint isn't the record's fingerprint now, or its stored values differ from the
+ * values read from the record here. What is sent is always the sealed copy's choice, never
+ * the listing's keys; a listed grant whose record keeps no choice is never sent (CONTRACT.md
+ * #19). A DNA pairing is outside the fingerprint, so pairing a new report changes the values
  * without changing the fingerprint; comparing the values catches that wherever it happened
  * (another tab, another device). `force` names records to send whatever the comparison says.
  * Only records this browser holds, opened, and matching their fingerprint (api-store.ts): a
@@ -288,22 +339,18 @@ export const syncGrants = (
   const run = async (forced: ReadonlySet<string>): Promise<number> => {
     const key = holderKeyIfAny();
     if (!key) return 0;
-    let listed: ListedGrant[];
-    try {
-      const res = await fetch(`${BASE}/api/disclosures`, { headers: { 'x-holder-key': key } });
-      if (!res.ok) return 0;
-      const body = await readJson(res);
-      listed = Array.isArray(body) ? body.filter(isListedGrant) : [];
-    } catch {
-      return 0;
-    }
+    const listed = await listGrants();
+    if (!listed) return 0;
     let sent = 0;
     for (const g of listed) {
       const r = getRecord(g.recordId);
       if (!r || !r.recordFingerprint || !isIntact(r.id)) continue;
-      const show = keysOn(disclosureFrom(g.show));
-      if (!show.some((k) => VALUE_KEYS.includes(k))) continue;
-      if (g.forFingerprint === r.recordFingerprint && !forced.has(r.id)) {
+      // The holder's own choice, from the sealed copy: the listing never adds a key.
+      const show = sealedGrantOf(r);
+      if (!show) continue;
+      const same = keysOn(disclosureFrom(g.show)).join(',') === show.join(',');
+      if (same && !show.some((k) => VALUE_KEYS.includes(k))) continue;
+      if (same && g.forFingerprint === r.recordFingerprint && !forced.has(r.id)) {
         if (sameGrantValues(await storedValuesOf(g, key), grantValuesFor(r, show))) continue;
       }
       try {

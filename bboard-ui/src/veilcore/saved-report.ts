@@ -23,10 +23,11 @@ import { liveResults, resultState, type ResultState, type ResultSummary } from '
 import { pairingFingerprintOfSha } from './commitment';
 import { enT, type Translator } from '../i18n/translate';
 import type { DnaTie } from './dna-tie';
+import { recipientName } from './transfers';
 
 /** One lab report that came back on a delivery (LabResults.tsx ArrivedResult, structurally). */
 export type ArrivedLike = {
-  readonly transfer: { readonly id: string; readonly to_handle: string };
+  readonly transfer: { readonly id: string; readonly to_handle: string; readonly label?: string };
   readonly result: ResultSummary;
   readonly state: ResultState;
 };
@@ -91,7 +92,7 @@ export const savedReportStatus = (
     (from?.result.attestationId ? matching.find((a) => a.attestationId === from.result.attestationId) : undefined) ??
     matching.find(countsAsSigned) ??
     matching[0];
-  const lab = from?.transfer.to_handle ?? (att ? signerLabel(att, '').who : 'the lab');
+  const lab = from ? recipientName(from.transfer) : att ? signerLabel(att, '').who : 'the lab';
 
   const state: ResultState | undefined = from
     ? from.state

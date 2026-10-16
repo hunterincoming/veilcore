@@ -14,7 +14,12 @@ import type { LockedRow } from '../veilcore/api-store';
 import { useT } from '../i18n/app';
 import type { Translator } from '../i18n/translate';
 
-/** What a locked record needs, in words: the backup saved after the earliest date the rows show, when they show one. */
+/**
+ * What a locked record needs, in words: a backup saved after the key that locked it was made,
+ * when this browser knows that date (it made the key, api-store.ts LockedRow.since). Never a
+ * received or corrected date: a backup from after one of those can still predate the key
+ * (review L8).
+ */
 export const lockedWords = (rows: readonly LockedRow[], tr: Translator): string => {
   const dates = rows.map((r) => r.since).filter((d): d is number => d !== undefined);
   return dates.length
@@ -28,7 +33,8 @@ const LockedRowLine: React.FC<{
   confirm: string;
   remove: (id: string) => Promise<{ ok: true } | { error: string }>;
   kind: 'record' | 'agreement';
-}> = ({ row, name, confirm, remove: removeRow, kind }) => {
+  note?: string;
+}> = ({ row, name, confirm, remove: removeRow, kind, note }) => {
   const { t } = useT();
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string>();
@@ -50,6 +56,11 @@ const LockedRowLine: React.FC<{
           <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
             {row.id}
           </Typography>
+          {note && (
+            <Typography variant="body2" data-older-copy="">
+              {note}
+            </Typography>
+          )}
         </Box>
         <Button color="inherit" onClick={() => void remove()} disabled={busy} sx={{ minHeight: 44, flexShrink: 0 }}>
           {t('app.sealed.locked.delete')}
@@ -71,17 +82,27 @@ export const LockedRecords: React.FC<{ only?: string }> = ({ only }) => {
   const { t, tp } = tr;
   const rows = only ? locked.filter((l) => l.id === only) : locked;
   if (rows.length === 0) return null;
+  // Rows sealed with a key this browser lacks, and rows the registry sent an older copy of
+  // (CONTRACT.md #20), which this browser has no newer copy of to show.
+  const keyless = rows.filter((r) => !r.older);
+  const onlyOlder = keyless.length === 0;
   return (
     <Paper sx={{ p: { xs: 2, md: 2.5 } }} data-locked-records="">
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
         <LockIcon aria-hidden="true" />
         <Typography variant="subtitle1" component={only ? 'h1' : 'h2'} sx={{ fontWeight: 700 }}>
-          {only ? t('app.sealed.locked.pageTitle') : tp('app.sealed.locked.title', rows.length)}
+          {only
+            ? onlyOlder
+              ? t('app.sealed.older.pageTitle')
+              : t('app.sealed.locked.pageTitle')
+            : tp('app.sealed.locked.title', rows.length)}
         </Typography>
       </Stack>
-      <Typography variant="body2" sx={{ mb: 0.5 }}>
-        {lockedWords(rows, tr)}
-      </Typography>
+      {keyless.length > 0 && (
+        <Typography variant="body2" sx={{ mb: 0.5 }}>
+          {lockedWords(keyless, tr)}
+        </Typography>
+      )}
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
         {t('app.sealed.locked.cantChange')}
       </Typography>
@@ -96,6 +117,7 @@ export const LockedRecords: React.FC<{ only?: string }> = ({ only }) => {
               confirm={t('app.sealed.locked.deleteConfirm', { name })}
               remove={deleteLockedRecord}
               kind="record"
+              {...(r.older ? { note: t('app.sealed.older') } : {})}
             />
           );
         })}
@@ -154,12 +176,13 @@ export const LockedAgreements: React.FC = () => {
 export const LoadNoticeBar: React.FC = () => {
   const { notice } = useSealedView();
   const { t, tp } = useT();
-  if (!notice.truncated && notice.unreadable === 0) return null;
+  if (!notice.truncated && notice.unreadable === 0 && !notice.olderKept) return null;
   return (
     <Alert severity="warning" variant="outlined" data-load-notice="">
       {[
         notice.truncated ? t('app.sealed.truncated') : '',
         notice.unreadable ? tp('app.sealed.unreadable', notice.unreadable) : '',
+        notice.olderKept ? tp('app.sealed.olderKept', notice.olderKept) : '',
       ]
         .filter(Boolean)
         .join(' ')}

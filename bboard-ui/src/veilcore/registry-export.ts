@@ -38,7 +38,9 @@ const openAll = async (kind: RowKind, rows: unknown): Promise<{ rows: unknown[];
     // The registry's own public fields on top of what was sealed, as api-store.ts does.
     const { sealed: _sealed, ...pub } = row;
     void _sealed;
-    const sealedPart = opened.value;
+    // `rev` is how this browser tells a newer copy from an older one; not part of the record.
+    const { rev: _rev, ...sealedPart } = opened.value;
+    void _rev;
     const full = kind === 'records' && isObject(sealedPart.supersedes) ? { supersedes: sealedPart.supersedes } : {};
     out.push({ ...sealedPart, ...pub, ...full });
   }

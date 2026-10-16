@@ -106,7 +106,17 @@ describe('the claim’s offer', () => {
         undefined,
       ),
     ).toEqual({ fields: { bredBy: 'Old' } });
-    expect(await openClaimOffer({ recordId: 'VEIL-R', descendedFrom: 'VEIL-S' }, key, undefined)).toBe('none');
+    expect(await openClaimOffer({ recordId: 'VEIL-R', descendedFrom: 'VEIL-S' }, undefined, undefined)).toBe('none');
+    // A code with an offer key was made with a sealed offer: a plain one in its place, or
+    // none, is refused, never read as the sender's (CONTRACT.md #17).
+    expect(await openClaimOffer({ recordId: 'VEIL-R', descendedFrom: 'VEIL-S' }, key, undefined)).toBe('missing');
+    expect(
+      await openClaimOffer(
+        { recordId: 'VEIL-R', descendedFrom: 'VEIL-S', offerPlain: { bredBy: 'The registry’s own words' } },
+        key,
+        undefined,
+      ),
+    ).toBe('missing');
   });
 
   it('an animal’s offer names the animal; its herd, pedigree and notes stay with the sender', async () => {

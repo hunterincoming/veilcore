@@ -393,4 +393,5 @@ export const lab = {
   'app.lab.card.signed': 'Empfangsbestätigung signiert ✓',
   'app.lab.card.notSigned': 'Empfangsbestätigung noch nicht signiert',
   'app.lab.card.ref': 'Ref. {ref}',
+  'app.lab.send.theLab': 'das Labor',
 } satisfies Partial<AppTranslation>;

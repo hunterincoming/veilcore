@@ -550,6 +550,17 @@ describe('the bundle', () => {
     expect(JSON.parse((m as RegExpExecArray)[1])).toBe(btoa(String.fromCharCode(...OTS)));
   });
 
+  it('README says how many of the record’s parents are locked in this browser and left out (review L8)', async () => {
+    const { ev } = await make();
+    expect(readmeText(ev, [])).not.toMatch(/locked in the browser/);
+    const one = readmeText(ev, [], undefined, undefined, 1).replace(/\s+/g, ' ');
+    expect(one).toMatch(
+      /1 of this record's linked parents is the holder's own record, locked in the browser this bundle was made in/,
+    );
+    const two = readmeText(ev, [], undefined, undefined, 2).replace(/\s+/g, ' ');
+    expect(two).toMatch(/2 of this record's linked parents are the holder's own records/);
+  });
+
   it('README on mainnet says nothing about practice data; unbatched says nothing dates it yet', async () => {
     const { ev } = await make();
     const main = {

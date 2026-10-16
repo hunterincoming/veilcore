@@ -278,7 +278,16 @@ export type EvidenceOptions = {
    * report"), when there is one. README.txt says so; that record has its own bundle.
    */
   readonly dnaReportDatedBy?: string;
+  /**
+   * How many of this record's linked parents are the holder's own records locked in this
+   * browser (sealed with a vault key it doesn't have). README.txt says they are left out.
+   */
+  readonly lockedParents?: number;
 };
+
+/** How many of a record's linked parents are locked here (records.ts lockedRecords ids). */
+export const lockedParentsOf = (record: StrainRecord, locked: ReadonlySet<string>): number =>
+  new Set((record.parents ?? []).map((p) => p.recordId).filter((id): id is string => !!id && locked.has(id))).size;
 
 /** One delivery's sample details, as the breeder and the lab each wrote them. */
 export type CustodyEntry = {
@@ -781,6 +790,7 @@ export const readmeText = (
   sigs: readonly SignatureLine[],
   hasOts = !!ev.batch?.opentimestamps.available,
   dnaReportDatedBy?: string,
+  lockedParents = 0,
 ): string => {
   const name = oneLine(sealedNameOf(ev.record.sealedFields) || ev.record.id);
   const subject = subjectOf(ev.record.sealedFields);
@@ -801,6 +811,12 @@ export const readmeText = (
   L.push(
     "A batch is a group of records dated together. Its batch root is one fingerprint that stands for every record in it: the batch root is what gets recorded on Midnight, and this record's proof leads from its own fingerprint to it.",
   );
+  if (lockedParents > 0) {
+    L.push('');
+    L.push(
+      `${lockedParents} of this record's linked parents ${lockedParents === 1 ? 'is' : 'are'} the holder's own record${lockedParents === 1 ? '' : 's'}, locked in the browser this bundle was made in (sealed with a key it doesn't have), so ${lockedParents === 1 ? 'it is' : 'they are'} left out. The parents' names as sealed in this record are in it.`,
+    );
+  }
   if (test) {
     L.push('');
     L.push(
@@ -968,7 +984,7 @@ export const bundleFiles = async (
     subjectOf(ev.record.sealedFields),
   );
   const ots = ev.proof && ev.batch && gathered.ots && ev.batch.opentimestamps.available ? gathered.ots : null;
-  add('README.txt', text(readmeText(ev, sigs, ots !== null, options.dnaReportDatedBy)));
+  add('README.txt', text(readmeText(ev, sigs, ots !== null, options.dnaReportDatedBy, options.lockedParents)));
   add('verify.html', text(verifyPageHtml(ev, ots)));
   add('evidence.json', json(ev));
   add('record/sealed-fields.json', json(ev.record.sealedFields));

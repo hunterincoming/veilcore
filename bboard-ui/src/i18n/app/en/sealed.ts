@@ -56,4 +56,60 @@ export const sealed = {
     'This browser already opens your records with a different key. Nothing was changed.',
   'app.sealed.backup.olderFile':
     'This file is from before records were locked, so it doesn’t have their key. Records locked since then stay locked until you open a newer backup file.',
+  // Round 2 (CONTRACT.md #15-#26): saves the browser refuses itself
+  'app.sealed.refuse.backupFirst':
+    'it was saved before records were locked. Save a backup and check it first; then changes to it can be saved',
+  'app.sealed.refuse.tooLarge': 'it’s too large to save. Shorten its notes and try again',
+  'app.sealed.refuse.unknown':
+    'VeilCore couldn’t be reached to check your records, so nothing was saved. Try again soon.',
+  'app.sealed.refuse.cantStore':
+    'this browser can’t keep the key that locks your records (a private window, or blocked site data), so nothing was saved',
+  // LogFlow.tsx, AnimalForm.tsx, CorrectRecord.tsx: the size limit, said while typing
+  'app.sealed.tooLarge':
+    'This record is too large to save. Shorten its notes and try again. Nothing you typed was lost.',
+  'app.sealed.size.near': '{used} KB of {max} KB used.',
+  'app.sealed.size.over': 'Too large to save. Shorten the notes.',
+  // LockedRecords.tsx: an older copy from the server
+  'app.sealed.older.pageTitle': 'An older copy of this record',
+  'app.sealed.older': 'The server sent an older copy of this record.',
+  'app.sealed.olderKept.one':
+    'The server sent an older copy of {count} record. This browser kept the newer copy and saves it again.',
+  'app.sealed.olderKept.other':
+    'The server sent older copies of {count} records. This browser kept the newer copies and saves them again.',
+  // AppHome.tsx: import, the backup before older records are locked, a browser that keeps nothing
+  'app.sealed.importLocked.one': ' {count} locked record was skipped: this browser doesn’t have its key.',
+  'app.sealed.importLocked.other': ' {count} locked records were skipped: this browser doesn’t have their key.',
+  'app.sealed.backupBeforeLocking':
+    '<b>Save a backup.</b> Your older records will be locked once a backup file holds the key that opens them. Until then they stay on VeilCore’s server as they were saved, readable to VeilCore, and changes to them can’t be saved.',
+  'app.sealed.cantStore':
+    'This browser can’t keep the key that locks your records (a private window, or blocked site data). So your older records weren’t locked, and nothing new can be saved here. Open VeilCore in a normal window.',
+  // EvidenceBundle.tsx
+  'app.sealed.lockedParents.one': '{count} parent record is locked in this browser, so it is left out.',
+  'app.sealed.lockedParents.other': '{count} parent records are locked in this browser, so they are left out.',
+  // backup.ts
+  'app.sealed.backup.cantCheck':
+    'VeilCore couldn’t be reached to check which key your records use, so nothing was changed. Try again when you’re online.',
+  // transfers.ts userFacingError
+  'app.sealed.err.handleTag': 'This page and VeilCore’s server don’t match. Reload the page and try again.',
+  // ClaimTransfer.tsx, FinishReceiving.tsx, receive.ts
+  'app.sealed.recv.restoreFirst':
+    'This browser doesn’t have the key for your records, so it can’t save what you receive. Restore your backup file first, then use the code.',
+  'app.sealed.recv.cantCheck':
+    'VeilCore couldn’t be reached to check your records, so nothing was received. Try again soon.',
+  'app.sealed.recv.cantStore':
+    'This browser can’t keep the key that locks your records (a private window, or blocked site data), so nothing was received. Open VeilCore in a normal window.',
+  'app.sealed.recv.notFinished':
+    'It was received, but its record wasn’t saved, so nothing was signed: {error}. Use “Finish receiving” on the record to try again.',
+  'app.sealed.recv.failed': 'Something went wrong while receiving: {error}',
+  'app.sealed.recv.notAccepted':
+    'This record isn’t saved on VeilCore yet, so there is nothing to sign. Finish receiving it first.',
+  'app.sealed.recv.finishTitle': 'This delivery isn’t finished',
+  'app.sealed.recv.finishText':
+    'It was received, but its record isn’t saved yet. Check the lab code below (paste it again if it’s empty), then finish.',
+  'app.sealed.recv.finish': 'Finish receiving',
+  'app.sealed.recv.finishing': 'Finishing…',
+  'app.sealed.recv.noRecord': 'That record isn’t in this browser.',
+  'app.sealed.recv.otherCode': 'That code is for a different delivery.',
+  'app.sealed.recv.offerMissing':
+    'VeilCore didn’t send the sender’s locked details for this code, so the record wasn’t finished. Try “Finish receiving” on the record later, or ask the sender.',
 };

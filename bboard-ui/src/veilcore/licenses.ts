@@ -11,7 +11,15 @@ import { store } from './store';
 import { reportSave } from './save-status';
 import { holderPartyId } from './holder';
 import { canonicalise, newNonce } from './commitment';
-import { deleteLicenses, lockedRowsOf, onSealedStateChange, rowStateOf, type LockedRow } from './api-store';
+import {
+  deleteLicenses,
+  lockedRowsOf,
+  makeVaultIfSafe,
+  onSealedStateChange,
+  rowStateOf,
+  type LockedRow,
+} from './api-store';
+import { onVaultChange, vaultKeyIfAny, vaultNeedsBackup } from './vault';
 
 export type LicenseState = 'draft' | 'sent' | 'active' | 'expired' | 'revoked';
 
@@ -120,14 +128,29 @@ const hydrate = async (): Promise<void> => {
   // Back-compat: agreements saved before types existed are license agreements.
   licenses = loaded.map((l: License) => ({ ...l, type: l.type ?? 'license' }));
   notify();
-  // Agreements the registry still holds in plain text (saved before sealing) are saved
-  // again, sealed (api-store.ts), once per session: a refusal is said, not retried in a loop.
-  if (!convertTried && licenses.some((l) => rowStateOf(KEY, l.id) === 'legacy')) {
-    convertTried = true;
-    persist();
-  }
+  await convertLegacy();
 };
 let convertTried = false;
+
+/**
+ * Agreements the registry still holds in plain text (saved before sealing) are saved again,
+ * sealed (api-store.ts), once per session: a refusal is said, not retried in a loop. Only
+ * once the vault key is in a checked backup (CONTRACT.md #23); with no key and nothing
+ * sealed anywhere, one is made so it can be backed up.
+ */
+const convertLegacy = async (): Promise<void> => {
+  if (convertTried || !licenses.some((l) => rowStateOf(KEY, l.id) === 'legacy')) return;
+  if (!vaultKeyIfAny()) {
+    await makeVaultIfSafe();
+    return;
+  }
+  if (vaultNeedsBackup()) return;
+  convertTried = true;
+  persist();
+};
+onVaultChange(() => {
+  if (vaultKeyIfAny() && !vaultNeedsBackup()) void convertLegacy();
+});
 
 /**
  * Agreements this browser can't open (sealed records, CONTRACT.md #11): sealed with a vault

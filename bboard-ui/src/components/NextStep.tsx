@@ -34,6 +34,7 @@ import { isLabReportRecord } from './stage/lab-report-notes';
 import { dateErrorWords, useDateReport } from './stage/DateLabReport';
 import { useRecordT } from '../i18n/app';
 import { isAnimal } from '../veilcore/animal-profile';
+import { recipientName } from '../veilcore/transfers';
 
 type Step = {
   /** Some steps render their own control rather than a plain button. */
@@ -90,7 +91,8 @@ export const NextStep: React.FC<{
 }) => {
   let step: Step | null;
   const navigate = useNavigate();
-  const { t } = useRecordT(record);
+  const tr = useRecordT(record);
+  const { t } = tr;
   // Dating the saved DNA report: the step after saving one (components/stage/DateLabReport.tsx).
   const dateReport = useDateReport(record, saved);
   // A record that dates a lab report (components/stage/lab-report-date.ts) is not a plant:
@@ -226,7 +228,7 @@ export const NextStep: React.FC<{
           };
   } else if (firstWaiting && onOpenResult) {
     step = {
-      title: t('app.plant.next.open.title', { lab: firstWaiting.transfer.to_handle }),
+      title: t('app.plant.next.open.title', { lab: recipientName(firstWaiting.transfer, tr) }),
       why: t('app.plant.next.open.why'),
       action: t('app.plant.next.open.action'),
       icon: <LockIcon />,

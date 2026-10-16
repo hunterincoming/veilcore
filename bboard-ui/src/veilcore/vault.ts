@@ -12,9 +12,15 @@
 // collection, or another key's rows does not open.
 //
 // A browser without the key shows such rows as locked (records.ts lockedRecords). A key
-// is made only when no row this holder has is sealed yet (mayMintVault): a second key
-// would leave the first key's rows locked for good, and the registry refuses a holder's
-// rows sealed under two keys.
+// is made only when no row this holder has is sealed yet (mayMintVault, api-store.ts
+// makeVaultIfSafe): a second key would leave the first key's rows locked for good, and the
+// registry refuses a holder's rows sealed under two keys. A key that this browser can't
+// keep (a private window, blocked storage) is never made: it would die with the tab, and
+// everything sealed with it would be locked for good (CONTRACT.md #23).
+//
+// Before sealing, the plaintext is padded with spaces (JSON allows them after the value)
+// to a size bucket, so a ciphertext's length says little about how much was typed
+// (CONTRACT.md #20): the next 1 KiB up to 16 KiB, then the next 8 KiB.
 // SPDX-License-Identifier: Apache-2.0
 
 import { useSyncExternalStore } from 'react';
@@ -65,7 +71,10 @@ export const isVaultKey = (v: unknown): v is string => typeof v === 'string' && 
 
 // ---- storage -------------------------------------------------------------------------
 
-/** Session-only vault for a browser that can't store one (private browsing), as holder.ts. */
+/**
+ * Session-only vault: only for a key adopted from a backup file in a browser that can't
+ * store it (the file still has it). A key is never MADE into it (mintVault).
+ */
 let sessionVault: Stored | null = null;
 const listeners = new Set<() => void>();
 let snapshot: { key: string | null; needsBackup: boolean } = { key: null, needsBackup: false };
@@ -131,19 +140,105 @@ export const isSealedRow = (row: unknown): boolean =>
  */
 export const mayMintVault = (storedRows: readonly unknown[]): boolean => !storedRows.some(isSealedRow);
 
-/** Make this browser's vault key. Returns the one already here, if there is one. */
-export const mintVault = (now = Date.now()): string => {
+/**
+ * Whether this browser can keep a vault key: a value written to localStorage reads back.
+ * Not in a private window that throws on writes, nor where site data is blocked.
+ */
+export const canStoreVault = (): boolean => {
+  const probe = `${VAULT_STORAGE_KEY}.probe`;
+  try {
+    const v = base64urlnopad.encode(crypto.getRandomValues(new Uint8Array(8)));
+    localStorage.setItem(probe, v);
+    const ok = localStorage.getItem(probe) === v;
+    localStorage.removeItem(probe);
+    return ok;
+  } catch {
+    return false;
+  }
+};
+
+/** When each vault key this browser made was made, by kid (for the locked-record words). */
+const MADE_KEY = 'veilcore.vault.made.v1';
+const readMade = (): Record<string, number> => {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(MADE_KEY) ?? '{}');
+    if (typeof v !== 'object' || v === null || Array.isArray(v)) return {};
+    return Object.fromEntries(
+      Object.entries(v as Record<string, unknown>).filter(
+        (e): e is [string, number] => KID.test(e[0]) && typeof e[1] === 'number' && Number.isFinite(e[1]),
+      ),
+    );
+  } catch {
+    return {};
+  }
+};
+/** The date the vault key with this kid was made, when this browser made it. */
+export const vaultMadeAt = (kid: string): number | undefined => readMade()[kid];
+
+/**
+ * Make this browser's vault key. Returns the one already here, if there is one, and null
+ * when this browser can't keep one: a key that can't be stored is never made. The caller
+ * decides whether one may be made at all (api-store.ts makeVaultIfSafe).
+ */
+export const mintVault = (now = Date.now()): string | null => {
   const have = vaultKeyIfAny();
   if (have) return have;
+  if (!canStoreVault()) return null;
   const key = base64urlnopad.encode(crypto.getRandomValues(new Uint8Array(32)));
-  write({ key, createdAt: now });
+  const stored: Stored = { key, createdAt: now };
+  try {
+    localStorage.setItem(VAULT_STORAGE_KEY, JSON.stringify(stored));
+    if (read()?.key !== key) throw new Error('not kept');
+  } catch {
+    try {
+      localStorage.removeItem(VAULT_STORAGE_KEY);
+    } catch {
+      /* nothing kept */
+    }
+    refresh();
+    return null;
+  }
+  sessionVault = null;
+  void vaultKidOf(key).then((kid) => {
+    try {
+      localStorage.setItem(MADE_KEY, JSON.stringify({ ...readMade(), [kid]: now }));
+    } catch {
+      /* only the locked-record words use it */
+    }
+  });
+  refresh();
   return key;
 };
 
 /** Adopt a vault key from a backup file (backup.ts). It counts as backed up: it came from one. */
 export const setVaultKey = (key: string, now = Date.now()): void => {
   if (!isVaultKey(key)) throw new Error('A vault key is 32 bytes, written as 43 base64url characters.');
+  keys.clear();
+  cache.clear();
   write({ key, createdAt: now, sealedAt: now, backedUpAt: now });
+};
+
+/**
+ * The registry accepted a save sealed with this browser's key: from now on it is the only
+ * key for those rows (CONTRACT.md #23). Not before: a key whose rows the registry refused
+ * is not in use, and may be replaced by a restore or cleared by Start over.
+ */
+export const markVaultSealed = (at = Date.now()): void => {
+  const s = read();
+  if (s && s.sealedAt === undefined) write({ ...s, sealedAt: at });
+};
+
+/**
+ * Start over: forget a vault key no accepted save used. One that sealed something the
+ * registry accepted stays: it is the only key that opens those rows.
+ */
+export const clearUnusedVault = (): boolean => {
+  const s = read();
+  if (!s || s.sealedAt !== undefined) return false;
+  write(null);
+  keys.clear();
+  cache.clear();
+  return true;
 };
 
 /** Whether the last load of this holder's rows found any sealed one (api-store.ts sets it). */
@@ -179,6 +274,8 @@ const subscribe = (l: () => void): (() => void) => {
   listeners.add(l);
   return () => listeners.delete(l);
 };
+/** Called whenever the vault key or its backup state changes (records.ts converts then). */
+export const onVaultChange = subscribe;
 /** Re-render when the vault key or its backup state changes. */
 export const useVaultNeedsBackup = (): boolean =>
   useSyncExternalStore(
@@ -299,12 +396,41 @@ const isBox = (v: unknown): v is SealedBox => {
   );
 };
 
-/** Seal a row's private fields with this browser's vault key. Throws with no key. */
+// ---- padding (CONTRACT.md #20, #21) -------------------------------------------------
+
+/** The most a record's or licence's padded plaintext may be (CONTRACT.md #21). */
+export const SEALED_MAX_BYTES = 256 * 1024;
+const KIB = 1024;
+
+/** The bucket a plaintext of this many bytes is padded to: next 1 KiB up to 16 KiB, then next 8 KiB. */
+export const paddedSize = (bytes: number): number => {
+  const n = Math.max(1, bytes);
+  if (n <= 16 * KIB) return Math.ceil(n / KIB) * KIB;
+  return Math.ceil(n / (8 * KIB)) * 8 * KIB;
+};
+
+/** The padded plaintext's size for a value, in bytes: what the size limit is checked on. */
+export const sealedSizeOf = (value: Record<string, unknown>): number => paddedSize(utf8(stableStringify(value)).length);
+
+/** The value's JSON, padded with spaces to its bucket. JSON.parse reads it back unchanged. */
+export const padded = (json: string): string => {
+  const bytes = utf8(json).length;
+  return json + ' '.repeat(paddedSize(bytes) - bytes);
+};
+
+/** Thrown by sealRow for a row whose padded plaintext is over SEALED_MAX_BYTES. */
+export class TooLargeToSeal extends Error {}
+
+/**
+ * Seal a row's private fields with this browser's vault key, padded to its bucket. Throws
+ * with no key, or when the padded plaintext is over SEALED_MAX_BYTES.
+ */
 export const sealRow = async (kind: RowKind, id: string, value: Record<string, unknown>): Promise<SealedBox> => {
   const s = read();
   if (!s) throw new Error('This browser has no vault key.');
   const kid = await vaultKidOf(s.key);
-  const plaintext = stableStringify(value);
+  const plaintext = padded(stableStringify(value));
+  if (utf8(plaintext).length > SEALED_MAX_BYTES) throw new TooLargeToSeal(`${id} is too large to save`);
   const hash = hex(await sha256(utf8(plaintext)));
   const ck = cacheKey(kind, id, kid);
   const hit = cache.get(ck);
@@ -312,7 +438,6 @@ export const sealRow = async (kind: RowKind, id: string, value: Record<string, u
   const { iv, ct } = await encrypt(await cryptoKey(s.key), plaintext, rowAad(kind, id, kid));
   const box: SealedBox = { v: 1, alg: 'A256GCM', kid, iv, ct };
   cache.set(ck, { hash, box });
-  if (s.sealedAt === undefined) write({ ...s, sealedAt: Date.now() });
   return box;
 };
 
@@ -347,6 +472,33 @@ export const openRow = async (kind: RowKind, id: string, sealed: unknown): Promi
   return { ok: true, value: value as Record<string, unknown> };
 };
 
+// ---- the recipient handle (CONTRACT.md #15) ------------------------------------------
+
+/**
+ * What a delivery's recipient is called on the wire: a tag, never the name. Lowercase hex
+ * HMAC-SHA256 keyed with the vault key's raw bytes over
+ * utf8("veilcore:handle:v1\0" + handle.normalize("NFC").trim().toLowerCase()). The same
+ * name always gives the same tag for this holder (the registry's per-recipient limits still
+ * work), and nobody without the vault key can tell whose it is. Throws with no vault key.
+ */
+export const handleTag = async (handle: string): Promise<string> => {
+  const s = read();
+  const bytes = s ? keyBytes(s.key) : undefined;
+  if (!bytes) throw new Error('This browser has no vault key.');
+  const k = await crypto.subtle.importKey(
+    'raw',
+    bytes as unknown as BufferSource,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const msg = utf8(`veilcore:handle:v1\0${handle.normalize('NFC').trim().toLowerCase()}`);
+  return hex(new Uint8Array(await crypto.subtle.sign('HMAC', k, msg as unknown as BufferSource)));
+};
+
+/** Whether a stored handle is a tag (CONTRACT.md #15) rather than a name typed before tags. */
+export const isHandleTag = (v: unknown): boolean => typeof v === 'string' && /^[0-9a-f]{64}$/.test(v);
+
 // ---- transfer offers -----------------------------------------------------------------
 
 /** A new offer key (CONTRACT.md #8): 32 random bytes, base64url, 43 characters. */
@@ -364,7 +516,7 @@ export const sealOffer = async (
 ): Promise<OfferBox> => {
   const { iv, ct } = await encrypt(
     await cryptoKey(offerKey),
-    stableStringify(value),
+    padded(stableStringify(value)),
     offerAad(sourceRecordId, sourceFingerprint),
   );
   return { v: 1, alg: 'A256GCM', iv, ct };

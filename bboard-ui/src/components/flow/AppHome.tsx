@@ -14,7 +14,15 @@ import InboxIcon from '@mui/icons-material/MoveToInboxOutlined';
 import BadgeIcon from '@mui/icons-material/VerifiedUserOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { useRecords, exportRecords, importRecords, startOver } from '../../veilcore/records';
+import {
+  useRecords,
+  exportRecords,
+  importRecords,
+  startOver,
+  useSealedView,
+  RECORDS_KEY,
+} from '../../veilcore/records';
+import { rowStateOf } from '../../veilcore/api-store';
 import { holderKeyIfAny, downloadHolderKey } from '../../veilcore/holder';
 import { useLicenses, clearLoadedLicenses } from '../../veilcore/licenses';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
@@ -81,6 +89,9 @@ export const AppHome: React.FC = () => {
   const unbacked = REAL_CHAIN ? keysWithoutBackup() : [];
   // Records are sealed with a key only this browser has until a backup holding it is checked.
   const vaultUnbacked = useVaultNeedsBackup();
+  // Records saved before locking wait for that backup before they are locked (CONTRACT.md #23).
+  const legacyWaiting = records.some((r) => rowStateOf(RECORDS_KEY, r.id) === 'legacy');
+  const { vaultProblem } = useSealedView();
   const labOnly = isLab(role) && !isBreeder(role);
   const lab = isLab(role);
   // Plants as cards; a record that dates a lab report shows under its plant, not as a plant.
@@ -101,8 +112,12 @@ export const AppHome: React.FC = () => {
   const onImport = async (file: File | null | undefined) => {
     if (!file) return;
     try {
-      const { added, alreadyHere } = await importRecords(file);
-      setToast(tp('app.home.imported', added) + (alreadyHere ? tp('app.home.alreadyHere', alreadyHere) : ''));
+      const { added, alreadyHere, locked } = await importRecords(file);
+      setToast(
+        tp('app.home.imported', added) +
+          (alreadyHere ? tp('app.home.alreadyHere', alreadyHere) : '') +
+          (locked ? tp('app.sealed.importLocked', locked) : ''),
+      );
     } catch (e) {
       setToast(e instanceof Error ? e.message : t('app.home.importFailed'));
     }
@@ -258,7 +273,15 @@ export const AppHome: React.FC = () => {
               </Button>
             }
           >
-            {rich(t('app.sealed.backupNeeded'), { b: (c) => <b>{c}</b> })}
+            {rich(t(legacyWaiting ? 'app.sealed.backupBeforeLocking' : 'app.sealed.backupNeeded'), {
+              b: (c) => <b>{c}</b>,
+            })}
+          </Alert>
+        )}
+
+        {vaultProblem === 'cant-store' && (
+          <Alert severity="warning" variant="outlined" data-vault-cant-store="">
+            {t('app.sealed.cantStore')}
           </Alert>
         )}
 

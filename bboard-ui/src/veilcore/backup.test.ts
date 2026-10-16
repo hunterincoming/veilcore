@@ -224,17 +224,39 @@ describe('the vault key in the backup (version 3, CONTRACT.md #9)', () => {
     expect(vault.vaultKeyIfAny()).toBeNull();
   });
 
-  it('a different vault key is refused while this browser has sealed with its own, and changes nothing', async () => {
+  it('a different vault key is refused while a registry row carries this browser’s key, and changes nothing', async () => {
     const { backup, holder, h } = await setup();
     const vault = await import('./vault');
-    const mine = vault.mintVault();
-    await vault.sealRow('records', 'VEIL-1', { bredBy: 'x' }); // this key now locks a row
+    const mine = vault.mintVault()!;
+    const box = await vault.sealRow('records', 'VEIL-1', { bredBy: 'x' });
+    vault.markVaultSealed(); // the registry accepted a save sealed with it
+    const asked: string[] = [];
+    vi.stubGlobal('fetch', (url: string, init?: RequestInit) => {
+      asked.push(`${init?.method ?? 'GET'} ${url} ${typeof init?.body === 'string' ? init.body : ''}`);
+      const path = new URL(url).pathname;
+      const rows = path === '/api/records' ? [{ id: 'VEIL-1', strainName: 'x', sealed: box }] : [];
+      return Promise.resolve(new Response(JSON.stringify(rows), { status: 200 }));
+    });
     const other = JSON.stringify({ ...backup.backupContents(), vaultKey: vault.newOfferKey() });
     await expect(backup.restoreAny(fileOf(other))).rejects.toThrow(
       'This browser already opens your records with a different key. Nothing was changed.',
     );
     expect(vault.vaultKeyIfAny()).toBe(mine);
     expect(holder.holderKeyIfAny()).toBe(h);
+    // Only reads of the holder's own rows: no key and nothing from the file went out.
+    expect(asked.every((a) => a.startsWith('GET '))).toBe(true);
+    for (const a of asked) expect(a.includes(mine)).toBe(false);
+  });
+
+  it('a registry that can’t say which key its rows use refuses the swap, and changes nothing', async () => {
+    const { backup } = await setup();
+    const vault = await import('./vault');
+    const mine = vault.mintVault()!;
+    vault.markVaultSealed();
+    vi.stubGlobal('fetch', () => Promise.resolve(new Response('{"error":"slow down"}', { status: 429 })));
+    const other = JSON.stringify({ ...backup.backupContents(), vaultKey: vault.newOfferKey() });
+    await expect(backup.restoreAny(fileOf(other))).rejects.toThrow(/couldn’t be reached/);
+    expect(vault.vaultKeyIfAny()).toBe(mine);
   });
 
   it('a different vault key replaces one that never sealed anything', async () => {

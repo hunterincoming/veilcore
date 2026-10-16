@@ -22,7 +22,7 @@ describe('the vault key', () => {
   it('is 32 random bytes kept in veilcore.vault.v1, and its kid is the contract’s hash', async () => {
     const vault = await import('./vault');
     expect(vault.vaultKeyIfAny()).toBeNull();
-    const key = vault.mintVault();
+    const key = vault.mintVault()!;
     expect(key).toMatch(/^[A-Za-z0-9_-]{43}$/);
     expect(b64(key)).toHaveLength(32);
     expect(local.get(vault.VAULT_STORAGE_KEY)).toContain(key);
@@ -48,7 +48,7 @@ describe('the vault key', () => {
 describe('sealing a row', () => {
   it('is AES-256-GCM with a 12-byte IV and the tag appended, which node:crypto opens with the exact AAD', async () => {
     const vault = await import('./vault');
-    const key = vault.mintVault();
+    const key = vault.mintVault()!;
     const box = await vault.sealRow('records', 'VEIL-A', { bredBy: 'Me', notes: 'n' });
     expect(box).toMatchObject({ v: 1, alg: 'A256GCM', kid: await vault.vaultKid() });
     expect(box.iv).toMatch(/^[A-Za-z0-9_-]{16}$/);
@@ -90,7 +90,7 @@ describe('sealing a row', () => {
     expect(changed.iv).not.toBe(first.iv);
     // A row opened after a load is re-sent as the registry holds it.
     vault.__forgetVaultForTests();
-    const key = vault.mintVault();
+    const key = vault.mintVault()!;
     const box = await vault.sealRow('records', 'VEIL-C', { bredBy: 'C' });
     vi.resetModules();
     const fresh = await import('./vault');

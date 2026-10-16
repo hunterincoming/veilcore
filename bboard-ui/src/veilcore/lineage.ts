@@ -149,6 +149,35 @@ export const verifyDescent = async (record: string, chain: string[]): Promise<De
   }
 };
 
+/**
+ * Declared ancestry of a record per the public graph, or null when the registry couldn't
+ * answer. Asked with the record's own fingerprint only, which is public: the descent check
+ * uses this instead of sending the parents' fingerprints, which the record keeps sealed and
+ * would tell the registry which records are its parents (CONTRACT.md #26, review P6).
+ */
+export const publicAncestorsOf = async (record: string): Promise<string[] | null> => {
+  try {
+    const res = await fetch(`${BASE}/lineage/ancestors/${encodeURIComponent(record)}`);
+    if (!res.ok) return null;
+    const body = await readJson(res);
+    if (!isObject(body) || !Array.isArray(body.ancestors) || !body.ancestors.every(isString)) return null;
+    return body.ancestors;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Is a record clean through its ancestry, asked with its own fingerprint only: the public
+ * graph names its ancestors, and those are what the check is made over. Nothing the record
+ * keeps sealed is sent.
+ */
+export const verifyDescentPublic = async (record: string): Promise<DescentVerdict & { ancestors?: string[] }> => {
+  const ancestors = await publicAncestorsOf(record);
+  if (ancestors === null) return { ok: false, reason: 'could not reach the registry' };
+  return { ...(await verifyDescent(record, ancestors)), ancestors };
+};
+
 /** Declared ancestry of a record, per the public graph. */
 export const ancestorsOf = async (record: string): Promise<string[]> => {
   try {

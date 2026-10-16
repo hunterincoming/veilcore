@@ -6,6 +6,8 @@
 //   theirs   a linked record that isn't in this browser: someone else holds it. Listed by the
 //            id and name as sealed, never given a row or a bundle here.
 //   named    a parent the breeder typed in with no record behind it.
+//   locked   the holder's own record, but locked in this browser (sealed with a vault key it
+//            doesn't have): left out, and counted, never passed off as someone else's.
 // Links can loop (a record listed as its own ancestor): every record is visited once, and
 // the link that closes a loop is kept and marked, not followed.
 // SPDX-License-Identifier: Apache-2.0
@@ -23,7 +25,8 @@ export type ParentLink =
   | { readonly kind: 'held'; readonly recordId: string; readonly name: string; readonly loops: boolean }
   | { readonly kind: 'theirs'; readonly recordId: string; readonly name: string }
   | { readonly kind: 'named'; readonly name: string }
-  | { readonly kind: 'left-out'; readonly recordId: string; readonly name: string };
+  | { readonly kind: 'left-out'; readonly recordId: string; readonly name: string }
+  | { readonly kind: 'locked'; readonly recordId: string; readonly name: string };
 
 export type HistoryNode = {
   readonly record: StrainRecord;
@@ -36,7 +39,7 @@ export type HistoryNode = {
 
 /** A parent that isn't a row here, with the rows that name it. */
 export type OutsideParent = {
-  readonly kind: 'theirs' | 'named' | 'left-out';
+  readonly kind: 'theirs' | 'named' | 'left-out' | 'locked';
   readonly name: string;
   readonly recordId?: string;
   readonly namedBy: readonly number[];
@@ -62,6 +65,8 @@ export const walkHistory = (
   root: StrainRecord,
   lookup: (id: string) => StrainRecord | undefined,
   limit: number = MAX_HISTORY_RECORDS,
+  /** The holder's records this browser can't open (records.ts lockedRecords), by id. */
+  locked: ReadonlySet<string> = new Set(),
 ): BreedingHistory => {
   // Nearest generations first, so a history longer than the limit keeps the newest steps.
   const held = new Map<string, StrainRecord>([[root.id, root]]);
@@ -79,6 +84,10 @@ export const walkHistory = (
       }
       if (held.has(id)) {
         out.push({ kind: 'held', recordId: id, name });
+        continue;
+      }
+      if (locked.has(id)) {
+        out.push({ kind: 'locked', recordId: id, name });
         continue;
       }
       const found = lookup(id);

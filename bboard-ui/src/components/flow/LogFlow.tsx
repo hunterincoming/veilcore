@@ -39,7 +39,15 @@ import LockIcon from '@mui/icons-material/LockOutlined';
 import DoneIcon from '@mui/icons-material/CheckCircleOutlined';
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
 import { fingerprintFile } from '../../veilcore/commitment';
-import { createRecord, getRecord, useRecords, type ParentRef } from '../../veilcore/records';
+import {
+  createRecord,
+  draftSizeShare,
+  getRecord,
+  sizeWords,
+  tooLargeToSave,
+  useRecords,
+  type ParentRef,
+} from '../../veilcore/records';
 import { sealAnimalRecord, sealRecord } from '../../veilcore/seal-record';
 import { localStamp } from '../../veilcore/time';
 import {
@@ -346,7 +354,10 @@ const PlantForm: React.FC<{
   parentOptions: ParentRef[];
   onNext: () => void;
 }> = ({ step, choice, draft, setDraft, restored, startOver, namePlaceholder, parentOptions, onNext }) => {
-  const { t, tp } = useT();
+  const tr = useT();
+  const { t, tp } = tr;
+  // How full the record would be (CONTRACT.md #21): said only near the limit.
+  const share = draftSizeShare({ ...sealInputOf(draft) });
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft({ ...draft, [k]: v });
   const hasMore = Boolean(
     draft.parents.length || draft.taxon || draft.breedingMethod || draft.refId || draft.notes || draft.photos.length,
@@ -545,6 +556,8 @@ const PlantForm: React.FC<{
               multiline
               minRows={2}
               fullWidth
+              helperText={sizeWords(share, tr)}
+              error={share > 1}
             />
           </Stack>
         </Collapse>
@@ -625,6 +638,13 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
       // fingerprint covers that, and the nonce is stored so anyone can recompute it.
       const sealed = animal ? await sealAnimalRecord(animalSealInputOf(animal)) : await sealRecord(sealInputOf(draft));
       id = sealed.id;
+      // Too large to save (CONTRACT.md #21): said here, with everything typed still in the form.
+      if (tooLargeToSave(sealed)) {
+        forgetKeys(id);
+        setError(t('app.sealed.tooLarge'));
+        setBusy(false);
+        return;
+      }
       const record = createRecord(sealed);
       created = true;
       onSealed(record.id);

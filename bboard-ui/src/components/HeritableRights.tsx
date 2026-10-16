@@ -25,7 +25,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import GavelIcon from '@mui/icons-material/GavelOutlined';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import BlockIcon from '@mui/icons-material/BlockOutlined';
-import { verifyDescent, lineageRoot, type DescentVerdict } from '../veilcore/lineage';
+import { verifyDescentPublic, lineageRoot, type DescentVerdict } from '../veilcore/lineage';
 import { allLicenses, createsHeritableObligation } from '../veilcore/licenses';
 import { allRecords, type StrainRecord } from '../veilcore/records';
 import {
@@ -41,6 +41,8 @@ import { InEnglishPage } from '../i18n/app';
 export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const [root, setRoot] = useState<string | null>(null);
   const [verdict, setVerdict] = useState<DescentVerdict | null>(null);
+  // Declared parents the public graph doesn't link to this record: not covered by the check.
+  const [unlinked, setUnlinked] = useState(0);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -72,9 +74,15 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
     .filter((r) => parentIds.includes(r.id))
     .map((r) => r.recordFingerprint);
 
+  // Only this record's own fingerprint is sent, which is public: the registry's public graph
+  // names its ancestors. The parents' fingerprints stay here; sending them would tell the
+  // registry which records are this one's parents, which the record keeps sealed (review P6).
   const check = async () => {
     setBusy(true);
-    setVerdict(await verifyDescent(record.recordFingerprint, parentFingerprints));
+    const out = await verifyDescentPublic(record.recordFingerprint);
+    const { ancestors, ...v } = out;
+    setVerdict(v);
+    setUnlinked(ancestors ? parentFingerprints.filter((f) => !ancestors.includes(f)).length : 0);
     setBusy(false);
   };
 
@@ -147,8 +155,14 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
             variant="outlined"
           >
             {ancestryVerdictText(verdict, parentFingerprints.length, ownLine)}
+            {unlinked > 0 &&
+              ` ${unlinked} of its declared parent${unlinked === 1 ? ' isn’t' : 's aren’t'} linked to it in the public graph, so ${unlinked === 1 ? 'it wasn’t' : 'they weren’t'} checked.`}
           </Alert>
         )}
+
+        <Typography variant="caption" color="text.secondary" data-descent-sends="">
+          The check sends VeilCore only this record&apos;s fingerprint, which is public. Its parents aren&apos;t sent.
+        </Typography>
 
         {root && (
           <Typography variant="caption" color="text.secondary">

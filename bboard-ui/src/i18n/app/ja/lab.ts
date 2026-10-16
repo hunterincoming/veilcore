@@ -369,4 +369,5 @@ export const lab = {
   'app.lab.card.signed': '受領書に署名済み ✓',
   'app.lab.card.notSigned': '受領書はまだ署名されていません',
   'app.lab.card.ref': '参照 {ref}',
+  'app.lab.send.theLab': 'ラボ',
 } satisfies Partial<AppTranslation>;

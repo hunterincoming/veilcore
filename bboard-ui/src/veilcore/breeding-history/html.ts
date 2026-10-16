@@ -61,7 +61,9 @@ const outsideWords = (l: { kind: string; name: string; recordId?: string }): str
     ? `${oneLine(l.name)} (linked record ${oneLine(l.recordId)}, held by someone else: their record, not in this history)`
     : l.kind === 'left-out'
       ? `${oneLine(l.name)} (record ${oneLine(l.recordId)}, held here but left out of this export)`
-      : `${oneLine(l.name)} (named by the breeder, no record)`;
+      : l.kind === 'locked'
+        ? `${oneLine(l.name)} (record ${oneLine(l.recordId)}, the holder’s own, locked in this browser and left out)`
+        : `${oneLine(l.name)} (named by the breeder, no record)`;
 
 /**
  * The pedigree on one line: "Gen 3 (#3) from [Gen 2 (#2) from Gen 1 (#1)] × Pollen donor
@@ -207,7 +209,9 @@ const outsideTable = (outside: readonly OutsideParent[]): string => {
       ? 'A linked record held by someone else. It is theirs: it isn’t in this browser, so it has no row or evidence bundle here. Its holder can export its own.'
       : o.kind === 'left-out'
         ? 'Held here, left out: this export takes the nearest records only. Export again from this record to cover its own history.'
-        : 'Named by the breeder, no record. Nothing here dates it.';
+        : o.kind === 'locked'
+          ? 'The holder’s own record, locked in this browser: it was sealed with a key this browser doesn’t have, so it is left out. Restore the backup that has the key, then export again.'
+          : 'Named by the breeder, no record. Nothing here dates it.';
   return (
     '<h3>Parents not in this history</h3>' +
     `<table class="plain"><thead><tr><th scope="col">Name as sealed</th><th scope="col">Record</th><th scope="col">What it is</th><th scope="col">Named by row</th></tr></thead><tbody>${outside
@@ -450,6 +454,7 @@ export const coverNoteHtml = (pages: HistoryPages): string => {
   const theirs = h.outside.filter((o) => o.kind === 'theirs').length;
   const named = h.outside.filter((o) => o.kind === 'named').length;
   const leftOut = h.outside.filter((o) => o.kind === 'left-out').length;
+  const locked = h.outside.filter((o) => o.kind === 'locked').length;
   const title = `Cover note: breeding history (draft) of ${name}`;
   const body = `<h1>${escapeHtml(title)}</h1>
 ${p(DRAFT_LINE, 'draft')}
@@ -468,7 +473,7 @@ ${list([
   'Anything earlier than the day each record was sealed. A record sealed the week of filing dates nothing before that week.',
   'Uniformity, stability or distinctness. Those come from growing trials; their boxes are left blank for the breeder.',
   'That the variety was never sold or given away, or who holds the plant or any rights in it now.',
-  `Records held by someone else (${theirs}), parents named without a record (${named})${leftOut ? `, or records left out of this export (${leftOut})` : ''}: they are listed, not included.`,
+  `Records held by someone else (${theirs}), parents named without a record (${named})${leftOut ? `, records left out of this export (${leftOut})` : ''}${locked ? `, or the holder’s own records locked in this browser (${locked})` : ''}: they are listed, not included.`,
   'VeilCore doesn’t vouch for anyone or for anything a record says. How much weight an office or court gives this is for them to decide.',
 ])}
 <h2>Which office</h2>

@@ -13,16 +13,16 @@ import { canonicalise, sha256Hex } from 'veilcore-records';
 import { holderKey, holderKeyIfAny } from './holder';
 import { readJson, isObject, isString, isNumber, optional, arrayField } from './json';
 import { attestRecord, type AttesterProfile } from './attester-keys';
-import { isVaultKey, newOfferKey, openOffer, sealOffer, type OfferBox } from './vault';
+import { handleTag, isHandleTag, isVaultKey, newOfferKey, openOffer, sealOffer, type OfferBox } from './vault';
 import { isAnimal } from './animal-profile';
-import type { StrainRecord } from './records';
+import { noteSentTo, sentToName, type StrainRecord } from './records';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
 /**
- * The public pending list no longer carries the source record, quantity or note
- * (attack round 11): they are optional here so either server version parses. The sent
- * list, which needs the holder key, still has the source.
+ * A delivery as the registry lists it. `to_handle` is a tag for the recipient (CONTRACT.md
+ * #15), not a name, for every delivery made since tags; older ones may still carry the name
+ * as it was typed, until the registry's purge replaces it.
  */
 export type PendingTransfer = {
   readonly id: string;
@@ -34,6 +34,11 @@ export type PendingTransfer = {
 };
 
 export type SentTransfer = PendingTransfer & {
+  /**
+   * The name the holder gave the recipient, from the source record's sealed copy (records.ts
+   * sentTo), or a name stored before tags. Absent when this browser has neither: say "the lab".
+   */
+  readonly label?: string;
   readonly claimed_at?: number;
   /** What the breeder wrote about the sample when making the lab code (sender only). */
   readonly sample_custody?: SampleDetails;
@@ -63,6 +68,12 @@ const isPendingTransfer = (v: unknown): v is PendingTransfer =>
   isNumber(v.created_at) &&
   optional(v.quantity, isString) &&
   optional(v.note, isString);
+
+/** Who a delivery went to, in words: the name kept sealed, or one stored before tags, or "the lab". */
+export const recipientName = (
+  t: { readonly label?: string; readonly to_handle?: string },
+  tr: Translator = enT,
+): string => t.label ?? (t.to_handle && !isHandleTag(t.to_handle) ? t.to_handle : tr.t('app.lab.send.theLab'));
 
 const isSentTransfer = (v: unknown): v is SentTransfer =>
   isPendingTransfer(v) &&
@@ -274,6 +285,7 @@ export const userFacingError = (error: string, tr: Translator = enT): string => 
     [/^only whoever received this delivery/i, 'app.lab.err.onlyLab'],
     [/unclaimed offers/i, 'app.lab.err.tooMany'],
     [/ask the sender for a new code/i, 'app.sealed.err.newCode'],
+    [/^toHandle is a tag, not a name$/i, 'app.sealed.err.handleTag'],
   ];
   for (const [re, key] of known) if (re.test(e)) return tr.t(key);
   return e;
@@ -290,6 +302,7 @@ const LAB_ERROR_KEYS: readonly AppKey[] = [
   'app.lab.err.onlyLab',
   'app.lab.err.tooMany',
   'app.sealed.err.newCode',
+  'app.sealed.err.handleTag',
 ];
 
 /**
@@ -413,6 +426,10 @@ export const offerPlaintext = (
  * here for this offer only; the key goes in the delivery code (shareCodeFor), never to the
  * registry. The quantity and note travel inside it too. The sample's custody details stay
  * readable to the registry, as before (deferred).
+ *
+ * Who it is for goes as a tag (CONTRACT.md #15, vault.ts handleTag), never the name typed:
+ * the name is kept sealed with the source record (records.ts noteSentTo), and shown from
+ * there.
  */
 export const offerTransfer = async (
   record: StrainRecord,
@@ -425,6 +442,14 @@ export const offerTransfer = async (
   if (problems.length) return { error: problems.join(' ') };
   const details = sampleDetailsOf(sample);
   const offerKey = newOfferKey();
+  const name = toHandle.normalize('NFC').trim();
+  if (!name) return { error: 'say who it is for' };
+  let tag: string;
+  try {
+    tag = await handleTag(name);
+  } catch {
+    return { error: enT.t('app.sealed.refuse.noKey') };
+  }
   try {
     const sealedOffer: OfferBox = await sealOffer(
       offerKey,
@@ -437,7 +462,7 @@ export const offerTransfer = async (
       headers: auth(),
       body: JSON.stringify({
         sourceRecord: record.id,
-        toHandle,
+        toHandle: tag,
         sealedOffer,
         ...(hasDetails(details) ? { sample: details } : {}),
       }),
@@ -445,6 +470,7 @@ export const offerTransfer = async (
     const body = await readJson(res);
     if (!isObject(body)) return unexpected;
     if (isString(body.transferId)) {
+      noteSentTo(record.id, body.transferId, name);
       return {
         transferId: body.transferId,
         ...(isString(body.claimCode) ? { claimCode: body.claimCode } : {}),
@@ -520,12 +546,16 @@ export const claimTransfer = async (
  * The offer a claim answered with: opened with the code's key (sealedOffer), or as the
  * registry gave it for a code made before offers were sealed (offerPlain). 'unopened' when
  * there is a sealed offer and the code has no key for it, or the key doesn't open it.
+ *
+ * 'missing' when the code carries an offer key but the registry sent no sealed offer
+ * (CONTRACT.md #17): a code with a key was made with a sealed offer, so a plain one in its
+ * place is the registry's own words about the material, never the sender's, and is refused.
  */
 export const openClaimOffer = async (
-  claim: ClaimResult,
+  claim: Partial<ClaimResult> & Pick<ClaimResult, 'descendedFrom'>,
   offerKey: string | undefined,
   sourceFingerprint: string | undefined,
-): Promise<{ fields: Record<string, unknown> } | 'unopened' | 'none'> => {
+): Promise<{ fields: Record<string, unknown> } | 'unopened' | 'missing' | 'none'> => {
   if (claim.offerSealed !== undefined) {
     if (!offerKey) return 'unopened';
     const fields = await openOffer(
@@ -536,8 +566,87 @@ export const openClaimOffer = async (
     );
     return fields ? { fields } : 'unopened';
   }
+  if (offerKey) return 'missing';
   if (claim.offerPlain) return { fields: claim.offerPlain };
   return 'none';
+};
+
+/**
+ * The claimant's own copy of a delivery's offer (GET /transfers/:id/offer, CONTRACT.md #22),
+ * for finishing a received record after the claim: the claim's answer was its only copy, so
+ * closing the tab before sealing used to leave a stub for good. Answered only to the holder
+ * who claimed it; 404 to anyone else.
+ */
+export const ownOffer = async (
+  transferId: string,
+): Promise<{ offerSealed?: unknown; offerPlain?: Record<string, unknown> } | { error: string }> => {
+  if (!holderKeyIfAny()) return { error: 'this browser has no key for that delivery' };
+  try {
+    const res = await fetch(`${BASE}/transfers/${encodeURIComponent(transferId)}/offer`, { headers: auth() });
+    const body = await readJson(res).catch(() => undefined);
+    if (!res.ok || !isObject(body)) {
+      return {
+        error:
+          isObject(body) && isString(body.error)
+            ? userFacingError(body.error)
+            : res.status === 404
+              ? 'only whoever received this delivery can finish it'
+              : `the registry answered ${String(res.status)}`,
+      };
+    }
+    if (isString(body.transferId) && body.transferId.toUpperCase() !== transferId.toUpperCase()) return unexpected;
+    return {
+      ...(isObject(body.offerSealed) ? { offerSealed: body.offerSealed } : {}),
+      ...(isObject(body.offerPlain) ? { offerPlain: body.offerPlain } : {}),
+    };
+  } catch {
+    return { error: 'could not reach the registry' };
+  }
+};
+
+// --- delivery codes being received ------------------------------------------------------
+//
+// Kept from before the claim until the received record is sealed and the registry has
+// accepted it (CONTRACT.md #22): the code is the only place the offer key and the
+// breeder's lock are, and a claim can't be made twice.
+
+const RECEIVING = 'veilcore.receiving.v1';
+
+const readReceiving = (): Record<string, string> => {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(RECEIVING) ?? '{}');
+    if (!isObject(v)) return {};
+    return Object.fromEntries(
+      Object.entries(v).filter(([id, c]) => isString(c) && parseShareCode(c).transferId === id),
+    ) as Record<string, string>;
+  } catch {
+    return {};
+  }
+};
+
+/** Keep a code being received, by its transfer id. */
+export const keepReceivingCode = (code: string): void => {
+  const { transferId } = parseShareCode(code);
+  try {
+    localStorage.setItem(RECEIVING, JSON.stringify({ ...readReceiving(), [transferId]: code.trim() }));
+  } catch {
+    /* a private window: the code is only in the dialog */
+  }
+};
+
+/** The code kept for a delivery being received, if any. */
+export const receivingCodeFor = (transferId: string): string | undefined => readReceiving()[transferId.toUpperCase()];
+
+/** The received record is sealed and accepted: the code isn't needed any more. */
+export const forgetReceivingCode = (transferId: string): void => {
+  const all = readReceiving();
+  if (!(transferId.toUpperCase() in all)) return;
+  delete all[transferId.toUpperCase()];
+  try {
+    localStorage.setItem(RECEIVING, JSON.stringify(all));
+  } catch {
+    /* nothing kept */
+  }
 };
 
 /**
@@ -724,17 +833,6 @@ export const quantityPhrase = (q?: string): string | undefined => {
   return one && /[^su]s$/i.test(one[2]) ? `${one[1]} ${one[2].slice(0, -1)}` : t;
 };
 
-/** Transfers waiting for a handle. */
-export const pendingFor = async (handle: string): Promise<PendingTransfer[]> => {
-  try {
-    const res = await fetch(`${BASE}/transfers/pending/${encodeURIComponent(handle)}`);
-    if (!res.ok) return [];
-    return arrayField(await readJson(res), 'transfers', isPendingTransfer);
-  } catch {
-    return [];
-  }
-};
-
 /** Transfers this holder has sent. */
 export const sentByMe = async (): Promise<SentTransfer[]> => {
   // Nothing was ever sent from a browser with no key; do not make one to ask.
@@ -744,12 +842,18 @@ export const sentByMe = async (): Promise<SentTransfer[]> => {
     if (!res.ok) return [];
     const rows = arrayField(await readJson(res), 'transfers', isSentTransfer);
     return await Promise.all(
-      rows.map(async (t): Promise<SentTransfer> => {
+      rows.map(async (row): Promise<SentTransfer> => {
+        // A `label` in the registry's answer is not the holder's: dropped.
+        const { label: _fromRegistry, ...t } = row;
+        void _fromRegistry;
         const sample = sampleDetailsOf(t.sample_custody);
         const arrival = arrivalDetailsOf(t.arrival_custody);
-        // Only the registry's fields come from the registry: the digest is worked out here.
+        // Only the registry's fields come from the registry: the digest and the name are
+        // worked out here, the name from the source record's sealed copy.
+        const label = sentToName(t.source_record, t.id);
         return {
           ...t,
+          ...(label ? { label } : {}),
           sample_custody: hasDetails(sample) ? sample : undefined,
           arrival_custody: hasDetails(arrival) ? arrival : undefined,
           custodyDigest: await custodyDigest(t.id, sample, arrival),

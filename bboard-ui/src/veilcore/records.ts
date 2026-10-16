@@ -18,17 +18,30 @@ import {
   clearSealedState,
   deleteRecords,
   integrityOf as storedIntegrityOf,
+  keepNewerCopy,
   loadNoticeOf,
   lockedRowsOf,
+  makeVaultIfSafe,
+  olderRowsOf,
   onSealedStateChange,
+  recordSealedBytes,
   rowStateOf,
+  SEALED_MAX_BYTES,
   type IntegrityCheck as StoredIntegrityCheck,
   type LoadNotice,
   type LockedRow,
 } from './api-store';
-import { vaultKeyIfAny } from './vault';
-import { syncGrants } from './disclosure';
-import { enT } from '../i18n/translate';
+import { clearUnusedVault, onVaultChange, vaultKeyIfAny, vaultNeedsBackup } from './vault';
+import {
+  disclosureFrom,
+  keysOn,
+  listGrants,
+  registerGrantKeeper,
+  sendGrant,
+  syncGrants,
+  type DisclosureKey,
+} from './disclosure';
+import { enT, type Translator } from '../i18n/translate';
 
 /**
  * A second party confirming they received this material.
@@ -145,6 +158,19 @@ export type StrainRecord = {
   readonly resultLock?: string;
   /** The lab turned the sample away: nothing was signed. */
   readonly receiptRejected?: { readonly reason: 'damaged' | 'wrong-sample'; readonly at: number };
+
+  // The holder's own choices, kept sealed with the record (outside the fingerprint).
+  /**
+   * What the holder chose to publish about this record (disclosure.ts): the only source of
+   * what is published (CONTRACT.md #19). The registry's list of grants is a hint that one
+   * may need sending again, never a choice.
+   */
+  readonly grant?: DisclosureKey[];
+  /**
+   * The name the holder gave each delivery's recipient, by transfer id (CONTRACT.md #15).
+   * The registry gets only a tag for it; the name is shown from here.
+   */
+  readonly sentTo?: Readonly<Record<string, string>>;
 };
 
 /** The receiver's own notes on a received record: outside the fingerprint, so safe to change. */
@@ -221,12 +247,26 @@ const notify = () => listeners.forEach((l) => l());
  * What the last load found besides the records it could open (api-store.ts): records
  * sealed with a key this browser doesn't have, and whether the set came back whole.
  */
-export type SealedView = { readonly locked: readonly LockedRow[]; readonly notice: LoadNotice };
+export type SealedView = {
+  readonly locked: readonly LockedRow[];
+  readonly notice: LoadNotice;
+  /**
+   * Why older records aren't locked yet, when it isn't a backup: this browser can't keep a
+   * key (a private window, blocked site data), so none was made and nothing was changed.
+   */
+  readonly vaultProblem?: 'cant-store';
+};
 let sealedView: SealedView = { locked: [], notice: { truncated: false, unreadable: 0 } };
-onSealedStateChange(() => {
-  sealedView = { locked: lockedRowsOf(RECORDS_KEY), notice: loadNoticeOf(RECORDS_KEY) };
+let vaultProblem: 'cant-store' | undefined;
+const refreshSealedView = () => {
+  sealedView = {
+    locked: lockedRowsOf(RECORDS_KEY),
+    notice: loadNoticeOf(RECORDS_KEY),
+    ...(vaultProblem ? { vaultProblem } : {}),
+  };
   notify();
-});
+};
+onSealedStateChange(refreshSealedView);
 
 /**
  * Records this browser can't open (CONTRACT.md #11): sealed with a vault key it doesn't
@@ -245,30 +285,84 @@ export const integrityOf = (id: string): StoredIntegrityCheck | undefined => sto
 /** Ids whose plain-text (pre-sealing) row this session already tried to save sealed. */
 const converted = new Set<string>();
 let syncedOnce = false;
+let converting: Promise<void> | null = null;
 
 /**
  * Save again, sealed, the records the registry still holds in plain text (saved before
- * sealing). Only when this browser can seal them under the key the holder's other rows
- * use: with a vault key here, or with no sealed row yet, when one is made for them
- * (api-store.ts). A key made now is in no backup yet, and the app says so (vault.ts
- * vaultNeedsBackup) until a new backup is saved and checked.
+ * sealing), CONTRACT.md #23. Only under the key the holder's other rows use, and only once
+ * that key is in a backup the app has checked: until then the plain-text rows stay as they
+ * are (the registry still serves them to their holder, so waiting loses nothing), and a v2
+ * backup made before still opens them.
+ *
+ * With no key here and no sealed row anywhere, one is made now (api-store.ts
+ * makeVaultIfSafe), so there is something to back up; the app asks for the backup
+ * (vault.ts vaultNeedsBackup), and conversion runs once it is checked. A browser that can't
+ * keep a key makes none and converts nothing (sealedView.vaultProblem says why).
+ *
+ * The registry holds these records in plain text, so its grants for them tell it nothing it
+ * doesn't have: they are taken into the sealed copy, and after the save every one of them is
+ * sent once, value-less keys included (CONTRACT.md #19, L6).
  */
-const convertLegacy = async (): Promise<void> => {
-  const legacy = records.filter((r) => rowStateOf(RECORDS_KEY, r.id) === 'legacy' && !converted.has(r.id));
-  if (legacy.length === 0) return;
-  if (!vaultKeyIfAny() && lockedRecords().some((l) => l.kid)) return; // the key is in a backup; restore it first
-  for (const r of legacy) converted.add(r.id);
-  await saveAll();
+const convertLegacy = (): Promise<void> => {
+  converting ??= (async () => {
+    const legacy = records.filter((r) => rowStateOf(RECORDS_KEY, r.id) === 'legacy' && !converted.has(r.id));
+    if (legacy.length === 0) return;
+    if (!vaultKeyIfAny()) {
+      if (lockedRecords().some((l) => l.kid)) return; // the key is in a backup; restore it first
+      const made = await makeVaultIfSafe();
+      vaultProblem = made === 'cant-store' ? 'cant-store' : undefined;
+      refreshSealedView();
+      return; // nothing is converted until the new key is in a checked backup
+    }
+    if (vaultNeedsBackup()) return;
+    const listed = await listGrants();
+    if (listed === null) return; // the registry couldn't list them now: tried again at the next sync
+    const ids = new Set(legacy.map((r) => r.id));
+    for (const id of ids) converted.add(id);
+    const chosen = new Map(listed.map((g) => [g.recordId, keysOn(disclosureFrom(g.show))]));
+    records = records.map((r) =>
+      ids.has(r.id) && r.grant === undefined && chosen.has(r.id) ? { ...r, grant: chosen.get(r.id) } : r,
+    );
+    await saveAll();
+    for (const id of ids) {
+      const r = getRecord(id);
+      if (r?.grant && rowStateOf(RECORDS_KEY, id) === 'open' && integrityOf(id) !== 'mismatch') {
+        await sendGrant(r, r.grant);
+      }
+    }
+  })().finally(() => {
+    converting = null;
+  });
+  return converting;
 };
+
+// A checked backup (or a restored key) is what conversion waits for.
+onVaultChange(() => {
+  if (vaultKeyIfAny() && !vaultNeedsBackup() && records.some((r) => rowStateOf(RECORDS_KEY, r.id) === 'legacy')) {
+    void convertLegacy();
+  }
+});
 
 /** Re-fetch from the registry. Used on start, after a claim, and by the sync below. */
 export const hydrate = async (): Promise<void> => {
+  const before = records;
   try {
     records = await store.load(RECORDS_KEY, isStrainRecord);
   } catch {
     return; // the registry could not answer now: keep what is shown, try again at the next sync
   }
+  // The registry sent an older copy of a record than this browser has seen (CONTRACT.md
+  // #20): the newer copy this page holds stays, and is sent again.
+  let kept = 0;
+  for (const id of olderRowsOf(RECORDS_KEY)) {
+    const mine = before.find((r) => r.id === id);
+    if (!mine) continue;
+    records = [...records, mine];
+    keepNewerCopy(RECORDS_KEY, id);
+    kept++;
+  }
   notify();
+  if (kept) void saveAll();
   await convertLegacy();
   if (!syncedOnce) {
     syncedOnce = true;
@@ -279,6 +373,51 @@ export const hydrate = async (): Promise<void> => {
 /** disclosure.ts syncGrants over this set: never from a record that doesn't match its fingerprint. */
 const resendGrants = (force: readonly string[] = []): Promise<number> =>
   syncGrants(getRecord, force, (id) => integrityOf(id) !== 'mismatch');
+
+/**
+ * Keep the holder's grant choice in the record's sealed copy before anything is published
+ * (disclosure.ts saveGrant, CONTRACT.md #19). Awaited: a choice the registry didn't store
+ * with the record is not published. A record saved before locking can't be changed until
+ * the backup is checked; the registry holds it in plain text, so its grant is taken into the
+ * sealed copy when it is converted (convertLegacy).
+ */
+const keepGrant = async (id: string, show: DisclosureKey[]): Promise<StrainRecord | { error: string }> => {
+  const r = getRecord(id);
+  if (!r) return { error: 'that record isn’t in this browser' };
+  if (integrityOf(id) === 'mismatch') return { error: enT.t('app.sealed.mismatch') };
+  const next: StrainRecord = { ...r, grant: [...show] };
+  if (rowStateOf(RECORDS_KEY, id) === 'legacy') return next;
+  records = records.map((x) => (x.id === id ? next : x));
+  notify();
+  const result = await store.save(RECORDS_KEY, records);
+  reportSave('records', result);
+  const refusedHere = result.refused.filter((x) => x.id === '*' || x.id === id);
+  if (result.offline || refusedHere.length) {
+    await hydrate();
+    return { error: result.offline ? 'could not reach the registry' : describeRefusals(refusedHere) };
+  }
+  return getRecord(id) ?? next;
+};
+registerGrantKeeper(keepGrant);
+
+/**
+ * Keep the name the holder gave a delivery's recipient, sealed with the source record
+ * (CONTRACT.md #15): the registry has only a tag for it.
+ */
+export const noteSentTo = (recordId: string, transferId: string, name: string): void => {
+  const label = name.normalize('NFC').trim();
+  if (!label || !getRecord(recordId)) return;
+  records = records.map((r) =>
+    r.id === recordId ? { ...r, sentTo: { ...(r.sentTo ?? {}), [transferId]: label } } : r,
+  );
+  persist();
+};
+
+/** The name the holder gave a delivery's recipient, if this browser's records have it. */
+export const sentToName = (sourceRecordId: string | undefined, transferId: string): string | undefined =>
+  sourceRecordId
+    ? getRecord(sourceRecordId)?.sentTo?.[transferId]
+    : records.find((r) => r.sentTo?.[transferId])?.sentTo?.[transferId];
 
 // Records change on the server without this browser doing anything — an attestation
 // lands when a recipient confirms receipt, which happens on someone else's machine.
@@ -335,8 +474,42 @@ export const newRecordId = (): string =>
     .join('')
     .toUpperCase();
 
+/** Whether a record is over the size a sealed record may be (CONTRACT.md #21). */
+export const tooLargeToSave = (r: Record<string, unknown>): boolean => recordSealedBytes(r) > SEALED_MAX_BYTES;
+/** How full a record is, of the most a sealed record may be: 0 to 1 and over. */
+export const sizeShare = (r: Record<string, unknown>): number => recordSealedBytes(r) / SEALED_MAX_BYTES;
+
+/** What a record being typed would add beside its fields, so an estimate is never low. */
+const SEALING_PLACEHOLDER = {
+  id: `VEIL-${'0'.repeat(32)}`,
+  nonce: '0'.repeat(64),
+  keyBinding: '0'.repeat(64),
+  recordFingerprint: '0'.repeat(64),
+  loggedAt: 1_000_000_000_000,
+  licenseIds: [],
+};
+/** sizeShare of fields still being typed (a form's draft), with what sealing adds. */
+export const draftSizeShare = (fields: Record<string, unknown>): number =>
+  sizeShare({ ...SEALING_PLACEHOLDER, ...fields });
+
+/**
+ * The live counter for a form (CONTRACT.md #21): nothing until a record is near the limit,
+ * then how much is used, then that it is too large. Said while typing, so nothing typed is
+ * lost to a refusal after.
+ */
+export const sizeWords = (share: number, tr: Translator = enT): string | undefined => {
+  if (share < 0.9) return undefined;
+  if (share > 1) return tr.t('app.sealed.size.over');
+  return tr.t('app.sealed.size.near', {
+    used: String(Math.ceil(share * (SEALED_MAX_BYTES / 1024))),
+    max: String(SEALED_MAX_BYTES / 1024),
+  });
+};
+
 export const createRecord = (input: NewRecordInput): StrainRecord => {
   const record: StrainRecord = { licenseIds: [], ...input, id: input.id ?? newRecordId() };
+  // Refused before it is shown or sent: the caller still has what was typed.
+  if (tooLargeToSave(record)) throw new Error(enT.t('app.sealed.tooLarge'));
   records = [record, ...records];
   persist();
   return record;
@@ -525,7 +698,20 @@ const importable = (r: StrainRecord): StrainRecord => {
   return out as unknown as StrainRecord;
 };
 
-export type ImportResult = { added: number; alreadyHere: number };
+export type ImportResult = {
+  added: number;
+  alreadyHere: number;
+  /** Rows the file has sealed with a key this browser lacks, or emptied: skipped, not imported (L8). */
+  locked?: number;
+};
+
+/** A row of an opened registry export this browser couldn't open: still sealed, or emptied by the purge. */
+const isLockedRow = (v: unknown): boolean =>
+  typeof v === 'object' &&
+  v !== null &&
+  !Array.isArray(v) &&
+  ((typeof (v as { sealed?: unknown }).sealed === 'object' && (v as { sealed?: unknown }).sealed !== null) ||
+    (v as { contentsRemoved?: unknown }).contentsRemoved === true);
 
 /**
  * Restore records from an export.
@@ -544,13 +730,17 @@ export const importRecords = async (file: File): Promise<ImportResult> => {
     throw new Error('That file is not a VeilCore records export. Nothing was imported.');
   }
   if (!Array.isArray(parsed)) throw new Error('That file is not a VeilCore records export.');
-  const valid = parsed.filter(isStrainRecord);
+  // Rows still sealed with a key this browser doesn't have (an opened export keeps them as
+  // the registry holds them) are skipped and counted, not a reason to import nothing.
+  const lockedRows = parsed.filter(isLockedRow).length;
+  const rows = parsed.filter((v) => !isLockedRow(v));
+  const valid = rows.filter(isStrainRecord);
   // Refuse a file with unreadable entries rather than importing the rest. A partial
   // import looks like a success and leaves the holder believing they restored
   // records that are not there.
-  if (valid.length !== parsed.length) {
+  if (valid.length !== rows.length) {
     throw new Error(
-      `That file has ${String(parsed.length - valid.length)} entries this version cannot read. Nothing was imported.`,
+      `That file has ${String(rows.length - valid.length)} entries this version cannot read. Nothing was imported.`,
     );
   }
   const cleaned = valid.map(importable);
@@ -572,7 +762,11 @@ export const importRecords = async (file: File): Promise<ImportResult> => {
     records = [...fresh, ...records];
     persist();
   }
-  return { added: fresh.length, alreadyHere: cleaned.length - fresh.length };
+  return {
+    added: fresh.length,
+    alreadyHere: cleaned.length - fresh.length,
+    ...(lockedRows ? { locked: lockedRows } : {}),
+  };
 };
 
 /**
@@ -585,11 +779,15 @@ export const importRecords = async (file: File): Promise<ImportResult> => {
  */
 export const startOver = (): void => {
   forgetHolderKey();
+  // A vault key no accepted save used goes too (CONTRACT.md #23): kept, it would stop the
+  // right backup from being restored here.
+  clearUnusedVault();
   records = [];
   clearSealedState();
   converted.clear();
   syncedOnce = false;
-  notify();
+  vaultProblem = undefined;
+  refreshSealedView();
 };
 
 /**
@@ -611,6 +809,9 @@ const subscribe = (l: () => void): (() => void) => {
 };
 
 export const useRecords = (): StrainRecord[] => useSyncExternalStore(subscribe, () => records);
+
+/** What useSealedView gives, outside a component. */
+export const sealedViewNow = (): SealedView => sealedView;
 
 /** The locked records and whether the last load came back whole, for the pages that show them. */
 export const useSealedView = (): SealedView => useSyncExternalStore(subscribe, () => sealedView);
@@ -685,33 +886,70 @@ const receivedFields = (r: StrainRecord, offer: OfferFields): StrainRecord => {
   return base as StrainRecord;
 };
 
+/** What finishing a received record did: the record as the registry accepted it, or why not. */
+export type ReceiveOutcome = { readonly record: StrainRecord } | { readonly error: string };
+
 /**
- * Seal a record received through a transfer.
+ * Seal a record received through a transfer, and wait for the registry to accept it.
  *
  * The recipient did not produce the sender's evidence and cannot claim it, so a
  * received record arrives with no commitment. This creates theirs: a commitment over
  * what they actually received — the material, the quantity, the date, the source. The
  * claim leaves only a stub on the registry; with `offer`, the record is built here from it
  * and the sender's offer, then fingerprinted and saved sealed.
+ *
+ * Only a record the registry accepted is returned (CONTRACT.md #22): a receipt is never
+ * signed over a fingerprint it didn't store. A record that can't be fingerprinted (an animal
+ * whose offer didn't open has no species) or saved stays a stub, and the reason is returned.
  */
+export const finishReceived = async (
+  id: string,
+  notes: ReceivedNotes = {},
+  offer?: OfferFields,
+): Promise<ReceiveOutcome> => {
+  const r = getRecord(id);
+  if (!r) return { error: 'that record isn’t in this browser' };
+  if (r.recordFingerprint && rowStateOf(RECORDS_KEY, id) !== 'stub') {
+    if (Object.keys(notes).length) updateReceivedNotes(id, notes);
+    return { record: getRecord(id) ?? r };
+  }
+  const built = offer || rowStateOf(RECORDS_KEY, id) === 'stub' ? receivedFields(r, offer ?? {}) : r;
+  const nonce = newNonce();
+  let recordFingerprint: string;
+  try {
+    recordFingerprint = await fingerprintRecord({ ...built, nonce });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
+  const sealedRecord: StrainRecord = { ...built, ...notes, nonce, recordFingerprint };
+  records = records.map((x) => (x.id === id ? sealedRecord : x));
+  notify();
+  const result = await store.save(RECORDS_KEY, records);
+  reportSave('records', result);
+  const refusedHere = result.refused.filter((x) => x.id === '*' || x.id === id);
+  if (result.offline || refusedHere.length || rowStateOf(RECORDS_KEY, id) !== 'open') {
+    // Not stored: the registry's stub comes back, and nothing is signed over this fingerprint.
+    await hydrate();
+    return {
+      error: result.offline
+        ? 'could not reach the registry'
+        : refusedHere.length
+          ? describeRefusals(refusedHere)
+          : 'the registry didn’t store it',
+    };
+  }
+  void resendGrants();
+  return { record: getRecord(id) ?? sealedRecord };
+};
+
+/** finishReceived, as the record the registry accepted, or undefined. */
 export const sealReceived = async (
   id: string,
   notes: ReceivedNotes = {},
   offer?: OfferFields,
 ): Promise<StrainRecord | undefined> => {
-  const r = getRecord(id);
-  if (!r) return r;
-  if (r.recordFingerprint) {
-    if (Object.keys(notes).length) updateReceivedNotes(id, notes);
-    return getRecord(id);
-  }
-  const built = offer || rowStateOf(RECORDS_KEY, id) === 'stub' ? receivedFields(r, offer ?? {}) : r;
-  const nonce = newNonce();
-  const recordFingerprint = await fingerprintRecord({ ...built, nonce });
-  records = records.map((x) => (x.id === id ? { ...built, ...notes, nonce, recordFingerprint } : x));
-  persist();
-  notify();
-  return getRecord(id);
+  const out = await finishReceived(id, notes, offer);
+  return 'record' in out ? out.record : undefined;
 };
 
 /**
@@ -778,6 +1016,10 @@ export const issueCorrection = async (
     recordFingerprint: await fingerprintRecord({ ...draft, nonce }),
     supersedes,
   };
+  if (tooLargeToSave(corrected)) {
+    forgetKeys(id);
+    throw new Error(enT.t('app.sealed.tooLarge'));
+  }
 
   const previous = records;
   records = [corrected, ...records.map((r) => (r.id === originalId ? { ...r, supersededBy: corrected.id } : r))];
