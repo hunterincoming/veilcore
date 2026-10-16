@@ -26,6 +26,8 @@ import {
   CUSTODY_LIMITS,
   custodyProblems,
   offerTransfer,
+  OFFER_NOTE_MAX,
+  OFFER_QUANTITY_MAX,
   rememberSentCode,
   sampleDetailsOf,
   sentCodeFor,
@@ -208,14 +210,27 @@ export const SendToLab: React.FC<{
                 label={t('app.lab.send.quantity')}
                 placeholder={t('app.lab.send.quantityPlaceholder')}
                 value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
+                onChange={(e) => setQuantity(e.target.value.slice(0, OFFER_QUANTITY_MAX))}
+                helperText={
+                  quantity.length >= OFFER_QUANTITY_MAX * 0.8
+                    ? t('app.lab.send.count', { n: quantity.length, max: OFFER_QUANTITY_MAX })
+                    : undefined
+                }
+                slotProps={{ htmlInput: { maxLength: OFFER_QUANTITY_MAX } }}
                 fullWidth
               />
               <TextField
                 label={t('app.lab.send.note')}
-                helperText={t('app.lab.send.noteHelp')}
+                helperText={
+                  // The registry holds the offer only up to a size (transfers.ts OFFER_MAX_BYTES);
+                  // capping the note here means a code is never refused after it was typed.
+                  note.length >= OFFER_NOTE_MAX * 0.8
+                    ? `${t('app.lab.send.noteHelp')} ${t('app.lab.send.count', { n: note.length, max: OFFER_NOTE_MAX })}`
+                    : t('app.lab.send.noteHelp')
+                }
                 value={note}
-                onChange={(e) => setNote(e.target.value)}
+                onChange={(e) => setNote(e.target.value.slice(0, OFFER_NOTE_MAX))}
+                slotProps={{ htmlInput: { maxLength: OFFER_NOTE_MAX } }}
                 fullWidth
               />
               {showSample ? (

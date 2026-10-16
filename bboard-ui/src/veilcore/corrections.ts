@@ -15,6 +15,34 @@ import { toEnvelope, sealEnvelope } from './envelope';
 import { holderPartyId } from './holder';
 import type { StrainRecord } from './records';
 
+/**
+ * Every name a correction's `changedFields` may hold (CONTRACT.md #18). The registry keeps
+ * a correction's list of changed fields readable, so it accepts only these names and never
+ * free text; its copy is `CHANGED_FIELD_NAMES` in the registry's sealed.js, and the
+ * cross-repo contract test (registry-contract.test.ts) checks the two hold the same names.
+ * Add a name here and there together.
+ */
+// prettier-ignore
+export const CHANGED_FIELD_NAMES: readonly string[] = Object.freeze([
+  // The app's own record fields (records.ts StrainRecord).
+  'id', 'nonce', 'strainName', 'bredBy', 'dateCreated', 'notes', 'loggedAt', 'recordFingerprint', 'keyBinding',
+  'parents', 'breedingMethod', 'profile', 'taxon', 'animal', 'photoFingerprints', 'refId', 'dnaFingerprint',
+  'dnaFileName', 'dnaPairedAt', 'dnaFileSha256', 'dnaResultId', 'attestation', 'supersedes', 'supersededBy',
+  'receivedFrom', 'receivedFromCommitment', 'receivedAt', 'transferId', 'quantity', 'licenseIds',
+  'deliveryNote', 'labRef', 'resultLock', 'receiptRejected',
+  // Envelope paths (envelope.ts toEnvelope, veilcore-records committedFields and diffRecords).
+  'attestations', 'commitmentAlgorithm', 'extensions', 'fieldSchema', 'fieldSetRoot', 'formatVersion',
+  'holder', 'holder.id', 'identification', 'identification.method', 'identification.reportHash',
+  'identification.performedOn', 'jurisdictionBindings', 'ledgerIdentity', 'registrations', 'sealedAt',
+  'subject', 'subject.name', 'subject.originator', 'subject.taxon', 'subject.internalDesignation',
+  'subject.claimedCreationDate', 'subjectType', 'profileData',
+  'profileData.breedingMethod', 'profileData.notes', 'profileData.breed', 'profileData.sex',
+  'profileData.individualId', 'profileData.idScheme', 'profileData.herd', 'profileData.parentIds',
+  // Envelope paths older sites wrote, and the SDK's other classified names.
+  'profileData.cultivarName', 'profileData.breederName', 'profileData.claimedCreationDate',
+  'profileData.internalReference', 'profileData.taxon', 'profileData.phenotypeSelection',
+]);
+
 export type CorrectionPreview = {
   changedFields: string[];
   descentSeverity: 'cosmetic' | 'material';

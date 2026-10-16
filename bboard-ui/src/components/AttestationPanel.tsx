@@ -18,7 +18,7 @@ import { attestationsFor, signerLabel, strengthLabel, type ResolvedAttestation }
 import type { BreederReceipt } from '../veilcore/custody';
 import { NameCheckText } from './NameCheckText';
 import type { StrainRecord } from '../veilcore/records';
-import { isHandleTag } from '../veilcore/vault';
+import { attestationAddressee } from '../veilcore/transfers';
 import { useRecordT, useT } from '../i18n/app';
 
 /** The breeder's own plant: its tied receipt, and a count of anything else. */
@@ -81,11 +81,8 @@ export const AttestationPanel: React.FC<{
   // The legacy transfer-claim attestation, which predates signing.
   const legacy = record.attestation;
   // Who the sender addressed: the name kept sealed with this record for the delivery
-  // (CONTRACT.md #15). The registry no longer writes `addressedTo`, so a delivery made
-  // since is never named from it; one written before is still shown, unless it is a tag.
-  const sealedName = legacy?.transferId ? record.sentTo?.[legacy.transferId] : undefined;
-  const oldName = legacy?.addressedTo ?? legacy?.attesterHandle;
-  const addressedTo = sealedName ?? (oldName && !isHandleTag(oldName) ? oldName : undefined);
+  // (CONTRACT.md #15), else one an older claim wrote; never a tag (transfers.ts).
+  const addressedTo = attestationAddressee(record);
 
   if (receipt !== undefined) return receipt === null ? null : <BreederReceiptPanel receipt={receipt} />;
   if (items === null) return null;

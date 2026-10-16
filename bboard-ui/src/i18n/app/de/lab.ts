@@ -136,6 +136,7 @@ export const lab = {
   'app.lab.send.quantityPlaceholder': 'z. B. 10 Stecklinge',
   'app.lab.send.note': 'Notiz für das Labor (optional)',
   'app.lab.send.noteHelp': 'Nur das Labor sieht sie, sobald es den Code eingibt.',
+  'app.lab.send.count': '{n} von {max} Zeichen.',
   'app.lab.send.sample': 'Die Probe (optional)',
   'app.lab.send.sampleHelp':
     'Das Labor prüft diese Angaben bei Ankunft und bestätigt oder korrigiert jede. Seine signierte Empfangsbestätigung deckt ab, was Sie geschrieben haben und was es vorgefunden hat.',

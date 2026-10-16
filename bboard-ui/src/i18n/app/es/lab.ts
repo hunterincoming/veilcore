@@ -135,6 +135,7 @@ export const lab = {
   'app.lab.send.quantityPlaceholder': 'p. ej., 10 esquejes',
   'app.lab.send.note': 'Nota para el laboratorio (opcional)',
   'app.lab.send.noteHelp': 'Solo la ve el laboratorio, una vez que ingresa el código.',
+  'app.lab.send.count': '{n} de {max} caracteres.',
   'app.lab.send.sample': 'La muestra (opcional)',
   'app.lab.send.sampleHelp':
     'El laboratorio los comprueba cuando llega y confirma o corrige cada uno. Su acuse de recibo firmado cubre lo que usted escribió y lo que encontró.',

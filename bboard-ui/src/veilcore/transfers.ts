@@ -75,6 +75,23 @@ export const recipientName = (
   tr: Translator = enT,
 ): string => t.label ?? (t.to_handle && !isHandleTag(t.to_handle) ? t.to_handle : tr.t('app.lab.send.theLab'));
 
+/**
+ * Who the sender addressed, for the receipt confirmation on the sender's own record
+ * (AttestationPanel.tsx). The name kept sealed with the record for that delivery
+ * (records.ts sentTo, CONTRACT.md #15) comes first: the registry no longer writes
+ * `addressedTo`. A record whose attestation was written before still has the name an older
+ * claim wrote there (or in `attesterHandle`, older still), shown until the purge removes
+ * it. A tag is never a name: none is shown rather than 64 hex characters.
+ */
+export const attestationAddressee = (r: Pick<StrainRecord, 'attestation' | 'sentTo'>): string | undefined => {
+  const a = r.attestation;
+  if (!a) return undefined;
+  const sealedName = a.transferId ? r.sentTo?.[a.transferId] : undefined;
+  if (sealedName && !isHandleTag(sealedName)) return sealedName;
+  const oldName = [a.addressedTo, a.attesterHandle].find((v) => typeof v === 'string' && v.trim() !== '');
+  return oldName && !isHandleTag(oldName.trim().toLowerCase()) ? oldName : undefined;
+};
+
 const isSentTransfer = (v: unknown): v is SentTransfer =>
   isPendingTransfer(v) &&
   optional((v as Record<string, unknown>).claimed_at, isNumber) &&
@@ -420,6 +437,16 @@ export const offerPlaintext = (
 };
 
 /**
+ * The most a sealed offer may be, as JSON (the registry's sealed.js OFFER_MAX_BYTES; the
+ * cross-repo contract test checks they agree). It fits the largest offer this app can make:
+ * a record of up to 256 KiB padded (vault.ts SEALED_MAX_BYTES), plus the caps below.
+ */
+export const OFFER_MAX_BYTES = 384 * 1024;
+/** The quantity and the note for the lab: the app caps them while typing (SendToLab.tsx). */
+export const OFFER_QUANTITY_MAX = 200;
+export const OFFER_NOTE_MAX = 2000;
+
+/**
  * Offer a record to a recipient. Nothing moves until they claim it.
  *
  * What the recipient learns about the material goes sealed (sealedOffer), with a key made
@@ -437,6 +464,10 @@ export const offerTransfer = async (
   opts: { quantity?: string; note?: string; sample?: SampleDetails } = {},
 ): Promise<{ transferId: string; claimCode?: string; offerKey: string } | { error: string }> => {
   const { sample, quantity, note } = opts;
+  // SendToLab.tsx caps both while typing; anything longer never leaves this browser.
+  if ((quantity?.length ?? 0) > OFFER_QUANTITY_MAX || (note?.length ?? 0) > OFFER_NOTE_MAX) {
+    return { error: 'the quantity or the note is too long' };
+  }
   // A value the registry would refuse is said here, not dropped (sampleDetailsOf drops it).
   const problems = sample ? custodyProblems('sample', sample) : [];
   if (problems.length) return { error: problems.join(' ') };
@@ -457,6 +488,7 @@ export const offerTransfer = async (
       record.recordFingerprint ?? '',
       offerPlaintext(record, { quantity, note }),
     );
+    if (JSON.stringify(sealedOffer).length > OFFER_MAX_BYTES) return { error: 'this record is too large to send' };
     const res = await fetch(`${BASE}/transfers`, {
       method: 'POST',
       headers: auth(),

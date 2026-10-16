@@ -7,8 +7,8 @@
 // that machine's contract build, the one the practice contract was deployed from.
 //
 // It refuses to run unless both services say they are on preprod and the registry serves
-// everything the site uses (its /health lists sealed records, lab results and animal
-// records: scripts/registry-features.mjs; deploy the registry first). It never touches
+// everything the site uses (its /health lists sealed records, lab results, animal records
+// and the claimant's offer: scripts/registry-features.mjs; deploy the registry first). It never touches
 // veilcore.org: the deploy is a preview, aliased only to test.veilcore.org. The domain is
 // not added to the Vercel project (a project domain would follow every production deploy);
 // the alias alone is enough, since veilcore.org's DNS is on Vercel.

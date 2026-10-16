@@ -1,6 +1,7 @@
 // What the site needs from its registry, checked before a site is built and published.
 //
-// Every build of the site uses sealed records, lab results and animal records. A registry
+// Every build of the site uses sealed records, lab results, animal records and the claimant's
+// own copy of a delivery's offer ("Finish receiving", GET /transfers/:id/offer). A registry
 // that doesn't serve one of them would leave the site offering something that fails when
 // someone uses it. So both site deploys (scripts/site-mainnet-preflight.mjs for
 // veilcore.org, scripts/deploy-test-site.mjs for test.veilcore.org) first ask the target
@@ -14,6 +15,7 @@ export const REQUIRED_FEATURES = Object.freeze({
   'sealed-records-v1': 'sealed records',
   'lab-results-v1': 'lab results',
   'animal-profile-v1': 'animal records',
+  'claimant-offer-v1': 'finishing a received delivery',
 });
 
 const DEPLOY_FIRST =

@@ -18,6 +18,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { spawn, type ChildProcess } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -47,6 +48,7 @@ const P = {
   extraTerms: 'PRIV-extra-terms-Ww3',
   quantity: 'PRIV-quantity-12-clones',
   offerNote: 'PRIV-offer-note-Vv4',
+  longNote: 'PRIV-long-note-Jj9',
   labRef: 'PRIV-lab-accession-Ee6',
   // The second record's own private values (its published ones are below).
   bredBy2: 'PRIV-bredby2-Yy7',
@@ -577,6 +579,52 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     await until(() => fresh.licenses.getLicense(licenceId) !== undefined, 'the restored licence');
     expect(fresh.licenses.lockedLicenses()).toEqual([]);
   });
+
+  it('the longest quantity and note the app allows, at six bytes a character: the real registry takes the offer', async () => {
+    const A2 = await browser(breederStorage);
+    await A2.records.hydrate();
+    const t = A2.transfers;
+    const source = A2.records.getRecord(r2.id)!;
+    const worst = (n: number, mark: string) => mark + '\u0001'.repeat(n - mark.length);
+    const offer = await t.offerTransfer(source, 'big-note@contract.test', {
+      quantity: worst(t.OFFER_QUANTITY_MAX, P.quantity),
+      note: worst(t.OFFER_NOTE_MAX, P.longNote),
+    });
+    if ('error' in offer) throw new Error(offer.error);
+    secretKeys.push({ label: 'the long offer’s key', values: forms(offer.offerKey) });
+    const last = sent.filter((s) => s.method === 'POST' && s.url.endsWith('/transfers')).at(-1)!;
+    expect(last.body.length).toBeGreaterThan(16 * 1024); // over the old limit, which refused it
+  });
+
+  // Run only against a checkout: the registry's own lists are read from its source.
+  it.skipIf(/^https?:\/\//.test(TARGET))(
+    'the lists both sides keep agree: correction field names, the offer limit, the profiles',
+    async () => {
+      const registry = createRequire(import.meta.url)(path.join(path.resolve(TARGET), 'sealed.js')) as {
+        CHANGED_FIELD_NAMES: string[];
+        OFFER_MAX_BYTES: number;
+        KNOWN_PROFILES: string[];
+      };
+      const { CHANGED_FIELD_NAMES } = await import('./corrections');
+      const site = [...new Set(CHANGED_FIELD_NAMES)].sort();
+      const theirs = [...new Set(registry.CHANGED_FIELD_NAMES)].sort();
+      expect(
+        site.filter((f) => !theirs.includes(f)),
+        'names only the site has',
+      ).toEqual([]);
+      expect(
+        theirs.filter((f) => !site.includes(f)),
+        'names only the registry has',
+      ).toEqual([]);
+      expect(site).toEqual(theirs);
+      const { OFFER_MAX_BYTES } = await import('./transfers');
+      expect(OFFER_MAX_BYTES).toBe(registry.OFFER_MAX_BYTES);
+      const { PLANT_VARIETY_PROFILE } = await import('./envelope');
+      const { ANIMAL_PROFILE } = await import('./animal-profile');
+      for (const p of [PLANT_VARIETY_PROFILE, ANIMAL_PROFILE, 'veilcore/profile/cannabis/v0.1'])
+        expect(registry.KNOWN_PROFILES).toContain(p);
+    },
+  );
 
   it('a browser with the holder key and a different vault key: every row locked, none sent back, a new save refused', async () => {
     const holderKey = A.holder.holderKeyIfAny()!;

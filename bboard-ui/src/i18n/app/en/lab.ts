@@ -133,6 +133,7 @@ export const lab = {
   'app.lab.send.quantityPlaceholder': 'e.g. 10 cuttings',
   'app.lab.send.note': 'Note for the lab (optional)',
   'app.lab.send.noteHelp': 'Only the lab sees it, once they enter the code.',
+  'app.lab.send.count': '{n} of {max} characters.',
   'app.lab.send.sample': 'The sample (optional)',
   'app.lab.send.sampleHelp':
     'The lab checks these when it arrives and confirms or corrects each one. Its signed receipt covers what you wrote and what it found.',

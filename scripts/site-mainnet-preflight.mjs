@@ -4,7 +4,7 @@
 //   2. the registry the site talks to publishes that same contract on mainnet as the
 //      place it anchors batches (its /.well-known/veilcore-registry), and
 //   3. that registry serves everything the site uses: its GET /health lists sealed records,
-//      lab results and animal records (scripts/registry-features.mjs).
+//      lab results, animal records and the claimant's offer (scripts/registry-features.mjs).
 // If any of these is not so, nothing is built or deployed, and it says what to do in plain words.
 // It also reads the maintenance policy's status line (scripts/maintenance-policy.mjs) and
 // prints what the site will say about it.

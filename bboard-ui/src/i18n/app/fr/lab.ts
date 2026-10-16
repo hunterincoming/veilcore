@@ -137,6 +137,7 @@ export const lab = {
   'app.lab.send.quantityPlaceholder': 'p. ex. 10 boutures',
   'app.lab.send.note': 'Note pour le laboratoire (facultatif)',
   'app.lab.send.noteHelp': 'Seul le laboratoire la voit, une fois le code saisi.',
+  'app.lab.send.count': '{n} caractères sur {max}.',
   'app.lab.send.sample': 'L’échantillon (facultatif)',
   'app.lab.send.sampleHelp':
     'Le laboratoire vérifie ces informations à l’arrivée et confirme ou corrige chacune. Son accusé de réception signé couvre ce que vous avez écrit et ce qu’il a constaté.',

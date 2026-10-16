@@ -126,6 +126,7 @@ export const lab = {
   'app.lab.send.quantityPlaceholder': '例：挿し穂10本',
   'app.lab.send.note': 'ラボへのメモ（任意）',
   'app.lab.send.noteHelp': 'ラボがコードを入力した後、ラボだけが見られます。',
+  'app.lab.send.count': '{max}文字中{n}文字。',
   'app.lab.send.sample': 'サンプル（任意）',
   'app.lab.send.sampleHelp':
     '到着時にラボがこれらを確認し、それぞれを確定または訂正します。ラボの署名付きの受領書は、あなたが書いた内容とラボが確認した内容の両方を対象にします。',
