@@ -12,6 +12,7 @@ import type { Strings } from './en';
 export const ja: Strings = {
   // Header and footer
   'nav.language': '言語',
+  'nav.main': 'メイン',
   'footer.documents': '文書',
   'footer.spec': '仕様書',
   'footer.partners': '記録の提出を求める',
@@ -26,8 +27,30 @@ export const ja: Strings = {
   'footer.yourRecords': 'あなたの記録',
   'footer.agreements': '契約',
   'footer.privacy': 'デモのプライバシー',
-  'draft.banner': 'この翻訳は草稿であり、まだ母語話者による確認を受けていません。英語版のページが正式な版です。',
+  'draft.banner': '機械で作成した翻訳の下書きで、現在確認中です。英語版のページが正式な版です。',
   'draft.showEnglish': '英語で表示',
+  // The record app's frame and the browser tab's titles.
+  'app.frame.section.log': '記録',
+  'app.frame.section.send': '送付と受け取り',
+  'app.frame.section.license': 'ライセンスとロイヤルティ',
+  'app.frame.section.prove': '証明と確認',
+  'app.frame.home': 'ホームへ。入力した内容は保存されています。',
+  'title.founders': '創業者',
+  'title.privacy': 'デモのプライバシー',
+  'title.privacyMainnet': 'サイトのプライバシー',
+  'title.example': '記録の例',
+  'title.verify': '記録を確認する',
+  'title.import': 'コレクションに日付を付ける',
+  'title.records': 'あなたの植物',
+  'title.restore': '植物を取り戻す',
+  'title.backup': 'バックアップを保存する',
+  'title.spec': '記録フォーマット',
+  'title.evidence': '証拠としての記録',
+  'title.integrate': 'VeilCoreの統合',
+  'title.implementations': '実装',
+  'title.new': '植物を記録する',
+  'title.record': '記録',
+  'title.agreements': '契約',
   // Public pages (Mako's 25 September layout)
   'm.nav.about': '概要',
   'm.nav.team': 'チーム',
@@ -159,7 +182,7 @@ export const ja: Strings = {
     '実在の名前、実在の品種、機密情報は入力しないでください。デモは記録フォーマットを試すためのものです。',
   'm.privacy.export.title': 'エクスポート',
   'm.privacy.export.text':
-    '記録ページの「More」から：「Export all records」でこのブラウザが保持している記録を、「Download everything VeilCore holds for you」で私たちのサーバーがあなたについて保持しているすべてをダウンロードできます。',
+    '記録ページの「その他」から：「すべての記録をエクスポート」でこのブラウザが保持している記録を、「VeilCoreが保持しているものをすべてダウンロード」で私たちのサーバーがあなたについて保持しているすべてをダウンロードできます。',
   'm.privacy.delete.title': '削除',
   'm.privacy.delete.text':
     'サーバーからデモのデータを削除してほしい場合は、記録の識別子を添えて hunter@veilcore.org までメールでご連絡ください。',
@@ -187,7 +210,7 @@ export const ja: Strings = {
     '親子リンクは、双方の保有者が確認した場合にのみ有効です。このウェブサイトでは、チェーンではなくVeilCoreのレジストリが記録します。',
   'm.open.2t': '1つのファイルを保存してください。',
   'm.open.2p':
-    '植物のページから：「Download evidence bundle」。封印したときのままの記録、その包含証明、バッチのフィンガープリント、バッチが記録された場所、Bitcoinのスタンプファイル（ある場合）、そしてオフラインで確認するページを、1つの.zipにまとめたものです。バックアップファイルに入っているのは鍵で、これらのファイルではありません。個別のファイルは引き続き「Technical details」にあります：「Export record」、「Download inclusion proof」、「Download Bitcoin stamp file」。',
+    '植物のページから：「証拠バンドルをダウンロード」。封印したときのままの記録、その包含証明、バッチのフィンガープリント、バッチが記録された場所、Bitcoinのスタンプファイル（ある場合）、そしてオフラインで確認するページを、1つの.zipにまとめたものです。バックアップファイルに入っているのは鍵で、これらのファイルではありません。個別のファイルは引き続き「技術的な詳細」にあります：「記録を書き出す」、「包含証明をダウンロード」、「Bitcoinのスタンプファイルをダウンロード」。',
   'm.faq.1a':
     '記録がアンカーされれば、どれが先にアンカーされたかを誰でも確認できます。検査報告書を紐付けておけば、後の検査と比較できます。素材を送るときは、受け取った側が自らの鍵で受領書に署名します。記録は証拠であって登録ではありません。示すのは、その日付までにあなたがこの記録を保有していたことであり、植物そのものを保有していたことではありません。それだけで紛争が決着するわけでもありません。',
   'm.post0.date': '2026年10月4日',
@@ -419,7 +442,7 @@ export const ja: Strings = {
     '実装は永久に無料です。TypeScript、Python、Rustは、GitHub上の記録フォーマットの100件のテストベクターすべてで一致しており、誰でも実行できます。報告書の紐付け用の101件目は、まだRustにありません。3つとも同じ作者が書いたもので、TypeScript版はnpmで0.15.0として公開されています。他の誰かが書いた実装こそ、私たちが最も望むテストです。',
   'm.tech.btc.t': 'Bitcoinスタンプ',
   'm.tech.btc.p':
-    'レジストリは、封印した各バッチのフィンガープリントを、OpenTimestampsでBitcoinにスタンプします。最初のものは10月11日にBitcoinのブロック971004に入りました。10月15日に2つのブロックエクスプローラーで確認し、スタンプがBitcoinのブロック971004と971005につながることを確かめました。OpenTimestampsの公式ツールとBitcoinのフルノードによる確認はまだです。スタンプファイルはバッチの.otsファイルで、植物のページの「Download Bitcoin stamp file」から取得できます。テストサイトのレジストリはBitcoinにスタンプしません。',
+    'レジストリは、封印した各バッチのフィンガープリントを、OpenTimestampsでBitcoinにスタンプします。最初のものは10月11日にBitcoinのブロック971004に入りました。10月15日に2つのブロックエクスプローラーで確認し、スタンプがBitcoinのブロック971004と971005につながることを確かめました。OpenTimestampsの公式ツールとBitcoinのフルノードによる確認はまだです。スタンプファイルはバッチの.otsファイルで、植物のページの「Bitcoinのスタンプファイルをダウンロード」から取得できます。テストサイトのレジストリはBitcoinにスタンプしません。',
   'm.tech.dna.t': '報告書の紐付けとラボの署名',
   'm.tech.dna.p':
     'DNA報告書の紐付けがMidnight上のVeilCoreのコントラクトを通ると、日付が付きます。それは、その日付に記録を管理していた人が、その時点でその報告書またはそのSHA-256を持っていたことを示します。チェーンに載るものは記録に結び付いていて報告書を隠すため、誰も紐付けを自分の記録にコピーできません。鍵のかかった報告書へのラボの署名は、まさにそのファイルと、それが関わる記録を対象とします。',
@@ -533,6 +556,7 @@ export const jaMainnet = ({
   'm.privacy.local.text':
     '遺伝データと、追加した検査報告書、DNA報告書、写真。ブラウザがフィンガープリントを計算するためにこれらを読み込みます。ファイル自体がアップロードされることはありません。',
   'footer.privacy': 'サイトのプライバシー',
+  'title.privacy': 'サイトのプライバシー',
   'm.foot.privacy': 'サイトのプライバシー',
   'm.privacy.label': 'サイトのプライバシー',
   'm.privacy.title': 'このサイトが保存するもの。',

@@ -16,35 +16,48 @@ import { Link as RouterLink } from 'react-router-dom';
 import { WalletBadge } from './veilcore/WalletBadge';
 import { ACCENT } from '../config/theme';
 import { NETWORK } from '../config/network';
-import { LanguagePicker } from '../i18n/LanguagePicker';
+import { DraftBanner, LanguagePicker } from '../i18n/LanguagePicker';
+import { useT } from '../i18n/app';
 
-export const AppHeader: React.FC = () => (
-  <Stack
-    direction="row"
-    sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5, mb: { xs: 3, md: 4 } }}
-  >
-    <Stack
-      component={RouterLink}
-      to="/records"
-      aria-label="VeilCore: your plants"
-      direction="row"
-      spacing={1.25}
-      sx={{ alignItems: 'center', textDecoration: 'none', minHeight: 44 }}
-    >
-      <Box
-        aria-hidden="true"
-        sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }}
-      />
-      {/* The wordmark is a link home, not a heading: each page's own h1 says where you are. */}
-      <Typography variant="h6" component="span" sx={{ letterSpacing: '0.3em', fontWeight: 600, color: 'text.primary' }}>
-        VEILCORE
-      </Typography>
-    </Stack>
-    <ClaimTransfer hideButton />
-    <AttesterSetup hideButton />
-    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-      <LanguagePicker />
-      <WalletBadge network={NETWORK} />
-    </Stack>
-  </Stack>
-);
+// The draft banner sits under the header, on every app page with one: a translation nobody
+// fluent has checked yet says so (i18n/LanguagePicker.tsx). Nothing in a published language.
+export const AppHeader: React.FC = () => {
+  const { t } = useT();
+  return (
+    <>
+      <Stack
+        direction="row"
+        sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5, mb: { xs: 3, md: 4 } }}
+      >
+        <Stack
+          component={RouterLink}
+          to="/records"
+          aria-label={t('app.common.headerHome')}
+          direction="row"
+          spacing={1.25}
+          sx={{ alignItems: 'center', textDecoration: 'none', minHeight: 44 }}
+        >
+          <Box
+            aria-hidden="true"
+            sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }}
+          />
+          {/* The wordmark is a link home, not a heading: each page's own h1 says where you are. */}
+          <Typography
+            variant="h6"
+            component="span"
+            sx={{ letterSpacing: '0.3em', fontWeight: 600, color: 'text.primary' }}
+          >
+            VEILCORE
+          </Typography>
+        </Stack>
+        <ClaimTransfer hideButton />
+        <AttesterSetup hideButton />
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+          <LanguagePicker />
+          <WalletBadge network={NETWORK} />
+        </Stack>
+      </Stack>
+      <DraftBanner />
+    </>
+  );
+};

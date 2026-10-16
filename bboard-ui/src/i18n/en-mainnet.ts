@@ -91,6 +91,7 @@ const common: Overlay = {
   'm.privacy.local.text':
     'Genetic data, and the lab reports, DNA reports and photos you add. Your browser reads them to compute their fingerprints; the files themselves are never uploaded.',
   'footer.privacy': 'Site privacy',
+  'title.privacy': 'Site privacy',
   'm.foot.privacy': 'Site privacy',
   'm.privacy.label': 'Site privacy',
   'm.privacy.title': 'What this site keeps.',

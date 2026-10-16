@@ -36,7 +36,8 @@ import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import { getRecord } from '../../veilcore/records';
 import {
   DISCLOSURE_FIELDS,
-  GENETICS_LABEL,
+  geneticsLabel,
+  labelOf,
   defaultDisclosure,
   disclosureFrom,
   keysOn,
@@ -46,7 +47,6 @@ import {
   type Disclosure,
 } from '../../veilcore/disclosure';
 import { canonicalUrl } from '../../config/network';
-import { CLAIMS_WHERE } from '../../config/copy';
 import { verifyPath } from '../../veilcore/verify-link';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { proveLinkParams } from '../../veilcore/prove-link';
@@ -54,6 +54,7 @@ import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { DisclosedFacts } from '../verify/DisclosedFacts';
 import { useSavedReport } from '../flow/LabResults';
 import { savedReportSentence, type SavedReport } from '../../veilcore/saved-report';
+import { useT } from '../../i18n/app';
 
 export const Step5ProveDisclosure: React.FC<{
   recordId: string;
@@ -64,7 +65,9 @@ export const Step5ProveDisclosure: React.FC<{
   saved?: SavedReport | null;
   /** The way back's words: "Back to the plant", or "Back to the record" for a record that isn't a plant. */
   backLabel?: string;
-}> = ({ recordId, onBack, saved: given, backLabel = 'Back to the plant' }) => {
+}> = ({ recordId, onBack, saved: given, backLabel }) => {
+  const tr = useT();
+  const { t } = tr;
   const record = getRecord(recordId);
   const loadedSaved = useSavedReport(given === undefined ? record : undefined);
   const saved = given === undefined ? loadedSaved : given;
@@ -120,7 +123,7 @@ export const Step5ProveDisclosure: React.FC<{
     };
   }, [recordId]);
 
-  if (!record) return <Typography>Record not found.</Typography>;
+  if (!record) return <Typography>{t('app.prove.share.notFound')}</Typography>;
 
   // Round 5: with "Whether a lab report is saved" shared, the link names the saved file's
   // SHA-256 (`rs`), so the check page can match it to a lab's signature, which names the
@@ -143,7 +146,7 @@ export const Step5ProveDisclosure: React.FC<{
       if ('error' in out) {
         // No link without a stored grant: a link shown now would show strangers
         // whatever the registry held before, not what is on screen.
-        setError(`Your choice was not saved, so no link was made: ${out.error}.`);
+        setError(t('app.prove.share.notSaved', { error: out.error }));
         return;
       }
       setStored(out);
@@ -193,14 +196,11 @@ export const Step5ProveDisclosure: React.FC<{
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
           <VerifiedIcon sx={{ color: 'primary.main' }} aria-hidden="true" />
           <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="">
-            Choose what a stranger sees
+            {t('app.prove.share.title')}
           </Typography>
         </Stack>
         <Typography variant="body2" color="text.secondary">
-          Anyone who has this record&apos;s id — from a link you send, the QR code on its certificate, or a message
-          someone forwards — can open its verify page. Pick which facts that page shows. The choice is saved with the
-          record on VeilCore&apos;s registry and applies to everyone with the id; you can change it here at any time,
-          and links already sent then show the new choice.
+          {t('app.prove.share.intro')}
         </Typography>
       </Box>
 
@@ -208,33 +208,33 @@ export const Step5ProveDisclosure: React.FC<{
         {/* the choices */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography variant="overline" color="text.secondary">
-            Shown on the verify page
+            {t('app.prove.share.shownOn')}
           </Typography>
           <Stack sx={{ mt: 0.5 }}>
             {DISCLOSURE_FIELDS.map((f) => (
               <FormControlLabel
                 key={f.key}
                 control={<Switch checked={disclosure[f.key]} onChange={() => toggle(f.key)} />}
-                label={<Typography variant="body2">{f.label}</Typography>}
+                label={<Typography variant="body2">{labelOf(f.key, tr)}</Typography>}
                 sx={{ minHeight: 44, mr: 0 }}
               />
             ))}
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mt: 1, opacity: 0.7 }}>
               <LockIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
               <Typography variant="body2" color="text.disabled">
-                {GENETICS_LABEL}
+                {geneticsLabel(tr)}
               </Typography>
             </Stack>
           </Stack>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-            {sharedNowWords(stored, unsaved)}
+            {sharedNowWords(stored, unsaved, tr)}
           </Typography>
         </Box>
 
         {/* live preview */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography variant="overline" color="text.secondary">
-            What a stranger with the id will see
+            {t('app.prove.share.strangerSees')}
           </Typography>
           <Paper variant="outlined" sx={{ p: 2, mt: 0.5, background: 'rgba(22,32,27,0.02)' }}>
             <DisclosedFacts record={record} disclosure={disclosure} saved={saved} />
@@ -244,10 +244,9 @@ export const Step5ProveDisclosure: React.FC<{
 
       {saved && (saved.kind === 'replaced' || saved.kind === 'withdrawn') && (
         <Alert severity="warning" variant="outlined" data-saved-report={saved.kind}>
-          {savedReportSentence(saved)}{' '}
-          {disclosure['attestation-status']
-            ? 'With “Whether a lab report is saved” on, the check page says so.'
-            : 'With “Whether a lab report is saved” off, the check page says nothing about it.'}
+          {savedReportSentence(saved, tr)}
+          {t('app.common.sentenceSep')}
+          {disclosure['attestation-status'] ? t('app.prove.share.reportOn') : t('app.prove.share.reportOff')}
         </Alert>
       )}
 
@@ -258,23 +257,25 @@ export const Step5ProveDisclosure: React.FC<{
       )}
 
       {result && !unsaved ? (
-        <Alert severity="success" variant="outlined" icon={<VerifiedIcon />} role="region" aria-label="Your link">
+        <Alert
+          severity="success"
+          variant="outlined"
+          icon={<VerifiedIcon />}
+          role="region"
+          aria-label={t('app.prove.share.yourLink')}
+        >
           <Typography variant="subtitle2" component="p">
-            Saved on the registry
+            {t('app.prove.share.savedOn')}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1 }}>
-            Anyone who opens this link, or has this record&apos;s id any other way, sees the facts in the preview and
-            nothing else; the registry does not send the rest, and editing the link cannot add to it. The genetics are
-            never disclosed. This choice controls what the verify page shows. Proving one hidden value (a marker, a
-            range, or that two varieties differ) without showing the rest is done by VeilCore&apos;s claims contract.{' '}
-            {CLAIMS_WHERE}
+            {t('app.prove.share.savedText')}
+            {t('app.common.sentenceSep')}
+            {t('app.copy.claimsWhere')}
           </Typography>
           {canAskProof && (
             <FormControlLabel
               control={<Switch checked={askable} onChange={() => setAskable((v) => !v)} />}
-              label={
-                <Typography variant="body2">Let them check the date stamp and ask me to prove I hold it</Typography>
-              }
+              label={<Typography variant="body2">{t('app.prove.share.letThemAsk')}</Typography>}
               sx={{ mb: 1, minHeight: 44, mr: 0 }}
             />
           )}
@@ -283,13 +284,13 @@ export const Step5ProveDisclosure: React.FC<{
             fullWidth
             size="small"
             inputRef={linkInput}
-            slotProps={{ input: { readOnly: true }, htmlInput: { 'aria-label': 'The link' } }}
+            slotProps={{ input: { readOnly: true }, htmlInput: { 'aria-label': t('app.prove.share.theLink') } }}
             sx={{ mb: 1 }}
           />
           <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1.5 }}>
             {canShare && (
               <Button variant="contained" startIcon={<ShareIcon />} onClick={() => void share()} sx={{ minHeight: 44 }}>
-                Share
+                {t('app.lab.send.share')}
               </Button>
             )}
             <Button
@@ -298,7 +299,7 @@ export const Step5ProveDisclosure: React.FC<{
               onClick={copy}
               sx={{ minHeight: 44 }}
             >
-              {copied ? 'Copied' : 'Copy link'}
+              {copied ? t('app.lab.send.copied') : t('app.prove.watch.copyLink')}
             </Button>
             <Button
               variant="text"
@@ -308,7 +309,7 @@ export const Step5ProveDisclosure: React.FC<{
               target="_blank"
               sx={{ minHeight: 44 }}
             >
-              Open what they&apos;ll see
+              {t('app.prove.share.openTheirs')}
             </Button>
           </Stack>
         </Alert>
@@ -321,7 +322,7 @@ export const Step5ProveDisclosure: React.FC<{
             startIcon={busy ? <CircularProgress size={18} color="inherit" /> : undefined}
             onClick={() => void onSave()}
           >
-            {busy ? 'Saving…' : 'Get the link'}
+            {busy ? t('app.prove.share.saving') : t('app.prove.share.getLink')}
           </Button>
         </Box>
       )}
@@ -329,7 +330,7 @@ export const Step5ProveDisclosure: React.FC<{
       <Divider />
       <Box>
         <Button variant="text" onClick={onBack} sx={{ minHeight: 44, px: 0 }}>
-          {backLabel}
+          {backLabel ?? t('app.plant.backToPlant')}
         </Button>
       </Box>
     </Stack>

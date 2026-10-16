@@ -3,16 +3,23 @@
 // an anchor this browser looked up on Midnight, is the check page's own (anchor-words.ts).
 // SPDX-License-Identifier: Apache-2.0
 
-import { isTestNetwork, networkLabel } from '../config/network';
+import { isTestNetwork } from '../config/network';
+import { enT, type Translator } from '../i18n/translate';
+import { networkWords } from '../i18n/network-words';
 import { anchorConfirmed, type AnchorState } from './verify/anchor-words';
 
 /** The chip over the section: never "Anchored" unless this browser found it on Midnight. */
-export const settlementChip = (reported: boolean, network: string, anchor: AnchorState | undefined): string => {
-  if (!reported) return 'In a batch, not yet anchored';
-  if (anchorConfirmed(anchor)) return `In a batch · date checked on ${networkLabel(network)}`;
+export const settlementChip = (
+  reported: boolean,
+  network: string,
+  anchor: AnchorState | undefined,
+  tr: Translator = enT,
+): string => {
+  if (!reported) return tr.t('app.plant.date.chipNotAnchored');
+  if (anchorConfirmed(anchor)) return tr.t('app.plant.date.chipChecked', { network: networkWords(network, tr) });
   if (anchor !== undefined && anchor !== 'checking' && anchor.status === 'failed')
-    return 'In a batch · date stamp not confirmed';
-  return `In a batch · anchor reported on ${networkLabel(network)}`;
+    return tr.t('app.plant.date.chipFailed');
+  return tr.t('app.plant.date.chipReported', { network: networkWords(network, tr) });
 };
 
 /**
@@ -20,11 +27,18 @@ export const settlementChip = (reported: boolean, network: string, anchor: Ancho
  * page looks the transaction up (it has an indexer for that network); the line under it
  * then says what it found.
  */
-export const reportedText = (batchId: string, network: string, looked: boolean, confirmed: boolean): string => {
-  const test = isTestNetwork(network) ? ' A test network can be reset and its dates carry no evidential weight.' : '';
-  const head = `Checked in this browser: your record's fingerprint is in batch ${batchId}, and the path from it folds to the batch root.`;
+export const reportedText = (
+  batchId: string,
+  network: string,
+  looked: boolean,
+  confirmed: boolean,
+  tr: Translator = enT,
+): string => {
+  const test = isTestNetwork(network) ? tr.t('app.plant.date.testNote') : '';
+  const head = tr.t('app.plant.date.head', { batch: batchId });
   // The confirmed line (anchor-words.ts) carries the test-network note itself.
   if (confirmed) return head;
-  if (looked) return `${head} The registry reports that root was recorded on ${networkLabel(network)}.${test}`;
-  return `${head} The registry reports that root was recorded on ${networkLabel(network)}; this page has not looked the transaction up, so it is not shown as anchored. Look it up on the network before relying on the date.${test}`;
+  const net = networkWords(network, tr);
+  if (looked) return tr.t('app.plant.date.looked', { head, network: net, test });
+  return tr.t('app.plant.date.notLooked', { head, network: net, test });
 };

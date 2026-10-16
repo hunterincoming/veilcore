@@ -23,7 +23,8 @@ export type CorrectionPreview = {
   consequence: string;
 };
 
-const CONSEQUENCE: Record<string, string> = {
+/** Exported for the translations test: the app shows these words through app.plant.fix.c.* keys. */
+export const CONSEQUENCE: Record<string, string> = {
   'cosmetic|cosmetic':
     'Nothing downstream is affected. Offspring keep their ancestry checks, and any agreements stand.',
   'cosmetic|material':

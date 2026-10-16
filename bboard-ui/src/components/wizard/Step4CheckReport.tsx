@@ -15,12 +15,14 @@ import { findByDnaFingerprint } from '../../veilcore/records';
 import { Dropzone } from './Dropzone';
 import { FingerprintReveal } from './FingerprintReveal';
 import { isTouch } from '../flow/FlowFrame';
+import { useT } from '../../i18n/app';
 
 export const Step4CheckReport: React.FC<{ onBack: () => void; onRestart: () => void; onDone?: () => void }> = ({
   onBack,
   onRestart,
   onDone,
 }) => {
+  const { t } = useT();
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; name?: string; id?: string; fingerprint?: string }>();
@@ -46,25 +48,23 @@ export const Step4CheckReport: React.FC<{ onBack: () => void; onRestart: () => v
     <Stack spacing={2.5}>
       <Box>
         <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="" sx={{ mb: 0.5 }}>
-          Check a report matches this record
+          {t('app.plant.check.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Pick a lab report file to see whether it is the one paired with a record you hold.
+          {t('app.plant.check.intro')}
         </Typography>
       </Box>
 
       <Alert icon={<FactCheckIcon />} severity="info" variant="outlined">
-        This check runs only in your browser and sends nothing, so it is for you. It shows you have a file matching the
-        report paired with a record. It doesn&apos;t show who holds the plant, and nobody else can verify it from here.
-        Others check a record on its verify page, and its date once the record is anchored.
+        {t('app.plant.check.forYou')}
       </Alert>
 
       {!result?.ok && (
         <Dropzone
           file={file}
           onFile={setFile}
-          title={isTouch() ? 'Tap to choose the lab report' : 'Drag the lab report here, or click to choose'}
-          hint="Read and fingerprinted locally, never uploaded."
+          title={isTouch() ? t('app.plant.check.tap') : t('app.plant.check.drag')}
+          hint={t('app.plant.check.hint')}
         />
       )}
 
@@ -76,7 +76,7 @@ export const Step4CheckReport: React.FC<{ onBack: () => void; onRestart: () => v
 
       {result && !result.ok && (
         <Alert icon={<GppBadIcon />} severity="error" variant="outlined">
-          None of your records has this lab report saved to it. Save it to the right plant first, then check again.
+          {t('app.plant.check.none')}
         </Alert>
       )}
 
@@ -84,14 +84,13 @@ export const Step4CheckReport: React.FC<{ onBack: () => void; onRestart: () => v
         <Stack spacing={2}>
           <FingerprintReveal
             fingerprint={result.fingerprint ?? ''}
-            headline="Match found."
-            sub="This file was fingerprinted in your browser and was not uploaded."
+            headline={t('app.plant.check.found')}
+            sub={t('app.plant.check.foundSub')}
           />
           <Alert severity="success" variant="outlined">
-            <Typography variant="subtitle2">This file matches the report paired with {result.name}.</Typography>
+            <Typography variant="subtitle2">{t('app.plant.check.matches', { name: result.name ?? '' })}</Typography>
             <Typography variant="body2" sx={{ mt: 0.5, color: 'text.secondary' }}>
-              Record {result.id}. A match means the file is byte-for-byte the one you paired; it says nothing about the
-              genetics and nothing about who holds the plant.
+              {t('app.plant.check.meaning', { id: result.id ?? '' })}
             </Typography>
           </Alert>
         </Stack>
@@ -99,7 +98,7 @@ export const Step4CheckReport: React.FC<{ onBack: () => void; onRestart: () => v
 
       <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
         <Button variant="text" onClick={onBack}>
-          Back
+          {t('app.common.back')}
         </Button>
         {!result?.ok ? (
           <Button
@@ -109,15 +108,15 @@ export const Step4CheckReport: React.FC<{ onBack: () => void; onRestart: () => v
             startIcon={busy ? <CircularProgress size={18} color="inherit" /> : undefined}
             onClick={onCheck}
           >
-            {busy ? 'Checking on your device…' : 'Check it'}
+            {busy ? t('app.plant.check.checking') : t('app.plant.check.checkIt')}
           </Button>
         ) : onDone ? (
           <Button variant="contained" onClick={onDone}>
-            Continue
+            {t('app.home.continue')}
           </Button>
         ) : (
           <Button variant="contained" onClick={onRestart}>
-            Done
+            {t('app.prove.done')}
           </Button>
         )}
       </Stack>

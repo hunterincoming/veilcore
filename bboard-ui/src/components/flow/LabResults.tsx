@@ -31,6 +31,7 @@ import {
   arrivalLine,
   breederReceipt,
   custodyDifferences,
+  differenceWords,
   labReceipt,
   sampleLine,
   reportSigner,
@@ -64,18 +65,19 @@ import {
   sendRefusal,
   shortResultId,
   wasOpened,
-  WITHDRAW_CORRECTION_WARNING,
   type ResultState,
   type ResultSummary,
 } from '../../veilcore/lab-results';
 import { correctionWithdrawn, savedReportStatus, type SavedReport } from '../../veilcore/saved-report';
 import { DateLabReport } from '../stage/DateLabReport';
 import { labSentPhrase } from './plant-status-words';
+import { rich, useT } from '../../i18n/app';
+import { enT, type Translator } from '../../i18n/translate';
 
 const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-6)}`;
 /** Every time on a lab report screen: local, with the zone's short name (round 5). */
-const when = (t: number) => localStamp(t);
-const day = (t: number | string) => new Date(t).toLocaleDateString(undefined, { dateStyle: 'medium' });
+const when = (t: number, locale?: string) => localStamp(t, locale);
+const day = (t: number | string, locale?: string) => new Date(t).toLocaleDateString(locale, { dateStyle: 'medium' });
 const mb = (n: number) =>
   n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`;
 
@@ -314,6 +316,7 @@ export const SavedReportAlert: React.FC<{ saved: SavedReport | null; onOpen?: (r
   saved,
   onOpen,
 }) => {
+  const { t } = useT();
   if (!saved || (saved.kind !== 'replaced' && saved.kind !== 'withdrawn')) return null;
   const newer = saved.newer;
   return (
@@ -323,25 +326,18 @@ export const SavedReportAlert: React.FC<{ saved: SavedReport | null; onOpen?: (r
       action={
         newer && onOpen ? (
           <Button color="inherit" onClick={() => onOpen(newer.result.id)} sx={{ minHeight: 40 }}>
-            {saved.kind === 'replaced' ? 'Open the corrected one' : 'Open the newer one'}
+            {saved.kind === 'replaced' ? t('app.plant.next.corrected.action') : t('app.plant.next.labWithdrew.action')}
           </Button>
         ) : undefined
       }
     >
-      {saved.kind === 'replaced' ? (
-        <>
-          <b>The lab report saved to this plant was replaced by the lab.</b>{' '}
-          {newer
-            ? 'Save the corrected one: open it, then tap “Save it to this plant”.'
-            : `No current report from ${saved.lab}: the original was replaced and the correction withdrawn.`}
-        </>
-      ) : (
-        <>
-          <b>The lab report saved to this plant was withdrawn by the lab.</b> It stays saved until you save another, and
-          your certificate and links say it was withdrawn.
-          {newer ? ' A newer lab report is here: open it, then save it to this plant.' : ''}
-        </>
-      )}
+      {saved.kind === 'replaced'
+        ? rich(
+            newer ? t('app.lab.results.replacedNewer') : t('app.lab.results.replacedNone'),
+            { b: (c) => <b>{c}</b> },
+            { lab: saved.lab === 'the lab' ? t('app.lab.theLab') : saved.lab },
+          )
+        : rich(t(newer ? 'app.lab.results.withdrawnNewer' : 'app.lab.results.withdrawn'), { b: (c) => <b>{c}</b> })}
     </Alert>
   );
 };
@@ -360,47 +356,42 @@ const seenVisibility = (): boolean => {
   }
 };
 
-/** Exactly what a stranger with a link sees about a lab report (VerifyPage.tsx). */
+/** Exactly what a stranger with a link sees about a lab report (VerifyPage.tsx). (app.lab.results.publicWords.) */
 export const PUBLIC_REPORT_WORDS =
   'The lab’s signature is public; the report isn’t. Anyone with a link to this plant’s check page sees that a lab report about it was signed, the report file’s SHA-256, and the name the lab’s key is registered under: marked “name not checked” unless VeilCore’s operator has matched it to a public license or accreditation listing. If you save the report to this plant and share “Whether a lab report is saved” in Show someone, they also see that the saved file matches it.';
 
 const SignerLine: React.FC<{ signer: ReportSigner }> = ({ signer }) => {
+  const tr = useT();
+  const { t } = tr;
+  const b = (c: React.ReactNode) => <b>{c}</b>;
   if (signer.kind === 'unsigned') {
     return (
       <Alert severity="warning" variant="outlined">
-        No lab signature matches this exact file. It opened with your key, but don&apos;t treat it as the lab&apos;s lab
-        report until they sign it.
+        {t('app.lab.results.unsigned')}
       </Alert>
     );
   }
   if (signer.kind === 'other-key' || signer.kind === 'no-receipt') {
+    const who = signerLabel(signer.report, undefined, undefined, tr).who;
     return (
       <Alert severity="warning" variant="outlined">
-        <b>
-          Signed by {signerLabel(signer.report).who}, but{' '}
-          {signer.kind === 'no-receipt'
-            ? 'the lab hasn’t signed a receipt for this delivery.'
-            : 'not by the key that signed the receipt for this delivery.'}
-        </b>{' '}
-        The file matches that key&apos;s signature, but nothing shows the key ever had your sample. Ask the lab before
-        relying on it.
-        <NameCheckText label={signerLabel(signer.report)} />
+        {rich(
+          t(signer.kind === 'no-receipt' ? 'app.lab.results.noReceipt' : 'app.lab.results.otherKey'),
+          { b },
+          { who },
+        )}
+        <NameCheckText label={signerLabel(signer.report, undefined, undefined, tr)} />
       </Alert>
     );
   }
   const a = signer.report;
   // One label for every screen (attesters.ts signerLabel): a checked name says what was
   // matched, where and when; any other reads "name not checked".
-  const label = signerLabel(a, 'Signed by');
+  const label = signerLabel(a, 'Signed by', undefined, tr);
   return (
     <Alert severity={label.checked ? 'success' : 'info'} variant="outlined" icon={<VerifiedIcon />}>
-      <b>{label.lead}</b> (key {short(a.attester.publicKey)}), signature checked in this browser. The same key signed
-      the receipt for this delivery.
-      {label.checked ? (
-        <NameCheckText label={label} />
-      ) : (
-        ' Anyone can register a key under any name, so the name doesn’t show who signed.'
-      )}
+      {rich(t('app.lab.results.signed'), { b }, { lead: label.lead, key: short(a.attester.publicKey) })}
+      {label.checked ? <NameCheckText label={label} /> : t('app.lab.results.anyName')}
     </Alert>
   );
 };
@@ -420,6 +411,8 @@ export const LabResultsPanel: React.FC<{
   const [problem, setProblem] = useState<string>();
   const [toldVisibility, setToldVisibility] = useState(seenVisibility);
   const tried = useRef(false);
+  const tr = useT();
+  const { t } = tr;
 
   const open = useCallback(
     async ({ transfer, result, receiptAttestationId }: ArrivedResult) => {
@@ -479,16 +472,15 @@ export const LabResultsPanel: React.FC<{
     <Stack spacing={2}>
       <Box>
         <Typography variant="h5" component="h2">
-          Lab reports
+          {t('app.plant.action.labReports')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Locked so only you can open them, with this plant&apos;s key from your backup. VeilCore can&apos;t read them.
+          {t('app.lab.results.locked')}
         </Typography>
       </Box>
       {!keys && (
         <Alert severity="info" variant="outlined">
-          This plant&apos;s key isn&apos;t on this device, so its lab reports can&apos;t be opened here.{' '}
-          <RouterLink to="/restore">Get your plants back from your backup</RouterLink> first.
+          {rich(t('app.lab.results.noKey'), { link: (c) => <RouterLink to="/restore">{c}</RouterLink> })}
         </Alert>
       )}
       {arrived && arrived.length > 0 && !toldVisibility && (
@@ -508,28 +500,26 @@ export const LabResultsPanel: React.FC<{
               }}
               sx={{ minHeight: 40, whiteSpace: 'nowrap', flexShrink: 0 }}
             >
-              Got it
+              {t('app.lab.results.gotIt')}
             </Button>
           }
         >
-          <b>What others can see.</b> {PUBLIC_REPORT_WORDS}
+          {rich(t('app.lab.results.whatOthersSee'), { b: (c) => <b>{c}</b> })}
         </Alert>
       )}
       {saved && (saved.kind === 'replaced' || saved.kind === 'withdrawn') && <SavedReportAlert saved={saved} />}
       {emptied.map((t) => (
         <Alert key={t.id} severity="warning" variant="outlined">
-          No current report from {t.to_handle}: the original was replaced and the correction withdrawn.
+          {tr.t('app.lab.results.noCurrent', { lab: t.to_handle })}
         </Alert>
       ))}
       {arrived === null ? (
         <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
           <CircularProgress size={18} />
-          <Typography variant="body2">Looking for lab reports…</Typography>
+          <Typography variant="body2">{t('app.lab.results.looking')}</Typography>
         </Stack>
       ) : arrived.length === 0 ? (
-        <Typography variant="body1">
-          Nothing yet. When a lab you sent this plant to sends a lab report, it shows up here.
-        </Typography>
+        <Typography variant="body1">{t('app.lab.results.nothingYet')}</Typography>
       ) : (
         arrived.map((a) => {
           const o = opened[a.result.id];
@@ -543,23 +533,26 @@ export const LabResultsPanel: React.FC<{
               <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                 <LockIcon fontSize="small" color={o || gone ? 'disabled' : 'primary'} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                  From {a.transfer.to_handle} · {shortResultId(a.result.id)}
+                  {t('app.lab.results.from', { lab: a.transfer.to_handle, id: shortResultId(a.result.id) })}
                 </Typography>
               </Stack>
               <Typography variant="body2" color="text.secondary">
-                Sent {when(a.result.createdAt)}
+                {t('app.lab.results.sent', { when: when(a.result.createdAt, tr.locale) })}
                 {gone ? '' : ` · ${mb(a.result.size)}`}
-                {a.result.replaces ? ` · corrects ${shortResultId(a.result.replaces)}` : ''}
-                {isSaved ? ' · saved to this plant' : ''}
+                {a.result.replaces ? t('app.lab.results.corrects', { id: shortResultId(a.result.replaces) }) : ''}
+                {isSaved ? t('app.lab.results.savedHere') : ''}
               </Typography>
               {a.state === 'withdrawn' ? (
                 <Typography variant="body2" sx={{ mt: 1, fontWeight: 700 }}>
-                  Withdrawn by the lab on {day(a.result.withdrawnAt ?? a.result.createdAt)}
-                  {isSaved ? '. It is still saved to this plant.' : ''}
+                  {t('app.lab.results.withdrawnOn', {
+                    date: day(a.result.withdrawnAt ?? a.result.createdAt, tr.locale),
+                  })}
+                  {isSaved ? t('app.lab.results.stillSaved') : ''}
                 </Typography>
               ) : a.state === 'replaced' ? (
                 <Typography variant="body2" sx={{ mt: 1, fontWeight: 700 }}>
-                  Replaced by a newer lab report{isSaved ? '. It is still saved to this plant.' : ''}
+                  {t('app.lab.results.replacedByNewer')}
+                  {isSaved ? t('app.lab.results.stillSaved') : ''}
                 </Typography>
               ) : !o ? (
                 <Button
@@ -569,13 +562,13 @@ export const LabResultsPanel: React.FC<{
                   onClick={() => void open(a)}
                   startIcon={busy === a.result.id ? <CircularProgress size={16} color="inherit" /> : undefined}
                 >
-                  {busy === a.result.id ? 'Opening…' : 'Open'}
+                  {busy === a.result.id ? t('app.lab.results.opening') : t('app.plant.open')}
                 </Button>
               ) : (
                 <Stack spacing={1.25} sx={{ mt: 1.5 }}>
                   <SignerLine signer={o.signer} />
                   <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
-                    {o.type.label} · file SHA-256 {short(o.sha)} · downloads as “{o.name}”
+                    {t('app.lab.results.fileLine', { type: o.type.label, sha: short(o.sha), name: o.name })}
                   </Typography>
                   <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
                     <Button
@@ -583,7 +576,7 @@ export const LabResultsPanel: React.FC<{
                       onClick={() => download(o.bytes, o.name, o.type.mime)}
                       sx={{ minHeight: 44 }}
                     >
-                      Download the file
+                      {t('app.lab.results.download')}
                     </Button>
                     {!isSaved && (
                       <Button
@@ -596,14 +589,13 @@ export const LabResultsPanel: React.FC<{
                         }
                         sx={{ minHeight: 44 }}
                       >
-                        Save it to this plant
+                        {t('app.plant.next.save.action')}
                       </Button>
                     )}
                   </Stack>
                   {!isSaved && record.dnaFingerprint && (
                     <Typography variant="caption" color="text.secondary">
-                      A lab report is already saved to this plant. Saving this one replaces it; you confirm on the next
-                      screen.
+                      {t('app.lab.results.replacesSaved')}
                     </Typography>
                   )}
                 </Stack>
@@ -650,6 +642,9 @@ export const ReceivedFacts: React.FC<{ record: StrainRecord }> = ({ record }) =>
   const custody = useDeliveryCustody(record.transferId ?? deliveryForRecord(record.id)?.transferId);
   const differs = custody && hasDetails(custody.arrival) ? custodyDifferences(custody.sample, custody.arrival) : [];
   const qty = quantityPhrase(record.quantity);
+  const tr = useT();
+  const { t } = tr;
+  const b = (c: React.ReactNode) => <b>{c}</b>;
   const save = () => {
     updateReceivedNotes(record.id, { labRef: ref.trim() || undefined });
     setSaved(true);
@@ -659,42 +654,42 @@ export const ReceivedFacts: React.FC<{ record: StrainRecord }> = ({ record }) =>
     <Paper sx={{ p: { xs: 2, md: 2.5 } }}>
       <Stack spacing={1}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-          What came with it
+          {t('app.lab.facts.title')}
         </Typography>
         <Typography variant="body2">
-          Labelled “{record.strainName}”, bred by {record.bredBy || 'unknown'}
-          {record.transferId ? ` · lab code ${record.transferId}` : ''}
-          {record.receivedAt ? ` · arrived ${day(record.receivedAt)}` : ''}
+          {t('app.lab.facts.labelled', { name: record.strainName, by: record.bredBy || t('app.lab.facts.unknown') })}
+          {record.transferId ? t('app.lab.facts.code', { code: record.transferId }) : ''}
+          {record.receivedAt ? t('app.lab.facts.arrived', { date: day(record.receivedAt, tr.locale) }) : ''}
         </Typography>
         <Typography variant="body2">
-          <b>Quantity, as the breeder wrote it:</b> {qty ?? 'not given'}
+          {rich(t('app.lab.facts.quantity'), { b }, { qty: qty ?? t('app.lab.facts.notGiven') })}
         </Typography>
         <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>
-          <b>Breeder&apos;s note:</b> {record.deliveryNote ?? 'none'}
+          {rich(t('app.lab.facts.note'), { b }, { note: record.deliveryNote ?? t('app.lab.facts.none') })}
         </Typography>
         {custody && hasDetails(custody.sample) && (
           <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }} data-sample-details="">
-            <b>The breeder wrote:</b> {sampleLine(custody.sample)}
+            {rich(t('app.lab.recv.breederWrote'), { b }, { line: sampleLine(custody.sample, tr) })}
           </Typography>
         )}
         {custody && hasDetails(custody.arrival) && (
           <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }} data-arrival-details="">
-            <b>On arrival (your receipt):</b> {arrivalLine(custody.arrival)}
+            {rich(t('app.lab.facts.onArrival'), { b }, { line: arrivalLine(custody.arrival, tr) })}
           </Typography>
         )}
         {differs.map((d) => (
           <Typography key={d} variant="body2" data-custody-line="">
-            {d}.
+            {t('app.lab.custody.line', { v: differenceWords(d, tr) })}
           </Typography>
         ))}
         <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', pt: 1 }}>
           <TextField
             size="small"
-            label="Your reference / accession no."
+            label={t('app.lab.facts.ref')}
             value={ref}
             onChange={(e) => setRef(e.target.value.slice(0, 200))}
             fullWidth
-            helperText="Only you see this. Search on Home finds it."
+            helperText={t('app.lab.facts.refHelp')}
           />
           <Button
             variant="outlined"
@@ -702,7 +697,7 @@ export const ReceivedFacts: React.FC<{ record: StrainRecord }> = ({ record }) =>
             disabled={ref.trim() === (record.labRef ?? '')}
             sx={{ minHeight: 40 }}
           >
-            {saved ? 'Saved' : 'Save'}
+            {saved ? t('app.backup.saved') : t('app.lab.facts.save')}
           </Button>
         </Stack>
       </Stack>
@@ -749,13 +744,15 @@ export const SendResultsPanel: React.FC<{
   const receipt = useLabReceipt(record, true);
   const transferId = record.transferId ?? stored?.transferId;
   const subject = record.receivedFromCommitment ?? stored?.sourceCommitment;
+  const tr = useT();
+  const { t } = tr;
 
   const reload = useCallback(async () => {
     if (!transferId || !subject) return;
     const r = await loadMySent(transferId, subject);
-    if ('error' in r) setProblem(`Couldn’t load what you sent: ${r.error}.`);
+    if ('error' in r) setProblem(tr.t('app.lab.out.couldntLoad', { error: r.error }));
     else setMySent(r);
-  }, [transferId, subject]);
+  }, [transferId, subject, tr]);
 
   useEffect(() => {
     void reload();
@@ -768,8 +765,7 @@ export const SendResultsPanel: React.FC<{
   if (!LAB_RESULTS_ENABLED) {
     return (
       <Alert severity="info" variant="outlined">
-        Lab reports can&apos;t be sent back through VeilCore on this network yet. Send it to the breeder the way you
-        usually do.
+        {t('app.lab.out.offHere')}
       </Alert>
     );
   }
@@ -777,16 +773,15 @@ export const SendResultsPanel: React.FC<{
   if (!transferId || !subject) {
     return (
       <Alert severity="info" variant="outlined">
-        This plant didn&apos;t come in a delivery, so there&apos;s nobody to send a lab report back to.
+        {t('app.lab.out.noDelivery')}
       </Alert>
     );
   }
 
   const useCode = () => {
     const p = parseShareCode(code);
-    if (p.transferId !== transferId) return setProblem('That lab code is for a different delivery.');
-    if (!p.resultLock)
-      return setProblem('That lab code has no lock in it. Ask the breeder to send it again from the app.');
+    if (p.transferId !== transferId) return setProblem(t('app.lab.out.otherDelivery'));
+    if (!p.resultLock) return setProblem(t('app.lab.out.noLock'));
     rememberDelivery({
       transferId,
       receivedRecordId: record.id,
@@ -803,7 +798,7 @@ export const SendResultsPanel: React.FC<{
   const choose = async (f: File) => {
     setProblem(undefined);
     const bytes = new Uint8Array(await f.arrayBuffer());
-    if (bytes.length > 14 * 1024 * 1024) return setProblem('That file is over 14 MB.');
+    if (bytes.length > 14 * 1024 * 1024) return setProblem(t('app.lab.out.tooBig'));
     setFile({ name: f.name, bytes, sha: reportFingerprint(bytes) });
     setScreen((n) => n + 1);
   };
@@ -817,16 +812,16 @@ export const SendResultsPanel: React.FC<{
     try {
       if (r.attestationId && !mySent?.retracted.has(r.attestationId)) {
         const out = await retract(attester, r.attestationId, 'issued-in-error');
-        if (out.error) throw new Error(`Nothing was withdrawn: your signature couldn’t be withdrawn (${out.error}).`);
+        if (out.error) throw new Error(t('app.lab.out.withdrawFailed', { error: out.error }));
       }
       const del = await deleteResult(transferId, r.id);
       if ('error' in del) {
-        throw new Error(
-          `Your signature on it is withdrawn, but the file is still with the registry (${del.error}). Tap Withdraw again.`,
-        );
+        throw new Error(t('app.lab.out.fileStillThere', { error: del.error }));
       }
       setNote(
-        `Withdrawn. The breeder sees that you withdrew it, and can no longer open it.${r.replaces ? ` ${WITHDRAW_CORRECTION_WARNING}` : ''}`,
+        t('app.lab.out.withdrawnNote', {
+          extra: r.replaces ? t('app.lab.out.spaced', { v: t('app.lab.out.correctionWarning') }) : '',
+        }),
       );
     } catch (e) {
       setProblem(e instanceof Error ? e.message : String(e));
@@ -847,28 +842,27 @@ export const SendResultsPanel: React.FC<{
     try {
       // Checked before anything is signed: the cap, the same file sent twice, a stale correction.
       const fresh = await loadMySent(transferId, subject);
-      if ('error' in fresh)
-        throw new Error(`Nothing was signed: couldn’t check what you already sent (${fresh.error}).`);
+      if ('error' in fresh) throw new Error(t('app.lab.out.couldntCheck', { error: fresh.error }));
       setMySent(fresh);
-      const refusal = sendRefusal(file.sha, fresh.list, fresh.signed, replacing?.id);
+      const refusal = sendRefusal(file.sha, fresh.list, fresh.signed, replacing?.id, tr);
       if (refusal) throw new Error(refusal);
       // Sign only about the record this delivery really came from (same check as receipt).
       if (record.receivedFrom && (await publicFingerprintOf(record.receivedFrom)) !== subject) {
-        throw new Error('The breeder’s record could not be confirmed from the public registry, so nothing was signed.');
+        throw new Error(t('app.lab.out.notConfirmed'));
       }
       const locked = await lockReport(file.bytes, lock);
       // The registry links the signature when the file arrives, so the signature comes
       // first; if the file then doesn't arrive, the signature is withdrawn at once.
       const signed = await attestRecord(attester, subject, file.sha, 'laboratory-report');
       if (signed.error || !signed.attestationId)
-        throw new Error(`Nothing was sent: your signature was not recorded (${signed.error ?? 'no answer'}).`);
+        throw new Error(t('app.lab.out.notRecorded', { error: signed.error ?? t('app.lab.out.noAnswer') }));
       const out = await sendLockedResult(transferId, locked, signed.attestationId, replacing?.id);
       if ('error' in out) {
         const undo = await retract(attester, signed.attestationId, 'issued-in-error');
         throw new Error(
           undo.error
-            ? `The file didn’t send (${out.error}), and withdrawing your signature on it failed too (${undo.error}). Try sending again; if it keeps failing, withdraw it from your signing key’s page.`
-            : `The file didn’t send (${out.error}). Your signature on it was withdrawn, so nothing points at a file the breeder never got. Try again.`,
+            ? t('app.lab.out.didntSendUndoFailed', { error: out.error, undo: undo.error })
+            : t('app.lab.out.didntSend', { error: out.error }),
         );
       }
       // The old report goes as a whole (round 3): its signature withdrawn as replaced, and
@@ -877,14 +871,12 @@ export const SendResultsPanel: React.FC<{
         const left: string[] = [];
         if (replacing.attestationId && fresh.signed.has(replacing.attestationId)) {
           const old = await retract(attester, replacing.attestationId, 'superseded');
-          if (old.error) left.push(`your signature on it couldn’t be withdrawn (${old.error})`);
+          if (old.error) left.push(t('app.lab.out.oldSigLeft', { error: old.error }));
         }
         const gone = await deleteResult(transferId, replacing.id);
-        if ('error' in gone) left.push(`its file is still with the registry (${gone.error})`);
+        if ('error' in gone) left.push(t('app.lab.out.oldFileLeft', { error: gone.error }));
         if (left.length) {
-          setNote(
-            `The corrected file was sent, but the old one isn’t fully withdrawn: ${left.join(', and ')}. Withdraw the old one from this page.`,
-          );
+          setNote(t('app.lab.out.oldLeft', { left: left.join(t('app.lab.out.andJoin')) }));
         }
       }
       setSent(true);
@@ -901,16 +893,11 @@ export const SendResultsPanel: React.FC<{
     return (
       <Stack spacing={2}>
         <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="">
-          Sent
+          {t('app.lab.out.sent')}
         </Typography>
-        <Typography variant="body1">
-          Only the breeder can open it. Your signature is public, the report isn&apos;t: anyone with a link to this
-          plant&apos;s check page sees that a lab report about it was signed, and its SHA-256 ({short(file.sha)}).
-        </Typography>
+        <Typography variant="body1">{t('app.lab.out.sentText', { sha: short(file.sha) })}</Typography>
         <Typography variant="body2" color="text.secondary">
-          They also see the name your key is registered under. Until VeilCore&apos;s operator matches it to a public
-          license or accreditation listing, it shows as “a key named “{attester?.displayName ?? 'your lab'}” (name not
-          checked)”.
+          {t('app.lab.out.sentName', { name: attester?.displayName ?? t('app.lab.out.yourLab') })}
         </Typography>
         {note && (
           <Alert severity="warning" variant="outlined">
@@ -928,7 +915,7 @@ export const SendResultsPanel: React.FC<{
       {list.length > 0 && (
         <Box>
           <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
-            Lab reports you sent
+            {t('app.lab.out.youSent')}
           </Typography>
           <Stack spacing={1}>
             {list.map((r) => {
@@ -936,11 +923,11 @@ export const SendResultsPanel: React.FC<{
               return (
                 <Box key={r.id} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 1.5 }}>
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    {shortResultId(r.id)} · sent {when(r.createdAt)}
-                    {r.replaces ? ` · corrects ${shortResultId(r.replaces)}` : ''}
+                    {t('app.lab.out.rowHead', { id: shortResultId(r.id), when: when(r.createdAt, tr.locale) })}
+                    {r.replaces ? t('app.lab.results.corrects', { id: shortResultId(r.replaces) }) : ''}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {sentRowWords(state, r, mySent)}
+                    {sentRowWords(state, r, mySent, tr)}
                   </Typography>
                   {state === 'live' && attester && (
                     <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}>
@@ -954,10 +941,10 @@ export const SendResultsPanel: React.FC<{
                             onClick={() => void withdraw(r)}
                             sx={{ minHeight: 40 }}
                           >
-                            {busy === r.id ? 'Withdrawing…' : 'Yes, withdraw it'}
+                            {busy === r.id ? t('app.lab.out.withdrawing') : t('app.lab.out.yesWithdraw')}
                           </Button>
                           <Button size="small" onClick={() => setConfirm(undefined)} sx={{ minHeight: 40 }}>
-                            Keep it
+                            {t('app.lab.out.keepIt')}
                           </Button>
                         </>
                       ) : (
@@ -969,7 +956,7 @@ export const SendResultsPanel: React.FC<{
                             onClick={() => setConfirm(r.id)}
                             sx={{ minHeight: 40 }}
                           >
-                            Withdraw
+                            {t('app.lab.out.withdraw')}
                           </Button>
                           <Button
                             size="small"
@@ -982,7 +969,7 @@ export const SendResultsPanel: React.FC<{
                             }}
                             sx={{ minHeight: 40 }}
                           >
-                            Send a corrected file
+                            {t('app.lab.out.sendCorrected')}
                           </Button>
                         </>
                       )}
@@ -990,9 +977,8 @@ export const SendResultsPanel: React.FC<{
                   )}
                   {confirm === r.id && (
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
-                      Your signature on it is withdrawn (it stays on record as withdrawn) and the file is deleted. The
-                      breeder sees “Withdrawn by the lab”.
-                      {r.replaces && <b> {WITHDRAW_CORRECTION_WARNING}</b>}
+                      {t('app.lab.out.confirmText')}
+                      {r.replaces && <b>{t('app.lab.out.spaced', { v: t('app.lab.out.correctionWarning') })}</b>}
                     </Typography>
                   )}
                 </Box>
@@ -1009,39 +995,45 @@ export const SendResultsPanel: React.FC<{
 
       <Box>
         <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="">
-          {replacing ? 'Send a corrected file' : 'Send results back to the breeder'}
+          {replacing ? t('app.lab.out.sendCorrected') : t('app.plant.action.sendResults')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           {replacing
-            ? `It replaces ${shortResultId(replacing.id)}, the lab report you sent ${when(replacing.createdAt)}. The old one is withdrawn: its file is removed and your signature on it is marked replaced.`
-            : 'Your browser signs the lab report’s fingerprint with your lab’s key and locks the file so only the breeder can open it. The locked file waits on VeilCore’s server for the breeder to open; VeilCore can’t read it.'}
+            ? t('app.lab.out.replacesIntro', {
+                id: shortResultId(replacing.id),
+                when: when(replacing.createdAt, tr.locale),
+              })
+            : t('app.lab.out.intro')}
         </Typography>
         {replacing && (
           <Button size="small" onClick={() => setReplacing(undefined)} sx={{ mt: 0.5 }}>
-            Cancel the correction
+            {t('app.lab.out.cancelCorrection')}
           </Button>
         )}
       </Box>
 
       {record.receiptRejected ? (
         <Alert severity="info" variant="outlined">
-          You turned this sample away, so there&apos;s no lab report to send.
+          {t('app.lab.out.turnedAway')}
         </Alert>
       ) : !attester ? (
         <Alert severity="info" variant="outlined">
-          Set up your lab&apos;s signature first, so the breeder can tell the lab report is yours.{' '}
+          {t('app.lab.out.setUpFirst')}{' '}
           <Button size="small" onClick={() => window.dispatchEvent(new CustomEvent(OPEN_SIGNING_KEY_EVENT))}>
-            Set it up
+            {t('app.plant.next.setup.action')}
           </Button>
         </Alert>
       ) : !lock ? (
         <Stack spacing={1.25}>
-          <Typography variant="body1">
-            This browser doesn&apos;t have the breeder&apos;s lock for this delivery. Paste the lab code they sent you.
-          </Typography>
-          <TextField label="Lab code" value={code} onChange={(e) => setCode(e.target.value)} fullWidth />
+          <Typography variant="body1">{t('app.lab.out.noLockHere')}</Typography>
+          <TextField
+            label={t('app.lab.recv.codeLabel')}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            fullWidth
+          />
           <Button variant="outlined" onClick={useCode} disabled={!code.trim()} sx={{ alignSelf: 'flex-start' }}>
-            Use this lab code
+            {t('app.lab.out.useCode')}
           </Button>
         </Stack>
       ) : (
@@ -1052,12 +1044,11 @@ export const SendResultsPanel: React.FC<{
               variant="outlined"
               action={
                 <Button color="inherit" onClick={onSignReceipt} sx={{ minHeight: 40 }}>
-                  Sign receipt
+                  {t('app.plant.action.signReceipt')}
                 </Button>
               }
             >
-              You haven&apos;t signed that this sample arrived. Until you do, the breeder sees your lab report as signed
-              by a key that didn&apos;t confirm receiving the sample.
+              {t('app.lab.out.notSignedReceipt')}
             </Alert>
           )}
           {receipt?.kind === 'signed' && !receipt.linked && (
@@ -1066,11 +1057,11 @@ export const SendResultsPanel: React.FC<{
               variant="outlined"
               action={
                 <Button color="inherit" onClick={onSignReceipt} sx={{ minHeight: 40 }}>
-                  Link it
+                  {t('app.plant.next.link.action')}
                 </Button>
               }
             >
-              Your receipt is signed but not linked to this delivery yet, so the breeder can&apos;t see it.
+              {t('app.lab.out.notLinked')}
             </Alert>
           )}
           {file ? (
@@ -1079,15 +1070,15 @@ export const SendResultsPanel: React.FC<{
                 {file.name}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {mb(file.bytes.length)} · fingerprint {short(file.sha)}
+                {t('app.lab.out.fileFp', { size: mb(file.bytes.length), fp: short(file.sha) })}
               </Typography>
               <Button size="small" onClick={() => setFile(undefined)} sx={{ mt: 0.5 }}>
-                Choose a different file
+                {t('app.lab.out.differentFile')}
               </Button>
             </Box>
           ) : (
             <Button variant="outlined" size="large" onClick={() => pick.current?.click()} sx={{ py: 1.3 }}>
-              {replacing ? 'Choose the corrected file' : 'Choose the report'}
+              {replacing ? t('app.lab.out.chooseCorrected') : t('app.lab.out.chooseReport')}
             </Button>
           )}
           <input
@@ -1108,7 +1099,7 @@ export const SendResultsPanel: React.FC<{
             startIcon={busy === 'send' ? <CircularProgress size={18} color="inherit" /> : <LockIcon />}
             sx={{ py: 1.5 }}
           >
-            {busy === 'send' ? 'Signing and locking…' : 'Sign, lock and send'}
+            {busy === 'send' ? t('app.lab.out.signing') : t('app.lab.out.signLockSend')}
           </Button>
         </>
       )}
@@ -1122,19 +1113,19 @@ export const SendResultsPanel: React.FC<{
 };
 
 /** One line for a lab's Home card: who it's from, when, receipt, lab reports sent. */
-export const labCardLine = (r: StrainRecord, facts?: LabCardFacts): string =>
+export const labCardLine = (r: StrainRecord, facts?: LabCardFacts, tr: Translator = enT): string =>
   [
-    r.bredBy || 'Unknown breeder',
-    r.receivedAt ? `received ${day(r.receivedAt)}` : undefined,
+    r.bredBy || tr.t('app.lab.card.unknownBreeder'),
+    r.receivedAt ? tr.t('app.lab.card.received', { date: day(r.receivedAt, tr.locale) }) : undefined,
     r.receiptRejected
-      ? 'turned away'
+      ? tr.t('app.lab.card.turnedAway')
       : facts === undefined
         ? undefined
         : facts.signed
-          ? 'receipt signed ✓'
-          : 'receipt not signed yet',
-    labSentPhrase(facts),
-    r.labRef ? `ref ${r.labRef}` : undefined,
+          ? tr.t('app.lab.card.signed')
+          : tr.t('app.lab.card.notSigned'),
+    labSentPhrase(facts, tr),
+    r.labRef ? tr.t('app.lab.card.ref', { ref: r.labRef }) : undefined,
   ]
     .filter(Boolean)
     .join(' · ');

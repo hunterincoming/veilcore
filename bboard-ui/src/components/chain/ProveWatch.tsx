@@ -21,13 +21,15 @@ import {
   proveLink,
   type MyAsk,
 } from '../../veilcore/prove-relay';
+import { useT } from '../../i18n/app';
 
 const WEEK = 7 * 24 * 60 * 60_000;
-const when = (t: number) => localStamp(t);
+const when = (t: number, locale?: string) => localStamp(t, locale);
 
 export const SendLink: React.FC<{ link: string; asker?: string }> = ({ link, asker }) => {
   const [copied, setCopied] = useState(false);
-  const text = `${asker ? `${asker} is asking` : 'I’m asking'} you to prove you hold this plant on VeilCore. Open this link: ${link}`;
+  const { t } = useT();
+  const text = asker ? t('app.prove.watch.shareAsker', { asker, link }) : t('app.prove.watch.share', { link });
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
   return (
     <Box>
@@ -51,7 +53,7 @@ export const SendLink: React.FC<{ link: string; asker?: string }> = ({ link, ask
             onClick={() => void navigator.share({ text }).catch(() => undefined)}
             sx={{ minHeight: 44 }}
           >
-            Send it
+            {t('app.prove.watch.sendIt')}
           </Button>
         )}
         <Button
@@ -63,7 +65,7 @@ export const SendLink: React.FC<{ link: string; asker?: string }> = ({ link, ask
           }}
           sx={{ minHeight: 44 }}
         >
-          {copied ? 'Copied' : 'Copy link'}
+          {copied ? t('app.lab.send.copied') : t('app.prove.watch.copyLink')}
         </Button>
       </Stack>
     </Box>
@@ -73,10 +75,11 @@ export const SendLink: React.FC<{ link: string; asker?: string }> = ({ link, ask
 /** The key, shortened (first 8…last 6), with a button to copy all of it. */
 const KeyLine: React.FC<{ identity: string }> = ({ identity }) => {
   const [copied, setCopied] = useState(false);
+  const { t } = useT();
   return (
     <Stack direction="row" spacing={1} sx={{ mt: 0.75, alignItems: 'center', flexWrap: 'wrap' }}>
       <Typography variant="body2">
-        Key:{' '}
+        {t('app.prove.watch.key')}
         <Box component="span" sx={{ fontFamily: 'monospace' }} title={identity}>
           {identity.slice(0, 8)}…{identity.slice(-6)}
         </Box>
@@ -89,7 +92,7 @@ const KeyLine: React.FC<{ identity: string }> = ({ identity }) => {
           setCopied(true);
         }}
       >
-        {copied ? 'Copied' : 'Copy'}
+        {copied ? t('app.lab.send.copied') : t('app.prove.copy')}
       </Button>
     </Stack>
   );
@@ -108,6 +111,8 @@ export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boole
   // An answer is in but the network can't show it yet (just sent, or the indexer is down).
   const [pending, setPending] = useState(false);
   const running = useRef(false);
+  const tr = useT();
+  const { t, tp } = tr;
 
   // When the fast polling window started, the answers seen so far, and when the request ends.
   const since = useRef(Date.now());
@@ -177,41 +182,38 @@ export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boole
     return (
       <Alert severity="success" variant="outlined">
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-          Confirmed
+          {t('app.prove.watch.confirmed')}
         </Typography>
         <Typography variant="body2" sx={{ mt: 0.5 }}>
-          {bound
-            ? 'Whoever answered controls this record’s own key, right now. The record named that key when it was sealed, so it can’t be swapped.'
-            : 'Whoever answered controls the key named in this link, right now.'}
+          {bound ? t('app.prove.watch.controlsOwn') : t('app.prove.watch.controlsLink')}
         </Typography>
         {ask.confirmed.anchor === true && (
           <Typography variant="body2" sx={{ mt: 0.75 }}>
-            {keyStampWords(bound, ask.confirmed.anchoredAt)}
+            {keyStampWords(bound, ask.confirmed.anchoredAt, tr)}
           </Typography>
         )}
         {ask.confirmed.anchor === false && (
           <Typography variant="body2" sx={{ mt: 0.75 }}>
-            The key&apos;s date stamp named in the link could not be confirmed.
+            {t('app.prove.watch.stampNotConfirmed')}
           </Typography>
         )}
         {bound ? (
           <Typography variant="body2" sx={{ mt: 0.75 }}>
-            It doesn&apos;t show who they are or who bred the plant.
+            {t('app.prove.watch.notWho')}
           </Typography>
         ) : (
           <>
             <Typography variant="body2" sx={{ mt: 0.75, fontWeight: 700 }}>
-              Older record: key not bound to this record.
+              {t('app.prove.watch.olderRecord')}
             </Typography>
             <Typography variant="body2" sx={{ mt: 0.25 }}>
-              That this key belongs to this plant&apos;s record is the holder&apos;s statement for now. It doesn&apos;t
-              show who they are or who bred the plant.
+              {t('app.prove.watch.holderStatement')}
             </Typography>
           </>
         )}
         <KeyLine identity={ask.identity} />
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
-          Checked {when(ask.confirmed.at)} on the test network, which can be reset: practice only, no evidential weight.
+          {t('app.prove.watch.checkedAt', { when: when(ask.confirmed.at, tr.locale) })}
         </Typography>
       </Alert>
     );
@@ -222,28 +224,25 @@ export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boole
       {showLink && state !== 'expired' && <SendLink link={proveLink(ask.id, ask.token)} asker={asker} />}
       {state === 'expired' ? (
         <Alert severity="info" variant="outlined">
-          This request expired without an answer. Make a new one.
+          {t('app.prove.watch.expired')}
         </Alert>
       ) : (
         <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
           <CircularProgress size={18} />
           <Typography variant="body2">
             {checking && !pending
-              ? 'An answer came in. Checking it on the network…'
+              ? t('app.prove.watch.checking')
               : pending
-                ? 'An answer came in. The network hasn’t shown it yet, so this keeps checking.'
+                ? t('app.prove.watch.pending')
                 : state === 'unreachable'
-                  ? 'Can’t reach VeilCore right now. Still trying.'
-                  : 'Waiting for them to prove it. You can close this page: to see the answer, open the link you sent them, in this browser.'}
+                  ? t('app.prove.watch.unreachable')
+                  : t('app.prove.watch.waiting')}
           </Typography>
         </Stack>
       )}
       {refusals.length > 0 && (
         <Alert severity="warning" variant="outlined">
-          {refusals.length === 1
-            ? 'An answer came back that didn’t check out'
-            : `${refusals.length} answers didn’t check out`}
-          : {refusals[refusals.length - 1]}
+          {tp('app.prove.watch.refused', refusals.length, { reason: refusals[refusals.length - 1] })}
         </Alert>
       )}
     </Stack>

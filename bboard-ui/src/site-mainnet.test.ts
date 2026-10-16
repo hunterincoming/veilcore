@@ -396,6 +396,10 @@ describe('builds', () => {
     unalteredSinceRegistryFirstSeen: true,
   };
 
+  /** Per build folder: how many language pickers each page shows, and a ?lang=ja visit. */
+  const languageSeen: Record<string, { pickers: Record<string, number>; jaLink: { lang: string; banner: boolean } }> =
+    {};
+
   const textOf = async (dir: string, role: string) => {
     const { chromium } = require(PW as string) as { chromium: { launch(o: object): Promise<Browser> } };
     const browser = await chromium.launch({ executablePath: CHROME });
@@ -419,6 +423,7 @@ describe('builds', () => {
     });
     await ctx.addInitScript((r: string) => localStorage.setItem('veilcore.role.v1', r), role);
     const out: Record<string, string> = {};
+    const pickers: Record<string, number> = {};
     for (const p of [...PAGES, PREVIEW_RECORD]) {
       const pg = await ctx.newPage();
       const errors: string[] = [];
@@ -429,8 +434,21 @@ describe('builds', () => {
       // so read textContent of the whole body as well.
       out[p] = await pg.evaluate(() => `${document.body.innerText}\n${document.body.textContent ?? ''}`);
       if (out[p].trim() === '') throw new Error(`${p} rendered nothing: ${errors.join(' | ')}`);
+      pickers[p] = await pg.evaluate(() => document.querySelectorAll('[data-language-picker]').length);
       await pg.close();
     }
+    // A draft opened by link, as a fluent speaker checking it would.
+    const ja = await ctx.newPage();
+    await ja.goto(`${origin}/?lang=ja`, { waitUntil: 'networkidle' });
+    await ja.waitForTimeout(400);
+    const jaLink = await ja.evaluate(() => ({
+      lang: document.documentElement.lang,
+      banner: [...document.querySelectorAll('[role="note"]')].some((n) =>
+        /Machine-drafted translation/.test(n.textContent ?? ''),
+      ),
+    }));
+    languageSeen[dir] = { pickers, jaLink };
+    await ja.close();
     await ctx.close();
     await browser.close();
     server.close();
@@ -506,6 +524,15 @@ describe('builds', () => {
       expect(mainnet['/licenses']).toMatch(/Simulated in this web app/);
       expect(mainnet['/verify/example']).toMatch(/Example: a made-up record\./);
       expect(mainnet['/verify/example']).toMatch(/Midnight’s main network/);
+    });
+
+    it('veilcore.org offers English only (PUBLISHED_LANGUAGES); a draft opens by link, under its banner', () => {
+      const main = languageSeen[mainDist];
+      for (const p of PAGES) expect(main.pickers[p], p).toBe(0);
+      expect(main.jaLink).toEqual({ lang: 'ja', banner: true });
+      // The test-network builds offer every language, on every page.
+      const pre = languageSeen[preDist];
+      for (const p of PAGES) expect(pre.pickers[p], p).toBeGreaterThan(0);
     });
 
     it('the preprod site still says test network', () => {

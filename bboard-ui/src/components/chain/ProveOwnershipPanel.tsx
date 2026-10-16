@@ -12,6 +12,7 @@ import { getRecord, useRecords } from '../../veilcore/records';
 import { chainNotReady } from '../../veilcore/chain/config';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { useChainCall } from './useChainCall';
+import { useT } from '../../i18n/app';
 import { ChainStatusLine } from './ChainStatusLine';
 import { proveLinkParams } from '../../veilcore/prove-link';
 import { verifyPath } from '../../veilcore/verify-link';
@@ -28,6 +29,7 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
   // The checker's link: for a record that names its key, with what ties the key to it
   // (prove-link.ts), so the check page can match them.
   const [params, setParams] = useState<Record<string, string> | null>(null);
+  const { t } = useT();
   useEffect(() => {
     let live = true;
     if (record) void proveLinkParams(record, keys).then((p) => live && setParams(p));
@@ -42,7 +44,7 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
   const checkerLink = params ? verifyPath(record.id, record.recordFingerprint, params) : '';
   const prove = () =>
     call.run(async (progress) => {
-      if (!keys) throw new Error('This browser does not hold the record’s keys.');
+      if (!keys) throw new Error('This browser does not hold the record’s keys.'); // chainProblem words it on screen
       const { proveOwnershipOnChain } = await import('../../veilcore/chain/actions');
       return proveOwnershipOnChain(hexBytes(keys.recordSecret), challenge.trim().replace(/^0x/, ''), { progress });
     });
@@ -50,19 +52,15 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
   return (
     <Paper variant="outlined" sx={{ p: 2.5 }}>
       <Stack spacing={1.5}>
-        <Typography variant="subtitle1">Prove you hold this plant’s key (test network)</Typography>
+        <Typography variant="subtitle1">{t('app.prove.own.title')}</Typography>
         {!anchored ? (
           <Typography variant="body2" color="text.secondary">
-            Add the date stamp first: press “Add the date stamp” on the plant’s page. The proof is about the plant’s
-            on-chain identity, which the date stamp creates.
+            {t('app.prove.own.stampFirst')}
           </Typography>
         ) : (
           <>
             <Typography variant="body2" color="text.secondary">
-              The person checking makes a challenge on the record’s verify page and sends it to you. You answer it here;
-              your browser proves you hold the record’s secret without revealing it, and you send them the transaction
-              id. Together with the date stamp, that shows the key existed by block {anchored.blockHeight} and that you
-              control it now.
+              {t('app.prove.own.intro', { block: String(anchored.blockHeight) })}
             </Typography>
             <Box sx={{ display: checkerLink ? undefined : 'none' }}>
               <Button
@@ -70,14 +68,14 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
                 startIcon={<ContentCopyIcon />}
                 onClick={() => void navigator.clipboard.writeText(`${window.location.origin}${checkerLink}`)}
               >
-                Copy the checker’s link (it names the record’s on-chain identity)
+                {t('app.prove.own.copyChecker')}
               </Button>
               <Button size="small" component={RouterLink} to={checkerLink} target="_blank" rel="noopener">
-                Try it yourself: open it as the checker
+                {t('app.prove.own.tryIt')}
               </Button>
             </Box>
             <TextField
-              label="The checker’s challenge (64 characters)"
+              label={t('app.prove.own.challenge')}
               value={challenge}
               onChange={(e) => setChallenge(e.target.value)}
               error={challenge.trim() !== '' && !valid}
@@ -90,12 +88,12 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
               onClick={() => void prove()}
               sx={{ alignSelf: 'flex-start' }}
             >
-              Answer the challenge
+              {t('app.prove.own.answer')}
             </Button>
             <ChainStatusLine busy={call.busy} progress={call.progress} error={call.error} />
             {call.result && (
               <Alert severity="success" variant="outlined">
-                <Typography variant="body2">Done. Send the checker this transaction id:</Typography>
+                <Typography variant="body2">{t('app.prove.own.done')}</Typography>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all', my: 0.5 }}>
                   {call.result.txId}
                 </Typography>
@@ -104,7 +102,7 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
                   startIcon={<ContentCopyIcon />}
                   onClick={() => void navigator.clipboard.writeText(call.result?.txId ?? '')}
                 >
-                  Copy
+                  {t('app.prove.copy')}
                 </Button>
               </Alert>
             )}

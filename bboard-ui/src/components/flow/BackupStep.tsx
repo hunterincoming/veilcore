@@ -14,6 +14,8 @@ import { backupContents, backupFileName, checkBackup, downloadBackupAll } from '
 import { ScreenHeading, softDisabled } from './FlowFrame';
 import { useRecords } from '../../veilcore/records';
 import { backupHoldsLine } from '../stage/record-kinds';
+import { rich, useT } from '../../i18n/app';
+import { backupMessageWords } from './backup-words';
 
 const Done: React.FC<{ text: string; sub?: string }> = ({ text, sub }) => (
   <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
@@ -73,6 +75,8 @@ export const BackupStep: React.FC<{
   const [problem, setProblem] = useState<string>();
   const [busy, setBusy] = useState(false);
   const pick = useRef<HTMLInputElement>(null);
+  const tr = useT();
+  const { t } = tr;
   // Round 6: the button pressed goes away once it has done its job (Save, then Open my saved
   // copy), so focus moves to what it said: "Saved", then "It works." Tab goes on from there.
   const savedRef = useRef<HTMLDivElement>(null);
@@ -98,7 +102,7 @@ export const BackupStep: React.FC<{
   const share = async () => {
     setShareFailed(false);
     try {
-      await navigator.share({ files: [fileForSharing()], title: 'VeilCore backup' });
+      await navigator.share({ files: [fileForSharing()], title: t('app.backup.shareTitle') });
       setCopied(true);
     } catch (e) {
       // Closing the share sheet is a choice, not a failure. Anything else (some desktop
@@ -123,15 +127,14 @@ export const BackupStep: React.FC<{
           {title}
         </ScreenHeading>
         <Typography variant="body1" sx={{ mt: 0.5 }}>
-          <b>This file is the only way to prove you hold your plants</b>, and to get them back on a new phone or
-          computer. VeilCore can&apos;t recover it or make another.
+          {rich(t('app.backup.onlyWay'), { b: (c) => <b>{c}</b> })}
         </Typography>
       </Box>
 
-      <Part n={1} level={partLevel} title="Save it" active={!saved}>
+      <Part n={1} level={partLevel} title={t('app.backup.saveIt')} active={!saved}>
         {saved ? (
           <Box ref={savedRef} tabIndex={-1} role="status" sx={{ outline: 'none' }}>
-            <Done text="Saved" sub={`${saved} · one file for everything`} />
+            <Done text={t('app.backup.saved')} sub={t('app.backup.savedSub', { file: saved })} />
           </Box>
         ) : (
           <Button
@@ -141,7 +144,7 @@ export const BackupStep: React.FC<{
             onClick={() => setSaved(downloadBackupAll())}
             sx={{ py: 1.4 }}
           >
-            Save backup file
+            {t('app.backup.saveFile')}
           </Button>
         )}
       </Part>
@@ -149,14 +152,14 @@ export const BackupStep: React.FC<{
       <Part
         n={2}
         level={partLevel}
-        title="Put a copy somewhere else"
+        title={t('app.backup.copyTitle')}
         active={!!saved && !copied && checked === undefined}
       >
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
-          If this phone or computer breaks, that copy is your way back.
+          {t('app.backup.wayBack')}
         </Typography>
         <Typography variant="body2" sx={{ mb: 1.25, fontWeight: 700 }} data-backup-warning="">
-          This file lets anyone who has it act as you. Keep it somewhere only you can open.
+          {t('app.backup.actAsYou')}
         </Typography>
         {canShare ? (
           <Button
@@ -167,31 +170,26 @@ export const BackupStep: React.FC<{
             onClick={() => saved && void share()}
             sx={{ py: 1.3 }}
           >
-            {copied ? 'Sent a copy ✓' : 'Send a copy (email, Drive, Files…)'}
+            {copied ? t('app.backup.sentCopy') : t('app.backup.sendCopy')}
           </Button>
         ) : null}
         {canShare && shareFailed && (
           <Typography variant="body2" role="status" sx={{ mt: 1 }}>
-            This browser couldn&apos;t open its share menu.
+            {t('app.backup.shareFailed')}
           </Typography>
         )}
-        {(!canShare || shareFailed) && (
-          <Typography variant="body1">
-            Email it to yourself, or put it on Google Drive, iCloud or a USB stick. It&apos;s the file you just saved,
-            in your Downloads folder.
-          </Typography>
-        )}
+        {(!canShare || shareFailed) && <Typography variant="body1">{t('app.backup.byHand')}</Typography>}
       </Part>
 
-      <Part n={3} level={partLevel} title="Check it works" active={!!saved && checked === undefined}>
+      <Part n={3} level={partLevel} title={t('app.backup.checkTitle')} active={!!saved && checked === undefined}>
         {/* Always there, so the result is announced when it arrives. */}
         <Box role="status" ref={worksRef} tabIndex={checked !== undefined ? -1 : undefined} sx={{ outline: 'none' }}>
-          {checked !== undefined && <Done text="It works." sub={backupHoldsLine(checked, records)} />}
+          {checked !== undefined && <Done text={t('app.backup.itWorks')} sub={backupHoldsLine(checked, records, tr)} />}
         </Box>
         {checked === undefined && (
           <>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
-              Open the copy you just saved. We&apos;ll make sure it opens and has everything. Nothing is uploaded.
+              {t('app.backup.openIntro')}
             </Typography>
             <Button
               variant="outlined"
@@ -202,7 +200,7 @@ export const BackupStep: React.FC<{
               startIcon={busy ? <CircularProgress size={18} color="inherit" /> : undefined}
               sx={{ py: 1.3 }}
             >
-              Open my saved copy
+              {t('app.backup.openCopy')}
             </Button>
             <input
               ref={pick}
@@ -217,14 +215,14 @@ export const BackupStep: React.FC<{
             />
             {!saved && (
               <Typography id={saveHint} variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
-                Save the backup file first.
+                {t('app.backup.saveFirst')}
               </Typography>
             )}
           </>
         )}
         {problem && (
           <Alert severity="warning" variant="outlined" sx={{ mt: 1.5 }}>
-            {problem}
+            {backupMessageWords(problem, tr)}
           </Alert>
         )}
       </Part>
@@ -241,7 +239,7 @@ export const BackupStep: React.FC<{
       </Button>
       {checked === undefined && (
         <Typography id={finishHint} variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-          This turns on once the check passes.
+          {t('app.backup.turnsOn')}
         </Typography>
       )}
     </Stack>

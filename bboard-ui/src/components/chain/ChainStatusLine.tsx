@@ -7,40 +7,48 @@
 import React from 'react';
 import { Alert, CircularProgress, Stack, Typography } from '@mui/material';
 import { chainProblem } from '../flow/log-flow-state';
+import { useT } from '../../i18n/app';
+import { progressWords } from './progress-words';
 
 export const ChainStatusLine: React.FC<{ busy: boolean; progress?: string; error?: string }> = ({
   busy,
   progress,
   error,
-}) => (
-  <>
-    {busy && (
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }} role="status" aria-live="polite">
-        <CircularProgress size={18} />
-        <Typography variant="body2" color="text.secondary">
-          {progress ?? 'Working…'}
-        </Typography>
-      </Stack>
-    )}
-    {error && (
-      <Alert severity="error" variant="outlined" data-error={error}>
-        {chainProblem(error).text}
-      </Alert>
-    )}
-  </>
-);
+}) => {
+  const tr = useT();
+  return (
+    <>
+      {busy && (
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }} role="status" aria-live="polite">
+          <CircularProgress size={18} />
+          <Typography variant="body2" color="text.secondary">
+            {progressWords(progress, tr) ?? tr.t('app.chain.working')}
+          </Typography>
+        </Stack>
+      )}
+      {error && (
+        <Alert severity="error" variant="outlined" data-error={error}>
+          {chainProblem(error, tr).text}
+        </Alert>
+      )}
+    </>
+  );
+};
 
 /** Transaction details, shown in full: Midnight's explorers have no per-transaction link. */
 export const TxLine: React.FC<{ label: string; txHash: string; blockHeight: number }> = ({
   label,
   txHash,
   blockHeight,
-}) => (
-  <Typography
-    variant="caption"
-    color="text.secondary"
-    sx={{ display: 'block', wordBreak: 'break-all', fontFamily: 'monospace' }}
-  >
-    {label}: transaction {txHash} · block {blockHeight}
-  </Typography>
-);
+}) => {
+  const { t } = useT();
+  return (
+    <Typography
+      variant="caption"
+      color="text.secondary"
+      sx={{ display: 'block', wordBreak: 'break-all', fontFamily: 'monospace' }}
+    >
+      {t('app.chain.txLine', { label, tx: txHash, block: String(blockHeight) })}
+    </Typography>
+  );
+};

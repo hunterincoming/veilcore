@@ -6,10 +6,13 @@ import React, { useState } from 'react';
 import { Alert, Button, CircularProgress, Stack } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/DownloadOutlined';
 import { downloadRegistryExport } from '../veilcore/registry-export';
+import { InEnglishNote, useT } from '../i18n/app';
 
+/** The button's English (app.home.export.label): the privacy page names it. */
 export const REGISTRY_EXPORT_LABEL = 'Download everything VeilCore holds for you';
 
 export const RegistryExportButton: React.FC<{ variant?: 'text' | 'outlined' }> = ({ variant = 'text' }) => {
+  const { t } = useT();
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string>();
   const [done, setDone] = useState(false);
@@ -31,12 +34,12 @@ export const RegistryExportButton: React.FC<{ variant?: 'text' | 'outlined' }> =
         }}
         sx={{ minHeight: 44 }}
       >
-        {REGISTRY_EXPORT_LABEL}
+        {t('app.home.export.label')}
       </Button>
       {done && (
         <Alert severity="success" variant="outlined" role="status">
-          Downloaded: your records, agreements, sharing choices and every inclusion proof. Lab reports aren&apos;t in
-          it: open them from the plant&apos;s page.
+          {t('app.home.export.done')}
+          <InEnglishNote />
         </Alert>
       )}
       {problem && (

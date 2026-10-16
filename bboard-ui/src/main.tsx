@@ -32,7 +32,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material';
 import App, { preloadPage } from './App';
-import { LanguageProvider } from './i18n';
+import { LanguageProvider, preloadLanguage, startingLanguage } from './i18n';
 import CssBaseline from '@mui/material/CssBaseline';
 import { theme } from './config/theme';
 import '@fontsource/space-grotesk/400.css';
@@ -45,7 +45,17 @@ import '@fontsource/inter/600.css';
 // Only the public pages come in this file (App.tsx). For any other page, fetch its files
 // first and then draw it whole, as before the split: not a frame, then a page, then a
 // dialog over it. A file that cannot be fetched now is asked for again as the page draws.
-await preloadPage(window.location.pathname).catch(() => undefined);
+// The same for the words of a language other than English (i18n/index.tsx), and for the
+// record app's words in it (i18n/app.tsx) on any page but the three that don't use them.
+const startLang = startingLanguage();
+const { pathname } = window.location;
+await Promise.all([
+  preloadPage(pathname).catch(() => undefined),
+  preloadLanguage().catch(() => undefined),
+  startLang !== 'en' && !/^\/(founders|privacy)?\/?$/.test(pathname)
+    ? import('./i18n/app').then((m) => m.loadAppStrings(startLang)).catch(() => undefined)
+    : undefined,
+]);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>

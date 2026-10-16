@@ -4,6 +4,7 @@ import type { Strings } from './en';
 export const de: Strings = {
   // Header and footer
   'nav.language': 'Sprache',
+  'nav.main': 'Hauptnavigation',
   'footer.documents': 'Dokumente',
   'footer.spec': 'Spezifikation',
   'footer.partners': 'Einen Nachweis verlangen',
@@ -18,9 +19,30 @@ export const de: Strings = {
   'footer.yourRecords': 'Ihre Datensätze',
   'footer.agreements': 'Vereinbarungen',
   'footer.privacy': 'Datenschutz in der Demo',
-  'draft.banner':
-    'Übersetzungsentwurf, noch nicht von einer muttersprachlichen Person geprüft. Maßgeblich ist die englische Seite.',
+  'draft.banner': 'Maschinell erstellter Übersetzungsentwurf, wird noch geprüft. Maßgeblich ist die englische Seite.',
   'draft.showEnglish': 'Englisch anzeigen',
+  // The record app's frame and the browser tab's titles.
+  'app.frame.section.log': 'Erfassen',
+  'app.frame.section.send': 'Senden und empfangen',
+  'app.frame.section.license': 'Lizenzen und Lizenzgebühren',
+  'app.frame.section.prove': 'Nachweisen und prüfen',
+  'app.frame.home': 'Startseite. Ihr Fortschritt ist gespeichert.',
+  'title.founders': 'Gründer',
+  'title.privacy': 'Datenschutz in der Demo',
+  'title.privacyMainnet': 'Datenschutz der Website',
+  'title.example': 'Beispieldatensatz',
+  'title.verify': 'Datensatz prüfen',
+  'title.import': 'Ihre Sammlung datieren',
+  'title.records': 'Ihre Pflanzen',
+  'title.restore': 'Pflanzen wiederherstellen',
+  'title.backup': 'Sicherungskopie speichern',
+  'title.spec': 'Das Datensatzformat',
+  'title.evidence': 'Datensätze als Beweismittel',
+  'title.integrate': 'VeilCore einbinden',
+  'title.implementations': 'Implementierungen',
+  'title.new': 'Pflanze erfassen',
+  'title.record': 'Datensatz',
+  'title.agreements': 'Vereinbarungen',
   // Public pages (Mako's 25 September layout)
   'm.nav.about': 'Über',
   'm.nav.team': 'Team',
@@ -154,7 +176,7 @@ export const de: Strings = {
     'Bitte geben Sie keine echten Namen, echten Sorten oder vertraulichen Angaben ein. Die Demo dient dazu, das Format auszuprobieren.',
   'm.privacy.export.title': 'Export',
   'm.privacy.export.text':
-    'Auf Ihrer Datensatzseite unter „More“: „Export all records“ lädt die Datensätze herunter, die dieser Browser hält, und „Download everything VeilCore holds for you“ lädt alles herunter, was unser Server für Sie speichert.',
+    'Auf Ihrer Datensatzseite unter „Mehr“: „Alle Datensätze exportieren“ lädt die Datensätze herunter, die dieser Browser hält, und „Alles herunterladen, was VeilCore für Sie aufbewahrt“ lädt alles herunter, was unser Server für Sie speichert.',
   'm.privacy.delete.title': 'Löschung',
   'm.privacy.delete.text':
     'Wenn Sie Ihre Demodaten von unserem Server löschen lassen möchten, schreiben Sie an hunter@veilcore.org und nennen Sie die Kennungen Ihrer Datensätze.',
@@ -182,7 +204,7 @@ export const de: Strings = {
     'Eine Elternverknüpfung zählt nur, wenn beide Inhaber sie bestätigen. Auf dieser Website erfasst sie das Register von VeilCore, nicht die Chain.',
   'm.open.2t': 'Bewahren Sie eine Datei auf.',
   'm.open.2p':
-    'Auf der Seite Ihrer Pflanze: „Download evidence bundle“. Eine .zip-Datei mit dem Datensatz, wie er versiegelt wurde, seinem Einschlussnachweis, dem Fingerabdruck des Stapels, dem Ort, an dem der Stapel festgehalten wurde, der Bitcoin-Stempeldatei, falls es eine gibt, und einer Seite, die alles offline prüft. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Die einzelnen Dateien gibt es weiterhin unter „Technical details“: „Export record“, „Download inclusion proof“, „Download Bitcoin stamp file“.',
+    'Auf der Seite Ihrer Pflanze: „Nachweispaket herunterladen“. Eine .zip-Datei mit dem Datensatz, wie er versiegelt wurde, seinem Einschlussnachweis, dem Fingerabdruck des Stapels, dem Ort, an dem der Stapel festgehalten wurde, der Bitcoin-Stempeldatei, falls es eine gibt, und einer Seite, die alles offline prüft. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Die einzelnen Dateien gibt es weiterhin unter „Technische Details“: „Datensatz exportieren“, „Inklusionsnachweis herunterladen“, „Bitcoin-Stempeldatei herunterladen“.',
   'm.faq.1a':
     'Sobald Datensätze verankert sind, kann jeder prüfen, welcher zuerst verankert wurde. Koppeln Sie Ihren Laborbericht, damit ein späterer Test damit verglichen werden kann. Wenn Sie Material versenden, signiert der Empfänger mit seinem eigenen Schlüssel eine Empfangsbestätigung. Ein Datensatz ist ein Beweismittel, keine Registrierung: Er zeigt, dass Sie diesen Datensatz zu diesem Datum hatten, nicht, dass Sie die Pflanze hatten, und entscheidet einen Streit nicht allein.',
   'm.post0.date': '4. Okt. 2026',
@@ -420,7 +442,7 @@ export const de: Strings = {
     'Dauerhaft kostenlos zu implementieren. TypeScript, Python und Rust stimmen bei allen 100 Testvektoren des Datensatzformats auf GitHub überein, und jeder kann sie ausführen; ein 101., für die Kopplung von Berichten, fehlt in Rust noch. Ein Autor hat alle drei geschrieben, und die TypeScript-Version ist auf npm als 0.15.0. Eine Implementierung von jemand anderem ist der Test, den wir uns am meisten wünschen.',
   'm.tech.btc.t': 'Der Bitcoin-Stempel',
   'm.tech.btc.p':
-    'Unser Register stempelt den Fingerabdruck jedes versiegelten Stapels mit OpenTimestamps auf Bitcoin. Der erste kam am 11. Oktober in Bitcoin-Block 971004. Am 15. Oktober mit zwei Block-Explorern geprüft: Der Stempel führt zu den Bitcoin-Blöcken 971004 und 971005. Eine Prüfung mit dem offiziellen OpenTimestamps-Werkzeug und einem vollständigen Bitcoin-Knoten steht noch aus. Die Stempeldatei ist die .ots-Datei des Stapels: „Download Bitcoin stamp file“ auf der Seite der Pflanze. Das Register der Test-Website stempelt nicht auf Bitcoin.',
+    'Unser Register stempelt den Fingerabdruck jedes versiegelten Stapels mit OpenTimestamps auf Bitcoin. Der erste kam am 11. Oktober in Bitcoin-Block 971004. Am 15. Oktober mit zwei Block-Explorern geprüft: Der Stempel führt zu den Bitcoin-Blöcken 971004 und 971005. Eine Prüfung mit dem offiziellen OpenTimestamps-Werkzeug und einem vollständigen Bitcoin-Knoten steht noch aus. Die Stempeldatei ist die .ots-Datei des Stapels: „Bitcoin-Stempeldatei herunterladen“ auf der Seite der Pflanze. Das Register der Test-Website stempelt nicht auf Bitcoin.',
   'm.tech.dna.t': 'Kopplung von Berichten und Laborsignaturen',
   'm.tech.dna.p':
     'Läuft die Kopplung eines DNA-Berichts über den VeilCore-Contract auf Midnight, wird sie datiert: Sie zeigt, dass, wer den Datensatz zu diesem Datum kontrollierte, diesen Bericht oder seinen SHA-256 bis dahin hatte. Was auf die Chain kommt, ist an den Datensatz gebunden und verbirgt den Bericht, sodass niemand die Kopplung auf seinen eigenen Datensatz kopieren kann. Die Signatur eines Labors auf einem verschlossenen Bericht umfasst genau diese Datei und den Datensatz, um den es geht.',

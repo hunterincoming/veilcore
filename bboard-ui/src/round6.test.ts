@@ -4,18 +4,31 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { withEnglish } from './i18n/source-words';
 
 const SRC = path.dirname(fileURLToPath(import.meta.url));
-const source = (f: string) => fs.readFileSync(path.join(SRC, f), 'utf8');
+// Each t('app.…') read as the English it shows (i18n/source-words.ts).
+const source = (f: string) => withEnglish(fs.readFileSync(path.join(SRC, f), 'utf8'));
 
 describe('a lab whose lab report was withdrawn is told so, and can still see what it sent', () => {
   it('the plant page row: withdrawn, not "not yet"', async () => {
     const { labSentRow } = await import('./components/flow/plant-status-words');
-    expect(labSentRow(undefined, undefined)).toEqual({ done: false, label: 'Lab report sent', value: 'checking…' });
-    expect(labSentRow(0, 0)).toEqual({ done: false, label: 'Lab report sent', value: 'not yet' });
-    expect(labSentRow(1, 2)).toEqual({ done: true, label: 'Lab report sent', value: '1 sent' });
+    expect(labSentRow(undefined, undefined)).toEqual({
+      done: false,
+      id: 'Lab report sent',
+      label: 'Lab report sent',
+      value: 'checking…',
+    });
+    expect(labSentRow(0, 0)).toEqual({
+      done: false,
+      id: 'Lab report sent',
+      label: 'Lab report sent',
+      value: 'not yet',
+    });
+    expect(labSentRow(1, 2)).toEqual({ done: true, id: 'Lab report sent', label: 'Lab report sent', value: '1 sent' });
     expect(labSentRow(0, 2)).toEqual({
       done: false,
+      id: 'Lab report',
       label: 'Lab report',
       value: 'withdrawn (you can send a new one)',
     });
@@ -27,7 +40,7 @@ describe('a lab whose lab report was withdrawn is told so, and can still see wha
     expect(labSentPhrase({ sent: 1, sentEver: 2 })).toBe('1 lab report sent');
     expect(labSentPhrase({ sent: 2, sentEver: 2 })).toBe('2 lab reports sent');
     expect(labSentPhrase({ sent: 0, sentEver: 0 })).toBeUndefined();
-    expect(source('components/flow/LabResults.tsx')).toContain('labSentPhrase(facts),');
+    expect(source('components/flow/LabResults.tsx')).toContain('labSentPhrase(facts, tr),');
   });
 
   it('the next step keeps "See what you sent" after a withdrawal', () => {
@@ -98,7 +111,7 @@ describe('the smaller wording fixes', () => {
   it('the key warning says "fine for trying it out" next to where it is kept, and ends on backing it up', () => {
     const s = source('components/AttesterSetup.tsx').replace(/\s+/g, ' ');
     expect(s).toContain(
-      'unencrypted, and nowhere else. That&apos;s fine for trying it out. Anything that can run in this site',
+      "unencrypted, and nowhere else. That's fine for trying it out. Anything that can run in this site",
     );
     expect(s).toContain('what you signed before stays valid, so back it up somewhere safe.');
   });
@@ -111,7 +124,7 @@ describe('the smaller wording fixes', () => {
 
   it('"Got it" doesn’t wrap', () => {
     expect(source('components/flow/LabResults.tsx')).toMatch(
-      /sx=\{\{ minHeight: 40, whiteSpace: 'nowrap', flexShrink: 0 \}\}\s*>\s*Got it/,
+      /sx=\{\{ minHeight: 40, whiteSpace: 'nowrap', flexShrink: 0 \}\}\s*>\s*\{'Got it'\}/,
     );
   });
 });

@@ -30,7 +30,7 @@ import {
   sampleDetailsOf,
   sentCodeFor,
   shareCodeFor,
-  userFacingError,
+  labErrorWords,
   type SampleDetails,
   type SentTransfer,
 } from '../veilcore/transfers';
@@ -40,6 +40,7 @@ import { labChanged } from '../veilcore/lab-results';
 import { ensureKeys } from '../veilcore/record-keys';
 import { resultRecipientFor } from '../veilcore/lab-results';
 import type { StrainRecord } from '../veilcore/records';
+import { rich, useT } from '../i18n/app';
 
 export const SendToLab: React.FC<{
   record: StrainRecord;
@@ -57,10 +58,12 @@ export const SendToLab: React.FC<{
   const [transferId, setTransferId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const tr = useT();
+  const { t } = tr;
 
   // A value the registry would refuse (a line break, a hidden character, 31 February) is
   // said under the form, and the code isn't made until it is fixed.
-  const problems = custodyProblems('sample', sample);
+  const problems = custodyProblems('sample', sample, tr);
 
   const send = async () => {
     if (!handle.trim() || problems.length) return;
@@ -71,7 +74,7 @@ export const SendToLab: React.FC<{
       note: note.trim() || undefined,
       sample,
     });
-    if ('error' in res) setError(userFacingError(res.error));
+    if ('error' in res) setError(labErrorWords(res.error, tr));
     else {
       // This delivery's own lock goes in the code, so the lab can send lab reports back
       // that only this plant's holder can open (lab-results.ts). Not where lab reports are
@@ -122,18 +125,19 @@ export const SendToLab: React.FC<{
         trigger(() => setOpen(true))
       ) : (
         <Button variant="outlined" startIcon={<SendIcon />} onClick={() => setOpen(true)}>
-          Send to a lab
+          {t('app.plant.next.sample.action')}
         </Button>
       )}
 
       <Dialog open={open} onClose={reset} maxWidth="sm" fullWidth>
-        <DialogTitle>{transferId ? 'Ready to send' : `Send ${record.strainName}`}</DialogTitle>
+        <DialogTitle>
+          {transferId ? t('app.lab.send.ready') : t('app.lab.send.title', { name: record.strainName })}
+        </DialogTitle>
         <DialogContent>
           {transferId ? (
             <Stack spacing={2} sx={{ pt: 1 }}>
               <Alert severity="success" variant="outlined">
-                Give this lab code to {handle}. When they enter it, they can sign that the sample arrived
-                {LAB_RESULTS_ENABLED ? ', and send a lab report back that only you can open' : ''}.
+                {t(LAB_RESULTS_ENABLED ? 'app.lab.send.giveWithResults' : 'app.lab.send.give', { handle })}
               </Alert>
               <Box
                 sx={{
@@ -157,80 +161,80 @@ export const SendToLab: React.FC<{
                   onClick={() => void copyCode()}
                   sx={{ flex: 1, minHeight: 40 }}
                 >
-                  {copied ? 'Copied' : 'Copy code'}
+                  {copied ? t('app.lab.send.copied') : t('app.lab.send.copy')}
                 </Button>
                 {canShare && <ShareCodeButton code={transferId} name={record.strainName} />}
               </Stack>
               <Alert severity="warning" variant="outlined">
-                <b>Text or email it to them. Don&apos;t write it on the package:</b> whoever has this lab code can
-                confirm the delivery.
+                {rich(t('app.lab.send.dontWrite'), { b: (c) => <b>{c}</b> })}
               </Alert>
               {sampleLine(sampleDetailsOf(sample)) && (
                 <Typography variant="body2" data-sample-sent="">
-                  <b>The lab will check:</b> {sampleLine(sampleDetailsOf(sample))}.
+                  {rich(
+                    t('app.lab.send.labWillCheck'),
+                    { b: (c) => <b>{c}</b> },
+                    { line: sampleLine(sampleDetailsOf(sample), tr) },
+                  )}
                 </Typography>
               )}
               <Typography variant="caption" color="text.secondary">
-                Nothing has changed yet. Your plant&apos;s page shows “waiting” until they enter the code, and can show
-                this code again. They paste it into the box on VeilCore&apos;s Home.
+                {t('app.lab.send.nothingYet')}
               </Typography>
             </Stack>
           ) : (
             <Stack spacing={2} sx={{ pt: 1 }}>
               <Typography variant="body2" color="text.secondary">
-                They get their own record of what they received, linked to yours. When they sign that it arrived, it is
-                signed with their key, not yours: a second party on your record.
+                {t('app.lab.send.intro')}
               </Typography>
               <TextField
-                label="Who are you sending it to?"
-                helperText="A name or handle for them, so you both know which delivery this is."
+                label={t('app.lab.send.who')}
+                helperText={t('app.lab.send.whoHelp')}
                 value={handle}
                 onChange={(e) => setHandle(e.target.value)}
                 fullWidth
               />
               <TextField
-                label="Quantity (optional)"
-                placeholder="e.g. 10 cuttings"
+                label={t('app.lab.send.quantity')}
+                placeholder={t('app.lab.send.quantityPlaceholder')}
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 fullWidth
               />
               <TextField
-                label="Note for the lab (optional)"
-                helperText="Only the lab sees it, once they enter the code."
+                label={t('app.lab.send.note')}
+                helperText={t('app.lab.send.noteHelp')}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 fullWidth
               />
               {showSample ? (
                 <Stack spacing={1.5} data-sample-details="">
-                  <Typography variant="subtitle2">The sample (optional)</Typography>
+                  <Typography variant="subtitle2">{t('app.lab.send.sample')}</Typography>
                   <Typography variant="caption" color="text.secondary" sx={{ mt: '0 !important' }}>
-                    The lab checks these when it arrives and confirms or corrects each one. Its signed receipt covers
-                    what you wrote and what it found.
+                    {t('app.lab.send.sampleHelp')}
                   </Typography>
-                  <TextField label="Sample ID / label on the tube or bag" {...sampleField('sampleId')} />
-                  <TextField label="Seal or bag number" {...sampleField('sealNumber')} />
+                  <TextField label={t('app.lab.send.sampleId')} {...sampleField('sampleId')} />
+                  <TextField label={t('app.lab.send.sealNumber')} {...sampleField('sealNumber')} />
                   <TextField
-                    label="Taken from"
-                    helperText="The mother plant or its location tag."
+                    label={t('app.lab.field.takenFrom')}
+                    helperText={t('app.lab.send.takenFromHelp')}
                     {...sampleField('takenFrom')}
                   />
                   <TextField
-                    label="Taken on"
+                    label={t('app.lab.field.takenOn')}
                     type="date"
                     slotProps={{ inputLabel: { shrink: true } }}
                     {...sampleField('takenOn')}
                   />
                   <TextField
-                    label="Witness (optional)"
-                    helperText="Who saw it taken and sealed. VeilCore doesn’t check this."
+                    label={t('app.lab.send.witness')}
+                    helperText={t('app.lab.send.witnessHelp')}
                     {...sampleField('witness')}
                   />
                 </Stack>
               ) : (
                 <Button size="small" onClick={() => setShowSample(true)} sx={{ alignSelf: 'flex-start' }}>
-                  Add the sample&apos;s label and seal (optional)
+                  {t('app.lab.send.addSample')}
                 </Button>
               )}
               {problems.length > 0 && (
@@ -251,10 +255,10 @@ export const SendToLab: React.FC<{
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={reset}>{transferId ? 'Done' : 'Cancel'}</Button>
+          <Button onClick={reset}>{transferId ? t('app.backup.done') : t('app.common.cancel')}</Button>
           {!transferId && (
             <Button variant="contained" onClick={send} disabled={busy || !handle.trim() || problems.length > 0}>
-              Make a code for the lab
+              {t('app.lab.send.make')}
             </Button>
           )}
         </DialogActions>
@@ -271,20 +275,23 @@ const EMPTY_SAMPLE: Record<keyof SampleDetails, string> = {
   witness: '',
 };
 
-const ShareCodeButton: React.FC<{ code: string; name: string }> = ({ code, name }) => (
-  <Button
-    size="small"
-    variant="outlined"
-    startIcon={<ShareIcon />}
-    sx={{ flex: 1, minHeight: 40 }}
-    onClick={() => {
-      // Cancelling the share sheet rejects; nothing to tell anyone.
-      navigator.share({ title: `Lab code for ${name}`, text: code }).catch(() => undefined);
-    }}
-  >
-    Share
-  </Button>
-);
+const ShareCodeButton: React.FC<{ code: string; name: string }> = ({ code, name }) => {
+  const { t } = useT();
+  return (
+    <Button
+      size="small"
+      variant="outlined"
+      startIcon={<ShareIcon />}
+      sx={{ flex: 1, minHeight: 40 }}
+      onClick={() => {
+        // Cancelling the share sheet rejects; nothing to tell anyone.
+        navigator.share({ title: t('app.lab.send.shareTitle', { name }), text: code }).catch(() => undefined);
+      }}
+    >
+      {t('app.lab.send.share')}
+    </Button>
+  );
+};
 
 /**
  * "Sent to <handle>, waiting" on the breeder's plant page, for codes nobody has used yet,
@@ -292,6 +299,7 @@ const ShareCodeButton: React.FC<{ code: string; name: string }> = ({ code, name 
  */
 export const WaitingDeliveries: React.FC<{ open: readonly SentTransfer[] }> = ({ open }) => {
   const [shown, setShown] = useState<string>();
+  const tr = useT();
   if (open.length === 0) return null;
   return (
     <Stack spacing={1}>
@@ -310,14 +318,18 @@ export const WaitingDeliveries: React.FC<{ open: readonly SentTransfer[] }> = ({
                   onClick={() => setShown(shown === t.id ? undefined : t.id)}
                   sx={{ minHeight: 40 }}
                 >
-                  {shown === t.id ? 'Hide' : 'Show code again'}
+                  {shown === t.id ? tr.t('app.lab.send.hide') : tr.t('app.lab.send.showAgain')}
                 </Button>
               ) : undefined
             }
           >
-            <b>Sent to {t.to_handle}, waiting</b> since {new Date(t.created_at).toLocaleDateString()}.
-            {t.sample_custody && ` ${sampleLine(t.sample_custody)}.`}
-            {!code && ' This code was made in another browser and isn’t in this one; make a new one if it’s lost.'}
+            {rich(
+              tr.t('app.lab.send.waiting'),
+              { b: (c) => <b>{c}</b> },
+              { handle: t.to_handle, date: tr.date(t.created_at) },
+            )}
+            {t.sample_custody && tr.t('app.lab.send.waitingSample', { line: sampleLine(t.sample_custody, tr) })}
+            {!code && tr.t('app.lab.send.otherBrowser')}
             {shown === t.id && code && (
               <Box sx={{ mt: 1 }}>
                 <Box
@@ -339,7 +351,7 @@ export const WaitingDeliveries: React.FC<{ open: readonly SentTransfer[] }> = ({
                     onClick={() => void navigator.clipboard.writeText(code)}
                     sx={{ minHeight: 40 }}
                   >
-                    Copy code
+                    {tr.t('app.lab.send.copy')}
                   </Button>
                   {typeof navigator.share === 'function' && <ShareCodeButton code={code} name={t.to_handle} />}
                 </Stack>

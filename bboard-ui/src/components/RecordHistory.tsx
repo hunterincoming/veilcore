@@ -16,6 +16,7 @@ import { anchorHistoryEvent } from './verify/anchor-words';
 import type { StrainRecord } from '../veilcore/records';
 import { ACCENT } from '../config/theme';
 import { utcStamp } from '../veilcore/time';
+import { useT } from '../i18n/app';
 
 type Event = { at: number; title: string; detail: string; strong?: boolean };
 
@@ -24,6 +25,8 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
   // The batch's date stamp: the same proof and Midnight look-up as the status card and the
   // "Date on Midnight" section (useAnchorCheck.ts), so History never says something else.
   const { proof, anchor } = useRecordDate(record.recordFingerprint);
+  const tr = useT();
+  const { t } = tr;
 
   useEffect(() => {
     let cancelled = false;
@@ -32,29 +35,31 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
 
       out.push({
         at: record.loggedAt,
-        title: 'Sealed',
+        title: t('app.plant.chain.sealed'),
         detail: record.supersedes
-          ? `Issued as a correction to ${record.supersedes.recordId}. Reason given: ${record.supersedes.reason}.`
-          : 'The holder committed to a description of this material, dated by the sealing device’s clock.',
+          ? t('app.plant.history.correctionOf', { id: record.supersedes.recordId, reason: record.supersedes.reason })
+          : t('app.plant.history.sealed'),
       });
 
       if (record.receivedAt && record.receivedFrom) {
         out.push({
           at: record.receivedAt,
-          title: 'Received',
-          detail: `Arrived through a transfer from ${record.receivedFrom}${record.quantity ? `, ${record.quantity}` : ''}.`,
+          title: t('app.plant.history.received'),
+          detail: record.quantity
+            ? t('app.plant.history.arrivedQty', { from: record.receivedFrom, qty: record.quantity })
+            : t('app.plant.history.arrived', { from: record.receivedFrom }),
         });
       }
 
       const atts = await attestationsFor(record.recordFingerprint);
       for (const a of atts) {
-        const s = strengthLabel(a);
+        const s = strengthLabel(a, tr);
         out.push({ at: new Date(a.issuedAt).getTime(), title: s.label, detail: s.why, strong: s.ok });
         if (a.retraction) {
           out.push({
             at: new Date(a.retraction.retractedAt).getTime(),
-            title: 'Attestation retracted',
-            detail: `The attester withdrew it with a retraction signed by their key. Reason: ${a.retraction.reason}. The attestation remains on record — retraction is not deletion.`,
+            title: t('app.plant.history.retracted'),
+            detail: t('app.plant.history.retractedDetail', { reason: a.retraction.reason }),
           });
         }
       }
@@ -62,8 +67,8 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
       if (record.supersededBy) {
         out.push({
           at: Date.now(),
-          title: 'Corrected',
-          detail: 'A later record supersedes this one. This record is unchanged and remains on file.',
+          title: t('app.plant.history.corrected'),
+          detail: t('app.plant.history.correctedDetail'),
         });
       }
 
@@ -72,22 +77,26 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
     return () => {
       cancelled = true;
     };
-  }, [record]);
+  }, [record, tr]);
 
   const all = useMemo(() => {
     if (!events) return null;
     // Only a proof checked here (bound to this record, path folding to its root) is listed.
     if (proof === 'checking' || proof.status !== 'anchor-reported') return events;
     const p = proof.proof;
-    const e = anchorHistoryEvent(anchor, {
-      network: p.anchor?.network ?? '',
-      txHash: p.anchor?.txHash,
-      anchoredAt: p.anchor?.anchoredAt,
-      batchId: p.batchId,
-    });
+    const e = anchorHistoryEvent(
+      anchor,
+      {
+        network: p.anchor?.network ?? '',
+        txHash: p.anchor?.txHash,
+        anchoredAt: p.anchor?.anchoredAt,
+        batchId: p.batchId,
+      },
+      tr,
+    );
     if (e.at === undefined) return events;
     return [...events, { at: e.at, title: e.title, detail: e.detail, strong: e.strong }].sort((a, b) => a.at - b.at);
-  }, [events, proof, anchor]);
+  }, [events, proof, anchor, tr]);
 
   if (!all || all.length <= 1) return null;
 
@@ -95,7 +104,7 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
     <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
       <Stack spacing={0}>
         <Typography variant="overline" sx={{ display: 'block', mb: 1.5 }}>
-          History
+          {t('app.plant.history.title')}
         </Typography>
         {all.map((e, i) => (
           <Box

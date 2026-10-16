@@ -1,10 +1,12 @@
-// The language picker in the header, and the banner over a draft translation.
+// The language picker in the header, and the banner over a draft translation. LanguageBar
+// is both, for a page of the app with no header of its own (the check page, a prove link,
+// an agreement to sign, the documents).
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
 import { Box, Button, MenuItem, TextField, Typography } from '@mui/material';
 import TranslateIcon from '@mui/icons-material/Translate';
-import { LANGUAGES, useI18n, type Lang } from './index';
+import { LANGUAGE_NAMES, useI18n, type Lang } from './index';
 import { en } from './en';
 
 export const LanguagePicker: React.FC = () => {
@@ -17,12 +19,13 @@ export const LanguagePicker: React.FC = () => {
       value={lang}
       onChange={(e) => setLang(e.target.value as Lang)}
       aria-label={t('nav.language')}
+      data-language-picker=""
       slotProps={{
         select: {
           renderValue: (v) => (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
               <TranslateIcon sx={{ fontSize: 16, color: 'primary.main' }} />
-              {LANGUAGES[v as Lang].short}
+              {LANGUAGE_NAMES[v as Lang].short}
             </Box>
           ),
         },
@@ -31,7 +34,7 @@ export const LanguagePicker: React.FC = () => {
     >
       {choices.map((l) => (
         <MenuItem key={l} value={l} lang={l}>
-          {LANGUAGES[l].label}
+          {LANGUAGE_NAMES[l].label}
         </MenuItem>
       ))}
     </TextField>
@@ -68,6 +71,22 @@ export const DraftBanner: React.FC = () => {
       <Button size="small" variant="outlined" onClick={() => setLang('en')}>
         {t('draft.showEnglish')}
       </Button>
+    </Box>
+  );
+};
+
+/** The picker on the right and the draft banner under it, for a page with no header. */
+export const LanguageBar: React.FC = () => {
+  const { choices, isDraft } = useI18n();
+  if (choices.length < 2 && !isDraft) return null;
+  return (
+    <Box data-language-bar="">
+      {choices.length >= 2 && (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1.5 }}>
+          <LanguagePicker />
+        </Box>
+      )}
+      <DraftBanner />
     </Box>
   );
 };

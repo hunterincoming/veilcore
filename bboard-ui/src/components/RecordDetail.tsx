@@ -15,7 +15,8 @@ import { ProveOwnershipPanel } from './chain/ProveOwnershipPanel';
 import { BackupStep } from './flow/BackupStep';
 import { SectionBand, focusScreenHeading, type Section } from './flow/FlowFrame';
 import { ActionRow, PlantStatus } from './flow/PlantParts';
-import { PRACTICE_LABEL } from '../config/copy';
+import { rich, useT } from '../i18n/app';
+import { breedingMethodWords } from './flow/breeding-methods';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -37,7 +38,7 @@ import { LabReportOverview } from './stage/LabReportOverview';
 import { isLabReportRecord } from './stage/record-kinds';
 import { upstreamOwnRoyalties } from './stage/self-chain';
 import { SettlementStatus } from './SettlementStatus';
-import { EvidenceBundle, DOWNLOAD_EVIDENCE_LABEL } from './EvidenceBundle';
+import { EvidenceBundle } from './EvidenceBundle';
 import { BreedingHistory } from './history/BreedingHistory';
 import { REAL_CHAIN } from '../veilcore/chain/config';
 import { AnchorOnChainPanel } from './chain/AnchorOnChainPanel';
@@ -144,6 +145,8 @@ export const RecordDetail: React.FC = () => {
   // focus to its heading (or the plant's name), so a screen reader says where they are.
   // The first render is the route's, and App already focuses that.
   const firstMode = useRef(true);
+  const tr = useT();
+  const { t, tp } = tr;
   useEffect(() => {
     if (firstMode.current) {
       firstMode.current = false;
@@ -158,18 +161,17 @@ export const RecordDetail: React.FC = () => {
         <AppHeader />
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="h6" component="h1" sx={{ mb: 1 }}>
-            This record isn&apos;t in this browser
+            {t('app.plant.notHere')}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 480, mx: 'auto', mb: 2 }}>
-            If you sealed it in another browser, save a backup there and open it here (Get your plants back). If it is
-            someone else&apos;s record, open the verify link they gave you instead.
+            {t('app.plant.notHereText')}
           </Typography>
           <Stack direction="row" spacing={1} sx={{ justifyContent: 'center', flexWrap: 'wrap', gap: 1 }}>
             <Button component={RouterLink} to="/records" startIcon={<ArrowBackIcon />}>
-              Your records
+              {t('app.plant.yourRecords')}
             </Button>
             <Button component={RouterLink} to="/verify">
-              Check a record
+              {t('app.plant.checkARecord')}
             </Button>
           </Stack>
         </Paper>
@@ -199,7 +201,7 @@ export const RecordDetail: React.FC = () => {
       <AppHeader />
 
       <Button component={RouterLink} to="/records" startIcon={<HomeIcon />} sx={{ mb: 1.5, minHeight: 44 }}>
-        Home
+        {t('app.plant.home')}
       </Button>
 
       <Box sx={{ mb: 2.5 }}>
@@ -207,7 +209,10 @@ export const RecordDetail: React.FC = () => {
           {record.strainName}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
-          {record.receivedFrom ? `Received from ${record.receivedFrom}` : `Bred by ${record.bredBy}`} · {record.id}
+          {record.receivedFrom
+            ? t('app.home.receivedFrom', { name: record.receivedFrom })
+            : t('app.plant.bredByName', { name: record.bredBy })}{' '}
+          · {record.id}
         </Typography>
       </Box>
 
@@ -227,21 +232,29 @@ export const RecordDetail: React.FC = () => {
               know a correction exists, and a correcting record needs to point back. */}
           {record.supersededBy && (
             <Alert severity="info" variant="outlined">
-              This record was corrected. A correction never edits or deletes it: it remains on file unchanged, and a
-              later record supersedes it.{' '}
-              <Link component={RouterLink} to={`/record/${record.supersededBy}`}>
-                See the correction
-              </Link>
+              {rich(t('app.plant.corrected'), {
+                link: (c) => (
+                  <Link component={RouterLink} to={`/record/${record.supersededBy}`}>
+                    {c}
+                  </Link>
+                ),
+              })}
             </Alert>
           )}
 
           {record.supersedes && (
             <Alert severity="info" variant="outlined">
-              This corrects an earlier record. Changed: {record.supersedes.changedFields.join(', ')}. Reason given:{' '}
-              {record.supersedes.reason}.{' '}
-              <Link component={RouterLink} to={`/record/${record.supersedes.recordId}`}>
-                See what it replaced
-              </Link>
+              {rich(
+                t('app.plant.corrects'),
+                {
+                  link: (c) => (
+                    <Link component={RouterLink} to={`/record/${record.supersedes?.recordId}`}>
+                      {c}
+                    </Link>
+                  ),
+                },
+                { fields: record.supersedes.changedFields.join(', '), reason: record.supersedes.reason },
+              )}
             </Alert>
           )}
 
@@ -263,12 +276,18 @@ export const RecordDetail: React.FC = () => {
               keys={keys}
               trigger={(open) => (
                 <Typography variant="body2" sx={{ mt: -1.5 }}>
-                  <Link component="button" type="button" onClick={open} sx={{ verticalAlign: 'baseline' }}>
-                    {DOWNLOAD_EVIDENCE_LABEL}
-                  </Link>{' '}
-                  <Box component="span" sx={{ color: 'text.secondary' }}>
-                    to check this record’s date without VeilCore
-                  </Box>
+                  {rich(t('app.plant.evidenceLine'), {
+                    link: (c) => (
+                      <Link component="button" type="button" onClick={open} sx={{ verticalAlign: 'baseline' }}>
+                        {c}
+                      </Link>
+                    ),
+                    muted: (c) => (
+                      <Box component="span" sx={{ color: 'text.secondary' }}>
+                        {c}
+                      </Box>
+                    ),
+                  })}
                 </Typography>
               )}
             />
@@ -283,12 +302,11 @@ export const RecordDetail: React.FC = () => {
               icon={<LockIcon />}
               action={
                 <Button color="inherit" onClick={() => openResult(waiting[0].result.id)} sx={{ minHeight: 40 }}>
-                  Open
+                  {t('app.plant.open')}
                 </Button>
               }
             >
-              {waiting.length === 1 ? 'A lab report came back' : `${waiting.length} lab reports came back`}, locked so
-              only you can open {waiting.length === 1 ? 'it' : 'them'}.
+              {tp('app.plant.reportsCameBack', waiting.length)}
             </Alert>
           )}
 
@@ -323,78 +341,82 @@ export const RecordDetail: React.FC = () => {
               first, so the same job looks the same here and on Home. */}
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-              More you can do
+              {t('app.plant.moreYouCanDo')}
             </Typography>
             <Paper sx={{ px: { xs: 1.5, md: 2 } }}>
               <ActionRow
                 section="prove"
-                label="Show someone"
-                hint="Pick what they see"
+                label={t('app.plant.action.show')}
+                hint={t('app.plant.action.showHint')}
                 onClick={() => setMode('share')}
               />
               {REAL_CHAIN && keys?.anchor && (
                 <ActionRow
                   section="prove"
-                  label="Someone asked me to prove I hold it"
+                  label={t('app.plant.action.askedToProve')}
                   onClick={() => setMode('prove')}
                 />
               )}
-              <ActionRow section="prove" label="Certificate" onClick={() => setMode('cert')} />
+              <ActionRow section="prove" label={t('app.plant.action.certificate')} onClick={() => setMode('cert')} />
               {LAB_RESULTS_ENABLED && record.receivedFrom && record.transferId && (
                 <ActionRow
                   section="send"
-                  label="Send results back to the breeder"
-                  hint="Signed by you, locked for them"
+                  label={t('app.plant.action.sendResults')}
+                  hint={t('app.plant.action.sendResultsHint')}
                   onClick={() => setMode('sendResults')}
                 />
               )}
               {received && labReceipt?.kind === 'not-signed' && (
                 <ActionRow
                   section="send"
-                  label="Sign receipt"
-                  hint="Sign that this sample arrived, or turn it away"
+                  label={t('app.plant.action.signReceipt')}
+                  hint={t('app.plant.action.signReceiptHint')}
                   onClick={() => setMode('signReceipt')}
                 />
               )}
               {received && labReceipt?.kind === 'signed' && !labReceipt.linked && (
                 <ActionRow
                   section="send"
-                  label="Link your receipt"
-                  hint="Your receipt is signed; link it to the delivery so the breeder sees it"
+                  label={t('app.plant.action.linkReceipt')}
+                  hint={t('app.plant.action.linkReceiptHint')}
                   onClick={() => setMode('signReceipt')}
                 />
               )}
               {arrived && arrived.length > 0 && (
-                <ActionRow section="send" label="Lab reports" onClick={() => openResult()} />
+                <ActionRow section="send" label={t('app.plant.action.labReports')} onClick={() => openResult()} />
               )}
               {!labOnly && (
                 <SendToLab
                   record={record}
-                  trigger={(open) => <ActionRow section="send" label="Send it to a lab or breeder" onClick={open} />}
+                  trigger={(open) => (
+                    <ActionRow section="send" label={t('app.plant.action.sendToLab')} onClick={open} />
+                  )}
                 />
               )}
               {!labOnly && (
                 <ActionRow
                   section="license"
-                  label="License it"
-                  tag={PRACTICE_LABEL}
+                  label={t('app.plant.action.licenseIt')}
+                  tag={t('app.copy.practiceLabel')}
                   onClick={() => navigate(`/record/${record.id}/license?type=license`)}
                 />
               )}
               {!record.dnaFingerprint && !received && (
-                <ActionRow section="log" label="Save a lab report to this plant" onClick={() => setMode('pair')} />
+                <ActionRow section="log" label={t('app.plant.action.saveReport')} onClick={() => setMode('pair')} />
               )}
               {/* The next stage of a breeding history, and dating the saved lab report (components/stage). */}
               <StageRows record={record} labOnly={labOnly} saved={saved} />
-              <ActionRow section="log" label="Check a report matches" onClick={() => setMode('check')} />
-              {hasFamily && <ActionRow section="log" label="Family tree" onClick={() => setMode('tree')} />}
+              <ActionRow section="log" label={t('app.plant.action.checkReport')} onClick={() => setMode('check')} />
+              {hasFamily && (
+                <ActionRow section="log" label={t('app.plant.action.familyTree')} onClick={() => setMode('tree')} />
+              )}
               {REAL_CHAIN && keys && (
-                <ActionRow section="log" label="Save a fresh backup" onClick={() => setMode('backup')} />
+                <ActionRow section="log" label={t('app.plant.action.freshBackup')} onClick={() => setMode('backup')} />
               )}
               {/* A holder who mistypes something needs a path that is not deletion. */}
               <CorrectRecord
                 record={record}
-                trigger={(open) => <ActionRow section="log" label="Fix a mistake" last onClick={open} />}
+                trigger={(open) => <ActionRow section="log" label={t('app.plant.action.fix')} last onClick={open} />}
               />
             </Paper>
           </Box>
@@ -402,14 +424,14 @@ export const RecordDetail: React.FC = () => {
           {licenses.length > 0 && (
             <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
               <Typography variant="overline" sx={{ display: 'block', mb: 1.5 }}>
-                Agreements {PRACTICE_LABEL && `· ${PRACTICE_LABEL}`}
+                {t('app.plant.agreements')} {t('app.copy.practiceLabel') && `· ${t('app.copy.practiceLabel')}`}
               </Typography>
               <Stack spacing={1}>
                 {licenses.map((l) => (
                   <Stack
                     key={l.id}
                     direction="row"
-                    {...linkCard(() => navigate(`/license/${l.id}`), `Open agreement ${l.id}`)}
+                    {...linkCard(() => navigate(`/license/${l.id}`), t('app.plant.openAgreement', { id: l.id }))}
                     sx={{
                       justifyContent: 'space-between',
                       alignItems: 'center',
@@ -421,7 +443,7 @@ export const RecordDetail: React.FC = () => {
                     }}
                   >
                     <Typography variant="body2" sx={{ minWidth: 0 }} noWrap>
-                      {l.terms.licensee || 'unnamed counterparty'} · {l.id}
+                      {l.terms.licensee || t('app.plant.unnamedCounterparty')} · {l.id}
                     </Typography>
                     <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                       <AgreementTypeChip type={agreementType(l)} />
@@ -444,38 +466,43 @@ export const RecordDetail: React.FC = () => {
               endIcon={details ? <ExpandLessIcon /> : <ExpandMoreIcon />}
               sx={{ minHeight: 44 }}
             >
-              Technical details
+              {t('app.plant.technicalDetails')}
             </Button>
             <Collapse in={details} id="record-technical-details">
               <Stack spacing={2.5} sx={{ pt: 1 }}>
                 <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
                   <Stack spacing={2}>
-                    <Field label="Bred by">{record.bredBy}</Field>
-                    {record.taxon && <Field label="Species">{record.taxon}</Field>}
-                    {record.breedingMethod && <Field label="Breeding method">{record.breedingMethod}</Field>}
-                    {record.parents && record.parents.length > 0 && (
-                      <Field label="Parents">{record.parents.map((p) => p.name).join(' × ')}</Field>
+                    <Field label={t('app.log.bredBy')}>{record.bredBy}</Field>
+                    {record.taxon && <Field label={t('app.log.species')}>{record.taxon}</Field>}
+                    {record.breedingMethod && (
+                      <Field label={t('app.plant.f.method')}>{breedingMethodWords(record.breedingMethod, tr)}</Field>
                     )}
-                    <Field label="Stated creation date (breeder's claim)">{record.dateCreated}</Field>
-                    <Field label="Sealed (this device's clock)">{fmt(record.loggedAt)}</Field>
-                    {record.refId && <Field label="Reference / lot ID">{record.refId}</Field>}
+                    {record.parents && record.parents.length > 0 && (
+                      <Field label={t('app.log.parents')}>{record.parents.map((p) => p.name).join(' × ')}</Field>
+                    )}
+                    <Field label={t('app.plant.f.statedDate')}>{record.dateCreated}</Field>
+                    <Field label={t('app.plant.f.sealedClock')}>{fmt(record.loggedAt)}</Field>
+                    {record.refId && <Field label={t('app.plant.f.ref')}>{record.refId}</Field>}
                     {record.photoFingerprints && record.photoFingerprints.length > 0 && (
-                      <Field label="Photos">
-                        {record.photoFingerprints.length} sealed (fingerprints only; the images were never uploaded)
+                      <Field label={t('app.plant.f.photos')}>
+                        {t('app.plant.f.photosSealed', { n: record.photoFingerprints.length })}
                       </Field>
                     )}
-                    {record.notes && <Field label="Notes">{record.notes}</Field>}
-                    <Field label="Lab report">
+                    {record.notes && <Field label={t('app.log.notes')}>{record.notes}</Field>}
+                    <Field label={t('app.plant.labReport')}>
                       {record.dnaFingerprint
-                        ? `saved to this plant (${record.dnaFileName ?? 'file'}) · pairing fingerprint ${shortFingerprint(record.dnaFingerprint)}${
-                            saved && saved.kind !== 'none' && saved.sha
-                              ? ` · file SHA-256 ${shortFingerprint(saved.sha)}`
-                              : ''
-                          }`
-                        : 'not saved yet'}
+                        ? t('app.plant.f.reportSaved', {
+                            file: record.dnaFileName ?? t('app.plant.f.file'),
+                            fp: shortFingerprint(record.dnaFingerprint),
+                            sha:
+                              saved && saved.kind !== 'none' && saved.sha
+                                ? t('app.plant.f.fileSha', { sha: shortFingerprint(saved.sha) })
+                                : '',
+                          })
+                        : t('app.plant.f.notSavedYet')}
                     </Field>
                     <Divider />
-                    <Field label="Record fingerprint">
+                    <Field label={t('app.plant.f.recordFingerprint')}>
                       <Box component="span" sx={{ fontFamily: '"Space Grotesk", monospace' }}>
                         {shortFingerprint(record.recordFingerprint)}
                       </Box>
@@ -502,12 +529,10 @@ export const RecordDetail: React.FC = () => {
                 <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
                   <Stack spacing={1}>
                     <Typography variant="overline" sx={{ display: 'block' }}>
-                      Evidence bundle
+                      {t('app.plant.evidenceBundle')}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      The record as sealed, its inclusion proof, the batch root, where the batch was recorded, the
-                      Bitcoin stamp file if there is one, and lab signatures about it, in one .zip. Its verify.html
-                      checks it with no internet and nothing from VeilCore, and says what to look up to date it.
+                      {t('app.plant.evidenceBundleText')}
                     </Typography>
                     <Box>
                       <EvidenceBundle record={record} keys={keys} />
@@ -529,11 +554,11 @@ export const RecordDetail: React.FC = () => {
                     onClick={() => {
                       setExportError(null);
                       exportEnvelope(record.id).catch((e: unknown) =>
-                        setExportError(e instanceof Error ? e.message : 'The record could not be exported.'),
+                        setExportError(e instanceof Error ? e.message : t('app.plant.exportFailed')),
                       );
                     }}
                   >
-                    Export record
+                    {t('app.plant.exportRecord')}
                   </Button>
                   {exportError && (
                     <Alert severity="error" variant="outlined">
@@ -556,7 +581,7 @@ export const RecordDetail: React.FC = () => {
                 recordId={record.id}
                 onBack={back}
                 onDone={back}
-                doneLabel="Back to the plant"
+                doneLabel={t('app.plant.backToPlant')}
                 initialFile={pairFile?.file}
                 from={pairFile?.from}
               />
@@ -586,13 +611,13 @@ export const RecordDetail: React.FC = () => {
                 onBack={back}
                 onDone={back}
                 saved={saved}
-                {...(datesReport ? { backLabel: 'Back to the record' } : {})}
+                {...(datesReport ? { backLabel: t('app.plant.backToRecord') } : {})}
               />
             )}
             {mode === 'backup' && (
               <BackupStep
-                title="Save your backup"
-                finishLabel={datesReport ? 'Back to the record' : 'Back to the plant'}
+                title={t('app.backup.title')}
+                finishLabel={datesReport ? t('app.plant.backToRecord') : t('app.plant.backToPlant')}
                 onDone={back}
                 headingComponent="h2"
               />
@@ -608,7 +633,7 @@ export const RecordDetail: React.FC = () => {
             mode === 'sendResults' ||
             mode === 'signReceipt') && (
             <Button onClick={back} startIcon={<ArrowBackIcon />} sx={{ mt: 1.5, minHeight: 44 }}>
-              Back to the plant
+              {t('app.plant.backToPlant')}
             </Button>
           )}
         </Box>

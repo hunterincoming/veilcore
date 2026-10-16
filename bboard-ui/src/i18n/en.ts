@@ -7,6 +7,7 @@ export const en = {
   'nav.newCultivar': 'New record',
   'nav.licenses': 'Agreements',
   'nav.language': 'Language',
+  'nav.main': 'Main',
   'footer.about':
     "An open record format for plant and animal genetics. Recomputing a record's fingerprint needs only SHA-256 and the open specification. Its date comes from one transaction on Midnight: the check page looks it up itself when it can reach Midnight, and otherwise says the date is our registry's report. Looking a record up by its identifier on this site uses our server.",
   'footer.documents': 'Documents',
@@ -23,9 +24,32 @@ export const en = {
   'footer.yourRecords': 'Your records',
   'footer.agreements': 'Agreements',
   'footer.privacy': 'Demo privacy',
-  'draft.banner':
-    'Draft translation, not yet checked by a fluent speaker. The English page is the authoritative version.',
+  'draft.banner': 'Machine-drafted translation, under review. The English page is the authoritative version.',
   'draft.showEnglish': 'Show English',
+  // The record app's frame (components/flow/FlowFrame.tsx) and the browser tab's title for
+  // each page (App.tsx). Here, with the public pages' text, because they load with the first
+  // file; the rest of the app's text is in app/.
+  'app.frame.section.log': 'Log',
+  'app.frame.section.send': 'Send & receive',
+  'app.frame.section.license': 'License & royalties',
+  'app.frame.section.prove': 'Prove & check',
+  'app.frame.home': 'Home. Your progress is saved.',
+  'title.founders': 'Founders',
+  'title.privacy': 'Demo privacy',
+  'title.privacyMainnet': 'Site privacy',
+  'title.example': 'Example record',
+  'title.verify': 'Check a record',
+  'title.import': 'Date your collection',
+  'title.records': 'Your plants',
+  'title.restore': 'Get your plants back',
+  'title.backup': 'Save your backup',
+  'title.spec': 'The record format',
+  'title.evidence': 'Records in evidence',
+  'title.integrate': 'Integrating VeilCore',
+  'title.implementations': 'Implementations',
+  'title.new': 'Log a plant',
+  'title.record': 'Record',
+  'title.agreements': 'Agreements',
 
   // Public pages (home and founders), laid out from Mako's 25 September templates.
   //

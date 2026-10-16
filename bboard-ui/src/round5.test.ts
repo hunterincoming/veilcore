@@ -136,7 +136,12 @@ describe('words the reviewer flagged', () => {
 
   it('the lab’s receipt row never reads “You confirmed receipt — not signed yet”', async () => {
     const { labReceiptRow, keyStampLine } = await import('./components/flow/plant-status-words');
-    expect(labReceiptRow({ kind: 'not-signed' })).toEqual({ done: false, label: 'Receipt not signed yet', value: '' });
+    expect(labReceiptRow({ kind: 'not-signed' })).toEqual({
+      done: false,
+      id: 'Receipt not signed yet',
+      label: 'Receipt not signed yet',
+      value: '',
+    });
     expect(keyStampLine(undefined)).toBe(
       'Key date stamped: not yet. Your plant’s key is dated too, so you can prove you hold it later.',
     );

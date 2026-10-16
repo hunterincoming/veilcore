@@ -56,7 +56,7 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
     <ThemeProvider theme={lightTheme}>
       {/* lang here as well as on <html>: site.css sets Japanese line breaking with :lang(ja). */}
       <div className="vcm" lang={lang}>
-        <nav className="top" aria-label="Main">
+        <nav className="top" aria-label={t('nav.main')}>
           <div className="nav-in">
             <RouterLink className="brand" to="/">
               <i aria-hidden="true" />

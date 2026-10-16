@@ -9,16 +9,26 @@
 import React from 'react';
 import { Link } from '@mui/material';
 import type { SignerLabel } from '../veilcore/attesters';
+import { useT } from '../i18n/app';
 
-/** signerLabel's `rest` (nothing when the name isn't checked), with a leading space. */
-export const NameCheckText: React.FC<{ label: SignerLabel }> = ({ label }) =>
-  label.match ? (
+/**
+ * signerLabel's `rest` (nothing when the name isn't checked), with a leading space. `english`:
+ * inside a part that stays in English whatever the page's language (the certificate card).
+ */
+export const NameCheckText: React.FC<{ label: SignerLabel; english?: boolean }> = ({ label, english }) => {
+  // The space between sentences: ' ' in English, none in Japanese (app.signer.sep).
+  const page = useT().t('app.signer.sep');
+  const sep = english ? ' ' : page;
+  return label.match ? (
     <>
-      {' '}
+      {sep}
       {label.match.before}
       <Link href={label.match.href} target="_blank" rel="noopener noreferrer" data-name-check-source="">
         {label.match.host}
       </Link>
-      {label.match.after} {label.disclaimer}
+      {label.match.after}
+      {sep}
+      {label.disclaimer}
     </>
   ) : null;
+};

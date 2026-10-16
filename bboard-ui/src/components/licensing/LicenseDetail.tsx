@@ -31,6 +31,7 @@ import { getRecord, allRecords } from '../../veilcore/records';
 import { offspringOf } from '../stage/self-chain';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { AppHeader } from '../AppHeader';
+import { InEnglishPage } from '../../i18n/app';
 import { LicenseStateChip } from './LicenseStateChip';
 import { ShareLicense } from './ShareLicense';
 import { AgreementTypeChip } from './AgreementTypeChip';
@@ -70,6 +71,7 @@ export const LicenseDetail: React.FC = () => {
     return (
       <Box>
         <AppHeader />
+        <InEnglishPage />
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography sx={{ mb: 1 }}>This agreement isn&apos;t in this browser.</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -128,6 +130,7 @@ export const LicenseDetail: React.FC = () => {
   return (
     <Box>
       <AppHeader />
+      <InEnglishPage />
       <Button component={RouterLink} to="/licenses" size="small" startIcon={<ArrowBackIcon />} sx={{ mb: 2 }}>
         All agreements
       </Button>

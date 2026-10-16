@@ -29,13 +29,15 @@ import DownloadIcon from '@mui/icons-material/FileDownloadOutlined';
 import { createAttester, publishAttester, loadAttester, type AttesterProfile } from '../veilcore/attester-keys';
 import { Link as RouterLink } from 'react-router-dom';
 import { ACCENT } from '../config/theme';
+import { rich, useT } from '../i18n/app';
+import type { AppKey } from '../i18n/app/en';
 
-const ROLE_LABEL: Record<string, string> = {
-  laboratory: 'Laboratory',
-  inspector: 'Inspector',
-  registry: 'Registry',
-  breeder: 'Breeder',
-  other: 'Other',
+const ROLE_LABEL: Record<string, AppKey> = {
+  laboratory: 'app.lab.key.role.laboratory',
+  inspector: 'app.lab.key.role.inspector',
+  registry: 'app.lab.key.role.registry',
+  breeder: 'app.lab.key.role.breeder',
+  other: 'app.lab.key.role.other',
 };
 
 /** Opens the header's signing-key dialog from elsewhere on the page (a lab's first screen). */
@@ -55,6 +57,7 @@ export const AttesterSetup: React.FC<{
   const [accreditor, setAccreditor] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useT();
 
   useEffect(() => {
     const show = () => setOpen(true);
@@ -75,7 +78,7 @@ export const AttesterSetup: React.FC<{
       p = await createAttester(name.trim(), role, accreditation);
     } catch (e) {
       setBusy(false);
-      setError(e instanceof Error ? e.message : 'Could not create a key.');
+      setError(e instanceof Error ? e.message : t('app.lab.key.couldNotCreate'));
       setProfile(loadAttester());
       return;
     }
@@ -91,7 +94,7 @@ export const AttesterSetup: React.FC<{
     const out = await publishAttester(p);
     setBusy(false);
     if (out.error) {
-      setError(`Your key is saved in this browser but was not published: ${out.error}. Try again.`);
+      setError(t('app.lab.key.notPublished', { error: out.error }));
       return;
     }
     setProfile(loadAttester() ?? { ...p, registeredAt: Date.now() });
@@ -116,25 +119,26 @@ export const AttesterSetup: React.FC<{
           startIcon={<BadgeIcon />}
           onClick={() => setOpen(true)}
         >
-          {profile ? 'Your signing key' : 'Set up your signing key'}
+          {profile ? t('app.lab.key.yours') : t('app.lab.key.setUp')}
         </Button>
       )}
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{profile ? 'Your signing key' : 'Set up your signing key'}</DialogTitle>
+        <DialogTitle>{profile ? t('app.lab.key.yours') : t('app.lab.key.setUp')}</DialogTitle>
         <DialogContent>
           {profile ? (
             <Stack spacing={2} sx={{ pt: 1 }}>
               <Alert severity={profile.registeredAt ? 'success' : 'warning'} variant="outlined">
-                {profile.displayName} · {(profile.role && ROLE_LABEL[profile.role]) ?? profile.role ?? 'Other'}
+                {profile.displayName} ·{' '}
+                {(profile.role && ROLE_LABEL[profile.role] && t(ROLE_LABEL[profile.role])) ??
+                  profile.role ??
+                  t('app.lab.key.role.other')}
                 {profile.accreditation && ` · ${profile.accreditation.scheme} ${profile.accreditation.identifier}`}
-                {profile.registeredAt
-                  ? ''
-                  : ' · not published yet: until it is, nobody can match your signatures to this name.'}
+                {profile.registeredAt ? '' : t('app.lab.key.notPublishedYet')}
               </Alert>
               {!profile.registeredAt && (
                 <Button variant="contained" onClick={() => void publish(profile)} disabled={busy}>
-                  Publish again
+                  {t('app.lab.key.publishAgain')}
                 </Button>
               )}
               {error && (
@@ -144,77 +148,79 @@ export const AttesterSetup: React.FC<{
               )}
               <Box>
                 <Typography variant="overline" sx={{ display: 'block', color: ACCENT }}>
-                  Public key
+                  {t('app.lab.key.publicKey')}
                 </Typography>
                 <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
                   {profile.keypair.publicKey}
                 </Typography>
               </Box>
               <Alert severity="warning" variant="outlined">
-                Your private key is stored in this browser&apos;s storage, unencrypted, and nowhere else. That&apos;s
-                fine for trying it out. Anything that can run in this site, or a browser extension with access to it,
-                could read it. If you lose it you can&apos;t sign anything new; what you signed before stays valid, so
-                back it up somewhere safe. A lab using it for real would sign inside its own systems: see the{' '}
-                <Link component={RouterLink} to="/docs/integrate">
-                  integration guide
-                </Link>
-                .
+                {rich(t('app.lab.key.privateWarning'), {
+                  link: (c) => (
+                    <Link component={RouterLink} to="/docs/integrate">
+                      {c}
+                    </Link>
+                  ),
+                })}
               </Alert>
               <Button variant="outlined" startIcon={<DownloadIcon />} onClick={backup}>
-                Download key backup
+                {t('app.lab.key.downloadBackup')}
               </Button>
             </Stack>
           ) : (
             <Stack spacing={2} sx={{ pt: 1 }}>
               <Typography variant="body2" color="text.secondary">
-                When you confirm you received material, or sign a report, it is signed with a key only you hold. It
-                becomes your statement, not something we recorded on your behalf. The key is made in this browser; only
-                its public half, your name and any accreditation you enter are published.
+                {t('app.lab.key.intro')}
               </Typography>
               <TextField
-                label="Name"
+                label={t('app.lab.key.name')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 fullWidth
-                helperText="How you appear to anyone checking a record you signed."
+                helperText={t('app.lab.key.nameHelp')}
               />
               <TextField
                 select
-                label="Role"
+                label={t('app.lab.key.role')}
                 value={role}
                 onChange={(e) => setRole(e.target.value as AttesterProfile['role'])}
                 fullWidth
               >
-                <MenuItem value="laboratory">Laboratory</MenuItem>
-                <MenuItem value="inspector">Inspector</MenuItem>
-                <MenuItem value="registry">Registry</MenuItem>
-                <MenuItem value="breeder">Breeder</MenuItem>
-                <MenuItem value="other">Other</MenuItem>
+                <MenuItem value="laboratory">{t('app.lab.key.role.laboratory')}</MenuItem>
+                <MenuItem value="inspector">{t('app.lab.key.role.inspector')}</MenuItem>
+                <MenuItem value="registry">{t('app.lab.key.role.registry')}</MenuItem>
+                <MenuItem value="breeder">{t('app.lab.key.role.breeder')}</MenuItem>
+                <MenuItem value="other">{t('app.lab.key.role.other')}</MenuItem>
               </TextField>
 
               <Typography variant="overline" sx={{ display: 'block' }}>
-                Accreditation (optional)
+                {t('app.lab.key.accreditation')}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ mt: -1 }}>
-                We record this and never verify it. Whoever checks your signature can confirm it with the accreditor
-                directly; that&apos;s why you name them.
+                {t('app.lab.key.accreditationHelp')}
               </Typography>
-              <TextField select label="Scheme" value={scheme} onChange={(e) => setScheme(e.target.value)} fullWidth>
+              <TextField
+                select
+                label={t('app.lab.key.scheme')}
+                value={scheme}
+                onChange={(e) => setScheme(e.target.value)}
+                fullWidth
+              >
                 <MenuItem value="ISO/IEC 17025">ISO/IEC 17025</MenuItem>
                 <MenuItem value="ISO 9001">ISO 9001</MenuItem>
                 {/* The stored value stays "State licence", as profiles saved before the label changed hold it. */}
-                <MenuItem value="State licence">State license</MenuItem>
-                <MenuItem value="Other">Other</MenuItem>
+                <MenuItem value="State licence">{t('app.lab.key.stateLicense')}</MenuItem>
+                <MenuItem value="Other">{t('app.lab.key.role.other')}</MenuItem>
               </TextField>
               <TextField
-                label="Accreditation number"
+                label={t('app.lab.key.accNumber')}
                 value={accId}
                 onChange={(e) => setAccId(e.target.value)}
                 fullWidth
               />
               <TextField
-                label="Accreditor"
-                placeholder="e.g. A2LA, PJLA, state agency"
+                label={t('app.lab.key.accreditor')}
+                placeholder={t('app.lab.key.accreditorPlaceholder')}
                 value={accreditor}
                 onChange={(e) => setAccreditor(e.target.value)}
                 fullWidth
@@ -229,10 +235,10 @@ export const AttesterSetup: React.FC<{
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>{profile ? 'Done' : 'Cancel'}</Button>
+          <Button onClick={() => setOpen(false)}>{profile ? t('app.backup.done') : t('app.common.cancel')}</Button>
           {!profile && (
             <Button variant="contained" onClick={setup} disabled={busy || !name.trim()}>
-              Create my key
+              {t('app.lab.key.create')}
             </Button>
           )}
         </DialogActions>

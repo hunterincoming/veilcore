@@ -14,6 +14,8 @@ import React from 'react';
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { ACCENT } from '../config/theme';
+import { LanguageBar } from '../i18n/LanguagePicker';
+import { InEnglishPage } from '../i18n/app';
 
 const MONO = '"SFMono-Regular", ui-monospace, Menlo, monospace';
 
@@ -66,6 +68,8 @@ const Impl: React.FC<{
 export const Implementations: React.FC = () => (
   // Inside the app layout's own container, so no second set of side gutters on a phone.
   <Container maxWidth="lg" sx={{ pb: { xs: 4, sm: 10 }, px: { xs: 0, sm: 3 } }}>
+    <LanguageBar />
+    <InEnglishPage />
     <Box sx={{ pt: { xs: 2, sm: 6, md: 9 }, pb: { xs: 3, sm: 4, md: 6 } }}>
       <Typography variant="overline" sx={{ color: ACCENT, display: 'block', mb: 2 }}>
         Implementations

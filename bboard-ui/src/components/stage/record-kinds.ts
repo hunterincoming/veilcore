@@ -12,6 +12,7 @@
 
 import type { ParentRef, StrainRecord } from '../../veilcore/records';
 import { isLabReportRecord, parseLabReportNotes } from './lab-report-notes';
+import { enT, type Translator } from '../../i18n/translate';
 
 type Rec = Pick<StrainRecord, 'id' | 'strainName' | 'breedingMethod' | 'notes' | 'parents'>;
 
@@ -38,8 +39,8 @@ export const homeList = <R extends Rec>(records: readonly R[]): { cards: R[]; da
 export const LAB_REPORT_DATED_HOME = 'Lab report dated';
 
 /** A dating record's own card on Home (its plant isn't in the list): what it is, not a plant. */
-export const datingCardLine = (r: Pick<Rec, 'parents'>): string =>
-  `Dates a lab report for ${r.parents?.[0]?.name || 'a plant'}`;
+export const datingCardLine = (r: Pick<Rec, 'parents'>, tr: Translator = enT): string =>
+  tr.t('app.home.datesReportFor', { name: r.parents?.[0]?.name || tr.t('app.home.aPlant') });
 
 /** Parents a new plant can be logged with: plants only, never a record that dates a lab report. */
 export const parentOptionsOf = (records: readonly Rec[]): ParentRef[] =>
@@ -56,8 +57,6 @@ export const countKinds = (ids: readonly string[], records: readonly Rec[]): { p
   return { plants: ids.length - datings, datings };
 };
 
-const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-
 /** Home's backup warning: "A plant has", "5 plants have", or "6 records have" when they include dating records. */
 export const keysOnlyHereSubject = (ids: readonly string[], records: readonly Rec[]): string => {
   const { datings } = countKinds(ids, records);
@@ -65,30 +64,48 @@ export const keysOnlyHereSubject = (ids: readonly string[], records: readonly Re
   return ids.length === 1 ? `A ${noun} has` : `${ids.length} ${noun}s have`;
 };
 
-/** The backup check's "It works." line. */
-export const backupHoldsLine = (ids: readonly string[], records: readonly Rec[]): string => {
-  if (ids.length === 0) return 'Your records are in it.';
+/**
+ * Home's backup warning in the visitor's language, as a whole sentence: keysOnlyHereSubject's
+ * subject and the rest. `alert`: "… keys only on this device."; `reset`: "… keys with no
+ * checked backup. Save your backup first: …" (the Start over question).
+ */
+export const keysOnlyHereLine = (
+  ids: readonly string[],
+  records: readonly Rec[],
+  kind: 'alert' | 'reset',
+  tr: Translator = enT,
+): string => {
   const { datings } = countKinds(ids, records);
-  if (datings > 0) return ids.length === 1 ? 'Your record is in it.' : `All ${ids.length} of your records are in it.`;
-  return ids.length === 1 ? 'Your plant is in it.' : `All ${ids.length} of your plants are in it.`;
+  const noun = datings > 0 ? 'Records' : 'Plants';
+  return tr.tp(kind === 'alert' ? `app.home.keysOnlyHere${noun}` : `app.home.resetWarning${noun}`, ids.length);
+};
+
+/** The backup check's "It works." line. */
+export const backupHoldsLine = (ids: readonly string[], records: readonly Rec[], tr: Translator = enT): string => {
+  if (ids.length === 0) return tr.t('app.backup.holds.none');
+  const { datings } = countKinds(ids, records);
+  return tr.tp(datings > 0 ? 'app.backup.holds.records' : 'app.backup.holds.plants', ids.length);
 };
 
 /** "Keys for 3 plants restored." or "Keys for 4 records restored (3 plants, 1 dated lab report)." */
-export const restoredKeysLine = (ids: readonly string[], records: readonly Rec[]): string => {
+export const restoredKeysLine = (ids: readonly string[], records: readonly Rec[], tr: Translator = enT): string => {
   if (ids.length === 0) return '';
   const { plants, datings } = countKinds(ids, records);
-  if (datings === 0) return `Keys for ${plural(plants, 'plant', 'plants')} restored.`;
-  return `Keys for ${plural(ids.length, 'record', 'records')} restored (${plural(plants, 'plant', 'plants')}, ${plural(datings, 'dated lab report', 'dated lab reports')}).`;
+  if (datings === 0) return tr.tp('app.backup.restoredPlants', plants);
+  return tr.tp('app.backup.restoredRecords', ids.length, {
+    plants: tr.tp('app.backup.nPlants', plants),
+    datings: tr.tp('app.backup.nDatedReports', datings),
+  });
 };
 
 /** What a dating record's own page says it is, one line each, from its sealed notes. */
-export const labReportPageLines = (r: Pick<Rec, 'notes' | 'parents'>): string[] => {
+export const labReportPageLines = (r: Pick<Rec, 'notes' | 'parents'>, tr: Translator = enT): string[] => {
   const f = parseLabReportNotes(r.notes);
   if (!f) return [];
   return [
-    `Lab report SHA-256: ${f.sha}`,
-    ...(f.resultId ? [`Lab report code: ${f.resultId}`] : []),
-    `Lab, as signed: ${f.lab ?? 'no lab signature matched the saved file'}`,
+    tr.t('app.plant.labReportSha', { sha: f.sha }),
+    ...(f.resultId ? [tr.t('app.plant.labReportCode', { code: f.resultId })] : []),
+    tr.t('app.plant.labAsSigned', { lab: f.lab ?? tr.t('app.plant.noLabMatched') }),
   ];
 };
 
@@ -100,7 +117,11 @@ export const datingHomeStatus = (
   d: Pick<StrainRecord, 'loggedAt'>,
   keys: { backedUpAt?: number } | undefined,
   realChain: boolean,
+  tr: Translator = enT,
 ): { text: string; unfinished: boolean } =>
   realChain && keys && keys.backedUpAt === undefined
-    ? { text: `${LAB_REPORT_DATED_HOME} · not finished · next: save your backup`, unfinished: true }
-    : { text: `${LAB_REPORT_DATED_HOME} · sealed ${new Date(d.loggedAt).toLocaleDateString()}`, unfinished: false };
+    ? { text: tr.t('app.home.datingUnfinished', { dated: tr.t('app.home.labReportDated') }), unfinished: true }
+    : {
+        text: tr.t('app.home.datingSealed', { dated: tr.t('app.home.labReportDated'), date: tr.date(d.loggedAt) }),
+        unfinished: false,
+      };

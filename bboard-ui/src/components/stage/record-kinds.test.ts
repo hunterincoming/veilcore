@@ -30,9 +30,14 @@ import {
   parentOptionsOf,
   restoredKeysLine,
 } from './record-kinds';
+import { withEnglish } from '../../i18n/source-words';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const source = (rel: string) => fs.readFileSync(path.join(HERE, '..', rel), 'utf8');
+// Each t('app.…') read as the English it shows (i18n/source-words.ts).
+const source = (rel: string) => withEnglish(fs.readFileSync(path.join(HERE, '..', rel), 'utf8'));
+/** EvidenceBundle.tsx's button label, read from its source (the component needs a browser). */
+const DOWNLOAD_EVIDENCE_LABEL =
+  /DOWNLOAD_EVIDENCE_LABEL = '([^']+)'/.exec(source('EvidenceBundle.tsx'))?.[1] ?? '(none)';
 
 const local = new Map<string, string>();
 beforeEach(() => {
@@ -95,7 +100,7 @@ describe('Home: a dated lab report shows under its plant, not as a plant', () =>
   it('Home uses the list and the words', () => {
     const home = source('flow/AppHome.tsx');
     expect(home).toContain('homeList(records)');
-    expect(home).toContain('keysOnlyHereSubject(');
+    expect(home).toContain('keysOnlyHereLine(');
     expect(home).toContain('data-home-dated');
     expect(home).not.toMatch(/plants have`/);
   });
@@ -118,7 +123,7 @@ describe('counts say "records" when they include records that date a lab report'
     expect(backupHoldsLine([plant.id], all)).toBe('Your plant is in it.');
     expect(backupHoldsLine([plant.id, other.id], all)).toBe('All 2 of your plants are in it.');
     expect(backupHoldsLine([plant.id, dating.id], all)).toBe('All 2 of your records are in it.');
-    expect(source('flow/BackupStep.tsx')).toContain('backupHoldsLine(checked, records)');
+    expect(source('flow/BackupStep.tsx')).toContain('backupHoldsLine(checked, records, tr)');
   });
 
   it('restoring from a backup', () => {
@@ -161,10 +166,10 @@ describe('the page of a record that dates a lab report', () => {
   it('is its own short page: show someone, evidence bundle, technical details, backup, nothing else', () => {
     const page = source('stage/LabReportOverview.tsx');
     expect(page).toContain('This record dates a lab report for');
-    expect(page).toContain('label="Show someone"');
-    expect(page).toContain('DOWNLOAD_EVIDENCE_LABEL');
+    expect(page).toContain("label={'Show someone'}");
+    expect(page).toContain(DOWNLOAD_EVIDENCE_LABEL);
     expect(page).toContain('Technical details');
-    expect(page).toContain('label="Save a fresh backup"');
+    expect(page).toContain("label={'Save a fresh backup'}");
     for (const job of [
       'Certificate',
       'Send it to a lab',

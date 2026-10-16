@@ -22,6 +22,8 @@ import {
   AGREEMENT_LABEL,
 } from '../../veilcore/licenses';
 import { ACCENT } from '../../config/theme';
+import { LanguageBar } from '../../i18n/LanguagePicker';
+import { InEnglishPage } from '../../i18n/app';
 import { startRecordSync } from '../../veilcore/records';
 import { AGREEMENTS_SIMULATED, LICENSE_PROOF_NOTE, SIMULATED_TAG, THIS_SITE } from '../../config/copy';
 
@@ -52,6 +54,8 @@ export const CounterSignPage: React.FC = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
+        <LanguageBar />
+        <InEnglishPage />
         <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center', justifyContent: 'center', mb: 4 }}>
           <Box
             sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }}

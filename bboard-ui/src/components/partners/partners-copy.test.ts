@@ -10,7 +10,10 @@ import { describe, expect, it } from 'vitest';
 import { en } from '../../i18n/en';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const page = readFileSync(path.join(here, 'PartnersPage.tsx'), 'utf8');
+// The page's code and its English words (i18n/app/en/partners.ts), read as one.
+const page =
+  readFileSync(path.join(here, 'PartnersPage.tsx'), 'utf8') +
+  readFileSync(path.join(here, '../../i18n/app/en/partners.ts'), 'utf8');
 const guide = readFileSync(path.join(here, '../../../../docs/partners/require-a-record.md'), 'utf8');
 
 /** The contact address the site's privacy page gives. */

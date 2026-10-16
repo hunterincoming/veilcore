@@ -7,6 +7,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+import { enT, type Translator } from '../i18n/translate';
+import type { AppKey } from '../i18n/app/en';
 import { canonicalise, sha256Hex } from 'veilcore-records';
 import { holderKey, holderKeyIfAny } from './holder';
 import { readJson, isObject, isString, isNumber, optional, arrayField } from './json';
@@ -122,16 +124,16 @@ export const isCalendarDate = (t: string): boolean => {
   return at.getUTCFullYear() === y && at.getUTCMonth() === m - 1 && at.getUTCDate() === d;
 };
 
-const FIELD_WORDS: Record<string, string> = {
-  sampleId: 'Sample ID',
-  sealNumber: 'Seal number',
-  takenFrom: 'Taken from',
-  takenOn: 'Taken on',
-  witness: 'Witness',
-  arrivedOn: 'Arrived on',
-  condition: 'Condition',
-  labRef: 'Accession no.',
-  sealIntact: 'Seal intact',
+const FIELD_WORDS: Record<string, AppKey> = {
+  sampleId: 'app.lab.field.sampleId',
+  sealNumber: 'app.lab.field.sealNumber',
+  takenFrom: 'app.lab.field.takenFrom',
+  takenOn: 'app.lab.field.takenOn',
+  witness: 'app.lab.field.witness',
+  arrivedOn: 'app.lab.field.arrivedOn',
+  condition: 'app.lab.field.condition',
+  labRef: 'app.lab.field.labRef',
+  sealIntact: 'app.lab.field.sealIntact',
 };
 
 /**
@@ -145,7 +147,7 @@ const FIELD_WORDS: Record<string, string> = {
  *   - refused if it has a tab, line break or hidden character (a direction mark, a zero-width
  *     space; plain line breaks are allowed in `condition`), is too long, or is not a real date.
  */
-export const custodyValue = (key: string, raw: string): { value: string } | { error: string } => {
+export const custodyValue = (key: string, raw: string, tr: Translator = enT): { value: string } | { error: string } => {
   let t = raw;
   if (key === 'condition') {
     t = t
@@ -156,20 +158,21 @@ export const custodyValue = (key: string, raw: string): { value: string } | { er
       .replace(/\n{3,}/g, '\n\n');
   }
   t = t.trim().normalize('NFC');
-  const label = FIELD_WORDS[key] ?? key;
+  const label = FIELD_WORDS[key] ? tr.t(FIELD_WORDS[key]) : key;
   if (!t) return { value: '' };
   if (HIDDEN.test(key === 'condition' ? t.replace(/\n/g, '') : t)) {
     return {
       error:
         key === 'condition'
-          ? `${label} can’t contain tabs or hidden characters (such as direction marks).`
-          : `${label} can’t contain line breaks, tabs or hidden characters (such as direction marks).`,
+          ? tr.t('app.lab.field.noHiddenCondition', { label })
+          : tr.t('app.lab.field.noHidden', { label }),
     };
   }
-  if (DATE_FIELDS.includes(key) && !isCalendarDate(t)) return { error: `${label} must be a real date.` };
+  if (DATE_FIELDS.includes(key) && !isCalendarDate(t)) return { error: tr.t('app.lab.field.realDate', { label }) };
   const limit =
     (CUSTODY_LIMITS.sample as Record<string, number>)[key] ?? (CUSTODY_LIMITS.arrival as Record<string, number>)[key];
-  if (limit !== undefined && t.length > limit) return { error: `${label} can be at most ${limit} characters.` };
+  if (limit !== undefined && t.length > limit)
+    return { error: tr.t('app.lab.field.tooLong', { label, limit: String(limit) }) };
   return { value: t };
 };
 
@@ -202,13 +205,14 @@ export const arrivalDetailsOf = (v: unknown): ArrivalDetails => {
 export const custodyProblems = (
   side: 'sample' | 'arrival',
   v: Readonly<Record<string, string | undefined>>,
+  tr: Translator = enT,
 ): string[] => {
   const keys = side === 'sample' ? SAMPLE_KEYS : ARRIVAL_KEYS;
   const out: string[] = [];
   for (const k of keys) {
     const x = v[k];
     if (!isString(x) || k === 'sealIntact') continue;
-    const r = custodyValue(k, x);
+    const r = custodyValue(k, x, tr);
     if ('error' in r) out.push(r.error);
   }
   return out;
@@ -254,27 +258,43 @@ const unexpected = { error: 'unexpected response from the registry' } as const;
  * code"; a person was only ever given a "lab code" (round 3: one name for it everywhere).
  * Anything not recognised is passed on as the registry wrote it.
  */
-export const userFacingError = (error: string): string => {
+export const userFacingError = (error: string, tr: Translator = enT): string => {
   const e = error.trim();
-  const known: [RegExp, string][] = [
-    [/^no such (transfer|delivery)$/i, 'No delivery has that lab code. Check you copied the whole code.'],
-    [/already been claimed/i, 'This lab code has already been used.'],
-    [/claim code does not match/i, 'That lab code doesn’t match. Ask the breeder for the code they were given.'],
-    [/made before claim codes existed/i, 'This lab code is too old to use. Ask the breeder to make a new one.'],
-    [/source record no longer exists/i, 'The breeder’s record for this lab code is gone. Ask them to make a new code.'],
-    [
-      /fingerprint has changed since this offer/i,
-      'The breeder changed this plant’s record after making the lab code. Ask them for a new code.',
-    ],
-    [/has not been received yet/i, 'Nobody has used this lab code yet.'],
-    [/^only whoever received this delivery/i, 'Only the lab that used this lab code can do that.'],
-    [
-      /unclaimed offers/i,
-      'You have too many lab codes nobody has used yet. Wait for some to be used, or for older ones to run out.',
-    ],
+  const known: [RegExp, AppKey][] = [
+    [/^no such (transfer|delivery)$/i, 'app.lab.err.noSuch'],
+    [/already been claimed/i, 'app.lab.err.used'],
+    [/claim code does not match/i, 'app.lab.err.noMatch'],
+    [/made before claim codes existed/i, 'app.lab.err.tooOld'],
+    [/source record no longer exists/i, 'app.lab.err.gone'],
+    [/fingerprint has changed since this offer/i, 'app.lab.err.changed'],
+    [/has not been received yet/i, 'app.lab.err.notReceived'],
+    [/^only whoever received this delivery/i, 'app.lab.err.onlyLab'],
+    [/unclaimed offers/i, 'app.lab.err.tooMany'],
   ];
-  for (const [re, words] of known) if (re.test(e)) return words;
+  for (const [re, key] of known) if (re.test(e)) return tr.t(key);
   return e;
+};
+
+const LAB_ERROR_KEYS: readonly AppKey[] = [
+  'app.lab.err.noSuch',
+  'app.lab.err.used',
+  'app.lab.err.noMatch',
+  'app.lab.err.tooOld',
+  'app.lab.err.gone',
+  'app.lab.err.changed',
+  'app.lab.err.notReceived',
+  'app.lab.err.onlyLab',
+  'app.lab.err.tooMany',
+];
+
+/**
+ * A lab-code error as shown: the registry's words, or userFacingError's English for them,
+ * in the visitor's language. In English exactly userFacingError(message).
+ */
+export const labErrorWords = (message: string, tr: Translator = enT): string => {
+  const english = userFacingError(message);
+  const key = LAB_ERROR_KEYS.find((k) => enT.t(k) === english);
+  return key ? tr.t(key) : english;
 };
 
 /**
@@ -310,6 +330,7 @@ export const codeMissingLock = (code: string): boolean => {
 };
 
 /** What the lab is told at Receive when the code has no lock part. */
+/** (app.lab.recv.missingLock in the visitor's language.) */
 export const MISSING_LOCK_WORDS =
   'This code is missing its last part; you can receive the sample but can’t send a report back until you have the full code.';
 

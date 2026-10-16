@@ -18,52 +18,46 @@ import { attestationsFor, signerLabel, strengthLabel, type ResolvedAttestation }
 import type { BreederReceipt } from '../veilcore/custody';
 import { NameCheckText } from './NameCheckText';
 import type { StrainRecord } from '../veilcore/records';
+import { useT } from '../i18n/app';
 
 /** The breeder's own plant: its tied receipt, and a count of anything else. */
 const BreederReceiptPanel: React.FC<{ receipt: BreederReceipt }> = ({ receipt }) => {
+  const tr = useT();
+  const { t } = tr;
   // One label for every screen (attesters.ts signerLabel, round 4).
-  const s = receipt.kind === 'signed' ? signerLabel(receipt.by) : undefined;
+  const s = receipt.kind === 'signed' ? signerLabel(receipt.by, undefined, undefined, tr) : undefined;
   return (
     <Stack spacing={1.5}>
       <Typography variant="overline" sx={{ display: 'block' }}>
-        Lab receipt
+        {t('app.plant.labReceipt')}
       </Typography>
       {receipt.kind === 'signed' ? (
         <Box sx={{ pl: 1.5, borderLeft: '2px solid rgba(22,32,27,0.12)' }}>
           <Typography variant="body2" sx={{ fontWeight: 700 }}>
             {s?.lead}
-            {s?.checked ? '.' : ''}
+            {s?.checked ? t('app.common.period') : ''}
           </Typography>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-            {new Date(receipt.by.issuedAt).toLocaleDateString()} · linked to your delivery {receipt.transferId}
+            {t('app.plant.att.linked', { date: tr.date(receipt.by.issuedAt), id: receipt.transferId })}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            The signature was verified in this browser.
-            {s?.checked ? (
-              <NameCheckText label={s} />
-            ) : (
-              ' Anyone can register a key under any name, so the name doesn’t show who signed.'
-            )}
-            {receipt.by.retractionUnverified
-              ? ' The registry also reports a retraction that is not signed by the lab, so it is ignored here.'
-              : ''}
+            {t('app.plant.att.verified')}
+            {s?.checked ? <NameCheckText label={s} /> : t('app.lab.results.anyName')}
+            {receipt.by.retractionUnverified ? t('app.plant.att.unverifiedRetraction') : ''}
           </Typography>
         </Box>
       ) : receipt.kind === 'code-used' ? (
         <Typography variant="body2" color="text.secondary">
-          Someone used your lab code, but no lab has signed a receipt for it. A used code doesn&apos;t show who took the
-          sample.
+          {t('app.plant.att.codeUsed')}
         </Typography>
       ) : (
         <Typography variant="body2" color="text.secondary">
-          No lab has signed a receipt for this plant yet. A record only you stand behind is weaker evidence than one a
-          lab signs for. Send a sample to a lab: their receipt is signed with their key, not yours.
+          {t('app.plant.att.noReceipt')}
         </Typography>
       )}
       {receipt.others > 0 && (
         <Typography variant="body2" color="text.secondary" data-other-signatures="">
-          Other signatures name this record: {receipt.others}, not tied to your deliveries. Anyone can sign a statement
-          about a public fingerprint, so they aren&apos;t counted as a receipt.
+          {t('app.plant.att.others', { n: receipt.others })}
         </Typography>
       )}
     </Stack>
@@ -75,6 +69,8 @@ export const AttestationPanel: React.FC<{
   /** The breeder's own plant: show only its tied receipt (custody.ts). Absent for a received record. */
   receipt?: BreederReceipt | null;
 }> = ({ record, receipt }) => {
+  const tr = useT();
+  const { t } = tr;
   const [items, setItems] = useState<ResolvedAttestation[] | null>(null);
 
   useEffect(() => {
@@ -91,11 +87,10 @@ export const AttestationPanel: React.FC<{
     return (
       <Stack spacing={1}>
         <Typography variant="overline" sx={{ display: 'block' }}>
-          Signatures about this record
+          {t('app.plant.att.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Nobody else has confirmed this record yet. A record only you stand behind is weaker evidence than one a second
-          party confirms. Send the material to a lab: their confirmation is recorded under their key, not yours.
+          {t('app.plant.att.nobody')}
         </Typography>
       </Stack>
     );
@@ -104,7 +99,7 @@ export const AttestationPanel: React.FC<{
   return (
     <Stack spacing={2}>
       <Typography variant="overline" sx={{ display: 'block' }}>
-        Signatures about this record
+        {t('app.plant.att.title')}
       </Typography>
 
       {legacy && items.length === 0 && (
@@ -114,24 +109,24 @@ export const AttestationPanel: React.FC<{
               someone holding the sender's code took delivery — the handle is who the
               sender addressed, not a party this confirms, because a recipient holds no
               key when the offer is made. */}
-          Delivery taken on {new Date(legacy.attestedAt).toLocaleDateString()} by a party holding the code the sender
-          issued
-          {(legacy.addressedTo ?? legacy.attesterHandle)
-            ? `, addressed to ${legacy.addressedTo ?? legacy.attesterHandle}`
-            : ''}
-          . Recorded before signing existed, so it establishes that a second party took delivery without proving who
-          they are.
+          {t('app.plant.att.legacy', {
+            date: tr.date(legacy.attestedAt),
+            addressed:
+              (legacy.addressedTo ?? legacy.attesterHandle)
+                ? t('app.plant.att.addressed', { who: legacy.addressedTo ?? legacy.attesterHandle ?? '' })
+                : '',
+          })}
         </Alert>
       )}
 
       {items.map((a) => {
-        const s = strengthLabel(a);
+        const s = strengthLabel(a, tr);
         return (
           <Box key={a.attestationId} sx={{ pl: 1.5, borderLeft: '2px solid rgba(22,32,27,0.12)' }}>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', mb: 0.5 }}>
               <Chip size="small" variant="outlined" color={s.ok ? 'primary' : 'default'} label={s.label} />
               <Typography variant="caption" color="text.secondary">
-                {a.type} · {new Date(a.issuedAt).toLocaleDateString()}
+                {a.type} · {tr.date(a.issuedAt)}
               </Typography>
             </Stack>
             <Typography variant="body2" color="text.secondary">

@@ -7,7 +7,8 @@
 // record, sealed exactly as the logging flow seals one plant (veilcore/bulk-import.ts),
 // so the record fields are all that reach VeilCore's server. Progress is kept in this
 // browser: a closed tab comes back to where it was, and no row is ever sealed twice.
-// English only for now.
+// The page is in the visitor's language (app.import.*); what bulk-import.ts says about a row
+// (a problem, a refusal, a pause) and the results file stay in English.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
@@ -29,7 +30,6 @@ import { Link as RouterLink } from 'react-router-dom';
 import { AppHeader } from '../AppHeader';
 import { BackupStep } from '../flow/BackupStep';
 import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled } from '../flow/FlowFrame';
-import { DATED_ON, OUR_SERVER } from '../../config/copy';
 import { IS_MAINNET } from '../../config/network';
 import { REAL_CHAIN, chainNotReady } from '../../veilcore/chain/config';
 import { useRecords } from '../../veilcore/records';
@@ -37,7 +37,6 @@ import { storageKeeps, useRecordKeys } from '../../veilcore/record-keys';
 import { localStamp } from '../../veilcore/time';
 import {
   FIELDS,
-  FIELD_LABELS,
   HEADER_SCAN,
   KEY_STAMPS_PER_DAY,
   MAX_ROWS,
@@ -68,26 +67,39 @@ import {
   type Sheet,
 } from '../../veilcore/bulk-import';
 import { useKeyStampQueue } from './useKeyStampQueue';
+import { InEnglishNote, rich, useT } from '../../i18n/app';
+import type { AppKey } from '../../i18n/app/en';
 
 type Screen = 'file' | 'header' | 'columns' | 'check' | 'seal' | 'sealed' | 'backup' | 'done';
 
-const STEP: Record<Screen, string | undefined> = {
-  file: 'Step 1 of 6',
-  header: 'Step 2 of 6',
-  columns: 'Step 3 of 6',
-  check: 'Step 4 of 6',
-  seal: 'Step 5 of 6',
-  sealed: 'Step 5 of 6',
-  backup: 'Step 6 of 6',
+const STEP: Record<Screen, number | undefined> = {
+  file: 1,
+  header: 2,
+  columns: 3,
+  check: 4,
+  seal: 5,
+  sealed: 5,
+  backup: 6,
   done: undefined,
 };
 
-const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+/** bulk-import.ts's column names (FIELD_LABELS), in the page's language. */
+const FIELD_KEY: Record<FieldKey, AppKey> = {
+  strainName: 'app.import.field.strainName',
+  refId: 'app.import.field.refId',
+  taxon: 'app.import.field.taxon',
+  parents: 'app.import.field.parents',
+  parents2: 'app.import.field.parents2',
+  bredBy: 'app.import.field.bredBy',
+  dateCreated: 'app.import.field.dateCreated',
+  notes: 'app.import.field.notes',
+};
 
 const screenFor = (job: Job | undefined): Screen =>
   !job ? 'file' : job.phase === 'sealing' ? 'seal' : job.phase === 'sealed' ? 'sealed' : 'done';
 
 export const BulkImportPage: React.FC = () => {
+  const { t } = useT();
   const [job, setJobState] = useState<Job | undefined>(loadJob);
   const [screen, setScreen] = useState<Screen>(() => screenFor(job));
   const [sheet, setSheet] = useState<Sheet>();
@@ -110,7 +122,8 @@ export const BulkImportPage: React.FC = () => {
     return focusScreenHeading();
   }, [screen]);
 
-  const step = STEP[screen];
+  const stepN = STEP[screen];
+  const step = stepN ? t('app.log.stepOf', { n: stepN, total: 6 }) : undefined;
   const body = (() => {
     switch (screen) {
       case 'file':
@@ -201,9 +214,9 @@ export const BulkImportPage: React.FC = () => {
       case 'backup':
         return (
           <BackupStep
-            title="Save your backup"
+            title={t('app.backup.title')}
             stepLabel={step}
-            finishLabel="Next"
+            finishLabel={t('app.common.next')}
             onDone={() => {
               if (job) setJob({ ...job, phase: 'backed-up' });
               setScreen('done');
@@ -238,6 +251,7 @@ export const BulkImportPage: React.FC = () => {
 // ---------------------------------------------------------------------------------------
 
 const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => void }> = ({ step, onRead }) => {
+  const { t } = useT();
   const pick = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -250,9 +264,7 @@ const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => vo
     try {
       const s = await readSheet(f);
       if (s.raw.length < 2) {
-        setError(
-          'That file has no rows under its column names. One row should name the columns, with a row per plant under it.',
-        );
+        setError(t('app.import.noRows'));
       } else if (s.rows.length > MAX_ROWS || s.moreRows) {
         setError(tooManyRows(s));
       } else onRead(s, f.name);
@@ -266,20 +278,15 @@ const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => vo
   return (
     <Stack spacing={2.5}>
       <Box>
-        <ScreenHeading step={step}>Date your whole collection</ScreenHeading>
+        <ScreenHeading step={step}>{t('app.import.title')}</ScreenHeading>
         <Typography variant="body1" color="text.secondary">
-          Already keep a spreadsheet of your plants or accessions? Seal every row as its own record in one go, each with
-          a date stamp, as if you had logged them one by one.
+          {t('app.import.intro')}
         </Typography>
       </Box>
-      <Typography variant="body1">
-        A CSV or Excel (.xlsx) file, first sheet only, with a row that names the columns (a title above it is fine). Up
-        to {MAX_ROWS} rows at a time.
-      </Typography>
+      <Typography variant="body1">{t('app.import.fileKind', { max: MAX_ROWS })}</Typography>
       {!keeps && (
         <Alert severity="warning" variant="outlined">
-          This browser won&apos;t keep anything after you close it (a private window, or site data is blocked). Each
-          record&apos;s key lives in this browser until you save your backup, so open this page in a normal window.
+          {t('app.import.notKept')}
         </Alert>
       )}
       {error && (
@@ -296,11 +303,11 @@ const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => vo
         onClick={() => keeps && !busy && pick.current?.click()}
         sx={{ py: 1.6 }}
       >
-        {busy ? 'Reading your file…' : 'Choose a file'}
+        {busy ? t('app.import.reading') : t('app.import.choose')}
       </Button>
       {!keeps && (
         <Typography id={hintId} variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-          Open this page in a normal browser window to use it.
+          {t('app.import.normalWindow')}
         </Typography>
       )}
       <input
@@ -315,13 +322,11 @@ const PickFile: React.FC<{ step?: string; onRead: (s: Sheet, name: string) => vo
         }}
       />
       <Typography variant="body2" color="text.secondary">
-        Your file is read here, in this browser, and isn&apos;t uploaded. For each row, only the details you pick on the
-        next screen are saved on {OUR_SERVER}, the same details as logging one plant. Only a fingerprint is dated on{' '}
-        {DATED_ON}.
+        {t('app.import.readHere', { server: t('app.copy.ourServer'), dated: t('app.copy.datedOn') })}
       </Typography>
       {!IS_MAINNET && (
         <Typography variant="body2" color="text.secondary">
-          This is a test site: records made here are test data.
+          {t('app.import.testSite')}
         </Typography>
       )}
       <EarlierKeyStamps />
@@ -334,8 +339,9 @@ const EarlierKeyStamps: React.FC = () => {
   const keys = useRecordKeys();
   const ids = useMemo(() => importedRecordIds(), []);
   const waiting = ids.some((id) => keys[id] && !keys[id].anchor);
+  const { t } = useT();
   if (!REAL_CHAIN || chainNotReady() || !waiting) return null;
-  return <KeyStamps ids={ids} heading="Key date stamps from earlier imports" />;
+  return <KeyStamps ids={ids} heading={t('app.import.earlierStamps')} />;
 };
 
 // ---------------------------------------------------------------------------------------
@@ -356,6 +362,7 @@ const HeaderRow: React.FC<{
   onBack: () => void;
   onNext: () => void;
 }> = ({ step, sheet, onPick, onBack, onNext }) => {
+  const { t, tp } = useT();
   const hintId = useId();
   const choices = sheet.raw.slice(0, HEADER_SCAN);
   const first = sheet.rows[0];
@@ -364,41 +371,42 @@ const HeaderRow: React.FC<{
   return (
     <Stack spacing={2.5}>
       <Box>
-        <ScreenHeading step={step}>Which row has the column names?</ScreenHeading>
+        <ScreenHeading step={step}>{t('app.import.header.title')}</ScreenHeading>
         <Typography variant="body1" color="text.secondary">
-          We picked the row that looks like the column names. Rows above it, like a title, are left out.
+          {t('app.import.header.intro')}
         </Typography>
       </Box>
       <TextField
         select
-        label="The column names are in"
+        label={t('app.import.header.label')}
         value={String(sheet.headerLine)}
         onChange={(e) => onPick(Number(e.target.value))}
         fullWidth
       >
         {choices.map((r) => (
           <MenuItem key={r.line} value={String(r.line)} sx={{ whiteSpace: 'normal' }}>
-            Row {r.line}: {rowText(r.cells, 70)}
+            {t('app.import.rowLine', { line: r.line, text: rowText(r.cells, 70) })}
           </MenuItem>
         ))}
       </TextField>
       <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 1.5 }} data-header-preview="">
         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-          Column names (row {sheet.headerLine})
+          {t('app.import.header.names', { line: sheet.headerLine })}
         </Typography>
         <Typography variant="body2" sx={{ fontWeight: 700, wordBreak: 'break-word', mb: 1 }}>
           {rowText(sheet.headers, 300)}
         </Typography>
         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-          {first ? `First plant (row ${first.line})` : 'First plant'}
+          {first ? t('app.import.header.firstAt', { line: first.line }) : t('app.import.header.first')}
         </Typography>
         <Typography variant="body2" sx={{ wordBreak: 'break-word', color: first ? undefined : 'text.secondary' }}>
-          {first ? rowText(first.cells, 300) : 'No rows under this one.'}
+          {first ? rowText(first.cells, 300) : t('app.import.header.noRows')}
         </Typography>
       </Box>
       <Typography variant="body2" color="text.secondary">
-        {plural(sheet.rows.length, 'row')} under the column names
-        {above ? `; ${plural(above, 'row')} above ${above === 1 ? 'it is' : 'them are'} left out` : ''}.
+        {tp('app.import.header.under', sheet.rows.length)}
+        {above ? tp('app.import.header.above', above) : ''}
+        {t('app.import.end')}
       </Typography>
       <Button
         variant="contained"
@@ -408,15 +416,15 @@ const HeaderRow: React.FC<{
         onClick={() => ready && onNext()}
         sx={{ py: 1.6 }}
       >
-        Next: which column is which
+        {t('app.import.header.next')}
       </Button>
       {!ready && (
         <Typography id={hintId} variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-          Pick a row with plants under it.
+          {t('app.import.header.pickHint')}
         </Typography>
       )}
       <Button variant="text" color="inherit" onClick={onBack} sx={{ minHeight: 48 }}>
-        Pick a different file
+        {t('app.import.header.back')}
       </Button>
     </Stack>
   );
@@ -437,6 +445,7 @@ const Columns: React.FC<{
   onBack: () => void;
   onNext: () => void;
 }> = ({ step, sheet, mapping, onChange, onBack, onNext }) => {
+  const { t } = useT();
   const hintId = useId();
   const ready = mapping.columns.strainName !== null;
   const setColumn = (f: FieldKey, v: string) =>
@@ -450,10 +459,9 @@ const Columns: React.FC<{
   return (
     <Stack spacing={2.5}>
       <Box>
-        <ScreenHeading step={step}>Which column is which?</ScreenHeading>
+        <ScreenHeading step={step}>{t('app.import.cols.title')}</ScreenHeading>
         <Typography variant="body1" color="text.secondary">
-          We guessed from the column names. Check each one. Only the plant name is needed; columns you leave out are
-          never sent.
+          {t('app.import.cols.intro')}
         </Typography>
       </Box>
       {sheet.warnings.map((w) => (
@@ -467,20 +475,22 @@ const Columns: React.FC<{
           <TextField
             key={f}
             select
-            label={FIELD_LABELS[f]}
+            label={t(FIELD_KEY[f])}
             required={f === 'strainName'}
             value={col === null ? '' : String(col)}
             onChange={(e) => setColumn(f, e.target.value)}
             helperText={
               col !== null && sampleOf(sheet, col)
-                ? `For example: ${sampleOf(sheet, col)}`
+                ? t('app.import.cols.example', { v: sampleOf(sheet, col) })
                 : f === 'parents'
-                  ? 'Two parents in one cell are fine, like “Mother x Father”.'
+                  ? t('app.import.cols.twoParents')
                   : undefined
             }
             fullWidth
           >
-            <MenuItem value="">{f === 'strainName' ? 'Pick a column' : 'Not in my file'}</MenuItem>
+            <MenuItem value="">
+              {f === 'strainName' ? t('app.import.cols.pick') : t('app.import.cols.notInFile')}
+            </MenuItem>
             {sheet.headers.map((h, i) => (
               <MenuItem key={i} value={String(i)}>
                 {h}
@@ -490,28 +500,24 @@ const Columns: React.FC<{
         );
       })}
       <TextField
-        label="Bred by, where a row doesn’t say"
+        label={t('app.import.cols.bredBy')}
         value={mapping.bredByDefault}
         onChange={(e) => onChange({ ...mapping, bredByDefault: e.target.value })}
-        helperText="Your name or business, if you bred them. Leave empty if you don’t know."
+        helperText={t('app.import.cols.bredByHelp')}
         fullWidth
       />
       {mapping.columns.dateCreated !== null && (ambiguous || mapping.dateOrder !== 'auto') && (
         <TextField
           select
-          label="How are dates written?"
+          label={t('app.import.cols.dates')}
           value={mapping.dateOrder}
           onChange={(e) => onChange({ ...mapping, dateOrder: e.target.value as DateOrder })}
-          helperText={
-            detected
-              ? undefined
-              : 'Some dates, like 03/04/2021, could be either. Pick how your file writes them, or they are kept as written.'
-          }
+          helperText={detected ? undefined : t('app.import.cols.datesHelp')}
           fullWidth
         >
-          <MenuItem value="auto">Keep unclear dates as written</MenuItem>
-          <MenuItem value="mdy">Month first (03/14/2021)</MenuItem>
-          <MenuItem value="dmy">Day first (14/03/2021)</MenuItem>
+          <MenuItem value="auto">{t('app.import.cols.auto')}</MenuItem>
+          <MenuItem value="mdy">{t('app.import.cols.mdy')}</MenuItem>
+          <MenuItem value="dmy">{t('app.import.cols.dmy')}</MenuItem>
         </TextField>
       )}
       <Button
@@ -522,15 +528,15 @@ const Columns: React.FC<{
         onClick={() => ready && onNext()}
         sx={{ py: 1.6 }}
       >
-        Next: check the rows
+        {t('app.import.cols.next')}
       </Button>
       {!ready && (
         <Typography id={hintId} variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-          Pick the column with the plant or line name.
+          {t('app.import.cols.pickHint')}
         </Typography>
       )}
       <Button variant="text" color="inherit" onClick={onBack} sx={{ minHeight: 48 }}>
-        Change the column names row
+        {t('app.import.cols.back')}
       </Button>
     </Stack>
   );
@@ -540,20 +546,21 @@ const Columns: React.FC<{
 
 /** One row as it will be sealed: every field, empty ones said so. */
 const RowCard: React.FC<{ row: Pick<PreparedRow, 'line' | 'fields'> }> = ({ row }) => {
+  const { t } = useT();
   const f: RowFields = row.fields;
   const lines: [string, string][] = [
-    ['Plant or line', f.strainName],
-    ['Your ID', f.refId],
-    ['Species', f.taxon],
-    ['Parents', f.parents.map((p) => p.name).join(' × ')],
-    ['Bred by', f.bredBy],
-    ['Date (your note)', f.dateCreated],
-    ['Notes', f.notes],
+    [t('app.import.card.name'), f.strainName],
+    [t('app.import.card.id'), f.refId],
+    [t('app.import.field.taxon'), f.taxon],
+    [t('app.import.field.parents'), f.parents.map((p) => p.name).join(' × ')],
+    [t('app.import.field.bredBy'), f.bredBy],
+    [t('app.import.card.date'), f.dateCreated],
+    [t('app.import.field.notes'), f.notes],
   ];
   return (
     <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 1.5 }} data-preview-row={row.line}>
       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-        Row {row.line}
+        {t('app.import.row', { line: row.line })}
       </Typography>
       {lines.map(([k, v]) => (
         <Stack key={k} direction="row" spacing={1.5} sx={{ py: 0.25 }}>
@@ -570,7 +577,7 @@ const RowCard: React.FC<{ row: Pick<PreparedRow, 'line' | 'fields'> }> = ({ row 
               minWidth: 0,
             }}
           >
-            {v || 'Not given'}
+            {v || t('app.import.notGiven')}
           </Typography>
         </Stack>
       ))}
@@ -589,6 +596,7 @@ const Check: React.FC<{
   onHeaderRow: () => void;
   onSeal: (rows: PreparedRow[]) => void;
 }> = ({ step, sheet, mapping, onBack, onHeaderRow, onSeal }) => {
+  const { t, tp } = useT();
   const records = useRecords();
   const hintId = useId();
   const checked = useMemo(() => checkRows(sheet, mapping, { existing: records }), [sheet, mapping, records]);
@@ -599,11 +607,12 @@ const Check: React.FC<{
   return (
     <Stack spacing={2.5}>
       <Box>
-        <ScreenHeading step={step}>Is this right?</ScreenHeading>
+        <ScreenHeading step={step}>{t('app.import.check.title')}</ScreenHeading>
         <Typography variant="body1" color="text.secondary">
-          {plural(checked.ready, 'row')} ready to seal
-          {checked.already ? ` · ${checked.already} sealed before, left as they are` : ''}
-          {checked.problems ? ` · ${checked.problems} can’t be sealed` : ''}.
+          {tp('app.import.check.ready', checked.ready)}
+          {checked.already ? t('app.import.check.already', { n: checked.already }) : ''}
+          {checked.problems ? t('app.import.check.problems', { n: checked.problems }) : ''}
+          {t('app.import.end')}
         </Typography>
       </Box>
       {checked.blocked && (
@@ -617,22 +626,19 @@ const Check: React.FC<{
           variant="outlined"
           action={
             <Button color="inherit" onClick={onHeaderRow} sx={{ minHeight: 44 }}>
-              Pick the row
+              {t('app.import.check.pickRow')}
             </Button>
           }
         >
-          {checked.headerRows.length === 1
-            ? `Row ${checked.headerRows[0]} looks like column names, not a plant, so it is left out.`
-            : `Rows ${checked.headerRows.join(', ')} look like column names, not plants, so they are left out.`}{' '}
-          If your column names are in {checked.headerRows.length === 1 ? 'that row' : 'one of them'}, pick it as the
-          column names row.
+          {tp('app.import.check.headerRows', checked.headerRows.length, {
+            rows: checked.headerRows.join(t('app.verify.sum.comma')),
+          })}
         </Alert>
       )}
       {preview.length > 0 && (
         <Stack spacing={1.25}>
           <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
-            {preview.length === 1 ? 'The first row' : `The first ${preview.length} rows`}, exactly as they will be
-            sealed
+            {tp('app.import.check.firstRows', preview.length)}
           </Typography>
           {preview.map((r) => (
             <RowCard key={r.line} row={r} />
@@ -641,43 +647,38 @@ const Check: React.FC<{
       )}
       {checked.ambiguousDates > 0 && (
         <Alert severity="info" variant="outlined">
-          {plural(checked.ambiguousDates, 'date')} could be day-first or month-first, so{' '}
-          {checked.ambiguousDates === 1 ? 'it is' : 'they are'} kept as written. To change that, go back and pick how
-          your file writes dates.
+          {tp('app.import.check.ambiguous', checked.ambiguousDates)}
         </Alert>
       )}
       {problems.length > 0 && (
         <Box>
           <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
-            {plural(problems.length, 'row')} can&apos;t be sealed
+            {tp('app.import.check.cantSeal', problems.length)}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            {problems.length === 1 ? 'It is' : 'They are'} left out. Fix {problems.length === 1 ? 'it' : 'them'} in your
-            file and import it again later: rows already sealed are skipped.
+            {tp('app.import.check.fixThem', problems.length)}
           </Typography>
           <Box component="ul" sx={{ m: 0, pl: 2.5 }} data-problem-list="">
             {problems.slice(0, LISTED).map((r) => (
               <li key={r.line}>
                 <Typography variant="body2">
-                  Row {r.line}: {r.problems.join(' ')}
+                  {t('app.import.rowLine', { line: r.line, text: r.problems.join(' ') })}
                 </Typography>
               </li>
             ))}
           </Box>
           {problems.length > LISTED && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              And {problems.length - LISTED} more. The results file lists every one.
+              {t('app.import.check.more', { n: problems.length - LISTED })}
             </Typography>
           )}
         </Box>
       )}
       <Alert icon={<LockIcon />} severity="info" variant="outlined">
-        <b>Once sealed, these can&apos;t change.</b> You can add reports and corrections later; a correction is a new
-        record that points back to the old one.
+        {rich(t('app.import.check.onceSealed'), { b: (c) => <b>{c}</b> })}
       </Alert>
       <Typography variant="body2" color="text.secondary">
-        The details above are saved on {OUR_SERVER}, one record per row. Only a fingerprint of each is dated on{' '}
-        {DATED_ON}. A date stamp shows the details existed by that date; it doesn&apos;t confirm they are right.
+        {t('app.import.check.savedOn', { server: t('app.copy.ourServer'), dated: t('app.copy.datedOn') })}
       </Typography>
       <Button
         variant="contained"
@@ -687,15 +688,15 @@ const Check: React.FC<{
         onClick={() => can && onSeal(checked.rows)}
         sx={{ py: 1.6 }}
       >
-        {checked.ready > 0 ? `Seal ${plural(checked.ready, 'record')}` : 'Nothing to seal'}
+        {checked.ready > 0 ? tp('app.import.check.sealN', checked.ready) : t('app.import.check.nothing')}
       </Button>
       {!can && (
         <Typography id={hintId} variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-          {checked.blocked ?? 'Every row is either sealed already or can’t be sealed.'}
+          {checked.blocked ?? t('app.import.check.everyRow')}
         </Typography>
       )}
       <Button variant="text" color="inherit" onClick={onBack} sx={{ minHeight: 48 }}>
-        Change the columns
+        {t('app.import.check.back')}
       </Button>
     </Stack>
   );
@@ -713,6 +714,7 @@ const Seal: React.FC<{
   onUpdate: (j: Job) => void;
   onDone: () => void;
 }> = ({ step, job, kept, autoStart, onUpdate, onDone }) => {
+  const { t, tp } = useT();
   const total = job.rows.filter((r) => r.status === 'ready').length;
   const [progress, setProgress] = useState<SealProgress>({
     done: jobSummary(job).sealed + job.rows.filter((r) => job.outcomes[r.hash]?.state === 'refused').length,
@@ -761,20 +763,20 @@ const Seal: React.FC<{
     <Stack spacing={2.5}>
       <Box>
         <ScreenHeading step={step}>
-          {running ? 'Sealing your records…' : stopped ? 'Sealing paused' : 'Pick up where you stopped'}
+          {running ? t('app.import.seal.sealing') : stopped ? t('app.import.seal.paused') : t('app.import.seal.pickUp')}
         </ScreenHeading>
         <Typography variant="body1" color="text.secondary">
-          {job.fileName}: {plural(total, 'row')} to seal.
+          {tp('app.import.seal.toSeal', total, { file: job.fileName })}
         </Typography>
       </Box>
       <LinearProgress
         variant="determinate"
         value={pct}
-        aria-label="Sealing your records"
+        aria-label={t('app.import.seal.aria')}
         sx={{ height: 10, borderRadius: 5 }}
       />
       <Typography variant="body1" role="status">
-        Sealed {progress.done} of {progress.total}
+        {t('app.import.seal.of', { done: progress.done, total: progress.total })}
       </Typography>
       {stopped && (
         <Alert severity="warning" variant="outlined">
@@ -783,15 +785,14 @@ const Seal: React.FC<{
       )}
       {running ? (
         <Typography variant="body2" color="text.secondary">
-          Keep this page open.{' '}
-          {kept
-            ? 'If it closes, come back to this page: it carries on where it stopped, and never seals a row twice.'
-            : 'This browser couldn’t keep the progress: if the page closes, pick the same file again. Rows already sealed are skipped.'}
+          {t('app.import.seal.keepOpen')}
+          {t('app.common.sentenceSep')}
+          {kept ? t('app.import.seal.kept') : t('app.import.seal.notKept')}
         </Typography>
       ) : (
         <>
           <Button variant="contained" size="large" fullWidth onClick={() => void run()} sx={{ py: 1.6 }}>
-            {stopped ? 'Try again' : 'Carry on sealing'}
+            {stopped ? t('app.common.tryAgain') : t('app.import.seal.carryOn')}
           </Button>
           <Button
             variant="text"
@@ -802,7 +803,7 @@ const Seal: React.FC<{
             }}
             sx={{ minHeight: 48 }}
           >
-            Stop here and finish with what&apos;s sealed
+            {t('app.import.seal.stop')}
           </Button>
         </>
       )}
@@ -813,6 +814,7 @@ const Seal: React.FC<{
 // ---------------------------------------------------------------------------------------
 
 const Summary: React.FC<{ step?: string; job: Job; onNext: () => void }> = ({ step, job, onNext }) => {
+  const { t, tp } = useT();
   const s = jobSummary(job);
   const notSealed = job.rows.filter((r) => r.status === 'problem' || job.outcomes[r.hash]?.state === 'refused');
   const stampsFromHere = REAL_CHAIN && !chainNotReady();
@@ -821,25 +823,28 @@ const Summary: React.FC<{ step?: string; job: Job; onNext: () => void }> = ({ st
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
         <DoneIcon color="primary" sx={{ fontSize: 40 }} aria-hidden="true" />
         <ScreenHeading step={step}>
-          {s.sealed ? `Sealed ${plural(s.sealed, 'record')}` : 'Nothing new sealed'}
+          {s.sealed ? tp('app.import.sum.sealed', s.sealed) : t('app.import.sum.nothingNew')}
         </ScreenHeading>
       </Stack>
       <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
         {s.before > 0 && (
           <li>
-            <Typography variant="body1">{plural(s.before, 'row')} sealed before, left as they are.</Typography>
+            <Typography variant="body1">{tp('app.import.sum.before', s.before)}</Typography>
           </li>
         )}
         {notSealed.length > 0 && (
           <li>
-            <Typography variant="body1">{plural(notSealed.length, 'row')} not sealed:</Typography>
+            <Typography variant="body1">{tp('app.import.sum.notSealed', notSealed.length)}</Typography>
             <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
               {notSealed.slice(0, LISTED).map((r) => {
                 const o = job.outcomes[r.hash];
                 return (
                   <li key={r.line}>
                     <Typography variant="body2">
-                      Row {r.line}: {o?.state === 'refused' ? o.reason : r.problems.join(' ')}
+                      {t('app.import.rowLine', {
+                        line: r.line,
+                        text: o?.state === 'refused' ? o.reason : r.problems.join(' '),
+                      })}
                     </Typography>
                   </li>
                 );
@@ -849,25 +854,28 @@ const Summary: React.FC<{ step?: string; job: Job; onNext: () => void }> = ({ st
         )}
         {s.waiting > 0 && (
           <li>
-            <Typography variant="body1">
-              {plural(s.waiting, 'row')} not sealed yet. Import the file again to seal them.
-            </Typography>
+            <Typography variant="body1">{tp('app.import.sum.waiting', s.waiting)}</Typography>
           </li>
         )}
       </Box>
       {s.sealed > 0 && (
         <Typography variant="body1" color="text.secondary">
           {stampsFromHere
-            ? `Your records are already sealed and will be dated by their batch on ${DATED_ON}; that doesn't depend on their key stamps. Each plant's key also gets its own date stamp from this browser, about ${KEY_STAMPS_PER_DAY} a day, so ${s.sealed} queued take about ${plural(keyStampDays(s.sealed), 'day')}. They start after your backup.`
-            : `Their public date stamp comes when their batch is dated on ${DATED_ON}. Nothing for you to do.`}
+            ? t('app.import.sum.stampsHere', {
+                dated: t('app.copy.datedOn'),
+                perDay: KEY_STAMPS_PER_DAY,
+                n: s.sealed,
+                days: tp('app.import.days', keyStampDays(s.sealed)),
+              })
+            : t('app.import.sum.byBatch', { dated: t('app.copy.datedOn') })}
         </Typography>
       )}
       <Button variant="contained" size="large" fullWidth onClick={onNext} sx={{ py: 1.6 }}>
-        {jobRecordIds(job).length > 0 ? 'Next: save your backup' : 'Next'}
+        {jobRecordIds(job).length > 0 ? t('app.log.nextSaveBackup') : t('app.common.next')}
       </Button>
       {jobRecordIds(job).length > 0 && (
         <Typography variant="body2" color="text.secondary">
-          Until it&apos;s saved and checked, the new records&apos; keys are only in this browser.
+          {t('app.import.sum.untilSaved')}
         </Typography>
       )}
     </Stack>
@@ -892,6 +900,7 @@ const downloadText = (text: string, name: string) => {
  * records themselves don't wait for these: each is dated by its batch (round 2).
  */
 const KeyStamps: React.FC<{ ids: readonly string[]; heading: string }> = ({ ids, heading }) => {
+  const { t, tp } = useT();
   const queue = useKeyStampQueue(ids, true);
   const keys = useRecordKeys();
   const waiting = queue.total - queue.stamped;
@@ -903,7 +912,7 @@ const KeyStamps: React.FC<{ ids: readonly string[]; heading: string }> = ({ ids,
   return (
     <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2 }} data-key-stamps="">
       <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
-        {heading}: {queue.stamped} of {queue.total}
+        {t('app.import.stamps.of', { heading, stamped: queue.stamped, total: queue.total })}
       </Typography>
       <LinearProgress
         variant="determinate"
@@ -912,24 +921,26 @@ const KeyStamps: React.FC<{ ids: readonly string[]; heading: string }> = ({ ids,
         sx={{ height: 8, borderRadius: 4, my: 1 }}
       />
       <Typography variant="body2" color="text.secondary">
-        Your records are already sealed and will be dated by their batch on {DATED_ON}. That doesn&apos;t depend on
-        these key stamps.
+        {t('app.import.stamps.already', { dated: t('app.copy.datedOn') })}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-        Each plant&apos;s key also gets a date stamp from this browser, so you can prove you hold it later. The free fee
-        service does about {KEY_STAMPS_PER_DAY} a day from each browser
-        {waiting > 0 ? `, so ${waiting} queued take about ${plural(keyStampDays(waiting), 'day')}` : ''}. They go out
-        while this page is open. Each plant&apos;s own page can do its stamp too.
+        {t('app.import.stamps.each', {
+          perDay: KEY_STAMPS_PER_DAY,
+          queued:
+            waiting > 0
+              ? t('app.import.stamps.queued', { n: waiting, days: tp('app.import.days', keyStampDays(waiting)) })
+              : '',
+        })}
       </Typography>
       <Typography variant="body2" role="status" sx={{ mt: 1 }}>
         {queue.stopped
           ? ''
           : queue.current
-            ? `Date stamping ${queue.current.name}…${queue.current.progress ? ` ${queue.current.progress}` : ''}`
+            ? `${t('app.import.stamps.stamping', { name: queue.current.name })}${queue.current.progress ? ` ${queue.current.progress}` : ''}`
             : queue.pauseUntil
               ? stampPauseWords(queue.why, localStamp(queue.pauseUntil))
               : queue.stamped === queue.total
-                ? 'All done.'
+                ? t('app.import.stamps.allDone')
                 : ''}
       </Typography>
       {queue.stopped && (
@@ -939,7 +950,7 @@ const KeyStamps: React.FC<{ ids: readonly string[]; heading: string }> = ({ ids,
           sx={{ mt: 1 }}
           action={
             <Button color="inherit" onClick={queue.resume} sx={{ minHeight: 44 }}>
-              Go on
+              {t('app.import.stamps.goOn')}
             </Button>
           }
         >
@@ -953,12 +964,11 @@ const KeyStamps: React.FC<{ ids: readonly string[]; heading: string }> = ({ ids,
           sx={{ mt: 1 }}
           action={
             <Button color="inherit" component={RouterLink} to="/backup" sx={{ minHeight: 44 }}>
-              Save it
+              {t('app.import.stamps.saveIt')}
             </Button>
           }
         >
-          {plural(newSinceBackup, 'key date stamp')} landed after your backup. Save a new backup to keep{' '}
-          {newSinceBackup === 1 ? 'it' : 'them'}.
+          {tp('app.import.stamps.newSince', newSinceBackup)}
         </Alert>
       )}
     </Box>
@@ -971,17 +981,19 @@ const Finished: React.FC<{ job: Job; onAnother: () => void }> = ({ job, onAnothe
   const queued = useMemo(() => [...new Set([...ids, ...importedRecordIds()])], [ids]);
   const stampsFromHere = REAL_CHAIN && !chainNotReady();
   const s = jobSummary(job);
+  const { t, tp } = useT();
 
   return (
     <Stack spacing={2.5}>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
         <DoneIcon color="primary" sx={{ fontSize: 40 }} aria-hidden="true" />
-        <ScreenHeading>Your collection is sealed</ScreenHeading>
+        <ScreenHeading>{t('app.import.done.title')}</ScreenHeading>
       </Stack>
       <Typography variant="body1">
-        {plural(s.sealed, 'new record')}
-        {s.before ? `, ${s.before} sealed before` : ''}
-        {s.notSealed + s.waiting ? `, ${s.notSealed + s.waiting} not sealed` : ''}.
+        {tp('app.import.done.new', s.sealed)}
+        {s.before ? t('app.import.done.before', { n: s.before }) : ''}
+        {s.notSealed + s.waiting ? t('app.import.done.notSealed', { n: s.notSealed + s.waiting }) : ''}
+        {t('app.import.end')}
       </Typography>
       <Box>
         <Button
@@ -991,34 +1003,33 @@ const Finished: React.FC<{ job: Job; onAnother: () => void }> = ({ job, onAnothe
           onClick={() => downloadText(resultsCsv(job, window.location.origin), resultsFileName(job.fileName))}
           sx={{ py: 1.6 }}
         >
-          Download the results (CSV)
+          {t('app.import.done.download')}
         </Button>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-          Your rows as they were, each with its record ID, fingerprint and a link anyone can open to check it. Made
-          here; nothing is uploaded.
+          {t('app.import.done.downloadText')}
+          <InEnglishNote />
         </Typography>
       </Box>
 
       {stampsFromHere && queued.length > 0 ? (
-        <KeyStamps ids={queued} heading="Key date stamps" />
+        <KeyStamps ids={queued} heading={t('app.import.stamps.heading')} />
       ) : (
         ids.length > 0 && (
           <Typography variant="body1" color="text.secondary">
-            Their public date stamp comes when their batch is dated on {DATED_ON}. Each plant&apos;s page shows when
-            that has happened. Nothing for you to do.
+            {t('app.import.done.byBatch', { dated: t('app.copy.datedOn') })}
           </Typography>
         )
       )}
 
       <Typography variant="body2" color="text.secondary">
-        A date stamp shows the details existed by that date. It doesn&apos;t confirm they are right.
+        {t('app.import.done.dateStamp')}
       </Typography>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
         <Button component={RouterLink} to="/records" variant="outlined" size="large" sx={{ minHeight: 48, flex: 1 }}>
-          Go to your plants
+          {t('app.import.done.toPlants')}
         </Button>
         <Button variant="text" size="large" onClick={onAnother} sx={{ minHeight: 48, flex: 1 }}>
-          Import another file
+          {t('app.import.done.another')}
         </Button>
       </Stack>
     </Stack>

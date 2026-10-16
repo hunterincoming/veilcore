@@ -20,7 +20,7 @@ import { attestationsFor, countsAsSigned, signerLabel, type ResolvedAttestation 
 import { getRecord, pairDna, conflictsFor, type StrainRecord } from '../../veilcore/records';
 import { FingerprintReveal } from './FingerprintReveal';
 import { Dropzone } from './Dropzone';
-import { THIS_SITE } from '../../config/copy';
+import { rich, useT } from '../../i18n/app';
 import { utcDate } from '../../veilcore/time';
 import { REAL_CHAIN, chainNotReady } from '../../veilcore/chain/config';
 import { useRecordKeys } from '../../veilcore/record-keys';
@@ -52,7 +52,7 @@ export const Step2PairDna: React.FC<{
   onDone,
   onBack,
   onSkip,
-  doneLabel = 'Continue: see the certificate',
+  doneLabel,
   intro,
   initialFile,
   from,
@@ -70,11 +70,15 @@ export const Step2PairDna: React.FC<{
   const [labMatch, setLabMatch] = useState<ResolvedAttestation | null>();
   const record = getRecord(recordId);
   const keys = useRecordKeys()[recordId];
+  const tr = useT();
+  const { t, tp } = tr;
+  const thisSite = t('app.copy.thisSite');
+  const b = (c: React.ReactNode) => <b>{c}</b>;
   // The file came from a lab through VeilCore (opened from a lab report), not picked by hand.
   const fromLab = !!from && !!initialFile;
   // A lab report already saved to this plant, when this screen opened: saving replaces it.
   const [existing] = useState(() =>
-    record?.dnaFingerprint ? { name: record.dnaFileName ?? 'a file', at: record.dnaPairedAt } : undefined,
+    record?.dnaFingerprint ? { name: record.dnaFileName ?? t('app.pair.aFile'), at: record.dnaPairedAt } : undefined,
   );
 
   // Pairing changes the whole screen: start it at the top, focus on its heading.
@@ -96,7 +100,7 @@ export const Step2PairDna: React.FC<{
         fileSha256: sha,
         ...(from && from.sha === sha ? { resultId: from.resultId } : {}),
       });
-      if (!updated) throw new Error('Could not find the plant to save it to.');
+      if (!updated) throw new Error(t('app.pair.noPlant'));
       setConflicts(found);
       setFileSha(sha);
       setPaired(updated);
@@ -122,33 +126,27 @@ export const Step2PairDna: React.FC<{
     return (
       <Stack spacing={2}>
         <ScreenHeading step={stepLabel} component={headingComponent} variant={headingComponent === 'h1' ? 'h4' : 'h5'}>
-          Lab report saved to this plant
+          {t('app.pair.savedTitle')}
         </ScreenHeading>
         <FingerprintReveal
           fingerprint={paired.dnaFingerprint}
-          label="PAIRING FINGERPRINT"
-          headline={fromLab ? 'Opened and saved here, on your device.' : 'The report file stayed on your device.'}
-          sub={
-            fromLab
-              ? 'The lab sent it locked so only you could open it. Only its fingerprint and file name were saved with your record.'
-              : 'It was read and fingerprinted here in your browser. Its fingerprint and file name were saved with your record.'
-          }
+          label={t('app.pair.fpLabel')}
+          headline={fromLab ? t('app.pair.openedHere') : t('app.pair.stayed')}
+          sub={fromLab ? t('app.pair.openedHereSub') : t('app.pair.stayedSub')}
         />
         {fileSha && (
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', overflowWrap: 'anywhere' }}>
-            File SHA-256: <b>{shortFingerprint(fileSha)}</b>. This is the fingerprint a lab signs: compare it with the
-            lab&apos;s. The pairing fingerprint above is made from it, so the pairing can be dated on the network.
+            {rich(t('app.pair.fileSha'), { b }, { sha: shortFingerprint(fileSha) })}
           </Typography>
         )}
         {labMatch && (
           <Alert severity="success" variant="outlined" data-lab-match="">
-            This file matches the lab report {signerLabel(labMatch, 'signed by').lead}, by its SHA-256 (signature
-            checked in this browser).
+            {t('app.pair.labMatch', { lead: signerLabel(labMatch, 'signed by', undefined, tr).lead })}
           </Alert>
         )}
         {labMatch === null && (
           <Typography variant="body2" color="text.secondary">
-            No lab signature on this plant matches this file, so it stays your own statement.
+            {t('app.pair.noLabMatch')}
           </Typography>
         )}
         {/* the 1-2 punch completing */}
@@ -159,7 +157,7 @@ export const Step2PairDna: React.FC<{
             transition={{ duration: 0.5 }}
             color="primary"
             variant="outlined"
-            label={`Record · ${shortFingerprint(paired.recordFingerprint)}`}
+            label={t('app.pair.recordChip', { fp: shortFingerprint(paired.recordFingerprint) })}
           />
           <LinkIcon sx={{ color: 'primary.main' }} />
           <MChip
@@ -168,31 +166,31 @@ export const Step2PairDna: React.FC<{
             transition={{ duration: 0.5 }}
             color="primary"
             variant="outlined"
-            label={`Pairing · ${shortFingerprint(paired.dnaFingerprint)}`}
+            label={t('app.pair.pairingChip', { fp: shortFingerprint(paired.dnaFingerprint) })}
           />
         </Stack>
         {conflicts.length > 0 && (
           <Alert severity="warning" variant="outlined">
-            Heads up: this lab report is also saved to {conflicts.length} other record
-            {conflicts.length === 1 ? '' : 's'} you hold
-            {yoursFirst
-              ? '. This record was sealed earliest, by the clocks of the devices that sealed them.'
-              : `. ${priority.strainName} was sealed earlier (${utcDate(priority.loggedAt)}, by its device's clock).`}
+            {tp('app.pair.conflicts', conflicts.length, {
+              tail: yoursFirst
+                ? t('app.pair.earliest')
+                : t('app.pair.earlier', { name: priority.strainName, date: utcDate(priority.loggedAt) }),
+            })}
           </Alert>
         )}
         <Alert severity="success" variant="outlined">
-          Saved. Your lab report&apos;s fingerprint is saved with this plant&apos;s record, as your statement that this
-          report belongs to it. It is not a check of the genetics.{' '}
-          {datableBelow
-            ? 'It is not dated yet: date it below if you want the pairing on the network.'
-            : REAL_CHAIN
-              ? 'It is not dated yet.'
-              : `In ${THIS_SITE} the pairing isn’t dated yet.`}
+          {t('app.pair.saved', {
+            dated: datableBelow
+              ? t('app.pair.dateBelow')
+              : REAL_CHAIN
+                ? t('app.pair.notDated')
+                : t('app.pair.notDatedHere', { thisSite }),
+          })}
         </Alert>
         {REAL_CHAIN && <PairDnaOnChainPanel recordId={paired.id} />}
         <Box>
           <Button variant="contained" size="large" onClick={onDone}>
-            {doneLabel}
+            {doneLabel ?? t('app.pair.seeCertificate')}
           </Button>
         </Box>
       </Stack>
@@ -208,14 +206,14 @@ export const Step2PairDna: React.FC<{
           variant={headingComponent === 'h1' ? 'h4' : 'h5'}
           mb={0.5}
         >
-          Save your lab report to this plant
+          {t('app.pair.title')}
         </ScreenHeading>
         <Typography variant="body2" color="text.secondary">
-          Got your lab report back? Save it to this plant, so it can later be compared against a fresh test.
+          {t('app.pair.intro')}
         </Typography>
         {record && (
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-            Saving to: <b>{record.strainName}</b> · bred by {record.bredBy}
+            {rich(t('app.pair.savingTo'), { b }, { name: record.strainName, by: record.bredBy })}
           </Typography>
         )}
       </Box>
@@ -224,30 +222,25 @@ export const Step2PairDna: React.FC<{
 
       {existing && (
         <Alert severity="warning" variant="outlined" data-replaces="">
-          <b>
-            This plant already has a lab report saved: “{existing.name}”
-            {existing.at ? `, saved ${utcDate(existing.at)}` : ''}.
-          </b>{' '}
-          Saving this one replaces it. Your plant page, its certificate and links you share will show the new one, not
-          the old one. Nothing is deleted from your device.
-          {REAL_CHAIN ? ' If you dated the old pairing on the network, that date stays there.' : ''}
+          {rich(
+            t(REAL_CHAIN ? 'app.pair.replacesChain' : 'app.pair.replaces'),
+            { b },
+            { name: existing.name, saved: existing.at ? t('app.pair.savedOn', { date: utcDate(existing.at) }) : '' },
+          )}
         </Alert>
       )}
 
       <Alert icon={<ScienceIcon />} severity="info" variant="outlined">
-        VeilCore doesn&apos;t test DNA: you save the lab report your testing lab gave you. It&apos;s read and
-        fingerprinted on your device; the file is never uploaded. Its fingerprint and file name are saved with your
-        record.{' '}
-        {REAL_CHAIN
-          ? 'Afterwards you can also date the pairing on the network.'
-          : `In ${THIS_SITE} the pairing isn’t dated yet; on VeilCore’s contract it is.`}
+        {t('app.pair.noDna', {
+          after: REAL_CHAIN ? t('app.pair.afterChain') : t('app.pair.afterDemo', { thisSite }),
+        })}
       </Alert>
 
       <Dropzone
         file={file}
         onFile={setFile}
-        title={isTouch() ? 'Tap to choose your lab report' : 'Drag your lab report here, or click to choose'}
-        hint="The report file your testing lab returned — read locally, never uploaded."
+        title={isTouch() ? t('app.pair.tap') : t('app.pair.drag')}
+        hint={t('app.pair.dropHint')}
       />
 
       {error && (
@@ -259,15 +252,13 @@ export const Step2PairDna: React.FC<{
       {/* A lab report that came from the lab through VeilCore is already the lab's signed
           one: its signature is checked once it's saved (round 6). */}
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-        {fromLab
-          ? 'This is the lab report your lab sent through VeilCore. Once it’s saved, this page checks it against the lab’s signature.'
-          : 'A lab can also sign a lab report with its own key; a signed one carries more weight than one you save yourself. Here, save the lab report file you have.'}
+        {fromLab ? t('app.pair.fromLab') : t('app.pair.labCanSign')}
       </Typography>
 
       <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
         {onBack && (
           <Button variant="text" onClick={onBack} sx={{ minHeight: 44 }}>
-            Back
+            {t('app.common.back')}
           </Button>
         )}
         <Button
@@ -279,26 +270,22 @@ export const Step2PairDna: React.FC<{
             if (!busy && file) void onPair();
           }}
         >
-          {busy
-            ? 'Fingerprinting on your device…'
-            : existing
-              ? 'Replace the saved lab report'
-              : 'Save it to this plant'}
+          {busy ? t('app.pair.fingerprinting') : existing ? t('app.pair.replace') : t('app.plant.next.save.action')}
         </Button>
         {onSkip && (
           <Button variant="text" color="inherit" onClick={onSkip} sx={{ minHeight: 44 }}>
-            No report yet: skip
+            {t('app.pair.skip')}
           </Button>
         )}
       </Stack>
       {!file && (
         <Typography id={hintId} variant="caption" color="text.secondary">
-          Choose the lab report file first.
+          {t('app.pair.chooseFirst')}
         </Typography>
       )}
       {busy && (
         <Typography id={hintId} variant="caption" color="text.secondary" role="status">
-          Fingerprinting on your device…
+          {t('app.pair.fingerprinting')}
         </Typography>
       )}
     </Stack>

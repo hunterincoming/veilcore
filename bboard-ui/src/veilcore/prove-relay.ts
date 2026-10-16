@@ -23,6 +23,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { isObject, isString, isNumber, readJson } from './json';
+import { enT, type Translator } from '../i18n/translate';
 import { newChallenge } from './chain/challenge-book';
 import { KEY_NOT_THIS_RECORDS, keyMatchesRecord, type KeyedRecord } from './key-binding';
 import { localStamp } from './time';
@@ -329,7 +330,9 @@ export const checkAnswers = async (
  * What the key's date stamp shows (round 5): a date for the key, never for the record.
  * The date is shown when the check learned it; otherwise the plain fallback.
  */
-export const keyStampWords = (bound: boolean, anchoredAt?: number): string =>
+export const keyStampWords = (bound: boolean, anchoredAt?: number, tr: Translator = enT): string =>
   anchoredAt
-    ? `${bound ? 'Your plant’s key' : 'That key'} was date stamped on ${localStamp(anchoredAt)}. That dates the key, not the record.`
-    : `${bound ? 'This plant’s key' : 'That key'} was date stamped on the network earlier. That dates the key, not the record.`;
+    ? tr.t(bound ? 'app.prove.watch.stampedYour' : 'app.prove.watch.stampedThat', {
+        when: localStamp(anchoredAt, tr.locale),
+      })
+    : tr.t(bound ? 'app.prove.watch.stampedThisEarlier' : 'app.prove.watch.stampedThatEarlier');

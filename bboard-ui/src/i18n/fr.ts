@@ -4,6 +4,7 @@ import type { Strings } from './en';
 export const fr: Strings = {
   // Header and footer
   'nav.language': 'Langue',
+  'nav.main': 'Navigation principale',
   'footer.documents': 'Documents',
   'footer.spec': 'Spécification',
   'footer.partners': 'Exiger un enregistrement',
@@ -18,8 +19,30 @@ export const fr: Strings = {
   'footer.yourRecords': 'Vos enregistrements',
   'footer.agreements': 'Contrats',
   'footer.privacy': 'Confidentialité de la démo',
-  'draft.banner': 'Traduction provisoire, pas encore relue par un locuteur natif. La page en anglais fait foi.',
+  'draft.banner': 'Traduction provisoire faite par machine, en cours de relecture. La page en anglais fait foi.',
   'draft.showEnglish': 'Afficher en anglais',
+  // The record app's frame and the browser tab's titles.
+  'app.frame.section.log': 'Enregistrer',
+  'app.frame.section.send': 'Envoyer et recevoir',
+  'app.frame.section.license': 'Licences et redevances',
+  'app.frame.section.prove': 'Prouver et vérifier',
+  'app.frame.home': 'Accueil. Votre progression est enregistrée.',
+  'title.founders': 'Fondateurs',
+  'title.privacy': 'Confidentialité de la démo',
+  'title.privacyMainnet': 'Confidentialité du site',
+  'title.example': 'Enregistrement d’exemple',
+  'title.verify': 'Vérifier un enregistrement',
+  'title.import': 'Datez votre collection',
+  'title.records': 'Vos plantes',
+  'title.restore': 'Récupérez vos plantes',
+  'title.backup': 'Sauvegardez votre copie de secours',
+  'title.spec': 'Le format d’enregistrement',
+  'title.evidence': 'Les enregistrements comme preuve',
+  'title.integrate': 'Intégrer VeilCore',
+  'title.implementations': 'Implémentations',
+  'title.new': 'Enregistrer une plante',
+  'title.record': 'Enregistrement',
+  'title.agreements': 'Contrats',
   // Public pages (Mako's 25 September layout)
   'm.nav.about': 'À propos',
   'm.nav.team': 'Équipe',
@@ -154,7 +177,7 @@ export const fr: Strings = {
     'Merci de ne saisir ni vrais noms, ni vraies variétés, ni rien de confidentiel. La démo sert à essayer le format.',
   'm.privacy.export.title': 'Export',
   'm.privacy.export.text':
-    "Sur votre page d'enregistrements, sous « More » : « Export all records » télécharge les enregistrements que ce navigateur détient, et « Download everything VeilCore holds for you » télécharge tout ce que notre serveur conserve pour vous.",
+    "Sur votre page d'enregistrements, sous « Plus » : « Exporter tous les enregistrements » télécharge les enregistrements que ce navigateur détient, et « Télécharger tout ce que VeilCore conserve pour vous » télécharge tout ce que notre serveur conserve pour vous.",
   'm.privacy.delete.title': 'Suppression',
   'm.privacy.delete.text':
     'Pour faire supprimer vos données de démo de notre serveur, écrivez à hunter@veilcore.org en indiquant les identifiants de vos enregistrements.',
@@ -182,7 +205,7 @@ export const fr: Strings = {
     "Un lien de parenté ne compte que si les deux détenteurs le confirment. Sur ce site, c'est le registre de VeilCore qui l'enregistre, pas la chaîne.",
   'm.open.2t': 'Gardez un seul fichier.',
   'm.open.2p':
-    "Sur la page de votre plante : « Download evidence bundle ». Un seul .zip avec l'enregistrement tel qu'il a été scellé, sa preuve d'inclusion, l'empreinte du lot, l'endroit où le lot a été inscrit, le fichier d'horodatage Bitcoin s'il y en a un, et une page qui vérifie le tout hors ligne. Votre fichier de sauvegarde contient vos clés, pas ces fichiers. Les fichiers séparés restent sous « Technical details » : « Export record », « Download inclusion proof », « Download Bitcoin stamp file ».",
+    "Sur la page de votre plante : « Télécharger le dossier de preuve ». Un seul .zip avec l'enregistrement tel qu'il a été scellé, sa preuve d'inclusion, l'empreinte du lot, l'endroit où le lot a été inscrit, le fichier d'horodatage Bitcoin s'il y en a un, et une page qui vérifie le tout hors ligne. Votre fichier de sauvegarde contient vos clés, pas ces fichiers. Les fichiers séparés restent sous « Détails techniques » : « Exporter l’enregistrement », « Télécharger la preuve d’inclusion », « Télécharger le fichier d’horodatage Bitcoin ».",
   'm.faq.1a':
     "Une fois les enregistrements ancrés, chacun peut vérifier lequel a été ancré en premier. Associez votre rapport de laboratoire, pour qu'un test ultérieur puisse y être comparé. Quand vous envoyez du matériel, le destinataire signe un accusé de réception avec sa propre clé. Un enregistrement est une preuve, pas une inscription : il montre que vous déteniez cet enregistrement à cette date, pas que vous déteniez la plante, et ne tranche pas un litige à lui seul.",
   'm.post0.date': '4 oct. 2026',
@@ -421,7 +444,7 @@ export const fr: Strings = {
     "Libre à implémenter, pour toujours. TypeScript, Python et Rust s'accordent sur les 100 vecteurs de test du format d'enregistrement sur GitHub, et chacun peut les exécuter ; un 101e, pour l'association de rapports, n'est pas encore dans Rust. Un seul auteur a écrit les trois, et la version TypeScript est sur npm en 0.15.0. Une implémentation écrite par quelqu'un d'autre est le test que nous souhaitons le plus.",
   'm.tech.btc.t': "L'horodatage Bitcoin",
   'm.tech.btc.p':
-    "Notre registre horodate sur Bitcoin l'empreinte de chaque lot scellé, avec OpenTimestamps. Le premier est arrivé dans le bloc Bitcoin 971004 le 11 octobre. Vérifié le 15 octobre avec deux explorateurs de blocs : l'horodatage mène aux blocs Bitcoin 971004 et 971005. Une vérification avec l'outil officiel OpenTimestamps et un nœud Bitcoin complet reste à faire. Le fichier d'horodatage est le fichier .ots du lot : « Download Bitcoin stamp file », sur la page de la plante. Le registre du site de test n'horodate pas sur Bitcoin.",
+    "Notre registre horodate sur Bitcoin l'empreinte de chaque lot scellé, avec OpenTimestamps. Le premier est arrivé dans le bloc Bitcoin 971004 le 11 octobre. Vérifié le 15 octobre avec deux explorateurs de blocs : l'horodatage mène aux blocs Bitcoin 971004 et 971005. Une vérification avec l'outil officiel OpenTimestamps et un nœud Bitcoin complet reste à faire. Le fichier d'horodatage est le fichier .ots du lot : « Télécharger le fichier d’horodatage Bitcoin », sur la page de la plante. Le registre du site de test n'horodate pas sur Bitcoin.",
   'm.tech.dna.t': 'Association de rapports et signatures de laboratoire',
   'm.tech.dna.p':
     "Quand l'association d'un rapport ADN passe par le contrat VeilCore sur Midnight, elle est datée : elle montre que la personne qui contrôlait l'enregistrement à cette date avait ce rapport, ou son SHA-256, à ce moment-là. Ce qui va sur la chaîne est lié à l'enregistrement et cache le rapport, de sorte que personne ne peut copier l'association sur son propre enregistrement. La signature d'un laboratoire sur un rapport verrouillé couvre exactement ce fichier et l'enregistrement concerné.",

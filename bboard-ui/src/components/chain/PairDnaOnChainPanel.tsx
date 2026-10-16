@@ -21,6 +21,7 @@ import { CHAIN_CONTRACT, chainNotReady } from '../../veilcore/chain/config';
 import { dnaPairBinding, newPairingSalt, pairingEvidence } from '../../veilcore/chain/pairing';
 import { useChainCall } from './useChainCall';
 import { ChainStatusLine, TxLine } from './ChainStatusLine';
+import { InEnglishNote, useT } from '../../i18n/app';
 
 const download = (name: string, text: string): void => {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -36,19 +37,20 @@ export const PairDnaOnChainPanel: React.FC<{ recordId: string }> = ({ recordId }
   const record = getRecord(recordId);
   const keys = useRecordKeys()[recordId];
   const call = useChainCall<void>();
+  const { t } = useT();
   if (!record?.dnaFingerprint || chainNotReady()) return null;
 
   if (!keys) {
     return (
       <Typography variant="caption" color="text.secondary">
-        This browser does not hold the record’s keys, so it cannot date the pairing. Restore them from your backup.
+        {t('app.pair.chain.noKeys')}
       </Typography>
     );
   }
   if (!keys.anchor) {
     return (
       <Typography variant="caption" color="text.secondary">
-        Add your plant&apos;s date stamp first (from its page) if you also want to date this lab report on the network.
+        {t('app.pair.chain.stampFirst')}
       </Typography>
     );
   }
@@ -85,8 +87,7 @@ export const PairDnaOnChainPanel: React.FC<{ recordId: string }> = ({ recordId }
   if (other) {
     return (
       <Typography variant="caption" color="text.secondary">
-        This record already has a dated pairing of a different report. Dating a second one is not supported yet, so this
-        report is not dated. Keep the first one’s evidence file and backup.
+        {t('app.pair.chain.other')}
       </Typography>
     );
   }
@@ -95,20 +96,20 @@ export const PairDnaOnChainPanel: React.FC<{ recordId: string }> = ({ recordId }
     return (
       <Paper variant="outlined" sx={{ p: 2 }}>
         <Stack spacing={1}>
-          <Typography variant="body2">This pairing is dated on the test network against this record.</Typography>
-          <TxLine label="Pairing" txHash={mine.txHash ?? ''} blockHeight={mine.blockHeight ?? 0} />
+          <Typography variant="body2">{t('app.pair.chain.dated')}</Typography>
+          <TxLine label={t('app.pair.chain.label')} txHash={mine.txHash ?? ''} blockHeight={mine.blockHeight ?? 0} />
           <Typography variant="caption" color="text.secondary">
-            To show it, give someone the report and this evidence file. Keep a copy with the report: without its salt
-            the pairing can never be shown.
+            {t('app.pair.chain.toShow')}
           </Typography>
           {!keys.backedUpAt && (
             <Alert severity="warning" variant="outlined">
-              Download the record keys backup again: the one you have does not hold this pairing.
+              {t('app.pair.chain.backupAgain')}
             </Alert>
           )}
           <Button variant="outlined" onClick={() => evidenceFile(mine)} sx={{ alignSelf: 'flex-start' }}>
-            Download the evidence file
+            {t('app.pair.chain.download')}
           </Button>
+          <InEnglishNote />
         </Stack>
       </Paper>
     );
@@ -133,7 +134,7 @@ export const PairDnaOnChainPanel: React.FC<{ recordId: string }> = ({ recordId }
       if (fresh) {
         setDnaOnChain(recordId, pending); // saved before anything is sent
         if (keysFor(recordId)?.dnaOnChain?.salt !== pending.salt) {
-          throw new Error('This browser could not save the pairing’s random number, so nothing was sent.');
+          throw new Error('This browser could not save the pairing’s random number, so nothing was sent.'); // chainProblem words it
         }
       }
       const { pairDnaOnChain } = await import('../../veilcore/chain/actions');
@@ -159,17 +160,13 @@ export const PairDnaOnChainPanel: React.FC<{ recordId: string }> = ({ recordId }
   return (
     <Paper variant="outlined" sx={{ p: 2.5 }}>
       <Stack spacing={1.5}>
-        <Typography variant="subtitle2">Also date this pairing on the test network (optional)</Typography>
+        <Typography variant="subtitle2">{t('app.pair.chain.title')}</Typography>
         <Typography variant="body2" color="text.secondary">
-          This puts a code on chain, permanently, next to this record’s identity. The code is made from the report’s
-          fingerprint and a random number kept in this browser, so it says nothing about the report and nobody can copy
-          it to their own record. Afterwards you download an evidence file: with it and the report, anyone can check
-          that this record’s holder had the report by that date.
+          {t('app.pair.chain.intro')}
         </Typography>
         {mine?.status === 'sending' && !call.busy && (
           <Alert severity="warning" variant="outlined">
-            An earlier attempt was sent but not confirmed. It may have landed. Sending again uses the same code, so it
-            cannot pair a second, different one.
+            {t('app.pair.chain.earlier')}
           </Alert>
         )}
         <Button
@@ -178,12 +175,11 @@ export const PairDnaOnChainPanel: React.FC<{ recordId: string }> = ({ recordId }
           onClick={() => void pair()}
           sx={{ alignSelf: 'flex-start' }}
         >
-          {mine?.status === 'sending' ? 'Send again' : 'Date the pairing'}
+          {mine?.status === 'sending' ? t('app.pair.chain.sendAgain') : t('app.pair.chain.date')}
         </Button>
         <ChainStatusLine busy={call.busy} progress={call.progress} error={call.error} />
         <Typography variant="caption" color="text.secondary">
-          Test network only. This shows whoever controlled this record’s identity had the report, or its fingerprint, by
-          the date it lands. It is not a check of the genetics.
+          {t('app.pair.chain.testOnly')}
         </Typography>
       </Stack>
     </Paper>

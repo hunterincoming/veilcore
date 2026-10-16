@@ -23,6 +23,8 @@
 import type { SignedAttestation, AttestationStrength, Retraction } from 'veilcore-records';
 import { verifyAttestation, verifyRetraction } from 'veilcore-records';
 import { readJson, isObject, isString } from './json';
+import { enT, type Translator } from '../i18n/translate';
+import type { AppKey } from '../i18n/app/en';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
@@ -244,85 +246,94 @@ export type SignerLabel = {
  * "Not checked" covers no mark, a mark with no check record (every mark made before round
  * 4), an expired check, a withdrawn signature and a signature that doesn't verify.
  */
+/** The lead words the app uses, and their sentence in each language ("Receipt signed by {who}"). */
+const LEADS: Record<string, AppKey> = {
+  'Receipt signed by': 'app.signer.lead.receipt',
+  'Signed by': 'app.signer.lead.signed',
+  'signed by': 'app.signer.lead.signedLower',
+  by: 'app.signer.lead.by',
+};
+
 export const signerLabel = (
   a: ResolvedAttestation,
   leadWords = 'Receipt signed by',
   now: number = Date.now(),
+  tr: Translator = enT,
 ): SignerLabel => {
   const check = countsAsSigned(a) ? currentNameCheck(a, now) : null;
+  const leadOf = (who: string) =>
+    LEADS[leadWords] ? tr.t(LEADS[leadWords], { who }) : leadWords ? `${leadWords} ${who}` : ` ${who}`;
   if (check) {
     const who = check.checkedName.trim();
-    const lead = `${leadWords} ${who}`;
+    const lead = leadOf(who);
     const number = check.licenceNo
-      ? ` (${check.source === 'accreditation' ? 'certificate' : 'license'} ${check.licenceNo})`
+      ? tr.t(check.source === 'accreditation' ? 'app.signer.certificateNo' : 'app.signer.licenseNo', {
+          no: check.licenceNo,
+        })
       : '';
     const match = {
-      before: 'VeilCore’s operator matched this name to ',
+      before: tr.t('app.signer.matchBefore'),
       host: check.sourceHost,
       href: check.sourceUrl,
-      after: `${number} on ${check.checkedAt}.`,
+      after: tr.t('app.signer.matchAfter', { number, date: check.checkedAt }),
     };
-    const disclaimer = 'VeilCore doesn’t vouch for the lab’s work.';
-    const rest = ` ${match.before}${match.host}${match.after} ${disclaimer}`;
-    return { checked: true, lead, who, match, disclaimer, rest, text: `${lead}.${rest}` };
+    const disclaimer = tr.t('app.signer.disclaimer');
+    const rest = tr.t('app.signer.rest', { before: match.before, host: match.host, after: match.after, disclaimer });
+    return { checked: true, lead, who, match, disclaimer, rest, text: tr.t('app.signer.text', { lead, rest }) };
   }
   const name = (a.registeredAs?.displayName ?? a.attester.displayName)?.trim();
-  const who = name ? `a key named “${name}” (name not checked)` : 'a key nobody has named';
-  const lead = `${leadWords} ${who}`;
+  const who = name ? tr.t('app.signer.keyNamed', { name }) : tr.t('app.signer.keyUnnamed');
+  const lead = leadOf(who);
   return { checked: false, lead, who, match: null, disclaimer: null, rest: '', text: lead };
 };
 
 /** What to tell a breeder about how much an attestation is worth. */
-export const strengthLabel = (a: ResolvedAttestation): { label: string; why: string; ok: boolean } => {
+export const strengthLabel = (
+  a: ResolvedAttestation,
+  tr: Translator = enT,
+): { label: string; why: string; ok: boolean } => {
   if (!a.signature) {
-    return {
-      label: 'Unsigned',
-      why: 'Recorded but not signed. This is a claim about a second party rather than a statement by one.',
-      ok: false,
-    };
+    return { label: tr.t('app.lab.strength.unsigned'), why: tr.t('app.lab.strength.unsignedWhy'), ok: false };
   }
   if (!a.signatureValid) {
-    return {
-      label: 'Signature does not verify',
-      why: 'This attestation cannot be shown to have come from the key it names. Treat it as unattested.',
-      ok: false,
-    };
+    return { label: tr.t('app.lab.strength.invalid'), why: tr.t('app.lab.strength.invalidWhy'), ok: false };
   }
   if (a.retraction) {
     return {
-      label: 'Retracted',
-      why: `The attester withdrew this on ${new Date(a.retraction.retractedAt).toLocaleDateString()}, with a retraction signed by their key. It remains on record — retraction is not deletion.`,
+      label: tr.t('app.lab.strength.retracted'),
+      why: tr.t('app.lab.strength.retractedWhy', { date: tr.date(a.retraction.retractedAt) }),
       ok: false,
     };
   }
-  const unverifiedRetraction = a.retractionUnverified
-    ? ' The registry also reports a retraction that is not signed by the attester, so it is ignored here.'
-    : '';
+  const unverifiedRetraction = a.retractionUnverified ? tr.t('app.lab.strength.unverifiedRetraction') : '';
   // A signer is described by its name only with a current name check behind it (round 4):
   // anyone can register a key under a lab's name and sign their own record, and the
   // accreditation inside an attestation is whatever the signer typed — "Signed ·
   // accredited attester" used to be shown on exactly that (attack round 11).
-  const s = signerLabel(a, 'Signed by');
+  const s = signerLabel(a, 'Signed by', undefined, tr);
   if (s.checked) {
     const acc = a.registeredAs?.accreditation;
     return {
-      label: 'Signed · name matched to a public listing',
-      why: `${s.text} The signature was verified in this browser.${acc ? ` They list ${acc.scheme} accreditation from ${acc.accreditor}; confirm that with ${acc.accreditor}.` : ''}${unverifiedRetraction}`,
+      label: tr.t('app.lab.strength.matched'),
+      why: tr.t('app.lab.strength.matchedWhy', {
+        text: s.text,
+        acc: acc ? tr.t('app.lab.strength.accreditation', { scheme: acc.scheme, by: acc.accreditor }) : '',
+        unverified: unverifiedRetraction,
+      }),
       ok: true,
     };
   }
   const record: unknown = a.registeredAs?.nameCheck;
   const expired =
     a.registeredAs?.nameCheckStatus === 'expired' || (isObject(record) && dayMs(record.expiresAt) <= Date.now())
-      ? ' An earlier check of this name has expired.'
+      ? tr.t('app.lab.strength.expired')
       : '';
   return {
-    label: 'Signed · name not checked',
+    label: tr.t('app.lab.strength.notChecked'),
     why:
       (a.registeredAs?.displayName
-        ? `${s.text}. Anyone can register a key under any name, so this doesn’t show who signed.${expired}`
-        : 'Signed by a key nobody has registered. The signature is valid; who holds the key is not known.') +
-      unverifiedRetraction,
+        ? tr.t('app.lab.strength.anyName', { text: s.text, expired })
+        : tr.t('app.lab.strength.unregistered')) + unverifiedRetraction,
     ok: false,
   };
 };

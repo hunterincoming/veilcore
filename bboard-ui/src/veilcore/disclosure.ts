@@ -19,6 +19,7 @@
 
 import { holderKey, holderKeyIfAny } from './holder';
 import { readJson, isObject, isString } from './json';
+import { enT, type Translator } from '../i18n/translate';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
@@ -69,10 +70,13 @@ export const toDisclosureKey = (k: string): DisclosureKey | undefined =>
   DISCLOSURE_FIELDS.some((f) => f.key === k) ? (k as DisclosureKey) : FROM_LEGACY[k];
 
 /** What the recipient is told about a key, by name. */
-export const labelOf = (k: DisclosureKey): string => DISCLOSURE_FIELDS.find((f) => f.key === k)?.label ?? k;
+export const labelOf = (k: DisclosureKey, tr: Translator = enT): string =>
+  DISCLOSURE_FIELDS.some((f) => f.key === k) ? tr.t(`app.verify.field.${k}`) : k;
 
 /** Always hidden, never togglable — shown to the recipient as a locked row. */
 export const GENETICS_LABEL = 'The genetics themselves — never disclosed, by design';
+/** GENETICS_LABEL in the visitor's language. */
+export const geneticsLabel = (tr: Translator = enT): string => tr.t('app.verify.field.genetics');
 
 export const defaultDisclosure = (): Disclosure =>
   DISCLOSURE_FIELDS.reduce((acc, f) => ({ ...acc, [f.key]: f.def }), {} as Disclosure);
@@ -162,12 +166,14 @@ export const saveGrant = async (recordId: string, d: Disclosure): Promise<Grant 
 export const sharedNowWords = (
   stored: { show: string[]; updatedAt: string | null } | 'loading' | 'unknown',
   unsaved: boolean,
+  tr: Translator = enT,
 ): string => {
-  if (stored === 'loading') return 'Checking what is shared now…';
-  const save = ' “Get the link” saves the switches above, and the check page then shows exactly that.';
-  if (stored === 'unknown') return `Couldn’t read what is shared now from the registry.${save}`;
-  if (stored.updatedAt === null)
-    return `Shared now: only the basics. The switches above are a suggestion and aren’t saved yet.${save}`;
-  const now = stored.show.length ? stored.show.map((k) => labelOf(k as DisclosureKey)).join('; ') : 'only the basics';
-  return `Shared now: ${now}.${unsaved ? ` The switches above differ from that.${save}` : ''}`;
+  if (stored === 'loading') return tr.t('app.prove.share.checkingNow');
+  const save = tr.t('app.prove.share.saveNote');
+  if (stored === 'unknown') return tr.t('app.prove.share.couldntRead', { save });
+  if (stored.updatedAt === null) return tr.t('app.prove.share.onlyBasicsUnsaved', { save });
+  const now = stored.show.length
+    ? stored.show.map((k) => labelOf(k as DisclosureKey, tr)).join(tr.t('app.prove.share.semicolon'))
+    : tr.t('app.prove.share.onlyBasics');
+  return tr.t('app.prove.share.sharedNow', { now, differs: unsaved ? tr.t('app.prove.share.differs', { save }) : '' });
 };

@@ -14,6 +14,7 @@ import { parseShareCode, sentByMe } from '../../veilcore/transfers';
 import { OPEN_RECEIVE_EVENT } from '../ClaimTransfer';
 import { useRecords } from '../../veilcore/records';
 import { useRecordKeys } from '../../veilcore/record-keys';
+import { useT } from '../../i18n/app';
 
 export const PasteBox: React.FC = () => {
   const [value, setValue] = useState('');
@@ -24,6 +25,7 @@ export const PasteBox: React.FC = () => {
   const records = useRecords();
   const keys = useRecordKeys();
   const provable = records.filter((r) => keys[r.id]?.anchor);
+  const { t } = useT();
 
   const go = async () => {
     if (busy || !value.trim()) return;
@@ -37,7 +39,7 @@ export const PasteBox: React.FC = () => {
           const id = parseShareCode(p.code).transferId;
           const mine = (await sentByMe()).some((t) => t.id.toUpperCase() === id);
           if (mine) {
-            setProblem("That's your own code. Send it to the lab; don't receive it here.");
+            setProblem(t('app.home.paste.ownCode'));
             return;
           }
         } finally {
@@ -48,7 +50,7 @@ export const PasteBox: React.FC = () => {
         return;
       }
       case 'delivery-cut-off':
-        setProblem('That code looks cut off. Copy the whole lab code they sent you.');
+        setProblem(t('app.home.paste.cutOff'));
         return;
       case 'record-link':
       case 'agreement-to-sign':
@@ -58,13 +60,10 @@ export const PasteBox: React.FC = () => {
       case 'prove-request':
         if (provable.length === 1) void navigate(`/record/${provable[0].id}?prove=${p.challenge}`);
         else if (provable.length > 1) setChoose(p.challenge);
-        else
-          setProblem(
-            "That's a request to prove you hold a plant, but none of the plants on this device has a date stamp yet. On a new device? Get your plants back from your backup first.",
-          );
+        else setProblem(t('app.home.paste.noneStamped'));
         return;
       case 'unknown':
-        setProblem("That doesn't look like a VeilCore code or link. Copy the whole thing they sent you and try again.");
+        setProblem(t('app.home.paste.unknown'));
     }
   };
 
@@ -76,12 +75,12 @@ export const PasteBox: React.FC = () => {
         variant="subtitle1"
         sx={{ fontWeight: 700, display: 'block', mb: 1 }}
       >
-        Someone sent you a code or link?
+        {t('app.home.paste.label')}
       </Typography>
       <Stack direction="row" spacing={1}>
         <TextField
           id="paste-box"
-          placeholder="Paste it here"
+          placeholder={t('app.home.paste.placeholder')}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
@@ -96,11 +95,11 @@ export const PasteBox: React.FC = () => {
           disabled={!value.trim() || busy}
           sx={{ minWidth: 72, minHeight: 48 }}
         >
-          Go
+          {t('app.home.paste.go')}
         </Button>
       </Stack>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
-        A lab code, a record link, a request to prove a plant, or an agreement to sign. We&apos;ll work out which.
+        {t('app.home.paste.hint')}
       </Typography>
       <Box role="status" aria-live="polite">
         {problem && (
@@ -112,7 +111,7 @@ export const PasteBox: React.FC = () => {
       {choose && (
         <Box sx={{ mt: 1.5 }}>
           <Typography variant="body1" sx={{ fontWeight: 700, mb: 1 }}>
-            That&apos;s a request to prove you hold a plant. Which one did they ask about?
+            {t('app.home.paste.whichPlant')}
           </Typography>
           <Stack spacing={1}>
             {provable.map((r) => (

@@ -48,9 +48,11 @@ import {
   ownOffspringNote,
   upstreamOwnRoyaltyNote,
 } from './self-chain';
+import { withEnglish } from '../../i18n/source-words';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const source = (rel: string) => fs.readFileSync(path.join(HERE, '..', rel), 'utf8');
+// Each t('app.…') read as the English it shows (i18n/source-words.ts).
+const source = (rel: string) => withEnglish(fs.readFileSync(path.join(HERE, '..', rel), 'utf8'));
 
 const local = new Map<string, string>();
 beforeEach(() => {

@@ -58,7 +58,9 @@ import { Step2PairDna } from '../wizard/Step2PairDna';
 import { AppHeader } from '../AppHeader';
 import { BackupStep } from './BackupStep';
 import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled, visuallyHidden } from './FlowFrame';
-import { OUR_SERVER, DATED_ON } from '../../config/copy';
+import { useT, rich, type Translator } from '../../i18n/app';
+import { BREEDING_METHODS, breedingMethodWords } from './breeding-methods';
+import { progressWords } from '../chain/progress-words';
 import {
   type Draft,
   clearDraft,
@@ -74,29 +76,24 @@ import {
   unsavedPlantLine,
 } from './log-flow-state';
 import { parentOptionsOf } from '../stage/record-kinds';
-import { SEAL_EACH_STAGE, SELECTED_PROMPT, STAGE_PROMPT } from '../stage/stage-notes';
-
-const BREEDING_METHODS = [
-  'Seed — F1',
-  'Seed — F2',
-  'Seed — selfed (S1)',
-  'Seed — backcross',
-  'Clone / cutting',
-  'Tissue culture',
-  'Selection',
-  'Landrace / heirloom',
-  'Other',
-];
+// SEAL_EACH_STAGE, STAGE_PROMPT and SELECTED_PROMPT (stage-notes.ts) are shown here in the
+// visitor's language: app.log.sealEachStage, app.log.stagePrompt, app.log.selectedPrompt.
 
 type Screen = 'plant' | 'review' | 'stamp' | 'report' | 'backup';
 
 /** The counter. The lab report is optional, so it is not counted. */
-export const STEP: Record<Screen, string> = {
-  plant: 'Step 1 of 4',
-  review: 'Step 2 of 4',
-  stamp: 'Step 3 of 4',
-  report: 'Optional',
-  backup: 'Step 4 of 4',
+export const STEP: Record<Screen, number | 'optional'> = {
+  plant: 1,
+  review: 2,
+  stamp: 3,
+  report: 'optional',
+  backup: 4,
+};
+
+/** "Step 1 of 4", or "Optional", in the visitor's language. */
+const stepWords = (screen: Screen, tr: Translator): string => {
+  const n = STEP[screen];
+  return n === 'optional' ? tr.t('app.log.optional') : tr.t('app.log.stepOf', { n, total: 4 });
 };
 
 export const LogFlow: React.FC = () => {
@@ -146,6 +143,7 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
   const [recordId, setRecordId] = useState<string>();
   const navigate = useNavigate();
   const firstScreen = useRef(true);
+  const tr = useT();
 
   const setDraft = (d: Draft) => {
     setDraftState(d);
@@ -162,7 +160,7 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
     return focusScreenHeading();
   }, [screen]);
 
-  const step = STEP[screen];
+  const step = stepWords(screen, tr);
 
   const body = (() => {
     switch (screen) {
@@ -187,7 +185,7 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
             setDraft={setDraft}
             restored={start.resumed && draftHasContent(draft)}
             startOver={nextParent ? () => nextStageDraft(nextParent) : emptyDraft}
-            namePlaceholder={nextParent ? nextStageNamePlaceholder(nextParent) : undefined}
+            namePlaceholder={nextParent ? nextStageNamePlaceholder(nextParent, tr) : undefined}
             parentOptions={parentOptionsOf(records)}
             onNext={() => setScreen('review')}
           />
@@ -217,11 +215,10 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
             stepLabel={step}
             onDone={() => setScreen('backup')}
             onSkip={() => setScreen('backup')}
-            doneLabel="Next: save your backup"
+            doneLabel={tr.t('app.log.nextSaveBackup')}
             intro={
               <Alert severity="info" variant="outlined">
-                <b>Optional.</b> Already have a lab report for this plant? Add it now and it&apos;s kept with the
-                record. No report yet? Skip. You can add one any time from the plant&apos;s page.
+                {rich(tr.t('app.log.reportIntro'), { b: (c) => <b>{c}</b> })}
               </Alert>
             }
           />
@@ -229,9 +226,9 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
       case 'backup':
         return (
           <BackupStep
-            title="Save your backup"
+            title={tr.t('app.backup.title')}
             stepLabel={step}
-            finishLabel="Finish"
+            finishLabel={tr.t('app.log.finish')}
             onDone={() => (recordId ? navigate(`/record/${recordId}`) : navigate('/records'))}
           />
         );
@@ -251,23 +248,29 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
 // ---------------------------------------------------------------------------------------
 
 /** A next stage's parent not in this browser yet (a reload, before the records arrive). */
-const OpeningParent: React.FC<{ nextOf: string }> = ({ nextOf }) => (
-  <Stack spacing={2}>
-    <ScreenHeading>Log the next generation or selection</ScreenHeading>
-    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }} role="status">
-      <CircularProgress size={18} />
-      <Typography variant="body1" sx={{ overflowWrap: 'anywhere' }}>
-        Opening {nextOf}…
+const OpeningParent: React.FC<{ nextOf: string }> = ({ nextOf }) => {
+  const { t } = useT();
+  return (
+    <Stack spacing={2}>
+      <ScreenHeading>{t('app.log.nextStageTitle')}</ScreenHeading>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }} role="status">
+        <CircularProgress size={18} />
+        <Typography variant="body1" sx={{ overflowWrap: 'anywhere' }}>
+          {t('app.log.opening', { id: nextOf })}
+        </Typography>
+      </Stack>
+      <Typography variant="body2" color="text.secondary">
+        {rich(t('app.log.notInBrowser'), {
+          link: (c) => (
+            <Link component={RouterLink} to="/new">
+              {c}
+            </Link>
+          ),
+        })}
       </Typography>
     </Stack>
-    <Typography variant="body2" color="text.secondary">
-      If it doesn&apos;t open, that plant isn&apos;t in this browser.{' '}
-      <Link component={RouterLink} to="/new">
-        Log a new plant instead
-      </Link>
-    </Typography>
-  </Stack>
-);
+  );
+};
 
 /** A different plant is half-logged: keep it, and ask before starting the next stage. */
 const UnsavedPlantChoice: React.FC<{
@@ -275,23 +278,27 @@ const UnsavedPlantChoice: React.FC<{
   other: Draft;
   onKeep: () => void;
   onContinue: () => void;
-}> = ({ step, other, onKeep, onContinue }) => (
-  <Stack spacing={2} data-unsaved-plant="">
-    <ScreenHeading step={step}>Log the next generation or selection</ScreenHeading>
-    <Typography variant="body1" sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
-      {unsavedPlantLine(other)}
-    </Typography>
-    <Typography variant="body2" color="text.secondary">
-      It stays kept in this browser either way.
-    </Typography>
-    <Button variant="contained" size="large" fullWidth onClick={onKeep} sx={{ py: 1.4 }}>
-      Keep it and start the next stage
-    </Button>
-    <Button variant="outlined" size="large" fullWidth onClick={onContinue} sx={{ py: 1.4 }}>
-      Continue that plant
-    </Button>
-  </Stack>
-);
+}> = ({ step, other, onKeep, onContinue }) => {
+  const tr = useT();
+  const { t } = tr;
+  return (
+    <Stack spacing={2} data-unsaved-plant="">
+      <ScreenHeading step={step}>{t('app.log.nextStageTitle')}</ScreenHeading>
+      <Typography variant="body1" sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
+        {unsavedPlantLine(other, tr)}
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
+        {t('app.log.keptEitherWay')}
+      </Typography>
+      <Button variant="contained" size="large" fullWidth onClick={onKeep} sx={{ py: 1.4 }}>
+        {t('app.log.keepAndStart')}
+      </Button>
+      <Button variant="outlined" size="large" fullWidth onClick={onContinue} sx={{ py: 1.4 }}>
+        {t('app.log.continueThat')}
+      </Button>
+    </Stack>
+  );
+};
 
 const PlantForm: React.FC<{
   step: string;
@@ -306,6 +313,7 @@ const PlantForm: React.FC<{
   parentOptions: ParentRef[];
   onNext: () => void;
 }> = ({ step, draft, setDraft, restored, startOver, namePlaceholder, parentOptions, onNext }) => {
+  const { t, tp } = useT();
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft({ ...draft, [k]: v });
   const hasMore = Boolean(
     draft.parents.length || draft.taxon || draft.breedingMethod || draft.refId || draft.notes || draft.photos.length,
@@ -338,21 +346,21 @@ const PlantForm: React.FC<{
   return (
     <Stack spacing={2.5}>
       <Box>
-        <ScreenHeading step={step}>{stageOf ? 'Log the next generation or selection' : 'Log your plant'}</ScreenHeading>
+        <ScreenHeading step={step}>{stageOf ? t('app.log.nextStageTitle') : t('app.log.title')}</ScreenHeading>
         <Typography variant="body1" color="text.secondary">
-          Fill in what you know. You&apos;ll check it on the next screen.
+          {t('app.log.fillIn')}
         </Typography>
       </Box>
       {stageOf && (
         <Alert severity="info" variant="outlined" data-seal-each-stage="">
-          <b>{SEAL_EACH_STAGE}</b>
-          {stageParent ? ` Its parent is ${stageParent}, already linked below.` : ''}
+          <b>{t('app.log.sealEachStage')}</b>
+          {stageParent ? t('app.log.parentLinked', { name: stageParent }) : ''}
         </Alert>
       )}
       {restored && (
         <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
           <Typography variant="body2" color="text.secondary">
-            We kept what you typed last time.
+            {t('app.log.keptLastTime')}
           </Typography>
           <Button
             variant="text"
@@ -364,49 +372,49 @@ const PlantForm: React.FC<{
             }}
             sx={{ minHeight: 44 }}
           >
-            Start over
+            {t('app.log.startOver')}
           </Button>
         </Stack>
       )}
       <TextField
-        label="Plant or line name"
+        label={t('app.log.nameLabel')}
         required
-        placeholder={namePlaceholder ?? 'e.g. Harbour Mist'}
+        placeholder={namePlaceholder ?? t('app.log.namePlaceholder')}
         value={draft.strainName}
         onChange={(e) => set('strainName', e.target.value)}
         fullWidth
       />
       <TextField
-        label="Bred by"
+        label={t('app.log.bredBy')}
         required
-        placeholder="Your name or business"
+        placeholder={t('app.log.bredByPlaceholder')}
         value={draft.bredBy}
         onChange={(e) => set('bredBy', e.target.value)}
         fullWidth
       />
       <TextField
-        label="When you made it (your own note)"
+        label={t('app.log.whenMade')}
         type="date"
         value={draft.dateCreated}
         onChange={(e) => set('dateCreated', e.target.value)}
-        helperText="The public date stamp comes from the network. This is just what you tell people."
+        helperText={t('app.log.whenMadeHelp')}
         slotProps={{ inputLabel: { shrink: true } }}
         fullWidth
       />
       {stageOf && (
         <>
           <TextField
-            label={STAGE_PROMPT}
+            label={t('app.log.stagePrompt')}
             value={draft.stage ?? ''}
             onChange={(e) => set('stage', e.target.value)}
-            helperText="Sealed in the notes as “Stage: …”."
+            helperText={t('app.log.stageHelp')}
             fullWidth
           />
           <TextField
-            label={SELECTED_PROMPT}
+            label={t('app.log.selectedPrompt')}
             value={draft.selectedFor ?? ''}
             onChange={(e) => set('selectedFor', e.target.value)}
-            helperText="Sealed in the notes as “Selected for: …”."
+            helperText={t('app.log.selectedHelp')}
             multiline
             minRows={2}
             fullWidth
@@ -422,7 +430,7 @@ const PlantForm: React.FC<{
           aria-controls={moreId}
           sx={{ px: 0, minHeight: 44 }}
         >
-          {more ? '− Fewer details' : '+ Add parents, species, photos or notes'}
+          {more ? t('app.log.fewer') : t('app.log.more')}
         </Button>
         <Collapse in={more} id={moreId}>
           <Stack spacing={2.5} sx={{ pt: 1.5 }}>
@@ -439,36 +447,28 @@ const PlantForm: React.FC<{
                 )
               }
               renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Parents"
-                  helperText="Pick a plant you've logged, or type a name and press Enter."
-                />
+                <TextField {...params} label={t('app.log.parents')} helperText={t('app.log.parentsHelp')} />
               )}
             />
             <TextField
-              label="Species"
-              placeholder="e.g. Solanum lycopersicum"
+              label={t('app.log.species')}
+              placeholder={t('app.log.speciesPlaceholder')}
               value={draft.taxon}
               onChange={(e) => set('taxon', e.target.value)}
               fullWidth
             />
             <TextField
               select
-              label="How it was made"
+              label={t('app.log.howMade')}
               value={draft.breedingMethod}
               onChange={(e) => set('breedingMethod', e.target.value)}
-              helperText={
-                stageOf && !draft.breedingMethod
-                  ? 'How was this stage made? It isn’t carried over from the parent.'
-                  : undefined
-              }
+              helperText={stageOf && !draft.breedingMethod ? t('app.log.howMadeStageHelp') : undefined}
               fullWidth
             >
-              <MenuItem value="">Not saying</MenuItem>
-              {BREEDING_METHODS.map((m) => (
+              <MenuItem value="">{t('app.log.notSaying')}</MenuItem>
+              {BREEDING_METHODS.map(([m, key]) => (
                 <MenuItem key={m} value={m}>
-                  {m}
+                  {t(key)}
                 </MenuItem>
               ))}
             </TextField>
@@ -479,14 +479,9 @@ const PlantForm: React.FC<{
                 disabled={reading}
                 startIcon={reading ? <CircularProgress size={16} color="inherit" /> : undefined}
               >
-                {reading ? 'Reading photos…' : 'Add photos'}
+                {reading ? t('app.log.readingPhotos') : t('app.log.addPhotos')}
               </Button>
-              {draft.photos.length > 0 && (
-                <Chip
-                  label={`${draft.photos.length} photo${draft.photos.length === 1 ? '' : 's'}`}
-                  variant="outlined"
-                />
-              )}
+              {draft.photos.length > 0 && <Chip label={tp('app.log.photos', draft.photos.length)} variant="outlined" />}
               <input
                 ref={photoRef}
                 type="file"
@@ -501,16 +496,16 @@ const PlantForm: React.FC<{
               />
             </Stack>
             <Typography variant="caption" color="text.secondary">
-              Photos stay on your device. Only their fingerprints are kept.
+              {t('app.log.photosStay')}
             </Typography>
             <TextField
-              label="Your own lot or reference number"
+              label={t('app.log.refId')}
               value={draft.refId}
               onChange={(e) => set('refId', e.target.value)}
               fullWidth
             />
             <TextField
-              label="Notes"
+              label={t('app.log.notes')}
               value={draft.notes}
               onChange={(e) => set('notes', e.target.value)}
               multiline
@@ -531,11 +526,11 @@ const PlantForm: React.FC<{
         onClick={() => ready && onNext()}
         sx={{ py: 1.6 }}
       >
-        Next: check it
+        {t('app.log.nextCheck')}
       </Button>
       {!ready && (
         <Typography id={hintId} variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-          {reading ? 'Reading your photos…' : 'A name and who bred it are all you need.'}
+          {reading ? t('app.log.readingYourPhotos') : t('app.log.nameAndBreeder')}
         </Typography>
       )}
     </Stack>
@@ -544,12 +539,12 @@ const PlantForm: React.FC<{
 
 // ---------------------------------------------------------------------------------------
 
-const Line: React.FC<{ k: string; v: string; empty?: boolean; onChange: () => void; action?: string }> = ({
+const Line: React.FC<{ k: string; v: string; empty?: boolean; onChange: () => void; action: string }> = ({
   k,
   v,
   empty,
   onChange,
-  action = 'Change',
+  action,
 }) => (
   <Stack
     direction="row"
@@ -581,6 +576,8 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
 }) => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const tr = useT();
+  const { t, tp } = tr;
 
   const seal = async () => {
     if (busy) return;
@@ -606,42 +603,42 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
   };
 
   const extras = [
-    draft.stage?.trim() ? `Stage: ${draft.stage.trim()}` : '',
-    draft.selectedFor?.trim() ? `Selected for: ${draft.selectedFor.trim()}` : '',
-    draft.parents.length ? `Parents: ${draft.parents.map((p) => p.name).join(' × ')}` : '',
-    draft.taxon ? `Species: ${draft.taxon}` : '',
-    draft.breedingMethod ? `Made by: ${draft.breedingMethod}` : '',
-    draft.photos.length ? `${draft.photos.length} photo${draft.photos.length === 1 ? '' : 's'}` : '',
-    draft.refId ? `Your reference: ${draft.refId}` : '',
-    draft.notes ? 'Notes added' : '',
+    draft.stage?.trim() ? t('app.log.x.stage', { v: draft.stage.trim() }) : '',
+    draft.selectedFor?.trim() ? t('app.log.x.selectedFor', { v: draft.selectedFor.trim() }) : '',
+    draft.parents.length ? t('app.log.x.parents', { v: draft.parents.map((p) => p.name).join(' × ') }) : '',
+    draft.taxon ? t('app.log.x.species', { v: draft.taxon }) : '',
+    draft.breedingMethod ? t('app.log.x.madeBy', { v: breedingMethodWords(draft.breedingMethod, tr) }) : '',
+    draft.photos.length ? tp('app.log.photos', draft.photos.length) : '',
+    draft.refId ? t('app.log.x.ref', { v: draft.refId }) : '',
+    draft.notes ? t('app.log.x.notes') : '',
   ].filter(Boolean);
+  const change = t('app.common.change');
 
   return (
     <Stack spacing={2.5}>
       <Box>
-        <ScreenHeading step={step}>Is this right?</ScreenHeading>
+        <ScreenHeading step={step}>{t('app.log.reviewTitle')}</ScreenHeading>
         <Typography variant="body1" color="text.secondary">
-          Fix anything now.
+          {t('app.log.fixNow')}
         </Typography>
       </Box>
       <Box>
-        <Line k="Plant or line" v={draft.strainName} onChange={onChange} />
-        <Line k="Bred by" v={draft.bredBy} onChange={onChange} />
-        <Line k="Made (your note)" v={draft.dateCreated} onChange={onChange} />
+        <Line k={t('app.log.k.plant')} v={draft.strainName} onChange={onChange} action={change} />
+        <Line k={t('app.log.bredBy')} v={draft.bredBy} onChange={onChange} action={change} />
+        <Line k={t('app.log.k.made')} v={draft.dateCreated} onChange={onChange} action={change} />
         <Line
-          k="More details"
-          v={extras.length ? extras.join(' · ') : 'None added'}
+          k={t('app.log.k.more')}
+          v={extras.length ? extras.join(' · ') : t('app.log.noneAdded')}
           empty={!extras.length}
           onChange={onChange}
-          action={extras.length ? 'Change' : 'Add'}
+          action={extras.length ? change : t('app.common.add')}
         />
       </Box>
       <Alert icon={<LockIcon />} severity="info" variant="outlined">
-        <b>Once sealed, this part can&apos;t change.</b> You can add reports and corrections later; a correction is a
-        new record that points back to this one. That&apos;s what makes the date stamp worth something.
+        {rich(t('app.log.sealedWarn'), { b: (c) => <b>{c}</b> })}
       </Alert>
       <Typography variant="body2" color="text.secondary">
-        The details are saved on {OUR_SERVER} so you can come back to them. Only a fingerprint is dated on {DATED_ON}.
+        {t('app.log.savedOn', { server: t('app.copy.ourServer'), datedOn: t('app.copy.datedOn') })}
       </Typography>
       {error && (
         <Alert severity="error" variant="outlined">
@@ -660,17 +657,16 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
         sx={{ py: 1.6 }}
         {...(REAL_CHAIN ? { 'data-stamps-key': '', 'aria-describedby': 'seal-stamps-key' } : {})}
       >
-        {busy ? 'Sealing…' : 'Seal it'}
+        {busy ? t('app.log.sealing') : t('app.log.seal')}
       </Button>
       <span role="status" style={visuallyHidden}>
-        {busy ? 'Sealing your plant…' : ''}
+        {busy ? t('app.log.sealingPlant') : ''}
       </span>
       {/* Round 5: one button, one name. Dating the key is part of sealing, said here, not
           a second "date stamp it" that reads like a second date for the record. */}
       {REAL_CHAIN && (
         <Typography id="seal-stamps-key" variant="body2" color="text.secondary">
-          Sealing also date stamps your plant&apos;s key, so you can prove you hold it later. Only a fingerprint of the
-          key goes out.
+          {t('app.log.sealStampsKey')}
         </Typography>
       )}
     </Stack>
@@ -687,6 +683,9 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
   const notReady = REAL_CHAIN ? chainNotReady() : undefined;
   const keeps = storageKeeps();
   const [backupFirstDone, setBackupFirstDone] = useState(false);
+  const tr = useT();
+  const { t } = tr;
+  const datedOn = t('app.copy.datedOn');
   // Round 6: when the date stamp lands, this screen is redrawn as "Sealed" and the heading
   // that had focus is gone: give focus to the new one.
   const wasAnchored = useRef(!!anchored);
@@ -726,13 +725,12 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
   if (!REAL_CHAIN || notReady) {
     return (
       <Stack spacing={2.5}>
-        <DoneTitle step={step} title="Sealed" />
+        <DoneTitle step={step} title={t('app.log.sealed')} />
         <Typography variant="body1" color="text.secondary">
-          Its public date stamp comes when its batch is dated on {DATED_ON}. Your plant&apos;s page shows when that has
-          happened. Nothing for you to do.
+          {t('app.log.publicStampLater', { datedOn })}
         </Typography>
         <Button variant="contained" size="large" fullWidth onClick={onNext} sx={{ py: 1.6 }}>
-          Next
+          {t('app.common.next')}
         </Button>
       </Stack>
     );
@@ -742,13 +740,12 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
     return (
       <Stack spacing={2.5}>
         <Alert severity="warning" variant="outlined">
-          This browser won&apos;t keep anything after you close it (a private window, or site data is blocked). Save
-          your backup first, then we&apos;ll add the date stamp.
+          {t('app.log.privateWindow')}
         </Alert>
         <BackupStep
-          title="Save your backup first"
+          title={t('app.log.backupFirstTitle')}
           stepLabel={step}
-          finishLabel="Now add the date stamp"
+          finishLabel={t('app.log.nowStamp')}
           onDone={() => {
             setBackupFirstDone(true);
             focusScreenHeading();
@@ -761,49 +758,45 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
   if (anchored) {
     return (
       <Stack spacing={2.5}>
-        <DoneTitle step={step} title="Sealed" />
+        <DoneTitle step={step} title={t('app.log.sealed')} />
         {/* Round 5: the record's date is the main one. What the stamp dates is the plant's
             key (anchor), not its details: a key can be named by a record sealed later. The
             sealed record names this key, so it can't be swapped (docs/identity-in-record.md). */}
         <Box>
           <Typography variant="body1" sx={{ fontWeight: 700 }}>
-            Record dated: waiting for a batch
+            {t('app.log.recordDatedWaiting')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Its public date comes when its batch is dated on {DATED_ON}. Your plant&apos;s page shows it then.
+            {t('app.log.publicDateLater', { datedOn })}
           </Typography>
         </Box>
         <Typography variant="body2" color="text.secondary" data-key-stamped="">
-          Key date stamped
-          {anchored.anchoredAt ? `: ${localStamp(anchored.anchoredAt)}` : ''}. Your plant&apos;s key is dated too, so
-          you can prove you hold it later.
-          {getRecord(recordId)?.keyBinding
-            ? ' The sealed record names this key, so nobody can swap in another.'
-            : ''}{' '}
-          Nothing about the plant went out.
+          {t(anchored.anchoredAt ? 'app.log.keyStampedAt' : 'app.log.keyStamped', {
+            when: anchored.anchoredAt ? localStamp(anchored.anchoredAt, tr.locale) : '',
+            bound: getRecord(recordId)?.keyBinding ? t('app.log.keyBound') : '',
+          })}
         </Typography>
         <Button variant="contained" size="large" fullWidth onClick={onNext} sx={{ py: 1.6 }}>
-          Next
+          {t('app.common.next')}
         </Button>
       </Stack>
     );
   }
 
-  const problem = call.error ? stampProblem(call.error) : undefined;
+  const problem = call.error ? stampProblem(call.error, tr) : undefined;
   return (
     <Stack spacing={2.5}>
       <Box>
         <ScreenHeading step={step}>
-          {problem ? 'Sealed. Key not date stamped yet' : 'Sealed. Date stamping your plant’s key…'}
+          {problem ? t('app.log.stampFailedTitle') : t('app.log.stampingTitle')}
         </ScreenHeading>
         <Typography variant="body1" color="text.secondary">
-          Only a fingerprint of your plant&apos;s key goes out, nothing about the plant. Free: VeilCore pays the network
-          fee.
+          {t('app.log.onlyFingerprint')}
         </Typography>
       </Box>
-      {call.busy && <LinearProgress aria-label="Date stamping your plant’s key" sx={{ height: 10, borderRadius: 5 }} />}
+      {call.busy && <LinearProgress aria-label={t('app.log.stampingAria')} sx={{ height: 10, borderRadius: 5 }} />}
       <Typography variant="body1" role="status" sx={{ minHeight: call.busy ? '1.5em' : 0 }}>
-        {call.progress ?? ''}
+        {progressWords(call.progress, tr) ?? ''}
       </Typography>
       {problem ? (
         <>
@@ -813,19 +806,18 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
           </Alert>
           {problem.retry && (
             <Button variant="contained" size="large" fullWidth onClick={() => void anchor()} sx={{ py: 1.6 }}>
-              Try again
+              {t('app.common.tryAgain')}
             </Button>
           )}
           {/* Never a dead end: the network or the fee service can be down for a while.
               The plant's page offers the date stamp again, and the backup still gets saved. */}
           <Button variant="text" color="inherit" onClick={onNext} sx={{ minHeight: 48 }}>
-            Do the date stamp later
+            {t('app.log.stampLater')}
           </Button>
         </>
       ) : (
         <Typography variant="body2" color="text.secondary">
-          Keep this screen open, about a minute. If it closes, nothing is lost: your plant is saved, and its page will
-          offer the date stamp again.
+          {t('app.log.keepOpen')}
         </Typography>
       )}
       {keysFor(recordId) === undefined && <CircularProgress />}

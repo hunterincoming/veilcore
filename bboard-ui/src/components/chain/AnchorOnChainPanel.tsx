@@ -10,7 +10,6 @@ import React, { useState } from 'react';
 import { Alert, Button, Checkbox, FormControlLabel, Paper, Stack, Typography } from '@mui/material';
 import LinkIcon from '@mui/icons-material/LinkOutlined';
 import {
-  KEYS_NOT_THIS_RECORDS,
   ensureKeys,
   ensureKeysFor,
   hexBytes,
@@ -21,7 +20,9 @@ import {
 import { getRecord, useRecords } from '../../veilcore/records';
 import { localStamp } from '../../veilcore/time';
 import { CHAIN_CONTRACT, chainNotReady } from '../../veilcore/chain/config';
-import { NETWORK, networkLabel } from '../../config/network';
+import { NETWORK } from '../../config/network';
+import { useT } from '../../i18n/app';
+import { networkWords } from '../../i18n/network-words';
 import { identityOf } from '../../veilcore/chain/identity';
 import { useChainCall } from './useChainCall';
 import { ChainStatusLine, TxLine } from './ChainStatusLine';
@@ -34,6 +35,8 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
   const anchored = keys?.anchor;
   const [privateOk, setPrivateOk] = useState(false);
   const call = useChainCall<void>();
+  const tr = useT();
+  const { t } = tr;
   if (!record) return null;
 
   const notReady = chainNotReady();
@@ -62,42 +65,42 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
       <Stack spacing={1.5}>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
           <LinkIcon color="primary" />
-          <Typography variant="subtitle1">Anchor this record on {networkLabel()}</Typography>
+          <Typography variant="subtitle1">
+            {t('app.plant.anchor.title', { network: networkWords(undefined, tr) })}
+          </Typography>
         </Stack>
 
         {anchored ? (
           <>
             <Alert severity="success" variant="outlined">
-              Anchored. Its on-chain identity is {anchored.identity.slice(0, 16)}…, recorded at block{' '}
-              {anchored.blockHeight}
-              {anchored.anchoredAt ? ` (${localStamp(anchored.anchoredAt)}, the chain’s clock)` : ''}. The identity is
-              kept in this browser and in your backup, not on VeilCore’s server: you share it by sending someone a
-              checker’s link. This is a test network: it can be reset, and its dates carry no evidential weight.
+              {t('app.plant.anchor.anchored', {
+                id: anchored.identity.slice(0, 16),
+                block: String(anchored.blockHeight),
+                when: anchored.anchoredAt
+                  ? t('app.plant.anchor.chainClock', { when: localStamp(anchored.anchoredAt, tr.locale) })
+                  : '',
+              })}
             </Alert>
-            <TxLine label="Anchor" txHash={anchored.txHash} blockHeight={anchored.blockHeight} />
+            <TxLine label={t('app.plant.anchor.label')} txHash={anchored.txHash} blockHeight={anchored.blockHeight} />
             <RecordKeysPanel record={record} />
           </>
         ) : notReady ? (
           <Typography variant="body2" color="text.secondary">
-            Not available in this build: {notReady}
+            {t('app.plant.anchor.notAvailable', { why: notReady })}
           </Typography>
         ) : (
           <>
             <Typography variant="body2" color="text.secondary">
-              This gives the record an identity on the network that only this browser can act as. Your browser builds
-              and proves the transaction itself; VeilCore pays the network fee and sees only what the network publishes.
-              You need no wallet and no crypto. Later you can show someone who asks that your key existed by this block
-              and that you still control it.
+              {t('app.plant.anchor.intro')}
             </Typography>
             {!keeps && (
               <>
                 <Alert severity="warning" variant="outlined">
-                  This browser is not keeping what it stores (a private window, or site data blocked). The record’s keys
-                  would be lost when this tab closes, unless you download the backup.
+                  {t('app.plant.anchor.notKeeping')}
                 </Alert>
                 <FormControlLabel
                   control={<Checkbox checked={privateOk} onChange={(e) => setPrivateOk(e.target.checked)} />}
-                  label={<Typography variant="body2">I understand, and I will download the backup</Typography>}
+                  label={<Typography variant="body2">{t('app.plant.anchor.understand')}</Typography>}
                 />
               </>
             )}
@@ -106,7 +109,7 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
                 {/* This record named its key when it was sealed: a new key would never match. */}
                 <RecordKeysPanel record={record} />
                 <Typography variant="body2" color="text.secondary">
-                  {KEYS_NOT_THIS_RECORDS}
+                  {t('app.plant.anchor.keysNotHere')}
                 </Typography>
               </>
             ) : !keys ? (
@@ -116,8 +119,7 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
                     on the page at all. New keys would be a second, unrelated identity. */}
                 <RecordKeysPanel record={record} />
                 <Typography variant="body2" color="text.secondary">
-                  Only for a record that has never had keys: if you anchored it before, or made its keys in another
-                  browser, restore them from your backup above instead. New keys would be a different identity.
+                  {t('app.plant.anchor.onlyNew')}
                 </Typography>
                 <Button
                   variant="outlined"
@@ -125,7 +127,7 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
                   onClick={() => ensureKeys(recordId)}
                   sx={{ alignSelf: 'flex-start' }}
                 >
-                  1. Make this record’s keys (in this browser)
+                  {t('app.plant.anchor.makeKeys')}
                 </Button>
               </>
             ) : (
@@ -137,7 +139,7 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
                   onClick={() => void anchor()}
                   sx={{ alignSelf: 'flex-start' }}
                 >
-                  {keys.backedUpAt ? '2. Anchor on the test network' : 'Download the backup first'}
+                  {keys.backedUpAt ? t('app.plant.anchor.anchorTest') : t('app.plant.anchor.backupFirst')}
                 </Button>
               </>
             )}

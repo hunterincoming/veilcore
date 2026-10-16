@@ -30,6 +30,7 @@ import { ACCENT } from '../config/theme';
 import type { SavedReport } from '../veilcore/saved-report';
 import { useNavigate } from 'react-router-dom';
 import { isLabReportRecord } from './stage/lab-report-notes';
+import { useT } from '../i18n/app';
 
 type Step = {
   /** Some steps render their own control rather than a plain button. */
@@ -84,6 +85,7 @@ export const NextStep: React.FC<{
 }) => {
   let step: Step | null;
   const navigate = useNavigate();
+  const { t } = useT();
   // A record that dates a lab report (components/stage/lab-report-date.ts) is not a plant:
   // no lab, agreement or key date stamp for it. Its batch is what dates the report.
   const datesReport = isLabReportRecord(record);
@@ -99,19 +101,19 @@ export const NextStep: React.FC<{
   // browser can't be undone. Then the date stamp, which the logging flow normally did.
   if (REAL_CHAIN && keys && !keys.backedUpAt && onBackup) {
     step = {
-      title: 'Save your backup',
-      why: 'This plant’s keys are only on this device right now. If it breaks or the browser is cleared, nobody can prove you hold it. Saving takes a minute.',
-      action: 'Save my backup',
+      title: t('app.plant.next.backup.title'),
+      why: t('app.plant.next.backup.why'),
+      action: t('app.plant.next.backup.action'),
       icon: <SaveIcon />,
       onClick: onBackup,
     };
   } else if (datesReport) {
     step = {
-      title: 'This record dates a lab report',
-      why: 'It holds only the report’s SHA-256, its lab report code and the lab’s name as signed, never the report. When its batch is dated, it shows the report existed by then, without showing anyone the markers.',
+      title: t('app.plant.next.dates.title'),
+      why: t('app.plant.next.dates.why'),
       ...(reportPlant?.recordId
         ? {
-            action: `Back to ${reportPlant.name}`,
+            action: t('app.plant.next.backTo', { name: reportPlant.name }),
             icon: <ScienceIcon />,
             onClick: () => navigate(`/record/${reportPlant.recordId ?? ''}`),
           }
@@ -119,10 +121,10 @@ export const NextStep: React.FC<{
     };
   } else if (REAL_CHAIN && !isReceived && !keys?.anchor && onStamp) {
     step = {
-      title: 'Add the date stamp',
+      title: t('app.plant.next.stamp.title'),
       // The date stamp here dates the plant's key (what proving uses), not its details.
-      why: 'It’s sealed. Its key isn’t date stamped yet, and you need that to prove you hold it. It takes about a minute and it’s free.',
-      action: 'Add the date stamp',
+      why: t('app.plant.next.stamp.why'),
+      action: t('app.plant.next.stamp.action'),
       icon: <VerifiedIcon />,
       onClick: onStamp,
     };
@@ -133,55 +135,55 @@ export const NextStep: React.FC<{
       step = null;
     } else if (lab.kind === 'rejected') {
       step = {
-        title: 'You turned this sample away',
-        why: 'Nothing was signed. VeilCore doesn’t tell the breeder: let them know yourself, so they can send another.',
+        title: t('app.plant.next.rejected.title'),
+        why: t('app.plant.next.rejected.why'),
       };
     } else if (lab.kind === 'not-signed' && !loadAttester()) {
       step = {
-        title: 'Set up your lab’s signature',
-        why: 'Then you can sign that this sample arrived, and send the lab report back signed by your lab.',
-        action: 'Set it up',
+        title: t('app.plant.next.setup.title'),
+        why: t('app.plant.next.setup.why'),
+        action: t('app.plant.next.setup.action'),
         icon: <BadgeIcon />,
         onClick: () => window.dispatchEvent(new Event(OPEN_SIGNING_KEY_EVENT)),
       };
     } else if (lab.kind === 'not-signed' && onSignReceipt) {
       step = {
-        title: 'Sign that it arrived',
-        why: 'Your signed receipt is what lets the breeder trust a lab report from you: it shows your key had the sample.',
-        action: 'Sign receipt',
+        title: t('app.plant.next.sign.title'),
+        why: t('app.plant.next.sign.why'),
+        action: t('app.plant.next.sign.action'),
         icon: <VerifiedIcon />,
         onClick: onSignReceipt,
       };
     } else if (lab.kind === 'signed' && !lab.linked && onSignReceipt) {
       step = {
-        title: 'Link your receipt to the delivery',
-        why: 'Your receipt is signed, but the breeder’s page only counts a receipt linked to their delivery. Only whoever used the lab code can link it.',
-        action: 'Link it',
+        title: t('app.plant.next.link.title'),
+        why: t('app.plant.next.link.why'),
+        action: t('app.plant.next.link.action'),
         icon: <VerifiedIcon />,
         onClick: onSignReceipt,
       };
     } else if (!LAB_RESULTS_ENABLED) {
       step = {
-        title: 'Receipt signed',
-        why: 'The breeder sees your signed receipt. Lab reports can’t be sent back through VeilCore on this network yet: send yours the way you usually do.',
+        title: t('app.plant.next.signed.title'),
+        why: t('app.plant.next.signed.why'),
       };
     } else {
       // The locked flow: signed by the lab, locked so only the breeder can open it.
       step = {
         title:
           (labSent ?? 0) > 0
-            ? 'Lab report sent'
+            ? t('app.plant.next.sent.title')
             : (labSentEver ?? 0) > 0
-              ? 'Lab report withdrawn'
-              : 'Send results back to the breeder',
+              ? t('app.plant.next.withdrawn.title')
+              : t('app.plant.next.send.title'),
         why:
           (labSent ?? 0) > 0
-            ? 'Only the breeder can open it. You can withdraw it, or send a corrected file.'
+            ? t('app.plant.next.sent.why')
             : (labSentEver ?? 0) > 0
-              ? 'You withdrew what you sent, so the breeder has no current lab report from you. You can send a new one.'
-              : 'Signed with your lab’s key and locked so only the breeder can open it. VeilCore can’t read it.',
+              ? t('app.plant.next.withdrawn.why')
+              : t('app.plant.next.send.why'),
         // Round 6: after a withdrawal the lab can still see what it sent (and send a new one).
-        action: (labSentEver ?? 0) > 0 ? 'See what you sent' : 'Send results back',
+        action: (labSentEver ?? 0) > 0 ? t('app.plant.next.sent.action') : t('app.plant.next.send.action'),
         icon: <LockIcon />,
         onClick: onSendResults,
       };
@@ -194,30 +196,32 @@ export const NextStep: React.FC<{
       saved.kind === 'replaced'
         ? newer
           ? {
-              title: 'Save the corrected lab report',
-              why: 'The lab replaced the lab report saved to this plant. Until you save the corrected one, your plant page, certificate and links say the saved one was replaced.',
-              action: 'Open the corrected one',
+              title: t('app.plant.next.corrected.title'),
+              why: t('app.plant.next.corrected.why'),
+              action: t('app.plant.next.corrected.action'),
               icon: <LockIcon />,
               onClick: onOpenResult ? () => onOpenResult(newer.result.id) : undefined,
             }
           : {
-              title: `No current lab report from ${saved.lab}`,
-              why: 'The original was replaced and the correction withdrawn. Ask the lab to send one again. Until then your certificate and links say the saved one was replaced.',
+              title: t('app.plant.next.noCurrent.title', { lab: saved.lab }),
+              why: t('app.plant.next.noCurrent.why'),
             }
         : {
-            title: 'The lab withdrew the lab report saved here',
-            why: newer
-              ? 'It stays saved to this plant, and your certificate and links say it was withdrawn. A newer lab report is here: open it and save it instead.'
-              : 'It stays saved to this plant, and your certificate and links say it was withdrawn. Ask the lab for a new one.',
+            title: t('app.plant.next.labWithdrew.title'),
+            why: newer ? t('app.plant.next.labWithdrew.whyNewer') : t('app.plant.next.labWithdrew.why'),
             ...(newer && onOpenResult
-              ? { action: 'Open the newer one', icon: <LockIcon />, onClick: () => onOpenResult(newer.result.id) }
+              ? {
+                  action: t('app.plant.next.labWithdrew.action'),
+                  icon: <LockIcon />,
+                  onClick: () => onOpenResult(newer.result.id),
+                }
               : {}),
           };
   } else if (firstWaiting && onOpenResult) {
     step = {
-      title: `Open the lab report from ${firstWaiting.transfer.to_handle}`,
-      why: 'It’s locked so only you can open it, with this plant’s key. Opening it checks the lab’s signature here.',
-      action: 'Open',
+      title: t('app.plant.next.open.title', { lab: firstWaiting.transfer.to_handle }),
+      why: t('app.plant.next.open.why'),
+      action: t('app.plant.next.open.action'),
       icon: <LockIcon />,
       onClick: () => onOpenResult(firstWaiting.result.id),
     };
@@ -228,27 +232,25 @@ export const NextStep: React.FC<{
     // No lab signature yet, whether or not a lab report is saved: a report the holder
     // saved is still the holder's own statement, and a used code is nobody's statement.
     step = {
-      title: 'Send a sample to a lab',
-      why: record.dnaFingerprint
-        ? 'You’ve saved a lab report to this plant, which is your own statement. A lab signing that it received a sample adds a second party, which is stronger evidence than your statement alone.'
-        : 'Right now this record is your own account of the plant. A lab signing that it received a sample, and sending a lab report back, makes it stronger evidence than your own account.',
-      action: 'Send to a lab',
+      title: t('app.plant.next.sample.title'),
+      why: record.dnaFingerprint ? t('app.plant.next.sample.whySaved') : t('app.plant.next.sample.why'),
+      action: t('app.plant.next.sample.action'),
       icon: <VerifiedIcon />,
       custom: <SendToLab record={record} />,
     };
   } else if (!record.dnaFingerprint) {
     step = {
-      title: 'Save the lab report to this plant',
-      why: 'A lab signed that it received a sample. When its lab report comes back, save it to this plant so a later test can be compared with it.',
-      action: 'Save it to this plant',
+      title: t('app.plant.next.save.title'),
+      why: t('app.plant.next.save.why'),
+      action: t('app.plant.next.save.action'),
       icon: <ScienceIcon />,
       onClick: onPairDna,
     };
   } else {
     step = {
-      title: 'This record is ready to use',
-      why: 'A lab signed that it received a sample, and a lab report is saved to this plant. You can send material onward or license it, with terms that apply to offspring declared from this record.',
-      action: 'Start an agreement',
+      title: t('app.plant.next.ready.title'),
+      why: t('app.plant.next.ready.why'),
+      action: t('app.plant.next.ready.action'),
       icon: <SendIcon />,
       onClick: onAgreement,
     };
@@ -261,7 +263,7 @@ export const NextStep: React.FC<{
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: { sm: 'center' } }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography variant="overline" sx={{ color: ACCENT, display: 'block' }}>
-            Next step
+            {t('app.plant.next.label')}
           </Typography>
           <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
             {step.title}

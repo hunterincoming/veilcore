@@ -13,14 +13,16 @@ import React from 'react';
 import { Box, InputAdornment, MenuItem, Stack, TextField } from '@mui/material';
 import SearchIcon from '@mui/icons-material/SearchOutlined';
 import type { StrainRecord } from '../veilcore/records';
+import { useT } from '../i18n/app';
+import type { AppKey } from '../i18n/app/en';
 
 export type SortKey = 'recent' | 'oldest' | 'name' | 'breeder';
 
-export const SORTS: { key: SortKey; label: string }[] = [
-  { key: 'recent', label: 'Newest first' },
-  { key: 'oldest', label: 'Oldest first' },
-  { key: 'name', label: 'Cultivar name' },
-  { key: 'breeder', label: 'Bred by' },
+export const SORTS: { key: SortKey; label: AppKey }[] = [
+  { key: 'recent', label: 'app.home.sort.recent' },
+  { key: 'oldest', label: 'app.home.sort.oldest' },
+  { key: 'name', label: 'app.home.sort.name' },
+  { key: 'breeder', label: 'app.home.sort.breeder' },
 ];
 
 /**
@@ -74,51 +76,52 @@ export const RecordFinder: React.FC<{
   total: number;
   /** A lab's list: the search names what a lab looks things up by. */
   lab?: boolean;
-}> = ({ query, onQuery, sort, onSort, showSearch, matched, total, lab }) => (
-  <Box sx={{ mb: 2 }}>
-    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-      {showSearch && (
+}> = ({ query, onQuery, sort, onSort, showSearch, matched, total, lab }) => {
+  const { t } = useT();
+  return (
+    <Box sx={{ mb: 2 }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+        {showSearch && (
+          <TextField
+            size="small"
+            placeholder={lab ? t('app.home.search.lab') : t('app.home.search.breeder')}
+            slotProps={{
+              htmlInput: { 'aria-label': t('app.home.search.aria') },
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              },
+            }}
+            value={query}
+            onChange={(e) => onQuery(e.target.value)}
+            fullWidth
+          />
+        )}
         <TextField
+          select
           size="small"
-          placeholder={
-            lab ? 'Plant name, breeder, TR code, note or your accession no.' : 'Plant, breeder, or your own reference'
-          }
-          slotProps={{
-            htmlInput: { 'aria-label': 'Search' },
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            },
-          }}
-          value={query}
-          onChange={(e) => onQuery(e.target.value)}
-          fullWidth
-        />
-      )}
-      <TextField
-        select
-        size="small"
-        value={sort}
-        onChange={(e) => onSort(e.target.value as SortKey)}
-        sx={{ minWidth: 170 }}
-      >
-        {SORTS.map((s) => (
-          <MenuItem key={s.key} value={s.key}>
-            {s.label}
-          </MenuItem>
-        ))}
-      </TextField>
-    </Stack>
+          value={sort}
+          onChange={(e) => onSort(e.target.value as SortKey)}
+          sx={{ minWidth: 170 }}
+        >
+          {SORTS.map((s) => (
+            <MenuItem key={s.key} value={s.key}>
+              {t(s.label)}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Stack>
 
-    {query.trim() && (
-      <Box sx={{ mt: 1, fontSize: 13, color: 'text.secondary' }}>
-        {matched === 0
-          ? `Nothing matches "${query.trim()}". Search covers the plant name, who bred it, the record identifier, your own reference, and for a received sample its lab code and the breeder's note.`
-          : `${matched} of ${total}`}
-      </Box>
-    )}
-  </Box>
-);
+      {query.trim() && (
+        <Box sx={{ mt: 1, fontSize: 13, color: 'text.secondary' }}>
+          {matched === 0
+            ? t('app.home.search.nothing', { q: query.trim() })
+            : t('app.home.search.nOfTotal', { matched, total })}
+        </Box>
+      )}
+    </Box>
+  );
+};

@@ -18,11 +18,15 @@ import { identityOf } from '../../veilcore/chain/identity';
 import type { StrainRecord } from '../../veilcore/records';
 import { NETWORK } from '../../config/network';
 import { CHAIN_CONTRACT } from '../../veilcore/chain/config';
+import { useT } from '../../i18n/app';
+import { backupMessageWords } from '../flow/backup-words';
 
 export const RecordKeysPanel: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const keys = useRecordKeys()[record.id];
   const fileRef = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState<string>();
+  const tr = useT();
+  const { t } = tr;
 
   const extra = {
     cultivar: record.strainName,
@@ -34,38 +38,34 @@ export const RecordKeysPanel: React.FC<{ record: StrainRecord }> = ({ record }) 
     if (!f) return;
     try {
       const k = await restoreBackup(f);
-      if (k.recordId !== record.id) setMsg(`Restored keys for ${k.recordId}.`);
+      if (k.recordId !== record.id) setMsg(t('app.plant.keys.restoredFor', { id: k.recordId }));
       else if (!keysFitRecord(k, record)) {
-        setMsg('Restored, but these aren’t the keys this record names. Check you chose the right file.');
+        setMsg(t('app.plant.keys.notNamed'));
       } else if (k.anchor && identityOf(hexBytes(k.recordSecret)) !== k.anchor.identity) {
-        setMsg('Restored, but these keys are not this record’s on-chain identity. Check you chose the right file.');
-      } else setMsg('Keys restored to this browser.');
+        setMsg(t('app.plant.keys.notIdentity'));
+      } else setMsg(t('app.plant.keys.restored'));
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : String(e));
+      setMsg(e instanceof Error ? backupMessageWords(e.message, tr) : String(e));
     }
   };
 
   const onForget = () => {
     if (!keys) return;
-    const warning = keys.backedUpAt
-      ? 'Remove this record’s keys from this browser? You can restore them from your backup file.'
-      : 'You have NOT downloaded a backup of these keys. If you remove them, nobody, VeilCore included, can ever prove this record again. Remove them anyway?';
+    const warning = keys.backedUpAt ? t('app.plant.keys.removeBacked') : t('app.plant.keys.removeUnbacked');
     if (window.confirm(warning)) forgetKeys(record.id);
   };
 
   return (
     <Stack spacing={1.25}>
-      <Typography variant="overline">Record keys (this browser only)</Typography>
+      <Typography variant="overline">{t('app.plant.keys.title')}</Typography>
       {keys ? (
         <>
           <Typography variant="body2" color="text.secondary">
-            This browser holds the two secrets that prove you hold this record on chain. They are never sent anywhere,
-            VeilCore has no copy, and clearing this browser deletes them.
+            {t('app.plant.keys.holds')}
           </Typography>
           {!keys.backedUpAt && (
             <Alert severity="warning" variant="outlined">
-              No backup yet. Download it and keep it offline: without it, clearing this browser loses the record for
-              good.
+              {t('app.plant.keys.noBackup')}
             </Alert>
           )}
           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
@@ -75,21 +75,20 @@ export const RecordKeysPanel: React.FC<{ record: StrainRecord }> = ({ record }) 
               startIcon={<DownloadIcon />}
               onClick={() => downloadBackup(keys, extra)}
             >
-              {keys.backedUpAt ? 'Download the backup again' : 'Download the backup (secret)'}
+              {keys.backedUpAt ? t('app.plant.keys.downloadAgain') : t('app.plant.keys.download')}
             </Button>
             <Button size="small" variant="text" color="inherit" onClick={onForget}>
-              Remove from this browser
+              {t('app.plant.keys.remove')}
             </Button>
           </Stack>
         </>
       ) : (
         <>
           <Typography variant="body2" color="text.secondary">
-            This browser does not hold this record’s keys. If you made them elsewhere, restore them from your backup
-            file.
+            {t('app.plant.keys.notHeld')}
           </Typography>
           <Button size="small" variant="outlined" startIcon={<UploadIcon />} onClick={() => fileRef.current?.click()}>
-            Restore keys from a backup file
+            {t('app.plant.keys.restore')}
           </Button>
         </>
       )}

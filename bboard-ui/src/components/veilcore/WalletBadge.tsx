@@ -13,16 +13,31 @@ import React from 'react';
 import { Chip, Stack } from '@mui/material';
 import BoltIcon from '@mui/icons-material/Bolt';
 import ScienceIcon from '@mui/icons-material/ScienceOutlined';
+import { useT } from '../../i18n/app';
 
-export const WalletBadge: React.FC<{ network: string }> = ({ network }) => (
-  <Stack direction="row" spacing={1}>
-    <Chip size="small" icon={<ScienceIcon />} variant="outlined" label={network === 'mainnet' ? 'Web app' : 'Demo'} />
-    <Chip
-      size="small"
-      icon={<BoltIcon />}
-      variant="outlined"
-      color={network === 'mainnet' ? 'primary' : 'default'}
-      label={network === 'mainnet' ? 'Main network' : network === 'undeployed' ? 'Local' : 'Test network'}
-    />
-  </Stack>
-);
+export const WalletBadge: React.FC<{ network: string }> = ({ network }) => {
+  const { t } = useT();
+  return (
+    <Stack direction="row" spacing={1}>
+      <Chip
+        size="small"
+        icon={<ScienceIcon />}
+        variant="outlined"
+        label={network === 'mainnet' ? t('app.common.badge.webApp') : t('app.common.badge.demo')}
+      />
+      <Chip
+        size="small"
+        icon={<BoltIcon />}
+        variant="outlined"
+        color={network === 'mainnet' ? 'primary' : 'default'}
+        label={
+          network === 'mainnet'
+            ? t('app.common.badge.main')
+            : network === 'undeployed'
+              ? t('app.common.badge.local')
+              : t('app.common.badge.test')
+        }
+      />
+    </Stack>
+  );
+};

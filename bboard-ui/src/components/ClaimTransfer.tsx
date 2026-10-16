@@ -43,9 +43,9 @@ import {
   custodyProblems,
   custodySubject,
   hasDetails,
+  labErrorWords,
   parseShareCode,
   codeMissingLock,
-  MISSING_LOCK_WORDS,
   publicFingerprintOf,
   quantityPhrase,
   sameDetails,
@@ -65,8 +65,10 @@ import {
   rememberDelivery,
   type LabDelivery,
 } from '../veilcore/lab-results';
-import { arrivalLine, custodyDifferences, sampleLine, type LabReceipt } from '../veilcore/custody';
+import { arrivalLine, custodyDifferences, differenceWords, sampleLine, type LabReceipt } from '../veilcore/custody';
 import { LAB_RESULTS_ENABLED } from '../config/network';
+import { rich, useT } from '../i18n/app';
+import { enT, type Translator } from '../i18n/translate';
 
 /** Opens the header's receive dialog from elsewhere on the page (a lab's first screen). */
 export const OPEN_RECEIVE_EVENT = 'veilcore:open-receive';
@@ -76,9 +78,13 @@ export const OPEN_RECEIVE_EVENT = 'veilcore:open-receive';
  * received 1 cuttings of X from record VEIL-…": a lab knows what label was on the
  * package and which code it came under, not what the plant is or which record it is.
  */
-export const receiptWords = (subject: CustodySubject, transferId?: string): string => {
+export const receiptWords = (subject: CustodySubject, transferId?: string, tr: Translator = enT): string => {
   const qty = quantityPhrase(subject.quantity);
-  return `A sample labelled “${subject.cultivar || 'unlabelled'}”${qty ? ` (${qty}, as the breeder wrote it)` : ''} arrived${transferId ? ` under lab code ${transferId}` : ''}.`;
+  return tr.t('app.lab.recv.statement', {
+    label: subject.cultivar || tr.t('app.lab.recv.unlabelled'),
+    qty: qty ? tr.t('app.lab.recv.statementQty', { qty }) : '',
+    code: transferId ? tr.t('app.lab.recv.statementCode', { code: transferId }) : '',
+  });
 };
 
 /** The exact receipt, shown in full before anything is signed. */
@@ -89,39 +95,44 @@ const ReceiptStatement: React.FC<{
   /** The sample details it covers (transfers.ts custodyDigest), when there are any. */
   sample?: SampleDetails;
   arrival?: ArrivalDetails;
-}> = ({ subject, attester, transferId, sample, arrival }) => (
-  <Box sx={{ p: 1.5, borderRadius: 1, background: 'rgba(22,32,27,0.04)', fontSize: 13 }} data-receipt-statement="">
-    <Typography variant="body2">“{receiptWords(subject, transferId)}”</Typography>
-    {sample && hasDetails(sample) && (
-      <Typography variant="body2" sx={{ mt: 0.5, overflowWrap: 'anywhere' }}>
-        <b>The breeder wrote:</b> {sampleLine(sample)}
+}> = ({ subject, attester, transferId, sample, arrival }) => {
+  const tr = useT();
+  const { t } = tr;
+  const b = (c: React.ReactNode) => <b>{c}</b>;
+  return (
+    <Box sx={{ p: 1.5, borderRadius: 1, background: 'rgba(22,32,27,0.04)', fontSize: 13 }} data-receipt-statement="">
+      <Typography variant="body2">{t('app.lab.recv.quoted', { v: receiptWords(subject, transferId, tr) })}</Typography>
+      {sample && hasDetails(sample) && (
+        <Typography variant="body2" sx={{ mt: 0.5, overflowWrap: 'anywhere' }}>
+          {rich(t('app.lab.recv.breederWrote'), { b }, { line: sampleLine(sample, tr) })}
+        </Typography>
+      )}
+      {arrival && hasDetails(arrival) && (
+        <Typography variant="body2" sx={{ mt: 0.5, overflowWrap: 'anywhere' }}>
+          {rich(t('app.lab.recv.onArrival'), { b }, { line: arrivalLine(arrival, tr) })}
+        </Typography>
+      )}
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+        {t('app.lab.recv.aboutRecord', { id: subject.sourceRecordId })}
       </Typography>
-    )}
-    {arrival && hasDetails(arrival) && (
-      <Typography variant="body2" sx={{ mt: 0.5, overflowWrap: 'anywhere' }}>
-        <b>On arrival:</b> {arrivalLine(arrival)}
+      <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
+        {subject.sourceCommitment}
       </Typography>
-    )}
-    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-      About the breeder&apos;s record {subject.sourceRecordId}, fingerprint
-    </Typography>
-    <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
-      {subject.sourceCommitment}
-    </Typography>
-    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-      Pointing at your received record
-    </Typography>
-    <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
-      {subject.receivedRecordFingerprint}
-    </Typography>
-    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-      Signed by your key ({attester.displayName ?? 'unnamed'})
-    </Typography>
-    <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
-      {attester.keypair.publicKey}
-    </Typography>
-  </Box>
-);
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+        {t('app.lab.recv.pointing')}
+      </Typography>
+      <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
+        {subject.receivedRecordFingerprint}
+      </Typography>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+        {t('app.lab.recv.signedByKey', { name: attester.displayName ?? t('app.lab.recv.unnamed') })}
+      </Typography>
+      <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
+        {attester.keypair.publicKey}
+      </Typography>
+    </Box>
+  );
+};
 
 type ArrivalInput = Record<'sampleId' | 'sealNumber' | 'arrivedOn' | 'condition' | 'labRef', string> & {
   sealIntact: '' | 'yes' | 'no' | 'no-seal';
@@ -149,6 +160,7 @@ const ArrivalForm: React.FC<{ value: ArrivalInput; onChange: (v: ArrivalInput) =
   onChange,
   disabled,
 }) => {
+  const { t } = useT();
   const field = (k: Exclude<keyof ArrivalInput, 'sealIntact'>) => ({
     value: value[k],
     onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -159,15 +171,15 @@ const ArrivalForm: React.FC<{ value: ArrivalInput; onChange: (v: ArrivalInput) =
   });
   return (
     <Stack spacing={1.25} data-arrival-form="">
-      <Typography variant="subtitle2">How it arrived</Typography>
+      <Typography variant="subtitle2">{t('app.lab.recv.howArrived')}</Typography>
       <Typography variant="caption" color="text.secondary" sx={{ mt: '0 !important' }}>
-        Check the tube or bag. Change anything that isn&apos;t what the breeder wrote. All optional.
+        {t('app.lab.recv.checkTube')}
       </Typography>
-      <TextField label="Sample ID on arrival" {...field('sampleId')} />
-      <TextField label="Seal number on arrival" {...field('sealNumber')} />
+      <TextField label={t('app.lab.recv.sampleIdOnArrival')} {...field('sampleId')} />
+      <TextField label={t('app.lab.recv.sealOnArrival')} {...field('sealNumber')} />
       <Box>
         <Typography variant="body2" id="seal-intact-label">
-          Seal intact?
+          {t('app.lab.recv.sealIntactQ')}
         </Typography>
         <RadioGroup
           row
@@ -175,28 +187,43 @@ const ArrivalForm: React.FC<{ value: ArrivalInput; onChange: (v: ArrivalInput) =
           value={value.sealIntact}
           onChange={(e) => onChange({ ...value, sealIntact: e.target.value as ArrivalInput['sealIntact'] })}
         >
-          <FormControlLabel value="yes" control={<Radio size="small" />} label="Yes" disabled={disabled} />
-          <FormControlLabel value="no" control={<Radio size="small" />} label="No" disabled={disabled} />
-          <FormControlLabel value="no-seal" control={<Radio size="small" />} label="No seal" disabled={disabled} />
+          <FormControlLabel
+            value="yes"
+            control={<Radio size="small" />}
+            label={t('app.lab.recv.yes')}
+            disabled={disabled}
+          />
+          <FormControlLabel
+            value="no"
+            control={<Radio size="small" />}
+            label={t('app.lab.recv.no')}
+            disabled={disabled}
+          />
+          <FormControlLabel
+            value="no-seal"
+            control={<Radio size="small" />}
+            label={t('app.lab.recv.noSeal')}
+            disabled={disabled}
+          />
         </RadioGroup>
       </Box>
       <TextField
-        label="Arrived on"
+        label={t('app.lab.field.arrivedOn')}
         type="date"
-        helperText="The day it reached you."
+        helperText={t('app.lab.recv.arrivedHelp')}
         slotProps={{ inputLabel: { shrink: true } }}
         {...field('arrivedOn')}
       />
       <TextField
-        label="Condition"
-        placeholder="e.g. cold, bag dry, roots intact"
+        label={t('app.lab.field.condition')}
+        placeholder={t('app.lab.recv.conditionPlaceholder')}
         multiline
         maxRows={4}
         {...field('condition')}
       />
       <TextField
-        label="Your accession no."
-        helperText="Goes on your receipt, so the breeder sees it."
+        label={t('app.lab.recv.accession')}
+        helperText={t('app.lab.recv.accessionHelp')}
         {...field('labRef')}
       />
     </Stack>
@@ -221,11 +248,13 @@ const ReceiptChoice: React.FC<{
 }> = ({ subject, attester, transferId, custody, busy, onSign, onReject, onLater }) => {
   const [received, setReceived] = useState(false);
   const [rejecting, setRejecting] = useState(false);
+  const tr = useT();
+  const { t } = tr;
   const [input, setInput] = useState<ArrivalInput>(() => arrivalStart(custody?.sample ?? {}, custody?.arrival ?? {}));
   const arrival = custody ? arrivalDetailsOf(input) : undefined;
   // A value the registry would refuse (a tab, a hidden character, 31 February) is said here,
   // and nothing is signed until it is fixed: arrivalDetailsOf would otherwise drop it.
-  const problems = custody ? custodyProblems('arrival', input) : [];
+  const problems = custody ? custodyProblems('arrival', input, tr) : [];
   const differs = custody && arrival ? custodyDifferences(custody.sample, arrival) : [];
   return (
     <Stack spacing={1.5}>
@@ -241,16 +270,16 @@ const ReceiptChoice: React.FC<{
       )}
       {differs.length > 0 && (
         <Alert severity="info" variant="outlined" data-arrival-differs="">
-          Different from what the breeder wrote. The breeder sees this on your receipt:
+          {t('app.lab.recv.differs')}
           {differs.map((d) => (
             <Box key={d} component="span" sx={{ display: 'block' }}>
-              {d}.
+              {t('app.lab.custody.line', { v: differenceWords(d, tr) })}
             </Box>
           ))}
         </Alert>
       )}
       <Typography variant="body2" color="text.secondary">
-        Your key can sign a receipt for this delivery. This is exactly what the receipt says:
+        {t('app.lab.recv.exactly')}
       </Typography>
       <ReceiptStatement
         subject={subject}
@@ -260,43 +289,40 @@ const ReceiptChoice: React.FC<{
         arrival={arrival}
       />
       <Typography variant="caption" color="text.secondary">
-        The fingerprint came from the registry and matches what its public page reports for {subject.sourceRecordId}. If
-        the breeder gave you a fingerprint, compare it before signing.
+        {t('app.lab.recv.fingerprintFrom', { id: subject.sourceRecordId })}
       </Typography>
       <FormControlLabel
         control={<Checkbox checked={received} onChange={(e) => setReceived(e.target.checked)} />}
-        label={<Typography variant="body2">I physically received this material.</Typography>}
+        label={<Typography variant="body2">{t('app.lab.recv.physically')}</Typography>}
       />
       <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, justifyContent: 'flex-end' }}>
         {onLater && (
           <Button onClick={onLater} disabled={busy}>
-            Don&apos;t sign
+            {t('app.lab.recv.dontSign')}
           </Button>
         )}
         <Button variant="contained" onClick={() => onSign(arrival)} disabled={busy || !received || problems.length > 0}>
-          Sign with my key
+          {t('app.lab.recv.signWithKey')}
         </Button>
       </Stack>
       {rejecting ? (
         <Stack spacing={1}>
-          <Typography variant="body2">
-            Turn it away? Nothing is signed and the breeder isn&apos;t told by VeilCore: let them know yourself.
-          </Typography>
+          <Typography variant="body2">{t('app.lab.recv.turnAway')}</Typography>
           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
             <Button variant="outlined" onClick={() => onReject('damaged')} disabled={busy}>
-              It arrived damaged
+              {t('app.lab.recv.damaged')}
             </Button>
             <Button variant="outlined" onClick={() => onReject('wrong-sample')} disabled={busy}>
-              It&apos;s the wrong sample
+              {t('app.lab.recv.wrongSample')}
             </Button>
             <Button onClick={() => setRejecting(false)} disabled={busy}>
-              Cancel
+              {t('app.common.cancel')}
             </Button>
           </Stack>
         </Stack>
       ) : (
         <Button color="inherit" size="small" onClick={() => setRejecting(true)} sx={{ alignSelf: 'flex-start' }}>
-          Received but rejected (damaged or wrong sample)
+          {t('app.lab.recv.rejected')}
         </Button>
       )}
     </Stack>
@@ -342,25 +368,23 @@ const signReceipt = async (
   attester: AttesterProfile,
   subject: CustodySubject,
   custody?: { transferId: string; sample: SampleDetails; arrival: ArrivalDetails },
+  tr: Translator = enT,
 ): Promise<Signed> => {
   let digest: string | undefined;
   if (custody && (hasDetails(custody.sample) || hasDetails(custody.arrival))) {
-    const problems = custodyProblems('arrival', custody.arrival);
-    if (problems.length) return { error: `${problems.join(' ')} Nothing was signed` };
+    const problems = custodyProblems('arrival', custody.arrival, tr);
+    if (problems.length) return { error: tr.t('app.lab.recv.nothingSigned', { problems: problems.join(' ') }) };
     const shown = sampleDetailsOf(custody.sample);
     const typed = arrivalDetailsOf(custody.arrival);
     const stored = await setArrival(custody.transferId, typed);
     if ('error' in stored) {
       // A registry from before sample details: with nothing from the breeder, sign as before.
       if (!(/can’t keep sample details/.test(stored.error) && !hasDetails(custody.sample))) {
-        return { error: `your arrival details weren’t saved (${stored.error}), so nothing was signed` };
+        return { error: tr.t('app.lab.recv.notSaved', { error: stored.error }) };
       }
     } else {
       if (!sameDetails(stored.arrival, typed) || !sameDetails(stored.sample, shown)) {
-        return {
-          error:
-            'the registry saved sample details different from the ones on this screen, so nothing was signed. Reload the page and check them again',
-        };
+        return { error: tr.t('app.lab.recv.savedDifferent') };
       }
       digest = await custodyDigest(custody.transferId, shown, typed);
     }
@@ -371,8 +395,7 @@ const signReceipt = async (
   return out;
 };
 
-const unlinkedWords = (err: string) =>
-  `Your receipt is signed, but it couldn’t be linked to this delivery (${err}), so the breeder can’t see it yet. Try again, or link it later from the plant’s page.`;
+const unlinkedWords = (err: string, tr: Translator) => tr.t('app.lab.recv.unlinked', { error: err });
 
 /** "Link it": for a receipt that is signed but not tied to its delivery yet. */
 const LinkReceipt: React.FC<{ delivery: LabDelivery; attestationId: string; onDone: () => void }> = ({
@@ -382,13 +405,10 @@ const LinkReceipt: React.FC<{ delivery: LabDelivery; attestationId: string; onDo
 }) => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const tr = useT();
   return (
     <Stack spacing={1.5}>
-      <Typography variant="body2">
-        Your receipt is signed. Link it to this delivery so the breeder sees it: until then their page doesn&apos;t
-        count it, because anyone can sign a statement about a plant, but only whoever used the lab code can link one to
-        the delivery.
-      </Typography>
+      <Typography variant="body2">{tr.t('app.lab.recv.linkIntro')}</Typography>
       <Button
         variant="contained"
         disabled={busy}
@@ -398,12 +418,12 @@ const LinkReceipt: React.FC<{ delivery: LabDelivery; attestationId: string; onDo
           setError(undefined);
           void linkReceipt(delivery, attestationId).then((err) => {
             setBusy(false);
-            if (err) setError(unlinkedWords(err));
+            if (err) setError(unlinkedWords(labErrorWords(err, tr), tr));
             else onDone();
           });
         }}
       >
-        {busy ? 'Linking…' : 'Link it'}
+        {busy ? tr.t('app.lab.recv.linking') : tr.t('app.plant.next.link.action')}
       </Button>
       {error && (
         <Alert severity="warning" variant="outlined">
@@ -433,6 +453,8 @@ export const SignReceiptPanel: React.FC<{
   // Signed here, but not linked to the delivery: the next step is linking, not signing again.
   const [unlinked, setUnlinked] = useState<string>();
   const transferId = record.transferId ?? deliveryForRecord(record.id)?.transferId;
+  const tr = useT();
+  const { t } = tr;
   // The delivery's sample details (null while loading; undefined when the registry can't say).
   const [custody, setCustody] = useState<{ sample: SampleDetails; arrival: ArrivalDetails } | null | undefined>(
     transferId ? null : undefined,
@@ -472,7 +494,7 @@ export const SignReceiptPanel: React.FC<{
     return (
       <Stack spacing={2}>
         <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="">
-          Link your receipt
+          {t('app.plant.action.linkReceipt')}
         </Typography>
         <LinkReceipt delivery={deliveryOf(record, transferId)} attestationId={toLink} onDone={onDone} />
       </Stack>
@@ -481,12 +503,12 @@ export const SignReceiptPanel: React.FC<{
   if (!attester) {
     return (
       <Alert severity="info" variant="outlined">
-        Set up your lab&apos;s signature first; then you can sign that this sample arrived.
+        {t('app.lab.recv.setUpFirst')}
       </Alert>
     );
   }
   if (subject === null || custody === null)
-    return <Typography variant="body2">Checking the breeder&apos;s record…</Typography>;
+    return <Typography variant="body2">{t('app.lab.recv.checking')}</Typography>;
   if ('refuse' in subject) {
     return (
       <Alert severity="warning" variant="outlined">
@@ -497,7 +519,7 @@ export const SignReceiptPanel: React.FC<{
   return (
     <Stack spacing={2}>
       <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="">
-        Sign receipt
+        {t('app.plant.action.signReceipt')}
       </Typography>
       <ReceiptChoice
         subject={subject}
@@ -513,19 +535,20 @@ export const SignReceiptPanel: React.FC<{
               attester,
               subject,
               transferId && custody && arrival ? { transferId, sample: custody.sample, arrival } : undefined,
+              tr,
             );
             if ('error' in signed) {
               setBusy(false);
-              setError(`Your receipt was not recorded: ${signed.error}.`);
+              setError(t('app.lab.recv.notRecorded', { error: signed.error }));
               return;
             }
             const err = transferId
               ? await linkReceipt(deliveryOf(record, transferId), signed.attestationId)
-              : 'this plant has no lab code on this device';
+              : t('app.lab.recv.noCodeHere');
             setBusy(false);
             if (err) {
               setUnlinked(signed.attestationId);
-              setError(unlinkedWords(err));
+              setError(unlinkedWords(labErrorWords(err, tr), tr));
             } else onDone();
           })();
         }}
@@ -567,6 +590,8 @@ export const ClaimTransfer: React.FC<{
   const [error, setError] = useState<string | null>(null);
   const [stage, setStage] = useState<Stage>({ step: 'code' });
   const navigate = useNavigate();
+  const tr = useT();
+  const { t } = tr;
 
   // One dialog, in the header, which stays mounted while the page under it changes (a
   // lab's first screen gives way to its records list the moment a transfer is claimed).
@@ -600,7 +625,7 @@ export const ClaimTransfer: React.FC<{
     setError(null);
     const res = await claimTransfer(transferId, claimCode);
     if ('error' in res) {
-      setError(res.error);
+      setError(labErrorWords(res.error, tr));
       setBusy(false);
       return;
     }
@@ -652,12 +677,11 @@ export const ClaimTransfer: React.FC<{
       stage.attester,
       stage.subject,
       arrival ? { transferId: stage.transferId, sample: stage.sample, arrival } : undefined,
+      tr,
     );
     if ('error' in signed) {
       setBusy(false);
-      setError(
-        `Delivery received, but your signed receipt was not recorded: ${signed.error}. You can sign it later from the plant’s page.`,
-      );
+      setError(t('app.lab.recv.receivedNotRecorded', { error: signed.error }));
       return;
     }
     // Tie it to the delivery, so the breeder's page counts it (round 3).
@@ -671,7 +695,7 @@ export const ClaimTransfer: React.FC<{
     setBusy(false);
     if (err) {
       setStage({ step: 'unlinked', delivery, attestationId: signed.attestationId, recordId });
-      setError(unlinkedWords(err));
+      setError(unlinkedWords(labErrorWords(err, tr), tr));
       return;
     }
     finish(recordId);
@@ -685,28 +709,26 @@ export const ClaimTransfer: React.FC<{
           startIcon={<InboxIcon />}
           onClick={() => setOpen(true)}
         >
-          Receive material
+          {t('app.lab.recv.title')}
         </Button>
       )}
 
       <Dialog open={open} onClose={close} maxWidth="sm" fullWidth>
         <DialogTitle>
           {stage.step === 'sign'
-            ? 'Sign what you received?'
+            ? t('app.lab.recv.signTitle')
             : stage.step === 'unlinked'
-              ? 'Link your receipt'
-              : 'Receive material'}
+              ? t('app.plant.action.linkReceipt')
+              : t('app.lab.recv.title')}
         </DialogTitle>
         <DialogContent>
           {stage.step === 'code' && (
             <Stack spacing={2} sx={{ pt: 1 }}>
               <Typography variant="body2" color="text.secondary">
-                Enter the lab code the breeder gave you. You get your own record of what you received, linked to theirs,
-                and the registry records that someone holding this code took delivery. If you have a signing key, you
-                see exactly what you would sign before anything is signed.
+                {t('app.lab.recv.intro')}
               </Typography>
               <TextField
-                label="Lab code"
+                label={t('app.lab.recv.codeLabel')}
                 placeholder="TR-XXXXXXXX.xxxxxxxx…"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
@@ -718,7 +740,7 @@ export const ClaimTransfer: React.FC<{
               />
               {LAB_RESULTS_ENABLED && codeMissingLock(code) && (
                 <Alert severity="warning" variant="outlined" data-missing-lock="">
-                  {MISSING_LOCK_WORDS}
+                  {t('app.lab.recv.missingLock')}
                 </Alert>
               )}
             </Stack>
@@ -754,7 +776,7 @@ export const ClaimTransfer: React.FC<{
 
           {stage.step === 'refused' && (
             <Alert severity="warning" variant="outlined" sx={{ mt: 1 }}>
-              The delivery is received and your record created. {stage.reason}
+              {t('app.lab.recv.refused', { reason: stage.reason })}
             </Alert>
           )}
 
@@ -765,22 +787,22 @@ export const ClaimTransfer: React.FC<{
           )}
           <Box sx={{ mt: 2 }}>
             <Typography variant="caption" color="text.secondary">
-              Only confirm what you actually received. This is a statement other people will rely on.
+              {t('app.lab.recv.onlyConfirm')}
             </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
           {stage.step === 'code' && (
             <>
-              <Button onClick={close}>Cancel</Button>
+              <Button onClick={close}>{t('app.common.cancel')}</Button>
               <Button variant="contained" onClick={() => void claim()} disabled={busy || !code.trim()}>
-                Receive it
+                {t('app.lab.recv.receiveIt')}
               </Button>
             </>
           )}
           {(stage.step === 'refused' || stage.step === 'unlinked') && (
             <Button variant={stage.step === 'refused' ? 'contained' : 'text'} onClick={() => finish(stage.recordId)}>
-              Go to the record
+              {t('app.lab.recv.goToRecord')}
             </Button>
           )}
         </DialogActions>

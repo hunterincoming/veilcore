@@ -35,6 +35,7 @@ import {
 } from './transfers';
 import { countsAsSigned, nameChecked, signerLabel, type ResolvedAttestation } from './attesters';
 import { utcDate } from './time';
+import { enT, type Translator } from '../i18n/translate';
 
 const custodyOn = (atts: readonly ResolvedAttestation[]) =>
   atts.filter((a) => a.type === 'chain-of-custody' && countsAsSigned(a));
@@ -106,56 +107,94 @@ export const custodyView = (t: SentTransfer | undefined, receiptId: string | und
   return { sample, arrival, signed, differences: signed === 'covered' ? custodyDifferences(sample, arrival) : [] };
 };
 
-const SEAL_WORDS = { yes: 'seal intact', no: 'seal not intact', 'no-seal': 'no seal' } as const;
+const SEAL_WORDS = {
+  yes: 'app.lab.custody.sealIntact',
+  no: 'app.lab.custody.sealNotIntact',
+  'no-seal': 'app.lab.custody.noSeal',
+} as const;
 
 /** The breeder's side in one line: "Sample BLU-07 · seal 4471 · taken from Mother M3 on 2026-10-14 · witness J. Doe". */
-export const sampleLine = (s: SampleDetails): string =>
+export const sampleLine = (s: SampleDetails, tr: Translator = enT): string =>
   [
-    s.sampleId ? `Sample ${s.sampleId}` : undefined,
-    s.sealNumber ? `seal ${s.sealNumber}` : undefined,
+    s.sampleId ? tr.t('app.lab.custody.sample', { v: s.sampleId }) : undefined,
+    s.sealNumber ? tr.t('app.lab.custody.seal', { v: s.sealNumber }) : undefined,
     s.takenFrom || s.takenOn
-      ? `taken${s.takenFrom ? ` from ${s.takenFrom}` : ''}${s.takenOn ? ` on ${s.takenOn}` : ''}`
+      ? s.takenFrom && s.takenOn
+        ? tr.t('app.lab.custody.takenFromOn', { from: s.takenFrom, on: s.takenOn })
+        : s.takenFrom
+          ? tr.t('app.lab.custody.takenFrom', { from: s.takenFrom })
+          : tr.t('app.lab.custody.takenOn', { on: s.takenOn ?? '' })
       : undefined,
-    s.witness ? `witness ${s.witness} (VeilCore doesn’t check this)` : undefined,
+    s.witness ? tr.t('app.lab.custody.witness', { v: s.witness }) : undefined,
   ]
     .filter(Boolean)
     .join(' · ');
 
 /** The lab's side in one line: "Sample BLU-07 · seal 4417, seal intact · arrived 2026-10-15 · condition … · lab no. ACC-9". */
-export const arrivalLine = (a: ArrivalDetails): string =>
+export const arrivalLine = (a: ArrivalDetails, tr: Translator = enT): string =>
   [
-    a.sampleId ? `Sample ${a.sampleId}` : undefined,
+    a.sampleId ? tr.t('app.lab.custody.sample', { v: a.sampleId }) : undefined,
     a.sealNumber || a.sealIntact
-      ? [a.sealNumber ? `seal ${a.sealNumber}` : undefined, a.sealIntact ? SEAL_WORDS[a.sealIntact] : undefined]
+      ? [
+          a.sealNumber ? tr.t('app.lab.custody.seal', { v: a.sealNumber }) : undefined,
+          a.sealIntact ? tr.t(SEAL_WORDS[a.sealIntact]) : undefined,
+        ]
           .filter(Boolean)
-          .join(', ')
+          .join(tr.t('app.lab.custody.comma'))
       : undefined,
-    a.arrivedOn ? `arrived ${a.arrivedOn}` : undefined,
+    a.arrivedOn ? tr.t('app.lab.custody.arrived', { v: a.arrivedOn }) : undefined,
     // A lab's condition may have line breaks (the only field that may): one line here.
-    a.condition ? `condition: ${a.condition.replace(/\s*\n\s*/g, ' ')}` : undefined,
-    a.labRef ? `lab no. ${a.labRef}` : undefined,
+    a.condition ? tr.t('app.lab.custody.condition', { v: a.condition.replace(/\s*\n\s*/g, ' ') }) : undefined,
+    a.labRef ? tr.t('app.lab.custody.labNo', { v: a.labRef }) : undefined,
   ]
     .filter(Boolean)
     .join(' · ');
 
 /**
+ * One difference line (custodyDifferences', or the registry's, which words them the same
+ * way) in the visitor's language; one in another shape is shown as it came.
+ */
+export const differenceWords = (d: string, tr: Translator = enT): string => {
+  const differs = /^(Sample ID|Seal number) differs: sent (.*), received (.*)$/s.exec(d);
+  if (differs)
+    return tr.t(differs[1] === 'Sample ID' ? 'app.lab.custody.idDiffers' : 'app.lab.custody.sealDiffers', {
+      sent: differs[2],
+      got: differs[3],
+    });
+  const notConfirmed = /^(Sample ID|Seal number) not confirmed on arrival \(sent (.*)\)$/s.exec(d);
+  if (notConfirmed)
+    return tr.t(
+      notConfirmed[1] === 'Sample ID' ? 'app.lab.custody.idNotConfirmed' : 'app.lab.custody.sealNotConfirmed',
+      { sent: notConfirmed[2] },
+    );
+  const noSeal = /^No seal on arrival \(sent with seal (.*)\)$/s.exec(d);
+  if (noSeal) return tr.t('app.lab.custody.noSealOnArrival', { sent: noSeal[1] });
+  if (d === 'Seal not intact on arrival') return tr.t('app.lab.custody.sealNotIntactOnArrival');
+  return d;
+};
+
+/**
  * The receipt's sample lines for the breeder's plant page, certificate and check page:
  * differences first, plainly; otherwise that what arrived matches what was sent.
  */
-export const custodyLines = (v: CustodyView | undefined): string[] => {
+export const custodyLines = (v: CustodyView | undefined, tr: Translator = enT): string[] => {
   if (!v) return [];
-  const sent = hasDetails(v.sample) ? [`Sent: ${sampleLine(v.sample)}`] : [];
-  if (v.signed === 'not-covered') return [...sent, 'The lab’s receipt doesn’t cover the sample details.'];
-  if (v.signed === 'changed')
-    return [...sent, 'The lab changed its arrival details after signing, so its receipt doesn’t cover them.'];
-  const got = hasDetails(v.arrival) ? [`Received: ${arrivalLine(v.arrival)}`] : [];
-  if (v.differences.length) return [...v.differences.map((d) => `${d}.`), ...sent, ...got];
-  const matched = [
-    v.sample.sampleId && v.arrival.sampleId ? 'sample ID' : undefined,
-    v.sample.sealNumber && v.arrival.sealNumber ? 'seal number' : undefined,
-  ].filter(Boolean);
+  const sent = hasDetails(v.sample) ? [tr.t('app.lab.custody.sent', { v: sampleLine(v.sample, tr) })] : [];
+  if (v.signed === 'not-covered') return [...sent, tr.t('app.lab.custody.notCovered')];
+  if (v.signed === 'changed') return [...sent, tr.t('app.lab.custody.changed')];
+  const got = hasDetails(v.arrival) ? [tr.t('app.lab.custody.received', { v: arrivalLine(v.arrival, tr) })] : [];
+  if (v.differences.length)
+    return [...v.differences.map((d) => tr.t('app.lab.custody.line', { v: differenceWords(d, tr) })), ...sent, ...got];
+  const id = v.sample.sampleId && v.arrival.sampleId;
+  const seal = v.sample.sealNumber && v.arrival.sealNumber;
   return [
-    ...(matched.length ? [`${matched.join(' and ').replace(/^./, (c) => c.toUpperCase())} match what was sent.`] : []),
+    ...(id || seal
+      ? [
+          tr.t(
+            id && seal ? 'app.lab.custody.bothMatch' : id ? 'app.lab.custody.idMatches' : 'app.lab.custody.sealMatches',
+          ),
+        ]
+      : []),
     ...sent,
     ...got,
   ];
@@ -198,20 +237,28 @@ export const publicCustodyOf = (v: unknown): Map<string, PublicCustody> => {
 };
 
 /** The lines under a receipt on the public check page: differences plainly, or the coverage. */
-export const publicCustodyLines = (c: PublicCustody | undefined): string[] => {
+export const publicCustodyLines = (c: PublicCustody | undefined, tr: Translator = enT): string[] => {
   if (!c) return [];
-  if (c.covered === 'changed')
-    return ['The lab changed its arrival details after signing, so its receipt doesn’t cover them.'];
-  if (c.covered === 'not-covered') return ['The lab’s receipt doesn’t cover the sample details.'];
-  if (c.differences.length) return c.differences.map((d) => `${d}.`);
-  return ['No difference between the sample details sent and those the lab wrote on arrival.'];
+  if (c.covered === 'changed') return [tr.t('app.lab.custody.changed')];
+  if (c.covered === 'not-covered') return [tr.t('app.lab.custody.notCovered')];
+  if (c.differences.length)
+    return c.differences.map((d) => tr.t('app.lab.custody.line', { v: differenceWords(d, tr) }));
+  return [tr.t('app.lab.custody.noDifference')];
 };
 
 /** custodyLines without the "Sent:" and "Received:" detail: the plant page's one line under the receipt. */
-export const custodyHeadline = (v: CustodyView | undefined): string | undefined =>
-  custodyLines(v)
-    .filter((l) => !/^(Sent|Received): /.test(l))
-    .join(' ') || undefined;
+export const custodyHeadline = (v: CustodyView | undefined, tr: Translator = enT): string | undefined => {
+  if (!v) return undefined;
+  const detail = new Set([
+    ...(hasDetails(v.sample) ? [tr.t('app.lab.custody.sent', { v: sampleLine(v.sample, tr) })] : []),
+    ...(hasDetails(v.arrival) ? [tr.t('app.lab.custody.received', { v: arrivalLine(v.arrival, tr) })] : []),
+  ]);
+  return (
+    custodyLines(v, tr)
+      .filter((l) => !detail.has(l))
+      .join(tr.t('app.lab.custody.joinSentences')) || undefined
+  );
+};
 
 /**
  * The sample details for a downloaded summary (the certificate's "Download summary"): what

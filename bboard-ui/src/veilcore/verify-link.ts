@@ -18,6 +18,7 @@ const HEX64 = /^[0-9a-f]{64}$/;
  * one (an unsealed record has none, and its link stays as it was). Other query
  * parameters, such as `show`, are kept.
  */
+import { enT, type Translator } from '../i18n/translate';
 export const verifyPath = (
   id: string,
   fingerprint?: string,
@@ -68,51 +69,60 @@ export const bindingOf = (link: LinkFingerprint, reported: string | undefined): 
  * The footer: exactly what this browser checked, and that the rest is the registry's
  * report. Never "nothing could be checked" when a line above says something was.
  */
-export const checkedSummary = (c: {
-  bound: boolean;
-  proofChecked: boolean;
-  signaturesChecked: number;
-  /** What each checked signature is (VerifyPage signatureKind), so the footer names them as the lines do. */
-  signatureKinds?: readonly string[];
-}): string => {
+export const checkedSummary = (
+  c: {
+    bound: boolean;
+    proofChecked: boolean;
+    signaturesChecked: number;
+    /** What each checked signature is (VerifyPage signatureKind, in English), so the footer names them as the lines do. */
+    signatureKinds?: readonly string[];
+  },
+  tr: Translator = enT,
+): string => {
   const kinds = (c.signatureKinds ?? []).map((k) =>
-    /^Lab report/.test(k) ? 'a lab report' : /^Lab’s receipt/.test(k) ? 'a lab’s receipt' : 'a signed statement',
+    /^Lab report/.test(k)
+      ? 'app.verify.sum.reports'
+      : /^Lab’s receipt/.test(k)
+        ? 'app.verify.sum.receipts'
+        : 'app.verify.sum.statements',
   );
-  const counted = [...new Set(kinds)].map((k) => {
-    const n = kinds.filter((x) => x === k).length;
-    return n === 1 ? k : `${n} × ${k.replace(/^an? /, '')}`;
-  });
-  const what = counted.length ? ` (${counted.join(', ')})` : '';
+  const counted = [...new Set(kinds)].map((k) => tr.tp(k, kinds.filter((x) => x === k).length));
+  const what = counted.length ? tr.t('app.verify.sum.what', { list: counted.join(tr.t('app.verify.sum.comma')) }) : '';
   const done = [
-    ...(c.bound ? ['the link’s fingerprint matches the one the registry reports'] : []),
-    ...(c.proofChecked ? ['the record is in its batch'] : []),
-    ...(c.signaturesChecked > 0
-      ? [(c.signaturesChecked === 1 ? 'one signature about it' : `${c.signaturesChecked} signatures about it`) + what]
-      : []),
+    ...(c.bound ? [tr.t('app.verify.sum.bound')] : []),
+    ...(c.proofChecked ? [tr.t('app.verify.sum.inBatch')] : []),
+    ...(c.signaturesChecked > 0 ? [tr.tp('app.verify.sum.signatures', c.signaturesChecked, { what })] : []),
   ];
-  if (done.length === 0)
-    return 'Nothing on this page could be checked in this browser: it is all the VeilCore registry’s report.';
-  const list = done.length === 1 ? done[0] : `${done.slice(0, -1).join(', ')} and ${done[done.length - 1]}`;
-  return (
-    `Checked in this browser: ${list}. Everything else is the VeilCore registry’s report.` +
-    (c.bound ? '' : ' This link names no fingerprint, so those checks used the registry’s own and nothing is ticked.')
-  );
+  if (done.length === 0) return tr.t('app.verify.sum.nothing');
+  const list =
+    done.length === 1
+      ? done[0]
+      : tr.t('app.verify.sum.list', {
+          rest: done.slice(0, -1).join(tr.t('app.verify.sum.comma')),
+          last: done[done.length - 1],
+        });
+  return tr.t('app.verify.sum.checked', { list, unbound: c.bound ? '' : tr.t('app.verify.sum.unbound') });
 };
 
 /** The heading: plain words for where the record stands. */
-export const verifyHeading = (s: {
-  sealed: boolean;
-  bound: boolean;
-  proof: 'checking' | 'none' | 'pending' | 'anchor-reported';
-}): string =>
-  !s.sealed
-    ? 'Record found, nothing sealed'
-    : !s.bound
-      ? 'The registry’s report: this link has no fingerprint to check against'
-      : s.proof === 'checking'
-        ? 'Checking…'
-        : s.proof === 'anchor-reported'
-          ? 'Date stamp reported by the registry, not checked here'
-          : s.proof === 'pending'
-            ? 'In a batch, no date stamp yet'
-            : 'No date stamp yet';
+export const verifyHeading = (
+  s: {
+    sealed: boolean;
+    bound: boolean;
+    proof: 'checking' | 'none' | 'pending' | 'anchor-reported';
+  },
+  tr: Translator = enT,
+): string =>
+  tr.t(
+    !s.sealed
+      ? 'app.verify.heading.nothingSealed'
+      : !s.bound
+        ? 'app.verify.heading.unbound'
+        : s.proof === 'checking'
+          ? 'app.verify.heading.checking'
+          : s.proof === 'anchor-reported'
+            ? 'app.verify.heading.reported'
+            : s.proof === 'pending'
+              ? 'app.verify.heading.pending'
+              : 'app.verify.heading.none',
+  );

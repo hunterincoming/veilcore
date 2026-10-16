@@ -7,6 +7,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
+import { en } from './i18n/en';
+import { ja } from './i18n/ja';
+import { es } from './i18n/es';
+import { de } from './i18n/de';
+import { fr } from './i18n/fr';
+import { appEn } from './i18n/app/en';
+import { appJa } from './i18n/app/ja';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const read = (rel: string) => fs.readFileSync(path.join(HERE, rel), 'utf8');
@@ -27,6 +34,8 @@ describe('the first download, in the source', () => {
         './components/site/Privacy',
         './config/network',
         './config/theme',
+        // The language picker's choice, and the site's own words (the app's load with its pages).
+        './i18n',
       ].sort(),
     );
     // The record sync starts from the app's frame, by a dynamic import.
@@ -165,6 +174,16 @@ describe.skipIf(!built)('the first download, in the built site (dist/)', () => {
     const gz = text(first).reduce((n, s) => n + gzipSync(s).length, 0);
     // 213 KB on 15 October 2026 (was 586 KB plus 403 KB of WebAssembly).
     expect(gz).toBeLessThan(260 * 1024);
+  });
+
+  it('the landing page downloads English only: other languages come when chosen', () => {
+    // A line each language's public pages have, and one from the record app's.
+    const drafts = [ja['draft.banner'], es['draft.banner'], de['draft.banner'], fr['draft.banner']];
+    const app = [appJa['app.common.pageInEnglish'], appEn['app.common.pageInEnglish']];
+    for (const [i, src] of text(first).entries()) {
+      for (const d of [...drafts, ...app]) expect(src.includes(String(d)), `${first[i]}: ${d}`).toBe(false);
+    }
+    expect(text(first).some((src) => src.includes(en['draft.banner']))).toBe(true);
   });
 
   it('the check page’s own file brings no WebAssembly with it', () => {

@@ -1,0 +1,383 @@
+// Japanese. DRAFT: machine-assisted, to be checked by a fluent speaker before publishing
+// (docs/translations/README.md). Terms as in ../../ja.ts, plus the app's: see ./index.ts.
+// SPDX-License-Identifier: Apache-2.0
+import type { AppTranslation } from '../../translate';
+
+export const plant = {
+  'app.plant.notHere': 'この記録はこのブラウザにありません',
+  'app.plant.notHereText':
+    '別のブラウザで封印した場合は、そちらでバックアップを保存し、ここで開いてください（植物を取り戻す）。他の人の記録なら、その人から受け取った確認用リンクを開いてください。',
+  'app.plant.yourRecords': 'あなたの記録',
+  'app.plant.checkARecord': '記録を確認する',
+  'app.plant.home': 'ホーム',
+  'app.plant.bredByName': '育成者：{name}',
+  'app.plant.corrected':
+    'この記録は訂正されました。訂正は記録を編集も削除もしません。記録はそのまま残り、後の記録がそれに代わります。<link>訂正を見る</link>',
+  'app.plant.corrects':
+    'これは以前の記録の訂正です。変更点：{fields}。理由：{reason}。<link>置き換えられた記録を見る</link>',
+  'app.plant.evidenceLine':
+    '<link>証拠バンドルをダウンロード</link><muted>（VeilCoreなしでこの記録の日付を確認できます）</muted>',
+  'app.plant.open': '開く',
+  'app.plant.reportsCameBack.other': '検査報告書が{count}件届きました。あなただけが開けるようにロックされています。',
+  'app.plant.moreYouCanDo': 'ほかにできること',
+  'app.plant.action.show': '誰かに見せる',
+  'app.plant.action.showHint': '見せる内容を選ぶ',
+  'app.plant.action.askedToProve': '保有していることの証明を求められた',
+  'app.plant.action.certificate': '証明書',
+  'app.plant.action.sendResults': '結果を育成者に送り返す',
+  'app.plant.action.sendResultsHint': 'あなたが署名し、相手だけが開けるようにロック',
+  'app.plant.action.signReceipt': '受領書に署名する',
+  'app.plant.action.signReceiptHint': 'このサンプルが届いたことに署名する、または受け取りを断る',
+  'app.plant.action.linkReceipt': '受領書を紐付ける',
+  'app.plant.action.linkReceiptHint': '受領書は署名済みです。育成者に見えるように送付に紐付けてください',
+  'app.plant.action.labReports': '検査報告書',
+  'app.plant.action.sendToLab': 'ラボや育成者に送る',
+  'app.plant.action.licenseIt': 'ライセンスを出す',
+  'app.plant.action.saveReport': 'この植物に検査報告書を保存する',
+  'app.plant.action.checkReport': '報告書が一致するか確認する',
+  'app.plant.action.familyTree': '系統図',
+  'app.plant.action.freshBackup': '新しいバックアップを保存する',
+  'app.plant.action.fix': '間違いを直す',
+  'app.plant.agreements': '契約',
+  'app.plant.openAgreement': '契約 {id} を開く',
+  'app.plant.unnamedCounterparty': '名前のない相手方',
+  'app.plant.technicalDetails': '技術的な詳細',
+  'app.plant.f.method': '育種方法',
+  'app.plant.f.statedDate': '申告された作出日（育成者の申告）',
+  'app.plant.f.sealedClock': '封印（この端末の時計）',
+  'app.plant.f.ref': '参照／ロットID',
+  'app.plant.f.photos': '写真',
+  'app.plant.f.photosSealed': '{n}枚を封印（フィンガープリントのみ。画像はアップロードされていません）',
+  'app.plant.f.reportSaved': 'この植物に保存済み（{file}）· 紐付けのフィンガープリント {fp}{sha}',
+  'app.plant.f.file': 'ファイル',
+  'app.plant.f.fileSha': ' · ファイルのSHA-256 {sha}',
+  'app.plant.f.notSavedYet': 'まだ保存されていません',
+  'app.plant.f.recordFingerprint': '記録のフィンガープリント',
+  'app.plant.evidenceBundle': '証拠バンドル',
+  'app.plant.evidenceBundleText':
+    '封印したままの記録、その包含証明、バッチのルート、バッチが記録された場所、あればBitcoinのスタンプファイル、記録に関するラボの署名を、1つの.zipにまとめたものです。中のverify.htmlは、インターネットもVeilCoreも使わずに確認し、日付を確かめるために何を調べればよいかを示します。',
+  'app.plant.exportFailed': '記録を書き出せませんでした。',
+  'app.plant.exportRecord': '記録を書き出す',
+  'app.plant.backToPlant': '植物に戻る',
+  'app.plant.backToRecord': '記録に戻る',
+  'app.plant.mark.done': '完了',
+  'app.plant.mark.failed': '未確認',
+  'app.plant.mark.reported': 'レジストリの報告。未確認',
+  'app.plant.mark.wait': 'まだ',
+  'app.plant.recordDated': '記録の日付',
+  'app.plant.labReport': '検査報告書',
+  'app.plant.backupChecked': 'バックアップの確認',
+  'app.plant.checking': '確認中…',
+  'app.plant.savedToPlant': 'この植物に保存済み',
+  'app.plant.arrivedNotOpened': '届きました。未開封',
+  'app.plant.openedNotSaved': '開きました。この植物には未保存',
+  'app.plant.noneYet': 'まだありません',
+  'app.plant.labReceipt': 'ラボの受領書',
+  'app.plant.receiptSigned': '受領書に署名済み',
+  'app.plant.labCodeUsed': 'ラボコード使用済み',
+  'app.plant.noReceiptSigned': '受領書の署名なし',
+  'app.plant.notSignedYet': 'まだ署名されていません',
+  'app.plant.receipt': '受領書',
+  'app.plant.notLinkedYet': '{date}、まだ送付に紐付けられていません',
+  'app.plant.turnedAway': '受け取りを断りました',
+  'app.plant.rejected.damaged': '破損して届いた',
+  'app.plant.rejected.wrongSample': '違うサンプル',
+  'app.plant.receiptNotSigned': '受領書はまだ署名されていません',
+  'app.plant.keyStampLine':
+    '鍵に日付スタンプを押しました：{when}。植物の鍵にも日付が付いたので、後で保有していることを証明できます。',
+  'app.plant.done': '完了',
+  'app.plant.notYet': 'まだ',
+  'app.plant.labReportSent': '検査報告書を送付',
+  'app.plant.nSent': '{n}件送付',
+  'app.plant.withdrawnSendNew': '撤回済み（新しく送れます）',
+  'app.plant.waitingBatch': 'バッチを待っています',
+  'app.plant.inBatchWaiting': 'バッチに入り、日付スタンプを待っています',
+  'app.plant.onTestNetwork': 'テストネットワーク上です。練習用のデータで、本当の日付ではありません。',
+  'app.plant.checkedOnMidnight': '{date}（Midnightで確認済み）',
+  'app.plant.notConfirmed': '日付スタンプはMidnightで確認されていません',
+  'app.plant.dontRely': '{reason}。レジストリが報告する日付に頼らないでください。',
+  'app.plant.lookingUp': 'Midnightで調べています…',
+  'app.plant.couldntReach': 'Midnightに接続できず、確認できませんでした。',
+  'app.plant.notChecked': 'このページからはMidnightで確認していません。',
+  'app.plant.registryReport': '{date}（VeilCoreのレジストリによる報告）',
+  'app.plant.dateNotGiven': '日付の記載なし',
+  'app.plant.labReportSha': '検査報告書のSHA-256：{sha}',
+  'app.plant.labReportCode': '検査報告書のコード：{code}',
+  'app.plant.labAsSigned': 'ラボ（署名のとおり）：{lab}',
+  'app.plant.noLabMatched': '保存したファイルと一致するラボの署名はありません',
+  'app.plant.next.backup.title': 'バックアップを保存する',
+  'app.plant.next.backup.why':
+    'この植物の鍵は、今はこの端末にしかありません。端末が壊れたりブラウザが消去されたりすると、あなたが保有していることを誰も証明できなくなります。保存は1分で済みます。',
+  'app.plant.next.backup.action': 'バックアップを保存する',
+  'app.plant.next.dates.title': 'この記録は検査報告書に日付を付けます',
+  'app.plant.next.dates.why':
+    '中身は報告書のSHA-256、検査報告書のコード、署名どおりのラボ名だけで、報告書そのものは入っていません。バッチに日付が付くと、その時点で報告書が存在したことを、マーカーを誰にも見せずに示せます。',
+  'app.plant.next.stamp.why':
+    '封印済みです。鍵にはまだ日付スタンプが押されておらず、保有していることを証明するにはそれが必要です。1分ほどで、無料です。',
+  'app.plant.next.rejected.title': 'このサンプルの受け取りを断りました',
+  'app.plant.next.rejected.why':
+    '何も署名されていません。VeilCoreは育成者に知らせません。別のものを送ってもらえるよう、ご自身で伝えてください。',
+  'app.plant.next.setup.title': 'ラボの署名を設定する',
+  'app.plant.next.setup.why':
+    'そうすると、このサンプルが届いたことに署名し、ラボの署名付きで検査報告書を送り返せます。',
+  'app.plant.next.setup.action': '設定する',
+  'app.plant.next.sign.title': '届いたことに署名する',
+  'app.plant.next.sign.why':
+    'あなたの署名付きの受領書があるから、育成者はあなたからの検査報告書を信頼できます。あなたの鍵がサンプルを受け取ったことを示すからです。',
+  'app.plant.next.sign.action': '受領書に署名する',
+  'app.plant.next.link.title': '受領書を送付に紐付ける',
+  'app.plant.next.link.why':
+    '受領書は署名済みですが、育成者のページで数えられるのは、その送付に紐付けられた受領書だけです。紐付けられるのは、ラボコードを使った人だけです。',
+  'app.plant.next.link.action': '紐付ける',
+  'app.plant.next.signed.title': '受領書に署名済み',
+  'app.plant.next.signed.why':
+    '育成者にはあなたの署名付きの受領書が見えます。このネットワークでは、まだVeilCoreを通じて検査報告書を送り返せません。いつもの方法で送ってください。',
+  'app.plant.next.sent.title': '検査報告書を送付しました',
+  'app.plant.next.withdrawn.title': '検査報告書を撤回しました',
+  'app.plant.next.send.title': '結果を育成者に送り返す',
+  'app.plant.next.sent.why': '開けるのは育成者だけです。撤回することも、訂正したファイルを送ることもできます。',
+  'app.plant.next.withdrawn.why':
+    '送ったものを撤回したので、育成者の手元にはあなたからの現在の検査報告書がありません。新しく送ることができます。',
+  'app.plant.next.send.why': 'ラボの鍵で署名し、育成者だけが開けるようにロックします。VeilCoreは読めません。',
+  'app.plant.next.sent.action': '送ったものを見る',
+  'app.plant.next.send.action': '結果を送り返す',
+  'app.plant.next.corrected.title': '訂正された検査報告書を保存する',
+  'app.plant.next.corrected.why':
+    'ラボが、この植物に保存された検査報告書を差し替えました。訂正版を保存するまで、植物のページ、証明書、リンクには、保存済みのものが差し替えられたと表示されます。',
+  'app.plant.next.corrected.action': '訂正版を開く',
+  'app.plant.next.noCurrent.why':
+    '元の報告書は差し替えられ、訂正版は撤回されました。もう一度送るようラボに依頼してください。それまで、証明書とリンクには、保存済みのものが差し替えられたと表示されます。',
+  'app.plant.next.labWithdrew.title': 'ここに保存された検査報告書をラボが撤回しました',
+  'app.plant.next.labWithdrew.whyNewer':
+    'この植物には保存されたままで、証明書とリンクには撤回されたと表示されます。新しい検査報告書が届いています。開いて、代わりにそれを保存してください。',
+  'app.plant.next.labWithdrew.why':
+    'この植物には保存されたままで、証明書とリンクには撤回されたと表示されます。新しいものをラボに依頼してください。',
+  'app.plant.next.labWithdrew.action': '新しいものを開く',
+  'app.plant.next.open.why':
+    'この植物の鍵で、あなただけが開けるようにロックされています。開くと、ここでラボの署名を確認します。',
+  'app.plant.next.sample.title': 'サンプルをラボに送る',
+  'app.plant.next.sample.whySaved':
+    'この植物に検査報告書を保存しました。これはあなた自身の陳述です。ラボがサンプルを受け取ったことに署名すると第三者が加わり、あなたの陳述だけよりも強い証拠になります。',
+  'app.plant.next.sample.why':
+    '今のところ、この記録はあなた自身による植物の説明です。ラボがサンプルを受け取ったことに署名し、検査報告書を送り返すと、あなたの説明だけよりも強い証拠になります。',
+  'app.plant.next.sample.action': 'ラボに送る',
+  'app.plant.next.save.title': '検査報告書をこの植物に保存する',
+  'app.plant.next.save.why':
+    'ラボがサンプルを受け取ったことに署名しました。検査報告書が戻ってきたらこの植物に保存して、後の検査と比較できるようにしてください。',
+  'app.plant.next.save.action': 'この植物に保存する',
+  'app.plant.next.ready.title': 'この記録は使える状態です',
+  'app.plant.next.ready.why':
+    'ラボがサンプルを受け取ったことに署名し、検査報告書がこの植物に保存されています。素材を送ったりライセンスを出したりできます。条件は、この記録から申告された子孫にも適用されます。',
+  'app.plant.next.ready.action': '契約を始める',
+  'app.plant.next.backTo': '{name}に戻る',
+  'app.plant.next.noCurrent.title': '{lab}からの現在の検査報告書はありません',
+  'app.plant.next.open.title': '{lab}からの検査報告書を開く',
+  'app.plant.next.label': '次のステップ',
+  'app.plant.next.stamp.title': '日付スタンプを押す',
+  'app.plant.next.stamp.action': '日付スタンプを押す',
+  'app.plant.next.open.action': '開く',
+  'app.plant.chain.sealed': '封印済み',
+  'app.plant.chain.reportSaved': '検査報告書を保存済み',
+  'app.plant.chain.receipt': '受領を確認済み',
+  'app.plant.chain.licensed': 'ライセンス済み',
+  'app.plant.chain.licensedN': 'ライセンス済み（{n}）',
+  'app.plant.date.chipNotAnchored': 'バッチに入っています。まだアンカーされていません',
+  'app.plant.date.chipChecked': 'バッチに入っています · {network}で日付を確認済み',
+  'app.plant.date.chipFailed': 'バッチに入っています · 日付スタンプは未確認',
+  'app.plant.date.chipReported': 'バッチに入っています · {network}でのアンカーが報告されています',
+  'app.plant.date.testNote': 'テストネットワークはリセットされることがあり、その日付に証拠としての重みはありません。',
+  'app.plant.date.head':
+    'このブラウザで確認しました：あなたの記録のフィンガープリントはバッチ {batch} に入っており、そこからの経路はバッチのルートにたどり着きます。',
+  'app.plant.date.looked': '{head}レジストリの報告では、そのルートは{network}に記録されました。{test}',
+  'app.plant.date.notLooked':
+    '{head}レジストリの報告では、そのルートは{network}に記録されました。このページはそのトランザクションを調べていないため、アンカー済みとは表示しません。日付に頼る前に、ネットワークで調べてください。{test}',
+  'app.plant.date.title': 'Midnight上の日付',
+  'app.plant.date.notInBatch':
+    'お使いの端末で封印し、{server}に保管されています。まだバッチに入っていないので、アンカーされていません。記録はバッチにまとめてアンカーします（今は手作業のため、時間がかかることがあります）。1つのトランザクションで多くの記録をまかなえるので、ウォレットは不要です。それまで、日付はこのレジストリの記録に基づきます。',
+  'app.plant.date.inBatchNotAnchored':
+    'このブラウザで確認しました：あなたの記録のフィンガープリントはバッチ {batch} に入っていますが、そのバッチはまだアンカーされていません。アンカーされると、証明にトランザクションへの参照が加わります。あなたの記録は何も変わりません。',
+  'app.plant.date.batchLine': 'バッチ {batch}',
+  'app.plant.date.rootLine': 'ルート {root}…',
+  'app.plant.date.txChecked': 'トランザクション（Midnightで確認済み）{tx}',
+  'app.plant.date.txReported': 'トランザクション（レジストリの報告）{tx}',
+  'app.plant.date.downloadProof': '包含証明をダウンロード',
+  'app.plant.date.downloadStamp': 'Bitcoinのスタンプファイルをダウンロード',
+  'app.plant.date.openExplorer': '{network}のエクスプローラーを開く',
+  'app.plant.date.fileConfirmed':
+    'このファイルは、あなたの記録がこのバッチに入っていることを示します。このページは、指定されたMidnightのトランザクションの中にバッチのルートを見つけました。これは誰でも繰り返せます。証拠バンドルに必要なものがすべて入っていて方法も書かれており、確認ページは同じ照会を相手のブラウザで行います。',
+  'app.plant.date.fileNotConfirmed':
+    'このファイルは、あなたの記録がこのバッチに入っていることを示します。記録に日付が付くのは、指定されたトランザクションの中にバッチのルートが見つかったときだけです。証拠バンドルにはその照会に必要なものがすべて入っていて方法も書かれており、確認ページはMidnightに接続できればブラウザで照会します。',
+  'app.plant.date.stampPending':
+    'Bitcoinのスタンプファイルは、無料のOpenTimestampsツールで、このバッチのルートにBitcoin上の日付を付けます：<link>バッチのルートファイル（root.bin）</link>の隣で<code>ots verify root.bin.ots</code>。まだ保留中です。スタンプサーバーの約束であり、まだBitcoinのブロックに入っていません。Bitcoinで確定したら `ots upgrade` を実行してください。',
+  'app.plant.date.stampInBlock':
+    'Bitcoinのスタンプファイルは、無料のOpenTimestampsツールで、このバッチのルートにBitcoin上の日付を付けます：<link>バッチのルートファイル（root.bin）</link>の隣で<code>ots verify root.bin.ots</code>。Bitcoinのブロックに入っているので、Bitcoinだけで確認できます。',
+  'app.plant.history.title': '履歴',
+  'app.plant.history.correctionOf': '{id} の訂正として発行されました。理由：{reason}。',
+  'app.plant.history.sealed': '保有者がこの素材の説明を確定しました。日付は封印した端末の時計によります。',
+  'app.plant.history.received': '受け取り',
+  'app.plant.history.arrived': '{from}からの移転で届きました。',
+  'app.plant.history.arrivedQty': '{from}からの移転で届きました（{qty}）。',
+  'app.plant.history.retracted': '証明が撤回されました',
+  'app.plant.history.retractedDetail':
+    '証明者が、自分の鍵で署名した撤回によって取り下げました。理由：{reason}。証明は記録に残ります。撤回は削除ではありません。',
+  'app.plant.history.corrected': '訂正済み',
+  'app.plant.history.correctedDetail': '後の記録がこれに代わります。この記録は変更されず、残ります。',
+  'app.plant.tree.none': 'まだ系統が記録されていません。記録するときに親の品種を加えると、系統図ができます。',
+  'app.plant.tree.offspring': '子孫',
+  'app.plant.tree.datedReports': '日付を付けた検査報告書（子孫ではありません）',
+  'app.plant.action.nextStage': '次の世代や選抜を加える',
+  'app.plant.action.nextStageHint': 'この植物を親とする新しい記録です。各段階は、その時点で封印してください。',
+  'app.plant.dated.refused':
+    'レジストリが保存しませんでした（{reason}）。何にも日付は付いていません。もう一度お試しください。',
+  'app.plant.dated.line': '検査報告書の日付：<link></link>に記録（{status}）',
+  'app.plant.dated.dated': '日付 {value}',
+  'app.plant.dated.action': 'この検査報告書に日付を付ける',
+  'app.plant.dated.why': 'その日付までにこの報告書が存在したことを、マーカーを誰にも見せずに示せます。',
+  'app.plant.dated.seals':
+    '報告書のSHA-256、検査報告書のコード、署名どおりのラボ名だけを入れた小さな記録を封印します。報告書はあなたの手元に残ります。日付は、そのバッチに日付が付いたときに付きます。',
+  'app.plant.dated.elsewhere':
+    'この検査報告書は、別のタブかウィンドウで日付を付けているところです。1分待ってからもう一度見てください。ここに表示されます。',
+  'app.plant.datingPage.title': 'この記録は<plant></plant>の検査報告書に日付を付けます',
+  'app.plant.datingPage.holds':
+    '中身は報告書のSHA-256、検査報告書のコード、署名どおりのラボ名だけで、報告書そのものは入っていません。バッチに日付が付くと、その時点で報告書が存在したことを、マーカーを誰にも見せずに示せます。',
+  'app.plant.datingPage.recordDated': '記録の日付：{value}',
+  'app.plant.datingPage.backup': '<b>バックアップを保存してください。</b>この記録の鍵は、この端末にしかありません。',
+  'app.plant.datingPage.sealedBy': '封印した人',
+  'app.plant.datingPage.notesAsSealed': 'メモ（封印したまま）',
+  'app.plant.datingPage.bundleText':
+    '封印したままの記録、その包含証明、バッチのルート、バッチが記録された場所を、1つの.zipにまとめたものです。中のverify.htmlは、インターネットもVeilCoreも使わずに確認します。',
+  'app.plant.anchor.title': 'この記録を{network}にアンカーする',
+  'app.plant.anchor.anchored':
+    'アンカーしました。チェーン上のIDは {id}… で、ブロック {block} に記録されました{when}。IDはこのブラウザとバックアップに保管され、VeilCoreのサーバーにはありません。確認用リンクを送ることで共有します。これはテストネットワークです。リセットされることがあり、その日付に証拠としての重みはありません。',
+  'app.plant.anchor.chainClock': '（{when}、チェーンの時計による）',
+  'app.plant.anchor.label': 'アンカー',
+  'app.plant.anchor.notAvailable': 'このビルドでは使えません：{why}',
+  'app.plant.anchor.intro':
+    'これにより、記録はネットワーク上にIDを持ち、そのIDとして振る舞えるのはこのブラウザだけになります。トランザクションはブラウザ自身が作って証明し、ネットワーク手数料はVeilCoreが払います。VeilCoreに見えるのは、ネットワークが公開する内容だけです。ウォレットも暗号資産も不要です。後で、求めた人に、このブロックの時点であなたの鍵が存在し、今もあなたが管理していることを示せます。',
+  'app.plant.anchor.notKeeping':
+    'このブラウザは保存した内容を保持しません（プライベートウィンドウ、またはサイトデータがブロックされています）。バックアップをダウンロードしないと、このタブを閉じたときに記録の鍵が失われます。',
+  'app.plant.anchor.understand': '理解しました。バックアップをダウンロードします',
+  'app.plant.anchor.keysNotHere':
+    'この植物の鍵はこのブラウザにありません。バックアップファイルから取り戻してください。新しい鍵は、封印された記録と一致しません。',
+  'app.plant.anchor.onlyNew':
+    '一度も鍵を持ったことのない記録専用です。以前アンカーした、または別のブラウザで鍵を作った場合は、代わりに上でバックアップから復元してください。新しい鍵は別のIDになります。',
+  'app.plant.anchor.makeKeys': '1. この記録の鍵を作る（このブラウザで）',
+  'app.plant.anchor.anchorTest': '2. テストネットワークにアンカーする',
+  'app.plant.anchor.backupFirst': '先にバックアップをダウンロード',
+  'app.plant.keys.restoredFor': '{id} の鍵を復元しました。',
+  'app.plant.keys.notNamed':
+    '復元しましたが、この記録が示す鍵ではありません。正しいファイルを選んだか確認してください。',
+  'app.plant.keys.notIdentity':
+    '復元しましたが、この鍵はこの記録のチェーン上のIDではありません。正しいファイルを選んだか確認してください。',
+  'app.plant.keys.restored': '鍵をこのブラウザに復元しました。',
+  'app.plant.keys.removeBacked': 'この記録の鍵をこのブラウザから削除しますか？バックアップファイルから復元できます。',
+  'app.plant.keys.removeUnbacked':
+    'この鍵のバックアップをダウンロードしていません。削除すると、VeilCoreを含め誰も、この記録を二度と証明できなくなります。それでも削除しますか？',
+  'app.plant.keys.title': '記録の鍵（このブラウザのみ）',
+  'app.plant.keys.holds':
+    'このブラウザには、あなたがチェーン上でこの記録を保有していることを証明する2つの秘密が入っています。どこにも送信されず、VeilCoreにも写しはなく、このブラウザを消去すると削除されます。',
+  'app.plant.keys.noBackup':
+    'まだバックアップがありません。ダウンロードしてオフラインで保管してください。ないと、このブラウザを消去したときに記録を永久に失います。',
+  'app.plant.keys.downloadAgain': 'バックアップをもう一度ダウンロード',
+  'app.plant.keys.download': 'バックアップをダウンロード（秘密）',
+  'app.plant.keys.remove': 'このブラウザから削除',
+  'app.plant.keys.notHeld':
+    'このブラウザにはこの記録の鍵がありません。別の場所で作った場合は、バックアップファイルから復元してください。',
+  'app.plant.keys.restore': 'バックアップファイルから鍵を復元',
+  'app.plant.bundle.download': '証拠バンドルをダウンロード',
+  'app.plant.bundle.chooseOrUntick': '検査報告書のファイルを選ぶか、チェックを外してください。',
+  'app.plant.bundle.tooBig': '{name}は200 MBを超えているため、読み込みませんでした。',
+  'app.plant.bundle.intro':
+    'VeilCoreなしでこの記録の日付を確認するのに必要なものを、すべて1つのファイルにまとめます：封印したままの記録、日付の付いたバッチに入っていることの証明、そのバッチが記録された場所、オフラインで確認を行うページ。弁護士や審査官に渡すための1ページの要約と、書面による陳述の文例（法的助言ではありません）も入っています。中のREADMEに、何を示し何を示さないかが書かれています。',
+  'app.plant.bundle.notSealed':
+    'この記録は、詳細を誰でも確認できる形で保存する前に封印されたため、バンドルを作れません。',
+  'app.plant.bundle.includeKey': '記録の鍵を含める。',
+  'app.plant.bundle.keyIs':
+    '（記録の鍵とは、封印したときにこの植物のために作った鍵の公開IDです。秘密の部分はバックアップに残り、バンドルには決して入りません。）',
+  'app.plant.bundle.keyWith':
+    'これを含めると、バンドルを持つ人は誰でも、この記録をその鍵と、その鍵がネットワーク上で行うすべてのことに結び付けられます。相手が必要としない限り、含めないでください。',
+  'app.plant.bundle.keyNotHere': '鍵はこのブラウザにありません。含めるには、ここでバックアップを開いてください。',
+  'app.plant.bundle.includeLab':
+    '検査報告書のファイルを含める。含めない場合、バンドルには報告書のフィンガープリントだけが入り、内容は入りません。',
+  'app.plant.bundle.chooseLab': '検査報告書のファイルを選ぶ',
+  'app.plant.bundle.checkedAgainst': '入れる前に、この植物に保存されたものと照合します。',
+  'app.plant.bundle.labFileAria': '検査報告書のファイル',
+  'app.plant.bundle.downloaded':
+    '{name}をダウンロードしました。確認するには中のverify.htmlを、要約を印刷するにはEXAMINER-SUMMARY.htmlを開いてください。',
+  'app.plant.bundle.making': '作成しています…',
+  'app.plant.bundle.downloadButton': 'ダウンロード',
+  'app.plant.cert.intro':
+    '保管用や弁護士向けに：封印された記録、変更されていないことの最新の確認、アンカーされているか、保存された検査報告書、ラボの受領書、有効なライセンスをまとめます。記録の詳細は入りますが、遺伝データやラボのファイルは入りません。QRコードで記録の公開確認ページが開きます。',
+  'app.plant.cert.jsonDone': '要約（JSON）をダウンロードしました。',
+  'app.plant.cert.pngDone': '証明書をダウンロードしました。',
+  'app.plant.cert.pngFailed': '証明書の画像を作れませんでした。',
+  'app.plant.cert.linkCopied': '確認用リンクをコピーしました。',
+  'app.plant.cert.copyLink': '確認用リンクをコピー',
+  'app.plant.cert.downloadPng': 'ダウンロード（PNG）',
+  'app.plant.cert.downloadJson': '要約をダウンロード（JSON）',
+  'app.plant.cert.continue': '次へ：ほかの人に見せる内容を選ぶ',
+  'app.plant.check.title': '報告書がこの記録と一致するか確認する',
+  'app.plant.check.intro': '検査報告書のファイルを選ぶと、保有する記録に紐付けたものかどうかがわかります。',
+  'app.plant.check.forYou':
+    'この確認はブラウザの中だけで行われ、何も送信しないので、あなた自身のためのものです。記録に紐付けた報告書と一致するファイルを持っていることを示します。誰が植物を保有しているかは示さず、ほかの人がここから確認することもできません。ほかの人は、記録の確認ページで記録を、アンカー後はその日付を確認します。',
+  'app.plant.check.tap': 'タップして検査報告書を選ぶ',
+  'app.plant.check.drag': '検査報告書をここにドラッグするか、クリックして選ぶ',
+  'app.plant.check.hint': '端末内で読み込んでフィンガープリントを作り、アップロードはしません。',
+  'app.plant.check.none':
+    'この検査報告書が保存された記録はありません。先に正しい植物に保存してから、もう一度確認してください。',
+  'app.plant.check.found': '一致しました。',
+  'app.plant.check.foundSub': 'このファイルのフィンガープリントはブラウザで作られ、アップロードされていません。',
+  'app.plant.check.matches': 'このファイルは、{name}に紐付けた報告書と一致します。',
+  'app.plant.check.meaning':
+    '記録 {id}。一致とは、ファイルが紐付けたものとバイト単位で同じだという意味です。遺伝情報についても、誰が植物を保有しているかについても、何も示しません。',
+  'app.plant.check.checking': '端末で確認しています…',
+  'app.plant.check.checkIt': '確認する',
+  'app.plant.fix.field.cultivarName': '品種名',
+  'app.plant.fix.field.breederName': '育成者',
+  'app.plant.fix.field.breedingMethod': '育種方法',
+  'app.plant.fix.field.claimedCreationDate': '申告された作出日',
+  'app.plant.fix.field.notes': 'メモ',
+  'app.plant.fix.field.internalReference': '社内参照番号',
+  'app.plant.fix.field.parents': '親',
+  'app.plant.fix.field.attestations': '証明',
+  'app.plant.fix.field.sealedAt': '封印日',
+  'app.plant.fix.field.holder': '保有者',
+  'app.plant.fix.c.cosmetic.cosmetic': '後続には何も影響しません。子孫の系統確認はそのままで、契約も有効なままです。',
+  'app.plant.fix.c.cosmetic.material':
+    '素材は変わっていないので、子孫には影響しません。ただし、条件が変更箇所に関係する可能性があるため、この記録について契約を結んでいる相手には知らせる必要があります。',
+  'app.plant.fix.c.material.cosmetic':
+    'この記録からの系統に頼っている人は、もう一度確認する必要があります。既存の契約には影響しません。',
+  'app.plant.fix.c.material.material':
+    '系統と既存の契約の両方に影響します。子孫の系統はもう一度確認が必要で、契約の相手方にも知らせる必要があります。',
+  'app.plant.fix.open': 'この記録を訂正する',
+  'app.plant.fix.title': '{id} を訂正する',
+  'app.plant.fix.intro':
+    'この記録はそのまま残ります。訂正すると、これに代わる新しい記録が作られ、両方が残ります。訂正は何も上書きせず、何も削除しません。だからこそ、元の記録を証拠として使い続けられます。',
+  'app.plant.fix.name': '品種名',
+  'app.plant.fix.bredBy': '育成者',
+  'app.plant.fix.notes': 'メモ',
+  'app.plant.fix.does': 'この訂正で起きること',
+  'app.plant.fix.workedOut':
+    'これは、変更した項目から自動的に判断されます。あなたも私たちも設定できません。そうでなければ、どの訂正も無害に見えてしまうからです。',
+  'app.plant.fix.why': 'なぜ訂正するのですか？',
+  'app.plant.fix.whyHelp':
+    '訂正と一緒にあなたの記録に保存されます。公開画面には、変更された項目は表示されますが、この理由は表示されません。',
+  'app.plant.fix.check': '影響を確認する',
+  'app.plant.fix.notSaved': '訂正を保存できませんでした。',
+  'app.plant.fix.issue': '訂正を発行する',
+  'app.plant.att.linked': '{date} · あなたの送付 {id} に紐付け',
+  'app.plant.att.verified': '署名はこのブラウザで確認しました。',
+  'app.plant.att.unverifiedRetraction': 'レジストリはラボの署名がない撤回も報告していますが、ここでは無視しています。',
+  'app.plant.att.codeUsed':
+    '誰かがあなたのラボコードを使いましたが、それに対する受領書に署名したラボはありません。使われたコードは、誰がサンプルを受け取ったかを示しません。',
+  'app.plant.att.noReceipt':
+    'この植物の受領書に署名したラボはまだありません。あなただけが裏付ける記録は、ラボが署名した記録より弱い証拠です。サンプルをラボに送ってください。受領書はあなたではなくラボの鍵で署名されます。',
+  'app.plant.att.others':
+    'ほかに{n}件の署名がこの記録を指していますが、あなたの送付には結び付いていません。公開のフィンガープリントについては誰でも陳述に署名できるため、受領書としては数えません。',
+  'app.plant.att.title': 'この記録についての署名',
+  'app.plant.att.nobody':
+    'まだ誰もこの記録を確認していません。あなただけが裏付ける記録は、第三者が確認した記録より弱い証拠です。素材をラボに送ってください。確認はあなたではなくラボの鍵で記録されます。',
+  'app.plant.att.legacy':
+    '{date}に、送り手が発行したコードを持つ人が受け取りました{addressed}。署名の仕組みができる前の記録なので、第三者が受け取ったことは示しますが、それが誰かは証明しません。',
+  'app.plant.att.addressed': '（宛先：{who}）',
+} satisfies Partial<AppTranslation>;

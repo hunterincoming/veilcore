@@ -22,7 +22,9 @@ import type { StrainRecord } from '../veilcore/records';
 import type { RecordKeys } from '../veilcore/record-keys';
 import { downloadEvidenceBundle } from '../veilcore/evidence/bundle';
 import { MAX_FINGERPRINT_BYTES } from '../veilcore/commitment';
+import { InEnglishNote, useT } from '../i18n/app';
 
+/** The button's English (app.plant.bundle.download): the landing page names it. */
 export const DOWNLOAD_EVIDENCE_LABEL = 'Download evidence bundle';
 
 export const EvidenceBundle: React.FC<{
@@ -39,6 +41,8 @@ export const EvidenceBundle: React.FC<{
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const { t } = useT();
+  const label = t('app.plant.bundle.download');
 
   const canKey = !!record.keyBinding && !!keys?.recordSecret;
   const hasLab = !!record.dnaFingerprint;
@@ -56,11 +60,11 @@ export const EvidenceBundle: React.FC<{
     setDone(null);
     try {
       if (includeLab && !labFile) {
-        setError('Choose the lab report file, or untick it.');
+        setError(t('app.plant.bundle.chooseOrUntick'));
         return;
       }
       if (labFile && labFile.size > MAX_FINGERPRINT_BYTES) {
-        setError(`${labFile.name} is larger than 200 MB, so it wasn’t read.`);
+        setError(t('app.plant.bundle.tooBig', { name: labFile.name }));
         return;
       }
       const out = await downloadEvidenceBundle(record, keys, {
@@ -82,23 +86,20 @@ export const EvidenceBundle: React.FC<{
         trigger(() => setOpen(true))
       ) : (
         <Button size="small" variant="outlined" startIcon={<DownloadIcon />} onClick={() => setOpen(true)}>
-          {DOWNLOAD_EVIDENCE_LABEL}
+          {label}
         </Button>
       )}
       <Dialog open={open} onClose={close} fullWidth maxWidth="sm" aria-labelledby="evidence-bundle-title">
-        <DialogTitle id="evidence-bundle-title">{DOWNLOAD_EVIDENCE_LABEL}</DialogTitle>
+        <DialogTitle id="evidence-bundle-title">{label}</DialogTitle>
         <DialogContent>
           <Stack spacing={1.5}>
             <Typography variant="body2">
-              One file with everything someone needs to check this record’s date without VeilCore: the record as it was
-              sealed, proof that it’s in a dated batch, where that batch was recorded, and a page that does the checks
-              offline. It also has a one-page summary to print for a lawyer or examiner, and sample text for a written
-              declaration (not legal advice). A README inside says what it shows and what it doesn’t.
+              {t('app.plant.bundle.intro')}
+              <InEnglishNote />
             </Typography>
             {!sealed && (
               <Alert severity="warning" variant="outlined">
-                This record was sealed before its details were kept in a form anyone can check, so no bundle can be made
-                for it.
+                {t('app.plant.bundle.notSealed')}
               </Alert>
             )}
             {record.keyBinding && (
@@ -112,14 +113,13 @@ export const EvidenceBundle: React.FC<{
                 }
                 label={
                   <Typography variant="body2">
-                    Include the record’s key.{' '}
+                    {t('app.plant.bundle.includeKey')}
+                    {t('app.common.sentenceSep')}
                     <Typography component="span" variant="body2" color="text.secondary">
-                      (The record’s key is the public ID of the key made for this plant when you sealed it. Its secret
-                      part stays in your backup and never goes in the bundle.)
-                    </Typography>{' '}
-                    {canKey
-                      ? 'With it, anyone who has the bundle can tie this record to its key, and to everything that key does on the network. Leave it out unless they need it.'
-                      : 'The key isn’t in this browser. Open your backup here to include it.'}
+                      {t('app.plant.bundle.keyIs')}
+                    </Typography>
+                    {t('app.common.sentenceSep')}
+                    {canKey ? t('app.plant.bundle.keyWith') : t('app.plant.bundle.keyNotHere')}
                   </Typography>
                 }
               />
@@ -128,26 +128,21 @@ export const EvidenceBundle: React.FC<{
               <Stack spacing={1}>
                 <FormControlLabel
                   control={<Checkbox checked={includeLab} onChange={(e) => setIncludeLab(e.target.checked)} />}
-                  label={
-                    <Typography variant="body2">
-                      Include the lab report file. Without it, the bundle has only the report’s fingerprint, not what it
-                      says.
-                    </Typography>
-                  }
+                  label={<Typography variant="body2">{t('app.plant.bundle.includeLab')}</Typography>}
                 />
                 {includeLab && (
                   <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1, pl: 4 }}>
                     <Button size="small" variant="outlined" onClick={() => fileInput.current?.click()}>
-                      Choose the lab report file
+                      {t('app.plant.bundle.chooseLab')}
                     </Button>
                     <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
-                      {labFile ? labFile.name : 'It’s checked against the one saved to this plant before it goes in.'}
+                      {labFile ? labFile.name : t('app.plant.bundle.checkedAgainst')}
                     </Typography>
                     <input
                       ref={fileInput}
                       type="file"
                       hidden
-                      aria-label="Lab report file"
+                      aria-label={t('app.plant.bundle.labFileAria')}
                       onChange={(e) => setLabFile(e.target.files?.[0] ?? null)}
                     />
                   </Stack>
@@ -161,13 +156,13 @@ export const EvidenceBundle: React.FC<{
             )}
             {done && (
               <Alert severity="success" variant="outlined">
-                Downloaded {done}. Open verify.html inside it to check it, or EXAMINER-SUMMARY.html to print a summary.
+                {t('app.plant.bundle.downloaded', { name: done })}
               </Alert>
             )}
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={close}>Close</Button>
+          <Button onClick={close}>{t('app.common.close')}</Button>
           <Button
             variant="contained"
             disableElevation
@@ -175,7 +170,7 @@ export const EvidenceBundle: React.FC<{
             disabled={busy || !sealed}
             onClick={() => void download()}
           >
-            {busy ? 'Making it…' : 'Download'}
+            {busy ? t('app.plant.bundle.making') : t('app.plant.bundle.downloadButton')}
           </Button>
         </DialogActions>
       </Dialog>

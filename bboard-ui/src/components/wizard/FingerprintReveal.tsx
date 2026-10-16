@@ -9,6 +9,7 @@ import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import { motion } from 'framer-motion';
 import { ACCENT } from '../../config/theme';
 import { shortFingerprint } from '../../veilcore/commitment';
+import { useT } from '../../i18n/app';
 
 const MBox = motion(Box);
 
@@ -18,57 +19,60 @@ export const FingerprintReveal: React.FC<{
   sub?: string;
   /** What kind of fingerprint this is: a lab report's pairing fingerprint is not a sealed record's. */
   label?: string;
-}> = ({ fingerprint, headline = 'Fingerprinted in your browser.', sub, label = 'SEALED FINGERPRINT' }) => (
-  <MBox
-    initial={{ opacity: 0, scale: 0.96 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.5, ease: 'easeOut' }}
-    sx={{ textAlign: 'center', py: 3 }}
-  >
-    <Box sx={{ position: 'relative', display: 'inline-flex', mb: 1.5 }}>
-      <MBox
-        initial={{ opacity: 0, scale: 0.4 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, ease: 'backOut' }}
-        sx={{ display: 'inline-flex' }}
-      >
-        <FingerprintIcon sx={{ fontSize: 92, color: ACCENT, filter: `drop-shadow(0 0 22px ${ACCENT})` }} />
-      </MBox>
-      {/* scan sweep */}
-      <MBox
-        initial={{ top: 0, opacity: 0 }}
-        animate={{ top: ['4%', '92%', '4%'], opacity: [0, 1, 0] }}
-        transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-        sx={{
-          position: 'absolute',
-          left: '10%',
-          right: '10%',
-          height: 2,
-          background: `linear-gradient(90deg, transparent, ${ACCENT}, transparent)`,
-          borderRadius: 2,
-        }}
-      />
-    </Box>
+}> = ({ fingerprint, headline, sub, label }) => {
+  const { t } = useT();
+  return (
+    <MBox
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+      sx={{ textAlign: 'center', py: 3 }}
+    >
+      <Box sx={{ position: 'relative', display: 'inline-flex', mb: 1.5 }}>
+        <MBox
+          initial={{ opacity: 0, scale: 0.4 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, ease: 'backOut' }}
+          sx={{ display: 'inline-flex' }}
+        >
+          <FingerprintIcon sx={{ fontSize: 92, color: ACCENT, filter: `drop-shadow(0 0 22px ${ACCENT})` }} />
+        </MBox>
+        {/* scan sweep */}
+        <MBox
+          initial={{ top: 0, opacity: 0 }}
+          animate={{ top: ['4%', '92%', '4%'], opacity: [0, 1, 0] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+          sx={{
+            position: 'absolute',
+            left: '10%',
+            right: '10%',
+            height: 2,
+            background: `linear-gradient(90deg, transparent, ${ACCENT}, transparent)`,
+            borderRadius: 2,
+          }}
+        />
+      </Box>
 
-    <Typography variant="h5" sx={{ color: ACCENT, mb: 1 }}>
-      {headline}
-    </Typography>
-    {sub && (
-      <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 460, mx: 'auto', mb: 2 }}>
-        {sub}
+      <Typography variant="h5" sx={{ color: ACCENT, mb: 1 }}>
+        {headline ?? t('app.pair.fingerprinted')}
       </Typography>
-    )}
+      {sub && (
+        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 460, mx: 'auto', mb: 2 }}>
+          {sub}
+        </Typography>
+      )}
 
-    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-      <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: '0.18em' }}>
-        {label}
-      </Typography>
-      <Typography
-        variant="body2"
-        sx={{ fontFamily: '"Space Grotesk", monospace', color: 'text.primary', wordBreak: 'break-all' }}
-      >
-        {shortFingerprint(fingerprint)}
-      </Typography>
-    </Stack>
-  </MBox>
-);
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: '0.18em' }}>
+          {label ?? t('app.pair.sealedFp')}
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{ fontFamily: '"Space Grotesk", monospace', color: 'text.primary', wordBreak: 'break-all' }}
+        >
+          {shortFingerprint(fingerprint)}
+        </Typography>
+      </Stack>
+    </MBox>
+  );
+};

@@ -15,12 +15,15 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/CodeOutlined';
 import { ACCENT } from '../config/theme';
 import { DOCS, DOCS_COMMIT, DOCS_VERSION, REPO_VIEW, docHtml } from '../veilcore/docs';
+import { LanguageBar } from '../i18n/LanguagePicker';
+import { InEnglishPage, useT } from '../i18n/app';
 
 /** Phones only. Desktop styles are the ones above, unchanged. */
 const PHONE = '@media (max-width: 599.95px)';
 
 export const DocPage: React.FC = () => {
   const { doc } = useParams();
+  const { t } = useT();
   const meta = doc && Object.prototype.hasOwnProperty.call(DOCS, doc) ? DOCS[doc] : undefined;
   const html = useMemo(() => (meta ? docHtml(meta.md) : null), [meta]);
   const body = useRef<HTMLDivElement>(null);
@@ -36,11 +39,12 @@ export const DocPage: React.FC = () => {
   if (!meta) {
     return (
       <Container maxWidth="md" sx={{ py: 8 }}>
+        <LanguageBar />
         <Typography variant="h4" sx={{ mb: 2 }}>
-          No such document
+          {t('app.common.noDoc')}
         </Typography>
         <Button component={RouterLink} to="/" startIcon={<ArrowBackIcon />}>
-          Back
+          {t('app.common.back')}
         </Button>
       </Container>
     );
@@ -49,6 +53,8 @@ export const DocPage: React.FC = () => {
   return (
     // Inside the app layout's own container, so no second set of side gutters on a phone.
     <Container maxWidth="md" sx={{ py: { xs: 1, sm: 5, md: 8 }, px: { xs: 0, sm: 3 } }}>
+      <LanguageBar />
+      <InEnglishPage />
       <Button
         component={RouterLink}
         to="/"
@@ -56,11 +62,11 @@ export const DocPage: React.FC = () => {
         startIcon={<ArrowBackIcon />}
         sx={{ mb: { xs: 2, sm: 4 }, minHeight: { xs: 44, sm: 0 }, ml: { xs: -1, sm: 0 } }}
       >
-        Back
+        {t('app.common.back')}
       </Button>
 
       <Typography variant="overline" sx={{ color: ACCENT, display: 'block', mb: 1 }}>
-        Published document
+        {t('app.common.doc.published')}
       </Typography>
       <Typography variant="h3" sx={{ fontSize: { xs: 30, md: 40 }, mb: 2, lineHeight: { xs: 1.15, sm: 1.167 } }}>
         {meta.title}
@@ -94,7 +100,7 @@ export const DocPage: React.FC = () => {
         // as its own picker. Desktop readers scroll and do not get this.
         <Box component="label" sx={{ display: { xs: 'flex', sm: 'none' }, flexDirection: 'column', gap: 0.75, mb: 4 }}>
           <Typography component="span" variant="body2" color="text.secondary">
-            Jump to a section
+            {t('app.common.doc.jump')}
           </Typography>
           <Box
             component="select"

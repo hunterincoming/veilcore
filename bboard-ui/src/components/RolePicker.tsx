@@ -9,9 +9,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';
-import { ButtonBase, Dialog, DialogContent, DialogTitle, Stack, Typography } from '@mui/material';
+import { Box, ButtonBase, Dialog, DialogContent, DialogTitle, Stack, Typography } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getRole, setRole, ROLE_COPY, CHANGE_ROLE_EVENT, isLab, isBreeder, type Role } from '../veilcore/role';
+import { getRole, setRole, CHANGE_ROLE_EVENT, isLab, isBreeder, type Role } from '../veilcore/role';
+import { useT } from '../i18n/app';
+import { LanguagePicker } from '../i18n/LanguagePicker';
 import { ACCENT } from '../config/theme';
 import { focusScreenHeading } from './flow/FlowFrame';
 
@@ -24,6 +26,7 @@ export const RolePicker: React.FC<{ ask: boolean }> = ({ ask }) => {
   // After a choice, focus goes to the next screen's heading (round 5), not back to wherever
   // it was before the dialog opened, so a screen reader says where they've landed.
   const chosen = useRef(false);
+  const { t } = useT();
 
   useEffect(() => {
     const reopen = () => setOpen(true);
@@ -60,11 +63,19 @@ export const RolePicker: React.FC<{ ask: boolean }> = ({ ask }) => {
         },
       }}
     >
-      <DialogTitle id="role-title">Which describes you?</DialogTitle>
+      {/* The first thing a new visitor sees on the app's pages, over the header: the language
+          picker is here too, so they can read the question in their language. */}
+      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', gap: 1, pr: 2, pt: 2 }}>
+        <DialogTitle id="role-title" sx={{ pt: 0, pr: 0, flex: 1, minWidth: 0 }}>
+          {t('app.home.role.title')}
+        </DialogTitle>
+        <Box sx={{ flexShrink: 0 }}>
+          <LanguagePicker />
+        </Box>
+      </Stack>
       <DialogContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          This only changes what we show you first. It doesn&apos;t limit what you can do, and you can change it at the
-          bottom of any page.
+          {t('app.home.role.intro')}
         </Typography>
         <Stack spacing={1.5} sx={{ pb: 1 }}>
           {(['breeder', 'lab', 'both'] as Role[]).map((r) => (
@@ -84,10 +95,10 @@ export const RolePicker: React.FC<{ ask: boolean }> = ({ ask }) => {
               }}
             >
               <Typography variant="subtitle1" component="span" sx={{ display: 'block' }}>
-                {ROLE_COPY[r].label}
+                {t(`app.home.role.${r}.label`)}
               </Typography>
               <Typography variant="caption" component="span" color="text.secondary" sx={{ display: 'block' }}>
-                {ROLE_COPY[r].blurb}
+                {t(`app.home.role.${r}.blurb`)}
               </Typography>
             </ButtonBase>
           ))}

@@ -14,6 +14,8 @@ import { lightFocusStyles, lightTheme } from './config/theme';
 import { focusScreenHeading } from './components/flow/FlowFrame';
 import { Routes, Route, createRoutesFromChildren, matchRoutes, useLocation } from 'react-router-dom';
 import { IS_MAINNET } from './config/network';
+import { useI18n } from './i18n';
+import type { StringKey } from './i18n/en';
 
 // Loading. The public pages above come with the first file; every other page is its own
 // file, fetched when it is opened, so a visitor reading the landing page on a phone does
@@ -132,9 +134,26 @@ const layoutPreload: Preloadable = {
  * sign), are light: dark text on a light ground reads better for longer and in daylight.
  * The public site keeps the dark brand (lightTheme, config/theme.ts).
  */
+/**
+ * Japanese on the app's pages, as on the public ones (site.css): headings, buttons, labels
+ * and chips break between phrases, not inside a word (word-break: auto-phrase, Chromium 119
+ * and later); elsewhere keep-all, breaking a run only when it would not fit otherwise. Body
+ * text keeps the ordinary Japanese rules. <html lang> is the chosen language (i18n/index.tsx).
+ * `vc-short` marks any other short label that should break the same way (a plant page's actions).
+ */
+const JA_SHORT_LINES =
+  ':lang(ja) :is(h1, h2, h3, h4, h5, h6, label, legend, .MuiButton-root, .MuiChip-label, .MuiTab-root, .MuiAlertTitle-root, .MuiFormLabel-root, .MuiMenuItem-root, .vc-short)';
+const japaneseLineBreaks = {
+  [JA_SHORT_LINES]: { lineBreak: 'strict', wordBreak: 'auto-phrase' },
+  '@supports not (word-break: auto-phrase)': {
+    [JA_SHORT_LINES]: { wordBreak: 'keep-all', overflowWrap: 'anywhere' },
+  },
+} as const;
+
 const Light: React.FC<React.PropsWithChildren> = ({ children }) => (
   <ThemeProvider theme={lightTheme}>
     <GlobalStyles styles={lightFocusStyles} />
+    <GlobalStyles styles={japaneseLineBreaks} />
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>{children}</Box>
   </ThemeProvider>
 );
@@ -166,12 +185,33 @@ const PAGE_TITLES: [RegExp, string][] = [
 ];
 const HOME_TITLE = typeof document === 'undefined' ? '' : document.title;
 
+/** Each title above in the visitor's language (i18n/en.ts title.*). */
+const TITLE_KEYS: Record<string, StringKey> = {
+  Founders: 'title.founders',
+  'Site privacy': 'title.privacyMainnet',
+  'Demo privacy': 'title.privacy',
+  'Example record': 'title.example',
+  'Check a record': 'title.verify',
+  'Date your collection': 'title.import',
+  'Your plants': 'title.records',
+  'Get your plants back': 'title.restore',
+  'Save your backup': 'title.backup',
+  'The record format': 'title.spec',
+  'Records in evidence': 'title.evidence',
+  'Integrating VeilCore': 'title.integrate',
+  Implementations: 'title.implementations',
+  'Log a plant': 'title.new',
+  Record: 'title.record',
+  Agreements: 'title.agreements',
+};
+
 const PageTitle: React.FC = () => {
   const { pathname } = useLocation();
+  const { t } = useI18n();
   useEffect(() => {
     const page = PAGE_TITLES.find(([re]) => re.test(pathname))?.[1];
-    document.title = page ? `${page} · VeilCore` : HOME_TITLE;
-  }, [pathname]);
+    document.title = page ? `${TITLE_KEYS[page] ? t(TITLE_KEYS[page]) : page} · VeilCore` : HOME_TITLE;
+  }, [pathname, t]);
   return null;
 };
 

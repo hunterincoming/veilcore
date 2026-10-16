@@ -37,7 +37,7 @@ import { DISCLOSURE_FIELDS, LEGACY_NAME, toDisclosureKey, labelOf } from '../vei
 import { proofFor, type ProofState } from '../veilcore/proofs';
 import { attestationsFor, countsAsSigned, signerLabel, type ResolvedAttestation } from '../veilcore/attesters';
 import { ACCENT } from '../config/theme';
-import { NETWORK, isTestNetwork, networkLabel } from '../config/network';
+import { NETWORK, isTestNetwork } from '../config/network';
 import { Fact, FactKey, SharedFacts } from '../components/verify/DisclosedFacts';
 import { publicReportLine, withdrawnSignaturesLine } from '../veilcore/saved-report';
 import { bindingOf, checkedSummary, linkFingerprint, verifyHeading } from '../veilcore/verify-link';
@@ -57,6 +57,10 @@ import { useRecords } from '../veilcore/records';
 import { useBreederReceipt } from '../components/flow/LabResults';
 import { custodyLines, publicCustodyLines, publicCustodyOf } from '../veilcore/custody';
 import { NameCheckText } from '../components/NameCheckText';
+import { rich, useT } from '../i18n/app';
+import { enT, type Translator } from '../i18n/translate';
+import { networkWords } from '../i18n/network-words';
+import { LanguageBar } from '../i18n/LanguagePicker';
 
 const API = import.meta.env.VITE_API_BASE ?? '';
 /** The mark for a date checked on a test network: amber, never mainnet's teal. */
@@ -68,7 +72,8 @@ const TEST_MARK = '#8A5A00';
  * "this ID", so a crafted link cannot put its own words on VeilCore's page.
  */
 const RECORD_ID = /^VEIL-[0-9A-F]{32}$/i;
-const idText = (v: string | undefined): string => (v && RECORD_ID.test(v) ? v : 'this ID');
+const idText = (v: string | undefined, tr: Translator = enT): string =>
+  v && RECORD_ID.test(v) ? v : tr.t('app.verify.thisId');
 
 type VerifyResult = {
   found: boolean;
@@ -191,19 +196,22 @@ const sharedOf = (r: VerifyResult): string[] => {
 /** Most signatures given a line each; the rest are counted. */
 const SIGNATURE_LINES = 5;
 
-/** What a signature is, in plain words (its type is the signer's own statement). */
-export const signatureKind = (a: ResolvedAttestation): string =>
+/**
+ * What a signature is, in plain words (its type is the signer's own statement). The footer's
+ * count (verify-link.ts checkedSummary) reads the English; the lines show the visitor's language.
+ */
+export const signatureKind = (a: ResolvedAttestation, tr: Translator = enT): string =>
   a.type === 'chain-of-custody'
-    ? 'Lab’s receipt for a sample'
+    ? tr.t('app.verify.kindReceipt')
     : a.type === 'laboratory-report'
-      ? `Lab report (file SHA-256 ${a.documentHash.slice(0, 8)}…${a.documentHash.slice(-6)})`
-      : 'Signed statement';
+      ? tr.t('app.verify.kindReport', { sha: `${a.documentHash.slice(0, 8)}…${a.documentHash.slice(-6)}` })
+      : tr.t('app.verify.kindStatement');
 
-const labelsOf = (keys: readonly unknown[]): string =>
+const labelsOf = (keys: readonly unknown[], tr: Translator): string =>
   keys
     .map((k) => (typeof k === 'string' ? toDisclosureKey(k) : undefined))
-    .map((k, i) => (k ? labelOf(k) : String(keys[i])))
-    .join('; ');
+    .map((k, i) => (k ? labelOf(k, tr) : String(keys[i])))
+    .join(tr.t('app.prove.share.semicolon'));
 
 export const VerifyPage: React.FC = () => {
   const { id = '' } = useParams();
@@ -220,6 +228,8 @@ export const VerifyPage: React.FC = () => {
   // The holder's own plant, when this browser has it loaded: its linked lab receipt.
   const own = useRecords().find((r) => r.id === id.toUpperCase() && !r.receivedFrom);
   const receipt = useBreederReceipt(own, !!own);
+  const tr = useT();
+  const { t, tp } = tr;
 
   useEffect(() => {
     let cancelled = false;
@@ -287,7 +297,7 @@ export const VerifyPage: React.FC = () => {
   // A tick (and the teal mark) only for a check against the link's own fingerprint.
   const checked = bound && proof !== 'checking' && proof.status !== 'none';
   // Before the link's fingerprint is known to match, say whose fingerprint was used.
-  const forWhom = bound ? '' : 'For the fingerprint the registry reports: ';
+  const forWhom = bound ? '' : t('app.verify.forWhom');
   const reportedNetwork =
     proof !== 'checking' && proof.status === 'anchor-reported'
       ? proof.proof.anchor?.network
@@ -300,18 +310,21 @@ export const VerifyPage: React.FC = () => {
   const publicCustody = publicCustodyOf(result?.custody);
   // Round 5: what each signature is, said on its own line and counted the same way in the
   // footer: a lab's receipt, a lab report, or some other signed statement.
-  const withdrawnLine = withdrawnSignaturesLine(atts ?? []);
+  const withdrawnLine = withdrawnSignaturesLine(atts ?? [], tr);
   const badSigs = (atts ?? []).filter((a) => !a.signatureValid).length;
   // Round 6: which file is saved comes from the registry as it is now; the link's `rs` is
   // only a hint from when the link was made (saved-report.ts publicReportLine).
-  const labReport = publicReportLine({
-    paired: result?.dnaPairedByHolder,
-    linkSha: params.get('rs'),
-    pairingFingerprint: result?.dnaPairingFingerprint,
-    fileSha: result?.dnaFileSha256,
-    atts: atts ?? [],
-    bound,
-  });
+  const labReport = publicReportLine(
+    {
+      paired: result?.dnaPairedByHolder,
+      linkSha: params.get('rs'),
+      pairingFingerprint: result?.dnaPairingFingerprint,
+      fileSha: result?.dnaFileSha256,
+      atts: atts ?? [],
+      bound,
+    },
+    tr,
+  );
   // A verified signature against the link's own fingerprint is a check this browser made;
   // whether its name was matched is said in words on its line (round 5).
   const ticked = checked || (bound && signed.length > 0);
@@ -324,7 +337,9 @@ export const VerifyPage: React.FC = () => {
   const reportedAt =
     proof !== 'checking' && proof.status === 'anchor-reported' ? proof.proof.anchor?.anchoredAt : undefined;
   const anchorText =
-    anchor === undefined ? undefined : anchorLine(anchor, { network: reportedNetwork ?? NETWORK, bound, reportedAt });
+    anchor === undefined
+      ? undefined
+      : anchorLine(anchor, { network: reportedNetwork ?? NETWORK, bound, reportedAt }, tr);
   const anchorLooked = anchorText !== undefined;
   const seal = checked && anchorCheckedOnChain;
   // A date checked on a test network is practice data: its own mark, never mainnet's teal.
@@ -336,10 +351,11 @@ export const VerifyPage: React.FC = () => {
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* IDs, fingerprints and hashes are long unbroken strings: they wrap, the page never scrolls sideways. */}
       <Container component="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 }, overflowWrap: 'anywhere' }}>
+        <LanguageBar />
         <Stack
           component={RouterLink}
           to="/"
-          aria-label="VeilCore home"
+          aria-label={t('app.verify.homeAria')}
           direction="row"
           spacing={1.25}
           sx={{
@@ -367,28 +383,29 @@ export const VerifyPage: React.FC = () => {
           color="text.secondary"
           sx={{ textAlign: 'center', mb: 4, maxWidth: 460, mx: 'auto' }}
         >
-          This page checks a VeilCore record: a fingerprint of a description of genetic material, dated once it&apos;s
-          anchored, published without the genetics. Checking is free and needs no account.{' '}
-          <Box component={RouterLink} to="/" sx={{ color: ACCENT, whiteSpace: 'nowrap' }}>
-            What is VeilCore?
-          </Box>
+          {rich(t('app.verify.intro'), {
+            link: (c) => (
+              <Box component={RouterLink} to="/" sx={{ color: ACCENT, whiteSpace: 'nowrap' }}>
+                {c}
+              </Box>
+            ),
+          })}
         </Typography>
 
         {loading ? (
           <Paper sx={{ p: 6, textAlign: 'center' }}>
-            <CircularProgress size={28} sx={{ color: ACCENT }} aria-label="Checking the record" />
+            <CircularProgress size={28} sx={{ color: ACCENT }} aria-label={t('app.verify.checkingRecord')} />
           </Paper>
         ) : !result?.found ? (
           <Paper sx={{ p: 4, textAlign: 'center' }}>
             <Typography variant="h6" component="h1" sx={{ mb: 1, overflowWrap: 'anywhere' }}>
-              No record found for {idText(id)}
+              {t('app.verify.notFound', { id: idText(id, tr) })}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              This verification link doesn&apos;t match any record in the registry. Check the link is complete and
-              unmodified.
+              {t('app.verify.notFoundText')}
             </Typography>
             <Box component={RouterLink} to="/" sx={{ display: 'inline-block', mt: 2, py: 1, color: ACCENT }}>
-              Go to veilcore.org
+              {t('app.verify.goHome')}
             </Box>
           </Paper>
         ) : binding.kind === 'mismatch' ? (
@@ -398,21 +415,23 @@ export const VerifyPage: React.FC = () => {
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
               <VerifiedIcon data-checked="no" aria-hidden="true" sx={{ color: 'text.disabled', fontSize: 30 }} />
               <Typography variant="h6" component="h1" sx={{ color: 'error.main', lineHeight: 1.4 }}>
-                This link&apos;s fingerprint doesn&apos;t match the record: nothing checked
+                {t('app.verify.mismatch.title')}
               </Typography>
             </Stack>
             <Alert severity="error" variant="outlined" data-mismatch="yes">
               <Typography variant="subtitle2" component="p" sx={{ mb: 0.5 }}>
-                Do not rely on this page.
+                {t('app.verify.mismatch.dontRely')}
               </Typography>
               <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>
-                {binding.linked
-                  ? `This link was made for the record with fingerprint ${shortFingerprint(binding.linked)}, `
-                  : 'This link carries a fingerprint that is not valid (it should be 64 hexadecimal characters); it may have been cut short or changed, '}
-                but the registry reports{' '}
-                {binding.reported ? `fingerprint ${shortFingerprint(binding.reported)}` : 'no fingerprint'} for{' '}
-                {idText(id)}. Its answer is not about the record the link names, so this page has checked nothing and
-                shows none of it. Ask whoever gave you the link for the record itself.
+                {t('app.verify.mismatch.text', {
+                  start: binding.linked
+                    ? t('app.verify.mismatch.linked', { fp: shortFingerprint(binding.linked) })
+                    : t('app.verify.mismatch.invalid'),
+                  reported: binding.reported
+                    ? t('app.verify.mismatch.reportedFp', { fp: shortFingerprint(binding.reported) })
+                    : t('app.verify.mismatch.noFp'),
+                  id: idText(id, tr),
+                })}
               </Typography>
             </Alert>
             <Divider sx={{ my: 2 }} />
@@ -420,14 +439,14 @@ export const VerifyPage: React.FC = () => {
                 in the link is never echoed. */}
             {binding.linked && (
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', overflowWrap: 'anywhere' }}>
-                Fingerprint in the link: {binding.linked}
+                {t('app.verify.mismatch.inLink', { fp: binding.linked })}
               </Typography>
             )}
             <Box sx={{ mt: 2, textAlign: 'right' }}>
               <Chip
                 size="small"
                 variant="outlined"
-                label="The registry's answer does not match this link — nothing on this page was checked"
+                label={t('app.verify.mismatch.chip')}
                 sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', py: 0.5 } }}
               />
             </Box>
@@ -451,14 +470,18 @@ export const VerifyPage: React.FC = () => {
                   sx={{ color: seal ? sealColor : 'text.primary', lineHeight: 1.4, display: 'block' }}
                 >
                   {anchorHeading(
-                    verifyHeading({
-                      sealed: !!result.recordFingerprint,
-                      bound,
-                      proof: proof === 'checking' ? 'checking' : proof.status,
-                    }),
+                    verifyHeading(
+                      {
+                        sealed: !!result.recordFingerprint,
+                        bound,
+                        proof: proof === 'checking' ? 'checking' : proof.status,
+                      },
+                      tr,
+                    ),
                     anchor,
                     bound,
                     reportedNetwork ?? NETWORK,
+                    tr,
                   )}
                 </Typography>
               </Box>
@@ -473,14 +496,14 @@ export const VerifyPage: React.FC = () => {
                 data-holder-name=""
               >
                 <Box component="span" sx={{ color: 'text.secondary' }}>
-                  Name, as the holder typed it:{' '}
+                  {t('app.verify.nameTyped')}
                 </Box>
                 {name}
               </Typography>
             )}
             {RECORD_ID.test(result.id ?? '') && (
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2, overflowWrap: 'anywhere' }}>
-                Record ID: {result.id}
+                {t('app.verify.recordId', { id: result.id ?? '' })}
               </Typography>
             )}
 
@@ -489,49 +512,49 @@ export const VerifyPage: React.FC = () => {
             <Stack spacing={1.25}>
               <FactKey />
               {!result.recordFingerprint ? (
-                <Fact ok={false}>
-                  This record carries no commitment, so nothing about it can be checked. It exists in the registry and
-                  that is all.
-                </Fact>
+                <Fact ok={false}>{t('app.verify.noCommitment')}</Fact>
               ) : bound ? (
                 <Fact ok={false}>
-                  This link was made for fingerprint {shortFingerprint(result.recordFingerprint)}, and the registry
-                  reports the same fingerprint for this record
-                  {result.registryFirstSeen ? `, first stored on ${fmt(result.registryFirstSeen)}` : ''}. The fields it
-                  covers are not shared, so this page cannot recompute it.
+                  {t('app.verify.boundFact', {
+                    fp: shortFingerprint(result.recordFingerprint),
+                    firstSeen: result.registryFirstSeen
+                      ? t('app.verify.firstStored', { date: fmt(result.registryFirstSeen) })
+                      : '',
+                  })}
                 </Fact>
               ) : (
                 <>
                   <Fact ok={false}>
-                    The registry reports a record with fingerprint {shortFingerprint(result.recordFingerprint)}
-                    {result.registryFirstSeen ? `, first stored on ${fmt(result.registryFirstSeen)}` : ''}. The fields
-                    it covers are not shared, so this page cannot recompute it.
+                    {t('app.verify.unboundFact', {
+                      fp: shortFingerprint(result.recordFingerprint),
+                      firstSeen: result.registryFirstSeen
+                        ? t('app.verify.firstStored', { date: fmt(result.registryFirstSeen) })
+                        : '',
+                    })}
                   </Fact>
-                  <Fact ok={false}>
-                    This link does not name the record&apos;s fingerprint, so this page cannot tell whether the registry
-                    answered with this record&apos;s fingerprint or another&apos;s. Nothing below is ticked. A link made
-                    now from the record ends in ?fp=…; ask the holder for one.
-                  </Fact>
+                  <Fact ok={false}>{t('app.verify.noFpInLink')}</Fact>
                 </>
               )}
 
               {result.recordFingerprint &&
                 (proof === 'checking' ? null : proof.status === 'none' ? (
-                  <Fact ok={false}>
-                    No date stamp yet, as far as this page can tell: there is no proof here that the record is in a
-                    batch with a date stamp, so there is nothing to check.
-                  </Fact>
+                  <Fact ok={false}>{t('app.verify.noStampYet')}</Fact>
                 ) : (
                   <>
                     {bound ? (
                       <Fact>
-                        Checked in this browser: this fingerprint is in batch {proof.proof.batchId}, and its path folds
-                        to the batch root {proof.proof.root.slice(0, 16)}….
+                        {t('app.verify.batchBound', {
+                          batch: proof.proof.batchId,
+                          root: proof.proof.root.slice(0, 16),
+                        })}
                       </Fact>
                     ) : (
                       <Fact ok={false}>
-                        {forWhom}it is in batch {proof.proof.batchId}, and its path folds to the batch root{' '}
-                        {proof.proof.root.slice(0, 16)}…. Checked here, but against the registry&apos;s own fingerprint.
+                        {t('app.verify.batchUnbound', {
+                          forWhom,
+                          batch: proof.proof.batchId,
+                          root: proof.proof.root.slice(0, 16),
+                        })}
                       </Fact>
                     )}
                     {proof.status === 'anchor-reported' ? (
@@ -539,13 +562,15 @@ export const VerifyPage: React.FC = () => {
                         {/* What the registry claims, until this browser has confirmed it. */}
                         {!anchorCheckedOnChain && (
                           <Fact ok={false}>
-                            The registry reports that root was recorded on {networkLabel(reportedNetwork ?? NETWORK)}
-                            {proof.proof.anchor?.txHash ? ` in transaction ${proof.proof.anchor.txHash}` : ''}. Its
-                            date: {registryDateWords(reportedAt)}.
-                            {anchorLooked ? '' : ' This page has not looked it up; do that before relying on the date.'}
-                            {isTestNetwork(reportedNetwork ?? NETWORK)
-                              ? ' A test network can be reset and its dates carry no evidential weight.'
-                              : ''}
+                            {t('app.verify.rootReported', {
+                              network: networkWords(reportedNetwork ?? NETWORK, tr),
+                              tx: proof.proof.anchor?.txHash
+                                ? t('app.verify.anchor.inTx', { tx: proof.proof.anchor.txHash })
+                                : '',
+                              date: registryDateWords(reportedAt, tr),
+                              notLooked: anchorLooked ? '' : t('app.verify.notLooked'),
+                              test: isTestNetwork(reportedNetwork ?? NETWORK) ? t('app.plant.date.testNote') : '',
+                            })}
                           </Fact>
                         )}
                         {anchorText && (
@@ -558,7 +583,7 @@ export const VerifyPage: React.FC = () => {
                         )}
                       </>
                     ) : (
-                      <Fact ok={false}>The batch has no date stamp on Midnight yet.</Fact>
+                      <Fact ok={false}>{t('app.verify.batchNoStamp')}</Fact>
                     )}
                   </>
                 ))}
@@ -569,22 +594,20 @@ export const VerifyPage: React.FC = () => {
               {result.recordFingerprint && atts !== null && (
                 <>
                   {signed.slice(0, SIGNATURE_LINES).map((a) => {
-                    const label = signerLabel(a, 'Signed by');
+                    const label = signerLabel(a, 'Signed by', undefined, tr);
                     return (
                       <Fact key={a.attestationId} status={bound ? 'checked' : 'reported'}>
-                        {forWhom}
-                        {signatureKind(a)}, signature verified in this browser. {label.lead}.
+                        {t('app.verify.sigLine', { forWhom, kind: signatureKind(a, tr), lead: label.lead })}
                         <NameCheckText label={label} />
-                        {!label.checked &&
-                          ' Anyone can register a key under any name, so the name doesn’t show who signed.'}
+                        {!label.checked && t('app.lab.results.anyName')}
                         {a.type === 'chain-of-custody' &&
                           !(own && receipt?.kind === 'signed' && receipt.by.attestationId === a.attestationId) &&
                           publicCustody.has(a.attestationId) && (
                             <Box component="span" sx={{ display: 'block', mt: 0.5 }} data-public-custody="">
                               <Box component="span" sx={{ display: 'block', color: 'text.secondary' }}>
-                                Sample details, as the registry reports them:
+                                {t('app.verify.sampleDetails')}
                               </Box>
-                              {publicCustodyLines(publicCustody.get(a.attestationId)).map((l) => (
+                              {publicCustodyLines(publicCustody.get(a.attestationId), tr).map((l) => (
                                 <Box component="span" key={l} sx={{ display: 'block' }} data-custody-line="">
                                   {l}
                                 </Box>
@@ -596,37 +619,32 @@ export const VerifyPage: React.FC = () => {
                   })}
                   {signed.length > SIGNATURE_LINES && (
                     <Fact status={bound ? 'checked' : 'reported'}>
-                      {forWhom}And {signed.length - SIGNATURE_LINES} more signatures, each verified in this browser.
+                      {t('app.verify.moreSigs', { forWhom, n: signed.length - SIGNATURE_LINES })}
                     </Fact>
                   )}
                   {signed.length === 0 &&
                     (result.signedAttestation === true ||
                     result.attestedByVettedLab === true ||
                     result.attested === true ? (
-                      <Fact status="failed">
-                        The registry reports a signed attestation, but none could be verified in this browser.
-                      </Fact>
+                      <Fact status="failed">{t('app.verify.noneVerified')}</Fact>
                     ) : (
-                      <Fact ok={false}>No lab&apos;s receipt or lab report has been signed about this record.</Fact>
+                      <Fact ok={false}>{t('app.verify.noneSigned')}</Fact>
                     ))}
                   {withdrawnLine && <Fact ok={false}>{withdrawnLine}</Fact>}
-                  {badSigs > 0 && (
-                    <Fact status="failed">
-                      {badSigs === 1
-                        ? 'One signature the registry reports doesn’t verify in this browser, so it is not counted.'
-                        : `${badSigs} signatures the registry reports don’t verify in this browser, so they are not counted.`}
-                    </Fact>
-                  )}
+                  {badSigs > 0 && <Fact status="failed">{tp('app.verify.badSigs', badSigs)}</Fact>}
                 </>
               )}
 
               {/* The holder's own plant: the lab receipt linked to one of their deliveries. */}
               {own && receipt?.kind === 'signed' && (
                 <Fact ok={false}>
-                  {signerLabel(receipt.by).lead}, linked to your delivery {receipt.transferId}.
-                  <NameCheckText label={signerLabel(receipt.by)} /> You see this because the plant is in this browser;
-                  someone you send the link to sees only the signature line above.
-                  {custodyLines(receipt.custody).map((l) => (
+                  {t('app.verify.ownReceipt', {
+                    lead: signerLabel(receipt.by, undefined, undefined, tr).lead,
+                    tx: receipt.transferId,
+                  })}
+                  <NameCheckText label={signerLabel(receipt.by, undefined, undefined, tr)} />
+                  {t('app.verify.ownReceiptTail')}
+                  {custodyLines(receipt.custody, tr).map((l) => (
                     <Box component="span" key={l} sx={{ display: 'block', mt: 0.25 }} data-custody-line="">
                       {l}
                     </Box>
@@ -636,7 +654,7 @@ export const VerifyPage: React.FC = () => {
 
               <Divider sx={{ my: 0.5 }} />
               <Typography variant="overline" color="text.secondary" sx={{ display: 'block' }}>
-                Shared by the holder · reported by the registry
+                {t('app.verify.sharedTitle')}
               </Typography>
               <SharedFacts
                 data={{
@@ -657,21 +675,19 @@ export const VerifyPage: React.FC = () => {
 
               {result.notGranted && result.notGranted.length > 0 && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                  This link asked for {labelsOf(result.notGranted)}, which the holder has not chosen to share.
+                  {t('app.verify.notGranted', { list: labelsOf(result.notGranted, tr) })}
                 </Typography>
               )}
               {result.unavailable && result.unavailable.length > 0 && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                  This link asked for facts about the holder rather than this record ({result.unavailable.join(', ')}).
-                  The registry never answers those.
+                  {t('app.verify.unavailable', { list: result.unavailable.join(', ') })}
                 </Typography>
               )}
             </Stack>
 
             <Divider sx={{ my: 2 }} />
             <Typography variant="caption" color="text.secondary">
-              Fingerprint {shortFingerprint(result.recordFingerprint ?? '')} · only the facts above were sent · no
-              genetics disclosed
+              {t('app.verify.footer', { fp: shortFingerprint(result.recordFingerprint ?? '') })}
             </Typography>
 
             <Box sx={{ mt: 2, textAlign: 'right' }}>
@@ -681,13 +697,17 @@ export const VerifyPage: React.FC = () => {
                 data-ticked={ticked ? 'yes' : 'no'}
                 data-anchor-checked={anchorCheckedOnChain ? 'yes' : 'no'}
                 label={anchorSummary(
-                  checkedSummary({
-                    bound,
-                    proofChecked: proof !== 'checking' && proof.status !== 'none',
-                    signaturesChecked: signed.length,
-                    signatureKinds: signed.map(signatureKind),
-                  }),
+                  checkedSummary(
+                    {
+                      bound,
+                      proofChecked: proof !== 'checking' && proof.status !== 'none',
+                      signaturesChecked: signed.length,
+                      signatureKinds: signed.map((a) => signatureKind(a)),
+                    },
+                    tr,
+                  ),
                   anchor,
+                  tr,
                 )}
                 sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', py: 0.5 } }}
               />

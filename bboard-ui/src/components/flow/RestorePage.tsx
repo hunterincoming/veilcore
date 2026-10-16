@@ -12,17 +12,16 @@ import { restoredKeysLine } from '../stage/record-kinds';
 import { holderKeyIfAny, setHolderKey } from '../../veilcore/holder';
 import { AppHeader } from '../AppHeader';
 import { FlowFrame, ScreenHeading } from './FlowFrame';
-
-const plural = (n: number, one: string, many: string): string => `${n} ${n === 1 ? one : many}`;
+import { rich, useT } from '../../i18n/app';
+import { enT, type Translator } from '../../i18n/translate';
+import { backupMessageWords } from './backup-words';
 
 /** "2 lab deliveries and 1 lab code": what else the file brought back, or '' for nothing. */
-export const labWork = (r: RestoreResult): string =>
-  [
-    r.deliveries ? plural(r.deliveries, 'lab delivery', 'lab deliveries') : '',
-    r.sentCodes ? plural(r.sentCodes, 'lab code', 'lab codes') : '',
-  ]
-    .filter(Boolean)
-    .join(' and ');
+export const labWork = (r: RestoreResult, tr: Translator = enT): string => {
+  const deliveries = r.deliveries ? tr.tp('app.backup.nDeliveries', r.deliveries) : '';
+  const codes = r.sentCodes ? tr.tp('app.backup.nCodes', r.sentCodes) : '';
+  return deliveries && codes ? tr.t('app.backup.and', { a: deliveries, b: codes }) : deliveries || codes;
+};
 
 export const RestorePage: React.FC = () => {
   const pick = useRef<HTMLInputElement>(null);
@@ -33,6 +32,8 @@ export const RestorePage: React.FC = () => {
   const [typed, setTyped] = useState('');
   const keyBoxId = useId();
   const doneRef = useRef<HTMLHeadingElement>(null);
+  const tr = useT();
+  const { t } = tr;
   // The result replaces the screen: focus goes to what happened.
   useEffect(() => {
     if (done) doneRef.current?.focus();
@@ -73,9 +74,9 @@ export const RestorePage: React.FC = () => {
       <FlowFrame section="log">
         <Stack spacing={2.5}>
           <Box>
-            <ScreenHeading>Get your plants back</ScreenHeading>
+            <ScreenHeading>{t('app.backup.restoreTitle')}</ScreenHeading>
             <Typography variant="body1" color="text.secondary">
-              New phone or computer, or cleared your browser? Open the backup file you saved.
+              {t('app.backup.restoreIntro')}
             </Typography>
           </Box>
           {done ? (
@@ -84,28 +85,34 @@ export const RestorePage: React.FC = () => {
                 <DoneIcon color="primary" sx={{ fontSize: 36 }} aria-hidden="true" />
                 <Typography variant="h6" component="h2" tabIndex={-1} ref={doneRef}>
                   {done.records > 0 || done.holderKey === 'restored'
-                    ? 'Your plants are back.'
-                    : done.labSignature || labWork(done)
-                      ? 'Restored.'
-                      : 'Nothing new in that file.'}
+                    ? t('app.backup.plantsBack')
+                    : done.labSignature || labWork(done, tr)
+                      ? t('app.backup.restored')
+                      : t('app.backup.nothingNew')}
                 </Typography>
               </Stack>
               <Typography variant="body1" color="text.secondary">
                 {done.records > 0
-                  ? `${restoredKeysLine(done.recordIds ?? Array.from({ length: done.records }, () => ''), allRecords())} `
+                  ? t('app.backup.sentence', {
+                      s: restoredKeysLine(
+                        done.recordIds ?? Array.from({ length: done.records }, () => ''),
+                        allRecords(),
+                        tr,
+                      ),
+                    })
                   : ''}
-                {done.labSignature ? "Your lab's signature is back too. " : ''}
-                {labWork(done) ? `${labWork(done)} restored. ` : ''}
-                Everything works like before.
+                {done.labSignature ? t('app.backup.labSigBack') : ''}
+                {labWork(done, tr) ? t('app.backup.workRestored', { work: labWork(done, tr) }) : ''}
+                {t('app.backup.worksLikeBefore')}
               </Typography>
               <Button component={RouterLink} to="/records" variant="contained" size="large" fullWidth sx={{ py: 1.5 }}>
-                See my plants
+                {t('app.backup.seeMyPlants')}
               </Button>
             </Stack>
           ) : (
             <>
               <Typography variant="body2" color="text.secondary">
-                Look in your email, Drive or iCloud, or on your USB stick. Any file name is fine. Nothing is uploaded.
+                {t('app.backup.lookIn')}
               </Typography>
               <Button
                 variant="contained"
@@ -116,7 +123,7 @@ export const RestorePage: React.FC = () => {
                 startIcon={busy ? <CircularProgress size={18} color="inherit" /> : undefined}
                 sx={{ py: 1.5 }}
               >
-                Open my backup file
+                {t('app.backup.openFile')}
               </Button>
               <input
                 ref={pick}
@@ -131,7 +138,7 @@ export const RestorePage: React.FC = () => {
               />
               {problem && (
                 <Alert severity="warning" variant="outlined">
-                  {problem}
+                  {backupMessageWords(problem, tr)}
                 </Alert>
               )}
               <Box>
@@ -142,12 +149,12 @@ export const RestorePage: React.FC = () => {
                   aria-controls={keyBoxId}
                   sx={{ minHeight: 44, px: 0 }}
                 >
-                  Have only your holder key (64 characters)?
+                  {t('app.backup.onlyKey')}
                 </Button>
                 <Collapse in={typing} id={keyBoxId}>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ pt: 1 }}>
                     <TextField
-                      label="Your holder key (64 characters)"
+                      label={t('app.backup.keyLabel')}
                       value={typed}
                       onChange={(e) => setTyped(e.target.value)}
                       fullWidth
@@ -161,19 +168,16 @@ export const RestorePage: React.FC = () => {
                       disabled={!typed.trim()}
                       sx={{ minHeight: 48 }}
                     >
-                      Use it
+                      {t('app.backup.useIt')}
                     </Button>
                   </Stack>
                   <Typography variant="caption" color="text.secondary">
-                    Only if you copied it from an older version of this site: it isn&apos;t shown anywhere now. That
-                    brings back your records. A plant&apos;s date-stamp keys are only in the backup file.
+                    {t('app.backup.olderVersion')}
                   </Typography>
                 </Collapse>
               </Box>
               <Alert severity="info" variant="outlined">
-                <b>Can&apos;t find the file?</b> Then nobody can bring the plants back, us included: we never had your
-                key. That&apos;s what lets you prove you hold them. If your old device still works, open VeilCore there
-                and save a new backup.
+                {rich(t('app.backup.cantFind'), { b: (c) => <b>{c}</b> })}
               </Alert>
             </>
           )}

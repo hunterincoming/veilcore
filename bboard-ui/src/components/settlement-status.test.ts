@@ -9,6 +9,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { reportedText, settlementChip } from './settlement-words';
 import { anchorLine } from './verify/anchor-words';
+import { withEnglish } from '../i18n/source-words';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const TX = 'e13c88f5a2fb38cf4feb08d7188d1c0dc3c575a4fb4dba3dbacb2f601896bcbf';
@@ -59,7 +60,8 @@ describe('the paragraph', () => {
 });
 
 describe('the component', () => {
-  const src = fs.readFileSync(path.join(HERE, 'SettlementStatus.tsx'), 'utf8');
+  // Each t('app.…') read as the English it shows (i18n/source-words.ts).
+  const src = withEnglish(fs.readFileSync(path.join(HERE, 'SettlementStatus.tsx'), 'utf8'));
   it('looks the anchor up through the shared look-up (the contract this build pins, never the registry’s)', () => {
     // record-date.test.ts checks lookUpAnchor itself; here, that this section uses it.
     expect(src).toMatch(/useRecordDate\(record\.recordFingerprint\)/);
@@ -67,7 +69,9 @@ describe('the component', () => {
     expect(src).not.toMatch(/contractAddress: a\.contractAddress/);
   });
   it('uses the check page’s words and marks (anchor-words.ts, Fact)', () => {
-    expect(src).toMatch(/anchorLine\(anchor, \{ network, bound: true, reportedAt: proof\.anchor\?\.anchoredAt \}\)/);
+    expect(src).toMatch(
+      /anchorLine\(anchor, \{ network, bound: true, reportedAt: proof\.anchor\?\.anchoredAt \}, tr\)/,
+    );
     expect(src).toMatch(/<Fact status=\{anchorText\.status\}>\{anchorText\.text\}<\/Fact>/);
   });
   it('points to the evidence bundle and the check page, not “the open-source package and a lookup”', () => {

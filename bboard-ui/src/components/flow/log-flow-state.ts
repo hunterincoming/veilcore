@@ -9,6 +9,7 @@
 import type { ParentRef, StrainRecord } from '../../veilcore/records';
 import type { SealInput } from '../../veilcore/seal-record';
 import { parseStageHeader, stageNotes } from '../stage/stage-notes';
+import { enT, type Translator } from '../../i18n/translate';
 
 export const DRAFT_KEY = 'veilcore.log-draft.v1';
 
@@ -72,10 +73,10 @@ const str = (v: unknown, max = 2000): string => (typeof v === 'string' ? v.slice
 const HEX64 = /^[0-9a-f]{64}$/;
 
 /** Home's first-visit heading: a draft in this browser is named, so it is finished, not started again. */
-export const draftHeading = (draft: Draft | undefined): string => {
-  if (!draft) return 'Let’s log your first plant';
+export const draftHeading = (draft: Draft | undefined, tr: Translator = enT): string => {
+  if (!draft) return tr.t('app.home.firstPlant');
   const name = draft.strainName.trim();
-  return name ? `Continue your draft: ${name}` : 'Continue your draft';
+  return name ? tr.t('app.home.continueDraftNamed', { name }) : tr.t('app.home.continueDraft');
 };
 
 /** Read a stored draft back, keeping only well-formed fields. */
@@ -155,16 +156,19 @@ export const nextStageDraft = (parent: Pick<StrainRecord, 'id' | 'strainName' | 
  * generation is known (its sealed "Stage: F2", or a name ending in F2), else
  * "e.g. Harbour Mist, next selection".
  */
-export const nextStageNamePlaceholder = (parent: Pick<StrainRecord, 'strainName' | 'notes'>): string => {
+export const nextStageNamePlaceholder = (
+  parent: Pick<StrainRecord, 'strainName' | 'notes'>,
+  tr: Translator = enT,
+): string => {
   const name = parent.strainName.trim();
   const fromStage = /^F(\d{1,2})$/i.exec(parseStageHeader(parent.notes).stage ?? '');
   const fromName = /^(.*?)\s*\bF(\d{1,2})$/i.exec(name);
   if (fromStage) {
     const base = fromName ? fromName[1] : name;
-    return `e.g. ${base} F${Number(fromStage[1]) + 1}`;
+    return tr.t('app.log.eg', { v: `${base} F${Number(fromStage[1]) + 1}` });
   }
-  if (fromName) return `e.g. ${fromName[1]} F${Number(fromName[2]) + 1}`;
-  return `e.g. ${name}, next selection`;
+  if (fromName) return tr.t('app.log.eg', { v: `${fromName[1]} F${Number(fromName[2]) + 1}` });
+  return tr.t('app.log.egNextSelection', { name });
 };
 
 /**
@@ -221,8 +225,8 @@ export const nextStageStart = (
 };
 
 /** The question when a different plant is half-logged: its name, or that it has none yet. */
-export const unsavedPlantLine = (d: Draft): string =>
-  `You have an unsaved plant: ${d.strainName.trim() || '(no name yet)'}.`;
+export const unsavedPlantLine = (d: Draft, tr: Translator = enT): string =>
+  tr.t('app.log.unsavedPlant', { name: d.strainName.trim() || tr.t('app.log.noNameYet') });
 
 // ---------------------------------------------------------------------------------------
 
@@ -236,10 +240,13 @@ const UNREACHABLE =
   /reach|not answering|not configured|is configured|Failed to fetch|NetworkError|Load failed|timed? ?out|ECONN|ENOTFOUND|fetch failed/i;
 
 /** "in about 3 minutes" when the error said how long, else "in a few minutes". */
-const waitFor = (e: string): string => {
+const waitFor = (e: string, tr: Translator): string => {
   const minutes = /try again in about (\d+) min/i.exec(e)?.[1];
-  return minutes ? `in about ${minutes} minute${minutes === '1' ? '' : 's'}` : 'in a few minutes';
+  return minutes ? tr.tp('app.chain.inAboutMinutes', Number(minutes)) : tr.t('app.chain.inAFewMinutes');
 };
+
+/** " (transaction abc…)" after "may already have gone out", when the error named it. */
+const txWords = (tx: string | undefined, tr: Translator): string => (tx ? tr.t('app.chain.txParen', { tx }) : '');
 
 /**
  * What any other failed network call says (pairing, proving you hold a record, a
@@ -248,50 +255,42 @@ const waitFor = (e: string): string => {
  * hidden. Otherwise the first sentence of what went wrong, cut short if it is long.
  * The raw error is for the element's data-error attribute, not the screen.
  */
-export const chainProblem = (error: string): { text: string; retry: boolean } => {
+export const chainProblem = (error: string, tr: Translator = enT): { text: string; retry: boolean } => {
   const e = error.trim().replace(/^(Error|SponsorRefusal):\s*/, '');
   if (/WAS sent/.test(e)) {
     const tx = /WAS sent \(([^)]+)\)/.exec(e)?.[1];
-    return {
-      text: `It may already have gone out${tx ? ` (transaction ${tx})` : ''}. Don't try again until that transaction has been checked on the network.`,
-      retry: false,
-    };
+    return { text: tr.t('app.chain.mayHaveGoneOut', { tx: txWords(tx, tr) }), retry: false };
   }
-  const when = waitFor(e);
-  const nothingSent = /nothing was sent/i.test(e) ? ' Nothing was sent.' : '';
-  if (UNREACHABLE.test(e)) return { text: `Couldn't reach the network.${nothingSent} Try again ${when}.`, retry: true };
+  const when = waitFor(e, tr);
+  const nothingSent = /nothing was sent/i.test(e) ? tr.t('app.chain.nothingSent') : '';
+  if (UNREACHABLE.test(e)) return { text: tr.t('app.chain.unreachable', { nothingSent, when }), retry: true };
   // The fee service's own reasons name it: say only that it didn't go through.
   if (/sponsor|fee service|ticket|proof of work/i.test(e)) {
-    return { text: `That didn't go through.${nothingSent} Try again ${when}.`, retry: true };
+    return { text: tr.t('app.chain.didntGoThrough', { nothingSent, when }), retry: true };
   }
   let reason = (/^(.+?[.!?])(\s|$)/.exec(e)?.[1] ?? e).replace(/\s*\(try again in about \d+ min\)/i, '');
   reason = reason.replace(/[.!?]+$/, '');
   if (reason.length > 160) reason = `${reason.slice(0, 157).trimEnd()}…`;
-  if (!reason) return { text: `That didn't go through.${nothingSent} Try again ${when}.`, retry: true };
+  if (!reason) return { text: tr.t('app.chain.didntGoThrough', { nothingSent, when }), retry: true };
   // "The contract …" reads as "That didn't go through: the contract …"; keep acronyms.
+  // (The reason is the error's own words, in English: only the sentence around it is translated.)
   const lead = /^[A-Z][a-z]/.test(reason) ? `${reason.charAt(0).toLowerCase()}${reason.slice(1)}` : reason;
-  return { text: `That didn't go through: ${lead}.${nothingSent}`, retry: true };
+  return { text: tr.t('app.chain.didntGoThroughBecause', { reason: lead, nothingSent }), retry: true };
 };
 
-export const stampProblem = (error: string): { text: string; retry: boolean } => {
+export const stampProblem = (error: string, tr: Translator = enT): { text: string; retry: boolean } => {
   const e = error.trim();
   if (/WAS sent/.test(e)) {
     const tx = /WAS sent \(([^)]+)\)/.exec(e)?.[1];
-    return {
-      text: `Your date stamp may already have gone out${tx ? ` (transaction ${tx})` : ''}. Your plant is saved. Don't try again until that transaction has been checked on the network.`,
-      retry: false,
-    };
+    return { text: tr.t('app.chain.stampMayHaveGoneOut', { tx: txWords(tx, tr) }), retry: false };
   }
-  const minutes = /try again in about (\d+) min/i.exec(e)?.[1];
-  const when = minutes ? `in about ${minutes} minute${minutes === '1' ? '' : 's'}` : 'in a few minutes';
+  const when = waitFor(e, tr);
   const unreachable =
     /reach|not answering|not configured|is configured|Failed to fetch|NetworkError|Load failed|timed? ?out|ECONN|ENOTFOUND|fetch failed/i.test(
       e,
     );
   return {
-    text: unreachable
-      ? `Couldn't reach the network. Your plant is saved. Try again ${when}, or do the date stamp later.`
-      : `The date stamp didn't go through. Your plant is saved. Try again ${when}, or do the date stamp later.`,
+    text: unreachable ? tr.t('app.chain.stampUnreachable', { when }) : tr.t('app.chain.stampDidntGoThrough', { when }),
     retry: true,
   };
 };

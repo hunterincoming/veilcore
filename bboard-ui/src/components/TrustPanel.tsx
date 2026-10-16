@@ -8,50 +8,44 @@ import ScheduleIcon from '@mui/icons-material/ScheduleOutlined';
 import ScienceIcon from '@mui/icons-material/ScienceOutlined';
 import GroupIcon from '@mui/icons-material/GroupOutlined';
 import { ACCENT } from '../config/theme';
-import { THIS_SITE } from '../config/copy';
+import { rich, useT } from '../i18n/app';
+import type { AppKey } from '../i18n/app/en';
 
-const POINTS = [
-  {
-    icon: <ScheduleIcon />,
-    title: 'An earlier record shows as earlier',
-    body: 'Once records are anchored, anyone can check which was anchored first. Before that, a record’s time is its device’s clock. A record is evidence, not a registration: it shows what you had and when, but doesn’t settle a dispute on its own.',
-  },
-  {
-    icon: <ScienceIcon />,
-    title: 'A paired report can be compared later',
-    body: `Pairing saves your lab report’s fingerprint with the record, as your statement, so a fresh test of the material can later be compared with it. When you pair through VeilCore’s contract on Midnight, the pairing is dated too: it shows the record was paired with that report by then, not who had the report first. In ${THIS_SITE}, pairings aren’t dated yet.`,
-  },
-  {
-    icon: <GroupIcon />,
-    title: 'A second party takes delivery',
-    body: 'When material is transferred, whoever takes it confirms receipt with their own key. That puts a second party on the record, not just you. It shows someone took delivery, not who they are.',
-  },
+const POINTS: { icon: React.ReactNode; title: AppKey; body: AppKey }[] = [
+  { icon: <ScheduleIcon />, title: 'app.home.trust.1t', body: 'app.home.trust.1b' },
+  { icon: <ScienceIcon />, title: 'app.home.trust.2t', body: 'app.home.trust.2b' },
+  { icon: <GroupIcon />, title: 'app.home.trust.3t', body: 'app.home.trust.3b' },
 ];
 
-export const TrustPanel: React.FC = () => (
-  <Paper sx={{ p: { xs: 2.5, md: 3.5 } }}>
-    <Typography variant="h6" sx={{ mb: 0.5 }}>
-      “What stops me from logging{' '}
-      <Box component="span" sx={{ color: ACCENT }}>
-        your
-      </Box>{' '}
-      cultivar?”
-    </Typography>
-    <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
-      Three things make a VeilCore record hard to fake:
-    </Typography>
-    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-      {POINTS.map((p) => (
-        <Stack key={p.title} direction="row" spacing={1.5}>
-          <Box sx={{ color: ACCENT, mt: 0.25 }}>{p.icon}</Box>
-          <Box>
-            <Typography variant="subtitle2">{p.title}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              {p.body}
-            </Typography>
-          </Box>
-        </Stack>
-      ))}
-    </Box>
-  </Paper>
-);
+export const TrustPanel: React.FC = () => {
+  const { t } = useT();
+  return (
+    <Paper sx={{ p: { xs: 2.5, md: 3.5 } }}>
+      <Typography variant="h6" sx={{ mb: 0.5 }}>
+        {rich(t('app.home.trust.title'), {
+          em: (c) => (
+            <Box component="span" sx={{ color: ACCENT }}>
+              {c}
+            </Box>
+          ),
+        })}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+        {t('app.home.trust.lede')}
+      </Typography>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+        {POINTS.map((p) => (
+          <Stack key={p.title} direction="row" spacing={1.5}>
+            <Box sx={{ color: ACCENT, mt: 0.25 }}>{p.icon}</Box>
+            <Box>
+              <Typography variant="subtitle2">{t(p.title)}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {t(p.body, { thisSite: t('app.copy.thisSite') })}
+              </Typography>
+            </Box>
+          </Stack>
+        ))}
+      </Box>
+    </Paper>
+  );
+};

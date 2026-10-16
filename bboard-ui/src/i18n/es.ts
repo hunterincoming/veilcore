@@ -5,6 +5,7 @@ import type { Strings } from './en';
 export const es: Strings = {
   // Header and footer
   'nav.language': 'Idioma',
+  'nav.main': 'Principal',
   'footer.documents': 'Documentos',
   'footer.spec': 'Especificación',
   'footer.partners': 'Exigir un registro',
@@ -20,8 +21,30 @@ export const es: Strings = {
   'footer.agreements': 'Acuerdos',
   'footer.privacy': 'Privacidad de la demo',
   'draft.banner':
-    'Traducción preliminar, aún no revisada por un hablante nativo. La página en inglés es la versión de referencia.',
+    'Traducción preliminar hecha por máquina, en revisión. La página en inglés es la versión de referencia.',
   'draft.showEnglish': 'Ver en inglés',
+  // The record app's frame and the browser tab's titles.
+  'app.frame.section.log': 'Registrar',
+  'app.frame.section.send': 'Enviar y recibir',
+  'app.frame.section.license': 'Licencias y regalías',
+  'app.frame.section.prove': 'Demostrar y comprobar',
+  'app.frame.home': 'Inicio. Su avance está guardado.',
+  'title.founders': 'Fundadores',
+  'title.privacy': 'Privacidad de la demo',
+  'title.privacyMainnet': 'Privacidad del sitio',
+  'title.example': 'Registro de ejemplo',
+  'title.verify': 'Comprobar un registro',
+  'title.import': 'Feche su colección',
+  'title.records': 'Sus plantas',
+  'title.restore': 'Recupere sus plantas',
+  'title.backup': 'Guarde su copia de seguridad',
+  'title.spec': 'El formato de registro',
+  'title.evidence': 'Registros como prueba',
+  'title.integrate': 'Integrar VeilCore',
+  'title.implementations': 'Implementaciones',
+  'title.new': 'Registrar una planta',
+  'title.record': 'Registro',
+  'title.agreements': 'Acuerdos',
   // Public pages (Mako's 25 September layout)
   'm.nav.about': 'Acerca de',
   'm.nav.team': 'Equipo',
@@ -153,7 +176,7 @@ export const es: Strings = {
     'Por favor, no ingrese nombres reales, variedades reales ni nada confidencial. La demo sirve para probar el formato.',
   'm.privacy.export.title': 'Exportar',
   'm.privacy.export.text':
-    'En su página de registros, en «More»: «Export all records» descarga los registros que guarda este navegador, y «Download everything VeilCore holds for you» descarga todo lo que nuestro servidor guarda para usted.',
+    'En su página de registros, en «Más»: «Exportar todos los registros» descarga los registros que guarda este navegador, y «Descargar todo lo que VeilCore guarda de usted» descarga todo lo que nuestro servidor guarda para usted.',
   'm.privacy.delete.title': 'Eliminación',
   'm.privacy.delete.text':
     'Para que eliminemos sus datos de la demo de nuestro servidor, escriba a hunter@veilcore.org con los identificadores de sus registros.',
@@ -181,7 +204,7 @@ export const es: Strings = {
     'Un vínculo de parentesco cuenta solo cuando ambos titulares lo confirman. En este sitio lo anota el servidor de registros de VeilCore, no la cadena.',
   'm.open.2t': 'Guarde un solo archivo.',
   'm.open.2p':
-    'En la página de su planta: «Download evidence bundle». Un solo .zip con el registro tal como se selló, su prueba de inclusión, la huella del lote, dónde se registró el lote, el archivo de sello de Bitcoin si lo hay, y una página que lo comprueba todo sin conexión. Su archivo de respaldo contiene sus claves, no estos archivos. Los archivos sueltos siguen en «Technical details»: «Export record», «Download inclusion proof», «Download Bitcoin stamp file».',
+    'En la página de su planta: «Descargar el paquete de evidencia». Un solo .zip con el registro tal como se selló, su prueba de inclusión, la huella del lote, dónde se registró el lote, el archivo de sello de Bitcoin si lo hay, y una página que lo comprueba todo sin conexión. Su archivo de respaldo contiene sus claves, no estos archivos. Los archivos sueltos siguen en «Detalles técnicos»: «Exportar el registro», «Descargar la prueba de inclusión», «Descargar el archivo de sello de Bitcoin».',
   'm.faq.1a':
     'Una vez anclados los registros, cualquiera puede comprobar cuál se ancló primero. Vincule su informe de laboratorio, para que una prueba posterior pueda compararse con él. Cuando envíe material, el receptor firma un acuse de recibo con su propia clave. Un registro es una prueba, no una inscripción: muestra que usted tenía este registro en esa fecha, no que tenía la planta, y por sí solo no resuelve una disputa.',
   'm.post0.date': '4 oct 2026',
@@ -415,7 +438,7 @@ export const es: Strings = {
     'Libre de implementar, para siempre. TypeScript, Python y Rust coinciden en los 100 vectores de prueba del formato de registro en GitHub, y cualquiera puede ejecutarlos; un 101.º, para la vinculación de informes, aún no está en Rust. Un mismo autor escribió las tres, y la de TypeScript está en npm como 0.15.0. Una escrita por otra persona es la prueba que más deseamos.',
   'm.tech.btc.t': 'El sello de Bitcoin',
   'm.tech.btc.p':
-    'Nuestro registro sella en Bitcoin la huella de cada lote sellado, con OpenTimestamps. El primero entró en el bloque 971004 de Bitcoin el 11 de octubre. Comprobado el 15 de octubre con dos exploradores de bloques: el sello lleva a los bloques 971004 y 971005 de Bitcoin. Aún falta comprobarlo con la herramienta oficial de OpenTimestamps y un nodo completo de Bitcoin. El archivo de sello es el archivo .ots del lote: «Download Bitcoin stamp file», en la página de la planta. El registro del sitio de prueba no sella en Bitcoin.',
+    'Nuestro registro sella en Bitcoin la huella de cada lote sellado, con OpenTimestamps. El primero entró en el bloque 971004 de Bitcoin el 11 de octubre. Comprobado el 15 de octubre con dos exploradores de bloques: el sello lleva a los bloques 971004 y 971005 de Bitcoin. Aún falta comprobarlo con la herramienta oficial de OpenTimestamps y un nodo completo de Bitcoin. El archivo de sello es el archivo .ots del lote: «Descargar el archivo de sello de Bitcoin», en la página de la planta. El registro del sitio de prueba no sella en Bitcoin.',
   'm.tech.dna.t': 'Vinculación de informes y firmas de laboratorio',
   'm.tech.dna.p':
     'Cuando la vinculación de un informe de ADN pasa por el contrato de VeilCore en Midnight, queda fechada: muestra que quien controlaba el registro en esa fecha tenía ese informe, o su SHA-256, para entonces. Lo que va a la cadena está atado al registro y oculta el informe, así que nadie puede copiar la vinculación a su propio registro. La firma de un laboratorio en un informe cerrado cubre exactamente ese archivo y el registro al que se refiere.',

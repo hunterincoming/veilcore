@@ -20,6 +20,8 @@ import { ProveWatch } from './ProveWatch';
 import { chainNotReady } from '../../veilcore/chain/config';
 import { useChainCall } from './useChainCall';
 import { ChainStatusLine } from './ChainStatusLine';
+import { useT } from '../../i18n/app';
+import { keyReasonWords } from './key-reason-words';
 
 /**
  * What the holder's link says: the record's on-chain identity and its anchor transaction,
@@ -37,16 +39,19 @@ export type ClaimedChainAnchor = {
 };
 
 /** Why no request can be made, for a key that doesn't belong to this record. */
-const KeyRefused: React.FC<{ reason: string }> = ({ reason }) => (
-  <Alert severity="error" variant="outlined">
-    <Typography variant="body2" sx={{ fontWeight: 700 }}>
-      Can&apos;t ask for a proof from this link
-    </Typography>
-    <Typography variant="body2" sx={{ mt: 0.5 }}>
-      {reason}. A proof made with it would say nothing about this record.
-    </Typography>
-  </Alert>
-);
+const KeyRefused: React.FC<{ reason: string }> = ({ reason }) => {
+  const tr = useT();
+  return (
+    <Alert severity="error" variant="outlined">
+      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+        {tr.t('app.prove.ask.cantAsk')}
+      </Typography>
+      <Typography variant="body2" sx={{ mt: 0.5 }}>
+        {tr.t('app.prove.ask.refused', { reason: keyReasonWords(reason, tr) })}
+      </Typography>
+    </Alert>
+  );
+};
 
 export const VerifierChallengePanel: React.FC<{ claim?: ClaimedChainAnchor | null; recordId?: string }> = ({
   claim,
@@ -74,6 +79,7 @@ export const VerifierChallengePanel: React.FC<{ claim?: ClaimedChainAnchor | nul
   const [making, setMaking] = useState(false);
   const [problem, setProblem] = useState<string>();
   const [byHand, setByHand] = useState(false);
+  const { t } = useT();
   if (chainNotReady() || !claim || !/^[0-9a-f]{64}$/.test(identity)) return null;
 
   const make = async () => {
@@ -89,7 +95,7 @@ export const VerifierChallengePanel: React.FC<{ claim?: ClaimedChainAnchor | nul
       error: e instanceof Error ? e.message : String(e),
     }));
     setMaking(false);
-    if ('error' in r) setProblem(`No link was made: ${r.error}.`);
+    if ('error' in r) setProblem(t('app.prove.ask.noLink', { error: r.error }));
     else setAsk(r.ask);
   };
 
@@ -100,23 +106,19 @@ export const VerifierChallengePanel: React.FC<{ claim?: ClaimedChainAnchor | nul
         <Stack spacing={1.75}>
           <Box>
             <Typography variant="h6" component="h2">
-              Ask them to prove they hold it
+              {t('app.prove.ask.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              You send them a link. They open it and tap Prove it. The answer shows up here. This page checks the answer
-              on the network itself, through a Midnight indexer (on the test site, reached through VeilCore&apos;s
-              relay). For a decision that matters, check the transaction on a second indexer. Test network only.
+              {t('app.prove.ask.intro')}
             </Typography>
             {keyCheck.kind === 'bound' && (
               <Typography variant="body2" sx={{ mt: 0.75 }}>
-                This record named its own key when it was sealed. This page checked that the key in your link is that
-                one.
+                {t('app.prove.ask.bound')}
               </Typography>
             )}
             {keyCheck.kind === 'older' && (
               <Typography variant="body2" sx={{ mt: 0.75 }}>
-                Older record: key not bound to this record. A proof shows control of the key the link names, which the
-                holder chose.
+                {t('app.prove.ask.older')}
               </Typography>
             )}
           </Box>
@@ -127,20 +129,20 @@ export const VerifierChallengePanel: React.FC<{ claim?: ClaimedChainAnchor | nul
             <>
               <ProveWatch ask={ask} asker={asker.trim() || undefined} />
               <Button variant="text" onClick={() => setAsk(undefined)} sx={{ alignSelf: 'flex-start' }}>
-                Make a new request
+                {t('app.prove.ask.newRequest')}
               </Button>
             </>
           ) : (
             <>
               <TextField
-                label="Your name or business (optional)"
-                helperText="They'll see it, marked as not checked by VeilCore."
+                label={t('app.prove.ask.name')}
+                helperText={t('app.prove.ask.nameHelp')}
                 value={asker}
                 onChange={(e) => setAsker(e.target.value.slice(0, 80))}
                 fullWidth
               />
               <Button variant="contained" size="large" disabled={making} onClick={() => void make()} sx={{ py: 1.3 }}>
-                {making ? 'Making the link…' : 'Make a link to send them'}
+                {making ? t('app.prove.ask.making') : t('app.prove.ask.make')}
               </Button>
               {problem && (
                 <Alert severity="warning" variant="outlined">
@@ -153,7 +155,7 @@ export const VerifierChallengePanel: React.FC<{ claim?: ClaimedChainAnchor | nul
           {keyCheck.kind !== 'refused' && (
             <Box>
               <Button size="small" color="inherit" onClick={() => setByHand((v) => !v)}>
-                {byHand ? 'Hide' : 'Do it by hand instead'}
+                {byHand ? t('app.lab.send.hide') : t('app.prove.ask.byHand')}
               </Button>
               <Collapse in={byHand} unmountOnExit>
                 <ByHand claim={{ ...claim, identity }} record={bound} />
@@ -171,6 +173,7 @@ const ByHand: React.FC<{ claim: ClaimedChainAnchor; record?: KeyedRecord }> = ({
   const [challenge, setChallenge] = useState<string>();
   const [txId, setTxId] = useState('');
   const call = useChainCall<{ accepted: boolean; reason: string; anchor?: boolean }>();
+  const { t } = useT();
 
   const make = async () => {
     const { newChallenge } = await import('../../veilcore/chain/challenge-book');
@@ -194,22 +197,20 @@ const ByHand: React.FC<{ claim: ClaimedChainAnchor; record?: KeyedRecord }> = ({
   return (
     <Stack spacing={1.5} sx={{ mt: 1 }}>
       <Typography variant="body2" color="text.secondary">
-        The link you were sent names an on-chain identity for this record ({claim.identity.slice(0, 16)}…). Make a
-        challenge, send it to them, and paste back the transaction id they give you. The answer must come from that
-        identity, answer your challenge, and the identity must be anchored and current.{' '}
-        {record
-          ? 'The record named this key when it was sealed, and this page checked that against its fingerprint.'
-          : 'Older record: key not bound to this record. That this identity belongs to it is the holder’s statement.'}
+        {t('app.prove.hand.intro', {
+          id: claim.identity.slice(0, 16),
+          bound: record ? t('app.prove.hand.bound') : t('app.prove.hand.older'),
+        })}
       </Typography>
       {!challenge ? (
         <Button variant="outlined" onClick={() => void make()} sx={{ alignSelf: 'flex-start' }}>
-          Make a challenge
+          {t('app.prove.hand.make')}
         </Button>
       ) : (
         <>
           <Box>
             <Typography variant="caption" color="text.secondary">
-              Your challenge (send it to the holder; it works once, in this tab):
+              {t('app.prove.hand.yourChallenge')}
             </Typography>
             <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
               {challenge}
@@ -219,11 +220,11 @@ const ByHand: React.FC<{ claim: ClaimedChainAnchor; record?: KeyedRecord }> = ({
               startIcon={<ContentCopyIcon />}
               onClick={() => void navigator.clipboard.writeText(challenge)}
             >
-              Copy
+              {t('app.prove.copy')}
             </Button>
           </Box>
           <TextField
-            label="The holder’s transaction id"
+            label={t('app.prove.hand.txId')}
             value={txId}
             onChange={(e) => setTxId(e.target.value)}
             size="small"
@@ -235,7 +236,7 @@ const ByHand: React.FC<{ claim: ClaimedChainAnchor; record?: KeyedRecord }> = ({
             onClick={() => void check()}
             sx={{ alignSelf: 'flex-start' }}
           >
-            Check the answer
+            {t('app.prove.hand.check')}
           </Button>
         </>
       )}
@@ -244,11 +245,11 @@ const ByHand: React.FC<{ claim: ClaimedChainAnchor; record?: KeyedRecord }> = ({
         <Alert severity={call.result.accepted ? 'success' : 'error'} variant="outlined">
           {call.result.accepted
             ? record
-              ? 'Accepted: whoever sent that transaction controls this record’s own key, and answered your challenge.'
-              : 'Accepted: whoever sent that transaction holds this identity’s secret, and answered your challenge.'
-            : `Not accepted: ${call.result.reason}.`}
-          {call.result.anchor === true && ' The anchor transaction the holder gave does create this identity.'}
-          {call.result.anchor === false && ' The anchor transaction the holder gave could not be confirmed.'}
+              ? t('app.prove.hand.acceptedKey')
+              : t('app.prove.hand.acceptedSecret')
+            : t('app.prove.hand.notAccepted', { reason: call.result.reason })}
+          {call.result.anchor === true && t('app.prove.hand.anchorYes')}
+          {call.result.anchor === false && t('app.prove.hand.anchorNo')}
         </Alert>
       )}
     </Stack>

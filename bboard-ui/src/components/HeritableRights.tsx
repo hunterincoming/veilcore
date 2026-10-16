@@ -14,6 +14,9 @@
 // says, as facts, which records are their own, which agreement the royalty is in and whom it
 // names, and that the registry records obligations without judging them
 // (components/stage/self-chain.ts).
+//
+// In English in every language, like the agreements it comes from (components/licensing):
+// a note in the page's language says so, and lang="en" lets a screen reader read it as English.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
@@ -33,6 +36,7 @@ import {
   upstreamOwnRoyaltyNote,
 } from './stage/self-chain';
 import { ACCENT } from '../config/theme';
+import { InEnglishPage } from '../i18n/app';
 
 export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const [root, setRoot] = useState<string | null>(null);
@@ -76,81 +80,84 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
 
   return (
     <Stack spacing={2}>
-      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-        <GavelIcon sx={{ color: ACCENT, fontSize: 20 }} />
-        <Typography variant="overline" sx={{ color: ACCENT }}>
-          Obligations on offspring
-        </Typography>
-      </Stack>
-
-      <Typography variant="body2" color="text.secondary">
-        An agreement with an offspring royalty records an obligation on offspring declared from this cultivar: records
-        sealed with it as a parent, with both holders confirming the link. While the agreement is active, an ancestry
-        check on those offspring reports the obligation. {RECORDS_NOT_JUDGES} Propagation nobody declares isn&apos;t
-        detected.
-      </Typography>
-
-      {heritable.length > 0 ? (
-        <Stack spacing={1}>
-          {heritable.map((l) => (
-            <Stack key={l.id} direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-              <Chip size="small" variant="outlined" color="warning" label="Obligation recorded" />
-              <Typography variant="body2">{l.terms.offspringRoyaltyPct}% of offspring revenue</Typography>
-              <Button size="small" component={RouterLink} to={`/license/${l.id}`}>
-                {l.id}
-              </Button>
-            </Stack>
-          ))}
-          <Typography variant="caption" color="text.secondary">
-            Ended by revoking the agreement. The terms are never sent, only their fingerprint.
-          </Typography>
-          {ownOffspring && (
-            <Typography variant="body2" color="text.secondary" data-own-offspring="">
-              {ownOffspring}
-            </Typography>
-          )}
-        </Stack>
-      ) : (
-        <Typography variant="body2" color="text.secondary">
-          No obligation on this cultivar&apos;s offspring. An agreement with an offspring royalty creates one when it
-          becomes active.
-        </Typography>
-      )}
-
-      {upstreamOwn && (
-        <Typography variant="body2" color="text.secondary" data-upstream-own="">
-          {upstreamOwn}
-        </Typography>
-      )}
-
-      <Box>
+      <InEnglishPage section />
+      <Stack spacing={2} lang="en">
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-          <Button size="small" variant="outlined" onClick={check} disabled={busy}>
-            Check its ancestry
-          </Button>
-          <Typography variant="caption" color="text.secondary">
-            {parentFingerprints.length > 0
-              ? `${parentFingerprints.length} declared ancestor${parentFingerprints.length === 1 ? '' : 's'}`
-              : 'no declared ancestors'}
+          <GavelIcon sx={{ color: ACCENT, fontSize: 20 }} />
+          <Typography variant="overline" sx={{ color: ACCENT }}>
+            Obligations on offspring
           </Typography>
         </Stack>
-      </Box>
 
-      {verdict && (
-        <Alert
-          severity={verdict.ok ? ((verdict.generationsChecked ?? 0) > 0 ? 'success' : 'info') : 'warning'}
-          icon={verdict.ok ? <CheckCircleIcon /> : <BlockIcon />}
-          variant="outlined"
-        >
-          {ancestryVerdictText(verdict, parentFingerprints.length, ownLine)}
-        </Alert>
-      )}
-
-      {root && (
-        <Typography variant="caption" color="text.secondary">
-          Fingerprint of every obligation the registry holds: {root.slice(0, 16)}…
+        <Typography variant="body2" color="text.secondary">
+          An agreement with an offspring royalty records an obligation on offspring declared from this cultivar: records
+          sealed with it as a parent, with both holders confirming the link. While the agreement is active, an ancestry
+          check on those offspring reports the obligation. {RECORDS_NOT_JUDGES} Propagation nobody declares isn&apos;t
+          detected.
         </Typography>
-      )}
+
+        {heritable.length > 0 ? (
+          <Stack spacing={1}>
+            {heritable.map((l) => (
+              <Stack key={l.id} direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                <Chip size="small" variant="outlined" color="warning" label="Obligation recorded" />
+                <Typography variant="body2">{l.terms.offspringRoyaltyPct}% of offspring revenue</Typography>
+                <Button size="small" component={RouterLink} to={`/license/${l.id}`}>
+                  {l.id}
+                </Button>
+              </Stack>
+            ))}
+            <Typography variant="caption" color="text.secondary">
+              Ended by revoking the agreement. The terms are never sent, only their fingerprint.
+            </Typography>
+            {ownOffspring && (
+              <Typography variant="body2" color="text.secondary" data-own-offspring="">
+                {ownOffspring}
+              </Typography>
+            )}
+          </Stack>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            No obligation on this cultivar&apos;s offspring. An agreement with an offspring royalty creates one when it
+            becomes active.
+          </Typography>
+        )}
+
+        {upstreamOwn && (
+          <Typography variant="body2" color="text.secondary" data-upstream-own="">
+            {upstreamOwn}
+          </Typography>
+        )}
+
+        <Box>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <Button size="small" variant="outlined" onClick={check} disabled={busy}>
+              Check its ancestry
+            </Button>
+            <Typography variant="caption" color="text.secondary">
+              {parentFingerprints.length > 0
+                ? `${parentFingerprints.length} declared ancestor${parentFingerprints.length === 1 ? '' : 's'}`
+                : 'no declared ancestors'}
+            </Typography>
+          </Stack>
+        </Box>
+
+        {verdict && (
+          <Alert
+            severity={verdict.ok ? ((verdict.generationsChecked ?? 0) > 0 ? 'success' : 'info') : 'warning'}
+            icon={verdict.ok ? <CheckCircleIcon /> : <BlockIcon />}
+            variant="outlined"
+          >
+            {ancestryVerdictText(verdict, parentFingerprints.length, ownLine)}
+          </Alert>
+        )}
+
+        {root && (
+          <Typography variant="caption" color="text.secondary">
+            Fingerprint of every obligation the registry holds: {root.slice(0, 16)}…
+          </Typography>
+        )}
+      </Stack>
     </Stack>
   );
 };

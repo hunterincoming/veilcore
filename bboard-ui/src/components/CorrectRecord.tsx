@@ -29,25 +29,31 @@ import { useNavigate } from 'react-router-dom';
 import { previewCorrection, type CorrectionPreview } from '../veilcore/corrections';
 import { issueCorrection, type StrainRecord } from '../veilcore/records';
 import { ACCENT } from '../config/theme';
+import { useT } from '../i18n/app';
+import type { AppKey } from '../i18n/app/en';
 
-const FIELD_LABEL: Record<string, string> = {
-  'profileData.cultivarName': 'cultivar name',
-  'profileData.breederName': 'bred by',
-  'profileData.breedingMethod': 'breeding method',
-  'profileData.claimedCreationDate': 'stated creation date',
-  'profileData.notes': 'notes',
-  'profileData.internalReference': 'internal reference',
-  parents: 'parents',
-  attestations: 'attestations',
-  sealedAt: 'sealed date',
-  holder: 'holder',
+const FIELD_LABEL: Record<string, AppKey> = {
+  'profileData.cultivarName': 'app.plant.fix.field.cultivarName',
+  'profileData.breederName': 'app.plant.fix.field.breederName',
+  'profileData.breedingMethod': 'app.plant.fix.field.breedingMethod',
+  'profileData.claimedCreationDate': 'app.plant.fix.field.claimedCreationDate',
+  'profileData.notes': 'app.plant.fix.field.notes',
+  'profileData.internalReference': 'app.plant.fix.field.internalReference',
+  parents: 'app.plant.fix.field.parents',
+  attestations: 'app.plant.fix.field.attestations',
+  sealedAt: 'app.plant.fix.field.sealedAt',
+  holder: 'app.plant.fix.field.holder',
 };
+
+/** corrections.ts's consequence for these severities, in the page's language (the same English). */
+const consequenceKey = (p: CorrectionPreview): AppKey => `app.plant.fix.c.${p.descentSeverity}.${p.termsSeverity}`;
 
 export const CorrectRecord: React.FC<{
   record: StrainRecord;
   /** Draw the opener yourself (the plant page's action list); default is a button. */
   trigger?: (open: () => void) => React.ReactNode;
 }> = ({ record, trigger }) => {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
@@ -92,22 +98,20 @@ export const CorrectRecord: React.FC<{
         trigger(() => setOpen(true))
       ) : (
         <Button variant="text" startIcon={<EditIcon />} onClick={() => setOpen(true)}>
-          Correct this record
+          {t('app.plant.fix.open')}
         </Button>
       )}
 
       <Dialog open={open} onClose={reset} maxWidth="sm" fullWidth>
-        <DialogTitle>Correct {record.id}</DialogTitle>
+        <DialogTitle>{t('app.plant.fix.title', { id: record.id })}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             <Typography variant="body2" color="text.secondary">
-              This record stays exactly as it is. A correction creates a new record that supersedes it, and both remain
-              on file. A correction overwrites nothing and deletes nothing: that is what keeps the original usable as
-              evidence.
+              {t('app.plant.fix.intro')}
             </Typography>
 
             <TextField
-              label="Cultivar name"
+              label={t('app.plant.fix.name')}
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
@@ -116,7 +120,7 @@ export const CorrectRecord: React.FC<{
               fullWidth
             />
             <TextField
-              label="Bred by"
+              label={t('app.plant.fix.bredBy')}
               value={bredBy}
               onChange={(e) => {
                 setBredBy(e.target.value);
@@ -125,7 +129,7 @@ export const CorrectRecord: React.FC<{
               fullWidth
             />
             <TextField
-              label="Breeding method"
+              label={t('app.plant.f.method')}
               value={method}
               onChange={(e) => {
                 setMethod(e.target.value);
@@ -134,7 +138,7 @@ export const CorrectRecord: React.FC<{
               fullWidth
             />
             <TextField
-              label="Notes"
+              label={t('app.plant.fix.notes')}
               value={notes}
               onChange={(e) => {
                 setNotes(e.target.value);
@@ -148,30 +152,29 @@ export const CorrectRecord: React.FC<{
             {preview && (
               <Box sx={{ p: 2, borderRadius: 1, border: `1px solid ${ACCENT}` }}>
                 <Typography variant="overline" sx={{ color: ACCENT, display: 'block' }}>
-                  What this correction does
+                  {t('app.plant.fix.does')}
                 </Typography>
                 <Stack direction="row" spacing={1} sx={{ my: 1, flexWrap: 'wrap', gap: 0.5 }}>
                   {preview.changedFields.map((f) => (
-                    <Chip key={f} size="small" variant="outlined" label={FIELD_LABEL[f] ?? f} />
+                    <Chip key={f} size="small" variant="outlined" label={FIELD_LABEL[f] ? t(FIELD_LABEL[f]) : f} />
                   ))}
                 </Stack>
                 <Typography variant="body2" color="text.secondary">
-                  {preview.consequence}
+                  {preview.consequence ? t(consequenceKey(preview)) : ''}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                  This is worked out from which fields you changed. Neither you nor we can set it; otherwise every
-                  correction would look harmless.
+                  {t('app.plant.fix.workedOut')}
                 </Typography>
               </Box>
             )}
 
             {preview && (
               <TextField
-                label="Why are you correcting this?"
+                label={t('app.plant.fix.why')}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 fullWidth
-                helperText="Kept with the correction in your records. The public view shows which fields changed, not this reason."
+                helperText={t('app.plant.fix.whyHelp')}
               />
             )}
             {error && (
@@ -182,10 +185,10 @@ export const CorrectRecord: React.FC<{
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={reset}>Cancel</Button>
+          <Button onClick={reset}>{t('app.common.cancel')}</Button>
           {!preview ? (
             <Button variant="contained" onClick={check} disabled={!dirty}>
-              Check what this affects
+              {t('app.plant.fix.check')}
             </Button>
           ) : (
             <Button
@@ -208,11 +211,11 @@ export const CorrectRecord: React.FC<{
                   // here, where the holder is looking, instead of navigating to a
                   // correction that does not exist.
                   setBusy(false);
-                  setError(e instanceof Error ? e.message : 'The correction could not be saved.');
+                  setError(e instanceof Error ? e.message : t('app.plant.fix.notSaved'));
                 }
               }}
             >
-              Issue correction
+              {t('app.plant.fix.issue')}
             </Button>
           )}
         </DialogActions>

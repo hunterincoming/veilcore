@@ -27,7 +27,7 @@ import { AppHeader } from '../AppHeader';
 import { OPEN_RECEIVE_EVENT } from '../ClaimTransfer';
 import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
 import { linkCard } from '../a11y';
-import { PRACTICE_LABEL } from '../../config/copy';
+import { useT, rich } from '../../i18n/app';
 import { SECTIONS, focusScreenHeading } from './FlowFrame';
 import { PasteBox } from './PasteBox';
 import { labCardLine, useLabCardFacts, useWaitingByRecord } from './LabResults';
@@ -36,13 +36,7 @@ import { TrustPanel } from '../TrustPanel';
 import { RegistryExportButton } from '../RegistryExportButton';
 import { draftHeading, loadDraft } from './log-flow-state';
 import { homeStatusLine } from './plant-status-words';
-import {
-  datingCardLine,
-  datingHomeStatus,
-  homeList,
-  isLabReportRecord,
-  keysOnlyHereSubject,
-} from '../stage/record-kinds';
+import { datingCardLine, datingHomeStatus, homeList, isLabReportRecord, keysOnlyHereLine } from '../stage/record-kinds';
 
 export const AppHome: React.FC = () => {
   const records = useRecords();
@@ -56,6 +50,8 @@ export const AppHome: React.FC = () => {
   const [why, setWhy] = useState(false);
   const [toast, setToast] = useState<string>();
   const importRef = useRef<HTMLInputElement>(null);
+  const tr = useT();
+  const { t, tp } = tr;
   // A plant half-logged in this browser: Home offers to finish it, not to start another.
   const [draft] = useState(() => (records.length === 0 ? loadDraft() : undefined));
 
@@ -68,10 +64,7 @@ export const AppHome: React.FC = () => {
     cards.filter((r) => matchesQuery(r, query)),
     sort,
   );
-  const keysOnlyHere = keysOnlyHereSubject(
-    unbacked.map((k) => k.recordId),
-    records,
-  );
+  const unbackedIds = unbacked.map((k) => k.recordId);
   // A breeder's plants with a lab report waiting; a lab's received samples at a glance.
   const waiting = useWaitingByRecord(isBreeder(role) && records.some((r) => !r.receivedFrom));
   // Plants a collection import made: their key stamps are queued (/records/import), a few a day.
@@ -82,12 +75,9 @@ export const AppHome: React.FC = () => {
     if (!file) return;
     try {
       const { added, alreadyHere } = await importRecords(file);
-      setToast(
-        `Imported ${added} record${added === 1 ? '' : 's'}.` +
-          (alreadyHere ? ` ${alreadyHere} already here ${alreadyHere === 1 ? 'was' : 'were'} left as they are.` : ''),
-      );
+      setToast(tp('app.home.imported', added) + (alreadyHere ? tp('app.home.alreadyHere', alreadyHere) : ''));
     } catch (e) {
-      setToast(e instanceof Error ? e.message : 'Import failed.');
+      setToast(e instanceof Error ? e.message : t('app.home.importFailed'));
     }
   };
 
@@ -95,22 +85,12 @@ export const AppHome: React.FC = () => {
   // key, which is downloaded first so they can be restored (attack round D).
   const onReset = () => {
     const key = holderKeyIfAny();
-    const keysWarning =
-      unbacked.length > 0
-        ? `\n\n${keysOnlyHere} keys with no checked backup. Save your backup first: clearing the browser later would lose them for good.`
-        : '';
-    if (
-      window.confirm(
-        'Start over in this browser with a new, empty set?\n\n' +
-          'Nothing is deleted. Your current records stay on VeilCore’s registry under your current holder key, ' +
-          'and you can get them back only with that key. It will be downloaded now — keep the file.' +
-          keysWarning,
-      )
-    ) {
+    const keysWarning = unbacked.length > 0 ? `\n\n${keysOnlyHereLine(unbackedIds, records, 'reset', tr)}` : '';
+    if (window.confirm(t('app.home.resetConfirm') + keysWarning)) {
       if (key) downloadHolderKey(key);
       startOver();
       clearLoadedLicenses();
-      setToast('Started over. Restore your old records any time from the holder key file.');
+      setToast(t('app.home.startedOver'));
       // The menu that held "Start over" goes with the old set: focus the page's heading (round 6).
       focusScreenHeading();
     }
@@ -125,11 +105,10 @@ export const AppHome: React.FC = () => {
         component={heading}
         sx={{ fontWeight: 700, mb: heading === 'h1' ? 0.5 : 0 }}
       >
-        Your lab&apos;s jobs
+        {t('app.home.labJobs')}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-        Confirm what arrives, then send results back from the plant&apos;s page. Both are signed with your lab&apos;s
-        own key, not by us, and results are locked so only the breeder can open them.
+        {t('app.home.labJobsText')}
       </Typography>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
         <Button
@@ -138,7 +117,7 @@ export const AppHome: React.FC = () => {
           onClick={() => window.dispatchEvent(new Event(OPEN_RECEIVE_EVENT))}
           sx={{ minHeight: 48 }}
         >
-          Confirm a delivery
+          {t('app.home.confirmDelivery')}
         </Button>
         <Button
           variant="outlined"
@@ -146,7 +125,7 @@ export const AppHome: React.FC = () => {
           onClick={() => window.dispatchEvent(new Event(OPEN_SIGNING_KEY_EVENT))}
           sx={{ minHeight: 48 }}
         >
-          {loadAttester() ? "Your lab's signature" : "Set up your lab's signature"}
+          {loadAttester() ? t('app.home.labSignature') : t('app.home.setUpLabSignature')}
         </Button>
       </Stack>
     </Paper>
@@ -166,12 +145,10 @@ export const AppHome: React.FC = () => {
                 component="h1"
                 sx={{ fontSize: { xs: '2rem', md: '2.6rem' }, overflowWrap: 'anywhere' }}
               >
-                {draftHeading(draft)}
+                {draftHeading(draft, tr)}
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                {draft
-                  ? 'What you typed is kept in this browser. Pick up where you left off.'
-                  : 'About 3 minutes. When you’re done it has a public date stamp, and you hold the only key.'}
+                {draft ? t('app.home.draftKept') : t('app.home.aboutThreeMinutes')}
               </Typography>
               <Button
                 component={RouterLink}
@@ -182,20 +159,20 @@ export const AppHome: React.FC = () => {
                 startIcon={<AddIcon />}
                 sx={{ py: 1.7, fontSize: '1.1rem' }}
               >
-                {draft ? 'Continue' : 'Start'}
+                {draft ? t('app.home.continue') : t('app.home.start')}
               </Button>
             </Stack>
           )}
           <PasteBox />
           <Stack spacing={1} sx={{ alignItems: 'center', pt: 1 }}>
             <Button component={RouterLink} to="/records/import" sx={{ minHeight: 44 }}>
-              Have a spreadsheet? Date your whole collection
+              {t('app.home.spreadsheet')}
             </Button>
             <Button component={RouterLink} to="/restore" sx={{ minHeight: 44 }}>
-              New phone? Get your plants back
+              {t('app.home.newPhone')}
             </Button>
             <Button onClick={requestRoleChange} color="inherit" sx={{ minHeight: 44 }}>
-              {labOnly ? "I'm a breeder too" : "I'm a lab"}
+              {labOnly ? t('app.home.breederToo') : t('app.home.imALab')}
             </Button>
             <Button
               onClick={() => setWhy(!why)}
@@ -203,7 +180,7 @@ export const AppHome: React.FC = () => {
               endIcon={why ? <ExpandLessIcon /> : <ExpandMoreIcon />}
               sx={{ minHeight: 44 }}
             >
-              What stops someone logging my plant first?
+              {t('app.home.whatStops')}
             </Button>
           </Stack>
           <Collapse in={why}>
@@ -220,11 +197,11 @@ export const AppHome: React.FC = () => {
       <Stack spacing={2.5}>
         <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
           <Typography variant="h4" component="h1">
-            {labOnly ? 'Samples received' : 'Your plants'}
+            {labOnly ? t('app.home.samplesReceived') : t('app.home.yourPlants')}
           </Typography>
           {!labOnly && (
             <Button component={RouterLink} to="/new" variant="contained" startIcon={<AddIcon />} sx={{ minHeight: 48 }}>
-              Log new
+              {t('app.home.logNew')}
             </Button>
           )}
         </Stack>
@@ -240,11 +217,15 @@ export const AppHome: React.FC = () => {
                 onClick={() => void navigate('/backup')}
                 sx={{ minHeight: 44 }}
               >
-                Save it
+                {t('app.home.saveIt')}
               </Button>
             }
           >
-            <b>Finish: save your backup.</b> {keysOnlyHere} keys only on this device.
+            {rich(
+              t('app.home.finishBackupLine'),
+              { b: (c) => <b>{c}</b> },
+              { line: keysOnlyHereLine(unbackedIds, records, 'alert', tr) },
+            )}
           </Alert>
         )}
 
@@ -269,22 +250,22 @@ export const AppHome: React.FC = () => {
             const own = isLabReportRecord(r);
             const s = own
               ? (() => {
-                  const d = datingHomeStatus(r, keys[r.id], REAL_CHAIN);
-                  return { text: `${datingCardLine(r)} · ${d.text}`, unfinished: d.unfinished };
+                  const d = datingHomeStatus(r, keys[r.id], REAL_CHAIN, tr);
+                  return { text: `${datingCardLine(r, tr)} · ${d.text}`, unfinished: d.unfinished };
                 })()
               : lab && r.receivedFrom
-                ? { text: labCardLine(r, labFacts[r.id]), unfinished: false }
-                : homeStatusLine(r, keys[r.id], { realChain: REAL_CHAIN, queued: imported.has(r.id) });
+                ? { text: labCardLine(r, labFacts[r.id], tr), unfinished: false }
+                : homeStatusLine(r, keys[r.id], { realChain: REAL_CHAIN, queued: imported.has(r.id) }, tr);
             const datings = (datingsOf.get(r.id) ?? []).map((d) => ({
               id: d.id,
-              ...datingHomeStatus(d, keys[d.id], REAL_CHAIN),
+              ...datingHomeStatus(d, keys[d.id], REAL_CHAIN, tr),
             }));
             const unfinished = s.unfinished || datings.some((d) => d.unfinished);
             const reportWaiting = (waiting[r.id]?.length ?? 0) > 0;
             return (
               <Paper
                 key={r.id}
-                {...linkCard(() => void navigate(`/record/${r.id}`), `Open ${r.strainName}`)}
+                {...linkCard(() => void navigate(`/record/${r.id}`), t('app.home.openPlant', { name: r.strainName }))}
                 sx={{
                   p: 2,
                   cursor: 'pointer',
@@ -321,7 +302,7 @@ export const AppHome: React.FC = () => {
                     ))}
                     {lab && r.receivedFrom && (r.quantity || r.deliveryNote) && (
                       <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
-                        {[quantityPhrase(r.quantity), r.deliveryNote && `“${r.deliveryNote}”`]
+                        {[quantityPhrase(r.quantity), r.deliveryNote && t('app.home.quoted', { v: r.deliveryNote })]
                           .filter(Boolean)
                           .join(' · ')}
                       </Typography>
@@ -340,7 +321,7 @@ export const AppHome: React.FC = () => {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      Lab report waiting
+                      {t('app.home.labReportWaiting')}
                     </Typography>
                   )}
                   <ChevronIcon sx={{ color: 'text.secondary' }} />
@@ -354,7 +335,7 @@ export const AppHome: React.FC = () => {
 
         {!labOnly && (
           <Paper
-            {...linkCard(() => void navigate('/licenses'), 'Open my agreements')}
+            {...linkCard(() => void navigate('/licenses'), t('app.home.openAgreements'))}
             sx={{
               p: 2,
               cursor: 'pointer',
@@ -364,14 +345,14 @@ export const AppHome: React.FC = () => {
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
               <SECTIONS.license.Icon sx={{ color: SECTIONS.license.color }} />
               <Typography variant="body1" sx={{ flex: 1, fontWeight: 700 }}>
-                My agreements ({licenses.length})
+                {t('app.home.myAgreements', { n: licenses.length })}
               </Typography>
-              {PRACTICE_LABEL && (
+              {t('app.copy.practiceLabel') && (
                 <Typography
                   variant="caption"
                   sx={{ fontWeight: 700, px: 1, py: 0.25, borderRadius: 5, background: '#FFF1D6', color: '#6B4100' }}
                 >
-                  {PRACTICE_LABEL}
+                  {t('app.copy.practiceLabel')}
                 </Typography>
               )}
               <ChevronIcon sx={{ color: 'text.secondary' }} />
@@ -382,10 +363,10 @@ export const AppHome: React.FC = () => {
         <Divider />
         <Stack spacing={0.5} sx={{ alignItems: 'center' }}>
           <Button component={RouterLink} to="/records/import" sx={{ minHeight: 44 }}>
-            Have a spreadsheet? Date your whole collection
+            {t('app.home.spreadsheet')}
           </Button>
           <Button component={RouterLink} to="/restore" sx={{ minHeight: 44 }}>
-            New phone? Get your plants back
+            {t('app.home.newPhone')}
           </Button>
           <Button
             color="inherit"
@@ -393,21 +374,21 @@ export const AppHome: React.FC = () => {
             endIcon={more ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             sx={{ minHeight: 44 }}
           >
-            More
+            {t('app.home.more')}
           </Button>
           <Collapse in={more}>
             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', justifyContent: 'center', gap: 1 }}>
               <Button variant="text" onClick={() => void navigate('/backup')}>
-                Save a backup
+                {t('app.home.saveABackup')}
               </Button>
               <Button variant="text" onClick={exportRecords}>
-                Export all records
+                {t('app.home.exportAll')}
               </Button>
               <Button variant="text" onClick={() => importRef.current?.click()}>
-                Import records
+                {t('app.home.importRecords')}
               </Button>
               <Button variant="text" color="inherit" onClick={onReset}>
-                Start over
+                {t('app.log.startOver')}
               </Button>
               <RegistryExportButton />
               <input

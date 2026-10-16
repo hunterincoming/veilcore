@@ -7,6 +7,7 @@ import { Box, Stack, Typography } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFileOutlined';
 import DescriptionIcon from '@mui/icons-material/DescriptionOutlined';
 import { ACCENT } from '../../config/theme';
+import { useT } from '../../i18n/app';
 
 export const Dropzone: React.FC<{
   onFile: (file: File) => void;
@@ -16,6 +17,7 @@ export const Dropzone: React.FC<{
 }> = ({ onFile, file, title, hint }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
+  const { t } = useT();
 
   const pick = (f: File | null | undefined) => {
     if (f) onFile(f);
@@ -25,7 +27,7 @@ export const Dropzone: React.FC<{
     <Box
       role="button"
       tabIndex={0}
-      aria-label={file ? `${title}. Chosen: ${file.name}` : title}
+      aria-label={file ? t('app.pair.chosen', { title, name: file.name }) : title}
       onClick={() => inputRef.current?.click()}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -75,8 +77,7 @@ export const Dropzone: React.FC<{
               {file.name}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {Math.max(1, Math.round(file.size / 1024))} KB · ready to fingerprint on this device · choose again to
-              replace it
+              {t('app.pair.ready', { kb: String(Math.max(1, Math.round(file.size / 1024))) })}
             </Typography>
           </Box>
         </Stack>

@@ -20,12 +20,14 @@ import { allRecords, getRecord, type StrainRecord } from '../../veilcore/records
 import { datedReportsOf } from '../stage/lab-report-notes';
 import { downloadBreedingHistory } from '../../veilcore/breeding-history/export';
 import { walkHistory, MAX_HISTORY_RECORDS } from '../../veilcore/breeding-history/walk';
+import { InEnglishNote, useT } from '../../i18n/app';
 
+/** The label's English (app.history.label): the files it makes stay in English. */
 export const BREEDING_HISTORY_LABEL = 'Breeding history (draft)';
 
-const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-
 export const BreedingHistory: React.FC<{ record: StrainRecord }> = ({ record }) => {
+  const { t, tp } = useT();
+  const label = t('app.history.label');
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,11 +65,10 @@ export const BreedingHistory: React.FC<{ record: StrainRecord }> = ({ record }) 
     <>
       <Stack spacing={1}>
         <Typography variant="overline" sx={{ display: 'block' }}>
-          {BREEDING_HISTORY_LABEL}
+          {label}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          This plant and the parents linked to it that you hold here, one row per record, with each record’s date stamp
-          and evidence bundle. A draft to copy from for a variety application. Not legal advice.
+          {t('app.history.intro')}
         </Typography>
         <Box>
           <Button
@@ -77,43 +78,32 @@ export const BreedingHistory: React.FC<{ record: StrainRecord }> = ({ record }) 
             disabled={!sealed}
             onClick={() => setOpen(true)}
           >
-            {BREEDING_HISTORY_LABEL}
+            {label}
           </Button>
         </Box>
       </Stack>
       <Dialog open={open} onClose={close} fullWidth maxWidth="sm" aria-labelledby="breeding-history-title">
-        <DialogTitle id="breeding-history-title">{BREEDING_HISTORY_LABEL}</DialogTitle>
+        <DialogTitle id="breeding-history-title">{label}</DialogTitle>
         <DialogContent>
           <Stack spacing={1.5}>
             <Alert severity="info" variant="outlined" role="note">
-              A record dates nothing earlier than the day it was sealed. Each step sealed when it happened carries its
-              own date; a history typed up the week you apply is worth what any typed-up history is worth.
+              {t('app.history.notEarlier')}
             </Alert>
             <Typography variant="body2">
-              One file with a printable breeding history (the family line, then one row per record: the date you gave,
-              its date stamp, the stage and what you selected for, how it was made), set out under plain headings for a
-              US PVP application, a UPOV-style questionnaire and a Japanese application. Boxes for what VeilCore doesn’t
-              hold (uniformity, stability, variants) are left blank for you. A one-page cover note says what it shows
-              and what it doesn’t, and each record’s evidence bundle is inside.
+              {t('app.history.oneFile')}
+              <InEnglishNote />
             </Typography>
             {summary && (
               <Typography variant="body2" color="text.secondary">
-                {plural(summary.nodes.length, 'record you hold here', 'records you hold here')}
-                {theirs
-                  ? `, ${plural(theirs, 'linked parent', 'linked parents')} held by someone else (listed as theirs)`
-                  : ''}
-                {named ? `, ${plural(named, 'parent', 'parents')} named with no record` : ''}
-                {leftOut
-                  ? `, ${plural(leftOut, 'record', 'records')} left out (it takes the nearest ${MAX_HISTORY_RECORDS})`
-                  : ''}
-                .
+                {tp('app.history.held', summary.nodes.length)}
+                {theirs ? tp('app.history.theirs', theirs) : ''}
+                {named ? tp('app.history.named', named) : ''}
+                {leftOut ? tp('app.history.leftOut', leftOut, { max: MAX_HISTORY_RECORDS }) : ''}
+                {t('app.history.end')}
               </Typography>
             )}
             <Typography variant="caption" color="text.secondary">
-              Your records’ keys and lab report files are not put in. Where a lab report is saved to a plant, its
-              evidence bundle does hold the report’s SHA-256 and the fingerprint that pairs it with the plant, so anyone
-              later shown the file can match it. VeilCore doesn’t vouch for anything a record says. Draft. Not legal
-              advice.
+              {t('app.history.notPut')}
             </Typography>
             {error && (
               <Alert severity="error" variant="outlined">
@@ -122,13 +112,13 @@ export const BreedingHistory: React.FC<{ record: StrainRecord }> = ({ record }) 
             )}
             {done && (
               <Alert severity="success" variant="outlined">
-                Downloaded {done}. Open COVER-NOTE.html inside it first, then breeding-history.html to print.
+                {t('app.history.downloaded', { name: done })}
               </Alert>
             )}
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={close}>Close</Button>
+          <Button onClick={close}>{t('app.common.close')}</Button>
           <Button
             variant="contained"
             disableElevation
@@ -136,7 +126,7 @@ export const BreedingHistory: React.FC<{ record: StrainRecord }> = ({ record }) 
             disabled={busy || !sealed}
             onClick={() => void download()}
           >
-            {busy ? 'Making it…' : 'Download'}
+            {busy ? t('app.plant.bundle.making') : t('app.plant.bundle.downloadButton')}
           </Button>
         </DialogActions>
       </Dialog>

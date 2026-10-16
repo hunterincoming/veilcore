@@ -10,6 +10,7 @@ import type { SavedReport } from '../../veilcore/saved-report';
 import { ActionRow } from '../flow/PlantParts';
 import { DateLabReport } from './DateLabReport';
 import { canAddNextStage, nextStagePath } from './stage-notes';
+import { useT } from '../../i18n/app';
 
 export const StageRows: React.FC<{
   record: StrainRecord;
@@ -18,13 +19,14 @@ export const StageRows: React.FC<{
   saved: SavedReport | null | undefined;
 }> = ({ record, labOnly, saved }) => {
   const navigate = useNavigate();
+  const { t } = useT();
   return (
     <>
       {canAddNextStage(record, labOnly) && (
         <ActionRow
           section="log"
-          label="Add the next generation or selection"
-          hint="A new record with this plant as its parent. Seal each stage when it happens."
+          label={t('app.plant.action.nextStage')}
+          hint={t('app.plant.action.nextStageHint')}
           onClick={() => navigate(nextStagePath(record.id))}
         />
       )}

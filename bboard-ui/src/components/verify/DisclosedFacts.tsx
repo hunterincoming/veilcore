@@ -18,25 +18,37 @@ import NotCheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import FailedIcon from '@mui/icons-material/HighlightOff';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import { shortFingerprint } from '../../veilcore/commitment';
-import { DISCLOSURE_FIELDS, GENETICS_LABEL, LEGACY_NAME, keysOn, type Disclosure } from '../../veilcore/disclosure';
+import {
+  DISCLOSURE_FIELDS,
+  LEGACY_NAME,
+  geneticsLabel,
+  keysOn,
+  labelOf,
+  type Disclosure,
+} from '../../veilcore/disclosure';
 import type { StrainRecord } from '../../veilcore/records';
 import { ACCENT } from '../../config/theme';
-import { networkLabel, isTestNetwork } from '../../config/network';
+import { isTestNetwork } from '../../config/network';
 import { displayName } from '../../veilcore/display-name';
 import { utcStamp as fmt } from '../../veilcore/time';
 import { savedReportSentence, type FactStatus, type SavedReport } from '../../veilcore/saved-report';
+import { useT, type Translator } from '../../i18n/app';
+import type { AppKey } from '../../i18n/app/en';
+import { networkWords } from '../../i18n/network-words';
+import { breedingMethodWords } from '../flow/breeding-methods';
 
 /** The words for each mark: read by screen readers on every line, and shown in the key. */
-export const FACT_WORDS: Record<FactStatus, string> = {
-  checked: 'Checked in this browser',
-  reported: 'Not checked here',
-  failed: 'Failed or withdrawn',
+export const FACT_WORDS: Record<FactStatus, AppKey> = {
+  checked: 'app.verify.mark.checked',
+  reported: 'app.verify.mark.reported',
+  failed: 'app.verify.mark.failed',
 };
 
 const MarkIcon: React.FC<{ status: FactStatus; label?: boolean }> = ({ status, label = false }) => {
+  const { t } = useT();
   // On a line, the mark is named for screen readers (titleAccess); in the key, the words
   // beside it already say it.
-  const a11y = label ? { titleAccess: FACT_WORDS[status] } : { 'aria-hidden': true as const };
+  const a11y = label ? { titleAccess: t(FACT_WORDS[status]) } : { 'aria-hidden': true as const };
   return status === 'checked' ? (
     <CheckCircleIcon {...a11y} sx={{ fontSize: 18, color: ACCENT, mt: '2px' }} />
   ) : status === 'failed' ? (
@@ -67,23 +79,26 @@ export const Fact: React.FC<{ ok?: boolean; status?: FactStatus; children: React
 };
 
 /** The key to the three marks, in words, above the lines that use them. */
-export const FactKey: React.FC = () => (
-  <Stack
-    direction="row"
-    sx={{ flexWrap: 'wrap', columnGap: 2, rowGap: 0.5, alignItems: 'center' }}
-    data-fact-key=""
-    aria-label="What the marks mean"
-  >
-    {(['checked', 'reported', 'failed'] as const).map((st) => (
-      <Stack key={st} direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-        <MarkIcon status={st} />
-        <Typography variant="caption" color="text.secondary">
-          {FACT_WORDS[st]}
-        </Typography>
-      </Stack>
-    ))}
-  </Stack>
-);
+export const FactKey: React.FC = () => {
+  const { t } = useT();
+  return (
+    <Stack
+      direction="row"
+      sx={{ flexWrap: 'wrap', columnGap: 2, rowGap: 0.5, alignItems: 'center' }}
+      data-fact-key=""
+      aria-label={t('app.verify.mark.key')}
+    >
+      {(['checked', 'reported', 'failed'] as const).map((st) => (
+        <Stack key={st} direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+          <MarkIcon status={st} />
+          <Typography variant="caption" color="text.secondary">
+            {t(FACT_WORDS[st])}
+          </Typography>
+        </Stack>
+      ))}
+    </Stack>
+  );
+};
 
 /** What the registry sends for the shared facts (the older key names it answers in). */
 export type SharedFactsData = {
@@ -116,83 +131,72 @@ export type SharedFactsData = {
 
 /** The shared facts, then what was not shared, then the genetics row. */
 export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }> = ({ data, preview = false }) => {
+  const tr = useT();
+  const { t } = tr;
   const shared = new Set(data.disclosed);
-  const notShared = DISCLOSURE_FIELDS.filter((f) => !shared.has(LEGACY_NAME[f.key])).map((f) => f.label);
+  const notShared = DISCLOSURE_FIELDS.filter((f) => !shared.has(LEGACY_NAME[f.key])).map((f) => labelOf(f.key, tr));
   return (
     <Stack spacing={1.25}>
       {shared.has('own') &&
         (preview ? (
-          <Fact ok={false}>
-            Prior possession: shown only once the registry reports this record&apos;s batch anchored, and then as the
-            registry&apos;s report.
-          </Fact>
+          <Fact ok={false}>{t('app.verify.own.preview')}</Fact>
         ) : (data.anchored ?? data.priorPossession) ? (
           <Fact ok={false}>
-            Prior possession: the registry reports this record&apos;s batch anchored on{' '}
-            {networkLabel(data.anchorNetwork ?? '')}.
-            {data.anchorCheckedOnChain
-              ? ' This page found that date stamp on Midnight itself (above). It dates the record, not who held it.'
-              : ' This page has not confirmed it on the chain.'}
-            {isTestNetwork(data.anchorNetwork ?? '')
-              ? ' A test network can be reset and its dates carry no evidential weight.'
-              : ''}
+            {t('app.verify.own.anchored', {
+              network: networkWords(data.anchorNetwork ?? '', tr),
+              found: data.anchorCheckedOnChain ? t('app.verify.own.found') : t('app.verify.own.notConfirmed'),
+              test: isTestNetwork(data.anchorNetwork ?? '') ? t('app.plant.date.testNote') : '',
+            })}
           </Fact>
         ) : (
-          <Fact ok={false}>Prior possession: not anchored yet, so its date rests on this registry&apos;s records.</Fact>
+          <Fact ok={false}>{t('app.verify.own.notAnchored')}</Fact>
         ))}
       {shared.has('dna') &&
         (data.labReport ? (
           <Fact status={data.labReport.status}>{data.labReport.text}</Fact>
         ) : (
-          <Fact ok={false}>
-            {data.dnaPairedByHolder
-              ? 'The holder saved a lab report to this record.'
-              : 'The holder has not saved a lab report to this record.'}
-          </Fact>
+          <Fact ok={false}>{data.dnaPairedByHolder ? t('app.verify.dna.saved') : t('app.verify.report.notSaved')}</Fact>
         ))}
       {/* No tick: "intact" is the registry's say-so, and this page walks no descent
           (round D verification). Every line here is a report, never a check. */}
       {shared.has('lineage') &&
         (data.lineageIntact === true ? (
-          <Fact ok={false}>
-            The registry reports the lineage intact — an unbroken chain back to the sealed record. This page has not
-            checked it.
-          </Fact>
+          <Fact ok={false}>{t('app.verify.lineage.intact')}</Fact>
         ) : (
-          <Fact ok={false}>
-            Lineage: not checked on this page. The registry does not walk descent for a shared link.
-          </Fact>
+          <Fact ok={false}>{t('app.verify.lineage.notChecked')}</Fact>
         ))}
       {shared.has('sealed') && data.sealedAt !== undefined && (
         <Fact ok={false}>
-          Sealed, by the holder&apos;s device clock: {fmt(data.sealedAt)}. This is the holder&apos;s own statement.
-          {data.registryFirstSeen ? ` First stored by this registry: ${fmt(data.registryFirstSeen)}.` : ''}
+          {t('app.verify.sealedAt', {
+            date: fmt(data.sealedAt),
+            first: data.registryFirstSeen ? t('app.verify.firstStoredBy', { date: fmt(data.registryFirstSeen) }) : '',
+          })}
         </Fact>
       )}
       {shared.has('parents') && (
         <Fact ok={false}>
           {data.parents?.length
-            ? `Parents, as the holder states them: ${data.parents.map(displayName).join(' × ')}`
-            : 'No parents recorded.'}
+            ? t('app.verify.parents', { list: data.parents.map(displayName).join(' × ') })
+            : t('app.verify.noParents')}
         </Fact>
       )}
       {shared.has('method') && (
         <Fact ok={false}>
           {data.breedingMethod
-            ? `Breeding method, as the holder states it: ${displayName(data.breedingMethod)}`
-            : 'No breeding method recorded.'}
+            ? t('app.verify.method', { method: breedingMethodWords(displayName(data.breedingMethod), tr) })
+            : t('app.verify.noMethod')}
         </Fact>
       )}
 
       {shared.size === 0 && (
         <Typography variant="body2" color="text.secondary">
-          The holder has shared nothing beyond the basics above.
+          {t('app.verify.sharedNothing')}
         </Typography>
       )}
 
       {notShared.length > 0 && (
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-          Not shared by the holder: {notShared.join('; ')}.
+          {t('app.verify.notShared', { list: notShared.join(t('app.prove.share.semicolon')) })}
         </Typography>
       )}
 
@@ -200,7 +204,7 @@ export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }>
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
         <LockIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
         <Typography variant="body2" color="text.disabled">
-          {GENETICS_LABEL}
+          {geneticsLabel(tr)}
         </Typography>
       </Stack>
     </Stack>
@@ -208,12 +212,15 @@ export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }>
 };
 
 /** The preview's lab report line: what the check page will say, from where the saved report stands here. */
-const previewReportLine = (saved: SavedReport | null | undefined): { status: FactStatus; text: string } | undefined => {
+const previewReportLine = (
+  saved: SavedReport | null | undefined,
+  tr: Translator,
+): { status: FactStatus; text: string } | undefined => {
   if (!saved || saved.kind === 'none') return undefined;
   if (saved.kind === 'replaced' || saved.kind === 'withdrawn')
-    return { status: 'failed', text: savedReportSentence(saved) };
-  if (saved.kind === 'lab') return { status: 'checked', text: savedReportSentence(saved) };
-  return { status: 'reported', text: savedReportSentence(saved) };
+    return { status: 'failed', text: savedReportSentence(saved, tr) };
+  if (saved.kind === 'lab') return { status: 'checked', text: savedReportSentence(saved, tr) };
+  return { status: 'reported', text: savedReportSentence(saved, tr) };
 };
 
 /** The holder's preview: what the verify page will show under these switches. */
@@ -222,13 +229,12 @@ export const DisclosedFacts: React.FC<{ record: StrainRecord; disclosure: Disclo
   disclosure,
   saved,
 }) => {
-  const labReport = previewReportLine(saved);
+  const tr = useT();
+  const labReport = previewReportLine(saved, tr);
   return (
     <Stack spacing={1.25}>
       <Typography variant="body2" color="text.secondary">
-        Always shown: the cultivar name, the record id, its fingerprint ({shortFingerprint(record.recordFingerprint)}
-        ), when the registry first stored it, and what this page could check about its batch and any signed attestations
-        (a lab&apos;s receipt, a lab report).
+        {tr.t('app.verify.alwaysShown', { fp: shortFingerprint(record.recordFingerprint) })}
       </Typography>
       <FactKey />
       <SharedFacts

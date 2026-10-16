@@ -5,14 +5,22 @@
 import React from 'react';
 import { Alert } from '@mui/material';
 import { clearSaveProblem, describeRefusals, useSaveProblem } from '../veilcore/save-status';
+import { useT } from '../i18n/app';
 
 export const SaveProblemBar: React.FC = () => {
   const problem = useSaveProblem();
+  const tr = useT();
   if (!problem) return null;
+  // `what` is 'records' or 'agreements' (records.ts, licenses.ts); the registry's own reasons stay as it gave them.
+  const what =
+    problem.what === 'records'
+      ? tr.t('app.home.saveProblem.records')
+      : problem.what === 'agreements'
+        ? tr.t('app.home.saveProblem.agreements')
+        : problem.what;
   return (
     <Alert severity="warning" variant="outlined" onClose={clearSaveProblem} sx={{ mb: 2 }}>
-      The registry did not store some of your {problem.what}, so they have been put back to what it holds:{' '}
-      {describeRefusals(problem.refused)}
+      {tr.t('app.home.saveProblem.text', { what, list: describeRefusals(problem.refused) })}
     </Alert>
   );
 };

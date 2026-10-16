@@ -22,6 +22,7 @@ import {
   type LicenseTerms,
 } from '../../veilcore/licenses';
 import { AppHeader } from '../AppHeader';
+import { InEnglishPage } from '../../i18n/app';
 import { AgreementTermsFields, emptyTermsFor, type SetTerm } from './LicenseTermsFields';
 import { AgreementTypeChip } from './AgreementTypeChip';
 import { AGREEMENTS_SIMULATED } from '../../config/copy';
@@ -50,6 +51,7 @@ export const TermsBuilder: React.FC = () => {
     return (
       <Box>
         <AppHeader />
+        <InEnglishPage />
         <Typography sx={{ mb: 1 }}>
           This record isn&apos;t in this browser, so no agreement can be attached to it here.
         </Typography>
@@ -92,6 +94,7 @@ export const TermsBuilder: React.FC = () => {
   return (
     <Box>
       <AppHeader />
+      <InEnglishPage />
       <Button
         component={RouterLink}
         to={`/record/${record.id}`}

@@ -15,8 +15,10 @@ import type { SavedReport } from '../../veilcore/saved-report';
 import { useRecordDate } from '../verify/useAnchorCheck';
 import { recordDateRow } from '../flow/plant-status-words';
 import { today } from '../flow/log-flow-state';
+import { rich, useT } from '../../i18n/app';
+import { enT } from '../../i18n/translate';
 import {
-  DATE_REPORT_WHY,
+  SEALING_ELSEWHERE,
   dateLabReportWith,
   datingRecordFor,
   labReportDatedLine,
@@ -29,7 +31,7 @@ import {
 const createAndSave = async (sealed: SealedRecord): Promise<StrainRecord> => {
   const { record, result } = await createRecordSaved(sealed);
   const refused = result.refused.find((r) => r.id === record.id || r.id === '*');
-  if (refused) throw new Error(`The registry didn’t save it (${refused.reason}). Nothing was dated. Try again.`);
+  if (refused) throw new Error(enT.t('app.plant.dated.refused', { reason: refused.reason }));
   return record;
 };
 
@@ -46,19 +48,30 @@ const DEPS: DateLabReportDeps = {
   today,
 };
 
-const PREFIX = 'Lab report dated: in ';
-
-/** "Lab report dated: in VEIL-… (waiting for a batch)", the id a link to that record. */
+/**
+ * "Lab report dated: in VEIL-… (waiting for a batch)", the id a link to that record. The
+ * data attribute keeps the English line (labReportDatedLine) in every language.
+ */
 const DatedLine: React.FC<{ dating: StrainRecord }> = ({ dating }) => {
   const { proof, anchor } = useRecordDate(dating.recordFingerprint);
+  const tr = useT();
   const line = labReportDatedLine(dating.id, recordDateRow(proof, anchor));
+  const row = recordDateRow(proof, anchor, tr);
+  const status =
+    row.mark === 'done' || row.mark === 'reported' ? tr.t('app.plant.dated.dated', { value: row.value }) : row.value;
   return (
     <Typography variant="body2" sx={{ fontWeight: 700, overflowWrap: 'anywhere' }} data-lab-report-dated={line}>
-      {PREFIX}
-      <Link component={RouterLink} to={`/record/${dating.id}`}>
-        {dating.id}
-      </Link>
-      {line.slice(PREFIX.length + dating.id.length)}
+      {rich(
+        tr.t('app.plant.dated.line'),
+        {
+          link: () => (
+            <Link component={RouterLink} to={`/record/${dating.id}`}>
+              {dating.id}
+            </Link>
+          ),
+        },
+        { status },
+      )}
     </Typography>
   );
 };
@@ -72,6 +85,7 @@ export const DateLabReport: React.FC<{
   variant?: 'row' | 'card';
 }> = ({ record, saved, variant = 'row' }) => {
   const records = useRecords();
+  const { t } = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const facts = labReportFacts(record, saved);
@@ -108,17 +122,16 @@ export const DateLabReport: React.FC<{
             <DatedLine dating={dating} />
           ) : (
             <Typography variant="body1" sx={{ fontWeight: 700 }}>
-              Date this lab report
+              {t('app.plant.dated.action')}
             </Typography>
           )}
           <Typography variant="body2" color="text.secondary">
-            {DATE_REPORT_WHY}
+            {t('app.plant.dated.why')}
           </Typography>
           {!dating && (
             <>
               <Typography variant="caption" color="text.secondary">
-                Seals a small record with only the report&apos;s SHA-256, its lab report code and the lab&apos;s name as
-                signed. The report stays with you. Its date comes when its batch is dated.
+                {t('app.plant.dated.seals')}
               </Typography>
               <Box>
                 <Button
@@ -128,14 +141,14 @@ export const DateLabReport: React.FC<{
                   startIcon={busy ? <CircularProgress size={16} color="inherit" /> : undefined}
                   sx={{ minHeight: 44 }}
                 >
-                  {busy ? 'Sealing…' : 'Date this lab report'}
+                  {busy ? t('app.log.sealing') : t('app.plant.dated.action')}
                 </Button>
               </Box>
             </>
           )}
           {error && (
             <Alert severity="error" variant="outlined">
-              {error}
+              {error === SEALING_ELSEWHERE ? t('app.plant.dated.elsewhere') : error}
             </Alert>
           )}
         </Stack>

@@ -11,7 +11,8 @@ import React from 'react';
 import { Box, Container, Link, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { useI18n } from '../i18n';
-import { requestRoleChange, useRole, ROLE_VIEW } from '../veilcore/role';
+import { requestRoleChange, useRole } from '../veilcore/role';
+import { useT } from '../i18n/app';
 
 const Item: React.FC<{ to: string; children: React.ReactNode; external?: boolean }> = ({ to, children, external }) => (
   <Link
@@ -27,6 +28,7 @@ const Item: React.FC<{ to: string; children: React.ReactNode; external?: boolean
 
 export const AppFooter: React.FC = () => {
   const { t } = useI18n();
+  const tr = useT();
   const role = useRole();
   return (
     <Box
@@ -97,7 +99,9 @@ export const AppFooter: React.FC = () => {
                   textAlign: 'left',
                 }}
               >
-                {role ? `${ROLE_VIEW[role]} · change` : 'Breeder or lab? Choose your view'}
+                {role
+                  ? tr.t('app.home.roleChange', { view: tr.t(`app.home.roleView.${role}`) })
+                  : tr.t('app.home.chooseView')}
               </Link>
             </Stack>
           </Stack>

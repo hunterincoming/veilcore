@@ -15,9 +15,15 @@ import DocIcon from '@mui/icons-material/DescriptionOutlined';
 import CheckIcon from '@mui/icons-material/ManageSearchOutlined';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
 import { ACCENT } from '../../config/theme';
+import { useI18n } from '../../i18n';
 
 export type Section = 'log' | 'send' | 'license' | 'prove';
 
+/**
+ * `name` is the section's English name; useSectionName gives it in the visitor's language.
+ * The frame's words are with the public pages' text (i18n/en.ts, app.frame.*): this file
+ * comes with the first download (App.tsx focusScreenHeading), the app's own text doesn't.
+ */
 export const SECTIONS: Record<Section, { name: string; color: string; Icon: typeof SpaIcon }> = {
   log: { name: 'Log', color: ACCENT, Icon: SpaIcon },
   send: { name: 'Send & receive', color: '#0060A0', Icon: BoxIcon },
@@ -25,12 +31,16 @@ export const SECTIONS: Record<Section, { name: string; color: string; Icon: type
   prove: { name: 'Prove & check', color: '#A84300', Icon: CheckIcon },
 };
 
+/** A section's name in the visitor's language. */
+export const useSectionName = (section: Section): string => useI18n().t(`app.frame.section.${section}`);
+
 export const SectionBand: React.FC<{ section: Section; step?: string; extra?: React.ReactNode }> = ({
   section,
   step,
   extra,
 }) => {
   const s = SECTIONS[section];
+  const name = useSectionName(section);
   return (
     <Stack
       direction="row"
@@ -47,7 +57,7 @@ export const SectionBand: React.FC<{ section: Section; step?: string; extra?: Re
     >
       <s.Icon sx={{ color: s.color }} />
       <Typography variant="subtitle1" sx={{ fontWeight: 700, color: s.color, flex: 1 }}>
-        {s.name}
+        {name}
       </Typography>
       {extra}
       {/* Shown here, read with the screen's heading (ScreenHeading), so it isn't read twice. */}
@@ -145,14 +155,17 @@ export const isTouch = (): boolean => {
 /** One screen of a flow: the section band, the screen, and a way home that loses nothing. */
 export const FlowFrame: React.FC<
   React.PropsWithChildren<{ section: Section; step?: string; extra?: React.ReactNode }>
-> = ({ section, step, extra, children }) => (
-  <Box sx={{ maxWidth: 600, mx: 'auto' }}>
-    <SectionBand section={section} step={step} extra={extra} />
-    <Paper sx={{ p: { xs: 2.25, md: 3.5 }, mt: 1.5 }}>{children}</Paper>
-    <Box sx={{ textAlign: 'center', mt: 2 }}>
-      <Button component={RouterLink} to="/records" startIcon={<HomeIcon />} color="inherit" sx={{ minHeight: 48 }}>
-        Home. Your progress is saved.
-      </Button>
+> = ({ section, step, extra, children }) => {
+  const { t } = useI18n();
+  return (
+    <Box sx={{ maxWidth: 600, mx: 'auto' }}>
+      <SectionBand section={section} step={step} extra={extra} />
+      <Paper sx={{ p: { xs: 2.25, md: 3.5 }, mt: 1.5 }}>{children}</Paper>
+      <Box sx={{ textAlign: 'center', mt: 2 }}>
+        <Button component={RouterLink} to="/records" startIcon={<HomeIcon />} color="inherit" sx={{ minHeight: 48 }}>
+          {t('app.frame.home')}
+        </Button>
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};

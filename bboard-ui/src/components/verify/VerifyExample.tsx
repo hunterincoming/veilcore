@@ -14,9 +14,12 @@ import { Link as RouterLink } from 'react-router-dom';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import { ACCENT } from '../../config/theme';
-import { IS_MAINNET, networkLabel } from '../../config/network';
+import { IS_MAINNET } from '../../config/network';
 import { Fact, FactKey } from './DisclosedFacts';
-import { GENETICS_LABEL } from '../../veilcore/disclosure';
+import { geneticsLabel } from '../../veilcore/disclosure';
+import { useT } from '../../i18n/app';
+import { networkWords } from '../../i18n/network-words';
+import { LanguageBar } from '../../i18n/LanguagePicker';
 
 const Note: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <Typography variant="caption" sx={{ display: 'block', color: ACCENT, pl: 3.25, mt: -0.5, mb: 0.5 }}>
@@ -24,123 +27,101 @@ const Note: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </Typography>
 );
 
-export const VerifyExample: React.FC = () => (
-  <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-    <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
-      <Stack
-        component={RouterLink}
-        to="/"
-        aria-label="VeilCore home"
-        direction="row"
-        spacing={1.25}
-        sx={{
-          alignItems: 'center',
-          justifyContent: 'center',
-          mb: 3,
-          mx: 'auto',
-          width: 'fit-content',
-          minHeight: 44,
-          textDecoration: 'none',
-          color: 'text.primary',
-        }}
-      >
-        <Box sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }} />
-        <Typography variant="h6" sx={{ letterSpacing: '0.3em', fontWeight: 600 }}>
-          VEILCORE
-        </Typography>
-      </Stack>
-
-      <Alert severity="info" variant="outlined" sx={{ mb: 3 }}>
-        <Typography variant="subtitle2">Example: a made-up record.</Typography>
-        <Typography variant="body2">
-          This shows what a record&apos;s check page looks like, with a note under each line. Nothing on it was looked
-          up or checked.
-        </Typography>
-      </Alert>
-
-      <Paper sx={{ p: { xs: 3, md: 4 } }}>
-        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
-          <VerifiedIcon sx={{ color: 'text.disabled', fontSize: 30 }} />
-          <Box>
-            <Typography variant="overline" sx={{ color: 'text.secondary' }}>
-              Example · in a sealed batch · anchor reported
-            </Typography>
-            <Typography variant="h5">Harbour Mist (example)</Typography>
-          </Box>
-        </Stack>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          VEIL-EXAMPLE
-        </Typography>
-        <Divider sx={{ mb: 2 }} />
-
-        <Stack spacing={1.25}>
-          <Fact ok={false}>
-            This link was made for fingerprint 3f9a0c41e2b7…, and the registry reports the same fingerprint for this
-            record.
-          </Fact>
-          <Note>
-            The fingerprint is in the link itself, so the page can&apos;t be fooled into showing another record&apos;s
-            checks.
-          </Note>
-          <Fact ok={false}>
-            Checked in this browser: this fingerprint is in batch 41, and its path folds to the batch root.
-          </Fact>
-          <Note>On a real record this line has a tick: your own browser checks that the record is in the batch.</Note>
-          <Fact ok={false}>
-            Checked on Midnight: this batch root was written by transaction 9c41e0…b27d in block 2973563 at 2026-10-11
-            14:03 UTC.{IS_MAINNET ? '' : ' A test network can be reset and its dates carry no evidential weight.'}
-          </Fact>
-          <Note>
-            That transaction, on {networkLabel(IS_MAINNET ? 'mainnet' : 'preprod')}, is what dates the record. On a real
-            record your browser asks a Midnight indexer for it and checks it wrote this batch root to VeilCore&apos;s
-            contract. If no indexer answers, the line says so and the date is only the registry&apos;s report: look the
-            transaction up on a Midnight explorer, such as midnightexplorer.com, before relying on it.
-          </Note>
-          <Fact ok={false}>
-            Lab report (file SHA-256 7c1e04d2…9b3a51), signature verified in this browser. Signed by a key named
-            “Example Lab” (name not checked).
-          </Fact>
-          <Note>
-            A lab can sign its receipt for a sample, and its lab report, with its own key. Each line says which it is.
-            The page checks the signature; whether the key is a lab you trust is your call.
-          </Note>
-
-          <Divider sx={{ my: 0.5 }} />
-          <Typography variant="overline" color="text.secondary" sx={{ display: 'block' }}>
-            Shared by the holder · reported by the registry
+export const VerifyExample: React.FC = () => {
+  const tr = useT();
+  const { t } = tr;
+  return (
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+      <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
+        <LanguageBar />
+        <Stack
+          component={RouterLink}
+          to="/"
+          aria-label={t('app.verify.homeAria')}
+          direction="row"
+          spacing={1.25}
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            mb: 3,
+            mx: 'auto',
+            width: 'fit-content',
+            minHeight: 44,
+            textDecoration: 'none',
+            color: 'text.primary',
+          }}
+        >
+          <Box
+            sx={{ width: 12, height: 12, borderRadius: '50%', background: ACCENT, boxShadow: `0 0 14px ${ACCENT}` }}
+          />
+          <Typography variant="h6" sx={{ letterSpacing: '0.3em', fontWeight: 600 }}>
+            VEILCORE
           </Typography>
-          <Fact ok={false}>
-            The holder saved a lab report to this record. Its file (SHA-256 7c1e04d2…9b3a51) matches the lab report
-            signed by a key named “Example Lab” (name not checked): signature checked in this browser.
-          </Fact>
-          <Note>The holder chooses which facts appear here. Anything not shared is listed as not shared.</Note>
-          <Divider sx={{ my: 0.5 }} />
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <LockIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
-            <Typography variant="body2" color="text.disabled">
-              {GENETICS_LABEL}
+        </Stack>
+
+        <Alert severity="info" variant="outlined" sx={{ mb: 3 }}>
+          <Typography variant="subtitle2">{t('app.verify.ex.title')}</Typography>
+          <Typography variant="body2">{t('app.verify.ex.intro')}</Typography>
+        </Alert>
+
+        <Paper sx={{ p: { xs: 3, md: 4 } }}>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
+            <VerifiedIcon sx={{ color: 'text.disabled', fontSize: 30 }} />
+            <Box>
+              <Typography variant="overline" sx={{ color: 'text.secondary' }}>
+                {t('app.verify.ex.status')}
+              </Typography>
+              <Typography variant="h5">{t('app.verify.ex.name')}</Typography>
+            </Box>
+          </Stack>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            VEIL-EXAMPLE
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+
+          <Stack spacing={1.25}>
+            <Fact ok={false}>{t('app.verify.ex.fact1')}</Fact>
+            <Note>{t('app.verify.ex.note1')}</Note>
+            <Fact ok={false}>{t('app.verify.ex.fact2')}</Fact>
+            <Note>{t('app.verify.ex.note2')}</Note>
+            <Fact ok={false}>{t('app.verify.ex.fact3', { test: IS_MAINNET ? '' : t('app.plant.date.testNote') })}</Fact>
+            <Note>{t('app.verify.ex.note3', { network: networkWords(IS_MAINNET ? 'mainnet' : 'preprod', tr) })}</Note>
+            <Fact ok={false}>{t('app.verify.ex.fact4')}</Fact>
+            <Note>{t('app.verify.ex.note4')}</Note>
+
+            <Divider sx={{ my: 0.5 }} />
+            <Typography variant="overline" color="text.secondary" sx={{ display: 'block' }}>
+              {t('app.verify.sharedTitle')}
+            </Typography>
+            <Fact ok={false}>{t('app.verify.ex.fact5')}</Fact>
+            <Note>{t('app.verify.ex.note5')}</Note>
+            <Divider sx={{ my: 0.5 }} />
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <LockIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
+              <Typography variant="body2" color="text.disabled">
+                {geneticsLabel(tr)}
+              </Typography>
+            </Stack>
+          </Stack>
+
+          <Divider sx={{ my: 2.5 }} />
+          <Stack spacing={1}>
+            <FactKey />
+            <Typography variant="body2" color="text.secondary">
+              {t('app.verify.ex.marks')}
             </Typography>
           </Stack>
-        </Stack>
+        </Paper>
 
-        <Divider sx={{ my: 2.5 }} />
-        <Stack spacing={1}>
-          <FactKey />
-          <Typography variant="body2" color="text.secondary">
-            ✓ this page checked the line itself, in your browser. ○ VeilCore&apos;s registry or the holder reports it;
-            this page didn&apos;t check it. ⊗ a check failed, or a lab withdrew what it signed.
-          </Typography>
+        <Stack direction="row" spacing={3} sx={{ justifyContent: 'center', mt: 3, flexWrap: 'wrap', rowGap: 1 }}>
+          <Box component={RouterLink} to="/verify" sx={{ color: ACCENT, py: 1 }}>
+            {t('app.verify.ex.checkReal')}
+          </Box>
+          <Box component={RouterLink} to="/" sx={{ color: ACCENT, py: 1 }}>
+            {t('app.verify.ex.what')}
+          </Box>
         </Stack>
-      </Paper>
-
-      <Stack direction="row" spacing={3} sx={{ justifyContent: 'center', mt: 3, flexWrap: 'wrap', rowGap: 1 }}>
-        <Box component={RouterLink} to="/verify" sx={{ color: ACCENT, py: 1 }}>
-          Check a real record
-        </Box>
-        <Box component={RouterLink} to="/" sx={{ color: ACCENT, py: 1 }}>
-          What is VeilCore?
-        </Box>
-      </Stack>
-    </Container>
-  </Box>
-);
+      </Container>
+    </Box>
+  );
+};

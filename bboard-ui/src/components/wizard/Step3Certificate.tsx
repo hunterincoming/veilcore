@@ -5,6 +5,10 @@
 // for the batch proof and verifies it locally. Nothing is printed as a pass unless it was
 // checked. The time is this device's clock until the record is anchored.
 //
+// The card itself, like the PNG and JSON made from it, stays in English in every language: it
+// is a document that leaves the app, read next to the record file. The screen around it is
+// translated, and says the file is in English (InEnglishNote).
+//
 // The card is drawn in fixed light colours (the site's light design), not the theme's, so
 // the screen and the downloaded image look the same and stay readable wherever the image
 // ends up. A test-network build marks the card as practice: a test record is not evidence.
@@ -33,6 +37,7 @@ import { signerLabel } from '../../veilcore/attesters';
 import { NameCheckText } from '../NameCheckText';
 import { useBreederReceipt, useSavedReport } from '../flow/LabResults';
 import { savedReportSentence, type SavedReport } from '../../veilcore/saved-report';
+import { InEnglishNote, useT } from '../../i18n/app';
 
 // The certificate's own colours: dark text on white, every pair at least 4.5:1.
 const CERT = {
@@ -77,6 +82,7 @@ export const Step3Certificate: React.FC<{
 }> = ({ recordId, onDone, onBack, saved: given }) => {
   useLicenses();
   const certRef = useRef<HTMLDivElement>(null);
+  const { t } = useT();
   const [toast, setToast] = useState<string>();
   const record = getRecord(recordId);
   const anchorHere = useRecordKeys()[recordId]?.anchor;
@@ -97,7 +103,7 @@ export const Step3Certificate: React.FC<{
     };
   }, [record]);
 
-  if (!record) return <Typography>Record not found.</Typography>;
+  if (!record) return <Typography>{t('app.prove.share.notFound')}</Typography>;
 
   const integrityText: Record<IntegrityCheck | 'checking', string> = {
     checking: 'checking…',
@@ -162,7 +168,7 @@ export const Step3Certificate: React.FC<{
     a.download = `${record.id}-summary.json`;
     a.click();
     URL.revokeObjectURL(url);
-    setToast('Summary (JSON) downloaded.');
+    setToast(t('app.plant.cert.jsonDone'));
   };
 
   const download = async () => {
@@ -173,27 +179,26 @@ export const Step3Certificate: React.FC<{
       a.download = `${record.id}-veilcore-certificate.png`;
       a.href = dataUrl;
       a.click();
-      setToast('Certificate downloaded.');
+      setToast(t('app.plant.cert.pngDone'));
     } catch {
-      setToast('Could not render the certificate image.');
+      setToast(t('app.plant.cert.pngFailed'));
     }
   };
 
   const copyLink = async () => {
     await navigator.clipboard.writeText(verifyLink);
-    setToast('Verification link copied.');
+    setToast(t('app.plant.cert.linkCopied'));
   };
 
   return (
     <Stack spacing={2.5}>
       <Box>
         <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="" sx={{ mb: 0.5 }}>
-          Certificate
+          {t('app.plant.action.certificate')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          For your files and your lawyer: the sealed record, a fresh check that it hasn&apos;t changed, whether it is
-          anchored, the lab report saved to it, any lab receipt and active licenses. It carries the record details but
-          no genetic data or lab files. The QR code opens the record&apos;s public check page.
+          {t('app.plant.cert.intro')}
+          <InEnglishNote />
         </Typography>
       </Box>
 
@@ -201,6 +206,8 @@ export const Step3Certificate: React.FC<{
       <Box
         ref={certRef}
         data-certificate=""
+        // English in every language (above): marked so, for screen readers and line breaking.
+        lang="en"
         sx={{
           position: 'relative',
           overflow: 'hidden',
@@ -314,7 +321,7 @@ export const Step3Certificate: React.FC<{
                 {deliveryHead !== null && receiptLabel ? (
                   <>
                     {deliveryHead}
-                    <NameCheckText label={receiptLabel} />
+                    <NameCheckText label={receiptLabel} english />
                   </>
                 ) : (
                   deliveryLine
@@ -373,19 +380,19 @@ export const Step3Certificate: React.FC<{
 
       <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1.5 }}>
         <Button variant="text" onClick={onBack}>
-          Back
+          {t('app.common.back')}
         </Button>
         <Button variant="outlined" startIcon={<ContentCopyIcon />} onClick={copyLink}>
-          Copy verification link
+          {t('app.plant.cert.copyLink')}
         </Button>
         <Button variant="outlined" startIcon={<DownloadIcon />} onClick={download}>
-          Download (PNG)
+          {t('app.plant.cert.downloadPng')}
         </Button>
         <Button variant="outlined" startIcon={<DownloadIcon />} onClick={downloadJson}>
-          Download summary (JSON)
+          {t('app.plant.cert.downloadJson')}
         </Button>
         <Button variant="contained" onClick={onDone}>
-          Continue: choose what others see
+          {t('app.plant.cert.continue')}
         </Button>
       </Stack>
 

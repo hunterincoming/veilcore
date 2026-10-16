@@ -17,9 +17,10 @@ import { utcStamp as fmt } from '../../veilcore/time';
 import { useRecordDate } from '../verify/useAnchorCheck';
 import { recordDateRow } from '../flow/plant-status-words';
 import { ActionRow } from '../flow/PlantParts';
-import { EvidenceBundle, DOWNLOAD_EVIDENCE_LABEL } from '../EvidenceBundle';
+import { EvidenceBundle } from '../EvidenceBundle';
 import { SettlementStatus } from '../SettlementStatus';
 import { labReportPageLines } from './record-kinds';
+import { rich, useT } from '../../i18n/app';
 
 const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <Box>
@@ -41,7 +42,11 @@ export const LabReportOverview: React.FC<{
   const [details, setDetails] = useState(false);
   const plant = record.parents?.[0];
   const { proof, anchor } = useRecordDate(record.recordFingerprint);
-  const row = recordDateRow(proof, anchor);
+  const tr = useT();
+  const { t } = tr;
+  // The data attribute keeps the English (tests and support); the page says it in the visitor's language.
+  const enRow = recordDateRow(proof, anchor);
+  const row = recordDateRow(proof, anchor, tr);
   const needsBackup = REAL_CHAIN && !!keys && keys.backedUpAt === undefined;
 
   return (
@@ -49,26 +54,27 @@ export const LabReportOverview: React.FC<{
       <Paper sx={{ p: { xs: 2.25, md: 3 } }}>
         <Stack spacing={1}>
           <Typography variant="h6" component="h2" sx={{ overflowWrap: 'anywhere' }}>
-            This record dates a lab report for{' '}
-            {plant?.recordId ? (
-              <Link component={RouterLink} to={`/record/${plant.recordId}`}>
-                {plant.name}
-              </Link>
-            ) : (
-              (plant?.name ?? 'a plant')
-            )}
+            {rich(t('app.plant.datingPage.title'), {
+              plant: () =>
+                plant?.recordId ? (
+                  <Link component={RouterLink} to={`/record/${plant.recordId}`}>
+                    {plant.name}
+                  </Link>
+                ) : (
+                  <>{plant?.name ?? t('app.home.aPlant')}</>
+                ),
+            })}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            It holds only the report&apos;s SHA-256, its lab report code and the lab&apos;s name as signed, never the
-            report. When its batch is dated, it shows the report existed by then, without showing anyone the markers.
+            {t('app.plant.datingPage.holds')}
           </Typography>
-          {labReportPageLines(record).map((l) => (
+          {labReportPageLines(record, tr).map((l) => (
             <Typography key={l} variant="body2" sx={{ overflowWrap: 'anywhere' }}>
               {l}
             </Typography>
           ))}
-          <Typography variant="body2" sx={{ fontWeight: 700 }} data-lab-report-record-date={row.value}>
-            Record dated: {row.value}
+          <Typography variant="body2" sx={{ fontWeight: 700 }} data-lab-report-record-date={enRow.value}>
+            {t('app.plant.datingPage.recordDated', { value: row.value })}
           </Typography>
           {row.sub && (
             <Typography variant="caption" color="text.secondary">
@@ -84,11 +90,11 @@ export const LabReportOverview: React.FC<{
           variant="outlined"
           action={
             <Button color="inherit" variant="outlined" onClick={onBackup} sx={{ minHeight: 44 }}>
-              Save it
+              {t('app.home.saveIt')}
             </Button>
           }
         >
-          <b>Save your backup.</b> This record&apos;s key is only on this device.
+          {rich(t('app.plant.datingPage.backup'), { b: (c) => <b>{c}</b> })}
         </Alert>
       )}
 
@@ -98,12 +104,18 @@ export const LabReportOverview: React.FC<{
           keys={keys}
           trigger={(open) => (
             <Typography variant="body2">
-              <Link component="button" type="button" onClick={open} sx={{ verticalAlign: 'baseline' }}>
-                {DOWNLOAD_EVIDENCE_LABEL}
-              </Link>{' '}
-              <Box component="span" sx={{ color: 'text.secondary' }}>
-                to check this record’s date without VeilCore
-              </Box>
+              {rich(t('app.plant.evidenceLine'), {
+                link: (c) => (
+                  <Link component="button" type="button" onClick={open} sx={{ verticalAlign: 'baseline' }}>
+                    {c}
+                  </Link>
+                ),
+                muted: (c) => (
+                  <Box component="span" sx={{ color: 'text.secondary' }}>
+                    {c}
+                  </Box>
+                ),
+              })}
             </Typography>
           )}
         />
@@ -111,17 +123,19 @@ export const LabReportOverview: React.FC<{
 
       <Box>
         <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-          More you can do
+          {t('app.plant.moreYouCanDo')}
         </Typography>
         <Paper sx={{ px: { xs: 1.5, md: 2 } }}>
           <ActionRow
             section="prove"
-            label="Show someone"
-            hint="Pick what they see"
+            label={t('app.plant.action.show')}
+            hint={t('app.plant.action.showHint')}
             last={!(REAL_CHAIN && keys)}
             onClick={onShare}
           />
-          {REAL_CHAIN && keys && <ActionRow section="log" label="Save a fresh backup" last onClick={onBackup} />}
+          {REAL_CHAIN && keys && (
+            <ActionRow section="log" label={t('app.plant.action.freshBackup')} last onClick={onBackup} />
+          )}
         </Paper>
       </Box>
 
@@ -134,21 +148,21 @@ export const LabReportOverview: React.FC<{
           endIcon={details ? <ExpandLessIcon /> : <ExpandMoreIcon />}
           sx={{ minHeight: 44 }}
         >
-          Technical details
+          {t('app.plant.technicalDetails')}
         </Button>
         <Collapse in={details} id="record-technical-details">
           <Stack spacing={2.5} sx={{ pt: 1 }}>
             <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
               <Stack spacing={2}>
-                <Field label="Sealed by">{record.bredBy}</Field>
-                <Field label="Sealed (this device's clock)">{fmt(record.loggedAt)}</Field>
-                <Field label="Notes, as sealed">
+                <Field label={t('app.plant.datingPage.sealedBy')}>{record.bredBy}</Field>
+                <Field label={t('app.plant.f.sealedClock')}>{fmt(record.loggedAt)}</Field>
+                <Field label={t('app.plant.datingPage.notesAsSealed')}>
                   <Box component="span" sx={{ whiteSpace: 'pre-wrap' }}>
                     {record.notes}
                   </Box>
                 </Field>
                 <Divider />
-                <Field label="Record fingerprint">
+                <Field label={t('app.plant.f.recordFingerprint')}>
                   <Box component="span" sx={{ fontFamily: '"Space Grotesk", monospace' }}>
                     {shortFingerprint(record.recordFingerprint)}
                   </Box>
@@ -161,11 +175,10 @@ export const LabReportOverview: React.FC<{
             <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
               <Stack spacing={1}>
                 <Typography variant="overline" sx={{ display: 'block' }}>
-                  Evidence bundle
+                  {t('app.plant.evidenceBundle')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  The record as sealed, its inclusion proof, the batch root and where the batch was recorded, in one
-                  .zip. Its verify.html checks it with no internet and nothing from VeilCore.
+                  {t('app.plant.datingPage.bundleText')}
                 </Typography>
                 <Box>
                   <EvidenceBundle record={record} keys={keys} />

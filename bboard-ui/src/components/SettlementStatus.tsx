@@ -24,8 +24,9 @@ import DownloadIcon from '@mui/icons-material/FileDownloadOutlined';
 import LinkIcon from '@mui/icons-material/LaunchOutlined';
 import { bitcoinStampFor, downloadProof } from '../veilcore/proofs';
 import type { StrainRecord } from '../veilcore/records';
-import { NETWORK, explorerFor, networkLabel } from '../config/network';
-import { OUR_SERVER } from '../config/copy';
+import { NETWORK, explorerFor } from '../config/network';
+import { rich, useT } from '../i18n/app';
+import { networkWords } from '../i18n/network-words';
 import { anchorConfirmed, anchorLine } from './verify/anchor-words';
 import { useRecordDate } from './verify/useAnchorCheck';
 import { reportedText, settlementChip } from './settlement-words';
@@ -35,18 +36,18 @@ export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record })
   // The record's proof and its anchor looked up on Midnight: the same answer the plant
   // page's status card and History show (useAnchorCheck.ts, chain/anchor-lookup.ts).
   const { proof: loaded, anchor } = useRecordDate(record.recordFingerprint);
+  const tr = useT();
+  const { t } = tr;
   const state = loaded === 'checking' ? ({ status: 'none' } as const) : loaded;
 
   if (state.status === 'none') {
     return (
       <Stack spacing={1}>
         <Typography variant="overline" sx={{ display: 'block' }}>
-          Date on Midnight
+          {t('app.plant.date.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Sealed on your device and kept on {OUR_SERVER}. It isn&apos;t in a batch yet, so it isn&apos;t anchored. We
-          anchor records together, in batches (by hand for now, so it can take a while), so one transaction covers many
-          and you never need a wallet. Until then its date rests on this registry&apos;s records.
+          {t('app.plant.date.notInBatch', { server: t('app.copy.ourServer') })}
         </Typography>
       </Stack>
     );
@@ -62,23 +63,23 @@ export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record })
   // ticked (bound). Nothing extra when this build has no indexer for that network.
   const anchorText =
     reported && anchor !== undefined
-      ? anchorLine(anchor, { network, bound: true, reportedAt: proof.anchor?.anchoredAt })
+      ? anchorLine(anchor, { network, bound: true, reportedAt: proof.anchor?.anchoredAt }, tr)
       : undefined;
   const confirmed = anchorConfirmed(anchor);
 
   return (
     <Stack spacing={1.5}>
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-        <Typography variant="overline">Date on Midnight</Typography>
+        <Typography variant="overline">{t('app.plant.date.title')}</Typography>
         {/* Never "Anchored" on the registry's word alone (attack round D): only once this
             browser has found the root in the transaction on Midnight. */}
-        <Chip size="small" variant="outlined" label={settlementChip(reported, network, anchor)} />
+        <Chip size="small" variant="outlined" label={settlementChip(reported, network, anchor, tr)} />
       </Stack>
 
       <Typography variant="body2" color="text.secondary">
         {reported
-          ? reportedText(proof.batchId, network, anchorText !== undefined, confirmed)
-          : `Checked in this browser: your record's fingerprint is in batch ${proof.batchId}, which has not been anchored yet. When it is, the proof gains a reference to the transaction. Nothing about your record changes.`}
+          ? reportedText(proof.batchId, network, anchorText !== undefined, confirmed, tr)
+          : t('app.plant.date.inBatchNotAnchored', { batch: proof.batchId })}
       </Typography>
 
       {anchorText && (
@@ -88,11 +89,11 @@ export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record })
       )}
 
       <Box sx={{ fontFamily: 'monospace', fontSize: 12, color: 'text.secondary' }}>
-        <div>batch {proof.batchId}</div>
-        <div>root {proof.root.slice(0, 32)}…</div>
+        <div>{t('app.plant.date.batchLine', { batch: proof.batchId })}</div>
+        <div>{t('app.plant.date.rootLine', { root: proof.root.slice(0, 32) })}</div>
         {reported && proof.anchor?.txHash && (
           <div style={{ wordBreak: 'break-all' }}>
-            tx ({confirmed ? 'checked on Midnight' : 'reported by the registry'}) {proof.anchor.txHash}
+            {t(confirmed ? 'app.plant.date.txChecked' : 'app.plant.date.txReported', { tx: proof.anchor.txHash })}
           </div>
         )}
       </Box>
@@ -104,36 +105,33 @@ export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record })
           startIcon={<DownloadIcon />}
           onClick={() => downloadProof(proof, record.id)}
         >
-          Download inclusion proof
+          {t('app.plant.date.downloadProof')}
         </Button>
         {stamp && (
           <Button size="small" variant="outlined" startIcon={<DownloadIcon />} href={stamp.otsUrl} download>
-            Download Bitcoin stamp file
+            {t('app.plant.date.downloadStamp')}
           </Button>
         )}
         {reported && proof.anchor?.txHash && explorer && (
           <Button size="small" variant="text" startIcon={<LinkIcon />} href={explorer} target="_blank" rel="noopener">
-            Open the explorer for {networkLabel(network)}
+            {t('app.plant.date.openExplorer', { network: networkWords(network, tr) })}
           </Button>
         )}
       </Stack>
 
       <Typography variant="caption" color="text.secondary">
-        {confirmed
-          ? 'The file shows your record is in this batch. This page found the batch root in the named transaction on Midnight. Anyone can repeat that: the evidence bundle has everything they need and says how, and the check page does the same look-up in their own browser.'
-          : 'The file shows your record is in this batch. It dates the record only once the batch root is found in the named transaction. The evidence bundle has everything needed to look that up and says how, and the check page does the look-up in the browser when it can reach Midnight.'}
+        {confirmed ? t('app.plant.date.fileConfirmed') : t('app.plant.date.fileNotConfirmed')}
       </Typography>
       {stamp && (
         <Typography variant="caption" color="text.secondary">
-          The Bitcoin stamp file dates this batch&apos;s root on Bitcoin with the free OpenTimestamps tool:{' '}
-          <code>ots verify root.bin.ots</code>, next to{' '}
-          <a href={stamp.rootUrl} download>
-            the batch root file (root.bin)
-          </a>
-          .{' '}
-          {stamp.status === 'pending'
-            ? 'It is still pending: a promise from the stamping servers, not yet in a Bitcoin block. Run `ots upgrade` on it once Bitcoin confirms.'
-            : 'It is in a Bitcoin block, so it checks against Bitcoin alone.'}
+          {rich(t(stamp.status === 'pending' ? 'app.plant.date.stampPending' : 'app.plant.date.stampInBlock'), {
+            code: (c) => <code>{c}</code>,
+            link: (c) => (
+              <a href={stamp.rootUrl} download>
+                {c}
+              </a>
+            ),
+          })}
         </Typography>
       )}
     </Stack>

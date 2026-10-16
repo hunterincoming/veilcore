@@ -25,6 +25,7 @@
 // The age encryption library (and the curve code under it) is loaded when a report is
 // locked or opened, not with every page that shows a lab result line (the check page).
 const age = () => import('age-encryption');
+import { enT, type Translator } from '../i18n/translate';
 import { bech32 } from '@scure/base';
 import { hkdf } from '@noble/hashes/hkdf.js';
 import { sha256 } from '@noble/hashes/sha2.js';
@@ -251,16 +252,16 @@ export const sentRowWords = (
   state: ResultState,
   r: ResultSummary,
   mine: { signed: ReadonlyMap<string, string>; retracted: ReadonlySet<string> } | null,
+  tr: Translator = enT,
 ): string => {
-  if (state === 'replaced') return 'Replaced by your corrected file.';
+  if (state === 'replaced') return tr.t('app.lab.out.rowReplaced');
   if (state === 'withdrawn')
-    return `Withdrawn on ${new Date(r.withdrawnAt ?? r.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}.`;
+    return tr.t('app.lab.out.rowWithdrawn', { date: tr.date(r.withdrawnAt ?? r.createdAt, { dateStyle: 'medium' }) });
   if (!mine) return '';
   const fp = r.attestationId ? mine.signed.get(r.attestationId) : undefined;
-  if (fp) return `Signed by your key · fingerprint ${fp.slice(0, 8)}…${fp.slice(-6)}`;
-  if (r.attestationId && mine.retracted.has(r.attestationId))
-    return 'Your signature on it is withdrawn, but the file is still with the registry. Withdraw it to finish.';
-  return 'Not signed by the key in this browser.';
+  if (fp) return tr.t('app.lab.out.rowSigned', { fp: `${fp.slice(0, 8)}…${fp.slice(-6)}` });
+  if (r.attestationId && mine.retracted.has(r.attestationId)) return tr.t('app.lab.out.rowRetracted');
+  return tr.t('app.lab.out.rowNotSigned');
 };
 
 /**
@@ -273,19 +274,20 @@ export const sendRefusal = (
   results: readonly ResultSummary[],
   signedHere: ReadonlyMap<string, string>,
   replaces?: string,
+  tr: Translator = enT,
 ): string | null => {
   const live = liveResults(results);
   if (replaces && !live.some((r) => r.id === replaces)) {
-    return 'The lab report you are correcting has already been withdrawn or replaced.';
+    return tr.t('app.lab.out.alreadyGone');
   }
   if (live.some((r) => r.attestationId && signedHere.get(r.attestationId) === sha)) {
-    return 'You already sent this exact file on this delivery. Nothing was signed.';
+    return tr.t('app.lab.out.sameFile');
   }
   if (results.filter((r) => !r.withdrawnAt).length >= RESULT_CAP) {
-    return `This delivery already has ${RESULT_CAP} lab reports, the most it can take. Withdraw one first. Nothing was signed.`;
+    return tr.t('app.lab.out.cap', { cap: String(RESULT_CAP) });
   }
   if (results.length >= RESULT_ROWS_CAP) {
-    return 'This delivery has had as many lab reports as it can take, withdrawn ones included. Ask the breeder for a new lab code. Nothing was signed.';
+    return tr.t('app.lab.out.rowsCap');
   }
   return null;
 };
@@ -590,5 +592,6 @@ export const reportFileName = (bytes: Uint8Array, at: number, resultId: string):
 };
 
 /** Said before a lab withdraws a correction (round 5): nothing from it stands afterwards. */
+/** (app.lab.out.correctionWarning in the visitor's language.) */
 export const WITHDRAW_CORRECTION_WARNING =
   'The original stays replaced. The breeder will have no live report from you until you send one.';

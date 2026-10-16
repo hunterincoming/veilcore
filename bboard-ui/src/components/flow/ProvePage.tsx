@@ -25,6 +25,16 @@ import { useChainCall } from '../chain/useChainCall';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import { ProveWatch } from '../chain/ProveWatch';
 import { FlowFrame } from './FlowFrame';
+import { rich, useT } from '../../i18n/app';
+import { LanguageBar } from '../../i18n/LanguagePicker';
+
+/** This page has no app header: the language picker and the draft banner sit above its frame. */
+const ProveFrame: React.FC<React.PropsWithChildren> = ({ children }) => (
+  <>
+    <LanguageBar />
+    <FlowFrame section="prove">{children}</FlowFrame>
+  </>
+);
 
 const Title: React.FC<React.PropsWithChildren> = ({ children }) => (
   <Typography variant="h4" component="h1" sx={{ fontSize: { xs: '1.7rem', md: '2.1rem' }, mb: 1 }}>
@@ -40,6 +50,8 @@ export const ProvePage: React.FC = () => {
   const [req, setReq] = useState<ProveRequest | null | 'loading' | { error: string }>('loading');
   useRecords();
   const allKeys = useRecordKeys();
+  const { t } = useT();
+  const b = (c: React.ReactNode) => <b>{c}</b>;
 
   useEffect(() => {
     let live = true;
@@ -53,56 +65,52 @@ export const ProvePage: React.FC = () => {
   if (mine) {
     const record = mine.recordId ? getRecord(mine.recordId) : undefined;
     return (
-      <FlowFrame section="prove">
-        <Title>Your request</Title>
+      <ProveFrame>
+        <Title>{t('app.prove.yourRequest')}</Title>
         <Typography variant="body1" sx={{ mb: 2 }}>
-          You asked the holder of {record ? <b>{record.strainName}</b> : 'this plant'} to prove they hold it. Send them
-          this link if you haven&apos;t yet.
+          {record ? rich(t('app.prove.youAskedNamed'), { b }, { name: record.strainName }) : t('app.prove.youAsked')}
         </Typography>
         <ProveWatch ask={mine} />
         {mine.recordId && (
           <Button component={RouterLink} to={`/verify/${mine.recordId}`} sx={{ mt: 2 }}>
-            Open the plant&apos;s check page
+            {t('app.prove.openCheckPage')}
           </Button>
         )}
-      </FlowFrame>
+      </ProveFrame>
     );
   }
 
   if (req === 'loading') {
     return (
-      <FlowFrame section="prove">
+      <ProveFrame>
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <CircularProgress size={20} />
-          <Typography>Opening the request…</Typography>
+          <Typography>{t('app.prove.opening')}</Typography>
         </Stack>
-      </FlowFrame>
+      </ProveFrame>
     );
   }
   if (req === null || 'error' in req) {
     return (
-      <FlowFrame section="prove">
-        <Title>{req === null ? 'This request has ended' : 'Can’t open this right now'}</Title>
+      <ProveFrame>
+        <Title>{req === null ? t('app.prove.ended') : t('app.prove.cantOpen')}</Title>
         <Typography variant="body1">
           {req === null
-            ? 'It has expired (requests last a week), or the link is not complete. Ask them to send a new one.'
-            : `${req.error.charAt(0).toUpperCase()}${req.error.slice(1)}.`}
+            ? t('app.prove.expired')
+            : t('app.lab.custody.line', { v: `${req.error.charAt(0).toUpperCase()}${req.error.slice(1)}` })}
         </Typography>
-      </FlowFrame>
+      </ProveFrame>
     );
   }
 
   const match = Object.values(allKeys).find((k) => k.anchor?.identity === req.identity);
   const record = match ? getRecord(match.recordId) : undefined;
   return (
-    <FlowFrame section="prove">
+    <ProveFrame>
       {match && !token ? (
         <>
-          <Title>This link is missing its last part</Title>
-          <Typography variant="body1">
-            The answer can only go back with the whole link. Open the link exactly as they sent it, or ask them to send
-            it again.
-          </Typography>
+          <Title>{t('app.prove.missingPart')}</Title>
+          <Typography variant="body1">{t('app.prove.missingPartText')}</Typography>
         </>
       ) : match && token ? (
         <Answer
@@ -114,18 +122,16 @@ export const ProvePage: React.FC = () => {
         />
       ) : (
         <>
-          <Title>Someone wants you to prove you hold a plant</Title>
+          <Title>{t('app.prove.someoneWants')}</Title>
           <Typography variant="body1" sx={{ mb: 2 }}>
-            {Object.keys(allKeys).length === 0
-              ? 'Your plants aren’t on this phone or computer. Open this link where you keep them, or get them back here from your backup file, then open the link again.'
-              : 'None of the plants here is the one they asked about. If you keep it on another phone or computer, open this link there. If you only have it in a backup file, restore it here, then open the link again.'}
+            {Object.keys(allKeys).length === 0 ? t('app.prove.noPlantsHere') : t('app.prove.notThisPlant')}
           </Typography>
           <Button variant="outlined" size="large" component={RouterLink} to="/restore" sx={{ py: 1.2 }}>
-            Get my plants back from a backup
+            {t('app.prove.getBack')}
           </Button>
         </>
       )}
-    </FlowFrame>
+    </ProveFrame>
   );
 };
 
@@ -138,12 +144,14 @@ const Answer: React.FC<{ req: ProveRequest; token: string; recordId: string; nam
 }) => {
   const call = useChainCall<{ txId: string; sent: true } | { txId: string; sent: false; why: string }>();
   const notReady = chainNotReady();
+  const { t } = useT();
+  const b = (c: React.ReactNode) => <b>{c}</b>;
 
   const prove = () =>
     call.run(async (progress) => {
       const { proveOwnershipOnChain } = await import('../../veilcore/chain/actions');
       const receipt = await proveOwnershipOnChain(hexBytes(secret), req.challenge, { progress });
-      progress('Sending the answer back…');
+      progress('Sending the answer back…'); // shown in the visitor's language (progress-words.ts)
       const posted = await answerProveRequest(req.id, receipt.txId, token);
       return 'error' in posted
         ? { txId: receipt.txId, sent: false as const, why: posted.error }
@@ -153,26 +161,23 @@ const Answer: React.FC<{ req: ProveRequest; token: string; recordId: string; nam
   if (call.result) {
     return call.result.sent ? (
       <>
-        <Title>Done</Title>
+        <Title>{t('app.prove.done')}</Title>
         <Typography variant="body1" sx={{ mb: 2 }}>
-          They&apos;ll see the answer on their page. Nothing about the plant was sent: only proof that you hold its
-          record.
+          {t('app.prove.doneText')}
         </Typography>
         <Button variant="contained" size="large" component={RouterLink} to={`/record/${recordId}`} sx={{ py: 1.3 }}>
-          Back to {name ?? 'the plant'}
+          {t('app.plant.next.backTo', { name: name ?? t('app.prove.thePlant') })}
         </Button>
       </>
     ) : (
       <>
-        <Title>Proved, but the answer didn&apos;t send</Title>
-        <Typography variant="body1">
-          ({call.result.why}.) Send them this instead; they can paste it under &quot;Do it by hand&quot;:
-        </Typography>
+        <Title>{t('app.prove.didntSend')}</Title>
+        <Typography variant="body1">{t('app.prove.sendInstead', { why: call.result.why })}</Typography>
         <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all', my: 1 }}>
           {call.result.txId}
         </Typography>
         <Button variant="outlined" onClick={() => void navigator.clipboard.writeText(call.result?.txId ?? '')}>
-          Copy
+          {t('app.prove.copy')}
         </Button>
       </>
     );
@@ -181,33 +186,36 @@ const Answer: React.FC<{ req: ProveRequest; token: string; recordId: string; nam
   return (
     <Stack spacing={2}>
       <Box>
-        <Title>Prove you hold {name ?? 'this plant'}</Title>
+        <Title>{t('app.prove.title', { name: name ?? t('app.prove.thisPlant') })}</Title>
         {req.asker ? (
           <Typography variant="body1">
-            Asked by someone who says they&apos;re <b>&ldquo;{req.asker}&rdquo;</b>.{' '}
-            <Typography component="span" variant="body2" color="text.secondary">
-              VeilCore hasn&apos;t checked that.
-            </Typography>
+            {rich(
+              t('app.prove.askedBy'),
+              {
+                b,
+                muted: (c) => (
+                  <Typography component="span" variant="body2" color="text.secondary">
+                    {c}
+                  </Typography>
+                ),
+              },
+              { asker: req.asker },
+            )}
           </Typography>
         ) : (
-          <Typography variant="body1">Someone asked you to prove it. They didn&apos;t give a name.</Typography>
+          <Typography variant="body1">{t('app.prove.askedAnon')}</Typography>
         )}
       </Box>
       <Alert severity="info" variant="outlined" icon={false}>
-        <Typography variant="body2">
-          <b>What this sends:</b> only proof that you hold this plant&apos;s record, put on the test network. No name,
-          no genetics, nothing about your other plants.
-        </Typography>
+        <Typography variant="body2">{rich(t('app.prove.whatSends'), { b })}</Typography>
       </Alert>
       {notReady ? (
         <Alert severity="warning" variant="outlined">
-          Proving works on the test version only right now.
+          {t('app.prove.testOnly')}
         </Alert>
       ) : (
         <>
-          <Typography variant="body2">
-            Answering tells whoever sent you this link that you hold this plant&apos;s record.
-          </Typography>
+          <Typography variant="body2">{t('app.prove.answering')}</Typography>
           <Button
             variant="contained"
             size="large"
@@ -216,13 +224,13 @@ const Answer: React.FC<{ req: ProveRequest; token: string; recordId: string; nam
             onClick={() => void prove()}
             sx={{ py: 1.6 }}
           >
-            {call.busy ? 'Proving…' : 'Prove it'}
+            {call.busy ? t('app.prove.proving') : t('app.prove.proveIt')}
           </Button>
         </>
       )}
       <ChainStatusLine busy={call.busy} progress={call.progress} error={call.error} />
       <Typography variant="caption" color="text.secondary">
-        It can take a few minutes. Test network: practice only.
+        {t('app.prove.fewMinutes')}
       </Typography>
     </Stack>
   );

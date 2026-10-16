@@ -38,7 +38,24 @@ import { fileURLToPath } from 'node:url';
 import { en, type StringKey } from './en';
 import { mainnetStrings, DATED_POSTS } from './en-mainnet';
 import { testchainStrings } from './en-testchain';
-import { networkOverlay, LANGUAGES, type Lang } from './index';
+import { appEn } from './app/en';
+import { appJa } from './app/ja';
+import { appEs } from './app/es';
+import { appDe } from './app/de';
+import { appFr } from './app/fr';
+
+/** The record app's words in each translation, for copy that names its buttons. */
+const APP = { ja: appJa, es: appEs, de: appDe, fr: appFr };
+
+/** The English app keys a source file uses ('app.plant.open' and the like), and their text. */
+const appKeysIn = (src: string): string[] => [...src.matchAll(/'(app\.[\w.-]+)'/g)].map((m) => m[1]);
+/** A component's words: its own literals, and the English of the app keys it uses. */
+const appText = (src: string): string =>
+  [src, ...appKeysIn(src).map((k) => (appEn as Record<string, string>)[k] ?? '')].join('\n');
+/** Whether a component shows these words, as a literal or through an app key. */
+const says = (src: string, words: string): boolean => appText(src).includes(words);
+import { type Lang } from './index';
+import { networkOverlay, LANGUAGES } from './catalogs';
 import { ja, jaMainnet, jaTestchain } from './ja';
 import { labResultsEnabledFor } from '../config/network';
 import { readIndexersFor } from '../veilcore/chain/config';
@@ -216,7 +233,7 @@ describe('what to keep if VeilCore is gone', () => {
   const source = (f: string) => fs.readFileSync(path.join(SRC, f), 'utf8');
   /** Builder P's plant page offers the batch's .ots file once this label is there. */
   const plantPage = () => source('components/RecordDetail.tsx') + source('components/SettlementStatus.tsx');
-  const stampButton = /Download Bitcoin stamp file/.test(plantPage());
+  const stampButton = says(plantPage(), 'Download Bitcoin stamp file');
   it('names the files, says the backup holds keys only, and makes no promise for a copy you lack', () => {
     const k = 'm.open.2p';
     expect(en[k], k).toMatch(/inclusion proof/);
@@ -257,7 +274,10 @@ describe('what to keep if VeilCore is gone', () => {
     for (const lang of ['de', 'fr', 'es', 'ja'] as Lang[])
       for (const k of ['m.open.2t', 'm.open.2p'] as const) {
         expect(LANGUAGES[lang].strings[k], `${lang} ${k}`).not.toMatch(COMING[lang]);
-        expect(LANGUAGES[lang].strings[k], `${lang} ${k}`).toContain(k === 'm.open.2p' ? label : '');
+        // The page names the plant page's buttons as they read in that language (i18n/app).
+        expect(LANGUAGES[lang].strings[k], `${lang} ${k}`).toContain(
+          k === 'm.open.2p' ? APP[lang as Exclude<Lang, 'en'>]['app.plant.bundle.download'] : '',
+        );
       }
   });
   it('describes the Bitcoin stamp file the way the plant page really offers it', () => {
@@ -265,6 +285,18 @@ describe('what to keep if VeilCore is gone', () => {
       // The button exists: no page may still say the file is only on our server.
       expect(en['m.open.2p']).toContain('Download Bitcoin stamp file');
       expect(en['m.tech.btc.p']).toContain('Download Bitcoin stamp file');
+      // Each translation names it, and the other plant-page buttons, as the app does in that language.
+      for (const lang of ['de', 'fr', 'es', 'ja'] as const) {
+        const app = APP[lang];
+        expect(LANGUAGES[lang].strings['m.tech.btc.p'], lang).toContain(app['app.plant.date.downloadStamp']);
+        for (const k of [
+          'app.plant.date.downloadStamp',
+          'app.plant.technicalDetails',
+          'app.plant.exportRecord',
+          'app.plant.date.downloadProof',
+        ] as const)
+          expect(LANGUAGES[lang].strings['m.open.2p'], `${lang} ${k}`).toContain(app[k]);
+      }
       for (const s of ALL_ENGLISH) expect(offenders(s, /only on our server/i)).toEqual([]);
     } else {
       // Not yet: say so, and don't name a button that isn't there.
@@ -277,10 +309,10 @@ describe('what to keep if VeilCore is gone', () => {
   it('the buttons the page names are the ones on the plant page', () => {
     // If these move or are renamed, the copy must follow.
     const detail = source('components/RecordDetail.tsx');
-    expect(detail).toMatch(/Technical details/);
-    expect(detail).toMatch(/Export record/);
+    expect(says(detail, 'Technical details')).toBe(true);
+    expect(says(detail, 'Export record')).toBe(true);
     expect(detail).toMatch(/<SettlementStatus /);
-    expect(source('components/SettlementStatus.tsx')).toMatch(/Download inclusion proof/);
+    expect(says(source('components/SettlementStatus.tsx'), 'Download inclusion proof')).toBe(true);
     for (const label of ['Export record', 'Download inclusion proof', 'Technical details'])
       expect(en['m.open.2p']).toContain(label);
   });
@@ -397,9 +429,10 @@ describe("what's live where", () => {
     // with OpenTimestamps off (docs/no-wallet-run-12oct.md), so there is no test cell.
     // The "Not yet" cell (getting the stamp file from the website) goes once the plant page
     // offers it.
-    const stampButton = /Download Bitcoin stamp file/.test(
+    const stampButton = says(
       fs.readFileSync(path.join(SRC, 'components/RecordDetail.tsx'), 'utf8') +
         fs.readFileSync(path.join(SRC, 'components/SettlementStatus.tsx'), 'utf8'),
+      'Download Bitcoin stamp file',
     );
     expect(rows.find((r) => r.row === 'btc')?.has).toEqual([true, false, !stampButton]);
     expect(e['m.live.btc.main']).toMatch(/block 971004 on 11 October/);
@@ -646,7 +679,8 @@ describe('round 3: what a page may claim', () => {
     expect(offenders(jaMain, old.ja)).toEqual([]);
     const lab = fs.readFileSync(path.join(SRC, 'components/flow/LabResults.tsx'), 'utf8');
     expect(lab).not.toMatch(holds);
-    expect(lab).toContain(
+    expect(appText(lab)).not.toMatch(holds);
+    expect(appText(lab)).toContain(
       'The locked file waits on VeilCore’s server for the breeder to open; VeilCore can’t read it.',
     );
     const video = fs.readFileSync(path.join(SRC, '..', 'media-src/explainer/explainer.html'), 'utf8');

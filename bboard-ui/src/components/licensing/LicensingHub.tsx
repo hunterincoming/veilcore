@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import { useLicenses, allLicenses, agreementType } from '../../veilcore/licenses';
 import { getRecord } from '../../veilcore/records';
 import { AppHeader } from '../AppHeader';
+import { InEnglishPage } from '../../i18n/app';
 import { LicenseStateChip } from './LicenseStateChip';
 import { AgreementTypeChip } from './AgreementTypeChip';
 import { AGREEMENTS_SIMULATED } from '../../config/copy';
@@ -25,6 +26,7 @@ export const LicensingHub: React.FC = () => {
   return (
     <Box>
       <AppHeader />
+      <InEnglishPage />
       <Typography variant="h4" component="h1" sx={{ mb: 0.5 }}>
         Agreements
       </Typography>
