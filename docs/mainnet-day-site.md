@@ -2,9 +2,10 @@
 
 **For Hunter, on the Mac, after both contracts are deployed (runbook section C).** One
 command puts veilcore.org into mainnet mode. It refuses to run until the main contract's
-address is pinned and the registry is set to anchor on mainnet at that same address. It
-does not look the contract up on the chain: checking that the address on your paper is
-the one pinned is your step (below).
+address is pinned, the registry is set to anchor on mainnet at that same address, and the
+registry serves sealed records, lab results and animal records. It does not look the
+contract up on the chain: checking that the address on your paper is the one pinned is
+your step (below).
 
 ## What changes on the site
 
@@ -37,7 +38,9 @@ Nothing in the site's code is edited by hand. The wording comes from the build m
    - `VEILCORE_ANCHOR_NETWORK` = `mainnet`
    - `VEILCORE_ANCHOR_CONTRACT` = the main contract address (from your paper)
    Save, and wait until Railway shows the new deployment as active (a minute or two).
-4. The maintenance policy. If both founders have approved it, Claude changes the first
+4. The registry has the latest code: sealed records, lab results and animal records. Claude
+   says when it is live on Railway. The site checks this itself (below).
+5. The maintenance policy. If both founders have approved it, Claude changes the first
    line of `docs/maintenance-policy.md` to `**Status: APPROVED, <date>` in a commit, and
    the site then says it is approved. If not, leave it: the site says "proposed, not
    decided", which is true. Either way it is your call, not something to rush for launch.
@@ -52,17 +55,18 @@ Open Terminal. Paste these one line at a time. Nothing here is a secret.
 4. `npm ci` (a few minutes)
 5. `npm run deploy:mainnet`
 
-It first prints four lines:
+It first prints five lines:
 
 ```
 Main contract pinned: <the main address>
 Claims contract pinned: <the claims address>
 Maintenance policy: PROPOSED. The site will say it is proposed, not decided.
+Registry https://veilcore-api-production.up.railway.app serves sealed records, lab results and animal records.
 Registry https://veilcore-api-production.up.railway.app anchors on mainnet to the same contract. Building the mainnet site.
 ```
 
 Check the first address against your paper. The policy line says `APPROVED` instead only if
-the policy file says so (step 4 above). Then it builds and deploys (a few minutes) and
+the policy file says so ("Before you start", step 5). Then it builds and deploys (a few minutes) and
 ends with `Deployed https://…` and two `alias` lines for veilcore.org and www.veilcore.org.
 
 ### If it says NOT DEPLOYED
@@ -76,6 +80,8 @@ missing. The usual ones:
 | `The registry does not anchor on mainnet yet (it says: preview)` | Railway still has the old settings. Do "Before you start" step 3, wait for the redeploy, then step 5. |
 | `The registry anchors on mainnet to …, but the pinned main contract is …` | The two addresses differ. Do not deploy. Send Claude both lines. |
 | `Could not read the registry` | Check your internet, and that veilcore-api is running on Railway. Try again. |
+| `The registry at … is missing lab-results-v1 (lab results) …` (or `sealed-records-v1`, `animal-profile-v1`) | The registry on Railway is older than the site. Deploy the registry first (send Claude the line), wait until Railway shows the new deployment as active, then run `npm run deploy:mainnet` again. |
+| `The registry at … is not ready (its /health answered 503)` | The registry is still starting, or part of it failed to load. Wait a minute and try again; if it repeats, send Claude the line. |
 | `The status line of docs/maintenance-policy.md reads …` | The policy's first line was changed to something the site can't read. Send Claude the line. |
 | Anything about Vercel or `alias` | The site may be built but not switched. Send Claude the last 20 lines. |
 
@@ -87,7 +93,7 @@ Open **veilcore.org** (pull down to refresh; if it still looks old, open it in a
 2. Scroll to **Where things stand**: the second box says **Main network**. Then near the end,
    open **For technical readers** → **Show the detail**: the two contract addresses are there.
    They match your paper. Under them, "Who can change the contract" says *"proposed, not decided"* (or *"Both founders have approved"*
-   if you did step 4).
+   if you did step 5 of "Before you start").
 3. Tap **Try the demo**, then **Create a record** (answer the "Which describes you?" question
    if it appears). The chips at the top say **Web demo** and **Main network** (not "Test network").
 4. Open **Demo privacy** at the bottom: it says *"Dated on Midnight's main network"*.
@@ -101,7 +107,10 @@ If any of these still say "test network", send Claude a screenshot.
   (`NOT DEPLOYED. The registry anchors on mainnet now … Use npm run deploy:mainnet
   instead.`). If you see that, nothing was changed; run `npm run deploy:mainnet`.
 - Deploy the registry before the site: the site's sample custody fields (the sample details a
-  lab sees, and what it notes on arrival) use the registry's `/transfers/:id/custody` route.
+  lab sees, and what it notes on arrival) use the registry's `/transfers/:id/custody` route,
+  and sealed records, lab results and animal records need the registry to list
+  `sealed-records-v1`, `lab-results-v1` and `animal-profile-v1` on its `/health`.
+  `deploy:mainnet` and `deploy:test` check that and refuse otherwise.
 - New records stay unanchored until someone anchors a batch (registry README, "Anchoring a
   batch on mainnet": seal, CLI option 29, then one curl). The site says this is done by
   hand; decide with Mako how often, so "a while" stays short.

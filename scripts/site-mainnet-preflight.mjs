@@ -1,9 +1,11 @@
 // Runs first in `npm run deploy:mainnet`. The mainnet website says records are dated on
 // Midnight's main network, so it is built only when that is already true:
-//   1. the main contract's address is pinned (api/src/deploy-guard.ts), and
+//   1. the main contract's address is pinned (api/src/deploy-guard.ts),
 //   2. the registry the site talks to publishes that same contract on mainnet as the
-//      place it anchors batches (its /.well-known/veilcore-registry).
-// If either is not so, nothing is built or deployed, and it says what to do in plain words.
+//      place it anchors batches (its /.well-known/veilcore-registry), and
+//   3. that registry serves everything the site uses: its GET /health lists sealed records,
+//      lab results and animal records (scripts/registry-features.mjs).
+// If any of these is not so, nothing is built or deployed, and it says what to do in plain words.
 // It also reads the maintenance policy's status line (scripts/maintenance-policy.mjs) and
 // prints what the site will say about it.
 // SPDX-License-Identifier: Apache-2.0
@@ -11,6 +13,7 @@
 import { pathToFileURL } from 'node:url';
 import { readMainnetPins, normaliseAddress, TEST_OVERRIDE } from './mainnet-pins.mjs';
 import { readPolicyStatus } from './maintenance-policy.mjs';
+import { checkRegistryFeatures, featuresLine } from './registry-features.mjs';
 
 export const DEFAULT_API = 'https://veilcore-api-production.up.railway.app';
 
@@ -77,6 +80,8 @@ const main = async () => {
   if (!read.ok) fail(read.problem);
   const verdict = checkDescriptor(read.descriptor, pins.veilcore);
   if (!verdict.ok) fail(verdict.problem);
+  const features = await checkRegistryFeatures(api);
+  if (!features.ok) fail(features.problem);
 
   console.log(`Main contract pinned: ${pins.veilcore}`);
   console.log(
@@ -89,6 +94,7 @@ const main = async () => {
       ? 'Maintenance policy: APPROVED. The site will link the approved maintenance policy.'
       : 'Maintenance policy: PROPOSED. The site will say it is proposed, not decided.',
   );
+  console.log(featuresLine(api));
   console.log(`Registry ${api} anchors on mainnet to the same contract. Building the mainnet site.`);
 };
 

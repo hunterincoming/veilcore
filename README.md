@@ -143,6 +143,11 @@ npm run deploy:prod
 cannot be read), because the test-network wording would then be false. After the mainnet
 launch the site is published with `npm run deploy:mainnet` (`docs/mainnet-day-site.md`).
 
+Deploy the registry before the site. `deploy:mainnet` and `deploy:test` refuse unless the
+registry's `/health` lists `sealed-records-v1`, `lab-results-v1` and `animal-profile-v1`,
+because every build of the site offers sealed records, lab results and animal records
+(`scripts/registry-features.mjs`).
+
 ## Licence
 
 Apache-2.0. Built on the Midnight Network.
