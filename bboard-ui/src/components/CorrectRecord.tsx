@@ -29,7 +29,8 @@ import { useNavigate } from 'react-router-dom';
 import { previewCorrection, type CorrectionPreview } from '../veilcore/corrections';
 import { issueCorrection, type StrainRecord } from '../veilcore/records';
 import { INK_COLOR } from '../config/theme';
-import { useT } from '../i18n/app';
+import { useRecordT } from '../i18n/app';
+import { isAnimal } from '../veilcore/animal-profile';
 import type { AppKey } from '../i18n/app/en';
 
 const FIELD_LABEL: Record<string, AppKey> = {
@@ -53,7 +54,9 @@ export const CorrectRecord: React.FC<{
   /** Draw the opener yourself (the plant page's action list); default is a button. */
   trigger?: (open: () => void) => React.ReactNode;
 }> = ({ record, trigger }) => {
-  const { t } = useT();
+  // An animal's correction: its name, breeder or holder, and notes (animal-profile.ts).
+  const { t } = useRecordT(record);
+  const animal = isAnimal(record);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
@@ -128,15 +131,17 @@ export const CorrectRecord: React.FC<{
               }}
               fullWidth
             />
-            <TextField
-              label={t('app.plant.f.method')}
-              value={method}
-              onChange={(e) => {
-                setMethod(e.target.value);
-                setPreview(null);
-              }}
-              fullWidth
-            />
+            {!animal && (
+              <TextField
+                label={t('app.plant.f.method')}
+                value={method}
+                onChange={(e) => {
+                  setMethod(e.target.value);
+                  setPreview(null);
+                }}
+                fullWidth
+              />
+            )}
             <TextField
               label={t('app.plant.fix.notes')}
               value={notes}

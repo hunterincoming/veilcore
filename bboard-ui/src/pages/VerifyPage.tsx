@@ -59,7 +59,7 @@ import { useBreederReceipt } from '../components/flow/LabResults';
 import { custodyLines, publicCustodyLines, publicCustodyOf } from '../veilcore/custody';
 import { NameCheckText } from '../components/NameCheckText';
 import { rich, useT } from '../i18n/app';
-import { enT, type Translator } from '../i18n/translate';
+import { enT, forKind, type Translator } from '../i18n/translate';
 import { networkWords } from '../i18n/network-words';
 import { LanguageBar } from '../i18n/LanguagePicker';
 
@@ -128,7 +128,24 @@ type VerifyResult = {
    * the sample details and where they differ (custody.ts publicCustodyOf). Never the details.
    */
   custody?: unknown;
+  /** `animal` for a record sealed under the animal profile (absent: a plant). */
+  subjectKind?: string;
+  /** An animal's sire and dam, under the parent-names grant. */
+  sire?: { name: string; individualId: string };
+  dam?: { name: string; individualId: string };
+  /** An animal's individual ID and its scheme, under the individual-id grant. */
+  individualId?: string;
+  idScheme?: string;
 };
+
+/** A sire or dam as the registry sends it: a name and an individual ID, both text. */
+const isParentLine = (x: unknown): boolean =>
+  x === undefined ||
+  (typeof x === 'object' &&
+    x !== null &&
+    !Array.isArray(x) &&
+    typeof (x as Record<string, unknown>).name === 'string' &&
+    typeof (x as Record<string, unknown>).individualId === 'string');
 
 /**
  * The fields this page reads. Anything absent renders as not disclosed, which is
@@ -171,7 +188,12 @@ const isVerifyResult = (v: unknown): v is VerifyResult => {
     str(r.unavailableReason) &&
     bool(r.keyBound) &&
     str(r.dnaPairingFingerprint) &&
-    str(r.dnaFileSha256)
+    str(r.dnaFileSha256) &&
+    str(r.subjectKind) &&
+    str(r.individualId) &&
+    str(r.idScheme) &&
+    isParentLine(r.sire) &&
+    isParentLine(r.dam)
   );
 };
 
@@ -229,7 +251,8 @@ export const VerifyPage: React.FC = () => {
   // The holder's own plant, when this browser has it loaded: its linked lab receipt.
   const own = useRecords().find((r) => r.id === id.toUpperCase() && !r.receivedFrom);
   const receipt = useBreederReceipt(own, !!own);
-  const tr = useT();
+  // An animal record's page says "animal" where a plant's says "plant" (translate.ts forKind).
+  const tr = forKind(useT(), result?.subjectKind === 'animal' ? 'animal' : 'plant');
   const { t, tp } = tr;
 
   useEffect(() => {
@@ -664,6 +687,15 @@ export const VerifyPage: React.FC = () => {
                   registryFirstSeen: result.registryFirstSeen,
                   parents: result.parents,
                   breedingMethod: result.breedingMethod,
+                  ...(result.subjectKind === 'animal'
+                    ? {
+                        subjectKind: 'animal',
+                        ...(result.sire ? { sire: result.sire } : {}),
+                        ...(result.dam ? { dam: result.dam } : {}),
+                        ...(result.individualId !== undefined ? { individualId: result.individualId } : {}),
+                        ...(result.idScheme !== undefined ? { idScheme: result.idScheme } : {}),
+                      }
+                    : {}),
                   labReport,
                 }}
               />

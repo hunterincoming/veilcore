@@ -10,7 +10,8 @@ import type { SavedReport } from '../../veilcore/saved-report';
 import { ActionRow } from '../flow/PlantParts';
 import { DateLabReport } from './DateLabReport';
 import { canAddNextStage, nextStagePath } from './stage-notes';
-import { useT } from '../../i18n/app';
+import { useRecordT } from '../../i18n/app';
+import { isAnimal } from '../../veilcore/animal-profile';
 
 export const StageRows: React.FC<{
   record: StrainRecord;
@@ -19,10 +20,11 @@ export const StageRows: React.FC<{
   saved: SavedReport | null | undefined;
 }> = ({ record, labOnly, saved }) => {
   const navigate = useNavigate();
-  const { t } = useT();
+  const { t } = useRecordT(record);
   return (
     <>
-      {canAddNextStage(record, labOnly) && (
+      {/* An animal has no next stage: its offspring is an animal logged with it as sire or dam. */}
+      {canAddNextStage(record, labOnly) && !isAnimal(record) && (
         <ActionRow
           section="log"
           label={t('app.plant.action.nextStage')}

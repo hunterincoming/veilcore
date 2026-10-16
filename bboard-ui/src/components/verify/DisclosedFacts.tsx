@@ -18,14 +18,7 @@ import NotCheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import FailedIcon from '@mui/icons-material/HighlightOff';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import { shortFingerprint } from '../../veilcore/commitment';
-import {
-  DISCLOSURE_FIELDS,
-  LEGACY_NAME,
-  geneticsLabel,
-  keysOn,
-  labelOf,
-  type Disclosure,
-} from '../../veilcore/disclosure';
+import { LEGACY_NAME, fieldsFor, geneticsLabel, keysOn, labelOf, type Disclosure } from '../../veilcore/disclosure';
 import type { StrainRecord } from '../../veilcore/records';
 import { OK_COLOR } from '../../config/theme';
 import { isTestNetwork } from '../../config/network';
@@ -34,6 +27,9 @@ import { utcStamp as fmt } from '../../veilcore/time';
 import { savedReportSentence, type FactStatus, type SavedReport } from '../../veilcore/saved-report';
 import { dnaTieMeaning, dnaTieOf, dnaTieSentence, isTied, type DnaTie } from '../../veilcore/dna-tie';
 import { useT, type Translator } from '../../i18n/app';
+import { forKind } from '../../i18n/translate';
+import { damOf, isAnimal, sireOf } from '../../veilcore/animal-profile';
+import { parentWords } from '../flow/AnimalForm';
 import type { AppKey } from '../../i18n/app/en';
 import { networkWords } from '../../i18n/network-words';
 import { breedingMethodWords } from '../flow/breeding-methods';
@@ -123,6 +119,14 @@ export type SharedFactsData = {
   registryFirstSeen?: string | null;
   parents?: string[];
   breedingMethod?: string | null;
+  /** `animal` for a record sealed under the animal profile (the registry's `subjectKind`). */
+  subjectKind?: string;
+  /** An animal's sire and dam, under the parent-names grant: name and individual ID. */
+  sire?: { name: string; individualId: string };
+  dam?: { name: string; individualId: string };
+  /** An animal's individual ID and its scheme, under the individual-id grant. */
+  individualId?: string;
+  idScheme?: string;
   /**
    * The lab report line, worked out by the page (saved-report.ts publicReportLine): whether
    * the saved file is a lab report a lab signed. Without it, a plain line that claims nothing.
@@ -135,8 +139,9 @@ export type SharedFactsData = {
  * dna-tie.ts), in neutral words for whoever reads the check page, with the same mark as
  * the report line. "Not tied yet" says only that none is saved; it blames no one.
  */
-const TieFact: React.FC<{ tie: DnaTie; status: FactStatus }> = ({ tie, status }) => {
-  const tr = useT();
+const TieFact: React.FC<{ tie: DnaTie; status: FactStatus; animal?: boolean }> = ({ tie, status, animal = false }) => {
+  // "Tied to the animal" for an animal record (translate.ts forKind).
+  const tr = forKind(useT(), animal ? 'animal' : 'plant');
   return (
     <Stack spacing={0.25} data-dna-tie={tie.state}>
       <Fact status={tie.state === 'none' ? 'reported' : status}>
@@ -153,10 +158,16 @@ const TieFact: React.FC<{ tie: DnaTie; status: FactStatus }> = ({ tie, status })
 
 /** The shared facts, then what was not shared, then the genetics row. */
 export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }> = ({ data, preview = false }) => {
-  const tr = useT();
+  const animal = data.subjectKind === 'animal';
+  // An animal's facts say "animal" where a plant's say "plant" (translate.ts forKind).
+  const tr = forKind(useT(), animal ? 'animal' : 'plant');
   const { t } = tr;
   const shared = new Set(data.disclosed);
-  const notShared = DISCLOSURE_FIELDS.filter((f) => !shared.has(LEGACY_NAME[f.key])).map((f) => labelOf(f.key, tr));
+  const notShared = fieldsFor(animal ? 'animal' : 'plant')
+    .filter((f) => !shared.has(LEGACY_NAME[f.key]))
+    .map((f) => labelOf(f.key, tr));
+  const clean = (p?: { name: string; individualId: string }) =>
+    p ? parentWords({ name: displayName(p.name), individualId: displayName(p.individualId) }, tr) : '';
   return (
     <Stack spacing={1.25}>
       {shared.has('own') &&
@@ -176,7 +187,7 @@ export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }>
       {shared.has('dna') &&
         (data.labReport ? (
           <>
-            {data.labReport.tie && <TieFact tie={data.labReport.tie} status={data.labReport.status} />}
+            {data.labReport.tie && <TieFact tie={data.labReport.tie} status={data.labReport.status} animal={animal} />}
             {/* With nothing saved, the tie line already says so. */}
             {data.labReport.tie?.state !== 'none' && <Fact status={data.labReport.status}>{data.labReport.text}</Fact>}
           </>
@@ -199,14 +210,31 @@ export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }>
           })}
         </Fact>
       )}
-      {shared.has('parents') && (
+      {/* An animal's sire and dam, by role, with their IDs: as the holder states them. */}
+      {shared.has('parents') && animal && (data.sire || data.dam) && (
+        <>
+          {data.sire && <Fact ok={false}>{t('app.animal.verify.sireLine', { v: clean(data.sire) })}</Fact>}
+          {data.dam && <Fact ok={false}>{t('app.animal.verify.damLine', { v: clean(data.dam) })}</Fact>}
+        </>
+      )}
+      {shared.has('parents') && !(animal && (data.sire || data.dam)) && (
         <Fact ok={false}>
           {data.parents?.length
             ? t('app.verify.parents', { list: data.parents.map(displayName).join(' × ') })
             : t('app.verify.noParents')}
         </Fact>
       )}
-      {shared.has('method') && (
+      {shared.has('individualId') && animal && (
+        <Fact ok={false}>
+          {data.individualId
+            ? t('app.animal.verify.idLine', {
+                id: displayName(data.individualId),
+                scheme: displayName(data.idScheme ?? ''),
+              })
+            : t('app.animal.verify.noId')}
+        </Fact>
+      )}
+      {shared.has('method') && !animal && (
         <Fact ok={false}>
           {data.breedingMethod
             ? t('app.verify.method', { method: breedingMethodWords(displayName(data.breedingMethod), tr) })
@@ -257,8 +285,11 @@ export const DisclosedFacts: React.FC<{ record: StrainRecord; disclosure: Disclo
   disclosure,
   saved,
 }) => {
-  const tr = useT();
+  const animal = isAnimal(record);
+  const tr = forKind(useT(), animal ? 'animal' : 'plant');
   const labReport = previewReportLine(saved, tr);
+  const sire = sireOf(record);
+  const dam = damOf(record);
   return (
     <Stack spacing={1.25}>
       <Typography variant="body2" color="text.secondary">
@@ -274,6 +305,15 @@ export const DisclosedFacts: React.FC<{ record: StrainRecord; disclosure: Disclo
           sealedAt: record.loggedAt,
           parents: (record.parents ?? []).map((p) => p.name).filter(Boolean),
           breedingMethod: record.breedingMethod || null,
+          ...(animal
+            ? {
+                subjectKind: 'animal',
+                ...(sire ? { sire: { name: sire.name, individualId: sire.individualId ?? '' } } : {}),
+                ...(dam ? { dam: { name: dam.name, individualId: dam.individualId ?? '' } } : {}),
+                individualId: record.refId ?? '',
+                idScheme: record.animal?.idScheme ?? '',
+              }
+            : {}),
           ...(labReport ? { labReport } : {}),
         }}
       />

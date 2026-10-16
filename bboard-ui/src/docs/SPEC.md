@@ -2,7 +2,7 @@
 
 **A specification for evidence of prior possession of plant and animal genetic material**
 
-Version 0.1 - August 2026, revised 14 October 2026 (section 3.6.1: a record that names its own key; the record format version is unchanged)
+Version 0.1 - August 2026, revised 16 October 2026 (section 3.6.1: a record that names its own key; section 11.8, a draft: animal records; the record format version is unchanged)
 
 ---
 
@@ -48,7 +48,7 @@ A record has three layers. This separation is what allows the format to be used 
 
 **The envelope** is domain-blind. No field in it names a crop, an animal, a plant part, or any subject-specific concept. The test for any proposed envelope field is whether an ornamental propagator, a livestock herd book, and a microbial culture collection would all need it.
 
-**The profile** carries the subject fields. A profile is identified by a versioned string and defined by a JSON schema its publisher maintains. The plant-variety profile is one profile; a body working with fruit varieties or livestock defines its own and reuses everything else.
+**The profile** carries the subject fields. A profile is identified by a versioned string and defined by a JSON schema its publisher maintains. The plant-variety profile is one profile; a body working with fruit varieties or livestock defines its own and reuses everything else. One animal profile is drafted in section 11.8.
 
 **The disclosure vocabulary** names what a holder may grant to a recipient, so that holder, recipient and any adjudicator describe the same disclosure in the same words.
 
@@ -697,6 +697,49 @@ A challenge carries: `challengeId`, `subjectCommitment`, `claimCommitment`, `gro
 **The holder may answer, and is never required to.** Silence is not an admission. Where an answer is given, both statements travel with the record.
 
 **Nothing here is adjudicated.** A verifier is told that a record is contested, on what ground, and whether it was answered. Where a matter has been resolved, the resolution records which outside authority ruled and a reference a verifier can check for themselves. A registry that ruled on a contested claim would be substituting its judgement for a court's, and would stop being usable by either party the first time it did so.
+
+## 11.8 - Animal records: the animal-individual profile (draft)
+
+**This section is a draft, published for comment on 16 October 2026.** It defines one profile, `veilcore/profile/animal-individual/v1`, published by the authors of this specification. A record under it describes one animal, logged by its breeder, its holder or a registry. The record format version is unchanged.
+
+**The fingerprint rules do not change.** A record's fingerprint is computed exactly as for any record: SHA-256 of the canonical serialisation (section 4.4) of its committed fields, and, when those fields carry a `keyBinding`, `H("veilcore:v1:keyrecord", keyBinding, contentHash)` (section 3.6.1). The profile says only which fields are committed and in what form. A record sealed under any other profile, or under none, is computed and checked exactly as before.
+
+**Committed fields.** Exactly these, every one present, none other:
+
+| Field | What it holds |
+|---|---|
+| `profile` | `veilcore/profile/animal-individual/v1` |
+| `species` | The species, as the holder writes it. Not empty |
+| `breed` | The breed, or empty |
+| `name` | The animal's name, or empty |
+| `individualId` | Its individual ID exactly as written (an ear tag, a national ID), or empty |
+| `idScheme` | The ID scheme the individual ID belongs to, free text ("Japan cattle ID (10 digits)", "ear tag"). Empty exactly when `individualId` is |
+| `sex` | `female`, `male` or `unknown` |
+| `dateOfBirth` | `YYYY-MM-DD`, a real date, or empty. The holder's statement, like `claimedCreationDate` |
+| `parents` | The sire and the dam, as below |
+| `breeder` | The breeder or holder. Not empty |
+| `herd` | Herd or farm, or empty |
+| `notes` | Free text, or empty |
+| `photoFingerprints` | SHA-256 of each photo, 64 lowercase hex characters each |
+| `loggedAt` | When it was sealed, milliseconds since 1970 by the sealing device's clock, a whole number |
+| `nonce` | 32 to 64 random bytes, lowercase hex (section 4.3) |
+| `keyBinding` | Optional, as in section 3.6.1 |
+
+`name` and `individualId` shall not both be empty.
+
+**Canonical form.** A value in any other form shall be refused, never tidied: one animal written two ways would seal as two different records. The one-line fields (`species`, `breed`, `name`, `individualId`, `idScheme`, `breeder`, `herd`, and a parent's `name` and `individualId`) are text of at most 200 characters, with no control character (line breaks and tabs included) and no white space at either end. `notes` is text of at most 20,000 characters. Text is NFC-normalised by the serialisation (section 4.4, rule 1). The individual ID is compared as written; this profile does not normalise any national scheme's numbers.
+
+**Parents.** `parents` lists at most a sire and a dam, the sire first, using the roles `sire` and `dam` (section 3.4). Each entry is `{ role, name, individualId }` and, when the parent is a record the holder logged, `recordId`, naming it. `name` and `individualId` may be empty; an entry with neither and no `recordId` shall be refused. A parent is the holder's declaration (`declaredBy: holder` in an envelope), not a parentage test.
+
+**In an envelope.** `subjectType` is `animal-genetic-material`; `subject.name` is the name, `subject.originator` the breeder, `subject.taxon` the species and `subject.claimedCreationDate` the date of birth. The parents carry their role. `profileData` carries `breed`, `sex`, `individualId`, `idScheme`, `herd`, the parents' individual IDs and `notes`, with the nonce.
+
+**What an animal record is offered.** Everything that does not depend on the subject being a plant: the dated record and the key it names (section 3.6.1); a DNA report saved to the record, paired on a ledger (section 3.7) and dated by a record of its own; the sire and dam, linked to their own records where the holder logged them; a laboratory's signed receipt for a sample and its signed report (sections 3.3 and 7); selective disclosure, where the sire and dam are shown under `parent-names` and the individual ID and its scheme under a grant of their own; corrections (section 6).
+
+**What it is not offered, and why.** The claims of section 4.5 are not offered for animal records. This profile defines no field set, and the claim that motivates them, **distinct** ("these two records differ in at least k comparable values"), answers a question about varieties against a threshold an examining body sets. The questions asked of an animal's DNA are identity (is this sample from the animal in the record?) and parentage (are the stated sire and dam compatible with it?). Cattle tests for both commonly use standard STR (microsatellite) panels, and increasingly SNP panels. Either way the answer is a match or an exclusion that a laboratory works out across two or three profiles, not a count of differing slots, so it is attested by the laboratory's signed report rather than proved one value at a time. Agreements, royalties and terms (section 3.5) are not offered for animal records by the VeilCore web application yet.
+
+**Vectors.** `animal-individual-v1.json` gives records under this profile (their fields, canonical bytes, content hash and fingerprint, with and without a key) and fields that shall be refused. It is published with the VeilCore web application and checked there, by the VeilCore registry, and by the TypeScript and Python implementations; the Rust implementation checks the fingerprints. Like the profiles themselves, it is outside the 100 record-format vectors of section 10.
+
+**What it does not establish.** Everything in section 9.3 holds. In particular a record establishes that a description of an animal existed by a date, not that a given animal, carcass or cut is that animal, and not who holds the animal now. An individual ID in the record is the holder's statement; that the ID belongs to the animal is for the scheme that issued it to say.
 
 ---
 

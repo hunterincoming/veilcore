@@ -28,8 +28,9 @@ export type DisclosureKey =
   | 'attestation-status' // whether the holder saved a lab report
   | 'descent-clean' // free of unmet obligations through declared ancestry
   | 'sealed-at' // when the holder says it was sealed
-  | 'parent-names' // the parent cultivar names
-  | 'breeding-method'; // how it was produced
+  | 'parent-names' // the parent cultivar names; for an animal, its sire and dam with their IDs
+  | 'breeding-method' // how it was produced (plants only)
+  | 'individual-id'; // an animal's individual ID and its scheme (animals only)
 
 export type Disclosure = Record<DisclosureKey, boolean>;
 
@@ -49,7 +50,16 @@ export const DISCLOSURE_FIELDS: { key: DisclosureKey; label: string; def: boolea
   { key: 'sealed-at', label: 'When it was sealed (the holder’s device clock)', def: true },
   { key: 'parent-names', label: 'Parent cultivar names', def: false },
   { key: 'breeding-method', label: 'Breeding method', def: false },
+  { key: 'individual-id', label: 'Individual ID and its scheme', def: false },
 ];
+
+/**
+ * The facts a holder can share about a record of this kind: a plant has a breeding method
+ * and no individual ID; an animal has an individual ID and no breeding method. The registry
+ * never answers individual-id for a plant record.
+ */
+export const fieldsFor = (kind: 'plant' | 'animal'): typeof DISCLOSURE_FIELDS =>
+  DISCLOSURE_FIELDS.filter((f) => f.key !== (kind === 'animal' ? 'breeding-method' : 'individual-id'));
 
 /** The registry's older names, which /verify answers in `disclosed`. */
 export const LEGACY_NAME: Record<DisclosureKey, string> = {
@@ -59,6 +69,7 @@ export const LEGACY_NAME: Record<DisclosureKey, string> = {
   'sealed-at': 'sealed',
   'parent-names': 'parents',
   'breeding-method': 'method',
+  'individual-id': 'individualId',
 };
 
 const FROM_LEGACY: Record<string, DisclosureKey> = Object.fromEntries(

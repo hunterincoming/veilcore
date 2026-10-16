@@ -28,7 +28,8 @@ import { OPEN_RECEIVE_EVENT } from '../ClaimTransfer';
 import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
 import { linkCard } from '../a11y';
 import { ACCENT, GROUND, WASH } from '../../config/theme';
-import { useT, rich } from '../../i18n/app';
+import { useT, useRecordT, rich } from '../../i18n/app';
+import { isAnimal, recordTitle } from '../../veilcore/animal-profile';
 import { SECTIONS, focusScreenHeading } from './FlowFrame';
 import { PasteBox } from './PasteBox';
 import { labCardLine, useLabCardFacts, useWaitingByRecord } from './LabResults';
@@ -48,7 +49,7 @@ import type { SavedReport } from '../../veilcore/saved-report';
  * tied to the plant yet: add a DNA report." Nothing while a saved report is being checked.
  */
 const TieLine: React.FC<{ record: StrainRecord; saved?: SavedReport }> = ({ record, saved }) => {
-  const tr = useT();
+  const tr = useRecordT(record);
   const { tie, date } = useDnaTie(record, saved, tr);
   if (!tie) return null;
   return (
@@ -219,7 +220,11 @@ export const AppHome: React.FC = () => {
       <Stack spacing={2.5}>
         <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
           <Typography variant="h4" component="h1">
-            {labOnly ? t('app.home.samplesReceived') : t('app.home.yourPlants')}
+            {labOnly
+              ? t('app.home.samplesReceived')
+              : records.some((r) => isAnimal(r))
+                ? t('app.animal.home.yourRecords')
+                : t('app.home.yourPlants')}
           </Typography>
           {!labOnly && (
             <Button component={RouterLink} to="/new" variant="contained" startIcon={<AddIcon />} sx={{ minHeight: 48 }}>
@@ -290,7 +295,7 @@ export const AppHome: React.FC = () => {
               // (the line under the name says what), Wash when nothing is.
               <Paper
                 key={r.id}
-                {...linkCard(() => void navigate(`/record/${r.id}`), t('app.home.openPlant', { name: r.strainName }))}
+                {...linkCard(() => void navigate(`/record/${r.id}`), t('app.home.openPlant', { name: recordTitle(r) }))}
                 data-unfinished={unfinished ? 'yes' : undefined}
                 sx={{
                   p: 2,
@@ -323,7 +328,7 @@ export const AppHome: React.FC = () => {
                 <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography variant="h6" noWrap>
-                      {r.strainName}
+                      {recordTitle(r)}
                     </Typography>
                     <Typography
                       variant="body2"

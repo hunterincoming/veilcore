@@ -21,7 +21,7 @@ import { getRecord, useRecords } from '../../veilcore/records';
 import { localStamp } from '../../veilcore/time';
 import { CHAIN_CONTRACT, chainNotReady } from '../../veilcore/chain/config';
 import { NETWORK } from '../../config/network';
-import { useT } from '../../i18n/app';
+import { useRecordT } from '../../i18n/app';
 import { networkWords } from '../../i18n/network-words';
 import { identityOf } from '../../veilcore/chain/identity';
 import { useChainCall } from './useChainCall';
@@ -35,7 +35,7 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
   const anchored = keys?.anchor;
   const [privateOk, setPrivateOk] = useState(false);
   const call = useChainCall<void>();
-  const tr = useT();
+  const tr = useRecordT(record);
   const { t } = tr;
   if (!record) return null;
 

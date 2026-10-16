@@ -1,9 +1,11 @@
 // The record app's English, every screen: the source text the translations follow key by
 // key (app/<lang>/index.ts). Keys are namespaced by screen: app.log.*, app.backup.*,
 // app.home.*, app.plant.*, app.lab.*, app.verify.*, app.prove.*, app.import.*,
-// app.history.*, app.partners.*, and app.common.* for words several screens share.
+// app.history.*, app.partners.*, app.animal.* (animal records, and the plant's sentences
+// for an animal: app.animal.v.<key>), and app.common.* for words several screens share.
 // Plural keys come as `.one` and `.other` (translate.ts tp).
 // SPDX-License-Identifier: Apache-2.0
+import { animal } from './animal';
 import { backup } from './backup';
 import { chain } from './chain';
 import { common } from './common';
@@ -34,6 +36,7 @@ export const appEn = {
   ...history,
   ...importing,
   ...partners,
+  ...animal,
 };
 
 export type AppKey = keyof typeof appEn;

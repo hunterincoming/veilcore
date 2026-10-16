@@ -76,7 +76,7 @@ const common: Overlay = {
   'm.for.3p':
     "Send material with a lab code. The lab signs a receipt with its own key, so the record shows a second party. The receipt is a real signature, kept by VeilCore's registry, not on the chain. Terms such as no propagation are practice only on this website.",
   'm.for.5p':
-    "Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. This website is set up for plants; the animal record fields aren't published yet.",
+    'Herd books keep the pedigree. A record can give each entry a date nobody can backdate, without publishing the genotype. For now you can log an animal only on the test site (test.veilcore.org): its individual ID, sire and dam, and a DNA report. The animal record fields are a draft.',
   // "Prove it" by link needs the browser to send a transaction, which this site doesn't.
   'm.for.6p':
     "They send you a link. You tap once, and their page checks on the network that you control your plant's own key. Your record named that key when it was sealed, so it can't be swapped. It says nothing about who you are or who bred the plant. This website can't do it yet.",

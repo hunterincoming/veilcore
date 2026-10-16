@@ -30,12 +30,17 @@ import { Link as RouterLink } from 'react-router-dom';
 import { AppHeader } from '../AppHeader';
 import { BackupStep } from '../flow/BackupStep';
 import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled } from '../flow/FlowFrame';
-import { IS_MAINNET } from '../../config/network';
+import { ANIMAL_RECORDS_ENABLED, IS_MAINNET } from '../../config/network';
+import { KindChoice, parentWords, sexWords } from '../flow/AnimalForm';
+import { loadLogKind } from '../flow/animal-draft';
 import { REAL_CHAIN, chainNotReady } from '../../veilcore/chain/config';
 import { getRecord, useRecords } from '../../veilcore/records';
 import { storageKeeps, useRecordKeys } from '../../veilcore/record-keys';
 import { localStamp } from '../../veilcore/time';
 import {
+  ANIMAL_FIELDS,
+  guessAnimalMapping,
+  type AnimalFieldKey,
   FIELDS,
   HEADER_SCAN,
   KEY_STAMPS_PER_DAY,
@@ -96,6 +101,33 @@ const FIELD_KEY: Record<FieldKey, AppKey> = {
   notes: 'app.import.field.notes',
 };
 
+/** An animal list's column names (bulk-import.ts ANIMAL_FIELDS), in the page's language. */
+const ANIMAL_FIELD_KEY: Record<AnimalFieldKey, AppKey> = {
+  name: 'app.animal.name',
+  individualId: 'app.animal.individualId',
+  species: 'app.animal.species',
+  breed: 'app.animal.breed',
+  sex: 'app.animal.sex',
+  dateOfBirth: 'app.animal.import.dob',
+  sire: 'app.animal.sire',
+  sireId: 'app.animal.sireId',
+  dam: 'app.animal.dam',
+  damId: 'app.animal.damId',
+  breeder: 'app.animal.breeder',
+  herd: 'app.animal.herd',
+  notes: 'app.log.notes',
+};
+
+/**
+ * The columns guessed for a file, as a list of plants or of animals: the last kind chosen when
+ * logging (animal-draft.ts), on a build that offers animal records (config/network.ts).
+ */
+const guessFor = (headers: string[], animal: boolean): Mapping => ({
+  ...guessMapping(headers),
+  ...(animal ? { animal: guessAnimalMapping(headers) } : {}),
+});
+const startAnimal = (): boolean => ANIMAL_RECORDS_ENABLED && loadLogKind() === 'animal';
+
 const screenFor = (job: Job | undefined): Screen =>
   !job ? 'file' : job.phase === 'sealing' ? 'seal' : job.phase === 'sealed' ? 'sealed' : 'done';
 
@@ -134,7 +166,7 @@ export const BulkImportPage: React.FC = () => {
             onRead={(s, name) => {
               setSheet(s);
               setFileName(name);
-              setMapping(guessMapping(s.headers));
+              setMapping(guessFor(s.headers, startAnimal()));
               setScreen('header');
             }}
           />
@@ -147,7 +179,7 @@ export const BulkImportPage: React.FC = () => {
             onPick={(line) => {
               const s = withHeaderRow(sheet, line);
               setSheet(s);
-              setMapping(guessMapping(s.headers));
+              setMapping(guessFor(s.headers, !!mapping?.animal));
             }}
             onBack={() => setScreen('file')}
             onNext={() => setScreen('columns')}
@@ -448,13 +480,21 @@ const Columns: React.FC<{
 }> = ({ step, sheet, mapping, onChange, onBack, onNext }) => {
   const { t } = useT();
   const hintId = useId();
-  const ready = mapping.columns.strainName !== null;
+  const animal = mapping.animal;
+  const ready = animal
+    ? (animal.columns.name !== null || animal.columns.individualId !== null) &&
+      (animal.columns.individualId === null || animal.idScheme.trim() !== '')
+    : mapping.columns.strainName !== null;
+  const setAnimalColumn = (f: AnimalFieldKey, v: string) =>
+    animal &&
+    onChange({ ...mapping, animal: { ...animal, columns: { ...animal.columns, [f]: v === '' ? null : Number(v) } } });
+  const dateColumn = animal ? animal.columns.dateOfBirth : mapping.columns.dateCreated;
   const setColumn = (f: FieldKey, v: string) =>
     onChange({ ...mapping, columns: { ...mapping.columns, [f]: v === '' ? null : Number(v) } });
   const ambiguous = useMemo(() => {
-    if (mapping.columns.dateCreated === null) return false;
+    if (dateColumn === null) return false;
     return checkRows(sheet, { ...mapping, dateOrder: 'auto' }, { existing: [] }).ambiguousDates > 0;
-  }, [sheet, mapping.columns.dateCreated]);
+  }, [sheet, dateColumn, !!animal]);
   const detected = dateOrderFor(sheet, { ...mapping, dateOrder: 'auto' });
 
   return (
@@ -470,44 +510,102 @@ const Columns: React.FC<{
           {w}
         </Alert>
       ))}
-      {FIELDS.map((f) => {
-        const col = mapping.columns[f];
-        return (
-          <TextField
-            key={f}
-            select
-            label={t(FIELD_KEY[f])}
-            required={f === 'strainName'}
-            value={col === null ? '' : String(col)}
-            onChange={(e) => setColumn(f, e.target.value)}
-            helperText={
-              col !== null && sampleOf(sheet, col)
-                ? t('app.import.cols.example', { v: sampleOf(sheet, col) })
-                : f === 'parents'
-                  ? t('app.import.cols.twoParents')
+      {/* A list of plants, or of animals (an animal record each): their own columns. */}
+      {ANIMAL_RECORDS_ENABLED && (
+        <KindChoice
+          kind={animal ? 'animal' : 'plant'}
+          onKind={(k) => {
+            const { animal: _a, ...plant } = mapping;
+            void _a;
+            onChange(k === 'animal' ? { ...plant, animal: guessAnimalMapping(sheet.headers) } : plant);
+          }}
+        />
+      )}
+      {animal &&
+        ANIMAL_FIELDS.map((f) => {
+          const col = animal.columns[f];
+          return (
+            <TextField
+              key={f}
+              select
+              label={t(ANIMAL_FIELD_KEY[f])}
+              value={col === null ? '' : String(col)}
+              onChange={(e) => setAnimalColumn(f, e.target.value)}
+              helperText={
+                col !== null && sampleOf(sheet, col)
+                  ? t('app.import.cols.example', { v: sampleOf(sheet, col) })
                   : undefined
-            }
+              }
+              fullWidth
+              data-animal-column={f}
+            >
+              <MenuItem value="">{t('app.import.cols.notInFile')}</MenuItem>
+              {sheet.headers.map((h, i) => (
+                <MenuItem key={i} value={String(i)}>
+                  {h}
+                </MenuItem>
+              ))}
+            </TextField>
+          );
+        })}
+      {animal && (
+        <>
+          <TextField
+            label={t('app.animal.import.scheme')}
+            required={animal.columns.individualId !== null}
+            value={animal.idScheme}
+            onChange={(e) => onChange({ ...mapping, animal: { ...animal, idScheme: e.target.value } })}
+            helperText={t('app.animal.import.schemeHelp')}
             fullWidth
-          >
-            <MenuItem value="">
-              {f === 'strainName' ? t('app.import.cols.pick') : t('app.import.cols.notInFile')}
-            </MenuItem>
-            {sheet.headers.map((h, i) => (
-              <MenuItem key={i} value={String(i)}>
-                {h}
+          />
+          <TextField
+            label={t('app.animal.import.species')}
+            value={animal.species}
+            placeholder={t('app.animal.speciesPlaceholder')}
+            onChange={(e) => onChange({ ...mapping, animal: { ...animal, species: e.target.value } })}
+            fullWidth
+          />
+        </>
+      )}
+      {!animal &&
+        FIELDS.map((f) => {
+          const col = mapping.columns[f];
+          return (
+            <TextField
+              key={f}
+              select
+              label={t(FIELD_KEY[f])}
+              required={f === 'strainName'}
+              value={col === null ? '' : String(col)}
+              onChange={(e) => setColumn(f, e.target.value)}
+              helperText={
+                col !== null && sampleOf(sheet, col)
+                  ? t('app.import.cols.example', { v: sampleOf(sheet, col) })
+                  : f === 'parents'
+                    ? t('app.import.cols.twoParents')
+                    : undefined
+              }
+              fullWidth
+            >
+              <MenuItem value="">
+                {f === 'strainName' ? t('app.import.cols.pick') : t('app.import.cols.notInFile')}
               </MenuItem>
-            ))}
-          </TextField>
-        );
-      })}
+              {sheet.headers.map((h, i) => (
+                <MenuItem key={i} value={String(i)}>
+                  {h}
+                </MenuItem>
+              ))}
+            </TextField>
+          );
+        })}
       <TextField
-        label={t('app.import.cols.bredBy')}
+        label={animal ? t('app.animal.import.breeder') : t('app.import.cols.bredBy')}
         value={mapping.bredByDefault}
         onChange={(e) => onChange({ ...mapping, bredByDefault: e.target.value })}
         helperText={t('app.import.cols.bredByHelp')}
         fullWidth
       />
-      {mapping.columns.dateCreated !== null && (ambiguous || mapping.dateOrder !== 'auto') && (
+      {dateColumn !== null && (ambiguous || mapping.dateOrder !== 'auto') && (
         <TextField
           select
           label={t('app.import.cols.dates')}
@@ -533,7 +631,7 @@ const Columns: React.FC<{
       </Button>
       {!ready && (
         <Typography id={hintId} variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-          {t('app.import.cols.pickHint')}
+          {animal ? t('app.animal.import.pickHint') : t('app.import.cols.pickHint')}
         </Typography>
       )}
       <Button variant="text" color="inherit" onClick={onBack} sx={{ minHeight: 48 }}>
@@ -547,17 +645,32 @@ const Columns: React.FC<{
 
 /** One row as it will be sealed: every field, empty ones said so. */
 const RowCard: React.FC<{ row: Pick<PreparedRow, 'line' | 'fields'> }> = ({ row }) => {
-  const { t } = useT();
+  const tr = useT();
+  const { t } = tr;
   const f: RowFields = row.fields;
-  const lines: [string, string][] = [
-    [t('app.import.card.name'), f.strainName],
-    [t('app.import.card.id'), f.refId],
-    [t('app.import.field.taxon'), f.taxon],
-    [t('app.import.field.parents'), f.parents.map((p) => p.name).join(' × ')],
-    [t('app.import.field.bredBy'), f.bredBy],
-    [t('app.import.card.date'), f.dateCreated],
-    [t('app.import.field.notes'), f.notes],
-  ];
+  const sire = f.parents.find((p) => p.role === 'sire');
+  const dam = f.parents.find((p) => p.role === 'dam');
+  const lines: [string, string][] = f.animal
+    ? [
+        [t('app.animal.name'), f.strainName],
+        [t('app.animal.individualId'), f.refId ? t('app.animal.idIn', { id: f.refId, scheme: f.animal.idScheme }) : ''],
+        [t('app.animal.species'), [f.taxon, f.animal.breed].filter(Boolean).join(' · ')],
+        [t('app.animal.sex'), f.sexAsWritten ?? sexWords(f.animal.sex, tr)],
+        [t('app.animal.import.dob'), f.dateCreated],
+        [t('app.animal.sire'), parentWords(sire, tr)],
+        [t('app.animal.dam'), parentWords(dam, tr)],
+        [t('app.animal.breeder'), f.bredBy],
+        [t('app.log.notes'), f.notes],
+      ]
+    : [
+        [t('app.import.card.name'), f.strainName],
+        [t('app.import.card.id'), f.refId],
+        [t('app.import.field.taxon'), f.taxon],
+        [t('app.import.field.parents'), f.parents.map((p) => p.name).join(' × ')],
+        [t('app.import.field.bredBy'), f.bredBy],
+        [t('app.import.card.date'), f.dateCreated],
+        [t('app.import.field.notes'), f.notes],
+      ];
   return (
     <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 1.5 }} data-preview-row={row.line}>
       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>

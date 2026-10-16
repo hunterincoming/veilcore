@@ -32,7 +32,8 @@ import type { SavedReport } from '../veilcore/saved-report';
 import { useNavigate } from 'react-router-dom';
 import { isLabReportRecord } from './stage/lab-report-notes';
 import { dateErrorWords, useDateReport } from './stage/DateLabReport';
-import { useT } from '../i18n/app';
+import { useRecordT } from '../i18n/app';
+import { isAnimal } from '../veilcore/animal-profile';
 
 type Step = {
   /** Some steps render their own control rather than a plain button. */
@@ -89,7 +90,7 @@ export const NextStep: React.FC<{
 }) => {
   let step: Step | null;
   const navigate = useNavigate();
-  const { t } = useT();
+  const { t } = useRecordT(record);
   // Dating the saved DNA report: the step after saving one (components/stage/DateLabReport.tsx).
   const dateReport = useDateReport(record, saved);
   // A record that dates a lab report (components/stage/lab-report-date.ts) is not a plant:
@@ -314,6 +315,9 @@ export const NextStep: React.FC<{
       icon: <VerifiedIcon />,
       custom: <SendToLab record={record} />,
     };
+  } else if (isAnimal(record)) {
+    // Agreements and royalties are for plant records only, for now: the words say so.
+    step = { title: t('app.plant.next.ready.title'), why: t('app.plant.next.ready.why') };
   } else {
     step = {
       title: t('app.plant.next.ready.title'),

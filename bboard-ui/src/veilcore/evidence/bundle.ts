@@ -37,7 +37,19 @@ import { DOCS, DOCS_COMMIT, DOCS_VERSION, REPO_VIEW } from '../docs';
 import { verifyPageHtml, SDK_VERSION } from './verify-page';
 import { EXAMINER_FILE, examinerSummaryHtml } from './examiner';
 import { DECLARATION_FILE, declarationText } from './declaration';
-import { anchorLookup, bitcoinSteps, midnightSteps, networkWords, oneLine, utcWords, wrap } from './words';
+import {
+  anchorLookup,
+  bitcoinSteps,
+  midnightSteps,
+  networkWords,
+  oneLine,
+  sealedNameOf,
+  subjectOf,
+  utcWords,
+  wrap,
+} from './words';
+import { enT, forKind } from '../../i18n/translate';
+import { isAnimal } from '../animal-profile';
 import { dnaTieMeaning, dnaTieSentence, isTied, type DnaTie } from '../dna-tie';
 
 export { anchorLookup, bitcoinSteps, midnightSteps } from './words';
@@ -511,7 +523,7 @@ export const buildEvidence = async (
       const matches = fileSha256 ? sha === fileSha256 : pairingFingerprintOfSha(sha) === record.dnaFingerprint;
       if (!matches) {
         throw new BundleRefusal(
-          `${options.labFile.name || 'That file'} isn’t the lab report saved to this plant, so it wasn’t included. Nothing was downloaded.`,
+          `${options.labFile.name || 'That file'} isn’t the lab report saved to this ${isAnimal(record) ? 'animal' : 'plant'}, so it wasn’t included. Nothing was downloaded.`,
         );
       }
       fileSha256 = sha;
@@ -526,7 +538,9 @@ export const buildEvidence = async (
       ...(fileIncluded ? { fileIncluded } : {}),
     };
   } else if (options.labFile) {
-    throw new BundleRefusal('No lab report is saved to this plant, so there is nothing to include.');
+    throw new BundleRefusal(
+      `No lab report is saved to this ${isAnimal(record) ? 'animal' : 'plant'}, so there is nothing to include.`,
+    );
   }
 
   const custody = options.deliveries ? await custodyEntries(record, options.deliveries, gathered.attestations) : [];
@@ -601,6 +615,8 @@ export const signatureLines = async (
   signatures: readonly Record<string, unknown>[],
   fingerprint: string,
   savedFileSha?: string,
+  /** What the record describes: "the lab report saved to this plant" or "… this animal". */
+  subject: 'plant' | 'animal' = 'plant',
 ): Promise<SignatureLine[]> => {
   const out: SignatureLine[] = [];
   for (const a of signatures) {
@@ -622,7 +638,8 @@ export const signatureLines = async (
     const what = TYPE_WORDS[String(a.type)] ?? `"${oneLine(a.type)}"`;
     const displayName = isString(attester.displayName) ? oneLine(attester.displayName) : undefined;
     const name = displayName !== undefined ? ` (it calls itself "${displayName}"; not checked)` : '';
-    const saved = savedFileSha && a.documentHash === savedFileSha ? ' It is the lab report saved to this plant.' : '';
+    const saved =
+      savedFileSha && a.documentHash === savedFileSha ? ` It is the lab report saved to this ${subject}.` : '';
     const doc = oneLine(a.documentHash);
     const receipt = a.type === 'chain-of-custody';
     const documentWords = receipt
@@ -693,7 +710,7 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
   if (ev.labReport) {
     out.push({
       path: 'lab/lab-report-pairing.json',
-      what: `the lab report saved to this plant: its SHA-256${ev.labReport.fileSha256 ? '' : ' (not kept for this older pairing)'} and the fingerprint that pairs it with the plant.`,
+      what: `the lab report saved to this ${subjectOf(ev.record.sealedFields)}: its SHA-256${ev.labReport.fileSha256 ? '' : ' (not kept for this older pairing)'} and the fingerprint that pairs it with the ${subjectOf(ev.record.sealedFields)}.`,
     });
     if (ev.labReport.fileIncluded)
       out.push({ path: ev.labReport.fileIncluded, what: 'the lab report file itself, included by the holder.' });
@@ -719,6 +736,10 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
  * the bundle was made: a lab report signature on the saved file's SHA-256, withdrawn or not.
  */
 export const tiedToPlantLines = (ev: Evidence, sigs: readonly SignatureLine[], datedBy?: string): string[] => {
+  // (A test's evidence may carry only its lab report: then it reads as a plant's, as before.)
+  const subject = subjectOf((ev as Partial<Evidence>).record?.sealedFields);
+  // In English (the bundle's files are), with "animal" for an animal record (translate.ts forKind).
+  const en = forKind(enT, subject);
   let tie: DnaTie;
   if (!ev.labReport) tie = { state: 'none' };
   else if (!ev.labReport.fileSha256) tie = { state: 'saved' };
@@ -738,17 +759,17 @@ export const tiedToPlantLines = (ev: Evidence, sigs: readonly SignatureLine[], d
         ? { state: gone.withdrawnReason === 'superseded' ? 'replaced' : 'withdrawn' }
         : { state: 'self' };
   }
-  const out = [dnaTieSentence(tie, undefined, 'public')];
+  const out = [dnaTieSentence(tie, undefined, 'public', en)];
   if (isTied(tie)) {
     out.push(
       datedBy
         ? `A separate record, ${datedBy}, dates this DNA report's existence: it holds only the report's SHA-256. Its own evidence bundle has its date.`
         : "Nothing dates this DNA report yet: it was saved after sealing, so this record's batch doesn't date it.",
     );
-    out.push(dnaTieMeaning());
+    out.push(dnaTieMeaning(en));
   } else if (tie.state === 'none') {
     out.push(
-      "A DNA report (a lab's genotype of the plant) is what ties a record to the plant itself. VeilCore doesn't test DNA.",
+      `A DNA report (a lab's genotype of the ${subject}) is what ties a record to the ${subject} itself. VeilCore doesn't test DNA.`,
     );
   }
   return out;
@@ -761,7 +782,8 @@ export const readmeText = (
   hasOts = !!ev.batch?.opentimestamps.available,
   dnaReportDatedBy?: string,
 ): string => {
-  const name = oneLine(isString(ev.record.sealedFields.strainName) ? ev.record.sealedFields.strainName : ev.record.id);
+  const name = oneLine(sealedNameOf(ev.record.sealedFields) || ev.record.id);
+  const subject = subjectOf(ev.record.sealedFields);
   const anchor = ev.batch?.anchor ?? null;
   const tx = anchor && isString(anchor.txHash) ? anchor.txHash : null;
   const test = anchor ? anchor.network !== 'mainnet' : true;
@@ -788,7 +810,7 @@ export const readmeText = (
     );
   }
   L.push('');
-  L.push('TIED TO THE PLANT');
+  L.push(subject === 'animal' ? 'TIED TO THE ANIMAL' : 'TIED TO THE PLANT');
   L.push(...tiedToPlantLines(ev, sigs, dnaReportDatedBy));
   L.push('');
   L.push('HOW TO CHECK IT (nothing from VeilCore needed)');
@@ -839,14 +861,14 @@ export const readmeText = (
   L.push('');
   L.push('WHAT THIS DOES NOT PROVE');
   L.push('- That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.');
-  L.push('- Who holds the plant or the record now.');
+  L.push(`- Who holds the ${subject} or the record now.`);
   L.push("- That a signing key belongs to the lab it names. VeilCore doesn't vouch for anyone.");
   L.push(
     `- Any date at all until you find the batch root in the named transaction${bitcoin ? ' (or the Bitcoin stamp checks)' : ''}. VeilCore's registry reported the transaction${anchor && utcWords(anchor.anchoredAt) ? `, and its time as ${utcWords(anchor.anchoredAt)}` : ''}; it has not been checked on the chain for you.`,
   );
   if (ev.labReport) {
     L.push(
-      "- When the lab report was saved to the plant. That came after sealing and isn't inside the record's fingerprint, so the batch doesn't date it.",
+      `- When the lab report was saved to the ${subject}. That came after sealing and isn't inside the record's fingerprint, so the batch doesn't date it.`,
     );
   }
   if (ev.registry.firstSeen)
@@ -939,7 +961,12 @@ export const bundleFiles = async (
   const add = (path: string, bytes: Uint8Array) => {
     files[`${dir}/${path}`] = bytes;
   };
-  const sigs = await signatureLines(ev.signatures, ev.record.fingerprint, ev.labReport?.fileSha256);
+  const sigs = await signatureLines(
+    ev.signatures,
+    ev.record.fingerprint,
+    ev.labReport?.fileSha256,
+    subjectOf(ev.record.sealedFields),
+  );
   const ots = ev.proof && ev.batch && gathered.ots && ev.batch.opentimestamps.available ? gathered.ots : null;
   add('README.txt', text(readmeText(ev, sigs, ots !== null, options.dnaReportDatedBy)));
   add('verify.html', text(verifyPageHtml(ev, ots)));

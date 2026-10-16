@@ -20,7 +20,8 @@ import { attestationsFor, countsAsSigned, signerLabel, type ResolvedAttestation 
 import { getRecord, pairDna, conflictsFor, type StrainRecord } from '../../veilcore/records';
 import { FingerprintReveal } from './FingerprintReveal';
 import { Dropzone } from './Dropzone';
-import { rich, useT } from '../../i18n/app';
+import { rich, useRecordT } from '../../i18n/app';
+import { recordTitle } from '../../veilcore/animal-profile';
 import { utcDate } from '../../veilcore/time';
 import { REAL_CHAIN, chainNotReady } from '../../veilcore/chain/config';
 import { useRecordKeys } from '../../veilcore/record-keys';
@@ -70,7 +71,7 @@ export const Step2PairDna: React.FC<{
   const [labMatch, setLabMatch] = useState<ResolvedAttestation | null>();
   const record = getRecord(recordId);
   const keys = useRecordKeys()[recordId];
-  const tr = useT();
+  const tr = useRecordT(getRecord(recordId));
   const { t, tp } = tr;
   const thisSite = t('app.copy.thisSite');
   const b = (c: React.ReactNode) => <b>{c}</b>;
@@ -213,7 +214,7 @@ export const Step2PairDna: React.FC<{
         </Typography>
         {record && (
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-            {rich(t('app.pair.savingTo'), { b }, { name: record.strainName, by: record.bredBy })}
+            {rich(t('app.pair.savingTo'), { b }, { name: recordTitle(record), by: record.bredBy })}
           </Typography>
         )}
       </Box>

@@ -12,6 +12,7 @@ import { reportSave, describeRefusals } from './save-status';
 import { newNonce, fingerprintRecord } from './commitment';
 import { ensureKeys, forgetKeys } from './record-keys';
 import { bindingForSecret } from './key-binding';
+import type { AnimalDetails, ParentRole } from './animal-profile';
 
 /**
  * A second party confirming they received this material.
@@ -35,8 +36,17 @@ export type Attestation = {
   readonly lab?: string;
 };
 
-/** A parent cultivar: linked to a logged record (recordId set) or free-typed (name only). */
-export type ParentRef = { readonly recordId?: string; readonly name: string };
+/**
+ * A parent: linked to a logged record (recordId set) or free-typed (name only). An animal
+ * record's parents are its sire and dam: each has a role, and an individual ID ('' if none),
+ * sealed with it (animal-profile.ts).
+ */
+export type ParentRef = {
+  readonly recordId?: string;
+  readonly name: string;
+  readonly role?: ParentRole;
+  readonly individualId?: string;
+};
 
 export type StrainRecord = {
   readonly id: string; // VEIL-XXXX
@@ -61,8 +71,14 @@ export type StrainRecord = {
    * 3 October 2026, which keep the profile they were exported under (see envelope.ts).
    */
   readonly profile?: string;
-  /** Species or other taxon, as the holder entered it. Optional. */
+  /** Species or other taxon, as the holder entered it. Optional for a plant, needed for an animal. */
   readonly taxon?: string;
+  /**
+   * An animal record's own details: breed, ID scheme, sex, herd (animal-profile.ts). Only on
+   * records sealed under the animal profile, where refId is the individual ID and dateCreated
+   * the date of birth.
+   */
+  readonly animal?: AnimalDetails;
   readonly photoFingerprints?: string[]; // photos hashed locally, never uploaded
   readonly refId?: string; // breeder's own reference / lot ID
   /**
@@ -148,7 +164,8 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
     str(r.keyBinding) &&
     num(r.loggedAt) &&
     num(r.dnaPairedAt) &&
-    (r.parents === undefined || Array.isArray(r.parents))
+    (r.parents === undefined || Array.isArray(r.parents)) &&
+    (r.animal === undefined || (typeof r.animal === 'object' && r.animal !== null && !Array.isArray(r.animal)))
   );
 };
 
@@ -169,6 +186,7 @@ export type NewRecordInput = {
   taxon?: string;
   photoFingerprints?: string[];
   refId?: string;
+  animal?: AnimalDetails;
 };
 
 /** Records whose id is referenced as a parent by the given record (its children). */
@@ -416,6 +434,7 @@ const IMPORTABLE = [
   'breedingMethod',
   'profile',
   'taxon',
+  'animal',
   'photoFingerprints',
   'refId',
   'dnaFingerprint',

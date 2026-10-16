@@ -21,7 +21,7 @@ import type { SavedReport } from '../../veilcore/saved-report';
 import { dnaTieRow, type DnaDate, type DnaTie } from '../../veilcore/dna-tie';
 import { useDnaTie } from './useDnaTie';
 import { keyStampLine, labReceiptRow, labSentRow, recordDateRow, type RowMark } from './plant-status-words';
-import { useT } from '../../i18n/app';
+import { useRecordT, useT } from '../../i18n/app';
 import { enT, type Translator } from '../../i18n/translate';
 
 export { keyStampLine, labReceiptRow, labSentRow, recordDateRow };
@@ -169,7 +169,7 @@ export const PlantStatus: React.FC<{
   // and the check page use (useAnchorCheck.ts): ✓ only once this browser found the batch
   // root in the named transaction on Midnight, ○ while it is the registry's report.
   const { proof, anchor } = useRecordDate(record.recordFingerprint);
-  const tr = useT();
+  const tr = useRecordT(record);
   const { t } = tr;
   // Whether the record is tied to the plant by a DNA report, and that report's own date.
   const dna = useDnaTie(record.receivedFrom ? undefined : record, saved, tr);

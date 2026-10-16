@@ -130,3 +130,12 @@ export const canonicalUrl = (path: string): string => `${CANONICAL_ORIGIN}${path
  */
 export const labResultsEnabledFor = (n: string): boolean => n !== 'mainnet';
 export const LAB_RESULTS_ENABLED: boolean = labResultsEnabledFor(NETWORK);
+
+/**
+ * Logging an animal (veilcore/animal-profile.ts, docs/animal-profile.md). Its record fields
+ * are a draft, so it is offered on test builds only: with it off, the logging flow and the
+ * collection import offer plants alone. Animal records that already exist (a backup, a lab
+ * code, a check link) still show as animals in every build.
+ */
+export const animalRecordsEnabledFor = (n: string): boolean => n !== 'mainnet';
+export const ANIMAL_RECORDS_ENABLED: boolean = animalRecordsEnabledFor(NETWORK);

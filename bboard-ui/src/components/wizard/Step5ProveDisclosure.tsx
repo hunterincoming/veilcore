@@ -35,7 +35,7 @@ import VisibilityIcon from '@mui/icons-material/VisibilityOutlined';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import { getRecord } from '../../veilcore/records';
 import {
-  DISCLOSURE_FIELDS,
+  fieldsFor,
   geneticsLabel,
   labelOf,
   defaultDisclosure,
@@ -54,7 +54,8 @@ import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { DisclosedFacts } from '../verify/DisclosedFacts';
 import { useSavedReport } from '../flow/LabResults';
 import { savedReportSentence, type SavedReport } from '../../veilcore/saved-report';
-import { useT } from '../../i18n/app';
+import { useRecordT } from '../../i18n/app';
+import { isAnimal, recordTitle } from '../../veilcore/animal-profile';
 
 export const Step5ProveDisclosure: React.FC<{
   recordId: string;
@@ -66,9 +67,9 @@ export const Step5ProveDisclosure: React.FC<{
   /** The way back's words: "Back to the plant", or "Back to the record" for a record that isn't a plant. */
   backLabel?: string;
 }> = ({ recordId, onBack, saved: given, backLabel }) => {
-  const tr = useT();
-  const { t } = tr;
   const record = getRecord(recordId);
+  const tr = useRecordT(record);
+  const { t } = tr;
   const loadedSaved = useSavedReport(given === undefined ? record : undefined);
   const saved = given === undefined ? loadedSaved : given;
   const [disclosure, setDisclosure] = useState<Disclosure>(defaultDisclosure());
@@ -179,7 +180,7 @@ export const Step5ProveDisclosure: React.FC<{
   const share = async () => {
     if (!link) return;
     try {
-      await navigator.share({ title: `${record.strainName} · VeilCore`, url: link.absolute });
+      await navigator.share({ title: `${recordTitle(record)} · VeilCore`, url: link.absolute });
     } catch {
       /* closed the share sheet: nothing to say */
     }
@@ -211,7 +212,8 @@ export const Step5ProveDisclosure: React.FC<{
             {t('app.prove.share.shownOn')}
           </Typography>
           <Stack sx={{ mt: 0.5 }}>
-            {DISCLOSURE_FIELDS.map((f) => (
+            {/* A plant's choices, or an animal's: its individual ID instead of a breeding method. */}
+            {fieldsFor(isAnimal(record) ? 'animal' : 'plant').map((f) => (
               <FormControlLabel
                 key={f.key}
                 control={<Switch checked={disclosure[f.key]} onChange={() => toggle(f.key)} />}

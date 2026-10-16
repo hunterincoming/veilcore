@@ -18,7 +18,7 @@ import { attestationsFor, signerLabel, strengthLabel, type ResolvedAttestation }
 import type { BreederReceipt } from '../veilcore/custody';
 import { NameCheckText } from './NameCheckText';
 import type { StrainRecord } from '../veilcore/records';
-import { useT } from '../i18n/app';
+import { useRecordT, useT } from '../i18n/app';
 
 /** The breeder's own plant: its tied receipt, and a count of anything else. */
 const BreederReceiptPanel: React.FC<{ receipt: BreederReceipt }> = ({ receipt }) => {
@@ -69,7 +69,7 @@ export const AttestationPanel: React.FC<{
   /** The breeder's own plant: show only its tied receipt (custody.ts). Absent for a received record. */
   receipt?: BreederReceipt | null;
 }> = ({ record, receipt }) => {
-  const tr = useT();
+  const tr = useRecordT(record);
   const { t } = tr;
   const [items, setItems] = useState<ResolvedAttestation[] | null>(null);
 

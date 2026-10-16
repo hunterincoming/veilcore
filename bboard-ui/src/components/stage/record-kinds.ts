@@ -13,8 +13,10 @@
 import type { ParentRef, StrainRecord } from '../../veilcore/records';
 import { isLabReportRecord, parseLabReportNotes } from './lab-report-notes';
 import { enT, type Translator } from '../../i18n/translate';
+import { isAnimal, type AnimalSex } from '../../veilcore/animal-profile';
 
-type Rec = Pick<StrainRecord, 'id' | 'strainName' | 'breedingMethod' | 'notes' | 'parents'>;
+type Rec = Pick<StrainRecord, 'id' | 'strainName' | 'breedingMethod' | 'notes' | 'parents'> &
+  Partial<Pick<StrainRecord, 'profile' | 'refId' | 'animal'>>;
 
 export { isLabReportRecord };
 
@@ -42,9 +44,23 @@ export const LAB_REPORT_DATED_HOME = 'DNA report dated';
 export const datingCardLine = (r: Pick<Rec, 'parents'>, tr: Translator = enT): string =>
   tr.t('app.home.datesReportFor', { name: r.parents?.[0]?.name || tr.t('app.home.aPlant') });
 
-/** Parents a new plant can be logged with: plants only, never a record that dates a lab report. */
+/** Parents a new plant can be logged with: plants only, never an animal or a record that dates a lab report. */
 export const parentOptionsOf = (records: readonly Rec[]): ParentRef[] =>
-  records.filter((r) => !isLabReportRecord(r)).map((r) => ({ recordId: r.id, name: r.strainName }));
+  records.filter((r) => !isLabReportRecord(r) && !isAnimal(r)).map((r) => ({ recordId: r.id, name: r.strainName }));
+
+/**
+ * The logged animals a new animal can name as its sire (male or not stated) or dam (female or
+ * not stated): name, individual ID and record, as the parent is sealed (animal-profile.ts).
+ */
+export const animalParentOptionsOf = (
+  records: readonly Rec[],
+  role: 'sire' | 'dam',
+): { recordId: string; name: string; individualId: string }[] => {
+  const ok: readonly AnimalSex[] = role === 'sire' ? ['male', 'unknown'] : ['female', 'unknown'];
+  return records
+    .filter((r) => isAnimal(r) && !isLabReportRecord(r) && ok.includes(r.animal?.sex ?? 'unknown'))
+    .map((r) => ({ recordId: r.id, name: r.strainName, individualId: r.refId ?? '' }));
+};
 
 /** How many of these record ids are plants and how many date a lab report (unknown ids count as plants). */
 export const countKinds = (ids: readonly string[], records: readonly Rec[]): { plants: number; datings: number } => {

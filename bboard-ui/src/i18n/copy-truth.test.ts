@@ -57,7 +57,7 @@ const says = (src: string, words: string): boolean => appText(src).includes(word
 import { type Lang } from './index';
 import { networkOverlay, LANGUAGES } from './catalogs';
 import { ja, jaMainnet, jaTestchain } from './ja';
-import { labResultsEnabledFor } from '../config/network';
+import { animalRecordsEnabledFor, labResultsEnabledFor } from '../config/network';
 import { readIndexersFor } from '../veilcore/chain/config';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -693,6 +693,54 @@ describe('round 3: what a page may claim', () => {
     // (labResultsEnabledFor in config/network.ts, builder F's flag.)
     expect(labResultsEnabledFor('mainnet')).toBe(false);
     expect(labResultsEnabledFor('preprod')).toBe(true);
+  });
+});
+
+describe('animal records (16 Oct 2026): where they can be logged', () => {
+  const OLD = {
+    en: /aren't published yet|set up for plants/,
+    de: /noch nicht veröffentlicht|für Pflanzen eingerichtet/,
+    es: /aún no están publicados|pensada para plantas/,
+    fr: /pas encore publiés|prévue pour les plantes/,
+    ja: /まだ公開されていません|植物向け/,
+  };
+  it('the test site and the demo say animals can be logged on the test site, as a draft', () => {
+    for (const site of [en as Record<string, string>, testSite]) {
+      expect(site['m.for.5p']).toMatch(
+        /You can log an animal on the test site: its individual ID, sire and dam, and a DNA report\./,
+      );
+      expect(site['m.for.5p']).toMatch(/The animal record fields are a draft\.$/);
+      expect(site['m.for.5p']).not.toMatch(OLD.en);
+    }
+  });
+  it('veilcore.org says it is the test site only, for now', () => {
+    for (const site of mainnetVariants) {
+      expect(site['m.for.5p']).toMatch(/only on the test site \(test\.veilcore\.org\)/);
+      expect(site['m.for.5p']).toMatch(/a draft\.$/);
+      expect(site['m.for.5p']).not.toMatch(OLD.en);
+    }
+    expect(jaMainnet({ claimsOnMainnet: true, policyApproved: true })['m.for.5p']).toContain(
+      'テストサイト（test.veilcore.org）だけ',
+    );
+  });
+  it('only the last sentence changed: the paragraph still opens as before', () => {
+    for (const site of [en as Record<string, string>, ...mainnetVariants])
+      expect(site['m.for.5p']).toMatch(
+        /^Herd books keep the pedigree\. A record can give each entry a date nobody can backdate, without publishing the genotype\. /,
+      );
+  });
+  it('every translation drops the old sentence', () => {
+    for (const l of ['de', 'es', 'fr', 'ja'] as const) {
+      expect(LANGUAGES[l].strings['m.for.5p'], l).not.toMatch(OLD[l]);
+      expect(LANGUAGES[l].strings['m.for.5p'], l).not.toBe(en['m.for.5p']);
+    }
+    expect(jaMainnet({ claimsOnMainnet: true, policyApproved: true })['m.for.5p']).not.toMatch(OLD.ja);
+    expect(ja['m.for.5p']).toContain('個体識別番号');
+  });
+  it('the words follow the switch: animal logging is on for test builds, off on mainnet', () => {
+    // If this flips, m.for.5p in en-mainnet.ts (and jaMainnet) must change with it.
+    expect(animalRecordsEnabledFor('mainnet')).toBe(false);
+    for (const n of ['preprod', 'preview', 'undeployed']) expect(animalRecordsEnabledFor(n), n).toBe(true);
   });
 });
 

@@ -121,3 +121,23 @@ export const wrap = (text: string, width = 78): string =>
       return lines.join('\n');
     })
     .join('\n');
+
+/**
+ * What the sealed fields describe: 'animal' for a record sealed under the animal profile
+ * (veilcore/animal-profile.ts), else 'plant'. The bundle's files say "this animal" where a
+ * plant's say "this plant"; nothing else about them changes.
+ */
+export const subjectOf = (fields: unknown): 'plant' | 'animal' =>
+  typeof fields === 'object' &&
+  fields !== null &&
+  (fields as Record<string, unknown>).profile === 'veilcore/profile/animal-individual/v1'
+    ? 'animal'
+    : 'plant';
+
+/** The record's name as sealed: a plant's name, or an animal's name or individual ID; else ''. */
+export const sealedNameOf = (fields: unknown): string => {
+  if (typeof fields !== 'object' || fields === null) return '';
+  const f = fields as Record<string, unknown>;
+  for (const k of ['strainName', 'name', 'individualId']) if (isString(f[k]) && f[k]) return f[k];
+  return '';
+};

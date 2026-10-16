@@ -68,6 +68,7 @@ export const verify = {
   'app.verify.field.sealed-at': 'Wann versiegelt wurde (Uhr des Geräts des Inhabers)',
   'app.verify.field.parent-names': 'Namen der Elternsorten',
   'app.verify.field.breeding-method': 'Zuchtmethode',
+  'app.verify.field.individual-id': 'Einzeltierkennung und ihr Kennzeichnungssystem',
   'app.verify.field.genetics': 'Die Genetik selbst – grundsätzlich nie offengelegt',
   'app.verify.sum.reports.one': 'ein Laborbericht',
   'app.verify.sum.reports.other': '{count} × Laborbericht',

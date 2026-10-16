@@ -8,6 +8,8 @@ import { Box, Button, Divider, Stack, Typography } from '@mui/material';
 import { useNavigate, useParams, useSearchParams, Link as RouterLink } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import { getRecord } from '../../veilcore/records';
+import { isAnimal } from '../../veilcore/animal-profile';
+import { useT } from '../../i18n/app';
 import {
   sealAgreement,
   createLicense,
@@ -46,6 +48,7 @@ export const TermsBuilder: React.FC = () => {
   const [t, setT] = useState<LicenseTerms>(prior?.terms ?? emptyTermsFor(type));
   const [busy, setBusy] = useState(false);
   const set: SetTerm = (k, v) => setT((p) => ({ ...p, [k]: v }));
+  const tr = useT();
 
   if (!record) {
     return (
@@ -57,6 +60,20 @@ export const TermsBuilder: React.FC = () => {
         </Typography>
         <Button component={RouterLink} to="/records" startIcon={<ArrowBackIcon />}>
           Your records
+        </Button>
+      </Box>
+    );
+  }
+
+  // Agreements and royalties are for plant records only, for now (docs/animal-profile.md):
+  // their terms speak of propagation and offspring declared from a variety.
+  if (isAnimal(record)) {
+    return (
+      <Box data-no-licensing="">
+        <AppHeader />
+        <Typography sx={{ mb: 1 }}>{tr.t('app.animal.noLicensing')}</Typography>
+        <Button component={RouterLink} to={`/record/${record.id}`} startIcon={<ArrowBackIcon />}>
+          {tr.t('app.animal.v.app.plant.backToPlant')}
         </Button>
       </Box>
     );

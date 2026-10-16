@@ -7,6 +7,7 @@
 // envío (delivery), precinto (seal on a sample bag), acuerdo (agreement).
 // SPDX-License-Identifier: Apache-2.0
 import type { AppTranslation } from '../../translate';
+import { animal } from './animal';
 import { backup } from './backup';
 import { chain } from './chain';
 import { common } from './common';
@@ -37,4 +38,5 @@ export const appEs: AppTranslation = {
   ...history,
   ...importing,
   ...partners,
+  ...animal,
 };

@@ -1,4 +1,4 @@
-// Sealing a new plant record: the one place it is done.
+// Sealing a new record, plant or animal: the one place it is done.
 //
 // Logging one plant by hand (LogFlow.tsx, Review) and dating a whole collection
 // (bulk-import.ts, sealRowRecord) both seal through here, so a record made either way has
@@ -12,6 +12,7 @@ import { newRecordId, type NewRecordInput, type ParentRef } from './records';
 import { ensureKeys, forgetKeys } from './record-keys';
 import { bindingForSecret } from './key-binding';
 import { PLANT_VARIETY_PROFILE } from './envelope';
+import { ANIMAL_PROFILE, type AnimalDetails } from './animal-profile';
 
 /** What the holder wrote, already tidied by the caller (trimmed, one line where it should be). */
 export type SealInput = {
@@ -42,25 +43,71 @@ export type SealedRecord = NewRecordInput & {
  * could recompute the fingerprint, so the record would be unverifiable by anyone. If
  * sealing fails, the key made for it is forgotten: nothing was sealed under it.
  */
-export const sealRecord = async (input: SealInput, now = Date.now()): Promise<SealedRecord> => {
+export const sealRecord = (input: SealInput, now = Date.now()): Promise<SealedRecord> =>
+  sealWithKey(now, (keyBinding) => ({
+    nonce: newNonce(),
+    keyBinding,
+    strainName: input.strainName,
+    bredBy: input.bredBy,
+    dateCreated: input.dateCreated,
+    notes: input.notes,
+    loggedAt: now,
+    parents: input.parents,
+    breedingMethod: input.breedingMethod,
+    photoFingerprints: input.photoFingerprints,
+    refId: input.refId,
+    profile: PLANT_VARIETY_PROFILE,
+    taxon: input.taxon || undefined,
+  }));
+
+/**
+ * What the holder wrote about one animal, already tidied by the caller (trimmed, one line).
+ * Sealed under the animal profile (animal-profile.ts): the same fingerprint rules, the same
+ * key binding and nonce as a plant record, and the profile's own fields.
+ */
+export type AnimalSealInput = {
+  readonly name: string;
+  readonly species: string;
+  readonly breed: string;
+  readonly individualId: string;
+  readonly idScheme: string;
+  readonly sex: AnimalDetails['sex'];
+  /** '' when not stated. */
+  readonly dateOfBirth: string;
+  /** The sire first, then the dam, each only if given. */
+  readonly parents: ParentRef[];
+  readonly breeder: string;
+  readonly herd: string;
+  readonly notes: string;
+  readonly photoFingerprints: string[];
+};
+
+export const sealAnimalRecord = (input: AnimalSealInput, now = Date.now()): Promise<SealedRecord> =>
+  sealWithKey(now, (keyBinding) => ({
+    nonce: newNonce(),
+    keyBinding,
+    profile: ANIMAL_PROFILE,
+    strainName: input.name,
+    bredBy: input.breeder,
+    dateCreated: input.dateOfBirth,
+    notes: input.notes,
+    loggedAt: now,
+    parents: input.parents.map((p) => ({ ...p, individualId: p.individualId ?? '' })),
+    photoFingerprints: input.photoFingerprints,
+    refId: input.individualId,
+    taxon: input.species,
+    animal: { breed: input.breed, idScheme: input.idScheme, sex: input.sex, herd: input.herd },
+  }));
+
+/** Make the record's key, then seal the fields that name it; forget the key if sealing fails. */
+const sealWithKey = async (
+  now: number,
+  fieldsFor: (keyBinding: string) => Omit<NewRecordInput, 'recordFingerprint'> & { nonce: string; keyBinding: string },
+): Promise<SealedRecord> => {
   const id = newRecordId();
   try {
     const { keyBinding } = bindingForSecret(ensureKeys(id, now).recordSecret);
-    const fields = {
-      nonce: newNonce(),
-      keyBinding,
-      strainName: input.strainName,
-      bredBy: input.bredBy,
-      dateCreated: input.dateCreated,
-      notes: input.notes,
-      loggedAt: now,
-      parents: input.parents,
-      breedingMethod: input.breedingMethod,
-      photoFingerprints: input.photoFingerprints,
-      refId: input.refId,
-      profile: PLANT_VARIETY_PROFILE,
-      taxon: input.taxon || undefined,
-    };
+    const fields = fieldsFor(keyBinding);
     const recordFingerprint = await fingerprintRecord(fields);
     return { ...fields, id, recordFingerprint };
   } catch (e) {

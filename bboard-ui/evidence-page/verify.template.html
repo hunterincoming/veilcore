@@ -76,11 +76,11 @@
   <div class="note">
     <ul>
       <li>That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.</li>
-      <li>Who holds the plant or the record now.</li>
+      <li>Who holds the <span class="vc-subject">plant</span> or the record now.</li>
       <li>That a signing key belongs to the lab it names. VeilCore doesn’t vouch for anyone, and neither does this page.</li>
       <li>Any date at all, until you find the batch root in the transaction named above (or the Bitcoin stamp checks). Until then the files only agree with each other.</li>
       <li>The Bitcoin block itself: this page reads the stamp file, but it can’t reach Bitcoin to see that the block holds the value the file names.</li>
-      <li>When a lab report was saved to the plant. That came after sealing and isn’t inside the record’s fingerprint, so the batch doesn’t date it.</li>
+      <li>When a lab report was saved to the <span class="vc-subject">plant</span>. That came after sealing and isn’t inside the record’s fingerprint, so the batch doesn’t date it.</li>
     </ul>
   </div>
 
@@ -211,6 +211,16 @@ return canonicalise;
   // The sealed fields, labelled in plain words. Unknown fields are shown by their own name.
   var FIELD_LABELS = [
     ['strainName', 'Plant name'],
+    // An animal record's own fields (the site's veilcore/animal-profile.ts); a plant record has none.
+    ['name', 'Animal name'],
+    ['individualId', 'Individual ID'],
+    ['idScheme', 'ID scheme'],
+    ['species', 'Species'],
+    ['breed', 'Breed'],
+    ['sex', 'Sex'],
+    ['dateOfBirth', 'Date of birth (the holder’s statement)'],
+    ['breeder', 'Breeder or holder'],
+    ['herd', 'Herd or farm'],
     ['bredBy', 'Bred by'],
     ['dateCreated', 'Stated date'],
     ['parents', 'Parents'],
@@ -231,7 +241,10 @@ return canonicalise;
       return v.map(function (p) {
         if (!p || typeof p !== 'object') return String(p);
         var name = typeof p.name === 'string' && p.name ? p.name : '(no name)';
-        return typeof p.recordId === 'string' && p.recordId ? name + ' (record ' + p.recordId + ')' : name;
+        // An animal's sire or dam: its role, and its individual ID when it has one.
+        var role = p.role === 'sire' ? 'Sire: ' : p.role === 'dam' ? 'Dam: ' : '';
+        var id = typeof p.individualId === 'string' && p.individualId ? ' (ID ' + p.individualId + ')' : '';
+        return role + name + id + (typeof p.recordId === 'string' && p.recordId ? ' (record ' + p.recordId + ')' : '');
       }).join('; ');
     }
     if (key === 'photoFingerprints' && Array.isArray(v)) {
@@ -270,9 +283,17 @@ return canonicalise;
   }
   var TYPES = { 'laboratory-report': 'a lab report', 'chain-of-custody': 'a receipt for a sample', 'genetic-fingerprint': 'a genetic fingerprint' };
 
+  // What the record describes: "animal" for a record sealed under the animal profile (the
+  // site's veilcore/animal-profile.ts), else "plant". Set by render, read by the file checks.
+  var SUBJECT = 'plant';
+
   function render(ev, report) {
     var rec = ev && ev.record ? ev.record : {};
-    var name = rec.sealedFields && typeof rec.sealedFields.strainName === 'string' ? rec.sealedFields.strainName : '';
+    var sf = rec.sealedFields && typeof rec.sealedFields === 'object' ? rec.sealedFields : {};
+    SUBJECT = sf.profile === 'veilcore/profile/animal-individual/v1' ? 'animal' : 'plant';
+    var words = document.querySelectorAll('.vc-subject');
+    for (var w = 0; w < words.length; w++) words[w].textContent = SUBJECT;
+    var name = ['strainName', 'name', 'individualId'].map(function (k) { return typeof sf[k] === 'string' ? sf[k] : ''; }).filter(Boolean)[0] || '';
     var title = name ? name + (rec.id ? ' · ' + rec.id : '') : rec.id || 'this record';
     document.title = 'Check ' + title + ' (offline)';
     var summary = clear('summary');
@@ -359,12 +380,12 @@ return canonicalise;
     var pr = report.pairing;
     if (lab && pr.status === 'ok') {
       checks.appendChild(result('ok', 'Lab report pairing matches', [
-        para(['The lab report saved to this plant has this SHA-256, and it leads to the pairing fingerprint saved with the plant (spec section 3.7). The report itself ' + (lab.fileIncluded ? 'is in this bundle: ' + lab.fileIncluded + '. Choose it below to check it.' : 'isn’t in this bundle.')]),
+        para(['The lab report saved to this ' + SUBJECT + ' has this SHA-256, and it leads to the pairing fingerprint saved with the ' + SUBJECT + ' (spec section 3.7). The report itself ' + (lab.fileIncluded ? 'is in this bundle: ' + lab.fileIncluded + '. Choose it below to check it.' : 'isn’t in this bundle.')]),
         facts([['Lab report SHA-256', hex(lab.fileSha256)], ['Pairing fingerprint', hex(lab.pairingFingerprint)]]),
       ], 'pairing'));
     } else if (lab && pr.status === 'no-sha') {
       checks.appendChild(result('info', 'Lab report saved, SHA-256 not kept', [
-        para(['A lab report was saved to this plant before its SHA-256 was kept, so only its pairing fingerprint is here.']),
+        para(['A lab report was saved to this ' + SUBJECT + ' before its SHA-256 was kept, so only its pairing fingerprint is here.']),
         facts([['Pairing fingerprint', lab.pairingFingerprint ? hex(String(lab.pairingFingerprint)) : '(none)']]),
       ], 'pairing'));
     } else if (lab && pr.status === 'fail') {
@@ -450,7 +471,7 @@ return canonicalise;
       ];
       if (withdrawn) lines.push(para(['The same key withdrew it' + (s.retraction.retractedAt ? ' at ' + plain(s.retraction.retractedAt) : '') + (s.retraction.reason ? ' (' + plain(s.retraction.reason) + ')' : '') + '.']));
       else if (s.retraction) lines.push(para(['A withdrawal is attached that this key did not sign. It is ignored.']));
-      if (ev.labReport && ev.labReport.fileSha256 === s.documentHash) lines.push(para(['It is the lab report saved to this plant.']));
+      if (ev.labReport && ev.labReport.fileSha256 === s.documentHash) lines.push(para(['It is the lab report saved to this ' + SUBJECT + '.']));
       sg.appendChild(result(withdrawn ? 'info' : 'ok', withdrawn ? 'Signed, then withdrawn' : 'Signature checks', lines, 'signature'));
     }
 
@@ -554,7 +575,7 @@ return canonicalise;
       } else if (f.is === 'root.bin') {
         out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? 'root.bin is the batch root' : 'root.bin is not the batch root', [para(['SHA-256 of the file: ', hex(f.sha256)])], 'file'));
       } else if (f.is === 'lab report?') {
-        out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? f.name + ' is the lab report saved to this plant' : f.name + ' is not the lab report saved to this plant', [para(['Its SHA-256: ', hex(f.sha256)])], 'file'));
+        out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? f.name + ' is the lab report saved to this ' + SUBJECT : f.name + ' is not the lab report saved to this ' + SUBJECT, [para(['Its SHA-256: ', hex(f.sha256)])], 'file'));
       } else {
         out.appendChild(result('info', f.name, [para(['Its SHA-256: ', hex(f.sha256), '. Nothing in this bundle to compare it with.'])], 'file'));
       }

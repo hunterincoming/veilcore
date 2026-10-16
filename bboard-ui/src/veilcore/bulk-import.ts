@@ -27,7 +27,8 @@ import { inflateSync, strFromU8, unzipSync } from 'fflate';
 import { allRecords, createRecords, type ParentRef, type StrainRecord } from './records';
 import { loadLedger, saveLedger, type Ledger } from './bulk-import-ledger';
 import { forgetKeys, keysFor } from './record-keys';
-import { sealRecord } from './seal-record';
+import { sealAnimalRecord, sealRecord } from './seal-record';
+import { isAnimal, isCalendarDate, type AnimalDetails, type AnimalSex } from './animal-profile';
 import type { SaveRefusal } from './store';
 import { verifyPath } from './verify-link';
 
@@ -744,6 +745,12 @@ export type DateOrder = 'auto' | 'mdy' | 'dmy';
 
 export type Mapping = {
   readonly columns: Record<FieldKey, number | null>;
+  /**
+   * Set when the file is a list of animals (an animal record each, animal-profile.ts): its
+   * own columns, and the ID scheme and species for rows that don't say. The plant columns
+   * above are then not used.
+   */
+  readonly animal?: AnimalMapping;
   /** Bred by, for rows where the file doesn't say (or has no such column). */
   readonly bredByDefault: string;
   /** How dates like 03/04/2021 are read: found from the column when it can be. */
@@ -811,6 +818,113 @@ export const guessMapping = (headers: string[]): Mapping => {
   return { ...m, columns };
 };
 
+// ── Animals: their own columns ────────────────────────────────────────────────────────
+
+/** An animal list's columns: an animal record each (animal-profile.ts). */
+export const ANIMAL_FIELDS = [
+  'name',
+  'individualId',
+  'species',
+  'breed',
+  'sex',
+  'dateOfBirth',
+  'sire',
+  'sireId',
+  'dam',
+  'damId',
+  'breeder',
+  'herd',
+  'notes',
+] as const;
+export type AnimalFieldKey = (typeof ANIMAL_FIELDS)[number];
+
+export type AnimalMapping = {
+  readonly columns: Record<AnimalFieldKey, number | null>;
+  /** The ID scheme every individual ID in the file belongs to ("Japan cattle ID (10 digits)"). */
+  readonly idScheme: string;
+  /** The species, for rows whose own cell doesn't say (or with no species column). */
+  readonly species: string;
+};
+
+export const emptyAnimalMapping = (): AnimalMapping => ({
+  columns: Object.fromEntries(ANIMAL_FIELDS.map((f) => [f, null])) as Record<AnimalFieldKey, number | null>,
+  idScheme: '',
+  species: '',
+});
+
+/** First match wins: an ID column of a parent before the parent, and the animal's own ID last. */
+const ANIMAL_GUESSES: [AnimalFieldKey, RegExp][] = [
+  ['sireId', / (sire|father|paternal|bull) (id|no|nr|number|num|tag|code|reg|registration) /],
+  ['damId', / (dam|mother|maternal) (id|no|nr|number|num|tag|code|reg|registration) /],
+  ['sire', / (sire|father|paternal) /],
+  ['dam', / (dam|mother|maternal) /],
+  ['dateOfBirth', / (dob|birth|born|birthdate|date of birth|birth date|calved|calving date) /],
+  ['species', / (species|taxon|animal type|kind) /],
+  ['breed', / (breed|breed name) /],
+  ['sex', / (sex|gender) /],
+  ['breeder', / (breeder|bred by|holder|owner|keeper|producer|farmer) /],
+  ['herd', / (herd|farm|ranch|holding|premises) /],
+  ['notes', / (notes?|comments?|remarks?|description|memo) /],
+  ['individualId', / (id|no|nr|number|num|tag|ear tag|eartag|reg|registration|code|identification|microchip|chip) /],
+  ['name', / (name|animal|animal name) /],
+];
+
+/**
+ * Japanese column names, read as written (the English guesses read letters only): a cattle
+ * register's 個体識別番号, 父 / 種雄牛, 母 / 繁殖雌牛, 生年月日, 品種, 性別, 名号.
+ */
+const ANIMAL_GUESSES_JA: [AnimalFieldKey, RegExp][] = [
+  ['sireId', /(父|種雄牛).*(番号|ID)/],
+  ['damId', /(母|繁殖雌牛).*(番号|ID)/],
+  ['sire', /父|種雄牛/],
+  ['dam', /母|繁殖雌牛/],
+  ['individualId', /個体識別|耳標|識別番号|登録番号/],
+  ['dateOfBirth', /生年月日|出生/],
+  ['breed', /品種/],
+  ['sex', /性別|雌雄/],
+  ['species', /畜種|動物種/],
+  ['breeder', /生産者|飼養者|繁殖者/],
+  ['herd', /農場|牧場/],
+  ['notes', /備考|メモ/],
+  ['name', /名号|名前|牛名/],
+];
+
+/** Guess which column is which in a list of animals. Each column is used once. */
+export const guessAnimalMapping = (headers: string[]): AnimalMapping => {
+  const m = emptyAnimalMapping();
+  const columns = { ...m.columns };
+  headers.forEach((h, i) => {
+    // A grandparent (母の父, 祖父, 父の母…) is not this animal's sire or dam: left for the holder to pick.
+    if (/母の父|父の母|父の父|母の母|祖/.test(h)) return;
+    for (const [field, re] of ANIMAL_GUESSES_JA) {
+      if (columns[field] === null && re.test(h)) {
+        columns[field] = i;
+        return;
+      }
+    }
+    const w = words(h);
+    if (/ (grand\w*|mgs|pgs|mgd|pgd) /.test(w)) return;
+    for (const [field, re] of ANIMAL_GUESSES) {
+      if (columns[field] !== null) continue;
+      if (re.test(w)) {
+        columns[field] = i;
+        return;
+      }
+    }
+  });
+  return { ...m, columns };
+};
+
+/** A sex as written: female, male, or not stated; undefined for anything else (said as a problem). */
+export const readSex = (v: string): AnimalSex | undefined => {
+  const w = v.trim().toLowerCase();
+  if (!w) return 'unknown';
+  if (/^(f|female|cow|heifer|ewe|doe|sow|mare|hen|雌|メス|めす)$/.test(w)) return 'female';
+  if (/^(m|male|bull|steer|ram|buck|boar|stallion|rooster|雄|オス|おす)$/.test(w)) return 'male';
+  if (/^(unknown|not stated|-|n\/a|na|\?)$/.test(w)) return 'unknown';
+  return undefined;
+};
+
 // ── A row as it would be sealed ────────────────────────────────────────────────────────
 
 export type RowFields = {
@@ -821,6 +935,13 @@ export type RowFields = {
   readonly bredBy: string;
   readonly dateCreated: string;
   readonly notes: string;
+  /**
+   * An animal row's own details (animal-profile.ts): then strainName is its name, refId its
+   * individual ID, taxon its species, dateCreated its date of birth, parents its sire and dam.
+   */
+  readonly animal?: AnimalDetails;
+  /** An animal row's sex cell, when it isn't female, male or empty (a problem to fix). */
+  readonly sexAsWritten?: string;
 };
 
 // eslint-disable-next-line no-control-regex
@@ -922,7 +1043,46 @@ const cellOf = (row: SheetRow, col: number | null) => (col === null ? '' : (row.
 export const dateOrderFor = (sheet: Sheet, mapping: Mapping): 'mdy' | 'dmy' | undefined =>
   mapping.dateOrder !== 'auto'
     ? mapping.dateOrder
-    : detectDateOrder(sheet.rows.map((r) => cellOf(r, mapping.columns.dateCreated)));
+    : detectDateOrder(
+        sheet.rows.map((r) =>
+          cellOf(r, mapping.animal ? mapping.animal.columns.dateOfBirth : mapping.columns.dateCreated),
+        ),
+      );
+
+/** An animal row's values exactly as they would be sealed (animal-profile.ts). */
+export const animalRowFields = (
+  row: SheetRow,
+  mapping: Mapping & { animal: AnimalMapping },
+  order?: 'mdy' | 'dmy',
+): RowFields & { dateAmbiguous: boolean } => {
+  const c = mapping.animal.columns;
+  const parent = (role: 'sire' | 'dam', nameCol: number | null, idCol: number | null): ParentRef[] => {
+    const name = oneLine(cellOf(row, nameCol));
+    const individualId = oneLine(cellOf(row, idCol));
+    return name || individualId ? [{ role, name, individualId }] : [];
+  };
+  const date = normalizeDate(cellOf(row, c.dateOfBirth), order);
+  const individualId = oneLine(cellOf(row, c.individualId));
+  const sexCell = oneLine(cellOf(row, c.sex));
+  const sex = readSex(sexCell);
+  return {
+    strainName: oneLine(cellOf(row, c.name)),
+    refId: individualId,
+    taxon: oneLine(cellOf(row, c.species)) || oneLine(mapping.animal.species),
+    parents: [...parent('sire', c.sire, c.sireId), ...parent('dam', c.dam, c.damId)],
+    bredBy: oneLine(cellOf(row, c.breeder)) || oneLine(mapping.bredByDefault),
+    dateCreated: date.value,
+    notes: multiLine(cellOf(row, c.notes)),
+    animal: {
+      breed: oneLine(cellOf(row, c.breed)),
+      idScheme: individualId ? oneLine(mapping.animal.idScheme) : '',
+      sex: sex ?? 'unknown',
+      herd: oneLine(cellOf(row, c.herd)),
+    },
+    ...(sex === undefined ? { sexAsWritten: sexCell } : {}),
+    dateAmbiguous: date.ambiguous,
+  };
+};
 
 /** A row's values exactly as they would be sealed. */
 export const rowFields = (
@@ -951,22 +1111,43 @@ const hex = (b: Uint8Array) => Array.from(b, (x) => x.toString(16).padStart(2, '
 
 /** What a row is known by: a hash of the values it is sealed with. Same values, same hash. */
 export const rowHashOf = (f: RowFields): string =>
-  hex(
-    sha256(
-      new TextEncoder().encode(
-        JSON.stringify([
-          'veilcore-bulk-row-v1',
-          f.strainName,
-          f.refId,
-          f.taxon,
-          f.parents.map((p) => p.name),
-          f.bredBy,
-          f.dateCreated,
-          f.notes,
-        ]),
-      ),
-    ),
-  );
+  f.animal
+    ? hex(
+        sha256(
+          new TextEncoder().encode(
+            JSON.stringify([
+              'veilcore-bulk-animal-row-v1',
+              f.strainName,
+              f.refId,
+              f.taxon,
+              f.parents.map((p) => [p.role ?? '', p.name, p.individualId ?? '']),
+              f.bredBy,
+              f.dateCreated,
+              f.notes,
+              f.animal.breed,
+              f.animal.idScheme,
+              f.animal.sex,
+              f.animal.herd,
+            ]),
+          ),
+        ),
+      )
+    : hex(
+        sha256(
+          new TextEncoder().encode(
+            JSON.stringify([
+              'veilcore-bulk-row-v1',
+              f.strainName,
+              f.refId,
+              f.taxon,
+              f.parents.map((p) => p.name),
+              f.bredBy,
+              f.dateCreated,
+              f.notes,
+            ]),
+          ),
+        ),
+      );
 
 /** The same hash for a record already in the set, so a row sealed on another device is found too. */
 export const recordRowHash = (r: StrainRecord): string =>
@@ -978,6 +1159,7 @@ export const recordRowHash = (r: StrainRecord): string =>
     bredBy: r.bredBy ?? '',
     dateCreated: r.dateCreated ?? '',
     notes: r.notes ?? '',
+    ...(isAnimal(r) && r.animal ? { animal: r.animal } : {}),
   });
 
 const nameIdKey = (name: string, id: string) => `${name.toLowerCase()}\u0000${id.toLowerCase()}`;
@@ -1054,15 +1236,40 @@ export const checkRows = (
   for (const r of ctx.existing) {
     if (!r.recordFingerprint) continue;
     byHash.set(recordRowHash(r), r);
-    if (!r.supersededBy) byNameId.set(nameIdKey(oneLine(r.strainName ?? ''), oneLine(r.refId ?? '')), r);
+    // An animal is known by its individual ID when it has one, as the rows below are.
+    if (!r.supersededBy)
+      byNameId.set(
+        isAnimal(r) && r.refId
+          ? nameIdKey('', oneLine(r.refId))
+          : nameIdKey(oneLine(r.strainName ?? ''), oneLine(r.refId ?? '')),
+        r,
+      );
   }
   const seenInFile = new Map<string, number>();
   const headerRows: number[] = [];
+  const animal = mapping.animal;
+  // A sire or dam whose ID is an animal already in this set is linked to its record.
+  const animalById = new Map<string, StrainRecord>();
+  if (animal)
+    for (const r of ctx.existing)
+      if (isAnimal(r) && r.refId && r.recordFingerprint && !r.supersededBy) animalById.set(oneLine(r.refId), r);
+  const nameColumn = animal ? (animal.columns.name ?? animal.columns.individualId) : mapping.columns.strainName;
   const rows: PreparedRow[] = sheet.rows.map((row) => {
-    const { dateAmbiguous, ...fields } = rowFields(row, mapping, order);
+    const { dateAmbiguous, ...read } = animal
+      ? animalRowFields(row, { ...mapping, animal }, order)
+      : rowFields(row, mapping, order);
+    const fields: RowFields = animal
+      ? {
+          ...read,
+          parents: read.parents.map((p) => {
+            const linked = p.individualId ? animalById.get(p.individualId) : undefined;
+            return linked ? { ...p, recordId: linked.id } : p;
+          }),
+        }
+      : read;
     const hash = rowHashOf(fields);
     const base = { line: row.line, cells: row.cells, fields, hash, dateAmbiguous };
-    if (looksLikeColumnNames(row, sheet.headers, mapping.columns.strainName)) {
+    if (looksLikeColumnNames(row, sheet.headers, nameColumn)) {
       headerRows.push(row.line);
       return {
         ...base,
@@ -1071,7 +1278,8 @@ export const checkRows = (
       };
     }
     const problems: string[] = [];
-    if (!fields.strainName) problems.push('No plant name.');
+    if (animal) problems.push(...animalRowProblems(fields));
+    else if (!fields.strainName) problems.push('No plant name.');
     for (const p of [
       tooLong('The plant name', fields.strainName, LIMITS.strainName),
       tooLong('The ID', fields.refId, LIMITS.refId),
@@ -1085,13 +1293,19 @@ export const checkRows = (
     if (fields.parents.length > LIMITS.parents)
       problems.push(`Too many parents: ${fields.parents.length}, the most is ${LIMITS.parents}.`);
 
-    const key = nameIdKey(fields.strainName, fields.refId);
-    const earlier = fields.strainName ? seenInFile.get(key) : undefined;
+    // An animal is known by its individual ID when it has one: two rows with one ID are one animal.
+    const key = animal && fields.refId ? nameIdKey('', fields.refId) : nameIdKey(fields.strainName, fields.refId);
+    const named = Boolean(fields.strainName || (animal && fields.refId));
+    const earlier = named ? seenInFile.get(key) : undefined;
     if (earlier !== undefined) {
       problems.push(
-        fields.refId ? `Same name and ID as row ${earlier}.` : `Same name as row ${earlier}, and neither has an ID.`,
+        animal && fields.refId
+          ? `Same individual ID as row ${earlier}.`
+          : fields.refId
+            ? `Same name and ID as row ${earlier}.`
+            : `Same name as row ${earlier}, and neither has an ID.`,
       );
-    } else if (fields.strainName) seenInFile.set(key, row.line);
+    } else if (named) seenInFile.set(key, row.line);
     if (problems.length) return { ...base, status: 'problem' as const, problems };
 
     // Already sealed: by this browser (the ledger), or a record with the same values.
@@ -1123,7 +1337,9 @@ export const checkRows = (
   let blocked: string | undefined;
   if (sheet.rows.length > MAX_ROWS || sheet.moreRows) {
     blocked = tooManyRows(sheet);
-  } else if (mapping.columns.strainName === null) {
+  } else if (animal && animal.columns.name === null && animal.columns.individualId === null) {
+    blocked = 'Pick the column that has the animal’s name or its individual ID.';
+  } else if (!animal && mapping.columns.strainName === null) {
     blocked = 'Pick the column that has the plant or line name.';
   } else if (ctx.existing.length + count('ready') > MAX_SET) {
     blocked = `That would make ${ctx.existing.length + count('ready')} records, and this site shows at most ${MAX_SET}. Import fewer rows.`;
@@ -1139,6 +1355,43 @@ export const checkRows = (
   };
 };
 
+/**
+ * What stops an animal row being sealed under the animal profile (animal-profile.ts), in
+ * plain sentences: the profile refuses a record in any other form, so the row says so first.
+ */
+const animalRowProblems = (f: RowFields): string[] => {
+  const out: string[] = [];
+  if (!f.strainName && !f.refId) out.push('No name and no individual ID.');
+  if (f.refId && !f.animal?.idScheme) out.push('Say which ID scheme the individual IDs belong to.');
+  if (!f.taxon) out.push('No species.');
+  if (!f.bredBy) out.push('No breeder or holder.');
+  if (f.sexAsWritten !== undefined)
+    out.push(`Sex not understood: "${f.sexAsWritten.slice(0, 30)}". Use female, male, or leave it empty.`);
+  if (f.dateCreated && !isCalendarDate(f.dateCreated))
+    out.push(
+      `The date of birth isn't a date that can be read: "${f.dateCreated.slice(0, 30)}". Write it as YYYY-MM-DD.`,
+    );
+  for (const [what, v] of [
+    ['The name', f.strainName],
+    ['The individual ID', f.refId],
+    ['The species', f.taxon],
+    ['The breed', f.animal?.breed ?? ''],
+    ['The ID scheme', f.animal?.idScheme ?? ''],
+    ['The breeder or holder', f.bredBy],
+    ['The herd', f.animal?.herd ?? ''],
+    ...f.parents.flatMap((p) => [
+      [`The ${p.role}'s name`, p.name],
+      [`The ${p.role}'s ID`, p.individualId ?? ''],
+    ]),
+  ] as [string, string][]) {
+    const p = tooLong(what, v, 200);
+    if (p) out.push(p);
+  }
+  const notes = tooLong('The notes', f.notes, LIMITS.notes);
+  if (notes) out.push(notes);
+  return out;
+};
+
 // ── Sealing ────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -1147,6 +1400,27 @@ export const checkRows = (
  * breeding method and no photos. The shape is the one createRecord gives a record.
  */
 export const sealRowRecord = async (f: RowFields, now = Date.now()): Promise<StrainRecord> => {
+  // An animal row: sealed exactly as the logging flow seals one animal (seal-record.ts).
+  if (f.animal) {
+    const sealedAnimal = await sealAnimalRecord(
+      {
+        name: f.strainName,
+        species: f.taxon,
+        breed: f.animal.breed,
+        individualId: f.refId,
+        idScheme: f.animal.idScheme,
+        sex: f.animal.sex,
+        dateOfBirth: f.dateCreated,
+        parents: f.parents,
+        breeder: f.bredBy,
+        herd: f.animal.herd,
+        notes: f.notes,
+        photoFingerprints: [],
+      },
+      now,
+    );
+    return { licenseIds: [], ...sealedAnimal };
+  }
   const sealed = await sealRecord(
     {
       strainName: f.strainName,

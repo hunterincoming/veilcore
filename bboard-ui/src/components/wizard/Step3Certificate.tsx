@@ -39,7 +39,9 @@ import { useBreederReceipt, useSavedReport } from '../flow/LabResults';
 import { savedReportSentence, type SavedReport } from '../../veilcore/saved-report';
 import { dnaTieMeaning, dnaTieSentence } from '../../veilcore/dna-tie';
 import { useDnaTie } from '../flow/useDnaTie';
-import { InEnglishNote, useT } from '../../i18n/app';
+import { InEnglishNote, useRecordT } from '../../i18n/app';
+import { enT, forKind } from '../../i18n/translate';
+import { damOf, isAnimal, parentLine, recordTitle, sireOf } from '../../veilcore/animal-profile';
 
 // The certificate's own colours: dark text on white, every pair at least 4.5:1. A check
 // that passed is a ✓ in the quiet green; one that failed is a ✗ in the error red.
@@ -85,9 +87,12 @@ export const Step3Certificate: React.FC<{
 }> = ({ recordId, onDone, onBack, saved: given }) => {
   useLicenses();
   const certRef = useRef<HTMLDivElement>(null);
-  const { t } = useT();
-  const [toast, setToast] = useState<string>();
   const record = getRecord(recordId);
+  const { t } = useRecordT(record);
+  const [toast, setToast] = useState<string>();
+  // The card is in English (above); an animal's says "animal" where a plant's says "plant".
+  const animal = isAnimal(record);
+  const en = forKind(enT, animal ? 'animal' : 'plant');
   const anchorHere = useRecordKeys()[recordId]?.anchor;
   const [integrity, setIntegrity] = useState<IntegrityCheck | 'checking'>('checking');
   const [anchor, setAnchor] = useState<ProofState | 'checking'>('checking');
@@ -96,7 +101,7 @@ export const Step3Certificate: React.FC<{
   const loadedSaved = useSavedReport(given === undefined ? record : undefined);
   const saved = given === undefined ? loadedSaved : given;
   // The card is in English in every language (above), so the tie is too.
-  const dna = useDnaTie(record, saved);
+  const dna = useDnaTie(record, saved, en);
 
   useEffect(() => {
     if (!record) return;
@@ -156,14 +161,14 @@ export const Step3Certificate: React.FC<{
     const data = {
       ...(IS_MAINNET ? {} : { practice: PRACTICE_BAND }),
       record,
-      licenses: licensesForRecord(record.id),
+      ...(animal ? {} : { licenses: licensesForRecord(record.id) }),
       anchored: anchorLine,
       secondParty: deliveryLine,
       // The sample sent, what the lab found on arrival, and any differences, as the certificate shows them.
       ...(sampleCustody ? { sampleCustody } : {}),
       // Whether a DNA report ties the record to the plant, and that report's date (veilcore/dna-tie.ts).
-      ...(dna.tie ? { dnaReport: dnaTieSentence(dna.tie, dna.date) } : {}),
-      ...(record.dnaFingerprint && saved ? { labReportSaved: savedReportSentence(saved) } : {}),
+      ...(dna.tie ? { dnaReport: dnaTieSentence(dna.tie, dna.date, 'holder', en) } : {}),
+      ...(record.dnaFingerprint && saved ? { labReportSaved: savedReportSentence(saved, en) } : {}),
       sealedAtSource: "the sealing device's clock",
       generatedAt: new Date().toISOString(),
       note: `VeilCore record summary. No genetic data or lab files; it contains the record details. ${IMAGE_NOT_EVIDENCE.replace('This image', 'This summary')}`,
@@ -278,10 +283,31 @@ export const Step3Certificate: React.FC<{
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
             <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
-              <Field label="Cultivar">{record.strainName}</Field>
-              <Field label="Bred by">{record.bredBy}</Field>
-              <Field label="Stated creation date (breeder's claim)">{record.dateCreated}</Field>
-              {record.taxon && <Field label="Species">{record.taxon}</Field>}
+              {animal ? (
+                <>
+                  <Field label="Animal">{recordTitle(record)}</Field>
+                  {record.refId && (
+                    <Field label="Individual ID">
+                      {record.refId} ({record.animal?.idScheme})
+                    </Field>
+                  )}
+                  <Field label="Species">{[record.taxon, record.animal?.breed].filter(Boolean).join(' · ')}</Field>
+                  <Field label="Sex">
+                    {record.animal?.sex === 'female' ? 'Female' : record.animal?.sex === 'male' ? 'Male' : 'Not stated'}
+                  </Field>
+                  {sireOf(record) && <Field label="Sire">{parentLine(sireOf(record))}</Field>}
+                  {damOf(record) && <Field label="Dam">{parentLine(damOf(record))}</Field>}
+                  <Field label="Breeder or holder">{record.bredBy}</Field>
+                  <Field label="Date of birth (holder's statement)">{record.dateCreated || 'Not stated'}</Field>
+                </>
+              ) : (
+                <>
+                  <Field label="Cultivar">{record.strainName}</Field>
+                  <Field label="Bred by">{record.bredBy}</Field>
+                  <Field label="Stated creation date (breeder's claim)">{record.dateCreated}</Field>
+                  {record.taxon && <Field label="Species">{record.taxon}</Field>}
+                </>
+              )}
               <Field label="Logged (the sealing device's clock)">{fmtStamp(record.loggedAt)}</Field>
               <Field label="Anchored">
                 <Box component="span" sx={{ color: CERT.muted }}>
@@ -295,10 +321,10 @@ export const Step3Certificate: React.FC<{
               )}
               {/* A dated record shows a description existed; the DNA report is what ties it
                   to the plant. Said first, in one sentence, then what the saved file is. */}
-              <Field label="Tied to the plant (DNA report)">
+              <Field label={animal ? 'Tied to the animal (DNA report)' : 'Tied to the plant (DNA report)'}>
                 {!record.dnaFingerprint ? (
                   <Box component="span" data-dna-tie="none">
-                    {dnaTieSentence({ state: 'none' }, dna.date)}
+                    {dnaTieSentence({ state: 'none' }, dna.date, 'holder', en)}
                   </Box>
                 ) : saved === null || saved === undefined || !dna.tie ? (
                   'checking…'
@@ -309,7 +335,7 @@ export const Step3Certificate: React.FC<{
                     data-saved-report={saved.kind}
                     data-dna-tie={dna.tie.state}
                   >
-                    ✗ {dnaTieSentence(dna.tie, dna.date)} {savedReportSentence(saved)}
+                    ✗ {dnaTieSentence(dna.tie, dna.date, 'holder', en)} {savedReportSentence(saved, en)}
                   </Box>
                 ) : (
                   <Box
@@ -319,9 +345,9 @@ export const Step3Certificate: React.FC<{
                     data-dna-tie={dna.tie.state}
                   >
                     {saved.kind === 'lab' ? '✓ ' : ''}
-                    {dnaTieSentence(dna.tie, dna.date)} Saved
-                    {record.dnaPairedAt ? ` ${utcDate(record.dnaPairedAt)}` : ''}. {savedReportSentence(saved)}{' '}
-                    {dnaTieMeaning()}
+                    {dnaTieSentence(dna.tie, dna.date, 'holder', en)} Saved
+                    {record.dnaPairedAt ? ` ${utcDate(record.dnaPairedAt)}` : ''}. {savedReportSentence(saved, en)}{' '}
+                    {dnaTieMeaning(en)}
                   </Box>
                 )}
               </Field>
@@ -353,7 +379,7 @@ export const Step3Certificate: React.FC<{
                     </Box>
                   ))}
               </Field>
-              <Field label="Active licenses">{activeLicenseCount(record.id)}</Field>
+              {!animal && <Field label="Active licenses">{activeLicenseCount(record.id)}</Field>}
               <Field label="Record ID" mono>
                 {record.id}
               </Field>

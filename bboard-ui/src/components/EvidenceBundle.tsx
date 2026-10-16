@@ -23,7 +23,7 @@ import { datingOf } from './flow/useDnaTie';
 import type { RecordKeys } from '../veilcore/record-keys';
 import { downloadEvidenceBundle } from '../veilcore/evidence/bundle';
 import { MAX_FINGERPRINT_BYTES } from '../veilcore/commitment';
-import { InEnglishNote, useT } from '../i18n/app';
+import { InEnglishNote, useRecordT } from '../i18n/app';
 
 /** The button's English (app.plant.bundle.download): the landing page names it. */
 export const DOWNLOAD_EVIDENCE_LABEL = 'Download evidence bundle';
@@ -42,7 +42,7 @@ export const EvidenceBundle: React.FC<{
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
-  const { t } = useT();
+  const { t } = useRecordT(record);
   const label = t('app.plant.bundle.download');
 
   const canKey = !!record.keyBinding && !!keys?.recordSecret;

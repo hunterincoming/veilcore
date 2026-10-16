@@ -15,7 +15,9 @@ import { ProveOwnershipPanel } from './chain/ProveOwnershipPanel';
 import { BackupStep } from './flow/BackupStep';
 import { SectionBand, focusScreenHeading, type Section } from './flow/FlowFrame';
 import { ActionRow, PlantStatus } from './flow/PlantParts';
-import { rich, useT } from '../i18n/app';
+import { rich, useRecordT } from '../i18n/app';
+import { damOf, isAnimal, recordTitle, sireOf } from '../veilcore/animal-profile';
+import { parentWords, sexWords } from './flow/AnimalForm';
 import { breedingMethodWords } from './flow/breeding-methods';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -111,6 +113,31 @@ const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, 
   </Box>
 );
 
+/** An animal's own fields, in its technical details (animal-profile.ts). */
+const AnimalFields: React.FC<{ record: NonNullable<ReturnType<typeof getRecord>> }> = ({ record }) => {
+  const tr = useRecordT(record);
+  const { t } = tr;
+  const sire = sireOf(record);
+  const dam = damOf(record);
+  return (
+    <>
+      <Field label={t('app.animal.breeder')}>{record.bredBy}</Field>
+      {record.refId && (
+        <Field label={t('app.animal.individualId')}>
+          {t('app.animal.idIn', { id: record.refId, scheme: record.animal?.idScheme ?? '' })}
+        </Field>
+      )}
+      <Field label={t('app.animal.species')}>{record.taxon}</Field>
+      {record.animal?.breed && <Field label={t('app.animal.breed')}>{record.animal.breed}</Field>}
+      <Field label={t('app.animal.sex')}>{sexWords(record.animal?.sex, tr)}</Field>
+      <Field label={t('app.animal.f.statedBirth')}>{record.dateCreated || t('app.animal.notStated')}</Field>
+      {sire && <Field label={t('app.animal.sire')}>{parentWords(sire, tr)}</Field>}
+      {dam && <Field label={t('app.animal.dam')}>{parentWords(dam, tr)}</Field>}
+      {record.animal?.herd && <Field label={t('app.animal.herd')}>{record.animal.herd}</Field>}
+    </>
+  );
+};
+
 export const RecordDetail: React.FC = () => {
   useRecords();
   useLicenses();
@@ -146,8 +173,10 @@ export const RecordDetail: React.FC = () => {
   // focus to its heading (or the plant's name), so a screen reader says where they are.
   // The first render is the route's, and App already focuses that.
   const firstMode = useRef(true);
-  const tr = useT();
+  // An animal record's page says "animal" where a plant's says "plant" (i18n forKind).
+  const tr = useRecordT(record);
   const { t, tp } = tr;
+  const animal = isAnimal(record);
   useEffect(() => {
     if (firstMode.current) {
       firstMode.current = false;
@@ -212,7 +241,7 @@ export const RecordDetail: React.FC = () => {
 
       <Box sx={{ mb: 2.5 }}>
         <Typography variant="h4" component="h1" sx={{ overflowWrap: 'anywhere' }}>
-          {record.strainName}
+          {recordTitle(record)}
         </Typography>
         {/* Who it came from, then the record's code on its own line in the code face, like
             the two lines on a plant tag (no dot-joined meta string). */}
@@ -403,7 +432,7 @@ export const RecordDetail: React.FC = () => {
                   )}
                 />
               )}
-              {!labOnly && (
+              {!labOnly && !animal && (
                 <ActionRow
                   section="license"
                   label={t('app.plant.action.licenseIt')}
@@ -429,6 +458,11 @@ export const RecordDetail: React.FC = () => {
                 trigger={(open) => <ActionRow section="log" label={t('app.plant.action.fix')} last onClick={open} />}
               />
             </Paper>
+            {animal && !labOnly && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }} data-no-licensing="">
+                {t('app.animal.noLicensing')}
+              </Typography>
+            )}
           </Box>
 
           {licenses.length > 0 && (
@@ -482,17 +516,25 @@ export const RecordDetail: React.FC = () => {
               <Stack spacing={2.5} sx={{ pt: 1 }}>
                 <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
                   <Stack spacing={2}>
-                    <Field label={t('app.log.bredBy')}>{record.bredBy}</Field>
-                    {record.taxon && <Field label={t('app.log.species')}>{record.taxon}</Field>}
-                    {record.breedingMethod && (
-                      <Field label={t('app.plant.f.method')}>{breedingMethodWords(record.breedingMethod, tr)}</Field>
+                    {animal ? (
+                      <AnimalFields record={record} />
+                    ) : (
+                      <>
+                        <Field label={t('app.log.bredBy')}>{record.bredBy}</Field>
+                        {record.taxon && <Field label={t('app.log.species')}>{record.taxon}</Field>}
+                        {record.breedingMethod && (
+                          <Field label={t('app.plant.f.method')}>
+                            {breedingMethodWords(record.breedingMethod, tr)}
+                          </Field>
+                        )}
+                        {record.parents && record.parents.length > 0 && (
+                          <Field label={t('app.log.parents')}>{record.parents.map((p) => p.name).join(' × ')}</Field>
+                        )}
+                        <Field label={t('app.plant.f.statedDate')}>{record.dateCreated}</Field>
+                      </>
                     )}
-                    {record.parents && record.parents.length > 0 && (
-                      <Field label={t('app.log.parents')}>{record.parents.map((p) => p.name).join(' × ')}</Field>
-                    )}
-                    <Field label={t('app.plant.f.statedDate')}>{record.dateCreated}</Field>
                     <Field label={t('app.plant.f.sealedClock')}>{fmt(record.loggedAt)}</Field>
-                    {record.refId && <Field label={t('app.plant.f.ref')}>{record.refId}</Field>}
+                    {record.refId && !animal && <Field label={t('app.plant.f.ref')}>{record.refId}</Field>}
                     {record.photoFingerprints && record.photoFingerprints.length > 0 && (
                       <Field label={t('app.plant.f.photos')}>
                         {t('app.plant.f.photosSealed', { n: record.photoFingerprints.length })}
@@ -550,7 +592,7 @@ export const RecordDetail: React.FC = () => {
                   </Stack>
                 </Paper>
                 {/* This plant and its linked parents held here, for a variety application. */}
-                {!labOnly && record.recordFingerprint && record.nonce && (
+                {!labOnly && !animal && record.recordFingerprint && record.nonce && (
                   <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
                     <BreedingHistory record={record} />
                   </Paper>

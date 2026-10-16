@@ -40,7 +40,7 @@ import DoneIcon from '@mui/icons-material/CheckCircleOutlined';
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
 import { fingerprintFile } from '../../veilcore/commitment';
 import { createRecord, getRecord, useRecords, type ParentRef } from '../../veilcore/records';
-import { sealRecord } from '../../veilcore/seal-record';
+import { sealAnimalRecord, sealRecord } from '../../veilcore/seal-record';
 import { localStamp } from '../../veilcore/time';
 import {
   ensureKeysFor,
@@ -58,7 +58,11 @@ import { Step2PairDna } from '../wizard/Step2PairDna';
 import { AppHeader } from '../AppHeader';
 import { BackupStep } from './BackupStep';
 import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled, visuallyHidden } from './FlowFrame';
-import { useT, rich, type Translator } from '../../i18n/app';
+import { useT, useRecordT, rich, type Translator } from '../../i18n/app';
+import { forKind } from '../../i18n/translate';
+import { ANIMAL_RECORDS_ENABLED } from '../../config/network';
+import { AnimalForm, AnimalReviewLines, KindChoice } from './AnimalForm';
+import { animalSealInputOf, emptyAnimalDraft, loadLogKind, saveLogKind, type LogKind } from './animal-draft';
 import { BREEDING_METHODS, breedingMethodWords } from './breeding-methods';
 import { progressWords } from '../chain/progress-words';
 import {
@@ -75,7 +79,7 @@ import {
   stampProblem,
   unsavedPlantLine,
 } from './log-flow-state';
-import { parentOptionsOf } from '../stage/record-kinds';
+import { animalParentOptionsOf, parentOptionsOf } from '../stage/record-kinds';
 // SEAL_EACH_STAGE, STAGE_PROMPT and SELECTED_PROMPT (stage-notes.ts) are shown here in the
 // visitor's language: app.log.sealEachStage, app.log.stagePrompt, app.log.selectedPrompt.
 
@@ -150,6 +154,18 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
     saveDraft(d, nextOf);
   };
 
+  // "A plant" or "An animal" (animal-draft.ts): the draft's own choice, else the last one made
+  // in this browser. A next stage of a plant is a plant; on a build without animal records
+  // (mainnet, config/network.ts) there is no choice.
+  const offerKinds = ANIMAL_RECORDS_ENABLED && !nextOf;
+  const [lastKind] = useState<LogKind>(loadLogKind);
+  const kind: LogKind = offerKinds ? (draft.kind ?? lastKind) : 'plant';
+  const setKind = (k: LogKind) => {
+    saveLogKind(k);
+    setDraft({ ...draft, kind: k, ...(k === 'animal' && !draft.animal ? { animal: emptyAnimalDraft() } : {}) });
+  };
+  const choice = offerKinds ? <KindChoice kind={kind} onKind={setKind} /> : undefined;
+
   // A new screen starts at the top, focus on its heading. The first one is the page's own
   // (App.tsx does that on arrival).
   useEffect(() => {
@@ -178,9 +194,24 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
               onContinue={() => void navigate('/new')}
             />
           );
+        if (kind === 'animal')
+          return (
+            <AnimalForm
+              step={step}
+              choice={choice}
+              draft={draft.animal ?? emptyAnimalDraft()}
+              setDraft={(a) => setDraft({ ...draft, kind: 'animal', animal: a })}
+              restored={start.resumed && draftHasContent(draft)}
+              onStartOver={() => setDraft({ ...emptyDraft(), kind: 'animal', animal: emptyAnimalDraft() })}
+              sireOptions={animalParentOptionsOf(records, 'sire')}
+              damOptions={animalParentOptionsOf(records, 'dam')}
+              onNext={() => setScreen('review')}
+            />
+          );
         return (
           <PlantForm
             step={step}
+            choice={choice}
             draft={draft}
             setDraft={setDraft}
             restored={start.resumed && draftHasContent(draft)}
@@ -194,7 +225,7 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
         return (
           <Review
             step={step}
-            draft={draft}
+            draft={{ ...draft, kind }}
             onChange={() => setScreen('plant')}
             onSealed={(id) => {
               clearDraft(nextOf);
@@ -218,7 +249,7 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
             doneLabel={tr.t('app.log.nextSaveBackup')}
             intro={
               <Alert severity="info" variant="outlined">
-                {rich(tr.t('app.log.reportIntro'), { b: (c) => <b>{c}</b> })}
+                {rich(forKind(tr, kind).t('app.log.reportIntro'), { b: (c) => <b>{c}</b> })}
               </Alert>
             }
           />
@@ -302,6 +333,8 @@ const UnsavedPlantChoice: React.FC<{
 
 const PlantForm: React.FC<{
   step: string;
+  /** "A plant" / "An animal", when this build offers both. */
+  choice?: React.ReactNode;
   draft: Draft;
   setDraft: (d: Draft) => void;
   restored: boolean;
@@ -312,7 +345,7 @@ const PlantForm: React.FC<{
   /** Plants this one can name as a parent: never a record that dates a lab report. */
   parentOptions: ParentRef[];
   onNext: () => void;
-}> = ({ step, draft, setDraft, restored, startOver, namePlaceholder, parentOptions, onNext }) => {
+}> = ({ step, choice, draft, setDraft, restored, startOver, namePlaceholder, parentOptions, onNext }) => {
   const { t, tp } = useT();
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft({ ...draft, [k]: v });
   const hasMore = Boolean(
@@ -351,6 +384,7 @@ const PlantForm: React.FC<{
           {t('app.log.fillIn')}
         </Typography>
       </Box>
+      {choice}
       {stageOf && (
         <Alert severity="info" variant="outlined" data-seal-each-stage="">
           <b>{t('app.log.sealEachStage')}</b>
@@ -366,7 +400,7 @@ const PlantForm: React.FC<{
             variant="text"
             size="small"
             onClick={() => {
-              setDraft(startOver());
+              setDraft({ ...startOver(), ...(draft.animal ? { animal: draft.animal } : {}) });
               // The button goes away with the kept draft: focus the screen's heading (round 6).
               focusScreenHeading();
             }}
@@ -576,7 +610,8 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
 }) => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  const tr = useT();
+  const animal = draft.kind === 'animal' && draft.animal ? draft.animal : undefined;
+  const tr = forKind(useT(), animal ? 'animal' : 'plant');
   const { t, tp } = tr;
 
   const seal = async () => {
@@ -588,7 +623,7 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
     try {
       // One sealing for every new record (seal-record.ts): the record names its key and the
       // fingerprint covers that, and the nonce is stored so anyone can recompute it.
-      const sealed = await sealRecord(sealInputOf(draft));
+      const sealed = animal ? await sealAnimalRecord(animalSealInputOf(animal)) : await sealRecord(sealInputOf(draft));
       id = sealed.id;
       const record = createRecord(sealed);
       created = true;
@@ -622,18 +657,22 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
           {t('app.log.fixNow')}
         </Typography>
       </Box>
-      <Box>
-        <Line k={t('app.log.k.plant')} v={draft.strainName} onChange={onChange} action={change} />
-        <Line k={t('app.log.bredBy')} v={draft.bredBy} onChange={onChange} action={change} />
-        <Line k={t('app.log.k.made')} v={draft.dateCreated} onChange={onChange} action={change} />
-        <Line
-          k={t('app.log.k.more')}
-          v={extras.length ? extras.join(' · ') : t('app.log.noneAdded')}
-          empty={!extras.length}
-          onChange={onChange}
-          action={extras.length ? change : t('app.common.add')}
-        />
-      </Box>
+      {animal ? (
+        <AnimalReviewLines draft={animal} onChange={onChange} />
+      ) : (
+        <Box>
+          <Line k={t('app.log.k.plant')} v={draft.strainName} onChange={onChange} action={change} />
+          <Line k={t('app.log.bredBy')} v={draft.bredBy} onChange={onChange} action={change} />
+          <Line k={t('app.log.k.made')} v={draft.dateCreated} onChange={onChange} action={change} />
+          <Line
+            k={t('app.log.k.more')}
+            v={extras.length ? extras.join(' · ') : t('app.log.noneAdded')}
+            empty={!extras.length}
+            onChange={onChange}
+            action={extras.length ? change : t('app.common.add')}
+          />
+        </Box>
+      )}
       <Alert icon={<LockIcon />} severity="info" variant="outlined">
         {rich(t('app.log.sealedWarn'), { b: (c) => <b>{c}</b> })}
       </Alert>
@@ -683,7 +722,7 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
   const notReady = REAL_CHAIN ? chainNotReady() : undefined;
   const keeps = storageKeeps();
   const [backupFirstDone, setBackupFirstDone] = useState(false);
-  const tr = useT();
+  const tr = useRecordT(getRecord(recordId));
   const { t } = tr;
   const datedOn = t('app.copy.datedOn');
   // Round 6: when the date stamp lands, this screen is redrawn as "Sealed" and the heading

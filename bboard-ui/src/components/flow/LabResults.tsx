@@ -71,7 +71,7 @@ import {
 import { correctionWithdrawn, savedReportStatus, type SavedReport } from '../../veilcore/saved-report';
 import { DateLabReport } from '../stage/DateLabReport';
 import { labSentPhrase } from './plant-status-words';
-import { rich, useT } from '../../i18n/app';
+import { rich, useRecordT, useT } from '../../i18n/app';
 import { enT, type Translator } from '../../i18n/translate';
 
 const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-6)}`;
@@ -411,7 +411,7 @@ export const LabResultsPanel: React.FC<{
   const [problem, setProblem] = useState<string>();
   const [toldVisibility, setToldVisibility] = useState(seenVisibility);
   const tried = useRef(false);
-  const tr = useT();
+  const tr = useRecordT(record);
   const { t } = tr;
 
   const open = useCallback(

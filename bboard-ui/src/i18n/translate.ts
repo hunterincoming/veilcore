@@ -41,6 +41,8 @@ export type Translator = {
   date: (t: number | string | Date, opts?: Intl.DateTimeFormatOptions) => string;
   /** The locale for Intl and toLocale*String: undefined in English (the browser's own, as before). */
   readonly locale: string | undefined;
+  /** Whether the language, or the English it falls back to, has this key. */
+  has: (key: string) => boolean;
 };
 
 /** `{name}` placeholders filled from `vars`, in one pass over the text (a value is never read as a placeholder). */
@@ -67,7 +69,35 @@ export const makeTranslator = (lang: Lang, dict: AppDict): Translator => {
   };
   const date = (v: number | string | Date, opts?: Intl.DateTimeFormatOptions) =>
     new Date(v).toLocaleDateString(locale, opts);
-  return { lang, t, tp, num, date, locale };
+  const has = (key: string) => dict[key] !== undefined || (appEn as AppDict)[key] !== undefined;
+  return { lang, t, tp, num, date, locale, has };
+};
+
+/**
+ * What a record is: a plant, or an animal (veilcore/animal-profile.ts). The app's words name
+ * a plant; an animal record's screens use the same words with "animal" where the plant was
+ * named. Those live under `app.animal.v.<the plant key>` (app/<lang>/animal.ts), and forKind
+ * picks one wherever it exists, so a screen says "Tied to the animal" by asking for
+ * `app.plant.tie.tied`, as it always did. A key with no animal version reads as before.
+ */
+export type RecordKind = 'plant' | 'animal';
+
+const ANIMAL_PREFIX = 'app.animal.v.';
+const kinded = new WeakMap<Translator, Translator>();
+
+/** The translator for a record of this kind: the same one for a plant. */
+export const forKind = (tr: Translator, kind: RecordKind): Translator => {
+  if (kind !== 'animal') return tr;
+  const have = kinded.get(tr);
+  if (have) return have;
+  const pick = (key: string, probe = key) => (tr.has(ANIMAL_PREFIX + probe) ? ANIMAL_PREFIX + key : key);
+  const made: Translator = {
+    ...tr,
+    t: (key, vars) => tr.t(pick(key) as AppKey, vars),
+    tp: (key, n, vars) => tr.tp(pick(key, `${key}.other`) as PluralKey, n, vars),
+  };
+  kinded.set(tr, made);
+  return made;
 };
 
 /** The app in English: the default for the word files. */

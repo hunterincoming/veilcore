@@ -1,0 +1,1153 @@
+{
+  "about": "Animal records (profile veilcore/profile/animal-individual/v1, SPEC 11.8, draft). The fingerprint is computed exactly as for any record (SPEC 3.6.1 and 4.4): contentHash = SHA-256 of the canonical serialisation of fields; fingerprint = H(\"veilcore:v1:keyrecord\", keyBinding, contentHash) when fields has keyBinding, else contentHash. The profile adds validation only: a record in `refusals` must be refused before it is sealed or stored. `appRecord` is the VeilCore site's own stored shape for the same record (informational: an implementation that reads only `fields` can ignore it). All animals, names, IDs and farms are test data.",
+  "source": "contract/scripts/animal-individual-vectors.mjs (node:crypto and veilcore-records canonicalise); regenerate, never edit by hand",
+  "profile": "veilcore/profile/animal-individual/v1",
+  "keys": [
+    {
+      "recordSecret": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "identity": "8bec8e42f0904da5b0472c39f870f0dd4fb5e859e0588bae9884805166b6252d",
+      "keySalt": "b53377ce0aa423e258c86024fde3c0648d63484a77f9c53734fa2812fa0ae7c2",
+      "keyBinding": "0c900780108dc20575338110047daebdcdc6132e925c936413c021e9b84db8ef"
+    },
+    {
+      "recordSecret": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0bc4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4",
+      "identity": "c7cb739079c5d41125ca5b4706f5d700ca7cad9295555ad66dca6eeb96f24ffe",
+      "keySalt": "11f9386d7fea640a07e0e7ca9864752f04cd64bdb4639023a45c0ff922242ee8",
+      "keyBinding": "6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503"
+    }
+  ],
+  "records": [
+    {
+      "name": "a cow with sire and dam typed in, naming key 0",
+      "algorithm": "sha256/key-bound/v1",
+      "appRecord": {
+        "profile": "veilcore/profile/animal-individual/v1",
+        "strainName": "Practice Cow One",
+        "bredBy": "Example Farm (test data)",
+        "dateCreated": "2024-03-15",
+        "notes": "Test data, not a real animal.",
+        "loggedAt": 1760600000000,
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "keyBinding": "0c900780108dc20575338110047daebdcdc6132e925c936413c021e9b84db8ef",
+        "taxon": "Cattle (Bos taurus)",
+        "refId": "0000000017",
+        "parents": [
+          {
+            "name": "Practice Sire",
+            "role": "sire",
+            "individualId": "0000000025"
+          },
+          {
+            "name": "Practice Dam",
+            "role": "dam",
+            "individualId": "0000000033"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "animal": {
+          "breed": "Japanese Black",
+          "idScheme": "Japan cattle ID (10 digits)",
+          "sex": "female",
+          "herd": "Test herd 7"
+        }
+      },
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)",
+        "keyBinding": "0c900780108dc20575338110047daebdcdc6132e925c936413c021e9b84db8ef"
+      },
+      "canonical": "{\"breed\":\"Japanese Black\",\"breeder\":\"Example Farm (test data)\",\"dateOfBirth\":\"2024-03-15\",\"herd\":\"Test herd 7\",\"idScheme\":\"Japan cattle ID (10 digits)\",\"individualId\":\"0000000017\",\"keyBinding\":\"0c900780108dc20575338110047daebdcdc6132e925c936413c021e9b84db8ef\",\"loggedAt\":1760600000000,\"name\":\"Practice Cow One\",\"nonce\":\"6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d\",\"notes\":\"Test data, not a real animal.\",\"parents\":[{\"individualId\":\"0000000025\",\"name\":\"Practice Sire\",\"role\":\"sire\"},{\"individualId\":\"0000000033\",\"name\":\"Practice Dam\",\"role\":\"dam\"}],\"photoFingerprints\":[\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd\"],\"profile\":\"veilcore/profile/animal-individual/v1\",\"sex\":\"female\",\"species\":\"Cattle (Bos taurus)\"}",
+      "contentHash": "6696dc29c3814a250d245c68b58ca53b4a3ce4460582f88d39d3ab016d88b540",
+      "fingerprint": "9c46b6edc34a4511e465ee80d06a087ed60e47c5d31b5fc2dca7aabe7c5757b5"
+    },
+    {
+      "name": "the same cow sealed without a key (a registry that does not bind keys)",
+      "algorithm": "sha256/canonical-json/v1",
+      "appRecord": {
+        "profile": "veilcore/profile/animal-individual/v1",
+        "strainName": "Practice Cow One",
+        "bredBy": "Example Farm (test data)",
+        "dateCreated": "2024-03-15",
+        "notes": "Test data, not a real animal.",
+        "loggedAt": 1760600000000,
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "taxon": "Cattle (Bos taurus)",
+        "refId": "0000000017",
+        "parents": [
+          {
+            "name": "Practice Sire",
+            "role": "sire",
+            "individualId": "0000000025"
+          },
+          {
+            "name": "Practice Dam",
+            "role": "dam",
+            "individualId": "0000000033"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "animal": {
+          "breed": "Japanese Black",
+          "idScheme": "Japan cattle ID (10 digits)",
+          "sex": "female",
+          "herd": "Test herd 7"
+        }
+      },
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      },
+      "canonical": "{\"breed\":\"Japanese Black\",\"breeder\":\"Example Farm (test data)\",\"dateOfBirth\":\"2024-03-15\",\"herd\":\"Test herd 7\",\"idScheme\":\"Japan cattle ID (10 digits)\",\"individualId\":\"0000000017\",\"loggedAt\":1760600000000,\"name\":\"Practice Cow One\",\"nonce\":\"6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d\",\"notes\":\"Test data, not a real animal.\",\"parents\":[{\"individualId\":\"0000000025\",\"name\":\"Practice Sire\",\"role\":\"sire\"},{\"individualId\":\"0000000033\",\"name\":\"Practice Dam\",\"role\":\"dam\"}],\"photoFingerprints\":[\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd\"],\"profile\":\"veilcore/profile/animal-individual/v1\",\"sex\":\"female\",\"species\":\"Cattle (Bos taurus)\"}",
+      "contentHash": "e41b6e2611261bd91213e09adfab48b8c8b15003564183d7d760523dc3a806e9",
+      "fingerprint": "e41b6e2611261bd91213e09adfab48b8c8b15003564183d7d760523dc3a806e9"
+    },
+    {
+      "name": "an ID and no name, no parents, sex and date of birth not stated, naming key 1",
+      "algorithm": "sha256/key-bound/v1",
+      "appRecord": {
+        "profile": "veilcore/profile/animal-individual/v1",
+        "strainName": "",
+        "bredBy": "Example Farm (test data)",
+        "dateCreated": "",
+        "notes": "",
+        "loggedAt": 1760600000000,
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "keyBinding": "6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503",
+        "taxon": "Cattle (Bos taurus)",
+        "refId": "0000000017",
+        "parents": [],
+        "photoFingerprints": [],
+        "animal": {
+          "breed": "黒毛和種",
+          "idScheme": "Japan cattle ID (10 digits)",
+          "sex": "unknown",
+          "herd": ""
+        }
+      },
+      "fields": {
+        "breed": "黒毛和種",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "",
+        "herd": "",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "",
+        "parents": [],
+        "photoFingerprints": [],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "unknown",
+        "species": "Cattle (Bos taurus)",
+        "keyBinding": "6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503"
+      },
+      "canonical": "{\"breed\":\"黒毛和種\",\"breeder\":\"Example Farm (test data)\",\"dateOfBirth\":\"\",\"herd\":\"\",\"idScheme\":\"Japan cattle ID (10 digits)\",\"individualId\":\"0000000017\",\"keyBinding\":\"6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503\",\"loggedAt\":1760600000000,\"name\":\"\",\"nonce\":\"6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d\",\"notes\":\"\",\"parents\":[],\"photoFingerprints\":[],\"profile\":\"veilcore/profile/animal-individual/v1\",\"sex\":\"unknown\",\"species\":\"Cattle (Bos taurus)\"}",
+      "contentHash": "35e9df05ba60785961669f54cfba9b6c63163cd056bb32a229e490555a1599a4",
+      "fingerprint": "de2938d4025c86973dde26191b371d33c4d62800453f007e3ba9e99eacd0a265"
+    },
+    {
+      "name": "a name and no ID; the dam only, linked to a logged record",
+      "algorithm": "sha256/key-bound/v1",
+      "appRecord": {
+        "profile": "veilcore/profile/animal-individual/v1",
+        "strainName": "Practice Bull",
+        "bredBy": "Example Farm (test data)",
+        "dateCreated": "2024-03-15",
+        "notes": "Test data, not a real animal.",
+        "loggedAt": 1760600000000,
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "keyBinding": "0c900780108dc20575338110047daebdcdc6132e925c936413c021e9b84db8ef",
+        "taxon": "Cattle (Bos taurus)",
+        "refId": "",
+        "parents": [
+          {
+            "recordId": "VEIL-00000000000000000000000000000017",
+            "name": "Practice Cow One",
+            "role": "dam",
+            "individualId": ""
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "animal": {
+          "breed": "Japanese Black",
+          "idScheme": "",
+          "sex": "male",
+          "herd": "Test herd 7"
+        }
+      },
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "",
+        "individualId": "",
+        "loggedAt": 1760600000000,
+        "name": "Practice Bull",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "",
+            "name": "Practice Cow One",
+            "recordId": "VEIL-00000000000000000000000000000017",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "male",
+        "species": "Cattle (Bos taurus)",
+        "keyBinding": "0c900780108dc20575338110047daebdcdc6132e925c936413c021e9b84db8ef"
+      },
+      "canonical": "{\"breed\":\"Japanese Black\",\"breeder\":\"Example Farm (test data)\",\"dateOfBirth\":\"2024-03-15\",\"herd\":\"Test herd 7\",\"idScheme\":\"\",\"individualId\":\"\",\"keyBinding\":\"0c900780108dc20575338110047daebdcdc6132e925c936413c021e9b84db8ef\",\"loggedAt\":1760600000000,\"name\":\"Practice Bull\",\"nonce\":\"6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d\",\"notes\":\"Test data, not a real animal.\",\"parents\":[{\"individualId\":\"\",\"name\":\"Practice Cow One\",\"recordId\":\"VEIL-00000000000000000000000000000017\",\"role\":\"dam\"}],\"photoFingerprints\":[\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd\"],\"profile\":\"veilcore/profile/animal-individual/v1\",\"sex\":\"male\",\"species\":\"Cattle (Bos taurus)\"}",
+      "contentHash": "5d594a28c9f764dc7b18b119d22904fb4665bbdd8636943a8f58b60d7b09212d",
+      "fingerprint": "78bbeb83869529f522062155b9739fe739f8a96f09af51022c4d99ea4e31a393"
+    },
+    {
+      "name": "a name with a decomposed accent (NFC before hashing) and notes over two lines",
+      "algorithm": "sha256/key-bound/v1",
+      "appRecord": {
+        "profile": "veilcore/profile/animal-individual/v1",
+        "strainName": "Practice Café",
+        "bredBy": "Example Farm (test data)",
+        "dateCreated": "2024-03-15",
+        "notes": "Line one.\nLine two.",
+        "loggedAt": 1760600000000,
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "keyBinding": "6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503",
+        "taxon": "Cattle (Bos taurus)",
+        "refId": "0000000017",
+        "parents": [
+          {
+            "name": "Practice Sire",
+            "role": "sire",
+            "individualId": "0000000025"
+          },
+          {
+            "name": "Practice Dam",
+            "role": "dam",
+            "individualId": "0000000033"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "animal": {
+          "breed": "Japanese Black",
+          "idScheme": "Japan cattle ID (10 digits)",
+          "sex": "female",
+          "herd": "Test herd 7"
+        }
+      },
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Café",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Line one.\nLine two.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)",
+        "keyBinding": "6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503"
+      },
+      "canonical": "{\"breed\":\"Japanese Black\",\"breeder\":\"Example Farm (test data)\",\"dateOfBirth\":\"2024-03-15\",\"herd\":\"Test herd 7\",\"idScheme\":\"Japan cattle ID (10 digits)\",\"individualId\":\"0000000017\",\"keyBinding\":\"6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503\",\"loggedAt\":1760600000000,\"name\":\"Practice Café\",\"nonce\":\"6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d\",\"notes\":\"Line one.\\nLine two.\",\"parents\":[{\"individualId\":\"0000000025\",\"name\":\"Practice Sire\",\"role\":\"sire\"},{\"individualId\":\"0000000033\",\"name\":\"Practice Dam\",\"role\":\"dam\"}],\"photoFingerprints\":[\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd\"],\"profile\":\"veilcore/profile/animal-individual/v1\",\"sex\":\"female\",\"species\":\"Cattle (Bos taurus)\"}",
+      "contentHash": "f316c2cc409de23a98e00eb5d1fb6cb31de24f1d9201d2dedd9ca3debaa33d62",
+      "fingerprint": "e5eb1952104508ee066a07275a137ca9d4ff70b16109b56d0634e212e8db3aa1"
+    }
+  ],
+  "refusals": [
+    {
+      "name": "a missing sex",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "sex not one of female, male, unknown",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "cow",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "a date of birth that is not a date",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2025-02-30",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "a date of birth in another form",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "15/03/2024",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "neither a name nor an individual ID",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "",
+        "individualId": "",
+        "loggedAt": 1760600000000,
+        "name": "",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "an individual ID with no scheme",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "a scheme with no individual ID",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "a line break in the name",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice\nCow",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "a space at the end of the individual ID",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017 ",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "an empty species",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": ""
+      }
+    },
+    {
+      "name": "an empty breeder",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "a plant field (strainName) in an animal record",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)",
+        "strainName": "Practice Cow One"
+      }
+    },
+    {
+      "name": "the plant profile",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/plant-variety/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "three parents",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Another",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "two sires",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000025",
+            "name": "Another Sire",
+            "role": "sire"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "the dam before the sire",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          },
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "a parent role a plant uses",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "seed-parent"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "a parent with nothing to name it",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "",
+            "name": "",
+            "role": "sire"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "a parent with an extra field",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire",
+            "verified": true
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "a parent with no individualId field",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "name": "Practice Sire",
+            "role": "sire"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "an upper-case photo fingerprint",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "CDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCD"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "an upper-case keyBinding",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)",
+        "keyBinding": "0C900780108DC20575338110047DAEBDCDC6132E925C936413C021E9B84DB8EF"
+      }
+    },
+    {
+      "name": "a clock that is not a whole number",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000.5,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "a short nonce",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": "Test data, not a real animal.",
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    },
+    {
+      "name": "notes that are not text",
+      "fields": {
+        "breed": "Japanese Black",
+        "breeder": "Example Farm (test data)",
+        "dateOfBirth": "2024-03-15",
+        "herd": "Test herd 7",
+        "idScheme": "Japan cattle ID (10 digits)",
+        "individualId": "0000000017",
+        "loggedAt": 1760600000000,
+        "name": "Practice Cow One",
+        "nonce": "6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+        "notes": 5,
+        "parents": [
+          {
+            "individualId": "0000000025",
+            "name": "Practice Sire",
+            "role": "sire"
+          },
+          {
+            "individualId": "0000000033",
+            "name": "Practice Dam",
+            "role": "dam"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/animal-individual/v1",
+        "sex": "female",
+        "species": "Cattle (Bos taurus)"
+      }
+    }
+  ]
+}

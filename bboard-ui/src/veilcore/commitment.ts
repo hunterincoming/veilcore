@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { isHex64, keyBoundFingerprint } from './key-binding';
+import { checkedAnimalFields, isAnimal, type AnimalDetails } from './animal-profile';
 
 // The compiled `commit` circuit runs on Midnight's on-chain runtime, about 1.4 MB of
 // WebAssembly. It is loaded the first time it is needed, not with every page that imports
@@ -109,7 +110,8 @@ export type CommittedRecordInput = {
   dateCreated: string;
   notes: string;
   loggedAt: number;
-  parents?: { recordId?: string; name: string }[];
+  /** An animal record's sire and dam carry a role and an individual ID (animal-profile.ts). */
+  parents?: { recordId?: string; name: string; role?: string; individualId?: string }[];
   breedingMethod?: string;
   photoFingerprints?: string[];
   refId?: string;
@@ -121,6 +123,8 @@ export type CommittedRecordInput = {
    * Absent on records sealed before 14 October 2026, whose fingerprint is unchanged.
    */
   keyBinding?: string;
+  /** An animal record's own details (animal-profile.ts). Never on a plant record. */
+  animal?: Partial<AnimalDetails>;
 };
 
 const checkedBinding = (v: unknown): string => {
@@ -131,8 +135,15 @@ const checkedBinding = (v: unknown): string => {
 /**
  * Exactly the fields the record commitment covers, in the form that is hashed. Exported
  * so an export can carry them and anyone can recompute the registered fingerprint.
+ *
+ * An animal record (profile veilcore/profile/animal-individual/v1) seals the profile's own
+ * fields, checked first (animal-profile.ts): a malformed one is refused, never sealed. Every
+ * other record, old ones included, seals exactly the fields below, as before.
  */
-export const committedRecordFields = (r: CommittedRecordInput): Record<string, unknown> => ({
+export const committedRecordFields = (r: CommittedRecordInput): Record<string, unknown> =>
+  isAnimal(r) ? checkedAnimalFields(r) : plantRecordFields(r);
+
+const plantRecordFields = (r: CommittedRecordInput): Record<string, unknown> => ({
   breedingMethod: r.breedingMethod ?? '',
   bredBy: r.bredBy,
   dateCreated: r.dateCreated,

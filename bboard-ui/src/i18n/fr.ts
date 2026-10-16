@@ -304,7 +304,7 @@ export const fr: Strings = {
     "On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre plante. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante. Cela fonctionne pour l'instant sur un réseau de test de Midnight.",
   'm.for.5t': 'Lignées animales.',
   'm.for.5p':
-    "Les livres généalogiques tiennent le pedigree. Un enregistrement peut donner à chaque entrée une date que personne ne peut antidater, sans publier le génotype. Cette démo est prévue pour les plantes ; les champs d'enregistrement pour les animaux ne sont pas encore publiés.",
+    "Les livres généalogiques tiennent le pedigree. Un enregistrement peut donner à chaque entrée une date que personne ne peut antidater, sans publier le génotype. Sur le site de test, vous pouvez enregistrer un animal : son numéro d'identification individuel, son père et sa mère, et un rapport ADN. Les champs d'enregistrement pour les animaux sont un brouillon.",
   'm.for.5ask': 'Si vous élevez des animaux, dites-nous ce dont vos enregistrements ont besoin.',
   'm.how.label': 'Comment ça marche',
   'm.how.title1': 'Quatre étapes.',

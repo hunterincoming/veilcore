@@ -40,7 +40,8 @@ import { labChanged } from '../veilcore/lab-results';
 import { ensureKeys } from '../veilcore/record-keys';
 import { resultRecipientFor } from '../veilcore/lab-results';
 import type { StrainRecord } from '../veilcore/records';
-import { rich, useT } from '../i18n/app';
+import { rich, useRecordT, useT } from '../i18n/app';
+import { recordTitle } from '../veilcore/animal-profile';
 
 export const SendToLab: React.FC<{
   record: StrainRecord;
@@ -58,7 +59,7 @@ export const SendToLab: React.FC<{
   const [transferId, setTransferId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const tr = useT();
+  const tr = useRecordT(record);
   const { t } = tr;
 
   // A value the registry would refuse (a line break, a hidden character, 31 February) is
@@ -131,7 +132,7 @@ export const SendToLab: React.FC<{
 
       <Dialog open={open} onClose={reset} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {transferId ? t('app.lab.send.ready') : t('app.lab.send.title', { name: record.strainName })}
+          {transferId ? t('app.lab.send.ready') : t('app.lab.send.title', { name: recordTitle(record) })}
         </DialogTitle>
         <DialogContent>
           {transferId ? (
@@ -163,7 +164,7 @@ export const SendToLab: React.FC<{
                 >
                   {copied ? t('app.lab.send.copied') : t('app.lab.send.copy')}
                 </Button>
-                {canShare && <ShareCodeButton code={transferId} name={record.strainName} />}
+                {canShare && <ShareCodeButton code={transferId} name={recordTitle(record)} />}
               </Stack>
               <Alert severity="warning" variant="outlined">
                 {rich(t('app.lab.send.dontWrite'), { b: (c) => <b>{c}</b> })}

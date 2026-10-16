@@ -11,7 +11,7 @@
 
 import { isNumber, isString } from '../json';
 import type { Evidence, SignatureLine } from './bundle';
-import { networkWords, oneLine, utcWords, wrap } from './words';
+import { networkWords, oneLine, sealedNameOf, subjectOf, utcWords, wrap } from './words';
 import { CUSTODY_LABELS, SEAL_WORDS } from './examiner';
 
 export const DECLARATION_FILE = 'DECLARATION-TEMPLATE.txt';
@@ -38,7 +38,8 @@ export const declarationText = async (
   // value can start a line, a paragraph or a schedule of its own in the text someone signs
   // (round 2 of the 15 Oct review: a line break in a lab's notes or a signer's name did).
   const t = (v: unknown): string => oneLine(v);
-  const name = isString(fields.strainName) && t(fields.strainName) ? t(fields.strainName) : '[plant name]';
+  const subject = subjectOf(fields);
+  const name = t(sealedNameOf(fields)) || `[${subject} name]`;
   const anchor = ev.batch?.anchor ?? null;
   const tx = anchor && isString(anchor.txHash) ? t(anchor.txHash) : null;
   const test = anchor ? anchor.network !== 'mainnet' : true;
@@ -136,9 +137,9 @@ export const declarationText = async (
     '',
     'I, [full name], declare:',
     '',
-    '1. Who I am. I am [of legal age]. I live or work in [city, country]. I [bred / hold / keep the breeding records for] the plant material this record describes. [My role, for example: breeder; I run ___; employee of ___ working as ___.] I know the facts below myself [or: I know them because ___].',
+    `1. Who I am. I am [of legal age]. I live or work in [city, country]. I [bred / hold / keep the breeding records for] the ${subject === 'animal' ? 'animal' : 'plant material'} this record describes. [My role, for example: breeder; I run ___; employee of ___ working as ___.] I know the facts below myself [or: I know them because ___].`,
     '',
-    `2. The record. On or about [date], I [or: ___, acting for me,] made an electronic record of the plant "${name}" on the VeilCore website at [web address], using [device and browser]. The website sealed the record on that device. Its record ID is ${t(ev.record.id)}. Its fingerprint is:`,
+    `2. The record. On or about [date], I [or: ___, acting for me,] made an electronic record of the ${subject} "${name}" on the VeilCore website at [web address], using [device and browser]. The website sealed the record on that device. Its record ID is ${t(ev.record.id)}. Its fingerprint is:`,
     `   ${t(ev.record.fingerprint)}`,
     `   The sealing time inside the record, by that device's clock, is ${utcWords(ev.record.sealedAtDeviceClock) ?? t(ev.record.sealedAtDeviceClock)}. The record's contents, exactly as sealed, are in record/sealed-fields.json in the bundle and are shown in EXAMINER-SUMMARY.html. [I typed them myself / ___ typed them from ___.] [They were true to the best of my knowledge when they were typed.]`,
     '',

@@ -61,6 +61,7 @@ export const verify = {
   'app.verify.field.sealed-at': '封印した日時（保有者の端末の時計）',
   'app.verify.field.parent-names': '親の品種名',
   'app.verify.field.breeding-method': '育種方法',
+  'app.verify.field.individual-id': '個体識別番号とその番号の体系',
   'app.verify.field.genetics': '遺伝情報そのもの（設計上、決して開示されません）',
   'app.verify.sum.reports.other': '検査報告書 × {count}',
   'app.verify.sum.receipts.other': 'ラボの受領書 × {count}',

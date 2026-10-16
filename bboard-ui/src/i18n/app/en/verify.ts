@@ -66,6 +66,7 @@ export const verify = {
   'app.verify.field.sealed-at': 'When it was sealed (the holder’s device clock)',
   'app.verify.field.parent-names': 'Parent cultivar names',
   'app.verify.field.breeding-method': 'Breeding method',
+  'app.verify.field.individual-id': 'Individual ID and its scheme',
   'app.verify.field.genetics': 'The genetics themselves — never disclosed, by design',
   // veilcore/verify-link.ts: the check page's heading and footer.
   'app.verify.sum.reports.one': 'a lab report',

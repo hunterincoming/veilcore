@@ -68,6 +68,7 @@ export const verify = {
   'app.verify.field.sealed-at': 'Quand il a été scellé (horloge de l’appareil du détenteur)',
   'app.verify.field.parent-names': 'Noms des cultivars parents',
   'app.verify.field.breeding-method': 'Méthode de sélection',
+  'app.verify.field.individual-id': 'Numéro d’identification individuel et son système',
   'app.verify.field.genetics': 'La génétique elle-même — jamais divulguée, par conception',
   'app.verify.sum.reports.one': 'un rapport de laboratoire',
   'app.verify.sum.reports.other': '{count} × rapport de laboratoire',

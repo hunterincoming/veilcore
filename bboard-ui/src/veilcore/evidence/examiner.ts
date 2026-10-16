@@ -12,7 +12,16 @@
 
 import { isNumber, isObject, isString } from '../json';
 import type { Evidence, SignatureLine } from './bundle';
-import { anchorLookup, bitcoinSteps, midnightSteps, networkWords, oneLine, utcWords } from './words';
+import {
+  anchorLookup,
+  bitcoinSteps,
+  midnightSteps,
+  networkWords,
+  oneLine,
+  sealedNameOf,
+  subjectOf,
+  utcWords,
+} from './words';
 
 export const EXAMINER_FILE = 'EXAMINER-SUMMARY.html';
 
@@ -29,6 +38,16 @@ export const escapeHtml = (v: unknown): string =>
 /** The sealed fields in plain words, in the order verify.html shows them. */
 const FIELD_LABELS: [string, string][] = [
   ['strainName', 'Plant name'],
+  // An animal record's own fields (veilcore/animal-profile.ts); a plant record has none of them.
+  ['name', 'Animal name'],
+  ['individualId', 'Individual ID'],
+  ['idScheme', 'ID scheme'],
+  ['species', 'Species'],
+  ['breed', 'Breed'],
+  ['sex', 'Sex'],
+  ['dateOfBirth', 'Date of birth (the holder’s statement)'],
+  ['breeder', 'Breeder or holder'],
+  ['herd', 'Herd or farm'],
   ['bredBy', 'Bred by'],
   ['dateCreated', 'Stated date'],
   ['parents', 'Parents'],
@@ -56,7 +75,10 @@ export const fieldText = (key: string, v: unknown): string => {
       .map((p) => {
         if (!isObject(p)) return String(p);
         const name = isString(p.name) && p.name ? p.name : '(no name)';
-        return isString(p.recordId) && p.recordId ? `${name} (record ${p.recordId})` : name;
+        // An animal's sire or dam: its role, and its individual ID when it has one.
+        const role = p.role === 'sire' ? 'Sire: ' : p.role === 'dam' ? 'Dam: ' : '';
+        const id = isString(p.individualId) && p.individualId ? ` (ID ${p.individualId})` : '';
+        return `${role}${name}${id}${isString(p.recordId) && p.recordId ? ` (record ${p.recordId})` : ''}`;
       })
       .join('; ');
   }
@@ -189,7 +211,8 @@ const custodySection = (ev: Evidence): string => {
  */
 export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[], hasOts: boolean): string => {
   const fields = ev.record.sealedFields;
-  const name = isString(fields.strainName) && fields.strainName ? oneLine(fields.strainName) : ev.record.id;
+  const name = sealedNameOf(fields) ? oneLine(sealedNameOf(fields)) : ev.record.id;
+  const subject = subjectOf(fields);
   const anchor = ev.batch?.anchor ?? null;
   const tx = anchor && isString(anchor.txHash) ? anchor.txHash : null;
   const test = anchor ? anchor.network !== 'mainnet' : true;
@@ -277,7 +300,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
         ['Pairing fingerprint', lab.pairingFingerprint],
         ['File name', lab.fileName ?? null],
         [
-          'Saved to the plant at',
+          `Saved to the ${subject} at`,
           lab.pairedAt ? `${utcWords(lab.pairedAt) ?? lab.pairedAt} (the holder’s device clock)` : null,
         ],
         ['File in this bundle', lab.fileIncluded ?? 'No: only its fingerprint'],
@@ -287,7 +310,10 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   const sigBlocks = sigs.map((s) => {
     if (!s.ok) return `<div class="sig bad">${p(s.text)}</div>`;
     const rows: [string, string | null][] = [
-      ['What was signed', `${s.what ?? s.type ?? ''}${s.savedReport ? ' (the lab report saved to this plant)' : ''}`],
+      [
+        'What was signed',
+        `${s.what ?? s.type ?? ''}${s.savedReport ? ` (the lab report saved to this ${subject})` : ''}`,
+      ],
       ['Signing key', s.publicKey ?? null],
       ['Name it gives itself', s.displayName ? `${s.displayName} (not checked)` : null],
       [
@@ -319,14 +345,14 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     );
   const doesNot: string[] = [
     'That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.',
-    'Who holds the plant or the record now.',
+    `Who holds the ${subject} or the record now.`,
     'That a signing key belongs to the lab it names. VeilCore doesn’t vouch for anyone.',
     `Any date at all until the batch root is found in the named transaction${ots ? ' (or the Bitcoin stamp checks)' : ''}.`,
     'The sealing time in the record and the registry’s “first saw” time: each is one party’s own clock.',
   ];
   if (lab)
     doesNot.push(
-      'When the lab report was saved to the plant. That came after sealing and isn’t inside the record’s fingerprint, so the batch doesn’t date it.',
+      `When the lab report was saved to the ${subject}. That came after sealing and isn’t inside the record’s fingerprint, so the batch doesn’t date it.`,
     );
   doesNot.push(
     'This is not a qualified electronic time stamp (EU eIDAS) or any other legally recognised time stamp. How much weight a court or agency gives it is for them to decide.',
@@ -409,7 +435,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   ${steps.join('\n  ')}
 
   <h2>4. Lab reports, signatures and sample receipts</h2>
-  ${lab ? `<h3>Lab report saved to this plant</h3>${table(labRows)}` : p('No lab report is saved to this plant.')}
+  ${lab ? `<h3>Lab report saved to this ${subject}</h3>${table(labRows)}` : p(`No lab report is saved to this ${subject}.`)}
   ${sigs.length ? `<h3>Signatures about this record</h3>${sigBlocks.join('')}` : p('No lab signatures about this record are in this bundle.')}
   ${custodySection(ev)}
   ${ots ? `<h2>5. The Bitcoin stamp</h2>${table(bitcoinRows)}` : ''}

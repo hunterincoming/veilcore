@@ -33,6 +33,7 @@ import { FORMAT_VERSION, COMMITMENT_ALGORITHM } from 'veilcore-records';
 import type { StrainRecord } from './records';
 import { committedRecordFields } from './commitment';
 import { KEY_BOUND_ALGORITHM } from './key-binding';
+import { isAnimal } from './animal-profile';
 
 /** The profile every new record is sealed under: plant varieties, any crop. */
 export const PLANT_VARIETY_PROFILE = 'veilcore/profile/plant-variety/v1';
@@ -86,10 +87,11 @@ export const toEnvelope = (r: StrainRecord, holderId: string, anchor?: Partial<A
     });
   }
 
+  const animal = isAnimal(r);
   return {
     formatVersion: FORMAT_VERSION,
     recordId: r.id,
-    subjectType: 'plant-genetic-material',
+    subjectType: animal ? 'animal-genetic-material' : 'plant-genetic-material',
     profile: profileOf(r),
     commitment: r.recordFingerprint,
     commitmentAlgorithm: COMMITMENT_ALGORITHM,
@@ -108,7 +110,9 @@ export const toEnvelope = (r: StrainRecord, holderId: string, anchor?: Partial<A
       name: r.strainName,
       originator: r.bredBy || undefined,
       taxon: taxonOf(r),
-      internalDesignation: r.refId || undefined,
+      // An animal's individual ID belongs to an outside scheme, so it is in profileData with
+      // that scheme, not here as the holder's own designation.
+      internalDesignation: animal ? undefined : r.refId || undefined,
       // The holder's own claim about when it came into existence, distinct from
       // sealedAt. The field a prior-possession argument turns on.
       claimedCreationDate: r.dateCreated || undefined,
@@ -126,17 +130,32 @@ export const toEnvelope = (r: StrainRecord, holderId: string, anchor?: Partial<A
     parents: (r.parents ?? []).map((p) => ({
       parentRecordId: p.recordId,
       name: p.name,
+      // An animal's sire and dam (the profile's parent roles, SPEC 3.4).
+      ...(animal && p.role ? { role: p.role } : {}),
       declaredBy: 'holder' as const,
       verified: false,
     })),
     attestations,
     // What is specific to this domain, and nothing more. Everything universal moved
     // to the envelope above.
-    profileData: {
-      breedingMethod: r.breedingMethod || undefined,
-      notes: r.notes || undefined,
-      nonce: r.nonce,
-    },
+    profileData: animal
+      ? {
+          breed: r.animal?.breed || undefined,
+          sex: r.animal?.sex,
+          individualId: r.refId || undefined,
+          idScheme: r.animal?.idScheme || undefined,
+          herd: r.animal?.herd || undefined,
+          parentIds: (r.parents ?? []).some((p) => p.individualId)
+            ? (r.parents ?? []).map((p) => ({ role: p.role, individualId: p.individualId ?? '' }))
+            : undefined,
+          notes: r.notes || undefined,
+          nonce: r.nonce,
+        }
+      : {
+          breedingMethod: r.breedingMethod || undefined,
+          notes: r.notes || undefined,
+          nonce: r.nonce,
+        },
   };
 };
 

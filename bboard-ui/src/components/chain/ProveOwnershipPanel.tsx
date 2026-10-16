@@ -12,7 +12,7 @@ import { getRecord, useRecords } from '../../veilcore/records';
 import { chainNotReady } from '../../veilcore/chain/config';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { useChainCall } from './useChainCall';
-import { useT } from '../../i18n/app';
+import { useRecordT } from '../../i18n/app';
 import { ChainStatusLine } from './ChainStatusLine';
 import { proveLinkParams } from '../../veilcore/prove-link';
 import { verifyPath } from '../../veilcore/verify-link';
@@ -29,7 +29,7 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
   // The checker's link: for a record that names its key, with what ties the key to it
   // (prove-link.ts), so the check page can match them.
   const [params, setParams] = useState<Record<string, string> | null>(null);
-  const { t } = useT();
+  const { t } = useRecordT(record);
   useEffect(() => {
     let live = true;
     if (record) void proveLinkParams(record, keys).then((p) => live && setParams(p));

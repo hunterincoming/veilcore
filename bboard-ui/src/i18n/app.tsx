@@ -13,7 +13,8 @@ import React, { use, useMemo } from 'react';
 import { useI18n } from './index';
 import type { Lang } from '../config/languages';
 import { appEn } from './app/en';
-import { makeTranslator, type AppDict, type Translator } from './translate';
+import { forKind, makeTranslator, type AppDict, type Translator } from './translate';
+import { isAnimal } from '../veilcore/animal-profile';
 
 export type { Translator };
 
@@ -70,6 +71,13 @@ export const useT = (): Translator => {
     return made;
   }, [lang, dict]);
 };
+
+/**
+ * The app's text for screens about one record: an animal record's screens say "animal"
+ * where a plant's say "plant" (translate.ts forKind). Undefined (still loading): a plant's.
+ */
+export const useRecordT = (record: { readonly profile?: string } | undefined): Translator =>
+  forKind(useT(), isAnimal(record) ? 'animal' : 'plant');
 
 /** What a tag in a sentence becomes: `<link>text</link>` → tags.link('text'). */
 export type Tags = Record<string, (children: React.ReactNode) => React.ReactNode>;
