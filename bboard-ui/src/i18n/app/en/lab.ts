@@ -263,7 +263,7 @@ export const lab = {
     '<b>{lead}</b> (key {key}), signature checked in this browser. The same key signed the receipt for this delivery.',
   'app.lab.results.anyName': ' Anyone can register a key under any name, so the name doesn’t show who signed.',
   'app.lab.results.locked':
-    "Locked so only you can open them, with this plant's key from your backup. VeilCore can't read them.",
+    'Locked so only you can open them, with this plant’s key from your backup. VeilCore stores them locked and doesn’t have the key.',
   'app.lab.results.noKey':
     "This plant's key isn't on this device, so its lab reports can't be opened here. <link>Get your plants back from your backup</link> first.",
   'app.lab.results.gotIt': 'Got it',
@@ -345,7 +345,7 @@ export const lab = {
   'app.lab.out.replacesIntro':
     'It replaces {id}, the lab report you sent {when}. The old one is withdrawn: its file is removed and your signature on it is marked replaced.',
   'app.lab.out.intro':
-    'Your browser signs the lab report’s fingerprint with your lab’s key and locks the file so only the breeder can open it. The locked file waits on VeilCore’s server for the breeder to open; VeilCore can’t read it.',
+    'Your browser signs the lab report’s fingerprint with your lab’s key and locks the file so only the breeder can open it. The locked file waits on VeilCore’s server for the breeder to open, and VeilCore doesn’t have its key.',
   'app.lab.out.cancelCorrection': 'Cancel the correction',
   'app.lab.out.turnedAway': "You turned this sample away, so there's no lab report to send.",
   'app.lab.out.setUpFirst': "Set up your lab's signature first, so the breeder can tell the lab report is yours.",

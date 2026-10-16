@@ -106,8 +106,9 @@ function scramble(t,t0,per=0.032,settle=0.3){let o='';for(let i=0;i<HEX.length;i
 // ---------- timeline ----------
 // Every line follows the landing page (bboard-ui/src/i18n/en.ts: hero, "What it's for",
 // "How it works"). A record shows you had THIS RECORD by a date, not that you had the
-// plant first; the plant name is on every check page; only genetic data stays on your
-// computer. Don't add a claim here that the landing page doesn't make.
+// plant first; the plant name is on every check page; the other details are stored locked
+// on VeilCore's server, which doesn't have the key (sealed records); genetic data never
+// leaves your computer. Don't add a claim here that the landing page doesn't make.
 const DUR=60;
 const SC=[[0,7.5],[7.5,14.5],[14.5,22.5],[22.5,30],[30,37],[37,45.5],[45.5,53.5],[53.5,60]];
 const CAPS=[
@@ -123,7 +124,7 @@ const CAPS=[
 // Second, smaller line under a caption: [scene, text, seconds after the scene starts].
 const NOTES=[
  [0,'Notebooks and files are dated by whoever keeps them, so they’re easy to doubt.',3.0],
- [1,'The plant name you type is kept on VeilCore’s server. Genetic data never leaves your computer.',4.9],
+ [1,'Its name is public. The rest is stored locked on VeilCore’s server, and we don’t have the key.',4.9],
  [2,'It goes in a batch with others. The date shows the record existed by then.',3.4],
  [5,'It says nothing about who bred the plant.',3.9],
  [6,'The lab signs with its own key. VeilCore doesn’t vouch for the result.',4.4]
@@ -164,7 +165,7 @@ html+=`<div id="g23" class="grp">
     <div id="r2_${i}" class="row" style="position:absolute;left:28px;right:28px;top:${84+i*52}px;height:52px;border-top:1px solid #EEF0EC">
       <div style="width:150px;font-size:17px;color:${C.ink2}">${k}</div>
       ${i<3?`<div id="v2_${i}" style="font-size:21px;font-weight:500" data-full="${v}"></div>
-      <div id="srv${i}" class="row" style="position:absolute;right:0;top:15px;gap:7px;font-size:15px;color:${C.ink2}">${ic('cloud',18,C.ink2,1.9)}VeilCore’s server</div>`:
+      <div id="srv${i}" class="row" style="position:absolute;right:0;top:15px;gap:7px;font-size:15px;color:${C.ink2}">${i===0?`${ic('cloud',18,C.ink2,1.9)}Public, on VeilCore’s server`:`${ic('lock',17,C.ink2,2)}Locked on VeilCore’s server`}</div>`:
       `<div id="gen" class="row" style="gap:14px;position:relative"><div id="strip">${markerStrip(24,11)}</div></div>
       <div id="genLock" class="pill" style="white-space:nowrap;position:absolute;right:-6px;top:10px;font-size:15px;padding:5px 12px;background:${C.accsoft};color:${C.acc}">${ic('lock',15,C.acc,2.2)}Your computer only</div>`}
     </div>`).join('')}
@@ -289,7 +290,7 @@ html+=`<div id="g7" class="grp">
   <div style="flex:1"><div class="sg" style="font-weight:600;font-size:22px">Lab report</div><div class="pill" style="margin-top:8px;font-size:14px;padding:4px 10px;gap:6px;background:${C.sendsoft};color:${C.send}">${ic('seal',15,C.send,2.2)}Signed by the lab</div></div>
   <div id="dlk" style="position:relative;width:44px;height:44px;border-radius:50%;background:${C.well}"><div id="dl1" style="position:absolute;left:10px;top:10px">${ic('lock',24,C.ink,2.1)}</div><div id="dl2" style="position:absolute;left:10px;top:10px">${ic('unlock',24,C.acc,2.1)}</div></div>
 </div>
-<div id="nomail" class="abs row" style="left:0;width:1920px;top:630px;justify-content:center;gap:12px">${ic('lock',26,'#6E7972',1.9)}<div style="font-size:21px;color:${C.ink2}">VeilCore can’t read it</div></div>
+<div id="nomail" class="abs row" style="left:0;width:1920px;top:630px;justify-content:center;gap:12px">${ic('lock',26,'#6E7972',1.9)}<div style="font-size:21px;color:${C.ink2}">VeilCore doesn’t have its key</div></div>
 </div>`;
 
 // ===== G8: end card =====

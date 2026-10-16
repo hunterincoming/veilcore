@@ -166,7 +166,8 @@ export const plant = {
   'app.plant.next.sent.why': '開けるのは育成者だけです。撤回することも、訂正したファイルを送ることもできます。',
   'app.plant.next.withdrawn.why':
     '送ったものを撤回したので、育成者の手元にはあなたからの現在の検査報告書がありません。新しく送ることができます。',
-  'app.plant.next.send.why': 'ラボの鍵で署名し、育成者だけが開けるようにロックします。VeilCoreは読めません。',
+  'app.plant.next.send.why':
+    'ラボの鍵で署名し、育成者だけが開けるようにロックします。VeilCoreはその鍵を持っていません。',
   'app.plant.next.sent.action': '送ったものを見る',
   'app.plant.next.send.action': '結果を送り返す',
   'app.plant.next.corrected.title': '訂正されたDNA報告書を保存する',
@@ -396,7 +397,7 @@ export const plant = {
   'app.plant.fix.title': '{id} を訂正する',
   'app.plant.fix.intro':
     'この記録はそのまま残ります。訂正すると、これに代わる新しい記録が作られ、両方が残ります。訂正は何も上書きせず、何も削除しません。だからこそ、元の記録を証拠として使い続けられます。',
-  'app.plant.fix.name': '品種名',
+  'app.plant.fix.name': '品種名（公開）',
   'app.plant.fix.bredBy': '育成者',
   'app.plant.fix.notes': 'メモ',
   'app.plant.fix.does': 'この訂正で起きること',

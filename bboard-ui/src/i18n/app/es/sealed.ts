@@ -40,7 +40,7 @@ export const sealed = {
   'app.sealed.unreadable.other':
     '{count} registros llegaron en un formato que esta versión no puede leer, así que no se muestran.',
   'app.sealed.backupNeeded':
-    '<b>Guarde una copia de seguridad nueva.</b> Sus registros ahora están bloqueados con una clave que solo tiene este navegador. Sin el archivo de copia de seguridad no podrá abrirlos en ningún otro lugar.',
+    '<b>Guarde una copia de seguridad nueva.</b> Sus registros ahora están bloqueados con una clave que solo tiene este navegador hasta que guarde una copia de seguridad. Sin el archivo de copia de seguridad no podrá abrirlos en ningún otro lugar.',
   'app.sealed.err.newCode':
     'Este código se hizo antes de que los envíos se bloquearan, y ya no funciona. Pida al remitente un código nuevo.',
   'app.sealed.recv.missingKey':

@@ -140,7 +140,7 @@ export const prove = {
   'app.prove.share.notSaved': 'Your choice was not saved, so no link was made: {error}.',
   'app.prove.share.title': 'Choose what a stranger sees',
   'app.prove.share.intro':
-    "Anyone who has this record's id — from a link you send, the QR code on its certificate, or a message someone forwards — can open its verify page. Pick which facts that page shows. The choice is saved with the record on VeilCore's registry and applies to everyone with the id; you can change it here at any time, and links already sent then show the new choice.",
+    'Anyone who has this record’s id — from a link you send, the QR code on its certificate, or a message someone forwards — can open its verify page. Pick which facts that page shows. What you pick is sent to VeilCore’s registry unlocked, so the page can show it. The choice is saved with the record on VeilCore’s registry and applies to everyone with the id; you can change it here at any time, and links already sent then show the new choice.',
   'app.prove.share.shownOn': 'Shown on the verify page',
   'app.prove.share.strangerSees': 'What a stranger with the id will see',
   'app.prove.share.reportOn': 'With “Whether a DNA report is saved” on, the check page says so.',

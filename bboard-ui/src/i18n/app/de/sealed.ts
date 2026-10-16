@@ -42,7 +42,7 @@ export const sealed = {
   'app.sealed.unreadable.other':
     '{count} Datensätze kamen in einer Form zurück, die diese Version nicht lesen kann, und werden nicht angezeigt.',
   'app.sealed.backupNeeded':
-    '<b>Speichern Sie eine neue Sicherungskopie.</b> Ihre Datensätze sind jetzt mit einem Schlüssel verschlossen, den nur dieser Browser hat. Ohne die Sicherungsdatei können Sie sie nirgendwo sonst öffnen.',
+    '<b>Speichern Sie eine neue Sicherungskopie.</b> Ihre Datensätze sind jetzt mit einem Schlüssel verschlossen, den nur dieser Browser hat, bis Sie eine Sicherungskopie speichern. Ohne die Sicherungsdatei können Sie sie nirgendwo sonst öffnen.',
   'app.sealed.err.newCode':
     'Dieser Code wurde erstellt, bevor Lieferungen verschlossen wurden, und funktioniert nicht mehr. Bitten Sie den Absender um einen neuen Code.',
   'app.sealed.recv.missingKey':

@@ -425,6 +425,7 @@ const PlantForm: React.FC<{
         label={t('app.log.nameLabel')}
         required
         placeholder={namePlaceholder ?? t('app.log.namePlaceholder')}
+        helperText={t('app.log.nameHelp')}
         value={draft.strainName}
         onChange={(e) => set('strainName', e.target.value)}
         fullWidth

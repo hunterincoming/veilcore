@@ -165,7 +165,7 @@ export const fr: Strings = {
     "Cette note concerne la démo de ce site. Il s'agit d'un test, sur le réseau de test de Midnight. Merci d'utiliser des données fictives.",
   'm.privacy.stored.title': 'Conservé sur notre serveur de test',
   'm.privacy.stored.text':
-    "Ce que vous saisissez et ce que votre navigateur en calcule : noms de cultivars et d'obtenteurs, l'espèce si vous en indiquez une, dates, notes, numéros de référence, parents, empreintes des enregistrements, empreintes des photos et des rapports de laboratoire que vous ajoutez (seulement les empreintes, jamais les fichiers), noms de fichier des rapports de laboratoire, conditions et contreparties des accords, le matériel que vous envoyez à un laboratoire (à qui il est adressé et la quantité) et, pour les laboratoires, la clé publique de signature et les attestations qu'ils publient. Également votre clé de détenteur, que votre navigateur envoie à chaque enregistrement pour que le serveur retrouve vos enregistrements. Les rapports de laboratoire verrouillés qu'un laboratoire vous envoie : conservés sans que nous puissions les lire, et supprimés après 180 jours. Le serveur est le registre de test de VeilCore, hébergé chez Railway.",
+    "Vos enregistrements et accords, verrouillés par votre navigateur avant d'être envoyés : obtenteur, espèce, dates, notes, numéros de référence, parents, les empreintes et noms de fichier des photos et rapports de laboratoire que vous ajoutez, conditions et contreparties des accords, la quantité et la note que vous envoyez à un laboratoire, et les noms que vous donnez aux destinataires. Notre serveur les conserve verrouillés, et nous n'avons pas la clé : elle est dans votre navigateur et dans votre fichier de secours. Notre serveur peut lire : l'identifiant de chaque enregistrement ; le nom que vous lui donnez, que voit toute personne ayant un lien de vérification ; son empreinte et son profil ; les champs qu'une correction a modifiés, et quand ; quand le serveur l'a vu pour la première fois ; ce que vous choisissez de montrer sur sa page de vérification ; les liens de parenté que vous enregistrez ; et son lot avec son horodatage. Pour un envoi : de quel enregistrement il vient, quand il a été reçu, une étiquette à la place du nom du destinataire, et les informations d'échantillon que vous et le laboratoire écrivez (identifiant d'échantillon, numéro de scellé, où et quand il a été prélevé). Ces informations d'échantillon ne sont pas encore verrouillées. Pour les laboratoires : la clé publique de signature et les attestations qu'ils publient. Les demandes de prouver la clé d'un enregistrement, avec le nom saisi par le demandeur, pendant 7 jours. Votre clé de détenteur, que votre navigateur envoie à chaque enregistrement pour que le serveur retrouve vos enregistrements ; le serveur n'en garde qu'une empreinte à sens unique. Les enregistrements faits avant le verrouillage restent lisibles pour nous jusqu'à ce que votre navigateur les verrouille. Les rapports de laboratoire verrouillés qu'un laboratoire vous envoie : conservés verrouillés, sans la clé, et supprimés après 180 jours. Le serveur est le registre de test de VeilCore, hébergé chez Railway.",
   'm.privacy.local.title': 'Ne quitte jamais votre navigateur',
   'm.privacy.local.text':
     "Les données génétiques, et les rapports de laboratoire, rapports ADN et photos que vous ajoutez. Votre navigateur les lit pour calculer leurs empreintes ; les fichiers eux-mêmes ne sont jamais envoyés. Un rapport de laboratoire n'arrive sur notre serveur que lorsqu'un laboratoire vous le renvoie, verrouillé pour que vous seul puissiez l'ouvrir.",
@@ -183,7 +183,7 @@ export const fr: Strings = {
     'Pour faire supprimer vos données de démo de notre serveur, écrivez à hunter@veilcore.org en indiquant les identifiants de vos enregistrements.',
   'm.privacy.browser.title': 'Conservé dans votre navigateur',
   'm.privacy.browser.text':
-    "Votre navigateur conserve, sur cet appareil : votre clé de détenteur (une copie est aussi envoyée à notre serveur, voir plus haut), la clé de signature d'un laboratoire si vous en avez configuré une (sa partie privée ne quitte jamais cet appareil), le rôle choisi et votre langue. Pour les supprimer, effacez les données de ce site dans les réglages de votre navigateur. Sauvegardez d'abord votre clé de détenteur : sans elle, ce navigateur ne retrouvera plus vos enregistrements.",
+    "Votre navigateur conserve, sur cet appareil : votre clé de détenteur (une copie est aussi envoyée à notre serveur, voir plus haut) ; la clé qui verrouille vos enregistrements, qui ne nous est jamais envoyée ; votre propre copie de vos enregistrements ; la clé de signature d'un laboratoire si vous en avez configuré une (sa partie privée ne quitte jamais cet appareil) ; le rôle choisi ; et votre langue. Votre fichier de secours contient les deux clés. Pour les supprimer, effacez les données de ce site dans les réglages de votre navigateur. Enregistrez d'abord votre copie de secours : sans elle, vous ne pourrez plus retrouver ni ouvrir vos enregistrements.",
   'm.privacy.hosts.title': 'Hébergement',
   'm.privacy.hosts.text':
     'Ce site est hébergé chez Vercel, qui enregistre les adresses IP et les requêtes. Notre serveur de registre fonctionne chez Railway, qui enregistre les requêtes.',
@@ -298,7 +298,7 @@ export const fr: Strings = {
   'm.for.3t': "Du matériel entre les mains d'un laboratoire.",
   'm.for.4t': 'Les résultats du laboratoire, renvoyés vers vous.',
   'm.for.4p':
-    "Le laboratoire signe votre rapport et le verrouille pour que vous seul puissiez l'ouvrir. Aucun PDF ne traîne dans une boîte de réception. Le fichier verrouillé attend sur le serveur de VeilCore que vous l'ouvriez ; VeilCore ne peut pas le lire, et enregistre qui a signé ; il ne se porte pas garant du résultat. Nouveau, encore en test.",
+    "Le laboratoire signe votre rapport et le verrouille pour que vous seul puissiez l'ouvrir. Aucun PDF ne traîne dans une boîte de réception. Le fichier verrouillé attend sur le serveur de VeilCore que vous l'ouvriez, et nous n'avons pas sa clé. VeilCore enregistre qui a signé ; il ne se porte pas garant du résultat. Nouveau, encore en test.",
   'm.for.6t': "Quelqu'un demande une preuve.",
   'm.for.6p':
     "On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre plante. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante. Cela fonctionne pour l'instant sur un réseau de test de Midnight.",
@@ -311,7 +311,7 @@ export const fr: Strings = {
   'm.how.title2': 'La génétique reste chez vous.',
   'm.step1.title': 'Le noter',
   'm.step1.text':
-    "Ce que c'est et d'où ça vient. Le nom de la plante et l'obtenteur que vous saisissez sont conservés sur le serveur de VeilCore, et toute personne ayant le lien de l'enregistrement voit le nom.",
+    "Ce que c'est et d'où ça vient. Le serveur de VeilCore conserve les détails verrouillés, et nous n'avons pas la clé. Le nom que vous lui donnez n'est pas verrouillé : toute personne ayant le lien de l'enregistrement le voit.",
   'm.step2.title': "En faire l'empreinte",
   'm.step2.text': 'Sur votre ordinateur. Les données génétiques ne le quittent jamais.',
   'm.step3.title': 'Obtenir une date',
@@ -387,7 +387,7 @@ export const fr: Strings = {
   'm.faq.3link': 'Les enregistrements comme preuve →',
   'm.faq.4q': 'Que voyez-vous de mes données ?',
   'm.faq.4a':
-    "De vos données génétiques : rien. Leur empreinte est calculée sur votre ordinateur, comme celle des fichiers que vous ajoutez, et rien de cela n'est téléversé. Un rapport de laboratoire n'arrive sur notre serveur que lorsqu'un laboratoire vous le renvoie : il est verrouillé pour que vous seul puissiez l'ouvrir, et supprimé après 180 jours. Ce site conserve ce que vous saisissez (noms, dates, notes, conditions des accords) et les noms de vos fichiers de laboratoire, pour que vous puissiez y revenir, et la page de vérification publique d'un enregistrement montre son nom de cultivar. Les laboratoires et les développeurs peuvent sceller des enregistrements dans leurs propres systèmes, pour que seule l'empreinte sorte.",
+    "De vos données génétiques : rien. Leur empreinte est calculée sur votre ordinateur, comme celle des fichiers que vous ajoutez, et rien de cela n'est téléversé. Un rapport de laboratoire n'arrive sur notre serveur que lorsqu'un laboratoire vous le renvoie : il est verrouillé pour que vous seul puissiez l'ouvrir, et supprimé après 180 jours. Les détails que vous saisissez (obtenteur, dates, notes, conditions des accords) et les noms de vos fichiers sont conservés verrouillés sur notre serveur, et nous n'avons pas la clé. Nous pouvons lire le nom de chaque enregistrement, que montre sa page de vérification publique, son empreinte et tout ce que vous choisissez de montrer. Les informations d'échantillon que vous écrivez pour un laboratoire ne sont pas encore verrouillées. Les laboratoires et les développeurs peuvent sceller des enregistrements dans leurs propres systèmes, pour que seule l'empreinte sorte.",
   'm.faq.4link1': 'Ce que la démo conserve →',
   'm.faq.4link2': "Guide d'intégration →",
   'm.faq.6q': 'Combien ça coûte ?',
@@ -420,7 +420,7 @@ export const fr: Strings = {
   'm.contact.4p': 'Écrivez à Mako, notre CEO.',
   'm.contact.integrate': "Guide d'intégration",
   'm.verify.what':
-    'Un enregistrement VeilCore décrit du matériel génétique sans contenir la génétique. Seule son empreinte est publiée, et elle reçoit une date une fois ancrée sur Midnight. En vérifier un est gratuit et ne demande aucun compte.',
+    'Un enregistrement VeilCore décrit du matériel génétique sans contenir la génétique. Sa page de vérification montre son nom et ce que son détenteur a choisi de partager. Seule son empreinte va sur Midnight, et elle reçoit une date une fois ancrée. En vérifier un est gratuit et ne demande aucun compte.',
   'm.verify.home': "Qu'est-ce que VeilCore ? →",
   'm.verify.example': "Vous ne savez pas ce que vous allez voir ? Regardez d'abord un exemple →",
   // Round 5 (15 Oct 2026): landing page rework, keys added.

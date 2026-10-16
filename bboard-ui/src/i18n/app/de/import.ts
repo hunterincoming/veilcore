@@ -17,7 +17,7 @@ export const importing = {
   'app.import.choose': 'Eine Datei wählen',
   'app.import.normalWindow': 'Öffnen Sie diese Seite in einem normalen Browserfenster, um sie zu nutzen.',
   'app.import.readHere':
-    'Ihre Datei wird hier in diesem Browser gelesen und nicht hochgeladen. Für jede Zeile werden nur die Angaben, die Sie auf dem nächsten Bildschirm wählen, auf {server} gespeichert, dieselben Angaben wie beim Erfassen einer Pflanze. Nur ein Fingerabdruck wird auf {dated} datiert.',
+    'Ihre Datei wird hier in diesem Browser gelesen und nicht hochgeladen. Für jede Zeile werden nur die Angaben gespeichert, die Sie auf dem nächsten Bildschirm wählen, dieselben Angaben wie beim Erfassen einer Pflanze. Auf {server} werden sie verschlossen gespeichert, und wir haben den Schlüssel nicht; der Pflanzenname ist nicht verschlossen. Nur ein Fingerabdruck wird auf {dated} datiert.',
   'app.import.testSite': 'Dies ist eine Testseite: Hier erstellte Datensätze sind Testdaten.',
   'app.import.earlierStamps': 'Datumsstempel für Schlüssel aus früheren Importen',
   'app.import.rowLine': 'Zeile {line}: {text}',
@@ -49,7 +49,7 @@ export const importing = {
   'app.import.header.back': 'Eine andere Datei wählen',
   'app.import.cols.title': 'Welche Spalte ist was?',
   'app.import.cols.intro':
-    'Wir haben anhand der Spaltennamen geraten. Prüfen Sie jede. Nur der Pflanzenname ist nötig; Spalten, die Sie weglassen, werden nie gesendet.',
+    'Wir haben anhand der Spaltennamen geraten. Prüfen Sie jede. Nur der Pflanzenname ist nötig; Spalten, die Sie weglassen, werden nie gesendet. Der Pflanzenname ist öffentlich: Wer den Prüflink eines Datensatzes hat, sieht ihn. Wenn die Namen geheim sind, wählen Sie eine Spalte mit Decknamen.',
   'app.import.cols.example': 'Zum Beispiel: {v}',
   'app.import.cols.twoParents': 'Zwei Eltern in einer Zelle sind in Ordnung, etwa „Mutter x Vater“.',
   'app.import.cols.pick': 'Eine Spalte wählen',
@@ -95,7 +95,7 @@ export const importing = {
   'app.import.check.onceSealed':
     '<b>Einmal versiegelt, lassen sie sich nicht mehr ändern.</b> Sie können später Berichte und Korrekturen hinzufügen; eine Korrektur ist ein neuer Datensatz, der auf den alten verweist.',
   'app.import.check.savedOn':
-    'Die Angaben oben werden auf {server} gespeichert, ein Datensatz pro Zeile. Nur ein Fingerabdruck von jedem wird auf {dated} datiert. Ein Datumsstempel zeigt, dass die Angaben zu diesem Datum existierten; er bestätigt nicht, dass sie stimmen.',
+    'Die Angaben oben werden verschlossen auf {server} gespeichert, ein Datensatz pro Zeile, und wir haben den Schlüssel nicht. Die Pflanzennamen sind nicht verschlossen: Wer einen Prüflink hat, sieht sie. Nur ein Fingerabdruck von jedem wird auf {dated} datiert. Ein Datumsstempel zeigt, dass die Angaben zu diesem Datum existierten; er bestätigt nicht, dass sie stimmen.',
   'app.import.check.sealN.one': '{count} Datensatz versiegeln',
   'app.import.check.sealN.other': '{count} Datensätze versiegeln',
   'app.import.check.nothing': 'Nichts zu versiegeln',

@@ -272,7 +272,7 @@ export const lab = {
   'app.lab.results.anyName':
     ' N’importe qui peut enregistrer une clé sous n’importe quel nom : le nom ne montre donc pas qui a signé.',
   'app.lab.results.locked':
-    'Verrouillés pour que vous seul puissiez les ouvrir, avec la clé de cette plante tirée de votre copie de secours. VeilCore ne peut pas les lire.',
+    'Verrouillés pour que vous seul puissiez les ouvrir, avec la clé de cette plante tirée de votre copie de secours. VeilCore les conserve verrouillés et n’a pas la clé.',
   'app.lab.results.noKey':
     'La clé de cette plante n’est pas sur cet appareil : ses rapports de laboratoire ne peuvent donc pas être ouverts ici. <link>Récupérez d’abord vos plantes depuis votre copie de secours</link>.',
   'app.lab.results.gotIt': 'Compris',
@@ -356,7 +356,7 @@ export const lab = {
   'app.lab.out.replacesIntro':
     'Il remplace {id}, le rapport de laboratoire que vous avez envoyé {when}. L’ancien est retiré : son fichier est supprimé et votre signature est marquée comme remplacée.',
   'app.lab.out.intro':
-    'Votre navigateur signe l’empreinte du rapport avec la clé de votre laboratoire et verrouille le fichier pour que seul l’obtenteur puisse l’ouvrir. Le fichier verrouillé attend sur le serveur de VeilCore que l’obtenteur l’ouvre ; VeilCore ne peut pas le lire.',
+    'Votre navigateur signe l’empreinte du rapport avec la clé de votre laboratoire et verrouille le fichier pour que seul l’obtenteur puisse l’ouvrir. Le fichier verrouillé attend sur le serveur de VeilCore que l’obtenteur l’ouvre, et VeilCore n’a pas sa clé.',
   'app.lab.out.cancelCorrection': 'Annuler la correction',
   'app.lab.out.turnedAway': 'Vous avez refusé cet échantillon : il n’y a donc pas de rapport de laboratoire à envoyer.',
   'app.lab.out.setUpFirst':

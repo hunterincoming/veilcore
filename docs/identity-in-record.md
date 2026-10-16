@@ -35,7 +35,8 @@ lowercase hex characters.
   fingerprint's algorithm is written (the export's registered-fingerprint block). Records
   without `keyBinding` keep `sha256/canonical-json/v1` and recompute byte for byte as before.
   The envelope format (`formatVersion` 0.1) does not change. SPEC section 3.6.1 describes it.
-- **Why the salt:** the registry stores the whole record. With the identity itself in the
+- **Why the salt:** `keyBinding` is one of the few fields the registry can read (since sealed
+  records; before them it read the whole record). With the identity itself in the
   record, the registry could match a holder's account to their on-chain activity (that is
   why `record-keys.ts` kept it off the record). The salt hides it: `keyBinding` says nothing
   about the key without `keySalt`. The salt comes from the record secret, so the backup

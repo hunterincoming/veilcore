@@ -115,6 +115,7 @@ export const CorrectRecord: React.FC<{
 
             <TextField
               label={t('app.plant.fix.name')}
+              helperText={t('app.log.nameHelp')}
               value={name}
               onChange={(e) => {
                 setName(e.target.value);

@@ -17,7 +17,7 @@ export const importing = {
   'app.import.choose': 'Choose a file',
   'app.import.normalWindow': 'Open this page in a normal browser window to use it.',
   'app.import.readHere':
-    "Your file is read here, in this browser, and isn't uploaded. For each row, only the details you pick on the next screen are saved on {server}, the same details as logging one plant. Only a fingerprint is dated on {dated}.",
+    'Your file is read here, in this browser, and isn’t uploaded. For each row, only the details you pick on the next screen are saved, the same details as logging one plant. {server} stores them locked, and we don’t have the key; the plant name isn’t locked. Only a fingerprint is dated on {dated}.',
   'app.import.testSite': 'This is a test site: records made here are test data.',
   'app.import.earlierStamps': 'Key date stamps from earlier imports',
   'app.import.rowLine': 'Row {line}: {text}',
@@ -50,7 +50,7 @@ export const importing = {
   'app.import.header.back': 'Pick a different file',
   'app.import.cols.title': 'Which column is which?',
   'app.import.cols.intro':
-    'We guessed from the column names. Check each one. Only the plant name is needed; columns you leave out are never sent.',
+    'We guessed from the column names. Check each one. Only the plant name is needed; columns you leave out are never sent. The plant name is public: anyone with a record’s check link sees it. If the names are secret, pick a column of code names.',
   'app.import.cols.example': 'For example: {v}',
   'app.import.cols.twoParents': 'Two parents in one cell are fine, like “Mother x Father”.',
   'app.import.cols.pick': 'Pick a column',
@@ -95,7 +95,7 @@ export const importing = {
   'app.import.check.onceSealed':
     "<b>Once sealed, these can't change.</b> You can add reports and corrections later; a correction is a new record that points back to the old one.",
   'app.import.check.savedOn':
-    "The details above are saved on {server}, one record per row. Only a fingerprint of each is dated on {dated}. A date stamp shows the details existed by that date; it doesn't confirm they are right.",
+    'The details above are saved on {server}, one record per row, locked, and we don’t have the key. The plant names aren’t locked: anyone with a check link sees them. Only a fingerprint of each is dated on {dated}. A date stamp shows the details existed by that date; it doesn’t confirm they are right.',
   'app.import.check.sealN.one': 'Seal {count} record',
   'app.import.check.sealN.other': 'Seal {count} records',
   'app.import.check.nothing': 'Nothing to seal',

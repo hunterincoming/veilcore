@@ -34,7 +34,7 @@ export const home = {
   'app.home.resetWarningRecords.other':
     '{count} records have keys with no checked backup. Save your backup first: clearing the browser later would lose them for good.',
   'app.home.resetConfirm':
-    'Start over in this browser with a new, empty set?\n\nNothing is deleted. Your current records stay on VeilCore’s registry under your current holder key, and you can get them back only with that key. It will be downloaded now — keep the file.',
+    'Start over in this browser with a new, empty set?\n\nNothing is deleted. Your current records stay on VeilCore’s registry, locked. You can get them back only with your current keys, which will be downloaded now in one file. Keep it.',
   'app.home.startedOver': 'Started over. Restore your old records any time from the holder key file.',
   'app.home.imported.one': 'Imported {count} record.',
   'app.home.imported.other': 'Imported {count} records.',

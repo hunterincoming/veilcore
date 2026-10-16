@@ -220,8 +220,10 @@ describe('privacy, said plainly', () => {
     expect(lede).not.toMatch(/nothing (is )?(sent|leaves)|never leaves your computer\. ?$/i);
   });
   it('what the server keeps is said on the page, right under the hero (How it works)', () => {
-    expect(en['m.step1.text']).toMatch(/plant name and breeder you type are kept on VeilCore's server/);
-    expect(en['m.step1.text']).toMatch(/anyone with the record's link sees the name/);
+    // Sealed records (round 2): the details are stored locked; only the name is readable.
+    expect(en['m.step1.text']).toMatch(/VeilCore's server stores the details locked, and we don't have the key/);
+    expect(en['m.step1.text']).toMatch(/The name you give it isn't locked: anyone with the record's link sees it\./);
+    expect(en['m.step1.text']).not.toMatch(/breeder/);
     expect(en['m.faq.4a']).toMatch(/A lab report reaches our server only when a lab sends it back to you/);
   });
   it('lineage on the website is the registry’s record, not the chain’s', () => {
@@ -637,7 +639,7 @@ describe('round 3: what a page may claim', () => {
   it('every site, veilcore.org included, says a locked lab report is kept 180 days (16 Oct)', () => {
     for (const s of [en, testSite, ...mainnetVariants]) {
       expect(s['m.privacy.stored.text']).toMatch(
-        /Locked lab reports a lab sends you: stored unreadable to us, and deleted after 180 days/,
+        /Locked lab reports a lab sends you: stored locked, without the key, and deleted after 180 days/,
       );
       expect(s['m.privacy.local.text']).toMatch(/A lab report reaches our server only when a lab sends it back to you/);
       expect(s['m.faq.4a']).toMatch(/deleted after 180 days/);
@@ -659,9 +661,12 @@ describe('round 3: what a page may claim', () => {
     const holds = /holds only the locked file|only ever holds the locked file|holds the locked file/i;
     for (const [site, s] of Object.entries(SITES)) {
       expect(offenders(s, holds), site).toEqual([]);
+      // Never more than "stored locked, and we don't have the key": VeilCore also serves the
+      // app's code, so "can't read it" would claim more than the design shows (round 2).
       expect(s['m.for.4p'], site).toMatch(
-        /The locked file waits on VeilCore's server for you to open; VeilCore can't read it, and records who signed; it doesn't vouch for the result\./,
+        /The locked file waits on VeilCore's server for you to open, and we don't have its key\. VeilCore records who signed; it doesn't vouch for the result\./,
       );
+      expect(offenders(s, /VeilCore can't read|VeilCore can’t read|unreadable to us/i), site).toEqual([]);
     }
     const old: Record<Exclude<Lang, 'en'>, RegExp> = {
       de: /VeilCore hält nur die verschlossene Datei/,
@@ -670,10 +675,10 @@ describe('round 3: what a page may claim', () => {
       ja: /VeilCoreが保持するのは鍵のかかったファイル/,
     };
     const cantRead: Record<Exclude<Lang, 'en'>, RegExp> = {
-      de: /VeilCore kann sie nicht lesen/,
-      fr: /VeilCore ne peut pas le lire/,
-      es: /VeilCore no puede leerlo/,
-      ja: /VeilCoreには読めません/,
+      de: /wir haben ihren Schlüssel nicht/,
+      fr: /nous n'avons pas sa clé/,
+      es: /nosotros no tenemos su clave/,
+      ja: /私たちはその鍵を持っていません/,
     };
     for (const lang of ['de', 'fr', 'es', 'ja'] as const) {
       const { strings, testchain } = LANGUAGES[lang];
@@ -689,11 +694,12 @@ describe('round 3: what a page may claim', () => {
     expect(lab).not.toMatch(holds);
     expect(appText(lab)).not.toMatch(holds);
     expect(appText(lab)).toContain(
-      'The locked file waits on VeilCore’s server for the breeder to open; VeilCore can’t read it.',
+      'The locked file waits on VeilCore’s server for the breeder to open, and VeilCore doesn’t have its key.',
     );
     const video = fs.readFileSync(path.join(SRC, '..', 'media-src/explainer/explainer.html'), 'utf8');
     expect(video).not.toMatch(holds);
-    expect(video).toContain('>VeilCore can’t read it</div>');
+    expect(video).toContain('>VeilCore doesn’t have its key</div>');
+    expect(video).not.toMatch(/VeilCore can’t read/);
   });
   it('the wording above holds only while lab reports are on everywhere, mainnet included', () => {
     // If one network is switched off again (labResultsEnabledFor in config/network.ts),
@@ -884,6 +890,8 @@ describe('translations', () => {
     'm.privacy.local.text',
     'm.privacy.who.text',
   );
+  // Sealed records round 2 (16 Oct): what the server can read.
+  CHANGED.push('m.verify.what', 'm.privacy.browser.text');
   // Round 5: the landing page rework.
   CHANGED.push(
     ...(Object.keys(en).filter((k) => /^m\.(tech|open)\./.test(k)) as StringKey[]),

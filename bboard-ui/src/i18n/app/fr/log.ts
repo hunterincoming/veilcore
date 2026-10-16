@@ -35,8 +35,10 @@ export const log = {
   'app.log.parentLinked': ' Son parent est {name}, déjà lié ci-dessous.',
   'app.log.keptLastTime': 'Nous avons gardé ce que vous aviez saisi la dernière fois.',
   'app.log.startOver': 'Recommencer',
-  'app.log.nameLabel': 'Nom de la plante ou de la lignée',
+  'app.log.nameLabel': 'Nom de la plante ou de la lignée (public)',
   'app.log.namePlaceholder': 'p. ex. Harbour Mist',
+  'app.log.nameHelp':
+    'Toute personne ayant un lien de vérification voit ce nom. Si le vrai nom est secret, utilisez un nom de code.',
   'app.log.eg': 'p. ex. {v}',
   'app.log.egNextSelection': 'p. ex. {name}, sélection suivante',
   'app.log.bredBy': 'Obtenteur',
@@ -82,7 +84,7 @@ export const log = {
   'app.log.sealedWarn':
     '<b>Une fois scellée, cette partie ne peut plus changer.</b> Vous pourrez ajouter des rapports et des corrections plus tard ; une correction est un nouvel enregistrement qui renvoie à celui-ci. C’est ce qui donne sa valeur à l’horodatage.',
   'app.log.savedOn':
-    'Les détails sont conservés sur {server} pour que vous puissiez y revenir. Seule une empreinte est datée, sur {datedOn}.',
+    'Les détails sont conservés verrouillés sur {server} pour que vous puissiez y revenir, et nous n’avons pas la clé. Le nom n’est pas verrouillé : toute personne ayant un lien de vérification le voit. Seule une empreinte est datée, sur {datedOn}.',
   'app.log.sealing': 'Scellement…',
   'app.log.seal': 'Sceller',
   'app.log.sealingPlant': 'Scellement de votre plante…',

@@ -172,7 +172,7 @@ export const plant = {
   'app.plant.next.withdrawn.why':
     'Vous avez retiré ce que vous aviez envoyé : l’obtenteur n’a donc aucun rapport de laboratoire en vigueur de votre part. Vous pouvez en envoyer un nouveau.',
   'app.plant.next.send.why':
-    'Signé avec la clé de votre laboratoire et verrouillé pour que seul l’obtenteur puisse l’ouvrir. VeilCore ne peut pas le lire.',
+    'Signé avec la clé de votre laboratoire et verrouillé pour que seul l’obtenteur puisse l’ouvrir. VeilCore n’a pas sa clé.',
   'app.plant.next.sent.action': 'Voir ce que vous avez envoyé',
   'app.plant.next.send.action': 'Renvoyer les résultats',
   'app.plant.next.corrected.title': 'Enregistrez le rapport ADN corrigé',
@@ -411,7 +411,7 @@ export const plant = {
   'app.plant.fix.title': 'Corriger {id}',
   'app.plant.fix.intro':
     'Cet enregistrement reste exactement tel quel. Une correction crée un nouvel enregistrement qui le remplace, et les deux restent conservés. Une correction n’écrase rien et ne supprime rien : c’est ce qui garde l’original utilisable comme preuve.',
-  'app.plant.fix.name': 'Nom du cultivar',
+  'app.plant.fix.name': 'Nom du cultivar (public)',
   'app.plant.fix.bredBy': 'Obtenu par',
   'app.plant.fix.notes': 'Notes',
   'app.plant.fix.does': 'Ce que fait cette correction',

@@ -35,8 +35,10 @@ export const log = {
   'app.log.parentLinked': ' Ihr Elternteil ist {name}, unten bereits verknüpft.',
   'app.log.keptLastTime': 'Wir haben aufbewahrt, was Sie zuletzt eingegeben haben.',
   'app.log.startOver': 'Neu beginnen',
-  'app.log.nameLabel': 'Name der Pflanze oder Linie',
+  'app.log.nameLabel': 'Name der Pflanze oder Linie (öffentlich)',
   'app.log.namePlaceholder': 'z. B. Harbour Mist',
+  'app.log.nameHelp':
+    'Wer einen Prüflink hat, sieht diesen Namen. Wenn der echte Name geheim ist, verwenden Sie einen Decknamen.',
   'app.log.eg': 'z. B. {v}',
   'app.log.egNextSelection': 'z. B. {name}, nächste Selektion',
   'app.log.bredBy': 'Gezüchtet von',
@@ -82,7 +84,7 @@ export const log = {
   'app.log.sealedWarn':
     '<b>Einmal versiegelt, lässt sich dieser Teil nicht mehr ändern.</b> Berichte und Korrekturen können Sie später hinzufügen; eine Korrektur ist ein neuer Datensatz, der auf diesen verweist. Genau das macht den Datumsstempel wertvoll.',
   'app.log.savedOn':
-    'Die Angaben werden auf {server} gespeichert, damit Sie darauf zurückkommen können. Nur ein Fingerabdruck wird datiert, auf {datedOn}.',
+    'Die Angaben werden verschlossen auf {server} gespeichert, damit Sie darauf zurückkommen können, und wir haben den Schlüssel nicht. Der Name ist nicht verschlossen: Wer einen Prüflink hat, sieht ihn. Nur ein Fingerabdruck wird datiert, auf {datedOn}.',
   'app.log.sealing': 'Wird versiegelt…',
   'app.log.seal': 'Versiegeln',
   'app.log.sealingPlant': 'Ihre Pflanze wird versiegelt…',

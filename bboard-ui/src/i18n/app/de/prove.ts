@@ -142,7 +142,7 @@ export const prove = {
   'app.prove.share.notSaved': 'Ihre Auswahl wurde nicht gespeichert, daher wurde kein Link erstellt: {error}.',
   'app.prove.share.title': 'Wählen Sie, was Fremde sehen',
   'app.prove.share.intro':
-    'Wer die ID dieses Datensatzes hat – über einen Link, den Sie senden, den QR-Code auf seinem Zertifikat oder eine weitergeleitete Nachricht –, kann seine Prüfseite öffnen. Wählen Sie, welche Angaben diese Seite zeigt. Die Auswahl wird mit dem Datensatz im Register von VeilCore gespeichert und gilt für alle mit der ID; Sie können sie hier jederzeit ändern, und bereits gesendete Links zeigen dann die neue Auswahl.',
+    'Wer die ID dieses Datensatzes hat – über einen Link, den Sie senden, den QR-Code auf seinem Zertifikat oder eine weitergeleitete Nachricht –, kann seine Prüfseite öffnen. Wählen Sie, welche Angaben diese Seite zeigt. Was Sie wählen, wird unverschlossen an das Register von VeilCore gesendet, damit die Seite es zeigen kann. Die Auswahl wird mit dem Datensatz im Register von VeilCore gespeichert und gilt für alle mit der ID; Sie können sie hier jederzeit ändern, und bereits gesendete Links zeigen dann die neue Auswahl.',
   'app.prove.share.shownOn': 'Auf der Prüfseite angezeigt',
   'app.prove.share.strangerSees': 'Was Fremde mit der ID sehen',
   'app.prove.share.reportOn': 'Mit „Ob ein DNA-Bericht gespeichert ist“ eingeschaltet sagt die Prüfseite es.',

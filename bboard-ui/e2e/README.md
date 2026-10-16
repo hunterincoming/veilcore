@@ -34,7 +34,7 @@ safely (the network is blocked) and a way past it, sharing with the date stamp i
 link, a checker asking by link, the holder opening it, an answer arriving, the checker
 coming back in a new tab. The stand-in tests are skipped.
 
-`sealed-records.spec.ts` checks that the registry can't read what a holder typed: a plant
+`sealed-records.spec.ts` checks that what a holder typed reaches the registry only locked: a plant
 logged with a marker in every field and sent to a lab leaves none of them in the registry's
 database file (give its path as `E2E_REGISTRY_DB`, e.g. `E2E_REGISTRY_DB=/tmp/e2e.db`; that
 test is skipped without it); a backup restored in a fresh browser opens the records; and a

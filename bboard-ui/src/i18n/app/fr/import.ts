@@ -17,7 +17,7 @@ export const importing = {
   'app.import.choose': 'Choisir un fichier',
   'app.import.normalWindow': 'Ouvrez cette page dans une fenêtre de navigateur normale pour l’utiliser.',
   'app.import.readHere':
-    'Votre fichier est lu ici, dans ce navigateur, et n’est pas envoyé. Pour chaque ligne, seules les informations que vous choisissez à l’écran suivant sont conservées sur {server}, les mêmes que pour l’enregistrement d’une plante. Seule une empreinte est datée sur {dated}.',
+    'Votre fichier est lu ici, dans ce navigateur, et n’est pas envoyé. Pour chaque ligne, seules les informations que vous choisissez à l’écran suivant sont conservées, les mêmes que pour l’enregistrement d’une plante. Elles sont conservées verrouillées sur {server}, et nous n’avons pas la clé ; le nom de la plante n’est pas verrouillé. Seule une empreinte est datée sur {dated}.',
   'app.import.testSite': 'Ceci est un site de test : les enregistrements faits ici sont des données de test.',
   'app.import.earlierStamps': 'Horodatages des clés des importations précédentes',
   'app.import.rowLine': 'Ligne {line} : {text}',
@@ -49,7 +49,7 @@ export const importing = {
   'app.import.header.back': 'Choisir un autre fichier',
   'app.import.cols.title': 'Quelle colonne est laquelle ?',
   'app.import.cols.intro':
-    'Nous avons deviné d’après les noms de colonnes. Vérifiez chacune. Seul le nom de la plante est nécessaire ; les colonnes que vous laissez de côté ne sont jamais envoyées.',
+    'Nous avons deviné d’après les noms de colonnes. Vérifiez chacune. Seul le nom de la plante est nécessaire ; les colonnes que vous laissez de côté ne sont jamais envoyées. Le nom de la plante est public : toute personne ayant le lien de vérification d’un enregistrement le voit. Si les noms sont secrets, choisissez une colonne de noms de code.',
   'app.import.cols.example': 'Par exemple : {v}',
   'app.import.cols.twoParents': 'Deux parents dans une cellule, c’est possible, comme « Mère x Père ».',
   'app.import.cols.pick': 'Choisir une colonne',
@@ -95,7 +95,7 @@ export const importing = {
   'app.import.check.onceSealed':
     '<b>Une fois scellés, ils ne peuvent plus changer.</b> Vous pourrez ajouter des rapports et des corrections plus tard ; une correction est un nouvel enregistrement qui renvoie à l’ancien.',
   'app.import.check.savedOn':
-    'Les informations ci-dessus sont conservées sur {server}, un enregistrement par ligne. Seule une empreinte de chacun est datée sur {dated}. Un horodatage montre que les informations existaient à cette date ; il ne confirme pas qu’elles sont exactes.',
+    'Les informations ci-dessus sont conservées verrouillées sur {server}, un enregistrement par ligne, et nous n’avons pas la clé. Les noms des plantes ne sont pas verrouillés : toute personne ayant un lien de vérification les voit. Seule une empreinte de chacun est datée sur {dated}. Un horodatage montre que les informations existaient à cette date ; il ne confirme pas qu’elles sont exactes.',
   'app.import.check.sealN.one': 'Sceller {count} enregistrement',
   'app.import.check.sealN.other': 'Sceller {count} enregistrements',
   'app.import.check.nothing': 'Rien à sceller',

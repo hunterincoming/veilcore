@@ -35,7 +35,7 @@ export const home = {
   'app.home.resetWarningRecords.other':
     '{count} registros tienen claves sin una copia de seguridad comprobada. Guarde primero su copia de seguridad: si borra el navegador más tarde, se perderían para siempre.',
   'app.home.resetConfirm':
-    '¿Empezar de nuevo en este navegador con un conjunto nuevo y vacío?\n\nNo se borra nada. Sus registros actuales siguen en el servidor de registros de VeilCore bajo su clave de titular actual, y solo puede recuperarlos con esa clave. Se descargará ahora: conserve el archivo.',
+    '¿Empezar de nuevo en este navegador con un conjunto nuevo y vacío?\n\nNo se borra nada. Sus registros actuales siguen bloqueados en el servidor de registros de VeilCore. Solo puede recuperarlos con sus claves actuales, que se descargarán ahora en un archivo. Consérvelo.',
   'app.home.startedOver':
     'Empezó de nuevo. Restaure sus registros anteriores cuando quiera desde el archivo de la clave de titular.',
   'app.home.imported.one': 'Se importó {count} registro.',

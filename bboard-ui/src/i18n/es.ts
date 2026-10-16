@@ -164,7 +164,7 @@ export const es: Strings = {
     'Esta nota se refiere a la demo de este sitio. Es una prueba, en la red de pruebas de Midnight. Por favor, use datos inventados.',
   'm.privacy.stored.title': 'Se guarda en nuestro servidor de pruebas',
   'm.privacy.stored.text':
-    'Lo que usted escribe y lo que su navegador calcula a partir de ello: nombres de cultivares y de obtentores, la especie si la indica, fechas, notas, números de referencia, progenitores, huellas de registros, huellas de las fotos e informes de laboratorio que usted añade (solo las huellas, nunca los archivos), nombres de archivo de los informes de laboratorio, términos y contrapartes de los acuerdos, el material que envía a un laboratorio (a quién va dirigido y la cantidad) y, en el caso de los laboratorios, la clave pública de firma y las atestaciones que publican. También su clave de titular, que su navegador envía cada vez que guarda para que el servidor encuentre sus registros. Informes de laboratorio cerrados que un laboratorio le envía: se guardan sin que podamos leerlos y se borran a los 180 días. El servidor es el registro de pruebas de VeilCore, alojado en Railway.',
+    'Sus registros y acuerdos, bloqueados por su navegador antes de enviarse: obtentor, especie, fechas, notas, números de referencia, progenitores, las huellas y los nombres de archivo de las fotos e informes de laboratorio que añade, términos y contrapartes de los acuerdos, la cantidad y la nota que envía a un laboratorio, y los nombres que da a los destinatarios. Nuestro servidor los guarda bloqueados, y nosotros no tenemos la clave: está en su navegador y en su archivo de copia de seguridad. Nuestro servidor puede leer: el ID de cada registro; el nombre que usted le da, que ve cualquiera con un enlace de comprobación; su huella y su perfil; qué campos cambió una corrección, y cuándo; cuándo lo vio el servidor por primera vez; lo que usted decida mostrar en su página de comprobación; los vínculos con progenitores que registre; y su lote con su sello de fecha. De un envío: de qué registro procede, cuándo se recibió, una etiqueta en lugar del nombre del destinatario y los datos de muestra que usted y el laboratorio escriben (ID de muestra, número de precinto, dónde y cuándo se tomó). Esos datos de muestra todavía no se bloquean. De los laboratorios: la clave pública de firma y las atestaciones que publican. Las solicitudes de demostrar la clave de un registro, con el nombre que escribió quien la pide, durante 7 días. Su clave de titular, que su navegador envía cada vez que guarda para que el servidor encuentre sus registros; el servidor solo conserva un hash de un solo sentido de ella. Los registros guardados antes del bloqueo siguen siendo legibles para nosotros hasta que su navegador los bloquee. Informes de laboratorio cerrados que un laboratorio le envía: se guardan cerrados, sin la clave, y se borran a los 180 días. El servidor es el registro de pruebas de VeilCore, alojado en Railway.',
   'm.privacy.local.title': 'Nunca sale de su navegador',
   'm.privacy.local.text':
     'Los datos genéticos, y los informes de laboratorio, informes de ADN y fotos que usted añade. Su navegador los lee para calcular sus huellas; los archivos en sí nunca se suben. Un informe de laboratorio llega a nuestro servidor solo cuando un laboratorio se lo devuelve, cerrado para que solo usted pueda abrirlo.',
@@ -182,7 +182,7 @@ export const es: Strings = {
     'Para que eliminemos sus datos de la demo de nuestro servidor, escriba a hunter@veilcore.org con los identificadores de sus registros.',
   'm.privacy.browser.title': 'Se guarda en su navegador',
   'm.privacy.browser.text':
-    'Su navegador guarda, en este dispositivo: su clave de titular (también se envía una copia a nuestro servidor, como se indica arriba), la clave de firma de un laboratorio si configuró una (su parte privada nunca sale de este dispositivo), el rol que eligió y su idioma. Para borrarlos, elimine los datos de este sitio en la configuración de su navegador. Guarde antes su clave de titular: sin ella, este navegador ya no podrá encontrar sus registros.',
+    'Su navegador guarda, en este dispositivo: su clave de titular (también se envía una copia a nuestro servidor, como se indica arriba); la clave que bloquea sus registros, que nunca se nos envía; su propia copia de sus registros; la clave de firma de un laboratorio si configuró una (su parte privada nunca sale de este dispositivo); el rol que eligió; y su idioma. Su archivo de copia de seguridad contiene ambas claves. Para borrarlos, elimine los datos de este sitio en la configuración de su navegador. Guarde antes su copia de seguridad: sin ella, no podrá encontrar ni abrir sus registros de nuevo.',
   'm.privacy.hosts.title': 'Alojamiento',
   'm.privacy.hosts.text':
     'Este sitio web está alojado en Vercel, que registra direcciones IP y solicitudes. Nuestro servidor de registro funciona en Railway, que registra solicitudes.',
@@ -297,7 +297,7 @@ export const es: Strings = {
   'm.for.3t': 'Material en manos de un laboratorio.',
   'm.for.4t': 'Resultados de laboratorio, de vuelta a usted.',
   'm.for.4p':
-    'El laboratorio firma su informe y lo cierra para que solo usted pueda abrirlo. Ningún PDF queda en la bandeja de entrada de nadie. El archivo cerrado espera en el servidor de VeilCore a que usted lo abra; VeilCore no puede leerlo, y anota quién firmó; no responde por el resultado. Nuevo, y todavía en pruebas.',
+    'El laboratorio firma su informe y lo cierra para que solo usted pueda abrirlo. Ningún PDF queda en la bandeja de entrada de nadie. El archivo cerrado espera en el servidor de VeilCore a que usted lo abra, y nosotros no tenemos su clave. VeilCore anota quién firmó; no responde por el resultado. Nuevo, y todavía en pruebas.',
   'm.for.6t': 'Alguien le pide una prueba.',
   'm.for.6p':
     'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su planta. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta. Por ahora esto funciona en una red de pruebas de Midnight.',
@@ -310,7 +310,7 @@ export const es: Strings = {
   'm.how.title2': 'La genética se queda con usted.',
   'm.step1.title': 'Anótelo',
   'm.step1.text':
-    'Qué es y de dónde viene. El nombre de la planta y el obtentor que escribe se guardan en el servidor de VeilCore, y cualquiera con el enlace del registro ve el nombre.',
+    'Qué es y de dónde viene. El servidor de VeilCore guarda los detalles bloqueados, y nosotros no tenemos la clave. El nombre que usted le da no está bloqueado: cualquiera con el enlace del registro lo ve.',
   'm.step2.title': 'Saque su huella',
   'm.step2.text': 'En su computadora. Los datos genéticos nunca salen de ella.',
   'm.step3.title': 'Obtenga una fecha',
@@ -384,7 +384,7 @@ export const es: Strings = {
   'm.faq.3link': 'Los registros como prueba →',
   'm.faq.4q': '¿Qué ven ustedes de mis datos?',
   'm.faq.4a':
-    'De sus datos genéticos: nada. Su huella se calcula en su computadora, igual que la de los archivos que usted añade, y no se suben. Un informe de laboratorio llega a nuestro servidor solo cuando un laboratorio se lo devuelve: va cerrado para que solo usted pueda abrirlo, y se borra a los 180 días. Este sitio guarda lo que usted escribe (nombres, fechas, notas, términos de acuerdos) y los nombres de sus archivos de laboratorio, para que pueda volver a ellos, y la página pública de comprobación de un registro muestra su nombre de cultivar. Los laboratorios y desarrolladores pueden sellar registros dentro de sus propios sistemas, de modo que solo sale la huella.',
+    'De sus datos genéticos: nada. Su huella se calcula en su computadora, igual que la de los archivos que usted añade, y no se suben. Un informe de laboratorio llega a nuestro servidor solo cuando un laboratorio se lo devuelve: va cerrado para que solo usted pueda abrirlo, y se borra a los 180 días. Los detalles que escribe (obtentor, fechas, notas, términos de acuerdos) y los nombres de sus archivos se guardan bloqueados en nuestro servidor, y nosotros no tenemos la clave. Podemos leer el nombre de cada registro, que muestra su página pública de comprobación, su huella y todo lo que usted decida mostrar. Los datos de muestra que escribe para un laboratorio todavía no se bloquean. Los laboratorios y desarrolladores pueden sellar registros dentro de sus propios sistemas, de modo que solo sale la huella.',
   'm.faq.4link1': 'Lo que guarda la demo →',
   'm.faq.4link2': 'Guía de integración →',
   'm.faq.6q': '¿Cuánto cuesta?',
@@ -414,7 +414,7 @@ export const es: Strings = {
   'm.contact.4p': 'Escriba a Mako, nuestro CEO.',
   'm.contact.integrate': 'Guía de integración',
   'm.verify.what':
-    'Un registro de VeilCore describe material genético sin incluir la genética. Solo se publica su huella, y recibe una fecha una vez anclada en Midnight. Comprobar uno es gratis y no requiere cuenta.',
+    'Un registro de VeilCore describe material genético sin incluir la genética. Su página de comprobación muestra su nombre y lo que su titular decidió compartir. Solo su huella va a Midnight, y recibe una fecha una vez anclada allí. Comprobar uno es gratis y no requiere cuenta.',
   'm.verify.home': '¿Qué es VeilCore? →',
   'm.verify.example': '¿No sabe qué verá? Mire primero un ejemplo →',
   // Round 5 (15 Oct 2026): landing page rework, keys added.

@@ -13,6 +13,7 @@ export const animal = {
   'app.animal.title': 'Enregistrez votre animal',
   'app.animal.name': 'Nom de l’animal',
   'app.animal.namePlaceholder': 'p. ex. Vache d’essai',
+  'app.animal.nameField': 'Nom de l’animal (public)',
   'app.animal.individualId': 'Numéro d’identification individuel',
   'app.animal.individualIdHelp': 'Le numéro de sa boucle auriculaire ou de son enregistrement, tel qu’il est écrit.',
   'app.animal.idScheme': 'Système d’identification',
@@ -70,7 +71,7 @@ export const animal = {
   'app.animal.verify.idLine': 'Numéro d’identification, selon le détenteur : {id} ({scheme})',
   'app.animal.verify.noId': 'Aucun numéro d’identification enregistré.',
   'app.animal.v.app.verify.noParents': 'Ni père ni mère enregistrés.',
-  'app.animal.v.app.plant.fix.name': 'Nom de l’animal',
+  'app.animal.v.app.plant.fix.name': 'Nom de l’animal (public)',
   'app.animal.v.app.plant.fix.bredBy': 'Éleveur ou détenteur',
   'app.animal.v.app.verify.nameTyped': 'Nom de l’animal, tel que le détenteur l’a saisi : ',
   'app.animal.import.dob': 'Date de naissance',
@@ -226,7 +227,7 @@ export const animal = {
   'app.animal.v.app.lab.results.withdrawnNewer':
     '<b>Le rapport de laboratoire enregistré sur cet animal a été retiré par le laboratoire.</b> Il reste enregistré jusqu’à ce que vous en enregistriez un autre, et votre certificat et vos liens indiquent qu’il a été retiré. Un rapport plus récent est arrivé : ouvrez-le, puis enregistrez-le sur cet animal.',
   'app.animal.v.app.lab.results.locked':
-    'Verrouillés pour que vous seul puissiez les ouvrir, avec la clé de cet animal tirée de votre copie de secours. VeilCore ne peut pas les lire.',
+    'Verrouillés pour que vous seul puissiez les ouvrir, avec la clé de cet animal tirée de votre copie de secours. VeilCore les conserve verrouillés et n’a pas la clé.',
   'app.animal.v.app.lab.results.noKey':
     'La clé de cet animal n’est pas sur cet appareil : ses rapports de laboratoire ne peuvent donc pas être ouverts ici. <link>Récupérez d’abord vos enregistrements depuis votre copie de secours</link>.',
   'app.animal.v.app.lab.results.whatOthersSee':

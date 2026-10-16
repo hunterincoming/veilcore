@@ -171,7 +171,7 @@ export const plant = {
   'app.plant.next.withdrawn.why':
     'You withdrew what you sent, so the breeder has no current lab report from you. You can send a new one.',
   'app.plant.next.send.why':
-    'Signed with your lab’s key and locked so only the breeder can open it. VeilCore can’t read it.',
+    'Signed with your lab’s key and locked so only the breeder can open it. VeilCore doesn’t have its key.',
   'app.plant.next.sent.action': 'See what you sent',
   'app.plant.next.send.action': 'Send results back',
   'app.plant.next.corrected.title': 'Save the corrected DNA report',
@@ -413,7 +413,7 @@ export const plant = {
   'app.plant.fix.title': 'Correct {id}',
   'app.plant.fix.intro':
     'This record stays exactly as it is. A correction creates a new record that supersedes it, and both remain on file. A correction overwrites nothing and deletes nothing: that is what keeps the original usable as evidence.',
-  'app.plant.fix.name': 'Cultivar name',
+  'app.plant.fix.name': 'Cultivar name (public)',
   'app.plant.fix.bredBy': 'Bred by',
   'app.plant.fix.notes': 'Notes',
   'app.plant.fix.does': 'What this correction does',

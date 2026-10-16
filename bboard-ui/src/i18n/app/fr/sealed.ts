@@ -42,7 +42,7 @@ export const sealed = {
   'app.sealed.unreadable.other':
     '{count} enregistrements sont revenus sous une forme que cette version ne sait pas lire ; ils ne sont donc pas affichés.',
   'app.sealed.backupNeeded':
-    '<b>Enregistrez une nouvelle copie de secours.</b> Vos enregistrements sont maintenant verrouillés avec une clé que seul ce navigateur possède. Sans le fichier de secours, vous ne pourrez les ouvrir nulle part ailleurs.',
+    '<b>Enregistrez une nouvelle copie de secours.</b> Vos enregistrements sont maintenant verrouillés avec une clé que ce navigateur est le seul à avoir, tant que vous n’avez pas enregistré de copie de secours. Sans le fichier de secours, vous ne pourrez les ouvrir nulle part ailleurs.',
   'app.sealed.err.newCode':
     'Ce code a été créé avant que les livraisons soient verrouillées, et il ne fonctionne plus. Demandez un nouveau code à l’expéditeur.',
   'app.sealed.recv.missingKey':

@@ -199,8 +199,9 @@ export const AnimalForm: React.FC<{
         </Stack>
       )}
       <TextField
-        label={t('app.animal.name')}
+        label={t('app.animal.nameField')}
         placeholder={t('app.animal.namePlaceholder')}
+        helperText={t('app.log.nameHelp')}
         value={draft.name}
         onChange={(e) => set('name', e.target.value)}
         fullWidth

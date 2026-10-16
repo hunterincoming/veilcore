@@ -140,7 +140,7 @@ export const prove = {
   'app.prove.share.notSaved': 'Votre choix n’a pas été enregistré, donc aucun lien n’a été créé : {error}.',
   'app.prove.share.title': 'Choisissez ce que voit un inconnu',
   'app.prove.share.intro':
-    'Quiconque a l’identifiant de cet enregistrement — par un lien que vous envoyez, le QR code de son certificat ou un message transféré — peut ouvrir sa page de vérification. Choisissez les informations que cette page affiche. Le choix est enregistré avec l’enregistrement dans le registre de VeilCore et s’applique à tous ceux qui ont l’identifiant ; vous pouvez le changer ici à tout moment, et les liens déjà envoyés montrent alors le nouveau choix.',
+    'Quiconque a l’identifiant de cet enregistrement — par un lien que vous envoyez, le QR code de son certificat ou un message transféré — peut ouvrir sa page de vérification. Choisissez les informations que cette page affiche. Ce que vous choisissez est envoyé non verrouillé au registre de VeilCore, pour que la page puisse l’afficher. Le choix est enregistré avec l’enregistrement dans le registre de VeilCore et s’applique à tous ceux qui ont l’identifiant ; vous pouvez le changer ici à tout moment, et les liens déjà envoyés montrent alors le nouveau choix.',
   'app.prove.share.shownOn': 'Affiché sur la page de vérification',
   'app.prove.share.strangerSees': 'Ce que verra un inconnu qui a l’identifiant',
   'app.prove.share.reportOn': 'Avec « Si un rapport ADN est enregistré » activé, la page de vérification l’indique.',

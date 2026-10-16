@@ -271,7 +271,7 @@ export const lab = {
   'app.lab.results.anyName':
     ' Jeder kann einen Schlüssel unter jedem Namen registrieren, daher zeigt der Name nicht, wer signiert hat.',
   'app.lab.results.locked':
-    'So verschlossen, dass nur Sie sie öffnen können, mit dem Schlüssel dieser Pflanze aus Ihrer Sicherungskopie. VeilCore kann sie nicht lesen.',
+    'So verschlossen, dass nur Sie sie öffnen können, mit dem Schlüssel dieser Pflanze aus Ihrer Sicherungskopie. VeilCore speichert sie verschlossen und hat den Schlüssel nicht.',
   'app.lab.results.noKey':
     'Der Schlüssel dieser Pflanze ist nicht auf diesem Gerät, daher können ihre Laborberichte hier nicht geöffnet werden. <link>Holen Sie Ihre Pflanzen zuerst aus Ihrer Sicherungskopie zurück</link>.',
   'app.lab.results.gotIt': 'Verstanden',
@@ -358,7 +358,7 @@ export const lab = {
   'app.lab.out.replacesIntro':
     'Er ersetzt {id}, den Laborbericht, den Sie {when} gesendet haben. Der alte wird zurückgezogen: Seine Datei wird entfernt und Ihre Signatur darauf als ersetzt markiert.',
   'app.lab.out.intro':
-    'Ihr Browser signiert den Fingerabdruck des Laborberichts mit dem Schlüssel Ihres Labors und verschließt die Datei so, dass nur der Züchter sie öffnen kann. Die verschlossene Datei wartet auf dem Server von VeilCore, bis der Züchter sie öffnet; VeilCore kann sie nicht lesen.',
+    'Ihr Browser signiert den Fingerabdruck des Laborberichts mit dem Schlüssel Ihres Labors und verschließt die Datei so, dass nur der Züchter sie öffnen kann. Die verschlossene Datei wartet auf dem Server von VeilCore, bis der Züchter sie öffnet, und VeilCore hat ihren Schlüssel nicht.',
   'app.lab.out.cancelCorrection': 'Korrektur abbrechen',
   'app.lab.out.turnedAway': 'Sie haben diese Probe abgelehnt, daher gibt es keinen Laborbericht zu senden.',
   'app.lab.out.setUpFirst':

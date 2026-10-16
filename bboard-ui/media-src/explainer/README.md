@@ -20,8 +20,10 @@ and say nothing it doesn't:
 - The headline is "Date your record. Keep your genetics." A record shows you had this
   record by a date, not that you had the plant first, and never ownership ("hold", never
   "own").
-- Genetic data never leaves your computer. The plant name and other typed fields are kept
-  on VeilCore's server, and the plant name is on every check page.
+- Genetic data never leaves your computer. The plant name is public: it is on every check
+  page ("Public, on VeilCore's server"). The other typed fields are stored locked on
+  VeilCore's server, which doesn't have the key ("Locked on VeilCore's server"; sealed
+  records, 16 October).
 - "Prove it" shows the person controls the key the record names (spec 3.6.1). It says
   nothing about who bred the plant. The checker's screen shows no record date, so the video
   doesn't either.
@@ -29,7 +31,8 @@ and say nothing it doesn't:
   lab reports are on both sites since 16 October).
 - Lab receipts are signed with the lab's own key and kept by VeilCore's registry, not the
   chain. A lab report reaches VeilCore's server only when a lab sends it back, locked so
-  only the holder can open it; VeilCore can't read it, and never says it "holds" the
-  file. VeilCore doesn't vouch for results.
+  only the holder can open it; "VeilCore doesn't have its key" (never "can't read it":
+  VeilCore also serves the app's code), and never says it "holds" the file. VeilCore
+  doesn't vouch for results.
 - No customers or partners claimed; nothing about licensing; all names and dates are made
   up.

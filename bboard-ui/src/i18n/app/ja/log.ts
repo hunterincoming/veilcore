@@ -34,8 +34,10 @@ export const log = {
   'app.log.parentLinked': '親は {name} で、下ですでに紐付けられています。',
   'app.log.keptLastTime': '前回入力した内容を残してあります。',
   'app.log.startOver': 'やり直す',
-  'app.log.nameLabel': '植物名または系統名',
+  'app.log.nameLabel': '植物名または系統名（公開）',
   'app.log.namePlaceholder': '例：Harbour Mist',
+  'app.log.nameHelp':
+    '確認リンクを持つ人は誰でもこの名前を見られます。本当の名前を秘密にしたい場合は、コードネームを使ってください。',
   'app.log.eg': '例：{v}',
   'app.log.egNextSelection': '例：{name}、次の選抜',
   'app.log.bredBy': '育成者',
@@ -81,7 +83,7 @@ export const log = {
   'app.log.sealedWarn':
     '<b>封印すると、この部分は変更できません。</b>報告書や訂正は後から追加できます。訂正は、この記録を指し示す新しい記録になります。だからこそ日付スタンプに価値があります。',
   'app.log.savedOn':
-    '詳細は、後で見返せるように{server}に保存されます。日付が付くのは、{datedOn}上のフィンガープリントだけです。',
+    '詳細は、後で見返せるように{server}にロックした状態で保存され、私たちはその鍵を持っていません。名前はロックされません。確認リンクを持つ人は誰でも見られます。日付が付くのは、{datedOn}上のフィンガープリントだけです。',
   'app.log.sealing': '封印しています…',
   'app.log.seal': '封印する',
   'app.log.sealingPlant': '植物を封印しています…',

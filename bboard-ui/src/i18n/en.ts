@@ -84,8 +84,8 @@ export const en = {
   // what it is" either: the plant name is on every record's public check page. What stays
   // hidden is the genetics.
   // Round 5 (15 Oct): the hero lede is three short sentences: who it's for, what it does,
-  // and the one privacy line. What the server keeps (plant name and breeder) is in step 1
-  // of "How it works"; lab reports reaching the server are in the FAQ and the privacy note.
+  // and the one privacy line. What the server keeps (locked, apart from the public name) is in
+  // step 1 of "How it works"; lab reports reaching the server are in the FAQ and the privacy note.
   'm.hero.title1': 'Date your record.',
   'm.hero.title2': 'Keep your genetics.',
   'm.hero.lede':
@@ -120,7 +120,7 @@ export const en = {
     "Send material with a lab code. The lab signs a receipt with its own key, so the record shows a second party. The receipt is a real signature, kept by VeilCore's registry, not on the chain. Terms such as no propagation are practice only in the web demo.",
   'm.for.4t': 'Lab results, back to you.',
   'm.for.4p':
-    "The lab signs your report and locks it so only you can open it. No PDF sits in anyone's inbox. The locked file waits on VeilCore's server for you to open; VeilCore can't read it, and records who signed; it doesn't vouch for the result. New, and still being tested.",
+    "The lab signs your report and locks it so only you can open it. No PDF sits in anyone's inbox. The locked file waits on VeilCore's server for you to open, and we don't have its key. VeilCore records who signed; it doesn't vouch for the result. New, and still being tested.",
   'm.for.6t': 'Someone asks for proof.',
   'm.for.6p':
     "They send you a link. You tap once, and their page checks on the network that you control your plant's own key. Your record named that key when it was sealed, so it can't be swapped. It says nothing about who you are or who bred the plant. This works on a Midnight test network for now.",
@@ -135,7 +135,7 @@ export const en = {
   'm.step1.n': '01 · Record',
   'm.step1.title': 'Write it down',
   'm.step1.text':
-    "What it is and where it came from. The plant name and breeder you type are kept on VeilCore's server, and anyone with the record's link sees the name.",
+    "What it is and where it came from. VeilCore's server stores the details locked, and we don't have the key. The name you give it isn't locked: anyone with the record's link sees it.",
   'm.step2.n': '02 · Fingerprint',
   'm.step2.title': 'Fingerprint it',
   'm.step2.text': 'Done on your computer. Genetic data never leaves it.',
@@ -229,7 +229,7 @@ export const en = {
   'm.faq.3link': 'Records in evidence →',
   'm.faq.4q': 'What do you see of my data?',
   'm.faq.4a':
-    "Your genetic data: nothing. It's fingerprinted on your computer, as are the files you add, and they aren't uploaded. A lab report reaches our server only when a lab sends it back to you: it's locked so only you can open it, and deleted after 180 days. This website keeps what you type (names, dates, notes, agreement terms) and your lab files' names, so you can come back to them, and a record's public check page shows its cultivar name. Labs and developers can seal records inside their own systems, so only the fingerprint goes out.",
+    "Your genetic data: nothing. It's fingerprinted on your computer, as are the files you add, and they aren't uploaded. A lab report reaches our server only when a lab sends it back to you: it's locked so only you can open it, and deleted after 180 days. The details you type (breeder, dates, notes, agreement terms) and your files' names are stored on our server locked, and we don't have the key. We can read each record's name, which its public check page shows, its fingerprint, and anything you choose to show. Sample details you write for a lab aren't locked yet. Labs and developers can seal records inside their own systems, so only the fingerprint goes out.",
   'm.faq.4link1': 'What the demo keeps →',
   'm.faq.4link2': 'Integration guide →',
   'm.faq.6q': 'What does it cost?',
@@ -418,7 +418,7 @@ export const en = {
   'm.verify.lede':
     'Enter the record identifier printed on a certificate or shared with you. You will see what its holder chose to share, and what this page could check itself: whether the record is in a sealed batch, and whether any lab signatures verify.',
   'm.verify.what':
-    "A VeilCore record describes genetic material without including the genetics. Only its fingerprint is published, and it gets a date once it's anchored on Midnight. Checking one is free and needs no account.",
+    "A VeilCore record describes genetic material without including the genetics. Its check page shows its name and what its holder chose to share. Only its fingerprint goes on Midnight, and it gets a date once it's anchored there. Checking one is free and needs no account.",
   'm.verify.home': 'What is VeilCore? →',
   'm.verify.field': 'Record identifier',
   'm.verify.go': 'Check it',
@@ -457,7 +457,7 @@ export const en = {
     "This note covers the demo on this site. It is a test, on Midnight's test network. Please use made-up data.",
   'm.privacy.stored.title': 'Stored on our test server',
   'm.privacy.stored.text':
-    "What you type and what your browser computes from it: cultivar and breeder names, species if you enter one, dates, notes, reference numbers, parents, fingerprints of records, fingerprints of the photos and lab reports you add (only the fingerprints, never the files), lab report file names, agreement terms and counterparties, material you send to a lab (who it is addressed to, and the quantity), and, for labs, the public signing key and the attestations they publish. Also your holder key, which your browser sends with every save so the server can find your records. Locked lab reports a lab sends you: stored unreadable to us, and deleted after 180 days. The server is VeilCore's test registry, hosted on Railway.",
+    "Your records and agreements, locked by your browser before they are sent: breeder, species, dates, notes, reference numbers, parents, the fingerprints and file names of the photos and lab reports you add, agreement terms and counterparties, the quantity and note you send a lab, and the names you give recipients. Our server stores them locked, and we don't have the key: it is in your browser and your backup file. Our server can read: each record's ID; the name you give it, which anyone with a check link sees; its fingerprint and profile; which fields a correction changed, and when; when the server first saw it; what you choose to show on its check page; the parent links you register; and its batch and date stamp. For a delivery: which record it came from, when it was received, a tag in place of the recipient's name, and the sample details you and the lab write (sample ID, seal number, where and when it was taken). Those sample details aren't locked yet. For labs: the public signing key and the attestations they publish. Requests to prove a record's key, with the name the asker typed, kept for 7 days. Your holder key, which your browser sends with every save so the server can find your records; the server keeps only a one-way digest of it. Records saved before locking stay readable to us until your browser locks them. Locked lab reports a lab sends you: stored locked, without the key, and deleted after 180 days. The server is VeilCore's test registry, hosted on Railway.",
   'm.privacy.local.title': 'Never leaves your browser',
   'm.privacy.local.text':
     'Genetic data, and the lab reports, DNA reports and photos you add. Your browser reads them to compute their fingerprints; the files themselves are never uploaded. A lab report reaches our server only when a lab sends it back to you, locked so only you can open it.',
@@ -475,7 +475,7 @@ export const en = {
     'To have your demo data deleted from our server, email hunter@veilcore.org with the identifiers of your records.',
   'm.privacy.browser.title': 'Kept in your browser',
   'm.privacy.browser.text':
-    "Your browser keeps, on this device: your holder key (a copy also goes to our server, as above), a lab's signing key if you set one up (its private half never leaves this device), the role you picked, and your language. To remove them, clear this site's data in your browser settings. Save your holder key first: without it, this browser can't find your records again.",
+    "Your browser keeps, on this device: your holder key (a copy also goes to our server, as above); the key that locks your records, which is never sent to us; your own copy of your records; a lab's signing key if you set one up (its private half never leaves this device); the role you picked; and your language. Your backup file holds both keys. To remove them, clear this site's data in your browser settings. Save your backup first: without it, you can't find or open your records again.",
   'm.privacy.hosts.title': 'Hosting',
   'm.privacy.hosts.text':
     'This website is hosted on Vercel, which logs IP addresses and requests. Our registry server runs on Railway, which logs requests.',

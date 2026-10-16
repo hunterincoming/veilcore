@@ -38,8 +38,11 @@ export const log = {
   'app.log.parentLinked': ' Its parent is {name}, already linked below.',
   'app.log.keptLastTime': 'We kept what you typed last time.',
   'app.log.startOver': 'Start over',
-  'app.log.nameLabel': 'Plant or line name',
+  'app.log.nameLabel': 'Plant or line name (public)',
   'app.log.namePlaceholder': 'e.g. Harbour Mist',
+  // LogFlow.tsx, AnimalForm.tsx, CorrectRecord.tsx: under the name field. The name is the
+  // one thing typed into a record that isn't locked (CONTRACT.md #4 strainName).
+  'app.log.nameHelp': 'Anyone with a check link sees this name. If the real name is secret, use a code name.',
   'app.log.eg': 'e.g. {v}',
   'app.log.egNextSelection': 'e.g. {name}, next selection',
   'app.log.bredBy': 'Bred by',
@@ -85,7 +88,7 @@ export const log = {
   'app.log.sealedWarn':
     "<b>Once sealed, this part can't change.</b> You can add reports and corrections later; a correction is a new record that points back to this one. That's what makes the date stamp worth something.",
   'app.log.savedOn':
-    'The details are saved on {server} so you can come back to them. Only a fingerprint is dated on {datedOn}.',
+    'The details are stored locked on {server}, so you can come back to them, and we don’t have the key. The name isn’t locked: anyone with a check link sees it. Only a fingerprint is dated on {datedOn}.',
   'app.log.sealing': 'Sealing…',
   'app.log.seal': 'Seal it',
   'app.log.sealingPlant': 'Sealing your plant…',

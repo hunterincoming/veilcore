@@ -267,7 +267,7 @@ export const lab = {
   'app.lab.results.anyName':
     ' Cualquiera puede registrar una clave con cualquier nombre, así que el nombre no muestra quién firmó.',
   'app.lab.results.locked':
-    'Bloqueados para que solo usted pueda abrirlos, con la clave de esta planta de su copia de seguridad. VeilCore no puede leerlos.',
+    'Bloqueados para que solo usted pueda abrirlos, con la clave de esta planta de su copia de seguridad. VeilCore los guarda bloqueados y no tiene la clave.',
   'app.lab.results.noKey':
     'La clave de esta planta no está en este dispositivo, así que aquí no se pueden abrir sus informes de laboratorio. Primero <link>recupere sus plantas desde su copia de seguridad</link>.',
   'app.lab.results.gotIt': 'Entendido',
@@ -350,7 +350,7 @@ export const lab = {
   'app.lab.out.replacesIntro':
     'Reemplaza a {id}, el informe de laboratorio que envió {when}. El anterior se retira: su archivo se elimina y su firma queda marcada como reemplazada.',
   'app.lab.out.intro':
-    'Su navegador firma la huella del informe con la clave de su laboratorio y bloquea el archivo para que solo el obtentor pueda abrirlo. El archivo bloqueado espera en el servidor de VeilCore a que el obtentor lo abra; VeilCore no puede leerlo.',
+    'Su navegador firma la huella del informe con la clave de su laboratorio y bloquea el archivo para que solo el obtentor pueda abrirlo. El archivo bloqueado espera en el servidor de VeilCore a que el obtentor lo abra, y VeilCore no tiene su clave.',
   'app.lab.out.cancelCorrection': 'Cancelar la corrección',
   'app.lab.out.turnedAway': 'Usted rechazó esta muestra, así que no hay informe de laboratorio que enviar.',
   'app.lab.out.setUpFirst':

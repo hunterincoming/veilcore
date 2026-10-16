@@ -34,8 +34,10 @@ export const log = {
   'app.log.parentLinked': ' Su progenitor es {name}, ya vinculado abajo.',
   'app.log.keptLastTime': 'Guardamos lo que escribió la última vez.',
   'app.log.startOver': 'Empezar de nuevo',
-  'app.log.nameLabel': 'Nombre de la planta o línea',
+  'app.log.nameLabel': 'Nombre de la planta o línea (público)',
   'app.log.namePlaceholder': 'p. ej., Harbour Mist',
+  'app.log.nameHelp':
+    'Cualquiera con un enlace de comprobación ve este nombre. Si el nombre real es secreto, use un nombre en clave.',
   'app.log.eg': 'p. ej., {v}',
   'app.log.egNextSelection': 'p. ej., {name}, siguiente selección',
   'app.log.bredBy': 'Obtentor',
@@ -81,7 +83,7 @@ export const log = {
   'app.log.sealedWarn':
     '<b>Una vez sellada, esta parte no puede cambiar.</b> Puede añadir informes y correcciones más tarde; una corrección es un registro nuevo que remite a este. Eso es lo que da valor al sello de fecha.',
   'app.log.savedOn':
-    'Los detalles se guardan en {server} para que pueda volver a ellos. Solo se fecha una huella, en {datedOn}.',
+    'Los detalles se guardan bloqueados en {server} para que pueda volver a ellos, y nosotros no tenemos la clave. El nombre no está bloqueado: cualquiera con un enlace de comprobación lo ve. Solo se fecha una huella, en {datedOn}.',
   'app.log.sealing': 'Sellando…',
   'app.log.seal': 'Sellarlo',
   'app.log.sealingPlant': 'Sellando su planta…',

@@ -164,7 +164,7 @@ export const de: Strings = {
     'Dieser Hinweis gilt für die Demo auf dieser Website. Sie ist ein Test, auf dem Testnetzwerk von Midnight. Bitte verwenden Sie erfundene Daten.',
   'm.privacy.stored.title': 'Auf unserem Testserver gespeichert',
   'm.privacy.stored.text':
-    'Was Sie eingeben und was Ihr Browser daraus berechnet: Sorten- und Züchternamen, die Art, falls Sie eine angeben, Datumsangaben, Notizen, Referenznummern, Eltern, Fingerabdrücke von Datensätzen, Fingerabdrücke der Fotos und Laborberichte, die Sie hinzufügen (nur die Fingerabdrücke, nie die Dateien), Dateinamen von Laborberichten, Vertragsbedingungen und Vertragspartner, Material, das Sie an ein Labor senden (an wen es adressiert ist und die Menge), und bei Laboren der öffentliche Signaturschlüssel und die Bestätigungen, die sie veröffentlichen. Außerdem Ihr Inhaberschlüssel, den Ihr Browser bei jedem Speichern mitsendet, damit der Server Ihre Datensätze findet. Verschlossene Laborberichte, die ein Labor Ihnen schickt: für uns unlesbar gespeichert und nach 180 Tagen gelöscht. Der Server ist das Testregister von VeilCore, gehostet bei Railway.',
+    'Ihre Datensätze und Vereinbarungen, von Ihrem Browser verschlossen, bevor sie gesendet werden: Züchter, Art, Daten, Notizen, Referenznummern, Eltern, die Fingerabdrücke und Dateinamen der Fotos und Laborberichte, die Sie hinzufügen, Vertragsbedingungen und Vertragspartner, Menge und Notiz, die Sie einem Labor schicken, und die Namen, die Sie Empfängern geben. Unser Server speichert sie verschlossen, und wir haben den Schlüssel nicht: Er liegt in Ihrem Browser und in Ihrer Sicherungsdatei. Lesen kann unser Server: die ID jedes Datensatzes; den Namen, den Sie ihm geben und den jeder mit einem Prüflink sieht; seinen Fingerabdruck und sein Profil; welche Felder eine Korrektur geändert hat und wann; wann der Server ihn zuerst gesehen hat; was Sie auf seiner Prüfseite zeigen möchten; die Elternverknüpfungen, die Sie registrieren; und seinen Stapel mit dessen Datumsstempel. Bei einer Lieferung: aus welchem Datensatz sie stammt, wann sie empfangen wurde, ein Kennzeichen anstelle des Empfängernamens und die Probenangaben, die Sie und das Labor schreiben (Proben-ID, Siegelnummer, wo und wann die Probe genommen wurde). Diese Probenangaben sind noch nicht verschlossen. Bei Laboren: der öffentliche Signaturschlüssel und die Bestätigungen, die sie veröffentlichen. Anfragen, den Schlüssel eines Datensatzes nachzuweisen, mit dem Namen, den der Fragende eingegeben hat, 7 Tage lang. Ihr Inhaberschlüssel, den Ihr Browser bei jedem Speichern mitsendet, damit der Server Ihre Datensätze findet; der Server behält davon nur einen Einweg-Hash. Datensätze, die vor dem Verschließen gespeichert wurden, bleiben für uns lesbar, bis Ihr Browser sie verschließt. Verschlossene Laborberichte, die ein Labor Ihnen schickt: verschlossen gespeichert, ohne den Schlüssel, und nach 180 Tagen gelöscht. Der Server ist das Testregister von VeilCore, gehostet bei Railway.',
   'm.privacy.local.title': 'Verlässt nie Ihren Browser',
   'm.privacy.local.text':
     'Genetische Daten sowie die Laborberichte, DNA-Berichte und Fotos, die Sie hinzufügen. Ihr Browser liest sie, um ihre Fingerabdrücke zu berechnen; die Dateien selbst werden nie hochgeladen. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt, verschlossen, sodass nur Sie ihn öffnen können.',
@@ -182,7 +182,7 @@ export const de: Strings = {
     'Wenn Sie Ihre Demodaten von unserem Server löschen lassen möchten, schreiben Sie an hunter@veilcore.org und nennen Sie die Kennungen Ihrer Datensätze.',
   'm.privacy.browser.title': 'In Ihrem Browser gespeichert',
   'm.privacy.browser.text':
-    'Ihr Browser speichert auf diesem Gerät: Ihren Inhaberschlüssel (eine Kopie geht auch an unseren Server, siehe oben), den Signaturschlüssel eines Labors, falls Sie einen eingerichtet haben (sein privater Teil verlässt dieses Gerät nie), die gewählte Rolle und Ihre Sprache. Um sie zu entfernen, löschen Sie die Daten dieser Website in den Einstellungen Ihres Browsers. Sichern Sie vorher Ihren Inhaberschlüssel: Ohne ihn findet dieser Browser Ihre Datensätze nicht mehr.',
+    'Ihr Browser speichert auf diesem Gerät: Ihren Inhaberschlüssel (eine Kopie geht auch an unseren Server, siehe oben); den Schlüssel, der Ihre Datensätze verschließt und nie an uns gesendet wird; Ihre eigene Kopie Ihrer Datensätze; den Signaturschlüssel eines Labors, falls Sie einen eingerichtet haben (sein privater Teil verlässt dieses Gerät nie); die gewählte Rolle; und Ihre Sprache. Ihre Sicherungsdatei enthält beide Schlüssel. Um sie zu entfernen, löschen Sie die Daten dieser Website in den Einstellungen Ihres Browsers. Speichern Sie vorher Ihre Sicherungskopie: Ohne sie können Sie Ihre Datensätze nicht mehr finden oder öffnen.',
   'm.privacy.hosts.title': 'Hosting',
   'm.privacy.hosts.text':
     'Diese Website wird bei Vercel gehostet, das IP-Adressen und Anfragen protokolliert. Unser Registerserver läuft bei Railway, das Anfragen protokolliert.',
@@ -296,7 +296,7 @@ export const de: Strings = {
   'm.for.3t': 'Material in den Händen eines Labors.',
   'm.for.4t': 'Laborergebnisse, zurück zu Ihnen.',
   'm.for.4p':
-    'Das Labor signiert Ihren Bericht und verschließt ihn so, dass nur Sie ihn öffnen können. Kein PDF liegt in irgendeinem Posteingang. Die verschlossene Datei wartet auf dem Server von VeilCore darauf, dass Sie sie öffnen; VeilCore kann sie nicht lesen und erfasst, wer signiert hat; für das Ergebnis bürgt VeilCore nicht. Neu und noch in der Erprobung.',
+    'Das Labor signiert Ihren Bericht und verschließt ihn so, dass nur Sie ihn öffnen können. Kein PDF liegt in irgendeinem Posteingang. Die verschlossene Datei wartet auf dem Server von VeilCore darauf, dass Sie sie öffnen, und wir haben ihren Schlüssel nicht. VeilCore erfasst, wer signiert hat; für das Ergebnis bürgt VeilCore nicht. Neu und noch in der Erprobung.',
   'm.for.6t': 'Jemand verlangt einen Nachweis.',
   'm.for.6p':
     'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihrer Pflanze kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht. Das funktioniert vorerst in einem Testnetz von Midnight.',
@@ -309,7 +309,7 @@ export const de: Strings = {
   'm.how.title2': 'Die Genetik bleibt bei Ihnen.',
   'm.step1.title': 'Aufschreiben',
   'm.step1.text':
-    'Was es ist und woher es stammt. Sortenname und Züchter, die Sie eingeben, speichert VeilCore auf seinem Server, und wer den Link zum Datensatz hat, sieht den Namen.',
+    'Was es ist und woher es stammt. Der Server von VeilCore speichert die Angaben verschlossen, und wir haben den Schlüssel nicht. Der Name, den Sie vergeben, ist nicht verschlossen: Wer den Link zum Datensatz hat, sieht ihn.',
   'm.step2.title': 'Fingerabdruck erstellen',
   'm.step2.text': 'Auf Ihrem Computer. Genetische Daten verlassen ihn nie.',
   'm.step3.title': 'Ein Datum bekommen',
@@ -385,7 +385,7 @@ export const de: Strings = {
   'm.faq.3link': 'Datensätze als Beweismittel →',
   'm.faq.4q': 'Was sehen Sie von meinen Daten?',
   'm.faq.4a':
-    'Von Ihren genetischen Daten: nichts. Deren Fingerabdruck wird auf Ihrem Computer berechnet, ebenso der Fingerabdruck der Dateien, die Sie hinzufügen; hochgeladen wird nichts davon. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt: verschlossen, sodass nur Sie ihn öffnen können, und nach 180 Tagen gelöscht. Diese Website speichert, was Sie eingeben (Namen, Daten, Notizen, Vertragsbedingungen), und die Namen Ihrer Labordateien, damit Sie darauf zurückkommen können, und die öffentliche Prüfseite eines Datensatzes zeigt seinen Sortennamen. Labore und Entwickler können Datensätze in ihren eigenen Systemen versiegeln, sodass nur der Fingerabdruck hinausgeht.',
+    'Von Ihren genetischen Daten: nichts. Deren Fingerabdruck wird auf Ihrem Computer berechnet, ebenso der Fingerabdruck der Dateien, die Sie hinzufügen; hochgeladen wird nichts davon. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt: verschlossen, sodass nur Sie ihn öffnen können, und nach 180 Tagen gelöscht. Die Angaben, die Sie eingeben (Züchter, Daten, Notizen, Vertragsbedingungen), und die Namen Ihrer Dateien speichert unser Server verschlossen, und wir haben den Schlüssel nicht. Lesen können wir den Namen jedes Datensatzes, den seine öffentliche Prüfseite zeigt, seinen Fingerabdruck und alles, was Sie zeigen möchten. Probenangaben, die Sie für ein Labor schreiben, sind noch nicht verschlossen. Labore und Entwickler können Datensätze in ihren eigenen Systemen versiegeln, sodass nur der Fingerabdruck hinausgeht.',
   'm.faq.4link1': 'Was die Demo speichert →',
   'm.faq.4link2': 'Integrationsleitfaden →',
   'm.faq.6q': 'Was kostet es?',
@@ -417,7 +417,7 @@ export const de: Strings = {
   'm.contact.4p': 'Schreiben Sie an Mako, unseren CEO.',
   'm.contact.integrate': 'Integrationsleitfaden',
   'm.verify.what':
-    'Ein VeilCore-Datensatz beschreibt genetisches Material, ohne die Genetik zu enthalten. Nur sein Fingerabdruck wird veröffentlicht, und er erhält ein Datum, sobald er auf Midnight verankert ist. Einen Datensatz zu prüfen, ist kostenlos und braucht kein Konto.',
+    'Ein VeilCore-Datensatz beschreibt genetisches Material, ohne die Genetik zu enthalten. Seine Prüfseite zeigt seinen Namen und das, was sein Inhaber freigegeben hat. Nur sein Fingerabdruck kommt auf Midnight, und er erhält ein Datum, sobald er dort verankert ist. Einen Datensatz zu prüfen, ist kostenlos und braucht kein Konto.',
   'm.verify.home': 'Was ist VeilCore? →',
   'm.verify.example': 'Nicht sicher, was Sie sehen werden? Sehen Sie sich zuerst ein Beispiel an →',
   // Round 5 (15 Oct 2026): landing page rework, keys added.

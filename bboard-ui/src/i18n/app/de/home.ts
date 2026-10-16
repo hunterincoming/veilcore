@@ -36,7 +36,7 @@ export const home = {
   'app.home.resetWarningRecords.other':
     '{count} Datensätze haben Schlüssel ohne geprüfte Sicherungskopie. Speichern Sie zuerst Ihre Sicherungskopie: Wenn Sie den Browser später leeren, wären sie endgültig verloren.',
   'app.home.resetConfirm':
-    'In diesem Browser mit neuen, leeren Datensätzen neu beginnen?\n\nEs wird nichts gelöscht. Ihre bisherigen Datensätze bleiben im Register von VeilCore unter Ihrem jetzigen Inhaberschlüssel, und nur mit diesem Schlüssel bekommen Sie sie zurück. Er wird jetzt heruntergeladen – bewahren Sie die Datei auf.',
+    'In diesem Browser mit neuen, leeren Datensätzen neu beginnen?\n\nEs wird nichts gelöscht. Ihre bisherigen Datensätze bleiben verschlossen im Register von VeilCore. Zurück bekommen Sie sie nur mit Ihren jetzigen Schlüsseln, die jetzt in einer Datei heruntergeladen werden. Bewahren Sie sie auf.',
   'app.home.startedOver':
     'Neu begonnen. Ihre alten Datensätze können Sie jederzeit aus der Datei mit dem Inhaberschlüssel wiederherstellen.',
   'app.home.imported.one': '{count} Datensatz importiert.',

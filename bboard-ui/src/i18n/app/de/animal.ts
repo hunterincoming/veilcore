@@ -12,6 +12,7 @@ export const animal = {
   'app.animal.title': 'Ihr Tier erfassen',
   'app.animal.name': 'Name des Tieres',
   'app.animal.namePlaceholder': 'z. B. Übungskuh',
+  'app.animal.nameField': 'Name des Tieres (öffentlich)',
   'app.animal.individualId': 'Einzeltierkennung',
   'app.animal.individualIdHelp': 'Die Nummer auf der Ohrmarke oder in der Registrierung, genau wie geschrieben.',
   'app.animal.idScheme': 'Kennzeichnungssystem',
@@ -67,7 +68,7 @@ export const animal = {
   'app.animal.verify.idLine': 'Einzeltierkennung, wie vom Inhaber angegeben: {id} ({scheme})',
   'app.animal.verify.noId': 'Keine Einzeltierkennung erfasst.',
   'app.animal.v.app.verify.noParents': 'Kein Vater und keine Mutter erfasst.',
-  'app.animal.v.app.plant.fix.name': 'Name des Tieres',
+  'app.animal.v.app.plant.fix.name': 'Name des Tieres (öffentlich)',
   'app.animal.v.app.plant.fix.bredBy': 'Züchter oder Inhaber',
   'app.animal.v.app.verify.nameTyped': 'Name des Tieres, wie vom Inhaber eingegeben: ',
   'app.animal.import.dob': 'Geburtsdatum',
@@ -221,7 +222,7 @@ export const animal = {
   'app.animal.v.app.lab.results.withdrawnNewer':
     '<b>Der bei diesem Tier gespeicherte Laborbericht wurde vom Labor zurückgezogen.</b> Er bleibt gespeichert, bis Sie einen anderen speichern, und Ihr Zertifikat und Ihre Links sagen, dass er zurückgezogen wurde. Ein neuerer Laborbericht ist da: Öffnen Sie ihn und speichern Sie ihn dann bei diesem Tier.',
   'app.animal.v.app.lab.results.locked':
-    'So verschlossen, dass nur Sie sie öffnen können, mit dem Schlüssel dieses Tieres aus Ihrer Sicherungskopie. VeilCore kann sie nicht lesen.',
+    'So verschlossen, dass nur Sie sie öffnen können, mit dem Schlüssel dieses Tieres aus Ihrer Sicherungskopie. VeilCore speichert sie verschlossen und hat den Schlüssel nicht.',
   'app.animal.v.app.lab.results.noKey':
     'Der Schlüssel dieses Tieres ist nicht auf diesem Gerät, daher können seine Laborberichte hier nicht geöffnet werden. <link>Holen Sie Ihre Datensätze zuerst aus Ihrer Sicherungskopie zurück</link>.',
   'app.animal.v.app.lab.results.whatOthersSee':

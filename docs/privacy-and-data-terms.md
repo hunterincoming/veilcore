@@ -1,7 +1,8 @@
 # VeilCore privacy and data terms (draft)
 
 > **DRAFT for the founders and a lawyer to review. Not published. Not legal advice.**
-> Written 15 October 2026 from what the code does today: the site (`bboard-ui`), the
+> Written 15 October 2026 from what the code does today, and updated 16 October 2026 for
+> sealed records (what you type is locked in your browser before it is sent): the site (`bboard-ui`), the
 > registry (`veilcore-api`, `server.js` and `lineage/`), the fee sponsor and indexer relay
 > (`sponsor/`), and the site's own privacy page (`/privacy`, `i18n/en.ts` and
 > `en-mainnet.ts`, `m.privacy.*`). Where the code and this text disagree, the code is right
@@ -12,9 +13,14 @@
 
 - Your genetic data, lab report files and photos **stay on your device**. Your browser
   works out their fingerprints; the files are never uploaded.
-- What you type (plant names, breeder names, dates, notes, agreement terms) **is kept on
-  VeilCore's server**, so you can come back to it. A record's plant name shows on its public
-  check page. Don't type anything you need to keep secret.
+- What you type (breeder names, dates, notes, parents, agreement terms) is **locked in your
+  browser before it is sent**, and VeilCore's server stores it locked, so you can come back
+  to it. We don't have the key: it stays in your browser and your backup file. VeilCore also
+  serves the app's code, so this is "stored locked, and we don't have the key", not a promise
+  that the code can never change.
+- A record's **name is not locked**: our server can read it, and its public check page shows
+  it. Use a code name if the real name is secret. The sample details on a delivery (sample
+  ID, seal number, where and when it was taken, a witness) **aren't locked yet** either.
 - Only a **batch fingerprint** goes on a public network (Midnight, and Bitcoin through
   OpenTimestamps). Nothing you typed goes there. Once there, nobody can delete it,
   including us.
@@ -36,6 +42,7 @@ UK representative go here once VeilCore is incorporated.]*
 |---|---|
 | Genetic data, DNA reports, lab report files, photos you add | Read by your browser to work out a fingerprint (SHA-256). Never uploaded. |
 | Each record's secret key (made when you seal a record that names its key) | Your browser and the backup file you save. Never sent to VeilCore. |
+| The vault key that locks your records and licences | Your browser and the backup file you save. Never sent to VeilCore. |
 | A lab's private signing key | The lab's own browser. Only the public key is sent. |
 
 ## What your browser keeps
@@ -46,6 +53,7 @@ The site uses your browser's local storage, on this device only. No cookies.
 |---|---|
 | Your holder key (`veilcore.holder.v1`) | The key that finds your records on the server. A copy is sent with every save (below). |
 | Your records and licences (`veilcore.records.v1`, `veilcore.licenses.v1`) | Your own copy, so the site works without the server. |
+| The vault key (`veilcore.vault.v1`) | The key that locks your records and licences before they are sent. Never sent; your backup file has a copy. Without it (or the backup) your records can't be opened. |
 | Record keys (`veilcore.record-keys.v1`) | The secret keys of records that name their key. Save your backup: if this browser's data is cleared, they are gone. |
 | A lab's signing key (`veilcore.attester.v1`) | Only if you set one up as a lab. |
 | Deliveries, codes, opened lab reports (`veilcore.lab-deliveries.v1`, `veilcore.sent-codes.v1`, `veilcore.opened-results.v1`) | Lab codes you made or used and which reports you've opened. |
@@ -61,12 +69,14 @@ record backup first.
 
 | What | Why | How long |
 |---|---|---|
-| Your records as you typed them: plant and breeder names, species, dates, notes, reference numbers, parents, fingerprints of the record, photos and lab reports, lab report file names | So you can come back to them, and so a record can be checked | Until you ask us to delete it. No set period. |
+| Your records, locked: breeder name, species, dates, notes, reference numbers, parents, fingerprints of photos and lab reports, lab report file names, the names you give recipients. Stored as a box only your vault key opens | So you can come back to them | Until you ask us to delete it. No set period. |
+| Each record's readable fields: its id, the name you give it, its profile, fingerprint and key binding, which fields a correction changed and when | So a record can be found and checked | As long as the record |
+| Records saved before sealing, as they were typed | Until your browser locks them (after you save a checked backup), or until the registry's purge removes their contents | Until converted or purged |
 | Your holder key, stored as a one-way digest (`h1:` + SHA-256), never as sent | To find your records | As long as your records |
 | When the registry first saw each record | The registry's own date for it (its word only) | As long as the record |
-| Licences and agreement terms, counterparties | Licences you issue | Until you ask us to delete them |
-| Your sharing choices for each record's public check page | What a stranger with the link sees | As long as the record |
-| Lab codes: who a delivery is addressed to, quantity, note, the lab code, and (when filled in) the sample details: sample ID, seal number, where and when it was taken, a witness's name, and what the lab wrote on arrival | So a lab can take delivery and sign a receipt | No set period |
+| Licences and agreement terms, counterparties, locked like records | Licences you issue | Until you ask us to delete them |
+| Your sharing choices for each record's public check page, and the values you choose to show (readable: they are what the page shows) | What a stranger with the link sees | As long as the record |
+| Lab codes: a tag in place of the recipient's name (made with your vault key; we can't turn it back into the name), the delivery's details (name, breeder, quantity, note) locked with a key that travels only in the lab code, a one-way digest of the claim code, which record it came from and was received as, and (when filled in) the sample details: sample ID, seal number, where and when it was taken, a witness's name, and what the lab wrote on arrival. **The sample details aren't locked yet.** Lab codes made before sealing keep the recipient's handle, quantity and note as typed until the purge | So a lab can take delivery and sign a receipt | No set period |
 | Labs: public signing key, the name the key gives itself, role, and VeilCore's name-check notes | So signatures can be checked and named | No set period |
 | Lab signatures (attestations) and withdrawals | Public statements labs choose to publish | No set period |
 | Locked lab reports a lab sends you (encrypted to your key with `age`; the server can't open them), with their size and SHA-256 | So you can collect them | **Deleted 180 days after they arrive**, checked every hour. Not in backups. Off on the main site for now. |
@@ -81,7 +91,9 @@ when the server restarts. The registry's console output is start-up and error me
 **Backups.** Once a day, if backups are switched on, a copy of the whole database is
 encrypted (with `age`, to a key the server never holds) and sent to a storage bucket
 (Backblaze B2). The bucket is meant to lock each copy so it can't be deleted early. Lab
-report files aren't in it. *[Lock period and how long copies are kept: to be set.]*
+report files aren't in it. Backups taken before sealing (and before the purge) hold records
+as they were typed; the operator holds the key that opens them until it is rotated and the
+old one destroyed (the registry's `docs/rotate-backup-key.md`). *[Lock period and how long copies are kept: to be set.]*
 
 ## What goes on a public network
 
@@ -97,8 +109,8 @@ A fingerprint can't be turned back into what you typed: each record has a random
 
 ## Public pages
 
-A record's public check page (`/verify/:id`) shows its plant name and whatever else you
-chose to share. Anyone with the link can see it. The registry doesn't record who looked.
+A record's public check page (`/verify/:id`) shows its name and whatever else you chose to
+share; what you choose to share is sent to the server readable, so it can be shown. Anyone with the link can see it. The registry doesn't record who looked.
 
 ## Who else handles data
 

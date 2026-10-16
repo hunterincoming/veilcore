@@ -12,6 +12,7 @@ export const animal = {
   'app.animal.title': '動物を記録する',
   'app.animal.name': '動物の名前（名号）',
   'app.animal.namePlaceholder': '例：練習用の牛',
+  'app.animal.nameField': '動物の名前（名号、公開）',
   'app.animal.individualId': '個体識別番号',
   'app.animal.individualIdHelp': '耳標や登録に書かれている番号を、そのとおりに入力してください。',
   'app.animal.idScheme': '番号の体系',
@@ -65,7 +66,7 @@ export const animal = {
   'app.animal.verify.idLine': '個体識別番号（保有者の申告）：{id}（{scheme}）',
   'app.animal.verify.noId': '個体識別番号は記録されていません。',
   'app.animal.v.app.verify.noParents': '父と母は記録されていません。',
-  'app.animal.v.app.plant.fix.name': '動物の名前',
+  'app.animal.v.app.plant.fix.name': '動物の名前（公開）',
   'app.animal.v.app.plant.fix.bredBy': '生産者または保有者',
   'app.animal.v.app.verify.nameTyped': '動物の名前（保有者の入力どおり）：',
   'app.animal.import.dob': '生年月日',
@@ -215,7 +216,7 @@ export const animal = {
   'app.animal.v.app.lab.results.withdrawnNewer':
     '<b>この動物に保存された検査報告書は、ラボにより撤回されました。</b>別のものを保存するまで保存されたままで、証明書とリンクには撤回されたと表示されます。新しい検査報告書が届いています。開いて、この動物に保存してください。',
   'app.animal.v.app.lab.results.locked':
-    'バックアップにあるこの動物の鍵で、あなただけが開けるようにロックされています。VeilCoreは読めません。',
+    'バックアップにあるこの動物の鍵で、あなただけが開けるようにロックされています。VeilCoreはロックしたまま保存し、鍵を持っていません。',
   'app.animal.v.app.lab.results.noKey':
     'この動物の鍵はこの端末にないため、ここでは検査報告書を開けません。先に<link>バックアップから記録を取り戻してください</link>。',
   'app.animal.v.app.lab.results.whatOthersSee':

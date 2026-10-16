@@ -36,7 +36,7 @@ export const home = {
   'app.home.resetWarningRecords.other':
     '{count} enregistrements ont des clés sans copie de secours vérifiée. Enregistrez d’abord votre copie de secours : si vous videz le navigateur plus tard, elles seraient perdues pour de bon.',
   'app.home.resetConfirm':
-    'Recommencer dans ce navigateur avec un nouvel ensemble vide ?\n\nRien n’est supprimé. Vos enregistrements actuels restent dans le registre de VeilCore sous votre clé de détenteur actuelle, et vous ne pouvez les récupérer qu’avec cette clé. Elle va être téléchargée maintenant — gardez le fichier.',
+    'Recommencer dans ce navigateur avec un nouvel ensemble vide ?\n\nRien n’est supprimé. Vos enregistrements actuels restent verrouillés dans le registre de VeilCore. Vous ne pouvez les récupérer qu’avec vos clés actuelles, qui vont être téléchargées maintenant dans un seul fichier. Gardez-le.',
   'app.home.startedOver':
     'Vous avez recommencé. Restaurez vos anciens enregistrements à tout moment depuis le fichier de la clé de détenteur.',
   'app.home.imported.one': '{count} enregistrement importé.',

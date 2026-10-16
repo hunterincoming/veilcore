@@ -172,7 +172,7 @@ export const plant = {
   'app.plant.next.withdrawn.why':
     'Sie haben zurückgezogen, was Sie gesendet haben, daher hat der Züchter keinen aktuellen Laborbericht von Ihnen. Sie können einen neuen senden.',
   'app.plant.next.send.why':
-    'Mit dem Schlüssel Ihres Labors signiert und so verschlossen, dass nur der Züchter ihn öffnen kann. VeilCore kann ihn nicht lesen.',
+    'Mit dem Schlüssel Ihres Labors signiert und so verschlossen, dass nur der Züchter ihn öffnen kann. VeilCore hat seinen Schlüssel nicht.',
   'app.plant.next.sent.action': 'Ansehen, was Sie gesendet haben',
   'app.plant.next.send.action': 'Ergebnisse zurücksenden',
   'app.plant.next.corrected.title': 'Den korrigierten DNA-Bericht speichern',
@@ -413,7 +413,7 @@ export const plant = {
   'app.plant.fix.title': '{id} korrigieren',
   'app.plant.fix.intro':
     'Dieser Datensatz bleibt genau, wie er ist. Eine Korrektur erzeugt einen neuen Datensatz, der ihn ersetzt, und beide bleiben gespeichert. Eine Korrektur überschreibt und löscht nichts: Deshalb bleibt das Original als Nachweis brauchbar.',
-  'app.plant.fix.name': 'Sortenname',
+  'app.plant.fix.name': 'Sortenname (öffentlich)',
   'app.plant.fix.bredBy': 'Gezüchtet von',
   'app.plant.fix.notes': 'Notizen',
   'app.plant.fix.does': 'Was diese Korrektur bewirkt',

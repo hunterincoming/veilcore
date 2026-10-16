@@ -17,6 +17,8 @@ export const animal = {
   'app.animal.title': 'Log your animal',
   'app.animal.name': 'Animal’s name',
   'app.animal.namePlaceholder': 'e.g. Practice Cow',
+  // AnimalForm.tsx: the name field (app.animal.name is also a column and a review line).
+  'app.animal.nameField': 'Animal’s name (public)',
   'app.animal.individualId': 'Individual ID',
   'app.animal.individualIdHelp': 'The number on its ear tag or registration, exactly as written.',
   'app.animal.idScheme': 'ID scheme',
@@ -75,7 +77,7 @@ export const animal = {
   'app.animal.verify.idLine': 'Individual ID, as the holder states it: {id} ({scheme})',
   'app.animal.verify.noId': 'No individual ID recorded.',
   'app.animal.v.app.verify.noParents': 'No sire or dam recorded.',
-  'app.animal.v.app.plant.fix.name': 'Animal’s name',
+  'app.animal.v.app.plant.fix.name': 'Animal’s name (public)',
   'app.animal.v.app.plant.fix.bredBy': 'Breeder or holder',
   'app.animal.v.app.verify.nameTyped': 'Animal’s name, as the holder typed it: ',
 
@@ -229,7 +231,7 @@ export const animal = {
   'app.animal.v.app.lab.results.withdrawnNewer':
     '<b>The lab report saved to this animal was withdrawn by the lab.</b> It stays saved until you save another, and your certificate and links say it was withdrawn. A newer lab report is here: open it, then save it to this animal.',
   'app.animal.v.app.lab.results.locked':
-    "Locked so only you can open them, with this animal's key from your backup. VeilCore can't read them.",
+    'Locked so only you can open them, with this animal’s key from your backup. VeilCore stores them locked and doesn’t have the key.',
   'app.animal.v.app.lab.results.noKey':
     "This animal's key isn't on this device, so its lab reports can't be opened here. <link>Get your records back from your backup</link> first.",
   'app.animal.v.app.lab.results.whatOthersSee':

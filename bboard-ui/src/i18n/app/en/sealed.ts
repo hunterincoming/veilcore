@@ -42,7 +42,7 @@ export const sealed = {
   'app.sealed.unreadable.one': '{count} record came back in a form this version can’t read, so it isn’t shown.',
   'app.sealed.unreadable.other': '{count} records came back in a form this version can’t read, so they aren’t shown.',
   'app.sealed.backupNeeded':
-    '<b>Save a new backup.</b> Your records are now locked with a key only this browser has. Without the backup file you can’t open them anywhere else.',
+    '<b>Save a new backup.</b> Your records are now locked with a key that only this browser has until you save a backup. Without the backup file you can’t open them anywhere else.',
   // ClaimTransfer.tsx, transfers.ts userFacingError
   'app.sealed.err.newCode':
     'This code was made before deliveries were locked, and it no longer works. Ask the sender for a new code.',

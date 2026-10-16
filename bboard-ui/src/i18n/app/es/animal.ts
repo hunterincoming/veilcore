@@ -12,6 +12,7 @@ export const animal = {
   'app.animal.title': 'Registre su animal',
   'app.animal.name': 'Nombre del animal',
   'app.animal.namePlaceholder': 'p. ej. Vaca de práctica',
+  'app.animal.nameField': 'Nombre del animal (público)',
   'app.animal.individualId': 'Identificación individual',
   'app.animal.individualIdHelp': 'El número de su crotal o de su registro, tal como está escrito.',
   'app.animal.idScheme': 'Sistema de identificación',
@@ -66,7 +67,7 @@ export const animal = {
   'app.animal.verify.idLine': 'Identificación individual, según el titular: {id} ({scheme})',
   'app.animal.verify.noId': 'No hay identificación individual registrada.',
   'app.animal.v.app.verify.noParents': 'No hay padre ni madre registrados.',
-  'app.animal.v.app.plant.fix.name': 'Nombre del animal',
+  'app.animal.v.app.plant.fix.name': 'Nombre del animal (público)',
   'app.animal.v.app.plant.fix.bredBy': 'Criador o titular',
   'app.animal.v.app.verify.nameTyped': 'Nombre del animal, tal como lo escribió el titular: ',
   'app.animal.import.dob': 'Fecha de nacimiento',
@@ -219,7 +220,7 @@ export const animal = {
   'app.animal.v.app.lab.results.withdrawnNewer':
     '<b>El laboratorio retiró el informe guardado en este animal.</b> Sigue guardado hasta que guarde otro, y su certificado y sus enlaces dicen que fue retirado. Hay un informe de laboratorio más reciente: ábralo y guárdelo en este animal.',
   'app.animal.v.app.lab.results.locked':
-    'Bloqueados para que solo usted pueda abrirlos, con la clave de este animal de su copia de seguridad. VeilCore no puede leerlos.',
+    'Bloqueados para que solo usted pueda abrirlos, con la clave de este animal de su copia de seguridad. VeilCore los guarda bloqueados y no tiene la clave.',
   'app.animal.v.app.lab.results.noKey':
     'La clave de este animal no está en este dispositivo, así que aquí no se pueden abrir sus informes de laboratorio. Primero <link>recupere sus registros desde su copia de seguridad</link>.',
   'app.animal.v.app.lab.results.whatOthersSee':
