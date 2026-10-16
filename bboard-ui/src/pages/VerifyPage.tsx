@@ -40,7 +40,7 @@ import { ACCENT, INK_COLOR } from '../config/theme';
 import { Wordmark } from '../components/Wordmark';
 import { NETWORK, isTestNetwork } from '../config/network';
 import { Fact, FactKey, SharedFacts } from '../components/verify/DisclosedFacts';
-import { publicReportLine, withdrawnSignaturesLine } from '../veilcore/saved-report';
+import { pairingPending, pendingReportLine, publicReportLine, withdrawnSignaturesLine } from '../veilcore/saved-report';
 import { bindingOf, checkedSummary, linkFingerprint, verifyHeading } from '../veilcore/verify-link';
 import { displayName } from '../veilcore/display-name';
 import { utcStamp as fmt } from '../veilcore/time';
@@ -83,6 +83,12 @@ type VerifyResult = {
   recordFingerprint?: string;
   /** The holder saved a lab report fingerprint themselves. Not a lab's confirmation. */
   dnaPairedByHolder?: boolean;
+  /**
+   * Granted keys whose holder-written values the registry won't answer yet: the record
+   * changed since they were sent. `dna` here (and in `disclosed`) means the lab status is
+   * shared but which report is saved is not known now.
+   */
+  staleGrant?: unknown[];
   /**
    * Older field. From a current registry it means attestedByVettedLab; from an older one
    * it meant any valid signature, so it is never read as "a lab" on its own.
@@ -183,6 +189,7 @@ const isVerifyResult = (v: unknown): v is VerifyResult => {
     (r.parents === undefined || Array.isArray(r.parents)) &&
     (r.unavailable === undefined || Array.isArray(r.unavailable)) &&
     (r.notGranted === undefined || Array.isArray(r.notGranted)) &&
+    (r.staleGrant === undefined || Array.isArray(r.staleGrant)) &&
     (r.anchor === undefined || r.anchor === null || (typeof r.anchor === 'object' && !Array.isArray(r.anchor))) &&
     str(r.lineageNote) &&
     str(r.unavailableReason) &&
@@ -338,17 +345,21 @@ export const VerifyPage: React.FC = () => {
   const badSigs = (atts ?? []).filter((a) => !a.signatureValid).length;
   // Round 6: which file is saved comes from the registry as it is now; the link's `rs` is
   // only a hint from when the link was made (saved-report.ts publicReportLine).
-  const labReport = publicReportLine(
-    {
-      paired: result?.dnaPairedByHolder,
-      linkSha: params.get('rs'),
-      pairingFingerprint: result?.dnaPairingFingerprint,
-      fileSha: result?.dnaFileSha256,
-      atts: atts ?? [],
-      bound,
-    },
-    tr,
-  );
+  // The lab status is shared but the holder's pairing values are stale (the registry left
+  // them out): say it is not known yet, never "no report saved".
+  const labReport = pairingPending(result)
+    ? pendingReportLine(tr)
+    : publicReportLine(
+        {
+          paired: result?.dnaPairedByHolder,
+          linkSha: params.get('rs'),
+          pairingFingerprint: result?.dnaPairingFingerprint,
+          fileSha: result?.dnaFileSha256,
+          atts: atts ?? [],
+          bound,
+        },
+        tr,
+      );
   // A verified signature against the link's own fingerprint is a check this browser made;
   // whether its name was matched is said in words on its line (round 5).
   const ticked = checked || (bound && signed.length > 0);

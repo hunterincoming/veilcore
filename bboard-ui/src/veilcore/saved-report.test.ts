@@ -2,6 +2,8 @@
 // page says whether the saved file is the report a lab signed, matched on its SHA-256.
 import { describe, expect, it } from 'vitest';
 import {
+  pairingPending,
+  pendingReportLine,
   correctionWithdrawn,
   publicReportLine,
   savedFileSha,
@@ -395,5 +397,19 @@ describe('a lab report has one short id and one file name on both sides', () => 
 
   it('shows times with the zone’s name', () => {
     expect(localStamp(Date.UTC(2026, 9, 15, 14, 32), 'en-US')).toMatch(/2026.*(UTC|GMT|[A-Z]{2,5}|[+-]\d)/);
+  });
+});
+
+describe('a stale pairing on the check page (the registry left it out)', () => {
+  it('is "not known yet", never "no report saved", and only when the registry says dna is stale', () => {
+    expect(pairingPending({ staleGrant: ['dna', 'sealed'] })).toBe(true);
+    expect(pairingPending({ staleGrant: ['sealed'] })).toBe(false);
+    expect(pairingPending({ staleGrant: ['dna'], dnaPairedByHolder: false })).toBe(false);
+    expect(pairingPending({})).toBe(false);
+    expect(pairingPending(undefined)).toBe(false);
+    const line = pendingReportLine();
+    expect(line.status).toBe('reported');
+    expect(line.text).toMatch(/isn’t shown right now/);
+    expect(line.text).not.toMatch(/not saved/);
   });
 });

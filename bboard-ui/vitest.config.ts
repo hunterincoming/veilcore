@@ -8,6 +8,9 @@ export default defineConfig({
     environment: 'node',
     include: ['src/**/*.test.ts'],
     testTimeout: 60_000,
+    // MUI's ES modules import react-transition-group by directory, which Node's resolver
+    // refuses; bundled through Vite they resolve, so a test can render a component.
+    server: { deps: { inline: [/@mui\//] } },
     env: {
       VITE_NETWORK_ID: 'preprod',
       VITE_API_BASE: 'https://registry.test',

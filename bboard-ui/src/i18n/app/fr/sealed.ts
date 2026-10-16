@@ -26,6 +26,15 @@ export const sealed = {
     'Supprimer {name} de VeilCore ? Il ne peut pas être ouvert dans ce navigateur, et une fois supprimé, personne ne pourra le récupérer.',
   'app.sealed.locked.deleted': 'Supprimé.',
   'app.sealed.locked.deleteFailed': 'Il n’a pas été supprimé : {error}',
+  'app.sealed.lockedAgreements.title.one': '{count} contrat verrouillé',
+  'app.sealed.lockedAgreements.title.other': '{count} contrats verrouillés',
+  'app.sealed.lockedAgreements.text':
+    'Ce navigateur n’a pas la clé de ces contrats (licences, envois à un laboratoire ou partages avec un sélectionneur). Restaurez votre dernier fichier de sauvegarde. VeilCore ne peut pas les ouvrir pour vous.',
+  'app.sealed.lockedAgreements.cantChange':
+    'Un contrat verrouillé ne peut être ni modifié ni envoyé. Vous pouvez le supprimer.',
+  'app.sealed.lockedAgreements.name': 'Contrat verrouillé',
+  'app.sealed.lockedAgreements.deleteConfirm':
+    'Supprimer le contrat {id} de VeilCore ? Il ne peut pas être ouvert dans ce navigateur, et une fois supprimé, personne ne peut le récupérer.',
   'app.sealed.truncated':
     'VeilCore n’a envoyé qu’une partie de vos enregistrements, donc certains peuvent manquer ici. Rechargez la page pour réessayer.',
   'app.sealed.unreadable.one':

@@ -465,14 +465,18 @@ export const NO_KEY_REASON =
   'this browser doesn’t have the key for your records, so nothing was saved. Restore your backup file first.';
 
 /**
- * Remove records from the registry (DELETE /api/records). For a locked record: it can't be
- * opened here, edited or sent, but its holder can still take it off VeilCore.
+ * Remove records (DELETE /api/records) or licences (DELETE /api/licenses) from the registry.
+ * For a locked row: it can't be opened here, edited or sent, but its holder can still take
+ * it off VeilCore.
  */
-export const deleteRecords = async (ids: readonly string[]): Promise<{ removed: string[] } | { error: string }> => {
+const deleteRows = async (
+  kind: RowKind,
+  ids: readonly string[],
+): Promise<{ removed: string[] } | { error: string }> => {
   const k = holderKeyIfAny();
   if (!k) return { error: 'this browser has no holder key' };
   try {
-    const res = await fetch(`${BASE}/api/records`, {
+    const res = await fetch(`${BASE}/api/${kind}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json', 'x-holder-key': k },
       body: JSON.stringify({ ids }),
@@ -487,3 +491,8 @@ export const deleteRecords = async (ids: readonly string[]): Promise<{ removed: 
     return { error: 'could not reach the registry' };
   }
 };
+
+export const deleteRecords = (ids: readonly string[]): Promise<{ removed: string[] } | { error: string }> =>
+  deleteRows('records', ids);
+export const deleteLicenses = (ids: readonly string[]): Promise<{ removed: string[] } | { error: string }> =>
+  deleteRows('licenses', ids);

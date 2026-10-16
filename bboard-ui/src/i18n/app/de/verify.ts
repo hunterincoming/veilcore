@@ -5,6 +5,8 @@ import type { AppTranslation } from '../../translate';
 
 export const verify = {
   'app.verify.report.notSaved': 'Der Inhaber hat keinen DNA-Bericht zu diesem Datensatz gespeichert.',
+  'app.verify.report.pending':
+    'Welcher DNA-Bericht gespeichert ist, wird gerade nicht angezeigt: Der Datensatz hat sich geändert, nachdem der Inhaber ihn freigegeben hat, und seine App hat die Aktualisierung noch nicht gesendet.',
   'app.verify.report.asOf': ' (zum Zeitpunkt, als dieser Link erstellt wurde)',
   'app.verify.report.staleNote':
     ' Dieser Link wurde erstellt, als eine andere Datei gespeichert war; diese Zeile betrifft die jetzt gespeicherte.',

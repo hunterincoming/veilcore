@@ -34,10 +34,30 @@ safely (the network is blocked) and a way past it, sharing with the date stamp i
 link, a checker asking by link, the holder opening it, an answer arriving, the checker
 coming back in a new tab. The stand-in tests are skipped.
 
+`sealed-records.spec.ts` checks that the registry can't read what a holder typed: a plant
+logged with a marker in every field and sent to a lab leaves none of them in the registry's
+database file (give its path as `E2E_REGISTRY_DB`, e.g. `E2E_REGISTRY_DB=/tmp/e2e.db`; that
+test is skipped without it); a backup restored in a fresh browser opens the records; and a
+browser with the holder key but not the vault key shows them as locked.
+
 `evidence-bundle.spec.ts` downloads a record's evidence bundle from the plant page and opens
 its `verify.html` from `file://` with the network off. Against a real registry it also
 needs an operator token and an anchor contract (`E2E_OPERATOR_TOKEN`,
 `E2E_ANCHOR_CONTRACT`): how to start one for it is in `docs/evidence-bundle.md`.
+
+## The registry contract, without a browser
+
+`src/veilcore/registry-contract.test.ts` drives the app's own modules (saving, opening,
+corrections, grants, offers and claims, receipts, licences, the export, the backup) against
+a real registry process and then reads the registry's database file byte for byte. Give it a
+`veilcore-api` checkout; it starts its own registry on a free port with a fresh database:
+
+```
+VEILCORE_CONTRACT_REGISTRY=../../veilcore-api npx vitest run src/veilcore/registry-contract.test.ts
+```
+
+(or a running registry's address, with `VEILCORE_CONTRACT_DB` naming its database file). It
+is skipped when the variable isn't set.
 
 ## Not covered
 

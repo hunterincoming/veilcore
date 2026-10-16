@@ -1,5 +1,5 @@
-// Records this browser can't open (sealed records, CONTRACT.md #11): sealed with a vault key
-// it doesn't have. Shown plainly by the name anyone can see, with the one way back (the
+// Records and agreements this browser can't open (sealed records, CONTRACT.md #11): sealed
+// with a vault key it doesn't have. Shown plainly by the name anyone can see, with the one way back (the
 // backup file that has the key) and the one thing a locked record allows: deleting it.
 // They can't be edited or sent, and a save never sends them back (api-store.ts).
 // SPDX-License-Identifier: Apache-2.0
@@ -9,6 +9,7 @@ import { Alert, Box, Button, Paper, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import { deleteLockedRecord, useSealedView } from '../veilcore/records';
+import { deleteLockedLicense, useLockedLicenses } from '../veilcore/licenses';
 import type { LockedRow } from '../veilcore/api-store';
 import { useT } from '../i18n/app';
 import type { Translator } from '../i18n/translate';
@@ -21,22 +22,26 @@ export const lockedWords = (rows: readonly LockedRow[], tr: Translator): string 
     : tr.t('app.sealed.locked.textNoDate');
 };
 
-const LockedRowLine: React.FC<{ row: LockedRow }> = ({ row }) => {
-  const tr = useT();
-  const { t } = tr;
+const LockedRowLine: React.FC<{
+  row: LockedRow;
+  name: string;
+  confirm: string;
+  remove: (id: string) => Promise<{ ok: true } | { error: string }>;
+  kind: 'record' | 'agreement';
+}> = ({ row, name, confirm, remove: removeRow, kind }) => {
+  const { t } = useT();
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string>();
-  const name = row.strainName || t('app.sealed.locked.unnamed');
   const remove = async () => {
-    if (!window.confirm(t('app.sealed.locked.deleteConfirm', { name }))) return;
+    if (!window.confirm(confirm)) return;
     setBusy(true);
     setProblem(undefined);
-    const out = await deleteLockedRecord(row.id);
+    const out = await removeRow(row.id);
     setBusy(false);
     if ('error' in out) setProblem(t('app.sealed.locked.deleteFailed', { error: out.error }));
   };
   return (
-    <Box data-locked-record={row.id}>
+    <Box {...(kind === 'record' ? { 'data-locked-record': row.id } : { 'data-locked-agreement': row.id })}>
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ minWidth: 0 }}>
           <Typography variant="body1" sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>
@@ -81,8 +86,61 @@ export const LockedRecords: React.FC<{ only?: string }> = ({ only }) => {
         {t('app.sealed.locked.cantChange')}
       </Typography>
       <Stack spacing={1.5} sx={{ mb: 1.5 }}>
+        {rows.map((r) => {
+          const name = r.strainName || t('app.sealed.locked.unnamed');
+          return (
+            <LockedRowLine
+              key={r.id}
+              row={r}
+              name={name}
+              confirm={t('app.sealed.locked.deleteConfirm', { name })}
+              remove={deleteLockedRecord}
+              kind="record"
+            />
+          );
+        })}
+      </Stack>
+      <Button component={RouterLink} to="/restore" variant="outlined" sx={{ minHeight: 44 }}>
+        {t('app.sealed.locked.restore')}
+      </Button>
+    </Paper>
+  );
+};
+
+/**
+ * Agreements (licenses, lab transfers, breeder shares) this browser can't open: sealed with
+ * a vault key it doesn't have. Like locked records, shown plainly, deletable, not editable;
+ * only their id is known, so that is what is shown. Nothing when there are none.
+ */
+export const LockedAgreements: React.FC = () => {
+  const rows = useLockedLicenses();
+  const tr = useT();
+  const { t, tp } = tr;
+  if (rows.length === 0) return null;
+  return (
+    <Paper sx={{ p: { xs: 2, md: 2.5 } }} data-locked-agreements="">
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
+        <LockIcon aria-hidden="true" />
+        <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
+          {tp('app.sealed.lockedAgreements.title', rows.length)}
+        </Typography>
+      </Stack>
+      <Typography variant="body2" sx={{ mb: 0.5 }}>
+        {t('app.sealed.lockedAgreements.text')}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+        {t('app.sealed.lockedAgreements.cantChange')}
+      </Typography>
+      <Stack spacing={1.5} sx={{ mb: 1.5 }}>
         {rows.map((r) => (
-          <LockedRowLine key={r.id} row={r} />
+          <LockedRowLine
+            key={r.id}
+            row={r}
+            name={t('app.sealed.lockedAgreements.name')}
+            confirm={t('app.sealed.lockedAgreements.deleteConfirm', { id: r.id })}
+            remove={deleteLockedLicense}
+            kind="agreement"
+          />
         ))}
       </Stack>
       <Button component={RouterLink} to="/restore" variant="outlined" sx={{ minHeight: 44 }}>

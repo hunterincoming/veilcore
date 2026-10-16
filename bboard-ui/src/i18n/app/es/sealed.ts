@@ -25,6 +25,14 @@ export const sealed = {
     '¿Borrar {name} de VeilCore? No se puede abrir en este navegador y, una vez borrado, nadie podrá recuperarlo.',
   'app.sealed.locked.deleted': 'Borrado.',
   'app.sealed.locked.deleteFailed': 'No se borró: {error}',
+  'app.sealed.lockedAgreements.title.one': '{count} acuerdo bloqueado',
+  'app.sealed.lockedAgreements.title.other': '{count} acuerdos bloqueados',
+  'app.sealed.lockedAgreements.text':
+    'Este navegador no tiene la clave de estos acuerdos (licencias, envíos a laboratorio o material compartido con criadores). Restaure su archivo de copia de seguridad más reciente. VeilCore no puede abrirlos por usted.',
+  'app.sealed.lockedAgreements.cantChange': 'Un acuerdo bloqueado no se puede cambiar ni enviar. Puede borrarlo.',
+  'app.sealed.lockedAgreements.name': 'Acuerdo bloqueado',
+  'app.sealed.lockedAgreements.deleteConfirm':
+    '¿Borrar el acuerdo {id} de VeilCore? No se puede abrir en este navegador y, una vez borrado, nadie puede recuperarlo.',
   'app.sealed.truncated':
     'VeilCore envió solo una parte de sus registros, así que puede que falten algunos aquí. Vuelva a cargar la página para intentarlo de nuevo.',
   'app.sealed.unreadable.one':

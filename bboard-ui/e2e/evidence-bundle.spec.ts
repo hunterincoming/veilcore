@@ -15,12 +15,24 @@ import path from 'node:path';
 import { expect, test, firefox, type Browser, type Download, type Locator, type Page } from '@playwright/test';
 import { unzipSync } from 'fflate';
 import { buildBatch, canonicalise, generateKeypair, signAttestation } from 'veilcore-records';
-import { API, REAL_REGISTRY, expectNoErrors, isolate, json, watch } from './helpers';
+import {
+  API,
+  REAL_REGISTRY,
+  expectNoErrors,
+  isolate,
+  json,
+  newVaultKey,
+  sealedRecordRow,
+  vaultStorageValue,
+  watch,
+} from './helpers';
 
 const OPERATOR = process.env.E2E_OPERATOR_TOKEN ?? '';
 const ANCHOR_CONTRACT = process.env.E2E_ANCHOR_CONTRACT ?? '7a'.repeat(32);
 const ANCHOR_TX = randomBytes(32).toString('hex');
 const HOLDER = randomBytes(32).toString('hex');
+// The holder's vault key: a real registry takes records only sealed (CONTRACT.md #4).
+const VAULT = newVaultKey();
 
 const sha256 = (b: string | Uint8Array) => createHash('sha256').update(b).digest('hex');
 /** H(tag, ...) of SPEC 3.6.1: SHA-256 over the zero-padded tag and 32-byte pieces. */
@@ -248,7 +260,15 @@ const real = async (): Promise<Setup> => {
     if (!res.ok) throw new Error(`${method} ${p}: ${res.status} ${text}`);
     return JSON.parse(text) as Record<string, unknown>;
   };
-  await call('PUT', '/api/records', [bound, older], { 'x-holder-key': HOLDER });
+  const saved = await call(
+    'PUT',
+    '/api/records',
+    [bound, older].map((r) => sealedRecordRow(r, VAULT)),
+    {
+      'x-holder-key': HOLDER,
+    },
+  );
+  if (saved.count !== 2) throw new Error(`PUT /api/records stored ${String(saved.count)}: ${JSON.stringify(saved)}`);
   const kp = await generateKeypair();
   const signed = await signAttestation(
     {
@@ -284,13 +304,15 @@ const real = async (): Promise<Setup> => {
 
 const openPlant = async (page: Page, setup: Setup, id: string) => {
   await page.addInitScript(
-    ({ holder, keys }) => {
+    ({ holder, keys, vault }) => {
       localStorage.setItem('veilcore.holder.v1', holder);
+      localStorage.setItem('veilcore.vault.v1', vault);
       localStorage.setItem('veilcore.role.v1', 'breeder');
       localStorage.setItem('veilcore.record-keys.v1', JSON.stringify(keys));
     },
     {
       holder: HOLDER,
+      vault: vaultStorageValue(VAULT),
       keys: {
         [bound.id]: {
           recordId: bound.id,

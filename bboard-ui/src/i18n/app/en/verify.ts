@@ -5,6 +5,8 @@
 export const verify = {
   // saved-report.ts publicReportLine and withdrawnSignaturesLine
   'app.verify.report.notSaved': 'The holder has not saved a DNA report to this record.',
+  'app.verify.report.pending':
+    'Which DNA report is saved isn’t shown right now: the record changed after the holder chose to share it, and their app hasn’t sent the update yet.',
   'app.verify.report.asOf': ' (as of when this link was made)',
   'app.verify.report.staleNote':
     ' This link was made when a different file was saved; this line is about the one saved now.',

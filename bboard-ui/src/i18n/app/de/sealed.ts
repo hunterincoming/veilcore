@@ -26,6 +26,15 @@ export const sealed = {
     'Datensatz {name} aus VeilCore löschen? Er lässt sich in diesem Browser nicht öffnen, und nach dem Löschen kann ihn niemand zurückholen.',
   'app.sealed.locked.deleted': 'Gelöscht.',
   'app.sealed.locked.deleteFailed': 'Er wurde nicht gelöscht: {error}',
+  'app.sealed.lockedAgreements.title.one': '{count} verschlossene Vereinbarung',
+  'app.sealed.lockedAgreements.title.other': '{count} verschlossene Vereinbarungen',
+  'app.sealed.lockedAgreements.text':
+    'Dieser Browser hat den Schlüssel für diese Vereinbarungen (Lizenzen, Laborübergaben oder Weitergaben an Züchter) nicht. Stellen Sie Ihre neueste Sicherungsdatei wieder her. VeilCore kann sie nicht für Sie öffnen.',
+  'app.sealed.lockedAgreements.cantChange':
+    'Eine verschlossene Vereinbarung kann nicht geändert oder gesendet werden. Sie können sie löschen.',
+  'app.sealed.lockedAgreements.name': 'Verschlossene Vereinbarung',
+  'app.sealed.lockedAgreements.deleteConfirm':
+    'Vereinbarung {id} aus VeilCore löschen? Sie lässt sich in diesem Browser nicht öffnen, und nach dem Löschen kann sie niemand zurückholen.',
   'app.sealed.truncated':
     'VeilCore hat nur einen Teil Ihrer Datensätze gesendet, daher fehlen hier vielleicht einige. Laden Sie die Seite neu, um es noch einmal zu versuchen.',
   'app.sealed.unreadable.one':

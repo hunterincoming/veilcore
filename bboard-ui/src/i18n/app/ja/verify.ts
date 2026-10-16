@@ -5,6 +5,8 @@ import type { AppTranslation } from '../../translate';
 
 export const verify = {
   'app.verify.report.notSaved': '保有者はこの記録にDNA報告書を保存していません。',
+  'app.verify.report.pending':
+    '保存されているDNAレポートは現在表示されていません。保有者が共有を選んだ後に記録が変更され、保有者のアプリがまだ更新を送っていません。',
   'app.verify.report.asOf': '（このリンクが作られた時点）',
   'app.verify.report.staleNote':
     'このリンクは別のファイルが保存されていたときに作られました。この行は、今保存されているファイルについてのものです。',

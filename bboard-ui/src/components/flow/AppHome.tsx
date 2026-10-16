@@ -35,7 +35,7 @@ import { PasteBox } from './PasteBox';
 import { labCardLine, useLabCardFacts, useWaitingByRecord } from './LabResults';
 import { quantityPhrase } from '../../veilcore/transfers';
 import { TrustPanel } from '../TrustPanel';
-import { LockedRecords, LoadNoticeBar } from '../LockedRecords';
+import { LockedAgreements, LockedRecords, LoadNoticeBar } from '../LockedRecords';
 import { useVaultNeedsBackup } from '../../veilcore/vault';
 import { RegistryExportButton } from '../RegistryExportButton';
 import { draftHeading, loadDraft } from './log-flow-state';
@@ -192,6 +192,7 @@ export const AppHome: React.FC = () => {
           )}
           <LoadNoticeBar />
           <LockedRecords />
+          <LockedAgreements />
           <PasteBox />
           <Stack spacing={1} sx={{ alignItems: 'center', pt: 1 }}>
             <Button component={RouterLink} to="/records/import" sx={{ minHeight: 44 }}>
@@ -285,6 +286,7 @@ export const AppHome: React.FC = () => {
         )}
 
         <LockedRecords />
+        <LockedAgreements />
 
         {isLab(role) && labPanel('h2')}
 

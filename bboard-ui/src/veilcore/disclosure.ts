@@ -27,6 +27,7 @@ import { readJson, isObject, isString } from './json';
 import { enT, type Translator } from '../i18n/translate';
 import { isAnimal } from './animal-profile';
 import type { StrainRecord } from './records';
+import { stableStringify } from './vault';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
@@ -218,14 +219,37 @@ export const saveGrant = async (record: StrainRecord, d: Disclosure): Promise<Gr
   }
 };
 
-/** A grant as GET /api/disclosures lists it. */
-type ListedGrant = { recordId: string; show: string[]; forFingerprint: string | null };
+/**
+ * A grant as GET /api/disclosures lists it. `values` is what it publishes now (null for a
+ * grant made before values); absent from a registry that doesn't list them, and then read
+ * per record from GET /api/records/:id/disclosure.
+ */
+type ListedGrant = { recordId: string; show: string[]; forFingerprint: string | null; values?: unknown };
 const isListedGrant = (v: unknown): v is ListedGrant =>
   isObject(v) &&
   isString(v.recordId) &&
   Array.isArray(v.show) &&
   v.show.every(isString) &&
   (v.forFingerprint === null || v.forFingerprint === undefined || isString(v.forFingerprint));
+
+/** The values a grant publishes now, as the registry holds them (null: none, or not known). */
+const storedValuesOf = async (g: ListedGrant, key: string): Promise<unknown> => {
+  if (g.values !== undefined) return g.values;
+  try {
+    const res = await fetch(`${BASE}/api/records/${encodeURIComponent(g.recordId)}/disclosure`, {
+      headers: { 'x-holder-key': key },
+    });
+    if (!res.ok) return null;
+    const body = await readJson(res);
+    return isObject(body) ? (body.values ?? null) : null;
+  } catch {
+    return null;
+  }
+};
+
+/** Whether the registry publishes exactly the values this browser would send now. */
+export const sameGrantValues = (stored: unknown, wanted: GrantValues): boolean =>
+  isObject(stored) && stableStringify(stored) === stableStringify(wanted);
 
 /** Grants whose values are worth sending: one that publishes a value. */
 const VALUE_KEYS: readonly DisclosureKey[] = [
@@ -240,12 +264,14 @@ let syncing: Promise<number> | null = null;
 let again: { force: Set<string> } | null = null;
 
 /**
- * Send again the grants whose values were read from an older version of their record (or
- * before grants carried values): GET /api/disclosures, then a PUT for each whose
- * forFingerprint isn't the record's fingerprint now. `force` names records whose granted
- * values changed without the fingerprint changing (a DNA report paired). Only records
- * this browser holds, opened, and matching their fingerprint (api-store.ts): a value is
- * never published from a record that doesn't. Returns how many were sent.
+ * Send again the grants whose published values are not what this browser would send now:
+ * GET /api/disclosures, then a PUT for each whose forFingerprint isn't the record's
+ * fingerprint now, or whose stored values differ from the values read from the record here.
+ * A DNA pairing is outside the fingerprint, so pairing a new report changes the values
+ * without changing the fingerprint; comparing the values catches that wherever it happened
+ * (another tab, another device). `force` names records to send whatever the comparison says.
+ * Only records this browser holds, opened, and matching their fingerprint (api-store.ts): a
+ * value is never published from a record that doesn't. Returns how many were sent.
  */
 export const syncGrants = (
   getRecord: (id: string) => StrainRecord | undefined,
@@ -277,7 +303,9 @@ export const syncGrants = (
       if (!r || !r.recordFingerprint || !isIntact(r.id)) continue;
       const show = keysOn(disclosureFrom(g.show));
       if (!show.some((k) => VALUE_KEYS.includes(k))) continue;
-      if (g.forFingerprint === r.recordFingerprint && !forced.has(r.id)) continue;
+      if (g.forFingerprint === r.recordFingerprint && !forced.has(r.id)) {
+        if (sameGrantValues(await storedValuesOf(g, key), grantValuesFor(r, show))) continue;
+      }
       try {
         if ((await putGrant(r, show)).ok) sent++;
       } catch {

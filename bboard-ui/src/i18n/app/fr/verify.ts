@@ -5,6 +5,8 @@ import type { AppTranslation } from '../../translate';
 
 export const verify = {
   'app.verify.report.notSaved': 'Le détenteur n’a pas enregistré de rapport ADN sur cet enregistrement.',
+  'app.verify.report.pending':
+    'Le rapport ADN enregistré n’est pas affiché pour le moment : l’enregistrement a changé après que son détenteur a choisi de le partager, et son application n’a pas encore envoyé la mise à jour.',
   'app.verify.report.asOf': ' (au moment où ce lien a été créé)',
   'app.verify.report.staleNote':
     ' Ce lien a été créé quand un autre fichier était enregistré ; cette ligne concerne celui enregistré maintenant.',

@@ -5,6 +5,8 @@ import type { AppTranslation } from '../../translate';
 
 export const verify = {
   'app.verify.report.notSaved': 'El titular no ha guardado un informe de ADN en este registro.',
+  'app.verify.report.pending':
+    'Ahora no se muestra qué informe de ADN está guardado: el registro cambió después de que el titular eligiera compartirlo, y su aplicación aún no ha enviado la actualización.',
   'app.verify.report.asOf': ' (a la fecha en que se hizo este enlace)',
   'app.verify.report.staleNote':
     ' Este enlace se hizo cuando había otro archivo guardado; esta línea trata del que está guardado ahora.',

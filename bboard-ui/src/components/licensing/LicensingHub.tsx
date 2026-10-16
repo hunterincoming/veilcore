@@ -7,7 +7,7 @@ import { Box, Link, Paper, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import EastIcon from '@mui/icons-material/East';
 import { motion } from 'framer-motion';
-import { useLicenses, allLicenses, agreementType } from '../../veilcore/licenses';
+import { useLicenses, allLicenses, agreementType, useLockedLicenses } from '../../veilcore/licenses';
 import { getRecord } from '../../veilcore/records';
 import { AppHeader } from '../AppHeader';
 import { InEnglishPage } from '../../i18n/app';
@@ -15,6 +15,7 @@ import { LicenseStateChip } from './LicenseStateChip';
 import { AgreementTypeChip } from './AgreementTypeChip';
 import { AGREEMENTS_SIMULATED } from '../../config/copy';
 import { linkCard } from '../a11y';
+import { LockedAgreements } from '../LockedRecords';
 
 const MPaper = motion(Paper);
 
@@ -22,6 +23,7 @@ export const LicensingHub: React.FC = () => {
   useLicenses();
   const navigate = useNavigate();
   const licenses = allLicenses();
+  const locked = useLockedLicenses();
 
   return (
     <Box>
@@ -35,7 +37,10 @@ export const LicensingHub: React.FC = () => {
         {AGREEMENTS_SIMULATED}
       </Typography>
 
-      {licenses.length === 0 ? (
+      <Box sx={{ mb: 2 }}>
+        <LockedAgreements />
+      </Box>
+      {licenses.length === 0 && locked.length === 0 ? (
         <Paper sx={{ p: 4, textAlign: 'center', borderStyle: 'dashed' }}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
             No agreements yet. Open one of your records and choose License, Send to a lab, or Share with a breeder.

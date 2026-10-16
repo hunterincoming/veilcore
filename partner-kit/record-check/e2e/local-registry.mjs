@@ -12,7 +12,7 @@
 //   undated  sealed after the batch: in no batch
 // SPDX-License-Identifier: Apache-2.0
 import { spawn } from 'node:child_process';
-import { createHash, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { canonicalise, generateKeypair, signAttestation, signRetraction } from 'veilcore-records';
@@ -46,6 +46,62 @@ const seal = (r) => {
   };
 };
 const recordId = () => `VEIL-${randomBytes(16).toString('hex').toUpperCase()}`;
+
+// Sealed records (the site's CONTRACT.md for sealed records): the registry refuses a record
+// in plain text, so the seed seals each one as the site's browser does (bboard-ui
+// api-store.ts and vault.ts): the public fields in the clear, the rest AES-256-GCM under a
+// vault key, bound to its row by the AAD. A delivery's details go in a sealed offer opened
+// with a key from the code; the lab's record is built from the claim's stub and the offer.
+const PUBLIC_FIELDS = [
+  'id',
+  'strainName',
+  'profile',
+  'recordFingerprint',
+  'keyBinding',
+  'supersededBy',
+  'receivedFrom',
+  'receivedFromCommitment',
+  'receivedAt',
+  'transferId',
+  'attestation',
+];
+const gcm = (key, aad, value) => {
+  const iv = randomBytes(12);
+  const c = createCipheriv('aes-256-gcm', key, iv);
+  c.setAAD(Buffer.from(aad));
+  const ct = Buffer.concat([c.update(JSON.stringify(value), 'utf8'), c.final(), c.getAuthTag()]);
+  return { v: 1, alg: 'A256GCM', iv: iv.toString('base64url'), ct: ct.toString('base64url') };
+};
+const ungcm = (key, aad, box) => {
+  const raw = Buffer.from(box.ct, 'base64url');
+  const d = createDecipheriv('aes-256-gcm', key, Buffer.from(box.iv, 'base64url'));
+  d.setAAD(Buffer.from(aad));
+  d.setAuthTag(raw.subarray(raw.length - 16));
+  return JSON.parse(Buffer.concat([d.update(raw.subarray(0, raw.length - 16)), d.final()]).toString('utf8'));
+};
+const kidOf = (key) => sha256(Buffer.concat([Buffer.from('veilcore:vault-id:v1:'), key])).slice(0, 16);
+const sealedRow = (r, key) => {
+  const kid = kidOf(key);
+  const open = {};
+  const hidden = {};
+  for (const [k, v] of Object.entries(r)) {
+    if (v === undefined) continue;
+    (PUBLIC_FIELDS.includes(k) ? open : hidden)[k] = v;
+  }
+  return { ...open, sealed: { ...gcm(key, `veilcore:sealed:v1\0records\0${r.id}\0${kid}`, hidden), kid } };
+};
+const offerAad = (src) => `veilcore:offer:v1\0${src.id}\0${src.recordFingerprint}`;
+/** What a grant publishes, read from the record (the site's disclosure.ts grantValuesFor). */
+const grantFor = (r, show) => ({
+  show,
+  forFingerprint: r.recordFingerprint,
+  values: show.includes('attestation-status')
+    ? {
+        ...(r.dnaFingerprint ? { dnaFingerprint: r.dnaFingerprint } : {}),
+        ...(r.dnaFileSha256 ? { dnaFileSha256: r.dnaFileSha256 } : {}),
+      }
+    : {},
+});
 
 const today = () => new Date().toISOString().slice(0, 10);
 const inMonths = (n) => {
@@ -120,6 +176,17 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
     const op = { 'x-operator-token': OPERATOR };
     const HOLDER = randomBytes(32).toString('hex');
     const holder = { 'x-holder-key': HOLDER };
+    const VAULT = randomBytes(32);
+    const put = async (rows, headers, vault) => {
+      const r = await call(
+        'PUT',
+        '/api/records',
+        rows.map((x) => sealedRow(x, vault)),
+        headers,
+      );
+      if (r.count !== rows.length)
+        throw new Error(`PUT /api/records stored ${r.count} of ${rows.length}: ${JSON.stringify(r)}`);
+    };
 
     const SECRET = randomBytes(32).toString('hex');
     const KEY = H('veilcore:v1:commit', SECRET);
@@ -148,8 +215,13 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
       loggedAt: Date.now() - 120_000,
       licenseIds: [],
     });
-    await call('PUT', '/api/records', [bound, older], holder);
-    await call('PUT', `/api/records/${bound.id}/disclosure`, { show: ['existence', 'attestation-status'] }, holder);
+    await put([bound, older], holder, VAULT);
+    await call(
+      'PUT',
+      `/api/records/${bound.id}/disclosure`,
+      grantFor(bound, ['existence', 'attestation-status']),
+      holder,
+    );
 
     // A lab whose name VeilCore's operator checked, and one nobody checked.
     const register = async (kp, displayName) => {
@@ -235,10 +307,16 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
     // as the site signs it), attached to the delivery.
     const deliver = async (sample, arrival) => {
       const labHolder = { 'x-holder-key': randomBytes(32).toString('hex') };
+      const offerKey = randomBytes(32);
+      const sealedOffer = gcm(offerKey, offerAad(bound), {
+        strainName: bound.strainName,
+        bredBy: bound.bredBy,
+        dateCreated: bound.dateCreated,
+      });
       const offer = await call(
         'POST',
         '/transfers',
-        { sourceRecord: bound.id, toHandle: 'lab@e2e.test', sample },
+        { sourceRecord: bound.id, toHandle: 'lab@e2e.test', sample, sealedOffer },
         holder,
       );
       const claim = await call(
@@ -247,9 +325,21 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
         { claimCode: offer.claimCode },
         labHolder,
       );
-      const got = (await call('GET', '/api/records', undefined, labHolder)).find((r) => r.id === claim.recordId);
-      const received = seal(got);
-      await call('PUT', '/api/records', [received], labHolder);
+      const stub = (await call('GET', '/api/records', undefined, labHolder)).find((r) => r.id === claim.recordId);
+      const fromOffer = ungcm(offerKey, offerAad(bound), claim.offerSealed);
+      const received = seal({
+        ...stub,
+        ...fromOffer,
+        notes: '',
+        breedingMethod: '',
+        parents: [],
+        photoFingerprints: [],
+        refId: '',
+        licenseIds: [],
+        nonce: randomBytes(32).toString('hex'),
+        loggedAt: stub.receivedAt,
+      });
+      await put([received], labHolder, randomBytes(32));
       await call('POST', `/transfers/${offer.transferId}/custody`, { arrival }, labHolder);
       const digest = sha256(
         canonicalise({ format: 'veilcore/sample-custody/v1', transferId: offer.transferId, sample, arrival }),
@@ -326,7 +416,7 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
       loggedAt: Date.now(),
       licenseIds: [],
     });
-    await call('PUT', '/api/records', [bound, older, undated], holder);
+    await put([bound, older, undated], holder, VAULT);
 
     const link = (r, extra = '') => `https://veilcore.org/verify/${r.id}?fp=${r.recordFingerprint}${extra}`;
     return {

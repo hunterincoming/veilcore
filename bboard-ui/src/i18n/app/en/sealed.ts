@@ -27,6 +27,15 @@ export const sealed = {
     'Delete {name} from VeilCore? It can’t be opened in this browser, and once it’s deleted nobody can bring it back.',
   'app.sealed.locked.deleted': 'Deleted.',
   'app.sealed.locked.deleteFailed': 'It wasn’t deleted: {error}',
+  // LockedRecords.tsx LockedAgreements (Home and the agreements page)
+  'app.sealed.lockedAgreements.title.one': '{count} locked agreement',
+  'app.sealed.lockedAgreements.title.other': '{count} locked agreements',
+  'app.sealed.lockedAgreements.text':
+    'This browser doesn’t have the key for these agreements (licenses, lab transfers or breeder shares). Restore your latest backup file. VeilCore can’t open them for you.',
+  'app.sealed.lockedAgreements.cantChange': 'A locked agreement can’t be changed or sent. You can delete it.',
+  'app.sealed.lockedAgreements.name': 'Locked agreement',
+  'app.sealed.lockedAgreements.deleteConfirm':
+    'Delete agreement {id} from VeilCore? It can’t be opened in this browser, and once it’s deleted nobody can bring it back.',
   // AppHome.tsx: the last load
   'app.sealed.truncated':
     'VeilCore sent only part of your records, so some may be missing here. Reload the page to try again.',

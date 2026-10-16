@@ -208,6 +208,21 @@ const HEX64 = /^[0-9a-f]{64}$/;
  * file is saved now. Only a registry too old to send the pairing leaves the link's word,
  * and then the line says "as of when this link was made".
  */
+/**
+ * Whether the registry shares the lab status but has left out which report is saved because
+ * the holder's values are stale (it lists `dna` under staleGrant and sends no
+ * dnaPairedByHolder). The check page then says the pairing isn't known yet: it must never
+ * read as "no report saved".
+ */
+export const pairingPending = (r: { staleGrant?: unknown; dnaPairedByHolder?: unknown } | null | undefined): boolean =>
+  !!r && Array.isArray(r.staleGrant) && r.staleGrant.includes('dna') && r.dnaPairedByHolder === undefined;
+
+/** The report line while the pairing is pending: reported, never ticked, no tie claimed. */
+export const pendingReportLine = (tr: Translator = enT): { status: FactStatus; text: string } => ({
+  status: 'reported',
+  text: tr.t('app.verify.report.pending'),
+});
+
 export const publicReportLine = (
   input: {
     paired: boolean | undefined;

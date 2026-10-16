@@ -11,7 +11,7 @@ import { store } from './store';
 import { reportSave } from './save-status';
 import { holderPartyId } from './holder';
 import { canonicalise, newNonce } from './commitment';
-import { rowStateOf } from './api-store';
+import { deleteLicenses, lockedRowsOf, onSealedStateChange, rowStateOf, type LockedRow } from './api-store';
 
 export type LicenseState = 'draft' | 'sent' | 'active' | 'expired' | 'revoked';
 
@@ -128,6 +128,36 @@ const hydrate = async (): Promise<void> => {
   }
 };
 let convertTried = false;
+
+/**
+ * Agreements this browser can't open (sealed records, CONTRACT.md #11): sealed with a vault
+ * key it doesn't have, or emptied by the registry's purge. Only their id is known. Shown as
+ * locked, never sent back by a save (api-store.ts), never edited; they can be deleted.
+ */
+let locked: readonly LockedRow[] = [];
+onSealedStateChange(() => {
+  const now = lockedRowsOf(KEY);
+  if (now.length === locked.length && now.every((r, i) => r.id === locked[i].id)) return;
+  locked = now;
+  notify();
+});
+export const lockedLicenses = (): readonly LockedRow[] => locked;
+export const useLockedLicenses = (): readonly LockedRow[] =>
+  useSyncExternalStore(
+    subscribe,
+    () => locked,
+    () => locked,
+  );
+
+/** Delete a locked agreement from VeilCore's registry: the one thing a locked agreement allows. */
+export const deleteLockedLicense = async (id: string): Promise<{ ok: true } | { error: string }> => {
+  if (!locked.some((l) => l.id === id)) return { error: 'that agreement isn’t locked' };
+  const out = await deleteLicenses([id]);
+  if ('error' in out) return out;
+  if (!out.removed.includes(id)) return { error: 'no such agreement under this holder key' };
+  await hydrate();
+  return { ok: true };
+};
 
 /**
  * Load from the registry. Started by the pages that show agreements, not on import:

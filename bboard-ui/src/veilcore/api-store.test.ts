@@ -24,6 +24,7 @@ let transfers: Map<string, Record<string, unknown>>;
 let sent: { method: string; url: string; headers: string; body: string }[];
 let truncate: number | null;
 let failPaging: boolean;
+let listValues: boolean;
 
 const json = (v: unknown, status = 200, headers: Record<string, string> = {}) =>
   Promise.resolve(
@@ -73,8 +74,25 @@ const registry = (input: RequestInfo | URL, init?: RequestInit): Promise<Respons
     grants.set(decodeURIComponent(grant[1]), g);
     return json({ recordId: grant[1], show: g.show, updatedAt: '2026-10-16T00:00:00.000Z' });
   }
+  if (grant && method === 'GET') {
+    const g = grants.get(decodeURIComponent(grant[1]));
+    return json({
+      recordId: grant[1],
+      show: g?.show ?? [],
+      forFingerprint: g?.forFingerprint ?? null,
+      values: g?.values ?? null,
+    });
+  }
   if (path === '/api/disclosures') {
-    return json([...grants].map(([recordId, g]) => ({ recordId, show: g.show, forFingerprint: g.forFingerprint })));
+    // As the registry lists them (with `values`), or as one that doesn't list values.
+    return json(
+      [...grants].map(([recordId, g]) => ({
+        recordId,
+        show: g.show,
+        forFingerprint: g.forFingerprint,
+        ...(listValues ? { values: g.values } : {}),
+      })),
+    );
   }
   if (path === '/transfers' && method === 'POST') {
     const b = JSON.parse(body) as Record<string, unknown>;
@@ -116,6 +134,7 @@ beforeEach(() => {
   sent = [];
   truncate = null;
   failPaging = false;
+  listValues = true;
   vi.stubGlobal('localStorage', {
     getItem: (k: string) => local.get(k) ?? null,
     setItem: (k: string, v: string) => void local.set(k, v),
@@ -386,6 +405,81 @@ describe('locked rows', () => {
     expect('error' in (await records.deleteLockedRecord(records.allRecords()[0].id))).toBe(true);
   });
 
+  it('a locked agreement is listed and shown plainly, never sent back by a save, and can be deleted', async () => {
+    const { records } = await modules();
+    records.createRecord(await plantInput());
+    await settle();
+    const lic = await import('./licenses');
+    lic.startLicenseSync();
+    lic.createLicense({
+      type: 'license',
+      recordId: 'VEIL-X',
+      recordFingerprint: 'f'.repeat(64),
+      agreementFingerprint: 'a'.repeat(64),
+      terms: { licensee: S.licensee } as never,
+    });
+    await settle();
+    // Sealed under another vault key: only its id and box are on the registry.
+    licenses.set('LIC-LOCKED', { id: 'LIC-LOCKED', sealed: foreignRow('LIC-LOCKED', '').sealed });
+    const lockedBefore = structuredClone(licenses.get('LIC-LOCKED'));
+    vi.resetModules();
+    const lic2 = await import('./licenses');
+    lic2.startLicenseSync();
+    await settle();
+    expect(lic2.lockedLicenses()).toEqual([{ id: 'LIC-LOCKED', kid: 'f00dfacecafe0001' }]);
+    expect(lic2.allLicenses().map((l) => l.id)).not.toContain('LIC-LOCKED');
+
+    // Shown like a locked record: plainly, with a Delete button and the way back; no edit.
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { MemoryRouter } = await import('react-router-dom');
+    const { LockedAgreements } = await import('../components/LockedRecords');
+    const { LanguageProvider } = await import('../i18n');
+    // The language picker reads the page's address and storage: English, no ?lang=.
+    vi.stubGlobal('window', { localStorage, location: { search: '' } });
+    let html: string;
+    try {
+      html = renderToStaticMarkup(
+        React.createElement(
+          LanguageProvider,
+          null,
+          React.createElement(MemoryRouter, null, React.createElement(LockedAgreements)),
+        ),
+      );
+    } finally {
+      vi.stubGlobal('window', undefined);
+    }
+    expect(html).toContain('1 locked agreement');
+    expect(html).toContain('data-locked-agreement="LIC-LOCKED"');
+    expect(html).toContain('LIC-LOCKED');
+    expect(html).toContain('Delete');
+    expect(html).toContain('Restore my backup');
+    expect(html).toContain('can’t be changed or sent');
+    expect(html).not.toMatch(/Edit|Renew|Revoke/);
+
+    // A save of the open agreements leaves it alone.
+    sent = [];
+    lic2.createLicense({
+      type: 'license',
+      recordId: 'VEIL-Y',
+      recordFingerprint: 'e'.repeat(64),
+      agreementFingerprint: 'b'.repeat(64),
+      terms: { licensee: 'Other' } as never,
+    });
+    await settle();
+    const puts = sent.filter((x) => x.method === 'PUT' && x.url.endsWith('/api/licenses'));
+    expect(puts.length).toBe(1);
+    expect(puts[0].body.includes('LIC-LOCKED')).toBe(false);
+    expect(licenses.get('LIC-LOCKED')).toEqual(lockedBefore);
+
+    expect(await lic2.deleteLockedLicense('LIC-LOCKED')).toEqual({ ok: true });
+    expect(licenses.has('LIC-LOCKED')).toBe(false);
+    expect(sent.some((x) => x.method === 'DELETE' && x.url.endsWith('/api/licenses'))).toBe(true);
+    expect(lic2.lockedLicenses()).toEqual([]);
+    // Only a locked agreement goes this way.
+    expect('error' in (await lic2.deleteLockedLicense(lic2.allLicenses()[0].id))).toBe(true);
+  });
+
   it('with sealed rows and no key here, no key is made and nothing is saved', async () => {
     const { records, vault } = await modules();
     const holder = await import('./holder');
@@ -563,6 +657,43 @@ describe('disclosure grants carry their values', () => {
     await settle();
     expect(sent.filter((r) => r.method === 'PUT' && r.url.endsWith('/disclosure'))).toEqual([]);
     expect(sent.some((r) => r.url.endsWith('/api/disclosures'))).toBe(true);
+  });
+
+  it('a pairing changed without the fingerprint changing (another tab or device) is sent again: the values differ', async () => {
+    const { records } = await modules();
+    const { saveGrant, disclosureFrom, syncGrants } = await import('./disclosure');
+    const rec = records.createRecord(await plantInput());
+    await settle();
+    records.pairDna(rec.id, S.dnaFp, 'r.pdf', { fileSha256: 'a'.repeat(64) });
+    await settle();
+    await saveGrant(records.getRecord(rec.id)!, disclosureFrom(['existence', 'attestation-status']));
+    expect(grants.get(rec.id)?.values).toEqual({ dnaFingerprint: S.dnaFp, dnaFileSha256: 'a'.repeat(64) });
+
+    // The record as this browser now holds it: a different report paired, same fingerprint,
+    // and no `force` from a pairing made in this tab.
+    const repaired = { ...records.getRecord(rec.id)!, dnaFingerprint: 'e'.repeat(64), dnaFileSha256: 'f'.repeat(64) };
+    expect(repaired.recordFingerprint).toBe(rec.recordFingerprint);
+    sent = [];
+    expect(await syncGrants((id) => (id === rec.id ? repaired : undefined))).toBe(1);
+    expect(grants.get(rec.id)).toEqual({
+      show: ['existence', 'attestation-status'],
+      forFingerprint: rec.recordFingerprint,
+      values: { dnaFingerprint: 'e'.repeat(64), dnaFileSha256: 'f'.repeat(64) },
+    });
+    // Now the same: nothing sent.
+    sent = [];
+    expect(await syncGrants((id) => (id === rec.id ? repaired : undefined))).toBe(0);
+    expect(sent.filter((r) => r.method === 'PUT')).toEqual([]);
+
+    // A registry that doesn't list values: read per record, and compared the same way.
+    listValues = false;
+    const unpaired = { ...repaired, dnaFingerprint: undefined, dnaFileSha256: undefined };
+    sent = [];
+    expect(await syncGrants((id) => (id === rec.id ? unpaired : undefined))).toBe(1);
+    expect(sent.some((r) => r.method === 'GET' && r.url.endsWith(`/api/records/${rec.id}/disclosure`))).toBe(true);
+    expect(grants.get(rec.id)?.values).toEqual({});
+    sent = [];
+    expect(await syncGrants((id) => (id === rec.id ? unpaired : undefined))).toBe(0);
   });
 });
 
