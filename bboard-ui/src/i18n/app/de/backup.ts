@@ -52,7 +52,7 @@ export const backup = {
   'app.backup.keyLabel': 'Ihr Inhaberschlüssel (64 Zeichen)',
   'app.backup.useIt': 'Verwenden',
   'app.backup.olderVersion':
-    'Nur wenn Sie ihn aus einer älteren Version dieser Website kopiert haben: Er wird heute nirgends mehr angezeigt. Damit kommen Ihre Datensätze zurück. Die Datumsstempel-Schlüssel einer Pflanze sind nur in der Sicherungsdatei.',
+    'Nur wenn Sie ihn aus einer älteren Version dieser Website kopiert haben: Er wird heute nirgends mehr angezeigt. Damit werden Ihre Datensätze gefunden, aber sie bleiben verschlossen, bis Sie Ihre Sicherungsdatei öffnen. Auch die Datumsstempel-Schlüssel einer Pflanze sind nur in dieser Datei.',
   'app.backup.cantFind':
     '<b>Sie finden die Datei nicht?</b> Dann kann niemand die Pflanzen zurückholen, auch wir nicht: Wir hatten Ihren Schlüssel nie. Genau das ermöglicht Ihnen den Nachweis, dass Sie sie halten. Wenn Ihr altes Gerät noch funktioniert, öffnen Sie dort VeilCore und speichern Sie eine neue Sicherungskopie.',
   'app.backup.holds.none': 'Ihre Datensätze sind darin.',

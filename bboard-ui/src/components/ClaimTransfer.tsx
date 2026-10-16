@@ -46,6 +46,8 @@ import {
   labErrorWords,
   parseShareCode,
   codeMissingLock,
+  codeMissingOfferKey,
+  openClaimOffer,
   publicFingerprintOf,
   quantityPhrase,
   sameDetails,
@@ -56,7 +58,14 @@ import {
   type CustodySubject,
   type SampleDetails,
 } from '../veilcore/transfers';
-import { hydrate, sealReceived, updateReceivedNotes, type StrainRecord } from '../veilcore/records';
+import {
+  getRecord,
+  hydrate,
+  offerFieldsOf,
+  sealReceived,
+  updateReceivedNotes,
+  type StrainRecord,
+} from '../veilcore/records';
 import { loadAttester, type AttesterProfile } from '../veilcore/attester-keys';
 import {
   deliveryForRecord,
@@ -620,7 +629,7 @@ export const ClaimTransfer: React.FC<{
 
   const claim = async () => {
     if (!code.trim()) return;
-    const { transferId, claimCode, resultLock } = parseShareCode(code);
+    const { transferId, claimCode, resultLock, offerKey } = parseShareCode(code);
     setBusy(true);
     setError(null);
     const res = await claimTransfer(transferId, claimCode);
@@ -630,14 +639,25 @@ export const ClaimTransfer: React.FC<{
       return;
     }
     await hydrate();
+    // The registry leaves only a stub (the name, where it came from); what the sender said
+    // about the material is in their sealed offer, opened here with the code's key. A code
+    // made before offers were sealed gets the same fields from the registry (offerPlain).
+    const offer = await openClaimOffer(res, offerKey, getRecord(res.recordId)?.receivedFromCommitment);
+    const fields = typeof offer === 'object' ? offerFieldsOf(offer.fields) : {};
+    const note = res.note ?? fields.note;
     // Seal the received record with the recipient's own commitment. They are not
     // copying the sender's evidence — they are committing to what they received:
     // this material, this quantity, this date, from this source. The breeder's note and
     // lock are kept beside it, outside the fingerprint, in the lab's own set.
-    const sealed = await sealReceived(res.recordId, {
-      ...(res.note ? { deliveryNote: res.note.slice(0, 2000) } : {}),
-      ...(resultLock ? { resultLock } : {}),
-    });
+    const sealed = await sealReceived(
+      res.recordId,
+      {
+        ...(note ? { deliveryNote: note.slice(0, 2000) } : {}),
+        ...(resultLock ? { resultLock } : {}),
+      },
+      fields,
+    );
+    const notOpened = offer === 'unopened' ? t('app.sealed.recv.notOpened') : null;
     // Also kept in this browser (and its backup), so this lab can send lab reports back
     // even if the record's copy is missing (lab-results.ts).
     rememberDelivery({
@@ -652,7 +672,8 @@ export const ClaimTransfer: React.FC<{
     const attester = loadAttester();
     if (!attester) {
       setBusy(false);
-      finish(res.recordId);
+      if (notOpened) setStage({ step: 'refused', recordId: res.recordId, reason: notOpened });
+      else finish(res.recordId);
       return;
     }
     const subject = custodySubject({
@@ -662,9 +683,10 @@ export const ClaimTransfer: React.FC<{
       publicFingerprint: sealed?.receivedFrom ? await publicFingerprintOf(sealed.receivedFrom) : null,
     });
     setBusy(false);
+    if (notOpened && !('refuse' in subject)) setError(notOpened);
     setStage(
       'refuse' in subject
-        ? { step: 'refused', recordId: res.recordId, reason: subject.refuse }
+        ? { step: 'refused', recordId: res.recordId, reason: [notOpened, subject.refuse].filter(Boolean).join(' ') }
         : { step: 'sign', subject, attester, transferId, sample: res.sample ?? {} },
     );
   };
@@ -738,6 +760,11 @@ export const ClaimTransfer: React.FC<{
                 fullWidth
                 slotProps={{ htmlInput: { style: { fontFamily: 'monospace', letterSpacing: 1 } } }}
               />
+              {codeMissingOfferKey(code) && (
+                <Alert severity="warning" variant="outlined" data-missing-offer-key="">
+                  {t('app.sealed.recv.missingKey')}
+                </Alert>
+              )}
               {LAB_RESULTS_ENABLED && codeMissingLock(code) && (
                 <Alert severity="warning" variant="outlined" data-missing-lock="">
                   {t('app.lab.recv.missingLock')}

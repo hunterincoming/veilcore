@@ -50,7 +50,7 @@ export const backup = {
   'app.backup.keyLabel': 'Your holder key (64 characters)',
   'app.backup.useIt': 'Use it',
   'app.backup.olderVersion':
-    "Only if you copied it from an older version of this site: it isn't shown anywhere now. That brings back your records. A plant's date-stamp keys are only in the backup file.",
+    "Only if you copied it from an older version of this site: it isn't shown anywhere now. That finds your records, but they stay locked until you open your backup file. A plant's date-stamp keys are only in that file too.",
   'app.backup.cantFind':
     "<b>Can't find the file?</b> Then nobody can bring the plants back, us included: we never had your key. That's what lets you prove you hold them. If your old device still works, open VeilCore there and save a new backup.",
   // stage/record-kinds.ts

@@ -9,7 +9,16 @@ import LockIcon from '@mui/icons-material/LockOutlined';
 import { Link as RouterLink, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/DataObjectOutlined';
-import { useRecords, getRecord, exportEnvelope, childrenOf, allRecords } from '../veilcore/records';
+import {
+  useRecords,
+  getRecord,
+  exportEnvelope,
+  childrenOf,
+  allRecords,
+  integrityOf,
+  useSealedView,
+} from '../veilcore/records';
+import { LockedRecords } from './LockedRecords';
 import { useRecordKeys } from '../veilcore/record-keys';
 import { ProveOwnershipPanel } from './chain/ProveOwnershipPanel';
 import { BackupStep } from './flow/BackupStep';
@@ -150,6 +159,7 @@ export const RecordDetail: React.FC = () => {
   const [exportError, setExportError] = useState<string | null>(null);
   const [details, setDetails] = useState(false);
   const record = getRecord(id);
+  const { locked } = useSealedView();
   const keys = useRecordKeys()[id];
   const role = useRole();
   const labOnly = isLab(role) && !isBreeder(role);
@@ -184,6 +194,24 @@ export const RecordDetail: React.FC = () => {
     }
     return focusScreenHeading();
   }, [mode]);
+
+  // A record sealed with a key this browser doesn't have: shown as locked, not as missing.
+  if (!record && locked.some((l) => l.id === id)) {
+    return (
+      <Box sx={{ maxWidth: 680, mx: 'auto' }}>
+        <AppHeader />
+        <Button
+          component={RouterLink}
+          to="/records"
+          startIcon={<HomeIcon />}
+          sx={{ mb: 1.5, ml: -1.5, minHeight: 44, px: 1.5 }}
+        >
+          {t('app.plant.home')}
+        </Button>
+        <LockedRecords only={id} />
+      </Box>
+    );
+  }
 
   if (!record) {
     return (
@@ -254,6 +282,13 @@ export const RecordDetail: React.FC = () => {
           {record.id}
         </Typography>
       </Box>
+
+      {/* Worked out in this browser (api-store.ts): the registry can't read the record to check it. */}
+      {integrityOf(record.id) === 'mismatch' && (
+        <Alert severity="error" variant="outlined" sx={{ mb: 2 }} data-integrity="mismatch">
+          {t('app.sealed.mismatch')}
+        </Alert>
+      )}
 
       {/* A record that dates a lab report is not a plant: its own short page (components/stage). */}
       {mode === 'overview' && datesReport && (

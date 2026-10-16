@@ -1,12 +1,15 @@
 // The holder key identifies whose records these are. It is generated in the browser and
 // sent to VeilCore's registry with every request (x-holder-key), where it is stored to
-// find this holder's records. Anyone who has it can read and change those records.
-// VeilCore cannot recover it for a holder who loses it.
+// find this holder's records. Anyone who has it can change or delete those records; reading
+// them takes the vault key too (vault.ts), which is never sent. VeilCore cannot recover
+// either for a holder who loses it.
 //
 // A key is made only when someone first saves something (attack round D). It used to be
 // made on any page load, so every visitor, including someone who only scanned a
 // certificate's QR code, got a persistent identifier sent to the API every 20 seconds.
 // SPDX-License-Identifier: Apache-2.0
+
+import { vaultKeyIfAny } from './vault';
 
 const KEY = 'veilcore.holder.v1';
 // Case-insensitive: restores accepted upper case before, and the stored key is sent as
@@ -66,16 +69,32 @@ export const forgetHolderKey = (): void => {
   }
 };
 
-/** Save the key as a text file, so it can be restored on another device. */
+/**
+ * Save the key as a text file, so it can be restored on another device. With a vault key
+ * (vault.ts), the file has it too, on a `vault key:` line (backup.ts restoreAny reads it):
+ * without it the records come back locked.
+ */
 export const downloadHolderKey = (key: string): void => {
+  const vault = vaultKeyIfAny();
   const blob = new Blob(
     [
       'VeilCore holder key\n\n',
       `${key}\n\n`,
-      "This key is how you get back to your records. VeilCore's server receives it\n",
-      'with every save and stores it to find your records. Anyone with this key can\n',
-      'read and change your records. We cannot recover it for you, so store it\n',
-      'somewhere safe.\n',
+      ...(vault ? [`vault key: ${vault}\n\n`] : []),
+      ...(vault
+        ? [
+            "This file is how you get back to your records. VeilCore's server receives the\n",
+            'holder key with every save and stores it to find your records. The vault key\n',
+            'opens them; it is never sent to VeilCore. Anyone with this file can read and\n',
+            'change your records. We cannot recover either key\n',
+            'for you, so store this file somewhere safe.\n',
+          ]
+        : [
+            "This key is how you get back to your records. VeilCore's server receives it\n",
+            'with every save and stores it to find your records. Anyone with this key can\n',
+            'read and change your records. We cannot recover it for you, so store it\n',
+            'somewhere safe.\n',
+          ]),
     ],
     { type: 'text/plain' },
   );

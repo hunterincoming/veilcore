@@ -11,7 +11,8 @@
 // otherwise. Something that starts like a lab code but isn't one whole is called cut
 // off, rather than opening Receive with half a code.
 //
-// A lab code is TR-<8 hex> . <claim code> [ . <lock> ]. The registry has always made the
+// A lab code is TR-<8 hex> . <claim code> [ . <lock> ] [ . o1<offer key> ] (transfers.ts
+// shareCodeFor; the offer key is 43 base64url characters). The registry has always made the
 // claim code 16 random bytes in hex (lineage/transfer.mjs), so its middle part is exactly
 // 32 characters: a code cut inside it used to pass as whole and fail at the registry
 // with "claim code does not match" (round 3). A bare TR-<8 hex> is still recognised: it is
@@ -27,7 +28,7 @@ export type Pasted =
   | { readonly kind: 'prove-link'; readonly path: string }
   | { readonly kind: 'unknown' };
 
-const DELIVERY = /^TR-[0-9A-F]{8}(\.[0-9a-f]{32}(\.age1[02-9ac-hj-np-z]{58})?)?$/i;
+const DELIVERY = /^TR-[0-9A-F]{8}(\.[0-9a-f]{32}(\.age1[02-9ac-hj-np-z]{58})?(\.o1[A-Za-z0-9_-]{43})?)?$/i;
 const CHALLENGE = /^(0x)?[0-9a-f]{64}$/i;
 const PROVE_ID = /^PR-[0-9A-F]{32}$/i;
 const RECORD_ID = /^VEIL-[0-9A-Z]{4,40}$/i;

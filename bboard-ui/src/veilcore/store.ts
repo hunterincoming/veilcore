@@ -9,8 +9,14 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-/** One item the registry did not store, and why. */
-export type SaveRefusal = { readonly id: string; readonly reason: string };
+import type { AppKey } from '../i18n/app/en';
+
+/**
+ * One item the registry did not store, and why. `words` is set when the browser itself
+ * refused it (api-store.ts), so the reason can be said in the visitor's language; the
+ * registry's own reasons stay as it gave them.
+ */
+export type SaveRefusal = { readonly id: string; readonly reason: string; readonly words?: AppKey };
 
 /**
  * What a save actually did. The registry can refuse individual items (an id another

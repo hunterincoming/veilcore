@@ -20,6 +20,7 @@ import { pair } from './pair';
 import { partners } from './partners';
 import { plant } from './plant';
 import { prove } from './prove';
+import { sealed } from './sealed';
 import { verify } from './verify';
 
 export const appDe: AppTranslation = {
@@ -38,4 +39,5 @@ export const appDe: AppTranslation = {
   ...importing,
   ...partners,
   ...animal,
+  ...sealed,
 };

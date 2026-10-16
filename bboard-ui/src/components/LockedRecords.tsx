@@ -1,0 +1,110 @@
+// Records this browser can't open (sealed records, CONTRACT.md #11): sealed with a vault key
+// it doesn't have. Shown plainly by the name anyone can see, with the one way back (the
+// backup file that has the key) and the one thing a locked record allows: deleting it.
+// They can't be edited or sent, and a save never sends them back (api-store.ts).
+// SPDX-License-Identifier: Apache-2.0
+
+import React, { useState } from 'react';
+import { Alert, Box, Button, Paper, Stack, Typography } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
+import LockIcon from '@mui/icons-material/LockOutlined';
+import { deleteLockedRecord, useSealedView } from '../veilcore/records';
+import type { LockedRow } from '../veilcore/api-store';
+import { useT } from '../i18n/app';
+import type { Translator } from '../i18n/translate';
+
+/** What a locked record needs, in words: the backup saved after the earliest date the rows show, when they show one. */
+export const lockedWords = (rows: readonly LockedRow[], tr: Translator): string => {
+  const dates = rows.map((r) => r.since).filter((d): d is number => d !== undefined);
+  return dates.length
+    ? tr.t('app.sealed.locked.text', { date: tr.date(Math.min(...dates)) })
+    : tr.t('app.sealed.locked.textNoDate');
+};
+
+const LockedRowLine: React.FC<{ row: LockedRow }> = ({ row }) => {
+  const tr = useT();
+  const { t } = tr;
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<string>();
+  const name = row.strainName || t('app.sealed.locked.unnamed');
+  const remove = async () => {
+    if (!window.confirm(t('app.sealed.locked.deleteConfirm', { name }))) return;
+    setBusy(true);
+    setProblem(undefined);
+    const out = await deleteLockedRecord(row.id);
+    setBusy(false);
+    if ('error' in out) setProblem(t('app.sealed.locked.deleteFailed', { error: out.error }));
+  };
+  return (
+    <Box data-locked-record={row.id}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="body1" sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>
+            {name}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+            {row.id}
+          </Typography>
+        </Box>
+        <Button color="inherit" onClick={() => void remove()} disabled={busy} sx={{ minHeight: 44, flexShrink: 0 }}>
+          {t('app.sealed.locked.delete')}
+        </Button>
+      </Stack>
+      {problem && (
+        <Alert severity="warning" variant="outlined" sx={{ mt: 1 }}>
+          {problem}
+        </Alert>
+      )}
+    </Box>
+  );
+};
+
+/** Home's list of locked records, or nothing when there are none. */
+export const LockedRecords: React.FC<{ only?: string }> = ({ only }) => {
+  const { locked } = useSealedView();
+  const tr = useT();
+  const { t, tp } = tr;
+  const rows = only ? locked.filter((l) => l.id === only) : locked;
+  if (rows.length === 0) return null;
+  return (
+    <Paper sx={{ p: { xs: 2, md: 2.5 } }} data-locked-records="">
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
+        <LockIcon aria-hidden="true" />
+        <Typography variant="subtitle1" component={only ? 'h1' : 'h2'} sx={{ fontWeight: 700 }}>
+          {only ? t('app.sealed.locked.pageTitle') : tp('app.sealed.locked.title', rows.length)}
+        </Typography>
+      </Stack>
+      <Typography variant="body2" sx={{ mb: 0.5 }}>
+        {lockedWords(rows, tr)}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+        {t('app.sealed.locked.cantChange')}
+      </Typography>
+      <Stack spacing={1.5} sx={{ mb: 1.5 }}>
+        {rows.map((r) => (
+          <LockedRowLine key={r.id} row={r} />
+        ))}
+      </Stack>
+      <Button component={RouterLink} to="/restore" variant="outlined" sx={{ minHeight: 44 }}>
+        {t('app.sealed.locked.restore')}
+      </Button>
+    </Paper>
+  );
+};
+
+/** What the last load said beyond the records themselves: a cut-short set, rows that couldn't be read. */
+export const LoadNoticeBar: React.FC = () => {
+  const { notice } = useSealedView();
+  const { t, tp } = useT();
+  if (!notice.truncated && notice.unreadable === 0) return null;
+  return (
+    <Alert severity="warning" variant="outlined" data-load-notice="">
+      {[
+        notice.truncated ? t('app.sealed.truncated') : '',
+        notice.unreadable ? tp('app.sealed.unreadable', notice.unreadable) : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    </Alert>
+  );
+};

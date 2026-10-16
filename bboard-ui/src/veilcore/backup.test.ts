@@ -174,3 +174,101 @@ describe('one backup file', () => {
     expect(transfers.sentCodeFor('TR-33333333')).toBe('TR-33333333.cccc');
   });
 });
+
+describe('the vault key in the backup (version 3, CONTRACT.md #9)', () => {
+  it('is in the file, checked by checkBackup, and only a checked copy marks it backed up', async () => {
+    const { backup } = await setup();
+    const vault = await import('./vault');
+    const key = vault.mintVault();
+    expect(backup.hasAnythingToBackUp()).toBe(true);
+    const contents = backup.backupContents();
+    expect(contents).toMatchObject({ version: 3, vaultKey: key });
+    expect(vault.vaultNeedsBackup()).toBe(true);
+    // A copy without it, or with another, doesn't pass.
+    const without = JSON.stringify({ ...contents, vaultKey: undefined });
+    expect(await backup.checkBackup(fileOf(without))).toEqual({
+      ok: false,
+      reason: 'That backup doesn’t hold the key that opens your records. Save a new one and check that.',
+    });
+    expect((await backup.checkBackup(fileOf(JSON.stringify({ ...contents, vaultKey: vault.newOfferKey() })))).ok).toBe(
+      false,
+    );
+    expect(vault.vaultNeedsBackup()).toBe(true);
+    expect((await backup.checkBackup(fileOf(JSON.stringify(contents)))).ok).toBe(true);
+    expect(vault.vaultNeedsBackup()).toBe(false);
+  });
+
+  it('a version 3 file brings the vault key back on a new browser', async () => {
+    const { keys, backup, h } = await setup();
+    const vault = await import('./vault');
+    const key = vault.mintVault();
+    const text = JSON.stringify(backup.backupContents());
+    local.clear();
+    keys.__resetRecordKeysForTests();
+    expect(vault.vaultKeyIfAny()).toBeNull();
+    expect(await backup.restoreAny(fileOf(text))).toMatchObject({ holderKey: 'restored', vaultKey: 'restored' });
+    expect(vault.vaultKeyIfAny()).toBe(key);
+    expect(vault.vaultNeedsBackup()).toBe(false); // it came from a backup
+    void h;
+  });
+
+  it('a version 2 file restores the holder key and the rest, but no vault key', async () => {
+    const { keys, holder, backup, h } = await setup();
+    const v2 = JSON.stringify({ ...backup.backupContents(), version: 2 });
+    local.clear();
+    keys.__resetRecordKeysForTests();
+    const vault = await import('./vault');
+    const r = await backup.restoreAny(fileOf(v2));
+    expect(r).toMatchObject({ holderKey: 'restored', vaultKey: 'none', records: 2 });
+    expect(holder.holderKeyIfAny()).toBe(h);
+    expect(vault.vaultKeyIfAny()).toBeNull();
+  });
+
+  it('a different vault key is refused while this browser has sealed with its own, and changes nothing', async () => {
+    const { backup, holder, h } = await setup();
+    const vault = await import('./vault');
+    const mine = vault.mintVault();
+    await vault.sealRow('records', 'VEIL-1', { bredBy: 'x' }); // this key now locks a row
+    const other = JSON.stringify({ ...backup.backupContents(), vaultKey: vault.newOfferKey() });
+    await expect(backup.restoreAny(fileOf(other))).rejects.toThrow(
+      'This browser already opens your records with a different key. Nothing was changed.',
+    );
+    expect(vault.vaultKeyIfAny()).toBe(mine);
+    expect(holder.holderKeyIfAny()).toBe(h);
+  });
+
+  it('a different vault key replaces one that never sealed anything', async () => {
+    const { backup } = await setup();
+    const vault = await import('./vault');
+    vault.mintVault();
+    const theirs = vault.newOfferKey();
+    const file = JSON.stringify({ ...backup.backupContents(), vaultKey: theirs });
+    expect(await backup.restoreAny(fileOf(file))).toMatchObject({ vaultKey: 'restored' });
+    expect(vault.vaultKeyIfAny()).toBe(theirs);
+  });
+
+  it('the holder key text file has a `vault key:` line, and restoring it reads the line', async () => {
+    const { keys, holder, backup, h } = await setup();
+    const vault = await import('./vault');
+    const key = vault.mintVault();
+    let text = '';
+    vi.stubGlobal(
+      'Blob',
+      class {
+        constructor(parts: string[]) {
+          text = parts.join('');
+        }
+      },
+    );
+    vi.stubGlobal('URL', { ...URL, createObjectURL: () => 'blob:x', revokeObjectURL: () => undefined });
+    vi.stubGlobal('document', { createElement: () => ({ click: () => undefined }) });
+    holder.downloadHolderKey(h);
+    expect(text).toContain(`\n${h}\n`);
+    expect(text).toContain(`vault key: ${key}\n`);
+    local.clear();
+    keys.__resetRecordKeysForTests();
+    expect(await backup.restoreAny(fileOf(text))).toMatchObject({ holderKey: 'restored', vaultKey: 'restored' });
+    expect(holder.holderKeyIfAny()).toBe(h);
+    expect(vault.vaultKeyIfAny()).toBe(key);
+  });
+});

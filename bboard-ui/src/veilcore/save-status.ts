@@ -7,6 +7,7 @@
 
 import { useSyncExternalStore } from 'react';
 import type { SaveRefusal, SaveResult } from './store';
+import { enT, type Translator } from '../i18n/translate';
 
 export type SaveProblem = { readonly what: string; readonly refused: readonly SaveRefusal[] };
 
@@ -33,9 +34,15 @@ const subscribe = (l: () => void): (() => void) => {
 
 export const useSaveProblem = (): SaveProblem | null => useSyncExternalStore(subscribe, () => problem);
 
-/** A readable sentence for a refusal list. */
-export const describeRefusals = (refused: readonly SaveRefusal[]): string =>
+/**
+ * A readable sentence for a refusal list. A refusal the browser made itself carries its
+ * words (store.ts SaveRefusal); the registry's own reasons are said as it gave them.
+ */
+export const describeRefusals = (refused: readonly SaveRefusal[], tr: Translator = enT): string =>
   refused
     .slice(0, 3)
-    .map((r) => (r.id === '*' ? r.reason : `${r.id}: ${r.reason}`))
+    .map((r) => {
+      const reason = r.words ? tr.t(r.words) : r.reason;
+      return r.id === '*' ? reason : `${r.id}: ${reason}`;
+    })
     .join(' · ') + (refused.length > 3 ? ` · and ${String(refused.length - 3)} more` : '');

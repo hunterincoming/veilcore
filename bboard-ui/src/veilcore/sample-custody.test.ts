@@ -454,7 +454,16 @@ describe('round 2 of the 15 Oct review: values as the registry stores them', () 
       return Promise.resolve(new Response('{}', { status: 200 }));
     });
     try {
-      const o = await offerTransfer('VEIL-1', 'lab', { sample: { witness: 'J. Doe\n\nI declare' } });
+      const source = {
+        id: 'VEIL-1',
+        strainName: 'Cut',
+        bredBy: 'Me',
+        dateCreated: '2026-01-01',
+        notes: '',
+        loggedAt: 1,
+        recordFingerprint: 'a'.repeat(64),
+      };
+      const o = await offerTransfer(source, 'lab', { sample: { witness: 'J. Doe\n\nI declare' } });
       expect(o).toEqual({
         error: 'Witness can’t contain line breaks, tabs or hidden characters (such as direction marks).',
       });

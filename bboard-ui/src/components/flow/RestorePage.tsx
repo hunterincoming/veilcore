@@ -7,7 +7,8 @@ import { Alert, Box, Button, CircularProgress, Collapse, Stack, TextField, Typog
 import { Link as RouterLink } from 'react-router-dom';
 import DoneIcon from '@mui/icons-material/CheckCircle';
 import { restoreAny, type RestoreResult } from '../../veilcore/backup';
-import { allRecords, hydrate } from '../../veilcore/records';
+import { allRecords, hydrate, useSealedView } from '../../veilcore/records';
+import { lockedWords } from '../LockedRecords';
 import { restoredKeysLine } from '../stage/record-kinds';
 import { holderKeyIfAny, setHolderKey } from '../../veilcore/holder';
 import { AppHeader } from '../AppHeader';
@@ -34,6 +35,7 @@ export const RestorePage: React.FC = () => {
   const doneRef = useRef<HTMLHeadingElement>(null);
   const tr = useT();
   const { t } = tr;
+  const { locked } = useSealedView();
   // The result replaces the screen: focus goes to what happened.
   useEffect(() => {
     if (done) doneRef.current?.focus();
@@ -105,6 +107,12 @@ export const RestorePage: React.FC = () => {
                 {labWork(done, tr) ? t('app.backup.workRestored', { work: labWork(done, tr) }) : ''}
                 {t('app.backup.worksLikeBefore')}
               </Typography>
+              {/* Records the file had no key for (an older file, or only the holder key) stay locked. */}
+              {locked.length > 0 && (
+                <Alert severity="warning" variant="outlined" data-still-locked="">
+                  {done.vaultKey === 'none' ? t('app.sealed.backup.olderFile') : lockedWords(locked, tr)}
+                </Alert>
+              )}
               <Button component={RouterLink} to="/records" variant="contained" size="large" fullWidth sx={{ py: 1.5 }}>
                 {t('app.backup.seeMyPlants')}
               </Button>

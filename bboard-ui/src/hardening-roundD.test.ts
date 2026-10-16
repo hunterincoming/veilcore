@@ -559,27 +559,42 @@ describe('F7 createAttester never replaces an existing key', () => {
 // =================================================== F12: disclosure is a stored grant
 
 describe('F12 disclosure: the holder’s choice is saved as a grant before any link exists', () => {
-  it('saveGrant PUTs exactly the switched-on keys with the holder key, and reports refusals', async () => {
+  it('saveGrant PUTs exactly the switched-on keys, their values and the fingerprint, and reports refusals', async () => {
     const { saveGrant, disclosureFrom } = await import('./veilcore/disclosure');
+    const record = {
+      id: 'VEIL-1',
+      strainName: 'Cut',
+      bredBy: 'Me',
+      dateCreated: '2026-01-01',
+      notes: 'private',
+      loggedAt: 1_700_000_000_000,
+      recordFingerprint: 'f1'.repeat(32),
+      breedingMethod: 'backcross',
+    };
     route('PUT', /\/api\/records\/VEIL-1\/disclosure$/, (_u, init) => {
       const body = JSON.parse(init?.body as string) as { show: string[] };
       return { recordId: 'VEIL-1', show: body.show, updatedAt: '2026-10-04T00:00:00.000Z' };
     });
-    const out = await saveGrant('VEIL-1', disclosureFrom(['existence', 'sealed-at']));
+    const out = await saveGrant(record, disclosureFrom(['existence', 'sealed-at']));
     expect(out).toEqual({ show: ['existence', 'sealed-at'], updatedAt: '2026-10-04T00:00:00.000Z' });
     const put = calls.find((c) => c.method === 'PUT');
-    expect(JSON.parse(String(put?.body))).toEqual({ show: ['existence', 'sealed-at'] });
+    // Only the granted key's value: not the breeding method, not the notes.
+    expect(JSON.parse(String(put?.body))).toEqual({
+      show: ['existence', 'sealed-at'],
+      forFingerprint: 'f1'.repeat(32),
+      values: { loggedAt: 1_700_000_000_000 },
+    });
     expect(put?.headers?.['x-holder-key']).toMatch(/^[0-9a-f]{64}$/i);
 
     routes = [];
     route('PUT', /\/disclosure$/, () => withStatus(404, { error: 'no such record under this holder key' }));
-    expect(await saveGrant('VEIL-1', disclosureFrom(['existence']))).toEqual({
+    expect(await saveGrant(record, disclosureFrom(['existence']))).toEqual({
       error: 'no such record under this holder key',
     });
 
     routes = [];
     route('PUT', /\/disclosure$/, () => ({ recordId: 'VEIL-1', show: ['existence', 'parent-names'], updatedAt: null }));
-    const differs = await saveGrant('VEIL-1', disclosureFrom(['existence']));
+    const differs = await saveGrant(record, disclosureFrom(['existence']));
     expect('error' in differs && differs.error).toMatch(/different set/);
   });
 

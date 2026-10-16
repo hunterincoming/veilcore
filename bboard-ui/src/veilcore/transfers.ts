@@ -13,6 +13,9 @@ import { canonicalise, sha256Hex } from 'veilcore-records';
 import { holderKey, holderKeyIfAny } from './holder';
 import { readJson, isObject, isString, isNumber, optional, arrayField } from './json';
 import { attestRecord, type AttesterProfile } from './attester-keys';
+import { isVaultKey, newOfferKey, openOffer, sealOffer, type OfferBox } from './vault';
+import { isAnimal } from './animal-profile';
+import type { StrainRecord } from './records';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
@@ -270,6 +273,7 @@ export const userFacingError = (error: string, tr: Translator = enT): string => 
     [/has not been received yet/i, 'app.lab.err.notReceived'],
     [/^only whoever received this delivery/i, 'app.lab.err.onlyLab'],
     [/unclaimed offers/i, 'app.lab.err.tooMany'],
+    [/ask the sender for a new code/i, 'app.sealed.err.newCode'],
   ];
   for (const [re, key] of known) if (re.test(e)) return tr.t(key);
   return e;
@@ -285,6 +289,7 @@ const LAB_ERROR_KEYS: readonly AppKey[] = [
   'app.lab.err.notReceived',
   'app.lab.err.onlyLab',
   'app.lab.err.tooMany',
+  'app.sealed.err.newCode',
 ];
 
 /**
@@ -298,24 +303,60 @@ export const labErrorWords = (message: string, tr: Translator = enT): string => 
 };
 
 /**
- * What the sender hands the recipient: the transfer id, its secret claim code and, for a
- * lab, the plant's lock for sending results back (lab-results.ts), in one string, so
- * there is one thing to copy. The registry requires the code to claim (only transfers
- * made before it existed claim without one), and the app used to show and send only the
- * id, so no transfer made in the app could be claimed in the app. The lock travels here,
- * not through the registry, so the registry can't hand the lab a lock of its own.
+ * What the sender hands the recipient: the transfer id, its secret claim code, for a lab
+ * the plant's lock for sending results back (lab-results.ts), and the offer key that opens
+ * the sender's sealed offer (CONTRACT.md #8), in one string, so there is one thing to copy.
+ * The registry requires the code to claim (only transfers made before it existed claim
+ * without one), and the app used to show and send only the id, so no transfer made in the
+ * app could be claimed in the app. The lock and the offer key travel here, not through the
+ * registry, so the registry can't hand the lab a lock of its own or read the offer.
+ *
+ *   TR-XXXXXXXX . <claim code> [. age1… lock] . o1<43 base64url>
+ *
+ * Parts after the id are found by their prefix, not their place.
  */
-export const shareCodeFor = (transferId: string, claimCode?: string, resultLock?: string): string =>
-  [transferId, claimCode, claimCode ? resultLock : undefined].filter(Boolean).join('.');
+export const shareCodeFor = (transferId: string, claimCode?: string, resultLock?: string, offerKey?: string): string =>
+  [
+    transferId,
+    claimCode,
+    claimCode ? resultLock : undefined,
+    claimCode && offerKey && isVaultKey(offerKey) ? `${OFFER_PREFIX}${offerKey}` : undefined,
+  ]
+    .filter(Boolean)
+    .join('.');
 
-/** Split a pasted share code back into the id, the claim code and the results lock. */
-export const parseShareCode = (code: string): { transferId: string; claimCode?: string; resultLock?: string } => {
-  const [id, claim, lock] = code.trim().split('.', 3);
+const OFFER_PREFIX = 'o1';
+const LOCK = /^age1[02-9ac-hj-np-z]{58}$/;
+const OFFER_PART = /^o1[A-Za-z0-9_-]{43}$/;
+
+/** Split a pasted share code back into the id, the claim code, the results lock and the offer key. */
+export const parseShareCode = (
+  code: string,
+): { transferId: string; claimCode?: string; resultLock?: string; offerKey?: string } => {
+  const [id, ...rest] = code.trim().split('.');
+  let claimCode: string | undefined;
+  let resultLock: string | undefined;
+  let offerKey: string | undefined;
+  for (const part of rest) {
+    if (!part) continue;
+    // The offer key is base64url: its case matters, so it is matched as written.
+    if (OFFER_PART.test(part)) offerKey ??= part.slice(OFFER_PREFIX.length);
+    else if (/^age1/i.test(part)) {
+      if (LOCK.test(part.toLowerCase())) resultLock ??= part.toLowerCase();
+    } else claimCode ??= part.toLowerCase();
+  }
   return {
     transferId: id.toUpperCase(),
-    ...(claim ? { claimCode: claim.toLowerCase() } : {}),
-    ...(lock && /^age1[02-9ac-hj-np-z]{58}$/.test(lock.toLowerCase()) ? { resultLock: lock.toLowerCase() } : {}),
+    ...(claimCode ? { claimCode } : {}),
+    ...(resultLock ? { resultLock } : {}),
+    ...(offerKey ? { offerKey } : {}),
   };
+};
+
+/** Whether a code has its id and claim part: anything less isn't a lab code yet. */
+const hasIdAndClaim = (code: string): boolean => {
+  const parts = code.trim().split('.');
+  return parts.length >= 2 && !!parts[0] && !!parts[1];
 };
 
 /**
@@ -323,38 +364,92 @@ export const parseShareCode = (code: string): { transferId: string; claimCode?: 
  * cut short when copied, or made before locks. The sample can still be received; a lab
  * report can't be sent back until the lab has the full code.
  */
-export const codeMissingLock = (code: string): boolean => {
-  const parts = code.trim().split('.');
-  if (parts.length < 2 || !parts[0] || !parts[1]) return false;
-  return !parseShareCode(code).resultLock;
-};
+export const codeMissingLock = (code: string): boolean => hasIdAndClaim(code) && !parseShareCode(code).resultLock;
+
+/**
+ * A code with its id and claim part but no offer key: cut short when copied, or made
+ * before offers were sealed. It can still be received; without the key the sender's
+ * details don't come with it (a code made before keeps working: the registry gives those
+ * details with the claim, CONTRACT.md #8 offerPlain).
+ */
+export const codeMissingOfferKey = (code: string): boolean => hasIdAndClaim(code) && !parseShareCode(code).offerKey;
 
 /** What the lab is told at Receive when the code has no lock part. */
 /** (app.lab.recv.missingLock in the visitor's language.) */
 export const MISSING_LOCK_WORDS =
   'This code is missing its last part; you can receive the sample but can’t send a report back until you have the full code.';
 
-/** Offer a record to a recipient. Nothing moves until they claim it. */
+/**
+ * The offer's plaintext (CONTRACT.md #8): what names the material, as the claim used to
+ * copy it across. An animal's individual ID, scheme, breed and sex go with it, so the lab's
+ * record says which animal a sample is from; a plant's own reference doesn't.
+ */
+export const offerPlaintext = (
+  r: StrainRecord,
+  opts: { quantity?: string; note?: string } = {},
+): Record<string, unknown> => {
+  const animal = isAnimal(r);
+  return {
+    strainName: r.strainName,
+    bredBy: r.bredBy,
+    dateCreated: r.dateCreated,
+    ...(r.profile !== undefined ? { profile: r.profile } : {}),
+    ...(r.taxon !== undefined ? { taxon: r.taxon } : {}),
+    ...(animal ? { refId: r.refId ?? '' } : {}),
+    ...(animal
+      ? {
+          animal: { breed: r.animal?.breed ?? '', idScheme: r.animal?.idScheme ?? '', sex: r.animal?.sex ?? 'unknown' },
+        }
+      : {}),
+    ...(opts.quantity ? { quantity: opts.quantity } : {}),
+    ...(opts.note ? { note: opts.note } : {}),
+  };
+};
+
+/**
+ * Offer a record to a recipient. Nothing moves until they claim it.
+ *
+ * What the recipient learns about the material goes sealed (sealedOffer), with a key made
+ * here for this offer only; the key goes in the delivery code (shareCodeFor), never to the
+ * registry. The quantity and note travel inside it too. The sample's custody details stay
+ * readable to the registry, as before (deferred).
+ */
 export const offerTransfer = async (
-  sourceRecord: string,
+  record: StrainRecord,
   toHandle: string,
   opts: { quantity?: string; note?: string; sample?: SampleDetails } = {},
-): Promise<{ transferId: string; claimCode?: string } | { error: string }> => {
-  const { sample, ...rest } = opts;
+): Promise<{ transferId: string; claimCode?: string; offerKey: string } | { error: string }> => {
+  const { sample, quantity, note } = opts;
   // A value the registry would refuse is said here, not dropped (sampleDetailsOf drops it).
   const problems = sample ? custodyProblems('sample', sample) : [];
   if (problems.length) return { error: problems.join(' ') };
   const details = sampleDetailsOf(sample);
+  const offerKey = newOfferKey();
   try {
+    const sealedOffer: OfferBox = await sealOffer(
+      offerKey,
+      record.id,
+      record.recordFingerprint ?? '',
+      offerPlaintext(record, { quantity, note }),
+    );
     const res = await fetch(`${BASE}/transfers`, {
       method: 'POST',
       headers: auth(),
-      body: JSON.stringify({ sourceRecord, toHandle, ...rest, ...(hasDetails(details) ? { sample: details } : {}) }),
+      body: JSON.stringify({
+        sourceRecord: record.id,
+        toHandle,
+        sealedOffer,
+        ...(hasDetails(details) ? { sample: details } : {}),
+      }),
     });
     const body = await readJson(res);
     if (!isObject(body)) return unexpected;
     if (isString(body.transferId)) {
-      return { transferId: body.transferId, ...(isString(body.claimCode) ? { claimCode: body.claimCode } : {}) };
+      return {
+        transferId: body.transferId,
+        ...(isString(body.claimCode) ? { claimCode: body.claimCode } : {}),
+        offerKey,
+      };
     }
     if (isString(body.error)) return { error: userFacingError(body.error) };
     return unexpected;
@@ -379,6 +474,10 @@ export type ClaimResult = {
   note?: string;
   /** What the breeder wrote about the sample, for the lab to confirm or correct. */
   sample?: SampleDetails;
+  /** The sender's sealed offer, exactly as sent (openClaimOffer opens it with the code's key). */
+  offerSealed?: unknown;
+  /** A code made before offers were sealed: the offer's fields, from the registry. */
+  offerPlain?: Record<string, unknown>;
 };
 
 export const claimTransfer = async (
@@ -406,6 +505,8 @@ export const claimTransfer = async (
         ...(isString(body.quantity) ? { quantity: body.quantity } : {}),
         ...(isString(body.note) && body.note ? { note: body.note } : {}),
         ...(hasDetails(sampleDetailsOf(body.sample)) ? { sample: sampleDetailsOf(body.sample) } : {}),
+        ...(isObject(body.offerSealed) ? { offerSealed: body.offerSealed } : {}),
+        ...(isObject(body.offerPlain) ? { offerPlain: body.offerPlain } : {}),
       };
     }
     if (isString(body.error)) return { error: userFacingError(body.error) };
@@ -413,6 +514,30 @@ export const claimTransfer = async (
   } catch {
     return { error: 'could not reach the registry' };
   }
+};
+
+/**
+ * The offer a claim answered with: opened with the code's key (sealedOffer), or as the
+ * registry gave it for a code made before offers were sealed (offerPlain). 'unopened' when
+ * there is a sealed offer and the code has no key for it, or the key doesn't open it.
+ */
+export const openClaimOffer = async (
+  claim: ClaimResult,
+  offerKey: string | undefined,
+  sourceFingerprint: string | undefined,
+): Promise<{ fields: Record<string, unknown> } | 'unopened' | 'none'> => {
+  if (claim.offerSealed !== undefined) {
+    if (!offerKey) return 'unopened';
+    const fields = await openOffer(
+      offerKey,
+      claim.descendedFrom,
+      claim.parentCommitment ?? sourceFingerprint ?? '',
+      claim.offerSealed,
+    );
+    return fields ? { fields } : 'unopened';
+  }
+  if (claim.offerPlain) return { fields: claim.offerPlain };
+  return 'none';
 };
 
 /**

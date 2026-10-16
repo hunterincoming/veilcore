@@ -39,7 +39,7 @@ import { LAB_RESULTS_ENABLED } from '../config/network';
 import { labChanged } from '../veilcore/lab-results';
 import { ensureKeys } from '../veilcore/record-keys';
 import { resultRecipientFor } from '../veilcore/lab-results';
-import type { StrainRecord } from '../veilcore/records';
+import { integrityOf, type StrainRecord } from '../veilcore/records';
 import { rich, useRecordT, useT } from '../i18n/app';
 import { recordTitle } from '../veilcore/animal-profile';
 
@@ -66,11 +66,14 @@ export const SendToLab: React.FC<{
   // said under the form, and the code isn't made until it is fixed.
   const problems = custodyProblems('sample', sample, tr);
 
+  // A record that doesn't match its fingerprint isn't sent (api-store.ts).
+  const mismatch = integrityOf(record.id) === 'mismatch';
+
   const send = async () => {
-    if (!handle.trim() || problems.length) return;
+    if (!handle.trim() || problems.length || mismatch) return;
     setBusy(true);
     setError(null);
-    const res = await offerTransfer(record.id, handle.trim(), {
+    const res = await offerTransfer(record, handle.trim(), {
       quantity: quantity.trim() || undefined,
       note: note.trim() || undefined,
       sample,
@@ -84,7 +87,8 @@ export const SendToLab: React.FC<{
       const lock = LAB_RESULTS_ENABLED
         ? await resultRecipientFor(ensureKeys(record.id).recordSecret, res.transferId).catch(() => undefined)
         : undefined;
-      const code = shareCodeFor(res.transferId, res.claimCode, lock);
+      // The offer key opens what the code's receiver learns about the plant; only the code carries it.
+      const code = shareCodeFor(res.transferId, res.claimCode, lock, res.offerKey);
       // Kept here (and in the backup): the registry can't show the code again.
       rememberSentCode(code);
       setTransferId(code);
@@ -184,6 +188,11 @@ export const SendToLab: React.FC<{
             </Stack>
           ) : (
             <Stack spacing={2} sx={{ pt: 1 }}>
+              {mismatch && (
+                <Alert severity="error" variant="outlined" data-integrity="mismatch">
+                  {t('app.sealed.mismatch')}
+                </Alert>
+              )}
               <Typography variant="body2" color="text.secondary">
                 {t('app.lab.send.intro')}
               </Typography>
@@ -258,7 +267,11 @@ export const SendToLab: React.FC<{
         <DialogActions>
           <Button onClick={reset}>{transferId ? t('app.backup.done') : t('app.common.cancel')}</Button>
           {!transferId && (
-            <Button variant="contained" onClick={send} disabled={busy || !handle.trim() || problems.length > 0}>
+            <Button
+              variant="contained"
+              onClick={send}
+              disabled={busy || !handle.trim() || problems.length > 0 || mismatch}
+            >
               {t('app.lab.send.make')}
             </Button>
           )}
