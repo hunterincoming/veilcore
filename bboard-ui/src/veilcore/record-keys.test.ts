@@ -1,5 +1,5 @@
 // The secrets never leave the browser: nothing the app sends to the registry, and nothing
-// it exports as a record, carries a record secret or recovery secret.
+// it exports as a record, carries a record secret, recovery secret or the vault key.
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const local = new Map<string, string>();
@@ -86,6 +86,17 @@ describe('record secrets stay in the browser', () => {
         expect(JSON.stringify(records.allRecords()).includes(f)).toBe(false);
       }
     }
+    // Nor the vault key that seals every record (vault.ts), in any form, nor anything private
+    // the records hold: what went to the registry is sealed.
+    const { vaultKeyIfAny } = await import('./vault');
+    const vault = vaultKeyIfAny();
+    expect(vault).toBeTruthy();
+    const bytes = Buffer.from(vault!, 'base64url');
+    for (const f of [vault!, bytes.toString('base64'), bytes.toString('hex'), bytes.toString('hex').toUpperCase()]) {
+      for (const s of sent) expect(s.includes(f)).toBe(false);
+      expect(env.includes(f)).toBe(false);
+    }
+    for (const s of puts) expect(s.includes('Tester')).toBe(false);
   });
 });
 
