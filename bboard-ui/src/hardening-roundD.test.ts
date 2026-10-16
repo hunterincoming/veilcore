@@ -14,6 +14,7 @@ import { stubWebLocks } from './veilcore/fixtures/web-locks';
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
+import { createCipheriv, randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
@@ -734,6 +735,24 @@ const prodHeaders = (extra: Record<string, string> = {}): Record<string, string>
   return cfg.routes[0].headers ?? {};
 };
 
+/**
+ * A sender's sealed offer as the browser makes it (vault.ts sealOffer, CONTRACT.md #8), and
+ * the code part that opens it: what a claim answers with since offers were sealed.
+ */
+const sealedOfferFor = (sourceId: string, sourceFingerprint: string, fields: Record<string, unknown>) => {
+  const key = randomBytes(32);
+  const iv = randomBytes(12);
+  const c = createCipheriv('aes-256-gcm', key, iv);
+  c.setAAD(Buffer.from(`veilcore:offer:v1\0${sourceId}\0${sourceFingerprint}`));
+  const json = JSON.stringify(fields);
+  const plain = json + ' '.repeat(1024 - (Buffer.byteLength(json) % 1024));
+  const ct = Buffer.concat([c.update(plain), c.final(), c.getAuthTag()]);
+  return {
+    box: { v: 1, alg: 'A256GCM', iv: iv.toString('base64url'), ct: ct.toString('base64url') },
+    codePart: `o1${key.toString('base64url')}`,
+  };
+};
+
 describe.skipIf(!haveBrowser)('browser: built site under the production headers', () => {
   let browser: PwBrowser | undefined;
   let server: http.Server;
@@ -1334,8 +1353,12 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
         ).toBe(1);
       }
       const put = external.find((e) => e.method === 'PUT' && e.url.endsWith('/disclosure'));
+      // Exactly the switched-on keys, with the values they publish and the fingerprint they
+      // were read from (sealed records, CONTRACT.md #7).
       expect(JSON.parse(put?.body ?? '{}')).toEqual({
         show: ['existence', 'attestation-status', 'descent-clean', 'sealed-at', 'parent-names'],
+        forFingerprint: record.recordFingerprint,
+        values: { loggedAt: rec.loggedAt, parents: [] },
       });
       expect(violations).toEqual([]);
       expect(errors).toEqual([]);
@@ -1412,28 +1435,27 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     const B = 'b'.repeat(64);
     const profile = JSON.stringify({ keypair: lab, displayName: 'Test Lab', role: 'laboratory', registeredAt: 1 });
     let claimed = false;
+    // What a claim leaves since offers were sealed (CONTRACT.md #8): a stub, and the sender's
+    // sealed offer, which the code's offer key opens.
     const received = {
       id: 'VEIL-R',
       strainName: 'Blue',
-      bredBy: 'S',
-      dateCreated: '2026-01-01',
-      notes: '',
-      breedingMethod: '',
-      parents: [],
-      photoFingerprints: [],
-      refId: '',
-      loggedAt: Date.UTC(2026, 9, 4),
-      nonce: '4'.repeat(64),
-      recordFingerprint: '',
       receivedFrom: 'VEIL-S',
       receivedFromCommitment: B,
-      quantity: '10 cuttings',
+      receivedAt: Date.UTC(2026, 9, 4),
+      transferId: 'TR-1',
     };
+    const offer = sealedOfferFor('VEIL-S', B, {
+      strainName: 'Blue',
+      bredBy: 'S',
+      dateCreated: '2026-01-01',
+      quantity: '10 cuttings',
+    });
     const { ctx, pg, external, errors } = await page(
       (u, method) => {
         if (u === '/transfers/TR-1/claim' && method === 'POST') {
           claimed = true;
-          return { recordId: 'VEIL-R', descendedFrom: 'VEIL-S', parentCommitment: B };
+          return { recordId: 'VEIL-R', descendedFrom: 'VEIL-S', parentCommitment: B, offerSealed: offer.box };
         }
         if (u === '/api/records' && method === 'GET') return claimed ? [received] : [];
         if (u === '/api/records' && method === 'PUT') return { ok: true, count: 1 };
@@ -1453,7 +1475,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     await pg.goto(`${origin}/records`, { waitUntil: 'networkidle' });
     // The simple flow (13 Oct): a lab's Home has "Confirm a delivery" (the header button went).
     await pg.getByRole('button', { name: 'Confirm a delivery' }).click();
-    await pg.getByLabel('Lab code').fill('TR-1.abc');
+    await pg.getByLabel('Lab code').fill(`TR-1.abc.${offer.codePart}`);
     await pg.getByRole('button', { name: 'Receive it' }).click();
     await pg.waitForSelector('text=Sign what you received?', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
@@ -1482,25 +1504,17 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     const received = {
       id: 'VEIL-R',
       strainName: 'Blue',
-      bredBy: 'S',
-      dateCreated: '2026-01-01',
-      notes: '',
-      breedingMethod: '',
-      parents: [],
-      photoFingerprints: [],
-      refId: '',
-      loggedAt: Date.UTC(2026, 9, 4),
-      nonce: '4'.repeat(64),
-      recordFingerprint: '',
       receivedFrom: 'VEIL-S',
       receivedFromCommitment: B,
+      receivedAt: Date.UTC(2026, 9, 4),
       transferId: 'TR-1',
     };
+    const offer = sealedOfferFor('VEIL-S', B, { strainName: 'Blue', bredBy: 'S', dateCreated: '2026-01-01' });
     const { ctx, pg, external, errors } = await page(
       (u, method) => {
         if (u === '/transfers/TR-1/claim' && method === 'POST') {
           claimed = true;
-          return { recordId: 'VEIL-R', descendedFrom: 'VEIL-S', parentCommitment: B };
+          return { recordId: 'VEIL-R', descendedFrom: 'VEIL-S', parentCommitment: B, offerSealed: offer.box };
         }
         if (u === '/api/records' && method === 'GET') return claimed ? [received] : [];
         if (u === '/api/records' && method === 'PUT') return { ok: true, count: 1 };
@@ -1524,7 +1538,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     await pg.evaluate((p: string) => localStorage.setItem('veilcore.attester.v1', p), profile);
     await pg.goto(`${origin}/records`, { waitUntil: 'networkidle' });
     await pg.getByRole('button', { name: 'Confirm a delivery' }).click();
-    await pg.getByLabel('Lab code').fill(`TR-1.${'ab'.repeat(16)}`);
+    await pg.getByLabel('Lab code').fill(`TR-1.${'ab'.repeat(16)}.${offer.codePart}`);
     await pg.getByRole('button', { name: 'Receive it' }).click();
     await pg.waitForSelector('text=Sign what you received?', { timeout: 15_000 });
     await pg.getByLabel('I physically received this material.').check();
