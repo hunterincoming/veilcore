@@ -112,7 +112,7 @@ not call `anchorBatch`, `replaceRecoveryCommitment`, `withdrawTransfer`, `withdr
 `proposeObligation`, `acceptObligation`, `rejectObligation` or `withdrawObligation`. It
 passed 26 of 26 on a local Midnight chain on this build (the state bounds, `ceb3a16`) on
 1 October 2026 at 20:56 EDT, and 26 of 26 on Midnight's preprod test network on 2 October 2026
-(contract `9c7b6927…`; see [`docs/preprod-run-2oct.md`](docs/preprod-run-2oct.md)).
+(contract `9c7b6927…`; see [`docs/log/preprod-run-2oct.md`](docs/log/preprod-run-2oct.md)).
 
 **MPS-0037**, the proposal for obligations that inherit through descent, is merged into
 Midnight's standards repository.
@@ -141,7 +141,7 @@ npm run deploy:prod
 `deploy:prod` publishes the test-network site. It first reads the registry's
 `/.well-known/veilcore-registry` and refuses once the registry anchors on mainnet (or if it
 cannot be read), because the test-network wording would then be false. After the mainnet
-launch the site is published with `npm run deploy:mainnet` (`docs/mainnet-day-site.md`).
+launch the site is published with `npm run deploy:mainnet` (`docs/ops/mainnet-day-site.md`).
 
 Deploy the registry before the site. All three deploys (`deploy:prod`, `deploy:mainnet` and
 `deploy:test`) refuse unless the registry's `/health` lists every feature in

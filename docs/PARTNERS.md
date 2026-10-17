@@ -350,7 +350,7 @@ Every action that writes to the chain pays a fee in **DUST**. Checking costs not
 
 Proving the two heavy claims (`proveDistinct`, `proveUnchanged`) takes the most memory: on
 VeilCore's own 16 GB laptop the proof server peaked at 3.7 GB proving every claim back to
-back (docs/preprod-run-4oct.md). Everything else needs much less.
+back (docs/log/preprod-run-4oct.md). Everything else needs much less.
 
 ### Three ways to use VeilCore at launch
 

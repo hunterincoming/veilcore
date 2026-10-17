@@ -51,7 +51,7 @@ describe('the address rule', () => {
   });
 
   it('on preprod defaults to the 5 October contracts, as the run record names them', () => {
-    const record = readFileSync(new URL('../../docs/preprod-run-5oct.md', import.meta.url), 'utf8');
+    const record = readFileSync(new URL('../../docs/log/preprod-run-5oct.md', import.meta.url), 'utf8');
     expect(record).toContain(`\`${PREPROD_ADDRESSES.veilcore}\``);
     expect(record).toContain(`\`${PREPROD_ADDRESSES.claims}\``);
     expect(defaultAddress('preprod', 'veilcore')).toBe(PREPROD_ADDRESSES.veilcore);

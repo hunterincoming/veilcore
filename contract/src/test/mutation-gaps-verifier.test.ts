@@ -1,7 +1,7 @@
 // Tests for verifier checks that mutation testing (StrykerJS on verify.ts, 3 October
 // 2026) showed nothing exercised. Each one kills a mutant that survived the suite:
 // a check whose removal no test noticed is a check the tests did not make.
-// docs/self-audit-3oct.md has the run.
+// docs/log/self-audit-3oct.md has the run.
 //
 // SPDX-License-Identifier: Apache-2.0
 

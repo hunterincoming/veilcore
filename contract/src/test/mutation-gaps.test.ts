@@ -1,7 +1,7 @@
 // Tests written for checks that mutation testing showed nothing exercised (3 October
 // 2026): each assert in veilcore.compact was disabled in turn, and the whole suite run.
 // An assert whose removal no test noticed is a rule the suite did not actually check.
-// docs/self-audit-3oct.md lists every mutant and its result.
+// docs/log/self-audit-3oct.md lists every mutant and its result.
 //
 // SPDX-License-Identifier: Apache-2.0
 

@@ -35,13 +35,13 @@ other, and without a developer on hand.
      (Blockfrost; Railway for the registry).
    - A broken circuit that lets records be faked: remove that circuit's verifier key
      with the maintenance authority, so it can no longer be called, then fix it under
-     `docs/release-checklist.md`. Removing a key is announced as soon as it is done.
+     `docs/ops/release-checklist.md`. Removing a key is announced as soon as it is done.
    - Website or registry: roll back to the last good deploy (Vercel / Railway
      dashboards).
 
 ## Within 72 hours
 
-- Fix under `docs/release-checklist.md`, with a test that fails on the old code.
+- Fix under `docs/ops/release-checklist.md`, with a test that fails on the old code.
 - Publish what happened, what was affected, and what we changed: a deployment record
   revision for anything touching the contract, and a short note on the website.
 - Thank and credit the reporter unless they ask not to be named.
@@ -57,4 +57,4 @@ other, and without a developer on hand.
 ## After
 
 Within two weeks: a short written review. What happened, why our checks missed it, and
-which test or step now catches it. Add that step to `docs/release-checklist.md`.
+which test or step now catches it. Add that step to `docs/ops/release-checklist.md`.

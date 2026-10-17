@@ -1008,7 +1008,7 @@ to a commitment no event cell showed; `approveTransfer` now publishes the new co
 (`lastTransferredLicense`). P2: a proposal publishes the obligation commitment even if
 rejected, harmless when salted, as the CLI does.
 
-**Attack round D, 4 October 2026** (`docs/security-pass-4oct-roundD.md`). Six fresh-session
+**Attack round D, 4 October 2026** (`docs/log/security-pass-4oct-roundD.md`). Six fresh-session
 AI reviews (not an audit): the website, the fee-paying demo service, the SDK (TypeScript, Python, Rust), the
 registry, this contract with its operator tool and client API, and the supply chain.
 
@@ -1165,7 +1165,7 @@ which means writing, attacking and preprod-testing new deploy and maintenance co
 and so a later mainnet date. The deploy tool checks one copy, the one typed back; the
 runbook has the operator write the second sheet while the key is on screen and check it
 against the screen group by group, and Makoto Steiner's copy goes to him by hand, never
-photographed, scanned, emailed, messaged or typed anywhere (`docs/runbook.md`, step 18).
+photographed, scanned, emailed, messaged or typed anywhere (`docs/ops/runbook.md`, step 18).
 
 **Decided.** The two-copy key above and the maintenance policy in
 `docs/maintenance-policy.md` were approved by Hunter Roberts on 6 October 2026 and confirmed
@@ -1223,8 +1223,10 @@ happens. It does not prevent one.
 8 October VeilCore's verifier checks report it with every verdict (committee size,
 threshold, counter), and a verifier can require a value (`authorityCounter`). The mainnet
 value after the deploy, the remaining circuit keys included:
-**TODO: not yet recorded. Read it from the chain (`readAuthority({ network: 'mainnet', ... })`
-in the partner kit) and fill it in here.**
+**Not yet recorded here.** Expected: 16 (one for each of the 16 maintenance transactions that
+added circuit keys after the deploy), not yet read from the chain. Anyone can read it with
+the partner kit's `readAuthority({ network: 'mainnet', ... })`; it will be added to this
+record once read.
 
 ### The claims contract
 
@@ -1326,11 +1328,11 @@ recorded under *Mainnet deployment* below.
 founder's MacBook Air (16 GB): claims contract
 `175f23573c3d9c9dd20d8bee159df07fc3b739e6a2a895f14ae4d20de5d2a4af`, its authority read
 back from the chain as an empty committee (check 28), then every claim kind proved on the
-laptop and landed (`docs/preprod-run-4oct.md`). 5 October 2026, on the operator tool after
+laptop and landed (`docs/log/preprod-run-4oct.md`). 5 October 2026, on the operator tool after
 round D (`d9d563f`), PASSED 37 of 37 again: claims contract
 `29d3ea80e121518f8fd8bd72533d856cf29cdbddbda1b6f322a661aa4f2484b6`, deploy transaction
 `0060fbb06e1483161bf0bee8204491ca09b698be70f59e9cc0e18e635cc8fbedcc`, authority read back
-as an empty committee (check 28) (`docs/preprod-run-5oct.md`).
+as an empty committee (check 28) (`docs/log/preprod-run-5oct.md`).
 
 ### Mainnet deployment
 
@@ -1376,7 +1378,7 @@ mainnet accepts only these addresses.
   `attack-bounds.test.ts` and `reattack-bounds.test.ts`. The skipped test is the
   1024-active-licence cap (in `attack-bounds.test.ts`), which runs only with
   `SLOW_TESTS=1`. It has since been run to completion: on 3 October, after a fix to the
-  test simulator's slot search (`docs/self-audit-3oct.md`, section 2), and on 6 October at
+  test simulator's slot search (`docs/log/self-audit-3oct.md`, section 2), and on 6 October at
   `a3d1884`, where `SLOW_TESTS=1 npx vitest run src/test/attack-bounds.test.ts` passed 16
   of 16. (Earlier drafts of this revision said it had not.)
 - **Contract tests on 6 October 2026, both contracts, at `a3d1884`:** `Test Files 32
@@ -1415,14 +1417,14 @@ mainnet accepts only these addresses.
   Air (16 GB): main contract
   `f239e680f1f60c38990b7066c59c9538a42c2ae414e584e21155350a7e93306a`, claims contract
   `175f23573c3d9c9dd20d8bee159df07fc3b739e6a2a895f14ae4d20de5d2a4af`
-  (`docs/preprod-run-4oct.md`). This was before the round D changes to the operator tool.
+  (`docs/log/preprod-run-4oct.md`). This was before the round D changes to the operator tool.
 - **Smoke test on preprod after round D: PASSED 37 of 37** on 5 October 2026, 19:01 to
   19:13 EDT, on `main` at `d9d563f` (the operator tool with the round D fixes: private
   state in `~/.veilcore/preprod/`, maintenance key in memory only, the join check that
   reads the deploy transaction, the claims mainnet gate). Main contract
   `93c062e10863ee8d4d72694a42908aa6c55036645fcc327fafc533bc827dc294`, claims contract
   `29d3ea80e121518f8fd8bd72533d856cf29cdbddbda1b6f322a661aa4f2484b6`
-  (`docs/preprod-run-5oct.md`). Since then, up to `a3d1884` (6 October), only one message
+  (`docs/log/preprod-run-5oct.md`). Since then, up to `a3d1884` (6 October), only one message
   line in the smoke test and one test file (`bboard-cli/src/claims-mainnet.test.ts`) have
   changed in `bboard-cli`, `api` or `contract`. The smoke test deploys the main contract
   through the API with a key it passes in directly; deploy option 1's paper-key prompts,
@@ -1448,7 +1450,7 @@ mainnet accepts only these addresses.
   written on two sheets and typed back from the second; finished from paper (option 4);
   retired provably from paper (option 33), transaction
   `0081bdbc410b9713dd8235ba20ad78ad6849552ff9a2d9470e0c43ca9ddc77a54c`
-  (`docs/preprod-paper-key-practice.md`).
+  (`docs/log/preprod-paper-key-practice.md`).
 
 ### What this revision changes in this document
 
@@ -1488,13 +1490,13 @@ mainnet accepts only these addresses.
   material an external auditor starts from is in `docs/audit/README.md`.
 - **6 and 7 October 2026:** the partner package (`@veilcore/contracts`, which exposes no
   deploy or maintenance operation) passed 23 of 23 checks against both preprod contracts
-  (`docs/partner-check-run-6oct.md`); one fresh-session AI review (not an audit) of the mainnet-only operator
+  (`docs/log/partner-check-run-6oct.md`); one fresh-session AI review (not an audit) of the mainnet-only operator
   checks (address pins, fingerprint gates, the claims deploy guard, the site preflights)
   found nothing serious, and its one medium and two lows were fixed in `799c765`, which
   changes no contract; and the paper-key deploy path ran on preprod for the first time:
   a generated key written on two sheets and typed back from the second, a deploy finished
   and the authority provably retired with the key typed from the first
-  (`docs/preprod-paper-key-practice.md`).
+  (`docs/log/preprod-paper-key-practice.md`).
 
 ### Founder sign-off
 

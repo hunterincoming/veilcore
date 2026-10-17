@@ -1,7 +1,7 @@
 # bboard-cli
 
 VeilCore's operator CLI. How to run it, step by step, is in
-[docs/runbook.md](../docs/runbook.md).
+[docs/ops/runbook.md](../docs/ops/runbook.md).
 
 ## Private state
 

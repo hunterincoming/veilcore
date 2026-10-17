@@ -115,7 +115,7 @@ also refuses if the seed you gave it is the contract's maintenance key.
 
 ## Setting it up on preprod (for Hunter)
 
-**Use `docs/no-wallet-preprod-run.md`.** It replaces the steps below, which pointed the
+**Use `docs/log/no-wallet-preprod-run.md`.** It replaces the steps below, which pointed the
 anchoring job at the production registry: a preprod sponsor must use a preprod registry
 (the job now refuses any registry that does not publish this network and contract at
 `/.well-known/veilcore-registry`). The steps are kept for reference.

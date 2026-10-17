@@ -57,7 +57,7 @@ next deployment record revision say so.
 - **Every key holder:** a computer with Node 24, this code (`git clone`, then `npm ci` in
   the folder). Creating and signing with a key needs no internet. Turn Wi-Fi off for those
   steps if you like.
-- **Hunter (sending):** the same setup as `npm run mainnet` (`docs/runbook.md`, *Before any
+- **Hunter (sending):** the same setup as `npm run mainnet` (`docs/ops/runbook.md`, *Before any
   run*): Docker Desktop running, the Blockfrost project id, the private-state password, and
   the wallet that holds the DUST. The fee is paid from DUST the wallet already has.
   Nothing is registered for DUST and no DUST address changes.
@@ -120,8 +120,8 @@ Same steps as mainnet, on a practice contract with practice keys. Nothing here i
 
 1. **Hunter: read today's counter** (no wallet, sends nothing):
    `npm run committee -- mainnet show`
-   It should say 1 key, 1 signature needed, and a counter (expected 16). That number fills
-   the TODO in `docs/maintenance-policy.md` and the deployment record.
+   It should say 1 key, 1 signature needed, and a counter (expected 16). That number goes
+   into `docs/maintenance-policy.md` and the deployment record, where it is marked not yet recorded.
 2. **Founders:** choose the three holders (above), approve this change in writing, and
    announce it **at least 14 days before** sending, as the maintenance policy requires.
 3. **Each holder makes their key on their own computer** (Wi-Fi off is fine):
@@ -298,7 +298,7 @@ could run here (Docker images couldn't be downloaded), so testing stopped at the
 - **How the key is held today:** made by the CLI on deploy (`sampleSigningKey`), shown once
   in groups of eight, typed back from paper, never written to disk (`bboard-cli/src/index.ts`,
   `makePaperKey`; `api/src/memory-overlays.ts`). Two sheets, one per founder
-  (`docs/runbook.md`, step 18). The deploy added 16 circuit keys after the deploy
+  (`docs/ops/runbook.md`, step 18). The deploy added 16 circuit keys after the deploy
   transaction, each raising the counter (deployment record revision 4, *Mainnet deployment*),
   so the counter is expected to be 16. Read it in step 1 rather than assume it.
 

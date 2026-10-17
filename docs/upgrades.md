@@ -314,8 +314,8 @@ and midnight-js will drop that (Known 6). So:
 
 ### Next weeks, before the fork
 
-1. **Record the main contract's authority counter** with `readAuthority` (the TODO in
-   `docs/maintenance-policy.md` and the deployment record). It is the baseline that shows any
+1. **Record the main contract's authority counter** with `readAuthority` (marked not yet
+   recorded in `docs/maintenance-policy.md` and the deployment record). It is the baseline that shows any
    later use. Expected to be at least 16 (16 key-adding updates after the deploy); read it
    rather than assume.
 2. **Founders decide** the points below, and amend `docs/maintenance-policy.md` to narrow

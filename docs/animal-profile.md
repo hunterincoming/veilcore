@@ -8,7 +8,7 @@ and tie a DNA report to it, dated, using everything plant records already use.
 `veilcore/profile/animal-individual/v2`, and v1 records keep checking exactly as they do
 today. "An animal" is offered on every site, veilcore.org included (`ANIMAL_RECORDS_ENABLED`
 in `bboard-ui/src/config/network.ts`). The site deploys refuse a registry whose `/health`
-doesn't list `animal-profile-v1` (`docs/mainnet-day-site.md`).
+doesn't list `animal-profile-v1` (`docs/ops/mainnet-day-site.md`).
 
 ## The problem it answers
 

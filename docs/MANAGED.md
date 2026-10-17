@@ -288,7 +288,7 @@ help against someone in control of the running computer.
 - Store passwords: one per partner, made by `add-partner`, kept only in the password manager.
   `change-password` if one may have been seen; it says when it is done, and logs it.
 - Never type a partner's store password anywhere but the `npm run managed` prompt. Never paste one into a
-  chat (including an AI assistant), an email or a document. The same rule as `docs/runbook.md`.
+  chat (including an AI assistant), an email or a document. The same rule as `docs/ops/runbook.md`.
 
 ---
 
@@ -388,7 +388,7 @@ What happens next depends on who holds the recovery secrets:
 **What VeilCore does on discovering a compromise:** stop the computer; tell every partner the same day
 with what is known; for custody partners, start the recovery race above from a clean machine; for
 partner-held recovery, help each partner run `partner-recover`; move the operator wallet; publish what
-happened. `docs/incident-response.md` applies.
+happened. `docs/ops/incident-response.md` applies.
 
 ---
 

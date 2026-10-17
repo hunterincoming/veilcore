@@ -29,7 +29,7 @@ This file is the record of what was found and what was done.
   came out byte-identical. There is no `v0.15.0` git tag and no npm provenance. The site
   and the registry have not moved to it yet.
 - **Operator tool:** passed the preprod smoke test 37 of 37 on 5 October (main at
-  `d9d563f`, `docs/preprod-run-5oct.md`), both contracts. Since then only one message line
+  `d9d563f`, `docs/log/preprod-run-5oct.md`), both contracts. Since then only one message line
   in `bboard-cli/src/smoke.ts` has changed in `bboard-cli`, `api` or `contract`.
 - **Fee-paying demo service:** fixed on branch `demo-real` (`762cd6f`), which is not merged
   into `main` and not deployed. The website demo stays simulated.
@@ -54,7 +54,7 @@ scan):
 The parts of these that run only on mainnet (fingerprint refusals, empty-pin refusals,
 refusing a claims deploy that keeps an authority, joining at the pin without re-checking
 the starting state) cannot run on preprod and are covered only by unit tests from the same
-author. `docs/release-checklist.md` section 3 asks for a re-check of the fixes themselves;
+author. `docs/ops/release-checklist.md` section 3 asks for a re-check of the fixes themselves;
 one focused review of these commits is still to do before mainnet.
 
 ## Summary

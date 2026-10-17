@@ -129,7 +129,7 @@ export type ContractKind = 'veilcore' | 'claims';
 
 /**
  * VeilCore's contracts on preprod: the pair deployed by the 5 October 2026 smoke test
- * (docs/preprod-run-5oct.md), from the build in the deployment record. Test network: the
+ * (docs/log/preprod-run-5oct.md), from the build in the deployment record. Test network: the
  * main contract's maintenance key was random and discarded; the claims contract's
  * authority is an empty committee. Anything there is test data.
  */

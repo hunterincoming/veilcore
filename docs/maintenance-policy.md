@@ -85,7 +85,7 @@ Every use of the authority:
 2. Is announced at least 14 days before, with the reason and the source change, except
    for an urgent security fix, which is announced as soon as it is safe and no later
    than 72 hours after.
-3. Follows `docs/release-checklist.md` in full: tests, adversarial review, preprod run,
+3. Follows `docs/ops/release-checklist.md` in full: tests, adversarial review, preprod run,
    regenerated fingerprints.
 4. Is published afterwards in a new revision of the deployment record: the transaction,
    the circuits changed, the fingerprints of the new build, and the authority's counter
@@ -98,7 +98,7 @@ checks report it with every verdict, the partner kit's `readAuthority` reads it,
 verifier can require the value it expects (`authorityCounter`), so any later change
 becomes a refusal.
 
-**TODO (not yet recorded):** the main contract's counter on mainnet today. Read it from
+**Not yet recorded:** the main contract's counter on mainnet today. Read it from
 the chain with `readAuthority({ network: 'mainnet', ... })` and record it here and in the
 deployment record. Until then this document gives no expected value.
 *15 Oct 2026: still not read: it can't be read without a key (mainnet's indexer is reachable only through Blockfrost or GetBlock, both keyed, since Midnight's own was retired 30 Sep; the community Midnight Explorer documents no maintenance-authority view, and a third party's page would not be the chain's own word anyway). Hunter reads it, sending nothing and needing no wallet, from `bboard-cli` with his Blockfrost id in his terminal: `npm run committee -- mainnet show` (`docs/maintenance-committee.md` expects 16, from the 16 maintenance transactions after the deploy; not yet confirmed on chain).*

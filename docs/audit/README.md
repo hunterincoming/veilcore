@@ -1,6 +1,7 @@
 # VeilCore audit pack
 
-Prepared 6 October 2026 for Guvenkaya's review of the VeilCore contracts. Everything here
+Prepared 6 October 2026 for an outside security review of the VeilCore contracts. No outside
+audit has taken place yet; this pack is what a reviewer would start from. Everything here
 was checked against the code at `a3d1884` on 6 October; where a number was measured, the
 command that measured it is given. Where another document in this repository says
 something different, section 10 lists it. Section 12 (added 15 October) lists what has
@@ -240,7 +241,7 @@ refused). All three passed on 6 October.
 
 The operator tool's own suites (`cd bboard-cli && npx vitest run`) and the end-to-end smoke
 test (`bboard-cli/src/smoke.ts`, 37 checks with real proofs, both contracts, last passed on
-preprod on 5 October: `docs/preprod-run-5oct.md`) are outside your scope.
+preprod on 5 October: `docs/log/preprod-run-5oct.md`) are outside your scope.
 
 ### Test files, by what they cover
 
@@ -564,11 +565,11 @@ predecessors).
 | 12 (+ second attacker) | 1 Oct | *Round 12* | State bounds; F1 (`lastIssuedLicense`), F2 (`lastProposed*`), F3 (recovery resets rotations), F5 (`activeLicensesBy`), R1 (16 more obligation places per recovery), R2 (`lastTransferredLicense`); F4, F6, F7, P2 documented (`ceb3a16`) |
 | Final review | 1 Oct | *Final review* | Contract and verifier: no HIGH or MEDIUM; build reproduced byte for byte (ZKIR and contract code) |
 | Fresh-session AI review | 2 Oct | *Fresh-session AI review, 2 October 2026 afternoon* | Contract: no blocker, high or medium; two lows documented in design.md |
-| Self-review | 3 Oct | `docs/self-audit-3oct.md` | Midnight's Compact checklist line by line; mutation testing of all 68 asserts in `veilcore.compact` (64 caught; one real gap, `recoverRecordSecret`'s incoming-secret check, now tested in `mutation-gaps.test.ts`); StrykerJS on `verify.ts`, 217 then 246 of 283 mutants killed (`mutation-gaps-verifier.test.ts`, 12 tests) |
+| Self-review | 3 Oct | `docs/log/self-audit-3oct.md` | Midnight's Compact checklist line by line; mutation testing of all 68 asserts in `veilcore.compact` (64 caught; one real gap, `recoverRecordSecret`'s incoming-secret check, now tested in `mutation-gaps.test.ts`); StrykerJS on `verify.ts`, 217 then 246 of 283 mutants killed (`mutation-gaps-verifier.test.ts`, 12 tests) |
 | Claims A and B | 3 Oct | Commit `74e529c`; `attack-claims-A.test.ts` (FIXED, DEFENCE, ACCEPTED and OPEN labels); comments A1, A2, A5, A6, A7 and B-H1 in the source | HIGH: a lab signature could be moved to another record with the same field set (now signs the record commitment, all 32 bytes); small-order keys (A6, subgroup check); a second challenge split (A5); biased nonces (A7, `attest.ts`); range claims on non-number slots (numeric mask in the schema id) |
 | Claims layout and mutation testing | 4 Oct | claims-design.md, *Size* and *Mutation testing*; commit `cd30c11` | 71 mutants; three Schnorr survivors now killed by `claims-schnorr.test.ts`; one equivalent (`c < p − 115·2^248` vs `<=`) |
 | C | 4 Oct | `docs/mainnet-completeness.md`, *Attack round C*; commit `bdad91a` | Claims circuits: no false claim accepted. `verify-claims.ts`: any key called "a laboratory" (C3), exact numbers for any scale (C2), same-contract reading (C4). `field-schema.ts`: `ledgerIdentity` left out of the commitment (C1). `attest.ts`: `isSigningKey`, `verifyRecordSignature`. Tests `attack-claims-C`, `attack-verifier-C`, `ledger-identity` |
-| D (+ re-check) | 4 Oct | `docs/security-pass-4oct-roundD.md` | Main contract: nothing at Medium or above, unchanged. `verify.ts`: a presentation shows the licence was live when presented, not later, so rule 5 refuses one older than an hour or older than its challenge (`acceptPresentationAt`, D-7). Tests `hardening-roundD.test.ts` (`99008f4`; re-check fixes `8de6f2a`, outside your files) |
+| D (+ re-check) | 4 Oct | `docs/log/security-pass-4oct-roundD.md` | Main contract: nothing at Medium or above, unchanged. `verify.ts`: a presentation shows the licence was live when presented, not later, so rule 5 refuses one older than an hour or older than its challenge (`acceptPresentationAt`, D-7). Tests `hardening-roundD.test.ts` (`99008f4`; re-check fixes `8de6f2a`, outside your files) |
 
 Not re-checked by a fresh-session AI review yet, and outside your files: `8de6f2a` (join reads the deploy
 transaction) and `5a980b3` (claims mainnet gate). The per-finding write-ups of claims round
@@ -625,7 +626,7 @@ Found while checking this pack against the code. The code is right in each case.
   done on 2 October (26 of 26) and, with the claims phase, on 4 and 5 October (37 of 37).
 - `docs/design.md`, *Tests* table: puts the 1,024-active-licence test in
   `state-bounds.test.ts`. It is in `attack-bounds.test.ts`.
-- `docs/self-audit-3oct.md` §1 counts 43 `disclose` calls in `veilcore.compact`; a count of
+- `docs/log/self-audit-3oct.md` §1 counts 43 `disclose` calls in `veilcore.compact`; a count of
   `disclose(` in the file gives 44, the same since `e0f2815` (1 October).
 - `contract/src/schnorr.compact` line 3 says the stdlib check is in Compact 0.34; it is in
   0.35.0. The file is frozen and fingerprinted, so the comment stays (claims-design.md,

@@ -201,7 +201,7 @@ yet: the partner kit's `checkPresentation` takes one from its caller, and the CL
 `VeilcoreAPI.checkPresentation` use the strict rule. The client seals straight
 after a revocation or transfer when allowed, and otherwise reports when it can. It does
 not seal after a countersign; the operator runs CLI option 15 ("Seal waiting
-revocations") for that (`docs/runbook.md`).
+revocations") for that (`docs/ops/runbook.md`).
 
 A leaf names its issuer, so a transfer cannot forge a licence from another issuer, and
 a commitment cannot be live twice under one issuer.

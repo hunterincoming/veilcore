@@ -1,6 +1,6 @@
 # Operator runbook
 
-**For running the VeilCore CLI on a Mac · last updated 6 October 2026 (website step on mainnet day: docs/mainnet-day-site.md)**
+**For running the VeilCore CLI on a Mac · last updated 6 October 2026 (website step on mainnet day: docs/ops/mainnet-day-site.md)**
 
 Four jobs, in this order: a rehearsal on a local chain, the smoke test on preprod, the
 claims contract fingerprints (once; done 5 October), then the mainnet deploy of both
@@ -247,12 +247,12 @@ table, which must stay as it is.
 - The claims contract fingerprints are committed and pushed (section C0; done 5 October,
   `765cab1`), and `cd contract && npm run fingerprints:check` says both contracts match.
 - The preprod smoke test has passed on this build (section B). Done 5 October: 37 of 37 on
-  `d9d563f`, the round D tool (`docs/preprod-run-5oct.md`). If anything in `bboard-cli`,
+  `d9d563f`, the round D tool (`docs/log/preprod-run-5oct.md`). If anything in `bboard-cli`,
   `api` or `contract` changes after that (other than wording), run it again.
   Changed since: smoke check 27's wording (`c75c155`) and the pin check in option 4
   (`799c765`, a refusal that applies only on mainnet once the address is pinned), which the
-  paper-key practice runs (`docs/preprod-paper-key-practice.md`). Neither needs a new smoke run.
-- The paper-key practice on preprod has been done (`docs/preprod-paper-key-practice.md`).
+  paper-key practice runs (`docs/log/preprod-paper-key-practice.md`). Neither needs a new smoke run.
+- The paper-key practice on preprod has been done (`docs/log/preprod-paper-key-practice.md`).
   Done 7 October.
 - `git log -1` shows the latest commit.
 - A zero-spend mainnet rehearsal has been done: steps 1 to 13, then 5 (Exit) at the
@@ -400,7 +400,7 @@ until the claims deploy finishes, and is deleted then.
 Once the maintainer has pinned both addresses and the registry anchors on mainnet (Railway:
 `VEILCORE_ANCHOR_NETWORK=mainnet`, `VEILCORE_ANCHOR_CONTRACT` = the main contract address),
 put veilcore.org into mainnet mode with `npm run deploy:mainnet`. The exact steps, what it
-refuses and why, and what to check on your phone are in **`docs/mainnet-day-site.md`**. It
+refuses and why, and what to check on your phone are in **`docs/ops/mainnet-day-site.md`**. It
 will not build until both conditions are true, so it cannot announce mainnet early. After
 this, always publish the site with `deploy:mainnet`; `deploy:prod` refuses once the registry
 anchors on mainnet.

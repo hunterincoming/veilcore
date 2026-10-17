@@ -36,5 +36,5 @@ see https://github.com/midnightntwrk.
 
 ## What happens after a report
 
-`docs/incident-response.md` sets out the steps, and `docs/maintenance-policy.md` how a
+`docs/ops/incident-response.md` sets out the steps, and `docs/maintenance-policy.md` how a
 fix reaches the deployed contract.
