@@ -26,13 +26,30 @@
 // told which signature is a receipt, so for them signatures are only described.
 // The registry sends only the facts the holder granted (README "Disclosure"); a ?show=
 // in the link can narrow that and never widen it. Genetics are never sent.
+//
+// Round 5 (CONTRACT.md #28, #29): the record's name is sealed, so the registry has none to
+// send unless the holder published it on purpose. The holder's link carries it after the #
+// (`n`), which never reaches a server; a link without it says so. The saved DNA report is
+// published only bound with the record's pairing salt and its proof code; the salt is in the
+// link too (`ds`): with the file the holder sent, this page checks the match in this browser.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
-import { Alert, Box, Chip, CircularProgress, Container, Divider, Paper, Stack, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Container,
+  Divider,
+  Paper,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { Link as RouterLink, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
-import { loadFingerprintCircuit, shortFingerprint } from '../veilcore/commitment';
+import { loadFingerprintCircuit, MAX_FINGERPRINT_BYTES, shortFingerprint } from '../veilcore/commitment';
 import { DISCLOSURE_FIELDS, LEGACY_NAME, toDisclosureKey, labelOf } from '../veilcore/disclosure';
 import { proofFor, type ProofState } from '../veilcore/proofs';
 import { attestationsFor, countsAsSigned, signerLabel, type ResolvedAttestation } from '../veilcore/attesters';
@@ -47,8 +64,10 @@ import {
   linkFingerprint,
   linkParam,
   movedToFragment,
+  nameFromLink,
   verifyHeading,
 } from '../veilcore/verify-link';
+import { DNA_SALT_PARAM, dnaLinkValues } from '../veilcore/dna-link';
 import { displayName } from '../veilcore/display-name';
 import { utcStamp as fmt } from '../veilcore/time';
 import { REAL_CHAIN } from '../veilcore/chain/config';
@@ -134,8 +153,13 @@ type VerifyResult = {
    * the holder shares whether one is saved and the registry sends it. Not the file's SHA-256.
    */
   dnaPairingFingerprint?: string | null;
-  /** The saved lab report file's SHA-256, as it is now, when the record keeps it (round 6). */
+  /** The saved lab report file's SHA-256, from a registry before round 5 (never sent since). */
   dnaFileSha256?: string | null;
+  /**
+   * The saved DNA report, bound (round 5, CONTRACT.md #29): H(dnapair, the file's SHA-256, the
+   * record's identity, its pairing salt). Checkable only with the salt from the holder's link.
+   */
+  dnaPairBinding?: string | null;
   /**
    * Per lab receipt linked to the holder's deliveries, under the same grant: whether it covers
    * the sample details and where they differ (custody.ts publicCustodyOf). Never the details.
@@ -203,6 +227,7 @@ const isVerifyResult = (v: unknown): v is VerifyResult => {
     bool(r.keyBound) &&
     str(r.dnaPairingFingerprint) &&
     str(r.dnaFileSha256) &&
+    str(r.dnaPairBinding) &&
     str(r.subjectKind) &&
     str(r.individualId) &&
     str(r.idScheme) &&
@@ -273,6 +298,8 @@ export const VerifyPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [proof, setProof] = useState<ProofState | 'checking'>('checking');
   const [atts, setAtts] = useState<ResolvedAttestation[] | null>(null);
+  // A DNA report file the visitor chose to check against the record (round 5): read here only.
+  const [chosenFile, setChosenFile] = useState<{ name: string; sha: string } | 'reading' | 'too-big' | null>(null);
   // The holder's own plant, when this browser has it loaded: its linked lab receipt.
   const own = useRecords().find((r) => r.id === id.toUpperCase() && !r.receivedFrom);
   const receipt = useBreederReceipt(own, !!own);
@@ -288,9 +315,10 @@ export const VerifyPage: React.FC = () => {
     fetch(url)
       .then((r): Promise<unknown> => r.json())
       .then(async (data) => {
-        // A saved lab report is matched through its pairing fingerprint, which the
-        // `commit` circuit computes (publicReportLine): loaded only for such a record.
-        if (isVerifyResult(data) && data.dnaPairingFingerprint) await loadFingerprintCircuit();
+        // A saved lab report is matched through its binding, and a pairing saved before the
+        // file's SHA-256 was kept through its pairing fingerprint, which the `commit` circuit
+        // computes (publicReportLine): loaded only for such a record.
+        if (isVerifyResult(data) && (data.dnaPairingFingerprint || data.dnaPairBinding)) await loadFingerprintCircuit();
         if (!cancelled) {
           // A shareable link is opened by someone who has no other way to check what
           // they are being shown. A body that is not a verdict is treated as no
@@ -365,19 +393,33 @@ export const VerifyPage: React.FC = () => {
   // only a hint from when the link was made (saved-report.ts publicReportLine).
   // The lab status is shared but the holder's pairing values are stale (the registry left
   // them out): say it is not known yet, never "no report saved".
+  // The DNA report's pairing salt from the link (round 5), with the link's own proof code, the
+  // identity the binding names (only once the registry reports the same one), and a file the
+  // visitor chose.
+  const linkDna = dnaLinkValues(linked(DNA_SALT_PARAM), bound ? binding.fingerprint : null);
   const labReport = pairingPending(result)
     ? pendingReportLine(tr)
     : publicReportLine(
         {
           paired: result?.dnaPairedByHolder,
           linkSha: linked('rs'),
-          pairingFingerprint: result?.dnaPairingFingerprint,
-          fileSha: result?.dnaFileSha256,
+          binding: result?.dnaPairBinding,
+          linkDna,
+          chosenSha: chosenFile && typeof chosenFile === 'object' ? chosenFile.sha : null,
           atts: atts ?? [],
           bound,
         },
         tr,
       );
+  const chosenResult = 'chosen' in labReport ? labReport.chosen : undefined;
+  const chooseFile = async (file: File | undefined) => {
+    if (!file) return;
+    if (file.size > MAX_FINGERPRINT_BYTES) return setChosenFile('too-big');
+    setChosenFile('reading');
+    const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
+    const sha = Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+    setChosenFile({ name: file.name, sha });
+  };
   // A verified signature against the link's own fingerprint is a check this browser made;
   // whether its name was matched is said in words on its line (round 5).
   const ticked = checked || (bound && signed.length > 0);
@@ -398,7 +440,10 @@ export const VerifyPage: React.FC = () => {
   // A date checked on a test network is practice data: its own mark, never mainnet's stamp red.
   const testSeal = seal && isTestNetwork(reportedNetwork ?? NETWORK);
   const sealColor = testSeal ? TEST_MARK : ACCENT;
-  const name = displayName(result?.cultivar);
+  // The name: from the holder's link (after the #, never sent anywhere), else the one the
+  // holder published (or a record saved before names were sealed); else none, said so.
+  const fromLink = nameFromLink(location.hash);
+  const name = displayName(fromLink ?? result?.cultivar ?? undefined);
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -536,16 +581,26 @@ export const VerifyPage: React.FC = () => {
 
             {/* The holder's own words, labelled as such: never a heading next to the mark,
                 cleaned of symbols and control characters, and capped (display-name.ts). */}
-            {name && (
+            {name ? (
               <Typography
                 variant="body1"
                 sx={{ mb: RECORD_ID.test(result.id ?? '') ? 0.5 : 2, overflowWrap: 'anywhere' }}
                 data-holder-name=""
+                data-name-from={fromLink ? 'link' : 'registry'}
               >
                 <Box component="span" sx={{ color: 'text.secondary' }}>
                   {t('app.verify.nameTyped')}
                 </Box>
                 {name}
+              </Typography>
+            ) : (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: RECORD_ID.test(result.id ?? '') ? 0.5 : 2 }}
+                data-no-name=""
+              >
+                {t('app.verify.noNameInLink')}
               </Typography>
             )}
             {RECORD_ID.test(result.id ?? '') && (
@@ -716,6 +771,7 @@ export const VerifyPage: React.FC = () => {
                   registryFirstSeen: result.registryFirstSeen,
                   parents: result.parents,
                   breedingMethod: result.breedingMethod,
+                  name: result.cultivar ?? undefined,
                   ...(result.subjectKind === 'animal'
                     ? {
                         subjectKind: 'animal',
@@ -729,6 +785,57 @@ export const VerifyPage: React.FC = () => {
                 }}
               />
 
+              {/* Round 5: the saved DNA report is checked here with the file the holder sent,
+                  using the pairing salt in their link; nothing leaves this browser. */}
+              {sharedOf(result).includes('dna') && result.dnaPairBinding && (
+                <Box data-dna-check={linkDna ? 'ready' : 'no-salt'} sx={{ pl: 3.25 }}>
+                  {linkDna ? (
+                    <>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                        {t('app.verify.dnaCheck.help')}
+                      </Typography>
+                      <Button variant="outlined" component="label" size="small" sx={{ minHeight: 44 }}>
+                        {t('app.verify.dnaCheck.button')}
+                        <input
+                          hidden
+                          type="file"
+                          data-dna-file=""
+                          onChange={(e) => void chooseFile(e.target.files?.[0])}
+                        />
+                      </Button>
+                      {chosenFile === 'reading' && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                          {t('app.verify.dnaCheck.reading')}
+                        </Typography>
+                      )}
+                      {chosenFile === 'too-big' && (
+                        <Typography variant="caption" color="error.main" sx={{ display: 'block', mt: 0.5 }}>
+                          {t('app.verify.dnaCheck.tooBig')}
+                        </Typography>
+                      )}
+                      {chosenFile && typeof chosenFile === 'object' && (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            display: 'block',
+                            mt: 0.5,
+                            color: chosenResult === 'matches' ? 'text.primary' : 'error.main',
+                          }}
+                          data-dna-file-result={chosenResult ?? ''}
+                        >
+                          {chosenResult === 'matches'
+                            ? t('app.verify.dnaCheck.matches', { file: displayName(chosenFile.name) })
+                            : t('app.verify.dnaCheck.differs', { file: displayName(chosenFile.name) })}
+                        </Typography>
+                      )}
+                    </>
+                  ) : (
+                    <Typography variant="caption" color="text.secondary">
+                      {t('app.verify.dnaCheck.noSalt')}
+                    </Typography>
+                  )}
+                </Box>
+              )}
               {result.notGranted && result.notGranted.length > 0 && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                   {t('app.verify.notGranted', { list: labelsOf(result.notGranted, tr) })}

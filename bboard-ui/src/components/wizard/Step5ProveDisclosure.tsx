@@ -50,7 +50,8 @@ import {
   type DisclosureKey,
 } from '../../veilcore/disclosure';
 import { canonicalUrl } from '../../config/network';
-import { verifyPath } from '../../veilcore/verify-link';
+import { nameParam, verifyPath } from '../../veilcore/verify-link';
+import { dnaLinkParams } from '../../veilcore/dna-link';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { proveLinkParams } from '../../veilcore/prove-link';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
@@ -89,6 +90,9 @@ export const Step5ProveDisclosure: React.FC<{
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ absolute: string; relative: string }>();
   const [copied, setCopied] = useState(false);
+  // Whether the link carries the record's name after the # (round 5): on unless the holder
+  // turns it off. Only the people the link is sent to see it; VeilCore never receives it.
+  const [includeName, setIncludeName] = useState(true);
   // A date-stamped plant's link can carry its on-chain identity, so whoever gets it can
   // check the date stamp and ask the holder to prove it. Only the people sent the link
   // can then match the holder's proofs to this plant (record-keys.ts keeps it off the record).
@@ -133,11 +137,15 @@ export const Step5ProveDisclosure: React.FC<{
 
   if (!record) return <Typography>{t('app.prove.share.notFound')}</Typography>;
 
-  // Round 5: with "Whether a lab report is saved" shared, the link names the saved file's
-  // SHA-256 (`rs`), so the check page can match it to a lab's signature, which names the
-  // same SHA-256. Nothing new is published: a lab's signature already shows it.
-  const savedSha = saved && saved.kind !== 'none' ? saved.sha : undefined;
-  const reportParam: Record<string, string> = disclosure['attestation-status'] && savedSha ? { rs: savedSha } : {};
+  // Round 5 of sealing (CONTRACT.md #28, #29): the link carries, after the # (never sent to
+  // any server), the record's name, unless the holder leaves it out, and with "Whether a DNA
+  // report is saved" shared, the record's pairing salt (`ds`), so whoever
+  // gets the link and the report file can check the file is the one saved. It used to carry
+  // the file's plain SHA-256 (`rs`).
+  const reportParam: Record<string, string> = {
+    ...(includeName ? nameParam(record.strainName) : {}),
+    ...(disclosure['attestation-status'] ? dnaLinkParams(record) : {}),
+  };
 
   const toggle = (key: keyof Disclosure) => {
     setDisclosure((p) => ({ ...p, [key]: !p[key] }));
@@ -162,8 +170,7 @@ export const Step5ProveDisclosure: React.FC<{
       setStored(out);
       // The link names the record's fingerprint, so the page checks against the record
       // this holder means rather than whatever fingerprint the registry answers with.
-      const relative = verifyPath(record.id, record.recordFingerprint, reportParam);
-      setResult({ absolute: canonicalUrl(relative), relative });
+      setResult({ absolute: '', relative: '' });
     } finally {
       setBusy(false);
     }
@@ -171,10 +178,11 @@ export const Step5ProveDisclosure: React.FC<{
 
   const link = (() => {
     if (!result || !record) return undefined;
-    const relative =
-      canAskProof && askable && proveParams
-        ? verifyPath(record.id, record.recordFingerprint, { ...proveParams, ...reportParam })
-        : result.relative;
+    const relative = verifyPath(
+      record.id,
+      record.recordFingerprint,
+      canAskProof && askable && proveParams ? { ...proveParams, ...reportParam } : reportParam,
+    );
     return { relative, absolute: canonicalUrl(relative) };
   })();
 
@@ -248,12 +256,24 @@ export const Step5ProveDisclosure: React.FC<{
           <Stack sx={{ mt: 0.5 }}>
             {/* A plant's choices, or an animal's: its individual ID instead of a breeding method. */}
             {fieldsFor(isAnimal(record) ? 'animal' : 'plant').map((f) => (
-              <FormControlLabel
-                key={f.key}
-                control={<Switch checked={disclosure[f.key]} onChange={() => toggle(f.key)} />}
-                label={<Typography variant="body2">{labelOf(f.key, tr)}</Typography>}
-                sx={{ minHeight: 44, mr: 0 }}
-              />
+              <React.Fragment key={f.key}>
+                <FormControlLabel
+                  control={<Switch checked={disclosure[f.key]} onChange={() => toggle(f.key)} />}
+                  label={<Typography variant="body2">{labelOf(f.key, tr)}</Typography>}
+                  sx={{ minHeight: 44, mr: 0 }}
+                />
+                {/* The name is sealed (round 5): shown to strangers only on purpose, and said so. */}
+                {f.key === 'name' && (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: 'block', mt: -0.5, mb: 0.5 }}
+                    data-name-warning=""
+                  >
+                    {t('app.prove.share.nameWarning')}
+                  </Typography>
+                )}
+              </React.Fragment>
             ))}
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mt: 1, opacity: 0.7 }}>
               <LockIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
@@ -331,8 +351,23 @@ export const Step5ProveDisclosure: React.FC<{
               sx={{ mb: 1, minHeight: 44, mr: 0 }}
             />
           )}
+          <FormControlLabel
+            control={
+              <Switch
+                checked={includeName}
+                onChange={() => setIncludeName((v) => !v)}
+                slotProps={{ input: { 'aria-describedby': 'name-in-link-help' } }}
+              />
+            }
+            label={<Typography variant="body2">{t('app.prove.share.nameInLink')}</Typography>}
+            sx={{ minHeight: 44, mr: 0 }}
+            data-name-in-link={includeName ? 'yes' : 'no'}
+          />
+          <Typography id="name-in-link-help" variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            {t('app.prove.share.nameInLinkHelp')}
+          </Typography>
           <TextField
-            value={link?.absolute ?? result.absolute}
+            value={link?.absolute ?? ''}
             fullWidth
             size="small"
             inputRef={linkInput}
@@ -357,7 +392,7 @@ export const Step5ProveDisclosure: React.FC<{
               variant="text"
               startIcon={<VisibilityIcon />}
               component={RouterLink}
-              to={link?.relative ?? result.relative}
+              to={link?.relative ?? ''}
               target="_blank"
               sx={{ minHeight: 44 }}
             >

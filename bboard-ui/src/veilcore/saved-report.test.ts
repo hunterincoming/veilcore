@@ -14,6 +14,8 @@ import {
   type ArrivedLike,
 } from './saved-report';
 import { pairingFingerprintOfSha } from './commitment';
+import { dnaPairBinding } from './chain/pairing';
+import { matchesBinding } from './dna-link';
 import type { ResolvedAttestation } from './attesters';
 import type { ResultSummary } from './lab-results';
 import type { StrainRecord } from './records';
@@ -237,35 +239,101 @@ describe('the public check page’s lab report line', () => {
     );
   });
 
-  it('with the registry’s pairing fingerprint: matched without the link, and a stale link is called stale', () => {
-    const pfp = pairingFingerprintOfSha(SHA_V1);
-    const l = publicReportLine({ paired: true, pairingFingerprint: pfp, atts: [v1], bound: true });
+  it('round 5: with the registry’s binding and the link’s salt, matched; without the salt, nobody can tell which file', () => {
+    const l = publicReportLine({ paired: true, binding: bind(SHA_V1), linkDna: DNA, atts: [v1], bound: true });
     expect(l.status).toBe('checked');
+    expect(l.text).toMatch(/matches the lab report signed by/);
     expect(l.text).not.toMatch(/as of when this link was made/);
-    const stale = publicReportLine({ paired: true, pairingFingerprint: pfp, linkSha: SHA_V2, atts: [v1], bound: true });
-    expect(stale.text).toMatch(
-      /This link was made when a different file was saved; this line is about the one saved now\./,
+    // A link without the salt (an older link, or one forwarded without it): saved, but which file can't be told.
+    const noSalt = publicReportLine({ paired: true, binding: bind(SHA_V1), atts: [v1], bound: true });
+    expect(noSalt.status).toBe('reported');
+    expect(noSalt.tie).toEqual({ state: 'saved' });
+    expect(noSalt.text).toBe(
+      'The holder saved a DNA report to this record. Which file it is can be checked only with the holder’s own check link and the file.',
     );
+    expect(noSalt.text).not.toMatch(/3bb6af/);
+    // An old link's `rs` names a file, but against a binding it is matched only with the salt.
+    const oldLink = publicReportLine({ paired: true, binding: bind(SHA_V1), linkSha: SHA_V1, atts: [], bound: true });
+    expect(oldLink.text).not.toMatch(/3bb6af|as of when/);
+  });
+});
+
+/** Round 5 (CONTRACT.md #29): the registry publishes only a binding; the link carries the salt. */
+const DNA = { salt: 'b5'.repeat(32), identity: 'a1'.repeat(32) };
+const bind = (sha: string) => dnaPairBinding(sha, DNA.identity, DNA.salt);
+
+describe('round 5: a file the visitor chooses, checked against the binding with the link’s salt', () => {
+  const v1 = att({ attestationId: 'att_v1', documentHash: SHA_V1 });
+  it('the holder’s file matches, another file doesn’t, and neither leaves the browser', () => {
+    const ok = publicReportLine({
+      paired: true,
+      binding: bind(SHA_V1),
+      linkDna: DNA,
+      chosenSha: SHA_V1,
+      atts: [],
+      bound: true,
+    });
+    expect(ok.chosen).toBe('matches');
+    expect(ok.status).toBe('checked');
+    expect(ok.text).toMatch(
+      /^The file you chose is the one saved\. The holder saved a DNA report file to this record \(SHA-256 3bb6af11…111111\)/,
+    );
+    const other = publicReportLine({
+      paired: true,
+      binding: bind(SHA_V1),
+      linkDna: DNA,
+      chosenSha: SHA_V2,
+      atts: [],
+      bound: true,
+    });
+    expect(other.chosen).toBe('differs');
+    expect(other.status).toBe('failed');
+    expect(other.text).toMatch(/^The file you chose is not the one saved\./);
+    expect(other.text).not.toMatch(/7c1e04/);
+    // The holder's file, and it is the signed lab report too.
+    const signed = publicReportLine({
+      paired: true,
+      binding: bind(SHA_V1),
+      linkDna: DNA,
+      chosenSha: SHA_V1,
+      atts: [v1],
+      bound: true,
+    });
+    expect(signed.chosen).toBe('matches');
+    expect(signed.text).toMatch(/matches the lab report signed by/);
+    // Without a chosen file and no signature to try: the page asks for the file.
+    expect(publicReportLine({ paired: true, binding: bind(SHA_V1), linkDna: DNA, atts: [], bound: true }).text).toMatch(
+      /To see which, choose the file the holder sent you/,
+    );
+  });
+
+  it('a pairing saved before the SHA-256 was kept is bound over its pairing fingerprint, and still matches', () => {
+    const l = publicReportLine({
+      paired: true,
+      binding: bind(pairingFingerprintOfSha(SHA_V1) ?? ''),
+      linkDna: DNA,
+      chosenSha: SHA_V1,
+      atts: [],
+      bound: true,
+    });
+    expect(l.chosen).toBe('matches');
+    expect(matchesBinding(bind(SHA_V1), SHA_V1, DNA.identity, DNA.salt)).toBe('file');
+    expect(matchesBinding(bind(SHA_V1), SHA_V2, DNA.identity, DNA.salt)).toBe(false);
+    expect(matchesBinding(bind(SHA_V1), SHA_V1, DNA.identity, 'c'.repeat(64))).toBe(false);
   });
 });
 
 describe('round 6: the check page describes the file saved NOW, from the registry', () => {
   // The scenario the final review reproduced: the breeder saved v1; the lab replaced it
-  // with v2; the breeder saved v2; the lab withdrew v2.
+  // with v2; the breeder saved v2; the lab withdrew v2. Since round 5 the registry says
+  // which file only as a binding, matched here with the link's salt.
   const v1 = att({ attestationId: 'att_v1', documentHash: SHA_V1 });
   const v2 = att({ attestationId: 'att_v2', documentHash: SHA_V2 });
-  const pfp1 = pairingFingerprintOfSha(SHA_V1);
-  const pfp2 = pairingFingerprintOfSha(SHA_V2);
+  const pfp2 = pairingFingerprintOfSha(SHA_V2) ?? '';
   const finalAtts = [retracted(v1, 'superseded'), retracted(v2, 'issued-in-error')];
 
-  it('the certificate’s link (fingerprint only) after a withdrawal says withdrawn, like the certificate', () => {
-    const l = publicReportLine({
-      paired: true,
-      pairingFingerprint: pfp2,
-      fileSha: SHA_V2,
-      atts: finalAtts,
-      bound: true,
-    });
+  it('the certificate’s link after a withdrawal says withdrawn, like the certificate', () => {
+    const l = publicReportLine({ paired: true, binding: bind(SHA_V2), linkDna: DNA, atts: finalAtts, bound: true });
     expect(l.status).toBe('failed');
     expect(l.text).toMatch(
       /^The DNA report saved to this record \(SHA-256 7c1e0422…222222\) was withdrawn by its lab on 2026-10-15 \(UTC\)\./,
@@ -276,10 +344,10 @@ describe('round 6: the check page describes the file saved NOW, from the registr
     expect(cert.kind).toBe('withdrawn');
     expect(savedReportSentence(cert)).toContain('It is still the file saved here; the lab no longer stands behind it.');
     expect(l.text).toContain('It is still the file saved here; the lab no longer stands behind it.');
-    // Without the registry's SHA-256 (an older pairing), the signature's is used.
-    expect(publicReportLine({ paired: true, pairingFingerprint: pfp2, atts: finalAtts, bound: true }).text).toMatch(
-      /\(SHA-256 7c1e0422…222222\) was withdrawn by its lab/,
-    );
+    // An older pairing (bound over its pairing fingerprint): the signature's SHA-256 is matched too.
+    expect(
+      publicReportLine({ paired: true, binding: bind(pfp2), linkDna: DNA, atts: finalAtts, bound: true }).text,
+    ).toMatch(/\(SHA-256 7c1e0422…222222\) was withdrawn by its lab/);
   });
 
   it('the withdrawn-signatures line says what was withdrawn, and agrees with the lab report line', () => {
@@ -302,16 +370,13 @@ describe('round 6: the check page describes the file saved NOW, from the registr
     const l = publicReportLine({
       paired: true,
       linkSha: SHA_V1,
-      pairingFingerprint: pfp2,
-      fileSha: SHA_V2,
+      binding: bind(SHA_V2),
+      linkDna: DNA,
       atts: [retracted(v1, 'superseded'), v2],
       bound: true,
     });
     expect(l.status).toBe('checked');
     expect(l.text).toMatch(/Its file \(SHA-256 7c1e0422…222222\) matches the lab report signed by/);
-    expect(l.text).toMatch(
-      /This link was made when a different file was saved; this line is about the one saved now\./,
-    );
     expect(l.text).not.toMatch(/replaced|kept|as of when this link was made/);
   });
 
@@ -319,23 +384,22 @@ describe('round 6: the check page describes the file saved NOW, from the registr
     const l = publicReportLine({
       paired: true,
       linkSha: SHA_V1,
-      pairingFingerprint: pfp2,
-      fileSha: SHA_V2,
+      binding: bind(SHA_V2),
+      linkDna: DNA,
       atts: finalAtts,
       bound: true,
     });
     expect(l.status).toBe('failed');
     expect(l.text).toMatch(/\(SHA-256 7c1e0422…222222\) was withdrawn by its lab on 2026-10-15 \(UTC\)/);
     expect(l.text).not.toMatch(/3bb6af|replaced|kept/);
-    expect(l.text).toMatch(/This link was made when a different file was saved/);
   });
 
   it('a link made before the lab replaced the saved report: factual, no intent', () => {
     const l = publicReportLine({
       paired: true,
       linkSha: SHA_V1,
-      pairingFingerprint: pfp1,
-      fileSha: SHA_V1,
+      binding: bind(SHA_V1),
+      linkDna: DNA,
       atts: [retracted(v1, 'superseded'), v2],
       bound: true,
     });
@@ -345,18 +409,25 @@ describe('round 6: the check page describes the file saved NOW, from the registr
     );
   });
 
-  it('a registry SHA-256 that doesn’t recompute to its pairing fingerprint is not believed', () => {
-    const l = publicReportLine({ paired: true, pairingFingerprint: pfp1, fileSha: SHA_V2, atts: [v2], bound: true });
+  it('a binding no signature matches is never described as a signed file', () => {
+    const l = publicReportLine({ paired: true, binding: bind(SHA_V1), linkDna: DNA, atts: [v2], bound: true });
     expect(l.status).toBe('reported');
-    expect(l.text).toMatch(/No lab signature on this record matches it, so it is the holder’s own statement/);
+    expect(l.text).toMatch(/choose the file the holder sent you/);
     expect(l.text).not.toMatch(/7c1e04/);
   });
 
-  it('the link’s file is believed only when the registry is too old to say, and then said as of the link', () => {
+  it('the link’s file is believed only when the registry is too old to send a binding, and then said as of the link', () => {
     const l = publicReportLine({ paired: true, linkSha: SHA_V1, atts: [v1], bound: true });
     expect(l.text).toMatch(/\(as of when this link was made\)/);
-    // The registry says a different file is saved now: the link's file is never described.
-    const now = publicReportLine({ paired: true, linkSha: SHA_V1, pairingFingerprint: pfp2, atts: [v1], bound: true });
+    // The registry binds a different file now: the link's file is never described.
+    const now = publicReportLine({
+      paired: true,
+      linkSha: SHA_V1,
+      binding: bind(SHA_V2),
+      linkDna: DNA,
+      atts: [v1],
+      bound: true,
+    });
     expect(now.status).toBe('reported');
     expect(now.text).not.toMatch(/3bb6af|matches the lab report/);
   });
@@ -371,8 +442,8 @@ describe('round 6: the check page describes the file saved NOW, from the registr
     const replacedHolder = savedReportSentence({ kind: 'replaced', lab: 'acme-lab', at: Date.UTC(2026, 9, 15) });
     const replacedPublic = publicReportLine({
       paired: true,
-      pairingFingerprint: pfp1,
-      fileSha: SHA_V1,
+      binding: bind(SHA_V1),
+      linkDna: DNA,
       atts: [retracted(v1, 'superseded')],
       bound: true,
     }).text;

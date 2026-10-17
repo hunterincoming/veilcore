@@ -24,6 +24,7 @@ import { pairingFingerprintOfSha } from './commitment';
 import { enT, type Translator } from '../i18n/translate';
 import type { DnaTie } from './dna-tie';
 import { recipientName } from './transfers';
+import { matchesBinding } from './dna-link';
 
 /** One lab report that came back on a delivery (LabResults.tsx ArrivedResult, structurally). */
 export type ArrivedLike = {
@@ -201,13 +202,15 @@ const HEX64 = /^[0-9a-f]{64}$/;
  * counted: it says whether the saved file is that signed report, matched on the file's
  * SHA-256 (what a lab signs).
  *
- * Which file is saved comes from the registry, as it is now (round 6): its pairing
- * fingerprint for the saved file, and the file's SHA-256 when the record keeps it. The page
- * takes the SHA-256 whose pairing fingerprint it recomputes to the registry's, from the
- * registry's SHA-256, the link's or a lab signature's. The link's SHA-256 (`rs`) is only a
- * hint from when the link was made: never shown as current when the registry says another
- * file is saved now. Only a registry too old to send the pairing leaves the link's word,
- * and then the line says "as of when this link was made".
+ * Which file is saved comes from the registry, as it is now (round 6), and since round 5 of
+ * sealing (CONTRACT.md #29) only in the bound form: dnaPairBinding = H(dnapair, the file's
+ * SHA-256, the record's proof code, its pairing salt), never the SHA-256. The salt is in the
+ * holder's link, after the # (`ds`), beside the proof code (`fp`). With them the page tries each lab
+ * report signature's SHA-256 against the binding, and a file the visitor chooses (the holder
+ * sent it with the link); without them nobody can tell which file it is, and the line says
+ * how to check. A link made before round 5 may name the file's SHA-256 (`rs`): only a hint,
+ * used when the registry is too old to send a binding, and then said "as of when this link
+ * was made".
  */
 /**
  * Whether the registry shares the lab status but has left out which report is saved because
@@ -227,12 +230,14 @@ export const pendingReportLine = (tr: Translator = enT): { status: FactStatus; t
 export const publicReportLine = (
   input: {
     paired: boolean | undefined;
-    /** The file SHA-256 named in the link (`rs`), if any. */
+    /** The file SHA-256 named in a link made before round 5 (`rs`), if any. */
     linkSha?: string | null;
-    /** The registry's pairing fingerprint for the file saved now, if it sends one. */
-    pairingFingerprint?: string | null;
-    /** The registry's SHA-256 of the file saved now, if the record keeps it. */
-    fileSha?: string | null;
+    /** The registry's bound value for the file saved now (dnaPairBinding), if it sends one. */
+    binding?: string | null;
+    /** The pairing salt from the holder's link (`ds`) and the link's own proof code, if it carries them. */
+    linkDna?: { salt: string; identity: string } | null;
+    /** The SHA-256 of a file the visitor chose to check, if any. */
+    chosenSha?: string | null;
     atts: readonly ResolvedAttestation[];
     /** The link's fingerprint matches the registry's: checks may be ticked. */
     bound: boolean;
@@ -243,27 +248,47 @@ export const publicReportLine = (
   text: string;
   /** Whether a DNA report ties the record to the plant, as this line finds it (veilcore/dna-tie.ts). */
   tie: DnaTie;
+  /** What the file the visitor chose is: the saved report, another file, or none chosen. */
+  chosen?: 'matches' | 'differs';
 } => {
   if (!input.paired) return { status: 'reported', text: tr.t('app.verify.report.notSaved'), tie: { state: 'none' } };
   const reports = input.atts.filter((a) => a.type === 'laboratory-report' && a.signatureValid);
   const hex = (v?: string | null) => (v && HEX64.test(v.toLowerCase()) ? v.toLowerCase() : undefined);
   const linkSha = hex(input.linkSha);
-  const pfp = hex(input.pairingFingerprint);
-  const regSha = hex(input.fileSha);
+  const binding = hex(input.binding);
+  const chosenSha = hex(input.chosenSha);
+  const dna = input.linkDna ?? null;
+  const pairingOf = (sha: string) => {
+    try {
+      return pairingFingerprintOfSha(sha);
+    } catch {
+      return undefined; // the circuit isn't loaded: an older pairing can't be matched here
+    }
+  };
+  const matches = (sha: string | undefined): boolean =>
+    !!sha && !!binding && !!dna && matchesBinding(binding, sha, dna.identity, dna.salt, pairingOf) !== false;
 
   let sha: string | undefined;
   let fromLink = false;
-  if (pfp) {
-    sha = [regSha, linkSha, ...reports.map((a) => a.documentHash.toLowerCase())].find(
-      (c) => c !== undefined && pairingFingerprintOfSha(c) === pfp,
+  let chosen: 'matches' | 'differs' | undefined;
+  if (binding) {
+    if (chosenSha) chosen = matches(chosenSha) ? 'matches' : 'differs';
+    sha = [chosen === 'matches' ? chosenSha : undefined, ...reports.map((a) => a.documentHash.toLowerCase())].find(
+      (c) => c !== undefined && matches(c),
     );
   } else if (linkSha) {
     sha = linkSha;
     fromLink = true;
   }
-  const stale = !!pfp && !!linkSha && pairingFingerprintOfSha(linkSha) !== pfp;
   const asOf = fromLink ? tr.t('app.verify.report.asOf') : '';
-  const staleNote = stale ? tr.t('app.verify.report.staleNote') : '';
+  const staleNote = '';
+  // The visitor's own file, said first when they chose one.
+  const fileWords =
+    chosen === 'matches'
+      ? `${tr.t('app.verify.report.fileMatches')} `
+      : chosen === 'differs'
+        ? `${tr.t('app.verify.report.fileDiffers')} `
+        : '';
 
   if (sha) {
     const matching = reports.filter((a) => a.documentHash.toLowerCase() === sha);
@@ -271,9 +296,12 @@ export const publicReportLine = (
     if (live) {
       const l = signerLabel(live, 'signed by', undefined, tr);
       return {
-        status: input.bound ? 'checked' : 'reported',
-        text: tr.t('app.verify.report.matches', { asOf, sha: shortHex(sha), lead: l.lead, rest: l.rest, staleNote }),
+        status: chosen === 'differs' ? 'failed' : input.bound ? 'checked' : 'reported',
+        text:
+          fileWords +
+          tr.t('app.verify.report.matches', { asOf, sha: shortHex(sha), lead: l.lead, rest: l.rest, staleNote }),
         tie: { state: 'lab', lead: l.lead },
+        ...(chosen ? { chosen } : {}),
       };
     }
     const gone = matching.find((a) => a.retraction);
@@ -284,19 +312,28 @@ export const publicReportLine = (
         status: 'failed',
         tie: { state: gone.retraction.reason === 'superseded' ? 'replaced' : 'withdrawn' },
         text:
-          gone.retraction.reason === 'superseded'
+          fileWords +
+          (gone.retraction.reason === 'superseded'
             ? tr.t('app.verify.report.replaced', { which, on, tail: tr.t('app.lab.replacedTail'), staleNote })
-            : tr.t('app.verify.report.withdrawn', { which, on, tail: tr.t('app.lab.withdrawnTail'), staleNote }),
+            : tr.t('app.verify.report.withdrawn', { which, on, tail: tr.t('app.lab.withdrawnTail'), staleNote })),
+        ...(chosen ? { chosen } : {}),
       };
     }
     return {
-      status: 'reported',
-      text: tr.t('app.verify.report.ownSha', { asOf, sha: shortHex(sha), staleNote }),
+      status: chosen === 'matches' && input.bound ? 'checked' : chosen === 'differs' ? 'failed' : 'reported',
+      text: fileWords + tr.t('app.verify.report.ownSha', { asOf, sha: shortHex(sha), staleNote }),
       tie: { state: 'self' },
+      ...(chosen ? { chosen } : {}),
     };
   }
-  if (pfp) {
-    return { status: 'reported', text: tr.t('app.verify.report.own', { staleNote }), tie: { state: 'self' } };
+  if (binding) {
+    // Saved, bound; which file it is only someone with the link's salt and the file can tell.
+    return {
+      status: chosen === 'differs' ? 'failed' : 'reported',
+      tie: { state: 'saved' },
+      text: fileWords + (dna ? tr.t('app.verify.report.chooseFile') : tr.t('app.verify.report.noSaltInLink')),
+      ...(chosen ? { chosen } : {}),
+    };
   }
   // A registry too old to say which file is saved, and a link that doesn't name it.
   return {

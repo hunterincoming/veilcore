@@ -207,7 +207,7 @@ const forms = (b64url: string): string[] => {
 };
 
 describe('nothing private reaches the registry', () => {
-  it('through save, pairing, grant, licence, offer and claim: only the public name is ever sent', async () => {
+  it('through save, pairing, grant, licence, offer and claim: nothing typed is sent, the name included (round 5)', async () => {
     const { records, vault } = await modules();
     const { saveGrant, disclosureFrom } = await import('./disclosure');
     const licensesMod = await import('./licenses');
@@ -261,17 +261,16 @@ describe('nothing private reaches the registry', () => {
 
     const vaultKey = vault.vaultKeyIfAny()!;
     expect(vaultKey).toBeTruthy();
-    const secrets = [...Object.values(S), ...forms(vaultKey), ...forms(offer.offerKey)];
+    // The name is sealed too since round 5 (CONTRACT.md #28): it is never on the wire.
+    const secrets = [...Object.values(S), PUBLIC_NAME, ...forms(vaultKey), ...forms(offer.offerKey)];
     expect(sent.length).toBeGreaterThan(5);
     for (const req of sent) {
       const all = `${req.url}\n${req.headers}\n${req.body}`;
       for (const s of secrets) expect(all.includes(s), `${s} in ${req.method} ${req.url}`).toBe(false);
     }
-    expect(sent.some((r) => r.body.includes(PUBLIC_NAME))).toBe(true);
     // Every stored record and licence row is sealed, with only the public fields beside it.
     const allowed = new Set([
       'id',
-      'strainName',
       'profile',
       'recordFingerprint',
       'keyBinding',
@@ -345,8 +344,9 @@ describe('a record that does not match its fingerprint', () => {
     const { records } = await modules();
     const rec = records.createRecord(await plantInput());
     await settle();
-    // The registry changes the public name: the sealed fields no longer give the fingerprint.
-    rows.set(rec.id, { ...rows.get(rec.id)!, strainName: 'Renamed by someone' });
+    // The registry changes the public fingerprint: the sealed fields no longer give it. (A
+    // name it puts beside the box is ignored since round 5: the box has the name.)
+    rows.set(rec.id, { ...rows.get(rec.id)!, recordFingerprint: 'e'.repeat(64), strainName: 'Renamed by someone' });
     const tampered = structuredClone(rows.get(rec.id)!);
 
     vi.resetModules();
@@ -637,15 +637,22 @@ describe('disclosure grants carry their values', () => {
       parents: [{ name: 'Mother', recordId: 'VEIL-SECRET-LINK' }],
       dnaFingerprint: S.dnaFp,
       dnaFileSha256: 'c'.repeat(64),
+      dnaPairSalt: 'b5'.repeat(32),
     };
     expect(grantValuesFor(plant, ['existence', 'descent-clean'])).toEqual({});
+    // The DNA report only bound (round 5, CONTRACT.md #29): never its SHA-256 or pairing fingerprint.
+    const { dnaPairBinding } = await import('./chain/pairing');
     expect(grantValuesFor(plant, ['parent-names', 'breeding-method', 'sealed-at', 'attestation-status'])).toEqual({
       parents: [{ name: 'Mother' }],
       breedingMethod: S.method,
       loggedAt: plant.loggedAt,
-      dnaFingerprint: S.dnaFp,
-      dnaFileSha256: 'c'.repeat(64),
+      dnaPairBinding: dnaPairBinding('c'.repeat(64), plant.recordFingerprint, 'b5'.repeat(32)),
     });
+    // Without the record's salt (not made yet), nothing about the report is published.
+    expect(grantValuesFor({ ...plant, dnaPairSalt: undefined }, ['attestation-status'])).toEqual({});
+    // The name only under its own grant (round 5, CONTRACT.md #28).
+    expect(grantValuesFor(plant, ['name'])).toEqual({ name: PUBLIC_NAME });
+    expect(grantValuesFor(plant, ['existence'])).toEqual({});
     expect(grantValuesFor(plant, ['individual-id'])).toEqual({}); // a plant has none
     const animal = {
       ...plant,
@@ -676,10 +683,13 @@ describe('disclosure grants carry their values', () => {
     records.pairDna(rec.id, S.dnaFp, 'r.pdf', { fileSha256: 'C'.repeat(64) });
     await settle();
     await settle();
+    const { dnaBindingOf } = await import('./dna-link');
+    const paired = records.getRecord(rec.id)!;
+    expect(paired.dnaPairSalt).toMatch(/^[0-9a-f]{64}$/);
     expect(grants.get(rec.id)).toEqual({
       show: ['existence', 'attestation-status'],
       forFingerprint: rec.recordFingerprint,
-      values: { dnaFingerprint: S.dnaFp, dnaFileSha256: 'c'.repeat(64) },
+      values: { dnaPairBinding: dnaBindingOf(paired) },
     });
     // Up to date: not sent again by the next save.
     sent = [];
@@ -698,7 +708,8 @@ describe('disclosure grants carry their values', () => {
     records.pairDna(rec.id, S.dnaFp, 'r.pdf', { fileSha256: 'a'.repeat(64) });
     await settle();
     await saveGrant(records.getRecord(rec.id)!, disclosureFrom(['existence', 'attestation-status']));
-    expect(grants.get(rec.id)?.values).toEqual({ dnaFingerprint: S.dnaFp, dnaFileSha256: 'a'.repeat(64) });
+    const { dnaBindingOf } = await import('./dna-link');
+    expect(grants.get(rec.id)?.values).toEqual({ dnaPairBinding: dnaBindingOf(records.getRecord(rec.id)!) });
 
     // The record as this browser now holds it: a different report paired, same fingerprint,
     // and no `force` from a pairing made in this tab.
@@ -709,7 +720,7 @@ describe('disclosure grants carry their values', () => {
     expect(grants.get(rec.id)).toEqual({
       show: ['existence', 'attestation-status'],
       forFingerprint: rec.recordFingerprint,
-      values: { dnaFingerprint: 'e'.repeat(64), dnaFileSha256: 'f'.repeat(64) },
+      values: { dnaPairBinding: dnaBindingOf(repaired) },
     });
     // Now the same: nothing sent.
     sent = [];

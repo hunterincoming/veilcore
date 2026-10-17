@@ -221,4 +221,23 @@ export const verify = {
     '✓ cette page a vérifié la ligne elle-même, dans votre navigateur. ○ le registre de VeilCore ou le détenteur le signale ; cette page ne l’a pas vérifié. ⊗ une vérification a échoué, ou un laboratoire a retiré ce qu’il avait signé.',
   'app.verify.ex.checkReal': 'Vérifier un vrai enregistrement',
   'app.verify.ex.what': 'Qu’est-ce que VeilCore ?',
+  'app.verify.noNameInLink': "Le détenteur n'a pas mis le nom dans ce lien.",
+  'app.verify.field.name': 'Son nom',
+  'app.verify.nameShared': 'Son nom, montré par le détenteur à quiconque a l’identifiant : {name}',
+  'app.verify.noNameShared': 'Aucun nom enregistré.',
+  'app.verify.dnaCheck.help':
+    'Vous avez le fichier du rapport ADN que le détenteur vous a envoyé ? Choisissez-le pour vérifier que c’est celui enregistré avec cet enregistrement. Le fichier est lu dans ce navigateur et n’est envoyé nulle part.',
+  'app.verify.dnaCheck.button': 'Vérifier un fichier de rapport ADN',
+  'app.verify.dnaCheck.reading': 'Lecture du fichier…',
+  'app.verify.dnaCheck.tooBig': 'Ce fichier est trop volumineux pour être vérifié ici.',
+  'app.verify.dnaCheck.matches': '{file} est le rapport ADN que le détenteur a enregistré avec cet enregistrement.',
+  'app.verify.dnaCheck.differs': '{file} n’est pas le rapport ADN enregistré avec cet enregistrement.',
+  'app.verify.dnaCheck.noSalt':
+    'Ce lien ne contient pas ce qu’il faut pour vérifier le fichier du rapport ADN. Demandez au détenteur son lien de vérification et le fichier.',
+  'app.verify.report.fileMatches': 'Le fichier que vous avez choisi est celui enregistré.',
+  'app.verify.report.fileDiffers': 'Le fichier que vous avez choisi n’est pas celui enregistré.',
+  'app.verify.report.chooseFile':
+    'Le détenteur a enregistré un rapport ADN avec cet enregistrement. Pour savoir lequel, choisissez le fichier que le détenteur vous a envoyé : cette page le vérifie par rapport à l’enregistrement, avec ce que contient ce lien.',
+  'app.verify.report.noSaltInLink':
+    'Le détenteur a enregistré un rapport ADN avec cet enregistrement. Quel fichier c’est ne peut se vérifier qu’avec le lien de vérification du détenteur lui-même et le fichier.',
 } satisfies Partial<AppTranslation>;

@@ -1,9 +1,13 @@
 // Reading a check link a depositor pasted.
 //
 // A check link is what the VeilCore site makes for a record (Share, or the certificate's QR
-// code): https://veilcore.org/verify/<record id>?fp=<fingerprint>[&show=…][&rs=…]
-// [&chain=<key>&anchorTx=…&ks=<key salt>&cd=<content hash>]. A bare record id is also
-// accepted, and then there is no fingerprint to hold the registry's answer to.
+// code): https://veilcore.org/verify/<record id>?fp=<proof code>[&show=…]
+// [#n=<name>&ds=<pairing salt>&chain=<key>&anchorTx=…&ks=<key salt>&cd=<content hash>].
+// What follows the # never reaches a server: the name (round 5, the registry no longer has
+// it), the DNA report's pairing salt, and since round 4 the key's values. Links
+// made before round 4 have the key's values in the query string, and are read from there too.
+// A bare record id is also accepted, and then there is no proof code to hold the registry's
+// answer to.
 //
 // Only the record id and the parameters are read from the link. Which registry answers is
 // the partner's choice (the `registry` option), never the link's host: a link from a
@@ -28,6 +32,13 @@ export type CheckLink = {
   readonly show?: string;
   /** The record's key and what ties it to the fingerprint, when the holder put them in the link. */
   readonly key?: { readonly key?: string; readonly keySalt?: string; readonly contentHash?: string };
+  /** The record's name, from after the # (round 5): the holder's word, as typed. */
+  readonly name?: string;
+  /**
+   * The DNA report's pairing salt, from after the # (round 5): with the report file and the
+   * link's proof code, the report the holder saved can be checked.
+   */
+  readonly dnaSalt?: string;
 };
 
 export class LinkError extends Error {}
@@ -35,8 +46,8 @@ export class LinkError extends Error {}
 /** What a partner is told about a link that stops short. */
 export const CUT = 'This link looks cut off. Ask for the whole link.';
 
-const hexParam = (q: URLSearchParams, name: string): string | undefined => {
-  const v = q.get(name);
+const hexParam = (q: URLSearchParams, name: string, hash?: URLSearchParams): string | undefined => {
+  const v = hash?.get(name) ?? q.get(name);
   if (v === null) return undefined;
   const h = v.trim().toLowerCase();
   return isHex64(h) ? h : 'invalid';
@@ -99,14 +110,32 @@ export const parseCheckLink = (input: string): CheckLink => {
         : fingerprintCut(fp)
           ? { state: 'invalid', cut: true }
           : { state: 'invalid' };
-  const key = hexParam(q, 'chain');
-  const keySalt = hexParam(q, 'ks');
-  const contentHash = hexParam(q, 'cd');
+  const h = new URLSearchParams(url.hash.replace(/^#/, ''));
+  const key = hexParam(q, 'chain', h);
+  const keySalt = hexParam(q, 'ks', h);
+  const contentHash = hexParam(q, 'cd', h);
   const show = q.get('show') ?? undefined;
+  const name = nameOf(h.get('n'));
+  const salt = hexParam(new URLSearchParams(), 'ds', h);
   return {
     recordId: id,
     fingerprint,
     ...(show !== undefined && show.length <= 512 ? { show } : {}),
     ...(key || keySalt || contentHash ? { key: { key, keySalt, contentHash } } : {}),
+    ...(name ? { name } : {}),
+    ...(salt && salt !== 'invalid' ? { dnaSalt: salt } : {}),
   };
+};
+
+/** The name after the # (`n`, its UTF-8 bytes in base64url), or undefined when it isn't one. */
+const nameOf = (raw: string | null): string | undefined => {
+  if (!raw || !/^[A-Za-z0-9_-]+$/.test(raw) || raw.length > 4000) return undefined;
+  try {
+    const b64 = raw.replace(/-/g, '+').replace(/_/g, '/');
+    const bin = atob(b64 + '='.repeat((4 - (b64.length % 4)) % 4));
+    const text = new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+    return text.trim() ? text : undefined;
+  } catch {
+    return undefined;
+  }
 };

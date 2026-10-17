@@ -221,4 +221,23 @@ export const verify = {
     '✓ Diese Seite hat die Zeile selbst geprüft, in Ihrem Browser. ○ Das VeilCore-Register oder der Inhaber meldet es; diese Seite hat es nicht geprüft. ⊗ Eine Prüfung ist fehlgeschlagen, oder ein Labor hat zurückgezogen, was es signiert hat.',
   'app.verify.ex.checkReal': 'Einen echten Datensatz prüfen',
   'app.verify.ex.what': 'Was ist VeilCore?',
+  'app.verify.noNameInLink': 'Der Inhaber hat den Namen nicht in diesen Link aufgenommen.',
+  'app.verify.field.name': 'Sein Name',
+  'app.verify.nameShared': 'Sein Name, vom Inhaber für alle mit der ID sichtbar gemacht: {name}',
+  'app.verify.noNameShared': 'Kein Name eingetragen.',
+  'app.verify.dnaCheck.help':
+    'Haben Sie die Datei des DNA-Berichts, die der Inhaber Ihnen geschickt hat? Wählen Sie sie aus, um zu prüfen, ob es die mit diesem Datensatz gespeicherte ist. Die Datei wird in diesem Browser gelesen und nirgendwohin gesendet.',
+  'app.verify.dnaCheck.button': 'Datei eines DNA-Berichts prüfen',
+  'app.verify.dnaCheck.reading': 'Datei wird gelesen…',
+  'app.verify.dnaCheck.tooBig': 'Diese Datei ist zu groß, um sie hier zu prüfen.',
+  'app.verify.dnaCheck.matches': '{file} ist der DNA-Bericht, den der Inhaber mit diesem Datensatz gespeichert hat.',
+  'app.verify.dnaCheck.differs': '{file} ist nicht der mit diesem Datensatz gespeicherte DNA-Bericht.',
+  'app.verify.dnaCheck.noSalt':
+    'Dieser Link enthält nicht, was zum Prüfen der Datei des DNA-Berichts nötig ist. Bitten Sie den Inhaber um seinen Prüflink und die Datei.',
+  'app.verify.report.fileMatches': 'Die gewählte Datei ist die gespeicherte.',
+  'app.verify.report.fileDiffers': 'Die gewählte Datei ist nicht die gespeicherte.',
+  'app.verify.report.chooseFile':
+    'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Um zu sehen, welchen, wählen Sie die Datei, die der Inhaber Ihnen geschickt hat: Diese Seite prüft sie mit dem, was in diesem Link steht, gegen den Datensatz.',
+  'app.verify.report.noSaltInLink':
+    'Der Inhaber hat einen DNA-Bericht zu diesem Datensatz gespeichert. Welche Datei es ist, lässt sich nur mit dem eigenen Prüflink des Inhabers und der Datei prüfen.',
 } satisfies Partial<AppTranslation>;

@@ -203,4 +203,23 @@ export const verify = {
     '✓ このページが、あなたのブラウザでその行自体を確認しました。○ VeilCoreのレジストリまたは保有者の報告で、このページは確認していません。⊗ 確認に失敗したか、ラボが署名を撤回しました。',
   'app.verify.ex.checkReal': '実際の記録を確認する',
   'app.verify.ex.what': 'VeilCoreとは？',
+  'app.verify.noNameInLink': '保有者はこのリンクに名前を入れていません。',
+  'app.verify.field.name': '名前',
+  'app.verify.nameShared': '保有者がIDを知る誰にでも見せている名前：{name}',
+  'app.verify.noNameShared': '名前は記録されていません。',
+  'app.verify.dnaCheck.help':
+    '保有者から送られたDNAレポートのファイルをお持ちですか。選ぶと、この記録とともに保存されたものかを確かめられます。ファイルはこのブラウザで読まれ、どこにも送られません。',
+  'app.verify.dnaCheck.button': 'DNAレポートのファイルを確かめる',
+  'app.verify.dnaCheck.reading': 'ファイルを読み込んでいます…',
+  'app.verify.dnaCheck.tooBig': 'このファイルは大きすぎて、ここでは確かめられません。',
+  'app.verify.dnaCheck.matches': '{file}は、保有者がこの記録とともに保存したDNAレポートです。',
+  'app.verify.dnaCheck.differs': '{file}は、この記録とともに保存されたDNAレポートではありません。',
+  'app.verify.dnaCheck.noSalt':
+    'このリンクには、DNAレポートのファイルを確かめるのに必要なものが入っていません。保有者に確認用リンクとファイルを頼んでください。',
+  'app.verify.report.fileMatches': '選んだファイルは保存されたものです。',
+  'app.verify.report.fileDiffers': '選んだファイルは保存されたものではありません。',
+  'app.verify.report.chooseFile':
+    '保有者はこの記録にDNAレポートを保存しています。どれかを知るには、保有者から送られたファイルを選んでください。このページが、このリンクの内容を使って記録と照らし合わせます。',
+  'app.verify.report.noSaltInLink':
+    '保有者はこの記録にDNAレポートを保存しています。どのファイルかは、保有者自身の確認用リンクとファイルがあるときだけ確かめられます。',
 } satisfies Partial<AppTranslation>;

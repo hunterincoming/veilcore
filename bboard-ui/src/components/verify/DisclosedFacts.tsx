@@ -127,6 +127,8 @@ export type SharedFactsData = {
   /** An animal's individual ID and its scheme, under the individual-id grant. */
   individualId?: string;
   idScheme?: string;
+  /** The record's name, when the holder published it with the `name` grant (round 5). */
+  name?: string;
   /**
    * The lab report line, worked out by the page (saved-report.ts publicReportLine): whether
    * the saved file is a lab report a lab signed. Without it, a plain line that claims nothing.
@@ -242,6 +244,13 @@ export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }>
         </Fact>
       )}
 
+      {/* The name, published on purpose (round 5): anyone with the ID sees it. */}
+      {shared.has('name') && (
+        <Fact ok={false}>
+          {data.name ? t('app.verify.nameShared', { name: displayName(data.name) }) : t('app.verify.noNameShared')}
+        </Fact>
+      )}
+
       {shared.size === 0 && (
         <Typography variant="body2" color="text.secondary">
           {t('app.verify.sharedNothing')}
@@ -305,6 +314,7 @@ export const DisclosedFacts: React.FC<{ record: StrainRecord; disclosure: Disclo
           sealedAt: record.loggedAt,
           parents: (record.parents ?? []).map((p) => p.name).filter(Boolean),
           breedingMethod: record.breedingMethod || null,
+          name: record.strainName,
           ...(animal
             ? {
                 subjectKind: 'animal',

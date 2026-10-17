@@ -495,6 +495,12 @@ export class VeilcoreRecordCheck extends HTMLElement {
         heading = 'Record found, link matches';
         headKind = 'ok';
       }
+      // The name is the holder's word, from their link (round 5: the registry no longer has it).
+      items.push(
+        c.nameByHolder
+          ? line('info', 'Name:', `${c.nameByHolder} (as the holder typed it).`)
+          : line('info', 'Name:', 'The holder didn’t include the name in this link.'),
+      );
       items.push(
         c.fingerprintMatches
           ? line('ok', 'Checked:', 'the link’s fingerprint is the one the registry reports for this record.')
@@ -543,8 +549,9 @@ export class VeilcoreRecordCheck extends HTMLElement {
     const page = (this.getAttribute('check-page') || 'https://veilcore.org').replace(/\/+$/, '');
     const children: Node[] = [el('h3', { className: headKind, text: heading }), el('ul', {}, ...items)];
     if (c.recordExists && c.fingerprint && !c.linkLooksCut && /^https:\/\/[^/?#]+$/.test(page)) {
-      // Built from the id and fingerprint, never from the pasted link's host.
-      const href = `${page}/verify/${encodeURIComponent(c.recordId)}?fp=${c.fingerprint}`;
+      // Built from the id and fingerprint, never from the pasted link's host. The name goes
+      // after the #, as the holder's link carries it (round 5).
+      const href = `${page}/verify/${encodeURIComponent(c.recordId)}?fp=${c.fingerprint}${nameFragment(c.nameByHolder)}`;
       children.push(
         el(
           'p',
@@ -579,6 +586,14 @@ export class VeilcoreRecordCheck extends HTMLElement {
     this.#out.dataset.accepted = String(acceptable(c, { allowTestNetwork: allowTest }));
   }
 }
+
+/** `#n=<the name's UTF-8 bytes in base64url>`, or '' for no name. */
+const nameFragment = (name: string | null): string => {
+  if (!name) return '';
+  let bin = '';
+  for (const b of new TextEncoder().encode(name)) bin += String.fromCharCode(b);
+  return `#n=${btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`;
+};
 
 /** Register the element (once). */
 export const defineRecordCheck = (name = 'veilcore-record-check'): void => {

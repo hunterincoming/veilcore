@@ -145,7 +145,10 @@ export type RecordCheck = {
   readonly registryFirstSeen: string | null;
   /** The holder has replaced this record with a corrected one. */
   readonly supersededBy: string | null;
-  /** The name the holder typed for the material (their word), cleaned. */
+  /**
+   * The name the holder typed for the material (their word), cleaned: from the link (after
+   * the #), or the one the holder published. null: the holder didn't include it in the link.
+   */
   readonly nameByHolder: string | null;
   /** One plain paragraph saying the above. */
   readonly summary: string;
@@ -255,7 +258,9 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
     registryFirstSeen: typeof r.registryFirstSeen === 'string' ? r.registryFirstSeen : null,
     supersededBy:
       typeof r.supersededBy === 'string' && r.supersededBy.length <= 128 ? cleanName(r.supersededBy, 128) : null,
-    nameByHolder: cleanName(r.cultivar),
+    // From the holder's link, after the # (round 5: the registry no longer has it), else the
+    // one the holder published on purpose, or a record saved before names were sealed.
+    nameByHolder: cleanName(link.name ?? r.cultivar),
   };
 
   // 2. Which fingerprint the rest is checked against. Only the link's, and only when the
@@ -351,7 +356,10 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
       savedReport: savedShared
         ? {
             paired: r.dnaPairedByHolder === true,
-            pairing: isHex64(r.dnaPairingFingerprint) ? r.dnaPairingFingerprint : null,
+            binding: isHex64(r.dnaPairBinding) ? r.dnaPairBinding : null,
+            // The binding names the record's proof code: only the link's own, once the registry
+            // reports the same one, with the salt from after the #.
+            dna: link.dnaSalt && bound && fingerprint ? { salt: link.dnaSalt, identity: fingerprint } : null,
           }
         : undefined,
     });

@@ -42,6 +42,7 @@ import { enT, type Translator } from '../i18n/translate';
 import { isAnimal } from './animal-profile';
 import type { StrainRecord } from './records';
 import { stableStringify } from './vault';
+import { dnaBindingOf } from './dna-link';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
@@ -52,7 +53,8 @@ export type DisclosureKey =
   | 'sealed-at' // when the holder says it was sealed
   | 'parent-names' // the parent cultivar names; for an animal, its sire and dam with their IDs
   | 'breeding-method' // how it was produced (plants only)
-  | 'individual-id'; // an animal's individual ID and its scheme (animals only)
+  | 'individual-id' // an animal's individual ID and its scheme (animals only)
+  | 'name'; // the record's name (round 5): off unless the holder turns it on
 
 export type Disclosure = Record<DisclosureKey, boolean>;
 
@@ -75,6 +77,10 @@ export const DISCLOSURE_FIELDS: { key: DisclosureKey; label: string; def: boolea
   { key: 'parent-names', label: 'Parent cultivar names', def: false },
   { key: 'breeding-method', label: 'Breeding method', def: false },
   { key: 'individual-id', label: 'Individual ID and its scheme', def: false },
+  // Round 5 (CONTRACT.md #28): the name is sealed, and the holder's check link carries it
+  // after the #. Published only on purpose, for embeds and partners: anyone with the
+  // record's ID then sees it. Last, in the registry's order (its DISCLOSURE_KEYS).
+  { key: 'name', label: 'Its name', def: false },
 ];
 
 /**
@@ -94,6 +100,7 @@ export const LEGACY_NAME: Record<DisclosureKey, string> = {
   'parent-names': 'parents',
   'breeding-method': 'method',
   'individual-id': 'individualId',
+  name: 'name',
 };
 
 const FROM_LEGACY: Record<string, DisclosureKey> = Object.fromEntries(
@@ -186,8 +193,14 @@ export type GrantValues = {
   breedingMethod?: string;
   individualId?: string;
   idScheme?: string;
-  dnaFingerprint?: string;
-  dnaFileSha256?: string;
+  /**
+   * The saved DNA report, bound (round 5, CONTRACT.md #29; dna-link.ts): H(dnapair, the file's
+   * SHA-256, the record's identity, its pairing salt). Never the SHA-256 or the pairing
+   * fingerprint, which anyone holding the same file could compare.
+   */
+  dnaPairBinding?: string;
+  /** The record's name (round 5), under the `name` grant. */
+  name?: string;
   /**
    * Under attestation-status: what the holder's app worked out about each lab receipt over
    * sealed sample details (CONTRACT.md #27), which the registry can't open. Computed values
@@ -256,9 +269,10 @@ export const grantValuesFor = (r: StrainRecord, show: readonly DisclosureKey[]):
     if (r.animal?.idScheme) v.idScheme = r.animal.idScheme;
   }
   if (on.has('attestation-status')) {
-    if (r.dnaFingerprint) v.dnaFingerprint = r.dnaFingerprint;
-    if (r.dnaFileSha256) v.dnaFileSha256 = r.dnaFileSha256;
+    const binding = dnaBindingOf(r);
+    if (binding) v.dnaPairBinding = binding;
   }
+  if (on.has('name') && r.strainName) v.name = r.strainName;
   return v;
 };
 
@@ -415,6 +429,7 @@ const VALUE_KEYS: readonly DisclosureKey[] = [
   'parent-names',
   'breeding-method',
   'individual-id',
+  'name',
 ];
 
 let syncing: Promise<number> | null = null;

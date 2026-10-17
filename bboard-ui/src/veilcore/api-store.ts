@@ -56,6 +56,10 @@
 //     an old copy from before locking, and this browser took it as current and locked the old
 //     contents again over the newer ones. It is shown as an older copy, never converted.
 //
+// Round 5 (CONTRACT.md #28): the record's name is sealed too. A row saved before carries it in
+// the clear beside its box (and its box doesn't have it): it is taken from there, and the row
+// is saved again at once, with the name inside the box and none in the clear (nameInClear).
+//
 // Every request carries the holder key, and the server returns only that holder's rows.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -89,10 +93,13 @@ const pathFor = (key: string): string => `/api/${kindFor(key)}`;
 
 // ---- the wire shape of a record row (CONTRACT.md #4) ---------------------------------------
 
-/** Fields a record row carries in the clear, as this browser sends it. Everything else is sealed. */
+/**
+ * Fields a record row carries in the clear, as this browser sends it. Everything else is
+ * sealed, the record's name included (round 5, CONTRACT.md #28: the registry refuses a save
+ * that carries `strainName` in the clear).
+ */
 const PUBLIC_FIELDS = [
   'id',
-  'strainName',
   'profile',
   'recordFingerprint',
   'keyBinding',
@@ -147,7 +154,11 @@ const SEALED_ONLY = ['grant', 'grantToConfirm', 'sentTo', 'resultLockFrom', 'off
  * (kept in this browser and its backup) or from the sender's sealed offer.
  */
 const NOT_FROM_SERVER_ROWS = [...SEALED_ONLY, 'resultLock'] as const;
-/** What a claim's stub may carry (CONTRACT.md #8): the registry's own fields, nothing else (P1). */
+/**
+ * What a claim's stub may carry (CONTRACT.md #8): the registry's own fields, nothing else (P1).
+ * A stub written before round 5 has the sender's name; since then the name comes only from
+ * the sealed offer (records.ts receivedFields).
+ */
 const STUB_FIELDS = [
   'id',
   'strainName',
@@ -198,7 +209,6 @@ export { SEALED_MAX_BYTES };
 export const publicPart = (r: Record<string, unknown>): Record<string, unknown> => {
   const out: Record<string, unknown> = {};
   for (const k of PUBLIC_FIELDS) if (r[k] !== undefined) out[k] = r[k];
-  out.strainName = isString(r.strainName) ? r.strainName : '';
   const s = r.supersedes;
   if (isObject(s)) {
     out.supersedes = {
@@ -210,13 +220,22 @@ export const publicPart = (r: Record<string, unknown>): Record<string, unknown> 
   return out;
 };
 
+/**
+ * A row sealed before round 5: its name is in the clear beside the box, and not in the box
+ * (CONTRACT.md #28). The name is taken from the row, and the row is saved again.
+ */
+const nameOnlyInClear = (row: Record<string, unknown>, sealed: Record<string, unknown>): boolean =>
+  !isString(sealed.strainName) && isString(row.strainName);
+
 /** The record a row stands for, once opened: the sealed fields, with the registry's public ones on top. */
 const merged = (row: Record<string, unknown>, sealed: Record<string, unknown>): Record<string, unknown> => {
   const out: Record<string, unknown> = { ...sealed };
   for (const k of READ_FIELDS) {
     if (row[k] !== undefined) out[k] = row[k];
-    else if (k !== 'strainName' && k !== 'id') delete out[k];
+    else if (k !== 'id') delete out[k];
   }
+  // The name is the box's (round 5); a row sealed before has it only in the clear.
+  if (nameOnlyInClear(row, sealed)) out.strainName = row.strainName;
   // The full correction (reason, severity) is in the sealed part; the row has only the pointer.
   if (sealed.supersedes === undefined && row.supersedes !== undefined) out.supersedes = row.supersedes;
   return out;
@@ -268,6 +287,11 @@ export type LoadNotice = {
    * one and saves them again, so the two agree.
    */
   readonly revMismatch?: number;
+  /**
+   * Sealed records saved before round 5, whose name is still in the clear on the registry
+   * (CONTRACT.md #28). This browser saves them again at once, with the name inside the box.
+   */
+  readonly nameInClear?: number;
 };
 
 type Loaded = {
@@ -578,6 +602,8 @@ const legacySnapshot = (kind: RowKind, row: Record<string, unknown>): string =>
  */
 const stubRecord = (row: Record<string, unknown>): Record<string, unknown> => {
   const out: Record<string, unknown> = {
+    // No name until the offer is opened (round 5: the stub has none).
+    strainName: '',
     bredBy: '',
     dateCreated: '',
     notes: '',
@@ -623,6 +649,7 @@ export const apiStore: Store = {
     const out: T[] = [];
     let unreadable = 0;
     let revMismatch = 0;
+    let nameInClear = 0;
     let openedHere = false;
     const publicOf = (raw: Record<string, unknown>) => ({
       ...(isString(raw.strainName) ? { strainName: raw.strainName } : {}),
@@ -686,8 +713,14 @@ export const apiStore: Store = {
             publicRevs.set(revKey(kind, id), publicRev);
           else publicRevs.delete(revKey(kind, id));
         }
+        // A name still in the clear (round 5): saved again, so it goes inside the box and the
+        // registry drops the clear copy.
+        const nameMoves = kind === 'records' && nameOnlyInClear(raw, inner);
+        if (nameMoves) nameInClear++;
         if (publicRev !== undefined && publicRev !== rev) {
           revMismatch++;
+          lastSealed.delete(revKey(kind, id));
+        } else if (nameMoves) {
           lastSealed.delete(revKey(kind, id));
         } else {
           lastSealed.set(revKey(kind, id), {
@@ -737,7 +770,12 @@ export const apiStore: Store = {
       states,
       locked,
       anySealed: rows.some(isSealedRow),
-      notice: { truncated, unreadable, ...(revMismatch ? { revMismatch } : {}) },
+      notice: {
+        truncated,
+        unreadable,
+        ...(revMismatch ? { revMismatch } : {}),
+        ...(nameInClear ? { nameInClear } : {}),
+      },
       legacy,
       replace: new Set(),
     });

@@ -30,7 +30,7 @@ import { forgetKeys, keysFor } from './record-keys';
 import { sealAnimalRecord, sealRecord } from './seal-record';
 import { isAnimal, isCalendarDate, type AnimalDetails, type AnimalSex } from './animal-profile';
 import type { SaveRefusal } from './store';
-import { verifyPath } from './verify-link';
+import { nameParam, verifyPath } from './verify-link';
 
 // ── Limits ─────────────────────────────────────────────────────────────────────────────
 
@@ -1732,7 +1732,10 @@ export const resultsCsv = (
     } else {
       result = 'Not sealed yet';
     }
-    const link = id ? `${origin.replace(/\/$/, '')}${verifyPath(id, fp)}` : '';
+    // The record's name goes after the # (round 5, CONTRACT.md #28): the registry no longer
+    // has it to show, and a server never receives that part of a link.
+    const name = id ? allRecords().find((x) => x.id === id)?.strainName : undefined;
+    const link = id ? `${origin.replace(/\/$/, '')}${verifyPath(id, fp, name ? nameParam(name) : {})}` : '';
     const dna = id ? (hasDnaReport(id) ? DNA_REPORT_SAVED : NO_DNA_REPORT) : '';
     out.push(line([...job.headers.map((_, i) => r.cells[i] ?? ''), id, fp, link, result, dna]));
   }

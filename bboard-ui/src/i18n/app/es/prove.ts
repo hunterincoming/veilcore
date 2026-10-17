@@ -156,4 +156,8 @@ export const prove = {
   'app.prove.share.differs.keepMine': 'Mantener mi opción',
   'app.prove.share.differs.useServers': 'Usar lo que muestra el servidor',
   'app.prove.share.differs.failed': 'VeilCore no guardó su opción. Inténtelo de nuevo.',
+  'app.prove.share.nameInLink': 'Poner el nombre en el enlace',
+  'app.prove.share.nameInLinkHelp':
+    'Solo lo ven las personas a quienes envía el enlace. Va después del # del enlace, que un navegador nunca envía a VeilCore ni a ningún otro servidor.',
+  'app.prove.share.nameWarning': 'Cualquiera con el ID de este registro verá su nombre.',
 } satisfies Partial<AppTranslation>;

@@ -215,4 +215,23 @@ export const verify = {
     "✓ this page checked the line itself, in your browser. ○ VeilCore's registry or the holder reports it; this page didn't check it. ⊗ a check failed, or a lab withdrew what it signed.",
   'app.verify.ex.checkReal': 'Check a real record',
   'app.verify.ex.what': 'What is VeilCore?',
+  'app.verify.noNameInLink': "The holder didn't include the name in this link.",
+  'app.verify.field.name': 'Its name',
+  'app.verify.nameShared': 'Its name, shown by the holder to anyone with the ID: {name}',
+  'app.verify.noNameShared': 'No name recorded.',
+  'app.verify.dnaCheck.help':
+    'Have the DNA report file the holder sent you? Choose it to check it is the one saved with this record. The file is read in this browser and never sent anywhere.',
+  'app.verify.dnaCheck.button': 'Check a DNA report file',
+  'app.verify.dnaCheck.reading': 'Reading the file…',
+  'app.verify.dnaCheck.tooBig': 'That file is too large to check here.',
+  'app.verify.dnaCheck.matches': '{file} is the DNA report the holder saved with this record.',
+  'app.verify.dnaCheck.differs': '{file} is not the DNA report saved with this record.',
+  'app.verify.dnaCheck.noSalt':
+    'This link doesn’t carry what is needed to check the DNA report file. Ask the holder for their check link and the file.',
+  'app.verify.report.fileMatches': 'The file you chose is the one saved.',
+  'app.verify.report.fileDiffers': 'The file you chose is not the one saved.',
+  'app.verify.report.chooseFile':
+    'The holder saved a DNA report to this record. To see which, choose the file the holder sent you: this page checks it against the record, using what is in this link.',
+  'app.verify.report.noSaltInLink':
+    'The holder saved a DNA report to this record. Which file it is can be checked only with the holder’s own check link and the file.',
 };

@@ -18,6 +18,12 @@
 // identity: the link the record-keys design keeps off the registry. Old links with them in
 // the query string still open (linkParam reads both), and the page moves them into the
 // fragment at once. `fp` and `show` are public and stay in the query string.
+//
+// Round 5 (CONTRACT.md #28, #29): the record's name is sealed, so the registry doesn't have it
+// to show. The holder's link carries it after the # instead (`n`, the name's UTF-8 bytes in
+// base64url), with the DNA report's pairing salt (`ds`: dna-link.ts), so
+// the person the holder sends the link to sees the name and can check the report file, and
+// no server ever receives either.
 // SPDX-License-Identifier: Apache-2.0
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -30,7 +36,38 @@ const HEX64 = /^[0-9a-f]{64}$/;
 import { enT, type Translator } from '../i18n/translate';
 
 /** Link values that join a record to its on-chain activity: only ever in the fragment (F7). */
-export const FRAGMENT_PARAMS = ['chain', 'anchorTx', 'ks', 'cd', 'rs'] as const;
+export const FRAGMENT_PARAMS = ['chain', 'anchorTx', 'ks', 'cd', 'rs', 'n', 'ds'] as const;
+
+/** The link's name value: the name's UTF-8 bytes, base64url without padding (CONTRACT.md #28). */
+export const NAME_PARAM = 'n';
+const NAME_MAX = 500;
+
+export const nameParam = (name: string): Record<string, string> => {
+  const n = name.normalize('NFC').trim().slice(0, NAME_MAX);
+  if (!n) return {};
+  const bytes = new TextEncoder().encode(n);
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return { [NAME_PARAM]: btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '') };
+};
+
+/**
+ * The name a link carries after the #, or null when it carries none (or one that isn't
+ * base64url of UTF-8 text). The page cleans it before showing it (display-name.ts), like
+ * any name somebody typed.
+ */
+export const nameFromLink = (hash: string): string | null => {
+  const raw = new URLSearchParams(hash.replace(/^#/, '')).get(NAME_PARAM);
+  if (!raw || !/^[A-Za-z0-9_-]+$/.test(raw) || raw.length > 2 * NAME_MAX * 4) return null;
+  try {
+    const b64 = raw.replace(/-/g, '+').replace(/_/g, '/');
+    const bin = atob(b64 + '='.repeat((4 - (b64.length % 4)) % 4));
+    const text = new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+    return text.trim() ? text : null;
+  } catch {
+    return null;
+  }
+};
 const inFragment = (k: string): boolean => (FRAGMENT_PARAMS as readonly string[]).includes(k);
 
 export const verifyPath = (

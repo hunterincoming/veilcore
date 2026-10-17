@@ -26,7 +26,7 @@ import { proofFor, type ProofState } from '../../veilcore/proofs';
 import { IS_MAINNET, NETWORK, networkLabel, canonicalUrl } from '../../config/network';
 import { useLicenses, activeLicenseCount, licensesForRecord } from '../../veilcore/licenses';
 import { shortFingerprint } from '../../veilcore/commitment';
-import { verifyPath } from '../../veilcore/verify-link';
+import { nameParam, verifyPath } from '../../veilcore/verify-link';
 import { ERROR_COLOR, INK_COLOR, LINE_COLOR, MUTED_COLOR, OK_COLOR } from '../../config/theme';
 import { utcDate, utcStamp as fmtStamp } from '../../veilcore/time';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
@@ -137,8 +137,9 @@ export const Step3Certificate: React.FC<{
           : 'Not yet. Until it is anchored, its date rests on this registry’s records.';
 
   // The link and QR code name the record's fingerprint: the verify page checks the
-  // proof and attestations against it, not against the registry's answer.
-  const verifyLink = canonicalUrl(verifyPath(record.id, record.recordFingerprint));
+  // proof and attestations against it, not against the registry's answer. The name goes
+  // after the # (round 5): the certificate prints it anyway, and the registry no longer has it.
+  const verifyLink = canonicalUrl(verifyPath(record.id, record.recordFingerprint, nameParam(record.strainName)));
 
   // A used lab code is not a receipt: the registry writes it when anyone holding the code
   // takes delivery, with no name and no signature. Only a receipt the lab linked to the

@@ -163,4 +163,8 @@ export const prove = {
   'app.prove.share.differs.keepMine': 'Meine Wahl behalten',
   'app.prove.share.differs.useServers': 'Die Angabe des Servers übernehmen',
   'app.prove.share.differs.failed': 'VeilCore hat Ihre Wahl nicht gespeichert. Versuchen Sie es erneut.',
+  'app.prove.share.nameInLink': 'Den Namen in den Link aufnehmen',
+  'app.prove.share.nameInLinkHelp':
+    'Nur Personen, denen Sie den Link schicken, sehen ihn. Er steht im Link hinter dem #, den ein Browser nie an VeilCore oder einen anderen Server sendet.',
+  'app.prove.share.nameWarning': 'Alle mit der ID dieses Datensatzes sehen seinen Namen.',
 } satisfies Partial<AppTranslation>;

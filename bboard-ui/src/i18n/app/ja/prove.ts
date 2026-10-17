@@ -156,4 +156,8 @@ export const prove = {
   'app.prove.share.differs.keepMine': '自分の選択を使う',
   'app.prove.share.differs.useServers': 'サーバーの表示を使う',
   'app.prove.share.differs.failed': 'VeilCoreがあなたの選択を保存しませんでした。もう一度お試しください。',
+  'app.prove.share.nameInLink': 'リンクに名前を入れる',
+  'app.prove.share.nameInLinkHelp':
+    'リンクを送った人だけが見られます。名前はリンクの#の後ろに入り、ブラウザはこの部分をVeilCoreにもほかのどのサーバーにも送りません。',
+  'app.prove.share.nameWarning': 'この記録のIDを知る人は誰でも名前を見られます。',
 } satisfies Partial<AppTranslation>;

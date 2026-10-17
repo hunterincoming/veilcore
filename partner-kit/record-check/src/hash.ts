@@ -33,6 +33,14 @@ export const tagged = async (tag: string, ...pieces: string[]): Promise<string> 
   return toHex(new Uint8Array(await crypto.subtle.digest('SHA-256', all)));
 };
 
+/**
+ * What a record publishes for a saved lab report since round 5 (the site's CONTRACT.md #29):
+ * H("veilcore:v1:dnapair", the report's SHA-256, the record's identity, its pairing salt).
+ * The salt and identity are only in the holder's check link, after the #.
+ */
+export const dnaPairBindingOf = (reportSha256: string, identity: string, salt: string): Promise<string> =>
+  tagged('veilcore:v1:dnapair', reportSha256, identity, salt);
+
 /** What a record stores for a saved lab report, from the report file's SHA-256. */
 export const pairingFingerprintOfSha = (fileSha256: string): Promise<string> =>
   tagged('veilcore:v1:commit', fileSha256);

@@ -15,7 +15,7 @@ import { useChainCall } from './useChainCall';
 import { useRecordT } from '../../i18n/app';
 import { ChainStatusLine } from './ChainStatusLine';
 import { proveLinkParams } from '../../veilcore/prove-link';
-import { verifyPath } from '../../veilcore/verify-link';
+import { nameParam, verifyPath } from '../../veilcore/verify-link';
 
 export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?: string }> = ({
   recordId,
@@ -41,7 +41,10 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
 
   const valid = /^(0x)?[0-9a-fA-F]{64}$/.test(challenge.trim());
   const anchored = keys?.anchor;
-  const checkerLink = params ? verifyPath(record.id, record.recordFingerprint, params) : '';
+  // With the record's name after the # (round 5), as every link the holder sends.
+  const checkerLink = params
+    ? verifyPath(record.id, record.recordFingerprint, { ...nameParam(record.strainName), ...params })
+    : '';
   const prove = () =>
     call.run(async (progress) => {
       if (!keys) throw new Error('This browser does not hold the record’s keys.'); // chainProblem words it on screen

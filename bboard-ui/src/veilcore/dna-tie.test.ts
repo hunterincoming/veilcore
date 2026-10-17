@@ -16,6 +16,7 @@ import {
 } from './dna-tie';
 import { publicReportLine, savedReportStatus, type SavedReport } from './saved-report';
 import { pairingFingerprintOfSha } from './commitment';
+import { dnaPairBinding } from './chain/pairing';
 import type { ResolvedAttestation } from './attesters';
 import type { StrainRecord } from './records';
 import { makeTranslator } from '../i18n/translate';
@@ -153,7 +154,9 @@ describe('a record and its DNA report', () => {
 });
 
 describe('the check page (publicReportLine)', () => {
-  const pfp = pairingFingerprintOfSha(SHA);
+  // Round 5: the registry sends a binding; the link carries the salt and identity.
+  const DNA = { salt: 'b5'.repeat(32), identity: 'a1'.repeat(32) };
+  const binding = dnaPairBinding(SHA, DNA.identity, DNA.salt);
   it('nothing saved: "not tied yet", in words that blame no one', () => {
     const l = publicReportLine({ paired: false, atts: [], bound: true });
     expect(l.tie).toEqual({ state: 'none' });
@@ -162,12 +165,12 @@ describe('the check page (publicReportLine)', () => {
     );
   });
   it('a lab-signed file, a holder’s own file, an unnamed file, and a withdrawn one', () => {
-    expect(publicReportLine({ paired: true, pairingFingerprint: pfp, atts: [att()], bound: true }).tie).toEqual({
+    expect(publicReportLine({ paired: true, binding, linkDna: DNA, atts: [att()], bound: true }).tie).toEqual({
       state: 'lab',
       lead: 'signed by a key named “Test Lab” (name not checked)',
     });
     expect(
-      publicReportLine({ paired: true, pairingFingerprint: pfp, fileSha: SHA, atts: [], bound: true }).tie,
+      publicReportLine({ paired: true, binding, linkDna: DNA, chosenSha: SHA, atts: [], bound: true }).tie,
     ).toEqual({
       state: 'self',
     });
@@ -176,7 +179,8 @@ describe('the check page (publicReportLine)', () => {
     expect(dnaTieSentence(unnamed, undefined, 'public')).toBe('Tied to the plant: DNA report the holder saved.');
     const gone = publicReportLine({
       paired: true,
-      pairingFingerprint: pfp,
+      binding,
+      linkDna: DNA,
       atts: [att({ retraction: { reason: 'error', retractedAt: '2026-10-15T00:00:00Z' } as never })],
       bound: true,
     });

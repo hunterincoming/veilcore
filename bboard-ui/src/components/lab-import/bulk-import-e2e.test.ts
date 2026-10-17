@@ -188,7 +188,8 @@ describe('importing a 25-row accession log, end to end', () => {
       expect(row.slice(7)).toEqual([
         r!.id,
         r!.recordFingerprint,
-        `${ORIGIN}/verify/${r!.id}?fp=${r!.recordFingerprint}`,
+        // The name goes after the # (round 5): the registry no longer has it.
+        `${ORIGIN}/verify/${r!.id}?fp=${r!.recordFingerprint}#n=${Buffer.from(r!.strainName, 'utf8').toString('base64url')}`,
         'Sealed',
         tab.bi.NO_DNA_REPORT,
       ]);

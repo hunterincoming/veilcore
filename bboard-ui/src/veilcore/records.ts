@@ -21,6 +21,7 @@ import {
   type SealedSecrets,
 } from './record-keys';
 import { bindingForSecret } from './key-binding';
+import { withPairSalt } from './dna-link';
 import { isAnimal, type AnimalDetails, type ParentRole } from './animal-profile';
 import {
   allowReplace,
@@ -151,6 +152,13 @@ export type StrainRecord = {
   readonly dnaFileSha256?: string;
   /** The lab report (registry result id) the saved file came from, when it was saved from one. */
   readonly dnaResultId?: string;
+  /**
+   * The record's own pairing salt (round 5, CONTRACT.md #29; dna-link.ts): what a shared lab
+   * report is published as is H(dnapair, the file's SHA-256, the record's proof code, this
+   * salt), never the SHA-256. It travels only in the holder's check link, after the #. Sealed
+   * with the record, outside its fingerprint; made once and kept.
+   */
+  readonly dnaPairSalt?: string;
   readonly attestation?: Attestation; // Phase 2.4
 
   // Set by the registry when a record arrives through a transfer. The recipient holds
@@ -262,6 +270,7 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
     str(r.dnaFingerprint) &&
     str(r.dnaFileSha256) &&
     str(r.dnaResultId) &&
+    str(r.dnaPairSalt) &&
     str(r.profile) &&
     str(r.taxon) &&
     str(r.keyBinding) &&
@@ -452,10 +461,16 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
   // A record whose public rev isn't the one sealed inside it (round 3, L2): sent again, so
   // the registry checks saves against the right number.
   const revFix = (loadNoticeOf(RECORDS_KEY).revMismatch ?? 0) > 0;
+  // A saved DNA report with no pairing salt yet (round 5): one is made and saved, so the
+  // report is published only bound with it.
+  const saltFix = withPairSalts();
+  // A record sealed before round 5 whose name is still in the clear on the registry
+  // (CONTRACT.md #28): saved again, with the name inside the box only.
+  const nameFix = (loadNoticeOf(RECORDS_KEY).nameInClear ?? 0) > 0;
   notify();
   // Sent again with the next save; not straight after a refusal (saveAll reads the set back
   // with resave off), so a registry that keeps refusing is asked once per sync, not in a loop.
-  if ((kept || merged || revFix) && opts.resave !== false) void saveAll();
+  if ((kept || merged || revFix || nameFix || saltFix) && opts.resave !== false) void saveAll();
   await convertLegacy();
   if (!syncedOnce) {
     syncedOnce = true;
@@ -482,7 +497,9 @@ const keepGrant = async (id: string, show: DisclosureKey[]): Promise<StrainRecor
   // locking too (P2).
   const { grantToConfirm: _ask, ...rest } = r;
   void _ask;
-  const next: StrainRecord = { ...rest, grant: [...show] };
+  // A saved DNA report is published only bound with the record's own pairing salt (round 5):
+  // made now if it has none, and kept with the choice, before anything is published.
+  const next: StrainRecord = withPairSalt({ ...rest, grant: [...show] });
   if (rowStateOf(RECORDS_KEY, id) === 'legacy') return next;
   records = records.map((x) => (x.id === id ? next : x));
   notify();
@@ -595,11 +612,30 @@ const persist = () => {
 };
 
 /**
+ * Give each opened record with a saved DNA report its own pairing salt, if it has none yet
+ * (round 5, CONTRACT.md #29; dna-link.ts withPairSalt): a report shared on a check link is
+ * published only bound with it. Only records this browser opened (never one held in plain
+ * text, a stub or a locked row); they go with the next save. True when any was added.
+ */
+const withPairSalts = (): boolean => {
+  let added = false;
+  const next = records.map((r) => {
+    if (!r.dnaFingerprint || rowStateOf(RECORDS_KEY, r.id) !== 'open') return r;
+    const salted = withPairSalt(r);
+    if (salted !== r) added = true;
+    return salted;
+  });
+  if (added) records = next;
+  return added;
+};
+
+/**
  * Put each record's secrets into its sealed part (round 4, F5) where this browser holds keys
  * that fit the record and the record doesn't carry them yet: a record made before this goes
  * with them on its next save. Changes `records` only where something was added.
  */
 const withSealedSecrets = (): void => {
+  withPairSalts();
   let added = false;
   const next = records.map((r) => {
     const k = keysFor(r.id);
@@ -942,14 +978,15 @@ export const pairDna = (
     const { dnaFileSha256: _s, dnaResultId: _r, ...rest } = r;
     void _s;
     void _r;
-    updated = {
+    // The record's own pairing salt (round 5): kept if it has one, made now if not.
+    updated = withPairSalt({
       ...rest,
       dnaFingerprint,
       dnaFileName,
       dnaPairedAt: Date.now(),
       ...(extra.fileSha256 ? { dnaFileSha256: extra.fileSha256.toLowerCase() } : {}),
       ...(extra.resultId ? { dnaResultId: extra.resultId } : {}),
-    };
+    });
     return updated;
   });
   if (updated) {
@@ -1065,6 +1102,7 @@ const IMPORTABLE = [
   'dnaPairedAt',
   'dnaFileSha256',
   'dnaResultId',
+  'dnaPairSalt',
   'supersedes',
   'supersededBy',
 ] as const;

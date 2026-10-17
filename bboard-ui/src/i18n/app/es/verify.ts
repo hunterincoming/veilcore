@@ -220,4 +220,23 @@ export const verify = {
     '✓ esta página comprobó la línea por sí misma, en su navegador. ○ lo informa el servidor de registros de VeilCore o el titular; esta página no lo comprobó. ⊗ una comprobación falló, o un laboratorio retiró lo que firmó.',
   'app.verify.ex.checkReal': 'Comprobar un registro real',
   'app.verify.ex.what': '¿Qué es VeilCore?',
+  'app.verify.noNameInLink': 'El titular no incluyó el nombre en este enlace.',
+  'app.verify.field.name': 'Su nombre',
+  'app.verify.nameShared': 'Su nombre, mostrado por el titular a cualquiera con el ID: {name}',
+  'app.verify.noNameShared': 'No hay nombre registrado.',
+  'app.verify.dnaCheck.help':
+    '¿Tiene el archivo del informe de ADN que le envió el titular? Elíjalo para comprobar que es el guardado con este registro. El archivo se lee en este navegador y no se envía a ninguna parte.',
+  'app.verify.dnaCheck.button': 'Comprobar un archivo de informe de ADN',
+  'app.verify.dnaCheck.reading': 'Leyendo el archivo…',
+  'app.verify.dnaCheck.tooBig': 'Ese archivo es demasiado grande para comprobarlo aquí.',
+  'app.verify.dnaCheck.matches': '{file} es el informe de ADN que el titular guardó con este registro.',
+  'app.verify.dnaCheck.differs': '{file} no es el informe de ADN guardado con este registro.',
+  'app.verify.dnaCheck.noSalt':
+    'Este enlace no lleva lo necesario para comprobar el archivo del informe de ADN. Pida al titular su enlace de comprobación y el archivo.',
+  'app.verify.report.fileMatches': 'El archivo que eligió es el guardado.',
+  'app.verify.report.fileDiffers': 'El archivo que eligió no es el guardado.',
+  'app.verify.report.chooseFile':
+    'El titular guardó un informe de ADN en este registro. Para ver cuál, elija el archivo que le envió el titular: esta página lo comprueba con el registro, usando lo que lleva este enlace.',
+  'app.verify.report.noSaltInLink':
+    'El titular guardó un informe de ADN en este registro. Qué archivo es solo se puede comprobar con el enlace de comprobación del propio titular y el archivo.',
 } satisfies Partial<AppTranslation>;

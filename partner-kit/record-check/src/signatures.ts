@@ -19,7 +19,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { verifyAttestation, verifyRetraction, type Retraction, type SignedAttestation } from 'veilcore-records';
-import { pairingFingerprintOfSha } from './hash.js';
+import { dnaPairBindingOf, pairingFingerprintOfSha } from './hash.js';
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const isString = (v: unknown): v is string => typeof v === 'string';
@@ -279,9 +279,14 @@ export const checkSignatures = async (
     now: number;
     /**
      * The lab report saved to the record now, when the holder shares that: whether one is
-     * saved, and its pairing fingerprint when the registry sends it. Undefined: not shared.
+     * saved, and since round 5 its bound form (`binding`, the registry's dnaPairBinding) with
+     * the pairing salt and identity from the link (`dna`). Undefined: not shared.
      */
-    savedReport?: { readonly paired: boolean; readonly pairing: string | null };
+    savedReport?: {
+      readonly paired: boolean;
+      readonly binding: string | null;
+      readonly dna: { readonly salt: string; readonly identity: string } | null;
+    };
     /** The registry's /verify `custody` list (when the holder shares lab status). Undefined: not shared. */
     custody?: readonly CustodyEntry[];
   },
@@ -332,16 +337,20 @@ export const checkSignatures = async (
       );
       const doc = a.documentHash.toLowerCase();
       const saved = opts.savedReport;
-      // Matched through the pairing fingerprint the record stores (the contract's commit over
-      // the file's SHA-256), recomputed here, not through a SHA-256 the registry states.
+      // Matched through the binding the registry publishes (round 5): the report's SHA-256 (or,
+      // for a pairing saved before the SHA-256 was kept, its pairing fingerprint) bound with the
+      // salt and identity from the link, recomputed here. Without the link's salt it can't be
+      // matched (null): nobody without it can tell which file is saved.
       const matchesSavedReport =
         kind !== 'lab-report' || saved === undefined
           ? null
           : !saved.paired
             ? false
-            : saved.pairing === null
+            : saved.binding === null || saved.dna === null || !/^[0-9a-f]{64}$/.test(doc)
               ? null
-              : /^[0-9a-f]{64}$/.test(doc) && (await pairingFingerprintOfSha(doc)) === saved.pairing;
+              : (await dnaPairBindingOf(doc, saved.dna.identity, saved.dna.salt)) === saved.binding ||
+                (await dnaPairBindingOf(await pairingFingerprintOfSha(doc), saved.dna.identity, saved.dna.salt)) ===
+                  saved.binding;
       const r: Omit<LabReceipt, 'words'> = {
         kind,
         attestationId: a.attestationId.slice(0, 200),
