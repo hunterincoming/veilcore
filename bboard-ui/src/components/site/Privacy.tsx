@@ -17,10 +17,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import { SiteShell } from './SiteShell';
 
-const SECTIONS = ['stored', 'local', 'browser', 'hosts', 'test', 'madeup', 'export', 'delete', 'who'] as const;
+const SECTIONS = ['stored', 'local', 'browser', 'hosts', 'code', 'test', 'madeup', 'export', 'delete', 'who'] as const;
 
 export const Privacy: React.FC = () => {
   const { t } = useI18n();
@@ -36,7 +37,16 @@ export const Privacy: React.FC = () => {
             {SECTIONS.map((k) => (
               <div key={k}>
                 <dt>{t(`m.privacy.${k}.title`)}</dt>
-                <dd>{t(`m.privacy.${k}.text`)}</dd>
+                <dd>
+                  {t(`m.privacy.${k}.text`)}
+                  {/* Round 5 (CONTRACT.md #31): where anyone can check it. */}
+                  {k === 'code' && (
+                    <>
+                      {' '}
+                      <RouterLink to="/check-this-site">{t('m.checksite.title')}</RouterLink>
+                    </>
+                  )}
+                </dd>
               </div>
             ))}
           </dl>

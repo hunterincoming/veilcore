@@ -452,6 +452,27 @@ export const de: Strings = {
   'm.tech.dna.t': 'Kopplung von Berichten und Laborsignaturen',
   'm.tech.dna.p':
     'Läuft die Kopplung eines DNA-Berichts über den VeilCore-Contract auf Midnight, wird sie datiert: Sie zeigt, dass, wer den Datensatz zu diesem Datum kontrollierte, diesen Bericht oder seinen SHA-256 bis dahin hatte. Was auf die Chain kommt, ist an den Datensatz gebunden und verbirgt den Bericht, sodass niemand die Kopplung auf seinen eigenen Datensatz kopieren kann. Die Signatur eines Labors auf einem verschlossenen Bericht umfasst genau diese Datei und den Datensatz, um den es geht.',
+  'title.checkSite': 'Diese Website prüfen',
+  'm.privacy.code.title': 'Der Code der App',
+  'm.privacy.code.text': 'VeilCore stellt den Code der App bereit. Die Dateien jeder Version sind öffentlich aufgelistet, sodass jeder prüfen kann, ob die Website ihrem veröffentlichten Code entspricht.',
+  'm.checksite.title': 'Diese Website prüfen',
+  'm.checksite.lede': 'VeilCore stellt den Code der App bereit. Die Dateien jeder Version sind öffentlich aufgelistet, sodass jeder prüfen kann, ob die Website ihrem veröffentlichten Code entspricht.',
+  'm.checksite.reading': 'Es wird gelesen, welche Version dies ist…',
+  'm.checksite.noRelease': 'Diese Kopie der Website wurde nicht über eine Versionsbereitstellung veröffentlicht, daher gibt es keine Liste, mit der sie sich prüfen ließe.',
+  'm.checksite.release': 'Diese Kopie der Website gibt an, Version {commit} auf {network} zu sein, erstellt am {date}.',
+  'm.checksite.how': 'Die Prüfung lädt jede Datei, die die Version auflistet, von dieser Website, berechnet ihren SHA-256 in Ihrem Browser und vergleicht ihn mit der Liste.',
+  'm.checksite.trust': 'Diese Seite läuft auf der Website, die sie prüft; eine Website, die lügt, könnte also auch hier lügen. Um zu prüfen, ohne VeilCore zu vertrauen, laden Sie die Liste aus dem öffentlichen Code herunter und verwenden Sie sie unten, oder führen Sie {command} in einer Kopie des Codes aus.',
+  'm.checksite.listLink': 'Die Liste dieser Version im öffentlichen Code',
+  'm.checksite.useSite': 'Mit der Liste prüfen, die diese Website bereitstellt',
+  'm.checksite.useFile': 'Oder mit einer heruntergeladenen Liste prüfen:',
+  'm.checksite.checking': 'Datei {done} von {total} wird geprüft…',
+  'm.checksite.allMatch': 'Alle {total} Dateien stimmen mit der Liste der Version überein.',
+  'm.checksite.someDiffer': '{matched} von {total} Dateien stimmen mit der Liste der Version überein. Diese nicht:',
+  'm.checksite.differs': 'Abweichend: {path}',
+  'm.checksite.missing': 'Fehlt: {path}',
+  'm.checksite.noList': 'Das ist keine Versionsliste.',
+  'm.checksite.otherList': 'Diese Liste gehört zu einer anderen Version, nicht zu der, die diese Website angibt.',
+  'm.checksite.uncommitted': 'Diese Version wurde aus Code mit noch nicht eingecheckten Änderungen erstellt; ihre Dateien sind daher nicht genau der veröffentlichte Code dieses Commits.',
 };
 
 /** The public test site (en-testchain.ts), in this language. Draft, like the rest of this file. */

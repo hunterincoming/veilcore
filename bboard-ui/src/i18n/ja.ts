@@ -452,6 +452,27 @@ export const ja: Strings = {
   'm.tech.dna.t': '報告書の紐付けとラボの署名',
   'm.tech.dna.p':
     'DNA報告書の紐付けがMidnight上のVeilCoreのコントラクトを通ると、日付が付きます。それは、その日付に記録を管理していた人が、その時点でその報告書またはそのSHA-256を持っていたことを示します。チェーンに載るものは記録に結び付いていて報告書を隠すため、誰も紐付けを自分の記録にコピーできません。鍵のかかった報告書へのラボの署名は、まさにそのファイルと、それが関わる記録を対象とします。',
+  'title.checkSite': 'このサイトを確かめる',
+  'm.privacy.code.title': 'アプリのコード',
+  'm.privacy.code.text': 'アプリのコードはVeilCoreが配信しています。各リリースのファイルは公開の一覧に載っているので、サイトが公開されたコードと一致するかを誰でも確かめられます。',
+  'm.checksite.title': 'このサイトを確かめる',
+  'm.checksite.lede': 'アプリのコードはVeilCoreが配信しています。各リリースのファイルは公開の一覧に載っているので、サイトが公開されたコードと一致するかを誰でも確かめられます。',
+  'm.checksite.reading': 'どのリリースかを読み込んでいます…',
+  'm.checksite.noRelease': 'このサイトのコピーはリリースの手順で公開されたものではないため、照らし合わせる一覧がありません。',
+  'm.checksite.release': 'このサイトのコピーは、{network}のリリース{commit}（{date}作成）だと名乗っています。',
+  'm.checksite.how': 'リリースの一覧にあるすべてのファイルをこのサイトから取得し、あなたのブラウザでSHA-256を計算して一覧と比べます。',
+  'm.checksite.trust': 'このページは確かめる対象のサイト上で動くため、偽るサイトならここでも偽れます。VeilCoreを信頼せずに確かめるには、公開コードから一覧をダウンロードして下で使うか、コードのコピーで{command}を実行してください。',
+  'm.checksite.listLink': '公開コードにあるこのリリースの一覧',
+  'm.checksite.useSite': 'このサイトが配信する一覧で確かめる',
+  'm.checksite.useFile': 'またはダウンロードした一覧で確かめる：',
+  'm.checksite.checking': '{total}件中{done}件のファイルを確かめています…',
+  'm.checksite.allMatch': '{total}件すべてのファイルがリリースの一覧と一致します。',
+  'm.checksite.someDiffer': '{total}件中{matched}件のファイルがリリースの一覧と一致します。一致しないもの：',
+  'm.checksite.differs': '異なる：{path}',
+  'm.checksite.missing': 'ない：{path}',
+  'm.checksite.noList': 'それはリリースの一覧ではありません。',
+  'm.checksite.otherList': 'その一覧は別のリリースのもので、このサイトが名乗るリリースのものではありません。',
+  'm.checksite.uncommitted': 'このリリースはまだコミットされていない変更を含むコードから作られたため、ファイルはそのコミットの公開コードと完全には一致しません。',
 };
 
 /** The public test site (en-testchain.ts), in this language. Draft, like the rest of this file. */

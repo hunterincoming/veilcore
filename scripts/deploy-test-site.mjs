@@ -13,6 +13,11 @@
 // not added to the Vercel project (a project domain would follow every production deploy);
 // the alias alone is enough, since veilcore.org's DNS is on Vercel.
 //
+// Before uploading it writes the release manifest (scripts/release-manifest.mjs): the SHA-256
+// of every file served, the commit and the date, in releases/preprod/<commit>.json, and prints
+// it. Commit and push that file with the release; anyone can then check the live site against
+// it (npm run check:site -- https://test.veilcore.org, or /check-this-site on the site).
+//
 //   VEILCORE_TEST_REGISTRY=https://<preprod registry> VEILCORE_TEST_SPONSOR=https://<sponsor> npm run deploy:test
 // SPDX-License-Identifier: Apache-2.0
 
@@ -137,6 +142,9 @@ const main = async () => {
   mkdirSync('.vercel/output/static', { recursive: true });
   cpSync('bboard-ui/dist', '.vercel/output/static', { recursive: true });
   run('node', ['scripts/vercel-config.mjs']);
+  // The release manifest (CONTRACT.md #31): every file served, the commit, the date, written
+  // to releases/preprod/<commit>.json (commit and push it with this release) and printed.
+  run('node', ['scripts/release-manifest.mjs', 'preprod', '.vercel/output/static']);
   run('npm', ['ci', '--prefix', 'tools/vercel', '--include=dev', '--ignore-scripts', '--no-audit', '--no-fund']);
   // A preview deployment, never --prod: nothing here can touch veilcore.org.
   const url = execFileSync('./tools/vercel/node_modules/.bin/vercel', ['deploy', '--prebuilt'], {

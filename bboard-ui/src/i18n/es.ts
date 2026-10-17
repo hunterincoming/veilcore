@@ -447,6 +447,27 @@ export const es: Strings = {
   'm.tech.dna.t': 'Vinculación de informes y firmas de laboratorio',
   'm.tech.dna.p':
     'Cuando la vinculación de un informe de ADN pasa por el contrato de VeilCore en Midnight, queda fechada: muestra que quien controlaba el registro en esa fecha tenía ese informe, o su SHA-256, para entonces. Lo que va a la cadena está atado al registro y oculta el informe, así que nadie puede copiar la vinculación a su propio registro. La firma de un laboratorio en un informe cerrado cubre exactamente ese archivo y el registro al que se refiere.',
+  'title.checkSite': 'Comprobar este sitio',
+  'm.privacy.code.title': 'El código de la app',
+  'm.privacy.code.text': 'VeilCore sirve el código de la app. Los archivos de cada versión se publican en una lista, para que cualquiera pueda comprobar que el sitio coincide con su código publicado.',
+  'm.checksite.title': 'Comprobar este sitio',
+  'm.checksite.lede': 'VeilCore sirve el código de la app. Los archivos de cada versión se publican en una lista, para que cualquiera pueda comprobar que el sitio coincide con su código publicado.',
+  'm.checksite.reading': 'Leyendo qué versión es…',
+  'm.checksite.noRelease': 'Esta copia del sitio no se publicó con un despliegue de versión, así que no hay lista con la que comprobarla.',
+  'm.checksite.release': 'Esta copia del sitio dice ser la versión {commit} en {network}, hecha el {date}.',
+  'm.checksite.how': 'La comprobación descarga de este sitio cada archivo que lista la versión, calcula su SHA-256 en su navegador y lo compara con la lista.',
+  'm.checksite.trust': 'Esta página se ejecuta en el sitio que comprueba, así que un sitio que mienta podría mentir también aquí. Para comprobarlo sin confiar en VeilCore, descargue la lista del código público y úsela abajo, o ejecute {command} desde una copia del código.',
+  'm.checksite.listLink': 'La lista de esta versión en el código público',
+  'm.checksite.useSite': 'Comprobar con la lista que sirve este sitio',
+  'm.checksite.useFile': 'O comprobar con una lista que descargó:',
+  'm.checksite.checking': 'Comprobando {done} de {total} archivos…',
+  'm.checksite.allMatch': 'Los {total} archivos coinciden con la lista de la versión.',
+  'm.checksite.someDiffer': '{matched} de {total} archivos coinciden con la lista de la versión. Estos no:',
+  'm.checksite.differs': 'Distinto: {path}',
+  'm.checksite.missing': 'Falta: {path}',
+  'm.checksite.noList': 'Eso no es una lista de versión.',
+  'm.checksite.otherList': 'Esa lista es de otra versión, no de la que dice ser este sitio.',
+  'm.checksite.uncommitted': 'Esta versión se hizo con código con cambios aún sin confirmar, así que sus archivos no son exactamente el código publicado en ese commit.',
 };
 
 /** The public test site (en-testchain.ts), in this language. Draft, like the rest of this file. */

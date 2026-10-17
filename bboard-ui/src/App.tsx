@@ -79,6 +79,8 @@ const DocPage = page(() => import('./components/DocPage'), 'DocPage');
 const Implementations = page(() => import('./components/Implementations'), 'Implementations');
 const VerifyPage = page(() => import('./pages/VerifyPage'), 'VerifyPage');
 const VerifyExample = page(() => import('./components/verify/VerifyExample'), 'VerifyExample');
+// Round 5 (CONTRACT.md #31): this site's files against its release's published list.
+const CheckThisSite = page(() => import('./components/site/CheckThisSite'), 'CheckThisSite');
 // The app frame's parts: one file, so the frame arrives in one request.
 const layoutParts = () => import('./app-layout-parts');
 const RolePicker = page<{ ask: boolean }>(layoutParts, 'RolePicker');
@@ -172,6 +174,7 @@ const withLayout = (el: React.ReactNode) => (
 /** The browser tab's title for each page; the home page keeps the one in index.html. */
 const PAGE_TITLES: [RegExp, string][] = [
   [/^\/founders/, 'Founders'],
+  [/^\/check-this-site/, 'Check this site'],
   [/^\/privacy/, IS_MAINNET ? 'Site privacy' : 'Demo privacy'],
   [/^\/verify\/example/, 'Example record'],
   [/^\/verify/, 'Check a record'],
@@ -192,6 +195,7 @@ const HOME_TITLE = typeof document === 'undefined' ? '' : document.title;
 /** Each title above in the visitor's language (i18n/en.ts title.*). */
 const TITLE_KEYS: Record<string, StringKey> = {
   Founders: 'title.founders',
+  'Check this site': 'title.checkSite',
   'Site privacy': 'title.privacyMainnet',
   'Demo privacy': 'title.privacy',
   'Example record': 'title.example',
@@ -245,6 +249,7 @@ const routes = (
     <Route path="/" element={<Home />} />
     <Route path="/founders" element={<Founders />} />
     <Route path="/privacy" element={<Privacy />} />
+    <Route path="/check-this-site" element={<CheckThisSite />} />
     <Route path="/partners" element={<PartnersPage />} />
     <Route path="/verify" element={<VerifyLookup />} />
     <Route path="/records" element={withLayout(<AppHome />)} />
