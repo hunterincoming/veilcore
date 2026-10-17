@@ -185,7 +185,7 @@ export const verify = {
   'app.verify.sharedNothing': 'The holder has shared nothing beyond the basics above.',
   'app.verify.notShared': 'Not shared by the holder: {list}.',
   'app.verify.alwaysShown':
-    "Always shown: the record ID, its proof code ({fp}), when the registry first stored it, and what this page could check about its batch and any signed attestations (a lab's receipt, a lab report). The name only when the link carries it (yours do, unless you leave it out) or you choose to show it.",
+    "Always shown: the record ID, its proof code ({fp}), when the registry first stored it, and what this page could check about its batch and any signed attestations (a lab's receipt, a lab report). The name only when the link carries it (yours do only when you switch that on) or you choose to show it.",
   // components/verify/VerifyExample.tsx: a made-up record, line by line.
   'app.verify.ex.title': 'Example: a made-up record.',
   'app.verify.ex.intro':

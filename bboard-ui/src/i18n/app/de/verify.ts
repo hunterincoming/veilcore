@@ -191,7 +191,7 @@ export const verify = {
   'app.verify.sharedNothing': 'Der Inhaber hat nichts über die Grundangaben oben hinaus geteilt.',
   'app.verify.notShared': 'Vom Inhaber nicht geteilt: {list}.',
   'app.verify.alwaysShown':
-    'Immer angezeigt: die Datensatz-ID, sein Prüfcode ({fp}), wann das Register ihn zuerst gespeichert hat, und was diese Seite über seinen Stapel und signierte Bestätigungen (eine Empfangsbestätigung eines Labors, einen Laborbericht) prüfen konnte. Der Name nur, wenn der Link ihn trägt (Ihre Links tun das, außer Sie lassen ihn weg) oder Sie ihn zeigen möchten.',
+    'Immer angezeigt: die Datensatz-ID, sein Prüfcode ({fp}), wann das Register ihn zuerst gespeichert hat, und was diese Seite über seinen Stapel und signierte Bestätigungen (eine Empfangsbestätigung eines Labors, einen Laborbericht) prüfen konnte. Der Name nur, wenn der Link ihn trägt (Ihre Links tun das nur, wenn Sie es einschalten) oder Sie ihn zeigen möchten.',
   'app.verify.ex.title': 'Beispiel: ein erfundener Datensatz.',
   'app.verify.ex.intro':
     'Das zeigt, wie die Prüfseite eines Datensatzes aussieht, mit einer Anmerkung unter jeder Zeile. Hier wurde nichts nachgeschlagen oder geprüft.',

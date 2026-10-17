@@ -291,7 +291,7 @@ export const plant = {
     'Versiegelt einen kleinen Datensatz mit nur dem SHA-256 des Berichts, seinem Laborberichtscode und dem Namen des Labors wie signiert. Der Bericht bleibt bei Ihnen. Sein Datum kommt, wenn sein Stapel datiert wird.',
   'app.plant.dated.nameLabel': 'Name des neuen Datensatzes',
   'app.plant.dated.nameHelp':
-    'Verschlossen wie der Rest. Seine Prüflinks tragen ihn, sodass jeder, dem Sie einen schicken, ihn sieht. Ändern Sie ihn, wenn Sie möchten.',
+    'Verschlossen wie der Rest. Ein Prüflink trägt ihn nur, wenn Sie das einschalten. Ändern Sie ihn, wenn Sie möchten.',
   'app.plant.dated.elsewhere':
     'Dieser DNA-Bericht wird gerade in einem anderen Tab oder Fenster datiert. Warten Sie eine Minute und sehen Sie dann wieder nach: Er wird hier erscheinen.',
   'app.plant.datingPage.title': 'Dieser Datensatz datiert einen DNA-Bericht für <plant></plant>',

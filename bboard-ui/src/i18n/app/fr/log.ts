@@ -38,7 +38,7 @@ export const log = {
   'app.log.nameLabel': 'Nom de la plante ou de la lignée',
   'app.log.namePlaceholder': 'p. ex. Harbour Mist',
   'app.log.nameHelp':
-    'Verrouillé comme les autres détails. Vos liens de vérification le portent après le #, donc les personnes à qui vous envoyez un lien le voient, ainsi que toute personne à qui elles le transmettent.',
+    'Verrouillé comme les autres détails. Un lien de vérification ne le porte après le # que si vous l’activez ; alors les personnes à qui vous envoyez le lien le voient, ainsi que toute personne à qui elles le transmettent.',
   'app.log.eg': 'p. ex. {v}',
   'app.log.egNextSelection': 'p. ex. {name}, sélection suivante',
   'app.log.bredBy': 'Obtenteur',
@@ -84,7 +84,7 @@ export const log = {
   'app.log.sealedWarn':
     '<b>Une fois scellée, cette partie ne peut plus changer.</b> Vous pourrez ajouter des rapports et des corrections plus tard ; une correction est un nouvel enregistrement qui renvoie à celui-ci. C’est ce qui donne sa valeur à l’horodatage.',
   'app.log.savedOn':
-    'Les détails sont conservés verrouillés sur {server} pour que vous puissiez y revenir, et nous n’avons pas la clé. Le nom est verrouillé lui aussi ; vos liens de vérification le portent après le #, pour les personnes à qui vous les envoyez. Seul un code de preuve est daté, sur {datedOn}.',
+    'Les détails sont conservés verrouillés sur {server} pour que vous puissiez y revenir, et nous n’avons pas la clé. Le nom est verrouillé lui aussi ; un lien de vérification ne le porte après le # que si vous l’activez. Seul un code de preuve est daté, sur {datedOn}.',
   'app.log.sealing': 'Scellement…',
   'app.log.seal': 'Sceller',
   'app.log.sealingPlant': 'Scellement de votre plante…',

@@ -266,7 +266,7 @@ describe('the English privacy copy (sealed records round 2)', () => {
     ])
       expect(a[k], k).not.toMatch(/public/i);
     expect(a['app.log.nameHelp']).toMatch(
-      /^Locked like the other details\. Your check links carry it after the #, so the people you send a link to see it, and anyone they pass it on to\.$/,
+      /^Locked like the other details\. A check link carries it after the # only if you switch that on; then the people you send the link to see it, and anyone they pass it on to\.$/,
     );
     expect(a['app.plant.dated.nameHelp']).toMatch(/^Locked like the rest\./);
     expect(a['app.log.savedOn']).toMatch(/The name is locked too; your check links carry it after the #/);

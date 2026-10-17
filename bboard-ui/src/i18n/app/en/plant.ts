@@ -289,7 +289,7 @@ export const plant = {
     "Seals a small record with only the report's SHA-256, its lab report code and the lab's name as signed. The report stays with you. Its date comes when its batch is dated.",
   'app.plant.dated.nameLabel': 'Name of the new record',
   'app.plant.dated.nameHelp':
-    'Locked like the rest. Its check links carry it, so whoever you send one to sees it. Change it if you like.',
+    'Locked like the rest. A check link carries it only if you switch that on. Change it if you like.',
   'app.plant.dated.elsewhere':
     'This DNA report is being dated in another tab or window. Wait a minute, then look again: it will show here.',
   // stage/LabReportOverview.tsx: the page of a record that dates a lab report.

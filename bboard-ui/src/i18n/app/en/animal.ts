@@ -196,7 +196,7 @@ export const animal = {
     'No lab has signed a receipt for this animal yet. A record only you stand behind is weaker evidence than one a lab signs for. Send a sample to a lab: their receipt is signed with their key, not yours.',
   'app.animal.v.app.verify.field.parent-names': 'Sire and dam (names and IDs)',
   'app.animal.v.app.verify.alwaysShown':
-    "Always shown: the record ID, its proof code ({fp}), when the registry first stored it, and what this page could check about its batch and any signed attestations (a lab's receipt, a lab report). The animal's name only when the link carries it (yours do, unless you leave it out) or you choose to show it.",
+    "Always shown: the record ID, its proof code ({fp}), when the registry first stored it, and what this page could check about its batch and any signed attestations (a lab's receipt, a lab report). The animal's name only when the link carries it (yours do only when you switch that on) or you choose to show it.",
   'app.animal.v.app.verify.ownReceiptTail':
     ' You see this because the animal is in this browser; someone you send the link to sees only the signature line above.',
   'app.animal.v.app.prove.openCheckPage': "Open the animal's check page",

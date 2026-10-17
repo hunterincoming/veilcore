@@ -944,20 +944,21 @@ export const ClaimTransfer: React.FC<{
               variant="outlined"
               sx={{ mt: 2 }}
               {...(needsBackup ? { 'data-backup-first': '' } : {})}
-              action={
-                needsBackup && stage.step === 'code' ? (
+            >
+              {error}
+              {/* Under the words, not beside them: on a phone a button beside them squeezed the text. */}
+              {needsBackup && stage.step === 'code' && (
+                <Box sx={{ mt: 1.25 }}>
                   <Button
                     color="inherit"
                     variant="outlined"
                     onClick={() => setStage({ step: 'backup' })}
-                    sx={{ minHeight: 40, whiteSpace: 'nowrap', flexShrink: 0 }}
+                    sx={{ minHeight: 44 }}
                   >
                     {t('app.lab.recv.saveBackup')}
                   </Button>
-                ) : undefined
-              }
-            >
-              {error}
+                </Box>
+              )}
             </Alert>
           )}
           <Box sx={{ mt: 2 }}>

@@ -285,7 +285,7 @@ export const plant = {
     'Sella un pequeño registro con solo el SHA-256 del informe, su código de informe de laboratorio y el nombre del laboratorio según su firma. El informe se queda con usted. Su fecha llega cuando se fecha su lote.',
   'app.plant.dated.nameLabel': 'Nombre del nuevo registro',
   'app.plant.dated.nameHelp':
-    'Bloqueado como el resto. Sus enlaces de comprobación lo llevan, así que lo ve quien reciba uno. Cámbielo si quiere.',
+    'Bloqueado como el resto. Un enlace de comprobación lo lleva solo si usted lo activa. Cámbielo si quiere.',
   'app.plant.dated.elsewhere':
     'Este informe de ADN se está fechando en otra pestaña o ventana. Espere un minuto y vuelva a mirar: aparecerá aquí.',
   'app.plant.datingPage.title': 'Este registro fecha un informe de ADN de <plant></plant>',

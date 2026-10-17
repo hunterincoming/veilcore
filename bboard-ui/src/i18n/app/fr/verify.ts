@@ -192,7 +192,7 @@ export const verify = {
   'app.verify.sharedNothing': 'Le détenteur n’a rien partagé au-delà des éléments de base ci-dessus.',
   'app.verify.notShared': 'Non partagé par le détenteur : {list}.',
   'app.verify.alwaysShown':
-    'Toujours affichés : l’identifiant de l’enregistrement, son code de preuve ({fp}), la date à laquelle le registre l’a conservé pour la première fois, et ce que cette page a pu vérifier sur son lot et sur les attestations signées (un accusé de réception de laboratoire, un rapport de laboratoire). Le nom, seulement quand le lien le porte (les vôtres le portent, sauf si vous l’enlevez) ou que vous choisissez de le montrer.',
+    'Toujours affichés : l’identifiant de l’enregistrement, son code de preuve ({fp}), la date à laquelle le registre l’a conservé pour la première fois, et ce que cette page a pu vérifier sur son lot et sur les attestations signées (un accusé de réception de laboratoire, un rapport de laboratoire). Le nom, seulement quand le lien le porte (les vôtres ne le portent que si vous l’activez) ou que vous choisissez de le montrer.',
   'app.verify.ex.title': 'Exemple : un enregistrement inventé.',
   'app.verify.ex.intro':
     'Ceci montre à quoi ressemble la page de vérification d’un enregistrement, avec une note sous chaque ligne. Rien n’y a été consulté ni vérifié.',

@@ -290,7 +290,7 @@ export const plant = {
     'Scelle un petit enregistrement contenant seulement le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé. Le rapport reste chez vous. Sa date vient quand son lot est daté.',
   'app.plant.dated.nameLabel': 'Nom du nouvel enregistrement',
   'app.plant.dated.nameHelp':
-    'Verrouillé comme le reste. Ses liens de vérification le portent, donc toute personne à qui vous en envoyez un le voit. Modifiez-le si vous le souhaitez.',
+    'Verrouillé comme le reste. Un lien de vérification ne le porte que si vous l’activez. Modifiez-le si vous le souhaitez.',
   'app.plant.dated.elsewhere':
     'Ce rapport ADN est en train d’être daté dans un autre onglet ou une autre fenêtre. Attendez une minute, puis regardez de nouveau : il apparaîtra ici.',
   'app.plant.datingPage.title': 'Cet enregistrement date un rapport ADN pour <plant></plant>',

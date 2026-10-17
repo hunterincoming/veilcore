@@ -191,7 +191,7 @@ export const verify = {
   'app.verify.sharedNothing': 'El titular no compartió nada más allá de lo básico de arriba.',
   'app.verify.notShared': 'No compartido por el titular: {list}.',
   'app.verify.alwaysShown':
-    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las atestaciones firmadas (un acuse de recibo de laboratorio, un informe de laboratorio). El nombre, solo cuando el enlace lo lleva (los suyos lo llevan, salvo que lo quite) o usted decide mostrarlo.',
+    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las atestaciones firmadas (un acuse de recibo de laboratorio, un informe de laboratorio). El nombre, solo cuando el enlace lo lleva (los suyos lo llevan solo si usted lo activa) o usted decide mostrarlo.',
   'app.verify.ex.title': 'Ejemplo: un registro inventado.',
   'app.verify.ex.intro':
     'Esto muestra cómo es la página de comprobación de un registro, con una nota bajo cada línea. Aquí no se consultó ni comprobó nada.',

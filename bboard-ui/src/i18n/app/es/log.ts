@@ -37,7 +37,7 @@ export const log = {
   'app.log.nameLabel': 'Nombre de la planta o línea',
   'app.log.namePlaceholder': 'p. ej., Harbour Mist',
   'app.log.nameHelp':
-    'Bloqueado como los demás detalles. Sus enlaces de comprobación lo llevan después del #, así que lo ven las personas a las que envía un enlace, y cualquiera a quien ellas se lo pasen.',
+    'Bloqueado como los demás detalles. Un enlace de comprobación lo lleva después del # solo si usted lo activa; entonces lo ven las personas a las que envía el enlace, y cualquiera a quien ellas se lo pasen.',
   'app.log.eg': 'p. ej., {v}',
   'app.log.egNextSelection': 'p. ej., {name}, siguiente selección',
   'app.log.bredBy': 'Obtentor',
@@ -83,7 +83,7 @@ export const log = {
   'app.log.sealedWarn':
     '<b>Una vez sellada, esta parte no puede cambiar.</b> Puede añadir informes y correcciones más tarde; una corrección es un registro nuevo que remite a este. Eso es lo que da valor al sello de fecha.',
   'app.log.savedOn':
-    'Los detalles se guardan bloqueados en {server} para que pueda volver a ellos, y nosotros no tenemos la clave. El nombre también está bloqueado; sus enlaces de comprobación lo llevan después del #, para las personas a las que se los envía. Solo se fecha un código de prueba, en {datedOn}.',
+    'Los detalles se guardan bloqueados en {server} para que pueda volver a ellos, y nosotros no tenemos la clave. El nombre también está bloqueado; un enlace de comprobación lo lleva después del # solo si usted lo activa. Solo se fecha un código de prueba, en {datedOn}.',
   'app.log.sealing': 'Sellando…',
   'app.log.seal': 'Sellarlo',
   'app.log.sealingPlant': 'Sellando su planta…',

@@ -41,9 +41,9 @@ export const log = {
   'app.log.nameLabel': 'Plant or line name',
   'app.log.namePlaceholder': 'e.g. Harbour Mist',
   // LogFlow.tsx, AnimalForm.tsx, CorrectRecord.tsx: under the name field. The name is the
-  // one thing typed into a record that isn't locked (CONTRACT.md #4 strainName).
+  // record's name: locked like the rest since round 5 (CONTRACT.md #28).
   'app.log.nameHelp':
-    'Locked like the other details. Your check links carry it after the #, so the people you send a link to see it, and anyone they pass it on to.',
+    'Locked like the other details. A check link carries it after the # only if you switch that on; then the people you send the link to see it, and anyone they pass it on to.',
   'app.log.eg': 'e.g. {v}',
   'app.log.egNextSelection': 'e.g. {name}, next selection',
   'app.log.bredBy': 'Bred by',
@@ -89,7 +89,7 @@ export const log = {
   'app.log.sealedWarn':
     "<b>Once sealed, this part can't change.</b> You can add reports and corrections later; a correction is a new record that points back to this one. That's what makes the date stamp worth something.",
   'app.log.savedOn':
-    'The details are stored locked on {server}, so you can come back to them, and we don’t have the key. The name is locked too; your check links carry it after the #, for the people you send them to. Only a proof code is dated on {datedOn}.',
+    'The details are stored locked on {server}, so you can come back to them, and we don’t have the key. The name is locked too; a check link carries it after the # only if you switch that on. Only a proof code is dated on {datedOn}.',
   'app.log.sealing': 'Sealing…',
   'app.log.seal': 'Seal it',
   'app.log.sealingPlant': 'Sealing your plant…',

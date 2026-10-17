@@ -139,7 +139,7 @@ export const Step5ProveDisclosure: React.FC<{
   if (!record) return <Typography>{t('app.prove.share.notFound')}</Typography>;
 
   // Round 5 of sealing (CONTRACT.md #28, #29): the link carries, after the # (never sent to
-  // any server), the record's name, unless the holder leaves it out, and with "Whether a DNA
+  // any server), the record's name, when the holder switches it on, and with "Whether a DNA
   // report is saved" shared, the record's pairing salt (`ds`), so whoever
   // gets the link and the report file can check the file is the one saved. It used to carry
   // the file's plain SHA-256 (`rs`).

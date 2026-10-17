@@ -190,7 +190,7 @@ export const animal = {
     'Aucun laboratoire n’a encore signé d’accusé de réception pour cet animal. Un enregistrement que vous seul soutenez est une preuve plus faible qu’un enregistrement signé par un laboratoire. Envoyez un échantillon à un laboratoire : son accusé de réception est signé avec sa clé, pas la vôtre.',
   'app.animal.v.app.verify.field.parent-names': 'Père et mère (noms et numéros)',
   'app.animal.v.app.verify.alwaysShown':
-    'Toujours affichés : l’identifiant de l’enregistrement, son code de preuve ({fp}), la date à laquelle le registre l’a conservé pour la première fois, et ce que cette page a pu vérifier sur son lot et sur les attestations signées (un accusé de réception de laboratoire, un rapport de laboratoire). Le nom de l’animal, seulement quand le lien le porte (les vôtres le portent, sauf si vous l’enlevez) ou que vous choisissez de le montrer.',
+    'Toujours affichés : l’identifiant de l’enregistrement, son code de preuve ({fp}), la date à laquelle le registre l’a conservé pour la première fois, et ce que cette page a pu vérifier sur son lot et sur les attestations signées (un accusé de réception de laboratoire, un rapport de laboratoire). Le nom de l’animal, seulement quand le lien le porte (les vôtres ne le portent que si vous l’activez) ou que vous choisissez de le montrer.',
   'app.animal.v.app.verify.ownReceiptTail':
     ' Vous le voyez parce que l’animal est dans ce navigateur ; la personne à qui vous envoyez le lien ne voit que la ligne de signature ci-dessus.',
   'app.animal.v.app.prove.openCheckPage': 'Ouvrir la page de vérification de l’animal',

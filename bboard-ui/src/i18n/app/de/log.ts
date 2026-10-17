@@ -38,7 +38,7 @@ export const log = {
   'app.log.nameLabel': 'Name der Pflanze oder Linie',
   'app.log.namePlaceholder': 'z. B. Harbour Mist',
   'app.log.nameHelp':
-    'Verschlossen wie die anderen Angaben. Ihre Prüflinks tragen ihn nach dem #, sodass die Menschen, denen Sie einen Link schicken, ihn sehen, und alle, an die sie ihn weitergeben.',
+    'Verschlossen wie die anderen Angaben. Ein Prüflink trägt ihn nach dem # nur, wenn Sie das einschalten; dann sehen ihn die Menschen, denen Sie den Link schicken, und alle, an die sie ihn weitergeben.',
   'app.log.eg': 'z. B. {v}',
   'app.log.egNextSelection': 'z. B. {name}, nächste Selektion',
   'app.log.bredBy': 'Gezüchtet von',
@@ -84,7 +84,7 @@ export const log = {
   'app.log.sealedWarn':
     '<b>Einmal versiegelt, lässt sich dieser Teil nicht mehr ändern.</b> Berichte und Korrekturen können Sie später hinzufügen; eine Korrektur ist ein neuer Datensatz, der auf diesen verweist. Genau das macht den Datumsstempel wertvoll.',
   'app.log.savedOn':
-    'Die Angaben werden verschlossen auf {server} gespeichert, damit Sie darauf zurückkommen können, und wir haben den Schlüssel nicht. Auch der Name ist verschlossen; Ihre Prüflinks tragen ihn nach dem #, für die Menschen, denen Sie sie schicken. Nur ein Prüfcode wird datiert, auf {datedOn}.',
+    'Die Angaben werden verschlossen auf {server} gespeichert, damit Sie darauf zurückkommen können, und wir haben den Schlüssel nicht. Auch der Name ist verschlossen; ein Prüflink trägt ihn nach dem # nur, wenn Sie das einschalten. Nur ein Prüfcode wird datiert, auf {datedOn}.',
   'app.log.sealing': 'Wird versiegelt…',
   'app.log.seal': 'Versiegeln',
   'app.log.sealingPlant': 'Ihre Pflanze wird versiegelt…',
