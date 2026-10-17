@@ -78,5 +78,7 @@ describe('a lab’s receipt', () => {
     expect(todayLocal(now)).toBe('2026-10-17');
     expect(arrivalStart({}, {}, now).arrivedOn).toBe('2026-10-17');
     expect(arrivalStart({}, { arrivedOn: '2026-10-15' }, now).arrivedOn).toBe('2026-10-15');
+    // Only where arrival details can be recorded (sealed sample details): otherwise empty.
+    expect(arrivalStart({}, {}).arrivedOn).toBe('');
   });
 });

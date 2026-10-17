@@ -482,6 +482,8 @@ test.describe('evidence bundle', () => {
         'lab/signatures.json',
         'proof/anchors.json',
         'proof/batch-root.txt',
+        // The one command that reads the batch root from Midnight without VeilCore (persona review).
+        'proof/check-on-midnight.mjs',
         'proof/inclusion-proof.json',
         'proof/root.bin',
         ...(setup.ots ? ['proof/root.bin.ots'] : []),

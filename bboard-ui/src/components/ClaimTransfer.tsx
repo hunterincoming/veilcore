@@ -156,12 +156,15 @@ type ArrivalInput = Record<'sampleId' | 'sealNumber' | 'arrivedOn' | 'condition'
 export const todayLocal = (now = new Date()): string =>
   `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-/** "Arrived on" starts at today (persona review, 17 Oct): most labs sign the day it arrives. */
-export const arrivalStart = (sample: SampleDetails, prior: ArrivalDetails, now = new Date()): ArrivalInput => ({
+/**
+ * "Arrived on" starts at today when `today` is given (persona review, 17 Oct): most labs sign
+ * the day it arrives.
+ */
+export const arrivalStart = (sample: SampleDetails, prior: ArrivalDetails, today?: Date): ArrivalInput => ({
   sampleId: prior.sampleId ?? sample.sampleId ?? '',
   sealNumber: prior.sealNumber ?? sample.sealNumber ?? '',
   sealIntact: prior.sealIntact ?? '',
-  arrivedOn: prior.arrivedOn ?? todayLocal(now),
+  arrivedOn: prior.arrivedOn ?? (today ? todayLocal(today) : ''),
   condition: prior.condition ?? '',
   labRef: prior.labRef ?? '',
 });
@@ -257,12 +260,20 @@ const ReceiptChoice: React.FC<{
   onReject: (reason: 'damaged' | 'wrong-sample') => void;
   /** The dialog's "Don't sign": go to the record without deciding. */
   onLater?: () => void;
-}> = ({ subject, attester, transferId, custody, busy, onSign, onReject, onLater }) => {
+  /**
+   * "Arrived on" starts at today (persona review, 17 Oct): only where arrival details can be
+   * recorded, a delivery with sealed sample details. Elsewhere a date typed in by default
+   * would stop the receipt (arrival details go only sealed).
+   */
+  dateToday?: boolean;
+}> = ({ subject, attester, transferId, custody, busy, onSign, onReject, onLater, dateToday = false }) => {
   const [received, setReceived] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const tr = useT();
   const { t } = tr;
-  const [input, setInput] = useState<ArrivalInput>(() => arrivalStart(custody?.sample ?? {}, custody?.arrival ?? {}));
+  const [input, setInput] = useState<ArrivalInput>(() =>
+    arrivalStart(custody?.sample ?? {}, custody?.arrival ?? {}, dateToday ? new Date() : undefined),
+  );
   const arrival = custody ? arrivalDetailsOf(input) : undefined;
   // A value the registry would refuse (a tab, a hidden character, 31 February) is said here,
   // and nothing is signed until it is fixed: arrivalDetailsOf would otherwise drop it.
@@ -599,6 +610,7 @@ export const SignReceiptPanel: React.FC<{
         attester={attester}
         transferId={record.transferId}
         custody={custody}
+        dateToday={!!custody?.salt && !!custody.offerKey}
         busy={busy}
         onSign={(arrival) => {
           setBusy(true);
@@ -911,6 +923,7 @@ export const ClaimTransfer: React.FC<{
                 attester={stage.attester}
                 transferId={stage.transferId}
                 custody={stage.locked ? undefined : { sample: stage.sample, arrival: {} }}
+                dateToday={!stage.locked && !!stage.offerKey && !!stage.salt}
                 busy={busy}
                 onSign={(arrival) => void sign(arrival)}
                 onReject={(reason) => {

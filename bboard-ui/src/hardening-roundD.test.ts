@@ -1351,6 +1351,8 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
         expect(await pg.locator('input[value*="/verify/"]').count()).toBe(0);
       } else {
         await pg.waitForSelector('text=Saved on the registry', { timeout: 15_000 });
+        // The name goes in the link only when switched on (persona review, 17 Oct).
+        await pg.getByRole('switch', { name: 'Put the name in the link' }).check();
         // The link names the record's fingerprint, so the page checks against it.
         expect(
           // A test-network build with no VITE_CANONICAL_ORIGIN links to the site it is served from (round 3).

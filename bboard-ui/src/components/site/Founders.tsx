@@ -6,7 +6,6 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import type { StringKey } from '../../i18n/en';
 import { FOUNDERS_MAIL, RoleLine, SiteShell, X_HANDLE } from './SiteShell';
-import { verifyPath } from '../../veilcore/verify-link';
 
 type Founder = {
   name: string;
@@ -170,7 +169,9 @@ export const VerifyLookup: React.FC = () => {
     if (!v) return;
     const code = fp.replace(/\s+/g, '').toLowerCase();
     if (code && !/^[0-9a-f]{64}$/.test(code)) return setFpBad(true);
-    void navigate(verifyPath(v, code || undefined));
+    // The same path verify-link.ts verifyPath makes; not imported, so the first download
+    // stays free of the record app's words (load-split.test.ts).
+    void navigate(`/verify/${encodeURIComponent(v)}${code ? `?fp=${code}` : ''}`);
   };
   return (
     <SiteShell>

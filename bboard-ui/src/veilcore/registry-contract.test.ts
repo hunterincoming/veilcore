@@ -275,6 +275,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
   let r2: { id: string; recordFingerprint: string };
   let corrected: { id: string };
   let revRecordId = '';
+  let bredById = '';
   let royaltyLicenceId = '';
   let transferId = '';
   let receivedId = '';
@@ -437,6 +438,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     };
     const out = await A.records.createRecordSaved({ ...fields, recordFingerprint: await fingerprintRecord(fields) });
     expect(out.result).toMatchObject({ ok: true, refused: [] });
+    bredById = out.record.id;
     const d = A.disclosure;
     // Every key the share screen can grant, in its order, is one the registry takes, in the same order.
     const all = d.DISCLOSURE_FIELDS.map((f) => f.key);
@@ -1015,7 +1017,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
         .lockedRecords()
         .map((r) => r.id)
         .sort(),
-    ).toEqual([r1.id, r2.id, corrected.id, revRecordId].sort());
+    ).toEqual([r1.id, r2.id, corrected.id, revRecordId, bredById].sort());
     for (const r of L.records.lockedRecords()) expect(r.kid).toBe(kid);
     L.licenses.startLicenseSync();
     await until(() => L.licenses.lockedLicenses().length === 2, 'the locked licences');

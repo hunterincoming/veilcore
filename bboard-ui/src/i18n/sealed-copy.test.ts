@@ -269,7 +269,9 @@ describe('the English privacy copy (sealed records round 2)', () => {
       /^Locked like the other details\. A check link carries it after the # only if you switch that on; then the people you send the link to see it, and anyone they pass it on to\.$/,
     );
     expect(a['app.plant.dated.nameHelp']).toMatch(/^Locked like the rest\./);
-    expect(a['app.log.savedOn']).toMatch(/The name is locked too; a check link carries it after the # only if you switch that on/);
+    expect(a['app.log.savedOn']).toMatch(
+      /The name is locked too; a check link carries it after the # only if you switch that on/,
+    );
     expect(a['app.import.readHere']).toMatch(/stores them locked, the plant name included, and we don’t have the key/);
     expect(a['app.import.check.savedOn']).toMatch(/locked, the plant names included, and we don’t have the key/);
     // No English sentence says the name is public, unlocked or readable by the server.
