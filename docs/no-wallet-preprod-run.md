@@ -15,7 +15,7 @@ indexer and RPC on 9 October 2026, so preprod is only reachable through Blockfro
 small PDF to stand in for a DNA report; about 2 hours (the wallet sync and the first
 anchoring are slow).
 
-**Never paste to Claude or anyone:** the sponsor seed, the Blockfrost preprod project id,
+**Never paste to anyone, or into a chat or AI assistant:** the sponsor seed, the Blockfrost preprod project id,
 the preprod registry's operator token, the sponsor's status token, the record-keys backup
 file. Everything this asks you to
 paste back is public.
@@ -121,7 +121,7 @@ addresses, then `listening`, and `<sponsor domain>/sponsor/status` shows `"synce
 The first sync can take a long time.
 
 - If the log says **"anchorBatch key … is not the one on chain"**: your Mac's contract build
-  is not the one 72fe… was deployed from. Tell Claude; the fix is a fresh demo contract.
+  is not the one 72fe… was deployed from. Tell the maintainer; the fix is a fresh demo contract.
 - If it **cannot reach the proof server**: give the proof server a public domain and set
   `PROOF_SERVER_URL` to it. Anyone could then use it to make proofs (test network, costs
   only CPU); remove that domain after the run.
@@ -136,7 +136,7 @@ The first sync can take a long time.
    It downloads two files from srs.midnight.network (or Midnight's backup host) and checks each against the SHA-256
    already pinned in `scripts/params.sha256.json` (copied from Midnight's own proof server
    source). It worked when it prints `SHA-256 matches the pin` twice. Anything else: stop and
-   tell Claude.
+   tell the maintainer.
 2. Build and start the site in test mode. The settings go on the build line itself, not
    `export`, so nothing stays in the terminal for a later deploy (a mainnet build refuses
    them anyway). The browser reads the chain through Blockfrost too, so this build carries
@@ -184,7 +184,7 @@ In Chrome at http://localhost:4173:
    you; you have the backup), then restore them from the **newest** backup file. The anchor,
    the pairing and "Download the evidence file" should all be back.
 
-## Paste back to Claude
+## Send back to the maintainer
 
 - The times from Part 4, steps 3, 4 and 5.
 - The transaction ids the site showed (anchor, pairing, proof).
@@ -212,10 +212,10 @@ status token or the record-keys backup.
 ## If something goes differently
 
 - **"This site's proving files are not the ones the contract on the network uses":** your
-  Mac's contract build does not match 72fe…. Nothing was sent. Tell Claude.
+  Mac's contract build does not match 72fe…. Nothing was sent. Tell the maintainer.
 - **"Could not reach the Midnight network or the sponsor":** check the sponsor's status page;
   wait a few minutes and try again. Nothing was sent.
-- **"The transaction WAS sent (…)":** don't retry straight away. Paste the id to Claude.
+- **"The transaction WAS sent (…)":** don't retry straight away. Send the id to the maintainer.
 - **The sponsor's status shows `wrong-registry`:** `REGISTRY_URL` points at a registry that
   does not anchor on preprod at 72fe…. Check variable B, `VEILCORE_ANCHOR_*`.
 - **Any other error:** stop and paste the last 30 lines.

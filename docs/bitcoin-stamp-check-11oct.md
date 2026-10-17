@@ -67,7 +67,7 @@ digest and, where there is one, the same Bitcoin block and merkle root as the of
 run against the live registry and the explorers on Hunter's Mac on 15 October (Result,
 above).
 
-**First attempt, earlier on 15 October 2026, from Claude's checking computer: NOT DONE.
+**First attempt, earlier on 15 October 2026, from a separate checking computer: NOT DONE.
 The check could not start, so it was not a pass and not a fail. Kept as the record of that
 attempt; the result is at the top.**
 

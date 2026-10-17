@@ -56,7 +56,7 @@ export const checkDescriptor = (descriptor, pinned) => {
       problem:
         `The registry anchors on mainnet to ${mainnet.map((a) => a.contractAddress).join(', ')}, but the pinned main ` +
         `contract is ${pinned}. They must be the same. Check VEILCORE_ANCHOR_CONTRACT on Railway against the address ` +
-        'on your paper, and ask Claude if they differ.',
+        'on your paper, and ask the maintainer (hunter@veilcore.org) if they differ.',
     };
   }
   return { ok: true };

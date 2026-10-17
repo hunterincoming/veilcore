@@ -1,8 +1,11 @@
-# Filing deployment record revision 4 (Hunter, about 15 minutes)
+# Filing deployment record revision 4 (about 15 minutes)
 
-Only after Mako has confirmed the three maintenance decisions and Claude has filled in his
-confirmation and both sign-off dates (Claude says when). Done in the browser, so the commit
-is in Hunter's name and signed by GitHub; no AI co-author line.
+**Done 7 October 2026** (midnight-improvement-proposals pull request #373). Kept as the
+record of how it was filed.
+
+Only after both founders have confirmed the three maintenance decisions and their
+confirmations and sign-off dates are in the record. Done in the browser, so the commit
+is in the filer's name and signed by GitHub.
 
 1. On the Mac, get the final file and give it the upstream name:
    ```
@@ -22,8 +25,9 @@ is in Hunter's name and signed by GitHub; no AI co-author line.
    - Click **Propose changes**.
 5. On the pull request page, check it targets `midnightntwrk/midnight-improvement-proposals`
    `main`. Title: `VeilCore: deployment record revision 4 (before mainnet)`. Paste the
-   description Claude gives you. Click **Create pull request**.
-6. Send Claude the pull request link. Claude fills in *Filed upstream* in our copy.
+   description prepared for it. Click **Create pull request**.
+6. Send the maintainer (hunter@veilcore.org) the pull request link, to fill in *Filed upstream*
+   in our copy.
 
 Then the deploy can go ahead: `export VEILCORE_DEPLOYMENT_RECORD_REVISION=4` is true from
 here on.

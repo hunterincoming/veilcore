@@ -127,7 +127,7 @@ export const deployInFragments = async (args: {
         await providers.privateStateProvider.removeSigningKey(candidate);
         logger?.error(
           `The deploy is over the block limit even with one circuit key. Nothing was created at ${candidate} ` +
-            'and nothing was spent. Send this message to Claude.',
+            'and nothing was spent. Send this message to the maintainer (hunter@veilcore.org).',
         );
         throw e;
       }
@@ -147,7 +147,7 @@ export const deployInFragments = async (args: {
         await providers.privateStateProvider.removeSigningKey(candidate);
         logger?.error(
           `The network refused the deploy (1010, custom error ${refused}). Nothing was created at ${candidate} ` +
-            'and nothing was spent. Do not try again until the cause is known: send this message to Claude.',
+            'and nothing was spent. Do not try again until the cause is known: send this message to the maintainer (hunter@veilcore.org).',
         );
         throw e;
       }

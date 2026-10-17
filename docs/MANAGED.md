@@ -288,7 +288,7 @@ help against someone in control of the running computer.
 - Store passwords: one per partner, made by `add-partner`, kept only in the password manager.
   `change-password` if one may have been seen; it says when it is done, and logs it.
 - Never type a partner's store password anywhere but the `npm run managed` prompt. Never paste one into a
-  chat (including Claude), an email or a document. The same rule as `docs/runbook.md`.
+  chat (including an AI assistant), an email or a document. The same rule as `docs/runbook.md`.
 
 ---
 

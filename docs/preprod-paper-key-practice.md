@@ -48,16 +48,16 @@ mistaken for the mainnet key. Shred them at the end.
     `Retired provably`. This proves the paper key really controls the contract.
 13. `0` to exit. Close the Terminal window (Cmd+W). Shred both practice sheets.
 
-**Paste back to Claude:** the contract address, and the last 30 lines of the output. Nothing
+**Send back to the maintainer:** the contract address, and the last 30 lines of the output. Nothing
 in them is secret (the key is never printed in the log).
 
 ## If something goes differently
 
-- Step 7: if it finished before you pressed Ctrl+C, skip to step 11 and do 12. Tell Claude;
+- Step 7: if it finished before you pressed Ctrl+C, skip to step 11 and do 12. Tell the maintainer;
   we decide whether to repeat the interruption.
 - Step 9 asks `Deploy transaction id`: paste it from the log of the stopped run, the line
   `deploy transaction submitted (…)` in the newest file in `bboard-cli/logs/preprod-remote/`.
-- Any error: stop and send Claude the last 30 lines. Do not choose `1` again.
+- Any error: stop and send the maintainer the last 30 lines. Do not choose `1` again.
 
 ## Run of 7 October 2026 (Hunter, on main after `4e051cc`)
 

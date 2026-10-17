@@ -5,15 +5,15 @@
 Four jobs, in this order: a rehearsal on a local chain, the smoke test on preprod, the
 claims contract fingerprints (once; done 5 October), then the mainnet deploy of both
 contracts. Every step, prompt and menu number below comes from the code in
-`bboard-cli/src/`. Anything marked **CHECK WITH CLAUDE BEFORE MAINNET** could not be
-confirmed from the code.
+`bboard-cli/src/`. Anything marked **CHECK WITH THE MAINTAINER BEFORE MAINNET** could not be
+confirmed from the code. The maintainer is hunter@veilcore.org.
 
 ---
 
 ## Safety rules
 
 1. **Never paste a secret anywhere but the CLI prompt that asks for it.** Not into a chat
-   (including Claude), an email, a notes app or a document. Secrets are: the wallet
+   (including an AI assistant), an email, a notes app or a document. Secrets are: the wallet
    recovery phrase, a wallet seed, the private-state password, the Blockfrost project id,
    and the maintenance authority key. When the CLI asks for one, nothing shows as you
    paste or type. That is normal. Press Enter.
@@ -82,7 +82,7 @@ and asks:
    the repository folder, `rm -rf bboard-cli/midnight-level-db`. Then remove it from any
    backup: in Time Machine, find the folder, right-click, "Delete All Backups of
    midnight-level-db"; if your Desktop or Documents sync to iCloud and the repository is
-   there, delete it in iCloud too. **CHECK WITH CLAUDE** if FileVault is off on this Mac.
+   there, delete it in iCloud too. **CHECK WITH THE MAINTAINER** if FileVault is off on this Mac.
 3. Until you delete it, the CLI reminds you on every run. It never deletes it for you.
 
 Pressing Enter instead uses the old folder for that run only, as before, and asks again
@@ -136,7 +136,7 @@ Costs nothing. The chain is new every run and thrown away at the end.
 9. **Passed:** the last lines say `SMOKE TEST PASSED: 37 checks passed.` and `Smoke test passed.`
    The program then stops the local chain and exits.
 10. **Failed:** it says `SMOKE TEST FAILED. Do not deploy to mainnet until this passes.`
-    Copy the lines just above it (they hold no secrets) and send them to Claude.
+    Copy the lines just above it (they hold no secrets) and send them to the maintainer.
 
 ## B. Smoke test on preprod
 
@@ -162,7 +162,7 @@ Preprod is Midnight's test network. Use the **test wallet only**.
 5. It shows `Using unshielded address: … waiting for funds...` and waits until the wallet
    has test NIGHT. A new wallet needs test NIGHT from the preprod faucet,
    `https://midnight-tmnight-preprod.nethermind.dev/` (the address in the code).
-   **CHECK WITH CLAUDE** how to use the faucet if you have not before.
+   **CHECK WITH THE MAINTAINER** how to use the faucet if you have not before.
 6. On preprod only, the CLI registers test NIGHT that is not yet registered for DUST.
    That is expected here. (It never does this on mainnet.)
 7. The deploy menu appears. Type `3`, Enter. At `Also run the claims contract phase (11
@@ -171,12 +171,12 @@ Preprod is Midnight's test network. Use the **test wallet only**.
    The claims phase then deploys a second, test-only contract and prints `PASS 27.` up to
    `PASS 37.` It takes longer per step than the main phase: two of its proofs (distinct and
    unchanged) are about eight times bigger than anything in the main contract.
-   **CHECK WITH CLAUDE** if the proof server stops or runs out of memory during those two.
+   **CHECK WITH THE MAINTAINER** if the proof server stops or runs out of memory during those two.
 9. **Passed:** `SMOKE TEST PASSED: 37 checks passed. Contract <address>, claims contract
-   <address>`. Copy that line and send it to Claude. This is the result mainnet waits on.
+   <address>`. Copy that line and send it to the maintainer. This is the result mainnet waits on.
    PASS 28 is the one to look for: it says the chain shows the claims contract's maintenance
    authority as an empty committee, so nobody can change it.
-10. **Failed:** copy the lines above `SMOKE TEST FAILED` and send them to Claude. Do not go on
+10. **Failed:** copy the lines above `SMOKE TEST FAILED` and send them to the maintainer. Do not go on
     to mainnet.
 11. **`custom error 171` (OutOfDustValidityWindow):** the network refused the deploy because
     the preprod indexer was behind the chain. Nothing was created and nothing was spent.
@@ -188,16 +188,16 @@ Preprod is Midnight's test network. Use the **test wallet only**.
 ## C0. Claims contract fingerprints (once, before mainnet)
 
 **Done 5 October 2026.** Built on Hunter's Mac at `c75c155`, committed in `765cab1`.
-Claude's separate build (without keys) matched all 5 ZKIR files and `contract/index.js`.
+A separate build on a second computer (without keys) matched all 5 ZKIR files and `contract/index.js`.
 Do not run this section again. It is kept as the record of how the table was made.
 
 **Why:** a mainnet deploy only uses keys whose fingerprints are written in
 `docs/fingerprints.md` and committed. The main contract's are there. The claims contract's
-are not yet: making its keys needs files Claude cannot download, so this runs on your Mac.
+are not yet: making its keys needs files the second computer could not download, so this runs on your Mac.
 Until it is done, the CLI refuses to deploy or join the claims contract on mainnet (the
 main contract is not affected).
 
-**When:** after Claude says the "claims contract on mainnet" change is merged, and before
+**When:** after the maintainer says the "claims contract on mainnet" change is merged, and before
 the zero-spend mainnet rehearsal. Docker is not needed. You need the internet and Node 24.
 Allow half an hour; almost all of it is waiting.
 
@@ -212,28 +212,28 @@ Allow half an hour; almost all of it is waiting.
    This builds both contracts with their keys. It prints a line per circuit and can sit
    quietly for minutes on the big claims circuits (`proveDistinct`, `proveUnchanged`).
    Expect anywhere from a few minutes to about twenty. If it stops with an error, copy the
-   last 20 lines to Claude.
+   last 20 lines to the maintainer.
 7. `npm run fingerprints:claims`
    It prints a table of 21 lines (10 keys, 10 ZKIR files, `contract/index.js`) and then
    `Written to docs/fingerprints.md (21 claims contract artefacts; the other table is
    unchanged)`. It first checks that your fresh build of the **main** contract still
    matches its table; if it says `this build of the MAIN contract does not match`, it wrote
-   nothing: stop and send Claude the whole output.
+   nothing: stop and send the maintainer the whole output.
 8. `npm run fingerprints:check`
    Two lines, both must say `all … artefacts match`:
    `main contract: all 97 artefacts match docs/fingerprints.md.`
    `claims contract: all 21 artefacts match docs/fingerprints.md.`
 9. `cd ..`
 10. `git status`. Only `docs/fingerprints.md` should be listed as modified. If anything
-    else is, stop and ask Claude.
+    else is, stop and ask the maintainer.
 11. `git add docs/fingerprints.md`
 12. `git commit -m "Claims contract fingerprints"`
 13. `git push`
 14. `git log -1 --oneline` (shows the commit you just made)
 
-**Paste back to Claude:** the whole output of step 7 (the table), the two lines from step
-8, and the line from step 14. Claude checks the ZKIR and contract-code lines against its
-own independent build and puts the table in the deployment record.
+**Send back to the maintainer:** the whole output of step 7 (the table), the two lines from step
+8, and the line from step 14. The maintainer checks the ZKIR and contract-code lines against an
+independent build and puts the table in the deployment record.
 
 Do not run `npm run fingerprints` (without `:claims`): that rewrites the main contract's
 table, which must stay as it is.
@@ -266,7 +266,7 @@ table, which must stay as it is.
   the fingerprints in `docs/fingerprints.md`. The 16 September correction promised it
   would be filed before any mainnet deployment. The CLI refuses to deploy until you
   declare revision 4 (step 6), but it cannot check that the record was really filed.
-- **CHECK WITH CLAUDE BEFORE MAINNET:** the fixes made after the round D re-check
+- **CHECK WITH THE MAINTAINER BEFORE MAINNET:** the fixes made after the round D re-check
   (`8de6f2a`, `abc1fc9`) and the claims mainnet gate (`5a980b3`) have had one fresh-session AI
   review (`docs/mainnet-completeness.md`).
 - The 24-word recovery phrase of the wallet whose NIGHT generates your DUST.
@@ -280,7 +280,7 @@ table, which must stay as it is.
 
 1. Open Terminal and go to the repository folder.
 2. Run `git status`. `docs/fingerprints.md` must **not** be listed as changed. If it is,
-   stop and ask Claude. (The CLI checks this too, and stops before sending anything.)
+   stop and ask the maintainer. (The CLI checks this too, and stops before sending anything.)
 3. `cd bboard-cli`
 4. Set the Blockfrost project id without it showing or landing in your shell history:
    run `read -s VEILCORE_BLOCKFROST_PROJECT_ID`, paste the id, press Enter (nothing shows).
@@ -311,10 +311,10 @@ table, which must stay as it is.
 13. It shows `DUST available for fees: …`. The number is printed in DUST's smallest unit,
     so it looks large. If it says `This wallet has no DUST`, it stops and nothing was
     sent. DUST is generated over time by the NIGHT already registered; do **not**
-    register NIGHT for DUST again. Ask Claude.
+    register NIGHT for DUST again. Ask the maintainer.
 14. The deploy menu appears. Type `1` (Deploy a new VeilCore contract).
 15. It checks the build: `All … build artefacts match the committed fingerprints`. If you
-    see an error instead, nothing was sent. Stop and send the error to Claude.
+    see an error instead, nothing was sent. Stop and send the error to the maintainer.
 16. It checks the deployment record setting. If it says `Refusing to deploy veilcore`,
     step 6 was missed. Nothing was made or sent. Do step 6 and start again from step 7.
 17. `Keep a maintenance authority? (Y/n)`: press **Enter** (keep). Do not type `n`. Why
@@ -352,7 +352,7 @@ including us, can ever change it. There is nothing to write on paper except its 
 22. At the main menu, type `34` (Deploy the claims contract).
 23. It checks the deployment record setting and the claims build (`All 21 claims build
     artefacts match the committed fingerprints (docs/fingerprints.md).`). If it says
-    `Refusing to deploy the claims contract`, nothing was made or sent: send Claude that
+    `Refusing to deploy the claims contract`, nothing was made or sent: send the maintainer that
     line.
 24. It explains what happens and asks `Deploy a claims contract now? Type yes to send it`.
     Type `yes`, Enter.
@@ -370,8 +370,8 @@ including us, can ever change it. There is nothing to write on paper except its 
 30. Type `0` to exit. Close the Terminal window.
 
 If the claims deploy stops partway: do **not** choose `34` again, and nothing is urgent:
-nobody relies on the claims contract yet. Send Claude the main contract's address and the
-claims address (from your paper or the log). Once Claude has pinned the main contract's
+nobody relies on the claims contract yet. Send the maintainer the main contract's address and the
+claims address (from your paper or the log). Once the maintainer has pinned the main contract's
 address and you have run `git pull`, run `npm run mainnet` again (steps 1 to 13, **same
 password** and phrase), choose `2` (Join) with the main contract's address, then at the
 main menu choose `36` (Finish a claims deploy) and paste the claims address. Nothing is
@@ -388,16 +388,16 @@ until the claims deploy finishes, and is deleted then.
 - The date and time of the deploy.
 - That the maintenance key is on paper, where each copy is kept (one, or one per founder
   if the two-copy proposal is adopted), and that no digital copy exists.
-- Send Claude both addresses and both deploy transaction ids. They are public. **Joining
+- Send the maintainer both addresses and both deploy transaction ids. They are public. **Joining
   either contract on mainnet is refused until its address is written into the code**
   (`MAINNET_VEILCORE_ADDRESS` and `MAINNET_CLAIMS_ADDRESS` in `api/src/deploy-guard.ts`,
-  committed, and the same addresses in the deployment record). Claude makes that change
+  committed, and the same addresses in the deployment record). The maintainer makes that change
   from what you send; `git pull` before the next mainnet run. The CLI says this at the
   end of each deploy.
 
 ### Then the website
 
-Once Claude has pinned both addresses and the registry anchors on mainnet (Railway:
+Once the maintainer has pinned both addresses and the registry anchors on mainnet (Railway:
 `VEILCORE_ANCHOR_NETWORK=mainnet`, `VEILCORE_ANCHOR_CONTRACT` = the main contract address),
 put veilcore.org into mainnet mode with `npm run deploy:mainnet`. The exact steps, what it
 refuses and why, and what to check on your phone are in **`docs/mainnet-day-site.md`**. It
@@ -429,14 +429,14 @@ someone used the contract between the two runs. It is not a sign anything is wro
 
 If the screen says `The contract IS on chain at …`, that is this case: use `4` as above.
 If it says `The network refused the deploy`, nothing was created and nothing was spent:
-send Claude that line before trying again.
+send the maintainer that line before trying again.
 
 **If it seems frozen:** a key transaction normally takes under a minute. Ctrl+C is
 refused during a transaction. If nothing has changed for 15 minutes, press Ctrl+C three
 times: it stops. The address is on your paper and in the log; the key is on your paper.
 Then follow the steps above with `4`.
 
-If it stopped before any `contractDeployed` line, send Claude the end of the newest log
+If it stopped before any `contractDeployed` line, send the maintainer the end of the newest log
 in `bboard-cli/logs/mainnet/` before doing anything. Do not start over with `1` without
 checking.
 
@@ -510,7 +510,7 @@ started with against this build. In plain words, what happens:
     Paste the id (the deployer's `Deploy transaction id: …` line) and it checks from that
     transaction. Enter stops, with nothing written.
 - **It only ever says a contract `is not a genuine VeilCore deployment`** after reading its
-  actual deploy transaction. Do not use a contract it says that about; send Claude the
+  actual deploy transaction. Do not use a contract it says that about; send the maintainer the
   message.
 
 Before this change the CLI asked the indexer for the "deploy state" through midnight-js,

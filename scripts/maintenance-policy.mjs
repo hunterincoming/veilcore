@@ -28,7 +28,7 @@ export const readPolicyStatus = (source = readFileSync(MAINTENANCE_POLICY, 'utf8
       ok: false,
       problem:
         `docs/maintenance-policy.md should have exactly one line starting "**Status:", and has ${lines.length}. ` +
-        'The website reads it to say whether the policy is decided. Ask Claude to fix the status line.',
+        'The website reads it to say whether the policy is decided. Ask the maintainer (hunter@veilcore.org) to fix the status line.',
     };
   }
   const m = lines[0].match(/^\*\*Status: (PROPOSED|APPROVED)\b/);
@@ -37,7 +37,7 @@ export const readPolicyStatus = (source = readFileSync(MAINTENANCE_POLICY, 'utf8
       ok: false,
       problem:
         `The status line of docs/maintenance-policy.md reads "${lines[0].slice(0, 80)}". The website understands only ` +
-        '"**Status: PROPOSED" or "**Status: APPROVED". Ask Claude to fix the status line.',
+        '"**Status: PROPOSED" or "**Status: APPROVED". Ask the maintainer (hunter@veilcore.org) to fix the status line.',
     };
   }
   return { ok: true, approved: m[1] === 'APPROVED', status: m[1], line: lines[0] };

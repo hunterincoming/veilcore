@@ -132,7 +132,7 @@ const main = () => {
     const diff = differences(mainBuild.rows, rowsOf(existing.main));
     if (mainBuild.problems.length > 0 || diff.length > 0)
       problems.push(
-        `this build of the MAIN contract does not match its committed fingerprints (${brief([...mainBuild.problems, ...diff])}), so this is not the toolchain the record names. Check the compiler is 0.31.1 (compact compile --version) and send Claude this output`,
+        `this build of the MAIN contract does not match its committed fingerprints (${brief([...mainBuild.problems, ...diff])}), so this is not the toolchain the record names. Check the compiler is 0.31.1 (compact compile --version) and send this output to the maintainer (hunter@veilcore.org)`,
       );
   }
   const header =

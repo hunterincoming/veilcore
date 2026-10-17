@@ -446,7 +446,7 @@ const run = async () => {
       );
     } else if (stamp === 'backupFirst') {
       fail(
-        'The recording browser won’t keep data, so the site asked for the backup first. This shouldn’t happen: tell Claude.',
+        'The recording browser won’t keep data, so the site asked for the backup first. This shouldn’t happen: tell the maintainer (hunter@veilcore.org).',
       );
     } else {
       await waited(b, stampFrom);

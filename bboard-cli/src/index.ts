@@ -355,7 +355,7 @@ export const deployOrJoin = async (
         if (getNetworkId() === 'mainnet')
           logger.warn(
             'Joining this contract on mainnet is refused until its address is pinned: MAINNET_VEILCORE_ADDRESS in ' +
-              'api/src/deploy-guard.ts, the same address as the deployment record. Send Claude the address above.',
+              'api/src/deploy-guard.ts, the same address as the deployment record. Send the address above to the maintainer (hunter@veilcore.org).',
           );
         return api;
       }

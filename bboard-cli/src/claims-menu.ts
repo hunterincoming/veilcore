@@ -228,7 +228,7 @@ export const handleClaimsChoice = async (choice: string, c: ClaimsMenuContext): 
         if (getNetworkId() === 'mainnet')
           c.logger.warn(
             'Joining this claims contract on mainnet (35) is refused until its address is pinned: MAINNET_CLAIMS_ADDRESS ' +
-              'in api/src/deploy-guard.ts, the same address as the deployment record. Send Claude the address above.',
+              'in api/src/deploy-guard.ts, the same address as the deployment record. Send the address above to the maintainer (hunter@veilcore.org).',
           );
         return true;
       }

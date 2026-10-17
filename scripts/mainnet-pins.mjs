@@ -59,7 +59,7 @@ export const readMainnetPins = (
       ok: false,
       problem:
         "Could not find MAINNET_VEILCORE_ADDRESS and MAINNET_CLAIMS_ADDRESS in api/src/deploy-guard.ts. " +
-        "The file has changed shape; ask Claude to update scripts/mainnet-pins.mjs.",
+        "The file has changed shape; ask the maintainer (hunter@veilcore.org) to update scripts/mainnet-pins.mjs.",
     };
   }
   if (veilcore.trim() === "") {
@@ -67,20 +67,20 @@ export const readMainnetPins = (
       ok: false,
       problem:
         "The main contract address is not pinned yet (MAINNET_VEILCORE_ADDRESS in api/src/deploy-guard.ts is empty). " +
-        'The website will not say "main network" until the contract exists. Send Claude the address the deploy ' +
-        "printed, wait for the pin commit, run git pull, then try again.",
+        'The website will not say "main network" until the contract exists. Send the maintainer (hunter@veilcore.org) the address ' +
+        "the deploy printed, wait for the pin commit, run git pull, then try again.",
     };
   }
   if (!HEX64.test(veilcore.trim())) {
     return {
       ok: false,
-      problem: `MAINNET_VEILCORE_ADDRESS in api/src/deploy-guard.ts is "${veilcore}", which is not a contract address (64 hexadecimal characters). Ask Claude to fix the pin.`,
+      problem: `MAINNET_VEILCORE_ADDRESS in api/src/deploy-guard.ts is "${veilcore}", which is not a contract address (64 hexadecimal characters). Ask the maintainer (hunter@veilcore.org) to fix the pin.`,
     };
   }
   if (claims.trim() !== "" && !HEX64.test(claims.trim())) {
     return {
       ok: false,
-      problem: `MAINNET_CLAIMS_ADDRESS in api/src/deploy-guard.ts is "${claims}", which is not a contract address (64 hexadecimal characters). Ask Claude to fix the pin.`,
+      problem: `MAINNET_CLAIMS_ADDRESS in api/src/deploy-guard.ts is "${claims}", which is not a contract address (64 hexadecimal characters). Ask the maintainer (hunter@veilcore.org) to fix the pin.`,
     };
   }
   return {
