@@ -50,18 +50,11 @@ import {
 } from '../../veilcore/records';
 import { sealAnimalRecord, sealRecord } from '../../veilcore/seal-record';
 import { localStamp } from '../../veilcore/time';
-import {
-  ensureKeysFor,
-  forgetKeys,
-  hexBytes,
-  keysFor,
-  setAnchor,
-  storageKeeps,
-  useRecordKeys,
-} from '../../veilcore/record-keys';
-import { CHAIN_CONTRACT, REAL_CHAIN, chainNotReady } from '../../veilcore/chain/config';
-import { NETWORK } from '../../config/network';
-import { useChainCall } from '../chain/useChainCall';
+import { forgetKeys, keysFor, storageKeeps, useRecordKeys } from '../../veilcore/record-keys';
+import { REAL_CHAIN, chainNotReady } from '../../veilcore/chain/config';
+import { useKeyStamp } from '../chain/useKeyStamp';
+import { SupportDetails } from '../SupportDetails';
+import { nextBatchWords, useAnchorCadence } from './dating-words';
 import { Step2PairDna } from '../wizard/Step2PairDna';
 import { AppHeader } from '../AppHeader';
 import { BackupStep } from './BackupStep';
@@ -738,7 +731,6 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
 const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = ({ step, recordId, onNext }) => {
   const keys = useRecordKeys()[recordId];
   const anchored = keys?.anchor;
-  const call = useChainCall<void>();
   const started = useRef(false);
   const notReady = REAL_CHAIN ? chainNotReady() : undefined;
   const keeps = storageKeeps();
@@ -746,6 +738,10 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
   const tr = useRecordT(getRecord(recordId));
   const { t } = tr;
   const datedOn = t('app.copy.datedOn');
+  // The stamp, tried again by itself when it doesn't go through (veilcore/chain/key-stamp.ts).
+  const stamp = useKeyStamp(recordId, { auto: true });
+  // How often a batch is dated, when the fee service says (dating-words.ts).
+  const cadence = useAnchorCadence();
   // Round 6: when the date stamp lands, this screen is redrawn as "Sealed" and the heading
   // that had focus is gone: give focus to the new one.
   const wasAnchored = useRef(!!anchored);
@@ -755,31 +751,13 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
     return focusScreenHeading();
   }, [anchored]);
 
-  const anchor = () =>
-    call.run(async (progress) => {
-      // The key the record named when it was sealed, never a new one.
-      const k = ensureKeysFor(getRecord(recordId) ?? { id: recordId });
-      const { anchorOnChain, identityOf } = await import('../../veilcore/chain/actions');
-      const secret = hexBytes(k.recordSecret);
-      const receipt = await anchorOnChain(secret, hexBytes(k.recoverySecret), { progress });
-      setAnchor(recordId, {
-        identity: identityOf(secret),
-        network: NETWORK,
-        contractAddress: CHAIN_CONTRACT ?? '',
-        txId: receipt.txId,
-        txHash: receipt.txHash,
-        blockHeight: receipt.blockHeight,
-        anchoredAt: receipt.blockTime,
-      });
-    });
-
   // Start on arrival: the seal button already said sealing date stamps the key.
   // A browser that won't keep the keys gets the backup first instead.
   const canStart = REAL_CHAIN && !notReady && (keeps || backupFirstDone);
   useEffect(() => {
     if (!canStart || anchored || started.current) return;
     started.current = true;
-    void anchor();
+    void stamp.run();
   }, [canStart]);
 
   if (!REAL_CHAIN || notReady) {
@@ -821,10 +799,12 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
         <DoneTitle step={step} title={t('app.log.sealed')} />
         {/* Round 5: the record's date is the main one. What the stamp dates is the plant's
             key (anchor), not its details: a key can be named by a record sealed later. The
-            sealed record names this key, so it can't be swapped (docs/identity-in-record.md). */}
+            sealed record names this key, so it can't be swapped (docs/identity-in-record.md).
+            Dating first (CONTRACT.md #38): the record's proof code is already on its way into
+            the next batch, backup or not. */}
         <Box>
-          <Typography variant="body1" sx={{ fontWeight: 700 }}>
-            {t('app.log.recordDatedWaiting')}
+          <Typography variant="body1" sx={{ fontWeight: 700 }} data-record-dated-next="">
+            {nextBatchWords(tr, cadence)}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {t('app.log.publicDateLater', { datedOn })}
@@ -843,7 +823,9 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
     );
   }
 
-  const problem = call.error ? stampProblem(call.error, tr) : undefined;
+  const failed = !stamp.busy && stamp.error ? stamp.error : undefined;
+  const problem = failed ? stampProblem(failed, tr) : undefined;
+  const stopped = stamp.entry?.stopped;
   return (
     <Stack spacing={2.5}>
       <Box>
@@ -854,14 +836,18 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
           {t('app.log.onlyFingerprint')}
         </Typography>
       </Box>
-      {call.busy && <LinearProgress aria-label={t('app.log.stampingAria')} sx={{ height: 10, borderRadius: 5 }} />}
-      <Typography variant="body1" role="status" sx={{ minHeight: call.busy ? '1.5em' : 0 }}>
-        {progressWords(call.progress, tr) ?? ''}
+      {/* The record's own date doesn't wait for this (dating first, CONTRACT.md #38). */}
+      <Typography variant="body2" color="text.secondary" data-record-dated-next="">
+        {nextBatchWords(tr, cadence)}
       </Typography>
-      {problem ? (
+      {stamp.busy && <LinearProgress aria-label={t('app.log.stampingAria')} sx={{ height: 10, borderRadius: 5 }} />}
+      <Typography variant="body1" role="status" sx={{ minHeight: stamp.busy ? '1.5em' : 0 }}>
+        {progressWords(stamp.progress, tr) ?? ''}
+      </Typography>
+      {problem && failed ? (
         <>
           {/* The raw error stays on the element for test scripts and support, not on screen. */}
-          <Alert severity="error" variant="outlined" data-error={call.error}>
+          <Alert severity="error" variant="outlined" data-error={failed}>
             {problem.text}
             {/* What went wrong, in the error's own first sentence (long hex taken out), so
                 it can be reported. Folded away: the sentence above is the answer. */}
@@ -875,17 +861,38 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
                 </Typography>
               </Box>
             )}
+            <SupportDetails step="key date stamp" error={failed} />
           </Alert>
-          {problem.retry && (
-            <Button variant="contained" size="large" fullWidth onClick={() => void anchor()} sx={{ py: 1.6 }}>
-              {t('app.common.tryAgain')}
+          {/* Tried again by itself, a few times, sooner then later; never one that may have
+              gone out (stampProblem's retry is false then) or one this site can't make. */}
+          {problem.retry && !stopped && stamp.nextInSeconds !== undefined && (
+            <Typography variant="body2" color="text.secondary" role="status" data-stamp-retry-in="">
+              {t('app.log.retryingIn', {
+                when: waitWords(stamp.nextInSeconds, tr),
+                n: String(Math.min(stamp.entry?.tries ?? 1, 99) + 1),
+              })}
+            </Typography>
+          )}
+          {problem.retry && !stopped && stamp.entry?.nextAt === undefined && (
+            <Typography variant="body2" color="text.secondary">
+              {t('app.log.retriesUsed')}
+            </Typography>
+          )}
+          {problem.retry && stopped !== 'sent' && (
+            <Button variant="contained" size="large" fullWidth onClick={() => void stamp.tryNow()} sx={{ py: 1.6 }}>
+              {t('app.log.tryNow')}
             </Button>
           )}
           {/* Never a dead end: the network or the fee service can be down for a while.
-              The plant's page offers the date stamp again, and the backup still gets saved. */}
+              It keeps trying while VeilCore is open, Home lists it, and the backup still gets saved. */}
           <Button variant="text" color="inherit" onClick={onNext} sx={{ minHeight: 48 }}>
             {t('app.log.stampLater')}
           </Button>
+          {problem.retry && !stopped && (
+            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+              {t('app.log.keepsTrying')}
+            </Typography>
+          )}
         </>
       ) : (
         <Typography variant="body2" color="text.secondary">
@@ -896,6 +903,12 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
     </Stack>
   );
 };
+
+/** "about 25 s" / "about 4 min", for the countdown to the next automatic try. */
+const waitWords = (seconds: number, tr: Translator): string =>
+  seconds < 90
+    ? tr.t('app.log.inSeconds', { n: String(seconds) })
+    : tr.tp('app.chain.inAboutMinutes', Math.round(seconds / 60));
 
 const DoneTitle: React.FC<{ step: string; title: string }> = ({ step, title }) => (
   <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>

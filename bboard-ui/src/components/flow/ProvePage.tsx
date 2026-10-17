@@ -228,7 +228,7 @@ const Answer: React.FC<{ req: ProveRequest; token: string; recordId: string; nam
           </Button>
         </>
       )}
-      <ChainStatusLine busy={call.busy} progress={call.progress} error={call.error} />
+      <ChainStatusLine busy={call.busy} progress={call.progress} error={call.error} step="proving you hold a record" />
       <Typography variant="caption" color="text.secondary">
         {t('app.prove.fewMinutes')}
       </Typography>

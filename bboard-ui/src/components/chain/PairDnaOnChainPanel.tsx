@@ -177,7 +177,7 @@ export const PairDnaOnChainPanel: React.FC<{ recordId: string }> = ({ recordId }
         >
           {mine?.status === 'sending' ? t('app.pair.chain.sendAgain') : t('app.pair.chain.date')}
         </Button>
-        <ChainStatusLine busy={call.busy} progress={call.progress} error={call.error} />
+        <ChainStatusLine busy={call.busy} progress={call.progress} error={call.error} step="DNA report date stamp" />
         <Typography variant="caption" color="text.secondary">
           {t('app.pair.chain.testOnly')}
         </Typography>

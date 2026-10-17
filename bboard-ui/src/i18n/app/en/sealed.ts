@@ -163,11 +163,11 @@ export const sealed = {
   'app.sealed.refuse.olderCopy':
     'VeilCore already has a newer copy of it, saved from another tab or device, so this change wasn’t saved. The newer copy is shown now; make the change again if you still want it',
   'app.sealed.unsaved.backup':
-    'Not saved yet. Save your backup and check it; until then this is kept only in this browser.',
+    'Locked copy not uploaded yet — save and check your backup. Your record’s date isn’t waiting on this.',
   'app.sealed.unsaved.key':
     'Not saved yet. This browser doesn’t have the key for your records on VeilCore. Restore your backup, or, if you don’t have it, use “I don’t have that backup” on your records page.',
   'app.sealed.unsaved.retry': 'Not saved on VeilCore yet. It’s kept in this browser and sent again with the next save.',
-  'app.sealed.unsaved.short': 'Not saved yet — save your backup',
+  'app.sealed.unsaved.short': 'Locked copy not uploaded yet — save and check your backup',
   'app.sealed.unsaved.shortRetry': 'Not saved yet',
   'app.sealed.unsaved.discardConfirm':
     'Let go of what this browser keeps for this record? It isn’t on VeilCore, so it can’t be brought back.',

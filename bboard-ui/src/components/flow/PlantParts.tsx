@@ -7,7 +7,10 @@ import DoneIcon from '@mui/icons-material/CheckCircle';
 import WaitIcon from '@mui/icons-material/RadioButtonUnchecked';
 import FailIcon from '@mui/icons-material/HighlightOff';
 import ChevronIcon from '@mui/icons-material/ChevronRight';
-import type { StrainRecord } from '../../veilcore/records';
+import { proofCodeSent, type StrainRecord } from '../../veilcore/records';
+import { inOutbox } from '../../veilcore/outbox';
+import { nextBatchRow, useAnchorCadence } from './dating-words';
+import { useStampRetries } from '../chain/useKeyStamp';
 import type { RecordKeys } from '../../veilcore/record-keys';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { LAB_RESULTS_ENABLED, isTestNetwork } from '../../config/network';
@@ -216,7 +219,16 @@ export const PlantStatus: React.FC<{
   // its fingerprint's batch (which covers its key too, for a record that names one); the
   // key's date stamp, on test builds, dates the key only. Neither date is made up here:
   // the batch's comes from its inclusion proof and Midnight, the key's from its anchor.
-  const dated = recordDateRow(proof, anchor, tr);
+  // Dating first (CONTRACT.md #38): the proof code goes to VeilCore the moment the record is
+  // sealed, so until its batch it is "in the next batch", backup or not.
+  const cadence = useAnchorCadence();
+  const retry = useStampRetries()[record.id];
+  const dated = recordDateRow(
+    proof,
+    anchor,
+    tr,
+    proofCodeSent(record.id) || !inOutbox(record.id) ? nextBatchRow(tr, cadence) : { value: t('app.plant.notSentYet') },
+  );
   const batch = { done: dated.mark === 'done', mark: dated.mark, value: dated.value };
   const datedSub = (extra?: string) => [dated.sub, extra].filter(Boolean).join(' ') || undefined;
 
@@ -230,7 +242,7 @@ export const PlantStatus: React.FC<{
             ...batch,
             id: 'Record dated',
             label: t('app.plant.recordDated'),
-            sub: datedSub(REAL_CHAIN ? keyStampLine(keys, tr) : undefined),
+            sub: datedSub(REAL_CHAIN ? keyStampLine(keys, tr, retry) : undefined),
           },
           // Right under the record's date: a date shows a description existed; the DNA
           // report is what ties the record to the plant itself.

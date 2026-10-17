@@ -4,7 +4,7 @@
 
 import type { ProvingProvider } from '@midnight-ntwrk/midnight-js-protocol/ledger';
 import type { PublicDataProvider } from '@midnight-ntwrk/midnight-js-types';
-import { workerPow, workerProvingProvider } from './prover';
+import { proverReady, workerPow, workerProvingProvider } from './prover';
 
 export type CallDeps = {
   readonly proving: (cacheName: string) => ProvingProvider;
@@ -12,6 +12,8 @@ export type CallDeps = {
   readonly origin: string;
   readonly fetch: typeof fetch;
   readonly publicData?: PublicDataProvider;
+  /** Start the prover and wait until it listens (prover.ts proverReady); stand-ins have none. */
+  readonly warmUp?: () => Promise<void>;
 };
 
 export const browserCallDeps = (): CallDeps => ({
@@ -19,4 +21,5 @@ export const browserCallDeps = (): CallDeps => ({
   pow: workerPow,
   origin: typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
   fetch: (...a: Parameters<typeof fetch>) => fetch(...a),
+  warmUp: () => proverReady(),
 });

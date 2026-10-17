@@ -11,6 +11,7 @@ import type { StrainRecord } from '../veilcore/records';
 import { finishReceiving, isUnfinishedReceipt, keptCodeFor } from '../veilcore/receive';
 import { labErrorWords } from '../veilcore/transfers';
 import { useT } from '../i18n/app';
+import { SupportDetails } from './SupportDetails';
 
 export const FinishReceiving: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const tr = useT();
@@ -55,7 +56,12 @@ export const FinishReceiving: React.FC<{ record: StrainRecord }> = ({ record }) 
         >
           {busy ? t('app.sealed.recv.finishing') : t('app.sealed.recv.finish')}
         </Button>
-        {error && <Typography variant="body2">{error}</Typography>}
+        {error && (
+          <>
+            <Typography variant="body2">{error}</Typography>
+            <SupportDetails step="receiving a delivery" error={error} />
+          </>
+        )}
       </Stack>
     </Alert>
   );

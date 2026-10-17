@@ -12,7 +12,10 @@
 //   legacy  saved in plain text before sealing; records.ts saves it again, sealed;
 //   locked  sealed with a key this browser doesn't have (or emptied by the registry's
 //           purge): shown as locked, never sent back by a save;
-//   stub    what a claim leaves for its recipient before their browser seals it.
+//   stub    what a claim leaves for its recipient before their browser seals it;
+//   dating  only the record's proof code, sent the moment it was sealed (dating first,
+//           CONTRACT.md #38): the record is the copy this browser keeps until its locked
+//           copy can be saved (a checked backup), and it is in the next batch already.
 //
 // The registry no longer checks a record's fingerprint against its contents (it can't
 // read them), so the browser does: each opened record is fingerprinted again
@@ -264,7 +267,11 @@ const merged = (row: Record<string, unknown>, sealed: Record<string, unknown>): 
 
 // ---- what the last load found -----------------------------------------------------------
 
-export type RowState = 'open' | 'legacy' | 'locked' | 'stub' | 'older';
+/**
+ * 'dating': the registry holds only the record's proof code, sent the moment it was sealed
+ * (dating first, CONTRACT.md #38); its locked copy waits in this browser for a checked backup.
+ */
+export type RowState = 'open' | 'legacy' | 'locked' | 'stub' | 'older' | 'dating';
 export type IntegrityCheck = 'match' | 'mismatch' | 'unsealed' | 'no-nonce';
 
 /** A row this browser can't open: what the registry shows anyone, and nothing more. */
@@ -385,6 +392,7 @@ export const clearSealedState = (): void => {
   publicRevs.clear();
   sentHere.clear();
   olderCopies.clear();
+  datedHere.clear();
   noteSealedRowsSeen(false);
   changed();
 };
@@ -695,6 +703,12 @@ export const apiStore: Store = {
       if (!isSealedRow(raw) && revs[revKey(kind, id)] !== undefined) {
         states.set(id, 'older');
         locked.push({ id, ...publicOf(raw), older: true, beforeLocking: true });
+        continue;
+      }
+      // Dated first (CONTRACT.md #38): only the proof code is there. The record itself is the
+      // copy this browser keeps (outbox.ts), which records.ts puts back and saves once it can.
+      if (kind === 'records' && raw.bodyPending === true && !isSealedRow(raw)) {
+        states.set(id, 'dating');
         continue;
       }
       if (isSealedRow(raw)) {
@@ -1024,6 +1038,89 @@ const registryHolds = async (kind: RowKind, k: string, id: string, hash: string)
   const { rev: _rev, ...inner } = opened.value;
   void _rev;
   return (await contentHash(kind, kind === 'records' ? merged(raw, inner) : { ...inner, id })) === hash;
+};
+
+// ---- dating first (CONTRACT.md #38) ----------------------------------------------------------
+
+/** What PUT /api/records/dating takes: the proof code alone, nothing typed, no vault key id. */
+export type DatingRow = { readonly id: string; readonly recordFingerprint: string; readonly keyBinding?: string };
+
+const HEX64 = /^[0-9a-f]{64}$/;
+
+/** A record's dating row, or undefined when it has no proof code to date. */
+export const datingRowOf = (r: Record<string, unknown>): DatingRow | undefined =>
+  isString(r.id) && isString(r.recordFingerprint) && HEX64.test(r.recordFingerprint)
+    ? {
+        id: r.id,
+        recordFingerprint: r.recordFingerprint,
+        ...(isString(r.keyBinding) && HEX64.test(r.keyBinding) ? { keyBinding: r.keyBinding } : {}),
+      }
+    : undefined;
+
+/** Proof codes the registry took from this page (id → proof code). */
+const datedHere = new Map<string, string>();
+
+/**
+ * Send records' proof codes to be dated now, before their locked copies (which wait for a
+ * checked backup, L1). Only `{ id, recordFingerprint, keyBinding? }` leaves the browser: no box,
+ * so no vault key id, and nothing typed. Returns the ids the registry holds a proof code for.
+ */
+export const sendDatingRows = async (
+  rows: readonly DatingRow[],
+): Promise<{ dated: string[]; refused: SaveRefusal[] } | { error: string }> => {
+  const k = holderKeyIfAny();
+  if (!k) return { error: 'this browser has no holder key' };
+  const wire = rows
+    .filter((r) => datedHere.get(r.id) !== r.recordFingerprint)
+    .slice(0, 100)
+    .map((r) => ({
+      id: r.id,
+      recordFingerprint: r.recordFingerprint,
+      ...(r.keyBinding ? { keyBinding: r.keyBinding } : {}),
+    }));
+  if (wire.length === 0) return { dated: rows.map((r) => r.id).filter((id) => datedHere.has(id)), refused: [] };
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}/api/records/dating`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'x-holder-key': k },
+      body: JSON.stringify(wire),
+    });
+  } catch {
+    return { error: 'could not reach the registry' };
+  }
+  const body = await readJson(res).catch(() => null);
+  if (!res.ok || !isObject(body)) {
+    return {
+      error: isObject(body) && isString(body.error) ? body.error : `the registry answered ${String(res.status)}`,
+    };
+  }
+  const dated = Array.isArray(body.dated) ? body.dated.filter(isString) : [];
+  const state = current('records');
+  for (const id of dated) {
+    const row = wire.find((w) => w.id === id);
+    if (row) datedHere.set(id, row.recordFingerprint);
+    if (state && !state.states.has(id)) state.states.set(id, 'dating');
+  }
+  const refused: SaveRefusal[] = [];
+  if (Array.isArray(body.rejected))
+    for (const r of body.rejected)
+      if (isObject(r) && isString(r.id) && isString(r.reason)) refused.push({ id: r.id, reason: r.reason });
+  if (Array.isArray(body.notWritten))
+    for (const id of body.notWritten)
+      if (isString(id))
+        refused.push({ id, reason: isString(body.reason) ? body.reason : 'this id already belongs to another holder' });
+  if (dated.length) changed();
+  return { dated, refused };
+};
+
+/**
+ * Whether VeilCore has this record's proof code, so it is in the next batch: its locked copy
+ * is there, or the proof code was dated first (this page sent it, or the last load found it).
+ */
+export const registryHasProofCode = (id: string): boolean => {
+  const s = current('records')?.states.get(id);
+  return s === 'open' || s === 'dating' || s === 'legacy' || s === 'stub' || datedHere.has(id);
 };
 
 // ---- the vault key: made once, safely (CONTRACT.md #23) ------------------------------------

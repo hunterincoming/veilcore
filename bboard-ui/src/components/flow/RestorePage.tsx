@@ -17,6 +17,7 @@ import { FlowFrame, ScreenHeading } from './FlowFrame';
 import { rich, useT } from '../../i18n/app';
 import { enT, type Translator } from '../../i18n/translate';
 import { backupMessageWords } from './backup-words';
+import { SupportDetails } from '../SupportDetails';
 
 /** "2 lab deliveries and 1 lab code": what else the file brought back, or '' for nothing. */
 export const labWork = (r: RestoreResult, tr: Translator = enT): string => {
@@ -153,6 +154,7 @@ export const RestorePage: React.FC = () => {
               {problem && (
                 <Alert severity="warning" variant="outlined">
                   {backupMessageWords(problem, tr)}
+                  <SupportDetails step="restore from backup" error={backupMessageWords(problem)} />
                 </Alert>
               )}
               <Box>

@@ -9,12 +9,16 @@ import { Alert, CircularProgress, Stack, Typography } from '@mui/material';
 import { chainProblem } from '../flow/log-flow-state';
 import { useT } from '../../i18n/app';
 import { progressWords } from './progress-words';
+import { SupportDetails } from '../SupportDetails';
+import type { SupportStep } from '../../veilcore/support-details';
 
-export const ChainStatusLine: React.FC<{ busy: boolean; progress?: string; error?: string }> = ({
-  busy,
-  progress,
-  error,
-}) => {
+export const ChainStatusLine: React.FC<{
+  busy: boolean;
+  progress?: string;
+  error?: string;
+  /** What "Copy details for support" names as the failing step. */
+  step?: SupportStep;
+}> = ({ busy, progress, error, step = 'key date stamp' }) => {
   const tr = useT();
   return (
     <>
@@ -29,6 +33,7 @@ export const ChainStatusLine: React.FC<{ busy: boolean; progress?: string; error
       {error && (
         <Alert severity="error" variant="outlined" data-error={error}>
           {chainProblem(error, tr).text}
+          <SupportDetails step={step} error={error} />
         </Alert>
       )}
     </>

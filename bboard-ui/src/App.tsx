@@ -106,6 +106,10 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   useEffect(() => {
     void import('./veilcore/records').then((m) => m.startRecordSync());
     void import('./veilcore/licenses').then((m) => m.startLicenseSync());
+    // Key date stamps that didn't go through, tried again while the app is open (test builds
+    // with the chain features only, which it checks itself; never on a check or prove page:
+    // stamp-background.ts).
+    void import('./veilcore/chain/stamp-background').then((m) => m.startStampRetries());
   }, [pathname]);
   return (
     <Box

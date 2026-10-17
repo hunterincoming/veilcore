@@ -594,6 +594,9 @@ describe('Medium (CWE-209): the anchorer’s public status carries a code, never
     for (let i = 0; i < 3; i++) await s.anchorer.runOnce();
     const pub = s.anchorer.publicStatus();
     expect(pub).toMatchObject({ enabled: true, lastOutcome: 'error', alert: true });
+    // The cadence the site shows ("about every N minutes"): a setting, never in-flight detail.
+    expect(typeof pub.everyMinutes).toBe('number');
+    expect(pub.everyMinutes).toBeGreaterThanOrEqual(5);
     expect(JSON.stringify(pub)).not.toMatch(/ECONNREFUSED|railway|internal|registry/);
     expect(Object.keys(pub)).not.toContain('inFlight');
     expect(s.anchorer.status().lastOutcome).toMatch(/ECONNREFUSED/);

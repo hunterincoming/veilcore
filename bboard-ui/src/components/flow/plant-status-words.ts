@@ -74,11 +74,27 @@ export const homeStatusLine = (
   return { text: bits.join(' · '), unfinished: false };
 };
 
-/** The key's date stamp, as a second line under the record's date (round 5). */
-export const keyStampLine = (keys?: RecordKeys, tr: Translator = enT): string =>
-  tr.t('app.plant.keyStampLine', {
-    when: keys?.anchor ? day(tr, keys.anchor.anchoredAt) || tr.t('app.plant.done') : tr.t('app.plant.notYet'),
-  });
+/**
+ * The key's date stamp, as a second line under the record's date (round 5). While a stamp that
+ * didn't go through is being tried again by itself (veilcore/chain/key-stamp.ts), it says so;
+ * one that may already have gone out is never sent again by itself, and it says that instead.
+ */
+export const keyStampLine = (
+  keys?: RecordKeys,
+  tr: Translator = enT,
+  retry?: { readonly stopped?: 'sent' | 'cannot' },
+): string =>
+  !keys?.anchor && retry
+    ? tr.t(
+        retry.stopped === 'sent'
+          ? 'app.plant.keyStampMaySent'
+          : retry.stopped === 'cannot'
+            ? 'app.plant.keyStampCannot'
+            : 'app.plant.keyStampRetrying',
+      )
+    : tr.t('app.plant.keyStampLine', {
+        when: keys?.anchor ? day(tr, keys.anchor.anchoredAt) || tr.t('app.plant.done') : tr.t('app.plant.notYet'),
+      });
 
 /**
  * The lab's "Lab report sent" line. A lab whose lab reports were all withdrawn (or replaced
@@ -132,9 +148,18 @@ export const recordDateRow = (
   proof: ProofState | 'checking',
   anchor: AnchorState | undefined,
   tr: Translator = enT,
+  /**
+   * The plant page's own row (dating first, CONTRACT.md #38): what to say while the record's
+   * proof code waits for the next batch ("in the next batch", and how often a batch is dated
+   * when known: dating-words.ts nextBatchRow). Without it, "waiting for a batch".
+   */
+  nextBatch?: { value: string; sub?: string },
 ): { mark: RowMark; value: string; sub?: string } => {
   if (proof === 'checking') return { mark: 'wait', value: tr.t('app.plant.checking') };
-  if (proof.status === 'none') return { mark: 'wait', value: tr.t('app.plant.waitingBatch') };
+  if (proof.status === 'none')
+    return nextBatch
+      ? { mark: 'wait', value: nextBatch.value, ...(nextBatch.sub ? { sub: nextBatch.sub } : {}) }
+      : { mark: 'wait', value: tr.t('app.plant.waitingBatch') };
   if (proof.status === 'pending') return { mark: 'wait', value: tr.t('app.plant.inBatchWaiting') };
   const a = proof.proof.anchor;
   const test = a && isTestNetwork(a.network) ? tr.t('app.plant.onTestNetwork') : '';

@@ -147,9 +147,18 @@ export type AnchorOutcomeCode =
   | 'wrong-registry'
   | 'error';
 
+/** How often main.ts runs the job: a batch can't be sealed more often than this. */
+export const ANCHOR_TICK_MINUTES = 5;
+
 /** What anyone may see: no error text, no transaction or batch in flight. */
 export type PublicAnchorerStatus = {
   readonly enabled: true;
+  /**
+   * How often a batch is sealed and dated, in whole minutes (the job runs every 5 minutes, so
+   * never less): the site says "Record dated: in the next batch (about every N minutes)".
+   * A setting, not a reading of anything in flight.
+   */
+  readonly everyMinutes: number;
   readonly lastRunAt?: string;
   readonly lastOutcome?: AnchorOutcomeCode;
   readonly lastAnchoredBatch?: string;
@@ -207,6 +216,7 @@ export class Anchorer {
   publicStatus(): PublicAnchorerStatus {
     return {
       enabled: true,
+      everyMinutes: Math.max(ANCHOR_TICK_MINUTES, Math.round(this.config.sealEveryMs / 60_000)),
       lastRunAt: this.status_.lastRunAt,
       lastOutcome: this.status_.lastOutcomeCode,
       lastAnchoredBatch: this.status_.lastAnchoredBatch,

@@ -156,7 +156,7 @@ describe('every page reads the same answer', () => {
       expect(src, f).toMatch(/useRecordDate\(record\.recordFingerprint\)/);
       expect(src, f).not.toMatch(/checkAnchorOnChain|proofFor\(/);
     }
-    expect(read('flow/PlantParts.tsx')).toMatch(/recordDateRow\(proof, anchor, tr\)/);
+    expect(read('flow/PlantParts.tsx')).toMatch(/recordDateRow\(\s*proof,\s*anchor,\s*tr\b/);
     expect(read('RecordHistory.tsx')).toMatch(/anchorHistoryEvent\(\s*anchor,/);
   });
   it('the check page uses the same look-up on its own proof', () => {

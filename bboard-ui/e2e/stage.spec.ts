@@ -219,7 +219,11 @@ test('seal a plant, add the next stage from its page, and date its lab report on
   const f1Card = page.getByRole('link', { name: `Open ${f1}`, exact: true });
   await expect(f1Card.locator(`[data-home-dated="${report.id}"]`)).toContainText('DNA report dated');
   await expect(page.getByRole('link', { name: `Open ${report.strainName}` })).toHaveCount(0);
-  await expect(page.getByText(/3 records have keys only on this device/)).toBeVisible();
+  // Their keys are in each record's locked copy on VeilCore, under a vault key in a checked
+  // backup: a new backup adds nothing for them, so Home doesn't ask for one again (17 Oct 2026,
+  // keys-only-here.ts). It used to say "3 records have keys only on this device".
+  await expect(page.getByText(/have keys only on this device/)).toHaveCount(0);
+  await expect(page.locator('[data-pickup-item="fresh-backup"]')).toHaveCount(0);
 
   // Logging: it is never offered as a parent.
   await page.goto('/new');

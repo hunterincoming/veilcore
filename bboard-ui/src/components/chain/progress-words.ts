@@ -7,6 +7,7 @@ import { enT, type Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
 
 const KNOWN: [string, AppKey][] = [
+  ['Starting the prover on your device…', 'app.chain.progress.starting'],
   ['Reading the contract from the network…', 'app.chain.progress.reading'],
   ['Checking this site’s proving files against the contract…', 'app.chain.progress.checkingFiles'],
   ['Preparing the transaction on your device…', 'app.chain.progress.preparing'],

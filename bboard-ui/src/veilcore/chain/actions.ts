@@ -98,6 +98,12 @@ const call = async (
   providers.privateStateProvider.setContractAddress(contractAddress);
   setProverProgress(progress);
   try {
+    // The prover first: a browser that won't run it (a policy, a blocked file) says so before
+    // anything is read or sent, and it is warm by the time the transaction is ready to prove.
+    if (deps.warmUp) {
+      progress('Starting the prover on your device…');
+      await deps.warmUp();
+    }
     progress('Reading the contract from the network…');
     const state = await withTimeout(
       providers.publicDataProvider.queryContractState(contractAddress),

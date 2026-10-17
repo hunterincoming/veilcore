@@ -122,6 +122,36 @@ export const fakeRegistry = () => {
     const holder = headers['x-holder-key'] ?? '';
     const path = new URL(url).pathname;
 
+    // Dating first (CONTRACT.md #38): a proof code alone, before the locked copy.
+    if (path === '/api/records/dating' && method === 'PUT') {
+      const dated: string[] = [];
+      const rejected: { id: string; reason: string }[] = [];
+      const notWritten: string[] = [];
+      for (const r of JSON.parse(body) as Row[]) {
+        const extra = Object.keys(r).filter((k) => !['id', 'recordFingerprint', 'keyBinding'].includes(k));
+        if (extra.length || typeof r.recordFingerprint !== 'string' || !/^[0-9a-f]{64}$/.test(r.recordFingerprint)) {
+          rejected.push({ id: r.id, reason: `${extra.join(', ') || 'recordFingerprint'} is not part of a dating row` });
+          continue;
+        }
+        const have = records.get(r.id);
+        if (have && have.holder !== holder) notWritten.push(r.id);
+        else if (have)
+          if (have.recordFingerprint === r.recordFingerprint) dated.push(r.id);
+          else rejected.push({ id: r.id, reason: 'this id was dated with a different proof code' });
+        else {
+          records.set(r.id, {
+            id: r.id,
+            recordFingerprint: r.recordFingerprint,
+            ...(typeof r.keyBinding === 'string' ? { keyBinding: r.keyBinding } : {}),
+            bodyPending: true,
+            holder,
+          });
+          dated.push(r.id);
+        }
+      }
+      return json({ ok: rejected.length === 0 && notWritten.length === 0, dated, rejected, notWritten });
+    }
+
     if (path === '/api/records' || path === '/api/licenses') {
       const t = table(path);
       if (method === 'PUT') {
@@ -136,7 +166,14 @@ export const fakeRegistry = () => {
           const s = r.sealed as { kid?: string } | undefined;
           const heldRev = typeof t.get(r.id)?.rev === 'number' ? (t.get(r.id)!.rev as number) : null;
           const rev = typeof r.rev === 'number' && Number.isSafeInteger(r.rev) ? r.rev : null;
+          const dating = path === '/api/records' ? t.get(r.id) : undefined;
           if (misbehave.rejectIds.has(r.id)) rejected.push({ id: r.id, reason: 'refused for this test' });
+          else if (
+            dating?.bodyPending === true &&
+            dating.holder === holder &&
+            dating.recordFingerprint !== r.recordFingerprint
+          )
+            rejected.push({ id: r.id, reason: 'this id was dated with a different proof code' });
           else if (
             // Records (round 3, L2) and, since round 4 (F1, license-rev-v1), agreements.
             !misbehave.ignoreRev &&

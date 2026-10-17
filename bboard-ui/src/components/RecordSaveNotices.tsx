@@ -21,6 +21,8 @@ import { rowStateOf } from '../veilcore/api-store';
 import { labelOf, useGrantDifference } from '../veilcore/disclosure';
 import { useVaultNeedsBackup } from '../veilcore/vault';
 import { useRecordT } from '../i18n/app';
+import { enT } from '../i18n/translate';
+import { SupportDetails } from './SupportDetails';
 
 export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () => void }> = ({ record, onShare }) => {
   useRecords();
@@ -75,6 +77,10 @@ export const RecordSaveNotices: React.FC<{ record: StrainRecord; onShare?: () =>
           }
         >
           {t(`app.sealed.unsaved.${unsaved}`)}
+          {/* Waiting for the backup is not a failure; the other two are. */}
+          {unsaved !== 'backup' && (
+            <SupportDetails step="save to VeilCore" error={enT.t(`app.sealed.unsaved.${unsaved}`)} />
+          )}
         </Alert>
       )}
       {ask.length > 0 && (

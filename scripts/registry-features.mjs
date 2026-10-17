@@ -45,6 +45,10 @@ export const REQUIRED_FEATURES = Object.freeze({
   // Lab report signatures bound to the record (round 6, CONTRACT.md #34): an older registry
   // still serves an old lab signature's report hash to anyone with the proof code.
   "lab-doc-binding-v1": "keeping lab report hashes private",
+  // Dating first (CONTRACT.md #38): a record's proof code goes into the next batch the moment
+  // it is sealed, before its locked copy (PUT /api/records/dating). An older registry answers
+  // 404, and records made before a checked backup would wait for a date again.
+  "dating-first-v1": "dating a record the moment it is sealed",
 });
 
 const DEPLOY_FIRST =

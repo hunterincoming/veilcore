@@ -6,6 +6,7 @@ import React from 'react';
 import { Alert } from '@mui/material';
 import { clearSaveProblem, describeRefusals, useSaveProblem } from '../veilcore/save-status';
 import { useT } from '../i18n/app';
+import { SupportDetails } from './SupportDetails';
 
 export const SaveProblemBar: React.FC = () => {
   const problem = useSaveProblem();
@@ -21,6 +22,10 @@ export const SaveProblemBar: React.FC = () => {
   return (
     <Alert severity="warning" variant="outlined" onClose={clearSaveProblem} sx={{ mb: 2 }}>
       {tr.t('app.home.saveProblem.text', { what, list: describeRefusals(problem.refused, tr) })}
+      <SupportDetails
+        step={problem.what === 'agreements' ? 'agreement' : 'save to VeilCore'}
+        error={describeRefusals(problem.refused)}
+      />
     </Alert>
   );
 };

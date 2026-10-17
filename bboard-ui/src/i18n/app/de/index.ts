@@ -11,6 +11,7 @@ import { backup } from './backup';
 import { chain } from './chain';
 import { common } from './common';
 import { copy } from './copy';
+import { dating } from './dating';
 import { history } from './history';
 import { home } from './home';
 import { importing } from './import';
@@ -40,4 +41,5 @@ export const appDe: AppTranslation = {
   ...partners,
   ...animal,
   ...sealed,
+  ...dating,
 };
