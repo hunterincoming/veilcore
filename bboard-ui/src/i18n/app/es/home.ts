@@ -4,12 +4,14 @@
 import type { AppTranslation } from '../../translate';
 
 export const home = {
-  'app.home.firstPlant': 'Registremos su primera planta',
+  'app.home.firstPlant': 'Registremos su primera planta o su primer animal',
   'app.home.continueDraftNamed': 'Continúe su borrador: {name}',
   'app.home.continueDraft': 'Continúe su borrador',
   'app.home.draftKept': 'Lo que escribió se guarda en este navegador. Siga donde lo dejó.',
   'app.home.aboutThreeMinutes':
     'Unos 3 minutos. Al terminar tendrá un sello de fecha público, y usted tiene la única clave.',
+  'app.home.aboutThreeMinutesByHand':
+    'Unos 3 minutos. Al terminar queda sellado; su fecha pública llega cuando anclamos su lote (a mano por ahora). Usted tiene la única clave.',
   'app.home.continue': 'Continuar',
   'app.home.start': 'Empezar',
   'app.home.spreadsheet': '¿Tiene una hoja de cálculo? Feche toda su colección',
@@ -20,7 +22,7 @@ export const home = {
     'Muestra que su clave firmó: que llegó una muestra, o qué informe envió. No muestra quién tiene la clave: cualquiera puede registrar una clave con cualquier nombre.',
   'app.home.breederToo': 'También soy obtentor',
   'app.home.imALab': 'Soy un laboratorio',
-  'app.home.whatStops': '¿Qué impide que alguien registre mi planta primero?',
+  'app.home.whatStops': '¿Qué impide que alguien registre mi planta o mi animal primero?',
   'app.home.samplesReceived': 'Muestras recibidas',
   'app.home.yourPlants': 'Sus plantas',
   'app.home.logNew': 'Registrar nueva',
@@ -49,7 +51,7 @@ export const home = {
   'app.home.importFailed': 'La importación falló.',
   'app.home.labJobs': 'Las tareas de su laboratorio',
   'app.home.labJobsText':
-    'Confirme lo que llega y luego envíe los resultados desde la página de la planta. Ambas cosas se firman con la propia clave de su laboratorio, no con la nuestra, y los resultados se bloquean para que solo el obtentor pueda abrirlos.',
+    'Confirme lo que llega y luego envíe los resultados desde la página del registro. Ambas cosas se firman con la propia clave de su laboratorio, no con la nuestra, y los resultados se bloquean para que solo el obtentor pueda abrirlos.',
   'app.home.confirmDelivery': 'Confirmar una entrega',
   'app.home.labSignature': 'La firma de su laboratorio',
   'app.home.setUpLabSignature': 'Configurar la firma de su laboratorio',
@@ -97,11 +99,11 @@ export const home = {
   'app.home.sort.oldest': 'Más antiguos primero',
   'app.home.sort.name': 'Nombre del cultivar',
   'app.home.sort.breeder': 'Obtentor',
-  'app.home.search.lab': 'Nombre de la planta, obtentor, código TR, nota o su n.º de registro interno',
-  'app.home.search.breeder': 'Planta, obtentor o su propia referencia',
+  'app.home.search.lab': 'Nombre, obtentor, código TR, nota o su n.º de registro interno',
+  'app.home.search.breeder': 'Nombre, obtentor o su propia referencia',
   'app.home.search.aria': 'Buscar',
   'app.home.search.nothing':
-    'Nada coincide con "{q}". La búsqueda incluye el nombre de la planta, quién la obtuvo, el identificador del registro, su propia referencia y, para una muestra recibida, su código de laboratorio y la nota del obtentor.',
+    'Nada coincide con "{q}". La búsqueda incluye el nombre, quién lo obtuvo, el identificador del registro, su propia referencia y, para una muestra recibida, su código de laboratorio y la nota del obtentor.',
   'app.home.search.nOfTotal': '{matched} de {total}',
   'app.home.paste.ownCode': 'Ese es su propio código. Envíelo al laboratorio; no lo reciba aquí.',
   'app.home.paste.cutOff': 'Ese código parece incompleto. Copie el código de laboratorio completo que le enviaron.',
@@ -113,7 +115,7 @@ export const home = {
   'app.home.paste.placeholder': 'Péguelo aquí',
   'app.home.paste.go': 'Ir',
   'app.home.paste.hint':
-    'Un código de laboratorio, un enlace a un registro, una solicitud para demostrar una planta o un acuerdo para firmar. Nosotros averiguamos cuál es.',
+    'Un código de laboratorio, un enlace a un registro, una solicitud para demostrar que tiene un registro o un acuerdo para firmar. Nosotros averiguamos cuál es.',
   'app.home.paste.whichPlant': 'Es una solicitud para demostrar que tiene una planta. ¿Por cuál le preguntaron?',
   'app.home.notFinished': 'Sin terminar · siguiente: guarde su copia de seguridad',
   'app.home.receivedFrom': 'Recibida de {name}',

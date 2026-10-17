@@ -355,6 +355,7 @@ describe('the bundle', () => {
         'lab/signatures.json',
         'proof/anchors.json',
         'proof/batch-root.txt',
+        'proof/check-on-midnight.mjs',
         'proof/inclusion-proof.json',
         'proof/root.bin',
         'proof/root.bin.ots',
@@ -416,7 +417,25 @@ describe('the bundle', () => {
     expect(readme).toContain(
       'Open the Midnight explorer for Midnight preprod (a test network): https://preprod.midnightexplorer.com/',
     );
-    expect(readme).toMatch(/may not show the batch root in plain text/);
+    // Persona review (17 Oct): honest about explorers, and one command that needs no VeilCore server.
+    expect(readme).toMatch(/We haven't confirmed that any Midnight explorer shows the batch root/);
+    expect(readme).toMatch(/we know of no way to see it without running a command/);
+    expect(readme).toMatch(/check-on-midnight\.mjs/);
+    expect(readme).toContain('npm install --save-exact @veilcore/contracts@0.2.0');
+    const script = strFromU8(files[`${s.record.id}-evidence/proof/check-on-midnight.mjs`]);
+    expect(script).toContain(`txId: "${TX}"`);
+    expect(script).toContain(`root: Buffer.from("${s.batch.root}", 'hex')`);
+    expect(script).toContain('network: "preprod"');
+    expect(script).toContain("import { checkBatchAnchor } from '@veilcore/contracts';");
+    expect(script).not.toMatch(/veilcore\.org|VITE_API_BASE|fetch\(/);
+    // It parses as a Node module (not run: it needs the network and a Blockfrost id).
+    const { mkdtempSync, writeFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { tmpdir } = await import('node:os');
+    const { execFileSync } = await import('node:child_process');
+    const f = join(mkdtempSync(join(tmpdir(), 'vc-check-')), 'check-on-midnight.mjs');
+    writeFileSync(f, script);
+    expect(() => execFileSync(process.execPath, ['--check', f])).not.toThrow();
     // "batch root" explained once, in plain words.
     expect(readme.match(/one code that stands for every record/g)?.length).toBeGreaterThanOrEqual(1);
     expect(readme).toMatch(/existed, unchanged, by the date of that transaction/);

@@ -146,7 +146,7 @@ export const plant = {
   'app.plant.next.dates.why':
     'Il ne contient que le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé, jamais le rapport. Quand son lot est daté, il montre que le rapport existait à ce moment-là, sans montrer les marqueurs à personne.',
   'app.plant.next.stamp.why':
-    'Il est scellé. Sa clé n’est pas encore horodatée, et il le faut pour prouver que vous la détenez. Cela prend environ une minute et c’est gratuit.',
+    'Il est scellé. Sa clé n’est pas encore horodatée, et il le faut pour prouver que vous le détenez. Cela ne date pas votre enregistrement : il est daté quand son lot est ancré. Cela prend environ une minute et c’est gratuit.',
   'app.plant.next.rejected.title': 'Vous avez refusé cet échantillon',
   'app.plant.next.rejected.why':
     'Rien n’a été signé. VeilCore ne prévient pas l’obtenteur : informez-le vous-même, pour qu’il puisse en envoyer un autre.',
@@ -195,7 +195,7 @@ export const plant = {
   'app.plant.next.sample.why':
     'Pour l’instant, cet enregistrement est votre propre description de la plante. Un laboratoire qui signe avoir reçu un échantillon et renvoie un rapport en fait une preuve plus solide que votre seule description.',
   'app.plant.next.sample.action': 'Envoyer à un laboratoire',
-  'app.plant.next.dna.title': 'Obtenez une empreinte ADN de cette plante',
+  'app.plant.next.dna.title': 'Obtenez un rapport ADN de cette plante',
   'app.plant.next.dna.why':
     'Un enregistrement daté montre qu’une description existait. Un rapport ADN (l’empreinte génétique de la plante faite par un laboratoire) est ce qui lie votre enregistrement à la plante réelle. Deux façons d’en obtenir un :',
   'app.plant.next.dna.labTitle': 'Envoyer un échantillon à un laboratoire',
@@ -222,8 +222,8 @@ export const plant = {
   'app.plant.next.noCurrent.title': 'Aucun rapport ADN en vigueur de {lab}',
   'app.plant.next.open.title': 'Ouvrir le rapport de laboratoire de {lab}',
   'app.plant.next.label': 'Étape suivante',
-  'app.plant.next.stamp.title': 'Ajouter l’horodatage',
-  'app.plant.next.stamp.action': 'Ajouter l’horodatage',
+  'app.plant.next.stamp.title': 'Préparer la preuve que vous le détenez',
+  'app.plant.next.stamp.action': 'Préparer la preuve que vous le détenez',
   'app.plant.next.open.action': 'Ouvrir',
   'app.plant.chain.sealed': 'Scellé',
   'app.plant.chain.reportSaved': 'Rapport ADN enregistré',

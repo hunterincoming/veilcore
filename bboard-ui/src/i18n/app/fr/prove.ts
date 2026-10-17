@@ -127,7 +127,7 @@ export const prove = {
     'Cette clé a déjà été horodatée sur le réseau. Cela date la clé, pas l’enregistrement.',
   'app.prove.own.title': 'Prouvez que vous détenez la clé de cette plante (réseau de test)',
   'app.prove.own.stampFirst':
-    'Ajoutez d’abord l’horodatage : touchez « Ajouter l’horodatage » sur la page de la plante. La preuve porte sur l’identité de la plante sur la chaîne, que crée l’horodatage.',
+    'Préparez d’abord la preuve : touchez « Préparer la preuve que vous le détenez » sur la page de la plante. La preuve porte sur l’identité de la plante sur la chaîne, que crée cette étape.',
   'app.prove.own.intro':
     'La personne qui vérifie crée un défi sur la page de vérification de l’enregistrement et vous l’envoie. Vous y répondez ici ; votre navigateur prouve que vous détenez le secret de l’enregistrement sans le révéler, et vous lui envoyez l’identifiant de transaction. Avec l’horodatage, cela montre que la clé existait au bloc {block} et que vous la contrôlez maintenant.',
   'app.prove.own.copyChecker':

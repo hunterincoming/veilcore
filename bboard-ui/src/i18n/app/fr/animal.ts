@@ -23,6 +23,8 @@ export const animal = {
   'app.animal.scheme.earTag': 'Boucle auriculaire',
   'app.animal.scheme.microchip': 'Puce électronique',
   'app.animal.scheme.herdBook': 'Numéro du livre généalogique',
+  'app.animal.scheme.usda840': 'Boucle USDA 840 / AIN',
+  'app.animal.scheme.breedReg': 'N° d’enregistrement de l’association de race',
   'app.animal.species': 'Espèce',
   'app.animal.speciesPlaceholder': 'p. ex. Bovin (Bos taurus)',
   'app.animal.breed': 'Race',
@@ -209,7 +211,7 @@ export const animal = {
     'La clé de cet animal a déjà été horodatée sur le réseau. Cela date la clé, pas l’enregistrement.',
   'app.animal.v.app.prove.own.title': 'Prouvez que vous détenez la clé de cet animal (réseau de test)',
   'app.animal.v.app.prove.own.stampFirst':
-    'Ajoutez d’abord l’horodatage : touchez « Ajouter l’horodatage » sur la page de l’animal. La preuve porte sur l’identité de l’enregistrement de l’animal sur la chaîne, que crée l’horodatage.',
+    'Préparez d’abord la preuve : touchez « Préparer la preuve que vous le détenez » sur la page de l’animal. La preuve porte sur l’identité de l’enregistrement de l’animal sur la chaîne, que crée cette étape.',
   // The lab report panels, a delivery and the saved report's sentence, for an animal.
   'app.animal.v.app.lab.sentence.none': 'Aucun rapport ADN n’est enregistré sur cet animal.',
   'app.animal.v.app.lab.sentence.self':

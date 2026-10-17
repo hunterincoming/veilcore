@@ -4,13 +4,15 @@
 import type { AppTranslation } from '../../translate';
 
 export const home = {
-  'app.home.firstPlant': 'Erfassen wir Ihre erste Pflanze',
+  'app.home.firstPlant': 'Erfassen wir Ihre erste Pflanze oder Ihr erstes Tier',
   'app.home.continueDraftNamed': 'Entwurf fortsetzen: {name}',
   'app.home.continueDraft': 'Entwurf fortsetzen',
   'app.home.draftKept':
     'Was Sie eingegeben haben, ist in diesem Browser gespeichert. Machen Sie dort weiter, wo Sie aufgehört haben.',
   'app.home.aboutThreeMinutes':
     'Etwa 3 Minuten. Danach hat sie einen öffentlichen Datumsstempel, und nur Sie halten den Schlüssel.',
+  'app.home.aboutThreeMinutesByHand':
+    'Etwa 3 Minuten. Danach ist der Datensatz versiegelt; sein öffentliches Datum kommt, wenn wir seinen Stapel verankern (vorerst von Hand). Nur Sie halten den Schlüssel.',
   'app.home.continue': 'Fortsetzen',
   'app.home.start': 'Los geht’s',
   'app.home.spreadsheet': 'Eine Tabelle? Ihre ganze Sammlung datieren',
@@ -21,7 +23,7 @@ export const home = {
     'Sie zeigt, dass Ihr Schlüssel signiert hat: dass eine Probe ankam oder welchen Bericht Sie geschickt haben. Sie zeigt nicht, wer den Schlüssel hält: Jeder kann einen Schlüssel unter jedem Namen registrieren.',
   'app.home.breederToo': 'Ich bin auch Züchter',
   'app.home.imALab': 'Ich bin ein Labor',
-  'app.home.whatStops': 'Was hindert jemanden daran, meine Pflanze zuerst zu erfassen?',
+  'app.home.whatStops': 'Was hindert jemanden daran, meine Pflanze oder mein Tier zuerst zu erfassen?',
   'app.home.samplesReceived': 'Erhaltene Proben',
   'app.home.yourPlants': 'Ihre Pflanzen',
   'app.home.logNew': 'Neu erfassen',
@@ -50,7 +52,7 @@ export const home = {
   'app.home.importFailed': 'Import fehlgeschlagen.',
   'app.home.labJobs': 'Die Aufgaben Ihres Labors',
   'app.home.labJobsText':
-    'Bestätigen Sie, was ankommt, und senden Sie dann Ergebnisse von der Seite der Pflanze zurück. Beides wird mit dem eigenen Schlüssel Ihres Labors signiert, nicht von uns, und Ergebnisse werden so verschlossen, dass nur der Züchter sie öffnen kann.',
+    'Bestätigen Sie, was ankommt, und senden Sie dann Ergebnisse von der Seite des Datensatzes zurück. Beides wird mit dem eigenen Schlüssel Ihres Labors signiert, nicht von uns, und Ergebnisse werden so verschlossen, dass nur der Züchter sie öffnen kann.',
   'app.home.confirmDelivery': 'Eine Lieferung bestätigen',
   'app.home.labSignature': 'Die Signatur Ihres Labors',
   'app.home.setUpLabSignature': 'Die Signatur Ihres Labors einrichten',
@@ -98,11 +100,11 @@ export const home = {
   'app.home.sort.oldest': 'Älteste zuerst',
   'app.home.sort.name': 'Sortenname',
   'app.home.sort.breeder': 'Gezüchtet von',
-  'app.home.search.lab': 'Pflanzenname, Züchter, TR-Code, Notiz oder Ihre Eingangsnummer',
-  'app.home.search.breeder': 'Pflanze, Züchter oder Ihre eigene Referenz',
+  'app.home.search.lab': 'Name, Züchter, TR-Code, Notiz oder Ihre Eingangsnummer',
+  'app.home.search.breeder': 'Name, Züchter oder Ihre eigene Referenz',
   'app.home.search.aria': 'Suchen',
   'app.home.search.nothing':
-    'Nichts passt zu "{q}". Die Suche umfasst den Pflanzennamen, wer sie gezüchtet hat, die Datensatzkennung, Ihre eigene Referenz und bei einer erhaltenen Probe ihren Laborcode und die Notiz des Züchters.',
+    'Nichts passt zu "{q}". Die Suche umfasst den Namen, wer gezüchtet hat, die Datensatzkennung, Ihre eigene Referenz und bei einer erhaltenen Probe ihren Laborcode und die Notiz des Züchters.',
   'app.home.search.nOfTotal': '{matched} von {total}',
   'app.home.paste.ownCode': 'Das ist Ihr eigener Code. Senden Sie ihn an das Labor; nehmen Sie ihn hier nicht an.',
   'app.home.paste.cutOff':
@@ -115,7 +117,7 @@ export const home = {
   'app.home.paste.placeholder': 'Hier einfügen',
   'app.home.paste.go': 'Los',
   'app.home.paste.hint':
-    'Ein Laborcode, ein Link zu einem Datensatz, eine Anfrage, eine Pflanze nachzuweisen, oder eine Vereinbarung zum Unterschreiben. Wir erkennen, was es ist.',
+    'Ein Laborcode, ein Link zu einem Datensatz, eine Anfrage, nachzuweisen, dass Sie einen Datensatz halten, oder eine Vereinbarung zum Unterschreiben. Wir erkennen, was es ist.',
   'app.home.paste.whichPlant':
     'Das ist eine Anfrage, nachzuweisen, dass Sie eine Pflanze halten. Nach welcher wurde gefragt?',
   'app.home.notFinished': 'Nicht fertig · als Nächstes: Sicherungskopie speichern',

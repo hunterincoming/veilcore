@@ -66,7 +66,7 @@ const common: Overlay = {
   'm.demo.label': 'Use it',
   'm.demo.title1': 'Make a record',
   'm.demo.title2': 'or check one.',
-  'm.demo.create.text': "Log a plant, save your backup, then see your plant's page.",
+  'm.demo.create.text': 'Log a plant or animal, save your backup, then see its page.',
   'm.demo.privacy': 'What this site keeps →',
   'm.faq.4link1': 'What this site keeps →',
   'm.faq.2a':

@@ -4,13 +4,15 @@
 import type { AppTranslation } from '../../translate';
 
 export const home = {
-  'app.home.firstPlant': 'Enregistrons votre première plante',
+  'app.home.firstPlant': 'Enregistrons votre première plante ou votre premier animal',
   'app.home.continueDraftNamed': 'Reprendre votre brouillon : {name}',
   'app.home.continueDraft': 'Reprendre votre brouillon',
   'app.home.draftKept':
     'Ce que vous avez saisi est conservé dans ce navigateur. Reprenez là où vous vous étiez arrêté.',
   'app.home.aboutThreeMinutes':
     'Environ 3 minutes. À la fin, elle a un horodatage public, et vous êtes seul à détenir la clé.',
+  'app.home.aboutThreeMinutesByHand':
+    'Environ 3 minutes. À la fin, il est scellé ; sa date publique vient quand nous ancrons son lot (à la main pour l’instant). Vous êtes seul à détenir la clé.',
   'app.home.continue': 'Reprendre',
   'app.home.start': 'Commencer',
   'app.home.spreadsheet': 'Vous avez un tableur ? Datez toute votre collection',
@@ -21,7 +23,7 @@ export const home = {
     'Elle montre que votre clé a signé : qu’un échantillon est arrivé, ou quel rapport vous avez envoyé. Elle ne montre pas qui détient la clé : n’importe qui peut enregistrer une clé sous n’importe quel nom.',
   'app.home.breederToo': 'Je suis aussi obtenteur',
   'app.home.imALab': 'Je suis un laboratoire',
-  'app.home.whatStops': 'Qu’est-ce qui empêche quelqu’un d’enregistrer ma plante en premier ?',
+  'app.home.whatStops': 'Qu’est-ce qui empêche quelqu’un d’enregistrer ma plante ou mon animal en premier ?',
   'app.home.samplesReceived': 'Échantillons reçus',
   'app.home.yourPlants': 'Vos plantes',
   'app.home.logNew': 'Enregistrer',
@@ -50,7 +52,7 @@ export const home = {
   'app.home.importFailed': 'L’importation a échoué.',
   'app.home.labJobs': 'Les tâches de votre laboratoire',
   'app.home.labJobsText':
-    'Confirmez ce qui arrive, puis renvoyez les résultats depuis la page de la plante. Les deux sont signés avec la propre clé de votre laboratoire, pas par nous, et les résultats sont verrouillés pour que seul l’obtenteur puisse les ouvrir.',
+    'Confirmez ce qui arrive, puis renvoyez les résultats depuis la page de l’enregistrement. Les deux sont signés avec la propre clé de votre laboratoire, pas par nous, et les résultats sont verrouillés pour que seul l’obtenteur puisse les ouvrir.',
   'app.home.confirmDelivery': 'Confirmer une livraison',
   'app.home.labSignature': 'La signature de votre laboratoire',
   'app.home.setUpLabSignature': 'Configurer la signature de votre laboratoire',
@@ -98,11 +100,11 @@ export const home = {
   'app.home.sort.oldest': 'Plus anciens d’abord',
   'app.home.sort.name': 'Nom de la variété',
   'app.home.sort.breeder': 'Obtenteur',
-  'app.home.search.lab': 'Nom de la plante, obtenteur, code TR, note ou votre n° d’enregistrement',
-  'app.home.search.breeder': 'Plante, obtenteur ou votre propre référence',
+  'app.home.search.lab': 'Nom, obtenteur, code TR, note ou votre n° d’enregistrement',
+  'app.home.search.breeder': 'Nom, obtenteur ou votre propre référence',
   'app.home.search.aria': 'Rechercher',
   'app.home.search.nothing':
-    'Rien ne correspond à « {q} ». La recherche porte sur le nom de la plante, son obtenteur, l’identifiant de l’enregistrement, votre propre référence et, pour un échantillon reçu, son code laboratoire et la note de l’obtenteur.',
+    'Rien ne correspond à « {q} ». La recherche porte sur le nom, l’obtenteur, l’identifiant de l’enregistrement, votre propre référence et, pour un échantillon reçu, son code laboratoire et la note de l’obtenteur.',
   'app.home.search.nOfTotal': '{matched} sur {total}',
   'app.home.paste.ownCode': 'C’est votre propre code. Envoyez-le au laboratoire ; ne le recevez pas ici.',
   'app.home.paste.cutOff': 'Ce code semble coupé. Copiez le code laboratoire complet qu’on vous a envoyé.',
@@ -114,7 +116,7 @@ export const home = {
   'app.home.paste.placeholder': 'Collez-le ici',
   'app.home.paste.go': 'Ouvrir',
   'app.home.paste.hint':
-    'Un code laboratoire, un lien vers un enregistrement, une demande de prouver une plante ou un contrat à signer. Nous reconnaissons lequel.',
+    'Un code laboratoire, un lien vers un enregistrement, une demande de prouver que vous détenez un enregistrement ou un contrat à signer. Nous reconnaissons lequel.',
   'app.home.paste.whichPlant':
     'C’est une demande de prouver que vous détenez une plante. Laquelle vous a-t-on demandée ?',
   'app.home.notFinished': 'Pas terminé · ensuite : enregistrez votre copie de secours',

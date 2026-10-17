@@ -22,6 +22,8 @@ export const animal = {
   'app.animal.scheme.earTag': 'Ohrmarke',
   'app.animal.scheme.microchip': 'Mikrochip',
   'app.animal.scheme.herdBook': 'Herdbuchnummer',
+  'app.animal.scheme.usda840': 'USDA-840- / AIN-Ohrmarke',
+  'app.animal.scheme.breedReg': 'Registriernummer des Zuchtverbands',
   'app.animal.species': 'Art',
   'app.animal.speciesPlaceholder': 'z. B. Rind (Bos taurus)',
   'app.animal.breed': 'Rasse',
@@ -204,7 +206,7 @@ export const animal = {
     'Der Schlüssel dieses Tieres erhielt schon früher einen Datumsstempel im Netzwerk. Das datiert den Schlüssel, nicht den Datensatz.',
   'app.animal.v.app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieses Tieres halten (Testnetzwerk)',
   'app.animal.v.app.prove.own.stampFirst':
-    'Setzen Sie zuerst den Datumsstempel: Tippen Sie auf der Seite des Tieres auf „Den Datumsstempel setzen“. Der Beweis betrifft die On-Chain-Identität des Tierdatensatzes, die der Datumsstempel erzeugt.',
+    'Richten Sie zuerst den Nachweis ein: Tippen Sie auf der Seite des Tieres auf „Nachweis einrichten, dass Sie ihn halten“. Der Beweis betrifft die On-Chain-Identität des Tierdatensatzes, die dieser Schritt erzeugt.',
   // The lab report panels, a delivery and the saved report's sentence, for an animal.
   'app.animal.v.app.lab.sentence.none': 'Bei diesem Tier ist kein DNA-Bericht gespeichert.',
   'app.animal.v.app.lab.sentence.self':

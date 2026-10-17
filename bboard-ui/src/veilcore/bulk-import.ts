@@ -1677,7 +1677,7 @@ export const RESULT_COLUMNS = ['VeilCore record ID', 'Proof code', 'Check link',
 
 /** The "DNA report" column for a record with none: what's missing and where to add it. */
 export const NO_DNA_REPORT =
-  'None yet, so the record is not tied to the plant. Add one on the plant’s page: Get a DNA fingerprint for this plant.';
+  'None yet, so the record is not tied to the plant. Add one on the plant’s page: Get a DNA report for this plant.';
 /** The "DNA report" column for a record with one saved. */
 export const DNA_REPORT_SAVED = 'Saved';
 

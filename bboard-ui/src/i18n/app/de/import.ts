@@ -133,9 +133,9 @@ export const importing = {
   'app.import.sum.untilSaved':
     'Bis sie gespeichert und geprüft ist, sind die Schlüssel der neuen Datensätze nur in diesem Browser.',
   'app.import.sum.noDna.one':
-    '{count} dieser Pflanzen hat noch keinen DNA-Bericht und ist daher nicht mit der Pflanze selbst verknüpft. Um einen hinzuzufügen, öffnen Sie die Seite der Pflanze und folgen Sie „Einen DNA-Fingerabdruck für diese Pflanze bekommen“: Senden Sie eine Probe mit einem Laborcode an ein Labor, oder speichern Sie einen Bericht, den Sie schon haben.',
+    '{count} dieser Pflanzen hat noch keinen DNA-Bericht und ist daher nicht mit der Pflanze selbst verknüpft. Um einen hinzuzufügen, öffnen Sie die Seite der Pflanze und folgen Sie „Einen DNA-Bericht für diese Pflanze bekommen“: Senden Sie eine Probe mit einem Laborcode an ein Labor, oder speichern Sie einen Bericht, den Sie schon haben.',
   'app.import.sum.noDna.other':
-    '{count} dieser Pflanzen haben noch keinen DNA-Bericht und sind daher nicht mit den Pflanzen selbst verknüpft. Um einen hinzuzufügen, öffnen Sie die Seite einer Pflanze und folgen Sie „Einen DNA-Fingerabdruck für diese Pflanze bekommen“: Senden Sie eine Probe mit einem Laborcode an ein Labor, oder speichern Sie einen Bericht, den Sie schon haben.',
+    '{count} dieser Pflanzen haben noch keinen DNA-Bericht und sind daher nicht mit den Pflanzen selbst verknüpft. Um einen hinzuzufügen, öffnen Sie die Seite einer Pflanze und folgen Sie „Einen DNA-Bericht für diese Pflanze bekommen“: Senden Sie eine Probe mit einem Laborcode an ein Labor, oder speichern Sie einen Bericht, den Sie schon haben.',
   'app.import.days.one': '{count} Tag',
   'app.import.days.other': '{count} Tage',
   'app.import.stamps.heading': 'Datumsstempel für Schlüssel',

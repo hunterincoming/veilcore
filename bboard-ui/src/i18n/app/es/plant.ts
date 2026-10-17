@@ -143,7 +143,7 @@ export const plant = {
   'app.plant.next.dates.why':
     'Solo contiene el SHA-256 del informe, su código de informe de laboratorio y el nombre del laboratorio según su firma, nunca el informe. Cuando su lote se fecha, muestra que el informe existía para entonces, sin mostrarle a nadie los marcadores.',
   'app.plant.next.stamp.why':
-    'Está sellado. Su clave todavía no tiene sello de fecha, y lo necesita para demostrar que la tiene. Toma alrededor de un minuto y es gratis.',
+    'Está sellado. Su clave todavía no tiene sello de fecha, y lo necesita para demostrar que lo tiene. Esto no fecha su registro; su registro se fecha cuando se ancla su lote. Toma alrededor de un minuto y es gratis.',
   'app.plant.next.rejected.title': 'Usted rechazó esta muestra',
   'app.plant.next.rejected.why':
     'No se firmó nada. VeilCore no avisa al obtentor: avísele usted, para que pueda enviar otra.',
@@ -192,7 +192,7 @@ export const plant = {
   'app.plant.next.sample.why':
     'Por ahora, este registro es su propio relato de la planta. Que un laboratorio firme que recibió una muestra y devuelva un informe lo convierte en una evidencia más sólida que su relato.',
   'app.plant.next.sample.action': 'Enviar a un laboratorio',
-  'app.plant.next.dna.title': 'Obtenga una huella de ADN de esta planta',
+  'app.plant.next.dna.title': 'Obtenga un informe de ADN de esta planta',
   'app.plant.next.dna.why':
     'Un registro fechado muestra que existía una descripción. Un informe de ADN (la huella de ADN de la planta que hace un laboratorio) es lo que vincula su registro con la planta real. Hay dos formas de conseguirlo:',
   'app.plant.next.dna.labTitle': 'Enviar una muestra a un laboratorio',
@@ -218,8 +218,8 @@ export const plant = {
   'app.plant.next.noCurrent.title': 'No hay un informe de ADN vigente de {lab}',
   'app.plant.next.open.title': 'Abrir el informe de laboratorio de {lab}',
   'app.plant.next.label': 'Siguiente paso',
-  'app.plant.next.stamp.title': 'Poner el sello de fecha',
-  'app.plant.next.stamp.action': 'Poner el sello de fecha',
+  'app.plant.next.stamp.title': 'Preparar la prueba de que lo tiene',
+  'app.plant.next.stamp.action': 'Preparar la prueba de que lo tiene',
   'app.plant.next.open.action': 'Abrir',
   'app.plant.chain.sealed': 'Sellado',
   'app.plant.chain.reportSaved': 'Informe de ADN guardado',

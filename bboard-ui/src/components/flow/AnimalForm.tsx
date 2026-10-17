@@ -123,6 +123,9 @@ const SCHEMES = [
   'app.animal.scheme.earTag',
   'app.animal.scheme.microchip',
   'app.animal.scheme.herdBook',
+  // US herds and breed registries (persona review, 17 Oct).
+  'app.animal.scheme.usda840',
+  'app.animal.scheme.breedReg',
 ] as const;
 
 export const AnimalForm: React.FC<{

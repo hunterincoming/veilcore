@@ -154,10 +154,22 @@ const japaneseLineBreaks = {
   },
 } as const;
 
+/**
+ * Long codes (record ids, proof codes, transaction hashes) are unbroken strings: on a phone a
+ * 64-character hash in a line of text made a page 543-575px wide (persona review, 17 Oct). Text
+ * may break inside a word only where nothing else fits, so no page scrolls sideways.
+ */
+const longCodes = {
+  '.MuiTypography-root, .MuiAlert-message, .MuiFormHelperText-root, .MuiFormControlLabel-label': {
+    overflowWrap: 'anywhere',
+  },
+} as const;
+
 const Light: React.FC<React.PropsWithChildren> = ({ children }) => (
   <ThemeProvider theme={lightTheme}>
     <GlobalStyles styles={lightFocusStyles} />
     <GlobalStyles styles={japaneseLineBreaks} />
+    <GlobalStyles styles={longCodes} />
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
       <PageErrorBoundary>{children}</PageErrorBoundary>
     </Box>
@@ -179,14 +191,14 @@ const PAGE_TITLES: [RegExp, string][] = [
   [/^\/verify\/example/, 'Example record'],
   [/^\/verify/, 'Check a record'],
   [/^\/records\/import/, 'Date your collection'],
-  [/^\/records/, 'Your plants'],
-  [/^\/restore/, 'Get your plants back'],
+  [/^\/records/, 'Your records'],
+  [/^\/restore/, 'Get your records back'],
   [/^\/backup/, 'Save your backup'],
   [/^\/docs\/spec/, 'The record format'],
   [/^\/docs\/evidence/, 'Records in evidence'],
   [/^\/docs\/integrate/, 'Integrating VeilCore'],
   [/^\/implementations/, 'Implementations'],
-  [/^\/new/, 'Log a plant'],
+  [/^\/new/, 'Log a plant or animal'],
   [/^\/record\//, 'Record'],
   [/^\/licenses?(\/|$)/, 'Agreements'],
 ];
@@ -201,14 +213,14 @@ const TITLE_KEYS: Record<string, StringKey> = {
   'Example record': 'title.example',
   'Check a record': 'title.verify',
   'Date your collection': 'title.import',
-  'Your plants': 'title.records',
-  'Get your plants back': 'title.restore',
+  'Your records': 'title.records',
+  'Get your records back': 'title.restore',
   'Save your backup': 'title.backup',
   'The record format': 'title.spec',
   'Records in evidence': 'title.evidence',
   'Integrating VeilCore': 'title.integrate',
   Implementations: 'title.implementations',
-  'Log a plant': 'title.new',
+  'Log a plant or animal': 'title.new',
   Record: 'title.record',
   Agreements: 'title.agreements',
 };

@@ -127,7 +127,7 @@ export const prove = {
   // chain/ProveOwnershipPanel.tsx: "Someone asked me to prove I hold it" on the plant page.
   'app.prove.own.title': 'Prove you hold this plant’s key (test network)',
   'app.prove.own.stampFirst':
-    'Add the date stamp first: press “Add the date stamp” on the plant’s page. The proof is about the plant’s on-chain identity, which the date stamp creates.',
+    'Set up proof you hold it first: press “Set up proof you hold it” on the plant’s page. The proof is about the plant’s on-chain identity, which that step creates.',
   'app.prove.own.intro':
     'The person checking makes a challenge on the record’s verify page and sends it to you. You answer it here; your browser proves you hold the record’s secret without revealing it, and you send them the transaction id. Together with the date stamp, that shows the key existed by block {block} and that you control it now.',
   'app.prove.own.copyChecker': 'Copy the checker’s link (it names the record’s on-chain identity)',

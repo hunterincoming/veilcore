@@ -130,9 +130,9 @@ export const importing = {
     'Their public date stamp comes when their batch is dated on {dated}. Nothing for you to do.',
   'app.import.sum.untilSaved': "Until it's saved and checked, the new records' keys are only in this browser.",
   'app.import.sum.noDna.one':
-    '{count} of these plants has no DNA report yet, so it isn’t tied to the plant itself. To add one, open the plant’s page and follow “Get a DNA fingerprint for this plant”: send a sample to a lab with a lab code, or save a report you already have.',
+    '{count} of these plants has no DNA report yet, so it isn’t tied to the plant itself. To add one, open the plant’s page and follow “Get a DNA report for this plant”: send a sample to a lab with a lab code, or save a report you already have.',
   'app.import.sum.noDna.other':
-    '{count} of these plants have no DNA report yet, so they aren’t tied to the plants themselves. To add one, open a plant’s page and follow “Get a DNA fingerprint for this plant”: send a sample to a lab with a lab code, or save a report you already have.',
+    '{count} of these plants have no DNA report yet, so they aren’t tied to the plants themselves. To add one, open a plant’s page and follow “Get a DNA report for this plant”: send a sample to a lab with a lab code, or save a report you already have.',
   'app.import.days.one': '{count} day',
   'app.import.days.other': '{count} days',
   'app.import.stamps.heading': 'Key date stamps',

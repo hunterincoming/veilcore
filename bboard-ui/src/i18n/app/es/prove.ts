@@ -124,7 +124,7 @@ export const prove = {
     'Esa clave recibió antes un sello de fecha en la red. Eso fecha la clave, no el registro.',
   'app.prove.own.title': 'Demuestre que tiene la clave de esta planta (red de pruebas)',
   'app.prove.own.stampFirst':
-    'Ponga primero el sello de fecha: toque “Poner el sello de fecha” en la página de la planta. La prueba trata de la identidad de la planta en la cadena, que crea el sello de fecha.',
+    'Prepare primero la prueba: toque “Preparar la prueba de que lo tiene” en la página de la planta. La prueba trata de la identidad de la planta en la cadena, que crea ese paso.',
   'app.prove.own.intro':
     'Quien comprueba crea un desafío en la página de verificación del registro y se lo envía. Usted lo responde aquí; su navegador demuestra que usted tiene el secreto del registro sin revelarlo, y usted le envía el ID de transacción. Junto con el sello de fecha, eso muestra que la clave existía en el bloque {block} y que usted la controla ahora.',
   'app.prove.own.copyChecker': 'Copiar el enlace para quien comprueba (nombra la identidad del registro en la cadena)',

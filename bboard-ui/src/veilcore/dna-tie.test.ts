@@ -73,7 +73,7 @@ describe('a record and its DNA report', () => {
 
   it('a lab report that came back but isn’t saved yet ties nothing, and says so', () => {
     const tie = dnaTieOf(status(plant(), []));
-    expect(dnaTieRow(tie, NOT_DATED, { waiting: 1 }).value).toBe('a lab report came back: open it and save it here');
+    expect(dnaTieRow(tie, NOT_DATED, { waiting: 1 }).value).toBe('a lab report came back: open it here');
     expect(dnaTieRow(tie, NOT_DATED, { openedNotSaved: true }).value).toBe(
       'a lab report is open, not saved to this plant',
     );

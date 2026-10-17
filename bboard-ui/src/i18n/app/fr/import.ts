@@ -132,9 +132,9 @@ export const importing = {
   'app.import.sum.untilSaved':
     'Tant qu’elle n’est pas enregistrée et vérifiée, les clés des nouveaux enregistrements ne sont que dans ce navigateur.',
   'app.import.sum.noDna.one':
-    '{count} de ces plantes n’a pas encore de rapport ADN : elle n’est donc pas liée à la plante elle-même. Pour en ajouter un, ouvrez la page de la plante et suivez « Obtenez une empreinte ADN de cette plante » : envoyez un échantillon à un laboratoire avec un code laboratoire, ou enregistrez un rapport que vous avez déjà.',
+    '{count} de ces plantes n’a pas encore de rapport ADN : elle n’est donc pas liée à la plante elle-même. Pour en ajouter un, ouvrez la page de la plante et suivez « Obtenez un rapport ADN de cette plante » : envoyez un échantillon à un laboratoire avec un code laboratoire, ou enregistrez un rapport que vous avez déjà.',
   'app.import.sum.noDna.other':
-    '{count} de ces plantes n’ont pas encore de rapport ADN : elles ne sont donc pas liées aux plantes elles-mêmes. Pour en ajouter un, ouvrez la page d’une plante et suivez « Obtenez une empreinte ADN de cette plante » : envoyez un échantillon à un laboratoire avec un code laboratoire, ou enregistrez un rapport que vous avez déjà.',
+    '{count} de ces plantes n’ont pas encore de rapport ADN : elles ne sont donc pas liées aux plantes elles-mêmes. Pour en ajouter un, ouvrez la page d’une plante et suivez « Obtenez un rapport ADN de cette plante » : envoyez un échantillon à un laboratoire avec un code laboratoire, ou enregistrez un rapport que vous avez déjà.',
   'app.import.days.one': '{count} jour',
   'app.import.days.other': '{count} jours',
   'app.import.stamps.heading': 'Horodatages des clés',

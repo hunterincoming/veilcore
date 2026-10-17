@@ -21,6 +21,8 @@ export const animal = {
   'app.animal.scheme.earTag': 'Crotal (arete)',
   'app.animal.scheme.microchip': 'Microchip',
   'app.animal.scheme.herdBook': 'Número del libro genealógico',
+  'app.animal.scheme.usda840': 'Crotal USDA 840 / AIN',
+  'app.animal.scheme.breedReg': 'N.º de registro de la asociación de raza',
   'app.animal.species': 'Especie',
   'app.animal.speciesPlaceholder': 'p. ej. Bovino (Bos taurus)',
   'app.animal.breed': 'Raza',
@@ -202,7 +204,7 @@ export const animal = {
     'La clave de este animal recibió antes un sello de fecha en la red. Eso fecha la clave, no el registro.',
   'app.animal.v.app.prove.own.title': 'Demuestre que tiene la clave de este animal (red de pruebas)',
   'app.animal.v.app.prove.own.stampFirst':
-    'Ponga primero el sello de fecha: toque “Poner el sello de fecha” en la página del animal. La prueba trata de la identidad del registro del animal en la cadena, que crea el sello de fecha.',
+    'Prepare primero la prueba: toque “Preparar la prueba de que lo tiene” en la página del animal. La prueba trata de la identidad del registro del animal en la cadena, que crea ese paso.',
   // The lab report panels, a delivery and the saved report's sentence, for an animal.
   'app.animal.v.app.lab.sentence.none': 'No hay ningún informe de ADN guardado en este animal.',
   'app.animal.v.app.lab.sentence.self':

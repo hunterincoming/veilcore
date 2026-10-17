@@ -145,7 +145,7 @@ export const plant = {
   'app.plant.next.dates.why':
     'It holds only the report’s SHA-256, its lab report code and the lab’s name as signed, never the report. When its batch is dated, it shows the report existed by then, without showing anyone the markers.',
   'app.plant.next.stamp.why':
-    'It’s sealed. Its key isn’t date stamped yet, and you need that to prove you hold it. It takes about a minute and it’s free.',
+    "It's sealed. Its key isn't date stamped yet, and you need that to prove you hold it. This doesn't date your record; your record is dated when its batch is anchored. It takes about a minute and it's free.",
   'app.plant.next.rejected.title': 'You turned this sample away',
   'app.plant.next.rejected.why':
     'Nothing was signed. VeilCore doesn’t tell the breeder: let them know yourself, so they can send another.',
@@ -194,7 +194,7 @@ export const plant = {
   'app.plant.next.sample.why':
     'Right now this record is your own account of the plant. A lab signing that it received a sample, and sending a lab report back, makes it stronger evidence than your own account.',
   'app.plant.next.sample.action': 'Send to a lab',
-  'app.plant.next.dna.title': 'Get a DNA fingerprint for this plant',
+  'app.plant.next.dna.title': 'Get a DNA report for this plant',
   'app.plant.next.dna.why':
     'A dated record shows a description existed. A DNA report (a lab’s DNA fingerprint of the plant) is what ties your record to the actual plant. Two ways to get one:',
   'app.plant.next.dna.labTitle': 'Send a sample to a lab',
@@ -220,8 +220,8 @@ export const plant = {
   'app.plant.next.noCurrent.title': 'No current DNA report from {lab}',
   'app.plant.next.open.title': 'Open the lab report from {lab}',
   'app.plant.next.label': 'Next step',
-  'app.plant.next.stamp.title': 'Add the date stamp',
-  'app.plant.next.stamp.action': 'Add the date stamp',
+  'app.plant.next.stamp.title': 'Set up proof you hold it',
+  'app.plant.next.stamp.action': 'Set up proof you hold it',
   'app.plant.next.open.action': 'Open',
   'app.plant.chain.sealed': 'Sealed',
   'app.plant.chain.reportSaved': 'DNA report saved',

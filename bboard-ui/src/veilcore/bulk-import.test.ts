@@ -642,7 +642,7 @@ describe('the results file', () => {
     const back = parseCsv(resultsCsv(job, 'https://test.veilcore.org', has)).rows.filter((r) => r.some(Boolean));
     expect(back.map((r) => r[r.length - 1])).toEqual(['DNA report', DNA_REPORT_SAVED, NO_DNA_REPORT]);
     expect(NO_DNA_REPORT).toBe(
-      'None yet, so the record is not tied to the plant. Add one on the plant’s page: Get a DNA fingerprint for this plant.',
+      'None yet, so the record is not tied to the plant. Add one on the plant’s page: Get a DNA report for this plant.',
     );
   });
 });

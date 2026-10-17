@@ -129,7 +129,7 @@ export const prove = {
     'Dieser Schlüssel erhielt schon früher einen Datumsstempel im Netzwerk. Das datiert den Schlüssel, nicht den Datensatz.',
   'app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieser Pflanze halten (Testnetzwerk)',
   'app.prove.own.stampFirst':
-    'Setzen Sie zuerst den Datumsstempel: Tippen Sie auf der Seite der Pflanze auf „Den Datumsstempel setzen“. Der Beweis betrifft die On-Chain-Identität der Pflanze, die der Datumsstempel erzeugt.',
+    'Richten Sie zuerst den Nachweis ein: Tippen Sie auf der Seite der Pflanze auf „Nachweis einrichten, dass Sie ihn halten“. Der Beweis betrifft die On-Chain-Identität der Pflanze, die dieser Schritt erzeugt.',
   'app.prove.own.intro':
     'Die prüfende Person erstellt auf der Prüfseite des Datensatzes eine Herausforderung und sendet sie Ihnen. Sie beantworten sie hier; Ihr Browser beweist, dass Sie das Geheimnis des Datensatzes halten, ohne es preiszugeben, und Sie senden die Transaktions-ID zurück. Zusammen mit dem Datumsstempel zeigt das, dass der Schlüssel bis Block {block} existierte und dass Sie ihn jetzt kontrollieren.',
   'app.prove.own.copyChecker':

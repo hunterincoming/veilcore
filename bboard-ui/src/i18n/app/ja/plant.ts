@@ -141,7 +141,7 @@ export const plant = {
   'app.plant.next.dates.why':
     '中身は報告書のSHA-256、検査報告書のコード、署名どおりのラボ名だけで、報告書そのものは入っていません。バッチに日付が付くと、その時点で報告書が存在したことを、マーカーを誰にも見せずに示せます。',
   'app.plant.next.stamp.why':
-    '封印済みです。鍵にはまだ日付スタンプが押されておらず、保有していることを証明するにはそれが必要です。1分ほどで、無料です。',
+    '封印済みです。鍵にはまだ日付スタンプが押されておらず、保有していることを証明するにはそれが必要です。これで記録に日付が付くわけではありません。記録の日付は、そのバッチがアンカーされたときに付きます。1分ほどで、無料です。',
   'app.plant.next.rejected.title': 'このサンプルの受け取りを断りました',
   'app.plant.next.rejected.why':
     '何も署名されていません。VeilCoreは育成者に知らせません。別のものを送ってもらえるよう、ご自身で伝えてください。',
@@ -190,7 +190,7 @@ export const plant = {
   'app.plant.next.sample.why':
     '今のところ、この記録はあなた自身による植物の説明です。ラボがサンプルを受け取ったことに署名し、検査報告書を送り返すと、あなたの説明だけよりも強い証拠になります。',
   'app.plant.next.sample.action': 'ラボに送る',
-  'app.plant.next.dna.title': 'この植物のDNAフィンガープリントを取得する',
+  'app.plant.next.dna.title': 'この植物のDNA報告書を取得する',
   'app.plant.next.dna.why':
     '日付の付いた記録は、説明が存在したことを示します。記録を実際の植物に結び付けるのは、DNA報告書（ラボが作る植物のDNAフィンガープリント）です。入手する方法は2つあります：',
   'app.plant.next.dna.labTitle': 'サンプルをラボに送る',
@@ -217,8 +217,8 @@ export const plant = {
   'app.plant.next.noCurrent.title': '{lab}からの現在のDNA報告書はありません',
   'app.plant.next.open.title': '{lab}からの検査報告書を開く',
   'app.plant.next.label': '次のステップ',
-  'app.plant.next.stamp.title': '日付スタンプを押す',
-  'app.plant.next.stamp.action': '日付スタンプを押す',
+  'app.plant.next.stamp.title': '保有の証明を準備する',
+  'app.plant.next.stamp.action': '保有の証明を準備する',
   'app.plant.next.open.action': '開く',
   'app.plant.chain.sealed': '封印済み',
   'app.plant.chain.reportSaved': 'DNA報告書を保存済み',

@@ -4,11 +4,13 @@
 import type { AppTranslation } from '../../translate';
 
 export const home = {
-  'app.home.firstPlant': '最初の植物を記録しましょう',
+  'app.home.firstPlant': '最初の植物か動物を記録しましょう',
   'app.home.continueDraftNamed': '下書きの続き：{name}',
   'app.home.continueDraft': '下書きの続き',
   'app.home.draftKept': '入力した内容はこのブラウザに保存されています。続きから始められます。',
   'app.home.aboutThreeMinutes': '約3分です。終わると公開の日付スタンプが付き、鍵を持つのはあなただけです。',
+  'app.home.aboutThreeMinutesByHand':
+    '約3分です。終わると封印されます。公開の日付は、私たちがそのバッチをアンカーしたときに付きます（当面は手作業）。鍵を持つのはあなただけです。',
   'app.home.continue': '続ける',
   'app.home.start': '始める',
   'app.home.spreadsheet': 'スプレッドシートがありますか？コレクション全体に日付を付ける',
@@ -19,7 +21,7 @@ export const home = {
     'あなたの鍵が署名したこと、つまりサンプルが届いたことや、どの報告書を送ったかがわかります。誰がその鍵を持っているかはわかりません。誰でも、どんな名前でも鍵を登録できるからです。',
   'app.home.breederToo': '育成者でもあります',
   'app.home.imALab': 'ラボです',
-  'app.home.whatStops': '誰かが先に私の植物を記録するのを、何が防ぐのですか？',
+  'app.home.whatStops': '誰かが先に私の植物や動物を記録するのを、何が防ぐのですか？',
   'app.home.samplesReceived': '受け取ったサンプル',
   'app.home.yourPlants': 'あなたの植物',
   'app.home.logNew': '新しく記録',
@@ -39,7 +41,7 @@ export const home = {
   'app.home.importFailed': 'インポートに失敗しました。',
   'app.home.labJobs': 'ラボの作業',
   'app.home.labJobsText':
-    '届いたものを確認し、植物のページから結果を送り返します。どちらも私たちではなくラボ自身の鍵で署名され、結果は育成者だけが開けるようにロックされます。',
+    '届いたものを確認し、記録のページから結果を送り返します。どちらも私たちではなくラボ自身の鍵で署名され、結果は育成者だけが開けるようにロックされます。',
   'app.home.confirmDelivery': '届いたものを確認する',
   'app.home.labSignature': 'ラボの署名',
   'app.home.setUpLabSignature': 'ラボの署名を設定する',
@@ -85,11 +87,11 @@ export const home = {
   'app.home.sort.oldest': '古い順',
   'app.home.sort.name': '品種名',
   'app.home.sort.breeder': '育成者',
-  'app.home.search.lab': '植物名、育成者、TRコード、メモ、または受付番号',
-  'app.home.search.breeder': '植物、育成者、または管理番号',
+  'app.home.search.lab': '名前、育成者、TRコード、メモ、または受付番号',
+  'app.home.search.breeder': '名前、育成者、または管理番号',
   'app.home.search.aria': '検索',
   'app.home.search.nothing':
-    '「{q}」に一致するものはありません。検索の対象は、植物名、育成者、記録識別子、あなたの管理番号、受け取ったサンプルの場合はラボコードと育成者のメモです。',
+    '「{q}」に一致するものはありません。検索の対象は、名前、育成者、記録識別子、あなたの管理番号、受け取ったサンプルの場合はラボコードと育成者のメモです。',
   'app.home.search.nOfTotal': '{total}件中{matched}件',
   'app.home.paste.ownCode': 'それはあなた自身のコードです。ラボに送ってください。ここで受け取らないでください。',
   'app.home.paste.cutOff': 'そのコードは途中で切れているようです。送られてきたラボコードを全部コピーしてください。',
@@ -100,7 +102,8 @@ export const home = {
   'app.home.paste.label': 'コードやリンクが送られてきましたか？',
   'app.home.paste.placeholder': 'ここに貼り付け',
   'app.home.paste.go': '開く',
-  'app.home.paste.hint': 'ラボコード、記録のリンク、植物の証明リクエスト、署名する契約。どれかはこちらで判断します。',
+  'app.home.paste.hint':
+    'ラボコード、記録のリンク、記録の保有の証明リクエスト、署名する契約。どれかはこちらで判断します。',
   'app.home.paste.whichPlant': '保有の証明を求めるリクエストです。どの植物について聞かれましたか？',
   'app.home.notFinished': '未完了 · 次：バックアップを保存',
   'app.home.receivedFrom': '{name} から受け取り',

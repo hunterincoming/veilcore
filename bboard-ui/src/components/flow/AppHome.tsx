@@ -207,7 +207,14 @@ export const AppHome: React.FC = () => {
                 {draftHeading(draft, tr)}
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                {draft ? t('app.home.draftKept') : t('app.home.aboutThreeMinutes')}
+                {draft
+                  ? t('app.home.draftKept')
+                  : // Where batches are anchored by hand (veilcore.org, and the demo), the record's
+                    // public date waits for that (persona review, 17 Oct); the test site anchors
+                    // automatically.
+                    REAL_CHAIN
+                    ? t('app.home.aboutThreeMinutes')
+                    : t('app.home.aboutThreeMinutesByHand')}
               </Typography>
               <Button
                 component={RouterLink}

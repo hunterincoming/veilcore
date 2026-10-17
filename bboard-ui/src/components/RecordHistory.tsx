@@ -134,7 +134,7 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
               {utcStamp(e.at)}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, overflowWrap: 'anywhere' }}>
               {e.detail}
             </Typography>
           </Box>

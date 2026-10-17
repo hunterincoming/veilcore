@@ -3,12 +3,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export const home = {
-  'app.home.firstPlant': 'Let’s log your first plant',
+  'app.home.firstPlant': 'Let’s log your first plant or animal',
   'app.home.continueDraftNamed': 'Continue your draft: {name}',
   'app.home.continueDraft': 'Continue your draft',
   'app.home.draftKept': 'What you typed is kept in this browser. Pick up where you left off.',
   'app.home.aboutThreeMinutes':
     'About 3 minutes. When you’re done it has a public date stamp, and you hold the only key.',
+  'app.home.aboutThreeMinutesByHand':
+    "About 3 minutes. When you're done it's sealed; its public date comes when we anchor its batch (by hand for now). You hold the only key.",
   'app.home.continue': 'Continue',
   'app.home.start': 'Start',
   'app.home.spreadsheet': 'Have a spreadsheet? Date your whole collection',
@@ -19,7 +21,7 @@ export const home = {
     "It shows that your key signed: that a sample arrived, or which report you sent. It doesn't show who holds the key: anyone can register a key under any name.",
   'app.home.breederToo': "I'm a breeder too",
   'app.home.imALab': "I'm a lab",
-  'app.home.whatStops': 'What stops someone logging my plant first?',
+  'app.home.whatStops': 'What stops someone logging my plant or animal first?',
   'app.home.samplesReceived': 'Samples received',
   'app.home.yourPlants': 'Your plants',
   'app.home.logNew': 'Log new',
@@ -47,7 +49,7 @@ export const home = {
   'app.home.importFailed': 'Import failed.',
   'app.home.labJobs': "Your lab's jobs",
   'app.home.labJobsText':
-    "Confirm what arrives, then send results back from the plant's page. Both are signed with your lab's own key, not by us, and results are locked so only the breeder can open them.",
+    "Confirm what arrives, then send results back from the record's page. Both are signed with your lab's own key, not by us, and results are locked so only the breeder can open them.",
   'app.home.confirmDelivery': 'Confirm a delivery',
   'app.home.labSignature': "Your lab's signature",
   'app.home.setUpLabSignature': "Set up your lab's signature",
@@ -98,11 +100,11 @@ export const home = {
   'app.home.sort.oldest': 'Oldest first',
   'app.home.sort.name': 'Cultivar name',
   'app.home.sort.breeder': 'Bred by',
-  'app.home.search.lab': 'Plant name, breeder, TR code, note or your accession no.',
-  'app.home.search.breeder': 'Plant, breeder, or your own reference',
+  'app.home.search.lab': 'Name, breeder, TR code, note or your accession no.',
+  'app.home.search.breeder': 'Name, breeder, or your own reference',
   'app.home.search.aria': 'Search',
   'app.home.search.nothing':
-    'Nothing matches "{q}". Search covers the plant name, who bred it, the record identifier, your own reference, and for a received sample its lab code and the breeder\'s note.',
+    'Nothing matches "{q}". Search covers the name, who bred it, the record identifier, your own reference, and for a received sample its lab code and the breeder\'s note.',
   'app.home.search.nOfTotal': '{matched} of {total}',
   // PasteBox.tsx
   'app.home.paste.ownCode': "That's your own code. Send it to the lab; don't receive it here.",
@@ -115,7 +117,7 @@ export const home = {
   'app.home.paste.placeholder': 'Paste it here',
   'app.home.paste.go': 'Go',
   'app.home.paste.hint':
-    "A lab code, a record link, a request to prove a plant, or an agreement to sign. We'll work out which.",
+    "A lab code, a record link, a request to prove you hold a record, or an agreement to sign. We'll work out which.",
   'app.home.paste.whichPlant': "That's a request to prove you hold a plant. Which one did they ask about?",
   // plant-status-words.ts: a plant's line on Home.
   'app.home.notFinished': 'Not finished · next: save your backup',

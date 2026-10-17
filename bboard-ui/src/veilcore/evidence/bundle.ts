@@ -700,6 +700,55 @@ export const signatureLines = async (
 };
 
 /** Every file in the bundle, with what it is, in the order README.txt lists them. */
+/** The partner kit release the check script installs: on npm, with checkBatchAnchor (docs/PARTNERS.md). */
+export const CONTRACTS_PACKAGE = '@veilcore/contracts@0.2.0';
+/** The networks a Blockfrost project id reads (partner-kit network.ts BlockfrostNetwork). */
+const SCRIPT_NETWORKS = ['mainnet', 'preprod'];
+
+/**
+ * proof/check-on-midnight.mjs (persona review, 17 Oct): the one command that reads the batch
+ * root from Midnight without any VeilCore server, for an examiner whose explorer doesn't show
+ * it. Only for a batch recorded in a transaction on a network Blockfrost serves.
+ */
+export const checkScriptFor = (ev: Evidence): string | null => {
+  const a = ev.batch?.anchor;
+  if (!a || !isString(a.txHash) || !isString(a.network) || !SCRIPT_NETWORKS.includes(a.network) || !ev.batch)
+    return null;
+  const network: string = a.network;
+  const s = (v: string) => JSON.stringify(v);
+  return [
+    "// Checks on Midnight that the transaction below wrote this record's batch root, without any",
+    '// VeilCore server: it asks a Midnight indexer (Blockfrost) directly.',
+    '//',
+    "// It runs VeilCore's published, open-source checking code (" + CONTRACTS_PACKAGE + ' on npm); read it',
+    '// first if you like. You need Node 24 and a free Blockfrost project id for Midnight ' + network + '.',
+    '// In this folder:',
+    '//',
+    '//   npm install --save-exact ' + CONTRACTS_PACKAGE,
+    '//   node check-on-midnight.mjs YOUR_BLOCKFROST_PROJECT_ID',
+    '//',
+    '// It prints "accepted": true with the block and its time when that transaction wrote this',
+    "// root (exit 0), and false with the reason when it didn't (exit 1).",
+    "import { checkBatchAnchor } from '@veilcore/contracts';",
+    '',
+    'const blockfrostProjectId = process.argv[2];',
+    'if (!blockfrostProjectId) {',
+    "  console.error('Give your Blockfrost project id: node check-on-midnight.mjs YOUR_BLOCKFROST_PROJECT_ID');",
+    '  process.exit(2);',
+    '}',
+    'const verdict = await checkBatchAnchor({',
+    `  network: ${s(network)},`,
+    '  blockfrostProjectId,',
+    `  txId: ${s(a.txHash)},`,
+    ...(isString(a.contractAddress) ? [`  address: ${s(a.contractAddress)},`] : []),
+    `  root: Buffer.from(${s(ev.batch.root)}, 'hex'),`,
+    '});',
+    "console.log(JSON.stringify(verdict, (_k, v) => (typeof v === 'bigint' ? String(v) : v), 2));",
+    'process.exit(verdict.accepted ? 0 : 1);',
+    '',
+  ].join('\n');
+};
+
 export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: string }[] => {
   const out: { path: string; what: string }[] = [
     { path: 'README.txt', what: 'this file.' },
@@ -734,6 +783,11 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
       { path: 'proof/anchors.json', what: "where the batch root was recorded, as VeilCore's registry reported it." },
     );
     if (hasOts) out.push({ path: 'proof/root.bin.ots', what: 'the Bitcoin stamp file (OpenTimestamps) for root.bin.' });
+    if (checkScriptFor(ev))
+      out.push({
+        path: 'proof/check-on-midnight.mjs',
+        what: 'a short script that reads the batch root from Midnight itself, with no VeilCore server (see "For technical readers").',
+      });
   }
   if (ev.labReport) {
     out.push({
@@ -942,6 +996,10 @@ export const readmeText = (
     L.push(
       `- Reading the batch root from Midnight yourself: ask a Midnight indexer (GraphQL) for transactions(offset: { hash: "${tx}" }) with block { height timestamp } and, on a RegularTransaction, transactionResult { status } and contractActions { address state ... on ContractCall { entryPoint } }. The transaction must have status SUCCESS and exactly one call on the contract above, with entryPoint anchorBatch. Decode that call's state with VeilCore's compiled contract (its ledger) and read lastBatchRoot: it must be the batch root. Midnight's preprod and main network indexers are run by Blockfrost and need a project id.`,
     );
+  if (tx && checkScriptFor(ev))
+    L.push(
+      `- Reading the batch root from Midnight with one command, no VeilCore server: in the proof folder, run npm install --save-exact ${CONTRACTS_PACKAGE} and then node check-on-midnight.mjs followed by your Blockfrost project id (free from blockfrost.io, for Midnight ${anchor?.network ?? ''}). It uses VeilCore's published checking code, so read it first if that matters; it prints "accepted": true and the block when the transaction wrote this root.`,
+    );
   if (bitcoin)
     L.push(
       '- Bitcoin stamp: proof/root.bin.ots starts from SHA-256 of proof/root.bin; its steps end on the merkle root of the Bitcoin block it names.',
@@ -1032,6 +1090,8 @@ export const bundleFiles = async (
       }),
     );
     if (ots) add('proof/root.bin.ots', ots);
+    const script = checkScriptFor(ev);
+    if (script) add('proof/check-on-midnight.mjs', text(script));
   }
   if (ev.labReport) {
     add('lab/lab-report-pairing.json', json(ev.labReport));

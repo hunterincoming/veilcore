@@ -21,6 +21,8 @@ export const animal = {
   'app.animal.scheme.earTag': '耳標',
   'app.animal.scheme.microchip': 'マイクロチップ',
   'app.animal.scheme.herdBook': '登録番号（血統登録）',
+  'app.animal.scheme.usda840': 'USDA 840 / AIN耳標',
+  'app.animal.scheme.breedReg': '品種協会の登録番号',
   'app.animal.species': '動物種',
   'app.animal.speciesPlaceholder': '例：牛（Bos taurus）',
   'app.animal.breed': '品種',
@@ -199,7 +201,7 @@ export const animal = {
     'この動物の鍵には、以前ネットワーク上で日付スタンプが押されました。日付が付くのは鍵で、記録ではありません。',
   'app.animal.v.app.prove.own.title': 'この動物の鍵を保有していることを証明する（テストネットワーク）',
   'app.animal.v.app.prove.own.stampFirst':
-    '先に日付スタンプを押してください。動物のページで「日付スタンプを押す」を押します。証明の対象は動物の記録のチェーン上のIDで、それは日付スタンプによって作られます。',
+    '先に保有の証明を準備してください。動物のページで「保有の証明を準備する」を押します。証明の対象は動物の記録のチェーン上のIDで、それはこの手順で作られます。',
   // The lab report panels, a delivery and the saved report's sentence, for an animal.
   'app.animal.v.app.lab.sentence.none': 'この動物にはDNA報告書が保存されていません。',
   'app.animal.v.app.lab.sentence.self':
