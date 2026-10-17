@@ -389,7 +389,7 @@ describe('round 4: the privacy sentences the fourth review found false', () => {
       // Round 5: the name is locked, travels after the # in check links, and is read only if shown.
       expect(s).toMatch(/locked by your browser before they are sent: each record[’']s name, breeder/);
       expect(s).toMatch(
-        /A record[’']s name also travels in the check links you make, after the #, which a browser never sends to any server\./,
+        /If you choose, a record[’']s name also travels in a check link you make, after the #, which a browser never sends to any server\./,
       );
       expect(s).toMatch(
         /what you choose to show on its check page \(its name, if you choose to show it, and whether a DNA report is saved/,

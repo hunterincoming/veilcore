@@ -32,6 +32,20 @@ import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerF
 const TESTNET_REPO = 'https://github.com/hunterincoming/veilcore-midnight-testnet';
 /** The public test site (docs/test-site.md). It goes live with this release. */
 const TEST_SITE_URL = 'https://test.veilcore.org';
+/** Our own reviews (not audits), listed in the public repository's audit pack, section 8. */
+const REVIEWS_URL = `${TESTNET_REPO}/blob/main/docs/audit/README.md#8-history-of-internal-attack-rounds`;
+
+/**
+ * A founder's photo, as on the Founders page. The initials show only if the photo can't
+ * load. Not lazy: it is two small files, and a lazy one showed as initials in a full-page
+ * screenshot (persona review, 17 Oct).
+ */
+const Avatar: React.FC<{ initials: string; photo: string }> = ({ initials, photo }) => {
+  const [failed, setFailed] = useState(false);
+  return (
+    <span className="avatar">{failed ? initials : <img src={photo} alt="" onError={() => setFailed(true)} />}</span>
+  );
+};
 
 /** Read by screen readers, not shown. */
 const SR_ONLY: React.CSSProperties = {
@@ -285,17 +299,13 @@ const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
           </th>
           <th scope="col">{t('m.live.colMain')}</th>
           <th scope="col">
-            {/* On the test site itself, a link to itself and "going live this week" read oddly. */}
+            {/* On the test site itself, a link to itself reads oddly. No launch date beside it: a date like that goes stale. */}
             {IS_TEST_SITE ? (
               t('m.live.colTestHere')
             ) : (
-              <>
-                <a href={TEST_SITE_URL} rel="noopener noreferrer" target="_blank">
-                  {t('m.live.colTest')}
-                </a>
-                {sp}
-                <span className="soon">{t('m.live.colTestNote')}</span>
-              </>
+              <a href={TEST_SITE_URL} rel="noopener noreferrer" target="_blank">
+                {t('m.live.colTest')}
+              </a>
             )}
           </th>
           <th scope="col">{t('m.live.colNot')}</th>
@@ -345,11 +355,13 @@ const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
 /** Everything a technical reader wants, in one block that stays closed until asked for. */
 const Technical: React.FC = () => {
   const { t, sp } = useI18n();
+  // Opened when arrived at from the app footer's "How checking works" (/#technical).
+  const { hash } = useLocation();
   return (
     <section id="technical">
       <Entry title={t('m.tech.title')}>
         <p className="lede">{t('m.tech.lede')}</p>
-        <details className="tech">
+        <details className="tech" open={hash === '#technical' || undefined}>
           <summary className="btn">{t('m.tech.show')}</summary>
           <div className="points">
             <div className="pt">
@@ -675,7 +687,14 @@ export const Home: React.FC = () => {
             </div>
             <div className="stat">
               <b>{t('m.stat3.b')}</b>
-              <span>{t('m.stat3.s')}</span>
+              <span>
+                {t('m.stat3.s')}
+                {sp}
+                {/* Where the reviews really are: the public repository's audit pack, section 8. */}
+                <a href={REVIEWS_URL} rel="noopener noreferrer" target="_blank">
+                  {t('m.stat3.link')}
+                </a>
+              </span>
             </div>
             <div className="stat">
               <b>{t('m.stat4.b')}</b>
@@ -784,10 +803,7 @@ export const Home: React.FC = () => {
                 ] as const
               ).map(([name, initials, photo, role, short]) => (
                 <RouterLink className="person" to="/founders" key={name}>
-                  <span className="avatar">
-                    {initials}
-                    <img src={photo} alt="" loading="lazy" onError={(e) => e.currentTarget.remove()} />
-                  </span>
+                  <Avatar initials={initials} photo={photo} />
                   <span>
                     <h3>{name}</h3>
                     <RoleLine className="role" text={t(role)} />

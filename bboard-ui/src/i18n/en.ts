@@ -8,8 +8,8 @@ export const en = {
   'nav.licenses': 'Agreements',
   'nav.language': 'Language',
   'nav.main': 'Main',
-  'footer.about':
-    "An open record format for plant and animal genetics. Recomputing a record's proof code needs only SHA-256 and the open specification. Its date comes from one transaction on Midnight: the check page looks it up itself when it can reach Midnight, and otherwise says the date is our registry's report. Looking a record up by its identifier on this site uses our server.",
+  'footer.about': 'An open record format for plant and animal genetics.',
+  'footer.howCheck': 'How checking works →',
   'footer.documents': 'Documents',
   'footer.spec': 'Specification',
   'footer.partners': 'Require a record',
@@ -86,11 +86,12 @@ export const en = {
 
   'm.hero.label': 'Proof of what you hold',
   // Round 3 (CTO decision, 14 Oct): not "Prove you had it first." A record shows you had
-  // the record by a date, not that you had the plant first. Not "without showing anyone
-  // what it is" either: the plant name is on every record's public check page. What stays
-  // hidden is the genetics.
+  // the record by a date, not that you had the plant first. What stays hidden is the
+  // genetics. Since round 5 (17 Oct) the name is locked too: a check page shows it only when
+  // the holder's link carries it (off unless the holder switches it on) or the holder
+  // chooses to show it.
   // Round 5 (15 Oct): the hero lede is three short sentences: who it's for, what it does,
-  // and the one privacy line. What the server keeps (locked, apart from the public name) is in
+  // and the one privacy line. What the server keeps (locked, the name included) is in
   // step 1 of "How it works"; lab reports reaching the server are in the FAQ and the privacy note.
   'm.hero.title1': 'Date your record.',
   'm.hero.title2': 'Keep your genetics.',
@@ -141,7 +142,7 @@ export const en = {
   'm.step1.n': '01 · Record',
   'm.step1.title': 'Write it down',
   'm.step1.text':
-    "What it is and where it came from. VeilCore's server stores the details locked, the name included, and we don't have the key. Your check links carry the name after the #, for the people you send them to.",
+    "What it is and where it came from. VeilCore's server stores the details locked, the name included, and we don't have the key. A check link carries the name only if you switch that on, for the people you send it to.",
   'm.step2.n': '02 · Proof code',
   'm.step2.title': 'Make its proof code',
   'm.step2.text': 'Done on your computer. Genetic data never leaves it.',
@@ -313,7 +314,8 @@ export const en = {
   'm.status.title2': 'stand.',
   'm.status.lede': "What is done, and what isn't yet.",
   'm.stat3.b': 'No audit',
-  'm.stat3.s': 'No independent security audit yet. Our own reviews are public.',
+  'm.stat3.s': 'No independent security audit yet. Our own reviews of the contracts are public.',
+  'm.stat3.link': 'Read them on GitHub →',
   'm.stat4.b': 'First users wanted',
   'm.stat4.s': "Nobody uses it for real records yet. We're looking for the first breeders and labs.",
   // Mainnet builds only: the contract addresses, in "For technical readers".
@@ -324,7 +326,7 @@ export const en = {
   'm.addr.explorer': 'Look them up on midnightexplorer.com (run by TexLabs) →',
   'm.status.keyTitle': 'Who can change the contract.',
   'm.status.keyText':
-    "One maintenance key can change how VeilCore's contract on Midnight works. Whoever holds it can add or replace the contract's operations, which could take over any record's identity, add licenses for any issuer, add or remove obligations and parent links, or switch operations off. It cannot backdate the network's block times, and every change shows on chain. Today the key is on paper, one copy with each founder, and either copy alone can use it. Moving it to a group of keys that must agree is planned, not done. Every use is announced publicly, under a written maintenance policy.",
+    "One maintenance key can change how VeilCore's contract on Midnight works. Whoever holds it can add or replace the contract's operations, which could take over any record's identity, add licenses for any issuer, add or remove obligations and parent links, or switch operations off. It cannot backdate the network's block times, and every change shows on chain. It can't change or remove a batch that's already anchored, or the date it gives a record: that is in the transaction that anchored it, which nobody can alter. Today the key is on paper, one copy with each founder, and either copy alone can use it. Moving it to a group of keys that must agree is planned, not done. Every use is announced publicly, under a written maintenance policy.",
   'm.status.keyLink': 'Read the maintenance policy →',
   // "For technical readers" (home page, near the end): collapsed until opened.
   'm.tech.title': 'For technical readers',
@@ -332,7 +334,7 @@ export const en = {
   'm.tech.show': 'Show the detail',
   'm.tech.check.t': 'Checking a record by hand',
   'm.tech.check.p':
-    "Recomputing a record's proof code needs only SHA-256 and the open spec. Its inclusion proof ties that proof code to a batch's code anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up. The check page looks that transaction up on Midnight itself when it can reach Midnight; otherwise it says the date is our registry's report, and you can look it up on a Midnight explorer. Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release.",
+    "Recomputing a record's proof code needs only SHA-256 and the open spec. Its inclusion proof ties that proof code to a batch's code anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up. The check page looks that transaction up on Midnight itself when it can reach Midnight; otherwise it says the date is our registry's report, and you can look it up on a Midnight explorer. Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release. Looking a record up by its identifier on this site uses our server.",
   'm.tech.impl.t': 'One spec, three implementations',
   'm.tech.impl.p':
     "Free to implement, permanently. TypeScript, Python and Rust agree on all 100 record-format test vectors on GitHub, and anyone can run them; a 101st, for report pairing, isn't in Rust yet. One author wrote all three, and the TypeScript one is on npm as 0.15.0. One written by someone else is the test we most want.",
@@ -354,7 +356,6 @@ export const en = {
   'm.live.colMain': 'veilcore.org (main network)',
   'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Not yet',
-  'm.live.colTestNote': '(going live this week)',
   // The same column's heading on the test site itself (no link to itself, no "going live").
   'm.live.colTestHere': 'This test site (test.veilcore.org)',
   'm.live.feature': 'Feature',
@@ -367,8 +368,8 @@ export const en = {
   'm.live.btc.main':
     'Yes, every sealed batch. The first reached block 971004 on 11 October and was checked against two block explorers on 15 October. A check with the official tool and a full node is still to do.',
   'm.live.share.t': 'Choosing what others see',
-  'm.live.share.main': 'Yes. The plant name always shows.',
-  'm.live.share.test': 'Yes. The plant name always shows.',
+  'm.live.share.main': 'Yes. You pick each fact. The name shows only in links you send, or if you choose to show it.',
+  'm.live.share.test': 'Yes. You pick each fact. The name shows only in links you send, or if you choose to show it.',
   'm.live.lab.t': 'Lab code and signed receipt',
   'm.live.lab.main': "Yes. The lab signs with its own key. VeilCore's registry keeps the receipt, not the chain.",
   'm.live.lab.test': 'Yes, the same way.',
@@ -461,9 +462,16 @@ export const en = {
   'm.privacy.title': 'What the demo keeps.',
   'm.privacy.lede':
     "This note covers the demo on this site. It is a test, on Midnight's test network. Please use made-up data.",
+  'm.privacy.sum.local.t': 'Never leaves your computer',
+  'm.privacy.sum.local.p': 'Genetic data, and the DNA reports and photos you add.',
+  'm.privacy.sum.locked.t': "Stored locked, we can't read it",
+  'm.privacy.sum.locked.p': 'Everything you type into a record, and lab reports a lab sends you.',
+  'm.privacy.sum.read.t': 'We can read',
+  'm.privacy.sum.read.p': 'The record ID, the proof code, dates, and what you choose to show. The full list is below.',
+  'm.privacy.full': 'The full list',
   'm.privacy.stored.title': 'Stored on our test server',
   'm.privacy.stored.text':
-    "Your records and agreements, locked by your browser before they are sent: each record's name, breeder, species, dates, notes, reference numbers, parents, the codes and file names of the photos and lab reports you add, agreement terms and counterparties, the quantity and note you send a lab, the sample details you and the lab write (sample ID, seal number, where and when it was taken, a witness, how it arrived), the names you give recipients, and each record's own secret keys. Our server stores them locked, and we don't have the key: it is in your browser and your backup file. The sample details' key also travels in the lab code, so the lab can open them. A record's name also travels in the check links you make, after the #, which a browser never sends to any server. Our server can read: each record's ID; its proof code, key binding and profile type; its correction links (which record a correction replaces, which fields it changed, and when); when the server first saw it; how many times it was saved, and when it was last saved; roughly how large it is (its size bucket); what you choose to show on its check page (its name, if you choose to show it, and whether a DNA report is saved, as a code that says nothing about the file without the key in your check link); the parent links you register; and its batch and date stamp. If an agreement has a royalty on offspring, our server can read which record it covers and when it took effect, and anyone can ask whether that record carries one: the lineage check needs it. For a delivery: which record it came from, which holder account received it, when it was received, and a tag in place of the recipient's name. A delivery made before tags has the name as typed, until the registry's purge replaces it. For labs: the public signing key and the attestations they publish. Requests to prove a record's key, with the name the asker typed, kept for 7 days. Your holder key, which your browser sends with every save so the server can find your records; the server keeps only a one-way digest of it. Records saved before locking stay readable to us until your browser locks them, and a record's name saved before names were locked stays readable to us until your browser saves the record again. Sample details written before sealing stay readable to us until the registry removes them. Our off-site backups made before then keep a readable copy of all of these until we destroy the key that opens them. Locked lab reports a lab sends you: stored locked, without the key, and deleted after 180 days. The server is VeilCore's test registry, hosted on Railway.",
+    "Your records and agreements, locked by your browser before they are sent: each record's name, breeder, species, dates, notes, reference numbers, parents, the codes and file names of the photos and lab reports you add, agreement terms and counterparties, the quantity and note you send a lab, the sample details you and the lab write (sample ID, seal number, where and when it was taken, a witness, how it arrived), the names you give recipients, and each record's own secret keys. Our server stores them locked, and we don't have the key: it is in your browser and your backup file. The sample details' key also travels in the lab code, so the lab can open them. If you choose, a record's name also travels in a check link you make, after the #, which a browser never sends to any server. Our server can read: each record's ID; its proof code, key binding and profile type; its correction links (which record a correction replaces, which fields it changed, and when); when the server first saw it; how many times it was saved, and when it was last saved; roughly how large it is (its size bucket); what you choose to show on its check page (its name, if you choose to show it, and whether a DNA report is saved, as a code that says nothing about the file without the key in your check link); the parent links you register; and its batch and date stamp. If an agreement has a royalty on offspring, our server can read which record it covers and when it took effect, and anyone can ask whether that record carries one: the lineage check needs it. For a delivery: which record it came from, which holder account received it, when it was received, and a tag in place of the recipient's name. A delivery made before tags has the name as typed, until the registry's purge replaces it. For labs: the public signing key and the attestations they publish. Requests to prove a record's key, with the name the asker typed, kept for 7 days. Your holder key, which your browser sends with every save so the server can find your records; the server keeps only a one-way digest of it. Records saved before locking stay readable to us until your browser locks them, and a record's name saved before names were locked stays readable to us until your browser saves the record again. Sample details written before sealing stay readable to us until the registry removes them. Our off-site backups made before then keep a readable copy of all of these until we destroy the key that opens them. Locked lab reports a lab sends you: stored locked, without the key, and deleted after 180 days. The server is VeilCore's test registry, hosted on Railway.",
   'm.privacy.local.title': 'Never leaves your browser',
   'm.privacy.local.text':
     'Genetic data, and the lab reports, DNA reports and photos you add. Your browser reads them to make a code from each; the files themselves are never uploaded. A lab report reaches our server only when a lab sends it back to you, locked so only you can open it.',

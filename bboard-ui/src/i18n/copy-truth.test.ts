@@ -225,8 +225,9 @@ describe('privacy, said plainly', () => {
     expect(en['m.step1.text']).toMatch(
       /VeilCore's server stores the details locked, the name included, and we don't have the key/,
     );
+    // Persona review (17 Oct): a link carries the name only when the holder switches it on.
     expect(en['m.step1.text']).toMatch(
-      /Your check links carry the name after the #, for the people you send them to\./,
+      /A check link carries the name only if you switch that on, for the people you send it to\./,
     );
     expect(en['m.step1.text']).not.toMatch(/isn't locked|anyone with the record's link/);
     expect(en['m.step1.text']).not.toMatch(/breeder/);
@@ -486,17 +487,18 @@ describe("what's live where", () => {
     expect(home).toContain("const TEST_SITE_URL = 'https://test.veilcore.org';");
     expect(home).toMatch(/<a href=\{TEST_SITE_URL\}/);
     expect(en['m.live.colTest']).toBe('test.veilcore.org');
-    // Until it is actually live.
-    expect(en['m.live.colTestNote']).toBe('(going live this week)');
+    // No "(going live this week)": a date like that goes stale (persona review, 17 Oct).
+    expect(Object.keys(en)).not.toContain('m.live.colTestNote');
+    expect(home).not.toMatch(/colTestNote|going live/);
   });
   it('on the test site itself, the column is "This test site", with no link to itself (round 6)', () => {
     expect(en['m.live.colTestHere']).toBe('This test site (test.veilcore.org)');
-    // The test site shows colTestHere; every other build the link and "(going live this week)".
+    // The test site shows colTestHere; every other build the link.
     const th = home.match(/\{IS_TEST_SITE \? \(([\s\S]*?)\) : \(([\s\S]*?)\)\}\s*<\/th>/);
     expect(th, 'the test column heading branches on IS_TEST_SITE').toBeTruthy();
     expect(th?.[1]).toContain("t('m.live.colTestHere')");
     expect(th?.[1]).not.toMatch(/TEST_SITE_URL|colTestNote/);
-    expect(th?.[2]).toMatch(/<a href=\{TEST_SITE_URL\}[\s\S]*m\.live\.colTest'[\s\S]*m\.live\.colTestNote/);
+    expect(th?.[2]).toMatch(/<a href=\{TEST_SITE_URL\}[\s\S]*m\.live\.colTest'/);
     // IS_TEST_SITE is the same test as the one that picks en-testchain.ts.
     expect(fs.readFileSync(path.join(HERE, 'index.tsx'), 'utf8')).toMatch(
       /export const IS_TEST_SITE = THIS_BUILD\.realChain;/,
@@ -513,7 +515,9 @@ describe("what's live where", () => {
 });
 
 describe('the check page reading Midnight itself, per build (round 7)', () => {
-  const CHECK_KEYS = ['footer.about', 'm.tech.check.p'] as const;
+  // The app footer is plain since the persona review (17 Oct); the technical paragraph lives in
+  // the home page's technical section only.
+  const CHECK_KEYS = ['m.tech.check.p'] as const;
   /** The text around the check page's sentence (and the date sentence it hangs off). */
   const around = (v: string): string => {
     const i = v.search(/ Its date comes from one transaction on Midnight| The check page /);
@@ -530,9 +534,6 @@ describe('the check page reading Midnight itself, per build (round 7)', () => {
     }
   });
   it('en.ts (every build without an overlay) says it reads Midnight only when it can', () => {
-    expect(en['footer.about']).toMatch(
-      /Its date comes from one transaction on Midnight: the check page looks it up itself when it can reach Midnight, and otherwise says the date is our registry's report\./,
-    );
     expect(en['m.tech.check.p']).toMatch(
       /The check page looks that transaction up on Midnight itself when it can reach Midnight; otherwise it says the date is our registry's report, and you can look it up on a Midnight explorer\./,
     );
@@ -580,6 +581,20 @@ describe('the check page reading Midnight itself, per build (round 7)', () => {
     expect(config).toMatch(/export const CHAIN_READS: boolean = READ_INDEXERS\.length > 0;/);
     expect(fs.readFileSync(path.join(HERE, 'index.tsx'), 'utf8')).toMatch(/chainReads: CHAIN_READS,/);
   });
+  it('the app footer is plain in every build and language; the look-up sentence is in the technical section', () => {
+    for (const lang of ['en', 'de', 'es', 'fr', 'ja'] as Lang[]) {
+      for (const build of [TEST_SITE, MAINNET, { ...MAINNET, chainReads: true }]) {
+        const o = networkOverlay(build, lang) as Record<string, string>;
+        expect(o['footer.about'], `${lang} overlay`).toBeUndefined();
+      }
+    }
+    expect(en['footer.about']).toBe('An open record format for plant and animal genetics.');
+    expect(en['footer.howCheck']).toBe('How checking works →');
+    for (const s of [en, testSite, mainnetNoRelay, mainnetRelay])
+      expect(s['m.tech.check.p']).toMatch(/Looking a record up by its identifier on this site uses our server\.$/);
+    const footer = fs.readFileSync(path.join(SRC, 'components/AppFooter.tsx'), 'utf8');
+    expect(footer).toMatch(/to="\/#technical"[\s\S]*footer\.howCheck/);
+  });
   it('the overlays change only the check page sentence', () => {
     for (const s of [testSite, mainnetNoRelay, mainnetRelay])
       for (const k of CHECK_KEYS) expect(around(s[k]), k).toBe(around(en[k]));
@@ -588,7 +603,7 @@ describe('the check page reading Midnight itself, per build (round 7)', () => {
     for (const chainReads of [true, false]) {
       const o = jaMainnet({ ...BUILD, chainReads });
       expect(o['m.tech.check.p']).toMatch(chainReads ? /Midnight上で自ら照会します/ : /読み取り専用リレーが稼働すれば/);
-      expect(o['footer.about']).toMatch(chainReads ? /Midnight上で自ら照会します/ : /読み取り専用リレーが稼働すれば/);
+      expect(o['footer.about']).toBeUndefined();
       expect(o['m.live.chain.main']).toBe(chainReads ? 'あり。' : undefined);
     }
   });

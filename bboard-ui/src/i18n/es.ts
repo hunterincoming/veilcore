@@ -121,7 +121,7 @@ export const es: Strings = {
   'm.stat3.b': 'Sin auditoría',
   'm.status.keyTitle': 'Quién puede cambiar el contrato.',
   'm.status.keyText':
-    'Una clave de mantenimiento puede cambiar cómo funciona el contrato de VeilCore en Midnight. Quien la tenga puede añadir o reemplazar operaciones del contrato, lo que podría permitirle tomar el control de la identidad de cualquier registro, añadir licencias en nombre de cualquier emisor, añadir o quitar obligaciones y vínculos de parentesco, o desactivar operaciones. No puede antedatar los tiempos de bloque de la red, y cada cambio queda a la vista en la cadena. Hoy la clave está en papel, una copia en manos de cada fundador, y cualquiera de las dos copias basta por sí sola para usarla. Pasarla a un grupo de claves que deban estar de acuerdo está previsto, pero aún no está hecho. Cada uso se anuncia públicamente, según una política de mantenimiento escrita.',
+    'Una clave de mantenimiento puede cambiar cómo funciona el contrato de VeilCore en Midnight. Quien la tenga puede añadir o reemplazar operaciones del contrato, lo que podría permitirle tomar el control de la identidad de cualquier registro, añadir licencias en nombre de cualquier emisor, añadir o quitar obligaciones y vínculos de parentesco, o desactivar operaciones. No puede antedatar los tiempos de bloque de la red, y cada cambio queda a la vista en la cadena. No puede cambiar ni quitar un lote ya anclado, ni la fecha que da a un registro: eso está en la transacción que lo ancló, que nadie puede alterar. Hoy la clave está en papel, una copia en manos de cada fundador, y cualquiera de las dos copias basta por sí sola para usarla. Pasarla a un grupo de claves que deban estar de acuerdo está previsto, pero aún no está hecho. Cada uso se anuncia públicamente, según una política de mantenimiento escrita.',
   'm.status.keyLink': 'Leer la política de mantenimiento →',
   'm.contact.label': 'Contacto',
   'm.contact.title1': 'Díganos',
@@ -167,9 +167,17 @@ export const es: Strings = {
   'm.privacy.title': 'Qué guarda la demo.',
   'm.privacy.lede':
     'Esta nota se refiere a la demo de este sitio. Es una prueba, en la red de pruebas de Midnight. Por favor, use datos inventados.',
+  'm.privacy.sum.local.t': 'Nunca sale de su computadora',
+  'm.privacy.sum.local.p': 'Los datos genéticos, y los informes de ADN y fotos que usted añade.',
+  'm.privacy.sum.locked.t': 'Guardado bloqueado, no podemos leerlo',
+  'm.privacy.sum.locked.p': 'Todo lo que escribe en un registro, y los informes que un laboratorio le envía.',
+  'm.privacy.sum.read.t': 'Podemos leer',
+  'm.privacy.sum.read.p':
+    'El ID del registro, el código de prueba, las fechas y lo que usted decida mostrar. La lista completa está abajo.',
+  'm.privacy.full': 'La lista completa',
   'm.privacy.stored.title': 'Se guarda en nuestro servidor de pruebas',
   'm.privacy.stored.text':
-    'Sus registros y acuerdos, bloqueados por su navegador antes de enviarse: el nombre de cada registro, obtentor, especie, fechas, notas, números de referencia, progenitores, los códigos de prueba y los nombres de archivo de las fotos e informes de laboratorio que añade, términos y contrapartes de los acuerdos, la cantidad y la nota que envía a un laboratorio, los datos de muestra que usted y el laboratorio escriben (ID de muestra, número de precinto, dónde y cuándo se tomó, un testigo, cómo llegó), los nombres que da a los destinatarios y las claves secretas de cada registro. Nuestro servidor los guarda bloqueados, y nosotros no tenemos la clave: está en su navegador y en su archivo de copia de seguridad. La clave de los datos de muestra también va en el código de laboratorio, para que el laboratorio pueda abrirlos. El nombre de un registro también va en los enlaces de comprobación que usted crea, después del #, que un navegador nunca envía a ningún servidor. Nuestro servidor puede leer: el ID de cada registro; su código de prueba, su vínculo de clave y su tipo de perfil; sus vínculos de corrección (qué registro sustituye una corrección, qué campos cambió y cuándo); cuándo lo vio el servidor por primera vez; cuántas veces se guardó y cuándo fue la última; más o menos qué tamaño tiene (su franja de tamaño); lo que usted decida mostrar en su página de comprobación (su nombre, si decide mostrarlo, y si hay un informe de ADN guardado, como un código que no dice nada del archivo sin la clave de su enlace de comprobación); los vínculos con progenitores que registre; y su lote con su sello de fecha. Si un acuerdo tiene regalías sobre la descendencia, nuestro servidor puede leer a qué registro se aplica y desde cuándo rige, y cualquiera puede preguntar si ese registro tiene una: la comprobación de linaje lo necesita. De un envío: de qué registro procede, qué cuenta de titular lo recibió, cuándo se recibió y una etiqueta en lugar del nombre del destinatario. En un envío anterior a las etiquetas, el nombre está tal como se escribió, hasta que la limpieza del registro lo sustituya. De los laboratorios: la clave pública de firma y las atestaciones que publican. Las solicitudes de demostrar la clave de un registro, con el nombre que escribió quien la pide, durante 7 días. Su clave de titular, que su navegador envía cada vez que guarda para que el servidor encuentre sus registros; el servidor solo conserva un hash de un solo sentido de ella. Los registros guardados antes del bloqueo siguen siendo legibles para nosotros hasta que su navegador los bloquee, y el nombre de un registro guardado antes de que se bloquearan los nombres sigue siendo legible para nosotros hasta que su navegador vuelva a guardar el registro. Los datos de muestra escritos antes del bloqueo siguen siendo legibles para nosotros hasta que el registro los elimine. Nuestras copias de seguridad externas de antes conservan una copia legible de todo esto hasta que destruyamos la clave que las abre. Informes de laboratorio cerrados que un laboratorio le envía: se guardan cerrados, sin la clave, y se borran a los 180 días. El servidor es el registro de pruebas de VeilCore, alojado en Railway.',
+    'Sus registros y acuerdos, bloqueados por su navegador antes de enviarse: el nombre de cada registro, obtentor, especie, fechas, notas, números de referencia, progenitores, los códigos de prueba y los nombres de archivo de las fotos e informes de laboratorio que añade, términos y contrapartes de los acuerdos, la cantidad y la nota que envía a un laboratorio, los datos de muestra que usted y el laboratorio escriben (ID de muestra, número de precinto, dónde y cuándo se tomó, un testigo, cómo llegó), los nombres que da a los destinatarios y las claves secretas de cada registro. Nuestro servidor los guarda bloqueados, y nosotros no tenemos la clave: está en su navegador y en su archivo de copia de seguridad. La clave de los datos de muestra también va en el código de laboratorio, para que el laboratorio pueda abrirlos. Si usted lo elige, el nombre de un registro también va en un enlace de comprobación que crea, después del #, que un navegador nunca envía a ningún servidor. Nuestro servidor puede leer: el ID de cada registro; su código de prueba, su vínculo de clave y su tipo de perfil; sus vínculos de corrección (qué registro sustituye una corrección, qué campos cambió y cuándo); cuándo lo vio el servidor por primera vez; cuántas veces se guardó y cuándo fue la última; más o menos qué tamaño tiene (su franja de tamaño); lo que usted decida mostrar en su página de comprobación (su nombre, si decide mostrarlo, y si hay un informe de ADN guardado, como un código que no dice nada del archivo sin la clave de su enlace de comprobación); los vínculos con progenitores que registre; y su lote con su sello de fecha. Si un acuerdo tiene regalías sobre la descendencia, nuestro servidor puede leer a qué registro se aplica y desde cuándo rige, y cualquiera puede preguntar si ese registro tiene una: la comprobación de linaje lo necesita. De un envío: de qué registro procede, qué cuenta de titular lo recibió, cuándo se recibió y una etiqueta en lugar del nombre del destinatario. En un envío anterior a las etiquetas, el nombre está tal como se escribió, hasta que la limpieza del registro lo sustituya. De los laboratorios: la clave pública de firma y las atestaciones que publican. Las solicitudes de demostrar la clave de un registro, con el nombre que escribió quien la pide, durante 7 días. Su clave de titular, que su navegador envía cada vez que guarda para que el servidor encuentre sus registros; el servidor solo conserva un hash de un solo sentido de ella. Los registros guardados antes del bloqueo siguen siendo legibles para nosotros hasta que su navegador los bloquee, y el nombre de un registro guardado antes de que se bloquearan los nombres sigue siendo legible para nosotros hasta que su navegador vuelva a guardar el registro. Los datos de muestra escritos antes del bloqueo siguen siendo legibles para nosotros hasta que el registro los elimine. Nuestras copias de seguridad externas de antes conservan una copia legible de todo esto hasta que destruyamos la clave que las abre. Informes de laboratorio cerrados que un laboratorio le envía: se guardan cerrados, sin la clave, y se borran a los 180 días. El servidor es el registro de pruebas de VeilCore, alojado en Railway.',
   'm.privacy.local.title': 'Nunca sale de su navegador',
   'm.privacy.local.text':
     'Los datos genéticos, y los informes de laboratorio, informes de ADN y fotos que usted añade. Su navegador los lee para hacer un código de cada uno; los archivos en sí nunca se suben. Un informe de laboratorio llega a nuestro servidor solo cuando un laboratorio se lo devuelve, cerrado para que solo usted pueda abrirlo.',
@@ -242,8 +250,10 @@ export const es: Strings = {
   'm.live.stamp.test':
     'Sí. Los lotes se fechan automáticamente, y eso fecha su registro. Su navegador también pone un sello de fecha a la clave propia de su planta; ese sello fecha solo la clave.',
   'm.live.share.t': 'Elegir qué ven los demás',
-  'm.live.share.main': 'Sí. El nombre de la planta siempre se muestra.',
-  'm.live.share.test': 'Sí. El nombre de la planta siempre se muestra.',
+  'm.live.share.main':
+    'Sí. Usted elige cada dato. El nombre solo aparece en los enlaces que envía, o si decide mostrarlo.',
+  'm.live.share.test':
+    'Sí. Usted elige cada dato. El nombre solo aparece en los enlaces que envía, o si decide mostrarlo.',
   'm.live.lab.t': 'Código de laboratorio y acuse firmado',
   'm.live.lab.main':
     'Sí. El laboratorio firma con su propia clave. El servidor de registros de VeilCore guarda el acuse, no la cadena.',
@@ -271,8 +281,8 @@ export const es: Strings = {
   // Round 3 (14 Oct 2026): the rest of the landing page, so no English shows through.
   'nav.newCultivar': 'Nuevo registro',
   'nav.licenses': 'Acuerdos',
-  'footer.about':
-    'Un formato de registro abierto para genética vegetal y animal. Recalcular el código de prueba de un registro solo requiere SHA-256 y la especificación abierta. Su fecha viene de una transacción en Midnight: la página de comprobación la consulta por sí misma cuando puede llegar a Midnight y, si no, dice que la fecha es la que informa nuestro registro. Buscar un registro por su identificador en este sitio usa nuestro servidor.',
+  'footer.about': 'Un formato de registro abierto para genética vegetal y animal.',
+  'footer.howCheck': 'Cómo funciona la comprobación →',
   'm.hero.status':
     'Lanzamiento en la red principal de Midnight. Hoy los registros se fechan en una red de pruebas de Midnight, lo que todavía no prueba nada.',
   'm.claims.status':
@@ -315,7 +325,7 @@ export const es: Strings = {
   'm.how.title2': 'La genética se queda con usted.',
   'm.step1.title': 'Anótelo',
   'm.step1.text':
-    'Qué es y de dónde viene. El servidor de VeilCore guarda los detalles bloqueados, el nombre incluido, y nosotros no tenemos la clave. Sus enlaces de comprobación llevan el nombre después del #, para las personas a las que se los envía.',
+    'Qué es y de dónde viene. El servidor de VeilCore guarda los detalles bloqueados, el nombre incluido, y nosotros no tenemos la clave. Un enlace de comprobación lleva el nombre solo si usted lo activa, para las personas a las que se lo envía.',
   'm.step2.title': 'Saque su código de prueba',
   'm.step2.text': 'En su computadora. Los datos genéticos nunca salen de ella.',
   'm.step3.title': 'Obtenga una fecha',
@@ -398,7 +408,9 @@ export const es: Strings = {
     'Sin registro, sin billetera. Es una versión de prueba, así que use datos inventados. Los registros se anclan por lotes, a mano por ahora; las licencias y los acuerdos de laboratorio son simulados, y las vinculaciones de informes de ADN todavía no se fechan.',
   'm.demo.privacy': 'Lo que guarda la demo →',
   'm.updates.more': 'Todas las novedades',
-  'm.stat3.s': 'Todavía no hay una auditoría de seguridad independiente. Nuestras propias revisiones son públicas.',
+  'm.stat3.s':
+    'Aún no hay una auditoría de seguridad independiente. Nuestras propias revisiones de los contratos son públicas.',
+  'm.stat3.link': 'Leerlas en GitHub →',
   'm.stat4.b': 'Buscamos primeros usuarios',
   'm.stat4.s': 'Nadie lo usa todavía para registros reales. Buscamos a los primeros obtentores y laboratorios.',
   'm.addr.title': 'Los contratos, para quien quiera comprobarlos.',
@@ -428,7 +440,6 @@ export const es: Strings = {
     'Con ese paquete de evidencia, cualquiera puede comprobar un registro sin conexión: abrir su verify.html y luego buscar en un explorador de Midnight la única transacción que nombra. Los registros sellados desde el 14 de octubre también necesitan la sección 3.6.1 de la especificación, publicada en la especificación de este sitio; el SDK y sus tres implementaciones la incorporarán en su próxima versión.',
   'm.open.6link': 'Leer la especificación →',
   'm.updates.older': 'Novedades anteriores',
-  'm.live.colTestNote': '(se publica esta semana)',
   'm.live.colTestHere': 'Este sitio de prueba (test.veilcore.org)',
   'm.live.feature': 'Función',
   'm.live.show': 'Ver la lista',
@@ -437,7 +448,7 @@ export const es: Strings = {
   'm.tech.show': 'Ver el detalle',
   'm.tech.check.t': 'Comprobar un registro a mano',
   'm.tech.check.p':
-    'Recalcular el código de prueba de un registro solo requiere SHA-256 y la especificación abierta. Su prueba de inclusión une ese código de prueba con el código de prueba de un lote anclado en Midnight, y la transacción que lo ancló da la fecha del lote. El verify.html del paquete de evidencia rehace ese cálculo sin conexión y nombra la transacción y el código de prueba del lote que hay que buscar. La página de comprobación consulta esa transacción en Midnight por sí misma cuando puede llegar a Midnight; si no, dice que la fecha es la que informa nuestro registro, y usted puede buscarla en un explorador de Midnight. Los registros sellados desde el 14 de octubre nombran su propia clave, así que comprobarlos también requiere la sección 3.6.1, publicada en la especificación de este sitio; el SDK y sus tres implementaciones la incorporarán en su próxima versión.',
+    'Recalcular el código de prueba de un registro solo requiere SHA-256 y la especificación abierta. Su prueba de inclusión une ese código de prueba con el código de prueba de un lote anclado en Midnight, y la transacción que lo ancló da la fecha del lote. El verify.html del paquete de evidencia rehace ese cálculo sin conexión y nombra la transacción y el código de prueba del lote que hay que buscar. La página de comprobación consulta esa transacción en Midnight por sí misma cuando puede llegar a Midnight; si no, dice que la fecha es la que informa nuestro registro, y usted puede buscarla en un explorador de Midnight. Los registros sellados desde el 14 de octubre nombran su propia clave, así que comprobarlos también requiere la sección 3.6.1, publicada en la especificación de este sitio; el SDK y sus tres implementaciones la incorporarán en su próxima versión. Buscar un registro por su identificador en este sitio usa nuestro servidor.',
   'm.tech.impl.t': 'Una especificación, tres implementaciones',
   'm.tech.impl.p':
     'Libre de implementar, para siempre. TypeScript, Python y Rust coinciden en los 100 vectores de prueba del formato de registro en GitHub, y cualquiera puede ejecutarlos; un 101.º, para la vinculación de informes, aún no está en Rust. Un mismo autor escribió las tres, y la de TypeScript está en npm como 0.15.0. Una escrita por otra persona es la prueba que más deseamos.',
@@ -497,8 +508,6 @@ export const esTestchain: Strings = {
     'Este sitio usa la red de pruebas preprod de Midnight, no la principal. Su navegador envía cada sello de fecha a esa red a través del servicio de tarifas de VeilCore; lo que usted escribió y sus archivos nunca se envían allí. Una red de pruebas puede reiniciarse, y los datos de prueba pueden borrarse.',
   'm.privacy.hosts.text':
     'Este sitio web está alojado en Vercel, que registra direcciones IP y solicitudes. Nuestro servidor de registros, y el servicio que paga las tarifas de la red de pruebas y transmite las lecturas de la red de esta página, funcionan en Railway, que registra solicitudes. Ese servicio lee la red a través de Blockfrost.',
-  'footer.about':
-    'Un formato de registro abierto para genética vegetal y animal. Recalcular el código de prueba de un registro solo requiere SHA-256 y la especificación abierta. Su fecha viene de una transacción en Midnight, y la página de comprobación consulta esa transacción en Midnight por sí misma cuando puede llegar a Midnight. Buscar un registro por su identificador en este sitio usa nuestro servidor.',
   'm.tech.check.p':
-    'Recalcular el código de prueba de un registro solo requiere SHA-256 y la especificación abierta. Su prueba de inclusión une ese código de prueba con el código de prueba de un lote anclado en Midnight, y la transacción que lo ancló da la fecha del lote. El verify.html del paquete de evidencia rehace ese cálculo sin conexión y nombra la transacción y el código de prueba del lote que hay que buscar. La página de comprobación consulta esa transacción en Midnight por sí misma cuando puede llegar a Midnight. Los registros sellados desde el 14 de octubre nombran su propia clave, así que comprobarlos también requiere la sección 3.6.1, publicada en la especificación de este sitio; el SDK y sus tres implementaciones la incorporarán en su próxima versión.',
+    'Recalcular el código de prueba de un registro solo requiere SHA-256 y la especificación abierta. Su prueba de inclusión une ese código de prueba con el código de prueba de un lote anclado en Midnight, y la transacción que lo ancló da la fecha del lote. El verify.html del paquete de evidencia rehace ese cálculo sin conexión y nombra la transacción y el código de prueba del lote que hay que buscar. La página de comprobación consulta esa transacción en Midnight por sí misma cuando puede llegar a Midnight. Los registros sellados desde el 14 de octubre nombran su propia clave, así que comprobarlos también requiere la sección 3.6.1, publicada en la especificación de este sitio; el SDK y sus tres implementaciones la incorporarán en su próxima versión. Buscar un registro por su identificador en este sitio usa nuestro servidor.',
 };

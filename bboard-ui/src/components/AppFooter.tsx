@@ -101,6 +101,15 @@ export const AppFooter: React.FC = () => {
             >
               {t('footer.about')}
             </Typography>
+            {/* How a record is checked by hand lives in the home page's technical section. */}
+            <Link
+              component={RouterLink}
+              to="/#technical"
+              underline="always"
+              sx={{ ...linkBox, display: 'inline-block', mt: 1, color: '#FFFFFF', fontSize: 15 }}
+            >
+              {t('footer.howCheck')}
+            </Link>
           </Box>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 3, sm: 6 }}>

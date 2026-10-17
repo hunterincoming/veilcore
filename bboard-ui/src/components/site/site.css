@@ -45,8 +45,9 @@
   --on-dark-accent: #ec6a80; /* the stamp, lightened for Graphite: 5.3:1 */
   --ok: #2e6b55; /* a check that passed: 5.7:1 on Paper, never the brand */
   --warn: #8f5500;
-  --font: 'Atkinson Hyperlegible Next Variable', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI',
-    'Noto Sans JP', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font:
+    'Atkinson Hyperlegible Next Variable', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Noto Sans JP',
+    system-ui, -apple-system, 'Segoe UI', sans-serif;
   --gutter: clamp(16px, 5vw, 64px);
   --maxw: 1280px;
   /* Shape by hierarchy: controls 8, pictures 12, chips 6. The tag has cut corners, no radius. */
@@ -158,14 +159,42 @@ html:has(.vcm) {
   letter-spacing: -0.005em;
 }
 /* Links inside running text: Stamp, underlined. */
-.vcm :is(.pt, .faq, .lede, .verify-what, .privacy-contact, .claim-list, .claim-notes, .isnt, .tech, .live-table thead, .fold-body) a:not(.btn),
+.vcm
+  :is(
+    .pt,
+    .faq,
+    .lede,
+    .verify-what,
+    .privacy-contact,
+    .claim-list,
+    .claim-notes,
+    .isnt,
+    .tech,
+    .live-table thead,
+    .fold-body
+  )
+  a:not(.btn),
 .vcm a.x-link {
   color: var(--accent);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
-.vcm :is(.pt, .faq, .lede, .verify-what, .privacy-contact, .claim-list, .claim-notes, .isnt, .tech, .live-table thead, .fold-body) a:not(.btn):hover,
+.vcm
+  :is(
+    .pt,
+    .faq,
+    .lede,
+    .verify-what,
+    .privacy-contact,
+    .claim-list,
+    .claim-notes,
+    .isnt,
+    .tech,
+    .live-table thead,
+    .fold-body
+  )
+  a:not(.btn):hover,
 .vcm a.x-link:hover {
   color: var(--accent-deep);
   text-decoration-thickness: 2px;
@@ -1419,6 +1448,19 @@ html:has(.vcm) {
   color: var(--muted);
   line-height: 1.6;
 }
+.vcm .privacy-note dl.privacy-summary {
+  gap: 16px;
+  padding: 24px;
+  border-radius: var(--r-picture);
+  background: var(--wash);
+}
+.vcm .privacy-note dl.privacy-summary dd {
+  color: var(--ink);
+}
+.vcm .privacy-full {
+  margin: 48px 0 24px;
+  font-size: 1.5rem;
+}
 .vcm .privacy-contact {
   margin-top: 40px;
   font-weight: 700;
@@ -1929,14 +1971,19 @@ html:has(.vcm) {
     font-size: 16px;
   }
 
-  /* team: names and roles only; photos and bios are on /founders */
+  /* team: photo, name and role; bios are on /founders */
   .vcm .team {
-    gap: 4px;
+    gap: 8px;
   }
   .vcm .person {
     min-height: 48px;
+    align-items: center;
   }
-  .vcm .person .avatar,
+  .vcm .person .avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 1rem;
+  }
   .vcm .person p {
     display: none;
   }

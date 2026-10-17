@@ -22,6 +22,12 @@ import { useI18n } from '../../i18n';
 import { SiteShell } from './SiteShell';
 
 const SECTIONS = ['stored', 'local', 'browser', 'hosts', 'code', 'test', 'madeup', 'export', 'delete', 'who'] as const;
+/**
+ * The three lines first (persona review, 17 Oct): the "Stored on our server" paragraph is
+ * about 400 words, and the plain answer was buried in it. The detail stays, word for word,
+ * under "The full list".
+ */
+const SUMMARY = ['local', 'locked', 'read'] as const;
 
 export const Privacy: React.FC = () => {
   const { t } = useI18n();
@@ -33,6 +39,15 @@ export const Privacy: React.FC = () => {
       </header>
       <section className="privacy-note">
         <div className="wrap">
+          <dl className="privacy-summary" data-privacy-summary="">
+            {SUMMARY.map((k) => (
+              <div key={k}>
+                <dt>{t(`m.privacy.sum.${k}.t`)}</dt>
+                <dd>{t(`m.privacy.sum.${k}.p`)}</dd>
+              </div>
+            ))}
+          </dl>
+          <h2 className="privacy-full">{t('m.privacy.full')}</h2>
           <dl>
             {SECTIONS.map((k) => (
               <div key={k}>
