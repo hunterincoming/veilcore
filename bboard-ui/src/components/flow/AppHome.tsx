@@ -18,6 +18,7 @@ import {
   useRecords,
   exportRecords,
   importRecords,
+  unsavedReason,
   startOver,
   useSealedView,
   RECORDS_KEY,
@@ -112,11 +113,12 @@ export const AppHome: React.FC = () => {
   const onImport = async (file: File | null | undefined) => {
     if (!file) return;
     try {
-      const { added, alreadyHere, locked } = await importRecords(file);
+      const { added, alreadyHere, locked, notImported } = await importRecords(file);
       setToast(
         tp('app.home.imported', added) +
           (alreadyHere ? tp('app.home.alreadyHere', alreadyHere) : '') +
-          (locked ? tp('app.sealed.importLocked', locked) : ''),
+          (locked ? tp('app.sealed.importLocked', locked) : '') +
+          (notImported ? tp('app.sealed.importNotImported', notImported) : ''),
       );
     } catch (e) {
       setToast(e instanceof Error ? e.message : t('app.home.importFailed'));
@@ -394,6 +396,20 @@ export const AppHome: React.FC = () => {
                     >
                       {s.text}
                     </Typography>
+                    {/* Kept in this browser, not on VeilCore yet (round 3, L1, L12). */}
+                    {unsavedReason(r.id) && (
+                      <Typography
+                        variant="body2"
+                        sx={{ color: 'warning.main', fontWeight: 700 }}
+                        data-home-unsaved={r.id}
+                      >
+                        {t(
+                          unsavedReason(r.id) === 'backup'
+                            ? 'app.sealed.unsaved.short'
+                            : 'app.sealed.unsaved.shortRetry',
+                        )}
+                      </Typography>
+                    )}
                     {/* The breeder's own plant: whether a DNA report ties the record to it. */}
                     {!own && !r.receivedFrom && <TieLine record={r} saved={savedReports[r.id]} />}
                     {datings.map((d) => (

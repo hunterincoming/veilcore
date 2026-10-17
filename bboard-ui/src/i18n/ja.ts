@@ -51,6 +51,12 @@ export const ja: Strings = {
   'title.new': '植物を記録する',
   'title.record': '記録',
   'title.agreements': '契約',
+  // PageErrorBoundary.tsx: a page that failed to draw (round 3)
+  'error.page.title': 'このページを表示できませんでした',
+  'error.page.text':
+    '表示中に問題が起きました。何も変更していません。ページを再読み込みするか、記録の一覧へ移動してください。',
+  'error.page.reload': '再読み込み',
+  'error.page.home': '記録の一覧',
   // Public pages (Mako's 25 September layout)
   'm.nav.about': '概要',
   'm.nav.team': 'チーム',

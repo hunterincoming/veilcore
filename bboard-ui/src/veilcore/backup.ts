@@ -12,7 +12,10 @@
 //   - downloading it does NOT count as backed up; opening the saved copy and checking it
 //     (checkBackup) does. That proves the file exists, opens, and holds everything now;
 //   - restoreAny reads this file and the older files (record keys, holder key text), so
-//     nobody's existing backup stops working.
+//     nobody's existing backup stops working;
+//   - since round 3 (P4) a version 3 file also holds the highest version of each record this
+//     browser has seen (`revs`), so a browser restored from it still refuses an older copy the
+//     registry serves. A version 3 file without them restores as before.
 //
 // The file is not encrypted: a password is one more thing to forget, and that trade-off is
 // decided before mainnet (docs/simple-flow.md). It says SECRET at the top, and why.
@@ -24,7 +27,7 @@ import { adoptAttester, loadAttester } from './attester-keys';
 import { allDeliveries, deliveriesMissingFrom, mergeDeliveries } from './lab-results';
 import { allSentCodes, mergeSentCodes } from './transfers';
 import { isVaultKey, markVaultBackedUp, setVaultKey, vaultHasSealed, vaultKeyIfAny, vaultKid } from './vault';
-import { registryKids } from './api-store';
+import { raiseRevMarks, registryKids, revMarks } from './api-store';
 import { enT } from '../i18n/translate';
 
 export const BACKUP_FORMAT = 'veilcore-backup';
@@ -46,6 +49,11 @@ export type BackupContents = {
   readonly labDeliveries?: Record<string, unknown>;
   /** The lab codes this browser made, by transfer id. */
   readonly sentCodes?: Record<string, string>;
+  /**
+   * The highest version (`rev`) of each record and agreement this browser has seen, by
+   * "records:<id>" or "licenses:<id>" (round 3, P4). Optional: older version 3 files have none.
+   */
+  readonly revs?: Record<string, number>;
 };
 
 const WARNING =
@@ -59,6 +67,7 @@ export const backupContents = (now = Date.now()): BackupContents => {
   const lab = loadAttester();
   const deliveries = allDeliveries();
   const codes = allSentCodes();
+  const revs = revMarks();
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
@@ -70,6 +79,7 @@ export const backupContents = (now = Date.now()): BackupContents => {
     ...(lab ? { labSignature: lab } : {}),
     ...(Object.keys(deliveries).length ? { labDeliveries: deliveries } : {}),
     ...(Object.keys(codes).length ? { sentCodes: codes } : {}),
+    ...(Object.keys(revs).length ? { revs } : {}),
   };
 };
 
@@ -268,6 +278,9 @@ export const restoreAny = async (file: File): Promise<RestoreResult> => {
   // Merged, never replacing an entry already here (a lock this browser has stays).
   const deliveries = mergeDeliveries(v.labDeliveries);
   const sentCodes = mergeSentCodes(v.sentCodes);
+  // Only ever raises a mark here (P4): a file older than what this browser has seen can't
+  // make it take an older copy.
+  raiseRevMarks(v.revs);
   return {
     records: entries.length,
     recordIds,

@@ -13,7 +13,8 @@ import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typograp
 import { Link as RouterLink } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
-import { updateReceivedNotes, type StrainRecord } from '../../veilcore/records';
+import { RECORDS_KEY, updateReceivedNotes, type StrainRecord } from '../../veilcore/records';
+import { rowStateOf } from '../../veilcore/api-store';
 import type { RecordKeys } from '../../veilcore/record-keys';
 import {
   custodyOf,
@@ -56,6 +57,7 @@ import {
   markOpened,
   openReport,
   rememberDelivery,
+  reportLockFor,
   reportFileName,
   reportFileType,
   type ReportFileType,
@@ -727,7 +729,11 @@ export const SendResultsPanel: React.FC<{
   onSignReceipt: () => void;
 }> = ({ record, onSignReceipt }) => {
   const stored = deliveryForRecord(record.id);
-  const [lock, setLock] = useState(record.resultLock ?? stored?.recipient);
+  // Only a lock from the lab code, or from the sender's sealed offer, ever locks a report
+  // (round 3, P1); one that can't be vouched for waits until the code is pasted again.
+  const vouched = reportLockFor(record, rowStateOf(RECORDS_KEY, record.id) === 'open');
+  const [lock, setLock] = useState('lock' in vouched ? vouched.lock : undefined);
+  const lockConflict = 'conflict' in vouched && !lock;
   const [code, setCode] = useState('');
   const [file, setFile] = useState<{ name: string; bytes: Uint8Array; sha: string }>();
   const [busy, setBusy] = useState<string>();
@@ -790,8 +796,10 @@ export const SendResultsPanel: React.FC<{
       sourceCommitment: subject,
       recipient: p.resultLock,
       receivedAt: record.receivedAt ?? Date.now(),
+      // Pasted by the lab: settles a record whose own lock differed (round 3, P1).
+      lockConfirmed: true,
     });
-    updateReceivedNotes(record.id, { resultLock: p.resultLock });
+    updateReceivedNotes(record.id, { resultLock: p.resultLock, resultLockFrom: 'code' });
     setProblem(undefined);
     setLock(p.resultLock);
   };
@@ -1026,7 +1034,9 @@ export const SendResultsPanel: React.FC<{
         </Alert>
       ) : !lock ? (
         <Stack spacing={1.25}>
-          <Typography variant="body1">{t('app.lab.out.noLockHere')}</Typography>
+          <Typography variant="body1" {...(lockConflict ? { 'data-lock-conflict': '' } : {})}>
+            {t(lockConflict ? 'app.lab.out.pasteAgain' : 'app.lab.out.noLockHere')}
+          </Typography>
           <TextField
             label={t('app.lab.recv.codeLabel')}
             value={code}

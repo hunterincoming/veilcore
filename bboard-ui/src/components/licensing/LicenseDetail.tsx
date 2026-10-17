@@ -25,6 +25,7 @@ import {
   dealValueOf,
   signedByTwoParties,
   type License,
+  useAgreementsWaitForBackup,
 } from '../../veilcore/licenses';
 import { canonicalUrl } from '../../config/network';
 import { getRecord, allRecords } from '../../veilcore/records';
@@ -35,6 +36,7 @@ import { InEnglishPage } from '../../i18n/app';
 import { LicenseStateChip } from './LicenseStateChip';
 import { ShareLicense } from './ShareLicense';
 import { AgreementTypeChip } from './AgreementTypeChip';
+import { AgreementsBackupFirst } from './AgreementsBackupFirst';
 import { AGREEMENTS_SIMULATED, SIMULATED_TAG } from '../../config/copy';
 
 const money = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
@@ -64,6 +66,7 @@ export const LicenseDetail: React.FC = () => {
   const navigate = useNavigate();
   const license = getLicense(id);
   const [toast, setToast] = useState<string>();
+  const blocked = useAgreementsWaitForBackup();
   const [royaltyInput, setRoyaltyInput] = useState('');
   const [royaltyNote, setRoyaltyNote] = useState('');
 
@@ -100,6 +103,7 @@ export const LicenseDetail: React.FC = () => {
   };
 
   const onRevoke = () => {
+    if (blocked) return;
     const reason = window.prompt('Reason for revoking this license?');
     if (reason !== null) {
       revokeLicense(license.id, reason || 'No reason given');
@@ -114,7 +118,7 @@ export const LicenseDetail: React.FC = () => {
 
   const onLogRoyalty = () => {
     const n = Number(royaltyInput);
-    if (!n) return;
+    if (!n || blocked) return;
     addRoyalty(license.id, n, owed(n), royaltyNote.trim());
     setRoyaltyInput('');
     setRoyaltyNote('');
@@ -131,6 +135,7 @@ export const LicenseDetail: React.FC = () => {
     <Box>
       <AppHeader />
       <InEnglishPage />
+      <AgreementsBackupFirst />
       <Button component={RouterLink} to="/licenses" size="small" startIcon={<ArrowBackIcon />} sx={{ mb: 2 }}>
         All agreements
       </Button>
@@ -191,8 +196,11 @@ export const LicenseDetail: React.FC = () => {
               </Typography>
               <Button
                 variant="contained"
+                disabled={blocked}
                 onClick={() =>
-                  void issueLicense(license.id).then(() => setToast('Issued. Send the link to the other party.'))
+                  void issueLicense(license.id)
+                    .then(() => setToast('Issued. Send the link to the other party.'))
+                    .catch(() => undefined)
                 }
               >
                 Issue it

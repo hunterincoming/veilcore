@@ -165,11 +165,20 @@ const S = {
 };
 const PUBLIC_NAME = 'Public Name OK';
 
-const modules = async () => {
+/**
+ * A page load. Since round 3 (L1) nothing is sealed and sent under a key that isn't in a
+ * checked backup: unless `noKey`, a browser without one makes a key and checks its backup
+ * first, as the app has a holder do before anything is saved.
+ */
+const modules = async (opts: { noKey?: boolean } = {}) => {
   const records = await import('./records');
   const vault = await import('./vault');
   const api = await import('./api-store');
   const { fingerprintRecord, newNonce } = await import('./commitment');
+  if (!opts.noKey && !vault.vaultKeyIfAny()) {
+    vault.mintVault();
+    vault.markVaultBackedUp();
+  }
   return { records, vault, api, fingerprintRecord, newNonce };
 };
 
@@ -483,7 +492,7 @@ describe('locked rows', () => {
   });
 
   it('with sealed rows and no key here, no key is made and nothing is saved', async () => {
-    const { records, vault } = await modules();
+    const { records, vault } = await modules({ noKey: true });
     const holder = await import('./holder');
     holder.holderKey();
     rows.set('VEIL-LOCKED', foreignRow('VEIL-LOCKED', 'Old plant'));
@@ -507,7 +516,7 @@ describe('rows saved in plain text before sealing', () => {
     holder.holderKey();
     const plain = { id: 'VEIL-OLD', ...(await plantInput()), licenseIds: [] };
     rows.set('VEIL-OLD', plain);
-    const { records, vault, api } = await modules();
+    const { records, vault, api } = await modules({ noKey: true });
     expect(vault.vaultKeyIfAny()).toBeNull();
     await records.hydrate();
     await settle();

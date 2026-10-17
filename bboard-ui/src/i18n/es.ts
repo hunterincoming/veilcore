@@ -45,6 +45,11 @@ export const es: Strings = {
   'title.new': 'Registrar una planta',
   'title.record': 'Registro',
   'title.agreements': 'Acuerdos',
+  // PageErrorBoundary.tsx: a page that failed to draw (round 3)
+  'error.page.title': 'No se pudo mostrar esta página',
+  'error.page.text': 'Algo salió mal al mostrarla. No se cambió nada. Recargue la página o vaya a sus registros.',
+  'error.page.reload': 'Recargar',
+  'error.page.home': 'Sus registros',
   // Public pages (Mako's 25 September layout)
   'm.nav.about': 'Acerca de',
   'm.nav.team': 'Equipo',

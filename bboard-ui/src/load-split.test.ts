@@ -28,6 +28,8 @@ describe('the first download, in the source', () => {
     expect(own.sort()).toEqual(
       [
         './components/flow/FlowFrame',
+        // A page that fails to draw says so (round 3, L5): small, and needed before any page.
+        './components/PageErrorBoundary',
         './components/site/Founders',
         './components/site/Home',
         './components/site/NotFound',

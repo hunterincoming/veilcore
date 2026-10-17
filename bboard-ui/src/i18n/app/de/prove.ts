@@ -157,4 +157,10 @@ export const prove = {
   'app.prove.share.openTheirs': 'Öffnen, was sie sehen',
   'app.prove.share.saving': 'Wird gespeichert…',
   'app.prove.share.getLink': 'Link holen',
+  // Step5ProveDisclosure.tsx: the server shows another choice (round 3)
+  'app.prove.share.differs.text':
+    'Der Server von VeilCore zeigt: {server}. Ihre Wahl, beim Datensatz gespeichert: {mine}. Was sollen Fremde sehen?',
+  'app.prove.share.differs.keepMine': 'Meine Wahl behalten',
+  'app.prove.share.differs.useServers': 'Die Angabe des Servers übernehmen',
+  'app.prove.share.differs.failed': 'VeilCore hat Ihre Wahl nicht gespeichert. Versuchen Sie es erneut.',
 } satisfies Partial<AppTranslation>;

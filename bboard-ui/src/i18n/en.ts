@@ -50,6 +50,12 @@ export const en = {
   'title.new': 'Log a plant',
   'title.record': 'Record',
   'title.agreements': 'Agreements',
+  // PageErrorBoundary.tsx: a page that failed to draw (round 3)
+  'error.page.title': 'This page couldn’t be shown',
+  'error.page.text':
+    'Something went wrong while showing it. Nothing was changed. Reload the page, or go to your records.',
+  'error.page.reload': 'Reload',
+  'error.page.home': 'Your records',
 
   // Public pages (home and founders), laid out from Mako's 25 September templates.
   //

@@ -36,7 +36,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   attachReceipt,
   arrivalDetailsOf,
-  claimTransfer,
   CUSTODY_LIMITS,
   custodyDigest,
   custodyOf,
@@ -47,8 +46,6 @@ import {
   parseShareCode,
   codeMissingLock,
   codeMissingOfferKey,
-  forgetReceivingCode,
-  keepReceivingCode,
   publicFingerprintOf,
   quantityPhrase,
   sameDetails,
@@ -59,15 +56,16 @@ import {
   type CustodySubject,
   type SampleDetails,
 } from '../veilcore/transfers';
-import { allRecords, hydrate, RECORDS_KEY, updateReceivedNotes, type StrainRecord } from '../veilcore/records';
-import { rowStateOf, vaultReadiness } from '../veilcore/api-store';
-import { finishReceiving } from '../veilcore/receive';
+import { hydrate, RECORDS_KEY, updateReceivedNotes, type StrainRecord } from '../veilcore/records';
+import { rowStateOf } from '../veilcore/api-store';
+import { claimWithCode, finishReceiving, readyToReceive, receiptBlocker } from '../veilcore/receive';
 import { loadAttester, type AttesterProfile } from '../veilcore/attester-keys';
 import {
   deliveryForRecord,
   labChanged,
   markReceiptLinked,
   rememberDelivery,
+  reportLockFor,
   type LabDelivery,
 } from '../veilcore/lab-results';
 import { arrivalLine, custodyDifferences, differenceWords, sampleLine, type LabReceipt } from '../veilcore/custody';
@@ -335,15 +333,20 @@ const ReceiptChoice: React.FC<{
 };
 
 /** What this browser knows about the delivery a received record came from. */
-const deliveryOf = (record: StrainRecord, transferId: string): LabDelivery =>
-  deliveryForRecord(record.id) ?? {
+const deliveryOf = (record: StrainRecord, transferId: string): LabDelivery => {
+  const here = deliveryForRecord(record.id);
+  if (here) return here;
+  // The record's lock only when this browser can vouch for it (round 3, P1).
+  const vouched = reportLockFor(record, rowStateOf(RECORDS_KEY, record.id) === 'open');
+  return {
     transferId,
     receivedRecordId: record.id,
     ...(record.receivedFrom ? { sourceRecordId: record.receivedFrom } : {}),
     ...(record.receivedFromCommitment ? { sourceCommitment: record.receivedFromCommitment } : {}),
-    ...(record.resultLock ? { recipient: record.resultLock } : {}),
+    ...('lock' in vouched ? { recipient: vouched.lock } : {}),
     receivedAt: record.receivedAt ?? Date.now(),
   };
+};
 
 /**
  * Tie a signed receipt to its delivery (round 3). Until it is tied, the breeder's page
@@ -512,11 +515,13 @@ export const SignReceiptPanel: React.FC<{
       </Alert>
     );
   }
-  // Never over a fingerprint the registry doesn't hold (CONTRACT.md #22).
-  if (rowStateOf(RECORDS_KEY, record.id) !== 'open') {
+  // Never over a fingerprint the registry doesn't hold (CONTRACT.md #22). A record received
+  // before locking waits for the backup, not for "Finish receiving" (round 3, L10).
+  const blocker = receiptBlocker(record);
+  if (blocker) {
     return (
-      <Alert severity="warning" variant="outlined">
-        {t('app.sealed.recv.notAccepted')}
+      <Alert severity="warning" variant="outlined" data-receipt-blocked={blocker}>
+        {t(blocker)}
       </Alert>
     );
   }
@@ -633,33 +638,27 @@ export const ClaimTransfer: React.FC<{
 
   const claim = async () => {
     if (!code.trim() || busy) return;
-    const { transferId, claimCode, resultLock } = parseShareCode(code);
+    const { transferId, resultLock } = parseShareCode(code);
     setBusy(true);
     setError(null);
     try {
       // A claim can't be undone or made twice: first make sure the received record can be
-      // sealed and saved from this browser (CONTRACT.md #22).
-      const ready = await vaultReadiness();
-      if (ready === 'locked' || ready === 'unknown' || ready === 'cant-store') {
-        setError(
-          t(
-            ready === 'locked'
-              ? 'app.sealed.recv.restoreFirst'
-              : ready === 'unknown'
-                ? 'app.sealed.recv.cantCheck'
-                : 'app.sealed.recv.cantStore',
-          ),
-        );
+      // sealed and saved from this browser (CONTRACT.md #22), which takes a key in a checked
+      // backup (round 3, L1).
+      const ready = await readyToReceive();
+      if ('words' in ready) {
+        setError(t(ready.words));
         return;
       }
       // Kept until the received record is sealed and accepted: the offer key and the lock
-      // are only in the code.
-      keepReceivingCode(code);
-      const res = await claimTransfer(transferId, claimCode);
+      // are only in the code. Let go only on a definite refusal (round 3, L8).
+      const res = await claimWithCode(code);
       if ('error' in res) {
-        const stub = allRecords().some((r) => r.transferId?.toUpperCase() === transferId);
-        if (!stub) forgetReceivingCode(transferId);
-        setError(labErrorWords(res.error, tr));
+        setError(
+          res.definite
+            ? labErrorWords(res.error, tr)
+            : t('app.sealed.recv.noAnswer', { error: labErrorWords(res.error, tr) }),
+        );
         return;
       }
       // Also kept in this browser (and its backup), so this lab can send lab reports back

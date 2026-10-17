@@ -43,6 +43,12 @@ export const de: Strings = {
   'title.new': 'Pflanze erfassen',
   'title.record': 'Datensatz',
   'title.agreements': 'Vereinbarungen',
+  // PageErrorBoundary.tsx: a page that failed to draw (round 3)
+  'error.page.title': 'Diese Seite konnte nicht angezeigt werden',
+  'error.page.text':
+    'Beim Anzeigen ist etwas schiefgegangen. Es wurde nichts geändert. Laden Sie die Seite neu oder gehen Sie zu Ihren Datensätzen.',
+  'error.page.reload': 'Neu laden',
+  'error.page.home': 'Ihre Datensätze',
   // Public pages (Mako's 25 September layout)
   'm.nav.about': 'Über',
   'm.nav.team': 'Team',

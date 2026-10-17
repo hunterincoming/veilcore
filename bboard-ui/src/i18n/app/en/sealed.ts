@@ -71,7 +71,8 @@ export const sealed = {
   'app.sealed.size.over': 'Too large to save. Shorten the notes.',
   // LockedRecords.tsx: an older copy from the server
   'app.sealed.older.pageTitle': 'An older copy of this record',
-  'app.sealed.older': 'The server sent an older copy of this record.',
+  'app.sealed.older':
+    'The server sent an older copy of this record than this browser last saved. If it’s the copy you want, use it; or delete it.',
   'app.sealed.olderKept.one':
     'The server sent an older copy of {count} record. This browser kept the newer copy and saves it again.',
   'app.sealed.olderKept.other':
@@ -112,4 +113,52 @@ export const sealed = {
   'app.sealed.recv.otherCode': 'That code is for a different delivery.',
   'app.sealed.recv.offerMissing':
     'VeilCore didn’t send the sender’s locked details for this code, so the record wasn’t finished. Try “Finish receiving” on the record later, or ask the sender.',
+  // Round 3: held saves, the lost-key path, older copies, grants listed before locking
+  'app.sealed.agreementsBackupFirst':
+    'Save a backup and check it first. Until then, agreements can’t be made or changed here.',
+  'app.sealed.backup.storageRefused':
+    'This browser won’t keep anything right now (its storage is full, or blocked in a private window), so nothing was changed. Free up space or use a normal window, then try again.',
+  'app.sealed.backupFirstAction': 'Save a backup and check it first. Then you can do this.',
+  'app.sealed.correctBackupFirst': 'Save a backup and check it first. Then you can correct this record.',
+  'app.sealed.correctionLeft':
+    'Something went wrong taking the correction {id} back off VeilCore. Reload the page and check your records.',
+  'app.sealed.grantAsk.text':
+    'Before your records were locked, this record shared: {keys}. They aren’t shared again until you say so.',
+  'app.sealed.grantAsk.yes': 'Share them again',
+  'app.sealed.grantAsk.no': 'Don’t share them',
+  'app.sealed.grantAsk.failed': 'That wasn’t saved: {error}',
+  'app.sealed.grantDiffers.text':
+    'VeilCore’s server shows a different sharing choice for this record than the one kept with it. Nothing was changed. Choose which one strangers see.',
+  'app.sealed.grantDiffers.open': 'Choose',
+  'app.sealed.importNotImported.one':
+    ' {count} record on VeilCore is locked or emptied, and the file couldn’t put it back, so it wasn’t imported.',
+  'app.sealed.importNotImported.other':
+    ' {count} records on VeilCore are locked or emptied, and the file couldn’t put them back, so they weren’t imported.',
+  'app.sealed.lost.button': 'I don’t have that backup',
+  'app.sealed.lost.confirm':
+    'Without that backup file, nobody can open these locked records and agreements, not even VeilCore. While they are on VeilCore, nothing new can be saved for you. Delete them from VeilCore and start a new key? This can’t be undone.',
+  'app.sealed.lost.done':
+    'Deleted. A new key is ready: save a backup and check it, and your new records will be saved.',
+  'app.sealed.lost.failed': 'Nothing was deleted: {error}',
+  'app.sealed.lost.nothing': 'nothing here is locked with a lost key',
+  'app.sealed.older.use': 'Use this copy',
+  'app.sealed.older.deleteConfirm':
+    'Delete {name} from VeilCore? This older copy is the only copy on VeilCore’s server. Once it’s deleted, nobody can bring it back.',
+  'app.sealed.recv.backupFirst':
+    'This record was saved before records were locked. Save a backup and check it first; then you can sign.',
+  'app.sealed.recv.backupFirstClaim': 'Save a backup and check it first, then use the code. Nothing was received yet.',
+  'app.sealed.recv.noAnswer':
+    'VeilCore didn’t answer ({error}). The code is kept in this browser. If it was received, it shows in your records with “Finish receiving”; if not, try again.',
+  'app.sealed.refuse.backupFirstNew': 'nothing was saved yet. Save a backup and check it first',
+  'app.sealed.unsaved.backup':
+    'Not saved yet. Save your backup and check it; until then this is kept only in this browser.',
+  'app.sealed.unsaved.key':
+    'Not saved yet. This browser doesn’t have the key for your records on VeilCore. Restore your backup, or, if you don’t have it, use “I don’t have that backup” on your records page.',
+  'app.sealed.unsaved.retry': 'Not saved on VeilCore yet. It’s kept in this browser and sent again with the next save.',
+  'app.sealed.unsaved.short': 'Not saved yet — save your backup',
+  'app.sealed.unsaved.shortRetry': 'Not saved yet',
+  'app.sealed.unsaved.discardConfirm':
+    'Let go of what this browser keeps for this record? It isn’t on VeilCore, so it can’t be brought back.',
+  'app.sealed.unsaved.discardNew': 'Delete it',
+  'app.sealed.unsaved.discardChange': 'Undo the change',
 };

@@ -53,8 +53,20 @@ export const holderKey = (): string => {
 export const setHolderKey = (k: string): void => {
   const v = k.trim();
   if (!HEX64.test(v)) throw new Error('A holder key is 64 hexadecimal characters.');
-  localStorage.setItem(KEY, v.toLowerCase());
+  try {
+    localStorage.setItem(KEY, v.toLowerCase());
+  } catch {
+    // Full, or blocked (round 3, L13): said plainly, not as the browser's own error name.
+    throw new Error(STORAGE_REFUSED);
+  }
 };
+
+/**
+ * Said when this browser won't keep anything. The same sentence as the app's
+ * 'app.sealed.backup.storageRefused' (backup-words.ts translates it; a test checks they agree).
+ */
+export const STORAGE_REFUSED =
+  'This browser won’t keep anything right now (its storage is full, or blocked in a private window), so nothing was changed. Free up space or use a normal window, then try again.';
 
 /**
  * Stop using the current key in this browser. Nothing on the registry changes: the

@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import { Alert, Box, Button, Paper, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/LockOutlined';
-import { deleteLockedRecord, useSealedView } from '../veilcore/records';
+import { abandonLostKey, adoptOlderCopy, deleteLockedRecord, useSealedView } from '../veilcore/records';
 import { deleteLockedLicense, useLockedLicenses } from '../veilcore/licenses';
 import type { LockedRow } from '../veilcore/api-store';
 import { useT } from '../i18n/app';
@@ -34,7 +34,9 @@ const LockedRowLine: React.FC<{
   remove: (id: string) => Promise<{ ok: true } | { error: string }>;
   kind: 'record' | 'agreement';
   note?: string;
-}> = ({ row, name, confirm, remove: removeRow, kind, note }) => {
+  /** For an older copy (L2): take it as the record. */
+  useIt?: () => void;
+}> = ({ row, name, confirm, remove: removeRow, kind, note, useIt }) => {
   const { t } = useT();
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string>();
@@ -62,9 +64,16 @@ const LockedRowLine: React.FC<{
             </Typography>
           )}
         </Box>
-        <Button color="inherit" onClick={() => void remove()} disabled={busy} sx={{ minHeight: 44, flexShrink: 0 }}>
-          {t('app.sealed.locked.delete')}
-        </Button>
+        <Stack direction="row" sx={{ flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {useIt && (
+            <Button variant="outlined" onClick={useIt} disabled={busy} sx={{ minHeight: 44 }} data-use-older="">
+              {t('app.sealed.older.use')}
+            </Button>
+          )}
+          <Button color="inherit" onClick={() => void remove()} disabled={busy} sx={{ minHeight: 44 }}>
+            {t('app.sealed.locked.delete')}
+          </Button>
+        </Stack>
       </Stack>
       {problem && (
         <Alert severity="warning" variant="outlined" sx={{ mt: 1 }}>
@@ -114,18 +123,53 @@ export const LockedRecords: React.FC<{ only?: string }> = ({ only }) => {
               key={r.id}
               row={r}
               name={name}
-              confirm={t('app.sealed.locked.deleteConfirm', { name })}
+              // An older copy is the only copy on the server (L2): Delete says so.
+              confirm={t(r.older ? 'app.sealed.older.deleteConfirm' : 'app.sealed.locked.deleteConfirm', { name })}
               remove={deleteLockedRecord}
               kind="record"
-              {...(r.older ? { note: t('app.sealed.older') } : {})}
+              {...(r.older ? { note: t('app.sealed.older'), useIt: () => void adoptOlderCopy(r.id) } : {})}
             />
           );
         })}
       </Stack>
-      <Button component={RouterLink} to="/restore" variant="outlined" sx={{ minHeight: 44 }}>
-        {t('app.sealed.locked.restore')}
-      </Button>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+        <Button component={RouterLink} to="/restore" variant="outlined" sx={{ minHeight: 44 }}>
+          {t('app.sealed.locked.restore')}
+        </Button>
+        {keyless.some((r) => r.kid) && <LostKeyButton />}
+      </Stack>
     </Paper>
+  );
+};
+
+/**
+ * "I don't have that backup" (round 3, L1): without it, these rows can never be opened, and
+ * while they are on VeilCore no new key is accepted for this holder, so nothing new saves.
+ * Said plainly, confirmed, then the rows are deleted and a new key is made.
+ */
+const LostKeyButton: React.FC = () => {
+  const { t } = useT();
+  const [busy, setBusy] = useState(false);
+  const [said, setSaid] = useState<string>();
+  const go = async () => {
+    if (!window.confirm(t('app.sealed.lost.confirm'))) return;
+    setBusy(true);
+    setSaid(undefined);
+    const out = await abandonLostKey();
+    setBusy(false);
+    setSaid('error' in out ? t('app.sealed.lost.failed', { error: out.error }) : t('app.sealed.lost.done'));
+  };
+  return (
+    <Box>
+      <Button color="inherit" onClick={() => void go()} disabled={busy} sx={{ minHeight: 44 }} data-lost-key="">
+        {t('app.sealed.lost.button')}
+      </Button>
+      {said && (
+        <Typography variant="body2" role="status" sx={{ mt: 0.5 }}>
+          {said}
+        </Typography>
+      )}
+    </Box>
   );
 };
 

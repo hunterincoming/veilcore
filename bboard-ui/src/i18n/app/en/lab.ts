@@ -381,4 +381,7 @@ export const lab = {
   'app.lab.card.notSigned': 'receipt not signed yet',
   'app.lab.card.ref': 'ref {ref}',
   'app.lab.send.theLab': 'the lab',
+  // LabResults.tsx: a lock this browser can’t vouch for (round 3, P1)
+  'app.lab.out.pasteAgain':
+    'The lock for lab reports on this record can’t be checked against the lab code, so nothing is sent with it. Paste the lab code again.',
 };

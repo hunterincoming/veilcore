@@ -20,6 +20,12 @@ beforeAll(() => {
     return Promise.resolve(new Response(JSON.stringify([]), { status: 200 }));
   });
 });
+// Since round 3 (L1) nothing is sealed and sent before the key is in a checked backup: as a holder does first.
+beforeAll(async () => {
+  const vault = await import('./vault');
+  vault.mintVault();
+  vault.markVaultBackedUp();
+});
 afterAll(() => vi.unstubAllGlobals());
 
 const forms = (hex: string): string[] => [hex, hex.toUpperCase(), Buffer.from(hex, 'hex').toString('base64')];

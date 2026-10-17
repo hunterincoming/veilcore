@@ -14,33 +14,42 @@ import { ensureKeys, forgetKeys } from './record-keys';
 import { bindingForSecret } from './key-binding';
 import { isAnimal, type AnimalDetails, type ParentRole } from './animal-profile';
 import {
+  allowReplace,
   checkRecordIntegrity,
   clearSealedState,
+  deleteLicenses,
   deleteRecords,
   integrityOf as storedIntegrityOf,
+  isStoredAsIs,
   keepNewerCopy,
   loadNoticeOf,
   lockedRowsOf,
   makeVaultIfSafe,
+  olderCopyOf,
   olderRowsOf,
   onSealedStateChange,
   recordSealedBytes,
   rowStateOf,
   SEALED_MAX_BYTES,
+  takeOlderCopy,
   type IntegrityCheck as StoredIntegrityCheck,
   type LoadNotice,
   type LockedRow,
 } from './api-store';
-import { clearUnusedVault, onVaultChange, vaultKeyIfAny, vaultNeedsBackup } from './vault';
+import { clearUnusedVault, onVaultChange, vaultKeyIfAny, vaultNeedsBackup, vaultKid } from './vault';
 import {
   disclosureFrom,
   keysOn,
   listGrants,
   registerGrantKeeper,
+  registerRecordLookup,
   sendGrant,
   syncGrants,
+  VALUELESS_KEYS,
   type DisclosureKey,
 } from './disclosure';
+import { dropNames, inOutbox, keepName, outboxNames, outboxRecords, putInOutbox, takeFromOutbox } from './outbox';
+import { holderKey } from './holder';
 import { enT, type Translator } from '../i18n/translate';
 
 /**
@@ -167,6 +176,20 @@ export type StrainRecord = {
    */
   readonly grant?: DisclosureKey[];
   /**
+   * Keys the registry listed for this record before it was locked, which publish values
+   * (round 3, P2). Not taken as the holder's choice: the app asks the holder first
+   * (confirmGrant). Only `existence` and `descent-clean`, which publish nothing, are kept
+   * without asking.
+   */
+  readonly grantToConfirm?: DisclosureKey[];
+  /**
+   * Where `resultLock` came from: the lab code (pasted here), or the sender's sealed offer
+   * (round 3, P1). A lock without this was put on the record before either was required, and
+   * is used only when it matches the lock this browser kept from the code (lab-results.ts
+   * reportLockFor).
+   */
+  readonly resultLockFrom?: 'code' | 'offer';
+  /**
    * The name the holder gave each delivery's recipient, by transfer id (CONTRACT.md #15).
    * The registry gets only a tag for it; the name is shown from here.
    */
@@ -174,7 +197,9 @@ export type StrainRecord = {
 };
 
 /** The receiver's own notes on a received record: outside the fingerprint, so safe to change. */
-export type ReceivedNotes = Partial<Pick<StrainRecord, 'deliveryNote' | 'labRef' | 'resultLock' | 'receiptRejected'>>;
+export type ReceivedNotes = Partial<
+  Pick<StrainRecord, 'deliveryNote' | 'labRef' | 'resultLock' | 'resultLockFrom' | 'receiptRejected'>
+>;
 
 /**
  * A stored record, checked on the way in.
@@ -299,9 +324,12 @@ let converting: Promise<void> | null = null;
  * (vault.ts vaultNeedsBackup), and conversion runs once it is checked. A browser that can't
  * keep a key makes none and converts nothing (sealedView.vaultProblem says why).
  *
- * The registry holds these records in plain text, so its grants for them tell it nothing it
- * doesn't have: they are taken into the sealed copy, and after the save every one of them is
- * sent once, value-less keys included (CONTRACT.md #19, L6).
+ * The registry's grants for these records are its word, not the holder's (round 3, P2): a
+ * server could list keys the holder never chose, and from then on the browser would publish
+ * values the server never had (a DNA report's hash, the parents of a correction). So only the
+ * keys that publish nothing (existence, descent-clean) are taken into the sealed copy; any
+ * other key listed waits in `grantToConfirm`, and the app asks the holder (confirmGrant)
+ * before it is shared again. After the save the kept grant is sent once (CONTRACT.md #19, L6).
  */
 const convertLegacy = (): Promise<void> => {
   converting ??= (async () => {
@@ -319,10 +347,17 @@ const convertLegacy = (): Promise<void> => {
     if (listed === null) return; // the registry couldn't list them now: tried again at the next sync
     const ids = new Set(legacy.map((r) => r.id));
     for (const id of ids) converted.add(id);
-    const chosen = new Map(listed.map((g) => [g.recordId, keysOn(disclosureFrom(g.show))]));
-    records = records.map((r) =>
-      ids.has(r.id) && r.grant === undefined && chosen.has(r.id) ? { ...r, grant: chosen.get(r.id) } : r,
-    );
+    const listedKeys = new Map(listed.map((g) => [g.recordId, keysOn(disclosureFrom(g.show))]));
+    records = records.map((r) => {
+      const keys = listedKeys.get(r.id);
+      if (!ids.has(r.id) || r.grant !== undefined || !keys) return r;
+      const ask = keys.filter((k) => !VALUELESS_KEYS.includes(k));
+      return {
+        ...r,
+        grant: keys.filter((k) => VALUELESS_KEYS.includes(k)),
+        ...(ask.length ? { grantToConfirm: ask } : {}),
+      };
+    });
     await saveAll();
     for (const id of ids) {
       const r = getRecord(id);
@@ -336,33 +371,49 @@ const convertLegacy = (): Promise<void> => {
   return converting;
 };
 
-// A checked backup (or a restored key) is what conversion waits for.
+// A checked backup (or a restored key) is what conversion waits for, and what records kept
+// in this browser for the registry wait for (round 3, L1): they are read in again (another
+// tab may have kept some) and sent.
+let waitingForBackup = !vaultKeyIfAny() || vaultNeedsBackup();
 onVaultChange(() => {
-  if (vaultKeyIfAny() && !vaultNeedsBackup() && records.some((r) => rowStateOf(RECORDS_KEY, r.id) === 'legacy')) {
-    void convertLegacy();
-  }
+  const waiting = !vaultKeyIfAny() || vaultNeedsBackup();
+  const justBackedUp = waitingForBackup && !waiting;
+  waitingForBackup = waiting;
+  if (waiting) return;
+  if (records.some((r) => rowStateOf(RECORDS_KEY, r.id) === 'legacy')) void convertLegacy();
+  else if (justBackedUp && Object.keys(outboxRecords()).length) void hydrate();
 });
 
 /** Re-fetch from the registry. Used on start, after a claim, and by the sync below. */
-export const hydrate = async (): Promise<void> => {
+export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> => {
   const before = records;
   try {
     records = await store.load(RECORDS_KEY, isStrainRecord);
   } catch {
-    return; // the registry could not answer now: keep what is shown, try again at the next sync
+    // The registry could not answer now: keep what is shown, try again at the next sync. A
+    // first load still shows what this browser keeps for the registry (outbox.ts).
+    if (before.length === 0) {
+      records = Object.values(outboxRecords()).filter(isStrainRecord);
+      if (records.length) notify();
+    }
+    return;
   }
   // The registry sent an older copy of a record than this browser has seen (CONTRACT.md
   // #20): the newer copy this page holds stays, and is sent again.
   let kept = 0;
   for (const id of olderRowsOf(RECORDS_KEY)) {
-    const mine = before.find((r) => r.id === id);
-    if (!mine) continue;
+    const mine = before.find((r) => r.id === id) ?? (outboxRecords()[id] as StrainRecord | undefined);
+    if (!mine || !isStrainRecord(mine)) continue;
     records = [...records, mine];
     keepNewerCopy(RECORDS_KEY, id);
     kept++;
   }
+  // What this browser keeps for the registry: shown, and sent with the next save (L1, L12).
+  const merged = await mergeOutbox();
   notify();
-  if (kept) void saveAll();
+  // Sent again with the next save; not straight after a refusal (saveAll reads the set back
+  // with resave off), so a registry that keeps refusing is asked once per sync, not in a loop.
+  if ((kept || merged) && opts.resave !== false) void saveAll();
   await convertLegacy();
   if (!syncedOnce) {
     syncedOnce = true;
@@ -385,7 +436,11 @@ const keepGrant = async (id: string, show: DisclosureKey[]): Promise<StrainRecor
   const r = getRecord(id);
   if (!r) return { error: 'that record isn’t in this browser' };
   if (integrityOf(id) === 'mismatch') return { error: enT.t('app.sealed.mismatch') };
-  const next: StrainRecord = { ...r, grant: [...show] };
+  // A choice made on the share screen answers the question about the grant listed before
+  // locking too (P2).
+  const { grantToConfirm: _ask, ...rest } = r;
+  void _ask;
+  const next: StrainRecord = { ...rest, grant: [...show] };
   if (rowStateOf(RECORDS_KEY, id) === 'legacy') return next;
   records = records.map((x) => (x.id === id ? next : x));
   notify();
@@ -399,6 +454,7 @@ const keepGrant = async (id: string, show: DisclosureKey[]): Promise<StrainRecor
   return getRecord(id) ?? next;
 };
 registerGrantKeeper(keepGrant);
+registerRecordLookup((id) => getRecord(id));
 
 /**
  * Keep the name the holder gave a delivery's recipient, sealed with the source record
@@ -410,6 +466,14 @@ export const noteSentTo = (recordId: string, transferId: string, name: string): 
   records = records.map((r) =>
     r.id === recordId ? { ...r, sentTo: { ...(r.sentTo ?? {}), [transferId]: label } } : r,
   );
+  // A record saved before locking can't be changed until the backup is checked; the name
+  // isn't a change to it, so it waits in this browser and goes with the record when it is
+  // locked (L11). It used to be refused as a change, and lost.
+  if (rowStateOf(RECORDS_KEY, recordId) === 'legacy') {
+    keepName(recordId, transferId, label);
+    notify();
+    return;
+  }
   persist();
 };
 
@@ -449,8 +513,12 @@ export const startRecordSync = (): void => {
  */
 const saveAll = async (grantsToResend: readonly string[] = []): Promise<SaveResult> => {
   const result = await store.save(RECORDS_KEY, records);
+  settleOutbox(result);
   reportSave('records', result);
-  if (!result.ok && !result.offline) await hydrate();
+  // Rows held for the backup aren't refused: nothing to read back for them.
+  if (!result.ok && !result.offline && (result.refused.length > 0 || !result.held?.length)) {
+    await hydrate({ resave: false });
+  }
   // A grant's published values were read from the record as it was: send them again for
   // the records whose fingerprint has changed since (disclosure.ts syncGrants).
   if (!result.offline) void resendGrants(grantsToResend);
@@ -460,6 +528,157 @@ const saveAll = async (grantsToResend: readonly string[] = []): Promise<SaveResu
 const persist = () => {
   void saveAll();
   notify();
+};
+
+// ---- what this browser keeps for the registry (outbox.ts; round 3, L1, L11, L12) -------------
+
+/**
+ * After a save: what the registry took is no longer kept here; what was held for the backup,
+ * or couldn't be sent (offline, a refusal of the whole save that isn't about the rows: no key
+ * here, the registry couldn't be asked), is. A new record stays kept whatever happened to it,
+ * until the registry has it or the holder lets it go (discardUnsaved).
+ */
+const settleOutbox = (result: SaveResult): void => {
+  if (result.accepted?.length) takeFromOutbox(result.accepted);
+  const transient = result.offline || result.refused.some((r) => r.id === '*');
+  const keep = new Set([...(result.held ?? []), ...(transient ? (result.pending ?? []) : [])]);
+  putInOutbox(records.filter((r) => keep.has(r.id)));
+};
+
+/**
+ * Put back what this browser keeps for the registry into the set just loaded. A kept copy
+ * the registry now holds as is goes; a kept copy of a row the registry sent an older copy of
+ * stays, as the newer one; a kept copy of an emptied or locked row stays only when its
+ * fingerprint is the row's public one (it is the holder's own, L4). Names kept for
+ * recipients (L11) go back on their records. True when anything kept needs sending.
+ */
+const mergeOutbox = async (): Promise<boolean> => {
+  let needsSave = false;
+  const gone: string[] = [];
+  for (const [id, kept] of Object.entries(outboxRecords())) {
+    if (!isStrainRecord(kept)) {
+      gone.push(id);
+      continue;
+    }
+    const state = rowStateOf(RECORDS_KEY, id);
+    if (state === 'open' && (await isStoredAsIs(RECORDS_KEY, kept))) {
+      gone.push(id);
+      continue;
+    }
+    if (state === 'legacy' || state === 'stub') continue; // never kept for these; the registry's row stands
+    if (state === 'locked' && !allowReplace(RECORDS_KEY, id, kept.recordFingerprint)) continue;
+    if (state === 'older') keepNewerCopy(RECORDS_KEY, id);
+    const at = records.findIndex((r) => r.id === id);
+    records = at >= 0 ? records.map((r, i) => (i === at ? kept : r)) : [kept, ...records];
+    needsSave = true;
+  }
+  takeFromOutbox(gone);
+  for (const [id, names] of Object.entries(outboxNames())) {
+    const r = getRecord(id);
+    if (!r) continue;
+    const has = r.sentTo ?? {};
+    if (Object.entries(names).every(([t, n]) => has[t] === n)) {
+      if (rowStateOf(RECORDS_KEY, id) === 'open') dropNames(id);
+      continue;
+    }
+    records = records.map((x) => (x.id === id ? { ...x, sentTo: { ...names, ...has } } : x));
+    if (rowStateOf(RECORDS_KEY, id) === 'open') needsSave = true;
+  }
+  return needsSave;
+};
+
+/** Why a record is shown but not on the registry yet, or undefined when it is. */
+export type UnsavedReason = 'backup' | 'key' | 'retry';
+export const unsavedReason = (id: string): UnsavedReason | undefined => {
+  if (!inOutbox(id)) return undefined;
+  if (vaultKeyIfAny() && vaultNeedsBackup()) return 'backup';
+  if (!vaultKeyIfAny() && lockedRecords().some((l) => l.kid)) return 'key';
+  return 'retry';
+};
+
+/**
+ * Let go of a record kept in this browser that the registry never took (a new one), or of a
+ * change to one it has (the registry's copy is shown again).
+ */
+export const discardUnsaved = async (id: string): Promise<void> => {
+  if (!inOutbox(id)) return;
+  takeFromOutbox([id]);
+  if (rowStateOf(RECORDS_KEY, id) === undefined) {
+    records = records.filter((r) => r.id !== id);
+    forgetKeys(id);
+    notify();
+  }
+  await hydrate();
+};
+
+/**
+ * The holder answers the question about keys listed before the record was locked (P2):
+ * share them again (they go through saveGrant, read from the record here), or not.
+ */
+export const confirmGrant = async (id: string, share: boolean): Promise<{ ok: true } | { error: string }> => {
+  const r = getRecord(id);
+  if (!r?.grantToConfirm?.length) return { ok: true };
+  if (share) {
+    const { saveGrant } = await import('./disclosure');
+    const out = await saveGrant(r, disclosureFrom([...(r.grant ?? []), ...r.grantToConfirm]));
+    return 'error' in out ? out : { ok: true };
+  }
+  const { grantToConfirm: _ask, ...rest } = r;
+  void _ask;
+  records = records.map((x) => (x.id === id ? (rest as StrainRecord) : x));
+  notify();
+  const result = await saveAll();
+  return result.ok || result.held?.length ? { ok: true } : { error: describeRefusals(result.refused) };
+};
+
+/**
+ * "Use this copy" (L2): the registry sent an older copy of a record than this browser had
+ * seen, and this browser has no newer one. The holder takes the registry's copy as the
+ * record; from then on it is shown, and changes to it are saved.
+ */
+export const adoptOlderCopy = (id: string): boolean => {
+  const v = takeOlderCopy(RECORDS_KEY, id);
+  if (!v || !isStrainRecord(v)) return false;
+  records = [v, ...records.filter((r) => r.id !== id)];
+  void checkRecordIntegrity(v);
+  notify();
+  return true;
+};
+
+/** The registry's older copy of a record, for the page that offers to use it. */
+export const olderCopyOfRecord = (id: string): StrainRecord | undefined => {
+  const v = olderCopyOf(RECORDS_KEY, id);
+  return v && isStrainRecord(v) ? v : undefined;
+};
+
+/**
+ * "I don't have that backup" (L1). The holder's rows sealed with a key nobody here has can
+ * never be opened again, and while they are on the registry no other key is accepted for
+ * this holder. With the holder's word, they are deleted (records and agreements), and a new
+ * key is made for what comes next (it waits for a checked backup like any new key). Rows the
+ * purge emptied and older copies are not this key's, and stay.
+ */
+export const abandonLostKey = async (): Promise<{ removed: number } | { error: string }> => {
+  const kid = await vaultKid();
+  const dead = (rows: readonly LockedRow[]) => rows.filter((l) => l.kid && l.kid !== kid && !l.older).map((l) => l.id);
+  const recordIds = dead(lockedRecords());
+  const licenseIds = dead(lockedRowsOf('veilcore.licenses.v1'));
+  if (recordIds.length + licenseIds.length === 0) return { error: enT.t('app.sealed.lost.nothing') };
+  let removed = 0;
+  if (recordIds.length) {
+    const out = await deleteRecords(recordIds);
+    if ('error' in out) return out;
+    removed += out.removed.length;
+  }
+  if (licenseIds.length) {
+    const out = await deleteLicenses(licenseIds);
+    if ('error' in out) return out;
+    removed += out.removed.length;
+  }
+  await hydrate();
+  if (!vaultKeyIfAny()) await makeVaultIfSafe();
+  if (Object.keys(outboxRecords()).length) void saveAll();
+  return { removed };
 };
 
 /**
@@ -511,6 +730,10 @@ export const createRecord = (input: NewRecordInput): StrainRecord => {
   // Refused before it is shown or sent: the caller still has what was typed.
   if (tooLargeToSave(record)) throw new Error(enT.t('app.sealed.tooLarge'));
   records = [record, ...records];
+  // Kept in this browser until the registry has it (L12): a refused or held save never
+  // takes away what was typed.
+  holderKey();
+  putInOutbox([record]);
   persist();
   return record;
 };
@@ -525,6 +748,8 @@ export const createRecordSaved = async (
 ): Promise<{ readonly record: StrainRecord; readonly result: SaveResult }> => {
   const record: StrainRecord = { licenseIds: [], ...input, id: input.id ?? newRecordId() };
   records = [record, ...records];
+  holderKey();
+  putInOutbox([record]);
   notify();
   const result = await saveAll();
   return { record, result };
@@ -543,6 +768,15 @@ export const createRecords = async (inputs: readonly NewRecordInput[]): Promise<
   const batch: StrainRecord[] = inputs.map((input) => ({ licenseIds: [], ...input, id: input.id ?? newRecordId() }));
   const ids = new Set(batch.map((r) => r.id));
   const result = await store.save(RECORDS_KEY, [...batch, ...records.filter((r) => !ids.has(r.id))]);
+  // Held for the backup (L1): nothing was sent, and the importer stops and says why.
+  if (result.held?.length) {
+    return {
+      ok: false,
+      refused: [
+        { id: '*', reason: enT.t('app.sealed.refuse.backupFirstNew'), words: 'app.sealed.refuse.backupFirstNew' },
+      ],
+    };
+  }
   if (!result.offline && !result.refused.some((r) => r.id === '*')) await hydrate();
   return result;
 };
@@ -703,6 +937,11 @@ export type ImportResult = {
   alreadyHere: number;
   /** Rows the file has sealed with a key this browser lacks, or emptied: skipped, not imported (L8). */
   locked?: number;
+  /**
+   * Records locked or emptied on the registry that the file couldn't put back: the file's
+   * fingerprint isn't the row's public one, or the registry wouldn't take it (round 3, L4).
+   */
+  notImported?: number;
 };
 
 /** A row of an opened registry export this browser couldn't open: still sealed, or emptied by the purge. */
@@ -757,15 +996,35 @@ export const importRecords = async (file: File): Promise<ImportResult> => {
   // a save is an upsert per id, so an id missed here would be overwritten there.
   await hydrate();
   const have = new Set(records.map((r) => r.id));
-  const fresh = cleaned.filter((r) => !have.has(r.id));
-  if (fresh.length > 0) {
-    records = [...fresh, ...records];
-    persist();
+  // A record the registry holds locked or emptied (the purge, a lost key) is put back only
+  // from the holder's own copy: its fingerprint must be the row's public one (L4). Anything
+  // else for those ids is not imported, and counted, rather than said to be added and then
+  // gone on the next load.
+  const lockedHere = new Map(lockedRecords().map((l) => [l.id, l]));
+  const fresh = cleaned.filter((r) => !have.has(r.id) && !lockedHere.has(r.id));
+  const replacing = cleaned.filter((r) => lockedHere.has(r.id) && allowReplace(RECORDS_KEY, r.id, r.recordFingerprint));
+  const mismatched = cleaned.filter((r) => lockedHere.has(r.id)).length - replacing.length;
+  let refusedBack: string[] = [];
+  const adding = [...fresh, ...replacing];
+  if (adding.length > 0) {
+    records = [...adding, ...records.filter((r) => !replacing.some((x) => x.id === r.id))];
+    holderKey();
+    putInOutbox(adding);
+    notify();
+    const result = await saveAll();
+    // A replacement the registry refused is not imported (kept rows wait for the backup).
+    const taken = new Set([...(result.accepted ?? []), ...(result.held ?? [])]);
+    refusedBack = result.offline ? [] : replacing.filter((r) => !taken.has(r.id)).map((r) => r.id);
+    if (refusedBack.length) {
+      takeFromOutbox(refusedBack);
+      await hydrate();
+    }
   }
   return {
-    added: fresh.length,
-    alreadyHere: cleaned.length - fresh.length,
+    added: adding.length - refusedBack.length,
+    alreadyHere: cleaned.filter((r) => have.has(r.id)).length,
     ...(lockedRows ? { locked: lockedRows } : {}),
+    ...(mismatched + refusedBack.length ? { notImported: mismatched + refusedBack.length } : {}),
   };
 };
 
@@ -831,7 +1090,15 @@ export type OfferFields = {
   readonly animal?: { readonly breed?: string; readonly idScheme?: string; readonly sex?: string };
   readonly quantity?: string;
   readonly note?: string;
+  /**
+   * The breeder's lock for lab reports, inside the sealed offer (round 3, P1): only a
+   * sealed offer opened with the code's key is a source for it, never the registry.
+   */
+  readonly resultLock?: string;
 };
+
+/** An age X25519 recipient (lab-results.ts RECIPIENT; repeated so this module needn't load it). */
+const LOCK = /^age1[02-9ac-hj-np-z]{58}$/;
 
 const text = (v: unknown): string | undefined => (typeof v === 'string' ? v : undefined);
 
@@ -846,6 +1113,8 @@ export const offerFieldsOf = (v: unknown): OfferFields => {
     if (s !== undefined) out[k] = s;
   }
   if (a) out.animal = { breed: text(a.breed) ?? '', idScheme: text(a.idScheme) ?? '', sex: text(a.sex) ?? 'unknown' };
+  const lock = text(o.resultLock)?.toLowerCase();
+  if (lock && LOCK.test(lock)) out.resultLock = lock;
   return out;
 };
 
@@ -857,8 +1126,14 @@ export const offerFieldsOf = (v: unknown): OfferFields => {
  * and DNA report stay with the sender.
  */
 const receivedFields = (r: StrainRecord, offer: OfferFields): StrainRecord => {
+  // Only the registry's own fields of the stub (CONTRACT.md #8): anything else on it is the
+  // server's, and would be sealed into the record as the recipient's own (round 3, P1).
+  const stub: Record<string, unknown> = {};
+  for (const k of ['id', 'strainName', 'profile', 'receivedFrom', 'receivedFromCommitment', 'receivedAt', 'transferId'])
+    if ((r as unknown as Record<string, unknown>)[k] !== undefined)
+      stub[k] = (r as unknown as Record<string, unknown>)[k];
   const base: Record<string, unknown> = {
-    ...r,
+    ...stub,
     strainName: offer.strainName ?? r.strainName,
     bredBy: offer.bredBy ?? (r.bredBy || ''),
     dateCreated: offer.dateCreated ?? (r.dateCreated || ''),
@@ -867,8 +1142,8 @@ const receivedFields = (r: StrainRecord, offer: OfferFields): StrainRecord => {
     parents: [],
     photoFingerprints: [],
     refId: '',
-    licenseIds: r.licenseIds ?? [],
-    loggedAt: r.receivedAt ?? r.loggedAt ?? Date.now(),
+    licenseIds: [],
+    loggedAt: r.receivedAt ?? Date.now(),
   };
   const profile = offer.profile ?? r.profile;
   if (profile !== undefined) base.profile = profile;
@@ -970,6 +1245,14 @@ export const updateReceivedNotes = (id: string, notes: ReceivedNotes): StrainRec
 };
 
 /**
+ * Whether a correction of this record must wait for a checked backup (L7): the record was
+ * saved before locking, or the key isn't in a checked backup yet. The page says so before
+ * anything is typed.
+ */
+export const correctionWaitsForBackup = (id: string): boolean =>
+  rowStateOf(RECORDS_KEY, id) === 'legacy' || (!!vaultKeyIfAny() && vaultNeedsBackup());
+
+/**
  * Issue a correction.
  *
  * The original is not edited and not deleted — it is marked as superseded and stays on
@@ -988,6 +1271,10 @@ export const issueCorrection = async (
   if (!before) return undefined;
   // Made from the original's fields, so never from ones that don't match its fingerprint.
   if (integrityOf(originalId) === 'mismatch') throw new Error(enT.t('app.sealed.mismatch'));
+  // A correction is two saves the registry must both take: never of a record saved before
+  // locking, nor under a key that isn't in a checked backup yet (round 3, L7, L1). Said up
+  // front; it used to leave a correction on the registry while saying nothing had changed.
+  if (correctionWaitsForBackup(originalId)) throw new Error(enT.t('app.sealed.backupFirstAction'));
 
   const { supersedesFor } = await import('veilcore-records');
 
@@ -998,6 +1285,8 @@ export const issueCorrection = async (
   const { keyBinding } = bindingForSecret(ensureKeys(id).recordSecret);
   // The draft is not sealed yet, so it has no commitment. Typed loosely here for that
   // reason; the sealed record below has one.
+  // Never the original's share choice (round 3, P2): what the correction publishes is the
+  // holder's to choose again, so a grant the registry lists for the new id gets nothing.
   const draft = {
     ...before,
     ...edits,
@@ -1006,6 +1295,8 @@ export const issueCorrection = async (
     keyBinding,
     loggedAt: Date.now(),
     supersededBy: undefined,
+    grant: undefined,
+    grantToConfirm: undefined,
   } as StrainRecord;
 
   const holder = await holderPartyId();
@@ -1030,14 +1321,24 @@ export const issueCorrection = async (
   // registry — and say why, rather than showing a correction nobody can verify.
   const result = await store.save(RECORDS_KEY, records);
   const refusedHere = result.refused.filter((x) => x.id === '*' || x.id === corrected.id || x.id === originalId);
-  if (!result.offline && refusedHere.length) {
+  if (!result.offline && (refusedHere.length || result.held?.length)) {
     records = previous;
-    forgetKeys(id); // made for the correction above; nothing was sealed under them
     notify();
+    // The registry may have taken one half: a correction it stored is deleted before its
+    // keys go (L7), so no orphan correction is left behind.
+    if (result.accepted?.includes(corrected.id)) {
+      const del = await deleteRecords([corrected.id]);
+      if ('error' in del || !del.removed.includes(corrected.id)) {
+        await hydrate();
+        throw new Error(enT.t('app.sealed.correctionLeft', { id: corrected.id }));
+      }
+    }
+    forgetKeys(id); // made for the correction above; nothing is sealed under them now
     await store.save(RECORDS_KEY, records);
     await hydrate();
     throw new Error(`The registry refused this correction, so nothing was changed. ${describeRefusals(refusedHere)}`);
   }
+  settleOutbox(result);
   reportSave('records', result);
   if (!result.ok && !result.offline) await hydrate();
   return corrected;

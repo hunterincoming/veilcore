@@ -395,4 +395,7 @@ export const lab = {
   'app.lab.card.notSigned': 'Empfangsbestätigung noch nicht signiert',
   'app.lab.card.ref': 'Ref. {ref}',
   'app.lab.send.theLab': 'das Labor',
+  // LabResults.tsx: a lock this browser can’t vouch for (round 3, P1)
+  'app.lab.out.pasteAgain':
+    'Das Schloss für Laborberichte bei diesem Datensatz lässt sich nicht mit dem Laborcode abgleichen, daher wird damit nichts gesendet. Fügen Sie den Laborcode erneut ein.',
 } satisfies Partial<AppTranslation>;

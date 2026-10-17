@@ -38,13 +38,16 @@ import {
   fieldsFor,
   geneticsLabel,
   labelOf,
-  defaultDisclosure,
   disclosureFrom,
+  keepSealedGrant,
   keysOn,
   loadGrant,
   saveGrant,
+  sealedGrantOf,
+  shareScreenStart,
   sharedNowWords,
   type Disclosure,
+  type DisclosureKey,
 } from '../../veilcore/disclosure';
 import { canonicalUrl } from '../../config/network';
 import { verifyPath } from '../../veilcore/verify-link';
@@ -72,10 +75,16 @@ export const Step5ProveDisclosure: React.FC<{
   const { t } = tr;
   const loadedSaved = useSavedReport(given === undefined ? record : undefined);
   const saved = given === undefined ? loadedSaved : given;
-  const [disclosure, setDisclosure] = useState<Disclosure>(defaultDisclosure());
-  // What the registry holds now, so the switches start from the truth rather than from
-  // defaults that may not be what strangers currently see.
+  // The switches start from the holder's own choice, kept in the record's sealed copy
+  // (round 3, P3): they used to start from the registry's answer, so one press of the button
+  // published whatever the registry had switched on. A record with no choice yet starts from
+  // the defaults, which are not saved until the holder presses the button.
+  const sealedChoice = record ? sealedGrantOf(record) : null;
+  const [disclosure, setDisclosure] = useState<Disclosure>(() => shareScreenStart(record));
+  // What the registry holds now: said beside the switches, and when it differs from the
+  // holder's choice, both are shown and the holder chooses.
   const [stored, setStored] = useState<{ show: string[]; updatedAt: string | null } | 'loading' | 'unknown'>('loading');
+  const [keeping, setKeeping] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ absolute: string; relative: string }>();
@@ -111,10 +120,8 @@ export const Step5ProveDisclosure: React.FC<{
     void loadGrant(recordId).then((g) => {
       if (!live) return;
       if (g && !('error' in g)) {
-        setStored(g);
-        // A record with no grant yet starts from the defaults, which are not saved
-        // until the holder presses the button.
-        if (g.updatedAt !== null) setDisclosure(disclosureFrom(g.show));
+        // What strangers see now is the registry's copy; the switches stay the holder's own.
+        setStored({ show: g.serverShow ?? g.show, updatedAt: g.updatedAt });
       } else {
         setStored('unknown');
       }
@@ -193,6 +200,31 @@ export const Step5ProveDisclosure: React.FC<{
       ? true
       : stored.show.join(',') !== keysOn(disclosure).join(',');
 
+  // The registry shows something else than the holder's own choice (another tab, an older
+  // version of the site, or the server itself): both are said, and the holder chooses.
+  const serverShows =
+    stored !== 'loading' && stored !== 'unknown' && stored.updatedAt !== null ? stored.show : undefined;
+  const differs =
+    serverShows !== undefined &&
+    (sealedChoice !== null || serverShows.length > 0) &&
+    serverShows.join(',') !== (sealedChoice ?? []).join(',');
+  const listOf = (keys: readonly string[]) =>
+    keys.length
+      ? keys.map((k) => labelOf(k as DisclosureKey, tr)).join(t('app.prove.share.semicolon'))
+      : t('app.prove.share.onlyBasics');
+  const keepMine = async () => {
+    setKeeping(true);
+    setError(null);
+    const ok = await keepSealedGrant(record);
+    setKeeping(false);
+    if (!ok) return setError(t('app.prove.share.notSaved', { error: t('app.prove.share.differs.failed') }));
+    setStored({ show: sealedChoice ?? [], updatedAt: new Date().toISOString() });
+  };
+  const useServers = () => {
+    setDisclosure(disclosureFrom(serverShows ?? []));
+    setResult(undefined);
+  };
+
   return (
     <Stack spacing={2.5}>
       <Box>
@@ -251,6 +283,22 @@ export const Step5ProveDisclosure: React.FC<{
           {savedReportSentence(saved, tr)}
           {t('app.common.sentenceSep')}
           {disclosure['attestation-status'] ? t('app.prove.share.reportOn') : t('app.prove.share.reportOff')}
+        </Alert>
+      )}
+
+      {differs && (
+        <Alert severity="warning" variant="outlined" data-grant-differs="">
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            {t('app.prove.share.differs.text', { server: listOf(serverShows ?? []), mine: listOf(sealedChoice ?? []) })}
+          </Typography>
+          <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
+            <Button variant="outlined" disabled={keeping} onClick={() => void keepMine()} sx={{ minHeight: 44 }}>
+              {t('app.prove.share.differs.keepMine')}
+            </Button>
+            <Button variant="text" disabled={keeping} onClick={useServers} sx={{ minHeight: 44 }}>
+              {t('app.prove.share.differs.useServers')}
+            </Button>
+          </Stack>
         </Alert>
       )}
 

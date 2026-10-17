@@ -64,7 +64,8 @@ export const sealed = {
   'app.sealed.size.near': '{used} KB de {max} KB usados.',
   'app.sealed.size.over': 'Demasiado grande para guardarlo. Acorte las notas.',
   'app.sealed.older.pageTitle': 'Una copia anterior de este registro',
-  'app.sealed.older': 'El servidor envió una copia anterior de este registro.',
+  'app.sealed.older':
+    'El servidor envió una copia de este registro anterior a la que este navegador guardó por última vez. Si es la copia que quiere, úsela; si no, bórrela.',
   'app.sealed.olderKept.one':
     'El servidor envió una copia anterior de {count} registro. Este navegador conservó la copia más reciente y la vuelve a guardar.',
   'app.sealed.olderKept.other':
@@ -103,4 +104,55 @@ export const sealed = {
   'app.sealed.recv.otherCode': 'Ese código es de otra entrega.',
   'app.sealed.recv.offerMissing':
     'VeilCore no envió los datos bloqueados del remitente para este código, así que el registro no se terminó. Pruebe «Terminar de recibir» en el registro más tarde, o pregunte al remitente.',
+  // Round 3: held saves, the lost-key path, older copies, grants listed before locking
+  'app.sealed.agreementsBackupFirst':
+    'Guarde una copia de seguridad y compruébela primero. Hasta entonces no se pueden crear ni cambiar acuerdos aquí.',
+  'app.sealed.backup.storageRefused':
+    'Este navegador no guarda nada ahora mismo (su almacenamiento está lleno o bloqueado en una ventana privada), así que no se cambió nada. Libere espacio o use una ventana normal e inténtelo de nuevo.',
+  'app.sealed.backupFirstAction': 'Guarde una copia de seguridad y compruébela primero. Después podrá hacerlo.',
+  'app.sealed.correctBackupFirst':
+    'Guarde una copia de seguridad y compruébela primero. Después podrá corregir este registro.',
+  'app.sealed.correctionLeft':
+    'No se pudo quitar de VeilCore la corrección {id}. Recargue la página y revise sus registros.',
+  'app.sealed.grantAsk.text':
+    'Antes de que se bloquearan sus registros, este registro compartía: {keys}. No se vuelve a compartir hasta que usted lo diga.',
+  'app.sealed.grantAsk.yes': 'Volver a compartir',
+  'app.sealed.grantAsk.no': 'No compartir',
+  'app.sealed.grantAsk.failed': 'No se guardó: {error}',
+  'app.sealed.grantDiffers.text':
+    'El servidor de VeilCore muestra para este registro una opción de compartir distinta de la que se guarda con él. No se cambió nada. Elija cuál ven los desconocidos.',
+  'app.sealed.grantDiffers.open': 'Elegir',
+  'app.sealed.importNotImported.one':
+    ' {count} registro en VeilCore está bloqueado o vaciado y el archivo no pudo recuperarlo, así que no se importó.',
+  'app.sealed.importNotImported.other':
+    ' {count} registros en VeilCore están bloqueados o vaciados y el archivo no pudo recuperarlos, así que no se importaron.',
+  'app.sealed.lost.button': 'No tengo esa copia de seguridad',
+  'app.sealed.lost.confirm':
+    'Sin ese archivo de copia de seguridad nadie puede abrir estos registros y acuerdos bloqueados, ni siquiera VeilCore. Mientras estén en VeilCore no se puede guardar nada nuevo para usted. ¿Borrarlos de VeilCore y empezar una clave nueva? No se puede deshacer.',
+  'app.sealed.lost.done':
+    'Borrados. Hay una clave nueva: guarde una copia de seguridad y compruébela, y sus registros nuevos se guardarán.',
+  'app.sealed.lost.failed': 'No se borró nada: {error}',
+  'app.sealed.lost.nothing': 'aquí no hay nada bloqueado con una clave perdida',
+  'app.sealed.older.use': 'Usar esta copia',
+  'app.sealed.older.deleteConfirm':
+    '¿Borrar {name} de VeilCore? Esta copia anterior es la única copia en el servidor de VeilCore. Una vez borrada, nadie podrá recuperarla.',
+  'app.sealed.recv.backupFirst':
+    'Este registro se guardó antes de que los registros se bloquearan. Guarde una copia de seguridad y compruébela primero; después podrá firmar.',
+  'app.sealed.recv.backupFirstClaim':
+    'Guarde una copia de seguridad y compruébela primero; luego use el código. Todavía no se recibió nada.',
+  'app.sealed.recv.noAnswer':
+    'VeilCore no respondió ({error}). El código se guarda en este navegador. Si se recibió, aparece en sus registros con «Terminar de recibir»; si no, inténtelo de nuevo.',
+  'app.sealed.refuse.backupFirstNew': 'todavía no se guardó nada. Guarde una copia de seguridad y compruébela primero',
+  'app.sealed.unsaved.backup':
+    'Aún no se guardó. Guarde su copia de seguridad y compruébela; hasta entonces solo está en este navegador.',
+  'app.sealed.unsaved.key':
+    'Aún no se guardó. Este navegador no tiene la clave de sus registros en VeilCore. Restaure su copia de seguridad o, si no la tiene, use «No tengo esa copia de seguridad» en la página de sus registros.',
+  'app.sealed.unsaved.retry':
+    'Aún no se guardó en VeilCore. Se conserva en este navegador y se vuelve a enviar en el próximo guardado.',
+  'app.sealed.unsaved.short': 'Aún no se guardó: guarde su copia de seguridad',
+  'app.sealed.unsaved.shortRetry': 'Aún no se guardó',
+  'app.sealed.unsaved.discardConfirm':
+    '¿Descartar lo que este navegador conserva para este registro? No está en VeilCore, así que no se puede recuperar.',
+  'app.sealed.unsaved.discardNew': 'Borrarlo',
+  'app.sealed.unsaved.discardChange': 'Deshacer el cambio',
 } satisfies Partial<AppTranslation>;

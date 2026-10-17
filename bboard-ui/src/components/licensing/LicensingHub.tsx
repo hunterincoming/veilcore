@@ -72,10 +72,10 @@ export const LicensingHub: React.FC = () => {
                 >
                   <Box sx={{ minWidth: 0 }}>
                     <Typography variant="h6" component="h2" noWrap>
-                      {record?.strainName ?? l.recordId} → {l.terms.licensee || 'unnamed counterparty'}
+                      {record?.strainName ?? l.recordId} → {l.terms?.licensee || 'unnamed counterparty'}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
-                      {l.id} · {l.terms.startDate} → {l.terms.endDate}
+                      {l.id} · {l.terms?.startDate} → {l.terms?.endDate}
                     </Typography>
                   </Box>
                   <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>

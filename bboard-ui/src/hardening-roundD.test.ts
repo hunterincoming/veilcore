@@ -91,6 +91,13 @@ beforeEach(() => {
   stubWebLocks();
 });
 
+/** Since round 3 (L1) nothing is sealed and sent before the key is in a checked backup: as a holder does first. */
+const keyInCheckedBackup = async () => {
+  const vault = await import('./veilcore/vault');
+  if (!vault.vaultKeyIfAny()) vault.mintVault();
+  vault.markVaultBackedUp();
+};
+
 const sha256hex = async (s: string) =>
   Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s))), (b) =>
     b.toString(16).padStart(2, '0'),
@@ -378,6 +385,7 @@ describe('F4 licences: salted canonical fingerprint; one party cannot produce "b
   });
 
   it('marking active from the issuing browser never reads as two parties; the salt is disclosed only with full terms', async () => {
+    await keyInCheckedBackup();
     const lic = await import('./veilcore/licenses');
     const { certificateFor } = await import('./veilcore/license-certificate');
     const sealed = await lic.sealAgreement('license', terms, record);
@@ -491,6 +499,7 @@ describe('F6 importRecords: fabricated fields dropped, broken fingerprints refus
 
   it('registry-written fields in the file are dropped before anything is stored or sent', async () => {
     const records = await import('./veilcore/records');
+    await keyInCheckedBackup();
     const r = {
       ...(await good('VEIL-IMP')),
       attestation: { lab: 'Eurofins Scientific', attestedAt: 1 },

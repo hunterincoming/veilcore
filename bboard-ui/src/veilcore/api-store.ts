@@ -31,6 +31,22 @@
 //     any row is sealed already, and only if this browser can keep it. A registry that can't
 //     answer is "unknown", never "none".
 //
+// Round 3 (the third attack review):
+//   - nothing is sealed and sent under a key until that key is in a backup the app has
+//     checked (L1): a key that died before its first backup used to own the holder's rows
+//     for good. A save before then sends nothing and says which rows it held (`held`);
+//     records.ts keeps them in this browser until the backup is checked;
+//   - only rows whose contents changed are sent (L2): re-sending the whole set put stale
+//     copies over newer ones. An older copy from the registry is kept, so the holder can
+//     choose to use it (takeOlderCopy), instead of being hidden for good;
+//   - a changed agreement saved before sealing is refused like a record (L3), not dropped;
+//   - an agreement the purge emptied is locked by `contentsRemoved` (L5);
+//   - a row that opens with this browser's key marks the key in use (L13);
+//   - from a claim's stub only the registry's own fields are kept, and from any row saved
+//     before sealing the fields that only ever live sealed are dropped (P1, P2): a server
+//     could otherwise hand the lab its own lock for lab reports, or a grant as the holder's;
+//   - the high-water marks go in the backup (P4: revMarks, raiseRevMarks).
+//
 // Every request carries the holder key, and the server returns only that holder's rows.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -106,6 +122,42 @@ const PRIVATE_MARKERS = [
   'deliveryNote',
 ];
 
+/**
+ * Fields that only ever live inside this browser's sealed copy of a record: the holder's
+ * share choice and the question about one, the names given to recipients, and where the lab
+ * report lock came from. A row the registry holds in plain text (saved before sealing) or a
+ * claim's stub never legitimately has them, so any it carries are the server's, and dropped
+ * (round 3, P1 and P2).
+ */
+const SEALED_ONLY = ['grant', 'grantToConfirm', 'sentTo', 'resultLockFrom'] as const;
+/**
+ * A record saved before sealing is the server's row: its lock for lab reports could be the
+ * server's own (round 3, P1). Not taken: the lab's lock comes from the lab code it pasted
+ * (kept in this browser and its backup) or from the sender's sealed offer.
+ */
+const NOT_FROM_SERVER_ROWS = [...SEALED_ONLY, 'resultLock'] as const;
+/** What a claim's stub may carry (CONTRACT.md #8): the registry's own fields, nothing else (P1). */
+const STUB_FIELDS = [
+  'id',
+  'strainName',
+  'profile',
+  'receivedFrom',
+  'receivedFromCommitment',
+  'receivedAt',
+  'transferId',
+] as const;
+/**
+ * Fields kept only in this browser (records.ts) that a save of a record saved before sealing
+ * can carry without being a change to it: the name given to a recipient while the record
+ * waits for the backup (L11).
+ */
+const LOCAL_ONLY = ['sentTo'] as const;
+const withoutKeys = (r: Record<string, unknown>, keys: readonly string[]): Record<string, unknown> => {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(r)) if (!keys.includes(k)) out[k] = v;
+  return out;
+};
+
 /** A record's sealed part: every field but the public ones, the full `supersedes` included. */
 export const privatePart = (r: Record<string, unknown>): Record<string, unknown> => {
   const out: Record<string, unknown> = {};
@@ -170,6 +222,8 @@ export type LockedRow = {
   readonly profile?: string;
   /** The key it was sealed with, by id. Absent for a row the registry's purge emptied. */
   readonly kid?: string;
+  /** Its public fingerprint, when the registry gives one (an import may put the contents back, L4). */
+  readonly recordFingerprint?: string;
   /**
    * When the vault key it was sealed with was made, when this browser made it (vault.ts
    * vaultMadeAt): any backup saved after it holds that key. A received or corrected date
@@ -201,9 +255,13 @@ type Loaded = {
   notice: LoadNotice;
   /** Each plain-text row as it loaded, so a save can tell one this browser changed. */
   legacy: Map<string, string>;
+  /** Locked rows an import put the holder's own contents back into (L4): sent by the next save. */
+  replace: Set<string>;
 };
 
 const loaded = new Map<RowKind, Loaded>();
+/** The registry's older copy of each row it sent one of, opened (L2): the holder may choose to use it. */
+const olderCopies = new Map<string, { value: Record<string, unknown>; rev: number }>();
 const integrity = new Map<string, IntegrityCheck>();
 /** Integrity worked out for a record object, so a save of an unchanged set doesn't redo it. */
 const checkedObjects = new WeakMap<object, IntegrityCheck>();
@@ -255,6 +313,7 @@ export const clearSealedState = (): void => {
   loaded.clear();
   integrity.clear();
   lastSealed.clear();
+  olderCopies.clear();
   noteSealedRowsSeen(false);
   changed();
 };
@@ -269,12 +328,66 @@ export const olderRowsOf = (key: string): readonly string[] =>
  * is never shown.
  */
 export const keepNewerCopy = (key: string, id: string): void => {
-  const l = current(kindFor(key));
+  const kind = kindFor(key);
+  const l = current(kind);
   if (!l || l.states.get(id) !== 'older') return;
   l.states.set(id, 'open');
   l.locked = l.locked.filter((r) => r.id !== id);
   l.notice = { ...l.notice, olderKept: (l.notice.olderKept ?? 0) + 1 };
+  // Only changed rows are sent (L2): forget what was last sealed, so the newer copy goes again.
+  lastSealed.delete(revKey(kind, id));
+  olderCopies.delete(revKey(kind, id));
   changed();
+};
+
+/** The registry's older copy of a row, opened, when it sent one this browser has no newer copy of. */
+export const olderCopyOf = (key: string, id: string): Record<string, unknown> | undefined =>
+  current(kindFor(key))?.states.get(id) === 'older' ? olderCopies.get(revKey(kindFor(key), id))?.value : undefined;
+
+/**
+ * "Use this copy" (L2): the holder takes the registry's older copy as the record. The
+ * high-water mark goes back to that copy's rev, so it is shown again in this browser and the
+ * next change to it is saved one rev above it. Returns the row, or undefined when there is no
+ * older copy of it.
+ */
+export const takeOlderCopy = (key: string, id: string): Record<string, unknown> | undefined => {
+  const kind = kindFor(key);
+  const l = current(kind);
+  const copy = olderCopies.get(revKey(kind, id));
+  if (!l || l.states.get(id) !== 'older' || !copy) return undefined;
+  setRev(kind, id, copy.rev);
+  lastSealed.delete(revKey(kind, id));
+  olderCopies.delete(revKey(kind, id));
+  l.states.set(id, 'open');
+  l.locked = l.locked.filter((r) => r.id !== id);
+  changed();
+  return copy.value;
+};
+
+/**
+ * An import puts the holder's own contents back into a locked or emptied row (L4): only when
+ * the file's fingerprint is the row's public one. The next save sends it; the registry still
+ * decides whether to take it.
+ */
+export const allowReplace = (key: string, id: string, recordFingerprint: string): boolean => {
+  const kind = kindFor(key);
+  const l = current(kind);
+  const row = l?.locked.find((r) => r.id === id);
+  if (!l || !row || row.older || !row.recordFingerprint || row.recordFingerprint !== recordFingerprint) return false;
+  l.replace.add(id);
+  lastSealed.delete(revKey(kind, id));
+  return true;
+};
+
+/**
+ * Whether the registry holds exactly this row now, as this browser last opened or saved it:
+ * a copy kept in this browser (records.ts) that matches needs keeping no longer.
+ */
+export const isStoredAsIs = async (key: string, item: Record<string, unknown>): Promise<boolean> => {
+  const kind = kindFor(key);
+  if (!isString(item.id) || current(kind)?.states.get(item.id) !== 'open') return false;
+  const prev = lastSealed.get(revKey(kind, item.id));
+  return !!prev && prev.hash === (await contentHash(kind, item));
 };
 
 // ---- rev: the high-water mark (CONTRACT.md #20) -------------------------------------------
@@ -314,8 +427,48 @@ const raiseRevs = (seen: readonly (readonly [RowKind, string, number])[]): void 
   }
 };
 
+/** Set one mark to exactly this rev, lower or higher ("Use this copy", L2). */
+const setRev = (kind: RowKind, id: string, rev: number): void => {
+  const revs = readRevs();
+  revs[revKey(kind, id)] = rev;
+  try {
+    localStorage.setItem(REV_STORAGE_KEY, JSON.stringify(revs));
+  } catch {
+    /* nothing kept */
+  }
+};
+
+/** Every high-water mark this browser keeps, for the backup file (round 3, P4). */
+export const revMarks = (): Record<string, number> => readRevs();
+
+/**
+ * Take the high-water marks from a backup file (P4): each only raises a mark here, never
+ * lowers one. Without them a restored browser took any older copy the registry served as
+ * current. Returns how many marks were raised.
+ */
+export const raiseRevMarks = (marks: unknown): number => {
+  if (!isObject(marks)) return 0;
+  const here = readRevs();
+  const seen: [RowKind, string, number][] = [];
+  for (const [k, v] of Object.entries(marks)) {
+    const m = /^(records|licenses):(.+)$/.exec(k);
+    if (!m || typeof v !== 'number' || !Number.isSafeInteger(v) || v <= 0) continue;
+    if ((here[k] ?? 0) < v) seen.push([m[1] as RowKind, m[2], v]);
+  }
+  raiseRevs(seen);
+  return seen.length;
+};
+
 /** The `rev` a sealed payload carries; 0 for one sealed before revs. */
 const revOf = (v: unknown): number => (typeof v === 'number' && Number.isSafeInteger(v) && v > 0 ? v : 0);
+
+/**
+ * A row's contents as the registry holds them, hashed: for a record its sealed part and its
+ * clear part both (a correction changes only the original's `supersededBy`, which is clear),
+ * for a licence its sealed part. What "changed" means for a save (round 3, L2).
+ */
+const contentHash = (kind: RowKind, item: Record<string, unknown>): Promise<string> =>
+  hashOf(kind === 'records' ? { sealed: privatePart(item), clear: publicPart(item) } : licensePart(item));
 
 /** What each row was last sealed (or opened) as here: its contents' hash and its rev. */
 const lastSealed = new Map<string, { hash: string; rev: number }>();
@@ -354,14 +507,30 @@ const fetchAllPages = async (kind: RowKind, k: string): Promise<unknown[] | null
 
 const hasAny = (row: Record<string, unknown>, keys: readonly string[]) => keys.some((k) => row[k] !== undefined);
 
-/** A claim's stub as a record the app can show until its recipient seals it. */
-const stubRecord = (row: Record<string, unknown>): Record<string, unknown> => ({
-  bredBy: '',
-  dateCreated: '',
-  notes: '',
-  loggedAt: typeof row.receivedAt === 'number' ? row.receivedAt : 0,
-  ...row,
-});
+/**
+ * A plain-text row as it loaded, to tell whether this browser changed it. A record's name
+ * kept for a recipient (LOCAL_ONLY) is not a change; an agreement saved before types existed
+ * is a license agreement (licenses.ts reads it that way).
+ */
+const legacySnapshot = (kind: RowKind, row: Record<string, unknown>): string =>
+  stableStringify(kind === 'records' ? withoutKeys(row, LOCAL_ONLY) : { type: 'license', ...row });
+
+/**
+ * A claim's stub as a record the app can show until its recipient seals it. Only the
+ * registry's own fields are kept (round 3, P1): anything else a server put on it, a lock for
+ * lab reports or a share choice above all, would be sealed into the recipient's record as
+ * though the recipient had it from the sender.
+ */
+const stubRecord = (row: Record<string, unknown>): Record<string, unknown> => {
+  const out: Record<string, unknown> = {
+    bredBy: '',
+    dateCreated: '',
+    notes: '',
+    loggedAt: typeof row.receivedAt === 'number' ? row.receivedAt : 0,
+  };
+  for (const k of STUB_FIELDS) if (row[k] !== undefined) out[k] = row[k];
+  return out;
+};
 
 export const apiStore: Store = {
   async load<T>(key: string, isValid: (v: unknown) => v is T): Promise<T[]> {
@@ -398,6 +567,13 @@ export const apiStore: Store = {
     const revs = readRevs();
     const out: T[] = [];
     let unreadable = 0;
+    let openedHere = false;
+    const publicOf = (raw: Record<string, unknown>) => ({
+      ...(isString(raw.strainName) ? { strainName: raw.strainName } : {}),
+      ...(isString(raw.profile) ? { profile: raw.profile } : {}),
+      ...(isString(raw.recordFingerprint) ? { recordFingerprint: raw.recordFingerprint } : {}),
+    });
+    for (const k of [...olderCopies.keys()]) if (k.startsWith(`${kind}:`)) olderCopies.delete(k);
     for (const raw of rows) {
       if (!isObject(raw) || !isString(raw.id)) {
         unreadable++;
@@ -412,54 +588,50 @@ export const apiStore: Store = {
           states.set(id, 'locked');
           locked.push({
             id,
-            ...(isString(raw.strainName) ? { strainName: raw.strainName } : {}),
-            ...(isString(raw.profile) ? { profile: raw.profile } : {}),
+            ...publicOf(raw),
             ...(opened.kid ? { kid: opened.kid } : {}),
             ...(opened.kid && vaultMadeAt(opened.kid) !== undefined ? { since: vaultMadeAt(opened.kid) } : {}),
           });
           continue;
         }
+        openedHere = true;
         const { rev: sealedRev, ...inner } = opened.value;
         const rev = revOf(sealedRev);
-        // An older copy than this browser has seen: never shown as the record, never sent back.
+        const asOpened = kind === 'records' ? merged(raw, inner) : { ...inner, id };
+        // An older copy than this browser has seen: not shown as the record, never sent
+        // back; kept so the holder can choose to use it (L2).
         if (rev < (revs[revKey(kind, id)] ?? 0)) {
           states.set(id, 'older');
-          locked.push({
-            id,
-            ...(isString(raw.strainName) ? { strainName: raw.strainName } : {}),
-            ...(isString(raw.profile) ? { profile: raw.profile } : {}),
-            older: true,
-          });
+          olderCopies.set(revKey(kind, id), { value: asOpened, rev });
+          locked.push({ id, ...publicOf(raw), older: true });
           continue;
         }
-        value = kind === 'records' ? merged(raw, inner) : { ...inner, id };
+        value = asOpened;
         lastSealed.set(revKey(kind, id), {
-          hash: await hashOf(kind === 'records' ? privatePart(value) : licensePart(value)),
+          hash: await contentHash(kind, value),
           rev,
         });
         revsSeen.push([kind, id, rev]);
         state = 'open';
       } else if (kind === 'licenses') {
-        if (Object.keys(raw).length <= 1) {
-          // Emptied by the registry's purge: nothing left to open.
+        if (raw.contentsRemoved === true || Object.keys(raw).length <= 1) {
+          // Emptied by the registry's purge ({ id, contentsRemoved: true }): nothing left to
+          // open (L5: it used to load as an agreement with no terms, and blank the page).
           states.set(id, 'locked');
           locked.push({ id });
           continue;
         }
-        value = raw;
+        value = withoutKeys(raw, SEALED_ONLY);
         state = 'legacy';
-      } else if (hasAny(raw, PRIVATE_MARKERS)) {
-        value = raw;
+        legacy.set(id, legacySnapshot(kind, value));
+      } else if (raw.contentsRemoved !== true && hasAny(raw, PRIVATE_MARKERS)) {
+        value = withoutKeys(raw, NOT_FROM_SERVER_ROWS);
         state = 'legacy';
-        legacy.set(id, stableStringify(raw));
+        legacy.set(id, legacySnapshot(kind, value));
       } else if (raw.contentsRemoved === true || !isString(raw.transferId)) {
         // The purge left only the public fields: the contents are gone from the registry.
         states.set(id, 'locked');
-        locked.push({
-          id,
-          ...(isString(raw.strainName) ? { strainName: raw.strainName } : {}),
-          ...(isString(raw.profile) ? { profile: raw.profile } : {}),
-        });
+        locked.push({ id, ...publicOf(raw) });
         continue;
       } else {
         value = stubRecord(raw);
@@ -483,7 +655,12 @@ export const apiStore: Store = {
       anySealed: rows.some(isSealedRow),
       notice: { truncated, unreadable },
       legacy,
+      replace: new Set(),
     });
+    // A row the registry holds opened with this browser's key: the key is in use, whether or
+    // not this browser heard the answer to the save that put it there (L13). A restore then
+    // asks the registry before replacing it.
+    if (openedHere) markVaultSealed();
     noteSealedRowsSeen(hasSealedRows());
     changed();
     return out;
@@ -512,22 +689,27 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
   const kind = kindFor(key);
   const refused: SaveRefusal[] = [];
   const state = current(kind);
-  // Plain-text rows wait for a checked backup of the key they would be sealed with.
+  // Nothing is sealed and sent under a key that isn't in a checked backup yet (round 3, L1):
+  // plain-text rows wait for it, and so do new and changed ones.
   const backupFirst = vaultNeedsBackup();
   const revs = readRevs();
   const wire: Record<string, unknown>[] = [];
   const pending: { id: string; hash: string; rev: number }[] = [];
+  const held: string[] = [];
   for (const item of value) {
     if (!isObject(item) || !isString(item.id)) continue;
     const id = item.id;
     const was = state?.states.get(id);
     // A locked row is never sent back: this browser can't know what is in it. Nor is a row
-    // the registry sent an older copy of, which this browser has no newer copy of.
-    if (was === 'locked' || was === 'older') continue;
+    // the registry sent an older copy of, which this browser has no newer copy of. An import
+    // that put the holder's own contents back (L4) is the one exception.
+    if ((was === 'locked' && !state?.replace.has(id)) || was === 'older') continue;
     if (was === 'legacy' && backupFirst) {
       // Left as the registry holds it until the backup is checked. A change made to it here
-      // can't be kept until then, and is said.
-      if (kind === 'records' && state?.legacy.get(id) !== stableStringify(item)) {
+      // can't be kept until then, and is said: for agreements too (L3), whose changes used
+      // to look saved and were gone on reload. A name kept for a recipient is not a change
+      // to the row (records.ts keeps it in this browser until then, L11).
+      if (state?.legacy.get(id) !== legacySnapshot(kind, item)) {
         refused.push({ id, reason: BACKUP_FIRST_REASON, words: 'app.sealed.refuse.backupFirst' });
       }
       continue;
@@ -551,20 +733,23 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
       integrity.set(id, check);
       part = privatePart(item);
     }
-    // rev: the same as last time for unchanged contents (so the same bytes go again), one
-    // more than the highest seen for changed ones. A row this browser holds an older copy of
-    // than the highest it has seen is not sent: the registry has a newer one.
-    const hash = await hashOf(part);
+    // Only a row whose contents changed since this browser last opened or saved it is sent
+    // (round 3, L2): every save used to send the whole set again, so a slow or stale save put
+    // older copies over newer ones on the registry. A changed row goes one rev above the
+    // highest this browser has seen.
+    const hash = await contentHash(kind, item);
     const prev = lastSealed.get(revKey(kind, id));
+    if (prev && prev.hash === hash) continue;
     const mark = revs[revKey(kind, id)] ?? 0;
-    let rev: number;
-    if (prev && prev.hash === hash) {
-      if (prev.rev < mark) continue;
-      rev = prev.rev;
-    } else rev = Math.max(prev?.rev ?? 0, mark) + 1;
+    const rev = Math.max(prev?.rev ?? 0, mark) + 1;
     const plain = { ...part, rev };
     if (sealedSizeOf(plain) > SEALED_MAX_BYTES) {
       refused.push({ id, reason: TOO_LARGE_REASON, words: 'app.sealed.refuse.tooLarge' });
+      continue;
+    }
+    if (backupFirst) {
+      // Not sealed, not sent: the key isn't in a checked backup yet (L1). Said as held.
+      held.push(id);
       continue;
     }
     let sealed: Awaited<ReturnType<typeof sealRow>>;
@@ -573,12 +758,14 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
     } catch {
       // The key went while this save was being made (Start over in this tab, or a restore):
       // nothing is sent, and nothing is sealed under another key.
-      return { ok: false, refused: [...refused, vaultRefusal('locked')] };
+      return { ok: false, refused: [...refused, vaultRefusal('locked')], pending: pending.map((p) => p.id) };
     }
     wire.push(kind === 'licenses' ? { id, sealed } : { ...publicPart(item), sealed });
     pending.push({ id, hash, rev });
   }
-  if (wire.length === 0) return { ok: refused.length === 0, refused };
+  if (held.length) return { ok: false, refused, held, pending: held, accepted: [] };
+  if (wire.length === 0) return { ok: refused.length === 0, refused, pending: [], accepted: [] };
+  const sent = pending.map((p) => p.id);
 
   let res: Response;
   try {
@@ -589,7 +776,7 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
     });
   } catch {
     /* offline — in-memory state stays authoritative for this session */
-    return { ok: false, refused, offline: true };
+    return { ok: false, refused, offline: true, pending: sent, accepted: [] };
   }
   let body: unknown = null;
   try {
@@ -599,10 +786,15 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
   }
   if (!res.ok) {
     const reason = isObject(body) && isString(body.error) ? body.error : `the registry answered ${String(res.status)}`;
-    return { ok: false, refused: [...refused, { id: '*', reason }] };
+    return { ok: false, refused: [...refused, { id: '*', reason }], pending: sent, accepted: [] };
   }
   if (!isObject(body))
-    return { ok: false, refused: [...refused, { id: '*', reason: 'unexpected response from the registry' }] };
+    return {
+      ok: false,
+      refused: [...refused, { id: '*', reason: 'unexpected response from the registry' }],
+      pending: sent,
+      accepted: [],
+    };
   if (Array.isArray(body.rejected)) {
     for (const r of body.rejected) {
       if (isObject(r) && isString(r.id) && isString(r.reason)) refused.push({ id: r.id, reason: r.reason });
@@ -623,11 +815,18 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
     for (const p of accepted) {
       state.states.set(p.id, 'open');
       state.legacy.delete(p.id);
+      state.replace.delete(p.id);
+      state.locked = state.locked.filter((l) => l.id !== p.id);
     }
     if (accepted.length) state.anySealed = true;
   }
   if (accepted.length) noteSealedRowsSeen(true);
-  return { ok: body.ok === true && refused.length === 0, refused };
+  return {
+    ok: body.ok === true && refused.length === 0,
+    refused,
+    pending: sent,
+    accepted: accepted.map((p) => p.id),
+  };
 };
 
 // ---- the vault key: made once, safely (CONTRACT.md #23) ------------------------------------

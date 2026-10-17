@@ -416,7 +416,7 @@ export const MISSING_LOCK_WORDS =
  */
 export const offerPlaintext = (
   r: StrainRecord,
-  opts: { quantity?: string; note?: string } = {},
+  opts: { quantity?: string; note?: string; resultLock?: string } = {},
 ): Record<string, unknown> => {
   const animal = isAnimal(r);
   return {
@@ -433,6 +433,10 @@ export const offerPlaintext = (
       : {}),
     ...(opts.quantity ? { quantity: opts.quantity } : {}),
     ...(opts.note ? { note: opts.note } : {}),
+    // The breeder's lock for lab reports (round 3, P1): sealed with the offer, so only the
+    // code's key vouches for it and a lab whose code lost its lock part still gets the
+    // breeder's, never one the registry made up.
+    ...(opts.resultLock ? { resultLock: opts.resultLock } : {}),
   };
 };
 
@@ -461,9 +465,20 @@ export const OFFER_NOTE_MAX = 2000;
 export const offerTransfer = async (
   record: StrainRecord,
   toHandle: string,
-  opts: { quantity?: string; note?: string; sample?: SampleDetails } = {},
+  opts: {
+    quantity?: string;
+    note?: string;
+    sample?: SampleDetails;
+    /**
+     * The breeder's lock for lab reports to seal into the offer (P1). The delivery's own lock
+     * needs the delivery's id, which comes back from this call, so it goes in the code; the
+     * plant's lock goes here, and the breeder's browser opens reports locked with either
+     * (lab-results.ts openReport).
+     */
+    resultLock?: string;
+  } = {},
 ): Promise<{ transferId: string; claimCode?: string; offerKey: string } | { error: string }> => {
-  const { sample, quantity, note } = opts;
+  const { sample, quantity, note, resultLock } = opts;
   // SendToLab.tsx caps both while typing; anything longer never leaves this browser.
   if ((quantity?.length ?? 0) > OFFER_QUANTITY_MAX || (note?.length ?? 0) > OFFER_NOTE_MAX) {
     return { error: 'the quantity or the note is too long' };
@@ -486,7 +501,7 @@ export const offerTransfer = async (
       offerKey,
       record.id,
       record.recordFingerprint ?? '',
-      offerPlaintext(record, { quantity, note }),
+      offerPlaintext(record, { quantity, note, resultLock }),
     );
     if (JSON.stringify(sealedOffer).length > OFFER_MAX_BYTES) return { error: 'this record is too large to send' };
     const res = await fetch(`${BASE}/transfers`, {
@@ -538,12 +553,20 @@ export type ClaimResult = {
   offerPlain?: Record<string, unknown>;
 };
 
+/**
+ * A claim that didn't go through. `definite` is set only when the registry itself answered
+ * with a refusal (4xx): then the claim surely wasn't made by this request. Without it (no
+ * answer, a server error, an answer that couldn't be read) the claim may have gone through,
+ * and the kept code must stay (round 3, L8).
+ */
+export type ClaimError = { error: string; definite?: true };
+
 export const claimTransfer = async (
   transferId: string,
   claimCode?: string,
   /** A receipt already signed for this delivery. The app signs after claiming, so it uses attachReceipt. */
   receiptAttestationId?: string,
-): Promise<ClaimResult | { error: string }> => {
+): Promise<ClaimResult | ClaimError> => {
   try {
     const res = await fetch(`${BASE}/transfers/${encodeURIComponent(transferId)}/claim`, {
       method: 'POST',
@@ -553,10 +576,10 @@ export const claimTransfer = async (
         ...(receiptAttestationId ? { receiptAttestationId } : {}),
       }),
     });
-    const body = await readJson(res);
+    const body = await readJson(res).catch(() => undefined);
     if (!isObject(body)) return unexpected;
     if (isString(body.recordId) && isString(body.descendedFrom)) {
-      return {
+      const claim: ClaimResult = {
         recordId: body.recordId,
         descendedFrom: body.descendedFrom,
         ...(isString(body.parentCommitment) ? { parentCommitment: body.parentCommitment } : {}),
@@ -566,8 +589,15 @@ export const claimTransfer = async (
         ...(isObject(body.offerSealed) ? { offerSealed: body.offerSealed } : {}),
         ...(isObject(body.offerPlain) ? { offerPlain: body.offerPlain } : {}),
       };
+      // Kept beside the kept code (L9): a code made before offers were sealed can't fetch its
+      // offer again once the sender's record is locked, so this answer is its only copy.
+      if (receivingCodeFor(transferId)) keepClaim(transferId, claim);
+      return claim;
     }
-    if (isString(body.error)) return { error: userFacingError(body.error) };
+    if (isString(body.error)) {
+      const definite = res.status >= 400 && res.status < 500;
+      return { error: userFacingError(body.error), ...(definite ? { definite: true as const } : {}) };
+    }
     return unexpected;
   } catch {
     return { error: 'could not reach the registry' };
@@ -671,11 +701,49 @@ export const receivingCodeFor = (transferId: string): string | undefined => read
 
 /** The received record is sealed and accepted: the code isn't needed any more. */
 export const forgetReceivingCode = (transferId: string): void => {
+  forgetClaim(transferId);
   const all = readReceiving();
   if (!(transferId.toUpperCase() in all)) return;
   delete all[transferId.toUpperCase()];
   try {
     localStorage.setItem(RECEIVING, JSON.stringify(all));
+  } catch {
+    /* nothing kept */
+  }
+};
+
+// The claim's answer, kept beside its code until the received record is sealed (L9).
+const CLAIMS = 'veilcore.receiving-claims.v1';
+
+const readClaims = (): Record<string, ClaimResult> => {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(CLAIMS) ?? '{}');
+    if (!isObject(v)) return {};
+    return Object.fromEntries(
+      Object.entries(v).filter(([, c]) => isObject(c) && isString(c.recordId) && isString(c.descendedFrom)),
+    ) as Record<string, ClaimResult>;
+  } catch {
+    return {};
+  }
+};
+
+const keepClaim = (transferId: string, claim: ClaimResult): void => {
+  try {
+    localStorage.setItem(CLAIMS, JSON.stringify({ ...readClaims(), [transferId.toUpperCase()]: claim }));
+  } catch {
+    /* a private window: the code alone is kept, as before */
+  }
+};
+
+/** The claim's answer kept for a delivery being received, if any. */
+export const keptClaimFor = (transferId: string): ClaimResult | undefined => readClaims()[transferId.toUpperCase()];
+
+const forgetClaim = (transferId: string): void => {
+  const all = readClaims();
+  if (!(transferId.toUpperCase() in all)) return;
+  delete all[transferId.toUpperCase()];
+  try {
+    localStorage.setItem(CLAIMS, JSON.stringify(all));
   } catch {
     /* nothing kept */
   }

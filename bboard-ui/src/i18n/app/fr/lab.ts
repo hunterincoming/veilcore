@@ -393,4 +393,7 @@ export const lab = {
   'app.lab.card.notSigned': 'accusé de réception pas encore signé',
   'app.lab.card.ref': 'réf. {ref}',
   'app.lab.send.theLab': 'le laboratoire',
+  // LabResults.tsx: a lock this browser can’t vouch for (round 3, P1)
+  'app.lab.out.pasteAgain':
+    'Le verrou des rapports de laboratoire de cet enregistrement ne peut pas être vérifié avec le code laboratoire, donc rien n’est envoyé avec lui. Collez de nouveau le code laboratoire.',
 } satisfies Partial<AppTranslation>;

@@ -19,7 +19,9 @@ import {
   rowStateOf,
   type LockedRow,
 } from './api-store';
-import { onVaultChange, vaultKeyIfAny, vaultNeedsBackup } from './vault';
+import { onVaultChange, useVaultNeedsBackup, vaultKeyIfAny, vaultNeedsBackup } from './vault';
+import { BACKUP_FIRST_REASON } from './api-store';
+import { enT } from '../i18n/translate';
 
 export type LicenseState = 'draft' | 'sent' | 'active' | 'expired' | 'revoked';
 
@@ -106,7 +108,11 @@ const isLicense = (v: unknown): v is License => {
     str(l.state) &&
     str(l.dnaFingerprint) &&
     num(l.createdAt) &&
-    (l.terms === undefined || (typeof l.terms === 'object' && l.terms !== null)) &&
+    // Terms are needed to show an agreement at all (round 3, L5): one without them is counted
+    // as unreadable rather than drawn, where it blanked the whole Agreements page.
+    typeof l.terms === 'object' &&
+    l.terms !== null &&
+    !Array.isArray(l.terms) &&
     (l.royaltyLog === undefined || Array.isArray(l.royaltyLog))
   );
 };
@@ -202,12 +208,40 @@ export const startLicenseSync = (): void => {
 
 const persist = () => {
   // A refusal is reported and the set reloaded from the registry, rather than left
-  // looking saved (attack round 11).
+  // looking saved (attack round 11). Rows held for the backup are refused the same way
+  // (round 3, L3): the pages don't offer a change before the backup is checked.
   void store.save(KEY, licenses).then((result) => {
-    reportSave('agreements', result);
-    if (!result.ok && !result.offline) void hydrate();
+    const held = result.held ?? [];
+    const out = held.length
+      ? {
+          ...result,
+          refused: [
+            ...result.refused,
+            ...held.map((id) => ({ id, reason: BACKUP_FIRST_REASON, words: 'app.sealed.refuse.backupFirst' as const })),
+          ],
+        }
+      : result;
+    reportSave('agreements', out);
+    if (!out.ok && !out.offline) void hydrate();
   });
   notify();
+};
+
+/**
+ * Whether a change to agreements has to wait for a checked backup (round 3, L1, L3): the key
+ * that would lock it isn't in one yet, or there's no key here yet. The pages show the backup
+ * prompt in place of the change; every change below refuses until then.
+ */
+export const agreementsWaitForBackup = (): boolean => !vaultKeyIfAny() || vaultNeedsBackup();
+export const useAgreementsWaitForBackup = (): boolean => {
+  useVaultNeedsBackup();
+  return agreementsWaitForBackup();
+};
+
+/** Thrown by a change made before the backup is checked (the pages don't offer one). */
+export class BackupFirstError extends Error {}
+const refuseBeforeBackup = (): void => {
+  if (agreementsWaitForBackup()) throw new BackupFirstError(enT.t('app.sealed.backupFirstAction'));
 };
 
 // 128 random bits: a guessable id could be stored first by someone else, and the
@@ -220,7 +254,7 @@ const genId = (): string =>
 
 /** The true, current status — computes expiry from the terms so state is never stale. */
 export const effectiveState = (l: License): LicenseState => {
-  if (l.state === 'active' && l.terms.endDate && Date.parse(l.terms.endDate) < Date.now()) return 'expired';
+  if (l.state === 'active' && l.terms?.endDate && Date.parse(l.terms.endDate) < Date.now()) return 'expired';
   return l.state;
 };
 
@@ -276,6 +310,7 @@ export const sealAgreement = async (
 };
 
 export const createLicense = (input: NewLicenseInput): License => {
+  refuseBeforeBackup();
   const lic: License = { id: genId(), state: 'draft', createdAt: Date.now(), royaltyLog: [], ...input };
   licenses = [lic, ...licenses];
   persist();
@@ -283,6 +318,7 @@ export const createLicense = (input: NewLicenseInput): License => {
 };
 
 const update = (id: string, patch: (l: License) => License): License | undefined => {
+  refuseBeforeBackup();
   let out: License | undefined;
   licenses = licenses.map((l) => {
     if (l.id !== id) return l;
@@ -400,7 +436,7 @@ export const veilcoreFee = (dealValue: number): number => (dealValue * VEILCORE_
 
 /** The deal value a royalty report represents: reported sales (percent) or units × fee (flat). */
 export const dealValueOf = (l: License, input: number): number =>
-  l.terms.royaltyType === 'percent' ? input : input * (Number(l.terms.royaltyAmount) || 0);
+  l.terms?.royaltyType === 'percent' ? input : input * (Number(l.terms?.royaltyAmount) || 0);
 
 export const FEE_NOTE = `VeilCore fee (${VEILCORE_FEE_PCT}% of deal value): calculated, not collected.`;
 
@@ -483,7 +519,7 @@ const money = (n: number): string => `$${n.toLocaleString(undefined, { maximumFr
  * breeder's detail view and the counterparty's counter-sign page so both always agree.
  */
 export const agreementRows = (l: License): { k: string; v: string }[] => {
-  const t = l.terms;
+  const t = l.terms ?? {};
   const type = agreementType(l);
   const rows: { k: string; v: string }[] = [{ k: counterpartyLabel(type), v: t.licensee || '—' }];
 
