@@ -13,7 +13,7 @@ export const backup = {
   'app.backup.saved': 'Gespeichert',
   'app.backup.savedSub': '{file} · eine Datei für alles',
   'app.backup.saveFile': 'Sicherungsdatei speichern',
-  'app.backup.copyTitle': 'Eine Kopie woanders ablegen',
+  'app.backup.copyTitle': 'Eine Kopie woanders ablegen (empfohlen)',
   'app.backup.wayBack': 'Wenn dieses Handy oder dieser Computer kaputtgeht, ist diese Kopie Ihr Weg zurück.',
   'app.backup.actAsYou':
     'Mit dieser Datei kann jeder Ihre Datensätze öffnen und als Sie auftreten. Am besten: ein USB-Stick oder ein Passwort-Manager. Wenn Sie sie per E-Mail senden, nutzen Sie ein Konto mit Anmeldung in zwei Schritten.',
@@ -22,6 +22,8 @@ export const backup = {
   'app.backup.shareFailed': 'Dieser Browser konnte sein Teilen-Menü nicht öffnen.',
   'app.backup.byHand':
     'Legen Sie sie auf einen USB-Stick oder in einen Passwort-Manager. Es ist die Datei, die Sie gerade gespeichert haben, in Ihrem Download-Ordner.',
+  'app.backup.saveAgain': 'Noch eine Kopie speichern',
+  'app.backup.savedAgain': 'Weitere Kopie gespeichert ✓',
   'app.backup.checkTitle': 'Prüfen, ob sie funktioniert',
   'app.backup.itWorks': 'Sie funktioniert.',
   'app.backup.openIntro':

@@ -13,7 +13,7 @@ export const backup = {
   'app.backup.saved': '保存しました',
   'app.backup.savedSub': '{file} · すべてが入った1つのファイル',
   'app.backup.saveFile': 'バックアップファイルを保存',
-  'app.backup.copyTitle': 'コピーを別の場所にも置く',
+  'app.backup.copyTitle': 'コピーを別の場所にも置く（おすすめ）',
   'app.backup.wayBack': 'このスマートフォンやコンピューターが壊れたとき、そのコピーが取り戻す手段になります。',
   'app.backup.actAsYou':
     'このファイルを持っている人は誰でも、あなたの記録を開き、あなたとして行動できます。おすすめはUSBメモリかパスワードマネージャーです。メールで送る場合は、2段階認証を設定したアカウントを使ってください。',
@@ -22,6 +22,8 @@ export const backup = {
   'app.backup.shareFailed': 'このブラウザでは共有メニューを開けませんでした。',
   'app.backup.byHand':
     'USBメモリかパスワードマネージャーに保存してください。先ほど保存したファイルで、ダウンロードフォルダにあります。',
+  'app.backup.saveAgain': 'もう1つコピーを保存',
+  'app.backup.savedAgain': 'もう1つ保存しました ✓',
   'app.backup.checkTitle': '開けるか確認する',
   'app.backup.itWorks': '問題ありません。',
   'app.backup.openIntro':

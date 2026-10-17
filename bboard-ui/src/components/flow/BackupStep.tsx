@@ -4,7 +4,9 @@
 // saying "I saved it" was clicked without saving in the field data this replaced
 // (Höltervennhoff et al., USENIX Security 2024: 28,093 "Confirm" clicks, ~11,555 saves).
 // "Somewhere safe" became real places: on a phone, the share sheet sends the file to
-// email, Drive or Files; elsewhere, plain words say where.
+// email, Drive or Files; elsewhere, plain words say where, with a button that saves the same
+// file again (to a USB stick or a Drive folder). Step 2 is recommended, not required: the
+// check in step 3 is what turns the finish button on.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useId, useRef, useState } from 'react';
@@ -21,7 +23,7 @@ import {
 } from '@mui/material';
 import DoneIcon from '@mui/icons-material/CheckCircle';
 import { backupFileName, backupFileText, checkBackup, downloadBackupAll } from '../../veilcore/backup';
-import { ScreenHeading, softDisabled } from './FlowFrame';
+import { isTouch, ScreenHeading, softDisabled } from './FlowFrame';
 import { useRecords } from '../../veilcore/records';
 import { backupHoldsLine } from '../stage/record-kinds';
 import { rich, useT } from '../../i18n/app';
@@ -145,6 +147,8 @@ export const BackupStep: React.FC<{
   const [locked, setLocked] = useState(false);
   // The exact text saved, so a copy sent through the share sheet is the same file.
   const savedText = useRef<string | undefined>(undefined);
+  // When it was saved, so "Save another copy" makes the same file under the same name.
+  const savedAt = useRef<number | undefined>(undefined);
   const pwShort = usePassword && pw.length > 0 && pw.length < MIN_BACKUP_PASSWORD;
   const pwDiffers = usePassword && pw2.length > 0 && pw !== pw2;
   const pwReady = !usePassword || (pw.length >= MIN_BACKUP_PASSWORD && pw === pw2);
@@ -158,6 +162,7 @@ export const BackupStep: React.FC<{
       const now = Date.now();
       const text = await backupFileText(usePassword ? pw : undefined, now);
       savedText.current = text;
+      savedAt.current = now;
       setLocked(usePassword);
       setSaved(downloadBackupAll(now, text));
     } finally {
@@ -167,9 +172,12 @@ export const BackupStep: React.FC<{
 
   const fileForSharing = (): File =>
     new File([savedText.current ?? ''], saved ?? backupFileName(), { type: 'application/json' });
+  // Only phones and tablets get the share sheet. Desktop Chrome on a Mac says it can share a
+  // file (canShare) and then throws on share(), so a computer gets the by-hand way at once.
   const canShare = (() => {
     try {
       return (
+        isTouch() &&
         typeof navigator !== 'undefined' &&
         !!navigator.canShare?.({ files: [new File(['{}'], backupFileName(), { type: 'application/json' })] })
       );
@@ -189,6 +197,14 @@ export const BackupStep: React.FC<{
       // browsers say they can share files and then refuse) gets the by-hand way, said plainly.
       if (!(e instanceof DOMException && e.name === 'AbortError')) setShareFailed(true);
     }
+  };
+
+  const [savedAgain, setSavedAgain] = useState(false);
+  const saveAgain = () => {
+    if (!saved || savedText.current === undefined) return;
+    downloadBackupAll(savedAt.current, savedText.current);
+    setSavedAgain(true);
+    setCopied(true);
   };
 
   const check = async (f: File, password?: string) => {
@@ -279,7 +295,8 @@ export const BackupStep: React.FC<{
         n={2}
         level={partLevel}
         title={t('app.backup.copyTitle')}
-        active={!!saved && !copied && checked === undefined}
+        // Recommended, not required: it never takes the highlight from step 3.
+        active={false}
       >
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
           {t('app.backup.wayBack')}
@@ -287,7 +304,7 @@ export const BackupStep: React.FC<{
         <Typography variant="body2" sx={{ mb: 1.25, fontWeight: 700 }} data-backup-warning="">
           {t('app.backup.actAsYou')}
         </Typography>
-        {canShare ? (
+        {canShare && !shareFailed ? (
           <Button
             variant="outlined"
             size="large"
@@ -298,13 +315,26 @@ export const BackupStep: React.FC<{
           >
             {copied ? t('app.backup.sentCopy') : t('app.backup.sendCopy')}
           </Button>
-        ) : null}
-        {canShare && shareFailed && (
-          <Typography variant="body2" role="status" sx={{ mt: 1 }}>
-            {t('app.backup.shareFailed')}
-          </Typography>
+        ) : (
+          <Stack spacing={1.25} data-backup-by-hand="">
+            {shareFailed && (
+              <Typography variant="body2" role="status">
+                {t('app.backup.shareFailed')}
+              </Typography>
+            )}
+            <Typography variant="body1">{t('app.backup.byHand')}</Typography>
+            <Button
+              variant="outlined"
+              size="large"
+              fullWidth
+              {...softDisabled(!saved, saveHint)}
+              onClick={saveAgain}
+              sx={{ py: 1.3 }}
+            >
+              {savedAgain ? t('app.backup.savedAgain') : t('app.backup.saveAgain')}
+            </Button>
+          </Stack>
         )}
-        {(!canShare || shareFailed) && <Typography variant="body1">{t('app.backup.byHand')}</Typography>}
       </Part>
 
       <Part n={3} level={partLevel} title={t('app.backup.checkTitle')} active={!!saved && checked === undefined}>
@@ -317,8 +347,9 @@ export const BackupStep: React.FC<{
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
               {t('app.backup.openIntro')}
             </Typography>
+            {/* Filled once the file is saved: this is the next thing to do. */}
             <Button
-              variant="outlined"
+              variant={saved ? 'contained' : 'outlined'}
               size="large"
               fullWidth
               {...softDisabled(!saved || busy, saveHint)}

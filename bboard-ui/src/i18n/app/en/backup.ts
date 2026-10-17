@@ -12,7 +12,7 @@ export const backup = {
   'app.backup.saved': 'Saved',
   'app.backup.savedSub': '{file} · one file for everything',
   'app.backup.saveFile': 'Save backup file',
-  'app.backup.copyTitle': 'Put a copy somewhere else',
+  'app.backup.copyTitle': 'Put a copy somewhere else (recommended)',
   'app.backup.wayBack': 'If this phone or computer breaks, that copy is your way back.',
   'app.backup.actAsYou':
     'Anyone with this file can open your records and act as you. Best: a USB stick or a password manager. If you email it, use an account with two-step login.',
@@ -21,6 +21,8 @@ export const backup = {
   'app.backup.shareFailed': "This browser couldn't open its share menu.",
   'app.backup.byHand':
     "Put it on a USB stick or in a password manager. It's the file you just saved, in your Downloads folder.",
+  'app.backup.saveAgain': 'Save another copy',
+  'app.backup.savedAgain': 'Saved another copy ✓',
   'app.backup.checkTitle': 'Check it works',
   'app.backup.itWorks': 'It works.',
   'app.backup.openIntro':

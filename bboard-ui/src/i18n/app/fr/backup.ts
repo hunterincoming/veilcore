@@ -13,7 +13,7 @@ export const backup = {
   'app.backup.saved': 'Enregistrée',
   'app.backup.savedSub': '{file} · un seul fichier pour tout',
   'app.backup.saveFile': 'Enregistrer le fichier de secours',
-  'app.backup.copyTitle': 'En mettre une copie ailleurs',
+  'app.backup.copyTitle': 'En mettre une copie ailleurs (recommandé)',
   'app.backup.wayBack':
     'Si ce téléphone ou cet ordinateur tombe en panne, cette copie vous permettra de tout récupérer.',
   'app.backup.actAsYou':
@@ -23,6 +23,8 @@ export const backup = {
   'app.backup.shareFailed': 'Ce navigateur n’a pas pu ouvrir son menu de partage.',
   'app.backup.byHand':
     'Mettez-le sur une clé USB ou dans un gestionnaire de mots de passe. C’est le fichier que vous venez d’enregistrer, dans votre dossier Téléchargements.',
+  'app.backup.saveAgain': 'Enregistrer une autre copie',
+  'app.backup.savedAgain': 'Autre copie enregistrée ✓',
   'app.backup.checkTitle': 'Vérifier qu’elle fonctionne',
   'app.backup.itWorks': 'Elle fonctionne.',
   'app.backup.openIntro':
