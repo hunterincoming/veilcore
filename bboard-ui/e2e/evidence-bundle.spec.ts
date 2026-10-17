@@ -9,7 +9,7 @@
 // e2e/README.md): then the records are saved, batched and anchored on that registry first.
 // All records are practice data.
 // SPDX-License-Identifier: Apache-2.0
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, hkdfSync, randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, firefox, type Browser, type Download, type Locator, type Page } from '@playwright/test';
@@ -75,6 +75,19 @@ const IDENTITY = H('veilcore:v1:commit', SECRET);
 const KEY_SALT = H('veilcore:v1:keysalt', SECRET);
 const LAB_FILE = Buffer.from(`Practice lab report (test data) ${Date.now()}\n`);
 const LAB_SHA = sha256(LAB_FILE);
+// The delivery the report came back on: its offer key, kept with the record as the app keeps
+// it, and the s a lab signs the report bound to the record with (round 6, lab-doc.ts).
+const OFFER_KEY = randomBytes(32);
+const LAB_S = Buffer.from(hkdfSync('sha256', OFFER_KEY, Buffer.alloc(0), 'veilcore:labdoc-salt:v1', 32)).toString(
+  'hex',
+);
+const labDocument = (reportSha: string, proofCode: string, s: string) =>
+  sha256(
+    Buffer.concat([
+      Buffer.from('veilcore:labdoc:v1\0'),
+      ...[reportSha, proofCode, s].map((h) => Buffer.from(h, 'hex')),
+    ]),
+  );
 const bound = seal({
   id: recordId(),
   nonce: randomBytes(32).toString('hex'),
@@ -92,6 +105,7 @@ const bound = seal({
   dnaFileName: 'Practice lab report.txt',
   dnaFileSha256: LAB_SHA,
   dnaPairedAt: Date.now() - 30_000,
+  offerKeys: { 'T-E2E-LAB': OFFER_KEY.toString('base64url') },
 });
 const older = seal({
   id: recordId(),
@@ -269,13 +283,16 @@ const real = async (): Promise<Setup> => {
     },
   );
   if (saved.count !== 2) throw new Error(`PUT /api/records stored ${String(saved.count)}: ${JSON.stringify(saved)}`);
+  // A real registry serves a lab report signed over the file's plain SHA-256 to nobody but the
+  // delivery's sender and lab (round 6, CONTRACT.md #34), so the lab here signs it as labs do
+  // now: bound to the record with the delivery's s (id ending _ld1).
   const kp = await generateKeypair();
   const signed = await signAttestation(
     {
-      attestationId: `att_e2e_${randomBytes(4).toString('hex')}`,
+      attestationId: `att_e2e_${randomBytes(4).toString('hex')}_ld1`,
       type: 'laboratory-report',
       subjectCommitment: bound.recordFingerprint,
-      documentHash: LAB_SHA,
+      documentHash: labDocument(LAB_SHA, bound.recordFingerprint, LAB_S),
       hashAlgorithm: 'sha256',
       issuedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
       attester: { publicKey: kp.publicKey, displayName: 'Practice Lab' },
