@@ -102,10 +102,20 @@ export const acceptObligation = async (
   }
 };
 
-/** Attach an obligation. On a record you hold it is in force at once; on anyone else's it is a proposal. */
-export const encumber = async (record: string, obligation: string): Promise<ObligationResult | null> => {
+/**
+ * Attach an obligation. On a record you hold it is in force at once; on anyone else's it is a
+ * proposal. `beneficiary`: the per-record id it is stored under (vault.ts beneficiaryId,
+ * round 3 P5); without one the registry makes a per-record id itself. There is no open
+ * listing of obligations to read back (the registry answers GET /lineage/obligations 410):
+ * the public answer is per record, verifyDescent below.
+ */
+export const encumber = async (
+  record: string,
+  obligation: string,
+  beneficiary?: string,
+): Promise<ObligationResult | null> => {
   try {
-    const body = await post('/lineage/obligations', { record, obligation });
+    const body = await post('/lineage/obligations', { record, obligation, ...(beneficiary ? { beneficiary } : {}) });
     return isObligationResult(body) ? body : null;
   } catch {
     return null;

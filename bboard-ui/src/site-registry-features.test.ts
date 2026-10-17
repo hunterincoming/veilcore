@@ -5,7 +5,7 @@
 // deploy:mainnet (scripts/site-mainnet-preflight.mjs) and deploy:test
 // (scripts/deploy-test-site.mjs) ask the target registry's GET /health for its `features`
 // and refuse, with a plain NOT DEPLOYED line naming what is missing and saying to deploy the
-// registry first, unless it lists all four (scripts/registry-features.mjs). Their earlier
+// registry first, unless it lists all of them (scripts/registry-features.mjs). Their earlier
 // checks still come first and still refuse as before.
 //
 // The registry here is a stand-in on 127.0.0.1; nothing reaches the network and nothing is
@@ -31,7 +31,14 @@ import { checkTestRegistry } from '../../scripts/deploy-test-site.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');
-const ALL = ['sealed-records-v1', 'lab-results-v1', 'animal-profile-v1', 'claimant-offer-v1', 'sealed-custody-v1'];
+const ALL = [
+  'sealed-records-v1',
+  'lab-results-v1',
+  'animal-profile-v1',
+  'claimant-offer-v1',
+  'sealed-custody-v1',
+  'record-rev-v1',
+];
 const DEPLOY_FIRST = /Deploy the registry first: put the registry's latest code live on Railway/;
 
 /** A stand-in registry: its descriptor and its /health, each with a status. */
@@ -81,14 +88,14 @@ const runScript = (script: string, env: Record<string, string>, cwd = ROOT) =>
   });
 
 describe('the features the site needs', () => {
-  it('are exactly sealed records, lab results, animal records, finishing a delivery and locked sample details', () => {
+  it('are exactly sealed records, lab results, animal records, finishing a delivery, locked sample details and the record rev', () => {
     expect(Object.keys(REQUIRED_FEATURES)).toEqual(ALL);
     expect(featuresLine('https://r.example')).toBe(
-      'Registry https://r.example serves sealed records, lab results, animal records, finishing a received delivery and locked sample details.',
+      'Registry https://r.example serves sealed records, lab results, animal records, finishing a received delivery, locked sample details and refusing an older copy of a record.',
     );
   });
 
-  it('pass only when /health lists all five; extra features are fine', () => {
+  it('pass only when /health lists all six; extra features are fine', () => {
     expect(checkFeatures({ ok: true, features: ALL }, 'R')).toEqual({ ok: true });
     expect(checkFeatures({ ok: true, features: [...ALL, 'something-new-v1'].reverse() }, 'R')).toEqual({ ok: true });
     for (const gone of ALL) {
@@ -116,6 +123,7 @@ describe('the features the site needs', () => {
           'animal-profile-v1',
           'claimant-offer-v1',
           'sealed-custody-v1',
+          'record-rev-v1',
         ],
       },
       'R',
@@ -172,7 +180,7 @@ describe('deploy:mainnet', () => {
       const older = await runScript('site-mainnet-preflight.mjs', { VITE_API_BASE: old.api });
       expect(older.code).toBe(1);
       expect(older.text).toMatch(
-        /NOT DEPLOYED\. .*missing sealed-records-v1 \(sealed records\), lab-results-v1 \(lab results\), animal-profile-v1 \(animal records\), claimant-offer-v1 \(finishing a received delivery\), sealed-custody-v1 \(locked sample details\)/,
+        /NOT DEPLOYED\. .*missing sealed-records-v1 \(sealed records\), lab-results-v1 \(lab results\), animal-profile-v1 \(animal records\), claimant-offer-v1 \(finishing a received delivery\), sealed-custody-v1 \(locked sample details\), record-rev-v1 \(refusing an older copy of a record\)/,
       );
     },
     30_000,
@@ -196,12 +204,15 @@ describe('deploy:mainnet', () => {
 describe('deploy:test', () => {
   const preprod = { anchors: [{ chain: 'midnight', network: 'preprod', contractAddress: 'ab'.repeat(32) }] };
 
-  it('accepts a preprod registry only when its /health lists all five', async () => {
+  it('accepts a preprod registry only when its /health lists all six', async () => {
     const ready = await stub({ descriptor: preprod });
     expect(await checkTestRegistry(ready.api)).toEqual({ ok: true });
     const noAnimals = await stub({
       descriptor: preprod,
-      health: { ok: true, features: ['sealed-records-v1', 'lab-results-v1', 'claimant-offer-v1', 'sealed-custody-v1'] },
+      health: {
+        ok: true,
+        features: ['sealed-records-v1', 'lab-results-v1', 'claimant-offer-v1', 'sealed-custody-v1', 'record-rev-v1'],
+      },
     });
     const r = await checkTestRegistry(noAnimals.api);
     expect(r.ok).toBe(false);
@@ -210,7 +221,10 @@ describe('deploy:test', () => {
     // A registry from before sealed records round 2: no claimant's copy of the offer.
     const beforeRound2 = await stub({
       descriptor: preprod,
-      health: { ok: true, features: ['sealed-records-v1', 'lab-results-v1', 'animal-profile-v1', 'sealed-custody-v1'] },
+      health: {
+        ok: true,
+        features: ['sealed-records-v1', 'lab-results-v1', 'animal-profile-v1', 'sealed-custody-v1', 'record-rev-v1'],
+      },
     });
     const r2 = await checkTestRegistry(beforeRound2.api);
     expect(!r2.ok && r2.problem).toMatch(
@@ -219,11 +233,32 @@ describe('deploy:test', () => {
     // A registry from before round 3: it would refuse the sealed sample details (CONTRACT.md #27).
     const beforeRound3 = await stub({
       descriptor: preprod,
-      health: { ok: true, features: ['sealed-records-v1', 'lab-results-v1', 'animal-profile-v1', 'claimant-offer-v1'] },
+      health: {
+        ok: true,
+        features: ['sealed-records-v1', 'lab-results-v1', 'animal-profile-v1', 'claimant-offer-v1', 'record-rev-v1'],
+      },
     });
     const r3 = await checkTestRegistry(beforeRound3.api);
     expect(!r3.ok && r3.problem).toMatch(
       /is missing sealed-custody-v1 \(locked sample details\), which this site uses/,
+    );
+    // A registry from before it kept a record's rev: it would refuse every save that carries one.
+    const beforeRev = await stub({
+      descriptor: preprod,
+      health: {
+        ok: true,
+        features: [
+          'sealed-records-v1',
+          'lab-results-v1',
+          'animal-profile-v1',
+          'claimant-offer-v1',
+          'sealed-custody-v1',
+        ],
+      },
+    });
+    const r4 = await checkTestRegistry(beforeRev.api);
+    expect(!r4.ok && r4.problem).toMatch(
+      /is missing record-rev-v1 \(refusing an older copy of a record\), which this site uses/,
     );
   });
 

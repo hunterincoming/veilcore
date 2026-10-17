@@ -195,6 +195,7 @@ const browser = async (storage: Map<string, string> = new Map()) => {
     attesters: await import('./attester-keys'),
     commitment: await import('./commitment'),
     holder: await import('./holder'),
+    saveStatus: await import('./save-status'),
   };
 };
 type Browser = Awaited<ReturnType<typeof browser>>;
@@ -236,6 +237,9 @@ const WIRE_FIELDS = new Set([
   'receivedAt',
   'transferId',
   'attestation',
+  // The row's revision, the same number as inside the box, so the registry can refuse an
+  // older copy (round 3, L2): how many times a row was saved, which the save times showed.
+  'rev',
   'sealed',
 ]);
 
@@ -261,6 +265,8 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
   let r1: { id: string; recordFingerprint: string };
   let r2: { id: string; recordFingerprint: string };
   let corrected: { id: string };
+  let revRecordId = '';
+  let royaltyLicenceId = '';
   let transferId = '';
   let receivedId = '';
   let licenceId = '';
@@ -315,6 +321,10 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
         kid: await A.vault.vaultKidOf(vaultKey),
       });
       for (const k of Object.keys(row)) expect(WIRE_FIELDS.has(k), `${String(row.id)}.${k} in the clear`).toBe(true);
+      // The public rev is the one sealed inside (round 3, L2).
+      const opened = await A.vault.openRow('records', String(row.id), row.sealed);
+      expect(opened).toMatchObject({ ok: true, value: { rev: 1 } });
+      expect(row.rev).toBe(1);
     }
     expect(stored.find((r) => r.id === r1.id)).toMatchObject({
       strainName: NAME,
@@ -607,6 +617,98 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     expect(await A.disclosure.syncGrants(A.records.getRecord)).toBe(0);
   });
 
+  it('a stale tab’s save: the real registry refuses it as an older copy by id; the app says so and shows the newer copy', async () => {
+    const holderKey = A.holder.holderKeyIfAny()!;
+    const { fingerprintRecord, newNonce } = A.commitment;
+    const fields = {
+      nonce: newNonce(),
+      strainName: `${NAME} rev`,
+      bredBy: P.bredBy2,
+      dateCreated: '2026-10-03',
+      notes: '',
+      loggedAt: Date.UTC(2026, 9, 3),
+    };
+    const made = await A.records.createRecordSaved({ ...fields, recordFingerprint: await fingerprintRecord(fields) });
+    expect(made.result.ok).toBe(true);
+    const id = made.record.id;
+    revRecordId = id;
+    const revOf = async () => (await rowsOf(holderKey, 'records')).find((r) => r.id === id)?.rev;
+    expect(await revOf()).toBe(1);
+    // Another tab, opened now, in the same browser storage.
+    const stale = await browser(new Map(breederStorage));
+    await stale.records.hydrate();
+    A.records.pairDna(id, 'c1'.repeat(32), 'first.pdf');
+    await until(async () => (await revOf()) === 2, 'the first change');
+    A.records.pairDna(id, 'c2'.repeat(32), 'second.pdf');
+    await until(async () => (await revOf()) === 3, 'the second change');
+    stale.records.pairDna(id, 'c3'.repeat(32), 'stale.pdf');
+    await until(() => stale.saveStatus.saveProblemNow() !== null, 'the stale save to be answered');
+    expect(stale.saveStatus.saveProblemNow()?.refused).toEqual([
+      expect.objectContaining({ id, words: 'app.sealed.refuse.olderCopy' }),
+    ]);
+    expect(await revOf()).toBe(3);
+    await stale.records.hydrate();
+    expect(stale.records.getRecord(id)?.dnaFileName).toBe('second.pdf');
+    expect(stale.records.lockedRecords()).toEqual([]);
+    // Back to the breeder's own browser for the tests after this one.
+    A = await browser(breederStorage);
+    await A.records.hydrate();
+  });
+
+  it('a royalty obligation: the browser’s per-record beneficiary id is what the real registry stores; the open listing is gone', async () => {
+    const holderKey = A.holder.holderKeyIfAny()!;
+    const terms = {
+      licensee: P.licensee,
+      startDate: '2026-10-01',
+      endDate: '2027-10-01',
+      extraTerms: '',
+      rights: 'cultivate' as const,
+      territory: P.territory,
+      royaltyType: 'percent' as const,
+      royaltyAmount: '5',
+      unitBasis: 'per-plant' as const,
+      offspringRoyaltyPct: '3',
+      sublicensable: false,
+      exclusive: false,
+    };
+    const sealedTerms = await A.licenses.sealAgreement('license', terms, r2.recordFingerprint);
+    const l = A.licenses.createLicense({
+      type: 'license',
+      recordId: r2.id,
+      recordFingerprint: r2.recordFingerprint,
+      terms,
+      ...sealedTerms,
+    });
+    royaltyLicenceId = l.id;
+    const from = sent.length;
+    await A.licenses.issueLicense(l.id);
+    await A.licenses.countersignLicense(l.id);
+    const post = () =>
+      sent.slice(from).find((r) => r.method === 'POST' && new URL(r.url).pathname === '/lineage/obligations');
+    await until(() => !!post(), 'the obligation to be registered');
+    const body = obj(JSON.parse(post()!.body));
+    expect(body.record).toBe(r2.recordFingerprint);
+    expect(body.beneficiary).toBe(await A.vault.beneficiaryId(r2.recordFingerprint));
+    // The registry took it under that id: the same obligation again is refused as in force,
+    // and the record now answers as carrying one, one record at a time.
+    const again = await reg('/lineage/obligations', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-holder-key': holderKey },
+      body: JSON.stringify(body),
+    });
+    expect(again.status).toBe(400);
+    expect(JSON.stringify(again.json)).toMatch(/already in force/);
+    const v = await reg('/lineage/verify', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ record: r2.recordFingerprint, chain: [] }),
+    });
+    expect(obj(v.json).ok).toBe(false);
+    expect((await reg('/lineage/obligations')).status).toBe(410);
+    // The app never asks for the listing.
+    expect(sent.some((r) => r.method === 'GET' && new URL(r.url).pathname === '/lineage/obligations')).toBe(false);
+  });
+
   it('licence save: { id, sealed } only, and it opens again', async () => {
     A.licenses.startLicenseSync();
     const l = A.licenses.createLicense({
@@ -827,11 +929,16 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
         .lockedRecords()
         .map((r) => r.id)
         .sort(),
-    ).toEqual([r1.id, r2.id, corrected.id].sort());
+    ).toEqual([r1.id, r2.id, corrected.id, revRecordId].sort());
     for (const r of L.records.lockedRecords()) expect(r.kid).toBe(kid);
     L.licenses.startLicenseSync();
-    await until(() => L.licenses.lockedLicenses().length === 1, 'the locked licence');
-    expect(L.licenses.lockedLicenses()[0].id).toBe(licenceId);
+    await until(() => L.licenses.lockedLicenses().length === 2, 'the locked licences');
+    expect(
+      L.licenses
+        .lockedLicenses()
+        .map((l) => l.id)
+        .sort(),
+    ).toEqual([licenceId, royaltyLicenceId].sort());
 
     const mark = sent.length;
     const { fingerprintRecord, newNonce } = L.commitment;

@@ -62,6 +62,8 @@ export const sealed = {
     'サーバーが、このブラウザが最後に保存したものより古いこの記録のコピーを送ってきました。必要なコピーなら使い、そうでなければ削除してください。',
   'app.sealed.olderKept.other':
     'サーバーが{count}件の記録の古いコピーを送ってきました。このブラウザは新しいコピーを残し、もう一度保存します。',
+  'app.sealed.revMismatch.other':
+    'サーバー上の{count}件の記録の版番号が、記録の中に鍵をかけて保存された番号と一致しませんでした。このブラウザは鍵のかかった番号に従い、記録をもう一度保存します。',
   'app.sealed.importLocked.other': 'ロックされた記録{count}件は、このブラウザに鍵がないため飛ばしました。',
   'app.sealed.backupBeforeLocking':
     '<b>バックアップを保存してください。</b>古い記録は、それを開く鍵がバックアップファイルに入った時点でロックされます。それまでは保存したときのままVeilCoreのサーバーにあり、VeilCoreが読める状態で、変更は保存できません。',
@@ -128,6 +130,8 @@ export const sealed = {
   'app.sealed.recv.noAnswer':
     'VeilCoreから応答がありませんでした（{error}）。コードはこのブラウザに残しています。受け取れていれば、記録に「受け取りを完了」が表示されます。表示されなければ、もう一度お試しください。',
   'app.sealed.refuse.backupFirstNew': 'まだ何も保存していません。先にバックアップを保存して確認してください',
+  'app.sealed.refuse.olderCopy':
+    'VeilCoreには別のタブや端末で保存された新しいコピーがすでにあるため、この変更は保存されませんでした。新しいコピーを表示しています。必要なら、もう一度変更してください',
   'app.sealed.unsaved.backup':
     'まだ保存されていません。バックアップを保存して確認してください。それまでは、このブラウザにだけ残っています。',
   'app.sealed.unsaved.key':

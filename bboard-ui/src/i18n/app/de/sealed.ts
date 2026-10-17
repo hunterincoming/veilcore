@@ -73,6 +73,10 @@ export const sealed = {
     'Der Server hat eine ältere Kopie von {count} Datensatz gesendet. Dieser Browser hat die neuere Kopie behalten und speichert sie erneut.',
   'app.sealed.olderKept.other':
     'Der Server hat ältere Kopien von {count} Datensätzen gesendet. Dieser Browser hat die neueren Kopien behalten und speichert sie erneut.',
+  'app.sealed.revMismatch.one':
+    'Die Versionsnummer des Servers für {count} Datensatz stimmte nicht mit der darin verschlossenen überein. Dieser Browser richtet sich nach der verschlossenen und speichert den Datensatz erneut.',
+  'app.sealed.revMismatch.other':
+    'Die Versionsnummern des Servers für {count} Datensätze stimmten nicht mit den darin verschlossenen überein. Dieser Browser richtet sich nach den verschlossenen und speichert die Datensätze erneut.',
   'app.sealed.importLocked.one':
     ' {count} verschlossener Datensatz wurde übersprungen: Dieser Browser hat seinen Schlüssel nicht.',
   'app.sealed.importLocked.other':
@@ -149,6 +153,8 @@ export const sealed = {
     'VeilCore hat nicht geantwortet ({error}). Der Code bleibt in diesem Browser. Wurde die Lieferung empfangen, steht sie in Ihren Datensätzen mit „Empfang abschließen“; sonst versuchen Sie es erneut.',
   'app.sealed.refuse.backupFirstNew':
     'es wurde noch nichts gespeichert. Speichern und prüfen Sie zuerst eine Sicherungskopie',
+  'app.sealed.refuse.olderCopy':
+    'VeilCore hat bereits eine neuere Kopie davon, gespeichert in einem anderen Tab oder auf einem anderen Gerät, daher wurde diese Änderung nicht gespeichert. Jetzt wird die neuere Kopie angezeigt; nehmen Sie die Änderung erneut vor, wenn Sie sie noch möchten',
   'app.sealed.unsaved.backup':
     'Noch nicht gespeichert. Speichern und prüfen Sie Ihre Sicherungskopie; bis dahin liegt das nur in diesem Browser.',
   'app.sealed.unsaved.key':

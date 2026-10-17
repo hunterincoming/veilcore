@@ -385,7 +385,62 @@ describe('P7: smaller privacy items', () => {
     expect(A.m.vault.VAULT_KEY_INFO).toEqual({
       records: 'veilcore:vault:records:v1',
       handleTag: 'veilcore:vault:handle-tag:v1',
+      beneficiary: 'veilcore:vault:beneficiary:v1',
     });
+  });
+
+  it('P5: a royalty obligation goes under a per-record beneficiary id from the vault key, and nothing reads the open listing', async () => {
+    const A = await browser('A5');
+    const [p1, p2] = [await plant(A), await plant(A)];
+    const out = await A.run(async () => {
+      ready(A);
+      await A.m.records.createRecordSaved(p1 as never);
+      await A.m.records.createRecordSaved(p2 as never);
+      const terms = {
+        licensee: 'Acme Farms',
+        rights: 'cultivate+propagate' as const,
+        territory: 'NJ',
+        startDate: '2026-10-04',
+        endDate: '2027-10-04',
+        royaltyType: 'percent' as const,
+        royaltyAmount: '7',
+        unitBasis: 'per-unit-sold' as const,
+        offspringRoyaltyPct: '5',
+        sublicensable: false,
+        exclusive: true,
+        extraTerms: '',
+        labPurpose: undefined,
+      };
+      for (const p of [p1, p2]) {
+        const sealed = await A.m.licenses.sealAgreement('license', terms, p.recordFingerprint);
+        const l = A.m.licenses.createLicense({
+          type: 'license',
+          recordId: p.id,
+          recordFingerprint: p.recordFingerprint,
+          terms,
+          ...sealed,
+        });
+        await A.m.licenses.issueLicense(l.id);
+        await A.m.licenses.countersignLicense(l.id);
+      }
+      await settle(150);
+      return { key: A.m.vault.vaultKeyIfAny()!, party: await A.m.holder.holderPartyId() };
+    });
+    const posts = reg.sent
+      .filter((r) => r.method === 'POST' && new URL(r.url).pathname === '/lineage/obligations')
+      .map((r) => JSON.parse(r.body) as { record: string; obligation: string; beneficiary?: string });
+    expect(posts.map((b) => b.record).sort()).toEqual([p1.recordFingerprint, p2.recordFingerprint].sort());
+    const derived = Buffer.from(
+      hkdfSync('sha256', Buffer.from(out.key, 'base64url'), Buffer.alloc(0), 'veilcore:vault:beneficiary:v1', 32),
+    );
+    for (const b of posts) {
+      expect(b.beneficiary).toBe(
+        createHmac('sha256', derived).update(`veilcore:beneficiary:v1\0${b.record}`).digest('hex'),
+      );
+      expect(b.beneficiary).not.toBe(out.party);
+    }
+    expect(posts[0].beneficiary).not.toBe(posts[1].beneficiary);
+    expect(reg.sent.some((r) => r.method === 'GET' && new URL(r.url).pathname === '/lineage/obligations')).toBe(false);
   });
 
   it('a locked lab report is padded to the records’ size buckets, and opens as the report itself', async () => {
@@ -551,7 +606,9 @@ describe('L2: only changed rows are sent; an older copy can be used', () => {
   };
   const fp = (n: number) => n.toString(16).padStart(64, 'a');
 
-  it('phone edits twice, a stale laptop tab once: the phone is shown the registry’s copy and can use it (revs #1)', async () => {
+  it('phone edits twice, a stale laptop tab once, on a registry that takes any rev: the phone is shown the registry’s copy and can use it (revs #1)', async () => {
+    // As the registry did before it checked `rev` (round 3, L2), or one that doesn't.
+    reg.misbehave.ignoreRev = true;
     const { A: phone, mother, backup } = await setup('twodev');
     const laptop = await browser('twodev-laptop');
     await laptop.run(async () => {
@@ -634,6 +691,166 @@ describe('L2: only changed rows are sent; an older copy can be used', () => {
       expect(A2.m.records.adoptOlderCopy(mother.id)).toBe(true);
       expect(A2.m.records.lockedRecords()).toEqual([]);
     });
+  });
+});
+
+describe('L2 with the registry’s public rev (record-rev-v1)', () => {
+  const fp = (n: number) => n.toString(16).padStart(64, 'b');
+  const twoDevices = async (tag: string) => {
+    const phone = await browser(`${tag}-phone`);
+    const mother = await plant(phone, { strainName: 'Mother' });
+    await phone.run(async () => {
+      ready(phone);
+      await phone.m.records.createRecordSaved(mother as never);
+    });
+    const backup = await phone.run(() => JSON.stringify(phone.m.backup.backupContents()));
+    const laptop = await browser(`${tag}-laptop`);
+    await laptop.run(async () => {
+      await laptop.m.backup.restoreAny(fileOf(backup));
+      await laptop.m.records.hydrate();
+    });
+    return { phone, laptop, mother };
+  };
+
+  it('each record goes with its rev in the clear, the same number as inside the box', async () => {
+    const { phone, mother } = await twoDevices('revwire');
+    await phone.run(async () => {
+      phone.m.records.pairDna(mother.id, fp(1), 'one.pdf');
+      await settle(100);
+    });
+    const sentRows = recordPuts().flatMap((p) => JSON.parse(p.body) as { id: string; rev?: unknown }[]);
+    expect(sentRows.length).toBeGreaterThanOrEqual(2);
+    for (const row of sentRows) expect(typeof row.rev).toBe('number');
+    const marks = await phone.run(() => phone.m.api.revMarks());
+    expect(reg.records.get(mother.id)?.rev).toBe(marks[`records:${mother.id}`]);
+    expect(reg.records.get(mother.id)?.rev).toBe(2);
+    // The box opens to the same rev (CONTRACT.md #20): what the registry checks is what is sealed.
+    const opened = await phone.run(async () => {
+      const row = reg.records.get(mother.id)!;
+      return phone.m.vault.openRow('records', mother.id, row.sealed);
+    });
+    expect(opened).toMatchObject({ ok: true, value: { rev: 2 } });
+  });
+
+  it('a stale laptop tab: its save is refused as an older copy, said so, and its next load shows the phone’s copy', async () => {
+    const { phone, laptop, mother } = await twoDevices('revstale');
+    await phone.run(async () => {
+      phone.m.records.pairDna(mother.id, fp(2), 'phone-1.pdf');
+      await settle(100);
+      phone.m.records.pairDna(mother.id, fp(3), 'phone-2.pdf');
+      await settle(100);
+    });
+    expect(reg.records.get(mother.id)?.rev).toBe(3);
+    const problem = await laptop.run(async () => {
+      laptop.m.records.pairDna(mother.id, fp(4), 'laptop.pdf');
+      await settle(200);
+      return laptop.m.saveStatus.saveProblemNow();
+    });
+    expect(problem?.refused).toEqual([
+      expect.objectContaining({ id: mother.id, words: 'app.sealed.refuse.olderCopy' }),
+    ]);
+    // The registry kept the phone's copy.
+    expect(reg.records.get(mother.id)?.rev).toBe(3);
+    await laptop.run(async () => {
+      await laptop.m.records.hydrate();
+      expect(laptop.m.records.getRecord(mother.id)?.dnaFileName).toBe('phone-2.pdf');
+      expect(laptop.m.records.lockedRecords()).toEqual([]);
+      // Changed again here, it is saved above the registry's copy.
+      laptop.m.records.pairDna(mother.id, fp(5), 'laptop-2.pdf');
+      await settle(150);
+    });
+    expect(reg.records.get(mother.id)?.rev).toBe(4);
+    await phone.run(async () => {
+      await phone.m.records.hydrate();
+      expect(phone.m.records.getRecord(mother.id)?.dnaFileName).toBe('laptop-2.pdf');
+      expect(phone.m.records.lockedRecords()).toEqual([]);
+    });
+  });
+
+  it('a second tab of the same browser, open since before: refused as an older copy too, though the tabs share the mark', async () => {
+    const { phone, mother } = await twoDevices('revtab');
+    const tab2 = await browser('revtab-tab2', {}, phone.name);
+    await tab2.run(() => tab2.m.records.hydrate());
+    await phone.run(async () => {
+      phone.m.records.pairDna(mother.id, fp(6), 'tab-1.pdf');
+      await settle(100);
+    });
+    expect(reg.records.get(mother.id)?.rev).toBe(2);
+    const problem = await tab2.run(async () => {
+      tab2.m.records.pairDna(mother.id, fp(7), 'old-tab.pdf');
+      await settle(200);
+      return tab2.m.saveStatus.saveProblemNow();
+    });
+    expect(problem?.refused).toEqual([
+      expect.objectContaining({ id: mother.id, words: 'app.sealed.refuse.olderCopy' }),
+    ]);
+    expect(reg.records.get(mother.id)?.rev).toBe(2);
+    expect(await tab2.run(() => tab2.m.records.getRecord(mother.id)?.dnaFileName)).toBe('tab-1.pdf');
+  });
+
+  it('a save whose answer was lost, then another change: saved above it, nothing refused', async () => {
+    const { phone, mother } = await twoDevices('revlost');
+    let lose = true;
+    reg.misbehave.fault = (method, path) => {
+      if (method === 'PUT' && path === '/api/records' && lose) {
+        lose = false;
+        return 'lose';
+      }
+      return undefined;
+    };
+    const problem = await phone.run(async () => {
+      phone.m.records.pairDna(mother.id, fp(8), 'lost-answer.pdf');
+      await settle(150);
+      expect(reg.records.get(mother.id)?.rev).toBe(2);
+      phone.m.records.pairDna(mother.id, fp(9), 'after.pdf');
+      await settle(200);
+      return phone.m.saveStatus.saveProblemNow();
+    });
+    reg.misbehave.fault = null;
+    expect(problem?.refused ?? []).toEqual([]);
+    expect(reg.records.get(mother.id)?.rev).toBe(3);
+    const reload = await browser('revlost-reload', {}, phone.name);
+    expect(
+      await reload.run(async () => {
+        await reload.m.records.hydrate();
+        return reload.m.records.getRecord(mother.id)?.dnaFileName;
+      }),
+    ).toBe('after.pdf');
+  });
+
+  it('two changes to one record in quick succession, the second sent before the first is answered: both kept, nothing refused', async () => {
+    const { phone, mother } = await twoDevices('revquick');
+    const problem = await phone.run(async () => {
+      phone.m.records.pairDna(mother.id, fp(10), 'quick-1.pdf');
+      phone.m.records.pairDna(mother.id, fp(11), 'quick-2.pdf');
+      await settle(250);
+      return phone.m.saveStatus.saveProblemNow();
+    });
+    expect(problem?.refused ?? []).toEqual([]);
+    const reload = await browser('revquick-reload', {}, phone.name);
+    expect(
+      await reload.run(async () => {
+        await reload.m.records.hydrate();
+        return reload.m.records.getRecord(mother.id)?.dnaFileName;
+      }),
+    ).toBe('quick-2.pdf');
+  });
+
+  it('a public rev changed on the server: the sealed one counts, the page says so, and the row is saved again above both', async () => {
+    const { phone, mother } = await twoDevices('revtamper');
+    reg.records.get(mother.id)!.rev = 40;
+    const notice = await phone.run(async () => {
+      await phone.m.records.hydrate();
+      expect(phone.m.records.getRecord(mother.id)).toBeTruthy();
+      await settle(150);
+      return phone.m.api.loadNoticeOf('veilcore.records.v1');
+    });
+    expect(notice.revMismatch).toBe(1);
+    // Saved again: the public rev and the sealed one agree once more, above the server's number.
+    const row = reg.records.get(mother.id)!;
+    expect(row.rev).toBe(41);
+    const opened = await phone.run(() => phone.m.vault.openRow('records', mother.id, row.sealed));
+    expect(opened).toMatchObject({ ok: true, value: { rev: 41 } });
   });
 });
 

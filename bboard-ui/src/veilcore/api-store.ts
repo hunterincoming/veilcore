@@ -245,6 +245,12 @@ export type LoadNotice = {
   readonly unreadable: number;
   /** Rows the registry sent an older copy of, where this browser kept its newer copy. */
   readonly olderKept?: number;
+  /**
+   * Sealed records whose public `rev` (the number the registry checks, round 3 L2) is not the
+   * one locked inside them: the server's number was changed. This browser goes by the sealed
+   * one and saves them again, so the two agree.
+   */
+  readonly revMismatch?: number;
 };
 
 type Loaded = {
@@ -314,6 +320,8 @@ export const clearSealedState = (): void => {
   loaded.clear();
   integrity.clear();
   lastSealed.clear();
+  publicRevs.clear();
+  sentHere.clear();
   olderCopies.clear();
   noteSealedRowsSeen(false);
   changed();
@@ -473,6 +481,29 @@ const contentHash = (kind: RowKind, item: Record<string, unknown>): Promise<stri
 
 /** What each row was last sealed (or opened) as here: its contents' hash and its rev. */
 const lastSealed = new Map<string, { hash: string; rev: number }>();
+/**
+ * The public `rev` the registry holds for each record (round 3, L2: it refuses a save below
+ * it), as last loaded or refused here. A save goes above it, so a number the server changed
+ * can't keep a holder's saves refused for good.
+ */
+const publicRevs = new Map<string, number>();
+/**
+ * What this page put on the wire for each row, by rev (its contents' hash), whatever the
+ * answer: a save whose answer was lost, or one still on its way, may already be stored. A
+ * next save goes above them, and a registry copy at one of them that opens to its contents
+ * is this page's own, never "a newer copy" (round 3, L2).
+ */
+const sentHere = new Map<string, Map<number, string>>();
+const highestSent = (rk: string): number => Math.max(0, ...(sentHere.get(rk)?.keys() ?? []));
+const noteSent = (rk: string, rev: number, hash: string): void => {
+  const m = sentHere.get(rk) ?? new Map<number, string>();
+  m.set(rev, hash);
+  // Only the latest few matter: a save goes above the highest.
+  for (const old of [...m.keys()].sort((a, b) => a - b).slice(0, Math.max(0, m.size - 8))) m.delete(old);
+  sentHere.set(rk, m);
+};
+/** The code the registry gives a row it refused as an older copy than the one it holds. */
+export const OLDER_COPY = 'older-copy';
 
 const hashOf = async (v: Record<string, unknown>): Promise<string> =>
   Array.from(
@@ -568,6 +599,7 @@ export const apiStore: Store = {
     const revs = readRevs();
     const out: T[] = [];
     let unreadable = 0;
+    let revMismatch = 0;
     let openedHere = false;
     const publicOf = (raw: Record<string, unknown>) => ({
       ...(isString(raw.strainName) ? { strainName: raw.strainName } : {}),
@@ -608,10 +640,24 @@ export const apiStore: Store = {
           continue;
         }
         value = asOpened;
-        lastSealed.set(revKey(kind, id), {
-          hash: await contentHash(kind, value),
-          rev,
-        });
+        // The public `rev` the registry checks saves against must be the one sealed inside the
+        // row (round 3, L2). One that isn't was changed on the server: the sealed one is what
+        // counts, and the row is saved again (it isn't marked as saved here), above both.
+        const publicRev = kind === 'records' && raw.rev !== undefined && raw.rev !== null ? raw.rev : undefined;
+        if (publicRev !== undefined) {
+          if (typeof publicRev === 'number' && Number.isSafeInteger(publicRev) && publicRev >= 0)
+            publicRevs.set(revKey(kind, id), publicRev);
+          else publicRevs.delete(revKey(kind, id));
+        }
+        if (publicRev !== undefined && publicRev !== rev) {
+          revMismatch++;
+          lastSealed.delete(revKey(kind, id));
+        } else {
+          lastSealed.set(revKey(kind, id), {
+            hash: await contentHash(kind, value),
+            rev,
+          });
+        }
         revsSeen.push([kind, id, rev]);
         state = 'open';
       } else if (kind === 'licenses') {
@@ -654,7 +700,7 @@ export const apiStore: Store = {
       states,
       locked,
       anySealed: rows.some(isSealedRow),
-      notice: { truncated, unreadable },
+      notice: { truncated, unreadable, ...(revMismatch ? { revMismatch } : {}) },
       legacy,
       replace: new Set(),
     });
@@ -741,8 +787,20 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
     const hash = await contentHash(kind, item);
     const prev = lastSealed.get(revKey(kind, id));
     if (prev && prev.hash === hash) continue;
+    // One above the rev this page last opened or saved the row at: a tab that loaded it
+    // before another tab or device saved a newer copy sends a lower rev than the registry
+    // holds, and the registry refuses it as an older copy (round 3, L2) instead of taking it
+    // over the newer one. The high-water mark is shared by every tab of this browser, so it
+    // counts only for a row this page has no rev of (a new row, a newer copy kept or an older
+    // one taken, or a public rev that wasn't the sealed one): then above the mark and the
+    // registry's public rev.
     const mark = revs[revKey(kind, id)] ?? 0;
-    const rev = Math.max(prev?.rev ?? 0, mark) + 1;
+    const rev =
+      Math.max(prev ? prev.rev : Math.max(mark, publicRevs.get(revKey(kind, id)) ?? 0), highestSent(revKey(kind, id))) +
+      1;
+    // Taken now, before anything else can run: a second save started while this one is on
+    // its way goes above it, never at the same rev.
+    noteSent(revKey(kind, id), rev, hash);
     const plain = { ...part, rev };
     if (sealedSizeOf(plain) > SEALED_MAX_BYTES) {
       refused.push({ id, reason: TOO_LARGE_REASON, words: 'app.sealed.refuse.tooLarge' });
@@ -761,7 +819,10 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
       // nothing is sent, and nothing is sealed under another key.
       return { ok: false, refused: [...refused, vaultRefusal('locked')], pending: pending.map((p) => p.id) };
     }
-    wire.push(kind === 'licenses' ? { id, sealed } : { ...publicPart(item), sealed });
+    // A record's rev goes in the clear too, the same number as inside the box, so the
+    // registry can refuse an older copy than the one it holds (round 3, L2). A licence is
+    // only its id and box (CONTRACT.md #5).
+    wire.push(kind === 'licenses' ? { id, sealed } : { ...publicPart(item), rev, sealed });
     pending.push({ id, hash, rev });
   }
   if (held.length) return { ok: false, refused, held, pending: held, accepted: [] };
@@ -796,11 +857,33 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
       pending: sent,
       accepted: [],
     };
+  const olderOnServer: (readonly [RowKind, string, number])[] = [];
   if (Array.isArray(body.rejected)) {
     for (const r of body.rejected) {
-      if (isObject(r) && isString(r.id) && isString(r.reason)) refused.push({ id: r.id, reason: r.reason });
+      if (!isObject(r) || !isString(r.id) || !isString(r.reason)) continue;
+      // The registry holds a newer copy than this save (another tab or device saved it): the
+      // change made here wasn't saved, and the next load shows the registry's copy. Said as
+      // an older copy, as when the registry sends one (CONTRACT.md #20), the other way round.
+      if (r.code === OLDER_COPY && kind === 'records') {
+        const storedRev =
+          typeof r.storedRev === 'number' && Number.isSafeInteger(r.storedRev) ? r.storedRev : undefined;
+        // The copy the registry holds may be this page's own: a later save of this page that
+        // arrived first, or one whose answer was lost. Then nothing newer was lost here.
+        const ownHash = storedRev !== undefined ? sentHere.get(revKey(kind, r.id))?.get(storedRev) : undefined;
+        if (ownHash !== undefined && (await registryHolds(kind, k, r.id, ownHash))) continue;
+        if (storedRev !== undefined) {
+          olderOnServer.push([kind, r.id, storedRev]);
+          publicRevs.set(revKey(kind, r.id), storedRev);
+        }
+        refused.push({ id: r.id, reason: r.reason, words: 'app.sealed.refuse.olderCopy' });
+        continue;
+      }
+      refused.push({ id: r.id, reason: r.reason });
     }
   }
+  // The registry's copy is the newer one: taken as current on the next load, never kept out
+  // as an "older copy" of what was refused here.
+  raiseRevs(olderOnServer);
   if (Array.isArray(body.notWritten)) {
     const reason = isString(body.reason) ? body.reason : 'this id already belongs to another holder';
     for (const id of body.notWritten) if (isString(id)) refused.push({ id, reason });
@@ -828,6 +911,21 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
     pending: sent,
     accepted: accepted.map((p) => p.id),
   };
+};
+
+/**
+ * Whether the registry's copy of a row opens, here, to exactly these contents (their hash):
+ * a save at the same rev whose answer was lost was this browser's own (round 3, L2).
+ */
+const registryHolds = async (kind: RowKind, k: string, id: string, hash: string): Promise<boolean> => {
+  const rows = await readWholeSet(kind, k);
+  const raw = rows?.find((r) => isObject(r) && r.id === id);
+  if (!isObject(raw) || !isSealedRow(raw)) return false;
+  const opened = await openRow(kind, id, raw.sealed);
+  if (!opened.ok) return false;
+  const { rev: _rev, ...inner } = opened.value;
+  void _rev;
+  return (await contentHash(kind, kind === 'records' ? merged(raw, inner) : { ...inner, id })) === hash;
 };
 
 // ---- the vault key: made once, safely (CONTRACT.md #23) ------------------------------------

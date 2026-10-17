@@ -484,6 +484,7 @@ export const openRow = async (kind: RowKind, id: string, sealed: unknown): Promi
 export const VAULT_KEY_INFO = {
   records: 'veilcore:vault:records:v1',
   handleTag: 'veilcore:vault:handle-tag:v1',
+  beneficiary: 'veilcore:vault:beneficiary:v1',
 } as const;
 
 /** 32 bytes derived from a vault key for one purpose (HKDF-SHA256, info = the label). */
@@ -532,6 +533,29 @@ export const handleTag = async (handle: string): Promise<string> => {
     ['sign'],
   );
   const msg = utf8(`veilcore:handle:v1\0${handle.normalize('NFC').trim().toLowerCase()}`);
+  return hex(new Uint8Array(await crypto.subtle.sign('HMAC', k, msg as unknown as BufferSource)));
+};
+
+/**
+ * The beneficiary id a royalty obligation on a record is registered under (round 3, P5):
+ * lowercase hex HMAC-SHA256, keyed with HKDF-SHA256(vault key, info
+ * "veilcore:vault:beneficiary:v1"), over utf8("veilcore:beneficiary:v1\0") + the record's
+ * fingerprint in lowercase hex. One per record: the registry never has the vault key, so it
+ * can't make one, and nobody but this holder can tell that two belong to the same holder.
+ * (The registry still stores which holder key registered each obligation, to let only it
+ * release it.)
+ */
+export const beneficiaryId = async (recordFingerprint: string): Promise<string> => {
+  const s = read();
+  if (!s || !keyBytes(s.key)) throw new Error('This browser has no vault key.');
+  const k = await crypto.subtle.importKey(
+    'raw',
+    (await vaultSubkey(s.key, VAULT_KEY_INFO.beneficiary)) as unknown as BufferSource,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const msg = utf8(`veilcore:beneficiary:v1\0${recordFingerprint.toLowerCase()}`);
   return hex(new Uint8Array(await crypto.subtle.sign('HMAC', k, msg as unknown as BufferSource)));
 };
 

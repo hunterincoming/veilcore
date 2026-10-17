@@ -144,9 +144,11 @@ cannot be read), because the test-network wording would then be false. After the
 launch the site is published with `npm run deploy:mainnet` (`docs/mainnet-day-site.md`).
 
 Deploy the registry before the site. `deploy:mainnet` and `deploy:test` refuse unless the
-registry's `/health` lists `sealed-records-v1`, `lab-results-v1`, `animal-profile-v1` and
-`claimant-offer-v1`, because every build of the site offers sealed records, lab results,
-animal records and "Finish receiving" for a delivery (`scripts/registry-features.mjs`).
+registry's `/health` lists `sealed-records-v1`, `lab-results-v1`, `animal-profile-v1`,
+`claimant-offer-v1`, `sealed-custody-v1` and `record-rev-v1`, because every build of the site
+offers sealed records, lab results, animal records and "Finish receiving" for a delivery,
+seals a delivery's sample details, and sends each record's `rev` so the registry refuses an
+older copy (`scripts/registry-features.mjs`).
 
 ## Licence
 

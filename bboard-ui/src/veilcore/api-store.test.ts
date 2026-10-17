@@ -282,6 +282,8 @@ describe('nothing private reaches the registry', () => {
       'receivedAt',
       'transferId',
       'attestation',
+      // The row's revision (round 3, L2): the same number as inside the box.
+      'rev',
       'sealed',
     ]);
     for (const r of rows.values()) {

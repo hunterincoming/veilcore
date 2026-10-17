@@ -220,13 +220,14 @@ export const LockedAgreements: React.FC = () => {
 export const LoadNoticeBar: React.FC = () => {
   const { notice } = useSealedView();
   const { t, tp } = useT();
-  if (!notice.truncated && notice.unreadable === 0 && !notice.olderKept) return null;
+  if (!notice.truncated && notice.unreadable === 0 && !notice.olderKept && !notice.revMismatch) return null;
   return (
     <Alert severity="warning" variant="outlined" data-load-notice="">
       {[
         notice.truncated ? t('app.sealed.truncated') : '',
         notice.unreadable ? tp('app.sealed.unreadable', notice.unreadable) : '',
         notice.olderKept ? tp('app.sealed.olderKept', notice.olderKept) : '',
+        notice.revMismatch ? tp('app.sealed.revMismatch', notice.revMismatch) : '',
       ]
         .filter(Boolean)
         .join(' ')}

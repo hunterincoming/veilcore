@@ -77,6 +77,10 @@ export const sealed = {
     'The server sent an older copy of {count} record. This browser kept the newer copy and saves it again.',
   'app.sealed.olderKept.other':
     'The server sent older copies of {count} records. This browser kept the newer copies and saves them again.',
+  'app.sealed.revMismatch.one':
+    'The server’s version number for {count} record didn’t match the one locked inside it. This browser goes by the locked one and saves the record again.',
+  'app.sealed.revMismatch.other':
+    'The server’s version numbers for {count} records didn’t match the ones locked inside them. This browser goes by the locked ones and saves them again.',
   // AppHome.tsx: import, the backup before older records are locked, a browser that keeps nothing
   'app.sealed.importLocked.one': ' {count} locked record was skipped: this browser doesn’t have its key.',
   'app.sealed.importLocked.other': ' {count} locked records were skipped: this browser doesn’t have their key.',
@@ -150,6 +154,8 @@ export const sealed = {
   'app.sealed.recv.noAnswer':
     'VeilCore didn’t answer ({error}). The code is kept in this browser. If it was received, it shows in your records with “Finish receiving”; if not, try again.',
   'app.sealed.refuse.backupFirstNew': 'nothing was saved yet. Save a backup and check it first',
+  'app.sealed.refuse.olderCopy':
+    'VeilCore already has a newer copy of it, saved from another tab or device, so this change wasn’t saved. The newer copy is shown now; make the change again if you still want it',
   'app.sealed.unsaved.backup':
     'Not saved yet. Save your backup and check it; until then this is kept only in this browser.',
   'app.sealed.unsaved.key':

@@ -59,6 +59,7 @@ const MODULES = {
   lineage: () => import('../lineage'),
   labResults: () => import('../lab-results'),
   outbox: () => import('../outbox'),
+  saveStatus: () => import('../save-status'),
 };
 type Mods = { [K in keyof typeof MODULES]: Awaited<ReturnType<(typeof MODULES)[K]>> };
 

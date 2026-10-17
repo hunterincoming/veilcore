@@ -73,6 +73,10 @@ export const sealed = {
     'Le serveur a envoyé une copie plus ancienne de {count} enregistrement. Ce navigateur a gardé la copie plus récente et l’enregistre à nouveau.',
   'app.sealed.olderKept.other':
     'Le serveur a envoyé des copies plus anciennes de {count} enregistrements. Ce navigateur a gardé les copies plus récentes et les enregistre à nouveau.',
+  'app.sealed.revMismatch.one':
+    'Le numéro de version du serveur pour {count} enregistrement ne correspondait pas à celui verrouillé à l’intérieur. Ce navigateur se fie à celui verrouillé et enregistre à nouveau cet enregistrement.',
+  'app.sealed.revMismatch.other':
+    'Les numéros de version du serveur pour {count} enregistrements ne correspondaient pas à ceux verrouillés à l’intérieur. Ce navigateur se fie à ceux verrouillés et enregistre à nouveau ces enregistrements.',
   'app.sealed.importLocked.one': ' {count} enregistrement verrouillé a été ignoré : ce navigateur n’a pas sa clé.',
   'app.sealed.importLocked.other':
     ' {count} enregistrements verrouillés ont été ignorés : ce navigateur n’a pas leur clé.',
@@ -149,6 +153,8 @@ export const sealed = {
     'VeilCore n’a pas répondu ({error}). Le code est gardé dans ce navigateur. Si la livraison a été reçue, elle apparaît dans vos enregistrements avec « Terminer la réception » ; sinon, réessayez.',
   'app.sealed.refuse.backupFirstNew':
     'rien n’a encore été enregistré. Enregistrez d’abord une copie de secours et vérifiez-la',
+  'app.sealed.refuse.olderCopy':
+    'VeilCore a déjà une copie plus récente, enregistrée depuis un autre onglet ou un autre appareil, donc cette modification n’a pas été enregistrée. La copie plus récente est affichée maintenant ; refaites la modification si vous la voulez toujours',
   'app.sealed.unsaved.backup':
     'Pas encore enregistré. Enregistrez votre copie de secours et vérifiez-la ; d’ici là, c’est gardé seulement dans ce navigateur.',
   'app.sealed.unsaved.key':

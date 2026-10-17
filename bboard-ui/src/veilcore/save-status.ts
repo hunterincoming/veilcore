@@ -34,6 +34,9 @@ const subscribe = (l: () => void): (() => void) => {
 
 export const useSaveProblem = (): SaveProblem | null => useSyncExternalStore(subscribe, () => problem);
 
+/** What the last save refused, now (outside React). */
+export const saveProblemNow = (): SaveProblem | null => problem;
+
 /**
  * A readable sentence for a refusal list. A refusal the browser made itself carries its
  * words (store.ts SaveRefusal); the registry's own reasons are said as it gave them.

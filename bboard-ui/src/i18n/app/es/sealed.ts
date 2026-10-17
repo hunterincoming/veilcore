@@ -70,6 +70,10 @@ export const sealed = {
     'El servidor envió una copia anterior de {count} registro. Este navegador conservó la copia más reciente y la vuelve a guardar.',
   'app.sealed.olderKept.other':
     'El servidor envió copias anteriores de {count} registros. Este navegador conservó las copias más recientes y las vuelve a guardar.',
+  'app.sealed.revMismatch.one':
+    'El número de versión del servidor para {count} registro no coincidía con el que lleva cerrado dentro. Este navegador se guía por el cerrado y vuelve a guardar el registro.',
+  'app.sealed.revMismatch.other':
+    'Los números de versión del servidor para {count} registros no coincidían con los que llevan cerrados dentro. Este navegador se guía por los cerrados y vuelve a guardar los registros.',
   'app.sealed.importLocked.one': ' Se omitió {count} registro bloqueado: este navegador no tiene su clave.',
   'app.sealed.importLocked.other': ' Se omitieron {count} registros bloqueados: este navegador no tiene su clave.',
   'app.sealed.backupBeforeLocking':
@@ -143,6 +147,8 @@ export const sealed = {
   'app.sealed.recv.noAnswer':
     'VeilCore no respondió ({error}). El código se guarda en este navegador. Si se recibió, aparece en sus registros con «Terminar de recibir»; si no, inténtelo de nuevo.',
   'app.sealed.refuse.backupFirstNew': 'todavía no se guardó nada. Guarde una copia de seguridad y compruébela primero',
+  'app.sealed.refuse.olderCopy':
+    'VeilCore ya tiene una copia más reciente, guardada desde otra pestaña u otro dispositivo, así que este cambio no se guardó. Ahora se muestra la copia más reciente; vuelva a hacer el cambio si todavía lo quiere',
   'app.sealed.unsaved.backup':
     'Aún no se guardó. Guarde su copia de seguridad y compruébela; hasta entonces solo está en este navegador.',
   'app.sealed.unsaved.key':

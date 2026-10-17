@@ -428,10 +428,13 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
   }
   // What this browser keeps for the registry: shown, and sent with the next save (L1, L12).
   const merged = await mergeOutbox();
+  // A record whose public rev isn't the one sealed inside it (round 3, L2): sent again, so
+  // the registry checks saves against the right number.
+  const revFix = (loadNoticeOf(RECORDS_KEY).revMismatch ?? 0) > 0;
   notify();
   // Sent again with the next save; not straight after a refusal (saveAll reads the set back
   // with resave off), so a registry that keeps refusing is asked once per sync, not in a loop.
-  if ((kept || merged) && opts.resave !== false) void saveAll();
+  if ((kept || merged || revFix) && opts.resave !== false) void saveAll();
   await convertLegacy();
   if (!syncedOnce) {
     syncedOnce = true;

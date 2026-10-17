@@ -19,7 +19,7 @@ import {
   rowStateOf,
   type LockedRow,
 } from './api-store';
-import { onVaultChange, useVaultNeedsBackup, vaultKeyIfAny, vaultNeedsBackup } from './vault';
+import { beneficiaryId, onVaultChange, useVaultNeedsBackup, vaultKeyIfAny, vaultNeedsBackup } from './vault';
 import { BACKUP_FIRST_REASON } from './api-store';
 import { enT } from '../i18n/translate';
 
@@ -370,7 +370,12 @@ export const countersignLicense = async (id: string): Promise<License | undefine
   }));
   if (out && out.state === 'active' && createsHeritableObligation(out.type, out.terms)) {
     const rec = getRecord(out.recordId);
-    if (rec) void encumberRecord(rec.recordFingerprint, out.agreementFingerprint);
+    // Under a per-record beneficiary id made from the vault key (round 3, P5), never the
+    // holder's party id, so the registry's obligations don't link one holder's licences.
+    if (rec)
+      void beneficiaryId(rec.recordFingerprint)
+        .catch(() => undefined)
+        .then((beneficiary) => encumberRecord(rec.recordFingerprint, out.agreementFingerprint, beneficiary));
   }
   return out;
 };

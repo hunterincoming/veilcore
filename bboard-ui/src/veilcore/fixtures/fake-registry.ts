@@ -60,6 +60,12 @@ export const fakeRegistry = () => {
     /** Ids a PUT rejects (as the real registry rejects a row it won't take). */
     rejectIds: new Set<string>(),
     /**
+     * Take a record whatever its `rev`, as the registry did before round 3 (L2). By default
+     * this one refuses an older copy as the real one does: a public `rev` below the one it
+     * holds, or none once it holds one, is refused by id with code "older-copy".
+     */
+    ignoreRev: false,
+    /**
      * Called before each request is carried out. Returning 'lose' carries it out and then
      * throws, as a connection lost before the answer arrives does; 'fail' throws without
      * carrying it out; a Response is answered instead.
@@ -114,13 +120,34 @@ export const fakeRegistry = () => {
       const t = table(path);
       if (method === 'PUT') {
         const kid = kidOf(holder);
-        const rejected: { id: string; reason: string }[] = [];
+        const rejected: ({ id: string; reason: string } & Record<string, unknown>)[] = [];
         const notWritten: string[] = [];
         const items = JSON.parse(body) as Row[];
         const theirKid = items.map((r) => (r.sealed as { kid?: string } | undefined)?.kid).find(Boolean);
         for (const r of items) {
           const s = r.sealed as { kid?: string } | undefined;
+          const heldRev = typeof t.get(r.id)?.rev === 'number' ? (t.get(r.id)!.rev as number) : null;
+          const rev = typeof r.rev === 'number' && Number.isSafeInteger(r.rev) ? r.rev : null;
           if (misbehave.rejectIds.has(r.id)) rejected.push({ id: r.id, reason: 'refused for this test' });
+          else if (
+            path === '/api/records' &&
+            !misbehave.ignoreRev &&
+            heldRev !== null &&
+            t.get(r.id)!.holder === holder &&
+            (rev === null ||
+              rev < heldRev ||
+              // The same rev only as the very same box (one request sent twice).
+              (rev === heldRev &&
+                JSON.stringify((t.get(r.id)!.sealed as { iv?: string; ct?: string } | undefined) ?? null) !==
+                  JSON.stringify(s ?? null)))
+          )
+            rejected.push({
+              id: r.id,
+              reason: `older copy: this registry holds rev ${heldRev} of this record and this save is ${rev === null ? 'without a rev' : `rev ${rev}`}; nothing was changed`,
+              code: 'older-copy',
+              status: 409,
+              storedRev: heldRev,
+            });
           else if (!s) rejected.push({ id: r.id, reason: 'new rows must be sealed' });
           else if ((kid ?? theirKid) !== s.kid)
             rejected.push({ id: r.id, reason: "sealed with a different vault key than this holder's other records" });
@@ -299,6 +326,16 @@ export const fakeRegistry = () => {
     const anc = /^\/lineage\/ancestors\/([^/]+)$/.exec(path);
     if (anc) return json({ ancestors: graph.get(decodeURIComponent(anc[1])) ?? [] });
     if (path === '/lineage/verify' && method === 'POST') return json({ ok: true, generationsChecked: 1 });
+    // Royalty obligations (round 3, P5): kept per record, under the beneficiary id sent; the
+    // open listing is gone, as on the real registry.
+    if (path === '/lineage/obligations' && method === 'POST') {
+      const b = JSON.parse(body) as { beneficiary?: unknown };
+      if (b.beneficiary !== undefined && (typeof b.beneficiary !== 'string' || !/^[0-9a-f]{64}$/.test(b.beneficiary)))
+        return json({ error: 'beneficiary must be 64 lowercase hexadecimal characters' }, 400);
+      return json({ status: 'open', root: '00'.repeat(32), beneficiary: b.beneficiary ?? null });
+    }
+    if (path === '/lineage/obligations' && method === 'GET')
+      return json({ error: 'the listing of all obligations is no longer published' }, 410);
     return json({ error: `no route ${method} ${path}` }, 404);
   };
 
