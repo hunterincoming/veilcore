@@ -1,7 +1,14 @@
 {
   "name": "@veilcore/workspace",
   "version": "0.1.0",
-  "author": "VeilCore",
+  "description": "VeilCore on Midnight: the Compact contracts, the web app at veilcore.org, the CLI and the client API",
+  "homepage": "https://veilcore.org",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hunterincoming/veilcore-midnight-testnet.git"
+  },
+  "bugs": "https://github.com/hunterincoming/veilcore-midnight-testnet/issues",
+  "author": "VeilCore <hunter@veilcore.org>",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",

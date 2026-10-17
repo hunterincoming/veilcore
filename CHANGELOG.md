@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Repository tidy (17 Oct 2026)
+
+- README opens with what is live: both mainnet addresses, what works on veilcore.org, what is
+  practice only, no audit, no users yet. Stale lines ("not deployed yet", "does not anchor
+  yet", "simulated") corrected; the privacy paragraph is a short list.
+- `docs/README.md` indexes the docs; dated run records moved to `docs/log/`, operator
+  procedures to `docs/ops/`.
+- Operator messages in the CLI, API and scripts point to the maintainer (hunter@veilcore.org).
+- CONTRIBUTING rewritten for VeilCore; Code of Conduct reports go to hunter@veilcore.org; the
+  empty SUPPORT.md is removed.
+
+### Mainnet (8 Oct 2026)
+
+- `veilcore` deployed at `a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347`
+  (block 2922687; all 24 circuit keys on chain by 06:50 EDT) and `veilcore-claims` at
+  `ef763eb4ad1846b716dbfa90c00560a9a943ffb4d1fc638b0707df5adefd070d` (block 2922871; maintenance
+  authority retired to an empty committee in block 2922874). Both pinned in
+  `api/src/deploy-guard.ts` (`5722fdb`). Details: `docs/deployment-record-revision-4.md`.
+- First mainnet batch `B-20261011-FE71` anchored by hand on 11 October (Midnight block 2973563;
+  our own test records) and also stamped on Bitcoin
+  (blocks 971004 and 971005; `docs/bitcoin-stamp-check-11oct.md`).
+
 ### Proof server 8.1.3 (11 Oct 2026)
 
 - Every pinned proof server image moves from 8.0.3 to `midnightntwrk/proof-server:8.1.3`
@@ -14,8 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   2 October security patch for GHSA-wr7g-rr4v-jmj8 and the version Midnight's support matrix
   pairs with midnight-js 4.1.1 and Compact 0.31.1. The digest is from Midnight's signed build
   manifest (key fingerprint 2D55 ACA7 93E9 495E 4288 9A35 4523 91B0 57AD D8C7), checked here.
-  Hunter: confirm with `docker pull midnightntwrk/proof-server:8.1.3` that Docker Hub prints
-  the same digest.
+  To check it independently: `docker pull midnightntwrk/proof-server:8.1.3` prints the same
+  digest.
 - The advisory concerns contracts that use a `Set` or `Map` keyed by a `Field`,
   `MerkleTreeDigest` or `JubjubPoint` as a one-time guard. VeilCore's contracts key every map
   and set by `Bytes<32>` or `Uint<64>`, and the claims contract keeps no state: not affected.
@@ -83,8 +105,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   These need a 0.3.0 release of `@veilcore/contracts`, not yet published; 0.2.0 on npm
   does not have them.
 - **Docs:** design, partner guide, maintenance policy and deployment record match the
-  above. Still open: the mainnet authority counter to expect (a TODO), and Docker image
-  digests (all three images are on tags).
+  above. Still open then: the mainnet authority counter to expect (not yet recorded), and
+  Docker image digests (all three images were on tags; pinned by digest on 9 October).
 - **Deploy tool:** Vercel CLI stays on 62.2.0 with `tar` overridden past the critical
   advisory.
 

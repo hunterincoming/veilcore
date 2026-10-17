@@ -1,8 +1,42 @@
 # VeilCore
 
-**Provenance and licensing for plant and animal genetics, built on the [Midnight Network](https://midnight.network/).**
+Dated, private records for plant and animal genetics, on Midnight.
 
-**Live → https://veilcore.org** — runs in your browser; no wallet, faucet or install required. Settlement is simulated there; see Current status.
+A breeder seals a record of a cultivar or an animal line in the browser. The details are
+encrypted there, and DNA files are never uploaded. Only a 32-byte proof code is anchored on
+Midnight, in a batch with others. Later a buyer, examiner or court can check what the record
+said and when it existed: free, no account, without having to trust us.
+(What our server can still see: [the list](#what-leaves-your-browser).)
+
+**[veilcore.org](https://veilcore.org)** runs on Midnight mainnet ·
+[test.veilcore.org](https://test.veilcore.org) is for practice ·
+the record format is an open spec: [veilcore-sdk](https://github.com/hunterincoming/veilcore-sdk)
+
+## On mainnet since 8 October 2026
+
+| Contract | Address | Can it be changed? |
+|---|---|---|
+| `veilcore.compact`: records, licences, lineage (24 circuits) | `a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347` | By a maintenance key ([policy](docs/maintenance-policy.md)) |
+| `veilcore-claims.compact`: prove one fact about sealed values | `ef763eb4ad1846b716dbfa90c00560a9a943ffb4d1fc638b0707df5adefd070d` | No. It has no maintenance key |
+
+Deploy transactions and blocks: [the deployment record](docs/deployment-record-revision-4.md#mainnet-deployment).
+Build fingerprints: [docs/fingerprints.md](docs/fingerprints.md).
+
+## Where it stands
+
+- **Works on veilcore.org:** sealing records; anchoring batches on mainnet (by hand for now; the
+  first batch, `B-20261011-FE71`, is also stamped on Bitcoin, blocks 971004 and 971005); lab
+  receipts and reports signed with the lab's own key; choosing what a record's check page shows.
+- **Practice only:** licences, royalties and lab agreements. They're in the contract; the
+  website doesn't submit them yet. DNA report pairings are saved but not dated on chain.
+- **No audit.** Twelve rounds of adversarial review are public, with the attacks kept as tests
+  ([docs/security-pass-30sep.md](docs/security-pass-30sep.md)). They are not a formal audit.
+- **No users yet.** Every record so far is our own test data.
+
+A record is evidence you held a description by a date. It isn't ownership, it doesn't test
+DNA, and we don't vouch for any lab. [What VeilCore does not claim](#what-veilcore-does-not-claim).
+
+## What it does
 
 A breeder who holds genetic material may later need to establish three things: that they held it, from a date preceding someone else's acquisition of it, and that material in another party's possession descends from theirs. These are historical claims, ordinarily supported by the holder's own records — which is the weakest evidence available, because it is produced by the party relying on it and can be created after the fact.
 
@@ -10,14 +44,48 @@ Written agreements have a related problem. A contract binds the parties who sign
 
 VeilCore records what was held and when, lets licences be granted against a record, and lets an obligation on an ancestor be carried by everything derived from it.
 
-- **Prove prior possession** — on chain, an anchored record is dated by the block it lands in. (The web app does not anchor yet; see Current status.)
+- **Prove prior possession** — an anchored record is dated by the block its batch lands in.
 - **Pair a DNA report** — record a DNA report against your record. The contract binds whatever 32-byte value the holder submits: it is the holder's own statement that this report belongs to this record, not a check of the genetics. The client submits a salted binding of the report's hash to the record's identity, not the raw hash, so the pairing cannot be copied to another record. It shows that whoever controlled the record's identity at that date had the report, or its SHA-256, by then (verifier rule 9 in [`docs/design.md`](docs/design.md), which also flags a report hash paired raw earlier and key changes since). The web app keeps the pairing in the registry, not on chain.
 - **License against the record** — on chain a licence is only PENDING (issued) or ACTIVE (countersigned), and revoking removes it. The contract stores no terms and has no expiry. Terms, dates, expiry and the royalty log are kept by the app, in the VeilCore registry. A presentation proves "a live licence from this issuer", not which licence or on what terms.
 - **Prove a claim without showing the secret** — prove you hold a record, or a licence, without revealing the secret behind it. A control proof publishes the record's commitment. A licence presentation hides the licence and the licensee, and the issuer only among issuers with live licences; while only one issuer has live licences, as at launch, it names that issuer.
 
-**What leaves your browser.** DNA reports and photos are hashed in the browser; the files never leave it. Their fingerprints and the report's file name go to the registry locked, unless the holder chooses to show the DNA pairing on a record's check page, and then the registry gets only H("veilcore:v1:dnapair", the report's SHA-256, the record's fingerprint, the record's own pairing salt): the salt travels only in the holder's check link, after the #, so only someone the holder sends the link and the file to can tell which file it is. A lab report a lab sends back through VeilCore travels locked. A record made to date a lab report is a record like any other: its name is locked like any other, and the app suggests "<plant> — lab report", which the holder can change. (The app calls a record's fingerprint its proof code.) The web app stores your records and licences on the VeilCore registry (a server we run), keyed by a random holder key your browser keeps in `localStorage` and sends with every request. Each record's and licence's contents (the record's name, cultivar details, breeder, dates, notes, parents, method, your reference, the nonce behind its fingerprint, the DNA pairing, the record's own secret keys; a licence's counterparty, terms, dates, status and royalty log) are locked in the browser (AES-256-GCM) with a vault key that is never sent: it stays in the browser and the backup file, and the registry stores only the locked box. The registry can read a record's id, its profile, fingerprint and key binding, which fields a correction changed and when, when it first saw the record, how many times each record and licence was saved and when last, the size bucket of each locked box, what the holder chooses to show on its check page (the record's name only if they choose to), the parent links holders register, and, for a delivery, which record it came from, which holder account received it, and a tag in place of the recipient's name (a delivery made before tags has the name as typed until the registry's purge replaces it). When a license with a royalty on offspring is countersigned, the browser also registers an obligation on the record's fingerprint, under a per-record id it derives from the vault key: so for those licenses the registry can read which record carries one, since when (that is, that it was countersigned, and when) and which holder key registered it, though not its terms or parties; it answers only one record at a time whether it carries one (the lineage check needs it), and never lists them. A delivery's sample details (sample ID, seal number, where and when it was taken, a witness, what the lab wrote on arrival) are locked too, with the delivery's offer key, which travels in the lab code and is kept in the sender's locked records; the registry stores the box. Rows saved before sealing, a record's name saved before names were sealed (17 October 2026), and sample details written before sealing, stay readable until the browser converts them or the registry's purge runs, and the registry's off-site backups made before then hold them until its operator destroys the old backup key (the registry's `docs/rotate-backup-key.md`). Requests to prove a record's key are kept 7 days. VeilCore also serves the app's code, so this is "stored locked, and we don't have the key", not a promise the code can't change; each release publishes the list of its files, response headers and build settings (`releases/<network>/<commit>.json`, written by every deploy). You can check that the files your browser received match that list (`npm run check:site -- <url>`, or `/check-this-site`), and anyone can rebuild the release from the published code and compare (`npm run check:rebuild -- <manifest>`). This shows what was released; it can't prove a host sent everyone the same files. Anyone with a record's id can see its id, fingerprint, its name code (nothing about the name without the salt in the holder's link), when the registry first saw it, and what its holder chose to show; the holder's check links can also carry the record's name and its salt after the #, which a browser doesn't send when it opens the link, though the link itself goes whole to whoever it is sent to. A lab report signature made since 17 October 2026 names the report bound to the record with a salt only the sender and the lab hold; one made before names the file's SHA-256, which the registry shows only to the delivery's sender and lab. The check and prove pages never send the holder key. On chain, only commitments are recorded, plus the public values listed under Known limits in [`docs/design.md`](docs/design.md).
-
 Plant genetics is the first use, not the limit. The record format is domain-blind: the same envelope serves ornamental propagation, a livestock herd book, or a microbial culture collection.
+
+## What leaves your browser
+
+- **Sealed in the browser.** Everything a holder types into a record or licence (name,
+  breeder, species, dates, notes, reference numbers, parents, method, the record's own secret
+  keys; a licence's counterparty, terms, dates and royalty log) and a delivery's sample
+  details are encrypted in the browser (AES-256-GCM) before they are sent.
+- **Stored locked; we don't have the key.** The registry (a server we run) stores the locked
+  box. The key stays in the holder's browser and backup file. A delivery's sample-details key
+  also travels in the lab code, so the lab can open them.
+- **DNA files and photos never leave the device.** They are hashed in the browser; the files never leave it. Their fingerprints and the report's file name go to the registry locked, unless the holder chooses to show the DNA pairing
+  on a record's check page; then the registry gets only a salted code whose salt travels in the
+  holder's check link.
+- **Lab reports travel locked**, and are deleted from the registry after 180 days.
+- **What the registry can read:** each record's id, profile, proof code and key binding; a
+  code made from its name (useless without the salt in the holder's check link); correction
+  links; when it first saw the record; save counts and times; a size bucket; what the holder
+  chooses to show on its check page; parent links; batch and date stamp; for a licence with a
+  royalty on offspring, which record carries it and since when (not its terms or parties); for
+  a delivery, which record it came from, which holder account received it, and a tag in place
+  of the recipient's name; a
+  lab's public key and signatures; requests to prove a record's key, kept 7 days.
+- **Check links** can carry a record's name and its salt after the `#`. A browser doesn't send
+  that part, but the link itself goes whole to whoever receives it.
+- **Older data:** rows saved before sealing, and names saved before 17 October 2026, stay
+  readable until the browser re-saves them or the registry's purge runs; off-site backups made
+  before then keep them until the old backup key is destroyed.
+- **On chain:** only commitments, plus the public values listed under Known limits in
+  [`docs/design.md`](docs/design.md).
+
+VeilCore also serves the app's code, so this is "stored locked, and we don't have the key",
+not a promise the code can't change. Every deploy writes a manifest of its files, headers and
+build settings (`releases/<network>/<commit>.json`). Anyone can check a live site against it
+(`npm run check:site -- <url>`, or `/check-this-site`) and rebuild the release from source to
+compare (`npm run check:rebuild -- <manifest>`). That shows what was released; it can't prove
+a host sent everyone the same files.
 
 ## What this repository is
 
@@ -70,15 +138,14 @@ cd ../bboard-ui && npm run build
 
 ## Current status
 
-**Two contracts, planned for mainnet and not deployed there yet.** `contract/src/veilcore.compact`
+**Two contracts, both on Midnight mainnet since 8 October 2026** (addresses above). `contract/src/veilcore.compact`
 (protocol version 1, frozen) covers records, licences and lineage. `contract/src/veilcore-claims.compact`
 proves one fact about a sealed record without showing the rest (a value, a bound on a number,
 that two records differ, that a correction changed only some values), optionally on values a
 laboratory signed; see [`docs/claims-design.md`](docs/claims-design.md) and SPEC 4.5 in veilcore-sdk.
-It is deployed with no maintenance authority (an empty committee).
+The claims contract has no maintenance authority (an empty committee).
 
-The main contract:
-It covers records, licences and lineage in 24 circuits. The design, the normative
+The main contract covers records, licences and lineage in 24 circuits. The design, the normative
 verifier rules and the trust model are in [`docs/design.md`](docs/design.md).
 
 An outside developer reviewed it in August. Since then it has had twelve rounds of
@@ -102,31 +169,39 @@ tree is not: its inner nodes use Midnight's own field hash, and verifier rule 5 
 tree roots, so checking a licence presentation, like reading any contract state, needs
 Midnight's tooling.
 
-**The web app runs real hashing against simulated settlement.** It sends nothing to
-the chain. The CLI in `bboard-cli/` talks to a deployed contract. Its smoke test
+**What the web app sends to the chain.** On veilcore.org (mainnet) the site sends no
+transactions itself: records are sealed and stored in the registry, and the operator anchors
+them in batches by hand for now. On test.veilcore.org (preprod) the browser proves and sends
+transactions itself and a sponsor pays the fees: anchoring, DNA pairing and proving possession,
+first run end to end on 12 and 13 October 2026 ([`docs/no-wallet-run-12oct.md`](docs/no-wallet-run-12oct.md)).
+Licences, royalties and lab agreements are practice only on both sites.
+
+**The CLI** in `bboard-cli/` talks to a deployed contract. Its smoke test
 (`bboard-cli/src/smoke.ts`) deploys a fresh contract and calls 16 of the 24 circuits with
 real proofs, checking 26 results, including 8 attempts that must be refused (7 by the contract,
-1 by the verifier's transaction lookup). An optional claims phase adds 11 checks (37 in all);
-it has run only against a local stand-in so far, not yet with real proofs. It does
+1 by the verifier's transaction lookup). The claims phase adds 11 checks (37 in all). It does
 not call `anchorBatch`, `replaceRecoveryCommitment`, `withdrawTransfer`, `withdrawParent`,
 `proposeObligation`, `acceptObligation`, `rejectObligation` or `withdrawObligation`. It
-passed 26 of 26 on a local Midnight chain on this build (the state bounds, `ceb3a16`) on
-1 October 2026 at 20:56 EDT, and 26 of 26 on Midnight's preprod test network on 2 October 2026
-(contract `9c7b6927…`; see [`docs/log/preprod-run-2oct.md`](docs/log/preprod-run-2oct.md)).
+passed 26 of 26 on Midnight's preprod test network on 2 October 2026
+(contract `9c7b6927…`; [`docs/log/preprod-run-2oct.md`](docs/log/preprod-run-2oct.md)), and 37 of 37,
+both contracts with real proofs, on 4 and 5 October
+([`docs/log/preprod-run-4oct.md`](docs/log/preprod-run-4oct.md),
+[`docs/log/preprod-run-5oct.md`](docs/log/preprod-run-5oct.md)).
 
 **MPS-0037**, the proposal for obligations that inherit through descent, is merged into
 Midnight's standards repository.
 
 ## What VeilCore does not claim
 
-- On chain, a record is dated by the block its anchor lands in. In the web app, the logging time comes from the browser's clock and the creation date is typed by the holder: both are the holder's own claims. The registry adds the time it first saw the record, which is the registry's word, not the chain's. None of this proves a backdated date wrong.
+- On chain, a record is dated by the block its batch's anchor lands in. Until then, the logging time comes from the browser's clock and the creation date is typed by the holder: both are the holder's own claims. The registry adds the time it first saw the record, which is the registry's word, not the chain's. None of this proves a backdated date wrong.
 - A record establishes **prior possession, not ownership**. It is evidence a lawyer can rely on, not a verdict.
 - A parent link on chain means both holders **agreed** the child descends from the parent. It is not a genetic test.
 - It **pairs** the DNA report a laboratory returns, as the holder's own statement. It does not sequence anything, check the report, or confirm it came from a laboratory.
 - In-app "signing" and countersigning of a licence record a time in the registry. They are not cryptographic signatures, and not qualified eIDAS signatures. On chain, a countersign is proved with the licensee's licence secret.
 - The royalty log records and proves obligations. It does not move money.
 - It raises the cost and the evidentiary risk of laundering stolen genetics. It does not prevent it.
-- Settlement in the web app is simulated. The hashing is real; the on-chain submission is not wired in yet.
+- Licences, royalties and lab agreements on the website are practice only: they are in the contract, but the website doesn't submit them yet.
+- VeilCore does not vouch for any record, holder or lab. A lab's signature shows which key signed; a lab's name is shown as checked only after the operator has matched it to a public licence, and even then only that match is claimed ([`docs/lab-name-checks.md`](docs/lab-name-checks.md)).
 
 ## Deploying the web app
 
@@ -138,10 +213,10 @@ The script runs the Vercel CLI pinned in `tools/vercel/` (exact version, own loc
 npm run deploy:prod
 ```
 
-`deploy:prod` publishes the test-network site. It first reads the registry's
-`/.well-known/veilcore-registry` and refuses once the registry anchors on mainnet (or if it
-cannot be read), because the test-network wording would then be false. After the mainnet
-launch the site is published with `npm run deploy:mainnet` (`docs/ops/mainnet-day-site.md`).
+veilcore.org is published with `npm run deploy:mainnet` ([`docs/ops/mainnet-day-site.md`](docs/ops/mainnet-day-site.md)),
+and test.veilcore.org with `npm run deploy:test` ([`docs/test-site.md`](docs/test-site.md)).
+`deploy:prod` published the test-network wording before mainnet; it reads the registry's
+`/.well-known/veilcore-registry` and refuses now that the registry anchors on mainnet.
 
 Deploy the registry before the site. All three deploys (`deploy:prod`, `deploy:mainnet` and
 `deploy:test`) refuse unless the registry's `/health` lists every feature in
@@ -159,6 +234,12 @@ and the Node and npm versions, at `releases/<network>/<commit>.json` (`prod` for
 random one, the way a browser opens a page) and rebuild the release from the code to compare
 (`npm run check:rebuild -- releases/<network>/<commit>.json`; use the Node version it names).
 Neither can prove a host sent everyone the same files.
+
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately: [SECURITY.md](SECURITY.md).
+Much of this code was written with an AI coding assistant. Every change goes through the
+tests and the public reviews in [`docs/`](docs/README.md).
 
 ## Licence
 
