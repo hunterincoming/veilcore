@@ -21,7 +21,7 @@ export const sealed = {
     'This browser doesn’t have the key for these records. Restore your latest backup file. VeilCore can’t open them for you.',
   'app.sealed.locked.cantChange': 'A locked record can’t be changed or sent. You can delete it.',
   'app.sealed.locked.restore': 'Restore my backup',
-  'app.sealed.locked.unnamed': 'Unnamed record',
+  'app.sealed.locked.unnamed': 'Name locked',
   'app.sealed.locked.delete': 'Delete',
   'app.sealed.locked.deleteConfirm':
     'Delete {name} from VeilCore? It can’t be opened in this browser, and once it’s deleted nobody can bring it back.',

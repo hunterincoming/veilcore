@@ -73,24 +73,27 @@ describe('a saved DNA report, bound', () => {
 
   it('the binding names the file, the record’s proof code and the salt; only the salt goes in the link', () => {
     const r = withPairSalt(base);
+    const salt = r.dnaPairSalt ?? '';
+    expect(salt).toMatch(/^[0-9a-f]{64}$/);
     const b = dnaBindingOf(r)!;
-    expect(b).toBe(dnaPairBinding(SHA, FP, r.dnaPairSalt));
+    expect(b).toBe(dnaPairBinding(SHA, FP, salt));
     expect(b).not.toContain(SHA);
-    expect(dnaLinkParams(r)).toEqual({ [DNA_SALT_PARAM]: r.dnaPairSalt });
+    expect(dnaLinkParams(r)).toEqual({ [DNA_SALT_PARAM]: salt });
     expect(dnaLinkParams(base)).toEqual({});
-    const v = dnaLinkValues(r.dnaPairSalt, FP)!;
+    const v = dnaLinkValues(salt, FP)!;
     expect(matchesBinding(b, SHA, v.identity, v.salt)).toBe('file');
     expect(matchesBinding(b, '5b'.repeat(32), v.identity, v.salt)).toBe(false);
     expect(matchesBinding(b, SHA, 'cd'.repeat(32), v.salt)).toBe(false);
     expect(matchesBinding(b, SHA, v.identity, 'ef'.repeat(32))).toBe(false);
     expect(dnaLinkValues(null, FP)).toBeNull();
-    expect(dnaLinkValues(r.dnaPairSalt, null)).toBeNull();
+    expect(dnaLinkValues(salt, null)).toBeNull();
   });
 
   it('an older pairing without the file’s SHA-256 is bound over its pairing fingerprint, and still checks', () => {
     const older = withPairSalt<Rec>({ id: 'VEIL-3', recordFingerprint: FP, dnaFingerprint: fingerprintPairing(SHA) });
     const b = dnaBindingOf(older)!;
-    expect(matchesBinding(b, SHA, FP, older.dnaPairSalt, fingerprintPairing)).toBe('pairing');
-    expect(matchesBinding(b, SHA, FP, older.dnaPairSalt)).toBe(false);
+    const salt = older.dnaPairSalt ?? '';
+    expect(matchesBinding(b, SHA, FP, salt, fingerprintPairing)).toBe('pairing');
+    expect(matchesBinding(b, SHA, FP, salt)).toBe(false);
   });
 });

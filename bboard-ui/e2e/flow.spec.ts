@@ -300,8 +300,8 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await expect(breeder.getByRole('heading', { name: /Save your DNA report to this plant/ })).toBeVisible();
   await expect(breeder.getByRole('button', { name: /Save it to this plant/ })).toBeEnabled();
   await breeder.getByRole('button', { name: /Save it to this plant/ }).click();
-  // Two fingerprints, each named; the saved file is matched to the lab's signature by SHA-256.
-  await expect(breeder.getByText('PAIRING FINGERPRINT', { exact: true })).toBeVisible();
+  // Two codes, each named; the saved file is matched to the lab's signature by SHA-256.
+  await expect(breeder.getByText('PAIRING CODE', { exact: true })).toBeVisible();
   const reportSha = createHash('sha256').update(report).digest('hex');
   await expect(breeder.getByText(new RegExp(`File SHA-256: ${reportSha.slice(0, 12)}`))).toBeVisible();
   await expect(breeder.locator('[data-lab-match]')).toContainText('signed by a key named “E2E Lab”');
@@ -313,16 +313,17 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
 
   // The buyer's page: the saved report matches a report the lab signed; no "Not confirmed by a lab".
   await breeder.getByRole('button', { name: /Show someone/ }).click();
-  // Off until the holder turns it on (round 3, P7): it publishes the DNA report's fingerprint.
+  // Off until the holder turns it on (round 3, P7): it publishes the DNA report, bound (round 5).
   const dnaSwitch = breeder.getByLabel(/Whether a DNA report is saved/);
   await expect(dnaSwitch).not.toBeChecked();
   await dnaSwitch.check();
   await breeder.getByRole('button', { name: /Get the link/ }).click();
   const shareLink = await breeder.locator('input[readonly]').first().inputValue();
-  expect(shareLink).toContain(`rs=${reportSha}`);
-  // Round 4 (F7): the report's SHA-256 is in the fragment, never the query string.
-  expect(new URL(shareLink).hash).toContain(`rs=${reportSha}`);
-  expect(new URL(shareLink).search).not.toContain('rs=');
+  // Round 5 (CONTRACT.md #29): the link carries the record's pairing salt after the #, never
+  // the report's SHA-256; the registry has the report only bound with that salt.
+  expect(new URL(shareLink).hash).toMatch(/(^#|&)ds=[0-9a-f]{64}(&|$)/);
+  expect(shareLink).not.toContain(reportSha);
+  expect(new URL(shareLink).search).not.toMatch(/ds=|rs=/);
   // The link made now, kept for later (an "older link"), and the certificate's (fingerprint only).
   const oldLink = new URL(shareLink).pathname + new URL(shareLink).search + new URL(shareLink).hash;
   const certLink = `${new URL(shareLink).pathname}?fp=${new URL(shareLink).searchParams.get('fp')}`;
@@ -403,9 +404,42 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   {
     const t = await buyerLine(oldLink, 'buyer-3-oldlink-after-save');
     expect(t).toContain(`Its file (SHA-256 ${shortOf(correctedSha)}) matches the lab report signed by`);
-    expect(t).toContain('This link was made when a different file was saved; this line is about the one saved now.');
+    // The link names no file, only the record's salt: it describes the file saved now.
+    expect(t).not.toContain('This link was made when a different file was saved');
     expect(t).not.toMatch(/was replaced by its lab|kept|hasn’t saved/);
     expect(t).toContain('One signature was withdrawn by its signer, so it is not counted: a lab report.');
+  }
+
+  // Round 5: someone sent the holder's link and a file checks the file here, against the
+  // registry's bound value, with the salt after the #. Nothing about the file is sent.
+  {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    const errors = watch(page);
+    const asked: string[] = [];
+    page.on('request', (r) => asked.push(`${r.url()} ${r.postData() ?? ''}`));
+    await isolate(page);
+    await page.goto(oldLink);
+    await expect(page.locator('[data-dna-check]')).toHaveAttribute('data-dna-check', 'ready');
+    await page.locator('[data-dna-file]').setInputFiles({
+      name: 'report-v2.pdf',
+      mimeType: 'application/pdf',
+      buffer: Buffer.concat([report, Buffer.from(' corrected')]),
+    });
+    await expect(page.locator('[data-dna-file-result]')).toHaveAttribute('data-dna-file-result', 'matches');
+    await page
+      .locator('[data-dna-file]')
+      .setInputFiles({ name: 'report.pdf', mimeType: 'application/pdf', buffer: report });
+    await expect(page.locator('[data-dna-file-result]')).toHaveAttribute('data-dna-file-result', 'differs');
+    for (const a of asked) {
+      expect(a).not.toContain(correctedSha);
+      expect(a).not.toContain(new URLSearchParams(new URL(shareLink).hash.slice(1)).get('ds') ?? 'no salt');
+    }
+    // The certificate's link has no salt: the file can't be checked from it, and it says so.
+    await page.goto(certLink);
+    await expect(page.locator('[data-dna-check]')).toHaveAttribute('data-dna-check', 'no-salt');
+    expectNoErrors(errors);
+    await ctx.close();
   }
 
   await lab.reload();
@@ -457,14 +491,16 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
     'Not tied to the plant now: the lab withdrew the DNA report saved here.',
   );
   await shot(breeder, 'breeder-5-certificate-withdrawn');
-  // Round 6: the certificate's link (fingerprint only) tells the same story as the certificate,
-  // and the withdrawn-signatures line agrees with it.
+  // Round 6: the certificate's link (fingerprint only): its withdrawn-signatures line agrees
+  // with the certificate.
   {
     const t = await buyerLine(certLink, 'buyer-4-certlink-withdrawn');
+    // Round 5: without the salt (the certificate's link has none), which file is saved can't
+    // be told here; the withdrawn signatures are still said.
     expect(t).toContain(
-      `The DNA report saved to this record (SHA-256 ${shortOf(correctedSha)}) was withdrawn by its lab on`,
+      'The holder saved a DNA report to this record. Which file it is can be checked only with the holder’s own check link and the file.',
     );
-    expect(t).toContain('It is still the file saved here; the lab no longer stands behind it.');
+    expect(t).not.toContain(shortOf(correctedSha));
     expect(t).not.toMatch(/No lab has signed a lab report|kept/);
     expect(t).toContain('2 signatures were withdrawn by their signers, so they are not counted: 2 lab reports.');
   }

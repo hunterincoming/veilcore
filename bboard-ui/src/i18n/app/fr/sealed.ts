@@ -20,7 +20,7 @@ export const sealed = {
   'app.sealed.locked.cantChange':
     'Un enregistrement verrouillé ne peut être ni modifié ni envoyé. Vous pouvez le supprimer.',
   'app.sealed.locked.restore': 'Restaurer ma copie de secours',
-  'app.sealed.locked.unnamed': 'Enregistrement sans nom',
+  'app.sealed.locked.unnamed': 'Nom verrouillé',
   'app.sealed.locked.delete': 'Supprimer',
   'app.sealed.locked.deleteConfirm':
     'Supprimer {name} de VeilCore ? Il ne peut pas être ouvert dans ce navigateur, et une fois supprimé, personne ne pourra le récupérer.',

@@ -20,7 +20,7 @@ export const sealed = {
   'app.sealed.locked.cantChange':
     'Ein verschlossener Datensatz kann nicht geändert oder gesendet werden. Sie können ihn löschen.',
   'app.sealed.locked.restore': 'Sicherungskopie wiederherstellen',
-  'app.sealed.locked.unnamed': 'Datensatz ohne Namen',
+  'app.sealed.locked.unnamed': 'Name verschlossen',
   'app.sealed.locked.delete': 'Löschen',
   'app.sealed.locked.deleteConfirm':
     'Datensatz {name} aus VeilCore löschen? Er lässt sich in diesem Browser nicht öffnen, und nach dem Löschen kann ihn niemand zurückholen.',

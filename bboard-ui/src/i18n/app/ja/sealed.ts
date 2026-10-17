@@ -18,7 +18,7 @@ export const sealed = {
     'このブラウザにはこれらの記録を開く鍵がありません。最新のバックアップファイルを復元してください。VeilCoreが代わりに開くことはできません。',
   'app.sealed.locked.cantChange': 'ロックされた記録は変更も送付もできません。削除はできます。',
   'app.sealed.locked.restore': 'バックアップを復元する',
-  'app.sealed.locked.unnamed': '名前のない記録',
+  'app.sealed.locked.unnamed': '名前はロック中',
   'app.sealed.locked.delete': '削除',
   'app.sealed.locked.deleteConfirm':
     '{name}をVeilCoreから削除しますか？このブラウザでは開けず、削除すると誰も元に戻せません。',

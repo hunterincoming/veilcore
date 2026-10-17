@@ -131,8 +131,10 @@ test('(a) a plant with a marker in every field, sent to a lab: no marker is in t
   const bytes = Buffer.concat(
     [DB, `${DB}-wal`, `${DB}-journal`].filter((f) => fs.existsSync(f)).map((f) => fs.readFileSync(f)),
   );
-  // The public name is there (the scan reads the right file); nothing typed is.
-  expect(bytes.includes(Buffer.from(name))).toBe(true);
+  // The scan reads the right file: the records are there by id. Nothing typed is, the name
+  // included (round 5, CONTRACT.md #28).
+  expect(bytes.includes(Buffer.from(labRecordId))).toBe(true);
+  expect(bytes.includes(Buffer.from(name)), 'the name in the registry’s database file').toBe(false);
   for (const [field, value] of Object.entries(markers)) {
     expect(bytes.includes(Buffer.from(value)), `${field} in the registry’s database file`).toBe(false);
   }
@@ -201,7 +203,9 @@ test('(c) a fresh browser with the holder key but not the vault key: the records
     'This browser doesn’t have the key for these records. Restore your latest backup file. VeilCore can’t open them for you.',
   );
   await expect(panel).toContainText('A locked record can’t be changed or sent. You can delete it.');
-  await expect(panel.locator(`[data-locked-record="${recordId}"]`)).toContainText(name);
+  // Its name is locked with the rest (round 5): this browser can't read it, and says so.
+  await expect(panel.locator(`[data-locked-record="${recordId}"]`)).toContainText('Name locked');
+  await expect(panel.locator(`[data-locked-record="${recordId}"]`)).not.toContainText(name);
   await expect(panel.getByRole('link', { name: /Restore my backup/ })).toBeVisible();
   // Nothing of it opens here, and nothing was made in its place.
   expect(await other.page.evaluate(() => localStorage.getItem('veilcore.vault.v1'))).toBeNull();

@@ -19,7 +19,7 @@ export const sealed = {
     'Este navegador no tiene la clave de estos registros. Restaure su archivo de copia de seguridad más reciente. VeilCore no puede abrirlos por usted.',
   'app.sealed.locked.cantChange': 'Un registro bloqueado no se puede cambiar ni enviar. Puede borrarlo.',
   'app.sealed.locked.restore': 'Restaurar mi copia de seguridad',
-  'app.sealed.locked.unnamed': 'Registro sin nombre',
+  'app.sealed.locked.unnamed': 'Nombre bloqueado',
   'app.sealed.locked.delete': 'Borrar',
   'app.sealed.locked.deleteConfirm':
     '¿Borrar {name} de VeilCore? No se puede abrir en este navegador y, una vez borrado, nadie podrá recuperarlo.',
