@@ -21,6 +21,7 @@ import {
   expectNoErrors,
   isolate,
   receiveWithBackupFirst,
+  untilSaved,
   watch,
 } from './helpers';
 
@@ -358,4 +359,129 @@ test('a different seal number: said plainly on the breeder’s plant page, certi
   expectNoErrors(r.labErrors);
   await r.breederCtx.close();
   await r.labCtx.close();
+});
+
+test('the whole way round: logged, backed up, sent with sample details; received, signed, a report locked back; "covered", and the report opens', async ({
+  browser,
+}) => {
+  // Everything typed below is unique to this run, so a scan of the database finds only these.
+  const t = typedFor('round');
+  const u = Date.now().toString(36).toUpperCase();
+  const typed = {
+    bredBy: `Breeder name ${u}`,
+    notes: `Private notes ${u}`,
+    recipient: `Dr Recipient ${u} at Leaf Lab`,
+    quantity: `Quantity ${u}`,
+    labNote: `Note for the lab ${u}`,
+  };
+  const report = Buffer.concat([Buffer.from('%PDF-1.7\n'), Buffer.from(`Report body ${u} THC 21% markers A12 B7`)]);
+  const requests: string[] = [];
+
+  // The sender logs a plant, saves its backup and checks it (nothing is sealed and sent before).
+  const breederCtx = await browser.newContext({ acceptDownloads: true });
+  record(breederCtx, requests);
+  const breeder = await breederCtx.newPage();
+  const breederErrors = watch(breeder);
+  await isolate(breeder);
+  await breeder.goto('/records');
+  await breeder.getByRole('button', { name: /I breed or hold genetics/ }).click();
+  await breeder.getByText('Start', { exact: true }).click();
+  const name = `E2E Round ${u}`;
+  await breeder.getByLabel(/Plant or line name/).fill(name);
+  await breeder.getByLabel(/Bred by/).fill(typed.bredBy);
+  await breeder.getByRole('button', { name: /Add parents, species, photos or notes/ }).click();
+  await breeder.getByLabel(/^Notes/).fill(typed.notes);
+  await breeder.getByRole('button', { name: /Next: check it/ }).click();
+  await breeder.getByRole('button', { name: /Seal it/ }).click();
+  await breeder.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
+  const recordId = await breeder.evaluate(
+    () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
+  );
+  await backupAfterLogging(breeder, recordId);
+
+  // It goes to a lab, with the sample's details.
+  await breeder.goto(`/record/${recordId}`);
+  await breeder.getByText('Send it to a lab or breeder').click();
+  await breeder.getByLabel(/Who are you sending it to/).fill(typed.recipient);
+  await breeder.getByLabel(/Quantity/).fill(typed.quantity);
+  await breeder.getByLabel(/Note for the lab/).fill(typed.labNote);
+  await breeder.getByRole('button', { name: /Add the sample.s label and seal/ }).click();
+  await breeder.getByLabel(/Sample ID \/ label on the tube or bag/).fill(t.sampleId);
+  await breeder.getByLabel(/Seal or bag number/).fill(t.seal);
+  await breeder.getByLabel(/^Taken from/).fill(t.takenFrom);
+  await breeder.getByLabel(/^Taken on/).fill(t.takenOn);
+  await breeder.getByLabel(/^Witness/).fill(t.witness);
+  await breeder.getByRole('button', { name: /Make a code for the lab/ }).click();
+  const codeEl = breeder.getByText(/^TR-[0-9A-F]{8}\./);
+  await expect(codeEl).toBeVisible();
+  const code = (await codeEl.innerText()).trim();
+  await expect(breeder.locator('[data-sample-not-saved]')).toHaveCount(0);
+  await breeder.getByRole('button', { name: /^Done$/ }).click();
+  const transferId = code.split('.')[0];
+
+  // The lab: its signature, a checked backup, then the delivery. Receiving finishes in its
+  // browser: the offer opens with the code's key and the received record is sealed and saved.
+  const labCtx = await browser.newContext({ acceptDownloads: true });
+  record(labCtx, requests);
+  const lab = await labCtx.newPage();
+  const labErrors = watch(lab);
+  await isolate(lab);
+  await lab.goto('/records');
+  await lab.getByRole('button', { name: /I run a lab/ }).click();
+  await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
+  await lab.getByLabel(/^Name/).fill('E2E Lab');
+  await lab.getByRole('button', { name: /Create my key/ }).click();
+  await lab.getByRole('button', { name: /^Done$/ }).click();
+  await receiveWithBackupFirst(lab, code);
+  await expect(lab.getByLabel('Sample ID on arrival')).toHaveValue(t.sampleId);
+  await lab.getByLabel('Yes', { exact: true }).check();
+  await lab.getByLabel('Arrived on').fill(t.arrivedOn);
+  await lab.getByLabel('Condition').fill(t.condition);
+  await lab.getByLabel('Your accession no.').fill(t.labRef);
+  await lab.getByLabel(/I physically received this material/).check();
+  await lab.getByRole('button', { name: /Sign with my key/ }).click();
+  await expect(lab).toHaveURL(/\/record\//);
+  const labRecordId = new URL(lab.url()).pathname.split('/').pop() ?? '';
+  await expect(lab.getByText(typed.bredBy).first()).toBeVisible();
+  await untilSaved(lab, labRecordId);
+
+  // The lab locks a report back to the breeder.
+  await lab.getByRole('button', { name: /^Send results back to the breeder/ }).click();
+  const chooser = lab.waitForEvent('filechooser');
+  await lab.getByRole('button', { name: /Choose the report/ }).click();
+  await (await chooser).setFiles({ name: 'report.pdf', mimeType: 'application/pdf', buffer: report });
+  await lab.getByRole('button', { name: /Sign, lock and send/ }).click();
+  await expect(lab.getByRole('heading', { name: /^Sent$/ })).toBeVisible();
+
+  // The sender: the receipt covers the sample details (worked out in this browser from the
+  // opened boxes), and the locked report opens here, byte for byte.
+  await breeder.goto(`/record/${recordId}`);
+  const row = breeder.locator('[data-status-row="Receipt signed"]');
+  await expect(row).toBeVisible();
+  await expect(row).toHaveAttribute('data-custody', 'covered');
+  await expect(row).toContainText('Sample ID and seal number match what was sent.');
+  await breeder
+    .getByRole('alert')
+    .filter({ hasText: /lab report came back/ })
+    .getByRole('button', { name: 'Open' })
+    .click();
+  await expect(breeder.getByText(/Signed by a key named “E2E Lab” \(name not checked\)/)).toBeVisible();
+  const [dl] = await Promise.all([
+    breeder.waitForEvent('download'),
+    breeder.getByRole('button', { name: /Download the file/ }).click(),
+  ]);
+  const chunks: Buffer[] = [];
+  for await (const c of await dl.createReadStream()) chunks.push(c as Buffer);
+  expect(Buffer.concat(chunks)).toEqual(report);
+  await shot(breeder, 'custody-round-opened');
+
+  // Nothing typed, no name given, no note, and not the report, readable anywhere on the
+  // server: in no request the two browsers made, and not in the registry's database file.
+  expectNothingTypedOnTheServer(t, requests, [...Object.values(typed), `Report body ${u}`]);
+  expect(requests.some((r) => r.includes(`/transfers/${transferId}/results`))).toBe(true);
+
+  expectNoErrors(breederErrors);
+  expectNoErrors(labErrors);
+  await breederCtx.close();
+  await labCtx.close();
 });
