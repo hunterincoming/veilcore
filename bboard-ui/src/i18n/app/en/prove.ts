@@ -154,4 +154,10 @@ export const prove = {
   'app.prove.share.openTheirs': "Open what they'll see",
   'app.prove.share.saving': 'Saving…',
   'app.prove.share.getLink': 'Get the link',
+  // Step5ProveDisclosure.tsx: the server shows another choice (round 3)
+  'app.prove.share.differs.text':
+    'VeilCore’s server shows: {server}. Your choice, kept with the record: {mine}. Which should strangers see?',
+  'app.prove.share.differs.keepMine': 'Keep my choice',
+  'app.prove.share.differs.useServers': 'Use what the server shows',
+  'app.prove.share.differs.failed': 'VeilCore didn’t store your choice. Try again.',
 };

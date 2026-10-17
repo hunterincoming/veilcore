@@ -8,7 +8,7 @@
 // and several browsers at once (fixtures/browsers.ts), each its own modules and storage.
 // SPDX-License-Identifier: Apache-2.0
 
-import { createCipheriv, createDecipheriv, createHmac, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHmac, hkdfSync, randomBytes } from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeRegistry, type FakeRegistry, type Row } from './fixtures/fake-registry';
 import { browser, fileOf, installStorage, settle, stores, type Browser } from './fixtures/browsers';
@@ -29,6 +29,17 @@ beforeEach(() => {
 });
 
 const newHolder = () => randomBytes(32).toString('hex');
+
+/**
+ * Inside a browser: a holder key, and a vault key in a checked backup. Since round 3 (L1)
+ * nothing is sealed and sent before then, so a browser that saves does this first, as the
+ * app has a holder do.
+ */
+const ready = (b: Browser): void => {
+  b.m.holder.holderKey();
+  if (!b.m.vault.vaultKeyIfAny()) b.m.vault.mintVault();
+  b.m.vault.markVaultBackedUp();
+};
 
 /** A plant record's fields, fingerprinted as the app does. */
 const plant = async (b: Browser, over: Record<string, unknown> = {}) =>
@@ -102,11 +113,11 @@ describe('P1 (critical): what is published comes only from the grant kept in the
     for (const r of reg.sent) expect(r.body).not.toMatch(/Secret|secret|1700000000000|d{64}|e{64}/);
   });
 
-  it('a listed grant that differs from the sealed choice is sent again as the sealed choice, never widened', async () => {
+  it('a listed grant that differs from the sealed choice is shown, and only the sealed choice is ever sent, never widened', async () => {
     const A = await browser('A');
     const rec = await plant(A, { parents: [{ name: 'Secret Mother' }], breedingMethod: 'secret method' });
     await A.run(async () => {
-      A.m.holder.holderKey();
+      ready(A);
       expect((await A.m.records.createRecordSaved(rec as never)).result.ok).toBe(true);
       const out = await A.m.disclosure.saveGrant(
         A.m.records.getRecord(rec.id)!,
@@ -118,10 +129,19 @@ describe('P1 (critical): what is published comes only from the grant kept in the
     const A2 = await browser('A2', {}, 'A');
     await A2.run(() => A2.m.records.hydrate());
     expect(await A2.run(() => A2.m.records.getRecord(rec.id)?.grant)).toEqual(['existence']);
-    // The registry now says the grant shows parent names and breeding method.
+    // The registry now says the grant shows parent names and breeding method. Since round 3
+    // nothing is sent over it unasked (an old tab may have changed it): the difference is
+    // shown, and "Keep my choice" sends the sealed choice, never the registry's.
     reg.grants.set(rec.id, { ...reg.grants.get(rec.id)!, show: ['existence', 'parent-names', 'breeding-method'] });
     reg.sent.length = 0;
-    expect(await A2.run(() => A2.m.disclosure.syncGrants(A2.m.records.getRecord))).toBe(1);
+    expect(await A2.run(() => A2.m.disclosure.syncGrants(A2.m.records.getRecord))).toBe(0);
+    expect(reg.sent.some((r) => r.method === 'PUT')).toBe(false);
+    expect(await A2.run(() => A2.m.disclosure.grantDifferenceOf(rec.id))).toEqual([
+      'existence',
+      'parent-names',
+      'breeding-method',
+    ]);
+    expect(await A2.run(() => A2.m.disclosure.keepSealedGrant(A2.m.records.getRecord(rec.id)!))).toBe(true);
     const put = reg.sent.find((r) => r.method === 'PUT' && r.url.endsWith('/disclosure'))!;
     expect(JSON.parse(put.body)).toEqual({ show: ['existence'], forFingerprint: rec.recordFingerprint, values: {} });
     for (const r of reg.sent) expect(r.body).not.toMatch(/Secret|secret/);
@@ -151,19 +171,23 @@ describe('P1 (critical): what is published comes only from the grant kept in the
 });
 
 describe('P2: who a delivery is for goes as a tag; the name stays in the sender’s sealed record', () => {
-  it('toHandle is the HMAC of the name under the vault key; the name is in no request and still shows after a restore', async () => {
+  it('toHandle is the HMAC of the name under a key derived from the vault key; the name is in no request and still shows after a restore', async () => {
     const A = await browser('A');
     const rec = await plant(A);
     const NAME = '  Dr.Jane@Secret-Lab.example ';
     const offer = await A.run(async () => {
-      A.m.holder.holderKey();
+      ready(A);
       await A.m.records.createRecordSaved(rec as never);
       return A.m.transfers.offerTransfer(A.m.records.getRecord(rec.id)!, NAME, { quantity: '1 cutting' });
     });
     if ('error' in offer) throw new Error(offer.error);
     await settle();
     const vaultKey = await A.run(() => A.m.vault.vaultKeyIfAny()!);
-    const tag = createHmac('sha256', Buffer.from(vaultKey, 'base64url'))
+    // Keyed with a key derived from the vault key (round 3, P7), not its raw bytes.
+    const tagKey = Buffer.from(
+      hkdfSync('sha256', Buffer.from(vaultKey, 'base64url'), Buffer.alloc(0), 'veilcore:vault:handle-tag:v1', 32),
+    );
+    const tag = createHmac('sha256', tagKey)
       .update(`veilcore:handle:v1\0${NAME.normalize('NFC').trim().toLowerCase()}`)
       .digest('hex');
     const post = reg.sent.find((r) => r.method === 'POST' && r.url.endsWith('/transfers'))!;
@@ -193,7 +217,7 @@ describe('P3: attestation is the registry’s; the browser never sends it', () =
     const A = await browser('A');
     const rec = await plant(A);
     await A.run(async () => {
-      A.m.holder.holderKey();
+      ready(A);
       await A.m.records.createRecordSaved(rec as never);
     });
     reg.records.get(rec.id)!.attestation = { lab: 'SECRET-LAB-NAME-HOLDER-TYPED', attestedAt: 5 };
@@ -217,7 +241,7 @@ describe('P5: a code with an offer key needs the sealed offer', () => {
     const S = await browser('S');
     const rec = await plant(S);
     const code = await S.run(async () => {
-      S.m.holder.holderKey();
+      ready(S);
       await S.m.records.createRecordSaved(rec as never);
       const o = await S.m.transfers.offerTransfer(S.m.records.getRecord(rec.id)!, 'lab');
       if ('error' in o) throw new Error(o.error);
@@ -226,7 +250,7 @@ describe('P5: a code with an offer key needs the sealed offer', () => {
     reg.misbehave.offerPlainInstead = { bredBy: 'WHAT-THE-REGISTRY-SAYS', dateCreated: '1999-01-01' };
     const L = await browser('L');
     const out = await L.run(async () => {
-      L.m.holder.holderKey();
+      ready(L);
       const p = L.m.transfers.parseShareCode(code);
       L.m.transfers.keepReceivingCode(code);
       const claim = await L.m.transfers.claimTransfer(p.transferId, p.claimCode);
@@ -267,7 +291,7 @@ describe('P6: the descent check sends only the record’s own fingerprint', () =
 describe('P8: padding and the rev high-water mark', () => {
   it('notes of 10 and 500 characters seal to the same length; past the bucket, the next one', async () => {
     const A = await browser('A');
-    await A.run(() => A.m.holder.holderKey());
+    await A.run(() => ready(A));
     const short = await plant(A, { notes: 'x'.repeat(10) });
     const long = await plant(A, { notes: 'x'.repeat(500) });
     const longer = await plant(A, { notes: 'x'.repeat(1500) });
@@ -289,7 +313,7 @@ describe('P8: padding and the rev high-water mark', () => {
     const A = await browser('A');
     const rec = await plant(A);
     await A.run(async () => {
-      A.m.holder.holderKey();
+      ready(A);
       await A.m.records.createRecordSaved(rec as never);
     });
     const older = structuredClone(reg.records.get(rec.id)!);
@@ -305,7 +329,7 @@ describe('P8: padding and the rev high-water mark', () => {
     await settle();
     expect(await A.run(() => A.m.records.getRecord(rec.id)?.dnaFingerprint)).toBe('d'.repeat(64));
     expect(await A.run(() => A.m.api.loadNoticeOf('veilcore.records.v1').olderKept)).toBe(1);
-    expect(revOf()).toBe(2); // the newer copy went back
+    expect(revOf()).toBe(3); // the newer copy went back, one rev above the highest seen
     // Rolled back again; a new tab has no newer copy to keep: shown as an older copy, never sent.
     reg.records.set(rec.id, older);
     const T = await browser('T', {}, 'A');
@@ -405,7 +429,16 @@ describe('L2: two tabs opening at once end with one key, the one the registry ha
       T1.run(() => T1.m.records.createRecordSaved(a as never)),
       T2.run(() => T2.m.records.createRecordSaved(b as never)),
     ]);
-    expect(out.map((o) => o.result.ok)).toEqual([true, true]);
+    // Held until the new key is in a checked backup (round 3, L1); one key between them.
+    expect(out.map((o) => o.result.held?.length)).toEqual([1, 1]);
+    expect(await T1.run(() => T1.m.vault.vaultKeyIfAny())).toBe(await T2.run(() => T2.m.vault.vaultKeyIfAny()));
+    expect((await backUp(T1)).ok).toBe(true);
+    await settle(150);
+    expect(
+      sealedRows(H)
+        .map((r) => r.id)
+        .sort(),
+    ).toEqual([a.id, b.id].sort());
     expect(new Set(sealedRows(H).map((r) => (r.sealed as { kid: string }).kid)).size).toBe(1);
   });
 });
@@ -465,6 +498,7 @@ describe('L3: a browser with a wrong or unused key can always take the right bac
     const H1 = newHolder();
     await A.run(async () => {
       A.m.holder.setHolderKey(H1);
+      ready(A);
       await A.m.records.createRecordSaved((await plant(A)) as never);
     });
     const v3 = await A.run(() => JSON.stringify(A.m.backup.backupContents()));
@@ -499,6 +533,7 @@ describe('L3: a browser with a wrong or unused key can always take the right bac
       A.m.vault.mintVault();
       A.m.records.startOver();
       expect(A.m.vault.vaultKeyIfAny()).toBeNull();
+      ready(A);
       await A.m.records.createRecordSaved((await plant(A)) as never);
       const k = A.m.vault.vaultKeyIfAny();
       A.m.records.startOver();
@@ -513,7 +548,7 @@ describe('L4: a received record is finished, or stays a stub that can be finishe
     const rec = await plant(S, over);
     if (over.profile) delete (rec as Record<string, unknown>).breedingMethod;
     const code = await S.run(async () => {
-      S.m.holder.holderKey();
+      ready(S);
       const r = await S.m.records.createRecordSaved(rec as never);
       if (!r.result.ok) throw new Error(JSON.stringify(r.result));
       const o = await S.m.transfers.offerTransfer(S.m.records.getRecord(rec.id)!, 'lab@x', { quantity: '3 clones' });
@@ -527,7 +562,7 @@ describe('L4: a received record is finished, or stays a stub that can be finishe
     const { rec, code } = await sender('S5');
     const L = await browser('L5');
     const claim = await L.run(async () => {
-      L.m.holder.holderKey();
+      ready(L);
       L.m.transfers.keepReceivingCode(code);
       const p = L.m.transfers.parseShareCode(code);
       const c = await L.m.transfers.claimTransfer(p.transferId, p.claimCode);
@@ -561,7 +596,7 @@ describe('L4: a received record is finished, or stays a stub that can be finishe
     // Someone else can't fetch it.
     const X = await browser('X5');
     const other = await X.run(async () => {
-      X.m.holder.holderKey();
+      ready(X);
       return X.m.transfers.ownOffer(X.m.transfers.parseShareCode(code).transferId);
     });
     expect('error' in other).toBe(true);
@@ -573,15 +608,16 @@ describe('L4: a received record is finished, or stays a stub that can be finishe
     const LH = newHolder();
     await L.run(async () => {
       L.m.holder.setHolderKey(LH);
+      ready(L);
       await L.m.records.createRecordSaved((await plant(L)) as never);
     });
     const N = await browser('L6n');
-    const ready = await N.run(async () => {
+    const readiness = await N.run(async () => {
       N.m.holder.setHolderKey(LH);
       await N.m.records.hydrate();
       return N.m.api.vaultReadiness();
     });
-    expect(ready).toBe('locked');
+    expect(readiness).toBe('locked');
     // And if it had claimed: no fingerprint the registry didn't store is ever handed back.
     const out = await N.run(async () => {
       const p = N.m.transfers.parseShareCode(code);
@@ -610,7 +646,7 @@ describe('L4: a received record is finished, or stays a stub that can be finishe
       .filter((p) => !p.startsWith('o1'))
       .join('.');
     const out = await L.run(async () => {
-      L.m.holder.holderKey();
+      ready(L);
       const p = L.m.transfers.parseShareCode(withoutKey);
       const c = await L.m.transfers.claimTransfer(p.transferId, p.claimCode);
       if ('error' in c) throw new Error(c.error);
@@ -649,7 +685,7 @@ describe('L5: size limits', () => {
     const A = await browser('Z2');
     const huge = await plant(A, { notes: 'n'.repeat(270 * 1024) });
     await A.run(async () => {
-      A.m.holder.holderKey();
+      ready(A);
       expect(A.m.records.tooLargeToSave(huge)).toBe(true);
       expect(() => A.m.records.createRecord(huge as never)).toThrow(/too large/);
       expect(A.m.records.allRecords()).toEqual([]);
@@ -669,6 +705,7 @@ describe('L8: locked rows in an import, the locked-record date, locked parents',
     const A = await browser('E1');
     const H = await A.run(() => A.m.holder.holderKey());
     await A.run(async () => {
+      ready(A);
       await A.m.records.createRecordSaved((await plant(A)) as never);
       await A.m.records.createRecordSaved((await plant(A)) as never);
     });
@@ -678,7 +715,7 @@ describe('L8: locked rows in an import, the locked-record date, locked parents',
     const rows = (JSON.parse(opened) as { records: unknown[] }).records;
     const B = await browser('E2');
     const out = await B.run(async () => {
-      B.m.holder.holderKey();
+      ready(B);
       return B.m.records.importRecords(fileOf(JSON.stringify(rows)));
     });
     expect(out).toEqual({ added: 1, alreadyHere: 0, locked: 1 });
@@ -688,7 +725,7 @@ describe('L8: locked rows in an import, the locked-record date, locked parents',
     const A = await browser('D1');
     const made = Date.now();
     await A.run(async () => {
-      A.m.holder.holderKey();
+      ready(A);
       await A.m.records.createRecordSaved((await plant(A)) as never);
     });
     await settle();

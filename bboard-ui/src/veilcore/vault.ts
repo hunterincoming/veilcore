@@ -472,22 +472,61 @@ export const openRow = async (kind: RowKind, id: string, sealed: unknown): Promi
   return { ok: true, value: value as Record<string, unknown> };
 };
 
+// ---- keys derived from the vault key (round 3, P7) -----------------------------------
+
+/**
+ * What each key derived from the vault key is for: HKDF-SHA256 over the vault key's bytes,
+ * no salt, with this label as `info`. Records stay sealed with the vault key itself (so
+ * nothing already sealed has to change); only the recipient tag uses a derived key now, so
+ * the same bytes are never used for two jobs. `records` is the label a later move of record
+ * sealing would use.
+ */
+export const VAULT_KEY_INFO = {
+  records: 'veilcore:vault:records:v1',
+  handleTag: 'veilcore:vault:handle-tag:v1',
+} as const;
+
+/** 32 bytes derived from a vault key for one purpose (HKDF-SHA256, info = the label). */
+export const vaultSubkey = async (key: string, info: string): Promise<Uint8Array> => {
+  const bytes = keyBytes(key);
+  if (!bytes) throw new Error('not a vault key');
+  const ikm = await crypto.subtle.importKey('raw', bytes as unknown as BufferSource, 'HKDF', false, ['deriveBits']);
+  return new Uint8Array(
+    await crypto.subtle.deriveBits(
+      {
+        name: 'HKDF',
+        hash: 'SHA-256',
+        salt: new Uint8Array(0) as unknown as BufferSource,
+        info: utf8(info) as unknown as BufferSource,
+      },
+      ikm,
+      256,
+    ),
+  );
+};
+
 // ---- the recipient handle (CONTRACT.md #15) ------------------------------------------
 
 /**
  * What a delivery's recipient is called on the wire: a tag, never the name. Lowercase hex
- * HMAC-SHA256 keyed with the vault key's raw bytes over
- * utf8("veilcore:handle:v1\0" + handle.normalize("NFC").trim().toLowerCase()). The same
- * name always gives the same tag for this holder (the registry's per-recipient limits still
+ * HMAC-SHA256 over utf8("veilcore:handle:v1\0" + handle.normalize("NFC").trim().toLowerCase()),
+ * keyed with a key derived from the vault key (VAULT_KEY_INFO.handleTag; round 3, P7: it
+ * used to be the vault key's raw bytes, the same bytes that seal records). The same name
+ * always gives the same tag for this holder (the registry's per-recipient limits still
  * work), and nobody without the vault key can tell whose it is. Throws with no vault key.
+ *
+ * Changing the key changed every tag made from now on. That is safe: a tag is compared only
+ * by the registry, among one sender's own deliveries (its open-offer limit per recipient);
+ * this browser never compares a tag with another (transfers.ts recipientName only tells a
+ * tag from a name typed before tags, and shows the name kept in the sealed record). At
+ * most the per-recipient count starts again once.
  */
 export const handleTag = async (handle: string): Promise<string> => {
   const s = read();
-  const bytes = s ? keyBytes(s.key) : undefined;
-  if (!bytes) throw new Error('This browser has no vault key.');
+  if (!s || !keyBytes(s.key)) throw new Error('This browser has no vault key.');
   const k = await crypto.subtle.importKey(
     'raw',
-    bytes as unknown as BufferSource,
+    (await vaultSubkey(s.key, VAULT_KEY_INFO.handleTag)) as unknown as BufferSource,
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign'],

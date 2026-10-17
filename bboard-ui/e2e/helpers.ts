@@ -56,6 +56,76 @@ export const isolate = async (page: Page, handlers: Record<string, Handler> = {}
   });
 };
 
+// ---- a checked backup before anything is sealed and sent (sealed records round 3, L1) ----
+//
+// Nothing is sealed and saved on the registry under a vault key until that key is in a backup
+// file the app has checked: a record made before then waits in this browser ("Not saved
+// yet"), and a lab can't receive a delivery. So every test that saves does what a person
+// does: save the backup file, then open it again so the app checks it.
+
+/** On a page showing the backup step: save the file, open it again, and see the check pass. Returns the file. */
+export const saveAndCheckBackup = async (page: Page): Promise<string> => {
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: /Save backup file/ }).click();
+  const file = await (await download).path();
+  const chooser = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: /Open my saved copy/ }).click();
+  await (await chooser).setFiles(file);
+  await expect(page.getByText('It works.')).toBeVisible();
+  return file;
+};
+
+/** The holder key this page's browser keeps. */
+export const holderKeyOf = (page: Page): Promise<string> =>
+  page.evaluate(() => localStorage.getItem('veilcore.holder.v1') ?? '');
+
+/** Wait until the real registry holds this record, sealed, for this page's holder. */
+export const untilSaved = async (page: Page, recordId: string): Promise<void> => {
+  const key = await holderKeyOf(page);
+  await expect
+    .poll(
+      async () => {
+        const res = await fetch(`${API}/api/records`, { headers: { 'x-holder-key': key } });
+        if (!res.ok) return false;
+        const rows = (await res.json()) as { id: string; sealed?: unknown }[];
+        return rows.some((r) => r.id === recordId && !!r.sealed);
+      },
+      { timeout: 30_000 },
+    )
+    .toBe(true);
+};
+
+/**
+ * Right after "Do the date stamp later" in the log flow: skip the DNA report, save the backup
+ * and check it, and wait until the plant is saved on the registry.
+ */
+export const backupAfterLogging = async (page: Page, recordId: string): Promise<string> => {
+  await page.getByRole('button', { name: /No report yet: skip/ }).click();
+  const file = await saveAndCheckBackup(page);
+  await untilSaved(page, recordId);
+  return file;
+};
+
+/**
+ * A lab's first code, from the home page's code box: the app makes the lab's vault key and
+ * asks for a checked backup before anything is received ("Nothing was received yet"). The
+ * lab saves and checks it, then uses the code again. Leaves the page at "Receive it" pressed.
+ */
+export const receiveWithBackupFirst = async (page: Page, code: string): Promise<string> => {
+  const useCode = async () => {
+    await page.getByLabel(/Someone sent you a code or link/).fill(code);
+    await page.getByRole('button', { name: /^Go$/ }).click();
+    await page.getByRole('button', { name: /Receive it/ }).click();
+  };
+  await useCode();
+  await expect(page.getByText(/Save a backup and check it first, then use the code/)).toBeVisible();
+  await page.goto('/backup');
+  const file = await saveAndCheckBackup(page);
+  await page.goto('/records');
+  await useCode();
+  return file;
+};
+
 // ---- sealed records, for tests that write to a real registry themselves ----------------
 //
 // The registry refuses a record or licence in plain text (sealed records, CONTRACT.md #4-#6).

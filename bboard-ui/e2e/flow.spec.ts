@@ -7,7 +7,17 @@
 import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { API, REAL_REGISTRY, expectNoErrors, isolate, watch } from './helpers';
+import {
+  API,
+  REAL_REGISTRY,
+  expectNoErrors,
+  isolate,
+  watch,
+  backupAfterLogging,
+  receiveWithBackupFirst,
+  saveAndCheckBackup,
+  untilSaved,
+} from './helpers';
 
 /** Screenshots for people to look at, when E2E_SHOTS names a folder. */
 const shot = async (page: Page, name: string) => {
@@ -61,6 +71,9 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
     return [id, all[id]?.recordSecret ?? ''];
   });
   expect(recordId).toMatch(/^VEIL-/);
+  // Saved on the registry only once the backup holding its key is checked (round 3, L1).
+  await saveAndCheckBackup(holder);
+  await untilSaved(holder, recordId);
   // The key was made before sealing, and the sealed record names it.
   const IDENTITY = identityOf(secret);
   // What the network would have done: the record's identity anchored.
@@ -189,6 +202,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   const recordId = await breeder.evaluate(
     () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
   );
+  await backupAfterLogging(breeder, recordId);
   await breeder.goto(`/record/${recordId}`);
   await breeder.getByText('Send it to a lab or breeder').click();
   await breeder.getByLabel(/Who are you sending it to/).fill('lab@e2e');
@@ -213,9 +227,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await lab.getByLabel(/^Name/).fill('E2E Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
   await lab.getByRole('button', { name: /^Done$/ }).click();
-  await lab.getByLabel(/Someone sent you a code or link/).fill(code!);
-  await lab.getByRole('button', { name: /^Go$/ }).click();
-  await lab.getByRole('button', { name: /Receive it/ }).click();
+  await receiveWithBackupFirst(lab, code!);
   await lab.getByLabel(/I physically received this material/).check();
   await lab.getByRole('button', { name: /Sign with my key/ }).click();
   await expect(lab).toHaveURL(/\/record\//);
@@ -298,6 +310,10 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
 
   // The buyer's page: the saved report matches a report the lab signed; no "Not confirmed by a lab".
   await breeder.getByRole('button', { name: /Show someone/ }).click();
+  // Off until the holder turns it on (round 3, P7): it publishes the DNA report's fingerprint.
+  const dnaSwitch = breeder.getByLabel(/Whether a DNA report is saved/);
+  await expect(dnaSwitch).not.toBeChecked();
+  await dnaSwitch.check();
   await breeder.getByRole('button', { name: /Get the link/ }).click();
   const shareLink = await breeder.locator('input[readonly]').first().inputValue();
   expect(shareLink).toContain(`rs=${reportSha}`);

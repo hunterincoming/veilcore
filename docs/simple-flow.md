@@ -144,6 +144,10 @@ later", which carries on to the backup.
   (and says when the same lab also confirmed receiving the sample). **Save the report**,
   or **Pair it with this plant** (the pairing screen with the file already chosen).
 - Anyone can open a result outside VeilCore with the free `age` tool and the plant's key.
+  Since round 3 of sealed records a report is padded before it is locked, so its stored size
+  says little: the opened file ends with zeros and a 16-byte trailer (its length and
+  `VCPAD\0` `1\n`), which the app takes off. The lab's lock comes only from the lab code or
+  from the sender's sealed offer, never from a row on the registry.
 - Tested: unit tests (lock/open, wrong plant refused, code format), registry tests
   (who may do what, readable files refused, limits), and the whole round trip in a browser
   against a real registry (`e2e/flow.spec.ts`), including that the stored file can't be

@@ -13,7 +13,7 @@
 import fs from 'node:fs';
 import { expect, test } from '@playwright/test';
 import type { Browser, Page } from '@playwright/test';
-import { REAL_REGISTRY, expectNoErrors, isolate, watch } from './helpers';
+import { REAL_REGISTRY, backupAfterLogging, expectNoErrors, isolate, receiveWithBackupFirst, watch } from './helpers';
 
 test.skip(!REAL_REGISTRY, 'needs a real registry: set E2E_API_BASE and build with it');
 
@@ -29,8 +29,12 @@ type Plant = {
   notes?: string;
 };
 
-/** Log a plant through the app, as a breeder would, up to the backup step. Returns its id. */
-const logPlant = async (page: Page, p: Plant): Promise<string> => {
+/**
+ * Log a plant through the app, as a breeder would, through the backup step: the backup file
+ * is saved and checked, so the plant is saved on the registry (round 3, L1). Returns its id
+ * and the backup file.
+ */
+const logPlant = async (page: Page, p: Plant): Promise<{ recordId: string; backupFile: string }> => {
   await page.goto('/records');
   await page.getByRole('button', { name: /I breed or hold genetics/ }).click();
   await page.getByText('Start', { exact: true }).click();
@@ -53,9 +57,11 @@ const logPlant = async (page: Page, p: Plant): Promise<string> => {
   await page.getByRole('button', { name: /Next: check it/ }).click();
   await page.getByRole('button', { name: /Seal it/ }).click();
   await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
-  return page.evaluate(
+  const recordId = await page.evaluate(
     () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
   );
+  const backupFile = await backupAfterLogging(page, recordId);
+  return { recordId, backupFile };
 };
 
 const newPage = async (browser: Browser, opts: { acceptDownloads?: boolean } = {}) => {
@@ -84,7 +90,7 @@ test('(a) a plant with a marker in every field, sent to a lab: no marker is in t
   };
 
   const b = await newPage(browser);
-  const recordId = await logPlant(b.page, { name, ...markers });
+  const { recordId } = await logPlant(b.page, { name, ...markers });
   await b.page.goto(`/record/${recordId}`);
   await expect(b.page.getByRole('heading', { name })).toBeVisible();
   await b.page.getByText('Send it to a lab or breeder').click();
@@ -105,9 +111,7 @@ test('(a) a plant with a marker in every field, sent to a lab: no marker is in t
   await l.page.getByLabel(/^Name/).fill('E2E Lab');
   await l.page.getByRole('button', { name: /Create my key/ }).click();
   await l.page.getByRole('button', { name: /^Done$/ }).click();
-  await l.page.getByLabel(/Someone sent you a code or link/).fill(code);
-  await l.page.getByRole('button', { name: /^Go$/ }).click();
-  await l.page.getByRole('button', { name: /Receive it/ }).click();
+  await receiveWithBackupFirst(l.page, code);
   await l.page.getByLabel(/I physically received this material/).check();
   await l.page.getByRole('button', { name: /Sign with my key/ }).click();
   await expect(l.page).toHaveURL(/\/record\//);
@@ -144,11 +148,7 @@ test('(b) the backup file, restored in a fresh browser: the records open, none l
   const name = `E2E Backup ${tag}`;
   const bredBy = `Backup breeder ${tag}`;
   const first = await newPage(browser, { acceptDownloads: true });
-  const recordId = await logPlant(first.page, { name, bredBy });
-  await first.page.getByRole('button', { name: /No report yet: skip/ }).click();
-  const download = first.page.waitForEvent('download');
-  await first.page.getByRole('button', { name: /Save backup file/ }).click();
-  const file = await (await download).path();
+  const { recordId, backupFile: file } = await logPlant(first.page, { name, bredBy });
   const saved = JSON.parse(fs.readFileSync(file, 'utf8')) as { version: number; vaultKey?: string };
   expect(saved.version).toBe(3);
   expect(saved.vaultKey).toMatch(/^[A-Za-z0-9_-]{43}$/);
@@ -182,7 +182,7 @@ test('(c) a fresh browser with the holder key but not the vault key: the records
   const tag = Date.now().toString(36);
   const name = `E2E Locked ${tag}`;
   const first = await newPage(browser);
-  const recordId = await logPlant(first.page, { name, bredBy: `Locked breeder ${tag}` });
+  const { recordId } = await logPlant(first.page, { name, bredBy: `Locked breeder ${tag}` });
   const holderKey = await first.page.evaluate(() => localStorage.getItem('veilcore.holder.v1') ?? '');
   expect(holderKey).toMatch(/^[0-9a-f]{64}$/);
 

@@ -152,8 +152,10 @@ describe('the claim’s offer', () => {
       ),
     );
     const out = await claimTransfer('TR-0A1B2C3D', CLAIM);
+    // A refusal from the registry itself: definite (round 3, L8), so a kept code may go.
     expect(out).toEqual({
       error: 'This code was made before deliveries were locked, and it no longer works. Ask the sender for a new code.',
+      definite: true,
     });
     const de = makeTranslator('de', appDe);
     expect(labErrorWords((out as { error: string }).error, de)).toBe(de.t('app.sealed.err.newCode'));

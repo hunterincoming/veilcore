@@ -29,6 +29,15 @@ export type SaveResult = {
   readonly refused: readonly SaveRefusal[];
   /** Could not reach the store at all; local state is all there is for now. */
   readonly offline?: boolean;
+  /**
+   * Ids that had something new to save but were not sent, because the key that would seal
+   * them isn't in a checked backup yet (round 3, L1). Kept in this browser until it is.
+   */
+  readonly held?: readonly string[];
+  /** Ids the store accepted in this save. */
+  readonly accepted?: readonly string[];
+  /** Ids this save had something new for (sent, held, or not sent because offline). */
+  readonly pending?: readonly string[];
 };
 
 export interface Store {

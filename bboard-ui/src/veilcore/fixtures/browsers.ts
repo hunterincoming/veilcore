@@ -57,6 +57,8 @@ const MODULES = {
   registryExport: () => import('../registry-export'),
   receive: () => import('../receive'),
   lineage: () => import('../lineage'),
+  labResults: () => import('../lab-results'),
+  outbox: () => import('../outbox'),
 };
 type Mods = { [K in keyof typeof MODULES]: Awaited<ReturnType<(typeof MODULES)[K]>> };
 

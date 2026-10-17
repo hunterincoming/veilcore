@@ -19,6 +19,7 @@ import {
   useSealedView,
 } from '../veilcore/records';
 import { LockedRecords } from './LockedRecords';
+import { RecordSaveNotices } from './RecordSaveNotices';
 import { FinishReceiving } from './FinishReceiving';
 import { useRecordKeys } from '../veilcore/record-keys';
 import { ProveOwnershipPanel } from './chain/ProveOwnershipPanel';
@@ -291,6 +292,7 @@ export const RecordDetail: React.FC = () => {
         </Alert>
       )}
       <FinishReceiving record={record} />
+      <RecordSaveNotices record={record} onShare={() => setMode('share')} />
 
       {/* A record that dates a lab report is not a plant: its own short page (components/stage). */}
       {mode === 'overview' && datesReport && (

@@ -18,8 +18,11 @@
 //
 // The lock is the open `age` format (age-encryption.org, by Filippo Valsorda), X25519.
 // Anyone can open a result with the free `age` tool and the key from the backup, so
-// nothing is tied to VeilCore. The lock came to the lab in the code the breeder sent,
-// not from the registry, so the registry never had a chance to hand the lab its own.
+// nothing is tied to VeilCore (a report sent since round 3 ends with a few padding bytes,
+// below). The lock comes to the lab in the code the breeder sent, or sealed inside the
+// breeder's offer, which only the code's key opens; never from the registry (round 3, P1:
+// it used to be taken from the record the registry served, and a server could hand the lab
+// its own lock and read the report). reportLockFor says which lock a lab may use.
 // SPDX-License-Identifier: Apache-2.0
 
 // The age encryption library (and the curve code under it) is loaded when a report is
@@ -30,6 +33,7 @@ import { bech32 } from '@scure/base';
 import { hkdf } from '@noble/hashes/hkdf.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { holderKey } from './holder';
+import { paddedSize } from './vault';
 import { userFacingError } from './transfers';
 import { readJson, isObject, isString, isNumber, optional } from './json';
 
@@ -64,13 +68,49 @@ export const resultRecipientFor = (recordSecretHex: string, transferId?: string)
 /** The report's fingerprint: SHA-256 of its bytes, hex. What the lab signs. */
 export const reportFingerprint = (bytes: Uint8Array): string => hexOf(sha256(bytes));
 
-/** Lock a report so only the plant's holder can open it. */
+// --- padding (round 3, P7) ------------------------------------------------------------
+//
+// The registry stores the locked file, so it learned each report's exact size. Before
+// locking, the report is padded to the same size buckets as a sealed record (vault.ts
+// paddedSize: the next 1 KiB up to 16 KiB, then the next 8 KiB): the report's bytes, zeros,
+// then a 16-byte trailer, the report's length (8 bytes, big-endian) and PAD_MAGIC. Opening
+// takes the padding off again, so the file and its fingerprint (what the lab signs) are the
+// report's own. A report sent before padding has no trailer and opens as it was.
+
+const PAD_MAGIC = new TextEncoder().encode('VCPAD\x001\n');
+const TRAILER = 16;
+
+/** The report, padded to its bucket, with the trailer that says how long it is. */
+export const padReport = (bytes: Uint8Array): Uint8Array => {
+  const size = paddedSize(bytes.length + TRAILER);
+  const out = new Uint8Array(size);
+  out.set(bytes);
+  const view = new DataView(out.buffer);
+  view.setBigUint64(size - TRAILER, BigInt(bytes.length));
+  out.set(PAD_MAGIC, size - PAD_MAGIC.length);
+  return out;
+};
+
+/** The report without its padding; a file without the trailer is returned as it is. */
+export const unpadReport = (bytes: Uint8Array): Uint8Array => {
+  if (bytes.length < TRAILER) return bytes;
+  const tail = bytes.subarray(bytes.length - PAD_MAGIC.length);
+  if (!tail.every((b, i) => b === PAD_MAGIC[i])) return bytes;
+  const n = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getBigUint64(bytes.length - TRAILER);
+  if (n > BigInt(bytes.length - TRAILER)) return bytes;
+  const len = Number(n);
+  // Only zeros between the report and the trailer: anything else is a file of its own.
+  if (!bytes.subarray(len, bytes.length - TRAILER).every((b) => b === 0)) return bytes;
+  return bytes.slice(0, len);
+};
+
+/** Lock a report so only the plant's holder can open it. Padded first, so its size says little. */
 export const lockReport = async (bytes: Uint8Array, recipient: string): Promise<Uint8Array> => {
   if (!RECIPIENT.test(recipient)) throw new Error('The lab code has no lock for lab reports in it.');
   const { Encrypter } = await age();
   const e = new Encrypter();
   e.addRecipient(recipient);
-  return e.encrypt(bytes);
+  return e.encrypt(padReport(bytes));
 };
 
 /**
@@ -88,7 +128,7 @@ export const openReport = async (
   if (transferId) d.addIdentity(resultIdentityFor(recordSecretHex, transferId));
   d.addIdentity(resultIdentityFor(recordSecretHex));
   try {
-    return await d.decrypt(locked);
+    return unpadReport(await d.decrypt(locked));
   } catch {
     throw new Error('This lab report was not locked for this plant, or the file is damaged.');
   }
@@ -109,6 +149,11 @@ export type LabDelivery = {
   readonly receivedAt: number;
   /** The signed receipt this browser tied to the delivery (transfers.ts attachReceipt). */
   readonly receiptLinked?: string;
+  /**
+   * The lab pasted the code again to settle a record whose own lock differed (round 3, P1):
+   * from then on the code's lock is used.
+   */
+  readonly lockConfirmed?: true;
 };
 
 const isDelivery = (v: unknown): v is LabDelivery =>
@@ -119,7 +164,8 @@ const isDelivery = (v: unknown): v is LabDelivery =>
   optional(v.sourceCommitment, isString) &&
   optional(v.recipient, isString) &&
   isNumber(v.receivedAt) &&
-  optional(v.receiptLinked, isString);
+  optional(v.receiptLinked, isString) &&
+  (v.lockConfirmed === undefined || v.lockConfirmed === true);
 
 const readDeliveries = (): Record<string, LabDelivery> => {
   try {
@@ -192,6 +238,35 @@ export const markReceiptLinked = (base: LabDelivery, attestationId: string): voi
 /** The delivery a received record came from, if this browser received it. */
 export const deliveryForRecord = (receivedRecordId: string): LabDelivery | undefined =>
   Object.values(readDeliveries()).find((d) => d.receivedRecordId === receivedRecordId);
+
+/**
+ * The lock a lab may send this record's lab reports with (round 3, P1), or why not:
+ *   - the lock this browser kept from the lab code (rememberDelivery), first;
+ *   - else the record's own, but only one this browser put there from the code or from the
+ *     sealed offer (`resultLockFrom`) on a record it sealed itself. A lock on a record saved
+ *     before locking, or put there before this rule, may be the server's;
+ *   - a record's lock that differs from the code's, or that can't be vouched for, is a
+ *     'conflict': nothing is sent until the lab pastes the code again (lockConfirmed).
+ */
+export const reportLockFor = (
+  record: {
+    readonly id: string;
+    readonly resultLock?: string;
+    readonly resultLockFrom?: 'code' | 'offer';
+  },
+  sealedHere: boolean,
+): { lock: string } | { conflict: true } | { none: true } => {
+  const delivery = deliveryForRecord(record.id);
+  const fromCode = delivery?.recipient;
+  const own = record.resultLock;
+  if (fromCode && RECIPIENT.test(fromCode)) {
+    return own && own !== fromCode && !delivery.lockConfirmed ? { conflict: true } : { lock: fromCode };
+  }
+  if (own && RECIPIENT.test(own)) {
+    return sealedHere && record.resultLockFrom ? { lock: own } : { conflict: true };
+  }
+  return { none: true };
+};
 
 // --- the registry ----------------------------------------------------------------------
 

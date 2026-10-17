@@ -20,8 +20,10 @@ import {
   agreementType,
   agreementRows,
   AGREEMENT_LABEL,
+  useAgreementsWaitForBackup,
 } from '../../veilcore/licenses';
 import { Wordmark } from '../Wordmark';
+import { AgreementsBackupFirst } from './AgreementsBackupFirst';
 import { LanguageBar } from '../../i18n/LanguagePicker';
 import { InEnglishPage } from '../../i18n/app';
 import { startRecordSync } from '../../veilcore/records';
@@ -47,6 +49,7 @@ export const CounterSignPage: React.FC = () => {
   const { id = '' } = useParams();
   const license = getLicense(id);
   const [issuerHere, setIssuerHere] = useState<boolean | null>(null);
+  const blocked = useAgreementsWaitForBackup();
   useEffect(() => {
     if (license) void isIssuer(license).then(setIssuerHere);
   }, [license]);
@@ -106,7 +109,13 @@ export const CounterSignPage: React.FC = () => {
                   This records a time and the holder key that pressed it in VeilCore&apos;s registry. It is not a
                   cryptographic signature and not a qualified (eIDAS) electronic signature.
                 </Typography>
-                <Button variant="contained" size="large" onClick={() => void countersignLicense(license.id)}>
+                <AgreementsBackupFirst />
+                <Button
+                  variant="contained"
+                  size="large"
+                  disabled={blocked}
+                  onClick={() => void countersignLicense(license.id).catch(() => undefined)}
+                >
                   {issuerHere === false
                     ? 'Review complete — sign & accept'
                     : `Mark active as the issuer ${SIMULATED_TAG}`}

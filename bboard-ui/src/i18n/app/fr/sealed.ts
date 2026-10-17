@@ -67,7 +67,8 @@ export const sealed = {
   'app.sealed.size.near': '{used} Ko utilisés sur {max} Ko.',
   'app.sealed.size.over': 'Trop volumineux pour être enregistré. Raccourcissez les notes.',
   'app.sealed.older.pageTitle': 'Une copie plus ancienne de cet enregistrement',
-  'app.sealed.older': 'Le serveur a envoyé une copie plus ancienne de cet enregistrement.',
+  'app.sealed.older':
+    'Le serveur a envoyé une copie de cet enregistrement plus ancienne que celle que ce navigateur a enregistrée en dernier. Si c’est la copie voulue, utilisez-la ; sinon, supprimez-la.',
   'app.sealed.olderKept.one':
     'Le serveur a envoyé une copie plus ancienne de {count} enregistrement. Ce navigateur a gardé la copie plus récente et l’enregistre à nouveau.',
   'app.sealed.olderKept.other':
@@ -107,4 +108,59 @@ export const sealed = {
   'app.sealed.recv.otherCode': 'Ce code est celui d’une autre livraison.',
   'app.sealed.recv.offerMissing':
     'VeilCore n’a pas envoyé les informations verrouillées de l’expéditeur pour ce code, donc l’enregistrement n’a pas été terminé. Réessayez « Terminer la réception » sur l’enregistrement plus tard, ou demandez à l’expéditeur.',
+  // Round 3: held saves, the lost-key path, older copies, grants listed before locking
+  'app.sealed.agreementsBackupFirst':
+    'Enregistrez d’abord une copie de secours et vérifiez-la. D’ici là, les contrats ne peuvent pas être créés ni modifiés ici.',
+  'app.sealed.backup.storageRefused':
+    'Ce navigateur ne garde rien pour le moment (son stockage est plein, ou bloqué dans une fenêtre privée), donc rien n’a été changé. Libérez de l’espace ou utilisez une fenêtre normale, puis réessayez.',
+  'app.sealed.backupFirstAction':
+    'Enregistrez d’abord une copie de secours et vérifiez-la. Ensuite, vous pourrez le faire.',
+  'app.sealed.correctBackupFirst':
+    'Enregistrez d’abord une copie de secours et vérifiez-la. Ensuite, vous pourrez corriger cet enregistrement.',
+  'app.sealed.correctionLeft':
+    'La correction {id} n’a pas pu être retirée de VeilCore. Rechargez la page et vérifiez vos enregistrements.',
+  'app.sealed.grantAsk.text':
+    'Avant le verrouillage de vos enregistrements, cet enregistrement partageait : {keys}. Ce n’est plus partagé tant que vous ne le dites pas.',
+  'app.sealed.grantAsk.yes': 'Partager de nouveau',
+  'app.sealed.grantAsk.no': 'Ne pas partager',
+  'app.sealed.grantAsk.failed': 'Ce n’a pas été enregistré : {error}',
+  'app.sealed.grantDiffers.text':
+    'Le serveur de VeilCore affiche pour cet enregistrement un choix de partage différent de celui gardé avec lui. Rien n’a été changé. Choisissez ce que voient les inconnus.',
+  'app.sealed.grantDiffers.open': 'Choisir',
+  'app.sealed.importNotImported.one':
+    ' {count} enregistrement sur VeilCore est verrouillé ou vidé, et le fichier n’a pas pu le remettre, il n’a donc pas été importé.',
+  'app.sealed.importNotImported.other':
+    ' {count} enregistrements sur VeilCore sont verrouillés ou vidés, et le fichier n’a pas pu les remettre, ils n’ont donc pas été importés.',
+  'app.sealed.lost.button': 'Je n’ai pas cette copie de secours',
+  'app.sealed.lost.confirm':
+    'Sans ce fichier de secours, personne ne peut ouvrir ces enregistrements et contrats verrouillés, pas même VeilCore. Tant qu’ils sont sur VeilCore, rien de nouveau ne peut être enregistré pour vous. Les supprimer de VeilCore et commencer une nouvelle clé ? C’est irréversible.',
+  'app.sealed.lost.done':
+    'Supprimés. Une nouvelle clé est prête : enregistrez une copie de secours et vérifiez-la, et vos nouveaux enregistrements seront enregistrés.',
+  'app.sealed.lost.failed': 'Rien n’a été supprimé : {error}',
+  'app.sealed.lost.nothing': 'rien ici n’est verrouillé avec une clé perdue',
+  'app.sealed.older.use': 'Utiliser cette copie',
+  'app.sealed.older.deleteConfirm':
+    'Supprimer {name} de VeilCore ? Cette copie plus ancienne est la seule copie sur le serveur de VeilCore. Une fois supprimée, personne ne pourra la récupérer.',
+  'app.sealed.recv.backupFirst':
+    'Cet enregistrement a été enregistré avant le verrouillage des enregistrements. Enregistrez d’abord une copie de secours et vérifiez-la ; vous pourrez ensuite signer.',
+  'app.sealed.recv.backupFirstClaim':
+    'Enregistrez d’abord une copie de secours et vérifiez-la, puis utilisez le code. Rien n’a encore été reçu.',
+  'app.sealed.recv.noAnswer':
+    'VeilCore n’a pas répondu ({error}). Le code est gardé dans ce navigateur. Si la livraison a été reçue, elle apparaît dans vos enregistrements avec « Terminer la réception » ; sinon, réessayez.',
+  'app.sealed.refuse.backupFirstNew':
+    'rien n’a encore été enregistré. Enregistrez d’abord une copie de secours et vérifiez-la',
+  'app.sealed.unsaved.backup':
+    'Pas encore enregistré. Enregistrez votre copie de secours et vérifiez-la ; d’ici là, c’est gardé seulement dans ce navigateur.',
+  'app.sealed.unsaved.key':
+    'Pas encore enregistré. Ce navigateur n’a pas la clé de vos enregistrements sur VeilCore. Restaurez votre copie de secours ou, si vous ne l’avez pas, utilisez « Je n’ai pas cette copie de secours » sur la page de vos enregistrements.',
+  'app.sealed.unsaved.retry':
+    'Pas encore enregistré sur VeilCore. C’est gardé dans ce navigateur et renvoyé au prochain enregistrement.',
+  'app.sealed.unsaved.short': 'Pas encore enregistré — enregistrez votre copie de secours',
+  'app.sealed.unsaved.shortRetry': 'Pas encore enregistré',
+  'app.sealed.unsaved.discardConfirm':
+    'Abandonner ce que ce navigateur garde pour cet enregistrement ? Ce n’est pas sur VeilCore, donc impossible à récupérer.',
+  'app.sealed.unsaved.discardNew': 'Le supprimer',
+  'app.sealed.unsaved.discardChange': 'Annuler la modification',
+  'app.sealed.sendNotSaved':
+    'Cet enregistrement n’est pas encore enregistré sur VeilCore, il ne peut donc pas être envoyé. Enregistrez d’abord une copie de secours et vérifiez-la.',
 } satisfies Partial<AppTranslation>;

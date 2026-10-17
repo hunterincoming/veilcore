@@ -78,10 +78,16 @@ export const SendToLab: React.FC<{
     if (!handle.trim() || problems.length || mismatch) return;
     setBusy(true);
     setError(null);
+    // The plant's lock for lab reports goes sealed inside the offer too (round 3, P1), so a
+    // lab never takes a lock from VeilCore's server, even with a code cut short.
+    const plantLock = LAB_RESULTS_ENABLED
+      ? await resultRecipientFor(ensureKeys(record.id).recordSecret).catch(() => undefined)
+      : undefined;
     const res = await offerTransfer(record, handle.trim(), {
       quantity: quantity.trim() || undefined,
       note: note.trim() || undefined,
       sample,
+      ...(plantLock ? { resultLock: plantLock } : {}),
     });
     if ('error' in res) setError(labErrorWords(res.error, tr));
     else {

@@ -8,6 +8,7 @@ import { Home } from './components/site/Home';
 import { Founders, VerifyLookup } from './components/site/Founders';
 import { Privacy } from './components/site/Privacy';
 import { NotFound } from './components/site/NotFound';
+import { PageErrorBoundary } from './components/PageErrorBoundary';
 import { Box, Container, GlobalStyles, ThemeProvider } from '@mui/material';
 import { MotionConfig } from 'framer-motion';
 import { lightFocusStyles, lightTheme } from './config/theme';
@@ -115,7 +116,8 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
       {/* The one main landmark: the header, the page and its notices. The footer stays outside. */}
       <Container component="main" maxWidth="md" sx={{ py: { xs: 3, md: 6 } }}>
         <SaveProblemBar />
-        {children}
+        {/* A page that fails to draw says so plainly, not with a blank screen (round 3, L5). */}
+        <PageErrorBoundary>{children}</PageErrorBoundary>
       </Container>
       {/* Documents reachable from wherever someone happens to be, rather than only from
         the page they landed on. */}
@@ -154,7 +156,9 @@ const Light: React.FC<React.PropsWithChildren> = ({ children }) => (
   <ThemeProvider theme={lightTheme}>
     <GlobalStyles styles={lightFocusStyles} />
     <GlobalStyles styles={japaneseLineBreaks} />
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>{children}</Box>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
+      <PageErrorBoundary>{children}</PageErrorBoundary>
+    </Box>
   </ThemeProvider>
 );
 

@@ -27,7 +27,7 @@ import {
 import EditIcon from '@mui/icons-material/EditOutlined';
 import { useNavigate } from 'react-router-dom';
 import { previewCorrection, type CorrectionPreview } from '../veilcore/corrections';
-import { integrityOf, issueCorrection, type StrainRecord } from '../veilcore/records';
+import { correctionWaitsForBackup, integrityOf, issueCorrection, type StrainRecord } from '../veilcore/records';
 import { INK_COLOR } from '../config/theme';
 import { useRecordT } from '../i18n/app';
 import { isAnimal } from '../veilcore/animal-profile';
@@ -67,6 +67,7 @@ export const CorrectRecord: React.FC<{
   const [reason, setReason] = useState('');
   const [preview, setPreview] = useState<CorrectionPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const waits = open && correctionWaitsForBackup(record.id);
 
   const edited: StrainRecord = {
     ...record,
@@ -105,7 +106,25 @@ export const CorrectRecord: React.FC<{
         </Button>
       )}
 
-      <Dialog open={open} onClose={reset} maxWidth="sm" fullWidth>
+      <Dialog open={open && waits} onClose={reset} maxWidth="sm" fullWidth>
+        <DialogTitle>{t('app.plant.fix.title', { id: record.id })}</DialogTitle>
+        <DialogContent>
+          {/* Said before anything is typed (round 3, L7): a correction can't be saved yet. */}
+          <Alert severity="warning" variant="outlined" sx={{ mt: 1 }} data-correction-backup-first="">
+            {t('app.sealed.correctBackupFirst')}
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={reset} sx={{ minHeight: 44 }}>
+            {t('app.common.cancel')}
+          </Button>
+          <Button variant="contained" onClick={() => void navigate('/backup')} sx={{ minHeight: 44 }}>
+            {t('app.home.saveIt')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={open && !waits} onClose={reset} maxWidth="sm" fullWidth>
         <DialogTitle>{t('app.plant.fix.title', { id: record.id })}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>

@@ -14,7 +14,15 @@ import fs from 'node:fs';
 import { createCipheriv, createHash, randomBytes } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { Browser, BrowserContext, Page } from '@playwright/test';
-import { API, REAL_REGISTRY, expectNoErrors, isolate, watch } from './helpers';
+import {
+  API,
+  REAL_REGISTRY,
+  backupAfterLogging,
+  expectNoErrors,
+  isolate,
+  receiveWithBackupFirst,
+  watch,
+} from './helpers';
 
 test.skip(!REAL_REGISTRY, 'needs a real registry: set E2E_API_BASE and build with it');
 
@@ -87,6 +95,7 @@ const sendAndReceive = async (browser: Browser, t: Typed, arrivedSeal: string, t
   const recordId = await breeder.evaluate(
     () => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object)[0],
   );
+  await backupAfterLogging(breeder, recordId);
   await breeder.goto(`/record/${recordId}`);
   await breeder.getByText('Send it to a lab or breeder').click();
   await breeder.getByLabel(/Who are you sending it to/).fill('lab@e2e');
@@ -116,9 +125,7 @@ const sendAndReceive = async (browser: Browser, t: Typed, arrivedSeal: string, t
   await lab.getByLabel(/^Name/).fill('E2E Lab');
   await lab.getByRole('button', { name: /Create my key/ }).click();
   await lab.getByRole('button', { name: /^Done$/ }).click();
-  await lab.getByLabel(/Someone sent you a code or link/).fill(code);
-  await lab.getByRole('button', { name: /^Go$/ }).click();
-  await lab.getByRole('button', { name: /Receive it/ }).click();
+  await receiveWithBackupFirst(lab, code);
 
   // The form starts from what the breeder wrote, opened in the lab's browser with the code's
   // key; the lab confirms or corrects it.

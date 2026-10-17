@@ -20,7 +20,13 @@
 // (GET /api/disclosures) is only a hint that one may need sending again: it can make this
 // browser send again a key the sealed copy grants, never add one. A registry that lists a
 // grant the holder never made gets nothing (attack review P1: it used to get parent names,
-// breeding method and the DNA pairing, in plain text).
+// breeding method and the DNA pairing, in plain text). That holds for records saved before
+// sealing too (round 3, P2): their listed grants are not taken as the holder's choice when
+// they are converted (records.ts convertLegacy).
+//
+// When the registry's copy of a grant differs from the sealed choice, nothing is sent over
+// it any more (round 3, deploy window): an old tab of the site may have changed it on
+// purpose. The difference is shown (grantDifferenceOf) and the holder chooses.
 //
 // The keys are named after what the recipient LEARNS, not after the field being
 // revealed. `descent-clean` describes an outcome; `lineage` described our internal
@@ -29,6 +35,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+import { useSyncExternalStore } from 'react';
 import { holderKey, holderKeyIfAny } from './holder';
 import { readJson, isObject, isString } from './json';
 import { enT, type Translator } from '../i18n/translate';
@@ -60,9 +67,11 @@ export const DISCLOSURE_FIELDS: { key: DisclosureKey; label: string; def: boolea
   // the holder choosing and by the stranger on the verify page, so they say neither "you"
   // nor "the holder".
   { key: 'existence', label: 'Prior possession (shown only once anchored)', def: true },
-  { key: 'attestation-status', label: 'Whether a DNA report is saved', def: true },
+  // Off until the holder turns them on (round 3, P7): on, they publish the DNA report's
+  // fingerprint and the date the record was sealed.
+  { key: 'attestation-status', label: 'Whether a DNA report is saved', def: false },
   { key: 'descent-clean', label: 'Lineage status, as the registry reports it', def: true },
-  { key: 'sealed-at', label: 'When it was sealed (the holder’s device clock)', def: true },
+  { key: 'sealed-at', label: 'When it was sealed (the holder’s device clock)', def: false },
   { key: 'parent-names', label: 'Parent cultivar names', def: false },
   { key: 'breeding-method', label: 'Breeding method', def: false },
   { key: 'individual-id', label: 'Individual ID and its scheme', def: false },
@@ -118,7 +127,18 @@ export const disclosureFrom = (keys: readonly string[]): Disclosure => {
   return DISCLOSURE_FIELDS.reduce((acc, f) => ({ ...acc, [f.key]: on.has(f.key) }), {} as Disclosure);
 };
 
-export type Grant = { show: DisclosureKey[]; updatedAt: string | null };
+/**
+ * A record's grant. `show` is the holder's choice, kept in the record's sealed copy, whenever
+ * this browser has the record (round 3, P3): a caller that takes `show` never takes the
+ * registry's word for it. `serverShow` is what the registry says it shows strangers now.
+ */
+export type Grant = { show: DisclosureKey[]; updatedAt: string | null; serverShow?: DisclosureKey[] };
+
+/** Finds a record in this browser (records.ts registers getRecord, so this module needn't import it). */
+let lookup: ((id: string) => StrainRecord | undefined) | null = null;
+export const registerRecordLookup = (f: (id: string) => StrainRecord | undefined): void => {
+  lookup = f;
+};
 
 const isGrantBody = (v: unknown): v is { show: string[]; updatedAt?: string | null } =>
   isObject(v) &&
@@ -150,7 +170,10 @@ export const loadGrant = async (recordId: string): Promise<Grant | { error: stri
     if (!res.ok) return { error: await errorOf(res) };
     const body = await readJson(res);
     if (!isGrantBody(body)) return { error: 'unexpected response from the registry' };
-    return { show: keysOn(disclosureFrom(body.show)), updatedAt: body.updatedAt ?? null };
+    const serverShow = keysOn(disclosureFrom(body.show));
+    const r = lookup?.(recordId);
+    const sealed = r ? (sealedGrantOf(r) ?? []) : serverShow;
+    return { show: sealed, updatedAt: body.updatedAt ?? null, serverShow };
   } catch {
     return null;
   }
@@ -255,6 +278,16 @@ export const sealedGrantOf = (r: StrainRecord): DisclosureKey[] | null =>
   Array.isArray(r.grant) ? keysOn(disclosureFrom(r.grant.filter(isString))) : null;
 
 /**
+ * Where the share screen's switches start (round 3, P3): the holder's own choice from the
+ * record's sealed copy, or the defaults for a record that has none. Never the registry's
+ * answer, which one press of the button used to publish.
+ */
+export const shareScreenStart = (r: StrainRecord | undefined): Disclosure => {
+  const sealed = r ? sealedGrantOf(r) : null;
+  return sealed ? disclosureFrom(sealed) : defaultDisclosure();
+};
+
+/**
  * Keeps a choice in the record's sealed copy and says when the registry has stored it
  * (records.ts keepGrant registers itself here, so this module needn't import records.ts).
  */
@@ -271,6 +304,17 @@ export const sendGrant = async (r: StrainRecord, show: readonly DisclosureKey[])
   } catch {
     return false;
   }
+};
+
+/**
+ * "Keep my choice" (round 3): the registry shows something else than the choice in the
+ * record's sealed copy; send the sealed choice again, as it is. True when the registry
+ * stored it.
+ */
+export const keepSealedGrant = async (r: StrainRecord): Promise<boolean> => {
+  const ok = await sendGrant(r, sealedGrantOf(r) ?? []);
+  if (ok) clearGrantDifference(r.id);
+  return ok;
 };
 
 /**
@@ -295,6 +339,7 @@ export const saveGrant = async (record: StrainRecord, d: Disclosure): Promise<Gr
     if (stored.join(',') !== show.join(',')) {
       return { error: `the registry stored a different set (${stored.join(', ') || 'nothing'}) from the one chosen` };
     }
+    clearGrantDifference(record.id);
     return { show: stored, updatedAt: body.updatedAt ?? null };
   } catch {
     return { error: 'could not reach the registry' };
@@ -332,6 +377,36 @@ const storedValuesOf = async (g: ListedGrant, key: string): Promise<unknown> => 
 /** Whether the registry publishes exactly the values this browser would send now. */
 export const sameGrantValues = (stored: unknown, wanted: GrantValues): boolean =>
   isObject(stored) && stableStringify(stored) === stableStringify(wanted);
+
+/** Keys that publish no value: the registry's own facts (CONTRACT.md #7). */
+export const VALUELESS_KEYS: readonly DisclosureKey[] = ['existence', 'descent-clean'];
+
+// ---- where the registry's copy of a grant differs from the holder's (round 3) ------------
+
+const differences = new Map<string, DisclosureKey[]>();
+const diffListeners = new Set<() => void>();
+let diffVersion = 0;
+const diffChanged = () => {
+  diffVersion++;
+  diffListeners.forEach((l) => l());
+};
+
+/** What the registry shows for a record when it differs from the choice in its sealed copy. */
+export const grantDifferenceOf = (recordId: string): DisclosureKey[] | undefined => differences.get(recordId);
+/** The holder chose (kept theirs, or saved another): the difference is settled. */
+export const clearGrantDifference = (recordId: string): void => {
+  if (differences.delete(recordId)) diffChanged();
+};
+export const useGrantDifference = (recordId: string): DisclosureKey[] | undefined => {
+  useSyncExternalStore(
+    (l) => {
+      diffListeners.add(l);
+      return () => diffListeners.delete(l);
+    },
+    () => diffVersion,
+  );
+  return differences.get(recordId);
+};
 
 /** Grants whose values are worth sending: one that publishes a value. */
 const VALUE_KEYS: readonly DisclosureKey[] = [
@@ -395,10 +470,22 @@ export const syncGrants = (
       if (!r || !r.recordFingerprint || !isIntact(r.id)) continue;
       // The holder's own choice, from the sealed copy: the listing never adds a key.
       const show = sealedGrantOf(r);
-      if (!show) continue;
-      const same = keysOn(disclosureFrom(g.show)).join(',') === show.join(',');
-      if (same && !show.some((k) => VALUE_KEYS.includes(k))) continue;
-      const current = same && g.forFingerprint === r.recordFingerprint;
+      const listedKeys = keysOn(disclosureFrom(g.show));
+      const same = listedKeys.join(',') === (show ?? []).join(',');
+      // The registry shows something else than the holder's choice: an old tab may have
+      // changed it on purpose, so nothing is sent over it; the holder is shown both and
+      // chooses (round 3, deploy window). A listing with keys for a record that keeps no
+      // choice is shown too.
+      if (!same) {
+        if (show || listedKeys.length) {
+          differences.set(r.id, listedKeys);
+          diffChanged();
+        }
+        continue;
+      }
+      if (differences.delete(r.id)) diffChanged();
+      if (!show || !show.some((k) => VALUE_KEYS.includes(k))) continue;
+      const current = g.forFingerprint === r.recordFingerprint;
       const stored = current ? await storedValuesOf(g, key) : undefined;
       const wanted = await grantValuesNow(r, show, stored);
       if (current && !forced.has(r.id) && sameGrantValues(stored, wanted)) continue;

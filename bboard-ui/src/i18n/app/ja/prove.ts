@@ -150,4 +150,10 @@ export const prove = {
   'app.prove.share.openTheirs': '相手に見えるものを開く',
   'app.prove.share.saving': '保存しています…',
   'app.prove.share.getLink': 'リンクを取得',
+  // Step5ProveDisclosure.tsx: the server shows another choice (round 3)
+  'app.prove.share.differs.text':
+    'VeilCoreのサーバーの表示：{server}。記録と一緒に保管しているあなたの選択：{mine}。第三者にはどちらを見せますか？',
+  'app.prove.share.differs.keepMine': '自分の選択を使う',
+  'app.prove.share.differs.useServers': 'サーバーの表示を使う',
+  'app.prove.share.differs.failed': 'VeilCoreがあなたの選択を保存しませんでした。もう一度お試しください。',
 } satisfies Partial<AppTranslation>;

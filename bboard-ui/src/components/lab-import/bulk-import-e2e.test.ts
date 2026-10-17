@@ -77,6 +77,11 @@ describe('importing a 25-row accession log, end to end', () => {
   it('all 25 sealed once, through a closed tab and a lost answer; the backup holds them; the results file is right', async () => {
     // ── Tab 1: pick the file, check the columns and rows, start sealing ──
     let tab = await openTab();
+    // Since round 3 (L1) nothing is sealed and sent before the key is in a checked backup;
+    // a first import before then stops and says so. This holder has done it.
+    const vault = await import('../../veilcore/vault');
+    vault.mintVault();
+    vault.markVaultBackedUp();
     const sheet = await tab.bi.readSheet(fileOf(CSV, 'accessions.csv'));
     expect(sheet).toMatchObject({ kind: 'csv', delimiter: ';', headers: HEADERS });
     expect(sheet.rows).toHaveLength(25);
@@ -137,8 +142,14 @@ describe('importing a 25-row accession log, end to end', () => {
     job = { ...resumed!, outcomes: { ...resumed!.outcomes, ...r2.outcomes }, phase: 'sealed' };
     tab.bi.saveJob(job);
     expect(tab.bi.jobSummary(job)).toEqual({ sealed: 25, before: 0, notSealed: 0, waiting: 0 });
-    // The batch whose answer was lost went again as the same records.
-    expect(puts.slice(lostAt + 1).some((p) => p.slice(0, 10).join() === lostBatch.join())).toBe(true);
+    // The batch whose answer was lost is on the registry exactly as this tab would send it:
+    // only changed rows are sent (round 3, L2), so it isn't sent again, and counts as sealed.
+    expect(
+      puts
+        .slice(lostAt + 1)
+        .flat()
+        .filter((id) => lostBatch.includes(id)),
+    ).toEqual([]);
 
     // Exactly 25 records at the registry, one per row, and the app shows them.
     expect(held.size).toBe(25);

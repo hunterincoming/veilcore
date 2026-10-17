@@ -8,7 +8,13 @@
 //   - `toHandle` must be a tag (64 lowercase hex);
 //   - every request is kept, so a test can look for anything that shouldn't be in one.
 // A test can make it misbehave: answer a GET with 429, list grants nobody made, send an
-// older copy of a row, drop the sealed offer from a claim.
+// older copy of a row, drop the sealed offer from a claim, refuse a row by id, or lose the
+// answer to a request it carried out (`fault`).
+//
+// Round 3 adds what the third attack review's proofs used from the real registry: agreements
+// saved before sealing (putLegacyLicense), the purge's emptied rows (purge), a delivery made
+// before offers were sealed (an offer with no sealedOffer: the claim answers offerPlain while
+// its source is plain text, and GET /transfers/:id/offer answers 409 once the source is sealed).
 // SPDX-License-Identifier: Apache-2.0
 
 export type Row = Record<string, unknown> & { id: string };
@@ -20,6 +26,10 @@ type Transfer = {
   claimCode: string;
   claimedBy?: string;
   createdAt: number;
+  /** The sample details as stored (CONTRACT.md #27): each side a sealed box, unread here. */
+  sample?: unknown;
+  arrival?: unknown;
+  receiptAttestationId?: string;
 };
 
 export type Sent = { method: string; url: string; headers: string; body: string };
@@ -45,10 +55,29 @@ export const fakeRegistry = () => {
     offerPlainInstead: null as Record<string, unknown> | null,
     /** Extra fields put on every /transfers/sent row. */
     sentExtra: {} as Record<string, unknown>,
+    /** Answer this many whole-set GETs of /api/licenses with 429. */
+    refuseLicenseGets: 0,
+    /** Ids a PUT rejects (as the real registry rejects a row it won't take). */
+    rejectIds: new Set<string>(),
+    /**
+     * Called before each request is carried out. Returning 'lose' carries it out and then
+     * throws, as a connection lost before the answer arrives does; 'fail' throws without
+     * carrying it out; a Response is answered instead.
+     */
+    fault: null as ((method: string, path: string, body: string) => 'lose' | 'fail' | Response | undefined) | null,
   };
   let n = 0;
 
   const table = (path: string) => (path.startsWith('/api/licenses') ? licenses : records);
+  /** What a pre-sealing claim passed on from a plain-text source. */
+  const plainOffer = (src: Row, body: Record<string, unknown>) => ({
+    strainName: src.strainName,
+    bredBy: src.bredBy,
+    dateCreated: src.dateCreated,
+    ...(src.profile ? { profile: src.profile } : {}),
+    ...(typeof body.quantity === 'string' ? { quantity: body.quantity } : {}),
+    ...(typeof body.note === 'string' ? { note: body.note } : {}),
+  });
   const strip = (r: Row & { holder: string }): Row => {
     const { holder: _h, ...rest } = r;
     void _h;
@@ -63,10 +92,19 @@ export const fakeRegistry = () => {
     return null;
   };
 
-  const fetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  const fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     const method = (init?.method ?? 'GET').toUpperCase();
     const body = typeof init?.body === 'string' ? init.body : '';
+    const f = misbehave.fault?.(method, new URL(url).pathname, body);
+    if (f === 'fail') throw new TypeError('fetch failed');
+    if (f instanceof Response) return f;
+    const res = await carry(url, method, body, init);
+    if (f === 'lose') throw new TypeError('fetch failed');
+    return res;
+  };
+
+  const carry = (url: string, method: string, body: string, init?: RequestInit): Promise<Response> => {
     const headers = (init?.headers ?? {}) as Record<string, string>;
     sent.push({ method, url, headers: JSON.stringify(headers), body });
     const holder = headers['x-holder-key'] ?? '';
@@ -82,7 +120,8 @@ export const fakeRegistry = () => {
         const theirKid = items.map((r) => (r.sealed as { kid?: string } | undefined)?.kid).find(Boolean);
         for (const r of items) {
           const s = r.sealed as { kid?: string } | undefined;
-          if (!s) rejected.push({ id: r.id, reason: 'new rows must be sealed' });
+          if (misbehave.rejectIds.has(r.id)) rejected.push({ id: r.id, reason: 'refused for this test' });
+          else if (!s) rejected.push({ id: r.id, reason: 'new rows must be sealed' });
           else if ((kid ?? theirKid) !== s.kid)
             rejected.push({ id: r.id, reason: "sealed with a different vault key than this holder's other records" });
           else if (t.has(r.id) && t.get(r.id)!.holder !== holder) notWritten.push(r.id);
@@ -108,6 +147,10 @@ export const fakeRegistry = () => {
       }
       if (path === '/api/records' && misbehave.refuseGets > 0) {
         misbehave.refuseGets--;
+        return json({ error: 'whole-set reads are limited' }, 429);
+      }
+      if (path === '/api/licenses' && misbehave.refuseLicenseGets > 0) {
+        misbehave.refuseLicenseGets--;
         return json({ error: 'whole-set reads are limited' }, 429);
       }
       return json([...t.values()].filter((r) => r.holder === holder).map(strip));
@@ -145,6 +188,8 @@ export const fakeRegistry = () => {
         return json({ error: 'toHandle is a tag, not a name' }, 400);
       const src = records.get(String(b.sourceRecord));
       if (!src || src.holder !== holder) return json({ error: 'no such record under this holder key' }, 404);
+      if (src.sealed && !b.sealedOffer)
+        return json({ error: "a sealed record is offered with sealedOffer: the offer's details" }, 400);
       const id = `TR-${(++n).toString(16).toUpperCase().padStart(8, '0')}`;
       const claimCode = `${'c'.repeat(31)}${n % 10}`;
       transfers.set(id, { id, from: holder, body: b, claimCode, createdAt: Date.now() });
@@ -156,6 +201,9 @@ export const fakeRegistry = () => {
       if (!t) return json({ error: 'no such transfer' }, 404);
       if (t.claimedBy) return json({ error: 'this transfer has already been claimed' }, 409);
       const src = records.get(String(t.body.sourceRecord))!;
+      // A delivery made before offers were sealed: the registry passes on the source's fields
+      // while it can read them, and can't once the source is sealed (CONTRACT.md #8).
+      if (!t.body.sealedOffer && src.sealed) return json({ error: 'ask the sender for a new code' }, 409);
       t.claimedBy = holder;
       const stubId = `VEIL-R${claim[1].slice(3)}`;
       records.set(stubId, {
@@ -177,13 +225,53 @@ export const fakeRegistry = () => {
           ? { offerPlain: misbehave.offerPlainInstead }
           : t.body.sealedOffer
             ? { offerSealed: t.body.sealedOffer }
-            : {}),
+            : { offerPlain: plainOffer(src, t.body) }),
+        ...(!t.body.sealedOffer && typeof t.body.note === 'string' ? { note: t.body.note } : {}),
+        sample: t.sample ?? {},
+      });
+    }
+    // A delivery's sample details (CONTRACT.md #27): on a sealed offer each side is a box,
+    // stored and served unread; the sender writes the sample before the claim, whoever
+    // received it writes the arrival after.
+    const custody = /^\/transfers\/([^/]+)\/custody$/.exec(path);
+    if (custody) {
+      const t = transfers.get(custody[1]);
+      if (!t) return json({ error: 'no such transfer' }, 404);
+      const isBox = (v: unknown) =>
+        typeof v === 'object' && v !== null && ['v', 'alg', 'kid', 'iv', 'ct'].every((k) => k in v);
+      if (method === 'POST') {
+        const b = JSON.parse(body) as { sample?: unknown; arrival?: unknown };
+        if (b.sample !== undefined) {
+          if (t.from !== holder)
+            return json({ error: 'only whoever made this lab code can write the sample details' }, 403);
+          if (t.claimedBy) return json({ error: 'the lab has already received this sample' }, 409);
+          if (t.body.sealedOffer && !isBox(b.sample)) return json({ error: 'sample details are sealed here' }, 400);
+          t.sample = b.sample;
+        } else {
+          if (t.claimedBy !== holder)
+            return json({ error: 'only whoever received this delivery can write how it arrived' }, 403);
+          if (t.body.sealedOffer && !isBox(b.arrival)) return json({ error: 'arrival details are sealed here' }, 400);
+          t.arrival = b.arrival;
+        }
+        return json({ transferId: t.id, sample: t.sample ?? {}, arrival: t.arrival ?? {} });
+      }
+      if (t.from !== holder && t.claimedBy !== holder) return json({ error: 'not a party to this delivery' }, 403);
+      return json({
+        transferId: t.id,
+        sample: t.sample ?? {},
+        arrival: t.arrival ?? {},
+        ...(t.receiptAttestationId ? { receiptAttestationId: t.receiptAttestationId } : {}),
       });
     }
     const offer = /^\/transfers\/([^/]+)\/offer$/.exec(path);
     if (offer && method === 'GET') {
       const t = transfers.get(offer[1]);
       if (!t || t.claimedBy !== holder) return json({ error: 'no such delivery' }, 404);
+      const src = records.get(String(t.body.sourceRecord));
+      if (!t.body.sealedOffer && !misbehave.offerPlainInstead) {
+        if (!src || src.sealed) return json({ error: 'ask the sender for a new code' }, 409);
+        return json({ transferId: t.id, offerPlain: plainOffer(src, t.body) });
+      }
       return json({
         transferId: t.id,
         ...(misbehave.offerPlainInstead
@@ -201,6 +289,9 @@ export const fakeRegistry = () => {
             to_handle: t.body.toHandle,
             created_at: t.createdAt,
             ...(t.claimedBy ? { claimed_at: Date.UTC(2026, 9, 16) } : {}),
+            ...(t.sample ? { sample_custody: t.sample } : {}),
+            ...(t.arrival ? { arrival_custody: t.arrival } : {}),
+            ...(t.receiptAttestationId ? { receipt_attestation_id: t.receiptAttestationId } : {}),
             ...misbehave.sentExtra,
           })),
       });
@@ -226,6 +317,37 @@ export const fakeRegistry = () => {
     putLegacy: (holder: string, row: Row) => void records.set(row.id, { ...row, holder }),
     putGrant: (holder: string, recordId: string, show: string[]) =>
       void grants.set(recordId, { show, forFingerprint: null, values: null, holder }),
+    /** An agreement as an older registry stored it (plain text). */
+    putLegacyLicense: (holder: string, row: Row) => void licenses.set(row.id, { ...row, holder }),
+    /** A lab's receipt tied to a delivery, as POST /transfers/:id/receipt stores it. */
+    setReceipt: (transferId: string, attestationId: string) => {
+      const t = transfers.get(transferId);
+      if (t) t.receiptAttestationId = attestationId;
+    },
+    /** A delivery made before offers were sealed, as the old site made it. */
+    putLegacyTransfer: (holder: string, sourceRecord: string, extra: Record<string, unknown> = {}) => {
+      const id = `TR-${(++n).toString(16).toUpperCase().padStart(8, '0')}`;
+      const claimCode = `${'d'.repeat(31)}${n % 10}`;
+      transfers.set(id, { id, from: holder, body: { sourceRecord, ...extra }, claimCode, createdAt: Date.now() });
+      return { transferId: id, claimCode };
+    },
+    /**
+     * The purge's two-flag run (scripts/purge-plaintext.mjs): every plain row of this holder
+     * keeps only its public fields and `contentsRemoved`; agreements keep only their id.
+     */
+    purge: (holder: string) => {
+      for (const [id, r] of records)
+        if (r.holder === holder && !r.sealed)
+          records.set(id, {
+            id,
+            strainName: r.strainName,
+            ...(r.recordFingerprint ? { recordFingerprint: r.recordFingerprint } : {}),
+            contentsRemoved: true,
+            holder,
+          });
+      for (const [id, r] of licenses)
+        if (r.holder === holder && !r.sealed) licenses.set(id, { id, contentsRemoved: true, holder });
+    },
   };
 };
 

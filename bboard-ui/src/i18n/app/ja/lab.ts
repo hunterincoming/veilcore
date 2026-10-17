@@ -384,4 +384,7 @@ export const lab = {
   'app.lab.card.notSigned': '受領書はまだ署名されていません',
   'app.lab.card.ref': '参照 {ref}',
   'app.lab.send.theLab': 'ラボ',
+  // LabResults.tsx: a lock this browser can’t vouch for (round 3, P1)
+  'app.lab.out.pasteAgain':
+    'この記録のラボレポート用ロックはラボコードと照合できないため、それを使って何も送りません。ラボコードをもう一度貼り付けてください。',
 } satisfies Partial<AppTranslation>;

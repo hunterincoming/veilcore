@@ -58,7 +58,8 @@ export const sealed = {
   'app.sealed.size.near': '{max} KB中{used} KBを使用しています。',
   'app.sealed.size.over': '大きすぎて保存できません。メモを短くしてください。',
   'app.sealed.older.pageTitle': 'この記録の古いコピー',
-  'app.sealed.older': 'サーバーがこの記録の古いコピーを送ってきました。',
+  'app.sealed.older':
+    'サーバーが、このブラウザが最後に保存したものより古いこの記録のコピーを送ってきました。必要なコピーなら使い、そうでなければ削除してください。',
   'app.sealed.olderKept.other':
     'サーバーが{count}件の記録の古いコピーを送ってきました。このブラウザは新しいコピーを残し、もう一度保存します。',
   'app.sealed.importLocked.other': 'ロックされた記録{count}件は、このブラウザに鍵がないため飛ばしました。',
@@ -91,4 +92,54 @@ export const sealed = {
   'app.sealed.recv.otherCode': 'そのコードは別の配送のものです。',
   'app.sealed.recv.offerMissing':
     'このコードについて、VeilCoreが送り主のロックされた情報を送ってこなかったため、記録は完了していません。後で記録のページの「受け取りを完了」をもう一度試すか、送り主に確認してください。',
+  // Round 3: held saves, the lost-key path, older copies, grants listed before locking
+  'app.sealed.agreementsBackupFirst':
+    '先にバックアップを保存して確認してください。それまでは、ここで契約を作成・変更できません。',
+  'app.sealed.backup.storageRefused':
+    'このブラウザは今、何も保存できません（保存領域がいっぱいか、プライベートウィンドウで制限されています）。そのため何も変更していません。空き容量を作るか通常のウィンドウを使って、もう一度お試しください。',
+  'app.sealed.backupFirstAction': '先にバックアップを保存して確認してください。その後なら実行できます。',
+  'app.sealed.correctBackupFirst': '先にバックアップを保存して確認してください。その後なら、この記録を訂正できます。',
+  'app.sealed.correctionLeft':
+    '訂正{id}をVeilCoreから取り消せませんでした。ページを再読み込みして、記録を確認してください。',
+  'app.sealed.grantAsk.text':
+    '記録がロックされる前、この記録は次を共有していました：{keys}。あなたが許可するまで、再び共有されることはありません。',
+  'app.sealed.grantAsk.yes': 'もう一度共有する',
+  'app.sealed.grantAsk.no': '共有しない',
+  'app.sealed.grantAsk.failed': '保存されませんでした：{error}',
+  'app.sealed.grantDiffers.text':
+    'VeilCoreのサーバーには、この記録と一緒に保管している共有設定とは別の設定が表示されています。何も変更していません。第三者に見せる方を選んでください。',
+  'app.sealed.grantDiffers.open': '選ぶ',
+  'app.sealed.importNotImported.other':
+    'VeilCore上の{count}件の記録はロックされているか空になっており、ファイルから戻せなかったため、インポートしませんでした。',
+  'app.sealed.lost.button': 'そのバックアップを持っていない',
+  'app.sealed.lost.confirm':
+    'そのバックアップファイルがなければ、これらのロックされた記録と契約は誰にも開けません。VeilCoreにも開けません。これらがVeilCoreにある間は、新しいものを何も保存できません。VeilCoreから削除して、新しい鍵を始めますか？元に戻せません。',
+  'app.sealed.lost.done':
+    '削除しました。新しい鍵の準備ができました。バックアップを保存して確認すると、新しい記録が保存されます。',
+  'app.sealed.lost.failed': '何も削除していません：{error}',
+  'app.sealed.lost.nothing': 'なくした鍵でロックされたものはここにありません',
+  'app.sealed.older.use': 'このコピーを使う',
+  'app.sealed.older.deleteConfirm':
+    '{name}をVeilCoreから削除しますか？この古いコピーは、VeilCoreのサーバーにある唯一のコピーです。削除すると誰も元に戻せません。',
+  'app.sealed.recv.backupFirst':
+    'この記録は、記録がロックされる前に保存されたものです。先にバックアップを保存して確認してください。その後なら署名できます。',
+  'app.sealed.recv.backupFirstClaim':
+    '先にバックアップを保存して確認してから、コードを使ってください。まだ何も受け取っていません。',
+  'app.sealed.recv.noAnswer':
+    'VeilCoreから応答がありませんでした（{error}）。コードはこのブラウザに残しています。受け取れていれば、記録に「受け取りを完了」が表示されます。表示されなければ、もう一度お試しください。',
+  'app.sealed.refuse.backupFirstNew': 'まだ何も保存していません。先にバックアップを保存して確認してください',
+  'app.sealed.unsaved.backup':
+    'まだ保存されていません。バックアップを保存して確認してください。それまでは、このブラウザにだけ残っています。',
+  'app.sealed.unsaved.key':
+    'まだ保存されていません。このブラウザには、VeilCore上のあなたの記録の鍵がありません。バックアップを復元するか、持っていなければ記録のページの「そのバックアップを持っていない」を使ってください。',
+  'app.sealed.unsaved.retry':
+    'まだVeilCoreに保存されていません。このブラウザに残し、次に保存するときにもう一度送ります。',
+  'app.sealed.unsaved.short': 'まだ保存されていません。バックアップを保存してください',
+  'app.sealed.unsaved.shortRetry': 'まだ保存されていません',
+  'app.sealed.unsaved.discardConfirm':
+    'この記録のためにこのブラウザが残しているものを破棄しますか？VeilCoreにはないため、元に戻せません。',
+  'app.sealed.unsaved.discardNew': '削除する',
+  'app.sealed.unsaved.discardChange': '変更を取り消す',
+  'app.sealed.sendNotSaved':
+    'この記録はまだVeilCoreに保存されていないため、送れません。先にバックアップを保存して確認してください。',
 } satisfies Partial<AppTranslation>;

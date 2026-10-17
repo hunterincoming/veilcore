@@ -405,6 +405,9 @@ const CUSTODY_FIELD_NAMES: readonly string[] = [
   'labRef',
 ];
 
+const isCoveredState = (v: unknown): v is 'covered' | 'changed' | 'not-covered' =>
+  v === 'covered' || v === 'changed' || v === 'not-covered';
+
 /**
  * The registry's list of lab receipts tied to deliveries of this record (sent when the
  * holder shares lab status): which receipt, whether its signature covers the sample details
@@ -419,14 +422,15 @@ const custodyOf = (v: unknown): CustodyEntry[] | undefined => {
     // Sealed sample details (the registry can't read them) or removed ones: no `covered`.
     if (e.custody === 'sealed' || e.custody === 'removed') {
       const s = isObject(e.custodySummary) ? e.custodySummary : undefined;
+      const covered: unknown = s?.covered;
       const summary =
         e.custody === 'sealed' &&
         e.custodySummaryBy === 'holder' &&
         s &&
-        (s.covered === 'covered' || s.covered === 'changed' || s.covered === 'not-covered') &&
+        isCoveredState(covered) &&
         Array.isArray(s.differingFields)
           ? {
-              covered: s.covered,
+              covered,
               differingFields: s.differingFields.filter(
                 (f): f is string => typeof f === 'string' && CUSTODY_FIELD_NAMES.includes(f),
               ),

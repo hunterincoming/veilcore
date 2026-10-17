@@ -67,7 +67,8 @@ export const sealed = {
   'app.sealed.size.near': '{used} KB von {max} KB belegt.',
   'app.sealed.size.over': 'Zu groß zum Speichern. Kürzen Sie die Notizen.',
   'app.sealed.older.pageTitle': 'Eine ältere Kopie dieses Datensatzes',
-  'app.sealed.older': 'Der Server hat eine ältere Kopie dieses Datensatzes gesendet.',
+  'app.sealed.older':
+    'Der Server hat eine ältere Kopie dieses Datensatzes gesendet, als dieser Browser zuletzt gespeichert hat. Wenn es die gewünschte Kopie ist, verwenden Sie sie; sonst löschen Sie sie.',
   'app.sealed.olderKept.one':
     'Der Server hat eine ältere Kopie von {count} Datensatz gesendet. Dieser Browser hat die neuere Kopie behalten und speichert sie erneut.',
   'app.sealed.olderKept.other':
@@ -108,4 +109,58 @@ export const sealed = {
   'app.sealed.recv.otherCode': 'Dieser Code gehört zu einer anderen Lieferung.',
   'app.sealed.recv.offerMissing':
     'VeilCore hat die verschlossenen Angaben des Absenders zu diesem Code nicht gesendet, daher wurde der Datensatz nicht abgeschlossen. Versuchen Sie später „Empfang abschließen“ beim Datensatz, oder fragen Sie den Absender.',
+  // Round 3: held saves, the lost-key path, older copies, grants listed before locking
+  'app.sealed.agreementsBackupFirst':
+    'Speichern und prüfen Sie zuerst eine Sicherungskopie. Bis dahin lassen sich hier keine Vereinbarungen anlegen oder ändern.',
+  'app.sealed.backup.storageRefused':
+    'Dieser Browser speichert gerade nichts (sein Speicher ist voll oder in einem privaten Fenster gesperrt), daher wurde nichts geändert. Geben Sie Speicher frei oder nutzen Sie ein normales Fenster, und versuchen Sie es dann erneut.',
+  'app.sealed.backupFirstAction': 'Speichern und prüfen Sie zuerst eine Sicherungskopie. Danach können Sie das tun.',
+  'app.sealed.correctBackupFirst':
+    'Speichern und prüfen Sie zuerst eine Sicherungskopie. Danach können Sie diesen Datensatz korrigieren.',
+  'app.sealed.correctionLeft':
+    'Die Korrektur {id} ließ sich nicht wieder von VeilCore entfernen. Laden Sie die Seite neu und prüfen Sie Ihre Datensätze.',
+  'app.sealed.grantAsk.text':
+    'Bevor Ihre Datensätze verschlossen wurden, hat dieser Datensatz geteilt: {keys}. Das wird erst wieder geteilt, wenn Sie es sagen.',
+  'app.sealed.grantAsk.yes': 'Wieder teilen',
+  'app.sealed.grantAsk.no': 'Nicht teilen',
+  'app.sealed.grantAsk.failed': 'Das wurde nicht gespeichert: {error}',
+  'app.sealed.grantDiffers.text':
+    'Der Server von VeilCore zeigt für diesen Datensatz eine andere Freigabe als die, die beim Datensatz gespeichert ist. Es wurde nichts geändert. Wählen Sie, was Fremde sehen.',
+  'app.sealed.grantDiffers.open': 'Auswählen',
+  'app.sealed.importNotImported.one':
+    ' {count} Datensatz bei VeilCore ist verschlossen oder geleert, und die Datei konnte ihn nicht zurückbringen, daher wurde er nicht importiert.',
+  'app.sealed.importNotImported.other':
+    ' {count} Datensätze bei VeilCore sind verschlossen oder geleert, und die Datei konnte sie nicht zurückbringen, daher wurden sie nicht importiert.',
+  'app.sealed.lost.button': 'Ich habe diese Sicherungskopie nicht',
+  'app.sealed.lost.confirm':
+    'Ohne diese Sicherungsdatei kann niemand diese verschlossenen Datensätze und Vereinbarungen öffnen, auch VeilCore nicht. Solange sie bei VeilCore liegen, lässt sich für Sie nichts Neues speichern. Sie bei VeilCore löschen und einen neuen Schlüssel beginnen? Das lässt sich nicht rückgängig machen.',
+  'app.sealed.lost.done':
+    'Gelöscht. Ein neuer Schlüssel ist bereit: Speichern und prüfen Sie eine Sicherungskopie, dann werden Ihre neuen Datensätze gespeichert.',
+  'app.sealed.lost.failed': 'Es wurde nichts gelöscht: {error}',
+  'app.sealed.lost.nothing': 'hier ist nichts mit einem verlorenen Schlüssel verschlossen',
+  'app.sealed.older.use': 'Diese Kopie verwenden',
+  'app.sealed.older.deleteConfirm':
+    '{name} bei VeilCore löschen? Diese ältere Kopie ist die einzige Kopie auf dem Server von VeilCore. Nach dem Löschen kann sie niemand zurückholen.',
+  'app.sealed.recv.backupFirst':
+    'Dieser Datensatz wurde gespeichert, bevor Datensätze verschlossen wurden. Speichern und prüfen Sie zuerst eine Sicherungskopie; danach können Sie signieren.',
+  'app.sealed.recv.backupFirstClaim':
+    'Speichern und prüfen Sie zuerst eine Sicherungskopie, dann verwenden Sie den Code. Es wurde noch nichts empfangen.',
+  'app.sealed.recv.noAnswer':
+    'VeilCore hat nicht geantwortet ({error}). Der Code bleibt in diesem Browser. Wurde die Lieferung empfangen, steht sie in Ihren Datensätzen mit „Empfang abschließen“; sonst versuchen Sie es erneut.',
+  'app.sealed.refuse.backupFirstNew':
+    'es wurde noch nichts gespeichert. Speichern und prüfen Sie zuerst eine Sicherungskopie',
+  'app.sealed.unsaved.backup':
+    'Noch nicht gespeichert. Speichern und prüfen Sie Ihre Sicherungskopie; bis dahin liegt das nur in diesem Browser.',
+  'app.sealed.unsaved.key':
+    'Noch nicht gespeichert. Dieser Browser hat den Schlüssel für Ihre Datensätze bei VeilCore nicht. Stellen Sie Ihre Sicherungskopie wieder her oder, wenn Sie sie nicht haben, nutzen Sie „Ich habe diese Sicherungskopie nicht“ auf der Seite Ihrer Datensätze.',
+  'app.sealed.unsaved.retry':
+    'Noch nicht bei VeilCore gespeichert. Es bleibt in diesem Browser und wird beim nächsten Speichern erneut gesendet.',
+  'app.sealed.unsaved.short': 'Noch nicht gespeichert – Sicherungskopie speichern',
+  'app.sealed.unsaved.shortRetry': 'Noch nicht gespeichert',
+  'app.sealed.unsaved.discardConfirm':
+    'Das, was dieser Browser für diesen Datensatz aufbewahrt, verwerfen? Es ist nicht bei VeilCore und lässt sich nicht zurückholen.',
+  'app.sealed.unsaved.discardNew': 'Löschen',
+  'app.sealed.unsaved.discardChange': 'Änderung verwerfen',
+  'app.sealed.sendNotSaved':
+    'Dieser Datensatz ist noch nicht bei VeilCore gespeichert und kann daher nicht gesendet werden. Speichern und prüfen Sie zuerst eine Sicherungskopie.',
 } satisfies Partial<AppTranslation>;

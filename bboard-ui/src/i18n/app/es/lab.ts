@@ -401,4 +401,7 @@ export const lab = {
   'app.lab.card.notSigned': 'acuse de recibo todavía sin firmar',
   'app.lab.card.ref': 'ref. {ref}',
   'app.lab.send.theLab': 'el laboratorio',
+  // LabResults.tsx: a lock this browser can’t vouch for (round 3, P1)
+  'app.lab.out.pasteAgain':
+    'El candado para informes de laboratorio de este registro no se puede comprobar con el código de laboratorio, así que no se envía nada con él. Pegue de nuevo el código de laboratorio.',
 } satisfies Partial<AppTranslation>;

@@ -22,7 +22,9 @@ import {
   AGREEMENT_TAGLINE,
   type AgreementType,
   type LicenseTerms,
+  useAgreementsWaitForBackup,
 } from '../../veilcore/licenses';
+import { AgreementsBackupFirst } from './AgreementsBackupFirst';
 import { AppHeader } from '../AppHeader';
 import { InEnglishPage } from '../../i18n/app';
 import { AgreementTermsFields, emptyTermsFor, type SetTerm } from './LicenseTermsFields';
@@ -80,11 +82,12 @@ export const TermsBuilder: React.FC = () => {
   }
 
   // A commercial license needs a royalty amount; the others just need a counterparty.
+  const blocked = useAgreementsWaitForBackup();
   const canSave =
     type === 'license' ? Boolean(t.licensee.trim() && t.royaltyAmount.trim()) : Boolean(t.licensee.trim());
 
   const onSave = async () => {
-    if (!canSave) return;
+    if (!canSave || blocked) return;
     setBusy(true);
     try {
       const { agreementFingerprint, agreementSalt } = await sealAgreement(type, t, record.recordFingerprint);
@@ -112,6 +115,7 @@ export const TermsBuilder: React.FC = () => {
     <Box>
       <AppHeader />
       <InEnglishPage />
+      <AgreementsBackupFirst />
       <Button
         component={RouterLink}
         to={`/record/${record.id}`}
@@ -143,7 +147,7 @@ export const TermsBuilder: React.FC = () => {
 
       <Divider sx={{ my: 3 }} />
       <Box>
-        <Button variant="contained" size="large" disabled={busy || !canSave} onClick={onSave}>
+        <Button variant="contained" size="large" disabled={busy || !canSave || blocked} onClick={onSave}>
           {saveLabel}
         </Button>
       </Box>
