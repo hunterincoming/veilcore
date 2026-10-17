@@ -1,6 +1,6 @@
 // The DNA report is what ties a record to the plant, in the browser against the stand-in
 // registry: seal a plant (the optional DNA report screen says why it matters), see "Not tied
-// to the plant yet" and the next step "Get a DNA fingerprint for this plant" with its two
+// to the plant yet" and the next step "Get a DNA report for this plant" with its two
 // ways, save a report, see the status change, then date it from the next step. Home, Show
 // someone and the certificate say the same. All records are practice data; VeilCore tests
 // no DNA.
@@ -108,7 +108,7 @@ test('seal, see it is not tied to the plant, save a DNA report, see it tied, dat
   await expect(row).toContainText('add a DNA report');
   await expect(row).toContainText('A DNA report from your lab is what ties a record to the plant itself.');
   const next = page.locator('[data-next-step]');
-  await expect(next.getByRole('heading', { name: 'Get a DNA fingerprint for this plant' })).toBeVisible();
+  await expect(next.getByRole('heading', { name: 'Get a DNA report for this plant' })).toBeVisible();
   const paths = next.locator('[data-dna-paths]');
   await expect(paths).toContainText('Send a sample to a lab');
   await expect(paths).toContainText('The lab’s DNA report comes back here, locked so only you can open it.');
