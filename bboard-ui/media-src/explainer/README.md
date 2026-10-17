@@ -2,7 +2,9 @@
 
 `explainer.html` draws the whole animation from one function, `render(t)`, so every frame
 is exact and the video can be changed and re-rendered in minutes. Colours and fonts are the
-site's light design. It runs 60 seconds, to match the "60 s" chip on the landing page.
+site's light design (src/config/theme.ts): notary blue #1C3BB0 / #152C86 is the one accent,
+cool greys around it, a check that passed is a ✓ in the quiet green #2E6B55, and nothing is
+red (red means an error). It runs 60 seconds, to match the "60 s" chip on the landing page.
 
 Re-render (needs ffmpeg; from this folder):
 
