@@ -354,8 +354,9 @@ describe(`round 4 against ${REAL ? 'a real registry' : 'the in-memory registry'}
     await A.run(() => ready(A));
     const { record } = await plant(A, 'A4 royalty plant');
     const terms = { ...TERMS, licensee: 'Grower LLC', offspringRoyaltyPct: '3' };
+    // No sync started in this page: a load answered before the new agreement's save landed
+    // would replace the set shown here (the next session below syncs).
     const lic = await A.run(async () => {
-      A.m.licenses.startLicenseSync();
       const sealedTerms = await A.m.licenses.sealAgreement('license', terms, record.recordFingerprint);
       const l = A.m.licenses.createLicense({
         type: 'license',

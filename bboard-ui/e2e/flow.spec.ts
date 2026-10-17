@@ -320,8 +320,11 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await breeder.getByRole('button', { name: /Get the link/ }).click();
   const shareLink = await breeder.locator('input[readonly]').first().inputValue();
   expect(shareLink).toContain(`rs=${reportSha}`);
+  // Round 4 (F7): the report's SHA-256 is in the fragment, never the query string.
+  expect(new URL(shareLink).hash).toContain(`rs=${reportSha}`);
+  expect(new URL(shareLink).search).not.toContain('rs=');
   // The link made now, kept for later (an "older link"), and the certificate's (fingerprint only).
-  const oldLink = new URL(shareLink).pathname + new URL(shareLink).search;
+  const oldLink = new URL(shareLink).pathname + new URL(shareLink).search + new URL(shareLink).hash;
   const certLink = `${new URL(shareLink).pathname}?fp=${new URL(shareLink).searchParams.get('fp')}`;
   const correctedSha = createHash('sha256')
     .update(Buffer.concat([report, Buffer.from(' corrected')]))
@@ -332,7 +335,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
     const buyer = await buyerCtx.newPage();
     const buyerErrors = watch(buyer);
     await isolate(buyer);
-    await buyer.goto(new URL(shareLink).pathname + new URL(shareLink).search);
+    await buyer.goto(new URL(shareLink).pathname + new URL(shareLink).search + new URL(shareLink).hash);
     await expect(
       buyer.getByText(/Its file \(SHA-256 [0-9a-f]{8}…[0-9a-f]{6}\) matches the lab report signed by/),
     ).toBeVisible();
