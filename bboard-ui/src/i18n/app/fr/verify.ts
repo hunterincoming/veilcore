@@ -123,7 +123,22 @@ export const verify = {
   'app.verify.mismatch.inLink': 'Code de preuve dans le lien : {fp}',
   'app.verify.mismatch.chip':
     'La réponse du registre ne correspond pas à ce lien — rien sur cette page n’a été vérifié',
-  'app.verify.nameTyped': 'Nom, tel que le détenteur l’a saisi : ',
+  'app.verify.namePublished': 'Nom que le détenteur montre : ',
+  'app.verify.nameMatches': 'Le nom correspond à l’enregistrement : ',
+  'app.verify.nameUnchecked': 'Nom donné dans ce lien (non vérifié) : ',
+  'app.verify.nameDiffers': 'Ce nom ne correspond pas à l’enregistrement : {name}',
+  'app.verify.nameConflict': 'Ce lien porte un autre nom ({name}). Le nom que le détenteur montre est ci-dessus.',
+  'app.verify.kindReportBound': 'Rapport de laboratoire',
+  'app.verify.withheldReports.one':
+    'Le registre signale qu’un laboratoire a signé un rapport sur cet enregistrement le {dates}. Cette signature désigne le fichier du rapport : le registre ne la montre donc qu’à l’obtenteur et au laboratoire, et cette page ne peut pas la vérifier.',
+  'app.verify.withheldReports.other':
+    'Le registre signale qu’un laboratoire a signé {count} rapports sur cet enregistrement ({dates}). Ces signatures désignent les fichiers des rapports : le registre ne les montre donc qu’à l’obtenteur et au laboratoire, et cette page ne peut pas les vérifier.',
+  'app.verify.report.labUnknown':
+    'Le détenteur a enregistré un fichier de rapport ADN sur cet enregistrement{asOf} (SHA-256 {sha}). Un laboratoire a signé un rapport sur cet enregistrement, mais cette page ne peut pas dire si c’est ce fichier : {why}{staleNote}',
+  'app.verify.report.whyNoLabSalt':
+    'ce lien ne porte pas la clé du rapport de laboratoire. Demandez au détenteur un lien de vérification fait avec le rapport ADN affiché.',
+  'app.verify.report.whyWithheld':
+    'cette signature de laboratoire a été faite avant le 17 octobre 2026, et le registre ne la montre qu’à l’obtenteur et au laboratoire.',
   'app.verify.recordId': 'Identifiant de l’enregistrement : {id}',
   'app.verify.noCommitment':
     'Cet enregistrement ne porte aucun engagement : rien ne peut donc y être vérifié. Il existe dans le registre, c’est tout.',
@@ -222,7 +237,7 @@ export const verify = {
     '✓ cette page a vérifié la ligne elle-même, dans votre navigateur. ○ le registre de VeilCore ou le détenteur le signale ; cette page ne l’a pas vérifié. ⊗ une vérification a échoué, ou un laboratoire a retiré ce qu’il avait signé.',
   'app.verify.ex.checkReal': 'Vérifier un vrai enregistrement',
   'app.verify.ex.what': 'Qu’est-ce que VeilCore ?',
-  'app.verify.noNameInLink': "Le détenteur n'a pas mis le nom dans ce lien.",
+  'app.verify.noNameInLink': 'Ce lien ne porte pas le nom.',
   'app.verify.field.name': 'Son nom',
   'app.verify.nameShared': 'Son nom, montré par le détenteur à quiconque a l’identifiant : {name}',
   'app.verify.noNameShared': 'Aucun nom enregistré.',

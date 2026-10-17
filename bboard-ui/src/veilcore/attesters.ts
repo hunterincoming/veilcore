@@ -23,6 +23,7 @@
 import type { SignedAttestation, AttestationStrength, Retraction } from 'veilcore-records';
 import { verifyAttestation, verifyRetraction } from 'veilcore-records';
 import { readJson, isObject, isString } from './json';
+import { holderKeyIfAny, holderRequestsPaused } from './holder';
 import { enT, type Translator } from '../i18n/translate';
 import type { AppKey } from '../i18n/app/en';
 
@@ -75,6 +76,14 @@ export type ResolvedAttestation = SignedAttestation & {
   retractionUnverified?: boolean;
   /** Verified in this browser, not taken from the registry's word for it. */
   signatureValid: boolean;
+  /**
+   * A lab report signature made before round 6 (CONTRACT.md #34), over the report's plain
+   * SHA-256: the registry sends it whole only to the delivery's sender and lab, and to anyone
+   * else without its hash and signature. Then it can't be checked here: it is the registry's
+   * report that a lab signed a report about this record, and when. Never counted as signed
+   * or as a signature that failed.
+   */
+  documentWithheld?: boolean;
 };
 
 /** What arrives from the registry, before anything is checked. */
@@ -121,11 +130,23 @@ const checkRetraction = async (r: unknown, a: SignedAttestation): Promise<Retrac
 /**
  * Every attestation about a record, checked here before being shown. Attestations about
  * any other commitment are dropped: they are not about this record.
+ *
+ * `asHolder` (round 6, CONTRACT.md #34): sent with this browser's holder key, so a lab report
+ * signature made before round 6 comes back whole when this holder sent or received the
+ * delivery it came back on. Only the holder's own app pages ask that way, never the public
+ * check or prove pages (holder.ts holderRequestsPaused).
  */
-export const attestationsFor = async (commitment?: string): Promise<ResolvedAttestation[]> => {
+export const attestationsFor = async (
+  commitment?: string,
+  opts: { asHolder?: boolean } = {},
+): Promise<ResolvedAttestation[]> => {
   if (!commitment || !HEX64.test(commitment)) return [];
   try {
-    const res = await fetch(`${BASE}/attestations/subject/${encodeURIComponent(commitment)}`);
+    const key = opts.asHolder && !holderRequestsPaused() ? holderKeyIfAny() : null;
+    const res = await fetch(
+      `${BASE}/attestations/subject/${encodeURIComponent(commitment)}`,
+      key ? { headers: { 'x-holder-key': key }, cache: 'no-store' } : undefined,
+    );
     if (!res.ok) return [];
     const body = await readJson(res);
     if (!isObject(body) || !Array.isArray(body.attestations)) return [];
@@ -138,10 +159,11 @@ export const attestationsFor = async (commitment?: string): Promise<ResolvedAtte
     return await Promise.all(
       incoming.map(async (a): Promise<ResolvedAttestation> => {
         const { retraction: reported, ...rest } = a;
+        const withheld = (rest as { documentWithheld?: unknown }).documentWithheld === true;
         let signatureValid = false;
         try {
           // The registry saying a signature is valid is not evidence. Checking it here is.
-          signatureValid = await verifyAttestation(rest);
+          signatureValid = withheld ? false : await verifyAttestation(rest);
         } catch {
           signatureValid = false;
         }
@@ -149,6 +171,7 @@ export const attestationsFor = async (commitment?: string): Promise<ResolvedAtte
         return {
           ...rest,
           signatureValid,
+          ...(withheld ? { documentWithheld: true } : {}),
           retraction,
           retractionUnverified: reported !== null && reported !== undefined && retraction === null,
         };
@@ -158,6 +181,13 @@ export const attestationsFor = async (commitment?: string): Promise<ResolvedAtte
     return [];
   }
 };
+
+/** A signature that failed here: not one the registry withheld (round 6), which can't be checked at all. */
+export const failedSignature = (a: ResolvedAttestation): boolean => !a.signatureValid && a.documentWithheld !== true;
+
+/** Lab report signatures the registry withheld from this browser (round 6): it says only that a lab signed, and when. */
+export const withheldLabReports = (atts: readonly ResolvedAttestation[]): ResolvedAttestation[] =>
+  atts.filter((a) => a.documentWithheld === true && a.type === 'laboratory-report');
 
 /** Signed, verified here, bound to the record, and not withdrawn by its signer. */
 export const countsAsSigned = (a: ResolvedAttestation): boolean => a.signatureValid && a.retraction === null;
@@ -292,6 +322,10 @@ export const strengthLabel = (
   a: ResolvedAttestation,
   tr: Translator = enT,
 ): { label: string; why: string; ok: boolean } => {
+  // Withheld by the registry (round 6, CONTRACT.md #34): signed, but not shown to this browser.
+  if (a.documentWithheld === true) {
+    return { label: tr.t('app.lab.strength.withheld'), why: tr.t('app.lab.strength.withheldWhy'), ok: false };
+  }
   if (!a.signature) {
     return { label: tr.t('app.lab.strength.unsigned'), why: tr.t('app.lab.strength.unsignedWhy'), ok: false };
   }

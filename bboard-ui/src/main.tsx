@@ -26,6 +26,7 @@
  * @packageDocumentation
  */
 import './globals';
+import { guardHolderRequests } from './veilcore/holder-guard';
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -45,6 +46,8 @@ import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
 // dialog over it. A file that cannot be fetched now is asked for again as the page draws.
 // The same for the words of a language other than English (i18n/index.tsx), and for the
 // record app's words in it (i18n/app.tsx) on any page but the three that don't use them.
+// The check and prove pages never send the holder key (round 6, CONTRACT.md #36).
+guardHolderRequests(window);
 const startLang = startingLanguage();
 const { pathname } = window.location;
 await Promise.all([

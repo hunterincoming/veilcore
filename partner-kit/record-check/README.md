@@ -20,9 +20,16 @@ const c = await checkRecord('https://veilcore.org/verify/VEIL-…?fp=…');
 ```
 
 `fingerprint` in the answer is the record's proof code, as the site and the field's own
-sentences call it. A link the site makes carries the record's name and its DNA pairing salt
-after the `#` (`n=`, `ds=`), which no server receives: the name is shown as the holder's
-word, and the salt lets a lab report be matched to the report saved with the record.
+sentences call it. A link the site makes can carry the record's name, the name's salt, the DNA
+pairing salt and the lab report salt after the `#` (`n=`, `ns=`, `ds=`, `ls=`). A browser
+doesn't send that part when it opens the link, but the link goes whole to wherever it is pasted:
+a link pasted into your form comes to you whole. The name is checked against the record's
+published name code with the link's salt (`nameCheck`: `matches`, `does-not-match`,
+`not-checked` for a link or record from before 17 October 2026, `published` when the holder
+shows the name, or `not-in-link`); `nameByHolder` is set only when the name is checked to be
+the record's, and `nameInLink` is the link's name whatever it is. A lab report signed since
+17 October 2026 names the report bound to the record (`documentBound`), not the file's
+SHA-256; one signed before is withheld by the registry (`labReportsWithheld` counts them).
 
 ```sh
 npx @veilcore/partner-kit check '<check link>' [--fields sealed-fields.json] [--on-chain] [--text]

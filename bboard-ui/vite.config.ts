@@ -13,7 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { defineConfig, loadEnv, type Plugin } from 'vite';
+import { defineConfig, loadEnv, type Plugin, type ResolvedConfig } from 'vite';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
 // The published documents (SPEC, EVIDENCE, INTEGRATING) are vendored in src/docs from an
 // exact SDK commit (see src/veilcore/docs.ts); nothing is resolved from a package for them.
 import react from '@vitejs/plugin-react';
@@ -106,6 +109,50 @@ const preloadFonts = (): Plugin => ({
   },
 });
 
+// What this build saw (round 6, CONTRACT.md #32): the mode and every VITE_* setting, from the
+// mode's .env file and the environment alike, with the SHA-256 of the index.html it made.
+// Written to .vite/veilcore-build-settings.json (never into the site), where a release deploy's
+// scripts/release-manifest.mjs reads it into the published manifest, so anyone can rebuild the
+// release with the same settings (npm run check:rebuild). The output depends on them: the same
+// commit built with one extra setting changed 140 of 144 files (the fifth review, finding 1).
+const recordBuildSettings = (): Plugin => {
+  let config: ResolvedConfig | undefined;
+  return {
+    name: 'veilcore-build-settings',
+    apply: 'build',
+    configResolved(c) {
+      config = c;
+    },
+    closeBundle() {
+      if (!config) return;
+      const out = resolve(config.root, config.build.outDir);
+      const index = join(out, 'index.html');
+      if (!existsSync(index)) return;
+      const settings = Object.fromEntries(
+        Object.entries(config.env as Record<string, unknown>)
+          .filter(([k, v]) => k.startsWith('VITE_') && typeof v === 'string')
+          .sort(([a], [b]) => (a < b ? -1 : 1)),
+      );
+      const dir = join(config.root, '.vite');
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(
+        join(dir, 'veilcore-build-settings.json'),
+        `${JSON.stringify(
+          {
+            format: 'veilcore-build-settings/v1',
+            mode: config.mode,
+            outDir: relative(config.root, out),
+            indexHtmlSha256: createHash('sha256').update(readFileSync(index)).digest('hex'),
+            settings,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+    },
+  };
+};
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, command }) => {
   const pins = mainnetBuild(mode, command);
@@ -141,13 +188,12 @@ export default defineConfig(({ mode, command }) => {
         name: 'browser-node-crypto',
         enforce: 'pre' as const,
         resolveId(source: string) {
-          return source === 'node:crypto'
-            ? new URL('./src/shims/node-crypto.ts', import.meta.url).pathname
-            : null;
+          return source === 'node:crypto' ? new URL('./src/shims/node-crypto.ts', import.meta.url).pathname : null;
         },
       },
       siteDescription(mode),
       preloadFonts(),
+      recordBuildSettings(),
       react(),
       // Configure WASM plugin with more options
       wasm(),

@@ -75,7 +75,9 @@ export const animal = {
   'app.animal.v.app.verify.noParents': 'Ni père ni mère enregistrés.',
   'app.animal.v.app.plant.fix.name': 'Nom de l’animal',
   'app.animal.v.app.plant.fix.bredBy': 'Éleveur ou détenteur',
-  'app.animal.v.app.verify.nameTyped': 'Nom de l’animal, tel que le détenteur l’a saisi : ',
+  'app.animal.v.app.verify.namePublished': 'Nom de l’animal que le détenteur montre : ',
+  'app.animal.v.app.verify.nameMatches': 'Le nom de l’animal correspond à l’enregistrement : ',
+  'app.animal.v.app.verify.nameUnchecked': 'Nom de l’animal donné dans ce lien (non vérifié) : ',
   'app.animal.import.dob': 'Date de naissance',
   'app.animal.import.scheme': 'Système d’identification, pour chaque numéro du fichier',
   'app.animal.import.schemeHelp':

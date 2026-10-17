@@ -29,6 +29,7 @@ import {
 } from '../commitment';
 import { bindingForSecret, isHex64, KEY_BOUND_ALGORITHM } from '../key-binding';
 import { dnaBindingOf } from '../dna-link';
+import { LAB_SALT_PARAM, isBoundLabDocument, labLinkParams, signsReport } from '../lab-doc';
 import { checkProof } from '../proofs';
 import { holderKeyIfAny } from '../holder';
 import { custodyView } from '../custody';
@@ -364,6 +365,12 @@ export type Evidence = {
      */
     readonly pairSalt?: string;
     readonly pairBinding?: string;
+    /**
+     * The lab report salt (round 6, CONTRACT.md #34; lab-doc.ts): a lab signed this report
+     * bound with it, so the examiner can make the signed code again from the file's SHA-256
+     * and the proof code. Only the sender and the lab hold it otherwise.
+     */
+    readonly labSalt?: string;
   } | null;
   readonly signatures: Record<string, unknown>[];
   /**
@@ -422,6 +429,20 @@ const savedSha = (record: StrainRecord, attestations: readonly Record<string, un
       return a.documentHash;
   }
   return undefined;
+};
+
+/** { labSalt } when a lab signed the saved report bound to the record with one of its deliveries' salts. */
+const labLinkParamsAsSalt = (
+  record: StrainRecord,
+  fileSha256: string,
+  attestations: readonly Record<string, unknown>[],
+): { labSalt?: string } => {
+  const atts = attestations.filter(
+    (a): a is { attestationId: string; subjectCommitment: string; documentHash: string } =>
+      isString(a.attestationId) && isString(a.subjectCommitment) && isString(a.documentHash),
+  );
+  const ls = labLinkParams({ dnaFileSha256: fileSha256, offerKeys: record.offerKeys }, atts)[LAB_SALT_PARAM];
+  return ls ? { labSalt: ls } : {};
 };
 
 /** Thrown with words for the holder; nothing is downloaded. */
@@ -564,6 +585,7 @@ export const buildEvidence = async (
       ...(record.dnaPairSalt && dnaBindingOf(record)
         ? { pairSalt: record.dnaPairSalt, pairBinding: dnaBindingOf(record) }
         : {}),
+      ...(fileSha256 ? labLinkParamsAsSalt(record, fileSha256, gathered.attestations) : {}),
     };
   } else if (options.labFile) {
     throw new BundleRefusal(
@@ -645,11 +667,23 @@ export const signatureLines = async (
   savedFileSha?: string,
   /** What the record describes: "the lab report saved to this plant" or "… this animal". */
   subject: 'plant' | 'animal' = 'plant',
+  /** The lab report salt (round 6, lab-doc.ts): a bound lab report signature is matched with it. */
+  labSalt?: string,
 ): Promise<SignatureLine[]> => {
   const out: SignatureLine[] = [];
   for (const a of signatures) {
     const attester = isObject(a.attester) ? a.attester : {};
     const key = isString(attester.publicKey) ? attester.publicKey : '(no key)';
+    // Made before round 6 over the report's SHA-256 (CONTRACT.md #34): the registry shows it
+    // only to the delivery's sender and lab. Said so, never as a signature that fails.
+    if (a.documentWithheld === true) {
+      out.push({
+        ok: false,
+        withdrawn: false,
+        text: `The registry says the key ${key} signed a lab report about this record at ${oneLine(a.issuedAt)}. It was signed before 17 October 2026, over the report file's SHA-256, so the registry shows it only to the delivery's sender and lab, and it isn't in this bundle.`,
+      });
+      continue;
+    }
     const valid = await verifyAttestation(a as unknown as SignedAttestation).catch(() => false);
     if (!valid || a.subjectCommitment !== fingerprint) {
       out.push({
@@ -666,19 +700,41 @@ export const signatureLines = async (
     const what = TYPE_WORDS[String(a.type)] ?? `"${oneLine(a.type)}"`;
     const displayName = isString(attester.displayName) ? oneLine(attester.displayName) : undefined;
     const name = displayName !== undefined ? ` (it calls itself "${displayName}"; not checked)` : '';
+    const bound =
+      a.type === 'laboratory-report' &&
+      isString(a.attestationId) &&
+      isBoundLabDocument({ attestationId: a.attestationId });
     const saved =
-      savedFileSha && a.documentHash === savedFileSha ? ` It is the lab report saved to this ${subject}.` : '';
+      savedFileSha &&
+      a.type === 'laboratory-report' &&
+      isString(a.attestationId) &&
+      isString(a.subjectCommitment) &&
+      signsReport(
+        {
+          attestationId: a.attestationId,
+          subjectCommitment: a.subjectCommitment,
+          documentHash: isString(a.documentHash) ? a.documentHash : undefined,
+        },
+        savedFileSha,
+        labSalt ? [labSalt] : [],
+      )
+        ? ` It is the lab report saved to this ${subject}.`
+        : '';
     const doc = oneLine(a.documentHash);
     const receipt = a.type === 'chain-of-custody';
     const documentWords = receipt
       ? 'the code of the lab’s own record of the delivery (not a hash of the sample)'
-      : a.type === 'laboratory-report'
-        ? 'the SHA-256 of the lab report file'
-        : 'the SHA-256 of the signed document';
+      : bound
+        ? 'a code that binds the lab report file to this record with a salt only the sender and the lab hold (lab/lab-report-pairing.json labSalt, when the holder included it)'
+        : a.type === 'laboratory-report'
+          ? 'the SHA-256 of the lab report file'
+          : 'the SHA-256 of the signed document';
     const text =
       (receipt
         ? `The key ${key}${name} signed ${what} about this record at ${oneLine(a.issuedAt)} (the signer's own clock). Its signed SHA-256, ${doc}, is the code of the lab's own record of the delivery, not a hash of the sample.`
-        : `The key ${key}${name} signed ${what} with SHA-256 ${doc}, about this record, at ${oneLine(a.issuedAt)} (the signer's own clock).${saved}`) +
+        : bound
+          ? `The key ${key}${name} signed ${what} about this record at ${oneLine(a.issuedAt)} (the signer's own clock), over the code ${doc}, which binds the report file to this record with a salt only the sender and the lab hold.${saved}`
+          : `The key ${key}${name} signed ${what} with SHA-256 ${doc}, about this record, at ${oneLine(a.issuedAt)} (the signer's own clock).${saved}`) +
       (withdrawn && r ? ` The same key withdrew it at ${oneLine(r.retractedAt)} (${oneLine(r.reason)}).` : '');
     out.push({
       ok: true,
@@ -1063,6 +1119,7 @@ export const bundleFiles = async (
     ev.record.fingerprint,
     ev.labReport?.fileSha256,
     subjectOf(ev.record.sealedFields),
+    ev.labReport?.labSalt,
   );
   const ots = ev.proof && ev.batch && gathered.ots && ev.batch.opentimestamps.available ? gathered.ots : null;
   add('README.txt', text(readmeText(ev, sigs, ots !== null, options.dnaReportDatedBy, options.lockedParents)));

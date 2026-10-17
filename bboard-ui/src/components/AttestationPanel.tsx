@@ -75,7 +75,7 @@ export const AttestationPanel: React.FC<{
   const [items, setItems] = useState<ResolvedAttestation[] | null>(null);
 
   useEffect(() => {
-    void attestationsFor(record.recordFingerprint).then(setItems);
+    void attestationsFor(record.recordFingerprint, { asHolder: true }).then(setItems);
   }, [record.recordFingerprint]);
 
   // The legacy transfer-claim attestation, which predates signing.

@@ -84,6 +84,9 @@ export const lab = {
   'app.signer.sep': ' ',
   // attesters.ts strengthLabel: a signature in a plant's History.
   'app.lab.strength.unsigned': 'Unsigned',
+  'app.lab.strength.withheld': 'Lab report, signature not shown',
+  'app.lab.strength.withheldWhy':
+    'The registry shows this lab report signature only to the delivery’s sender and lab, because it names the report file (signed before 17 October 2026). It can’t be checked here.',
   'app.lab.strength.unsignedWhy':
     'Recorded but not signed. This is a claim about a second party rather than a statement by one.',
   'app.lab.strength.invalid': 'Signature does not verify',

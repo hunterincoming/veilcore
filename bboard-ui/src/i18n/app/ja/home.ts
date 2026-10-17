@@ -5,6 +5,8 @@ import type { AppTranslation } from '../../translate';
 
 export const home = {
   'app.home.firstPlant': '最初の植物か動物を記録しましょう',
+  'app.home.oldLinks':
+    '2026年10月17日より前に作った確認リンクとQRコードには、記録の名前が表示されなくなりました。VeilCoreは名前に鍵をかけて保存するようになったため、レジストリには表示する名前がありません。名前を共有するには、記録を開いて「誰かに見せる」を選び、名前をオンにして、新しいリンクを送ってください。新しい証明書には新しいQRコードが付きます。',
   'app.home.continueDraftNamed': '下書きの続き：{name}',
   'app.home.continueDraft': '下書きの続き',
   'app.home.draftKept': '入力した内容はこのブラウザに保存されています。続きから始められます。',

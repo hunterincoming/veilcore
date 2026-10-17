@@ -281,6 +281,8 @@ describe('nothing private reaches the registry', () => {
       'receivedAt',
       'transferId',
       'attestation',
+      // The name's salted code (round 6, CONTRACT.md #33): nothing about the name without the salt.
+      'nameCode',
       // The row's revision (round 3, L2): the same number as inside the box.
       'rev',
       'sealed',

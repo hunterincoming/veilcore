@@ -2,10 +2,12 @@
 //
 // A check link is what the VeilCore site makes for a record (Share, or the certificate's QR
 // code): https://veilcore.org/verify/<record id>?fp=<proof code>[&show=…]
-// [#n=<name>&ds=<pairing salt>&chain=<key>&anchorTx=…&ks=<key salt>&cd=<content hash>].
-// What follows the # never reaches a server: the name (round 5, the registry no longer has
-// it), the DNA report's pairing salt, and since round 4 the key's values. Links
-// made before round 4 have the key's values in the query string, and are read from there too.
+// [#n=<name>&ns=<name salt>&ds=<pairing salt>&ls=<lab report salt>&chain=<key>&anchorTx=…&ks=<key salt>&cd=<content hash>].
+// A browser opening the link doesn't send what follows the #: the name (round 5, the registry
+// no longer has it) and its salt (round 6), the DNA report's pairing salt, the lab report's
+// salt (round 6), and since round 4 the key's values. The link itself goes whole to anyone it
+// is sent to, and to any site it is pasted into, a partner's form included. Links made before
+// round 4 have the key's values in the query string, and are read from there too.
 // A bare record id is also accepted, and then there is no proof code to hold the registry's
 // answer to.
 //
@@ -39,6 +41,10 @@ export type CheckLink = {
    * link's proof code, the report the holder saved can be checked.
    */
   readonly dnaSalt?: string;
+  /** The name's salt (`ns`, round 6): with the name and the record's published name code, the name is checked. */
+  readonly nameSalt?: string;
+  /** The lab report salt (`ls`, round 6): ties a lab report signature to a report file. */
+  readonly labSalt?: string;
 };
 
 export class LinkError extends Error {}
@@ -117,6 +123,8 @@ export const parseCheckLink = (input: string): CheckLink => {
   const show = q.get('show') ?? undefined;
   const name = nameOf(h.get('n'));
   const salt = hexParam(new URLSearchParams(), 'ds', h);
+  const nameSalt = hexParam(new URLSearchParams(), 'ns', h);
+  const labSalt = hexParam(new URLSearchParams(), 'ls', h);
   return {
     recordId: id,
     fingerprint,
@@ -124,6 +132,8 @@ export const parseCheckLink = (input: string): CheckLink => {
     ...(key || keySalt || contentHash ? { key: { key, keySalt, contentHash } } : {}),
     ...(name ? { name } : {}),
     ...(salt && salt !== 'invalid' ? { dnaSalt: salt } : {}),
+    ...(nameSalt && nameSalt !== 'invalid' ? { nameSalt } : {}),
+    ...(labSalt && labSalt !== 'invalid' ? { labSalt } : {}),
   };
 };
 

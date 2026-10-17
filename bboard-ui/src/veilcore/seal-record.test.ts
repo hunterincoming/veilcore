@@ -75,7 +75,7 @@ const ROW: RowFields = {
   notes: 'first cut',
 };
 /** What differs between two sealings of the same plant: the id, its key, and the nonce. */
-const PER_SEALING = ['id', 'nonce', 'keyBinding', 'recordFingerprint'] as const;
+const PER_SEALING = ['id', 'nonce', 'keyBinding', 'recordFingerprint', 'nameSalt'] as const;
 const without = (r: StrainRecord) => {
   const o: Record<string, unknown> = { ...r };
   for (const k of PER_SEALING) delete o[k];

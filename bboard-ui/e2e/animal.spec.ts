@@ -68,6 +68,8 @@ const verifyAnswer = (held: Held, id: string) => {
       id: r.id,
       subjectKind: 'animal',
       recordFingerprint: r.recordFingerprint,
+      // The name's salted code (round 6, CONTRACT.md #33), as the registry serves it.
+      ...(typeof r.nameCode === 'string' ? { nameCode: r.nameCode } : {}),
       registryFirstSeen: new Date().toISOString(),
       supersededBy: null,
       supersedes: null,
@@ -345,10 +347,12 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   const check = await strangerCtx.newPage();
   const checkErrors = watch(check);
   await standInFor(check, held);
-  // The holder's link: the name comes from it, after the #; the registry doesn't have it.
+  // The holder's link: the name comes from it, after the #; the registry doesn't have it. With
+  // its salt, it makes the record's published name code (round 6): checked to be the record's.
   await check.goto(new URL(shareLink).pathname + new URL(shareLink).search + new URL(shareLink).hash);
-  await expect(check.locator('[data-holder-name]')).toContainText(`Animal’s name, as the holder typed it: ${name}`);
+  await expect(check.locator('[data-holder-name]')).toContainText(`Animal’s name matches the record: ${name}`);
   await expect(check.locator('[data-holder-name]')).toHaveAttribute('data-name-from', 'link');
+  await expect(check.locator('[data-holder-name]')).toHaveAttribute('data-name-check', 'matches');
   await expect(check.getByText('Sire, as the holder states it: Practice Sire (ID 0000000025)')).toBeVisible();
   await expect(check.getByText('Dam, as the holder states it: Practice Dam (ID 0000000033)')).toBeVisible();
   await expect(

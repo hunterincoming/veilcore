@@ -4,7 +4,8 @@
 > Written 15 October 2026 from what the code does today, and updated 16 October 2026 for
 > sealed records (what you type is locked in your browser before it is sent), and 17 October
 > 2026 for round 5 (the record's name is locked too; a DNA report is shown only as a salted
-> code; each release's files are listed publicly): the site (`bboard-ui`), the
+> code; each release publishes the list of its files) and round 6 (name codes, lab signatures
+> bound to the record, no holder key on check and prove pages): the site (`bboard-ui`), the
 > registry (`veilcore-api`, `server.js` and `lineage/`), the fee sponsor and indexer relay
 > (`sponsor/`), and the site's own privacy page (`/privacy`, `i18n/en.ts` and
 > `en-mainnet.ts`, `m.privacy.*`). Where the code and this text disagree, the code is right
@@ -13,16 +14,27 @@
 
 ## The short version
 
-- Your genetic data, lab report files and photos **stay on your device**. Your browser
-  works out a code from each (its SHA-256); the files are never uploaded.
+- Your DNA files **never leave your device**. Lab reports travel locked. Your browser works
+  out a code from each file you add (its SHA-256); the files are never uploaded. A lab's
+  signature on a report you sent names the report bound to your record with a salt only you
+  and the lab hold; one made before 17 October 2026 names the file's SHA-256, which the
+  registry shows only to you and the lab.
+- The check and prove pages never send your holder key. A prove request tells our server
+  which on-chain key it names.
+- Each release publishes the list of its files. You can check that the files your browser
+  received match that list, and anyone can rebuild the release from the published code and
+  compare. This shows what we released. It can't prove a host sent everyone the same files.
 - What you type (breeder names, dates, notes, parents, agreement terms) is **locked in your
   browser before it is sent**, and VeilCore's server stores it locked, so you can come back
   to it. We don't have the key: it stays in your browser and your backup file. VeilCore also
   serves the app's code, so this is "stored locked, and we don't have the key", not a promise
   that the code can never change.
-- A record's **name is locked too** (since 17 October 2026). The check links you make carry
-  it after the #, which a browser never sends to any server, so the people you send a link
-  to see it (and anyone they pass it on to). You can choose to show it on the record's
+- A record's **name is locked too** (since 17 October 2026). The check links you make can
+  carry it after the #. A browser doesn't send that part when it opens the link, but the link
+  goes whole to anyone you send it to and to any site you paste it into (a partner's form
+  included), so the people you send a link to see it (and anyone they pass it on to). The
+  record publishes a code made from its name, which says nothing about the name without the
+  salt in your link, so a check page can tell whether the name in a link is the record's. You can choose to show it on the record's
   public check page; then anyone with the record's ID sees it. A name saved before then stays
   readable to us until your browser saves the record again. The sample details on a delivery (sample
   ID, seal number, where and when it was taken, a witness, what the lab wrote on arrival)

@@ -173,7 +173,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
    * link in a fresh browser. The page describes the file saved NOW (the registry's answer),
    * whatever the link was made with.
    */
-  const buyerLine = async (path: string, name: string) => {
+  const buyerLine = async (path: string, name: string, file?: Buffer) => {
     const ctx = await browser.newContext();
     const page = await ctx.newPage();
     const errors = watch(page);
@@ -182,6 +182,14 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
     await expect(page.getByText('Shared by the holder · reported by the registry')).toBeVisible();
     // Wait for the signatures to be checked: the lab's receipt always has a line.
     await expect(page.getByText(/Lab.s receipt for a sample, signature verified in this browser/)).toBeVisible();
+    // Round 6 (CONTRACT.md #34): a lab signs the report bound to the record, so which report it
+    // signed is told only with the file the holder sent and the salt in the holder's link.
+    if (file) {
+      await page
+        .locator('[data-dna-file]')
+        .setInputFiles({ name: 'sent.pdf', mimeType: 'application/pdf', buffer: file });
+      await expect(page.locator('[data-dna-file-result]')).toBeVisible();
+    }
     const text = await page.locator('main').innerText();
     await shot(page, name);
     expectNoErrors(errors);
@@ -327,6 +335,9 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   // Round 5 (CONTRACT.md #29): the link carries the record's pairing salt after the #, never
   // the report's SHA-256; the registry has the report only bound with that salt.
   expect(new URL(shareLink).hash).toMatch(/(^#|&)ds=[0-9a-f]{64}(&|$)/);
+  // Round 6: the name's salt (#33) and the lab report's salt (#34) go after the # too.
+  expect(new URL(shareLink).hash).toMatch(/(^#|&)ns=[0-9a-f]{64}(&|$)/);
+  expect(new URL(shareLink).hash).toMatch(/(^#|&)ls=[0-9a-f]{64}(&|$)/);
   expect(shareLink).not.toContain(reportSha);
   expect(new URL(shareLink).search).not.toMatch(/ds=|rs=/);
   // The link made now, kept for later (an "older link"), and the certificate's (fingerprint only).
@@ -342,11 +353,17 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
     const buyerErrors = watch(buyer);
     await isolate(buyer);
     await buyer.goto(new URL(shareLink).pathname + new URL(shareLink).search + new URL(shareLink).hash);
+    await expect(buyer.getByText(/Lab.s receipt for a sample, signature verified in this browser/)).toBeVisible();
+    // The lab's signature names no file (round 6): nothing about the report is printed for it.
+    await expect(buyer.getByText(/Lab report, signature verified in this browser/)).toBeVisible();
+    await expect(buyer.getByText(/file SHA-256/)).toHaveCount(0);
+    // With the file the holder sent: it is the saved report, and the one the lab signed.
+    await buyer
+      .locator('[data-dna-file]')
+      .setInputFiles({ name: 'sent.pdf', mimeType: 'application/pdf', buffer: report });
     await expect(
       buyer.getByText(/Its file \(SHA-256 [0-9a-f]{8}…[0-9a-f]{6}\) matches the lab report signed by/),
     ).toBeVisible();
-    await expect(buyer.getByText(/Lab.s receipt for a sample, signature verified in this browser/)).toBeVisible();
-    await expect(buyer.getByText(/Lab report \(file SHA-256/)).toBeVisible();
     await expect(buyer.getByText(/Not confirmed by a lab/)).toHaveCount(0);
     await shot(buyer, 'buyer-1-saved-report-matches');
     await expect(
@@ -385,7 +402,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await shot(breeder, 'breeder-3-saved-replaced');
   // Round 6: the older link, before the breeder has done anything: what the lab did, no intent.
   {
-    const t = await buyerLine(oldLink, 'buyer-2-oldlink-replaced');
+    const t = await buyerLine(oldLink, 'buyer-2-oldlink-replaced', report);
     expect(t).toContain(
       `The DNA report saved to this record (SHA-256 ${shortOf(reportSha)}) was replaced by its lab on`,
     );
@@ -409,7 +426,11 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   );
   // Round 6: the older link (it names the first file) now describes the corrected one, saved now.
   {
-    const t = await buyerLine(oldLink, 'buyer-3-oldlink-after-save');
+    const t = await buyerLine(
+      oldLink,
+      'buyer-3-oldlink-after-save',
+      Buffer.concat([report, Buffer.from(' corrected')]),
+    );
     expect(t).toContain(`Its file (SHA-256 ${shortOf(correctedSha)}) matches the lab report signed by`);
     // The link names no file, only the record's salt: it describes the file saved now.
     expect(t).not.toContain('This link was made when a different file was saved');
@@ -513,7 +534,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   }
   // The older link: the withdrawn correction, saved now, never the replaced first file.
   {
-    const t = await buyerLine(oldLink, 'buyer-5-oldlink-withdrawn');
+    const t = await buyerLine(oldLink, 'buyer-5-oldlink-withdrawn', Buffer.concat([report, Buffer.from(' corrected')]));
     expect(t).toContain(`(SHA-256 ${shortOf(correctedSha)}) was withdrawn by its lab on`);
     expect(t).not.toContain(shortOf(reportSha) + ') was replaced');
     expect(t).not.toMatch(/kept/);

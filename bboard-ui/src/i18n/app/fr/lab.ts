@@ -85,6 +85,9 @@ export const lab = {
     'Le code de laboratoire fonctionne, mais les détails de l’échantillon n’ont pas été enregistrés : {error}',
   'app.signer.sep': ' ',
   'app.lab.strength.unsigned': 'Non signé',
+  'app.lab.strength.withheld': 'Rapport de laboratoire, signature non montrée',
+  'app.lab.strength.withheldWhy':
+    'Le registre ne montre cette signature de rapport de laboratoire qu’à l’expéditeur et au laboratoire de la livraison, car elle désigne le fichier du rapport (signée avant le 17 octobre 2026). Elle ne peut pas être vérifiée ici.',
   'app.lab.strength.unsignedWhy':
     'Enregistré mais non signé. C’est une affirmation au sujet d’une seconde partie, pas une déclaration de sa part.',
   'app.lab.strength.invalid': 'La signature ne se vérifie pas',

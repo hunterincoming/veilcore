@@ -1,15 +1,20 @@
-// /check-this-site: does this site serve the code it was released with? (CONTRACT.md #31)
+// /check-this-site: does this site serve the code it was released with? (CONTRACT.md #31, #32)
 //
-// Every release deploy writes a manifest, the SHA-256 of every file served, the git commit
-// and the date, publishes it with the code (releases/<network>/<commit>.json) and puts a
-// copy and a small /release.json on the site (scripts/release-manifest.mjs). This page reads
-// /release.json, then fetches every listed file from this site and compares it with the list:
-// the list the site serves, or one the visitor downloaded from the public code.
+// Every release deploy writes a manifest, the SHA-256 of every file served, the security
+// headers, the build settings, the git commit and the date, publishes it with the code
+// (releases/<network>/<commit>.json) and puts a copy and a small /release.json on the site
+// (scripts/release-manifest.mjs). This page reads /release.json, then fetches every listed
+// file from this site and compares it with the list (the list the site serves, or one the
+// visitor downloaded from the public code); since round 6 (the fifth review's finding 1) it
+// also fetches every page address the app serves, with random ids, and a random address, and
+// holds each to the listed index.html and the listed headers, and checks the page it is
+// running in has no script the listed page doesn't.
 //
 // It says plainly what it can't do: it runs on the site it checks, so a site that lies could
-// lie here too. The check that needs nothing from VeilCore is the script, run from a copy of
-// the public code: npm run check:site -- <address> (scripts/check-site.mjs). Same checking
-// code (scripts/release-check.mjs).
+// lie here too, and no check can prove a host sent everyone the same files. The check that
+// needs nothing from VeilCore is the script, run from a copy of the public code: npm run
+// check:site -- <address> (scripts/check-site.mjs); and anyone can rebuild the release and
+// compare: npm run check:rebuild -- <manifest>. Same checking code (scripts/release-check.mjs).
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
@@ -17,13 +22,16 @@ import { useI18n } from '../../i18n';
 import { SiteShell } from './SiteShell';
 import {
   allMatch,
-  checkFiles,
+  checkRelease,
+  extraScripts,
   isManifest,
   manifestPath,
   readRelease,
-  type FileCheck,
+  releaseMatches,
+  routesMatch,
   type Manifest,
   type Release,
+  type ReleaseCheck,
 } from '../../../../scripts/release-check.mjs';
 
 /** Where the site's code is published, with each release's list. */
@@ -34,7 +42,7 @@ type State =
   | { kind: 'none'; problem: string }
   | { kind: 'ready'; release: Release }
   | { kind: 'checking'; release: Release; done: number; total: number }
-  | { kind: 'done'; release: Release; result: FileCheck; manifest: Manifest }
+  | { kind: 'done'; release: Release; result: ReleaseCheck; manifest: Manifest; extra: string[] }
   | { kind: 'bad-list'; release: Release; why: 'none' | 'other' };
 
 export const CheckThisSite: React.FC = () => {
@@ -58,10 +66,19 @@ export const CheckThisSite: React.FC = () => {
     if (manifest.commit !== release.commit || manifest.network !== release.network)
       return setState({ kind: 'bad-list', release, why: 'other' });
     setState({ kind: 'checking', release, done: 0, total: Object.keys(manifest.files).length + 1 });
-    const result = await checkFiles(origin, manifest, {
+    const result = await checkRelease(origin, manifest, {
       onProgress: (done, total) => setState({ kind: 'checking', release, done, total }),
     });
-    setState({ kind: 'done', release, result, manifest });
+    // The page this browser is running: no script the listed index.html doesn't have.
+    let extra: string[] = [];
+    try {
+      const listed = await fetch(`${origin}/index.html`, { cache: 'no-store' });
+      const text = listed.ok ? await listed.text() : '';
+      extra = text ? extraScripts(document, text) : [];
+    } catch {
+      extra = [];
+    }
+    setState({ kind: 'done', release, result, manifest, extra });
   };
 
   const fromSite = async (release: Release) => {
@@ -113,6 +130,9 @@ export const CheckThisSite: React.FC = () => {
               <p>{t('m.checksite.how')}</p>
               <p>
                 {t('m.checksite.trust', { command: `npm run check:site -- ${origin}` })}{' '}
+                {t('m.checksite.rebuild', {
+                  command: `npm run check:rebuild -- ${manifestPath(release.network, release.commit)}`,
+                })}{' '}
                 <a
                   href={`${CODE_REPO}/blob/main/${manifestPath(release.network, release.commit)}`}
                   target="_blank"
@@ -148,32 +168,65 @@ export const CheckThisSite: React.FC = () => {
               </p>
             )}
             {state.kind === 'done' && (
-              <div data-result={allMatch(state.result) ? 'all-match' : 'differs'}>
+              <div data-result={releaseMatches(state.result) && state.extra.length === 0 ? 'all-match' : 'differs'}>
                 {state.manifest.uncommittedChanges === true && <p>{t('m.checksite.uncommitted')}</p>}
-                {allMatch(state.result) ? (
+                {allMatch(state.result.files) ? (
                   <p>
-                    <strong>{t('m.checksite.allMatch', { total: String(state.result.total) })}</strong>
+                    <strong>{t('m.checksite.allMatch', { total: String(state.result.files.total) })}</strong>
                   </p>
                 ) : (
                   <>
                     <p>
                       <strong>
                         {t('m.checksite.someDiffer', {
-                          matched: String(state.result.matched.length),
-                          total: String(state.result.total),
+                          matched: String(state.result.files.matched.length),
+                          total: String(state.result.files.total),
                         })}
                       </strong>
                     </p>
                     <ul>
-                      {state.result.differ.map((p) => (
+                      {state.result.files.differ.map((p) => (
                         <li key={`d${p}`}>{t('m.checksite.differs', { path: p })}</li>
                       ))}
-                      {state.result.missing.map((p) => (
+                      {state.result.files.missing.map((p) => (
                         <li key={`m${p}`}>{t('m.checksite.missing', { path: p })}</li>
                       ))}
                     </ul>
                   </>
                 )}
+                {routesMatch(state.result.routes) ? (
+                  <p data-pages="all-match">
+                    <strong>{t('m.checksite.pagesMatch', { total: String(state.result.routes.total) })}</strong>
+                  </p>
+                ) : (
+                  <div data-pages="differs">
+                    <p>
+                      <strong>
+                        {t('m.checksite.pagesDiffer', {
+                          matched: String(state.result.routes.matched.length),
+                          total: String(state.result.routes.total),
+                        })}
+                      </strong>
+                    </p>
+                    <ul>
+                      {[...state.result.routes.differ, ...state.result.routes.missing].map((p) => (
+                        <li key={`p${p}`}>{t('m.checksite.pageDiffers', { path: p })}</li>
+                      ))}
+                      {[...new Set(state.result.routes.headerDiffers.map((h) => h.name))].map((name) => (
+                        <li key={`h${name}`}>{t('m.checksite.headerDiffers', { name })}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {!state.result.routes.headersListed && <p>{t('m.checksite.noHeaders')}</p>}
+                {state.extra.length > 0 && (
+                  <ul data-extra-scripts="">
+                    {state.extra.map((x) => (
+                      <li key={x}>{t('m.checksite.extraScript', { script: x })}</li>
+                    ))}
+                  </ul>
+                )}
+                <p>{t('m.checksite.limit')}</p>
               </div>
             )}
           </div>

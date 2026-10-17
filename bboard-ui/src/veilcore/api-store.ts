@@ -66,6 +66,7 @@
 import type { Store, SaveRefusal, SaveResult } from './store';
 import { holderKey, holderKeyIfAny } from './holder';
 import { readJson, isObject, isString } from './json';
+import { nameCodeOf } from './verify-link';
 import { fingerprintRecord, type CommittedRecordInput } from './commitment';
 import { withTabLock } from './tab-lock';
 import {
@@ -226,6 +227,18 @@ export const publicPart = (r: Record<string, unknown>): Record<string, unknown> 
     };
   }
   return out;
+};
+
+/**
+ * A record's public name code (round 6, CONTRACT.md #33): { nameCode } when the record has a
+ * name, a proof code and a name salt; {} otherwise.
+ */
+const nameCodeField = (r: Record<string, unknown>): { nameCode?: string } => {
+  const code =
+    isString(r.strainName) && isString(r.recordFingerprint) && isString(r.nameSalt)
+      ? nameCodeOf(r.strainName, r.recordFingerprint, r.nameSalt)
+      : undefined;
+  return code ? { nameCode: code } : {};
 };
 
 /**
@@ -905,7 +918,9 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
     // The rev goes in the clear too, the same number as inside the box, so the registry can
     // refuse an older copy than the one it holds (round 3, L2; for agreements round 4, F1).
     // Otherwise a licence is only its id and box (CONTRACT.md #5).
-    wire.push(kind === 'licenses' ? { id, rev, sealed } : { ...publicPart(item), rev, sealed });
+    // A record's name code goes in the clear too (round 6, CONTRACT.md #33): made here from the
+    // name, the proof code and the record's sealed name salt, so it always fits what is sealed.
+    wire.push(kind === 'licenses' ? { id, rev, sealed } : { ...publicPart(item), ...nameCodeField(item), rev, sealed });
     pending.push({ id, hash, rev });
   }
   if (held.length) return { ok: false, refused, held, pending: held, accepted: [] };

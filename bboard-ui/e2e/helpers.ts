@@ -161,6 +161,8 @@ const PUBLIC_FIELDS = [
   'receivedAt',
   'transferId',
   'attestation',
+  // The name's salted code (round 6, CONTRACT.md #33): public, nothing without the salt.
+  'nameCode',
 ];
 
 const seal = (kind: 'records' | 'licenses', id: string, value: Record<string, unknown>, key: string) => {

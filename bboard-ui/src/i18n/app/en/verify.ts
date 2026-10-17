@@ -121,7 +121,22 @@ export const verify = {
   'app.verify.mismatch.noFp': 'no proof code',
   'app.verify.mismatch.inLink': 'Proof code in the link: {fp}',
   'app.verify.mismatch.chip': "The registry's answer does not match this link — nothing on this page was checked",
-  'app.verify.nameTyped': 'Name, as the holder typed it: ',
+  'app.verify.namePublished': 'Name the holder chose to show: ',
+  'app.verify.nameMatches': 'Name matches the record: ',
+  'app.verify.nameUnchecked': 'Name given in this link (not checked): ',
+  'app.verify.nameDiffers': 'This name does not match the record: {name}',
+  'app.verify.nameConflict': 'This link carries a different name ({name}). The name the holder chose to show is above.',
+  'app.verify.kindReportBound': 'Lab report',
+  'app.verify.withheldReports.one':
+    'The registry reports that a lab signed a report about this record on {dates}. That signature names the report’s file, so the registry shows it only to the breeder and the lab, and this page can’t check it.',
+  'app.verify.withheldReports.other':
+    'The registry reports that a lab signed {count} reports about this record ({dates}). Those signatures name the reports’ files, so the registry shows them only to the breeder and the lab, and this page can’t check them.',
+  'app.verify.report.labUnknown':
+    'The holder saved a DNA report file to this record{asOf} (SHA-256 {sha}). A lab signed a report about this record, but this page can’t tell whether it is this file: {why}{staleNote}',
+  'app.verify.report.whyNoLabSalt':
+    'this link doesn’t carry the lab report’s key. Ask the holder for a check link made with the DNA report shown.',
+  'app.verify.report.whyWithheld':
+    'that lab signature was made before 17 October 2026, and the registry shows it only to the breeder and the lab.',
   'app.verify.recordId': 'Record ID: {id}',
   'app.verify.noCommitment':
     'This record carries no commitment, so nothing about it can be checked. It exists in the registry and that is all.',
@@ -215,7 +230,7 @@ export const verify = {
     "✓ this page checked the line itself, in your browser. ○ VeilCore's registry or the holder reports it; this page didn't check it. ⊗ a check failed, or a lab withdrew what it signed.",
   'app.verify.ex.checkReal': 'Check a real record',
   'app.verify.ex.what': 'What is VeilCore?',
-  'app.verify.noNameInLink': "The holder didn't include the name in this link.",
+  'app.verify.noNameInLink': "This link doesn't carry the name.",
   'app.verify.field.name': 'Its name',
   'app.verify.nameShared': 'Its name, shown by the holder to anyone with the ID: {name}',
   'app.verify.noNameShared': 'No name recorded.',

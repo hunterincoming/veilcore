@@ -109,7 +109,21 @@ export const verify = {
   'app.verify.mismatch.noFp': '証明コードなし',
   'app.verify.mismatch.inLink': 'リンク内の証明コード：{fp}',
   'app.verify.mismatch.chip': 'レジストリの答えはこのリンクと一致しません。このページでは何も確認していません',
-  'app.verify.nameTyped': '名前（保有者の入力どおり）：',
+  'app.verify.namePublished': '保有者が表示している名前：',
+  'app.verify.nameMatches': '名前は記録と一致します：',
+  'app.verify.nameUnchecked': 'このリンクにある名前（確認していません）：',
+  'app.verify.nameDiffers': 'この名前は記録と一致しません：{name}',
+  'app.verify.nameConflict':
+    'このリンクには別の名前（{name}）が入っています。保有者が表示している名前は上のとおりです。',
+  'app.verify.kindReportBound': '検査報告書',
+  'app.verify.withheldReports.other':
+    'レジストリによると、ラボがこの記録について{count}件の報告書に署名しました（{dates}）。これらの署名は報告書のファイルを示すため、レジストリは育成者とラボにだけ見せます。このページでは確認できません。',
+  'app.verify.report.labUnknown':
+    '保有者はこの記録にDNA報告書のファイルを保存しました{asOf}（SHA-256 {sha}）。ラボがこの記録について報告書に署名していますが、このページではこのファイルかどうか判断できません：{why}{staleNote}',
+  'app.verify.report.whyNoLabSalt':
+    'このリンクには検査報告書の鍵が入っていません。DNA報告書を表示して作った確認リンクを保有者に頼んでください。',
+  'app.verify.report.whyWithheld':
+    'そのラボの署名は2026年10月17日より前に作られ、レジストリは育成者とラボにだけ見せます。',
   'app.verify.recordId': '記録ID：{id}',
   'app.verify.noCommitment':
     'この記録には確定した内容がないため、何も確認できません。レジストリに存在する、ということだけです。',
@@ -203,7 +217,7 @@ export const verify = {
     '✓ このページが、あなたのブラウザでその行自体を確認しました。○ VeilCoreのレジストリまたは保有者の報告で、このページは確認していません。⊗ 確認に失敗したか、ラボが署名を撤回しました。',
   'app.verify.ex.checkReal': '実際の記録を確認する',
   'app.verify.ex.what': 'VeilCoreとは？',
-  'app.verify.noNameInLink': '保有者はこのリンクに名前を入れていません。',
+  'app.verify.noNameInLink': 'このリンクには名前が入っていません。',
   'app.verify.field.name': '名前',
   'app.verify.nameShared': '保有者がIDを知る誰にでも見せている名前：{name}',
   'app.verify.noNameShared': '名前は記録されていません。',

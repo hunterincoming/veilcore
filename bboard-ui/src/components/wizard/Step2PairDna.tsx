@@ -17,6 +17,7 @@ import { motion } from 'framer-motion';
 import { fingerprintFile, shortFingerprint } from '../../veilcore/commitment';
 import { reportFingerprint } from '../../veilcore/lab-results';
 import { attestationsFor, countsAsSigned, signerLabel, type ResolvedAttestation } from '../../veilcore/attesters';
+import { labSaltsOf, signsReport } from '../../veilcore/lab-doc';
 import { getRecord, pairDna, conflictsFor, type StrainRecord } from '../../veilcore/records';
 import { FingerprintReveal } from './FingerprintReveal';
 import { Dropzone } from './Dropzone';
@@ -106,9 +107,12 @@ export const Step2PairDna: React.FC<{
       setFileSha(sha);
       setPaired(updated);
       // Does a lab's signature name this exact file? Matched on the SHA-256, what a lab signs.
-      void attestationsFor(updated.recordFingerprint).then((atts) =>
+      // A signature since round 6 names it bound with s from the delivery's offer key (lab-doc.ts).
+      void attestationsFor(updated.recordFingerprint, { asHolder: true }).then((atts) =>
         setLabMatch(
-          atts.find((a) => a.type === 'laboratory-report' && countsAsSigned(a) && a.documentHash === sha) ?? null,
+          atts.find(
+            (a) => a.type === 'laboratory-report' && countsAsSigned(a) && signsReport(a, sha, labSaltsOf(updated)),
+          ) ?? null,
         ),
       );
     } catch (e) {

@@ -30,7 +30,7 @@ import { forgetKeys, keysFor } from './record-keys';
 import { sealAnimalRecord, sealRecord } from './seal-record';
 import { isAnimal, isCalendarDate, type AnimalDetails, type AnimalSex } from './animal-profile';
 import type { SaveRefusal } from './store';
-import { nameParam, verifyPath } from './verify-link';
+import { nameLinkParams, verifyPath } from './verify-link';
 
 // ── Limits ─────────────────────────────────────────────────────────────────────────────
 
@@ -1734,8 +1734,9 @@ export const resultsCsv = (
     }
     // The record's name goes after the # (round 5, CONTRACT.md #28): the registry no longer
     // has it to show, and a server never receives that part of a link.
-    const name = id ? allRecords().find((x) => x.id === id)?.strainName : undefined;
-    const link = id ? `${origin.replace(/\/$/, '')}${verifyPath(id, fp, name ? nameParam(name) : {})}` : '';
+    // With its salt (`ns`, round 6): the check page then tells whether the name is the record's.
+    const rec = id ? allRecords().find((x) => x.id === id) : undefined;
+    const link = id ? `${origin.replace(/\/$/, '')}${verifyPath(id, fp, rec ? nameLinkParams(rec) : {})}` : '';
     const dna = id ? (hasDnaReport(id) ? DNA_REPORT_SAVED : NO_DNA_REPORT) : '';
     out.push(line([...job.headers.map((_, i) => r.cells[i] ?? ''), id, fp, link, result, dna]));
   }

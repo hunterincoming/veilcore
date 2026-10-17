@@ -79,6 +79,9 @@ export const lab = {
   'app.lab.send.sampleNotSaved': 'ラボコードは使えますが、サンプルの詳細は保存されませんでした：{error}',
   'app.signer.sep': '',
   'app.lab.strength.unsigned': '署名なし',
+  'app.lab.strength.withheld': '検査報告書（署名は非表示）',
+  'app.lab.strength.withheldWhy':
+    'この検査報告書の署名は報告書のファイルを示すため（2026年10月17日より前の署名）、レジストリは送付の送り主とラボにだけ見せます。ここでは確認できません。',
   'app.lab.strength.unsignedWhy':
     '記録されていますが、署名されていません。第三者による陳述ではなく、第三者についての主張です。',
   'app.lab.strength.invalid': '署名を確認できません',

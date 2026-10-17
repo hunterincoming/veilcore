@@ -465,8 +465,8 @@ export const en = {
   'm.privacy.title': 'What the demo keeps.',
   'm.privacy.lede':
     "This note covers the demo on this site. It is a test, on Midnight's test network. Please use made-up data.",
-  'm.privacy.sum.local.t': 'Never leaves your computer',
-  'm.privacy.sum.local.p': 'Genetic data, and the DNA reports and photos you add.',
+  'm.privacy.sum.local.t': 'Never leaves your device unlocked',
+  'm.privacy.sum.local.p': 'Your DNA files and photos never leave your device. Lab reports travel locked.',
   'm.privacy.sum.locked.t': "Stored locked, we can't read it",
   'm.privacy.sum.locked.p': 'Everything you type into a record, and lab reports a lab sends you.',
   'm.privacy.sum.read.t': 'We can read',
@@ -474,10 +474,10 @@ export const en = {
   'm.privacy.full': 'The full list',
   'm.privacy.stored.title': 'Stored on our test server',
   'm.privacy.stored.text':
-    "Your records and agreements, locked by your browser before they are sent: each record's name, breeder, species, dates, notes, reference numbers, parents, the codes and file names of the photos and lab reports you add, agreement terms and counterparties, the quantity and note you send a lab, the sample details you and the lab write (sample ID, seal number, where and when it was taken, a witness, how it arrived), the names you give recipients, and each record's own secret keys. Our server stores them locked, and we don't have the key: it is in your browser and your backup file. The sample details' key also travels in the lab code, so the lab can open them. If you choose, a record's name also travels in a check link you make, after the #, which a browser never sends to any server. Our server can read: each record's ID; its proof code, key binding and profile type; its correction links (which record a correction replaces, which fields it changed, and when); when the server first saw it; how many times it was saved, and when it was last saved; roughly how large it is (its size bucket); what you choose to show on its check page (its name, if you choose to show it, and whether a DNA report is saved, as a code that says nothing about the file without the key in your check link); the parent links you register; and its batch and date stamp. If an agreement has a royalty on offspring, our server can read which record it covers and when it took effect, and anyone can ask whether that record carries one: the lineage check needs it. For a delivery: which record it came from, which holder account received it, when it was received, and a tag in place of the recipient's name. A delivery made before tags has the name as typed, until the registry's purge replaces it. For labs: the public signing key and the attestations they publish. Requests to prove a record's key, with the name the asker typed, kept for 7 days. Your holder key, which your browser sends with every save so the server can find your records; the server keeps only a one-way digest of it. Records saved before locking stay readable to us until your browser locks them, and a record's name saved before names were locked stays readable to us until your browser saves the record again. Sample details written before sealing stay readable to us until the registry removes them. Our off-site backups made before then keep a readable copy of all of these until we destroy the key that opens them. Locked lab reports a lab sends you: stored locked, without the key, and deleted after 180 days. The server is VeilCore's test registry, hosted on Railway.",
-  'm.privacy.local.title': 'Never leaves your browser',
+    "Your records and agreements, locked by your browser before they are sent: each record's name, breeder, species, dates, notes, reference numbers, parents, the codes and file names of the photos and lab reports you add, agreement terms and counterparties, the quantity and note you send a lab, the sample details you and the lab write (sample ID, seal number, where and when it was taken, a witness, how it arrived), the names you give recipients, and each record's own secret keys. Our server stores them locked, and we don't have the key: it is in your browser and your backup file. The sample details' key also travels in the lab code, so the lab can open them. If you choose, a record's name also travels in a check link you make, after the #. A browser doesn't send that part when it opens the link, but the link goes whole to anyone you send it to and to any site you paste it into, a partner's form included. Our server can read: each record's ID; its proof code, key binding and profile type; a code made from its name, which says nothing about the name without the key in your check link; its correction links (which record a correction replaces, which fields it changed, and when); when the server first saw it; how many times it was saved, and when it was last saved; roughly how large it is (its size bucket); what you choose to show on its check page (its name, if you choose to show it, and whether a DNA report is saved, as a code that says nothing about the file without the key in your check link); the parent links you register; and its batch and date stamp. If an agreement has a royalty on offspring, our server can read which record it covers and when it took effect, and anyone can ask whether that record carries one: the lineage check needs it. For a delivery: which record it came from, which holder account received it, when it was received, and a tag in place of the recipient's name. A delivery made before tags has the name as typed, until the registry's purge replaces it. For labs: the public signing key and the signatures they publish. A lab's signature on a report names the report bound to your record with a key only you and the lab hold; one made before 17 October 2026 names the report file's SHA-256, which our server shows only to you and the lab. Requests to prove a record's key, with the name the asker typed, kept for 7 days: our server learns which on-chain key each request names. The prove and check pages never send your holder key. Your holder key, which your browser sends with every save so the server can find your records; the server keeps only a one-way digest of it. Records saved before locking stay readable to us until your browser locks them, and a record's name saved before names were locked stays readable to us until your browser saves the record again. Sample details written before sealing stay readable to us until the registry removes them. Our off-site backups made before then keep a readable copy of all of these until we destroy the key that opens them. Locked lab reports a lab sends you: stored locked, without the key, and deleted after 180 days. The server is VeilCore's test registry, hosted on Railway.",
+  'm.privacy.local.title': 'Never leaves your browser unlocked',
   'm.privacy.local.text':
-    'Genetic data, and the lab reports, DNA reports and photos you add. Your browser reads them to make a code from each; the files themselves are never uploaded. A lab report reaches our server only when a lab sends it back to you, locked so only you can open it.',
+    'Your DNA files never leave your device. Lab reports travel locked. Your browser reads the DNA reports, lab reports and photos you add to make a code from each; the files themselves are never uploaded. A lab report reaches our server only when a lab sends it back to you, locked so only you can open it.',
   'm.privacy.test.title': 'A test network',
   'm.privacy.test.text':
     "The demo uses Midnight's test network, not the live one. Demo data may be deleted when the test network is reset.",
@@ -507,18 +507,28 @@ export const en = {
   'title.checkSite': 'Check this site',
   'm.privacy.code.title': "The app's code",
   'm.privacy.code.text':
-    "VeilCore serves the app's code. Each release's files are listed publicly, so anyone can check the site matches its published code.",
+    "VeilCore serves the app's code. Each release publishes the list of its files. You can check that the files your browser received match that list, and anyone can rebuild the release from the published code and compare. This shows what we released. It can't prove a host sent everyone the same files.",
   'm.checksite.title': 'Check this site',
   'm.checksite.lede':
-    "VeilCore serves the app's code. Each release's files are listed publicly, so anyone can check the site matches its published code.",
+    "VeilCore serves the app's code. Each release publishes the list of its files. You can check that the files your browser received match that list, and anyone can rebuild the release from the published code and compare. This shows what we released. It can't prove a host sent everyone the same files.",
   'm.checksite.reading': 'Reading which release this is…',
   'm.checksite.noRelease':
     'This copy of the site wasn’t published by a release deploy, so there is no list to check it against.',
   'm.checksite.release': 'This copy of the site says it is release {commit} on {network}, made {date}.',
   'm.checksite.how':
-    'The check fetches every file the release lists from this site, works out its SHA-256 in your browser, and compares it with the list.',
+    'The check fetches every file the release lists from this site, and every page address the app has (with random record IDs) and a random address, the way a browser opens a page. It works out the SHA-256 of each in your browser and compares it, and the security headers, with the list. It also checks that this page has no script the listed page doesn’t.',
   'm.checksite.trust':
     'This page runs on the site it checks, so a site that lies could lie here too. To check without trusting VeilCore, download the list from the public code and use it below, or run {command} from a copy of the code.',
+  'm.checksite.rebuild':
+    'To check the list itself against the code, rebuild the release from a copy of the code: {command}.',
+  'm.checksite.pagesMatch': 'All {total} page addresses are the listed page, with the listed security headers.',
+  'm.checksite.pagesDiffer': '{matched} of {total} page addresses are the listed page. These differ:',
+  'm.checksite.pageDiffers': 'Different page: {path}',
+  'm.checksite.headerDiffers': 'Different security header: {name}',
+  'm.checksite.noHeaders':
+    'This release’s list has no security headers (it was made before they were listed), so they weren’t compared.',
+  'm.checksite.extraScript': 'This page has a script the listed page doesn’t: {script}',
+  'm.checksite.limit': 'This shows what your browser received. It can’t prove the host sent everyone the same files.',
   'm.checksite.listLink': 'This release’s list in the public code',
   'm.checksite.useSite': 'Check against the list this site serves',
   'm.checksite.useFile': 'Or check against a list you downloaded:',

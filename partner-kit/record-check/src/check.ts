@@ -19,7 +19,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { COMMITMENT_ALGORITHM, verifyInclusion, type InclusionProof } from 'veilcore-records';
-import { fingerprintOfFields, isHex64, keyMatchesFingerprint } from './hash.js';
+import { fingerprintOfFields, isHex64, keyMatchesFingerprint, nameCodeOf } from './hash.js';
 import { CUT, LinkError, parseCheckLink, type CheckLink } from './link.js';
 import { checkSignatures, cleanName, type CustodyEntry, type LabReceipt } from './signatures.js';
 
@@ -146,10 +146,32 @@ export type RecordCheck = {
   /** The holder has replaced this record with a corrected one. */
   readonly supersededBy: string | null;
   /**
-   * The name the holder typed for the material (their word), cleaned: from the link (after
-   * the #), or the one the holder published. null: the holder didn't include it in the link.
+   * The record's name (the holder's word), cleaned, only when it is checked to be the record's:
+   * the one the holder published (the `name` grant), or the link's when it makes the record's
+   * published name code with the link's salt (round 6, the site's CONTRACT.md #33). null
+   * otherwise: a name in the link that isn't checked is in `nameInLink`, never here.
    */
   readonly nameByHolder: string | null;
+  /** The name after the link's # (`n`), cleaned, whatever it is; null when the link carries none. */
+  readonly nameInLink: string | null;
+  /**
+   * What the name in the link is (round 6):
+   *   published      the holder published the record's name; it wins over the link's
+   *   matches        "Name matches the record": the link's name and salt make the record's name code
+   *   does-not-match "This name does not match the record"
+   *   not-checked    "Name given in this link (not checked)": no salt in the link, or no name
+   *                  code published (a link or a record from before round 6)
+   *   not-in-link    "This link doesn't carry the name."
+   */
+  readonly nameCheck: 'published' | 'matches' | 'does-not-match' | 'not-checked' | 'not-in-link';
+  /** The holder published a name and the link carries a different one. */
+  readonly nameConflict: boolean;
+  /**
+   * Lab report signatures made before round 6, which the registry shows only to the delivery's
+   * sender and lab (CONTRACT.md #34): it says a lab signed, and when, and nothing that can be
+   * checked here.
+   */
+  readonly labReportsWithheld: number;
   /** One plain paragraph saying the above. */
   readonly summary: string;
   readonly whatThisDoesNotShow: readonly string[];
@@ -243,6 +265,10 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
       registryFirstSeen: null,
       supersededBy: null,
       nameByHolder: null,
+      nameInLink: cleanName(link.name),
+      nameCheck: link.name ? 'not-checked' : 'not-in-link',
+      nameConflict: false,
+      labReportsWithheld: 0,
       problems,
     });
   }
@@ -250,6 +276,19 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
     throw new RegistryError(`The registry’s answer could not be read (status ${rec.status}). Nothing was checked.`);
 
   const reported = isHex64(r.recordFingerprint) ? r.recordFingerprint : null;
+  // The name (round 6, CONTRACT.md #33): a name the holder published wins; else the link's,
+  // checked against the record's published name code with the link's salt.
+  const published = typeof r.cultivar === 'string' && r.cultivar.trim() ? r.cultivar.normalize('NFC').trim() : null;
+  const inLink = link.name ? link.name.normalize('NFC').trim() : '';
+  const nameCheck: RecordCheck['nameCheck'] = published
+    ? 'published'
+    : !inLink
+      ? 'not-in-link'
+      : !link.nameSalt || !isHex64(r.nameCode) || !reported
+        ? 'not-checked'
+        : (await nameCodeOf(inLink, reported, link.nameSalt)) === r.nameCode
+          ? 'matches'
+          : 'does-not-match';
   const base = {
     registry,
     recordId: link.recordId,
@@ -258,9 +297,12 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
     registryFirstSeen: typeof r.registryFirstSeen === 'string' ? r.registryFirstSeen : null,
     supersededBy:
       typeof r.supersededBy === 'string' && r.supersededBy.length <= 128 ? cleanName(r.supersededBy, 128) : null,
-    // From the holder's link, after the # (round 5: the registry no longer has it), else the
-    // one the holder published on purpose, or a record saved before names were sealed.
-    nameByHolder: cleanName(link.name ?? r.cultivar),
+    // Only a name checked to be the record's (round 6): the one the holder published on purpose
+    // (or a record saved before names were sealed), else the link's when its name code matches.
+    nameByHolder: published ? cleanName(published) : nameCheck === 'matches' ? cleanName(inLink) : null,
+    nameInLink: cleanName(link.name),
+    nameCheck,
+    nameConflict: !!published && !!inLink && inLink !== published,
   };
 
   // 2. Which fingerprint the rest is checked against. Only the link's, and only when the
@@ -328,6 +370,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
       keyBound,
       labReceipts: [],
       labReceiptsTotal: 0,
+      labReportsWithheld: 0,
       problems,
     });
   }
@@ -346,6 +389,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
 
   let labReceipts: LabReceipt[] = [];
   let labReceiptsTotal = 0;
+  let labReportsWithheld = 0;
   if (attRes === null || attRes.status !== 200 || !isObject(attRes.body) || !Array.isArray(attRes.body.attestations)) {
     problems.push('The registry did not send the lab signatures, so none were checked.');
   } else {
@@ -364,7 +408,12 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
         : undefined,
     });
     labReceipts = out.receipts;
+    labReportsWithheld = out.withheld;
     labReceiptsTotal = typeof attRes.body.total === 'number' ? attRes.body.total : labReceipts.length;
+    if (out.withheld > 0)
+      problems.push(
+        `The registry says a lab signed ${out.withheld === 1 ? 'a report' : `${out.withheld} reports`} about this record before 17 October 2026. ${out.withheld === 1 ? 'That signature names' : 'Those signatures name'} the report file, so the registry shows ${out.withheld === 1 ? 'it' : 'them'} only to the delivery’s sender and lab, and ${out.withheld === 1 ? 'it was' : 'they were'} not checked here.`,
+      );
     if (out.dropped > 0)
       problems.push(
         `${out.dropped} signature${out.dropped === 1 ? '' : 's'} in the registry’s answer ${out.dropped === 1 ? 'is' : 'are'} not about this proof code or could not be read, so ${out.dropped === 1 ? 'it was' : 'they were'} left out.`,
@@ -380,6 +429,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
     keyBound,
     labReceipts,
     labReceiptsTotal,
+    labReportsWithheld,
     problems,
   });
 };
@@ -641,6 +691,20 @@ export const acceptable = (c: RecordCheck | null, o: { allowTestNetwork?: boolea
   c.dated.status !== 'proof-fails' &&
   (o.allowTestNetwork === true || c.dated.testNetwork !== true);
 
+/** What the summary says about the name (round 6, CONTRACT.md #33, #37): the page's words. */
+export const nameSentence = (
+  p: Pick<RecordCheck, 'nameCheck' | 'nameByHolder' | 'nameInLink' | 'nameConflict'>,
+): string =>
+  p.nameCheck === 'published'
+    ? `Name the holder chose to show: “${p.nameByHolder ?? ''}”.${p.nameConflict ? ` This link carries a different name (“${p.nameInLink ?? ''}”); the one the holder chose to show is the record’s.` : ''}`
+    : p.nameCheck === 'matches'
+      ? `Name matches the record: “${p.nameByHolder ?? ''}”.`
+      : p.nameCheck === 'does-not-match'
+        ? `This name does not match the record: “${p.nameInLink ?? ''}”.`
+        : p.nameCheck === 'not-checked'
+          ? `Name given in this link (not checked): “${p.nameInLink ?? ''}”.`
+          : 'This link doesn’t carry the name.';
+
 /** One plain paragraph. Never says the material is anything. */
 export const summaryOf = (p: Parts): string => {
   if (p.linkLooksCut) return `${CUT} Nothing was checked.`;
@@ -654,6 +718,7 @@ export const summaryOf = (p: Parts): string => {
       ? 'Record found, and the link’s proof code matches the registry’s.'
       : 'Record found. The link names no proof code, so what follows is about the registry’s proof code for this id.',
   );
+  parts.push(nameSentence(p));
   if (p.disclosedFieldsMatch === true) parts.push('The sealed fields given hash to that proof code.');
   if (p.disclosedFieldsMatch === false) parts.push('The sealed fields given do not hash to that proof code.');
   const d = p.dated;

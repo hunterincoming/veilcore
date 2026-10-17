@@ -254,17 +254,26 @@ test('a different seal number: said plainly on the breeder’s plant page, certi
   );
   await shot(r.breeder, 'custody-differs-5-certificate');
 
-  // The check page, in the breeder's own browser, reached from inside the app: the public
-  // check page loads no records of its own (App.tsx), so a fresh load of it can't know the
-  // plant is this browser's.
+  // The check page, in the breeder's own browser, reached from inside the app. Since round 6
+  // (CONTRACT.md #36) it sends no request with the holder key, so it doesn't show the
+  // breeder's own delivery line: that is on the plant's page, above.
   await r.breeder.goto(`/record/${r.recordId}`);
   await expect(r.breeder.locator('[data-status-row="Receipt signed"]')).toBeVisible();
+  const keyed: string[] = [];
+  const onRequest = (q: import('@playwright/test').Request) => {
+    if (q.headers()['x-holder-key'] && new URL(r.breeder.url()).pathname.startsWith('/verify/')) keyed.push(q.url());
+  };
+  r.breeder.on('request', onRequest);
   await r.breeder.evaluate((path) => {
     history.pushState({}, '', path);
     dispatchEvent(new PopStateEvent('popstate'));
   }, `/verify/${r.recordId}`);
-  await expect(r.breeder.getByText(/linked to your delivery TR-/)).toBeVisible();
-  await expect(r.breeder.locator('[data-custody-line]').first()).toHaveText(line);
+  await expect(r.breeder.locator('[data-holder-name], [data-no-name], [data-name-check]').first()).toBeVisible();
+  await r.breeder.evaluate(() => dispatchEvent(new Event('focus')));
+  await r.breeder.waitForTimeout(1_500);
+  await expect(r.breeder.getByText(/linked to your delivery TR-/)).toHaveCount(0);
+  r.breeder.off('request', onRequest);
+  expect(keyed).toEqual([]);
   await shot(r.breeder, 'custody-differs-6-check');
 
   // A stranger's check page: with the holder sharing the lab status, the registry says only

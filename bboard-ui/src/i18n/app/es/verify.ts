@@ -124,7 +124,22 @@ export const verify = {
   'app.verify.mismatch.inLink': 'Código de prueba en el enlace: {fp}',
   'app.verify.mismatch.chip':
     'La respuesta del servidor de registros no coincide con este enlace: no se comprobó nada de esta página',
-  'app.verify.nameTyped': 'Nombre, tal como lo escribió el titular: ',
+  'app.verify.namePublished': 'Nombre que el titular muestra: ',
+  'app.verify.nameMatches': 'El nombre coincide con el registro: ',
+  'app.verify.nameUnchecked': 'Nombre dado en este enlace (sin comprobar): ',
+  'app.verify.nameDiffers': 'Este nombre no coincide con el registro: {name}',
+  'app.verify.nameConflict': 'Este enlace lleva otro nombre ({name}). El nombre que el titular muestra está arriba.',
+  'app.verify.kindReportBound': 'Informe de laboratorio',
+  'app.verify.withheldReports.one':
+    'El servidor de registros informa que un laboratorio firmó un informe sobre este registro el {dates}. Esa firma nombra el archivo del informe, así que el servidor de registros solo la muestra al obtentor y al laboratorio, y esta página no puede comprobarla.',
+  'app.verify.withheldReports.other':
+    'El servidor de registros informa que un laboratorio firmó {count} informes sobre este registro ({dates}). Esas firmas nombran los archivos de los informes, así que el servidor de registros solo las muestra al obtentor y al laboratorio, y esta página no puede comprobarlas.',
+  'app.verify.report.labUnknown':
+    'El titular guardó un archivo de informe de ADN en este registro{asOf} (SHA-256 {sha}). Un laboratorio firmó un informe sobre este registro, pero esta página no puede saber si es este archivo: {why}{staleNote}',
+  'app.verify.report.whyNoLabSalt':
+    'este enlace no lleva la clave del informe de laboratorio. Pida al titular un enlace de comprobación hecho con el informe de ADN visible.',
+  'app.verify.report.whyWithheld':
+    'esa firma de laboratorio se hizo antes del 17 de octubre de 2026, y el servidor de registros solo la muestra al obtentor y al laboratorio.',
   'app.verify.recordId': 'ID del registro: {id}',
   'app.verify.noCommitment':
     'Este registro no lleva ningún compromiso, así que no se puede comprobar nada de él. Existe en el servidor de registros y nada más.',
@@ -220,7 +235,7 @@ export const verify = {
     '✓ esta página comprobó la línea por sí misma, en su navegador. ○ lo informa el servidor de registros de VeilCore o el titular; esta página no lo comprobó. ⊗ una comprobación falló, o un laboratorio retiró lo que firmó.',
   'app.verify.ex.checkReal': 'Comprobar un registro real',
   'app.verify.ex.what': '¿Qué es VeilCore?',
-  'app.verify.noNameInLink': 'El titular no incluyó el nombre en este enlace.',
+  'app.verify.noNameInLink': 'Este enlace no lleva el nombre.',
   'app.verify.field.name': 'Su nombre',
   'app.verify.nameShared': 'Su nombre, mostrado por el titular a cualquiera con el ID: {name}',
   'app.verify.noNameShared': 'No hay nombre registrado.',

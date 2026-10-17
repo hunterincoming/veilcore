@@ -25,6 +25,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+import { signsReport } from './lab-doc';
 import type { StrainRecord } from './records';
 import { hasDetails, receiptCovers, type ArrivalDetails, type SampleDetails, type SentTransfer } from './transfers';
 import { countsAsSigned, nameChecked, signerLabel, type ResolvedAttestation } from './attesters';
@@ -505,14 +506,21 @@ export type ReportSigner =
  */
 export const reportSigner = (
   atts: readonly ResolvedAttestation[],
-  input: { sha: string; attestationId?: string; subject: string; receiptAttestationId?: string },
+  input: {
+    sha: string;
+    attestationId?: string;
+    subject: string;
+    receiptAttestationId?: string;
+    /** The deliveries' lab report salts (lab-doc.ts): a signature since round 6 names the file bound with one. */
+    salts?: readonly string[];
+  },
 ): ReportSigner => {
   const report = atts.find(
     (a) =>
       countsAsSigned(a) &&
       a.type === 'laboratory-report' &&
       a.subjectCommitment === input.subject &&
-      a.documentHash === input.sha &&
+      signsReport(a, input.sha, input.salts ?? []) &&
       (!input.attestationId || a.attestationId === input.attestationId),
   );
   if (!report) return { kind: 'unsigned' };

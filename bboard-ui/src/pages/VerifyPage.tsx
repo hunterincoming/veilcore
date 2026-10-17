@@ -21,17 +21,26 @@
 //     holder chose to share. Worded as reports, never as checks.
 // The footer says exactly which of those checks ran (round 3: it used to say "nothing on
 // this page could be checked" under a line saying a signature was verified here).
-// Opened by the plant's own holder (the record is in this browser), the page also shows
-// the lab's receipt linked to one of their deliveries (custody.ts); a stranger can't be
-// told which signature is a receipt, so for them signatures are only described.
+// A visitor can't be told which signature is a receipt, so signatures are only described.
+// The holder sees the lab's receipt linked to one of their deliveries on their record's page:
+// since round 6 (CONTRACT.md #36) this page makes no request with the holder key.
 // The registry sends only the facts the holder granted (README "Disclosure"); a ?show=
 // in the link can narrow that and never widen it. Genetics are never sent.
 //
 // Round 5 (CONTRACT.md #28, #29): the record's name is sealed, so the registry has none to
 // send unless the holder published it on purpose. The holder's link carries it after the #
-// (`n`), which never reaches a server; a link without it says so. The saved DNA report is
-// published only bound with the record's pairing salt and its proof code; the salt is in the
-// link too (`ds`): with the file the holder sent, this page checks the match in this browser.
+// (`n`), which a browser doesn't send when it opens the link; a link without it says so. The
+// saved DNA report is published only bound with the record's pairing salt and its proof code;
+// the salt is in the link too (`ds`): with the file the holder sent, this page checks the
+// match in this browser.
+//
+// Round 6 (CONTRACT.md #33, #36, #37): the name in a link is checked against the record's
+// published name code with the link's salt (`ns`): "Name matches the record", "This name does
+// not match the record", or, for a link or record from before round 6, "Name given in this link
+// (not checked)". A name the holder published wins; a different one in the link is flagged.
+// A link without a name says "This link doesn't carry the name." No request on this page
+// carries the holder key (holder.ts guardHolderRequests): the holder's own lab receipt line is
+// on their record's page, not here.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
@@ -54,7 +63,15 @@ import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import { loadFingerprintCircuit, MAX_FINGERPRINT_BYTES, shortFingerprint } from '../veilcore/commitment';
 import { DISCLOSURE_FIELDS, LEGACY_NAME, toDisclosureKey, labelOf } from '../veilcore/disclosure';
 import { proofFor, type ProofState } from '../veilcore/proofs';
-import { attestationsFor, countsAsSigned, signerLabel, type ResolvedAttestation } from '../veilcore/attesters';
+import {
+  attestationsFor,
+  countsAsSigned,
+  failedSignature,
+  signerLabel,
+  withheldLabReports,
+  type ResolvedAttestation,
+} from '../veilcore/attesters';
+import { isBoundLabDocument, labSaltFromLink } from '../veilcore/lab-doc';
 import { ACCENT, INK_COLOR } from '../config/theme';
 import { Wordmark } from '../components/Wordmark';
 import { NETWORK, explorerFor, isTestNetwork } from '../config/network';
@@ -66,7 +83,9 @@ import {
   linkFingerprint,
   linkParam,
   movedToFragment,
+  nameCheckOf,
   nameFromLink,
+  nameSaltFromLink,
   verifyHeading,
 } from '../veilcore/verify-link';
 import { DNA_SALT_PARAM, dnaLinkValues } from '../veilcore/dna-link';
@@ -82,9 +101,7 @@ import {
 } from '../components/verify/anchor-words';
 import { useAnchorCheck } from '../components/verify/useAnchorCheck';
 import { VerifierChallengePanel } from '../components/chain/VerifierChallengePanel';
-import { useRecords } from '../veilcore/records';
-import { useBreederReceipt } from '../components/flow/LabResults';
-import { custodyLines, publicCustodyLines, publicCustodyOf } from '../veilcore/custody';
+import { publicCustodyLines, publicCustodyOf } from '../veilcore/custody';
 import { NameCheckText } from '../components/NameCheckText';
 import { rich, useT } from '../i18n/app';
 import { enT, forKind, type Translator } from '../i18n/translate';
@@ -165,6 +182,8 @@ type VerifyResult = {
   found: boolean;
   id?: string;
   cultivar?: string;
+  /** The name's salted code (round 6, CONTRACT.md #33): checks the name in a link with its salt. */
+  nameCode?: string;
   /** Who bred it, as the holder wrote it, when the holder shared it (`bred-by`, persona review). */
   bredBy?: string;
   recordFingerprint?: string;
@@ -259,6 +278,7 @@ const isVerifyResult = (v: unknown): v is VerifyResult => {
   return (
     str(r.id) &&
     str(r.cultivar) &&
+    str(r.nameCode) &&
     str(r.recordFingerprint) &&
     str(r.breedingMethod) &&
     bool(r.dnaPairedByHolder) &&
@@ -327,7 +347,11 @@ export const signatureKind = (a: ResolvedAttestation, tr: Translator = enT): str
   a.type === 'chain-of-custody'
     ? tr.t('app.verify.kindReceipt')
     : a.type === 'laboratory-report'
-      ? tr.t('app.verify.kindReport', { sha: `${a.documentHash.slice(0, 8)}…${a.documentHash.slice(-6)}` })
+      ? // Since round 6 a lab signs a code bound to the record (lab-doc.ts), not the file's
+        // SHA-256: nothing about the file is printed for it.
+        isBoundLabDocument(a)
+        ? tr.t('app.verify.kindReportBound')
+        : tr.t('app.verify.kindReport', { sha: `${a.documentHash.slice(0, 8)}…${a.documentHash.slice(-6)}` })
       : tr.t('app.verify.kindStatement');
 
 const labelsOf = (keys: readonly unknown[], tr: Translator): string =>
@@ -361,9 +385,6 @@ export const VerifyPage: React.FC = () => {
   const [atts, setAtts] = useState<ResolvedAttestation[] | null>(null);
   // A DNA report file the visitor chose to check against the record (round 5): read here only.
   const [chosenFile, setChosenFile] = useState<{ name: string; sha: string } | 'reading' | 'too-big' | null>(null);
-  // The holder's own plant, when this browser has it loaded: its linked lab receipt.
-  const own = useRecords().find((r) => r.id === id.toUpperCase() && !r.receivedFrom);
-  const receipt = useBreederReceipt(own, !!own);
   // An animal record's page says "animal" where a plant's says "plant" (translate.ts forKind).
   const tr = forKind(useT(), result?.subjectKind === 'animal' ? 'animal' : 'plant');
   const { t, tp } = tr;
@@ -449,7 +470,10 @@ export const VerifyPage: React.FC = () => {
   // Round 5: what each signature is, said on its own line and counted the same way in the
   // footer: a lab's receipt, a lab report, or some other signed statement.
   const withdrawnLine = withdrawnSignaturesLine(atts ?? [], tr);
-  const badSigs = (atts ?? []).filter((a) => !a.signatureValid).length;
+  const badSigs = (atts ?? []).filter(failedSignature).length;
+  // Lab report signatures made before round 6, which the registry shows only to the breeder and
+  // the lab (CONTRACT.md #34): said, with their dates, as the registry's report.
+  const withheld = withheldLabReports(atts ?? []);
   // Round 6: which file is saved comes from the registry as it is now; the link's `rs` is
   // only a hint from when the link was made (saved-report.ts publicReportLine).
   // The lab status is shared but the holder's pairing values are stale (the registry left
@@ -467,6 +491,7 @@ export const VerifyPage: React.FC = () => {
           binding: result?.dnaPairBinding,
           linkDna,
           chosenSha: chosenFile && typeof chosenFile === 'object' ? chosenFile.sha : null,
+          labSalt: labSaltFromLink(location.hash),
           atts: atts ?? [],
           bound,
         },
@@ -501,10 +526,16 @@ export const VerifyPage: React.FC = () => {
   // A date checked on a test network is practice data: its own mark, never mainnet's stamp red.
   const testSeal = seal && isTestNetwork(reportedNetwork ?? NETWORK);
   const sealColor = testSeal ? TEST_MARK : ACCENT;
-  // The name: from the holder's link (after the #, never sent anywhere), else the one the
-  // holder published (or a record saved before names were sealed); else none, said so.
-  const fromLink = nameFromLink(location.hash);
-  const name = displayName(fromLink ?? result?.cultivar ?? undefined);
+  // The name (round 6): the one the holder published wins (or a record saved before names
+  // were sealed); else the link's, checked against the record's name code with the link's salt.
+  const nameCheck = nameCheckOf({
+    linkName: nameFromLink(location.hash),
+    linkSalt: nameSaltFromLink(location.hash),
+    nameCode: result?.nameCode,
+    proofCode: result?.recordFingerprint,
+    published: result?.cultivar,
+  });
+  const name = nameCheck.state === 'none' ? undefined : displayName(nameCheck.name);
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -658,18 +689,40 @@ export const VerifyPage: React.FC = () => {
 
             {/* The holder's own words, labelled as such: never a heading next to the mark,
                 cleaned of symbols and control characters, and capped (display-name.ts). */}
-            {name ? (
-              <Typography
-                variant="body1"
+            {name && nameCheck.state === 'differs' ? (
+              // Not the record's name: said first, and never shown as the holder's.
+              <Alert
+                severity="error"
+                variant="outlined"
                 sx={{ mb: RECORD_ID.test(result.id ?? '') ? 0.5 : 2, overflowWrap: 'anywhere' }}
-                data-holder-name=""
-                data-name-from={fromLink ? 'link' : 'registry'}
+                data-name-check="differs"
               >
-                <Box component="span" sx={{ color: 'text.secondary' }}>
-                  {t('app.verify.nameTyped')}
-                </Box>
-                {name}
-              </Typography>
+                {t('app.verify.nameDiffers', { name })}
+              </Alert>
+            ) : name && nameCheck.state !== 'none' ? (
+              <Box sx={{ mb: RECORD_ID.test(result.id ?? '') ? 0.5 : 2 }}>
+                <Typography
+                  variant="body1"
+                  sx={{ overflowWrap: 'anywhere' }}
+                  data-holder-name=""
+                  data-name-check={nameCheck.state}
+                  data-name-from={nameCheck.state === 'published' ? 'registry' : 'link'}
+                >
+                  <Box component="span" sx={{ color: 'text.secondary' }}>
+                    {nameCheck.state === 'published'
+                      ? t('app.verify.namePublished')
+                      : nameCheck.state === 'matches'
+                        ? t('app.verify.nameMatches')
+                        : t('app.verify.nameUnchecked')}
+                  </Box>
+                  {name}
+                </Typography>
+                {nameCheck.state === 'published' && nameCheck.conflict && (
+                  <Alert severity="warning" variant="outlined" sx={{ mt: 1 }} data-name-conflict="">
+                    {t('app.verify.nameConflict', { name: displayName(nameCheck.conflict) ?? '' })}
+                  </Alert>
+                )}
+              </Box>
             ) : (
               <Typography
                 variant="body2"
@@ -779,20 +832,18 @@ export const VerifyPage: React.FC = () => {
                       <Fact key={a.attestationId} status={bound ? 'checked' : 'reported'}>
                         {t('app.verify.sigLine', { forWhom, kind: signatureKind(a, tr), lead: label.lead })}
                         <NameCheckText label={label} />
-                        {a.type === 'chain-of-custody' &&
-                          !(own && receipt?.kind === 'signed' && receipt.by.attestationId === a.attestationId) &&
-                          publicCustody.has(a.attestationId) && (
-                            <Box component="span" sx={{ display: 'block', mt: 0.5 }} data-public-custody="">
-                              <Box component="span" sx={{ display: 'block', color: 'text.secondary' }}>
-                                {t('app.verify.sampleDetails')}
-                              </Box>
-                              {publicCustodyLines(publicCustody.get(a.attestationId), tr).map((l) => (
-                                <Box component="span" key={l} sx={{ display: 'block' }} data-custody-line="">
-                                  {l}
-                                </Box>
-                              ))}
+                        {a.type === 'chain-of-custody' && publicCustody.has(a.attestationId) && (
+                          <Box component="span" sx={{ display: 'block', mt: 0.5 }} data-public-custody="">
+                            <Box component="span" sx={{ display: 'block', color: 'text.secondary' }}>
+                              {t('app.verify.sampleDetails')}
                             </Box>
-                          )}
+                            {publicCustodyLines(publicCustody.get(a.attestationId), tr).map((l) => (
+                              <Box component="span" key={l} sx={{ display: 'block' }} data-custody-line="">
+                                {l}
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
                       </Fact>
                     );
                   })}
@@ -801,7 +852,19 @@ export const VerifyPage: React.FC = () => {
                       {t('app.verify.moreSigs', { forWhom, n: signed.length - SIGNATURE_LINES })}
                     </Fact>
                   )}
+                  {withheld.length > 0 && (
+                    <Fact ok={false}>
+                      <Box component="span" data-withheld-reports={String(withheld.length)}>
+                        {tp('app.verify.withheldReports', withheld.length, {
+                          dates: withheld
+                            .map((a) => `${a.issuedAt.slice(0, 10)} (UTC)`)
+                            .join(t('app.verify.sum.comma')),
+                        })}
+                      </Box>
+                    </Fact>
+                  )}
                   {signed.length === 0 &&
+                    withheld.length === 0 &&
                     (result.signedAttestation === true ||
                     result.attestedByVettedLab === true ||
                     result.attested === true ? (
@@ -812,23 +875,6 @@ export const VerifyPage: React.FC = () => {
                   {withdrawnLine && <Fact ok={false}>{withdrawnLine}</Fact>}
                   {badSigs > 0 && <Fact status="failed">{tp('app.verify.badSigs', badSigs)}</Fact>}
                 </>
-              )}
-
-              {/* The holder's own plant: the lab receipt linked to one of their deliveries. */}
-              {own && receipt?.kind === 'signed' && (
-                <Fact ok={false}>
-                  {t('app.verify.ownReceipt', {
-                    lead: signerLabel(receipt.by, undefined, undefined, tr).lead,
-                    tx: receipt.transferId,
-                  })}
-                  <NameCheckText label={signerLabel(receipt.by, undefined, undefined, tr)} />
-                  {t('app.verify.ownReceiptTail')}
-                  {custodyLines(receipt.custody, tr).map((l) => (
-                    <Box component="span" key={l} sx={{ display: 'block', mt: 0.25 }} data-custody-line="">
-                      {l}
-                    </Box>
-                  ))}
-                </Fact>
               )}
 
               <Divider sx={{ my: 0.5 }} />
@@ -849,7 +895,7 @@ export const VerifyPage: React.FC = () => {
                   parents: result.parents,
                   breedingMethod: result.breedingMethod,
                   name: result.cultivar ?? undefined,
-                  nameInLink: !!fromLink,
+                  nameInLink: nameCheck.state !== 'none' && nameCheck.state !== 'published',
                   bredBy: result.bredBy,
                   ...(result.subjectKind === 'animal'
                     ? {

@@ -10,11 +10,13 @@
 //   - withdrawn  the lab withdrew it, and it is still the file saved;
 //   - self       no lab signature matches the saved file: the breeder's own statement.
 //
-// The match is on the file's plain SHA-256, which is what a lab signs. The plant's
-// stored "pairing fingerprint" is a different value by design: the contract's `commit`
-// over that SHA-256, so the pairing can be dated on the network (commitment.ts). Pairings
-// saved before the SHA-256 was kept are matched by recomputing the pairing fingerprint of
-// each lab report signature's SHA-256.
+// The match is on the file's SHA-256. A lab report signed before round 6 names it plainly; one
+// signed since names it bound with the record's proof code and s from the delivery's offer key
+// (lab-doc.ts, CONTRACT.md #34), which the breeder's record keeps (offerKeys), so the match is
+// made with each delivery's s. The plant's stored "pairing fingerprint" is a different value
+// by design: the contract's `commit` over that SHA-256, so the pairing can be dated on the
+// network (commitment.ts). Pairings saved before the SHA-256 was kept are matched by
+// recomputing the pairing fingerprint of each plain lab report signature's SHA-256.
 // SPDX-License-Identifier: Apache-2.0
 
 import type { StrainRecord } from './records';
@@ -25,6 +27,7 @@ import { enT, type Translator } from '../i18n/translate';
 import type { DnaTie } from './dna-tie';
 import { recipientName } from './transfers';
 import { matchesBinding } from './dna-link';
+import { isBoundLabDocument, labSaltsOf, signsReport } from './lab-doc';
 
 /** One lab report that came back on a delivery (LabResults.tsx ArrivedResult, structurally). */
 export type ArrivedLike = {
@@ -63,8 +66,9 @@ const labReports = (record: StrainRecord, atts: readonly ResolvedAttestation[]) 
 export const savedFileSha = (record: StrainRecord, atts: readonly ResolvedAttestation[]): string | undefined => {
   if (!record.dnaFingerprint) return undefined;
   if (record.dnaFileSha256) return record.dnaFileSha256.toLowerCase();
-  return labReports(record, atts).find((a) => pairingFingerprintOfSha(a.documentHash) === record.dnaFingerprint)
-    ?.documentHash;
+  return labReports(record, atts)
+    .filter((a) => !isBoundLabDocument(a))
+    .find((a) => pairingFingerprintOfSha(a.documentHash) === record.dnaFingerprint)?.documentHash;
 };
 
 const newestLive = (arrived: readonly ArrivedLike[], exceptId?: string, transferId?: string) => {
@@ -82,7 +86,8 @@ export const savedReportStatus = (
 ): SavedReport => {
   if (!record.dnaFingerprint) return { kind: 'none' };
   const sha = savedFileSha(record, atts);
-  const matching = sha ? labReports(record, atts).filter((a) => a.documentHash === sha) : [];
+  const salts = labSaltsOf(record);
+  const matching = sha ? labReports(record, atts).filter((a) => signsReport(a, sha, salts)) : [];
   const ids = new Set(matching.map((a) => a.attestationId));
   const byAtt = arrived.filter((a) => a.result.attestationId && ids.has(a.result.attestationId));
   const from =
@@ -238,6 +243,8 @@ export const publicReportLine = (
     linkDna?: { salt: string; identity: string } | null;
     /** The SHA-256 of a file the visitor chose to check, if any. */
     chosenSha?: string | null;
+    /** The lab report salt from the holder's link (`ls`, round 6, lab-doc.ts), if it carries one. */
+    labSalt?: string | null;
     atts: readonly ResolvedAttestation[];
     /** The link's fingerprint matches the registry's: checks may be ticked. */
     bound: boolean;
@@ -271,11 +278,12 @@ export const publicReportLine = (
   let sha: string | undefined;
   let fromLink = false;
   let chosen: 'matches' | 'differs' | undefined;
+  // A bound lab report signature (round 6) names no file: only a chosen file is tried against it.
+  const plainShas = reports.filter((a) => !isBoundLabDocument(a)).map((a) => a.documentHash.toLowerCase());
+  const salts = input.labSalt && HEX64.test(input.labSalt) ? [input.labSalt.toLowerCase()] : [];
   if (binding) {
     if (chosenSha) chosen = matches(chosenSha) ? 'matches' : 'differs';
-    sha = [chosen === 'matches' ? chosenSha : undefined, ...reports.map((a) => a.documentHash.toLowerCase())].find(
-      (c) => c !== undefined && matches(c),
-    );
+    sha = [chosen === 'matches' ? chosenSha : undefined, ...plainShas].find((c) => c !== undefined && matches(c));
   } else if (linkSha) {
     sha = linkSha;
     fromLink = true;
@@ -291,7 +299,8 @@ export const publicReportLine = (
         : '';
 
   if (sha) {
-    const matching = reports.filter((a) => a.documentHash.toLowerCase() === sha);
+    const found = sha;
+    const matching = reports.filter((a) => signsReport(a, found, salts));
     const live = matching.find(countsAsSigned);
     if (live) {
       const l = signerLabel(live, 'signed by', undefined, tr);
@@ -316,6 +325,24 @@ export const publicReportLine = (
           (gone.retraction.reason === 'superseded'
             ? tr.t('app.verify.report.replaced', { which, on, tail: tr.t('app.lab.replacedTail'), staleNote })
             : tr.t('app.verify.report.withdrawn', { which, on, tail: tr.t('app.lab.withdrawnTail'), staleNote })),
+        ...(chosen ? { chosen } : {}),
+      };
+    }
+    // A lab signed a report this page can't hold the file to (round 6): never "the holder's
+    // own statement". A bound signature without the link's `ls`, or one the registry withheld.
+    const unmatchable = input.atts.some(
+      (a) =>
+        a.type === 'laboratory-report' &&
+        ((a.signatureValid && isBoundLabDocument(a) && salts.length === 0) || a.documentWithheld === true),
+    );
+    if (unmatchable) {
+      const why = input.atts.some((a) => a.type === 'laboratory-report' && a.signatureValid && isBoundLabDocument(a))
+        ? tr.t('app.verify.report.whyNoLabSalt')
+        : tr.t('app.verify.report.whyWithheld');
+      return {
+        status: chosen === 'differs' ? 'failed' : 'reported',
+        text: fileWords + tr.t('app.verify.report.labUnknown', { asOf, sha: shortHex(sha), why, staleNote }),
+        tie: { state: 'saved' },
         ...(chosen ? { chosen } : {}),
       };
     }

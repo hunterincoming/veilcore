@@ -4,6 +4,8 @@
 
 export const home = {
   'app.home.firstPlant': 'Let’s log your first plant or animal',
+  'app.home.oldLinks':
+    'Check links and QR codes made before 17 October 2026 no longer show your records’ names: VeilCore keeps names locked now, so the registry has none to show. To share a name, open the record, choose Show someone, switch the name on, and send the new link. A new certificate has a new QR code.',
   'app.home.continueDraftNamed': 'Continue your draft: {name}',
   'app.home.continueDraft': 'Continue your draft',
   'app.home.draftKept': 'What you typed is kept in this browser. Pick up where you left off.',

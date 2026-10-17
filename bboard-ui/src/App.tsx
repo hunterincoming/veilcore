@@ -101,10 +101,12 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   // The app pages load and follow the holder's records; the landing page, the public
   // verify page and the documents do not (attack round D). Without a holder key in this
   // browser nothing is requested at all.
+  // Not on a prove page (round 6, CONTRACT.md #36): the sync sends the holder key, which there
+  // would tie the holder to the on-chain key the request names. It starts on the next app page.
   useEffect(() => {
     void import('./veilcore/records').then((m) => m.startRecordSync());
     void import('./veilcore/licenses').then((m) => m.startLicenseSync());
-  }, []);
+  }, [pathname]);
   return (
     <Box
       sx={{

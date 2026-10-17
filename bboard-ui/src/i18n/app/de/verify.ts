@@ -122,7 +122,23 @@ export const verify = {
   'app.verify.mismatch.inLink': 'Prüfcode im Link: {fp}',
   'app.verify.mismatch.chip':
     'Die Antwort des Registers passt nicht zu diesem Link – nichts auf dieser Seite wurde geprüft',
-  'app.verify.nameTyped': 'Name, wie vom Inhaber eingegeben: ',
+  'app.verify.namePublished': 'Name, den der Inhaber zeigt: ',
+  'app.verify.nameMatches': 'Name stimmt mit dem Datensatz überein: ',
+  'app.verify.nameUnchecked': 'Name in diesem Link (nicht geprüft): ',
+  'app.verify.nameDiffers': 'Dieser Name stimmt nicht mit dem Datensatz überein: {name}',
+  'app.verify.nameConflict':
+    'Dieser Link enthält einen anderen Namen ({name}). Der Name, den der Inhaber zeigt, steht oben.',
+  'app.verify.kindReportBound': 'Laborbericht',
+  'app.verify.withheldReports.one':
+    'Laut Register hat ein Labor am {dates} einen Bericht über diesen Datensatz signiert. Diese Signatur nennt die Datei des Berichts, daher zeigt das Register sie nur dem Züchter und dem Labor, und diese Seite kann sie nicht prüfen.',
+  'app.verify.withheldReports.other':
+    'Laut Register hat ein Labor {count} Berichte über diesen Datensatz signiert ({dates}). Diese Signaturen nennen die Dateien der Berichte, daher zeigt das Register sie nur dem Züchter und dem Labor, und diese Seite kann sie nicht prüfen.',
+  'app.verify.report.labUnknown':
+    'Der Inhaber hat eine Datei eines DNA-Berichts zu diesem Datensatz gespeichert{asOf} (SHA-256 {sha}). Ein Labor hat einen Bericht über diesen Datensatz signiert, aber diese Seite kann nicht sagen, ob es diese Datei ist: {why}{staleNote}',
+  'app.verify.report.whyNoLabSalt':
+    'Dieser Link enthält den Schlüssel des Laborberichts nicht. Bitten Sie den Inhaber um einen Prüflink, der mit gezeigtem DNA-Bericht erstellt wurde.',
+  'app.verify.report.whyWithheld':
+    'Diese Laborsignatur wurde vor dem 17. Oktober 2026 erstellt, und das Register zeigt sie nur dem Züchter und dem Labor.',
   'app.verify.recordId': 'Datensatz-ID: {id}',
   'app.verify.noCommitment':
     'Dieser Datensatz enthält keine Festlegung, daher lässt sich nichts an ihm prüfen. Er existiert im Register, mehr nicht.',
@@ -221,7 +237,7 @@ export const verify = {
     '✓ Diese Seite hat die Zeile selbst geprüft, in Ihrem Browser. ○ Das VeilCore-Register oder der Inhaber meldet es; diese Seite hat es nicht geprüft. ⊗ Eine Prüfung ist fehlgeschlagen, oder ein Labor hat zurückgezogen, was es signiert hat.',
   'app.verify.ex.checkReal': 'Einen echten Datensatz prüfen',
   'app.verify.ex.what': 'Was ist VeilCore?',
-  'app.verify.noNameInLink': 'Der Inhaber hat den Namen nicht in diesen Link aufgenommen.',
+  'app.verify.noNameInLink': 'Dieser Link enthält den Namen nicht.',
   'app.verify.field.name': 'Sein Name',
   'app.verify.nameShared': 'Sein Name, vom Inhaber für alle mit der ID sichtbar gemacht: {name}',
   'app.verify.noNameShared': 'Kein Name eingetragen.',

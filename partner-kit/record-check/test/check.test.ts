@@ -908,3 +908,87 @@ describe('the CLI', () => {
     }
   });
 });
+
+// Round 6 (the site's CONTRACT.md #33, #34; the fifth review's findings 2 and 3).
+describe('round 6: the name in a link is checked; old lab report hashes are withheld', () => {
+  const NAME = 'Practice record';
+  const NAME_SALT = 'a1'.repeat(32);
+  const nameCode = (name: string, salt = NAME_SALT) =>
+    sha256(
+      Buffer.concat([Buffer.from('veilcore:name:v1\0'), Buffer.from(name, 'utf8'), Buffer.from(`\0${FP}\0${salt}`)]),
+    );
+  const unpublished = { found: true, id: ID, recordFingerprint: FP, keyBound: true, nameCode: nameCode(NAME) };
+  const n = (name: string) => Buffer.from(name, 'utf8').toString('base64url');
+
+  it('finding 2 (partner-forged-name.mjs): a genuine link forwarded with another name does not match', async () => {
+    const FORGED = 'Gelato 41 (lab certified clone)';
+    const forged = await run(`${LINK}#n=${n(FORGED)}&ns=${NAME_SALT}`, { verify: unpublished });
+    expect(forged.c.nameCheck).toBe('does-not-match');
+    expect(forged.c.nameByHolder).toBeNull();
+    expect(forged.c.nameInLink).toBe(FORGED);
+    expect(forged.c.summary).toContain(`This name does not match the record: “${FORGED}”.`);
+    // The holder's own link: it matches.
+    const genuine = await run(`${LINK}#n=${n(NAME)}&ns=${NAME_SALT}`, { verify: unpublished });
+    expect(genuine.c.nameCheck).toBe('matches');
+    expect(genuine.c.nameByHolder).toBe(NAME);
+    expect(genuine.c.summary).toContain(`Name matches the record: “${NAME}”.`);
+    // No salt in the link, or no name code published (a link or record from before round 6).
+    const noSalt = await run(`${LINK}#n=${n(FORGED)}`, { verify: unpublished });
+    expect(noSalt.c.nameCheck).toBe('not-checked');
+    expect(noSalt.c.nameByHolder).toBeNull();
+    expect(noSalt.c.summary).toContain(`Name given in this link (not checked): “${FORGED}”.`);
+    const noCode = await run(`${LINK}#n=${n(NAME)}&ns=${NAME_SALT}`, {
+      verify: { ...unpublished, nameCode: undefined },
+    });
+    expect(noCode.c.nameCheck).toBe('not-checked');
+    // No name in the link at all.
+    const none = await run(LINK, { verify: unpublished });
+    expect(none.c.nameCheck).toBe('not-in-link');
+    expect(none.c.summary).toContain('This link doesn’t carry the name.');
+  });
+
+  it('a name the holder published wins over the link’s, and a different one is flagged', async () => {
+    const r = await run(`${LINK}#n=${n('Something else')}&ns=${NAME_SALT}`, {
+      verify: { ...unpublished, cultivar: NAME },
+    });
+    expect(r.c.nameCheck).toBe('published');
+    expect(r.c.nameByHolder).toBe(NAME);
+    expect(r.c.nameConflict).toBe(true);
+    expect(r.c.summary).toContain('This link carries a different name (“Something else”)');
+  });
+
+  it('finding 3: a lab report signed before round 6 comes withheld and is counted, not dropped; one since is bound', async () => {
+    const withheld = {
+      attestationId: 'att_old',
+      type: 'laboratory-report',
+      subjectCommitment: FP,
+      issuedAt: '2026-10-12T09:00:00Z',
+      attester: { publicKey: lab.publicKey, displayName: 'Practice Lab' },
+      documentWithheld: true,
+      strength: 'signed',
+      vettedAttester: true,
+      registeredAs: registeredAs(),
+      retraction: null,
+    };
+    const bound = await signAttestation(
+      {
+        attestationId: 'att_new_ld1',
+        type: 'laboratory-report',
+        subjectCommitment: FP,
+        documentHash: hex(),
+        hashAlgorithm: 'sha256',
+        issuedAt: '2026-10-17T09:00:00Z',
+        attester: { publicKey: lab.publicKey, displayName: 'Practice Lab' },
+      },
+      lab.privateKey,
+    );
+    const r = await run(LINK, { attestations: [withheld, served(bound)] });
+    expect(r.c.labReportsWithheld).toBe(1);
+    expect(r.c.problems.join(' ')).toMatch(/a lab signed a report about this record before 17 October 2026/);
+    expect(r.c.problems.join(' ')).not.toMatch(/could not be read/);
+    expect(r.c.labReceipts).toHaveLength(1);
+    expect(r.c.labReceipts[0]).toMatchObject({ kind: 'lab-report', documentBound: true, signatureVerified: true });
+    expect(r.c.labReceipts[0].documentSha256).toBeUndefined();
+    expect(r.c.labReceipts[0].words).toMatch(/bound to this record/);
+  });
+});

@@ -391,7 +391,7 @@ describe('round 4: the privacy sentences the fourth review found false', () => {
       // Round 5: the name is locked, travels after the # in check links, and is read only if shown.
       expect(s).toMatch(/locked by your browser before they are sent: each record[’']s name, breeder/);
       expect(s).toMatch(
-        /If you choose, a record[’']s name also travels in a check link you make, after the #, which a browser never sends to any server\./,
+        /If you choose, a record[’']s name also travels in a check link you make, after the #\. A browser doesn[’']t send that part when it opens the link, but the link goes whole to anyone you send it to and to any site you paste it into, a partner[’']s form included\./,
       );
       expect(s).toMatch(
         /what you choose to show on its check page \(its name, if you choose to show it, and whether a DNA report is saved/,
@@ -457,7 +457,7 @@ describe('round 4: the privacy sentences the fourth review found false', () => {
           /Bei einer Lieferung von vor den Kennzeichen/,
           /externen Sicherungen/,
           /der Name jedes Datensatzes, Züchter/,
-          /nach dem #, das ein Browser nie an einen Server sendet/,
+          /nach dem #\. Diesen Teil sendet ein Browser nicht, wenn er den Link öffnet, aber der Link geht vollständig an jeden/,
         ],
       ],
       [
@@ -470,7 +470,7 @@ describe('round 4: the privacy sentences the fourth review found false', () => {
           /En un envío anterior a las etiquetas/,
           /copias de seguridad externas/,
           /el nombre de cada registro, obtentor/,
-          /después del #, que un navegador nunca envía a ningún servidor/,
+          /después del #\. Un navegador no envía esa parte al abrir el enlace, pero el enlace va completo a cualquiera/,
         ],
       ],
       [
@@ -483,7 +483,7 @@ describe('round 4: the privacy sentences the fourth review found false', () => {
           /Pour un envoi d'avant les étiquettes/,
           /sauvegardes externes/,
           /le nom de chaque enregistrement, obtenteur/,
-          /après le #, qu'un navigateur n'envoie jamais à aucun serveur/,
+          /après le #\. Un navigateur n'envoie pas cette partie quand il ouvre le lien, mais le lien va entier/,
         ],
       ],
       [
@@ -496,7 +496,7 @@ describe('round 4: the privacy sentences the fourth review found false', () => {
           /タグ導入前の送付/,
           /外部バックアップ/,
           /各記録の名前、育成者/,
-          /#の後ろは、ブラウザがどのサーバーにも送りません/,
+          /ブラウザはリンクを開くときにその部分を送りませんが、リンクそのものは、送った相手や貼り付けたサイト/,
         ],
       ],
     ];
@@ -641,5 +641,211 @@ describe('round 5: names are locked, and a record’s fingerprint is its proof c
       OLD.filter((re) => re.test(v)).map((re) => `${k} ${String(re)}`),
     );
     expect(found).toEqual([]);
+  });
+});
+
+// Round 6 (CONTRACT.md #32-#37; the fifth review, sealed/report-round5.md): the sentences it
+// found false or overstated, made exactly true in every language and build. Each old sentence is
+// checked to be caught, so the test can't pass by matching nothing.
+describe('round 6: the sentences the fifth review found false', () => {
+  /** Every text a person reads that says these things: the site, the app, the docs, the kit. */
+  const everything = (): Record<string, string> => {
+    const kitSrc = path.join(SRC, '..', '..', 'partner-kit', 'record-check', 'src');
+    const out: Record<string, string> = {
+      ...english(),
+      ...translated(),
+      readme: fs.readFileSync(path.join(SRC, '..', '..', 'README.md'), 'utf8'),
+      terms: fs.readFileSync(path.join(SRC, '..', '..', 'docs/privacy-and-data-terms.md'), 'utf8'),
+      kitReadme: fs.readFileSync(path.join(SRC, '..', '..', 'partner-kit', 'record-check', 'README.md'), 'utf8'),
+    };
+    for (const f of fs.readdirSync(kitSrc).filter((n) => n.endsWith('.ts')))
+      out[`kit/${f}`] = fs.readFileSync(path.join(kitSrc, f), 'utf8');
+    return out;
+  };
+  /** The old sentences (finding 1, 2, 3, 5, 6 and the false-sentence list), in every language. */
+  const OLD: readonly RegExp[] = [
+    // Finding 1: "anyone can check the site matches its published code".
+    /files are listed publicly, so anyone can check the site/,
+    /anyone can check the site (runs|matches|serves) its published code/,
+    /sodass jeder prüfen kann, ob die Website ihrem veröffentlichten Code entspricht/,
+    /para que cualquiera pueda comprobar que el sitio coincide con su código publicado/,
+    /pour que chacun puisse vérifier que le site correspond à son code publié/,
+    /サイトが公開されたコードと一致するかを誰でも確かめられます/,
+    // "after the #, which a browser never sends to any server": the link goes whole wherever it is sent.
+    /which a browser never sends to any server/,
+    /which no server receives/,
+    /das ein Browser nie an einen Server sendet/,
+    /que un navegador nunca envía a ningún servidor/,
+    /qu'un navigateur n'envoie jamais à aucun serveur/,
+    /#の後ろは、ブラウザがどのサーバーにも送りません/,
+    // Finding 2: a name in a link was shown as the holder's.
+    /Name, as the holder typed it/,
+    /as the holder typed it\)/,
+    /wie vom Inhaber eingegeben: /,
+    /tal como lo escribió el titular: /,
+    /tel que le détenteur l’a saisi : /,
+    /（保有者の入力どおり）：/,
+    // Finding 6: an old link doesn't say the holder left the name out.
+    /The holder didn[’']t include the name in this link/,
+    /Der Inhaber hat den Namen nicht in diesen Link aufgenommen/,
+    /El titular no incluyó el nombre en este enlace/,
+    /Le détenteur n'a pas mis le nom dans ce lien/,
+    /保有者はこのリンクに名前を入れていません/,
+    // "DNA files never leave your device": a lab's report leaves the lab's device, locked.
+    /Genetic data never leaves your computer\./,
+    /遺伝データがあなたのコンピューターから出ることはありません/,
+  ];
+
+  it('the old sentences are caught, and none is left anywhere a person reads', () => {
+    for (const old of [
+      "VeilCore serves the app's code. Each release's files are listed publicly, so anyone can check the site matches its published code.",
+      "If you choose, a record's name also travels in a check link you make, after the #, which a browser never sends to any server.",
+      'Name, as the holder typed it: Gelato 41 (lab certified clone)',
+      "The holder didn't include the name in this link.",
+      'Genetic data never leaves your computer.',
+    ])
+      expect(
+        OLD.some((re) => re.test(old)),
+        old,
+      ).toBe(true);
+    const found = Object.entries(everything()).flatMap(([k, v]) =>
+      OLD.filter((re) => re.test(v)).map((re) => `${k} ${String(re)}`),
+    );
+    expect(found).toEqual([]);
+  });
+
+  it('the site check says exactly what it shows and what it can’t (#32), in every language and build', () => {
+    const CONTRACT =
+      "Each release publishes the list of its files. You can check that the files your browser received match that list, and anyone can rebuild the release from the published code and compare. This shows what we released. It can't prove a host sent everyone the same files.";
+    expect(en['m.privacy.code.text']).toContain(CONTRACT);
+    expect(en['m.checksite.lede']).toContain(CONTRACT);
+    const t = translated();
+    for (const [lang, re] of [
+      ['de', /Es kann nicht beweisen, dass ein Host allen dieselben Dateien geschickt hat\./],
+      ['es', /No puede probar que un servidor haya enviado a todos los mismos archivos\./],
+      ['fr', /Cela ne peut pas prouver qu’un hébergeur a envoyé à tous les mêmes fichiers\./],
+      ['ja', /ホストが全員に同じファイルを送ったことまでは証明できません。/],
+    ] as const) {
+      expect(t[`${lang}:m.privacy.code.text`], lang).toMatch(re);
+      expect(t[`${lang}:m.checksite.lede`], lang).toMatch(re);
+      expect(t[`${lang}:m.checksite.limit`], lang).toBeTruthy();
+    }
+    expect(en['m.checksite.limit']).toBe(
+      'This shows what your browser received. It can’t prove the host sent everyone the same files.',
+    );
+  });
+
+  it('"Our server can read" names the name code and old lab signatures, and what a prove request tells it (#33, #34, #36), in every build', () => {
+    const builds = [
+      en,
+      ...[true, false].flatMap((claimsOnMainnet) =>
+        [true, false].flatMap((policyApproved) =>
+          [true, false].map((chainReads) => ({
+            ...en,
+            ...mainnetStrings({ claimsOnMainnet, policyApproved, chainReads }),
+          })),
+        ),
+      ),
+    ];
+    for (const b of builds) {
+      const s = b['m.privacy.stored.text'] ?? '';
+      expect(s).toMatch(
+        /a code made from its name, which says nothing about the name without the key in your check link;/,
+      );
+      expect(s).toMatch(
+        /one made before 17 October 2026 names the report file[’']s SHA-256, which our server shows only to you and the lab\./,
+      );
+      expect(s).toMatch(
+        /kept for 7 days: our server learns which on-chain key each request names\. The prove and check pages never send your holder key\./,
+      );
+      expect(s).toMatch(/a partner[’']s form included\./);
+    }
+    const t = translated();
+    for (const [lang, res] of [
+      [
+        'de',
+        [
+          /Unser Server erfährt, welchen On-Chain-Schlüssel jede Anfrage nennt/,
+          /einen Code aus seinem Namen/,
+          /vor dem 17\. Oktober 2026/,
+        ],
+      ],
+      [
+        'es',
+        [
+          /nuestro servidor sabe qué clave en la cadena nombra cada solicitud/,
+          /un código hecho a partir de su nombre/,
+          /antes del 17 de octubre de 2026/,
+        ],
+      ],
+      [
+        'fr',
+        [
+          /notre serveur apprend quelle clé sur la chaîne chaque demande désigne/,
+          /un code fait à partir de son nom/,
+          /avant le 17 octobre 2026/,
+        ],
+      ],
+      [
+        'ja',
+        [/各リクエストがどのオンチェーンの鍵を指しているかを知ります/, /名前から作ったコード/, /2026年10月17日より前/],
+      ],
+    ] as const) {
+      const keys = Object.keys(t).filter((k) => k.startsWith(lang) && k.endsWith(':m.privacy.stored.text'));
+      expect(keys.length, lang).toBeGreaterThan(0);
+      for (const k of keys) for (const re of res) expect(t[k], `${k} ${String(re)}`).toMatch(re);
+    }
+  });
+
+  it('DNA files: "never leave your device. Lab reports travel locked." (#37), in every language', () => {
+    expect(en['m.privacy.sum.local.p']).toMatch(/never leave your device\. Lab reports travel locked\./);
+    expect(en['m.privacy.local.text']).toMatch(/^Your DNA files never leave your device\. Lab reports travel locked\./);
+    for (const claimsOnMainnet of [true, false])
+      expect(
+        mainnetStrings({ claimsOnMainnet, policyApproved: true, chainReads: true })['m.privacy.madeup.text'],
+      ).toMatch(/Your DNA files never leave your device\. Lab reports travel locked\./);
+    const t = translated();
+    expect(t['de:m.privacy.local.text']).toMatch(
+      /^Ihre DNA-Dateien verlassen nie Ihr Gerät\. Laborberichte reisen verschlossen\./,
+    );
+    expect(t['es:m.privacy.local.text']).toMatch(
+      /^Sus archivos de ADN nunca salen de su dispositivo\. Los informes de laboratorio viajan cerrados\./,
+    );
+    expect(t['fr:m.privacy.local.text']).toMatch(
+      /^Vos fichiers ADN ne quittent jamais votre appareil\. Les rapports de laboratoire voyagent verrouillés\./,
+    );
+    expect(t['ja:m.privacy.local.text']).toMatch(
+      /^あなたのDNAファイルが端末から出ることはありません。検査報告書は鍵をかけて送られます。/,
+    );
+  });
+
+  it('the check page’s name words (#33, #37) and the one-time note, in every language; the partner form says the link goes whole', () => {
+    const a = appEn as Record<string, string>;
+    expect(a['app.verify.nameMatches']).toBe('Name matches the record: ');
+    expect(a['app.verify.nameDiffers']).toBe('This name does not match the record: {name}');
+    expect(a['app.verify.nameUnchecked']).toBe('Name given in this link (not checked): ');
+    expect(a['app.verify.noNameInLink']).toBe("This link doesn't carry the name.");
+    expect(a['app.home.oldLinks']).toMatch(
+      /^Check links and QR codes made before 17 October 2026 no longer show your records’ names/,
+    );
+    const t = translated();
+    for (const lang of ['de', 'es', 'fr', 'ja'])
+      for (const k of [
+        'app.verify.nameMatches',
+        'app.verify.nameDiffers',
+        'app.verify.nameUnchecked',
+        'app.verify.noNameInLink',
+        'app.home.oldLinks',
+      ])
+        expect(t[`app-${lang}:${k}`], `${lang} ${k}`).toBeTruthy();
+    const kit = fs.readFileSync(path.join(SRC, '..', '..', 'partner-kit', 'record-check', 'src', 'element.ts'), 'utf8');
+    expect(kit).toContain('The whole link, the part after the # included, goes to this site with the form.');
+    for (const s of [
+      'Name matches the record:',
+      'This name does not match the record:',
+      'Name given in this link (not checked):',
+      'This link doesn’t carry the name.',
+    ])
+      expect(kit, s).toContain(s);
   });
 });

@@ -54,9 +54,11 @@ test.describe('the check page, round 5', () => {
     const requests = await standIn(page, { disclosed: ['own'] });
     await page.goto(`/verify/${RECORD}?fp=${FP}#n=${nameParam(NAME)}`);
     const shown = page.locator('[data-holder-name]');
-    // Labelled as the holder's words, and cleaned of symbols like any typed name (display-name.ts).
-    await expect(shown).toHaveText('Name, as the holder typed it: Ébène Kush №5 (practice)');
+    // Labelled as the link's word, not checked (no salt and no name code here: a link or record
+    // from before round 6), and cleaned of symbols like any typed name (display-name.ts).
+    await expect(shown).toHaveText('Name given in this link (not checked): Ébène Kush №5 (practice)');
     await expect(shown).toHaveAttribute('data-name-from', 'link');
+    await expect(shown).toHaveAttribute('data-name-check', 'unchecked');
     await expect(page.locator('[data-no-name]')).toHaveCount(0);
     // The fragment never leaves the browser: no request carries the name, in any form.
     for (const r of requests) {
@@ -66,11 +68,11 @@ test.describe('the check page, round 5', () => {
     expectNoErrors(errors);
   });
 
-  test('the same link without the name: the page says the holder didn’t include it', async ({ page }) => {
+  test('the same link without the name: the page says the link doesn’t carry it (round 6)', async ({ page }) => {
     const errors = watch(page);
     await standIn(page, { disclosed: ['own'] });
     await page.goto(`/verify/${RECORD}?fp=${FP}`);
-    await expect(page.locator('[data-no-name]')).toHaveText("The holder didn't include the name in this link.");
+    await expect(page.locator('[data-no-name]')).toHaveText("This link doesn't carry the name.");
     await expect(page.locator('[data-holder-name]')).toHaveCount(0);
     await expect(page.getByText(NAME)).toHaveCount(0);
     expectNoErrors(errors);

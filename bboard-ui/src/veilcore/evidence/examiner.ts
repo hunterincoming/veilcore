@@ -342,7 +342,9 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
       [
         s.type === 'chain-of-custody'
           ? 'Signed code (the lab’s record of the delivery, not the sample)'
-          : 'Document SHA-256',
+          : s.attestationId?.endsWith('_ld1')
+            ? 'Signed code (the report file bound to this record with the lab report salt)'
+            : 'Document SHA-256',
         s.documentHash ?? null,
       ],
       ['Signed at', s.issuedAt ? `${s.issuedAt} (the signer’s own clock)` : null],

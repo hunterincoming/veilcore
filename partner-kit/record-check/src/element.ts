@@ -39,7 +39,16 @@ import {
   RegistryError,
   type RecordCheck,
 } from './check.js';
-import { CUT } from './link.js';
+import { CUT, parseCheckLink } from './link.js';
+
+/** The name salt in a pasted link (`ns`), if it has one. */
+const saltOf = (link: string): string | undefined => {
+  try {
+    return parseCheckLink(link).nameSalt;
+  } catch {
+    return undefined;
+  }
+};
 
 // Colours, each overridable by a --vc-* property on the element: --vc-accent (the button,
 // links, the focus ring; VeilCore's stamp red), --vc-ok (a check that passed), --vc-bad
@@ -150,7 +159,7 @@ export class VeilcoreRecordCheck extends HTMLElement {
     const hint = el('p', {
       className: 'hint',
       attrs: { id: `${id}-hint` },
-      text: 'Paste the link from the record’s “Show someone” page or its certificate’s QR code. It is checked in this browser against the public VeilCore registry. Free; no account.',
+      text: 'Paste the link from the record’s “Show someone” page or its certificate’s QR code. It is checked in this browser against the public VeilCore registry. Free; no account. The whole link, the part after the # included, goes to this site with the form.',
     });
     this.#input = el('input', {
       attrs: {
@@ -495,12 +504,27 @@ export class VeilcoreRecordCheck extends HTMLElement {
         heading = 'Record found, link matches';
         headKind = 'ok';
       }
-      // The name is the holder's word, from their link (round 5: the registry no longer has it).
+      // The name (round 6): published by the holder, or the link's checked against the record's
+      // name code. A name that doesn't match is said, never shown as the record's.
       items.push(
-        c.nameByHolder
-          ? line('info', 'Name:', `${c.nameByHolder} (as the holder typed it).`)
-          : line('info', 'Name:', 'The holder didn’t include the name in this link.'),
+        c.nameCheck === 'published'
+          ? line('info', 'Name the holder chose to show:', c.nameByHolder ?? '')
+          : c.nameCheck === 'matches'
+            ? line('ok', 'Name matches the record:', c.nameByHolder ?? '')
+            : c.nameCheck === 'does-not-match'
+              ? line('bad', 'This name does not match the record:', c.nameInLink ?? '')
+              : c.nameCheck === 'not-checked'
+                ? line('info', 'Name given in this link (not checked):', c.nameInLink ?? '')
+                : line('info', 'Name:', 'This link doesn’t carry the name.'),
       );
+      if (c.nameConflict)
+        items.push(
+          line(
+            'warn',
+            'Different name in the link:',
+            `${c.nameInLink ?? ''}. The one the holder chose to show is above.`,
+          ),
+        );
       items.push(
         c.fingerprintMatches
           ? line('ok', 'Checked:', 'the link’s proof code is the one the registry reports for this record.')
@@ -549,9 +573,9 @@ export class VeilcoreRecordCheck extends HTMLElement {
     const page = (this.getAttribute('check-page') || 'https://veilcore.org').replace(/\/+$/, '');
     const children: Node[] = [el('h3', { className: headKind, text: heading }), el('ul', {}, ...items)];
     if (c.recordExists && c.fingerprint && !c.linkLooksCut && /^https:\/\/[^/?#]+$/.test(page)) {
-      // Built from the id and fingerprint, never from the pasted link's host. The name goes
-      // after the #, as the holder's link carries it (round 5).
-      const href = `${page}/verify/${encodeURIComponent(c.recordId)}?fp=${c.fingerprint}${nameFragment(c.nameByHolder)}`;
+      // Built from the id and fingerprint, never from the pasted link's host. A name checked to
+      // be the record's goes after the #, with its salt, as the holder's link carries them.
+      const href = `${page}/verify/${encodeURIComponent(c.recordId)}?fp=${c.fingerprint}${nameFragment(c.nameCheck === 'matches' ? c.nameByHolder : null, saltOf(this.#input.value))}`;
       children.push(
         el(
           'p',
@@ -587,12 +611,12 @@ export class VeilcoreRecordCheck extends HTMLElement {
   }
 }
 
-/** `#n=<the name's UTF-8 bytes in base64url>`, or '' for no name. */
-const nameFragment = (name: string | null): string => {
-  if (!name) return '';
+/** `#n=<the name's UTF-8 bytes in base64url>&ns=<its salt>`, or '' for no name. */
+const nameFragment = (name: string | null, salt: string | undefined): string => {
+  if (!name || !salt) return '';
   let bin = '';
   for (const b of new TextEncoder().encode(name)) bin += String.fromCharCode(b);
-  return `#n=${btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`;
+  return `#n=${btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}&ns=${salt}`;
 };
 
 /** Register the element (once). */

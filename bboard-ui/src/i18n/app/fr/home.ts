@@ -5,6 +5,8 @@ import type { AppTranslation } from '../../translate';
 
 export const home = {
   'app.home.firstPlant': 'Enregistrons votre première plante ou votre premier animal',
+  'app.home.oldLinks':
+    'Les liens de vérification et codes QR faits avant le 17 octobre 2026 ne montrent plus le nom de vos enregistrements : VeilCore garde désormais les noms verrouillés, donc le registre n’en a aucun à montrer. Pour partager un nom, ouvrez l’enregistrement, choisissez Montrer à quelqu’un, activez le nom et envoyez le nouveau lien. Un nouveau certificat a un nouveau code QR.',
   'app.home.continueDraftNamed': 'Reprendre votre brouillon : {name}',
   'app.home.continueDraft': 'Reprendre votre brouillon',
   'app.home.draftKept':

@@ -286,7 +286,25 @@ var VeilcoreVerify = (function () {
     }
   }
 
-  async function checkSignature(a, fingerprint) {
+  /**
+   * What a lab signs about a report since 17 Oct 2026 (the site's lab-doc.ts labDocument):
+   * SHA-256("veilcore:labdoc:v1" 0x00 || the report's SHA-256 || the proof code || the lab
+   * report salt), each 32 bytes. The salt comes from the delivery's key, which only the sender
+   * and the lab hold; the bundle carries it (lab/lab-report-pairing.json labSalt) so this page
+   * can tie the signature to the file. Such a signature's id ends in _ld1.
+   */
+  var LAB_DOC_SUFFIX = '_ld1';
+  async function labDocument(reportSha, proofCode, salt) {
+    var tag = enc.encode('veilcore:labdoc:v1\0');
+    var all = new Uint8Array(tag.length + 96);
+    all.set(tag, 0);
+    all.set(hexToBytes(reportSha), tag.length);
+    all.set(hexToBytes(proofCode), tag.length + 32);
+    all.set(hexToBytes(salt), tag.length + 64);
+    return sha256Hex(all);
+  }
+
+  async function checkSignature(a, fingerprint, labReport) {
     var out = {
       attestationId: isObject(a) && typeof a.attestationId === 'string' ? a.attestationId : '(no id)',
       type: isObject(a) && typeof a.type === 'string' ? a.type : '',
@@ -297,7 +315,15 @@ var VeilcoreVerify = (function () {
       aboutThisRecord: isObject(a) && a.subjectCommitment === fingerprint,
       signature: 'invalid',
       retraction: null,
+      // A lab report signature bound to the record (id ending _ld1), and whether it is the
+      // report saved to this record: worked out here from the bundle's file SHA-256 and salt.
+      bound: isObject(a) && typeof a.attestationId === 'string' && a.attestationId.slice(-LAB_DOC_SUFFIX.length) === LAB_DOC_SUFFIX,
+      savedReport: false,
+      // The registry left out a signature made before 17 Oct 2026 that names the report file:
+      // it shows it only to the delivery's sender and lab.
+      withheld: isObject(a) && a.documentWithheld === true,
     };
+    if (out.withheld) return out;
     try {
       if (
         !isObject(a) || !isObject(a.attester) || !a.signature ||
@@ -308,6 +334,11 @@ var VeilcoreVerify = (function () {
         return out;
       }
       out.signature = await ed25519(a.attester.publicKey, a.signature, attestationPayload(a));
+      if (a.type === 'laboratory-report' && isObject(labReport) && isHex64(labReport.fileSha256)) {
+        if (!out.bound) out.savedReport = labReport.fileSha256 === a.documentHash;
+        else if (isHex64(labReport.labSalt) && isHex64(a.documentHash))
+          out.savedReport = (await labDocument(labReport.fileSha256, a.subjectCommitment, labReport.labSalt)) === a.documentHash;
+      }
       var r = a.retraction;
       if (isObject(r)) {
         var ok =
@@ -717,7 +748,7 @@ var VeilcoreVerify = (function () {
     out.pairing = await checkPairing(ev.labReport);
     out.linkBinding = await checkLinkBinding(ev.labReport, ev.record && ev.record.fingerprint);
     var sigs = Array.isArray(ev.signatures) ? ev.signatures : [];
-    for (var i = 0; i < sigs.length; i++) out.signatures.push(await checkSignature(sigs[i], fingerprint));
+    for (var i = 0; i < sigs.length; i++) out.signatures.push(await checkSignature(sigs[i], fingerprint, ev.labReport));
     var custody = Array.isArray(ev.custody) ? ev.custody : [];
     for (var c = 0; c < custody.length; c++) out.custody.push(await checkCustody(custody[c], out.signatures, sigs));
     out.lookups = lookups(ev);
@@ -761,6 +792,7 @@ var VeilcoreVerify = (function () {
     checkPairing: checkPairing,
     checkLinkBinding: checkLinkBinding,
     checkSignature: checkSignature,
+    labDocument: labDocument,
     checkCustody: checkCustody,
     custodyDifferences: custodyDifferences,
     fingerprintOf: fingerprintOf,

@@ -9,7 +9,7 @@ import { encumberWithAnswer, discharge as dischargeRecord } from './lineage';
 import { getRecord } from './records';
 import { store } from './store';
 import { reportSave } from './save-status';
-import { holderPartyId } from './holder';
+import { holderPartyId, holderRequestsPaused } from './holder';
 import { canonicalise, newNonce } from './commitment';
 import {
   deleteLicenses,
@@ -229,7 +229,9 @@ export const clearLoadedLicenses = (): void => {
 };
 
 export const startLicenseSync = (): void => {
-  if (started) return;
+  // Not on a prove page (round 6, CONTRACT.md #36): it never sends the holder key. Started by
+  // the next app page instead.
+  if (started || holderRequestsPaused()) return;
   started = true;
   void hydrate();
 };

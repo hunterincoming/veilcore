@@ -1,4 +1,5 @@
-// Both site deploys refuse a registry that can't serve the site (16 Oct 2026).
+// All three site deploys refuse a registry that can't serve the site (16 Oct 2026; deploy:prod
+// since round 6, CONTRACT.md #35).
 //
 // Every build of the site uses sealed records, lab results, animal records and the claimant's
 // copy of a delivery's offer ("Finish receiving"), so
@@ -42,6 +43,8 @@ const ALL = [
   'sealed-name-v1',
   'dna-pair-binding-v1',
   'bred-by-grant-v1',
+  'name-code-v1',
+  'lab-doc-binding-v1',
 ];
 const DEPLOY_FIRST = /Deploy the registry first: put the registry's latest code live on Railway/;
 
@@ -92,10 +95,10 @@ const runScript = (script: string, env: Record<string, string>, cwd = ROOT) =>
   });
 
 describe('the features the site needs', () => {
-  it('are exactly sealed records, lab results, animal records, finishing a delivery, locked sample details, the record and agreement rev, locked names, bound DNA reports and sharing who bred it', () => {
+  it('are exactly sealed records, lab results, animal records, finishing a delivery, locked sample details, the record and agreement rev, locked names, bound DNA reports, sharing who bred it, name codes and bound lab reports', () => {
     expect(Object.keys(REQUIRED_FEATURES)).toEqual(ALL);
     expect(featuresLine('https://r.example')).toBe(
-      'Registry https://r.example serves sealed records, lab results, animal records, finishing a received delivery, locked sample details, refusing an older copy of a record, refusing an older copy of an agreement, locked record names, DNA reports shown only as a bound code and sharing who bred it.',
+      'Registry https://r.example serves sealed records, lab results, animal records, finishing a received delivery, locked sample details, refusing an older copy of a record, refusing an older copy of an agreement, locked record names, DNA reports shown only as a bound code, sharing who bred it, checking the name in a link and keeping lab report hashes private.',
     );
   });
 
@@ -132,6 +135,8 @@ describe('the features the site needs', () => {
           'sealed-name-v1',
           'dna-pair-binding-v1',
           'bred-by-grant-v1',
+          'name-code-v1',
+          'lab-doc-binding-v1',
         ],
       },
       'R',
@@ -188,7 +193,7 @@ describe('deploy:mainnet', () => {
       const older = await runScript('site-mainnet-preflight.mjs', { VITE_API_BASE: old.api });
       expect(older.code).toBe(1);
       expect(older.text).toMatch(
-        /NOT DEPLOYED\. .*missing sealed-records-v1 \(sealed records\), lab-results-v1 \(lab results\), animal-profile-v1 \(animal records\), claimant-offer-v1 \(finishing a received delivery\), sealed-custody-v1 \(locked sample details\), record-rev-v1 \(refusing an older copy of a record\), license-rev-v1 \(refusing an older copy of an agreement\), sealed-name-v1 \(locked record names\), dna-pair-binding-v1 \(DNA reports shown only as a bound code\), bred-by-grant-v1 \(sharing who bred it\)/,
+        /NOT DEPLOYED\. .*missing sealed-records-v1 \(sealed records\), lab-results-v1 \(lab results\), animal-profile-v1 \(animal records\), claimant-offer-v1 \(finishing a received delivery\), sealed-custody-v1 \(locked sample details\), record-rev-v1 \(refusing an older copy of a record\), license-rev-v1 \(refusing an older copy of an agreement\), sealed-name-v1 \(locked record names\), dna-pair-binding-v1 \(DNA reports shown only as a bound code\), bred-by-grant-v1 \(sharing who bred it\), name-code-v1 \(checking the name in a link\), lab-doc-binding-v1 \(keeping lab report hashes private\)/,
       );
     },
     30_000,
@@ -229,6 +234,8 @@ describe('deploy:test', () => {
           'sealed-name-v1',
           'dna-pair-binding-v1',
           'bred-by-grant-v1',
+          'name-code-v1',
+          'lab-doc-binding-v1',
         ],
       },
     });
@@ -251,6 +258,8 @@ describe('deploy:test', () => {
           'sealed-name-v1',
           'dna-pair-binding-v1',
           'bred-by-grant-v1',
+          'name-code-v1',
+          'lab-doc-binding-v1',
         ],
       },
     });
@@ -273,6 +282,8 @@ describe('deploy:test', () => {
           'sealed-name-v1',
           'dna-pair-binding-v1',
           'bred-by-grant-v1',
+          'name-code-v1',
+          'lab-doc-binding-v1',
         ],
       },
     });
@@ -295,6 +306,8 @@ describe('deploy:test', () => {
           'sealed-name-v1',
           'dna-pair-binding-v1',
           'bred-by-grant-v1',
+          'name-code-v1',
+          'lab-doc-binding-v1',
         ],
       },
     });
@@ -317,6 +330,8 @@ describe('deploy:test', () => {
           'sealed-name-v1',
           'dna-pair-binding-v1',
           'bred-by-grant-v1',
+          'name-code-v1',
+          'lab-doc-binding-v1',
         ],
       },
     });
@@ -362,4 +377,55 @@ describe('deploy:test', () => {
       fs.rmSync(empty, { recursive: true, force: true });
     }
   }, 30_000);
+});
+
+// Round 6 (CONTRACT.md #35, the fifth review's finding 4): deploy:prod, the test-network site on
+// veilcore.org, had no features check. Run against the registry from before round 5, every
+// save from the new site was refused ("strainName must be a string of at most 500 characters").
+describe('deploy:prod', () => {
+  const preprod = { anchors: [{ chain: 'midnight', network: 'preprod', contractAddress: 'ab'.repeat(32) }] };
+  /** What the registry before round 5 listed (the review's reg-old). */
+  const BEFORE_ROUND5 = ALL.filter(
+    (f) =>
+      !['sealed-name-v1', 'dna-pair-binding-v1', 'bred-by-grant-v1', 'name-code-v1', 'lab-doc-binding-v1'].includes(f),
+  );
+
+  it('refuses a registry that lacks a feature the site uses, naming it, as deploy:test and deploy:mainnet do', async () => {
+    const old = await stub({ descriptor: preprod, health: { ok: true, features: BEFORE_ROUND5 } });
+    const refused = await runScript('site-prod-preflight.mjs', { VITE_API_BASE: old.api });
+    expect(refused.code, refused.text).toBe(1);
+    expect(refused.text).toMatch(/NOT DEPLOYED\. The registry at .* is missing sealed-name-v1 \(locked record names\)/);
+    expect(refused.text).toMatch(DEPLOY_FIRST);
+    expect(refused.text).not.toMatch(/Building the test-network site/);
+    expect(old.asked).toContain('/health');
+
+    const ready = await stub({ descriptor: preprod });
+    const ok = await runScript('site-prod-preflight.mjs', { VITE_API_BASE: ready.api });
+    expect(ok.code, ok.text).toBe(0);
+    expect(ok.text).toContain(featuresLine(ready.api));
+    expect(ok.text).toMatch(/Building the test-network site\./);
+  }, 30_000);
+
+  it('still refuses a registry that anchors on mainnet first, without asking /health', async () => {
+    const mainnet = await stub({ descriptor: { anchors: [{ network: 'mainnet' }] } });
+    const r = await runScript('site-prod-preflight.mjs', { VITE_API_BASE: mainnet.api });
+    expect(r.code).toBe(1);
+    expect(r.text).toMatch(/NOT DEPLOYED\. The registry anchors on mainnet now/);
+    expect(mainnet.asked).not.toContain('/health');
+  }, 30_000);
+
+  it('all three deploy commands check the registry first and write a release manifest', () => {
+    const pkg = (
+      JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')) as { scripts: Record<string, string> }
+    ).scripts;
+    expect(pkg['deploy:prod']).toMatch(/^VITE_API_BASE=\S+ node scripts\/site-prod-preflight\.mjs && /);
+    expect(pkg['deploy:mainnet']).toMatch(/^VITE_API_BASE=\S+ node scripts\/site-mainnet-preflight\.mjs && /);
+    expect(pkg['deploy:test']).toBe('node scripts/deploy-test-site.mjs');
+    for (const f of ['site-prod-preflight.mjs', 'site-mainnet-preflight.mjs', 'deploy-test-site.mjs'])
+      expect(fs.readFileSync(path.join(ROOT, 'scripts', f), 'utf8'), f).toMatch(/checkRegistryFeatures\(/);
+    expect(pkg['deploy:prod']).toMatch(
+      /node scripts\/vercel-config\.mjs && node scripts\/release-manifest\.mjs prod \.vercel\/output\/static && npm ci --prefix tools\/vercel/,
+    );
+    for (const s of Object.values(pkg)) expect(s).not.toMatch(/git\s+push/);
+  });
 });

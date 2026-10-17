@@ -33,6 +33,7 @@ import type { RecordKeys } from '../../veilcore/record-keys';
 import {
   custodyOf,
   hasDetails,
+  offerKeyForDelivery,
   sentByMe,
   parseShareCode,
   publicFingerprintOf,
@@ -43,6 +44,7 @@ import {
 } from '../../veilcore/transfers';
 import { attestationsFor, countsAsSigned, signerLabel, type ResolvedAttestation } from '../../veilcore/attesters';
 import { loadAttester, attestRecord, retract } from '../../veilcore/attester-keys';
+import { LAB_DOC_ID_SUFFIX, labDocSaltOf, labDocument, labSaltsOf, signsReport } from '../../veilcore/lab-doc';
 import {
   arrivalLine,
   breederReceipt,
@@ -221,7 +223,9 @@ export const useAttestations = (commitment: string | undefined): ResolvedAttesta
   const version = useLabVersion();
   useEffect(() => {
     let live = true;
-    void attestationsFor(commitment).then((a) => {
+    // As the holder (round 6): a lab report signed before round 6 comes back whole for the
+    // delivery's sender and lab. These hooks run on the app's own pages only.
+    void attestationsFor(commitment, { asHolder: true }).then((a) => {
       if (live) setOut(a);
     });
     return () => {
@@ -254,7 +258,7 @@ export const useLabCardFacts = (records: readonly StrainRecord[], enabled: boole
       const me = loadAttester()?.keypair.publicKey;
       const facts: Record<string, LabCardFacts> = {};
       for (const r of records.filter((x) => ids.split(',').includes(x.id))) {
-        const atts = await attestationsFor(r.receivedFromCommitment);
+        const atts = await attestationsFor(r.receivedFromCommitment, { asHolder: true });
         const list = r.transferId && LAB_RESULTS_ENABLED ? await listResults(r.transferId) : { results: [] };
         facts[r.id] = {
           signed: labReceipt(r, atts, me).kind === 'signed',
@@ -451,12 +455,16 @@ export const LabResultsPanel: React.FC<{
         if ('error' in locked) throw new Error(locked.error);
         const { bytes, kind } = await openReportWithKind(locked, keys.recordSecret, transfer.id);
         const sha = reportFingerprint(bytes);
-        const atts = await attestationsFor(record.recordFingerprint);
+        const atts = await attestationsFor(record.recordFingerprint, { asHolder: true });
+        // A lab report signed since round 6 names the file bound with s from this delivery's
+        // offer key (lab-doc.ts), which the breeder's record keeps.
+        const salt = labDocSaltOf(offerKeyForDelivery(transfer.id));
         const signer = reportSigner(atts, {
           sha,
           attestationId: result.attestationId,
           subject: record.recordFingerprint,
           receiptAttestationId,
+          salts: salt ? [salt] : labSaltsOf(record),
         });
         markOpened(result.id);
         setOpened((o) => ({
@@ -753,7 +761,7 @@ type MySent = { list: ResultSummary[]; signed: Map<string, string>; retracted: S
 
 /** The lab's view of what it sent on a delivery: the list, and its own signatures over each. */
 const loadMySent = async (transferId: string, subject: string): Promise<MySent | { error: string }> => {
-  const [list, atts] = await Promise.all([listResults(transferId), attestationsFor(subject)]);
+  const [list, atts] = await Promise.all([listResults(transferId), attestationsFor(subject, { asHolder: true })]);
   if ('error' in list) return list;
   const me = loadAttester()?.keypair.publicKey;
   const mine = atts.filter((a) => a.type === 'laboratory-report' && a.attester.publicKey === me && a.signatureValid);
@@ -896,7 +904,22 @@ export const SendResultsPanel: React.FC<{
       const fresh = await loadMySent(transferId, subject);
       if ('error' in fresh) throw new Error(t('app.lab.out.couldntCheck', { error: fresh.error }));
       setMySent(fresh);
-      const refusal = sendRefusal(file.sha, fresh.list, fresh.signed, replacing?.id, tr);
+      // What the lab signs (round 6, CONTRACT.md #34): the report bound with the record's proof
+      // code and s from the delivery's offer key, so the signature says nothing about the file
+      // to anyone without s. A delivery with no offer key (a code made before offer keys) gets
+      // the plain SHA-256, which the registry shows only to the sender and this lab.
+      const salt = transferId ? labDocSaltOf(offerKeyForDelivery(transferId)) : undefined;
+      const doc = salt ? labDocument(file.sha, subject, salt) : file.sha;
+      // The same file sent before, under either form.
+      const signedAsFile = new Map(
+        [...fresh.signed].map(([id, d]) => [
+          id,
+          signsReport({ attestationId: id, subjectCommitment: subject, documentHash: d }, file.sha, salt ? [salt] : [])
+            ? file.sha
+            : d,
+        ]),
+      );
+      const refusal = sendRefusal(file.sha, fresh.list, signedAsFile, replacing?.id, tr);
       if (refusal) throw new Error(refusal);
       // Sign only about the record this delivery really came from (same check as receipt).
       if (record.receivedFrom && (await publicFingerprintOf(record.receivedFrom)) !== subject) {
@@ -905,7 +928,7 @@ export const SendResultsPanel: React.FC<{
       const locked = await lockReport(file.bytes, lock, kind);
       // The registry links the signature when the file arrives, so the signature comes
       // first; if the file then doesn't arrive, the signature is withdrawn at once.
-      const signed = await attestRecord(attester, subject, file.sha, 'laboratory-report');
+      const signed = await attestRecord(attester, subject, doc, 'laboratory-report', salt ? LAB_DOC_ID_SUFFIX : '');
       if (signed.error || !signed.attestationId)
         throw new Error(t('app.lab.out.notRecorded', { error: signed.error ?? t('app.lab.out.noAnswer') }));
       const out = await sendLockedResult(transferId, locked, signed.attestationId, replacing?.id);

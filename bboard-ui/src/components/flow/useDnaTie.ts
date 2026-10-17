@@ -62,7 +62,7 @@ export const useSavedReports = (records: readonly StrainRecord[], enabled: boole
     void (async () => {
       const found: Record<string, SavedReport> = {};
       for (const r of mine) {
-        found[r.id] = savedReportStatus(r, [], await attestationsFor(r.recordFingerprint));
+        found[r.id] = savedReportStatus(r, [], await attestationsFor(r.recordFingerprint, { asHolder: true }));
         if (live) setOut({ ...found });
       }
     })();

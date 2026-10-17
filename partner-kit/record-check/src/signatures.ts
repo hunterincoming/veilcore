@@ -137,8 +137,15 @@ export type LabReceipt = {
   };
   /** Present only when nameCheck is 'checked' and the signature counts. */
   readonly nameCheckRecord: NameCheck | null;
-  /** lab-report: the SHA-256 of the report file the lab signed. */
+  /** lab-report signed before round 6: the SHA-256 of the report file the lab signed. */
   readonly documentSha256?: string;
+  /**
+   * lab-report signed since round 6 (the site's CONTRACT.md #34): the lab signed a code that
+   * binds the report file to the record with a salt only the sender and the lab hold, not the
+   * file's SHA-256. Whether it is a given file can be checked only with the file and the
+   * holder's link (`ls`).
+   */
+  readonly documentBound?: boolean;
   /** lab-report: whether it is the report saved to the record now (null: the holder doesn't share that). */
   readonly matchesSavedReport?: boolean | null;
   /** One plain sentence, the same words the site uses. */
@@ -264,7 +271,9 @@ const wordsFor = (r: Omit<LabReceipt, 'words'>): string => {
       ? ' It is the report file saved to this record now.'
       : r.kind === 'lab-report' && r.matchesSavedReport === false
         ? ' It is not the report file saved to this record now.'
-        : '';
+        : r.kind === 'lab-report' && r.documentBound
+          ? ' The lab signed the report bound to this record; which file it is can be checked only with the file and the holder’s link.'
+          : '';
   return `${what}, signature verified, ${by}${report}${custody}`;
 };
 
@@ -290,7 +299,16 @@ export const checkSignatures = async (
     /** The registry's /verify `custody` list (when the holder shares lab status). Undefined: not shared. */
     custody?: readonly CustodyEntry[];
   },
-): Promise<{ receipts: LabReceipt[]; dropped: number }> => {
+): Promise<{ receipts: LabReceipt[]; dropped: number; withheld: number }> => {
+  // A lab report signed before round 6, which the registry withholds: no hash, no signature.
+  // Counted, never dropped as unreadable and never checked (round 6, CONTRACT.md #34).
+  const withheld = incoming.filter(
+    (a) =>
+      isObject(a) &&
+      a.documentWithheld === true &&
+      a.type === 'laboratory-report' &&
+      a.subjectCommitment === fingerprint,
+  ).length;
   const mine = incoming.filter(isIncoming).filter((a) => a.subjectCommitment === fingerprint);
   const receipts = await Promise.all(
     mine.map(async (a): Promise<LabReceipt> => {
@@ -336,13 +354,14 @@ export const checkSignatures = async (
         isString(reg.displayName) && reg.displayName.trim() ? reg.displayName : a.attester.displayName,
       );
       const doc = a.documentHash.toLowerCase();
+      const bound = a.type === 'laboratory-report' && a.attestationId.endsWith('_ld1');
       const saved = opts.savedReport;
       // Matched through the binding the registry publishes (round 5): the report's SHA-256 (or,
       // for a pairing saved before the SHA-256 was kept, its pairing fingerprint) bound with the
       // salt and identity from the link, recomputed here. Without the link's salt it can't be
       // matched (null): nobody without it can tell which file is saved.
       const matchesSavedReport =
-        kind !== 'lab-report' || saved === undefined
+        kind !== 'lab-report' || saved === undefined || bound
           ? null
           : !saved.paired
             ? false
@@ -366,10 +385,12 @@ export const checkSignatures = async (
         },
         nameCheckRecord: check,
         ...(kind === 'lab-report'
-          ? {
-              documentSha256: doc,
-              matchesSavedReport,
-            }
+          ? bound
+            ? { documentBound: true, matchesSavedReport }
+            : {
+                documentSha256: doc,
+                matchesSavedReport,
+              }
           : {}),
         ...(delivery
           ? {
@@ -386,5 +407,5 @@ export const checkSignatures = async (
       return { ...r, words: wordsFor(r) };
     }),
   );
-  return { receipts, dropped: incoming.length - mine.length };
+  return { receipts, dropped: incoming.length - mine.length - withheld, withheld };
 };

@@ -4,10 +4,12 @@
 // own copy of a delivery's offer ("Finish receiving", GET /transfers/:id/offer), locked
 // sample details, a record's and an agreement's public `rev` (the registry refuses an
 // older copy), locked record names, DNA reports shown only bound (round 5), and "Bred by" as a
-// fact a holder may share (persona review, 17 Oct). A
+// fact a holder may share (persona review, 17 Oct), and since round 6 a record's name code and
+// lab report signatures bound to the record. A
 // registry that doesn't serve one of them would leave the site offering something that fails when
-// someone uses it. So both site deploys (scripts/site-mainnet-preflight.mjs for
-// veilcore.org, scripts/deploy-test-site.mjs for test.veilcore.org) first ask the target
+// someone uses it. So all three site deploys (scripts/site-mainnet-preflight.mjs for
+// the mainnet site, scripts/site-prod-preflight.mjs for the test-network site on veilcore.org,
+// scripts/deploy-test-site.mjs for test.veilcore.org) first ask the target
 // registry's GET /health, which lists the features that registry build serves
 // (`features: string[]`, registry contract item 13), and refuse unless every one below is
 // there. The registry is deployed before the site.
@@ -37,6 +39,12 @@ export const REQUIRED_FEATURES = Object.freeze({
   // "Bred by" as a fact a holder may share (persona review, 17 Oct): an older registry refuses
   // the value, and nothing is shared.
   "bred-by-grant-v1": "sharing who bred it",
+  // A record's name code (round 6, CONTRACT.md #33): an older registry refuses the field, and
+  // with it the whole save.
+  "name-code-v1": "checking the name in a link",
+  // Lab report signatures bound to the record (round 6, CONTRACT.md #34): an older registry
+  // still serves an old lab signature's report hash to anyone with the proof code.
+  "lab-doc-binding-v1": "keeping lab report hashes private",
 });
 
 const DEPLOY_FIRST =

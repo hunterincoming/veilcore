@@ -18,6 +18,7 @@
 // skipped when Chromium is missing. Run: npx vitest run --maxWorkers=1 src/site-mainnet.test.ts
 // SPDX-License-Identifier: Apache-2.0
 
+import { REQUIRED_FEATURES } from '../../scripts/registry-features.mjs';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
@@ -140,7 +141,14 @@ describe("deploy:prod's registry check", () => {
   const runAgainst = async (descriptor: unknown, status = 200) => {
     const server = http.createServer((req, res) => {
       res.writeHead(status, { 'content-type': 'application/json' });
-      res.end(req.url === '/.well-known/veilcore-registry' ? JSON.stringify(descriptor) : '{}');
+      // Since round 6 (CONTRACT.md #35) deploy:prod also reads /health for the features it needs.
+      res.end(
+        req.url === '/.well-known/veilcore-registry'
+          ? JSON.stringify(descriptor)
+          : req.url === '/health'
+            ? JSON.stringify({ ok: true, features: Object.keys(REQUIRED_FEATURES) })
+            : '{}',
+      );
     });
     await new Promise<void>((r) => server.listen(0, '127.0.0.1', () => r()));
     const api = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;

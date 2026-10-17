@@ -4,11 +4,17 @@
 // site. So it refuses as soon as the registry's /.well-known/veilcore-registry lists a
 // mainnet anchor, and says to use npm run deploy:mainnet instead.
 //
+// Since round 6 (CONTRACT.md #35, the fifth review's finding 4) it also refuses unless the
+// registry serves everything the site uses (its GET /health lists every feature in
+// scripts/registry-features.mjs), as deploy:test and deploy:mainnet do: run against an older
+// registry, every save from the new site was refused. The registry is deployed first.
+//
 // If the registry cannot be read, it refuses too: it cannot tell which site is right.
 // SPDX-License-Identifier: Apache-2.0
 
 import { pathToFileURL } from "node:url";
 import { DEFAULT_API, readDescriptor } from "./site-mainnet-preflight.mjs";
+import { checkRegistryFeatures, featuresLine } from "./registry-features.mjs";
 
 /**
  * Whether the test-network site may be deployed against this registry descriptor.
@@ -49,6 +55,9 @@ const main = async () => {
   if (!read.ok) fail(read.problem);
   const verdict = checkTestSiteAllowed(read.descriptor);
   if (!verdict.ok) fail(verdict.problem);
+  const features = await checkRegistryFeatures(api);
+  if (!features.ok) fail(features.problem);
+  console.log(featuresLine(api));
   console.log(
     `Registry ${api} does not anchor on mainnet. Building the test-network site.`,
   );

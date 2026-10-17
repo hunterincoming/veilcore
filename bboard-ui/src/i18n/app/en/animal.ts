@@ -81,7 +81,9 @@ export const animal = {
   'app.animal.v.app.verify.noParents': 'No sire or dam recorded.',
   'app.animal.v.app.plant.fix.name': 'Animal’s name',
   'app.animal.v.app.plant.fix.bredBy': 'Breeder or holder',
-  'app.animal.v.app.verify.nameTyped': 'Animal’s name, as the holder typed it: ',
+  'app.animal.v.app.verify.namePublished': 'Animal’s name the holder chose to show: ',
+  'app.animal.v.app.verify.nameMatches': 'Animal’s name matches the record: ',
+  'app.animal.v.app.verify.nameUnchecked': 'Animal’s name given in this link (not checked): ',
 
   // lab-import/BulkImportPage.tsx: a list of animals.
   'app.animal.import.dob': 'Date of birth',

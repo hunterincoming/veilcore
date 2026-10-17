@@ -85,6 +85,53 @@ const LabSignatureNote: React.FC = () => {
   );
 };
 
+/**
+ * Round 6 (CONTRACT.md #37, the fifth review's finding 6): a check link or QR code made before
+ * 17 October 2026 got the record's name from the registry, which no longer keeps names
+ * readable, so those links now show none. Holders with records from before then are told
+ * once, and how to make a new link. Dismissed for good in this browser (a convenience: if the
+ * browser can't keep it, the note shows again).
+ */
+const OLD_LINKS_NOTE = 'veilcore.note.old-links.v1';
+const ROUND5_DAY = Date.UTC(2026, 9, 17);
+const OldLinksNote: React.FC<{ records: readonly StrainRecord[] }> = ({ records }) => {
+  const { t } = useT();
+  const [gone, setGone] = useState(() => {
+    try {
+      return localStorage.getItem(OLD_LINKS_NOTE) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const older = records.some((r) => !r.receivedFrom && typeof r.loggedAt === 'number' && r.loggedAt < ROUND5_DAY);
+  if (gone || !older) return null;
+  return (
+    <Alert
+      severity="info"
+      variant="outlined"
+      data-old-links-note=""
+      action={
+        <Button
+          color="inherit"
+          onClick={() => {
+            try {
+              localStorage.setItem(OLD_LINKS_NOTE, '1');
+            } catch {
+              /* shown again next time */
+            }
+            setGone(true);
+          }}
+          sx={{ minHeight: 44 }}
+        >
+          {t('app.lab.results.gotIt')}
+        </Button>
+      }
+    >
+      {t('app.home.oldLinks')}
+    </Alert>
+  );
+};
+
 export const AppHome: React.FC = () => {
   const records = useRecords();
   const keys = useRecordKeys();
@@ -230,6 +277,8 @@ export const AppHome: React.FC = () => {
             </Stack>
           )}
           <LoadNoticeBar />
+
+          {!labOnly && <OldLinksNote records={records} />}
           <LockedRecords />
           <LockedAgreements />
           <PasteBox />

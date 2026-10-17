@@ -5,6 +5,8 @@ import type { AppTranslation } from '../../translate';
 
 export const home = {
   'app.home.firstPlant': 'Erfassen wir Ihre erste Pflanze oder Ihr erstes Tier',
+  'app.home.oldLinks':
+    'Prüflinks und QR-Codes, die vor dem 17. Oktober 2026 erstellt wurden, zeigen die Namen Ihrer Datensätze nicht mehr: VeilCore hält Namen jetzt verschlossen, daher hat das Register keinen zu zeigen. Um einen Namen zu teilen, öffnen Sie den Datensatz, wählen Sie „Jemandem zeigen“, schalten Sie den Namen ein und senden Sie den neuen Link. Ein neues Zertifikat hat einen neuen QR-Code.',
   'app.home.continueDraftNamed': 'Entwurf fortsetzen: {name}',
   'app.home.continueDraft': 'Entwurf fortsetzen',
   'app.home.draftKept':

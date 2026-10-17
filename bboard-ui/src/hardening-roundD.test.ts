@@ -1075,7 +1075,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     // and this page checks no anchor on chain (VerifyPage, ANCHOR_CHECKED_ON_CHAIN).
     expect(await pg.evaluate(() => document.querySelector('[data-checked]')?.getAttribute('data-checked'))).toBe('no');
     // The name is the holder's, on a labelled line, not a heading.
-    expect(text).toMatch(/Name, as the holder typed it: Sealed/);
+    expect(text).toMatch(/Name the holder chose to show: Sealed/);
     expect(await pg.evaluate(() => document.querySelectorAll('h5').length)).toBe(0);
     await ctx.close();
   }, 60_000);
@@ -1094,9 +1094,9 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     await pg.goto(`${origin}/verify/VEIL-Z?fp=${FP}`, { waitUntil: 'networkidle' });
     await pg.waitForSelector('[data-holder-name]', { timeout: 15_000 });
     const name = await pg.evaluate(() => document.querySelector('[data-holder-name]')?.textContent ?? '');
-    expect(name.startsWith('Name, as the holder typed it: Verified by USDA x')).toBe(true);
+    expect(name.startsWith('Name the holder chose to show: Verified by USDA x')).toBe(true);
     expect(name).not.toMatch(/\u2705|\u2714|\u202e|\ufe0f|\u{1F389}/u);
-    expect(Array.from(name.replace('Name, as the holder typed it: ', '')).length).toBeLessThanOrEqual(80);
+    expect(Array.from(name.replace('Name the holder chose to show: ', '')).length).toBeLessThanOrEqual(80);
     expect(await pg.evaluate(() => document.querySelector('[data-checked]')?.getAttribute('data-checked'))).toBe('no');
     expect(errors).toEqual([]);
     await ctx.close();

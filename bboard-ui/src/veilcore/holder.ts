@@ -128,3 +128,6 @@ export const holderPartyId = async (): Promise<string> => {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`veilcore:party:${holderKey()}`));
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
 };
+
+// No holder key on the check and prove pages (round 6, CONTRACT.md #36): holder-guard.ts.
+export { holderRequestsPaused, guardHolderRequests, HOLDER_KEY_REFUSED } from './holder-guard';

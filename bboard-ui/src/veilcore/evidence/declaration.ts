@@ -191,7 +191,7 @@ export const declarationText = async (
     for (const s of okSigs) {
       const doc = t(s.documentHash ?? '[none]');
       add(
-        `   - A key that calls itself ${s.displayName ? `"${t(s.displayName)}"` : '[no name given]'} signed ${t(s.what ?? 'a statement')} about this record at ${t(s.issuedAt ?? '[time]')} (the signer's own clock).${s.withdrawn ? ' The same key later withdrew it.' : ''} ${s.type === 'chain-of-custody' ? `What it signed for the delivery is the code ${doc}: the lab's own record of the delivery, not a hash of the sample.` : `The signed document's SHA-256 is ${doc}.`} [I know / I do not know who controls that key.] [I sent the sample to [lab] on [date] by [courier, tracking number].]`,
+        `   - A key that calls itself ${s.displayName ? `"${t(s.displayName)}"` : '[no name given]'} signed ${t(s.what ?? 'a statement')} about this record at ${t(s.issuedAt ?? '[time]')} (the signer's own clock).${s.withdrawn ? ' The same key later withdrew it.' : ''} ${s.type === 'chain-of-custody' ? `What it signed for the delivery is the code ${doc}: the lab's own record of the delivery, not a hash of the sample.` : s.attestationId?.endsWith('_ld1') ? `What it signed is the code ${doc}, which binds the report file to this record with a salt only the sender and the lab hold.` : `The signed document's SHA-256 is ${doc}.`} [I know / I do not know who controls that key.] [I sent the sample to [lab] on [date] by [courier, tracking number].]`,
       );
     }
     for (const c of custody) add(deliveryLine(c));

@@ -7,6 +7,7 @@
 // batches (records.ts createRecords).
 // SPDX-License-Identifier: Apache-2.0
 
+import { newNameSalt } from './verify-link';
 import { fingerprintRecord, newNonce } from './commitment';
 import { newRecordId, type NewRecordInput, type ParentRef } from './records';
 import { ensureKeys, forgetKeys } from './record-keys';
@@ -109,7 +110,9 @@ const sealWithKey = async (
     const { keyBinding } = bindingForSecret(ensureKeys(id, now).recordSecret);
     const fields = fieldsFor(keyBinding);
     const recordFingerprint = await fingerprintRecord(fields);
-    return { ...fields, id, recordFingerprint };
+    // The name's salt (round 6, CONTRACT.md #33): made with the record, outside its fingerprint,
+    // so a batch sent again after a lost answer is the very same record.
+    return { ...fields, id, recordFingerprint, ...(fields.strainName.trim() ? { nameSalt: newNameSalt() } : {}) };
   } catch (e) {
     forgetKeys(id);
     throw e;

@@ -50,8 +50,9 @@ import {
   type DisclosureKey,
 } from '../../veilcore/disclosure';
 import { canonicalUrl } from '../../config/network';
-import { nameParam, verifyPath } from '../../veilcore/verify-link';
+import { nameLinkParams, verifyPath } from '../../veilcore/verify-link';
 import { dnaLinkParams } from '../../veilcore/dna-link';
+import { labLinkParams } from '../../veilcore/lab-doc';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { proveLinkParams } from '../../veilcore/prove-link';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
@@ -143,9 +144,14 @@ export const Step5ProveDisclosure: React.FC<{
   // report is saved" shared, the record's pairing salt (`ds`), so whoever
   // gets the link and the report file can check the file is the one saved. It used to carry
   // the file's plain SHA-256 (`rs`).
+  // Round 6 (CONTRACT.md #33, #34): with the name goes its salt (`ns`), so the check page can
+  // tell whether the name is the record's; with the DNA report shared, the lab report's salt
+  // (`ls`) when a lab signed the saved report bound to this record, so whoever gets the link and
+  // the file can check the lab signed that file. Anyone the link reaches gets them too.
   const reportParam: Record<string, string> = {
-    ...(includeName ? nameParam(record.strainName) : {}),
+    ...(includeName ? nameLinkParams(record) : {}),
     ...(disclosure['attestation-status'] ? dnaLinkParams(record) : {}),
+    ...(disclosure['attestation-status'] && saved?.kind === 'lab' ? labLinkParams(record, [saved.signed]) : {}),
   };
 
   const toggle = (key: keyof Disclosure) => {

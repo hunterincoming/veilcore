@@ -83,6 +83,9 @@ export const lab = {
     'El código de laboratorio funciona, pero los detalles de la muestra no se guardaron: {error}',
   'app.signer.sep': ' ',
   'app.lab.strength.unsigned': 'Sin firmar',
+  'app.lab.strength.withheld': 'Informe de laboratorio, firma no mostrada',
+  'app.lab.strength.withheldWhy':
+    'El servidor de registros muestra esta firma de un informe de laboratorio solo al remitente y al laboratorio del envío, porque nombra el archivo del informe (firmada antes del 17 de octubre de 2026). Aquí no se puede comprobar.',
   'app.lab.strength.unsignedWhy':
     'Registrado pero sin firmar. Es una afirmación sobre una segunda parte, no una declaración de ella.',
   'app.lab.strength.invalid': 'La firma no se verifica',

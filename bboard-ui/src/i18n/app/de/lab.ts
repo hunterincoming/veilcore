@@ -83,6 +83,9 @@ export const lab = {
   'app.lab.send.sampleNotSaved': 'Der Laborcode funktioniert, aber die Probenangaben wurden nicht gespeichert: {error}',
   'app.signer.sep': ' ',
   'app.lab.strength.unsigned': 'Nicht signiert',
+  'app.lab.strength.withheld': 'Laborbericht, Signatur nicht gezeigt',
+  'app.lab.strength.withheldWhy':
+    'Das Register zeigt diese Signatur eines Laborberichts nur dem Absender und dem Labor der Lieferung, weil sie die Datei des Berichts nennt (vor dem 17. Oktober 2026 signiert). Hier kann sie nicht geprüft werden.',
   'app.lab.strength.unsignedWhy':
     'Erfasst, aber nicht signiert. Das ist eine Behauptung über eine zweite Partei, keine Erklärung von ihr.',
   'app.lab.strength.invalid': 'Signatur lässt sich nicht prüfen',

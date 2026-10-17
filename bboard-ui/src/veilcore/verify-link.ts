@@ -21,9 +21,18 @@
 //
 // Round 5 (CONTRACT.md #28, #29): the record's name is sealed, so the registry doesn't have it
 // to show. The holder's link carries it after the # instead (`n`, the name's UTF-8 bytes in
-// base64url), with the DNA report's pairing salt (`ds`: dna-link.ts), so
-// the person the holder sends the link to sees the name and can check the report file, and
-// no server ever receives either.
+// base64url), with the DNA report's pairing salt (`ds`: dna-link.ts), so the person the holder
+// sends the link to sees the name and can check the report file. A browser opening the link
+// doesn't send what follows the #; the link itself goes whole wherever it is pasted or sent.
+//
+// Round 6 (CONTRACT.md #33, the fifth review's finding 2): anyone forwarding a genuine link
+// could change the name in it, and the check page showed it as the holder's. Now the holder's
+// app publishes a salted name code with the record (`nameCode`, nameCodeOf below), over the
+// name, the proof code and a salt kept inside the record; the link carries the salt (`ns`).
+// The check page says "Name matches the record" or "This name does not match the record"; a
+// name without a salt or without a published code is "Name given in this link (not checked)".
+// A name the holder published (the `name` grant) wins over a link's, and a different one in
+// the link is flagged. The lab report salt (`ls`, lab-doc.ts) goes after the # too.
 // SPDX-License-Identifier: Apache-2.0
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -33,17 +42,85 @@ const HEX64 = /^[0-9a-f]{64}$/;
  * one (an unsealed record has none, and its link stays as it was). Other query
  * parameters, such as `show`, are kept.
  */
+import { sha256 } from '@noble/hashes/sha2.js';
 import { enT, type Translator } from '../i18n/translate';
 
 /** Link values that join a record to its on-chain activity: only ever in the fragment (F7). */
-export const FRAGMENT_PARAMS = ['chain', 'anchorTx', 'ks', 'cd', 'rs', 'n', 'ds'] as const;
+export const FRAGMENT_PARAMS = ['chain', 'anchorTx', 'ks', 'cd', 'rs', 'n', 'ds', 'ns', 'ls'] as const;
 
 /** The link's name value: the name's UTF-8 bytes, base64url without padding (CONTRACT.md #28). */
 export const NAME_PARAM = 'n';
+/** The link's name salt (round 6, CONTRACT.md #33): 64 lowercase hex, kept in the sealed record. */
+export const NAME_SALT_PARAM = 'ns';
 const NAME_MAX = 500;
 
+/** A name as a link carries it and a name code covers it: NFC, trimmed, at most 500 characters. */
+export const linkName = (name: string): string => name.normalize('NFC').trim().slice(0, NAME_MAX);
+
+const toHex = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+
+/**
+ * The name code (CONTRACT.md #33): hex SHA-256("veilcore:name:v1" 0x00 || UTF-8 name || 0x00 ||
+ * proof code hex || 0x00 || salt hex). Public with the record; without the salt it says nothing
+ * about the name. Undefined unless the proof code and the salt are 64 hex and the name isn't empty.
+ */
+export const nameCodeOf = (name: string, proofCode: string, salt: string): string | undefined => {
+  const n = linkName(name);
+  if (!n || !HEX64.test(proofCode) || !HEX64.test(salt)) return undefined;
+  return toHex(sha256(new TextEncoder().encode(`veilcore:name:v1\0${n}\0${proofCode}\0${salt}`)));
+};
+
+/** A new name salt: 32 random bytes, hex. */
+export const newNameSalt = (): string => toHex(crypto.getRandomValues(new Uint8Array(32)));
+
+/** The record's name and its salt for a check link: { n, ns }, or {} for a record without a name. */
+export const nameLinkParams = (r: { strainName?: string; nameSalt?: string }): Record<string, string> => {
+  const n = nameParam(r.strainName ?? '');
+  return n[NAME_PARAM] && r.nameSalt && HEX64.test(r.nameSalt) ? { ...n, [NAME_SALT_PARAM]: r.nameSalt } : n;
+};
+
+/** The name salt after a link's #, when it is 64 hex. */
+export const nameSaltFromLink = (hash: string): string | null => {
+  const v = new URLSearchParams(hash.replace(/^#/, '')).get(NAME_SALT_PARAM)?.trim().toLowerCase();
+  return v && HEX64.test(v) ? v : null;
+};
+
+/**
+ * What a check page may say about a record's name (CONTRACT.md #33, #37):
+ *   published  the holder published it (the `name` grant): shown as theirs; `conflict` when
+ *              the link carries a different one, which is flagged and never shown as the name;
+ *   matches    the link's name, with its salt, makes the record's published name code;
+ *   differs    it doesn't: this is not the record's name;
+ *   unchecked  the link has a name but no salt, or the record publishes no name code (a link
+ *              or a record from before round 6): the link's word only;
+ *   none       the link carries no name.
+ */
+export type NameCheck =
+  | { state: 'published'; name: string; conflict?: string }
+  | { state: 'matches' | 'differs' | 'unchecked'; name: string }
+  | { state: 'none' };
+
+export const nameCheckOf = (o: {
+  linkName: string | null;
+  linkSalt: string | null;
+  nameCode?: string | null;
+  proofCode?: string | null;
+  published?: string | null;
+}): NameCheck => {
+  const link = o.linkName ? linkName(o.linkName) : '';
+  const published = o.published ? o.published.normalize('NFC').trim() : '';
+  if (published)
+    return link && link !== published
+      ? { state: 'published', name: published, conflict: link }
+      : { state: 'published', name: published };
+  if (!link) return { state: 'none' };
+  const code = o.nameCode && HEX64.test(o.nameCode) ? o.nameCode : null;
+  if (!o.linkSalt || !code || !o.proofCode || !HEX64.test(o.proofCode)) return { state: 'unchecked', name: link };
+  return { state: nameCodeOf(link, o.proofCode, o.linkSalt) === code ? 'matches' : 'differs', name: link };
+};
+
 export const nameParam = (name: string): Record<string, string> => {
-  const n = name.normalize('NFC').trim().slice(0, NAME_MAX);
+  const n = linkName(name);
   if (!n) return {};
   const bytes = new TextEncoder().encode(n);
   let bin = '';

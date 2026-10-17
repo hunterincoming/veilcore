@@ -461,6 +461,10 @@ return canonicalise;
       var s = report.signatures[j];
       var what = TYPES[s.type] || (s.type ? '“' + plain(s.type) + '”' : 'something');
       var who = s.displayName ? ' (it calls itself “' + plain(s.displayName) + '”; not checked)' : '';
+      if (s.withheld) {
+        sg.appendChild(result('info', 'A lab report signature not in this bundle', [para(['The registry says a key' + who + ' signed a lab report about this record at ' + plain(s.issuedAt) + '. It was signed before 17 October 2026, over the report file’s SHA-256, so the registry shows it only to the delivery’s sender and lab, and it isn’t in this bundle.'])], 'signature'));
+        continue;
+      }
       if (s.signature === 'unsupported') {
         sg.appendChild(result('info', 'Signature not checked here', [para(['This browser can’t check Ed25519 signatures. Open this page in a current Chrome or Firefox.'])], 'signature'));
         continue;
@@ -477,11 +481,13 @@ return canonicalise;
       var lines = [
         s.type === 'chain-of-custody'
           ? para(['The key ', hex(s.publicKey), who + ' signed ' + what + ' about this record at ' + plain(s.issuedAt) + ' (the signer’s own clock). Its signed SHA-256, ', hex(plain(s.documentHash)), ', is the code of the lab’s own record of the delivery, not a hash of the sample.'])
-          : para(['The key ', hex(s.publicKey), who + ' signed ' + what + ' with SHA-256 ', hex(plain(s.documentHash)), ', about this record, at ' + plain(s.issuedAt) + ' (the signer’s own clock).']),
+          : s.bound
+            ? para(['The key ', hex(s.publicKey), who + ' signed ' + what + ' about this record at ' + plain(s.issuedAt) + ' (the signer’s own clock), over the code ', hex(plain(s.documentHash)), '. That code binds the report file to this record with a salt only the sender and the lab hold; it says nothing about the file without the salt.'])
+            : para(['The key ', hex(s.publicKey), who + ' signed ' + what + ' with SHA-256 ', hex(plain(s.documentHash)), ', about this record, at ' + plain(s.issuedAt) + ' (the signer’s own clock).']),
       ];
       if (withdrawn) lines.push(para(['The same key withdrew it' + (s.retraction.retractedAt ? ' at ' + plain(s.retraction.retractedAt) : '') + (s.retraction.reason ? ' (' + plain(s.retraction.reason) + ')' : '') + '.']));
       else if (s.retraction) lines.push(para(['A withdrawal is attached that this key did not sign. It is ignored.']));
-      if (ev.labReport && ev.labReport.fileSha256 === s.documentHash) lines.push(para(['It is the lab report saved to this ' + SUBJECT + '.']));
+      if (s.savedReport) lines.push(para([s.bound ? 'It is the lab report saved to this ' + SUBJECT + ': this page made the same code from the report’s SHA-256, the proof code and the lab report salt in this bundle.' : 'It is the lab report saved to this ' + SUBJECT + '.']));
       sg.appendChild(result(withdrawn ? 'info' : 'ok', withdrawn ? 'Signed, then withdrawn' : 'Signature checks', lines, 'signature'));
     }
 

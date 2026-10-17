@@ -22,6 +22,7 @@ import {
 } from './record-keys';
 import { bindingForSecret } from './key-binding';
 import { withPairSalt } from './dna-link';
+import { newNameSalt } from './verify-link';
 import { isAnimal, type AnimalDetails, type ParentRole } from './animal-profile';
 import {
   allowReplace,
@@ -70,7 +71,7 @@ import {
   putInOutbox,
   takeFromOutbox,
 } from './outbox';
-import { holderKey } from './holder';
+import { holderKey, holderRequestsPaused } from './holder';
 import { enT, type Translator } from '../i18n/translate';
 
 /**
@@ -159,6 +160,14 @@ export type StrainRecord = {
    * with the record, outside its fingerprint; made once and kept.
    */
   readonly dnaPairSalt?: string;
+  /**
+   * The record's name salt (round 6, CONTRACT.md #33; verify-link.ts nameCodeOf): 32 random
+   * bytes, hex. The record publishes the name's salted code (`nameCode`, a clear field made at
+   * each save from the name, the proof code and this salt); the holder's check links carry the
+   * salt after the # (`ns`), so a check page can tell whether the name in a link is the
+   * record's. Sealed with the record, outside its fingerprint; made once and kept.
+   */
+  readonly nameSalt?: string;
   readonly attestation?: Attestation; // Phase 2.4
 
   // Set by the registry when a record arrives through a transfer. The recipient holds
@@ -280,6 +289,7 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
     str(r.dnaFileSha256) &&
     str(r.dnaResultId) &&
     str(r.dnaPairSalt) &&
+    str(r.nameSalt) &&
     str(r.profile) &&
     str(r.taxon) &&
     str(r.keyBinding) &&
@@ -308,6 +318,8 @@ export type NewRecordInput = {
   photoFingerprints?: string[];
   refId?: string;
   animal?: AnimalDetails;
+  /** The name's salt (round 6): made when the record is sealed (seal-record.ts). */
+  nameSalt?: string;
 };
 
 /** Records whose id is referenced as a parent by the given record (its children). */
@@ -473,13 +485,15 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
   // A saved DNA report with no pairing salt yet (round 5): one is made and saved, so the
   // report is published only bound with it.
   const saltFix = withPairSalts();
+  // A record without a name salt yet (round 6): one is made, and its name code saved with it.
+  const nameSaltFix = withNameSalts();
   // A record sealed before round 5 whose name is still in the clear on the registry
   // (CONTRACT.md #28): saved again, with the name inside the box only.
   const nameFix = (loadNoticeOf(RECORDS_KEY).nameInClear ?? 0) > 0;
   notify();
   // Sent again with the next save; not straight after a refusal (saveAll reads the set back
   // with resave off), so a registry that keeps refusing is asked once per sync, not in a loop.
-  if ((kept || merged || revFix || nameFix || saltFix) && opts.resave !== false) void saveAll();
+  if ((kept || merged || revFix || nameFix || saltFix || nameSaltFix) && opts.resave !== false) void saveAll();
   await convertLegacy();
   if (!syncedOnce) {
     syncedOnce = true;
@@ -581,18 +595,29 @@ export const sentToName = (sourceRecordId: string | undefined, transferId: strin
 // to load and poll from every page, the landing page and a QR-scanned verify page
 // included. It asks only when the tab is visible, and the store asks the registry only
 // when this browser holds a key.
+//
+// Never on a prove page or the public check page (round 6, CONTRACT.md #36): the sync sends
+// the holder key, and there it would tie the holder to the on-chain key the page names. The
+// first sync waits for the next app page (App.tsx calls this on every app page).
 let syncTimer: ReturnType<typeof setInterval> | undefined;
+let firstSync = false;
 export const SYNC_INTERVAL_MS = 30_000;
 export const startRecordSync = (): void => {
-  if (syncTimer !== undefined || typeof window === 'undefined') return;
-  void hydrate();
-  syncTimer = setInterval(() => {
-    if (typeof document === 'undefined' || document.visibilityState === 'visible') void hydrate();
-  }, SYNC_INTERVAL_MS);
-  // Also on tab focus — the common case is a breeder switching back to check.
-  window.addEventListener('focus', () => {
+  if (typeof window === 'undefined') return;
+  if (syncTimer === undefined) {
+    syncTimer = setInterval(() => {
+      if (holderRequestsPaused()) return;
+      if (typeof document === 'undefined' || document.visibilityState === 'visible') void hydrate();
+    }, SYNC_INTERVAL_MS);
+    // Also on tab focus — the common case is a breeder switching back to check.
+    window.addEventListener('focus', () => {
+      if (!holderRequestsPaused()) void hydrate();
+    });
+  }
+  if (!firstSync && !holderRequestsPaused()) {
+    firstSync = true;
     void hydrate();
-  });
+  }
 };
 
 /**
@@ -626,6 +651,25 @@ const persist = () => {
  * published only bound with it. Only records this browser opened (never one held in plain
  * text, a stub or a locked row); they go with the next save. True when any was added.
  */
+/**
+ * A name salt for each record that has a name and none yet (round 6, CONTRACT.md #33): a
+ * record made before round 6 gets one, and its name code goes with its next save. Only rows
+ * this browser has opened (or made): never a row saved before locking, a claim's stub or a
+ * locked row.
+ */
+const withNameSalts = (): boolean => {
+  let added = false;
+  const next = records.map((r) => {
+    const state = rowStateOf(RECORDS_KEY, r.id);
+    if (state !== undefined && state !== 'open') return r;
+    const salted = withNameSalt(r);
+    if (salted !== r) added = true;
+    return salted;
+  });
+  if (added) records = next;
+  return added;
+};
+
 const withPairSalts = (): boolean => {
   let added = false;
   const next = records.map((r) => {
@@ -645,6 +689,7 @@ const withPairSalts = (): boolean => {
  */
 const withSealedSecrets = (): void => {
   withPairSalts();
+  withNameSalts();
   let added = false;
   const next = records.map((r) => {
     const k = keysFor(r.id);
@@ -907,8 +952,12 @@ export const sizeWords = (share: number, tr: Translator = enT): string | undefin
   });
 };
 
+/** A record's name salt (round 6): made with the record, so its first check link carries it. */
+const withNameSalt = <T extends StrainRecord>(r: T): T =>
+  r.nameSalt || !r.strainName?.trim() ? r : { ...r, nameSalt: newNameSalt() };
+
 export const createRecord = (input: NewRecordInput): StrainRecord => {
-  const record: StrainRecord = { licenseIds: [], ...input, id: input.id ?? newRecordId() };
+  const record: StrainRecord = withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() });
   // Refused before it is shown or sent: the caller still has what was typed.
   if (tooLargeToSave(record)) throw new Error(enT.t('app.sealed.tooLarge'));
   records = [record, ...records];
@@ -928,7 +977,7 @@ export const createRecord = (input: NewRecordInput): StrainRecord => {
 export const createRecordSaved = async (
   input: NewRecordInput,
 ): Promise<{ readonly record: StrainRecord; readonly result: SaveResult }> => {
-  const record: StrainRecord = { licenseIds: [], ...input, id: input.id ?? newRecordId() };
+  const record: StrainRecord = withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() });
   records = [record, ...records];
   holderKey();
   putInOutbox([record]);
@@ -947,7 +996,9 @@ export const createRecordSaved = async (
  * could not be reached or refused the whole save, and the caller words what happened.
  */
 export const createRecords = async (inputs: readonly NewRecordInput[]): Promise<SaveResult> => {
-  const batch: StrainRecord[] = inputs.map((input) => ({ licenseIds: [], ...input, id: input.id ?? newRecordId() }));
+  const batch: StrainRecord[] = inputs.map((input) =>
+    withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() }),
+  );
   const ids = new Set(batch.map((r) => r.id));
   const result = await store.save(RECORDS_KEY, [...batch, ...records.filter((r) => !ids.has(r.id))]);
   // Held for the backup (L1): nothing was sent, and the importer stops and says why.
@@ -1112,6 +1163,7 @@ const IMPORTABLE = [
   'dnaFileSha256',
   'dnaResultId',
   'dnaPairSalt',
+  'nameSalt',
   'supersedes',
   'supersededBy',
 ] as const;

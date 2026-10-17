@@ -5,6 +5,8 @@ import type { AppTranslation } from '../../translate';
 
 export const home = {
   'app.home.firstPlant': 'Registremos su primera planta o su primer animal',
+  'app.home.oldLinks':
+    'Los enlaces de comprobación y códigos QR hechos antes del 17 de octubre de 2026 ya no muestran el nombre de sus registros: VeilCore ahora guarda los nombres cerrados, así que el servidor de registros no tiene ninguno que mostrar. Para compartir un nombre, abra el registro, elija Mostrar a alguien, active el nombre y envíe el enlace nuevo. Un certificado nuevo tiene un código QR nuevo.',
   'app.home.continueDraftNamed': 'Continúe su borrador: {name}',
   'app.home.continueDraft': 'Continúe su borrador',
   'app.home.draftKept': 'Lo que escribió se guarda en este navegador. Siga donde lo dejó.',

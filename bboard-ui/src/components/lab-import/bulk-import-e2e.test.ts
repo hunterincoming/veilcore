@@ -188,8 +188,9 @@ describe('importing a 25-row accession log, end to end', () => {
       expect(row.slice(7)).toEqual([
         r!.id,
         r!.recordFingerprint,
-        // The name goes after the # (round 5): the registry no longer has it.
-        `${ORIGIN}/verify/${r!.id}?fp=${r!.recordFingerprint}#n=${Buffer.from(r!.strainName, 'utf8').toString('base64url')}`,
+        // The name goes after the # (round 5): the registry no longer has it. With its salt
+        // (round 6, CONTRACT.md #33), so the check page can tell it is the record's name.
+        `${ORIGIN}/verify/${r!.id}?fp=${r!.recordFingerprint}#n=${Buffer.from(r!.strainName, 'utf8').toString('base64url')}&ns=${r!.nameSalt ?? ''}`,
         'Sealed',
         tab.bi.NO_DNA_REPORT,
       ]);

@@ -78,3 +78,15 @@ export const keyMatchesFingerprint = async (
   const binding = await tagged('veilcore:v1:keybind', key, keySalt);
   return (await tagged('veilcore:v1:keyrecord', binding, contentHash)) === fingerprint;
 };
+
+/**
+ * A record's name code (round 6, the site's CONTRACT.md #33): SHA-256 of "veilcore:name:v1",
+ * 0x00, the name in UTF-8 (NFC, trimmed), 0x00, the proof code in hex, 0x00, the salt in hex.
+ * The record publishes it; the holder's link carries the salt (`ns`).
+ */
+export const nameCodeOf = async (name: string, proofCode: string, salt: string): Promise<string | null> => {
+  const n = name.normalize('NFC').trim().slice(0, 500);
+  if (!n || !isHex64(proofCode) || !isHex64(salt)) return null;
+  const bytes = new TextEncoder().encode(`veilcore:name:v1\0${n}\0${proofCode}\0${salt}`);
+  return toHex(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)));
+};

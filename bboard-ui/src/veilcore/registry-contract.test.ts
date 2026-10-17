@@ -17,6 +17,7 @@
 // claim code: a failure names what leaked, never its value.
 // SPDX-License-Identifier: Apache-2.0
 import { spawn, type ChildProcess } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { createServer } from 'node:net';
@@ -246,6 +247,8 @@ const WIRE_FIELDS = new Set([
   'receivedAt',
   'transferId',
   'attestation',
+  // The name's salted code (round 6, CONTRACT.md #33): nothing about the name without the salt.
+  'nameCode',
   // The row's revision, the same number as inside the box, so the registry can refuse an
   // older copy (round 3, L2): how many times a row was saved, which the save times showed.
   'rev',
@@ -347,6 +350,24 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     const v = await verify(r1.id);
     expect(v).toMatchObject({ found: true, recordFingerprint: r1.recordFingerprint });
     expect(v.cultivar).toBeUndefined();
+    // Round 6 (CONTRACT.md #33): the name's salted code, made from the name, the proof code and the
+    // salt sealed inside the box, stored and served as the real registry keeps it.
+    const box1 = (await A.vault.openRow('records', r1.id, stored.find((r) => r.id === r1.id)!.sealed)) as {
+      ok: true;
+      value: { nameSalt?: string };
+    };
+    expect(box1.value.nameSalt).toMatch(/^[0-9a-f]{64}$/);
+    const want = createHash('sha256')
+      .update(
+        Buffer.concat([
+          Buffer.from('veilcore:name:v1\0'),
+          Buffer.from(P.name.normalize('NFC').trim(), 'utf8'),
+          Buffer.from(`\0${r1.recordFingerprint}\0${box1.value.nameSalt ?? ''}`),
+        ]),
+      )
+      .digest('hex');
+    expect(stored.find((r) => r.id === r1.id)!.nameCode).toBe(want);
+    expect(v.nameCode).toBe(want);
     // A save with a name in the clear is refused whole, by the real registry (round 5).
     const clear = await reg('/api/records', {
       method: 'PUT',

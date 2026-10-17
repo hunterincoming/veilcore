@@ -15,7 +15,7 @@ import { useChainCall } from './useChainCall';
 import { useRecordT } from '../../i18n/app';
 import { ChainStatusLine } from './ChainStatusLine';
 import { proveLinkParams } from '../../veilcore/prove-link';
-import { nameParam, verifyPath } from '../../veilcore/verify-link';
+import { nameLinkParams, verifyPath } from '../../veilcore/verify-link';
 
 export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?: string }> = ({
   recordId,
@@ -43,7 +43,7 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
   const anchored = keys?.anchor;
   // With the record's name after the # (round 5), as every link the holder sends.
   const checkerLink = params
-    ? verifyPath(record.id, record.recordFingerprint, { ...nameParam(record.strainName), ...params })
+    ? verifyPath(record.id, record.recordFingerprint, { ...nameLinkParams(record), ...params })
     : '';
   const prove = () =>
     call.run(async (progress) => {

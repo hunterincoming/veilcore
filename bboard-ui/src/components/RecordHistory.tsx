@@ -51,7 +51,7 @@ export const RecordHistory: React.FC<{ record: StrainRecord }> = ({ record }) =>
         });
       }
 
-      const atts = await attestationsFor(record.recordFingerprint);
+      const atts = await attestationsFor(record.recordFingerprint, { asHolder: true });
       for (const a of atts) {
         const s = strengthLabel(a, tr);
         out.push({ at: new Date(a.issuedAt).getTime(), title: s.label, detail: s.why, strong: s.ok });
