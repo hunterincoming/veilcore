@@ -8,8 +8,8 @@
 //   1. takes that commit's files from this checkout (git archive: nothing in this checkout
 //      changes) into a new folder;
 //   2. installs the packages the commit's package-lock.json names (npm ci), or with
-//      --reuse-node-modules links the ones already installed in this checkout (quicker; then
-//      the packages are this checkout's, not a fresh install);
+//      --reuse-node-modules copies the ones already installed in this checkout, as hard links
+//      (quicker; then the packages are this checkout's, not a fresh install);
 //   3. builds the site with exactly the recorded mode and settings, and no other VITE_*
 //      setting (vite build, as the deploy's npm run build does after its type check);
 //   4. writes release.json as the deploy did, and compares every file with the manifest.
@@ -28,9 +28,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { execFileSync } from 'node:child_process';
-import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, relative, resolve, sep } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { isManifest } from './release-check.mjs';
 import { hashTree, releaseJsonText } from './release-manifest.mjs';
@@ -41,26 +41,20 @@ const OUTSIDE = /^\/(keys|zkir|params)\//;
 const WORKSPACES = ['bboard-cli', 'bboard-ui', 'api', 'contract', 'partner-kit', 'sponsor'];
 
 /**
- * node_modules for the rebuilt tree from this checkout's installed packages: every package
- * linked, except this repository's own workspaces (@veilcore/*: links into this checkout),
- * which are linked to the rebuilt tree's copies, so the build reads the commit's code, not
- * this checkout's.
+ * node_modules for the rebuilt tree from this checkout's installed packages (--reuse-node-modules):
+ * copied as hard links (a plain copy where hard links can't be made), so every package sits
+ * inside the rebuilt tree as it would after npm ci there. Linking the folder instead put this
+ * checkout's paths into the build, and the bundler's chunk names with them. This repository's
+ * own workspaces (@veilcore/*) are relative links, kept as such, so they point at the commit's
+ * code in the rebuilt tree.
  */
-const linkModules = (from, to, { repoRoot, rebuilt }) => {
+const copyModules = (from, to) => {
   if (!existsSync(from)) return;
-  mkdirSync(to, { recursive: true });
-  const linkOne = (src, dest) => {
-    const real = realpathSync(src);
-    const inRepo = relative(repoRoot, real);
-    const workspace = !inRepo.startsWith('..') && !inRepo.split(sep).includes('node_modules');
-    symlinkSync(workspace ? join(rebuilt, inRepo) : src, dest);
-  };
-  for (const name of readdirSync(from)) {
-    const src = join(from, name);
-    if (name.startsWith('@') && lstatSync(src).isDirectory()) {
-      mkdirSync(join(to, name), { recursive: true });
-      for (const inner of readdirSync(src)) linkOne(join(src, inner), join(to, name, inner));
-    } else linkOne(src, join(to, name));
+  try {
+    execFileSync('cp', ['-al', from, to], { stdio: 'ignore' });
+  } catch {
+    rmSync(to, { recursive: true, force: true });
+    cpSync(from, to, { recursive: true, verbatimSymlinks: true });
   }
 };
 
@@ -115,10 +109,10 @@ export const checkRebuild = (manifestFile, { reuseNodeModules = false, keep = fa
     if (hasParams) cpSync(params, join(src, 'bboard-ui', 'public', 'params'), { recursive: true });
 
     if (reuseNodeModules) {
-      const where = { repoRoot, rebuilt: src };
-      linkModules(join(repoRoot, 'node_modules'), join(src, 'node_modules'), where);
-      for (const w of WORKSPACES) linkModules(join(repoRoot, w, 'node_modules'), join(src, w, 'node_modules'), where);
-      lines.push('Packages: linked from this checkout (--reuse-node-modules), not installed fresh from the commit’s package-lock.json.');
+      log('Copying the packages installed in this checkout (hard links)…');
+      copyModules(join(repoRoot, 'node_modules'), join(src, 'node_modules'));
+      for (const w of WORKSPACES) copyModules(join(repoRoot, w, 'node_modules'), join(src, w, 'node_modules'));
+      lines.push('Packages: copied from this checkout (--reuse-node-modules), not installed fresh from the commit’s package-lock.json.');
     } else {
       log('Installing the packages the commit names (npm ci)…');
       execFileSync('npm', ['ci', '--no-audit', '--no-fund'], { cwd: src, stdio: 'inherit' });
