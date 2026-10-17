@@ -155,4 +155,6 @@ export const sealed = {
     '¿Descartar lo que este navegador conserva para este registro? No está en VeilCore, así que no se puede recuperar.',
   'app.sealed.unsaved.discardNew': 'Borrarlo',
   'app.sealed.unsaved.discardChange': 'Deshacer el cambio',
+  'app.sealed.sendNotSaved':
+    'Este registro aún no está guardado en VeilCore, así que no se puede enviar. Guarde una copia de seguridad y compruébela primero.',
 } satisfies Partial<AppTranslation>;

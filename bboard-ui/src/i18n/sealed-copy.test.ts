@@ -158,4 +158,29 @@ describe('the English privacy copy (sealed records round 2)', () => {
     }
     expect(a['app.import.cols.intro']).toMatch(/The plant name is public/);
   });
+
+  it('says what a license with a royalty on offspring makes public (round 3, P5), in every build', () => {
+    const builds = [
+      en,
+      ...[true, false].flatMap((claimsOnMainnet) =>
+        [true, false].map((policyApproved) => ({
+          ...en,
+          ...mainnetStrings({ claimsOnMainnet, policyApproved, chainReads: true }),
+        })),
+      ),
+    ];
+    for (const b of builds) {
+      expect(b['m.privacy.stored.text']).toMatch(
+        /royalty on offspring, our server can read which record it covers and when it took effect, and anyone can ask whether that record carries one/,
+      );
+    }
+  });
+
+  it('the lab-report lock sentences hold: the lab takes the lock only from the code or the sealed offer (round 3, P1)', () => {
+    const lr = fs.readFileSync(path.join(SRC, 'veilcore/lab-results.ts'), 'utf8');
+    expect(lr).not.toMatch(/the registry never had a chance to hand the lab its own/);
+    const panel = fs.readFileSync(path.join(SRC, 'components/flow/LabResults.tsx'), 'utf8');
+    expect(panel).not.toMatch(/useState\(record\.resultLock \?\? stored\?\.recipient\)/);
+    expect(panel).toMatch(/reportLockFor\(record,/);
+  });
 });

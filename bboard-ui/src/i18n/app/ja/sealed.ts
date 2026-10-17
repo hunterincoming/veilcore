@@ -140,4 +140,6 @@ export const sealed = {
     'この記録のためにこのブラウザが残しているものを破棄しますか？VeilCoreにはないため、元に戻せません。',
   'app.sealed.unsaved.discardNew': '削除する',
   'app.sealed.unsaved.discardChange': '変更を取り消す',
+  'app.sealed.sendNotSaved':
+    'この記録はまだVeilCoreに保存されていないため、送れません。先にバックアップを保存して確認してください。',
 } satisfies Partial<AppTranslation>;

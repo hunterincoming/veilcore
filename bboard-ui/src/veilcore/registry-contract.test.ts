@@ -191,6 +191,16 @@ const browser = async (storage: Map<string, string> = new Map()) => {
 };
 type Browser = Awaited<ReturnType<typeof browser>>;
 
+/**
+ * A holder key, and a vault key in a backup the app has checked: since round 3 (L1) nothing
+ * is sealed and sent before then, so each browser here that saves does this first.
+ */
+const keyInCheckedBackup = (b: Browser): void => {
+  b.holder.holderKey();
+  if (!b.vault.vaultKeyIfAny()) b.vault.mintVault();
+  b.vault.markVaultBackedUp();
+};
+
 const until = async (cond: () => boolean | Promise<boolean>, what: string, ms = 15_000): Promise<void> => {
   const end = Date.now() + ms;
   while (!(await cond())) {
@@ -249,6 +259,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
 
   it('save: what the holder typed goes sealed; only the public fields are readable', async () => {
     A = await browser(breederStorage);
+    keyInCheckedBackup(A);
     const { fingerprintRecord, newNonce } = A.commitment;
     const fields = {
       nonce: newNonce(),
@@ -264,7 +275,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
       photoFingerprints: [P.photo],
     };
     const out = await A.records.createRecordSaved({ ...fields, recordFingerprint: await fingerprintRecord(fields) });
-    expect(out.result).toEqual({ ok: true, refused: [] });
+    expect(out.result).toMatchObject({ ok: true, refused: [] });
     r1 = out.record;
     const fields2 = {
       nonce: newNonce(),
@@ -306,7 +317,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     expect(v).toMatchObject({ found: true, cultivar: NAME, recordFingerprint: r1.recordFingerprint });
   });
 
-  it('re-save unchanged: the same ciphertext is sent, and the registry keeps its first-seen date', async () => {
+  it('re-save unchanged: nothing is sent (only changed rows are, round 3 L2), and the registry keeps its first-seen date', async () => {
     const holderKey = A.holder.holderKeyIfAny()!;
     const before = await rowsOf(holderKey, 'records');
     const seen = (await verify(r1.id)).registryFirstSeen;
@@ -322,7 +333,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     expect(A.api.rowStateOf(A.records.RECORDS_KEY, r1.id)).toBe('open');
     expect(A.records.lockedRecords()).toEqual([]);
     const res = await A.api.apiStore.save(A.records.RECORDS_KEY, A.records.allRecords());
-    expect(res).toEqual({ ok: true, refused: [] });
+    expect(res).toMatchObject({ ok: true, refused: [], pending: [] });
     expect(await rowsOf(holderKey, 'records')).toEqual(before);
     expect((await verify(r1.id)).registryFirstSeen).toBe(seen);
   });
@@ -385,7 +396,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     expect(v.recordFingerprint).toBe(r2.recordFingerprint);
   });
 
-  it('a stale grant (sent without the values, as an older site did) is listed, then sent again by the browser', async () => {
+  it('a grant an older site saved without the values: shown as a difference, then the holder keeps the sealed choice', async () => {
     const holderKey = A.holder.holderKeyIfAny()!;
     const old = await reg(`/api/records/${r2.id}/disclosure`, {
       method: 'PUT',
@@ -400,12 +411,22 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     // The lab status is still granted: its registry facts are answered, only the pairing waits.
     expect(v.disclosed).toEqual(['own', 'dna']);
 
+    // Since round 3 (deploy window) a grant that differs from the sealed choice is not sent
+    // over unasked: an old tab may have changed it on purpose. It is shown, and the holder
+    // chooses; here, to keep the choice sealed with the record.
     const sentAgain = await A.disclosure.syncGrants(
       A.records.getRecord,
       [],
       (id) => A.records.integrityOf(id) !== 'mismatch',
     );
-    expect(sentAgain).toBe(1);
+    expect(sentAgain).toBe(0);
+    expect(A.disclosure.grantDifferenceOf(r2.id)).toEqual([
+      'existence',
+      'attestation-status',
+      'parent-names',
+      'breeding-method',
+    ]);
+    expect(await A.disclosure.keepSealedGrant(A.records.getRecord(r2.id)!)).toBe(true);
     v = await verify(r2.id);
     expect(v.staleGrant).toBeUndefined();
     expect(v.parents).toEqual([PUB.parent]);
@@ -429,8 +450,9 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     const code = t.shareCodeFor(offer.transferId, offer.claimCode, undefined, offer.offerKey);
     expect(code.split('.').at(-1)?.startsWith('o1')).toBe(true);
 
-    // The lab, in its own browser.
+    // The lab, in its own browser, with its key in a checked backup.
     const B = await browser(labStorage);
+    keyInCheckedBackup(B);
     const parsed = B.transfers.parseShareCode(code);
     expect(parsed.transferId).toBe(transferId);
     const claim = await B.transfers.claimTransfer(parsed.transferId, parsed.claimCode);
@@ -633,6 +655,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     const storage = new Map<string, string>([['veilcore.holder.v1', holderKey]]);
     const L = await browser(storage);
     const wrongKey = L.vault.mintVault()!;
+    L.vault.markVaultBackedUp(); // in a checked backup, so the save reaches the registry (round 3, L1)
     secretKeys.push({ label: 'the wrong vault key', values: forms(wrongKey) });
     await L.records.hydrate();
     expect(L.records.allRecords()).toEqual([]);

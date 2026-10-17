@@ -161,4 +161,6 @@ export const sealed = {
     'Let go of what this browser keeps for this record? It isn’t on VeilCore, so it can’t be brought back.',
   'app.sealed.unsaved.discardNew': 'Delete it',
   'app.sealed.unsaved.discardChange': 'Undo the change',
+  'app.sealed.sendNotSaved':
+    'This record isn’t saved on VeilCore yet, so it can’t be sent. Save a backup and check it first.',
 };

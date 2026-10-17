@@ -807,6 +807,10 @@ describe('L8, L9, L10: receiving', () => {
       const res = await L.m.receive.claimWithCode(code);
       expect(res).toEqual({ error: 'could not reach the registry' });
       expect(L.m.transfers.receivingCodeFor(p.transferId)).toBe(code);
+      // What the claim screen used to do next (no stub in the stale list: forget the code) is
+      // refused by the store itself: no definite refusal is on record for this code.
+      L.m.transfers.forgetReceivingCode(p.transferId);
+      expect(L.m.transfers.receivingCodeFor(p.transferId)).toBe(code);
       const again = await L.m.receive.claimWithCode(code);
       expect('error' in again && again.definite).toBe(true);
       expect(L.m.transfers.receivingCodeFor(p.transferId)).toBe(code); // its stub is here: kept

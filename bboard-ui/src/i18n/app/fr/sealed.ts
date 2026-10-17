@@ -161,4 +161,6 @@ export const sealed = {
     'Abandonner ce que ce navigateur garde pour cet enregistrement ? Ce n’est pas sur VeilCore, donc impossible à récupérer.',
   'app.sealed.unsaved.discardNew': 'Le supprimer',
   'app.sealed.unsaved.discardChange': 'Annuler la modification',
+  'app.sealed.sendNotSaved':
+    'Cet enregistrement n’est pas encore enregistré sur VeilCore, il ne peut donc pas être envoyé. Enregistrez d’abord une copie de secours et vérifiez-la.',
 } satisfies Partial<AppTranslation>;

@@ -540,6 +540,10 @@ const persist = () => {
  */
 const settleOutbox = (result: SaveResult): void => {
   if (result.accepted?.length) takeFromOutbox(result.accepted);
+  // A change the registry refused by id, to a record it has, is its answer: not kept to send
+  // again (the registry's copy is read back). A new record stays kept whatever the answer.
+  const refusedIds = result.refused.filter((r) => r.id !== '*').map((r) => r.id);
+  takeFromOutbox(refusedIds.filter((id) => rowStateOf(RECORDS_KEY, id) !== undefined));
   const transient = result.offline || result.refused.some((r) => r.id === '*');
   const keep = new Set([...(result.held ?? []), ...(transient ? (result.pending ?? []) : [])]);
   putInOutbox(records.filter((r) => keep.has(r.id)));

@@ -16,6 +16,8 @@ import { attestRecord, type AttesterProfile } from './attester-keys';
 import { handleTag, isHandleTag, isVaultKey, newOfferKey, openOffer, sealOffer, type OfferBox } from './vault';
 import { isAnimal } from './animal-profile';
 import { noteSentTo, sentToName, type StrainRecord } from './records';
+import { inOutbox } from './outbox';
+import { rowStateOf } from './api-store';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
@@ -320,6 +322,7 @@ const LAB_ERROR_KEYS: readonly AppKey[] = [
   'app.lab.err.tooMany',
   'app.sealed.err.newCode',
   'app.sealed.err.handleTag',
+  'app.sealed.sendNotSaved',
 ];
 
 /**
@@ -487,6 +490,10 @@ export const offerTransfer = async (
   const problems = sample ? custodyProblems('sample', sample) : [];
   if (problems.length) return { error: problems.join(' ') };
   const details = sampleDetailsOf(sample);
+  // A record kept only in this browser (round 3, L1) isn't on VeilCore to send from.
+  if (inOutbox(record.id) && rowStateOf('veilcore.records.v1', record.id) === undefined) {
+    return { error: enT.t('app.sealed.sendNotSaved') };
+  }
   const offerKey = newOfferKey();
   const name = toHandle.normalize('NFC').trim();
   if (!name) return { error: 'say who it is for' };
@@ -596,6 +603,9 @@ export const claimTransfer = async (
     }
     if (isString(body.error)) {
       const definite = res.status >= 400 && res.status < 500;
+      // "Already claimed" may be this browser's own claim, whose answer was lost: not a
+      // refusal of the code until a fresh read shows no stub for it (receive.ts claimWithCode).
+      if (definite && !/already been claimed/i.test(body.error)) markRefused(transferId);
       return { error: userFacingError(body.error), ...(definite ? { definite: true as const } : {}) };
     }
     return unexpected;
@@ -699,14 +709,49 @@ export const keepReceivingCode = (code: string): void => {
 /** The code kept for a delivery being received, if any. */
 export const receivingCodeFor = (transferId: string): string | undefined => readReceiving()[transferId.toUpperCase()];
 
-/** The received record is sealed and accepted: the code isn't needed any more. */
-export const forgetReceivingCode = (transferId: string): void => {
+/**
+ * The received record is sealed and accepted, or the registry definitely refused the code:
+ * the code isn't needed any more. Anything else keeps it (round 3, L8): a claim whose answer
+ * was lost may have gone through, and the code is the only copy of the offer key. `force` is
+ * for those two cases, said by the caller that knows (receive.ts).
+ */
+export const forgetReceivingCode = (transferId: string, opts: { force?: true } = {}): void => {
+  if (!opts.force && !refusedCodes().has(transferId.toUpperCase())) return;
   forgetClaim(transferId);
+  unmarkRefused(transferId);
   const all = readReceiving();
   if (!(transferId.toUpperCase() in all)) return;
   delete all[transferId.toUpperCase()];
   try {
     localStorage.setItem(RECEIVING, JSON.stringify(all));
+  } catch {
+    /* nothing kept */
+  }
+};
+
+// Codes the registry definitely refused (L8): only these may be let go without a caller's word.
+const REFUSED = 'veilcore.receiving-refused.v1';
+const refusedCodes = (): Set<string> => {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(REFUSED) ?? '[]');
+    return new Set(Array.isArray(v) ? v.filter(isString) : []);
+  } catch {
+    return new Set();
+  }
+};
+const markRefused = (transferId: string): void => {
+  if (!receivingCodeFor(transferId)) return;
+  try {
+    localStorage.setItem(REFUSED, JSON.stringify([...refusedCodes(), transferId.toUpperCase()]));
+  } catch {
+    /* nothing kept */
+  }
+};
+const unmarkRefused = (transferId: string): void => {
+  const all = refusedCodes();
+  if (!all.delete(transferId.toUpperCase())) return;
+  try {
+    localStorage.setItem(REFUSED, JSON.stringify([...all]));
   } catch {
     /* nothing kept */
   }

@@ -161,4 +161,6 @@ export const sealed = {
     'Das, was dieser Browser für diesen Datensatz aufbewahrt, verwerfen? Es ist nicht bei VeilCore und lässt sich nicht zurückholen.',
   'app.sealed.unsaved.discardNew': 'Löschen',
   'app.sealed.unsaved.discardChange': 'Änderung verwerfen',
+  'app.sealed.sendNotSaved':
+    'Dieser Datensatz ist noch nicht bei VeilCore gespeichert und kann daher nicht gesendet werden. Speichern und prüfen Sie zuerst eine Sicherungskopie.',
 } satisfies Partial<AppTranslation>;

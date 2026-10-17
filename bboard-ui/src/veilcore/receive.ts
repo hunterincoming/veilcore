@@ -115,7 +115,7 @@ export const finishReceiving = async (
     offerFields,
   );
   if ('error' in out) return out;
-  forgetReceivingCode(parsed.transferId);
+  forgetReceivingCode(parsed.transferId, { force: true });
   return { record: out.record, offer: typeof opened === 'object' ? 'opened' : opened };
 };
 
@@ -132,7 +132,9 @@ export const claimWithCode = async (code: string): Promise<ClaimResult | ClaimEr
   const res = await claimTransfer(transferId, claimCode);
   if ('error' in res && res.definite) {
     await hydrate();
-    if (!allRecords().some((r) => r.transferId?.toUpperCase() === transferId)) forgetReceivingCode(transferId);
+    if (!allRecords().some((r) => r.transferId?.toUpperCase() === transferId)) {
+      forgetReceivingCode(transferId, { force: true });
+    }
   }
   return res;
 };
