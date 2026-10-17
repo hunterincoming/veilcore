@@ -998,7 +998,7 @@ export const readmeText = (
     );
   if (tx && checkScriptFor(ev))
     L.push(
-      `- Reading the batch root from Midnight with one command, no VeilCore server: in the proof folder, run npm install --save-exact ${CONTRACTS_PACKAGE} and then node check-on-midnight.mjs followed by your Blockfrost project id (free from blockfrost.io, for Midnight ${anchor?.network ?? ''}). It uses VeilCore's published checking code, so read it first if that matters; it prints "accepted": true and the block when the transaction wrote this root.`,
+      `- Reading the batch root from Midnight with one command, no VeilCore server: in the proof folder, run npm install --save-exact ${CONTRACTS_PACKAGE} and then node check-on-midnight.mjs followed by your Blockfrost project id (free from blockfrost.io, for Midnight ${anchor && isString(anchor.network) ? anchor.network : ''}). It uses VeilCore's published checking code, so read it first if that matters; it prints "accepted": true and the block when the transaction wrote this root.`,
     );
   if (bitcoin)
     L.push(
