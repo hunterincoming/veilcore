@@ -1376,8 +1376,9 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
       // Exactly the switched-on keys, with the values they publish and the fingerprint they
       // were read from (sealed records, CONTRACT.md #7).
       // The seal date and the DNA report start off (round 3, P7): only what was switched on.
+      // Lineage is no longer offered (persona review, 17 Oct): never published.
       expect(JSON.parse(put?.body ?? '{}')).toEqual({
-        show: ['existence', 'descent-clean', 'parent-names'],
+        show: ['existence', 'parent-names'],
         forFingerprint: record.recordFingerprint,
         values: { parents: [] },
       });
