@@ -141,6 +141,11 @@ export const de: Strings = {
     'Geben Sie die Datensatzkennung ein, die auf einem Zertifikat aufgedruckt ist oder Ihnen mitgeteilt wurde. Sie sehen, was der Inhaber teilen wollte, und was diese Seite selbst prüfen konnte: ob der Datensatz in einem versiegelten Stapel ist und ob Laborsignaturen gültig sind.',
   'm.verify.field': 'Datensatzkennung',
   'm.verify.go': 'Prüfen',
+  'm.verify.fpField': 'Prüfcode (auf dem Zertifikat, optional)',
+  'm.verify.fpHelp':
+    'Damit prüft diese Seite den Datensatz gegen den Code, den Sie haben, nicht nur gegen die Antwort des Registers.',
+  'm.verify.fpBad':
+    'Ein Prüfcode hat 64 Zeichen, 0–9 und a–f. Lassen Sie das Feld leer, um nur über die Kennung zu prüfen.',
   'm.founders.label': 'Gründer',
   'm.founders.leads': 'Leitet',
   'm.founders.also': 'Außerdem',

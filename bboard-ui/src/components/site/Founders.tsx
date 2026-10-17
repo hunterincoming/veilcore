@@ -6,6 +6,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import type { StringKey } from '../../i18n/en';
 import { FOUNDERS_MAIL, RoleLine, SiteShell, X_HANDLE } from './SiteShell';
+import { verifyPath } from '../../veilcore/verify-link';
 
 type Founder = {
   name: string;
@@ -159,10 +160,17 @@ export const VerifyLookup: React.FC = () => {
   const { t, sp } = useI18n();
   const navigate = useNavigate();
   const [id, setId] = React.useState('');
+  // The proof code from the certificate (persona review, 17 Oct): with it the check page
+  // checks the record against the code in hand, not only against the registry's answer.
+  const [fp, setFp] = React.useState('');
+  const [fpBad, setFpBad] = React.useState(false);
   const go = (e: React.FormEvent) => {
     e.preventDefault();
     const v = id.trim();
-    if (v) void navigate(`/verify/${encodeURIComponent(v)}`);
+    if (!v) return;
+    const code = fp.replace(/\s+/g, '').toLowerCase();
+    if (code && !/^[0-9a-f]{64}$/.test(code)) return setFpBad(true);
+    void navigate(verifyPath(v, code || undefined));
   };
   return (
     <SiteShell>
@@ -178,6 +186,24 @@ export const VerifyLookup: React.FC = () => {
           <div className="field">
             <label htmlFor="vid">{t('m.verify.field')}</label>
             <input id="vid" value={id} autoComplete="off" spellCheck={false} onChange={(e) => setId(e.target.value)} />
+          </div>
+          <div className="field">
+            <label htmlFor="vfp">{t('m.verify.fpField')}</label>
+            <input
+              id="vfp"
+              value={fp}
+              autoComplete="off"
+              spellCheck={false}
+              aria-describedby="vfp-help"
+              aria-invalid={fpBad || undefined}
+              onChange={(e) => {
+                setFp(e.target.value);
+                setFpBad(false);
+              }}
+            />
+            <small id="vfp-help" role={fpBad ? 'alert' : undefined}>
+              {fpBad ? t('m.verify.fpBad') : t('m.verify.fpHelp')}
+            </small>
           </div>
           <button type="submit" className="btn solid">
             {t('m.verify.go')}

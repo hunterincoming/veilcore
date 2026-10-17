@@ -164,6 +164,6 @@ export const prove = {
   'app.prove.share.differs.failed': 'VeilCore n’a pas enregistré votre choix. Réessayez.',
   'app.prove.share.nameInLink': 'Mettre le nom dans le lien',
   'app.prove.share.nameInLinkHelp':
-    'Seules les personnes à qui vous envoyez le lien le voient. Il se trouve après le # du lien, qu’un navigateur n’envoie jamais à VeilCore ni à aucun autre serveur.',
-  'app.prove.share.nameWarning': 'Quiconque a l’identifiant de cet enregistrement verra son nom.',
+    'Si c’est activé, tous ceux à qui vous envoyez ce lien voient le nom, ainsi que quiconque à qui ils le transmettent.',
+  'app.prove.share.nameWarning': 'Si c’est activé, quiconque a l’identifiant de l’enregistrement voit le nom.',
 } satisfies Partial<AppTranslation>;

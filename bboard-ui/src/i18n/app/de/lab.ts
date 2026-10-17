@@ -150,7 +150,7 @@ export const lab = {
   'app.lab.send.who': 'An wen senden Sie es?',
   'app.lab.send.whoHelp': 'Ein Name oder Kürzel, damit Sie beide wissen, um welche Lieferung es geht.',
   'app.lab.send.from': 'Ihr Name oder Betrieb (sichtbar für den Empfänger)',
-  'app.lab.send.fromHelp': 'Wird als Absender angezeigt. Verschlossen: VeilCore kann es nicht lesen.',
+  'app.lab.send.fromHelp': 'Wird als Absender angezeigt. Verschlossen gespeichert, und wir haben den Schlüssel nicht.',
   'app.lab.send.quantity': 'Menge (optional)',
   'app.lab.send.quantityPlaceholder': 'z. B. 10 Stecklinge',
   'app.lab.send.note': 'Notiz für das Labor (optional)',

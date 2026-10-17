@@ -3,7 +3,8 @@
 // Every build of the site uses sealed records, lab results, animal records, the claimant's
 // own copy of a delivery's offer ("Finish receiving", GET /transfers/:id/offer), locked
 // sample details, a record's and an agreement's public `rev` (the registry refuses an
-// older copy), locked record names, and DNA reports shown only bound (round 5). A
+// older copy), locked record names, DNA reports shown only bound (round 5), and "Bred by" as a
+// fact a holder may share (persona review, 17 Oct). A
 // registry that doesn't serve one of them would leave the site offering something that fails when
 // someone uses it. So both site deploys (scripts/site-mainnet-preflight.mjs for
 // veilcore.org, scripts/deploy-test-site.mjs for test.veilcore.org) first ask the target
@@ -14,30 +15,33 @@
 
 /** The registry features every site build uses, with plain names for the refusal. */
 export const REQUIRED_FEATURES = Object.freeze({
-  'sealed-records-v1': 'sealed records',
-  'lab-results-v1': 'lab results',
-  'animal-profile-v1': 'animal records',
-  'claimant-offer-v1': 'finishing a received delivery',
+  "sealed-records-v1": "sealed records",
+  "lab-results-v1": "lab results",
+  "animal-profile-v1": "animal records",
+  "claimant-offer-v1": "finishing a received delivery",
   // Sample details sealed with the delivery's offer key (CONTRACT.md #27): an older registry
   // would refuse the sealed boxes, and a lab code made against it would carry none.
-  'sealed-custody-v1': 'locked sample details',
+  "sealed-custody-v1": "locked sample details",
   // Every record goes with its `rev` in the clear (round 3, L2): an older registry refuses
   // the field, and with it the whole save.
-  'record-rev-v1': 'refusing an older copy of a record',
+  "record-rev-v1": "refusing an older copy of a record",
   // Every agreement goes with its `rev` in the clear too (round 4, F1): an older registry
   // refuses the field, and with it the whole save of agreements.
-  'license-rev-v1': 'refusing an older copy of an agreement',
+  "license-rev-v1": "refusing an older copy of an agreement",
   // A record's name goes only inside its locked box (round 5, CONTRACT.md #28): an older
   // registry would keep a readable copy of a name the site says is locked.
-  'sealed-name-v1': 'locked record names',
+  "sealed-name-v1": "locked record names",
   // A saved DNA report is published only as a code bound with the record's own salt (round 5,
   // CONTRACT.md #29): an older registry refuses that value, and still answers the plain one.
-  'dna-pair-binding-v1': 'DNA reports shown only as a bound code',
+  "dna-pair-binding-v1": "DNA reports shown only as a bound code",
+  // "Bred by" as a fact a holder may share (persona review, 17 Oct): an older registry refuses
+  // the value, and nothing is shared.
+  "bred-by-grant-v1": "sharing who bred it",
 });
 
 const DEPLOY_FIRST =
   "Deploy the registry first: put the registry's latest code live on Railway, wait until " +
-  'Railway shows the new deployment as active, then run this again.';
+  "Railway shows the new deployment as active, then run this again.";
 
 /** The registry's /health answer, or a plain reason it could not be read. */
 export const readHealth = async (api) => {
@@ -49,7 +53,7 @@ export const readHealth = async (api) => {
       ok: false,
       problem:
         `Could not read ${api}/health (${e instanceof Error ? e.message : String(e)}). ` +
-        'Check your internet connection and that the registry is up on Railway, then run this again.',
+        "Check your internet connection and that the registry is up on Railway, then run this again.",
     };
   }
   // /health answers 503 while the registry is starting or a part of it failed to load.
@@ -58,7 +62,7 @@ export const readHealth = async (api) => {
       ok: false,
       problem:
         `The registry at ${api} is not ready (its /health answered ${res.status}). ` +
-        'Wait until Railway shows its deployment as active, then run this again.',
+        "Wait until Railway shows its deployment as active, then run this again.",
     };
   }
   try {
@@ -76,13 +80,17 @@ export const readHealth = async (api) => {
  * @returns {{ ok: true } | { ok: false, missing: string[], problem: string }}
  */
 export const checkFeatures = (health, api) => {
-  const listed = Array.isArray(health?.features) ? health.features.filter((f) => typeof f === 'string') : [];
-  const missing = Object.keys(REQUIRED_FEATURES).filter((f) => !listed.includes(f));
+  const listed = Array.isArray(health?.features)
+    ? health.features.filter((f) => typeof f === "string")
+    : [];
+  const missing = Object.keys(REQUIRED_FEATURES).filter(
+    (f) => !listed.includes(f),
+  );
   if (missing.length === 0) return { ok: true };
-  const named = missing.map((f) => `${f} (${REQUIRED_FEATURES[f]})`).join(', ');
+  const named = missing.map((f) => `${f} (${REQUIRED_FEATURES[f]})`).join(", ");
   const has = listed.length
-    ? `it lists only: ${listed.join(', ')}`
-    : 'it lists no features, so it is an older registry';
+    ? `it lists only: ${listed.join(", ")}`
+    : "it lists no features, so it is an older registry";
   return {
     ok: false,
     missing,
@@ -99,5 +107,5 @@ export const checkRegistryFeatures = async (api) => {
 /** One line for the deploy log once the check has passed. */
 export const featuresLine = (api) => {
   const names = Object.values(REQUIRED_FEATURES);
-  return `Registry ${api} serves ${names.slice(0, -1).join(', ')} and ${names.at(-1)}.`;
+  return `Registry ${api} serves ${names.slice(0, -1).join(", ")} and ${names.at(-1)}.`;
 };

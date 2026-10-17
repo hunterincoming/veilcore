@@ -224,6 +224,23 @@ export const verify = {
   'app.verify.field.name': 'Su nombre',
   'app.verify.nameShared': 'Su nombre, mostrado por el titular a cualquiera con el ID: {name}',
   'app.verify.noNameShared': 'No hay nombre registrado.',
+  'app.verify.field.bred-by': 'Obtenido por',
+  'app.verify.bredByShared': 'Obtenido por, según lo escribió el titular: {name}',
+  'app.verify.noBredBy': 'No hay obtentor registrado.',
+  'app.verify.mark.anyName':
+    'El nombre de un firmante es el nombre con el que se registró su clave. Cualquiera puede registrar una clave con cualquier nombre, así que un nombre muestra quién firmó solo cuando dice que se comprobó con un registro público.',
+  'app.verify.summary.checked': 'El registro existía el {date}: esta página lo comprobó en Midnight.{test}',
+  'app.verify.summary.reported':
+    'El registro existía el {date}. Lo dice el servidor de registros de VeilCore; esta página aún no lo ha comprobado en Midnight.{test}',
+  'app.verify.summary.yourself': 'Compruébelo usted mismo',
+  'app.verify.self.explorer':
+    'Abra un explorador de Midnight para {network}, como {url} (escriba la dirección usted mismo).',
+  'app.verify.self.anyExplorer': 'Abra un explorador de Midnight para {network}.',
+  'app.verify.self.tx': 'Busque la transacción {tx}. La hora de su bloque es la fecha.',
+  'app.verify.self.contract': 'Compruebe que tuvo éxito y que llamó al contrato de VeilCore {contract}.',
+  'app.verify.self.noContract': '(el servidor de registros no lo indicó)',
+  'app.verify.self.root':
+    'Compruebe que escribió el código del lote {root}. Puede que un explorador no lo muestre: el paquete de evidencia del registro, que tiene su titular, dice cómo leerlo de otra forma.',
   'app.verify.dnaCheck.help':
     '¿Tiene el archivo del informe de ADN que le envió el titular? Elíjalo para comprobar que es el guardado con este registro. El archivo se lee en este navegador y no se envía a ninguna parte.',
   'app.verify.dnaCheck.button': 'Comprobar un archivo de informe de ADN',

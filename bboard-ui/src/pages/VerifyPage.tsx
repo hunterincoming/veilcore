@@ -41,8 +41,10 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Collapse,
   Container,
   Divider,
+  Link,
   Paper,
   Stack,
   Typography,
@@ -55,7 +57,7 @@ import { proofFor, type ProofState } from '../veilcore/proofs';
 import { attestationsFor, countsAsSigned, signerLabel, type ResolvedAttestation } from '../veilcore/attesters';
 import { ACCENT, INK_COLOR } from '../config/theme';
 import { Wordmark } from '../components/Wordmark';
-import { NETWORK, isTestNetwork } from '../config/network';
+import { NETWORK, explorerFor, isTestNetwork } from '../config/network';
 import { Fact, FactKey, SharedFacts } from '../components/verify/DisclosedFacts';
 import { pairingPending, pendingReportLine, publicReportLine, withdrawnSignaturesLine } from '../veilcore/saved-report';
 import {
@@ -102,10 +104,69 @@ const RECORD_ID = /^VEIL-[0-9A-F]{32}$/i;
 const idText = (v: string | undefined, tr: Translator = enT): string =>
   v && RECORD_ID.test(v) ? v : tr.t('app.verify.thisId');
 
+/**
+ * The one line at the top (persona review, 17 Oct): the date in plain words, and whose word it
+ * is. The heading used to say "Date stamp reported by the registry, not checked here" with
+ * the date mid-paragraph. "Check it yourself" opens the steps to look the transaction up.
+ */
+const DateSummary: React.FC<{
+  at: string | number;
+  checked: boolean;
+  network: string;
+  anchor: { txHash?: string; contractAddress?: string };
+  root: string;
+}> = ({ at, checked, network, anchor, root }) => {
+  const tr = useT();
+  const { t } = tr;
+  const [open, setOpen] = useState(false);
+  const explorer = explorerFor(network);
+  const test = isTestNetwork(network) ? t('app.plant.date.testNote') : '';
+  return (
+    <Box sx={{ mb: 2 }} data-date-summary={checked ? 'checked' : 'reported'}>
+      <Typography variant="body1" sx={{ fontWeight: 700 }}>
+        {checked
+          ? t('app.verify.summary.checked', { date: fmt(at), test })
+          : t('app.verify.summary.reported', { date: fmt(at), test })}{' '}
+        <Link
+          component="button"
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          sx={{ verticalAlign: 'baseline', fontWeight: 700, color: ACCENT }}
+        >
+          {t('app.verify.summary.yourself')}
+        </Link>
+      </Typography>
+      <Collapse in={open}>
+        <Box component="ol" sx={{ pl: 2.5, my: 1, '& li': { mb: 0.5 } }} data-check-yourself="">
+          <Typography component="li" variant="body2">
+            {explorer
+              ? t('app.verify.self.explorer', { network: networkWords(network, tr), url: explorer })
+              : t('app.verify.self.anyExplorer', { network: networkWords(network, tr) })}
+          </Typography>
+          {anchor.txHash && (
+            <Typography component="li" variant="body2" sx={{ overflowWrap: 'anywhere' }}>
+              {t('app.verify.self.tx', { tx: anchor.txHash })}
+            </Typography>
+          )}
+          <Typography component="li" variant="body2" sx={{ overflowWrap: 'anywhere' }}>
+            {t('app.verify.self.contract', { contract: anchor.contractAddress ?? t('app.verify.self.noContract') })}
+          </Typography>
+          <Typography component="li" variant="body2" sx={{ overflowWrap: 'anywhere' }}>
+            {t('app.verify.self.root', { root })}
+          </Typography>
+        </Box>
+      </Collapse>
+    </Box>
+  );
+};
+
 type VerifyResult = {
   found: boolean;
   id?: string;
   cultivar?: string;
+  /** Who bred it, as the holder wrote it, when the holder shared it (`bred-by`, persona review). */
+  bredBy?: string;
   recordFingerprint?: string;
   /** The holder saved a lab report fingerprint themselves. Not a lab's confirmation. */
   dnaPairedByHolder?: boolean;
@@ -579,6 +640,22 @@ export const VerifyPage: React.FC = () => {
               </Box>
             </Stack>
 
+            {/* The date first, in one line, and whose word it is (persona review, 17 Oct). */}
+            {result.recordFingerprint &&
+              proof !== 'checking' &&
+              proof.status === 'anchor-reported' &&
+              anchor !== 'checking' &&
+              anchor?.status !== 'failed' &&
+              (anchorCheckedOnChain && anchor?.status === 'checked' ? anchor.blockTime : reportedAt) !== undefined && (
+                <DateSummary
+                  at={(anchorCheckedOnChain && anchor?.status === 'checked' ? anchor.blockTime : reportedAt) ?? ''}
+                  checked={anchorCheckedOnChain && anchor?.status === 'checked'}
+                  network={reportedNetwork ?? NETWORK}
+                  anchor={proof.proof.anchor ?? {}}
+                  root={proof.proof.root}
+                />
+              )}
+
             {/* The holder's own words, labelled as such: never a heading next to the mark,
                 cleaned of symbols and control characters, and capped (display-name.ts). */}
             {name ? (
@@ -612,7 +689,8 @@ export const VerifyPage: React.FC = () => {
             <Divider sx={{ mb: 2 }} />
 
             <Stack spacing={1.25}>
-              <FactKey />
+              {/* Signers' names: said once, in the key (persona review, 17 Oct). */}
+              <FactKey anyName={signed.some((a) => !signerLabel(a, 'Signed by', undefined, tr).checked)} />
               {!result.recordFingerprint ? (
                 <Fact ok={false}>{t('app.verify.noCommitment')}</Fact>
               ) : bound ? (
@@ -701,7 +779,6 @@ export const VerifyPage: React.FC = () => {
                       <Fact key={a.attestationId} status={bound ? 'checked' : 'reported'}>
                         {t('app.verify.sigLine', { forWhom, kind: signatureKind(a, tr), lead: label.lead })}
                         <NameCheckText label={label} />
-                        {!label.checked && t('app.lab.results.anyName')}
                         {a.type === 'chain-of-custody' &&
                           !(own && receipt?.kind === 'signed' && receipt.by.attestationId === a.attestationId) &&
                           publicCustody.has(a.attestationId) && (
@@ -772,6 +849,8 @@ export const VerifyPage: React.FC = () => {
                   parents: result.parents,
                   breedingMethod: result.breedingMethod,
                   name: result.cultivar ?? undefined,
+                  nameInLink: !!fromLink,
+                  bredBy: result.bredBy,
                   ...(result.subjectKind === 'animal'
                     ? {
                         subjectKind: 'animal',

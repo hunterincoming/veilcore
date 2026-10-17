@@ -147,7 +147,7 @@ export const lab = {
   'app.lab.send.who': 'Who are you sending it to?',
   'app.lab.send.whoHelp': 'A name or handle for them, so you both know which delivery this is.',
   'app.lab.send.from': "Your name or business (they'll see it)",
-  'app.lab.send.fromHelp': "Shown to them as who it's from. Locked: VeilCore can't read it.",
+  'app.lab.send.fromHelp': "Shown to them as who it's from. Stored locked, and we don't have the key.",
   'app.lab.send.quantity': 'Quantity (optional)',
   'app.lab.send.quantityPlaceholder': 'e.g. 10 cuttings',
   'app.lab.send.note': 'Note for the lab (optional)',

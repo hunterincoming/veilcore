@@ -157,6 +157,6 @@ export const prove = {
   'app.prove.share.differs.failed': 'VeilCoreがあなたの選択を保存しませんでした。もう一度お試しください。',
   'app.prove.share.nameInLink': 'リンクに名前を入れる',
   'app.prove.share.nameInLinkHelp':
-    'リンクを送った人だけが見られます。名前はリンクの#の後ろに入り、ブラウザはこの部分をVeilCoreにもほかのどのサーバーにも送りません。',
-  'app.prove.share.nameWarning': 'この記録のIDを知る人は誰でも名前を見られます。',
+    'オンにすると、このリンクを送った相手全員と、その相手がリンクを転送した人に名前が見えます。',
+  'app.prove.share.nameWarning': 'オンにすると、記録のIDを知る人は誰でも名前を見られます。',
 } satisfies Partial<AppTranslation>;

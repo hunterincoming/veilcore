@@ -207,6 +207,23 @@ export const verify = {
   'app.verify.field.name': '名前',
   'app.verify.nameShared': '保有者がIDを知る誰にでも見せている名前：{name}',
   'app.verify.noNameShared': '名前は記録されていません。',
+  'app.verify.field.bred-by': '育成者',
+  'app.verify.bredByShared': '育成者（保有者の記載による）：{name}',
+  'app.verify.noBredBy': '育成者は記録されていません。',
+  'app.verify.mark.anyName':
+    '署名者の名前は、その鍵が登録された名前です。誰でもどんな名前でも鍵を登録できるため、名前で署名者がわかるのは、公開されている登録情報と照合済みと表示されている場合だけです。',
+  'app.verify.summary.checked': '記録は{date}までに存在していました。このページがMidnightで確認しました。{test}',
+  'app.verify.summary.reported':
+    '記録は{date}までに存在していました。VeilCoreのレジストリの報告によるもので、このページはまだMidnightで確認していません。{test}',
+  'app.verify.summary.yourself': 'ご自身で確認する',
+  'app.verify.self.explorer':
+    '{network}向けのMidnightエクスプローラー（例：{url}。アドレスはご自身で入力してください）を開きます。',
+  'app.verify.self.anyExplorer': '{network}向けのMidnightエクスプローラーを開きます。',
+  'app.verify.self.tx': 'トランザクション{tx}を検索します。そのブロックの時刻が日付です。',
+  'app.verify.self.contract': '成功していて、VeilCoreのコントラクト{contract}を呼び出していることを確認します。',
+  'app.verify.self.noContract': '（レジストリは示していません）',
+  'app.verify.self.root':
+    'バッチの証明コード{root}を書き込んだことを確認します。エクスプローラーには表示されない場合があります。その場合の読み方は、保有者が持つ記録の証拠パッケージに書かれています。',
   'app.verify.dnaCheck.help':
     '保有者から送られたDNAレポートのファイルをお持ちですか。選ぶと、この記録とともに保存されたものかを確かめられます。ファイルはこのブラウザで読まれ、どこにも送られません。',
   'app.verify.dnaCheck.button': 'DNAレポートのファイルを確かめる',

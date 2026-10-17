@@ -90,9 +90,10 @@ export const Step5ProveDisclosure: React.FC<{
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ absolute: string; relative: string }>();
   const [copied, setCopied] = useState(false);
-  // Whether the link carries the record's name after the # (round 5): on unless the holder
-  // turns it off. Only the people the link is sent to see it; VeilCore never receives it.
-  const [includeName, setIncludeName] = useState(true);
+  // Whether the link carries the record's name after the # (round 5): off unless the holder
+  // turns it on for this link (persona review, 17 Oct). Only the people the link is sent to
+  // (and whoever they pass it to) see it; VeilCore never receives it.
+  const [includeName, setIncludeName] = useState(false);
   // A date-stamped plant's link can carry its on-chain identity, so whoever gets it can
   // check the date stamp and ask the holder to prove it. Only the people sent the link
   // can then match the holder's proofs to this plant (record-keys.ts keeps it off the record).
@@ -160,7 +161,8 @@ export const Step5ProveDisclosure: React.FC<{
     try {
       // The grant carries the values it publishes, read from this record here (the
       // registry can't read it), and the fingerprint they were read from.
-      const out = await saveGrant(record, disclosure);
+      // Lineage is no longer offered (it only ever said "not checked"): never re-published.
+      const out = await saveGrant(record, { ...disclosure, 'descent-clean': false });
       if ('error' in out) {
         // No link without a stored grant: a link shown now would show strangers
         // whatever the registry held before, not what is on screen.
@@ -206,7 +208,7 @@ export const Step5ProveDisclosure: React.FC<{
   const unsaved =
     stored === 'loading' || stored === 'unknown' || stored.updatedAt === null
       ? true
-      : stored.show.join(',') !== keysOn(disclosure).join(',');
+      : stored.show.join(',') !== keysOn({ ...disclosure, 'descent-clean': false }).join(',');
 
   // The registry shows something else than the holder's own choice (another tab, an older
   // version of the site, or the server itself): both are said, and the holder chooses.

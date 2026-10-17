@@ -140,6 +140,11 @@ export const es: Strings = {
     'Ingrese el identificador de registro impreso en un certificado o que le hayan compartido. Verá lo que su titular decidió compartir y lo que esta página pudo comprobar por sí misma: si el registro está en un lote sellado y si las firmas de laboratorio, si las hay, son válidas.',
   'm.verify.field': 'Identificador de registro',
   'm.verify.go': 'Comprobar',
+  'm.verify.fpField': 'Código de prueba (en el certificado, opcional)',
+  'm.verify.fpHelp':
+    'Con él, esta página comprueba el registro con el código que usted tiene, no solo con la respuesta del servidor de registros.',
+  'm.verify.fpBad':
+    'Un código de prueba tiene 64 caracteres, 0–9 y a–f. Déjelo vacío para comprobar solo por el identificador.',
   'm.founders.label': 'Fundadores',
   'm.founders.leads': 'Dirige',
   'm.founders.also': 'Además',

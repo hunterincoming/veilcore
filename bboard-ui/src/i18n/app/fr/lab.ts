@@ -152,7 +152,7 @@ export const lab = {
   'app.lab.send.who': 'À qui l’envoyez-vous ?',
   'app.lab.send.whoHelp': 'Un nom ou un pseudonyme, pour que vous sachiez tous deux de quelle livraison il s’agit.',
   'app.lab.send.from': 'Votre nom ou votre entreprise (ils le verront)',
-  'app.lab.send.fromHelp': 'Affiché comme expéditeur. Verrouillé : VeilCore ne peut pas le lire.',
+  'app.lab.send.fromHelp': 'Affiché comme expéditeur. Conservé verrouillé, et nous n’avons pas la clé.',
   'app.lab.send.quantity': 'Quantité (facultatif)',
   'app.lab.send.quantityPlaceholder': 'p. ex. 10 boutures',
   'app.lab.send.note': 'Note pour le laboratoire (facultatif)',

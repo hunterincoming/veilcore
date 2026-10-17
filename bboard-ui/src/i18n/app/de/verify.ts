@@ -225,6 +225,25 @@ export const verify = {
   'app.verify.field.name': 'Sein Name',
   'app.verify.nameShared': 'Sein Name, vom Inhaber für alle mit der ID sichtbar gemacht: {name}',
   'app.verify.noNameShared': 'Kein Name eingetragen.',
+  'app.verify.field.bred-by': 'Gezüchtet von',
+  'app.verify.bredByShared': 'Gezüchtet von, wie der Inhaber es angegeben hat: {name}',
+  'app.verify.noBredBy': 'Kein Züchter eingetragen.',
+  'app.verify.mark.anyName':
+    'Der Name eines Unterzeichners ist der Name, unter dem sein Schlüssel registriert wurde. Jeder kann einen Schlüssel unter jedem Namen registrieren; ein Name zeigt also nur dann, wer signiert hat, wenn dabei steht, dass er mit einem öffentlichen Eintrag abgeglichen wurde.',
+  'app.verify.summary.checked':
+    'Der Datensatz bestand spätestens am {date}: Diese Seite hat es auf Midnight geprüft.{test}',
+  'app.verify.summary.reported':
+    'Der Datensatz bestand spätestens am {date}. Das sagt das Register von VeilCore; diese Seite hat es noch nicht auf Midnight geprüft.{test}',
+  'app.verify.summary.yourself': 'Selbst prüfen',
+  'app.verify.self.explorer':
+    'Öffnen Sie einen Midnight-Explorer für {network}, etwa {url} (geben Sie die Adresse selbst ein).',
+  'app.verify.self.anyExplorer': 'Öffnen Sie einen Midnight-Explorer für {network}.',
+  'app.verify.self.tx': 'Suchen Sie nach der Transaktion {tx}. Ihre Blockzeit ist das Datum.',
+  'app.verify.self.contract':
+    'Prüfen Sie, dass sie erfolgreich war und den Contract von VeilCore {contract} aufgerufen hat.',
+  'app.verify.self.noContract': '(das Register hat ihn nicht genannt)',
+  'app.verify.self.root':
+    'Prüfen Sie, dass sie den Code des Stapels {root} geschrieben hat. Ein Explorer zeigt ihn vielleicht nicht an: Das Beweispaket des Datensatzes, vom Inhaber, sagt, wie man ihn anders liest.',
   'app.verify.dnaCheck.help':
     'Haben Sie die Datei des DNA-Berichts, die der Inhaber Ihnen geschickt hat? Wählen Sie sie aus, um zu prüfen, ob es die mit diesem Datensatz gespeicherte ist. Die Datei wird in diesem Browser gelesen und nirgendwohin gesendet.',
   'app.verify.dnaCheck.button': 'Datei eines DNA-Berichts prüfen',

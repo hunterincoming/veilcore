@@ -75,8 +75,12 @@ export const Fact: React.FC<{ ok?: boolean; status?: FactStatus; children: React
   );
 };
 
-/** The key to the three marks, in words, above the lines that use them. */
-export const FactKey: React.FC = () => {
+/**
+ * The key to the three marks, in words, above the lines that use them. With `anyName`, the
+ * one sentence about signers' names (persona review, 17 Oct): it used to repeat under every
+ * signature.
+ */
+export const FactKey: React.FC<{ anyName?: boolean }> = ({ anyName = false }) => {
   const { t } = useT();
   return (
     <Stack
@@ -93,6 +97,11 @@ export const FactKey: React.FC = () => {
           </Typography>
         </Stack>
       ))}
+      {anyName && (
+        <Typography variant="caption" color="text.secondary" sx={{ flexBasis: '100%' }} data-any-name="">
+          {t('app.verify.mark.anyName')}
+        </Typography>
+      )}
     </Stack>
   );
 };
@@ -130,6 +139,13 @@ export type SharedFactsData = {
   /** The record's name, when the holder published it with the `name` grant (round 5). */
   name?: string;
   /**
+   * The name came in the holder's link (after the #): it is shown above, so the list of what
+   * wasn't shared doesn't name it too (persona review, 17 Oct).
+   */
+  nameInLink?: boolean;
+  /** Who bred it, as the holder wrote it, under the `bred-by` grant (persona review, 17 Oct). */
+  bredBy?: string;
+  /**
    * The lab report line, worked out by the page (saved-report.ts publicReportLine): whether
    * the saved file is a lab report a lab signed. Without it, a plain line that claims nothing.
    */
@@ -166,7 +182,7 @@ export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }>
   const { t } = tr;
   const shared = new Set(data.disclosed);
   const notShared = fieldsFor(animal ? 'animal' : 'plant')
-    .filter((f) => !shared.has(LEGACY_NAME[f.key]))
+    .filter((f) => !shared.has(LEGACY_NAME[f.key]) && !(f.key === 'name' && data.nameInLink))
     .map((f) => labelOf(f.key, tr));
   const clean = (p?: { name: string; individualId: string }) =>
     p ? parentWords({ name: displayName(p.name), individualId: displayName(p.individualId) }, tr) : '';
@@ -196,14 +212,10 @@ export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }>
         ) : (
           <Fact ok={false}>{data.dnaPairedByHolder ? t('app.verify.dna.saved') : t('app.verify.report.notSaved')}</Fact>
         ))}
-      {/* No tick: "intact" is the registry's say-so, and this page walks no descent
-          (round D verification). Every line here is a report, never a check. */}
-      {shared.has('lineage') &&
-        (data.lineageIntact === true ? (
-          <Fact ok={false}>{t('app.verify.lineage.intact')}</Fact>
-        ) : (
-          <Fact ok={false}>{t('app.verify.lineage.notChecked')}</Fact>
-        ))}
+      {/* Lineage: no line (persona review, 17 Oct). The registry walks no descent for a shared
+          link, so it only ever said "not checked"; the switch is gone from the share screen too.
+          A registry that says "intact" is still only its say-so: a report, never a tick. */}
+      {shared.has('lineage') && data.lineageIntact === true && <Fact ok={false}>{t('app.verify.lineage.intact')}</Fact>}
       {shared.has('sealed') && data.sealedAt !== undefined && (
         <Fact ok={false}>
           {t('app.verify.sealedAt', {
@@ -248,6 +260,13 @@ export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }>
       {shared.has('name') && (
         <Fact ok={false}>
           {data.name ? t('app.verify.nameShared', { name: displayName(data.name) }) : t('app.verify.noNameShared')}
+        </Fact>
+      )}
+
+      {/* Who bred it, as the holder wrote it: only if the holder shared it. */}
+      {shared.has('bredBy') && (
+        <Fact ok={false}>
+          {data.bredBy ? t('app.verify.bredByShared', { name: displayName(data.bredBy) }) : t('app.verify.noBredBy')}
         </Fact>
       )}
 
@@ -315,6 +334,7 @@ export const DisclosedFacts: React.FC<{ record: StrainRecord; disclosure: Disclo
           parents: (record.parents ?? []).map((p) => p.name).filter(Boolean),
           breedingMethod: record.breedingMethod || null,
           name: record.strainName,
+          bredBy: record.bredBy,
           ...(animal
             ? {
                 subjectKind: 'animal',

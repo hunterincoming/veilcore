@@ -54,7 +54,8 @@ export type DisclosureKey =
   | 'parent-names' // the parent cultivar names; for an animal, its sire and dam with their IDs
   | 'breeding-method' // how it was produced (plants only)
   | 'individual-id' // an animal's individual ID and its scheme (animals only)
-  | 'name'; // the record's name (round 5): off unless the holder turns it on
+  | 'name' // the record's name (round 5): off unless the holder turns it on
+  | 'bred-by'; // who bred it, as the holder wrote it (persona review, 17 Oct): off unless turned on
 
 export type Disclosure = Record<DisclosureKey, boolean>;
 
@@ -64,7 +65,7 @@ export type Disclosure = Record<DisclosureKey, boolean>;
  * they were facts about the holder rather than this record, and the registry never
  * answers them.
  */
-export const DISCLOSURE_FIELDS: { key: DisclosureKey; label: string; def: boolean }[] = [
+export const DISCLOSURE_FIELDS: { key: DisclosureKey; label: string; def: boolean; hidden?: boolean }[] = [
   // Labels say what the recipient is actually shown, not the best case. They are read by
   // the holder choosing and by the stranger on the verify page, so they say neither "you"
   // nor "the holder".
@@ -72,7 +73,10 @@ export const DISCLOSURE_FIELDS: { key: DisclosureKey; label: string; def: boolea
   // Off until the holder turns them on (round 3, P7): on, they publish the DNA report's
   // fingerprint and the date the record was sealed.
   { key: 'attestation-status', label: 'Whether a DNA report is saved', def: false },
-  { key: 'descent-clean', label: 'Lineage status, as the registry reports it', def: true },
+  // Not offered on the share screen (persona review, 17 Oct): the registry walks no descent for
+  // a shared link, so the line only ever said "not checked". Off for new choices, and a check
+  // page prints nothing for it; kept in the vocabulary so older grants still read.
+  { key: 'descent-clean', label: 'Lineage status, as the registry reports it', def: false, hidden: true },
   { key: 'sealed-at', label: 'When it was sealed (the holder’s device clock)', def: false },
   { key: 'parent-names', label: 'Parent cultivar names', def: false },
   { key: 'breeding-method', label: 'Breeding method', def: false },
@@ -81,6 +85,9 @@ export const DISCLOSURE_FIELDS: { key: DisclosureKey; label: string; def: boolea
   // after the #. Published only on purpose, for embeds and partners: anyone with the
   // record's ID then sees it. Last, in the registry's order (its DISCLOSURE_KEYS).
   { key: 'name', label: 'Its name', def: false },
+  // Persona review (17 Oct): a buyer couldn't see who the material is from. Off unless the
+  // holder turns it on; last, after the name, in the registry's order.
+  { key: 'bred-by', label: 'Bred by', def: false },
 ];
 
 /**
@@ -89,7 +96,7 @@ export const DISCLOSURE_FIELDS: { key: DisclosureKey; label: string; def: boolea
  * never answers individual-id for a plant record.
  */
 export const fieldsFor = (kind: 'plant' | 'animal'): typeof DISCLOSURE_FIELDS =>
-  DISCLOSURE_FIELDS.filter((f) => f.key !== (kind === 'animal' ? 'breeding-method' : 'individual-id'));
+  DISCLOSURE_FIELDS.filter((f) => !f.hidden && f.key !== (kind === 'animal' ? 'breeding-method' : 'individual-id'));
 
 /** The registry's older names, which /verify answers in `disclosed`. */
 export const LEGACY_NAME: Record<DisclosureKey, string> = {
@@ -101,6 +108,7 @@ export const LEGACY_NAME: Record<DisclosureKey, string> = {
   'breeding-method': 'method',
   'individual-id': 'individualId',
   name: 'name',
+  'bred-by': 'bredBy',
 };
 
 const FROM_LEGACY: Record<string, DisclosureKey> = Object.fromEntries(
@@ -201,6 +209,8 @@ export type GrantValues = {
   dnaPairBinding?: string;
   /** The record's name (round 5), under the `name` grant. */
   name?: string;
+  /** Who bred it, as the holder wrote it, under the `bred-by` grant (persona review, 17 Oct). */
+  bredBy?: string;
   /**
    * Under attestation-status: what the holder's app worked out about each lab receipt over
    * sealed sample details (CONTRACT.md #27), which the registry can't open. Computed values
@@ -273,6 +283,7 @@ export const grantValuesFor = (r: StrainRecord, show: readonly DisclosureKey[]):
     if (binding) v.dnaPairBinding = binding;
   }
   if (on.has('name') && r.strainName) v.name = r.strainName;
+  if (on.has('bred-by') && r.bredBy) v.bredBy = r.bredBy;
   return v;
 };
 
@@ -430,6 +441,7 @@ const VALUE_KEYS: readonly DisclosureKey[] = [
   'breeding-method',
   'individual-id',
   'name',
+  'bred-by',
 ];
 
 let syncing: Promise<number> | null = null;

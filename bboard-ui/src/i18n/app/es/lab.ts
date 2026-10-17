@@ -150,7 +150,7 @@ export const lab = {
   'app.lab.send.who': '¿A quién se lo envía?',
   'app.lab.send.whoHelp': 'Un nombre o alias, para que ambos sepan de qué envío se trata.',
   'app.lab.send.from': 'Su nombre o empresa (lo verán)',
-  'app.lab.send.fromHelp': 'Se les muestra como remitente. Bloqueado: VeilCore no puede leerlo.',
+  'app.lab.send.fromHelp': 'Se les muestra como remitente. Se guarda bloqueado, y nosotros no tenemos la clave.',
   'app.lab.send.quantity': 'Cantidad (opcional)',
   'app.lab.send.quantityPlaceholder': 'p. ej., 10 esquejes',
   'app.lab.send.note': 'Nota para el laboratorio (opcional)',

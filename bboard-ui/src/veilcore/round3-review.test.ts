@@ -307,11 +307,11 @@ describe('P3: the share screen starts from the sealed choice, and says when the 
     const page = fs.readFileSync(new URL('../components/wizard/Step5ProveDisclosure.tsx', import.meta.url), 'utf8');
     expect(page).toContain('useState<Disclosure>(() => shareScreenStart(record))');
     expect(page).not.toMatch(/setDisclosure\(disclosureFrom\(g\.show\)\)/);
-    // A record with no choice yet starts from the defaults, which share no values.
+    // A record with no choice yet starts from the defaults, which share no values. Lineage is
+    // no longer offered (persona review, 17 Oct): it only ever said "not checked".
     const fresh = await plant(A);
     expect(A.m.disclosure.keysOn(await A.run(() => A.m.disclosure.shareScreenStart(fresh as never)))).toEqual([
       'existence',
-      'descent-clean',
     ]);
     reg.sent.length = 0;
     await A.run(() => A.m.disclosure.syncGrants(A.m.records.getRecord));

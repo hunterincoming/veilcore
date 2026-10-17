@@ -142,6 +142,11 @@ export const fr: Strings = {
     "Saisissez l'identifiant d'enregistrement imprimé sur un certificat ou qui vous a été communiqué. Vous verrez ce que son détenteur a choisi de partager, et ce que cette page a pu vérifier elle-même : si l'enregistrement est dans un lot scellé, et si les éventuelles signatures de laboratoire sont valides.",
   'm.verify.field': "Identifiant d'enregistrement",
   'm.verify.go': 'Vérifier',
+  'm.verify.fpField': 'Code de preuve (sur le certificat, facultatif)',
+  'm.verify.fpHelp':
+    'Avec lui, cette page vérifie l’enregistrement par rapport au code que vous avez, pas seulement d’après la réponse du registre.',
+  'm.verify.fpBad':
+    'Un code de preuve fait 64 caractères, 0–9 et a–f. Laissez-le vide pour vérifier par l’identifiant seul.',
   'm.founders.label': 'Fondateurs',
   'm.founders.leads': 'Dirige',
   'm.founders.also': 'Également',

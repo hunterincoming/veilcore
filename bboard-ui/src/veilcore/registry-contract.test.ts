@@ -70,6 +70,8 @@ const PUB = {
   method: 'PUB-method-Shared-Ok2',
   // The second record's name, shown with a grant (round 5): readable on purpose.
   name: 'PUB-name-Shared-Ok3',
+  // A third record's "Bred by", shown with the bred-by grant (persona review, 17 Oct).
+  bredBy: 'PUB-bredby-Shared-Ok4',
 };
 /**
  * The second record's DNA report. Its SHA-256 and pairing fingerprint are never published
@@ -417,6 +419,34 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     expect(JSON.stringify(v)).not.toContain(P.bredBy2);
     // The record without a grant still shows no name.
     expect((await verify(r1.id)).cultivar).toBeUndefined();
+  });
+
+  it('"Bred by" is a fact the holder may share: the registry takes the bred-by grant in the site’s order', async () => {
+    const { fingerprintRecord, newNonce } = A.commitment;
+    const fields = {
+      nonce: newNonce(),
+      strainName: 'PRIV-name-third-Pp6',
+      bredBy: PUB.bredBy,
+      dateCreated: P.dateCreated,
+      notes: '',
+      loggedAt: P.loggedAt,
+      parents: [],
+      breedingMethod: '',
+      refId: '',
+      photoFingerprints: [],
+    };
+    const out = await A.records.createRecordSaved({ ...fields, recordFingerprint: await fingerprintRecord(fields) });
+    expect(out.result).toMatchObject({ ok: true, refused: [] });
+    const d = A.disclosure;
+    // Every key the share screen can grant, in its order, is one the registry takes, in the same order.
+    const all = d.DISCLOSURE_FIELDS.map((f) => f.key);
+    expect(all.slice(-2)).toEqual(['name', 'bred-by']);
+    const g = await d.saveGrant(A.records.getRecord(out.record.id)!, d.disclosureFrom(['existence', 'bred-by']));
+    expect('error' in g, JSON.stringify(g)).toBe(false);
+    const v = await verify(out.record.id);
+    expect(v.bredBy).toBe(PUB.bredBy);
+    expect(v.disclosed).toEqual(['own', 'bredBy']);
+    expect(v.cultivar).toBeUndefined();
   });
 
   it('a pairing changes the values without changing the fingerprint: the browser sends the grant again', async () => {

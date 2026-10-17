@@ -313,7 +313,11 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
     'Tied to the animal: DNA report the holder saved (no lab signature matches it).',
   );
   await page.getByRole('button', { name: 'Get the link' }).click();
-  // The name goes in the link, after the # (round 5), unless the holder switches it off.
+  // The name goes in the link, after the # (round 5), only when the holder switches it on
+  // for this link (persona review, 17 Oct): off to start with.
+  await expect(page.locator('[data-name-in-link]')).toHaveAttribute('data-name-in-link', 'no');
+  expect(await page.getByLabel('The link', { exact: true }).inputValue()).not.toMatch(/[#&]n=/);
+  await page.getByRole('switch', { name: 'Put the name in the link' }).check();
   await expect(page.locator('[data-name-in-link]')).toHaveAttribute('data-name-in-link', 'yes');
   const shareLink = await page.getByLabel('The link', { exact: true }).inputValue();
   expect(shareLink).toMatch(/#(.*&)?n=[A-Za-z0-9_-]+/);

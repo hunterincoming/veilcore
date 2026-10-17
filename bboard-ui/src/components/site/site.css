@@ -1420,8 +1420,15 @@ html:has(.vcm) {
   max-width: 640px;
 }
 .vcm .lookup .field {
-  flex: 1;
+  flex: 1 1 100%;
   min-width: min(100%, 240px);
+}
+.vcm .lookup .field small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.45;
 }
 
 /* /privacy */

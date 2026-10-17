@@ -219,6 +219,22 @@ export const verify = {
   'app.verify.field.name': 'Its name',
   'app.verify.nameShared': 'Its name, shown by the holder to anyone with the ID: {name}',
   'app.verify.noNameShared': 'No name recorded.',
+  'app.verify.field.bred-by': 'Bred by',
+  'app.verify.bredByShared': 'Bred by, as the holder wrote it: {name}',
+  'app.verify.noBredBy': 'No breeder recorded.',
+  'app.verify.mark.anyName':
+    "A signer's name is the name its key was registered under. Anyone can register a key under any name, so a name shows who signed only when it says it was matched to a public listing.",
+  'app.verify.summary.checked': 'Record existed by {date}: this page checked it on Midnight.{test}',
+  'app.verify.summary.reported':
+    "Record existed by {date}. VeilCore's registry says so; this page hasn't checked it on Midnight yet.{test}",
+  'app.verify.summary.yourself': 'Check it yourself',
+  'app.verify.self.explorer': 'Open a Midnight explorer for {network}, such as {url} (type the address in yourself).',
+  'app.verify.self.anyExplorer': 'Open a Midnight explorer for {network}.',
+  'app.verify.self.tx': 'Search for transaction {tx}. Its block time is the date.',
+  'app.verify.self.contract': "Check that it succeeded and called VeilCore's contract {contract}.",
+  'app.verify.self.noContract': "(the registry didn't name it)",
+  'app.verify.self.root':
+    "Check that it wrote batch root {root}. An explorer may not show it: the record's evidence bundle, from its holder, says how to read it another way.",
   'app.verify.dnaCheck.help':
     'Have the DNA report file the holder sent you? Choose it to check it is the one saved with this record. The file is read in this browser and never sent anywhere.',
   'app.verify.dnaCheck.button': 'Check a DNA report file',

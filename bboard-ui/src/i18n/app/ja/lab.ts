@@ -140,7 +140,7 @@ export const lab = {
   'app.lab.send.who': '誰に送りますか？',
   'app.lab.send.whoHelp': 'どの送付かお互いにわかるよう、相手の名前かハンドル名を入れてください。',
   'app.lab.send.from': 'あなたの名前または事業者名（相手に表示されます）',
-  'app.lab.send.fromHelp': '送り主として相手に表示されます。鍵がかかるため、VeilCoreは読めません。',
+  'app.lab.send.fromHelp': '送り主として相手に表示されます。鍵をかけて保存され、私たちはその鍵を持っていません。',
   'app.lab.send.quantity': '数量（任意）',
   'app.lab.send.quantityPlaceholder': '例：挿し穂10本',
   'app.lab.send.note': 'ラボへのメモ（任意）',

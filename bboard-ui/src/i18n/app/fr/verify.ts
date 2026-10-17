@@ -226,6 +226,24 @@ export const verify = {
   'app.verify.field.name': 'Son nom',
   'app.verify.nameShared': 'Son nom, montré par le détenteur à quiconque a l’identifiant : {name}',
   'app.verify.noNameShared': 'Aucun nom enregistré.',
+  'app.verify.field.bred-by': 'Obtenu par',
+  'app.verify.bredByShared': 'Obtenu par, tel que le détenteur l’a écrit : {name}',
+  'app.verify.noBredBy': 'Aucun obtenteur enregistré.',
+  'app.verify.mark.anyName':
+    'Le nom d’un signataire est le nom sous lequel sa clé a été enregistrée. N’importe qui peut enregistrer une clé sous n’importe quel nom : un nom ne montre qui a signé que s’il est indiqué comme vérifié auprès d’une inscription publique.',
+  'app.verify.summary.checked':
+    'L’enregistrement existait au plus tard le {date} : cette page l’a vérifié sur Midnight.{test}',
+  'app.verify.summary.reported':
+    'L’enregistrement existait au plus tard le {date}. C’est ce que dit le registre de VeilCore ; cette page ne l’a pas encore vérifié sur Midnight.{test}',
+  'app.verify.summary.yourself': 'Le vérifier vous-même',
+  'app.verify.self.explorer':
+    'Ouvrez un explorateur Midnight pour {network}, par exemple {url} (saisissez l’adresse vous-même).',
+  'app.verify.self.anyExplorer': 'Ouvrez un explorateur Midnight pour {network}.',
+  'app.verify.self.tx': 'Cherchez la transaction {tx}. L’heure de son bloc est la date.',
+  'app.verify.self.contract': 'Vérifiez qu’elle a réussi et qu’elle a appelé le contrat de VeilCore {contract}.',
+  'app.verify.self.noContract': '(le registre ne l’a pas nommé)',
+  'app.verify.self.root':
+    'Vérifiez qu’elle a écrit le code de preuve de lot {root}. Un explorateur peut ne pas l’afficher : le dossier de preuve de l’enregistrement, que détient son détenteur, explique comment le lire autrement.',
   'app.verify.dnaCheck.help':
     'Vous avez le fichier du rapport ADN que le détenteur vous a envoyé ? Choisissez-le pour vérifier que c’est celui enregistré avec cet enregistrement. Le fichier est lu dans ce navigateur et n’est envoyé nulle part.',
   'app.verify.dnaCheck.button': 'Vérifier un fichier de rapport ADN',

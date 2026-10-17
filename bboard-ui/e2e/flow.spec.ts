@@ -100,6 +100,8 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   await holder.goto(`/record/${recordId}`);
   await holder.getByRole('button', { name: /Show someone/ }).click();
   await holder.getByRole('button', { name: /Get the link/ }).click();
+  // The name is in a link only when the holder switches it on (persona review, 17 Oct).
+  await holder.getByRole('switch', { name: 'Put the name in the link' }).check();
   await expect(holder.getByLabel(/Let them check the date stamp/)).toBeChecked();
   const link = await holder.locator('input[readonly]').first().inputValue();
   expect(link).toContain(`chain=${IDENTITY}`);
@@ -320,6 +322,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await expect(dnaSwitch).not.toBeChecked();
   await dnaSwitch.check();
   await breeder.getByRole('button', { name: /Get the link/ }).click();
+  await breeder.getByRole('switch', { name: 'Put the name in the link' }).check();
   const shareLink = await breeder.locator('input[readonly]').first().inputValue();
   // Round 5 (CONTRACT.md #29): the link carries the record's pairing salt after the #, never
   // the report's SHA-256; the registry has the report only bound with that salt.

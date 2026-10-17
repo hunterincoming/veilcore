@@ -429,6 +429,9 @@ export const en = {
   'm.verify.home': 'What is VeilCore? →',
   'm.verify.field': 'Record identifier',
   'm.verify.go': 'Check it',
+  'm.verify.fpField': 'Proof code (on the certificate, optional)',
+  'm.verify.fpHelp': "With it, this page checks the record against the code you have, not only the registry's answer.",
+  'm.verify.fpBad': 'A proof code is 64 characters, 0–9 and a–f. Leave it empty to check by the identifier alone.',
   'm.verify.example': 'Not sure what you will see? Look at an example first →',
 
   'm.founders.label': 'Founders',

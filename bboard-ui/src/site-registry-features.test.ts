@@ -41,6 +41,7 @@ const ALL = [
   'license-rev-v1',
   'sealed-name-v1',
   'dna-pair-binding-v1',
+  'bred-by-grant-v1',
 ];
 const DEPLOY_FIRST = /Deploy the registry first: put the registry's latest code live on Railway/;
 
@@ -91,10 +92,10 @@ const runScript = (script: string, env: Record<string, string>, cwd = ROOT) =>
   });
 
 describe('the features the site needs', () => {
-  it('are exactly sealed records, lab results, animal records, finishing a delivery, locked sample details, the record and agreement rev, locked names and bound DNA reports', () => {
+  it('are exactly sealed records, lab results, animal records, finishing a delivery, locked sample details, the record and agreement rev, locked names, bound DNA reports and sharing who bred it', () => {
     expect(Object.keys(REQUIRED_FEATURES)).toEqual(ALL);
     expect(featuresLine('https://r.example')).toBe(
-      'Registry https://r.example serves sealed records, lab results, animal records, finishing a received delivery, locked sample details, refusing an older copy of a record, refusing an older copy of an agreement, locked record names and DNA reports shown only as a bound code.',
+      'Registry https://r.example serves sealed records, lab results, animal records, finishing a received delivery, locked sample details, refusing an older copy of a record, refusing an older copy of an agreement, locked record names, DNA reports shown only as a bound code and sharing who bred it.',
     );
   });
 
@@ -130,6 +131,7 @@ describe('the features the site needs', () => {
           'license-rev-v1',
           'sealed-name-v1',
           'dna-pair-binding-v1',
+          'bred-by-grant-v1',
         ],
       },
       'R',
@@ -186,7 +188,7 @@ describe('deploy:mainnet', () => {
       const older = await runScript('site-mainnet-preflight.mjs', { VITE_API_BASE: old.api });
       expect(older.code).toBe(1);
       expect(older.text).toMatch(
-        /NOT DEPLOYED\. .*missing sealed-records-v1 \(sealed records\), lab-results-v1 \(lab results\), animal-profile-v1 \(animal records\), claimant-offer-v1 \(finishing a received delivery\), sealed-custody-v1 \(locked sample details\), record-rev-v1 \(refusing an older copy of a record\), license-rev-v1 \(refusing an older copy of an agreement\), sealed-name-v1 \(locked record names\), dna-pair-binding-v1 \(DNA reports shown only as a bound code\)/,
+        /NOT DEPLOYED\. .*missing sealed-records-v1 \(sealed records\), lab-results-v1 \(lab results\), animal-profile-v1 \(animal records\), claimant-offer-v1 \(finishing a received delivery\), sealed-custody-v1 \(locked sample details\), record-rev-v1 \(refusing an older copy of a record\), license-rev-v1 \(refusing an older copy of an agreement\), sealed-name-v1 \(locked record names\), dna-pair-binding-v1 \(DNA reports shown only as a bound code\), bred-by-grant-v1 \(sharing who bred it\)/,
       );
     },
     30_000,
@@ -226,6 +228,7 @@ describe('deploy:test', () => {
           'license-rev-v1',
           'sealed-name-v1',
           'dna-pair-binding-v1',
+          'bred-by-grant-v1',
         ],
       },
     });
@@ -247,6 +250,7 @@ describe('deploy:test', () => {
           'license-rev-v1',
           'sealed-name-v1',
           'dna-pair-binding-v1',
+          'bred-by-grant-v1',
         ],
       },
     });
@@ -268,6 +272,7 @@ describe('deploy:test', () => {
           'license-rev-v1',
           'sealed-name-v1',
           'dna-pair-binding-v1',
+          'bred-by-grant-v1',
         ],
       },
     });
@@ -289,6 +294,7 @@ describe('deploy:test', () => {
           'license-rev-v1',
           'sealed-name-v1',
           'dna-pair-binding-v1',
+          'bred-by-grant-v1',
         ],
       },
     });
@@ -310,6 +316,7 @@ describe('deploy:test', () => {
           'record-rev-v1',
           'sealed-name-v1',
           'dna-pair-binding-v1',
+          'bred-by-grant-v1',
         ],
       },
     });

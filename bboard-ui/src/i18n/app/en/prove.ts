@@ -162,6 +162,6 @@ export const prove = {
   'app.prove.share.differs.failed': 'VeilCore didn’t store your choice. Try again.',
   'app.prove.share.nameInLink': 'Put the name in the link',
   'app.prove.share.nameInLinkHelp':
-    'Only people you send the link to see it. It goes after the # in the link, which a browser never sends to VeilCore or any other server.',
-  'app.prove.share.nameWarning': "Anyone with this record's ID will see its name.",
+    'If on, everyone you send this link to sees the name, and so does anyone they pass it on to.',
+  'app.prove.share.nameWarning': 'If on, anyone with the record ID sees the name.',
 };
