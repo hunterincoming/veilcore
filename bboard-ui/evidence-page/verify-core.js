@@ -68,7 +68,7 @@ var VeilcoreVerify = (function () {
     return sha256Hex(all);
   }
 
-  // ---- 1. the record's fingerprint ---------------------------------------------------
+  // ---- 1. the record's proof code ---------------------------------------------------
 
   /**
    * Recompute the fingerprint from the sealed fields. A record that names its key (it has
@@ -102,7 +102,7 @@ var VeilcoreVerify = (function () {
       out.contentHash = fp.contentHash;
       if (typeof record.canonical === 'string') out.canonicalMatches = record.canonical === fp.canonical;
       if (out.stated !== out.computed) {
-        out.reason = 'The fingerprint worked out from the sealed fields is not the one this record states. The fields, or the fingerprint, were changed.';
+        out.reason = 'The proof code worked out from the sealed fields is not the one this record states. The fields, or the proof code, were changed.';
       } else if (out.canonicalMatches === false) {
         out.reason = 'The canonical bytes in this bundle are not the canonical form of the sealed fields.';
       } else {
@@ -147,7 +147,7 @@ var VeilcoreVerify = (function () {
     try {
       if (!isObject(proof)) return { status: 'fail', reason: 'The proof is not a JSON object.' };
       if (proof.commitment !== fingerprint) {
-        return { status: 'fail', reason: 'The proof is for a different fingerprint from this record’s.' };
+        return { status: 'fail', reason: 'The proof is for a different proof code from this record’s.' };
       }
       var folded = await foldProof(proof);
       if (!folded.ok) return { status: 'fail', reason: 'The proof does not check: ' + folded.reason + '.', computedRoot: folded.computedRoot };
@@ -174,7 +174,7 @@ var VeilcoreVerify = (function () {
       var binding = await tagged('veilcore:v1:keybind', [key.identity, key.keySalt]);
       if (binding !== fields.keyBinding) return { status: 'fail', reason: 'This key is not the one the record names.' };
       if (!isHex64(contentHash) || (await tagged('veilcore:v1:keyrecord', [binding, contentHash])) !== fingerprint) {
-        return { status: 'fail', reason: 'The key matches the record’s keyBinding, but the fingerprint does not follow from it.' };
+        return { status: 'fail', reason: 'The key matches the record’s keyBinding, but the proof code does not follow from it.' };
       }
       return { status: 'ok', identity: key.identity };
     } catch (e) {
@@ -184,7 +184,7 @@ var VeilcoreVerify = (function () {
 
   // ---- 4. the lab report pairing -------------------------------------------------------
 
-  /** SPEC 3.7: the pairing fingerprint is H(commit, the file's SHA-256). */
+  /** SPEC 3.7: the pairing code is H(commit, the file's SHA-256). */
   async function checkPairing(lab) {
     if (!isObject(lab)) return { status: 'none' };
     try {
@@ -192,9 +192,28 @@ var VeilcoreVerify = (function () {
       var pairing = await tagged('veilcore:v1:commit', [lab.fileSha256]);
       return pairing === lab.pairingFingerprint
         ? { status: 'ok' }
-        : { status: 'fail', reason: 'The lab report’s SHA-256 does not lead to the pairing fingerprint saved to the plant.' };
+        : { status: 'fail', reason: 'The lab report’s SHA-256 does not lead to the pairing code saved to the plant.' };
     } catch (e) {
       return { status: 'fail', reason: 'The lab report pairing could not be checked: ' + messageOf(e) };
+    }
+  }
+
+  /**
+   * Round 5 (CONTRACT.md #29): what a check link shows of the report. The registry publishes
+   * only H("veilcore:v1:dnapair", the file's SHA-256, the record's proof code, the record's
+   * pairing salt); the holder's check link carries the salt after #ds=. Recomputed here.
+   */
+  async function checkLinkBinding(lab, proofCode) {
+    if (!isObject(lab) || !isHex64(lab.pairBinding) || !isHex64(lab.pairSalt)) return { status: 'none' };
+    if (!isHex64(proofCode)) return { status: 'fail', reason: 'There is no proof code to check the check-link code against.' };
+    try {
+      var value = isHex64(lab.fileSha256) ? lab.fileSha256 : lab.pairingFingerprint;
+      if (!isHex64(value)) return { status: 'fail', reason: 'There is no SHA-256 or pairing code to check the check-link code against.' };
+      return (await tagged('veilcore:v1:dnapair', [value, proofCode, lab.pairSalt])) === lab.pairBinding
+        ? { status: 'ok' }
+        : { status: 'fail', reason: 'The check-link code does not follow from the lab report, the proof code and the salt.' };
+    } catch (e) {
+      return { status: 'fail', reason: 'The check-link code could not be checked: ' + messageOf(e) };
     }
   }
 
@@ -641,7 +660,7 @@ var VeilcoreVerify = (function () {
       ? ' VeilCore’s registry reports it is' + (a.blockHeight !== null ? ' in block ' + a.blockHeight : '') + (when ? (a.blockHeight !== null ? ',' : '') + ' at ' + when : '') + '; the explorer’s own block and time are the ones to rely on.'
       : ''));
     out.push('Check that the transaction succeeded and that it called VeilCore’s contract ' + (a.contractAddress || '(the bundle doesn’t name it)') + '. Note its block and time: that time is the date.');
-    out.push('Check that it wrote this batch root: ' + a.root + '. The batch root is one fingerprint that stands for every record in the batch; this record’s proof leads to it.');
+    out.push('Check that it wrote this batch root: ' + a.root + '. The batch root is one code that stands for every record in the batch; this record’s proof leads to it.');
     out.push('The explorer may not show the batch root in plain text: it sits inside the contract’s state after the call. If you can’t see it there, read that state from a Midnight indexer yourself (README.txt, “For technical readers”, says how), or open this record’s check page on VeilCore’s site, which does that look-up in your own browser.');
     out.push('If the transaction succeeded, called that contract and wrote that root, this record existed, unchanged, by that transaction’s time: whoever had it sealed held this record by then. If any of it doesn’t match, nothing here dates the record.');
     return out;
@@ -664,7 +683,7 @@ var VeilcoreVerify = (function () {
    */
   function datable(report) {
     var failed = [];
-    if (!report.fingerprint || !report.fingerprint.ok) failed.push('the fingerprint does not match the sealed fields');
+    if (!report.fingerprint || !report.fingerprint.ok) failed.push('the proof code does not match the sealed fields');
     if (report.proof && report.proof.status === 'fail') failed.push('the proof does not lead to the batch root');
     if (report.key && report.key.status === 'fail') failed.push('the key does not match the record');
     // Not in a batch yet: not a failure, but there is nothing to date it with either.
@@ -696,6 +715,7 @@ var VeilcoreVerify = (function () {
     out.proof = await checkProof(ev.proof, fingerprint, batchRoot);
     out.key = await checkKey(ev.key, record && record.sealedFields, out.fingerprint.contentHash, fingerprint);
     out.pairing = await checkPairing(ev.labReport);
+    out.linkBinding = await checkLinkBinding(ev.labReport, ev.record && ev.record.fingerprint);
     var sigs = Array.isArray(ev.signatures) ? ev.signatures : [];
     for (var i = 0; i < sigs.length; i++) out.signatures.push(await checkSignature(sigs[i], fingerprint));
     var custody = Array.isArray(ev.custody) ? ev.custody : [];
@@ -739,6 +759,7 @@ var VeilcoreVerify = (function () {
     checkProof: checkProof,
     checkKey: checkKey,
     checkPairing: checkPairing,
+    checkLinkBinding: checkLinkBinding,
     checkSignature: checkSignature,
     checkCustody: checkCustody,
     custodyDifferences: custodyDifferences,

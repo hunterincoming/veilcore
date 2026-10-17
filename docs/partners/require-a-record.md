@@ -15,10 +15,10 @@ needs no agreement with us.
 ### What a VeilCore record is
 
 The applicant writes down what their material is (a plant, a line, an animal, a lot) on
-veilcore.org or in their own software. Their computer makes a fingerprint of that
+veilcore.org or in their own software. Their computer makes a proof code of that
 description: a short code that changes if one letter of the description changes. The
-description stays with them. Only the fingerprint goes to VeilCore's registry, and from
-there into a date stamp on Midnight, a public blockchain.
+description stays with them, its name included. Only the proof code goes to VeilCore's
+registry, and from there into a date stamp on Midnight, a public network.
 
 They send you a **check link**. Anyone can open it.
 
@@ -27,7 +27,7 @@ They send you a **check link**. Anyone can open it.
 - **A fixed description.** The record was sealed before they applied. If they later show
   you the description, you can tell whether it is the one they sealed. Nobody can quietly
   change it afterwards.
-- **A date.** Once the record is in a dated batch, anyone can look up when its fingerprint
+- **A date.** Once the record is in a dated batch, anyone can look up when its proof code
   existed by. The date comes from Midnight, not from VeilCore and not from the applicant.
 - **Lab signatures, checked.** If a lab signed a receipt for a sample, or a lab report,
   you see it, and whether VeilCore's operator matched the lab's name to a public licence
@@ -98,7 +98,7 @@ not checked, and you check it later (on veilcore.org/partners, or with the comma
   contract with VeilCore. The field and the library are open source (Apache-2.0).
 - **Support.** Email hunter@veilcore.org. There is no support agreement or response
   time.
-- **Data.** A check sends the registry the record's id and fingerprint, nothing about the
+- **Data.** A check sends the registry the record's id and proof code, nothing about the
   applicant or your form. Like any website, the registry gets the visitor's network
   address with each request (it is used for rate limits). What VeilCore keeps is on the
   site's privacy page, https://veilcore.org/privacy. Fuller data terms are a draft being
@@ -121,8 +121,8 @@ For a membership:
 > The record must exist, and the link must match it. [Program] checks each link when the
 > application is received and keeps the result with the application.
 >
-> A VeilCore record is the applicant's statement about their material, fingerprinted and
-> dated. Accepting a record does not mean [Program] or VeilCore confirms what the material
+> A VeilCore record is the applicant's statement about their material, made into a proof
+> code and dated. Accepting a record does not mean [Program] or VeilCore confirms what the material
 > is, who holds it, or any right in it.
 
 For a registry or library accession:
@@ -132,7 +132,7 @@ For a registry or library accession:
 > must be signed by a lab whose name VeilCore's operator has matched to a public listing.
 > [Registry] may ask the depositor for the record's evidence bundle and, under
 > confidentiality, the sealed description, and may refuse an accession whose description
-> does not match its fingerprint.
+> does not match its proof code.
 
 For a marketplace listing:
 
@@ -143,6 +143,10 @@ For a marketplace listing:
 ---
 
 ## Part 2: technical
+
+In this part a record's proof code is called by its technical name, its **fingerprint**
+(`recordFingerprint`, `fp=` in a link); the site, the field and the command's sentences call
+it the proof code.
 
 Status, 15 October 2026: the kit is in `partner-kit/record-check` of the VeilCore
 repository. It is **not on npm yet**; until it is, build it there (`npm run build`) and

@@ -177,8 +177,8 @@ const iso = (ms: number): string => new Date(ms).toISOString();
 
 /** The base list: true of every record, whatever was checked. */
 const NEVER_SHOWN = [
-  'What the material is. VeilCore never sees genetics: a record is the holder’s description, fingerprinted.',
-  'That the description is true. A fingerprint shows the record hasn’t changed since it was sealed, not that what it says is right.',
+  'What the material is. VeilCore never sees genetics: a record is the holder’s description, made into a proof code.',
+  'That the description is true. A proof code shows the record hasn’t changed since it was sealed, not that what it says is right.',
   'Who holds the material, or the record, now. A date stamp can be made by anyone, and being in a batch is not possession; to see who controls the record now, ask the holder to prove it on the check page.',
   'That a lab’s work is right. A verified signature shows a key signed; a checked name shows VeilCore’s operator matched that key’s name to a public listing on a day. VeilCore doesn’t vouch for the lab.',
   'Parentage or lineage. Parents named in a record are the holder’s word.',
@@ -274,7 +274,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
   } else if (link.fingerprint.state === 'invalid') {
     fingerprintMatches = false;
     fingerprint = null;
-    problems.push(cut ? CUT : 'The fingerprint in the link is damaged (it should be 64 hexadecimal characters).');
+    problems.push(cut ? CUT : 'The proof code in the link is damaged (it should be 64 hexadecimal characters).');
   } else {
     fingerprintMatches = null;
     fingerprint = reported;
@@ -294,8 +294,8 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
       if (!disclosedFieldsMatch)
         problems.push(
           isObject(opts.fields) && 'fields' in opts.fields && !block
-            ? 'The sealed fields given do not hash to the record’s fingerprint. They were hashed whole, as given: give record/sealed-fields.json from the evidence bundle, or an export’s org.veilcore.registered-fingerprint block as it is.'
-            : 'The sealed fields given do not hash to the record’s fingerprint: they are not the fields it was sealed with.',
+            ? 'The sealed fields given do not hash to the record’s proof code. They were hashed whole, as given: give record/sealed-fields.json from the evidence bundle, or an export’s org.veilcore.registered-fingerprint block as it is.'
+            : 'The sealed fields given do not hash to the record’s proof code: they are not the fields it was sealed with.',
         );
     } catch (e) {
       disclosedFieldsMatch = false;
@@ -309,10 +309,10 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
   if (fingerprintMatches === false || fingerprint === null) {
     if (fingerprintMatches === false && link.fingerprint.state === 'given')
       problems.push(
-        'The link was made for a different fingerprint than the registry reports for this id. Do not rely on it; ask the depositor for the record’s current check link.',
+        'The link was made for a different proof code than the registry reports for this id. Do not rely on it; ask the depositor for the record’s current check link.',
       );
     if (fingerprint === null && fingerprintMatches !== false)
-      problems.push('The record carries no fingerprint (nothing was sealed), so nothing about it can be checked.');
+      problems.push('The record carries no proof code (nothing was sealed), so nothing about it can be checked.');
     return finish({
       ...base,
       fingerprintMatches,
@@ -320,9 +320,9 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
       disclosedFieldsMatch,
       dated: notChecked(
         cut
-          ? 'The link looks cut off, so there is no fingerprint to check.'
+          ? 'The link looks cut off, so there is no proof code to check.'
           : fingerprintMatches === false
-            ? 'The link and the registry disagree about the fingerprint.'
+            ? 'The link and the registry disagree about the proof code.'
             : 'Nothing is sealed.',
       ),
       keyBound,
@@ -333,7 +333,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
   }
   if (fingerprintMatches === null)
     problems.push(
-      'The link names no fingerprint, so the checks below used the registry’s fingerprint and can’t be tied to the link. Ask the depositor for the check link the site makes (it contains ?fp=…).',
+      'The link names no proof code, so the checks below used the registry’s proof code and can’t be tied to the link. Ask the depositor for the check link the site makes (it contains ?fp=…).',
     );
 
   // 5. Inclusion proof and signatures, in parallel.
@@ -367,7 +367,7 @@ export const checkRecord = async (linkOrId: string, opts: CheckOptions = {}): Pr
     labReceiptsTotal = typeof attRes.body.total === 'number' ? attRes.body.total : labReceipts.length;
     if (out.dropped > 0)
       problems.push(
-        `${out.dropped} signature${out.dropped === 1 ? '' : 's'} in the registry’s answer ${out.dropped === 1 ? 'is' : 'are'} not about this fingerprint or could not be read, so ${out.dropped === 1 ? 'it was' : 'they were'} left out.`,
+        `${out.dropped} signature${out.dropped === 1 ? '' : 's'} in the registry’s answer ${out.dropped === 1 ? 'is' : 'are'} not about this proof code or could not be read, so ${out.dropped === 1 ? 'it was' : 'they were'} left out.`,
       );
   }
 
@@ -496,10 +496,10 @@ const dateOf = async (
   // A proof about another fingerprint folds to its root just as well; it says nothing here.
   if (!isProof(p) || p.commitment !== fingerprint || !(await verifyInclusion(p).catch(() => false))) {
     problems.push(
-      'The registry’s inclusion proof does not check out for this fingerprint, so the date was not checked.',
+      'The registry’s inclusion proof does not check out for this proof code, so the date was not checked.',
     );
     return {
-      ...notChecked('The registry sent an inclusion proof that does not check out for this fingerprint.'),
+      ...notChecked('The registry sent an inclusion proof that does not check out for this proof code.'),
       status: 'proof-fails',
     };
   }
@@ -588,7 +588,7 @@ const keyCheck = async (
       key: isHex64(k.key) ? k.key : null,
       reason:
         fingerprint === null
-          ? 'The key was not matched: it is matched only to a fingerprint the link names and the registry reports.'
+          ? 'The key was not matched: it is matched only to a proof code the link names and the registry reports.'
           : 'The link carries part of the key’s details (chain=, ks=, cd=), not all, so it was not matched.',
     };
   const ok = await keyMatchesFingerprint(k.key, k.keySalt, contentHash, fingerprint);
@@ -613,7 +613,7 @@ const finish = (p: Parts): RecordCheck => {
       'The date itself, until the transaction is looked up on Midnight (give an indexer, or open the record’s check page).',
     );
   if (p.fingerprintMatches === null && p.recordExists)
-    extra.push('That this answer is about the record the depositor meant: the link names no fingerprint.');
+    extra.push('That this answer is about the record the depositor meant: the link names no proof code.');
   return {
     format: FORMAT,
     checkedAt: new Date().toISOString(),
@@ -646,16 +646,16 @@ export const summaryOf = (p: Parts): string => {
   if (p.linkLooksCut) return `${CUT} Nothing was checked.`;
   if (!p.recordExists) return `No record with id ${p.recordId} in the registry. Check the link is complete.`;
   if (p.fingerprintMatches === false)
-    return 'Do not rely on this link: it was made for a different fingerprint than the registry reports for this record. Nothing was checked. Ask the depositor for the record’s current check link.';
+    return 'Do not rely on this link: it was made for a different proof code than the registry reports for this record. Nothing was checked. Ask the depositor for the record’s current check link.';
   if (p.fingerprint === null) return 'Record found, but nothing in it is sealed, so nothing could be checked.';
   const parts: string[] = [];
   parts.push(
     p.fingerprintMatches
-      ? 'Record found, and the link’s fingerprint matches the registry’s.'
-      : 'Record found. The link names no fingerprint, so what follows is about the registry’s fingerprint for this id.',
+      ? 'Record found, and the link’s proof code matches the registry’s.'
+      : 'Record found. The link names no proof code, so what follows is about the registry’s proof code for this id.',
   );
-  if (p.disclosedFieldsMatch === true) parts.push('The sealed fields given hash to that fingerprint.');
-  if (p.disclosedFieldsMatch === false) parts.push('The sealed fields given do not hash to that fingerprint.');
+  if (p.disclosedFieldsMatch === true) parts.push('The sealed fields given hash to that proof code.');
+  if (p.disclosedFieldsMatch === false) parts.push('The sealed fields given do not hash to that proof code.');
   const d = p.dated;
   parts.push(
     d.status === 'checked-on-chain'
@@ -665,7 +665,7 @@ export const summaryOf = (p: Parts): string => {
         : d.status === 'not-confirmed'
           ? 'The date stamp the registry reports was NOT confirmed on chain.'
           : d.status === 'proof-fails'
-            ? 'The registry’s inclusion proof does NOT check out for this fingerprint, so there is no date.'
+            ? 'The registry’s inclusion proof does NOT check out for this proof code, so there is no date.'
             : d.status === 'not-looked-up'
               ? `In batch ${d.batch}; the date stamp could not be looked up, so the date is the registry’s word.`
               : d.status === 'no-date-stamp'

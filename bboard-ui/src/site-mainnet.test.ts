@@ -313,7 +313,7 @@ describe('builds', () => {
     expect(p.status, p.stderr).toBe(0);
 
     const mainHtml = fs.readFileSync(path.join(mainDist, 'index.html'), 'utf8');
-    expect(mainHtml).toMatch(/only its fingerprint is dated, on Midnight's main network/);
+    expect(mainHtml).toMatch(/only its proof code is dated, on Midnight's main network/);
     expect(mainHtml).not.toMatch(TEST_WORDING);
     expect(mainHtml).not.toMatch(/%VEILCORE_DESCRIPTION%/);
     const preHtml = fs.readFileSync(path.join(preDist, 'index.html'), 'utf8');

@@ -211,7 +211,7 @@ describe('privacy, said plainly', () => {
     const lede = en['m.hero.lede'];
     // Who it's for and what it does, then the privacy line: genetic data, not "everything".
     expect(lede).toMatch(
-      /Your genetic data stays on your computer\. Only a fingerprint goes on Midnight, which dates it\.$/,
+      /Your genetic data stays on your computer\. Only a proof code goes on Midnight, which dates it\.$/,
     );
     expect(lede.split(/(?<=\.)\s+/).length).toBeLessThanOrEqual(3);
     // No lab-report sentence next to "stays on your computer" (it read as a contradiction):
@@ -220,9 +220,15 @@ describe('privacy, said plainly', () => {
     expect(lede).not.toMatch(/nothing (is )?(sent|leaves)|never leaves your computer\. ?$/i);
   });
   it('what the server keeps is said on the page, right under the hero (How it works)', () => {
-    // Sealed records (round 2): the details are stored locked; only the name is readable.
-    expect(en['m.step1.text']).toMatch(/VeilCore's server stores the details locked, and we don't have the key/);
-    expect(en['m.step1.text']).toMatch(/The name you give it isn't locked: anyone with the record's link sees it\./);
+    // Sealed records (round 2): the details are stored locked. Round 5: the name too; it
+    // travels in the holder's check links, after the #, which no server receives.
+    expect(en['m.step1.text']).toMatch(
+      /VeilCore's server stores the details locked, the name included, and we don't have the key/,
+    );
+    expect(en['m.step1.text']).toMatch(
+      /Your check links carry the name after the #, for the people you send them to\./,
+    );
+    expect(en['m.step1.text']).not.toMatch(/isn't locked|anyone with the record's link/);
     expect(en['m.step1.text']).not.toMatch(/breeder/);
     expect(en['m.faq.4a']).toMatch(/A lab report reaches our server only when a lab sends it back to you/);
   });

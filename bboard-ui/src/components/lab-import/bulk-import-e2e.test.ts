@@ -175,11 +175,11 @@ describe('importing a 25-row accession log, end to end', () => {
     expect(await tab.backup.checkBackup(saved)).toMatchObject({ ok: true, records: 25 });
     expect(tab.keys.keysWithoutBackup()).toHaveLength(0);
 
-    // ── The results file: each original row, its record, fingerprint and check link ──
+    // ── The results file: each original row, its record, proof code and check link ──
     const csv = tab.bi.resultsCsv(job, ORIGIN);
     const back = tab.bi.parseCsv(csv).rows.filter((r) => r.some(Boolean));
     expect(back).toHaveLength(26);
-    expect(back[0]).toEqual([...HEADERS, 'VeilCore record ID', 'Fingerprint', 'Check link', 'Result', 'DNA report']);
+    expect(back[0]).toEqual([...HEADERS, 'VeilCore record ID', 'Proof code', 'Check link', 'Result', 'DNA report']);
     const byRef = new Map(mine.map((r) => [r.refId, r]));
     back.slice(1).forEach((row, i) => {
       expect(row.slice(0, 7)).toEqual(rowsIn[i]);

@@ -38,11 +38,12 @@ export const log = {
   'app.log.parentLinked': ' Its parent is {name}, already linked below.',
   'app.log.keptLastTime': 'We kept what you typed last time.',
   'app.log.startOver': 'Start over',
-  'app.log.nameLabel': 'Plant or line name (public)',
+  'app.log.nameLabel': 'Plant or line name',
   'app.log.namePlaceholder': 'e.g. Harbour Mist',
   // LogFlow.tsx, AnimalForm.tsx, CorrectRecord.tsx: under the name field. The name is the
   // one thing typed into a record that isn't locked (CONTRACT.md #4 strainName).
-  'app.log.nameHelp': 'Anyone with a check link sees this name. If the real name is secret, use a code name.',
+  'app.log.nameHelp':
+    'Locked like the other details. Your check links carry it after the #, so the people you send a link to see it, and anyone they pass it on to.',
   'app.log.eg': 'e.g. {v}',
   'app.log.egNextSelection': 'e.g. {name}, next selection',
   'app.log.bredBy': 'Bred by',
@@ -66,7 +67,7 @@ export const log = {
   'app.log.addPhotos': 'Add photos',
   'app.log.photos.one': '{count} photo',
   'app.log.photos.other': '{count} photos',
-  'app.log.photosStay': 'Photos stay on your device. Only their fingerprints are kept.',
+  'app.log.photosStay': 'Photos stay on your device. Only a code made from each is kept.',
   'app.log.refId': 'Your own lot or reference number',
   'app.log.notes': 'Notes',
   'app.log.nextCheck': 'Next: check it',
@@ -88,12 +89,12 @@ export const log = {
   'app.log.sealedWarn':
     "<b>Once sealed, this part can't change.</b> You can add reports and corrections later; a correction is a new record that points back to this one. That's what makes the date stamp worth something.",
   'app.log.savedOn':
-    'The details are stored locked on {server}, so you can come back to them, and we don’t have the key. The name isn’t locked: anyone with a check link sees it. Only a fingerprint is dated on {datedOn}.',
+    'The details are stored locked on {server}, so you can come back to them, and we don’t have the key. The name is locked too; your check links carry it after the #, for the people you send them to. Only a proof code is dated on {datedOn}.',
   'app.log.sealing': 'Sealing…',
   'app.log.seal': 'Seal it',
   'app.log.sealingPlant': 'Sealing your plant…',
   'app.log.sealStampsKey':
-    "Sealing also date stamps your plant's key, so you can prove you hold it later. Only a fingerprint of the key goes out.",
+    "Sealing also date stamps your plant's key, so you can prove you hold it later. Only a code made from the key goes out.",
   'app.log.sealed': 'Sealed',
   'app.log.publicStampLater':
     "Its public date stamp comes when its batch is dated on {datedOn}. Your plant's page shows when that has happened. Nothing for you to do.",
@@ -112,7 +113,7 @@ export const log = {
   'app.log.stampFailedTitle': 'Sealed. Key not date stamped yet',
   'app.log.stampingTitle': 'Sealed. Date stamping your plant’s key…',
   'app.log.onlyFingerprint':
-    "Only a fingerprint of your plant's key goes out, nothing about the plant. Free: VeilCore pays the network fee.",
+    "Only a code made from your plant's key goes out, nothing about the plant. Free: VeilCore pays the network fee.",
   'app.log.stampingAria': 'Date stamping your plant’s key',
   'app.log.stampLater': 'Do the date stamp later',
   'app.log.keepOpen':

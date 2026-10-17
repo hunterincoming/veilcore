@@ -21,7 +21,7 @@ export const history = {
   'app.history.leftOut.other': ', {count} enregistrements laissés de côté (seuls les {max} plus proches sont pris)',
   'app.history.end': '.',
   'app.history.notPut':
-    'Les clés de vos enregistrements et les fichiers de rapports de laboratoire n’y sont pas mis. Quand un rapport de laboratoire est enregistré sur une plante, son dossier de preuve contient bien le SHA-256 du rapport et l’empreinte qui l’associe à la plante, pour que quiconque à qui l’on montre plus tard le fichier puisse le comparer. VeilCore ne se porte garant de rien de ce que dit un enregistrement. Brouillon. Pas un conseil juridique.',
+    'Les clés de vos enregistrements et les fichiers de rapports de laboratoire n’y sont pas mis. Quand un rapport de laboratoire est enregistré sur une plante, son dossier de preuve contient bien le SHA-256 du rapport et le code qui l’associe à la plante, pour que quiconque à qui l’on montre plus tard le fichier puisse le comparer. VeilCore ne se porte garant de rien de ce que dit un enregistrement. Brouillon. Pas un conseil juridique.',
   'app.history.downloaded':
     '{name} téléchargé. Ouvrez d’abord le COVER-NOTE.html qu’il contient, puis breeding-history.html pour imprimer.',
   'app.history.locked.one': ', {count} enregistrement verrouillé laissé de côté (ce navigateur n’a pas sa clé)',

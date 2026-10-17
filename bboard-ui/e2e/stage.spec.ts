@@ -134,7 +134,9 @@ test('seal a plant, add the next stage from its page, and date its lab report on
   await expect(page.getByText(/Stage: F2 · Selected for: vigour, early finish/)).toBeVisible();
   await page.getByRole('button', { name: /Seal it/ }).click();
   await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
-  await expect.poll(() => held.records.some((r) => r.strainName === f2)).toBe(true);
+  // The name is sealed with the rest (round 5): found by opening the rows, never in the clear.
+  await expect.poll(() => opened(held).some((r) => r.strainName === f2)).toBe(true);
+  expect(JSON.stringify(held.records)).not.toContain(f2);
   const sealedF2 = opened(held).find((r) => r.strainName === f2)!;
   expect(sealedF2.notes).toBe('Stage: F2\nSelected for: vigour, early finish');
   expect(sealedF2.parents).toEqual([{ recordId: f1Id, name: f1 }]);

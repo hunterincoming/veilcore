@@ -7,15 +7,15 @@ export const pair = {
   'app.pair.aFile': 'un archivo',
   'app.pair.noPlant': 'No se encontró la planta donde guardarlo.',
   'app.pair.savedTitle': 'Informe de ADN guardado en esta planta',
-  'app.pair.fpLabel': 'HUELLA DEL VÍNCULO',
+  'app.pair.fpLabel': 'CÓDIGO DEL VÍNCULO',
   'app.pair.openedHere': 'Abierto y guardado aquí, en su dispositivo.',
   'app.pair.stayed': 'El archivo del informe se quedó en su dispositivo.',
   'app.pair.openedHereSub':
-    'El laboratorio lo envió bloqueado para que solo usted pudiera abrirlo. Solo su huella y su nombre de archivo se guardaron con su registro.',
+    'El laboratorio lo envió bloqueado para que solo usted pudiera abrirlo. Solo su código y su nombre de archivo se guardaron con su registro.',
   'app.pair.stayedSub':
-    'Se leyó y se le sacó la huella aquí, en su navegador. Su huella y su nombre de archivo se guardaron con su registro.',
+    'Se leyó y se le sacó el código aquí, en su navegador. Su código y su nombre de archivo se guardaron con su registro.',
   'app.pair.fileSha':
-    'SHA-256 del archivo: <b>{sha}</b>. Esta es la huella que firma un laboratorio: compárela con la del laboratorio. La huella del vínculo de arriba se hace a partir de ella, para que el vínculo pueda fecharse en la red.',
+    'SHA-256 del archivo: <b>{sha}</b>. Este es el código que firma un laboratorio: compárelo con el del laboratorio. El código del vínculo de arriba se hace a partir de él, para que el vínculo pueda fecharse en la red.',
   'app.pair.labMatch':
     'Este archivo coincide con el informe de laboratorio {lead}, por su SHA-256 (firma comprobada en este navegador).',
   'app.pair.noLabMatch':
@@ -29,7 +29,7 @@ export const pair = {
   'app.pair.earliest': '. Este registro se selló primero, según los relojes de los dispositivos que los sellaron.',
   'app.pair.earlier': '. {name} se selló antes ({date}, según el reloj de su dispositivo).',
   'app.pair.saved':
-    'Guardado. La huella de su informe de ADN se guarda con el registro de esta planta, como su declaración de que este informe le corresponde. No es una comprobación de la genética. {dated}',
+    'Guardado. El código de su informe de ADN se guarda con el registro de esta planta, como su declaración de que este informe le corresponde. No es una comprobación de la genética. {dated}',
   'app.pair.dateBelow': 'Todavía no está fechado: féchelo abajo si quiere el vínculo en la red.',
   'app.pair.notDated': 'Todavía no está fechado.',
   'app.pair.notDatedHere': 'En {thisSite} el vínculo todavía no se fecha.',
@@ -44,7 +44,7 @@ export const pair = {
     '<b>Esta planta ya tiene un informe de ADN guardado: “{name}”{saved}.</b> Guardar este lo reemplaza. La página de su planta, su certificado y los enlaces que comparta mostrarán el nuevo, no el anterior. No se borra nada de su dispositivo. Si fechó el vínculo anterior en la red, esa fecha se queda allí.',
   'app.pair.savedOn': ', guardado el {date}',
   'app.pair.noDna':
-    'VeilCore no hace pruebas de ADN: usted guarda el informe de ADN que le dio su laboratorio. Se lee y se le saca la huella en su dispositivo; el archivo nunca se sube. Su huella y su nombre de archivo se guardan con su registro. {after}',
+    'VeilCore no hace pruebas de ADN: usted guarda el informe de ADN que le dio su laboratorio. Se lee y se le saca el código en su dispositivo; el archivo nunca se sube. Su código y su nombre de archivo se guardan con su registro. {after}',
   'app.pair.afterChain': 'Después también puede fechar el vínculo en la red.',
   'app.pair.afterDemo': 'En {thisSite} el vínculo todavía no se fecha; con el contrato de VeilCore, sí.',
   'app.pair.tap': 'Toque para elegir su informe de ADN',
@@ -54,14 +54,14 @@ export const pair = {
     'Este es el informe de laboratorio que su laboratorio envió a través de VeilCore. Cuando lo guarde, esta página lo comprobará con la firma del laboratorio.',
   'app.pair.labCanSign':
     'Un laboratorio también puede firmar su informe con su propia clave; uno firmado tiene más peso que uno que guarda usted. Aquí, guarde el archivo del informe de ADN que tiene.',
-  'app.pair.fingerprinting': 'Sacando la huella en su dispositivo…',
+  'app.pair.fingerprinting': 'Sacando el código en su dispositivo…',
   'app.pair.replace': 'Reemplazar el informe de ADN guardado',
   'app.pair.skip': 'Aún no tengo informe: omitir',
   'app.pair.chooseFirst': 'Elija primero el archivo del informe de ADN.',
-  'app.pair.fingerprinted': 'Huella hecha en su navegador.',
-  'app.pair.sealedFp': 'HUELLA SELLADA',
+  'app.pair.fingerprinted': 'Código hecho en su navegador.',
+  'app.pair.sealedFp': 'CÓDIGO DE PRUEBA',
   'app.pair.chosen': '{title}. Elegido: {name}',
-  'app.pair.ready': '{kb} KB · listo para sacar la huella en este dispositivo · elija otro para reemplazarlo',
+  'app.pair.ready': '{kb} KB · listo para sacar el código en este dispositivo · elija otro para reemplazarlo',
   'app.pair.chain.noKeys':
     'Este navegador no tiene las claves del registro, así que no puede fechar el vínculo. Restáurelas desde su copia de seguridad.',
   'app.pair.chain.stampFirst':
@@ -77,11 +77,11 @@ export const pair = {
   'app.pair.chain.download': 'Descargar el archivo de evidencia',
   'app.pair.chain.title': 'Fechar también este vínculo en la red de pruebas (opcional)',
   'app.pair.chain.intro':
-    'Esto pone un código en la cadena, de forma permanente, junto a la identidad de este registro. El código se hace con la huella del informe y un número aleatorio guardado en este navegador, así que no dice nada del informe y nadie puede copiarlo a su propio registro. Después descarga un archivo de evidencia: con él y el informe, cualquiera puede comprobar que el titular de este registro tenía el informe en esa fecha.',
+    'Esto pone un código en la cadena, de forma permanente, junto a la identidad de este registro. El código se hace con el SHA-256 del informe y un número aleatorio guardado en este navegador, así que no dice nada del informe y nadie puede copiarlo a su propio registro. Después descarga un archivo de evidencia: con él y el informe, cualquiera puede comprobar que el titular de este registro tenía el informe en esa fecha.',
   'app.pair.chain.earlier':
     'Un intento anterior se envió pero no se confirmó. Puede que haya llegado. Volver a enviar usa el mismo código, así que no puede vincular un segundo distinto.',
   'app.pair.chain.sendAgain': 'Enviar de nuevo',
   'app.pair.chain.date': 'Fechar el vínculo',
   'app.pair.chain.testOnly':
-    'Solo red de pruebas. Esto muestra que quien controlaba la identidad de este registro tenía el informe, o su huella, en la fecha en que llegue. No es una comprobación de la genética.',
+    'Solo red de pruebas. Esto muestra que quien controlaba la identidad de este registro tenía el informe, o su SHA-256, en la fecha en que llegue. No es una comprobación de la genética.',
 } satisfies Partial<AppTranslation>;

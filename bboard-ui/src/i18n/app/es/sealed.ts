@@ -7,9 +7,9 @@ import type { AppTranslation } from '../../translate';
 export const sealed = {
   'app.sealed.refuse.noKey':
     'este navegador no tiene la clave de sus registros, así que no se guardó nada. Restaure primero su archivo de copia de seguridad.',
-  'app.sealed.refuse.mismatch': 'no coincide con su huella, así que no se guardó',
+  'app.sealed.refuse.mismatch': 'no coincide con su código de prueba, así que no se guardó',
   'app.sealed.mismatch':
-    'Este registro no coincide con su huella: puede haberse cambiado después de sellarlo. No se volverá a guardar, enviar ni compartir.',
+    'Este registro no coincide con su código de prueba: puede haberse cambiado después de sellarlo. No se volverá a guardar, enviar ni compartir.',
   'app.sealed.locked.title.one': '{count} registro bloqueado',
   'app.sealed.locked.title.other': '{count} registros bloqueados',
   'app.sealed.locked.pageTitle': 'Este registro está bloqueado',

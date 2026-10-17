@@ -13,7 +13,7 @@ export const animal = {
   'app.animal.title': 'Enregistrez votre animal',
   'app.animal.name': 'Nom de l’animal',
   'app.animal.namePlaceholder': 'p. ex. Vache d’essai',
-  'app.animal.nameField': 'Nom de l’animal (public)',
+  'app.animal.nameField': 'Nom de l’animal',
   'app.animal.individualId': 'Numéro d’identification individuel',
   'app.animal.individualIdHelp': 'Le numéro de sa boucle auriculaire ou de son enregistrement, tel qu’il est écrit.',
   'app.animal.idScheme': 'Système d’identification',
@@ -71,7 +71,7 @@ export const animal = {
   'app.animal.verify.idLine': 'Numéro d’identification, selon le détenteur : {id} ({scheme})',
   'app.animal.verify.noId': 'Aucun numéro d’identification enregistré.',
   'app.animal.v.app.verify.noParents': 'Ni père ni mère enregistrés.',
-  'app.animal.v.app.plant.fix.name': 'Nom de l’animal (public)',
+  'app.animal.v.app.plant.fix.name': 'Nom de l’animal',
   'app.animal.v.app.plant.fix.bredBy': 'Éleveur ou détenteur',
   'app.animal.v.app.verify.nameTyped': 'Nom de l’animal, tel que le détenteur l’a saisi : ',
   'app.animal.import.dob': 'Date de naissance',
@@ -87,7 +87,7 @@ export const animal = {
     '<b>Facultatif.</b> Vous avez déjà un rapport ADN pour cet animal ? C’est ce qui lie votre enregistrement à l’animal lui-même. Ajoutez-le maintenant, il sera conservé avec l’enregistrement. Pas encore de rapport ? Passez : la page de l’animal indique comment en obtenir un.',
   'app.animal.v.app.log.sealingPlant': 'Scellement de votre animal…',
   'app.animal.v.app.log.sealStampsKey':
-    'Le scellement horodate aussi la clé de votre animal, pour que vous puissiez prouver plus tard que vous détenez son enregistrement. Seule une empreinte de la clé est envoyée.',
+    'Le scellement horodate aussi la clé de votre animal, pour que vous puissiez prouver plus tard que vous détenez son enregistrement. Seul un code de la clé est envoyé.',
   'app.animal.v.app.log.publicStampLater':
     'Son horodatage public arrive quand son lot est daté sur {datedOn}. La page de votre animal indique quand cela a eu lieu. Vous n’avez rien à faire.',
   'app.animal.v.app.log.publicDateLater':
@@ -98,7 +98,7 @@ export const animal = {
     'Clé horodatée. La clé de votre animal est datée elle aussi, pour que vous puissiez prouver plus tard que vous détenez son enregistrement.{bound} Rien sur l’animal n’a été envoyé.',
   'app.animal.v.app.log.stampingTitle': 'Scellé. Horodatage de la clé de votre animal…',
   'app.animal.v.app.log.onlyFingerprint':
-    'Seule une empreinte de la clé de votre animal est envoyée, rien sur l’animal. Gratuit : VeilCore paie les frais du réseau.',
+    'Seul un code de la clé de votre animal est envoyé, rien sur l’animal. Gratuit : VeilCore paie les frais du réseau.',
   'app.animal.v.app.log.stampingAria': 'Horodatage de la clé de votre animal',
   'app.animal.v.app.log.keepOpen':
     'Gardez cet écran ouvert, environ une minute. S’il se ferme, rien n’est perdu : votre animal est enregistré, et sa page vous proposera à nouveau l’horodatage.',
@@ -113,7 +113,7 @@ export const animal = {
   'app.animal.v.app.pair.noLabMatch':
     'Aucune signature de laboratoire sur cet animal ne correspond à ce fichier : il reste votre propre déclaration.',
   'app.animal.v.app.pair.saved':
-    'Enregistré. L’empreinte de votre rapport ADN est enregistrée avec l’enregistrement de cet animal, comme votre déclaration que ce rapport lui correspond. Ce n’est pas une vérification de la génétique. {dated}',
+    'Enregistré. Le code de votre rapport ADN est enregistré avec l’enregistrement de cet animal, comme votre déclaration que ce rapport lui correspond. Ce n’est pas une vérification de la génétique. {dated}',
   'app.animal.v.app.pair.title': 'Enregistrez votre rapport ADN sur cet animal',
   'app.animal.v.app.pair.intro':
     'Vous avez reçu votre rapport ADN ? Enregistrez-le sur cet animal. C’est ce qui lie votre enregistrement à l’animal réel : un nouveau test pourra ensuite y être comparé.',
@@ -128,7 +128,7 @@ export const animal = {
     'Si vous l’avez scellé dans un autre navigateur, enregistrez-y une copie de secours et ouvrez-la ici (Récupérer vos enregistrements). Si c’est l’enregistrement de quelqu’un d’autre, ouvrez plutôt le lien de vérification qu’il vous a donné.',
   'app.animal.v.app.plant.bredByName': 'Éleveur ou détenteur : {name}',
   'app.animal.v.app.plant.action.saveReport': 'Enregistrer un rapport ADN sur cet animal',
-  'app.animal.v.app.plant.f.reportSaved': 'enregistré sur cet animal ({file}) · empreinte de l’association {fp}{sha}',
+  'app.animal.v.app.plant.f.reportSaved': 'enregistré sur cet animal ({file}) · code de l’association {fp}{sha}',
   'app.animal.v.app.plant.backToPlant': 'Retour à l’animal',
   'app.animal.v.app.plant.tie.tied': 'Lié à l’animal',
   'app.animal.v.app.plant.tie.notYet': 'Pas encore lié à l’animal',
@@ -188,7 +188,7 @@ export const animal = {
     'Aucun laboratoire n’a encore signé d’accusé de réception pour cet animal. Un enregistrement que vous seul soutenez est une preuve plus faible qu’un enregistrement signé par un laboratoire. Envoyez un échantillon à un laboratoire : son accusé de réception est signé avec sa clé, pas la vôtre.',
   'app.animal.v.app.verify.field.parent-names': 'Père et mère (noms et numéros)',
   'app.animal.v.app.verify.alwaysShown':
-    'Toujours affichés : le nom de l’animal, l’identifiant de l’enregistrement, son empreinte ({fp}), la date à laquelle le registre l’a conservé pour la première fois, et ce que cette page a pu vérifier sur son lot et sur les attestations signées (un accusé de réception de laboratoire, un rapport de laboratoire).',
+    'Toujours affichés : l’identifiant de l’enregistrement, son code de preuve ({fp}), la date à laquelle le registre l’a conservé pour la première fois, et ce que cette page a pu vérifier sur son lot et sur les attestations signées (un accusé de réception de laboratoire, un rapport de laboratoire). Le nom de l’animal, seulement quand le lien le porte (les vôtres le portent, sauf si vous l’enlevez) ou que vous choisissez de le montrer.',
   'app.animal.v.app.verify.ownReceiptTail':
     ' Vous le voyez parce que l’animal est dans ce navigateur ; la personne à qui vous envoyez le lien ne voit que la ligne de signature ci-dessus.',
   'app.animal.v.app.prove.openCheckPage': 'Ouvrir la page de vérification de l’animal',

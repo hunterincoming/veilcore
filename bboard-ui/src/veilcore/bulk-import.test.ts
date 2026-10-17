@@ -604,7 +604,7 @@ describe('the results file', () => {
       'ID',
       'Extra',
       'VeilCore record ID',
-      'Fingerprint',
+      'Proof code',
       'Check link',
       'Result',
       'DNA report',

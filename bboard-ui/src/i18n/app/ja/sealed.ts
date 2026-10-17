@@ -7,9 +7,9 @@ import type { AppTranslation } from '../../translate';
 export const sealed = {
   'app.sealed.refuse.noKey':
     'このブラウザには記録を開く鍵がないため、何も保存していません。先にバックアップファイルを復元してください。',
-  'app.sealed.refuse.mismatch': 'フィンガープリントと一致しないため、保存していません',
+  'app.sealed.refuse.mismatch': '証明コードと一致しないため、保存していません',
   'app.sealed.mismatch':
-    'この記録はフィンガープリントと一致しません。封印後に変更された可能性があります。今後、保存・送付・共有はされません。',
+    'この記録は証明コードと一致しません。封印後に変更された可能性があります。今後、保存・送付・共有はされません。',
   'app.sealed.locked.title.other': 'ロックされた記録 {count}件',
   'app.sealed.locked.pageTitle': 'この記録はロックされています',
   'app.sealed.locked.text':

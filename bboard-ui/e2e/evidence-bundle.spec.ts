@@ -485,14 +485,14 @@ test.describe('evidence bundle', () => {
         'proof/inclusion-proof.json',
         'proof/root.bin',
         ...(setup.ots ? ['proof/root.bin.ots'] : []),
-        'record/fingerprint.txt',
+        'record/proof-code.txt',
         'record/sealed-fields.canonical.json',
         'record/sealed-fields.json',
         'spec/SPEC-sections.md',
         'verify.html',
       ].sort(),
     );
-    expect(fs.readFileSync(path.join(dir, 'record/fingerprint.txt'), 'utf8').trim()).toBe(bound.recordFingerprint);
+    expect(fs.readFileSync(path.join(dir, 'record/proof-code.txt'), 'utf8').trim()).toBe(bound.recordFingerprint);
     expect(sha256(fs.readFileSync(path.join(dir, 'record/sealed-fields.canonical.json')))).toBe(
       JSON.parse(fs.readFileSync(path.join(dir, 'evidence.json'), 'utf8')).record.contentHash,
     );
@@ -515,7 +515,7 @@ test.describe('evidence bundle', () => {
     await expect(sealed.locator('tr', { hasText: 'Bred by' })).toContainText('E2E');
     await expect(sealed.locator('tr', { hasText: 'Notes' })).toContainText('Practice data. "</script>" stays text.');
     await expect(sealed.locator('tr', { hasText: 'Stated date' })).toContainText('2026-10-01');
-    await expect(v.getByText('Fingerprint matches', { exact: true })).toBeVisible();
+    await expect(v.getByText('Proof code matches', { exact: true })).toBeVisible();
     await expect(v.getByText('Proof leads to the batch root', { exact: true })).toBeVisible();
     await expect(v.getByText('The record’s key matches', { exact: true })).toBeVisible();
     await expect(v.getByText('Lab report pairing matches', { exact: true })).toBeVisible();
@@ -562,7 +562,7 @@ test.describe('evidence bundle', () => {
       mimeType: 'application/json',
       buffer: Buffer.from(JSON.stringify(tamperedFields)),
     });
-    await expect(v.getByText('Fingerprint does not match', { exact: true })).toBeVisible();
+    await expect(v.getByText('Proof code does not match', { exact: true })).toBeVisible();
     if (setup.sent) {
       // evidence.json with the lab's seal number changed: the receipt no longer covers it,
       // whatever the file says.
@@ -634,15 +634,15 @@ test.describe('evidence bundle', () => {
       {
         name: 'tampered-record',
         change: (ev) => (ev.record.sealedFields.notes = 'edited later'),
-        expect: ['Fingerprint does not match', 'Proof does not lead to the batch root'],
+        expect: ['Proof code does not match', 'Proof does not lead to the batch root'],
         withheld:
-          'Don’t use this to date the record: the fingerprint does not match the sealed fields; the proof does not lead to the batch root',
+          'Don’t use this to date the record: the proof code does not match the sealed fields; the proof does not lead to the batch root',
       },
       {
         name: 'tampered-date',
         change: (ev) => (ev.record.sealedFields.dateCreated = '2019-01-01'),
-        expect: ['Fingerprint does not match'],
-        withheld: 'Don’t use this to date the record: the fingerprint does not match the sealed fields',
+        expect: ['Proof code does not match'],
+        withheld: 'Don’t use this to date the record: the proof code does not match the sealed fields',
       },
       {
         name: 'wrong-proof',
@@ -650,19 +650,19 @@ test.describe('evidence bundle', () => {
           if (ev.proof.path.length) ev.proof.path[0].sibling = flip(ev.proof.path[0].sibling);
           else ev.proof.root = flip(ev.proof.root);
         },
-        expect: ['Fingerprint matches', 'Proof does not lead to the batch root'],
+        expect: ['Proof code matches', 'Proof does not lead to the batch root'],
         withheld: 'Don’t use this to date the record: the proof does not lead to the batch root',
       },
       {
         name: 'wrong-root',
         change: (ev) => (ev.batch.root = flip(ev.batch.root)),
-        expect: ['Fingerprint matches', 'Proof does not lead to the batch root'],
+        expect: ['Proof code matches', 'Proof does not lead to the batch root'],
         withheld: 'Don’t use this to date the record: the proof does not lead to the batch root',
       },
       {
         name: 'wrong-key',
         change: (ev) => (ev.key.identity = flip(ev.key.identity)),
-        expect: ['Fingerprint matches', 'The key does not match'],
+        expect: ['Proof code matches', 'The key does not match'],
         withheld: 'Don’t use this to date the record: the key does not match the record',
       },
     ];
@@ -692,7 +692,7 @@ test.describe('evidence bundle', () => {
       const ff = await firefox.launch();
       try {
         const f = await openOffline(ff, verifyFile);
-        await expect(f.page.getByText('Fingerprint matches', { exact: true })).toBeVisible();
+        await expect(f.page.getByText('Proof code matches', { exact: true })).toBeVisible();
         await expect(f.page.getByText('Proof leads to the batch root', { exact: true })).toBeVisible();
         expect(f.requests.filter((u) => !u.startsWith('file:'))).toEqual([]);
       } finally {
@@ -732,7 +732,7 @@ test.describe('evidence bundle', () => {
     expect(summary.requests.filter((u) => !u.startsWith('file:'))).toEqual([]);
     await summary.ctx.close();
     const run = await openOffline(browser, path.join(dir, 'verify.html'));
-    await expect(run.page.getByText('Fingerprint matches', { exact: true })).toBeVisible();
+    await expect(run.page.getByText('Proof code matches', { exact: true })).toBeVisible();
     await expect(run.page.getByText('Proof leads to the batch root', { exact: true })).toBeVisible();
     await expect(run.page.locator('[data-check="key"]')).toHaveCount(0);
     expect(run.requests.filter((u) => !u.startsWith('file:'))).toEqual([]);

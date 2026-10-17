@@ -1,7 +1,7 @@
 // The record app in German (Sie): every key of ../en, screen by screen. DRAFT: machine-assisted,
 // to be checked by a fluent speaker before publishing (docs/translations/README.md). Terms are
 // the site's (../../de.ts), plus the app's: Züchter (breeder), Inhaber and halten (holder, hold;
-// never Besitz or Eigentum), Datensatz (record), Register (registry), Fingerabdruck,
+// never Besitz or Eigentum), Datensatz (record), Register (registry), Prüfcode (proof code; DNA-Fingerabdruck only for genetic data),
 // Datumsstempel, Laborcode, Empfangsbestätigung, Sicherungskopie, Laborbericht, Stapel (batch),
 // verankern (anchor), Kopplung (pairing), Lieferung (delivery), Vereinbarung (agreement).
 // SPDX-License-Identifier: Apache-2.0

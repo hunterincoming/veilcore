@@ -581,7 +581,7 @@ export const AGREEMENT_ACTION: Record<AgreementType, string> = {
 export const AGREEMENT_TAGLINE: Record<AgreementType, string> = {
   license: 'A commercial license: rights, territory, royalty and exclusivity, attached to the record.',
   'lab-transfer':
-    'Sending your genetics to a lab? Attach the terms to the record and its report fingerprint before it leaves your hands.',
+    'Sending your genetics to a lab? Attach the terms to the record and its report’s code before it leaves your hands.',
   'breeder-share':
     "Sharing material with another breeder? Handshakes are how varieties get renamed and sold as someone else's work. Put terms on it.",
 };

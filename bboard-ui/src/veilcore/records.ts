@@ -1168,10 +1168,10 @@ export const importRecords = async (file: File): Promise<ImportResult> => {
   for (const r of cleaned) {
     const check = await checkIntegrity(r);
     if (check === 'mismatch') {
-      throw new Error(`${r.id}: its fingerprint does not match its fields. Nothing was imported.`);
+      throw new Error(`${r.id}: its proof code does not match its fields. Nothing was imported.`);
     }
     if (check === 'no-nonce') {
-      throw new Error(`${r.id}: it has a fingerprint but no nonce, so it cannot be checked. Nothing was imported.`);
+      throw new Error(`${r.id}: it has a proof code but no nonce, so it cannot be checked. Nothing was imported.`);
     }
   }
   // Compared against what the registry holds now, not whatever this page last loaded:

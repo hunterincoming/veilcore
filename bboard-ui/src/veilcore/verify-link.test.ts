@@ -5,10 +5,10 @@ import { checkedSummary, verifyHeading } from './verify-link';
 describe('the check page footer', () => {
   it('never says nothing was checked when a signature or the batch path was', () => {
     expect(checkedSummary({ bound: false, proofChecked: false, signaturesChecked: 1 })).toBe(
-      'Checked in this browser: one signature about it. Everything else is the VeilCore registry’s report. This link names no fingerprint, so those checks used the registry’s own and nothing is ticked.',
+      'Checked in this browser: one signature about it. Everything else is the VeilCore registry’s report. This link names no proof code, so those checks used the registry’s own and nothing is ticked.',
     );
     expect(checkedSummary({ bound: true, proofChecked: true, signaturesChecked: 2 })).toBe(
-      'Checked in this browser: the link’s fingerprint matches the one the registry reports, the record is in its batch and 2 signatures about it. Everything else is the VeilCore registry’s report.',
+      'Checked in this browser: the link’s proof code matches the one the registry reports, the record is in its batch and 2 signatures about it. Everything else is the VeilCore registry’s report.',
     );
     for (const c of [
       { bound: true, proofChecked: false, signaturesChecked: 0 },

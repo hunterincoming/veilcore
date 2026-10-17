@@ -2,7 +2,7 @@
 // to be checked by a fluent speaker before publishing (docs/translations/README.md). Terms are
 // the site's (../../fr.ts), plus the app's: obtenteur (breeder), détenteur and détenir (holder,
 // hold; never propriétaire or posséder), enregistrement (record), registre (registry),
-// empreinte, horodatage (date stamp), code laboratoire, accusé de réception, copie de secours,
+// code de preuve (proof code; empreinte ADN only for genetic data), horodatage (date stamp), code laboratoire, accusé de réception, copie de secours,
 // rapport de laboratoire, lot (batch), ancrer, association (pairing), livraison (delivery),
 // scellé (seal on a sample bag), contrat (agreement).
 // SPDX-License-Identifier: Apache-2.0

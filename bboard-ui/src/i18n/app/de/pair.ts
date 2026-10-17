@@ -7,15 +7,15 @@ export const pair = {
   'app.pair.aFile': 'eine Datei',
   'app.pair.noPlant': 'Die Pflanze, bei der gespeichert werden soll, wurde nicht gefunden.',
   'app.pair.savedTitle': 'DNA-Bericht bei dieser Pflanze gespeichert',
-  'app.pair.fpLabel': 'FINGERABDRUCK DER KOPPLUNG',
+  'app.pair.fpLabel': 'CODE DER KOPPLUNG',
   'app.pair.openedHere': 'Hier auf Ihrem Gerät geöffnet und gespeichert.',
   'app.pair.stayed': 'Die Berichtsdatei ist auf Ihrem Gerät geblieben.',
   'app.pair.openedHereSub':
-    'Das Labor hat sie verschlossen gesendet, sodass nur Sie sie öffnen konnten. Nur ihr Fingerabdruck und ihr Dateiname wurden mit Ihrem Datensatz gespeichert.',
+    'Das Labor hat sie verschlossen gesendet, sodass nur Sie sie öffnen konnten. Nur ihr Code und ihr Dateiname wurden mit Ihrem Datensatz gespeichert.',
   'app.pair.stayedSub':
-    'Sie wurde hier in Ihrem Browser gelesen und mit einem Fingerabdruck versehen. Ihr Fingerabdruck und ihr Dateiname wurden mit Ihrem Datensatz gespeichert.',
+    'Sie wurde hier in Ihrem Browser gelesen und mit einem Code versehen. Ihr Code und ihr Dateiname wurden mit Ihrem Datensatz gespeichert.',
   'app.pair.fileSha':
-    'SHA-256 der Datei: <b>{sha}</b>. Das ist der Fingerabdruck, den ein Labor signiert: Vergleichen Sie ihn mit dem des Labors. Der Fingerabdruck der Kopplung oben wird daraus gebildet, damit die Kopplung im Netzwerk datiert werden kann.',
+    'SHA-256 der Datei: <b>{sha}</b>. Das ist der Code, den ein Labor signiert: Vergleichen Sie ihn mit dem des Labors. Der Code der Kopplung oben wird daraus gebildet, damit die Kopplung im Netzwerk datiert werden kann.',
   'app.pair.labMatch':
     'Diese Datei passt zum Laborbericht {lead}, anhand ihres SHA-256 (Signatur in diesem Browser geprüft).',
   'app.pair.noLabMatch':
@@ -30,7 +30,7 @@ export const pair = {
     '. Dieser Datensatz wurde zuerst versiegelt, nach den Uhren der Geräte, die sie versiegelt haben.',
   'app.pair.earlier': '. {name} wurde früher versiegelt ({date}, nach der Uhr seines Geräts).',
   'app.pair.saved':
-    'Gespeichert. Der Fingerabdruck Ihres DNA-Berichts ist mit dem Datensatz dieser Pflanze gespeichert, als Ihre Angabe, dass dieser Bericht zu ihr gehört. Das ist keine Prüfung der Genetik. {dated}',
+    'Gespeichert. Der Code Ihres DNA-Berichts ist mit dem Datensatz dieser Pflanze gespeichert, als Ihre Angabe, dass dieser Bericht zu ihr gehört. Das ist keine Prüfung der Genetik. {dated}',
   'app.pair.dateBelow':
     'Er ist noch nicht datiert: Datieren Sie ihn unten, wenn Sie die Kopplung im Netzwerk haben möchten.',
   'app.pair.notDated': 'Er ist noch nicht datiert.',
@@ -46,7 +46,7 @@ export const pair = {
     '<b>Bei dieser Pflanze ist schon ein DNA-Bericht gespeichert: „{name}“{saved}.</b> Wenn Sie diesen speichern, ersetzt er ihn. Ihre Pflanzenseite, ihr Zertifikat und Links, die Sie teilen, zeigen den neuen, nicht den alten. Auf Ihrem Gerät wird nichts gelöscht. Wenn Sie die alte Kopplung im Netzwerk datiert haben, bleibt dieses Datum dort.',
   'app.pair.savedOn': ', gespeichert am {date}',
   'app.pair.noDna':
-    'VeilCore testet keine DNA: Sie speichern den DNA-Bericht, den Ihr Testlabor Ihnen gegeben hat. Er wird auf Ihrem Gerät gelesen und mit einem Fingerabdruck versehen; die Datei wird nie hochgeladen. Ihr Fingerabdruck und ihr Dateiname werden mit Ihrem Datensatz gespeichert. {after}',
+    'VeilCore testet keine DNA: Sie speichern den DNA-Bericht, den Ihr Testlabor Ihnen gegeben hat. Er wird auf Ihrem Gerät gelesen und mit einem Code versehen; die Datei wird nie hochgeladen. Ihr Code und ihr Dateiname werden mit Ihrem Datensatz gespeichert. {after}',
   'app.pair.afterChain': 'Danach können Sie die Kopplung auch im Netzwerk datieren.',
   'app.pair.afterDemo': 'In {thisSite} wird die Kopplung noch nicht datiert; mit dem VeilCore-Vertrag schon.',
   'app.pair.tap': 'Tippen, um Ihren DNA-Bericht zu wählen',
@@ -56,14 +56,14 @@ export const pair = {
     'Das ist der Laborbericht, den Ihr Labor über VeilCore gesendet hat. Sobald er gespeichert ist, prüft diese Seite ihn gegen die Signatur des Labors.',
   'app.pair.labCanSign':
     'Ein Labor kann seinen Bericht auch mit seinem eigenen Schlüssel signieren; ein signierter zählt mehr als einer, den Sie selbst speichern. Speichern Sie hier die Datei des DNA-Berichts, die Sie haben.',
-  'app.pair.fingerprinting': 'Fingerabdruck wird auf Ihrem Gerät erstellt…',
+  'app.pair.fingerprinting': 'Code wird auf Ihrem Gerät erstellt…',
   'app.pair.replace': 'Gespeicherten DNA-Bericht ersetzen',
   'app.pair.skip': 'Noch kein Bericht: überspringen',
   'app.pair.chooseFirst': 'Wählen Sie zuerst die Datei des DNA-Berichts.',
-  'app.pair.fingerprinted': 'Fingerabdruck in Ihrem Browser erstellt.',
-  'app.pair.sealedFp': 'VERSIEGELTER FINGERABDRUCK',
+  'app.pair.fingerprinted': 'Code in Ihrem Browser erstellt.',
+  'app.pair.sealedFp': 'VERSIEGELTER PRÜFCODE',
   'app.pair.chosen': '{title}. Gewählt: {name}',
-  'app.pair.ready': '{kb} KB · bereit für den Fingerabdruck auf diesem Gerät · erneut wählen, um sie zu ersetzen',
+  'app.pair.ready': '{kb} KB · bereit für den Code auf diesem Gerät · erneut wählen, um sie zu ersetzen',
   'app.pair.chain.noKeys':
     'Dieser Browser hat die Schlüssel des Datensatzes nicht, daher kann er die Kopplung nicht datieren. Stellen Sie sie aus Ihrer Sicherungskopie wieder her.',
   'app.pair.chain.stampFirst':
@@ -79,11 +79,11 @@ export const pair = {
   'app.pair.chain.download': 'Nachweisdatei herunterladen',
   'app.pair.chain.title': 'Diese Kopplung auch im Testnetzwerk datieren (optional)',
   'app.pair.chain.intro':
-    'Damit kommt ein Code dauerhaft auf die Chain, neben die Identität dieses Datensatzes. Der Code wird aus dem Fingerabdruck des Berichts und einer Zufallszahl gebildet, die in diesem Browser bleibt. Er verrät also nichts über den Bericht, und niemand kann ihn in seinen eigenen Datensatz kopieren. Danach laden Sie eine Nachweisdatei herunter: Mit ihr und dem Bericht kann jeder prüfen, dass der Inhaber dieses Datensatzes den Bericht zu diesem Datum hatte.',
+    'Damit kommt ein Code dauerhaft auf die Chain, neben die Identität dieses Datensatzes. Der Code wird aus dem SHA-256 des Berichts und einer Zufallszahl gebildet, die in diesem Browser bleibt. Er verrät also nichts über den Bericht, und niemand kann ihn in seinen eigenen Datensatz kopieren. Danach laden Sie eine Nachweisdatei herunter: Mit ihr und dem Bericht kann jeder prüfen, dass der Inhaber dieses Datensatzes den Bericht zu diesem Datum hatte.',
   'app.pair.chain.earlier':
     'Ein früherer Versuch wurde gesendet, aber nicht bestätigt. Er ist vielleicht angekommen. Erneutes Senden verwendet denselben Code, daher kann keine zweite, andere Kopplung entstehen.',
   'app.pair.chain.sendAgain': 'Erneut senden',
   'app.pair.chain.date': 'Kopplung datieren',
   'app.pair.chain.testOnly':
-    'Nur Testnetzwerk. Das zeigt, dass, wer die Identität dieses Datensatzes kontrollierte, den Bericht oder seinen Fingerabdruck zu dem Datum hatte, an dem er ankommt. Das ist keine Prüfung der Genetik.',
+    'Nur Testnetzwerk. Das zeigt, dass, wer die Identität dieses Datensatzes kontrollierte, den Bericht oder seinen SHA-256 zu dem Datum hatte, an dem er ankommt. Das ist keine Prüfung der Genetik.',
 } satisfies Partial<AppTranslation>;

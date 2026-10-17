@@ -385,7 +385,7 @@ describe('what the page lets you date', () => {
     const tampered = await V.checkAll(evidenceOf({ ...r, notes: 'edited later' }, proof));
     expect(V.datable(tampered).ok).toBe(false);
     expect(V.datable(tampered).failed).toEqual([
-      'the fingerprint does not match the sealed fields',
+      'the proof code does not match the sealed fields',
       'the proof does not lead to the batch root',
     ]);
     const wrongRoot = await V.checkAll(evidenceOf(r, proof, flip(batch.root)));

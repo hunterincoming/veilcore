@@ -2,7 +2,9 @@
 
 > **DRAFT for the founders and a lawyer to review. Not published. Not legal advice.**
 > Written 15 October 2026 from what the code does today, and updated 16 October 2026 for
-> sealed records (what you type is locked in your browser before it is sent): the site (`bboard-ui`), the
+> sealed records (what you type is locked in your browser before it is sent), and 17 October
+> 2026 for round 5 (the record's name is locked too; a DNA report is shown only as a salted
+> code; each release's files are listed publicly): the site (`bboard-ui`), the
 > registry (`veilcore-api`, `server.js` and `lineage/`), the fee sponsor and indexer relay
 > (`sponsor/`), and the site's own privacy page (`/privacy`, `i18n/en.ts` and
 > `en-mainnet.ts`, `m.privacy.*`). Where the code and this text disagree, the code is right
@@ -12,19 +14,22 @@
 ## The short version
 
 - Your genetic data, lab report files and photos **stay on your device**. Your browser
-  works out their fingerprints; the files are never uploaded.
+  works out a code from each (its SHA-256); the files are never uploaded.
 - What you type (breeder names, dates, notes, parents, agreement terms) is **locked in your
   browser before it is sent**, and VeilCore's server stores it locked, so you can come back
   to it. We don't have the key: it stays in your browser and your backup file. VeilCore also
   serves the app's code, so this is "stored locked, and we don't have the key", not a promise
   that the code can never change.
-- A record's **name is not locked**: our server can read it, and its public check page shows
-  it. Use a code name if the real name is secret. The sample details on a delivery (sample
+- A record's **name is locked too** (since 17 October 2026). The check links you make carry
+  it after the #, which a browser never sends to any server, so the people you send a link
+  to see it (and anyone they pass it on to). You can choose to show it on the record's
+  public check page; then anyone with the record's ID sees it. A name saved before then stays
+  readable to us until your browser saves the record again. The sample details on a delivery (sample
   ID, seal number, where and when it was taken, a witness, what the lab wrote on arrival)
   **are locked too**, with a key that travels in the lab code, and we don't have it. Sample
   details written before sealing stay readable to us until the registry's purge removes
   them.
-- Only a **batch fingerprint** goes on a public network (Midnight, and Bitcoin through
+- Only a **batch's code** (one SHA-256 standing for every record in the batch) goes on a public network (Midnight, and Bitcoin through
   OpenTimestamps). Nothing you typed goes there. Once there, nobody can delete it,
   including us.
 - A lab report a lab sends back to you through VeilCore is **locked so only you can open
@@ -73,8 +78,8 @@ record backup first.
 
 | What | Why | How long |
 |---|---|---|
-| Your records, locked: breeder name, species, dates, notes, reference numbers, parents, fingerprints of photos and lab reports, lab report file names, the names you give recipients, each record's secret keys. Stored as a box only your vault key opens | So you can come back to them | Until you ask us to delete it. No set period. |
-| Each record's readable fields: its id, the name you give it, its profile, fingerprint and key binding, which fields a correction changed and when, how many times it was saved and when it was last saved, and its size bucket (roughly how large its locked box is) | So a record can be found and checked | As long as the record |
+| Your records, locked: the record's name, breeder name, species, dates, notes, reference numbers, parents, fingerprints of photos and lab reports, lab report file names, the names you give recipients, each record's secret keys. Stored as a box only your vault key opens | So you can come back to them | Until you ask us to delete it. No set period. |
+| Each record's readable fields: its id, its profile, proof code (fingerprint) and key binding, which fields a correction changed and when, how many times it was saved and when it was last saved, and its size bucket (roughly how large its locked box is) | So a record can be found and checked | As long as the record |
 | Records saved before sealing, as they were typed | Until your browser locks them (after you save a checked backup), or until the registry's purge removes their contents | Until converted or purged |
 | Your holder key, stored as a one-way digest (`h1:` + SHA-256), never as sent | To find your records | As long as your records |
 | When the registry first saw each record | The registry's own date for it (its word only) | As long as the record |
@@ -114,8 +119,12 @@ A fingerprint can't be turned back into what you typed: each record has a random
 
 ## Public pages
 
-A record's public check page (`/verify/:id`) shows its name and whatever else you chose to
-share; what you choose to share is sent to the server readable, so it can be shown. Anyone with the link can see it. The registry doesn't record who looked.
+A record's public check page (`/verify/:id`) shows whatever you chose to share, and the
+record's name when the link carries it (your check links do, after the #, unless you leave it
+out) or when you chose to show it. What you choose to share is sent to the server readable, so
+it can be shown, except a DNA report: if you share whether one is saved, the server gets only
+a code made from the report's SHA-256, the record's proof code and a salt that only your check
+link carries, so only someone you send the link and the file to can tell which file it is. Anyone with the link can see it. The registry doesn't record who looked.
 
 ## Who else handles data
 
@@ -195,8 +204,9 @@ checked.]*
    contractual clauses or similar)? Do we have each provider's data processing terms?
 8. **Provider logs.** Vercel and Railway log addresses and requests. For how long, and must
    we name that in the terms?
-9. **The public check page** shows the plant name by default. Is that clear enough, and
-   should it be opt-in?
+9. **The record's name** is locked and travels in the holder's check links (after the #);
+   showing it on the public check page is opt-in. A forwarded link carries the name too. Is
+   that clear enough?
 10. **Cannabis.** Some users work with cannabis genetics. Does holding their records raise
     data, licensing or disclosure concerns in the US, Japan or Switzerland, and should the
     terms say anything about lawful use?

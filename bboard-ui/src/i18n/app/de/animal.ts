@@ -12,7 +12,7 @@ export const animal = {
   'app.animal.title': 'Ihr Tier erfassen',
   'app.animal.name': 'Name des Tieres',
   'app.animal.namePlaceholder': 'z. B. Übungskuh',
-  'app.animal.nameField': 'Name des Tieres (öffentlich)',
+  'app.animal.nameField': 'Name des Tieres',
   'app.animal.individualId': 'Einzeltierkennung',
   'app.animal.individualIdHelp': 'Die Nummer auf der Ohrmarke oder in der Registrierung, genau wie geschrieben.',
   'app.animal.idScheme': 'Kennzeichnungssystem',
@@ -68,7 +68,7 @@ export const animal = {
   'app.animal.verify.idLine': 'Einzeltierkennung, wie vom Inhaber angegeben: {id} ({scheme})',
   'app.animal.verify.noId': 'Keine Einzeltierkennung erfasst.',
   'app.animal.v.app.verify.noParents': 'Kein Vater und keine Mutter erfasst.',
-  'app.animal.v.app.plant.fix.name': 'Name des Tieres (öffentlich)',
+  'app.animal.v.app.plant.fix.name': 'Name des Tieres',
   'app.animal.v.app.plant.fix.bredBy': 'Züchter oder Inhaber',
   'app.animal.v.app.verify.nameTyped': 'Name des Tieres, wie vom Inhaber eingegeben: ',
   'app.animal.import.dob': 'Geburtsdatum',
@@ -83,7 +83,7 @@ export const animal = {
     '<b>Optional.</b> Haben Sie schon einen DNA-Bericht zu diesem Tier? Er verknüpft Ihren Datensatz mit dem tatsächlichen Tier. Fügen Sie ihn jetzt hinzu, dann wird er beim Datensatz aufbewahrt. Noch kein Bericht? Überspringen Sie den Schritt: Die Seite des Tieres zeigt, wie Sie einen bekommen.',
   'app.animal.v.app.log.sealingPlant': 'Ihr Tier wird versiegelt…',
   'app.animal.v.app.log.sealStampsKey':
-    'Beim Versiegeln bekommt auch der Schlüssel Ihres Tieres einen Datumsstempel, damit Sie später nachweisen können, dass Sie seinen Datensatz halten. Nur ein Fingerabdruck des Schlüssels wird gesendet.',
+    'Beim Versiegeln bekommt auch der Schlüssel Ihres Tieres einen Datumsstempel, damit Sie später nachweisen können, dass Sie seinen Datensatz halten. Nur ein Code des Schlüssels wird gesendet.',
   'app.animal.v.app.log.publicStampLater':
     'Den öffentlichen Datumsstempel bekommt es, wenn sein Stapel auf {datedOn} datiert wird. Die Seite Ihres Tieres zeigt, wann das geschehen ist. Sie müssen nichts tun.',
   'app.animal.v.app.log.publicDateLater':
@@ -94,7 +94,7 @@ export const animal = {
     'Schlüssel mit Datumsstempel versehen. Auch der Schlüssel Ihres Tieres ist datiert, damit Sie später nachweisen können, dass Sie seinen Datensatz halten.{bound} Über das Tier wurde nichts gesendet.',
   'app.animal.v.app.log.stampingTitle': 'Versiegelt. Der Schlüssel Ihres Tieres bekommt den Datumsstempel…',
   'app.animal.v.app.log.onlyFingerprint':
-    'Gesendet wird nur ein Fingerabdruck des Schlüssels Ihres Tieres, nichts über das Tier. Kostenlos: VeilCore zahlt die Netzwerkgebühr.',
+    'Gesendet wird nur ein Code des Schlüssels Ihres Tieres, nichts über das Tier. Kostenlos: VeilCore zahlt die Netzwerkgebühr.',
   'app.animal.v.app.log.stampingAria': 'Der Schlüssel Ihres Tieres bekommt den Datumsstempel',
   'app.animal.v.app.log.keepOpen':
     'Lassen Sie diese Seite etwa eine Minute offen. Wenn sie sich schließt, geht nichts verloren: Ihr Tier ist gespeichert, und seine Seite bietet den Datumsstempel erneut an.',
@@ -109,7 +109,7 @@ export const animal = {
   'app.animal.v.app.pair.noLabMatch':
     'Keine Laborsignatur bei diesem Tier passt zu dieser Datei, daher bleibt sie Ihre eigene Angabe.',
   'app.animal.v.app.pair.saved':
-    'Gespeichert. Der Fingerabdruck Ihres DNA-Berichts ist mit dem Datensatz dieses Tieres gespeichert, als Ihre Angabe, dass dieser Bericht zu ihm gehört. Das ist keine Prüfung der Genetik. {dated}',
+    'Gespeichert. Der Code Ihres DNA-Berichts ist mit dem Datensatz dieses Tieres gespeichert, als Ihre Angabe, dass dieser Bericht zu ihm gehört. Das ist keine Prüfung der Genetik. {dated}',
   'app.animal.v.app.pair.title': 'Ihren DNA-Bericht bei diesem Tier speichern',
   'app.animal.v.app.pair.intro':
     'Haben Sie Ihren DNA-Bericht zurück? Speichern Sie ihn bei diesem Tier. Er verknüpft Ihren Datensatz mit dem tatsächlichen Tier: Ein neuer Test kann später damit verglichen werden.',
@@ -124,7 +124,7 @@ export const animal = {
     'Wenn Sie ihn in einem anderen Browser versiegelt haben, speichern Sie dort eine Sicherungskopie und öffnen Sie sie hier (Datensätze zurückholen). Wenn es der Datensatz einer anderen Person ist, öffnen Sie stattdessen den Prüflink, den sie Ihnen gegeben hat.',
   'app.animal.v.app.plant.bredByName': 'Züchter oder Inhaber: {name}',
   'app.animal.v.app.plant.action.saveReport': 'Einen DNA-Bericht bei diesem Tier speichern',
-  'app.animal.v.app.plant.f.reportSaved': 'bei diesem Tier gespeichert ({file}) · Fingerabdruck der Kopplung {fp}{sha}',
+  'app.animal.v.app.plant.f.reportSaved': 'bei diesem Tier gespeichert ({file}) · Code der Kopplung {fp}{sha}',
   'app.animal.v.app.plant.backToPlant': 'Zurück zum Tier',
   'app.animal.v.app.plant.tie.tied': 'Mit dem Tier verknüpft',
   'app.animal.v.app.plant.tie.notYet': 'Noch nicht mit dem Tier verknüpft',
@@ -183,7 +183,7 @@ export const animal = {
     'Noch hat kein Labor eine Empfangsbestätigung für dieses Tier signiert. Ein Datensatz, für den nur Sie einstehen, ist ein schwächerer Nachweis als einer, den ein Labor signiert. Senden Sie eine Probe an ein Labor: Seine Empfangsbestätigung wird mit seinem Schlüssel signiert, nicht mit Ihrem.',
   'app.animal.v.app.verify.field.parent-names': 'Vater und Mutter (Namen und Kennungen)',
   'app.animal.v.app.verify.alwaysShown':
-    'Immer angezeigt: der Name des Tieres, die Datensatz-ID, sein Fingerabdruck ({fp}), wann das Register ihn zuerst gespeichert hat, und was diese Seite über seinen Stapel und signierte Bestätigungen (eine Empfangsbestätigung eines Labors, einen Laborbericht) prüfen konnte.',
+    'Immer angezeigt: die Datensatz-ID, sein Prüfcode ({fp}), wann das Register ihn zuerst gespeichert hat, und was diese Seite über seinen Stapel und signierte Bestätigungen (eine Empfangsbestätigung eines Labors, einen Laborbericht) prüfen konnte. Der Name des Tieres nur, wenn der Link ihn trägt (Ihre Links tun das, außer Sie lassen ihn weg) oder Sie ihn zeigen möchten.',
   'app.animal.v.app.verify.ownReceiptTail':
     ' Sie sehen das, weil das Tier in diesem Browser ist; wer Ihren Link erhält, sieht nur die Signaturzeile oben.',
   'app.animal.v.app.prove.openCheckPage': 'Die Prüfseite des Tieres öffnen',

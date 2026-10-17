@@ -18,7 +18,7 @@ export const animal = {
   'app.animal.name': 'Animal’s name',
   'app.animal.namePlaceholder': 'e.g. Practice Cow',
   // AnimalForm.tsx: the name field (app.animal.name is also a column and a review line).
-  'app.animal.nameField': 'Animal’s name (public)',
+  'app.animal.nameField': 'Animal’s name',
   'app.animal.individualId': 'Individual ID',
   'app.animal.individualIdHelp': 'The number on its ear tag or registration, exactly as written.',
   'app.animal.idScheme': 'ID scheme',
@@ -77,7 +77,7 @@ export const animal = {
   'app.animal.verify.idLine': 'Individual ID, as the holder states it: {id} ({scheme})',
   'app.animal.verify.noId': 'No individual ID recorded.',
   'app.animal.v.app.verify.noParents': 'No sire or dam recorded.',
-  'app.animal.v.app.plant.fix.name': 'Animal’s name (public)',
+  'app.animal.v.app.plant.fix.name': 'Animal’s name',
   'app.animal.v.app.plant.fix.bredBy': 'Breeder or holder',
   'app.animal.v.app.verify.nameTyped': 'Animal’s name, as the holder typed it: ',
 
@@ -95,7 +95,7 @@ export const animal = {
     "<b>Optional.</b> Already have a DNA report for this animal? This is what ties your record to the actual animal. Add it now and it's kept with the record. No report yet? Skip: the animal's page shows how to get one.",
   'app.animal.v.app.log.sealingPlant': 'Sealing your animal…',
   'app.animal.v.app.log.sealStampsKey':
-    "Sealing also date stamps your animal's key, so you can prove you hold its record later. Only a fingerprint of the key goes out.",
+    "Sealing also date stamps your animal's key, so you can prove you hold its record later. Only a code made from the key goes out.",
   'app.animal.v.app.log.publicStampLater':
     "Its public date stamp comes when its batch is dated on {datedOn}. Your animal's page shows when that has happened. Nothing for you to do.",
   'app.animal.v.app.log.publicDateLater':
@@ -106,7 +106,7 @@ export const animal = {
     "Key date stamped. Your animal's key is dated too, so you can prove you hold its record later.{bound} Nothing about the animal went out.",
   'app.animal.v.app.log.stampingTitle': 'Sealed. Date stamping your animal’s key…',
   'app.animal.v.app.log.onlyFingerprint':
-    "Only a fingerprint of your animal's key goes out, nothing about the animal. Free: VeilCore pays the network fee.",
+    "Only a code made from your animal's key goes out, nothing about the animal. Free: VeilCore pays the network fee.",
   'app.animal.v.app.log.stampingAria': 'Date stamping your animal’s key',
   'app.animal.v.app.log.keepOpen':
     'Keep this screen open, about a minute. If it closes, nothing is lost: your animal is saved, and its page will offer the date stamp again.',
@@ -121,7 +121,7 @@ export const animal = {
   'app.animal.v.app.pair.noLabMatch':
     'No lab signature on this animal matches this file, so it stays your own statement.',
   'app.animal.v.app.pair.saved':
-    "Saved. Your DNA report's fingerprint is saved with this animal's record, as your statement that this report belongs to it. It is not a check of the genetics. {dated}",
+    "Saved. Your DNA report's code is saved with this animal's record, as your statement that this report belongs to it. It is not a check of the genetics. {dated}",
   'app.animal.v.app.pair.title': 'Save your DNA report to this animal',
   'app.animal.v.app.pair.intro':
     'Got your DNA report back? Save it to this animal. This is what ties your record to the actual animal: a fresh test can later be compared against it.',
@@ -136,7 +136,7 @@ export const animal = {
     "If you sealed it in another browser, save a backup there and open it here (Get your records back). If it is someone else's record, open the verify link they gave you instead.",
   'app.animal.v.app.plant.bredByName': 'Breeder or holder: {name}',
   'app.animal.v.app.plant.action.saveReport': 'Save a DNA report to this animal',
-  'app.animal.v.app.plant.f.reportSaved': 'saved to this animal ({file}) · pairing fingerprint {fp}{sha}',
+  'app.animal.v.app.plant.f.reportSaved': 'saved to this animal ({file}) · pairing code {fp}{sha}',
   'app.animal.v.app.plant.backToPlant': 'Back to the animal',
   'app.animal.v.app.plant.tie.tied': 'Tied to the animal',
   'app.animal.v.app.plant.tie.notYet': 'Not tied to the animal yet',
@@ -194,7 +194,7 @@ export const animal = {
     'No lab has signed a receipt for this animal yet. A record only you stand behind is weaker evidence than one a lab signs for. Send a sample to a lab: their receipt is signed with their key, not yours.',
   'app.animal.v.app.verify.field.parent-names': 'Sire and dam (names and IDs)',
   'app.animal.v.app.verify.alwaysShown':
-    "Always shown: the animal's name, the record id, its fingerprint ({fp}), when the registry first stored it, and what this page could check about its batch and any signed attestations (a lab's receipt, a lab report).",
+    "Always shown: the record ID, its proof code ({fp}), when the registry first stored it, and what this page could check about its batch and any signed attestations (a lab's receipt, a lab report). The animal's name only when the link carries it (yours do, unless you leave it out) or you choose to show it.",
   'app.animal.v.app.verify.ownReceiptTail':
     ' You see this because the animal is in this browser; someone you send the link to sees only the signature line above.',
   'app.animal.v.app.prove.openCheckPage': "Open the animal's check page",

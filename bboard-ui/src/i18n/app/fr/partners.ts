@@ -15,7 +15,7 @@ export const partners = {
     'L’enregistrement a été scellé avant la candidature. Si on vous montre la description plus tard, vous pouvez savoir si c’est celle qui a été scellée.',
   'app.partners.gives.2.t': 'Une date',
   'app.partners.gives.2.d':
-    'Une fois l’enregistrement dans un lot daté, chacun peut consulter à quelle date son empreinte existait au plus tard. La date vient de Midnight, ni de VeilCore ni du candidat.',
+    'Une fois l’enregistrement dans un lot daté, chacun peut consulter à quelle date son code de preuve existait au plus tard. La date vient de Midnight, ni de VeilCore ni du candidat.',
   'app.partners.gives.3.t': 'Des signatures de laboratoire, vérifiées',
   'app.partners.gives.3.d':
     'Des accusés de réception pour les échantillons et les rapports de laboratoire, chaque signature vérifiée, et si l’opérateur de VeilCore a rapproché le nom du laboratoire d’une liste publique. Un accusé ne compte que si le registre le relie à une livraison de l’enregistrement, et vous voyez si ce qui est arrivé correspond à ce qui a été envoyé.',
@@ -69,7 +69,7 @@ export const partners = {
   'app.partners.facts.support.d': 'E-mail : <link></link>. Il n’y a ni contrat d’assistance ni délai de réponse.',
   'app.partners.facts.data': 'Données',
   'app.partners.facts.data.d':
-    'Une vérification envoie au registre l’identifiant et l’empreinte de l’enregistrement, rien sur le candidat ni sur votre formulaire. Comme tout site web, le registre reçoit l’adresse réseau du visiteur à chaque requête, pour limiter le débit. Ce que VeilCore conserve figure sur la <link>page de confidentialité</link>. Des conditions plus complètes sur les données sont un projet en cours de relecture ; jusqu’à leur publication, c’est la page de confidentialité qui s’applique.',
+    'Une vérification envoie au registre l’identifiant et le code de preuve de l’enregistrement, rien sur le candidat ni sur votre formulaire. Comme tout site web, le registre reçoit l’adresse réseau du visiteur à chaque requête, pour limiter le débit. Ce que VeilCore conserve figure sur la <link>page de confidentialité</link>. Des conditions plus complètes sur les données sont un projet en cours de relecture ; jusqu’à leur publication, c’est la page de confidentialité qui s’applique.',
   'app.partners.facts.down': 'Si le registre est indisponible',
   'app.partners.facts.down.d':
     'Rien ne peut être vérifié. Par défaut, un champ obligatoire bloque alors le formulaire jusqu’à ce que le registre réponde de nouveau. Avec when-unreachable="allow", le formulaire passe avec le lien marqué comme non vérifié, et vous le vérifiez plus tard sur cette page.',
@@ -84,7 +84,7 @@ export const partners = {
   'app.partners.policy.1':
     'Les candidats doivent fournir un lien de vérification d’un enregistrement VeilCore pour chaque accession qu’ils déposent. L’enregistrement doit exister et le lien doit lui correspondre. [Programme] vérifie chaque lien à la réception de la candidature et conserve le résultat avec celle-ci.',
   'app.partners.policy.2':
-    'Un enregistrement VeilCore est la déclaration du candidat sur son matériel, avec empreinte et date. Accepter un enregistrement ne signifie pas que [Programme] ou VeilCore confirme ce qu’est le matériel, qui le détient, ni aucun droit sur celui-ci.',
+    'Un enregistrement VeilCore est la déclaration du candidat sur son matériel, avec code de preuve et date. Accepter un enregistrement ne signifie pas que [Programme] ou VeilCore confirme ce qu’est le matériel, qui le détient, ni aucun droit sur celui-ci.',
   'app.partners.dev.title': 'Pour les développeurs',
   'app.partners.dev.1': 'Un seul appel',
   'app.partners.dev.1.d':

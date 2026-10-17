@@ -2,7 +2,7 @@
 // screen. DRAFT: machine-assisted, to be checked by a fluent speaker before publishing
 // (docs/translations/README.md). Terms are the site's (../../es.ts), plus the app's: obtentor
 // (breeder), titular (holder; never dueño or propietario), registro (record), servidor de
-// registros (the registry), huella (fingerprint), sello de fecha, código de laboratorio, acuse de
+// registros (the registry), código de prueba (proof code; huella de ADN only for genetic data), sello de fecha, código de laboratorio, acuse de
 // recibo, copia de seguridad, informe de laboratorio, lote (batch), anclar, vínculo (pairing),
 // envío (delivery), precinto (seal on a sample bag), acuerdo (agreement).
 // SPDX-License-Identifier: Apache-2.0

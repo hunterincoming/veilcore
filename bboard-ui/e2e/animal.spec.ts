@@ -66,7 +66,6 @@ const verifyAnswer = (held: Held, id: string) => {
     body: {
       found: true,
       id: r.id,
-      cultivar: r.strainName,
       subjectKind: 'animal',
       recordFingerprint: r.recordFingerprint,
       registryFirstSeen: new Date().toISOString(),
@@ -314,6 +313,11 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
     'Tied to the animal: DNA report the holder saved (no lab signature matches it).',
   );
   await page.getByRole('button', { name: 'Get the link' }).click();
+  // The name goes in the link, after the # (round 5), unless the holder switches it off.
+  await expect(page.locator('[data-name-in-link]')).toHaveAttribute('data-name-in-link', 'yes');
+  const shareLink = await page.getByLabel('The link', { exact: true }).inputValue();
+  expect(shareLink).toMatch(/#(.*&)?n=[A-Za-z0-9_-]+/);
+  expect(shareLink.split('#')[0]).not.toContain(Buffer.from(name, 'utf8').toString('base64url'));
   await expect.poll(() => held.grants[rec.id]).toEqual(expect.arrayContaining(['parent-names', 'individual-id']));
   // Published with the grant, for this version of the record: the values the check page
   // shows, and nothing that links to another record.
@@ -337,8 +341,10 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   const check = await strangerCtx.newPage();
   const checkErrors = watch(check);
   await standInFor(check, held);
-  await check.goto(`/verify/${rec.id}`);
+  // The holder's link: the name comes from it, after the #; the registry doesn't have it.
+  await check.goto(new URL(shareLink).pathname + new URL(shareLink).search + new URL(shareLink).hash);
   await expect(check.locator('[data-holder-name]')).toContainText(`Animal’s name, as the holder typed it: ${name}`);
+  await expect(check.locator('[data-holder-name]')).toHaveAttribute('data-name-from', 'link');
   await expect(check.getByText('Sire, as the holder states it: Practice Sire (ID 0000000025)')).toBeVisible();
   await expect(check.getByText('Dam, as the holder states it: Practice Dam (ID 0000000033)')).toBeVisible();
   await expect(
@@ -382,7 +388,7 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   await v.goto(`file://${path.join(top, 'verify.html')}`);
   await expect(v.locator('body')).toHaveAttribute('data-checked', 'yes', { timeout: 20_000 });
   await expect(v.getByText('The files agree with each other', { exact: true })).toBeVisible();
-  await expect(v.getByText('Fingerprint matches', { exact: true })).toBeVisible();
+  await expect(v.getByText('Proof code matches', { exact: true })).toBeVisible();
   const table = v.locator('table[data-sealed="matches"]');
   await expect(table.locator('tr', { hasText: 'Individual ID' })).toContainText('0000000017');
   await expect(table.locator('tr', { hasText: 'Parents' })).toContainText(

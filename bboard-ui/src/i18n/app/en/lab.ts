@@ -175,7 +175,7 @@ export const lab = {
   'app.lab.recv.quoted': '“{v}”',
   'app.lab.recv.breederWrote': '<b>The breeder wrote:</b> {line}',
   'app.lab.recv.onArrival': '<b>On arrival:</b> {line}',
-  'app.lab.recv.aboutRecord': "About the breeder's record {id}, fingerprint",
+  'app.lab.recv.aboutRecord': "About the breeder's record {id}, proof code",
   'app.lab.recv.pointing': 'Pointing at your received record',
   'app.lab.recv.signedByKey': 'Signed by your key ({name})',
   'app.lab.recv.unnamed': 'unnamed',
@@ -194,7 +194,7 @@ export const lab = {
   'app.lab.recv.differs': 'Different from what the breeder wrote. The breeder sees this on your receipt:',
   'app.lab.recv.exactly': 'Your key can sign a receipt for this delivery. This is exactly what the receipt says:',
   'app.lab.recv.fingerprintFrom':
-    'The fingerprint came from the registry and matches what its public page reports for {id}. If the breeder gave you a fingerprint, compare it before signing.',
+    'The proof code came from the registry and matches what its public page reports for {id}. If the breeder gave you a proof code, compare it before signing.',
   'app.lab.recv.physically': 'I physically received this material.',
   'app.lab.recv.dontSign': "Don't sign",
   'app.lab.recv.signWithKey': 'Sign with my key',
@@ -362,7 +362,7 @@ export const lab = {
   'app.lab.out.replacesIntro':
     'It replaces {id}, the lab report you sent {when}. The old one is withdrawn: its file is removed and your signature on it is marked replaced.',
   'app.lab.out.intro':
-    'Your browser signs the lab report’s fingerprint with your lab’s key and locks the file so only the breeder can open it. The locked file waits on VeilCore’s server for the breeder to open, and VeilCore doesn’t have its key.',
+    'Your browser signs the lab report’s code with your lab’s key and locks the file so only the breeder can open it. The locked file waits on VeilCore’s server for the breeder to open, and VeilCore doesn’t have its key.',
   'app.lab.out.cancelCorrection': 'Cancel the correction',
   'app.lab.out.turnedAway': "You turned this sample away, so there's no lab report to send.",
   'app.lab.out.setUpFirst': "Set up your lab's signature first, so the breeder can tell the lab report is yours.",
@@ -372,7 +372,7 @@ export const lab = {
   'app.lab.out.notSignedReceipt':
     "You haven't signed that this sample arrived. Until you do, the breeder sees your lab report as signed by a key that didn't confirm receiving the sample.",
   'app.lab.out.notLinked': "Your receipt is signed but not linked to this delivery yet, so the breeder can't see it.",
-  'app.lab.out.fileFp': '{size} · fingerprint {fp}',
+  'app.lab.out.fileFp': '{size} · code {fp}',
   'app.lab.out.differentFile': 'Choose a different file',
   'app.lab.out.chooseCorrected': 'Choose the corrected file',
   'app.lab.out.chooseReport': 'Choose the report',
@@ -386,7 +386,7 @@ export const lab = {
     'This delivery has had as many lab reports as it can take, withdrawn ones included. Ask the breeder for a new lab code. Nothing was signed.',
   'app.lab.out.rowReplaced': 'Replaced by your corrected file.',
   'app.lab.out.rowWithdrawn': 'Withdrawn on {date}.',
-  'app.lab.out.rowSigned': 'Signed by your key · fingerprint {fp}',
+  'app.lab.out.rowSigned': 'Signed by your key · code {fp}',
   'app.lab.out.rowRetracted':
     'Your signature on it is withdrawn, but the file is still with the registry. Withdraw it to finish.',
   'app.lab.out.rowNotSigned': 'Not signed by the key in this browser.',

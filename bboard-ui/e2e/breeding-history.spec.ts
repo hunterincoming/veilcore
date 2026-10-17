@@ -256,7 +256,7 @@ test.describe('breeding history (draft)', () => {
       'body[data-checked]',
     );
     await expect(v.page.locator('body')).toHaveAttribute('data-checked', 'yes');
-    await expect(v.page.getByText('Fingerprint matches', { exact: true })).toBeVisible();
+    await expect(v.page.getByText('Proof code matches', { exact: true })).toBeVisible();
     await expect(v.page.getByText('Proof leads to the batch root', { exact: true })).toBeVisible();
     expect(v.requests).toEqual([]);
     expectNoErrors(v.errors);

@@ -395,8 +395,8 @@ export class VeilcoreRecordCheck extends HTMLElement {
     if (!c.recordExists) return 'The registry has no record for this link. Check the link is complete.';
     if (c.fingerprintMatches !== true)
       return c.fingerprintMatches === null
-        ? 'This link names no fingerprint. Ask for the check link the site makes (it contains ?fp=).'
-        : 'This link does not lead to a VeilCore record whose fingerprint matches it.';
+        ? 'This link names no proof code. Ask for the check link the site makes (it contains ?fp=).'
+        : 'This link does not lead to a VeilCore record whose proof code matches it.';
     if (c.dated.status === 'proof-fails') return 'The registry’s proof for this record does not check out.';
     if (c.dated.status === 'not-confirmed') return 'The record’s date stamp was not confirmed on Midnight.';
     if (c.disclosedFieldsMatch === false || c.keyBound.keyInLink === 'does-not-match')
@@ -477,7 +477,7 @@ export class VeilcoreRecordCheck extends HTMLElement {
         line(
           'bad',
           'Do not rely on it:',
-          'the link was made for a different fingerprint than the registry reports for this record. Nothing else was checked. Ask for the record’s current check link.',
+          'the link was made for a different proof code than the registry reports for this record. Nothing else was checked. Ask for the record’s current check link.',
         ),
       );
     } else {
@@ -503,11 +503,11 @@ export class VeilcoreRecordCheck extends HTMLElement {
       );
       items.push(
         c.fingerprintMatches
-          ? line('ok', 'Checked:', 'the link’s fingerprint is the one the registry reports for this record.')
+          ? line('ok', 'Checked:', 'the link’s proof code is the one the registry reports for this record.')
           : line(
               'warn',
               'Not tied to the link:',
-              'the link names no fingerprint, so the lines below are about the registry’s fingerprint.',
+              'the link names no proof code, so the lines below are about the registry’s proof code.',
             ),
       );
       items.push(

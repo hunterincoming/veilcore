@@ -54,9 +54,9 @@ const recordId = () => `VEIL-${randomBytes(16).toString('hex').toUpperCase()}`;
 // api-store.ts and vault.ts): the public fields in the clear, the rest AES-256-GCM under a
 // vault key, bound to its row by the AAD. A delivery's details go in a sealed offer opened
 // with a key from the code; the lab's record is built from the claim's stub and the offer.
+// No strainName: a record's name goes inside `sealed` since round 5 (the site's CONTRACT.md #28).
 const PUBLIC_FIELDS = [
   'id',
-  'strainName',
   'profile',
   'recordFingerprint',
   'keyBinding',
@@ -109,17 +109,30 @@ const custodyBox = (offerKey, transferId, side, value) => ({
   ...gcm(offerKey, `veilcore:sealed:v1\0custody\0${transferId}\0${side}`, value),
   kid: sha256(Buffer.concat([Buffer.from('veilcore:offer-id:v1:'), offerKey])).slice(0, 16),
 });
-/** What a grant publishes, read from the record (the site's disclosure.ts grantValuesFor). */
+/**
+ * What a grant publishes, read from the record (the site's disclosure.ts grantValuesFor):
+ * since round 5 a saved DNA report only bound with the record's proof code and its own salt
+ * (dna-link.ts dnaBindingOf), and the name only when the holder shows it.
+ */
 const grantFor = (r, show) => ({
   show,
   forFingerprint: r.recordFingerprint,
-  values: show.includes('attestation-status')
-    ? {
-        ...(r.dnaFingerprint ? { dnaFingerprint: r.dnaFingerprint } : {}),
-        ...(r.dnaFileSha256 ? { dnaFileSha256: r.dnaFileSha256 } : {}),
-      }
-    : {},
+  values: {
+    ...(show.includes('attestation-status') && r.dnaFingerprint && r.dnaPairSalt
+      ? {
+          dnaPairBinding: H(
+            'veilcore:v1:dnapair',
+            r.dnaFileSha256 ?? r.dnaFingerprint,
+            r.recordFingerprint,
+            r.dnaPairSalt,
+          ),
+        }
+      : {}),
+    ...(show.includes('name') ? { name: r.strainName } : {}),
+  },
 });
+/** A name after the # of a check link, as the site writes it (verify-link.ts nameParam). */
+const nameParam = (name) => Buffer.from(name, 'utf8').toString('base64url');
 
 const today = () => new Date().toISOString().slice(0, 10);
 const inMonths = (n) => {
@@ -222,6 +235,9 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
       licenseIds: [],
       dnaFingerprint: H('veilcore:v1:commit', LAB_SHA),
       dnaFileSha256: LAB_SHA,
+      // The record's own pairing salt (round 5): sealed with it, outside its fingerprint, and
+      // in the holder's check link after the #.
+      dnaPairSalt: randomBytes(32).toString('hex'),
     });
     const older = seal({
       id: recordId(),
@@ -475,11 +491,15 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
       batchId: sealed.batchId,
       txId: TX,
       records: { bound, older, undated },
+      nameParam,
       receipts: { matching: receiptMatching, sealDiffers: receiptSealDiffers },
       fields: { bound: committed(bound) },
       links: {
         bound: link(bound),
-        boundWithKey: link(bound, `&chain=${KEY}&ks=${KEY_SALT}&cd=${sha256(canonicalise(committed(bound)))}`),
+        // As the site makes it now: the key's values, the name and the DNA salt after the #.
+        boundWithKey: `${link(bound)}#chain=${KEY}&ks=${KEY_SALT}&cd=${sha256(canonicalise(committed(bound)))}&n=${nameParam(bound.strainName)}&ds=${bound.dnaPairSalt}`,
+        // An older link: the key's values in the query string, no name, no salt.
+        boundWithKeyInQuery: link(bound, `&chain=${KEY}&ks=${KEY_SALT}&cd=${sha256(canonicalise(committed(bound)))}`),
         older: link(older),
         undated: link(undated),
         // The bound record's id with the older record's fingerprint: a link someone edited.

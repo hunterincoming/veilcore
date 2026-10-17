@@ -72,7 +72,7 @@ export const midnightSteps = (a: AnchorLookup): string[] => {
         ? ` VeilCore's registry reports it is${block ? ` in block ${a.blockHeight}` : ''}${when ? `${block ? ',' : ''} at ${when}` : ''}; the explorer's own block and time are the ones to rely on.`
         : ''),
     `Check that the transaction succeeded and that it called VeilCore's contract ${a.contractAddress ?? "(the bundle doesn't name it)"}. Note its block and time: that time is the date.`,
-    `Check that it wrote this batch root: ${a.root}. The batch root is one fingerprint that stands for every record in the batch; this record's proof leads to it.`,
+    `Check that it wrote this batch root: ${a.root}. The batch root is one code that stands for every record in the batch; this record's proof leads to it.`,
     `The explorer may not show the batch root in plain text: it sits inside the contract's state after the call. If you can't see it there, read that state from a Midnight indexer yourself (README.txt, "For technical readers", says how), or open this record's check page on VeilCore's site, which does that look-up in your own browser.`,
     `If the transaction succeeded, called that contract and wrote that root, this record existed, unchanged, by that transaction's time: whoever had it sealed held this record by then. If any of it doesn't match, nothing here dates the record.`,
   ];

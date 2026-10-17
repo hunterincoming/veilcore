@@ -70,7 +70,8 @@ export const prove = {
   'app.prove.ask.byHand': 'Hacerlo a mano',
   'app.prove.hand.intro':
     'El enlace que le enviaron nombra una identidad en la cadena para este registro ({id}…). Cree un desafío, envíeselo y pegue aquí el ID de transacción que le den. La respuesta debe venir de esa identidad y responder a su desafío, y la identidad debe estar anclada y vigente. {bound}',
-  'app.prove.hand.bound': 'El registro nombró esta clave al sellarse, y esta página lo comprobó con su huella.',
+  'app.prove.hand.bound':
+    'El registro nombró esta clave al sellarse, y esta página lo comprobó con su código de prueba.',
   'app.prove.hand.older':
     'Registro antiguo: clave no vinculada a este registro. Que esta identidad le corresponda es la declaración del titular.',
   'app.prove.hand.make': 'Crear un desafío',
@@ -87,7 +88,7 @@ export const prove = {
   'app.prove.key.leavesOut':
     'Este registro nombra su propia clave, pero este enlace omite lo necesario para comprobarla. Pida al titular un enlace nuevo',
   'app.prove.key.noFp':
-    'La huella de este enlace no coincide con el registro, así que no se puede comprobar su clave con él',
+    'El código de prueba de este enlace no coincide con el registro, así que no se puede comprobar su clave con él',
   'app.prove.key.notThis': 'La clave de este enlace no es la que nombra este registro',
   'app.prove.watch.shareAsker':
     '{asker} le pide que demuestre en VeilCore que tiene esta planta. Abra este enlace: {link}',

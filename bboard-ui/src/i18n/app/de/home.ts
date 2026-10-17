@@ -66,7 +66,7 @@ export const home = {
     'Sobald Datensätze verankert sind, kann jeder prüfen, welcher zuerst verankert wurde. Davor ist die Zeit eines Datensatzes die Uhr seines Geräts. Ein Datensatz ist ein Beweismittel, keine Eintragung: Er zeigt, was Sie wann hatten, entscheidet aber für sich allein keinen Streit.',
   'app.home.trust.2t': 'Ein gekoppelter Bericht lässt sich später vergleichen',
   'app.home.trust.2b':
-    'Beim Koppeln wird der Fingerabdruck Ihres DNA-Berichts als Ihre Erklärung mit dem Datensatz gespeichert, damit ein neuer Test des Materials später damit verglichen werden kann. Wenn Sie über den Vertrag von VeilCore auf Midnight koppeln, wird auch die Kopplung datiert: Sie zeigt, dass der Datensatz bis dahin mit diesem Bericht gekoppelt war, nicht, wer den Bericht zuerst hatte. In {thisSite} werden Kopplungen noch nicht datiert.',
+    'Beim Koppeln wird der Code Ihres DNA-Berichts als Ihre Erklärung mit dem Datensatz gespeichert, damit ein neuer Test des Materials später damit verglichen werden kann. Wenn Sie über den Vertrag von VeilCore auf Midnight koppeln, wird auch die Kopplung datiert: Sie zeigt, dass der Datensatz bis dahin mit diesem Bericht gekoppelt war, nicht, wer den Bericht zuerst hatte. In {thisSite} werden Kopplungen noch nicht datiert.',
   'app.home.trust.3t': 'Eine zweite Partei nimmt die Lieferung an',
   'app.home.trust.3b':
     'Wenn Material übergeben wird, bestätigt der Empfänger den Erhalt mit seinem eigenen Schlüssel. So steht eine zweite Partei im Datensatz, nicht nur Sie. Es zeigt, dass jemand die Lieferung angenommen hat, nicht, wer es ist.',

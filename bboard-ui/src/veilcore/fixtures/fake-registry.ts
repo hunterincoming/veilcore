@@ -15,6 +15,11 @@
 // saved before sealing (putLegacyLicense), the purge's emptied rows (purge), a delivery made
 // before offers were sealed (an offer with no sealedOffer: the claim answers offerPlain while
 // its source is plain text, and GET /transfers/:id/offer answers 409 once the source is sealed).
+//
+// Round 5 (CONTRACT.md #28, #29): a PUT with a record name in the clear is refused whole, as
+// the real registry does ("strainName belongs inside sealed"); a claim's stub carries no
+// name; a grant whose values carry a saved DNA report's plain value is refused; the purge
+// drops the clear name of a holder whose app seals names.
 // SPDX-License-Identifier: Apache-2.0
 
 export type Row = Record<string, unknown> & { id: string };
@@ -120,6 +125,8 @@ export const fakeRegistry = () => {
     if (path === '/api/records' || path === '/api/licenses') {
       const t = table(path);
       if (method === 'PUT') {
+        if (path === '/api/records' && (JSON.parse(body) as Row[]).some((r) => typeof r.strainName === 'string'))
+          return json({ error: 'strainName belongs inside sealed' }, 400);
         const kid = kidOf(holder);
         const rejected: ({ id: string; reason: string } & Record<string, unknown>)[] = [];
         const notWritten: string[] = [];
@@ -187,6 +194,15 @@ export const fakeRegistry = () => {
     const grant = /^\/api\/records\/([^/]+)\/disclosure$/.exec(path);
     if (grant && method === 'PUT') {
       const g = JSON.parse(body) as Grant;
+      const v = (g.values ?? {}) as Record<string, unknown>;
+      for (const k of ['dnaFileSha256', 'dnaFingerprint'])
+        if (k in v)
+          return json(
+            {
+              error: `values.${k} is no longer published: send dnaPairBinding, the report's SHA-256 bound with the record's pairing salt`,
+            },
+            400,
+          );
       grants.set(decodeURIComponent(grant[1]), { ...g, holder });
       return json({ recordId: grant[1], show: g.show, updatedAt: '2026-10-16T00:00:00.000Z' });
     }
@@ -236,7 +252,7 @@ export const fakeRegistry = () => {
       const stubId = `VEIL-R${claim[1].slice(3)}`;
       records.set(stubId, {
         id: stubId,
-        strainName: src.strainName,
+        ...(src.sealed ? {} : { strainName: src.strainName }),
         ...(src.profile ? { profile: src.profile } : {}),
         receivedFrom: src.id,
         receivedFromCommitment: src.recordFingerprint,
@@ -374,11 +390,12 @@ export const fakeRegistry = () => {
      * keeps only its public fields and `contentsRemoved`; agreements keep only their id.
      */
     purge: (holder: string) => {
+      const sealsNames = [...records.values()].some((r) => r.holder === holder && r.sealed && !('strainName' in r));
       for (const [id, r] of records)
         if (r.holder === holder && !r.sealed)
           records.set(id, {
             id,
-            strainName: r.strainName,
+            ...(sealsNames ? {} : { strainName: r.strainName }),
             ...(r.recordFingerprint ? { recordFingerprint: r.recordFingerprint } : {}),
             contentsRemoved: true,
             holder,

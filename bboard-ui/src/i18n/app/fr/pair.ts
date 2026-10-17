@@ -7,15 +7,15 @@ export const pair = {
   'app.pair.aFile': 'un fichier',
   'app.pair.noPlant': 'Impossible de trouver la plante sur laquelle l’enregistrer.',
   'app.pair.savedTitle': 'Rapport ADN enregistré sur cette plante',
-  'app.pair.fpLabel': 'EMPREINTE DE L’ASSOCIATION',
+  'app.pair.fpLabel': 'CODE DE L’ASSOCIATION',
   'app.pair.openedHere': 'Ouvert et enregistré ici, sur votre appareil.',
   'app.pair.stayed': 'Le fichier du rapport est resté sur votre appareil.',
   'app.pair.openedHereSub':
-    'Le laboratoire l’a envoyé verrouillé pour que vous seul puissiez l’ouvrir. Seuls son empreinte et son nom de fichier ont été enregistrés avec votre enregistrement.',
+    'Le laboratoire l’a envoyé verrouillé pour que vous seul puissiez l’ouvrir. Seuls son code et son nom de fichier ont été enregistrés avec votre enregistrement.',
   'app.pair.stayedSub':
-    'Il a été lu et son empreinte calculée ici, dans votre navigateur. Son empreinte et son nom de fichier ont été enregistrés avec votre enregistrement.',
+    'Il a été lu et son code calculé ici, dans votre navigateur. Son code et son nom de fichier ont été enregistrés avec votre enregistrement.',
   'app.pair.fileSha':
-    'SHA-256 du fichier : <b>{sha}</b>. C’est l’empreinte qu’un laboratoire signe : comparez-la avec celle du laboratoire. L’empreinte de l’association ci-dessus en est tirée, pour que l’association puisse être datée sur le réseau.',
+    'SHA-256 du fichier : <b>{sha}</b>. C’est le code qu’un laboratoire signe : comparez-le avec celui du laboratoire. Le code de l’association ci-dessus en est tiré, pour que l’association puisse être datée sur le réseau.',
   'app.pair.labMatch':
     'Ce fichier correspond au rapport de laboratoire {lead}, par son SHA-256 (signature vérifiée dans ce navigateur).',
   'app.pair.noLabMatch':
@@ -30,7 +30,7 @@ export const pair = {
     '. Cet enregistrement a été scellé le premier, selon les horloges des appareils qui les ont scellés.',
   'app.pair.earlier': '. {name} a été scellé plus tôt ({date}, selon l’horloge de son appareil).',
   'app.pair.saved':
-    'Enregistré. L’empreinte de votre rapport ADN est enregistrée avec l’enregistrement de cette plante, comme votre déclaration que ce rapport lui correspond. Ce n’est pas une vérification de la génétique. {dated}',
+    'Enregistré. Le code de votre rapport ADN est enregistré avec l’enregistrement de cette plante, comme votre déclaration que ce rapport lui correspond. Ce n’est pas une vérification de la génétique. {dated}',
   'app.pair.dateBelow':
     'Il n’est pas encore daté : datez-le ci-dessous si vous voulez que l’association figure sur le réseau.',
   'app.pair.notDated': 'Il n’est pas encore daté.',
@@ -46,7 +46,7 @@ export const pair = {
     '<b>Cette plante a déjà un rapport ADN enregistré : « {name} »{saved}.</b> Enregistrer celui-ci le remplace. La page de votre plante, son certificat et les liens que vous partagez montreront le nouveau, pas l’ancien. Rien n’est supprimé de votre appareil. Si vous avez daté l’ancienne association sur le réseau, cette date y reste.',
   'app.pair.savedOn': ', enregistré le {date}',
   'app.pair.noDna':
-    'VeilCore ne fait pas de tests ADN : vous enregistrez le rapport ADN que votre laboratoire vous a remis. Il est lu et son empreinte calculée sur votre appareil ; le fichier n’est jamais envoyé. Son empreinte et son nom de fichier sont enregistrés avec votre enregistrement. {after}',
+    'VeilCore ne fait pas de tests ADN : vous enregistrez le rapport ADN que votre laboratoire vous a remis. Il est lu et son code calculé sur votre appareil ; le fichier n’est jamais envoyé. Son code et son nom de fichier sont enregistrés avec votre enregistrement. {after}',
   'app.pair.afterChain': 'Ensuite, vous pouvez aussi dater l’association sur le réseau.',
   'app.pair.afterDemo':
     'Dans {thisSite}, l’association n’est pas encore datée ; avec le contrat de VeilCore, elle l’est.',
@@ -57,15 +57,14 @@ export const pair = {
     'C’est le rapport de laboratoire que votre laboratoire a envoyé via VeilCore. Une fois enregistré, cette page le vérifie avec la signature du laboratoire.',
   'app.pair.labCanSign':
     'Un laboratoire peut aussi signer son rapport avec sa propre clé ; un rapport signé pèse plus qu’un rapport que vous enregistrez vous-même. Ici, enregistrez le fichier du rapport ADN que vous avez.',
-  'app.pair.fingerprinting': 'Calcul de l’empreinte sur votre appareil…',
+  'app.pair.fingerprinting': 'Calcul du code sur votre appareil…',
   'app.pair.replace': 'Remplacer le rapport ADN enregistré',
   'app.pair.skip': 'Pas encore de rapport : passer',
   'app.pair.chooseFirst': 'Choisissez d’abord le fichier du rapport ADN.',
-  'app.pair.fingerprinted': 'Empreinte calculée dans votre navigateur.',
-  'app.pair.sealedFp': 'EMPREINTE SCELLÉE',
+  'app.pair.fingerprinted': 'Code calculé dans votre navigateur.',
+  'app.pair.sealedFp': 'CODE DE PREUVE',
   'app.pair.chosen': '{title}. Choisi : {name}',
-  'app.pair.ready':
-    '{kb} Ko · prêt pour le calcul de l’empreinte sur cet appareil · choisissez de nouveau pour le remplacer',
+  'app.pair.ready': '{kb} Ko · prêt pour le calcul du code sur cet appareil · choisissez de nouveau pour le remplacer',
   'app.pair.chain.noKeys':
     'Ce navigateur ne détient pas les clés de l’enregistrement : il ne peut donc pas dater l’association. Restaurez-les depuis votre copie de secours.',
   'app.pair.chain.stampFirst':
@@ -81,11 +80,11 @@ export const pair = {
   'app.pair.chain.download': 'Télécharger le fichier de preuve',
   'app.pair.chain.title': 'Dater aussi cette association sur le réseau de test (facultatif)',
   'app.pair.chain.intro':
-    'Cela inscrit un code sur la chaîne, de façon permanente, à côté de l’identité de cet enregistrement. Le code est tiré de l’empreinte du rapport et d’un nombre aléatoire gardé dans ce navigateur : il ne dit rien du rapport, et personne ne peut le copier sur son propre enregistrement. Ensuite, vous téléchargez un fichier de preuve : avec lui et le rapport, chacun peut vérifier que le détenteur de cet enregistrement avait le rapport à cette date.',
+    'Cela inscrit un code sur la chaîne, de façon permanente, à côté de l’identité de cet enregistrement. Le code est tiré du SHA-256 du rapport et d’un nombre aléatoire gardé dans ce navigateur : il ne dit rien du rapport, et personne ne peut le copier sur son propre enregistrement. Ensuite, vous téléchargez un fichier de preuve : avec lui et le rapport, chacun peut vérifier que le détenteur de cet enregistrement avait le rapport à cette date.',
   'app.pair.chain.earlier':
     'Une tentative précédente a été envoyée mais pas confirmée. Elle a peut-être abouti. Renvoyer utilise le même code : cela ne peut pas associer un second rapport différent.',
   'app.pair.chain.sendAgain': 'Renvoyer',
   'app.pair.chain.date': 'Dater l’association',
   'app.pair.chain.testOnly':
-    'Réseau de test uniquement. Cela montre que la personne qui contrôlait l’identité de cet enregistrement avait le rapport, ou son empreinte, à la date où il arrive. Ce n’est pas une vérification de la génétique.',
+    'Réseau de test uniquement. Cela montre que la personne qui contrôlait l’identité de cet enregistrement avait le rapport, ou son SHA-256, à la date où il arrive. Ce n’est pas une vérification de la génétique.',
 } satisfies Partial<AppTranslation>;

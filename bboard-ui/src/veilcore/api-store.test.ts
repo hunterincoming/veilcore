@@ -361,7 +361,7 @@ describe('a record that does not match its fingerprint', () => {
     expect(ids).not.toContain(rec.id);
     expect(rows.get(rec.id)).toEqual(tampered);
     // Nor is a correction made from it.
-    await expect(again.records.issueCorrection(rec.id, { notes: 'x' }, 'fix')).rejects.toThrow(/fingerprint/);
+    await expect(again.records.issueCorrection(rec.id, { notes: 'x' }, 'fix')).rejects.toThrow(/proof code/);
   });
 
   it('is refused, said and not sent when it is made that way here', async () => {
@@ -767,5 +767,61 @@ describe('the registry export', () => {
     expect(file.records[1]).toEqual({ ...foreign, note: LOCKED_ROW_NOTE });
     expect(file.lockedRows).toBe(1);
     expect(file.opened).toMatch(/opened in your browser/);
+  });
+});
+
+// Round 5 (CONTRACT.md #28): a record's name goes inside the box. A row saved before has its
+// name only in the clear, beside a box without it: it loads with that name, and is saved
+// again at once with the name inside and none beside it.
+describe('a name saved in the clear before round 5', () => {
+  it('loads with its name, is saved again with the name sealed, and the load says so', async () => {
+    const { records, vault } = await modules();
+    const rec = records.createRecord(await plantInput({ strainName: 'Old clear name' }));
+    await settle();
+    // What the registry held for it before round 5: the name beside a box without it.
+    const now = rows.get(rec.id)!;
+    expect('strainName' in now).toBe(false);
+    const opened = await vault.openRow('records', rec.id, now.sealed);
+    if (!opened.ok) throw new Error('the row did not open');
+    const { strainName, ...withoutName } = opened.value;
+    expect(strainName).toBe('Old clear name');
+    rows.set(rec.id, {
+      ...now,
+      strainName: 'Old clear name',
+      sealed: await vault.sealRow('records', rec.id, withoutName),
+    });
+
+    vi.resetModules(); // a new tab: same browser storage, same registry
+    const again = await modules();
+    sent = [];
+    await again.records.hydrate();
+    expect(again.records.getRecord(rec.id)?.strainName).toBe('Old clear name');
+    expect(again.records.integrityOf(rec.id)).toBe('match');
+    expect(again.api.loadNoticeOf('veilcore.records.v1').nameInClear).toBe(1);
+    await settle();
+    // Saved again: the name inside the box, none in the clear.
+    const puts = sent.filter((r) => r.method === 'PUT' && r.url.endsWith('/api/records'));
+    expect(puts.length).toBeGreaterThan(0);
+    for (const p of puts) expect(p.body).not.toContain('Old clear name');
+    const after = rows.get(rec.id)!;
+    expect('strainName' in after).toBe(false);
+    const reopened = await again.vault.openRow('records', rec.id, after.sealed);
+    expect(reopened).toMatchObject({ ok: true, value: { strainName: 'Old clear name' } });
+
+    // The next load finds nothing to move.
+    vi.resetModules();
+    const third = await modules();
+    await third.records.hydrate();
+    expect(third.records.getRecord(rec.id)?.strainName).toBe('Old clear name');
+    expect(third.api.loadNoticeOf('veilcore.records.v1').nameInClear).toBeUndefined();
+  });
+
+  it('publicPart never carries the name; a stub without one still shows as a record', async () => {
+    const { api } = await modules();
+    expect(api.publicPart({ id: 'VEIL-1', strainName: 'Secret', recordFingerprint: 'a'.repeat(64) })).toEqual({
+      id: 'VEIL-1',
+      recordFingerprint: 'a'.repeat(64),
+    });
+    expect(api.privatePart({ id: 'VEIL-1', strainName: 'Secret' })).toMatchObject({ strainName: 'Secret' });
   });
 });

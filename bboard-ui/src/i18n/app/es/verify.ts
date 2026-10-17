@@ -81,7 +81,7 @@ export const verify = {
   'app.verify.sum.statements.other': '{count} × declaración firmada',
   'app.verify.sum.what': ' ({list})',
   'app.verify.sum.comma': ', ',
-  'app.verify.sum.bound': 'la huella del enlace coincide con la que informa el servidor de registros',
+  'app.verify.sum.bound': 'el código de prueba del enlace coincide con el que informa el servidor de registros',
   'app.verify.sum.inBatch': 'el registro está en su lote',
   'app.verify.sum.signatures.one': 'una firma sobre él{what}',
   'app.verify.sum.signatures.other': '{count} firmas sobre él{what}',
@@ -91,10 +91,10 @@ export const verify = {
   'app.verify.sum.checked':
     'Comprobado en este navegador: {list}. Todo lo demás es lo que informa el servidor de registros de VeilCore.{unbound}',
   'app.verify.sum.unbound':
-    ' Este enlace no nombra ninguna huella, así que esas comprobaciones usaron la del propio servidor de registros y no se marca nada.',
+    ' Este enlace no nombra ningún código de prueba, así que esas comprobaciones usaron el del propio servidor de registros y no se marca nada.',
   'app.verify.heading.nothingSealed': 'Registro encontrado, nada sellado',
   'app.verify.heading.unbound':
-    'Lo que informa el servidor de registros: este enlace no tiene huella con la que comprobarlo',
+    'Lo que informa el servidor de registros: este enlace no tiene código de prueba con el que comprobarlo',
   'app.verify.heading.checking': 'Comprobando…',
   'app.verify.heading.reported': 'Sello de fecha informado por el servidor de registros, no comprobado aquí',
   'app.verify.heading.pending': 'En un lote, todavía sin sello de fecha',
@@ -103,25 +103,25 @@ export const verify = {
   'app.verify.kindReceipt': 'Acuse de recibo de laboratorio de una muestra',
   'app.verify.kindReport': 'Informe de laboratorio (SHA-256 del archivo {sha})',
   'app.verify.kindStatement': 'Declaración firmada',
-  'app.verify.forWhom': 'Para la huella que informa el servidor de registros: ',
+  'app.verify.forWhom': 'Para el código de prueba que informa el servidor de registros: ',
   'app.verify.homeAria': 'Inicio de VeilCore',
   'app.verify.intro':
-    'Esta página comprueba un registro de VeilCore: una huella de la descripción de un material genético, fechada una vez anclada y publicada sin la genética. Comprobar es gratis y no necesita cuenta. <link>¿Qué es VeilCore?</link>',
+    'Esta página comprueba un registro de VeilCore: un código de prueba de la descripción de un material genético, fechado una vez anclado y publicado sin la genética. Comprobar es gratis y no necesita cuenta. <link>¿Qué es VeilCore?</link>',
   'app.verify.checkingRecord': 'Comprobando el registro',
   'app.verify.notFound': 'No se encontró ningún registro para {id}',
   'app.verify.notFoundText':
     'Este enlace de verificación no coincide con ningún registro del servidor de registros. Compruebe que el enlace esté completo y sin cambios.',
   'app.verify.goHome': 'Ir a veilcore.org',
-  'app.verify.mismatch.title': 'La huella de este enlace no coincide con el registro: no se comprobó nada',
+  'app.verify.mismatch.title': 'El código de prueba de este enlace no coincide con el registro: no se comprobó nada',
   'app.verify.mismatch.dontRely': 'No confíe en esta página.',
   'app.verify.mismatch.text':
     '{start}pero el servidor de registros informa {reported} para {id}. Su respuesta no trata del registro que nombra el enlace, así que esta página no comprobó nada y no muestra nada de ella. Pida el registro a quien le dio el enlace.',
-  'app.verify.mismatch.linked': 'Este enlace se hizo para el registro con la huella {fp}, ',
+  'app.verify.mismatch.linked': 'Este enlace se hizo para el registro con el código de prueba {fp}, ',
   'app.verify.mismatch.invalid':
-    'Este enlace lleva una huella no válida (debería tener 64 caracteres hexadecimales); puede que se haya cortado o modificado, ',
-  'app.verify.mismatch.reportedFp': 'la huella {fp}',
-  'app.verify.mismatch.noFp': 'ninguna huella',
-  'app.verify.mismatch.inLink': 'Huella en el enlace: {fp}',
+    'Este enlace lleva un código de prueba no válido (debería tener 64 caracteres hexadecimales); puede que se haya cortado o modificado, ',
+  'app.verify.mismatch.reportedFp': 'el código de prueba {fp}',
+  'app.verify.mismatch.noFp': 'ningún código de prueba',
+  'app.verify.mismatch.inLink': 'Código de prueba en el enlace: {fp}',
   'app.verify.mismatch.chip':
     'La respuesta del servidor de registros no coincide con este enlace: no se comprobó nada de esta página',
   'app.verify.nameTyped': 'Nombre, tal como lo escribió el titular: ',
@@ -129,18 +129,18 @@ export const verify = {
   'app.verify.noCommitment':
     'Este registro no lleva ningún compromiso, así que no se puede comprobar nada de él. Existe en el servidor de registros y nada más.',
   'app.verify.boundFact':
-    'Este enlace se hizo para la huella {fp}, y el servidor de registros informa la misma huella para este registro{firstSeen}. Los campos que cubre no se comparten, así que esta página no puede recalcularla.',
+    'Este enlace se hizo para el código de prueba {fp}, y el servidor de registros informa el mismo código de prueba para este registro{firstSeen}. Los campos que cubre no se comparten, así que esta página no puede recalcularlo.',
   'app.verify.firstStored': ', guardado por primera vez el {date}',
   'app.verify.unboundFact':
-    'El servidor de registros informa un registro con la huella {fp}{firstSeen}. Los campos que cubre no se comparten, así que esta página no puede recalcularla.',
+    'El servidor de registros informa un registro con el código de prueba {fp}{firstSeen}. Los campos que cubre no se comparten, así que esta página no puede recalcularlo.',
   'app.verify.noFpInLink':
-    'Este enlace no nombra la huella del registro, así que esta página no puede saber si el servidor de registros respondió con la huella de este registro o con la de otro. No se marca nada de lo que sigue. Un enlace hecho ahora desde el registro termina en ?fp=…; pídale uno al titular.',
+    'Este enlace no nombra el código de prueba del registro, así que esta página no puede saber si el servidor de registros respondió con el código de prueba de este registro o con el de otro. No se marca nada de lo que sigue. Un enlace hecho ahora desde el registro termina en ?fp=…; pídale uno al titular.',
   'app.verify.noStampYet':
     'Todavía sin sello de fecha, hasta donde esta página puede saber: aquí no hay prueba de que el registro esté en un lote con sello de fecha, así que no hay nada que comprobar.',
   'app.verify.batchBound':
-    'Comprobado en este navegador: esta huella está en el lote {batch}, y su camino llega a la raíz del lote {root}….',
+    'Comprobado en este navegador: este código de prueba está en el lote {batch}, y su camino llega a la raíz del lote {root}….',
   'app.verify.batchUnbound':
-    '{forWhom}está en el lote {batch}, y su camino llega a la raíz del lote {root}…. Comprobado aquí, pero con la huella del propio servidor de registros.',
+    '{forWhom}está en el lote {batch}, y su camino llega a la raíz del lote {root}…. Comprobado aquí, pero con el código de prueba del propio servidor de registros.',
   'app.verify.rootReported':
     'El servidor de registros informa que esa raíz se registró en {network}{tx}. Su fecha: {date}.{notLooked}{test}',
   'app.verify.notLooked': ' Esta página no la consultó; hágalo antes de confiar en la fecha.',
@@ -162,7 +162,7 @@ export const verify = {
   'app.verify.notGranted': 'Este enlace pidió {list}, que el titular no eligió compartir.',
   'app.verify.unavailable':
     'Este enlace pidió datos sobre el titular y no sobre este registro ({list}). El servidor de registros nunca responde a eso.',
-  'app.verify.footer': 'Huella {fp} · solo se enviaron los datos de arriba · no se divulgó genética',
+  'app.verify.footer': 'Código de prueba {fp} · solo se enviaron los datos de arriba · no se divulgó genética',
   'app.verify.mark.checked': 'Comprobado en este navegador',
   'app.verify.mark.reported': 'No comprobado aquí',
   'app.verify.mark.failed': 'Fallido o retirado',
@@ -191,18 +191,18 @@ export const verify = {
   'app.verify.sharedNothing': 'El titular no compartió nada más allá de lo básico de arriba.',
   'app.verify.notShared': 'No compartido por el titular: {list}.',
   'app.verify.alwaysShown':
-    'Siempre se muestra: el nombre del cultivar, el ID del registro, su huella ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las atestaciones firmadas (un acuse de recibo de laboratorio, un informe de laboratorio).',
+    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las atestaciones firmadas (un acuse de recibo de laboratorio, un informe de laboratorio). El nombre, solo cuando el enlace lo lleva (los suyos lo llevan, salvo que lo quite) o usted decide mostrarlo.',
   'app.verify.ex.title': 'Ejemplo: un registro inventado.',
   'app.verify.ex.intro':
     'Esto muestra cómo es la página de comprobación de un registro, con una nota bajo cada línea. Aquí no se consultó ni comprobó nada.',
   'app.verify.ex.status': 'Ejemplo · en un lote sellado · anclaje informado',
   'app.verify.ex.name': 'Harbour Mist (ejemplo)',
   'app.verify.ex.fact1':
-    'Este enlace se hizo para la huella 3f9a0c41e2b7…, y el servidor de registros informa la misma huella para este registro.',
+    'Este enlace se hizo para el código de prueba 3f9a0c41e2b7…, y el servidor de registros informa el mismo código de prueba para este registro.',
   'app.verify.ex.note1':
-    'La huella está en el propio enlace, así que no se puede engañar a la página para que muestre las comprobaciones de otro registro.',
+    'El código de prueba está en el propio enlace, así que no se puede engañar a la página para que muestre las comprobaciones de otro registro.',
   'app.verify.ex.fact2':
-    'Comprobado en este navegador: esta huella está en el lote 41, y su camino llega a la raíz del lote.',
+    'Comprobado en este navegador: este código de prueba está en el lote 41, y su camino llega a la raíz del lote.',
   'app.verify.ex.note2':
     'En un registro real esta línea lleva una marca: su propio navegador comprueba que el registro está en el lote.',
   'app.verify.ex.fact3':

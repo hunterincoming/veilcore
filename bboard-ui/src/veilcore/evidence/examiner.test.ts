@@ -170,8 +170,8 @@ describe('EXAMINER-SUMMARY.html', () => {
     expect(text).toContain('Stated date');
     // How it was checked: what the site did, and what it did not do.
     expect(text).toMatch(/How it was checked/);
-    expect(text).toMatch(/fingerprint was worked out again from the sealed fields below and matched/);
-    expect(text).toMatch(/The proof leads from the record’s fingerprint to the root of batch/);
+    expect(text).toMatch(/proof code was worked out again from the sealed fields below and matched/);
+    expect(text).toMatch(/The proof leads from the record’s proof code to the root of batch/);
     expect(text).toMatch(/Not checked for you: the Midnight transaction/);
     expect(text).toMatch(/1 of 1 lab signature checked/);
     expect(text).toContain(`Search for transaction ${TX}.`);
@@ -620,10 +620,10 @@ describe('round 2 of the 15 Oct review: typed text can’t add lines, and covera
     const [line] = await signatureLines([r], s.record.recordFingerprint);
     expect(line.text).not.toMatch(/receipt for a sample with SHA-256/);
     expect(line.text).toContain(
-      `Its signed SHA-256, ${'e1'.repeat(32)}, is the fingerprint of the lab's own record of the delivery, not a hash of the sample.`,
+      `Its signed SHA-256, ${'e1'.repeat(32)}, is the code of the lab's own record of the delivery, not a hash of the sample.`,
     );
     const html = examinerSummaryHtml(s.ev, [line], false);
-    expect(html).toContain('Signed fingerprint (the lab’s record of the delivery, not the sample)');
+    expect(html).toContain('Signed code (the lab’s record of the delivery, not the sample)');
   });
 
   it('the summary folds direction marks and line breaks to spaces, and says a key is named, not included', async () => {

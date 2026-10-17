@@ -358,7 +358,7 @@ describe('the bundle', () => {
         'proof/inclusion-proof.json',
         'proof/root.bin',
         'proof/root.bin.ots',
-        'record/fingerprint.txt',
+        'record/proof-code.txt',
         'record/sealed-fields.canonical.json',
         'record/sealed-fields.json',
         'spec/SPEC-sections.md',
@@ -368,7 +368,7 @@ describe('the bundle', () => {
     const out = unzipSync(zip);
     for (const [k, v] of Object.entries(files)) expect(Array.from(out[k]), k).toEqual(Array.from(v));
     expect(Array.from(out[`${dir}/proof/root.bin`])).toEqual(Array.from(Buffer.from(s.batch.root, 'hex')));
-    expect(strFromU8(out[`${dir}/record/fingerprint.txt`]).trim()).toBe(s.record.recordFingerprint);
+    expect(strFromU8(out[`${dir}/record/proof-code.txt`]).trim()).toBe(s.record.recordFingerprint);
     expect(Array.from(out[`${dir}/lab/report/Lab report.pdf`])).toEqual(Array.from(s.report));
   });
 
@@ -418,7 +418,7 @@ describe('the bundle', () => {
     );
     expect(readme).toMatch(/may not show the batch root in plain text/);
     // "batch root" explained once, in plain words.
-    expect(readme.match(/one fingerprint that stands for every record/g)?.length).toBeGreaterThanOrEqual(1);
+    expect(readme.match(/one code that stands for every record/g)?.length).toBeGreaterThanOrEqual(1);
     expect(readme).toMatch(/existed, unchanged, by the date of that transaction/);
     expect(readme).toMatch(/held this record by that date/);
     expect(readme).toMatch(/test network.*practice data/);

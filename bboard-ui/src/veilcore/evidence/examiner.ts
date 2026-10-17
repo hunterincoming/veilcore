@@ -59,7 +59,7 @@ const FIELD_LABELS: [string, string][] = [
   ['profile', 'Kind of record'],
   ['loggedAt', 'Sealed at (the breeder’s device clock)'],
   ['keyBinding', 'Names a key'],
-  ['nonce', 'Random salt (keeps the fingerprint unguessable)'],
+  ['nonce', 'Random salt (keeps the proof code unguessable)'],
 ];
 
 /** What a record that names its key says about it, here and in verify.html (word for word). */
@@ -85,7 +85,7 @@ export const fieldText = (key: string, v: unknown): string => {
   if (key === 'photoFingerprints' && Array.isArray(v)) {
     return v.length === 0
       ? '(none)'
-      : `${v.length} photo${v.length === 1 ? '' : 's'}, sealed by fingerprint: ${v.map(String).join(', ')}`;
+      : `${v.length} photo${v.length === 1 ? '' : 's'}, sealed by their codes: ${v.map(String).join(', ')}`;
   }
   if (key === 'loggedAt' && isNumber(v)) return `${utcWords(v) ?? String(v)} (the breeder’s word only)`;
   // The same words as verify.html (its fieldText): the record names a key; whether the key
@@ -245,9 +245,9 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
 
   // How it was checked: what the site did when it made the bundle, and what it did not do.
   const checked: string[] = [
-    `The record’s fingerprint was worked out again from the sealed fields below and matched${keyBound ? ' (with the record’s key binding folded in)' : ''}. The bundle can’t be made if it doesn’t.`,
+    `The record’s proof code was worked out again from the sealed fields below and matched${keyBound ? ' (with the record’s key binding folded in)' : ''}. The bundle can’t be made if it doesn’t.`,
     ev.proof && ev.batch
-      ? `The proof leads from the record’s fingerprint to the root of batch ${ev.batch.batchId}. The batch root is one fingerprint that stands for every record in the batch.`
+      ? `The proof leads from the record’s proof code to the root of batch ${ev.batch.batchId}. The batch root is one code that stands for every record in the batch.`
       : 'The record is not in a batch yet, so there is no proof and nothing to look up.',
   ];
   if (ev.key) checked.push('The record’s key is in the bundle and matches the key the record names.');
@@ -268,8 +268,8 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
 
   const ids: [string, string | null][] = [
     ['Record ID', ev.record.id],
-    ['Fingerprint', ev.record.fingerprint],
-    ['How the fingerprint is made', ev.record.fingerprintAlgorithm],
+    ['Proof code', ev.record.fingerprint],
+    ['How the proof code is made', ev.record.fingerprintAlgorithm],
     ['Content hash (SHA-256 of the sealed fields)', ev.record.contentHash],
     ['Batch', ev.batch?.batchId ?? 'not in a batch yet'],
     ['Batch root', ev.batch?.root ?? null],
@@ -313,13 +313,20 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   const labRows: [string, string | null][] = lab
     ? [
         ['Lab report SHA-256', lab.fileSha256 ?? '(not kept for this older pairing)'],
-        ['Pairing fingerprint', lab.pairingFingerprint],
+        ['Pairing code', lab.pairingFingerprint],
         ['File name', lab.fileName ?? null],
         [
           `Saved to the ${subject} at`,
           lab.pairedAt ? `${utcWords(lab.pairedAt) ?? lab.pairedAt} (the holder’s device clock)` : null,
         ],
-        ['File in this bundle', lab.fileIncluded ?? 'No: only its fingerprint'],
+        ['File in this bundle', lab.fileIncluded ?? 'No: only its code'],
+        // Round 5: what a check link shows of it, and the salt the holder's link carries.
+        [
+          'On a check link',
+          lab.pairBinding
+            ? `Only the code ${lab.pairBinding}, made from the file’s SHA-256, the proof code and the salt ${lab.pairSalt ?? ''} that the holder’s check link carries after #ds=. With the file and that link, anyone can make it again; nobody else can tell which file it is.`
+            : null,
+        ],
       ]
     : [];
 
@@ -334,7 +341,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
       ['Name it gives itself', s.displayName ? `${s.displayName} (not checked)` : null],
       [
         s.type === 'chain-of-custody'
-          ? 'Signed fingerprint (the lab’s record of the delivery, not the sample)'
+          ? 'Signed code (the lab’s record of the delivery, not the sample)'
           : 'Document SHA-256',
         s.documentHash ?? null,
       ],
@@ -352,12 +359,12 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
 
   const shows: string[] = [
     `Once the Midnight transaction${ots ? ' (or the Bitcoin stamp)' : ''} is looked up and holds this batch root: this record existed, unchanged, by that date. Whoever had it sealed held this record by then.`,
-    'The sealed fields above are exactly what was fingerprinted: any change to them, even one character, gives a different fingerprint.',
+    'The sealed fields above are exactly what the proof code was made from: any change to them, even one character, gives a different proof code.',
   ];
   if (ev.key) shows.push('The record named this key when it was sealed, so the key can’t have been swapped since.');
   if (okSigs)
     shows.push(
-      'Each signature that checks was made with the key shown, over the SHA-256 shown. For a receipt, that is the fingerprint of the lab’s own record of the delivery, not of the sample.',
+      'Each signature that checks was made with the key shown, over the SHA-256 shown. For a receipt, that is the code of the lab’s own record of the delivery, not of the sample.',
     );
   const doesNot: string[] = [
     'That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.',
@@ -368,7 +375,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   ];
   if (lab)
     doesNot.push(
-      `When the lab report was saved to the ${subject}. That came after sealing and isn’t inside the record’s fingerprint, so the batch doesn’t date it.`,
+      `When the lab report was saved to the ${subject}. That came after sealing and isn’t inside the record’s proof code, so the batch doesn’t date it.`,
     );
   doesNot.push(
     'This is not a qualified electronic time stamp (EU eIDAS) or any other legally recognised time stamp. How much weight a court or agency gives it is for them to decide.',
@@ -439,10 +446,10 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   <div class="note">${p('This page is a printout of what the VeilCore site found when it made this bundle. It runs no code and checks nothing when opened. To check the files yourself, open verify.html in the same folder (it works offline); README.txt explains every file.')}</div>
 
   <h2>1. The record as it was sealed</h2>
-  ${p('Exactly what was fingerprinted, in the breeder’s own words.', 'muted')}
+  ${p('Exactly what the proof code was made from, in the breeder’s own words.', 'muted')}
   ${table(sealedRows(fields), 'sealed')}
 
-  <h2>2. Fingerprint, batch and transaction</h2>
+  <h2>2. Proof code, batch and transaction</h2>
   ${table(ids)}
 
   <h2>3. How it was checked</h2>

@@ -1344,14 +1344,14 @@ export const custodySubject = (input: {
     return { refuse: 'The registry named two different source records for this transfer. Nothing was signed.' };
   }
   if (claim.parentCommitment !== undefined && claim.parentCommitment !== c) {
-    return { refuse: 'The registry gave two different fingerprints for the source record. Nothing was signed.' };
+    return { refuse: 'The registry gave two different proof codes for the source record. Nothing was signed.' };
   }
   if (publicFingerprint !== c) {
     return {
       refuse:
         publicFingerprint === null
-          ? 'The source record’s fingerprint could not be confirmed from the public registry, so nothing was signed.'
-          : 'The source record’s public fingerprint does not match the one given with the transfer. Nothing was signed.',
+          ? 'The source record’s proof code could not be confirmed from the public registry, so nothing was signed.'
+          : 'The source record’s public proof code does not match the one given with the transfer. Nothing was signed.',
     };
   }
   return {

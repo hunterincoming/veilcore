@@ -51,7 +51,7 @@ describe('the paragraph', () => {
   it('confirmed: no "the registry reports", and the test note comes once, from the line under it', () => {
     const t = reportedText('B-1', 'preprod', true, true);
     expect(t).toBe(
-      "Checked in this browser: your record's fingerprint is in batch B-1, and the path from it folds to the batch root.",
+      "Checked in this browser: your record's proof code is in batch B-1, and the path from it folds to the batch root.",
     );
     const line = anchorLine(OK, { network: 'preprod', bound: true });
     expect(line?.status).toBe('checked');

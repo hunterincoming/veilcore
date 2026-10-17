@@ -139,9 +139,13 @@ export const CheckThisSite: React.FC = () => {
             </>
           )}
           <div role="status" aria-live="polite">
-            {state.kind === 'checking' && <p>{t('m.checksite.checking', { done: String(state.done), total: String(state.total) })}</p>}
+            {state.kind === 'checking' && (
+              <p>{t('m.checksite.checking', { done: String(state.done), total: String(state.total) })}</p>
+            )}
             {state.kind === 'bad-list' && (
-              <p data-bad-list={state.why}>{t(state.why === 'other' ? 'm.checksite.otherList' : 'm.checksite.noList')}</p>
+              <p data-bad-list={state.why}>
+                {t(state.why === 'other' ? 'm.checksite.otherList' : 'm.checksite.noList')}
+              </p>
             )}
             {state.kind === 'done' && (
               <div data-result={allMatch(state.result) ? 'all-match' : 'differs'}>

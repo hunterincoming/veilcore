@@ -80,7 +80,7 @@ export const verify = {
   'app.verify.sum.statements.other': '{count} × signierte Erklärung',
   'app.verify.sum.what': ' ({list})',
   'app.verify.sum.comma': ', ',
-  'app.verify.sum.bound': 'der Fingerabdruck des Links passt zu dem, den das Register meldet',
+  'app.verify.sum.bound': 'der Prüfcode des Links passt zu dem, den das Register meldet',
   'app.verify.sum.inBatch': 'der Datensatz ist in seinem Stapel',
   'app.verify.sum.signatures.one': 'eine Signatur dazu{what}',
   'app.verify.sum.signatures.other': '{count} Signaturen dazu{what}',
@@ -90,9 +90,9 @@ export const verify = {
   'app.verify.sum.checked':
     'In diesem Browser geprüft: {list}. Alles andere ist die Meldung des VeilCore-Registers.{unbound}',
   'app.verify.sum.unbound':
-    ' Dieser Link nennt keinen Fingerabdruck, daher nutzten diese Prüfungen den des Registers selbst, und nichts ist abgehakt.',
+    ' Dieser Link nennt keinen Prüfcode, daher nutzten diese Prüfungen den des Registers selbst, und nichts ist abgehakt.',
   'app.verify.heading.nothingSealed': 'Datensatz gefunden, nichts versiegelt',
-  'app.verify.heading.unbound': 'Die Meldung des Registers: Dieser Link hat keinen Fingerabdruck zum Abgleichen',
+  'app.verify.heading.unbound': 'Die Meldung des Registers: Dieser Link hat keinen Prüfcode zum Abgleichen',
   'app.verify.heading.checking': 'Wird geprüft…',
   'app.verify.heading.reported': 'Datumsstempel vom Register gemeldet, hier nicht geprüft',
   'app.verify.heading.pending': 'In einem Stapel, noch kein Datumsstempel',
@@ -101,25 +101,25 @@ export const verify = {
   'app.verify.kindReceipt': 'Empfangsbestätigung eines Labors für eine Probe',
   'app.verify.kindReport': 'Laborbericht (SHA-256 der Datei {sha})',
   'app.verify.kindStatement': 'Signierte Erklärung',
-  'app.verify.forWhom': 'Für den Fingerabdruck, den das Register meldet: ',
+  'app.verify.forWhom': 'Für den Prüfcode, den das Register meldet: ',
   'app.verify.homeAria': 'VeilCore-Startseite',
   'app.verify.intro':
-    'Diese Seite prüft einen VeilCore-Datensatz: einen Fingerabdruck der Beschreibung von genetischem Material, datiert, sobald er verankert ist, veröffentlicht ohne die Genetik. Die Prüfung ist kostenlos und braucht kein Konto. <link>Was ist VeilCore?</link>',
+    'Diese Seite prüft einen VeilCore-Datensatz: einen Prüfcode der Beschreibung von genetischem Material, datiert, sobald er verankert ist, veröffentlicht ohne die Genetik. Die Prüfung ist kostenlos und braucht kein Konto. <link>Was ist VeilCore?</link>',
   'app.verify.checkingRecord': 'Datensatz wird geprüft',
   'app.verify.notFound': 'Kein Datensatz für {id} gefunden',
   'app.verify.notFoundText':
     'Dieser Prüflink passt zu keinem Datensatz im Register. Prüfen Sie, ob der Link vollständig und unverändert ist.',
   'app.verify.goHome': 'Zu veilcore.org',
-  'app.verify.mismatch.title': 'Der Fingerabdruck dieses Links passt nicht zum Datensatz: nichts geprüft',
+  'app.verify.mismatch.title': 'Der Prüfcode dieses Links passt nicht zum Datensatz: nichts geprüft',
   'app.verify.mismatch.dontRely': 'Verlassen Sie sich nicht auf diese Seite.',
   'app.verify.mismatch.text':
     '{start}aber das Register meldet {reported} für {id}. Seine Antwort betrifft nicht den Datensatz, den der Link nennt, daher hat diese Seite nichts geprüft und zeigt nichts davon. Fragen Sie die Person, die Ihnen den Link gegeben hat, nach dem Datensatz selbst.',
-  'app.verify.mismatch.linked': 'Dieser Link wurde für den Datensatz mit dem Fingerabdruck {fp} erstellt, ',
+  'app.verify.mismatch.linked': 'Dieser Link wurde für den Datensatz mit dem Prüfcode {fp} erstellt, ',
   'app.verify.mismatch.invalid':
-    'Dieser Link enthält einen ungültigen Fingerabdruck (es sollten 64 Hexadezimalzeichen sein); er wurde vielleicht gekürzt oder verändert, ',
-  'app.verify.mismatch.reportedFp': 'den Fingerabdruck {fp}',
-  'app.verify.mismatch.noFp': 'keinen Fingerabdruck',
-  'app.verify.mismatch.inLink': 'Fingerabdruck im Link: {fp}',
+    'Dieser Link enthält einen ungültigen Prüfcode (es sollten 64 Hexadezimalzeichen sein); er wurde vielleicht gekürzt oder verändert, ',
+  'app.verify.mismatch.reportedFp': 'den Prüfcode {fp}',
+  'app.verify.mismatch.noFp': 'keinen Prüfcode',
+  'app.verify.mismatch.inLink': 'Prüfcode im Link: {fp}',
   'app.verify.mismatch.chip':
     'Die Antwort des Registers passt nicht zu diesem Link – nichts auf dieser Seite wurde geprüft',
   'app.verify.nameTyped': 'Name, wie vom Inhaber eingegeben: ',
@@ -127,18 +127,18 @@ export const verify = {
   'app.verify.noCommitment':
     'Dieser Datensatz enthält keine Festlegung, daher lässt sich nichts an ihm prüfen. Er existiert im Register, mehr nicht.',
   'app.verify.boundFact':
-    'Dieser Link wurde für den Fingerabdruck {fp} erstellt, und das Register meldet denselben Fingerabdruck für diesen Datensatz{firstSeen}. Die erfassten Felder werden nicht geteilt, daher kann diese Seite ihn nicht neu berechnen.',
+    'Dieser Link wurde für den Prüfcode {fp} erstellt, und das Register meldet denselben Prüfcode für diesen Datensatz{firstSeen}. Die erfassten Felder werden nicht geteilt, daher kann diese Seite ihn nicht neu berechnen.',
   'app.verify.firstStored': ', erstmals gespeichert am {date}',
   'app.verify.unboundFact':
-    'Das Register meldet einen Datensatz mit dem Fingerabdruck {fp}{firstSeen}. Die erfassten Felder werden nicht geteilt, daher kann diese Seite ihn nicht neu berechnen.',
+    'Das Register meldet einen Datensatz mit dem Prüfcode {fp}{firstSeen}. Die erfassten Felder werden nicht geteilt, daher kann diese Seite ihn nicht neu berechnen.',
   'app.verify.noFpInLink':
-    'Dieser Link nennt den Fingerabdruck des Datensatzes nicht, daher kann diese Seite nicht sagen, ob das Register mit dem Fingerabdruck dieses Datensatzes oder eines anderen geantwortet hat. Nichts unten ist abgehakt. Ein jetzt aus dem Datensatz erstellter Link endet auf ?fp=…; bitten Sie den Inhaber um einen.',
+    'Dieser Link nennt den Prüfcode des Datensatzes nicht, daher kann diese Seite nicht sagen, ob das Register mit dem Prüfcode dieses Datensatzes oder eines anderen geantwortet hat. Nichts unten ist abgehakt. Ein jetzt aus dem Datensatz erstellter Link endet auf ?fp=…; bitten Sie den Inhaber um einen.',
   'app.verify.noStampYet':
     'Noch kein Datumsstempel, soweit diese Seite erkennen kann: Hier gibt es keinen Nachweis, dass der Datensatz in einem Stapel mit Datumsstempel ist, also gibt es nichts zu prüfen.',
   'app.verify.batchBound':
-    'In diesem Browser geprüft: Dieser Fingerabdruck ist in Stapel {batch}, und sein Pfad führt zur Stapelwurzel {root}….',
+    'In diesem Browser geprüft: Dieser Prüfcode ist in Stapel {batch}, und sein Pfad führt zur Stapelwurzel {root}….',
   'app.verify.batchUnbound':
-    '{forWhom}Er ist in Stapel {batch}, und sein Pfad führt zur Stapelwurzel {root}…. Hier geprüft, aber gegen den eigenen Fingerabdruck des Registers.',
+    '{forWhom}Er ist in Stapel {batch}, und sein Pfad führt zur Stapelwurzel {root}…. Hier geprüft, aber gegen den eigenen Prüfcode des Registers.',
   'app.verify.rootReported':
     'Das Register meldet, dass diese Wurzel auf {network}{tx} festgehalten wurde. Ihr Datum: {date}.{notLooked}{test}',
   'app.verify.notLooked':
@@ -162,7 +162,7 @@ export const verify = {
   'app.verify.notGranted': 'Dieser Link fragte nach {list}, was der Inhaber nicht teilen wollte.',
   'app.verify.unavailable':
     'Dieser Link fragte nach Angaben über den Inhaber statt über diesen Datensatz ({list}). Darauf antwortet das Register nie.',
-  'app.verify.footer': 'Fingerabdruck {fp} · nur die Angaben oben wurden gesendet · keine Genetik offengelegt',
+  'app.verify.footer': 'Prüfcode {fp} · nur die Angaben oben wurden gesendet · keine Genetik offengelegt',
   'app.verify.mark.checked': 'In diesem Browser geprüft',
   'app.verify.mark.reported': 'Hier nicht geprüft',
   'app.verify.mark.failed': 'Fehlgeschlagen oder zurückgezogen',
@@ -191,18 +191,18 @@ export const verify = {
   'app.verify.sharedNothing': 'Der Inhaber hat nichts über die Grundangaben oben hinaus geteilt.',
   'app.verify.notShared': 'Vom Inhaber nicht geteilt: {list}.',
   'app.verify.alwaysShown':
-    'Immer angezeigt: der Sortenname, die Datensatz-ID, sein Fingerabdruck ({fp}), wann das Register ihn zuerst gespeichert hat, und was diese Seite über seinen Stapel und signierte Bestätigungen (eine Empfangsbestätigung eines Labors, einen Laborbericht) prüfen konnte.',
+    'Immer angezeigt: die Datensatz-ID, sein Prüfcode ({fp}), wann das Register ihn zuerst gespeichert hat, und was diese Seite über seinen Stapel und signierte Bestätigungen (eine Empfangsbestätigung eines Labors, einen Laborbericht) prüfen konnte. Der Name nur, wenn der Link ihn trägt (Ihre Links tun das, außer Sie lassen ihn weg) oder Sie ihn zeigen möchten.',
   'app.verify.ex.title': 'Beispiel: ein erfundener Datensatz.',
   'app.verify.ex.intro':
     'Das zeigt, wie die Prüfseite eines Datensatzes aussieht, mit einer Anmerkung unter jeder Zeile. Hier wurde nichts nachgeschlagen oder geprüft.',
   'app.verify.ex.status': 'Beispiel · in einem versiegelten Stapel · Verankerung gemeldet',
   'app.verify.ex.name': 'Harbour Mist (Beispiel)',
   'app.verify.ex.fact1':
-    'Dieser Link wurde für den Fingerabdruck 3f9a0c41e2b7… erstellt, und das Register meldet denselben Fingerabdruck für diesen Datensatz.',
+    'Dieser Link wurde für den Prüfcode 3f9a0c41e2b7… erstellt, und das Register meldet denselben Prüfcode für diesen Datensatz.',
   'app.verify.ex.note1':
-    'Der Fingerabdruck steht im Link selbst, daher lässt sich die Seite nicht dazu bringen, die Prüfungen eines anderen Datensatzes anzuzeigen.',
+    'Der Prüfcode steht im Link selbst, daher lässt sich die Seite nicht dazu bringen, die Prüfungen eines anderen Datensatzes anzuzeigen.',
   'app.verify.ex.fact2':
-    'In diesem Browser geprüft: Dieser Fingerabdruck ist in Stapel 41, und sein Pfad führt zur Stapelwurzel.',
+    'In diesem Browser geprüft: Dieser Prüfcode ist in Stapel 41, und sein Pfad führt zur Stapelwurzel.',
   'app.verify.ex.note2':
     'Bei einem echten Datensatz hat diese Zeile einen Haken: Ihr eigener Browser prüft, dass der Datensatz im Stapel ist.',
   'app.verify.ex.fact3':

@@ -119,7 +119,7 @@ export const checkLinkKey = (input: {
   if (!input.fingerprint)
     return {
       kind: 'refused',
-      reason: 'This link’s fingerprint doesn’t match the record, so its key can’t be checked against it',
+      reason: 'This link’s proof code doesn’t match the record, so its key can’t be checked against it',
     };
   const record = { fingerprint: input.fingerprint, keySalt: ks, contentHash: cd };
   return keyMatchesRecord(input.identity.trim().toLowerCase(), record)

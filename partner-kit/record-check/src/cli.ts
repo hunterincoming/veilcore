@@ -21,7 +21,7 @@ Options:
                                  Never taken from the link.
   --fields <file.json>           the record's sealed fields, if the depositor gave them
                                  (record/sealed-fields.json from their evidence bundle):
-                                 they must hash to the record's fingerprint.
+                                 they must hash to the record's proof code.
   --on-chain                     look the date stamp up on Midnight (needs @veilcore/contracts
                                  installed, and a Blockfrost project id on mainnet/preprod
                                  unless --indexer is given).
@@ -34,7 +34,7 @@ Options:
   --timeout <seconds>            per request (default 15).
 
 Exit status:
-  0  the record exists, the link's fingerprint matches, and nothing contradicts it.
+  0  the record exists, the link's proof code matches, and nothing contradicts it.
   1  the check ran and something does not hold: no such record, the link doesn't match or
      looks cut off, the sealed fields or the key in the link don't match, the registry's
      inclusion proof doesn't check out, the date stamp was not confirmed on chain, or the
@@ -54,7 +54,7 @@ export const asText = (c: RecordCheck): string => {
   const d = c.dated;
   // Nothing is listed for a link that doesn't match: none of it was checked.
   if (c.recordExists && c.fingerprint && c.fingerprintMatches !== false) {
-    lines.push(`Fingerprint: ${c.fingerprint}`);
+    lines.push(`Proof code: ${c.fingerprint}`);
     if (d.batch) lines.push(`Batch: ${d.batch} (root ${d.batchRoot ?? '?'})`);
     lines.push(`Date: ${d.reason}`);
     if (d.bitcoinStamp) lines.push(`Bitcoin stamp file: ${d.bitcoinStamp} (the registry's report)`);

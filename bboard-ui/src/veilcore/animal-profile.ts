@@ -212,7 +212,7 @@ export const validateAnimalFields = (fields: unknown): string[] => {
     if (!Array.isArray(f.photoFingerprints) || f.photoFingerprints.length > 500)
       out.push('photoFingerprints must be a list of at most 500');
     else if (!f.photoFingerprints.every((p) => typeof p === 'string' && HEX64.test(p)))
-      out.push('each photo fingerprint must be 64 lowercase hex characters');
+      out.push('each photo code must be 64 lowercase hex characters');
   }
   if (f.parents !== undefined) out.push(...parentProblems(f.parents));
   return out;

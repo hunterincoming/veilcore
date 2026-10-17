@@ -167,7 +167,7 @@ export const lab = {
   'app.lab.recv.quoted': '「{v}」',
   'app.lab.recv.breederWrote': '<b>育成者の記載：</b>{line}',
   'app.lab.recv.onArrival': '<b>到着時：</b>{line}',
-  'app.lab.recv.aboutRecord': '育成者の記録 {id} について。フィンガープリント',
+  'app.lab.recv.aboutRecord': '育成者の記録 {id} について。証明コード',
   'app.lab.recv.pointing': '受け取った記録を指しています',
   'app.lab.recv.signedByKey': 'あなたの鍵（{name}）で署名',
   'app.lab.recv.unnamed': '名前なし',
@@ -186,7 +186,7 @@ export const lab = {
   'app.lab.recv.differs': '育成者の記載と違います。育成者は受領書でこれを見ます：',
   'app.lab.recv.exactly': 'あなたの鍵で、この送付の受領書に署名できます。受領書の内容は正確に次のとおりです：',
   'app.lab.recv.fingerprintFrom':
-    'このフィンガープリントはレジストリから取得したもので、{id}の公開ページの報告と一致します。育成者からフィンガープリントを受け取っている場合は、署名の前に照合してください。',
+    'この証明コードはレジストリから取得したもので、{id}の公開ページの報告と一致します。育成者から証明コードを受け取っている場合は、署名の前に照合してください。',
   'app.lab.recv.physically': 'この素材を実際に受け取りました。',
   'app.lab.recv.dontSign': '署名しない',
   'app.lab.recv.signWithKey': '自分の鍵で署名する',
@@ -353,7 +353,7 @@ export const lab = {
   'app.lab.out.replacesIntro':
     'これは、{when}に送った検査報告書 {id} を置き換えます。古いものは撤回され、ファイルは削除され、その署名には「差し替え済み」と記されます。',
   'app.lab.out.intro':
-    'ブラウザが、ラボの鍵で検査報告書のフィンガープリントに署名し、育成者だけが開けるようにファイルをロックします。ロックされたファイルは、育成者が開くまでVeilCoreのサーバーで待機します。VeilCoreはその鍵を持っていません。',
+    'ブラウザが、ラボの鍵で検査報告書のコードに署名し、育成者だけが開けるようにファイルをロックします。ロックされたファイルは、育成者が開くまでVeilCoreのサーバーで待機します。VeilCoreはその鍵を持っていません。',
   'app.lab.out.cancelCorrection': '訂正をやめる',
   'app.lab.out.turnedAway': 'このサンプルの受け取りを断ったため、送る検査報告書はありません。',
   'app.lab.out.setUpFirst':
@@ -364,7 +364,7 @@ export const lab = {
   'app.lab.out.notSignedReceipt':
     'このサンプルが届いたことに、まだ署名していません。署名するまで、育成者には、あなたの検査報告書がサンプルの受け取りを確認していない鍵による署名と表示されます。',
   'app.lab.out.notLinked': '受領書は署名済みですが、まだこの送付に紐付けられていないため、育成者には見えません。',
-  'app.lab.out.fileFp': '{size} · フィンガープリント {fp}',
+  'app.lab.out.fileFp': '{size} · コード {fp}',
   'app.lab.out.differentFile': '別のファイルを選ぶ',
   'app.lab.out.chooseCorrected': '訂正したファイルを選ぶ',
   'app.lab.out.chooseReport': '報告書を選ぶ',
@@ -378,7 +378,7 @@ export const lab = {
     'この送付は、撤回したものも含めて、受け付けられる検査報告書の上限に達しました。新しいラボコードを育成者に依頼してください。何も署名されていません。',
   'app.lab.out.rowReplaced': '訂正したファイルに差し替えられました。',
   'app.lab.out.rowWithdrawn': '{date}に撤回しました。',
-  'app.lab.out.rowSigned': 'あなたの鍵で署名 · フィンガープリント {fp}',
+  'app.lab.out.rowSigned': 'あなたの鍵で署名 · コード {fp}',
   'app.lab.out.rowRetracted': '署名は撤回されましたが、ファイルはまだレジストリにあります。撤回して完了してください。',
   'app.lab.out.rowNotSigned': 'このブラウザの鍵では署名されていません。',
   'app.lab.card.unknownBreeder': '不明な育成者',

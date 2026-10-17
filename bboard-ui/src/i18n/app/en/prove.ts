@@ -73,7 +73,7 @@ export const prove = {
   'app.prove.hand.intro':
     'The link you were sent names an on-chain identity for this record ({id}…). Make a challenge, send it to them, and paste back the transaction id they give you. The answer must come from that identity, answer your challenge, and the identity must be anchored and current. {bound}',
   'app.prove.hand.bound':
-    'The record named this key when it was sealed, and this page checked that against its fingerprint.',
+    'The record named this key when it was sealed, and this page checked that against its proof code.',
   'app.prove.hand.older':
     'Older record: key not bound to this record. That this identity belongs to it is the holder’s statement.',
   'app.prove.hand.make': 'Make a challenge',
@@ -90,7 +90,7 @@ export const prove = {
   // chain/key-reason-words.ts: veilcore/key-binding.ts's reasons, word for word.
   'app.prove.key.leavesOut':
     'This record names its own key, but this link leaves out what’s needed to check it. Ask the holder for a new link',
-  'app.prove.key.noFp': 'This link’s fingerprint doesn’t match the record, so its key can’t be checked against it',
+  'app.prove.key.noFp': 'This link’s proof code doesn’t match the record, so its key can’t be checked against it',
   'app.prove.key.notThis': 'The key in this link isn’t the one this record names',
   // chain/ProveWatch.tsx and veilcore/prove-relay.ts keyStampWords.
   'app.prove.watch.shareAsker':

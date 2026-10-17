@@ -179,7 +179,7 @@ export const lab = {
   'app.lab.recv.quoted': '« {v} »',
   'app.lab.recv.breederWrote': '<b>L’obtenteur a écrit :</b> {line}',
   'app.lab.recv.onArrival': '<b>À l’arrivée :</b> {line}',
-  'app.lab.recv.aboutRecord': 'Au sujet de l’enregistrement {id} de l’obtenteur, empreinte',
+  'app.lab.recv.aboutRecord': 'Au sujet de l’enregistrement {id} de l’obtenteur, code de preuve',
   'app.lab.recv.pointing': 'Pointe vers votre enregistrement reçu',
   'app.lab.recv.signedByKey': 'Signé avec votre clé ({name})',
   'app.lab.recv.unnamed': 'sans nom',
@@ -201,7 +201,7 @@ export const lab = {
   'app.lab.recv.exactly':
     'Votre clé peut signer un accusé de réception pour cette livraison. Voici exactement ce que dit l’accusé :',
   'app.lab.recv.fingerprintFrom':
-    'L’empreinte vient du registre et correspond à ce qu’indique sa page publique pour {id}. Si l’obtenteur vous a donné une empreinte, comparez-la avant de signer.',
+    'Le code de preuve vient du registre et correspond à ce qu’indique sa page publique pour {id}. Si l’obtenteur vous a donné un code de preuve, comparez-le avant de signer.',
   'app.lab.recv.physically': 'J’ai physiquement reçu ce matériel.',
   'app.lab.recv.dontSign': 'Ne pas signer',
   'app.lab.recv.signWithKey': 'Signer avec ma clé',
@@ -374,7 +374,7 @@ export const lab = {
   'app.lab.out.replacesIntro':
     'Il remplace {id}, le rapport de laboratoire que vous avez envoyé {when}. L’ancien est retiré : son fichier est supprimé et votre signature est marquée comme remplacée.',
   'app.lab.out.intro':
-    'Votre navigateur signe l’empreinte du rapport avec la clé de votre laboratoire et verrouille le fichier pour que seul l’obtenteur puisse l’ouvrir. Le fichier verrouillé attend sur le serveur de VeilCore que l’obtenteur l’ouvre, et VeilCore n’a pas sa clé.',
+    'Votre navigateur signe le code du rapport avec la clé de votre laboratoire et verrouille le fichier pour que seul l’obtenteur puisse l’ouvrir. Le fichier verrouillé attend sur le serveur de VeilCore que l’obtenteur l’ouvre, et VeilCore n’a pas sa clé.',
   'app.lab.out.cancelCorrection': 'Annuler la correction',
   'app.lab.out.turnedAway': 'Vous avez refusé cet échantillon : il n’y a donc pas de rapport de laboratoire à envoyer.',
   'app.lab.out.setUpFirst':
@@ -386,7 +386,7 @@ export const lab = {
     'Vous n’avez pas signé que cet échantillon est arrivé. Tant que vous ne l’avez pas fait, l’obtenteur voit votre rapport comme signé par une clé qui n’a pas confirmé avoir reçu l’échantillon.',
   'app.lab.out.notLinked':
     'Votre accusé de réception est signé mais pas encore lié à cette livraison : l’obtenteur ne peut donc pas le voir.',
-  'app.lab.out.fileFp': '{size} · empreinte {fp}',
+  'app.lab.out.fileFp': '{size} · code {fp}',
   'app.lab.out.differentFile': 'Choisir un autre fichier',
   'app.lab.out.chooseCorrected': 'Choisir le fichier corrigé',
   'app.lab.out.chooseReport': 'Choisir le rapport',
@@ -400,7 +400,7 @@ export const lab = {
     'Cette livraison a reçu autant de rapports de laboratoire qu’elle peut en accepter, rapports retirés compris. Demandez un nouveau code laboratoire à l’obtenteur. Rien n’a été signé.',
   'app.lab.out.rowReplaced': 'Remplacé par votre fichier corrigé.',
   'app.lab.out.rowWithdrawn': 'Retiré le {date}.',
-  'app.lab.out.rowSigned': 'Signé avec votre clé · empreinte {fp}',
+  'app.lab.out.rowSigned': 'Signé avec votre clé · code {fp}',
   'app.lab.out.rowRetracted':
     'Votre signature est retirée, mais le fichier est toujours chez le registre. Retirez-le pour terminer.',
   'app.lab.out.rowNotSigned': 'Non signé avec la clé de ce navigateur.',

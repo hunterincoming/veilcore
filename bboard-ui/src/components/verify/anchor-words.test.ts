@@ -133,7 +133,7 @@ describe('heading, seal and footer', () => {
   it('the footer adds the anchor to the list of what this browser checked', () => {
     const one = checkedSummary({ bound: true, proofChecked: false, signaturesChecked: 0 });
     expect(anchorSummary(one, OK)).toBe(
-      'Checked in this browser: the link’s fingerprint matches the one the registry reports and the batch root’s date stamp, looked up on Midnight. Everything else is the VeilCore registry’s report.',
+      'Checked in this browser: the link’s proof code matches the one the registry reports and the batch root’s date stamp, looked up on Midnight. Everything else is the VeilCore registry’s report.',
     );
     const two = checkedSummary({
       bound: true,
@@ -142,7 +142,7 @@ describe('heading, seal and footer', () => {
       signatureKinds: ['Lab report (x)'],
     });
     expect(anchorSummary(two, OK)).toBe(
-      'Checked in this browser: the link’s fingerprint matches the one the registry reports, the record is in its batch and one signature about it (a lab report), and the batch root’s date stamp, looked up on Midnight. Everything else is the VeilCore registry’s report.',
+      'Checked in this browser: the link’s proof code matches the one the registry reports, the record is in its batch and one signature about it (a lab report), and the batch root’s date stamp, looked up on Midnight. Everything else is the VeilCore registry’s report.',
     );
     expect(anchorSummary(two, { status: 'unreachable', reason: '' })).toBe(two);
     expect(anchorSummary(two, 'checking')).toBe(two);

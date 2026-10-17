@@ -51,12 +51,12 @@ export const plant = {
   'app.plant.f.sealedClock': 'Scellé (horloge de cet appareil)',
   'app.plant.f.ref': 'Référence / numéro de lot',
   'app.plant.f.photos': 'Photos',
-  'app.plant.f.photosSealed': '{n} scellées (empreintes seulement ; les images n’ont jamais été envoyées)',
-  'app.plant.f.reportSaved': 'enregistré sur cette plante ({file}) · empreinte de l’association {fp}{sha}',
+  'app.plant.f.photosSealed': '{n} scellées (codes seulement ; les images n’ont jamais été envoyées)',
+  'app.plant.f.reportSaved': 'enregistré sur cette plante ({file}) · code de l’association {fp}{sha}',
   'app.plant.f.file': 'fichier',
   'app.plant.f.fileSha': ' · SHA-256 du fichier {sha}',
   'app.plant.f.notSavedYet': 'pas encore enregistré',
-  'app.plant.f.recordFingerprint': 'Empreinte de l’enregistrement',
+  'app.plant.f.recordFingerprint': 'Code de preuve de l’enregistrement',
   'app.plant.evidenceBundle': 'Dossier de preuve',
   'app.plant.evidenceBundleText':
     'L’enregistrement tel que scellé, sa preuve d’inclusion, la racine du lot, l’endroit où le lot a été inscrit, le fichier d’horodatage Bitcoin s’il existe et les signatures de laboratoire le concernant, dans un seul .zip. Son verify.html le vérifie sans internet et sans rien de VeilCore, et indique quoi consulter pour le dater.',
@@ -236,7 +236,7 @@ export const plant = {
   'app.plant.date.chipReported': 'Dans un lot · ancrage signalé sur {network}',
   'app.plant.date.testNote': ' Un réseau de test peut être réinitialisé, et ses dates n’ont aucune valeur de preuve.',
   'app.plant.date.head':
-    'Vérifié dans ce navigateur : l’empreinte de votre enregistrement est dans le lot {batch}, et le chemin qui en part mène à la racine du lot.',
+    'Vérifié dans ce navigateur : le code de preuve de votre enregistrement est dans le lot {batch}, et le chemin qui en part mène à la racine du lot.',
   'app.plant.date.looked': '{head} Le registre indique que cette racine a été inscrite sur {network}.{test}',
   'app.plant.date.notLooked':
     '{head} Le registre indique que cette racine a été inscrite sur {network} ; cette page n’a pas consulté la transaction, elle n’est donc pas affichée comme ancrée. Consultez-la sur le réseau avant de vous fier à la date.{test}',
@@ -244,7 +244,7 @@ export const plant = {
   'app.plant.date.notInBatch':
     'Scellé sur votre appareil et conservé sur {server}. Il n’est pas encore dans un lot, il n’est donc pas ancré. Nous ancrons les enregistrements ensemble, par lots (à la main pour l’instant, cela peut donc prendre du temps), pour qu’une seule transaction en couvre beaucoup et que vous n’ayez jamais besoin de portefeuille. D’ici là, sa date repose sur les données de ce registre.',
   'app.plant.date.inBatchNotAnchored':
-    'Vérifié dans ce navigateur : l’empreinte de votre enregistrement est dans le lot {batch}, qui n’a pas encore été ancré. Quand il le sera, la preuve gagnera une référence à la transaction. Rien ne change dans votre enregistrement.',
+    'Vérifié dans ce navigateur : le code de preuve de votre enregistrement est dans le lot {batch}, qui n’a pas encore été ancré. Quand il le sera, la preuve gagnera une référence à la transaction. Rien ne change dans votre enregistrement.',
   'app.plant.date.batchLine': 'lot {batch}',
   'app.plant.date.rootLine': 'racine {root}…',
   'app.plant.date.txChecked': 'tx (vérifiée sur Midnight) {tx}',
@@ -288,9 +288,9 @@ export const plant = {
     'Pour pouvoir montrer que ce rapport existait à cette date sans montrer les marqueurs à personne.',
   'app.plant.dated.seals':
     'Scelle un petit enregistrement contenant seulement le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé. Le rapport reste chez vous. Sa date vient quand son lot est daté.',
-  'app.plant.dated.nameLabel': 'Nom du nouvel enregistrement (public)',
+  'app.plant.dated.nameLabel': 'Nom du nouvel enregistrement',
   'app.plant.dated.nameHelp':
-    'Toute personne ayant son lien de vérification voit ce nom. Modifiez-le si vous le souhaitez.',
+    'Verrouillé comme le reste. Ses liens de vérification le portent, donc toute personne à qui vous en envoyez un le voit. Modifiez-le si vous le souhaitez.',
   'app.plant.dated.elsewhere':
     'Ce rapport ADN est en train d’être daté dans un autre onglet ou une autre fenêtre. Attendez une minute, puis regardez de nouveau : il apparaîtra ici.',
   'app.plant.datingPage.title': 'Cet enregistrement date un rapport ADN pour <plant></plant>',
@@ -356,7 +356,7 @@ export const plant = {
   'app.plant.bundle.keyNotHere':
     'La clé n’est pas dans ce navigateur. Ouvrez ici votre copie de secours pour l’inclure.',
   'app.plant.bundle.includeLab':
-    'Inclure le fichier du rapport ADN. Sans lui, le dossier ne contient que l’empreinte du rapport, pas ce qu’il dit.',
+    'Inclure le fichier du rapport ADN. Sans lui, le dossier ne contient que le code du rapport, pas ce qu’il dit.',
   'app.plant.bundle.chooseLab': 'Choisir le fichier du rapport ADN',
   'app.plant.bundle.checkedAgainst': 'Il est comparé à celui enregistré sur cette plante avant d’être ajouté.',
   'app.plant.bundle.labFileAria': 'Fichier du rapport ADN',
@@ -381,11 +381,11 @@ export const plant = {
     'Cette vérification se fait uniquement dans votre navigateur et n’envoie rien : elle est donc pour vous. Elle montre que vous avez un fichier correspondant au rapport associé à un enregistrement. Elle ne montre pas qui détient la plante, et personne d’autre ne peut la vérifier d’ici. Les autres vérifient un enregistrement sur sa page de vérification, et sa date une fois l’enregistrement ancré.',
   'app.plant.check.tap': 'Touchez pour choisir le rapport de laboratoire',
   'app.plant.check.drag': 'Glissez le rapport de laboratoire ici, ou cliquez pour le choisir',
-  'app.plant.check.hint': 'Lu et empreinte calculée sur place, jamais envoyé.',
+  'app.plant.check.hint': 'Lu et code calculé sur place, jamais envoyé.',
   'app.plant.check.none':
     'Aucun de vos enregistrements n’a ce rapport de laboratoire. Enregistrez-le d’abord sur la bonne plante, puis vérifiez de nouveau.',
   'app.plant.check.found': 'Correspondance trouvée.',
-  'app.plant.check.foundSub': 'L’empreinte de ce fichier a été calculée dans votre navigateur ; il n’a pas été envoyé.',
+  'app.plant.check.foundSub': 'Le code de ce fichier a été calculé dans votre navigateur ; il n’a pas été envoyé.',
   'app.plant.check.matches': 'Ce fichier correspond au rapport associé à {name}.',
   'app.plant.check.meaning':
     'Enregistrement {id}. Une correspondance signifie que le fichier est, octet pour octet, celui que vous avez associé ; cela ne dit rien de la génétique ni de qui détient la plante.',
@@ -413,7 +413,7 @@ export const plant = {
   'app.plant.fix.title': 'Corriger {id}',
   'app.plant.fix.intro':
     'Cet enregistrement reste exactement tel quel. Une correction crée un nouvel enregistrement qui le remplace, et les deux restent conservés. Une correction n’écrase rien et ne supprime rien : c’est ce qui garde l’original utilisable comme preuve.',
-  'app.plant.fix.name': 'Nom du cultivar (public)',
+  'app.plant.fix.name': 'Nom du cultivar',
   'app.plant.fix.bredBy': 'Obtenu par',
   'app.plant.fix.notes': 'Notes',
   'app.plant.fix.does': 'Ce que fait cette correction',
@@ -434,7 +434,7 @@ export const plant = {
   'app.plant.att.noReceipt':
     'Aucun laboratoire n’a encore signé d’accusé de réception pour cette plante. Un enregistrement que vous seul soutenez est une preuve plus faible qu’un enregistrement signé par un laboratoire. Envoyez un échantillon à un laboratoire : son accusé de réception est signé avec sa clé, pas la vôtre.',
   'app.plant.att.others':
-    'D’autres signatures nomment cet enregistrement : {n}, non liées à vos livraisons. N’importe qui peut signer une déclaration sur une empreinte publique : elles ne comptent donc pas comme accusé de réception.',
+    'D’autres signatures nomment cet enregistrement : {n}, non liées à vos livraisons. N’importe qui peut signer une déclaration sur un code de preuve public : elles ne comptent donc pas comme accusé de réception.',
   'app.plant.att.title': 'Signatures concernant cet enregistrement',
   'app.plant.att.nobody':
     'Personne d’autre n’a encore confirmé cet enregistrement. Un enregistrement que vous seul soutenez est une preuve plus faible qu’un enregistrement confirmé par une seconde partie. Envoyez le matériel à un laboratoire : sa confirmation est inscrite sous sa clé, pas la vôtre.',

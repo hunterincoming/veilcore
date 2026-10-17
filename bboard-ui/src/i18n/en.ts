@@ -9,7 +9,7 @@ export const en = {
   'nav.language': 'Language',
   'nav.main': 'Main',
   'footer.about':
-    "An open record format for plant and animal genetics. Recomputing a record's fingerprint needs only SHA-256 and the open specification. Its date comes from one transaction on Midnight: the check page looks it up itself when it can reach Midnight, and otherwise says the date is our registry's report. Looking a record up by its identifier on this site uses our server.",
+    "An open record format for plant and animal genetics. Recomputing a record's proof code needs only SHA-256 and the open specification. Its date comes from one transaction on Midnight: the check page looks it up itself when it can reach Midnight, and otherwise says the date is our registry's report. Looking a record up by its identifier on this site uses our server.",
   'footer.documents': 'Documents',
   'footer.spec': 'Specification',
   'footer.partners': 'Require a record',
@@ -95,18 +95,18 @@ export const en = {
   'm.hero.title1': 'Date your record.',
   'm.hero.title2': 'Keep your genetics.',
   'm.hero.lede':
-    'For breeders, seed companies and labs working with plant and animal genetics: give your records a date nobody can backdate. Your genetic data stays on your computer. Only a fingerprint goes on Midnight, which dates it.',
+    'For breeders, seed companies and labs working with plant and animal genetics: give your records a date nobody can backdate. Your genetic data stays on your computer. Only a proof code goes on Midnight, which dates it.',
   'm.hero.how': 'How it works',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Bred by',
   'm.hero.bredByDefault': 'Your name here',
-  'm.hero.demoLabel': 'Live fingerprint demo',
-  'm.hero.fpUpdated': 'Fingerprint updated',
+  'm.hero.demoLabel': 'Live proof code demo',
+  'm.hero.fpUpdated': 'Proof code updated',
   // The two halves of the fingerprint box.
   'm.hero.typed': 'What you type',
   'm.hero.goes': 'What goes on Midnight',
   'm.hero.note':
-    'Type in either box; nothing is sent. The red line at the bottom is the fingerprint, the part that goes on Midnight. Nobody can work back from it to what you typed.',
+    'Type in either box; nothing is sent. The red line at the bottom is the proof code, the part that goes on Midnight. Nobody can work back from it to what you typed.',
 
   // Phones only: the note in one line.
   'm.hero.noteShort': 'Only the red line goes on Midnight.',
@@ -141,14 +141,14 @@ export const en = {
   'm.step1.n': '01 · Record',
   'm.step1.title': 'Write it down',
   'm.step1.text':
-    "What it is and where it came from. VeilCore's server stores the details locked, and we don't have the key. The name you give it isn't locked: anyone with the record's link sees it.",
-  'm.step2.n': '02 · Fingerprint',
-  'm.step2.title': 'Fingerprint it',
+    "What it is and where it came from. VeilCore's server stores the details locked, the name included, and we don't have the key. Your check links carry the name after the #, for the people you send them to.",
+  'm.step2.n': '02 · Proof code',
+  'm.step2.title': 'Make its proof code',
   'm.step2.text': 'Done on your computer. Genetic data never leaves it.',
   'm.step3.n': '03 · Anchor',
   'm.step3.title': 'Get a date',
   'm.step3.text':
-    'Only the fingerprint goes on Midnight, in a batch with others. The date is the block the batch lands in: it shows the record existed by then.',
+    'Only the proof code goes on Midnight, in a batch with others. The date is the block the batch lands in: it shows the record existed by then.',
   'm.step4.n': '04 · Verify',
   'm.step4.title': 'Show it later',
   'm.step4.text': 'Give it to a buyer, examiner or court. They can check it, free, with no account.',
@@ -206,7 +206,7 @@ export const en = {
   'm.open.title2': 'disappears.',
   'm.open.1t': 'The dates stay.',
   'm.open.1p':
-    "A batch fingerprint anchored on Midnight's main network, or stamped on Bitcoin, can't be removed by anyone, us included.",
+    "A batch's code anchored on Midnight's main network, or stamped on Bitcoin, can't be removed by anyone, us included.",
   'm.open.1link': 'All three implementations →',
   'm.open.2t': 'Keep one file.',
   'm.open.2p':
@@ -230,12 +230,12 @@ export const en = {
     "Once records are anchored, anyone can check which was anchored first. Pair your lab report, so a later test can be compared with it. When you send material out, the receiver signs a receipt with their own key. A record is evidence, not a registration: it shows you had this record by that date, not that you had the plant, and doesn't settle a dispute on its own.",
   'm.faq.2q': 'Do I need crypto or a wallet?',
   'm.faq.2a':
-    'No. Making a record in the demo and checking any record need no wallet, no sign-up and nothing to buy. Your browser keeps a random key that finds your demo records on our server. The fingerprint goes on Midnight, a blockchain built for privacy. You never deal with it directly.',
+    'No. Making a record in the demo and checking any record need no wallet, no sign-up and nothing to buy. Your browser keeps a random key that finds your demo records on our server. The proof code goes on Midnight, a network built for privacy. You never deal with it directly.',
   'm.faq.3q': 'Will it stand up in a dispute?',
   'm.faq.3link': 'Records in evidence →',
   'm.faq.4q': 'What do you see of my data?',
   'm.faq.4a':
-    "Your genetic data: nothing. It's fingerprinted on your computer, as are the files you add, and they aren't uploaded. A lab report reaches our server only when a lab sends it back to you: it's locked so only you can open it, and deleted after 180 days. The details you type (breeder, dates, notes, agreement terms) and your files' names are stored on our server locked, and we don't have the key. We can read each record's name, which its public check page shows, its fingerprint, and anything you choose to show. The sample details you and a lab write for a delivery are stored locked too, with a key that travels in the lab code, and we don't have it. Labs and developers can seal records inside their own systems, so only the fingerprint goes out.",
+    "Your genetic data: nothing. Your computer reads the files you add to make a code from each, and they aren't uploaded. A lab report reaches our server only when a lab sends it back to you: it's locked so only you can open it, and deleted after 180 days. The details you type (the record's name, breeder, dates, notes, agreement terms) and your files' names are stored on our server locked, and we don't have the key. We can read each record's proof code, and anything you choose to show. The sample details you and a lab write for a delivery are stored locked too, with a key that travels in the lab code, and we don't have it. Labs and developers can seal records inside their own systems, so only the proof code goes out.",
   'm.faq.4link1': 'What the demo keeps →',
   'm.faq.4link2': 'Integration guide →',
   'm.faq.6q': 'What does it cost?',
@@ -332,13 +332,13 @@ export const en = {
   'm.tech.show': 'Show the detail',
   'm.tech.check.t': 'Checking a record by hand',
   'm.tech.check.p':
-    "Recomputing a record's fingerprint needs only SHA-256 and the open spec. Its inclusion proof ties that fingerprint to a batch fingerprint anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up. The check page looks that transaction up on Midnight itself when it can reach Midnight; otherwise it says the date is our registry's report, and you can look it up on a Midnight explorer. Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release.",
+    "Recomputing a record's proof code needs only SHA-256 and the open spec. Its inclusion proof ties that proof code to a batch's code anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up. The check page looks that transaction up on Midnight itself when it can reach Midnight; otherwise it says the date is our registry's report, and you can look it up on a Midnight explorer. Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release.",
   'm.tech.impl.t': 'One spec, three implementations',
   'm.tech.impl.p':
     "Free to implement, permanently. TypeScript, Python and Rust agree on all 100 record-format test vectors on GitHub, and anyone can run them; a 101st, for report pairing, isn't in Rust yet. One author wrote all three, and the TypeScript one is on npm as 0.15.0. One written by someone else is the test we most want.",
   'm.tech.btc.t': 'The Bitcoin stamp',
   'm.tech.btc.p':
-    "Our registry stamps each sealed batch's fingerprint on Bitcoin with OpenTimestamps. The first reached Bitcoin block 971004 on 11 October. Checked on 15 October against two block explorers: the stamp leads to Bitcoin blocks 971004 and 971005. A check with the official OpenTimestamps tool and a full Bitcoin node is still to do. The stamp file is the batch's .ots file: Download Bitcoin stamp file, on the plant's page. The test site's registry doesn't stamp on Bitcoin.",
+    "Our registry stamps each sealed batch's code on Bitcoin with OpenTimestamps. The first reached Bitcoin block 971004 on 11 October. Checked on 15 October against two block explorers: the stamp leads to Bitcoin blocks 971004 and 971005. A check with the official OpenTimestamps tool and a full Bitcoin node is still to do. The stamp file is the batch's .ots file: Download Bitcoin stamp file, on the plant's page. The test site's registry doesn't stamp on Bitcoin.",
   'm.tech.dna.t': 'Report pairing and lab signatures',
   'm.tech.dna.p':
     "When a DNA report pairing goes through VeilCore's contract on Midnight, it is dated: it shows that whoever controlled the record at that date had that report, or its SHA-256, by then. What goes on chain is tied to the record and hides the report, so nobody can copy the pairing to their own record. A lab's signature on a locked report covers that exact file and the record it's about.",
@@ -424,7 +424,7 @@ export const en = {
   'm.verify.lede':
     'Enter the record identifier printed on a certificate or shared with you. You will see what its holder chose to share, and what this page could check itself: whether the record is in a sealed batch, and whether any lab signatures verify.',
   'm.verify.what':
-    "A VeilCore record describes genetic material without including the genetics. Its check page shows its name and what its holder chose to share. Only its fingerprint goes on Midnight, and it gets a date once it's anchored there. Checking one is free and needs no account.",
+    "A VeilCore record describes genetic material without including the genetics. Its check page shows what its holder chose to share, and its name when the holder's link carries it. Only its proof code goes on Midnight, and it gets a date once it's anchored there. Checking one is free and needs no account.",
   'm.verify.home': 'What is VeilCore? →',
   'm.verify.field': 'Record identifier',
   'm.verify.go': 'Check it',
@@ -463,10 +463,10 @@ export const en = {
     "This note covers the demo on this site. It is a test, on Midnight's test network. Please use made-up data.",
   'm.privacy.stored.title': 'Stored on our test server',
   'm.privacy.stored.text':
-    "Your records and agreements, locked by your browser before they are sent: breeder, species, dates, notes, reference numbers, parents, the fingerprints and file names of the photos and lab reports you add, agreement terms and counterparties, the quantity and note you send a lab, the sample details you and the lab write (sample ID, seal number, where and when it was taken, a witness, how it arrived), the names you give recipients, and each record's own secret keys. Our server stores them locked, and we don't have the key: it is in your browser and your backup file. The sample details' key also travels in the lab code, so the lab can open them. Our server can read: each record's ID; the name you give it, which anyone with a check link sees; its fingerprint, key binding and profile; which fields a correction changed, and when; when the server first saw it; how many times it was saved, and when it was last saved; roughly how large it is (its size bucket); what you choose to show on its check page; the parent links you register; and its batch and date stamp. If an agreement has a royalty on offspring, our server can read which record it covers and when it took effect, and anyone can ask whether that record carries one: the lineage check needs it. For a delivery: which record it came from, which holder account received it, when it was received, and a tag in place of the recipient's name. A delivery made before tags has the name as typed, until the registry's purge replaces it. For labs: the public signing key and the attestations they publish. Requests to prove a record's key, with the name the asker typed, kept for 7 days. Your holder key, which your browser sends with every save so the server can find your records; the server keeps only a one-way digest of it. Records saved before locking stay readable to us until your browser locks them. Sample details written before sealing stay readable to us until the registry removes them. Our off-site backups made before then keep a readable copy of both until we destroy the key that opens them. Locked lab reports a lab sends you: stored locked, without the key, and deleted after 180 days. The server is VeilCore's test registry, hosted on Railway.",
+    "Your records and agreements, locked by your browser before they are sent: each record's name, breeder, species, dates, notes, reference numbers, parents, the codes and file names of the photos and lab reports you add, agreement terms and counterparties, the quantity and note you send a lab, the sample details you and the lab write (sample ID, seal number, where and when it was taken, a witness, how it arrived), the names you give recipients, and each record's own secret keys. Our server stores them locked, and we don't have the key: it is in your browser and your backup file. The sample details' key also travels in the lab code, so the lab can open them. A record's name also travels in the check links you make, after the #, which a browser never sends to any server. Our server can read: each record's ID; its proof code, key binding and profile type; its correction links (which record a correction replaces, which fields it changed, and when); when the server first saw it; how many times it was saved, and when it was last saved; roughly how large it is (its size bucket); what you choose to show on its check page (its name, if you choose to show it, and whether a DNA report is saved, as a code that says nothing about the file without the key in your check link); the parent links you register; and its batch and date stamp. If an agreement has a royalty on offspring, our server can read which record it covers and when it took effect, and anyone can ask whether that record carries one: the lineage check needs it. For a delivery: which record it came from, which holder account received it, when it was received, and a tag in place of the recipient's name. A delivery made before tags has the name as typed, until the registry's purge replaces it. For labs: the public signing key and the attestations they publish. Requests to prove a record's key, with the name the asker typed, kept for 7 days. Your holder key, which your browser sends with every save so the server can find your records; the server keeps only a one-way digest of it. Records saved before locking stay readable to us until your browser locks them, and a record's name saved before names were locked stays readable to us until your browser saves the record again. Sample details written before sealing stay readable to us until the registry removes them. Our off-site backups made before then keep a readable copy of all of these until we destroy the key that opens them. Locked lab reports a lab sends you: stored locked, without the key, and deleted after 180 days. The server is VeilCore's test registry, hosted on Railway.",
   'm.privacy.local.title': 'Never leaves your browser',
   'm.privacy.local.text':
-    'Genetic data, and the lab reports, DNA reports and photos you add. Your browser reads them to compute their fingerprints; the files themselves are never uploaded. A lab report reaches our server only when a lab sends it back to you, locked so only you can open it.',
+    'Genetic data, and the lab reports, DNA reports and photos you add. Your browser reads them to make a code from each; the files themselves are never uploaded. A lab report reaches our server only when a lab sends it back to you, locked so only you can open it.',
   'm.privacy.test.title': 'A test network',
   'm.privacy.test.text':
     "The demo uses Midnight's test network, not the live one. Demo data may be deleted when the test network is reset.",
@@ -495,14 +495,19 @@ export const en = {
   'm.privacy.contact': 'Questions: hunter@veilcore.org',
   'title.checkSite': 'Check this site',
   'm.privacy.code.title': "The app's code",
-  'm.privacy.code.text': "VeilCore serves the app's code. Each release's files are listed publicly, so anyone can check the site matches its published code.",
+  'm.privacy.code.text':
+    "VeilCore serves the app's code. Each release's files are listed publicly, so anyone can check the site matches its published code.",
   'm.checksite.title': 'Check this site',
-  'm.checksite.lede': "VeilCore serves the app's code. Each release's files are listed publicly, so anyone can check the site matches its published code.",
+  'm.checksite.lede':
+    "VeilCore serves the app's code. Each release's files are listed publicly, so anyone can check the site matches its published code.",
   'm.checksite.reading': 'Reading which release this is…',
-  'm.checksite.noRelease': 'This copy of the site wasn’t published by a release deploy, so there is no list to check it against.',
+  'm.checksite.noRelease':
+    'This copy of the site wasn’t published by a release deploy, so there is no list to check it against.',
   'm.checksite.release': 'This copy of the site says it is release {commit} on {network}, made {date}.',
-  'm.checksite.how': 'The check fetches every file the release lists from this site, works out its SHA-256 in your browser, and compares it with the list.',
-  'm.checksite.trust': 'This page runs on the site it checks, so a site that lies could lie here too. To check without trusting VeilCore, download the list from the public code and use it below, or run {command} from a copy of the code.',
+  'm.checksite.how':
+    'The check fetches every file the release lists from this site, works out its SHA-256 in your browser, and compares it with the list.',
+  'm.checksite.trust':
+    'This page runs on the site it checks, so a site that lies could lie here too. To check without trusting VeilCore, download the list from the public code and use it below, or run {command} from a copy of the code.',
   'm.checksite.listLink': 'This release’s list in the public code',
   'm.checksite.useSite': 'Check against the list this site serves',
   'm.checksite.useFile': 'Or check against a list you downloaded:',
@@ -513,7 +518,8 @@ export const en = {
   'm.checksite.missing': 'Missing: {path}',
   'm.checksite.noList': 'That isn’t a release list.',
   'm.checksite.otherList': 'That list is for another release, not the one this site says it is.',
-  'm.checksite.uncommitted': 'This release was built from code with changes not yet committed, so its files are not exactly the published code at that commit.',
+  'm.checksite.uncommitted':
+    'This release was built from code with changes not yet committed, so its files are not exactly the published code at that commit.',
 } as const;
 
 export type StringKey = keyof typeof en;

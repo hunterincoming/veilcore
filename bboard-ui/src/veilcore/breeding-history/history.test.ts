@@ -516,7 +516,7 @@ describe('breedingHistoryFiles: the zip', () => {
     const top = historyFolder(child.id);
     expect(Object.keys(out.files).some((p) => p.includes(`${tampered.id}-evidence`))).toBe(false);
     const page = strFromU8(out.files[`${top}/breeding-history.html`]);
-    expect(page).toContain('No evidence bundle: This record’s fingerprint doesn’t match its details');
+    expect(page).toContain('No evidence bundle: This record’s proof code doesn’t match its details');
     expect(page).not.toContain('Nothing was downloaded');
     expect(page).toContain('Not sealed, so nothing dates it.');
     expect(out.facts.get(unsealed.id)?.stamp.kind).toBe('unsealed');

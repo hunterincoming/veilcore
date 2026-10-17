@@ -80,7 +80,7 @@ export const verify = {
   'app.verify.sum.statements.other': '{count} × déclaration signée',
   'app.verify.sum.what': ' ({list})',
   'app.verify.sum.comma': ', ',
-  'app.verify.sum.bound': 'l’empreinte du lien correspond à celle que signale le registre',
+  'app.verify.sum.bound': 'le code de preuve du lien correspond à celui que signale le registre',
   'app.verify.sum.inBatch': 'l’enregistrement est dans son lot',
   'app.verify.sum.signatures.one': 'une signature le concernant{what}',
   'app.verify.sum.signatures.other': '{count} signatures le concernant{what}',
@@ -90,9 +90,9 @@ export const verify = {
   'app.verify.sum.checked':
     'Vérifié dans ce navigateur : {list}. Tout le reste provient du registre de VeilCore.{unbound}',
   'app.verify.sum.unbound':
-    ' Ce lien ne nomme aucune empreinte : ces vérifications ont donc utilisé celle du registre, et rien n’est coché.',
+    ' Ce lien ne nomme aucun code de preuve : ces vérifications ont donc utilisé celui du registre, et rien n’est coché.',
   'app.verify.heading.nothingSealed': 'Enregistrement trouvé, rien de scellé',
-  'app.verify.heading.unbound': 'Ce que signale le registre : ce lien n’a pas d’empreinte à comparer',
+  'app.verify.heading.unbound': 'Ce que signale le registre : ce lien n’a pas de code de preuve à comparer',
   'app.verify.heading.checking': 'Vérification…',
   'app.verify.heading.reported': 'Horodatage signalé par le registre, non vérifié ici',
   'app.verify.heading.pending': 'Dans un lot, pas encore d’horodatage',
@@ -101,25 +101,26 @@ export const verify = {
   'app.verify.kindReceipt': 'Accusé de réception d’un laboratoire pour un échantillon',
   'app.verify.kindReport': 'Rapport de laboratoire (SHA-256 du fichier {sha})',
   'app.verify.kindStatement': 'Déclaration signée',
-  'app.verify.forWhom': 'Pour l’empreinte que signale le registre : ',
+  'app.verify.forWhom': 'Pour le code de preuve que signale le registre : ',
   'app.verify.homeAria': 'Accueil VeilCore',
   'app.verify.intro':
-    'Cette page vérifie un enregistrement VeilCore : une empreinte de la description d’un matériel génétique, datée une fois ancrée, publiée sans la génétique. La vérification est gratuite et ne demande aucun compte. <link>Qu’est-ce que VeilCore ?</link>',
+    'Cette page vérifie un enregistrement VeilCore : un code de preuve de la description d’un matériel génétique, daté une fois ancré, publié sans la génétique. La vérification est gratuite et ne demande aucun compte. <link>Qu’est-ce que VeilCore ?</link>',
   'app.verify.checkingRecord': 'Vérification de l’enregistrement',
   'app.verify.notFound': 'Aucun enregistrement trouvé pour {id}',
   'app.verify.notFoundText':
     'Ce lien de vérification ne correspond à aucun enregistrement du registre. Vérifiez que le lien est complet et non modifié.',
   'app.verify.goHome': 'Aller sur veilcore.org',
-  'app.verify.mismatch.title': 'L’empreinte de ce lien ne correspond pas à l’enregistrement : rien n’a été vérifié',
+  'app.verify.mismatch.title':
+    'Le code de preuve de ce lien ne correspond pas à l’enregistrement : rien n’a été vérifié',
   'app.verify.mismatch.dontRely': 'Ne vous fiez pas à cette page.',
   'app.verify.mismatch.text':
     '{start}mais le registre signale {reported} pour {id}. Sa réponse ne concerne pas l’enregistrement que nomme le lien : cette page n’a donc rien vérifié et n’en affiche rien. Demandez l’enregistrement lui-même à la personne qui vous a donné le lien.',
-  'app.verify.mismatch.linked': 'Ce lien a été créé pour l’enregistrement d’empreinte {fp}, ',
+  'app.verify.mismatch.linked': 'Ce lien a été créé pour l’enregistrement de code de preuve {fp}, ',
   'app.verify.mismatch.invalid':
-    'Ce lien contient une empreinte non valide (elle devrait compter 64 caractères hexadécimaux) ; elle a peut-être été tronquée ou modifiée, ',
-  'app.verify.mismatch.reportedFp': 'l’empreinte {fp}',
-  'app.verify.mismatch.noFp': 'aucune empreinte',
-  'app.verify.mismatch.inLink': 'Empreinte dans le lien : {fp}',
+    'Ce lien contient un code de preuve non valide (il devrait compter 64 caractères hexadécimaux) ; il a peut-être été tronqué ou modifié, ',
+  'app.verify.mismatch.reportedFp': 'le code de preuve {fp}',
+  'app.verify.mismatch.noFp': 'aucun code de preuve',
+  'app.verify.mismatch.inLink': 'Code de preuve dans le lien : {fp}',
   'app.verify.mismatch.chip':
     'La réponse du registre ne correspond pas à ce lien — rien sur cette page n’a été vérifié',
   'app.verify.nameTyped': 'Nom, tel que le détenteur l’a saisi : ',
@@ -127,18 +128,18 @@ export const verify = {
   'app.verify.noCommitment':
     'Cet enregistrement ne porte aucun engagement : rien ne peut donc y être vérifié. Il existe dans le registre, c’est tout.',
   'app.verify.boundFact':
-    'Ce lien a été créé pour l’empreinte {fp}, et le registre signale la même empreinte pour cet enregistrement{firstSeen}. Les champs qu’elle couvre ne sont pas partagés : cette page ne peut donc pas la recalculer.',
+    'Ce lien a été créé pour le code de preuve {fp}, et le registre signale le même code de preuve pour cet enregistrement{firstSeen}. Les champs qu’il couvre ne sont pas partagés : cette page ne peut donc pas le recalculer.',
   'app.verify.firstStored': ', conservé pour la première fois le {date}',
   'app.verify.unboundFact':
-    'Le registre signale un enregistrement d’empreinte {fp}{firstSeen}. Les champs qu’elle couvre ne sont pas partagés : cette page ne peut donc pas la recalculer.',
+    'Le registre signale un enregistrement de code de preuve {fp}{firstSeen}. Les champs qu’il couvre ne sont pas partagés : cette page ne peut donc pas le recalculer.',
   'app.verify.noFpInLink':
-    'Ce lien ne nomme pas l’empreinte de l’enregistrement : cette page ne peut donc pas dire si le registre a répondu avec l’empreinte de cet enregistrement ou celle d’un autre. Rien ci-dessous n’est coché. Un lien créé maintenant depuis l’enregistrement se termine par ?fp=… ; demandez-en un au détenteur.',
+    'Ce lien ne nomme pas le code de preuve de l’enregistrement : cette page ne peut donc pas dire si le registre a répondu avec le code de preuve de cet enregistrement ou celui d’un autre. Rien ci-dessous n’est coché. Un lien créé maintenant depuis l’enregistrement se termine par ?fp=… ; demandez-en un au détenteur.',
   'app.verify.noStampYet':
     'Pas encore d’horodatage, pour autant que cette page puisse le dire : il n’y a ici aucune preuve que l’enregistrement est dans un lot horodaté, il n’y a donc rien à vérifier.',
   'app.verify.batchBound':
-    'Vérifié dans ce navigateur : cette empreinte est dans le lot {batch}, et son chemin mène à la racine du lot {root}….',
+    'Vérifié dans ce navigateur : ce code de preuve est dans le lot {batch}, et son chemin mène à la racine du lot {root}….',
   'app.verify.batchUnbound':
-    '{forWhom}elle est dans le lot {batch}, et son chemin mène à la racine du lot {root}…. Vérifié ici, mais avec l’empreinte du registre lui-même.',
+    '{forWhom}il est dans le lot {batch}, et son chemin mène à la racine du lot {root}…. Vérifié ici, mais avec le code de preuve du registre lui-même.',
   'app.verify.rootReported':
     'Le registre indique que cette racine a été inscrite sur {network}{tx}. Sa date : {date}.{notLooked}{test}',
   'app.verify.notLooked': ' Cette page ne l’a pas consultée ; faites-le avant de vous fier à la date.',
@@ -162,7 +163,7 @@ export const verify = {
   'app.verify.unavailable':
     'Ce lien demandait des informations sur le détenteur plutôt que sur cet enregistrement ({list}). Le registre n’y répond jamais.',
   'app.verify.footer':
-    'Empreinte {fp} · seules les informations ci-dessus ont été envoyées · aucune génétique divulguée',
+    'Code de preuve {fp} · seules les informations ci-dessus ont été envoyées · aucune génétique divulguée',
   'app.verify.mark.checked': 'Vérifié dans ce navigateur',
   'app.verify.mark.reported': 'Non vérifié ici',
   'app.verify.mark.failed': 'Échec ou retrait',
@@ -191,18 +192,18 @@ export const verify = {
   'app.verify.sharedNothing': 'Le détenteur n’a rien partagé au-delà des éléments de base ci-dessus.',
   'app.verify.notShared': 'Non partagé par le détenteur : {list}.',
   'app.verify.alwaysShown':
-    'Toujours affichés : le nom du cultivar, l’identifiant de l’enregistrement, son empreinte ({fp}), la date à laquelle le registre l’a conservé pour la première fois, et ce que cette page a pu vérifier sur son lot et sur les attestations signées (un accusé de réception de laboratoire, un rapport de laboratoire).',
+    'Toujours affichés : l’identifiant de l’enregistrement, son code de preuve ({fp}), la date à laquelle le registre l’a conservé pour la première fois, et ce que cette page a pu vérifier sur son lot et sur les attestations signées (un accusé de réception de laboratoire, un rapport de laboratoire). Le nom, seulement quand le lien le porte (les vôtres le portent, sauf si vous l’enlevez) ou que vous choisissez de le montrer.',
   'app.verify.ex.title': 'Exemple : un enregistrement inventé.',
   'app.verify.ex.intro':
     'Ceci montre à quoi ressemble la page de vérification d’un enregistrement, avec une note sous chaque ligne. Rien n’y a été consulté ni vérifié.',
   'app.verify.ex.status': 'Exemple · dans un lot scellé · ancrage signalé',
   'app.verify.ex.name': 'Harbour Mist (exemple)',
   'app.verify.ex.fact1':
-    'Ce lien a été créé pour l’empreinte 3f9a0c41e2b7…, et le registre signale la même empreinte pour cet enregistrement.',
+    'Ce lien a été créé pour le code de preuve 3f9a0c41e2b7…, et le registre signale le même code de preuve pour cet enregistrement.',
   'app.verify.ex.note1':
-    'L’empreinte est dans le lien lui-même : on ne peut donc pas tromper la page pour lui faire afficher les vérifications d’un autre enregistrement.',
+    'Le code de preuve est dans le lien lui-même : on ne peut donc pas tromper la page pour lui faire afficher les vérifications d’un autre enregistrement.',
   'app.verify.ex.fact2':
-    'Vérifié dans ce navigateur : cette empreinte est dans le lot 41, et son chemin mène à la racine du lot.',
+    'Vérifié dans ce navigateur : ce code de preuve est dans le lot 41, et son chemin mène à la racine du lot.',
   'app.verify.ex.note2':
     'Sur un vrai enregistrement, cette ligne porte une coche : votre propre navigateur vérifie que l’enregistrement est dans le lot.',
   'app.verify.ex.fact3':

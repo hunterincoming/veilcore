@@ -63,13 +63,13 @@ export const de: Strings = {
   'm.hero.cultivar': 'Sorte',
   'm.hero.bredBy': 'Gezüchtet von',
   'm.hero.bredByDefault': 'Ihr Name',
-  'm.hero.demoLabel': 'Live-Demo des Fingerabdrucks',
-  'm.hero.fpUpdated': 'Fingerabdruck aktualisiert',
+  'm.hero.demoLabel': 'Live-Demo des Prüfcodes',
+  'm.hero.fpUpdated': 'Prüfcode aktualisiert',
   'm.hero.typed': 'Was Sie eingeben',
   'm.hero.goes': 'Was auf Midnight kommt',
   'm.foot.demo': 'Demo',
   'm.step1.n': '01 · Datensatz',
-  'm.step2.n': '02 · Fingerabdruck',
+  'm.step2.n': '02 · Prüfcode',
   'm.step3.n': '03 · Verankern',
   'm.step4.n': '04 · Prüfen',
   'm.step4.title': 'Später vorlegen',
@@ -170,10 +170,10 @@ export const de: Strings = {
     'Dieser Hinweis gilt für die Demo auf dieser Website. Sie ist ein Test, auf dem Testnetzwerk von Midnight. Bitte verwenden Sie erfundene Daten.',
   'm.privacy.stored.title': 'Auf unserem Testserver gespeichert',
   'm.privacy.stored.text':
-    'Ihre Datensätze und Vereinbarungen, von Ihrem Browser verschlossen, bevor sie gesendet werden: Züchter, Art, Daten, Notizen, Referenznummern, Eltern, die Fingerabdrücke und Dateinamen der Fotos und Laborberichte, die Sie hinzufügen, Vertragsbedingungen und Vertragspartner, Menge und Notiz, die Sie einem Labor schicken, die Probenangaben, die Sie und das Labor schreiben (Proben-ID, Siegelnummer, wo und wann die Probe genommen wurde, ein Zeuge, wie sie ankam), die Namen, die Sie Empfängern geben, und die geheimen Schlüssel jedes Datensatzes. Unser Server speichert sie verschlossen, und wir haben den Schlüssel nicht: Er liegt in Ihrem Browser und in Ihrer Sicherungsdatei. Der Schlüssel der Probenangaben steckt auch im Laborcode, damit das Labor sie öffnen kann. Lesen kann unser Server: die ID jedes Datensatzes; den Namen, den Sie ihm geben und den jeder mit einem Prüflink sieht; seinen Fingerabdruck, seine Schlüsselbindung und sein Profil; welche Felder eine Korrektur geändert hat und wann; wann der Server ihn zuerst gesehen hat; wie oft er gespeichert wurde und wann zuletzt; ungefähr wie groß er ist (seine Größenstufe); was Sie auf seiner Prüfseite zeigen möchten; die Elternverknüpfungen, die Sie registrieren; und seinen Stapel mit dessen Datumsstempel. Hat eine Vereinbarung eine Lizenzgebühr auf Nachkommen, kann unser Server lesen, welchen Datensatz sie betrifft und seit wann sie gilt, und jeder kann fragen, ob dieser Datensatz eine trägt: Die Abstammungsprüfung braucht das. Bei einer Lieferung: aus welchem Datensatz sie stammt, welches Inhaberkonto sie empfangen hat, wann sie empfangen wurde und ein Kennzeichen anstelle des Empfängernamens. Bei einer Lieferung von vor den Kennzeichen steht der Name so da, wie er eingegeben wurde, bis die Bereinigung des Registers ihn ersetzt. Bei Laboren: der öffentliche Signaturschlüssel und die Bestätigungen, die sie veröffentlichen. Anfragen, den Schlüssel eines Datensatzes nachzuweisen, mit dem Namen, den der Fragende eingegeben hat, 7 Tage lang. Ihr Inhaberschlüssel, den Ihr Browser bei jedem Speichern mitsendet, damit der Server Ihre Datensätze findet; der Server behält davon nur einen Einweg-Hash. Datensätze, die vor dem Verschließen gespeichert wurden, bleiben für uns lesbar, bis Ihr Browser sie verschließt. Probenangaben, die vor dem Verschließen geschrieben wurden, bleiben für uns lesbar, bis das Register sie entfernt. Unsere externen Sicherungen von davor behalten eine lesbare Kopie von beidem, bis wir den Schlüssel vernichten, der sie öffnet. Verschlossene Laborberichte, die ein Labor Ihnen schickt: verschlossen gespeichert, ohne den Schlüssel, und nach 180 Tagen gelöscht. Der Server ist das Testregister von VeilCore, gehostet bei Railway.',
+    'Ihre Datensätze und Vereinbarungen, von Ihrem Browser verschlossen, bevor sie gesendet werden: der Name jedes Datensatzes, Züchter, Art, Daten, Notizen, Referenznummern, Eltern, die Prüfcodes und Dateinamen der Fotos und Laborberichte, die Sie hinzufügen, Vertragsbedingungen und Vertragspartner, Menge und Notiz, die Sie einem Labor schicken, die Probenangaben, die Sie und das Labor schreiben (Proben-ID, Siegelnummer, wo und wann die Probe genommen wurde, ein Zeuge, wie sie ankam), die Namen, die Sie Empfängern geben, und die geheimen Schlüssel jedes Datensatzes. Unser Server speichert sie verschlossen, und wir haben den Schlüssel nicht: Er liegt in Ihrem Browser und in Ihrer Sicherungsdatei. Der Schlüssel der Probenangaben steckt auch im Laborcode, damit das Labor sie öffnen kann. Der Name eines Datensatzes steckt außerdem in den Prüflinks, die Sie erstellen, nach dem #, das ein Browser nie an einen Server sendet. Lesen kann unser Server: die ID jedes Datensatzes; seinen Prüfcode, seine Schlüsselbindung und seine Profilart; seine Korrekturverweise (welchen Datensatz eine Korrektur ersetzt, welche Felder sie geändert hat und wann); wann der Server ihn zuerst gesehen hat; wie oft er gespeichert wurde und wann zuletzt; ungefähr wie groß er ist (seine Größenstufe); was Sie auf seiner Prüfseite zeigen möchten (seinen Namen, wenn Sie ihn zeigen möchten, und ob ein DNA-Bericht gespeichert ist, als Code, der ohne den Schlüssel in Ihrem Prüflink nichts über die Datei verrät); die Elternverknüpfungen, die Sie registrieren; und seinen Stapel mit dessen Datumsstempel. Hat eine Vereinbarung eine Lizenzgebühr auf Nachkommen, kann unser Server lesen, welchen Datensatz sie betrifft und seit wann sie gilt, und jeder kann fragen, ob dieser Datensatz eine trägt: Die Abstammungsprüfung braucht das. Bei einer Lieferung: aus welchem Datensatz sie stammt, welches Inhaberkonto sie empfangen hat, wann sie empfangen wurde und ein Kennzeichen anstelle des Empfängernamens. Bei einer Lieferung von vor den Kennzeichen steht der Name so da, wie er eingegeben wurde, bis die Bereinigung des Registers ihn ersetzt. Bei Laboren: der öffentliche Signaturschlüssel und die Bestätigungen, die sie veröffentlichen. Anfragen, den Schlüssel eines Datensatzes nachzuweisen, mit dem Namen, den der Fragende eingegeben hat, 7 Tage lang. Ihr Inhaberschlüssel, den Ihr Browser bei jedem Speichern mitsendet, damit der Server Ihre Datensätze findet; der Server behält davon nur einen Einweg-Hash. Datensätze, die vor dem Verschließen gespeichert wurden, bleiben für uns lesbar, bis Ihr Browser sie verschließt, und der Name eines Datensatzes, der gespeichert wurde, bevor Namen verschlossen wurden, bleibt für uns lesbar, bis Ihr Browser den Datensatz erneut speichert. Probenangaben, die vor dem Verschließen geschrieben wurden, bleiben für uns lesbar, bis das Register sie entfernt. Unsere externen Sicherungen von davor behalten eine lesbare Kopie von alledem, bis wir den Schlüssel vernichten, der sie öffnet. Verschlossene Laborberichte, die ein Labor Ihnen schickt: verschlossen gespeichert, ohne den Schlüssel, und nach 180 Tagen gelöscht. Der Server ist das Testregister von VeilCore, gehostet bei Railway.',
   'm.privacy.local.title': 'Verlässt nie Ihren Browser',
   'm.privacy.local.text':
-    'Genetische Daten sowie die Laborberichte, DNA-Berichte und Fotos, die Sie hinzufügen. Ihr Browser liest sie, um ihre Fingerabdrücke zu berechnen; die Dateien selbst werden nie hochgeladen. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt, verschlossen, sodass nur Sie ihn öffnen können.',
+    'Genetische Daten sowie die Laborberichte, DNA-Berichte und Fotos, die Sie hinzufügen. Ihr Browser liest sie, um aus jeder einen Code zu machen; die Dateien selbst werden nie hochgeladen. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt, verschlossen, sodass nur Sie ihn öffnen können.',
   'm.privacy.test.title': 'Ein Testnetzwerk',
   'm.privacy.test.text':
     'Die Demo nutzt das Testnetzwerk von Midnight, nicht das Live-Netzwerk. Demodaten können gelöscht werden, wenn das Testnetzwerk zurückgesetzt wird.',
@@ -202,7 +202,7 @@ export const de: Strings = {
   'm.privacy.contact': 'Fragen: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher und tierischer Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand zurückdatieren kann. Ihre genetischen Daten bleiben auf Ihrem Computer. Nur ein Fingerabdruck kommt auf Midnight, das ihn datiert.',
+    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher und tierischer Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand zurückdatieren kann. Ihre genetischen Daten bleiben auf Ihrem Computer. Nur ein Prüfcode kommt auf Midnight, das ihn datiert.',
   'm.for.3p':
     'Senden Sie Material mit einem Laborcode. Das Labor signiert eine Empfangsbestätigung mit seinem eigenen Schlüssel, sodass der Datensatz eine zweite Partei zeigt. Die Bestätigung ist eine echte Signatur, gespeichert im Register von VeilCore, nicht auf der Chain. Bedingungen wie „keine Vermehrung“ sind in der Web-Demo nur zum Üben.',
   'm.get.1b': 'für einen Datensatz dessen, was Sie haben, ohne Ihre Genetik zu zeigen.',
@@ -210,7 +210,7 @@ export const de: Strings = {
     'Eine Elternverknüpfung zählt nur, wenn beide Inhaber sie bestätigen. Auf dieser Website erfasst sie das Register von VeilCore, nicht die Chain.',
   'm.open.2t': 'Bewahren Sie eine Datei auf.',
   'm.open.2p':
-    'Auf der Seite Ihrer Pflanze: „Nachweispaket herunterladen“. Eine .zip-Datei mit dem Datensatz, wie er versiegelt wurde, seinem Einschlussnachweis, dem Fingerabdruck des Stapels, dem Ort, an dem der Stapel festgehalten wurde, der Bitcoin-Stempeldatei, falls es eine gibt, und einer Seite, die alles offline prüft. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Die einzelnen Dateien gibt es weiterhin unter „Technische Details“: „Datensatz exportieren“, „Inklusionsnachweis herunterladen“, „Bitcoin-Stempeldatei herunterladen“.',
+    'Auf der Seite Ihrer Pflanze: „Nachweispaket herunterladen“. Eine .zip-Datei mit dem Datensatz, wie er versiegelt wurde, seinem Einschlussnachweis, dem Prüfcode des Stapels, dem Ort, an dem der Stapel festgehalten wurde, der Bitcoin-Stempeldatei, falls es eine gibt, und einer Seite, die alles offline prüft. Ihre Sicherungsdatei enthält Ihre Schlüssel, nicht diese Dateien. Die einzelnen Dateien gibt es weiterhin unter „Technische Details“: „Datensatz exportieren“, „Inklusionsnachweis herunterladen“, „Bitcoin-Stempeldatei herunterladen“.',
   'm.faq.1a':
     'Sobald Datensätze verankert sind, kann jeder prüfen, welcher zuerst verankert wurde. Koppeln Sie Ihren Laborbericht, damit ein späterer Test damit verglichen werden kann. Wenn Sie Material versenden, signiert der Empfänger mit seinem eigenen Schlüssel eine Empfangsbestätigung. Ein Datensatz ist ein Beweismittel, keine Registrierung: Er zeigt, dass Sie diesen Datensatz zu diesem Datum hatten, nicht, dass Sie die Pflanze hatten, und entscheidet einen Streit nicht allein.',
   'm.post0.date': '4. Okt. 2026',
@@ -273,7 +273,7 @@ export const de: Strings = {
   'nav.newCultivar': 'Neuer Datensatz',
   'nav.licenses': 'Vereinbarungen',
   'footer.about':
-    'Ein offenes Datensatzformat für pflanzliche und tierische Genetik. Um den Fingerabdruck eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Datum stammt aus einer Transaktion auf Midnight: Die Prüfseite schlägt sie selbst nach, wenn sie Midnight erreicht, und sagt sonst, dass das Datum die Angabe unseres Registers ist. Wer auf dieser Website einen Datensatz über seine Kennung nachschlägt, nutzt dafür unseren Server.',
+    'Ein offenes Datensatzformat für pflanzliche und tierische Genetik. Um den Prüfcode eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Datum stammt aus einer Transaktion auf Midnight: Die Prüfseite schlägt sie selbst nach, wenn sie Midnight erreicht, und sagt sonst, dass das Datum die Angabe unseres Registers ist. Wer auf dieser Website einen Datensatz über seine Kennung nachschlägt, nutzt dafür unseren Server.',
   'm.hero.status':
     'Start im Hauptnetz von Midnight. Heute werden Datensätze in einem Testnetz von Midnight datiert, und das beweist noch nichts.',
   'm.claims.status':
@@ -287,7 +287,7 @@ export const de: Strings = {
   'm.for.2p':
     'Züchter möchten mit ihren Markern zeigen, dass eine Sorte unterscheidbar ist, und behandeln diese Marker als Geschäftsgeheimnis. Ein VeilCore-Claim beweist eine Tatsache über sie, ohne den Rest zu zeigen. Noch akzeptiert keine Prüfstelle und keine Anerkennungsstelle ihn.',
   'm.hero.note':
-    'Tippen Sie in eines der beiden Felder; nichts wird gesendet. Die rote Zeile unten ist der Fingerabdruck, der Teil, der auf Midnight kommt. Niemand kann daraus zurückrechnen, was Sie eingegeben haben.',
+    'Tippen Sie in eines der beiden Felder; nichts wird gesendet. Die rote Zeile unten ist der Prüfcode, der Teil, der auf Midnight kommt. Niemand kann daraus zurückrechnen, was Sie eingegeben haben.',
   'm.hero.noteShort': 'Nur die rote Zeile kommt auf Midnight.',
   'm.for.label': 'Wofür es da ist',
   'm.for.title1': 'Viele Streitigkeiten um Genetik laufen auf eine Frage hinaus:',
@@ -315,12 +315,12 @@ export const de: Strings = {
   'm.how.title2': 'Die Genetik bleibt bei Ihnen.',
   'm.step1.title': 'Aufschreiben',
   'm.step1.text':
-    'Was es ist und woher es stammt. Der Server von VeilCore speichert die Angaben verschlossen, und wir haben den Schlüssel nicht. Der Name, den Sie vergeben, ist nicht verschlossen: Wer den Link zum Datensatz hat, sieht ihn.',
-  'm.step2.title': 'Fingerabdruck erstellen',
+    'Was es ist und woher es stammt. Der Server von VeilCore speichert die Angaben verschlossen, auch den Namen, und wir haben den Schlüssel nicht. Ihre Prüflinks tragen den Namen nach dem #, für die Menschen, denen Sie sie schicken.',
+  'm.step2.title': 'Prüfcode erstellen',
   'm.step2.text': 'Auf Ihrem Computer. Genetische Daten verlassen ihn nie.',
   'm.step3.title': 'Ein Datum bekommen',
   'm.step3.text':
-    'Nur der Fingerabdruck kommt auf Midnight, in einem Stapel mit anderen. Das Datum ist der Block, in dem der Stapel landet: Er zeigt, dass der Datensatz bis dahin existierte.',
+    'Nur der Prüfcode kommt auf Midnight, in einem Stapel mit anderen. Das Datum ist der Block, in dem der Stapel landet: Er zeigt, dass der Datensatz bis dahin existierte.',
   'm.step4.text':
     'Geben Sie ihn einem Käufer, einer Prüfstelle oder einem Gericht. Dort kann man ihn kostenlos prüfen, ohne Konto.',
   'm.claims.label': 'Eine Tatsache beweisen',
@@ -372,7 +372,7 @@ export const de: Strings = {
   'm.open.title2': 'nicht mehr gibt.',
   'm.open.1t': 'Die Datierungen bleiben.',
   'm.open.1p':
-    'Einen Stapel-Fingerabdruck, der im Hauptnetz von Midnight verankert oder auf Bitcoin gestempelt ist, kann niemand entfernen, auch wir nicht.',
+    'Einen Code des Stapels, der im Hauptnetz von Midnight verankert oder auf Bitcoin gestempelt ist, kann niemand entfernen, auch wir nicht.',
   'm.open.1link': 'Alle drei Implementierungen →',
   'm.open.3t': 'Wir bürgen nicht für Ergebnisse.',
   'm.open.3p':
@@ -386,12 +386,12 @@ export const de: Strings = {
   'm.faq.1q': 'Was hindert jemanden daran, meine Sorte einzutragen?',
   'm.faq.2q': 'Brauche ich Krypto oder eine Wallet?',
   'm.faq.2a':
-    'Nein. Einen Datensatz in der Demo anzulegen und jeden Datensatz zu prüfen, braucht keine Wallet, keine Anmeldung und keinen Kauf. Ihr Browser bewahrt einen Zufallsschlüssel auf, der Ihre Demo-Datensätze auf unserem Server findet. Der Fingerabdruck kommt auf Midnight, eine Blockchain, die für Privatsphäre gebaut ist. Sie haben nie direkt damit zu tun.',
+    'Nein. Einen Datensatz in der Demo anzulegen und jeden Datensatz zu prüfen, braucht keine Wallet, keine Anmeldung und keinen Kauf. Ihr Browser bewahrt einen Zufallsschlüssel auf, der Ihre Demo-Datensätze auf unserem Server findet. Der Prüfcode kommt auf Midnight, ein Netzwerk, das für Privatsphäre gebaut ist. Sie haben nie direkt damit zu tun.',
   'm.faq.3q': 'Hält es in einem Streit stand?',
   'm.faq.3link': 'Datensätze als Beweismittel →',
   'm.faq.4q': 'Was sehen Sie von meinen Daten?',
   'm.faq.4a':
-    'Von Ihren genetischen Daten: nichts. Deren Fingerabdruck wird auf Ihrem Computer berechnet, ebenso der Fingerabdruck der Dateien, die Sie hinzufügen; hochgeladen wird nichts davon. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt: verschlossen, sodass nur Sie ihn öffnen können, und nach 180 Tagen gelöscht. Die Angaben, die Sie eingeben (Züchter, Daten, Notizen, Vertragsbedingungen), und die Namen Ihrer Dateien speichert unser Server verschlossen, und wir haben den Schlüssel nicht. Lesen können wir den Namen jedes Datensatzes, den seine öffentliche Prüfseite zeigt, seinen Fingerabdruck und alles, was Sie zeigen möchten. Auch die Probenangaben, die Sie und ein Labor zu einer Lieferung schreiben, werden verschlossen gespeichert, mit einem Schlüssel, der im Laborcode steckt und den wir nicht haben. Labore und Entwickler können Datensätze in ihren eigenen Systemen versiegeln, sodass nur der Fingerabdruck hinausgeht.',
+    'Von Ihren genetischen Daten: nichts. Ihr Computer liest die Dateien, die Sie hinzufügen, um aus jeder einen Code zu machen; hochgeladen werden sie nicht. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt: verschlossen, sodass nur Sie ihn öffnen können, und nach 180 Tagen gelöscht. Die Angaben, die Sie eingeben (der Name des Datensatzes, Züchter, Daten, Notizen, Vertragsbedingungen), und die Namen Ihrer Dateien speichert unser Server verschlossen, und wir haben den Schlüssel nicht. Lesen können wir den Prüfcode jedes Datensatzes und alles, was Sie zeigen möchten. Auch die Probenangaben, die Sie und ein Labor zu einer Lieferung schreiben, werden verschlossen gespeichert, mit einem Schlüssel, der im Laborcode steckt und den wir nicht haben. Labore und Entwickler können Datensätze in ihren eigenen Systemen versiegeln, sodass nur der Prüfcode hinausgeht.',
   'm.faq.4link1': 'Was die Demo speichert →',
   'm.faq.4link2': 'Integrationsleitfaden →',
   'm.faq.6q': 'Was kostet es?',
@@ -423,7 +423,7 @@ export const de: Strings = {
   'm.contact.4p': 'Schreiben Sie an Mako, unseren CEO.',
   'm.contact.integrate': 'Integrationsleitfaden',
   'm.verify.what':
-    'Ein VeilCore-Datensatz beschreibt genetisches Material, ohne die Genetik zu enthalten. Seine Prüfseite zeigt seinen Namen und das, was sein Inhaber freigegeben hat. Nur sein Fingerabdruck kommt auf Midnight, und er erhält ein Datum, sobald er dort verankert ist. Einen Datensatz zu prüfen, ist kostenlos und braucht kein Konto.',
+    'Ein VeilCore-Datensatz beschreibt genetisches Material, ohne die Genetik zu enthalten. Seine Prüfseite zeigt, was sein Inhaber freigegeben hat, und seinen Namen, wenn der Link des Inhabers ihn enthält. Nur sein Prüfcode kommt auf Midnight, und er erhält ein Datum, sobald er dort verankert ist. Einen Datensatz zu prüfen, ist kostenlos und braucht kein Konto.',
   'm.verify.home': 'Was ist VeilCore? →',
   'm.verify.example': 'Nicht sicher, was Sie sehen werden? Sehen Sie sich zuerst ein Beispiel an →',
   // Round 5 (15 Oct 2026): landing page rework, keys added.
@@ -442,26 +442,31 @@ export const de: Strings = {
   'm.tech.show': 'Details anzeigen',
   'm.tech.check.t': 'Einen Datensatz von Hand prüfen',
   'm.tech.check.p':
-    'Um den Fingerabdruck eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Einschlussnachweis verbindet diesen Fingerabdruck mit einem Stapel-Fingerabdruck, der auf Midnight verankert ist, und die Transaktion, die ihn verankert hat, liefert das Datum des Stapels. Die verify.html im Beweispaket rechnet das offline nach und nennt die Transaktion und den Stapel-Fingerabdruck, die nachzuschlagen sind. Die Prüfseite schlägt diese Transaktion selbst auf Midnight nach, wenn sie Midnight erreicht; sonst sagt sie, dass das Datum die Angabe unseres Registers ist, und Sie können es in einem Midnight-Explorer nachschlagen. Datensätze, die seit dem 14. Oktober versiegelt wurden, benennen ihren eigenen Schlüssel; ihre Prüfung braucht deshalb auch Abschnitt 3.6.1, veröffentlicht in der Spezifikation auf dieser Website; das SDK und seine drei Implementierungen erhalten ihn mit ihrer nächsten Version.',
+    'Um den Prüfcode eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Einschlussnachweis verbindet diesen Prüfcode mit einem Code des Stapels, der auf Midnight verankert ist, und die Transaktion, die ihn verankert hat, liefert das Datum des Stapels. Die verify.html im Beweispaket rechnet das offline nach und nennt die Transaktion und den Code des Stapels, die nachzuschlagen sind. Die Prüfseite schlägt diese Transaktion selbst auf Midnight nach, wenn sie Midnight erreicht; sonst sagt sie, dass das Datum die Angabe unseres Registers ist, und Sie können es in einem Midnight-Explorer nachschlagen. Datensätze, die seit dem 14. Oktober versiegelt wurden, benennen ihren eigenen Schlüssel; ihre Prüfung braucht deshalb auch Abschnitt 3.6.1, veröffentlicht in der Spezifikation auf dieser Website; das SDK und seine drei Implementierungen erhalten ihn mit ihrer nächsten Version.',
   'm.tech.impl.t': 'Eine Spezifikation, drei Implementierungen',
   'm.tech.impl.p':
     'Dauerhaft kostenlos zu implementieren. TypeScript, Python und Rust stimmen bei allen 100 Testvektoren des Datensatzformats auf GitHub überein, und jeder kann sie ausführen; ein 101., für die Kopplung von Berichten, fehlt in Rust noch. Ein Autor hat alle drei geschrieben, und die TypeScript-Version ist auf npm als 0.15.0. Eine Implementierung von jemand anderem ist der Test, den wir uns am meisten wünschen.',
   'm.tech.btc.t': 'Der Bitcoin-Stempel',
   'm.tech.btc.p':
-    'Unser Register stempelt den Fingerabdruck jedes versiegelten Stapels mit OpenTimestamps auf Bitcoin. Der erste kam am 11. Oktober in Bitcoin-Block 971004. Am 15. Oktober mit zwei Block-Explorern geprüft: Der Stempel führt zu den Bitcoin-Blöcken 971004 und 971005. Eine Prüfung mit dem offiziellen OpenTimestamps-Werkzeug und einem vollständigen Bitcoin-Knoten steht noch aus. Die Stempeldatei ist die .ots-Datei des Stapels: „Bitcoin-Stempeldatei herunterladen“ auf der Seite der Pflanze. Das Register der Test-Website stempelt nicht auf Bitcoin.',
+    'Unser Register stempelt den Code jedes versiegelten Stapels mit OpenTimestamps auf Bitcoin. Der erste kam am 11. Oktober in Bitcoin-Block 971004. Am 15. Oktober mit zwei Block-Explorern geprüft: Der Stempel führt zu den Bitcoin-Blöcken 971004 und 971005. Eine Prüfung mit dem offiziellen OpenTimestamps-Werkzeug und einem vollständigen Bitcoin-Knoten steht noch aus. Die Stempeldatei ist die .ots-Datei des Stapels: „Bitcoin-Stempeldatei herunterladen“ auf der Seite der Pflanze. Das Register der Test-Website stempelt nicht auf Bitcoin.',
   'm.tech.dna.t': 'Kopplung von Berichten und Laborsignaturen',
   'm.tech.dna.p':
     'Läuft die Kopplung eines DNA-Berichts über den VeilCore-Contract auf Midnight, wird sie datiert: Sie zeigt, dass, wer den Datensatz zu diesem Datum kontrollierte, diesen Bericht oder seinen SHA-256 bis dahin hatte. Was auf die Chain kommt, ist an den Datensatz gebunden und verbirgt den Bericht, sodass niemand die Kopplung auf seinen eigenen Datensatz kopieren kann. Die Signatur eines Labors auf einem verschlossenen Bericht umfasst genau diese Datei und den Datensatz, um den es geht.',
   'title.checkSite': 'Diese Website prüfen',
   'm.privacy.code.title': 'Der Code der App',
-  'm.privacy.code.text': 'VeilCore stellt den Code der App bereit. Die Dateien jeder Version sind öffentlich aufgelistet, sodass jeder prüfen kann, ob die Website ihrem veröffentlichten Code entspricht.',
+  'm.privacy.code.text':
+    'VeilCore stellt den Code der App bereit. Die Dateien jeder Version sind öffentlich aufgelistet, sodass jeder prüfen kann, ob die Website ihrem veröffentlichten Code entspricht.',
   'm.checksite.title': 'Diese Website prüfen',
-  'm.checksite.lede': 'VeilCore stellt den Code der App bereit. Die Dateien jeder Version sind öffentlich aufgelistet, sodass jeder prüfen kann, ob die Website ihrem veröffentlichten Code entspricht.',
+  'm.checksite.lede':
+    'VeilCore stellt den Code der App bereit. Die Dateien jeder Version sind öffentlich aufgelistet, sodass jeder prüfen kann, ob die Website ihrem veröffentlichten Code entspricht.',
   'm.checksite.reading': 'Es wird gelesen, welche Version dies ist…',
-  'm.checksite.noRelease': 'Diese Kopie der Website wurde nicht über eine Versionsbereitstellung veröffentlicht, daher gibt es keine Liste, mit der sie sich prüfen ließe.',
+  'm.checksite.noRelease':
+    'Diese Kopie der Website wurde nicht über eine Versionsbereitstellung veröffentlicht, daher gibt es keine Liste, mit der sie sich prüfen ließe.',
   'm.checksite.release': 'Diese Kopie der Website gibt an, Version {commit} auf {network} zu sein, erstellt am {date}.',
-  'm.checksite.how': 'Die Prüfung lädt jede Datei, die die Version auflistet, von dieser Website, berechnet ihren SHA-256 in Ihrem Browser und vergleicht ihn mit der Liste.',
-  'm.checksite.trust': 'Diese Seite läuft auf der Website, die sie prüft; eine Website, die lügt, könnte also auch hier lügen. Um zu prüfen, ohne VeilCore zu vertrauen, laden Sie die Liste aus dem öffentlichen Code herunter und verwenden Sie sie unten, oder führen Sie {command} in einer Kopie des Codes aus.',
+  'm.checksite.how':
+    'Die Prüfung lädt jede Datei, die die Version auflistet, von dieser Website, berechnet ihren SHA-256 in Ihrem Browser und vergleicht ihn mit der Liste.',
+  'm.checksite.trust':
+    'Diese Seite läuft auf der Website, die sie prüft; eine Website, die lügt, könnte also auch hier lügen. Um zu prüfen, ohne VeilCore zu vertrauen, laden Sie die Liste aus dem öffentlichen Code herunter und verwenden Sie sie unten, oder führen Sie {command} in einer Kopie des Codes aus.',
   'm.checksite.listLink': 'Die Liste dieser Version im öffentlichen Code',
   'm.checksite.useSite': 'Mit der Liste prüfen, die diese Website bereitstellt',
   'm.checksite.useFile': 'Oder mit einer heruntergeladenen Liste prüfen:',
@@ -472,7 +477,8 @@ export const de: Strings = {
   'm.checksite.missing': 'Fehlt: {path}',
   'm.checksite.noList': 'Das ist keine Versionsliste.',
   'm.checksite.otherList': 'Diese Liste gehört zu einer anderen Version, nicht zu der, die diese Website angibt.',
-  'm.checksite.uncommitted': 'Diese Version wurde aus Code mit noch nicht eingecheckten Änderungen erstellt; ihre Dateien sind daher nicht genau der veröffentlichte Code dieses Commits.',
+  'm.checksite.uncommitted':
+    'Diese Version wurde aus Code mit noch nicht eingecheckten Änderungen erstellt; ihre Dateien sind daher nicht genau der veröffentlichte Code dieses Commits.',
 };
 
 /** The public test site (en-testchain.ts), in this language. Draft, like the rest of this file. */
@@ -497,7 +503,7 @@ export const deTestchain: Strings = {
   'm.privacy.hosts.text':
     'Diese Website wird bei Vercel gehostet, das IP-Adressen und Anfragen protokolliert. Unser Registerserver und der Dienst, der die Gebühren im Testnetz zahlt und die Netzabfragen dieser Seite weiterreicht, laufen bei Railway, das Anfragen protokolliert. Dieser Dienst liest das Netz über Blockfrost.',
   'footer.about':
-    'Ein offenes Datensatzformat für pflanzliche und tierische Genetik. Um den Fingerabdruck eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Datum stammt aus einer Transaktion auf Midnight, und die Prüfseite schlägt diese Transaktion selbst auf Midnight nach, wenn sie Midnight erreicht. Wer auf dieser Website einen Datensatz über seine Kennung nachschlägt, nutzt dafür unseren Server.',
+    'Ein offenes Datensatzformat für pflanzliche und tierische Genetik. Um den Prüfcode eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Datum stammt aus einer Transaktion auf Midnight, und die Prüfseite schlägt diese Transaktion selbst auf Midnight nach, wenn sie Midnight erreicht. Wer auf dieser Website einen Datensatz über seine Kennung nachschlägt, nutzt dafür unseren Server.',
   'm.tech.check.p':
-    'Um den Fingerabdruck eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Einschlussnachweis verbindet diesen Fingerabdruck mit einem Stapel-Fingerabdruck, der auf Midnight verankert ist, und die Transaktion, die ihn verankert hat, liefert das Datum des Stapels. Die verify.html im Beweispaket rechnet das offline nach und nennt die Transaktion und den Stapel-Fingerabdruck, die nachzuschlagen sind. Die Prüfseite schlägt diese Transaktion selbst auf Midnight nach, wenn sie Midnight erreicht. Datensätze, die seit dem 14. Oktober versiegelt wurden, benennen ihren eigenen Schlüssel; ihre Prüfung braucht deshalb auch Abschnitt 3.6.1, veröffentlicht in der Spezifikation auf dieser Website; das SDK und seine drei Implementierungen erhalten ihn mit ihrer nächsten Version.',
+    'Um den Prüfcode eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Einschlussnachweis verbindet diesen Prüfcode mit einem Code des Stapels, der auf Midnight verankert ist, und die Transaktion, die ihn verankert hat, liefert das Datum des Stapels. Die verify.html im Beweispaket rechnet das offline nach und nennt die Transaktion und den Code des Stapels, die nachzuschlagen sind. Die Prüfseite schlägt diese Transaktion selbst auf Midnight nach, wenn sie Midnight erreicht. Datensätze, die seit dem 14. Oktober versiegelt wurden, benennen ihren eigenen Schlüssel; ihre Prüfung braucht deshalb auch Abschnitt 3.6.1, veröffentlicht in der Spezifikation auf dieser Website; das SDK und seine drei Implementierungen erhalten ihn mit ihrer nächsten Version.',
 };

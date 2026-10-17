@@ -7,9 +7,9 @@ import type { AppTranslation } from '../../translate';
 export const sealed = {
   'app.sealed.refuse.noKey':
     'dieser Browser hat den Schlüssel für Ihre Datensätze nicht, daher wurde nichts gespeichert. Stellen Sie zuerst Ihre Sicherungsdatei wieder her.',
-  'app.sealed.refuse.mismatch': 'er passt nicht zu seinem Fingerabdruck und wurde daher nicht gespeichert',
+  'app.sealed.refuse.mismatch': 'er passt nicht zu seinem Prüfcode und wurde daher nicht gespeichert',
   'app.sealed.mismatch':
-    'Dieser Datensatz passt nicht zu seinem Fingerabdruck: Er wurde möglicherweise nach dem Versiegeln geändert. Er wird nicht erneut gespeichert, gesendet oder geteilt.',
+    'Dieser Datensatz passt nicht zu seinem Prüfcode: Er wurde möglicherweise nach dem Versiegeln geändert. Er wird nicht erneut gespeichert, gesendet oder geteilt.',
   'app.sealed.locked.title.one': '{count} verschlossener Datensatz',
   'app.sealed.locked.title.other': '{count} verschlossene Datensätze',
   'app.sealed.locked.pageTitle': 'Dieser Datensatz ist verschlossen',

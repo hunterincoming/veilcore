@@ -51,12 +51,12 @@ export const plant = {
   'app.plant.f.sealedClock': 'Versiegelt (Uhr dieses Geräts)',
   'app.plant.f.ref': 'Referenz / Chargen-ID',
   'app.plant.f.photos': 'Fotos',
-  'app.plant.f.photosSealed': '{n} versiegelt (nur Fingerabdrücke; die Bilder wurden nie hochgeladen)',
-  'app.plant.f.reportSaved': 'bei dieser Pflanze gespeichert ({file}) · Fingerabdruck der Kopplung {fp}{sha}',
+  'app.plant.f.photosSealed': '{n} versiegelt (nur Codes; die Bilder wurden nie hochgeladen)',
+  'app.plant.f.reportSaved': 'bei dieser Pflanze gespeichert ({file}) · Code der Kopplung {fp}{sha}',
   'app.plant.f.file': 'Datei',
   'app.plant.f.fileSha': ' · SHA-256 der Datei {sha}',
   'app.plant.f.notSavedYet': 'noch nicht gespeichert',
-  'app.plant.f.recordFingerprint': 'Fingerabdruck des Datensatzes',
+  'app.plant.f.recordFingerprint': 'Prüfcode des Datensatzes',
   'app.plant.evidenceBundle': 'Nachweispaket',
   'app.plant.evidenceBundleText':
     'Der Datensatz wie versiegelt, sein Inklusionsnachweis, die Stapelwurzel, wo der Stapel festgehalten wurde, die Bitcoin-Stempeldatei, falls vorhanden, und Laborsignaturen dazu, in einer .zip-Datei. Ihre verify.html prüft ihn ohne Internet und ohne etwas von VeilCore und sagt, was man nachschlagen muss, um ihn zu datieren.',
@@ -197,7 +197,7 @@ export const plant = {
   'app.plant.next.sample.action': 'An ein Labor senden',
   'app.plant.next.dna.title': 'Einen DNA-Fingerabdruck für diese Pflanze bekommen',
   'app.plant.next.dna.why':
-    'Ein datierter Datensatz zeigt, dass eine Beschreibung existierte. Ein DNA-Bericht (der genetische Fingerabdruck der Pflanze von einem Labor) verknüpft Ihren Datensatz mit der tatsächlichen Pflanze. Zwei Wege, einen zu bekommen:',
+    'Ein datierter Datensatz zeigt, dass eine Beschreibung existierte. Ein DNA-Bericht (der DNA-Fingerabdruck der Pflanze von einem Labor) verknüpft Ihren Datensatz mit der tatsächlichen Pflanze. Zwei Wege, einen zu bekommen:',
   'app.plant.next.dna.labTitle': 'Eine Probe an ein Labor senden',
   'app.plant.next.dna.labText':
     'Erstellen Sie einen Laborcode und senden Sie eine Probe damit. Der DNA-Bericht des Labors kommt hierher zurück, verschlossen, sodass nur Sie ihn öffnen können.',
@@ -236,7 +236,7 @@ export const plant = {
   'app.plant.date.chipReported': 'In einem Stapel · Verankerung auf {network} gemeldet',
   'app.plant.date.testNote': ' Ein Testnetzwerk kann zurückgesetzt werden, und seine Daten haben keine Beweiskraft.',
   'app.plant.date.head':
-    'In diesem Browser geprüft: Der Fingerabdruck Ihres Datensatzes ist in Stapel {batch}, und der Pfad von ihm führt zur Stapelwurzel.',
+    'In diesem Browser geprüft: Der Prüfcode Ihres Datensatzes ist in Stapel {batch}, und der Pfad von ihm führt zur Stapelwurzel.',
   'app.plant.date.looked': '{head} Das Register meldet, dass diese Wurzel auf {network} festgehalten wurde.{test}',
   'app.plant.date.notLooked':
     '{head} Das Register meldet, dass diese Wurzel auf {network} festgehalten wurde; diese Seite hat die Transaktion nicht nachgeschlagen, daher wird sie nicht als verankert angezeigt. Schlagen Sie sie im Netzwerk nach, bevor Sie sich auf das Datum verlassen.{test}',
@@ -244,7 +244,7 @@ export const plant = {
   'app.plant.date.notInBatch':
     'Auf Ihrem Gerät versiegelt und auf {server} aufbewahrt. Er ist noch in keinem Stapel, daher ist er nicht verankert. Wir verankern Datensätze gemeinsam, in Stapeln (vorerst von Hand, daher kann es dauern), sodass eine Transaktion viele abdeckt und Sie nie eine Wallet brauchen. Bis dahin beruht sein Datum auf den Aufzeichnungen dieses Registers.',
   'app.plant.date.inBatchNotAnchored':
-    'In diesem Browser geprüft: Der Fingerabdruck Ihres Datensatzes ist in Stapel {batch}, der noch nicht verankert wurde. Sobald er es ist, erhält der Nachweis einen Verweis auf die Transaktion. An Ihrem Datensatz ändert sich nichts.',
+    'In diesem Browser geprüft: Der Prüfcode Ihres Datensatzes ist in Stapel {batch}, der noch nicht verankert wurde. Sobald er es ist, erhält der Nachweis einen Verweis auf die Transaktion. An Ihrem Datensatz ändert sich nichts.',
   'app.plant.date.batchLine': 'Stapel {batch}',
   'app.plant.date.rootLine': 'Wurzel {root}…',
   'app.plant.date.txChecked': 'Tx (auf Midnight geprüft) {tx}',
@@ -289,8 +289,9 @@ export const plant = {
     'Damit Sie zeigen können, dass dieser Bericht zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
   'app.plant.dated.seals':
     'Versiegelt einen kleinen Datensatz mit nur dem SHA-256 des Berichts, seinem Laborberichtscode und dem Namen des Labors wie signiert. Der Bericht bleibt bei Ihnen. Sein Datum kommt, wenn sein Stapel datiert wird.',
-  'app.plant.dated.nameLabel': 'Name des neuen Datensatzes (öffentlich)',
-  'app.plant.dated.nameHelp': 'Jeder mit seinem Prüflink sieht diesen Namen. Ändern Sie ihn, wenn Sie möchten.',
+  'app.plant.dated.nameLabel': 'Name des neuen Datensatzes',
+  'app.plant.dated.nameHelp':
+    'Verschlossen wie der Rest. Seine Prüflinks tragen ihn, sodass jeder, dem Sie einen schicken, ihn sieht. Ändern Sie ihn, wenn Sie möchten.',
   'app.plant.dated.elsewhere':
     'Dieser DNA-Bericht wird gerade in einem anderen Tab oder Fenster datiert. Warten Sie eine Minute und sehen Sie dann wieder nach: Er wird hier erscheinen.',
   'app.plant.datingPage.title': 'Dieser Datensatz datiert einen DNA-Bericht für <plant></plant>',
@@ -356,7 +357,7 @@ export const plant = {
   'app.plant.bundle.keyNotHere':
     'Der Schlüssel ist nicht in diesem Browser. Öffnen Sie hier Ihre Sicherungskopie, um ihn beizufügen.',
   'app.plant.bundle.includeLab':
-    'Die Datei des DNA-Berichts beifügen. Ohne sie enthält das Paket nur den Fingerabdruck des Berichts, nicht seinen Inhalt.',
+    'Die Datei des DNA-Berichts beifügen. Ohne sie enthält das Paket nur den Code des Berichts, nicht seinen Inhalt.',
   'app.plant.bundle.chooseLab': 'Datei des DNA-Berichts wählen',
   'app.plant.bundle.checkedAgainst': 'Sie wird vor dem Beifügen mit der bei dieser Pflanze gespeicherten abgeglichen.',
   'app.plant.bundle.labFileAria': 'Datei des DNA-Berichts',
@@ -381,12 +382,11 @@ export const plant = {
     'Diese Prüfung läuft nur in Ihrem Browser und sendet nichts, sie ist also für Sie. Sie zeigt, dass Sie eine Datei haben, die zum mit einem Datensatz gekoppelten Bericht passt. Sie zeigt nicht, wer die Pflanze hält, und niemand sonst kann es von hier aus prüfen. Andere prüfen einen Datensatz auf seiner Prüfseite, und sein Datum, sobald er verankert ist.',
   'app.plant.check.tap': 'Tippen, um den Laborbericht zu wählen',
   'app.plant.check.drag': 'Ziehen Sie den Laborbericht hierher oder klicken Sie, um ihn zu wählen',
-  'app.plant.check.hint': 'Lokal gelesen und mit einem Fingerabdruck versehen, nie hochgeladen.',
+  'app.plant.check.hint': 'Lokal gelesen und mit einem Code versehen, nie hochgeladen.',
   'app.plant.check.none':
     'Bei keinem Ihrer Datensätze ist dieser Laborbericht gespeichert. Speichern Sie ihn zuerst bei der richtigen Pflanze und prüfen Sie dann erneut.',
   'app.plant.check.found': 'Übereinstimmung gefunden.',
-  'app.plant.check.foundSub':
-    'Der Fingerabdruck dieser Datei wurde in Ihrem Browser erstellt; sie wurde nicht hochgeladen.',
+  'app.plant.check.foundSub': 'Der Code dieser Datei wurde in Ihrem Browser erstellt; sie wurde nicht hochgeladen.',
   'app.plant.check.matches': 'Diese Datei passt zum mit {name} gekoppelten Bericht.',
   'app.plant.check.meaning':
     'Datensatz {id}. Eine Übereinstimmung bedeutet, dass die Datei Byte für Byte die gekoppelte ist; sie sagt nichts über die Genetik und nichts darüber, wer die Pflanze hält.',
@@ -414,7 +414,7 @@ export const plant = {
   'app.plant.fix.title': '{id} korrigieren',
   'app.plant.fix.intro':
     'Dieser Datensatz bleibt genau, wie er ist. Eine Korrektur erzeugt einen neuen Datensatz, der ihn ersetzt, und beide bleiben gespeichert. Eine Korrektur überschreibt und löscht nichts: Deshalb bleibt das Original als Nachweis brauchbar.',
-  'app.plant.fix.name': 'Sortenname (öffentlich)',
+  'app.plant.fix.name': 'Sortenname',
   'app.plant.fix.bredBy': 'Gezüchtet von',
   'app.plant.fix.notes': 'Notizen',
   'app.plant.fix.does': 'Was diese Korrektur bewirkt',
@@ -435,7 +435,7 @@ export const plant = {
   'app.plant.att.noReceipt':
     'Noch hat kein Labor eine Empfangsbestätigung für diese Pflanze signiert. Ein Datensatz, für den nur Sie einstehen, ist ein schwächerer Nachweis als einer, den ein Labor signiert. Senden Sie eine Probe an ein Labor: Seine Empfangsbestätigung wird mit seinem Schlüssel signiert, nicht mit Ihrem.',
   'app.plant.att.others':
-    'Andere Signaturen nennen diesen Datensatz: {n}, nicht mit Ihren Lieferungen verknüpft. Jeder kann eine Erklärung zu einem öffentlichen Fingerabdruck signieren, daher zählen sie nicht als Empfangsbestätigung.',
+    'Andere Signaturen nennen diesen Datensatz: {n}, nicht mit Ihren Lieferungen verknüpft. Jeder kann eine Erklärung zu einem öffentlichen Prüfcode signieren, daher zählen sie nicht als Empfangsbestätigung.',
   'app.plant.att.title': 'Signaturen zu diesem Datensatz',
   'app.plant.att.nobody':
     'Noch hat niemand sonst diesen Datensatz bestätigt. Ein Datensatz, für den nur Sie einstehen, ist ein schwächerer Nachweis als einer, den eine zweite Partei bestätigt. Senden Sie das Material an ein Labor: Seine Bestätigung wird unter seinem Schlüssel erfasst, nicht unter Ihrem.',

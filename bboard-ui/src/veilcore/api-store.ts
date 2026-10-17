@@ -1089,7 +1089,7 @@ const vaultRefusal = (o: Exclude<VaultOutcome, 'have' | 'made'>): SaveRefusal =>
       : { id: '*', reason: CANT_STORE_REASON, words: 'app.sealed.refuse.cantStore' };
 
 /** Said when a record's contents don't match its fingerprint (the words key translates it). */
-export const MISMATCH_REASON = 'it doesn’t match its fingerprint, so it wasn’t saved';
+export const MISMATCH_REASON = 'it doesn’t match its proof code, so it wasn’t saved';
 /** Said when this browser has no key for the holder's sealed rows. */
 export const NO_KEY_REASON =
   'this browser doesn’t have the key for your records, so nothing was saved. Restore your backup file first.';

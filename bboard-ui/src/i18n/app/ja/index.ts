@@ -2,7 +2,7 @@
 // be checked by a fluent speaker before publishing (docs/translations/README.md).
 //
 // Terms are the site's (../../ja.ts: 育成者, ブラウザ, 受領書, 検査報告書, ラボコード, 日付スタンプ,
-// アンカー, 保有者 and 保有 (never 所有), 記録, フィンガープリント, テストネットワーク), plus the app's:
+// アンカー, 保有者 and 保有 (never 所有), 記録, 証明コード, テストネットワーク), plus the app's:
 // backup バックアップ, seal (a record) 封印, seal (on a sample bag) 封緘, batch バッチ, key 鍵,
 // pairing (a report saved to a plant) 紐付け, delivery 送付, registry レジストリ, lab ラボ,
 // attestation 証明, withdraw 撤回, correct 訂正, agreement 契約, evidence bundle 証拠バンドル.

@@ -2,8 +2,8 @@
 //
 // Every build of the site uses sealed records, lab results, animal records, the claimant's
 // own copy of a delivery's offer ("Finish receiving", GET /transfers/:id/offer), locked
-// sample details, and a record's and an agreement's public `rev` (the registry refuses an
-// older copy). A
+// sample details, a record's and an agreement's public `rev` (the registry refuses an
+// older copy), locked record names, and DNA reports shown only bound (round 5). A
 // registry that doesn't serve one of them would leave the site offering something that fails when
 // someone uses it. So both site deploys (scripts/site-mainnet-preflight.mjs for
 // veilcore.org, scripts/deploy-test-site.mjs for test.veilcore.org) first ask the target
@@ -27,6 +27,12 @@ export const REQUIRED_FEATURES = Object.freeze({
   // Every agreement goes with its `rev` in the clear too (round 4, F1): an older registry
   // refuses the field, and with it the whole save of agreements.
   'license-rev-v1': 'refusing an older copy of an agreement',
+  // A record's name goes only inside its locked box (round 5, CONTRACT.md #28): an older
+  // registry would keep a readable copy of a name the site says is locked.
+  'sealed-name-v1': 'locked record names',
+  // A saved DNA report is published only as a code bound with the record's own salt (round 5,
+  // CONTRACT.md #29): an older registry refuses that value, and still answers the plain one.
+  'dna-pair-binding-v1': 'DNA reports shown only as a bound code',
 });
 
 const DEPLOY_FIRST =

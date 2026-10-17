@@ -35,10 +35,10 @@ export const log = {
   'app.log.parentLinked': ' Son parent est {name}, déjà lié ci-dessous.',
   'app.log.keptLastTime': 'Nous avons gardé ce que vous aviez saisi la dernière fois.',
   'app.log.startOver': 'Recommencer',
-  'app.log.nameLabel': 'Nom de la plante ou de la lignée (public)',
+  'app.log.nameLabel': 'Nom de la plante ou de la lignée',
   'app.log.namePlaceholder': 'p. ex. Harbour Mist',
   'app.log.nameHelp':
-    'Toute personne ayant un lien de vérification voit ce nom. Si le vrai nom est secret, utilisez un nom de code.',
+    'Verrouillé comme les autres détails. Vos liens de vérification le portent après le #, donc les personnes à qui vous envoyez un lien le voient, ainsi que toute personne à qui elles le transmettent.',
   'app.log.eg': 'p. ex. {v}',
   'app.log.egNextSelection': 'p. ex. {name}, sélection suivante',
   'app.log.bredBy': 'Obtenteur',
@@ -62,7 +62,7 @@ export const log = {
   'app.log.addPhotos': 'Ajouter des photos',
   'app.log.photos.one': '{count} photo',
   'app.log.photos.other': '{count} photos',
-  'app.log.photosStay': 'Les photos restent sur votre appareil. Seules leurs empreintes sont conservées.',
+  'app.log.photosStay': 'Les photos restent sur votre appareil. Seuls leurs codes sont conservés.',
   'app.log.refId': 'Votre propre numéro de lot ou de référence',
   'app.log.notes': 'Notes',
   'app.log.nextCheck': 'Suivant : vérifier',
@@ -84,12 +84,12 @@ export const log = {
   'app.log.sealedWarn':
     '<b>Une fois scellée, cette partie ne peut plus changer.</b> Vous pourrez ajouter des rapports et des corrections plus tard ; une correction est un nouvel enregistrement qui renvoie à celui-ci. C’est ce qui donne sa valeur à l’horodatage.',
   'app.log.savedOn':
-    'Les détails sont conservés verrouillés sur {server} pour que vous puissiez y revenir, et nous n’avons pas la clé. Le nom n’est pas verrouillé : toute personne ayant un lien de vérification le voit. Seule une empreinte est datée, sur {datedOn}.',
+    'Les détails sont conservés verrouillés sur {server} pour que vous puissiez y revenir, et nous n’avons pas la clé. Le nom est verrouillé lui aussi ; vos liens de vérification le portent après le #, pour les personnes à qui vous les envoyez. Seul un code de preuve est daté, sur {datedOn}.',
   'app.log.sealing': 'Scellement…',
   'app.log.seal': 'Sceller',
   'app.log.sealingPlant': 'Scellement de votre plante…',
   'app.log.sealStampsKey':
-    'Le scellement horodate aussi la clé de votre plante, pour que vous puissiez prouver plus tard que vous la détenez. Seule une empreinte de la clé est envoyée.',
+    'Le scellement horodate aussi la clé de votre plante, pour que vous puissiez prouver plus tard que vous la détenez. Seul un code de la clé est envoyé.',
   'app.log.sealed': 'Scellée',
   'app.log.publicStampLater':
     'Son horodatage public arrive quand son lot est daté sur {datedOn}. La page de votre plante indique quand cela a eu lieu. Vous n’avez rien à faire.',
@@ -108,7 +108,7 @@ export const log = {
   'app.log.stampFailedTitle': 'Scellée. Clé pas encore horodatée',
   'app.log.stampingTitle': 'Scellée. Horodatage de la clé de votre plante…',
   'app.log.onlyFingerprint':
-    'Seule une empreinte de la clé de votre plante est envoyée, rien sur la plante. Gratuit : VeilCore paie les frais du réseau.',
+    'Seul un code de la clé de votre plante est envoyé, rien sur la plante. Gratuit : VeilCore paie les frais du réseau.',
   'app.log.stampingAria': 'Horodatage de la clé de votre plante',
   'app.log.stampLater': 'Faire l’horodatage plus tard',
   'app.log.keepOpen':

@@ -10,7 +10,7 @@ const KNOWN: [string, AppKey][] = [
     'This record names its own key, but this link leaves out what’s needed to check it. Ask the holder for a new link',
     'app.prove.key.leavesOut',
   ],
-  ['This link’s fingerprint doesn’t match the record, so its key can’t be checked against it', 'app.prove.key.noFp'],
+  ['This link’s proof code doesn’t match the record, so its key can’t be checked against it', 'app.prove.key.noFp'],
   ['The key in this link isn’t the one this record names', 'app.prove.key.notThis'],
 ];
 

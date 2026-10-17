@@ -63,13 +63,13 @@ export const fr: Strings = {
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Obtenu par',
   'm.hero.bredByDefault': 'Votre nom ici',
-  'm.hero.demoLabel': "Démo d'empreinte en direct",
-  'm.hero.fpUpdated': 'Empreinte mise à jour',
+  'm.hero.demoLabel': 'Démo de code de preuve en direct',
+  'm.hero.fpUpdated': 'Code de preuve mis à jour',
   'm.hero.typed': 'Ce que vous saisissez',
   'm.hero.goes': 'Ce qui va sur Midnight',
   'm.foot.demo': 'Démo',
   'm.step1.n': '01 · Enregistrement',
-  'm.step2.n': '02 · Empreinte',
+  'm.step2.n': '02 · Code de preuve',
   'm.step3.n': '03 · Ancrage',
   'm.step4.n': '04 · Vérification',
   'm.step4.title': 'Le présenter plus tard',
@@ -171,10 +171,10 @@ export const fr: Strings = {
     "Cette note concerne la démo de ce site. Il s'agit d'un test, sur le réseau de test de Midnight. Merci d'utiliser des données fictives.",
   'm.privacy.stored.title': 'Conservé sur notre serveur de test',
   'm.privacy.stored.text':
-    "Vos enregistrements et accords, verrouillés par votre navigateur avant d'être envoyés : obtenteur, espèce, dates, notes, numéros de référence, parents, les empreintes et noms de fichier des photos et rapports de laboratoire que vous ajoutez, conditions et contreparties des accords, la quantité et la note que vous envoyez à un laboratoire, les informations d'échantillon que vous et le laboratoire écrivez (identifiant d'échantillon, numéro de scellé, où et quand il a été prélevé, un témoin, son état à l'arrivée), les noms que vous donnez aux destinataires, et les clés secrètes de chaque enregistrement. Notre serveur les conserve verrouillés, et nous n'avons pas la clé : elle est dans votre navigateur et dans votre fichier de secours. La clé des informations d'échantillon se trouve aussi dans le code de laboratoire, pour que le laboratoire puisse les ouvrir. Notre serveur peut lire : l'identifiant de chaque enregistrement ; le nom que vous lui donnez, que voit toute personne ayant un lien de vérification ; son empreinte, son lien de clé et son profil ; les champs qu'une correction a modifiés, et quand ; quand le serveur l'a vu pour la première fois ; combien de fois il a été enregistré, et quand pour la dernière fois ; à peu près sa taille (sa tranche de taille) ; ce que vous choisissez de montrer sur sa page de vérification ; les liens de parenté que vous enregistrez ; et son lot avec son horodatage. Si un accord prévoit une redevance sur la descendance, notre serveur peut lire quel enregistrement il couvre et depuis quand il s’applique, et chacun peut demander si cet enregistrement en porte une : la vérification de lignée en a besoin. Pour un envoi : de quel enregistrement il vient, quel compte de détenteur l'a reçu, quand il a été reçu, et une étiquette à la place du nom du destinataire. Pour un envoi d'avant les étiquettes, le nom est tel qu'il a été saisi, jusqu'à ce que le nettoyage du registre le remplace. Pour les laboratoires : la clé publique de signature et les attestations qu'ils publient. Les demandes de prouver la clé d'un enregistrement, avec le nom saisi par le demandeur, pendant 7 jours. Votre clé de détenteur, que votre navigateur envoie à chaque enregistrement pour que le serveur retrouve vos enregistrements ; le serveur n'en garde qu'une empreinte à sens unique. Les enregistrements faits avant le verrouillage restent lisibles pour nous jusqu'à ce que votre navigateur les verrouille. Les informations d'échantillon écrites avant le verrouillage restent lisibles pour nous jusqu'à ce que le registre les supprime. Nos sauvegardes externes faites avant gardent une copie lisible des deux jusqu'à ce que nous détruisions la clé qui les ouvre. Les rapports de laboratoire verrouillés qu'un laboratoire vous envoie : conservés verrouillés, sans la clé, et supprimés après 180 jours. Le serveur est le registre de test de VeilCore, hébergé chez Railway.",
+    "Vos enregistrements et accords, verrouillés par votre navigateur avant d'être envoyés : le nom de chaque enregistrement, obtenteur, espèce, dates, notes, numéros de référence, parents, les codes de preuve et noms de fichier des photos et rapports de laboratoire que vous ajoutez, conditions et contreparties des accords, la quantité et la note que vous envoyez à un laboratoire, les informations d'échantillon que vous et le laboratoire écrivez (identifiant d'échantillon, numéro de scellé, où et quand il a été prélevé, un témoin, son état à l'arrivée), les noms que vous donnez aux destinataires, et les clés secrètes de chaque enregistrement. Notre serveur les conserve verrouillés, et nous n'avons pas la clé : elle est dans votre navigateur et dans votre fichier de secours. La clé des informations d'échantillon se trouve aussi dans le code de laboratoire, pour que le laboratoire puisse les ouvrir. Le nom d'un enregistrement voyage aussi dans les liens de vérification que vous créez, après le #, qu'un navigateur n'envoie jamais à aucun serveur. Notre serveur peut lire : l'identifiant de chaque enregistrement ; son code de preuve, son lien de clé et son type de profil ; ses liens de correction (quel enregistrement une correction remplace, quels champs elle a modifiés, et quand) ; quand le serveur l'a vu pour la première fois ; combien de fois il a été enregistré, et quand pour la dernière fois ; à peu près sa taille (sa tranche de taille) ; ce que vous choisissez de montrer sur sa page de vérification (son nom, si vous choisissez de le montrer, et si un rapport ADN est enregistré, sous la forme d'un code qui ne dit rien du fichier sans la clé de votre lien de vérification) ; les liens de parenté que vous enregistrez ; et son lot avec son horodatage. Si un accord prévoit une redevance sur la descendance, notre serveur peut lire quel enregistrement il couvre et depuis quand il s’applique, et chacun peut demander si cet enregistrement en porte une : la vérification de lignée en a besoin. Pour un envoi : de quel enregistrement il vient, quel compte de détenteur l'a reçu, quand il a été reçu, et une étiquette à la place du nom du destinataire. Pour un envoi d'avant les étiquettes, le nom est tel qu'il a été saisi, jusqu'à ce que le nettoyage du registre le remplace. Pour les laboratoires : la clé publique de signature et les attestations qu'ils publient. Les demandes de prouver la clé d'un enregistrement, avec le nom saisi par le demandeur, pendant 7 jours. Votre clé de détenteur, que votre navigateur envoie à chaque enregistrement pour que le serveur retrouve vos enregistrements ; le serveur n'en garde qu'un condensé à sens unique. Les enregistrements faits avant le verrouillage restent lisibles pour nous jusqu'à ce que votre navigateur les verrouille, et le nom d'un enregistrement fait avant le verrouillage des noms reste lisible pour nous jusqu'à ce que votre navigateur enregistre de nouveau l'enregistrement. Les informations d'échantillon écrites avant le verrouillage restent lisibles pour nous jusqu'à ce que le registre les supprime. Nos sauvegardes externes faites avant gardent une copie lisible de tout cela jusqu'à ce que nous détruisions la clé qui les ouvre. Les rapports de laboratoire verrouillés qu'un laboratoire vous envoie : conservés verrouillés, sans la clé, et supprimés après 180 jours. Le serveur est le registre de test de VeilCore, hébergé chez Railway.",
   'm.privacy.local.title': 'Ne quitte jamais votre navigateur',
   'm.privacy.local.text':
-    "Les données génétiques, et les rapports de laboratoire, rapports ADN et photos que vous ajoutez. Votre navigateur les lit pour calculer leurs empreintes ; les fichiers eux-mêmes ne sont jamais envoyés. Un rapport de laboratoire n'arrive sur notre serveur que lorsqu'un laboratoire vous le renvoie, verrouillé pour que vous seul puissiez l'ouvrir.",
+    "Les données génétiques, et les rapports de laboratoire, rapports ADN et photos que vous ajoutez. Votre navigateur les lit pour faire un code de chacun ; les fichiers eux-mêmes ne sont jamais envoyés. Un rapport de laboratoire n'arrive sur notre serveur que lorsqu'un laboratoire vous le renvoie, verrouillé pour que vous seul puissiez l'ouvrir.",
   'm.privacy.test.title': 'Un réseau de test',
   'm.privacy.test.text':
     'La démo utilise le réseau de test de Midnight, pas le réseau en production. Les données de la démo peuvent être supprimées lorsque le réseau de test est réinitialisé.',
@@ -203,7 +203,7 @@ export const fr: Strings = {
   'm.privacy.contact': 'Questions : hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Pour les sélectionneurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale et animale : donnez à vos enregistrements une date que personne ne peut antidater. Vos données génétiques restent sur votre ordinateur. Seule une empreinte va sur Midnight, qui la date.',
+    'Pour les sélectionneurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale et animale : donnez à vos enregistrements une date que personne ne peut antidater. Vos données génétiques restent sur votre ordinateur. Seul un code de preuve va sur Midnight, qui le date.',
   'm.for.3p':
     "Envoyez du matériel avec un code laboratoire. Le laboratoire signe un accusé de réception avec sa propre clé, et l'enregistrement montre ainsi une seconde partie. L'accusé est une vraie signature, conservée par le registre de VeilCore, pas sur la chaîne. Des conditions comme l'interdiction de multiplier ne sont qu'un exercice dans la démo web.",
   'm.get.1b': 'pour un enregistrement de ce que vous détenez, sans montrer votre génétique.',
@@ -211,7 +211,7 @@ export const fr: Strings = {
     "Un lien de parenté ne compte que si les deux détenteurs le confirment. Sur ce site, c'est le registre de VeilCore qui l'enregistre, pas la chaîne.",
   'm.open.2t': 'Gardez un seul fichier.',
   'm.open.2p':
-    "Sur la page de votre plante : « Télécharger le dossier de preuve ». Un seul .zip avec l'enregistrement tel qu'il a été scellé, sa preuve d'inclusion, l'empreinte du lot, l'endroit où le lot a été inscrit, le fichier d'horodatage Bitcoin s'il y en a un, et une page qui vérifie le tout hors ligne. Votre fichier de sauvegarde contient vos clés, pas ces fichiers. Les fichiers séparés restent sous « Détails techniques » : « Exporter l’enregistrement », « Télécharger la preuve d’inclusion », « Télécharger le fichier d’horodatage Bitcoin ».",
+    "Sur la page de votre plante : « Télécharger le dossier de preuve ». Un seul .zip avec l'enregistrement tel qu'il a été scellé, sa preuve d'inclusion, le code de preuve du lot, l'endroit où le lot a été inscrit, le fichier d'horodatage Bitcoin s'il y en a un, et une page qui vérifie le tout hors ligne. Votre fichier de sauvegarde contient vos clés, pas ces fichiers. Les fichiers séparés restent sous « Détails techniques » : « Exporter l’enregistrement », « Télécharger la preuve d’inclusion », « Télécharger le fichier d’horodatage Bitcoin ».",
   'm.faq.1a':
     "Une fois les enregistrements ancrés, chacun peut vérifier lequel a été ancré en premier. Associez votre rapport de laboratoire, pour qu'un test ultérieur puisse y être comparé. Quand vous envoyez du matériel, le destinataire signe un accusé de réception avec sa propre clé. Un enregistrement est une preuve, pas une inscription : il montre que vous déteniez cet enregistrement à cette date, pas que vous déteniez la plante, et ne tranche pas un litige à lui seul.",
   'm.post0.date': '4 oct. 2026',
@@ -274,7 +274,7 @@ export const fr: Strings = {
   'nav.newCultivar': 'Nouvel enregistrement',
   'nav.licenses': 'Contrats',
   'footer.about':
-    "Un format d'enregistrement ouvert pour la génétique végétale et animale. Recalculer l'empreinte d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa date vient d'une transaction sur Midnight : la page de vérification la consulte elle-même quand elle peut joindre Midnight, et sinon indique que la date est celle que rapporte notre registre. Rechercher un enregistrement par son identifiant sur ce site passe par notre serveur.",
+    "Un format d'enregistrement ouvert pour la génétique végétale et animale. Recalculer le code de preuve d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa date vient d'une transaction sur Midnight : la page de vérification la consulte elle-même quand elle peut joindre Midnight, et sinon indique que la date est celle que rapporte notre registre. Rechercher un enregistrement par son identifiant sur ce site passe par notre serveur.",
   'm.hero.status':
     "Lancement sur le réseau principal de Midnight. Aujourd'hui, les enregistrements sont datés sur un réseau de test de Midnight, ce qui ne prouve encore rien.",
   'm.claims.status':
@@ -289,7 +289,7 @@ export const fr: Strings = {
   'm.for.2p':
     "Les sélectionneurs veulent utiliser leurs marqueurs pour montrer qu'une variété est distincte, et les gardent comme secrets d'affaires. Une revendication VeilCore prouve un fait à leur sujet sans montrer le reste. Aucun office d'examen ni organisme de certification ne l'accepte encore.",
   'm.hero.note':
-    "Tapez dans l'un ou l'autre champ ; rien n'est envoyé. La ligne rouge en bas est l'empreinte, la partie qui va sur Midnight. Personne ne peut remonter de celle-ci à ce que vous avez saisi.",
+    "Tapez dans l'un ou l'autre champ ; rien n'est envoyé. La ligne rouge en bas est le code de preuve, la partie qui va sur Midnight. Personne ne peut remonter de celle-ci à ce que vous avez saisi.",
   'm.hero.noteShort': 'Seule la ligne rouge va sur Midnight.',
   'm.for.label': 'À quoi ça sert',
   'm.for.title1': 'Beaucoup de litiges sur la génétique se ramènent à une question :',
@@ -317,12 +317,12 @@ export const fr: Strings = {
   'm.how.title2': 'La génétique reste chez vous.',
   'm.step1.title': 'Le noter',
   'm.step1.text':
-    "Ce que c'est et d'où ça vient. Le serveur de VeilCore conserve les détails verrouillés, et nous n'avons pas la clé. Le nom que vous lui donnez n'est pas verrouillé : toute personne ayant le lien de l'enregistrement le voit.",
-  'm.step2.title': "En faire l'empreinte",
+    "Ce que c'est et d'où ça vient. Le serveur de VeilCore conserve les détails verrouillés, le nom compris, et nous n'avons pas la clé. Vos liens de vérification portent le nom après le #, pour les personnes à qui vous les envoyez.",
+  'm.step2.title': 'En faire le code de preuve',
   'm.step2.text': 'Sur votre ordinateur. Les données génétiques ne le quittent jamais.',
   'm.step3.title': 'Obtenir une date',
   'm.step3.text':
-    "Seule l'empreinte va sur Midnight, dans un lot avec d'autres. La date est celle du bloc où arrive le lot : elle montre que l'enregistrement existait à ce moment-là.",
+    "Seul le code de preuve va sur Midnight, dans un lot avec d'autres. La date est celle du bloc où arrive le lot : elle montre que l'enregistrement existait à ce moment-là.",
   'm.step4.text':
     'Donnez-le à un acheteur, un examinateur ou un tribunal. Ils peuvent le vérifier gratuitement, sans compte.',
   'm.claims.label': 'Prouver un fait',
@@ -374,7 +374,7 @@ export const fr: Strings = {
   'm.open.title2': 'disparaît.',
   'm.open.1t': 'Les dates restent.',
   'm.open.1p':
-    'Une empreinte de lot ancrée sur le réseau principal de Midnight, ou horodatée sur Bitcoin, ne peut être supprimée par personne, nous compris.',
+    'Un code de lot ancré sur le réseau principal de Midnight, ou horodaté sur Bitcoin, ne peut être supprimé par personne, nous compris.',
   'm.open.1link': 'Les trois implémentations →',
   'm.open.3t': 'Nous ne nous portons pas garants des résultats.',
   'm.open.3p':
@@ -388,12 +388,12 @@ export const fr: Strings = {
   'm.faq.1q': "Qu'est-ce qui empêche quelqu'un d'enregistrer mon cultivar ?",
   'm.faq.2q': "Ai-je besoin de crypto ou d'un portefeuille ?",
   'm.faq.2a':
-    "Non. Créer un enregistrement dans la démo et vérifier n'importe quel enregistrement ne demandent ni portefeuille, ni inscription, ni achat. Votre navigateur garde une clé aléatoire qui retrouve vos enregistrements de démo sur notre serveur. L'empreinte va sur Midnight, une blockchain conçue pour la confidentialité. Vous n'avez jamais affaire à elle directement.",
+    "Non. Créer un enregistrement dans la démo et vérifier n'importe quel enregistrement ne demandent ni portefeuille, ni inscription, ni achat. Votre navigateur garde une clé aléatoire qui retrouve vos enregistrements de démo sur notre serveur. Le code de preuve va sur Midnight, un réseau conçu pour la confidentialité. Vous n'avez jamais affaire à lui directement.",
   'm.faq.3q': 'Est-ce que ça tiendra dans un litige ?',
   'm.faq.3link': 'Les enregistrements comme preuve →',
   'm.faq.4q': 'Que voyez-vous de mes données ?',
   'm.faq.4a':
-    "De vos données génétiques : rien. Leur empreinte est calculée sur votre ordinateur, comme celle des fichiers que vous ajoutez, et rien de cela n'est téléversé. Un rapport de laboratoire n'arrive sur notre serveur que lorsqu'un laboratoire vous le renvoie : il est verrouillé pour que vous seul puissiez l'ouvrir, et supprimé après 180 jours. Les détails que vous saisissez (obtenteur, dates, notes, conditions des accords) et les noms de vos fichiers sont conservés verrouillés sur notre serveur, et nous n'avons pas la clé. Nous pouvons lire le nom de chaque enregistrement, que montre sa page de vérification publique, son empreinte et tout ce que vous choisissez de montrer. Les informations d'échantillon que vous et un laboratoire écrivez pour un envoi sont elles aussi conservées verrouillées, avec une clé qui se trouve dans le code de laboratoire et que nous n'avons pas. Les laboratoires et les développeurs peuvent sceller des enregistrements dans leurs propres systèmes, pour que seule l'empreinte sorte.",
+    "De vos données génétiques : rien. Votre ordinateur lit les fichiers que vous ajoutez pour faire un code de chacun, et ils ne sont pas téléversés. Un rapport de laboratoire n'arrive sur notre serveur que lorsqu'un laboratoire vous le renvoie : il est verrouillé pour que vous seul puissiez l'ouvrir, et supprimé après 180 jours. Les détails que vous saisissez (le nom de l'enregistrement, obtenteur, dates, notes, conditions des accords) et les noms de vos fichiers sont conservés verrouillés sur notre serveur, et nous n'avons pas la clé. Nous pouvons lire le code de preuve de chaque enregistrement et tout ce que vous choisissez de montrer. Les informations d'échantillon que vous et un laboratoire écrivez pour un envoi sont elles aussi conservées verrouillées, avec une clé qui se trouve dans le code de laboratoire et que nous n'avons pas. Les laboratoires et les développeurs peuvent sceller des enregistrements dans leurs propres systèmes, pour que seul le code de preuve sorte.",
   'm.faq.4link1': 'Ce que la démo conserve →',
   'm.faq.4link2': "Guide d'intégration →",
   'm.faq.6q': 'Combien ça coûte ?',
@@ -426,7 +426,7 @@ export const fr: Strings = {
   'm.contact.4p': 'Écrivez à Mako, notre CEO.',
   'm.contact.integrate': "Guide d'intégration",
   'm.verify.what':
-    'Un enregistrement VeilCore décrit du matériel génétique sans contenir la génétique. Sa page de vérification montre son nom et ce que son détenteur a choisi de partager. Seule son empreinte va sur Midnight, et elle reçoit une date une fois ancrée. En vérifier un est gratuit et ne demande aucun compte.',
+    'Un enregistrement VeilCore décrit du matériel génétique sans contenir la génétique. Sa page de vérification montre ce que son détenteur a choisi de partager, et son nom quand le lien du détenteur le porte. Seul son code de preuve va sur Midnight, et il reçoit une date une fois ancré. En vérifier un est gratuit et ne demande aucun compte.',
   'm.verify.home': "Qu'est-ce que VeilCore ? →",
   'm.verify.example': "Vous ne savez pas ce que vous allez voir ? Regardez d'abord un exemple →",
   // Round 5 (15 Oct 2026): landing page rework, keys added.
@@ -444,26 +444,31 @@ export const fr: Strings = {
   'm.tech.show': 'Afficher le détail',
   'm.tech.check.t': 'Vérifier un enregistrement à la main',
   'm.tech.check.p':
-    "Recalculer l'empreinte d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa preuve d'inclusion relie cette empreinte à une empreinte de lot ancrée sur Midnight, et la transaction qui l'a ancrée donne la date du lot. Le verify.html du dossier de preuve refait ce calcul hors ligne et nomme la transaction et l'empreinte de lot à consulter. La page de vérification consulte elle-même cette transaction sur Midnight quand elle peut joindre Midnight ; sinon, elle indique que la date est celle que rapporte notre registre, et vous pouvez la consulter sur un explorateur Midnight. Les enregistrements scellés depuis le 14 octobre nomment leur propre clé ; les vérifier demande donc aussi la section 3.6.1, publiée dans la spécification sur ce site ; le SDK et ses trois implémentations l'intégreront dans leur prochaine version.",
+    "Recalculer le code de preuve d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa preuve d'inclusion relie ce code de preuve à un code de preuve de lot ancré sur Midnight, et la transaction qui l'a ancré donne la date du lot. Le verify.html du dossier de preuve refait ce calcul hors ligne et nomme la transaction et le code de preuve de lot à consulter. La page de vérification consulte elle-même cette transaction sur Midnight quand elle peut joindre Midnight ; sinon, elle indique que la date est celle que rapporte notre registre, et vous pouvez la consulter sur un explorateur Midnight. Les enregistrements scellés depuis le 14 octobre nomment leur propre clé ; les vérifier demande donc aussi la section 3.6.1, publiée dans la spécification sur ce site ; le SDK et ses trois implémentations l'intégreront dans leur prochaine version.",
   'm.tech.impl.t': 'Une spécification, trois implémentations',
   'm.tech.impl.p':
     "Libre à implémenter, pour toujours. TypeScript, Python et Rust s'accordent sur les 100 vecteurs de test du format d'enregistrement sur GitHub, et chacun peut les exécuter ; un 101e, pour l'association de rapports, n'est pas encore dans Rust. Un seul auteur a écrit les trois, et la version TypeScript est sur npm en 0.15.0. Une implémentation écrite par quelqu'un d'autre est le test que nous souhaitons le plus.",
   'm.tech.btc.t': "L'horodatage Bitcoin",
   'm.tech.btc.p':
-    "Notre registre horodate sur Bitcoin l'empreinte de chaque lot scellé, avec OpenTimestamps. Le premier est arrivé dans le bloc Bitcoin 971004 le 11 octobre. Vérifié le 15 octobre avec deux explorateurs de blocs : l'horodatage mène aux blocs Bitcoin 971004 et 971005. Une vérification avec l'outil officiel OpenTimestamps et un nœud Bitcoin complet reste à faire. Le fichier d'horodatage est le fichier .ots du lot : « Télécharger le fichier d’horodatage Bitcoin », sur la page de la plante. Le registre du site de test n'horodate pas sur Bitcoin.",
+    "Notre registre horodate sur Bitcoin le code de chaque lot scellé, avec OpenTimestamps. Le premier est arrivé dans le bloc Bitcoin 971004 le 11 octobre. Vérifié le 15 octobre avec deux explorateurs de blocs : l'horodatage mène aux blocs Bitcoin 971004 et 971005. Une vérification avec l'outil officiel OpenTimestamps et un nœud Bitcoin complet reste à faire. Le fichier d'horodatage est le fichier .ots du lot : « Télécharger le fichier d’horodatage Bitcoin », sur la page de la plante. Le registre du site de test n'horodate pas sur Bitcoin.",
   'm.tech.dna.t': 'Association de rapports et signatures de laboratoire',
   'm.tech.dna.p':
     "Quand l'association d'un rapport ADN passe par le contrat VeilCore sur Midnight, elle est datée : elle montre que la personne qui contrôlait l'enregistrement à cette date avait ce rapport, ou son SHA-256, à ce moment-là. Ce qui va sur la chaîne est lié à l'enregistrement et cache le rapport, de sorte que personne ne peut copier l'association sur son propre enregistrement. La signature d'un laboratoire sur un rapport verrouillé couvre exactement ce fichier et l'enregistrement concerné.",
   'title.checkSite': 'Vérifier ce site',
   'm.privacy.code.title': 'Le code de l’application',
-  'm.privacy.code.text': 'VeilCore sert le code de l’application. Les fichiers de chaque version sont listés publiquement, pour que chacun puisse vérifier que le site correspond à son code publié.',
+  'm.privacy.code.text':
+    'VeilCore sert le code de l’application. Les fichiers de chaque version sont listés publiquement, pour que chacun puisse vérifier que le site correspond à son code publié.',
   'm.checksite.title': 'Vérifier ce site',
-  'm.checksite.lede': 'VeilCore sert le code de l’application. Les fichiers de chaque version sont listés publiquement, pour que chacun puisse vérifier que le site correspond à son code publié.',
+  'm.checksite.lede':
+    'VeilCore sert le code de l’application. Les fichiers de chaque version sont listés publiquement, pour que chacun puisse vérifier que le site correspond à son code publié.',
   'm.checksite.reading': 'Lecture de la version…',
-  'm.checksite.noRelease': 'Cette copie du site n’a pas été publiée par un déploiement de version : il n’y a donc pas de liste avec laquelle la vérifier.',
+  'm.checksite.noRelease':
+    'Cette copie du site n’a pas été publiée par un déploiement de version : il n’y a donc pas de liste avec laquelle la vérifier.',
   'm.checksite.release': 'Cette copie du site dit être la version {commit} sur {network}, faite le {date}.',
-  'm.checksite.how': 'La vérification télécharge depuis ce site chaque fichier que liste la version, calcule son SHA-256 dans votre navigateur et le compare à la liste.',
-  'm.checksite.trust': 'Cette page tourne sur le site qu’elle vérifie : un site qui mentirait pourrait mentir ici aussi. Pour vérifier sans faire confiance à VeilCore, téléchargez la liste depuis le code public et utilisez-la ci-dessous, ou lancez {command} depuis une copie du code.',
+  'm.checksite.how':
+    'La vérification télécharge depuis ce site chaque fichier que liste la version, calcule son SHA-256 dans votre navigateur et le compare à la liste.',
+  'm.checksite.trust':
+    'Cette page tourne sur le site qu’elle vérifie : un site qui mentirait pourrait mentir ici aussi. Pour vérifier sans faire confiance à VeilCore, téléchargez la liste depuis le code public et utilisez-la ci-dessous, ou lancez {command} depuis une copie du code.',
   'm.checksite.listLink': 'La liste de cette version dans le code public',
   'm.checksite.useSite': 'Vérifier avec la liste que sert ce site',
   'm.checksite.useFile': 'Ou vérifier avec une liste téléchargée :',
@@ -474,7 +479,8 @@ export const fr: Strings = {
   'm.checksite.missing': 'Manquant : {path}',
   'm.checksite.noList': 'Ce n’est pas une liste de version.',
   'm.checksite.otherList': 'Cette liste est celle d’une autre version, pas de celle que ce site dit être.',
-  'm.checksite.uncommitted': 'Cette version a été faite à partir de code avec des modifications non encore validées : ses fichiers ne sont donc pas exactement le code publié à ce commit.',
+  'm.checksite.uncommitted':
+    'Cette version a été faite à partir de code avec des modifications non encore validées : ses fichiers ne sont donc pas exactement le code publié à ce commit.',
 };
 
 /** The public test site (en-testchain.ts), in this language. Draft, like the rest of this file. */
@@ -499,7 +505,7 @@ export const frTestchain: Strings = {
   'm.privacy.hosts.text':
     'Ce site est hébergé chez Vercel, qui enregistre les adresses IP et les requêtes. Notre serveur de registre, et le service qui paie les frais du réseau de test et relaie les lectures du réseau faites par cette page, fonctionnent chez Railway, qui enregistre les requêtes. Ce service lit le réseau via Blockfrost.',
   'footer.about':
-    "Un format d'enregistrement ouvert pour la génétique végétale et animale. Recalculer l'empreinte d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa date vient d'une transaction sur Midnight, et la page de vérification consulte elle-même cette transaction sur Midnight quand elle peut joindre Midnight. Rechercher un enregistrement par son identifiant sur ce site passe par notre serveur.",
+    "Un format d'enregistrement ouvert pour la génétique végétale et animale. Recalculer le code de preuve d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa date vient d'une transaction sur Midnight, et la page de vérification consulte elle-même cette transaction sur Midnight quand elle peut joindre Midnight. Rechercher un enregistrement par son identifiant sur ce site passe par notre serveur.",
   'm.tech.check.p':
-    "Recalculer l'empreinte d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa preuve d'inclusion relie cette empreinte à une empreinte de lot ancrée sur Midnight, et la transaction qui l'a ancrée donne la date du lot. Le verify.html du dossier de preuve refait ce calcul hors ligne et nomme la transaction et l'empreinte de lot à consulter. La page de vérification consulte elle-même cette transaction sur Midnight quand elle peut joindre Midnight. Les enregistrements scellés depuis le 14 octobre nomment leur propre clé ; les vérifier demande donc aussi la section 3.6.1, publiée dans la spécification sur ce site ; le SDK et ses trois implémentations l'intégreront dans leur prochaine version.",
+    "Recalculer le code de preuve d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa preuve d'inclusion relie ce code de preuve à un code de preuve de lot ancré sur Midnight, et la transaction qui l'a ancré donne la date du lot. Le verify.html du dossier de preuve refait ce calcul hors ligne et nomme la transaction et le code de preuve de lot à consulter. La page de vérification consulte elle-même cette transaction sur Midnight quand elle peut joindre Midnight. Les enregistrements scellés depuis le 14 octobre nomment leur propre clé ; les vérifier demande donc aussi la section 3.6.1, publiée dans la spécification sur ce site ; le SDK et ses trois implémentations l'intégreront dans leur prochaine version.",
 };

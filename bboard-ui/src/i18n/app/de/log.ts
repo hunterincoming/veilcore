@@ -35,10 +35,10 @@ export const log = {
   'app.log.parentLinked': ' Ihr Elternteil ist {name}, unten bereits verknüpft.',
   'app.log.keptLastTime': 'Wir haben aufbewahrt, was Sie zuletzt eingegeben haben.',
   'app.log.startOver': 'Neu beginnen',
-  'app.log.nameLabel': 'Name der Pflanze oder Linie (öffentlich)',
+  'app.log.nameLabel': 'Name der Pflanze oder Linie',
   'app.log.namePlaceholder': 'z. B. Harbour Mist',
   'app.log.nameHelp':
-    'Wer einen Prüflink hat, sieht diesen Namen. Wenn der echte Name geheim ist, verwenden Sie einen Decknamen.',
+    'Verschlossen wie die anderen Angaben. Ihre Prüflinks tragen ihn nach dem #, sodass die Menschen, denen Sie einen Link schicken, ihn sehen, und alle, an die sie ihn weitergeben.',
   'app.log.eg': 'z. B. {v}',
   'app.log.egNextSelection': 'z. B. {name}, nächste Selektion',
   'app.log.bredBy': 'Gezüchtet von',
@@ -62,7 +62,7 @@ export const log = {
   'app.log.addPhotos': 'Fotos hinzufügen',
   'app.log.photos.one': '{count} Foto',
   'app.log.photos.other': '{count} Fotos',
-  'app.log.photosStay': 'Die Fotos bleiben auf Ihrem Gerät. Nur ihre Fingerabdrücke werden gespeichert.',
+  'app.log.photosStay': 'Die Fotos bleiben auf Ihrem Gerät. Nur ihre Codes werden gespeichert.',
   'app.log.refId': 'Ihre eigene Chargen- oder Referenznummer',
   'app.log.notes': 'Notizen',
   'app.log.nextCheck': 'Weiter: prüfen',
@@ -84,12 +84,12 @@ export const log = {
   'app.log.sealedWarn':
     '<b>Einmal versiegelt, lässt sich dieser Teil nicht mehr ändern.</b> Berichte und Korrekturen können Sie später hinzufügen; eine Korrektur ist ein neuer Datensatz, der auf diesen verweist. Genau das macht den Datumsstempel wertvoll.',
   'app.log.savedOn':
-    'Die Angaben werden verschlossen auf {server} gespeichert, damit Sie darauf zurückkommen können, und wir haben den Schlüssel nicht. Der Name ist nicht verschlossen: Wer einen Prüflink hat, sieht ihn. Nur ein Fingerabdruck wird datiert, auf {datedOn}.',
+    'Die Angaben werden verschlossen auf {server} gespeichert, damit Sie darauf zurückkommen können, und wir haben den Schlüssel nicht. Auch der Name ist verschlossen; Ihre Prüflinks tragen ihn nach dem #, für die Menschen, denen Sie sie schicken. Nur ein Prüfcode wird datiert, auf {datedOn}.',
   'app.log.sealing': 'Wird versiegelt…',
   'app.log.seal': 'Versiegeln',
   'app.log.sealingPlant': 'Ihre Pflanze wird versiegelt…',
   'app.log.sealStampsKey':
-    'Beim Versiegeln bekommt auch der Schlüssel Ihrer Pflanze einen Datumsstempel, damit Sie später nachweisen können, dass Sie ihn halten. Nur ein Fingerabdruck des Schlüssels wird gesendet.',
+    'Beim Versiegeln bekommt auch der Schlüssel Ihrer Pflanze einen Datumsstempel, damit Sie später nachweisen können, dass Sie ihn halten. Nur ein Code des Schlüssels wird gesendet.',
   'app.log.sealed': 'Versiegelt',
   'app.log.publicStampLater':
     'Den öffentlichen Datumsstempel bekommt sie, wenn ihr Stapel auf {datedOn} datiert wird. Die Seite Ihrer Pflanze zeigt, wann das geschehen ist. Sie müssen nichts tun.',
@@ -108,7 +108,7 @@ export const log = {
   'app.log.stampFailedTitle': 'Versiegelt. Schlüssel noch ohne Datumsstempel',
   'app.log.stampingTitle': 'Versiegelt. Der Schlüssel Ihrer Pflanze bekommt den Datumsstempel…',
   'app.log.onlyFingerprint':
-    'Gesendet wird nur ein Fingerabdruck des Schlüssels Ihrer Pflanze, nichts über die Pflanze. Kostenlos: VeilCore zahlt die Netzwerkgebühr.',
+    'Gesendet wird nur ein Code des Schlüssels Ihrer Pflanze, nichts über die Pflanze. Kostenlos: VeilCore zahlt die Netzwerkgebühr.',
   'app.log.stampingAria': 'Der Schlüssel Ihrer Pflanze bekommt den Datumsstempel',
   'app.log.stampLater': 'Datumsstempel später setzen',
   'app.log.keepOpen':

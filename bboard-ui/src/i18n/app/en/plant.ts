@@ -48,12 +48,12 @@ export const plant = {
   'app.plant.f.sealedClock': "Sealed (this device's clock)",
   'app.plant.f.ref': 'Reference / lot ID',
   'app.plant.f.photos': 'Photos',
-  'app.plant.f.photosSealed': '{n} sealed (fingerprints only; the images were never uploaded)',
-  'app.plant.f.reportSaved': 'saved to this plant ({file}) · pairing fingerprint {fp}{sha}',
+  'app.plant.f.photosSealed': '{n} sealed (codes only; the images were never uploaded)',
+  'app.plant.f.reportSaved': 'saved to this plant ({file}) · pairing code {fp}{sha}',
   'app.plant.f.file': 'file',
   'app.plant.f.fileSha': ' · file SHA-256 {sha}',
   'app.plant.f.notSavedYet': 'not saved yet',
-  'app.plant.f.recordFingerprint': 'Record fingerprint',
+  'app.plant.f.recordFingerprint': 'Proof code',
   'app.plant.evidenceBundle': 'Evidence bundle',
   'app.plant.evidenceBundleText':
     'The record as sealed, its inclusion proof, the batch root, where the batch was recorded, the Bitcoin stamp file if there is one, and lab signatures about it, in one .zip. Its verify.html checks it with no internet and nothing from VeilCore, and says what to look up to date it.',
@@ -196,7 +196,7 @@ export const plant = {
   'app.plant.next.sample.action': 'Send to a lab',
   'app.plant.next.dna.title': 'Get a DNA fingerprint for this plant',
   'app.plant.next.dna.why':
-    'A dated record shows a description existed. A DNA report (a lab’s genetic fingerprint of the plant) is what ties your record to the actual plant. Two ways to get one:',
+    'A dated record shows a description existed. A DNA report (a lab’s DNA fingerprint of the plant) is what ties your record to the actual plant. Two ways to get one:',
   'app.plant.next.dna.labTitle': 'Send a sample to a lab',
   'app.plant.next.dna.labText':
     'Make a lab code and send a sample with it. The lab’s DNA report comes back here, locked so only you can open it.',
@@ -235,7 +235,7 @@ export const plant = {
   'app.plant.date.chipReported': 'In a batch · anchor reported on {network}',
   'app.plant.date.testNote': ' A test network can be reset and its dates carry no evidential weight.',
   'app.plant.date.head':
-    "Checked in this browser: your record's fingerprint is in batch {batch}, and the path from it folds to the batch root.",
+    "Checked in this browser: your record's proof code is in batch {batch}, and the path from it folds to the batch root.",
   'app.plant.date.looked': '{head} The registry reports that root was recorded on {network}.{test}',
   'app.plant.date.notLooked':
     '{head} The registry reports that root was recorded on {network}; this page has not looked the transaction up, so it is not shown as anchored. Look it up on the network before relying on the date.{test}',
@@ -243,7 +243,7 @@ export const plant = {
   'app.plant.date.notInBatch':
     "Sealed on your device and kept on {server}. It isn't in a batch yet, so it isn't anchored. We anchor records together, in batches (by hand for now, so it can take a while), so one transaction covers many and you never need a wallet. Until then its date rests on this registry's records.",
   'app.plant.date.inBatchNotAnchored':
-    "Checked in this browser: your record's fingerprint is in batch {batch}, which has not been anchored yet. When it is, the proof gains a reference to the transaction. Nothing about your record changes.",
+    "Checked in this browser: your record's proof code is in batch {batch}, which has not been anchored yet. When it is, the proof gains a reference to the transaction. Nothing about your record changes.",
   'app.plant.date.batchLine': 'batch {batch}',
   'app.plant.date.rootLine': 'root {root}…',
   'app.plant.date.txChecked': 'tx (checked on Midnight) {tx}',
@@ -287,8 +287,9 @@ export const plant = {
   'app.plant.dated.why': 'So you can show this report existed by that date without showing anyone the markers.',
   'app.plant.dated.seals':
     "Seals a small record with only the report's SHA-256, its lab report code and the lab's name as signed. The report stays with you. Its date comes when its batch is dated.",
-  'app.plant.dated.nameLabel': 'Name of the new record (public)',
-  'app.plant.dated.nameHelp': 'Anyone with its check link sees this name. Change it if you like.',
+  'app.plant.dated.nameLabel': 'Name of the new record',
+  'app.plant.dated.nameHelp':
+    'Locked like the rest. Its check links carry it, so whoever you send one to sees it. Change it if you like.',
   'app.plant.dated.elsewhere':
     'This DNA report is being dated in another tab or window. Wait a minute, then look again: it will show here.',
   // stage/LabReportOverview.tsx: the page of a record that dates a lab report.
@@ -355,7 +356,7 @@ export const plant = {
     'With it, anyone who has the bundle can tie this record to its key, and to everything that key does on the network. Leave it out unless they need it.',
   'app.plant.bundle.keyNotHere': 'The key isn’t in this browser. Open your backup here to include it.',
   'app.plant.bundle.includeLab':
-    'Include the DNA report file. Without it, the bundle has only the report’s fingerprint, not what it says.',
+    'Include the DNA report file. Without it, the bundle has only the report’s code, not what it says.',
   'app.plant.bundle.chooseLab': 'Choose the DNA report file',
   'app.plant.bundle.checkedAgainst': 'It’s checked against the one saved to this plant before it goes in.',
   'app.plant.bundle.labFileAria': 'DNA report file',
@@ -381,11 +382,11 @@ export const plant = {
     "This check runs only in your browser and sends nothing, so it is for you. It shows you have a file matching the report paired with a record. It doesn't show who holds the plant, and nobody else can verify it from here. Others check a record on its verify page, and its date once the record is anchored.",
   'app.plant.check.tap': 'Tap to choose the lab report',
   'app.plant.check.drag': 'Drag the lab report here, or click to choose',
-  'app.plant.check.hint': 'Read and fingerprinted locally, never uploaded.',
+  'app.plant.check.hint': 'Read here to make its code, never uploaded.',
   'app.plant.check.none':
     'None of your records has this lab report saved to it. Save it to the right plant first, then check again.',
   'app.plant.check.found': 'Match found.',
-  'app.plant.check.foundSub': 'This file was fingerprinted in your browser and was not uploaded.',
+  'app.plant.check.foundSub': 'This file was read in your browser to make its code, and was not uploaded.',
   'app.plant.check.matches': 'This file matches the report paired with {name}.',
   'app.plant.check.meaning':
     'Record {id}. A match means the file is byte-for-byte the one you paired; it says nothing about the genetics and nothing about who holds the plant.',
@@ -414,7 +415,7 @@ export const plant = {
   'app.plant.fix.title': 'Correct {id}',
   'app.plant.fix.intro':
     'This record stays exactly as it is. A correction creates a new record that supersedes it, and both remain on file. A correction overwrites nothing and deletes nothing: that is what keeps the original usable as evidence.',
-  'app.plant.fix.name': 'Cultivar name (public)',
+  'app.plant.fix.name': 'Cultivar name',
   'app.plant.fix.bredBy': 'Bred by',
   'app.plant.fix.notes': 'Notes',
   'app.plant.fix.does': 'What this correction does',
@@ -436,7 +437,7 @@ export const plant = {
   'app.plant.att.noReceipt':
     'No lab has signed a receipt for this plant yet. A record only you stand behind is weaker evidence than one a lab signs for. Send a sample to a lab: their receipt is signed with their key, not yours.',
   'app.plant.att.others':
-    "Other signatures name this record: {n}, not tied to your deliveries. Anyone can sign a statement about a public fingerprint, so they aren't counted as a receipt.",
+    "Other signatures name this record: {n}, not tied to your deliveries. Anyone can sign a statement about a public proof code, so they aren't counted as a receipt.",
   'app.plant.att.title': 'Signatures about this record',
   'app.plant.att.nobody':
     'Nobody else has confirmed this record yet. A record only you stand behind is weaker evidence than one a second party confirms. Send the material to a lab: their confirmation is recorded under their key, not yours.',

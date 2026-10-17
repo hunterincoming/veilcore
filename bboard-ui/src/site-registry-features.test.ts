@@ -39,6 +39,8 @@ const ALL = [
   'sealed-custody-v1',
   'record-rev-v1',
   'license-rev-v1',
+  'sealed-name-v1',
+  'dna-pair-binding-v1',
 ];
 const DEPLOY_FIRST = /Deploy the registry first: put the registry's latest code live on Railway/;
 
@@ -89,10 +91,10 @@ const runScript = (script: string, env: Record<string, string>, cwd = ROOT) =>
   });
 
 describe('the features the site needs', () => {
-  it('are exactly sealed records, lab results, animal records, finishing a delivery, locked sample details and the record and agreement rev', () => {
+  it('are exactly sealed records, lab results, animal records, finishing a delivery, locked sample details, the record and agreement rev, locked names and bound DNA reports', () => {
     expect(Object.keys(REQUIRED_FEATURES)).toEqual(ALL);
     expect(featuresLine('https://r.example')).toBe(
-      'Registry https://r.example serves sealed records, lab results, animal records, finishing a received delivery, locked sample details, refusing an older copy of a record and refusing an older copy of an agreement.',
+      'Registry https://r.example serves sealed records, lab results, animal records, finishing a received delivery, locked sample details, refusing an older copy of a record, refusing an older copy of an agreement, locked record names and DNA reports shown only as a bound code.',
     );
   });
 
@@ -126,6 +128,8 @@ describe('the features the site needs', () => {
           'sealed-custody-v1',
           'record-rev-v1',
           'license-rev-v1',
+          'sealed-name-v1',
+          'dna-pair-binding-v1',
         ],
       },
       'R',
@@ -182,7 +186,7 @@ describe('deploy:mainnet', () => {
       const older = await runScript('site-mainnet-preflight.mjs', { VITE_API_BASE: old.api });
       expect(older.code).toBe(1);
       expect(older.text).toMatch(
-        /NOT DEPLOYED\. .*missing sealed-records-v1 \(sealed records\), lab-results-v1 \(lab results\), animal-profile-v1 \(animal records\), claimant-offer-v1 \(finishing a received delivery\), sealed-custody-v1 \(locked sample details\), record-rev-v1 \(refusing an older copy of a record\), license-rev-v1 \(refusing an older copy of an agreement\)/,
+        /NOT DEPLOYED\. .*missing sealed-records-v1 \(sealed records\), lab-results-v1 \(lab results\), animal-profile-v1 \(animal records\), claimant-offer-v1 \(finishing a received delivery\), sealed-custody-v1 \(locked sample details\), record-rev-v1 \(refusing an older copy of a record\), license-rev-v1 \(refusing an older copy of an agreement\), sealed-name-v1 \(locked record names\), dna-pair-binding-v1 \(DNA reports shown only as a bound code\)/,
       );
     },
     30_000,
@@ -206,7 +210,7 @@ describe('deploy:mainnet', () => {
 describe('deploy:test', () => {
   const preprod = { anchors: [{ chain: 'midnight', network: 'preprod', contractAddress: 'ab'.repeat(32) }] };
 
-  it('accepts a preprod registry only when its /health lists all seven', async () => {
+  it('accepts a preprod registry only when its /health lists all nine', async () => {
     const ready = await stub({ descriptor: preprod });
     expect(await checkTestRegistry(ready.api)).toEqual({ ok: true });
     const noAnimals = await stub({
@@ -220,6 +224,8 @@ describe('deploy:test', () => {
           'sealed-custody-v1',
           'record-rev-v1',
           'license-rev-v1',
+          'sealed-name-v1',
+          'dna-pair-binding-v1',
         ],
       },
     });
@@ -239,6 +245,8 @@ describe('deploy:test', () => {
           'sealed-custody-v1',
           'record-rev-v1',
           'license-rev-v1',
+          'sealed-name-v1',
+          'dna-pair-binding-v1',
         ],
       },
     });
@@ -258,6 +266,8 @@ describe('deploy:test', () => {
           'claimant-offer-v1',
           'record-rev-v1',
           'license-rev-v1',
+          'sealed-name-v1',
+          'dna-pair-binding-v1',
         ],
       },
     });
@@ -277,6 +287,8 @@ describe('deploy:test', () => {
           'claimant-offer-v1',
           'sealed-custody-v1',
           'license-rev-v1',
+          'sealed-name-v1',
+          'dna-pair-binding-v1',
         ],
       },
     });
@@ -296,12 +308,24 @@ describe('deploy:test', () => {
           'claimant-offer-v1',
           'sealed-custody-v1',
           'record-rev-v1',
+          'sealed-name-v1',
+          'dna-pair-binding-v1',
         ],
       },
     });
     const r5 = await checkTestRegistry(beforeLicenceRev.api);
     expect(!r5.ok && r5.problem).toMatch(
       /is missing license-rev-v1 \(refusing an older copy of an agreement\), which this site uses/,
+    );
+    // A registry from before round 5: it would keep record names readable, and still answer a
+    // saved DNA report's plain value (CONTRACT.md #28, #29).
+    const beforeRound5 = await stub({
+      descriptor: preprod,
+      health: { ok: true, features: ALL.filter((f) => f !== 'sealed-name-v1' && f !== 'dna-pair-binding-v1') },
+    });
+    const r6 = await checkTestRegistry(beforeRound5.api);
+    expect(!r6.ok && r6.problem).toMatch(
+      /is missing sealed-name-v1 \(locked record names\), dna-pair-binding-v1 \(DNA reports shown only as a bound code\), which this site uses/,
     );
   });
 

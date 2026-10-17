@@ -66,7 +66,7 @@ export const home = {
     'Une fois les enregistrements ancrés, chacun peut vérifier lequel a été ancré en premier. Avant cela, l’heure d’un enregistrement est l’horloge de son appareil. Un enregistrement est une preuve, pas un enregistrement officiel : il montre ce que vous aviez et quand, mais ne tranche pas un litige à lui seul.',
   'app.home.trust.2t': 'Un rapport associé peut être comparé plus tard',
   'app.home.trust.2b':
-    'L’association conserve l’empreinte de votre rapport ADN avec l’enregistrement, comme votre déclaration, pour qu’un nouveau test du matériel puisse ensuite y être comparé. Quand vous associez via le contrat de VeilCore sur Midnight, l’association est aussi datée : elle montre que l’enregistrement était associé à ce rapport à cette date, pas qui a eu le rapport en premier. Dans {thisSite}, les associations ne sont pas encore datées.',
+    'L’association conserve le code de votre rapport ADN avec l’enregistrement, comme votre déclaration, pour qu’un nouveau test du matériel puisse ensuite y être comparé. Quand vous associez via le contrat de VeilCore sur Midnight, l’association est aussi datée : elle montre que l’enregistrement était associé à ce rapport à cette date, pas qui a eu le rapport en premier. Dans {thisSite}, les associations ne sont pas encore datées.',
   'app.home.trust.3t': 'Une seconde partie prend livraison',
   'app.home.trust.3b':
     'Quand du matériel est transféré, la personne qui le reçoit confirme la réception avec sa propre clé. Cela place une seconde partie dans l’enregistrement, pas seulement vous. Cela montre que quelqu’un a pris livraison, pas qui il est.',

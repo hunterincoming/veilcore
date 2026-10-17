@@ -73,7 +73,7 @@ export const prove = {
   'app.prove.hand.intro':
     'Le lien que vous avez reçu nomme une identité sur la chaîne pour cet enregistrement ({id}…). Créez un défi, envoyez-le, puis collez l’identifiant de transaction qu’on vous renvoie. La réponse doit venir de cette identité et répondre à votre défi, et l’identité doit être ancrée et à jour. {bound}',
   'app.prove.hand.bound':
-    'L’enregistrement a nommé cette clé au moment d’être scellé, et cette page l’a vérifié avec son empreinte.',
+    'L’enregistrement a nommé cette clé au moment d’être scellé, et cette page l’a vérifié avec son code de preuve.',
   'app.prove.hand.older':
     'Enregistrement ancien : clé non liée à cet enregistrement. Que cette identité lui corresponde est la déclaration du détenteur.',
   'app.prove.hand.make': 'Créer un défi',
@@ -90,7 +90,7 @@ export const prove = {
   'app.prove.key.leavesOut':
     'Cet enregistrement nomme sa propre clé, mais ce lien omet ce qu’il faut pour la vérifier. Demandez un nouveau lien au détenteur',
   'app.prove.key.noFp':
-    'L’empreinte de ce lien ne correspond pas à l’enregistrement : sa clé ne peut donc pas être vérifiée avec',
+    'Le code de preuve de ce lien ne correspond pas à l’enregistrement : sa clé ne peut donc pas être vérifiée avec',
   'app.prove.key.notThis': 'La clé de ce lien n’est pas celle que nomme cet enregistrement',
   'app.prove.watch.shareAsker':
     '{asker} vous demande de prouver sur VeilCore que vous détenez cette plante. Ouvrez ce lien : {link}',

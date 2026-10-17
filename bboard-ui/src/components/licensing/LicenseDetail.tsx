@@ -172,7 +172,7 @@ export const LicenseDetail: React.FC = () => {
           <TermsSummary l={license} />
           <Divider sx={{ my: 2 }} />
           <Alert severity="info" variant="outlined">
-            These terms are attached to the sealed record and its paired report fingerprint
+            These terms are attached to the sealed record and the code of its paired report
             {license.dnaFingerprint ? ` (${shortFingerprint(license.dnaFingerprint)})` : ''}.
           </Alert>
           {showLineageNote && (

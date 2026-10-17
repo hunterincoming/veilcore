@@ -147,7 +147,7 @@ describe('partner-kit check, against a local registry', () => {
   it('plain words with --text', async () => {
     const r = await cli('check', reg.links.bound, '--registry', reg.base, '--text', '--allow-test-network');
     assert.equal(r.code, 0);
-    assert.match(r.stdout, /^Record found, and the link’s fingerprint matches the registry’s\./);
+    assert.match(r.stdout, /^Record found, and the link’s proof code matches the registry’s\./);
     assert.match(r.stdout, /VeilCore’s operator matched this name to cannabis\.example\.gov \(license TL-1\)/);
     assert.match(r.stdout, /What this does not show:/);
   });

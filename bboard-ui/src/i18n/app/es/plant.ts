@@ -49,12 +49,12 @@ export const plant = {
   'app.plant.f.sealedClock': 'Sellado (reloj de este dispositivo)',
   'app.plant.f.ref': 'Referencia / ID de lote',
   'app.plant.f.photos': 'Fotos',
-  'app.plant.f.photosSealed': '{n} selladas (solo las huellas; las imágenes nunca se subieron)',
-  'app.plant.f.reportSaved': 'guardado en esta planta ({file}) · huella del vínculo {fp}{sha}',
+  'app.plant.f.photosSealed': '{n} selladas (solo los códigos; las imágenes nunca se subieron)',
+  'app.plant.f.reportSaved': 'guardado en esta planta ({file}) · código del vínculo {fp}{sha}',
   'app.plant.f.file': 'archivo',
   'app.plant.f.fileSha': ' · SHA-256 del archivo {sha}',
   'app.plant.f.notSavedYet': 'todavía no guardado',
-  'app.plant.f.recordFingerprint': 'Huella del registro',
+  'app.plant.f.recordFingerprint': 'Código de prueba del registro',
   'app.plant.evidenceBundle': 'Paquete de evidencia',
   'app.plant.evidenceBundleText':
     'El registro tal como se selló, su prueba de inclusión, la raíz del lote, dónde se registró el lote, el archivo de sello de Bitcoin si lo hay y las firmas de laboratorio sobre él, en un solo .zip. Su verify.html lo comprueba sin internet y sin nada de VeilCore, y dice qué consultar para fecharlo.',
@@ -194,7 +194,7 @@ export const plant = {
   'app.plant.next.sample.action': 'Enviar a un laboratorio',
   'app.plant.next.dna.title': 'Obtenga una huella de ADN de esta planta',
   'app.plant.next.dna.why':
-    'Un registro fechado muestra que existía una descripción. Un informe de ADN (la huella genética de la planta que hace un laboratorio) es lo que vincula su registro con la planta real. Hay dos formas de conseguirlo:',
+    'Un registro fechado muestra que existía una descripción. Un informe de ADN (la huella de ADN de la planta que hace un laboratorio) es lo que vincula su registro con la planta real. Hay dos formas de conseguirlo:',
   'app.plant.next.dna.labTitle': 'Enviar una muestra a un laboratorio',
   'app.plant.next.dna.labText':
     'Cree un código de laboratorio y envíe una muestra con él. El informe de ADN del laboratorio vuelve aquí, cerrado para que solo usted pueda abrirlo.',
@@ -232,7 +232,7 @@ export const plant = {
   'app.plant.date.chipReported': 'En un lote · anclaje informado en {network}',
   'app.plant.date.testNote': ' Una red de pruebas puede reiniciarse y sus fechas no tienen valor como evidencia.',
   'app.plant.date.head':
-    'Comprobado en este navegador: la huella de su registro está en el lote {batch}, y el camino desde ella llega a la raíz del lote.',
+    'Comprobado en este navegador: el código de prueba de su registro está en el lote {batch}, y el camino desde él llega a la raíz del lote.',
   'app.plant.date.looked': '{head} El servidor de registros informa que esa raíz se registró en {network}.{test}',
   'app.plant.date.notLooked':
     '{head} El servidor de registros informa que esa raíz se registró en {network}; esta página no consultó la transacción, así que no se muestra como anclada. Consúltela en la red antes de confiar en la fecha.{test}',
@@ -240,7 +240,7 @@ export const plant = {
   'app.plant.date.notInBatch':
     'Sellado en su dispositivo y guardado en {server}. Todavía no está en un lote, así que no está anclado. Anclamos los registros juntos, en lotes (por ahora a mano, así que puede tardar), para que una transacción cubra muchos y usted nunca necesite una billetera. Hasta entonces, su fecha se basa en los registros de este servidor.',
   'app.plant.date.inBatchNotAnchored':
-    'Comprobado en este navegador: la huella de su registro está en el lote {batch}, que todavía no se ha anclado. Cuando se ancle, la prueba sumará una referencia a la transacción. Nada de su registro cambia.',
+    'Comprobado en este navegador: el código de prueba de su registro está en el lote {batch}, que todavía no se ha anclado. Cuando se ancle, la prueba sumará una referencia a la transacción. Nada de su registro cambia.',
   'app.plant.date.batchLine': 'lote {batch}',
   'app.plant.date.rootLine': 'raíz {root}…',
   'app.plant.date.txChecked': 'tx (comprobada en Midnight) {tx}',
@@ -283,8 +283,9 @@ export const plant = {
     'Para que pueda mostrar que este informe existía en esa fecha sin mostrarle a nadie los marcadores.',
   'app.plant.dated.seals':
     'Sella un pequeño registro con solo el SHA-256 del informe, su código de informe de laboratorio y el nombre del laboratorio según su firma. El informe se queda con usted. Su fecha llega cuando se fecha su lote.',
-  'app.plant.dated.nameLabel': 'Nombre del nuevo registro (público)',
-  'app.plant.dated.nameHelp': 'Cualquiera con su enlace de comprobación ve este nombre. Cámbielo si quiere.',
+  'app.plant.dated.nameLabel': 'Nombre del nuevo registro',
+  'app.plant.dated.nameHelp':
+    'Bloqueado como el resto. Sus enlaces de comprobación lo llevan, así que lo ve quien reciba uno. Cámbielo si quiere.',
   'app.plant.dated.elsewhere':
     'Este informe de ADN se está fechando en otra pestaña o ventana. Espere un minuto y vuelva a mirar: aparecerá aquí.',
   'app.plant.datingPage.title': 'Este registro fecha un informe de ADN de <plant></plant>',
@@ -349,7 +350,7 @@ export const plant = {
     'Con ella, cualquiera que tenga el paquete puede relacionar este registro con su clave, y con todo lo que esa clave hace en la red. No la incluya salvo que la necesiten.',
   'app.plant.bundle.keyNotHere': 'La clave no está en este navegador. Abra aquí su copia de seguridad para incluirla.',
   'app.plant.bundle.includeLab':
-    'Incluir el archivo del informe de ADN. Sin él, el paquete tiene solo la huella del informe, no lo que dice.',
+    'Incluir el archivo del informe de ADN. Sin él, el paquete tiene solo el código del informe, no lo que dice.',
   'app.plant.bundle.chooseLab': 'Elegir el archivo del informe de ADN',
   'app.plant.bundle.checkedAgainst': 'Se compara con el guardado en esta planta antes de incluirlo.',
   'app.plant.bundle.labFileAria': 'Archivo del informe de ADN',
@@ -374,11 +375,11 @@ export const plant = {
     'Esta comprobación se hace solo en su navegador y no envía nada, así que es para usted. Muestra que tiene un archivo que coincide con el informe vinculado a un registro. No muestra quién tiene la planta, y nadie más puede verificarlo desde aquí. Los demás comprueban un registro en su página de verificación, y su fecha una vez anclado.',
   'app.plant.check.tap': 'Toque para elegir el informe de laboratorio',
   'app.plant.check.drag': 'Arrastre aquí el informe de laboratorio, o haga clic para elegirlo',
-  'app.plant.check.hint': 'Se lee y se le saca la huella en su equipo; nunca se sube.',
+  'app.plant.check.hint': 'Se lee y se le saca el código en su equipo; nunca se sube.',
   'app.plant.check.none':
     'Ninguno de sus registros tiene guardado este informe de laboratorio. Guárdelo primero en la planta correcta y vuelva a comprobar.',
   'app.plant.check.found': 'Coincidencia encontrada.',
-  'app.plant.check.foundSub': 'A este archivo se le sacó la huella en su navegador y no se subió.',
+  'app.plant.check.foundSub': 'A este archivo se le sacó el código en su navegador y no se subió.',
   'app.plant.check.matches': 'Este archivo coincide con el informe vinculado a {name}.',
   'app.plant.check.meaning':
     'Registro {id}. Una coincidencia significa que el archivo es, byte por byte, el que usted vinculó; no dice nada de la genética ni de quién tiene la planta.',
@@ -406,7 +407,7 @@ export const plant = {
   'app.plant.fix.title': 'Corregir {id}',
   'app.plant.fix.intro':
     'Este registro queda exactamente como está. Una corrección crea un registro nuevo que lo sustituye, y ambos quedan archivados. Una corrección no sobrescribe ni borra nada: eso es lo que mantiene el original útil como evidencia.',
-  'app.plant.fix.name': 'Nombre del cultivar (público)',
+  'app.plant.fix.name': 'Nombre del cultivar',
   'app.plant.fix.bredBy': 'Obtenida por',
   'app.plant.fix.notes': 'Notas',
   'app.plant.fix.does': 'Qué hace esta corrección',
@@ -427,7 +428,7 @@ export const plant = {
   'app.plant.att.noReceipt':
     'Ningún laboratorio ha firmado todavía un acuse de recibo para esta planta. Un registro que solo usted respalda es una evidencia más débil que uno que firma un laboratorio. Envíe una muestra a un laboratorio: su acuse de recibo se firma con su clave, no con la suya.',
   'app.plant.att.others':
-    'Otras firmas nombran este registro: {n}, no vinculadas a sus envíos. Cualquiera puede firmar una declaración sobre una huella pública, así que no se cuentan como acuse de recibo.',
+    'Otras firmas nombran este registro: {n}, no vinculadas a sus envíos. Cualquiera puede firmar una declaración sobre un código de prueba público, así que no se cuentan como acuse de recibo.',
   'app.plant.att.title': 'Firmas sobre este registro',
   'app.plant.att.nobody':
     'Nadie más ha confirmado todavía este registro. Un registro que solo usted respalda es una evidencia más débil que uno que confirma una segunda parte. Envíe el material a un laboratorio: su confirmación se registra con su clave, no con la suya.',

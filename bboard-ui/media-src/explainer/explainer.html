@@ -106,16 +106,16 @@ function scramble(t,t0,per=0.032,settle=0.3){let o='';for(let i=0;i<HEX.length;i
 // ---------- timeline ----------
 // Every line follows the landing page (bboard-ui/src/i18n/en.ts: hero, "What it's for",
 // "How it works"). A record shows you had THIS RECORD by a date, not that you had the
-// plant first; the plant name is on every check page; the other details are stored locked
-// on VeilCore's server, which doesn't have the key (sealed records); genetic data never
+// plant first; every detail is stored locked on VeilCore's server, the name included, and
+// the holder's check link carries the name (round 5); genetic data never
 // leaves your computer. Don't add a claim here that the landing page doesn't make.
 const DUR=60;
 const SC=[[0,7.5],[7.5,14.5],[14.5,22.5],[22.5,30],[30,37],[37,45.5],[45.5,53.5],[53.5,60]];
 const CAPS=[
  'Many genetics disputes come down to one question: what did you have, and when?',
- 'Log a plant. Its fingerprint is made on your computer.',
- 'Only the fingerprint goes on Midnight, which dates it.',
- 'Choose what else a checker sees. The name is always shown; the genetics never are.',
+ 'Log a plant. Its proof code is made on your computer.',
+ 'Only the proof code goes on Midnight, which dates it.',
+ 'Choose what a checker sees. Your link carries the name; the genetics never go.',
  'Someone checking sends you a link. You tap once.',
  'Their page checks on the network that you control the key this record names.',
  'Send material to a lab with a lab code. The report comes back signed, locked so only you can open it.',
@@ -124,7 +124,7 @@ const CAPS=[
 // Second, smaller line under a caption: [scene, text, seconds after the scene starts].
 const NOTES=[
  [0,'Notebooks and files are dated by whoever keeps them, so they’re easy to doubt.',3.0],
- [1,'Its name is public. The rest is stored locked on VeilCore’s server, and we don’t have the key.',4.9],
+ [1,'What you type is stored locked on VeilCore’s server, the name too, and we don’t have the key.',4.9],
  [2,'It goes in a batch with others. The date shows the record existed by then.',3.4],
  [5,'It says nothing about who bred the plant.',3.9],
  [6,'The lab signs with its own key. VeilCore doesn’t vouch for the result.',4.4]
@@ -165,7 +165,7 @@ html+=`<div id="g23" class="grp">
     <div id="r2_${i}" class="row" style="position:absolute;left:28px;right:28px;top:${84+i*52}px;height:52px;border-top:1px solid #EEF0EC">
       <div style="width:150px;font-size:17px;color:${C.ink2}">${k}</div>
       ${i<3?`<div id="v2_${i}" style="font-size:21px;font-weight:500" data-full="${v}"></div>
-      <div id="srv${i}" class="row" style="position:absolute;right:0;top:15px;gap:7px;font-size:15px;color:${C.ink2}">${i===0?`${ic('cloud',18,C.ink2,1.9)}Public, on VeilCore’s server`:`${ic('lock',17,C.ink2,2)}Locked on VeilCore’s server`}</div>`:
+      <div id="srv${i}" class="row" style="position:absolute;right:0;top:15px;gap:7px;font-size:15px;color:${C.ink2}">${ic('lock',17,C.ink2,2)}Locked on VeilCore’s server</div>`:
       `<div id="gen" class="row" style="gap:14px;position:relative"><div id="strip">${markerStrip(24,11)}</div></div>
       <div id="genLock" class="pill" style="white-space:nowrap;position:absolute;right:-6px;top:10px;font-size:15px;padding:5px 12px;background:${C.accsoft};color:${C.acc}">${ic('lock',15,C.acc,2.2)}Your computer only</div>`}
     </div>`).join('')}
@@ -173,7 +173,7 @@ html+=`<div id="g23" class="grp">
   </div>
   <div id="fpArrow" style="position:absolute;left:345px;top:372px">${ic('arrowR',30,'#9AA59D',2)}</div>
   <div id="fpBox" style="position:absolute;left:28px;top:410px;width:664px;height:140px;border-radius:12px;background:#fff;border:1px solid ${C.line}">
-    <div class="eyebrow" style="position:absolute;left:28px;top:20px">Fingerprint</div>
+    <div class="eyebrow" style="position:absolute;left:28px;top:20px">Proof code</div>
     <div class="row" style="position:absolute;left:28px;top:56px;gap:20px">${fpGlyph(54,C.acc,'fr2')}<div id="hex2" class="hex" style="font-size:32px;color:${C.ink}"></div></div>
   </div>
   <div id="stay" class="row" style="position:absolute;left:28px;top:570px;gap:10px">${ic('lock',20,C.acc,2.2)}<div class="sg" style="font-weight:600;font-size:19px;color:${C.acc}">Genetic data never leaves your computer</div></div>
@@ -190,15 +190,15 @@ html+=`<div id="g23" class="grp">
 
 // ===== G4: choose what they see =====
 const SX=200,SY=160,SW=820;
-// Row 0 (the plant name) is always shown on a record's check page; row 3 (genetics) is never shared.
-const ROWS4=[['Plant name','On every check page'],['Date','14 Oct 2026'],['Parent names','HM-3 × Line 7'],['Genetics','Marker data']];
+// Row 0 (the plant name) goes in the holder's check link, after the #; row 3 (genetics) is never shared.
+const ROWS4=[['Plant name','In your check link'],['Date','14 Oct 2026'],['Parent names','HM-3 × Line 7'],['Genetics','Marker data']];
 html+=`<div id="g4" class="grp">
 <svg class="lines">${lineSVG('l4',1028,440,1152,440)}</svg>
 <div id="spanel" class="card" style="left:${SX}px;top:${SY}px;width:${SW}px;height:540px">
   <div style="position:absolute;left:36px;top:28px"><div class="h2">Share settings</div><div class="sub" style="margin-top:4px">Harbour Mist</div></div>
   ${ROWS4.map(([a,b],i)=>`<div id="r4_${i}" style="position:absolute;left:0;right:0;top:${112+i*104}px;height:104px;border-top:1px solid #ECEFEA">
      <div style="position:absolute;left:36px;top:24px"><div style="font-size:24px;font-weight:500">${a}</div><div style="font-size:17px;color:${C.ink2};margin-top:4px">${b}</div></div>
-     ${i===0?`<div class="pill" style="position:absolute;right:36px;top:30px;font-size:17px;background:${C.accsoft};color:${C.acc};border:1px solid #BFDCCD;padding:8px 16px">${ic('check',18,C.acc,2.4)}Always shown</div>`:
+     ${i===0?`<div class="pill" style="position:absolute;right:36px;top:30px;font-size:17px;background:${C.accsoft};color:${C.acc};border:1px solid #BFDCCD;padding:8px 16px">${ic('check',18,C.acc,2.4)}In your link</div>`:
      i<3?`<div id="tg${i}" class="tg" style="right:36px;top:33px"><div class="k"></div></div>`:
      `<div id="lk4" class="pill" style="position:absolute;right:36px;top:30px;font-size:17px;background:${C.well};color:${C.ink2};border:1px solid ${C.line};padding:8px 16px">${ic('lock',18,C.ink2,2.2)}Never shared</div>`}
   </div>`).join('')}

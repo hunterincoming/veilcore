@@ -50,7 +50,7 @@ const common: Overlay = {
   'm.get.2b':
     "They attach to the record. A licensee can prove they hold a live license without showing which one. A royalty or other obligation on a parent shows on every offspring both holders confirmed; VeilCore records it and doesn't collect it. Built into the contract on Midnight's main network; simulated on this website.",
   'm.demo.lede':
-    "No sign-up, no wallet. Records you seal here are real records: each goes into a batch that we anchor on Midnight's main network, by hand for now, so a new record can wait a while; its check page shows when its batch is anchored. Checking is free. Licenses and lab agreements are simulated, and DNA report pairings aren't dated. A record's name is public, so use a code name if the real one is secret.",
+    "No sign-up, no wallet. Records you seal here are real records: each goes into a batch that we anchor on Midnight's main network, by hand for now, so a new record can wait a while; its check page shows when its batch is anchored. Checking is free. Licenses and lab agreements are simulated, and DNA report pairings aren't dated. A record's name is locked like the rest; your check links carry it, so whoever you send one to sees it.",
   // Dated posts: history, so they name the network the run was on (see DATED_POSTS).
   'm.post0.text':
     "Both contracts passed all 37 end-to-end checks on Midnight's preprod test network, including the new claims: a value, a range, a difference, an unchanged correction and a signature from a test lab key. Made-up marker data.",
@@ -62,7 +62,7 @@ const common: Overlay = {
   // Records made here are real on mainnet: no "demo" labels.
   'm.nav.demo': 'Make a record',
   'm.foot.demo': 'Make a record',
-  'm.hero.demoLabel': 'Live fingerprint',
+  'm.hero.demoLabel': 'Live proof code',
   'm.demo.label': 'Use it',
   'm.demo.title1': 'Make a record',
   'm.demo.title2': 'or check one.',
@@ -70,7 +70,7 @@ const common: Overlay = {
   'm.demo.privacy': 'What this site keeps →',
   'm.faq.4link1': 'What this site keeps →',
   'm.faq.2a':
-    'No. Making a record on this site and checking any record need no wallet, no sign-up and nothing to buy. Your browser keeps a random key that finds your records on our server. The fingerprint goes on Midnight, a blockchain built for privacy. You never deal with it directly.',
+    'No. Making a record on this site and checking any record need no wallet, no sign-up and nothing to buy. Your browser keeps a random key that finds your records on our server. The proof code goes on Midnight, a network built for privacy. You never deal with it directly.',
   'm.for.1p':
     "Seal a record and pair its DNA report. If the plant turns up under another name, a lab can compare a new test with your report. On this website the pairing is saved with your record but not yet dated. VeilCore doesn't test DNA.",
   'm.for.3p':
@@ -88,15 +88,15 @@ const common: Overlay = {
     "This note covers this website. Records you seal here are real records: they go into batches that we anchor on Midnight's main network by hand.",
   'm.privacy.stored.title': 'Stored on our server',
   'm.privacy.stored.text':
-    "Your records and agreements, locked by your browser before they are sent: breeder, species, dates, notes, reference numbers, parents, the fingerprints and file names of the photos and lab reports you add, agreement terms and counterparties, the quantity and note you send a lab, the sample details you and the lab write (sample ID, seal number, where and when it was taken, a witness, how it arrived), the names you give recipients, and each record's own secret keys. Our server stores them locked, and we don't have the key: it is in your browser and your backup file. The sample details' key also travels in the lab code, so the lab can open them. Our server can read: each record's ID; the name you give it, which anyone with a check link sees; its fingerprint, key binding and profile; which fields a correction changed, and when; when the server first saw it; how many times it was saved, and when it was last saved; roughly how large it is (its size bucket); what you choose to show on its check page; the parent links you register; and its batch and date stamp. If an agreement has a royalty on offspring, our server can read which record it covers and when it took effect, and anyone can ask whether that record carries one: the lineage check needs it. For a delivery: which record it came from, which holder account received it, when it was received, and a tag in place of the recipient's name. A delivery made before tags has the name as typed, until the registry's purge replaces it. For labs: the public signing key and the attestations they publish. Requests to prove a record's key, with the name the asker typed, kept for 7 days. Your holder key, which your browser sends with every save so the server can find your records; the server keeps only a one-way digest of it. Records saved before locking stay readable to us until your browser locks them. Sample details written before sealing stay readable to us until the registry removes them. Our off-site backups made before then keep a readable copy of both until we destroy the key that opens them. Locked lab reports a lab sends you: stored locked, without the key, and deleted after 180 days. The server is VeilCore's registry, hosted on Railway.",
+    "Your records and agreements, locked by your browser before they are sent: each record's name, breeder, species, dates, notes, reference numbers, parents, the codes and file names of the photos and lab reports you add, agreement terms and counterparties, the quantity and note you send a lab, the sample details you and the lab write (sample ID, seal number, where and when it was taken, a witness, how it arrived), the names you give recipients, and each record's own secret keys. Our server stores them locked, and we don't have the key: it is in your browser and your backup file. The sample details' key also travels in the lab code, so the lab can open them. A record's name also travels in the check links you make, after the #, which a browser never sends to any server. Our server can read: each record's ID; its proof code, key binding and profile type; its correction links (which record a correction replaces, which fields it changed, and when); when the server first saw it; how many times it was saved, and when it was last saved; roughly how large it is (its size bucket); what you choose to show on its check page (its name, if you choose to show it, and whether a DNA report is saved, as a code that says nothing about the file without the key in your check link); the parent links you register; and its batch and date stamp. If an agreement has a royalty on offspring, our server can read which record it covers and when it took effect, and anyone can ask whether that record carries one: the lineage check needs it. For a delivery: which record it came from, which holder account received it, when it was received, and a tag in place of the recipient's name. A delivery made before tags has the name as typed, until the registry's purge replaces it. For labs: the public signing key and the attestations they publish. Requests to prove a record's key, with the name the asker typed, kept for 7 days. Your holder key, which your browser sends with every save so the server can find your records; the server keeps only a one-way digest of it. Records saved before locking stay readable to us until your browser locks them, and a record's name saved before names were locked stays readable to us until your browser saves the record again. Sample details written before sealing stay readable to us until the registry removes them. Our off-site backups made before then keep a readable copy of all of these until we destroy the key that opens them. Locked lab reports a lab sends you: stored locked, without the key, and deleted after 180 days. The server is VeilCore's registry, hosted on Railway.",
   'm.privacy.test.title': "Dated on Midnight's main network",
   'm.privacy.test.text':
-    "Your record's fingerprint goes into a batch, and we anchor the batch on Midnight's main network, by hand for now, so it can take a while. Only the batch's fingerprint goes on the network, never what you typed. Once anchored, it is permanent: nobody, including us, can delete it.",
-  'm.privacy.madeup.title': "Pick a record's name with care",
+    "Your record's proof code goes into a batch, and we anchor the batch on Midnight's main network, by hand for now, so it can take a while. Only the batch's code goes on the network, never what you typed. Once anchored, it is permanent: nobody, including us, can delete it.",
+  'm.privacy.madeup.title': 'What strangers can see',
   'm.privacy.madeup.text':
-    "A record's name isn't locked: our server can read it, and its public check page shows it. If the real name is secret, use a code name. The sample details you and a lab write are stored locked too. Everything else you type into a record is stored locked, unless you choose to show it on its check page. Genetic data never leaves your computer.",
+    "A record's name is stored locked, like everything else you type into a record, unless you choose to show it on its check page. The check links you make carry the name after the #, so the people you send a link to see it, and so does anyone they pass the link on to. The sample details you and a lab write are stored locked too. Genetic data never leaves your computer.",
   'm.privacy.delete.text':
-    "We can delete what our server holds for your records: email hunter@veilcore.org with the records' identifiers. A batch fingerprint already anchored on Midnight stays there.",
+    "We can delete what our server holds for your records: email hunter@veilcore.org with the records' identifiers. A batch's code already anchored on Midnight stays there.",
 };
 
 /** The claims contract's address is pinned: it is on the main network. */
@@ -139,10 +139,10 @@ const keyStrings = (claimsOnMainnet: boolean, policyApproved: boolean): Overlay 
 });
 
 const ABOUT_HEAD =
-  "An open record format for plant and animal genetics. Recomputing a record's fingerprint needs only SHA-256 and the open specification.";
+  "An open record format for plant and animal genetics. Recomputing a record's proof code needs only SHA-256 and the open specification.";
 const ABOUT_TAIL = ' Looking a record up by its identifier on this site uses our server.';
 const TECH_HEAD =
-  "Recomputing a record's fingerprint needs only SHA-256 and the open spec. Its inclusion proof ties that fingerprint to a batch fingerprint anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up.";
+  "Recomputing a record's proof code needs only SHA-256 and the open spec. Its inclusion proof ties that proof code to a batch's code anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up.";
 const TECH_TAIL =
   ' Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release.';
 /** Before the relay: what the check page does today, and that you can look it up yourself. */

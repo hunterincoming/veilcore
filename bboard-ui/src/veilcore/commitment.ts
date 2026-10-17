@@ -47,7 +47,7 @@ const sha256 = async (bytes: Uint8Array): Promise<Uint8Array> =>
 
 /** Turn a 32-byte secret into its on-chain fingerprint (runs the `commit` circuit). */
 const fingerprintOf = (secret: Uint8Array): string => {
-  if (!circuits) throw new Error('The fingerprint code has not loaded yet (loadFingerprintCircuit).');
+  if (!circuits) throw new Error('The code that makes proof codes has not loaded yet (loadFingerprintCircuit).');
   return toHex(circuits.commit(secret));
 };
 
@@ -77,7 +77,7 @@ export const pairingFingerprintOfSha = (sha256Hex: string): string | undefined =
 export const fingerprintFile = async (file: File): Promise<string> => {
   if (file.size > MAX_FINGERPRINT_BYTES) {
     throw new Error(
-      `${file.name || 'That file'} is larger than 200 MB, so it was not read. Nothing was fingerprinted.`,
+      `${file.name || 'That file'} is larger than 200 MB, so it was not read. Nothing was sent or saved.`,
     );
   }
   const digest = await sha256(new Uint8Array(await file.arrayBuffer()));

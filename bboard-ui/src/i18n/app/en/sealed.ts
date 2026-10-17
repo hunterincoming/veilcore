@@ -7,10 +7,10 @@ export const sealed = {
   // api-store.ts: a save the browser refused itself (save-status.ts describeRefusals)
   'app.sealed.refuse.noKey':
     'this browser doesn’t have the key for your records, so nothing was saved. Restore your backup file first.',
-  'app.sealed.refuse.mismatch': 'it doesn’t match its fingerprint, so it wasn’t saved',
+  'app.sealed.refuse.mismatch': 'it doesn’t match its proof code, so it wasn’t saved',
   // RecordDetail.tsx, Step5ProveDisclosure.tsx, SendToLab.tsx
   'app.sealed.mismatch':
-    'This record doesn’t match its fingerprint: it may have been changed since it was sealed. It won’t be saved again, sent or shared.',
+    'This record doesn’t match its proof code: it may have been changed since it was sealed. It won’t be saved again, sent or shared.',
   // LockedRecords.tsx (Home and a locked record's page)
   'app.sealed.locked.title.one': '{count} locked record',
   'app.sealed.locked.title.other': '{count} locked records',

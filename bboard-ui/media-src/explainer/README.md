@@ -20,10 +20,12 @@ and say nothing it doesn't:
 - The headline is "Date your record. Keep your genetics." A record shows you had this
   record by a date, not that you had the plant first, and never ownership ("hold", never
   "own").
-- Genetic data never leaves your computer. The plant name is public: it is on every check
-  page ("Public, on VeilCore's server"). The other typed fields are stored locked on
-  VeilCore's server, which doesn't have the key ("Locked on VeilCore's server"; sealed
-  records, 16 October).
+- Genetic data never leaves your computer. Every typed field, the plant name included, is
+  stored locked on VeilCore's server, which doesn't have the key ("Locked on VeilCore's
+  server"; sealed records, 16 October, and the name since 17 October). The holder's check
+  link carries the name, after the # ("In your check link").
+- The record's code is the "proof code" (never "fingerprint": that word means only a DNA
+  fingerprint, genetic data).
 - "Prove it" shows the person controls the key the record names (spec 3.6.1). It says
   nothing about who bred the plant. The checker's screen shows no record date, so the video
   doesn't either.

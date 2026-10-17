@@ -12,7 +12,7 @@ export const animal = {
   'app.animal.title': '動物を記録する',
   'app.animal.name': '動物の名前（名号）',
   'app.animal.namePlaceholder': '例：練習用の牛',
-  'app.animal.nameField': '動物の名前（名号、公開）',
+  'app.animal.nameField': '動物の名前（名号）',
   'app.animal.individualId': '個体識別番号',
   'app.animal.individualIdHelp': '耳標や登録に書かれている番号を、そのとおりに入力してください。',
   'app.animal.idScheme': '番号の体系',
@@ -66,7 +66,7 @@ export const animal = {
   'app.animal.verify.idLine': '個体識別番号（保有者の申告）：{id}（{scheme}）',
   'app.animal.verify.noId': '個体識別番号は記録されていません。',
   'app.animal.v.app.verify.noParents': '父と母は記録されていません。',
-  'app.animal.v.app.plant.fix.name': '動物の名前（公開）',
+  'app.animal.v.app.plant.fix.name': '動物の名前',
   'app.animal.v.app.plant.fix.bredBy': '生産者または保有者',
   'app.animal.v.app.verify.nameTyped': '動物の名前（保有者の入力どおり）：',
   'app.animal.import.dob': '生年月日',
@@ -80,7 +80,7 @@ export const animal = {
     '<b>任意です。</b>この動物のDNA報告書がすでにありますか？これが記録を実際の動物に結び付けます。今追加すると記録と一緒に保管されます。まだ報告書がなければスキップしてください。入手方法は動物のページに表示されます。',
   'app.animal.v.app.log.sealingPlant': '動物を封印しています…',
   'app.animal.v.app.log.sealStampsKey':
-    '封印すると、動物の鍵にも日付スタンプが押されるので、後でその記録を保有していることを証明できます。送信されるのは鍵のフィンガープリントだけです。',
+    '封印すると、動物の鍵にも日付スタンプが押されるので、後でその記録を保有していることを証明できます。送信されるのは鍵のコードだけです。',
   'app.animal.v.app.log.publicStampLater':
     '公開の日付スタンプは、バッチに{datedOn}上で日付が付いたときに付きます。それがいつかは動物のページに表示されます。あなたがすることはありません。',
   'app.animal.v.app.log.publicDateLater':
@@ -91,7 +91,7 @@ export const animal = {
     '鍵に日付スタンプを押しました。動物の鍵にも日付が付いたので、後でその記録を保有していることを証明できます。{bound}動物については何も送信されていません。',
   'app.animal.v.app.log.stampingTitle': '封印しました。動物の鍵に日付スタンプを押しています…',
   'app.animal.v.app.log.onlyFingerprint':
-    '送信されるのは動物の鍵のフィンガープリントだけで、動物については何も送信されません。無料です。ネットワーク手数料はVeilCoreが支払います。',
+    '送信されるのは動物の鍵のコードだけで、動物については何も送信されません。無料です。ネットワーク手数料はVeilCoreが支払います。',
   'app.animal.v.app.log.stampingAria': '動物の鍵に日付スタンプを押しています',
   'app.animal.v.app.log.keepOpen':
     'この画面を開いたままにしてください（約1分）。閉じても失われるものはありません。動物は保存されており、ページでもう一度日付スタンプを押せます。',
@@ -106,7 +106,7 @@ export const animal = {
   'app.animal.v.app.pair.noLabMatch':
     'この動物のラボ署名でこのファイルと一致するものはないので、あなた自身の陳述のままです。',
   'app.animal.v.app.pair.saved':
-    '保存しました。DNA報告書のフィンガープリントは、この報告書がこの動物のものであるというあなたの陳述として、動物の記録と一緒に保存されました。遺伝情報を確認したものではありません。{dated}',
+    '保存しました。DNA報告書のコードは、この報告書がこの動物のものであるというあなたの陳述として、動物の記録と一緒に保存されました。遺伝情報を確認したものではありません。{dated}',
   'app.animal.v.app.pair.title': 'この動物にDNA報告書を保存する',
   'app.animal.v.app.pair.intro':
     'DNA報告書が戻ってきましたか？この動物に保存してください。これが記録を実際の動物に結び付けます。後で新しい検査をこれと照合できます。',
@@ -121,7 +121,7 @@ export const animal = {
     '別のブラウザで封印した場合は、そちらでバックアップを保存し、ここで開いてください（記録を取り戻す）。他の人の記録なら、その人から受け取った確認用リンクを開いてください。',
   'app.animal.v.app.plant.bredByName': '生産者または保有者：{name}',
   'app.animal.v.app.plant.action.saveReport': 'この動物にDNA報告書を保存する',
-  'app.animal.v.app.plant.f.reportSaved': 'この動物に保存済み（{file}）· 紐付けのフィンガープリント {fp}{sha}',
+  'app.animal.v.app.plant.f.reportSaved': 'この動物に保存済み（{file}）· 紐付けのコード {fp}{sha}',
   'app.animal.v.app.plant.backToPlant': '動物に戻る',
   'app.animal.v.app.plant.tie.tied': '動物に結び付いています',
   'app.animal.v.app.plant.tie.notYet': 'まだ動物に結び付いていません',
@@ -178,7 +178,7 @@ export const animal = {
     'この動物の受領書に署名したラボはまだありません。あなただけが裏付ける記録は、ラボが署名した記録より弱い証拠です。サンプルをラボに送ってください。受領書はあなたではなくラボの鍵で署名されます。',
   'app.animal.v.app.verify.field.parent-names': '父と母（名前と番号）',
   'app.animal.v.app.verify.alwaysShown':
-    '常に表示されるもの：動物の名前、記録ID、そのフィンガープリント（{fp}）、レジストリが最初に保存した日時、そしてバッチと署名付きの証明（ラボの受領書、検査報告書）についてこのページが確認できたこと。',
+    '常に表示されるもの：記録ID、その証明コード（{fp}）、レジストリが最初に保存した日時、そしてバッチと署名付きの証明（ラボの受領書、検査報告書）についてこのページが確認できたこと。動物の名前は、リンクに含まれている場合（外さない限り、あなたのリンクには含まれます）か、表示を選んだ場合だけ表示されます。',
   'app.animal.v.app.verify.ownReceiptTail':
     'これが見えるのは、動物がこのブラウザにあるからです。リンクを送った相手には、上の署名の行だけが見えます。',
   'app.animal.v.app.prove.openCheckPage': '動物の確認ページを開く',

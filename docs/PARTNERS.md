@@ -15,8 +15,8 @@ them, with the package `@veilcore/contracts`.
 ## Part 1, in plain English (for a lab owner)
 
 **What you get.** Your own system keeps working as it does. For each sample or lot you
-already record, your software adds one fingerprint (a 32-byte hash) and can put it on
-Midnight, a public blockchain built for privacy. From then on, anyone you choose can check:
+already record, your software adds one proof code (a 32-byte hash) and can put it on
+Midnight, a public network built for privacy. From then on, anyone you choose can check:
 
 - that the record existed on that date and has not been changed since;
 - that whoever shows it to them controls the record now (they send a one-time challenge,
@@ -29,8 +29,8 @@ Midnight, a public blockchain built for privacy. From then on, anyone you choose
 - that a grower holds a live licence from a breeder, without the chain naming either of them;
 - one fact about a record, such as "germination at least 95%", without seeing the rest.
 
-**What leaves your building.** Fingerprints, and only when you choose to publish them.
-They cannot be worked out back into what they fingerprint. Sample descriptions, results,
+**What leaves your building.** Proof codes, and only when you choose to publish them.
+Nobody can work back from one to what it was made from. Sample descriptions, results,
 client names and genetic data stay with you, except what you choose to prove in a claim:
 proving a value publishes that value; proving a bound publishes the bound (not the number);
 a laboratory's signature claim publishes the laboratory's public key next to the record.
@@ -56,13 +56,16 @@ of the three things above, only a safe place for one sheet of paper. Leaving nee
 run, with a DUST wallet, by you or someone you choose. See _Three ways to use VeilCore
 at launch_ below, and [MANAGED.md](MANAGED.md), written for a lab owner.
 
-**If VeilCore disappears.** Your records still verify. Fingerprints are plain SHA-256, the
+**If VeilCore disappears.** Your records still verify. Proof codes are plain SHA-256, the
 contracts live on Midnight, and this package and the SDK (both Apache-2.0) work without any
 VeilCore server.
 
 ---
 
 ## Part 2, for the developer
+
+Here a record's proof code goes by its technical name, its **fingerprint** (a commitment,
+`recordFingerprint`); VeilCore's site and check pages call it the proof code.
 
 ### Install
 

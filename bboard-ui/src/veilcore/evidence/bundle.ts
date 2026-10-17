@@ -28,6 +28,7 @@ import {
   pairingFingerprintOfSha,
 } from '../commitment';
 import { bindingForSecret, isHex64, KEY_BOUND_ALGORITHM } from '../key-binding';
+import { dnaBindingOf } from '../dna-link';
 import { checkProof } from '../proofs';
 import { holderKeyIfAny } from '../holder';
 import { custodyView } from '../custody';
@@ -96,7 +97,7 @@ export type Gathered = {
   readonly batch: BatchFacts | null;
   /** The batch's .ots file. */
   readonly ots: Uint8Array | null;
-  /** Lab signatures (attestations) about the record's fingerprint, as served. */
+  /** Lab signatures (attestations) about the record's proof code, as served. */
   readonly attestations: Record<string, unknown>[];
 };
 
@@ -356,6 +357,13 @@ export type Evidence = {
     readonly fileName?: string;
     readonly pairedAt?: string;
     readonly fileIncluded?: string;
+    /**
+     * What a check link shows of it (round 5, CONTRACT.md #29): the registry publishes only
+     * H("veilcore:v1:dnapair", the file's SHA-256, the record's proof code, pairSalt), never
+     * the SHA-256. pairSalt is the record's own, in the holder's check link after #ds=.
+     */
+    readonly pairSalt?: string;
+    readonly pairBinding?: string;
   } | null;
   readonly signatures: Record<string, unknown>[];
   /**
@@ -489,7 +497,7 @@ export const buildEvidence = async (
   const input = { ...record, nonce: record.nonce };
   if ((await fingerprintRecord(input)) !== record.recordFingerprint) {
     throw new BundleRefusal(
-      'This record’s fingerprint doesn’t match its details, so a bundle couldn’t be tied to it. Nothing was downloaded.',
+      'This record’s proof code doesn’t match its details, so a bundle couldn’t be tied to it. Nothing was downloaded.',
     );
   }
   const sealedFields = committedRecordFields(input);
@@ -553,6 +561,9 @@ export const buildEvidence = async (
       ...(record.dnaFileName ? { fileName: record.dnaFileName } : {}),
       ...(record.dnaPairedAt ? { pairedAt: iso(record.dnaPairedAt) } : {}),
       ...(fileIncluded ? { fileIncluded } : {}),
+      ...(record.dnaPairSalt && dnaBindingOf(record)
+        ? { pairSalt: record.dnaPairSalt, pairBinding: dnaBindingOf(record) }
+        : {}),
     };
   } else if (options.labFile) {
     throw new BundleRefusal(
@@ -660,13 +671,13 @@ export const signatureLines = async (
     const doc = oneLine(a.documentHash);
     const receipt = a.type === 'chain-of-custody';
     const documentWords = receipt
-      ? 'the fingerprint of the lab’s own record of the delivery (not a hash of the sample)'
+      ? 'the code of the lab’s own record of the delivery (not a hash of the sample)'
       : a.type === 'laboratory-report'
         ? 'the SHA-256 of the lab report file'
         : 'the SHA-256 of the signed document';
     const text =
       (receipt
-        ? `The key ${key}${name} signed ${what} about this record at ${oneLine(a.issuedAt)} (the signer's own clock). Its signed SHA-256, ${doc}, is the fingerprint of the lab's own record of the delivery, not a hash of the sample.`
+        ? `The key ${key}${name} signed ${what} about this record at ${oneLine(a.issuedAt)} (the signer's own clock). Its signed SHA-256, ${doc}, is the code of the lab's own record of the delivery, not a hash of the sample.`
         : `The key ${key}${name} signed ${what} with SHA-256 ${doc}, about this record, at ${oneLine(a.issuedAt)} (the signer's own clock).${saved}`) +
       (withdrawn && r ? ` The same key withdrew it at ${oneLine(r.retractedAt)} (${oneLine(r.reason)}).` : '');
     out.push({
@@ -698,25 +709,25 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
     },
     {
       path: EXAMINER_FILE,
-      what: 'a printable summary for a lawyer or examiner: the record as sealed, its fingerprint, batch and transaction, how it was checked, lab signatures and sample receipts, and what it shows and does not. Open it in a browser and print it to PDF. It checks nothing itself; verify.html rechecks what it reports.',
+      what: 'a printable summary for a lawyer or examiner: the record as sealed, its proof code, batch and transaction, how it was checked, lab signatures and sample receipts, and what it shows and does not. Open it in a browser and print it to PDF. It checks nothing itself; verify.html rechecks what it reports.',
     },
     {
       path: DECLARATION_FILE,
       what: "sample text for a written declaration about this record and bundle, with the bundle's facts and every file's SHA-256 filled in. Not legal advice: have a lawyer where you are adapt it.",
     },
     { path: 'evidence.json', what: 'everything below in one machine-readable file (verify.html carries a copy).' },
-    { path: 'record/sealed-fields.json', what: 'the record exactly as it was fingerprinted, made readable.' },
-    { path: 'record/sealed-fields.canonical.json', what: 'the exact bytes that were fingerprinted.' },
+    { path: 'record/sealed-fields.json', what: 'the record exactly as sealed, made readable.' },
+    { path: 'record/sealed-fields.canonical.json', what: 'the exact bytes the proof code was made from.' },
     {
-      path: 'record/fingerprint.txt',
-      what: `the record's fingerprint, worked out from the sealed fields${ev.record.fingerprintAlgorithm === KEY_BOUND_ALGORITHM ? " and the record's key" : ''}.`,
+      path: 'record/proof-code.txt',
+      what: `the record's proof code, worked out from the sealed fields${ev.record.fingerprintAlgorithm === KEY_BOUND_ALGORITHM ? " and the record's key" : ''}.`,
     },
   ];
   if (ev.proof && ev.batch) {
     out.push(
       {
         path: 'proof/inclusion-proof.json',
-        what: "the proof: the steps from the record's fingerprint to the batch root.",
+        what: "the proof: the steps from the record's proof code to the batch root.",
       },
       { path: 'proof/batch-root.txt', what: 'the batch root, as text.' },
       { path: 'proof/root.bin', what: 'the batch root as 32 bytes: the file the Bitcoin stamp covers.' },
@@ -727,7 +738,7 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
   if (ev.labReport) {
     out.push({
       path: 'lab/lab-report-pairing.json',
-      what: `the lab report saved to this ${subjectOf(ev.record.sealedFields)}: its SHA-256${ev.labReport.fileSha256 ? '' : ' (not kept for this older pairing)'} and the fingerprint that pairs it with the ${subjectOf(ev.record.sealedFields)}.`,
+      what: `the lab report saved to this ${subjectOf(ev.record.sealedFields)}: its SHA-256${ev.labReport.fileSha256 ? '' : ' (not kept for this older pairing)'} and the code that pairs it with the ${subjectOf(ev.record.sealedFields)}.`,
     });
     if (ev.labReport.fileIncluded)
       out.push({ path: ev.labReport.fileIncluded, what: 'the lab report file itself, included by the holder.' });
@@ -817,7 +828,7 @@ export const readmeText = (
     "Everything needed to check this record's date without VeilCore: the record exactly as it was sealed, the proof that it's in a batch, where that batch was recorded, and verify.html, a page that does the checks on your own computer with no internet.",
   );
   L.push(
-    "A batch is a group of records dated together. Its batch root is one fingerprint that stands for every record in it: the batch root is what gets recorded on Midnight, and this record's proof leads from its own fingerprint to it.",
+    "A batch is a group of records dated together. Its batch root is one code that stands for every record in it: the batch root is what gets recorded on Midnight, and this record's proof leads from its own proof code to it.",
   );
   if (lockedParents > 0) {
     L.push('');
@@ -839,7 +850,7 @@ export const readmeText = (
   L.push('');
   L.push('HOW TO CHECK IT (nothing from VeilCore needed)');
   L.push(
-    '1. Open verify.html in Chrome or Firefox (double-click it). It works offline. It should say "The files agree with each other", "Fingerprint matches" and "Proof leads to the batch root". If it says "Don\'t use this to date the record", stop there: the files have been changed.',
+    '1. Open verify.html in Chrome or Firefox (double-click it). It works offline. It should say "The files agree with each other", "Proof code matches" and "Proof leads to the batch root". If it says "Don\'t use this to date the record", stop there: the files have been changed.',
   );
   const lookup = ev.batch && anchor ? anchorLookup(anchor, ev.batch.root) : null;
   if (ev.batch && tx && lookup) {
@@ -892,7 +903,7 @@ export const readmeText = (
   );
   if (ev.labReport) {
     L.push(
-      `- When the lab report was saved to the ${subject}. That came after sealing and isn't inside the record's fingerprint, so the batch doesn't date it.`,
+      `- When the lab report was saved to the ${subject}. That came after sealing and isn't inside the record's proof code, so the batch doesn't date it.`,
     );
   }
   if (ev.registry.firstSeen)
@@ -909,11 +920,11 @@ export const readmeText = (
   );
   L.push(
     ev.record.fingerprintAlgorithm === KEY_BOUND_ALGORITHM
-      ? '- Fingerprint: this record names its own key, so it is H("veilcore:v1:keyrecord", keyBinding, contentHash), where contentHash is the SHA-256 of record/sealed-fields.canonical.json (spec sections 3.6.1 and 4.4).'
-      : '- Fingerprint: the SHA-256 of record/sealed-fields.canonical.json, the canonical JSON of the sealed fields (spec section 4.4).',
+      ? '- Proof code: this record names its own key, so it is H("veilcore:v1:keyrecord", keyBinding, contentHash), where contentHash is the SHA-256 of record/sealed-fields.canonical.json (spec sections 3.6.1 and 4.4).'
+      : '- Proof code: the SHA-256 of record/sealed-fields.canonical.json, the canonical JSON of the sealed fields (spec section 4.4).',
   );
   L.push(
-    '- Proof: start from SHA-256 of the text "00" + fingerprint; at each step take SHA-256 of "01" + left + right (hex text, the sibling on the side the step names); the result must be the batch root (spec section 5.4).',
+    '- Proof: start from SHA-256 of the text "00" + proof code; at each step take SHA-256 of "01" + left + right (hex text, the sibling on the side the step names); the result must be the batch root (spec section 5.4).',
   );
   if (ev.key)
     L.push(
@@ -921,7 +932,11 @@ export const readmeText = (
     );
   if (ev.labReport)
     L.push(
-      '- Lab report pairing: H("veilcore:v1:commit", SHA-256 of the lab report file) is the pairing fingerprint (spec section 3.7).',
+      '- Lab report pairing: H("veilcore:v1:commit", SHA-256 of the lab report file) is the pairing code (spec section 3.7).',
+    );
+  if (ev.labReport?.pairBinding)
+    L.push(
+      '- On a check link: when the holder shares whether a DNA report is saved, the registry shows only H("veilcore:v1:dnapair", SHA-256 of the lab report file, proof code, pairSalt), the pairBinding in lab/lab-report-pairing.json, never the SHA-256. The holder\'s check link carries pairSalt after #ds=. With the file and that link anyone can recompute it; without them nobody can tell which file it is, or whether they hold the same one.',
     );
   if (tx)
     L.push(
@@ -997,7 +1012,7 @@ export const bundleFiles = async (
   add('evidence.json', json(ev));
   add('record/sealed-fields.json', json(ev.record.sealedFields));
   add('record/sealed-fields.canonical.json', text(ev.record.canonical));
-  add('record/fingerprint.txt', text(`${ev.record.fingerprint}\n`));
+  add('record/proof-code.txt', text(`${ev.record.fingerprint}\n`));
   if (ev.proof && ev.batch) {
     add('proof/inclusion-proof.json', json(ev.proof));
     add('proof/batch-root.txt', text(`${ev.batch.root}\n`));

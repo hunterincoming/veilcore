@@ -79,7 +79,7 @@ export const verify = {
   'app.verify.sum.statements.other': '{count} × signed statement',
   'app.verify.sum.what': ' ({list})',
   'app.verify.sum.comma': ', ',
-  'app.verify.sum.bound': 'the link’s fingerprint matches the one the registry reports',
+  'app.verify.sum.bound': 'the link’s proof code matches the one the registry reports',
   'app.verify.sum.inBatch': 'the record is in its batch',
   'app.verify.sum.signatures.one': 'one signature about it{what}',
   'app.verify.sum.signatures.other': '{count} signatures about it{what}',
@@ -89,9 +89,9 @@ export const verify = {
   'app.verify.sum.checked':
     'Checked in this browser: {list}. Everything else is the VeilCore registry’s report.{unbound}',
   'app.verify.sum.unbound':
-    ' This link names no fingerprint, so those checks used the registry’s own and nothing is ticked.',
+    ' This link names no proof code, so those checks used the registry’s own and nothing is ticked.',
   'app.verify.heading.nothingSealed': 'Record found, nothing sealed',
-  'app.verify.heading.unbound': 'The registry’s report: this link has no fingerprint to check against',
+  'app.verify.heading.unbound': 'The registry’s report: this link has no proof code to check against',
   'app.verify.heading.checking': 'Checking…',
   'app.verify.heading.reported': 'Date stamp reported by the registry, not checked here',
   'app.verify.heading.pending': 'In a batch, no date stamp yet',
@@ -101,43 +101,43 @@ export const verify = {
   'app.verify.kindReceipt': 'Lab’s receipt for a sample',
   'app.verify.kindReport': 'Lab report (file SHA-256 {sha})',
   'app.verify.kindStatement': 'Signed statement',
-  'app.verify.forWhom': 'For the fingerprint the registry reports: ',
+  'app.verify.forWhom': 'For the proof code the registry reports: ',
   'app.verify.homeAria': 'VeilCore home',
   'app.verify.intro':
-    "This page checks a VeilCore record: a fingerprint of a description of genetic material, dated once it's anchored, published without the genetics. Checking is free and needs no account. <link>What is VeilCore?</link>",
+    "This page checks a VeilCore record: a proof code made from a description of genetic material, dated once it's anchored, published without the genetics. Checking is free and needs no account. <link>What is VeilCore?</link>",
   'app.verify.checkingRecord': 'Checking the record',
   'app.verify.notFound': 'No record found for {id}',
   'app.verify.notFoundText':
     "This verification link doesn't match any record in the registry. Check the link is complete and unmodified.",
   'app.verify.goHome': 'Go to veilcore.org',
-  'app.verify.mismatch.title': "This link's fingerprint doesn't match the record: nothing checked",
+  'app.verify.mismatch.title': "This link's proof code doesn't match the record: nothing checked",
   'app.verify.mismatch.dontRely': 'Do not rely on this page.',
   'app.verify.mismatch.text':
     '{start}but the registry reports {reported} for {id}. Its answer is not about the record the link names, so this page has checked nothing and shows none of it. Ask whoever gave you the link for the record itself.',
-  'app.verify.mismatch.linked': 'This link was made for the record with fingerprint {fp}, ',
+  'app.verify.mismatch.linked': 'This link was made for the record with proof code {fp}, ',
   'app.verify.mismatch.invalid':
-    'This link carries a fingerprint that is not valid (it should be 64 hexadecimal characters); it may have been cut short or changed, ',
-  'app.verify.mismatch.reportedFp': 'fingerprint {fp}',
-  'app.verify.mismatch.noFp': 'no fingerprint',
-  'app.verify.mismatch.inLink': 'Fingerprint in the link: {fp}',
+    'This link carries a proof code that is not valid (it should be 64 hexadecimal characters); it may have been cut short or changed, ',
+  'app.verify.mismatch.reportedFp': 'proof code {fp}',
+  'app.verify.mismatch.noFp': 'no proof code',
+  'app.verify.mismatch.inLink': 'Proof code in the link: {fp}',
   'app.verify.mismatch.chip': "The registry's answer does not match this link — nothing on this page was checked",
   'app.verify.nameTyped': 'Name, as the holder typed it: ',
   'app.verify.recordId': 'Record ID: {id}',
   'app.verify.noCommitment':
     'This record carries no commitment, so nothing about it can be checked. It exists in the registry and that is all.',
   'app.verify.boundFact':
-    'This link was made for fingerprint {fp}, and the registry reports the same fingerprint for this record{firstSeen}. The fields it covers are not shared, so this page cannot recompute it.',
+    'This link was made for proof code {fp}, and the registry reports the same proof code for this record{firstSeen}. The fields it covers are not shared, so this page cannot recompute it.',
   'app.verify.firstStored': ', first stored on {date}',
   'app.verify.unboundFact':
-    'The registry reports a record with fingerprint {fp}{firstSeen}. The fields it covers are not shared, so this page cannot recompute it.',
+    'The registry reports a record with proof code {fp}{firstSeen}. The fields it covers are not shared, so this page cannot recompute it.',
   'app.verify.noFpInLink':
-    "This link does not name the record's fingerprint, so this page cannot tell whether the registry answered with this record's fingerprint or another's. Nothing below is ticked. A link made now from the record ends in ?fp=…; ask the holder for one.",
+    "This link does not name the record's proof code, so this page cannot tell whether the registry answered with this record's proof code or another's. Nothing below is ticked. A link made now from the record ends in ?fp=…; ask the holder for one.",
   'app.verify.noStampYet':
     'No date stamp yet, as far as this page can tell: there is no proof here that the record is in a batch with a date stamp, so there is nothing to check.',
   'app.verify.batchBound':
-    'Checked in this browser: this fingerprint is in batch {batch}, and its path folds to the batch root {root}….',
+    'Checked in this browser: this proof code is in batch {batch}, and its path folds to the batch root {root}….',
   'app.verify.batchUnbound':
-    "{forWhom}it is in batch {batch}, and its path folds to the batch root {root}…. Checked here, but against the registry's own fingerprint.",
+    "{forWhom}it is in batch {batch}, and its path folds to the batch root {root}…. Checked here, but against the registry's own proof code.",
   'app.verify.rootReported':
     'The registry reports that root was recorded on {network}{tx}. Its date: {date}.{notLooked}{test}',
   'app.verify.notLooked': ' This page has not looked it up; do that before relying on the date.',
@@ -157,7 +157,7 @@ export const verify = {
   'app.verify.notGranted': 'This link asked for {list}, which the holder has not chosen to share.',
   'app.verify.unavailable':
     'This link asked for facts about the holder rather than this record ({list}). The registry never answers those.',
-  'app.verify.footer': 'Fingerprint {fp} · only the facts above were sent · no genetics disclosed',
+  'app.verify.footer': 'Proof code {fp} · only the facts above were sent · no genetics disclosed',
   // components/verify/DisclosedFacts.tsx: the marks, and the facts the holder shared.
   'app.verify.mark.checked': 'Checked in this browser',
   'app.verify.mark.reported': 'Not checked here',
@@ -185,7 +185,7 @@ export const verify = {
   'app.verify.sharedNothing': 'The holder has shared nothing beyond the basics above.',
   'app.verify.notShared': 'Not shared by the holder: {list}.',
   'app.verify.alwaysShown':
-    "Always shown: the cultivar name, the record id, its fingerprint ({fp}), when the registry first stored it, and what this page could check about its batch and any signed attestations (a lab's receipt, a lab report).",
+    "Always shown: the record ID, its proof code ({fp}), when the registry first stored it, and what this page could check about its batch and any signed attestations (a lab's receipt, a lab report). The name only when the link carries it (yours do, unless you leave it out) or you choose to show it.",
   // components/verify/VerifyExample.tsx: a made-up record, line by line.
   'app.verify.ex.title': 'Example: a made-up record.',
   'app.verify.ex.intro':
@@ -193,11 +193,11 @@ export const verify = {
   'app.verify.ex.status': 'Example · in a sealed batch · anchor reported',
   'app.verify.ex.name': 'Harbour Mist (example)',
   'app.verify.ex.fact1':
-    'This link was made for fingerprint 3f9a0c41e2b7…, and the registry reports the same fingerprint for this record.',
+    'This link was made for proof code 3f9a0c41e2b7…, and the registry reports the same proof code for this record.',
   'app.verify.ex.note1':
-    "The fingerprint is in the link itself, so the page can't be fooled into showing another record's checks.",
+    "The proof code is in the link itself, so the page can't be fooled into showing another record's checks.",
   'app.verify.ex.fact2':
-    'Checked in this browser: this fingerprint is in batch 41, and its path folds to the batch root.',
+    'Checked in this browser: this proof code is in batch 41, and its path folds to the batch root.',
   'app.verify.ex.note2':
     'On a real record this line has a tick: your own browser checks that the record is in the batch.',
   'app.verify.ex.fact3':

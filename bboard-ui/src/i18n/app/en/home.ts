@@ -64,7 +64,7 @@ export const home = {
     'Once records are anchored, anyone can check which was anchored first. Before that, a record’s time is its device’s clock. A record is evidence, not a registration: it shows what you had and when, but doesn’t settle a dispute on its own.',
   'app.home.trust.2t': 'A paired report can be compared later',
   'app.home.trust.2b':
-    'Pairing saves your DNA report’s fingerprint with the record, as your statement, so a fresh test of the material can later be compared with it. When you pair through VeilCore’s contract on Midnight, the pairing is dated too: it shows the record was paired with that report by then, not who had the report first. In {thisSite}, pairings aren’t dated yet.',
+    'Pairing saves your DNA report’s code with the record, as your statement, so a fresh test of the material can later be compared with it. When you pair through VeilCore’s contract on Midnight, the pairing is dated too: it shows the record was paired with that report by then, not who had the report first. In {thisSite}, pairings aren’t dated yet.',
   'app.home.trust.3t': 'A second party takes delivery',
   'app.home.trust.3b':
     'When material is transferred, whoever takes it confirms receipt with their own key. That puts a second party on the record, not just you. It shows someone took delivery, not who they are.',

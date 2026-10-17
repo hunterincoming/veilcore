@@ -139,14 +139,14 @@ export const declarationText = async (
     '',
     `1. Who I am. I am [of legal age]. I live or work in [city, country]. I [bred / hold / keep the breeding records for] the ${subject === 'animal' ? 'animal' : 'plant material'} this record describes. [My role, for example: breeder; I run ___; employee of ___ working as ___.] I know the facts below myself [or: I know them because ___].`,
     '',
-    `2. The record. On or about [date], I [or: ___, acting for me,] made an electronic record of the ${subject} "${name}" on the VeilCore website at [web address], using [device and browser]. The website sealed the record on that device. Its record ID is ${t(ev.record.id)}. Its fingerprint is:`,
+    `2. The record. On or about [date], I [or: ___, acting for me,] made an electronic record of the ${subject} "${name}" on the VeilCore website at [web address], using [device and browser]. The website sealed the record on that device. Its record ID is ${t(ev.record.id)}. Its proof code is:`,
     `   ${t(ev.record.fingerprint)}`,
     `   The sealing time inside the record, by that device's clock, is ${utcWords(ev.record.sealedAtDeviceClock) ?? t(ev.record.sealedAtDeviceClock)}. The record's contents, exactly as sealed, are in record/sealed-fields.json in the bundle and are shown in EXAMINER-SUMMARY.html. [I typed them myself / ___ typed them from ___.] [They were true to the best of my knowledge when they were typed.]`,
     '',
   );
   if (ev.batch) {
     add(
-      `3. How the record was dated. VeilCore's registry put the record's fingerprint in batch ${t(ev.batch.batchId)}. The batch root, one fingerprint that stands for every record in the batch, is:`,
+      `3. How the record was dated. VeilCore's registry put the record's proof code in batch ${t(ev.batch.batchId)}. The batch root, one code that stands for every record in the batch, is:`,
       `   ${t(ev.batch.root)}`,
     );
     if (tx && anchor) {
@@ -171,7 +171,7 @@ export const declarationText = async (
     );
   }
   add(
-    `4. How the files in the bundle were made. On ${made}, I [or: ___] downloaded this bundle, the folder ${t(ev.record.id)}-evidence, from the VeilCore website's page for this record, in [browser] on [device]. The website made the files from my browser's copy of the record and from what VeilCore's registry returned. It checked that the record's fingerprint matches its contents before making them.`,
+    `4. How the files in the bundle were made. On ${made}, I [or: ___] downloaded this bundle, the folder ${t(ev.record.id)}-evidence, from the VeilCore website's page for this record, in [browser] on [device]. The website made the files from my browser's copy of the record and from what VeilCore's registry returned. It checked that the record's proof code matches its contents before making them.`,
   );
   if (ev.labReport?.fileIncluded)
     add(
@@ -191,7 +191,7 @@ export const declarationText = async (
     for (const s of okSigs) {
       const doc = t(s.documentHash ?? '[none]');
       add(
-        `   - A key that calls itself ${s.displayName ? `"${t(s.displayName)}"` : '[no name given]'} signed ${t(s.what ?? 'a statement')} about this record at ${t(s.issuedAt ?? '[time]')} (the signer's own clock).${s.withdrawn ? ' The same key later withdrew it.' : ''} ${s.type === 'chain-of-custody' ? `What it signed for the delivery is the fingerprint ${doc}: the lab's own record of the delivery, not a hash of the sample.` : `The signed document's SHA-256 is ${doc}.`} [I know / I do not know who controls that key.] [I sent the sample to [lab] on [date] by [courier, tracking number].]`,
+        `   - A key that calls itself ${s.displayName ? `"${t(s.displayName)}"` : '[no name given]'} signed ${t(s.what ?? 'a statement')} about this record at ${t(s.issuedAt ?? '[time]')} (the signer's own clock).${s.withdrawn ? ' The same key later withdrew it.' : ''} ${s.type === 'chain-of-custody' ? `What it signed for the delivery is the code ${doc}: the lab's own record of the delivery, not a hash of the sample.` : `The signed document's SHA-256 is ${doc}.`} [I know / I do not know who controls that key.] [I sent the sample to [lab] on [date] by [courier, tracking number].]`,
       );
     }
     for (const c of custody) add(deliveryLine(c));
@@ -223,7 +223,7 @@ export const declarationText = async (
     '',
     '3. What I checked, and how.',
     '   a. I computed the SHA-256 of each file with [tool and version]. [They match / do not match] Schedule A.',
-    '   b. I opened verify.html with the network off in [browser and version]. It showed: [for example "The files agree with each other", "Fingerprint matches", "Proof leads to the batch root"; list every result shown].',
+    '   b. I opened verify.html with the network off in [browser and version]. It showed: [for example "The files agree with each other", "Proof code matches", "Proof leads to the batch root"; list every result shown].',
   );
   if (tx && anchor) {
     add(
@@ -239,7 +239,7 @@ export const declarationText = async (
   }
   add(
     '',
-    "4. How the method works. [In plain words: a SHA-256 value changes completely if one byte of the input changes; the record's fingerprint is worked out from its sealed fields as the published VeilCore record format says (spec/SPEC-sections.md); the proof shows the fingerprint is one of the records under the batch root; the transaction shows when the batch root was recorded. Say what you did not check, for example who typed the record or whether what it says is true.]",
+    "4. How the method works. [In plain words: a SHA-256 value changes completely if one byte of the input changes; the record's proof code is worked out from its sealed fields as the published VeilCore record format says (spec/SPEC-sections.md); the proof shows the proof code is one of the records under the batch root; the transaction shows when the batch root was recorded. Say what you did not check, for example who typed the record or whether what it says is true.]",
     '',
     'I declare under penalty of perjury [under the laws of the United States of America, if signed outside the United States] that the foregoing is true and correct.',
     '',

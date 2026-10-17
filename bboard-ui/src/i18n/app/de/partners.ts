@@ -15,7 +15,7 @@ export const partners = {
     'Der Datensatz wurde versiegelt, bevor der Antrag gestellt wurde. Zeigt man Ihnen die Beschreibung später, können Sie erkennen, ob es die versiegelte ist.',
   'app.partners.gives.2.t': 'Ein Datum',
   'app.partners.gives.2.d':
-    'Sobald der Datensatz in einem datierten Stapel ist, kann jeder nachsehen, bis wann sein Fingerabdruck existierte. Das Datum stammt von Midnight, nicht von VeilCore oder vom Antragsteller.',
+    'Sobald der Datensatz in einem datierten Stapel ist, kann jeder nachsehen, bis wann sein Prüfcode existierte. Das Datum stammt von Midnight, nicht von VeilCore oder vom Antragsteller.',
   'app.partners.gives.3.t': 'Laborsignaturen, geprüft',
   'app.partners.gives.3.d':
     'Empfangsbestätigungen für Proben und Laborberichte, jede Signatur geprüft, und ob der Betreiber von VeilCore den Namen des Labors mit einem öffentlichen Verzeichnis abgeglichen hat. Eine Empfangsbestätigung zählt nur, wenn das Register sie einer Lieferung des Datensatzes zuordnet, und Sie sehen, ob das Angekommene zum Gesendeten passt.',
@@ -68,7 +68,7 @@ export const partners = {
   'app.partners.facts.support.d': 'E-Mail: <link></link>. Es gibt keine Supportvereinbarung und keine Antwortfrist.',
   'app.partners.facts.data': 'Daten',
   'app.partners.facts.data.d':
-    'Eine Prüfung sendet dem Register die ID und den Fingerabdruck des Datensatzes, nichts über den Antragsteller oder Ihr Formular. Wie jede Website erhält das Register bei jeder Anfrage die Netzwerkadresse des Besuchers, für Ratenbegrenzungen. Was VeilCore speichert, steht auf der <link>Datenschutzseite</link>. Ausführlichere Datenbedingungen sind ein Entwurf, der geprüft wird; bis sie veröffentlicht sind, gilt die Datenschutzseite.',
+    'Eine Prüfung sendet dem Register die ID und den Prüfcode des Datensatzes, nichts über den Antragsteller oder Ihr Formular. Wie jede Website erhält das Register bei jeder Anfrage die Netzwerkadresse des Besuchers, für Ratenbegrenzungen. Was VeilCore speichert, steht auf der <link>Datenschutzseite</link>. Ausführlichere Datenbedingungen sind ein Entwurf, der geprüft wird; bis sie veröffentlicht sind, gilt die Datenschutzseite.',
   'app.partners.facts.down': 'Wenn das Register nicht erreichbar ist',
   'app.partners.facts.down.d':
     'Nichts kann geprüft werden. Standardmäßig blockiert ein Pflichtfeld dann das Formular, bis das Register wieder antwortet. Mit when-unreachable="allow" geht das Formular durch, mit dem Link als nicht geprüft markiert, und Sie prüfen ihn später auf dieser Seite.',
@@ -83,7 +83,7 @@ export const partners = {
   'app.partners.policy.1':
     'Antragsteller müssen für jede hinterlegte Akzession einen Prüflink zu einem VeilCore-Datensatz angeben. Der Datensatz muss existieren, und der Link muss zu ihm passen. [Programm] prüft jeden Link beim Eingang des Antrags und bewahrt das Ergebnis beim Antrag auf.',
   'app.partners.policy.2':
-    'Ein VeilCore-Datensatz ist die Angabe des Antragstellers zu seinem Material, mit Fingerabdruck und Datum. Die Annahme eines Datensatzes bedeutet nicht, dass [Programm] oder VeilCore bestätigt, was das Material ist, wer es hält oder irgendein Recht daran.',
+    'Ein VeilCore-Datensatz ist die Angabe des Antragstellers zu seinem Material, mit Prüfcode und Datum. Die Annahme eines Datensatzes bedeutet nicht, dass [Programm] oder VeilCore bestätigt, was das Material ist, wer es hält oder irgendein Recht daran.',
   'app.partners.dev.title': 'Für Entwickler',
   'app.partners.dev.1': 'Ein Aufruf',
   'app.partners.dev.1.d':

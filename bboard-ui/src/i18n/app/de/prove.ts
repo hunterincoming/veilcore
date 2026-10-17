@@ -72,7 +72,7 @@ export const prove = {
   'app.prove.hand.intro':
     'Der Link, den Sie erhalten haben, nennt eine On-Chain-Identität für diesen Datensatz ({id}…). Erstellen Sie eine Herausforderung, senden Sie sie und fügen Sie die Transaktions-ID ein, die Sie zurückerhalten. Die Antwort muss von dieser Identität kommen und Ihre Herausforderung beantworten, und die Identität muss verankert und aktuell sein. {bound}',
   'app.prove.hand.bound':
-    'Der Datensatz hat diesen Schlüssel beim Versiegeln genannt, und diese Seite hat das mit seinem Fingerabdruck abgeglichen.',
+    'Der Datensatz hat diesen Schlüssel beim Versiegeln genannt, und diese Seite hat das mit seinem Prüfcode abgeglichen.',
   'app.prove.hand.older':
     'Älterer Datensatz: Schlüssel nicht an diesen Datensatz gebunden. Dass diese Identität zu ihm gehört, ist die Angabe des Inhabers.',
   'app.prove.hand.make': 'Eine Herausforderung erstellen',
@@ -89,7 +89,7 @@ export const prove = {
   'app.prove.key.leavesOut':
     'Dieser Datensatz nennt seinen eigenen Schlüssel, aber diesem Link fehlt, was zum Prüfen nötig ist. Bitten Sie den Inhaber um einen neuen Link',
   'app.prove.key.noFp':
-    'Der Fingerabdruck dieses Links passt nicht zum Datensatz, daher lässt sich sein Schlüssel nicht damit prüfen',
+    'Der Prüfcode dieses Links passt nicht zum Datensatz, daher lässt sich sein Schlüssel nicht damit prüfen',
   'app.prove.key.notThis': 'Der Schlüssel in diesem Link ist nicht der, den dieser Datensatz nennt',
   'app.prove.watch.shareAsker':
     '{asker} bittet Sie, auf VeilCore zu beweisen, dass Sie diese Pflanze halten. Öffnen Sie diesen Link: {link}',

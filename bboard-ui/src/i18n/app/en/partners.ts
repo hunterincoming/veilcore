@@ -16,7 +16,7 @@ export const partners = {
     'The record was sealed before they applied. If they show you the description later, you can tell whether it is the one they sealed.',
   'app.partners.gives.2.t': 'A date',
   'app.partners.gives.2.d':
-    'Once the record is in a dated batch, anyone can look up when its fingerprint existed by. The date comes from Midnight, not from VeilCore or the applicant.',
+    'Once the record is in a dated batch, anyone can look up when its proof code existed by. The date comes from Midnight, not from VeilCore or the applicant.',
   'app.partners.gives.3.t': 'Lab signatures, checked',
   'app.partners.gives.3.d':
     'Receipts for samples and lab reports, each signature checked, and whether VeilCore’s operator matched the lab’s name to a public listing. A receipt counts only when the registry ties it to a delivery of the record, and you see whether what arrived matches what was sent.',
@@ -66,7 +66,7 @@ export const partners = {
   'app.partners.facts.support.d': 'Email <link></link>. There is no support agreement or response time.',
   'app.partners.facts.data': 'Data',
   'app.partners.facts.data.d':
-    'A check sends the registry the record’s id and fingerprint, nothing about the applicant or your form. Like any website, the registry gets the visitor’s network address with each request, for rate limits. What VeilCore keeps is on the <link>privacy page</link>. Fuller data terms are a draft being reviewed; until they are published, the privacy page is what applies.',
+    'A check sends the registry the record’s id and proof code, nothing about the applicant or your form. Like any website, the registry gets the visitor’s network address with each request, for rate limits. What VeilCore keeps is on the <link>privacy page</link>. Fuller data terms are a draft being reviewed; until they are published, the privacy page is what applies.',
   'app.partners.facts.down': 'If the registry is down',
   'app.partners.facts.down.d':
     'Nothing can be checked. By default a required field then blocks the form until the registry answers again. With when-unreachable="allow" the form goes through with the link marked as not checked, and you check it later on this page.',
@@ -80,7 +80,7 @@ export const partners = {
   'app.partners.policy.1':
     'Applicants must provide a VeilCore record check link for each accession they deposit. The record must exist, and the link must match it. [Program] checks each link when the application is received and keeps the result with the application.',
   'app.partners.policy.2':
-    'A VeilCore record is the applicant’s statement about their material, fingerprinted and dated. Accepting a record does not mean [Program] or VeilCore confirms what the material is, who holds it, or any right in it.',
+    'A VeilCore record is the applicant’s statement about their material, made into a proof code and dated. Accepting a record does not mean [Program] or VeilCore confirms what the material is, who holds it, or any right in it.',
   'app.partners.dev.title': 'For developers',
   'app.partners.dev.1': 'One call',
   'app.partners.dev.1.d':

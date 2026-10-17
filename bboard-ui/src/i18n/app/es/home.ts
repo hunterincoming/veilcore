@@ -65,7 +65,7 @@ export const home = {
     'Una vez anclados los registros, cualquiera puede comprobar cuál se ancló primero. Antes de eso, la hora de un registro es el reloj de su dispositivo. Un registro es una prueba, no una inscripción: muestra qué tenía usted y cuándo, pero no resuelve una disputa por sí solo.',
   'app.home.trust.2t': 'Un informe vinculado se puede comparar después',
   'app.home.trust.2b':
-    'Al vincular, la huella de su informe de ADN se guarda con el registro, como declaración suya, para que más adelante se pueda comparar con ella una prueba nueva del material. Cuando vincula a través del contrato de VeilCore en Midnight, el vínculo también queda fechado: muestra que el registro estaba vinculado a ese informe para entonces, no quién tuvo el informe primero. En {thisSite}, los vínculos todavía no se fechan.',
+    'Al vincular, el código de su informe de ADN se guarda con el registro, como declaración suya, para que más adelante se pueda comparar con él una prueba nueva del material. Cuando vincula a través del contrato de VeilCore en Midnight, el vínculo también queda fechado: muestra que el registro estaba vinculado a ese informe para entonces, no quién tuvo el informe primero. En {thisSite}, los vínculos todavía no se fechan.',
   'app.home.trust.3t': 'Una segunda parte recibe la entrega',
   'app.home.trust.3b':
     'Cuando se transfiere material, quien lo recibe confirma la recepción con su propia clave. Eso pone a una segunda parte en el registro, no solo a usted. Muestra que alguien recibió la entrega, no quién es.',

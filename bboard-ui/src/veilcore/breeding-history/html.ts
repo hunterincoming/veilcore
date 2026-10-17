@@ -162,7 +162,7 @@ export const stageTable = (pages: HistoryPages): string => {
     const recordCell = [
       `<strong>${escapeHtml(nameOf(n))}</strong>`,
       `<span class="id">Record ID ${escapeHtml(r.id)}</span>`,
-      `<span class="id">Fingerprint ${escapeHtml(shortFingerprint(r.recordFingerprint))}</span>`,
+      `<span class="id">Proof code ${escapeHtml(shortFingerprint(r.recordFingerprint))}</span>`,
       r.bredBy ? `<span>Bred by ${escapeHtml(oneLine(r.bredBy))} (as written)</span>` : '',
       r.receivedFrom ? `<span>Came through a VeilCore delivery from ${escapeHtml(oneLine(r.receivedFrom))}</span>` : '',
       r.supersededBy

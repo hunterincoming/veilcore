@@ -34,10 +34,10 @@ export const log = {
   'app.log.parentLinked': ' Su progenitor es {name}, ya vinculado abajo.',
   'app.log.keptLastTime': 'Guardamos lo que escribió la última vez.',
   'app.log.startOver': 'Empezar de nuevo',
-  'app.log.nameLabel': 'Nombre de la planta o línea (público)',
+  'app.log.nameLabel': 'Nombre de la planta o línea',
   'app.log.namePlaceholder': 'p. ej., Harbour Mist',
   'app.log.nameHelp':
-    'Cualquiera con un enlace de comprobación ve este nombre. Si el nombre real es secreto, use un nombre en clave.',
+    'Bloqueado como los demás detalles. Sus enlaces de comprobación lo llevan después del #, así que lo ven las personas a las que envía un enlace, y cualquiera a quien ellas se lo pasen.',
   'app.log.eg': 'p. ej., {v}',
   'app.log.egNextSelection': 'p. ej., {name}, siguiente selección',
   'app.log.bredBy': 'Obtentor',
@@ -61,7 +61,7 @@ export const log = {
   'app.log.addPhotos': 'Añadir fotos',
   'app.log.photos.one': '{count} foto',
   'app.log.photos.other': '{count} fotos',
-  'app.log.photosStay': 'Las fotos se quedan en su dispositivo. Solo se guardan sus huellas.',
+  'app.log.photosStay': 'Las fotos se quedan en su dispositivo. Solo se guardan sus códigos.',
   'app.log.refId': 'Su propio número de lote o referencia',
   'app.log.notes': 'Notas',
   'app.log.nextCheck': 'Siguiente: revisarlo',
@@ -83,12 +83,12 @@ export const log = {
   'app.log.sealedWarn':
     '<b>Una vez sellada, esta parte no puede cambiar.</b> Puede añadir informes y correcciones más tarde; una corrección es un registro nuevo que remite a este. Eso es lo que da valor al sello de fecha.',
   'app.log.savedOn':
-    'Los detalles se guardan bloqueados en {server} para que pueda volver a ellos, y nosotros no tenemos la clave. El nombre no está bloqueado: cualquiera con un enlace de comprobación lo ve. Solo se fecha una huella, en {datedOn}.',
+    'Los detalles se guardan bloqueados en {server} para que pueda volver a ellos, y nosotros no tenemos la clave. El nombre también está bloqueado; sus enlaces de comprobación lo llevan después del #, para las personas a las que se los envía. Solo se fecha un código de prueba, en {datedOn}.',
   'app.log.sealing': 'Sellando…',
   'app.log.seal': 'Sellarlo',
   'app.log.sealingPlant': 'Sellando su planta…',
   'app.log.sealStampsKey':
-    'Al sellar también se pone un sello de fecha a la clave de su planta, para que más adelante pueda demostrar que la tiene. Solo sale una huella de la clave.',
+    'Al sellar también se pone un sello de fecha a la clave de su planta, para que más adelante pueda demostrar que la tiene. Solo sale un código de la clave.',
   'app.log.sealed': 'Sellada',
   'app.log.publicStampLater':
     'Su sello de fecha público llega cuando su lote se fecha en {datedOn}. La página de su planta muestra cuándo ocurrió. No tiene que hacer nada.',
@@ -107,7 +107,7 @@ export const log = {
   'app.log.stampFailedTitle': 'Sellada. La clave aún no tiene sello de fecha',
   'app.log.stampingTitle': 'Sellada. Poniendo el sello de fecha a la clave de su planta…',
   'app.log.onlyFingerprint':
-    'Solo sale una huella de la clave de su planta, nada sobre la planta. Gratis: VeilCore paga la tarifa de la red.',
+    'Solo sale un código de la clave de su planta, nada sobre la planta. Gratis: VeilCore paga la tarifa de la red.',
   'app.log.stampingAria': 'Poniendo el sello de fecha a la clave de su planta',
   'app.log.stampLater': 'Hacer el sello de fecha más tarde',
   'app.log.keepOpen':

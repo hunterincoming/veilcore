@@ -265,7 +265,7 @@ describe('what the field accepts', () => {
     const text = JSON.stringify(out.children);
     expect(text).toMatch(/This link looks cut off/);
     expect(text).toMatch(/Ask for the whole link/);
-    expect(text).not.toMatch(/different fingerprint/);
+    expect(text).not.toMatch(/different proof code/);
   });
 });
 

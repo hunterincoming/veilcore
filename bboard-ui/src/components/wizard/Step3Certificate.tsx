@@ -117,8 +117,8 @@ export const Step3Certificate: React.FC<{
 
   const integrityText: Record<IntegrityCheck | 'checking', string> = {
     checking: 'checking…',
-    match: '✓ fingerprint recomputed from the stored fields: it matches',
-    mismatch: '✗ fingerprint recomputed from the stored fields: it does NOT match, so the details have changed',
+    match: '✓ proof code recomputed from the stored fields: it matches',
+    mismatch: '✗ proof code recomputed from the stored fields: it does NOT match, so the details have changed',
     unsealed: 'not sealed yet',
     'no-nonce': 'cannot be recomputed (this record predates stored nonces)',
   };
@@ -384,7 +384,7 @@ export const Step3Certificate: React.FC<{
               <Field label="Record ID" mono>
                 {record.id}
               </Field>
-              <Field label="Fingerprint (SHA-256)" mono>
+              <Field label="Proof code (SHA-256)" mono>
                 <Box component="span" data-fingerprint="">
                   {record.recordFingerprint}
                 </Box>
@@ -393,7 +393,7 @@ export const Step3Certificate: React.FC<{
 
             <Stack spacing={1} sx={{ alignItems: 'center', justifyContent: 'center' }}>
               <Box sx={{ p: 1.5, background: '#fff', borderRadius: 2, border: `1px solid ${CERT.line}` }}>
-                {/* Drawn larger than before: the link now carries the 64-character fingerprint. */}
+                {/* Drawn larger than before: the link now carries the 64-character proof code. */}
                 <QRCodeSVG
                   value={verifyLink}
                   size={144}

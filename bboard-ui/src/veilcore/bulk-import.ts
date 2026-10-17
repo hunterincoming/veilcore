@@ -1673,7 +1673,7 @@ export const csvCell = (v: string, delimiter: string): string => {
     : safe;
 };
 
-export const RESULT_COLUMNS = ['VeilCore record ID', 'Fingerprint', 'Check link', 'Result', 'DNA report'] as const;
+export const RESULT_COLUMNS = ['VeilCore record ID', 'Proof code', 'Check link', 'Result', 'DNA report'] as const;
 
 /** The "DNA report" column for a record with none: what's missing and where to add it. */
 export const NO_DNA_REPORT =

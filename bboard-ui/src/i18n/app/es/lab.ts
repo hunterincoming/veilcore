@@ -176,7 +176,7 @@ export const lab = {
   'app.lab.recv.quoted': '“{v}”',
   'app.lab.recv.breederWrote': '<b>El obtentor escribió:</b> {line}',
   'app.lab.recv.onArrival': '<b>Al llegar:</b> {line}',
-  'app.lab.recv.aboutRecord': 'Sobre el registro del obtentor {id}, huella',
+  'app.lab.recv.aboutRecord': 'Sobre el registro del obtentor {id}, código de prueba',
   'app.lab.recv.pointing': 'Apunta a su registro recibido',
   'app.lab.recv.signedByKey': 'Firmado con su clave ({name})',
   'app.lab.recv.unnamed': 'sin nombre',
@@ -197,7 +197,7 @@ export const lab = {
   'app.lab.recv.exactly':
     'Su clave puede firmar un acuse de recibo para este envío. Esto es exactamente lo que dice el acuse:',
   'app.lab.recv.fingerprintFrom':
-    'La huella vino del servidor de registros y coincide con lo que informa su página pública para {id}. Si el obtentor le dio una huella, compárela antes de firmar.',
+    'El código de prueba vino del servidor de registros y coincide con lo que informa su página pública para {id}. Si el obtentor le dio un código de prueba, compárelo antes de firmar.',
   'app.lab.recv.physically': 'Recibí físicamente este material.',
   'app.lab.recv.dontSign': 'No firmar',
   'app.lab.recv.signWithKey': 'Firmar con mi clave',
@@ -368,7 +368,7 @@ export const lab = {
   'app.lab.out.replacesIntro':
     'Reemplaza a {id}, el informe de laboratorio que envió {when}. El anterior se retira: su archivo se elimina y su firma queda marcada como reemplazada.',
   'app.lab.out.intro':
-    'Su navegador firma la huella del informe con la clave de su laboratorio y bloquea el archivo para que solo el obtentor pueda abrirlo. El archivo bloqueado espera en el servidor de VeilCore a que el obtentor lo abra, y VeilCore no tiene su clave.',
+    'Su navegador firma el código del informe con la clave de su laboratorio y bloquea el archivo para que solo el obtentor pueda abrirlo. El archivo bloqueado espera en el servidor de VeilCore a que el obtentor lo abra, y VeilCore no tiene su clave.',
   'app.lab.out.cancelCorrection': 'Cancelar la corrección',
   'app.lab.out.turnedAway': 'Usted rechazó esta muestra, así que no hay informe de laboratorio que enviar.',
   'app.lab.out.setUpFirst':
@@ -380,7 +380,7 @@ export const lab = {
     'No ha firmado que esta muestra llegó. Hasta que lo haga, el obtentor ve su informe como firmado por una clave que no confirmó haber recibido la muestra.',
   'app.lab.out.notLinked':
     'Su acuse de recibo está firmado pero todavía no vinculado a este envío, así que el obtentor no puede verlo.',
-  'app.lab.out.fileFp': '{size} · huella {fp}',
+  'app.lab.out.fileFp': '{size} · código {fp}',
   'app.lab.out.differentFile': 'Elegir otro archivo',
   'app.lab.out.chooseCorrected': 'Elegir el archivo corregido',
   'app.lab.out.chooseReport': 'Elegir el informe',
@@ -394,7 +394,7 @@ export const lab = {
     'Este envío ya tuvo todos los informes de laboratorio que admite, incluidos los retirados. Pida al obtentor un código de laboratorio nuevo. No se firmó nada.',
   'app.lab.out.rowReplaced': 'Reemplazado por su archivo corregido.',
   'app.lab.out.rowWithdrawn': 'Retirado el {date}.',
-  'app.lab.out.rowSigned': 'Firmado con su clave · huella {fp}',
+  'app.lab.out.rowSigned': 'Firmado con su clave · código {fp}',
   'app.lab.out.rowRetracted':
     'Su firma está retirada, pero el archivo sigue en el servidor de registros. Retírelo para terminar.',
   'app.lab.out.rowNotSigned': 'No firmado con la clave de este navegador.',

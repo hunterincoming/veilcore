@@ -70,7 +70,7 @@ export const verify = {
   'app.verify.sum.statements.other': '署名付きの陳述 × {count}',
   'app.verify.sum.what': '（{list}）',
   'app.verify.sum.comma': '、',
-  'app.verify.sum.bound': 'リンクのフィンガープリントがレジストリの報告と一致すること',
+  'app.verify.sum.bound': 'リンクの証明コードがレジストリの報告と一致すること',
   'app.verify.sum.inBatch': '記録がそのバッチに入っていること',
   'app.verify.sum.signatures.other': 'それについての署名{count}件{what}',
   'app.verify.sum.nothing':
@@ -78,9 +78,9 @@ export const verify = {
   'app.verify.sum.list': '{rest}、{last}',
   'app.verify.sum.checked': 'このブラウザで確認：{list}。それ以外はすべてVeilCoreのレジストリの報告です。{unbound}',
   'app.verify.sum.unbound':
-    'このリンクはフィンガープリントを示していないため、これらの確認にはレジストリ自身のものを使い、チェックは付けていません。',
+    'このリンクは証明コードを示していないため、これらの確認にはレジストリ自身のものを使い、チェックは付けていません。',
   'app.verify.heading.nothingSealed': '記録はありますが、何も封印されていません',
-  'app.verify.heading.unbound': 'レジストリの報告：このリンクには照合するフィンガープリントがありません',
+  'app.verify.heading.unbound': 'レジストリの報告：このリンクには照合する証明コードがありません',
   'app.verify.heading.checking': '確認しています…',
   'app.verify.heading.reported': 'レジストリが報告した日付スタンプ。ここでは未確認',
   'app.verify.heading.pending': 'バッチに入っています。日付スタンプはまだです',
@@ -89,43 +89,43 @@ export const verify = {
   'app.verify.kindReceipt': 'サンプルについてのラボの受領書',
   'app.verify.kindReport': '検査報告書（ファイルのSHA-256 {sha}）',
   'app.verify.kindStatement': '署名付きの陳述',
-  'app.verify.forWhom': 'レジストリが報告するフィンガープリントについて：',
+  'app.verify.forWhom': 'レジストリが報告する証明コードについて：',
   'app.verify.homeAria': 'VeilCoreホーム',
   'app.verify.intro':
-    'このページはVeilCoreの記録を確認します。記録とは、遺伝素材の説明のフィンガープリントで、アンカーされると日付が付き、遺伝情報なしで公開されます。確認は無料で、アカウントも不要です。<link>VeilCoreとは？</link>',
+    'このページはVeilCoreの記録を確認します。記録とは、遺伝素材の説明の証明コードで、アンカーされると日付が付き、遺伝情報なしで公開されます。確認は無料で、アカウントも不要です。<link>VeilCoreとは？</link>',
   'app.verify.checkingRecord': '記録を確認しています',
   'app.verify.notFound': '{id} の記録は見つかりません',
   'app.verify.notFoundText':
     'この確認用リンクは、レジストリのどの記録とも一致しません。リンクが欠けたり変更されたりしていないか確認してください。',
   'app.verify.goHome': 'veilcore.org へ',
-  'app.verify.mismatch.title': 'このリンクのフィンガープリントは記録と一致しません：何も確認していません',
+  'app.verify.mismatch.title': 'このリンクの証明コードは記録と一致しません：何も確認していません',
   'app.verify.mismatch.dontRely': 'このページに頼らないでください。',
   'app.verify.mismatch.text':
     '{start}しかしレジストリは {id} について{reported}を報告しています。その答えはリンクが示す記録についてのものではないため、このページは何も確認せず、何も表示していません。記録そのものについては、リンクをくれた人に尋ねてください。',
-  'app.verify.mismatch.linked': 'このリンクは、フィンガープリント {fp} の記録のために作られました。',
+  'app.verify.mismatch.linked': 'このリンクは、証明コード {fp} の記録のために作られました。',
   'app.verify.mismatch.invalid':
-    'このリンクのフィンガープリントは有効ではありません（16進数64文字のはずです）。途中で切れたか、変更された可能性があります。',
-  'app.verify.mismatch.reportedFp': 'フィンガープリント {fp}',
-  'app.verify.mismatch.noFp': 'フィンガープリントなし',
-  'app.verify.mismatch.inLink': 'リンク内のフィンガープリント：{fp}',
+    'このリンクの証明コードは有効ではありません（16進数64文字のはずです）。途中で切れたか、変更された可能性があります。',
+  'app.verify.mismatch.reportedFp': '証明コード {fp}',
+  'app.verify.mismatch.noFp': '証明コードなし',
+  'app.verify.mismatch.inLink': 'リンク内の証明コード：{fp}',
   'app.verify.mismatch.chip': 'レジストリの答えはこのリンクと一致しません。このページでは何も確認していません',
   'app.verify.nameTyped': '名前（保有者の入力どおり）：',
   'app.verify.recordId': '記録ID：{id}',
   'app.verify.noCommitment':
     'この記録には確定した内容がないため、何も確認できません。レジストリに存在する、ということだけです。',
   'app.verify.boundFact':
-    'このリンクはフィンガープリント {fp} のために作られ、レジストリもこの記録について同じフィンガープリントを報告しています{firstSeen}。対象となる項目は共有されていないため、このページでは再計算できません。',
+    'このリンクは証明コード {fp} のために作られ、レジストリもこの記録について同じ証明コードを報告しています{firstSeen}。対象となる項目は共有されていないため、このページでは再計算できません。',
   'app.verify.firstStored': '（最初の保存は{date}）',
   'app.verify.unboundFact':
-    'レジストリは、フィンガープリント {fp} の記録を報告しています{firstSeen}。対象となる項目は共有されていないため、このページでは再計算できません。',
+    'レジストリは、証明コード {fp} の記録を報告しています{firstSeen}。対象となる項目は共有されていないため、このページでは再計算できません。',
   'app.verify.noFpInLink':
-    'このリンクは記録のフィンガープリントを示していないため、レジストリがこの記録のフィンガープリントで答えたのか、別のもので答えたのか、このページではわかりません。下の項目にはチェックが付きません。今この記録から作るリンクは ?fp=… で終わります。保有者に依頼してください。',
+    'このリンクは記録の証明コードを示していないため、レジストリがこの記録の証明コードで答えたのか、別のもので答えたのか、このページではわかりません。下の項目にはチェックが付きません。今この記録から作るリンクは ?fp=… で終わります。保有者に依頼してください。',
   'app.verify.noStampYet':
     'このページでわかる限り、日付スタンプはまだありません。記録が日付スタンプ付きのバッチに入っている証明がここにないため、確認するものがありません。',
   'app.verify.batchBound':
-    'このブラウザで確認しました：このフィンガープリントはバッチ {batch} に入っており、その経路はバッチのルート {root}… にたどり着きます。',
+    'このブラウザで確認しました：この証明コードはバッチ {batch} に入っており、その経路はバッチのルート {root}… にたどり着きます。',
   'app.verify.batchUnbound':
-    '{forWhom}バッチ {batch} に入っており、その経路はバッチのルート {root}… にたどり着きます。ここで確認しましたが、照合したのはレジストリ自身のフィンガープリントです。',
+    '{forWhom}バッチ {batch} に入っており、その経路はバッチのルート {root}… にたどり着きます。ここで確認しましたが、照合したのはレジストリ自身の証明コードです。',
   'app.verify.rootReported':
     'レジストリの報告では、そのルートは{network}に記録されました{tx}。日付：{date}。{notLooked}{test}',
   'app.verify.notLooked': 'このページは調べていません。日付に頼る前に調べてください。',
@@ -145,7 +145,7 @@ export const verify = {
   'app.verify.notGranted': 'このリンクは{list}を求めていますが、保有者は共有していません。',
   'app.verify.unavailable':
     'このリンクは、この記録ではなく保有者についての事実（{list}）を求めています。レジストリはそれには決して答えません。',
-  'app.verify.footer': 'フィンガープリント {fp} · 送信されたのは上の事実だけです · 遺伝情報は開示されていません',
+  'app.verify.footer': '証明コード {fp} · 送信されたのは上の事実だけです · 遺伝情報は開示されていません',
   'app.verify.mark.checked': 'このブラウザで確認済み',
   'app.verify.mark.reported': 'ここでは未確認',
   'app.verify.mark.failed': '失敗または撤回',
@@ -173,18 +173,18 @@ export const verify = {
   'app.verify.sharedNothing': '保有者は、上の基本情報以外は何も共有していません。',
   'app.verify.notShared': '保有者が共有していないもの：{list}。',
   'app.verify.alwaysShown':
-    '常に表示されるもの：品種名、記録ID、そのフィンガープリント（{fp}）、レジストリが最初に保存した日時、そしてバッチと署名付きの証明（ラボの受領書、検査報告書）についてこのページが確認できたこと。',
+    '常に表示されるもの：記録ID、その証明コード（{fp}）、レジストリが最初に保存した日時、そしてバッチと署名付きの証明（ラボの受領書、検査報告書）についてこのページが確認できたこと。名前は、リンクに含まれている場合（外さない限り、あなたのリンクには含まれます）か、表示を選んだ場合だけ表示されます。',
   'app.verify.ex.title': '例：架空の記録です。',
   'app.verify.ex.intro':
     '記録の確認ページがどのように見えるかを、各行の下に説明を付けて示します。ここでは何も照会も確認もしていません。',
   'app.verify.ex.status': '例 · 封印済みのバッチ内 · アンカーの報告あり',
   'app.verify.ex.name': 'Harbour Mist（例）',
   'app.verify.ex.fact1':
-    'このリンクはフィンガープリント 3f9a0c41e2b7… のために作られ、レジストリもこの記録について同じフィンガープリントを報告しています。',
+    'このリンクは証明コード 3f9a0c41e2b7… のために作られ、レジストリもこの記録について同じ証明コードを報告しています。',
   'app.verify.ex.note1':
-    'フィンガープリントはリンク自体に入っているので、ページがだまされて別の記録の確認結果を表示することはありません。',
+    '証明コードはリンク自体に入っているので、ページがだまされて別の記録の確認結果を表示することはありません。',
   'app.verify.ex.fact2':
-    'このブラウザで確認しました：このフィンガープリントはバッチ 41 に入っており、その経路はバッチのルートにたどり着きます。',
+    'このブラウザで確認しました：この証明コードはバッチ 41 に入っており、その経路はバッチのルートにたどり着きます。',
   'app.verify.ex.note2':
     '実際の記録ではこの行にチェックが付きます。記録がバッチに入っていることを、あなた自身のブラウザが確認します。',
   'app.verify.ex.fact3':

@@ -61,15 +61,22 @@ const P = {
   witness: 'PRIV-witness-Joe-Qq5',
   condition: 'PRIV-condition-cold-Qq6',
   labAccession: 'PRIV-lab-acc-Qq7',
+  // A record's name, locked since round 5 (CONTRACT.md #28) unless the holder shows it.
+  name: 'PRIV-name-Contract-Plant-Zz0',
 };
 /** Values the holder chooses to publish with a disclosure grant: stored readable, on purpose. */
 const PUB = {
   parent: 'PUB-parent-Shared-Ok1',
   method: 'PUB-method-Shared-Ok2',
-  dnaFp: 'e1e2e3e4'.repeat(8),
-  dnaSha: 'f5f6f7f8'.repeat(8),
+  // The second record's name, shown with a grant (round 5): readable on purpose.
+  name: 'PUB-name-Shared-Ok3',
 };
-const NAME = 'Contract Plant Public Name';
+/**
+ * The second record's DNA report. Its SHA-256 and pairing fingerprint are never published
+ * since round 5 (CONTRACT.md #29), only a code bound with the record's own salt: so they are
+ * checked as private, below, though the record shares "whether a DNA report is saved".
+ */
+const DNA2 = { dnaFp: 'e1e2e3e4'.repeat(8), dnaSha: 'f5f6f7f8'.repeat(8) };
 
 type Sent = { method: string; url: string; headers: string; body: string };
 
@@ -226,7 +233,7 @@ const rowsOf = async (holderKey: string, kind: 'records' | 'licenses'): Promise<
 
 const WIRE_FIELDS = new Set([
   'id',
-  'strainName',
+  // No strainName: a record's name goes inside `sealed` since round 5 (CONTRACT.md #28).
   'profile',
   'recordFingerprint',
   'keyBinding',
@@ -277,7 +284,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     const { fingerprintRecord, newNonce } = A.commitment;
     const fields = {
       nonce: newNonce(),
-      strainName: NAME,
+      strainName: P.name,
       bredBy: P.bredBy,
       dateCreated: P.dateCreated,
       notes: P.notes,
@@ -293,7 +300,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     r1 = out.record;
     const fields2 = {
       nonce: newNonce(),
-      strainName: `${NAME} two`,
+      strainName: PUB.name,
       bredBy: P.bredBy2,
       dateCreated: '2026-10-01',
       notes: P.notes2,
@@ -326,13 +333,24 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
       expect(opened).toMatchObject({ ok: true, value: { rev: 1 } });
       expect(row.rev).toBe(1);
     }
-    expect(stored.find((r) => r.id === r1.id)).toMatchObject({
-      strainName: NAME,
-      recordFingerprint: r1.recordFingerprint,
+    expect(stored.find((r) => r.id === r1.id)).toMatchObject({ recordFingerprint: r1.recordFingerprint });
+    for (const row of stored) expect('strainName' in row, `${String(row.id)}: a name in the clear`).toBe(false);
+    // The name went only inside the box, and comes back out of it.
+    expect(await A.vault.openRow('records', r1.id, stored.find((r) => r.id === r1.id)!.sealed)).toMatchObject({
+      ok: true,
+      value: { strainName: P.name },
     });
-    // The public view has the name and the fingerprint, nothing else of the holder's.
+    // The public view has the fingerprint and no name, nothing else of the holder's.
     const v = await verify(r1.id);
-    expect(v).toMatchObject({ found: true, cultivar: NAME, recordFingerprint: r1.recordFingerprint });
+    expect(v).toMatchObject({ found: true, recordFingerprint: r1.recordFingerprint });
+    expect(v.cultivar).toBeUndefined();
+    // A save with a name in the clear is refused whole, by the real registry (round 5).
+    const clear = await reg('/api/records', {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json', 'x-holder-key': holderKey },
+      body: JSON.stringify([{ ...stored[0], strainName: 'in the clear' }]),
+    });
+    expect(clear).toEqual({ status: 400, json: { error: 'strainName belongs inside sealed' } });
   });
 
   it('re-save unchanged: nothing is sent (only changed rows are, round 3 L2), and the registry keeps its first-seen date', async () => {
@@ -384,25 +402,55 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     const rec2 = A.records.getRecord(r2.id)!;
     const g = await d.saveGrant(
       rec2,
-      d.disclosureFrom(['existence', 'attestation-status', 'sealed-at', 'parent-names', 'breeding-method']),
+      d.disclosureFrom(['existence', 'attestation-status', 'sealed-at', 'parent-names', 'breeding-method', 'name']),
     );
     expect('error' in g, JSON.stringify(g)).toBe(false);
     const v = await verify(r2.id);
+    // The name, only because the holder chose to show it, from the grant's values (round 5).
+    expect(v.cultivar).toBe(PUB.name);
     expect(v.parents).toEqual([PUB.parent]);
     expect(v.breedingMethod).toBe(PUB.method);
     expect(v.sealedAt).toBe(rec2.loggedAt);
     expect(v.dnaPairedByHolder).toBe(false);
     expect(v.staleGrant).toBeUndefined();
-    expect(v.disclosed).toEqual(['own', 'dna', 'sealed', 'parents', 'method']);
+    expect(v.disclosed).toEqual(['own', 'dna', 'sealed', 'parents', 'method', 'name']);
     expect(JSON.stringify(v)).not.toContain(P.bredBy2);
+    // The record without a grant still shows no name.
+    expect((await verify(r1.id)).cultivar).toBeUndefined();
   });
 
   it('a pairing changes the values without changing the fingerprint: the browser sends the grant again', async () => {
-    A.records.pairDna(r2.id, PUB.dnaFp, 'shared-report.pdf', { fileSha256: PUB.dnaSha });
-    await until(async () => (await verify(r2.id)).dnaPairingFingerprint === PUB.dnaFp, 'the new pairing on /verify');
+    A.records.pairDna(r2.id, DNA2.dnaFp, 'shared-report.pdf', { fileSha256: DNA2.dnaSha });
+    const { dnaBindingOf, dnaLinkParams, matchesBinding } = await import('./dna-link');
+    const paired = A.records.getRecord(r2.id)!;
+    const binding = dnaBindingOf(paired)!;
+    expect(binding).toMatch(/^[0-9a-f]{64}$/);
+    await until(async () => (await verify(r2.id)).dnaPairBinding === binding, 'the bound pairing on /verify');
     const v = await verify(r2.id);
     expect(v.dnaPairedByHolder).toBe(true);
-    expect(v.dnaFileSha256).toBe(PUB.dnaSha);
+    // Never the file's SHA-256 nor its pairing fingerprint: only the bound code (round 5, #29).
+    expect(v.dnaFileSha256).toBeUndefined();
+    expect(v.dnaPairingFingerprint).toBeUndefined();
+    expect(JSON.stringify(v)).not.toContain(DNA2.dnaSha);
+    expect(JSON.stringify(v)).not.toContain(DNA2.dnaFp);
+    // Whoever has the holder's link (its salt after the #) and the file can check it; with
+    // another file, or without the salt, nothing matches.
+    const salt = dnaLinkParams(paired).ds;
+    expect(salt).toMatch(/^[0-9a-f]{64}$/);
+    expect(matchesBinding(String(v.dnaPairBinding), DNA2.dnaSha, r2.recordFingerprint, salt)).toBe('file');
+    expect(matchesBinding(String(v.dnaPairBinding), 'ab'.repeat(32), r2.recordFingerprint, salt)).toBe(false);
+    expect(matchesBinding(String(v.dnaPairBinding), DNA2.dnaSha, r2.recordFingerprint, 'cd'.repeat(32))).toBe(false);
+    // The real registry refuses the plain values an older site sent.
+    for (const plain of [{ dnaFileSha256: DNA2.dnaSha }, { dnaFingerprint: DNA2.dnaFp }]) {
+      const refused = await reg(`/api/records/${r2.id}/disclosure`, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', 'x-holder-key': A.holder.holderKeyIfAny()! },
+        body: JSON.stringify({ show: ['attestation-status'], forFingerprint: r2.recordFingerprint, values: plain }),
+      });
+      expect(refused.status).toBe(400);
+      expect(JSON.stringify(refused.json)).toMatch(/is no longer published: send dnaPairBinding/);
+    }
+    expect((await verify(r2.id)).dnaPairBinding).toBe(binding);
     // A pairing on a record with no grant stays sealed (checked in the database at the end).
     A.records.pairDna(corrected.id, P.dnaFp, P.dnaFile, { fileSha256: P.dnaSha });
     const holderKey = A.holder.holderKeyIfAny()!;
@@ -448,7 +496,9 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     v = await verify(r2.id);
     expect(v.staleGrant).toBeUndefined();
     expect(v.parents).toEqual([PUB.parent]);
-    expect(v.dnaPairingFingerprint).toBe(PUB.dnaFp);
+    expect(v.dnaPairBinding).toBe((await import('./dna-link')).dnaBindingOf(A.records.getRecord(r2.id)!));
+    expect(v.dnaPairingFingerprint).toBeUndefined();
+    expect(v.cultivar).toBe(PUB.name);
     // Nothing left to send.
     expect(await A.disclosure.syncGrants(A.records.getRecord)).toBe(0);
   });
@@ -502,7 +552,8 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     // What the registry left for the lab: a stub of public fields, nothing of the sender's.
     const stub = (await rowsOf(B.holder.holderKeyIfAny()!, 'records')).find((r) => r.id === receivedId)!;
     expect(Object.keys(stub).sort()).toEqual(
-      ['id', 'receivedAt', 'receivedFrom', 'receivedFromCommitment', 'strainName', 'transferId'].sort(),
+      // No name: the source's name is in the sealed offer only (round 5).
+      ['id', 'receivedAt', 'receivedFrom', 'receivedFromCommitment', 'transferId'].sort(),
     );
     await B.records.hydrate();
     expect(B.api.rowStateOf(B.records.RECORDS_KEY, receivedId)).toBe('stub');
@@ -624,7 +675,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     const { fingerprintRecord, newNonce } = A.commitment;
     const fields = {
       nonce: newNonce(),
-      strainName: `${NAME} rev`,
+      strainName: `${P.name} rev`,
       bredBy: P.bredBy2,
       dateCreated: '2026-10-03',
       notes: '',
@@ -914,6 +965,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
       const health = obj((await reg('/health')).json);
       for (const f of Object.keys(REQUIRED_FEATURES)) expect(health.features as string[]).toContain(f);
       expect(Object.keys(REQUIRED_FEATURES)).toContain('sealed-custody-v1');
+      expect(Object.keys(REQUIRED_FEATURES)).toEqual(expect.arrayContaining(['sealed-name-v1', 'dna-pair-binding-v1']));
     },
   );
 
@@ -964,7 +1016,11 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
   });
 
   it('nothing private was sent in any request, and nothing private is in the registry’s database file', async () => {
-    const privates = Object.entries(P).map(([k, v]) => [k, String(v)] as const);
+    const privates = [
+      ...Object.entries(P).map(([k, v]) => [k, String(v)] as const),
+      // A shared DNA report's SHA-256 and pairing fingerprint are never published (round 5).
+      ...Object.entries(DNA2).map(([k, v]) => [`DNA2.${k}`, v] as const),
+    ];
     // Every request the app made: URL, headers and body.
     for (const s of sent) {
       const all = `${s.url}\n${s.headers}\n${s.body}`;
@@ -984,9 +1040,8 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
       for (const { label, values } of secretKeys) {
         for (const v of values) expect(bytes.includes(Buffer.from(v, 'utf8')), `${label} in the database`).toBe(false);
       }
-      // The scan finds what is there: the values the holder chose to publish, and the public name.
-      for (const v of [PUB.parent, PUB.method, PUB.dnaFp, NAME])
-        expect(bytes.includes(Buffer.from(v, 'utf8')), v).toBe(true);
+      // The scan finds what is there: the values the holder chose to publish, the name included.
+      for (const v of [PUB.parent, PUB.method, PUB.name]) expect(bytes.includes(Buffer.from(v, 'utf8')), v).toBe(true);
     };
     scan();
     if (child) {

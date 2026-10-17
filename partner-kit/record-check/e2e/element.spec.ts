@@ -89,7 +89,7 @@ test('a matching link: the plain answer, the form submits, nothing but the regis
   await expect(out(page)).toHaveAttribute('data-state', 'matches');
   await expect(out(page).getByRole('heading', { name: 'Record found, link matches' })).toBeVisible();
   await expect(out(page)).toContainText(
-    'Checked: the link’s fingerprint is the one the registry reports for this record.',
+    'Checked: the link’s proof code is the one the registry reports for this record.',
   );
   await expect(out(page)).toContainText(`Registry’s word: in batch ${reg.batchId} (checked here)`);
   await expect(out(page)).toContainText('Test network: practice data');
@@ -118,14 +118,16 @@ test('a matching link: the plain answer, the form submits, nothing but the regis
     'Not counted: Signed custody statement (not tied to a delivery): signature verified',
   );
   await expect(out(page)).toContainText('Key: Matched here: the record named this key when it was sealed.');
-  await expect(page.getByRole('status')).toContainText('Record found, and the link’s fingerprint matches');
+  await expect(page.getByRole('status')).toContainText('Record found, and the link’s proof code matches');
   // "What this does not show" is there, folded.
   await page.getByText('What this does not show').click();
   await expect(out(page)).toContainText('VeilCore never sees genetics');
   // The full check page link is built from the id and fingerprint, on veilcore.org.
+  // The name came from the link, after the #, and goes on to the full check page the same way.
+  await expect(out(page)).toContainText('Name: Partner check test record (as the holder typed it).');
   await expect(out(page).getByRole('link', { name: 'Open the full check page' })).toHaveAttribute(
     'href',
-    `https://veilcore.org/verify/${reg.records.bound.id}?fp=${reg.records.bound.recordFingerprint}`,
+    `https://veilcore.org/verify/${reg.records.bound.id}?fp=${reg.records.bound.recordFingerprint}#n=${reg.nameParam('Partner check test record')}`,
   );
 
   const a = await lastAnswer(page);
@@ -216,6 +218,9 @@ test('a test network date: shown, and refused unless the form allows test data',
   await field.press('Enter');
   await expect(out(page).getByRole('heading', { name: 'Record found, dated on a test network' })).toBeVisible();
   await expect(out(page)).toContainText('so this form does not accept it');
+  // A link without the name after the #: the registry doesn't have it, so it isn't shown (round 5).
+  await expect(out(page)).toContainText('Name: The holder didn’t include the name in this link.');
+  await expect(out(page)).not.toContainText('Partner check test record');
   expect(await valid(page)).toBe(false);
   expect(
     await page
@@ -262,7 +267,7 @@ test('a cut-off link: said once, plainly', async ({ page }) => {
   await expect(out(page)).toHaveAttribute('data-state', 'cut');
   await expect(out(page).getByRole('heading', { name: 'This link looks cut off' })).toBeVisible();
   await expect(out(page)).toContainText('Not checked: Ask for the whole link.');
-  await expect(out(page)).not.toContainText('different fingerprint');
+  await expect(out(page)).not.toContainText('different proof code');
   await expect(page.getByRole('status')).toHaveText(
     'This link looks cut off. Ask for the whole link. Nothing was checked.',
   );

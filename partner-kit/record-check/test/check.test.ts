@@ -356,7 +356,7 @@ describe('tampered', () => {
     expect(c.problems.join(' ')).toMatch(/damaged/);
   });
 
-  it('a link cut off: said so, not called a different fingerprint', async () => {
+  it('a link cut off: said so, not called a different proof code', async () => {
     for (const cut of [
       `https://veilcore.org/verify/${ID}?fp=${FP.slice(0, 40)}`,
       `https://veilcore.org/verify/${ID}?fp=${FP.slice(0, 12)}…`,
@@ -370,7 +370,7 @@ describe('tampered', () => {
       expect(c.linkLooksCut, cut).toBe(true);
       expect(c.fingerprintMatches, cut).toBe(false);
       expect(c.summary, cut).toBe(`${CUT} Nothing was checked.`);
-      expect(c.summary).not.toMatch(/different fingerprint/);
+      expect(c.summary).not.toMatch(/different proof code/);
       expect(c.problems).toEqual([CUT]);
       expect(exitCodeOf(c)).toBe(1);
     }
@@ -448,7 +448,7 @@ describe('tampered', () => {
     expect(c.labReceipts).toHaveLength(1);
     expect(c.labReceipts[0]).toMatchObject({ signatureVerified: false, counts: false, nameCheckRecord: null });
     expect(c.labReceipts[0].words).toMatch(/does not verify/);
-    expect(c.problems.join(' ')).toMatch(/2 signatures .* not about this fingerprint/);
+    expect(c.problems.join(' ')).toMatch(/2 signatures .* not about this proof code/);
   });
 });
 
@@ -562,30 +562,47 @@ describe('lab receipts', () => {
     }
   });
 
-  it('a lab report: matched to the report saved now through the record’s pairing fingerprint', async () => {
+  it('a lab report: matched to the report saved now through the binding and the salt in the link (round 5)', async () => {
+    const SALT = '7d'.repeat(32);
     const shared = {
       found: true,
       id: ID,
       recordFingerprint: FP,
       dnaPairedByHolder: true,
-      dnaPairingFingerprint: H('veilcore:v1:commit', LAB_SHA),
+      // Never the file's SHA-256: the report bound with the record's proof code and its salt.
+      dnaPairBinding: H('veilcore:v1:dnapair', LAB_SHA, FP, SALT),
     };
-    expect((await run(LINK, { verify: shared, attestations: [served(report)] })).c.labReceipts[0]).toMatchObject({
+    const withSalt = `${LINK}#ds=${SALT}`;
+    expect((await run(withSalt, { verify: shared, attestations: [served(report)] })).c.labReceipts[0]).toMatchObject({
       kind: 'lab-report',
       documentSha256: LAB_SHA,
       matchesSavedReport: true,
     });
-    const other = { ...shared, dnaPairingFingerprint: H('veilcore:v1:commit', sha256('newer report')) };
-    const t = await run(LINK, { verify: other, attestations: [served(report)] });
+    // An older pairing, bound over the pairing fingerprint: matched too.
+    const older = { ...shared, dnaPairBinding: H('veilcore:v1:dnapair', H('veilcore:v1:commit', LAB_SHA), FP, SALT) };
+    expect(
+      (await run(withSalt, { verify: older, attestations: [served(report)] })).c.labReceipts[0].matchesSavedReport,
+    ).toBe(true);
+    const other = { ...shared, dnaPairBinding: H('veilcore:v1:dnapair', sha256('newer report'), FP, SALT) };
+    const t = await run(withSalt, { verify: other, attestations: [served(report)] });
     expect(t.c.labReceipts[0].matchesSavedReport).toBe(false);
     expect(t.c.labReceipts[0].words).toMatch(/not the report file saved to this record now/);
+    // A link without the salt: nobody without it can tell which file is saved. Unknown, never false.
+    expect(
+      (await run(LINK, { verify: shared, attestations: [served(report)] })).c.labReceipts[0].matchesSavedReport,
+    ).toBeNull();
+    // Another salt: not this record's, so it doesn't match.
+    expect(
+      (await run(`${LINK}#ds=${'11'.repeat(32)}`, { verify: shared, attestations: [served(report)] })).c.labReceipts[0]
+        .matchesSavedReport,
+    ).toBe(false);
     // The holder doesn't share it: unknown, never false.
-    expect((await run(LINK, { attestations: [served(report)] })).c.labReceipts[0].matchesSavedReport).toBeNull();
+    expect((await run(withSalt, { attestations: [served(report)] })).c.labReceipts[0].matchesSavedReport).toBeNull();
     // Shared: none saved.
     expect(
       (
-        await run(LINK, {
-          verify: { ...shared, dnaPairedByHolder: false, dnaPairingFingerprint: undefined },
+        await run(withSalt, {
+          verify: { ...shared, dnaPairedByHolder: false, dnaPairBinding: undefined },
           attestations: [served(report)],
         })
       ).c.labReceipts[0].matchesSavedReport,
@@ -748,8 +765,8 @@ describe('no fingerprint in the link, no record, no registry', () => {
     expect(c.fingerprintMatches).toBeNull();
     expect(c.fingerprint).toBe(FP);
     expect(c.dated.inBatch).toBe(true);
-    expect(c.problems.join(' ')).toMatch(/names no fingerprint/);
-    expect(c.whatThisDoesNotShow.join(' ')).toMatch(/the link names no fingerprint/);
+    expect(c.problems.join(' ')).toMatch(/names no proof code/);
+    expect(c.whatThisDoesNotShow.join(' ')).toMatch(/the link names no proof code/);
     expect(exitCodeOf(c)).toBe(1);
   });
 

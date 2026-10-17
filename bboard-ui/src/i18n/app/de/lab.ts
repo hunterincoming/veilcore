@@ -177,7 +177,7 @@ export const lab = {
   'app.lab.recv.quoted': '„{v}“',
   'app.lab.recv.breederWrote': '<b>Der Züchter schrieb:</b> {line}',
   'app.lab.recv.onArrival': '<b>Bei Ankunft:</b> {line}',
-  'app.lab.recv.aboutRecord': 'Zum Datensatz {id} des Züchters, Fingerabdruck',
+  'app.lab.recv.aboutRecord': 'Zum Datensatz {id} des Züchters, Prüfcode',
   'app.lab.recv.pointing': 'Verweist auf Ihren erhaltenen Datensatz',
   'app.lab.recv.signedByKey': 'Signiert mit Ihrem Schlüssel ({name})',
   'app.lab.recv.unnamed': 'unbenannt',
@@ -199,7 +199,7 @@ export const lab = {
   'app.lab.recv.exactly':
     'Ihr Schlüssel kann eine Empfangsbestätigung für diese Lieferung signieren. Genau das steht in der Empfangsbestätigung:',
   'app.lab.recv.fingerprintFrom':
-    'Der Fingerabdruck kommt vom Register und passt zu dem, was dessen öffentliche Seite für {id} meldet. Wenn der Züchter Ihnen einen Fingerabdruck gegeben hat, vergleichen Sie ihn vor dem Signieren.',
+    'Der Prüfcode kommt vom Register und passt zu dem, was dessen öffentliche Seite für {id} meldet. Wenn der Züchter Ihnen einen Prüfcode gegeben hat, vergleichen Sie ihn vor dem Signieren.',
   'app.lab.recv.physically': 'Ich habe dieses Material tatsächlich erhalten.',
   'app.lab.recv.dontSign': 'Nicht signieren',
   'app.lab.recv.signWithKey': 'Mit meinem Schlüssel signieren',
@@ -375,7 +375,7 @@ export const lab = {
   'app.lab.out.replacesIntro':
     'Er ersetzt {id}, den Laborbericht, den Sie {when} gesendet haben. Der alte wird zurückgezogen: Seine Datei wird entfernt und Ihre Signatur darauf als ersetzt markiert.',
   'app.lab.out.intro':
-    'Ihr Browser signiert den Fingerabdruck des Laborberichts mit dem Schlüssel Ihres Labors und verschließt die Datei so, dass nur der Züchter sie öffnen kann. Die verschlossene Datei wartet auf dem Server von VeilCore, bis der Züchter sie öffnet, und VeilCore hat ihren Schlüssel nicht.',
+    'Ihr Browser signiert den Code des Laborberichts mit dem Schlüssel Ihres Labors und verschließt die Datei so, dass nur der Züchter sie öffnen kann. Die verschlossene Datei wartet auf dem Server von VeilCore, bis der Züchter sie öffnet, und VeilCore hat ihren Schlüssel nicht.',
   'app.lab.out.cancelCorrection': 'Korrektur abbrechen',
   'app.lab.out.turnedAway': 'Sie haben diese Probe abgelehnt, daher gibt es keinen Laborbericht zu senden.',
   'app.lab.out.setUpFirst':
@@ -387,7 +387,7 @@ export const lab = {
     'Sie haben nicht signiert, dass diese Probe angekommen ist. Bis Sie das tun, sieht der Züchter Ihren Laborbericht als signiert von einem Schlüssel, der den Empfang der Probe nicht bestätigt hat.',
   'app.lab.out.notLinked':
     'Ihre Empfangsbestätigung ist signiert, aber noch nicht mit dieser Lieferung verknüpft, daher kann der Züchter sie nicht sehen.',
-  'app.lab.out.fileFp': '{size} · Fingerabdruck {fp}',
+  'app.lab.out.fileFp': '{size} · Code {fp}',
   'app.lab.out.differentFile': 'Eine andere Datei wählen',
   'app.lab.out.chooseCorrected': 'Die korrigierte Datei wählen',
   'app.lab.out.chooseReport': 'Den Bericht wählen',
@@ -401,7 +401,7 @@ export const lab = {
     'Diese Lieferung hatte so viele Laborberichte, wie sie aufnehmen kann, zurückgezogene eingeschlossen. Bitten Sie den Züchter um einen neuen Laborcode. Es wurde nichts signiert.',
   'app.lab.out.rowReplaced': 'Durch Ihre korrigierte Datei ersetzt.',
   'app.lab.out.rowWithdrawn': 'Am {date} zurückgezogen.',
-  'app.lab.out.rowSigned': 'Mit Ihrem Schlüssel signiert · Fingerabdruck {fp}',
+  'app.lab.out.rowSigned': 'Mit Ihrem Schlüssel signiert · Code {fp}',
   'app.lab.out.rowRetracted':
     'Ihre Signatur darauf ist zurückgezogen, aber die Datei liegt noch beim Register. Ziehen Sie sie zurück, um abzuschließen.',
   'app.lab.out.rowNotSigned': 'Nicht mit dem Schlüssel in diesem Browser signiert.',

@@ -47,12 +47,12 @@ export const plant = {
   'app.plant.f.sealedClock': '封印（この端末の時計）',
   'app.plant.f.ref': '参照／ロットID',
   'app.plant.f.photos': '写真',
-  'app.plant.f.photosSealed': '{n}枚を封印（フィンガープリントのみ。画像はアップロードされていません）',
-  'app.plant.f.reportSaved': 'この植物に保存済み（{file}）· 紐付けのフィンガープリント {fp}{sha}',
+  'app.plant.f.photosSealed': '{n}枚を封印（コードのみ。画像はアップロードされていません）',
+  'app.plant.f.reportSaved': 'この植物に保存済み（{file}）· 紐付けのコード {fp}{sha}',
   'app.plant.f.file': 'ファイル',
   'app.plant.f.fileSha': ' · ファイルのSHA-256 {sha}',
   'app.plant.f.notSavedYet': 'まだ保存されていません',
-  'app.plant.f.recordFingerprint': '記録のフィンガープリント',
+  'app.plant.f.recordFingerprint': '記録の証明コード',
   'app.plant.evidenceBundle': '証拠バンドル',
   'app.plant.evidenceBundleText':
     '封印したままの記録、その包含証明、バッチのルート、バッチが記録された場所、あればBitcoinのスタンプファイル、記録に関するラボの署名を、1つの.zipにまとめたものです。中のverify.htmlは、インターネットもVeilCoreも使わずに確認し、日付を確かめるために何を調べればよいかを示します。',
@@ -192,7 +192,7 @@ export const plant = {
   'app.plant.next.sample.action': 'ラボに送る',
   'app.plant.next.dna.title': 'この植物のDNAフィンガープリントを取得する',
   'app.plant.next.dna.why':
-    '日付の付いた記録は、説明が存在したことを示します。記録を実際の植物に結び付けるのは、DNA報告書（ラボが作る植物の遺伝的なフィンガープリント）です。入手する方法は2つあります：',
+    '日付の付いた記録は、説明が存在したことを示します。記録を実際の植物に結び付けるのは、DNA報告書（ラボが作る植物のDNAフィンガープリント）です。入手する方法は2つあります：',
   'app.plant.next.dna.labTitle': 'サンプルをラボに送る',
   'app.plant.next.dna.labText':
     'ラボコードを作り、サンプルと一緒に送ります。ラボのDNA報告書は、あなただけが開けるようにロックされてここに届きます。',
@@ -231,7 +231,7 @@ export const plant = {
   'app.plant.date.chipReported': 'バッチに入っています · {network}でのアンカーが報告されています',
   'app.plant.date.testNote': 'テストネットワークはリセットされることがあり、その日付に証拠としての重みはありません。',
   'app.plant.date.head':
-    'このブラウザで確認しました：あなたの記録のフィンガープリントはバッチ {batch} に入っており、そこからの経路はバッチのルートにたどり着きます。',
+    'このブラウザで確認しました：あなたの記録の証明コードはバッチ {batch} に入っており、そこからの経路はバッチのルートにたどり着きます。',
   'app.plant.date.looked': '{head}レジストリの報告では、そのルートは{network}に記録されました。{test}',
   'app.plant.date.notLooked':
     '{head}レジストリの報告では、そのルートは{network}に記録されました。このページはそのトランザクションを調べていないため、アンカー済みとは表示しません。日付に頼る前に、ネットワークで調べてください。{test}',
@@ -239,7 +239,7 @@ export const plant = {
   'app.plant.date.notInBatch':
     'お使いの端末で封印し、{server}に保管されています。まだバッチに入っていないので、アンカーされていません。記録はバッチにまとめてアンカーします（今は手作業のため、時間がかかることがあります）。1つのトランザクションで多くの記録をまかなえるので、ウォレットは不要です。それまで、日付はこのレジストリの記録に基づきます。',
   'app.plant.date.inBatchNotAnchored':
-    'このブラウザで確認しました：あなたの記録のフィンガープリントはバッチ {batch} に入っていますが、そのバッチはまだアンカーされていません。アンカーされると、証明にトランザクションへの参照が加わります。あなたの記録は何も変わりません。',
+    'このブラウザで確認しました：あなたの記録の証明コードはバッチ {batch} に入っていますが、そのバッチはまだアンカーされていません。アンカーされると、証明にトランザクションへの参照が加わります。あなたの記録は何も変わりません。',
   'app.plant.date.batchLine': 'バッチ {batch}',
   'app.plant.date.rootLine': 'ルート {root}…',
   'app.plant.date.txChecked': 'トランザクション（Midnightで確認済み）{tx}',
@@ -279,8 +279,9 @@ export const plant = {
   'app.plant.dated.why': 'その日付までにこの報告書が存在したことを、マーカーを誰にも見せずに示せます。',
   'app.plant.dated.seals':
     '報告書のSHA-256、検査報告書のコード、署名どおりのラボ名だけを入れた小さな記録を封印します。報告書はあなたの手元に残ります。日付は、そのバッチに日付が付いたときに付きます。',
-  'app.plant.dated.nameLabel': '新しい記録の名前（公開）',
-  'app.plant.dated.nameHelp': '確認リンクを持つ人は誰でもこの名前を見られます。必要なら変更してください。',
+  'app.plant.dated.nameLabel': '新しい記録の名前',
+  'app.plant.dated.nameHelp':
+    'ほかと同じくロックされます。確認リンクには名前が入るので、リンクを送った相手には見えます。必要なら変更してください。',
   'app.plant.dated.elsewhere':
     'このDNA報告書は、別のタブかウィンドウで日付を付けているところです。1分待ってからもう一度見てください。ここに表示されます。',
   'app.plant.datingPage.title': 'この記録は<plant></plant>のDNA報告書に日付を付けます',
@@ -343,7 +344,7 @@ export const plant = {
     'これを含めると、バンドルを持つ人は誰でも、この記録をその鍵と、その鍵がネットワーク上で行うすべてのことに結び付けられます。相手が必要としない限り、含めないでください。',
   'app.plant.bundle.keyNotHere': '鍵はこのブラウザにありません。含めるには、ここでバックアップを開いてください。',
   'app.plant.bundle.includeLab':
-    'DNA報告書のファイルを含める。含めない場合、バンドルには報告書のフィンガープリントだけが入り、内容は入りません。',
+    'DNA報告書のファイルを含める。含めない場合、バンドルには報告書のコードだけが入り、内容は入りません。',
   'app.plant.bundle.chooseLab': 'DNA報告書のファイルを選ぶ',
   'app.plant.bundle.checkedAgainst': '入れる前に、この植物に保存されたものと照合します。',
   'app.plant.bundle.labFileAria': 'DNA報告書のファイル',
@@ -367,11 +368,11 @@ export const plant = {
     'この確認はブラウザの中だけで行われ、何も送信しないので、あなた自身のためのものです。記録に紐付けた報告書と一致するファイルを持っていることを示します。誰が植物を保有しているかは示さず、ほかの人がここから確認することもできません。ほかの人は、記録の確認ページで記録を、アンカー後はその日付を確認します。',
   'app.plant.check.tap': 'タップして検査報告書を選ぶ',
   'app.plant.check.drag': '検査報告書をここにドラッグするか、クリックして選ぶ',
-  'app.plant.check.hint': '端末内で読み込んでフィンガープリントを作り、アップロードはしません。',
+  'app.plant.check.hint': '端末内で読み込んでコードを作り、アップロードはしません。',
   'app.plant.check.none':
     'この検査報告書が保存された記録はありません。先に正しい植物に保存してから、もう一度確認してください。',
   'app.plant.check.found': '一致しました。',
-  'app.plant.check.foundSub': 'このファイルのフィンガープリントはブラウザで作られ、アップロードされていません。',
+  'app.plant.check.foundSub': 'このファイルのコードはブラウザで作られ、アップロードされていません。',
   'app.plant.check.matches': 'このファイルは、{name}に紐付けた報告書と一致します。',
   'app.plant.check.meaning':
     '記録 {id}。一致とは、ファイルが紐付けたものとバイト単位で同じだという意味です。遺伝情報についても、誰が植物を保有しているかについても、何も示しません。',
@@ -398,7 +399,7 @@ export const plant = {
   'app.plant.fix.title': '{id} を訂正する',
   'app.plant.fix.intro':
     'この記録はそのまま残ります。訂正すると、これに代わる新しい記録が作られ、両方が残ります。訂正は何も上書きせず、何も削除しません。だからこそ、元の記録を証拠として使い続けられます。',
-  'app.plant.fix.name': '品種名（公開）',
+  'app.plant.fix.name': '品種名',
   'app.plant.fix.bredBy': '育成者',
   'app.plant.fix.notes': 'メモ',
   'app.plant.fix.does': 'この訂正で起きること',
@@ -418,7 +419,7 @@ export const plant = {
   'app.plant.att.noReceipt':
     'この植物の受領書に署名したラボはまだありません。あなただけが裏付ける記録は、ラボが署名した記録より弱い証拠です。サンプルをラボに送ってください。受領書はあなたではなくラボの鍵で署名されます。',
   'app.plant.att.others':
-    'ほかに{n}件の署名がこの記録を指していますが、あなたの送付には結び付いていません。公開のフィンガープリントについては誰でも陳述に署名できるため、受領書としては数えません。',
+    'ほかに{n}件の署名がこの記録を指していますが、あなたの送付には結び付いていません。公開の証明コードについては誰でも陳述に署名できるため、受領書としては数えません。',
   'app.plant.att.title': 'この記録についての署名',
   'app.plant.att.nobody':
     'まだ誰もこの記録を確認していません。あなただけが裏付ける記録は、第三者が確認した記録より弱い証拠です。素材をラボに送ってください。確認はあなたではなくラボの鍵で記録されます。',

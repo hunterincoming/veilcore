@@ -19,6 +19,11 @@ const c = await checkRecord('https://veilcore.org/verify/VEIL-…?fp=…');
 // c.recordExists, c.fingerprintMatches, c.dated, c.keyBound, c.labReceipts, c.whatThisDoesNotShow
 ```
 
+`fingerprint` in the answer is the record's proof code, as the site and the field's own
+sentences call it. A link the site makes carries the record's name and its DNA pairing salt
+after the `#` (`n=`, `ds=`), which no server receives: the name is shown as the holder's
+word, and the salt lets a lab report be matched to the report saved with the record.
+
 ```sh
 npx @veilcore/partner-kit check '<check link>' [--fields sealed-fields.json] [--on-chain] [--text]
 ```

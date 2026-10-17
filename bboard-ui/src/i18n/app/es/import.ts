@@ -17,7 +17,7 @@ export const importing = {
   'app.import.choose': 'Elegir un archivo',
   'app.import.normalWindow': 'Abra esta página en una ventana normal del navegador para usarla.',
   'app.import.readHere':
-    'Su archivo se lee aquí, en este navegador, y no se sube. De cada fila, solo se guardan los datos que elija en la siguiente pantalla, los mismos datos que al registrar una planta. Se guardan bloqueados en {server}, y nosotros no tenemos la clave; el nombre de la planta no está bloqueado. Solo una huella se fecha en {dated}.',
+    'Su archivo se lee aquí, en este navegador, y no se sube. De cada fila, solo se guardan los datos que elija en la siguiente pantalla, los mismos datos que al registrar una planta. {server} los guarda bloqueados, el nombre de la planta incluido, y nosotros no tenemos la clave. Solo un código de prueba se fecha en {dated}.',
   'app.import.testSite': 'Este es un sitio de pruebas: los registros que se hacen aquí son datos de prueba.',
   'app.import.earlierStamps': 'Sellos de fecha de claves de importaciones anteriores',
   'app.import.rowLine': 'Fila {line}: {text}',
@@ -49,7 +49,7 @@ export const importing = {
   'app.import.header.back': 'Elegir otro archivo',
   'app.import.cols.title': '¿Qué columna es cuál?',
   'app.import.cols.intro':
-    'Lo adivinamos a partir de los nombres de columna. Revise cada una. Solo hace falta el nombre de la planta; las columnas que deje fuera nunca se envían. El nombre de la planta es público: cualquiera con el enlace de comprobación de un registro lo ve. Si los nombres son secretos, elija una columna de nombres en clave.',
+    'Lo adivinamos a partir de los nombres de columna. Revise cada una. Solo hace falta el nombre de la planta; las columnas que deje fuera nunca se envían. El nombre de la planta se bloquea como el resto: los enlaces de comprobación de su archivo de resultados lo llevan, así que lo ve quien reciba un enlace. Si los nombres son secretos, elija una columna de nombres en clave.',
   'app.import.cols.example': 'Por ejemplo: {v}',
   'app.import.cols.twoParents': 'Dos padres en una celda está bien, como “Madre x Padre”.',
   'app.import.cols.pick': 'Elegir una columna',
@@ -94,7 +94,7 @@ export const importing = {
   'app.import.check.onceSealed':
     '<b>Una vez sellados, no se pueden cambiar.</b> Puede agregar informes y correcciones después; una corrección es un registro nuevo que apunta al anterior.',
   'app.import.check.savedOn':
-    'Los datos de arriba se guardan bloqueados en {server}, un registro por fila, y nosotros no tenemos la clave. Los nombres de las plantas no están bloqueados: cualquiera con un enlace de comprobación los ve. Solo una huella de cada uno se fecha en {dated}. Un sello de fecha muestra que los datos existían en esa fecha; no confirma que sean correctos.',
+    'Los datos de arriba se guardan en {server}, un registro por fila, bloqueados, los nombres de las plantas incluidos, y nosotros no tenemos la clave. Los enlaces de comprobación de su archivo de resultados llevan cada nombre, para las personas a las que se los envía. Solo un código de prueba de cada uno se fecha en {dated}. Un sello de fecha muestra que los datos existían en esa fecha; no confirma que sean correctos.',
   'app.import.check.sealN.one': 'Sellar {count} registro',
   'app.import.check.sealN.other': 'Sellar {count} registros',
   'app.import.check.nothing': 'Nada que sellar',
@@ -156,7 +156,7 @@ export const importing = {
   'app.import.done.notSealed': ', {n} sin sellar',
   'app.import.done.download': 'Descargar los resultados (CSV)',
   'app.import.done.downloadText':
-    'Sus filas tal como estaban, cada una con su ID de registro, su huella y un enlace que cualquiera puede abrir para comprobarlo. Hecho aquí; no se sube nada.',
+    'Sus filas tal como estaban, cada una con su ID de registro, su código de prueba y un enlace que cualquiera puede abrir para comprobarlo. Hecho aquí; no se sube nada.',
   'app.import.done.csvDna': ' Su columna “DNA report” indica qué registros aún no tienen uno.',
   'app.import.done.byBatch':
     'Su sello de fecha público llega cuando su lote se fecha en {dated}. La página de cada planta muestra cuándo ocurrió. No tiene que hacer nada.',

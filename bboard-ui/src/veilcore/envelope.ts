@@ -206,7 +206,7 @@ export const exportEnvelopeFor = async (
 ): Promise<Envelope> => {
   if (integrity === 'mismatch') {
     throw new Error(
-      `${r.id}: its fingerprint does not match its stored fields, so an export could not be tied to what the registry holds. Nothing was exported.`,
+      `${r.id}: its proof code does not match its stored fields, so an export could not be tied to what the registry holds. Nothing was exported.`,
     );
   }
   const base = toEnvelope(r, holderId);

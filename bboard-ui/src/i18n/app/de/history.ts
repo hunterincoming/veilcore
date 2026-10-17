@@ -21,7 +21,7 @@ export const history = {
   'app.history.leftOut.other': ', {count} Datensätze ausgelassen (es werden die nächsten {max} genommen)',
   'app.history.end': '.',
   'app.history.notPut':
-    'Die Schlüssel Ihrer Datensätze und Laborberichtsdateien kommen nicht hinein. Wo ein Laborbericht bei einer Pflanze gespeichert ist, enthält ihr Nachweispaket den SHA-256 des Berichts und den Fingerabdruck, der ihn mit der Pflanze koppelt, sodass jeder, dem die Datei später gezeigt wird, sie abgleichen kann. VeilCore bürgt für nichts, was ein Datensatz sagt. Entwurf. Keine Rechtsberatung.',
+    'Die Schlüssel Ihrer Datensätze und Laborberichtsdateien kommen nicht hinein. Wo ein Laborbericht bei einer Pflanze gespeichert ist, enthält ihr Nachweispaket den SHA-256 des Berichts und den Code, der ihn mit der Pflanze koppelt, sodass jeder, dem die Datei später gezeigt wird, sie abgleichen kann. VeilCore bürgt für nichts, was ein Datensatz sagt. Entwurf. Keine Rechtsberatung.',
   'app.history.downloaded':
     '{name} heruntergeladen. Öffnen Sie darin zuerst COVER-NOTE.html, dann breeding-history.html zum Drucken.',
   'app.history.locked.one':

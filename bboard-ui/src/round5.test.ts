@@ -52,7 +52,7 @@ describe('the check page footer names what each signature is', () => {
         signatureKinds: ['Lab’s receipt for a sample', 'Lab report (file SHA-256 3bb6af…111111)'],
       }),
     ).toBe(
-      'Checked in this browser: the link’s fingerprint matches the one the registry reports and 2 signatures about it (a lab’s receipt, a lab report). Everything else is the VeilCore registry’s report.',
+      'Checked in this browser: the link’s proof code matches the one the registry reports and 2 signatures about it (a lab’s receipt, a lab report). Everything else is the VeilCore registry’s report.',
     );
     expect(
       checkedSummary({ bound: true, proofChecked: false, signaturesChecked: 1, signatureKinds: ['Lab report (x)'] }),

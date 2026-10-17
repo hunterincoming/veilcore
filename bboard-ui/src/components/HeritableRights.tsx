@@ -114,7 +114,7 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
               </Stack>
             ))}
             <Typography variant="caption" color="text.secondary">
-              Ended by revoking the agreement. The terms are never sent, only their fingerprint.
+              Ended by revoking the agreement. The terms are never sent, only a code made from them.
             </Typography>
             {ownOffspring && (
               <Typography variant="body2" color="text.secondary" data-own-offspring="">
@@ -166,7 +166,7 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
 
         {root && (
           <Typography variant="caption" color="text.secondary">
-            Fingerprint of every obligation the registry holds: {root.slice(0, 16)}…
+            One code for every obligation the registry holds: {root.slice(0, 16)}…
           </Typography>
         )}
       </Stack>

@@ -80,7 +80,7 @@
       <li>That a signing key belongs to the lab it names. VeilCore doesn’t vouch for anyone, and neither does this page.</li>
       <li>Any date at all, until you find the batch root in the transaction named above (or the Bitcoin stamp checks). Until then the files only agree with each other.</li>
       <li>The Bitcoin block itself: this page reads the stamp file, but it can’t reach Bitcoin to see that the block holds the value the file names.</li>
-      <li>When a lab report was saved to the <span class="vc-subject">plant</span>. That came after sealing and isn’t inside the record’s fingerprint, so the batch doesn’t date it.</li>
+      <li>When a lab report was saved to the <span class="vc-subject">plant</span>. That came after sealing and isn’t inside the record’s proof code, so the batch doesn’t date it.</li>
     </ul>
   </div>
 
@@ -88,7 +88,7 @@
   <p id="other-files"><code>README.txt</code> explains every file. <code>EXAMINER-SUMMARY.html</code> is a printable summary for a lawyer or examiner: open it and print it to PDF. It checks nothing itself; this page does the checks. <code>DECLARATION-TEMPLATE.txt</code> is sample text for a written declaration about this record and bundle. It is not legal advice: have a lawyer where you are adapt it.</p>
 
   <h2>Check other files</h2>
-  <p>To check the files themselves rather than the copy inside this page, choose them here: <code>evidence.json</code>, or any of <code>record/sealed-fields.json</code>, <code>record/sealed-fields.canonical.json</code>, <code>record/fingerprint.txt</code>, <code>proof/inclusion-proof.json</code>, <code>proof/batch-root.txt</code>, <code>proof/root.bin</code>, <code>proof/root.bin.ots</code>, <code>key/key-binding.json</code>, <code>lab/signatures.json</code>, or the lab report file. Nothing is sent anywhere.</p>
+  <p>To check the files themselves rather than the copy inside this page, choose them here: <code>evidence.json</code>, or any of <code>record/sealed-fields.json</code>, <code>record/sealed-fields.canonical.json</code>, <code>record/proof-code.txt</code>, <code>proof/inclusion-proof.json</code>, <code>proof/batch-root.txt</code>, <code>proof/root.bin</code>, <code>proof/root.bin.ots</code>, <code>key/key-binding.json</code>, <code>lab/signatures.json</code>, or the lab report file. Nothing is sent anywhere.</p>
   <input type="file" id="files" multiple aria-label="Choose files to check">
   <div id="filechecks"></div>
 </main>
@@ -232,7 +232,7 @@ return canonicalise;
     ['profile', 'Kind of record'],
     ['loggedAt', 'Sealed at (the breeder’s device clock)'],
     ['keyBinding', 'Names a key'],
-    ['nonce', 'Random salt (keeps the fingerprint unguessable)'],
+    ['nonce', 'Random salt (keeps the proof code unguessable)'],
   ];
   function fieldText(key, v) {
     if (v === '' || v === null || v === undefined) return '(empty)';
@@ -248,7 +248,7 @@ return canonicalise;
       }).join('; ');
     }
     if (key === 'photoFingerprints' && Array.isArray(v)) {
-      return v.length === 0 ? '(none)' : v.length + ' photo' + (v.length === 1 ? '' : 's') + ', sealed by fingerprint: ' + v.join(', ');
+      return v.length === 0 ? '(none)' : v.length + ' photo' + (v.length === 1 ? '' : 's') + ', sealed by their codes: ' + v.join(', ');
     }
     if (key === 'loggedAt' && typeof v === 'number') {
       var when = VeilcoreVerify.utc(v);
@@ -281,7 +281,7 @@ return canonicalise;
     table.appendChild(body);
     return table;
   }
-  var TYPES = { 'laboratory-report': 'a lab report', 'chain-of-custody': 'a receipt for a sample', 'genetic-fingerprint': 'a genetic fingerprint' };
+  var TYPES = { 'laboratory-report': 'a lab report', 'chain-of-custody': 'a receipt for a sample', 'genetic-fingerprint': 'a DNA fingerprint' };
 
   // What the record describes: "animal" for a record sealed under the animal profile (the
   // site's veilcore/animal-profile.ts), else "plant". Set by render, read by the file checks.
@@ -305,11 +305,11 @@ return canonicalise;
       ], 'result'));
     } else if (D.notBatched) {
       summary.appendChild(result('info', 'The record checks, but nothing dates it yet', [
-        para(['Its fingerprint matches the sealed fields, but it isn’t in a batch yet, so there is no date to look up.']),
+        para(['Its proof code matches the sealed fields, but it isn’t in a batch yet, so there is no date to look up.']),
       ], 'result'));
     } else {
       summary.appendChild(result('ok', 'The files agree with each other', [
-        para(['The record’s fingerprint matches its sealed fields and its proof leads to the batch root. To date it, do the look-up under “What to look up to date it”.']),
+        para(['The record’s proof code matches its sealed fields and its proof leads to the batch root. To date it, do the look-up under “What to look up to date it”.']),
       ], 'result'));
     }
 
@@ -317,8 +317,8 @@ return canonicalise;
     var sealed = clear('sealed');
     if (rec.sealedFields && typeof rec.sealedFields === 'object' && !Array.isArray(rec.sealedFields)) {
       sealed.appendChild(para([report.fingerprint.ok
-        ? 'Exactly what was fingerprinted, in the breeder’s own words. The checks show these fields haven’t changed since sealing; they don’t show that what they say is true.'
-        : 'These fields do NOT match the record’s fingerprint: they, or the fingerprint, were changed after sealing. Don’t rely on them.']));
+        ? 'Exactly what the proof code was made from, in the breeder’s own words. The checks show these fields haven’t changed since sealing; they don’t show that what they say is true.'
+        : 'These fields do NOT match the record’s proof code: they, or the proof code, were changed after sealing. Don’t rely on them.']));
       var t = sealedTable(rec.sealedFields);
       t.setAttribute('data-sealed', report.fingerprint.ok ? 'matches' : 'changed');
       sealed.appendChild(t);
@@ -330,15 +330,15 @@ return canonicalise;
     var checks = clear('checks');
     var f = report.fingerprint;
     if (f.ok) {
-      checks.appendChild(result('ok', 'Fingerprint matches', [
+      checks.appendChild(result('ok', 'Proof code matches', [
         para([f.form === 'key-bound'
           ? 'Worked out again from the sealed fields: the SHA-256 of their canonical form, with the record’s key binding folded in at the top (the key-bound form, spec section 3.6.1).'
           : 'Worked out again from the sealed fields: the SHA-256 of their canonical form (spec section 4.4).']),
-        facts([['Fingerprint', hex(f.computed)]]),
+        facts([['Proof code', hex(f.computed)]]),
       ], 'fingerprint'));
     } else {
-      checks.appendChild(result('bad', 'Fingerprint does not match', [
-        para([f.reason || 'The fingerprint could not be worked out.']),
+      checks.appendChild(result('bad', 'Proof code does not match', [
+        para([f.reason || 'The proof code could not be worked out.']),
         facts([['Stated', f.stated ? hex(f.stated) : '(none)'], ['Worked out', f.computed ? hex(f.computed) : '(could not)']]),
       ], 'fingerprint'));
     }
@@ -348,8 +348,8 @@ return canonicalise;
     if (p.status === 'ok') {
       checks.appendChild(result('ok', 'Proof leads to the batch root', [
         para([p.depth === 0
-          ? 'The record’s fingerprint is in batch ' + (p.batchId || '(unnamed)') + '. It is the batch’s only record, so its fingerprint is the batch root itself.'
-          : 'The record’s fingerprint is in batch ' + (p.batchId || '(unnamed)') + ': the proof’s ' + p.depth + ' step' + (p.depth === 1 ? '' : 's') + ' lead' + (p.depth === 1 ? 's' : '') + ' from it to the batch root, one fingerprint that stands for every record in the batch.']),
+          ? 'The record’s proof code is in batch ' + (p.batchId || '(unnamed)') + '. It is the batch’s only record, so its proof code is the batch root itself.'
+          : 'The record’s proof code is in batch ' + (p.batchId || '(unnamed)') + ': the proof’s ' + p.depth + ' step' + (p.depth === 1 ? '' : 's') + ' lead' + (p.depth === 1 ? 's' : '') + ' from it to the batch root, one code that stands for every record in the batch.']),
         facts([['Batch root', hex(p.root)]]),
       ], 'proof'));
     } else if (p.status === 'none') {
@@ -380,16 +380,26 @@ return canonicalise;
     var pr = report.pairing;
     if (lab && pr.status === 'ok') {
       checks.appendChild(result('ok', 'Lab report pairing matches', [
-        para(['The lab report saved to this ' + SUBJECT + ' has this SHA-256, and it leads to the pairing fingerprint saved with the ' + SUBJECT + ' (spec section 3.7). The report itself ' + (lab.fileIncluded ? 'is in this bundle: ' + lab.fileIncluded + '. Choose it below to check it.' : 'isn’t in this bundle.')]),
-        facts([['Lab report SHA-256', hex(lab.fileSha256)], ['Pairing fingerprint', hex(lab.pairingFingerprint)]]),
+        para(['The lab report saved to this ' + SUBJECT + ' has this SHA-256, and it leads to the pairing code saved with the ' + SUBJECT + ' (spec section 3.7). The report itself ' + (lab.fileIncluded ? 'is in this bundle: ' + lab.fileIncluded + '. Choose it below to check it.' : 'isn’t in this bundle.')]),
+        facts([['Lab report SHA-256', hex(lab.fileSha256)], ['Pairing code', hex(lab.pairingFingerprint)]]),
       ], 'pairing'));
     } else if (lab && pr.status === 'no-sha') {
       checks.appendChild(result('info', 'Lab report saved, SHA-256 not kept', [
-        para(['A lab report was saved to this ' + SUBJECT + ' before its SHA-256 was kept, so only its pairing fingerprint is here.']),
-        facts([['Pairing fingerprint', lab.pairingFingerprint ? hex(String(lab.pairingFingerprint)) : '(none)']]),
+        para(['A lab report was saved to this ' + SUBJECT + ' before its SHA-256 was kept, so only its pairing code is here.']),
+        facts([['Pairing code', lab.pairingFingerprint ? hex(String(lab.pairingFingerprint)) : '(none)']]),
       ], 'pairing'));
     } else if (lab && pr.status === 'fail') {
       checks.appendChild(result('bad', 'Lab report pairing does not match', [para([pr.reason])], 'pairing'));
+    }
+    // What a check link shows of the report (round 5): only a code bound with the record's salt.
+    var lb = report.linkBinding;
+    if (lab && lb && lb.status === 'ok') {
+      checks.appendChild(result('ok', 'Check-link code matches', [
+        para(['When the holder shares whether a DNA report is saved, the registry shows only this code, never the file’s SHA-256. It is made from the file’s SHA-256, the proof code and the salt below, which the holder’s check link carries after #ds=. Anyone with the file and that link can make it again; nobody else can tell which file it is.']),
+        facts([['Check-link code', hex(lab.pairBinding)], ['Salt (in the check link)', hex(lab.pairSalt)]]),
+      ], 'pairing'));
+    } else if (lab && lb && lb.status === 'fail') {
+      checks.appendChild(result('bad', 'Check-link code does not match', [para([lb.reason])], 'pairing'));
     }
 
     // Look-ups: only for a bundle whose own checks pass. Otherwise the steps are withheld.
@@ -460,13 +470,13 @@ return canonicalise;
         continue;
       }
       if (!s.aboutThisRecord) {
-        sg.appendChild(result('bad', 'A signature about another record', [para(['Signature ' + s.attestationId + ' checks, but it is about a different fingerprint. It says nothing about this record.'])], 'signature'));
+        sg.appendChild(result('bad', 'A signature about another record', [para(['Signature ' + s.attestationId + ' checks, but it is about a different proof code. It says nothing about this record.'])], 'signature'));
         continue;
       }
       var withdrawn = s.retraction && s.retraction.signature === 'valid';
       var lines = [
         s.type === 'chain-of-custody'
-          ? para(['The key ', hex(s.publicKey), who + ' signed ' + what + ' about this record at ' + plain(s.issuedAt) + ' (the signer’s own clock). Its signed SHA-256, ', hex(plain(s.documentHash)), ', is the fingerprint of the lab’s own record of the delivery, not a hash of the sample.'])
+          ? para(['The key ', hex(s.publicKey), who + ' signed ' + what + ' about this record at ' + plain(s.issuedAt) + ' (the signer’s own clock). Its signed SHA-256, ', hex(plain(s.documentHash)), ', is the code of the lab’s own record of the delivery, not a hash of the sample.'])
           : para(['The key ', hex(s.publicKey), who + ' signed ' + what + ' with SHA-256 ', hex(plain(s.documentHash)), ', about this record, at ' + plain(s.issuedAt) + ' (the signer’s own clock).']),
       ];
       if (withdrawn) lines.push(para(['The same key withdrew it' + (s.retraction.retractedAt ? ' at ' + plain(s.retraction.retractedAt) : '') + (s.retraction.reason ? ' (' + plain(s.retraction.reason) + ')' : '') + '.']));
@@ -634,7 +644,7 @@ return canonicalise;
           else if (/evidence\.json$/.test(n)) ev = jsonOf(f.bytes);
           else if (/sealed-fields\.canonical\.json$/.test(n)) ev.record.canonical = dec.decode(f.bytes);
           else if (/sealed-fields\.json$/.test(n)) ev.record.sealedFields = jsonOf(f.bytes);
-          else if (/fingerprint\.txt$/.test(n)) ev.record.fingerprint = dec.decode(f.bytes).trim();
+          else if (/(proof-code|fingerprint)\.txt$/.test(n)) ev.record.fingerprint = dec.decode(f.bytes).trim();
           else if (/inclusion-proof\.json$/.test(n)) ev.proof = jsonOf(f.bytes);
           else if (/batch-root\.txt$/.test(n)) { ev.batch = ev.batch || {}; ev.batch.root = dec.decode(f.bytes).trim(); }
           else if (/key-binding\.json$/.test(n)) ev.key = jsonOf(f.bytes);

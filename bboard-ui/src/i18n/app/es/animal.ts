@@ -12,7 +12,7 @@ export const animal = {
   'app.animal.title': 'Registre su animal',
   'app.animal.name': 'Nombre del animal',
   'app.animal.namePlaceholder': 'p. ej. Vaca de práctica',
-  'app.animal.nameField': 'Nombre del animal (público)',
+  'app.animal.nameField': 'Nombre del animal',
   'app.animal.individualId': 'Identificación individual',
   'app.animal.individualIdHelp': 'El número de su crotal o de su registro, tal como está escrito.',
   'app.animal.idScheme': 'Sistema de identificación',
@@ -67,7 +67,7 @@ export const animal = {
   'app.animal.verify.idLine': 'Identificación individual, según el titular: {id} ({scheme})',
   'app.animal.verify.noId': 'No hay identificación individual registrada.',
   'app.animal.v.app.verify.noParents': 'No hay padre ni madre registrados.',
-  'app.animal.v.app.plant.fix.name': 'Nombre del animal (público)',
+  'app.animal.v.app.plant.fix.name': 'Nombre del animal',
   'app.animal.v.app.plant.fix.bredBy': 'Criador o titular',
   'app.animal.v.app.verify.nameTyped': 'Nombre del animal, tal como lo escribió el titular: ',
   'app.animal.import.dob': 'Fecha de nacimiento',
@@ -82,7 +82,7 @@ export const animal = {
     '<b>Opcional.</b> ¿Ya tiene un informe de ADN de este animal? Es lo que vincula su registro con el animal real. Agréguelo ahora y se guardará con el registro. ¿Aún no tiene informe? Omita este paso: la página del animal muestra cómo conseguir uno.',
   'app.animal.v.app.log.sealingPlant': 'Sellando su animal…',
   'app.animal.v.app.log.sealStampsKey':
-    'Al sellar también se pone un sello de fecha a la clave de su animal, para que más adelante pueda demostrar que tiene su registro. Solo sale una huella de la clave.',
+    'Al sellar también se pone un sello de fecha a la clave de su animal, para que más adelante pueda demostrar que tiene su registro. Solo sale un código de la clave.',
   'app.animal.v.app.log.publicStampLater':
     'Su sello de fecha público llega cuando su lote se fecha en {datedOn}. La página de su animal muestra cuándo ocurrió. No tiene que hacer nada.',
   'app.animal.v.app.log.publicDateLater':
@@ -93,7 +93,7 @@ export const animal = {
     'Clave con sello de fecha. La clave de su animal también queda fechada, para que más adelante pueda demostrar que tiene su registro.{bound} No salió nada sobre el animal.',
   'app.animal.v.app.log.stampingTitle': 'Sellado. Poniendo el sello de fecha a la clave de su animal…',
   'app.animal.v.app.log.onlyFingerprint':
-    'Solo sale una huella de la clave de su animal, nada sobre el animal. Gratis: VeilCore paga la tarifa de la red.',
+    'Solo sale un código de la clave de su animal, nada sobre el animal. Gratis: VeilCore paga la tarifa de la red.',
   'app.animal.v.app.log.stampingAria': 'Poniendo el sello de fecha a la clave de su animal',
   'app.animal.v.app.log.keepOpen':
     'Mantenga esta pantalla abierta, alrededor de un minuto. Si se cierra, no se pierde nada: su animal está guardado y su página le ofrecerá el sello de fecha de nuevo.',
@@ -108,7 +108,7 @@ export const animal = {
   'app.animal.v.app.pair.noLabMatch':
     'Ninguna firma de laboratorio de este animal coincide con este archivo, así que sigue siendo su propia declaración.',
   'app.animal.v.app.pair.saved':
-    'Guardado. La huella de su informe de ADN se guarda con el registro de este animal, como su declaración de que este informe le corresponde. No es una comprobación de la genética. {dated}',
+    'Guardado. El código de su informe de ADN se guarda con el registro de este animal, como su declaración de que este informe le corresponde. No es una comprobación de la genética. {dated}',
   'app.animal.v.app.pair.title': 'Guarde su informe de ADN en este animal',
   'app.animal.v.app.pair.intro':
     '¿Ya le devolvieron su informe de ADN? Guárdelo en este animal. Es lo que vincula su registro con el animal real: más adelante se puede comparar con él una prueba nueva.',
@@ -123,7 +123,7 @@ export const animal = {
     'Si lo selló en otro navegador, guarde allí una copia de seguridad y ábrala aquí (Recuperar sus registros). Si es el registro de otra persona, abra el enlace de verificación que le dio.',
   'app.animal.v.app.plant.bredByName': 'Criador o titular: {name}',
   'app.animal.v.app.plant.action.saveReport': 'Guardar un informe de ADN en este animal',
-  'app.animal.v.app.plant.f.reportSaved': 'guardado en este animal ({file}) · huella del vínculo {fp}{sha}',
+  'app.animal.v.app.plant.f.reportSaved': 'guardado en este animal ({file}) · código del vínculo {fp}{sha}',
   'app.animal.v.app.plant.backToPlant': 'Volver al animal',
   'app.animal.v.app.plant.tie.tied': 'Vinculado al animal',
   'app.animal.v.app.plant.tie.notYet': 'Aún no vinculado al animal',
@@ -181,7 +181,7 @@ export const animal = {
     'Ningún laboratorio ha firmado todavía un acuse de recibo para este animal. Un registro que solo usted respalda es una evidencia más débil que uno que firma un laboratorio. Envíe una muestra a un laboratorio: su acuse de recibo se firma con su clave, no con la suya.',
   'app.animal.v.app.verify.field.parent-names': 'Padre y madre (nombres e identificaciones)',
   'app.animal.v.app.verify.alwaysShown':
-    'Siempre se muestra: el nombre del animal, el ID del registro, su huella ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las atestaciones firmadas (un acuse de recibo de laboratorio, un informe de laboratorio).',
+    'Siempre se muestra: el ID del registro, su código de prueba ({fp}), cuándo lo guardó por primera vez el servidor de registros y lo que esta página pudo comprobar sobre su lote y las atestaciones firmadas (un acuse de recibo de laboratorio, un informe de laboratorio). El nombre del animal, solo cuando el enlace lo lleva (los suyos lo llevan, salvo que lo quite) o usted decide mostrarlo.',
   'app.animal.v.app.verify.ownReceiptTail':
     ' Usted lo ve porque el animal está en este navegador; quien reciba el enlace solo ve la línea de firma de arriba.',
   'app.animal.v.app.prove.openCheckPage': 'Abrir la página de comprobación del animal',

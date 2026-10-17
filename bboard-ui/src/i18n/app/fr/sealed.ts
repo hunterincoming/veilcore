@@ -7,9 +7,9 @@ import type { AppTranslation } from '../../translate';
 export const sealed = {
   'app.sealed.refuse.noKey':
     'ce navigateur n’a pas la clé de vos enregistrements, donc rien n’a été enregistré. Restaurez d’abord votre fichier de secours.',
-  'app.sealed.refuse.mismatch': 'il ne correspond pas à son empreinte, donc il n’a pas été enregistré',
+  'app.sealed.refuse.mismatch': 'il ne correspond pas à son code de preuve, donc il n’a pas été enregistré',
   'app.sealed.mismatch':
-    'Cet enregistrement ne correspond pas à son empreinte : il a peut-être été modifié après avoir été scellé. Il ne sera plus enregistré, envoyé ni partagé.',
+    'Cet enregistrement ne correspond pas à son code de preuve : il a peut-être été modifié après avoir été scellé. Il ne sera plus enregistré, envoyé ni partagé.',
   'app.sealed.locked.title.one': '{count} enregistrement verrouillé',
   'app.sealed.locked.title.other': '{count} enregistrements verrouillés',
   'app.sealed.locked.pageTitle': 'Cet enregistrement est verrouillé',

@@ -29,7 +29,7 @@ One folder, `VEIL-…-evidence/`:
 | `evidence.json` | Everything below in one machine-readable file. `verify.html` carries a copy. |
 | `record/sealed-fields.json` | The record exactly as it was fingerprinted. |
 | `record/sealed-fields.canonical.json` | The exact bytes that were hashed (spec 4.4). |
-| `record/fingerprint.txt` | The record's fingerprint. |
+| `record/proof-code.txt` | The record's proof code (the specification calls it the record's fingerprint). Bundles made before 17 October 2026 name this file `record/fingerprint.txt`; verify.html reads either. |
 | `proof/inclusion-proof.json` | The path from the fingerprint to the batch root (spec 5.4). |
 | `proof/batch-root.txt`, `proof/root.bin` | The batch root, as text and as the 32 bytes the Bitcoin stamp covers. |
 | `proof/anchors.json` | Where the batch root was recorded (network, contract, transaction, block), and any earlier anchor the batch had, as the registry reported them. |

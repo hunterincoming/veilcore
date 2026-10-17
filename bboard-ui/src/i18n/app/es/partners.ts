@@ -15,7 +15,7 @@ export const partners = {
     'El registro se selló antes de la solicitud. Si más tarde le muestran la descripción, puede saber si es la que sellaron.',
   'app.partners.gives.2.t': 'Una fecha',
   'app.partners.gives.2.d':
-    'Cuando el registro está en un lote fechado, cualquiera puede consultar desde cuándo existía su huella. La fecha viene de Midnight, no de VeilCore ni del solicitante.',
+    'Cuando el registro está en un lote fechado, cualquiera puede consultar desde cuándo existía su código de prueba. La fecha viene de Midnight, no de VeilCore ni del solicitante.',
   'app.partners.gives.3.t': 'Firmas de laboratorio, verificadas',
   'app.partners.gives.3.d':
     'Acuses de recibo de muestras e informes de laboratorio, con cada firma verificada, y si el operador de VeilCore cotejó el nombre del laboratorio con un listado público. Un acuse cuenta solo cuando el servidor de registros lo vincula a un envío del registro, y usted ve si lo que llegó coincide con lo que se envió.',
@@ -67,7 +67,7 @@ export const partners = {
   'app.partners.facts.support.d': 'Correo: <link></link>. No hay acuerdo de soporte ni tiempo de respuesta.',
   'app.partners.facts.data': 'Datos',
   'app.partners.facts.data.d':
-    'Una verificación envía al servidor de registros el identificador y la huella del registro, nada sobre el solicitante ni su formulario. Como cualquier sitio web, el servidor de registros recibe la dirección de red del visitante con cada solicitud, para limitar el uso. Lo que VeilCore guarda está en la <link>página de privacidad</link>. Unas condiciones de datos más completas son un borrador en revisión; hasta que se publiquen, rige la página de privacidad.',
+    'Una verificación envía al servidor de registros el identificador y el código de prueba del registro, nada sobre el solicitante ni su formulario. Como cualquier sitio web, el servidor de registros recibe la dirección de red del visitante con cada solicitud, para limitar el uso. Lo que VeilCore guarda está en la <link>página de privacidad</link>. Unas condiciones de datos más completas son un borrador en revisión; hasta que se publiquen, rige la página de privacidad.',
   'app.partners.facts.down': 'Si el servidor de registros no responde',
   'app.partners.facts.down.d':
     'No se puede verificar nada. Por defecto, un campo obligatorio bloquea entonces el formulario hasta que el servidor de registros vuelva a responder. Con when-unreachable="allow", el formulario se envía con el enlace marcado como no verificado, y usted lo verifica después en esta página.',
@@ -82,7 +82,7 @@ export const partners = {
   'app.partners.policy.1':
     'Los solicitantes deben entregar un enlace de verificación de un registro de VeilCore por cada accesión que depositen. El registro debe existir y el enlace debe coincidir con él. [Programa] verifica cada enlace al recibir la solicitud y guarda el resultado con la solicitud.',
   'app.partners.policy.2':
-    'Un registro de VeilCore es la declaración del solicitante sobre su material, con huella y fecha. Aceptar un registro no significa que [Programa] o VeilCore confirmen qué es el material, quién lo tiene ni ningún derecho sobre él.',
+    'Un registro de VeilCore es la declaración del solicitante sobre su material, con código de prueba y fecha. Aceptar un registro no significa que [Programa] o VeilCore confirmen qué es el material, quién lo tiene ni ningún derecho sobre él.',
   'app.partners.dev.title': 'Para desarrolladores',
   'app.partners.dev.1': 'Una sola llamada',
   'app.partners.dev.1.d':

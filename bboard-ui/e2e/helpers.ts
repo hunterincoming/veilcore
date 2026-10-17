@@ -149,9 +149,9 @@ export const vaultKid = (key: string): string =>
     .digest('hex')
     .slice(0, 16);
 
+// No strainName: a record's name goes inside `sealed` since round 5 (CONTRACT.md #28).
 const PUBLIC_FIELDS = [
   'id',
-  'strainName',
   'profile',
   'recordFingerprint',
   'keyBinding',
@@ -181,7 +181,6 @@ export const sealedRecordRow = (r: Record<string, unknown> & { id: string }, key
     if (PUBLIC_FIELDS.includes(k)) open[k] = v;
     else hidden[k] = v;
   }
-  open.strainName = typeof r.strainName === 'string' ? r.strainName : '';
   const s = r.supersedes as Record<string, unknown> | undefined;
   if (s && typeof s === 'object') {
     open.supersedes = {
@@ -218,6 +217,7 @@ export const plainRowRefusal = (rows: unknown): string | null => {
   for (const r of rows as Record<string, unknown>[]) {
     const s = r?.sealed as Record<string, unknown> | undefined;
     if (!s || s.v !== 1 || s.alg !== 'A256GCM') return `${String(r?.id)}: a record must be sealed`;
+    if (typeof r.strainName === 'string') return 'strainName belongs inside sealed';
     const extra = Object.keys(r).filter(
       (k) => !PUBLIC_FIELDS.includes(k) && !['sealed', 'rev', 'supersedes'].includes(k),
     );
