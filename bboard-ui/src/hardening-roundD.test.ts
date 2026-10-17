@@ -1364,10 +1364,11 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
       const put = external.find((e) => e.method === 'PUT' && e.url.endsWith('/disclosure'));
       // Exactly the switched-on keys, with the values they publish and the fingerprint they
       // were read from (sealed records, CONTRACT.md #7).
+      // The seal date and the DNA report start off (round 3, P7): only what was switched on.
       expect(JSON.parse(put?.body ?? '{}')).toEqual({
-        show: ['existence', 'attestation-status', 'descent-clean', 'sealed-at', 'parent-names'],
+        show: ['existence', 'descent-clean', 'parent-names'],
         forFingerprint: record.recordFingerprint,
-        values: { loggedAt: rec.loggedAt, parents: [] },
+        values: { parents: [] },
       });
       expect(violations).toEqual([]);
       expect(errors).toEqual([]);
@@ -1477,6 +1478,12 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
       () => {
         localStorage.setItem('veilcore.holder.v1', '6'.repeat(64));
         localStorage.setItem('veilcore.role.v1', 'lab');
+        // A vault key in a backup the app has checked: a lab can't claim before (round 3, L1).
+        if (!localStorage.getItem('veilcore.vault.v1'))
+          localStorage.setItem(
+            'veilcore.vault.v1',
+            JSON.stringify({ key: `${'9'.repeat(42)}A`, createdAt: 1, backedUpAt: 1 }),
+          );
       },
     );
     await pg.goto(`${origin}/records`, { waitUntil: 'networkidle' });
@@ -1541,6 +1548,12 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
       () => {
         localStorage.setItem('veilcore.holder.v1', '6'.repeat(64));
         localStorage.setItem('veilcore.role.v1', 'lab');
+        // A vault key in a backup the app has checked: a lab can't claim before (round 3, L1).
+        if (!localStorage.getItem('veilcore.vault.v1'))
+          localStorage.setItem(
+            'veilcore.vault.v1',
+            JSON.stringify({ key: `${'9'.repeat(42)}A`, createdAt: 1, backedUpAt: 1 }),
+          );
       },
     );
     await pg.goto(`${origin}/records`, { waitUntil: 'networkidle' });
