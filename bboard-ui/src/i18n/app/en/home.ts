@@ -12,7 +12,11 @@ export const home = {
   'app.home.continue': 'Continue',
   'app.home.start': 'Start',
   'app.home.spreadsheet': 'Have a spreadsheet? Date your whole collection',
-  'app.home.newPhone': 'New phone? Get your plants back',
+  'app.home.newPhone': 'New phone? Get your records back',
+  'app.home.newPhoneLab': "New phone? Get your lab's key and samples back",
+  'app.home.labWhatShows': 'What does my signature show?',
+  'app.home.labShows':
+    "It shows that your key signed: that a sample arrived, or which report you sent. It doesn't show who holds the key: anyone can register a key under any name.",
   'app.home.breederToo': "I'm a breeder too",
   'app.home.imALab': "I'm a lab",
   'app.home.whatStops': 'What stops someone logging my plant first?',
@@ -116,6 +120,8 @@ export const home = {
   // plant-status-words.ts: a plant's line on Home.
   'app.home.notFinished': 'Not finished · next: save your backup',
   'app.home.receivedFrom': 'Received from {name}',
+  'app.home.receivedFromNamed': 'From {name} · their record {id}',
+  'app.home.receivedFromName': 'From {name}',
   'app.home.sealedOn': 'Sealed {date}',
   'app.home.labReportSaved': 'lab report saved',
   'app.home.keyStampQueued': 'key date stamp queued',

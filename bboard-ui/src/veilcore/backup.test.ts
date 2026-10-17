@@ -311,7 +311,8 @@ describe('a password on the backup file (version 4, persona review 17 Oct)', () 
     for (const secret of [h.toLowerCase(), key, keys.keysFor('VEIL-1')!.recordSecret])
       expect(text).not.toContain(secret);
     // Two files from the same contents and password differ (fresh salt and IV).
-    expect(JSON.parse(await backup.backupFileText('correct horse battery')).locked.salt).not.toBe(file.locked.salt);
+    const again = JSON.parse(await backup.backupFileText('correct horse battery')) as { locked: { salt: string } };
+    expect(again.locked.salt).not.toBe(file.locked.salt);
   });
 
   it('checks and restores with the right password, on a new browser', async () => {
@@ -383,7 +384,7 @@ describe('a password on the backup file (version 4, persona review 17 Oct)', () 
     const { backupMessageWords } = await import('../components/flow/backup-words');
     const { makeTranslator } = await import('../i18n/translate');
     const { appDe } = await import('../i18n/app/de');
-    const de = makeTranslator('de', appDe as Record<string, string>);
+    const de = makeTranslator('de', appDe);
     expect(backupMessageWords(backup.WRONG_PASSWORD, de)).toBe(de.t('app.backup.pw.wrong'));
     expect(backupMessageWords(backup.NEEDS_PASSWORD, de)).toBe(de.t('app.backup.pw.needed'));
   });

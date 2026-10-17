@@ -9,7 +9,21 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Paper,
+  Radio,
+  RadioGroup,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
@@ -55,7 +69,9 @@ import {
   localStamp,
   lockReport,
   markOpened,
-  openReport,
+  openReportWithKind,
+  REPORT_KINDS,
+  type ReportKind,
   rememberDelivery,
   reportLockFor,
   reportFileName,
@@ -347,7 +363,15 @@ export const SavedReportAlert: React.FC<{ saved: SavedReport | null; onOpen?: (r
 
 // --- the breeder's side ------------------------------------------------------------------
 
-type Opened = { bytes: Uint8Array; name: string; sha: string; signer: ReportSigner; type: ReportFileType };
+type Opened = {
+  bytes: Uint8Array;
+  name: string;
+  sha: string;
+  signer: ReportSigner;
+  type: ReportFileType;
+  /** What kind of report the lab said it is (inside the locked file); absent on older reports. */
+  kind?: ReportKind;
+};
 
 /** What the breeder is told once, when a lab report first arrives: what others can see. */
 const SEEN_VISIBILITY = 'veilcore.lab-visibility-seen.v1';
@@ -425,7 +449,7 @@ export const LabResultsPanel: React.FC<{
       try {
         const locked = await fetchLockedResult(transfer.id, result.id);
         if ('error' in locked) throw new Error(locked.error);
-        const bytes = await openReport(locked, keys.recordSecret, transfer.id);
+        const { bytes, kind } = await openReportWithKind(locked, keys.recordSecret, transfer.id);
         const sha = reportFingerprint(bytes);
         const atts = await attestationsFor(record.recordFingerprint);
         const signer = reportSigner(atts, {
@@ -443,6 +467,7 @@ export const LabResultsPanel: React.FC<{
             name: reportFileName(bytes, result.createdAt, result.id),
             signer,
             type: reportFileType(bytes),
+            ...(kind ? { kind } : {}),
           },
         }));
       } catch (e) {
@@ -569,6 +594,11 @@ export const LabResultsPanel: React.FC<{
                 </Button>
               ) : (
                 <Stack spacing={1.25} sx={{ mt: 1.5 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }} data-report-kind={o.kind ?? 'unknown'}>
+                    {o.kind
+                      ? t('app.lab.results.kindLine', { kind: t(`app.lab.kind.${o.kind}`) })
+                      : t('app.lab.results.kindUnknown')}
+                  </Typography>
                   <SignerLine signer={o.signer} />
                   <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
                     {t('app.lab.results.fileLine', { type: o.type.label, sha: short(o.sha), name: o.name })}
@@ -581,7 +611,8 @@ export const LabResultsPanel: React.FC<{
                     >
                       {t('app.lab.results.download')}
                     </Button>
-                    {!isSaved && (
+                    {/* Only a DNA report ties a record to the plant: another kind isn't saved as its DNA report. */}
+                    {!isSaved && (o.kind === undefined || o.kind === 'dna') && (
                       <Button
                         variant="contained"
                         onClick={() =>
@@ -596,9 +627,14 @@ export const LabResultsPanel: React.FC<{
                       </Button>
                     )}
                   </Stack>
-                  {!isSaved && record.dnaFingerprint && (
+                  {!isSaved && record.dnaFingerprint && (o.kind === undefined || o.kind === 'dna') && (
                     <Typography variant="caption" color="text.secondary">
                       {t('app.lab.results.replacesSaved')}
+                    </Typography>
+                  )}
+                  {o.kind !== undefined && o.kind !== 'dna' && (
+                    <Typography variant="body2" color="text.secondary" data-report-not-tie="">
+                      {t('app.lab.results.notTie')}
                     </Typography>
                   )}
                 </Stack>
@@ -741,6 +777,8 @@ export const SendResultsPanel: React.FC<{
   const lockConflict = 'conflict' in vouched && !lock;
   const [code, setCode] = useState('');
   const [file, setFile] = useState<{ name: string; bytes: Uint8Array; sha: string }>();
+  // What kind of report the lab sends (persona review, 17 Oct): the lab chooses; nothing is assumed.
+  const [kind, setKind] = useState<ReportKind>();
   const [busy, setBusy] = useState<string>();
   const [problem, setProblem] = useState<string>();
   const [note, setNote] = useState<string>();
@@ -849,7 +887,7 @@ export const SendResultsPanel: React.FC<{
   };
 
   const send = async () => {
-    if (!file || !lock || !attester) return;
+    if (!file || !lock || !attester || !kind) return;
     setBusy('send');
     setProblem(undefined);
     setNote(undefined);
@@ -864,7 +902,7 @@ export const SendResultsPanel: React.FC<{
       if (record.receivedFrom && (await publicFingerprintOf(record.receivedFrom)) !== subject) {
         throw new Error(t('app.lab.out.notConfirmed'));
       }
-      const locked = await lockReport(file.bytes, lock);
+      const locked = await lockReport(file.bytes, lock, kind);
       // The registry links the signature when the file arrives, so the signature comes
       // first; if the file then doesn't arrive, the signature is withdrawn at once.
       const signed = await attestRecord(attester, subject, file.sha, 'laboratory-report');
@@ -1107,10 +1145,33 @@ export const SendResultsPanel: React.FC<{
               if (f) void choose(f);
             }}
           />
+          <FormControl data-report-kind-choice="">
+            <FormLabel id="report-kind-label" sx={{ fontWeight: 700, color: 'text.primary' }}>
+              {t('app.lab.out.kindTitle')}
+            </FormLabel>
+            <RadioGroup
+              aria-labelledby="report-kind-label"
+              value={kind ?? ''}
+              onChange={(e) => setKind(e.target.value as ReportKind)}
+            >
+              {REPORT_KINDS.map((k) => (
+                <FormControlLabel
+                  key={k}
+                  value={k}
+                  control={<Radio />}
+                  label={t(`app.lab.kind.${k}`)}
+                  sx={{ minHeight: 44 }}
+                />
+              ))}
+            </RadioGroup>
+            <Typography variant="caption" color="text.secondary">
+              {t('app.lab.out.kindHelp')}
+            </Typography>
+          </FormControl>
           <Button
             variant="contained"
             size="large"
-            disabled={!file || !!busy}
+            disabled={!file || !kind || !!busy}
             onClick={() => void send()}
             startIcon={busy === 'send' ? <CircularProgress size={18} color="inherit" /> : <LockIcon />}
             sx={{ py: 1.5 }}

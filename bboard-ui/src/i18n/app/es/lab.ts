@@ -140,6 +140,8 @@ export const lab = {
   'app.lab.send.copy': 'Copiar el código',
   'app.lab.send.dontWrite':
     '<b>Envíeselo por mensaje o correo. No lo escriba en el paquete:</b> quien tenga este código de laboratorio puede confirmar el envío.',
+  'app.lab.send.shortRef':
+    'Referencia corta: <b>{ref}</b>. Puede escribirse en la bolsa de la muestra o decirse por teléfono: por sí sola no sirve para recibir el envío. El laboratorio ve la misma referencia para su registro de entrada.',
   'app.lab.send.labWillCheck': '<b>El laboratorio comprobará:</b> {line}.',
   'app.lab.send.nothingYet':
     'Todavía no cambió nada. La página de su planta muestra “esperando” hasta que ingresen el código, y puede volver a mostrar este código. Lo pegan en el cuadro del Inicio de VeilCore.',
@@ -147,6 +149,8 @@ export const lab = {
     'Reciben su propio registro de lo que recibieron, vinculado al suyo. Cuando firman que llegó, se firma con su clave, no con la suya: una segunda parte en su registro.',
   'app.lab.send.who': '¿A quién se lo envía?',
   'app.lab.send.whoHelp': 'Un nombre o alias, para que ambos sepan de qué envío se trata.',
+  'app.lab.send.from': 'Su nombre o empresa (lo verán)',
+  'app.lab.send.fromHelp': 'Se les muestra como remitente. Bloqueado: VeilCore no puede leerlo.',
   'app.lab.send.quantity': 'Cantidad (opcional)',
   'app.lab.send.quantityPlaceholder': 'p. ej., 10 esquejes',
   'app.lab.send.note': 'Nota para el laboratorio (opcional)',
@@ -234,6 +238,8 @@ export const lab = {
   'app.lab.recv.onlyConfirm':
     'Confirme solo lo que realmente recibió. Es una declaración en la que otras personas confiarán.',
   'app.lab.recv.receiveIt': 'Recibirlo',
+  'app.lab.recv.saveBackup': 'Guardar mi copia de seguridad',
+  'app.lab.recv.backToCode': 'Volver al código',
   'app.lab.recv.goToRecord': 'Ir al registro',
   'app.lab.key.role.laboratory': 'Laboratorio',
   'app.lab.key.role.inspector': 'Inspector',
@@ -252,6 +258,11 @@ export const lab = {
   'app.lab.key.privateWarning':
     'Su clave privada se guarda en el almacenamiento de este navegador, sin cifrar, y en ningún otro lugar. Para probar está bien. Cualquier cosa que pueda ejecutarse en este sitio, o una extensión del navegador con acceso a él, podría leerla. Si la pierde, no podrá firmar nada nuevo; lo que firmó antes sigue siendo válido, así que guarde una copia en un lugar seguro. Un laboratorio que la use de verdad firmaría dentro de sus propios sistemas: consulte la <link>guía de integración</link>.',
   'app.lab.key.downloadBackup': 'Descargar la copia de seguridad de la clave',
+  'app.lab.key.backupNow':
+    'La clave de su laboratorio solo está en este navegador. Guarde ahora su copia de seguridad: así no se pierde con un teléfono o una computadora perdidos, y su primer código funciona enseguida.',
+  'app.lab.key.backedUp': 'Copia de seguridad guardada y comprobada.',
+  'app.lab.key.matchHow':
+    'Para aparecer como verificado, envíenos su registro público de licencia o acreditación a <mail>hunter@veilcore.org</mail>. Comprobamos el nombre; no respondemos por su trabajo.',
   'app.lab.key.intro':
     'Cuando confirma que recibió material, o firma un informe, se firma con una clave que solo usted tiene. Se convierte en su declaración, no en algo que registramos en su nombre. La clave se crea en este navegador; solo se publican su mitad pública, su nombre y la acreditación que indique.',
   'app.lab.key.name': 'Nombre',
@@ -296,6 +307,10 @@ export const lab = {
   'app.lab.results.nothingYet':
     'Nada todavía. Cuando un laboratorio al que envió esta planta mande un informe de laboratorio, aparecerá aquí.',
   'app.lab.results.from': 'De {lab} · {id}',
+  'app.lab.results.kindLine': '{kind}, según lo marcó el laboratorio',
+  'app.lab.results.kindUnknown': 'Informe de laboratorio (enviado antes de que los laboratorios indicaran el tipo)',
+  'app.lab.results.notTie':
+    'Solo un informe de ADN vincula un registro con la planta o el animal, así que este no se guarda como el informe de ADN del registro. Descárguelo para conservarlo.',
   'app.lab.results.sent': 'Enviado {when}',
   'app.lab.results.corrects': ' · corrige {id}',
   'app.lab.results.savedHere': ' · guardado en esta planta',
@@ -310,7 +325,7 @@ export const lab = {
   'app.lab.facts.title': 'Qué llegó con ella',
   'app.lab.facts.labelled': 'Etiquetada “{name}”, obtenida por {by}',
   'app.lab.facts.unknown': 'desconocido',
-  'app.lab.facts.code': ' · código de laboratorio {code}',
+  'app.lab.facts.code': ' · {code}, su referencia para su registro de entrada',
   'app.lab.facts.arrived': ' · llegó el {date}',
   'app.lab.facts.quantity': '<b>Cantidad, según la escribió el obtentor:</b> {qty}',
   'app.lab.facts.notGiven': 'no indicada',
@@ -384,6 +399,12 @@ export const lab = {
   'app.lab.out.differentFile': 'Elegir otro archivo',
   'app.lab.out.chooseCorrected': 'Elegir el archivo corregido',
   'app.lab.out.chooseReport': 'Elegir el informe',
+  'app.lab.out.kindTitle': '¿Qué tipo de informe es?',
+  'app.lab.out.kindHelp':
+    'El obtentor ve lo que usted elija. Solo un informe de ADN vincula su registro con la planta o el animal.',
+  'app.lab.kind.dna': 'Informe de ADN',
+  'app.lab.kind.pathogen': 'Prueba de patógenos o virus',
+  'app.lab.kind.other': 'Otro informe de laboratorio',
   'app.lab.out.signing': 'Firmando y bloqueando…',
   'app.lab.out.signLockSend': 'Firmar, bloquear y enviar',
   'app.lab.out.alreadyGone': 'El informe de laboratorio que está corrigiendo ya fue retirado o reemplazado.',

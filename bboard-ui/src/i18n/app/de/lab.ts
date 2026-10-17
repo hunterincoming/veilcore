@@ -140,6 +140,8 @@ export const lab = {
   'app.lab.send.copy': 'Code kopieren',
   'app.lab.send.dontWrite':
     '<b>Senden Sie ihn per Nachricht oder E-Mail. Schreiben Sie ihn nicht auf das Paket:</b> Wer diesen Laborcode hat, kann die Lieferung bestätigen.',
+  'app.lab.send.shortRef':
+    'Kurzreferenz: <b>{ref}</b>. Darf auf den Probenbeutel oder am Telefon genannt werden: Allein damit lässt sich die Lieferung nicht empfangen. Das Labor sieht dieselbe Referenz für sein Eingangsbuch.',
   'app.lab.send.labWillCheck': '<b>Das Labor prüft:</b> {line}.',
   'app.lab.send.nothingYet':
     'Noch hat sich nichts geändert. Die Seite Ihrer Pflanze zeigt „wartet“, bis der Code eingegeben wird, und kann diesen Code erneut anzeigen. Er wird in das Feld auf der Startseite von VeilCore eingefügt.',
@@ -147,6 +149,8 @@ export const lab = {
     'Der Empfänger erhält einen eigenen Datensatz über das, was er erhalten hat, verknüpft mit Ihrem. Wenn er signiert, dass es angekommen ist, wird mit seinem Schlüssel signiert, nicht mit Ihrem: eine zweite Partei in Ihrem Datensatz.',
   'app.lab.send.who': 'An wen senden Sie es?',
   'app.lab.send.whoHelp': 'Ein Name oder Kürzel, damit Sie beide wissen, um welche Lieferung es geht.',
+  'app.lab.send.from': 'Ihr Name oder Betrieb (sichtbar für den Empfänger)',
+  'app.lab.send.fromHelp': 'Wird als Absender angezeigt. Verschlossen: VeilCore kann es nicht lesen.',
   'app.lab.send.quantity': 'Menge (optional)',
   'app.lab.send.quantityPlaceholder': 'z. B. 10 Stecklinge',
   'app.lab.send.note': 'Notiz für das Labor (optional)',
@@ -237,6 +241,8 @@ export const lab = {
   'app.lab.recv.onlyConfirm':
     'Bestätigen Sie nur, was Sie tatsächlich erhalten haben. Das ist eine Erklärung, auf die sich andere verlassen.',
   'app.lab.recv.receiveIt': 'Empfangen',
+  'app.lab.recv.saveBackup': 'Meine Sicherung speichern',
+  'app.lab.recv.backToCode': 'Zurück zum Code',
   'app.lab.recv.goToRecord': 'Zum Datensatz',
   'app.lab.key.role.laboratory': 'Labor',
   'app.lab.key.role.inspector': 'Prüfer',
@@ -255,6 +261,11 @@ export const lab = {
   'app.lab.key.privateWarning':
     'Ihr privater Schlüssel liegt unverschlüsselt im Speicher dieses Browsers und nirgendwo sonst. Zum Ausprobieren ist das in Ordnung. Alles, was auf dieser Website laufen kann, oder eine Browsererweiterung mit Zugriff darauf, könnte ihn lesen. Wenn Sie ihn verlieren, können Sie nichts Neues signieren; was Sie zuvor signiert haben, bleibt gültig, also sichern Sie ihn an einem sicheren Ort. Ein Labor, das ihn wirklich nutzt, würde in seinen eigenen Systemen signieren: siehe den <link>Integrationsleitfaden</link>.',
   'app.lab.key.downloadBackup': 'Schlüsselsicherung herunterladen',
+  'app.lab.key.backupNow':
+    'Der Schlüssel Ihres Labors liegt nur in diesem Browser. Speichern Sie jetzt Ihre Sicherung: Dann geht er mit einem verlorenen Handy oder Computer nicht verloren, und Ihr erster Code funktioniert sofort.',
+  'app.lab.key.backedUp': 'Sicherung gespeichert und geprüft.',
+  'app.lab.key.matchHow':
+    'Damit Ihr Name als abgeglichen erscheint, schicken Sie uns Ihren öffentlichen Lizenz- oder Akkreditierungseintrag an <mail>hunter@veilcore.org</mail>. Wir gleichen den Namen ab; für Ihre Arbeit bürgen wir nicht.',
   'app.lab.key.intro':
     'Wenn Sie bestätigen, dass Sie Material erhalten haben, oder einen Bericht signieren, wird mit einem Schlüssel signiert, den nur Sie halten. Es wird Ihre Erklärung, nicht etwas, das wir in Ihrem Namen erfasst haben. Der Schlüssel wird in diesem Browser erstellt; veröffentlicht werden nur seine öffentliche Hälfte, Ihr Name und eine angegebene Akkreditierung.',
   'app.lab.key.name': 'Name',
@@ -300,6 +311,10 @@ export const lab = {
   'app.lab.results.nothingYet':
     'Noch nichts. Wenn ein Labor, an das Sie diese Pflanze gesendet haben, einen Laborbericht sendet, erscheint er hier.',
   'app.lab.results.from': 'Von {lab} · {id}',
+  'app.lab.results.kindLine': '{kind}, wie das Labor ihn gekennzeichnet hat',
+  'app.lab.results.kindUnknown': 'Laborbericht (gesendet, bevor Labore die Art angaben)',
+  'app.lab.results.notTie':
+    'Nur ein DNA-Bericht verbindet einen Datensatz mit der Pflanze oder dem Tier selbst, deshalb wird dieser nicht als DNA-Bericht des Datensatzes gespeichert. Laden Sie ihn herunter, um ihn aufzubewahren.',
   'app.lab.results.sent': 'Gesendet {when}',
   'app.lab.results.corrects': ' · korrigiert {id}',
   'app.lab.results.savedHere': ' · bei dieser Pflanze gespeichert',
@@ -314,7 +329,7 @@ export const lab = {
   'app.lab.facts.title': 'Was mitkam',
   'app.lab.facts.labelled': 'Etikettiert „{name}“, gezüchtet von {by}',
   'app.lab.facts.unknown': 'unbekannt',
-  'app.lab.facts.code': ' · Laborcode {code}',
+  'app.lab.facts.code': ' · {code}, Ihre Referenz für Ihr Eingangsbuch',
   'app.lab.facts.arrived': ' · angekommen {date}',
   'app.lab.facts.quantity': '<b>Menge, wie vom Züchter angegeben:</b> {qty}',
   'app.lab.facts.notGiven': 'nicht angegeben',
@@ -391,6 +406,12 @@ export const lab = {
   'app.lab.out.differentFile': 'Eine andere Datei wählen',
   'app.lab.out.chooseCorrected': 'Die korrigierte Datei wählen',
   'app.lab.out.chooseReport': 'Den Bericht wählen',
+  'app.lab.out.kindTitle': 'Welche Art von Bericht ist es?',
+  'app.lab.out.kindHelp':
+    'Der Züchter sieht, was Sie wählen. Nur ein DNA-Bericht verbindet seinen Datensatz mit der Pflanze oder dem Tier selbst.',
+  'app.lab.kind.dna': 'DNA-Bericht',
+  'app.lab.kind.pathogen': 'Erreger- oder Virustest',
+  'app.lab.kind.other': 'Anderer Laborbericht',
   'app.lab.out.signing': 'Wird signiert und verschlossen…',
   'app.lab.out.signLockSend': 'Signieren, verschließen und senden',
   'app.lab.out.alreadyGone': 'Der Laborbericht, den Sie korrigieren, wurde bereits zurückgezogen oder ersetzt.',

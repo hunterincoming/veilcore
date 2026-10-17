@@ -147,7 +147,15 @@ const PRIVATE_MARKERS = [
  * so any it carries are the server's, and dropped (round 3, P1 and P2): an offer key from
  * the server would have the lab seal its arrival details with a key the server knows.
  */
-const SEALED_ONLY = ['grant', 'grantToConfirm', 'sentTo', 'resultLockFrom', 'offerKeys', 'secrets'] as const;
+const SEALED_ONLY = [
+  'grant',
+  'grantToConfirm',
+  'sentTo',
+  'resultLockFrom',
+  'offerKeys',
+  'secrets',
+  'senderName',
+] as const;
 /**
  * A record saved before sealing is the server's row: its lock for lab reports could be the
  * server's own (round 3, P1). Not taken: the lab's lock comes from the lab code it pasted

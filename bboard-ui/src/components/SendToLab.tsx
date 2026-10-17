@@ -28,6 +28,8 @@ import {
   offerTransfer,
   OFFER_NOTE_MAX,
   OFFER_QUANTITY_MAX,
+  OFFER_FROM_MAX,
+  parseShareCode,
   rememberSentCode,
   sampleDetailsOf,
   sentCodeFor,
@@ -52,6 +54,9 @@ export const SendToLab: React.FC<{
 }> = ({ record, trigger }) => {
   const [open, setOpen] = useState(false);
   const [handle, setHandle] = useState('');
+  // Who it's from, as the receiver will see it (persona review, 17 Oct). Starts as the
+  // record's "Bred by" for a record logged here, empty for one received from someone else.
+  const [from, setFrom] = useState(record.receivedFrom ? '' : (record.bredBy ?? ''));
   const [quantity, setQuantity] = useState('');
   const [note, setNote] = useState('');
   // The sample's chain of custody (transfers.ts SampleDetails), all optional.
@@ -96,6 +101,7 @@ export const SendToLab: React.FC<{
     const res = await offerTransfer(record, handle.trim(), {
       quantity: quantity.trim() || undefined,
       note: note.trim() || undefined,
+      from: from.trim() || undefined,
       sample,
       ...(plantLock ? { resultLock: plantLock } : {}),
     });
@@ -196,6 +202,15 @@ export const SendToLab: React.FC<{
               <Alert severity="warning" variant="outlined">
                 {rich(t('app.lab.send.dontWrite'), { b: (c) => <b>{c}</b> })}
               </Alert>
+              {/* The short reference (persona review, 17 Oct): the code is ~150 characters, too
+                  long to read out or write on an intake form; its first part alone receives nothing. */}
+              <Typography variant="body2" data-short-ref="">
+                {rich(
+                  t('app.lab.send.shortRef'),
+                  { b: (c) => <b style={{ fontFamily: 'monospace' }}>{c}</b> },
+                  { ref: parseShareCode(transferId).transferId },
+                )}
+              </Typography>
               {sampleError && (
                 <Alert severity="warning" variant="outlined" data-sample-not-saved="">
                   {t('app.lab.send.sampleNotSaved', { error: labErrorWords(sampleError, tr) })}
@@ -229,6 +244,14 @@ export const SendToLab: React.FC<{
                 helperText={t('app.lab.send.whoHelp')}
                 value={handle}
                 onChange={(e) => setHandle(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label={t('app.lab.send.from')}
+                helperText={t('app.lab.send.fromHelp')}
+                value={from}
+                onChange={(e) => setFrom(e.target.value.slice(0, OFFER_FROM_MAX))}
+                slotProps={{ htmlInput: { maxLength: OFFER_FROM_MAX } }}
                 fullWidth
               />
               <TextField

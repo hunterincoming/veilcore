@@ -81,7 +81,7 @@ export const plant = {
   'app.plant.tie.withdrawn': 'el laboratorio retiró el informe de ADN guardado aquí',
   'app.plant.tie.add': 'añada un informe de ADN',
   'app.plant.tie.noneSaved': 'no hay ningún informe de ADN guardado en este registro',
-  'app.plant.tie.cameBack': 'llegó un informe de laboratorio: ábralo y guárdelo aquí',
+  'app.plant.tie.cameBack': 'llegó un informe de laboratorio: ábralo aquí',
   'app.plant.tie.openedNotSaved': 'hay un informe de laboratorio abierto, sin guardar en esta planta',
   'app.plant.tie.notDated': 'aún sin fecha',
   'app.plant.tie.dating': 'fechándose ({status})',

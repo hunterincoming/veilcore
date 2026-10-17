@@ -25,8 +25,9 @@ import {
   Typography,
 } from '@mui/material';
 import BadgeIcon from '@mui/icons-material/VerifiedUserOutlined';
-import DownloadIcon from '@mui/icons-material/FileDownloadOutlined';
 import { createAttester, publishAttester, loadAttester, type AttesterProfile } from '../veilcore/attester-keys';
+import { prepareToReceive } from '../veilcore/receive';
+import { BackupStep } from './flow/BackupStep';
 import { Link as RouterLink } from 'react-router-dom';
 import { rich, useT } from '../i18n/app';
 import type { AppKey } from '../i18n/app/en';
@@ -56,6 +57,10 @@ export const AttesterSetup: React.FC<{
   const [accreditor, setAccreditor] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The backup, right after "Create my key" (persona review, 17 Oct): a lab's first code used
+  // to stop at "Save a backup and check it first" with no way there.
+  const [backingUp, setBackingUp] = useState(false);
+  const [backedUp, setBackedUp] = useState(false);
   const { t } = useT();
 
   useEffect(() => {
@@ -99,15 +104,13 @@ export const AttesterSetup: React.FC<{
     setProfile(loadAttester() ?? { ...p, registeredAt: Date.now() });
   };
 
-  const backup = () => {
-    if (!profile) return;
-    const blob = new Blob([JSON.stringify(profile, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'veilcore-attester-key.json';
-    a.click();
-    URL.revokeObjectURL(url);
+  /** The one-file backup (it holds the lab's key), with this browser's records key made first. */
+  const backup = async () => {
+    setError(null);
+    const ready = await prepareToReceive();
+    // A browser that can't make the key now still saves the lab's key; the code asks again later.
+    if ('words' in ready && ready.words !== 'app.sealed.recv.cantCheck') setError(t(ready.words));
+    setBackingUp(true);
   };
 
   return (
@@ -125,7 +128,19 @@ export const AttesterSetup: React.FC<{
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{profile ? t('app.lab.key.yours') : t('app.lab.key.setUp')}</DialogTitle>
         <DialogContent>
-          {profile ? (
+          {profile && backingUp ? (
+            <Box sx={{ pt: 1 }} data-lab-backup="">
+              <BackupStep
+                title={t('app.backup.title')}
+                headingComponent="h2"
+                finishLabel={t('app.backup.done')}
+                onDone={() => {
+                  setBackingUp(false);
+                  setBackedUp(true);
+                }}
+              />
+            </Box>
+          ) : profile ? (
             <Stack spacing={2} sx={{ pt: 1 }}>
               <Alert severity={profile.registeredAt ? 'success' : 'warning'} variant="outlined">
                 {profile.displayName} ·{' '}
@@ -153,6 +168,11 @@ export const AttesterSetup: React.FC<{
                   {profile.keypair.publicKey}
                 </Typography>
               </Box>
+              <Typography variant="body2" color="text.secondary">
+                {rich(t('app.lab.key.matchHow'), {
+                  mail: (c) => <Link href="mailto:hunter@veilcore.org">{c}</Link>,
+                })}
+              </Typography>
               <Alert severity="warning" variant="outlined">
                 {rich(t('app.lab.key.privateWarning'), {
                   link: (c) => (
@@ -162,9 +182,18 @@ export const AttesterSetup: React.FC<{
                   ),
                 })}
               </Alert>
-              <Button variant="outlined" startIcon={<DownloadIcon />} onClick={backup}>
-                {t('app.lab.key.downloadBackup')}
-              </Button>
+              {backedUp ? (
+                <Alert severity="success" variant="outlined" data-lab-backed-up="">
+                  {t('app.lab.key.backedUp')}
+                </Alert>
+              ) : (
+                <Stack spacing={1}>
+                  <Typography variant="body2">{t('app.lab.key.backupNow')}</Typography>
+                  <Button variant="contained" onClick={() => void backup()} sx={{ minHeight: 44 }}>
+                    {t('app.lab.recv.saveBackup')}
+                  </Button>
+                </Stack>
+              )}
             </Stack>
           ) : (
             <Stack spacing={2} sx={{ pt: 1 }}>
@@ -178,6 +207,12 @@ export const AttesterSetup: React.FC<{
                 fullWidth
                 helperText={t('app.lab.key.nameHelp')}
               />
+              {/* How a lab gets its name matched (persona review, 17 Oct). */}
+              <Alert severity="info" variant="outlined" data-name-matching="">
+                {rich(t('app.lab.key.matchHow'), {
+                  mail: (c) => <Link href="mailto:hunter@veilcore.org">{c}</Link>,
+                })}
+              </Alert>
               <TextField
                 select
                 label={t('app.lab.key.role')}
@@ -234,7 +269,14 @@ export const AttesterSetup: React.FC<{
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>{profile ? t('app.backup.done') : t('app.common.cancel')}</Button>
+          <Button
+            onClick={() => {
+              setOpen(false);
+              setBackingUp(false);
+            }}
+          >
+            {profile && !backingUp ? t('app.backup.done') : t('app.common.cancel')}
+          </Button>
           {!profile && (
             <Button variant="contained" onClick={setup} disabled={busy || !name.trim()}>
               {t('app.lab.key.create')}

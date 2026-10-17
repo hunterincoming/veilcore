@@ -242,6 +242,8 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await lab.getByRole('button', { name: /Choose the report/ }).click();
   await (await chooser).setFiles({ name: 'report.pdf', mimeType: 'application/pdf', buffer: report });
   await shot(lab, 'lab-1-send');
+  // The lab says what kind of report it is (persona review, 17 Oct).
+  await lab.getByLabel('DNA report', { exact: true }).check();
   await lab.getByRole('button', { name: /Sign, lock and send/ }).click();
   await expect(lab.getByRole('heading', { name: /^Sent$/ })).toBeVisible();
   await shot(lab, 'lab-2-sent');
@@ -365,6 +367,8 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
     mimeType: 'application/pdf',
     buffer: Buffer.concat([report, Buffer.from(' corrected')]),
   });
+  // The lab says what kind of report it is (persona review, 17 Oct).
+  await lab.getByLabel('DNA report', { exact: true }).check();
   await lab.getByRole('button', { name: /Sign, lock and send/ }).click();
   await expect(lab.getByRole('heading', { name: /^Sent$/ })).toBeVisible();
   await expect(lab.getByRole('button', { name: /Back to the plant/ })).toHaveCount(1);

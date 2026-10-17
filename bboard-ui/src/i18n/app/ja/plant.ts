@@ -79,7 +79,7 @@ export const plant = {
   'app.plant.tie.withdrawn': 'ここに保存したDNA報告書をラボが撤回しました',
   'app.plant.tie.add': 'DNA報告書を追加してください',
   'app.plant.tie.noneSaved': 'この記録にはDNA報告書が保存されていません',
-  'app.plant.tie.cameBack': '検査報告書が届きました。開いてここに保存してください',
+  'app.plant.tie.cameBack': '検査報告書が届きました。ここで開いてください',
   'app.plant.tie.openedNotSaved': '検査報告書を開きましたが、この植物には未保存です',
   'app.plant.tie.notDated': 'まだ日付がありません',
   'app.plant.tie.dating': '日付を付けているところです（{status}）',

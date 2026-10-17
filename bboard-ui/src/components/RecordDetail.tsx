@@ -276,8 +276,11 @@ export const RecordDetail: React.FC = () => {
         {/* Who it came from, then the record's code on its own line in the code face, like
             the two lines on a plant tag (no dot-joined meta string). */}
         <Typography variant="body1" color="text.secondary" sx={{ overflowWrap: 'anywhere', mt: 0.5 }}>
+          {/* Who sent it, from their sealed offer (persona review, 17 Oct); the id when they didn't say. */}
           {record.receivedFrom
-            ? t('app.home.receivedFrom', { name: record.receivedFrom })
+            ? record.senderName
+              ? t('app.home.receivedFromNamed', { name: record.senderName, id: record.receivedFrom })
+              : t('app.home.receivedFrom', { name: record.receivedFrom })
             : t('app.plant.bredByName', { name: record.bredBy })}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ ...CODE_TEXT, overflowWrap: 'anywhere' }}>

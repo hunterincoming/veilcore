@@ -55,7 +55,7 @@ export const labReceiptRow = (receipt: LabReceipt | null | undefined, tr: Transl
  * the plant's page, and a used code (record.attestation) is not one.
  */
 export const homeStatusLine = (
-  r: Pick<StrainRecord, 'receivedFrom' | 'loggedAt' | 'dnaFingerprint'>,
+  r: Pick<StrainRecord, 'receivedFrom' | 'loggedAt' | 'dnaFingerprint' | 'senderName'>,
   keys: RecordKeys | undefined,
   opts: { realChain: boolean; queued?: boolean },
   tr: Translator = enT,
@@ -63,7 +63,9 @@ export const homeStatusLine = (
   if (opts.realChain && keys && !keys.backedUpAt) return { text: tr.t('app.home.notFinished'), unfinished: true };
   const bits = [
     r.receivedFrom
-      ? tr.t('app.home.receivedFrom', { name: r.receivedFrom })
+      ? r.senderName
+        ? tr.t('app.home.receivedFromName', { name: r.senderName })
+        : tr.t('app.home.receivedFrom', { name: r.receivedFrom })
       : tr.t('app.home.sealedOn', { date: day(tr, r.loggedAt) }),
   ];
   // Whether a DNA report ties it to the plant is a line of its own under this one (AppHome.tsx TieLine).

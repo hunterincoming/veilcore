@@ -137,6 +137,8 @@ export const lab = {
   'app.lab.send.copy': 'Copy code',
   'app.lab.send.dontWrite':
     "<b>Text or email it to them. Don't write it on the package:</b> whoever has this lab code can confirm the delivery.",
+  'app.lab.send.shortRef':
+    "Short reference: <b>{ref}</b>. Safe to write on the sample bag or read over the phone: on its own it can't receive the delivery. The lab sees the same reference for its intake log.",
   'app.lab.send.labWillCheck': '<b>The lab will check:</b> {line}.',
   'app.lab.send.nothingYet':
     "Nothing has changed yet. Your plant's page shows “waiting” until they enter the code, and can show this code again. They paste it into the box on VeilCore's Home.",
@@ -144,6 +146,8 @@ export const lab = {
     'They get their own record of what they received, linked to yours. When they sign that it arrived, it is signed with their key, not yours: a second party on your record.',
   'app.lab.send.who': 'Who are you sending it to?',
   'app.lab.send.whoHelp': 'A name or handle for them, so you both know which delivery this is.',
+  'app.lab.send.from': "Your name or business (they'll see it)",
+  'app.lab.send.fromHelp': "Shown to them as who it's from. Locked: VeilCore can't read it.",
   'app.lab.send.quantity': 'Quantity (optional)',
   'app.lab.send.quantityPlaceholder': 'e.g. 10 cuttings',
   'app.lab.send.note': 'Note for the lab (optional)',
@@ -230,6 +234,8 @@ export const lab = {
   'app.lab.recv.refused': 'The delivery is received and your record created. {reason}',
   'app.lab.recv.onlyConfirm': 'Only confirm what you actually received. This is a statement other people will rely on.',
   'app.lab.recv.receiveIt': 'Receive it',
+  'app.lab.recv.saveBackup': 'Save my backup',
+  'app.lab.recv.backToCode': 'Back to the code',
   'app.lab.recv.goToRecord': 'Go to the record',
   // AttesterSetup.tsx: the lab's signing key.
   'app.lab.key.role.laboratory': 'Laboratory',
@@ -247,6 +253,11 @@ export const lab = {
   'app.lab.key.privateWarning':
     "Your private key is stored in this browser's storage, unencrypted, and nowhere else. That's fine for trying it out. Anything that can run in this site, or a browser extension with access to it, could read it. If you lose it you can't sign anything new; what you signed before stays valid, so back it up somewhere safe. A lab using it for real would sign inside its own systems: see the <link>integration guide</link>.",
   'app.lab.key.downloadBackup': 'Download key backup',
+  'app.lab.key.backupNow':
+    "Your lab's key is only in this browser. Save your backup now: then a lost phone or computer doesn't lose it, and your first code works straight away.",
+  'app.lab.key.backedUp': 'Backup saved and checked.',
+  'app.lab.key.matchHow':
+    "To show as matched, send us your public license or accreditation listing at <mail>hunter@veilcore.org</mail>. We match the name; we don't vouch for your work.",
   'app.lab.key.intro':
     'When you confirm you received material, or sign a report, it is signed with a key only you hold. It becomes your statement, not something we recorded on your behalf. The key is made in this browser; only its public half, your name and any accreditation you enter are published.',
   'app.lab.key.name': 'Name',
@@ -290,6 +301,10 @@ export const lab = {
   'app.lab.results.looking': 'Looking for lab reports…',
   'app.lab.results.nothingYet': 'Nothing yet. When a lab you sent this plant to sends a lab report, it shows up here.',
   'app.lab.results.from': 'From {lab} · {id}',
+  'app.lab.results.kindLine': '{kind}, as the lab marked it',
+  'app.lab.results.kindUnknown': 'Lab report (sent before labs said what kind)',
+  'app.lab.results.notTie':
+    "Only a DNA report ties a record to the plant or animal itself, so this one isn't saved as the record's DNA report. Download it to keep it.",
   'app.lab.results.sent': 'Sent {when}',
   'app.lab.results.corrects': ' · corrects {id}',
   'app.lab.results.savedHere': ' · saved to this plant',
@@ -305,7 +320,7 @@ export const lab = {
   'app.lab.facts.title': 'What came with it',
   'app.lab.facts.labelled': 'Labelled “{name}”, bred by {by}',
   'app.lab.facts.unknown': 'unknown',
-  'app.lab.facts.code': ' · lab code {code}',
+  'app.lab.facts.code': ' · {code}, your reference for your intake log',
   'app.lab.facts.arrived': ' · arrived {date}',
   'app.lab.facts.quantity': '<b>Quantity, as the breeder wrote it:</b> {qty}',
   'app.lab.facts.notGiven': 'not given',
@@ -376,6 +391,12 @@ export const lab = {
   'app.lab.out.differentFile': 'Choose a different file',
   'app.lab.out.chooseCorrected': 'Choose the corrected file',
   'app.lab.out.chooseReport': 'Choose the report',
+  'app.lab.out.kindTitle': 'What kind of report is it?',
+  'app.lab.out.kindHelp':
+    'The breeder sees what you choose. Only a DNA report ties their record to the plant or animal itself.',
+  'app.lab.kind.dna': 'DNA report',
+  'app.lab.kind.pathogen': 'Pathogen or virus test',
+  'app.lab.kind.other': 'Other lab report',
   'app.lab.out.signing': 'Signing and locking…',
   'app.lab.out.signLockSend': 'Sign, lock and send',
   'app.lab.out.alreadyGone': 'The lab report you are correcting has already been withdrawn or replaced.',

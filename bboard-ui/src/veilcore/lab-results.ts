@@ -80,37 +80,70 @@ export const reportFingerprint = (bytes: Uint8Array): string => hexOf(sha256(byt
 const PAD_MAGIC = new TextEncoder().encode('VCPAD\x001\n');
 const TRAILER = 16;
 
-/** The report, padded to its bucket, with the trailer that says how long it is. */
-export const padReport = (bytes: Uint8Array): Uint8Array => {
-  const size = paddedSize(bytes.length + TRAILER);
+// --- the report's kind (persona review, 17 Oct) ------------------------------------------
+//
+// Every result used to be called a "DNA report", a virus panel included. The lab now says
+// which kind it sends: a DNA report, a pathogen or virus test, or another lab report. Only a
+// DNA report ties a record to the plant or animal. The kind goes inside the locked file, in
+// a second form of the padding trailer (PAD_MAGIC_2): one byte for the kind before the
+// length, so the registry learns nothing new. It is the lab's word, not part of what the lab
+// signs (the report's SHA-256). A report sent before this has no kind.
+
+export type ReportKind = 'dna' | 'pathogen' | 'other';
+export const REPORT_KINDS: readonly ReportKind[] = ['dna', 'pathogen', 'other'];
+const KIND_BYTE: Record<ReportKind, number> = { dna: 1, pathogen: 2, other: 3 };
+const PAD_MAGIC_2 = new TextEncoder().encode('VCPAD\x002\n');
+const TRAILER_2 = 17;
+
+/** The report, padded to its bucket, with the trailer that says how long it is (and its kind). */
+export const padReport = (bytes: Uint8Array, kind?: ReportKind): Uint8Array => {
+  const trailer = kind ? TRAILER_2 : TRAILER;
+  const size = paddedSize(bytes.length + trailer);
   const out = new Uint8Array(size);
   out.set(bytes);
   const view = new DataView(out.buffer);
   view.setBigUint64(size - TRAILER, BigInt(bytes.length));
-  out.set(PAD_MAGIC, size - PAD_MAGIC.length);
+  if (kind) {
+    out[size - TRAILER_2] = KIND_BYTE[kind];
+    out.set(PAD_MAGIC_2, size - PAD_MAGIC_2.length);
+  } else out.set(PAD_MAGIC, size - PAD_MAGIC.length);
   return out;
 };
 
-/** The report without its padding; a file without the trailer is returned as it is. */
-export const unpadReport = (bytes: Uint8Array): Uint8Array => {
-  if (bytes.length < TRAILER) return bytes;
-  const tail = bytes.subarray(bytes.length - PAD_MAGIC.length);
-  if (!tail.every((b, i) => b === PAD_MAGIC[i])) return bytes;
+const endsWith = (bytes: Uint8Array, magic: Uint8Array): boolean =>
+  bytes.length >= magic.length && bytes.subarray(bytes.length - magic.length).every((b, i) => b === magic[i]);
+
+/** The report without its padding, and the kind the lab gave it; a file without a trailer is returned as it is. */
+export const unpadReportWithKind = (bytes: Uint8Array): { bytes: Uint8Array; kind?: ReportKind } => {
+  const two = endsWith(bytes, PAD_MAGIC_2);
+  if (!two && !endsWith(bytes, PAD_MAGIC)) return { bytes };
+  const trailer = two ? TRAILER_2 : TRAILER;
+  if (bytes.length < trailer) return { bytes };
   const n = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getBigUint64(bytes.length - TRAILER);
-  if (n > BigInt(bytes.length - TRAILER)) return bytes;
+  if (n > BigInt(bytes.length - trailer)) return { bytes };
   const len = Number(n);
   // Only zeros between the report and the trailer: anything else is a file of its own.
-  if (!bytes.subarray(len, bytes.length - TRAILER).every((b) => b === 0)) return bytes;
-  return bytes.slice(0, len);
+  if (!bytes.subarray(len, bytes.length - trailer).every((b) => b === 0)) return { bytes };
+  if (!two) return { bytes: bytes.slice(0, len) };
+  const kind = REPORT_KINDS.find((k) => KIND_BYTE[k] === bytes[bytes.length - TRAILER_2]);
+  // A kind byte this app doesn't know: the trailer isn't one of ours, so the file is its own.
+  if (!kind) return { bytes };
+  return { bytes: bytes.slice(0, len), kind };
 };
 
-/** Lock a report so only the plant's holder can open it. Padded first, so its size says little. */
-export const lockReport = async (bytes: Uint8Array, recipient: string): Promise<Uint8Array> => {
+/** The report without its padding; a file without the trailer is returned as it is. */
+export const unpadReport = (bytes: Uint8Array): Uint8Array => unpadReportWithKind(bytes).bytes;
+
+/**
+ * Lock a report so only the plant's holder can open it. Padded first, so its size says
+ * little; with `kind`, the lab's word for what kind of report it is goes inside too.
+ */
+export const lockReport = async (bytes: Uint8Array, recipient: string, kind?: ReportKind): Promise<Uint8Array> => {
   if (!RECIPIENT.test(recipient)) throw new Error('The lab code has no lock for lab reports in it.');
   const { Encrypter } = await age();
   const e = new Encrypter();
   e.addRecipient(recipient);
-  return e.encrypt(padReport(bytes));
+  return e.encrypt(padReport(bytes, kind));
 };
 
 /**
@@ -118,21 +151,28 @@ export const lockReport = async (bytes: Uint8Array, recipient: string): Promise<
  * the per-plant key codes made before per-delivery locks used. Throws if it was locked
  * for neither.
  */
-export const openReport = async (
+export const openReportWithKind = async (
   locked: Uint8Array,
   recordSecretHex: string,
   transferId?: string,
-): Promise<Uint8Array> => {
+): Promise<{ bytes: Uint8Array; kind?: ReportKind }> => {
   const { Decrypter } = await age();
   const d = new Decrypter();
   if (transferId) d.addIdentity(resultIdentityFor(recordSecretHex, transferId));
   d.addIdentity(resultIdentityFor(recordSecretHex));
   try {
-    return unpadReport(await d.decrypt(locked));
+    return unpadReportWithKind(await d.decrypt(locked));
   } catch {
     throw new Error('This lab report was not locked for this plant, or the file is damaged.');
   }
 };
+
+/** openReportWithKind, the report's bytes only. */
+export const openReport = async (
+  locked: Uint8Array,
+  recordSecretHex: string,
+  transferId?: string,
+): Promise<Uint8Array> => (await openReportWithKind(locked, recordSecretHex, transferId)).bytes;
 
 // --- the lab's side: deliveries it received, and the lock each came with ----------------
 

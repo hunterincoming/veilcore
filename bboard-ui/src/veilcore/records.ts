@@ -189,6 +189,12 @@ export type StrainRecord = {
   // the lab signed; they are kept in the receiver's own set, not shown publicly.
   /** The sender's note that came with the delivery (the claim gives it to the receiver only). */
   readonly deliveryNote?: string;
+  /**
+   * Who sent it, as the sender typed it in their sealed offer (persona review, 17 Oct): the
+   * page says "From <name> · their record VEIL-…" instead of two ids. Only from a sealed
+   * offer opened with the code's key; kept in the sealed copy only, never a clear field.
+   */
+  readonly senderName?: string;
   /** The lab's own reference or accession number. Not refId: refId is in the fingerprint. */
   readonly labRef?: string;
   /** The breeder's lock for lab reports, from the delivery code (a public key). */
@@ -242,7 +248,10 @@ export type StrainRecord = {
 
 /** The receiver's own notes on a received record: outside the fingerprint, so safe to change. */
 export type ReceivedNotes = Partial<
-  Pick<StrainRecord, 'deliveryNote' | 'labRef' | 'resultLock' | 'resultLockFrom' | 'receiptRejected' | 'offerKeys'>
+  Pick<
+    StrainRecord,
+    'deliveryNote' | 'labRef' | 'resultLock' | 'resultLockFrom' | 'receiptRejected' | 'offerKeys' | 'senderName'
+  >
 >;
 
 /**
@@ -1272,6 +1281,8 @@ export type OfferFields = {
   readonly animal?: { readonly breed?: string; readonly idScheme?: string; readonly sex?: string };
   readonly quantity?: string;
   readonly note?: string;
+  /** The sender's name, as they typed it (sealed offers made since 17 Oct). */
+  readonly from?: string;
   /**
    * The breeder's lock for lab reports, inside the sealed offer (round 3, P1): only a
    * sealed offer opened with the code's key is a source for it, never the registry.
@@ -1290,7 +1301,17 @@ export const offerFieldsOf = (v: unknown): OfferFields => {
   const o = v as Record<string, unknown>;
   const a = typeof o.animal === 'object' && o.animal !== null ? (o.animal as Record<string, unknown>) : undefined;
   const out: Record<string, unknown> = {};
-  for (const k of ['strainName', 'bredBy', 'dateCreated', 'profile', 'taxon', 'refId', 'quantity', 'note'] as const) {
+  for (const k of [
+    'strainName',
+    'bredBy',
+    'dateCreated',
+    'profile',
+    'taxon',
+    'refId',
+    'quantity',
+    'note',
+    'from',
+  ] as const) {
     const s = text(o[k]);
     if (s !== undefined) out[k] = s;
   }

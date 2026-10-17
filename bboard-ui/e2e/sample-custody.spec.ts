@@ -455,6 +455,8 @@ test('the whole way round: logged, backed up, sent with sample details; received
   const chooser = lab.waitForEvent('filechooser');
   await lab.getByRole('button', { name: /Choose the report/ }).click();
   await (await chooser).setFiles({ name: 'report.pdf', mimeType: 'application/pdf', buffer: report });
+  // The lab says what kind of report it is (persona review, 17 Oct).
+  await lab.getByLabel('DNA report', { exact: true }).check();
   await lab.getByRole('button', { name: /Sign, lock and send/ }).click();
   await expect(lab.getByRole('heading', { name: /^Sent$/ })).toBeVisible();
 

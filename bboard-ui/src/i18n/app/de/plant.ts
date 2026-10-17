@@ -83,7 +83,7 @@ export const plant = {
   'app.plant.tie.withdrawn': 'das Labor hat den hier gespeicherten DNA-Bericht zurückgezogen',
   'app.plant.tie.add': 'fügen Sie einen DNA-Bericht hinzu',
   'app.plant.tie.noneSaved': 'zu diesem Datensatz ist kein DNA-Bericht gespeichert',
-  'app.plant.tie.cameBack': 'ein Laborbericht ist da: Öffnen Sie ihn und speichern Sie ihn hier',
+  'app.plant.tie.cameBack': 'ein Laborbericht ist da: Öffnen Sie ihn hier',
   'app.plant.tie.openedNotSaved': 'ein Laborbericht ist geöffnet, aber nicht bei dieser Pflanze gespeichert',
   'app.plant.tie.notDated': 'noch nicht datiert',
   'app.plant.tie.dating': 'wird datiert ({status})',

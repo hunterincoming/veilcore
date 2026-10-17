@@ -556,7 +556,7 @@ export const MISSING_LOCK_WORDS =
  */
 export const offerPlaintext = (
   r: StrainRecord,
-  opts: { quantity?: string; note?: string; resultLock?: string } = {},
+  opts: { quantity?: string; note?: string; resultLock?: string; from?: string } = {},
 ): Record<string, unknown> => {
   const animal = isAnimal(r);
   return {
@@ -573,6 +573,9 @@ export const offerPlaintext = (
       : {}),
     ...(opts.quantity ? { quantity: opts.quantity } : {}),
     ...(opts.note ? { note: opts.note } : {}),
+    // Who it's from, as the sender typed it (persona review, 17 Oct): the receiver's page says
+    // "From <name>" instead of the sender's record id. Sealed like the rest of the offer.
+    ...(opts.from ? { from: opts.from } : {}),
     // The breeder's lock for lab reports (round 3, P1): sealed with the offer, so only the
     // code's key vouches for it and a lab whose code lost its lock part still gets the
     // breeder's, never one the registry made up.
@@ -589,6 +592,8 @@ export const OFFER_MAX_BYTES = 384 * 1024;
 /** The quantity and the note for the lab: the app caps them while typing (SendToLab.tsx). */
 export const OFFER_QUANTITY_MAX = 200;
 export const OFFER_NOTE_MAX = 2000;
+/** The sender's name in the offer (persona review, 17 Oct). */
+export const OFFER_FROM_MAX = 200;
 
 /**
  * Offer a record to a recipient. Nothing moves until they claim it.
@@ -619,9 +624,12 @@ export const offerTransfer = async (
      * (lab-results.ts openReport).
      */
     resultLock?: string;
+    /** The sender's name or business, as they want the receiver to see it. */
+    from?: string;
   } = {},
 ): Promise<{ transferId: string; claimCode?: string; offerKey: string; sampleError?: string } | { error: string }> => {
   const { sample, quantity, note, resultLock } = opts;
+  const from = opts.from?.normalize('NFC').trim().slice(0, OFFER_FROM_MAX) || undefined;
   // SendToLab.tsx caps both while typing; anything longer never leaves this browser.
   if ((quantity?.length ?? 0) > OFFER_QUANTITY_MAX || (note?.length ?? 0) > OFFER_NOTE_MAX) {
     return { error: 'the quantity or the note is too long' };
@@ -648,7 +656,7 @@ export const offerTransfer = async (
       offerKey,
       record.id,
       record.recordFingerprint ?? '',
-      offerPlaintext(record, { quantity, note, resultLock }),
+      offerPlaintext(record, { quantity, note, resultLock, from }),
     );
     if (JSON.stringify(sealedOffer).length > OFFER_MAX_BYTES) return { error: 'this record is too large to send' };
     const res = await fetch(`${BASE}/transfers`, {

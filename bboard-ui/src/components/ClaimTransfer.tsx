@@ -73,6 +73,7 @@ import {
 } from '../veilcore/lab-results';
 import { arrivalLine, custodyDifferences, differenceWords, sampleLine, type LabReceipt } from '../veilcore/custody';
 import { LAB_RESULTS_ENABLED } from '../config/network';
+import { BackupStep } from './flow/BackupStep';
 import { rich, useT } from '../i18n/app';
 import { enT, type Translator } from '../i18n/translate';
 
@@ -151,11 +152,16 @@ type ArrivalInput = Record<'sampleId' | 'sealNumber' | 'arrivedOn' | 'condition'
  * receipt nobody wrote anything on is signed exactly as before (no sample details, nothing
  * sent to the registry first).
  */
-const arrivalStart = (sample: SampleDetails, prior: ArrivalDetails): ArrivalInput => ({
+/** Today in the lab's own time zone, as a date field writes it (YYYY-MM-DD). */
+export const todayLocal = (now = new Date()): string =>
+  `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+/** "Arrived on" starts at today (persona review, 17 Oct): most labs sign the day it arrives. */
+export const arrivalStart = (sample: SampleDetails, prior: ArrivalDetails, now = new Date()): ArrivalInput => ({
   sampleId: prior.sampleId ?? sample.sampleId ?? '',
   sealNumber: prior.sealNumber ?? sample.sealNumber ?? '',
   sealIntact: prior.sealIntact ?? '',
-  arrivedOn: prior.arrivedOn ?? '',
+  arrivedOn: prior.arrivedOn ?? todayLocal(now),
   condition: prior.condition ?? '',
   labRef: prior.labRef ?? '',
 });
@@ -635,6 +641,8 @@ export const SignReceiptPanel: React.FC<{
 
 type Stage =
   | { step: 'code' }
+  /** The backup this browser must save and check before it can receive (persona review, 17 Oct). */
+  | { step: 'backup' }
   | {
       step: 'sign';
       subject: CustodySubject;
@@ -661,6 +669,8 @@ export const ClaimTransfer: React.FC<{
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stage, setStage] = useState<Stage>({ step: 'code' });
+  // The code can't be used before a checked backup: say so with a way to do it, here.
+  const [needsBackup, setNeedsBackup] = useState(false);
   const navigate = useNavigate();
   const tr = useT();
   const { t } = tr;
@@ -682,6 +692,7 @@ export const ClaimTransfer: React.FC<{
     setOpen(false);
     setStage({ step: 'code' });
     setError(null);
+    setNeedsBackup(false);
   };
 
   const finish = (recordId: string) => {
@@ -702,8 +713,10 @@ export const ClaimTransfer: React.FC<{
       const ready = await readyToReceive();
       if ('words' in ready) {
         setError(t(ready.words));
+        setNeedsBackup(ready.words === 'app.sealed.recv.backupFirstClaim');
         return;
       }
+      setNeedsBackup(false);
       // Kept until the received record is sealed and accepted: the offer key and the lock
       // are only in the code. Let go only on a definite refusal (round 3, L8).
       const res = await claimWithCode(code);
@@ -870,6 +883,22 @@ export const ClaimTransfer: React.FC<{
             </Stack>
           )}
 
+          {/* The backup, here in the dialog: done, it comes back to the same code, still filled in. */}
+          {stage.step === 'backup' && (
+            <Box sx={{ pt: 1 }} data-receive-backup="">
+              <BackupStep
+                title={t('app.backup.title')}
+                headingComponent="h2"
+                finishLabel={t('app.lab.recv.backToCode')}
+                onDone={() => {
+                  setStage({ step: 'code' });
+                  setError(null);
+                  setNeedsBackup(false);
+                }}
+              />
+            </Box>
+          )}
+
           {stage.step === 'sign' && (
             <Box sx={{ pt: 1 }}>
               {stage.locked && (
@@ -909,8 +938,25 @@ export const ClaimTransfer: React.FC<{
             </Alert>
           )}
 
-          {error && (
-            <Alert severity="warning" variant="outlined" sx={{ mt: 2 }}>
+          {error && stage.step !== 'backup' && (
+            <Alert
+              severity="warning"
+              variant="outlined"
+              sx={{ mt: 2 }}
+              {...(needsBackup ? { 'data-backup-first': '' } : {})}
+              action={
+                needsBackup && stage.step === 'code' ? (
+                  <Button
+                    color="inherit"
+                    variant="outlined"
+                    onClick={() => setStage({ step: 'backup' })}
+                    sx={{ minHeight: 40, whiteSpace: 'nowrap', flexShrink: 0 }}
+                  >
+                    {t('app.lab.recv.saveBackup')}
+                  </Button>
+                ) : undefined
+              }
+            >
               {error}
             </Alert>
           )}
@@ -921,6 +967,7 @@ export const ClaimTransfer: React.FC<{
           </Box>
         </DialogContent>
         <DialogActions>
+          {stage.step === 'backup' && <Button onClick={close}>{t('app.common.cancel')}</Button>}
           {stage.step === 'code' && (
             <>
               <Button onClick={close}>{t('app.common.cancel')}</Button>

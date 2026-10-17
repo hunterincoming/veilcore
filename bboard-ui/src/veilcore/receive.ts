@@ -104,12 +104,15 @@ export const finishReceiving = async (
   // before offers were sealed) is the registry's copy, so its lock isn't taken.
   const offerLock = sealedOffer ? fields.resultLock : undefined;
   const lock = parsed.resultLock ?? offerLock;
-  const { resultLock: _fromOffer, ...offerFields } = fields;
+  const { resultLock: _fromOffer, from: sender, ...offerFields } = fields;
   void _fromOffer;
+  // Who sent it: only the sender's own word, from inside the sealed offer.
+  const senderName = sealedOffer ? sender?.slice(0, 200) : undefined;
   const out = await finishReceived(
     recordId,
     {
       ...(note ? { deliveryNote: note.slice(0, 2000) } : {}),
+      ...(senderName ? { senderName } : {}),
       ...(lock ? { resultLock: lock, resultLockFrom: parsed.resultLock ? ('code' as const) : ('offer' as const) } : {}),
       // The offer key travels in the code too: it opens the delivery's sealed sample details
       // (CONTRACT.md #27) once the code is forgotten, and comes back with a restore from backup.
@@ -162,6 +165,18 @@ export const receiptBlocker = (r: StrainRecord): AppKey | undefined => {
  * the backup the app then asks for holds it.
  */
 export const readyToReceive = async (): Promise<{ ok: true } | { words: AppKey }> => {
+  const prepared = await prepareToReceive();
+  if ('words' in prepared) return prepared;
+  if (vaultNeedsBackup()) return { words: 'app.sealed.recv.backupFirstClaim' };
+  return { ok: true };
+};
+
+/**
+ * Everything readyToReceive does but the backup check: a browser with no key yet makes one,
+ * so a backup saved now (a lab right after "Create my key", persona review 17 Oct) already
+ * holds it and the first code works straight away.
+ */
+export const prepareToReceive = async (): Promise<{ ok: true } | { words: AppKey }> => {
   const ready = await vaultReadiness();
   if (ready === 'locked') return { words: 'app.sealed.recv.restoreFirst' };
   if (ready === 'unknown') return { words: 'app.sealed.recv.cantCheck' };
@@ -173,6 +188,5 @@ export const readyToReceive = async (): Promise<{ ok: true } | { words: AppKey }
     if (made === 'unknown') return { words: 'app.sealed.recv.cantCheck' };
     if (made === 'cant-store') return { words: 'app.sealed.recv.cantStore' };
   }
-  if (vaultNeedsBackup()) return { words: 'app.sealed.recv.backupFirstClaim' };
   return { ok: true };
 };

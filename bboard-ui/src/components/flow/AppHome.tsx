@@ -70,6 +70,21 @@ const TieLine: React.FC<{ record: StrainRecord; saved?: SavedReport }> = ({ reco
   );
 };
 
+/** What a lab's signature shows and doesn't, and how its name gets matched (a lab's home). */
+const LabSignatureNote: React.FC = () => {
+  const { t } = useT();
+  return (
+    <Paper variant="outlined" sx={{ p: 2 }} data-lab-signature-note="">
+      <Typography variant="body2" sx={{ mb: 1 }}>
+        {t('app.home.labShows')}
+      </Typography>
+      <Typography variant="body2">
+        {rich(t('app.lab.key.matchHow'), { mail: (c) => <a href="mailto:hunter@veilcore.org">{c}</a> })}
+      </Typography>
+    </Paper>
+  );
+};
+
 export const AppHome: React.FC = () => {
   const records = useRecords();
   const keys = useRecordKeys();
@@ -211,12 +226,15 @@ export const AppHome: React.FC = () => {
           <LockedRecords />
           <LockedAgreements />
           <PasteBox />
+          {/* A lab's own links (persona review, 17 Oct): no spreadsheet of plants, no "logging my plant first". */}
           <Stack spacing={1} sx={{ alignItems: 'center', pt: 1 }}>
-            <Button component={RouterLink} to="/records/import" sx={{ minHeight: 44 }}>
-              {t('app.home.spreadsheet')}
-            </Button>
+            {!labOnly && (
+              <Button component={RouterLink} to="/records/import" sx={{ minHeight: 44 }}>
+                {t('app.home.spreadsheet')}
+              </Button>
+            )}
             <Button component={RouterLink} to="/restore" sx={{ minHeight: 44 }}>
-              {t('app.home.newPhone')}
+              {labOnly ? t('app.home.newPhoneLab') : t('app.home.newPhone')}
             </Button>
             <Button onClick={requestRoleChange} color="inherit" sx={{ minHeight: 44 }}>
               {labOnly ? t('app.home.breederToo') : t('app.home.imALab')}
@@ -227,12 +245,10 @@ export const AppHome: React.FC = () => {
               endIcon={why ? <ExpandLessIcon /> : <ExpandMoreIcon />}
               sx={{ minHeight: 44 }}
             >
-              {t('app.home.whatStops')}
+              {labOnly ? t('app.home.labWhatShows') : t('app.home.whatStops')}
             </Button>
           </Stack>
-          <Collapse in={why}>
-            <TrustPanel />
-          </Collapse>
+          <Collapse in={why}>{labOnly ? <LabSignatureNote /> : <TrustPanel />}</Collapse>
         </Stack>
       </Box>
     );
@@ -487,11 +503,13 @@ export const AppHome: React.FC = () => {
         )}
 
         <Stack spacing={0.5} sx={{ alignItems: 'center', pt: 2 }}>
-          <Button component={RouterLink} to="/records/import" sx={{ minHeight: 44 }}>
-            {t('app.home.spreadsheet')}
-          </Button>
+          {!labOnly && (
+            <Button component={RouterLink} to="/records/import" sx={{ minHeight: 44 }}>
+              {t('app.home.spreadsheet')}
+            </Button>
+          )}
           <Button component={RouterLink} to="/restore" sx={{ minHeight: 44 }}>
-            {t('app.home.newPhone')}
+            {labOnly ? t('app.home.newPhoneLab') : t('app.home.newPhone')}
           </Button>
           <Button
             color="inherit"

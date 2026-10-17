@@ -130,6 +130,8 @@ export const lab = {
   'app.lab.send.copy': 'コードをコピー',
   'app.lab.send.dontWrite':
     '<b>メッセージかメールで送ってください。荷物には書かないでください。</b>このラボコードを持つ人は誰でも送付を確認できます。',
+  'app.lab.send.shortRef':
+    '短い参照番号：<b>{ref}</b>。サンプルの袋に書いたり、電話で伝えたりしてもかまいません。これだけでは送付物を受け取れません。ラボも受付記録用に同じ参照番号を見ます。',
   'app.lab.send.labWillCheck': '<b>ラボが確認する内容：</b>{line}。',
   'app.lab.send.nothingYet':
     'まだ何も変わっていません。相手がコードを入力するまで、植物のページには「待機中」と表示され、このコードをもう一度表示できます。相手はVeilCoreのホームの入力欄に貼り付けます。',
@@ -137,6 +139,8 @@ export const lab = {
     '相手は、受け取ったものについて自分の記録を持ち、それはあなたの記録に紐付けられます。届いたことに署名すると、それはあなたではなく相手の鍵で署名されます。あなたの記録に第三者が加わります。',
   'app.lab.send.who': '誰に送りますか？',
   'app.lab.send.whoHelp': 'どの送付かお互いにわかるよう、相手の名前かハンドル名を入れてください。',
+  'app.lab.send.from': 'あなたの名前または事業者名（相手に表示されます）',
+  'app.lab.send.fromHelp': '送り主として相手に表示されます。鍵がかかるため、VeilCoreは読めません。',
   'app.lab.send.quantity': '数量（任意）',
   'app.lab.send.quantityPlaceholder': '例：挿し穂10本',
   'app.lab.send.note': 'ラボへのメモ（任意）',
@@ -222,6 +226,8 @@ export const lab = {
   'app.lab.recv.refused': '送付は受け取られ、あなたの記録が作られました。{reason}',
   'app.lab.recv.onlyConfirm': '実際に受け取ったものだけを確認してください。これは他の人が頼りにする陳述です。',
   'app.lab.recv.receiveIt': '受け取る',
+  'app.lab.recv.saveBackup': 'バックアップを保存する',
+  'app.lab.recv.backToCode': 'コードに戻る',
   'app.lab.recv.goToRecord': '記録へ移動',
   'app.lab.key.role.laboratory': 'ラボ',
   'app.lab.key.role.inspector': '検査員',
@@ -240,6 +246,11 @@ export const lab = {
   'app.lab.key.privateWarning':
     '秘密鍵は暗号化されずにこのブラウザの保存領域に保管され、他の場所にはありません。試すだけなら問題ありません。このサイトで動くもの、またはこのサイトにアクセスできるブラウザ拡張機能なら、読み取れる可能性があります。なくすと新しく署名できなくなります。以前に署名したものは有効なままなので、安全な場所にバックアップしてください。実際に使うラボは、自社のシステム内で署名します。<link>連携ガイド</link>をご覧ください。',
   'app.lab.key.downloadBackup': '鍵のバックアップをダウンロード',
+  'app.lab.key.backupNow':
+    'ラボの鍵はこのブラウザにしかありません。今すぐバックアップを保存してください。そうすれば、スマートフォンやコンピューターをなくしても鍵は失われず、最初のコードもすぐに使えます。',
+  'app.lab.key.backedUp': 'バックアップを保存し、確認しました。',
+  'app.lab.key.matchHow':
+    '照合済みと表示するには、公開されているライセンスまたは認定の登録情報を<mail>hunter@veilcore.org</mail>までお送りください。私たちが照合するのは名前だけで、あなたの仕事を保証するものではありません。',
   'app.lab.key.intro':
     '素材を受け取ったことを確認したり、報告書に署名したりすると、あなただけが持つ鍵で署名されます。それは私たちが代わりに記録したものではなく、あなたの陳述になります。鍵はこのブラウザで作られ、公開されるのは公開鍵の部分、名前、入力した認定だけです。',
   'app.lab.key.name': '名前',
@@ -283,6 +294,10 @@ export const lab = {
   'app.lab.results.looking': '検査報告書を探しています…',
   'app.lab.results.nothingYet': 'まだありません。この植物を送ったラボが検査報告書を送ると、ここに表示されます。',
   'app.lab.results.from': '{lab}から · {id}',
+  'app.lab.results.kindLine': '{kind}（ラボが指定した種類）',
+  'app.lab.results.kindUnknown': '検査報告書（ラボが種類を示すようになる前に送られたもの）',
+  'app.lab.results.notTie':
+    '記録を植物や動物そのものに結び付けるのはDNA報告書だけです。そのため、この報告書は記録のDNA報告書としては保存されません。保管するにはダウンロードしてください。',
   'app.lab.results.sent': '送信：{when}',
   'app.lab.results.corrects': ' · {id}の訂正',
   'app.lab.results.savedHere': ' · この植物に保存済み',
@@ -297,7 +312,7 @@ export const lab = {
   'app.lab.facts.title': '一緒に届いたもの',
   'app.lab.facts.labelled': '「{name}」と表示、育成者 {by}',
   'app.lab.facts.unknown': '不明',
-  'app.lab.facts.code': ' · ラボコード {code}',
+  'app.lab.facts.code': ' · {code}（受付記録用のあなたの参照番号）',
   'app.lab.facts.arrived': ' · {date}に到着',
   'app.lab.facts.quantity': '<b>数量（育成者の記載どおり）：</b>{qty}',
   'app.lab.facts.notGiven': '記載なし',
@@ -368,6 +383,12 @@ export const lab = {
   'app.lab.out.differentFile': '別のファイルを選ぶ',
   'app.lab.out.chooseCorrected': '訂正したファイルを選ぶ',
   'app.lab.out.chooseReport': '報告書を選ぶ',
+  'app.lab.out.kindTitle': 'どの種類の報告書ですか？',
+  'app.lab.out.kindHelp':
+    '選んだ種類は育成者に表示されます。記録を植物や動物そのものに結び付けるのはDNA報告書だけです。',
+  'app.lab.kind.dna': 'DNA報告書',
+  'app.lab.kind.pathogen': '病原体・ウイルス検査',
+  'app.lab.kind.other': 'その他の検査報告書',
   'app.lab.out.signing': '署名してロックしています…',
   'app.lab.out.signLockSend': '署名・ロックして送る',
   'app.lab.out.alreadyGone': '訂正しようとしている検査報告書は、すでに撤回または差し替えられています。',

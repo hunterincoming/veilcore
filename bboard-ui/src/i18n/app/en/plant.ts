@@ -81,7 +81,7 @@ export const plant = {
   'app.plant.tie.withdrawn': 'the lab withdrew the DNA report saved here',
   'app.plant.tie.add': 'add a DNA report',
   'app.plant.tie.noneSaved': 'no DNA report is saved to this record',
-  'app.plant.tie.cameBack': 'a lab report came back: open it and save it here',
+  'app.plant.tie.cameBack': 'a lab report came back: open it here',
   'app.plant.tie.openedNotSaved': 'a lab report is open, not saved to this plant',
   'app.plant.tie.notDated': 'not dated yet',
   'app.plant.tie.dating': 'being dated ({status})',
