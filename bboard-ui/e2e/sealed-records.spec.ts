@@ -162,9 +162,9 @@ test('(b) the backup file, restored in a fresh browser: the records open, none l
   const chooser = fresh.page.waitForEvent('filechooser');
   await fresh.page.getByRole('button', { name: /Open my backup file/ }).click();
   await (await chooser).setFiles(file);
-  await expect(fresh.page.getByRole('heading', { name: /Your plants are back/ })).toBeVisible();
+  await expect(fresh.page.getByRole('heading', { name: /Your records are back/ })).toBeVisible();
   await expect(fresh.page.locator('[data-still-locked]')).toHaveCount(0);
-  await fresh.page.getByRole('link', { name: /See my plants/ }).click();
+  await fresh.page.getByRole('link', { name: /See my records/ }).click();
   await expect(fresh.page.getByText(name).first()).toBeVisible();
   await expect(fresh.page.locator('[data-locked-records]')).toHaveCount(0);
   await fresh.page.goto(`/record/${recordId}`);

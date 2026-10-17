@@ -8,7 +8,7 @@ export const backup = {
   'app.backup.done': 'Terminé',
   'app.backup.shareTitle': 'Copie de secours VeilCore',
   'app.backup.onlyWay':
-    '<b>Ce fichier est le seul moyen de prouver que vous détenez vos plantes</b>, et de les récupérer sur un nouveau téléphone ou ordinateur. VeilCore ne peut ni le récupérer ni en refaire un.',
+    '<b>Ce fichier est le seul moyen de prouver que vous détenez vos enregistrements</b>, et de les récupérer sur un nouveau téléphone ou ordinateur. VeilCore ne peut ni le récupérer ni en refaire un.',
   'app.backup.saveIt': 'L’enregistrer',
   'app.backup.saved': 'Enregistrée',
   'app.backup.savedSub': '{file} · un seul fichier pour tout',
@@ -17,12 +17,12 @@ export const backup = {
   'app.backup.wayBack':
     'Si ce téléphone ou cet ordinateur tombe en panne, cette copie vous permettra de tout récupérer.',
   'app.backup.actAsYou':
-    'Ce fichier permet à quiconque l’a d’agir en votre nom. Gardez-le dans un endroit que vous seul pouvez ouvrir.',
+    'Quiconque a ce fichier peut ouvrir vos enregistrements et agir en votre nom. Le mieux : une clé USB ou un gestionnaire de mots de passe. Si vous l’envoyez par e-mail, utilisez un compte avec validation en deux étapes.',
   'app.backup.sentCopy': 'Copie envoyée ✓',
   'app.backup.sendCopy': 'Envoyer une copie (e-mail, Drive, Fichiers…)',
   'app.backup.shareFailed': 'Ce navigateur n’a pas pu ouvrir son menu de partage.',
   'app.backup.byHand':
-    'Envoyez-le-vous par e-mail, ou mettez-le sur Google Drive, iCloud ou une clé USB. C’est le fichier que vous venez d’enregistrer, dans votre dossier Téléchargements.',
+    'Mettez-le sur une clé USB ou dans un gestionnaire de mots de passe. C’est le fichier que vous venez d’enregistrer, dans votre dossier Téléchargements.',
   'app.backup.checkTitle': 'Vérifier qu’elle fonctionne',
   'app.backup.itWorks': 'Elle fonctionne.',
   'app.backup.openIntro':
@@ -30,10 +30,24 @@ export const backup = {
   'app.backup.openCopy': 'Ouvrir ma copie enregistrée',
   'app.backup.saveFirst': 'Enregistrez d’abord le fichier de secours.',
   'app.backup.turnsOn': 'S’active une fois la vérification réussie.',
-  'app.backup.restoreTitle': 'Récupérez vos plantes',
+  'app.backup.pw.add': 'Ajouter un mot de passe (conseillé)',
+  'app.backup.pw.why':
+    'Le fichier seul n’ouvre alors rien : qui l’a doit aussi avoir le mot de passe. Si vous l’oubliez, personne ne peut ouvrir le fichier, pas même nous.',
+  'app.backup.pw.label': 'Mot de passe du fichier de secours',
+  'app.backup.pw.again': 'Saisissez-le de nouveau',
+  'app.backup.pw.short': 'Au moins {n} caractères.',
+  'app.backup.pw.mismatch': 'Les deux ne correspondent pas.',
+  'app.backup.pw.keep': 'Gardez-le dans un gestionnaire de mots de passe, ou noté, à part du fichier.',
+  'app.backup.pw.locking': 'Verrouillage du fichier…',
+  'app.backup.pw.savedSub': '{file} · un seul fichier pour tout, verrouillé par votre mot de passe',
+  'app.backup.pw.needed': 'Cette copie de secours a un mot de passe. Saisissez-le pour ouvrir le fichier.',
+  'app.backup.pw.wrong': 'Ce mot de passe n’ouvre pas cette copie de secours. Rien n’a été modifié.',
+  'app.backup.pw.checkLabel': 'Le mot de passe de la copie de secours',
+  'app.backup.pw.open': 'L’ouvrir',
+  'app.backup.restoreTitle': 'Récupérez vos enregistrements',
   'app.backup.restoreIntro':
     'Nouveau téléphone ou ordinateur, ou navigateur vidé ? Ouvrez le fichier de secours que vous avez enregistré.',
-  'app.backup.plantsBack': 'Vos plantes sont de retour.',
+  'app.backup.plantsBack': 'Vos enregistrements sont de retour.',
   'app.backup.restored': 'Restauré.',
   'app.backup.nothingNew': 'Rien de nouveau dans ce fichier.',
   'app.backup.sentence': '{s} ',
@@ -45,17 +59,17 @@ export const backup = {
   'app.backup.nCodes.one': '{count} code laboratoire',
   'app.backup.nCodes.other': '{count} codes laboratoire',
   'app.backup.and': '{a} et {b}',
-  'app.backup.seeMyPlants': 'Voir mes plantes',
+  'app.backup.seeMyPlants': 'Voir mes enregistrements',
   'app.backup.lookIn':
-    'Cherchez dans vos e-mails, dans Drive ou iCloud, ou sur votre clé USB. N’importe quel nom de fichier convient. Rien n’est envoyé.',
+    'Cherchez sur votre clé USB, dans votre gestionnaire de mots de passe, ou dans vos e-mails, Drive ou iCloud. N’importe quel nom de fichier convient. Rien n’est envoyé.',
   'app.backup.openFile': 'Ouvrir mon fichier de secours',
   'app.backup.onlyKey': 'Vous n’avez que votre clé de détenteur (64 caractères) ?',
   'app.backup.keyLabel': 'Votre clé de détenteur (64 caractères)',
   'app.backup.useIt': 'L’utiliser',
   'app.backup.olderVersion':
-    'Seulement si vous l’avez copiée depuis une ancienne version de ce site : elle n’est plus affichée nulle part. Elle retrouve vos enregistrements, mais ils restent verrouillés jusqu’à ce que vous ouvriez votre fichier de secours. Les clés d’horodatage d’une plante ne sont, elles aussi, que dans ce fichier.',
+    'Seulement si vous l’avez copiée depuis une ancienne version de ce site : elle n’est plus affichée nulle part. Elle retrouve vos enregistrements, mais ils restent verrouillés jusqu’à ce que vous ouvriez votre fichier de secours. Les clés d’horodatage d’un enregistrement ne sont, elles aussi, que dans ce fichier.',
   'app.backup.cantFind':
-    '<b>Vous ne trouvez pas le fichier ?</b> Alors personne ne peut récupérer les plantes, pas même nous : nous n’avons jamais eu votre clé. C’est ce qui vous permet de prouver que vous les détenez. Si votre ancien appareil fonctionne encore, ouvrez-y VeilCore et enregistrez une nouvelle copie de secours.',
+    '<b>Vous ne trouvez pas le fichier ?</b> Alors personne ne peut récupérer les enregistrements, pas même nous : nous n’avons jamais eu votre clé. C’est ce qui vous permet de prouver que vous les détenez. Si votre ancien appareil fonctionne encore, ouvrez-y VeilCore et enregistrez une nouvelle copie de secours.',
   'app.backup.holds.none': 'Vos enregistrements y sont.',
   'app.backup.holds.records.one': 'Votre enregistrement y est.',
   'app.backup.holds.records.other': 'Vos {count} enregistrements y sont tous.',
@@ -81,7 +95,8 @@ export const backup = {
     'Cette copie de secours ne contient pas la signature de votre laboratoire. Enregistrez-en une nouvelle et vérifiez-la.',
   'app.backup.err.noDeliveries':
     'Cette copie de secours ne contient pas vos dernières livraisons. Enregistrez-en une nouvelle et vérifiez-la.',
-  'app.backup.err.differentKeys': 'Ce navigateur a déjà d’autres clés pour l’une de ces plantes. Rien n’a été modifié.',
+  'app.backup.err.differentKeys':
+    'Ce navigateur a déjà d’autres clés pour l’un de ces enregistrements. Rien n’a été modifié.',
   'app.backup.err.differentSet':
     'Ce navigateur utilise déjà un autre ensemble d’enregistrements. Rien n’a été modifié.',
   'app.backup.err.differentLab': 'Ce navigateur a déjà une autre signature de laboratoire. Rien n’a été modifié.',

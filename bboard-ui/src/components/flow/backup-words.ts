@@ -26,6 +26,9 @@ const KNOWN: [string, AppKey][] = [
   [enT.t('app.sealed.backup.differentVault'), 'app.sealed.backup.differentVault'],
   [enT.t('app.sealed.backup.cantCheck'), 'app.sealed.backup.cantCheck'],
   [enT.t('app.sealed.backup.storageRefused'), 'app.sealed.backup.storageRefused'],
+  // A password on the file (version 4).
+  [enT.t('app.backup.pw.needed'), 'app.backup.pw.needed'],
+  [enT.t('app.backup.pw.wrong'), 'app.backup.pw.wrong'],
 ];
 
 const MISSING = /^That backup is missing the latest for (\d+) of your records\. Save a new one and check that\.$/;

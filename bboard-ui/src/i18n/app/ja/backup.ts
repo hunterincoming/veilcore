@@ -8,7 +8,7 @@ export const backup = {
   'app.backup.done': '完了',
   'app.backup.shareTitle': 'VeilCoreのバックアップ',
   'app.backup.onlyWay':
-    '<b>このファイルは、植物を保有していることを証明する唯一の手段です</b>。新しいスマートフォンやコンピューターで植物を取り戻すのにも使います。VeilCoreはこのファイルを復元することも、作り直すこともできません。',
+    '<b>このファイルは、記録を保有していることを証明する唯一の手段です</b>。新しいスマートフォンやコンピューターで記録を取り戻すのにも使います。VeilCoreはこのファイルを復元することも、作り直すこともできません。',
   'app.backup.saveIt': '保存する',
   'app.backup.saved': '保存しました',
   'app.backup.savedSub': '{file} · すべてが入った1つのファイル',
@@ -16,12 +16,12 @@ export const backup = {
   'app.backup.copyTitle': 'コピーを別の場所にも置く',
   'app.backup.wayBack': 'このスマートフォンやコンピューターが壊れたとき、そのコピーが取り戻す手段になります。',
   'app.backup.actAsYou':
-    'このファイルを持っている人は誰でも、あなたとして行動できます。あなただけが開ける場所に保管してください。',
+    'このファイルを持っている人は誰でも、あなたの記録を開き、あなたとして行動できます。おすすめはUSBメモリかパスワードマネージャーです。メールで送る場合は、2段階認証を設定したアカウントを使ってください。',
   'app.backup.sentCopy': 'コピーを送りました ✓',
   'app.backup.sendCopy': 'コピーを送る（メール、ドライブ、ファイル…）',
   'app.backup.shareFailed': 'このブラウザでは共有メニューを開けませんでした。',
   'app.backup.byHand':
-    '自分宛てにメールで送るか、Google ドライブ、iCloud、USBメモリに保存してください。先ほど保存したファイルで、ダウンロードフォルダにあります。',
+    'USBメモリかパスワードマネージャーに保存してください。先ほど保存したファイルで、ダウンロードフォルダにあります。',
   'app.backup.checkTitle': '開けるか確認する',
   'app.backup.itWorks': '問題ありません。',
   'app.backup.openIntro':
@@ -29,10 +29,24 @@ export const backup = {
   'app.backup.openCopy': '保存したコピーを開く',
   'app.backup.saveFirst': '先にバックアップファイルを保存してください。',
   'app.backup.turnsOn': '確認が済むと押せるようになります。',
-  'app.backup.restoreTitle': '植物を取り戻す',
+  'app.backup.pw.add': 'パスワードを付ける（おすすめ）',
+  'app.backup.pw.why':
+    'そうすれば、ファイルだけでは何も開けません。ファイルを持つ人にはパスワードも必要です。パスワードを忘れると、私たちを含め誰もファイルを開けません。',
+  'app.backup.pw.label': 'バックアップファイルのパスワード',
+  'app.backup.pw.again': 'もう一度入力',
+  'app.backup.pw.short': '{n}文字以上。',
+  'app.backup.pw.mismatch': '2つが一致しません。',
+  'app.backup.pw.keep': 'パスワードマネージャーに保存するか書き留めて、ファイルとは別に保管してください。',
+  'app.backup.pw.locking': 'ファイルに鍵をかけています…',
+  'app.backup.pw.savedSub': '{file} · すべてが入った1つのファイル。パスワードで鍵をかけました',
+  'app.backup.pw.needed': 'このバックアップにはパスワードがあります。ファイルを開くには入力してください。',
+  'app.backup.pw.wrong': 'そのパスワードではこのバックアップを開けません。何も変更していません。',
+  'app.backup.pw.checkLabel': 'バックアップのパスワード',
+  'app.backup.pw.open': '開く',
+  'app.backup.restoreTitle': '記録を取り戻す',
   'app.backup.restoreIntro':
     '新しいスマートフォンやコンピューター、またはブラウザのデータを消去しましたか？保存したバックアップファイルを開いてください。',
-  'app.backup.plantsBack': '植物が戻りました。',
+  'app.backup.plantsBack': '記録が戻りました。',
   'app.backup.restored': '復元しました。',
   'app.backup.nothingNew': 'そのファイルに新しいものはありません。',
   'app.backup.sentence': '{s}',
@@ -42,17 +56,17 @@ export const backup = {
   'app.backup.nDeliveries.other': 'ラボへの送付 {count}件',
   'app.backup.nCodes.other': 'ラボコード {count}件',
   'app.backup.and': '{a}と{b}',
-  'app.backup.seeMyPlants': '植物を見る',
+  'app.backup.seeMyPlants': '記録を見る',
   'app.backup.lookIn':
-    'メール、ドライブ、iCloud、USBメモリの中を探してください。ファイル名は何でもかまいません。何もアップロードされません。',
+    'USBメモリ、パスワードマネージャー、またはメール、ドライブ、iCloudの中を探してください。ファイル名は何でもかまいません。何もアップロードされません。',
   'app.backup.openFile': 'バックアップファイルを開く',
   'app.backup.onlyKey': '保有者キー（64文字）しかありませんか？',
   'app.backup.keyLabel': '保有者キー（64文字）',
   'app.backup.useIt': '使う',
   'app.backup.olderVersion':
-    '以前のバージョンのこのサイトでコピーした場合のみです。現在はどこにも表示されません。これで記録は見つかりますが、バックアップファイルを開くまでロックされたままです。植物の日付スタンプ用の鍵も、そのファイルにしかありません。',
+    '以前のバージョンのこのサイトでコピーした場合のみです。現在はどこにも表示されません。これで記録は見つかりますが、バックアップファイルを開くまでロックされたままです。記録の日付スタンプ用の鍵も、そのファイルにしかありません。',
   'app.backup.cantFind':
-    '<b>ファイルが見つかりませんか？</b>その場合、植物は誰にも取り戻せません。私たちにもできません。あなたの鍵を持ったことがないからです。だからこそ、あなたが保有していることを証明できるのです。以前の端末がまだ動くなら、そこでVeilCoreを開いて新しいバックアップを保存してください。',
+    '<b>ファイルが見つかりませんか？</b>その場合、記録は誰にも取り戻せません。私たちにもできません。あなたの鍵を持ったことがないからです。だからこそ、あなたが保有していることを証明できるのです。以前の端末がまだ動くなら、そこでVeilCoreを開いて新しいバックアップを保存してください。',
   'app.backup.holds.none': 'あなたの記録が入っています。',
   'app.backup.holds.records.other': 'あなたの記録{count}件がすべて入っています。',
   'app.backup.holds.plants.other': 'あなたの植物{count}件がすべて入っています。',
@@ -70,7 +84,7 @@ export const backup = {
   'app.backup.err.noDeliveries':
     'そのバックアップには最新の送付が入っていません。新しく保存して、それを確認してください。',
   'app.backup.err.differentKeys':
-    'このブラウザには、それらの植物のいずれかについて別の鍵がすでにあります。何も変更していません。',
+    'このブラウザには、それらの記録のいずれかについて別の鍵がすでにあります。何も変更していません。',
   'app.backup.err.differentSet': 'このブラウザはすでに別の記録一式を使っています。何も変更していません。',
   'app.backup.err.differentLab': 'このブラウザにはすでに別のラボの署名があります。何も変更していません。',
   'app.backup.err.missingLatest.other':

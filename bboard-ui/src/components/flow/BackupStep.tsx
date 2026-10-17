@@ -8,9 +8,19 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useId, useRef, useState } from 'react';
-import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  FormControlLabel,
+  Stack,
+  Switch,
+  TextField,
+  Typography,
+} from '@mui/material';
 import DoneIcon from '@mui/icons-material/CheckCircle';
-import { backupContents, backupFileName, checkBackup, downloadBackupAll } from '../../veilcore/backup';
+import { backupFileName, backupFileText, checkBackup, downloadBackupAll } from '../../veilcore/backup';
 import { ScreenHeading, softDisabled } from './FlowFrame';
 import { useRecords } from '../../veilcore/records';
 import { backupHoldsLine } from '../stage/record-kinds';
@@ -32,6 +42,44 @@ const Done: React.FC<{ text: string; sub?: string }> = ({ text, sub }) => (
     </Box>
   </Stack>
 );
+
+/** A locked backup's password, asked for when a file needs it (the check here, and restore). */
+export const BackupPasswordAsk: React.FC<{ busy: boolean; onOpen: (password: string) => void }> = ({
+  busy,
+  onOpen,
+}) => {
+  const { t } = useT();
+  const [pw, setPw] = useState('');
+  return (
+    <Stack spacing={1} sx={{ mt: 1.25 }} data-backup-password-ask="">
+      <Typography variant="body2">{t('app.backup.pw.needed')}</Typography>
+      <TextField
+        type="password"
+        label={t('app.backup.pw.checkLabel')}
+        value={pw}
+        autoFocus
+        onChange={(e) => setPw(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && pw && !busy) onOpen(pw);
+        }}
+        autoComplete="current-password"
+        fullWidth
+      />
+      <Button
+        variant="contained"
+        disabled={!pw || busy}
+        onClick={() => onOpen(pw)}
+        startIcon={busy ? <CircularProgress size={18} color="inherit" /> : undefined}
+        sx={{ minHeight: 44 }}
+      >
+        {t('app.backup.pw.open')}
+      </Button>
+    </Stack>
+  );
+};
+
+/** The shortest password the backup takes: long enough to resist guessing at 600,000 rounds. */
+export const MIN_BACKUP_PASSWORD = 10;
 
 const Part: React.FC<React.PropsWithChildren<{ n: number; title: string; active: boolean; level: 'h2' | 'h3' }>> = ({
   n,
@@ -88,11 +136,43 @@ export const BackupStep: React.FC<{
     if (checked !== undefined) worksRef.current?.focus();
   }, [checked]);
 
+  // A password on the file (persona review, 17 Oct): suggested, never forced. The password
+  // lives only in this screen's memory while it's open; it's never stored or sent.
+  const [usePassword, setUsePassword] = useState(false);
+  const [pw, setPw] = useState('');
+  const [pw2, setPw2] = useState('');
+  const [locking, setLocking] = useState(false);
+  const [locked, setLocked] = useState(false);
+  // The exact text saved, so a copy sent through the share sheet is the same file.
+  const savedText = useRef<string | undefined>(undefined);
+  const pwShort = usePassword && pw.length > 0 && pw.length < MIN_BACKUP_PASSWORD;
+  const pwDiffers = usePassword && pw2.length > 0 && pw !== pw2;
+  const pwReady = !usePassword || (pw.length >= MIN_BACKUP_PASSWORD && pw === pw2);
+  // A locked file picked for the check, waiting for its password.
+  const [waiting, setWaiting] = useState<File>();
+
+  const save = async () => {
+    if (!pwReady || locking) return;
+    setLocking(true);
+    try {
+      const now = Date.now();
+      const text = await backupFileText(usePassword ? pw : undefined, now);
+      savedText.current = text;
+      setLocked(usePassword);
+      setSaved(downloadBackupAll(now, text));
+    } finally {
+      setLocking(false);
+    }
+  };
+
   const fileForSharing = (): File =>
-    new File([JSON.stringify(backupContents(), null, 2)], backupFileName(), { type: 'application/json' });
+    new File([savedText.current ?? ''], saved ?? backupFileName(), { type: 'application/json' });
   const canShare = (() => {
     try {
-      return typeof navigator !== 'undefined' && !!navigator.canShare?.({ files: [fileForSharing()] });
+      return (
+        typeof navigator !== 'undefined' &&
+        !!navigator.canShare?.({ files: [new File(['{}'], backupFileName(), { type: 'application/json' })] })
+      );
     } catch {
       return false;
     }
@@ -111,13 +191,18 @@ export const BackupStep: React.FC<{
     }
   };
 
-  const check = async (f: File) => {
+  const check = async (f: File, password?: string) => {
     setBusy(true);
     setProblem(undefined);
-    const r = await checkBackup(f);
+    const r = await checkBackup(f, password);
     setBusy(false);
-    if (r.ok) setChecked(r.recordIds ?? []);
-    else setProblem(r.reason);
+    if (r.ok) {
+      setWaiting(undefined);
+      setChecked(r.recordIds ?? []);
+    } else if (r.needsPassword) {
+      // Typing it again here is the check that the password is known, not only the file.
+      setWaiting(f);
+    } else setProblem(r.reason);
   };
 
   return (
@@ -134,18 +219,59 @@ export const BackupStep: React.FC<{
       <Part n={1} level={partLevel} title={t('app.backup.saveIt')} active={!saved}>
         {saved ? (
           <Box ref={savedRef} tabIndex={-1} role="status" sx={{ outline: 'none' }}>
-            <Done text={t('app.backup.saved')} sub={t('app.backup.savedSub', { file: saved })} />
+            <Done
+              text={t('app.backup.saved')}
+              sub={locked ? t('app.backup.pw.savedSub', { file: saved }) : t('app.backup.savedSub', { file: saved })}
+            />
           </Box>
         ) : (
-          <Button
-            variant="contained"
-            size="large"
-            fullWidth
-            onClick={() => setSaved(downloadBackupAll())}
-            sx={{ py: 1.4 }}
-          >
-            {t('app.backup.saveFile')}
-          </Button>
+          <Stack spacing={1.25}>
+            <Box data-backup-password="">
+              <FormControlLabel
+                control={<Switch checked={usePassword} onChange={() => setUsePassword((v) => !v)} />}
+                label={<Typography variant="body2">{t('app.backup.pw.add')}</Typography>}
+                sx={{ minHeight: 44, mr: 0 }}
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                {t('app.backup.pw.why')}
+              </Typography>
+              {usePassword && (
+                <Stack spacing={1.25} sx={{ mt: 1.25 }}>
+                  <TextField
+                    type="password"
+                    label={t('app.backup.pw.label')}
+                    value={pw}
+                    onChange={(e) => setPw(e.target.value)}
+                    autoComplete="new-password"
+                    error={pwShort}
+                    helperText={t('app.backup.pw.short', { n: MIN_BACKUP_PASSWORD })}
+                    fullWidth
+                  />
+                  <TextField
+                    type="password"
+                    label={t('app.backup.pw.again')}
+                    value={pw2}
+                    onChange={(e) => setPw2(e.target.value)}
+                    autoComplete="new-password"
+                    error={pwDiffers}
+                    helperText={pwDiffers ? t('app.backup.pw.mismatch') : t('app.backup.pw.keep')}
+                    fullWidth
+                  />
+                </Stack>
+              )}
+            </Box>
+            <Button
+              variant="contained"
+              size="large"
+              fullWidth
+              disabled={!pwReady || locking}
+              onClick={() => void save()}
+              startIcon={locking ? <CircularProgress size={18} color="inherit" /> : undefined}
+              sx={{ py: 1.4 }}
+            >
+              {locking ? t('app.backup.pw.locking') : t('app.backup.saveFile')}
+            </Button>
+          </Stack>
         )}
       </Part>
 
@@ -219,6 +345,9 @@ export const BackupStep: React.FC<{
               </Typography>
             )}
           </>
+        )}
+        {waiting && checked === undefined && (
+          <BackupPasswordAsk busy={busy} onOpen={(password) => void check(waiting, password)} />
         )}
         {problem && (
           <Alert severity="warning" variant="outlined" sx={{ mt: 1.5 }}>

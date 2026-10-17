@@ -294,3 +294,97 @@ describe('the vault key in the backup (version 3, CONTRACT.md #9)', () => {
     expect(vault.vaultKeyIfAny()).toBe(key);
   });
 });
+
+describe('a password on the backup file (version 4, persona review 17 Oct)', () => {
+  it('seals the whole version 3 file with PBKDF2-SHA256 (600,000 rounds, 16-byte salt) and AES-256-GCM', async () => {
+    const { keys, backup, h } = await setup();
+    const vault = await import('./vault');
+    const key = vault.mintVault()!;
+    const text = await backup.backupFileText('correct horse battery');
+    const file = JSON.parse(text) as Record<string, unknown> & { locked: Record<string, unknown> };
+    expect(file).toMatchObject({ format: 'veilcore-backup', version: 4 });
+    expect(file.locked).toMatchObject({ kdf: 'PBKDF2-SHA256', iterations: 600_000, alg: 'A256GCM' });
+    const { base64urlnopad } = await import('@scure/base');
+    expect(base64urlnopad.decode(file.locked.salt as string)).toHaveLength(16);
+    expect(base64urlnopad.decode(file.locked.iv as string)).toHaveLength(12);
+    // Nothing secret is readable in the file.
+    for (const secret of [h.toLowerCase(), key, keys.keysFor('VEIL-1')!.recordSecret])
+      expect(text).not.toContain(secret);
+    // Two files from the same contents and password differ (fresh salt and IV).
+    expect(JSON.parse(await backup.backupFileText('correct horse battery')).locked.salt).not.toBe(file.locked.salt);
+  });
+
+  it('checks and restores with the right password, on a new browser', async () => {
+    const { keys, backup, holder, h } = await setup();
+    const vault = await import('./vault');
+    const key = vault.mintVault()!;
+    const text = await backup.backupFileText('correct horse battery');
+    // The check asks for the password, then passes with it.
+    expect(await backup.checkBackup(fileOf(text))).toMatchObject({ ok: false, needsPassword: true });
+    expect(keys.keysWithoutBackup()).toHaveLength(2);
+    expect(await backup.checkBackup(fileOf(text), 'correct horse battery')).toEqual({
+      ok: true,
+      records: 2,
+      recordIds: ['VEIL-1', 'VEIL-2'],
+    });
+    expect(keys.keysWithoutBackup()).toHaveLength(0);
+    // A new browser.
+    local.clear();
+    keys.__resetRecordKeysForTests();
+    await expect(backup.restoreAny(fileOf(text))).rejects.toBeInstanceOf(backup.BackupNeedsPassword);
+    const r = await backup.restoreAny(fileOf(text), 'correct horse battery');
+    expect(r).toMatchObject({ holderKey: 'restored', vaultKey: 'restored', records: 2 });
+    expect(holder.holderKeyIfAny()).toBe(h);
+    expect(vault.vaultKeyIfAny()).toBe(key);
+  });
+
+  it('a wrong password fails cleanly and nothing is half-restored', async () => {
+    const { keys, backup } = await setup();
+    const vault = await import('./vault');
+    vault.mintVault();
+    const text = await backup.backupFileText('correct horse battery');
+    local.clear();
+    keys.__resetRecordKeysForTests();
+    const before = new Map(local);
+    await expect(backup.restoreAny(fileOf(text), 'wrong horse battery')).rejects.toThrow(backup.WRONG_PASSWORD);
+    expect(backup.WRONG_PASSWORD).toBe("That password doesn't open this backup. Nothing was changed.");
+    // Nothing at all was written: no holder key, no vault key, no record keys.
+    expect(new Map(local)).toEqual(before);
+    expect(keys.allKeys()).toHaveLength(0);
+    expect(vault.vaultKeyIfAny()).toBeNull();
+    // The check says so too, and marks nothing.
+    expect(await backup.checkBackup(fileOf(text), 'wrong horse battery')).toEqual({
+      ok: false,
+      reason: backup.WRONG_PASSWORD,
+    });
+    // A changed file is refused the same way, with the right password.
+    const file = JSON.parse(text) as { locked: { ct: string } };
+    const flipped = file.locked.ct.slice(0, 10) + (file.locked.ct[10] === 'A' ? 'B' : 'A') + file.locked.ct.slice(11);
+    const changed = JSON.stringify({ ...file, locked: { ...file.locked, ct: flipped } });
+    await expect(backup.restoreAny(fileOf(changed), 'correct horse battery')).rejects.toThrow(backup.WRONG_PASSWORD);
+    expect(new Map(local)).toEqual(before);
+  });
+
+  it('refuses a locked file that asks for fewer rounds, or is not one this app makes', async () => {
+    const { backup } = await setup();
+    const weak = await backup.lockBackup(backup.backupContents(), 'correct horse battery', 1000);
+    await expect(backup.restoreAny(fileOf(JSON.stringify(weak)), 'correct horse battery')).rejects.toThrow(
+      /isn't a VeilCore backup/,
+    );
+    const odd = { ...weak, locked: { ...weak.locked, kdf: 'scrypt' } };
+    await expect(backup.restoreAny(fileOf(JSON.stringify(odd)), 'x')).rejects.toThrow(/isn't a VeilCore backup/);
+  });
+
+  it('a file without a password keeps working, and the words are translated', async () => {
+    const { backup } = await setup();
+    const text = await backup.backupFileText();
+    expect(JSON.parse(text)).toMatchObject({ version: 3 });
+    expect((await backup.checkBackup(fileOf(text))).ok).toBe(true);
+    const { backupMessageWords } = await import('../components/flow/backup-words');
+    const { makeTranslator } = await import('../i18n/translate');
+    const { appDe } = await import('../i18n/app/de');
+    const de = makeTranslator('de', appDe as Record<string, string>);
+    expect(backupMessageWords(backup.WRONG_PASSWORD, de)).toBe(de.t('app.backup.pw.wrong'));
+    expect(backupMessageWords(backup.NEEDS_PASSWORD, de)).toBe(de.t('app.backup.pw.needed'));
+  });
+});

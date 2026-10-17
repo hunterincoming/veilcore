@@ -6,7 +6,8 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import { Alert, Box, Button, CircularProgress, Collapse, Stack, TextField, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import DoneIcon from '@mui/icons-material/CheckCircle';
-import { restoreAny, type RestoreResult } from '../../veilcore/backup';
+import { BackupNeedsPassword, restoreAny, type RestoreResult } from '../../veilcore/backup';
+import { BackupPasswordAsk } from './BackupStep';
 import { allRecords, hydrate, useSealedView } from '../../veilcore/records';
 import { lockedWords } from '../LockedRecords';
 import { restoredKeysLine } from '../stage/record-kinds';
@@ -56,15 +57,19 @@ export const RestorePage: React.FC = () => {
     }
   };
 
-  const restore = async (f: File) => {
+  // A locked backup (a password on the file) waits here for its password; nothing changes until it opens.
+  const [waiting, setWaiting] = useState<File>();
+  const restore = async (f: File, password?: string) => {
     setBusy(true);
     setProblem(undefined);
     try {
-      const r = await restoreAny(f);
+      const r = await restoreAny(f, password);
+      setWaiting(undefined);
       await hydrate();
       setDone(r);
     } catch (e) {
-      setProblem(e instanceof Error ? e.message : String(e));
+      if (e instanceof BackupNeedsPassword) setWaiting(f);
+      else setProblem(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
     }
@@ -144,6 +149,7 @@ export const RestorePage: React.FC = () => {
                   if (f) void restore(f);
                 }}
               />
+              {waiting && <BackupPasswordAsk busy={busy} onOpen={(password) => void restore(waiting, password)} />}
               {problem && (
                 <Alert severity="warning" variant="outlined">
                   {backupMessageWords(problem, tr)}

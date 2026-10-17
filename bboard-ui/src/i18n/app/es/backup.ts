@@ -8,7 +8,7 @@ export const backup = {
   'app.backup.done': 'Listo',
   'app.backup.shareTitle': 'Copia de seguridad de VeilCore',
   'app.backup.onlyWay':
-    '<b>Este archivo es la única forma de demostrar que tiene sus plantas</b> y de recuperarlas en un teléfono o una computadora nuevos. VeilCore no puede recuperarlo ni hacer otro.',
+    '<b>Este archivo es la única forma de demostrar que tiene sus registros</b> y de recuperarlos en un teléfono o una computadora nuevos. VeilCore no puede recuperarlo ni hacer otro.',
   'app.backup.saveIt': 'Guárdelo',
   'app.backup.saved': 'Guardado',
   'app.backup.savedSub': '{file} · un solo archivo para todo',
@@ -16,12 +16,12 @@ export const backup = {
   'app.backup.copyTitle': 'Ponga una copia en otro lugar',
   'app.backup.wayBack': 'Si este teléfono o esta computadora se rompen, esa copia es su forma de recuperarlo todo.',
   'app.backup.actAsYou':
-    'Este archivo permite que cualquiera que lo tenga actúe como usted. Guárdelo en un lugar que solo usted pueda abrir.',
+    'Cualquiera que tenga este archivo puede abrir sus registros y actuar como usted. Lo mejor: una memoria USB o un gestor de contraseñas. Si lo envía por correo, use una cuenta con verificación en dos pasos.',
   'app.backup.sentCopy': 'Copia enviada ✓',
   'app.backup.sendCopy': 'Enviar una copia (correo, Drive, Archivos…)',
   'app.backup.shareFailed': 'Este navegador no pudo abrir su menú para compartir.',
   'app.backup.byHand':
-    'Envíeselo a usted mismo por correo, o guárdelo en Google Drive, iCloud o una memoria USB. Es el archivo que acaba de guardar, en su carpeta de Descargas.',
+    'Guárdelo en una memoria USB o en un gestor de contraseñas. Es el archivo que acaba de guardar, en su carpeta de Descargas.',
   'app.backup.checkTitle': 'Compruebe que funciona',
   'app.backup.itWorks': 'Funciona.',
   'app.backup.openIntro':
@@ -29,10 +29,24 @@ export const backup = {
   'app.backup.openCopy': 'Abrir mi copia guardada',
   'app.backup.saveFirst': 'Guarde primero el archivo de copia de seguridad.',
   'app.backup.turnsOn': 'Se activa cuando la comprobación sale bien.',
-  'app.backup.restoreTitle': 'Recupere sus plantas',
+  'app.backup.pw.add': 'Añadir una contraseña (recomendado)',
+  'app.backup.pw.why':
+    'Así el archivo solo no abre nada: quien lo tenga también necesita la contraseña. Si la olvida, nadie puede abrir el archivo, ni siquiera nosotros.',
+  'app.backup.pw.label': 'Contraseña del archivo de copia de seguridad',
+  'app.backup.pw.again': 'Escríbala otra vez',
+  'app.backup.pw.short': 'Al menos {n} caracteres.',
+  'app.backup.pw.mismatch': 'Las dos no coinciden.',
+  'app.backup.pw.keep': 'Guárdela en un gestor de contraseñas, o anotada, aparte del archivo.',
+  'app.backup.pw.locking': 'Bloqueando el archivo…',
+  'app.backup.pw.savedSub': '{file} · un archivo para todo, bloqueado con su contraseña',
+  'app.backup.pw.needed': 'Esta copia de seguridad tiene contraseña. Escríbala para abrir el archivo.',
+  'app.backup.pw.wrong': 'Esa contraseña no abre esta copia de seguridad. No se cambió nada.',
+  'app.backup.pw.checkLabel': 'La contraseña de la copia de seguridad',
+  'app.backup.pw.open': 'Abrirla',
+  'app.backup.restoreTitle': 'Recupere sus registros',
   'app.backup.restoreIntro':
     '¿Teléfono o computadora nuevos, o borró los datos de su navegador? Abra el archivo de copia de seguridad que guardó.',
-  'app.backup.plantsBack': 'Sus plantas están de vuelta.',
+  'app.backup.plantsBack': 'Sus registros están de vuelta.',
   'app.backup.restored': 'Restaurado.',
   'app.backup.nothingNew': 'No hay nada nuevo en ese archivo.',
   'app.backup.sentence': '{s} ',
@@ -44,17 +58,17 @@ export const backup = {
   'app.backup.nCodes.one': '{count} código de laboratorio',
   'app.backup.nCodes.other': '{count} códigos de laboratorio',
   'app.backup.and': '{a} y {b}',
-  'app.backup.seeMyPlants': 'Ver mis plantas',
+  'app.backup.seeMyPlants': 'Ver mis registros',
   'app.backup.lookIn':
-    'Busque en su correo, en Drive o iCloud, o en su memoria USB. Cualquier nombre de archivo sirve. No se sube nada.',
+    'Busque en su memoria USB, en su gestor de contraseñas, o en su correo, Drive o iCloud. Cualquier nombre de archivo sirve. No se sube nada.',
   'app.backup.openFile': 'Abrir mi archivo de copia de seguridad',
   'app.backup.onlyKey': '¿Solo tiene su clave de titular (64 caracteres)?',
   'app.backup.keyLabel': 'Su clave de titular (64 caracteres)',
   'app.backup.useIt': 'Usarla',
   'app.backup.olderVersion':
-    'Solo si la copió de una versión anterior de este sitio: ahora no se muestra en ninguna parte. Con ella se encuentran sus registros, pero siguen bloqueados hasta que abra su archivo de copia de seguridad. Las claves de sello de fecha de cada planta también están solo en ese archivo.',
+    'Solo si la copió de una versión anterior de este sitio: ahora no se muestra en ninguna parte. Con ella se encuentran sus registros, pero siguen bloqueados hasta que abra su archivo de copia de seguridad. Las claves de sello de fecha de cada registro también están solo en ese archivo.',
   'app.backup.cantFind':
-    '<b>¿No encuentra el archivo?</b> Entonces nadie puede recuperar las plantas, ni siquiera nosotros: nunca tuvimos su clave. Eso es lo que le permite demostrar que las tiene. Si su dispositivo anterior todavía funciona, abra VeilCore allí y guarde una copia de seguridad nueva.',
+    '<b>¿No encuentra el archivo?</b> Entonces nadie puede recuperar los registros, ni siquiera nosotros: nunca tuvimos su clave. Eso es lo que le permite demostrar que los tiene. Si su dispositivo anterior todavía funciona, abra VeilCore allí y guarde una copia de seguridad nueva.',
   'app.backup.holds.none': 'Sus registros están en él.',
   'app.backup.holds.records.one': 'Su registro está en él.',
   'app.backup.holds.records.other': 'Sus {count} registros están en él.',
@@ -79,7 +93,7 @@ export const backup = {
     'Esa copia de seguridad no tiene la firma de su laboratorio. Guarde una nueva y compruébela.',
   'app.backup.err.noDeliveries': 'Esa copia de seguridad no tiene sus últimos envíos. Guarde una nueva y compruébela.',
   'app.backup.err.differentKeys':
-    'Este navegador ya tiene claves distintas para una de esas plantas. No se cambió nada.',
+    'Este navegador ya tiene claves distintas para uno de esos registros. No se cambió nada.',
   'app.backup.err.differentSet': 'Este navegador ya usa otro conjunto de registros. No se cambió nada.',
   'app.backup.err.differentLab': 'Este navegador ya tiene otra firma de laboratorio. No se cambió nada.',
   'app.backup.err.missingLatest.one':

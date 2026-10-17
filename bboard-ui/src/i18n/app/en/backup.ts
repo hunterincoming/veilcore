@@ -7,19 +7,20 @@ export const backup = {
   'app.backup.done': 'Done',
   'app.backup.shareTitle': 'VeilCore backup',
   'app.backup.onlyWay':
-    "<b>This file is the only way to prove you hold your plants</b>, and to get them back on a new phone or computer. VeilCore can't recover it or make another.",
+    "<b>This file is the only way to prove you hold your records</b>, and to get them back on a new phone or computer. VeilCore can't recover it or make another.",
   'app.backup.saveIt': 'Save it',
   'app.backup.saved': 'Saved',
   'app.backup.savedSub': '{file} · one file for everything',
   'app.backup.saveFile': 'Save backup file',
   'app.backup.copyTitle': 'Put a copy somewhere else',
   'app.backup.wayBack': 'If this phone or computer breaks, that copy is your way back.',
-  'app.backup.actAsYou': 'This file lets anyone who has it act as you. Keep it somewhere only you can open.',
+  'app.backup.actAsYou':
+    'Anyone with this file can open your records and act as you. Best: a USB stick or a password manager. If you email it, use an account with two-step login.',
   'app.backup.sentCopy': 'Sent a copy ✓',
   'app.backup.sendCopy': 'Send a copy (email, Drive, Files…)',
   'app.backup.shareFailed': "This browser couldn't open its share menu.",
   'app.backup.byHand':
-    "Email it to yourself, or put it on Google Drive, iCloud or a USB stick. It's the file you just saved, in your Downloads folder.",
+    "Put it on a USB stick or in a password manager. It's the file you just saved, in your Downloads folder.",
   'app.backup.checkTitle': 'Check it works',
   'app.backup.itWorks': 'It works.',
   'app.backup.openIntro':
@@ -27,10 +28,24 @@ export const backup = {
   'app.backup.openCopy': 'Open my saved copy',
   'app.backup.saveFirst': 'Save the backup file first.',
   'app.backup.turnsOn': 'This turns on once the check passes.',
+  'app.backup.pw.add': 'Add a password (suggested)',
+  'app.backup.pw.why':
+    'Then the file alone opens nothing: whoever has it also needs the password. If you forget it, nobody can open the file, us included.',
+  'app.backup.pw.label': 'Password for the backup file',
+  'app.backup.pw.again': 'Type it again',
+  'app.backup.pw.short': 'At least {n} characters.',
+  'app.backup.pw.mismatch': "The two don't match.",
+  'app.backup.pw.keep': 'Keep it in a password manager, or written down, apart from the file.',
+  'app.backup.pw.locking': 'Locking the file…',
+  'app.backup.pw.savedSub': '{file} · one file for everything, locked with your password',
+  'app.backup.pw.needed': 'This backup has a password. Type it to open the file.',
+  'app.backup.pw.wrong': "That password doesn't open this backup. Nothing was changed.",
+  'app.backup.pw.checkLabel': "The backup's password",
+  'app.backup.pw.open': 'Open it',
   // RestorePage.tsx
-  'app.backup.restoreTitle': 'Get your plants back',
+  'app.backup.restoreTitle': 'Get your records back',
   'app.backup.restoreIntro': 'New phone or computer, or cleared your browser? Open the backup file you saved.',
-  'app.backup.plantsBack': 'Your plants are back.',
+  'app.backup.plantsBack': 'Your records are back.',
   'app.backup.restored': 'Restored.',
   'app.backup.nothingNew': 'Nothing new in that file.',
   'app.backup.sentence': '{s} ',
@@ -42,17 +57,17 @@ export const backup = {
   'app.backup.nCodes.one': '{count} lab code',
   'app.backup.nCodes.other': '{count} lab codes',
   'app.backup.and': '{a} and {b}',
-  'app.backup.seeMyPlants': 'See my plants',
+  'app.backup.seeMyPlants': 'See my records',
   'app.backup.lookIn':
-    'Look in your email, Drive or iCloud, or on your USB stick. Any file name is fine. Nothing is uploaded.',
+    'Look on your USB stick, in your password manager, or in your email, Drive or iCloud. Any file name is fine. Nothing is uploaded.',
   'app.backup.openFile': 'Open my backup file',
   'app.backup.onlyKey': 'Have only your holder key (64 characters)?',
   'app.backup.keyLabel': 'Your holder key (64 characters)',
   'app.backup.useIt': 'Use it',
   'app.backup.olderVersion':
-    "Only if you copied it from an older version of this site: it isn't shown anywhere now. That finds your records, but they stay locked until you open your backup file. A plant's date-stamp keys are only in that file too.",
+    "Only if you copied it from an older version of this site: it isn't shown anywhere now. That finds your records, but they stay locked until you open your backup file. A record's date-stamp keys are only in that file too.",
   'app.backup.cantFind':
-    "<b>Can't find the file?</b> Then nobody can bring the plants back, us included: we never had your key. That's what lets you prove you hold them. If your old device still works, open VeilCore there and save a new backup.",
+    "<b>Can't find the file?</b> Then nobody can bring the records back, us included: we never had your key. That's what lets you prove you hold them. If your old device still works, open VeilCore there and save a new backup.",
   // stage/record-kinds.ts
   'app.backup.holds.none': 'Your records are in it.',
   'app.backup.holds.records.one': 'Your record is in it.',
@@ -75,7 +90,7 @@ export const backup = {
   'app.backup.err.noLabSignature': "That backup doesn't hold your lab's signature. Save a new one and check that.",
   'app.backup.err.noDeliveries': "That backup doesn't hold your latest deliveries. Save a new one and check that.",
   'app.backup.err.differentKeys':
-    'This browser already holds different keys for one of those plants. Nothing was changed.',
+    'This browser already holds different keys for one of those records. Nothing was changed.',
   'app.backup.err.differentSet': 'This browser is already using a different set of records. Nothing was changed.',
   'app.backup.err.differentLab': 'This browser already has a different lab signature. Nothing was changed.',
   'app.backup.err.missingLatest.one':

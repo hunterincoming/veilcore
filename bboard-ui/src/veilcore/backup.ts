@@ -17,8 +17,13 @@
 //     browser has seen (`revs`), so a browser restored from it still refuses an older copy the
 //     registry serves. A version 3 file without them restores as before.
 //
-// The file is not encrypted: a password is one more thing to forget, and that trade-off is
-// decided before mainnet (docs/simple-flow.md). It says SECRET at the top, and why.
+// A password on the file is offered, and suggested, not forced (persona review, 17 Oct): the
+// file opens every locked detail, so an email account that gets broken into would leak it. A
+// file with a password is version 4: { format, version: 4, warning, savedAt, locked } where
+// `locked` holds the version 3 JSON sealed with AES-256-GCM under a key made from the password
+// with PBKDF2-SHA256 (at least 600,000 iterations, a random 16-byte salt). Opening it asks for
+// the password; a wrong one changes nothing. A file without a password stays version 3 and
+// works as before. The password is never stored or sent anywhere.
 // SPDX-License-Identifier: Apache-2.0
 
 import { holderKeyIfAny, setHolderKey } from './holder';
@@ -29,6 +34,7 @@ import { allSentCodes, mergeSentCodes } from './transfers';
 import { isVaultKey, markVaultBackedUp, setVaultKey, vaultHasSealed, vaultKeyIfAny, vaultKid } from './vault';
 import { raiseRevMarks, registryKids, revMarks } from './api-store';
 import { enT } from '../i18n/translate';
+import { base64urlnopad } from '@scure/base';
 
 export const BACKUP_FORMAT = 'veilcore-backup';
 /** 3: adds vaultKey (sealed records, CONTRACT.md #9). */
@@ -59,6 +65,170 @@ export type BackupContents = {
 const WARNING =
   'SECRET. This file is the only way to prove you hold your records, and to get them back on a new device. ' +
   'Anyone with it can act as you. VeilCore has no copy and cannot make another. Keep a copy off this device.';
+
+/** 4: a version 3 backup sealed with a password (`locked`). */
+export const LOCKED_BACKUP_VERSION = 4;
+/** PBKDF2-SHA256 iterations for a new file (OWASP's 2023 figure); a file says its own. */
+export const BACKUP_PBKDF2_ITERATIONS = 600_000;
+/** Fewer than this is refused when opening: a file that says less wasn't made by VeilCore. */
+const MIN_ITERATIONS = 600_000;
+/** More than this is refused too, so a made-up file can't make the browser work for hours. */
+const MAX_ITERATIONS = 10_000_000;
+const LOCKED_AAD = new TextEncoder().encode('veilcore:backup:v4');
+
+export type LockedBox = {
+  readonly kdf: 'PBKDF2-SHA256';
+  readonly iterations: number;
+  /** 16 random bytes, base64url. */
+  readonly salt: string;
+  readonly alg: 'A256GCM';
+  /** 12 random bytes, base64url. */
+  readonly iv: string;
+  /** The version 3 JSON, sealed, with the GCM tag appended; base64url. */
+  readonly ct: string;
+};
+
+export type LockedBackupFile = {
+  readonly format: typeof BACKUP_FORMAT;
+  readonly version: typeof LOCKED_BACKUP_VERSION;
+  readonly warning: string;
+  readonly savedAt: string;
+  readonly locked: LockedBox;
+};
+
+const LOCKED_WARNING =
+  'SECRET. This backup is locked with a password. Without the password nobody can open it, VeilCore included. ' +
+  'Keep a copy off this device, and keep the password somewhere safe.';
+
+/** backup.ts's words for a locked file (backup-words.ts translates them). */
+export const NEEDS_PASSWORD = enT.t('app.backup.pw.needed');
+export const WRONG_PASSWORD = enT.t('app.backup.pw.wrong');
+
+/** Thrown by restoreAny for a locked file opened without its password. Nothing was changed. */
+export class BackupNeedsPassword extends Error {
+  constructor() {
+    super(NEEDS_PASSWORD);
+    this.name = 'BackupNeedsPassword';
+  }
+}
+
+const passwordKey = async (password: string, salt: Uint8Array<ArrayBuffer>, iterations: number): Promise<CryptoKey> => {
+  const base = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(password.normalize('NFC')),
+    'PBKDF2',
+    false,
+    ['deriveKey'],
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', hash: 'SHA-256', salt, iterations },
+    base,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt'],
+  );
+};
+
+/** Whether a parsed file is a password-locked backup (version 4). */
+export const isLockedBackup = (v: unknown): v is LockedBackupFile =>
+  typeof v === 'object' &&
+  v !== null &&
+  (v as { format?: unknown }).format === BACKUP_FORMAT &&
+  typeof (v as { locked?: unknown }).locked === 'object' &&
+  (v as { locked?: unknown }).locked !== null;
+
+/** Seal backup contents with a password. `iterations` is for tests only. */
+export const lockBackup = async (
+  contents: BackupContents,
+  password: string,
+  iterations: number = BACKUP_PBKDF2_ITERATIONS,
+): Promise<LockedBackupFile> => {
+  if (!password) throw new Error('a locked backup needs a password');
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await passwordKey(password, salt, iterations);
+  const ct = new Uint8Array(
+    await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv, additionalData: LOCKED_AAD },
+      key,
+      new TextEncoder().encode(JSON.stringify(contents)),
+    ),
+  );
+  return {
+    format: BACKUP_FORMAT,
+    version: LOCKED_BACKUP_VERSION,
+    warning: LOCKED_WARNING,
+    savedAt: contents.savedAt,
+    locked: {
+      kdf: 'PBKDF2-SHA256',
+      iterations,
+      salt: base64urlnopad.encode(salt),
+      alg: 'A256GCM',
+      iv: base64urlnopad.encode(iv),
+      ct: base64urlnopad.encode(ct),
+    },
+  };
+};
+
+const bytesOf = (v: unknown, length?: number): Uint8Array<ArrayBuffer> | undefined => {
+  if (typeof v !== 'string') return undefined;
+  try {
+    const b = new Uint8Array(base64urlnopad.decode(v));
+    return length === undefined || b.length === length ? b : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * Open a locked backup with its password: the version 3 contents inside, parsed. Throws
+ * WRONG_PASSWORD for a wrong password or a changed file (AES-GCM can't tell them apart),
+ * and NOT_BACKUP for a box that isn't one this app makes. Changes nothing.
+ */
+export const unlockBackup = async (file: LockedBackupFile, password: string): Promise<Record<string, unknown>> => {
+  const box = file.locked as unknown as Record<string, unknown>;
+  const salt = bytesOf(box.salt, 16);
+  const iv = bytesOf(box.iv, 12);
+  const ct = bytesOf(box.ct);
+  const iterations = box.iterations;
+  if (
+    box.kdf !== 'PBKDF2-SHA256' ||
+    box.alg !== 'A256GCM' ||
+    !salt ||
+    !iv ||
+    !ct ||
+    typeof iterations !== 'number' ||
+    !Number.isInteger(iterations) ||
+    iterations < MIN_ITERATIONS ||
+    iterations > MAX_ITERATIONS
+  ) {
+    throw new Error(NOT_BACKUP);
+  }
+  if (!password) throw new BackupNeedsPassword();
+  let plain: ArrayBuffer;
+  try {
+    const key = await passwordKey(password, salt, iterations);
+    plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv, additionalData: LOCKED_AAD }, key, ct);
+  } catch {
+    throw new Error(WRONG_PASSWORD);
+  }
+  const inner = parse(new TextDecoder().decode(plain));
+  if (inner.format !== BACKUP_FORMAT || isLockedBackup(inner)) throw new Error(NOT_BACKUP);
+  return inner;
+};
+
+/**
+ * The file's text: the version 3 JSON, or, with a password, the version 4 file that seals it.
+ * `iterations` is for tests only.
+ */
+export const backupFileText = async (
+  password?: string,
+  now = Date.now(),
+  iterations: number = BACKUP_PBKDF2_ITERATIONS,
+): Promise<string> => {
+  const contents = backupContents(now);
+  return JSON.stringify(password ? await lockBackup(contents, password, iterations) : contents, null, 2);
+};
 
 /** What goes in the file now. */
 export const backupContents = (now = Date.now()): BackupContents => {
@@ -103,9 +273,9 @@ export const hasAnythingToBackUp = (): boolean =>
  * Save the file. Deliberately does not mark anything as backed up: only checkBackup
  * does, once the saved copy has been opened and read back.
  */
-export const downloadBackupAll = (now = Date.now()): string => {
+export const downloadBackupAll = (now = Date.now(), text?: string): string => {
   const name = backupFileName(now);
-  const blob = new Blob([JSON.stringify(backupContents(now), null, 2)], { type: 'application/json' });
+  const blob = new Blob([text ?? JSON.stringify(backupContents(now), null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -115,6 +285,8 @@ export const downloadBackupAll = (now = Date.now()): string => {
   return name;
 };
 
+const NOT_BACKUP = "That file isn't a VeilCore backup. Pick the file you saved from VeilCore.";
+
 const parse = (text: string): Record<string, unknown> => {
   try {
     const v: unknown = JSON.parse(text);
@@ -122,8 +294,12 @@ const parse = (text: string): Record<string, unknown> => {
   } catch {
     /* fall through */
   }
-  throw new Error("That file isn't a VeilCore backup. Pick the file you saved from VeilCore.");
+  throw new Error(NOT_BACKUP);
 };
+
+/** A parsed backup, opened with the password when it is locked. Throws before anything changes. */
+const opened = async (v: Record<string, unknown>, password: string | undefined): Promise<Record<string, unknown>> =>
+  isLockedBackup(v) ? unlockBackup(v, password ?? '') : v;
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : '');
 
@@ -131,18 +307,20 @@ const same = (a: unknown, b: unknown): boolean => JSON.stringify(a ?? null) === 
 
 export type CheckResult =
   | { readonly ok: true; readonly records: number; readonly recordIds?: readonly string[] }
-  | { readonly ok: false; readonly reason: string };
+  /** `needsPassword`: the file is locked and no password was given (the page asks for it). */
+  | { readonly ok: false; readonly reason: string; readonly needsPassword?: true };
 
 /**
  * Open a saved copy and check it holds everything this browser holds now: the same holder
  * key, and every record's keys with the same anchor and pairing. Changes nothing unless it
  * passes; then every record is marked backed up.
  */
-export const checkBackup = async (file: File): Promise<CheckResult> => {
+export const checkBackup = async (file: File, password?: string): Promise<CheckResult> => {
   let v: Record<string, unknown>;
   try {
-    v = parse(await file.text());
+    v = await opened(parse(await file.text()), password);
   } catch (e) {
+    if (e instanceof BackupNeedsPassword) return { ok: false, reason: e.message, needsPassword: true };
     return { ok: false, reason: (e as Error).message };
   }
   if (v.format !== BACKUP_FORMAT) {
@@ -217,7 +395,7 @@ export type RestoreResult = {
  * Restore from any VeilCore backup: the one-file backup, an older single record's keys
  * file, or an older holder-key text file. Never replaces a different key already here.
  */
-export const restoreAny = async (file: File): Promise<RestoreResult> => {
+export const restoreAny = async (file: File, password?: string): Promise<RestoreResult> => {
   const text = await file.text();
   // The older holder-key file is plain text with the key on its own line.
   const keyLine = text.split(/\r?\n/).find((l) => HEX64.test(l.trim()));
@@ -238,7 +416,8 @@ export const restoreAny = async (file: File): Promise<RestoreResult> => {
       labSignature: false,
     };
   }
-  const v = parse(text);
+  // A locked file is opened first: a missing or wrong password throws before anything changes.
+  const v = await opened(parse(text), password);
   if (v.format === 'veilcore-record-keys') {
     const k = restoreKeysEntry(v);
     return { records: 1, recordIds: [k.recordId], holderKey: 'none', labSignature: false };
