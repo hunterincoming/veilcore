@@ -45,7 +45,7 @@ export const LicensingHub: React.FC = () => {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
             No agreements yet. Open one of your records and choose License, Send to a lab, or Share with a breeder.
           </Typography>
-          <Link component={RouterLink} to="/records" sx={{ color: 'primary.main', fontWeight: 700 }}>
+          <Link component={RouterLink} to="/records">
             Go to your records
           </Link>
         </Paper>
@@ -63,7 +63,7 @@ export const LicensingHub: React.FC = () => {
                   p: 2.5,
                   cursor: 'pointer',
                   '&:hover': { borderColor: 'secondary.main' },
-                  '&:focus-visible': { borderColor: 'primary.main' },
+                  '&:focus-visible': { borderColor: 'secondary.main' },
                 }}
               >
                 <Stack

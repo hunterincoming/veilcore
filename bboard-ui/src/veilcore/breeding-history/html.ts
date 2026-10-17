@@ -298,14 +298,14 @@ const SECTIONS: readonly Section[] = [
 ];
 
 const STYLE = `
-  :root { --ink: #1e2227; --muted: #575e66; --line: #c2c7cd; --note: #f3f5f7; --warn: #8a4b00; }
+  :root { --ink: #16181d; --muted: #4b4740; --line: #cfc6b1; --note: #f6f3ec; --warn: #8a4b00; --serif: Georgia, "Times New Roman", "Hiragino Mincho ProN", "Noto Serif JP", serif; }
   * { box-sizing: border-box; }
-  body { margin: 0; font: 13px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif; color: var(--ink); background: #fff; }
+  body { margin: 0; font: 13px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif; color: var(--ink); background: #fffdf7; }
   table.page { width: 100%; max-width: 900px; margin: 0 auto; border-collapse: collapse; table-layout: fixed; }
   table.page > thead td, table.page > tfoot td { padding: 6px 16px; font-size: 0.8em; color: var(--warn); font-weight: 600; }
   table.page > tbody > tr > td { padding: 4px 16px 32px; overflow-wrap: anywhere; }
-  h1 { font-size: 1.35em; margin: 4px 0 2px; }
-  h2 { font-size: 1.08em; margin: 22px 0 6px; padding-bottom: 2px; border-bottom: 1px solid var(--line); }
+  h1 { font-family: var(--serif); font-size: 1.45em; margin: 4px 0 2px; }
+  h2 { font-family: var(--serif); font-size: 1.12em; margin: 22px 0 6px; padding-bottom: 2px; border-bottom: 1px solid var(--line); }
   h3 { font-size: 0.94em; margin: 12px 0 4px; }
   p { margin: 4px 0; }
   .muted { color: var(--muted); }

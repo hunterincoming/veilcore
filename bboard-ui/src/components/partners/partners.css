@@ -1,7 +1,7 @@
 /* /partners (PartnersPage.tsx): the site's design (site.css tokens under .vcm), and the
    live <veilcore-record-check> field themed to match through its custom properties.
    15 October 2026: no rules and no outlined boxes, as on the home page. Lists are laid out
-   like the home page's register (name left, text right); a card is a white sheet on the
+   like the home page's register (name left, text right); a card is a specimen sheet on the
    Paper ground; the policy quote sits on Wash.
    SPDX-License-Identifier: Apache-2.0 */
 
@@ -42,7 +42,7 @@
   color: var(--muted);
 }
 .vcm .pk .pk-card {
-  background: var(--tag);
+  background: var(--sheet);
   border-radius: var(--r-picture);
   padding: clamp(20px, 3vw, 28px);
 }
@@ -59,18 +59,19 @@
 }
 .vcm .pk .pk-demo {
   margin-top: 28px;
-  background: var(--tag);
+  background: var(--sheet);
   border-radius: var(--r-picture);
   padding: clamp(18px, 3vw, 28px);
   min-height: 150px;
 }
 .vcm .pk veilcore-record-check {
-  --vc-accent: var(--notary);
+  --vc-accent: var(--pollen);
+  --vc-on-accent: var(--ink);
   --vc-ok: var(--ok);
   --vc-ink: var(--ink);
   --vc-muted: var(--muted);
   --vc-line: var(--edge);
-  --vc-paper: var(--ground);
+  --vc-paper: var(--sheet);
   --vc-warn: var(--warn);
   max-width: none;
 }
@@ -112,8 +113,12 @@
   flex-wrap: wrap;
 }
 .vcm .pk .pk-links a {
-  color: var(--notary);
-  font-weight: 600;
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--pollen);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
   min-height: 44px;
   display: inline-flex;
   align-items: center;

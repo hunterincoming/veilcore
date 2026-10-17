@@ -1,0 +1,33 @@
+/* The headings' face: Libre Caslon Text Bold (SIL Open Font License 1.1, public/fonts),
+   a revival of William Caslon's 1720s type, the face of the century's registers, herbaria
+   labels and stud books. One weight, subset to Latin and Latin-1 (16 KB), served from our
+   own origin (the Content-Security-Policy is font-src 'self'), preloaded in index.html.
+   font-display: swap shows the heading at once in the stand-in below; the stand-in is a
+   serif already on the device, scaled to Caslon's width and line metrics (measured
+   against Times New Roman Bold, whose metrics Liberation Serif and Tinos share), so the
+   swap moves nothing. Japanese headings use the body face (site.css, App.tsx).
+   SPDX-License-Identifier: Apache-2.0 */
+@font-face {
+  font-family: 'VeilCore Caslon';
+  src: url('/fonts/libre-caslon-text-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'VeilCore Caslon fallback';
+  src:
+    local('Times New Roman Bold'), local('TimesNewRomanPS-BoldMT'), local('Liberation Serif Bold'),
+    local('LiberationSerif-Bold'), local('Tinos Bold'), local('Tinos-Bold');
+  font-weight: 700;
+  font-style: normal;
+  size-adjust: 121.4%;
+  ascent-override: 79.9%;
+  descent-override: 21.4%;
+  line-gap-override: 0%;
+}
+/* Selected text is highlighted in pollen, like a marker on a printed record. */
+::selection {
+  background: #f6da3c;
+  color: #16181d;
+}

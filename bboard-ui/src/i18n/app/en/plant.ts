@@ -67,6 +67,10 @@ export const plant = {
   'app.plant.mark.reported': 'reported by the registry, not checked',
   'app.plant.mark.wait': 'not yet',
   'app.plant.recordDated': 'Record dated',
+  // The stamp on the record's sheet (DatedStamp.tsx): a real date, a test network's, none yet.
+  'app.plant.stamp.dated': 'Dated',
+  'app.plant.stamp.practice': 'Practice',
+  'app.plant.stamp.waiting': 'Not dated yet',
   'app.plant.labReport': 'Lab report',
   'app.plant.dnaReport': 'DNA report',
   'app.plant.tie.tied': 'Tied to the plant',

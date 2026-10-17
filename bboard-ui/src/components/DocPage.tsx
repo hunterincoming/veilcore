@@ -13,7 +13,7 @@ import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import CodeIcon from '@mui/icons-material/CodeOutlined';
-import { NOTARY, LINE_COLOR } from '../config/theme';
+import { LINK_SX, LINE_COLOR, SHEET } from '../config/theme';
 import { DOCS, DOCS_COMMIT, DOCS_VERSION, REPO_VIEW, docHtml } from '../veilcore/docs';
 import { LanguageBar } from '../i18n/LanguagePicker';
 import { InEnglishPage, useT } from '../i18n/app';
@@ -115,7 +115,7 @@ export const DocPage: React.FC = () => {
               font: 'inherit',
               fontSize: 16,
               color: 'text.primary',
-              bgcolor: '#FFFFFF',
+              bgcolor: SHEET,
               border: '1px solid',
               borderColor: 'divider',
               borderRadius: 1,
@@ -156,7 +156,7 @@ export const DocPage: React.FC = () => {
             '& p': { fontSize: 15.5, lineHeight: 1.75, mb: 2, color: 'text.secondary' },
             '& li': { fontSize: 15.5, lineHeight: 1.75, mb: 0.75, color: 'text.secondary' },
             '& strong': { color: 'text.primary', fontWeight: 600 },
-            '& a': { color: NOTARY },
+            '& a': LINK_SX,
             '& code': {
               fontFamily: 'ui-monospace, Menlo, monospace',
               fontSize: 13,

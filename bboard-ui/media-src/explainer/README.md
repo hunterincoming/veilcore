@@ -2,9 +2,12 @@
 
 `explainer.html` draws the whole animation from one function, `render(t)`, so every frame
 is exact and the video can be changed and re-rendered in minutes. Colours and fonts are the
-site's light design (src/config/theme.ts): notary blue #1C3BB0 / #152C86 is the one accent,
-cool greys around it, a check that passed is a ✓ in the quiet green #2E6B55, and nothing is
-red (red means an error). It runs 60 seconds, to match the "60 s" chip on the landing page.
+site's pollen and ink (src/config/theme.ts): ink #16181D on herbarium paper #F6F3EC, sheets
+#FFFDF7, and one colour, pollen gold #F6DA3C, as a fill or a mark (the "Prove it" button, the
+dated row, the scan line, toggles), never as text; a check that passed is a ✓ in the quiet
+green #2E6B55, and nothing is red (red means an error). Captions and the wordmark are set in
+Libre Caslon Text Bold (fonts/, the site's heading face); the rest in Inter and Space
+Grotesk. It runs 60 seconds, to match the "60 s" chip on the landing page.
 
 Re-render (needs ffmpeg; from this folder):
 

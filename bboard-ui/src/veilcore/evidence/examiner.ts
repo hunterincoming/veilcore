@@ -406,19 +406,19 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
 <meta name="referrer" content="no-referrer">
 <title>${escapeHtml(title)}</title>
 <style>
-  :root { --ink: #1e2227; --muted: #575e66; --line: #c2c7cd; --note: #f3f5f7; --warn: #8a4b00; }
+  :root { --ink: #16181d; --muted: #4b4740; --line: #cfc6b1; --note: #f6f3ec; --warn: #8a4b00; --serif: Georgia, "Times New Roman", serif; }
   * { box-sizing: border-box; }
-  body { margin: 0; font: 13px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: #fff; }
+  body { margin: 0; font: 13px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: #fffdf7; }
   main { max-width: 820px; margin: 0 auto; padding: 20px 16px 40px; overflow-wrap: anywhere; }
-  h1 { font-size: 1.35rem; margin: 0 0 2px; }
-  h2 { font-size: 1.02rem; margin: 18px 0 6px; padding-bottom: 2px; border-bottom: 1px solid var(--line); }
+  h1 { font: 700 1.5rem/1.2 var(--serif); margin: 0 0 2px; }
+  h2 { font: 700 1.1rem/1.25 var(--serif); margin: 18px 0 6px; padding-bottom: 2px; border-bottom: 1px solid var(--line); }
   h3 { font-size: 0.92rem; margin: 10px 0 4px; }
   p { margin: 4px 0; }
   .muted { color: var(--muted); }
   .note { background: var(--note); border-radius: 6px; padding: 8px 10px; margin: 8px 0; }
   .warn { border-left: 4px solid var(--warn); }
   table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 4px 0; }
-  th, td { text-align: left; vertical-align: top; padding: 3px 6px; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+  th, td { text-align: left; vertical-align: top; padding: 3px 6px; border-top: 1px dashed var(--line); overflow-wrap: anywhere; }
   th { color: var(--muted); font-weight: 500; width: 34%; }
   td.hex { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.82rem; word-break: break-all; }
   ol, ul { padding-left: 20px; margin: 4px 0; }

@@ -11,7 +11,7 @@ import { NotFound } from './components/site/NotFound';
 import { PageErrorBoundary } from './components/PageErrorBoundary';
 import { Box, Container, GlobalStyles, ThemeProvider } from '@mui/material';
 import { MotionConfig } from 'framer-motion';
-import { lightFocusStyles, lightTheme } from './config/theme';
+import { FONT, lightFocusStyles, lightTheme } from './config/theme';
 import { focusScreenHeading } from './components/flow/FlowFrame';
 import { Routes, Route, createRoutesFromChildren, matchRoutes, useLocation } from 'react-router-dom';
 import { IS_MAINNET } from './config/network';
@@ -167,10 +167,20 @@ const longCodes = {
   },
 } as const;
 
+/** Caslon has no Japanese: Japanese headings use the body face, at its own spacing. */
+const japaneseHeadings = {
+  ':lang(ja) :is(.MuiTypography-h1, .MuiTypography-h2, .MuiTypography-h3, .MuiTypography-h4, .MuiTypography-h5, .MuiDialogTitle-root)':
+    {
+      fontFamily: FONT,
+      letterSpacing: 0,
+    },
+} as const;
+
 const Light: React.FC<React.PropsWithChildren> = ({ children }) => (
   <ThemeProvider theme={lightTheme}>
     <GlobalStyles styles={lightFocusStyles} />
     <GlobalStyles styles={japaneseLineBreaks} />
+    <GlobalStyles styles={japaneseHeadings} />
     <GlobalStyles styles={longCodes} />
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
       <PageErrorBoundary>{children}</PageErrorBoundary>

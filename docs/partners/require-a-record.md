@@ -220,7 +220,7 @@ three public reads below, sent with no credentials and no referrer.
 Keyboard only works (Enter checks; focus stays put). Each line starts with a word
 ("Checked:", "Registry's word:", "Not counted:"), so nothing depends on colour. Touch
 targets are 44 px. Colours can be changed with CSS custom properties on the element:
-`--vc-accent` (default notary blue, `#1c3bb0`), `--vc-ink`, `--vc-muted`, `--vc-line`, `--vc-paper`, `--vc-bad`,
+`--vc-accent` (default pollen gold, `#f6da3c`: the button's fill, link underlines and the focus ring, never text), `--vc-on-accent` (the button's text, default ink `#16181d`), `--vc-ink`, `--vc-muted`, `--vc-line`, `--vc-paper`, `--vc-bad`,
 `--vc-warn`.
 
 ### The library (Node or browser)

@@ -303,8 +303,10 @@ export const es: Strings = {
   'm.for.2p':
     'Los obtentores quieren usar sus marcadores para mostrar que una variedad es distinta, y los guardan como secretos comerciales. Una afirmación de VeilCore prueba un hecho sobre ellos sin mostrar el resto. Ninguna oficina de examen ni certificadora la acepta todavía.',
   'm.hero.note':
-    'Escriba en cualquiera de los dos campos; no se envía nada. La línea azul de abajo es el código de prueba, la parte que va a Midnight. Nadie puede deducir a partir de ella lo que usted escribió.',
-  'm.hero.noteShort': 'Solo la línea azul va a Midnight.',
+    'Escriba en cualquiera de los dos campos; no se envía nada. La franja dorada de abajo es el código de prueba, la parte que va a Midnight. Nadie puede deducir a partir de ella lo que usted escribió.',
+  'm.hero.noteShort': 'Solo la franja dorada va a Midnight.',
+  'm.hero.stampWord': 'Fechado',
+  'm.hero.stampLine': 'en Midnight',
   'm.for.label': 'Para qué sirve',
   'm.for.title1': 'Muchas disputas sobre genética se reducen a una pregunta:',
   'm.for.title2': '¿qué tenía usted, y cuándo?',

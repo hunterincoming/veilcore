@@ -145,9 +145,12 @@ const Fingerprint: React.FC = () => {
 
   // The fingerprint in groups of eight, the way a long lab code is printed: easier to read
   // aloud and to compare by eye. The characters themselves are unchanged.
+  // A character that changed rolls in (site.css .chg), each a few milliseconds after the
+  // one before it, like the wheels of a numbering stamp.
+  let rolled = 0;
   const chars = [...hash].map((c, i) =>
     prev.current && prev.current[i] !== c ? (
-      <span key={`${i}-${c}`} className="chg">
+      <span key={`${i}-${c}`} className="chg" style={{ '--i': rolled++ } as React.CSSProperties}>
         {c}
       </span>
     ) : (
@@ -162,13 +165,17 @@ const Fingerprint: React.FC = () => {
       </span>,
     );
 
-  // A tie-on plant tag: what you type is the tag, which stays with you; below the
-  // perforation is the stub, the only part that goes on Midnight (plan: the plant tag).
+  // A specimen sheet: what you type is its label, which stays with you; the gold strip
+  // under it is the proof code, the only part that goes on Midnight; the DATED stamp says
+  // what happens to that strip (plan: pollen and ink).
   return (
     <div className="hash-demo" role="group" aria-label={t('m.hero.demoLabel')}>
       <div className="hd-card">
+        <span className="stamp" aria-hidden="true">
+          <b>{t('m.hero.stampWord')}</b>
+          <span>{t('m.hero.stampLine')}</span>
+        </span>
         <div className="hd-in">
-          <span className="eyelet" aria-hidden="true" />
           <p className="hd-zone">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x="3" y="4" width="18" height="12" rx="2" />
@@ -446,26 +453,28 @@ export const Home: React.FC = () => {
 
   return (
     <SiteShell>
-      <header className={`wrap hero${lang === 'ja' ? ' cjk' : ''}`} id="top">
-        <div className="hero-text">
-          <h1>
-            {t('m.hero.title1')}
-            {sp}
-            <em>{t('m.hero.title2')}</em>
-          </h1>
-          <p className="lede">{t('m.hero.lede')}</p>
-          <div className="hero-actions">
-            <a className="btn solid" href="#demo">
-              {t('m.nav.demo')}
-            </a>
-            <a className="btn" href="#how">
-              {t('m.hero.how')}
-            </a>
+      <div className="hero-band">
+        <header className={`wrap hero${lang === 'ja' ? ' cjk' : ''}`} id="top">
+          <div className="hero-text">
+            <h1>
+              {t('m.hero.title1')}
+              {sp}
+              <em>{t('m.hero.title2')}</em>
+            </h1>
+            <p className="lede">{t('m.hero.lede')}</p>
+            <div className="hero-actions">
+              <a className="btn solid" href="#demo">
+                {t('m.nav.demo')}
+              </a>
+              <a className="btn" href="#how">
+                {t('m.hero.how')}
+              </a>
+            </div>
+            <p className="hero-status">{t('m.hero.status')}</p>
           </div>
-          <p className="hero-status">{t('m.hero.status')}</p>
-        </div>
-        <Fingerprint key={lang} />
-      </header>
+          <Fingerprint key={lang} />
+        </header>
+      </div>
 
       <section id="about">
         <Entry title={<Two a={t('m.for.title1')} b={t('m.for.title2')} />}>

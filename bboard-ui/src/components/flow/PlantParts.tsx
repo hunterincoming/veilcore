@@ -10,10 +10,11 @@ import ChevronIcon from '@mui/icons-material/ChevronRight';
 import type { StrainRecord } from '../../veilcore/records';
 import type { RecordKeys } from '../../veilcore/record-keys';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
-import { LAB_RESULTS_ENABLED } from '../../config/network';
+import { LAB_RESULTS_ENABLED, isTestNetwork } from '../../config/network';
 import { useRecordDate } from '../verify/useAnchorCheck';
 import { SECTIONS, useSectionName, type Section } from './FlowFrame';
-import { WASH } from '../../config/theme';
+import { HAIRLINE, WASH } from '../../config/theme';
+import { DatedStamp } from '../DatedStamp';
 import { custodyHeadline, type BreederReceipt, type LabReceipt } from '../../veilcore/custody';
 import { signerLabel } from '../../veilcore/attesters';
 import type { ArrivedResult } from './LabResults';
@@ -35,18 +36,41 @@ const Row: React.FC<{
   label: string;
   value: string;
   sub?: string;
-  /** Kept for callers; rows no longer draw a rule, so the last one needs nothing different. */
+  /** The last row draws no ruled line under it. */
   last?: boolean;
   /**
    * The receipt row: whether the lab's receipt covers the delivery's sample details, as this
    * browser worked it out (custody.ts custodyView): data-custody, for tests and support.
    */
   custody?: string;
-}> = ({ done, mark = done ? 'done' : 'wait', id, label, value, sub, custody }) => {
+  /** Room kept on the right for the stamp pressed over the sheet's corner. */
+  stampRoom?: object;
+}> = ({ done, mark = done ? 'done' : 'wait', id, label, value, sub, last, custody, stampRoom }) => {
+  // Beside the stamp a phone has no room for label and value on one line: the value goes
+  // under the label there.
+  const under = Boolean(stampRoom);
   const { t } = useT();
   return (
-    <Box sx={{ py: 1.25 }} data-status-row={id} data-mark={mark} {...(custody ? { 'data-custody': custody } : {})}>
-      <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
+    <Box
+      sx={{
+        py: 1.25,
+        // The specimen sheet's ruled lines: a dashed hairline under every row but the last.
+        backgroundImage: last ? 'none' : `linear-gradient(to right, ${HAIRLINE} 50%, transparent 0)`,
+        backgroundSize: '8px 1.5px',
+        backgroundRepeat: 'repeat-x',
+        backgroundPosition: 'left bottom',
+        ...stampRoom,
+      }}
+      data-status-row={id}
+      data-mark={mark}
+      {...(custody ? { 'data-custody': custody } : {})}
+    >
+      <Stack
+        direction="row"
+        spacing={1.25}
+        useFlexGap
+        sx={{ alignItems: 'center', flexWrap: under ? { xs: 'wrap', sm: 'nowrap' } : 'nowrap', rowGap: 0 }}
+      >
         {mark === 'done' ? (
           <DoneIcon color="success" titleAccess={t('app.plant.mark.done')} />
         ) : mark === 'failed' ? (
@@ -72,14 +96,21 @@ const Row: React.FC<{
         >
           {label}
         </Typography>
-        {/* The record's date, once it has one, is stamped: the one value in Notary blue. */}
+        {/* The record's date, once it has one, is the one value in full ink (and stamped). */}
         <Typography
           variant="body2"
-          color={id === 'Record dated' && mark === 'done' ? 'primary' : 'text.secondary'}
+          color={id === 'Record dated' && mark === 'done' ? 'text.primary' : 'text.secondary'}
           sx={{
             flex: '0 1 auto',
             minWidth: 0,
             textAlign: 'right',
+            ...(under
+              ? {
+                  flexBasis: { xs: '100%', sm: 'auto' },
+                  textAlign: { xs: 'left', sm: 'right' },
+                  pl: { xs: 4.25, sm: 0 },
+                }
+              : {}),
             overflowWrap: 'anywhere',
             fontWeight: id === 'Record dated' && mark === 'done' ? 700 : undefined,
           }}
@@ -220,10 +251,50 @@ export const PlantStatus: React.FC<{
         ]
       : []),
   ];
+  // The specimen sheet's stamp, pressed in its top right corner: gold once the record's
+  // date is checked on Midnight, a dashed PRACTICE stamp for a test network's date, and the
+  // dashed outline of the stamp still to come before then. Not on a record received from
+  // someone else: that record's date is the sender's.
+  const anchored = proof !== 'checking' && proof.status === 'anchor-reported' ? proof.proof.anchor : undefined;
+  const checkedAt =
+    anchor !== undefined && anchor !== 'checking' && anchor.status === 'checked' ? anchor.blockTime : undefined;
+  const stamp = received
+    ? undefined
+    : checkedAt !== undefined
+      ? {
+          state: anchored && isTestNetwork(anchored.network) ? ('practice' as const) : ('dated' as const),
+          word:
+            anchored && isTestNetwork(anchored.network) ? t('app.plant.stamp.practice') : t('app.plant.stamp.dated'),
+          date: tr.date(checkedAt, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }),
+        }
+      : batch.mark === 'failed'
+        ? undefined
+        : { state: 'waiting' as const, word: t('app.plant.stamp.waiting') };
+  const STAMP = { xs: 72, sm: 92 };
   return (
-    <Paper sx={{ px: { xs: 2, md: 2.5 }, py: { xs: 1, md: 1.25 } }}>
+    <Paper sx={{ px: { xs: 2, md: 2.5 }, py: { xs: 1, md: 1.25 }, position: 'relative' }} data-specimen-sheet="">
+      {stamp && (
+        <DatedStamp
+          {...stamp}
+          pressKey={record.id}
+          size={STAMP}
+          sx={{ position: 'absolute', top: { xs: 10, sm: 12 }, right: { xs: 10, sm: 16 }, zIndex: 1 }}
+        />
+      )}
       {rows.map((r, i) => (
-        <Row key={r.id} {...r} last={i === rows.length - 1} />
+        <Row
+          key={r.id}
+          {...r}
+          last={i === rows.length - 1}
+          stampRoom={
+            stamp && i === 0
+              ? {
+                  pr: { xs: `${STAMP.xs + 4}px`, sm: `${STAMP.sm + 12}px` },
+                  minHeight: { xs: STAMP.xs + 8, sm: STAMP.sm + 8 },
+                }
+              : undefined
+          }
+        />
       ))}
     </Paper>
   );

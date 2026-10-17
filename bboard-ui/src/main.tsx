@@ -40,6 +40,8 @@ import { theme } from './config/theme';
 // characters people mix up (I l 1, O 0, B 8) look different, for lab codes, record codes
 // and fingerprints read off a phone. One variable file covers every weight (config/theme.ts).
 import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
+// Headings only: Libre Caslon Text Bold, self-hosted, with a stand-in sized to match (fonts.css).
+import './fonts.css';
 
 // Only the public pages come in this file (App.tsx). For any other page, fetch its files
 // first and then draw it whole, as before the split: not a frame, then a page, then a

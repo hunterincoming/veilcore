@@ -1,5 +1,5 @@
 // The footer. Since 15 October 2026 it is the public pages' footer band (site.css
-// footer.bottom): Graphite, light text, the tag wordmark. The page ends the same way
+// footer.bottom): Ink, paper-coloured text, the tag wordmark. The page ends the same way
 // on the landing page and in the app, so they read as one product.
 //
 // Documents are reachable from the landing page and nowhere else, which means anyone
@@ -11,22 +11,22 @@
 
 import React from 'react';
 import { Box, Container, Link, Stack, Typography } from '@mui/material';
-import { INK_COLOR } from '../config/theme';
+import { DISPLAY_FONT, INK_COLOR, POLLEN } from '../config/theme';
 import { TagMark } from './site/TagMark';
 import { Link as RouterLink } from 'react-router-dom';
 import { useI18n } from '../i18n';
 import { requestRoleChange, useRole } from '../veilcore/role';
 import { useT } from '../i18n/app';
 
-// On Graphite: 9.5:1 for the links, white for the group names and the focus ring, and the
-// notary blue lightened for a dark ground (8.0:1) on the mark's stub.
-const ON_DARK_MUTED = '#C3C8CF';
-const NOTARY_ON_DARK = '#A3B5F8';
+// On Ink: warm grey links (8.9:1), paper for the group names, and pollen gold (12.7:1) on
+// the mark's stub, the underlines and the focus ring.
+const ON_DARK_MUTED = '#BDB7AA';
+const ON_DARK = '#F6F3EC';
 const groupName = {
   display: 'block',
   fontSize: 15,
   fontWeight: 700,
-  color: '#FFFFFF',
+  color: ON_DARK,
   textTransform: 'none',
   letterSpacing: 0,
   mb: { xs: 0, sm: 0.25 },
@@ -49,8 +49,8 @@ const Item: React.FC<{ to: string; children: React.ReactNode; external?: boolean
       ...linkBox,
       color: ON_DARK_MUTED,
       fontSize: 15,
-      '&:hover': { color: '#FFFFFF' },
-      '&:focus-visible': { outlineColor: '#FFFFFF' },
+      fontWeight: 400,
+      '&:hover': { color: ON_DARK, backgroundColor: 'transparent' },
     }}
   >
     {children}
@@ -84,12 +84,13 @@ export const AppFooter: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '9px',
-                fontSize: 22,
-                fontWeight: 800,
-                letterSpacing: '-0.015em',
-                color: '#FFFFFF',
+                fontFamily: DISPLAY_FONT,
+                fontSize: 23,
+                fontWeight: 700,
+                letterSpacing: '-0.01em',
+                color: ON_DARK,
                 mb: 1.5,
-                '& svg': { color: '#FFFFFF', '--tm-stub': NOTARY_ON_DARK },
+                '& svg': { color: ON_DARK, '--tm-stub': POLLEN },
               }}
             >
               <TagMark />
@@ -106,7 +107,14 @@ export const AppFooter: React.FC = () => {
               component={RouterLink}
               to="/#technical"
               underline="always"
-              sx={{ ...linkBox, display: 'inline-block', mt: 1, color: '#FFFFFF', fontSize: 15 }}
+              sx={{
+                ...linkBox,
+                display: 'inline-block',
+                mt: 1,
+                color: ON_DARK,
+                fontSize: 15,
+                '&:hover': { backgroundColor: 'transparent' },
+              }}
             >
               {t('footer.howCheck')}
             </Link>
@@ -150,8 +158,8 @@ export const AppFooter: React.FC = () => {
                 underline="hover"
                 sx={{
                   color: ON_DARK_MUTED,
-                  '&:hover': { color: '#FFFFFF' },
-                  '&:focus-visible': { outlineColor: '#FFFFFF' },
+                  fontWeight: 400,
+                  '&:hover': { color: ON_DARK, backgroundColor: 'transparent' },
                   ...linkBox,
                   fontSize: 15,
                   textAlign: 'left',

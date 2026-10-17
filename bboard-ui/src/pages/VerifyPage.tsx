@@ -14,7 +14,7 @@
 //   - looked up on Midnight by this browser (round 2 of the 15 Oct review): the
 //     transaction the registry says dated the batch root. It must be VeilCore's date stamp
 //     call at the pinned contract and have written exactly that root; its block is the
-//     date (veilcore/chain/anchor-check.ts). Only then does the mark turn notary blue. If no
+//     date (veilcore/chain/anchor-check.ts). Only then is the record stamped. If no
 //     indexer answers, the date is worded as the registry's report;
 //   - reported by the registry: everything else — that a record with this fingerprint
 //     exists, when the registry first stored it, whether a key is vetted, and the facts the
@@ -72,7 +72,8 @@ import {
   type ResolvedAttestation,
 } from '../veilcore/attesters';
 import { isBoundLabDocument, labSaltFromLink } from '../veilcore/lab-doc';
-import { NOTARY, INK_COLOR } from '../config/theme';
+import { INK_COLOR, LINK_SX, POLLEN } from '../config/theme';
+import { DatedStamp } from '../components/DatedStamp';
 import { Wordmark } from '../components/Wordmark';
 import { NETWORK, explorerFor, isTestNetwork } from '../config/network';
 import { Fact, FactKey, SharedFacts } from '../components/verify/DisclosedFacts';
@@ -109,7 +110,7 @@ import { networkWords } from '../i18n/network-words';
 import { LanguageBar } from '../i18n/LanguagePicker';
 
 const API = import.meta.env.VITE_API_BASE ?? '';
-/** The mark for a date checked on a test network: amber, never mainnet's notary blue. */
+/** The mark for a date checked on a test network: amber, never mainnet's pollen-gold stamp. */
 const TEST_MARK = '#8A5A00';
 
 /**
@@ -149,7 +150,7 @@ const DateSummary: React.FC<{
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          sx={{ verticalAlign: 'baseline', fontWeight: 700, color: NOTARY }}
+          sx={{ verticalAlign: 'baseline', fontWeight: 700 }}
         >
           {t('app.verify.summary.yourself')}
         </Link>
@@ -453,7 +454,7 @@ export const VerifyPage: React.FC = () => {
   // proof names a transaction to look up.
   const anchor = useAnchorCheck(proof);
 
-  // A tick (and the notary-blue mark) only for a check against the link's own fingerprint.
+  // A tick (and the stamp) only for a check against the link's own fingerprint.
   const checked = bound && proof !== 'checking' && proof.status !== 'none';
   // Before the link's fingerprint is known to match, say whose fingerprint was used.
   const forWhom = bound ? '' : t('app.verify.forWhom');
@@ -523,9 +524,12 @@ export const VerifyPage: React.FC = () => {
       : anchorLine(anchor, { network: reportedNetwork ?? NETWORK, bound, reportedAt }, tr);
   const anchorLooked = anchorText !== undefined;
   const seal = checked && anchorCheckedOnChain;
-  // A date checked on a test network is practice data: its own mark, never mainnet's notary blue.
+  // A date checked on a test network is practice data: its own amber mark and a PRACTICE
+  // stamp, never mainnet's gold DATED stamp.
   const testSeal = seal && isTestNetwork(reportedNetwork ?? NETWORK);
-  const sealColor = testSeal ? TEST_MARK : NOTARY;
+  const sealColor = testSeal ? TEST_MARK : INK_COLOR;
+  const sealedAt =
+    seal && anchor !== undefined && anchor !== 'checking' && anchor.status === 'checked' ? anchor.blockTime : undefined;
   // The name (round 6): the one the holder published wins (or a record saved before names
   // were sealed); else the link's, checked against the record's name code with the link's salt.
   const nameCheck = nameCheckOf({
@@ -569,7 +573,7 @@ export const VerifyPage: React.FC = () => {
         >
           {rich(t('app.verify.intro'), {
             link: (c) => (
-              <Box component={RouterLink} to="/" sx={{ color: NOTARY, whiteSpace: 'nowrap' }}>
+              <Box component={RouterLink} to="/" sx={{ ...LINK_SX, whiteSpace: 'nowrap' }}>
                 {c}
               </Box>
             ),
@@ -588,7 +592,7 @@ export const VerifyPage: React.FC = () => {
             <Typography variant="body2" color="text.secondary">
               {t('app.verify.notFoundText')}
             </Typography>
-            <Box component={RouterLink} to="/" sx={{ display: 'inline-block', mt: 2, py: 1, color: NOTARY }}>
+            <Box component={RouterLink} to="/" sx={{ ...LINK_SX, display: 'inline-block', mt: 2, py: 1 }}>
               {t('app.verify.goHome')}
             </Box>
           </Paper>
@@ -636,16 +640,36 @@ export const VerifyPage: React.FC = () => {
             </Box>
           </Paper>
         ) : (
-          <Paper sx={{ p: { xs: 3, md: 4 } }}>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
-              {/* Notary blue only when this page found the batch root's anchor on Midnight itself
-                  (anchorCheckedOnChain). Otherwise grey; the lines below still tick what
-                  this browser did check. */}
+          <Paper sx={{ p: { xs: 3, md: 4 }, position: 'relative' }} data-specimen-sheet="">
+            {/* Stamped only when this page found the batch root's anchor on Midnight itself
+                (anchorCheckedOnChain): gold DATED on the main network, a dashed PRACTICE
+                stamp on a test network. */}
+            {seal && sealedAt !== undefined && (
+              <DatedStamp
+                state={testSeal ? 'practice' : 'dated'}
+                word={testSeal ? t('app.plant.stamp.practice') : t('app.plant.stamp.dated')}
+                date={tr.date(sealedAt, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })}
+                pressKey={`check:${result.id ?? ''}`}
+                size={{ xs: 72, sm: 88 }}
+                sx={{ position: 'absolute', top: { xs: -24, sm: -30 }, right: { xs: 12, sm: 20 } }}
+              />
+            )}
+            <Stack
+              direction="row"
+              spacing={1.5}
+              sx={{ alignItems: 'center', mb: 2, pr: seal && sealedAt !== undefined ? { xs: 7, sm: 9 } : 0 }}
+            >
+              {/* The mark: an ink tick on gold once dated on the main network, amber on a test
+                  network, grey until then; the lines below still tick what this browser did check. */}
               <VerifiedIcon
                 aria-hidden="true"
                 data-checked={seal ? 'yes' : 'no'}
                 data-test-network={testSeal ? 'yes' : 'no'}
-                sx={{ color: seal ? sealColor : 'text.disabled', fontSize: 30 }}
+                sx={{
+                  color: seal ? sealColor : 'text.disabled',
+                  fontSize: 30,
+                  ...(seal && !testSeal ? { bgcolor: POLLEN, borderRadius: '50%', p: 0.375, fontSize: 34 } : {}),
+                }}
               />
               <Box>
                 <Typography

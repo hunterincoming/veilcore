@@ -8,16 +8,17 @@
 @font-face{font-family:'Space Grotesk';font-weight:500;src:url(fonts/space-grotesk-latin-500-normal.woff2) format('woff2')}
 @font-face{font-family:'Space Grotesk';font-weight:600;src:url(fonts/space-grotesk-latin-600-normal.woff2) format('woff2')}
 @font-face{font-family:'Space Grotesk';font-weight:700;src:url(fonts/space-grotesk-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Caslon';font-weight:700;src:url(fonts/libre-caslon-text-700.woff2) format('woff2')}
 @font-face{font-family:'Inter';font-weight:400;src:url(fonts/inter-latin-400-normal.woff2) format('woff2')}
 @font-face{font-family:'Inter';font-weight:500;src:url(fonts/inter-latin-500-normal.woff2) format('woff2')}
 @font-face{font-family:'Inter';font-weight:600;src:url(fonts/inter-latin-600-normal.woff2) format('woff2')}
 @font-face{font-family:'Inter';font-weight:700;src:url(fonts/inter-latin-700-normal.woff2) format('woff2')}
-:root{--bg:#F3F5F7;--card:#FFFFFF;--line:#D9DDE2;--ink:#1E2227;--ink2:#575E66;--muted:#80868F;--acc:#1C3BB0;--ok:#2E6B55;--accsoft:#E8ECF8;--send:#3E454D;--sendsoft:#E6E9ED;--prove:#152C86;--lic:#575E66;--well:#EEF0F3}
+:root{--bg:#F6F3EC;--card:#FFFDF7;--line:#E0D8C6;--ink:#16181D;--ink2:#4B4740;--muted:#857E70;--acc:#16181D;--gold:#F6DA3C;--ok:#2E6B55;--accsoft:#FBEFB0;--send:#3A3B40;--sendsoft:#ECE6D8;--prove:#16181D;--lic:#4B4740;--well:#F0EBE0}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
 .grp,.abs,.card{position:absolute}
 .grp{left:0;top:0;width:1920px;height:1080px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 2px rgba(30,34,39,.04),0 8px 24px rgba(30,34,39,.045)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 2px rgba(22,24,29,.04),0 8px 24px rgba(22,24,29,.045)}
 .sg{font-family:'Space Grotesk',sans-serif}
 .eyebrow{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink2)}
 .row{display:flex;align-items:center}
@@ -26,12 +27,12 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:
 .hex{font-family:'Space Grotesk',sans-serif;font-weight:500;font-feature-settings:"tnum" 1;letter-spacing:.02em;white-space:pre}
 .pill{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:6px 14px;font-family:'Space Grotesk',sans-serif;font-weight:600}
 .cap{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;text-align:center}
-.cap .main{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:50px;line-height:1.2;letter-spacing:-.012em;color:var(--ink);max-width:1540px}
-.cap .note{font-family:'Inter',sans-serif;font-size:30px;color:#666D75;margin-top:16px}
-.tg{position:absolute;width:68px;height:38px;border-radius:19px;background:#C2C7CD}
+.cap .main{font-family:'Caslon',serif;font-weight:700;font-size:50px;line-height:1.2;letter-spacing:-.005em;color:var(--ink);max-width:1540px}
+.cap .note{font-family:'Inter',sans-serif;font-size:30px;color:#4B4740;margin-top:16px}
+.tg{position:absolute;width:68px;height:38px;border-radius:19px;background:#CFC6B1}
 .tg .k{position:absolute;left:4px;top:4px;width:30px;height:30px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.18)}
-.slot{position:absolute;border:2px dashed #C2C7CD;border-radius:12px}
-.chip{position:absolute;left:0;top:0;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 4px rgba(30,34,39,.06),0 10px 28px rgba(30,34,39,.08)}
+.slot{position:absolute;border:2px dashed #CFC6B1;border-radius:12px}
+.chip{position:absolute;left:0;top:0;background:#FFFDF7;border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 4px rgba(22,24,29,.06),0 10px 28px rgba(22,24,29,.08)}
 svg.lines{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:visible}
 </style>
 </head>
@@ -39,7 +40,9 @@ svg.lines{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:vis
 <div id="root"></div>
 <script>
 // ---------- helpers ----------
-const C={bg:'#F3F5F7',line:'#D9DDE2',ink:'#1E2227',ink2:'#575E66',muted:'#80868F',acc:'#1C3BB0',ok:'#2E6B55',accsoft:'#E8ECF8',send:'#3E454D',sendsoft:'#E6E9ED',prove:'#152C86',well:'#EEF0F3'};
+// Pollen and ink (src/config/theme.ts): acc is ink (icons and words), gold is pollen (fills,
+// marks, the button), accsoft a pale pollen behind an ink icon.
+const C={bg:'#F6F3EC',card:'#FFFDF7',line:'#E0D8C6',ink:'#16181D',ink2:'#4B4740',muted:'#857E70',acc:'#16181D',gold:'#F6DA3C',ok:'#2E6B55',accsoft:'#FBEFB0',send:'#3A3B40',sendsoft:'#ECE6D8',prove:'#16181D',well:'#F0EBE0'};
 const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
 const lin=x=>x;
 const eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
@@ -91,15 +94,15 @@ function fpGlyph(s,c,cls='fr'){
 }
 function chk(s,bg=C.ok){return `<div style="flex:none;width:${s}px;height:${s}px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center">${ic('check',Math.round(s*.62),'#fff',2.8)}</div>`;}
 function iconTile(n,s,c,bg){return `<div style="flex:none;width:${s}px;height:${s}px;border-radius:10px;background:${bg};display:flex;align-items:center;justify-content:center">${ic(n,Math.round(s*.56),c,1.9)}</div>`;}
-function markerStrip(n=30,seed=7){let o='<div class="row" style="align-items:flex-end;gap:3px;height:28px">';const cols=['#1C3BB0','#7A8DD6','#C3CDF0','#3550C0'];for(let i=0;i<n;i++){const h=8+hash(i*31+seed)%21;o+=`<div style="width:5px;height:${h}px;border-radius:1.5px;background:${cols[hash(i*7+seed)%4]}"></div>`;}return o+'</div>';}
-function lineSVG(id,x1,y1,x2,y2,head=true,color='#A9AFB7'){
+function markerStrip(n=30,seed=7){let o='<div class="row" style="align-items:flex-end;gap:3px;height:28px">';const cols=['#16181D','#857E70','#F6DA3C','#4B4740'];for(let i=0;i<n;i++){const h=8+hash(i*31+seed)%21;o+=`<div style="width:5px;height:${h}px;border-radius:1.5px;background:${cols[hash(i*7+seed)%4]}"></div>`;}return o+'</div>';}
+function lineSVG(id,x1,y1,x2,y2,head=true,color='#A39A86'){
   const ang=Math.atan2(y2-y1,x2-x1),a=10;
   const hx1=x2-a*Math.cos(ang-0.5),hy1=y2-a*Math.sin(ang-0.5),hx2=x2-a*Math.cos(ang+0.5),hy2=y2-a*Math.sin(ang+0.5);
   return `<g id="${id}"><path class="ln" d="M${x1} ${y1}L${x2} ${y2}" pathLength="1" stroke="${color}" stroke-width="2" stroke-linecap="round" fill="none" stroke-dasharray="1 1" stroke-dashoffset="1"/>`+
    (head?`<path class="hd" d="M${hx1.toFixed(1)} ${hy1.toFixed(1)}L${x2} ${y2}L${hx2.toFixed(1)} ${hy2.toFixed(1)}" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0"/>`:'')+'</g>';
 }
 function drawLine(id,k){const g=$(id);if(!g)return;g.querySelector('.ln').setAttribute('stroke-dashoffset',(1-k).toFixed(4));const h=g.querySelector('.hd');if(h)h.setAttribute('opacity',clamp((k-0.94)/0.06).toFixed(3));}
-const CURSOR=`<svg width="34" height="40" viewBox="0 0 34 40" style="display:block;overflow:visible"><path d="M3 2 L3 30 L10.5 23.5 L15.5 35 L20.5 32.8 L15.6 21.6 L25.5 21.2 Z" fill="#1E2227" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/></svg>`;
+const CURSOR=`<svg width="34" height="40" viewBox="0 0 34 40" style="display:block;overflow:visible"><path d="M3 2 L3 30 L10.5 23.5 L15.5 35 L20.5 32.8 L15.6 21.6 L25.5 21.2 Z" fill="#16181D" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/></svg>`;
 const HEX='d637 717f 2249 f6a1 4592 24dc';
 function scramble(t,t0,per=0.032,settle=0.3){let o='';for(let i=0;i<HEX.length;i++){const c=HEX[i];if(c===' '){o+=' ';continue;}const ts=t0+i*per+settle;if(t>=ts)o+=c;else if(t<t0+i*per*0.5)o+=' ';else o+='0123456789abcdef'[hash(i*977+Math.floor(t*18)*131)%16];}return o;}
 
@@ -136,7 +139,7 @@ const LABELS=[['lbLog',7.5,22.5,'Log',C.acc],['lbProve',22.5,45.5,'Prove & check
 let html='';
 // chrome: section label + brand
 LABELS.forEach(([id,,,txt,col])=>{html+=`<div id="${id}" class="abs row" style="left:96px;top:64px;gap:12px"><div style="width:10px;height:10px;border-radius:50%;background:${col}"></div><div class="eyebrow" style="color:${col};font-size:16px">${txt}</div></div>`;});
-html+=`<div id="brand" class="abs row" style="right:96px;top:62px;gap:10px"><div style="width:8px;height:8px;border-radius:50%;background:${C.acc}"></div><div class="sg" style="font-weight:600;font-size:17px;letter-spacing:.22em;color:${C.ink2}">VEILCORE</div></div>`;
+html+=`<div id="brand" class="abs row" style="right:96px;top:62px;gap:10px"><svg width="17" height="22" viewBox="0 0 14 18" style="display:block;flex:none"><path fill="${C.ink}" fill-rule="evenodd" d="M4 0h6l4 4v8.6H0V4zM7 3.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6z"/><path fill="${C.gold}" d="M0 13.9h14V18H0z"/><path fill="none" stroke="${C.ink}" stroke-width="1.2" d="M.6 14.5h12.8v2.9H.6z"/></svg><div style="font-family:Caslon,serif;font-weight:700;font-size:24px;color:${C.ink}">VeilCore</div></div>`;
 
 // ===== G1: many copies =====
 const G1={cols:6,rows:3,w:210,h:128,gap:30,x0:255,y0:262,orig:8,tagged:[0,3,4,9,11,13,15,17,6]};
@@ -147,8 +150,8 @@ for(let r=0;r<G1.rows;r++)for(let c=0;c<G1.cols;c++){
   html+=`<div id="c1_${i}" class="card" style="left:${x}px;top:${y}px;width:${G1.w}px;height:${G1.h}px;padding:16px 16px;z-index:${isO?5:1}">
    <div class="row" style="gap:10px">${iconTile('sprout',32,C.acc,C.accsoft)}<div class="sg" style="font-weight:600;font-size:18px">Harbour Mist</div></div>
    <div style="font-size:14px;color:${C.ink2};margin-top:12px">HM-7 &middot; cutting</div>
-   <div style="margin-top:10px;height:6px;width:76%;border-radius:3px;background:#E6E9ED"></div>
-   <div id="t1_${i}" class="pill" style="position:absolute;right:-10px;top:-12px;font-size:13px;padding:4px 10px;background:#FFF;color:${C.ink2};border:1px solid ${C.line}">Since ${2016+hash(i*13+5)%8}</div>
+   <div style="margin-top:10px;height:6px;width:76%;border-radius:3px;background:#ECE6D8"></div>
+   <div id="t1_${i}" class="pill" style="position:absolute;right:-10px;top:-12px;font-size:13px;padding:4px 10px;background:#FFFDF7;color:${C.ink2};border:1px solid ${C.line}">Since ${2016+hash(i*13+5)%8}</div>
   </div>`;
 }
 html+='</div>';
@@ -157,22 +160,22 @@ html+='</div>';
 const PX0=600,PY=130,PW=720,PH=620;
 html+=`<div id="g23" class="grp">
 <svg class="lines">${lineSVG('l3',880,440,1132,440)}</svg>
-<div id="panel" class="card" style="left:${PX0}px;top:${PY}px;width:${PW}px;height:${PH}px;background:#FAFBFC">
+<div id="panel" class="card" style="left:${PX0}px;top:${PY}px;width:${PW}px;height:${PH}px;background:#FBF9F3">
   <div class="row" style="position:absolute;left:28px;top:24px;gap:10px">${ic('laptop',22,C.ink2)}<div class="eyebrow">Your computer</div></div>
   <div id="rec" class="card" style="left:28px;top:66px;width:664px;height:300px;overflow:hidden;box-shadow:none">
     <div class="row" style="position:absolute;left:28px;top:22px;gap:12px">${iconTile('sprout',36,C.acc,C.accsoft)}<div class="h2" style="font-size:26px">Plant record</div></div>
     ${[['Name','Harbour Mist'],['Parents','HM-3 × Line 7'],['Method','Tissue culture'],['Genetics','']].map(([k,v],i)=>`
-    <div id="r2_${i}" class="row" style="position:absolute;left:28px;right:28px;top:${84+i*52}px;height:52px;border-top:1px solid #ECEEF1">
+    <div id="r2_${i}" class="row" style="position:absolute;left:28px;right:28px;top:${84+i*52}px;height:52px;border-top:1px solid #E4DCC8">
       <div style="width:150px;font-size:17px;color:${C.ink2}">${k}</div>
       ${i<3?`<div id="v2_${i}" style="font-size:21px;font-weight:500" data-full="${v}"></div>
       <div id="srv${i}" class="row" style="position:absolute;right:0;top:15px;gap:7px;font-size:15px;color:${C.ink2}">${ic('lock',17,C.ink2,2)}Locked on VeilCore’s server</div>`:
       `<div id="gen" class="row" style="gap:14px;position:relative"><div id="strip">${markerStrip(24,11)}</div></div>
       <div id="genLock" class="pill" style="white-space:nowrap;position:absolute;right:-6px;top:10px;font-size:15px;padding:5px 12px;background:${C.accsoft};color:${C.acc}">${ic('lock',15,C.acc,2.2)}Your computer only</div>`}
     </div>`).join('')}
-    <div id="scan" style="position:absolute;left:0;right:0;top:0;height:46px;background:linear-gradient(180deg,rgba(28,59,176,0) 0%,rgba(28,59,176,.07) 100%);border-bottom:2px solid ${C.acc}"></div>
+    <div id="scan" style="position:absolute;left:0;right:0;top:0;height:46px;background:linear-gradient(180deg,rgba(246,218,60,0) 0%,rgba(246,218,60,.22) 100%);border-bottom:3px solid ${C.gold}"></div>
   </div>
-  <div id="fpArrow" style="position:absolute;left:345px;top:372px">${ic('arrowR',30,'#959BA3',2)}</div>
-  <div id="fpBox" style="position:absolute;left:28px;top:410px;width:664px;height:140px;border-radius:12px;background:#fff;border:1px solid ${C.line}">
+  <div id="fpArrow" style="position:absolute;left:345px;top:372px">${ic('arrowR',30,'#8F8775',2)}</div>
+  <div id="fpBox" style="position:absolute;left:28px;top:410px;width:664px;height:140px;border-radius:12px;background:#FFFDF7;border:1px solid ${C.line}">
     <div class="eyebrow" style="position:absolute;left:28px;top:20px">Proof code</div>
     <div class="row" style="position:absolute;left:28px;top:56px;gap:20px">${fpGlyph(54,C.acc,'fr2')}<div id="hex2" class="hex" style="font-size:32px;color:${C.ink}"></div></div>
   </div>
@@ -180,7 +183,7 @@ html+=`<div id="g23" class="grp">
 </div>
 <div id="mbox" class="card" style="left:1140px;top:190px;width:620px;height:500px">
   <div class="row" style="position:absolute;left:28px;top:26px;gap:14px">${iconTile('ledger',44,C.ink,C.well)}<div><div class="h2">Midnight</div><div class="sub" style="font-size:16px;margin-top:2px">Public network</div></div></div>
-  ${['a91c 07be 3d52 … 03fe','5b20 9e14 c7a0 … e7d1'].map((h,i)=>`<div class="row" style="position:absolute;left:28px;top:${112+i*60}px;width:564px;height:48px;border-radius:10px;background:${C.well};padding:0 18px;justify-content:space-between"><div class="row" style="gap:12px">${fpGlyph(24,'#A9AFB7','frx')}<div class="hex" style="font-size:18px;color:#80868F">${h}</div></div><div style="font-size:15px;color:#80868F">${i?'13':'11'} Oct 2026</div></div>`).join('')}
+  ${['a91c 07be 3d52 … 03fe','5b20 9e14 c7a0 … e7d1'].map((h,i)=>`<div class="row" style="position:absolute;left:28px;top:${112+i*60}px;width:564px;height:48px;border-radius:10px;background:${C.well};padding:0 18px;justify-content:space-between"><div class="row" style="gap:12px">${fpGlyph(24,'#A39A86','frx')}<div class="hex" style="font-size:18px;color:#857E70">${h}</div></div><div style="font-size:15px;color:#857E70">${i?'13':'11'} Oct 2026</div></div>`).join('')}
   <div id="slot3" class="slot" style="left:28px;top:236px;width:564px;height:76px"></div>
   <div id="date3" class="row" style="position:absolute;left:30px;top:334px;gap:12px">${ic('cal',24,C.acc,2)}<div style="font-size:22px;font-weight:500">Dated 14 Oct 2026, 09:41 UTC</div></div>
   <div id="mfoot" style="position:absolute;left:30px;top:430px;font-size:17px;color:${C.ink2}">A date nobody can backdate.</div>
@@ -196,9 +199,9 @@ html+=`<div id="g4" class="grp">
 <svg class="lines">${lineSVG('l4',1028,440,1152,440)}</svg>
 <div id="spanel" class="card" style="left:${SX}px;top:${SY}px;width:${SW}px;height:540px">
   <div style="position:absolute;left:36px;top:28px"><div class="h2">Share settings</div><div class="sub" style="margin-top:4px">Harbour Mist</div></div>
-  ${ROWS4.map(([a,b],i)=>`<div id="r4_${i}" style="position:absolute;left:0;right:0;top:${112+i*104}px;height:104px;border-top:1px solid #E6E9ED">
+  ${ROWS4.map(([a,b],i)=>`<div id="r4_${i}" style="position:absolute;left:0;right:0;top:${112+i*104}px;height:104px;border-top:1px solid #ECE6D8">
      <div style="position:absolute;left:36px;top:24px"><div style="font-size:24px;font-weight:500">${a}</div><div style="font-size:17px;color:${C.ink2};margin-top:4px">${b}</div></div>
-     ${i===0?`<div class="pill" style="position:absolute;right:36px;top:30px;font-size:17px;background:${C.accsoft};color:${C.acc};border:1px solid #C3CDF0;padding:8px 16px">${ic('check',18,C.acc,2.4)}In your link</div>`:
+     ${i===0?`<div class="pill" style="position:absolute;right:36px;top:30px;font-size:17px;background:${C.accsoft};color:${C.acc};border:1px solid #E9D57A;padding:8px 16px">${ic('check',18,C.acc,2.4)}In your link</div>`:
      i<3?`<div id="tg${i}" class="tg" style="right:36px;top:33px"><div class="k"></div></div>`:
      `<div id="lk4" class="pill" style="position:absolute;right:36px;top:30px;font-size:17px;background:${C.well};color:${C.ink2};border:1px solid ${C.line};padding:8px 16px">${ic('lock',18,C.ink2,2.2)}Never shared</div>`}
   </div>`).join('')}
@@ -207,11 +210,11 @@ html+=`<div id="g4" class="grp">
   <div class="eyebrow" style="position:absolute;left:36px;top:32px">What they see</div>
   <div id="vi0" class="row" style="position:absolute;left:36px;top:84px;gap:14px">${chk(34)}<div style="font-size:24px;font-weight:500">Harbour Mist</div></div>
   <div id="vi1" class="row" style="position:absolute;left:36px;top:144px;gap:14px">${chk(34)}<div style="font-size:24px;font-weight:500">Dated 14 Oct 2026</div></div>
-  <div style="position:absolute;left:36px;right:36px;top:216px;border-top:1px solid #E6E9ED"></div>
-  <div class="row" style="position:absolute;left:36px;right:36px;top:240px;justify-content:space-between"><div class="row" style="gap:14px">${ic('eyeoff',26,'#80868F',1.9)}<div style="font-size:22px;color:#666D75">Parent names</div></div><div style="font-size:18px;color:#80868F">Hidden</div></div>
-  <div class="row" style="position:absolute;left:36px;right:36px;top:304px;justify-content:space-between"><div class="row" style="gap:14px">${ic('lock',26,'#80868F',1.9)}<div style="font-size:22px;color:#666D75">Genetics</div></div><div style="font-size:18px;color:#80868F">Never shared</div></div>
+  <div style="position:absolute;left:36px;right:36px;top:216px;border-top:1px solid #ECE6D8"></div>
+  <div class="row" style="position:absolute;left:36px;right:36px;top:240px;justify-content:space-between"><div class="row" style="gap:14px">${ic('eyeoff',26,'#857E70',1.9)}<div style="font-size:22px;color:#4B4740">Parent names</div></div><div style="font-size:18px;color:#857E70">Hidden</div></div>
+  <div class="row" style="position:absolute;left:36px;right:36px;top:304px;justify-content:space-between"><div class="row" style="gap:14px">${ic('lock',26,'#857E70',1.9)}<div style="font-size:22px;color:#4B4740">Genetics</div></div><div style="font-size:18px;color:#857E70">Never shared</div></div>
 </div>
-<div id="cur4" class="abs" style="left:0;top:0;z-index:20"><div id="rip4" style="position:absolute;left:-26px;top:-26px;width:52px;height:52px;border-radius:50%;border:2.5px solid ${C.acc}"></div>${CURSOR}</div>
+<div id="cur4" class="abs" style="left:0;top:0;z-index:20"><div id="rip4" style="position:absolute;left:-26px;top:-26px;width:52px;height:52px;border-radius:50%;border:3px solid ${C.gold}"></div>${CURSOR}</div>
 </div>`;
 
 // ===== G56: link, tap, check =====
@@ -219,9 +222,9 @@ const CX=220,CY=190,CW=700,CH=440;
 html+=`<div id="g56" class="grp">
 <svg class="lines">${lineSVG('l5',928,420,1270,420)}${lineSVG('l6',928,420,1232,420,false)}</svg>
 <div id="ccard" class="card" style="left:${CX}px;top:${CY}px;width:${CW}px;height:${CH}px;overflow:hidden">
-  <div class="row" style="position:absolute;left:0;right:0;top:0;height:50px;background:${C.well};border-bottom:1px solid #E3E6EA;padding:0 20px;gap:8px">
-    <div style="width:11px;height:11px;border-radius:50%;background:#D2D6DB"></div><div style="width:11px;height:11px;border-radius:50%;background:#D2D6DB"></div><div style="width:11px;height:11px;border-radius:50%;background:#D2D6DB"></div>
-    <div style="margin-left:18px;width:340px;height:24px;border-radius:12px;background:#fff;border:1px solid #E0E3E7"></div>
+  <div class="row" style="position:absolute;left:0;right:0;top:0;height:50px;background:${C.well};border-bottom:1px solid #E4DCC8;padding:0 20px;gap:8px">
+    <div style="width:11px;height:11px;border-radius:50%;background:#DCD3BE"></div><div style="width:11px;height:11px;border-radius:50%;background:#DCD3BE"></div><div style="width:11px;height:11px;border-radius:50%;background:#DCD3BE"></div>
+    <div style="margin-left:18px;width:340px;height:24px;border-radius:12px;background:#FFFDF7;border:1px solid #E4DCC8"></div>
   </div>
   <div id="c5" style="position:absolute;left:0;top:50px;right:0;bottom:0">
     <div class="row" style="position:absolute;left:40px;top:36px;gap:16px">${iconTile('person',52,C.ink,C.well)}<div><div class="h2">Checker</div><div class="sub" style="margin-top:2px">Wants to check a plant</div></div></div>
@@ -234,41 +237,41 @@ html+=`<div id="g56" class="grp">
     <div style="position:absolute;left:40px;top:34px"><div class="eyebrow">Checking</div><div class="h2" style="margin-top:6px">Harbour Mist</div></div>
     <div id="busy6" class="row" style="position:absolute;left:40px;top:150px;gap:16px"><div id="dots6" class="row" style="gap:8px"><div style="width:12px;height:12px;border-radius:50%;background:${C.acc}"></div><div style="width:12px;height:12px;border-radius:50%;background:${C.acc}"></div><div style="width:12px;height:12px;border-radius:50%;background:${C.acc}"></div></div><div style="font-size:22px;color:${C.ink2}">Checking the network directly</div></div>
     <div id="ok6" class="row" style="position:absolute;left:40px;top:134px;gap:18px">${chk(58)}<div class="sg" style="font-weight:600;font-size:42px;color:${C.ok};letter-spacing:-.01em">Confirmed</div></div>
-    <div style="position:absolute;left:40px;right:40px;top:226px;border-top:1px solid #E6E9ED"></div>
+    <div style="position:absolute;left:40px;right:40px;top:226px;border-top:1px solid #ECE6D8"></div>
     <div id="r6_0" class="row" style="position:absolute;left:40px;top:252px;gap:14px">${ic('check',28,C.ok,2.6)}<div style="font-size:24px;font-weight:500">They control the key this record names</div></div>
   </div>
 </div>
 <div id="lchip" class="chip row" style="height:50px;padding:0 18px;gap:10px;border-radius:25px;z-index:8">${ic('link',20,C.acc,2.2)}<div class="sg" style="font-weight:600;font-size:18px">Request link</div></div>
 <div id="phone" class="abs" style="left:1270px;top:110px;width:360px;height:700px">
-    <div style="position:absolute;inset:0;border-radius:52px;background:#fff;border:1.5px solid #C9CED4;box-shadow:0 10px 30px rgba(30,34,39,.07)"></div>
+    <div style="position:absolute;inset:0;border-radius:52px;background:#FFFDF7;border:1.5px solid #CFC6B1;box-shadow:0 10px 30px rgba(22,24,29,.07)"></div>
   <div style="position:absolute;left:12px;top:12px;right:12px;bottom:12px;border-radius:42px;background:${C.bg};overflow:hidden">
-    <div style="position:absolute;left:50%;top:14px;width:104px;height:28px;margin-left:-52px;border-radius:14px;background:#1E2227"></div>
+    <div style="position:absolute;left:50%;top:14px;width:104px;height:28px;margin-left:-52px;border-radius:14px;background:#16181D"></div>
     <div class="sg" style="position:absolute;left:30px;top:16px;font-weight:600;font-size:16px">9:41</div>
-    <div class="row" style="position:absolute;left:22px;top:84px;gap:12px">${iconTile('person',40,C.ink,'#fff')}<div class="h2" style="font-size:24px">You</div></div>
+    <div class="row" style="position:absolute;left:22px;top:84px;gap:12px">${iconTile('person',40,C.ink,'#FFFDF7')}<div class="h2" style="font-size:24px">You</div></div>
     <div id="req" class="card" style="left:16px;right:16px;top:160px;height:300px;padding:24px">
       <div class="eyebrow" style="font-size:13px">Proof request</div>
       <div class="sg" style="font-size:24px;font-weight:500;line-height:1.25;margin-top:12px">Someone wants to check <span style="font-weight:700">Harbour Mist</span>.</div>
       <div style="font-size:16px;color:${C.ink2};margin-top:12px;line-height:1.4">Their page checks that you control this record’s key.</div>
-      <div id="pbtn" class="row sg" style="position:absolute;left:24px;right:24px;bottom:24px;height:66px;border-radius:14px;background:${C.acc};color:#fff;font-weight:600;font-size:24px;justify-content:center;gap:10px"><span id="pbtnA">Prove it</span><span id="pbtnB" class="row" style="gap:8px;position:absolute">${ic('check',24,'#fff',2.8)}Done</span></div>
+      <div id="pbtn" class="row sg" style="position:absolute;left:24px;right:24px;bottom:24px;height:66px;border-radius:14px;background:${C.gold};color:${C.ink};font-weight:700;font-size:24px;justify-content:center;gap:10px;box-shadow:0 2px 0 rgba(22,24,29,.28)"><span id="pbtnA">Prove it</span><span id="pbtnB" class="row" style="gap:8px;position:absolute">${ic('check',24,C.ink,2.8)}Done</span></div>
     </div>
-    <div id="tap" style="position:absolute;left:150px;top:403px;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(30,34,39,.18);border:2px solid rgba(30,34,39,.35)"></div>
+    <div id="tap" style="position:absolute;left:150px;top:403px;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(22,24,29,.18);border:2px solid rgba(22,24,29,.35)"></div>
   </div>
 </div>
 <div id="nbox" class="card" style="left:1240px;top:270px;width:440px;height:300px">
   <div class="row" style="position:absolute;left:28px;top:26px;gap:14px">${iconTile('ledger',44,C.ink,C.well)}<div><div class="h2">Network</div><div class="sub" style="font-size:16px;margin-top:2px">Public record</div></div></div>
-  <div id="nrow" style="position:absolute;left:28px;right:28px;top:120px;height:130px;border-radius:12px;border:1.5px solid ${C.line};background:#fff;padding:20px 22px">
+  <div id="nrow" style="position:absolute;left:28px;right:28px;top:120px;height:130px;border-radius:12px;border:1.5px solid ${C.line};background:#FFFDF7;padding:20px 22px">
     <div class="row" style="gap:14px">${fpGlyph(34,C.acc,'frn')}<div class="hex" style="font-size:22px">d637 717f … 24dc</div></div>
     <div class="row" style="gap:10px;margin-top:16px">${ic('cal',20,C.ink2,2)}<div style="font-size:18px;color:${C.ink2}">14 Oct 2026, 09:41 UTC</div></div>
   </div>
 </div>
-<div id="pulse6" class="abs" style="left:0;top:0;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:${C.acc}"></div>
+<div id="pulse6" class="abs" style="left:0;top:0;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:${C.gold};box-shadow:0 0 0 2px ${C.ink}"></div>
 </div>`;
 
 // ===== G7: lab =====
 html+=`<div id="g7" class="grp">
 <svg class="lines">${lineSVG('l7a',728,300,1192,300)}${lineSVG('l7b',1192,560,728,560)}</svg>
-<div id="l7aLbl" class="abs sg" style="left:0;width:1920px;top:258px;text-align:center;font-size:17px;font-weight:600;letter-spacing:.14em;color:#80868F">SAMPLE + LAB CODE</div>
-<div id="l7bLbl" class="abs sg" style="left:0;width:1920px;top:576px;text-align:center;font-size:17px;font-weight:600;letter-spacing:.14em;color:#80868F">SIGNED, LOCKED REPORT</div>
+<div id="l7aLbl" class="abs sg" style="left:0;width:1920px;top:258px;text-align:center;font-size:17px;font-weight:600;letter-spacing:.14em;color:#857E70">SAMPLE + LAB CODE</div>
+<div id="l7bLbl" class="abs sg" style="left:0;width:1920px;top:576px;text-align:center;font-size:17px;font-weight:600;letter-spacing:.14em;color:#857E70">SIGNED, LOCKED REPORT</div>
 <div id="ycard" class="card" style="left:200px;top:170px;width:520px;height:500px">
   <div class="row" style="position:absolute;left:32px;top:30px;gap:14px">${iconTile('person',48,C.ink,C.well)}<div class="h2">You</div></div>
   <div class="row" style="position:absolute;left:32px;right:32px;top:104px;height:80px;border-radius:12px;border:1px solid ${C.line};padding:0 20px;gap:14px">${iconTile('sprout',40,C.acc,C.accsoft)}<div><div style="font-size:22px;font-weight:500">Harbour Mist</div><div style="font-size:15px;color:${C.ink2};margin-top:2px">Plant record</div></div></div>
@@ -279,7 +282,7 @@ html+=`<div id="g7" class="grp">
 <div id="labcard" class="card" style="left:1200px;top:170px;width:520px;height:500px">
   <div class="row" style="position:absolute;left:32px;top:30px;gap:14px">${iconTile('flask',48,C.send,C.sendsoft)}<div><div class="h2">Lab</div><div class="sub" style="font-size:16px;margin-top:2px">Testing lab</div></div></div>
   <div id="lb0" class="row" style="position:absolute;left:32px;top:126px;gap:14px">${ic('check',24,C.ok,2.6)}<div style="font-size:21px;font-weight:500">Receipt signed with the lab’s key</div></div>
-  <div id="lb1" style="position:absolute;left:32px;right:32px;top:186px"><div style="font-size:21px;font-weight:500">Testing</div><div style="margin-top:12px;height:8px;border-radius:4px;background:#E6E9ED;overflow:hidden"><div id="bar7" style="height:100%;width:0;background:${C.send};border-radius:4px"></div></div></div>
+  <div id="lb1" style="position:absolute;left:32px;right:32px;top:186px"><div style="font-size:21px;font-weight:500">Testing</div><div style="margin-top:12px;height:8px;border-radius:4px;background:#ECE6D8;overflow:hidden"><div id="bar7" style="height:100%;width:0;background:${C.send};border-radius:4px"></div></div></div>
   <div id="lb2" class="row" style="position:absolute;left:32px;top:276px;gap:14px">${ic('seal',24,C.send,2)}<div style="font-size:21px;font-weight:500">Report signed by the lab</div></div>
   <div id="lb3" class="row" style="position:absolute;left:32px;top:330px;gap:14px">${ic('lock',24,C.send,2)}<div style="font-size:21px;font-weight:500">Locked so only you can open it</div></div>
   <div id="lb4" style="position:absolute;left:32px;right:32px;top:404px;font-size:16px;line-height:1.4;color:${C.ink2}">The receipt is kept by VeilCore’s registry, not the chain.</div>
@@ -290,13 +293,13 @@ html+=`<div id="g7" class="grp">
   <div style="flex:1"><div class="sg" style="font-weight:600;font-size:22px">Lab report</div><div class="pill" style="margin-top:8px;font-size:14px;padding:4px 10px;gap:6px;background:${C.sendsoft};color:${C.send}">${ic('seal',15,C.send,2.2)}Signed by the lab</div></div>
   <div id="dlk" style="position:relative;width:44px;height:44px;border-radius:50%;background:${C.well}"><div id="dl1" style="position:absolute;left:10px;top:10px">${ic('lock',24,C.ink,2.1)}</div><div id="dl2" style="position:absolute;left:10px;top:10px">${ic('unlock',24,C.acc,2.1)}</div></div>
 </div>
-<div id="nomail" class="abs row" style="left:0;width:1920px;top:630px;justify-content:center;gap:12px">${ic('lock',26,'#666D75',1.9)}<div style="font-size:21px;color:${C.ink2}">VeilCore doesn’t have its key</div></div>
+<div id="nomail" class="abs row" style="left:0;width:1920px;top:630px;justify-content:center;gap:12px">${ic('lock',26,'#4B4740',1.9)}<div style="font-size:21px;color:${C.ink2}">VeilCore doesn’t have its key</div></div>
 </div>`;
 
 // ===== G8: end card =====
 html+=`<div id="g8" class="grp">
   <div id="e_fp" class="abs" style="left:912px;top:236px">${fpGlyph(96,C.acc,'fre')}</div>
-  <div id="e_wm" class="abs row" style="left:0;width:1920px;top:376px;justify-content:center;gap:30px"><div style="width:22px;height:22px;border-radius:50%;background:${C.acc};margin-top:4px"></div><div class="sg" style="font-weight:600;font-size:116px;letter-spacing:.2em;margin-right:-.2em;line-height:1">VEILCORE</div></div>
+  <div id="e_wm" class="abs row" style="left:0;width:1920px;top:376px;justify-content:center;gap:30px"><svg width="87" height="112" viewBox="0 0 14 18" style="display:block;flex:none"><path fill="${C.ink}" fill-rule="evenodd" d="M4 0h6l4 4v8.6H0V4zM7 3.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6z"/><path fill="${C.gold}" d="M0 13.9h14V18H0z"/><path fill="none" stroke="${C.ink}" stroke-width="1.2" d="M.6 14.5h12.8v2.9H.6z"/></svg><div style="font-family:Caslon,serif;font-weight:700;font-size:124px;letter-spacing:-.01em;line-height:1">VeilCore</div></div>
   <div id="e_url" class="abs sg" style="left:0;width:1920px;top:540px;text-align:center;font-weight:500;font-size:36px;color:${C.ink2};letter-spacing:.02em">veilcore.org</div>
   <div id="e_note" class="abs" style="left:0;width:1920px;top:612px;text-align:center;font-size:26px;color:${C.ink2}">Prove it: on the test site first.</div>
 </div>`;
@@ -321,7 +324,7 @@ function r1(t){
     if(j<0)st(tg,{o:0});else{const kt=P(t,4.3+j*0.17,4.3+j*0.17+0.4,eout);st(tg,{o:kt,s:lerp(.7,1,kt)});}
   }
   const b=P(t,5.0,5.8);const oc=$('c1_'+orig);
-  oc.style.borderColor=mix(C.acc,C.line,b);oc.style.boxShadow=`0 0 0 ${(1.5*(1-b)).toFixed(2)}px ${C.acc}, 0 1px 2px rgba(30,34,39,.04),0 8px 24px rgba(30,34,39,.045)`;
+  oc.style.borderColor=mix(C.acc,C.line,b);oc.style.boxShadow=`0 0 0 ${(1.5*(1-b)).toFixed(2)}px ${C.acc}, 0 1px 2px rgba(22,24,29,.04),0 8px 24px rgba(22,24,29,.045)`;
 }
 function r23(t){
   // panel in + slide
@@ -353,9 +356,9 @@ function r23(t){
   const chipW=564; // shrink slightly when lifting? keep size
   st('chip3',{x:cx,y:cy,o:t<8.35?0:kl,s:1});
   const chip=$('chip3');const land=P(t,10.0,10.3);
-  chip.style.boxShadow=`0 2px 4px rgba(30,34,39,${(.06*(1-land)).toFixed(3)}),0 10px 28px rgba(30,34,39,${(.08*(1-land)).toFixed(3)})`;
+  chip.style.boxShadow=`0 2px 4px rgba(22,24,29,${(.06*(1-land)).toFixed(3)}),0 10px 28px rgba(22,24,29,${(.08*(1-land)).toFixed(3)})`;
   chip.style.borderColor=mix(C.line,C.acc,land);
-  chip.style.background=mix('#FFFFFF','#F1F3FB',land);
+  chip.style.background=mix('#FFFDF7','#FBEFB0',land);
   const sl=$('slot3');sl.style.opacity=1-land;
   ap('date3',t,10.25,0.5,10);
   ap('mfoot',t,11.6,0.5,8);
@@ -370,7 +373,7 @@ function r4(t){
   drawLine('l4',P(t,0.8,1.2));
   // the date is switched on; parent names are left off
   const tog=[0,P(t,1.82,2.08),0];
-  for(let i=1;i<3;i++){const el=$('tg'+i);el.style.background=mix('#C2C7CD',C.acc,tog[i]);el.firstElementChild.style.transform=`translateX(${(tog[i]*30).toFixed(2)}px)`;}
+  for(let i=1;i<3;i++){const el=$('tg'+i);el.style.background=mix('#CFC6B1',C.ink,tog[i]);el.firstElementChild.style.transform=`translateX(${(tog[i]*30).toFixed(2)}px)`;}
   const v0=P(t,0.95,1.4,eout),v1=P(t,1.95,2.4,eout);
   st('vi0',{o:v0,x:(1-v0)*-14});st('vi1',{o:v1,x:(1-v1)*-14});
   // cursor: in, click the date toggle, pause, click the genetics lock, out
@@ -390,7 +393,7 @@ function r56(t){
   ap('ccard',t,0.1,0.6,16);
   // scene 5
   const kb=(t>0.85&&t<1.25)?Math.sin(Math.PI*(t-0.85)/0.4):0;
-  $('btn5').style.background=mix('#FFFFFF','#E6E9ED',kb);
+  $('btn5').style.background=mix('#FFFDF7','#ECE6D8',kb);
   drawLine('l5',P(t,1.05,1.45));
   const kp=P(t,0.4,1.0,eout), kpo=P(t,7.0,7.6);
   st('phone',{x:(1-kp)*30+kpo*40,o:kp*(1-kpo)});
@@ -404,7 +407,7 @@ function r56(t){
   const kr=P(t,2.7,3.25,eout);st('req',{y:(1-kr)*60,o:kr});
   const dt=t-3.85;const tapK=(dt>-0.25&&dt<0.55)?(dt<0?1+dt/0.25:1-dt/0.55):0;
   st('tap',{o:clamp(tapK)*0.9,s:dt<0?1:lerp(1,1.9,clamp(dt/0.55))});
-  $('pbtn').style.background=mix(C.acc,'#152C86',(dt>0&&dt<0.25)?Math.sin(Math.PI*dt/0.25):0);
+  $('pbtn').style.background=mix(C.gold,'#E6C620',(dt>0&&dt<0.25)?Math.sin(Math.PI*dt/0.25):0);
   const kd=P(t,4.0,4.3);$('pbtnA').style.opacity=1-kd;$('pbtnB').style.opacity=kd;
   // swap to scene 6
   const ksw=P(t,7.1,7.6);$('c5').style.opacity=1-ksw;
@@ -416,7 +419,7 @@ function r56(t){
   const px=t<8.95?lerp(928,1232,go):lerp(1232,928,back);
   st('pulse6',{x:px,y:420,o:(t>8.15&&t<9.75)?1:0});
   $('nrow').style.borderColor=mix(C.line,C.acc,P(t,8.85,9.05)*(1-P(t,10.2,10.8)*0.0));
-  $('nrow').style.background=mix('#FFFFFF','#F1F3FB',P(t,8.85,9.05));
+  $('nrow').style.background=mix('#FFFDF7','#FBEFB0',P(t,8.85,9.05));
   const busy=P(t,7.7,8.0)*(1-P(t,9.6,9.85));st('busy6',{o:busy});
   [...$('dots6').children].forEach((d,i)=>{d.style.opacity=(0.3+0.7*Math.max(0,Math.sin(t*6-i*0.9))).toFixed(3);});
   const ok=P(t,9.8,10.2,eout);st('ok6',{o:ok,s:lerp(.92,1,ok)});

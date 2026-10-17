@@ -15,15 +15,17 @@
 <meta name="referrer" content="no-referrer">
 <title>Check this record (offline)</title>
 <style>
-  :root { --ink: #16201b; --muted: #55625b; --line: #d9dfdb; --ok: #1d6b3a; --bad: #a12a1f; --bg: #fbfcfb; --card: #ffffff; --note: #f2f5f3; }
+  /* VeilCore's pollen and ink (bboard-ui/src/config/theme.ts): ink on herbarium paper, each
+     check on a specimen sheet, its rules dashed; green only for a ✓, red only for a ✗. */
+  :root { --ink: #16181d; --muted: #4b4740; --line: #e4dcc8; --ok: #2e6b55; --bad: #9e2a0b; --bg: #f6f3ec; --card: #fffdf7; --note: #ece6d8; --serif: Georgia, "Times New Roman", serif; }
   * { box-sizing: border-box; }
   body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: var(--bg); }
   main { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; overflow-wrap: anywhere; }
-  h1 { font-size: 1.6rem; margin: 0 0 4px; }
-  h2 { font-size: 1.15rem; margin: 32px 0 8px; }
+  h1 { font: 700 1.9rem/1.15 var(--serif); margin: 0 0 6px; }
+  h2 { font: 700 1.3rem/1.25 var(--serif); margin: 32px 0 8px; }
   p { margin: 8px 0; }
   .muted { color: var(--muted); }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin: 10px 0; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin: 10px 0; box-shadow: 0 1px 2px rgba(92, 79, 46, 0.06); }
   .row { display: flex; gap: 12px; align-items: flex-start; }
   .mark { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; }
   .mark.ok { background: var(--ok); }
@@ -44,7 +46,7 @@
   @media (max-width: 520px) { dl { grid-template-columns: 1fr; } dt { margin-top: 6px; } }
   input[type=file] { margin-top: 8px; max-width: 100%; }
   table.sealed { width: 100%; border-collapse: collapse; margin: 6px 0; table-layout: fixed; }
-  table.sealed th, table.sealed td { text-align: left; vertical-align: top; padding: 6px 8px; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+  table.sealed th, table.sealed td { text-align: left; vertical-align: top; padding: 6px 8px; border-top: 1.5px dashed var(--line); overflow-wrap: anywhere; }
   table.sealed th { color: var(--muted); font-weight: 500; width: 38%; }
   @media (max-width: 520px) { table.sealed th { width: 42%; } }
 </style>

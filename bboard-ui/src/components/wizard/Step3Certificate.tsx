@@ -27,7 +27,7 @@ import { IS_MAINNET, NETWORK, networkLabel, canonicalUrl } from '../../config/ne
 import { useLicenses, activeLicenseCount, licensesForRecord } from '../../veilcore/licenses';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { nameLinkParams, verifyPath } from '../../veilcore/verify-link';
-import { ERROR_COLOR, INK_COLOR, LINE_COLOR, MUTED_COLOR, OK_COLOR } from '../../config/theme';
+import { ERROR_COLOR, HAIRLINE, INK_COLOR, LINE_COLOR, MUTED_COLOR, OK_COLOR, SHEET } from '../../config/theme';
 import { utcDate, utcStamp as fmtStamp } from '../../veilcore/time';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { ProveOwnershipPanel } from '../chain/ProveOwnershipPanel';
@@ -44,13 +44,15 @@ import { enT, forKind } from '../../i18n/translate';
 import { certificateSummary } from './certificate-summary';
 import { damOf, isAnimal, parentLine, recordTitle, sireOf } from '../../veilcore/animal-profile';
 
-// The certificate's own colours: dark text on white, every pair at least 4.5:1. A check
-// that passed is a ✓ in the quiet green; one that failed is a ✗ in the error red.
+// The certificate's own colours: a specimen sheet, ink on archival paper, every pair at
+// least 4.5:1. A check that passed is a ✓ in the quiet green; one that failed is a ✗ in the
+// error red. Its rules are the sheet's dashed hairlines.
 const CERT = {
-  ground: '#FFFFFF',
+  ground: SHEET,
   ink: INK_COLOR,
   muted: MUTED_COLOR,
   line: LINE_COLOR,
+  hairline: HAIRLINE,
   ok: OK_COLOR,
   error: ERROR_COLOR,
   practice: '#8F5500',
@@ -236,7 +238,8 @@ export const Step3Certificate: React.FC<{
                 backgroundPosition: 'center top',
               }),
           color: CERT.ink,
-          border: `1px solid ${CERT.line}`,
+          border: `1px solid ${CERT.hairline}`,
+          boxShadow: '0 1px 2px rgba(92, 79, 46, 0.08)',
         }}
       >
         {!IS_MAINNET && (
@@ -278,7 +281,7 @@ export const Step3Certificate: React.FC<{
             )}
           </Stack>
 
-          <Divider sx={{ mb: 2.5, borderColor: CERT.line }} />
+          <Divider sx={{ mb: 2.5, borderColor: CERT.hairline, borderBottomStyle: 'dashed', borderBottomWidth: 1.5 }} />
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
             <Stack spacing={2} sx={{ flex: 1, minWidth: 0 }}>
@@ -392,13 +395,13 @@ export const Step3Certificate: React.FC<{
             </Stack>
 
             <Stack spacing={1} sx={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Box sx={{ p: 1.5, background: '#fff', borderRadius: 2, border: `1px solid ${CERT.line}` }}>
+              <Box sx={{ p: 1.5, background: CERT.ground, borderRadius: 2, border: `1px solid ${CERT.hairline}` }}>
                 {/* Drawn larger than before: the link now carries the 64-character proof code. */}
                 <QRCodeSVG
                   value={verifyLink}
                   size={144}
-                  bgColor="#ffffff"
-                  fgColor="#04070a"
+                  bgColor={CERT.ground}
+                  fgColor={CERT.ink}
                   level="M"
                   role="img"
                   aria-label="QR code that opens this record's public check page"
@@ -411,7 +414,7 @@ export const Step3Certificate: React.FC<{
             </Stack>
           </Stack>
 
-          <Divider sx={{ my: 2.5, borderColor: CERT.line }} />
+          <Divider sx={{ my: 2.5, borderColor: CERT.hairline, borderBottomStyle: 'dashed', borderBottomWidth: 1.5 }} />
           <Typography variant="body2" sx={{ color: CERT.ink, fontWeight: 700 }}>
             {IMAGE_NOT_EVIDENCE}
           </Typography>

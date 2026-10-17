@@ -567,7 +567,7 @@ export const LabResultsPanel: React.FC<{
               sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2, opacity: gone ? 0.8 : 1 }}
             >
               <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <LockIcon fontSize="small" color={o || gone ? 'disabled' : 'primary'} />
+                <LockIcon fontSize="small" color={o || gone ? 'disabled' : 'inherit'} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                   {t('app.lab.results.from', { lab: recipientName(a.transfer, tr), id: shortResultId(a.result.id) })}
                 </Typography>

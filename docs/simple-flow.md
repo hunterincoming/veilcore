@@ -43,8 +43,10 @@ The research behind each choice is in the report "Simple record app UX research"
   the app and for the pages people are sent to (check a record, sign an agreement). The
   public site keeps the dark brand. Hunter's call after comparing the light mockup with the
   dark build; easier to read for longer and in daylight. The neon teal, unreadable as text
-  on white, became `ACCENT` (#00785A) on these pages. (Since 17 October 2026 the one
-  colour is notary blue, `NOTARY` #1C3BB0; red is kept for errors.)
+  on white, became `ACCENT` (#00785A) on these pages. (Since 17 October 2026 the
+  palette is pollen and ink: ink `INK_COLOR` #16181D on herbarium paper #F6F3EC, and one
+  colour, pollen gold `POLLEN` #F6DA3C, as a fill under ink and never as text; red is kept
+  for errors. Headings are Libre Caslon Text Bold. See `config/theme.ts`.)
 - **Sections** (`components/flow/FlowFrame.tsx`): Log, Send & receive, License &
   royalties, Prove & check; Okabe–Ito colours, always with icon and name.
 - **Delivery codes**: "Text or email it. Don't write it on the package: whoever has this

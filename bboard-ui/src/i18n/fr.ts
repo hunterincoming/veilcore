@@ -306,8 +306,10 @@ export const fr: Strings = {
   'm.for.2p':
     "Les sélectionneurs veulent utiliser leurs marqueurs pour montrer qu'une variété est distincte, et les gardent comme secrets d'affaires. Une revendication VeilCore prouve un fait à leur sujet sans montrer le reste. Aucun office d'examen ni organisme de certification ne l'accepte encore.",
   'm.hero.note':
-    "Tapez dans l'un ou l'autre champ ; rien n'est envoyé. La ligne bleue en bas est le code de preuve, la partie qui va sur Midnight. Personne ne peut remonter de celle-ci à ce que vous avez saisi.",
-  'm.hero.noteShort': 'Seule la ligne bleue va sur Midnight.',
+    "Tapez dans l'un ou l'autre champ ; rien n'est envoyé. La bande dorée en bas est le code de preuve, la partie qui va sur Midnight. Personne ne peut remonter de celle-ci à ce que vous avez saisi.",
+  'm.hero.noteShort': 'Seule la bande dorée va sur Midnight.',
+  'm.hero.stampWord': 'Daté',
+  'm.hero.stampLine': 'sur Midnight',
   'm.for.label': 'À quoi ça sert',
   'm.for.title1': 'Beaucoup de litiges sur la génétique se ramènent à une question :',
   'm.for.title2': "qu'aviez-vous, et quand ?",

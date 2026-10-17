@@ -1,56 +1,58 @@
 /* The public pages (home, founders, privacy, verify lookup, not found).
-   Redesigned 15 October 2026 around one object: the plant tag. A record is the tag on a
-   plant; VeilCore gives that tag a date nobody can change. The hero demo is drawn as a
-   tie-on tag (eyelet at the top, a perforated stub at the bottom: the stub is the
-   fingerprint, the only part that goes on Midnight). Nothing else on the page is a box.
-   Second pass, the same day: the register. Labs and breeders keep registers and log books,
-   the entry's name in a narrow left column and the entry beside it. Every section is laid
-   out that way (.reg: heading left, .entry right), so sections are told apart by one shared
-   left edge and by space, not by rules, and headings carry no labels.
+   Redesigned 15 October 2026 around one object: the plant tag. Second pass, the same day:
+   the register. Labs and breeders keep registers and log books, the entry's name in a
+   narrow left column and the entry beside it. Every section is laid out that way (.reg:
+   heading left, .entry right), so sections are told apart by one shared left edge and by
+   space, not by rules, and headings carry no labels.
 
-   Palette (16 October 2026; the same tokens as the app, config/theme.ts). VeilCore is
-   neutral infrastructure for plant and animal genetics, sold on one promise: a date nobody
-   can backdate. So the page is paper and graphite, and the one colour is notary blue,
-   used only where something is dated or sealed: notaries and officials sign and stamp in
-   blue so an original stands out from a black photocopy, and blue is the colour people
-   most associate with trust and security (17 October 2026; it was a stamp red).
-     Paper    #F3F5F7  the page: cool register paper, not cream
-     Tag      #FFFFFF  the tag, inputs
-     Graphite #1E2227  text, the demo band, the footer   14.6:1 on Paper
-     Pencil   #575E66  secondary text                     6.0:1 on Paper, 5.7:1 on a band row
-     Notary   #1C3BB0  the date stamp: the fingerprint, dates, the main button, links,
-                       the focus ring                     8.4:1 on Paper; white on it 9.1:1
-     Notary deep #152C86  hover and pressed                11.1:1 on Paper; white on it 12.1:1
-     Wash     #E6E9ED  quiet fills (secondary buttons, the stub, chips); Graphite on it 13.1:1
-   Notary blue is ink, never a tinted panel: it is a date, the fingerprint, a link, a button.
-   An error is a tinted note with an icon and a sentence (the app's alerts), in red
+   Pollen and ink (17 October 2026; the same tokens as the app, config/theme.ts).
+   Pollen gold is where every new variety and bloodline begins: the moment VeilCore dates.
+   Ink on archival paper is how genetics have been recorded for 300 years: herbarium
+   specimen sheets and stud books. The home page opens on a bold ink band, the one place
+   gold is loud; everything below it is herbarium paper. The hero's record is a specimen
+   sheet with a round gold DATED stamp pressed over its corner.
+     Paper    #F6F3EC  the page                               Ink 16.0:1
+     Sheet    #FFFDF7  specimen sheets, inputs                 Ink 17.5:1
+     Ink      #16181D  text, links, the hero band, the footer
+     Pencil   #4B4740  secondary text, warm grey               8.3:1 on Paper, 7.4:1 on Wash
+     Pollen   #F6DA3C  the main button, the stamp, the proof code's strip, link underlines,
+                       the focus ring; ink on it 12.7:1. Never text on paper (1.3:1).
+     Wash     #ECE6D8  quiet fills (secondary buttons, chips)  Ink on it 14.3:1
+     Hairline #E4DCC8  the dashed rules of a specimen sheet's rows, nothing else
+   On the ink band and footer: paper text (16.0:1), warm grey #BDB7AA (8.9:1), pollen
+   (12.7:1). An error is a tinted note with an icon and a sentence (the app's alerts), in red
    (#9E2A0B), the only red anywhere, so red always means "something went wrong".
-   Type: one family, Atkinson Hyperlegible Next (main.tsx), drawn so that I l 1 / O 0 / B 8
-   can't be mistaken: people copy lab codes and fingerprints off these pages.
+   Type: Atkinson Hyperlegible Next for everything you read (main.tsx), drawn so that
+   I l 1 / O 0 / B 8 can't be mistaken; headings in Libre Caslon Text Bold (src/fonts.css),
+   the face of the 18th century's registers. Japanese headings stay in the body face.
    Everything is scoped under .vcm so the record pages' MUI styling is untouched.
    SPDX-License-Identifier: Apache-2.0 */
 
 .vcm {
-  --ground: #f3f5f7;
-  --tag: #ffffff;
-  --ink: #1e2227;
-  --muted: #575e66;
-  --notary: #1c3bb0;
-  --notary-deep: #152c86;
-  --wash: #e6e9ed;
-  --wash-strong: #d9dde2;
-  --band: #eceff2; /* every other row of the one table */
-  --edge: #80868f; /* input edges: 3.7:1 on Tag, 3.4:1 on Paper */
-  --step-line: #c2c7cd;
-  /* On the Graphite band and footer: links are white and underlined, the ring is white. */
-  --on-dark: #ffffff;
-  --on-dark-muted: #c3c8cf; /* 9.5:1 on Graphite */
-  --on-dark-notary: #a3b5f8; /* notary blue, lightened for Graphite: 8.0:1 */
+  --ground: #f6f3ec;
+  --sheet: #fffdf7;
+  --ink: #16181d;
+  --muted: #4b4740;
+  --pollen: #f6da3c;
+  --wash: #ece6d8;
+  --wash-strong: #e0d8c6;
+  --band: #f0ebe0; /* every other row of the one table */
+  --hairline: #e4dcc8; /* the dashed rules of a specimen sheet */
+  --edge: #857e70; /* input edges: 4.0:1 on Sheet, 3.6:1 on Paper */
+  --step-line: #cfc6b1;
+  /* On the ink band and footer: paper text, pollen underlines and ring. */
+  --on-dark: #f6f3ec;
+  --on-dark-muted: #bdb7aa; /* 8.9:1 on Ink */
   --ok: #2e6b55; /* a check that passed: 5.7:1 on Paper, never the brand */
   --warn: #8f5500;
   --font:
     'Atkinson Hyperlegible Next Variable', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Noto Sans JP',
     system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --display: 'VeilCore Caslon', 'VeilCore Caslon fallback', Georgia, var(--font);
+  /* Things you press sit on a thin ink shadow, lift a pixel, and go down when pressed. */
+  --press-rest: 0 1px 0 rgba(22, 24, 29, 0.28), 0 2px 6px -2px rgba(22, 24, 29, 0.24);
+  --press-lift: 0 2px 0 rgba(22, 24, 29, 0.3), 0 8px 16px -6px rgba(22, 24, 29, 0.3);
+  --press-down: 0 0 0 rgba(22, 24, 29, 0.3), 0 1px 2px rgba(22, 24, 29, 0.2);
   --gutter: clamp(16px, 5vw, 64px);
   --maxw: 1280px;
   /* Shape by hierarchy: controls 8, pictures 12, chips 6. The tag has cut corners, no radius. */
@@ -82,7 +84,7 @@
    so overscroll and native controls are light. */
 html:has(.vcm),
 html:has(.vcm) body {
-  background: #f3f5f7;
+  background: #f6f3ec;
   color-scheme: light;
 }
 html:has(.vcm) {
@@ -110,8 +112,9 @@ html:has(.vcm) {
   padding-inline: var(--gutter);
   box-sizing: border-box;
 }
+/* Selected text is highlighted in pollen, like a marker on a printed record. */
 .vcm ::selection {
-  background: var(--wash-strong);
+  background: var(--pollen);
   color: var(--ink);
 }
 
@@ -129,10 +132,11 @@ html:has(.vcm) {
   padding-block: var(--gap-section);
 }
 .vcm h2 {
-  font-size: clamp(1.875rem, 2.5vw, 2.125rem);
-  font-weight: 800;
-  line-height: 1.12;
-  letter-spacing: -0.02em;
+  font-family: var(--display);
+  font-size: clamp(1.9375rem, 2.6vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.14;
+  letter-spacing: -0.005em;
   max-width: 20ch;
   text-wrap: balance;
 }
@@ -161,7 +165,8 @@ html:has(.vcm) {
   line-height: 1.3;
   letter-spacing: -0.005em;
 }
-/* Links inside running text: Notary blue, underlined. */
+/* Links inside running text: ink, with a thick pollen underline that fills in behind the
+   word under the pointer, like a highlighter. */
 .vcm
   :is(
     .pt,
@@ -178,9 +183,12 @@ html:has(.vcm) {
   )
   a:not(.btn),
 .vcm a.x-link {
-  color: var(--notary);
+  color: var(--ink);
+  font-weight: 700;
   text-decoration: underline;
-  text-decoration-thickness: 1px;
+  text-decoration-color: var(--pollen);
+  text-decoration-thickness: 3px;
+  text-decoration-skip-ink: none;
   text-underline-offset: 3px;
 }
 .vcm
@@ -199,20 +207,21 @@ html:has(.vcm) {
   )
   a:not(.btn):hover,
 .vcm a.x-link:hover {
-  color: var(--notary-deep);
-  text-decoration-thickness: 2px;
+  background: rgba(246, 218, 60, 0.45);
 }
 .vcm .more {
   display: inline-block;
   margin-top: 24px;
   font-weight: 700;
-  color: var(--notary);
-  text-decoration: none;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--pollen);
+  text-decoration-thickness: 3px;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 4px;
 }
 .vcm .more:hover {
-  color: var(--notary-deep);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  background: rgba(246, 218, 60, 0.45);
 }
 /* The 404 code, the one small label left: it is information. */
 .vcm .label {
@@ -257,7 +266,7 @@ html:has(.vcm) {
 /* ------------------------------------------------------------------ nav */
 
 .vcm nav.top {
-  background: rgba(243, 245, 247, 0.94);
+  background: rgba(246, 243, 236, 0.94);
   backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
@@ -275,19 +284,21 @@ html:has(.vcm) {
 }
 /* The wordmark, with the mark: a plant tag and its eyelet (TagMark.tsx). */
 .vcm .brand {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.015em;
+  font-family: var(--display);
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   text-decoration: none;
   display: flex;
   align-items: center;
   gap: 9px;
   color: var(--ink);
 }
-/* The mark: a Graphite tag whose tear-off stub is stamped in notary blue (TagMark.tsx). */
+/* The mark: an ink tag whose tear-off stub is pollen gold, edged in ink (TagMark.tsx). */
 .vcm .brand svg {
   color: var(--ink);
-  --tm-stub: var(--notary);
+  --tm-stub: var(--pollen);
+  --tm-edge: var(--ink);
 }
 .vcm .nav-right {
   display: flex;
@@ -317,13 +328,22 @@ html:has(.vcm) {
   box-sizing: border-box;
   padding: 0 16px;
   border-radius: var(--r-control);
-  background: var(--notary);
-  color: #fff;
+  background: var(--pollen);
+  color: var(--ink);
   font-weight: 700;
+  box-shadow: var(--press-rest);
+  transition:
+    transform 0.12s ease-out,
+    box-shadow 0.12s ease-out;
 }
 .vcm .nav-links a.nav-cta:hover {
-  background: var(--notary-deep);
-  color: #fff;
+  color: var(--ink);
+  box-shadow: var(--press-lift);
+  transform: translateY(-1px);
+}
+.vcm .nav-links a.nav-cta:active {
+  box-shadow: var(--press-down);
+  transform: none;
 }
 .vcm .menu-btn {
   display: none;
@@ -339,7 +359,9 @@ html:has(.vcm) {
 }
 
 /* ------------------------------------------------------------------ buttons
-   Filled, never outlined: the main action in Notary blue, the others in Wash. */
+   Filled, never outlined: the main action in pollen gold under ink, the others in Wash.
+   The gold one is paper on a desk: a thin ink shadow, a pixel's lift under the pointer,
+   down when pressed. */
 
 .vcm .btn {
   display: inline-flex;
@@ -357,28 +379,44 @@ html:has(.vcm) {
   color: var(--ink);
   background: var(--wash);
   cursor: pointer;
-  transition: background-color 0.15s;
+  transition:
+    background-color 0.15s,
+    transform 0.12s ease-out,
+    box-shadow 0.12s ease-out;
 }
 .vcm .btn:hover {
   background: var(--wash-strong);
 }
 .vcm .btn.solid {
-  background: var(--notary);
-  color: #fff;
+  background: var(--pollen);
+  color: var(--ink);
+  box-shadow: var(--press-rest);
 }
 .vcm .btn.solid:hover {
-  background: var(--notary-deep);
+  background: var(--pollen);
+  box-shadow: var(--press-lift);
+  transform: translateY(-1px);
+}
+.vcm .btn.solid:active {
+  box-shadow: var(--press-down);
+  transform: none;
 }
 
-/* ------------------------------------------------------------------ hero */
+/* ------------------------------------------------------------------ hero
+   The one ink band at the top: the headline in Caslon, its answer in pollen gold, and the
+   specimen sheet beside it. The headline runs the full width, one sentence a line; under it
+   the lede, the actions and the status on the left, and the sheet on the right.
+   .hero-text dissolves into the grid (display: contents) so its children can sit on those
+   rows. */
 
-/* The headline runs the full width, one sentence a line; under it the lede, the actions
-   and the status on the left, and the tag beside them on the right. .hero-text dissolves
-   into the grid (display: contents) so its children can sit on those rows. */
+.vcm .hero-band {
+  background: var(--ink);
+  color: var(--on-dark);
+}
 .vcm header.hero {
-  padding-block: clamp(32px, 4.4vw, 64px) clamp(56px, 7vw, 104px);
+  padding-block: clamp(48px, 6vw, 96px) clamp(64px, 7.5vw, 112px);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 460px);
   grid-template-rows: auto auto auto 1fr;
   column-gap: clamp(40px, 7vw, 112px);
   align-items: start;
@@ -388,11 +426,13 @@ html:has(.vcm) {
 }
 .vcm header.hero h1 {
   grid-column: 1 / -1;
-  font-size: clamp(2.75rem, 6.4vw, 5.5rem);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.035em;
-  margin-bottom: clamp(24px, 2.8vw, 40px);
+  font-family: var(--display);
+  font-size: clamp(2.875rem, 6.6vw, 5.75rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.012em;
+  margin-bottom: clamp(28px, 3.2vw, 48px);
+  color: var(--on-dark);
 }
 .vcm header.hero .lede,
 .vcm .hero-actions,
@@ -403,11 +443,13 @@ html:has(.vcm) {
   grid-column: 2;
   grid-row: 2 / span 3;
 }
-/* The second sentence answers the first: its own line, the same ink. */
+/* The second sentence answers the first: its own line, in pollen gold (12.7:1 on ink). */
 .vcm header.hero h1 em {
   display: block;
+  color: var(--pollen);
 }
 .vcm header.hero.cjk h1 {
+  font-family: var(--font);
   font-size: clamp(2rem, 4.6vw, 4rem);
   line-height: 1.3;
   letter-spacing: 0;
@@ -419,7 +461,7 @@ html:has(.vcm) {
   margin-top: 0;
   max-width: 46ch;
   font-size: clamp(1.125rem, 1.6vw, 1.3125rem);
-  color: var(--ink);
+  color: var(--on-dark);
 }
 .vcm .hero-actions {
   display: flex;
@@ -427,19 +469,27 @@ html:has(.vcm) {
   gap: 12px;
   margin-top: 36px;
 }
+/* On ink, the quiet button is a faint paper fill. */
+.vcm .hero-band .btn:not(.solid) {
+  background: rgba(246, 243, 236, 0.1);
+  color: var(--on-dark);
+}
+.vcm .hero-band .btn:not(.solid):hover {
+  background: rgba(246, 243, 236, 0.18);
+}
 .vcm .hero-status {
   margin-top: 28px;
   max-width: 52ch;
   font-size: 15px;
   line-height: 1.5;
-  color: var(--muted);
+  color: var(--on-dark-muted);
 }
 
-/* The tag. The one thing on the page that moves, and only when you type.
-   .hd-in is the tag (what you type stays with you); .hd-out is the stub below the
-   perforation (the fingerprint, the part that goes on Midnight). The cut corners, the
-   eyelet and the two notches at the perforation are cut out with clip-path and masks, so
-   the hanging shadow (a filter on .hd-card) follows the real outline. */
+/* The specimen sheet. The one thing on the page that moves, and only when you type.
+   .hd-in is what you type, the sheet's label, which stays with you; .hd-out is the strip
+   of pollen gold under it: the proof code, the part that goes on Midnight. The sheet's rows
+   are ruled with dashed hairlines, the way a herbarium label is, and the DATED stamp is
+   pressed over its top corner, half on the sheet and half off. */
 .vcm .hash-demo {
   min-width: 0;
   max-width: 480px;
@@ -447,53 +497,16 @@ html:has(.vcm) {
   width: 100%;
 }
 .vcm .hd-card {
-  filter: drop-shadow(0 1px 0.5px rgba(30, 34, 39, 0.14)) drop-shadow(0 16px 22px rgba(30, 34, 39, 0.1));
-}
-.vcm .hd-in,
-.vcm .hd-out {
-  background: var(--tag);
   position: relative;
+  background: var(--sheet);
+  color: var(--ink);
+  border-radius: 6px;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.3),
+    0 24px 48px -20px rgba(0, 0, 0, 0.55);
 }
 .vcm .hd-in {
-  padding: 56px 28px 28px;
-  clip-path: polygon(22px 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%, 0 22px);
-  /* the eyelet, and the left and right halves of the perforation's notches */
-  mask-image:
-    radial-gradient(circle at 50% 24px, transparent 7.5px, #000 8px),
-    radial-gradient(circle at 0 100%, transparent 9.5px, #000 10px),
-    radial-gradient(circle at 100% 100%, transparent 9.5px, #000 10px);
-  mask-composite: intersect;
-}
-/* The paper ring glued round a tag's hole. */
-.vcm .eyelet {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  width: 24px;
-  height: 24px;
-  margin-left: -12px;
-  border-radius: 50%;
-  background: var(--wash);
-}
-/* The stub is Wash: a different card from the tag above, the part that tears off. Its
-   fingerprint is in Notary blue: the only colour on the tag, the part that gets the date. */
-.vcm .hd-out {
-  background: var(--wash);
-  padding: 24px 28px 26px;
-  mask-image:
-    radial-gradient(circle at 0 0, transparent 9.5px, #000 10px),
-    radial-gradient(circle at 100% 0, transparent 9.5px, #000 10px);
-  mask-composite: intersect;
-}
-/* The perforation: a row of punched holes where the stub tears off. */
-.vcm .hd-out::before {
-  content: '';
-  position: absolute;
-  top: -3px;
-  left: 16px;
-  right: 16px;
-  height: 6px;
-  background: radial-gradient(circle, var(--step-line) 2.2px, transparent 2.7px) 0 0 / 11px 6px repeat-x;
+  padding: 26px 28px 24px;
 }
 .vcm .hd-zone {
   display: flex;
@@ -502,7 +515,7 @@ html:has(.vcm) {
   font-size: 15px;
   font-weight: 700;
   color: var(--muted);
-  margin-bottom: 14px;
+  margin-bottom: 6px;
 }
 .vcm .hd-zone svg {
   width: 18px;
@@ -514,18 +527,20 @@ html:has(.vcm) {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.vcm .hd-out .hd-zone {
-  color: var(--notary-deep);
-  margin-bottom: 8px;
-}
 .vcm .fields {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
 }
+/* A row of the sheet: its name and its value, a dashed hairline under it. */
 .vcm .field {
   position: relative;
   min-width: 0;
+  padding-block: 12px 14px;
+  background: linear-gradient(to right, var(--hairline) 50%, transparent 0) left bottom / 8px 1.5px repeat-x;
+}
+/* The last row sits on the gold strip: no rule before it. */
+.vcm .fields .field:last-child {
+  background: none;
 }
 .vcm .field label {
   display: block;
@@ -537,20 +552,30 @@ html:has(.vcm) {
 .vcm .field input {
   width: 100%;
   box-sizing: border-box;
-  background: var(--tag);
+  background: var(--sheet);
   border: 1.5px solid var(--edge);
   border-radius: var(--r-control);
   color: var(--ink);
   font-family: var(--font);
   font-size: 1.125rem;
-  padding: 11px 14px;
+  padding: 10px 14px;
   outline: none;
 }
 .vcm .field input:hover {
   border-color: var(--muted);
 }
 .vcm .field input:focus {
-  border-color: var(--notary);
+  border-color: var(--ink);
+}
+/* The strip that leaves: pollen gold, ink on it. */
+.vcm .hd-out {
+  background: var(--pollen);
+  padding: 18px 28px 22px;
+  border-radius: 0 0 6px 6px;
+}
+.vcm .hd-out .hd-zone {
+  color: var(--ink);
+  margin-bottom: 8px;
 }
 /* The fingerprint, in groups of eight like a printed lab code. Tabular figures so the
    groups line up; the same legible face as the rest, so 0 and O can't be confused. */
@@ -560,7 +585,7 @@ html:has(.vcm) {
   font-weight: 700;
   font-variant-numeric: tabular-nums slashed-zero;
   letter-spacing: 0.03em;
-  color: var(--notary);
+  color: var(--ink);
   min-height: 58px;
   overflow-wrap: anywhere;
 }
@@ -569,18 +594,79 @@ html:has(.vcm) {
   margin-right: 0.55em;
   white-space: nowrap;
 }
+/* A character that changed rolls in from above, a few milliseconds after its neighbour,
+   like the wheels of a numbering stamp. */
 .vcm .digest .chg {
-  color: var(--notary-deep);
-  background: var(--wash-strong);
-  border-radius: 2px;
-  animation: vcm-chg 1.2s ease-out both;
+  display: inline-block;
+  animation: vcm-roll 0.26s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 5ms);
 }
-@keyframes vcm-chg {
+@keyframes vcm-roll {
   from {
-    background: #c9ced5;
+    transform: translateY(-0.55em);
+    opacity: 0;
   }
   to {
-    background: var(--wash);
+    transform: none;
+    opacity: 1;
+  }
+}
+/* The DATED stamp, pressed over the sheet's top right corner. */
+.vcm .stamp {
+  position: absolute;
+  top: -38px;
+  right: -26px;
+  width: 104px;
+  height: 104px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  text-align: center;
+  color: var(--ink);
+  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.28), transparent 46%), var(--pollen);
+  /* A stamp's two rings: its edge, and an inner ring a few points in. */
+  box-shadow:
+    inset 0 0 0 2px var(--ink),
+    inset 0 0 0 5px var(--pollen),
+    inset 0 0 0 6.5px var(--ink);
+  transform: rotate(-8deg);
+  animation: vcm-press 0.3s cubic-bezier(0.2, 0.8, 0.25, 1) 0.45s both;
+  pointer-events: none;
+}
+.vcm .stamp b {
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+.vcm .stamp span {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.05;
+  margin-top: 3px;
+  max-width: 70px;
+}
+.vcm:lang(ja) .stamp span {
+  font-family: var(--font);
+}
+@keyframes vcm-press {
+  0% {
+    transform: scale(1.45) rotate(-16deg);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(0.93) rotate(-7deg);
+    opacity: 1;
+  }
+  78% {
+    transform: scale(1.03) rotate(-8.5deg);
+  }
+  100% {
+    transform: scale(1) rotate(-8deg);
   }
 }
 .vcm .note-short {
@@ -589,9 +675,9 @@ html:has(.vcm) {
 .vcm .note {
   font-size: 15px;
   line-height: 1.5;
-  color: var(--muted);
+  color: var(--on-dark-muted);
   max-width: 52ch;
-  margin-top: 20px;
+  margin-top: 22px;
 }
 
 /* ------------------------------------------------------------------ titled paragraphs
@@ -661,10 +747,11 @@ html:has(.vcm) {
   padding-block: 4px;
   text-align: center;
   background: var(--ground);
+  font-family: var(--display);
   font-size: 3rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
@@ -769,7 +856,10 @@ html:has(.vcm) {
   content: '\2212';
 }
 .vcm .faq summary:hover {
-  color: var(--notary-deep);
+  text-decoration: underline;
+  text-decoration-color: var(--pollen);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
 }
 .vcm .faq p {
   color: var(--muted);
@@ -778,7 +868,7 @@ html:has(.vcm) {
 }
 
 /* ------------------------------------------------------------------ try the demo
-   The one band of colour: where both "Try the demo" buttons land. */
+   The second ink band: where both "Try the demo" buttons land. */
 
 .vcm section.dark {
   background: var(--ink);
@@ -789,10 +879,11 @@ html:has(.vcm) {
 }
 .vcm section.dark .lede a.inline {
   color: var(--on-dark);
-  text-decoration-color: var(--on-dark-notary);
+  text-decoration-color: var(--pollen);
 }
 .vcm section.dark .lede a.inline:hover {
-  color: #fff;
+  color: var(--ink);
+  background: var(--pollen);
 }
 .vcm .demos {
   display: grid;
@@ -812,14 +903,16 @@ html:has(.vcm) {
   padding: 0;
 }
 .vcm .demo h3 {
-  font-size: 1.5rem;
+  font-family: var(--display);
+  font-size: 1.625rem;
   text-decoration: underline;
-  text-decoration-color: var(--on-dark-notary);
-  text-decoration-thickness: 2px;
+  text-decoration-color: var(--pollen);
+  text-decoration-thickness: 3px;
+  text-decoration-skip-ink: none;
   text-underline-offset: 6px;
 }
 .vcm .demo:hover h3 {
-  color: var(--on-dark-notary);
+  color: var(--pollen);
 }
 .vcm .demo p {
   color: var(--on-dark-muted);
@@ -842,7 +935,7 @@ html:has(.vcm) {
 }
 .vcm section.dark .chip {
   color: var(--on-dark-muted);
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(246, 243, 236, 0.1);
 }
 .vcm section.dark .chip.live {
   color: var(--ink);
@@ -877,10 +970,11 @@ html:has(.vcm) {
 }
 .vcm .stat b {
   display: block;
-  font-size: clamp(1.5rem, 2.1vw, 1.875rem);
-  font-weight: 800;
+  font-family: var(--display);
+  font-size: clamp(1.625rem, 2.2vw, 2rem);
+  font-weight: 700;
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.005em;
   margin-bottom: 10px;
 }
 .vcm .stat span {
@@ -894,10 +988,11 @@ html:has(.vcm) {
 }
 /* A second heading inside a section (what's live where). */
 .vcm .live-where h3.reg-h {
+  font-family: var(--display);
   font-size: clamp(1.5rem, 2vw, 1.75rem);
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.015em;
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.005em;
   max-width: 20ch;
 }
 .vcm .live-where .full {
@@ -955,7 +1050,7 @@ html:has(.vcm) {
   display: none;
 }
 .vcm .live-table td.no {
-  color: #80868f;
+  color: var(--muted);
 }
 
 /* ------------------------------------------------------------------ updates
@@ -979,11 +1074,13 @@ html:has(.vcm) {
   padding-top: 2px;
 }
 .vcm .post time {
+  align-self: flex-start;
   font-size: 1.125rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  /* A date, so it is stamped: the log book's date column in Notary blue. */
-  color: var(--notary);
+  color: var(--ink);
+  /* A date, so it is marked: the log book's date column, each date underscored in pollen. */
+  background: linear-gradient(transparent 62%, var(--pollen) 62%, var(--pollen) 92%, transparent 92%);
 }
 .vcm .post .tag {
   font-size: 15px;
@@ -996,9 +1093,10 @@ html:has(.vcm) {
   letter-spacing: -0.01em;
 }
 .vcm .post:hover h3 {
-  color: var(--notary-deep);
   text-decoration: underline;
-  text-decoration-thickness: 2px;
+  text-decoration-color: var(--pollen);
+  text-decoration-thickness: 3px;
+  text-decoration-skip-ink: none;
   text-underline-offset: 4px;
 }
 .vcm .post p {
@@ -1011,7 +1109,12 @@ html:has(.vcm) {
   margin-top: 8px;
   font-size: 16px;
   font-weight: 700;
-  color: var(--notary);
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--pollen);
+  text-decoration-thickness: 3px;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 4px;
 }
 .vcm .subscribe {
   display: flex;
@@ -1040,8 +1143,8 @@ html:has(.vcm) {
 }
 .vcm details.older-posts > summary {
   font-weight: 700;
-  /* Opening a list is not a date or a link: Graphite, like "Show the detail", so the
-     blue in the updates column stays on the dates and the links to read them. */
+  /* Opening a list is not a date or a link: plain ink, like "Show the detail", so the
+     gold in the updates column stays on the dates and the links to read them. */
   color: var(--ink);
 }
 .vcm details.older-posts > summary::-webkit-details-marker,
@@ -1188,8 +1291,9 @@ html:has(.vcm) {
   object-fit: cover;
 }
 .vcm .person:hover h3 {
-  color: var(--notary-deep);
   text-decoration: underline;
+  text-decoration-color: var(--pollen);
+  text-decoration-thickness: 3px;
   text-underline-offset: 4px;
 }
 .vcm .person .role {
@@ -1204,7 +1308,7 @@ html:has(.vcm) {
 }
 
 /* ------------------------------------------------------------------ footer
-   On Graphite: the end of the page. */
+   On ink: the end of the page. */
 
 .vcm footer.bottom {
   background: var(--ink);
@@ -1222,7 +1326,8 @@ html:has(.vcm) {
 }
 .vcm footer .brand svg {
   color: var(--on-dark);
-  --tm-stub: var(--on-dark-notary);
+  --tm-stub: var(--pollen);
+  --tm-edge: transparent;
 }
 .vcm .foot-about {
   margin-top: 14px;
@@ -1263,10 +1368,11 @@ html:has(.vcm) {
   padding-block: clamp(48px, 8vw, 112px) clamp(40px, 5vw, 64px);
 }
 .vcm header.page h1 {
+  font-family: var(--display);
   font-size: clamp(2.75rem, 5.4vw, 4.25rem);
-  font-weight: 800;
-  line-height: 1.04;
-  letter-spacing: -0.03em;
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.01em;
   max-width: 18ch;
   text-wrap: balance;
 }
@@ -1390,8 +1496,8 @@ html:has(.vcm) {
 .vcm .links a:hover {
   background: var(--wash-strong);
 }
-/* The founders page's contact: a Wash band, so it doesn't run into the Graphite
-   footer below it as one dark block. Text Graphite (13.1:1) and Pencil (5.4:1). */
+/* The founders page's contact: a Wash band, so it doesn't run into the ink footer
+   below it as one dark block. Text Ink (14.3:1) and Pencil (7.4:1). */
 .vcm .band {
   background: var(--wash);
   color: var(--ink);
@@ -1407,7 +1513,7 @@ html:has(.vcm) {
   margin-top: 16px;
 }
 .vcm .band .btn:not(.solid) {
-  background: var(--tag);
+  background: var(--sheet);
 }
 .vcm .band .btn:not(.solid):hover {
   background: var(--wash-strong);
@@ -1478,12 +1584,15 @@ html:has(.vcm) {
 
 /* ------------------------------------------------------------------ focus, motion */
 
+/* The focus ring: an ink ring hugging the element inside a pollen ring, so it shows on
+   paper (ink, 16:1), on a gold button and on the ink band (pollen, 12.7:1). */
 .vcm a:focus-visible,
 .vcm button:focus-visible,
 .vcm summary:focus-visible,
 .vcm input:focus-visible {
-  outline: 2px solid var(--notary);
-  outline-offset: 3px;
+  outline: 3px solid var(--pollen);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--ink);
   border-radius: 4px;
 }
 .vcm .btn:focus-visible,
@@ -1495,9 +1604,9 @@ html:has(.vcm) {
   outline-offset: 1px;
   border-radius: var(--r-control);
 }
-/* On Graphite the ring is white, so it still stands out (16:1). */
-.vcm :is(section.dark, footer.bottom) :is(a, button, summary):focus-visible {
-  outline-color: var(--on-dark);
+/* On ink the inner ring turns paper, so both rings still show. */
+.vcm :is(.hero-band, section.dark, footer.bottom) :is(a, button, summary):focus-visible {
+  box-shadow: 0 0 0 2px var(--on-dark);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1538,10 +1647,15 @@ html:has(.vcm) {
     grid-row: auto;
     justify-self: start;
     max-width: 560px;
-    margin-top: 48px;
+    margin-top: 72px;
   }
   .vcm .fields {
     grid-template-columns: 1fr 1fr;
+    column-gap: 16px;
+  }
+  /* Side by side, both fields are the sheet's last row. */
+  .vcm .fields .field {
+    background: none;
   }
 }
 @media (max-width: 900px) {
@@ -1565,8 +1679,8 @@ html:has(.vcm) {
     flex-direction: column;
     align-items: stretch;
     gap: 0;
-    background: var(--tag);
-    box-shadow: 0 18px 24px -18px rgba(30, 34, 39, 0.35);
+    background: var(--sheet);
+    box-shadow: 0 18px 24px -18px rgba(22, 24, 29, 0.35);
     padding: 4px var(--gutter) 16px;
   }
   .vcm .nav-links.open {
@@ -1673,8 +1787,8 @@ html:has(.vcm) {
   }
   .vcm section h2,
   .vcm h2.reg-h {
-    font-size: 1.875rem;
-    line-height: 1.1;
+    font-size: 1.9375rem;
+    line-height: 1.12;
   }
   .vcm .reg-h {
     margin-bottom: 0;
@@ -1711,15 +1825,29 @@ html:has(.vcm) {
 
   /* hero */
   .vcm header.hero {
-    padding-block: 24px 52px;
+    padding-block: 36px 48px;
   }
   .vcm header.hero h1 {
-    font-size: 2.625rem;
-    line-height: 1.04;
-    margin-bottom: 18px;
+    font-size: 2.125rem;
+    line-height: 1.08;
+    margin-bottom: 20px;
   }
   .vcm header.hero .hash-demo {
-    margin-top: 36px;
+    margin-top: 56px;
+  }
+  .vcm .stamp {
+    width: 84px;
+    height: 84px;
+    top: -34px;
+    right: -6px;
+  }
+  .vcm .stamp b {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+  }
+  .vcm .stamp span {
+    font-size: 11.5px;
+    max-width: 50px;
   }
   .vcm header.hero.cjk h1 {
     font-size: 1.875rem;
@@ -1737,17 +1865,20 @@ html:has(.vcm) {
     margin-top: 18px;
   }
   .vcm .hd-in {
-    padding: 50px 18px 20px;
+    padding: 18px 18px 14px;
   }
   .vcm .hd-out {
-    padding: 18px 18px 20px;
+    padding: 14px 18px 16px;
   }
   .vcm .hd-zone {
-    margin-bottom: 10px;
+    margin-bottom: 2px;
   }
   .vcm .fields {
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    column-gap: 10px;
+  }
+  .vcm .field {
+    padding-block: 10px 12px;
   }
   .vcm .field label {
     font-size: 14px;
@@ -1864,7 +1995,7 @@ html:has(.vcm) {
   }
   .vcm .step::before {
     top: -2px;
-    font-size: 2rem;
+    font-size: 2.125rem;
     padding-block: 0 6px;
     width: 32px;
   }
@@ -2225,8 +2356,12 @@ html:has(.vcm) {
     overflow-wrap: anywhere;
   }
 }
-.vcm:lang(ja) :is(h1, h2, h3, h4, .stat b) {
+.vcm:lang(ja) :is(h1, h2, h3, h4, .stat b, .step::before, .brand) {
   letter-spacing: 0;
+}
+/* Caslon has no Japanese: Japanese headings use the body face (the wordmark stays Caslon). */
+.vcm:lang(ja) :is(h1, h2, h3, h4, .stat b) {
+  font-family: var(--font);
 }
 .vcm:lang(ja) h2 {
   line-height: 1.4;

@@ -7,7 +7,7 @@ import React from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import { motion } from 'framer-motion';
-import { NOTARY, CODE_TEXT } from '../../config/theme';
+import { CODE_TEXT, INK_COLOR, POLLEN, REDUCED_MOTION } from '../../config/theme';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { useT } from '../../i18n/app';
 
@@ -35,25 +35,25 @@ export const FingerprintReveal: React.FC<{
           transition={{ duration: 0.6, ease: 'backOut' }}
           sx={{ display: 'inline-flex' }}
         >
-          <FingerprintIcon sx={{ fontSize: 92, color: NOTARY }} />
+          <FingerprintIcon sx={{ fontSize: 92, color: INK_COLOR }} />
         </MBox>
         {/* scan sweep */}
         <MBox
           initial={{ top: 0, opacity: 0 }}
           animate={{ top: ['4%', '92%', '4%'], opacity: [0, 1, 0] }}
-          transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 1.6, repeat: REDUCED_MOTION ? 0 : 1, ease: 'easeInOut' }}
           sx={{
             position: 'absolute',
             left: '10%',
             right: '10%',
-            height: 2,
-            background: `linear-gradient(90deg, transparent, ${NOTARY}, transparent)`,
+            height: 3,
+            background: `linear-gradient(90deg, transparent, ${POLLEN}, transparent)`,
             borderRadius: 2,
           }}
         />
       </Box>
 
-      <Typography variant="h5" sx={{ color: NOTARY, mb: 1 }}>
+      <Typography variant="h5" sx={{ mb: 1 }}>
         {headline ?? t('app.pair.fingerprinted')}
       </Typography>
       {sub && (
