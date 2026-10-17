@@ -4,9 +4,12 @@
 //   recovery secret  moves the record to a new secret if the first is lost or stolen
 //
 // They are stored under their own localStorage key, which nothing else reads or sends.
-// They are NEVER fields of a StrainRecord: the app saves whole records to VeilCore's
-// registry (api-store.ts), so anything on a record leaves the browser. A test checks
-// that no secret ever appears in a registry request (record-keys.test.ts).
+// Since round 4 (F5) a copy also goes inside the record's SEALED part (`secrets`, never a
+// clear field): sealed with the vault key, which never leaves the browser, so a restore of
+// the vault key brings them back with the record (sealedSecretsOf, adoptSealedSecrets).
+// Before, a plant logged after the last checked backup lost them when storage was wiped,
+// and with them every lab report locked to it. A test checks that no secret ever appears
+// readable in a registry request (record-keys.test.ts).
 //
 // The record's on-chain identity and its anchor are kept here too, not on the record.
 // They are public on chain, but the registry knows which holder key holds which record;
@@ -327,8 +330,61 @@ export const restoreKeysEntry = (parsed: Record<string, unknown>): RecordKeys =>
   };
   const all = readAll();
   if (!writeAll({ ...all, [keys.recordId]: merged })) sessionOnly = { ...sessionOnly, [keys.recordId]: merged };
+  if (wasForgotten(keys.recordId)) writeForgotten(readForgotten().filter((id) => id !== keys.recordId));
   changed();
   return merged;
+};
+
+/**
+ * A record's secrets as they go inside its sealed part (round 4, F5): the two secrets and when
+ * they were made. Never a clear field: api-store.ts seals every field but the public ones.
+ */
+export type SealedSecrets = {
+  readonly recordSecret: string;
+  readonly recoverySecret: string;
+  readonly createdAt: number;
+};
+
+export const isSealedSecrets = (v: unknown): v is SealedSecrets => {
+  if (typeof v !== 'object' || v === null) return false;
+  const s = v as Record<string, unknown>;
+  return (
+    typeof s.recordSecret === 'string' &&
+    HEX64.test(s.recordSecret) &&
+    typeof s.recoverySecret === 'string' &&
+    HEX64.test(s.recoverySecret) &&
+    typeof s.createdAt === 'number'
+  );
+};
+
+/** What a record's sealed part carries for these keys. */
+export const sealedSecretsOf = (k: RecordKeys): SealedSecrets => ({
+  recordSecret: k.recordSecret,
+  recoverySecret: k.recoverySecret,
+  createdAt: k.createdAt,
+});
+
+/**
+ * Keys found in a record's sealed part (round 4, F5), kept here when this browser has none
+ * for it: a restored vault key opens the record, and with it the record's secrets. Never
+ * replaces keys this browser holds. Only keys the record names (its key binding), when it
+ * names one. True when they were taken.
+ */
+export const adoptSealedSecrets = (record: { id: string; keyBinding?: string }, s: unknown): boolean => {
+  if (!isSealedSecrets(s) || keysFor(record.id) || wasForgotten(record.id)) return false;
+  if (!keysFitRecord(s, record)) return false;
+  const keys: RecordKeys = {
+    recordId: record.id,
+    recordSecret: s.recordSecret,
+    recoverySecret: s.recoverySecret,
+    createdAt: s.createdAt,
+    // Held in the sealed record, which the vault key in the checked backup opens.
+    backedUpAt: Date.now(),
+  };
+  const all = readAll();
+  if (!writeAll({ ...all, [record.id]: keys })) sessionOnly = { ...sessionOnly, [record.id]: keys };
+  changed();
+  return true;
 };
 
 /** Every record's keys this browser holds. */
@@ -378,8 +434,33 @@ export const clearDnaOnChain = (recordId: string): void =>
 /** Keys that exist only in this browser, with no backup made. */
 export const keysWithoutBackup = (): RecordKeys[] => Object.values(readAll()).filter((k) => k.backedUpAt === undefined);
 
+/**
+ * Records whose keys the holder removed from this browser (round 4, F5): their sealed copy is
+ * not taken back here, or "Remove from this browser" would be undone by the next load. A
+ * restore from a backup file (restoreKeysEntry) takes that record off the list.
+ */
+const FORGOTTEN = 'veilcore.record-keys.forgotten.v1';
+const readForgotten = (): string[] => {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(FORGOTTEN) ?? '[]');
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+  } catch {
+    return [];
+  }
+};
+const writeForgotten = (ids: readonly string[]): void => {
+  try {
+    if (ids.length) localStorage.setItem(FORGOTTEN, JSON.stringify(ids));
+    else localStorage.removeItem(FORGOTTEN);
+  } catch {
+    /* a browser that keeps nothing keeps no keys to take back either */
+  }
+};
+const wasForgotten = (recordId: string): boolean => readForgotten().includes(recordId);
+
 /** Delete a record's keys from this browser. The UI asks first, and says what is lost. */
 export const forgetKeys = (recordId: string): void => {
+  if (!wasForgotten(recordId)) writeForgotten([...readForgotten(), recordId]);
   const all = readAll();
   delete all[recordId];
   const { [recordId]: _dropped, ...rest } = sessionOnly;

@@ -31,7 +31,7 @@ import { WASH } from '../config/theme';
 import type { SavedReport } from '../veilcore/saved-report';
 import { useNavigate } from 'react-router-dom';
 import { isLabReportRecord } from './stage/lab-report-notes';
-import { dateErrorWords, useDateReport } from './stage/DateLabReport';
+import { DatingNameField, dateErrorWords, useDateReport } from './stage/DateLabReport';
 import { useRecordT } from '../i18n/app';
 import { isAnimal } from '../veilcore/animal-profile';
 import { recipientName } from '../veilcore/transfers';
@@ -290,6 +290,7 @@ export const NextStep: React.FC<{
       why: t('app.plant.next.date.why'),
       custom: (
         <Stack spacing={1} sx={{ alignItems: { sm: 'flex-end' } }}>
+          <DatingNameField name={dateReport.name} setName={dateReport.setName} busy={dateReport.busy} />
           <Button
             variant="contained"
             startIcon={dateReport.busy ? <CircularProgress size={16} color="inherit" /> : <EventIcon />}

@@ -287,6 +287,8 @@ export const plant = {
   'app.plant.dated.why': 'So you can show this report existed by that date without showing anyone the markers.',
   'app.plant.dated.seals':
     "Seals a small record with only the report's SHA-256, its lab report code and the lab's name as signed. The report stays with you. Its date comes when its batch is dated.",
+  'app.plant.dated.nameLabel': 'Name of the new record (public)',
+  'app.plant.dated.nameHelp': 'Anyone with its check link sees this name. Change it if you like.',
   'app.plant.dated.elsewhere':
     'This DNA report is being dated in another tab or window. Wait a minute, then look again: it will show here.',
   // stage/LabReportOverview.tsx: the page of a record that dates a lab report.
@@ -327,12 +329,11 @@ export const plant = {
   'app.plant.keys.removeBacked':
     'Remove this record’s keys from this browser? You can restore them from your backup file.',
   'app.plant.keys.removeUnbacked':
-    'You have NOT downloaded a backup of these keys. If you remove them, nobody, VeilCore included, can ever prove this record again. Remove them anyway?',
-  'app.plant.keys.title': 'Record keys (this browser only)',
+    'You have NOT downloaded a backup of these keys. If you remove them, this browser won’t take them back, and only your backup file, restored in a new browser, can bring them back. Remove them anyway?',
+  'app.plant.keys.title': 'Record keys',
   'app.plant.keys.holds':
-    'This browser holds the two secrets that prove you hold this record on chain. They are never sent anywhere, VeilCore has no copy, and clearing this browser deletes them.',
-  'app.plant.keys.noBackup':
-    'No backup yet. Download it and keep it offline: without it, clearing this browser loses the record for good.',
+    'This browser holds the two secrets that prove you hold this record on chain. A copy also goes inside the record’s locked box on VeilCore, which only the key that locks your records opens. Clearing this browser deletes them here; restoring your backup brings them back.',
+  'app.plant.keys.noBackup': 'No backup yet. Download it and keep it offline.',
   'app.plant.keys.downloadAgain': 'Download the backup again',
   'app.plant.keys.download': 'Download the backup (secret)',
   'app.plant.keys.remove': 'Remove from this browser',

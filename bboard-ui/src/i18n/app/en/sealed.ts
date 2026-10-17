@@ -73,6 +73,12 @@ export const sealed = {
   'app.sealed.older.pageTitle': 'An older copy of this record',
   'app.sealed.older':
     'The server sent an older copy of this record than this browser last saved. If it’s the copy you want, use it; or delete it.',
+  'app.sealed.older.beforeLocking':
+    'VeilCore’s server sent a copy of this record from before it was locked, older than the copy this browser last saved. This browser won’t use it or lock it again. You can delete it.',
+  'app.sealed.older.agreement':
+    'VeilCore’s server sent an older copy of this agreement than this browser last saved. If it’s the copy you want, use it; or delete it.',
+  'app.sealed.older.agreementBeforeLocking':
+    'VeilCore’s server sent a copy of this agreement from before it was locked, older than the copy this browser last saved. This browser won’t use it or lock it again. You can delete it.',
   'app.sealed.olderKept.one':
     'The server sent an older copy of {count} record. This browser kept the newer copy and saves it again.',
   'app.sealed.olderKept.other':

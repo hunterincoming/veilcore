@@ -69,7 +69,7 @@ export const lab = {
   'app.lab.custody.locked':
     'Die Probenangaben sind verschlossen, und dieser Browser hat ihren Schlüssel nicht. Stellen Sie hier Ihre Sicherungsdatei wieder her, um sie zu sehen.',
   'app.lab.custody.sealedSigned':
-    'Das Labor hat seine Empfangsbestätigung über die Probenangaben signiert. Sie sind verschlossen gespeichert, und VeilCore hat den Schlüssel nicht, daher kann diese Seite sie nicht vergleichen.',
+    'Die Empfangsbestätigung des Labors nennt Probenangaben. Sie sind verschlossen gespeichert, und VeilCore hat den Schlüssel nicht, daher kann diese Seite sie nicht prüfen; die App des Inhabers kann es.',
   'app.lab.custody.holderMatch':
     'Die App des Absenders hat sie verglichen: Was ankam, entspricht dem, was gesendet wurde. Das ist die Angabe des Absenders.',
   'app.lab.custody.holderDiffers':
@@ -78,6 +78,8 @@ export const lab = {
     'Die App des Absenders hat sie verglichen: Das Labor hat seine Ankunftsangaben nach dem Signieren geändert, daher deckt seine Empfangsbestätigung sie nicht ab. Das ist die Angabe des Absenders.',
   'app.lab.custody.removed':
     'Die Probenangaben dieser Lieferung wurden vor dem Verschließen geschrieben und inzwischen entfernt, daher kann diese Empfangsbestätigung nicht mit ihnen verglichen werden.',
+  'app.lab.send.secretNotSaved':
+    'Der Schlüssel dieser Pflanze ist noch nicht bei VeilCore gespeichert, daher wurde kein Labor-Code erstellt: {error}. Laborberichte werden mit diesem Schlüssel verschlossen, und er muss zuerst mit der Pflanze gespeichert werden. Versuchen Sie es erneut.',
   'app.lab.send.sampleNotSaved': 'Der Laborcode funktioniert, aber die Probenangaben wurden nicht gespeichert: {error}',
   'app.signer.sep': ' ',
   'app.lab.strength.unsigned': 'Nicht signiert',
@@ -207,6 +209,8 @@ export const lab = {
   'app.lab.recv.wrongSample': 'Es ist die falsche Probe',
   'app.lab.recv.rejected': 'Erhalten, aber abgelehnt (beschädigt oder falsche Probe)',
   'app.lab.recv.nothingSigned': '{problems} Es wurde nichts signiert',
+  'app.lab.recv.askNewCode':
+    'Ihre Angaben zur Ankunft können für diese Lieferung nicht verschlossen werden: Dem Code fehlt sein letzter Teil, oder die Probenangaben des Absenders sind nie bei VeilCore angekommen. Nichts wurde gesendet und nichts unterschrieben. Bitten Sie den Absender um einen neuen Code.',
   'app.lab.recv.notSaved': 'Ihre Ankunftsdetails wurden nicht gespeichert ({error}), daher wurde nichts signiert',
   'app.lab.recv.savedDifferent':
     'die Probendetails kamen vom Register anders zurück als die auf diesem Bildschirm, daher wurde nichts signiert. Laden Sie die Seite neu und prüfen Sie sie erneut',

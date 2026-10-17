@@ -268,7 +268,7 @@ test('a different seal number: said plainly on the breeder’s plant page, certi
   await shot(r.breeder, 'custody-differs-6-check');
 
   // A stranger's check page: with the holder sharing the lab status, the registry says only
-  // that the lab signed over the sample details, which it can't open; what the holder's app
+  // that the lab's receipt names sample details, which it can't open or check; what the holder's app
   // worked out comes as the sender's word, by field name, never a value.
   const breederKey = await r.breeder.evaluate(() => localStorage.getItem('veilcore.holder.v1') ?? '');
   const publicView = async () =>
@@ -294,7 +294,12 @@ test('a different seal number: said plainly on the breeder’s plant page, certi
   const receiptId = shared.custody?.[0]?.receiptAttestationId ?? '';
   expect(receiptId).toMatch(/^att_[0-9a-f]{16}_sc2_[0-9a-f]{64}$/);
   expect(shared.custody).toEqual([
-    { receiptAttestationId: receiptId, custody: 'sealed', signedOverSampleDetails: true },
+    {
+      receiptAttestationId: receiptId,
+      custody: 'sealed',
+      receiptNamesSampleDetails: true,
+      sampleDetailsCheckedBy: 'holder',
+    },
   ]);
   expect(shared.staleGrant).toBeUndefined();
   const strangerCtx = await browser.newContext();
@@ -302,7 +307,7 @@ test('a different seal number: said plainly on the breeder’s plant page, certi
   const strangerErrors = watch(stranger);
   await stranger.goto(`/verify/${r.recordId}`);
   const signedOver =
-    'The lab signed its receipt over the sample details. They are stored locked, and VeilCore doesn’t have the key, so this page can’t compare them.';
+    'The lab’s receipt names sample details. They are stored locked, and VeilCore doesn’t have the key, so this page can’t check them; the holder’s app can.';
   await expect(stranger.locator('[data-public-custody]')).toContainText(signedOver);
   // The summary the holder's app publishes with the grant (disclosure.ts grantValuesNow).
   expect(

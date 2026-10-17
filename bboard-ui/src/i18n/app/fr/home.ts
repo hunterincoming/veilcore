@@ -127,7 +127,7 @@ export const home = {
   'app.home.aPlant': 'une plante',
   'app.home.datingUnfinished': '{dated} · pas terminé · ensuite : enregistrez votre copie de secours',
   'app.home.datingSealed': '{dated} · scellé le {date}',
-  'app.home.export.label': 'Télécharger tout ce que VeilCore conserve pour vous',
+  'app.home.export.label': 'Télécharger vos enregistrements et contrats depuis VeilCore',
   'app.home.export.done':
-    'Téléchargé : vos enregistrements, contrats, choix de partage et chaque preuve d’inclusion. Les rapports de laboratoire n’y sont pas : ouvrez-les depuis la page de la plante.',
+    'Téléchargé : vos enregistrements, contrats, choix de partage et chaque preuve d’inclusion. Les envois, leurs informations d’échantillon et les rapports de laboratoire n’y sont pas : ouvrez-les depuis l’envoi ou la page de la plante. Vos clés sont dans votre fichier de secours, pas dans celui-ci.',
 } satisfies Partial<AppTranslation>;

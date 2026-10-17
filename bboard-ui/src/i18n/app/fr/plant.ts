@@ -288,6 +288,9 @@ export const plant = {
     'Pour pouvoir montrer que ce rapport existait à cette date sans montrer les marqueurs à personne.',
   'app.plant.dated.seals':
     'Scelle un petit enregistrement contenant seulement le SHA-256 du rapport, son code de rapport de laboratoire et le nom du laboratoire tel que signé. Le rapport reste chez vous. Sa date vient quand son lot est daté.',
+  'app.plant.dated.nameLabel': 'Nom du nouvel enregistrement (public)',
+  'app.plant.dated.nameHelp':
+    'Toute personne ayant son lien de vérification voit ce nom. Modifiez-le si vous le souhaitez.',
   'app.plant.dated.elsewhere':
     'Ce rapport ADN est en train d’être daté dans un autre onglet ou une autre fenêtre. Attendez une minute, puis regardez de nouveau : il apparaîtra ici.',
   'app.plant.datingPage.title': 'Cet enregistrement date un rapport ADN pour <plant></plant>',
@@ -327,12 +330,11 @@ export const plant = {
   'app.plant.keys.removeBacked':
     'Retirer les clés de cet enregistrement de ce navigateur ? Vous pourrez les restaurer depuis votre fichier de copie de secours.',
   'app.plant.keys.removeUnbacked':
-    'Vous n’avez PAS téléchargé de copie de secours de ces clés. Si vous les retirez, personne, VeilCore compris, ne pourra plus jamais prouver cet enregistrement. Les retirer quand même ?',
-  'app.plant.keys.title': 'Clés de l’enregistrement (ce navigateur uniquement)',
+    'Vous n’avez PAS téléchargé de sauvegarde de ces clés. Si vous les retirez, ce navigateur ne les reprendra pas, et seul votre fichier de secours, restauré dans un nouveau navigateur, peut les ramener. Les retirer quand même ?',
+  'app.plant.keys.title': 'Clés de l’enregistrement',
   'app.plant.keys.holds':
-    'Ce navigateur contient les deux secrets qui prouvent que vous détenez cet enregistrement sur la chaîne. Ils ne sont jamais envoyés nulle part, VeilCore n’en a aucune copie, et effacer ce navigateur les supprime.',
-  'app.plant.keys.noBackup':
-    'Pas encore de copie de secours. Téléchargez-la et gardez-la hors ligne : sans elle, effacer ce navigateur fait perdre l’enregistrement pour de bon.',
+    'Ce navigateur contient les deux secrets qui prouvent que vous détenez cet enregistrement sur la chaîne. Une copie part aussi dans la boîte verrouillée de l’enregistrement sur VeilCore, que seule la clé qui verrouille vos enregistrements ouvre. Effacer ce navigateur les supprime ici ; restaurer votre sauvegarde les ramène.',
+  'app.plant.keys.noBackup': 'Pas encore de sauvegarde. Téléchargez-la et gardez-la hors ligne.',
   'app.plant.keys.downloadAgain': 'Télécharger de nouveau la copie de secours',
   'app.plant.keys.download': 'Télécharger la copie de secours (secrète)',
   'app.plant.keys.remove': 'Retirer de ce navigateur',

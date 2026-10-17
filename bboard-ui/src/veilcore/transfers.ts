@@ -536,6 +536,14 @@ export const codeMissingLock = (code: string): boolean => hasIdAndClaim(code) &&
  */
 export const codeMissingOfferKey = (code: string): boolean => hasIdAndClaim(code) && !parseShareCode(code).offerKey;
 
+/**
+ * Said when the lab's arrival details can't be locked (round 4, F8): the code has no offer
+ * key, or the sender's locked sample details never reached VeilCore. Nothing is sent in plain
+ * text; the lab asks for a new code. (app.lab.recv.askNewCode in the visitor's language.)
+ */
+export const ASK_FOR_NEW_CODE =
+  'your arrival details can’t be locked for this delivery: the code is missing its last part, or the sender’s sample details never reached VeilCore. Nothing was sent. Ask the sender for a new code';
+
 /** What the lab is told at Receive when the code has no lock part. */
 /** (app.lab.recv.missingLock in the visitor's language.) */
 export const MISSING_LOCK_WORDS =
@@ -1048,10 +1056,11 @@ export const custodyOf = async (transferId: string): Promise<DeliveryCustody | {
 
 /**
  * The lab writes how the sample arrived. Returns both sides as the registry now stores them;
- * the lab signs over what it typed (ClaimTransfer.tsx signReceipt), not over this echo. With
- * the delivery's offer key (a lab code made since offers were sealed), the arrival details
- * are sealed with it (CONTRACT.md #27); without one, sent as plain fields, as a delivery
- * made before then takes them.
+ * the lab signs over what it typed (ClaimTransfer.tsx signReceipt), not over this echo. The
+ * arrival details are sealed with the delivery's offer key (CONTRACT.md #27), always: without
+ * one (a code cut short, or a delivery made before offers were sealed) nothing is sent and the
+ * lab is told to ask for a new code (round 4, F8). They used to go as plain fields, which the
+ * registry refused, but only after it had received them.
  */
 export const setArrival = async (
   transferId: string,
@@ -1060,14 +1069,13 @@ export const setArrival = async (
 ): Promise<DeliveryCustody | { error: string }> => {
   const problems = custodyProblems('arrival', arrival);
   if (problems.length) return { error: problems.join(' ') };
+  if (!offerKey) return { error: ASK_FOR_NEW_CODE };
   try {
     const fields = arrivalDetailsOf(arrival);
     const res = await fetch(`${BASE}/transfers/${encodeURIComponent(transferId)}/custody`, {
       method: 'POST',
       headers: auth(),
-      body: JSON.stringify({
-        arrival: offerKey ? await sealSide(offerKey, transferId, 'arrival', fields) : fields,
-      }),
+      body: JSON.stringify({ arrival: await sealSide(offerKey, transferId, 'arrival', fields) }),
     });
     if (res.status === 404 && !(res.headers.get('content-type') ?? '').includes('json')) {
       return { error: 'this registry can’t keep sample details yet' };

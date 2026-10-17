@@ -2,7 +2,8 @@
 //
 // Every build of the site uses sealed records, lab results, animal records, the claimant's
 // own copy of a delivery's offer ("Finish receiving", GET /transfers/:id/offer), locked
-// sample details, and a record's public `rev` (the registry refuses an older copy). A
+// sample details, and a record's and an agreement's public `rev` (the registry refuses an
+// older copy). A
 // registry that doesn't serve one of them would leave the site offering something that fails when
 // someone uses it. So both site deploys (scripts/site-mainnet-preflight.mjs for
 // veilcore.org, scripts/deploy-test-site.mjs for test.veilcore.org) first ask the target
@@ -23,6 +24,9 @@ export const REQUIRED_FEATURES = Object.freeze({
   // Every record goes with its `rev` in the clear (round 3, L2): an older registry refuses
   // the field, and with it the whole save.
   'record-rev-v1': 'refusing an older copy of a record',
+  // Every agreement goes with its `rev` in the clear too (round 4, F1): an older registry
+  // refuses the field, and with it the whole save of agreements.
+  'license-rev-v1': 'refusing an older copy of an agreement',
 });
 
 const DEPLOY_FIRST =

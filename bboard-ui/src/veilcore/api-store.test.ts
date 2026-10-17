@@ -290,7 +290,7 @@ describe('nothing private reaches the registry', () => {
       expect(r.sealed, r.id).toBeTruthy();
       for (const k of Object.keys(r)) expect(allowed.has(k), `${r.id}.${k}`).toBe(true);
     }
-    for (const l of licenses.values()) expect(Object.keys(l).sort()).toEqual(['id', 'sealed']);
+    for (const l of licenses.values()) expect(Object.keys(l).sort()).toEqual(['id', 'rev', 'sealed']); // rev: round 4, F1
     // The POST /transfers body carries the sealed offer, not its contents or key.
     const post = sent.find((r) => r.method === 'POST' && r.url.endsWith('/transfers'));
     expect(Object.keys(JSON.parse(post!.body) as object).sort()).toEqual(['sealedOffer', 'sourceRecord', 'toHandle']);
@@ -568,7 +568,7 @@ describe('agreements saved in plain text before sealing', () => {
     expect((await checkBackup(fileOf(JSON.stringify(backupContents())))).ok).toBe(true);
     await settle();
     await settle();
-    expect(Object.keys(licenses.get('LIC-OLD')!).sort()).toEqual(['id', 'sealed']);
+    expect(Object.keys(licenses.get('LIC-OLD')!).sort()).toEqual(['id', 'rev', 'sealed']);
     for (const r of sent) expect(r.body.includes(S.licensee)).toBe(false);
   });
 });

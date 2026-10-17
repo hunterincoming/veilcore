@@ -404,6 +404,9 @@ const signReceipt = async (
   if (custody && (sealed || hasDetails(custody.sample) || hasDetails(custody.arrival))) {
     const problems = custodyProblems('arrival', custody.arrival, tr);
     if (problems.length) return { error: tr.t('app.lab.recv.nothingSigned', { problems: problems.join(' ') }) };
+    // Arrival details go only sealed (round 4, F8): with no offer key, or no locked sample
+    // details from the sender (no salt), nothing is sent and the lab asks for a new code.
+    if (!sealed) return { error: tr.t('app.lab.recv.askNewCode') };
     const shown = sampleDetailsOf(custody.sample);
     const typed = arrivalDetailsOf(custody.arrival);
     const stored = await setArrival(custody.transferId, typed, custody.offerKey);

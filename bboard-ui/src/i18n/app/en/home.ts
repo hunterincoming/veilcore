@@ -130,7 +130,7 @@ export const home = {
   'app.home.datingUnfinished': '{dated} · not finished · next: save your backup',
   'app.home.datingSealed': '{dated} · sealed {date}',
   // RegistryExportButton.tsx
-  'app.home.export.label': 'Download everything VeilCore holds for you',
+  'app.home.export.label': 'Download your records and agreements from VeilCore',
   'app.home.export.done':
-    "Downloaded: your records, agreements, sharing choices and every inclusion proof. Lab reports aren't in it: open them from the plant's page.",
+    "Downloaded: your records, agreements, sharing choices and every inclusion proof. Deliveries, their sample details and lab reports aren't in it: open them from the delivery or the plant's page. Your keys are in your backup file, not in this one.",
 };

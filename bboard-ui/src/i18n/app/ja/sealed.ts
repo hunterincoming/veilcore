@@ -60,6 +60,12 @@ export const sealed = {
   'app.sealed.older.pageTitle': 'この記録の古いコピー',
   'app.sealed.older':
     'サーバーが、このブラウザが最後に保存したものより古いこの記録のコピーを送ってきました。必要なコピーなら使い、そうでなければ削除してください。',
+  'app.sealed.older.beforeLocking':
+    'VeilCoreのサーバーが、ロックされる前のこの記録のコピーを送ってきました。このブラウザが最後に保存したものより古いコピーです。このブラウザはこれを使わず、再びロックもしません。削除はできます。',
+  'app.sealed.older.agreement':
+    'VeilCoreのサーバーが、このブラウザが最後に保存したものより古いこの契約のコピーを送ってきました。必要なコピーなら使い、そうでなければ削除してください。',
+  'app.sealed.older.agreementBeforeLocking':
+    'VeilCoreのサーバーが、ロックされる前のこの契約のコピーを送ってきました。このブラウザが最後に保存したものより古いコピーです。このブラウザはこれを使わず、再びロックもしません。削除はできます。',
   'app.sealed.olderKept.other':
     'サーバーが{count}件の記録の古いコピーを送ってきました。このブラウザは新しいコピーを残し、もう一度保存します。',
   'app.sealed.revMismatch.other':

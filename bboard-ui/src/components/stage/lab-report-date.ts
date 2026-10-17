@@ -29,7 +29,6 @@ import {
 import type { SealInput, SealedRecord } from '../../veilcore/seal-record';
 import type { SavedReport } from '../../veilcore/saved-report';
 import { signerLabel } from '../../veilcore/attesters';
-import { shortResultId } from '../../veilcore/lab-results';
 import type { RowMark } from '../flow/plant-status-words';
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -65,19 +64,34 @@ export const labReportFacts = (
   return undefined;
 };
 
-/** "Harbour Mist — lab report LR-3F2A" (or the SHA-256's first 8 when it came from no lab report). */
-export const labReportRecordName = (plantName: string, f: LabReportFacts): string =>
-  `${plantName} — lab report ${f.resultId ? shortResultId(f.resultId) : f.sha.slice(0, 8)}`;
+/**
+ * The follow-up record's suggested public name: "Harbour Mist — lab report", with a number
+ * after it when a record of that name is already here ("… lab report 2"). Nothing from the
+ * report: it used to carry the lab report's short id or the first 8 hex of the report's
+ * SHA-256, which anyone with the record's id could read (round 4, F9). The holder can change
+ * it before it is saved.
+ */
+export const labReportRecordName = (plantName: string, taken: readonly string[] = []): string => {
+  const base = `${plantName} — lab report`;
+  const used = new Set(taken);
+  if (!used.has(base)) return base;
+  for (let n = 2; ; n++) if (!used.has(`${base} ${String(n)}`)) return `${base} ${String(n)}`;
+};
 
-/** What the follow-up record is sealed as (seal-record.ts sealRecord). */
+/** The longest public name the holder may give the follow-up record here. */
+export const LAB_REPORT_NAME_MAX = 200;
+
+/** What the follow-up record is sealed as (seal-record.ts sealRecord), under `name` when the holder gave one. */
 export const labReportSealInput = (
   plant: Pick<StrainRecord, 'id' | 'strainName' | 'bredBy' | 'taxon'>,
   f: LabReportFacts,
   today: string,
+  name?: string,
 ): SealInput => {
   const parent: ParentRef = { recordId: plant.id, name: plant.strainName };
+  const chosen = name?.trim().slice(0, LAB_REPORT_NAME_MAX);
   return {
-    strainName: labReportRecordName(plant.strainName, f),
+    strainName: chosen || labReportRecordName(plant.strainName),
     bredBy: plant.bredBy,
     dateCreated: today,
     notes: labReportNotes(f),
@@ -183,6 +197,8 @@ export const dateLabReportWith = async (
   deps: DateLabReportDeps,
   plant: Pick<StrainRecord, 'id' | 'strainName' | 'bredBy' | 'taxon'>,
   f: LabReportFacts,
+  /** The public name the holder chose (round 4, F9); the neutral suggestion when absent. */
+  name?: string,
 ): Promise<StrainRecord> => {
   const existing = datingRecordFor(plant.id, f.sha, deps.all());
   if (existing) return existing;
@@ -199,7 +215,13 @@ export const dateLabReportWith = async (
     if (mark && deps.now() - mark.at < SEALING_ELSEWHERE_MS && deps.hasKeys(mark.recordId)) {
       throw new Error(SEALING_ELSEWHERE);
     }
-    const sealed = await deps.seal(labReportSealInput(plant, f, deps.today()));
+    const chosen =
+      name?.trim() ||
+      labReportRecordName(
+        plant.strainName,
+        deps.all().map((r) => r.strainName),
+      );
+    const sealed = await deps.seal(labReportSealInput(plant, f, deps.today(), chosen));
     deps.marks.set(key, { recordId: sealed.id, at: deps.now() });
     try {
       const made = await deps.create(sealed);

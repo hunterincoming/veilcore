@@ -31,7 +31,8 @@
   it**, and **deleted after 180 days**.
 - We **don't sell** your data, show **no ads**, run **no analytics or tracking**, and set
   **no cookies**.
-- You can **download** everything we hold for you at any time, and ask us to **delete** it.
+- You can **download** your records and agreements at any time (what is not in that download,
+  and where it is, is under "Your choices"), and ask us to **delete** them.
 
 ## Who we are
 
@@ -44,7 +45,7 @@ UK representative go here once VeilCore is incorporated.]*
 | What | Where it stays |
 |---|---|
 | Genetic data, DNA reports, lab report files, photos you add | Read by your browser to work out a fingerprint (SHA-256). Never uploaded. |
-| Each record's secret key (made when you seal a record that names its key) | Your browser and the backup file you save. Never sent to VeilCore. |
+| Each record's secret keys (made when you seal a record that names its key, or send it to a lab) | Your browser and the backup file you save. A copy also goes inside the record's locked box, so restoring your vault key brings them back; VeilCore can't open it. Never sent readable. |
 | The vault key that locks your records and licences | Your browser and the backup file you save. Never sent to VeilCore. |
 | A lab's private signing key | The lab's own browser and its backup file. Only the public key is sent to VeilCore. |
 
@@ -57,7 +58,7 @@ The site uses your browser's local storage, on this device only. No cookies.
 | Your holder key (`veilcore.holder.v1`) | The key that finds your records on the server. A copy is sent with every save (below). |
 | Your records and licences (`veilcore.records.v1`, `veilcore.licenses.v1`) | Your own copy, so the site works without the server. |
 | The vault key (`veilcore.vault.v1`) | The key that locks your records and licences before they are sent. Never sent; your backup file has a copy. Without it (or the backup) your records can't be opened. |
-| Record keys (`veilcore.record-keys.v1`) | The secret keys of records that name their key. Save your backup: if this browser's data is cleared, they are gone. |
+| Record keys (`veilcore.record-keys.v1`) | The secret keys of your records. Lab reports are locked to them. A locked copy also goes with each record, so restoring your backup's vault key brings them back. |
 | A lab's signing key (`veilcore.attester.v1`) | Only if you set one up as a lab. |
 | Deliveries, codes, opened lab reports (`veilcore.lab-deliveries.v1`, `veilcore.sent-codes.v1`, `veilcore.opened-results.v1`) | Lab codes you made or used and which reports you've opened. |
 | Check requests (`veilcore.prove-asks.v1`, `veilcore.verifier-challenges.v1`, `veilcore.verifier-challenges.lasting.v1`) | Requests you made to someone to prove they control a record's key, and their answers. |
@@ -72,15 +73,15 @@ record backup first.
 
 | What | Why | How long |
 |---|---|---|
-| Your records, locked: breeder name, species, dates, notes, reference numbers, parents, fingerprints of photos and lab reports, lab report file names, the names you give recipients. Stored as a box only your vault key opens | So you can come back to them | Until you ask us to delete it. No set period. |
-| Each record's readable fields: its id, the name you give it, its profile, fingerprint and key binding, which fields a correction changed and when | So a record can be found and checked | As long as the record |
+| Your records, locked: breeder name, species, dates, notes, reference numbers, parents, fingerprints of photos and lab reports, lab report file names, the names you give recipients, each record's secret keys. Stored as a box only your vault key opens | So you can come back to them | Until you ask us to delete it. No set period. |
+| Each record's readable fields: its id, the name you give it, its profile, fingerprint and key binding, which fields a correction changed and when, how many times it was saved and when it was last saved, and its size bucket (roughly how large its locked box is) | So a record can be found and checked | As long as the record |
 | Records saved before sealing, as they were typed | Until your browser locks them (after you save a checked backup), or until the registry's purge removes their contents | Until converted or purged |
 | Your holder key, stored as a one-way digest (`h1:` + SHA-256), never as sent | To find your records | As long as your records |
 | When the registry first saw each record | The registry's own date for it (its word only) | As long as the record |
 | Licences and agreement terms, counterparties, locked like records | Licences you issue | Until you ask us to delete them |
 | For a license with a royalty on offspring: an obligation on the record's fingerprint, with when it was made and a digest of the key that made it. Anyone can ask whether a given record carries one; it is never listed | So a descendant's check can find what it owes | As long as the license |
 | Your sharing choices for each record's public check page, and the values you choose to show (readable: they are what the page shows) | What a stranger with the link sees | As long as the record |
-| Lab codes: a tag in place of the recipient's name (made with a key derived from your vault key, which we don't have; without it the tag can't be turned back into the name), the delivery's details (name, breeder, quantity, note) locked with a key that travels only in the lab code, a one-way digest of the claim code, which record it came from and was received as, and (when filled in) the sample details: sample ID, seal number, where and when it was taken, a witness's name, and what the lab wrote on arrival, **locked** with the same key as the delivery's details (we don't have it; the server stores the box). Lab codes made before sealing keep the recipient's handle, quantity, note and sample details as typed until the purge | So a lab can take delivery and sign a receipt | No set period |
+| Lab codes: a tag in place of the recipient's name (made with a key derived from your vault key, which we don't have; without it the tag can't be turned back into the name), the delivery's details (name, breeder, quantity, note) locked with a key that travels only in the lab code, a one-way digest of the claim code, which record it came from and was received as, which holder account received it, and (when filled in) the sample details: sample ID, seal number, where and when it was taken, a witness's name, and what the lab wrote on arrival, **locked** with the same key as the delivery's details (we don't have it; the server stores the box). Lab codes made before sealing keep the recipient's handle, quantity, note and sample details as typed until the purge (it replaces every such handle, whoever sent it) | So a lab can take delivery and sign a receipt | No set period |
 | Labs: public signing key, the name the key gives itself, role, and VeilCore's name-check notes | So signatures can be checked and named | No set period |
 | Lab signatures (attestations) and withdrawals | Public statements labs choose to publish | No set period |
 | Locked lab reports a lab sends you (encrypted to your key with `age`; the server can't open them), with their size and SHA-256 | So you can collect them | **Deleted 180 days after they arrive**, checked every hour. Not in backups. Off on the main site for now. |
@@ -142,10 +143,13 @@ checked.]*
 ## Your choices
 
 - **Download.** On your records page, under More: **Export all records** downloads what
-  this browser holds; **Download everything VeilCore holds for you** downloads what the
-  server holds (`GET /api/export`), with every proof, checkable without us. Locked lab
-  reports are opened from the delivery instead. **Download evidence bundle** on a plant's
-  page gives one record's evidence.
+  this browser holds; **Download your records and agreements from VeilCore** downloads what
+  the server holds for them (`GET /api/export`), opened in your browser, with every proof,
+  checkable without us. It leaves out deliveries with their sample details and locked lab
+  reports (open them from the delivery), royalty obligations (the lineage check answers
+  one record at a time), and prove requests (deleted after 7 days). Your keys and your
+  records' secret keys are in your backup file, not in either download. **Download
+  evidence bundle** on a plant's page gives one record's evidence.
 - **Delete.** Email hunter@veilcore.org with your records' IDs. Deleting removes the
   server's copy of the records and their sharing choices (the server can also do this for
   your holder key directly: `DELETE /api/records`; the site has no button for it yet).

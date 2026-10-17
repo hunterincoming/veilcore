@@ -1,5 +1,7 @@
-// "Download everything VeilCore holds for you" (veilcore/registry-export.ts). Used on the
-// records page; the privacy page can use it too.
+// "Download your records and agreements from VeilCore" (veilcore/registry-export.ts). Used on
+// the records page; the privacy page names it. It was "Download everything VeilCore holds for
+// you", which it isn't (round 4, F10): deliveries, lab reports, royalty obligations and prove
+// requests are not in it, and the privacy page says where those are.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useState } from 'react';
@@ -9,7 +11,7 @@ import { downloadRegistryExport } from '../veilcore/registry-export';
 import { InEnglishNote, useT } from '../i18n/app';
 
 /** The button's English (app.home.export.label): the privacy page names it. */
-export const REGISTRY_EXPORT_LABEL = 'Download everything VeilCore holds for you';
+export const REGISTRY_EXPORT_LABEL = 'Download your records and agreements from VeilCore';
 
 export const RegistryExportButton: React.FC<{ variant?: 'text' | 'outlined' }> = ({ variant = 'text' }) => {
   const { t } = useT();

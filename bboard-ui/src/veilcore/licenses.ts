@@ -5,7 +5,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useSyncExternalStore } from 'react';
-import { encumber as encumberRecord, discharge as dischargeRecord } from './lineage';
+import { encumberWithAnswer, discharge as dischargeRecord } from './lineage';
 import { getRecord } from './records';
 import { store } from './store';
 import { reportSave } from './save-status';
@@ -17,6 +17,7 @@ import {
   makeVaultIfSafe,
   onSealedStateChange,
   rowStateOf,
+  takeOlderCopy,
   type LockedRow,
 } from './api-store';
 import { beneficiaryId, onVaultChange, useVaultNeedsBackup, vaultKeyIfAny, vaultNeedsBackup } from './vault';
@@ -86,6 +87,15 @@ export type License = {
   revokedReason?: string;
   supersedesId?: string;
   royaltyLog: RoyaltyEntry[];
+  /**
+   * The royalty on offspring this agreement carries is not registered with VeilCore yet
+   * (round 4, F4): the obligation was sent when it was counter-signed and the registry hasn't
+   * confirmed it. Until then the public lineage check calls the record clean, so the page says
+   * "Royalty protection pending", and this browser sends it again on each sync.
+   */
+  obligationPending?: boolean;
+  /** When the registry confirmed the royalty obligation (round 4, F4). */
+  obligationRegisteredAt?: number;
 };
 
 /**
@@ -135,6 +145,7 @@ const hydrate = async (): Promise<void> => {
   licenses = loaded.map((l: License) => ({ ...l, type: l.type ?? 'license' }));
   notify();
   await convertLegacy();
+  void retryPendingObligations();
 };
 let convertTried = false;
 
@@ -165,6 +176,10 @@ onVaultChange(() => {
  */
 let locked: readonly LockedRow[] = [];
 onSealedStateChange(() => {
+  // Every load (records' sync included) is a sync: a royalty obligation still pending is
+  // sent again (round 4, F4). After the load has been taken in (this is called from inside
+  // it), so the record it is about is there to read.
+  setTimeout(() => void retryPendingObligations(), 0);
   const now = lockedRowsOf(KEY);
   if (now.length === locked.length && now.every((r, i) => r.id === locked[i].id)) return;
   locked = now;
@@ -177,6 +192,19 @@ export const useLockedLicenses = (): readonly LockedRow[] =>
     () => locked,
     () => locked,
   );
+
+/**
+ * "Use this copy" for an agreement (round 4, F1, as records.ts adoptOlderCopy): the registry
+ * sent an older copy than this browser had seen, and this browser has no newer one. The
+ * holder takes the registry's copy; from then on it is shown, and changes to it are saved.
+ */
+export const adoptOlderLicense = (id: string): boolean => {
+  const v = takeOlderCopy(KEY, id);
+  if (!v || !isLicense(v)) return false;
+  licenses = [{ ...v, type: v.type ?? 'license' }, ...licenses.filter((l) => l.id !== id)];
+  notify();
+  return true;
+};
 
 /** Delete a locked agreement from VeilCore's registry: the one thing a locked agreement allows. */
 export const deleteLockedLicense = async (id: string): Promise<{ ok: true } | { error: string }> => {
@@ -362,23 +390,76 @@ export const isIssuer = async (l: License): Promise<boolean> =>
  */
 export const countersignLicense = async (id: string): Promise<License | undefined> => {
   const party = await holderPartyId();
-  const out = update(id, (l) => ({
-    ...l,
-    licenseeSignedAt: Date.now(),
-    countersignedByParty: party,
-    state: l.breederSignedAt ? 'active' : l.state,
-  }));
-  if (out && out.state === 'active' && createsHeritableObligation(out.type, out.terms)) {
-    const rec = getRecord(out.recordId);
-    // Under a per-record beneficiary id made from the vault key (round 3, P5), never the
-    // holder's party id, so the registry's obligations don't link one holder's licences.
-    if (rec)
-      void beneficiaryId(rec.recordFingerprint)
-        .catch(() => undefined)
-        .then((beneficiary) => encumberRecord(rec.recordFingerprint, out.agreementFingerprint, beneficiary));
-  }
+  const out = update(id, (l) => {
+    const state: LicenseState = l.breederSignedAt ? 'active' : l.state;
+    return {
+      ...l,
+      licenseeSignedAt: Date.now(),
+      countersignedByParty: party,
+      state,
+      // Pending until the registry confirms it (round 4, F4): it used to be sent once, its
+      // answer ignored and never retried, so one dropped request left an active royalty
+      // licence that the public lineage check called clean, for good.
+      ...(state === 'active' && createsHeritableObligation(l.type, l.terms) ? { obligationPending: true } : {}),
+    };
+  });
+  if (out?.obligationPending) return (await registerObligation(out.id)) ?? out;
   return out;
 };
+
+/** The obligation's answer that says it is registered already (an earlier send arrived). */
+const ALREADY_IN_FORCE = /already in force/;
+const registering = new Set<string>();
+
+/**
+ * Send an agreement's royalty obligation (POST /lineage/obligations) and wait for the
+ * registry's answer (round 4, F4). Confirmed (or already in force: an earlier send arrived and
+ * its answer was lost), the agreement is marked registered and saved; otherwise it stays
+ * pending and is sent again on the next sync. Under a per-record beneficiary id made from the
+ * vault key (round 3, P5), never the holder's party id, so the registry's obligations don't
+ * link one holder's licences. Returns the agreement as it is now.
+ */
+const registerObligation = async (id: string): Promise<License | undefined> => {
+  const l = licenses.find((x) => x.id === id);
+  if (!l?.obligationPending || l.state !== 'active' || registering.has(id)) return l;
+  // The record's fingerprint, as countersigning used: wait for the record to load.
+  const rec = getRecord(l.recordId);
+  if (!rec) return l;
+  registering.add(id);
+  try {
+    const beneficiary = await beneficiaryId(rec.recordFingerprint).catch(() => undefined);
+    const answer = await encumberWithAnswer(rec.recordFingerprint, l.agreementFingerprint, beneficiary);
+    const confirmed = answer.ok || ALREADY_IN_FORCE.test(answer.error);
+    if (!confirmed) return licenses.find((x) => x.id === id);
+    // A change through the same path as any other: sealed, with its rev, and refused as an
+    // older copy if another tab changed it meanwhile (that tab then retries).
+    if (agreementsWaitForBackup()) return licenses.find((x) => x.id === id);
+    return update(id, (x) => {
+      const { obligationPending: _p, ...rest } = x;
+      void _p;
+      return { ...rest, obligationRegisteredAt: Date.now() };
+    });
+  } finally {
+    registering.delete(id);
+  }
+};
+
+/** Send every royalty obligation still pending (round 4, F4): on each sync, one at a time. */
+let retrying: Promise<void> | null = null;
+const retryPendingObligations = (): Promise<void> => {
+  if (retrying) return retrying;
+  const pending = licenses.filter((l) => l.obligationPending && l.state === 'active').map((l) => l.id);
+  if (pending.length === 0) return Promise.resolve();
+  retrying = (async () => {
+    for (const id of pending) await registerObligation(id);
+  })().finally(() => {
+    retrying = null;
+  });
+  return retrying;
+};
+
+/** Whether an agreement's royalty on offspring is still waiting for the registry (round 4, F4). */
+export const royaltyProtectionPending = (l: License): boolean => l.obligationPending === true && l.state === 'active';
 
 /** Revoking an agreement discharges the obligation it created. */
 export const revokeLicense = (id: string, reason: string): License | undefined => {

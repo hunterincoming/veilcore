@@ -105,9 +105,12 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   expect(link).toContain(`chain=${IDENTITY}`);
   expect(link).toContain(`anchorTx=${ANCHOR_TX}`);
   // What ties the key to the record: its salt and the hash of the sealed details.
-  expect(link).toMatch(/[?&]ks=[0-9a-f]{64}/);
-  expect(link).toMatch(/[?&]cd=[0-9a-f]{64}/);
-  const path = new URL(link).pathname + new URL(link).search;
+  expect(link).toMatch(/[#&]ks=[0-9a-f]{64}/);
+  expect(link).toMatch(/[#&]cd=[0-9a-f]{64}/);
+  // Round 4 (F7): what joins the record to its key is in the fragment, which no server gets.
+  expect(new URL(link).search).not.toMatch(/chain=|anchorTx=|ks=|cd=|rs=/);
+  expect(new URL(link).hash).toContain(`chain=${IDENTITY}`);
+  const path = new URL(link).pathname + new URL(link).search + new URL(link).hash;
 
   // The checker, in another browser.
   const checkerCtx = await browser.newContext();

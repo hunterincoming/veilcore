@@ -61,7 +61,8 @@ describe('every place that offers lab reports reads the one flag', () => {
   const SRC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const read = (f: string) => fs.readFileSync(path.join(SRC, f), 'utf8');
   it.each([
-    ['components/SendToLab.tsx', /LAB_RESULTS_ENABLED\s*\?\s*await resultRecipientFor/],
+    // Round 4 (F5): the record secret is saved sealed first, only where lab reports are on.
+    ['components/SendToLab.tsx', /if \(LAB_RESULTS_ENABLED\) \{\s*const saved = await recordSecretSaved/],
     ['components/RecordDetail.tsx', /LAB_RESULTS_ENABLED && record\.receivedFrom/],
     ['components/flow/LabResults.tsx', /LAB_RESULTS_ENABLED \? await arrivedOn/],
     ['components/flow/LabResults.tsx', /if \(!LAB_RESULTS_ENABLED\) \{/],

@@ -209,11 +209,17 @@ describe('the public check page: what the registry says about sealed sample deta
   it('"sealed": the lab signed over them; the holder’s summary is said as the sender’s word', async () => {
     const { custody } = await load();
     const list = custody.publicCustodyOf([
-      { receiptAttestationId: 'att_a', custody: 'sealed', signedOverSampleDetails: true },
+      {
+        receiptAttestationId: 'att_a',
+        custody: 'sealed',
+        receiptNamesSampleDetails: true,
+        sampleDetailsCheckedBy: 'holder',
+      },
       {
         receiptAttestationId: 'att_b',
         custody: 'sealed',
-        signedOverSampleDetails: true,
+        receiptNamesSampleDetails: true,
+        sampleDetailsCheckedBy: 'holder',
         custodySummary: { covered: 'covered', differingFields: ['sealNumber', 'PRIV-4471', 'sealIntact'] },
         custodySummaryBy: 'holder',
       },
@@ -231,12 +237,12 @@ describe('the public check page: what the registry says about sealed sample deta
       },
       // A summary not said to be the holder's is not shown.
       { receiptAttestationId: 'att_e', custody: 'sealed', custodySummary: { covered: 'covered', differingFields: [] } },
-      { receiptAttestationId: 'att_f', custody: 'removed', signedOverSampleDetails: true },
+      { receiptAttestationId: 'att_f', custody: 'removed', receiptNamesSampleDetails: true },
       { receiptAttestationId: 'att_g', covered: 'covered', differences: [] },
     ]);
     const lines = (id: string) => custody.publicCustodyLines(list.get(id));
     const signed =
-      'The lab signed its receipt over the sample details. They are stored locked, and VeilCore doesn’t have the key, so this page can’t compare them.';
+      'The lab’s receipt names sample details. They are stored locked, and VeilCore doesn’t have the key, so this page can’t check them; the holder’s app can.';
     expect(lines('att_a')).toEqual([signed]);
     expect(list.get('att_b')?.custodySummary?.differingFields).toEqual(['sealNumber', 'sealIntact']);
     expect(lines('att_b')).toEqual([

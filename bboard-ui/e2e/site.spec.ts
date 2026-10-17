@@ -122,8 +122,12 @@ test.describe('stand-in registry', () => {
       },
     });
 
+    // A link made before round 4 (F7), with the key in the query string: it still works, and
+    // the page moves the key into the fragment at once, so the address no longer sends it on.
     await page.goto(`/verify/${RECORD}?chain=${IDENTITY}&anchorTx=${ANCHOR_TX}`);
     await page.getByLabel(/Your name or business/).fill('E2E Lab');
+    await expect.poll(() => new URL(page.url()).search).not.toContain('chain=');
+    expect(new URL(page.url()).hash).toContain(`chain=${IDENTITY}`);
     await page.getByRole('button', { name: /Make a link to send them/ }).click();
     await expect(page.getByText(/\/prove\/PR-/)).toBeVisible();
     await expect(page.getByText(/Waiting for them to prove it/)).toBeVisible();

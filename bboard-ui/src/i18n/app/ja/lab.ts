@@ -65,7 +65,7 @@ export const lab = {
   'app.lab.custody.locked':
     'サンプルの詳細には鍵がかかっていて、このブラウザにはその鍵がありません。見るには、ここでバックアップファイルを復元してください。',
   'app.lab.custody.sealedSigned':
-    'ラボはサンプルの詳細に対して受領書に署名しました。詳細は鍵をかけた状態で保存され、VeilCoreはその鍵を持っていないため、このページでは比較できません。',
+    'ラボの受領書はサンプルの詳細に触れています。詳細は鍵をかけた状態で保存され、VeilCoreはその鍵を持っていないため、このページでは確認できません。保有者のアプリなら確認できます。',
   'app.lab.custody.holderMatch':
     '送り手のアプリが比較しました：到着したものは送ったものと一致しています。これは送り手の申告です。',
   'app.lab.custody.holderDiffers':
@@ -74,6 +74,8 @@ export const lab = {
     '送り手のアプリが比較しました：ラボは署名後に到着時の詳細を変更したため、受領書はそれを対象にしていません。これは送り手の申告です。',
   'app.lab.custody.removed':
     'この送付のサンプルの詳細は鍵をかける前に書かれ、その後削除されたため、この受領書とは比較できません。',
+  'app.lab.send.secretNotSaved':
+    'この植物の鍵がまだVeilCoreに保存されていないため、ラボコードは作られませんでした：{error}。ラボレポートはこの鍵でロックされるので、先に植物と一緒に保存する必要があります。もう一度お試しください。',
   'app.lab.send.sampleNotSaved': 'ラボコードは使えますが、サンプルの詳細は保存されませんでした：{error}',
   'app.signer.sep': '',
   'app.lab.strength.unsigned': '署名なし',
@@ -194,6 +196,8 @@ export const lab = {
   'app.lab.recv.wrongSample': '違うサンプルだった',
   'app.lab.recv.rejected': '受け取ったが拒否（破損または違うサンプル）',
   'app.lab.recv.nothingSigned': '{problems}何も署名されていません',
+  'app.lab.recv.askNewCode':
+    'この配送では到着時の詳細をロックできません。コードの最後の部分が欠けているか、送り主のサンプル詳細がVeilCoreに届いていません。何も送信も署名もされていません。送り主に新しいコードを依頼してください。',
   'app.lab.recv.notSaved': '到着時の詳細が保存されなかったため（{error}）、何も署名されていません',
   'app.lab.recv.savedDifferent':
     'レジストリから戻ったサンプルの詳細がこの画面と違うため、何も署名されていません。ページを再読み込みして、もう一度確認してください',

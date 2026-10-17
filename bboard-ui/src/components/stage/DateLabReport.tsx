@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useState } from 'react';
-import { Alert, Box, Button, CircularProgress, Link, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Link, Stack, TextField, Typography } from '@mui/material';
 import EventIcon from '@mui/icons-material/EventAvailableOutlined';
 import { Link as RouterLink } from 'react-router-dom';
 import { allRecords, createRecordSaved, hydrate, useRecords, type StrainRecord } from '../../veilcore/records';
@@ -18,8 +18,10 @@ import { today } from '../flow/log-flow-state';
 import { rich, useT } from '../../i18n/app';
 import { enT } from '../../i18n/translate';
 import {
+  LAB_REPORT_NAME_MAX,
   SEALING_ELSEWHERE,
   dateLabReportWith,
+  labReportRecordName,
   datingRecordFor,
   labReportDatedLine,
   labReportFacts,
@@ -90,10 +92,19 @@ export const useDateReport = (
   busy: boolean;
   error: string | undefined;
   date: () => Promise<void>;
+  /** The new record's public name: a neutral suggestion the holder can change (round 4, F9). */
+  name: string;
+  setName: (name: string) => void;
 } => {
   const records = useRecords();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const suggested = labReportRecordName(
+    record.strainName,
+    records.map((r) => r.strainName),
+  );
+  const [typed, setName] = useState<string>();
+  const name = typed ?? suggested;
   const facts = labReportFacts(record, saved);
   const sha = facts?.sha ?? (saved && saved.kind !== 'none' ? saved.sha : undefined);
   const dating = sha ? datingRecordFor(record.id, sha, records) : undefined;
@@ -102,14 +113,36 @@ export const useDateReport = (
     setBusy(true);
     setError(undefined);
     try {
-      await dateLabReportWith(DEPS, record, facts);
+      await dateLabReportWith(DEPS, record, facts, name.trim() || suggested);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
     }
   };
-  return { facts, dating, busy, error, date };
+  return { facts, dating, busy, error, date, name, setName };
+};
+
+/** The new record's public name, editable before it is sealed (round 4, F9). */
+export const DatingNameField: React.FC<{ name: string; setName: (v: string) => void; busy: boolean }> = ({
+  name,
+  setName,
+  busy,
+}) => {
+  const { t } = useT();
+  return (
+    <TextField
+      size="small"
+      label={t('app.plant.dated.nameLabel')}
+      helperText={t('app.plant.dated.nameHelp')}
+      value={name}
+      onChange={(e) => setName(e.target.value.slice(0, LAB_REPORT_NAME_MAX))}
+      disabled={busy}
+      slotProps={{ htmlInput: { 'data-dating-name': '', maxLength: LAB_REPORT_NAME_MAX } }}
+      sx={{ maxWidth: 420 }}
+      fullWidth
+    />
+  );
 };
 
 /** The words for a dating error: another tab at it, or the registry's refusal as given. */
@@ -125,7 +158,7 @@ export const DateLabReport: React.FC<{
   variant?: 'row' | 'card';
 }> = ({ record, saved, variant = 'row' }) => {
   const { t } = useT();
-  const { facts, dating, busy, error, date } = useDateReport(record, saved);
+  const { facts, dating, busy, error, date, name, setName } = useDateReport(record, saved);
   if (!dating && !facts) return null;
 
   return (
@@ -155,6 +188,7 @@ export const DateLabReport: React.FC<{
               <Typography variant="caption" color="text.secondary">
                 {t('app.plant.dated.seals')}
               </Typography>
+              <DatingNameField name={name} setName={setName} busy={busy} />
               <Box>
                 <Button
                   variant="outlined"

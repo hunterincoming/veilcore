@@ -69,6 +69,12 @@ export const sealed = {
   'app.sealed.older.pageTitle': 'Une copie plus ancienne de cet enregistrement',
   'app.sealed.older':
     'Le serveur a envoyé une copie de cet enregistrement plus ancienne que celle que ce navigateur a enregistrée en dernier. Si c’est la copie voulue, utilisez-la ; sinon, supprimez-la.',
+  'app.sealed.older.beforeLocking':
+    'Le serveur de VeilCore a envoyé une copie de cet enregistrement d’avant son verrouillage, plus ancienne que celle que ce navigateur a enregistrée en dernier. Ce navigateur ne l’utilisera pas et ne la verrouillera pas de nouveau. Vous pouvez la supprimer.',
+  'app.sealed.older.agreement':
+    'Le serveur de VeilCore a envoyé une copie de ce contrat plus ancienne que celle que ce navigateur a enregistrée en dernier. Si c’est la copie voulue, utilisez-la ; sinon, supprimez-la.',
+  'app.sealed.older.agreementBeforeLocking':
+    'Le serveur de VeilCore a envoyé une copie de ce contrat d’avant son verrouillage, plus ancienne que celle que ce navigateur a enregistrée en dernier. Ce navigateur ne l’utilisera pas et ne la verrouillera pas de nouveau. Vous pouvez la supprimer.',
   'app.sealed.olderKept.one':
     'Le serveur a envoyé une copie plus ancienne de {count} enregistrement. Ce navigateur a gardé la copie plus récente et l’enregistre à nouveau.',
   'app.sealed.olderKept.other':

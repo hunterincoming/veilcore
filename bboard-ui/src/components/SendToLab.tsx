@@ -40,9 +40,8 @@ import {
 import { sampleLine } from '../veilcore/custody';
 import { LAB_RESULTS_ENABLED } from '../config/network';
 import { labChanged } from '../veilcore/lab-results';
-import { ensureKeys } from '../veilcore/record-keys';
 import { resultRecipientFor } from '../veilcore/lab-results';
-import { integrityOf, type StrainRecord } from '../veilcore/records';
+import { integrityOf, recordSecretSaved, type StrainRecord } from '../veilcore/records';
 import { rich, useRecordT, useT } from '../i18n/app';
 import { recordTitle } from '../veilcore/animal-profile';
 
@@ -78,11 +77,22 @@ export const SendToLab: React.FC<{
     if (!handle.trim() || problems.length || mismatch) return;
     setBusy(true);
     setError(null);
+    // The record secret that lab reports are locked to must be in the record's sealed copy on
+    // VeilCore before a lab code is made (round 4, F5): otherwise a wiped browser, restored
+    // from a backup made before this plant, could never open its lab reports.
+    let recordSecret: string | undefined;
+    if (LAB_RESULTS_ENABLED) {
+      const saved = await recordSecretSaved(record.id);
+      if ('error' in saved) {
+        setError(t('app.lab.send.secretNotSaved', { error: saved.error }));
+        setBusy(false);
+        return;
+      }
+      recordSecret = saved.recordSecret;
+    }
     // The plant's lock for lab reports goes sealed inside the offer too (round 3, P1), so a
     // lab never takes a lock from VeilCore's server, even with a code cut short.
-    const plantLock = LAB_RESULTS_ENABLED
-      ? await resultRecipientFor(ensureKeys(record.id).recordSecret).catch(() => undefined)
-      : undefined;
+    const plantLock = recordSecret ? await resultRecipientFor(recordSecret).catch(() => undefined) : undefined;
     const res = await offerTransfer(record, handle.trim(), {
       quantity: quantity.trim() || undefined,
       note: note.trim() || undefined,
@@ -95,8 +105,8 @@ export const SendToLab: React.FC<{
       // that only this plant's holder can open (lab-results.ts). Not where lab reports are
       // off (config/network.ts): a code with a lock would promise something the registry
       // can't do there.
-      const lock = LAB_RESULTS_ENABLED
-        ? await resultRecipientFor(ensureKeys(record.id).recordSecret, res.transferId).catch(() => undefined)
+      const lock = recordSecret
+        ? await resultRecipientFor(recordSecret, res.transferId).catch(() => undefined)
         : undefined;
       // The offer key opens what the code's receiver learns about the plant; only the code carries it.
       const code = shareCodeFor(res.transferId, res.claimCode, lock, res.offerKey);

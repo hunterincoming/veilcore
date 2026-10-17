@@ -20,8 +20,10 @@ import {
   agreementType,
   agreementRows,
   AGREEMENT_LABEL,
+  royaltyProtectionPending,
   useAgreementsWaitForBackup,
 } from '../../veilcore/licenses';
+import { ROYALTY_PENDING_TEXT } from './LicenseStateChip';
 import { Wordmark } from '../Wordmark';
 import { AgreementsBackupFirst } from './AgreementsBackupFirst';
 import { LanguageBar } from '../../i18n/LanguagePicker';
@@ -131,6 +133,11 @@ export const CounterSignPage: React.FC = () => {
 
             {effectiveState(license) === 'active' && (
               <Stack spacing={1.5}>
+                {royaltyProtectionPending(license) && (
+                  <Alert severity="warning" variant="outlined" data-royalty-pending-text="">
+                    {ROYALTY_PENDING_TEXT}
+                  </Alert>
+                )}
                 <Alert severity={signedByTwoParties(license) ? 'success' : 'info'} variant="outlined">
                   {signedByTwoParties(license)
                     ? 'Active: issued and counter-signed from two different holder keys (not cryptographic signatures).'

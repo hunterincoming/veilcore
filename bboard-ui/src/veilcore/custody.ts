@@ -209,7 +209,8 @@ export const custodyLines = (v: CustodyView | undefined, tr: Translator = enT): 
  * a stranger can't recompute the digest without the details.
  *
  * Sealed details (CONTRACT.md #27): the registry can't open them, so it says only that the
- * lab signed over them (`custody: 'sealed'`, no `covered`). What the holder's app worked out
+ * lab's receipt names sample details, which the holder's app can check (`custody: 'sealed'`,
+ * no `covered`; never "signed over" as a checked fact, round 4 F11). What the holder's app worked out
  * comes with it when the holder chose to publish it (`custodySummary`, the holder's word:
  * covered, changed or not-covered, and which fields differ, never their values). `removed`:
  * details written before sealing that the registry has since removed.

@@ -283,6 +283,8 @@ export const plant = {
     'Para que pueda mostrar que este informe existía en esa fecha sin mostrarle a nadie los marcadores.',
   'app.plant.dated.seals':
     'Sella un pequeño registro con solo el SHA-256 del informe, su código de informe de laboratorio y el nombre del laboratorio según su firma. El informe se queda con usted. Su fecha llega cuando se fecha su lote.',
+  'app.plant.dated.nameLabel': 'Nombre del nuevo registro (público)',
+  'app.plant.dated.nameHelp': 'Cualquiera con su enlace de comprobación ve este nombre. Cámbielo si quiere.',
   'app.plant.dated.elsewhere':
     'Este informe de ADN se está fechando en otra pestaña o ventana. Espere un minuto y vuelva a mirar: aparecerá aquí.',
   'app.plant.datingPage.title': 'Este registro fecha un informe de ADN de <plant></plant>',
@@ -322,12 +324,11 @@ export const plant = {
   'app.plant.keys.removeBacked':
     '¿Quitar las claves de este registro de este navegador? Puede restaurarlas desde su archivo de copia de seguridad.',
   'app.plant.keys.removeUnbacked':
-    'NO ha descargado una copia de seguridad de estas claves. Si las quita, nadie, ni siquiera VeilCore, podrá volver a demostrar este registro. ¿Quitarlas de todos modos?',
-  'app.plant.keys.title': 'Claves del registro (solo este navegador)',
+    'NO ha descargado una copia de seguridad de estas claves. Si las quita, este navegador no las recuperará, y solo su archivo de copia de seguridad, restaurado en un navegador nuevo, puede recuperarlas. ¿Quitarlas de todos modos?',
+  'app.plant.keys.title': 'Claves del registro',
   'app.plant.keys.holds':
-    'Este navegador guarda los dos secretos que demuestran que usted tiene este registro en la cadena. Nunca se envían a ningún lado, VeilCore no tiene copia, y borrar este navegador los elimina.',
-  'app.plant.keys.noBackup':
-    'Todavía no hay copia de seguridad. Descárguela y guárdela sin conexión: sin ella, borrar este navegador pierde el registro para siempre.',
+    'Este navegador guarda los dos secretos que demuestran que usted tiene este registro en la cadena. Una copia va también dentro de la caja bloqueada del registro en VeilCore, que solo abre la clave que bloquea sus registros. Borrar este navegador los elimina aquí; restaurar su copia de seguridad los recupera.',
+  'app.plant.keys.noBackup': 'Todavía no hay copia de seguridad. Descárguela y guárdela sin conexión.',
   'app.plant.keys.downloadAgain': 'Descargar de nuevo la copia de seguridad',
   'app.plant.keys.download': 'Descargar la copia de seguridad (secreta)',
   'app.plant.keys.remove': 'Quitar de este navegador',

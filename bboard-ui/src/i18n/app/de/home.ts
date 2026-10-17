@@ -128,7 +128,7 @@ export const home = {
   'app.home.aPlant': 'eine Pflanze',
   'app.home.datingUnfinished': '{dated} · nicht fertig · als Nächstes: Sicherungskopie speichern',
   'app.home.datingSealed': '{dated} · versiegelt am {date}',
-  'app.home.export.label': 'Alles herunterladen, was VeilCore für Sie aufbewahrt',
+  'app.home.export.label': 'Ihre Datensätze und Vereinbarungen von VeilCore herunterladen',
   'app.home.export.done':
-    'Heruntergeladen: Ihre Datensätze, Vereinbarungen, Freigabe-Einstellungen und jeder Inklusionsnachweis. Laborberichte sind nicht dabei: Öffnen Sie sie auf der Seite der Pflanze.',
+    'Heruntergeladen: Ihre Datensätze, Vereinbarungen, Freigabe-Einstellungen und jeder Inklusionsnachweis. Lieferungen, ihre Probenangaben und Laborberichte sind nicht dabei: Öffnen Sie sie bei der Lieferung oder auf der Seite der Pflanze. Ihre Schlüssel stehen in Ihrer Sicherungsdatei, nicht in dieser.',
 } satisfies Partial<AppTranslation>;

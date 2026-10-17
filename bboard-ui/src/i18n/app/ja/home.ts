@@ -111,7 +111,7 @@ export const home = {
   'app.home.aPlant': 'ある植物',
   'app.home.datingUnfinished': '{dated} · 未完了 · 次：バックアップを保存',
   'app.home.datingSealed': '{dated} · {date} に封印',
-  'app.home.export.label': 'VeilCoreが保持しているものをすべてダウンロード',
+  'app.home.export.label': 'VeilCoreから記録と契約をダウンロード',
   'app.home.export.done':
-    'ダウンロードしました：記録、契約、共有の選択、すべての包含証明。検査報告書は入っていません。植物のページから開いてください。',
+    'ダウンロードしました：記録、契約、共有の選択、すべての包含証明。送付、そのサンプル情報、検査報告書は入っていません。送付または植物のページから開いてください。鍵はこのファイルではなく、バックアップファイルにあります。',
 } satisfies Partial<AppTranslation>;

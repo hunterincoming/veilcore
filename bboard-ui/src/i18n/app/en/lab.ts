@@ -69,7 +69,7 @@ export const lab = {
   'app.lab.custody.locked':
     'The sample details are locked, and this browser doesn’t have their key. Restore your backup file here to see them.',
   'app.lab.custody.sealedSigned':
-    'The lab signed its receipt over the sample details. They are stored locked, and VeilCore doesn’t have the key, so this page can’t compare them.',
+    'The lab’s receipt names sample details. They are stored locked, and VeilCore doesn’t have the key, so this page can’t check them; the holder’s app can.',
   'app.lab.custody.holderMatch':
     'The sender’s app compared them: what arrived matches what was sent. That is the sender’s word.',
   'app.lab.custody.holderDiffers':
@@ -78,6 +78,8 @@ export const lab = {
     'The sender’s app compared them: the lab changed its arrival details after signing, so its receipt doesn’t cover them. That is the sender’s word.',
   'app.lab.custody.removed':
     'The sample details on this delivery were written before sealing and have since been removed, so this receipt can’t be compared with them.',
+  'app.lab.send.secretNotSaved':
+    'This plant’s key isn’t saved on VeilCore yet, so no lab code was made: {error}. Lab reports are locked to that key, and it has to be saved with the plant first. Try again.',
   'app.lab.send.sampleNotSaved': 'The lab code works, but the sample details weren’t saved: {error}',
   'app.signer.sep': ' ',
   // attesters.ts strengthLabel: a signature in a plant's History.
@@ -202,6 +204,8 @@ export const lab = {
   'app.lab.recv.wrongSample': "It's the wrong sample",
   'app.lab.recv.rejected': 'Received but rejected (damaged or wrong sample)',
   'app.lab.recv.nothingSigned': '{problems} Nothing was signed',
+  'app.lab.recv.askNewCode':
+    'Your arrival details can’t be locked for this delivery: the code is missing its last part, or the sender’s sample details never reached VeilCore. Nothing was sent and nothing was signed. Ask the sender for a new code.',
   'app.lab.recv.notSaved': 'your arrival details weren’t saved ({error}), so nothing was signed',
   'app.lab.recv.savedDifferent':
     'the sample details came back from the registry different from the ones on this screen, so nothing was signed. Reload the page and check them again',

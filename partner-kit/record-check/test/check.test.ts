@@ -680,14 +680,15 @@ describe('chain of custody: a receipt only when tied to a delivery', () => {
     expect(c.labReceipts[0].custody?.differences).toEqual(['Seal differs']);
   });
 
-  it('sealed sample details: the lab signed over them; the sender’s summary is said as theirs, by field name only', async () => {
+  it('sealed sample details: the lab’s receipt names them; the sender’s summary is said as theirs, by field name only', async () => {
     const sealed = (summary?: unknown) =>
       run(LINK, {
         verify: withCustody([
           {
             receiptAttestationId: 'att_receipt',
             custody: 'sealed',
-            signedOverSampleDetails: true,
+            receiptNamesSampleDetails: true,
+            sampleDetailsCheckedBy: 'holder',
             ...(summary ? { custodySummary: summary, custodySummaryBy: 'holder' } : {}),
           },
         ]),
@@ -698,7 +699,7 @@ describe('chain of custody: a receipt only when tied to a delivery', () => {
     expect(c.labReceipts[0].counts).toBe(true);
     expect(c.labReceipts[0].custody).toEqual({ differences: [], clean: false, state: 'sealed' });
     expect(c.labReceipts[0].words).toMatch(
-      /The lab signed over the sample details\. They are stored locked, so the registry can’t compare them\.$/,
+      /The lab’s receipt names sample details\. They are stored locked, so the registry can’t check them; the holder’s app can\.$/,
     );
     expect(c.summary).not.toMatch(/does NOT match/);
     ({ c } = await sealed({ covered: 'covered', differingFields: ['sealNumber', '4471'] }));
@@ -711,7 +712,9 @@ describe('chain of custody: a receipt only when tied to a delivery', () => {
     expect(c.labReceipts[0].words).toMatch(/changed its arrival details after signing \(the sender’s word\)\.$/);
     // Removed (written before sealing, then purged): no comparison either way.
     ({ c } = await run(LINK, {
-      verify: withCustody([{ receiptAttestationId: 'att_receipt', custody: 'removed', signedOverSampleDetails: true }]),
+      verify: withCustody([
+        { receiptAttestationId: 'att_receipt', custody: 'removed', receiptNamesSampleDetails: true },
+      ]),
       attestations: [served(receipt)],
     }));
     expect(c.labReceipts[0].custody).toEqual({ differences: [], clean: false, state: 'removed' });

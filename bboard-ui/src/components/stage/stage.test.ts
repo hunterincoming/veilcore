@@ -236,10 +236,11 @@ describe('Date this lab report: what is sealed', () => {
     expect(labReportFacts({ ...plant, dnaFingerprint: undefined }, { kind: 'self', sha: SHA })).toBeUndefined();
   });
 
-  it('the follow-up record: parent the plant, method "Lab report", a name with the short id, notes only', () => {
+  it('the follow-up record: parent the plant, method "Lab report", a neutral public name, notes only', () => {
     const input = labReportSealInput(plant, { sha: SHA, resultId: 'LR-3f2a9c01', lab: 'Test Lab' }, '2026-10-15');
     expect(input).toEqual({
-      strainName: 'Harbour Mist — lab report LR-3F2A',
+      // Round 4 (F9): nothing from the report in the public name (it was "… lab report LR-3F2A").
+      strainName: 'Harbour Mist — lab report',
       bredBy: plant.bredBy,
       dateCreated: '2026-10-15',
       notes: `Lab report SHA-256: ${SHA}\nResult: LR-3f2a9c01\nLab: Test Lab`,
@@ -249,9 +250,9 @@ describe('Date this lab report: what is sealed', () => {
       refId: '',
       taxon: '',
     });
-    expect(labReportSealInput(plant, { sha: SHA }, '2026-10-15').strainName).toBe(
-      `Harbour Mist — lab report ${SHA.slice(0, 8)}`,
-    );
+    expect(labReportSealInput(plant, { sha: SHA }, '2026-10-15').strainName).toBe('Harbour Mist — lab report');
+    // The holder's own name, when they gave one.
+    expect(labReportSealInput(plant, { sha: SHA }, '2026-10-15', '  Cert 2026  ').strainName).toBe('Cert 2026');
   });
 
   it('notes read back, and only such a record counts as one dating a lab report', () => {
@@ -430,7 +431,7 @@ describe('a breeder’s own selection chain: no royalty owed to themselves, lab 
   const f2 = rec({ strainName: 'HM F2', parents: [{ recordId: f1.id, name: 'HM F1' }] });
   const f3 = rec({ strainName: 'HM F3', parents: [{ recordId: f2.id, name: 'HM F2' }] });
   const dated = rec({
-    strainName: 'HM F1 — lab report LR-AB12',
+    strainName: 'HM F1 — lab report',
     breedingMethod: LAB_REPORT_METHOD,
     parents: [{ recordId: f1.id, name: 'HM F1' }],
     notes: labReportNotes({ sha: SHA }),

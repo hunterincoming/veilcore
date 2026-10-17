@@ -70,7 +70,7 @@ export const lab = {
   'app.lab.custody.locked':
     'Les détails de l’échantillon sont verrouillés, et ce navigateur n’a pas leur clé. Restaurez ici votre fichier de secours pour les voir.',
   'app.lab.custody.sealedSigned':
-    'Le laboratoire a signé son accusé de réception sur les détails de l’échantillon. Ils sont conservés verrouillés, et VeilCore n’a pas la clé : cette page ne peut donc pas les comparer.',
+    'L’accusé de réception du laboratoire mentionne des détails d’échantillon. Ils sont conservés verrouillés, et VeilCore n’a pas la clé : cette page ne peut donc pas les vérifier ; l’application du détenteur le peut.',
   'app.lab.custody.holderMatch':
     'L’application de l’expéditeur les a comparés : ce qui est arrivé correspond à ce qui a été envoyé. C’est la parole de l’expéditeur.',
   'app.lab.custody.holderDiffers':
@@ -79,6 +79,8 @@ export const lab = {
     'L’application de l’expéditeur les a comparés : le laboratoire a modifié ses informations d’arrivée après avoir signé, son accusé ne les couvre donc pas. C’est la parole de l’expéditeur.',
   'app.lab.custody.removed':
     'Les détails de l’échantillon de cet envoi ont été écrits avant le verrouillage et ont depuis été supprimés : cet accusé ne peut donc pas être comparé avec eux.',
+  'app.lab.send.secretNotSaved':
+    'La clé de cette plante n’est pas encore enregistrée sur VeilCore, donc aucun code de laboratoire n’a été créé : {error}. Les rapports de laboratoire sont verrouillés avec cette clé, qui doit d’abord être enregistrée avec la plante. Réessayez.',
   'app.lab.send.sampleNotSaved':
     'Le code de laboratoire fonctionne, mais les détails de l’échantillon n’ont pas été enregistrés : {error}',
   'app.signer.sep': ' ',
@@ -209,6 +211,8 @@ export const lab = {
   'app.lab.recv.wrongSample': 'Ce n’est pas le bon échantillon',
   'app.lab.recv.rejected': 'Reçu mais refusé (endommagé ou mauvais échantillon)',
   'app.lab.recv.nothingSigned': '{problems} Rien n’a été signé',
+  'app.lab.recv.askNewCode':
+    'Vos détails d’arrivée ne peuvent pas être verrouillés pour cette livraison : il manque la dernière partie du code, ou les détails de l’échantillon de l’expéditeur ne sont jamais arrivés sur VeilCore. Rien n’a été envoyé ni signé. Demandez un nouveau code à l’expéditeur.',
   'app.lab.recv.notSaved': 'vos informations d’arrivée n’ont pas été enregistrées ({error}), donc rien n’a été signé',
   'app.lab.recv.savedDifferent':
     'les détails d’échantillon sont revenus du registre différents de ceux de cet écran, donc rien n’a été signé. Rechargez la page et vérifiez-les de nouveau',

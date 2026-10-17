@@ -60,9 +60,10 @@ export const fakeRegistry = () => {
     /** Ids a PUT rejects (as the real registry rejects a row it won't take). */
     rejectIds: new Set<string>(),
     /**
-     * Take a record whatever its `rev`, as the registry did before round 3 (L2). By default
-     * this one refuses an older copy as the real one does: a public `rev` below the one it
-     * holds, or none once it holds one, is refused by id with code "older-copy".
+     * Take a record or agreement whatever its `rev`, as the registry did before round 3 (L2)
+     * and round 4 (F1). By default this one refuses an older copy as the real one does: a
+     * public `rev` below the one it holds, or none once it holds one, is refused by id with
+     * code "older-copy".
      */
     ignoreRev: false,
     /**
@@ -130,7 +131,7 @@ export const fakeRegistry = () => {
           const rev = typeof r.rev === 'number' && Number.isSafeInteger(r.rev) ? r.rev : null;
           if (misbehave.rejectIds.has(r.id)) rejected.push({ id: r.id, reason: 'refused for this test' });
           else if (
-            path === '/api/records' &&
+            // Records (round 3, L2) and, since round 4 (F1, license-rev-v1), agreements.
             !misbehave.ignoreRev &&
             heldRev !== null &&
             t.get(r.id)!.holder === holder &&
@@ -143,7 +144,7 @@ export const fakeRegistry = () => {
           )
             rejected.push({
               id: r.id,
-              reason: `older copy: this registry holds rev ${heldRev} of this record and this save is ${rev === null ? 'without a rev' : `rev ${rev}`}; nothing was changed`,
+              reason: `older copy: this registry holds rev ${heldRev} of this ${path === '/api/records' ? 'record' : 'license'} and this save is ${rev === null ? 'without a rev' : `rev ${rev}`}; nothing was changed`,
               code: 'older-copy',
               status: 409,
               storedRev: heldRev,

@@ -608,7 +608,9 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
       {
         receiptAttestationId: signed.attestationId,
         custody: 'sealed',
-        signedOverSampleDetails: true,
+        // Round 4 (F11): the receipt names sample details; only the holder's app can check them.
+        receiptNamesSampleDetails: true,
+        sampleDetailsCheckedBy: 'holder',
         custodySummary: { covered: 'covered', differingFields: ['sealNumber'] },
         custodySummaryBy: 'holder',
       },
@@ -709,7 +711,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     expect(sent.some((r) => r.method === 'GET' && new URL(r.url).pathname === '/lineage/obligations')).toBe(false);
   });
 
-  it('licence save: { id, sealed } only, and it opens again', async () => {
+  it('licence save: { id, rev, sealed } only, and it opens again', async () => {
     A.licenses.startLicenseSync();
     const l = A.licenses.createLicense({
       type: 'license',
@@ -734,7 +736,9 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     const holderKey = A.holder.holderKeyIfAny()!;
     await until(async () => (await rowsOf(holderKey, 'licenses')).some((r) => r.id === licenceId), 'the licence save');
     const row = (await rowsOf(holderKey, 'licenses')).find((r) => r.id === licenceId)!;
-    expect(Object.keys(row).sort()).toEqual(['id', 'sealed']);
+    // Its rev in the clear beside the box (round 4, F1), the number the registry checks.
+    expect(Object.keys(row).sort()).toEqual(['id', 'rev', 'sealed']);
+    expect(row.rev).toBe(1);
     const fresh = await browser(breederStorage);
     fresh.licenses.startLicenseSync();
     await until(() => fresh.licenses.getLicense(licenceId) !== undefined, 'the licence to load');

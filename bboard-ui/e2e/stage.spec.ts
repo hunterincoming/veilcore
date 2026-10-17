@@ -175,7 +175,9 @@ test('seal a plant, add the next stage from its page, and date its lab report on
   await tabB.close();
   expect(report.notes).toBe(`Lab report SHA-256: ${LAB_SHA}\nLab: no lab signature matches this file`);
   expect(report.parents).toEqual([{ recordId: f1Id, name: f1 }]);
-  expect(report.strainName).toBe(`${f1} — lab report ${LAB_SHA.slice(0, 8)}`);
+  // Round 4 (F9): a neutral public name, nothing from the report.
+  expect(report.strainName).toBe(`${f1} — lab report`);
+  expect(report.strainName).not.toContain(LAB_SHA.slice(0, 8));
   // The report itself never left the device: not inside the seal, not in the clear.
   expect(JSON.stringify(report)).not.toContain('Practice lab report (test data)');
   expect(JSON.stringify(held.records)).not.toContain('Practice lab report (test data)');

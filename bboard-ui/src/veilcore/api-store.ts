@@ -47,6 +47,15 @@
 //     could otherwise hand the lab its own lock for lab reports, or a grant as the holder's;
 //   - the high-water marks go in the backup (P4: revMarks, raiseRevMarks).
 //
+// Round 4 (the fourth attack review):
+//   - agreements carry the public `rev` too, and an "older copy" refusal from the registry is
+//     handled for them exactly as for records (F1): two tabs or devices used to replace each
+//     other's changes to an agreement, a revocation included, without a word;
+//   - a row this browser has ever seen sealed (its id has a high-water mark, kept in the
+//     backup) is never taken in plain-text, stub or emptied form (F2): the server could send
+//     an old copy from before locking, and this browser took it as current and locked the old
+//     contents again over the newer ones. It is shown as an older copy, never converted.
+//
 // Every request carries the holder key, and the server returns only that holder's rows.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -125,12 +134,13 @@ const PRIVATE_MARKERS = [
 /**
  * Fields that only ever live inside this browser's sealed copy of a record: the holder's
  * share choice and the question about one, the names given to recipients, where the lab
- * report lock came from, and each delivery's offer key (CONTRACT.md #27). A row the registry
+ * report lock came from, each delivery's offer key (CONTRACT.md #27) and the record's own
+ * secrets (round 4, F5: record-keys.ts sealedSecretsOf). A row the registry
  * holds in plain text (saved before sealing) or a claim's stub never legitimately has them,
  * so any it carries are the server's, and dropped (round 3, P1 and P2): an offer key from
  * the server would have the lab seal its arrival details with a key the server knows.
  */
-const SEALED_ONLY = ['grant', 'grantToConfirm', 'sentTo', 'resultLockFrom', 'offerKeys'] as const;
+const SEALED_ONLY = ['grant', 'grantToConfirm', 'sentTo', 'resultLockFrom', 'offerKeys', 'secrets'] as const;
 /**
  * A record saved before sealing is the server's row: its lock for lab reports could be the
  * server's own (round 3, P1). Not taken: the lab's lock comes from the lab code it pasted
@@ -150,9 +160,10 @@ const STUB_FIELDS = [
 /**
  * Fields kept only in this browser (records.ts) that a save of a record saved before sealing
  * can carry without being a change to it: the name given to a recipient while the record
- * waits for the backup (L11), and the delivery's offer key (CONTRACT.md #27).
+ * waits for the backup (L11), the delivery's offer key (CONTRACT.md #27), and the record's
+ * secrets (round 4, F5).
  */
-const LOCAL_ONLY = ['sentTo', 'offerKeys'] as const;
+const LOCAL_ONLY = ['sentTo', 'offerKeys', 'secrets'] as const;
 const withoutKeys = (r: Record<string, unknown>, keys: readonly string[]): Record<string, unknown> => {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(r)) if (!keys.includes(k)) out[k] = v;
@@ -236,6 +247,12 @@ export type LockedRow = {
    * Not shown as the record and never sent back; this browser has no newer copy to show.
    */
   readonly older?: true;
+  /**
+   * The older copy is from before the row was locked: plain text, a claim's stub or emptied
+   * by the purge, for a row this browser has seen sealed (round 4, F2). It is never used,
+   * converted or locked again; the holder can only delete it.
+   */
+  readonly beforeLocking?: true;
 };
 
 export type LoadNotice = {
@@ -423,7 +440,9 @@ const raiseRevs = (seen: readonly (readonly [RowKind, string, number])[]): void 
   const revs = readRevs();
   let changedAny = false;
   for (const [kind, id, rev] of seen) {
-    if ((revs[revKey(kind, id)] ?? 0) < rev) {
+    // A mark of 0 is kept too (a row sealed before revs): it says this browser has seen the
+    // row sealed, so a plain-text copy of it is never taken again (round 4, F2).
+    if ((revs[revKey(kind, id)] ?? -1) < rev) {
       revs[revKey(kind, id)] = rev;
       changedAny = true;
     }
@@ -447,7 +466,11 @@ const setRev = (kind: RowKind, id: string, rev: number): void => {
   }
 };
 
-/** Every high-water mark this browser keeps, for the backup file (round 3, P4). */
+/**
+ * Every high-water mark this browser keeps, for the backup file (round 3, P4). A row with a
+ * mark is one this browser has seen sealed (round 4, F2), so the list also keeps a restored
+ * browser from taking a plain-text copy of it.
+ */
 export const revMarks = (): Record<string, number> => readRevs();
 
 /**
@@ -461,8 +484,8 @@ export const raiseRevMarks = (marks: unknown): number => {
   const seen: [RowKind, string, number][] = [];
   for (const [k, v] of Object.entries(marks)) {
     const m = /^(records|licenses):(.+)$/.exec(k);
-    if (!m || typeof v !== 'number' || !Number.isSafeInteger(v) || v <= 0) continue;
-    if ((here[k] ?? 0) < v) seen.push([m[1] as RowKind, m[2], v]);
+    if (!m || typeof v !== 'number' || !Number.isSafeInteger(v) || v < 0) continue;
+    if ((here[k] ?? -1) < v) seen.push([m[1] as RowKind, m[2], v]);
   }
   raiseRevs(seen);
   return seen.length;
@@ -615,6 +638,17 @@ export const apiStore: Store = {
       const id = raw.id;
       let value: Record<string, unknown>;
       let state: RowState;
+      // A row this browser has seen sealed (it has a high-water mark, from this browser or a
+      // restored backup) is never taken in plain text, as a claim's stub or emptied (round 4,
+      // F2): that is an older copy from before locking, which the server (or a database
+      // restored from an old backup) sent in place of the sealed one. Taken as current, it
+      // was locked again over the newer copy, losing what was added since. Shown as an older
+      // copy, never converted, never sent back; it can only be deleted.
+      if (!isSealedRow(raw) && revs[revKey(kind, id)] !== undefined) {
+        states.set(id, 'older');
+        locked.push({ id, ...publicOf(raw), older: true, beforeLocking: true });
+        continue;
+      }
       if (isSealedRow(raw)) {
         const opened = await openRow(kind, id, raw.sealed);
         if (!opened.ok) {
@@ -625,6 +659,8 @@ export const apiStore: Store = {
             ...(opened.kid ? { kid: opened.kid } : {}),
             ...(opened.kid && vaultMadeAt(opened.kid) !== undefined ? { since: vaultMadeAt(opened.kid) } : {}),
           });
+          // Seen sealed (round 4, F2): a plain-text copy of it is never taken later.
+          revsSeen.push([kind, id, 0]);
           continue;
         }
         openedHere = true;
@@ -643,7 +679,8 @@ export const apiStore: Store = {
         // The public `rev` the registry checks saves against must be the one sealed inside the
         // row (round 3, L2). One that isn't was changed on the server: the sealed one is what
         // counts, and the row is saved again (it isn't marked as saved here), above both.
-        const publicRev = kind === 'records' && raw.rev !== undefined && raw.rev !== null ? raw.rev : undefined;
+        // Records and, since round 4 (F1), agreements.
+        const publicRev = raw.rev !== undefined && raw.rev !== null ? raw.rev : undefined;
         if (publicRev !== undefined) {
           if (typeof publicRev === 'number' && Number.isSafeInteger(publicRev) && publicRev >= 0)
             publicRevs.set(revKey(kind, id), publicRev);
@@ -819,10 +856,10 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
       // nothing is sent, and nothing is sealed under another key.
       return { ok: false, refused: [...refused, vaultRefusal('locked')], pending: pending.map((p) => p.id) };
     }
-    // A record's rev goes in the clear too, the same number as inside the box, so the
-    // registry can refuse an older copy than the one it holds (round 3, L2). A licence is
-    // only its id and box (CONTRACT.md #5).
-    wire.push(kind === 'licenses' ? { id, sealed } : { ...publicPart(item), rev, sealed });
+    // The rev goes in the clear too, the same number as inside the box, so the registry can
+    // refuse an older copy than the one it holds (round 3, L2; for agreements round 4, F1).
+    // Otherwise a licence is only its id and box (CONTRACT.md #5).
+    wire.push(kind === 'licenses' ? { id, rev, sealed } : { ...publicPart(item), rev, sealed });
     pending.push({ id, hash, rev });
   }
   if (held.length) return { ok: false, refused, held, pending: held, accepted: [] };
@@ -864,7 +901,7 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
       // The registry holds a newer copy than this save (another tab or device saved it): the
       // change made here wasn't saved, and the next load shows the registry's copy. Said as
       // an older copy, as when the registry sends one (CONTRACT.md #20), the other way round.
-      if (r.code === OLDER_COPY && kind === 'records') {
+      if (r.code === OLDER_COPY) {
         const storedRev =
           typeof r.storedRev === 'number' && Number.isSafeInteger(r.storedRev) ? r.storedRev : undefined;
         // The copy the registry holds may be this page's own: a later save of this page that

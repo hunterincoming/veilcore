@@ -24,6 +24,7 @@ import {
   veilcoreFee,
   dealValueOf,
   signedByTwoParties,
+  royaltyProtectionPending,
   type License,
   useAgreementsWaitForBackup,
 } from '../../veilcore/licenses';
@@ -33,7 +34,7 @@ import { offspringOf } from '../stage/self-chain';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { AppHeader } from '../AppHeader';
 import { InEnglishPage } from '../../i18n/app';
-import { LicenseStateChip } from './LicenseStateChip';
+import { LicenseStateChip, ROYALTY_PENDING_TEXT } from './LicenseStateChip';
 import { ShareLicense } from './ShareLicense';
 import { AgreementTypeChip } from './AgreementTypeChip';
 import { AgreementsBackupFirst } from './AgreementsBackupFirst';
@@ -159,6 +160,11 @@ export const LicenseDetail: React.FC = () => {
       </Stack>
 
       <Stack spacing={2.5}>
+        {royaltyProtectionPending(license) && (
+          <Alert severity="warning" variant="outlined" data-royalty-pending-text="">
+            {ROYALTY_PENDING_TEXT}
+          </Alert>
+        )}
         <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
           <Typography variant="overline" sx={{ display: 'block', mb: 1.5 }}>
             Agreement terms

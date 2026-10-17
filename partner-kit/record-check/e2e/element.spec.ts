@@ -104,7 +104,7 @@ test('a matching link: the plain answer, the form submits, nothing but the regis
     'Receipt: Lab’s receipt for a sample, signature verified, signed by Test Lab (checked).',
   );
   await expect(out(page)).toContainText(
-    'The lab signed over the sample details. They are stored locked, so the registry can’t compare them. The sender’s app says what arrived matches what was sent (the sender’s word).',
+    'The lab’s receipt names sample details. They are stored locked, so the registry can’t check them; the holder’s app can. The sender’s app says what arrived matches what was sent (the sender’s word).',
   );
   await expect(out(page).locator('li[data-kind="bad"]')).toContainText(
     'Does not match (sender’s word): Lab’s receipt for a sample, signature verified',

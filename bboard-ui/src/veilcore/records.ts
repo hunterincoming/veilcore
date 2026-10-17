@@ -10,7 +10,16 @@ import { holderPartyId, forgetHolderKey } from './holder';
 import { proofFor } from './proofs';
 import { reportSave, describeRefusals } from './save-status';
 import { newNonce, fingerprintRecord } from './commitment';
-import { ensureKeys, forgetKeys } from './record-keys';
+import {
+  adoptSealedSecrets,
+  ensureKeys,
+  ensureKeysFor,
+  forgetKeys,
+  keysFitRecord,
+  keysFor,
+  sealedSecretsOf,
+  type SealedSecrets,
+} from './record-keys';
 import { bindingForSecret } from './key-binding';
 import { isAnimal, type AnimalDetails, type ParentRole } from './animal-profile';
 import {
@@ -212,6 +221,15 @@ export type StrainRecord = {
    * here, sealed with the vault key, so a restore from the backup file brings it back.
    */
   readonly offerKeys?: Readonly<Record<string, string>>;
+  /**
+   * The record's own secrets (record-keys.ts), sealed with the record (round 4, F5): its lab
+   * reports are locked to the record secret, which used to live only in this browser and the
+   * backup file, so a plant logged after the last checked backup lost it, and its lab reports,
+   * when storage was wiped. Every save adds it to a record this browser holds keys for; a
+   * load gives it back to a browser that has none (a restored vault key). Never a clear field,
+   * never taken from a row the server holds in plain text, never in an export.
+   */
+  readonly secrets?: SealedSecrets;
 };
 
 /** The receiver's own notes on a received record: outside the fingerprint, so safe to change. */
@@ -416,6 +434,9 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
     }
     return;
   }
+  // A record's secrets sealed with it (round 4, F5): kept here when this browser has none for
+  // it, as after restoring the vault key on a new device or a wiped browser.
+  for (const r of records) if (r.secrets && rowStateOf(RECORDS_KEY, r.id) === 'open') adoptSealedSecrets(r, r.secrets);
   // The registry sent an older copy of a record than this browser has seen (CONTRACT.md
   // #20): the newer copy this page holds stays, and is sent again.
   let kept = 0;
@@ -554,6 +575,7 @@ export const startRecordSync = (): void => {
  * refusal the set is reloaded from the registry — the rollback — and the holder is told.
  */
 const saveAll = async (grantsToResend: readonly string[] = []): Promise<SaveResult> => {
+  withSealedSecrets();
   const result = await store.save(RECORDS_KEY, records);
   settleOutbox(result);
   reportSave('records', result);
@@ -570,6 +592,63 @@ const saveAll = async (grantsToResend: readonly string[] = []): Promise<SaveResu
 const persist = () => {
   void saveAll();
   notify();
+};
+
+/**
+ * Put each record's secrets into its sealed part (round 4, F5) where this browser holds keys
+ * that fit the record and the record doesn't carry them yet: a record made before this goes
+ * with them on its next save. Changes `records` only where something was added.
+ */
+const withSealedSecrets = (): void => {
+  let added = false;
+  const next = records.map((r) => {
+    const k = keysFor(r.id);
+    if (!k || !keysFitRecord(k, r) || r.secrets?.recordSecret === k.recordSecret) return r;
+    // Secrets the record already carries that fit it are its own: never replaced from here.
+    if (r.secrets && keysFitRecord(r.secrets, r)) return r;
+    added = true;
+    return { ...r, secrets: sealedSecretsOf(k) };
+  });
+  if (added) records = next;
+};
+
+/**
+ * Before a lab code is made (round 4, F5): the record's secret, which its lab reports are
+ * locked to, must be in the record's sealed copy on VeilCore, so a restore of the vault key
+ * brings it back. Makes the keys if the record has none (as before), saves the record with
+ * them, and answers ok only once the registry holds that sealed copy. Otherwise no lab code
+ * is made, and the reason is given.
+ */
+export const recordSecretSaved = async (
+  id: string,
+): Promise<{ ok: true; recordSecret: string } | { error: string }> => {
+  const r = getRecord(id);
+  if (!r) return { error: 'that record isn’t in this browser' };
+  let k;
+  try {
+    k = ensureKeysFor(r);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
+  const held = (): boolean => getRecord(id)?.secrets?.recordSecret === k.recordSecret;
+  const stored = async (): Promise<boolean> => {
+    const now = getRecord(id);
+    return !!now && held() && rowStateOf(RECORDS_KEY, id) === 'open' && (await isStoredAsIs(RECORDS_KEY, now));
+  };
+  if (vaultNeedsBackup() || !vaultKeyIfAny()) return { error: enT.t('app.sealed.backupFirstAction') };
+  // What the registry holds is known only after a load: read it first on a page that hasn't.
+  if (rowStateOf(RECORDS_KEY, id) === undefined) await hydrate();
+  if (await stored()) return { ok: true, recordSecret: k.recordSecret };
+  const result = await saveAll();
+  if ((held() && result.accepted?.includes(id)) || (await stored())) return { ok: true, recordSecret: k.recordSecret };
+  const refusedHere = result.refused.filter((x) => x.id === '*' || x.id === id);
+  return {
+    error: result.offline
+      ? 'could not reach the registry'
+      : refusedHere.length
+        ? describeRefusals(refusedHere)
+        : 'VeilCore hasn’t saved it yet',
+  };
 };
 
 // ---- what this browser keeps for the registry (outbox.ts; round 3, L1, L11, L12) -------------
@@ -938,7 +1017,14 @@ export const exportEnvelope = async (id: string): Promise<void> => {
 // ---- demo data portability ----
 
 export const exportRecords = (): void => {
-  const blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' });
+  // A record's secrets are not exported (round 4, F5): they are in the backup file, which
+  // says it is secret; an export file is the kind people share.
+  const out = records.map((r) => {
+    const { secrets: _s, ...rest } = r;
+    void _s;
+    return rest;
+  });
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -1355,6 +1441,8 @@ export const issueCorrection = async (
     supersededBy: undefined,
     grant: undefined,
     grantToConfirm: undefined,
+    // Its own secrets go in with its first save (round 4, F5), never the original's.
+    secrets: undefined,
   } as StrainRecord;
 
   const holder = await holderPartyId();

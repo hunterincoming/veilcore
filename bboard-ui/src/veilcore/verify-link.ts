@@ -9,6 +9,15 @@
 //
 // Links made before this (old links, printed QR codes) have no `fp`. They still open,
 // but the page then shows everything as the registry's report and ticks nothing.
+//
+// Round 4 (F7): what links a record to its holder's on-chain activity goes after the `#`
+// (the fragment), which a browser never sends to any server: the on-chain identity
+// (`chain`), its date stamp (`anchorTx`), the key's salt (`ks`), the hash of the sealed
+// details (`cd`) and the saved report's SHA-256 (`rs`). In the query string they reached
+// VeilCore's web host, which logs every request, and so joined a record id to an on-chain
+// identity: the link the record-keys design keeps off the registry. Old links with them in
+// the query string still open (linkParam reads both), and the page moves them into the
+// fragment at once. `fp` and `show` are public and stay in the query string.
 // SPDX-License-Identifier: Apache-2.0
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -19,16 +28,58 @@ const HEX64 = /^[0-9a-f]{64}$/;
  * parameters, such as `show`, are kept.
  */
 import { enT, type Translator } from '../i18n/translate';
+
+/** Link values that join a record to its on-chain activity: only ever in the fragment (F7). */
+export const FRAGMENT_PARAMS = ['chain', 'anchorTx', 'ks', 'cd', 'rs'] as const;
+const inFragment = (k: string): boolean => (FRAGMENT_PARAMS as readonly string[]).includes(k);
+
 export const verifyPath = (
   id: string,
   fingerprint?: string,
   params?: Record<string, string> | URLSearchParams,
 ): string => {
-  const q = new URLSearchParams(params);
-  q.delete('fp');
+  const all = new URLSearchParams(params);
+  all.delete('fp');
+  const q = new URLSearchParams();
+  const h = new URLSearchParams();
+  for (const [k, v] of all) (inFragment(k) ? h : q).append(k, v);
   if (fingerprint && HEX64.test(fingerprint)) q.set('fp', fingerprint);
   const s = q.toString();
-  return `/verify/${encodeURIComponent(id)}${s ? `?${s}` : ''}`;
+  const f = h.toString();
+  return `/verify/${encodeURIComponent(id)}${s ? `?${s}` : ''}${f ? `#${f}` : ''}`;
+};
+
+/**
+ * A link value: from the fragment, or (an old link) from the query string. Values in
+ * FRAGMENT_PARAMS are read from the fragment first; the query string only for links made
+ * before round 4.
+ */
+export const linkParam = (name: string, search: string, hash: string): string | null => {
+  const fromHash = new URLSearchParams(hash.replace(/^#/, '')).get(name);
+  if (fromHash !== null && inFragment(name)) return fromHash;
+  return new URLSearchParams(search.replace(/^\?/, '')).get(name);
+};
+
+/**
+ * An old link's linking values, moved from the query string into the fragment: the address
+ * the page should show (so a copy of it, or a reload, no longer sends them anywhere), or
+ * null when there is nothing to move.
+ */
+export const movedToFragment = (search: string, hash: string): { search: string; hash: string } | null => {
+  const q = new URLSearchParams(search.replace(/^\?/, ''));
+  const h = new URLSearchParams(hash.replace(/^#/, ''));
+  let moved = false;
+  for (const k of FRAGMENT_PARAMS) {
+    const v = q.get(k);
+    if (v === null) continue;
+    q.delete(k);
+    if (!h.has(k)) h.set(k, v);
+    moved = true;
+  }
+  if (!moved) return null;
+  const s = q.toString();
+  const f = h.toString();
+  return { search: s ? `?${s}` : '', hash: f ? `#${f}` : '' };
 };
 
 /** What a verify link says about the fingerprint it was made for. */

@@ -9,7 +9,7 @@ import { Alert, Box, Button, Paper, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import { abandonLostKey, adoptOlderCopy, deleteLockedRecord, useSealedView } from '../veilcore/records';
-import { deleteLockedLicense, useLockedLicenses } from '../veilcore/licenses';
+import { adoptOlderLicense, deleteLockedLicense, useLockedLicenses } from '../veilcore/licenses';
 import type { LockedRow } from '../veilcore/api-store';
 import { useT } from '../i18n/app';
 import type { Translator } from '../i18n/translate';
@@ -127,7 +127,12 @@ export const LockedRecords: React.FC<{ only?: string }> = ({ only }) => {
               confirm={t(r.older ? 'app.sealed.older.deleteConfirm' : 'app.sealed.locked.deleteConfirm', { name })}
               remove={deleteLockedRecord}
               kind="record"
-              {...(r.older ? { note: t('app.sealed.older'), useIt: () => void adoptOlderCopy(r.id) } : {})}
+              // A copy from before locking (round 4, F2) is never used: only deleted.
+              {...(r.older
+                ? r.beforeLocking
+                  ? { note: t('app.sealed.older.beforeLocking') }
+                  : { note: t('app.sealed.older'), useIt: () => void adoptOlderCopy(r.id) }
+                : {})}
             />
           );
         })}
@@ -206,6 +211,12 @@ export const LockedAgreements: React.FC = () => {
             confirm={t('app.sealed.lockedAgreements.deleteConfirm', { id: r.id })}
             remove={deleteLockedLicense}
             kind="agreement"
+            // An older copy of an agreement (round 4, F1, F2), said and handled as for records.
+            {...(r.older
+              ? r.beforeLocking
+                ? { note: t('app.sealed.older.agreementBeforeLocking') }
+                : { note: t('app.sealed.older.agreement'), useIt: () => void adoptOlderLicense(r.id) }
+              : {})}
           />
         ))}
       </Stack>

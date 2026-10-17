@@ -125,7 +125,7 @@ export const home = {
   'app.home.aPlant': 'una planta',
   'app.home.datingUnfinished': '{dated} · sin terminar · siguiente: guarde su copia de seguridad',
   'app.home.datingSealed': '{dated} · sellado el {date}',
-  'app.home.export.label': 'Descargar todo lo que VeilCore guarda de usted',
+  'app.home.export.label': 'Descargar sus registros y acuerdos de VeilCore',
   'app.home.export.done':
-    'Descargado: sus registros, acuerdos, opciones de uso compartido y todas las pruebas de inclusión. Los informes de laboratorio no están incluidos: ábralos desde la página de la planta.',
+    'Descargado: sus registros, acuerdos, opciones de uso compartido y todas las pruebas de inclusión. Los envíos, sus datos de muestra y los informes de laboratorio no están incluidos: ábralos desde el envío o desde la página de la planta. Sus claves están en su archivo de copia de seguridad, no en este.',
 } satisfies Partial<AppTranslation>;

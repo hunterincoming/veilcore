@@ -66,6 +66,12 @@ export const sealed = {
   'app.sealed.older.pageTitle': 'Una copia anterior de este registro',
   'app.sealed.older':
     'El servidor envió una copia de este registro anterior a la que este navegador guardó por última vez. Si es la copia que quiere, úsela; si no, bórrela.',
+  'app.sealed.older.beforeLocking':
+    'El servidor de VeilCore envió una copia de este registro de antes de bloquearlo, anterior a la que este navegador guardó por última vez. Este navegador no la usará ni la volverá a bloquear. Puede borrarla.',
+  'app.sealed.older.agreement':
+    'El servidor de VeilCore envió una copia de este acuerdo anterior a la que este navegador guardó por última vez. Si es la copia que quiere, úsela; si no, bórrela.',
+  'app.sealed.older.agreementBeforeLocking':
+    'El servidor de VeilCore envió una copia de este acuerdo de antes de bloquearlo, anterior a la que este navegador guardó por última vez. Este navegador no la usará ni la volverá a bloquear. Puede borrarla.',
   'app.sealed.olderKept.one':
     'El servidor envió una copia anterior de {count} registro. Este navegador conservó la copia más reciente y la vuelve a guardar.',
   'app.sealed.olderKept.other':

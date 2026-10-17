@@ -298,3 +298,172 @@ describe('the English privacy copy (sealed records round 2)', () => {
     expect(panel).toMatch(/reportLockFor\(record,/);
   });
 });
+
+// Round 4 (the fourth attack review): sentences it found false, in every language and build.
+describe('round 4: the privacy sentences the fourth review found false', () => {
+  const OLD: readonly RegExp[] = [
+    /downloads everything our server holds for you/,
+    /Download everything VeilCore holds for you/,
+    /180 days after they arrive\. Nothing else has a set retention period/,
+    /For a delivery: which record it came from, when it was received, and a tag in place of the recipient[’']s name\./,
+    /stay readable to us until the registry removes them\. Locked lab reports/,
+    /They are never sent anywhere, VeilCore has no copy/,
+    /only their fingerprints and the report[’']s file name leave it, and those go locked/,
+    /Record keys \(this browser only\)/,
+  ];
+  const builds = (): Record<string, string>[] => [
+    en,
+    ...[true, false].flatMap((claimsOnMainnet) =>
+      [true, false].flatMap((policyApproved) =>
+        [true, false].map((chainReads) => ({
+          ...en,
+          ...mainnetStrings({ claimsOnMainnet, policyApproved, chainReads }),
+        })),
+      ),
+    ),
+  ];
+
+  it('the old sentences are caught, and none is left in English, the app or the READMEs', () => {
+    for (const old of [
+      'Download everything VeilCore holds for you downloads everything our server holds for you.',
+      'Locked lab reports are deleted 180 days after they arrive. Nothing else has a set retention period: it stays.',
+      "For a delivery: which record it came from, when it was received, and a tag in place of the recipient's name.",
+      'Sample details written before sealing stay readable to us until the registry removes them. Locked lab reports a lab sends you',
+      'They are never sent anywhere, VeilCore has no copy, and clearing this browser deletes them.',
+      "only their fingerprints and the report's file name leave it, and those go locked.",
+    ])
+      expect(
+        OLD.some((re) => re.test(old)),
+        old,
+      ).toBe(true);
+    const texts: Record<string, string> = {
+      ...english(),
+      readme: fs.readFileSync(path.join(SRC, '..', '..', 'README.md'), 'utf8'),
+      terms: fs.readFileSync(path.join(SRC, '..', '..', 'docs/privacy-and-data-terms.md'), 'utf8'),
+    };
+    const found = Object.entries(texts).flatMap(([k, v]) =>
+      OLD.filter((re) => re.test(v)).map((re) => `${k} ${String(re)}`),
+    );
+    expect(found).toEqual([]);
+  });
+
+  it('"Our server can read" lists the delivery’s account, saves, size bucket and key binding, in every build', () => {
+    for (const b of builds()) {
+      const s = b['m.privacy.stored.text'] ?? '';
+      expect(s).toMatch(/Our server can read: [^.]*its fingerprint, key binding and profile/);
+      expect(s).toMatch(/how many times it was saved, and when it was last saved/);
+      expect(s).toMatch(/\(its size bucket\)/);
+      expect(s).toMatch(
+        /For a delivery: which record it came from, which holder account received it, when it was received/,
+      );
+      // The tag sentence says what is true of deliveries made before tags.
+      expect(s).toMatch(
+        /A delivery made before tags has the name as typed, until the registry[’']s purge replaces it\./,
+      );
+      // Off-site backups made before locking keep a readable copy until the backup key is destroyed.
+      expect(s).toMatch(
+        /Our off-site backups made before then keep a readable copy of both until we destroy the key that opens them\./,
+      );
+      // Each record's secret keys are among what is locked.
+      expect(s).toMatch(/locked by your browser before they are sent: [^.]*each record[’']s own secret keys\./);
+    }
+  });
+
+  it('retention, what the browser keeps, and the export are said truly', () => {
+    expect(en['m.privacy.who.text']).toMatch(
+      /Requests to prove a record[’']s key are deleted after 7 days\. Nothing else has a set retention period/,
+    );
+    expect(en['m.privacy.browser.text']).toMatch(/each record[’']s secret keys, which lock its lab reports/);
+    expect(en['m.privacy.browser.text']).toMatch(
+      /the lab codes you make or use, which hold a claim code and the key to a delivery[’']s details/,
+    );
+    const ex = en['m.privacy.export.text'];
+    expect(ex).not.toMatch(/everything/i);
+    expect(ex).toMatch(
+      /It leaves out your deliveries with their sample details, locked lab reports, royalty obligations and requests to prove a record[’']s key\./,
+    );
+    expect(ex).toMatch(/Prove requests are deleted after 7 days\./);
+    expect(ex).toMatch(/Neither file has your keys or your records[’'] secret keys: those are in your backup file\./);
+    const a = appEn as Record<string, string>;
+    expect(a['app.home.export.label']).not.toMatch(/everything/i);
+    expect(a['app.home.export.done']).toMatch(/Deliveries, their sample details and lab reports aren[’']t in it/);
+    expect(a['app.plant.keys.holds']).toMatch(/A copy also goes inside the record[’']s locked box on VeilCore/);
+    const readme = fs.readFileSync(path.join(SRC, '..', '..', 'README.md'), 'utf8');
+    expect(readme).toMatch(
+      /the files never leave it\. Their fingerprints and the report[’']s file name go to the registry locked, unless the holder chooses to show the DNA pairing/,
+    );
+    expect(readme).toMatch(/which holder account received it/);
+  });
+
+  it('the same in German, Spanish, French and Japanese (mainnet overlay included)', () => {
+    const t = translated();
+    const stored: [string, RegExp[]][] = [
+      [
+        'de',
+        [
+          /welches Inhaberkonto sie empfangen hat/,
+          /wie oft er gespeichert wurde und wann zuletzt/,
+          /Größenstufe/,
+          /Schlüsselbindung/,
+          /Bei einer Lieferung von vor den Kennzeichen/,
+          /externen Sicherungen/,
+        ],
+      ],
+      [
+        'es',
+        [
+          /qué cuenta de titular lo recibió/,
+          /cuántas veces se guardó/,
+          /franja de tamaño/,
+          /vínculo de clave/,
+          /En un envío anterior a las etiquetas/,
+          /copias de seguridad externas/,
+        ],
+      ],
+      [
+        'fr',
+        [
+          /quel compte de détenteur l'a reçu/,
+          /combien de fois il a été enregistré/,
+          /tranche de taille/,
+          /lien de clé/,
+          /Pour un envoi d'avant les étiquettes/,
+          /sauvegardes externes/,
+        ],
+      ],
+      [
+        'ja',
+        [
+          /どの保有者アカウントが受け取ったか/,
+          /保存された回数と最後に保存された日時/,
+          /サイズ区分/,
+          /鍵の結び付け/,
+          /タグ導入前の送付/,
+          /外部バックアップ/,
+        ],
+      ],
+    ];
+    for (const [lang, res] of stored) {
+      const keys = Object.keys(t).filter((k) => k.startsWith(`${lang}`) && k.endsWith(':m.privacy.stored.text'));
+      expect(keys.length, lang).toBeGreaterThan(0);
+      for (const k of keys) for (const re of res) expect(t[k], `${k} ${String(re)}`).toMatch(re);
+    }
+    expect(t['de:m.privacy.who.text']).toMatch(/nach 7 Tagen gelöscht/);
+    expect(t['es:m.privacy.who.text']).toMatch(/se borran a los 7 días/);
+    expect(t['fr:m.privacy.who.text']).toMatch(/supprimées après 7 jours/);
+    expect(t['ja:m.privacy.who.text']).toMatch(/7日後に削除されます/);
+    expect(t['de:m.privacy.browser.text']).toMatch(/Labor-Codes/);
+    expect(t['es:m.privacy.browser.text']).toMatch(/códigos de laboratorio/);
+    expect(t['fr:m.privacy.browser.text']).toMatch(/codes de laboratoire/);
+    expect(t['ja:m.privacy.browser.text']).toMatch(/ラボコード/);
+    for (const [lang, old] of [
+      ['de', /lädt alles herunter, was unser Server für Sie speichert/],
+      ['es', /descarga todo lo que nuestro servidor guarda para usted/],
+      ['fr', /télécharge tout ce que notre serveur conserve pour vous/],
+      ['ja', /保持しているすべてをダウンロード/],
+    ] as const) {
+      expect(t[`${lang}:m.privacy.export.text`], lang).not.toMatch(old);
+      expect(t[`${lang}:m.privacy.export.text`], lang).toContain(t[`app-${lang}:app.home.export.label`]);
+    }
+  });
+});

@@ -75,7 +75,7 @@ describe('a lab code without its lock part is caught at Receive', () => {
   });
 });
 
-describe('Download everything VeilCore holds for you', () => {
+describe('Download your records and agreements from VeilCore', () => {
   it('asks GET /api/export with the holder key, and says plainly when it can’t', async () => {
     const { fetchRegistryExport } = await import('./veilcore/registry-export');
     local.delete('veilcore.holder.v1');

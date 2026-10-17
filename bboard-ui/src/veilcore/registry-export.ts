@@ -1,7 +1,9 @@
-// Everything VeilCore's registry holds for this browser's holder key, in one file
-// (GET /api/export, round 5). Records, licences, sharing choices, each record's inclusion
-// proof and the batches they belong to, so leaving VeilCore never means losing anything.
-// Lab reports are not in it: they are locked files, opened from the plant's page.
+// What VeilCore's registry holds for this browser's holder key's records and agreements, in
+// one file (GET /api/export, round 5). Records, licences, sharing choices, each record's
+// inclusion proof and the batches they belong to. Not in it (round 4, F10; the privacy page
+// says so): deliveries with their offers and sample details, and lab reports (opened from the
+// delivery or the plant's page), royalty obligations (the lineage check answers per record),
+// prove requests (deleted after 7 days), and each record's secret keys (in the backup file).
 // The registry allows a few exports a minute per holder key.
 //
 // The registry holds records and licences sealed (vault.ts), so the file would be mostly
@@ -39,8 +41,11 @@ const openAll = async (kind: RowKind, rows: unknown): Promise<{ rows: unknown[];
     const { sealed: _sealed, ...pub } = row;
     void _sealed;
     // `rev` is how this browser tells a newer copy from an older one; not part of the record.
-    const { rev: _rev, ...sealedPart } = opened.value;
+    // A record's secrets (round 4, F5) are left out: they are in the backup file, which says
+    // it is secret; this file is the kind people share.
+    const { rev: _rev, secrets: _secrets, ...sealedPart } = opened.value;
     void _rev;
+    void _secrets;
     const full = kind === 'records' && isObject(sealedPart.supersedes) ? { supersedes: sealedPart.supersedes } : {};
     out.push({ ...sealedPart, ...pub, ...full });
   }

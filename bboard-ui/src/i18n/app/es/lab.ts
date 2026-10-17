@@ -68,7 +68,7 @@ export const lab = {
   'app.lab.custody.locked':
     'Los detalles de la muestra están bloqueados y este navegador no tiene su clave. Restaure aquí su archivo de copia de seguridad para verlos.',
   'app.lab.custody.sealedSigned':
-    'El laboratorio firmó su acuse de recibo sobre los detalles de la muestra. Se guardan bloqueados y VeilCore no tiene la clave, así que esta página no puede compararlos.',
+    'El acuse de recibo del laboratorio menciona detalles de la muestra. Se guardan bloqueados y VeilCore no tiene la clave, así que esta página no puede comprobarlos; la aplicación del titular sí puede.',
   'app.lab.custody.holderMatch':
     'La aplicación del remitente los comparó: lo que llegó coincide con lo que se envió. Es la palabra del remitente.',
   'app.lab.custody.holderDiffers':
@@ -77,6 +77,8 @@ export const lab = {
     'La aplicación del remitente los comparó: el laboratorio cambió sus detalles de llegada después de firmar, así que su acuse no los cubre. Es la palabra del remitente.',
   'app.lab.custody.removed':
     'Los detalles de la muestra de este envío se escribieron antes del bloqueo y ya se eliminaron, así que este acuse no se puede comparar con ellos.',
+  'app.lab.send.secretNotSaved':
+    'La clave de esta planta aún no está guardada en VeilCore, así que no se creó ningún código de laboratorio: {error}. Los informes de laboratorio se bloquean con esa clave, y primero hay que guardarla con la planta. Inténtelo de nuevo.',
   'app.lab.send.sampleNotSaved':
     'El código de laboratorio funciona, pero los detalles de la muestra no se guardaron: {error}',
   'app.signer.sep': ' ',
@@ -204,6 +206,8 @@ export const lab = {
   'app.lab.recv.wrongSample': 'Es la muestra equivocada',
   'app.lab.recv.rejected': 'Recibida pero rechazada (dañada o muestra equivocada)',
   'app.lab.recv.nothingSigned': '{problems} No se firmó nada',
+  'app.lab.recv.askNewCode':
+    'Sus datos de llegada no se pueden bloquear para esta entrega: al código le falta su última parte, o los datos de la muestra del remitente nunca llegaron a VeilCore. No se envió ni se firmó nada. Pida al remitente un código nuevo.',
   'app.lab.recv.notSaved': 'sus detalles de llegada no se guardaron ({error}), así que no se firmó nada',
   'app.lab.recv.savedDifferent':
     'los detalles de la muestra volvieron del servidor de registros distintos de los de esta pantalla, así que no se firmó nada. Recargue la página y vuelva a revisarlos',

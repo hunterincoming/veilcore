@@ -69,6 +69,12 @@ export const sealed = {
   'app.sealed.older.pageTitle': 'Eine ältere Kopie dieses Datensatzes',
   'app.sealed.older':
     'Der Server hat eine ältere Kopie dieses Datensatzes gesendet, als dieser Browser zuletzt gespeichert hat. Wenn es die gewünschte Kopie ist, verwenden Sie sie; sonst löschen Sie sie.',
+  'app.sealed.older.beforeLocking':
+    'Der Server von VeilCore hat eine Kopie dieses Datensatzes von vor dem Verschließen gesendet, älter als die, die dieser Browser zuletzt gespeichert hat. Dieser Browser verwendet sie nicht und verschließt sie nicht erneut. Sie können sie löschen.',
+  'app.sealed.older.agreement':
+    'Der Server von VeilCore hat eine ältere Kopie dieser Vereinbarung gesendet, als dieser Browser zuletzt gespeichert hat. Wenn es die gewünschte Kopie ist, verwenden Sie sie; sonst löschen Sie sie.',
+  'app.sealed.older.agreementBeforeLocking':
+    'Der Server von VeilCore hat eine Kopie dieser Vereinbarung von vor dem Verschließen gesendet, älter als die, die dieser Browser zuletzt gespeichert hat. Dieser Browser verwendet sie nicht und verschließt sie nicht erneut. Sie können sie löschen.',
   'app.sealed.olderKept.one':
     'Der Server hat eine ältere Kopie von {count} Datensatz gesendet. Dieser Browser hat die neuere Kopie behalten und speichert sie erneut.',
   'app.sealed.olderKept.other':

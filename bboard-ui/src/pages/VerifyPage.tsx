@@ -30,7 +30,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Alert, Box, Chip, CircularProgress, Container, Divider, Paper, Stack, Typography } from '@mui/material';
-import { Link as RouterLink, useParams, useSearchParams } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import { loadFingerprintCircuit, shortFingerprint } from '../veilcore/commitment';
 import { DISCLOSURE_FIELDS, LEGACY_NAME, toDisclosureKey, labelOf } from '../veilcore/disclosure';
@@ -41,7 +41,14 @@ import { Wordmark } from '../components/Wordmark';
 import { NETWORK, isTestNetwork } from '../config/network';
 import { Fact, FactKey, SharedFacts } from '../components/verify/DisclosedFacts';
 import { pairingPending, pendingReportLine, publicReportLine, withdrawnSignaturesLine } from '../veilcore/saved-report';
-import { bindingOf, checkedSummary, linkFingerprint, verifyHeading } from '../veilcore/verify-link';
+import {
+  bindingOf,
+  checkedSummary,
+  linkFingerprint,
+  linkParam,
+  movedToFragment,
+  verifyHeading,
+} from '../veilcore/verify-link';
 import { displayName } from '../veilcore/display-name';
 import { utcStamp as fmt } from '../veilcore/time';
 import { REAL_CHAIN } from '../veilcore/chain/config';
@@ -246,6 +253,17 @@ const labelsOf = (keys: readonly unknown[], tr: Translator): string =>
 export const VerifyPage: React.FC = () => {
   const { id = '' } = useParams();
   const [params] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  // What joins the record to its on-chain activity is read from the fragment, which never
+  // reaches a server; an old link's query string too (round 4, F7).
+  const linked = (name: string): string | null => linkParam(name, location.search, location.hash);
+  // An old link carrying them in the query string: they move into the fragment at once, so a
+  // reload or a copy of this address no longer sends them to VeilCore's web host.
+  useEffect(() => {
+    const next = movedToFragment(location.search, location.hash);
+    if (next) void navigate({ pathname: location.pathname, ...next }, { replace: true });
+  }, [location.pathname, location.search, location.hash, navigate]);
   const show = params.get('show');
   // The fingerprint the link was made for. It is not sent to the registry: it is what
   // the registry's answer is checked against.
@@ -352,7 +370,7 @@ export const VerifyPage: React.FC = () => {
     : publicReportLine(
         {
           paired: result?.dnaPairedByHolder,
-          linkSha: params.get('rs'),
+          linkSha: linked('rs'),
           pairingFingerprint: result?.dnaPairingFingerprint,
           fileSha: result?.dnaFileSha256,
           atts: atts ?? [],
@@ -753,16 +771,16 @@ export const VerifyPage: React.FC = () => {
           </Paper>
         )}
         {/* Real-chain builds: the holder's link may name the record's on-chain identity
-            (?chain=…&anchorTx=…), and for a record that names its key, what ties the two
-            (&ks=…&cd=…). The panel matches the key to the link's fingerprint (only when the
+            (#chain=…&anchorTx=…, in the fragment since round 4), and for a record that names
+            its key, what ties the two (&ks=…&cd=…). The panel matches the key to the link's fingerprint (only when the
             registry reports the same one), then checks the proof on chain. */}
-        {REAL_CHAIN && result?.found && params.get('chain') && (
+        {REAL_CHAIN && result?.found && linked('chain') && (
           <VerifierChallengePanel
             claim={{
-              identity: params.get('chain') ?? '',
-              txId: params.get('anchorTx') ?? undefined,
-              keySalt: params.get('ks'),
-              contentHash: params.get('cd'),
+              identity: linked('chain') ?? '',
+              txId: linked('anchorTx') ?? undefined,
+              keySalt: linked('ks'),
+              contentHash: linked('cd'),
               fingerprint: bound ? binding.fingerprint : undefined,
               keyBound: result.keyBound === true,
             }}

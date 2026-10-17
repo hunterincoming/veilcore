@@ -83,8 +83,8 @@ export type CustodyEntry = {
   readonly differences: readonly string[];
   /**
    * sealed: the sample details are stored locked with the delivery's key (the registry can't
-   * read or compare them; the lab signed over them); removed: written before sealing, and
-   * since removed from the registry.
+   * read, compare or check them; the lab's receipt names them, and only the holder's app can
+   * check that); removed: written before sealing, and since removed from the registry.
    */
   readonly custody?: 'sealed' | 'removed';
   /**
@@ -251,7 +251,7 @@ const wordsFor = (r: Omit<LabReceipt, 'words'>): string => {
     : cu.state === 'removed'
       ? ' Its sample details were written before sealing and have since been removed, so it can’t be compared with them.'
       : cu.state === 'sealed'
-        ? ` The lab signed over the sample details. They are stored locked, so the registry can’t compare them.${senderWords}`
+        ? ` The lab’s receipt names sample details. They are stored locked, so the registry can’t check them; the holder’s app can.${senderWords}`
         : cu.covered === 'changed'
           ? ' The lab changed its arrival details after signing, so its signature does NOT cover them.'
           : cu.covered === 'not-covered'

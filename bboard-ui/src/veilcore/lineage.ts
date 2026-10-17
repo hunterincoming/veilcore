@@ -122,6 +122,33 @@ export const encumber = async (
   }
 };
 
+/**
+ * Attach an obligation and say what the registry answered (round 4, F4): `ok` only when it
+ * stored it; otherwise its words, or that it couldn't be reached. The caller waits for this
+ * and keeps the obligation pending until it is confirmed.
+ */
+export const encumberWithAnswer = async (
+  record: string,
+  obligation: string,
+  beneficiary?: string,
+): Promise<{ ok: true } | { ok: false; error: string }> => {
+  try {
+    const res = await fetch(`${BASE}/lineage/obligations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-holder-key': holderKey() },
+      body: JSON.stringify({ record, obligation, ...(beneficiary ? { beneficiary } : {}) }),
+    });
+    const body = await readJson(res).catch(() => null);
+    if (res.ok && isObligationResult(body)) return { ok: true };
+    return {
+      ok: false,
+      error: isObject(body) && isString(body.error) ? body.error : `the registry answered ${String(res.status)}`,
+    };
+  } catch {
+    return { ok: false, error: 'could not reach the registry' };
+  }
+};
+
 /** Release an obligation in your favour, or withdraw your proposal. */
 export const discharge = async (record: string, obligation: string): Promise<ObligationResult | null> => {
   try {

@@ -30,7 +30,7 @@ afterAll(() => vi.unstubAllGlobals());
 
 const forms = (hex: string): string[] => [hex, hex.toUpperCase(), Buffer.from(hex, 'hex').toString('base64')];
 
-describe('record secrets stay in the browser', () => {
+describe('record secrets stay in the browser, or sealed in the record', () => {
   it('no registry request and no exported envelope carries a secret, through anchor, pairing and correction', async () => {
     const records = await import('./records');
     const { ensureKeys, setAnchor, setDnaOnChain } = await import('./record-keys');
@@ -89,9 +89,13 @@ describe('record secrets stay in the browser', () => {
       for (const f of forms(value)) {
         for (const s of sent) expect(s.includes(f)).toBe(false);
         expect(env.includes(f)).toBe(false);
-        expect(JSON.stringify(records.allRecords()).includes(f)).toBe(false);
+        // Round 4 (F5): the two secrets go inside the record's sealed part (`secrets`), so the
+        // browser's own copy of the record holds them; the identity, salt and binding never.
+        if (value !== keys.recordSecret && value !== keys.recoverySecret)
+          expect(JSON.stringify(records.allRecords()).includes(f)).toBe(false);
       }
     }
+    expect(records.getRecord(rec.id)?.secrets?.recordSecret).toBe(keys.recordSecret);
     // Nor the vault key that seals every record (vault.ts), in any form, nor anything private
     // the records hold: what went to the registry is sealed.
     const { vaultKeyIfAny } = await import('./vault');
@@ -178,7 +182,10 @@ describe('record keys', () => {
     expect(a.recordSecret).not.toBe(a.recoverySecret);
     expect(keysFor('VEIL-A')).toEqual(a);
     expect(keysWithoutBackup().some((k) => k.recordId === 'VEIL-A')).toBe(true);
-    expect([...local.keys()].filter((k) => k.includes('record-keys'))).toEqual(['veilcore.record-keys.v1']);
+    // (Besides the list of records whose keys the holder removed here, round 4.)
+    expect([...local.keys()].filter((k) => k.includes('record-keys') && !k.endsWith('.forgotten.v1'))).toEqual([
+      'veilcore.record-keys.v1',
+    ]);
   });
 
   it('restore from a backup file, and refuse one that would replace different keys', async () => {

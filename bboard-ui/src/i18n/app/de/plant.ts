@@ -289,6 +289,8 @@ export const plant = {
     'Damit Sie zeigen können, dass dieser Bericht zu diesem Datum existierte, ohne jemandem die Marker zu zeigen.',
   'app.plant.dated.seals':
     'Versiegelt einen kleinen Datensatz mit nur dem SHA-256 des Berichts, seinem Laborberichtscode und dem Namen des Labors wie signiert. Der Bericht bleibt bei Ihnen. Sein Datum kommt, wenn sein Stapel datiert wird.',
+  'app.plant.dated.nameLabel': 'Name des neuen Datensatzes (öffentlich)',
+  'app.plant.dated.nameHelp': 'Jeder mit seinem Prüflink sieht diesen Namen. Ändern Sie ihn, wenn Sie möchten.',
   'app.plant.dated.elsewhere':
     'Dieser DNA-Bericht wird gerade in einem anderen Tab oder Fenster datiert. Warten Sie eine Minute und sehen Sie dann wieder nach: Er wird hier erscheinen.',
   'app.plant.datingPage.title': 'Dieser Datensatz datiert einen DNA-Bericht für <plant></plant>',
@@ -328,12 +330,11 @@ export const plant = {
   'app.plant.keys.removeBacked':
     'Die Schlüssel dieses Datensatzes aus diesem Browser entfernen? Sie können sie aus Ihrer Sicherungsdatei wiederherstellen.',
   'app.plant.keys.removeUnbacked':
-    'Sie haben KEINE Sicherungskopie dieser Schlüssel heruntergeladen. Wenn Sie sie entfernen, kann niemand, auch VeilCore nicht, diesen Datensatz je wieder beweisen. Trotzdem entfernen?',
-  'app.plant.keys.title': 'Datensatzschlüssel (nur dieser Browser)',
+    'Sie haben KEINE Sicherung dieser Schlüssel heruntergeladen. Wenn Sie sie entfernen, holt dieser Browser sie nicht zurück, und nur Ihre Sicherungsdatei, in einem neuen Browser wiederhergestellt, kann sie zurückbringen. Trotzdem entfernen?',
+  'app.plant.keys.title': 'Datensatzschlüssel',
   'app.plant.keys.holds':
-    'Dieser Browser enthält die zwei Geheimnisse, die beweisen, dass Sie diesen Datensatz auf der Chain halten. Sie werden nirgendwohin gesendet, VeilCore hat keine Kopie, und das Leeren dieses Browsers löscht sie.',
-  'app.plant.keys.noBackup':
-    'Noch keine Sicherungskopie. Laden Sie sie herunter und bewahren Sie sie offline auf: Ohne sie geht der Datensatz beim Leeren dieses Browsers endgültig verloren.',
+    'Dieser Browser enthält die zwei Geheimnisse, die beweisen, dass Sie diesen Datensatz auf der Chain halten. Eine Kopie steckt auch im verschlossenen Datensatz bei VeilCore, den nur der Schlüssel öffnet, der Ihre Datensätze verschließt. Das Leeren dieses Browsers löscht sie hier; das Wiederherstellen Ihrer Sicherung bringt sie zurück.',
+  'app.plant.keys.noBackup': 'Noch keine Sicherung. Laden Sie sie herunter und bewahren Sie sie offline auf.',
   'app.plant.keys.downloadAgain': 'Sicherungskopie erneut herunterladen',
   'app.plant.keys.download': 'Sicherungskopie herunterladen (geheim)',
   'app.plant.keys.remove': 'Aus diesem Browser entfernen',
