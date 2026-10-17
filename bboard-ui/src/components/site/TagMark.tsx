@@ -1,6 +1,6 @@
 // VeilCore's mark: a tag with its eyelet, the plant tag or the ear tag a record already is.
 // VeilCore gives that tag a date nobody can change, so the tag's tear-off stub (the part
-// that goes on Midnight) is stamped: it takes --tm-stub, the stamp red, and the tag body
+// that goes on Midnight) is stamped: it takes --tm-stub, notary blue, and the tag body
 // takes the text colour. The same mark heads the public pages and the app (AppHeader), so
 // they read as one product. public/favicon.svg is this drawing.
 // SPDX-License-Identifier: Apache-2.0

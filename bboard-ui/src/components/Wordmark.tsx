@@ -6,7 +6,7 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import { TagMark } from './site/TagMark';
-import { ACCENT, INK_COLOR } from '../config/theme';
+import { NOTARY, INK_COLOR } from '../config/theme';
 
 export const Wordmark: React.FC = () => (
   <Box
@@ -20,8 +20,8 @@ export const Wordmark: React.FC = () => (
       letterSpacing: '-0.015em',
       lineHeight: 1,
       color: INK_COLOR,
-      // A Graphite tag, its stub stamped red (TagMark).
-      '& svg': { color: INK_COLOR, '--tm-stub': ACCENT },
+      // A Graphite tag, its stub stamped in notary blue (TagMark).
+      '& svg': { color: INK_COLOR, '--tm-stub': NOTARY },
     }}
   >
     <TagMark />

@@ -36,7 +36,7 @@ import { AppHeader } from '../AppHeader';
 import { OPEN_RECEIVE_EVENT } from '../ClaimTransfer';
 import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
 import { linkCard } from '../a11y';
-import { ACCENT, GROUND, WASH } from '../../config/theme';
+import { NOTARY, GROUND, WASH } from '../../config/theme';
 import { useT, useRecordT, rich } from '../../i18n/app';
 import { isAnimal, recordTitle } from '../../veilcore/animal-profile';
 import { SECTIONS, focusScreenHeading } from './FlowFrame';
@@ -435,7 +435,7 @@ export const AppHome: React.FC = () => {
                   clipPath: 'polygon(18px 0, 100% 0, 100% 100%, 18px 100%, 0 calc(100% - 18px), 0 18px)',
                   '&:hover': { bgcolor: WASH },
                   // The cut corners would clip an outline: the focus ring is drawn inside.
-                  '&:focus-visible': { outline: 'none', bgcolor: WASH, boxShadow: `inset 0 0 0 2px ${ACCENT}` },
+                  '&:focus-visible': { outline: 'none', bgcolor: WASH, boxShadow: `inset 0 0 0 2px ${NOTARY}` },
                 }}
               >
                 <Box

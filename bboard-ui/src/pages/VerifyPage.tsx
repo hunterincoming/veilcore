@@ -14,7 +14,7 @@
 //   - looked up on Midnight by this browser (round 2 of the 15 Oct review): the
 //     transaction the registry says dated the batch root. It must be VeilCore's date stamp
 //     call at the pinned contract and have written exactly that root; its block is the
-//     date (veilcore/chain/anchor-check.ts). Only then does the mark turn stamp red. If no
+//     date (veilcore/chain/anchor-check.ts). Only then does the mark turn notary blue. If no
 //     indexer answers, the date is worded as the registry's report;
 //   - reported by the registry: everything else — that a record with this fingerprint
 //     exists, when the registry first stored it, whether a key is vetted, and the facts the
@@ -72,7 +72,7 @@ import {
   type ResolvedAttestation,
 } from '../veilcore/attesters';
 import { isBoundLabDocument, labSaltFromLink } from '../veilcore/lab-doc';
-import { ACCENT, INK_COLOR } from '../config/theme';
+import { NOTARY, INK_COLOR } from '../config/theme';
 import { Wordmark } from '../components/Wordmark';
 import { NETWORK, explorerFor, isTestNetwork } from '../config/network';
 import { Fact, FactKey, SharedFacts } from '../components/verify/DisclosedFacts';
@@ -109,7 +109,7 @@ import { networkWords } from '../i18n/network-words';
 import { LanguageBar } from '../i18n/LanguagePicker';
 
 const API = import.meta.env.VITE_API_BASE ?? '';
-/** The mark for a date checked on a test network: amber, never mainnet's stamp red. */
+/** The mark for a date checked on a test network: amber, never mainnet's notary blue. */
 const TEST_MARK = '#8A5A00';
 
 /**
@@ -149,7 +149,7 @@ const DateSummary: React.FC<{
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          sx={{ verticalAlign: 'baseline', fontWeight: 700, color: ACCENT }}
+          sx={{ verticalAlign: 'baseline', fontWeight: 700, color: NOTARY }}
         >
           {t('app.verify.summary.yourself')}
         </Link>
@@ -453,7 +453,7 @@ export const VerifyPage: React.FC = () => {
   // proof names a transaction to look up.
   const anchor = useAnchorCheck(proof);
 
-  // A tick (and the stamp-red mark) only for a check against the link's own fingerprint.
+  // A tick (and the notary-blue mark) only for a check against the link's own fingerprint.
   const checked = bound && proof !== 'checking' && proof.status !== 'none';
   // Before the link's fingerprint is known to match, say whose fingerprint was used.
   const forWhom = bound ? '' : t('app.verify.forWhom');
@@ -523,9 +523,9 @@ export const VerifyPage: React.FC = () => {
       : anchorLine(anchor, { network: reportedNetwork ?? NETWORK, bound, reportedAt }, tr);
   const anchorLooked = anchorText !== undefined;
   const seal = checked && anchorCheckedOnChain;
-  // A date checked on a test network is practice data: its own mark, never mainnet's stamp red.
+  // A date checked on a test network is practice data: its own mark, never mainnet's notary blue.
   const testSeal = seal && isTestNetwork(reportedNetwork ?? NETWORK);
-  const sealColor = testSeal ? TEST_MARK : ACCENT;
+  const sealColor = testSeal ? TEST_MARK : NOTARY;
   // The name (round 6): the one the holder published wins (or a record saved before names
   // were sealed); else the link's, checked against the record's name code with the link's salt.
   const nameCheck = nameCheckOf({
@@ -569,7 +569,7 @@ export const VerifyPage: React.FC = () => {
         >
           {rich(t('app.verify.intro'), {
             link: (c) => (
-              <Box component={RouterLink} to="/" sx={{ color: ACCENT, whiteSpace: 'nowrap' }}>
+              <Box component={RouterLink} to="/" sx={{ color: NOTARY, whiteSpace: 'nowrap' }}>
                 {c}
               </Box>
             ),
@@ -588,7 +588,7 @@ export const VerifyPage: React.FC = () => {
             <Typography variant="body2" color="text.secondary">
               {t('app.verify.notFoundText')}
             </Typography>
-            <Box component={RouterLink} to="/" sx={{ display: 'inline-block', mt: 2, py: 1, color: ACCENT }}>
+            <Box component={RouterLink} to="/" sx={{ display: 'inline-block', mt: 2, py: 1, color: NOTARY }}>
               {t('app.verify.goHome')}
             </Box>
           </Paper>
@@ -638,7 +638,7 @@ export const VerifyPage: React.FC = () => {
         ) : (
           <Paper sx={{ p: { xs: 3, md: 4 } }}>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>
-              {/* Stamp red only when this page found the batch root's anchor on Midnight itself
+              {/* Notary blue only when this page found the batch root's anchor on Midnight itself
                   (anchorCheckedOnChain). Otherwise grey; the lines below still tick what
                   this browser did check. */}
               <VerifiedIcon

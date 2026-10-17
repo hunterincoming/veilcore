@@ -72,7 +72,7 @@ const Row: React.FC<{
         >
           {label}
         </Typography>
-        {/* The record's date, once it has one, is stamped: the one value in Stamp red. */}
+        {/* The record's date, once it has one, is stamped: the one value in Notary blue. */}
         <Typography
           variant="body2"
           color={id === 'Record dated' && mark === 'done' ? 'primary' : 'text.secondary'}

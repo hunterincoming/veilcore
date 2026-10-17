@@ -19,9 +19,9 @@ import { requestRoleChange, useRole } from '../veilcore/role';
 import { useT } from '../i18n/app';
 
 // On Graphite: 9.5:1 for the links, white for the group names and the focus ring, and the
-// stamp red lightened for a dark ground (5.3:1) on the mark's stub.
+// notary blue lightened for a dark ground (8.0:1) on the mark's stub.
 const ON_DARK_MUTED = '#C3C8CF';
-const ON_DARK_ACCENT = '#EC6A80';
+const NOTARY_ON_DARK = '#A3B5F8';
 const groupName = {
   display: 'block',
   fontSize: 15,
@@ -89,7 +89,7 @@ export const AppFooter: React.FC = () => {
                 letterSpacing: '-0.015em',
                 color: '#FFFFFF',
                 mb: 1.5,
-                '& svg': { color: '#FFFFFF', '--tm-stub': ON_DARK_ACCENT },
+                '& svg': { color: '#FFFFFF', '--tm-stub': NOTARY_ON_DARK },
               }}
             >
               <TagMark />

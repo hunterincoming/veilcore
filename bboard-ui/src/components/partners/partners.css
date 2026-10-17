@@ -65,7 +65,7 @@
   min-height: 150px;
 }
 .vcm .pk veilcore-record-check {
-  --vc-accent: var(--accent);
+  --vc-accent: var(--notary);
   --vc-ok: var(--ok);
   --vc-ink: var(--ink);
   --vc-muted: var(--muted);
@@ -112,7 +112,7 @@
   flex-wrap: wrap;
 }
 .vcm .pk .pk-links a {
-  color: var(--accent);
+  color: var(--notary);
   font-weight: 600;
   min-height: 44px;
   display: inline-flex;

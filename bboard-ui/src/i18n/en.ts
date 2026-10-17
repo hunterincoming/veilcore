@@ -107,10 +107,10 @@ export const en = {
   'm.hero.typed': 'What you type',
   'm.hero.goes': 'What goes on Midnight',
   'm.hero.note':
-    'Type in either box; nothing is sent. The red line at the bottom is the proof code, the part that goes on Midnight. Nobody can work back from it to what you typed.',
+    'Type in either box; nothing is sent. The blue line at the bottom is the proof code, the part that goes on Midnight. Nobody can work back from it to what you typed.',
 
   // Phones only: the note in one line.
-  'm.hero.noteShort': 'Only the red line goes on Midnight.',
+  'm.hero.noteShort': 'Only the blue line goes on Midnight.',
 
   'm.for.label': "What it's for",
   'm.for.title1': 'Many genetics disputes come down to one question:',

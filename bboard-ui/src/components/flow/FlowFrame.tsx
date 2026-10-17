@@ -2,9 +2,9 @@
 //
 // Each section always looks the same wherever it appears: its icon, its name, its colour.
 // The colours (16 October 2026) are the inks a register is kept in, not a rainbow: Log is
-// graphite (the pencil of the log book), Send blue-black, License violet (copying pencil),
-// Prove iron-gall brown. None is the stamp red, which is kept for what is actually dated or
-// sealed, so a page of jobs isn't a page of red. Each reads as text on white and on Wash
+// graphite (the pencil of the log book), Send slate, License violet (copying pencil),
+// Prove iron-gall brown. None is notary blue, which is kept for what is actually dated or
+// sealed, so a page of jobs isn't a page of blue, and none is red, which means an error. Each reads as text on white and on Wash
 // (5.6:1 or more), they stay apart for colour-blind readers, and they never carry meaning
 // alone: the icon and the name always come with them. Log's icon is a
 // calendar being written in, not a leaf: a record can be a plant or an animal.

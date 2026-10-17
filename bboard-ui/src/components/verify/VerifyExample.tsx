@@ -13,7 +13,7 @@ import { Alert, Box, Container, Divider, Paper, Stack, Typography } from '@mui/m
 import { Link as RouterLink } from 'react-router-dom';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import LockIcon from '@mui/icons-material/LockOutlined';
-import { ACCENT, MUTED_COLOR } from '../../config/theme';
+import { NOTARY, MUTED_COLOR } from '../../config/theme';
 import { Wordmark } from '../Wordmark';
 import { IS_MAINNET } from '../../config/network';
 import { Fact, FactKey } from './DisclosedFacts';
@@ -113,10 +113,10 @@ export const VerifyExample: React.FC = () => {
         </Paper>
 
         <Stack direction="row" spacing={3} sx={{ justifyContent: 'center', mt: 3, flexWrap: 'wrap', rowGap: 1 }}>
-          <Box component={RouterLink} to="/verify" sx={{ color: ACCENT, py: 1 }}>
+          <Box component={RouterLink} to="/verify" sx={{ color: NOTARY, py: 1 }}>
             {t('app.verify.ex.checkReal')}
           </Box>
-          <Box component={RouterLink} to="/" sx={{ color: ACCENT, py: 1 }}>
+          <Box component={RouterLink} to="/" sx={{ color: NOTARY, py: 1 }}>
             {t('app.verify.ex.what')}
           </Box>
         </Stack>

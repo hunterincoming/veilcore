@@ -79,8 +79,8 @@ test.describe('the date stamp, looked up on Midnight', () => {
     await expect(page.locator('h1')).toHaveText('Date stamp checked on a test network: practice data, not a real date');
     await expect(page.locator('[data-checked]')).toHaveAttribute('data-checked', 'yes');
     await expect(page.locator('[data-checked]')).toHaveAttribute('data-test-network', 'yes');
-    // Not mainnet's stamp red (#B3173B): a practice date has its own amber mark.
-    expect(await page.locator('h1').evaluate((h) => getComputedStyle(h).color)).not.toBe('rgb(179, 23, 59)');
+    // Not mainnet's notary blue (#1C3BB0): a practice date has its own amber mark.
+    expect(await page.locator('h1').evaluate((h) => getComputedStyle(h).color)).not.toBe('rgb(28, 59, 176)');
     await expect(page.locator('[data-anchor-checked]')).toHaveAttribute('data-anchor-checked', 'yes');
     await expect(page.locator('body')).not.toContainText('This page has not looked it up');
     expectNoErrors(errors);

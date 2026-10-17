@@ -1,7 +1,7 @@
 // VeilCore's themes. `theme` is a dark baseline under the pages (main.tsx), on the same
-// graphite and stamp red; every page people see is drawn on `lightTheme` below or on the
+// graphite and notary blue; every page people see is drawn on `lightTheme` below or on the
 // public pages' site.css, which share one set of tokens (15 October 2026 redesign; palette
-// 16 October 2026).
+// 16 October 2026; notary blue 17 October 2026).
 // SPDX-License-Identifier: Apache-2.0
 
 import { createTheme, alpha } from '@mui/material';
@@ -21,9 +21,9 @@ export const CODE_TEXT = {
   letterSpacing: '0.02em',
 } as const;
 
-// The dark baseline: Graphite, with the stamp red lightened for a dark ground. (It was the
-// first brand's teal until 16 October 2026; no page people see is drawn on it.)
-const STAMP_ON_DARK = '#EC6A80';
+// The dark baseline: Graphite, with notary blue lightened for a dark ground (8.0:1). (It was
+// the first brand's teal until 16 October 2026; no page people see is drawn on it.)
+const NOTARY_ON_DARK = '#A3B5F8';
 const INK = '#1E2227';
 const PANEL = '#262B31';
 const TEXT = '#F3F5F7';
@@ -58,7 +58,7 @@ export const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: STAMP_ON_DARK,
+      main: NOTARY_ON_DARK,
       contrastText: INK,
     },
     secondary: {
@@ -134,26 +134,30 @@ export const theme = createTheme({
 // The app's light theme (13 Oct 2026; redrawn 15 Oct 2026 to match the public pages;
 // palette 16 Oct 2026). The landing page and the app are one product, so they use one set
 // of tokens: the same colours, the same typeface, the same shapes. site.css repeats these
-// values as CSS variables (--ground, --tag, --ink, --muted, --accent, --wash).
+// values as CSS variables (--ground, --tag, --ink, --muted, --notary, --wash).
 //
 // VeilCore is neutral infrastructure for plant and animal genetics, sold on one promise: a
-// date nobody can backdate. So the page is paper and graphite, and the one colour is the
-// red of a rubber date stamp, used only where something is dated or sealed.
+// date nobody can backdate. So the page is paper and graphite, and the one colour is notary
+// blue, used only where something is dated or sealed. Notaries and officials sign and stamp
+// in blue so an original stands out from a black photocopy, and blue is the colour people
+// most associate with trust and security. (It was a stamp red until 17 October 2026; red
+// now means one thing only: something went wrong.)
 //
 //   Paper     #F3F5F7  the page: cool register paper, not cream
 //   Tag       #FFFFFF  sheets, inputs: the white of a tag (plant tag or ear tag)
 //   Graphite  #1E2227  text                          16.0:1 on Tag, 14.6:1 on Paper
 //   Pencil    #575E66  secondary text                 6.6:1 on Tag, 6.0:1 on Paper
-//   Stamp     #B3173B  the fingerprint, dates, seals, the main button, links, the focus ring
-//                                                    6.8:1 on Tag, 6.2:1 on Paper; white on it 6.8:1
+//   Notary    #1C3BB0  the fingerprint, dates, seals, the main button, links, the focus ring
+//                                                    9.1:1 on Tag, 8.4:1 on Paper; white on it 9.1:1
+//   Notary deep #152C86 hover and pressed            12.1:1 on Tag, 11.1:1 on Paper; white on it 12.1:1
 //   Wash      #E6E9ED  quiet fills: secondary buttons, the next step, hover
 //
-// Stamp red is ink, never a tinted panel. An error is always a tinted note with an icon and
-// a sentence, in a browner red (#9E2A0B, 7.5:1 on Tag); a check that passed is a ✓ in a
+// Notary blue is ink, never a tinted panel. An error is always a tinted note with an icon
+// and a sentence, in red (#9E2A0B, 7.5:1 on Tag), the only red anywhere; a check that passed is a ✓ in a
 // quiet green (#2E6B55, 6.3:1), never the brand. Choosing something (a checkbox, a switch,
 // a role) is Graphite: it is not a date. Every text colour passes WCAG AA.
-export const ACCENT = '#B3173B';
-export const ACCENT_DEEP = '#8C1230';
+export const NOTARY = '#1C3BB0';
+export const NOTARY_DEEP = '#152C86';
 export const INK_COLOR = '#1E2227';
 export const MUTED_COLOR = '#575E66';
 export const GROUND = '#F3F5F7';
@@ -161,7 +165,7 @@ export const WASH = '#E6E9ED';
 export const WASH_STRONG = '#D9DDE2';
 /** A check that passed (✓): its own quiet colour, not the brand's. */
 export const OK_COLOR = '#2E6B55';
-/** Something went wrong: browner and darker than the stamp, and always with an icon. */
+/** Something went wrong: the only red, and always with an icon. */
 export const ERROR_COLOR = '#9E2A0B';
 /** Lines that join things in order (a lineage, a history): Wash-strong's darker step. */
 export const LINE_COLOR = '#C2C7CD';
@@ -175,11 +179,11 @@ const L_EDGE = '#80868F';
 
 /**
  * One visible focus ring for everything a keyboard can reach on the light pages: 2px of
- * the accent, 2px clear of the element. MUI marks keyboard focus with .Mui-focusVisible
+ * notary blue, 2px clear of the element. MUI marks keyboard focus with .Mui-focusVisible
  * (buttons, list buttons, chips, switches); plain links and clickable cards use
  * :focus-visible. Nothing on these pages turns the outline off.
  */
-export const FOCUS_RING = { outline: `2px solid ${ACCENT}`, outlineOffset: 2 } as const;
+export const FOCUS_RING = { outline: `2px solid ${NOTARY}`, outlineOffset: 2 } as const;
 
 /** The same ring for elements MUI doesn't draw (plain links, cards with a role). Used by App.tsx. */
 export const lightFocusStyles = {
@@ -194,7 +198,7 @@ export const lightTheme = createTheme({
   transitions: MOTION.transitions,
   palette: {
     mode: 'light',
-    primary: { main: ACCENT, light: '#C9385A', dark: ACCENT_DEEP, contrastText: '#FFFFFF' },
+    primary: { main: NOTARY, light: '#3550C0', dark: NOTARY_DEEP, contrastText: '#FFFFFF' },
     // Choosing, not dating: checkboxes, switches, radios and progress are Graphite.
     secondary: { main: L_INK, light: '#3E454D', dark: '#000000', contrastText: '#FFFFFF' },
     background: { default: L_GROUND, paper: '#FFFFFF' },
@@ -263,7 +267,7 @@ export const lightTheme = createTheme({
         rounded: { borderRadius: 12 },
       },
     },
-    // Filled, never outlined: the main action in Stamp, the others in Wash, as on
+    // Filled, never outlined: the main action in Notary blue, the others in Wash, as on
     // the public pages. An outlined button keeps its variant (and behaviour); only its look
     // changes.
     MuiButton: {
@@ -307,7 +311,7 @@ export const lightTheme = createTheme({
     },
     MuiChip: { styleOverrides: { root: { borderRadius: 6, fontWeight: 600 } } },
     // Choosing something, or waiting for it, is not a date: these are Graphite (secondary),
-    // so the stamp red stays on what is dated, sealed, linked or pressed.
+    // so notary blue stays on what is dated, sealed, linked or pressed.
     MuiCheckbox: { defaultProps: { color: 'secondary' } },
     MuiRadio: { defaultProps: { color: 'secondary' } },
     MuiCircularProgress: { defaultProps: { color: 'secondary' } },
@@ -315,7 +319,7 @@ export const lightTheme = createTheme({
     // A notice is told apart by a tint of its own colour, not by an outline: an outlined
     // alert keeps its variant (and behaviour) and is drawn like a filled note. The text
     // stays MUI's darkened severity colour, 7:1 or more on each tint. An error always has its
-    // icon and a sentence: that, not the hue alone, is how it differs from a date in Stamp.
+    // icon and a sentence: that, not the hue alone, is how it differs from a date in Notary blue.
     MuiAlert: {
       styleOverrides: { root: { fontSize: '1rem', borderRadius: 12 } },
       variants: (

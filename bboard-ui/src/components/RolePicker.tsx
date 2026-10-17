@@ -14,7 +14,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { getRole, setRole, CHANGE_ROLE_EVENT, isLab, isBreeder, type Role } from '../veilcore/role';
 import { useT } from '../i18n/app';
 import { LanguagePicker } from '../i18n/LanguagePicker';
-import { ACCENT, INK_COLOR } from '../config/theme';
+import { NOTARY, INK_COLOR } from '../config/theme';
 import { focusScreenHeading } from './flow/FlowFrame';
 
 /** `ask`: open on its own when no role is set (app pages). Elsewhere it opens only when asked to. */
@@ -92,7 +92,7 @@ export const RolePicker: React.FC<{ ask: boolean }> = ({ ask }) => {
                 border: '1px solid',
                 borderColor: r === current ? INK_COLOR : 'rgba(30,34,39,0.12)',
                 '&:hover': { borderColor: INK_COLOR },
-                '&.Mui-focusVisible': { borderColor: ACCENT },
+                '&.Mui-focusVisible': { borderColor: NOTARY },
               }}
             >
               <Typography variant="subtitle1" component="span" sx={{ display: 'block' }}>

@@ -10,18 +10,21 @@
 
    Palette (16 October 2026; the same tokens as the app, config/theme.ts). VeilCore is
    neutral infrastructure for plant and animal genetics, sold on one promise: a date nobody
-   can backdate. So the page is paper and graphite, and the one colour is the red of a
-   rubber date stamp, used only where something is dated or sealed.
+   can backdate. So the page is paper and graphite, and the one colour is notary blue,
+   used only where something is dated or sealed: notaries and officials sign and stamp in
+   blue so an original stands out from a black photocopy, and blue is the colour people
+   most associate with trust and security (17 October 2026; it was a stamp red).
      Paper    #F3F5F7  the page: cool register paper, not cream
      Tag      #FFFFFF  the tag, inputs
      Graphite #1E2227  text, the demo band, the footer   14.6:1 on Paper
      Pencil   #575E66  secondary text                     6.0:1 on Paper, 5.7:1 on a band row
-     Stamp    #B3173B  the date stamp: the fingerprint, dates, the main button, links,
-                       the focus ring                     6.2:1 on Paper; white on it 6.8:1
+     Notary   #1C3BB0  the date stamp: the fingerprint, dates, the main button, links,
+                       the focus ring                     8.4:1 on Paper; white on it 9.1:1
+     Notary deep #152C86  hover and pressed                11.1:1 on Paper; white on it 12.1:1
      Wash     #E6E9ED  quiet fills (secondary buttons, the stub, chips); Graphite on it 13.1:1
-   Stamp red is ink, never a tinted panel: it is a date, the fingerprint, a link, a button.
-   An error is a tinted note with an icon and a sentence (the app's alerts), in a browner
-   red (#9E2A0B), so "dated" and "something went wrong" can't be mistaken.
+   Notary blue is ink, never a tinted panel: it is a date, the fingerprint, a link, a button.
+   An error is a tinted note with an icon and a sentence (the app's alerts), in red
+   (#9E2A0B), the only red anywhere, so red always means "something went wrong".
    Type: one family, Atkinson Hyperlegible Next (main.tsx), drawn so that I l 1 / O 0 / B 8
    can't be mistaken: people copy lab codes and fingerprints off these pages.
    Everything is scoped under .vcm so the record pages' MUI styling is untouched.
@@ -32,8 +35,8 @@
   --tag: #ffffff;
   --ink: #1e2227;
   --muted: #575e66;
-  --accent: #b3173b;
-  --accent-deep: #8c1230;
+  --notary: #1c3bb0;
+  --notary-deep: #152c86;
   --wash: #e6e9ed;
   --wash-strong: #d9dde2;
   --band: #eceff2; /* every other row of the one table */
@@ -42,7 +45,7 @@
   /* On the Graphite band and footer: links are white and underlined, the ring is white. */
   --on-dark: #ffffff;
   --on-dark-muted: #c3c8cf; /* 9.5:1 on Graphite */
-  --on-dark-accent: #ec6a80; /* the stamp, lightened for Graphite: 5.3:1 */
+  --on-dark-notary: #a3b5f8; /* notary blue, lightened for Graphite: 8.0:1 */
   --ok: #2e6b55; /* a check that passed: 5.7:1 on Paper, never the brand */
   --warn: #8f5500;
   --font:
@@ -158,7 +161,7 @@ html:has(.vcm) {
   line-height: 1.3;
   letter-spacing: -0.005em;
 }
-/* Links inside running text: Stamp, underlined. */
+/* Links inside running text: Notary blue, underlined. */
 .vcm
   :is(
     .pt,
@@ -175,7 +178,7 @@ html:has(.vcm) {
   )
   a:not(.btn),
 .vcm a.x-link {
-  color: var(--accent);
+  color: var(--notary);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
@@ -196,18 +199,18 @@ html:has(.vcm) {
   )
   a:not(.btn):hover,
 .vcm a.x-link:hover {
-  color: var(--accent-deep);
+  color: var(--notary-deep);
   text-decoration-thickness: 2px;
 }
 .vcm .more {
   display: inline-block;
   margin-top: 24px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--notary);
   text-decoration: none;
 }
 .vcm .more:hover {
-  color: var(--accent-deep);
+  color: var(--notary-deep);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -281,10 +284,10 @@ html:has(.vcm) {
   gap: 9px;
   color: var(--ink);
 }
-/* The mark: a Graphite tag whose tear-off stub is stamped red (TagMark.tsx). */
+/* The mark: a Graphite tag whose tear-off stub is stamped in notary blue (TagMark.tsx). */
 .vcm .brand svg {
   color: var(--ink);
-  --tm-stub: var(--accent);
+  --tm-stub: var(--notary);
 }
 .vcm .nav-right {
   display: flex;
@@ -314,12 +317,12 @@ html:has(.vcm) {
   box-sizing: border-box;
   padding: 0 16px;
   border-radius: var(--r-control);
-  background: var(--accent);
+  background: var(--notary);
   color: #fff;
   font-weight: 700;
 }
 .vcm .nav-links a.nav-cta:hover {
-  background: var(--accent-deep);
+  background: var(--notary-deep);
   color: #fff;
 }
 .vcm .menu-btn {
@@ -336,7 +339,7 @@ html:has(.vcm) {
 }
 
 /* ------------------------------------------------------------------ buttons
-   Filled, never outlined: the main action in Stamp, the others in Wash. */
+   Filled, never outlined: the main action in Notary blue, the others in Wash. */
 
 .vcm .btn {
   display: inline-flex;
@@ -360,11 +363,11 @@ html:has(.vcm) {
   background: var(--wash-strong);
 }
 .vcm .btn.solid {
-  background: var(--accent);
+  background: var(--notary);
   color: #fff;
 }
 .vcm .btn.solid:hover {
-  background: var(--accent-deep);
+  background: var(--notary-deep);
 }
 
 /* ------------------------------------------------------------------ hero */
@@ -473,7 +476,7 @@ html:has(.vcm) {
   background: var(--wash);
 }
 /* The stub is Wash: a different card from the tag above, the part that tears off. Its
-   fingerprint is in Stamp: the only red on the tag, the part that gets the date. */
+   fingerprint is in Notary blue: the only colour on the tag, the part that gets the date. */
 .vcm .hd-out {
   background: var(--wash);
   padding: 24px 28px 26px;
@@ -512,7 +515,7 @@ html:has(.vcm) {
   stroke-linejoin: round;
 }
 .vcm .hd-out .hd-zone {
-  color: var(--accent-deep);
+  color: var(--notary-deep);
   margin-bottom: 8px;
 }
 .vcm .fields {
@@ -547,7 +550,7 @@ html:has(.vcm) {
   border-color: var(--muted);
 }
 .vcm .field input:focus {
-  border-color: var(--accent);
+  border-color: var(--notary);
 }
 /* The fingerprint, in groups of eight like a printed lab code. Tabular figures so the
    groups line up; the same legible face as the rest, so 0 and O can't be confused. */
@@ -557,7 +560,7 @@ html:has(.vcm) {
   font-weight: 700;
   font-variant-numeric: tabular-nums slashed-zero;
   letter-spacing: 0.03em;
-  color: var(--accent);
+  color: var(--notary);
   min-height: 58px;
   overflow-wrap: anywhere;
 }
@@ -567,7 +570,7 @@ html:has(.vcm) {
   white-space: nowrap;
 }
 .vcm .digest .chg {
-  color: var(--accent-deep);
+  color: var(--notary-deep);
   background: var(--wash-strong);
   border-radius: 2px;
   animation: vcm-chg 1.2s ease-out both;
@@ -766,7 +769,7 @@ html:has(.vcm) {
   content: '\2212';
 }
 .vcm .faq summary:hover {
-  color: var(--accent-deep);
+  color: var(--notary-deep);
 }
 .vcm .faq p {
   color: var(--muted);
@@ -786,7 +789,7 @@ html:has(.vcm) {
 }
 .vcm section.dark .lede a.inline {
   color: var(--on-dark);
-  text-decoration-color: var(--on-dark-accent);
+  text-decoration-color: var(--on-dark-notary);
 }
 .vcm section.dark .lede a.inline:hover {
   color: #fff;
@@ -811,12 +814,12 @@ html:has(.vcm) {
 .vcm .demo h3 {
   font-size: 1.5rem;
   text-decoration: underline;
-  text-decoration-color: var(--on-dark-accent);
+  text-decoration-color: var(--on-dark-notary);
   text-decoration-thickness: 2px;
   text-underline-offset: 6px;
 }
 .vcm .demo:hover h3 {
-  color: var(--on-dark-accent);
+  color: var(--on-dark-notary);
 }
 .vcm .demo p {
   color: var(--on-dark-muted);
@@ -979,8 +982,8 @@ html:has(.vcm) {
   font-size: 1.125rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  /* A date, so it is stamped: the log book's date column in Stamp red. */
-  color: var(--accent);
+  /* A date, so it is stamped: the log book's date column in Notary blue. */
+  color: var(--notary);
 }
 .vcm .post .tag {
   font-size: 15px;
@@ -993,7 +996,7 @@ html:has(.vcm) {
   letter-spacing: -0.01em;
 }
 .vcm .post:hover h3 {
-  color: var(--accent-deep);
+  color: var(--notary-deep);
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
@@ -1008,7 +1011,7 @@ html:has(.vcm) {
   margin-top: 8px;
   font-size: 16px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--notary);
 }
 .vcm .subscribe {
   display: flex;
@@ -1038,7 +1041,7 @@ html:has(.vcm) {
 .vcm details.older-posts > summary {
   font-weight: 700;
   /* Opening a list is not a date or a link: Graphite, like "Show the detail", so the
-     red in the updates column stays on the dates and the links to read them. */
+     blue in the updates column stays on the dates and the links to read them. */
   color: var(--ink);
 }
 .vcm details.older-posts > summary::-webkit-details-marker,
@@ -1185,7 +1188,7 @@ html:has(.vcm) {
   object-fit: cover;
 }
 .vcm .person:hover h3 {
-  color: var(--accent-deep);
+  color: var(--notary-deep);
   text-decoration: underline;
   text-underline-offset: 4px;
 }
@@ -1219,7 +1222,7 @@ html:has(.vcm) {
 }
 .vcm footer .brand svg {
   color: var(--on-dark);
-  --tm-stub: var(--on-dark-accent);
+  --tm-stub: var(--on-dark-notary);
 }
 .vcm .foot-about {
   margin-top: 14px;
@@ -1479,7 +1482,7 @@ html:has(.vcm) {
 .vcm button:focus-visible,
 .vcm summary:focus-visible,
 .vcm input:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--notary);
   outline-offset: 3px;
   border-radius: 4px;
 }

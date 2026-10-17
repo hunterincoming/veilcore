@@ -51,19 +51,19 @@ const saltOf = (link: string): string | undefined => {
 };
 
 // Colours, each overridable by a --vc-* property on the element: --vc-accent (the button,
-// links, the focus ring; VeilCore's stamp red), --vc-ok (a check that passed), --vc-bad
+// links, the focus ring; VeilCore's notary blue), --vc-ok (a check that passed), --vc-bad
 // (one that failed), --vc-warn, --vc-ink, --vc-muted, --vc-line, --vc-paper.
 const CSS = `
-:host{display:block;font:inherit;color:var(--vc-ink,#1e2227);--_accent:var(--vc-accent,#b3173b);--_ok:var(--vc-ok,#2e6b55);--_muted:var(--vc-muted,#575e66);--_line:var(--vc-line,#c2c7cd);--_paper:var(--vc-paper,#ffffff);--_bad:var(--vc-bad,#9e2a0b);--_warn:var(--vc-warn,#7a4700);max-width:40rem}
+:host{display:block;font:inherit;color:var(--vc-ink,#1e2227);--_notary:var(--vc-accent,#1c3bb0);--_ok:var(--vc-ok,#2e6b55);--_muted:var(--vc-muted,#575e66);--_line:var(--vc-line,#c2c7cd);--_paper:var(--vc-paper,#ffffff);--_bad:var(--vc-bad,#9e2a0b);--_warn:var(--vc-warn,#7a4700);max-width:40rem}
 :host([hidden]){display:none}
 .f{display:grid;gap:.5rem}
 label{font-weight:600}
 .hint{color:var(--_muted);font-size:.9em;margin:0}
 .row{display:flex;gap:.5rem;flex-wrap:wrap}
 input{flex:1 1 16rem;min-width:0;font:inherit;padding:.6rem .75rem;border:1px solid var(--_line);border-radius:8px;background:var(--_paper);color:inherit;min-height:44px;box-sizing:border-box}
-input:focus-visible,button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--_accent);outline-offset:2px}
+input:focus-visible,button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--_notary);outline-offset:2px}
 input[aria-invalid=true]{border-color:var(--_bad)}
-button{font:inherit;font-weight:600;padding:.6rem 1rem;border-radius:8px;border:1px solid var(--_accent);background:var(--_accent);color:#fff;cursor:pointer;min-height:44px}
+button{font:inherit;font-weight:600;padding:.6rem 1rem;border-radius:8px;border:1px solid var(--_notary);background:var(--_notary);color:#fff;cursor:pointer;min-height:44px}
 button[aria-disabled=true]{opacity:.6;cursor:progress}
 .out{border:1px solid var(--_line);border-radius:10px;padding:.75rem 1rem;background:var(--_paper);overflow-wrap:anywhere}
 .out:empty{display:none}
@@ -78,7 +78,7 @@ button[aria-disabled=true]{opacity:.6;cursor:progress}
 .small{font-size:.9em;color:var(--_muted)}
 details{margin-top:.5rem}
 summary{cursor:pointer;color:var(--_muted);padding:.7rem 0}
-a{color:var(--_accent)}
+a{color:var(--_notary)}
 `;
 
 export { acceptable };
