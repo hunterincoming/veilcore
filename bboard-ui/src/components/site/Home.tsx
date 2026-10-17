@@ -284,7 +284,7 @@ const LIVE_ROWS = [
 ] as const;
 
 const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
-  const { t, sp } = useI18n();
+  const { t } = useI18n();
   const cols = [
     ['main', 'chip live', t('m.live.colMain')],
     ['test', 'chip', t('m.live.colTest')],
