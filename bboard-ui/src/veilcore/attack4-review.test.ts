@@ -547,6 +547,12 @@ describe(`round 4 against ${REAL ? 'a real registry' : 'the in-memory registry'}
       path.join(path.dirname(fileURLToPath(import.meta.url)), 'records.ts'),
       'utf8',
     );
-    expect(src).toMatch(/const \{ secrets: _s, \.\.\.rest \} = r;/);
+    // The records export goes through shareableRecord, which leaves the secrets out (and
+    // everything else only the holder should have: offer keys, names given, agreements).
+    expect(src).toMatch(/const out = records\.map\(shareableRecord\);/);
+    const { shareableRecord } = await import('./records');
+    const shared = shareableRecord({ ...record, secrets: saved } as never);
+    expect(JSON.stringify(shared)).not.toContain(saved.recordSecret);
+    expect(shared).not.toHaveProperty('secrets');
   });
 });

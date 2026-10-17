@@ -41,6 +41,7 @@ import { dnaTieMeaning, dnaTieSentence } from '../../veilcore/dna-tie';
 import { useDnaTie } from '../flow/useDnaTie';
 import { InEnglishNote, useRecordT } from '../../i18n/app';
 import { enT, forKind } from '../../i18n/translate';
+import { certificateSummary } from './certificate-summary';
 import { damOf, isAnimal, parentLine, recordTitle, sireOf } from '../../veilcore/animal-profile';
 
 // The certificate's own colours: dark text on white, every pair at least 4.5:1. A check
@@ -159,21 +160,18 @@ export const Step3Certificate: React.FC<{
   const sampleCustody =
     !record.receivedFrom && receipt?.kind === 'signed' ? custodySummary(receipt.custody) : undefined;
   const downloadJson = () => {
-    const data = {
+    // Agreements: how many, nothing else (certificate-summary.ts).
+    const data = certificateSummary({
       ...(IS_MAINNET ? {} : { practice: PRACTICE_BAND }),
       record,
-      ...(animal ? {} : { licenses: licensesForRecord(record.id) }),
+      ...(animal ? {} : { agreements: licensesForRecord(record.id) }),
       anchored: anchorLine,
       secondParty: deliveryLine,
-      // The sample sent, what the lab found on arrival, and any differences, as the certificate shows them.
       ...(sampleCustody ? { sampleCustody } : {}),
-      // Whether a DNA report ties the record to the plant, and that report's date (veilcore/dna-tie.ts).
       ...(dna.tie ? { dnaReport: dnaTieSentence(dna.tie, dna.date, 'holder', en) } : {}),
       ...(record.dnaFingerprint && saved ? { labReportSaved: savedReportSentence(saved, en) } : {}),
-      sealedAtSource: "the sealing device's clock",
-      generatedAt: new Date().toISOString(),
       note: `VeilCore record summary. No genetic data or lab files; it contains the record details. ${IMAGE_NOT_EVIDENCE.replace('This image', 'This summary')}`,
-    };
+    });
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -380,7 +378,9 @@ export const Step3Certificate: React.FC<{
                     </Box>
                   ))}
               </Field>
-              {!animal && <Field label="Active licenses">{activeLicenseCount(record.id)}</Field>}
+              {/* Date-checked (effectiveState: past its end date is expired), and said for what it
+                  is: marked active, in this version from the issuer's own browser. */}
+              {!animal && <Field label="Agreements marked active">{activeLicenseCount(record.id)}</Field>}
               <Field label="Record ID" mono>
                 {record.id}
               </Field>

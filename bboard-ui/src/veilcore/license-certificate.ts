@@ -17,7 +17,7 @@
 
 import { fingerprintText } from './commitment';
 import type { License, LicenseTerms, AgreementType, LicenseState } from './licenses';
-import { createsHeritableObligation, signedByTwoParties } from './licenses';
+import { createsHeritableObligation, effectiveState, signedByTwoParties } from './licenses';
 
 export const CERT_VERSION = '0.1';
 
@@ -27,9 +27,11 @@ export type PublicFace = {
   readonly licenseId: string;
   readonly agreementFingerprint: string;
   readonly recordFingerprint: string;
+  /** Date-checked (effectiveState): an agreement past its end date says "expired", not "active". */
   readonly state: LicenseState;
   readonly type: AgreementType;
-  readonly issuedAt: number;
+  /** When it was issued (sent to the other party). Absent on a draft never issued. */
+  readonly issuedAt?: number;
   readonly activatedAt?: number;
   readonly revokedAt?: number;
   /**
@@ -69,9 +71,10 @@ const publicFaceOf = (l: License): PublicFace => ({
   licenseId: l.id,
   agreementFingerprint: l.agreementFingerprint,
   recordFingerprint: l.recordFingerprint,
-  state: l.state,
+  state: effectiveState(l),
   type: l.type,
-  issuedAt: l.createdAt,
+  // The issue time, not when the draft was started.
+  ...(l.breederSignedAt !== undefined ? { issuedAt: l.breederSignedAt } : {}),
   activatedAt: l.licenseeSignedAt,
   revokedAt: l.revokedAt,
   encumbersDescendants: createsHeritableObligation(l.type, l.terms),
@@ -95,7 +98,8 @@ export const certificateFor = (l: License, grants: LicenseGrant[]): LicenseCerti
   const t: LicenseTerms = l.terms;
   const disclosed: Partial<Record<LicenseGrant, unknown>> = {};
 
-  if (on.has('existence')) disclosed.existence = { state: l.state, active: l.state === 'active' };
+  const state = effectiveState(l);
+  if (on.has('existence')) disclosed.existence = { state, active: state === 'active' };
   if (on.has('scope')) disclosed.scope = { rights: t.rights, sublicensable: t.sublicensable, exclusive: t.exclusive };
   if (on.has('territory')) disclosed.territory = t.territory;
   if (on.has('term')) disclosed.term = { startDate: t.startDate, endDate: t.endDate };

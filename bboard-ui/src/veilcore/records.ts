@@ -1113,14 +1113,37 @@ export const exportEnvelope = async (id: string): Promise<void> => {
 
 // ---- demo data portability ----
 
+/**
+ * A record's fields that are the holder's alone, never in a file the holder may hand on:
+ * its secrets (round 4, F5: they are in the backup file, which says it is secret), the keys
+ * that open its deliveries' sealed offers, the names given to recipients, the holder's
+ * sharing choices, a delivery's private notes, and its agreements (sealed terms; a count at
+ * most, said by whoever builds the file).
+ */
+export const HOLDER_ONLY_FIELDS = [
+  'secrets',
+  'offerKeys',
+  'sentTo',
+  'senderName',
+  'deliveryNote',
+  'labRef',
+  'resultLock',
+  'resultLockFrom',
+  'grant',
+  'grantToConfirm',
+  'licenseIds',
+] as const;
+
+/** The record as a file someone else may read: everything but HOLDER_ONLY_FIELDS. */
+export const shareableRecord = (r: StrainRecord): Omit<StrainRecord, (typeof HOLDER_ONLY_FIELDS)[number]> => {
+  const out: Record<string, unknown> = { ...r };
+  for (const k of HOLDER_ONLY_FIELDS) delete out[k];
+  return out as Omit<StrainRecord, (typeof HOLDER_ONLY_FIELDS)[number]>;
+};
+
 export const exportRecords = (): void => {
-  // A record's secrets are not exported (round 4, F5): they are in the backup file, which
-  // says it is secret; an export file is the kind people share.
-  const out = records.map((r) => {
-    const { secrets: _s, ...rest } = r;
-    void _s;
-    return rest;
-  });
+  // An export file is the kind people share: nothing only the holder should have.
+  const out = records.map(shareableRecord);
   const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

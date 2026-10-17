@@ -337,7 +337,7 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   await expect(cert).toContainText('Individual ID');
   await expect(cert).toContainText('0000000017 (Japan cattle ID (10 digits))');
   await expect(cert).toContainText('Sire');
-  await expect(cert).not.toContainText('Active licenses');
+  await expect(cert).not.toContainText('Agreements marked active');
   await expect(cert.locator('[data-dna-tie="self"]')).toContainText('Tied to the animal: DNA report you saved');
   await page.getByRole('button', { name: /Back/ }).first().click();
 
