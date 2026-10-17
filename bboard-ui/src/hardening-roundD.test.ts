@@ -1069,7 +1069,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
       timeout: 15_000,
     });
     const text = await pg.evaluate(() => document.body.innerText);
-    expect(text).toMatch(/Checked in this browser: this fingerprint is in batch real/);
+    expect(text).toMatch(/Checked in this browser: this proof code is in batch real/);
     expect(text).toMatch(/This page has not looked it up/);
     // The seal stays grey: the inclusion proof only reaches the registry's own batch root,
     // and this page checks no anchor on chain (VerifyPage, ANCHOR_CHECKED_ON_CHAIN).
@@ -1213,9 +1213,9 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     await pg.goto(`${origin}/verify/VEIL-Y?fp=${Y}`, { waitUntil: 'networkidle' });
     await pg.waitForSelector('text=Do not rely on this page.', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
-    expect(text).toMatch(/This link's fingerprint doesn't match the record: nothing checked/i);
-    expect(text).toContain(`This link was made for the record with fingerprint ${Y.slice(0, 12)}`);
-    expect(text).toMatch(/the registry reports fingerprint dddd/);
+    expect(text).toMatch(/This link's proof code doesn't match the record: nothing checked/i);
+    expect(text).toContain(`This link was made for the record with proof code ${Y.slice(0, 12)}`);
+    expect(text).toMatch(/the registry reports proof code dddd/);
     // None of the registry's answer is shown as this record's.
     expect(text).not.toMatch(
       /Borrowed Name|Signed attestation|Lab report \(file|sealed batch|Lineage|lineage intact|Checked in this browser/,
@@ -1240,7 +1240,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
       await pg.goto(`${origin}/verify/VEIL-Q?fp=${fp}`, { waitUntil: 'networkidle' });
       await pg.waitForSelector('text=Do not rely on this page.', { timeout: 15_000 });
       const text = await pg.evaluate(() => document.body.innerText);
-      expect(text, fp).toMatch(fp.length === 64 ? /the registry reports no fingerprint/ : /not valid/);
+      expect(text, fp).toMatch(fp.length === 64 ? /the registry reports no proof code/ : /not valid/);
       expect(await ticks(pg), fp).toBe(0);
       expect(external.some((e) => e.url.includes('/proof/'))).toBe(false);
       await ctx.close();
@@ -1251,27 +1251,27 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     const { api } = await lyingRegistry();
     const { ctx, pg, violations, errors } = await page(api);
     await pg.goto(`${origin}/verify/VEIL-Y`, { waitUntil: 'networkidle' });
-    await pg.waitForSelector('text=The registry’s report: this link has no fingerprint to check against', {
+    await pg.waitForSelector('text=The registry’s report: this link has no proof code to check against', {
       timeout: 15_000,
     });
     // Round 5: each signature says what it is (here a lab report, by its file's SHA-256).
     await pg.waitForSelector('text=signature verified in this browser', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
     expect(text).toMatch(/Borrowed Name/); // the page still opens
-    expect(text).toMatch(/For the fingerprint the registry reports: it is in batch genuine-x/);
+    expect(text).toMatch(/For the proof code the registry reports: it is in batch genuine-x/);
     expect(text).toMatch(
-      /For the fingerprint the registry reports: Lab report \(file SHA-256 eeeeeeee…eeeeee\), signature verified in this browser\. Signed by Real Lab\.\s+VeilCore’s operator matched this name to cannabis\.example\.gov \(license TL-1\) on \d{4}-\d{2}-\d{2}\.\s+VeilCore doesn’t vouch for the lab’s work\./,
+      /For the proof code the registry reports: Lab report \(file SHA-256 eeeeeeee…eeeeee\), signature verified in this browser\. Signed by Real Lab\.\s+VeilCore’s operator matched this name to cannabis\.example\.gov \(license TL-1\) on \d{4}-\d{2}-\d{2}\.\s+VeilCore doesn’t vouch for the lab’s work\./,
     );
-    expect(text).toMatch(/This link does not name the record's fingerprint/);
+    expect(text).toMatch(/This link does not name the record's proof code/);
     expect(text).toMatch(
-      /This link names no fingerprint, so those checks used the registry’s own and nothing is ticked/,
+      /This link names no proof code, so those checks used the registry’s own and nothing is ticked/,
     );
     // The footer never says nothing was checked under a line saying a signature was (round 3).
     expect(text).not.toMatch(/Nothing on this page could be checked/);
     expect(text).toMatch(
       /Checked in this browser: the record is in its batch and (one signature|\d+ signatures) about it/,
     );
-    expect(text).not.toMatch(/Checked in this browser: this fingerprint/);
+    expect(text).not.toMatch(/Checked in this browser: this proof code/);
     // The registry's "lineage intact" is its report, not a tick (DisclosedFacts).
     expect(text).toMatch(/The registry reports the lineage intact/);
     // The same lines are there, every one marked as a report.
@@ -1292,12 +1292,12 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     });
     await pg.waitForSelector('text=VeilCore doesn’t vouch for the lab’s work', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
-    expect(text).toMatch(/This link was made for fingerprint dddd.*and the registry\s+reports the same fingerprint/s);
-    expect(text).toMatch(/Checked in this browser: this fingerprint is in batch genuine-x/);
-    expect(text).not.toMatch(/For the fingerprint the registry reports/);
+    expect(text).toMatch(/This link was made for proof code dddd.*and the registry\s+reports the same proof code/s);
+    expect(text).toMatch(/Checked in this browser: this proof code is in batch genuine-x/);
+    expect(text).not.toMatch(/For the proof code the registry reports/);
     expect(text).toMatch(/The registry reports the lineage intact/);
     expect(text).toMatch(
-      /Checked in this browser: the link’s fingerprint matches the one the registry reports, the record is in its batch and (one signature|\d+ signatures) about it \(a lab report\)\. Everything else is the VeilCore registry’s report\./,
+      /Checked in this browser: the link’s proof code matches the one the registry reports, the record is in its batch and (one signature|\d+ signatures) about it \(a lab report\)\. Everything else is the VeilCore registry’s report\./,
     );
     // Exactly two ticks: the inclusion proof and the signed attestation. Not the lineage line.
     expect(await ticks(pg)).toBe(2);
@@ -1354,10 +1354,19 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
         // The link names the record's fingerprint, so the page checks against it.
         expect(
           // A test-network build with no VITE_CANONICAL_ORIGIN links to the site it is served from (round 3).
-          await pg.locator(`input[value="${origin}/verify/VEIL-A?fp=${record.recordFingerprint}"]`).count(),
+          // Round 5: the record's name goes after the #, which no server receives.
+          await pg
+            .locator(
+              `input[value="${origin}/verify/VEIL-A?fp=${record.recordFingerprint}#n=${Buffer.from('Grant Test').toString('base64url')}"]`,
+            )
+            .count(),
         ).toBe(1);
         expect(
-          await pg.locator(`a[href="/verify/VEIL-A?fp=${record.recordFingerprint}"]`).count(),
+          await pg
+            .locator(
+              `a[href="/verify/VEIL-A?fp=${record.recordFingerprint}#n=${Buffer.from('Grant Test').toString('base64url')}"]`,
+            )
+            .count(),
           'Open what they’ll see',
         ).toBe(1);
       }
@@ -1426,11 +1435,11 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     // A used lab code is not a receipt (round 3): no signer is named.
     expect(text).toMatch(/Lab code used on .+; no receipt signed, so it doesn’t show who/);
     expect(text).not.toMatch(/Confirmed by a lab|Receipt signed by/);
-    expect(text).toMatch(/fingerprint recomputed from the stored fields: it matches/);
+    expect(text).toMatch(/proof code recomputed from the stored fields: it matches/);
     // The certificate's link (and the QR code drawn from the same value) names the fingerprint.
     await pg.getByRole('button', { name: /Copy (verification )?link/i }).click();
     expect(await pg.evaluate(() => (window as unknown as { __copied?: string }).__copied)).toBe(
-      `${origin}/verify/VEIL-C?fp=${record.recordFingerprint}`,
+      `${origin}/verify/VEIL-C?fp=${record.recordFingerprint}#n=${Buffer.from('Cert Test').toString('base64url')}`,
     );
     await pg.getByRole('button', { name: 'Download (PNG)' }).click();
     await pg.waitForSelector('text=Certificate downloaded.', { timeout: 20_000 });
