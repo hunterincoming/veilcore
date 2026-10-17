@@ -63,7 +63,9 @@ try {
     );
   if (/StartingStateUnreachable|Could not check how the contract/.test(all))
     console.error("Run again with VEILCORE_DEPLOY_TX_ID set to the contract's deploy transaction id.");
-  console.error('PARTNER KIT CHECK FAILED. Copy the lines above (they hold no secrets) and send them to the maintainer (hunter@veilcore.org).');
+  console.error(
+    'PARTNER KIT CHECK FAILED. Copy the lines above (they hold no secrets) and send them to the maintainer (hunter@veilcore.org).',
+  );
 } finally {
   await ctx?.stop();
   process.exitCode = passed ? 0 : 1;
