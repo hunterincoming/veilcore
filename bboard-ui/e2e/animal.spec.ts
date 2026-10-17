@@ -11,27 +11,111 @@ import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { unzipSync } from 'fflate';
 import { buildBatch } from 'veilcore-records';
-import { REAL_REGISTRY, expectNoErrors, isolate, json, watch } from './helpers';
+import {
+  REAL_REGISTRY,
+  expectNoErrors,
+  holdVaultKey,
+  isolate,
+  json,
+  newVaultKey,
+  openRecordRows,
+  plainRowRefusal,
+  watch,
+} from './helpers';
 
 test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
 
 type Rec = Record<string, unknown> & { id: string; recordFingerprint: string; strainName: string; profile?: string };
 
 const HOLDER = randomBytes(32).toString('hex');
+/** The holder's vault key: the stand-in keeps records sealed, as the registry does; the test opens them with it. */
+const VAULT = newVaultKey();
 const DNA_FILE = Buffer.from(`Practice DNA report for an animal (test data, not a real genotype) ${Date.now()}\n`);
 const ANIMAL = 'veilcore/profile/animal-individual/v1';
 
-/** The registry, as far as these screens need it: the holder's set, grants, and an evidence answer. */
+/** What the holder published for a record (PUT /api/records/:id/disclosure), as the registry keeps it. */
+type GrantValues = {
+  forFingerprint: string | null;
+  values: {
+    parents?: { name: string; role?: string; individualId?: string }[];
+    individualId?: string;
+    idScheme?: string;
+  };
+};
+type Held = { records: Rec[]; grants: Record<string, string[]>; grantValues: Record<string, GrantValues> };
+
+const idOf = (url: URL) => /\/(VEIL-[0-9A-F]+)/.exec(url.pathname)?.[1] ?? '';
+
+/**
+ * The check page: what the registry answers a stranger under the holder's grant (the
+ * registry's /verify; its own tests check the answer itself). The registry can't read a
+ * sealed record, so a shared value comes only from what the holder's browser sent with the
+ * grant, and only while that was sent for the record's current fingerprint (CONTRACT.md #7).
+ */
+const verifyAnswer = (held: Held, id: string) => {
+  const r = held.records.find((x) => x.id === id);
+  if (!r) return { status: 404, body: { found: false } };
+  const g = new Set(held.grants[r.id] ?? []);
+  const sent = held.grantValues[r.id];
+  const current = !!sent && sent.forFingerprint === r.recordFingerprint;
+  const values = current ? sent.values : {};
+  const shared = [...(g.has('parent-names') ? ['parents'] : []), ...(g.has('individual-id') ? ['individualId'] : [])];
+  const parents = values.parents ?? [];
+  return {
+    status: 200,
+    body: {
+      found: true,
+      id: r.id,
+      cultivar: r.strainName,
+      subjectKind: 'animal',
+      recordFingerprint: r.recordFingerprint,
+      registryFirstSeen: new Date().toISOString(),
+      supersededBy: null,
+      supersedes: null,
+      keyBound: true,
+      signedAttestation: false,
+      attestedByVettedLab: false,
+      attested: false,
+      anchored: false,
+      disclosed: shared,
+      ...(current && g.has('parent-names')
+        ? {
+            parents: parents.map((p) => p.name).filter(Boolean),
+            ...Object.fromEntries(
+              parents
+                .filter((p) => p.role === 'sire' || p.role === 'dam')
+                .map((p) => [String(p.role), { name: p.name, individualId: p.individualId ?? '' }] as const),
+            ),
+          }
+        : {}),
+      ...(current && g.has('individual-id')
+        ? { individualId: values.individualId ?? '', idScheme: values.idScheme ?? '' }
+        : {}),
+      ...(!current && shared.length ? { staleGrant: shared } : {}),
+    },
+  };
+};
+
+/** The registry, as far as these screens need it: the holder's set (sealed), grants, and an evidence answer. */
 const standIn = async (page: Page) => {
-  const held: { records: Rec[]; grants: Record<string, string[]> } = { records: [], grants: {} };
+  const held: Held = { records: [], grants: {}, grantValues: {} };
   await page.addInitScript((holder) => {
     localStorage.setItem('veilcore.holder.v1', holder);
     localStorage.setItem('veilcore.role.v1', 'breeder');
   }, HOLDER);
-  const idOf = (url: URL) => /\/(VEIL-[0-9A-F]+)/.exec(url.pathname)?.[1] ?? '';
+  await holdVaultKey(page, VAULT);
+  const grantOf = (id: string) => ({
+    recordId: id,
+    show: held.grants[id] ?? [],
+    forFingerprint: held.grantValues[id]?.forFingerprint ?? null,
+    values: held.grantValues[id]?.values ?? null,
+    updatedAt: held.grants[id] ? new Date().toISOString() : null,
+  });
   await isolate(page, {
     'GET /api/records': (route) => json(route, 200, held.records),
     'PUT /api/records': (route, _url, body) => {
+      const refusal = plainRowRefusal(body);
+      if (refusal) return json(route, 400, { error: refusal });
       const sent = body as Rec[];
       const ids = new Set(sent.map((r) => r.id));
       held.records = [...sent, ...held.records.filter((r) => !ids.has(r.id))];
@@ -40,52 +124,16 @@ const standIn = async (page: Page) => {
     'GET /api/licenses': (route) => json(route, 200, []),
     'PUT /api/licenses': (route) => json(route, 200, { ok: true }),
     'GET /transfers/sent': (route) => json(route, 200, { transfers: [] }),
-    'GET /api/records/:record/disclosure': (route, url) =>
-      json(route, 200, {
-        recordId: idOf(url),
-        show: held.grants[idOf(url)] ?? [],
-        updatedAt: held.grants[idOf(url)] ? new Date().toISOString() : null,
-      }),
+    'GET /api/records/:record/disclosure': (route, url) => json(route, 200, grantOf(idOf(url))),
     'PUT /api/records/:record/disclosure': (route, url, body) => {
-      held.grants[idOf(url)] = (body as { show: string[] }).show;
-      return json(route, 200, {
-        recordId: idOf(url),
-        show: held.grants[idOf(url)],
-        updatedAt: new Date().toISOString(),
-      });
+      const b = body as { show: string[]; forFingerprint?: string | null; values?: GrantValues['values'] };
+      held.grants[idOf(url)] = b.show;
+      held.grantValues[idOf(url)] = { forFingerprint: b.forFingerprint ?? null, values: b.values ?? {} };
+      return json(route, 200, grantOf(idOf(url)));
     },
-    // The check page: what the registry answers a stranger under the holder's grant
-    // (the registry's /verify; its own tests check the answer itself).
     'GET /verify/:record': (route, url) => {
-      const r = held.records.find((x) => x.id === idOf(url));
-      if (!r) return json(route, 404, { found: false });
-      const g = new Set(held.grants[r.id] ?? []);
-      const parents = (r.parents as { role: string; name: string; individualId: string }[]) ?? [];
-      return json(route, 200, {
-        found: true,
-        id: r.id,
-        cultivar: r.strainName,
-        subjectKind: 'animal',
-        recordFingerprint: r.recordFingerprint,
-        registryFirstSeen: new Date().toISOString(),
-        supersededBy: null,
-        supersedes: null,
-        keyBound: true,
-        signedAttestation: false,
-        attestedByVettedLab: false,
-        attested: false,
-        anchored: false,
-        disclosed: [...(g.has('parent-names') ? ['parents'] : []), ...(g.has('individual-id') ? ['individualId'] : [])],
-        ...(g.has('parent-names')
-          ? {
-              parents: parents.map((p) => p.name).filter(Boolean),
-              ...Object.fromEntries(parents.map((p) => [p.role, { name: p.name, individualId: p.individualId }])),
-            }
-          : {}),
-        ...(g.has('individual-id')
-          ? { individualId: r.refId, idScheme: (r.animal as { idScheme: string }).idScheme }
-          : {}),
-      });
+      const a = verifyAnswer(held, idOf(url));
+      return json(route, a.status, a.body);
     },
     'GET /records/:record/evidence': async (route, url) => {
       const r = held.records.find((x) => x.id === idOf(url));
@@ -172,8 +220,11 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   await page.getByRole('button', { name: /^Save it to this animal$/ }).click();
   await expect(page.getByRole('heading', { name: /DNA report saved to this animal/ })).toBeVisible();
 
-  // What was saved: the animal profile's record, with the report paired beside it.
-  const rec = held.records.find((r) => r.strainName === name)!;
+  // What was saved: the animal profile's record, with the report paired beside it, opened
+  // as the holder's browser opens it (the registry has it only sealed).
+  const opened = () => openRecordRows(held.records, VAULT);
+  await expect.poll(() => opened().find((r) => r.strainName === name)?.dnaFingerprint).toMatch(/^[0-9a-f]{64}$/);
+  const rec = opened().find((r) => r.strainName === name)!;
   expect(rec.profile).toBe(ANIMAL);
   expect(rec).toMatchObject({
     refId: '0000000017',
@@ -187,7 +238,9 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   });
   expect(rec.keyBinding).toMatch(/^[0-9a-f]{64}$/);
   expect(rec.dnaFingerprint).toMatch(/^[0-9a-f]{64}$/);
+  // The report itself never left the device: not in the clear, not inside the seal.
   expect(JSON.stringify(held.records)).not.toContain('Practice DNA report for an animal');
+  expect(JSON.stringify(opened())).not.toContain('Practice DNA report for an animal');
 
   // The backup and the key's date stamp are the steps before; here they are taken as done.
   await page.evaluate((id) => {
@@ -233,7 +286,7 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   // 5. Date the DNA report: one record of its own, holding only the report's SHA-256.
   const next = page.locator('[data-next-step]');
   await next.getByRole('button', { name: 'Date this DNA report' }).click();
-  await expect.poll(() => held.records.filter((r) => r.breedingMethod === 'Lab report').length).toBe(1);
+  await expect.poll(() => opened().filter((r) => r.breedingMethod === 'Lab report').length).toBe(1);
   await expect(row).toContainText('Report being dated (waiting for a batch).');
 
   // 6. The family tree: sire and dam by role.
@@ -248,6 +301,11 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   await expect(page.getByText('Breeding method', { exact: true })).toHaveCount(0);
   await page.getByLabel('Sire and dam (names and IDs)').check();
   await page.getByLabel('Individual ID and its scheme').check();
+  // The DNA report is off until the holder switches it on (round 3, P7).
+  const dnaSwitch = page.getByRole('switch', { name: 'Whether a DNA report is saved' });
+  await expect(dnaSwitch).not.toBeChecked();
+  await expect(page.locator('[data-dna-tie="self"]')).toHaveCount(0);
+  await dnaSwitch.check();
   await expect(page.getByText('Sire, as the holder states it: Practice Sire (ID 0000000025)').first()).toBeVisible();
   await expect(
     page.getByText('Individual ID, as the holder states it: 0000000017 (Japan cattle ID (10 digits))').first(),
@@ -257,6 +315,10 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   );
   await page.getByRole('button', { name: 'Get the link' }).click();
   await expect.poll(() => held.grants[rec.id]).toEqual(expect.arrayContaining(['parent-names', 'individual-id']));
+  // Published with the grant, for this version of the record: the values the check page
+  // shows, and nothing that links to another record.
+  await expect.poll(() => held.grantValues[rec.id]?.forFingerprint).toBe(rec.recordFingerprint);
+  expect(JSON.stringify(held.grantValues[rec.id].values)).not.toContain('recordId');
   await page.getByRole('button', { name: 'Back to the animal' }).first().click();
 
   // 8. The certificate (in English, like every certificate): the animal's own fields.
@@ -338,39 +400,11 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
 });
 
 /** A second page (the stranger's) on the same stand-in registry: only /verify answers. */
-const standInFor = async (page: Page, held: { records: Rec[]; grants: Record<string, string[]> }) => {
-  const idOf = (url: URL) => /\/(VEIL-[0-9A-F]+)/.exec(url.pathname)?.[1] ?? '';
+const standInFor = async (page: Page, held: Held) => {
   await isolate(page, {
     'GET /verify/:record': (route, url) => {
-      const r = held.records.find((x) => x.id === idOf(url));
-      if (!r) return json(route, 404, { found: false });
-      const g = new Set(held.grants[r.id] ?? []);
-      const parents = (r.parents as { role: string; name: string; individualId: string }[]) ?? [];
-      return json(route, 200, {
-        found: true,
-        id: r.id,
-        cultivar: r.strainName,
-        subjectKind: 'animal',
-        recordFingerprint: r.recordFingerprint,
-        registryFirstSeen: new Date().toISOString(),
-        supersededBy: null,
-        supersedes: null,
-        keyBound: true,
-        signedAttestation: false,
-        attestedByVettedLab: false,
-        attested: false,
-        anchored: false,
-        disclosed: [...(g.has('parent-names') ? ['parents'] : []), ...(g.has('individual-id') ? ['individualId'] : [])],
-        ...(g.has('parent-names')
-          ? {
-              parents: parents.map((p) => p.name).filter(Boolean),
-              ...Object.fromEntries(parents.map((p) => [p.role, { name: p.name, individualId: p.individualId }])),
-            }
-          : {}),
-        ...(g.has('individual-id')
-          ? { individualId: r.refId, idScheme: (r.animal as { idScheme: string }).idScheme }
-          : {}),
-      });
+      const a = verifyAnswer(held, idOf(url));
+      return json(route, a.status, a.body);
     },
   });
 };

@@ -7,13 +7,25 @@
 // SPDX-License-Identifier: Apache-2.0
 import { randomBytes } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
-import { REAL_REGISTRY, expectNoErrors, isolate, json, watch } from './helpers';
+import {
+  REAL_REGISTRY,
+  expectNoErrors,
+  holdVaultKey,
+  isolate,
+  json,
+  newVaultKey,
+  openRecordRows,
+  plainRowRefusal,
+  watch,
+} from './helpers';
 
 test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
 
 type Rec = { id: string; strainName: string; breedingMethod?: string; parents?: { recordId?: string }[] };
 
 const HOLDER = randomBytes(32).toString('hex');
+/** The holder's vault key: the stand-in keeps records sealed, as the registry does; the test opens them with it. */
+const VAULT = newVaultKey();
 /** E2E_SHOTS=<dir> saves a picture of each screen, for review. */
 const shot = async (page: Page, name: string) => {
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/${name}.png`, fullPage: true });
@@ -21,15 +33,18 @@ const shot = async (page: Page, name: string) => {
 
 const DNA_FILE = Buffer.from(`Practice DNA report (test data, not a real genotype) ${Date.now()}\n`);
 
-/** The registry, as far as these screens need it: the holder's set, kept in memory. */
+/** The registry, as far as these screens need it: the holder's set, kept in memory, sealed. */
 const standIn = async (page: Page, held: { records: Rec[] } = { records: [] }) => {
   await page.addInitScript((holder) => {
     localStorage.setItem('veilcore.holder.v1', holder);
     localStorage.setItem('veilcore.role.v1', 'breeder');
   }, HOLDER);
+  await holdVaultKey(page, VAULT);
   await isolate(page, {
     'GET /api/records': (route) => json(route, 200, held.records),
     'PUT /api/records': (route, _url, body) => {
+      const refusal = plainRowRefusal(body);
+      if (refusal) return json(route, 400, { error: refusal });
       const sent = body as Rec[];
       const ids = new Set(sent.map((r) => r.id));
       held.records = [...sent, ...held.records.filter((r) => !ids.has(r.id))];
@@ -129,16 +144,26 @@ test('seal, see it is not tied to the plant, save a DNA report, see it tied, dat
   await expect(next.getByRole('heading', { name: 'Date this DNA report' })).toBeVisible();
   await shot(page, 'dna-2-tied-date-it');
   await next.getByRole('button', { name: 'Date this DNA report' }).click();
-  await expect.poll(() => held.records.filter((r) => r.breedingMethod === 'Lab report').length).toBe(1);
+  // Opened as the holder's browser opens them: the registry has the records only sealed.
+  const opened = () => openRecordRows(held.records, VAULT);
+  await expect.poll(() => opened().filter((r) => r.breedingMethod === 'Lab report').length).toBe(1);
   await expect(row).toContainText('Report being dated (waiting for a batch).');
   // Dated, so the next step moves on: a lab signing for a sample is a second party.
   await expect(next.getByRole('heading', { name: 'Send a sample to a lab' })).toBeVisible();
   await shot(page, 'dna-3-being-dated');
+  // The report itself never left the device: not in the clear, not inside the seal.
   expect(JSON.stringify(held.records)).not.toContain('Practice DNA report (test data');
+  expect(JSON.stringify(opened())).not.toContain('Practice DNA report (test data');
 
   // 6. Show someone: the check page will say it neutrally, and what a DNA report is for.
   await page.getByRole('button', { name: /Show someone/ }).click();
   const tie = page.locator('[data-dna-tie="self"]');
+  // The DNA report is off until the holder switches it on (round 3, P7): on, it publishes the
+  // report's fingerprint. Off, the check page says nothing about it.
+  const dnaSwitch = page.getByRole('switch', { name: 'Whether a DNA report is saved' });
+  await expect(dnaSwitch).not.toBeChecked();
+  await expect(tie).toHaveCount(0);
+  await dnaSwitch.check();
   await expect(tie).toContainText('Tied to the plant: DNA report the holder saved (no lab signature matches it).');
   await expect(tie).toContainText('It doesn’t show by itself that a plant matches.');
   await page.getByRole('button', { name: 'Back to the plant' }).first().click();

@@ -1,7 +1,7 @@
 // What every browser test needs: a page that fails on any script error, no real network,
 // and (when no real registry is given) a small stand-in registry in the test itself.
 // SPDX-License-Identifier: Apache-2.0
-import { createCipheriv, createHash, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 import { expect, type Page, type Route } from '@playwright/test';
 
 /** The registry the build was made for (e2e:build): a real one, or the stand-in address. */
@@ -192,3 +192,65 @@ export const sealedRecordRow = (r: Record<string, unknown> & { id: string }, key
   }
   return { ...open, sealed: seal('records', r.id, hidden, key) };
 };
+
+// ---- the stand-in registry and sealed rows ------------------------------------------------
+//
+// The stand-in keeps what the browser sends, as the real registry does: sealed rows it can't
+// read. A test that checks what was saved opens them with the vault key it gave the browser,
+// as the holder's own browser would (api-store.ts openRow and merged).
+
+/**
+ * A browser that already holds `key` in a checked backup (vault.ts), set before the site's
+ * scripts run, only if this browser has no vault key yet. The backup step is taken as done,
+ * so the browser seals and saves at once (round 3, L1).
+ */
+export const holdVaultKey = (page: Page, key: string) =>
+  page.addInitScript((vault) => {
+    if (!localStorage.getItem('veilcore.vault.v1')) localStorage.setItem('veilcore.vault.v1', vault);
+  }, vaultStorageValue(key));
+
+/**
+ * Why the real registry would refuse this PUT /api/records body (CONTRACT.md #6: never a
+ * record in plain text), or null. A stand-in answers 400 with it, as the registry does.
+ */
+export const plainRowRefusal = (rows: unknown): string | null => {
+  if (!Array.isArray(rows)) return 'expected an array of records';
+  for (const r of rows as Record<string, unknown>[]) {
+    const s = r?.sealed as Record<string, unknown> | undefined;
+    if (!s || s.v !== 1 || s.alg !== 'A256GCM') return `${String(r?.id)}: a record must be sealed`;
+    const extra = Object.keys(r).filter(
+      (k) => !PUBLIC_FIELDS.includes(k) && !['sealed', 'rev', 'supersedes'].includes(k),
+    );
+    if (extra.length) return `${String(r.id)}: ${extra.join(', ')} must be sealed, not sent in the clear`;
+  }
+  return null;
+};
+
+/**
+ * A record row as the holder's browser opens it: the sealed part opened with `key` (its AAD
+ * naming the row), the public fields over it. Throws for a row that isn't sealed under `key`.
+ */
+export const openRecordRow = <T extends { id: string }>(row: T, key: string): T & Record<string, unknown> => {
+  const open: Record<string, unknown> & { id: string } = { ...(row as unknown as { id: string }) };
+  const sealed = open.sealed;
+  delete open.sealed;
+  delete open.rev;
+  const box = sealed as { v: number; alg: string; kid: string; iv: string; ct: string } | undefined;
+  if (!box || box.v !== 1 || box.alg !== 'A256GCM') throw new Error(`${open.id} reached the registry unsealed`);
+  const kid = vaultKid(key);
+  if (box.kid !== kid) throw new Error(`${open.id} is sealed under another vault key`);
+  const bytes = Buffer.from(box.ct, 'base64url');
+  const d = createDecipheriv('aes-256-gcm', Buffer.from(key, 'base64url'), Buffer.from(box.iv, 'base64url'));
+  d.setAAD(Buffer.from(`veilcore:sealed:v1\0records\0${open.id}\0${kid}`));
+  d.setAuthTag(bytes.subarray(bytes.length - 16));
+  const plain = Buffer.concat([d.update(bytes.subarray(0, bytes.length - 16)), d.final()]).toString('utf8');
+  const inner = JSON.parse(plain) as Record<string, unknown>;
+  delete inner.rev;
+  // The full correction (reason, severity) is sealed; the row has only the pointer.
+  const supersedes = inner.supersedes ?? open.supersedes;
+  return { ...inner, ...open, ...(supersedes !== undefined ? { supersedes } : {}) } as T & Record<string, unknown>;
+};
+
+/** Every row opened (openRecordRow). */
+export const openRecordRows = <T extends { id: string }>(rows: T[], key: string) =>
+  rows.map((r) => openRecordRow(r, key));

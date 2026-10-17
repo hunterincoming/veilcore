@@ -7,7 +7,17 @@
 // SPDX-License-Identifier: Apache-2.0
 import { createHash, randomBytes } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
-import { REAL_REGISTRY, expectNoErrors, isolate, json, watch } from './helpers';
+import {
+  REAL_REGISTRY,
+  expectNoErrors,
+  holdVaultKey,
+  isolate,
+  json,
+  newVaultKey,
+  openRecordRows,
+  plainRowRefusal,
+  watch,
+} from './helpers';
 
 test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
 
@@ -23,22 +33,27 @@ type Rec = {
 };
 
 const HOLDER = randomBytes(32).toString('hex');
+/** The holder's vault key: the stand-in keeps records sealed, as the registry does; the test opens them with it. */
+const VAULT = newVaultKey();
 const LAB_FILE = Buffer.from(`Practice lab report (test data) ${Date.now()}\n`);
 const LAB_SHA = createHash('sha256').update(LAB_FILE).digest('hex');
 
 /**
  * The registry, as far as these screens need it: the holder's set, kept in memory, stored by
- * id as the real registry stores it (a save adds or replaces records, never drops others).
- * Two tabs share one.
+ * id as the real registry stores it (a save adds or replaces records, never drops others),
+ * and sealed (it refuses a record in plain text). Two tabs share one.
  */
 const standIn = async (page: Page, held: { records: Rec[] } = { records: [] }) => {
   await page.addInitScript((holder) => {
     localStorage.setItem('veilcore.holder.v1', holder);
     localStorage.setItem('veilcore.role.v1', 'breeder');
   }, HOLDER);
+  await holdVaultKey(page, VAULT);
   await isolate(page, {
     'GET /api/records': (route) => json(route, 200, held.records),
     'PUT /api/records': (route, _url, body) => {
+      const refusal = plainRowRefusal(body);
+      if (refusal) return json(route, 400, { error: refusal });
       const sent = body as Rec[];
       const ids = new Set(sent.map((r) => r.id));
       held.records = [...sent, ...held.records.filter((r) => !ids.has(r.id))];
@@ -50,6 +65,9 @@ const standIn = async (page: Page, held: { records: Rec[] } = { records: [] }) =
   });
   return held;
 };
+
+/** The held records as the holder's browser opens them (the stand-in has them only sealed). */
+const opened = (held: { records: Rec[] }) => openRecordRows(held.records, VAULT);
 
 const keyIds = (page: Page) =>
   page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('veilcore.record-keys.v1') ?? '{}') as object));
@@ -78,7 +96,7 @@ test('seal a plant, add the next stage from its page, and date its lab report on
   await expect(page.getByRole('heading', { name: /DNA report saved to this plant/ })).toBeVisible();
   const [f1Id] = await keyIds(page);
   expect(f1Id).toMatch(/^VEIL-/);
-  await expect.poll(() => held.records.find((r) => r.id === f1Id)?.dnaFileSha256).toBe(LAB_SHA);
+  await expect.poll(() => opened(held).find((r) => r.id === f1Id)?.dnaFileSha256).toBe(LAB_SHA);
 
   // A plant half-logged, not sealed: starting a next stage must not replace it.
   const unsaved = 'Unsaved mother (practice)';
@@ -117,7 +135,7 @@ test('seal a plant, add the next stage from its page, and date its lab report on
   await page.getByRole('button', { name: /Seal it/ }).click();
   await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
   await expect.poll(() => held.records.some((r) => r.strainName === f2)).toBe(true);
-  const sealedF2 = held.records.find((r) => r.strainName === f2)!;
+  const sealedF2 = opened(held).find((r) => r.strainName === f2)!;
   expect(sealedF2.notes).toBe('Stage: F2\nSelected for: vigour, early finish');
   expect(sealedF2.parents).toEqual([{ recordId: f1Id, name: f1 }]);
   expect(sealedF2.taxon).toBe('Cannabis sativa');
@@ -146,8 +164,8 @@ test('seal a plant, add the next stage from its page, and date its lab report on
   await expect(tabB.locator('[data-lab-report-dated]')).toHaveText(
     /^DNA report dated: in VEIL-[0-9A-F]{32} \(waiting for a batch\)$/,
   );
-  await expect.poll(() => held.records.filter((r) => r.breedingMethod === 'Lab report').length).toBe(1);
-  const report = held.records.find((r) => r.breedingMethod === 'Lab report')!;
+  await expect.poll(() => opened(held).filter((r) => r.breedingMethod === 'Lab report').length).toBe(1);
+  const report = opened(held).find((r) => r.breedingMethod === 'Lab report')!;
   await expect(tabB.locator('[data-lab-report-dated]')).toContainText(report.id);
   // Its key is in the browser, and no key was left for a record that doesn't exist.
   const keysNow = await keyIds(page);
@@ -158,7 +176,9 @@ test('seal a plant, add the next stage from its page, and date its lab report on
   expect(report.notes).toBe(`Lab report SHA-256: ${LAB_SHA}\nLab: no lab signature matches this file`);
   expect(report.parents).toEqual([{ recordId: f1Id, name: f1 }]);
   expect(report.strainName).toBe(`${f1} — lab report ${LAB_SHA.slice(0, 8)}`);
+  // The report itself never left the device: not inside the seal, not in the clear.
   expect(JSON.stringify(report)).not.toContain('Practice lab report (test data)');
+  expect(JSON.stringify(held.records)).not.toContain('Practice lab report (test data)');
   await expect(dated).toContainText(report.id);
 
   // Never twice: after a reload the page shows where it was dated, with no button.
@@ -167,7 +187,7 @@ test('seal a plant, add the next stage from its page, and date its lab report on
   await expect(
     page.locator('[data-date-lab-report]').getByRole('button', { name: 'Date this DNA report' }),
   ).toHaveCount(0);
-  expect(held.records.filter((r) => r.breedingMethod === 'Lab report')).toHaveLength(1);
+  expect(opened(held).filter((r) => r.breedingMethod === 'Lab report')).toHaveLength(1);
 
   // The family tree: F2 is offspring; the record dating the report is not.
   await page.getByRole('button', { name: /Family tree/ }).click();
