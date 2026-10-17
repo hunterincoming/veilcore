@@ -863,6 +863,18 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
           {/* The raw error stays on the element for test scripts and support, not on screen. */}
           <Alert severity="error" variant="outlined" data-error={call.error}>
             {problem.text}
+            {/* What went wrong, in the error's own first sentence (long hex taken out), so
+                it can be reported. Folded away: the sentence above is the answer. */}
+            {problem.detail && (
+              <Box component="details" sx={{ mt: 1 }} data-stamp-detail="">
+                <Box component="summary" sx={{ cursor: 'pointer', minHeight: 32 }}>
+                  {t('app.chain.details')}
+                </Box>
+                <Typography variant="body2" sx={{ mt: 0.5, overflowWrap: 'anywhere' }}>
+                  {problem.detail}
+                </Typography>
+              </Box>
+            )}
           </Alert>
           {problem.retry && (
             <Button variant="contained" size="large" fullWidth onClick={() => void anchor()} sx={{ py: 1.6 }}>

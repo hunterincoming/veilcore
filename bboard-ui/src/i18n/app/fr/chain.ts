@@ -14,6 +14,7 @@ export const chain = {
   'app.chain.unreachable': 'Impossible de joindre le réseau.{nothingSent} Réessayez {when}.',
   'app.chain.didntGoThrough': 'Cela n’a pas abouti.{nothingSent} Réessayez {when}.',
   'app.chain.didntGoThroughBecause': 'Cela n’a pas abouti : {reason}.{nothingSent}',
+  'app.chain.details': 'Détails',
   'app.chain.stampMayHaveGoneOut':
     'Votre horodatage est peut-être déjà parti{tx}. Votre plante est enregistrée. Ne réessayez pas tant que cette transaction n’a pas été vérifiée sur le réseau.',
   'app.chain.stampUnreachable':

@@ -88,6 +88,17 @@ describe('real calls from the browser (stand-in network)', () => {
     expect(r.requests).toHaveLength(0);
   });
 
+  it("anchor needs only the record's keys: it never asks the registry, so a record still waiting in the outbox for its backup check can be date stamped", async () => {
+    const r = standIns(contractStateAfter());
+    await anchorOnChain(RECORD, RECOVERY, { deps: r.deps });
+    // Everything it fetches: this site's proving files and the fee service. Nothing else,
+    // so whether the registry has the record yet (outbox.ts) can't stop a date stamp.
+    const urls = r.requests.map((q) => q.url);
+    expect(urls.length).toBeGreaterThan(0);
+    expect(urls.filter((u) => !/\/keys\/[A-Za-z]+\.verifier$|\/sponsor(\/challenge)?$/.test(u))).toEqual([]);
+    expect(r.sealed).toHaveLength(1);
+  });
+
   it('a sponsor refusal surfaces as an error and nothing is reported as sent', async () => {
     const r = standIns(contractStateAfter());
     // The site's own files load; the sponsor answers 503.

@@ -293,19 +293,35 @@ export const chainProblem = (error: string, tr: Translator = enT): { text: strin
   return { text: tr.t('app.chain.didntGoThroughBecause', { reason: lead, nothingSent }), retry: true };
 };
 
-export const stampProblem = (error: string, tr: Translator = enT): { text: string; retry: boolean } => {
+/**
+ * The first sentence of an error, safe to show under "Details" so a person can report it.
+ * Long hex (a key, a secret, a contract address, a transaction) never shows: anything over
+ * 16 hex characters becomes "…". Cut short if it is long.
+ */
+export const errorDetail = (error: string): string => {
+  const e = error.trim().replace(/^(Error|SponsorRefusal|TypeError):\s*/, '');
+  let first = (/^(.+?[.!?])(\s|$)/s.exec(e)?.[1] ?? e).replace(/\s+/g, ' ').trim();
+  first = first.replace(/(0x)?[0-9a-fA-F]{17,}/g, '…');
+  if (first.length > 200) first = `${first.slice(0, 197).trimEnd()}…`;
+  return first;
+};
+
+export const stampProblem = (
+  error: string,
+  tr: Translator = enT,
+): { text: string; retry: boolean; detail?: string } => {
   const e = error.trim();
   if (/WAS sent/.test(e)) {
     const tx = /WAS sent \(([^)]+)\)/.exec(e)?.[1];
     return { text: tr.t('app.chain.stampMayHaveGoneOut', { tx: txWords(tx, tr) }), retry: false };
   }
   const when = waitFor(e, tr);
-  const unreachable =
-    /reach|not answering|not configured|is configured|Failed to fetch|NetworkError|Load failed|timed? ?out|ECONN|ENOTFOUND|fetch failed/i.test(
-      e,
-    );
+  if (UNREACHABLE.test(e)) return { text: tr.t('app.chain.stampUnreachable', { when }), retry: true };
+  // The friendly sentence, and under "Details" what actually went wrong, for reporting it.
+  const detail = errorDetail(e);
   return {
-    text: unreachable ? tr.t('app.chain.stampUnreachable', { when }) : tr.t('app.chain.stampDidntGoThrough', { when }),
+    text: tr.t('app.chain.stampDidntGoThrough', { when }),
     retry: true,
+    ...(detail ? { detail } : {}),
   };
 };

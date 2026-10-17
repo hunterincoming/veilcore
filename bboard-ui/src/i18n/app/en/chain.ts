@@ -13,6 +13,7 @@ export const chain = {
   'app.chain.unreachable': "Couldn't reach the network.{nothingSent} Try again {when}.",
   'app.chain.didntGoThrough': "That didn't go through.{nothingSent} Try again {when}.",
   'app.chain.didntGoThroughBecause': "That didn't go through: {reason}.{nothingSent}",
+  'app.chain.details': 'Details',
   'app.chain.stampMayHaveGoneOut':
     "Your date stamp may already have gone out{tx}. Your plant is saved. Don't try again until that transaction has been checked on the network.",
   'app.chain.stampUnreachable':

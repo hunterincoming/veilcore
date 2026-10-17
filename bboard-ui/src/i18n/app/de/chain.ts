@@ -14,6 +14,7 @@ export const chain = {
   'app.chain.unreachable': 'Das Netzwerk war nicht erreichbar.{nothingSent} Versuchen Sie es {when} erneut.',
   'app.chain.didntGoThrough': 'Das hat nicht geklappt.{nothingSent} Versuchen Sie es {when} erneut.',
   'app.chain.didntGoThroughBecause': 'Das hat nicht geklappt: {reason}.{nothingSent}',
+  'app.chain.details': 'Details',
   'app.chain.stampMayHaveGoneOut':
     'Ihr Datumsstempel wurde möglicherweise schon gesendet{tx}. Ihre Pflanze ist gespeichert. Versuchen Sie es erst wieder, wenn diese Transaktion im Netzwerk geprüft wurde.',
   'app.chain.stampUnreachable':

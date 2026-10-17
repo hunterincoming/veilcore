@@ -10,6 +10,7 @@ import {
   parseDraft,
   saveDraft,
   stampProblem,
+  errorDetail,
 } from './log-flow-state';
 
 const mem = new Map<string, string>();
@@ -145,6 +146,33 @@ describe('a failed date stamp', () => {
     expect(p.retry).toBe(false);
     expect(p.text).toContain('abc123');
     expect(p.text).toMatch(/Your plant is saved\./);
+  });
+});
+
+describe('a failed date stamp: Details, so it can be reported', () => {
+  it("keeps the friendly sentence and adds the error's first sentence under Details", () => {
+    const p = stampProblem('The contract on the network is not the one this site was built for. Nothing was sent.');
+    expect(p.text).toBe(
+      "The date stamp didn't go through. Your plant is saved. Try again in a few minutes, or do the date stamp later.",
+    );
+    expect(p.detail).toBe('The contract on the network is not the one this site was built for.');
+  });
+
+  it('never shows a key, a secret or an address: hex over 16 characters is taken out', () => {
+    const secret = 'ab'.repeat(32);
+    const p = stampProblem(`Error: Bad private state for key ${secret} at 0x${'c3'.repeat(20)} (deadbeef). More text.`);
+    expect(p.detail).toBe('Bad private state for key … at … (deadbeef).');
+    expect(p.detail).not.toMatch(/[0-9a-f]{17,}/i);
+    expect(p.text).not.toContain(secret);
+  });
+
+  it('no Details when the network was out of reach or a transaction was sent', () => {
+    expect(stampProblem('Failed to fetch').detail).toBeUndefined();
+    expect(stampProblem('Lost contact. The transaction WAS sent (abc123); check it.').detail).toBeUndefined();
+  });
+
+  it('cuts a long first sentence short', () => {
+    expect(errorDetail('x'.repeat(500)).length).toBeLessThanOrEqual(200);
   });
 });
 

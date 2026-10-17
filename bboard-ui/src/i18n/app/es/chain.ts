@@ -14,6 +14,7 @@ export const chain = {
   'app.chain.unreachable': 'No se pudo conectar con la red.{nothingSent} Inténtelo de nuevo {when}.',
   'app.chain.didntGoThrough': 'No se completó.{nothingSent} Inténtelo de nuevo {when}.',
   'app.chain.didntGoThroughBecause': 'No se completó: {reason}.{nothingSent}',
+  'app.chain.details': 'Detalles',
   'app.chain.stampMayHaveGoneOut':
     'Puede que su sello de fecha ya se haya enviado{tx}. Su planta está guardada. No lo intente de nuevo hasta que esa transacción se haya comprobado en la red.',
   'app.chain.stampUnreachable':

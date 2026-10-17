@@ -13,6 +13,7 @@ export const chain = {
   'app.chain.unreachable': 'ネットワークに接続できませんでした。{nothingSent}{when}もう一度お試しください。',
   'app.chain.didntGoThrough': 'うまくいきませんでした。{nothingSent}{when}もう一度お試しください。',
   'app.chain.didntGoThroughBecause': 'うまくいきませんでした：{reason}。{nothingSent}',
+  'app.chain.details': '詳細',
   'app.chain.stampMayHaveGoneOut':
     '日付スタンプはすでに送信されている可能性があります{tx}。植物は保存されています。そのトランザクションをネットワーク上で確認するまで、もう一度試さないでください。',
   'app.chain.stampUnreachable':
