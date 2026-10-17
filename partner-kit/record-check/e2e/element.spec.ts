@@ -96,7 +96,15 @@ test('a matching link: the plain answer, the form submits, nothing but the regis
   await expect(out(page)).toContainText(
     'signed by Test Lab (checked). VeilCore’s operator matched this name to cannabis.example.gov (license TL-1)',
   );
-  await expect(out(page)).toContainText('It is the report file saved to this record now.');
+  // The lab report is signed bound to the record (round 6): no file hash is public, so this
+  // can't say which file it is; the one signed before round 6 is withheld and said so.
+  await expect(out(page)).toContainText(
+    'The lab signed the report bound to this record; which file it is can be checked only with the file and the holder’s link.',
+  );
+  await expect(out(page)).not.toContainText('It is the report file saved to this record now.');
+  await expect(out(page)).toContainText(
+    'The registry says a lab signed a report about this record before 17 October 2026. That signature names the report file, so the registry shows it only to the delivery’s sender and lab, and it was not checked here.',
+  );
   // Receipts tied to deliveries of the record, over sample details stored locked: the
   // registry can't compare them, so the sender's app's word is said as the sender's. One
   // matches, one's seal doesn't; no seal number is ever shown.
@@ -123,11 +131,12 @@ test('a matching link: the plain answer, the form submits, nothing but the regis
   await page.getByText('What this does not show').click();
   await expect(out(page)).toContainText('VeilCore never sees genetics');
   // The full check page link is built from the id and fingerprint, on veilcore.org.
-  // The name came from the link, after the #, and goes on to the full check page the same way.
-  await expect(out(page)).toContainText('Name: Partner check test record (as the holder typed it).');
+  // The name came from the link, after the #, checked against the record's name code (round 6),
+  // and goes on to the full check page the same way, with its salt.
+  await expect(out(page)).toContainText('Name matches the record: Partner check test record');
   await expect(out(page).getByRole('link', { name: 'Open the full check page' })).toHaveAttribute(
     'href',
-    `https://veilcore.org/verify/${reg.records.bound.id}?fp=${reg.records.bound.recordFingerprint}#n=${reg.nameParam('Partner check test record')}`,
+    `https://veilcore.org/verify/${reg.records.bound.id}?fp=${reg.records.bound.recordFingerprint}#n=${reg.nameParam('Partner check test record')}&ns=${reg.records.bound.nameSalt}`,
   );
 
   const a = await lastAnswer(page);
@@ -212,6 +221,23 @@ test('keyboard only: tab to the field, paste, and the answer is announced', asyn
   await expect(page.getByRole('button', { name: 'Check' })).toBeFocused();
 });
 
+test('a genuine link forwarded with another name after the #: the name is flagged, never shown as the holder’s', async ({
+  page,
+}) => {
+  // The fifth review's finding 2, in the partner's form (round 6, CONTRACT.md #33).
+  const { field } = await open(page, { allowTest: '1' });
+  await field.fill(reg.links.boundForgedName);
+  await field.press('Enter');
+  await expect(out(page)).toHaveAttribute('data-state', 'matches');
+  await expect(out(page)).toContainText('This name does not match the record: Gelato 41 (lab certified clone)');
+  await expect(out(page)).not.toContainText('Name matches the record');
+  await expect(out(page).getByRole('link', { name: 'Open the full check page' })).toHaveAttribute(
+    'href',
+    `https://veilcore.org/verify/${reg.records.bound.id}?fp=${reg.records.bound.recordFingerprint}`,
+  );
+  expect(await lastAnswer(page)).toMatchObject({ nameCheck: 'does-not-match', nameByHolder: null });
+});
+
 test('a test network date: shown, and refused unless the form allows test data', async ({ page }) => {
   const { field } = await open(page);
   await field.fill(reg.links.bound);
@@ -219,7 +245,7 @@ test('a test network date: shown, and refused unless the form allows test data',
   await expect(out(page).getByRole('heading', { name: 'Record found, dated on a test network' })).toBeVisible();
   await expect(out(page)).toContainText('so this form does not accept it');
   // A link without the name after the #: the registry doesn't have it, so it isn't shown (round 5).
-  await expect(out(page)).toContainText('Name: The holder didn’t include the name in this link.');
+  await expect(out(page)).toContainText('Name: This link doesn’t carry the name.');
   await expect(out(page)).not.toContainText('Partner check test record');
   expect(await valid(page)).toBe(false);
   expect(

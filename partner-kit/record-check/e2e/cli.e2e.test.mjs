@@ -98,9 +98,16 @@ describe('partner-kit check, against a local registry', () => {
         ['custody-statement', false, 'checked', null],
         ['lab-receipt', true, 'checked', null],
         ['lab-receipt', true, 'checked', null],
-        ['lab-report', true, 'checked', true],
+        ['lab-report', true, 'checked', null],
       ],
     );
+    // Round 6: the lab report is signed bound to the record, so no file hash is public; the one
+    // signed before that is withheld by the registry and only counted.
+    assert.equal(c.labReceipts.find((x) => x.kind === 'lab-report').documentBound, true);
+    assert.equal(c.labReceipts.find((x) => x.kind === 'lab-report').documentSha256, undefined);
+    assert.equal(c.labReportsWithheld, 1);
+    assert.equal(c.nameCheck, 'matches');
+    assert.equal(c.nameByHolder, 'Partner check test record');
     // The receipts tied to deliveries, with their sample details as the registry reports them.
     const byId = Object.fromEntries(c.labReceipts.map((x) => [x.attestationId, x]));
     // Sample details sealed with the delivery's key: the registry can't compare them; the

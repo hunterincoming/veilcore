@@ -3,8 +3,10 @@
 // database and lab-results folder, stopped by PID. Nothing here reaches a network.
 //
 // Seeded (all test data):
-//   bound    names its key, a lab report saved; from a key whose name VeilCore's operator
-//            checked: a lab report, a custody statement tied to no delivery, and two lab
+//   bound    names its key, a lab report saved, a name code (round 6); from a key whose name
+//            VeilCore's operator checked: a lab report signed bound to the record (round 6),
+//            one signed before that (the registry withholds it), a custody statement tied to
+//            no delivery, and two lab
 //            receipts tied to deliveries of the record (one whose sample details match what
 //            was sent, one whose seal number doesn't), the sample details sealed with each
 //            delivery's offer key as the site seals them, and the holder's grant publishing
@@ -14,7 +16,7 @@
 //   undated  sealed after the batch: in no batch
 // SPDX-License-Identifier: Apache-2.0
 import { spawn } from 'node:child_process';
-import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, createHmac, hkdfSync, randomBytes } from 'node:crypto';
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { canonicalise, generateKeypair, signAttestation, signRetraction } from 'veilcore-records';
@@ -47,6 +49,20 @@ const seal = (r) => {
     recordFingerprint: typeof r.keyBinding === 'string' ? H('veilcore:v1:keyrecord', r.keyBinding, content) : content,
   };
 };
+/** The name code the site seals with a record (round 6, CONTRACT.md #33; verify-link.ts nameCodeOf). */
+const nameCodeOf = (name, proofCode, salt) =>
+  sha256(Buffer.from(`veilcore:name:v1\0${name.normalize('NFC').trim()}\0${proofCode}\0${salt}`, 'utf8'));
+/** What a lab signs about a report it sends back (round 6, CONTRACT.md #34; lab-doc.ts labDocument). */
+const labDocument = (reportSha, proofCode, s) =>
+  sha256(
+    Buffer.concat([
+      Buffer.from('veilcore:labdoc:v1\0'),
+      ...[reportSha, proofCode, s].map((h) => Buffer.from(h, 'hex')),
+    ]),
+  );
+/** s for a delivery, from its offer key (lab-doc.ts labDocSaltOf). */
+const labDocSaltOf = (offerKey) =>
+  Buffer.from(hkdfSync('sha256', offerKey, Buffer.alloc(0), 'veilcore:labdoc-salt:v1', 32)).toString('hex');
 const recordId = () => `VEIL-${randomBytes(16).toString('hex').toUpperCase()}`;
 
 // Sealed records (the site's CONTRACT.md for sealed records): the registry refuses a record
@@ -60,6 +76,7 @@ const PUBLIC_FIELDS = [
   'profile',
   'recordFingerprint',
   'keyBinding',
+  'nameCode',
   'supersededBy',
   'receivedFrom',
   'receivedFromCommitment',
@@ -223,7 +240,7 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
     const KEY = H('veilcore:v1:commit', SECRET);
     const KEY_SALT = H('veilcore:v1:keysalt', SECRET);
     const LAB_SHA = sha256(`Test lab report ${Date.now()}`);
-    const bound = seal({
+    const sealedBound = seal({
       id: recordId(),
       nonce: randomBytes(32).toString('hex'),
       strainName: 'Partner check test record',
@@ -238,7 +255,16 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
       // The record's own pairing salt (round 5): sealed with it, outside its fingerprint, and
       // in the holder's check link after the #.
       dnaPairSalt: randomBytes(32).toString('hex'),
+      // The salt of its name code (round 6): sealed with it, and after the # of the holder's link.
+      nameSalt: randomBytes(32).toString('hex'),
     });
+    const bound = {
+      ...sealedBound,
+      nameCode: nameCodeOf(sealedBound.strainName, sealedBound.recordFingerprint, sealedBound.nameSalt),
+    };
+    // The delivery the lab report came back on: its s, in the holder's link (`ls`) when the
+    // holder shares the lab report.
+    const LAB_S = labDocSaltOf(randomBytes(32));
     const older = seal({
       id: recordId(),
       nonce: randomBytes(32).toString('hex'),
@@ -326,14 +352,26 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
         documentHash: sha256('sample'),
       }),
     );
+    // The lab report, signed bound to the record as labs sign it since round 6 (id ends _ld1).
     await call(
       'POST',
       '/attestations',
       await sign(checkedLab, {
-        attestationId: `att_l_${randomBytes(4).toString('hex')}`,
+        attestationId: `att_l_${randomBytes(4).toString('hex')}_ld1`,
         type: 'laboratory-report',
         subjectCommitment: bound.recordFingerprint,
-        documentHash: LAB_SHA,
+        documentHash: labDocument(LAB_SHA, bound.recordFingerprint, LAB_S),
+      }),
+    );
+    // One signed the old way, over the file's plain SHA-256: the registry withholds it.
+    await call(
+      'POST',
+      '/attestations',
+      await sign(checkedLab, {
+        attestationId: `att_o_${randomBytes(4).toString('hex')}`,
+        type: 'laboratory-report',
+        subjectCommitment: bound.recordFingerprint,
+        documentHash: sha256(`An older test lab report ${Date.now()}`),
       }),
     );
     // Deliveries of `bound` to a lab, each with the sample details the breeder wrote, the
@@ -496,8 +534,11 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
       fields: { bound: committed(bound) },
       links: {
         bound: link(bound),
-        // As the site makes it now: the key's values, the name and the DNA salt after the #.
-        boundWithKey: `${link(bound)}#chain=${KEY}&ks=${KEY_SALT}&cd=${sha256(canonicalise(committed(bound)))}&n=${nameParam(bound.strainName)}&ds=${bound.dnaPairSalt}`,
+        // As the site makes it now: the key's values, the name and its salt, the DNA salt and
+        // the lab report salt after the #.
+        boundWithKey: `${link(bound)}#chain=${KEY}&ks=${KEY_SALT}&cd=${sha256(canonicalise(committed(bound)))}&n=${nameParam(bound.strainName)}&ns=${bound.nameSalt}&ds=${bound.dnaPairSalt}&ls=${LAB_S}`,
+        // The same link with another name after the # (the fifth review's finding 2).
+        boundForgedName: `${link(bound)}#n=${nameParam('Gelato 41 (lab certified clone)')}&ns=${bound.nameSalt}`,
         // An older link: the key's values in the query string, no name, no salt.
         boundWithKeyInQuery: link(bound, `&chain=${KEY}&ks=${KEY_SALT}&cd=${sha256(canonicalise(committed(bound)))}`),
         older: link(older),
