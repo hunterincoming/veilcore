@@ -65,6 +65,20 @@ export const lab = {
   'app.lab.custody.noDifference':
     'No hay diferencias entre los detalles de la muestra enviados y los que escribió el laboratorio al recibirla.',
   'app.lab.custody.joinSentences': ' ',
+  'app.lab.custody.locked':
+    'Los detalles de la muestra están bloqueados y este navegador no tiene su clave. Restaure aquí su archivo de copia de seguridad para verlos.',
+  'app.lab.custody.sealedSigned':
+    'El laboratorio firmó su acuse de recibo sobre los detalles de la muestra. Se guardan bloqueados y VeilCore no tiene la clave, así que esta página no puede compararlos.',
+  'app.lab.custody.holderMatch':
+    'La aplicación del remitente los comparó: lo que llegó coincide con lo que se envió. Es la palabra del remitente.',
+  'app.lab.custody.holderDiffers':
+    'La aplicación del remitente los comparó y encontró diferencias en: {fields}. Es la palabra del remitente.',
+  'app.lab.custody.holderChanged':
+    'La aplicación del remitente los comparó: el laboratorio cambió sus detalles de llegada después de firmar, así que su acuse no los cubre. Es la palabra del remitente.',
+  'app.lab.custody.removed':
+    'Los detalles de la muestra de este envío se escribieron antes del bloqueo y ya se eliminaron, así que este acuse no se puede comparar con ellos.',
+  'app.lab.send.sampleNotSaved':
+    'El código de laboratorio funciona, pero los detalles de la muestra no se guardaron: {error}',
   'app.signer.sep': ' ',
   'app.lab.strength.unsigned': 'Sin firmar',
   'app.lab.strength.unsignedWhy':
@@ -192,7 +206,7 @@ export const lab = {
   'app.lab.recv.nothingSigned': '{problems} No se firmó nada',
   'app.lab.recv.notSaved': 'sus detalles de llegada no se guardaron ({error}), así que no se firmó nada',
   'app.lab.recv.savedDifferent':
-    'el servidor de registros guardó detalles de la muestra distintos de los de esta pantalla, así que no se firmó nada. Recargue la página y vuelva a revisarlos',
+    'los detalles de la muestra volvieron del servidor de registros distintos de los de esta pantalla, así que no se firmó nada. Recargue la página y vuelva a revisarlos',
   'app.lab.recv.unlinked':
     'Su acuse de recibo está firmado, pero no se pudo vincular a este envío ({error}), así que el obtentor todavía no puede verlo. Inténtelo de nuevo, o vincúlelo más tarde desde la página de la planta.',
   'app.lab.recv.linkIntro':

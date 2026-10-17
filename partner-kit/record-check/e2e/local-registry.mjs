@@ -6,7 +6,9 @@
 //   bound    names its key, a lab report saved; from a key whose name VeilCore's operator
 //            checked: a lab report, a custody statement tied to no delivery, and two lab
 //            receipts tied to deliveries of the record (one whose sample details match what
-//            was sent, one whose seal number doesn't); in a batch dated on preprod
+//            was sent, one whose seal number doesn't), the sample details sealed with each
+//            delivery's offer key as the site seals them, and the holder's grant publishing
+//            what the holder's app worked out about each; in a batch dated on preprod
 //   older    an older record (no key); a receipt from a key nobody checked, then withdrawn
 //            by that key; same batch
 //   undated  sealed after the batch: in no batch
@@ -99,6 +101,14 @@ const sealedRow = (r, key) => {
   return { ...open, sealed: { ...gcm(key, `veilcore:sealed:v1\0records\0${r.id}\0${kid}`, hidden), kid } };
 };
 const offerAad = (src) => `veilcore:offer:v1\0${src.id}\0${src.recordFingerprint}`;
+/**
+ * A delivery's sample details as the site seals them (CONTRACT.md #27): each side under the
+ * delivery's offer key, bound to the delivery and the side; kid from the offer key.
+ */
+const custodyBox = (offerKey, transferId, side, value) => ({
+  ...gcm(offerKey, `veilcore:sealed:v1\0custody\0${transferId}\0${side}`, value),
+  kid: sha256(Buffer.concat([Buffer.from('veilcore:offer-id:v1:'), offerKey])).slice(0, 16),
+});
 /** What a grant publishes, read from the record (the site's disclosure.ts grantValuesFor). */
 const grantFor = (r, show) => ({
   show,
@@ -312,7 +322,9 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
     );
     // Deliveries of `bound` to a lab, each with the sample details the breeder wrote, the
     // lab's arrival details, and the lab's receipt over both (its id carries their digest,
-    // as the site signs it), attached to the delivery.
+    // as the site signs it), attached to the delivery. Both sides are sealed with the
+    // delivery's offer key, and the digest is the salted v2 one (`_sc2_`): the registry stores
+    // them locked and can't compare them; the holder's grant says what the holder's app found.
     const deliver = async (sample, arrival) => {
       const labHolder = { 'x-holder-key': randomBytes(32).toString('hex') };
       const offerKey = randomBytes(32);
@@ -324,7 +336,14 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
       const offer = await call(
         'POST',
         '/transfers',
-        { sourceRecord: bound.id, toHandle: handleTag(VAULT, 'lab@e2e.test'), sample, sealedOffer },
+        { sourceRecord: bound.id, toHandle: handleTag(VAULT, 'lab@e2e.test'), sealedOffer },
+        holder,
+      );
+      const salt = randomBytes(32).toString('base64url');
+      await call(
+        'POST',
+        `/transfers/${offer.transferId}/custody`,
+        { sample: custodyBox(offerKey, offer.transferId, 'sample', { ...sample, salt }) },
         holder,
       );
       const claim = await call(
@@ -348,11 +367,16 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
         loggedAt: stub.receivedAt,
       });
       await put([received], labHolder, randomBytes(32));
-      await call('POST', `/transfers/${offer.transferId}/custody`, { arrival }, labHolder);
-      const digest = sha256(
-        canonicalise({ format: 'veilcore/sample-custody/v1', transferId: offer.transferId, sample, arrival }),
+      await call(
+        'POST',
+        `/transfers/${offer.transferId}/custody`,
+        { arrival: custodyBox(offerKey, offer.transferId, 'arrival', arrival) },
+        labHolder,
       );
-      const attestationId = `att_d_${randomBytes(4).toString('hex')}_sc1_${digest}`;
+      const digest = sha256(
+        canonicalise({ format: 'veilcore/sample-custody/v2', transferId: offer.transferId, salt, sample, arrival }),
+      );
+      const attestationId = `att_d_${randomBytes(4).toString('hex')}_sc2_${digest}`;
       await call(
         'POST',
         '/attestations',
@@ -374,6 +398,23 @@ export const startRegistry = async ({ registryDir, port = 8920, dir }) => {
     const receiptSealDiffers = await deliver(
       { sampleId: 'E2E-2', sealNumber: '5500' },
       { sampleId: 'E2E-2', sealNumber: '5505', sealIntact: 'yes', arrivedOn },
+    );
+    // What the holder's app worked out from the opened boxes, published with the grant (the
+    // site's disclosure.ts grantValuesNow): names of differing fields, never their values.
+    await call(
+      'PUT',
+      `/api/records/${bound.id}/disclosure`,
+      {
+        ...grantFor(bound, ['existence', 'attestation-status']),
+        values: {
+          ...grantFor(bound, ['existence', 'attestation-status']).values,
+          custodySummary: [
+            { receiptAttestationId: receiptMatching, covered: 'covered', differingFields: [] },
+            { receiptAttestationId: receiptSealDiffers, covered: 'covered', differingFields: ['sealNumber'] },
+          ].sort((a, b) => a.receiptAttestationId.localeCompare(b.receiptAttestationId)),
+        },
+      },
+      holder,
     );
 
     const withdrawnId = `att_w_${randomBytes(4).toString('hex')}`;

@@ -66,6 +66,19 @@ export const lab = {
   'app.lab.custody.sealMatches': 'Seal number match what was sent.',
   'app.lab.custody.noDifference': 'No difference between the sample details sent and those the lab wrote on arrival.',
   'app.lab.custody.joinSentences': ' ',
+  'app.lab.custody.locked':
+    'The sample details are locked, and this browser doesn’t have their key. Restore your backup file here to see them.',
+  'app.lab.custody.sealedSigned':
+    'The lab signed its receipt over the sample details. They are stored locked, and VeilCore doesn’t have the key, so this page can’t compare them.',
+  'app.lab.custody.holderMatch':
+    'The sender’s app compared them: what arrived matches what was sent. That is the sender’s word.',
+  'app.lab.custody.holderDiffers':
+    'The sender’s app compared them and found differences in: {fields}. That is the sender’s word.',
+  'app.lab.custody.holderChanged':
+    'The sender’s app compared them: the lab changed its arrival details after signing, so its receipt doesn’t cover them. That is the sender’s word.',
+  'app.lab.custody.removed':
+    'The sample details on this delivery were written before sealing and have since been removed, so this receipt can’t be compared with them.',
+  'app.lab.send.sampleNotSaved': 'The lab code works, but the sample details weren’t saved: {error}',
   'app.signer.sep': ' ',
   // attesters.ts strengthLabel: a signature in a plant's History.
   'app.lab.strength.unsigned': 'Unsigned',
@@ -191,7 +204,7 @@ export const lab = {
   'app.lab.recv.nothingSigned': '{problems} Nothing was signed',
   'app.lab.recv.notSaved': 'your arrival details weren’t saved ({error}), so nothing was signed',
   'app.lab.recv.savedDifferent':
-    'the registry saved sample details different from the ones on this screen, so nothing was signed. Reload the page and check them again',
+    'the sample details came back from the registry different from the ones on this screen, so nothing was signed. Reload the page and check them again',
   'app.lab.recv.unlinked':
     'Your receipt is signed, but it couldn’t be linked to this delivery ({error}), so the breeder can’t see it yet. Try again, or link it later from the plant’s page.',
   'app.lab.recv.linkIntro':

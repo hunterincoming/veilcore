@@ -39,6 +39,7 @@ import {
   claimTransfer,
   CUSTODY_LIMITS,
   custodyDigest,
+  custodyDigestV2,
   custodyOf,
   custodyProblems,
   custodySubject,
@@ -49,6 +50,8 @@ import {
   codeMissingOfferKey,
   forgetReceivingCode,
   keepReceivingCode,
+  offerKeyForDelivery,
+  openDeliveryCustody,
   publicFingerprintOf,
   quantityPhrase,
   sameDetails,
@@ -361,6 +364,19 @@ const linkReceipt = async (delivery: LabDelivery, attestationId: string): Promis
 type Signed = { attestationId: string } | { error: string };
 
 /**
+ * The delivery's sample details as the lab signs over them. `offerKey` and `salt`: sealed
+ * with the delivery's offer key (CONTRACT.md #27), and the salt the breeder's sealed side
+ * carries; without them, a delivery made before sample details were sealed.
+ */
+type SigningCustody = {
+  transferId: string;
+  sample: SampleDetails;
+  arrival: ArrivalDetails;
+  offerKey?: string;
+  salt?: string;
+};
+
+/**
  * Sign the receipt. With sample details on the delivery, the lab's arrival details are
  * stored first, and the receipt is signed over what the lab saw and typed: the breeder's
  * details as shown on this screen and the lab's own entries, normalised as the registry
@@ -368,33 +384,45 @@ type Signed = { attestationId: string } | { error: string };
  * whatever the registry echoed back, so a registry that changed a value got the lab's
  * signature over something the lab never wrote. Now, if the echo differs from either, nothing
  * is signed.
+ *
+ * Sealed (CONTRACT.md #27): the arrival details are sealed with the offer key before they
+ * are sent, the echo is opened here and compared the same way, and the receipt carries
+ * custodyDigestV2 with the breeder's salt as `_sc2_`. The registry can't read either side.
  */
 const signReceipt = async (
   attester: AttesterProfile,
   subject: CustodySubject,
-  custody?: { transferId: string; sample: SampleDetails; arrival: ArrivalDetails },
+  custody?: SigningCustody,
   tr: Translator = enT,
 ): Promise<Signed> => {
   let digest: string | undefined;
-  if (custody && (hasDetails(custody.sample) || hasDetails(custody.arrival))) {
+  let format: 1 | 2 = 1;
+  const sealed = !!custody?.offerKey && !!custody.salt;
+  if (custody && (sealed || hasDetails(custody.sample) || hasDetails(custody.arrival))) {
     const problems = custodyProblems('arrival', custody.arrival, tr);
     if (problems.length) return { error: tr.t('app.lab.recv.nothingSigned', { problems: problems.join(' ') }) };
     const shown = sampleDetailsOf(custody.sample);
     const typed = arrivalDetailsOf(custody.arrival);
-    const stored = await setArrival(custody.transferId, typed);
+    const stored = await setArrival(custody.transferId, typed, custody.offerKey);
     if ('error' in stored) {
       // A registry from before sample details: with nothing from the breeder, sign as before.
       if (!(/can’t keep sample details/.test(stored.error) && !hasDetails(custody.sample))) {
         return { error: tr.t('app.lab.recv.notSaved', { error: stored.error }) };
       }
     } else {
-      if (!sameDetails(stored.arrival, typed) || !sameDetails(stored.sample, shown)) {
+      if (stored.locked || !sameDetails(stored.arrival, typed) || !sameDetails(stored.sample, shown)) {
         return { error: tr.t('app.lab.recv.savedDifferent') };
       }
-      digest = await custodyDigest(custody.transferId, shown, typed);
+      if (sealed && custody.salt) {
+        if (stored.salt !== custody.salt) return { error: tr.t('app.lab.recv.savedDifferent') };
+        digest = await custodyDigestV2(custody.transferId, custody.salt, shown, typed);
+        format = 2;
+      } else if (!stored.sealed) {
+        digest = await custodyDigest(custody.transferId, shown, typed);
+      }
     }
   }
-  const out = await signReceiptWith(attester, subject, digest);
+  const out = await signReceiptWith(attester, subject, digest, format);
   if ('error' in out) return out;
   labChanged();
   return out;
@@ -460,15 +488,28 @@ export const SignReceiptPanel: React.FC<{
   const transferId = record.transferId ?? deliveryForRecord(record.id)?.transferId;
   const tr = useT();
   const { t } = tr;
-  // The delivery's sample details (null while loading; undefined when the registry can't say).
-  const [custody, setCustody] = useState<{ sample: SampleDetails; arrival: ArrivalDetails } | null | undefined>(
-    transferId ? null : undefined,
-  );
+  // The delivery's sample details (null while loading; undefined when the registry can't say,
+  // or they are sealed and this browser has no key for them).
+  const [custody, setCustody] = useState<
+    { sample: SampleDetails; arrival: ArrivalDetails; salt?: string; offerKey?: string } | null | undefined
+  >(transferId ? null : undefined);
+  const [custodyLocked, setCustodyLocked] = useState(false);
   useEffect(() => {
     if (!transferId) return;
     let live = true;
     void custodyOf(transferId).then((c) => {
-      if (live) setCustody('error' in c ? undefined : { sample: c.sample, arrival: c.arrival });
+      if (!live) return;
+      setCustodyLocked(!('error' in c) && !!c.locked);
+      const offerKey = offerKeyForDelivery(transferId);
+      setCustody(
+        'error' in c || c.locked
+          ? undefined
+          : {
+              sample: c.sample,
+              arrival: c.arrival,
+              ...(c.sealed && c.salt && offerKey ? { salt: c.salt, offerKey } : {}),
+            },
+      );
     });
     return () => {
       live = false;
@@ -534,6 +575,11 @@ export const SignReceiptPanel: React.FC<{
       <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="">
         {t('app.plant.action.signReceipt')}
       </Typography>
+      {custodyLocked && (
+        <Alert severity="info" variant="outlined" data-custody-locked="">
+          {t('app.lab.custody.locked')}
+        </Alert>
+      )}
       <ReceiptChoice
         subject={subject}
         attester={attester}
@@ -547,7 +593,7 @@ export const SignReceiptPanel: React.FC<{
             const signed = await signReceipt(
               attester,
               subject,
-              transferId && custody && arrival ? { transferId, sample: custody.sample, arrival } : undefined,
+              transferId && custody && arrival ? { transferId, ...custody, arrival } : undefined,
               tr,
             );
             if ('error' in signed) {
@@ -586,8 +632,13 @@ type Stage =
       subject: CustodySubject;
       attester: AttesterProfile;
       transferId: string;
-      /** What the breeder wrote about the sample (the claim's answer). */
+      /** What the breeder wrote about the sample (the claim's answer, opened with the code's key when sealed). */
       sample: SampleDetails;
+      /** Sealed sample details (CONTRACT.md #27): the code's offer key and the breeder's salt. */
+      offerKey?: string;
+      salt?: string;
+      /** Sealed, and the code's key doesn't open them: the receipt can't cover them. */
+      locked?: boolean;
     }
   | { step: 'unlinked'; delivery: LabDelivery; attestationId: string; recordId: string }
   | { step: 'refused'; recordId: string; reason: string };
@@ -633,7 +684,7 @@ export const ClaimTransfer: React.FC<{
 
   const claim = async () => {
     if (!code.trim() || busy) return;
-    const { transferId, claimCode, resultLock } = parseShareCode(code);
+    const { transferId, claimCode, resultLock, offerKey } = parseShareCode(code);
     setBusy(true);
     setError(null);
     try {
@@ -703,10 +754,23 @@ export const ClaimTransfer: React.FC<{
         publicFingerprint: sealed.receivedFrom ? await publicFingerprintOf(sealed.receivedFrom) : null,
       });
       if (notOpened && !('refuse' in subject)) setError(notOpened);
+      // The breeder's sample details: sealed with the offer key in the code (CONTRACT.md #27),
+      // or plain fields on a delivery made before.
+      const sent = res.sampleSealed
+        ? await openDeliveryCustody(transferId, res.sampleSealed, undefined, offerKey)
+        : { sample: res.sample ?? {}, sealed: false as const };
       setStage(
         'refuse' in subject
           ? { step: 'refused', recordId: res.recordId, reason: [notOpened, subject.refuse].filter(Boolean).join(' ') }
-          : { step: 'sign', subject, attester, transferId, sample: res.sample ?? {} },
+          : {
+              step: 'sign',
+              subject,
+              attester,
+              transferId,
+              sample: sent.sample,
+              ...('salt' in sent && sent.salt && offerKey ? { salt: sent.salt, offerKey } : {}),
+              ...('locked' in sent && sent.locked ? { locked: true } : {}),
+            },
       );
     } catch (e) {
       setError(t('app.sealed.recv.failed', { error: e instanceof Error ? e.message : String(e) }));
@@ -722,7 +786,14 @@ export const ClaimTransfer: React.FC<{
     const signed = await signReceipt(
       stage.attester,
       stage.subject,
-      arrival ? { transferId: stage.transferId, sample: stage.sample, arrival } : undefined,
+      arrival
+        ? {
+            transferId: stage.transferId,
+            sample: stage.sample,
+            arrival,
+            ...(stage.offerKey && stage.salt ? { offerKey: stage.offerKey, salt: stage.salt } : {}),
+          }
+        : undefined,
       tr,
     );
     if ('error' in signed) {
@@ -799,11 +870,16 @@ export const ClaimTransfer: React.FC<{
 
           {stage.step === 'sign' && (
             <Box sx={{ pt: 1 }}>
+              {stage.locked && (
+                <Alert severity="info" variant="outlined" sx={{ mb: 1.5 }} data-custody-locked="">
+                  {t('app.lab.custody.locked')}
+                </Alert>
+              )}
               <ReceiptChoice
                 subject={stage.subject}
                 attester={stage.attester}
                 transferId={stage.transferId}
-                custody={{ sample: stage.sample, arrival: {} }}
+                custody={stage.locked ? undefined : { sample: stage.sample, arrival: {} }}
                 busy={busy}
                 onSign={(arrival) => void sign(arrival)}
                 onReject={(reason) => {

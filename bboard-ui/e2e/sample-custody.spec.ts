@@ -2,21 +2,77 @@
 // the breeder writes the sample's label and seal with the lab code, the lab confirms or
 // corrects them and signs its receipt over both, and a difference shows plainly on the
 // breeder's plant page, certificate and check page, and on the lab's own plant page.
+//
+// Since round 3 of sealed records (CONTRACT.md #27) both sides are sealed with the delivery's
+// offer key before they leave the browser: the registry stores two locked boxes, the lab's
+// receipt carries the salted v2 digest (`_sc2_`), and only the two apps can open and compare
+// them. With E2E_REGISTRY_DB, the registry's database file is read byte for byte: nothing the
+// breeder or the lab typed about the sample is in it, or in any request the app made.
 // Skipped without a real registry.
 // SPDX-License-Identifier: Apache-2.0
+import fs from 'node:fs';
+import { createCipheriv, createHash, randomBytes } from 'node:crypto';
 import { expect, test } from '@playwright/test';
-import type { Browser, Page } from '@playwright/test';
+import type { Browser, BrowserContext, Page } from '@playwright/test';
 import { API, REAL_REGISTRY, expectNoErrors, isolate, watch } from './helpers';
 
 test.skip(!REAL_REGISTRY, 'needs a real registry: set E2E_API_BASE and build with it');
+
+const DB = process.env.E2E_REGISTRY_DB ?? '';
 
 const shot = async (page: Page, name: string) => {
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/${name}.png`, fullPage: true });
 };
 
+/** What the breeder and the lab type about the sample: unique per run, so a scan finds only these. */
+const typedFor = (tag: string) => {
+  const u = `${tag}${Date.now().toString(36)}`.toUpperCase();
+  return {
+    sampleId: `BLU-${u}`,
+    seal: `4471${u}`,
+    takenFrom: `Mother M3 bench ${u}`,
+    takenOn: '2024-02-29',
+    witness: `J. Doe ${u}`,
+    arrivedOn: '2024-03-01',
+    condition: `Cold bag dry ${u}`,
+    labRef: `ACC-${u}`,
+  };
+};
+type Typed = ReturnType<typeof typedFor>;
+
+/** Every request the app makes to the registry, as sent: URL, headers and body. */
+const record = (ctx: BrowserContext, into: string[]) =>
+  ctx.on('request', (req) => {
+    if (!req.url().startsWith(API)) return;
+    into.push(`${req.method()} ${req.url()}\n${JSON.stringify(req.headers())}\n${req.postData() ?? ''}`);
+  });
+
+/** The registry's database file, with any journal beside it. */
+const dbBytes = (): Buffer =>
+  Buffer.concat([DB, `${DB}-wal`, `${DB}-journal`].filter((f) => fs.existsSync(f)).map((f) => fs.readFileSync(f)));
+
+/** A side sealed as the site seals it (vault.ts sealCustody), with the offer key from the lab code. */
+const sealSide = (code: string, transferId: string, side: 'sample' | 'arrival', value: Record<string, string>) => {
+  const part = code.split('.').find((p) => /^o1[A-Za-z0-9_-]{43}$/.test(p)) ?? '';
+  const key = Buffer.from(part.slice(2), 'base64url');
+  const iv = randomBytes(12);
+  const c = createCipheriv('aes-256-gcm', key, iv);
+  c.setAAD(Buffer.from(`veilcore:sealed:v1\0custody\0${transferId}\0${side}`, 'utf8'));
+  const ct = Buffer.concat([c.update(JSON.stringify(value), 'utf8'), c.final(), c.getAuthTag()]);
+  const kid = createHash('sha256')
+    .update(Buffer.concat([Buffer.from('veilcore:offer-id:v1:', 'utf8'), key]))
+    .digest('hex')
+    .slice(0, 16);
+  return { v: 1, alg: 'A256GCM', kid, iv: iv.toString('base64url'), ct: ct.toString('base64url') };
+};
+
+const BOX_KEYS = ['alg', 'ct', 'iv', 'kid', 'v'];
+
 /** A breeder logs a plant and makes a lab code with the sample's details; the lab receives it and signs. */
-const sendAndReceive = async (browser: Browser, arrivedSeal: string, tag: string) => {
+const sendAndReceive = async (browser: Browser, t: Typed, arrivedSeal: string, tag: string) => {
+  const requests: string[] = [];
   const breederCtx = await browser.newContext();
+  record(breederCtx, requests);
   const breeder = await breederCtx.newPage();
   const breederErrors = watch(breeder);
   await isolate(breeder);
@@ -35,20 +91,22 @@ const sendAndReceive = async (browser: Browser, arrivedSeal: string, tag: string
   await breeder.getByText('Send it to a lab or breeder').click();
   await breeder.getByLabel(/Who are you sending it to/).fill('lab@e2e');
   await breeder.getByRole('button', { name: /Add the sample.s label and seal/ }).click();
-  await breeder.getByLabel(/Sample ID \/ label on the tube or bag/).fill('BLU-07');
-  await breeder.getByLabel(/Seal or bag number/).fill('4471');
-  await breeder.getByLabel(/^Taken from/).fill('Mother M3, bench 2');
-  await breeder.getByLabel(/^Taken on/).fill('2026-10-14');
-  await breeder.getByLabel(/^Witness/).fill('J. Doe');
+  await breeder.getByLabel(/Sample ID \/ label on the tube or bag/).fill(t.sampleId);
+  await breeder.getByLabel(/Seal or bag number/).fill(t.seal);
+  await breeder.getByLabel(/^Taken from/).fill(t.takenFrom);
+  await breeder.getByLabel(/^Taken on/).fill(t.takenOn);
+  await breeder.getByLabel(/^Witness/).fill(t.witness);
   await shot(breeder, `custody-${tag}-1-send`);
   await breeder.getByRole('button', { name: /Make a code for the lab/ }).click();
   const codeEl = breeder.getByText(/^TR-[0-9A-F]{8}\./);
   await expect(codeEl).toBeVisible();
   const code = (await codeEl.innerText()).trim();
-  await expect(breeder.locator('[data-sample-sent]')).toContainText('Sample BLU-07 · seal 4471');
+  await expect(breeder.locator('[data-sample-sent]')).toContainText(`Sample ${t.sampleId} · seal ${t.seal}`);
+  await expect(breeder.locator('[data-sample-not-saved]')).toHaveCount(0);
   await breeder.getByRole('button', { name: /^Done$/ }).click();
 
   const labCtx = await browser.newContext();
+  record(labCtx, requests);
   const lab = await labCtx.newPage();
   const labErrors = watch(lab);
   await isolate(lab);
@@ -62,73 +120,95 @@ const sendAndReceive = async (browser: Browser, arrivedSeal: string, tag: string
   await lab.getByRole('button', { name: /^Go$/ }).click();
   await lab.getByRole('button', { name: /Receive it/ }).click();
 
-  // The form starts from what the breeder wrote; the lab confirms or corrects it.
-  await expect(lab.getByLabel('Sample ID on arrival')).toHaveValue('BLU-07');
-  await expect(lab.getByLabel('Seal number on arrival')).toHaveValue('4471');
+  // The form starts from what the breeder wrote, opened in the lab's browser with the code's
+  // key; the lab confirms or corrects it.
+  await expect(lab.getByLabel('Sample ID on arrival')).toHaveValue(t.sampleId);
+  await expect(lab.getByLabel('Seal number on arrival')).toHaveValue(t.seal);
   await expect(lab.locator('[data-receipt-statement]')).toContainText(
-    'The breeder wrote: Sample BLU-07 · seal 4471 · taken from Mother M3, bench 2 on 2026-10-14 · witness J. Doe (VeilCore doesn’t check this)',
+    `The breeder wrote: Sample ${t.sampleId} · seal ${t.seal} · taken from ${t.takenFrom} on ${t.takenOn} · witness ${t.witness} (VeilCore doesn’t check this)`,
   );
   await lab.getByLabel('Seal number on arrival').fill(arrivedSeal);
   await lab.getByLabel('Yes', { exact: true }).check();
-  await lab.getByLabel('Arrived on').fill('2026-10-15');
-  await lab.getByLabel('Condition').fill('Cold, bag dry');
-  await lab.getByLabel('Your accession no.').fill(`ACC-${tag}`);
-  if (arrivedSeal !== '4471') {
+  await lab.getByLabel('Arrived on').fill(t.arrivedOn);
+  await lab.getByLabel('Condition').fill(t.condition);
+  await lab.getByLabel('Your accession no.').fill(t.labRef);
+  if (arrivedSeal !== t.seal) {
     await expect(lab.locator('[data-arrival-differs]')).toContainText(
-      `Seal number differs: sent 4471, received ${arrivedSeal}.`,
+      `Seal number differs: sent ${t.seal}, received ${arrivedSeal}.`,
     );
   } else {
     await expect(lab.locator('[data-arrival-differs]')).toHaveCount(0);
   }
   await expect(lab.locator('[data-receipt-statement]')).toContainText(
-    `On arrival: Sample BLU-07 · seal ${arrivedSeal}, seal intact · arrived 2026-10-15 · condition: Cold, bag dry · lab no. ACC-${tag}`,
+    `On arrival: Sample ${t.sampleId} · seal ${arrivedSeal}, seal intact · arrived ${t.arrivedOn} · condition: ${t.condition} · lab no. ${t.labRef}`,
   );
   await shot(lab, `custody-${tag}-2-sign`);
   await lab.getByLabel(/I physically received this material/).check();
   await lab.getByRole('button', { name: /Sign with my key/ }).click();
   await expect(lab).toHaveURL(/\/record\//);
 
-  return { breeder, lab, breederCtx, labCtx, breederErrors, labErrors, recordId, transferId: code.split('.')[0] };
+  return {
+    breeder,
+    lab,
+    breederCtx,
+    labCtx,
+    breederErrors,
+    labErrors,
+    recordId,
+    code,
+    transferId: code.split('.')[0],
+    requests,
+  };
 };
 
-test('a matching seal: the receipt covers the sample details and the breeder sees they match', async ({ browser }) => {
-  const r = await sendAndReceive(browser, '4471', 'match');
+/** Nothing typed about the sample in any request the app made, or in the registry's database file. */
+const expectNothingTypedOnTheServer = (t: Typed, requests: string[], extra: string[] = []) => {
+  const values = [t.sampleId, t.seal, t.takenFrom, t.witness, t.condition, t.labRef, t.takenOn, t.arrivedOn, ...extra];
+  expect(requests.length).toBeGreaterThan(0);
+  for (const r of requests) for (const v of values) expect(r.includes(v), `${v} in ${r.split('\n')[0]}`).toBe(false);
+  if (!DB) return;
+  const bytes = dbBytes();
+  expect(bytes.length).toBeGreaterThan(0);
+  for (const v of values)
+    expect(bytes.includes(Buffer.from(v, 'utf8')), `${v} in the registry’s database file`).toBe(false);
+};
 
-  // What the registry holds, and the receipt's id carries their digest.
+test('a matching seal: sealed on the way, the receipt covers the sample details and the breeder sees "covered"', async ({
+  browser,
+}) => {
+  const t = typedFor('match');
+  const r = await sendAndReceive(browser, t, t.seal, 'match');
+
+  // What the registry holds: two locked boxes under the delivery's offer key, and a receipt
+  // whose id carries the salted v2 digest.
   const holder = await r.breeder.evaluate(() => localStorage.getItem('veilcore.holder.v1') ?? '');
   const custody = (await (
     await fetch(`${API}/transfers/${r.transferId}/custody`, { headers: { 'x-holder-key': holder } })
-  ).json()) as { sample: Record<string, string>; arrival: Record<string, string>; receiptAttestationId: string };
-  expect(custody.sample).toEqual({
-    sampleId: 'BLU-07',
-    sealNumber: '4471',
-    takenFrom: 'Mother M3, bench 2',
-    takenOn: '2026-10-14',
-    witness: 'J. Doe',
-  });
-  expect(custody.arrival).toEqual({
-    sampleId: 'BLU-07',
-    sealNumber: '4471',
-    sealIntact: 'yes',
-    arrivedOn: '2026-10-15',
-    condition: 'Cold, bag dry',
-    labRef: 'ACC-match',
-  });
-  expect(custody.receiptAttestationId).toMatch(/^att_[0-9a-f]{16}_sc1_[0-9a-f]{64}$/);
+  ).json()) as { sample: Record<string, unknown>; arrival: Record<string, unknown>; receiptAttestationId: string };
+  expect(Object.keys(custody.sample).sort()).toEqual(BOX_KEYS);
+  expect(Object.keys(custody.arrival).sort()).toEqual(BOX_KEYS);
+  expect(custody.arrival.kid).toBe(custody.sample.kid);
+  expect(custody.receiptAttestationId).toMatch(/^att_[0-9a-f]{16}_sc2_[0-9a-f]{64}$/);
 
-  // The lab's plant page.
-  await expect(r.lab.locator('[data-sample-details]')).toContainText('The breeder wrote: Sample BLU-07 · seal 4471');
+  // The lab's plant page, opened with the key its record keeps.
+  await expect(r.lab.locator('[data-sample-details]')).toContainText(
+    `The breeder wrote: Sample ${t.sampleId} · seal ${t.seal}`,
+  );
   await expect(r.lab.locator('[data-arrival-details]')).toContainText(
-    'On arrival (your receipt): Sample BLU-07 · seal 4471, seal intact',
+    `On arrival (your receipt): Sample ${t.sampleId} · seal ${t.seal}, seal intact`,
   );
   await expect(r.lab.locator('[data-custody-line]')).toHaveCount(0);
 
-  // The breeder's plant page.
+  // The breeder's plant page: worked out in the breeder's browser from the opened boxes.
   await r.breeder.goto(`/record/${r.recordId}`);
   const row = r.breeder.locator('[data-status-row="Receipt signed"]');
   await expect(row).toBeVisible();
+  await expect(row).toHaveAttribute('data-custody', 'covered');
   await expect(row).toContainText('Sample ID and seal number match what was sent.');
   await shot(r.breeder, 'custody-match-3-plant');
+
+  // None of it reached the registry readable: not in a request, not in its database file.
+  expectNothingTypedOnTheServer(t, r.requests);
 
   expectNoErrors(r.breederErrors);
   expectNoErrors(r.labErrors);
@@ -139,8 +219,10 @@ test('a matching seal: the receipt covers the sample details and the breeder see
 test('a different seal number: said plainly on the breeder’s plant page, certificate and check page, and the lab’s', async ({
   browser,
 }) => {
-  const r = await sendAndReceive(browser, '4417', 'differs');
-  const line = 'Seal number differs: sent 4471, received 4417.';
+  const t = typedFor('differs');
+  const arrived = `4417${t.seal.slice(4)}`;
+  const r = await sendAndReceive(browser, t, arrived, 'differs');
+  const line = `Seal number differs: sent ${t.seal}, received ${arrived}.`;
 
   // The lab's plant page.
   await expect(r.lab.locator('[data-custody-line]')).toHaveText(line);
@@ -150,6 +232,7 @@ test('a different seal number: said plainly on the breeder’s plant page, certi
   await r.breeder.goto(`/record/${r.recordId}`);
   const row = r.breeder.locator('[data-status-row="Receipt signed"]');
   await expect(row).toContainText(line);
+  await expect(row).toHaveAttribute('data-custody', 'covered');
   await expect(row).not.toContainText(/match what was sent/);
   await shot(r.breeder, 'custody-differs-4-plant');
 
@@ -157,8 +240,10 @@ test('a different seal number: said plainly on the breeder’s plant page, certi
   await r.breeder.getByText('Certificate', { exact: true }).click();
   const cert = r.breeder.locator('[data-custody-line]');
   await expect(cert.first()).toHaveText(line);
-  await expect(cert.nth(1)).toContainText('Sent: Sample BLU-07 · seal 4471');
-  await expect(cert.nth(2)).toContainText('Received: Sample BLU-07 · seal 4417, seal intact · arrived 2026-10-15');
+  await expect(cert.nth(1)).toContainText(`Sent: Sample ${t.sampleId} · seal ${t.seal}`);
+  await expect(cert.nth(2)).toContainText(
+    `Received: Sample ${t.sampleId} · seal ${arrived}, seal intact · arrived ${t.arrivedOn}`,
+  );
   await shot(r.breeder, 'custody-differs-5-certificate');
 
   // The check page, in the breeder's own browser, reached from inside the app: the public
@@ -174,66 +259,94 @@ test('a different seal number: said plainly on the breeder’s plant page, certi
   await expect(r.breeder.locator('[data-custody-line]').first()).toHaveText(line);
   await shot(r.breeder, 'custody-differs-6-check');
 
-  // A stranger's check page (round 2 of the 15 Oct review): with the holder sharing the lab
-  // status, the registry reports the difference under the receipt, never the details.
+  // A stranger's check page: with the holder sharing the lab status, the registry says only
+  // that the lab signed over the sample details, which it can't open; what the holder's app
+  // worked out comes as the sender's word, by field name, never a value.
   const breederKey = await r.breeder.evaluate(() => localStorage.getItem('veilcore.holder.v1') ?? '');
   const publicView = async () =>
     (await (await fetch(`${API}/verify/${r.recordId}`)).json()) as {
-      custody?: unknown;
+      custody?: { receiptAttestationId: string }[];
       recordFingerprint?: string;
       staleGrant?: string[];
     };
   const before = await publicView();
   expect(before.custody).toBeUndefined();
-  // What the app sends (disclosure.ts saveGrant): the keys, the fingerprint the values were
-  // read from, and the values. This plant has no DNA report saved, so there are none.
-  const granted = await fetch(`${API}/api/records/${r.recordId}/disclosure`, {
-    method: 'PUT',
-    headers: { 'content-type': 'application/json', 'x-holder-key': breederKey },
-    body: JSON.stringify({
-      show: ['existence', 'attestation-status'],
-      forFingerprint: before.recordFingerprint,
-      values: {},
-    }),
-  });
-  expect(granted.status).toBe(200);
+  const share = (values: Record<string, unknown>) =>
+    fetch(`${API}/api/records/${r.recordId}/disclosure`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json', 'x-holder-key': breederKey },
+      body: JSON.stringify({
+        show: ['existence', 'attestation-status'],
+        forFingerprint: before.recordFingerprint,
+        values,
+      }),
+    });
+  expect((await share({})).status).toBe(200);
   const shared = await publicView();
+  const receiptId = shared.custody?.[0]?.receiptAttestationId ?? '';
+  expect(receiptId).toMatch(/^att_[0-9a-f]{16}_sc2_[0-9a-f]{64}$/);
   expect(shared.custody).toEqual([
-    {
-      receiptAttestationId: expect.stringMatching(/^att_[0-9a-f]{16}_sc1_[0-9a-f]{64}$/) as unknown,
-      covered: 'covered',
-      differences: ['Seal number differs: sent 4471, received 4417'],
-    },
+    { receiptAttestationId: receiptId, custody: 'sealed', signedOverSampleDetails: true },
   ]);
   expect(shared.staleGrant).toBeUndefined();
-  for (const secret of ['Mother M3', 'J. Doe', 'Cold, bag dry', 'ACC-differs', r.transferId])
-    expect(JSON.stringify(shared)).not.toContain(secret);
   const strangerCtx = await browser.newContext();
   const stranger = await strangerCtx.newPage();
   const strangerErrors = watch(stranger);
   await stranger.goto(`/verify/${r.recordId}`);
-  await expect(stranger.locator('[data-public-custody]')).toContainText(line);
+  const signedOver =
+    'The lab signed its receipt over the sample details. They are stored locked, and VeilCore doesn’t have the key, so this page can’t compare them.';
+  await expect(stranger.locator('[data-public-custody]')).toContainText(signedOver);
+  // The summary the holder's app publishes with the grant (disclosure.ts grantValuesNow).
+  expect(
+    (
+      await share({
+        custodySummary: [{ receiptAttestationId: receiptId, covered: 'covered', differingFields: ['sealNumber'] }],
+      })
+    ).status,
+  ).toBe(200);
+  await stranger.reload();
+  await expect(stranger.locator('[data-public-custody]')).toContainText(
+    'The sender’s app compared them and found differences in: Seal number. That is the sender’s word.',
+  );
+  const publicText = JSON.stringify(await publicView()) + (await stranger.locator('body').innerText());
+  for (const secret of [t.seal, arrived, t.takenFrom, t.witness, t.condition, t.labRef, r.transferId])
+    expect(publicText).not.toContain(secret);
   await shot(stranger, 'custody-differs-7-public-check');
 
-  // Changing the lab's side after signing: no longer shown as covered.
+  // The lab changes its side after signing (sealed with the code's key, as its app would):
+  // the breeder's browser sees the receipt no longer covers it. The registry can't tell.
   const labKey = await r.lab.evaluate(() => localStorage.getItem('veilcore.holder.v1') ?? '');
   const changed = await fetch(`${API}/transfers/${r.transferId}/custody`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-holder-key': labKey },
-    body: JSON.stringify({ arrival: { sampleId: 'BLU-07', sealNumber: '4471', sealIntact: 'yes' } }),
+    body: JSON.stringify({
+      arrival: sealSide(r.code, r.transferId, 'arrival', {
+        sampleId: t.sampleId,
+        sealNumber: t.seal,
+        sealIntact: 'yes',
+      }),
+    }),
   });
   expect(changed.status).toBe(200);
+  // Plain fields are refused on this delivery.
+  const plain = await fetch(`${API}/transfers/${r.transferId}/custody`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-holder-key': labKey },
+    body: JSON.stringify({ arrival: { sampleId: t.sampleId, sealNumber: t.seal, sealIntact: 'yes' } }),
+  });
+  expect(plain.status).toBe(400);
   await r.breeder.goto(`/record/${r.recordId}`);
-  await expect(r.breeder.locator('[data-status-row="Receipt signed"]')).toContainText(
+  const after = r.breeder.locator('[data-status-row="Receipt signed"]');
+  await expect(after).toHaveAttribute('data-custody', 'changed');
+  await expect(after).toContainText(
     'The lab changed its arrival details after signing, so its receipt doesn’t cover them.',
   );
-  await stranger.reload();
-  await expect(stranger.locator('[data-public-custody]')).toContainText(
-    'The lab changed its arrival details after signing, so its receipt doesn’t cover them.',
-  );
+  // The registry never says covered or changed for sealed details.
+  expect((await publicView()).custody?.[0]).not.toHaveProperty('covered');
   expectNoErrors(strangerErrors);
   await strangerCtx.close();
 
+  expectNothingTypedOnTheServer(t, r.requests, [arrived]);
   expectNoErrors(r.breederErrors);
   expectNoErrors(r.labErrors);
   await r.breederCtx.close();

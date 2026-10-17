@@ -668,6 +668,11 @@ export const ReceivedFacts: React.FC<{ record: StrainRecord }> = ({ record }) =>
         <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>
           {rich(t('app.lab.facts.note'), { b }, { note: record.deliveryNote ?? t('app.lab.facts.none') })}
         </Typography>
+        {custody?.locked && (
+          <Typography variant="body2" color="text.secondary" data-custody-locked="">
+            {t('app.lab.custody.locked')}
+          </Typography>
+        )}
         {custody && hasDetails(custody.sample) && (
           <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }} data-sample-details="">
             {rich(t('app.lab.recv.breederWrote'), { b }, { line: sampleLine(custody.sample, tr) })}

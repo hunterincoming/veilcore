@@ -508,13 +508,16 @@ return canonicalise;
     'not-covered': 'not covered: the receipt is from before sample details',
     unsigned: 'not covered by any receipt signature here',
     'never-used': 'lab code never used',
+    locked: 'sample details locked, not in this bundle',
     malformed: 'unreadable',
   };
   function custodyCard(c) {
     var details = [];
     var id = plain(c.transferId);
     if (c.status === 'covered') {
-      details.push(para(['Worked out again on this page: the SHA-256 of these sample details (format veilcore/sample-custody/v1, canonical JSON) is ', hex(c.computed), '. The lab’s signed receipt ', hex(plain(c.receiptAttestationId)), ' ends with that value, and its signature checks above. So the lab signed for exactly what is shown here.']));
+      details.push(para(c.salt
+        ? ['Worked out again on this page: the SHA-256 of these sample details with the salt the breeder sealed with them, ', hex(plain(c.salt)), ' (format veilcore/sample-custody/v2, canonical JSON), is ', hex(c.computed), '. The lab’s signed receipt ', hex(plain(c.receiptAttestationId)), ' ends with that value, and its signature checks above. So the lab signed for exactly what is shown here. VeilCore’s registry stores these details locked and doesn’t have their key; they are in this bundle because the breeder’s browser opened them.']
+        : ['Worked out again on this page: the SHA-256 of these sample details (format veilcore/sample-custody/v1, canonical JSON) is ', hex(c.computed), '. The lab’s signed receipt ', hex(plain(c.receiptAttestationId)), ' ends with that value, and its signature checks above. So the lab signed for exactly what is shown here.']));
       details.push(custodyFacts('Sent', c.sample));
       details.push(custodyFacts('Received', c.arrival));
       if (c.differences.length) {
@@ -531,6 +534,8 @@ return canonicalise;
       details.push(para(['The lab’s receipt was signed before receipts covered sample details, so it covers none of them.']));
       details.push(custodyFacts('Sent', c.sample));
       details.push(custodyFacts('Received (not covered by the receipt)', c.arrival));
+    } else if (c.status === 'locked') {
+      details.push(para(['This delivery’s sample details are stored locked, and the browser that made this bundle didn’t have their key, so they aren’t in it and nothing about them can be checked here.']));
     } else if (c.status === 'never-used') {
       details.push(para(['Nobody used this lab code, so no lab received a sample through it.']));
       details.push(custodyFacts('Sent', c.sample));

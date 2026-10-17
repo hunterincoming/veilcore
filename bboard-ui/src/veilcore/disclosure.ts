@@ -165,6 +165,50 @@ export type GrantValues = {
   idScheme?: string;
   dnaFingerprint?: string;
   dnaFileSha256?: string;
+  /**
+   * Under attestation-status: what the holder's app worked out about each lab receipt over
+   * sealed sample details (CONTRACT.md #27), which the registry can't open. Computed values
+   * only: covered | changed | not-covered and the names of the fields that differ, never a
+   * field's value.
+   */
+  custodySummary?: CustodySummaryEntry[];
+};
+
+export type CustodySummaryEntry = {
+  receiptAttestationId: string;
+  covered: 'covered' | 'changed' | 'not-covered';
+  differingFields: string[];
+};
+
+/**
+ * Works out a record's custody summaries now (transfers.ts registers it, so this module
+ * needn't import transfers.ts). null: it can't say now (offline, or not loaded).
+ */
+type SummaryProvider = (r: StrainRecord) => Promise<CustodySummaryEntry[] | null>;
+let summaries: SummaryProvider | null = null;
+export const registerCustodySummaries = (p: SummaryProvider): void => {
+  summaries = p;
+};
+
+/**
+ * grantValuesFor, plus the custody summaries worked out now under attestation-status. When
+ * they can't be worked out now, the ones the registry publishes (`stored`) are kept as they
+ * are, so a page that can't reach them never takes them away.
+ */
+export const grantValuesNow = async (
+  r: StrainRecord,
+  show: readonly DisclosureKey[],
+  stored?: unknown,
+): Promise<GrantValues> => {
+  const v = grantValuesFor(r, show);
+  if (!show.includes('attestation-status')) return v;
+  const now = summaries ? await summaries(r).catch(() => null) : null;
+  if (now) {
+    if (now.length) v.custodySummary = now;
+  } else if (isObject(stored) && Array.isArray(stored.custodySummary)) {
+    v.custodySummary = stored.custodySummary as CustodySummaryEntry[];
+  }
+  return v;
 };
 
 /**
@@ -195,11 +239,15 @@ export const grantValuesFor = (r: StrainRecord, show: readonly DisclosureKey[]):
   return v;
 };
 
-const putGrant = (r: StrainRecord, show: DisclosureKey[]) =>
+const putGrant = async (r: StrainRecord, show: DisclosureKey[], values?: GrantValues) =>
   fetch(`${BASE}/api/records/${encodeURIComponent(r.id)}/disclosure`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'x-holder-key': holderKey() },
-    body: JSON.stringify({ show, forFingerprint: r.recordFingerprint || null, values: grantValuesFor(r, show) }),
+    body: JSON.stringify({
+      show,
+      forFingerprint: r.recordFingerprint || null,
+      values: values ?? (await grantValuesNow(r, show)),
+    }),
   });
 
 /** The holder's choice for a record, as its sealed copy keeps it; null when it keeps none. */
@@ -350,11 +398,12 @@ export const syncGrants = (
       if (!show) continue;
       const same = keysOn(disclosureFrom(g.show)).join(',') === show.join(',');
       if (same && !show.some((k) => VALUE_KEYS.includes(k))) continue;
-      if (same && g.forFingerprint === r.recordFingerprint && !forced.has(r.id)) {
-        if (sameGrantValues(await storedValuesOf(g, key), grantValuesFor(r, show))) continue;
-      }
+      const current = same && g.forFingerprint === r.recordFingerprint;
+      const stored = current ? await storedValuesOf(g, key) : undefined;
+      const wanted = await grantValuesNow(r, show, stored);
+      if (current && !forced.has(r.id) && sameGrantValues(stored, wanted)) continue;
       try {
-        if ((await putGrant(r, show)).ok) sent++;
+        if ((await putGrant(r, show, wanted)).ok) sent++;
       } catch {
         /* tried again at the next sync */
       }

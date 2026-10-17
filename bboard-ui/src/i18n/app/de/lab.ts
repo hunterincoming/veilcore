@@ -66,6 +66,19 @@ export const lab = {
   'app.lab.custody.noDifference':
     'Kein Unterschied zwischen den gesendeten Probendetails und denen, die das Labor bei Ankunft notiert hat.',
   'app.lab.custody.joinSentences': ' ',
+  'app.lab.custody.locked':
+    'Die Probenangaben sind verschlossen, und dieser Browser hat ihren Schlüssel nicht. Stellen Sie hier Ihre Sicherungsdatei wieder her, um sie zu sehen.',
+  'app.lab.custody.sealedSigned':
+    'Das Labor hat seine Empfangsbestätigung über die Probenangaben signiert. Sie sind verschlossen gespeichert, und VeilCore hat den Schlüssel nicht, daher kann diese Seite sie nicht vergleichen.',
+  'app.lab.custody.holderMatch':
+    'Die App des Absenders hat sie verglichen: Was ankam, entspricht dem, was gesendet wurde. Das ist die Angabe des Absenders.',
+  'app.lab.custody.holderDiffers':
+    'Die App des Absenders hat sie verglichen und Abweichungen gefunden bei: {fields}. Das ist die Angabe des Absenders.',
+  'app.lab.custody.holderChanged':
+    'Die App des Absenders hat sie verglichen: Das Labor hat seine Ankunftsangaben nach dem Signieren geändert, daher deckt seine Empfangsbestätigung sie nicht ab. Das ist die Angabe des Absenders.',
+  'app.lab.custody.removed':
+    'Die Probenangaben dieser Lieferung wurden vor dem Verschließen geschrieben und inzwischen entfernt, daher kann diese Empfangsbestätigung nicht mit ihnen verglichen werden.',
+  'app.lab.send.sampleNotSaved': 'Der Laborcode funktioniert, aber die Probenangaben wurden nicht gespeichert: {error}',
   'app.signer.sep': ' ',
   'app.lab.strength.unsigned': 'Nicht signiert',
   'app.lab.strength.unsignedWhy':
@@ -196,7 +209,7 @@ export const lab = {
   'app.lab.recv.nothingSigned': '{problems} Es wurde nichts signiert',
   'app.lab.recv.notSaved': 'Ihre Ankunftsdetails wurden nicht gespeichert ({error}), daher wurde nichts signiert',
   'app.lab.recv.savedDifferent':
-    'das Register hat andere Probendetails gespeichert als die auf diesem Bildschirm, daher wurde nichts signiert. Laden Sie die Seite neu und prüfen Sie sie erneut',
+    'die Probendetails kamen vom Register anders zurück als die auf diesem Bildschirm, daher wurde nichts signiert. Laden Sie die Seite neu und prüfen Sie sie erneut',
   'app.lab.recv.unlinked':
     'Ihre Empfangsbestätigung ist signiert, konnte aber nicht mit dieser Lieferung verknüpft werden ({error}), daher kann der Züchter sie noch nicht sehen. Versuchen Sie es erneut oder verknüpfen Sie sie später auf der Seite der Pflanze.',
   'app.lab.recv.linkIntro':

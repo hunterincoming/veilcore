@@ -67,6 +67,20 @@ export const lab = {
   'app.lab.custody.noDifference':
     'Aucune différence entre les détails de l’échantillon envoyés et ceux que le laboratoire a notés à l’arrivée.',
   'app.lab.custody.joinSentences': ' ',
+  'app.lab.custody.locked':
+    'Les détails de l’échantillon sont verrouillés, et ce navigateur n’a pas leur clé. Restaurez ici votre fichier de secours pour les voir.',
+  'app.lab.custody.sealedSigned':
+    'Le laboratoire a signé son accusé de réception sur les détails de l’échantillon. Ils sont conservés verrouillés, et VeilCore n’a pas la clé : cette page ne peut donc pas les comparer.',
+  'app.lab.custody.holderMatch':
+    'L’application de l’expéditeur les a comparés : ce qui est arrivé correspond à ce qui a été envoyé. C’est la parole de l’expéditeur.',
+  'app.lab.custody.holderDiffers':
+    'L’application de l’expéditeur les a comparés et a trouvé des différences dans : {fields}. C’est la parole de l’expéditeur.',
+  'app.lab.custody.holderChanged':
+    'L’application de l’expéditeur les a comparés : le laboratoire a modifié ses informations d’arrivée après avoir signé, son accusé ne les couvre donc pas. C’est la parole de l’expéditeur.',
+  'app.lab.custody.removed':
+    'Les détails de l’échantillon de cet envoi ont été écrits avant le verrouillage et ont depuis été supprimés : cet accusé ne peut donc pas être comparé avec eux.',
+  'app.lab.send.sampleNotSaved':
+    'Le code de laboratoire fonctionne, mais les détails de l’échantillon n’ont pas été enregistrés : {error}',
   'app.signer.sep': ' ',
   'app.lab.strength.unsigned': 'Non signé',
   'app.lab.strength.unsignedWhy':
@@ -197,7 +211,7 @@ export const lab = {
   'app.lab.recv.nothingSigned': '{problems} Rien n’a été signé',
   'app.lab.recv.notSaved': 'vos informations d’arrivée n’ont pas été enregistrées ({error}), donc rien n’a été signé',
   'app.lab.recv.savedDifferent':
-    'le registre a enregistré des détails d’échantillon différents de ceux de cet écran, donc rien n’a été signé. Rechargez la page et vérifiez-les de nouveau',
+    'les détails d’échantillon sont revenus du registre différents de ceux de cet écran, donc rien n’a été signé. Rechargez la page et vérifiez-les de nouveau',
   'app.lab.recv.unlinked':
     'Votre accusé de réception est signé, mais n’a pas pu être lié à cette livraison ({error}) : l’obtenteur ne peut donc pas encore le voir. Réessayez, ou liez-le plus tard depuis la page de la plante.',
   'app.lab.recv.linkIntro':

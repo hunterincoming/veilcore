@@ -25,9 +25,9 @@ import { checkProof } from '../proofs';
 import type { StrainRecord } from '../records';
 import { canonicalScript, embedJson, verifyPageHtml } from './verify-page';
 import { loadPageVerifier, practiceBatch, practiceRecords, RECORD_COUNT, secretFor } from './test-records';
-import { custodyDigest } from '../transfers';
+import { custodyDigest, custodyDigestV2 } from '../transfers';
 import { custodyDifferences } from '../custody';
-import { CROSS_ARRIVAL, CROSS_DIGEST, CROSS_SAMPLE } from '../custody-vectors';
+import { CROSS_ARRIVAL, CROSS_DIGEST, CROSS_DIGEST_V2, CROSS_SALT, CROSS_SAMPLE } from '../custody-vectors';
 
 type Report = {
   fingerprint: {
@@ -629,5 +629,64 @@ describe('the sample details on deliveries, rechecked by the page (round 2 of th
     expect(html).toContain('id="custody"');
     expect(html).toContain('veilcore/sample-custody/v1');
     expect(html).toContain('the key itself is in this bundle only if the holder included it');
+  });
+
+  // Sample details sealed with the delivery's offer key (CONTRACT.md #27): the bundle carries
+  // the opened values and the salt, and the page works out the v2 digest the `_sc2_` id carries.
+  const SALT = 'AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8';
+  const digestV2 = await custodyDigestV2('TR-0A1B2C3D', SALT, sample, arrival);
+  const receiptV2 = await signAttestation(
+    {
+      attestationId: `att_${'cd'.repeat(8)}_sc2_${digestV2}`,
+      type: 'chain-of-custody',
+      subjectCommitment: r.recordFingerprint,
+      documentHash: 'e2'.repeat(32),
+      hashAlgorithm: 'sha256',
+      issuedAt: '2026-10-16T12:30:00Z',
+      attester: { publicKey: lab.publicKey, displayName: 'Practice Lab' },
+    },
+    lab.privateKey,
+  );
+  const sealedEntry = {
+    ...entry,
+    receiptAttestationId: receiptV2.attestationId,
+    salt: SALT,
+    format: 'veilcore/sample-custody/v2',
+  };
+
+  it('sealed details: the v2 digest with the salt, the same as the site and the registry, in the _sc2_ id', async () => {
+    const [c] = await run([sealedEntry], [receiptV2]);
+    expect(c.computed).toBe(digestV2);
+    expect(c.carried).toBe(digestV2);
+    expect(c.status).toBe('covered');
+    expect(c.differences).toEqual(custodyDifferences(sample, arrival));
+    // The shared vector (the registry's test/fixtures/sealed-custody-vectors.json) gives the same value here.
+    const [x] = await run(
+      [
+        {
+          ...sealedEntry,
+          sample: CROSS_SAMPLE,
+          arrival: CROSS_ARRIVAL,
+          salt: CROSS_SALT,
+          receiptAttestationId: `att_x_sc2_${CROSS_DIGEST_V2}`,
+        },
+      ],
+      [],
+    );
+    expect(x.computed).toBe(CROSS_DIGEST_V2);
+    // Another salt, a changed value, or a receipt in the other form: not covered.
+    expect((await run([{ ...sealedEntry, salt: 'A'.repeat(43) }], [receiptV2]))[0].status).toBe('changed');
+    expect((await run([{ ...sealedEntry, arrival: { ...arrival, sealNumber: '4471' } }], [receiptV2]))[0].status).toBe(
+      'changed',
+    );
+    expect((await run([{ ...entry, salt: SALT }], [receipt]))[0].status).toBe('changed');
+    expect((await run([{ ...sealedEntry, salt: 'short' }], [receiptV2]))[0].status).toBe('malformed');
+    // Locked when the bundle was made: nothing to check, and never "covered".
+    expect((await run([{ ...sealedEntry, sample: {}, arrival: {}, locked: true }], [receiptV2]))[0].status).toBe(
+      'locked',
+    );
+    const html = verifyPageHtml({ ...evidenceOf(r, null), signatures: [receiptV2], custody: [sealedEntry] });
+    expect(html).toContain('veilcore/sample-custody/v2');
+    expect(html).toContain('VeilCore’s registry stores these details locked and doesn’t have their key');
   });
 });

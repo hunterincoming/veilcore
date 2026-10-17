@@ -82,6 +82,9 @@ export const finishReceiving = async (
       ...(note ? { deliveryNote: note.slice(0, 2000) } : {}),
       // The breeder's lock for lab reports travels in the code, and stays with the record.
       ...(parsed.resultLock ? { resultLock: parsed.resultLock } : {}),
+      // So does the offer key: it opens the delivery's sealed sample details (CONTRACT.md
+      // #27) once the code is forgotten below, and comes back with a restore from backup.
+      ...(parsed.offerKey ? { offerKeys: { ...(r.offerKeys ?? {}), [parsed.transferId]: parsed.offerKey } } : {}),
     },
     fields,
   );

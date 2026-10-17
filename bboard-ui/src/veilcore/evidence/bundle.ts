@@ -31,7 +31,7 @@ import { bindingForSecret, isHex64, KEY_BOUND_ALGORITHM } from '../key-binding';
 import { checkProof } from '../proofs';
 import { holderKeyIfAny } from '../holder';
 import { custodyView } from '../custody';
-import { receiptCustodyDigest, sentByMe, type SentTransfer } from '../transfers';
+import { receiptCovers, sentByMe, type SentTransfer } from '../transfers';
 import { isObject, isString, isNumber, readJson } from '../json';
 import { DOCS, DOCS_COMMIT, DOCS_VERSION, REPO_VIEW } from '../docs';
 import { verifyPageHtml, SDK_VERSION } from './verify-page';
@@ -312,6 +312,16 @@ export type CustodyEntry = {
   readonly arrival: Readonly<Record<string, string>>;
   /** Where the two differ, one plain line each. */
   readonly differences: readonly string[];
+  /**
+   * Sample details sealed with the delivery's offer key (CONTRACT.md #27): the salt the
+   * breeder sealed with them, so anyone can recompute the receipt's `_sc2_` digest:
+   * SHA-256 of the canonical JSON of { format: "veilcore/sample-custody/v2", transferId,
+   * salt, sample, arrival }. Absent for a delivery made before they were sealed (`_sc1_`).
+   */
+  readonly salt?: string;
+  readonly format?: 'veilcore/sample-custody/v2';
+  /** Sealed, and the holder's browser had no key to open them: nothing of them is in the bundle. */
+  readonly locked?: boolean;
 };
 
 export type Evidence = {
@@ -427,16 +437,10 @@ export const custodyEntries = async (
     const receiptId = t.receipt_attestation_id ?? undefined;
     // A delivery with no sample details written: still listed, with whether a receipt's id
     // carries the digest of "nothing written" (it then covers that).
-    const digest = receiptId ? receiptCustodyDigest(receiptId) : null;
     const view = custodyView(t, receiptId) ?? {
       sample: {},
       arrival: {},
-      signed:
-        digest === null
-          ? ('not-covered' as const)
-          : digest === t.custodyDigest
-            ? ('covered' as const)
-            : ('changed' as const),
+      signed: receiptId ? receiptCovers(receiptId, t) : ('not-covered' as const),
       differences: [],
     };
     let covered: CustodyEntry['covered'] = view.signed;
@@ -461,6 +465,10 @@ export const custodyEntries = async (
       sample: strings(view.sample),
       arrival: strings(view.arrival),
       differences: covered === 'covered' ? [...view.differences] : [],
+      ...(t.custodyFormat === 2 && t.custodySalt
+        ? { salt: t.custodySalt, format: 'veilcore/sample-custody/v2' as const }
+        : {}),
+      ...(t.custodyLocked ? { locked: true } : {}),
     });
   }
   return out;

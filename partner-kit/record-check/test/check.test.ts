@@ -679,6 +679,44 @@ describe('chain of custody: a receipt only when tied to a delivery', () => {
     });
     expect(c.labReceipts[0].custody?.differences).toEqual(['Seal differs']);
   });
+
+  it('sealed sample details: the lab signed over them; the sender’s summary is said as theirs, by field name only', async () => {
+    const sealed = (summary?: unknown) =>
+      run(LINK, {
+        verify: withCustody([
+          {
+            receiptAttestationId: 'att_receipt',
+            custody: 'sealed',
+            signedOverSampleDetails: true,
+            ...(summary ? { custodySummary: summary, custodySummaryBy: 'holder' } : {}),
+          },
+        ]),
+        attestations: [served(receipt)],
+      });
+    let { c } = await sealed();
+    expect(c.labReceipts[0].kind).toBe('lab-receipt');
+    expect(c.labReceipts[0].counts).toBe(true);
+    expect(c.labReceipts[0].custody).toEqual({ differences: [], clean: false, state: 'sealed' });
+    expect(c.labReceipts[0].words).toMatch(
+      /The lab signed over the sample details\. They are stored locked, so the registry can’t compare them\.$/,
+    );
+    expect(c.summary).not.toMatch(/does NOT match/);
+    ({ c } = await sealed({ covered: 'covered', differingFields: ['sealNumber', '4471'] }));
+    expect(c.labReceipts[0].custody?.senderSays).toEqual({ covered: 'covered', differingFields: ['sealNumber'] });
+    expect(c.labReceipts[0].words).toMatch(
+      /differ between what was sent and what arrived: seal number \(the sender’s word\)\.$/,
+    );
+    expect(c.summary).toMatch(/1 lab receipt for a sample does NOT match what was sent/);
+    ({ c } = await sealed({ covered: 'changed', differingFields: [] }));
+    expect(c.labReceipts[0].words).toMatch(/changed its arrival details after signing \(the sender’s word\)\.$/);
+    // Removed (written before sealing, then purged): no comparison either way.
+    ({ c } = await run(LINK, {
+      verify: withCustody([{ receiptAttestationId: 'att_receipt', custody: 'removed', signedOverSampleDetails: true }]),
+      attestations: [served(receipt)],
+    }));
+    expect(c.labReceipts[0].custody).toEqual({ differences: [], clean: false, state: 'removed' });
+    expect(c.labReceipts[0].words).toMatch(/have since been removed, so it can’t be compared with them\.$/);
+  });
 });
 
 describe('the key in the link', () => {

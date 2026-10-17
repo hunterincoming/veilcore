@@ -22,7 +22,7 @@ import {
   type Evidence,
   type SignatureLine,
 } from './bundle';
-import { custodyDigest, type SentTransfer } from '../transfers';
+import { custodyDigest, custodyDigestV2, type SentTransfer } from '../transfers';
 import { EXAMINER_FILE, escapeHtml, examinerSummaryHtml } from './examiner';
 import { DECLARATION_FILE, DECLARATION_WARNING, declarationText } from './declaration';
 import { practiceBatch, practiceRecord } from './test-records';
@@ -443,6 +443,78 @@ describe('sample receipts in the bundle (custody fields)', () => {
     );
     expect((await custodyEntries(s.record, [sent], forged))[0].covered).toBe('unsigned');
     expect((await custodyEntries(s.record, [sent], g.attestations))[0].covered).toBe('covered');
+  });
+
+  it('sealed sample details (CONTRACT.md #27): the opened values and the salt go in; the summary explains the v2 check', async () => {
+    const s = await setup();
+    const sample = { sampleId: 'BLU-07', sealNumber: '4471', witness: 'J. Doe' };
+    const arrival = { sampleId: 'BLU-07', sealNumber: '4471', sealIntact: 'yes' as const, arrivedOn: '2026-10-15' };
+    const salt = 'AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8';
+    const digest = await custodyDigestV2('T-PRACTICE-2', salt, sample, arrival);
+    const lab = await generateKeypair();
+    const receipt = await signAttestation(
+      {
+        attestationId: `att_${'cd'.repeat(8)}_sc2_${digest}`,
+        type: 'chain-of-custody',
+        subjectCommitment: s.record.recordFingerprint,
+        documentHash: 'e2'.repeat(32),
+        hashAlgorithm: 'sha256',
+        issuedAt: '2026-10-16T12:30:00Z',
+        attester: { publicKey: lab.publicKey, displayName: 'Practice Lab' },
+      },
+      lab.privateKey,
+    );
+    const sent: SentTransfer = {
+      id: 'T-PRACTICE-2',
+      source_record: s.record.id,
+      to_handle: 'ab'.repeat(32),
+      created_at: 1,
+      claimed_at: 2,
+      sample_custody: sample,
+      arrival_custody: arrival,
+      custodyFormat: 2,
+      custodySalt: salt,
+      custodyDigest: digest,
+      receipt_attestation_id: receipt.attestationId,
+    };
+    const g = { ...s.g, attestations: [...s.g.attestations, receipt] };
+    const ev = await buildEvidence(s.record, g, { includeKey: false, now: NOW, deliveries: [sent] });
+    expect(ev.custody?.[0]).toMatchObject({
+      covered: 'covered',
+      sample,
+      arrival,
+      salt,
+      format: 'veilcore/sample-custody/v2',
+    });
+    const files = await bundleFiles(ev, g, { includeKey: false });
+    const dir = `${ev.record.id}-evidence/`;
+    const html = strFromU8(files[`${dir}${EXAMINER_FILE}`]);
+    expect(html).toContain(salt);
+    expect(html).toContain('{ format: &#34;veilcore/sample-custody/v2&#34;, transferId, salt, sample, arrival }');
+    expect(html).toContain('stored locked on VeilCore’s registry, and VeilCore doesn’t have their key');
+    // A delivery whose boxes this browser couldn't open: said, and never "covered".
+    const locked = await custodyEntries(
+      s.record,
+      [
+        {
+          ...sent,
+          sample_custody: undefined,
+          arrival_custody: undefined,
+          custodyDigest: undefined,
+          custodySalt: undefined,
+          custodyFormat: undefined,
+          custodyLocked: true,
+        },
+      ],
+      g.attestations,
+    );
+    expect(locked[0]).toMatchObject({ locked: true, sample: {}, arrival: {} });
+    expect(locked[0].covered).not.toBe('covered');
+    const ev2 = { ...ev, custody: locked };
+    const lockedHtml = strFromU8((await bundleFiles(ev2, g, { includeKey: false }))[`${dir}${EXAMINER_FILE}`]);
+    expect(lockedHtml).toContain(
+      'these details are stored locked, and the browser that made this bundle didn’t have their key',
+    );
   });
 });
 

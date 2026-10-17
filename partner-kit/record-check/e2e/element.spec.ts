@@ -97,19 +97,22 @@ test('a matching link: the plain answer, the form submits, nothing but the regis
     'signed by Test Lab (checked). VeilCore’s operator matched this name to cannabis.example.gov (license TL-1)',
   );
   await expect(out(page)).toContainText('It is the report file saved to this record now.');
-  // Receipts tied to deliveries of the record: one whose sample details match, one whose seal doesn't.
-  await expect(out(page)).toContainText(
-    'Checked: Lab’s receipt for a sample, signature verified, signed by Test Lab (checked).',
+  // Receipts tied to deliveries of the record, over sample details stored locked: the
+  // registry can't compare them, so the sender's app's word is said as the sender's. One
+  // matches, one's seal doesn't; no seal number is ever shown.
+  await expect(out(page).locator('li[data-kind="info"]', { hasText: 'Receipt:' }).first()).toContainText(
+    'Receipt: Lab’s receipt for a sample, signature verified, signed by Test Lab (checked).',
   );
   await expect(out(page)).toContainText(
-    'Its signature covers the sample details, and what arrived matches what was sent.',
+    'The lab signed over the sample details. They are stored locked, so the registry can’t compare them. The sender’s app says what arrived matches what was sent (the sender’s word).',
   );
   await expect(out(page).locator('li[data-kind="bad"]')).toContainText(
-    'Does not match: Lab’s receipt for a sample, signature verified',
+    'Does not match (sender’s word): Lab’s receipt for a sample, signature verified',
   );
   await expect(out(page).locator('li[data-kind="bad"]')).toContainText(
-    'What arrived does NOT match what was sent: Seal number differs: sent 5500, received 5505.',
+    'The sender’s app says these differ between what was sent and what arrived: seal number (the sender’s word).',
   );
+  for (const value of ['5500', '5505', 'E2E-1', 'E2E-2', '4471']) await expect(out(page)).not.toContainText(value);
   // A custody signature tied to no delivery: a signed statement, not counted, never green.
   await expect(out(page).locator('li[data-kind="info"]', { hasText: 'Signed custody statement' })).toContainText(
     'Not counted: Signed custody statement (not tied to a delivery): signature verified',

@@ -171,10 +171,19 @@ export type StrainRecord = {
    * The registry gets only a tag for it; the name is shown from here.
    */
   readonly sentTo?: Readonly<Record<string, string>>;
+  /**
+   * Each delivery's offer key, by transfer id (CONTRACT.md #27): on the sender's source record
+   * for every lab code made from it, on a lab's received record for its own delivery. It opens
+   * the delivery's sealed offer and sample details, which the registry stores locked. Kept
+   * here, sealed with the vault key, so a restore from the backup file brings it back.
+   */
+  readonly offerKeys?: Readonly<Record<string, string>>;
 };
 
 /** The receiver's own notes on a received record: outside the fingerprint, so safe to change. */
-export type ReceivedNotes = Partial<Pick<StrainRecord, 'deliveryNote' | 'labRef' | 'resultLock' | 'receiptRejected'>>;
+export type ReceivedNotes = Partial<
+  Pick<StrainRecord, 'deliveryNote' | 'labRef' | 'resultLock' | 'receiptRejected' | 'offerKeys'>
+>;
 
 /**
  * A stored record, checked on the way in.
@@ -404,13 +413,33 @@ registerGrantKeeper(keepGrant);
  * Keep the name the holder gave a delivery's recipient, sealed with the source record
  * (CONTRACT.md #15): the registry has only a tag for it.
  */
-export const noteSentTo = (recordId: string, transferId: string, name: string): void => {
+export const noteSentTo = (recordId: string, transferId: string, name: string, offerKey?: string): void => {
   const label = name.normalize('NFC').trim();
-  if (!label || !getRecord(recordId)) return;
+  if ((!label && !offerKey) || !getRecord(recordId)) return;
   records = records.map((r) =>
-    r.id === recordId ? { ...r, sentTo: { ...(r.sentTo ?? {}), [transferId]: label } } : r,
+    r.id === recordId
+      ? {
+          ...r,
+          ...(label ? { sentTo: { ...(r.sentTo ?? {}), [transferId]: label } } : {}),
+          // The delivery's offer key, sealed with the record (CONTRACT.md #27).
+          ...(offerKey ? { offerKeys: { ...(r.offerKeys ?? {}), [transferId]: offerKey } } : {}),
+        }
+      : r,
   );
   persist();
+};
+
+/**
+ * A delivery's offer key from this browser's records (the sender's source record or a lab's
+ * received record keep it sealed, CONTRACT.md #27), if any has it.
+ */
+export const offerKeyInRecords = (transferId: string): string | undefined => {
+  const id = transferId.toUpperCase();
+  for (const r of records) {
+    const k = r.offerKeys?.[id] ?? r.offerKeys?.[transferId];
+    if (typeof k === 'string') return k;
+  }
+  return undefined;
 };
 
 /** The name the holder gave a delivery's recipient, if this browser's records have it. */

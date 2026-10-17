@@ -542,3 +542,72 @@ export const openOffer = async (
     return null;
   }
 };
+
+// ---- a delivery's sample details (CONTRACT.md #27) -----------------------------------
+//
+// The sender's `sample` and the lab's `arrival` are each sealed with the delivery's offer
+// key, which both of them hold (the sender made it; the lab has it from the lab code) and
+// the registry never gets. Same cipher and wire box as a record; the AAD names the delivery
+// and the side, so a box can't be moved to another delivery or the other side.
+
+export type CustodySide = 'sample' | 'arrival';
+
+/** kid = first 16 hex of SHA-256(utf8("veilcore:offer-id:v1:") || offer key bytes). */
+export const offerKidOf = async (offerKey: string): Promise<string> => {
+  const bytes = keyBytes(offerKey);
+  if (!bytes) throw new Error('not an offer key');
+  const prefix = utf8('veilcore:offer-id:v1:');
+  const joined = new Uint8Array(prefix.length + bytes.length);
+  joined.set(prefix);
+  joined.set(bytes, prefix.length);
+  return hex(await sha256(joined)).slice(0, 16);
+};
+
+/** AAD = utf8("veilcore:sealed:v1\0custody\0" + transferId + "\0" + side). */
+export const custodyAad = (transferId: string, side: CustodySide): Uint8Array =>
+  utf8(`veilcore:sealed:v1\0custody\0${transferId}\0${side}`);
+
+/** The most a side's box ct may be, in base64url characters (the registry's CUSTODY_CT_MAX). */
+export const CUSTODY_CT_MAX = 8000;
+
+/** Seal one side of a delivery's sample details with its offer key, padded like a record. */
+export const sealCustody = async (
+  offerKey: string,
+  transferId: string,
+  side: CustodySide,
+  value: Record<string, unknown>,
+): Promise<SealedBox> => {
+  const kid = await offerKidOf(offerKey);
+  const { iv, ct } = await encrypt(
+    await cryptoKey(offerKey),
+    padded(stableStringify(value)),
+    custodyAad(transferId, side),
+  );
+  if (ct.length > CUSTODY_CT_MAX) throw new TooLargeToSeal('the sample details are too long to save');
+  return { v: 1, alg: 'A256GCM', kid, iv, ct };
+};
+
+/** One side opened with the offer key, or null (another key, another delivery or side, changed bytes). */
+export const openCustody = async (
+  offerKey: string,
+  transferId: string,
+  side: CustodySide,
+  box: unknown,
+): Promise<Record<string, unknown> | null> => {
+  if (!isBox(box) || !isVaultKey(offerKey)) return null;
+  if (box.kid !== (await offerKidOf(offerKey))) return null;
+  const pt = await decrypt(await cryptoKey(offerKey), box.iv, box.ct, custodyAad(transferId, side));
+  if (pt === null) return null;
+  try {
+    const v: unknown = JSON.parse(pt);
+    return typeof v === 'object' && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+};
+
+/** A sealed side as the registry sends it back: { v, alg, kid, iv, ct }. */
+export const isCustodyBox = (v: unknown): v is SealedBox => isBox(v);
+
+/** A new salt for the sealed sample (CONTRACT.md #27): 32 random bytes, base64url. */
+export const newCustodySalt = (): string => base64urlnopad.encode(crypto.getRandomValues(new Uint8Array(32)));

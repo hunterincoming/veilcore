@@ -26,16 +26,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { StrainRecord } from './records';
-import {
-  hasDetails,
-  receiptCustodyDigest,
-  type ArrivalDetails,
-  type SampleDetails,
-  type SentTransfer,
-} from './transfers';
+import { hasDetails, receiptCovers, type ArrivalDetails, type SampleDetails, type SentTransfer } from './transfers';
 import { countsAsSigned, nameChecked, signerLabel, type ResolvedAttestation } from './attesters';
 import { utcDate } from './time';
 import { enT, type Translator } from '../i18n/translate';
+import type { AppKey } from '../i18n/app/en';
 
 const custodyOn = (atts: readonly ResolvedAttestation[]) =>
   atts.filter((a) => a.type === 'chain-of-custody' && countsAsSigned(a));
@@ -95,15 +90,21 @@ export type CustodyView = {
   readonly arrival: ArrivalDetails;
   readonly signed: 'covered' | 'changed' | 'not-covered';
   readonly differences: readonly string[];
+  /**
+   * Sealed with the delivery's offer key (CONTRACT.md #27) and this browser has no key that
+   * opens them: nothing about them can be shown or compared here.
+   */
+  readonly locked?: boolean;
 };
 
 export const custodyView = (t: SentTransfer | undefined, receiptId: string | undefined): CustodyView | undefined => {
   if (!t) return undefined;
+  if (t.custodyLocked) return { sample: {}, arrival: {}, signed: 'not-covered', differences: [], locked: true };
   const sample = t.sample_custody ?? {};
   const arrival = t.arrival_custody ?? {};
   if (!hasDetails(sample) && !hasDetails(arrival)) return undefined;
-  const digest = receiptId ? receiptCustodyDigest(receiptId) : null;
-  const signed = digest === null ? 'not-covered' : digest === t.custodyDigest ? 'covered' : 'changed';
+  // Compared in this browser, from the boxes it opened (sealed) or the fields listed (older).
+  const signed = receiptId ? receiptCovers(receiptId, t) : 'not-covered';
   return { sample, arrival, signed, differences: signed === 'covered' ? custodyDifferences(sample, arrival) : [] };
 };
 
@@ -179,6 +180,7 @@ export const differenceWords = (d: string, tr: Translator = enT): string => {
  */
 export const custodyLines = (v: CustodyView | undefined, tr: Translator = enT): string[] => {
   if (!v) return [];
+  if (v.locked) return [tr.t('app.lab.custody.locked')];
   const sent = hasDetails(v.sample) ? [tr.t('app.lab.custody.sent', { v: sampleLine(v.sample, tr) })] : [];
   if (v.signed === 'not-covered') return [...sent, tr.t('app.lab.custody.notCovered')];
   if (v.signed === 'changed') return [...sent, tr.t('app.lab.custody.changed')];
@@ -205,14 +207,36 @@ export const custodyLines = (v: CustodyView | undefined, tr: Translator = enT): 
  * lab-status grant (round 2 of the 15 Oct review): whether the receipt covers them and where
  * what arrived differs from what was sent, never the details themselves. The registry's word:
  * a stranger can't recompute the digest without the details.
+ *
+ * Sealed details (CONTRACT.md #27): the registry can't open them, so it says only that the
+ * lab signed over them (`custody: 'sealed'`, no `covered`). What the holder's app worked out
+ * comes with it when the holder chose to publish it (`custodySummary`, the holder's word:
+ * covered, changed or not-covered, and which fields differ, never their values). `removed`:
+ * details written before sealing that the registry has since removed.
  */
 export type PublicCustody = {
   readonly receiptAttestationId: string;
-  readonly covered: 'covered' | 'changed' | 'not-covered';
+  readonly covered?: 'covered' | 'changed' | 'not-covered';
   readonly differences: readonly string[];
+  readonly custody?: 'sealed' | 'removed';
+  readonly custodySummary?: {
+    readonly covered: 'covered' | 'changed' | 'not-covered';
+    readonly differingFields: readonly string[];
+  };
 };
 
 const COVERED_STATES: readonly string[] = ['covered', 'changed', 'not-covered'];
+const FIELD_NAMES: readonly string[] = [
+  'sampleId',
+  'sealNumber',
+  'takenFrom',
+  'takenOn',
+  'witness',
+  'sealIntact',
+  'arrivedOn',
+  'condition',
+  'labRef',
+];
 const HIDDEN = /[\p{Cc}\p{Cf}\u2028\u2029]+/gu;
 
 /** /verify's `custody`, by receipt id; anything not in shape is left out. */
@@ -222,7 +246,35 @@ export const publicCustodyOf = (v: unknown): Map<string, PublicCustody> => {
   for (const x of v.slice(0, 100)) {
     if (typeof x !== 'object' || x === null) continue;
     const c = x as Record<string, unknown>;
-    if (typeof c.receiptAttestationId !== 'string' || typeof c.covered !== 'string') continue;
+    if (typeof c.receiptAttestationId !== 'string') continue;
+    if (c.custody === 'sealed' || c.custody === 'removed') {
+      const s =
+        typeof c.custodySummary === 'object' && c.custodySummary !== null
+          ? (c.custodySummary as Record<string, unknown>)
+          : undefined;
+      const summary =
+        c.custody === 'sealed' &&
+        s &&
+        c.custodySummaryBy === 'holder' &&
+        typeof s.covered === 'string' &&
+        COVERED_STATES.includes(s.covered) &&
+        Array.isArray(s.differingFields)
+          ? {
+              covered: s.covered as 'covered' | 'changed' | 'not-covered',
+              differingFields: s.differingFields.filter(
+                (f): f is string => typeof f === 'string' && FIELD_NAMES.includes(f),
+              ),
+            }
+          : undefined;
+      out.set(c.receiptAttestationId, {
+        receiptAttestationId: c.receiptAttestationId,
+        differences: [],
+        custody: c.custody,
+        ...(summary ? { custodySummary: summary } : {}),
+      });
+      continue;
+    }
+    if (typeof c.covered !== 'string') continue;
     if (!COVERED_STATES.includes(c.covered) || !Array.isArray(c.differences)) continue;
     out.set(c.receiptAttestationId, {
       receiptAttestationId: c.receiptAttestationId,
@@ -236,9 +288,39 @@ export const publicCustodyOf = (v: unknown): Map<string, PublicCustody> => {
   return out;
 };
 
+const FIELD_LABEL: Record<string, AppKey> = {
+  sampleId: 'app.lab.field.sampleId',
+  sealNumber: 'app.lab.field.sealNumber',
+  sealIntact: 'app.lab.field.sealIntact',
+  takenFrom: 'app.lab.field.takenFrom',
+  takenOn: 'app.lab.field.takenOn',
+  witness: 'app.lab.field.witness',
+  arrivedOn: 'app.lab.field.arrivedOn',
+  condition: 'app.lab.field.condition',
+  labRef: 'app.lab.field.labRef',
+};
+
 /** The lines under a receipt on the public check page: differences plainly, or the coverage. */
 export const publicCustodyLines = (c: PublicCustody | undefined, tr: Translator = enT): string[] => {
   if (!c) return [];
+  if (c.custody === 'removed') return [tr.t('app.lab.custody.removed')];
+  if (c.custody === 'sealed') {
+    const s = c.custodySummary;
+    const theirs = !s
+      ? []
+      : s.covered === 'changed'
+        ? [tr.t('app.lab.custody.holderChanged')]
+        : s.covered === 'not-covered'
+          ? [tr.t('app.lab.custody.notCovered')]
+          : s.differingFields.length
+            ? [
+                tr.t('app.lab.custody.holderDiffers', {
+                  fields: s.differingFields.map((f) => tr.t(FIELD_LABEL[f])).join(', '),
+                }),
+              ]
+            : [tr.t('app.lab.custody.holderMatch')];
+    return [tr.t('app.lab.custody.sealedSigned'), ...theirs];
+  }
   if (c.covered === 'changed') return [tr.t('app.lab.custody.changed')];
   if (c.covered === 'not-covered') return [tr.t('app.lab.custody.notCovered')];
   if (c.differences.length)

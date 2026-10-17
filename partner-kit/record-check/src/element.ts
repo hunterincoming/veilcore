@@ -446,6 +446,10 @@ export class VeilcoreRecordCheck extends HTMLElement {
     if (!r.counts) return line('warn', 'Not counted:', r.words);
     const cu = r.custody;
     if (cu && !cu.clean) {
+      if (cu.state === 'sealed' && cu.senderSays?.covered === 'changed')
+        return line('bad', 'Changed after signing (sender’s word):', r.words);
+      if (cu.state === 'sealed' && cu.senderSays?.differingFields.length)
+        return line('bad', 'Does not match (sender’s word):', r.words);
       if (cu.covered === 'changed') return line('bad', 'Changed after signing:', r.words);
       if (cu.differences.length) return line('bad', 'Does not match:', r.words);
       return line('info', 'Receipt:', r.words);

@@ -63,7 +63,13 @@ in: only the sealed fields.
      the sample details the breeder and the lab wrote, and whether the lab's receipt covers
      them. The page works the digest out again, SHA-256 of the canonical JSON of
      `{ format: "veilcore/sample-custody/v1", transferId, sample, arrival }`, and compares it
-     with the `_sc1_<digest>` end of the receipt's signed id. "Covered" only when they match
+     with the `_sc1_<digest>` end of the receipt's signed id. Since 16 October 2026 the
+     sample details are stored locked on the registry, with the delivery's offer key; the
+     holder's browser opens them, and the bundle carries the opened values and the `salt`
+     the breeder sealed with them. For those the digest is over
+     `{ format: "veilcore/sample-custody/v2", transferId, salt, sample, arrival }` and the
+     id ends `_sc2_<digest>`. A delivery whose details the browser couldn't open is marked
+     `locked` and nothing about it is checked. "Covered" only when they match
      and that receipt's signature checks and isn't withdrawn; "changed" when the id carries
      the digest of other values (the lab changed them after signing). What the lab wrote is
      labelled "not covered" otherwise. A lab code nobody used is said too.

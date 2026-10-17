@@ -122,13 +122,17 @@ describe('the largest offer the app can make (A4)', () => {
       note: 'n'.repeat(OFFER_NOTE_MAX),
     });
     expect('transferId' in ok).toBe(true);
-    expect(sent).toHaveLength(1);
+    // The offer, then the sample details sealed with its key (CONTRACT.md #27).
+    expect(sent.map((s) => s.url)).toEqual([
+      'https://registry.test/transfers',
+      'https://registry.test/transfers/TR-0A1B2C3D/custody',
+    ]);
   });
 });
 
 describe('every new offer goes sealed (A5)', () => {
   it('from a record still in plain text: sealedOffer and a tag, never the quantity, note or name beside them', async () => {
-    const { mintVault, openOffer } = await import('./vault');
+    const { mintVault, openOffer, openCustody } = await import('./vault');
     const { holderKey } = await import('./holder');
     const { offerTransfer } = await import('./transfers');
     holderKey();
@@ -141,15 +145,23 @@ describe('every new offer goes sealed (A5)', () => {
       sample: { sampleId: 'S-1' },
     });
     if ('error' in res) throw new Error(res.error);
-    expect(sent).toHaveLength(1);
+    expect(sent).toHaveLength(2);
     const { url, body } = sent[0];
     expect(url).toMatch(/\/transfers$/);
-    expect(Object.keys(body).sort()).toEqual(['sample', 'sealedOffer', 'sourceRecord', 'toHandle']);
+    expect(Object.keys(body).sort()).toEqual(['sealedOffer', 'sourceRecord', 'toHandle']);
     expect(body.toHandle).toMatch(/^[0-9a-f]{64}$/);
-    const wire = JSON.stringify(body);
-    for (const secret of ['PRIV-quantity', 'PRIV-note', 'PRIV-breeder', 'Dr Jane', 'Secret Lab']) {
+    // The sample details go next, sealed with the offer key and bound to the delivery's id.
+    expect(sent[1].url).toMatch(/\/transfers\/TR-0A1B2C3D\/custody$/);
+    expect(Object.keys(sent[1].body)).toEqual(['sample']);
+    expect(Object.keys(sent[1].body.sample as object).sort()).toEqual(['alg', 'ct', 'iv', 'kid', 'v']);
+    const wire = JSON.stringify(sent);
+    for (const secret of ['PRIV-quantity', 'PRIV-note', 'PRIV-breeder', 'Dr Jane', 'Secret Lab', 'S-1']) {
       expect(wire.includes(secret), secret).toBe(false);
     }
+    const sample = await openCustody(res.offerKey, 'TR-0A1B2C3D', 'sample', sent[1].body.sample);
+    expect(sample).toMatchObject({ sampleId: 'S-1' });
+    expect(sample?.salt).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(await openCustody(res.offerKey, 'TR-0A1B2C3D', 'arrival', sent[1].body.sample)).toBeNull();
     // The recipient opens it with the code's key.
     const opened = await openOffer(res.offerKey, plain.id, plain.recordFingerprint, body.sealedOffer);
     expect(opened).toMatchObject({ bredBy: 'PRIV-breeder', quantity: 'PRIV-quantity', note: 'PRIV-note' });

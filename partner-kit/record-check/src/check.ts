@@ -392,6 +392,19 @@ const registeredBlock = (v: unknown): { fields: Record<string, unknown> } | null
     ? { fields: v.fields }
     : null;
 
+/** The sample-detail field names a sender's summary may list (never their values). */
+const CUSTODY_FIELD_NAMES: readonly string[] = [
+  'sampleId',
+  'sealNumber',
+  'takenFrom',
+  'takenOn',
+  'witness',
+  'sealIntact',
+  'arrivedOn',
+  'condition',
+  'labRef',
+];
+
 /**
  * The registry's list of lab receipts tied to deliveries of this record (sent when the
  * holder shares lab status): which receipt, whether its signature covers the sample details
@@ -403,6 +416,30 @@ const custodyOf = (v: unknown): CustodyEntry[] | undefined => {
   const out: CustodyEntry[] = [];
   for (const e of v.slice(0, 200)) {
     if (!isObject(e) || typeof e.receiptAttestationId !== 'string' || !e.receiptAttestationId) continue;
+    // Sealed sample details (the registry can't read them) or removed ones: no `covered`.
+    if (e.custody === 'sealed' || e.custody === 'removed') {
+      const s = isObject(e.custodySummary) ? e.custodySummary : undefined;
+      const summary =
+        e.custody === 'sealed' &&
+        e.custodySummaryBy === 'holder' &&
+        s &&
+        (s.covered === 'covered' || s.covered === 'changed' || s.covered === 'not-covered') &&
+        Array.isArray(s.differingFields)
+          ? {
+              covered: s.covered,
+              differingFields: s.differingFields.filter(
+                (f): f is string => typeof f === 'string' && CUSTODY_FIELD_NAMES.includes(f),
+              ),
+            }
+          : undefined;
+      out.push({
+        receiptAttestationId: e.receiptAttestationId,
+        differences: [],
+        custody: e.custody,
+        ...(summary ? { custodySummary: summary } : {}),
+      });
+      continue;
+    }
     if (e.covered !== 'covered' && e.covered !== 'changed' && e.covered !== 'not-covered') continue;
     const differences = Array.isArray(e.differences)
       ? e.differences
@@ -633,7 +670,13 @@ export const summaryOf = (p: Parts): string => {
   );
   if (withdrawn) parts.push(`${withdrawn} withdrawn by ${withdrawn === 1 ? 'its signer' : 'their signers'}.`);
   const custodyIssues = p.labReceipts.filter(
-    (x) => x.counts && x.custody && (x.custody.covered === 'changed' || x.custody.differences.length > 0),
+    (x) =>
+      x.counts &&
+      x.custody &&
+      (x.custody.covered === 'changed' ||
+        x.custody.differences.length > 0 ||
+        x.custody.senderSays?.covered === 'changed' ||
+        (x.custody.senderSays?.differingFields.length ?? 0) > 0),
   ).length;
   if (custodyIssues)
     parts.push(

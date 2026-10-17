@@ -20,7 +20,10 @@
   that the code can never change.
 - A record's **name is not locked**: our server can read it, and its public check page shows
   it. Use a code name if the real name is secret. The sample details on a delivery (sample
-  ID, seal number, where and when it was taken, a witness) **aren't locked yet** either.
+  ID, seal number, where and when it was taken, a witness, what the lab wrote on arrival)
+  **are locked too**, with a key that travels in the lab code, and we don't have it. Sample
+  details written before sealing stay readable to us until the registry's purge removes
+  them.
 - Only a **batch fingerprint** goes on a public network (Midnight, and Bitcoin through
   OpenTimestamps). Nothing you typed goes there. Once there, nobody can delete it,
   including us.
@@ -76,7 +79,7 @@ record backup first.
 | When the registry first saw each record | The registry's own date for it (its word only) | As long as the record |
 | Licences and agreement terms, counterparties, locked like records | Licences you issue | Until you ask us to delete them |
 | Your sharing choices for each record's public check page, and the values you choose to show (readable: they are what the page shows) | What a stranger with the link sees | As long as the record |
-| Lab codes: a tag in place of the recipient's name (made with your vault key; we can't turn it back into the name), the delivery's details (name, breeder, quantity, note) locked with a key that travels only in the lab code, a one-way digest of the claim code, which record it came from and was received as, and (when filled in) the sample details: sample ID, seal number, where and when it was taken, a witness's name, and what the lab wrote on arrival. **The sample details aren't locked yet.** Lab codes made before sealing keep the recipient's handle, quantity and note as typed until the purge | So a lab can take delivery and sign a receipt | No set period |
+| Lab codes: a tag in place of the recipient's name (made with your vault key; we can't turn it back into the name), the delivery's details (name, breeder, quantity, note) locked with a key that travels only in the lab code, a one-way digest of the claim code, which record it came from and was received as, and (when filled in) the sample details: sample ID, seal number, where and when it was taken, a witness's name, and what the lab wrote on arrival, **locked** with the same key as the delivery's details (we don't have it; the server stores the box). Lab codes made before sealing keep the recipient's handle, quantity, note and sample details as typed until the purge | So a lab can take delivery and sign a receipt | No set period |
 | Labs: public signing key, the name the key gives itself, role, and VeilCore's name-check notes | So signatures can be checked and named | No set period |
 | Lab signatures (attestations) and withdrawals | Public statements labs choose to publish | No set period |
 | Locked lab reports a lab sends you (encrypted to your key with `age`; the server can't open them), with their size and SHA-256 | So you can collect them | **Deleted 180 days after they arrive**, checked every hour. Not in backups. Off on the main site for now. |

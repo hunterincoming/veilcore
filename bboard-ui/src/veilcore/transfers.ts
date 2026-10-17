@@ -13,9 +13,23 @@ import { canonicalise, sha256Hex } from 'veilcore-records';
 import { holderKey, holderKeyIfAny } from './holder';
 import { readJson, isObject, isString, isNumber, optional, arrayField } from './json';
 import { attestRecord, type AttesterProfile } from './attester-keys';
-import { handleTag, isHandleTag, isVaultKey, newOfferKey, openOffer, sealOffer, type OfferBox } from './vault';
+import {
+  handleTag,
+  isCustodyBox,
+  isHandleTag,
+  isVaultKey,
+  newCustodySalt,
+  newOfferKey,
+  openCustody,
+  openOffer,
+  sealCustody,
+  sealOffer,
+  type OfferBox,
+  type SealedBox,
+} from './vault';
 import { isAnimal } from './animal-profile';
-import { noteSentTo, sentToName, type StrainRecord } from './records';
+import { noteSentTo, offerKeyInRecords, sentToName, type StrainRecord } from './records';
+import { registerCustodySummaries, type CustodySummaryEntry } from './disclosure';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
@@ -40,16 +54,25 @@ export type SentTransfer = PendingTransfer & {
    */
   readonly label?: string;
   readonly claimed_at?: number;
-  /** What the breeder wrote about the sample when making the lab code (sender only). */
+  /** What the breeder wrote about the sample when making the lab code (sender only), opened here. */
   readonly sample_custody?: SampleDetails;
-  /** What the lab wrote on arrival (sender only). Its receipt says whether it signed them. */
+  /** What the lab wrote on arrival (sender only), opened here. Its receipt says whether it signed them. */
   readonly arrival_custody?: ArrivalDetails;
   /**
-   * custodyDigest over this delivery's two sides as the registry listed them, worked out in
-   * this browser (sentByMe), not the registry's word: a receipt covers them only when its
-   * id carries this digest (custody.ts custodyView).
+   * The digest over this delivery's two sides, worked out in this browser (sentByMe), not
+   * the registry's word: a receipt covers them only when its id carries this digest in the
+   * same form (custody.ts custodyView). Form 2 (custodyDigestV2) for sample details sealed
+   * with the offer key, form 1 (custodyDigest) for a delivery made before they were sealed.
    */
   readonly custodyDigest?: string;
+  readonly custodyFormat?: 1 | 2;
+  /** The salt the sealed sample carries (form 2), for the evidence bundle. */
+  readonly custodySalt?: string;
+  /**
+   * The sample details are sealed and this browser doesn't have the delivery's offer key (it
+   * is in the sender's records, sealed, and in the backup file): they can't be shown here.
+   */
+  readonly custodyLocked?: boolean;
   /** The record the claim created, when the registry says (sender only). */
   readonly received_record?: string;
   /**
@@ -109,6 +132,12 @@ const isSentTransfer = (v: unknown): v is SentTransfer =>
 // document must stay this delivery's two fingerprints (the registry's receiptProblem), so
 // the values are carried in the one signed field the lab chooses, its id:
 // `att_<16 hex>_sc1_<custodyDigest>`. Receipts without the suffix verify as before.
+//
+// Since round 3 of sealed records (CONTRACT.md #27) both sides are sealed with the
+// delivery's offer key (vault.ts sealCustody): the registry stores them locked and can't
+// read them. The sender's side carries a random salt, and the receipt carries
+// custodyDigestV2 as `_sc2_<digest>`. Only the sender's and the lab's apps can open the
+// boxes and compare. Deliveries made before keep plain fields and `_sc1_`.
 
 /** What the breeder writes when making the lab code. */
 export type SampleDetails = {
@@ -269,9 +298,109 @@ export const custodyDigest = (transferId: string, sample: SampleDetails, arrival
     }),
   );
 
-/** The custody digest a receipt's id carries, or null for a receipt without one (every older one). */
+/**
+ * The sealed form's digest (CONTRACT.md #27): SHA-256 of the canonical JSON of
+ * { format: "veilcore/sample-custody/v2", transferId, salt, sample, arrival }, each side
+ * normalised as the registry's custodyFields stores it. The salt (32 random bytes the sender
+ * sealed with the sample) means nobody can find the digest by trying likely values. The
+ * registry's transfer.mjs custodyDigestV2 is the same function; both test the same vectors.
+ */
+export const custodyDigestV2 = (
+  transferId: string,
+  salt: string,
+  sample: SampleDetails,
+  arrival: ArrivalDetails,
+): Promise<string> =>
+  sha256Hex(
+    canonicalise({
+      format: 'veilcore/sample-custody/v2',
+      transferId,
+      salt,
+      sample: sampleDetailsOf(sample),
+      arrival: arrivalDetailsOf(arrival),
+    }),
+  );
+
+/** Which digest a receipt's id carries, and in which form, or null for a receipt without one. */
+export const receiptCustodyOf = (attestationId: string): { format: 1 | 2; digest: string } | null => {
+  const m = /_sc([12])_([0-9a-f]{64})$/.exec(attestationId);
+  return m ? { format: m[1] === '2' ? 2 : 1, digest: m[2] } : null;
+};
+
+/** The custody digest a receipt's id carries (either form), or null for a receipt without one (every older one). */
 export const receiptCustodyDigest = (attestationId: string): string | null =>
-  /_sc1_([0-9a-f]{64})$/.exec(attestationId)?.[1] ?? null;
+  receiptCustodyOf(attestationId)?.digest ?? null;
+
+/** Whether a receipt id carries exactly a delivery's digest, in the delivery's form. */
+export const receiptCovers = (
+  attestationId: string,
+  t: Pick<SentTransfer, 'custodyDigest' | 'custodyFormat'>,
+): 'covered' | 'changed' | 'not-covered' => {
+  const carried = receiptCustodyOf(attestationId);
+  if (carried === null) return 'not-covered';
+  return carried.format === (t.custodyFormat ?? 1) && carried.digest === t.custodyDigest ? 'covered' : 'changed';
+};
+
+/** A salt as the sealed sample carries it: 32 bytes, base64url without padding. */
+const SALT = /^[A-Za-z0-9_-]{43}$/;
+
+/**
+ * A delivery's offer key, from where this browser keeps it: sealed in its records (the
+ * sender's source record, a lab's received record, CONTRACT.md #27), else the lab code kept
+ * here (made here, or being received).
+ */
+export const offerKeyForDelivery = (transferId: string): string | undefined =>
+  offerKeyInRecords(transferId) ??
+  [sentCodeFor(transferId), receivingCodeFor(transferId)]
+    .map((c) => (c ? parseShareCode(c).offerKey : undefined))
+    .find((k): k is string => !!k);
+
+/**
+ * Both sides of a delivery's sample details as the registry sent them (sealed boxes, or a
+ * delivery made before sealing: plain fields), opened with the offer key when sealed. `salt`
+ * only for a sealed sample that opened. `locked` when sealed and the key is missing or wrong.
+ */
+export const openDeliveryCustody = async (
+  transferId: string,
+  rawSample: unknown,
+  rawArrival: unknown,
+  offerKey: string | undefined = offerKeyForDelivery(transferId),
+): Promise<{
+  sample: SampleDetails;
+  arrival: ArrivalDetails;
+  sealed: boolean;
+  salt?: string;
+  locked?: boolean;
+}> => {
+  const sealed = isCustodyBox(rawSample) || isCustodyBox(rawArrival);
+  if (!sealed) return { sample: sampleDetailsOf(rawSample), arrival: arrivalDetailsOf(rawArrival), sealed: false };
+  if (!offerKey) return { sample: {}, arrival: {}, sealed: true, locked: true };
+  const s = isCustodyBox(rawSample) ? await openCustody(offerKey, transferId, 'sample', rawSample) : {};
+  const a = isCustodyBox(rawArrival) ? await openCustody(offerKey, transferId, 'arrival', rawArrival) : {};
+  if (s === null || a === null) return { sample: {}, arrival: {}, sealed: true, locked: true };
+  const salt = isString(s.salt) && SALT.test(s.salt) ? s.salt : undefined;
+  return {
+    sample: sampleDetailsOf(s),
+    arrival: arrivalDetailsOf(a),
+    sealed: true,
+    ...(salt ? { salt } : {}),
+  };
+};
+
+/** Seal one side for the registry: the sample with a salt, the arrival as its fields. */
+const sealSide = (
+  offerKey: string,
+  transferId: string,
+  side: 'sample' | 'arrival',
+  fields: SampleDetails | ArrivalDetails,
+  salt?: string,
+): Promise<SealedBox> =>
+  sealCustody(
+    offerKey,
+    transferId,
+    side,
+    side === 'sample' ? { ...fields, salt: salt ?? newCustodySalt() } : { ...fields },
+  );
 
 const auth = () => ({ 'Content-Type': 'application/json', 'x-holder-key': holderKey() });
 
@@ -451,8 +580,11 @@ export const OFFER_NOTE_MAX = 2000;
  *
  * What the recipient learns about the material goes sealed (sealedOffer), with a key made
  * here for this offer only; the key goes in the delivery code (shareCodeFor), never to the
- * registry. The quantity and note travel inside it too. The sample's custody details stay
- * readable to the registry, as before (deferred).
+ * registry. The quantity and note travel inside it too. The sample details go sealed with
+ * the same key (CONTRACT.md #27), once the registry has named the delivery: the box is bound
+ * to its id. Always sent, empty or not, so the sealed sample carries the salt a lab's
+ * receipt is signed with. The key itself is kept sealed with the source record
+ * (records.ts noteSentTo), so a restore from the backup file brings it back.
  *
  * Who it is for goes as a tag (CONTRACT.md #15, vault.ts handleTag), never the name typed:
  * the name is kept sealed with the source record (records.ts noteSentTo), and shown from
@@ -462,7 +594,7 @@ export const offerTransfer = async (
   record: StrainRecord,
   toHandle: string,
   opts: { quantity?: string; note?: string; sample?: SampleDetails } = {},
-): Promise<{ transferId: string; claimCode?: string; offerKey: string } | { error: string }> => {
+): Promise<{ transferId: string; claimCode?: string; offerKey: string; sampleError?: string } | { error: string }> => {
   const { sample, quantity, note } = opts;
   // SendToLab.tsx caps both while typing; anything longer never leaves this browser.
   if ((quantity?.length ?? 0) > OFFER_QUANTITY_MAX || (note?.length ?? 0) > OFFER_NOTE_MAX) {
@@ -496,17 +628,18 @@ export const offerTransfer = async (
         sourceRecord: record.id,
         toHandle: tag,
         sealedOffer,
-        ...(hasDetails(details) ? { sample: details } : {}),
       }),
     });
     const body = await readJson(res);
     if (!isObject(body)) return unexpected;
     if (isString(body.transferId)) {
-      noteSentTo(record.id, body.transferId, name);
+      noteSentTo(record.id, body.transferId, name, offerKey);
+      const saved = await setSample(body.transferId, offerKey, details);
       return {
         transferId: body.transferId,
         ...(isString(body.claimCode) ? { claimCode: body.claimCode } : {}),
         offerKey,
+        ...('error' in saved ? { sampleError: saved.error } : {}),
       };
     }
     if (isString(body.error)) return { error: userFacingError(body.error) };
@@ -530,8 +663,10 @@ export type ClaimResult = {
   quantity?: string;
   /** The sender's note, given to the recipient only (it is not on the public list). */
   note?: string;
-  /** What the breeder wrote about the sample, for the lab to confirm or correct. */
+  /** What the breeder wrote about the sample, for the lab to confirm or correct (a delivery made before sealing). */
   sample?: SampleDetails;
+  /** The breeder's sample details sealed with the offer key (CONTRACT.md #27): openDeliveryCustody opens it. */
+  sampleSealed?: SealedBox;
   /** The sender's sealed offer, exactly as sent (openClaimOffer opens it with the code's key). */
   offerSealed?: unknown;
   /** A code made before offers were sealed: the offer's fields, from the registry. */
@@ -562,7 +697,11 @@ export const claimTransfer = async (
         ...(isString(body.parentCommitment) ? { parentCommitment: body.parentCommitment } : {}),
         ...(isString(body.quantity) ? { quantity: body.quantity } : {}),
         ...(isString(body.note) && body.note ? { note: body.note } : {}),
-        ...(hasDetails(sampleDetailsOf(body.sample)) ? { sample: sampleDetailsOf(body.sample) } : {}),
+        ...(isCustodyBox(body.sample)
+          ? { sampleSealed: body.sample }
+          : hasDetails(sampleDetailsOf(body.sample))
+            ? { sample: sampleDetailsOf(body.sample) }
+            : {}),
         ...(isObject(body.offerSealed) ? { offerSealed: body.offerSealed } : {}),
         ...(isObject(body.offerPlain) ? { offerPlain: body.offerPlain } : {}),
       };
@@ -717,22 +856,67 @@ export const attachReceipt = async (
   }
 };
 
-/** Both sides of a delivery's sample details, as the registry stores them. */
+/**
+ * Both sides of a delivery's sample details, as the registry stores them, opened here when
+ * sealed (CONTRACT.md #27). `sealed`: they are locked with the delivery's offer key; `salt`:
+ * the sealed sample's, for the receipt's digest; `locked`: sealed, and this browser has no
+ * key that opens them.
+ */
 export type DeliveryCustody = {
   sample: SampleDetails;
   arrival: ArrivalDetails;
   receiptAttestationId?: string;
+  sealed?: boolean;
+  salt?: string;
+  locked?: boolean;
 };
 
-const custodyBody = (body: unknown): DeliveryCustody | { error: string } => {
+const custodyBody = async (
+  transferId: string,
+  body: unknown,
+  offerKey?: string,
+): Promise<DeliveryCustody | { error: string }> => {
   if (!isObject(body)) return unexpected;
   if (isString(body.error)) return { error: userFacingError(body.error) };
   if (!isString(body.transferId)) return unexpected;
+  const opened = await openDeliveryCustody(
+    transferId,
+    body.sample,
+    body.arrival,
+    offerKey ?? offerKeyForDelivery(transferId),
+  );
   return {
-    sample: sampleDetailsOf(body.sample),
-    arrival: arrivalDetailsOf(body.arrival),
+    sample: opened.sample,
+    arrival: opened.arrival,
     ...(isString(body.receiptAttestationId) ? { receiptAttestationId: body.receiptAttestationId } : {}),
+    ...(opened.sealed ? { sealed: true } : {}),
+    ...(opened.salt ? { salt: opened.salt } : {}),
+    ...(opened.locked ? { locked: true } : {}),
   };
+};
+
+/**
+ * The sender writes the sample details, sealed with the offer key (CONTRACT.md #27). Done by
+ * offerTransfer just after the code is made: the box is bound to the delivery's id.
+ */
+export const setSample = async (
+  transferId: string,
+  offerKey: string,
+  sample: SampleDetails,
+): Promise<DeliveryCustody | { error: string }> => {
+  const problems = custodyProblems('sample', sample);
+  if (problems.length) return { error: problems.join(' ') };
+  try {
+    const box = await sealSide(offerKey, transferId, 'sample', sampleDetailsOf(sample));
+    const res = await fetch(`${BASE}/transfers/${encodeURIComponent(transferId)}/custody`, {
+      method: 'POST',
+      headers: auth(),
+      body: JSON.stringify({ sample: box }),
+    });
+    return await custodyBody(transferId, await readJson(res), offerKey);
+  } catch (e) {
+    return { error: e instanceof Error && e.message ? e.message : 'could not reach the registry' };
+  }
 };
 
 /** A delivery's sample details, for its sender or the lab that received it. */
@@ -743,7 +927,7 @@ export const custodyOf = async (transferId: string): Promise<DeliveryCustody | {
     if (res.status === 404 && !(res.headers.get('content-type') ?? '').includes('json')) {
       return { error: 'this registry can’t keep sample details yet' };
     }
-    return custodyBody(await readJson(res));
+    return await custodyBody(transferId, await readJson(res));
   } catch {
     return { error: 'could not reach the registry' };
   }
@@ -751,38 +935,47 @@ export const custodyOf = async (transferId: string): Promise<DeliveryCustody | {
 
 /**
  * The lab writes how the sample arrived. Returns both sides as the registry now stores them;
- * the lab signs over what it typed (ClaimTransfer.tsx signReceipt), not over this echo.
+ * the lab signs over what it typed (ClaimTransfer.tsx signReceipt), not over this echo. With
+ * the delivery's offer key (a lab code made since offers were sealed), the arrival details
+ * are sealed with it (CONTRACT.md #27); without one, sent as plain fields, as a delivery
+ * made before then takes them.
  */
 export const setArrival = async (
   transferId: string,
   arrival: ArrivalDetails,
+  offerKey: string | undefined = offerKeyForDelivery(transferId),
 ): Promise<DeliveryCustody | { error: string }> => {
   const problems = custodyProblems('arrival', arrival);
   if (problems.length) return { error: problems.join(' ') };
   try {
+    const fields = arrivalDetailsOf(arrival);
     const res = await fetch(`${BASE}/transfers/${encodeURIComponent(transferId)}/custody`, {
       method: 'POST',
       headers: auth(),
-      body: JSON.stringify({ arrival: arrivalDetailsOf(arrival) }),
+      body: JSON.stringify({
+        arrival: offerKey ? await sealSide(offerKey, transferId, 'arrival', fields) : fields,
+      }),
     });
     if (res.status === 404 && !(res.headers.get('content-type') ?? '').includes('json')) {
       return { error: 'this registry can’t keep sample details yet' };
     }
-    return custodyBody(await readJson(res));
-  } catch {
-    return { error: 'could not reach the registry' };
+    return await custodyBody(transferId, await readJson(res), offerKey);
+  } catch (e) {
+    return { error: e instanceof Error && e.message ? e.message : 'could not reach the registry' };
   }
 };
 
 /**
  * Sign the lab's receipt (a chain-of-custody attestation over the breeder's source record
  * and the lab's received record, signed by attester-keys.ts attestRecord like any other)
- * and post it. With `digest`, its id carries the sample details it covers.
+ * and post it. With `digest`, its id carries the sample details it covers: `_sc2_` for
+ * sealed ones (custodyDigestV2, `format` 2), `_sc1_` for a delivery made before.
  */
 export const signReceiptWith = async (
   p: AttesterProfile,
   subject: { sourceCommitment: string; receivedRecordFingerprint: string },
   digest?: string,
+  format: 1 | 2 = 1,
 ): Promise<{ attestationId: string } | { error: string }> => {
   try {
     const out = await attestRecord(
@@ -790,7 +983,7 @@ export const signReceiptWith = async (
       subject.sourceCommitment,
       subject.receivedRecordFingerprint,
       'chain-of-custody',
-      digest ? `_sc1_${digest}` : '',
+      digest ? `_sc${format}_${digest}` : '',
     );
     if (out.error !== undefined) return { error: out.error };
     if (out.attestationId !== undefined) return { attestationId: out.attestationId };
@@ -866,36 +1059,114 @@ export const quantityPhrase = (q?: string): string | undefined => {
 };
 
 /** Transfers this holder has sent. */
-export const sentByMe = async (): Promise<SentTransfer[]> => {
+export const sentByMe = async (): Promise<SentTransfer[]> => (await sentOrNull()) ?? [];
+
+/** sentByMe, or null when the registry couldn't be asked or answered with an error. */
+const sentOrNull = async (): Promise<SentTransfer[] | null> => {
   // Nothing was ever sent from a browser with no key; do not make one to ask.
   if (!holderKeyIfAny()) return [];
   try {
     const res = await fetch(`${BASE}/transfers/sent`, { headers: auth() });
-    if (!res.ok) return [];
+    if (!res.ok) return null;
     const rows = arrayField(await readJson(res), 'transfers', isSentTransfer);
     return await Promise.all(
       rows.map(async (row): Promise<SentTransfer> => {
-        // A `label` in the registry's answer is not the holder's: dropped.
-        const { label: _fromRegistry, ...t } = row;
-        void _fromRegistry;
-        const sample = sampleDetailsOf(t.sample_custody);
-        const arrival = arrivalDetailsOf(t.arrival_custody);
+        // A `label` in the registry's answer is not the holder's, and the digest, its form,
+        // salt and lock state are worked out here: anything by those names from it is dropped.
+        const {
+          label: _fromRegistry,
+          custodyDigest: _d,
+          custodyFormat: _f,
+          custodySalt: _s,
+          custodyLocked: _l,
+          ...t
+        } = row;
+        void [_fromRegistry, _d, _f, _s, _l];
+        // Sealed sample details (CONTRACT.md #27) are opened with the offer key kept sealed
+        // with the source record; a delivery made before has plain fields.
+        const opened = await openDeliveryCustody(t.id, t.sample_custody, t.arrival_custody);
+        const { sample, arrival } = opened;
         // Only the registry's fields come from the registry: the digest and the name are
         // worked out here, the name from the source record's sealed copy.
         const label = sentToName(t.source_record, t.id);
+        const v2 = opened.sealed && opened.salt ? opened.salt : undefined;
         return {
           ...t,
           ...(label ? { label } : {}),
           sample_custody: hasDetails(sample) ? sample : undefined,
           arrival_custody: hasDetails(arrival) ? arrival : undefined,
-          custodyDigest: await custodyDigest(t.id, sample, arrival),
+          ...(opened.locked ? { custodyLocked: true } : {}),
+          ...(v2
+            ? {
+                custodyFormat: 2 as const,
+                custodySalt: v2,
+                custodyDigest: await custodyDigestV2(t.id, v2, sample, arrival),
+              }
+            : opened.sealed
+              ? {}
+              : { custodyFormat: 1 as const, custodyDigest: await custodyDigest(t.id, sample, arrival) }),
         };
       }),
     );
   } catch {
-    return [];
+    return null;
   }
 };
+
+/**
+ * The fields where what arrived differs from what was sent, by name, never by value: the
+ * custody.ts custodyDifferences lines, one name each (Sample ID: sampleId; Seal number:
+ * sealNumber; no seal, or not intact: sealIntact). What a holder may publish (CONTRACT.md #27).
+ */
+export const custodyDifferingFields = (sample: SampleDetails, arrival: ArrivalDetails): string[] => {
+  const same = (a: string, b: string) =>
+    a.replace(/\s+/g, ' ').trim().toLowerCase() === b.replace(/\s+/g, ' ').trim().toLowerCase();
+  const out = new Set<string>();
+  const pair = (k: string, sent?: string, got?: string) => {
+    if (sent && (!got || !same(sent, got))) out.add(k);
+  };
+  pair('sampleId', sample.sampleId, arrival.sampleId);
+  if (arrival.sealIntact === 'no-seal') {
+    if (sample.sealNumber) out.add('sealIntact');
+  } else pair('sealNumber', sample.sealNumber, arrival.sealNumber);
+  if (arrival.sealIntact === 'no') out.add('sealIntact');
+  return [...out];
+};
+
+/**
+ * What the holder's app worked out about each lab receipt over this record's sealed sample
+ * details, for its attestation-status grant (disclosure.ts grantValuesNow): the registry
+ * can't open them, so only the holder can say whether they match. Only deliveries whose
+ * boxes opened here; read at most every few seconds.
+ */
+let sentCache: { at: number; key: string; list: Promise<SentTransfer[] | null> } | null = null;
+export const custodySummariesFor = async (r: Pick<StrainRecord, 'id'>): Promise<CustodySummaryEntry[] | null> => {
+  const key = holderKeyIfAny() ?? '';
+  if (!sentCache || sentCache.key !== key || Date.now() - sentCache.at > 5_000) {
+    sentCache = { at: Date.now(), key, list: sentOrNull() };
+  }
+  const sent = await sentCache.list;
+  if (!sent) return null;
+  return sent
+    .filter(
+      (t): t is SentTransfer & { receipt_attestation_id: string } =>
+        t.source_record === r.id &&
+        typeof t.receipt_attestation_id === 'string' &&
+        t.custodyFormat === 2 &&
+        !t.custodyLocked,
+    )
+    .map((t) => {
+      const covered = receiptCovers(t.receipt_attestation_id, t);
+      return {
+        receiptAttestationId: t.receipt_attestation_id,
+        covered,
+        differingFields:
+          covered === 'covered' ? custodyDifferingFields(t.sample_custody ?? {}, t.arrival_custody ?? {}) : [],
+      };
+    })
+    .sort((a, b) => a.receiptAttestationId.localeCompare(b.receiptAttestationId));
+};
+registerCustodySummaries(custodySummariesFor);
 
 /**
  * The fingerprint the public verify endpoint reports for a record, or null. Used to

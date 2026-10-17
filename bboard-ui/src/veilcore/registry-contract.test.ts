@@ -53,6 +53,14 @@ const P = {
   // The second record's own private values (its published ones are below).
   bredBy2: 'PRIV-bredby2-Yy7',
   notes2: 'PRIV-notes2-Uu8',
+  // A delivery's sample details (CONTRACT.md #27): sealed with the offer key.
+  sampleId: 'PRIV-sample-id-Qq1',
+  sealSent: 'PRIV-seal-4471-Qq2',
+  sealArrived: 'PRIV-seal-4417-Qq3',
+  takenFrom: 'PRIV-taken-from-bench-Qq4',
+  witness: 'PRIV-witness-Joe-Qq5',
+  condition: 'PRIV-condition-cold-Qq6',
+  labAccession: 'PRIV-lab-acc-Qq7',
 };
 /** Values the holder chooses to publish with a disclosure grant: stored readable, on purpose. */
 const PUB = {
@@ -420,9 +428,19 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     const offer = await t.offerTransfer(source, 'lab@contract.test', {
       quantity: P.quantity,
       note: P.offerNote,
-      sample: { sampleId: 'CT-1', sealNumber: '9001' },
+      sample: { sampleId: P.sampleId, sealNumber: P.sealSent, takenFrom: P.takenFrom, witness: P.witness },
     });
     if ('error' in offer) throw new Error(offer.error);
+    expect(offer.sampleError).toBeUndefined();
+    // The sample details went sealed with the offer key, bound to this delivery (CONTRACT.md #27),
+    // and the key is kept in the source record's sealed data (records.ts noteSentTo).
+    const custodyRow = obj(
+      (await reg(`/transfers/${offer.transferId}/custody`, { headers: { 'x-holder-key': A.holder.holderKeyIfAny()! } }))
+        .json,
+    );
+    expect(Object.keys(obj(custodyRow.sample)).sort()).toEqual(['alg', 'ct', 'iv', 'kid', 'v']);
+    expect(obj(custodyRow.sample).kid).toBe(await A.vault.offerKidOf(offer.offerKey));
+    expect(A.records.getRecord(r1.id)?.offerKeys?.[offer.transferId]).toBe(offer.offerKey);
     transferId = offer.transferId;
     secretKeys.push({ label: 'the offer key', values: forms(offer.offerKey) });
     if (offer.claimCode) secretKeys.push({ label: 'the claim code', values: [offer.claimCode] });
@@ -438,6 +456,17 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     receivedId = claim.recordId;
     expect(claim.offerSealed).toBeTruthy();
     expect(claim.offerPlain).toBeUndefined();
+    // The breeder's sample details came sealed; the code's offer key opens them.
+    expect(claim.sample).toBeUndefined();
+    const sent = await B.transfers.openDeliveryCustody(transferId, claim.sampleSealed, undefined, parsed.offerKey);
+    expect(sent).toMatchObject({
+      sealed: true,
+      sample: { sampleId: P.sampleId, sealNumber: P.sealSent, takenFrom: P.takenFrom, witness: P.witness },
+    });
+    expect(sent.salt).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect((await B.transfers.openDeliveryCustody(transferId, claim.sampleSealed, undefined, undefined)).locked).toBe(
+      true,
+    );
     // What the registry left for the lab: a stub of public fields, nothing of the sender's.
     const stub = (await rowsOf(B.holder.holderKeyIfAny()!, 'records')).find((r) => r.id === receivedId)!;
     expect(Object.keys(stub).sort()).toEqual(
@@ -449,7 +478,11 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     if (typeof opened !== 'object') throw new Error(`the offer did not open: ${opened}`);
     const fields = B.records.offerFieldsOf(opened.fields);
     expect(fields).toMatchObject({ bredBy: P.bredBy, quantity: P.quantity, note: P.offerNote });
-    const received = await B.records.sealReceived(receivedId, { deliveryNote: fields.note, labRef: P.labRef }, fields);
+    const received = await B.records.sealReceived(
+      receivedId,
+      { deliveryNote: fields.note, labRef: P.labRef, offerKeys: { [transferId]: parsed.offerKey! } },
+      fields,
+    );
     expect(received?.recordFingerprint).toMatch(/^[0-9a-f]{64}$/);
     expect(await B.records.checkIntegrity(received!)).toBe('match');
     secretKeys.push({ label: 'the lab’s vault key', values: forms(B.vault.vaultKeyIfAny()!) });
@@ -477,24 +510,60 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     const B = await browser(labStorage);
     await B.records.hydrate();
     const received = B.records.getRecord(receivedId)!;
+    // The lab keeps the delivery's offer key sealed with its received record.
+    expect(received.offerKeys?.[transferId]).toBeTruthy();
+    expect(B.transfers.offerKeyForDelivery(transferId)).toBe(received.offerKeys?.[transferId]);
     const profile = await B.attesters.createAttester('Contract Lab', 'laboratory');
     const pub = await B.attesters.publishAttester(profile);
     expect(pub.error).toBeUndefined();
-    const arrival = { sampleId: 'CT-1', sealNumber: '9001', sealIntact: 'yes' as const, arrivedOn: '2026-10-15' };
+    const before = await B.transfers.custodyOf(transferId);
+    if ('error' in before) throw new Error(before.error);
+    expect(before).toMatchObject({ sealed: true, sample: { sealNumber: P.sealSent } });
+    const arrival = {
+      sampleId: P.sampleId,
+      sealNumber: P.sealArrived,
+      sealIntact: 'yes' as const,
+      arrivedOn: '2026-10-15',
+      condition: P.condition,
+      labRef: P.labAccession,
+    };
+    // Sealed with the offer key the lab's record keeps (CONTRACT.md #27), and echoed back opened.
     const set = await B.transfers.setArrival(transferId, arrival);
-    expect('error' in set, JSON.stringify(set)).toBe(false);
-    const digest = await B.transfers.custodyDigest(transferId, { sampleId: 'CT-1', sealNumber: '9001' }, arrival);
+    if ('error' in set) throw new Error(set.error);
+    expect(set).toMatchObject({ sealed: true, arrival: { sealNumber: P.sealArrived, condition: P.condition } });
+    const custodyRow = obj(
+      (await reg(`/transfers/${transferId}/custody`, { headers: { 'x-holder-key': B.holder.holderKeyIfAny()! } })).json,
+    );
+    expect(Object.keys(obj(custodyRow.arrival)).sort()).toEqual(['alg', 'ct', 'iv', 'kid', 'v']);
+    const digest = await B.transfers.custodyDigestV2(transferId, before.salt!, before.sample, arrival);
     const signed = await B.transfers.signReceiptWith(
       profile,
       { sourceCommitment: r1.recordFingerprint, receivedRecordFingerprint: received.recordFingerprint },
       digest,
+      2,
     );
     if ('error' in signed) throw new Error(signed.error);
+    expect(signed.attestationId).toMatch(new RegExp(`_sc2_${digest}$`));
     expect(await B.transfers.attachReceipt(transferId, signed.attestationId)).toEqual({ ok: true });
 
-    // The breeder shares the lab status of the source (values from the record: it has none).
+    // The breeder's browser opens both sides with the key kept in the source record and sees
+    // the receipt covers them, and how they differ: worked out here, not the registry's word.
     A = await browser(breederStorage);
     await A.records.hydrate();
+    const mine = (await A.transfers.sentByMe()).find((x) => x.id === transferId)!;
+    expect(mine).toMatchObject({
+      custodyFormat: 2,
+      custodyDigest: digest,
+      arrival_custody: { sealNumber: P.sealArrived },
+    });
+    const { custodyView, custodyLines } = await import('./custody');
+    const view = custodyView(mine, signed.attestationId)!;
+    expect(view.signed).toBe('covered');
+    expect(view.differences).toEqual([`Seal number differs: sent ${P.sealSent}, received ${P.sealArrived}`]);
+    expect(custodyLines(view)[0]).toBe(`Seal number differs: sent ${P.sealSent}, received ${P.sealArrived}.`);
+
+    // The breeder shares the lab status of the source: the registry says "sealed", and the
+    // summary the breeder's app worked out goes with the grant (names of fields, no values).
     const g = await A.disclosure.saveGrant(
       A.records.getRecord(r1.id)!,
       A.disclosure.disclosureFrom(['attestation-status']),
@@ -503,7 +572,17 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     const v = await verify(r1.id);
     expect(v.signedAttestation).toBe(true);
     expect(v.dnaPairedByHolder).toBe(false);
-    expect(v.custody).toEqual([{ receiptAttestationId: signed.attestationId, covered: 'covered', differences: [] }]);
+    expect(v.custody).toEqual([
+      {
+        receiptAttestationId: signed.attestationId,
+        custody: 'sealed',
+        signedOverSampleDetails: true,
+        custodySummary: { covered: 'covered', differingFields: ['sealNumber'] },
+        custodySummaryBy: 'holder',
+      },
+    ]);
+    // Unchanged since: nothing to send again.
+    expect(await A.disclosure.syncGrants(A.records.getRecord)).toBe(0);
   });
 
   it('licence save: { id, sealed } only, and it opens again', async () => {
@@ -580,6 +659,83 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     expect(fresh.licenses.lockedLicenses()).toEqual([]);
   });
 
+  it('the sender keeps each offer key in its sealed data: a v3 backup restored on a new device opens the sample details', async () => {
+    await A.records.hydrate();
+    const contents = A.backup.backupContents();
+    expect(contents.version).toBe(3);
+    // Without the lab codes kept beside the backup's records: the key must come from the sealed data.
+    const { sentCodes: _codes, ...withoutCodes } = contents;
+    void _codes;
+    const fresh = await browser(new Map());
+    const result = await fresh.backup.restoreAny(new File([JSON.stringify(withoutCodes)], 'VeilCore backup.json'));
+    expect(result).toMatchObject({ holderKey: 'restored', vaultKey: 'restored' });
+    await fresh.records.hydrate();
+    expect(fresh.transfers.sentCodeFor(transferId)).toBeUndefined();
+    expect(fresh.records.getRecord(r1.id)?.offerKeys?.[transferId]).toBeTruthy();
+    const mine = (await fresh.transfers.sentByMe()).find((x) => x.id === transferId)!;
+    expect(mine.custodyLocked).toBeUndefined();
+    expect(mine).toMatchObject({
+      custodyFormat: 2,
+      sample_custody: { sampleId: P.sampleId, sealNumber: P.sealSent, witness: P.witness },
+      arrival_custody: { sealNumber: P.sealArrived, labRef: P.labAccession },
+    });
+    // The holder key alone, without the vault key or the records' keys: the sample details
+    // show as locked, never as empty or matching.
+    const bare = await browser(new Map([['veilcore.holder.v1', A.holder.holderKeyIfAny()!]]));
+    const locked = (await bare.transfers.sentByMe()).find((x) => x.id === transferId)!;
+    expect(locked.custodyLocked).toBe(true);
+    expect(locked.sample_custody).toBeUndefined();
+  });
+
+  it('the shared vectors are the registry’s, value for value; both sides open each other’s boxes', async () => {
+    const V = await import('./custody-vectors');
+    if (!/^https?:\/\//.test(TARGET)) {
+      const fixture = JSON.parse(
+        readFileSync(path.join(path.resolve(TARGET), 'test/fixtures/sealed-custody-vectors.json'), 'utf8'),
+      ) as Obj;
+      expect(fixture.transferId).toBe(V.SEALED_TRANSFER_ID);
+      expect(fixture.salt).toBe(V.CROSS_SALT);
+      expect(fixture.offerKey).toBe(V.CROSS_OFFER_KEY);
+      expect(fixture.kid).toBe(V.CROSS_OFFER_KID);
+      expect(fixture.digestV2).toBe(V.CROSS_DIGEST_V2);
+      expect(fixture.sample).toEqual(V.CROSS_SAMPLE);
+      expect(fixture.arrival).toEqual(V.CROSS_ARRIVAL);
+      expect(fixture.sampleBoxSealedBySite).toEqual(V.SAMPLE_BOX_FROM_SITE);
+      expect(fixture.arrivalBoxSealedByRegistryTest).toEqual(V.ARRIVAL_BOX_FROM_REGISTRY);
+      const registry = createRequire(import.meta.url)(path.join(path.resolve(TARGET), 'sealed.js')) as {
+        CUSTODY_CT_MAX: number;
+      };
+      expect(registry.CUSTODY_CT_MAX).toBe(A.vault.CUSTODY_CT_MAX);
+    }
+    const t = A.transfers;
+    expect(await t.custodyDigestV2(V.SEALED_TRANSFER_ID, V.CROSS_SALT, V.CROSS_SAMPLE, V.CROSS_ARRIVAL)).toBe(
+      V.CROSS_DIGEST_V2,
+    );
+    const opened = await t.openDeliveryCustody(
+      V.SEALED_TRANSFER_ID,
+      V.SAMPLE_BOX_FROM_SITE,
+      V.ARRIVAL_BOX_FROM_REGISTRY,
+      V.CROSS_OFFER_KEY,
+    );
+    expect(opened).toEqual({ sample: V.CROSS_SAMPLE, arrival: V.CROSS_ARRIVAL, sealed: true, salt: V.CROSS_SALT });
+    // The real registry stores what the site sealed and serves it back unread: the registry's
+    // own test helper (node:crypto) opens it.
+    if (!/^https?:\/\//.test(TARGET)) {
+      const helpers = (await import(path.join(path.resolve(TARGET), 'test/helpers.mjs'))) as {
+        openCustodyForTest: (box: unknown, key: Buffer, transferId: string, side: string) => Obj;
+      };
+      const row = obj(
+        (await reg(`/transfers/${transferId}/custody`, { headers: { 'x-holder-key': A.holder.holderKeyIfAny()! } }))
+          .json,
+      );
+      const key = Buffer.from(A.records.getRecord(r1.id)!.offerKeys![transferId], 'base64url');
+      expect(helpers.openCustodyForTest(row.sample, key, transferId, 'sample')).toMatchObject({ sampleId: P.sampleId });
+      expect(helpers.openCustodyForTest(row.arrival, key, transferId, 'arrival')).toMatchObject({
+        condition: P.condition,
+      });
+    }
+  });
+
   it('the longest quantity and note the app allows, at six bytes a character: the real registry takes the offer', async () => {
     const A2 = await browser(breederStorage);
     await A2.records.hydrate();
@@ -598,7 +754,7 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
 
   // Run only against a checkout: the registry's own lists are read from its source.
   it.skipIf(/^https?:\/\//.test(TARGET))(
-    'the lists both sides keep agree: correction field names, the offer limit, the profiles',
+    'the lists both sides keep agree: correction field names, the offer limit, the profiles, the features',
     async () => {
       const registry = createRequire(import.meta.url)(path.join(path.resolve(TARGET), 'sealed.js')) as {
         CHANGED_FIELD_NAMES: string[];
@@ -623,6 +779,13 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
       const { ANIMAL_PROFILE } = await import('./animal-profile');
       for (const p of [PLANT_VARIETY_PROFILE, ANIMAL_PROFILE, 'veilcore/profile/cannabis/v0.1'])
         expect(registry.KNOWN_PROFILES).toContain(p);
+      // Every feature the site's deploys require is one this registry serves (sealed custody too).
+      const { REQUIRED_FEATURES } = (await import('../../../scripts/registry-features.mjs')) as {
+        REQUIRED_FEATURES: Record<string, string>;
+      };
+      const health = obj((await reg('/health')).json);
+      for (const f of Object.keys(REQUIRED_FEATURES)) expect(health.features as string[]).toContain(f);
+      expect(Object.keys(REQUIRED_FEATURES)).toContain('sealed-custody-v1');
     },
   );
 

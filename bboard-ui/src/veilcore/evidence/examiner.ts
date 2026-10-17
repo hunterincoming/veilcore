@@ -155,18 +155,24 @@ export const coveredWords = (c: {
   covered: string;
   received?: boolean;
   receiptAttestationId: string | null;
+  salt?: string;
+  locked?: boolean;
 }): string =>
   c.received === false
     ? 'No: the lab code was never used'
-    : c.covered === 'covered'
-      ? 'Yes: the receipt’s signature covers these details. Checked in the holder’s browser when the bundle was made; verify.html, in this folder, rechecks it offline.'
-      : c.covered === 'changed'
-        ? 'No: the lab changed its arrival details after signing. verify.html, in this folder, rechecks this offline.'
-        : c.covered === 'unsigned'
-          ? c.receiptAttestationId
-            ? 'No: the receipt’s signature in this bundle doesn’t check, or its signer withdrew it'
-            : 'No: no receipt was signed for this delivery'
-          : 'No: the receipt was signed before receipts covered sample details. verify.html, in this folder, rechecks this offline.';
+    : c.locked
+      ? 'Can’t say: these details are stored locked, and the browser that made this bundle didn’t have their key'
+      : c.covered === 'covered'
+        ? c.salt
+          ? 'Yes: the receipt’s signature covers these details. The receipt’s id ends with the SHA-256 of the canonical JSON of { format: "veilcore/sample-custody/v2", transferId, salt, sample, arrival }, using the salt below. Checked in the holder’s browser when the bundle was made; verify.html, in this folder, rechecks it offline.'
+          : 'Yes: the receipt’s signature covers these details. Checked in the holder’s browser when the bundle was made; verify.html, in this folder, rechecks it offline.'
+        : c.covered === 'changed'
+          ? 'No: the lab changed its arrival details after signing. verify.html, in this folder, rechecks this offline.'
+          : c.covered === 'unsigned'
+            ? c.receiptAttestationId
+              ? 'No: the receipt’s signature in this bundle doesn’t check, or its signer withdrew it'
+              : 'No: no receipt was signed for this delivery'
+            : 'No: the receipt was signed before receipts covered sample details. verify.html, in this folder, rechecks this offline.';
 
 /** The deliveries and what was written about each sample, when the bundle has them (Evidence.custody). */
 const custodySection = (ev: Evidence): string => {
@@ -181,7 +187,9 @@ const custodySection = (ev: Evidence): string => {
       ['Lab code used', c.received === undefined ? null : c.received ? 'Yes' : 'No: nobody used it'],
       ['Receipt signature', c.receiptAttestationId ?? '(no receipt signed)'],
       ['Covered by the lab’s signature', coveredWords(c)],
-      ['Sample details', anything ? null : 'None written'],
+      ['Sample details', c.locked ? 'Locked: not in this bundle' : anything ? null : 'None written'],
+      // Sealed with the delivery's key (CONTRACT.md #27): the salt the digest is taken with.
+      ['Salt sealed with the sample details', c.salt ?? null],
       ...custodyRows('Sent', c.sample),
       // What the lab wrote, labelled as not covered unless the signature covers it.
       ...custodyRows(covered ? 'Received' : 'Received (not covered by the lab’s signature)', c.arrival),
@@ -195,6 +203,14 @@ const custodySection = (ev: Evidence): string => {
       ].filter((x): x is string => !!x);
       if (matched.length) out.push(p(`${matched.join(' and ').replace(/^s/, 'S')} match what was sent.`));
     }
+  }
+  if (items.some((c) => c.salt)) {
+    out.push(
+      p(
+        'Sample details with a salt are stored locked on VeilCore’s registry, and VeilCore doesn’t have their key. They are in this bundle because the holder’s browser opened them. With the salt, anyone can work out the digest the lab’s receipt id carries and compare: verify.html does.',
+        'muted',
+      ),
+    );
   }
   out.push(
     p(

@@ -37,10 +37,15 @@ const Row: React.FC<{
   sub?: string;
   /** Kept for callers; rows no longer draw a rule, so the last one needs nothing different. */
   last?: boolean;
-}> = ({ done, mark = done ? 'done' : 'wait', id, label, value, sub }) => {
+  /**
+   * The receipt row: whether the lab's receipt covers the delivery's sample details, as this
+   * browser worked it out (custody.ts custodyView): data-custody, for tests and support.
+   */
+  custody?: string;
+}> = ({ done, mark = done ? 'done' : 'wait', id, label, value, sub, custody }) => {
   const { t } = useT();
   return (
-    <Box sx={{ py: 1.25 }} data-status-row={id} data-mark={mark}>
+    <Box sx={{ py: 1.25 }} data-status-row={id} data-mark={mark} {...(custody ? { 'data-custody': custody } : {})}>
       <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
         {mark === 'done' ? (
           <DoneIcon color="success" titleAccess={t('app.plant.mark.done')} />
@@ -125,7 +130,7 @@ export const dnaReportRow = (
 export const breederReceiptRow = (
   receipt: BreederReceipt | null | undefined,
   tr: Translator = enT,
-): { done: boolean; id: string; label: string; value: string; sub?: string } => {
+): { done: boolean; id: string; label: string; value: string; sub?: string; custody?: string } => {
   if (receipt === null || receipt === undefined)
     return { done: false, id: 'Lab receipt', label: tr.t('app.plant.labReceipt'), value: tr.t('app.plant.checking') };
   if (receipt.kind === 'signed') {
@@ -136,6 +141,7 @@ export const breederReceiptRow = (
       label: tr.t('app.plant.receiptSigned'),
       value: signerLabel(receipt.by, 'by', undefined, tr).text,
       ...(sub ? { sub } : {}),
+      ...(receipt.custody ? { custody: receipt.custody.locked ? 'locked' : receipt.custody.signed } : {}),
     };
   }
   if (receipt.kind === 'code-used')

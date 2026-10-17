@@ -61,6 +61,8 @@ export const SendToLab: React.FC<{
   const [busy, setBusy] = useState(false);
   const [transferId, setTransferId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // The code was made, but the sealed sample details weren't stored (transfers.ts offerTransfer).
+  const [sampleError, setSampleError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const tr = useRecordT(record);
   const { t } = tr;
@@ -94,6 +96,7 @@ export const SendToLab: React.FC<{
       const code = shareCodeFor(res.transferId, res.claimCode, lock, res.offerKey);
       // Kept here (and in the backup): the registry can't show the code again.
       rememberSentCode(code);
+      setSampleError(res.sampleError ?? null);
       setTransferId(code);
       labChanged();
     }
@@ -109,6 +112,7 @@ export const SendToLab: React.FC<{
     setSample(EMPTY_SAMPLE);
     setShowSample(false);
     setError(null);
+    setSampleError(null);
   };
   const sampleField = (k: keyof SampleDetails) => ({
     value: sample[k],
@@ -176,7 +180,12 @@ export const SendToLab: React.FC<{
               <Alert severity="warning" variant="outlined">
                 {rich(t('app.lab.send.dontWrite'), { b: (c) => <b>{c}</b> })}
               </Alert>
-              {sampleLine(sampleDetailsOf(sample)) && (
+              {sampleError && (
+                <Alert severity="warning" variant="outlined" data-sample-not-saved="">
+                  {t('app.lab.send.sampleNotSaved', { error: labErrorWords(sampleError, tr) })}
+                </Alert>
+              )}
+              {!sampleError && sampleLine(sampleDetailsOf(sample)) && (
                 <Typography variant="body2" data-sample-sent="">
                   {rich(
                     t('app.lab.send.labWillCheck'),

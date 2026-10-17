@@ -62,6 +62,19 @@ export const lab = {
   'app.lab.custody.sealMatches': '封緘番号は、送付したものと一致します。',
   'app.lab.custody.noDifference': '送付したサンプルの詳細と、ラボが到着時に書いた詳細に違いはありません。',
   'app.lab.custody.joinSentences': '',
+  'app.lab.custody.locked':
+    'サンプルの詳細には鍵がかかっていて、このブラウザにはその鍵がありません。見るには、ここでバックアップファイルを復元してください。',
+  'app.lab.custody.sealedSigned':
+    'ラボはサンプルの詳細に対して受領書に署名しました。詳細は鍵をかけた状態で保存され、VeilCoreはその鍵を持っていないため、このページでは比較できません。',
+  'app.lab.custody.holderMatch':
+    '送り手のアプリが比較しました：到着したものは送ったものと一致しています。これは送り手の申告です。',
+  'app.lab.custody.holderDiffers':
+    '送り手のアプリが比較し、次の項目に違いを見つけました：{fields}。これは送り手の申告です。',
+  'app.lab.custody.holderChanged':
+    '送り手のアプリが比較しました：ラボは署名後に到着時の詳細を変更したため、受領書はそれを対象にしていません。これは送り手の申告です。',
+  'app.lab.custody.removed':
+    'この送付のサンプルの詳細は鍵をかける前に書かれ、その後削除されたため、この受領書とは比較できません。',
+  'app.lab.send.sampleNotSaved': 'ラボコードは使えますが、サンプルの詳細は保存されませんでした：{error}',
   'app.signer.sep': '',
   'app.lab.strength.unsigned': '署名なし',
   'app.lab.strength.unsignedWhy':
@@ -183,7 +196,7 @@ export const lab = {
   'app.lab.recv.nothingSigned': '{problems}何も署名されていません',
   'app.lab.recv.notSaved': '到着時の詳細が保存されなかったため（{error}）、何も署名されていません',
   'app.lab.recv.savedDifferent':
-    'レジストリが、この画面とは違うサンプルの詳細を保存したため、何も署名されていません。ページを再読み込みして、もう一度確認してください',
+    'レジストリから戻ったサンプルの詳細がこの画面と違うため、何も署名されていません。ページを再読み込みして、もう一度確認してください',
   'app.lab.recv.unlinked':
     '受領書は署名されましたが、この送付に紐付けられなかったため（{error}）、育成者にはまだ見えません。もう一度試すか、後で植物のページから紐付けてください。',
   'app.lab.recv.linkIntro':

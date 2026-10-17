@@ -103,12 +103,21 @@ describe('partner-kit check, against a local registry', () => {
     );
     // The receipts tied to deliveries, with their sample details as the registry reports them.
     const byId = Object.fromEntries(c.labReceipts.map((x) => [x.attestationId, x]));
-    assert.deepEqual(byId[reg.receipts.matching].custody, { covered: 'covered', differences: [], clean: true });
-    assert.deepEqual(byId[reg.receipts.sealDiffers].custody, {
-      covered: 'covered',
-      differences: ['Seal number differs: sent 5500, received 5505'],
+    // Sample details sealed with the delivery's key: the registry can't compare them; the
+    // sender's app's summary comes as the sender's word, by field name, never a value.
+    assert.deepEqual(byId[reg.receipts.matching].custody, {
+      differences: [],
       clean: false,
+      state: 'sealed',
+      senderSays: { covered: 'covered', differingFields: [] },
     });
+    assert.deepEqual(byId[reg.receipts.sealDiffers].custody, {
+      differences: [],
+      clean: false,
+      state: 'sealed',
+      senderSays: { covered: 'covered', differingFields: ['sealNumber'] },
+    });
+    for (const v of ['5500', '5505', 'E2E-1', 'E2E-2']) assert.equal(JSON.stringify(c).includes(v), false, v);
     assert.match(c.summary, /1 lab receipt for a sample does NOT match what was sent/);
     assert.ok(c.whatThisDoesNotShow.length >= 6);
   });

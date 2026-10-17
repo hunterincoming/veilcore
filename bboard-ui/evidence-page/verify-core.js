@@ -310,8 +310,15 @@ var VeilcoreVerify = (function () {
   // of { format: 'veilcore/sample-custody/v1', transferId, sample, arrival } (the site's
   // transfers.ts custodyDigest and the registry's transfer.mjs custodyDigest). Worked out
   // again here from the values in the bundle, so "covered" never rests on the bundle's word.
+  //
+  // Sample details sealed with the delivery's key (since 16 Oct 2026): the id ends
+  // `_sc2_<digest>`, SHA-256 of the canonical JSON of { format: 'veilcore/sample-custody/v2',
+  // transferId, salt, sample, arrival }, where the salt is 32 random bytes the breeder sealed
+  // with the sample. The bundle carries the salt (entry.salt), so the same check works here.
 
   var CUSTODY_FORMAT = 'veilcore/sample-custody/v1';
+  var CUSTODY_FORMAT_V2 = 'veilcore/sample-custody/v2';
+  var CUSTODY_SALT = /^[A-Za-z0-9_-]{43}$/;
 
   function stringFields(v) {
     if (!isObject(v)) return null;
@@ -358,6 +365,8 @@ var VeilcoreVerify = (function () {
       sample: {},
       arrival: {},
       differences: [],
+      format: CUSTODY_FORMAT,
+      salt: null,
     };
     try {
       var sample = isObject(entry) ? stringFields(entry.sample || {}) : null;
@@ -365,13 +374,28 @@ var VeilcoreVerify = (function () {
       if (!sample || !arrival || typeof entry.transferId !== 'string') return out;
       out.sample = sample;
       out.arrival = arrival;
-      out.computed = await sha256Text(canonicalise({ format: CUSTODY_FORMAT, transferId: entry.transferId, sample: sample, arrival: arrival }));
+      // Sealed details the holder's browser couldn't open when the bundle was made: nothing to check.
+      if (entry.locked === true) {
+        out.status = 'locked';
+        return out;
+      }
+      // Sealed sample details carry their salt; one that isn't 32 bytes of base64url is refused.
+      if (entry.salt !== undefined && entry.salt !== null) {
+        if (typeof entry.salt !== 'string' || !CUSTODY_SALT.test(entry.salt)) return out;
+        out.salt = entry.salt;
+        out.format = CUSTODY_FORMAT_V2;
+      }
+      out.computed = await sha256Text(canonicalise(out.salt
+        ? { format: CUSTODY_FORMAT_V2, transferId: entry.transferId, salt: out.salt, sample: sample, arrival: arrival }
+        : { format: CUSTODY_FORMAT, transferId: entry.transferId, sample: sample, arrival: arrival }));
       if (out.received === false && !out.receiptAttestationId) {
         out.status = 'never-used';
         return out;
       }
-      var m = out.receiptAttestationId ? /_sc1_([0-9a-f]{64})$/.exec(out.receiptAttestationId) : null;
-      out.carried = m ? m[1] : null;
+      var m = out.receiptAttestationId ? /_sc([12])_([0-9a-f]{64})$/.exec(out.receiptAttestationId) : null;
+      out.carried = m ? m[2] : null;
+      // A receipt in the other form than these details carries a digest of something else.
+      var sameForm = !!m && (m[1] === '2') === !!out.salt;
       var sig = null;
       for (var i = 0; i < signatures.length; i++) {
         if (signatures[i].attestationId === out.receiptAttestationId && attestations[i] && attestations[i].attestationId === out.receiptAttestationId) sig = signatures[i];
@@ -380,7 +404,7 @@ var VeilcoreVerify = (function () {
         !(sig.retraction && sig.retraction.signature === 'valid');
       if (!good) out.status = 'unsigned';
       else if (out.carried === null) out.status = 'not-covered';
-      else out.status = out.carried === out.computed ? 'covered' : 'changed';
+      else out.status = sameForm && out.carried === out.computed ? 'covered' : 'changed';
       if (out.status === 'covered') out.differences = custodyDifferences(sample, arrival);
     } catch (e) {
       out.status = 'malformed';
