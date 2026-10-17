@@ -46,6 +46,7 @@ import { resultRecipientFor } from '../veilcore/lab-results';
 import { integrityOf, recordSecretSaved, type StrainRecord } from '../veilcore/records';
 import { rich, useRecordT, useT } from '../i18n/app';
 import { recordTitle } from '../veilcore/animal-profile';
+import { SupportDetails } from './SupportDetails';
 
 export const SendToLab: React.FC<{
   record: StrainRecord;
@@ -323,6 +324,7 @@ export const SendToLab: React.FC<{
               {error && (
                 <Alert severity="warning" variant="outlined">
                   {error}
+                  <SupportDetails step="lab delivery" error={error} />
                 </Alert>
               )}
             </Stack>

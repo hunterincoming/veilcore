@@ -506,7 +506,12 @@ describe('locked rows', () => {
     expect(out.result.ok).toBe(false);
     expect(out.result.refused).toEqual([expect.objectContaining({ id: '*', words: 'app.sealed.refuse.noKey' })]);
     expect(vault.vaultKeyIfAny()).toBeNull();
-    expect(sent.some((r) => r.method === 'PUT')).toBe(false);
+    // Nothing is saved: no locked copy is sent. Only the record's proof code may be, to be
+    // dated (CONTRACT.md #38): no box, no vault key id, nothing typed.
+    expect(sent.some((r) => r.method === 'PUT' && !r.url.endsWith('/api/records/dating'))).toBe(false);
+    for (const r of sent.filter((x) => x.url.endsWith('/api/records/dating')))
+      for (const row of JSON.parse(r.body ?? '[]') as Record<string, unknown>[])
+        expect(Object.keys(row).every((k) => ['id', 'recordFingerprint', 'keyBinding'].includes(k))).toBe(true);
   });
 });
 

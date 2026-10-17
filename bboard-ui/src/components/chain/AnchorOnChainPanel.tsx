@@ -9,22 +9,13 @@
 import React, { useState } from 'react';
 import { Alert, Button, Checkbox, FormControlLabel, Paper, Stack, Typography } from '@mui/material';
 import LinkIcon from '@mui/icons-material/LinkOutlined';
-import {
-  ensureKeys,
-  ensureKeysFor,
-  hexBytes,
-  setAnchor,
-  storageKeeps,
-  useRecordKeys,
-} from '../../veilcore/record-keys';
+import { ensureKeys, storageKeeps, useRecordKeys } from '../../veilcore/record-keys';
 import { getRecord, useRecords } from '../../veilcore/records';
 import { localStamp } from '../../veilcore/time';
-import { CHAIN_CONTRACT, chainNotReady } from '../../veilcore/chain/config';
-import { NETWORK } from '../../config/network';
+import { chainNotReady } from '../../veilcore/chain/config';
 import { useRecordT } from '../../i18n/app';
 import { networkWords } from '../../i18n/network-words';
-import { identityOf } from '../../veilcore/chain/identity';
-import { useChainCall } from './useChainCall';
+import { useKeyStamp } from './useKeyStamp';
 import { ChainStatusLine, TxLine } from './ChainStatusLine';
 import { RecordKeysPanel } from './RecordKeysPanel';
 
@@ -34,7 +25,9 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
   const keys = useRecordKeys()[recordId];
   const anchored = keys?.anchor;
   const [privateOk, setPrivateOk] = useState(false);
-  const call = useChainCall<void>();
+  // The stamp, tried again by itself after a failure while this page is open, and in the
+  // background after (veilcore/chain/key-stamp.ts).
+  const stamp = useKeyStamp(recordId, { auto: true });
   const tr = useRecordT(record);
   const { t } = tr;
   if (!record) return null;
@@ -42,23 +35,8 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
   const notReady = chainNotReady();
   const keeps = storageKeeps();
 
-  const anchor = () =>
-    call.run(async (progress) => {
-      // A record that names its key is anchored only with that key (key-binding.ts).
-      const k = ensureKeysFor(record);
-      const { anchorOnChain } = await import('../../veilcore/chain/actions');
-      const secret = hexBytes(k.recordSecret);
-      const receipt = await anchorOnChain(secret, hexBytes(k.recoverySecret), { progress });
-      setAnchor(recordId, {
-        identity: identityOf(secret),
-        network: NETWORK,
-        contractAddress: CHAIN_CONTRACT ?? '',
-        txId: receipt.txId,
-        txHash: receipt.txHash,
-        blockHeight: receipt.blockHeight,
-        anchoredAt: receipt.blockTime,
-      });
-    });
+  // A record that names its key is anchored only with that key (key-stamp.ts, key-binding.ts).
+  const anchor = () => stamp.tryNow();
 
   return (
     <Paper variant="outlined" sx={{ p: 2.5 }}>
@@ -135,7 +113,7 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
                 <RecordKeysPanel record={record} />
                 <Button
                   variant="contained"
-                  disabled={call.busy || !keys.backedUpAt}
+                  disabled={stamp.busy || !keys.backedUpAt}
                   onClick={() => void anchor()}
                   sx={{ alignSelf: 'flex-start' }}
                 >
@@ -143,7 +121,18 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
                 </Button>
               </>
             )}
-            <ChainStatusLine busy={call.busy} progress={call.progress} error={call.error} />
+            <ChainStatusLine busy={stamp.busy} progress={stamp.progress} error={stamp.busy ? undefined : stamp.error} />
+            {!stamp.busy && stamp.error && !stamp.entry?.stopped && stamp.nextInSeconds !== undefined && (
+              <Typography variant="body2" color="text.secondary" role="status" data-stamp-retry-in="">
+                {t('app.log.retryingIn', {
+                  when:
+                    stamp.nextInSeconds < 90
+                      ? t('app.log.inSeconds', { n: String(stamp.nextInSeconds) })
+                      : tr.tp('app.chain.inAboutMinutes', Math.round(stamp.nextInSeconds / 60)),
+                  n: String((stamp.entry?.tries ?? 1) + 1),
+                })}
+              </Typography>
+            )}
           </>
         )}
       </Stack>

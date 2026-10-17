@@ -93,7 +93,12 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
             >
               {t('app.prove.own.answer')}
             </Button>
-            <ChainStatusLine busy={call.busy} progress={call.progress} error={call.error} />
+            <ChainStatusLine
+              busy={call.busy}
+              progress={call.progress}
+              error={call.error}
+              step="proving you hold a record"
+            />
             {call.result && (
               <Alert severity="success" variant="outlined">
                 <Typography variant="body2">{t('app.prove.own.done')}</Typography>

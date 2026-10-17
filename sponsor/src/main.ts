@@ -17,7 +17,7 @@ import { Sponsor } from './sponsor.js';
 import { startServer } from './server.js';
 import { createIndexerRelay } from './indexer-relay.js';
 import { JsonFile } from './state-file.js';
-import { Anchorer, type Attempt } from './anchorer.js';
+import { ANCHOR_TICK_MINUTES, Anchorer, type Attempt } from './anchorer.js';
 import { HttpRegistry } from './registry.js';
 import { loadVeilcore, MidnightAnchorChain } from './chain.js';
 import { log, scrubOutput } from './log.js';
@@ -193,7 +193,7 @@ const main = async (): Promise<void> => {
       running = false;
     }
   };
-  setInterval(() => void tick(), 5 * MINUTE).unref();
+  setInterval(() => void tick(), ANCHOR_TICK_MINUTES * MINUTE).unref();
   setTimeout(() => void tick(), MINUTE).unref();
 
   const stop = async () => {

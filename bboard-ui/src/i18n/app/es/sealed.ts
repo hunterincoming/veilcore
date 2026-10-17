@@ -156,12 +156,12 @@ export const sealed = {
   'app.sealed.refuse.olderCopy':
     'VeilCore ya tiene una copia más reciente, guardada desde otra pestaña u otro dispositivo, así que este cambio no se guardó. Ahora se muestra la copia más reciente; vuelva a hacer el cambio si todavía lo quiere',
   'app.sealed.unsaved.backup':
-    'Aún no se guardó. Guarde su copia de seguridad y compruébela; hasta entonces solo está en este navegador.',
+    'Copia bloqueada aún sin subir: guarde y compruebe su copia de seguridad. La fecha de su registro no espera por esto.',
   'app.sealed.unsaved.key':
     'Aún no se guardó. Este navegador no tiene la clave de sus registros en VeilCore. Restaure su copia de seguridad o, si no la tiene, use «No tengo esa copia de seguridad» en la página de sus registros.',
   'app.sealed.unsaved.retry':
     'Aún no se guardó en VeilCore. Se conserva en este navegador y se vuelve a enviar en el próximo guardado.',
-  'app.sealed.unsaved.short': 'Aún no se guardó: guarde su copia de seguridad',
+  'app.sealed.unsaved.short': 'Copia bloqueada aún sin subir: guarde y compruebe su copia de seguridad',
   'app.sealed.unsaved.shortRetry': 'Aún no se guardó',
   'app.sealed.unsaved.discardConfirm':
     '¿Descartar lo que este navegador conserva para este registro? No está en VeilCore, así que no se puede recuperar.',

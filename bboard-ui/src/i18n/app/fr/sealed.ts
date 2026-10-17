@@ -162,12 +162,12 @@ export const sealed = {
   'app.sealed.refuse.olderCopy':
     'VeilCore a déjà une copie plus récente, enregistrée depuis un autre onglet ou un autre appareil, donc cette modification n’a pas été enregistrée. La copie plus récente est affichée maintenant ; refaites la modification si vous la voulez toujours',
   'app.sealed.unsaved.backup':
-    'Pas encore enregistré. Enregistrez votre copie de secours et vérifiez-la ; d’ici là, c’est gardé seulement dans ce navigateur.',
+    'Copie verrouillée pas encore envoyée — enregistrez et vérifiez votre copie de secours. La date de votre enregistrement n’attend pas cela.',
   'app.sealed.unsaved.key':
     'Pas encore enregistré. Ce navigateur n’a pas la clé de vos enregistrements sur VeilCore. Restaurez votre copie de secours ou, si vous ne l’avez pas, utilisez « Je n’ai pas cette copie de secours » sur la page de vos enregistrements.',
   'app.sealed.unsaved.retry':
     'Pas encore enregistré sur VeilCore. C’est gardé dans ce navigateur et renvoyé au prochain enregistrement.',
-  'app.sealed.unsaved.short': 'Pas encore enregistré — enregistrez votre copie de secours',
+  'app.sealed.unsaved.short': 'Copie verrouillée pas encore envoyée — enregistrez et vérifiez votre copie de secours',
   'app.sealed.unsaved.shortRetry': 'Pas encore enregistré',
   'app.sealed.unsaved.discardConfirm':
     'Abandonner ce que ce navigateur garde pour cet enregistrement ? Ce n’est pas sur VeilCore, donc impossible à récupérer.',

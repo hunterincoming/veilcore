@@ -76,6 +76,7 @@ import { LAB_RESULTS_ENABLED } from '../config/network';
 import { BackupStep } from './flow/BackupStep';
 import { rich, useT } from '../i18n/app';
 import { enT, type Translator } from '../i18n/translate';
+import { SupportDetails } from './SupportDetails';
 
 /** Opens the header's receive dialog from elsewhere on the page (a lab's first screen). */
 export const OPEN_RECEIVE_EVENT = 'veilcore:open-receive';
@@ -484,6 +485,7 @@ const LinkReceipt: React.FC<{ delivery: LabDelivery; attestationId: string; onDo
       {error && (
         <Alert severity="warning" variant="outlined">
           {error}
+          <SupportDetails step="receiving a delivery" error={error} />
         </Alert>
       )}
     </Stack>
@@ -645,6 +647,7 @@ export const SignReceiptPanel: React.FC<{
       {error && (
         <Alert severity="warning" variant="outlined">
           {error}
+          <SupportDetails step="receiving a delivery" error={error} />
         </Alert>
       )}
     </Stack>

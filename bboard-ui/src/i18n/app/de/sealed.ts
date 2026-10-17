@@ -162,12 +162,12 @@ export const sealed = {
   'app.sealed.refuse.olderCopy':
     'VeilCore hat bereits eine neuere Kopie davon, gespeichert in einem anderen Tab oder auf einem anderen Gerät, daher wurde diese Änderung nicht gespeichert. Jetzt wird die neuere Kopie angezeigt; nehmen Sie die Änderung erneut vor, wenn Sie sie noch möchten',
   'app.sealed.unsaved.backup':
-    'Noch nicht gespeichert. Speichern und prüfen Sie Ihre Sicherungskopie; bis dahin liegt das nur in diesem Browser.',
+    'Verschlossene Kopie noch nicht hochgeladen – Sicherungskopie speichern und prüfen. Das Datum Ihres Datensatzes wartet nicht darauf.',
   'app.sealed.unsaved.key':
     'Noch nicht gespeichert. Dieser Browser hat den Schlüssel für Ihre Datensätze bei VeilCore nicht. Stellen Sie Ihre Sicherungskopie wieder her oder, wenn Sie sie nicht haben, nutzen Sie „Ich habe diese Sicherungskopie nicht“ auf der Seite Ihrer Datensätze.',
   'app.sealed.unsaved.retry':
     'Noch nicht bei VeilCore gespeichert. Es bleibt in diesem Browser und wird beim nächsten Speichern erneut gesendet.',
-  'app.sealed.unsaved.short': 'Noch nicht gespeichert – Sicherungskopie speichern',
+  'app.sealed.unsaved.short': 'Verschlossene Kopie noch nicht hochgeladen – Sicherungskopie speichern und prüfen',
   'app.sealed.unsaved.shortRetry': 'Noch nicht gespeichert',
   'app.sealed.unsaved.discardConfirm':
     'Das, was dieser Browser für diesen Datensatz aufbewahrt, verwerfen? Es ist nicht bei VeilCore und lässt sich nicht zurückholen.',

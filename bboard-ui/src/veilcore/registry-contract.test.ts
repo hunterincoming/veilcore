@@ -64,6 +64,10 @@ const P = {
   labAccession: 'PRIV-lab-acc-Qq7',
   // A record's name, locked since round 5 (CONTRACT.md #28) unless the holder shows it.
   name: 'PRIV-name-Contract-Plant-Zz0',
+  // Dating first (CONTRACT.md #38): a record dated before its backup was checked.
+  datingName: 'PRIV-dating-name-Df1',
+  datingBredBy: 'PRIV-dating-bredby-Df2',
+  datingNotes: 'PRIV-dating-notes-Df3',
 };
 /** Values the holder chooses to publish with a disclosure grant: stored readable, on purpose. */
 const PUB = {
@@ -1065,7 +1069,74 @@ describe.skipIf(!TARGET)('the sealed-records contract against a real registry', 
     const puts = sent.slice(mark).filter((s) => s.method === 'PUT' && s.url.endsWith('/api/records'));
     expect(puts.length).toBe(1);
     expect((JSON.parse(puts[0].body) as Obj[]).map((r) => r.id)).toEqual([out.record.id]);
-    expect(await rowsOf(holderKey, 'records')).toEqual(before);
+    // Nothing else changed, except that the new record's proof code alone was dated (CONTRACT.md
+    // #38): it stays in this browser until the right key is restored, and its date doesn't wait.
+    await until(
+      async () => (await rowsOf(holderKey, 'records')).some((r) => r.id === out.record.id),
+      'the new record’s dating row',
+    );
+    const after = await rowsOf(holderKey, 'records');
+    expect(after.filter((r) => r.id !== out.record.id)).toEqual(before);
+    expect(after.find((r) => r.id === out.record.id)).toEqual({
+      id: out.record.id,
+      recordFingerprint: out.record.recordFingerprint,
+      bodyPending: true,
+    });
+  });
+
+  it('dating first: before any backup, only the proof code goes; it is in the next batch; the locked copy follows with the same one', async () => {
+    const N = await browser(new Map());
+    const { fingerprintRecord, newNonce } = N.commitment;
+    const f = {
+      nonce: newNonce(),
+      strainName: P.datingName,
+      bredBy: P.datingBredBy,
+      dateCreated: '2026-10-17',
+      notes: P.datingNotes,
+      loggedAt: Date.now(),
+    };
+    const mark = sent.length;
+    const out = await N.records.createRecordSaved({ ...f, recordFingerprint: await fingerprintRecord(f) });
+    // Held for the backup (round 3, L1): nothing sealed was sent.
+    expect(out.result.held).toEqual([out.record.id]);
+    const holderKey = N.holder.holderKeyIfAny()!;
+    secretKeys.push({ label: 'the dating holder’s vault key', values: forms(N.vault.vaultKeyIfAny()!) });
+    await until(async () => (await rowsOf(holderKey, 'records')).length === 1, 'the dating row');
+    const dating = sent.slice(mark).filter((x) => x.method === 'PUT' && x.url.endsWith('/api/records/dating'));
+    expect(dating.length).toBeGreaterThanOrEqual(1);
+    for (const d of dating)
+      for (const row of JSON.parse(d.body) as Obj[])
+        expect(Object.keys(row).every((k) => ['id', 'recordFingerprint', 'keyBinding'].includes(k))).toBe(true);
+    expect(sent.slice(mark).filter((x) => x.method === 'PUT' && x.url.endsWith('/api/records'))).toEqual([]);
+    // The registry holds the proof code alone, and it is in the next batch (/proof answers once sealed).
+    expect(await rowsOf(holderKey, 'records')).toEqual([
+      {
+        id: out.record.id,
+        recordFingerprint: out.record.recordFingerprint,
+        ...(out.record.keyBinding ? { keyBinding: out.record.keyBinding } : {}),
+        bodyPending: true,
+      },
+    ]);
+    expect(N.records.proofCodeSent(out.record.id)).toBe(true);
+    // A locked copy under another proof code is refused for that id.
+    const wrong = await reg('/api/records', {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json', 'x-holder-key': holderKey },
+      body: JSON.stringify([
+        {
+          id: out.record.id,
+          recordFingerprint: 'ee'.repeat(32),
+          sealed: { v: 1, alg: 'A256GCM', kid: '0123456789abcdef', iv: 'A'.repeat(16), ct: 'B'.repeat(40) },
+        },
+      ]),
+    });
+    expect(JSON.stringify(wrong.json)).toMatch(/dated with a different proof code/);
+    // The backup is checked: the locked copy follows, with the same proof code.
+    N.vault.markVaultBackedUp();
+    await until(async () => !!(await rowsOf(holderKey, 'records'))[0]?.sealed, 'the locked copy');
+    const row = (await rowsOf(holderKey, 'records'))[0];
+    expect(row.recordFingerprint).toBe(out.record.recordFingerprint);
+    expect(row.bodyPending).toBeUndefined();
   });
 
   it('nothing private was sent in any request, and nothing private is in the registry’s database file', async () => {

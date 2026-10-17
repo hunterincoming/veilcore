@@ -21,6 +21,7 @@ import {
   type SealedSecrets,
 } from './record-keys';
 import { bindingForSecret } from './key-binding';
+import { isString } from './json';
 import { withPairSalt } from './dna-link';
 import { newNameSalt } from './verify-link';
 import { isAnimal, type AnimalDetails, type ParentRole } from './animal-profile';
@@ -28,6 +29,7 @@ import {
   allowReplace,
   checkRecordIntegrity,
   clearSealedState,
+  datingRowOf,
   deleteLicenses,
   deleteRecords,
   integrityOf as storedIntegrityOf,
@@ -40,8 +42,10 @@ import {
   olderRowsOf,
   onSealedStateChange,
   recordSealedBytes,
+  registryHasProofCode,
   rowStateOf,
   SEALED_MAX_BYTES,
+  sendDatingRows,
   takeOlderCopy,
   type IntegrityCheck as StoredIntegrityCheck,
   type LoadNotice,
@@ -494,6 +498,8 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
   // Sent again with the next save; not straight after a refusal (saveAll reads the set back
   // with resave off), so a registry that keeps refusing is asked once per sync, not in a loop.
   if ((kept || merged || revFix || nameFix || saltFix || nameSaltFix) && opts.resave !== false) void saveAll();
+  // Kept here and not on VeilCore yet: its proof code is dated now (CONTRACT.md #38).
+  else void dateFirst();
   await convertLegacy();
   if (!syncedOnce) {
     syncedOnce = true;
@@ -630,6 +636,8 @@ const saveAll = async (grantsToResend: readonly string[] = []): Promise<SaveResu
   const result = await store.save(RECORDS_KEY, records);
   settleOutbox(result);
   reportSave('records', result);
+  // Whatever waits in this browser for its locked copy is dated now (CONTRACT.md #38).
+  void dateFirst(result.accepted ?? []);
   // Rows held for the backup aren't refused: nothing to read back for them.
   if (!result.ok && !result.offline && (result.refused.length > 0 || !result.held?.length)) {
     await hydrate({ resave: false });
@@ -814,6 +822,36 @@ const mergeOutbox = async (): Promise<boolean> => {
   return needsSave;
 };
 
+// ---- dating first (CONTRACT.md #38) ---------------------------------------------------------
+
+/**
+ * Send the proof codes of records VeilCore doesn't hold yet (kept in this browser: a new
+ * record whose locked copy waits for a checked backup, or one a save couldn't send), so each
+ * goes into the next batch now. Only `{ id, recordFingerprint, keyBinding? }` is sent: nothing
+ * typed, and no vault key id, so it ties no key to the holder (round 3, L1 stays as it was).
+ * The locked copy follows, unchanged, once it can be saved; the registry takes it only with
+ * the same proof code. Tried again on every save and sync until the registry has it.
+ */
+let dating: Promise<void> | null = null;
+const dateFirst = (skip: readonly string[] = []): Promise<void> => {
+  dating ??= (async () => {
+    const rows = Object.values(outboxRecords())
+      .filter((r) => isString(r.id) && !skip.includes(r.id) && !registryHasProofCode(r.id))
+      .map(datingRowOf)
+      .filter((r): r is NonNullable<typeof r> => r !== undefined);
+    if (rows.length === 0) return;
+    const out = await sendDatingRows(rows);
+    if ('error' in out) return; // offline or refused now: tried again with the next save or sync
+    if (out.dated.length) notify();
+  })().finally(() => {
+    dating = null;
+  });
+  return dating;
+};
+
+/** Whether VeilCore has this record's proof code, so it is in the next batch (CONTRACT.md #38). */
+export const proofCodeSent = (id: string): boolean => registryHasProofCode(id);
+
 /** Why a record is shown but not on the registry yet, or undefined when it is. */
 export type UnsavedReason = 'backup' | 'key' | 'retry';
 export const unsavedReason = (id: string): UnsavedReason | undefined => {
@@ -830,6 +868,9 @@ export const unsavedReason = (id: string): UnsavedReason | undefined => {
 export const discardUnsaved = async (id: string): Promise<void> => {
   if (!inOutbox(id)) return;
   takeFromOutbox([id]);
+  // Its proof code alone was dated (CONTRACT.md #38): taken off VeilCore too, since the record
+  // it dates is gone.
+  if (rowStateOf(RECORDS_KEY, id) === 'dating') await deleteRecords([id]);
   if (rowStateOf(RECORDS_KEY, id) === undefined) {
     records = records.filter((r) => r.id !== id);
     forgetKeys(id);

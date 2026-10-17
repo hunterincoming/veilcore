@@ -27,7 +27,8 @@ import { rowStateOf } from '../../veilcore/api-store';
 import { holderKeyIfAny, downloadHolderKey } from '../../veilcore/holder';
 import { useLicenses, clearLoadedLicenses } from '../../veilcore/licenses';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
-import { keysWithoutBackup, useRecordKeys } from '../../veilcore/record-keys';
+import { useRecordKeys } from '../../veilcore/record-keys';
+import { outboxRecords } from '../../veilcore/outbox';
 import { importedRecordIds } from '../../veilcore/bulk-import-ledger';
 import { useRole, isBreeder, isLab, requestRoleChange } from '../../veilcore/role';
 import { loadAttester } from '../../veilcore/attester-keys';
@@ -54,6 +55,8 @@ import { useDnaTie, useSavedReports } from './useDnaTie';
 import { dnaTieSentence } from '../../veilcore/dna-tie';
 import type { StrainRecord } from '../../veilcore/records';
 import type { SavedReport } from '../../veilcore/saved-report';
+import { PickUp } from './PickUp';
+import { keysOnlyHere } from './keys-only-here';
 
 /**
  * A plant's card line: "Tied to the plant: DNA report signed by …, not dated yet." or "Not
@@ -149,12 +152,16 @@ export const AppHome: React.FC = () => {
   // A plant half-logged in this browser: Home offers to finish it, not to start another.
   const [draft] = useState(() => (records.length === 0 ? loadDraft() : undefined));
 
-  const unbacked = REAL_CHAIN ? keysWithoutBackup() : [];
+  // Keys no checked backup and no locked copy on VeilCore holds (keys-only-here.ts): a returning
+  // holder whose plants are all held isn't asked for a backup again.
+  const unbackedIds = REAL_CHAIN ? keysOnlyHere(records) : [];
   // Records are sealed with a key only this browser has until a backup holding it is checked.
   const vaultUnbacked = useVaultNeedsBackup();
   // Records saved before locking wait for that backup before they are locked (CONTRACT.md #23).
   const legacyWaiting = records.some((r) => rowStateOf(RECORDS_KEY, r.id) === 'legacy');
   const { vaultProblem } = useSealedView();
+  // Records kept here whose locked copy waits for a checked backup ("Pick up" says so).
+  const waitingForBackup = Object.keys(outboxRecords()).some((id) => unsavedReason(id) === 'backup');
   const labOnly = isLab(role) && !isBreeder(role);
   const lab = isLab(role);
   // Plants as cards; a record that dates a lab report shows under its plant, not as a plant.
@@ -163,7 +170,6 @@ export const AppHome: React.FC = () => {
     cards.filter((r) => matchesQuery(r, query)),
     sort,
   );
-  const unbackedIds = unbacked.map((k) => k.recordId);
   // A breeder's plants with a lab report waiting; a lab's received samples at a glance.
   const waiting = useWaitingByRecord(isBreeder(role) && records.some((r) => !r.receivedFrom));
   // Plants a collection import made: their key stamps are queued (/records/import), a few a day.
@@ -191,7 +197,7 @@ export const AppHome: React.FC = () => {
   // key, which is downloaded first so they can be restored (attack round D).
   const onReset = () => {
     const key = holderKeyIfAny();
-    const keysWarning = unbacked.length > 0 ? `\n\n${keysOnlyHereLine(unbackedIds, records, 'reset', tr)}` : '';
+    const keysWarning = unbackedIds.length > 0 ? `\n\n${keysOnlyHereLine(unbackedIds, records, 'reset', tr)}` : '';
     if (window.confirm(t('app.home.resetConfirm') + keysWarning)) {
       if (key) downloadHolderKey(key);
       startOver();
@@ -276,6 +282,22 @@ export const AppHome: React.FC = () => {
               </Button>
             </Stack>
           )}
+          {/* A new device, or a browser that was cleared: the backup brings everything back,
+              so it is the first thing offered, not a link at the bottom. Not once this
+              browser has a holder key (it has been used here). */}
+          {!draft && !holderKeyIfAny() && (
+            <Paper variant="outlined" sx={{ p: 2 }} data-restore-first="">
+              <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
+                {t('app.home.restoreFirstTitle')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                {t('app.home.restoreFirstText')}
+              </Typography>
+              <Button component={RouterLink} to="/restore" variant="outlined" sx={{ minHeight: 44 }}>
+                {t('app.home.restoreFirstButton')}
+              </Button>
+            </Paper>
+          )}
           <LoadNoticeBar />
 
           {!labOnly && <OldLinksNote records={records} />}
@@ -331,7 +353,18 @@ export const AppHome: React.FC = () => {
 
         <LoadNoticeBar />
 
-        {vaultUnbacked && unbacked.length === 0 && (
+        {/* What is open since last time, one line and one button each (PickUp.tsx). Nothing open,
+            nothing shown. It asks for the backup when records wait for one, so the alert below
+            doesn't say it again. */}
+        <PickUp
+          records={records}
+          waiting={waiting}
+          labUnsigned={
+            lab ? records.filter((r) => r.receivedFrom && labFacts[r.id]?.signed === false).map((r) => r.id) : []
+          }
+        />
+
+        {vaultUnbacked && unbackedIds.length === 0 && !waitingForBackup && (
           <Alert
             severity="warning"
             variant="outlined"
@@ -356,29 +389,6 @@ export const AppHome: React.FC = () => {
         {vaultProblem === 'cant-store' && (
           <Alert severity="warning" variant="outlined" data-vault-cant-store="">
             {t('app.sealed.cantStore')}
-          </Alert>
-        )}
-
-        {unbacked.length > 0 && (
-          <Alert
-            severity="warning"
-            variant="outlined"
-            action={
-              <Button
-                color="inherit"
-                variant="outlined"
-                onClick={() => void navigate('/backup')}
-                sx={{ minHeight: 44 }}
-              >
-                {t('app.home.saveIt')}
-              </Button>
-            }
-          >
-            {rich(
-              t('app.home.finishBackupLine'),
-              { b: (c) => <b>{c}</b> },
-              { line: keysOnlyHereLine(unbackedIds, records, 'alert', tr) },
-            )}
           </Alert>
         )}
 

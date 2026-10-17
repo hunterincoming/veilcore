@@ -240,7 +240,7 @@ const ByHand: React.FC<{ claim: ClaimedChainAnchor; record?: KeyedRecord }> = ({
           </Button>
         </>
       )}
-      <ChainStatusLine busy={call.busy} progress={call.progress} error={call.error} />
+      <ChainStatusLine busy={call.busy} progress={call.progress} error={call.error} step="checking a record" />
       {call.result && (
         <Alert severity={call.result.accepted ? 'success' : 'error'} variant="outlined">
           {call.result.accepted

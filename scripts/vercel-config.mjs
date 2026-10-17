@@ -122,7 +122,9 @@ for (const name of ['VITE_INDEXER_RELAY_URL', 'VITE_INDEXER_SECOND_URL']) {
 //                app starts talking to a Midnight indexer or proof server, those origins
 //                have to be added here.
 //   Trusted Types  the one HTML sink (DocPage) goes through a policy that sanitises, so
-//                no other code can hand a string to innerHTML and have it run.
+//                no other code can hand a string to innerHTML and have it run. The one
+//                script address (the proving worker) goes through a policy that allows
+//                only that file.
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'wasm-unsafe-eval'",
@@ -139,8 +141,11 @@ const csp = [
   "form-action 'self'",
   "require-trusted-types-for 'script'",
   // veilcore-docs: DocPage's sanitising policy. dompurify: the policy DOMPurify makes for
-  // its own parsing, created once when it loads.
-  'trusted-types veilcore-docs dompurify',
+  // its own parsing, created once when it loads. veilcore-prover: the proving worker's
+  // address (bboard-ui/src/veilcore/chain/prover.ts), which lets through only that one file
+  // on this site. Without it the browser refused to start the worker, and no date stamp
+  // could be made (17 Oct 2026).
+  'trusted-types veilcore-docs dompurify veilcore-prover',
   'upgrade-insecure-requests',
 ].join('; ');
 
