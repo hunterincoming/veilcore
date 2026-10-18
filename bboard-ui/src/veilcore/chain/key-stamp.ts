@@ -46,7 +46,7 @@ export const stampErrorText = (e: unknown): string =>
       : String(e);
 
 const CANNOT =
-  /not the one this site was built for|proving files are not the ones|not configured|does not send transactions|only sends transactions on a test network|key isn.t in this browser. Get it back from your backup/i;
+  /not the one this site was built for|proving files are not the ones|not configured|does not send transactions|only sends transactions on a test network|not VeilCore.s main-network contract|key isn.t in this browser. Get it back from your backup/i;
 
 /**
  * What to do after a failed stamp, from its words (and the fee service's own wait). `tries` is

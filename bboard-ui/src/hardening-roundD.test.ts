@@ -1655,10 +1655,20 @@ describe('headers for a build that sends transactions (test networks only)', () 
     expect(connectSrc(own)).toContain('https://indexer.veilcore.example');
   });
 
-  it('refuses mainnet, and refuses a build with no sponsor', () => {
-    expect(() =>
-      prodHeaders({ VITE_REAL_CHAIN: '1', VITE_NETWORK_ID: 'mainnet', VITE_SPONSOR_URL: 'https://s.example.org' }),
-    ).toThrow(/test network only/);
+  it('on mainnet allows only the pinned contract, through the relay; refuses a build with no sponsor', () => {
+    const main = { VITE_REAL_CHAIN: '1', VITE_NETWORK_ID: 'mainnet', VITE_SPONSOR_URL: 'https://s.example.org' };
+    const relay = {
+      VITE_INDEXER_URL: 'https://relay.example.org/indexer',
+      VITE_INDEXER_WS_URL: 'wss://relay.example.org/indexer/ws',
+    };
+    const pinned = 'a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347';
+    expect(() => prodHeaders({ ...main, ...relay, VITE_REAL_CHAIN_CONTRACT_ADDRESS: 'ab'.repeat(32) })).toThrow(
+      /VeilCore's contract/,
+    );
+    expect(() => prodHeaders({ ...main, VITE_REAL_CHAIN_CONTRACT_ADDRESS: pinned })).toThrow(/read-only relay/);
+    const ok = prodHeaders({ ...main, ...relay, VITE_REAL_CHAIN_CONTRACT_ADDRESS: pinned });
+    expect(connectSrc(ok)).toContain('https://s.example.org');
+    expect(connectSrc(ok)).toContain('wss://relay.example.org');
     expect(() => prodHeaders({ VITE_REAL_CHAIN: '1', VITE_NETWORK_ID: 'preview' })).toThrow(/needs VITE_SPONSOR_URL/);
   });
 

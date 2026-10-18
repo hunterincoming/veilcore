@@ -152,24 +152,93 @@ const chainStrings = (chainReads: boolean): Overlay =>
     ? {
         'm.tech.check.p': `${TECH_HEAD} The check page looks that transaction up on Midnight itself.${TECH_TAIL}`,
         'm.live.chain.main': 'Yes.',
+        'm.privacy.hosts.text':
+          "This website is hosted on Vercel, which logs IP addresses and requests. Our registry server, and the read-only service that passes this page's reads of the network, run on Railway, which logs requests. That service reads the network through Blockfrost.",
       }
     : {
         'm.tech.check.p': `${TECH_HEAD}${RELAY_PENDING.replace(/\.$/, ' on a Midnight explorer.')}${TECH_TAIL}`,
       };
+
+/** Replace one passage of a string; throws if it is not there, so a copy edit can't silently skip it. */
+export const swapIn = (text: string | undefined, from: string, to: string): string => {
+  if (!text || !text.includes(from)) throw new Error(`mainnet copy: "${from}" not found`);
+  return text.replace(from, to);
+};
+
+/**
+ * The mainnet sponsor is live (VEILCORE_MAINNET_SPONSOR at deploy, scripts/deploy-mainnet.mjs):
+ * batches are anchored by its job, and the browser sends the record-key stamp, the proof by
+ * link and the DNA pairing date, with VeilCore paying the fee. The deploy checks the sponsor
+ * is on mainnet, VeilCore's contract and synced, and that its anchoring job is on.
+ */
+const sendsStrings = (o: Overlay): Overlay => ({
+  'm.hero.status': swapIn(
+    o['m.hero.status'],
+    'they go into batches that we anchor there by hand for now.',
+    'they go into batches that are anchored there automatically. Proving a record by link and dating a DNA report work here too, and VeilCore pays the network fee.',
+  ),
+  'm.faq.3a': swapIn(
+    o['m.faq.3a'],
+    "that we anchor on Midnight's main network by hand.",
+    "that are anchored on Midnight's main network automatically.",
+  ),
+  'm.demo.lede': swapIn(
+    swapIn(
+      swapIn(
+        o['m.demo.lede'],
+        "that we anchor on Midnight's main network, by hand for now, so a new record can wait a while;",
+        "that is anchored on Midnight's main network automatically;",
+      ),
+      'Checking is free.',
+      'Checking is free, and VeilCore pays the network fee for what your browser sends.',
+    ),
+    "Licenses and lab agreements are simulated, and DNA report pairings aren't dated.",
+    'Licenses and lab agreements are simulated.',
+  ),
+  'm.privacy.lede': swapIn(
+    o['m.privacy.lede'],
+    "that we anchor on Midnight's main network by hand.",
+    "that are anchored on Midnight's main network automatically.",
+  ),
+  'm.privacy.test.text':
+    "Your record's proof code goes into a batch, and the batch is anchored on Midnight's main network automatically. When you date your record's own key, prove a record by link or date a DNA report pairing, your browser sends that transaction itself, through VeilCore's fee service, which pays the fee. What you typed and your files are never sent to the network. Once on the network, it is permanent: nobody, including us, can delete it.",
+  'm.privacy.hosts.text':
+    "This website is hosted on Vercel, which logs IP addresses and requests. Our registry server, and the service that pays the network fee and passes this page's reads of the network, run on Railway, which logs requests. That service reads the network through Blockfrost.",
+  'm.stat2.s': swapIn(
+    o['m.stat2.s'],
+    'that we anchor there by hand for now.',
+    'that are anchored there automatically.',
+  ),
+  'm.for.1p': swapIn(
+    o['m.for.1p'],
+    'On this website the pairing is saved with your record but not yet dated.',
+    'On this website you can date the pairing from your browser, and nobody can copy it to their own record.',
+  ),
+  'm.for.6p': swapIn(o['m.for.6p'], " This website can't do it yet.", ''),
+  'm.live.stamp.main':
+    "Yes. Batches are dated automatically, and that dates your record. Your browser also date stamps your record's own key, which dates only the key.",
+  'm.live.dna.main': 'Yes, sent from your browser. VeilCore pays the fee.',
+});
 
 /** The overlay for a mainnet build. */
 export const mainnetStrings = ({
   claimsOnMainnet,
   policyApproved,
   chainReads = false,
+  chainSends = false,
 }: {
   claimsOnMainnet: boolean;
   policyApproved: boolean;
   /** The check page reads Midnight itself (a read-only relay is configured). */
   chainReads?: boolean;
-}): Overlay => ({
-  ...common,
-  ...(claimsOnMainnet ? claimsLive : claimsPending),
-  ...keyStrings(claimsOnMainnet, policyApproved),
-  ...chainStrings(chainReads),
-});
+  /** The browser sends transactions and batches are anchored automatically (the mainnet sponsor is live). */
+  chainSends?: boolean;
+}): Overlay => {
+  const o: Overlay = {
+    ...common,
+    ...(claimsOnMainnet ? claimsLive : claimsPending),
+    ...keyStrings(claimsOnMainnet, policyApproved),
+    ...chainStrings(chainReads),
+  };
+  return chainSends ? { ...o, ...sendsStrings(o) } : o;
+};

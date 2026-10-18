@@ -270,6 +270,25 @@ describe('the mainnet strings', () => {
       expect(Object.values(o).join('\n')).not.toMatch(/dated there, in batches|are dated on Midnight's main network/);
     }
   });
+  it('with the mainnet sponsor live: anchored automatically, the fee paid by VeilCore, no "by hand" or "can\'t do it yet" left, in English and Japanese', async () => {
+    const { jaMainnet } = await import('./i18n/ja');
+    for (const claims of [true, false])
+      for (const reads of [true, false]) {
+        const flags = { claimsOnMainnet: claims, policyApproved: true, chainReads: reads, chainSends: true };
+        const o = mainnetStrings(flags);
+        for (const k of Object.keys(o)) expect(Object.prototype.hasOwnProperty.call(en, k), k).toBe(true);
+        const all = Object.entries(o).filter(([k]) => !(DATED_POSTS as readonly string[]).includes(k));
+        expect(all.filter(([, v]) => /by hand|can't do it yet|aren't dated|not yet dated/.test(v))).toEqual([]);
+        for (const k of ['m.hero.status', 'm.stat2.s', 'm.privacy.test.text'] as const)
+          expect(o[k], k).toMatch(/automatically/);
+        const ja = jaMainnet(flags);
+        expect(
+          Object.values(ja).filter((v) => /手作業|まだ使えません|日付が付きません|まだ日付は付きません/.test(v)),
+        ).toEqual([]);
+        for (const k of ['m.hero.status', 'm.stat2.s', 'm.live.stamp.main', 'm.live.dna.main'] as const)
+          expect(ja[k], k).toMatch(/[ぁ-んァ-ン一-龯]/);
+      }
+  });
 });
 
 // ------------------------------------------------------------------ builds and browser

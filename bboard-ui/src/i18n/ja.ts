@@ -552,6 +552,72 @@ export const jaMainnet = ({
   claimsOnMainnet,
   policyApproved,
   chainReads = false,
+  chainSends = false,
+}: {
+  claimsOnMainnet: boolean;
+  policyApproved: boolean;
+  chainReads?: boolean;
+  chainSends?: boolean;
+}): Strings => {
+  const o = jaMainnetBase({ claimsOnMainnet, policyApproved, chainReads });
+  return chainSends ? { ...o, ...jaSends(o) } : o;
+};
+
+const swapJa = (text: string | undefined, from: string, to: string): string => {
+  if (!text || !text.includes(from)) throw new Error(`ja mainnet copy: "${from}" not found`);
+  return text.replace(from, to);
+};
+
+/** The mainnet sponsor is live: the same facts as en-mainnet.ts sendsStrings. */
+const jaSends = (o: Strings): Strings => ({
+  'm.hero.status': swapJa(
+    o['m.hero.status'],
+    'バッチにまとめられ、当面は私たちが手作業でそこにアンカーします。',
+    'バッチにまとめられ、自動でそこにアンカーされます。リンクでの証明とDNA報告書の紐付けへの日付付けもここで使え、ネットワーク手数料はVeilCoreが支払います。',
+  ),
+  'm.faq.3a': swapJa(
+    o['m.faq.3a'],
+    '私たちが手作業でMidnightのメインネットワークにアンカーします。',
+    '自動でMidnightのメインネットワークにアンカーされます。',
+  ),
+  'm.demo.lede': swapJa(
+    swapJa(
+      swapJa(
+        o['m.demo.lede'],
+        '当面は私たちが手作業でMidnightのメインネットワークにアンカーするため、新しい記録はしばらく待つことがあります。',
+        '自動でMidnightのメインネットワークにアンカーされます。',
+      ),
+      '確認は無料です。',
+      '確認は無料で、ブラウザが送るものの手数料はVeilCoreが支払います。',
+    ),
+    'ライセンスとラボとの契約はシミュレーションで、DNA報告書の紐付けには日付が付きません。',
+    'ライセンスとラボとの契約はシミュレーションです。',
+  ),
+  'm.privacy.lede': swapJa(
+    o['m.privacy.lede'],
+    '私たちが手作業でMidnightのメインネットワークにアンカーします。',
+    '自動でMidnightのメインネットワークにアンカーされます。',
+  ),
+  'm.privacy.test.text':
+    '記録の証明コードはバッチにまとめられ、そのバッチは自動でMidnightのメインネットワークにアンカーされます。記録固有の鍵に日付を付けるとき、リンクで記録を証明するとき、DNA報告書の紐付けに日付を付けるときは、ブラウザ自身がそのトランザクションを、手数料を支払うVeilCoreのサービス経由で送ります。入力した内容やファイルがネットワークに送られることはありません。いったんネットワークに載ると、私たちを含め誰にも削除できません。',
+  'm.privacy.hosts.text':
+    'このウェブサイトはVercelでホストされており、VercelはIPアドレスとリクエストを記録します。レジストリサーバーと、ネットワーク手数料を支払いこのページからのネットワーク読み取りを中継するサービスはRailwayで稼働しており、Railwayはリクエストを記録します。このサービスはBlockfrost経由でネットワークを読み取ります。',
+  'm.stat2.s': swapJa(o['m.stat2.s'], '当面は私たちが手作業でそこにアンカーします。', '自動でそこにアンカーされます。'),
+  'm.for.1p': swapJa(
+    o['m.for.1p'],
+    'このウェブサイトでは、紐付けは記録とともに保存されますが、まだ日付は付きません。',
+    'このウェブサイトでは、ブラウザから紐付けに日付を付けられ、他人がそれを自分の記録に写すことはできません。',
+  ),
+  'm.for.6p': swapJa(o['m.for.6p'], 'このウェブサイトではまだ使えません。', ''),
+  'm.live.stamp.main':
+    'あり。バッチが自動で日付確定され、それによって記録の日付が確定します。ブラウザは記録固有の鍵にも日付スタンプを押しますが、それで日付が確定するのは鍵だけです。',
+  'm.live.dna.main': 'あり。ブラウザから送信します。手数料はVeilCoreが支払います。',
+});
+
+const jaMainnetBase = ({
+  claimsOnMainnet,
+  policyApproved,
+  chainReads = false,
 }: {
   claimsOnMainnet: boolean;
   policyApproved: boolean;
@@ -562,6 +628,8 @@ export const jaMainnet = ({
     ? {
         'm.tech.check.p': `${JA_TECH_HEAD}確認ページは、そのトランザクションをMidnight上で自ら照会します。${JA_TECH_TAIL}`,
         'm.live.chain.main': 'あり。',
+        'm.privacy.hosts.text':
+          'このウェブサイトはVercelでホストされており、VercelはIPアドレスとリクエストを記録します。レジストリサーバーと、このページからのネットワーク読み取りを中継する読み取り専用のサービスはRailwayで稼働しており、Railwayはリクエストを記録します。このサービスはBlockfrost経由でネットワークを読み取ります。',
       }
     : {
         'm.tech.check.p': `${JA_TECH_HEAD}${JA_RELAY_PENDING.replace(/ご自身で照会できます。$/, 'ご自身でMidnightエクスプローラーで照会できます。')}${JA_TECH_TAIL}`,

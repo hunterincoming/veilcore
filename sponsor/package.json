@@ -15,7 +15,8 @@
     "start": "node dist/main.js",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "stage": "npm run build && node scripts/stage.mjs"
+    "stage": "npm run build && node scripts/stage.mjs",
+    "new-wallet": "npm run build && node dist/new-wallet.js"
   },
   "dependencies": {
     "@midnight-ntwrk/compact-runtime": "0.16.0",

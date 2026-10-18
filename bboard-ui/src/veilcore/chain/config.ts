@@ -147,11 +147,19 @@ export const anchorContractFor = (
 };
 export const ANCHOR_CONTRACT: string | undefined = anchorContractFor(NETWORK, MAINNET_CONTRACT_ADDRESS, CHAIN_CONTRACT);
 
+const sameContract = (a: string, b: string): boolean => {
+  const n = (v: string) => v.trim().toLowerCase().replace(/^0x/, '');
+  return /^[0-9a-f]{64}$/.test(n(a)) && n(a) === n(b);
+};
+
 /** Why the real-chain features cannot run in this build, or undefined when they can. */
 export const chainNotReady = (): string | undefined => {
   if (!REAL_CHAIN) return 'This build does not send transactions.';
-  if (NETWORK === 'mainnet') return 'The website demo only sends transactions on a test network.';
   if (!CHAIN_CONTRACT) return 'No demo contract address is configured (VITE_REAL_CHAIN_CONTRACT_ADDRESS).';
+  // On mainnet the browser only ever calls VeilCore's own contract, the one pinned in
+  // api/src/deploy-guard.ts. A build naming any other is refused here as well as at deploy.
+  if (NETWORK === 'mainnet' && !sameContract(CHAIN_CONTRACT, MAINNET_CONTRACT_ADDRESS))
+    return 'This build names a contract that is not VeilCore’s main-network contract.';
   if (!SPONSOR_URL) return 'No sponsor service is configured (VITE_SPONSOR_URL).';
   if (!INDEXER_HTTP || !INDEXER_WS) return 'No indexer is configured for this network.';
   return undefined;

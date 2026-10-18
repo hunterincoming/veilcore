@@ -32,7 +32,7 @@ import { en, type StringKey, type Strings } from './en';
 import { mainnetStrings } from './en-mainnet';
 import { testchainStrings } from './en-testchain';
 import { IS_MAINNET, CLAIMS_ON_MAINNET, MAINTENANCE_POLICY_APPROVED } from '../config/network';
-import { CHAIN_READS, REAL_CHAIN } from '../veilcore/chain/config';
+import { CHAIN_READY, CHAIN_READS, REAL_CHAIN } from '../veilcore/chain/config';
 import { LANGUAGE_CODES, PUBLISHED_LANGUAGES, type Lang } from '../config/languages';
 
 export type { Lang };
@@ -42,6 +42,7 @@ export type MainnetOverlay = (o: {
   claimsOnMainnet: boolean;
   policyApproved: boolean;
   chainReads?: boolean;
+  chainSends?: boolean;
 }) => Strings;
 
 /** A language's words for the public pages: its own, its test-site overlay, and its mainnet one if it has one. */
@@ -113,6 +114,8 @@ export type BuildKind = {
   policyApproved: boolean;
   /** The check page reads Midnight itself (mainnet: a read-only relay is configured). */
   chainReads?: boolean;
+  /** Mainnet: the browser sends transactions through the mainnet sponsor, which also anchors batches. */
+  chainSends?: boolean;
 };
 
 /**
@@ -133,6 +136,7 @@ export const networkOverlayOf = (build: BuildKind, pack: LanguagePack): Strings 
       claimsOnMainnet: build.claimsOnMainnet,
       policyApproved: build.policyApproved,
       chainReads: build.chainReads ?? false,
+      chainSends: build.chainSends ?? false,
     };
     return { ...mainnetStrings(flags), ...(pack.mainnet?.(flags) ?? {}) };
   }
@@ -146,7 +150,11 @@ export const THIS_BUILD: BuildKind = {
   claimsOnMainnet: CLAIMS_ON_MAINNET,
   policyApproved: MAINTENANCE_POLICY_APPROVED,
   chainReads: CHAIN_READS,
+  chainSends: IS_MAINNET && CHAIN_READY,
 };
+
+/** veilcore.org sends real transactions (the mainnet sponsor is live in this build). */
+export const MAINNET_SENDS = THIS_BUILD.chainSends === true;
 
 /** This build is the public test site (test.veilcore.org): it sends real transactions on a test network. */
 export const IS_TEST_SITE = THIS_BUILD.realChain;

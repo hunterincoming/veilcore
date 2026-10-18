@@ -24,7 +24,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { computeCommitment, newNonce } from 'veilcore-records';
-import { IS_TEST_SITE, useI18n } from '../../i18n';
+import { IS_TEST_SITE, MAINNET_SENDS, useI18n } from '../../i18n';
 import { FOUNDERS_MAIL, RoleLine, SDK_REPO, SiteShell, X_HANDLE } from './SiteShell';
 import { FoldGroup, FoldItem, FoldPoint, usePhone } from './Fold';
 import { hasRecordsHere } from './returning';
@@ -291,6 +291,20 @@ const LIVE_ROWS = [
   ['lic', true, true, true],
 ] as const;
 
+/**
+ * With the mainnet sponsor live (scripts/deploy-mainnet.mjs), "prove it by link" works on
+ * veilcore.org exactly as on the test site, so its cell says the same thing the test cell does.
+ */
+type LiveRow = (typeof LIVE_ROWS)[number];
+const liveRows = (): readonly LiveRow[] =>
+  MAINNET_SENDS
+    ? LIVE_ROWS.map((r): LiveRow => (r[0] === 'prove' ? (['prove', true, true, false] as unknown as LiveRow) : r))
+    : LIVE_ROWS;
+const cellKey = (row: string, col: string) =>
+  (MAINNET_SENDS && row === 'prove' && col === 'main' ? 'm.live.prove.test' : `m.live.${row}.${col}`) as Parameters<
+    ReturnType<typeof useI18n>['t']
+  >[0];
+
 const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
   const { t } = useI18n();
   const cols = [
@@ -320,13 +334,13 @@ const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
         </tr>
       </thead>
       <tbody>
-        {LIVE_ROWS.map(([row, ...has]) => (
+        {liveRows().map(([row, ...has]) => (
           <tr key={row}>
             <th scope="row">{t(`m.live.${row}.t`)}</th>
             {cols.map(([col, chip, name], i) =>
               has[i] ? (
                 <td key={col}>
-                  <span className={chip}>{name}</span> {t(`m.live.${row}.${col}` as Parameters<typeof t>[0])}
+                  <span className={chip}>{name}</span> {t(cellKey(row, col))}
                 </td>
               ) : (
                 <td key={col} className="no">
