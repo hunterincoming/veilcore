@@ -145,10 +145,14 @@ describe("read-only relay: only its own settings", () => {
       RAILWAY_PROJECT_ID: "p",
       RAILWAY_SERVICE_NAME: "relay",
       RAILWAY_GIT_COMMIT_SHA: "e226a73",
+      // Railway sets this on every service; it matched "PRIVATE" and stopped the first live start (18 Oct).
+      RAILWAY_PRIVATE_DOMAIN: "veilcore-indexer-relay.railway.internal",
       npm_config_cache: "/tmp",
     };
     expect(settingsNotForReadRelay(platform)).toEqual([]);
     expect(loadReadRelayConfig({ ...MAIN, ...platform }).ok).toBe(true);
+    // A RAILWAY_ name that holds a secret is still refused.
+    expect(settingsNotForReadRelay({ RAILWAY_TOKEN: "t", RAILWAY_API_KEY: "k" })).toEqual(["RAILWAY_TOKEN", "RAILWAY_API_KEY"]);
   });
 });
 
