@@ -4,7 +4,7 @@ What it gives veilcore.org: batches dated automatically, and from the browser th
 stamp, "prove it by link" and the DNA pairing date, with VeilCore paying the network fee.
 Licences and royalties stay practice-only.
 
-What is safe about it: the sponsor wallet is new and holds no NIGHT itself. It only receives
+What is safe about it: the sponsor wallet is only a key on Railway and holds no NIGHT itself. It only receives
 DUST from NIGHT you designate to it. It pays only for VeilCore's pinned contract and only the
 three browser calls plus the anchoring job. Each fee is capped, each day is capped, and so is
 each visitor. It refuses to start with your deployer or 1AM addresses, with the maintenance
@@ -29,13 +29,16 @@ npm run new-wallet -w sponsor
 - Copy the **DUST** address (starts `mn_dust1`) into a note. You need it in step 3.
 - Press Command+K to clear the window.
 
-## 3. Give it DUST (Lace, then wait a few hours)
+## 3. Give it DUST (your existing Lace wallet, then wait a few hours)
 
-- In Lace, make a **new** wallet just for this. Do not use or change the 1AM wallet.
-- Put about **100 NIGHT** in it.
-- Designate that NIGHT's DUST to the sponsor's **DUST address** from step 2.
-- DUST builds up over hours. 100 NIGHT gives up to about 500 DUST, filling over about a
-  week, and keeps refilling. The NIGHT is never spent.
+No new wallet and no NIGHT moves. In the Lace wallet you already have, change where its
+NIGHT's DUST goes: set the DUST address to the sponsor's (from step 2). Only if Lace's own
+Midnight address doesn't need that DUST for anything else. Never change the 1AM wallet's DUST
+address.
+
+DUST builds up over hours. 1 NIGHT gives up to about 5 DUST and keeps refilling; the NIGHT is
+never spent and never leaves Lace. You can point it back any time. The sponsor's daily cap
+(step 4) limits what it spends, however much DUST arrives.
 
 Also copy the 1AM wallet's two Midnight addresses (its address, `mn_addr1…`, and its DUST
 address, `mn_dust1…`). They go in `SPONSOR_FORBIDDEN_ADDRESSES`.
