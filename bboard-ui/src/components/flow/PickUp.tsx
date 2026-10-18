@@ -1,4 +1,4 @@
-// Home's "Pick up where you left off" (pickup.ts works out what is open). A calm list: one line
+// Home's "Pick up where you left off" (pickup-items.ts works out what is open). A calm list: one line
 // and one button each, a progress bar for each record on its way to its date, and nothing at all
 // when nothing is open.
 // SPDX-License-Identifier: Apache-2.0
@@ -20,7 +20,7 @@ import { useStampRetries } from '../chain/useKeyStamp';
 import { useT, type Translator } from '../../i18n/app';
 import { localStamp } from '../../veilcore/time';
 import { useAnchorCadence } from './dating-words';
-import { DATING_STEPS, datingStep, pickUpItems, type DatingStage, type PickUpItem } from './pickup';
+import { DATING_STEPS, datingStep, pickUpItems, type DatingStage, type PickUpItem } from './pickup-items';
 import { keysOnlyHere } from './keys-only-here';
 
 /** How often Home looks again while it is open, so a record's progress moves on its own. */

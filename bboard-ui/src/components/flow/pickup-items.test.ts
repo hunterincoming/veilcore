@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, it } from 'vitest';
-import { pickUpItems, datingStep, type PickUpFacts } from './pickup';
+import { pickUpItems, datingStep, type PickUpFacts } from './pickup-items';
 import { keysHeldBySealedCopy } from './keys-only-here';
 import { nextBatchRow, nextBatchWords } from './dating-words';
 import { recordDateRow } from './plant-status-words';
