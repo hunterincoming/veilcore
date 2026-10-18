@@ -425,9 +425,9 @@ export const fr: Strings = {
   'm.updates.more': 'Toutes les actualités',
   'm.stat3.s': "Pas encore d'audit de sécurité indépendant. Nos propres revues des contrats sont publiques.",
   'm.stat3.link': 'Les lire sur GitHub →',
-  'm.stat4.b': 'Premiers utilisateurs recherchés',
+  'm.stat4.b': 'Ouvert aux premiers utilisateurs',
   'm.stat4.s':
-    "Personne ne l'utilise encore pour de vrais enregistrements. Nous cherchons les premiers obtenteurs et laboratoires.",
+    "Prêt pour de vrais enregistrements. Les obtenteurs et laboratoires qui commencent maintenant sont accompagnés directement par les fondateurs.",
   'm.addr.title': 'Les contrats, pour qui veut les vérifier.',
   'm.addr.main': 'Contrat principal',
   'm.addr.claims': "Contrat des preuves d'un fait",

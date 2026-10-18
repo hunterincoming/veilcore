@@ -320,8 +320,8 @@ export const en = {
   'm.stat3.b': 'No audit',
   'm.stat3.s': 'No independent security audit yet. Our own reviews of the contracts are public.',
   'm.stat3.link': 'Read them on GitHub →',
-  'm.stat4.b': 'First users wanted',
-  'm.stat4.s': "Nobody uses it for real records yet. We're looking for the first breeders and labs.",
+  'm.stat4.b': 'Open to first users',
+  'm.stat4.s': "It's ready for real records. Breeders and labs who start now get set up by the founders directly.",
   // Mainnet builds only: the contract addresses, in "For technical readers".
   'm.addr.title': 'The contracts, for anyone who wants to check them.',
   'm.addr.main': 'Main contract',
