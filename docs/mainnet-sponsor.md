@@ -4,12 +4,12 @@ What it gives veilcore.org: batches dated automatically, and from the browser th
 stamp, "prove it by link" and the DNA pairing date, with VeilCore paying the network fee.
 Licences and royalties stay practice-only.
 
-What is safe about it: the sponsor wallet is only a key on Railway and holds no NIGHT itself. It only receives
-DUST from NIGHT you designate to it. It pays only for VeilCore's pinned contract and only the
-three browser calls plus the anchoring job. Each fee is capped, each day is capped, and so is
-each visitor. It refuses to start with your deployer or 1AM addresses, with the maintenance
-key, or without every limit set. Worst case: one day's budget is used up and it waits until
-the next day.
+What is safe about it: the sponsor wallet is a NEW wallet made only for this, holding a small
+amount of NIGHT. Its key sits on Railway, so never put more NIGHT in it than you'd accept losing.
+It pays only for VeilCore's pinned contract and only the three browser calls plus the anchoring
+job. Each fee is capped, each day is capped, and so is each visitor. It refuses to start with
+your deployer or 1AM addresses, with the maintenance key, or without every limit set. Worst
+case: one day's budget is used up and it waits until the next day.
 
 Do the steps in order. Each one says how you know it worked.
 
@@ -17,31 +17,27 @@ Do the steps in order. Each one says how you know it worked.
 
 `docs/check-on-chain.md`, steps 1 to 4. You need its address for steps 5 and 6.
 
-## 2. Make the sponsor wallet (your Mac, 2 minutes)
+## 2. The sponsor wallet: a new wallet in the 1AM app (done 18 Oct)
+
+A separate wallet made in the 1AM app only for the sponsor, NOT the 1AM wallet that deployed
+the contract. Put a small amount of NIGHT in it (about 100). In the app, its NIGHT makes DUST
+for its own DUST address, so nothing needs pointing anywhere. Wait until the app shows DUST.
+
+## 3. Its seed for Railway (your Mac, 2 minutes)
 
 ```
 cd ~/Desktop/veilcore
 git pull
-npm run new-wallet -w sponsor
+npm run seed-from-phrase -w sponsor
 ```
 
-- Save the **SEED** in Apple Passwords as "VeilCore sponsor seed (mainnet)".
-- Copy the **DUST** address (starts `mn_dust1`) into a note. You need it in step 3.
-- Press Command+K to clear the window.
+Paste the NEW wallet's 24 words when asked (nothing shows). It prints the wallet's address
+and DUST address: check both against the new wallet in the 1AM app. They must match. The seed
+is put on your clipboard for step 4's `SPONSOR_SEED`; clear it after with `pbcopy < /dev/null`.
 
-## 3. Give it DUST (your existing Lace wallet, then wait a few hours)
-
-No new wallet and no NIGHT moves. In the Lace wallet you already have, change where its
-NIGHT's DUST goes: set the DUST address to the sponsor's (from step 2). Only if Lace's own
-Midnight address doesn't need that DUST for anything else. Never change the 1AM wallet's DUST
-address.
-
-DUST builds up over hours. 1 NIGHT gives up to about 5 DUST and keeps refilling; the NIGHT is
-never spent and never leaves Lace. You can point it back any time. The sponsor's daily cap
-(step 4) limits what it spends, however much DUST arrives.
-
-Also copy the 1AM wallet's two Midnight addresses (its address, `mn_addr1…`, and its DUST
-address, `mn_dust1…`). They go in `SPONSOR_FORBIDDEN_ADDRESSES`.
+Also copy the MAIN 1AM wallet's two Midnight addresses (its address, `mn_addr1…`, and its DUST
+address, `mn_dust1…`). They go in `SPONSOR_FORBIDDEN_ADDRESSES`, so the sponsor refuses to run
+as that wallet.
 
 ## 4. Railway: the service (15 minutes)
 
@@ -51,7 +47,7 @@ In the VeilCore project: **+ Create → Empty Service**, name it `veilcore-spons
 
 ```
 SPONSOR_NETWORK=mainnet
-SPONSOR_SEED=<the seed from step 2>
+SPONSOR_SEED=<paste from step 3>
 SPONSOR_FORBIDDEN_ADDRESSES=<1AM mn_addr1…>,<1AM mn_dust1…>
 VEILCORE_CONTRACT_ADDRESS=a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347
 BLOCKFROST_PROJECT_ID=<your Midnight Mainnet Blockfrost id>

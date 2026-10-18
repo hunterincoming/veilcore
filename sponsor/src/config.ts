@@ -166,8 +166,10 @@ export const loadConfig = (env: Record<string, string | undefined>): Config => {
     if (env.SPONSOR_CIRCUITS?.trim()) problems.push('On mainnet SPONSOR_CIRCUITS cannot be changed: remove it.');
   }
 
-  const seed = hex(env.SPONSOR_SEED, 32);
-  if (!seed) problems.push('SPONSOR_SEED must be the sponsor wallet’s 64-character hex seed.');
+  // 32 bytes (npm run new-wallet) or 64 bytes (a wallet app's 24-word phrase turned into its
+  // seed by npm run seed-from-phrase: the same BIP-39 seed the operator tool restores from).
+  const seed = hex(env.SPONSOR_SEED, 32) ?? hex(env.SPONSOR_SEED, 64);
+  if (!seed) problems.push('SPONSOR_SEED must be the sponsor wallet’s hex seed (64 or 128 characters).');
 
   const forbiddenAddresses = (env.SPONSOR_FORBIDDEN_ADDRESSES ?? '')
     .split(',')

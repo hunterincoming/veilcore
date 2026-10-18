@@ -16,7 +16,8 @@
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "stage": "npm run build && node scripts/stage.mjs",
-    "new-wallet": "npm run build && node dist/new-wallet.js"
+    "new-wallet": "npm run build && node dist/new-wallet.js",
+    "seed-from-phrase": "npm run build && node scripts/seed-from-phrase.mjs"
   },
   "dependencies": {
     "@midnight-ntwrk/compact-runtime": "0.16.0",
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@midnight-ntwrk/testkit-js": "4.1.1",
-    "@midnight-ntwrk/zkir-v2": "2.1.0"
+    "@midnight-ntwrk/zkir-v2": "2.1.0",
+    "@scure/bip39": "2.2.0"
   }
 }
