@@ -422,6 +422,12 @@ const Technical: React.FC = () => {
   );
 };
 
+/** The explainer in the page's language: every word in the video is translated (media-src/explainer). */
+export const walkthroughFile = (lang: string, ext: 'mp4' | 'jpg'): string =>
+  ['de', 'es', 'fr', 'ja'].includes(lang)
+    ? `/media/veilcore-walkthrough.${lang}.${ext}`
+    : `/media/veilcore-walkthrough.${ext}`;
+
 export const Home: React.FC = () => {
   const { t, lang, sp } = useI18n();
   const { hash } = useLocation();
@@ -680,8 +686,9 @@ export const Home: React.FC = () => {
           {showVideo && (
             <div className="walkthrough" id="walkthrough">
               <video
-                src="/media/veilcore-walkthrough.mp4"
-                poster="/media/veilcore-walkthrough.jpg"
+                key={lang}
+                src={walkthroughFile(lang, 'mp4')}
+                poster={walkthroughFile(lang, 'jpg')}
                 controls
                 autoPlay
                 playsInline

@@ -43,3 +43,14 @@ and say nothing it doesn't:
   doesn't vouch for results.
 - No customers or partners claimed; nothing about licensing; all names and dates are made
   up.
+
+## Languages and sound (17 Oct 2026)
+
+The video exists in every site language. `i18n.js` holds every on-screen word in German,
+Spanish, French and Japanese (the site's own terms; formal address), and `explainer.html?lang=xx`
+swaps them in, dates included. `./render-langs.sh` renders de, es, fr and ja (set `LANGS` for
+fewer). The landing page plays `veilcore-walkthrough.<lang>.mp4` for those languages and the
+English file otherwise. All five carry the same soft background beat (`chill-beat.m4a`, made
+in code: piano chords, bass and clean tonal drums, no noise), muxed with
+`ffmpeg -i video.mp4 -i chill-beat.m4a -map 0:v -map 1:a -c:v copy -c:a aac -b:a 160k -shortest`.
+There is no voice, so every language is equally finished.

@@ -5,7 +5,8 @@ const fs = require('fs');
 const { execSync } = require('child_process');
 const { chromium } = require('playwright'); // the repository's own (npm ci at the root)
 const DIR = __dirname;
-const URL = 'file://' + path.join(DIR, 'explainer.html');
+const LANG = process.env.VIDEO_LANG || 'en';
+const URL = 'file://' + path.join(DIR, 'explainer.html') + (LANG === 'en' ? '' : `?lang=${LANG}`);
 const FPS = 30;
 
 async function openPage(browser) {
@@ -25,14 +26,14 @@ async function openPage(browser) {
     for (const ts of process.argv.slice(3)) {
       const t = parseFloat(ts);
       await page.evaluate(t => render(t), t);
-      await page.screenshot({ path: path.join(DIR, 'snaps', `snap_${ts}.png`) });
+      await page.screenshot({ path: path.join(DIR, 'snaps', `snap_${LANG}_${ts}.png`) });
     }
   } else if (mode === 'poster') {
     const page = await openPage(browser);
     await page.evaluate(t => render(t), parseFloat(process.argv[3]));
-    await page.screenshot({ path: path.join(DIR, 'veilcore-walkthrough.jpg'), type: 'jpeg', quality: 92 });
+    await page.screenshot({ path: path.join(DIR, LANG === 'en' ? 'veilcore-walkthrough.jpg' : `veilcore-walkthrough.${LANG}.jpg`), type: 'jpeg', quality: 92 });
   } else if (mode === 'all') {
-    const fdir = path.join(DIR, 'frames');
+    const fdir = path.join(DIR, LANG === 'en' ? 'frames' : `frames-${LANG}`);
     fs.mkdirSync(fdir, { recursive: true });
     const dur = await (await openPage(browser)).evaluate(() => window.DUR);
     const N = Math.round(dur * FPS);

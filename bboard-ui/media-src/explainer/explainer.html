@@ -38,6 +38,7 @@ svg.lines{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:vis
 </head>
 <body>
 <div id="root"></div>
+<script src="i18n.js"></script>
 <script>
 // ---------- helpers ----------
 // Pollen and ink (src/config/theme.ts): acc is ink (icons and words), gold is pollen (fills,
@@ -132,6 +133,12 @@ const NOTES=[
  [5,'It says nothing about who bred the plant.',3.9],
  [6,'The lab signs with its own key. VeilCore doesn’t vouch for the result.',4.4]
 ];
+
+// ---------- language (render.cjs passes ?lang=de|es|fr|ja; English is the default) ----------
+const LANG=new URLSearchParams(location.search).get('lang')||'en';
+const TR=(window.VIDEO_I18N||{})[LANG]||null;
+const tr=s=>TR&&TR[s]?TR[s]:s;
+if(TR){CAPS.forEach((c,i)=>CAPS[i]=tr(c));NOTES.forEach(n=>n[1]=tr(n[1]));}
 const GROUPS=[['g1',0,7.5],['g23',7.5,22.5],['g4',22.5,30],['g56',30,45.5],['g7',45.5,53.5],['g8',53.5,60]];
 const LABELS=[['lbLog',7.5,22.5,'Log',C.acc],['lbProve',22.5,45.5,'Prove & check',C.prove],['lbSend',45.5,53.5,'Send & receive',C.send]];
 
@@ -307,6 +314,14 @@ html+=`<div id="g8" class="grp">
 // captions
 html+=`<div id="caps" class="abs" style="left:0;right:0;bottom:92px;height:0">`+CAPS.map((c,i)=>{const n=NOTES.find(x=>x[0]===i);return `<div id="cap${i}" class="cap"><div class="main">${c}</div>${n?`<div id="note${i}" class="note">${n[1]}</div>`:''}</div>`;}).join('')+`</div>`;
 $('root').innerHTML=html;
+if(TR){
+  // Every on-screen word: text nodes and the typed-in values, matched whole (trimmed).
+  const w=document.createTreeWalker($('root'),NodeFilter.SHOW_TEXT);let nd;
+  while((nd=w.nextNode())){const raw=nd.nodeValue,k=raw.trim();if(!k)continue;const v=TR[k]||(TR.__pattern&&TR.__pattern(k));if(v)nd.nodeValue=raw.replace(k,v);}
+  document.querySelectorAll('[data-full]').forEach(el=>{const k=el.dataset.full;const v=TR[k]||(TR.__pattern&&TR.__pattern(k));if(v)el.dataset.full=v;});
+  if(LANG==='ja'){const st=document.createElement('style');st.textContent=".cap .main{font-family:'Noto Serif CJK JP','Caslon',serif}body,.sg,.eyebrow,.h2,.pill{font-family:'Noto Sans CJK JP','Inter',sans-serif}";document.head.appendChild(st);}
+  document.documentElement.lang=LANG;
+}
 
 // ---------- scene renderers ----------
 function r1(t){
