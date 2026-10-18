@@ -63,6 +63,7 @@ export const ja: Strings = {
   'm.nav.updates': 'お知らせ',
   'm.nav.spec': '仕様書',
   'm.nav.demo': 'デモを試す',
+  'm.nav.yours': 'あなたの記録',
   'm.nav.menu': 'メニュー',
   'm.hero.label': '保有していることの証明',
   'm.hero.title1': '記録に日付を。',

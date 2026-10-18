@@ -11,6 +11,7 @@ import { useI18n } from '../../i18n';
 import { lightTheme } from '../../config/theme';
 import { DraftBanner, LanguagePicker } from '../../i18n/lazy-picker';
 import { TagMark } from './TagMark';
+import { hasRecordsHere } from './returning';
 import './site.css';
 
 export const SDK_REPO = 'https://github.com/hunterincoming/veilcore-sdk';
@@ -59,6 +60,8 @@ const Section: React.FC<{ id: string; className?: string; children: React.ReactN
 export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { t, lang } = useI18n();
   const [open, setOpen] = useState(false);
+  // Someone coming back to this browser gets their records one click away.
+  const [returning] = useState(hasRecordsHere);
   const close = () => setOpen(false);
   const menuBtn = useRef<HTMLButtonElement>(null);
   // Escape closes the open menu, on every public page, and puts focus back on its button.
@@ -116,9 +119,15 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
                   </RouterLink>
                 </li>
                 <li>
-                  <Section id="demo" className="nav-cta" onClick={close}>
-                    {t('m.nav.demo')}
-                  </Section>
+                  {returning ? (
+                    <RouterLink to="/records" className="nav-cta" onClick={close} data-your-records="">
+                      {t('m.nav.yours')}
+                    </RouterLink>
+                  ) : (
+                    <Section id="demo" className="nav-cta" onClick={close}>
+                      {t('m.nav.demo')}
+                    </Section>
+                  )}
                 </li>
               </ul>
               <LanguagePicker />

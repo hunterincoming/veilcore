@@ -55,6 +55,7 @@ export const fr: Strings = {
   'm.nav.updates': 'Actualités',
   'm.nav.spec': 'Spécification',
   'm.nav.demo': 'Essayer la démo',
+  'm.nav.yours': 'Vos fiches',
   'm.nav.menu': 'Menu',
   'm.hero.label': 'La preuve de ce que vous détenez',
   'm.hero.title1': 'Datez votre enregistrement.',

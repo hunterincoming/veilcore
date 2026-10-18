@@ -27,6 +27,7 @@ import { computeCommitment, newNonce } from 'veilcore-records';
 import { IS_TEST_SITE, useI18n } from '../../i18n';
 import { FOUNDERS_MAIL, RoleLine, SDK_REPO, SiteShell, X_HANDLE } from './SiteShell';
 import { FoldGroup, FoldItem, FoldPoint, usePhone } from './Fold';
+import { hasRecordsHere } from './returning';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
 
 const TESTNET_REPO = 'https://github.com/hunterincoming/veilcore-midnight-testnet';
@@ -425,6 +426,7 @@ export const Home: React.FC = () => {
   const { t, lang, sp } = useI18n();
   const { hash } = useLocation();
   const [showVideo, setShowVideo] = useState(false);
+  const [returning] = useState(hasRecordsHere);
   const phone = usePhone();
 
   // Arriving from another page at /#section: the router does not scroll to it.
@@ -463,7 +465,12 @@ export const Home: React.FC = () => {
             </h1>
             <p className="lede">{t('m.hero.lede')}</p>
             <div className="hero-actions">
-              <a className="btn solid" href="#demo">
+              {returning && (
+                <RouterLink className="btn solid" to="/records" data-your-records="">
+                  {t('m.nav.yours')}
+                </RouterLink>
+              )}
+              <a className={returning ? 'btn' : 'btn solid'} href="#demo">
                 {t('m.nav.demo')}
               </a>
               <a className="btn" href="#how">

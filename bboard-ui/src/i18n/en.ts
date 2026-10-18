@@ -82,6 +82,7 @@ export const en = {
   'm.nav.updates': 'Updates',
   'm.nav.spec': 'Spec',
   'm.nav.demo': 'Try the demo',
+  'm.nav.yours': 'Your records',
   'm.nav.menu': 'Menu',
 
   'm.hero.label': 'Proof of what you hold',
