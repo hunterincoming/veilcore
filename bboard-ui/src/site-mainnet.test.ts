@@ -553,9 +553,9 @@ describe('builds', () => {
       expect(mainnet['/verify/example']).toMatch(/Midnight’s main network/);
     });
 
-    it('veilcore.org offers English only (PUBLISHED_LANGUAGES); a draft opens by link, under its banner', () => {
+    it('veilcore.org offers English and the ready drafts (Japanese) in a picker on every page; a draft is under its banner', () => {
       const main = languageSeen[mainDist];
-      for (const p of PAGES) expect(main.pickers[p], p).toBe(0);
+      for (const p of PAGES) expect(main.pickers[p], p).toBeGreaterThan(0);
       expect(main.jaLink).toEqual({ lang: 'ja', banner: true });
       // The test-network builds offer every language, on every page.
       const pre = languageSeen[preDist];

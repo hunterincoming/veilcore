@@ -33,7 +33,7 @@ import { mainnetStrings } from './en-mainnet';
 import { testchainStrings } from './en-testchain';
 import { IS_MAINNET, CLAIMS_ON_MAINNET, MAINTENANCE_POLICY_APPROVED } from '../config/network';
 import { CHAIN_READY, CHAIN_READS, REAL_CHAIN } from '../veilcore/chain/config';
-import { LANGUAGE_CODES, PUBLISHED_LANGUAGES, type Lang } from '../config/languages';
+import { LANGUAGE_CODES, MAINNET_DRAFTS, PUBLISHED_LANGUAGES, type Lang } from '../config/languages';
 
 export type { Lang };
 
@@ -166,12 +166,19 @@ export const publishedLanguages = (flags: Record<Lang, boolean> = PUBLISHED_LANG
   LANGUAGE_CODES.filter((l) => l === 'en' || flags[l]);
 
 /**
- * Languages the picker offers. veilcore.org (a mainnet build): the published ones only. The
+ * Languages the picker offers. veilcore.org (a mainnet build): the published ones, plus the
+ * drafts in MAINNET_DRAFTS under the draft banner. The
  * test site and the demo build: every language, drafts under the draft banner, so they can
  * be tried and checked on every page.
  */
-export const offeredLanguages = (build: Pick<BuildKind, 'isMainnet'>, published: readonly Lang[]): Lang[] =>
-  build.isMainnet ? [...published] : [...LANGUAGE_CODES];
+export const offeredLanguages = (
+  build: Pick<BuildKind, 'isMainnet'>,
+  published: readonly Lang[],
+  mainnetDrafts: readonly Lang[] = MAINNET_DRAFTS,
+): Lang[] =>
+  build.isMainnet
+    ? LANGUAGE_CODES.filter((l) => published.includes(l) || mainnetDrafts.includes(l))
+    : [...LANGUAGE_CODES];
 
 const STORAGE_KEY = 'veilcore.lang';
 
