@@ -329,8 +329,8 @@ describe('what to keep if VeilCore is gone', () => {
     for (const s of ALL_ENGLISH) expect(offenders(s, /doesn't need us|does not need us/i)).toEqual([]);
     for (const k of ['m.open.6p', 'm.tech.check.p'] as const) {
       expect(en[k], k).toMatch(/Records sealed since 14 October/);
-      expect(en[k], k).toMatch(/section 3\.6\.1, published in the spec on this site/);
-      expect(en[k], k).toMatch(/the SDK and its three implementations get it in their next release/);
+      expect(en[k], k).toMatch(/section 3\.6\.1, in the spec on this site and in SDK 0\.16\.0/);
+      expect(en[k], k).not.toMatch(/next release/);
     }
     // The section really is in the spec this site serves.
     expect(source('docs/SPEC.md')).toMatch(/#### 3\.6\.1 A record that names its own key/);
@@ -857,8 +857,13 @@ describe('Japanese (round 6)', () => {
         shown.filter(([, v]) => /テストネットワーク|preprod|テストサーバー|テスト用レジストリ|テスト版|デモ/.test(v)),
       ).toEqual([]);
     }
-    // Other languages keep the English overlay until someone translates it.
-    for (const l of ['de', 'fr', 'es'] as Lang[]) expect(networkOverlay(MAINNET, l)).toEqual(mainnetStrings(BUILD));
+    // German, French and Spanish have their own mainnet overlays now (de/es/fr-mainnet.ts): every
+    // key the English sets, in their own words.
+    for (const l of ['de', 'fr', 'es'] as Lang[]) {
+      const own = networkOverlay(MAINNET, l);
+      expect(Object.keys(own).sort(), l).toEqual(Object.keys(mainnetStrings(BUILD)).sort());
+      expect(own['m.hero.status'], l).not.toBe(mainnetStrings(BUILD)['m.hero.status']);
+    }
   });
 });
 

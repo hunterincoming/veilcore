@@ -270,6 +270,31 @@ describe('the mainnet strings', () => {
       expect(Object.values(o).join('\n')).not.toMatch(/dated there, in batches|are dated on Midnight's main network/);
     }
   });
+  it('every language veilcore.org offers sets every mainnet sentence the English does, for every build', async () => {
+    const { LANGUAGES } = await import('./i18n/catalogs');
+    const { MAINNET_DRAFTS } = await import('./config/languages');
+    for (const lang of MAINNET_DRAFTS) {
+      const own = LANGUAGES[lang].mainnet;
+      expect(typeof own, lang).toBe('function');
+      for (const claimsOnMainnet of [true, false])
+        for (const policyApproved of [true, false])
+          for (const chainReads of [true, false])
+            for (const chainSends of [true, false]) {
+              const flags = { claimsOnMainnet, policyApproved, chainReads, chainSends };
+              const theirs = own!(flags);
+              const missing = Object.keys(mainnetStrings(flags)).filter(
+                (k) => !(DATED_POSTS as readonly string[]).includes(k) && !theirs[k as keyof typeof theirs],
+              );
+              expect(missing, `${lang} ${JSON.stringify(flags)}`).toEqual([]);
+              if (chainSends)
+                expect(
+                  Object.entries(theirs).filter(([, v]) => /von Hand|a mano|à la main|手作業/.test(v ?? '')),
+                  `${lang} still says by hand`,
+                ).toEqual([]);
+            }
+    }
+  });
+
   it('with the mainnet sponsor live: anchored automatically, the fee paid by VeilCore, no "by hand" or "can\'t do it yet" left, in English and Japanese', async () => {
     const { jaMainnet } = await import('./i18n/ja');
     for (const claims of [true, false])

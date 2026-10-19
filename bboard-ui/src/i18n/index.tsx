@@ -67,9 +67,24 @@ const packLoading = new Map<Lang, Promise<LanguagePack>>();
 
 const PACK_LOADERS: Record<Exclude<Lang, 'en'>, () => Promise<LanguagePack>> = {
   ja: () => import('./ja').then((m) => ({ strings: m.ja, testchain: m.jaTestchain, mainnet: m.jaMainnet })),
-  es: () => import('./es').then((m) => ({ strings: m.es, testchain: m.esTestchain })),
-  de: () => import('./de').then((m) => ({ strings: m.de, testchain: m.deTestchain })),
-  fr: () => import('./fr').then((m) => ({ strings: m.fr, testchain: m.frTestchain })),
+  es: () =>
+    Promise.all([import('./es'), import('./es-mainnet')]).then(([m, o]) => ({
+      strings: m.es,
+      testchain: m.esTestchain,
+      mainnet: o.esMainnet,
+    })),
+  de: () =>
+    Promise.all([import('./de'), import('./de-mainnet')]).then(([m, o]) => ({
+      strings: m.de,
+      testchain: m.deTestchain,
+      mainnet: o.deMainnet,
+    })),
+  fr: () =>
+    Promise.all([import('./fr'), import('./fr-mainnet')]).then(([m, o]) => ({
+      strings: m.fr,
+      testchain: m.frTestchain,
+      mainnet: o.frMainnet,
+    })),
 };
 
 /** Fetch a language's public-page words (once; the same promise every time, as `use` needs). */

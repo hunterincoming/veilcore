@@ -328,8 +328,9 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
     expect(indexHtml).toContain('href="/favicon.svg"');
     expect(faviconSvg.toLowerCase()).toContain(INK_COLOR.toLowerCase());
     expect(faviconSvg.toLowerCase()).toContain(POLLEN.toLowerCase());
-    // A dark tab bar gets a paper tag, still with the gold stub.
-    expect(faviconSvg).toMatch(/prefers-color-scheme: dark\)[^}]*\.t \{ fill: #f6f3ec; \}/);
+    // The mark is a badge with its own colours (ink disc, paper ring, pollen V), so it reads on a
+    // light or dark tab bar alike and needs no dark-mode variant.
+    expect(faviconSvg.toLowerCase()).toContain('#f6f3ec');
   });
 
   it('the hero note points at the strip in the brand colour: gold, never blue, green or red', () => {

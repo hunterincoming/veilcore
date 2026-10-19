@@ -260,7 +260,7 @@ describe('which languages each build shows', () => {
     expect(offeredLanguages({ isMainnet: true }, ['en'], [])).toEqual(['en']);
     expect(offeredLanguages({ isMainnet: true }, ['en', 'ja'], [])).toEqual(['en', 'ja']);
     // veilcore.org also offers the drafts whose mainnet wording is translated (Japanese).
-    expect(offeredLanguages({ isMainnet: true }, ['en'])).toEqual(['en', 'ja']);
+    expect(offeredLanguages({ isMainnet: true }, ['en'])).toEqual([...LANGUAGE_CODES]);
     expect(offeredLanguages({ isMainnet: true }, ['en'], ['fr', 'ja'])).toEqual(['en', 'ja', 'fr']);
   });
 

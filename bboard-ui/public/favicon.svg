@@ -1,10 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 0 18 18">
-  <!-- VeilCore's mark (src/components/site/TagMark.tsx): an ink tag, its stub in pollen gold edged in ink. -->
-  <style>
-    .t { fill: #16181d; } .s { fill: #f6da3c; } .e { fill: none; stroke: #16181d; stroke-width: 1.2; }
-    @media (prefers-color-scheme: dark) { .t { fill: #f6f3ec; } .e { stroke: none; } }
-  </style>
-  <path class="t" fill-rule="evenodd" d="M4 0h6l4 4v8.6H0V4zM7 3.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6z"/>
-  <path class="s" d="M0 13.9h14V18H0z"/>
-  <path class="e" d="M.6 14.5h12.8v2.9H.6z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- VeilCore's mark (src/components/site/TagMark.tsx): an ink disc, a paper ring, a pollen V. -->
+  <circle cx="12" cy="12" r="12" fill="#16181D"/><circle cx="12" cy="12" r="8.6" fill="none" stroke="#F6F3EC" stroke-width="1.1"/><path d="M7.9 9.1 12 15.2l4.1-6.1" fill="none" stroke="#F6DA3C" stroke-width="2.3" stroke-linejoin="miter" stroke-linecap="butt"/>
 </svg>

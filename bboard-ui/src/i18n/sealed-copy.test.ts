@@ -385,8 +385,11 @@ describe('round 4: the privacy sentences the fourth review found false', () => {
   });
 
   it('"Our server can read" lists the delivery’s account, saves, size bucket and key binding, in every build', () => {
-    for (const b of builds()) {
+    for (const [i, b] of builds().entries()) {
       const s = b['m.privacy.stored.text'] ?? '';
+      // builds()[0] is the test site; the rest are veilcore.org, where the purge and the backup
+      // key rotation of 18 October 2026 are done.
+      const mainnet = i > 0;
       expect(s).toMatch(/Our server can read: [^.]*its proof code, key binding and profile type/);
       // Round 5: the name is locked, travels after the # in check links, and is read only if shown.
       expect(s).toMatch(/locked by your browser before they are sent: each record[’']s name, breeder/);
@@ -397,22 +400,31 @@ describe('round 4: the privacy sentences the fourth review found false', () => {
         /what you choose to show on its check page \(its name, if you choose to show it, and whether a DNA report is saved/,
       );
       expect(s).not.toMatch(/the name you give it/);
-      expect(s).toMatch(
-        /a record[’']s name saved before names were locked stays readable to us until your browser saves the record again/,
-      );
+      if (!mainnet)
+        expect(s).toMatch(
+          /a record[’']s name saved before names were locked stays readable to us until your browser saves the record again/,
+        );
       expect(s).toMatch(/how many times it was saved, and when it was last saved/);
       expect(s).toMatch(/\(its size bucket\)/);
       expect(s).toMatch(
         /For a delivery: which record it came from, which holder account received it, when it was received/,
       );
       // The tag sentence says what is true of deliveries made before tags.
-      expect(s).toMatch(
-        /A delivery made before tags has the name as typed, until the registry[’']s purge replaces it\./,
-      );
-      // Off-site backups made before locking keep a readable copy until the backup key is destroyed.
-      expect(s).toMatch(
-        /Our off-site backups made before then keep a readable copy of all of these until we destroy the key that opens them\./,
-      );
+      if (mainnet) {
+        // veilcore.org: purged and the old backup key destroyed (18 October 2026).
+        expect(s).not.toMatch(/A delivery made before tags/);
+        expect(s).toMatch(
+          /Text saved before locking was removed from our server on 18 October 2026, and the off-site backups made before then can no longer be opened: we destroyed their key the same day\./,
+        );
+      } else {
+        expect(s).toMatch(
+          /A delivery made before tags has the name as typed, until the registry[’']s purge replaces it\./,
+        );
+        // Off-site backups made before locking keep a readable copy until the backup key is destroyed.
+        expect(s).toMatch(
+          /Our off-site backups made before then keep a readable copy of all of these until we destroy the key that opens them\./,
+        );
+      }
       // Each record's secret keys are among what is locked.
       expect(s).toMatch(/locked by your browser before they are sent: [^.]*each record[’']s own secret keys\./);
     }
@@ -503,7 +515,22 @@ describe('round 4: the privacy sentences the fourth review found false', () => {
     for (const [lang, res] of stored) {
       const keys = Object.keys(t).filter((k) => k.startsWith(`${lang}`) && k.endsWith(':m.privacy.stored.text'));
       expect(keys.length, lang).toBeGreaterThan(0);
-      for (const k of keys) for (const re of res) expect(t[k], `${k} ${String(re)}`).toMatch(re);
+      // On veilcore.org the deliveries made before tags were purged on 18 October 2026, and the
+      // old off-site backups can no longer be opened: that sentence goes, the backups one changes.
+      const PURGED: Record<string, [RegExp, RegExp]> = {
+        de: [/Bei einer Lieferung von vor den Kennzeichen/, /am 18\. Oktober 2026 von unserem Server entfernt/],
+        es: [/En un envío anterior a las etiquetas/, /se eliminó de nuestro servidor el 18 de octubre de 2026/],
+        fr: [/Pour un envoi d'avant les étiquettes/, /a été supprimé de notre serveur le 18 octobre 2026/],
+        ja: [/タグ導入前の送付/, /2026年10月18日に私たちのサーバーから削除しました/],
+      };
+      for (const k of keys)
+        for (const re of res) {
+          const [gone, now] = PURGED[lang];
+          if (k.includes('mainnet') && String(re) === String(gone)) {
+            expect(t[k], `${k} ${String(re)}`).not.toMatch(gone);
+            expect(t[k], `${k} ${String(now)}`).toMatch(now);
+          } else expect(t[k], `${k} ${String(re)}`).toMatch(re);
+        }
     }
     expect(t['de:m.privacy.who.text']).toMatch(/nach 7 Tagen gelöscht/);
     expect(t['es:m.privacy.who.text']).toMatch(/se borran a los 7 días/);

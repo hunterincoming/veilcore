@@ -29,7 +29,7 @@ export const PUBLISHED_LANGUAGES: Record<Lang, boolean> = {
 /**
  * Drafts veilcore.org offers in its picker anyway, under the draft banner ("Machine-drafted
  * translation, under review"). Only a language whose mainnet wording is translated too
- * (its own `mainnet` overlay: Japanese, ja.ts jaMainnet); any other would show the
+ * (its own `mainnet` overlay: ja.ts jaMainnet, and de/es/fr-mainnet.ts); any other would show the
  * main-network sentences in English in the middle of its own text.
  */
-export const MAINNET_DRAFTS: readonly Lang[] = ['ja'];
+export const MAINNET_DRAFTS: readonly Lang[] = ['ja', 'es', 'de', 'fr'];
