@@ -325,7 +325,8 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
 
   it('the browser bar, the tab icon and the mark carry the same colours', () => {
     expect(/<meta name="theme-color" content="(#[0-9A-F]{6})"/.exec(indexHtml)?.[1]).toBe(GROUND);
-    expect(indexHtml).toContain('href="/favicon.svg"');
+    // A version on the links, so browsers drop the old tab icon they cached (18-19 Oct: tag -> ring).
+    expect(indexHtml).toMatch(/href="\/favicon\.svg\?v=\w+"/);
     expect(faviconSvg.toLowerCase()).toContain(INK_COLOR.toLowerCase());
     expect(faviconSvg.toLowerCase()).toContain(POLLEN.toLowerCase());
     // The mark is a badge with its own colours (ink disc, paper ring, pollen V), so it reads on a
