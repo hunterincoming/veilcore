@@ -351,9 +351,33 @@ describe('builds', () => {
       VITE_SPONSOR_URL: 'https://sponsor.example.org',
     });
     expect(r.status).not.toBe(0);
-    expect(`${r.stdout}${r.stderr}`).toMatch(/VITE_REAL_CHAIN=1 is set .* test networks only/);
+    expect(`${r.stdout}${r.stderr}`).toMatch(/VITE_REAL_CHAIN=1 is set without the mainnet sponsor's settings/);
     expect(fs.existsSync(path.join(tmp, 'dist-refused3', 'index.html'))).toBe(false);
   }, 300_000);
+
+  it('a mainnet build with the sponsor set up as deploy:mainnet does it builds (the pinned contract, through the relay)', () => {
+    const r = build('mainnet', path.join(tmp, 'dist-sponsor'), {
+      VEILCORE_TEST_DEPLOY_GUARD: guardFile('dummy4', DUMMY, DUMMY_CLAIMS),
+      VITE_API_BASE: API,
+      VITE_REAL_CHAIN: '1',
+      VITE_REAL_CHAIN_CONTRACT_ADDRESS: DUMMY,
+      VITE_SPONSOR_URL: 'https://sponsor.example.org',
+      VITE_INDEXER_URL: 'https://relay.example.org/indexer',
+      VITE_INDEXER_WS_URL: 'wss://relay.example.org/indexer/ws',
+    });
+    expect(r.status, r.stderr).toBe(0);
+    // Another contract than the pinned one is refused.
+    const bad = build('mainnet', path.join(tmp, 'dist-sponsor-bad'), {
+      VEILCORE_TEST_DEPLOY_GUARD: guardFile('dummy5', DUMMY, DUMMY_CLAIMS),
+      VITE_API_BASE: API,
+      VITE_REAL_CHAIN: '1',
+      VITE_REAL_CHAIN_CONTRACT_ADDRESS: 'cd'.repeat(32),
+      VITE_SPONSOR_URL: 'https://sponsor.example.org',
+      VITE_INDEXER_URL: 'https://relay.example.org/indexer',
+      VITE_INDEXER_WS_URL: 'wss://relay.example.org/indexer/ws',
+    });
+    expect(bad.status).not.toBe(0);
+  }, 600_000);
 
   it('builds in mainnet mode with a pinned address, and in preprod mode', () => {
     const m = build('mainnet', mainDist, {

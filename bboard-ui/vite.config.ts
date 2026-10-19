@@ -46,13 +46,21 @@ const mainnetBuild = (mode: string, command: string) => {
   const policy = readPolicyStatus();
   if (!policy.ok) throw new Error(`\n\nThe mainnet website was not built. ${policy.problem}\n`);
   const env = { ...loadEnv(mode, process.cwd(), 'VITE_'), ...process.env };
-  // The in-browser transactions (src/veilcore/chain/) are for test networks only: a
-  // mainnet build with the flag left in the shell from a test run is refused here, not
-  // only at run time.
+  // The in-browser transactions (src/veilcore/chain/) on mainnet: only as npm run
+  // deploy:mainnet sets them up with the mainnet sponsor (scripts/deploy-mainnet.mjs), i.e.
+  // VeilCore's pinned contract, an https sponsor and the indexer through the relay. Anything
+  // else (a flag left in the shell from a test run) is refused here, not only at run time.
   if (env.VITE_REAL_CHAIN === '1') {
-    throw new Error(
-      '\n\nThe mainnet website was not built: VITE_REAL_CHAIN=1 is set (left from a test run?). It is for test networks only. Close this terminal or run: unset VITE_REAL_CHAIN VITE_SPONSOR_URL\n',
-    );
+    const contract = (env.VITE_REAL_CHAIN_CONTRACT_ADDRESS ?? '').trim().toLowerCase().replace(/^0x/, '');
+    const ready =
+      contract === pins.veilcore &&
+      /^https:\/\//.test(env.VITE_SPONSOR_URL ?? '') &&
+      /^https:\/\//.test(env.VITE_INDEXER_URL ?? '') &&
+      /^wss:\/\//.test(env.VITE_INDEXER_WS_URL ?? '');
+    if (!ready)
+      throw new Error(
+        "\n\nThe mainnet website was not built: VITE_REAL_CHAIN=1 is set without the mainnet sponsor's settings (left from a test run?). Use npm run deploy:mainnet with VEILCORE_MAINNET_SPONSOR, or close this terminal or run: unset VITE_REAL_CHAIN VITE_SPONSOR_URL\n",
+      );
   }
   if (env.VITE_NETWORK_ID !== 'mainnet') {
     throw new Error(
