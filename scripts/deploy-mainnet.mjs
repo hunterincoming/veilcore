@@ -20,6 +20,7 @@ import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { normaliseAddress, readMainnetPins } from './mainnet-pins.mjs';
+import { vercelEnv } from './vercel-token.mjs';
 
 export const API = 'https://veilcore-api-production.up.railway.app';
 
@@ -129,6 +130,7 @@ const main = async () => {
   }
 
   const env = { ...process.env, VITE_API_BASE: API, ...chain, VITE_NETWORK_ID: 'mainnet' };
+  delete env.VERCEL_TOKEN;
   const run = (cmd, args, opts = {}) => execFileSync(cmd, args, { stdio: 'inherit', env, ...opts });
 
   run('node', ['scripts/site-mainnet-preflight.mjs']);
@@ -139,13 +141,15 @@ const main = async () => {
   run('node', ['scripts/vercel-config.mjs']);
   run('node', ['scripts/release-manifest.mjs', 'mainnet', '.vercel/output/static']);
   run('npm', ['ci', '--prefix', 'tools/vercel', '--include=dev', '--ignore-scripts', '--no-audit', '--no-fund']);
+  // Only the Vercel calls get the token (scripts/vercel-token.mjs), never the build.
+  const vEnv = vercelEnv(env);
   const url = execFileSync('./tools/vercel/node_modules/.bin/vercel', ['deploy', '--prebuilt', '--prod'], {
-    env,
+    env: vEnv,
     encoding: 'utf8',
   }).trim();
   console.log(`Deployed ${url}`);
-  run('./tools/vercel/node_modules/.bin/vercel', ['alias', 'set', url, 'veilcore.org']);
-  run('./tools/vercel/node_modules/.bin/vercel', ['alias', 'set', url, 'www.veilcore.org']);
+  run('./tools/vercel/node_modules/.bin/vercel', ['alias', 'set', url, 'veilcore.org'], { env: vEnv });
+  run('./tools/vercel/node_modules/.bin/vercel', ['alias', 'set', url, 'www.veilcore.org'], { env: vEnv });
   rmSync('bboard-ui/dist', { recursive: true, force: true });
   console.log('\nveilcore.org is live.\n');
 };

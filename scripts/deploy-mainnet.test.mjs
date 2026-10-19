@@ -43,3 +43,14 @@ test('the sponsor must say mainnet, the pinned contract and synced', () => {
   assert.match(sponsorProblem(undefined, PIN), /did not answer/);
   assert.match(sponsorProblem({ ...ok, anchorer: { enabled: false } }, PIN), /anchoring job is off/);
 });
+
+test('the Vercel token comes from the environment or the keychain, and only into Vercel calls', async () => {
+  const { vercelToken, vercelEnv } = await import('./vercel-token.mjs');
+  assert.equal(vercelToken({ VERCEL_TOKEN: ' abc ' }), 'abc');
+  const read = () => 'fromkeychain\n';
+  if (process.platform === 'darwin') assert.equal(vercelToken({}, read), 'fromkeychain');
+  else assert.equal(vercelToken({}, read), undefined);
+  assert.deepEqual(vercelEnv({ A: '1', VERCEL_TOKEN: 't' }), { A: '1', VERCEL_TOKEN: 't' });
+  const src = (await import('node:fs')).readFileSync(new URL('./deploy-mainnet.mjs', import.meta.url), 'utf8');
+  assert.match(src, /delete env\.VERCEL_TOKEN;/);
+});
