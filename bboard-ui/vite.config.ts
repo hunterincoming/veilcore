@@ -88,6 +88,57 @@ const siteDescription = (mode: string): Plugin => ({
     html.replace('%VEILCORE_DESCRIPTION%', mode === 'mainnet' ? DESCRIPTION.mainnet : DESCRIPTION.test),
 });
 
+// What the page says before its script runs: a plain summary inside #root, which React
+// replaces as soon as it starts. Search engines, link readers and AI assistants that don't
+// run JavaScript read only this, so it carries the facts people look for: what VeilCore is,
+// where it stands, who runs it, that checking is free, and that there is no token. Plain
+// HTML and no script (the Content-Security-Policy allows none inline); index.html styles it
+// in the site's paper and ink for the moment before the app draws.
+const SUMMARY_HEAD = `<main class="static-summary">
+<h1>VeilCore: dated, private records for plant and animal genetics</h1>
+<p>A breeder or lab logs a record of a cultivar or an animal line in the browser. Everything typed is locked there before it is sent, and VeilCore doesn't have the key. DNA files never leave the device. Only a 32-byte proof code is dated on Midnight. Later a buyer, examiner or court can check what the record said and when it existed: free, with no account. A record shows a description was held by a date. It isn't ownership, and VeilCore doesn't test DNA.</p>`;
+
+const SUMMARY_TAIL = `<h2>Team</h2>
+<ul>
+<li>Makoto (Mako) Steiner, co-founder and CEO (Tokyo): mako@veilcore.org</li>
+<li>Hunter Roberts, co-founder and COO (New Jersey): hunter@veilcore.org</li>
+</ul>
+<h2>No token</h2>
+<p>VeilCore has never sold a token, coin or presale. Anyone offering one in VeilCore's name is not us.</p>
+<p>Code and spec: <a href="https://github.com/hunterincoming/veilcore-midnight-testnet">the app and contracts</a> and <a href="https://github.com/hunterincoming/veilcore-sdk">the open record format</a>.</p>
+</main>`;
+
+const SUMMARY = {
+  mainnetSends: `${SUMMARY_HEAD}
+<h2>Where it stands</h2>
+<ul>
+<li>On Midnight's main network since 8 October 2026. Open to first users since 20 October 2026; every record so far is the team's own test data.</li>
+<li>Works on veilcore.org: sealing records; batches dated on Midnight automatically, every hour; proving a record by link; dating a DNA report pairing; lab receipts and reports signed with the lab's own key. No wallet needed: VeilCore pays the network fee.</li>
+<li>Practice only: licences, royalties and lab agreements.</li>
+<li>No formal audit yet. Twelve rounds of adversarial review are public.</li>
+</ul>
+${SUMMARY_TAIL}`,
+  mainnet: `${SUMMARY_HEAD}
+<h2>Where it stands</h2>
+<ul>
+<li>On Midnight's main network since 8 October 2026. Every record so far is the team's own test data.</li>
+<li>Practice only: licences, royalties and lab agreements. No formal audit yet.</li>
+</ul>
+${SUMMARY_TAIL}`,
+  test: `${SUMMARY_HEAD}
+<p>This is the test site: records made here are practice records on a Midnight test network and carry no evidential weight. The real site is <a href="https://veilcore.org">veilcore.org</a>.</p>
+${SUMMARY_TAIL}`,
+};
+
+const siteSummary = (mode: string, sends: boolean): Plugin => ({
+  name: 'veilcore-site-summary',
+  transformIndexHtml: (html) =>
+    html.replace(
+      '<div id="root"></div>',
+      `<div id="root">${mode === 'mainnet' ? (sends ? SUMMARY.mainnetSends : SUMMARY.mainnet) : SUMMARY.test}</div>`,
+    ),
+});
+
 // The font the first screen is drawn in, asked for with the page instead of after the
 // script has run and the browser has worked out which ones it needs: Atkinson Hyperlegible
 // Next, one variable file for body text and headings alike. Latin only; the latin-ext subset
@@ -200,6 +251,10 @@ export default defineConfig(({ mode, command }) => {
         },
       },
       siteDescription(mode),
+      siteSummary(
+        mode,
+        mode === 'mainnet' && { ...loadEnv(mode, process.cwd(), 'VITE_'), ...process.env }.VITE_REAL_CHAIN === '1',
+      ),
       preloadFonts(),
       recordBuildSettings(),
       react(),

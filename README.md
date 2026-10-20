@@ -35,6 +35,8 @@ Build fingerprints: [docs/fingerprints.md](docs/fingerprints.md).
 - **No audit.** Twelve rounds of adversarial review are public, with the attacks kept as tests
   ([docs/security-pass-30sep.md](docs/security-pass-30sep.md)). They are not a formal audit.
 - **Open to first users** since 20 October 2026. Every record so far is our own test data.
+- **No token.** VeilCore has never sold a token, coin or presale. Anyone offering one in
+  VeilCore's name is not us.
 
 A record is evidence you held a description by a date. It isn't ownership, it doesn't test
 DNA, and we don't vouch for any lab. [What VeilCore does not claim](#what-veilcore-does-not-claim).

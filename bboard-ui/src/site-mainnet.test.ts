@@ -387,6 +387,12 @@ describe('builds', () => {
       VITE_INDEXER_WS_URL: 'wss://relay.example.org/indexer/ws',
     });
     expect(r.status, r.stderr).toBe(0);
+    // Readers that don't run JavaScript (search engines, AI assistants) get the facts.
+    const sponsorHtml = fs.readFileSync(path.join(tmp, 'dist-sponsor', 'index.html'), 'utf8');
+    expect(sponsorHtml).toMatch(/<div id="root"><main class="static-summary">/);
+    expect(sponsorHtml).toMatch(/automatically, every hour/);
+    expect(sponsorHtml).toMatch(/never sold a token, coin or presale/);
+    expect(sponsorHtml).not.toMatch(TEST_WORDING);
     // Another contract than the pinned one is refused.
     const bad = build('mainnet', path.join(tmp, 'dist-sponsor-bad'), {
       VEILCORE_TEST_DEPLOY_GUARD: guardFile('dummy5', DUMMY, DUMMY_CLAIMS),
@@ -413,8 +419,13 @@ describe('builds', () => {
     expect(mainHtml).toMatch(/only its proof code is dated, on Midnight's main network/);
     expect(mainHtml).not.toMatch(TEST_WORDING);
     expect(mainHtml).not.toMatch(/%VEILCORE_DESCRIPTION%/);
+    // Without the sponsor, the summary doesn't say batches are dated automatically.
+    expect(mainHtml).toMatch(/Makoto \(Mako\) Steiner, co-founder and CEO/);
+    expect(mainHtml).toMatch(/never sold a token, coin or presale/);
+    expect(mainHtml).not.toMatch(/every hour|proving a record by link/);
     const preHtml = fs.readFileSync(path.join(preDist, 'index.html'), 'utf8');
     expect(preHtml).toMatch(/Test site: practice records on a Midnight test network\. No security audit yet\./);
+    expect(preHtml).toMatch(/This is the test site: records made here are practice records/);
 
     // The addresses are compiled into the mainnet bundle only.
     const js = (dir: string) =>
