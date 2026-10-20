@@ -255,10 +255,19 @@ describe('which languages each build shows', () => {
     expect(publishedLanguages({ en: false, ja: true, es: false, de: false, fr: false })).toEqual(['en', 'ja']);
   });
 
-  it('offers every language on the test site and the demo, only published ones on veilcore.org', () => {
+  it('offers every language on the test site and the demo; on veilcore.org the published ones and the ready drafts', () => {
     expect(offeredLanguages({ isMainnet: false }, ['en'])).toEqual([...LANGUAGE_CODES]);
-    expect(offeredLanguages({ isMainnet: true }, ['en'])).toEqual(['en']);
-    expect(offeredLanguages({ isMainnet: true }, ['en', 'ja'])).toEqual(['en', 'ja']);
+    expect(offeredLanguages({ isMainnet: true }, ['en'], [])).toEqual(['en']);
+    expect(offeredLanguages({ isMainnet: true }, ['en', 'ja'], [])).toEqual(['en', 'ja']);
+    // veilcore.org also offers the drafts whose mainnet wording is translated (Japanese).
+    expect(offeredLanguages({ isMainnet: true }, ['en'])).toEqual([...LANGUAGE_CODES]);
+    expect(offeredLanguages({ isMainnet: true }, ['en'], ['fr', 'ja'])).toEqual(['en', 'ja', 'fr']);
+  });
+
+  it('veilcore.org offers a draft only if its mainnet wording is translated too', async () => {
+    const { MAINNET_DRAFTS } = await import('../config/languages');
+    const { LANGUAGES } = await import('./catalogs');
+    for (const l of MAINNET_DRAFTS) expect(typeof (LANGUAGES[l] as { mainnet?: unknown }).mainnet, l).toBe('function');
   });
 
   it('starts in a ?lang= link, then a kept choice the picker still offers, then a published browser language', () => {

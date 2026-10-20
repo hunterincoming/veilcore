@@ -88,7 +88,7 @@ const common: Overlay = {
     "This note covers this website. Records you seal here are real records: they go into batches that we anchor on Midnight's main network by hand.",
   'm.privacy.stored.title': 'Stored on our server',
   'm.privacy.stored.text':
-    "Your records and agreements, locked by your browser before they are sent: each record's name, breeder, species, dates, notes, reference numbers, parents, the codes and file names of the photos and lab reports you add, agreement terms and counterparties, the quantity and note you send a lab, the sample details you and the lab write (sample ID, seal number, where and when it was taken, a witness, how it arrived), the names you give recipients, and each record's own secret keys. Our server stores them locked, and we don't have the key: it is in your browser and your backup file. The sample details' key also travels in the lab code, so the lab can open them. If you choose, a record's name also travels in a check link you make, after the #. A browser doesn't send that part when it opens the link, but the link goes whole to anyone you send it to and to any site you paste it into, a partner's form included. Our server can read: each record's ID; its proof code, key binding and profile type; a code made from its name, which says nothing about the name without the key in your check link; its correction links (which record a correction replaces, which fields it changed, and when); when the server first saw it; how many times it was saved, and when it was last saved; roughly how large it is (its size bucket); what you choose to show on its check page (its name, if you choose to show it, and whether a DNA report is saved, as a code that says nothing about the file without the key in your check link); the parent links you register; and its batch and date stamp. If an agreement has a royalty on offspring, our server can read which record it covers and when it took effect, and anyone can ask whether that record carries one: the lineage check needs it. For a delivery: which record it came from, which holder account received it, when it was received, and a tag in place of the recipient's name. A delivery made before tags has the name as typed, until the registry's purge replaces it. For labs: the public signing key and the signatures they publish. A lab's signature on a report names the report bound to your record with a key only you and the lab hold; one made before 17 October 2026 names the report file's SHA-256, which our server shows only to you and the lab. Requests to prove a record's key, with the name the asker typed, kept for 7 days: our server learns which on-chain key each request names. The prove and check pages never send your holder key. Your holder key, which your browser sends with every save so the server can find your records; the server keeps only a one-way digest of it. Records saved before locking stay readable to us until your browser locks them, and a record's name saved before names were locked stays readable to us until your browser saves the record again. Sample details written before sealing stay readable to us until the registry removes them. Our off-site backups made before then keep a readable copy of all of these until we destroy the key that opens them. Locked lab reports a lab sends you: stored locked, without the key, and deleted after 180 days. The server is VeilCore's registry, hosted on Railway.",
+    "Your records and agreements, locked by your browser before they are sent: each record's name, breeder, species, dates, notes, reference numbers, parents, the codes and file names of the photos and lab reports you add, agreement terms and counterparties, the quantity and note you send a lab, the sample details you and the lab write (sample ID, seal number, where and when it was taken, a witness, how it arrived), the names you give recipients, and each record's own secret keys. Our server stores them locked, and we don't have the key: it is in your browser and your backup file. The sample details' key also travels in the lab code, so the lab can open them. If you choose, a record's name also travels in a check link you make, after the #. A browser doesn't send that part when it opens the link, but the link goes whole to anyone you send it to and to any site you paste it into, a partner's form included. Our server can read: each record's ID; its proof code, key binding and profile type; a code made from its name, which says nothing about the name without the key in your check link; its correction links (which record a correction replaces, which fields it changed, and when); when the server first saw it; how many times it was saved, and when it was last saved; roughly how large it is (its size bucket); what you choose to show on its check page (its name, if you choose to show it, and whether a DNA report is saved, as a code that says nothing about the file without the key in your check link); the parent links you register; and its batch and date stamp. If an agreement has a royalty on offspring, our server can read which record it covers and when it took effect, and anyone can ask whether that record carries one: the lineage check needs it. For a delivery: which record it came from, which holder account received it, when it was received, and a tag in place of the recipient's name. For labs: the public signing key and the signatures they publish. A lab's signature on a report names the report bound to your record with a key only you and the lab hold; one made before 17 October 2026 names the report file's SHA-256, which our server shows only to you and the lab. Requests to prove a record's key, with the name the asker typed, kept for 7 days: our server learns which on-chain key each request names. The prove and check pages never send your holder key. Your holder key, which your browser sends with every save so the server can find your records; the server keeps only a one-way digest of it. Text saved before locking was removed from our server on 18 October 2026, and the off-site backups made before then can no longer be opened: we destroyed their key the same day. Locked lab reports a lab sends you: stored locked, without the key, and deleted after 180 days. The server is VeilCore's registry, hosted on Railway.",
   'm.privacy.test.title': "Dated on Midnight's main network",
   'm.privacy.test.text':
     "Your record's proof code goes into a batch, and we anchor the batch on Midnight's main network, by hand for now, so it can take a while. Only the batch's code goes on the network, never what you typed. Once anchored, it is permanent: nobody, including us, can delete it.",
@@ -141,7 +141,7 @@ const keyStrings = (claimsOnMainnet: boolean, policyApproved: boolean): Overlay 
 const TECH_HEAD =
   "Recomputing a record's proof code needs only SHA-256 and the open spec. Its inclusion proof ties that proof code to a batch's code anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up.";
 const TECH_TAIL =
-  ' Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release. Looking a record up by its identifier on this site uses our server.';
+  ' Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, in the spec on this site and in SDK 0.16.0. Looking a record up by its identifier on this site uses our server.';
 /** Before the relay: what the check page does today, and that you can look it up yourself. */
 const RELAY_PENDING =
   " The check page will read Midnight itself once our read-only relay is live; until then it says the date is our registry's report, and you can look the transaction up yourself.";
@@ -152,24 +152,93 @@ const chainStrings = (chainReads: boolean): Overlay =>
     ? {
         'm.tech.check.p': `${TECH_HEAD} The check page looks that transaction up on Midnight itself.${TECH_TAIL}`,
         'm.live.chain.main': 'Yes.',
+        'm.privacy.hosts.text':
+          "This website is hosted on Vercel, which logs IP addresses and requests. Our registry server, and the read-only service that passes this page's reads of the network, run on Railway, which logs requests. That service reads the network through Blockfrost.",
       }
     : {
         'm.tech.check.p': `${TECH_HEAD}${RELAY_PENDING.replace(/\.$/, ' on a Midnight explorer.')}${TECH_TAIL}`,
       };
+
+/** Replace one passage of a string; throws if it is not there, so a copy edit can't silently skip it. */
+export const swapIn = (text: string | undefined, from: string, to: string): string => {
+  if (!text || !text.includes(from)) throw new Error(`mainnet copy: "${from}" not found`);
+  return text.replace(from, to);
+};
+
+/**
+ * The mainnet sponsor is live (VEILCORE_MAINNET_SPONSOR at deploy, scripts/deploy-mainnet.mjs):
+ * batches are anchored by its job, and the browser sends the record-key stamp, the proof by
+ * link and the DNA pairing date, with VeilCore paying the fee. The deploy checks the sponsor
+ * is on mainnet, VeilCore's contract and synced, and that its anchoring job is on.
+ */
+const sendsStrings = (o: Overlay): Overlay => ({
+  'm.hero.status': swapIn(
+    o['m.hero.status'],
+    'they go into batches that we anchor there by hand for now.',
+    'they go into batches that are anchored there automatically. Proving a record by link and dating a DNA report work here too, and VeilCore pays the network fee.',
+  ),
+  'm.faq.3a': swapIn(
+    o['m.faq.3a'],
+    "that we anchor on Midnight's main network by hand.",
+    "that are anchored on Midnight's main network automatically.",
+  ),
+  'm.demo.lede': swapIn(
+    swapIn(
+      swapIn(
+        o['m.demo.lede'],
+        "that we anchor on Midnight's main network, by hand for now, so a new record can wait a while;",
+        "that is anchored on Midnight's main network automatically;",
+      ),
+      'Checking is free.',
+      'Checking is free, and VeilCore pays the network fee for what your browser sends.',
+    ),
+    "Licenses and lab agreements are simulated, and DNA report pairings aren't dated.",
+    'Licenses and lab agreements are simulated.',
+  ),
+  'm.privacy.lede': swapIn(
+    o['m.privacy.lede'],
+    "that we anchor on Midnight's main network by hand.",
+    "that are anchored on Midnight's main network automatically.",
+  ),
+  'm.privacy.test.text':
+    "Your record's proof code goes into a batch, and the batch is anchored on Midnight's main network automatically. When you date your record's own key, prove a record by link or date a DNA report pairing, your browser sends that transaction itself, through VeilCore's fee service, which pays the fee. What you typed and your files are never sent to the network. Once on the network, it is permanent: nobody, including us, can delete it.",
+  'm.privacy.hosts.text':
+    "This website is hosted on Vercel, which logs IP addresses and requests. Our registry server, and the service that pays the network fee and passes this page's reads of the network, run on Railway, which logs requests. That service reads the network through Blockfrost.",
+  'm.stat2.s': swapIn(
+    o['m.stat2.s'],
+    'that we anchor there by hand for now.',
+    'that are anchored there automatically.',
+  ),
+  'm.for.1p': swapIn(
+    o['m.for.1p'],
+    'On this website the pairing is saved with your record but not yet dated.',
+    'On this website you can date the pairing from your browser, and nobody can copy it to their own record.',
+  ),
+  'm.for.6p': swapIn(o['m.for.6p'], " This website can't do it yet.", ''),
+  'm.live.stamp.main':
+    "Yes. Batches are dated automatically, and that dates your record. Your browser also date stamps your record's own key, which dates only the key.",
+  'm.live.dna.main': 'Yes, sent from your browser. VeilCore pays the fee.',
+});
 
 /** The overlay for a mainnet build. */
 export const mainnetStrings = ({
   claimsOnMainnet,
   policyApproved,
   chainReads = false,
+  chainSends = false,
 }: {
   claimsOnMainnet: boolean;
   policyApproved: boolean;
   /** The check page reads Midnight itself (a read-only relay is configured). */
   chainReads?: boolean;
-}): Overlay => ({
-  ...common,
-  ...(claimsOnMainnet ? claimsLive : claimsPending),
-  ...keyStrings(claimsOnMainnet, policyApproved),
-  ...chainStrings(chainReads),
-});
+  /** The browser sends transactions and batches are anchored automatically (the mainnet sponsor is live). */
+  chainSends?: boolean;
+}): Overlay => {
+  const o: Overlay = {
+    ...common,
+    ...(claimsOnMainnet ? claimsLive : claimsPending),
+    ...keyStrings(claimsOnMainnet, policyApproved),
+    ...chainStrings(chainReads),
+  };
+  return chainSends ? { ...o, ...sendsStrings(o) } : o;
+};

@@ -26,6 +26,7 @@ import { cpSync, existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { checkTestSiteAllowed } from './site-prod-preflight.mjs';
 import { checkRegistryFeatures, featuresLine } from './registry-features.mjs';
+import { vercelEnv } from './vercel-token.mjs';
 
 const CONTRACT = '72fe33436d424fcf247919c8e2f0de224175cc55061739be0ebffb2d650f2f73'; // practice contract, 7 Oct
 const DOMAIN = 'test.veilcore.org';
@@ -147,11 +148,12 @@ const main = async () => {
   run('node', ['scripts/release-manifest.mjs', 'preprod', '.vercel/output/static']);
   run('npm', ['ci', '--prefix', 'tools/vercel', '--include=dev', '--ignore-scripts', '--no-audit', '--no-fund']);
   // A preview deployment, never --prod: nothing here can touch veilcore.org.
+  const vEnv = vercelEnv(env);
   const url = execFileSync('./tools/vercel/node_modules/.bin/vercel', ['deploy', '--prebuilt'], {
-    env,
+    env: vEnv,
     encoding: 'utf8',
   }).trim();
-  run('./tools/vercel/node_modules/.bin/vercel', ['alias', 'set', url, DOMAIN]);
+  run('./tools/vercel/node_modules/.bin/vercel', ['alias', 'set', url, DOMAIN], { env: vEnv });
   rmSync('bboard-ui/dist', { recursive: true, force: true });
   console.log(`\nThe test site is live at https://${DOMAIN}\n`);
 };

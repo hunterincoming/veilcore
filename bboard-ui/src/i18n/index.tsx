@@ -32,8 +32,8 @@ import { en, type StringKey, type Strings } from './en';
 import { mainnetStrings } from './en-mainnet';
 import { testchainStrings } from './en-testchain';
 import { IS_MAINNET, CLAIMS_ON_MAINNET, MAINTENANCE_POLICY_APPROVED } from '../config/network';
-import { CHAIN_READS, REAL_CHAIN } from '../veilcore/chain/config';
-import { LANGUAGE_CODES, PUBLISHED_LANGUAGES, type Lang } from '../config/languages';
+import { CHAIN_READY, CHAIN_READS, REAL_CHAIN } from '../veilcore/chain/config';
+import { LANGUAGE_CODES, MAINNET_DRAFTS, PUBLISHED_LANGUAGES, type Lang } from '../config/languages';
 
 export type { Lang };
 
@@ -42,6 +42,7 @@ export type MainnetOverlay = (o: {
   claimsOnMainnet: boolean;
   policyApproved: boolean;
   chainReads?: boolean;
+  chainSends?: boolean;
 }) => Strings;
 
 /** A language's words for the public pages: its own, its test-site overlay, and its mainnet one if it has one. */
@@ -66,9 +67,24 @@ const packLoading = new Map<Lang, Promise<LanguagePack>>();
 
 const PACK_LOADERS: Record<Exclude<Lang, 'en'>, () => Promise<LanguagePack>> = {
   ja: () => import('./ja').then((m) => ({ strings: m.ja, testchain: m.jaTestchain, mainnet: m.jaMainnet })),
-  es: () => import('./es').then((m) => ({ strings: m.es, testchain: m.esTestchain })),
-  de: () => import('./de').then((m) => ({ strings: m.de, testchain: m.deTestchain })),
-  fr: () => import('./fr').then((m) => ({ strings: m.fr, testchain: m.frTestchain })),
+  es: () =>
+    Promise.all([import('./es'), import('./es-mainnet')]).then(([m, o]) => ({
+      strings: m.es,
+      testchain: m.esTestchain,
+      mainnet: o.esMainnet,
+    })),
+  de: () =>
+    Promise.all([import('./de'), import('./de-mainnet')]).then(([m, o]) => ({
+      strings: m.de,
+      testchain: m.deTestchain,
+      mainnet: o.deMainnet,
+    })),
+  fr: () =>
+    Promise.all([import('./fr'), import('./fr-mainnet')]).then(([m, o]) => ({
+      strings: m.fr,
+      testchain: m.frTestchain,
+      mainnet: o.frMainnet,
+    })),
 };
 
 /** Fetch a language's public-page words (once; the same promise every time, as `use` needs). */
@@ -113,6 +129,8 @@ export type BuildKind = {
   policyApproved: boolean;
   /** The check page reads Midnight itself (mainnet: a read-only relay is configured). */
   chainReads?: boolean;
+  /** Mainnet: the browser sends transactions through the mainnet sponsor, which also anchors batches. */
+  chainSends?: boolean;
 };
 
 /**
@@ -133,6 +151,7 @@ export const networkOverlayOf = (build: BuildKind, pack: LanguagePack): Strings 
       claimsOnMainnet: build.claimsOnMainnet,
       policyApproved: build.policyApproved,
       chainReads: build.chainReads ?? false,
+      chainSends: build.chainSends ?? false,
     };
     return { ...mainnetStrings(flags), ...(pack.mainnet?.(flags) ?? {}) };
   }
@@ -146,7 +165,11 @@ export const THIS_BUILD: BuildKind = {
   claimsOnMainnet: CLAIMS_ON_MAINNET,
   policyApproved: MAINTENANCE_POLICY_APPROVED,
   chainReads: CHAIN_READS,
+  chainSends: IS_MAINNET && CHAIN_READY,
 };
+
+/** veilcore.org sends real transactions (the mainnet sponsor is live in this build). */
+export const MAINNET_SENDS = THIS_BUILD.chainSends === true;
 
 /** This build is the public test site (test.veilcore.org): it sends real transactions on a test network. */
 export const IS_TEST_SITE = THIS_BUILD.realChain;
@@ -158,12 +181,19 @@ export const publishedLanguages = (flags: Record<Lang, boolean> = PUBLISHED_LANG
   LANGUAGE_CODES.filter((l) => l === 'en' || flags[l]);
 
 /**
- * Languages the picker offers. veilcore.org (a mainnet build): the published ones only. The
+ * Languages the picker offers. veilcore.org (a mainnet build): the published ones, plus the
+ * drafts in MAINNET_DRAFTS under the draft banner. The
  * test site and the demo build: every language, drafts under the draft banner, so they can
  * be tried and checked on every page.
  */
-export const offeredLanguages = (build: Pick<BuildKind, 'isMainnet'>, published: readonly Lang[]): Lang[] =>
-  build.isMainnet ? [...published] : [...LANGUAGE_CODES];
+export const offeredLanguages = (
+  build: Pick<BuildKind, 'isMainnet'>,
+  published: readonly Lang[],
+  mainnetDrafts: readonly Lang[] = MAINNET_DRAFTS,
+): Lang[] =>
+  build.isMainnet
+    ? LANGUAGE_CODES.filter((l) => published.includes(l) || mainnetDrafts.includes(l))
+    : [...LANGUAGE_CODES];
 
 const STORAGE_KEY = 'veilcore.lang';
 

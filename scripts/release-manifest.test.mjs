@@ -124,7 +124,11 @@ test('checkFiles also fetches "/" and holds it to the listed index.html', async 
 
 test('all three deploy scripts write and print the manifest, and none pushes anything', () => {
   const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).scripts;
-  assert.match(pkg['deploy:mainnet'], /node scripts\/vercel-config\.mjs && node scripts\/release-manifest\.mjs mainnet \.vercel\/output\/static && npm ci --prefix tools\/vercel/);
+  assert.equal(pkg['deploy:mainnet'], 'node scripts/deploy-mainnet.mjs');
+  const main = readFileSync(join(ROOT, 'scripts/deploy-mainnet.mjs'), 'utf8');
+  const m = main.indexOf("run('node', ['scripts/release-manifest.mjs', 'mainnet', '.vercel/output/static']);");
+  assert.ok(main.indexOf("run('node', ['scripts/vercel-config.mjs']);") < m && m > 0);
+  assert.ok(m < main.indexOf("['deploy', '--prebuilt', '--prod']"));
   // Round 6 (finding 1): deploy:prod, how veilcore.org ships until mainnet, writes one too.
   assert.match(pkg['deploy:prod'], /node scripts\/vercel-config\.mjs && node scripts\/release-manifest\.mjs prod \.vercel\/output\/static && npm ci --prefix tools\/vercel/);
   assert.equal(pkg['check:rebuild'], 'node scripts/check-rebuild.mjs');
@@ -135,7 +139,7 @@ test('all three deploy scripts write and print the manifest, and none pushes any
   const at = test.indexOf("run('node', ['scripts/release-manifest.mjs'");
   assert.ok(test.indexOf("cpSync('bboard-ui/dist', '.vercel/output/static'") < at);
   assert.ok(at < test.indexOf("['deploy', '--prebuilt']"));
-  for (const s of [pkg['deploy:mainnet'], pkg['deploy:prod'], pkg['deploy:test'], test, readFileSync(join(ROOT, 'scripts/release-manifest.mjs'), 'utf8'), readFileSync(join(ROOT, 'scripts/check-rebuild.mjs'), 'utf8')]) {
+  for (const s of [pkg['deploy:mainnet'], main, pkg['deploy:prod'], pkg['deploy:test'], test, readFileSync(join(ROOT, 'scripts/release-manifest.mjs'), 'utf8'), readFileSync(join(ROOT, 'scripts/check-rebuild.mjs'), 'utf8')]) {
     assert.doesNotMatch(s, /git\s+push|['"]push['"]/);
   }
 });

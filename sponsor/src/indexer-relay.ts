@@ -1046,6 +1046,14 @@ const LOOKS_SECRET =
   /SECRET|TOKEN|SEED|MNEMONIC|PRIVATE|PASSWORD|PASSWD|PASSPHRASE|CREDENTIAL|API_?KEY|(^|_)KEY($|_)|MAINTENANCE|^(SPONSOR|REGISTRY|ANCHOR|POW|VEILCORE)_/i;
 
 /**
+ * Railway sets these on every service itself (RAILWAY_PRIVATE_DOMAIN, RAILWAY_PUBLIC_DOMAIN,
+ * RAILWAY_SERVICE_ID, …) and they can't be removed; none holds a secret. A RAILWAY_ name that
+ * does look like one (RAILWAY_TOKEN, an API key) is still refused.
+ */
+const platformProvided = (k: string): boolean =>
+  /^RAILWAY_/.test(k) && !/TOKEN|SECRET|SEED|MNEMONIC|PASSWORD|PASSPHRASE|CREDENTIAL|API_?KEY|(^|_)KEY($|_)/i.test(k);
+
+/**
  * Settings the read-only relay must not start with: anything not on its own list that is a
  * sponsor setting or looks like a secret. Names only, never values. Platform settings
  * (PATH, HOME, NODE_VERSION, RAILWAY_PUBLIC_DOMAIN, …) don't match and are left alone.
@@ -1057,6 +1065,7 @@ export const settingsNotForReadRelay = (
     .filter(
       (k) =>
         !READ_RELAY_SETTINGS.includes(k) &&
+        !platformProvided(k) &&
         (env[k] ?? "").trim() !== "" &&
         (SPONSOR_ONLY_SETTINGS.has(k) || LOOKS_SECRET.test(k)),
     );

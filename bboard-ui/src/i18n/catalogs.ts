@@ -9,15 +9,18 @@ import { es, esTestchain } from './es';
 import { ja, jaMainnet, jaTestchain } from './ja';
 import { de, deTestchain } from './de';
 import { fr, frTestchain } from './fr';
+import { deMainnet } from './de-mainnet';
+import { esMainnet } from './es-mainnet';
+import { frMainnet } from './fr-mainnet';
 import { LANGUAGE_NAMES, networkOverlayOf, type BuildKind, type Lang, type LanguagePack } from './index';
 
 /** Each language: its name in the picker and its words (index.tsx LANGUAGE_NAMES and the packs). */
 export const LANGUAGES: Record<Lang, { label: string; short: string; spaces: boolean } & LanguagePack> = {
   en: { ...LANGUAGE_NAMES.en, strings: en, testchain: {} },
-  es: { ...LANGUAGE_NAMES.es, strings: es, testchain: esTestchain },
+  es: { ...LANGUAGE_NAMES.es, strings: es, testchain: esTestchain, mainnet: esMainnet },
   ja: { ...LANGUAGE_NAMES.ja, strings: ja, testchain: jaTestchain, mainnet: jaMainnet },
-  de: { ...LANGUAGE_NAMES.de, strings: de, testchain: deTestchain },
-  fr: { ...LANGUAGE_NAMES.fr, strings: fr, testchain: frTestchain },
+  de: { ...LANGUAGE_NAMES.de, strings: de, testchain: deTestchain, mainnet: deMainnet },
+  fr: { ...LANGUAGE_NAMES.fr, strings: fr, testchain: frTestchain, mainnet: frMainnet },
 };
 
 /** The strings that replace a language's own for this build (index.tsx networkOverlayOf). */

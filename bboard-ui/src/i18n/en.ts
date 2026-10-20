@@ -224,7 +224,7 @@ export const en = {
     "The format lets a lab, certifier or rights body run its own, under its own web domain, and anchor without asking us. Our own registry code isn't published.",
   'm.open.6t': 'Checking without us.',
   'm.open.6p':
-    'With that bundle, anyone can check a record offline: open its verify.html, then look up the one transaction it names on a Midnight explorer. Records sealed since 14 October also need spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release.',
+    'With that bundle, anyone can check a record offline: open its verify.html, then look up the one transaction it names on a Midnight explorer. Records sealed since 14 October also need spec section 3.6.1, in the spec on this site and in SDK 0.16.0.',
   'm.open.6link': 'Read the spec →',
 
   'm.faq.label': 'Questions',
@@ -320,8 +320,8 @@ export const en = {
   'm.stat3.b': 'No audit',
   'm.stat3.s': 'No independent security audit yet. Our own reviews of the contracts are public.',
   'm.stat3.link': 'Read them on GitHub →',
-  'm.stat4.b': 'First users wanted',
-  'm.stat4.s': "Nobody uses it for real records yet. We're looking for the first breeders and labs.",
+  'm.stat4.b': 'Open to first users',
+  'm.stat4.s': "It's ready for real records. Breeders and labs who start now get set up by the founders directly.",
   // Mainnet builds only: the contract addresses, in "For technical readers".
   'm.addr.title': 'The contracts, for anyone who wants to check them.',
   'm.addr.main': 'Main contract',
@@ -338,7 +338,7 @@ export const en = {
   'm.tech.show': 'Show the detail',
   'm.tech.check.t': 'Checking a record by hand',
   'm.tech.check.p':
-    "Recomputing a record's proof code needs only SHA-256 and the open spec. Its inclusion proof ties that proof code to a batch's code anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up. The check page looks that transaction up on Midnight itself when it can reach Midnight; otherwise it says the date is our registry's report, and you can look it up on a Midnight explorer. Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, published in the spec on this site; the SDK and its three implementations get it in their next release. Looking a record up by its identifier on this site uses our server.",
+    "Recomputing a record's proof code needs only SHA-256 and the open spec. Its inclusion proof ties that proof code to a batch's code anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up. The check page looks that transaction up on Midnight itself when it can reach Midnight; otherwise it says the date is our registry's report, and you can look it up on a Midnight explorer. Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, in the spec on this site and in SDK 0.16.0. Looking a record up by its identifier on this site uses our server.",
   'm.tech.impl.t': 'One spec, three implementations',
   'm.tech.impl.p':
     "Free to implement, permanently. TypeScript, Python and Rust agree on all 100 record-format test vectors on GitHub, and anyone can run them; a 101st, for report pairing, isn't in Rust yet. One author wrote all three, and the TypeScript one is on npm as 0.15.0. One written by someone else is the test we most want.",

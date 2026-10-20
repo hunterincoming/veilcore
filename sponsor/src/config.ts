@@ -9,7 +9,13 @@ import { DEFAULT_LIMITS, type LimitConfig } from './limits.js';
 /** One DUST is 10^15 SPECKs. */
 export const SPECKS_PER_DUST = 1_000_000_000_000_000n;
 
-export type Network = 'preprod' | 'preview' | 'undeployed';
+export type Network = 'mainnet' | 'preprod' | 'preview' | 'undeployed';
+
+/**
+ * The only contract a mainnet sponsor pays for: VeilCore's, as pinned in
+ * api/src/deploy-guard.ts (MAINNET_VEILCORE_ADDRESS; config.test.ts checks they agree).
+ */
+export const MAINNET_CONTRACT = 'a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347';
 
 type Endpoints = { indexer: string; indexerWS: string; nodeWS: string };
 
@@ -17,7 +23,7 @@ type Endpoints = { indexer: string; indexerWS: string; nodeWS: string };
  * Midnight's own public endpoints, where it still runs them. Preprod has none since
  * 22:00 UTC on 9 October 2026: it is reached through Blockfrost (blockfrostPreprod).
  */
-export const ENDPOINTS: Record<Exclude<Network, 'preprod'>, Endpoints> = {
+export const ENDPOINTS: Record<Exclude<Network, 'preprod' | 'mainnet'>, Endpoints> = {
   preview: {
     indexer: 'https://indexer.preview.midnight.network/api/v4/graphql',
     indexerWS: 'wss://indexer.preview.midnight.network/api/v4/graphql/ws',
@@ -30,15 +36,21 @@ export const ENDPOINTS: Record<Exclude<Network, 'preprod'>, Endpoints> = {
   },
 };
 
-/** Preprod through Blockfrost. The project id rides in the URLs: they are secrets (main.ts scrubs the logs). */
-export const blockfrostPreprod = (projectId: string): Endpoints => {
+/**
+ * Preprod or mainnet through Blockfrost (the same hosts the operator tool uses,
+ * bboard-cli/src/config.ts). The project id rides in the URLs: they are secrets (main.ts
+ * scrubs the logs).
+ */
+export const blockfrostEndpoints = (network: 'preprod' | 'mainnet', projectId: string): Endpoints => {
   const q = `?project_id=${encodeURIComponent(projectId)}`;
+  const host = `midnight-${network}.blockfrost.io`;
   return {
-    indexer: `https://midnight-preprod.blockfrost.io/api/v0${q}`,
-    indexerWS: `wss://midnight-preprod.blockfrost.io/api/v0/ws${q}`,
-    nodeWS: `wss://rpc.midnight-preprod.blockfrost.io/${q}`,
+    indexer: `https://${host}/api/v0${q}`,
+    indexerWS: `wss://${host}/api/v0/ws${q}`,
+    nodeWS: `wss://rpc.${host}/${q}`,
   };
 };
+export const blockfrostPreprod = (projectId: string): Endpoints => blockfrostEndpoints('preprod', projectId);
 
 export type Config = {
   readonly network: Network;
@@ -139,15 +151,25 @@ export const loadConfig = (env: Record<string, string | undefined>): Config => {
   }
 
   const networkRaw = (env.SPONSOR_NETWORK ?? 'preprod').trim().toLowerCase();
-  if (networkRaw === 'mainnet') {
-    problems.push('SPONSOR_NETWORK=mainnet is refused: this service pays fees on test networks only until its limits are measured.');
-  }
-  const network: Network = (['preprod', 'preview', 'undeployed'] as const).includes(networkRaw as Network)
+  const network: Network = (['mainnet', 'preprod', 'preview', 'undeployed'] as const).includes(networkRaw as Network)
     ? (networkRaw as Network)
-    : (problems.push(`SPONSOR_NETWORK must be preprod, preview or undeployed (got "${networkRaw}").`), 'preprod');
+    : (problems.push(`SPONSOR_NETWORK must be mainnet, preprod, preview or undeployed (got "${networkRaw}").`), 'preprod');
+  const mainnet = network === 'mainnet';
+  // Mainnet spends real DUST: every limit is the operator's own number, never a test default.
+  if (mainnet) {
+    const unset = ['DAILY_BUDGET_DUST', 'MAX_FEE_DUST', 'LIMIT_PER_NETWORK_DAY', 'SPONSOR_STATUS_TOKEN'].filter(
+      (k) => !env[k]?.trim(),
+    );
+    if (unset.length > 0) problems.push(`On mainnet these must be set explicitly: ${unset.join(', ')}.`);
+    if (env.INDEXER_URL?.trim() || env.INDEXER_WS_URL?.trim() || env.NODE_WS_URL?.trim())
+      problems.push('On mainnet the endpoints come from BLOCKFROST_PROJECT_ID only: remove INDEXER_URL, INDEXER_WS_URL and NODE_WS_URL.');
+    if (env.SPONSOR_CIRCUITS?.trim()) problems.push('On mainnet SPONSOR_CIRCUITS cannot be changed: remove it.');
+  }
 
-  const seed = hex(env.SPONSOR_SEED, 32);
-  if (!seed) problems.push('SPONSOR_SEED must be the sponsor wallet’s 64-character hex seed.');
+  // 32 bytes (npm run new-wallet) or 64 bytes (a wallet app's 24-word phrase turned into its
+  // seed by npm run seed-from-phrase: the same BIP-39 seed the operator tool restores from).
+  const seed = hex(env.SPONSOR_SEED, 32) ?? hex(env.SPONSOR_SEED, 64);
+  if (!seed) problems.push('SPONSOR_SEED must be the sponsor wallet’s hex seed (64 or 128 characters).');
 
   const forbiddenAddresses = (env.SPONSOR_FORBIDDEN_ADDRESSES ?? '')
     .split(',')
@@ -161,6 +183,8 @@ export const loadConfig = (env: Record<string, string | undefined>): Config => {
 
   const contractAddress = hex(env.VEILCORE_CONTRACT_ADDRESS, 32);
   if (!contractAddress) problems.push('VEILCORE_CONTRACT_ADDRESS must be the 64-character contract address.');
+  else if (mainnet && contractAddress !== MAINNET_CONTRACT)
+    problems.push(`On mainnet VEILCORE_CONTRACT_ADDRESS must be VeilCore's contract, ${MAINNET_CONTRACT}.`);
 
   const proofServer = (env.PROOF_SERVER_URL ?? '').trim();
   if (!/^https?:\/\//.test(proofServer)) {
@@ -196,7 +220,12 @@ export const loadConfig = (env: Record<string, string | undefined>): Config => {
   const blockfrostId = env.BLOCKFROST_PROJECT_ID?.trim() || '';
   const allGiven = Boolean(env.INDEXER_URL?.trim() && env.INDEXER_WS_URL?.trim() && env.NODE_WS_URL?.trim());
   let ep: Endpoints = { indexer: '', indexerWS: '', nodeWS: '' };
-  if (network === 'preprod') {
+  if (mainnet) {
+    // Blockfrost ids carry their network ("mainnet…", "preprod…"): a preprod id here is a mistake.
+    if (!/^[A-Za-z0-9_-]{8,}$/.test(blockfrostId) || /^preprod|^preview/i.test(blockfrostId))
+      problems.push('BLOCKFROST_PROJECT_ID must be a Blockfrost "Midnight Mainnet" project id (not a preprod one).');
+    else ep = blockfrostEndpoints('mainnet', blockfrostId);
+  } else if (network === 'preprod') {
     if (blockfrostId) {
       if (!/^[A-Za-z0-9_-]{8,}$/.test(blockfrostId))
         problems.push('BLOCKFROST_PROJECT_ID is not a Blockfrost project id (a Midnight Preprod project at blockfrost.io).');

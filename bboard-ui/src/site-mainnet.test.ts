@@ -270,6 +270,71 @@ describe('the mainnet strings', () => {
       expect(Object.values(o).join('\n')).not.toMatch(/dated there, in batches|are dated on Midnight's main network/);
     }
   });
+  it('every language veilcore.org offers sets every mainnet sentence the English does, for every build', async () => {
+    const { LANGUAGES } = await import('./i18n/catalogs');
+    const { MAINNET_DRAFTS } = await import('./config/languages');
+    for (const lang of MAINNET_DRAFTS) {
+      const own = LANGUAGES[lang].mainnet;
+      expect(typeof own, lang).toBe('function');
+      for (const claimsOnMainnet of [true, false])
+        for (const policyApproved of [true, false])
+          for (const chainReads of [true, false])
+            for (const chainSends of [true, false]) {
+              const flags = { claimsOnMainnet, policyApproved, chainReads, chainSends };
+              const theirs = own!(flags);
+              const missing = Object.keys(mainnetStrings(flags)).filter(
+                (k) => !(DATED_POSTS as readonly string[]).includes(k) && !theirs[k as keyof typeof theirs],
+              );
+              expect(missing, `${lang} ${JSON.stringify(flags)}`).toEqual([]);
+              if (chainSends)
+                expect(
+                  Object.entries(theirs).filter(([, v]) => /von Hand|a mano|à la main|手作業/.test(v ?? '')),
+                  `${lang} still says by hand`,
+                ).toEqual([]);
+            }
+    }
+  });
+
+  it('with the mainnet sponsor live: anchored automatically, the fee paid by VeilCore, no "by hand" or "can\'t do it yet" left, in English and Japanese', async () => {
+    const { jaMainnet } = await import('./i18n/ja');
+    for (const claims of [true, false])
+      for (const reads of [true, false]) {
+        const flags = { claimsOnMainnet: claims, policyApproved: true, chainReads: reads, chainSends: true };
+        const o = mainnetStrings(flags);
+        for (const k of Object.keys(o)) expect(Object.prototype.hasOwnProperty.call(en, k), k).toBe(true);
+        const all = Object.entries(o).filter(([k]) => !(DATED_POSTS as readonly string[]).includes(k));
+        expect(all.filter(([, v]) => /by hand|can't do it yet|aren't dated|not yet dated/.test(v))).toEqual([]);
+        for (const k of ['m.hero.status', 'm.stat2.s', 'm.privacy.test.text'] as const)
+          expect(o[k], k).toMatch(/automatically/);
+        const ja = jaMainnet(flags);
+        expect(
+          Object.values(ja).filter((v) => /手作業|まだ使えません|日付が付きません|まだ日付は付きません/.test(v)),
+        ).toEqual([]);
+        for (const k of ['m.hero.status', 'm.stat2.s', 'm.live.stamp.main', 'm.live.dna.main'] as const)
+          expect(ja[k], k).toMatch(/[ぁ-んァ-ン一-龯]/);
+      }
+  });
+
+  it("with the mainnet sponsor live, the app's send screens (prove, DNA date, key stamp) never say test network, in every language", async () => {
+    const { APP_SENDS, SEND_SCREEN_KEYS, withSends } = await import('./i18n/app/sends');
+    const { appEn } = await import('./i18n/app/en');
+    const TEST_WORDS =
+      /test network|test site|practice|Testnetz|Testseite|Üben|red de pruebas|sitio de pruebas|práctica|réseau de test|site de test|entraîner|テストネットワーク|テストサイト|練習/i;
+    for (const lang of ['en', 'ja', 'de', 'es', 'fr'] as const) {
+      const words = APP_SENDS[lang];
+      expect(Object.keys(words).sort(), lang).toEqual([...SEND_SCREEN_KEYS].sort());
+      for (const k of SEND_SCREEN_KEYS) {
+        expect(Object.prototype.hasOwnProperty.call(appEn, k), `${k} is an app key`).toBe(true);
+        expect(words[k], `${lang} ${k}`).not.toMatch(TEST_WORDS);
+        // The same placeholders and markup as the sentence it replaces.
+        const marks = (x: string) => (x.match(/\{\w+\}|<\/?b>/g) ?? []).sort();
+        expect(marks(words[k]), `${lang} ${k}`).toEqual(marks((appEn as Record<string, string>)[k]));
+      }
+      // Without the sponsor (the test site, or veilcore.org before it), nothing changes.
+      expect(withSends(appEn, lang, false)).toBe(appEn);
+    }
+    expect(withSends(appEn, 'en', true)['app.prove.fewMinutes']).toBe('It can take a few minutes.');
+  });
 });
 
 // ------------------------------------------------------------------ builds and browser
@@ -307,9 +372,33 @@ describe('builds', () => {
       VITE_SPONSOR_URL: 'https://sponsor.example.org',
     });
     expect(r.status).not.toBe(0);
-    expect(`${r.stdout}${r.stderr}`).toMatch(/VITE_REAL_CHAIN=1 is set .* test networks only/);
+    expect(`${r.stdout}${r.stderr}`).toMatch(/VITE_REAL_CHAIN=1 is set without the mainnet sponsor's settings/);
     expect(fs.existsSync(path.join(tmp, 'dist-refused3', 'index.html'))).toBe(false);
   }, 300_000);
+
+  it('a mainnet build with the sponsor set up as deploy:mainnet does it builds (the pinned contract, through the relay)', () => {
+    const r = build('mainnet', path.join(tmp, 'dist-sponsor'), {
+      VEILCORE_TEST_DEPLOY_GUARD: guardFile('dummy4', DUMMY, DUMMY_CLAIMS),
+      VITE_API_BASE: API,
+      VITE_REAL_CHAIN: '1',
+      VITE_REAL_CHAIN_CONTRACT_ADDRESS: DUMMY,
+      VITE_SPONSOR_URL: 'https://sponsor.example.org',
+      VITE_INDEXER_URL: 'https://relay.example.org/indexer',
+      VITE_INDEXER_WS_URL: 'wss://relay.example.org/indexer/ws',
+    });
+    expect(r.status, r.stderr).toBe(0);
+    // Another contract than the pinned one is refused.
+    const bad = build('mainnet', path.join(tmp, 'dist-sponsor-bad'), {
+      VEILCORE_TEST_DEPLOY_GUARD: guardFile('dummy5', DUMMY, DUMMY_CLAIMS),
+      VITE_API_BASE: API,
+      VITE_REAL_CHAIN: '1',
+      VITE_REAL_CHAIN_CONTRACT_ADDRESS: 'cd'.repeat(32),
+      VITE_SPONSOR_URL: 'https://sponsor.example.org',
+      VITE_INDEXER_URL: 'https://relay.example.org/indexer',
+      VITE_INDEXER_WS_URL: 'wss://relay.example.org/indexer/ws',
+    });
+    expect(bad.status).not.toBe(0);
+  }, 600_000);
 
   it('builds in mainnet mode with a pinned address, and in preprod mode', () => {
     const m = build('mainnet', mainDist, {
@@ -534,9 +623,9 @@ describe('builds', () => {
       expect(mainnet['/verify/example']).toMatch(/Midnight’s main network/);
     });
 
-    it('veilcore.org offers English only (PUBLISHED_LANGUAGES); a draft opens by link, under its banner', () => {
+    it('veilcore.org offers English and the ready drafts (Japanese) in a picker on every page; a draft is under its banner', () => {
       const main = languageSeen[mainDist];
-      for (const p of PAGES) expect(main.pickers[p], p).toBe(0);
+      for (const p of PAGES) expect(main.pickers[p], p).toBeGreaterThan(0);
       expect(main.jaLink).toEqual({ lang: 'ja', banner: true });
       // The test-network builds offer every language, on every page.
       const pre = languageSeen[preDist];

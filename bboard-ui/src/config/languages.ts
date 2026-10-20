@@ -2,8 +2,9 @@
 //
 //   true   published: offered in the language picker on every build, with no draft banner,
 //          and picked automatically for a visitor whose browser asks for it;
-//   false  a draft: on veilcore.org (a mainnet build) it is not offered at all, only opened
-//          by a ?lang=xx link for checking, under the draft banner. On the test site
+//   false  a draft: on veilcore.org (a mainnet build) it is offered only if it is also in
+//          MAINNET_DRAFTS below, always under the draft banner; otherwise only a ?lang=xx
+//          link opens it, for checking. On the test site
 //          (test.veilcore.org) and the demo build it is offered in the picker, always under
 //          the draft banner, and never picked automatically.
 //
@@ -24,3 +25,11 @@ export const PUBLISHED_LANGUAGES: Record<Lang, boolean> = {
   de: false,
   fr: false,
 };
+
+/**
+ * Drafts veilcore.org offers in its picker anyway, under the draft banner ("Machine-drafted
+ * translation, under review"). Only a language whose mainnet wording is translated too
+ * (its own `mainnet` overlay: ja.ts jaMainnet, and de/es/fr-mainnet.ts); any other would show the
+ * main-network sentences in English in the middle of its own text.
+ */
+export const MAINNET_DRAFTS: readonly Lang[] = ['ja', 'es', 'de', 'fr'];

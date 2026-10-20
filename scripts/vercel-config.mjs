@@ -2,6 +2,7 @@
 // Security headers on every page, then files, then the single-page app fallback.
 // SPDX-License-Identifier: Apache-2.0
 import { writeFileSync } from 'node:fs';
+import { normaliseAddress, readMainnetPins } from './mainnet-pins.mjs';
 
 // The registry API the site talks to. Must match the VITE_API_BASE the site was built
 // with (deploy:prod sets it on the build step), or every API call is blocked by
@@ -63,7 +64,15 @@ if (REAL_CHAIN) {
   const sponsor = process.env.VITE_SPONSOR_URL;
   if (!sponsor) throw new Error('VITE_REAL_CHAIN=1 needs VITE_SPONSOR_URL (the sponsor service), or the site cannot reach it.');
   const network = (process.env.VITE_NETWORK_ID || 'preprod').toLowerCase();
-  if (network === 'mainnet') throw new Error('VITE_REAL_CHAIN=1 is for a test network only.');
+  if (network === 'mainnet') {
+    // Mainnet: only VeilCore's pinned contract, and the indexer only through our relay.
+    const pins = readMainnetPins();
+    if (!pins.ok) throw new Error(pins.problem);
+    if (normaliseAddress(process.env.VITE_REAL_CHAIN_CONTRACT_ADDRESS || '') !== pins.veilcore)
+      throw new Error(`VITE_REAL_CHAIN=1 on mainnet needs VITE_REAL_CHAIN_CONTRACT_ADDRESS to be VeilCore's contract, ${pins.veilcore}.`);
+    if (!(process.env.VITE_INDEXER_URL && process.env.VITE_INDEXER_WS_URL))
+      throw new Error('VITE_REAL_CHAIN=1 on mainnet needs VITE_INDEXER_URL and VITE_INDEXER_WS_URL (the read-only relay).');
+  }
   // Midnight's own preprod indexer shut on 9 October 2026; preprod needs the indexer named.
   if (network === 'preprod' && !(process.env.VITE_INDEXER_URL && process.env.VITE_INDEXER_WS_URL))
     throw new Error('VITE_REAL_CHAIN=1 on preprod needs VITE_INDEXER_URL and VITE_INDEXER_WS_URL (Midnight runs no public preprod indexer).');

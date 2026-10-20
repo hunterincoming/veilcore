@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { assertNotForbidden, assertNotMaintenanceKey, ConfigError, loadConfig, SPECKS_PER_DUST } from './config.js';
+import { readFileSync } from 'node:fs';
+import { assertNotForbidden, assertNotMaintenanceKey, ConfigError, loadConfig, MAINNET_CONTRACT, SPECKS_PER_DUST } from './config.js';
 
 const base = {
   SPONSOR_SEED: '11'.repeat(32),
@@ -65,8 +66,56 @@ describe('configuration', () => {
     expect(p.join('\n')).toMatch(/PROOF_SERVER_URL/);
   });
 
-  it('refuses mainnet', () => {
-    expect(problems({ ...base, SPONSOR_NETWORK: 'mainnet' })[0]).toMatch(/test networks only/);
+  describe('mainnet', () => {
+    const main = {
+      SPONSOR_SEED: '11'.repeat(32),
+      SPONSOR_FORBIDDEN_ADDRESSES: 'mn_addr1deployer,mn_dust1deployer',
+      SPONSOR_NETWORK: 'mainnet',
+      VEILCORE_CONTRACT_ADDRESS: MAINNET_CONTRACT,
+      PROOF_SERVER_URL: 'http://proof-server.railway.internal:6300',
+      BLOCKFROST_PROJECT_ID: 'mainnetTestProjectId123',
+      DAILY_BUDGET_DUST: '20',
+      MAX_FEE_DUST: '1',
+      LIMIT_PER_NETWORK_DAY: '30',
+      SPONSOR_STATUS_TOKEN: 'f'.repeat(64),
+    };
+
+    it('starts with every limit given, on the mainnet Blockfrost hosts', () => {
+      const c = loadConfig(main);
+      expect(c.network).toBe('mainnet');
+      expect(c.indexer).toBe('https://midnight-mainnet.blockfrost.io/api/v0?project_id=mainnetTestProjectId123');
+      expect(c.nodeWS).toBe('wss://rpc.midnight-mainnet.blockfrost.io/?project_id=mainnetTestProjectId123');
+      expect(c.logSecrets).toEqual(['mainnetTestProjectId123']);
+      expect(c.dailyBudgetSpecks).toBe(20n * SPECKS_PER_DUST);
+      expect(c.maxFeeSpecks).toBe(1n * SPECKS_PER_DUST);
+      expect(c.limits.perIpDay).toBe(30);
+      expect([...c.allowedCircuits].sort()).toEqual(['anchor', 'pairDna', 'proveOwnership']);
+    });
+
+    it('pays only for VeilCore’s pinned contract, the one api/src/deploy-guard.ts pins', () => {
+      expect(readFileSync(new URL('../../api/src/deploy-guard.ts', import.meta.url), 'utf8')).toContain(
+        `MAINNET_VEILCORE_ADDRESS: string = '${MAINNET_CONTRACT}'`,
+      );
+      expect(problems({ ...main, VEILCORE_CONTRACT_ADDRESS: 'ab'.repeat(32) })).toEqual([
+        expect.stringMatching(/must be VeilCore's contract/),
+      ]);
+    });
+
+    it('takes no test default for money or limits', () => {
+      for (const k of ['DAILY_BUDGET_DUST', 'MAX_FEE_DUST', 'LIMIT_PER_NETWORK_DAY', 'SPONSOR_STATUS_TOKEN'] as const) {
+        const { [k]: _drop, ...without } = main;
+        void _drop;
+        expect(problems(without)).toEqual([expect.stringContaining(k)]);
+      }
+    });
+
+    it('refuses a preprod Blockfrost id, hand-set endpoints and a changed circuit list', () => {
+      expect(problems({ ...main, BLOCKFROST_PROJECT_ID: 'preprodTestProjectId123' })).toEqual([
+        expect.stringMatching(/Mainnet" project id/),
+      ]);
+      expect(problems({ ...main, INDEXER_URL: 'https://i/graphql' })[0]).toMatch(/BLOCKFROST_PROJECT_ID only/);
+      expect(problems({ ...main, SPONSOR_CIRCUITS: 'anchor' })[0]).toMatch(/cannot be changed/);
+    });
   });
 
   it('never allows the job-only circuits to be public', () => {
