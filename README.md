@@ -24,14 +24,17 @@ Build fingerprints: [docs/fingerprints.md](docs/fingerprints.md).
 
 ## Where it stands
 
-- **Works on veilcore.org:** sealing records; anchoring batches on mainnet (by hand for now; the
-  first batch, `B-20261011-FE71`, is also stamped on Bitcoin, blocks 971004 and 971005); lab
-  receipts and reports signed with the lab's own key; choosing what a record's check page shows.
+- **Works on veilcore.org:** sealing records; batches anchored on mainnet automatically, every
+  hour (the first batch, `B-20261011-FE71`, is also stamped on Bitcoin, blocks 971004 and
+  971005); proving a record by link; dating a DNA report pairing from the browser; lab receipts
+  and reports signed with the lab's own key; choosing what a record's check page shows; check
+  pages that read the date from Midnight themselves. No wallet needed: VeilCore's fee service
+  pays the network fee for what the browser sends.
 - **Practice only:** licences, royalties and lab agreements. They're in the contract; the
-  website doesn't submit them yet. DNA report pairings are saved but not dated on chain.
+  website doesn't submit them yet.
 - **No audit.** Twelve rounds of adversarial review are public, with the attacks kept as tests
   ([docs/security-pass-30sep.md](docs/security-pass-30sep.md)). They are not a formal audit.
-- **No users yet.** Every record so far is our own test data.
+- **Open to first users** since 20 October 2026. Every record so far is our own test data.
 
 A record is evidence you held a description by a date. It isn't ownership, it doesn't test
 DNA, and we don't vouch for any lab. [What VeilCore does not claim](#what-veilcore-does-not-claim).
@@ -74,9 +77,9 @@ Plant genetics is the first use, not the limit. The record format is domain-blin
   lab's public key and signatures; requests to prove a record's key, kept 7 days.
 - **Check links** can carry a record's name and its salt after the `#`. A browser doesn't send
   that part, but the link itself goes whole to whoever receives it.
-- **Older data:** rows saved before sealing, and names saved before 17 October 2026, stay
-  readable until the browser re-saves them or the registry's purge runs; off-site backups made
-  before then keep them until the old backup key is destroyed.
+- **Older data:** text saved before sealing was removed from the registry on 18 October 2026,
+  and the off-site backups made before then can no longer be opened: their key was destroyed
+  the same day.
 - **On chain:** only commitments, plus the public values listed under Known limits in
   [`docs/design.md`](docs/design.md).
 
@@ -169,12 +172,14 @@ tree is not: its inner nodes use Midnight's own field hash, and verifier rule 5 
 tree roots, so checking a licence presentation, like reading any contract state, needs
 Midnight's tooling.
 
-**What the web app sends to the chain.** On veilcore.org (mainnet) the site sends no
-transactions itself: records are sealed and stored in the registry, and the operator anchors
-them in batches by hand for now. On test.veilcore.org (preprod) the browser proves and sends
-transactions itself and a sponsor pays the fees: anchoring, DNA pairing and proving possession,
-first run end to end on 12 and 13 October 2026 ([`docs/no-wallet-run-12oct.md`](docs/no-wallet-run-12oct.md)).
-Licences, royalties and lab agreements are practice only on both sites.
+**What the web app sends to the chain.** On both sites the browser proves and sends its own
+transactions (a record key's date stamp, proving a record by link, dating a DNA pairing) and
+a fee service pays the network fee, so nobody needs a wallet. Batches are anchored
+automatically by the same service. On test.veilcore.org (preprod) this was first run end to
+end on 12 and 13 October 2026 ([`docs/no-wallet-run-12oct.md`](docs/no-wallet-run-12oct.md));
+on veilcore.org (mainnet) it went live on 19 October and was checked by hand on 20 October
+([`docs/mainnet-sponsor.md`](docs/mainnet-sponsor.md)). Licences, royalties and lab agreements
+are practice only on both sites.
 
 **The CLI** in `bboard-cli/` talks to a deployed contract. Its smoke test
 (`bboard-cli/src/smoke.ts`) deploys a fresh contract and calls 16 of the 24 circuits with
