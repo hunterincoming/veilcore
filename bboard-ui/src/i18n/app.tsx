@@ -10,7 +10,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { use, useMemo } from 'react';
-import { useI18n } from './index';
+import { MAINNET_SENDS, useI18n } from './index';
+import { withSends } from './app/sends';
 import type { Lang } from '../config/languages';
 import { appEn } from './app/en';
 import { forKind, makeTranslator, type AppDict, type Translator } from './translate';
@@ -59,10 +60,22 @@ const loadDictOrEnglish = (lang: Lang): Promise<AppDict> => {
 
 const translators = new Map<Lang, { dict: AppDict; tr: Translator }>();
 
+/** The language's text for this build (app/sends.ts), made once per fetched dictionary. */
+const built = new WeakMap<AppDict, AppDict>();
+const buildDict = (raw: AppDict, lang: Lang): AppDict => {
+  let d = built.get(raw);
+  if (!d) {
+    d = withSends(raw, lang, MAINNET_SENDS);
+    built.set(raw, d);
+  }
+  return d;
+};
+
 /** The app's text in the visitor's language. */
 export const useT = (): Translator => {
   const { lang } = useI18n();
-  const dict = loaded[lang] ?? use(loadDictOrEnglish(lang));
+  const raw = loaded[lang] ?? use(loadDictOrEnglish(lang));
+  const dict = buildDict(raw, lang);
   return useMemo(() => {
     const have = translators.get(lang);
     if (have && have.dict === dict) return have.tr;

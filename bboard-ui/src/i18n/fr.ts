@@ -427,7 +427,7 @@ export const fr: Strings = {
   'm.stat3.link': 'Les lire sur GitHub →',
   'm.stat4.b': 'Ouvert aux premiers utilisateurs',
   'm.stat4.s':
-    "Prêt pour de vrais enregistrements. Les obtenteurs et laboratoires qui commencent maintenant sont accompagnés directement par les fondateurs.",
+    'Prêt pour de vrais enregistrements. Les obtenteurs et laboratoires qui commencent maintenant sont accompagnés directement par les fondateurs.',
   'm.addr.title': 'Les contrats, pour qui veut les vérifier.',
   'm.addr.main': 'Contrat principal',
   'm.addr.claims': "Contrat des preuves d'un fait",

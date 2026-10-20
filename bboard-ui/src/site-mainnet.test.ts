@@ -314,6 +314,27 @@ describe('the mainnet strings', () => {
           expect(ja[k], k).toMatch(/[ぁ-んァ-ン一-龯]/);
       }
   });
+
+  it("with the mainnet sponsor live, the app's send screens (prove, DNA date, key stamp) never say test network, in every language", async () => {
+    const { APP_SENDS, SEND_SCREEN_KEYS, withSends } = await import('./i18n/app/sends');
+    const { appEn } = await import('./i18n/app/en');
+    const TEST_WORDS =
+      /test network|test site|practice|Testnetz|Testseite|Üben|red de pruebas|sitio de pruebas|práctica|réseau de test|site de test|entraîner|テストネットワーク|テストサイト|練習/i;
+    for (const lang of ['en', 'ja', 'de', 'es', 'fr'] as const) {
+      const words = APP_SENDS[lang];
+      expect(Object.keys(words).sort(), lang).toEqual([...SEND_SCREEN_KEYS].sort());
+      for (const k of SEND_SCREEN_KEYS) {
+        expect(Object.prototype.hasOwnProperty.call(appEn, k), `${k} is an app key`).toBe(true);
+        expect(words[k], `${lang} ${k}`).not.toMatch(TEST_WORDS);
+        // The same placeholders and markup as the sentence it replaces.
+        const marks = (x: string) => (x.match(/\{\w+\}|<\/?b>/g) ?? []).sort();
+        expect(marks(words[k]), `${lang} ${k}`).toEqual(marks((appEn as Record<string, string>)[k]));
+      }
+      // Without the sponsor (the test site, or veilcore.org before it), nothing changes.
+      expect(withSends(appEn, lang, false)).toBe(appEn);
+    }
+    expect(withSends(appEn, 'en', true)['app.prove.fewMinutes']).toBe('It can take a few minutes.');
+  });
 });
 
 // ------------------------------------------------------------------ builds and browser

@@ -146,7 +146,7 @@ const LABELS=[['lbLog',7.5,22.5,'Log',C.acc],['lbProve',22.5,45.5,'Prove & check
 let html='';
 // chrome: section label + brand
 LABELS.forEach(([id,,,txt,col])=>{html+=`<div id="${id}" class="abs row" style="left:96px;top:64px;gap:12px"><div style="width:10px;height:10px;border-radius:50%;background:${col}"></div><div class="eyebrow" style="color:${col};font-size:16px">${txt}</div></div>`;});
-html+=`<div id="brand" class="abs row" style="right:96px;top:62px;gap:10px"><svg width="17" height="22" viewBox="0 0 14 18" style="display:block;flex:none"><path fill="${C.ink}" fill-rule="evenodd" d="M4 0h6l4 4v8.6H0V4zM7 3.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6z"/><path fill="${C.gold}" d="M0 13.9h14V18H0z"/><path fill="none" stroke="${C.ink}" stroke-width="1.2" d="M.6 14.5h12.8v2.9H.6z"/></svg><div style="font-family:Caslon,serif;font-weight:700;font-size:24px;color:${C.ink}">VeilCore</div></div>`;
+html+=`<div id="brand" class="abs row" style="right:96px;top:62px;gap:10px"><svg width="24" height="24" viewBox="0 0 24 24" style="display:block;flex:none"><circle cx="12" cy="12" r="12" fill="#16181D"/><circle cx="12" cy="12" r="8.6" fill="none" stroke="#F6F3EC" stroke-width="1.1"/><path d="M7.9 9.1 12 15.2l4.1-6.1" fill="none" stroke="#F6DA3C" stroke-width="2.3" stroke-linejoin="miter" stroke-linecap="butt"/></svg><div style="font-family:Caslon,serif;font-weight:700;font-size:24px;color:${C.ink}">VeilCore</div></div>`;
 
 // ===== G1: many copies =====
 const G1={cols:6,rows:3,w:210,h:128,gap:30,x0:255,y0:262,orig:8,tagged:[0,3,4,9,11,13,15,17,6]};
@@ -305,10 +305,9 @@ html+=`<div id="g7" class="grp">
 
 // ===== G8: end card =====
 html+=`<div id="g8" class="grp">
-  <div id="e_fp" class="abs" style="left:912px;top:236px">${fpGlyph(96,C.acc,'fre')}</div>
-  <div id="e_wm" class="abs row" style="left:0;width:1920px;top:376px;justify-content:center;gap:30px"><svg width="87" height="112" viewBox="0 0 14 18" style="display:block;flex:none"><path fill="${C.ink}" fill-rule="evenodd" d="M4 0h6l4 4v8.6H0V4zM7 3.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6z"/><path fill="${C.gold}" d="M0 13.9h14V18H0z"/><path fill="none" stroke="${C.ink}" stroke-width="1.2" d="M.6 14.5h12.8v2.9H.6z"/></svg><div style="font-family:Caslon,serif;font-weight:700;font-size:124px;letter-spacing:-.01em;line-height:1">VeilCore</div></div>
+  <div id="e_wm" class="abs row" style="left:0;width:1920px;top:376px;justify-content:center;gap:30px"><svg width="112" height="112" viewBox="0 0 24 24" style="display:block;flex:none"><circle cx="12" cy="12" r="12" fill="#16181D"/><circle cx="12" cy="12" r="8.6" fill="none" stroke="#F6F3EC" stroke-width="1.1"/><path d="M7.9 9.1 12 15.2l4.1-6.1" fill="none" stroke="#F6DA3C" stroke-width="2.3" stroke-linejoin="miter" stroke-linecap="butt"/></svg><div style="font-family:Caslon,serif;font-weight:700;font-size:124px;letter-spacing:-.01em;line-height:1">VeilCore</div></div>
   <div id="e_url" class="abs sg" style="left:0;width:1920px;top:540px;text-align:center;font-weight:500;font-size:36px;color:${C.ink2};letter-spacing:.02em">veilcore.org</div>
-  <div id="e_note" class="abs" style="left:0;width:1920px;top:612px;text-align:center;font-size:26px;color:${C.ink2}">Prove it: on the test site first.</div>
+  <div id="e_note" class="abs" style="left:0;width:1920px;top:612px;text-align:center;font-size:26px;color:${C.ink2}">Free to use. VeilCore pays the network fee.</div>
 </div>`;
 
 // captions
@@ -466,7 +465,6 @@ function r7(t){
 }
 function r8(t){
   document.querySelectorAll('.fre').forEach((c,i)=>{c.style.opacity=P(t,0.2+i*0.1,0.6+i*0.1);});
-  st('e_fp',{o:1,s:lerp(.9,1,P(t,0.2,1.2,eout))});
   ap('e_wm',t,0.7,0.8,18);
   ap('e_url',t,1.3,0.6,10);
   ap('e_note',t,1.9,0.6,8);

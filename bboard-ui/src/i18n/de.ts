@@ -423,7 +423,8 @@ export const de: Strings = {
   'm.stat3.s': 'Noch kein unabhängiges Sicherheitsaudit. Unsere eigenen Prüfungen der Contracts sind öffentlich.',
   'm.stat3.link': 'Auf GitHub lesen →',
   'm.stat4.b': 'Offen für erste Nutzer',
-  'm.stat4.s': 'Bereit für echte Datensätze. Züchter und Labore, die jetzt anfangen, richten die Gründer direkt mit ein.',
+  'm.stat4.s':
+    'Bereit für echte Datensätze. Züchter und Labore, die jetzt anfangen, richten die Gründer direkt mit ein.',
   'm.addr.title': 'Die Contracts, für alle, die sie prüfen wollen.',
   'm.addr.main': 'Haupt-Contract',
   'm.addr.claims': 'Claims-Contract',

@@ -34,8 +34,9 @@ and say nothing it doesn't:
 - "Prove it" shows the person controls the key the record names (spec 3.6.1). It says
   nothing about who bred the plant. The checker's screen shows no record date, so the video
   doesn't either.
-- The end card says "Prove it: on the test site first." (veilcore.org doesn't have it yet;
-  lab reports are on both sites since 16 October).
+- The end card says "Free to use. VeilCore pays the network fee." (20 October: veilcore.org
+  sends prove-it, the DNA pairing date and key stamps through VeilCore's mainnet sponsor).
+  The corner mark and the end card's mark are the site's ring and V (src/components/site/TagMark.tsx).
 - Lab receipts are signed with the lab's own key and kept by VeilCore's registry, not the
   chain. A lab report reaches VeilCore's server only when a lab sends it back, locked so
   only the holder can open it; "VeilCore doesn't have its key" (never "can't read it":

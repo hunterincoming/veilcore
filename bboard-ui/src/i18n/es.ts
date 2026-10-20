@@ -421,7 +421,8 @@ export const es: Strings = {
     'Aún no hay una auditoría de seguridad independiente. Nuestras propias revisiones de los contratos son públicas.',
   'm.stat3.link': 'Leerlas en GitHub →',
   'm.stat4.b': 'Abierto a los primeros usuarios',
-  'm.stat4.s': 'Listo para registros reales. Los obtentores y laboratorios que empiecen ahora tienen la ayuda directa de los fundadores.',
+  'm.stat4.s':
+    'Listo para registros reales. Los obtentores y laboratorios que empiecen ahora tienen la ayuda directa de los fundadores.',
   'm.addr.title': 'Los contratos, para quien quiera comprobarlos.',
   'm.addr.main': 'Contrato principal',
   'm.addr.claims': 'Contrato de pruebas de un hecho',

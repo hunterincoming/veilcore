@@ -436,7 +436,9 @@ describe('deploy:prod', () => {
     expect(pkg['deploy:mainnet']).toBe('node scripts/deploy-mainnet.mjs');
     const main = fs.readFileSync(path.join(ROOT, 'scripts', 'deploy-mainnet.mjs'), 'utf8');
     expect(main.indexOf("run('node', ['scripts/site-mainnet-preflight.mjs'])")).toBeGreaterThan(-1);
-    expect(main.indexOf("run('node', ['scripts/site-mainnet-preflight.mjs'])")).toBeLessThan(main.indexOf("'build:mainnet'"));
+    expect(main.indexOf("run('node', ['scripts/site-mainnet-preflight.mjs'])")).toBeLessThan(
+      main.indexOf("'build:mainnet'"),
+    );
     expect(pkg['deploy:test']).toBe('node scripts/deploy-test-site.mjs');
     for (const f of ['site-prod-preflight.mjs', 'site-mainnet-preflight.mjs', 'deploy-test-site.mjs'])
       expect(fs.readFileSync(path.join(ROOT, 'scripts', f), 'utf8'), f).toMatch(/checkRegistryFeatures\(/);
