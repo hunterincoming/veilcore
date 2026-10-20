@@ -35,6 +35,12 @@
       content="An open record format for plant and animal genetics. Date a record of what you hold without showing anyone the genetics."
     />
     <meta name="twitter:image" content="https://veilcore.org/og-image.png" />
+    <!-- The plain summary inside #root (vite.config.ts siteSummary), shown until the app draws. -->
+    <style>
+      body { margin: 0; background: #f6f3ec; }
+      .static-summary { max-width: 720px; margin: 0 auto; padding: 48px 20px; color: #16181d; line-height: 1.55; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+      .static-summary a { color: #16181d; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
