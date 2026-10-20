@@ -168,6 +168,17 @@ export const chainNotReady = (): string | undefined => {
 /** True when this build can send real transactions. */
 export const CHAIN_READY: boolean = chainNotReady() === undefined;
 
-/** The circuits the browser may call in phase 1, and nothing else. */
-export const BROWSER_CIRCUITS = ['anchor', 'proveOwnership', 'pairDna'] as const;
+/**
+ * The circuits the browser may call, and nothing else: the record calls, and a real
+ * two-party licence (issue, countersign, prove, revoke). All need public parameters k<=14.
+ */
+export const BROWSER_CIRCUITS = [
+  'anchor',
+  'proveOwnership',
+  'pairDna',
+  'issueLicense',
+  'countersignLicense',
+  'proveLicense',
+  'revokeLicense',
+] as const;
 export type BrowserCircuit = (typeof BROWSER_CIRCUITS)[number];

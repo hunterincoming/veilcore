@@ -17,7 +17,11 @@ import {
 } from '@midnight-ntwrk/compact-runtime';
 import { SucceedEntirely } from '@midnight-ntwrk/midnight-js-types';
 import { Contract } from '../../../../contract/src/managed/veilcore/contract/index.js';
-import { createVeilcorePrivateState, veilcoreWitnesses } from '../../../../contract/src/witnesses';
+import {
+  createVeilcorePrivateState,
+  veilcoreWitnesses,
+  type VeilcorePrivateState,
+} from '../../../../contract/src/witnesses';
 import { inspect, PHASE1_PUBLIC_CIRCUITS } from '../../../../sponsor/src/policy';
 import { ProofOfWork } from '../../../../sponsor/src/pow';
 import { solvePow } from './pow';
@@ -39,8 +43,17 @@ export const standInVerifierKey = (circuit: string): Uint8Array =>
 export const contractStateAfter = (
   steps: {
     secret: Uint8Array;
-    circuit: 'anchor' | 'proveOwnership' | 'pairDna' | 'anchorBatch';
-    args: Uint8Array[];
+    circuit:
+      | 'anchor'
+      | 'proveOwnership'
+      | 'pairDna'
+      | 'anchorBatch'
+      | 'issueLicense'
+      | 'countersignLicense'
+      | 'revokeLicense';
+    args: unknown[];
+    /** The whole private state, when the call needs more than a record secret (a licence). */
+    privateState?: VeilcorePrivateState;
   }[] = [],
 ): ContractState => {
   const initial = new Contract(veilcoreWitnesses).initialState(
@@ -53,9 +66,9 @@ export const contractStateAfter = (
       ADDRESS,
       COIN,
       Object.assign(new ContractState(), { data }),
-      createVeilcorePrivateState(s.secret),
+      s.privateState ?? createVeilcorePrivateState(s.secret),
     );
-    const out = (c.impureCircuits[s.circuit] as (x: unknown, ...a: Uint8Array[]) => { context: typeof ctx })(
+    const out = (c.impureCircuits[s.circuit] as (x: unknown, ...a: unknown[]) => { context: typeof ctx })(
       ctx,
       ...s.args,
     );
@@ -70,7 +83,10 @@ export const contractStateAfter = (
 export type Recorded = { url: string; body?: string; headers?: Record<string, string> };
 
 /** `servedKeys: 'wrong'` serves verifier keys that are not the contract's. */
-export const standIns = (state: ContractState, opts: { servedKeys?: 'contract' | 'wrong' } = {}) => {
+export const standIns = (
+  state: ContractState,
+  opts: { servedKeys?: 'contract' | 'wrong'; allowedCircuits?: readonly string[] } = {},
+) => {
   const requests: Recorded[] = [];
   const sealed: Uint8Array[] = [];
   const checkedCircuits: string[] = [];
@@ -108,7 +124,7 @@ export const standIns = (state: ContractState, opts: { servedKeys?: 'contract' |
         bytes,
         {
           contractAddress: ADDRESS,
-          allowedCircuits: new Set(PHASE1_PUBLIC_CIRCUITS),
+          allowedCircuits: new Set(opts.allowedCircuits ?? PHASE1_PUBLIC_CIRCUITS),
           maxBytes: 64_000,
           maxTtlMs: 3_600_000,
         },
