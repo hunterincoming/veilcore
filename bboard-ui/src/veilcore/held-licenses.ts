@@ -21,6 +21,10 @@ export type HeldLicense = {
   readonly identity: string;
   /** The issuer head the commitment was built against, hex: countersigning and proving name it. */
   readonly issuerRecord: string;
+  /** This browser's nonce for the read-aloud code (license-invites.ts licenseCode), hex. */
+  readonly licenseeNonce: string;
+  /** The issuer's nonce, the first one this browser saw. */
+  readonly issuerNonce?: string;
   /** The issuer's words for this license (from the invite). */
   readonly label: string;
   readonly acceptedAt: number;
@@ -44,6 +48,8 @@ export const isHeldLicense = (v: unknown): v is HeldLicense => {
     HEX64.test(h.identity) &&
     typeof h.issuerRecord === 'string' &&
     HEX64.test(h.issuerRecord) &&
+    typeof h.licenseeNonce === 'string' &&
+    HEX64.test(h.licenseeNonce) &&
     typeof h.label === 'string' &&
     typeof h.acceptedAt === 'number'
   );
@@ -108,8 +114,14 @@ export const updateHeldLicense = (
   if (i < 0) return undefined;
   const next = change(all[i]);
   // The secret, commitment and issuer never change after the accept.
-  if (next.secret !== all[i].secret || next.commitment !== all[i].commitment || next.identity !== all[i].identity)
-    throw new Error('A held license keeps its secret.');
+  if (
+    next.secret !== all[i].secret ||
+    next.commitment !== all[i].commitment ||
+    next.identity !== all[i].identity ||
+    next.licenseeNonce !== all[i].licenseeNonce ||
+    (all[i].issuerNonce !== undefined && next.issuerNonce !== all[i].issuerNonce)
+  )
+    throw new Error('A held license keeps its secret, and the nonces its code was made with.');
   all[i] = next;
   write(all);
   return next;

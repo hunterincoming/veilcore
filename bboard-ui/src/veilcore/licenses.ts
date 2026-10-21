@@ -117,9 +117,18 @@ export type OnChainLicense = {
   readonly identity: string;
   readonly label: string;
   readonly invitedAt: number;
-  /** From the licensee's accept. */
+  /** The licensee's first step, as this page saw it when it answered with its nonce. */
+  readonly commitHash?: string;
+  /** This page's nonce for the read-aloud code: made and kept before it is posted, never replaced. */
+  readonly issuerNonce?: string;
+  /** From the licensee's reveal, checked against commitHash and this record's own head. */
   readonly commitment?: string;
   readonly issuerRecord?: string;
+  readonly licenseeNonce?: string;
+  /** When this page read the license on chain itself (PENDING or ACTIVE): issued, even if issueTx was lost. */
+  readonly issueSeenAt?: number;
+  /** When this page read the license gone from the chain after it was issued: revoked or cancelled elsewhere. */
+  readonly goneSeenAt?: number;
   readonly issueTx?: string;
   readonly issuedAt?: number;
   /** Set only once the licensee's countersign was read from the chain and left the license ACTIVE. */
@@ -136,7 +145,7 @@ export type OnChainLicense = {
 
 /** A license live on chain: issued and countersigned by the other party's own secret, checked here, not revoked. */
 export const liveOnChain = (l: License): boolean =>
-  Boolean((l.onChain?.activateTx || l.onChain?.activeSeenAt) && !l.onChain.revokeTx);
+  Boolean((l.onChain?.activateTx || l.onChain?.activeSeenAt) && !l.onChain.revokeTx && !l.onChain.goneSeenAt);
 
 /**
  * A stored agreement, checked on the way in.
@@ -523,11 +532,27 @@ export const setOnChain = (
   update(id, (l) => {
     const onChain = change(l.onChain);
     // Live on chain: the agreement is active, signed by two parties' own keys on chain.
+    if ((onChain.revokeTx || onChain.goneSeenAt) && l.state !== 'revoked')
+      return {
+        ...l,
+        onChain,
+        state: 'revoked',
+        revokedAt: onChain.revokedAt ?? Date.now(),
+        revokedReason: l.revokedReason ?? 'Revoked on chain',
+      };
     if ((onChain.activateTx || onChain.activeSeenAt) && !onChain.revokeTx && l.state !== 'active')
       return { ...l, onChain, state: 'active', licenseeSignedAt: onChain.activatedAt ?? Date.now() };
-    if (onChain.issueTx && l.state === 'draft')
+    if ((onChain.issueTx || onChain.issueSeenAt) && l.state === 'draft')
       return { ...l, onChain, state: 'sent', breederSignedAt: onChain.issuedAt ?? Date.now() };
     return { ...l, onChain };
+  });
+
+/** Start over with a new link: only before anything was issued on chain. */
+export const clearOnChain = (id: string): License | undefined =>
+  update(id, (l) => {
+    if (l.onChain?.issueTx || l.onChain?.issueSeenAt) throw new Error('Already issued on chain: cancel it instead.');
+    const { onChain: _gone, ...rest } = l;
+    return { ...rest, state: 'draft' };
   });
 
 /** Renewal/amendment: supersede rather than mutate a signed license. */

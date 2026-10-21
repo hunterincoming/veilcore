@@ -13,8 +13,12 @@
 // posts is read from the network here (verifyIssued, verifyActivated): it must be the right
 // call, on VeilCore's contract, leaving this license in the right state. The issuer checks the
 // licensee's answer against its OWN current head, read from the chain (headNow), and issues
-// only after both people have read each other the same short code made from the commitment
-// (commitmentCode): the registry carries the commitment and could otherwise swap in its own.
+// only after both people have read each other the same 6-digit code (licenseCode). The registry
+// carries the commitment and could otherwise swap in its own, so the code comes from a
+// commit-then-reveal exchange: the licensee commits to a hash first, the issuer answers with a
+// random nonce, then the licensee reveals. A swapped commitment had to be fixed before the
+// issuer's nonce was known, so it can't be steered to the same code (a plain 8-character code
+// could: the registry saw the real commitment first and ground its own to match).
 // So the registry can stall a license but never make one look live, or slip in a licensee.
 //
 // Who may write: the issuer's browser makes two random tokens and sends the registry only
@@ -40,9 +44,15 @@ export type LicenseInvite = {
   readonly label: string;
   readonly createdAt: number;
   readonly expiresAt: number;
+  /** The licensee's first step: SHA-256 of commitment, issuer record and its nonce. */
+  readonly commitHash: string | null;
+  readonly acceptedAt: number | null;
+  /** The issuer's answer, a random nonce for the code. */
+  readonly issuerNonce: string | null;
+  /** The licensee's reveal: what it committed to. */
   readonly commitment: string | null;
   readonly issuerRecord: string | null;
-  readonly acceptedAt: number | null;
+  readonly licenseeNonce: string | null;
   readonly issueTx: string | null;
   readonly issuedAt: number | null;
   readonly activateTx: string | null;
@@ -61,6 +71,9 @@ const isInvite = (v: unknown): v is LicenseInvite =>
   isString(v.label) &&
   isNumber(v.createdAt) &&
   isNumber(v.expiresAt) &&
+  hexOrNull(v.commitHash) &&
+  hexOrNull(v.issuerNonce) &&
+  hexOrNull(v.licenseeNonce) &&
   hexOrNull(v.commitment) &&
   hexOrNull(v.issuerRecord) &&
   numOrNull(v.acceptedAt) &&
@@ -140,8 +153,48 @@ export const getInvite = async (inviteId: string): Promise<LicenseInvite | undef
   return v;
 };
 
-export const acceptInvite = (inviteId: string, commitment: string, issuerRecord: string, token: string) =>
-  post(`/license-invites/${encodeURIComponent(inviteId)}/accept`, { commitment, issuerRecord, token });
+export const acceptInvite = (inviteId: string, commitHash: string, token: string) =>
+  post(`/license-invites/${encodeURIComponent(inviteId)}/accept`, { commitHash, token });
+
+export const postNonce = (inviteId: string, issuerNonce: string, token: string) =>
+  post(`/license-invites/${encodeURIComponent(inviteId)}/nonce`, { issuerNonce, token });
+
+export const postReveal = (
+  inviteId: string,
+  r: { commitment: string; issuerRecord: string; licenseeNonce: string },
+  token: string,
+) => post(`/license-invites/${encodeURIComponent(inviteId)}/reveal`, { ...r, token });
+
+const sha256 = async (b: Uint8Array): Promise<Uint8Array> =>
+  new Uint8Array(await crypto.subtle.digest('SHA-256', b as BufferSource));
+
+/** What the licensee commits to first: SHA-256 of commitment, issuer record and nonce (raw bytes), hex. */
+export const commitHashOf = async (commitment: string, issuerRecord: string, licenseeNonce: string): Promise<string> =>
+  [...(await sha256(bytes(`${commitment}${issuerRecord}${licenseeNonce}`)))]
+    .map((x) => x.toString(16).padStart(2, '0'))
+    .join('');
+
+/** A fresh 32-byte nonce, hex. */
+export const newNonce = (): string =>
+  Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, '0')).join('');
+
+/**
+ * The 6-digit code both people read to each other, e.g. "482 913": from the commitment, the
+ * issuer record it names, and both nonces, tagged so it is never any other hash.
+ */
+export const licenseCode = async (
+  commitment: string,
+  issuerRecord: string,
+  licenseeNonce: string,
+  issuerNonce: string,
+): Promise<string> => {
+  const tag = new TextEncoder().encode('veilcore:license-code:v1');
+  const body = bytes(`${commitment}${issuerRecord}${licenseeNonce}${issuerNonce}`);
+  const h = await sha256(new Uint8Array([...tag, ...body]));
+  const n = ((h[0] << 24) | (h[1] << 16) | (h[2] << 8) | h[3]) >>> 0;
+  const six = String(n % 1_000_000).padStart(6, '0');
+  return `${six.slice(0, 3)} ${six.slice(3)}`;
+};
 
 export const postIssued = (inviteId: string, txId: string, token: string) =>
   post(`/license-invites/${encodeURIComponent(inviteId)}/issued`, { txId, token });
@@ -269,15 +322,6 @@ export const licenseStatusNow = async (
 };
 
 /**
- * The code both people read to each other before the issuer issues: the first 8 characters of
- * the licensee's commitment. The registry carries the commitment and could swap it for one of
- * its own; the code, read over the phone or in person, is how the issuer knows the commitment
- * it is about to issue is the one the licensee's device made (attack round, 20 Oct).
- */
-export const commitmentCode = (commitment: string): string =>
-  `${commitment.slice(0, 4)}-${commitment.slice(4, 8)}`.toUpperCase();
-
-/**
  * The licensee's accept, with nothing sent before the secret is kept: make the secret here,
  * build the commitment against the issuer's current head (read from the chain), keep both in
  * this browser (held-licenses.ts), then answer the invite. A retried accept reuses the secret
@@ -296,9 +340,27 @@ export const acceptAsLicensee = async (invite: LicenseInvite, token: string): Pr
       commitment: req.commitment,
       identity: invite.identity,
       issuerRecord: req.issuerRecord,
+      licenseeNonce: newNonce(),
       label: invite.label,
       acceptedAt: Date.now(),
     });
   }
-  await acceptInvite(invite.id, held.commitment, held.issuerRecord, token);
+  await acceptInvite(invite.id, await commitHashOf(held.commitment, held.issuerRecord, held.licenseeNonce), token);
+};
+
+/**
+ * The licensee's reveal, once the issuer has answered with its nonce. The first nonce this
+ * browser sees is kept and is the one the code is made with: a mailbox that later showed
+ * another could only make the codes differ.
+ */
+export const revealAsLicensee = async (invite: LicenseInvite, token: string): Promise<void> => {
+  const { heldLicense, updateHeldLicense } = await import('./held-licenses');
+  const held = heldLicense(invite.id);
+  if (!held || !invite.issuerNonce) return;
+  if (!held.issuerNonce) updateHeldLicense(invite.id, (h) => ({ ...h, issuerNonce: invite.issuerNonce! }));
+  await postReveal(
+    invite.id,
+    { commitment: held.commitment, issuerRecord: held.issuerRecord, licenseeNonce: held.licenseeNonce },
+    token,
+  );
 };

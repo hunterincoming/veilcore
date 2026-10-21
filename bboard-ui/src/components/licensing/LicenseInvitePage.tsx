@@ -2,7 +2,9 @@
 //
 // One link, three steps on the licensee's own device:
 //   1. Accept: a license key is made here and kept here (never sent); the issuer gets only
-//      the commitment built from it.
+//      the commitment built from it, first as a hash, then (once the issuer's page has answered
+//      with its own random nonce) in full. Both pages show a 6-digit code made from all of it,
+//      read aloud between the two people: a registry that swapped anything can't make them match.
 //   2. Save the backup (it holds the key): without it the license can't be shown on another
 //      device, so Activate waits for a checked backup holding it.
 //   3. Activate, once the issuer has issued it: this page first reads the issuer's
@@ -17,9 +19,12 @@ import { Alert, Box, Button, CircularProgress, Container, Paper, Stack, Typograp
 import { tokenFromHash } from '../../veilcore/prove-relay';
 import {
   acceptAsLicensee,
-  commitmentCode,
+  commitHashOf,
   getInvite,
+  licenseCode,
+  licenseStatusNow,
   postActivated,
+  revealAsLicensee,
   verifyIssued,
   type LicenseInvite,
 } from '../../veilcore/license-invites';
@@ -59,6 +64,22 @@ export const LicenseInvitePage: React.FC = () => {
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
   const call = useChainCall<ChainReceipt>();
+  const [myHash, setMyHash] = useState<string>();
+  const [code, setCode] = useState<string>();
+  /** The license on chain now, read by this page itself: posts to the registry can be lost. */
+  const [onChain, setOnChainStatus] = useState<'PENDING' | 'ACTIVE' | 'none'>();
+
+  useEffect(() => {
+    let on = true;
+    if (held) void commitHashOf(held.commitment, held.issuerRecord, held.licenseeNonce).then((h) => on && setMyHash(h));
+    if (held?.issuerNonce)
+      void licenseCode(held.commitment, held.issuerRecord, held.licenseeNonce, held.issuerNonce).then(
+        (c) => on && setCode(c),
+      );
+    return () => {
+      on = false;
+    };
+  }, [held]);
 
   const load = useCallback(async () => {
     try {
@@ -76,11 +97,27 @@ export const LicenseInvitePage: React.FC = () => {
     let live = true;
     const tick = async () => {
       const inv = await load();
-      if (!live || !inv || !held || held.issueTx || !inv.issueTx) return;
-      const v = await verifyIssued(inv.issueTx, held.commitment, held.issuerRecord);
-      if (!live) return;
-      if (v.ok) updateHeldLicense(id, (h) => ({ ...h, issueTx: inv.issueTx! }));
-      else setError(`The issue they reported didn't check out on chain: ${v.reason}`);
+      if (!live || !inv || !held || !token) return;
+      try {
+        // The issuer's page answered: reveal (the first answer seen is the one kept).
+        if (inv.issuerNonce && !inv.commitment) await revealAsLicensee(inv, token);
+        if (held.issuerNonce && inv.issuerNonce && held.issuerNonce !== inv.issuerNonce) {
+          setError(
+            'The registry now shows a different answer from the sender than before. Tell them; don’t rely on this link.',
+          );
+          return;
+        }
+        const status = await licenseStatusNow(held.commitment, held.issuerRecord);
+        if (!live) return;
+        setOnChainStatus(status);
+        if (!held.issueTx && inv.issueTx) {
+          const v = await verifyIssued(inv.issueTx, held.commitment, held.issuerRecord);
+          if (!live) return;
+          if (v.ok) updateHeldLicense(id, (h) => ({ ...h, issueTx: inv.issueTx! }));
+        }
+      } catch {
+        /* the next tick tries again */
+      }
     };
     void tick();
     const t = setInterval(() => void tick(), POLL_MS);
@@ -88,7 +125,7 @@ export const LicenseInvitePage: React.FC = () => {
       live = false;
       clearInterval(t);
     };
-  }, [id, held, load]);
+  }, [id, held, load, token]);
 
   if (chainNotReady()) {
     return (
@@ -137,7 +174,12 @@ export const LicenseInvitePage: React.FC = () => {
     );
   }
 
-  const takenByOther = invite.commitment && (!held || held.commitment !== invite.commitment);
+  const takenByOther = Boolean(invite.commitHash && (!held || (myHash && myHash !== invite.commitHash)));
+  // Issued: by the transaction it posted (checked on chain), or by the chain itself if that post was lost.
+  const issued = Boolean(held?.issueTx || onChain === 'PENDING' || onChain === 'ACTIVE');
+  const isLive = Boolean(held?.activateTx || onChain === 'ACTIVE');
+  // Issued once, now gone from the chain: cancelled or revoked by the sender.
+  const gone = Boolean(onChain === 'none' && (held?.issueTx || held?.activateTx));
   // Once accepted, the record is the one this device accepted for, whatever the registry says now.
   const issuerKey = held?.identity ?? invite.identity;
   const swapped = held && held.identity !== invite.identity;
@@ -157,7 +199,7 @@ export const LicenseInvitePage: React.FC = () => {
 
   const activate = () =>
     call.run(async (progress) => {
-      if (!held?.issueTx) throw new Error('It has not been issued yet.');
+      if (!held || !issued) throw new Error('It has not been issued yet.');
       const { countersignLicenseOnChain } = await import('../../veilcore/chain/actions');
       const r = await countersignLicenseOnChain(hexBytes(held.secret), held.issuerRecord, { progress });
       // Kept before it is posted: a post that fails is sent again, never the transaction.
@@ -169,7 +211,7 @@ export const LicenseInvitePage: React.FC = () => {
   return (
     <Frame>
       <Typography variant="h5" component="h1" sx={{ mb: 1 }}>
-        {held?.activateTx ? 'Your license is live' : 'You’ve been offered a license'}
+        {gone ? 'This license was cancelled' : isLive ? 'Your license is live' : 'You’ve been offered a license'}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
         For: <b>{invite.label || 'you'}</b> · from the record with on-chain key{' '}
@@ -207,15 +249,29 @@ export const LicenseInvitePage: React.FC = () => {
         </Stack>
       )}
 
-      {held && !takenByOther && !held.issueTx && (
+      {gone && (
+        <Alert severity="error" variant="outlined" sx={{ mb: 2 }}>
+          It is no longer on Midnight: the sender cancelled or revoked it. Ask them if you think that&apos;s a mistake.
+        </Alert>
+      )}
+
+      {held && !takenByOther && !issued && !gone && (
         <Stack spacing={1.5}>
           <Alert severity="success" variant="outlined">
             Accepted. Your license key is on this device.
           </Alert>
-          <Alert severity="info" variant="outlined">
-            Read this code to the person who sent the link, by phone or in person. They check it before they issue:{' '}
-            <b style={{ fontFamily: 'monospace', fontSize: '1.15em' }}>{commitmentCode(held.commitment)}</b>
-          </Alert>
+          {code ? (
+            <Alert severity="info" variant="outlined">
+              Read this code to the person who sent the link, by phone or in person. Their screen shows one too, and
+              they check it before they issue:{' '}
+              <b style={{ fontFamily: 'monospace', fontSize: '1.3em', whiteSpace: 'nowrap' }}>{code}</b>
+            </Alert>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Waiting for the sender&apos;s page to answer. Your code shows here once it does; their page needs to be
+              open.
+            </Typography>
+          )}
           {!held.backedUpAt && (
             <Alert
               severity="warning"
@@ -230,13 +286,13 @@ export const LicenseInvitePage: React.FC = () => {
             </Alert>
           )}
           <Typography variant="body2" color="text.secondary">
-            Waiting for them to issue it. This page checks every few seconds; you can close it and open the link again
-            later.
+            Then they issue it. This page checks every few seconds. If you close it, open the link again later to carry
+            on.
           </Typography>
         </Stack>
       )}
 
-      {held && !takenByOther && held.issueTx && !held.activateTx && (
+      {held && !takenByOther && issued && !isLive && !gone && (
         <Stack spacing={1.5}>
           <Alert severity="info" variant="outlined">
             They issued it on Midnight (checked on chain). Activate it with your key.
@@ -262,10 +318,10 @@ export const LicenseInvitePage: React.FC = () => {
         </Stack>
       )}
 
-      {held?.activateTx && (
+      {held && isLive && !gone && (
         <Alert severity="success" variant="outlined">
-          Live on Midnight since {new Date(held.activatedAt ?? Date.now()).toLocaleDateString()}, issued by the record
-          above and activated with your key. Keep your backup: it&apos;s how you prove this license later.
+          Live on Midnight{held.activatedAt ? ` since ${new Date(held.activatedAt).toLocaleDateString()}` : ''}, issued
+          by the record above and activated with your key. Keep your backup: it&apos;s how you prove this license later.
         </Alert>
       )}
 

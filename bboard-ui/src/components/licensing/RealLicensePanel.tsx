@@ -1,16 +1,16 @@
 // The issuer's side of a real license on chain (license-invites.ts), in place of the
 // practice issue button where this site sends transactions:
 //   1. send the licensee a link (an invite on the registry);
-//   2. they accept on their own device: their browser makes the license secret and answers
-//      with the commitment;
-//   3. both read each other a short code made from the commitment (the registry carries it
-//      and could swap it), then issue it on chain from this record (VeilCore pays the fee);
-//   4. they activate it from their device; this page reads their transaction from the chain
-//      and only then calls the license live;
-//   5. revoke it on chain, if it comes to that.
-// The registry only carries messages: every step the other side reports is checked here,
-// against this record's OWN head read from the chain, never against what the registry says.
-// An issued license that is never activated can be cancelled (the contract caps pending ones).
+//   2. they accept on their own device: their browser makes the license secret and commits to
+//      it; this page answers with a random nonce (no tap needed); they reveal;
+//   3. both read each other a 6-digit code made from all of that (the registry carries the
+//      commitment and could swap it; the code can't be steered to match), then issue it on
+//      chain from this record (VeilCore pays the fee);
+//   4. they activate it from their device;
+//   5. cancel it before it is activated, or revoke it after.
+// The registry only carries messages. Every step is checked here against this record's OWN
+// head read from the chain, and the license's state is read from the chain itself, so a lost
+// save, a lost post or a junk post can't leave this page showing the wrong thing.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -19,15 +19,18 @@ import { Link as RouterLink } from 'react-router-dom';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import { canonicalUrl } from '../../config/network';
 import { hexBytes, useRecordKeys } from '../../veilcore/record-keys';
-import { setOnChain, revokeLicense, type License } from '../../veilcore/licenses';
+import { clearOnChain, setOnChain, revokeLicense, type License } from '../../veilcore/licenses';
 import {
-  commitmentCode,
+  commitHashOf,
   createInvite,
   getInvite,
   headNow,
   invitePath,
+  licenseCode,
   licenseStatusNow,
+  newNonce,
   postIssued,
+  postNonce,
   verifyActivated,
 } from '../../veilcore/license-invites';
 import { useChainCall } from '../chain/useChainCall';
@@ -35,6 +38,8 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 
 const POLL_MS = 8_000;
+/** Once live: read the chain now and then, so a revoke from another device shows. */
+const LIVE_POLL_MS = 60_000;
 
 export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; onToast: (m: string) => void }> = ({
   license,
@@ -47,53 +52,102 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const [codeChecked, setCodeChecked] = useState(false);
+  const [code, setCode] = useState<string>();
   const call = useChainCall<ChainReceipt>();
   const checking = useRef(false);
 
-  // Waiting on the other side: read the invite, take what is new, check it on chain first.
-  const live = Boolean(oc && (oc.activateTx || oc.activeSeenAt) && !oc.revokeTx);
-  const waiting = oc && !oc.revokeTx && (!oc.commitment || (oc.issueTx && !live));
+  const gone = Boolean(oc?.revokeTx || oc?.goneSeenAt);
+  const issued = Boolean(oc?.issueTx || oc?.issueSeenAt);
+  const live = Boolean(oc && (oc.activateTx || oc.activeSeenAt) && !gone);
+
+  // The code, made here from what this page kept: never from the registry's answer alone.
   useEffect(() => {
-    if (!oc || !waiting) return;
+    let on = true;
+    if (oc?.commitment && oc.issuerRecord && oc.licenseeNonce && oc.issuerNonce) {
+      void licenseCode(oc.commitment, oc.issuerRecord, oc.licenseeNonce, oc.issuerNonce).then((c) => on && setCode(c));
+    } else setCode(undefined);
+    return () => {
+      on = false;
+    };
+  }, [oc?.commitment, oc?.issuerRecord, oc?.licenseeNonce, oc?.issuerNonce]);
+
+  useEffect(() => {
+    if (!oc || gone) return;
     let active = true;
     const tick = async () => {
       if (checking.current) return;
       checking.current = true;
       try {
+        // Once there is a commitment, the chain says how far it got, whatever was saved or posted.
+        if (oc.commitment && oc.issuerRecord) {
+          const status = await licenseStatusNow(oc.commitment, oc.issuerRecord);
+          if (!active) return;
+          if (status === 'ACTIVE' && !live) {
+            setOnChain(license.id, (c) => ({
+              ...c!,
+              activeSeenAt: Date.now(),
+              activatedAt: c!.activatedAt ?? Date.now(),
+            }));
+            onToast('They activated it. The license is live on chain.');
+            return;
+          }
+          if (status === 'PENDING' && !issued) {
+            setOnChain(license.id, (c) => ({ ...c!, issueSeenAt: Date.now() }));
+            return;
+          }
+          if (status === 'none' && (issued || live)) {
+            setOnChain(license.id, (c) => ({ ...c!, goneSeenAt: Date.now(), revokedAt: c!.revokedAt ?? Date.now() }));
+            onToast('This license is no longer on chain: it was revoked or cancelled.');
+            return;
+          }
+          if (live && !oc.activateTx) {
+            // A posted activation that checks out is kept, for the record.
+            const inv = await getInvite(oc.inviteId).catch(() => undefined);
+            if (active && inv?.activateTx) {
+              const v = await verifyActivated(inv.activateTx, oc.commitment, oc.issuerRecord);
+              if (active && v.ok) setOnChain(license.id, (c) => ({ ...c!, activateTx: inv.activateTx! }));
+            }
+          }
+          return;
+        }
         const inv = await getInvite(oc.inviteId);
         if (!active || !inv) return;
-        if (!oc.commitment && inv.commitment && inv.issuerRecord) {
-          // Their answer must name this record's head now: issueLicense files it there, so an
-          // answer naming any other record (or an old key of this one) could never be activated
-          // here, and its "activation" would be someone else's license.
+        // They committed: answer with a nonce, kept before it is posted and never replaced.
+        if (inv.commitHash && !oc.issuerNonce) {
+          const nonce = newNonce();
+          setOnChain(license.id, (c) => ({ ...c!, issuerNonce: nonce, commitHash: inv.commitHash! }));
+          await postNonce(oc.inviteId, nonce, oc.issuerToken);
+          return;
+        }
+        if (oc.issuerNonce && !inv.issuerNonce) {
+          await postNonce(oc.inviteId, oc.issuerNonce, oc.issuerToken); // the first post didn't land
+          return;
+        }
+        if (oc.issuerNonce && inv.issuerNonce && inv.issuerNonce !== oc.issuerNonce) {
+          setError(
+            'The registry shows a different answer than this page gave. Don’t issue: start over with a new link.',
+          );
+          return;
+        }
+        // They revealed: it must be what they committed to, and name this record's own head now.
+        if (inv.commitment && inv.issuerRecord && inv.licenseeNonce && oc.commitHash) {
+          const matches = (await commitHashOf(inv.commitment, inv.issuerRecord, inv.licenseeNonce)) === oc.commitHash;
           const head = await headNow(oc.identity);
           if (!active) return;
-          if (inv.issuerRecord !== head) {
+          if (!matches || inv.issuerRecord !== head) {
             setError(
-              'The answer to your link names a different record, or an older key of this one. Don’t issue it: make a new link.',
+              matches
+                ? 'Their answer names a different record, or an older key of this one. Don’t issue it: start over with a new link.'
+                : 'Their answer doesn’t match what they first sent. Don’t issue it: start over with a new link.',
             );
             return;
           }
-          setOnChain(license.id, (c) => ({ ...c!, commitment: inv.commitment!, issuerRecord: head }));
-        } else if (oc.issueTx && !live && oc.commitment && oc.issuerRecord) {
-          // The chain itself, not only the transaction they posted: a junk post can't stall it.
-          if (inv.activateTx) {
-            const v = await verifyActivated(inv.activateTx, oc.commitment, oc.issuerRecord);
-            if (!active) return;
-            if (v.ok) {
-              setOnChain(license.id, (c) => ({
-                ...c!,
-                activateTx: inv.activateTx!,
-                activatedAt: inv.activatedAt ?? Date.now(),
-              }));
-              onToast('They activated it. The license is live on chain.');
-              return;
-            }
-          }
-          if ((await licenseStatusNow(oc.commitment, oc.issuerRecord)) === 'ACTIVE' && active) {
-            setOnChain(license.id, (c) => ({ ...c!, activeSeenAt: Date.now(), activatedAt: Date.now() }));
-            onToast('They activated it. The license is live on chain.');
-          }
+          setOnChain(license.id, (c) => ({
+            ...c!,
+            commitment: inv.commitment!,
+            issuerRecord: head,
+            licenseeNonce: inv.licenseeNonce!,
+          }));
         }
       } catch {
         /* the next tick tries again */
@@ -102,12 +156,12 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
       }
     };
     void tick();
-    const t = setInterval(() => void tick(), POLL_MS);
+    const t = setInterval(() => void tick(), live ? LIVE_POLL_MS : POLL_MS);
     return () => {
       active = false;
       clearInterval(t);
     };
-  }, [oc, waiting, live, license.id, onToast]);
+  }, [oc, gone, issued, live, license.id, onToast]);
 
   if (!keys?.anchor) {
     return (
@@ -145,12 +199,22 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
     }
   };
 
+  const startOver = () => {
+    setError(undefined);
+    setCodeChecked(false);
+    try {
+      clearOnChain(license.id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
   const issue = () =>
     call.run(async (progress) => {
       if (!oc?.commitment || !oc.issuerRecord) throw new Error('They have not accepted yet.');
-      // Again just before sending: a rotation since their answer would strand it.
+      // Again just before sending: a key change since their answer would strand it.
       if ((await headNow(oc.identity)) !== oc.issuerRecord)
-        throw new Error('This record’s key changed since they accepted. Nothing was sent: make a new link.');
+        throw new Error('This record’s key changed since they accepted. Nothing was sent: start over with a new link.');
       const { issueLicenseOnChain } = await import('../../veilcore/chain/actions');
       const r = await issueLicenseOnChain(hexBytes(keys.recordSecret), oc.commitment, { progress });
       // Kept before it is posted: a post that fails is sent again, never the transaction.
@@ -159,12 +223,21 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
       return r;
     });
 
-  const revoke = (what: 'revoke' | 'cancel') =>
+  const revoke = () =>
     call.run(async (progress) => {
       if (!oc?.commitment || !oc.issuerRecord) throw new Error('Nothing to revoke on chain.');
-      const reason =
-        what === 'cancel' ? 'Cancelled before it was activated' : window.prompt('Reason for revoking this license?');
-      if (reason === null) throw new Error('Not revoked.');
+      // Read it first: a license they activated a moment ago is revoked, not cancelled.
+      const wasActive = (await licenseStatusNow(oc.commitment, oc.issuerRecord)) === 'ACTIVE';
+      const reason = wasActive
+        ? window.prompt(
+            live
+              ? 'Reason for revoking this license?'
+              : 'They have just activated it, so this revokes a live license. Reason for revoking?',
+          )
+        : window.confirm('Cancel this license? They won’t be able to activate it.')
+          ? 'Cancelled before it was activated'
+          : null;
+      if (reason === null) throw new Error(wasActive ? 'Not revoked.' : 'Not cancelled.');
       const { revokeLicenseOnChain } = await import('../../veilcore/chain/actions');
       const r = await revokeLicenseOnChain(hexBytes(keys.recordSecret), oc.commitment, oc.issuerRecord, { progress });
       setOnChain(license.id, (c) => ({ ...c!, revokeTx: r.txId, revokedAt: r.blockTime ?? Date.now() }));
@@ -173,7 +246,14 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
     });
 
   // A post that didn't reach the registry after the issue landed: send it again (same transaction).
-  const repost = () => void postIssued(oc!.inviteId, oc!.issueTx!, oc!.issuerToken).then(() => onToast('Sent again.'));
+  const repost = () =>
+    oc?.issueTx && void postIssued(oc.inviteId, oc.issueTx, oc.issuerToken).then(() => onToast('Sent again.'));
+
+  const startOverButton = (
+    <Button variant="text" color="inherit" onClick={startOver}>
+      Start over with a new link
+    </Button>
+  );
 
   return (
     <Stack spacing={1.5}>
@@ -181,8 +261,8 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
         <>
           <Typography variant="body2" color="text.secondary">
             A real license takes both of you. You send a link; they accept on their own phone or computer, and their own
-            key is made there. You issue it, they activate it, and it is on Midnight with both your keys. VeilCore pays
-            the network fee.
+            key is made there. You read each other a 6-digit code, you issue it, they activate it, and it is on Midnight
+            with both keys. VeilCore pays the network fee.
           </Typography>
           <TextField
             label="Who is it for? (they'll see this)"
@@ -202,62 +282,66 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
         </>
       )}
 
-      {oc && !oc.commitment && (
+      {oc && !oc.commitment && !gone && (
         <>
           <Alert severity="info" variant="outlined">
-            Send this link to {oc.label}. When they accept, the next step shows here.
+            {oc.issuerNonce
+              ? `${oc.label} opened the link and accepted. Waiting for their device to finish; this takes a few seconds while their page is open.`
+              : `Send this link to ${oc.label}. When they accept, the next step shows here.`}
           </Alert>
           <TextField label="Their link" value={link} fullWidth size="small" slotProps={{ input: { readOnly: true } }} />
-          <Button
-            variant="outlined"
-            startIcon={<ContentCopyIcon />}
-            onClick={() => void copy()}
-            sx={{ alignSelf: 'flex-start' }}
-          >
-            Copy link
-          </Button>
+          <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
+            <Button variant="outlined" startIcon={<ContentCopyIcon />} onClick={() => void copy()}>
+              Copy link
+            </Button>
+            {startOverButton}
+          </Stack>
         </>
       )}
 
-      {oc?.commitment && !oc.issueTx && (
+      {oc?.commitment && !issued && !gone && (
         <>
           <Alert severity="success" variant="outlined">
-            {oc.label} accepted. Before you issue it, ask them to read you the code on their screen. It must be:{' '}
-            <b style={{ fontFamily: 'monospace', fontSize: '1.15em' }}>{commitmentCode(oc.commitment)}</b>
+            {oc.label} accepted. Before you issue it, call them or meet up. Their screen shows a code, and it must be
+            the same as this one:{' '}
+            <b style={{ fontFamily: 'monospace', fontSize: '1.3em', whiteSpace: 'nowrap' }}>{code ?? '…'}</b>
           </Alert>
           <Typography variant="body2" color="text.secondary">
-            The code is made from their license key. If it&apos;s different, don&apos;t issue: someone else answered the
-            link. Make a new one.
+            If their code is different, don&apos;t issue: someone else answered your link. Start over with a new one.
           </Typography>
           <FormControlLabel
             control={<Checkbox checked={codeChecked} onChange={(e) => setCodeChecked(e.target.checked)} />}
             label="They read me this same code"
           />
-          <Button
-            variant="contained"
-            disabled={blocked || call.busy || !codeChecked}
-            onClick={() => void issue()}
-            sx={{ alignSelf: 'flex-start' }}
-          >
-            Issue it
-          </Button>
+          <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
+            <Button
+              variant="contained"
+              disabled={blocked || call.busy || !codeChecked || !code}
+              onClick={() => void issue()}
+            >
+              Issue it
+            </Button>
+            {startOverButton}
+          </Stack>
         </>
       )}
 
-      {oc?.issueTx && !live && !oc.revokeTx && (
+      {oc && issued && !live && !gone && (
         <>
           <Alert severity="info" variant="outlined">
             Issued on Midnight. Waiting for {oc.label} to activate it from their device: their link shows them the
-            button. This page checks their step on the chain itself.
+            button. This page reads the license on the chain itself.
           </Alert>
           <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
             <Button variant="outlined" startIcon={<ContentCopyIcon />} onClick={() => void copy()}>
               Copy their link again
             </Button>
-            <Button variant="text" onClick={repost}>
-              They don&apos;t see it? Send the issue again
-            </Button>
-            <Button color="error" variant="text" disabled={blocked || call.busy} onClick={() => void revoke('cancel')}>
+            {oc.issueTx && (
+              <Button variant="text" onClick={repost}>
+                They don&apos;t see it? Send the issue again
+              </Button>
+            )}
+            <Button color="error" variant="text" disabled={blocked || call.busy} onClick={() => void revoke()}>
               Cancel it
             </Button>
           </Stack>
@@ -267,15 +351,16 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
       {live && oc && (
         <>
           <Alert severity="success" variant="outlined">
-            Live on Midnight: issued from this record and activated by {oc.label} with their own key, on{' '}
-            {new Date(oc.activatedAt ?? Date.now()).toLocaleDateString()}. They can prove they hold a live license from
-            this record without showing which one.
+            Live on Midnight since {new Date(oc.activatedAt ?? Date.now()).toLocaleDateString()}: issued from this
+            record, and activated with the key of whoever accepted your link and read you the code. They can prove they
+            hold a live license from this record without showing which one. On chain it stays live until you revoke it,
+            whatever end date the terms say.
           </Alert>
           <Button
             color="error"
             variant="text"
             disabled={blocked || call.busy}
-            onClick={() => void revoke('revoke')}
+            onClick={() => void revoke()}
             sx={{ alignSelf: 'flex-start' }}
           >
             Revoke on chain
@@ -283,14 +368,15 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
         </>
       )}
 
-      {oc?.revokeTx && (
+      {gone && (
         <Alert severity="error" variant="outlined">
-          Revoked on Midnight{oc.revokedAt ? ` on ${new Date(oc.revokedAt).toLocaleDateString()}` : ''}.
+          No longer on Midnight
+          {oc?.revokedAt ? `: revoked or cancelled on ${new Date(oc.revokedAt).toLocaleDateString()}` : ''}.
         </Alert>
       )}
 
       {error && (
-        <Alert severity="error" variant="outlined">
+        <Alert severity="error" variant="outlined" action={!issued && oc ? startOverButton : undefined}>
           {error}
         </Alert>
       )}

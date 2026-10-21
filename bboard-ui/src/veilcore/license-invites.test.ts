@@ -1,6 +1,7 @@
 // A real license between two browsers: the checks each side makes on the other's step
 // (license-invites.ts verify*, against the real contract on the stand-in network), and the
 // licensee's key in this browser and its backup (held-licenses.ts, backup.ts).
+import { createHash } from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { ContractState } from '@midnight-ntwrk/compact-runtime';
@@ -9,9 +10,10 @@ import { createVeilcorePrivateState, withLicense } from '../../../contract/src/w
 import { identityOf, licenseRequestFor, recoveryCommitmentOf } from './chain/actions';
 import { contractStateAfter } from './chain/test-chain';
 import {
-  commitmentCode,
+  commitHashOf,
   headNow,
   invitePath,
+  licenseCode,
   licenseStatusNow,
   verifyActivated,
   verifyIssued,
@@ -99,8 +101,24 @@ describe('each side checks the other on chain, never the registry', () => {
     expect(await status([anchored, issued, countersigned])).toBe('ACTIVE');
   });
 
-  it('the read-aloud code is the first 8 characters of the commitment, in two groups', () => {
-    expect(commitmentCode('abcdef0123' + '0'.repeat(54))).toBe('ABCD-EF01');
+  it('the first message is SHA-256 of the three raw values, the same as the registry checks', async () => {
+    const [c, h, n] = ['11'.repeat(32), '22'.repeat(32), '33'.repeat(32)];
+    const want = createHash('sha256')
+      .update(Buffer.from(c + h + n, 'hex'))
+      .digest('hex');
+    expect(await commitHashOf(c, h, n)).toBe(want);
+  });
+
+  it('the read-aloud code is 6 digits, the same on both sides, and changes if any part is swapped', async () => {
+    const parts = ['11'.repeat(32), '22'.repeat(32), '33'.repeat(32), '44'.repeat(32)] as const;
+    const code = await licenseCode(...parts);
+    expect(code).toMatch(/^\d{3} \d{3}$/);
+    expect(await licenseCode(...parts)).toBe(code);
+    for (let i = 0; i < 4; i++) {
+      const other = [...parts] as [string, string, string, string];
+      other[i] = '55'.repeat(32);
+      expect(await licenseCode(...other)).not.toBe(code);
+    }
   });
 
   it("the licensee's link keeps its token in the fragment, which browsers never send", () => {
@@ -114,6 +132,7 @@ const held = (over: Partial<HeldLicense> = {}): HeldLicense => ({
   commitment: req.commitment,
   identity: identityOf(ISSUER),
   issuerRecord: req.issuerRecord,
+  licenseeNonce: '66'.repeat(32),
   label: 'Green Valley Farms',
   acceptedAt: 1,
   ...over,
