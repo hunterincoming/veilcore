@@ -278,3 +278,106 @@ export const revokeLicenseOnChain = (
     createVeilcorePrivateState(recordSecret),
     opts,
   );
+
+// ───────────────────────────────────────────── descent (two holders agree)
+
+/** The child's holder names a parent (any commitment of its identity). Nothing holds until the parent confirms. */
+export const proposeParentOnChain = (childSecret: Uint8Array, parentIdentityHex: string, opts: CallOptions = {}) =>
+  call('proposeParent', [hexToBytes(parentIdentityHex)], createVeilcorePrivateState(childSecret), opts);
+
+/** The parent's holder confirms being named as a parent of this child. */
+export const confirmParentOnChain = (parentSecret: Uint8Array, childIdentityHex: string, opts: CallOptions = {}) =>
+  call('confirmParent', [hexToBytes(childIdentityHex)], createVeilcorePrivateState(parentSecret), opts);
+
+/** The child's holder takes back a proposal the parent has not confirmed. */
+export const withdrawParentOnChain = (childSecret: Uint8Array, opts: CallOptions = {}) =>
+  call('withdrawParent', [], createVeilcorePrivateState(childSecret), opts);
+
+// ───────────────────────────────────────────── obligations (offspring royalties)
+// An obligation is a commitment (here, an agreement's fingerprint: it names nothing) that a
+// record's holder accepts and only the beneficiary can release. Every confirmed descendant of
+// the record shows it (verify.ts, rule 3).
+
+/** The beneficiary proposes an obligation against another holder's record. Binds nobody until accepted. */
+export const proposeObligationOnChain = (
+  beneficiarySecret: Uint8Array,
+  recordIdentityHex: string,
+  obligationHex: string,
+  opts: CallOptions = {},
+) =>
+  call(
+    'proposeObligation',
+    [hexToBytes(recordIdentityHex), hexToBytes(obligationHex)],
+    createVeilcorePrivateState(beneficiarySecret),
+    opts,
+  );
+
+/** The beneficiary takes back a proposal not yet accepted. */
+export const withdrawObligationOnChain = (
+  beneficiarySecret: Uint8Array,
+  recordIdentityHex: string,
+  obligationHex: string,
+  opts: CallOptions = {},
+) =>
+  call(
+    'withdrawObligation',
+    [hexToBytes(recordIdentityHex), hexToBytes(obligationHex)],
+    createVeilcorePrivateState(beneficiarySecret),
+    opts,
+  );
+
+/** The record's holder accepts an obligation proposed by the beneficiary it names. */
+export const acceptObligationOnChain = (
+  recordSecret: Uint8Array,
+  obligationHex: string,
+  beneficiaryIdentityHex: string,
+  opts: CallOptions = {},
+) =>
+  call(
+    'acceptObligation',
+    [hexToBytes(obligationHex), hexToBytes(beneficiaryIdentityHex)],
+    createVeilcorePrivateState(recordSecret),
+    opts,
+  );
+
+/** The record's holder declines one. */
+export const rejectObligationOnChain = (
+  recordSecret: Uint8Array,
+  obligationHex: string,
+  beneficiaryIdentityHex: string,
+  opts: CallOptions = {},
+) =>
+  call(
+    'rejectObligation',
+    [hexToBytes(obligationHex), hexToBytes(beneficiaryIdentityHex)],
+    createVeilcorePrivateState(recordSecret),
+    opts,
+  );
+
+/** Only the beneficiary releases an obligation in force. */
+export const dischargeOnChain = (
+  beneficiarySecret: Uint8Array,
+  recordIdentityHex: string,
+  obligationHex: string,
+  opts: CallOptions = {},
+) =>
+  call(
+    'discharge',
+    [hexToBytes(recordIdentityHex), hexToBytes(obligationHex)],
+    createVeilcorePrivateState(beneficiarySecret),
+    opts,
+  );
+
+/** The contract's key for one obligation: record, obligation and beneficiary, all identities or commitments (hex). */
+export const obligationKeyOf = (
+  recordIdentityHex: string,
+  obligationHex: string,
+  beneficiaryIdentityHex: string,
+): string =>
+  toHexLocal(
+    pureCircuits.obligationKey(
+      hexToBytes(recordIdentityHex),
+      hexToBytes(obligationHex),
+      hexToBytes(beneficiaryIdentityHex),
+    ),
+  );

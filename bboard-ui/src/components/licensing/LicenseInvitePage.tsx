@@ -30,6 +30,7 @@ import {
 import { say, useDeal, type DealParty } from '../../veilcore/deal-client';
 import { TermsBox, useOfferedTerms } from './DealTerms';
 import { RoyaltyLedger } from './RoyaltyLedger';
+import { OffspringRoyalty } from './OffspringRoyalty';
 import { tokenFromHash } from '../../veilcore/prove-relay';
 import {
   acceptAsLicensee,
@@ -393,6 +394,20 @@ export const LicenseInvitePage: React.FC = () => {
             entries={deal.entries}
             refresh={deal.refresh}
           />
+
+          {(Number(held.agreement.terms.offspringRoyaltyPct) || 0) > 0 && (
+            <Box sx={{ mt: 2 }}>
+              <OffspringRoyalty
+                side="licensee"
+                party={party}
+                entries={deal.entries}
+                refresh={deal.refresh}
+                pct={String(held.agreement.terms.offspringRoyaltyPct)}
+                obligation={held.agreement.agreementFingerprint}
+                beneficiary={held.identity}
+              />
+            </Box>
+          )}
         </Box>
       )}
 

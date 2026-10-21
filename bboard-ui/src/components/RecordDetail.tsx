@@ -45,6 +45,7 @@ import { shortFingerprint } from '../veilcore/commitment';
 import { StatusChain } from './StatusChain';
 import { LineageGraph } from './LineageGraph';
 import { HeritableRights } from './HeritableRights';
+import { FamilyOnChain } from './chain/FamilyOnChain';
 import { NextStep } from './NextStep';
 import { StageRows } from './stage/StageRows';
 import { LabReportOverview } from './stage/LabReportOverview';
@@ -611,6 +612,11 @@ export const RecordDetail: React.FC = () => {
                   <SettlementStatus record={record} />
                   {REAL_CHAIN && <AnchorOnChainPanel recordId={record.id} />}
                 </Paper>
+                {REAL_CHAIN && keys?.anchor && (
+                  <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
+                    <FamilyOnChain record={record} />
+                  </Paper>
+                )}
                 {/* Every other panel answers "what is true now". A dispute asks "what
                     happened, and in what order". */}
                 <RecordHistory record={record} />

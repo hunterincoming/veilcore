@@ -22,6 +22,7 @@ import { hexBytes, useRecordKeys } from '../../veilcore/record-keys';
 import { clearOnChain, setOnChain, revokeLicense, type License, type OnChainLicense } from '../../veilcore/licenses';
 import { useDeal, type DealParty } from '../../veilcore/deal-client';
 import { RoyaltyLedger } from './RoyaltyLedger';
+import { OffspringRoyalty } from './OffspringRoyalty';
 import {
   commitHashOf,
   createInvite,
@@ -409,6 +410,18 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
               terms={license.terms}
               entries={deal.entries}
               refresh={deal.refresh}
+            />
+          )}
+          {party && oc.termsSentAt && (Number(license.terms.offspringRoyaltyPct) || 0) > 0 && (
+            <OffspringRoyalty
+              side="issuer"
+              party={party}
+              entries={deal.entries}
+              refresh={deal.refresh}
+              pct={license.terms.offspringRoyaltyPct ?? ''}
+              obligation={license.agreementFingerprint}
+              beneficiary={oc.identity}
+              issuerSecret={keys.recordSecret}
             />
           )}
           <Button

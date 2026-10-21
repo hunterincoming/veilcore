@@ -117,6 +117,12 @@ export type DealBody =
     }
   | { readonly type: 'agree'; readonly agreementFingerprint: string }
   | {
+      /** The licensee's own record of the licensed plant: where an offspring royalty goes on chain. */
+      readonly type: 'plant-record';
+      readonly recordIdentity: string;
+      readonly name: string;
+    }
+  | {
       readonly type: 'payout';
       /** How the payee wants to be paid: a payment partner and its account, or other. */
       readonly method: string;

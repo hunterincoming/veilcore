@@ -180,5 +180,13 @@ export const BROWSER_CIRCUITS = [
   'countersignLicense',
   'proveLicense',
   'revokeLicense',
+  'proposeParent',
+  'confirmParent',
+  'withdrawParent',
+  'proposeObligation',
+  'withdrawObligation',
+  'acceptObligation',
+  'rejectObligation',
+  'discharge',
 ] as const;
 export type BrowserCircuit = (typeof BROWSER_CIRCUITS)[number];

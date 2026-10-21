@@ -102,6 +102,7 @@ describe('receipts', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(
+        // eslint-disable-next-line @typescript-eslint/require-await -- fetch's shape: it returns a promise
         async () =>
           new Response(
             JSON.stringify({
