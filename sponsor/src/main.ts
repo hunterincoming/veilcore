@@ -96,73 +96,74 @@ const main = async (): Promise<void> => {
   let anchorer: Anchorer | undefined;
   let sealer: Sealer | undefined;
   let anchorerNote = cfg.anchorer.enabled ? '' : `off: ${cfg.anchorer.why}`;
-  if (cfg.anchorer.enabled) {
-    try {
-      const artifacts = findArtifacts(cfg.artifactsDir);
-      const veilcore = await loadVeilcore(artifacts);
-      const chain = new MidnightAnchorChain(
-        veilcore,
-        artifacts,
-        cfg.contractAddress,
-        cfg.indexer,
-        cfg.indexerWS,
-        cfg.proofServer,
-        wallet,
-        wallet.coinPublicKey,
-        wallet.encryptionPublicKey,
+  // Runs a job while holding the wallet (one fee payment at a time).
+  const exclusive = <T>(job: () => Promise<T>) =>
+    queue.run(async () => {
+      if (!wallet.isSynced() && !(await wallet.waitSynced(60_000))) throw new Error('wallet not synced');
+      return job();
+    }, { bypassLimit: true });
+  // The contract on chain, for both background jobs. Sealing revocations does not need the
+  // anchoring job: it runs whenever this build's sealRevocations key matches the chain's.
+  let chain: MidnightAnchorChain | undefined;
+  let check: Awaited<ReturnType<MidnightAnchorChain['contractCheck']>> | undefined;
+  try {
+    const artifacts = findArtifacts(cfg.artifactsDir);
+    const veilcore = await loadVeilcore(artifacts);
+    chain = new MidnightAnchorChain(
+      veilcore,
+      artifacts,
+      cfg.contractAddress,
+      cfg.indexer,
+      cfg.indexerWS,
+      cfg.proofServer,
+      wallet,
+      wallet.coinPublicKey,
+      wallet.encryptionPublicKey,
+    );
+    check = await chain.contractCheck();
+  } catch (e) {
+    if (cfg.anchorer.enabled) anchorerNote = `off: ${e instanceof Error ? e.message : String(e)}`;
+    log('warn', `sealing job off: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  if (cfg.anchorer.enabled && chain && check) {
+    if (!check.anchorBatchKeyMatches) {
+      anchorerNote = 'off: the anchorBatch key in VEILCORE_ARTIFACTS_DIR is not the one on chain (wrong build)';
+    } else {
+      const attempts = new JsonFile<Attempt>(join(cfg.stateDir, 'anchor-attempt.json'), isAttempt);
+      anchorer = new Anchorer(
+        {
+          network: cfg.network,
+          contractAddress: cfg.contractAddress,
+          sealEveryMs: cfg.anchorer.everyMs,
+          sealAtPending: cfg.anchorer.sealAtPending,
+          landingGraceMs: 10 * MINUTE,
+          waitForLandingMs: 5 * MINUTE,
+          pollMs: 10_000,
+          maxFeeSpecks: cfg.maxFeeSpecks,
+        },
+        new HttpRegistry(cfg.anchorer.registryUrl, cfg.anchorer.operatorToken),
+        chain,
+        { load: () => attempts.load(), save: (a) => attempts.save(a), clear: () => attempts.clear() },
+        exclusive,
+        budget, // the same daily budget the public endpoint pays from
+        now,
+        (ms) => new Promise((r) => setTimeout(r, ms)),
+        log,
       );
-      const check = await chain.contractCheck();
-      if (!check.anchorBatchKeyMatches) {
-        anchorerNote = 'off: the anchorBatch key in VEILCORE_ARTIFACTS_DIR is not the one on chain (wrong build)';
-      } else {
-        const attempts = new JsonFile<Attempt>(join(cfg.stateDir, 'anchor-attempt.json'), isAttempt);
-        anchorer = new Anchorer(
-          {
-            network: cfg.network,
-            contractAddress: cfg.contractAddress,
-            sealEveryMs: cfg.anchorer.everyMs,
-            sealAtPending: cfg.anchorer.sealAtPending,
-            landingGraceMs: 10 * MINUTE,
-            waitForLandingMs: 5 * MINUTE,
-            pollMs: 10_000,
-            maxFeeSpecks: cfg.maxFeeSpecks,
-          },
-          new HttpRegistry(cfg.anchorer.registryUrl, cfg.anchorer.operatorToken),
-          chain,
-          { load: () => attempts.load(), save: (a) => attempts.save(a), clear: () => attempts.clear() },
-          (job) =>
-            queue.run(async () => {
-              if (!wallet.isSynced() && !(await wallet.waitSynced(60_000))) throw new Error('wallet not synced');
-              return job();
-            }, { bypassLimit: true }),
-          budget, // the same daily budget the public endpoint pays from
-          now,
-          (ms) => new Promise((r) => setTimeout(r, ms)),
-          log,
-        );
-        // Sealing revocations (sealer.ts): only with this build's sealRevocations key, which
-        // a staging from before it does not have; then revocations wait for a manual seal.
-        if (check.sealKeyMatches) {
-          const seals = new JsonFile<SealAttempt>(join(cfg.stateDir, 'seal-attempt.json'), isSealAttempt);
-          sealer = new Sealer(
-            chain,
-            { load: () => seals.load(), save: (a) => seals.save(a), clear: () => seals.clear() },
-            (job) =>
-              queue.run(async () => {
-                if (!wallet.isSynced() && !(await wallet.waitSynced(60_000))) throw new Error('wallet not synced');
-                return job();
-              }, { bypassLimit: true }),
-            budget,
-            cfg.maxFeeSpecks,
-            now,
-            log,
-          );
-        } else log('warn', 'sealing job off: no sealRevocations key matching the chain in VEILCORE_ARTIFACTS_DIR');
-      }
-    } catch (e) {
-      anchorerNote = `off: ${e instanceof Error ? e.message : String(e)}`;
     }
   }
+  if (chain && check?.sealKeyMatches) {
+    const seals = new JsonFile<SealAttempt>(join(cfg.stateDir, 'seal-attempt.json'), isSealAttempt);
+    sealer = new Sealer(
+      chain,
+      { load: () => seals.load(), save: (a) => seals.save(a), clear: () => seals.clear() },
+      exclusive,
+      budget,
+      cfg.maxFeeSpecks,
+      now,
+      log,
+    );
+  } else if (chain) log('warn', 'sealing job off: no sealRevocations key matching the chain in VEILCORE_ARTIFACTS_DIR');
   if (anchorerNote) log('warn', `anchoring job ${anchorerNote}`);
 
   const server = startServer(
@@ -205,11 +206,13 @@ const main = async (): Promise<void> => {
 
   let running = false;
   const tick = async () => {
-    if (!anchorer || running || !wallet.isSynced()) return;
+    if ((!anchorer && !sealer) || running || !wallet.isSynced()) return;
     running = true;
     try {
-      const outcome = await anchorer.runOnce();
-      log('info', `anchoring: ${outcome}`);
+      if (anchorer) {
+        const outcome = await anchorer.runOnce().catch((e: unknown) => `failed: ${e instanceof Error ? e.message : String(e)}`);
+        log('info', `anchoring: ${outcome}`);
+      }
       if (sealer) await sealer.runOnce().catch((e: unknown) => log('warn', `sealing: ${e instanceof Error ? e.message : String(e)}`));
     } finally {
       running = false;

@@ -8,7 +8,14 @@ import { ledger } from '../../../contract/src/managed/veilcore/contract/index.js
 import { createVeilcorePrivateState, withLicense } from '../../../contract/src/witnesses';
 import { identityOf, licenseRequestFor, recoveryCommitmentOf } from './chain/actions';
 import { contractStateAfter } from './chain/test-chain';
-import { invitePath, verifyActivated, verifyIssued } from './license-invites';
+import {
+  commitmentCode,
+  headNow,
+  invitePath,
+  licenseStatusNow,
+  verifyActivated,
+  verifyIssued,
+} from './license-invites';
 import {
   heldLicense,
   heldLicensesForBackup,
@@ -70,6 +77,30 @@ describe('each side checks the other on chain, never the registry', () => {
       ok: false,
       reason: 'That transaction is not a single countersignLicense call on this contract.',
     });
+  });
+
+  it('the issuer reads its own head from the chain, so an answer naming another record is caught (attack round)', async () => {
+    const read = () => Promise.resolve(ledger(contractStateAfter([anchored]).data));
+    expect(await headNow(identityOf(ISSUER), read)).toBe(req.issuerRecord);
+    // An answer naming someone else's record never equals this record's head.
+    const other = licenseRequestFor(
+      LICENSEE,
+      identityOf(new Uint8Array(32).fill(0x44)),
+      ledger(contractStateAfter([anchored]).data),
+    );
+    expect(other.issuerRecord).not.toBe(await headNow(identityOf(ISSUER), read));
+  });
+
+  it('the issuer reads the license status on chain itself, so a junk posted transaction cannot stall it', async () => {
+    const status = (steps: Parameters<typeof contractStateAfter>[0]) =>
+      licenseStatusNow(req.commitment, req.issuerRecord, () => Promise.resolve(ledger(contractStateAfter(steps).data)));
+    expect(await status([anchored])).toBe('none');
+    expect(await status([anchored, issued])).toBe('PENDING');
+    expect(await status([anchored, issued, countersigned])).toBe('ACTIVE');
+  });
+
+  it('the read-aloud code is the first 8 characters of the commitment, in two groups', () => {
+    expect(commitmentCode('abcdef0123' + '0'.repeat(54))).toBe('ABCD-EF01');
   });
 
   it("the licensee's link keeps its token in the fragment, which browsers never send", () => {

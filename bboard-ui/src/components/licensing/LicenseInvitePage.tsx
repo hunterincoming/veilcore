@@ -17,6 +17,7 @@ import { Alert, Box, Button, CircularProgress, Container, Paper, Stack, Typograp
 import { tokenFromHash } from '../../veilcore/prove-relay';
 import {
   acceptAsLicensee,
+  commitmentCode,
   getInvite,
   postActivated,
   verifyIssued,
@@ -33,7 +34,8 @@ import { InEnglishPage } from '../../i18n/app';
 import { LanguageBar } from '../../i18n/LanguagePicker';
 
 const POLL_MS = 8_000;
-const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-4)}`;
+/** Enough of a record's key to compare with the sender: 16 characters, in groups of 4. */
+const shown = (h: string) => (h.slice(0, 16).match(/..../g) ?? []).join(' ');
 
 const Frame: React.FC<React.PropsWithChildren> = ({ children }) => (
   <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -136,6 +138,9 @@ export const LicenseInvitePage: React.FC = () => {
   }
 
   const takenByOther = invite.commitment && (!held || held.commitment !== invite.commitment);
+  // Once accepted, the record is the one this device accepted for, whatever the registry says now.
+  const issuerKey = held?.identity ?? invite.identity;
+  const swapped = held && held.identity !== invite.identity;
 
   const accept = async () => {
     setBusy(true);
@@ -167,8 +172,16 @@ export const LicenseInvitePage: React.FC = () => {
         {held?.activateTx ? 'Your license is live' : 'You’ve been offered a license'}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
-        For: <b>{invite.label || 'you'}</b> · from the record with on-chain key {short(invite.identity)}
+        For: <b>{invite.label || 'you'}</b> · from the record with on-chain key{' '}
+        <span style={{ fontFamily: 'monospace' }}>{shown(issuerKey)}</span>. Check that key with whoever sent you this.
       </Typography>
+
+      {swapped && (
+        <Alert severity="error" variant="outlined" sx={{ mb: 2 }}>
+          The registry now names a different record than the one you accepted for. Don&apos;t rely on this page: ask the
+          sender to check their license on their own page.
+        </Alert>
+      )}
 
       {takenByOther && (
         <Alert severity="error" variant="outlined">
@@ -198,6 +211,10 @@ export const LicenseInvitePage: React.FC = () => {
         <Stack spacing={1.5}>
           <Alert severity="success" variant="outlined">
             Accepted. Your license key is on this device.
+          </Alert>
+          <Alert severity="info" variant="outlined">
+            Read this code to the person who sent the link, by phone or in person. They check it before they issue:{' '}
+            <b style={{ fontFamily: 'monospace', fontSize: '1.15em' }}>{commitmentCode(held.commitment)}</b>
           </Alert>
           {!held.backedUpAt && (
             <Alert

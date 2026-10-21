@@ -125,12 +125,18 @@ export type OnChainLicense = {
   /** Set only once the licensee's countersign was read from the chain and left the license ACTIVE. */
   readonly activateTx?: string;
   readonly activatedAt?: number;
+  /**
+   * When this page read the license ACTIVE on chain itself, under this record's own head,
+   * without (or before) a posted transaction that checked out: a junk post can't stall it.
+   */
+  readonly activeSeenAt?: number;
   readonly revokeTx?: string;
   readonly revokedAt?: number;
 };
 
 /** A license live on chain: issued and countersigned by the other party's own secret, checked here, not revoked. */
-export const liveOnChain = (l: License): boolean => Boolean(l.onChain?.activateTx && !l.onChain.revokeTx);
+export const liveOnChain = (l: License): boolean =>
+  Boolean((l.onChain?.activateTx || l.onChain?.activeSeenAt) && !l.onChain.revokeTx);
 
 /**
  * A stored agreement, checked on the way in.
@@ -517,7 +523,7 @@ export const setOnChain = (
   update(id, (l) => {
     const onChain = change(l.onChain);
     // Live on chain: the agreement is active, signed by two parties' own keys on chain.
-    if (onChain.activateTx && !onChain.revokeTx && l.state !== 'active')
+    if ((onChain.activateTx || onChain.activeSeenAt) && !onChain.revokeTx && l.state !== 'active')
       return { ...l, onChain, state: 'active', licenseeSignedAt: onChain.activatedAt ?? Date.now() };
     if (onChain.issueTx && l.state === 'draft')
       return { ...l, onChain, state: 'sent', breederSignedAt: onChain.issuedAt ?? Date.now() };

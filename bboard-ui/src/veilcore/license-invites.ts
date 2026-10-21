@@ -11,8 +11,11 @@
 //
 // The registry is only a mailbox and is never believed. Every transaction id the other side
 // posts is read from the network here (verifyIssued, verifyActivated): it must be the right
-// call, on VeilCore's contract, leaving this license in the right state. So the registry can
-// stall a license but never make one look live.
+// call, on VeilCore's contract, leaving this license in the right state. The issuer checks the
+// licensee's answer against its OWN current head, read from the chain (headNow), and issues
+// only after both people have read each other the same short code made from the commitment
+// (commitmentCode): the registry carries the commitment and could otherwise swap in its own.
+// So the registry can stall a license but never make one look live, or slip in a licensee.
 //
 // Who may write: the issuer's browser makes two random tokens and sends the registry only
 // their SHA-256. The ACCEPT token goes in the licensee's link fragment
@@ -220,6 +223,60 @@ export const verifyActivated = async (
   }
 };
 
+/** The contract's state now, read through this site's indexer. Sends nothing. */
+export const latestLedger = async () => {
+  const { indexerPublicDataProvider } = await import('@midnight-ntwrk/midnight-js-indexer-public-data-provider');
+  const { CHAIN_CONTRACT, INDEXER_HTTP, INDEXER_WS } = await import('./chain/config');
+  const { ledger } = await import('../../../contract/src/managed/veilcore/contract/index.js');
+  const { setNetworkId } = await import('@midnight-ntwrk/midnight-js-network-id');
+  const { NETWORK } = await import('../config/network');
+  setNetworkId(NETWORK);
+  const state = await indexerPublicDataProvider(
+    INDEXER_HTTP ?? '',
+    INDEXER_WS ?? '',
+    globalThis.WebSocket as never,
+  ).queryContractState(CHAIN_CONTRACT ?? '');
+  if (!state) throw new Error('VeilCore’s contract was not found on the network. Nothing was sent.');
+  return ledger(state.data);
+};
+
+const hexOf = (b: Uint8Array): string => [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
+
+/**
+ * The commitment a record's identity acts from NOW (its head after any rotation), hex. The
+ * issuer checks the licensee's answer against this, never against what the registry says:
+ * issueLicense files the license under the issuer's own head, so an answer naming any other
+ * record could only be activated somewhere else (attack round, 20 Oct).
+ */
+export const headNow = async (identity: string, read = latestLedger): Promise<string> => {
+  const { currentHead } = await import('../../../contract/src/verify');
+  return hexOf(currentHead(await read(), bytes(identity)));
+};
+
+/** A license's status on chain now: what the issuer reads itself rather than wait on a posted transaction. */
+export const licenseStatusNow = async (
+  commitment: string,
+  issuerRecord: string,
+  read = latestLedger,
+): Promise<'PENDING' | 'ACTIVE' | 'none'> => {
+  const { licenseKeyOf } = await import('./chain/actions');
+  const { LicenseState } = await import('../../../contract/src/managed/veilcore/contract/index.js');
+  const l = await read();
+  const k = bytes(licenseKeyOf(commitment, issuerRecord));
+  if (!l.licenseStatusOf.member(k)) return 'none';
+  const st = l.licenseStatusOf.lookup(k);
+  return st === LicenseState.ACTIVE ? 'ACTIVE' : st === LicenseState.PENDING ? 'PENDING' : 'none';
+};
+
+/**
+ * The code both people read to each other before the issuer issues: the first 8 characters of
+ * the licensee's commitment. The registry carries the commitment and could swap it for one of
+ * its own; the code, read over the phone or in person, is how the issuer knows the commitment
+ * it is about to issue is the one the licensee's device made (attack round, 20 Oct).
+ */
+export const commitmentCode = (commitment: string): string =>
+  `${commitment.slice(0, 4)}-${commitment.slice(4, 8)}`.toUpperCase();
+
 /**
  * The licensee's accept, with nothing sent before the secret is kept: make the secret here,
  * build the commitment against the issuer's current head (read from the chain), keep both in
@@ -230,21 +287,9 @@ export const acceptAsLicensee = async (invite: LicenseInvite, token: string): Pr
   const { heldLicense, keepHeldLicense, newLicenseSecret } = await import('./held-licenses');
   let held = heldLicense(invite.id);
   if (!held) {
-    const { indexerPublicDataProvider } = await import('@midnight-ntwrk/midnight-js-indexer-public-data-provider');
-    const { CHAIN_CONTRACT, INDEXER_HTTP, INDEXER_WS } = await import('./chain/config');
-    const { ledger } = await import('../../../contract/src/managed/veilcore/contract/index.js');
     const { licenseRequestFor } = await import('./chain/actions');
-    const { setNetworkId } = await import('@midnight-ntwrk/midnight-js-network-id');
-    const { NETWORK } = await import('../config/network');
-    setNetworkId(NETWORK);
-    const state = await indexerPublicDataProvider(
-      INDEXER_HTTP ?? '',
-      INDEXER_WS ?? '',
-      globalThis.WebSocket as never,
-    ).queryContractState(CHAIN_CONTRACT ?? '');
-    if (!state) throw new Error('VeilCore’s contract was not found on the network. Nothing was sent.');
     const secret = newLicenseSecret();
-    const req = licenseRequestFor(bytes(secret), invite.identity, ledger(state.data));
+    const req = licenseRequestFor(bytes(secret), invite.identity, await latestLedger());
     held = keepHeldLicense({
       inviteId: invite.id,
       secret,
