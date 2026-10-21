@@ -33,6 +33,7 @@ import { allDeliveries, deliveriesMissingFrom, mergeDeliveries } from './lab-res
 import { allSentCodes, mergeSentCodes } from './transfers';
 import { isVaultKey, markVaultBackedUp, setVaultKey, vaultHasSealed, vaultKeyIfAny, vaultKid } from './vault';
 import { raiseRevMarks, registryKids, revMarks } from './api-store';
+import { heldLicensesForBackup, heldMissingFrom, markHeldBackedUp, mergeHeldLicenses } from './held-licenses';
 import { enT } from '../i18n/translate';
 import { base64urlnopad } from '@scure/base';
 
@@ -60,6 +61,11 @@ export type BackupContents = {
    * "records:<id>" or "licenses:<id>" (round 3, P4). Optional: older version 3 files have none.
    */
   readonly revs?: Record<string, number>;
+  /**
+   * Licenses this browser holds as a licensee, with the secret behind each (held-licenses.ts):
+   * without it a license can't be activated or shown live. Optional: older files have none.
+   */
+  readonly heldLicenses?: ReturnType<typeof heldLicensesForBackup>;
 };
 
 const WARNING =
@@ -238,6 +244,7 @@ export const backupContents = (now = Date.now()): BackupContents => {
   const deliveries = allDeliveries();
   const codes = allSentCodes();
   const revs = revMarks();
+  const held = heldLicensesForBackup();
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
@@ -250,6 +257,7 @@ export const backupContents = (now = Date.now()): BackupContents => {
     ...(Object.keys(deliveries).length ? { labDeliveries: deliveries } : {}),
     ...(Object.keys(codes).length ? { sentCodes: codes } : {}),
     ...(Object.keys(revs).length ? { revs } : {}),
+    ...(held.length ? { heldLicenses: held } : {}),
   };
 };
 
@@ -267,7 +275,8 @@ export const hasAnythingToBackUp = (): boolean =>
   vaultKeyIfAny() !== null ||
   allKeys().length > 0 ||
   loadAttester() !== null ||
-  Object.keys(allDeliveries()).length > 0;
+  Object.keys(allDeliveries()).length > 0 ||
+  heldLicensesForBackup().length > 0;
 
 /**
  * Save the file. Deliberately does not mark anything as backed up: only checkBackup
@@ -370,7 +379,12 @@ export const checkBackup = async (file: File, password?: string): Promise<CheckR
   if (deliveriesMissingFrom(v.labDeliveries).length > 0) {
     return { ok: false, reason: "That backup doesn't hold your latest deliveries. Save a new one and check that." };
   }
+  // A license held here: without its secret on another device it can't be activated or shown.
+  if (heldMissingFrom(v.heldLicenses).length > 0) {
+    return { ok: false, reason: "That backup doesn't hold your latest licenses. Save a new one and check that." };
+  }
   markBackedUp(held.map((k) => k.recordId));
+  markHeldBackedUp(v.heldLicenses);
   if (vault) markVaultBackedUp();
   return { ok: true, records: held.length, recordIds: held.map((k) => k.recordId) };
 };
@@ -460,6 +474,7 @@ export const restoreAny = async (file: File, password?: string): Promise<Restore
   // Only ever raises a mark here (P4): a file older than what this browser has seen can't
   // make it take an older copy.
   raiseRevMarks(v.revs);
+  mergeHeldLicenses(v.heldLicenses);
   return {
     records: entries.length,
     recordIds,

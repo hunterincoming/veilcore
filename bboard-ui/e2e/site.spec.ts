@@ -43,6 +43,8 @@ const PAGES: [string, RegExp][] = [
   ['/backup', /backup/i],
   ['/docs/spec', /specification|spec/i],
   [`/prove/PR-${'0'.repeat(32)}`, /request has ended|can.t open/i],
+  // No registry here: the page says it couldn't open the license, never spins forever.
+  [`/license-invite/LI-${'0'.repeat(32)}#t=${'A'.repeat(22)}`, /couldn.t open this license|expired or doesn.t exist/i],
 ];
 
 for (const [path, text] of PAGES) {

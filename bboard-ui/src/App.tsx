@@ -70,6 +70,7 @@ const BulkImportPage = page(() => import('./components/lab-import/BulkImportPage
 const RestorePage = page(() => import('./components/flow/RestorePage'), 'RestorePage');
 const BackupPage = page(() => import('./components/flow/BackupPage'), 'BackupPage');
 const ProvePage = page(() => import('./components/flow/ProvePage'), 'ProvePage');
+const LicenseInvitePage = page(() => import('./components/licensing/LicenseInvitePage'), 'LicenseInvitePage');
 const PartnersPage = page(() => import('./components/partners/PartnersPage'), 'PartnersPage');
 const TermsBuilder = page(() => import('./components/licensing/TermsBuilder'), 'TermsBuilder');
 const LicenseDetail = page(() => import('./components/licensing/LicenseDetail'), 'LicenseDetail', 'after');
@@ -293,6 +294,14 @@ const routes = (
     <Route path="/record/:id/license" element={withLayout(<TermsBuilder />)} />
     <Route path="/licenses" element={withLayout(<LicensingHub />)} />
     <Route path="/license/:id" element={withLayout(<LicenseDetail />)} />
+    <Route
+      path="/license-invite/:id"
+      element={
+        <Light>
+          <LicenseInvitePage />
+        </Light>
+      }
+    />
     <Route
       path="/license/:id/sign"
       element={

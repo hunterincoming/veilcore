@@ -208,6 +208,7 @@ export const APP_ROUTES = Object.freeze([
   '/licenses',
   '/license/:license',
   '/license/:license/sign',
+  '/license-invite/:invite',
 ]);
 
 /**
@@ -235,6 +236,7 @@ export const routesToCheck = () => [
       .replace(':record', `VEIL-${randomHex(16).toUpperCase()}`)
       .replace(':prove', `PR-${randomHex(8).toUpperCase()}`)
       .replace(':license', `LIC-${randomHex(8).toUpperCase()}`)
+      .replace(':invite', `LI-${randomHex(16).toUpperCase()}`)
       .replace(':hex', randomHex(32)),
   ),
   `/${randomHex(8)}/${randomHex(8)}`,

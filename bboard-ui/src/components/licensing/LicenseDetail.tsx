@@ -39,6 +39,8 @@ import { ShareLicense } from './ShareLicense';
 import { AgreementTypeChip } from './AgreementTypeChip';
 import { AgreementsBackupFirst } from './AgreementsBackupFirst';
 import { AGREEMENTS_SIMULATED, SIMULATED_TAG } from '../../config/copy';
+import { chainNotReady } from '../../veilcore/chain/config';
+import { RealLicensePanel } from './RealLicensePanel';
 
 const money = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
@@ -91,6 +93,8 @@ export const LicenseDetail: React.FC = () => {
 
   const state = effectiveState(license);
   const type = agreementType(license);
+  // Where this site sends transactions, a license is made for real, between two browsers.
+  const real = chainNotReady() === undefined && type === 'license';
   const record = getRecord(license.recordId);
   const signLink = canonicalUrl(`/license/${encodeURIComponent(license.id)}/sign`);
   // Breeder-share lineage: if the counterparty may breed with the material, any cultivar
@@ -191,11 +195,17 @@ export const LicenseDetail: React.FC = () => {
           <Typography variant="overline" sx={{ display: 'block', mb: 0.5 }}>
             Status and actions
           </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.75 }}>
-            {AGREEMENTS_SIMULATED}
-          </Typography>
+          {!real && (
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.75 }}>
+              {AGREEMENTS_SIMULATED}
+            </Typography>
+          )}
 
-          {state === 'draft' && (
+          {real && (state === 'draft' || state === 'sent' || license.onChain) && (
+            <RealLicensePanel license={license} blocked={blocked} onToast={setToast} />
+          )}
+
+          {!real && state === 'draft' && (
             <Stack spacing={1.5} sx={{ alignItems: 'flex-start' }}>
               <Typography variant="body2" color="text.secondary">
                 Draft, not issued yet. Issuing it makes a link you send to the other party to counter-sign.
@@ -214,7 +224,7 @@ export const LicenseDetail: React.FC = () => {
             </Stack>
           )}
 
-          {state === 'sent' && (
+          {!real && state === 'sent' && (
             <Stack spacing={1.5}>
               <Alert severity="warning" variant="outlined">
                 Issued, waiting for the other party to counter-sign: it is <b>not active yet</b>. For now the
@@ -245,7 +255,7 @@ export const LicenseDetail: React.FC = () => {
             </Stack>
           )}
 
-          {state === 'active' && (
+          {state === 'active' && !license.onChain && (
             <Stack spacing={1.5}>
               <Alert severity="success" variant="outlined">
                 {signedByTwoParties(license)
@@ -282,7 +292,7 @@ export const LicenseDetail: React.FC = () => {
             </Stack>
           )}
 
-          {state === 'revoked' && (
+          {state === 'revoked' && !license.onChain && (
             <Alert severity="error" variant="outlined">
               Revoked{license.revokedAt ? ` ${new Date(license.revokedAt).toLocaleDateString()}` : ''}:{' '}
               {license.revokedReason}

@@ -5,12 +5,12 @@
 //                   the record secret of an anchored identity
 //   pairDna         date a bound pairing of a DNA report against that identity (the binding
 //                   from chain/pairing.ts, never the report's fingerprint)
-//   issueLicense    the issuer puts a licence on its record: PENDING, keyed on a commitment
+//   issueLicense    the issuer puts a license on its record: PENDING, keyed on a commitment
 //                   the licensee built from a secret only the licensee holds
-//   countersignLicense  the licensee proves that secret: the licence is ACTIVE
+//   countersignLicense  the licensee proves that secret: the license is ACTIVE
 //   proveLicense    the licensee shows one verifier, who chose the challenge, that it holds a
-//                   live licence from that record, without saying which
-//   revokeLicense   the issuer ends a licence
+//                   live license from that record, without saying which
+//   revokeLicense   the issuer ends a license
 //
 // Each call: run the circuit here against the contract's current state (it refuses here,
 // before anything is sent, if the contract would), prove it in the worker, seal it, hand
@@ -86,7 +86,7 @@ export type CallOptions = {
   readonly landingTimeoutMs?: number;
 };
 
-/** A call's arguments, or how to make them from the contract's state just read (a free licence slot). */
+/** A call's arguments, or how to make them from the contract's state just read (a free license slot). */
 type Args = readonly unknown[] | ((l: ReturnType<typeof readLedger>) => readonly unknown[]);
 
 const call = async (
@@ -195,34 +195,34 @@ export const proveOwnershipOnChain = (recordSecret: Uint8Array, challengeHex: st
 export const pairDnaOnChain = (recordSecret: Uint8Array, bindingHex: string, opts: CallOptions = {}) =>
   call('pairDna', [hexToBytes(bindingHex)], createVeilcorePrivateState(recordSecret), opts);
 
-// ───────────────────────────────────────────── licences (two parties, two browsers)
+// ───────────────────────────────────────────── licenses (two parties, two browsers)
 
-/** A licence commitment and the issuer head it names (all hex). */
-export type LicenceRequest = { readonly commitment: string; readonly issuerRecord: string };
+/** A license commitment and the issuer head it names (all hex). */
+export type LicenseRequest = { readonly commitment: string; readonly issuerRecord: string };
 
 /**
  * The licensee's side, before anything is sent: from a secret only the licensee holds, the
  * commitment to give the issuer, built against the issuer's CURRENT head (issueLicense keys
- * the licence on it; one built against an older commitment could never be countersigned).
+ * the license on it; one built against an older commitment could never be countersigned).
  * `issuerIdentity` is the issuer record's on-chain identity. Reads the contract, sends nothing.
  */
-export const licenceRequestFor = (
-  licenceSecret: Uint8Array,
+export const licenseRequestFor = (
+  licenseSecret: Uint8Array,
   issuerIdentity: string,
   l: ReturnType<typeof readLedger>,
-): LicenceRequest => {
+): LicenseRequest => {
   const head = currentHead(l, hexToBytes(issuerIdentity));
-  return { commitment: toHexLocal(pureCircuits.licenseCommit(licenceSecret, head)), issuerRecord: toHexLocal(head) };
+  return { commitment: toHexLocal(pureCircuits.licenseCommit(licenseSecret, head)), issuerRecord: toHexLocal(head) };
 };
 
-/** The key a licence has in the contract's status map (all hex in, hex out). */
-export const licenceKeyOf = (commitmentHex: string, issuerRecordHex: string): string =>
+/** The key a license has in the contract's status map (all hex in, hex out). */
+export const licenseKeyOf = (commitmentHex: string, issuerRecordHex: string): string =>
   toHexLocal(pureCircuits.licenseKey(hexToBytes(commitmentHex), hexToBytes(issuerRecordHex)));
 
 const toHexLocal = (b: Uint8Array): string => [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
 
-/** The issuer issues the licence the licensee's commitment names, from the issuer's own record. */
-export const issueLicenceOnChain = (recordSecret: Uint8Array, commitmentHex: string, opts: CallOptions = {}) =>
+/** The issuer issues the license the licensee's commitment names, from the issuer's own record. */
+export const issueLicenseOnChain = (recordSecret: Uint8Array, commitmentHex: string, opts: CallOptions = {}) =>
   call('issueLicense', [hexToBytes(commitmentHex)], createVeilcorePrivateState(recordSecret), opts);
 
 /** 24-bit leaf indexes: a random free one (the tree has 16,777,216). */
@@ -232,25 +232,25 @@ const freeSlot = (l: ReturnType<typeof readLedger>): bigint => {
     const slot = BigInt((a << 16) | (b << 8) | c);
     if (!l.licenseAtSlot.member(slot)) return slot;
   }
-  throw new Error('Could not find a free licence slot. Nothing was sent.');
+  throw new Error('Could not find a free license slot. Nothing was sent.');
 };
 
 /**
- * The licensee countersigns, proving the licence secret: the licence becomes ACTIVE. The
- * record secret is not used (the call proves the licence secret, not a record), so the
- * private state holds the licence alone.
+ * The licensee countersigns, proving the license secret: the license becomes ACTIVE. The
+ * record secret is not used (the call proves the license secret, not a record), so the
+ * private state holds the license alone.
  */
-export const countersignLicenceOnChain = (licenceSecret: Uint8Array, issuerRecordHex: string, opts: CallOptions = {}) =>
+export const countersignLicenseOnChain = (licenseSecret: Uint8Array, issuerRecordHex: string, opts: CallOptions = {}) =>
   call(
     'countersignLicense',
     (l) => [hexToBytes(issuerRecordHex), freeSlot(l)],
-    withLicense(createVeilcorePrivateState(new Uint8Array(32)), licenceSecret, hexToBytes(issuerRecordHex)),
+    withLicense(createVeilcorePrivateState(new Uint8Array(32)), licenseSecret, hexToBytes(issuerRecordHex)),
     opts,
   );
 
-/** The licensee shows one verifier (who chose the 32-byte challenge) a live licence from that record. */
-export const proveLicenceOnChain = (
-  licenceSecret: Uint8Array,
+/** The licensee shows one verifier (who chose the 32-byte challenge) a live license from that record. */
+export const proveLicenseOnChain = (
+  licenseSecret: Uint8Array,
   issuerRecordHex: string,
   challengeHex: string,
   opts: CallOptions = {},
@@ -259,14 +259,14 @@ export const proveLicenceOnChain = (
     'proveLicense',
     [],
     {
-      ...withLicense(createVeilcorePrivateState(new Uint8Array(32)), licenceSecret, hexToBytes(issuerRecordHex)),
+      ...withLicense(createVeilcorePrivateState(new Uint8Array(32)), licenseSecret, hexToBytes(issuerRecordHex)),
       presentationChallenge: hexToBytes(challengeHex),
     },
     opts,
   );
 
-/** The issuer ends a licence it issued from this record (`issuingRecordHex`: the head it was keyed on). */
-export const revokeLicenceOnChain = (
+/** The issuer ends a license it issued from this record (`issuingRecordHex`: the head it was keyed on). */
+export const revokeLicenseOnChain = (
   recordSecret: Uint8Array,
   commitmentHex: string,
   issuingRecordHex: string,

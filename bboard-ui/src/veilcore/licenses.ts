@@ -96,13 +96,47 @@ export type License = {
   obligationPending?: boolean;
   /** When the registry confirmed the royalty obligation (round 4, F4). */
   obligationRegisteredAt?: number;
+  /**
+   * The real license on chain, between two browsers (license-invites.ts), where this site
+   * sends transactions. Absent: a practice agreement, as before.
+   */
+  onChain?: OnChainLicense;
 };
+
+/**
+ * The issuer's side of a real license: the invite it sent, what the licensee answered, and
+ * each transaction, checked on chain before it is kept (license-invites.ts verify*).
+ */
+export type OnChainLicense = {
+  readonly inviteId: string;
+  /** The licensee's link token, kept so the issuer can show the link again. */
+  readonly acceptToken: string;
+  /** The issuer's own token: only it can post the issue. */
+  readonly issuerToken: string;
+  /** The issuing record's on-chain identity, hex. */
+  readonly identity: string;
+  readonly label: string;
+  readonly invitedAt: number;
+  /** From the licensee's accept. */
+  readonly commitment?: string;
+  readonly issuerRecord?: string;
+  readonly issueTx?: string;
+  readonly issuedAt?: number;
+  /** Set only once the licensee's countersign was read from the chain and left the license ACTIVE. */
+  readonly activateTx?: string;
+  readonly activatedAt?: number;
+  readonly revokeTx?: string;
+  readonly revokedAt?: number;
+};
+
+/** A license live on chain: issued and countersigned by the other party's own secret, checked here, not revoked. */
+export const liveOnChain = (l: License): boolean => Boolean(l.onChain?.activateTx && !l.onChain.revokeTx);
 
 /**
  * A stored agreement, checked on the way in.
  *
  * `type` is not required: agreements saved before the field existed are treated as
- * licence agreements a few lines below, and demanding it here would delete them.
+ * license agreements a few lines below, and demanding it here would delete them.
  */
 const isLicense = (v: unknown): v is License => {
   if (typeof v !== 'object' || v === null || Array.isArray(v)) return false;
@@ -123,7 +157,8 @@ const isLicense = (v: unknown): v is License => {
     typeof l.terms === 'object' &&
     l.terms !== null &&
     !Array.isArray(l.terms) &&
-    (l.royaltyLog === undefined || Array.isArray(l.royaltyLog))
+    (l.royaltyLog === undefined || Array.isArray(l.royaltyLog)) &&
+    (l.onChain === undefined || (typeof l.onChain === 'object' && l.onChain !== null && !Array.isArray(l.onChain)))
   );
 };
 
@@ -305,15 +340,15 @@ export const AGREEMENT_FINGERPRINT_V2 = 'veilcore/agreement/v2';
  * record's fingerprint and a random salt (attack round D).
  *
  * It used to be the commit circuit over JSON.stringify of the same three things, with no
- * salt. The public face of a licence shows the fingerprint, the record and the type, and
+ * salt. The public face of a license shows the fingerprint, the record and the type, and
  * the remaining terms are few and guessable (licensee, territory, a royalty percentage),
  * so the private terms came back from about 700 guesses. JSON.stringify also follows key
  * order, so the same terms could fingerprint differently. The salt is kept with the
- * licence and disclosed only with the full terms, which is what anyone recomputing it
+ * license and disclosed only with the full terms, which is what anyone recomputing it
  * needs.
  *
  * Checked before changing it: this value does not reach the Midnight contract (the
- * contract's licence commitment is licenseCommit(secret, record), made from the
+ * contract's license commitment is licenseCommit(secret, record), made from the
  * licensee's own secret) nor the record format (an envelope's Terms.termsHash is not
  * filled from it). The registry stores it as an opaque obligation id. Agreements made
  * before keep the fingerprint they were made with.
@@ -401,7 +436,7 @@ export const countersignLicense = async (id: string): Promise<License | undefine
       state,
       // Pending until the registry confirms it (round 4, F4): it used to be sent once, its
       // answer ignored and never retried, so one dropped request left an active royalty
-      // licence that the public lineage check called clean, for good.
+      // license that the public lineage check called clean, for good.
       ...(state === 'active' && createsHeritableObligation(l.type, l.terms) ? { obligationPending: true } : {}),
     };
   });
@@ -419,7 +454,7 @@ const registering = new Set<string>();
  * its answer was lost), the agreement is marked registered and saved; otherwise it stays
  * pending and is sent again on the next sync. Under a per-record beneficiary id made from the
  * vault key (round 3, P5), never the holder's party id, so the registry's obligations don't
- * link one holder's licences. Returns the agreement as it is now.
+ * link one holder's licenses. Returns the agreement as it is now.
  */
 const registerObligation = async (id: string): Promise<License | undefined> => {
   const l = licenses.find((x) => x.id === id);
@@ -473,6 +508,21 @@ export const revokeLicense = (id: string, reason: string): License | undefined =
   }
   return out;
 };
+
+/** Record a step of the real license on chain (the issuer's side). */
+export const setOnChain = (
+  id: string,
+  change: (c: OnChainLicense | undefined) => OnChainLicense,
+): License | undefined =>
+  update(id, (l) => {
+    const onChain = change(l.onChain);
+    // Live on chain: the agreement is active, signed by two parties' own keys on chain.
+    if (onChain.activateTx && !onChain.revokeTx && l.state !== 'active')
+      return { ...l, onChain, state: 'active', licenseeSignedAt: onChain.activatedAt ?? Date.now() };
+    if (onChain.issueTx && l.state === 'draft')
+      return { ...l, onChain, state: 'sent', breederSignedAt: onChain.issuedAt ?? Date.now() };
+    return { ...l, onChain };
+  });
 
 /** Renewal/amendment: supersede rather than mutate a signed license. */
 export const renewLicense = (
@@ -553,7 +603,7 @@ export const agreementType = (l: License): AgreementType => l.type ?? 'license';
 /**
  * Whether an agreement creates an obligation that descendants inherit.
  *
- * Not the same question as hasVeilcoreFee. A licence with no offspring royalty is
+ * Not the same question as hasVeilcoreFee. A license with no offspring royalty is
  * commercial but binds only the signatories — nothing rides down the lineage. An
  * obligation is heritable exactly when it attaches to offspring, whatever the
  * agreement is called.
