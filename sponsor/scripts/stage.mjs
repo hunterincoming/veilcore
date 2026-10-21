@@ -4,7 +4,7 @@
 // kept in git, so a deploy straight from GitHub would not have them. This copies what
 // the service needs into one folder OUTSIDE the repository:
 //   dist/                      the built service
-//   artifacts/veilcore/        the compiled contract, and the anchorBatch keys only
+//   artifacts/veilcore/        the compiled contract, and the anchorBatch and sealRevocations keys only
 //   package.json               the service's dependencies (same pinned versions)
 //   package-lock.json          made FROM the committed root lockfile, so the deploy's
 //                              `npm ci` installs exactly the reviewed versions
@@ -37,6 +37,8 @@ const need = [
   join(managed, 'contract', 'index.js'),
   join(managed, 'keys', 'anchorBatch.prover'),
   join(managed, 'keys', 'anchorBatch.verifier'),
+  join(managed, 'keys', 'sealRevocations.prover'),
+  join(managed, 'keys', 'sealRevocations.verifier'),
 ];
 // The binary circuit file; made from the JSON one if the compiler did not write it.
 if (!existsSync(join(managed, 'zkir', 'anchorBatch.bzkir'))) {
@@ -69,13 +71,16 @@ async function stage() {
   mkdirSync(join(art, 'keys'), { recursive: true });
   mkdirSync(join(art, 'zkir'), { recursive: true });
   cpSync(join(managed, 'contract', 'index.js'), join(art, 'contract', 'index.js'));
-  for (const f of ['anchorBatch.prover', 'anchorBatch.verifier']) cpSync(join(managed, 'keys', f), join(art, 'keys', f));
-  cpSync(join(managed, 'zkir', 'anchorBatch.zkir'), join(art, 'zkir', 'anchorBatch.zkir'));
-  if (existsSync(join(managed, 'zkir', 'anchorBatch.bzkir'))) {
-    cpSync(join(managed, 'zkir', 'anchorBatch.bzkir'), join(art, 'zkir', 'anchorBatch.bzkir'));
-  } else {
-    const { jsonIrToBinary } = await import('@midnight-ntwrk/zkir-v2');
-    writeFileSync(join(art, 'zkir', 'anchorBatch.bzkir'), jsonIrToBinary(readFileSync(join(managed, 'zkir', 'anchorBatch.zkir'), 'utf8')));
+  // anchorBatch for the anchoring job, sealRevocations for the sealing job (sealer.ts).
+  for (const c of ['anchorBatch', 'sealRevocations']) {
+    for (const f of [`${c}.prover`, `${c}.verifier`]) cpSync(join(managed, 'keys', f), join(art, 'keys', f));
+    cpSync(join(managed, 'zkir', `${c}.zkir`), join(art, 'zkir', `${c}.zkir`));
+    if (existsSync(join(managed, 'zkir', `${c}.bzkir`))) {
+      cpSync(join(managed, 'zkir', `${c}.bzkir`), join(art, 'zkir', `${c}.bzkir`));
+    } else {
+      const { jsonIrToBinary } = await import('@midnight-ntwrk/zkir-v2');
+      writeFileSync(join(art, 'zkir', `${c}.bzkir`), jsonIrToBinary(readFileSync(join(managed, 'zkir', `${c}.zkir`), 'utf8')));
+    }
   }
   // The compiled contract is an ES module; say so for its folder.
   writeFileSync(join(art, 'package.json'), JSON.stringify({ type: 'module' }, null, 2));

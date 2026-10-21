@@ -18,6 +18,7 @@ import { startServer } from './server.js';
 import { createIndexerRelay } from './indexer-relay.js';
 import { JsonFile } from './state-file.js';
 import { ANCHOR_TICK_MINUTES, Anchorer, type Attempt } from './anchorer.js';
+import { Sealer, isSealAttempt, type SealAttempt } from './sealer.js';
 import { HttpRegistry } from './registry.js';
 import { loadVeilcore, MidnightAnchorChain } from './chain.js';
 import { log, scrubOutput } from './log.js';
@@ -93,6 +94,7 @@ const main = async (): Promise<void> => {
   );
 
   let anchorer: Anchorer | undefined;
+  let sealer: Sealer | undefined;
   let anchorerNote = cfg.anchorer.enabled ? '' : `off: ${cfg.anchorer.why}`;
   if (cfg.anchorer.enabled) {
     try {
@@ -138,6 +140,24 @@ const main = async (): Promise<void> => {
           (ms) => new Promise((r) => setTimeout(r, ms)),
           log,
         );
+        // Sealing revocations (sealer.ts): only with this build's sealRevocations key, which
+        // a staging from before it does not have; then revocations wait for a manual seal.
+        if (check.sealKeyMatches) {
+          const seals = new JsonFile<SealAttempt>(join(cfg.stateDir, 'seal-attempt.json'), isSealAttempt);
+          sealer = new Sealer(
+            chain,
+            { load: () => seals.load(), save: (a) => seals.save(a), clear: () => seals.clear() },
+            (job) =>
+              queue.run(async () => {
+                if (!wallet.isSynced() && !(await wallet.waitSynced(60_000))) throw new Error('wallet not synced');
+                return job();
+              }, { bypassLimit: true }),
+            budget,
+            cfg.maxFeeSpecks,
+            now,
+            log,
+          );
+        } else log('warn', 'sealing job off: no sealRevocations key matching the chain in VEILCORE_ARTIFACTS_DIR');
       }
     } catch (e) {
       anchorerNote = `off: ${e instanceof Error ? e.message : String(e)}`;
@@ -156,6 +176,7 @@ const main = async (): Promise<void> => {
         contractAddress: cfg.contractAddress,
         // True while the wallet sync has applied nothing for 30 minutes (wallet.ts checkStall).
         syncStalled: wallet.syncStalled(),
+        sealer: sealer ? { enabled: true, ...sealer.publicStatus() } : { enabled: false },
         anchorer: anchorer
           ? detail
             ? { enabled: true, ...anchorer.status() }
@@ -189,6 +210,7 @@ const main = async (): Promise<void> => {
     try {
       const outcome = await anchorer.runOnce();
       log('info', `anchoring: ${outcome}`);
+      if (sealer) await sealer.runOnce().catch((e: unknown) => log('warn', `sealing: ${e instanceof Error ? e.message : String(e)}`));
     } finally {
       running = false;
     }
