@@ -21,6 +21,7 @@
 import { ed25519, x25519 } from '@noble/curves/ed25519.js';
 import { hkdf } from '@noble/hashes/hkdf.js';
 import { sha256 } from '@noble/hashes/sha2.js';
+import { canonicalise } from 'veilcore-records';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const hex = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
@@ -162,17 +163,11 @@ export type DealSide = 'issuer' | 'licensee';
 /** A message as signed: who, when, what. */
 export type DealMessage = DealBody & { readonly from: DealSide; readonly at: number };
 
-/** Keys sorted at every level, no spaces: the bytes a signature covers. */
-export const canonical = (v: unknown): string => {
-  if (v === null || typeof v !== 'object') return JSON.stringify(v);
-  if (Array.isArray(v)) return `[${v.map(canonical).join(',')}]`;
-  const o = v as Record<string, unknown>;
-  return `{${Object.keys(o)
-    .filter((k) => o[k] !== undefined)
-    .sort()
-    .map((k) => `${JSON.stringify(k)}:${canonical(o[k])}`)
-    .join(',')}}`;
-};
+/**
+ * The bytes a signature covers: the canonical JSON every VeilCore format uses (keys sorted,
+ * no spaces; veilcore-records canonicalise), so a partner or a court can recompute them.
+ */
+export const canonical = (v: DealMessage): string => canonicalise(v);
 
 const DOMAIN = 'veilcore/deal-message/v1\n';
 

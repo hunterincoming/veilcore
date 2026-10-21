@@ -7,10 +7,17 @@
 // hourly anchor on Midnight. VeilCore never holds or moves the money.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Box, Button, Chip, Divider, Paper, Stack, TextField, Typography } from '@mui/material';
 import { say, type DealEntry, type DealParty } from '../../veilcore/deal-client';
-import type { DealSide } from '../../veilcore/deal';
+import { publicOf, type DealSide } from '../../veilcore/deal';
+import {
+  REGISTRY_BASE,
+  downloadPaymentRequest,
+  paymentRequest,
+  receiptsFor,
+  type CheckedReceipt,
+} from '../../veilcore/payments';
 
 type Terms = { royaltyType?: string; royaltyAmount?: string; unitBasis?: string };
 
@@ -82,6 +89,9 @@ export const RoyaltyLedger: React.FC<{
   const [error, setError] = useState<string>();
   const [form, setForm] = useState<'statement' | 'payout' | undefined>();
   const percent = terms.royaltyType === 'percent';
+  const mine = useMemo(() => publicOf(party.mySecret), [party.mySecret]);
+  const keys =
+    side === 'licensee' ? { licensee: mine, issuer: party.theirPublic } : { licensee: party.theirPublic, issuer: mine };
 
   const send = async (body: Parameters<typeof say>[1]) => {
     setBusy(true);
@@ -172,6 +182,7 @@ export const RoyaltyLedger: React.FC<{
                 side={side}
                 percent={percent}
                 payout={payout}
+                keys={keys}
                 busy={busy}
                 onSend={(b) => void send(b)}
               />
@@ -315,11 +326,13 @@ const StatementLine: React.FC<{
   side: DealSide;
   percent: boolean;
   payout?: Extract<DealEntry, { type: 'payout' }>;
+  keys: { licensee: string; issuer: string };
   busy: boolean;
   onSend: Send;
-}> = ({ line, side, percent, payout, busy, onSend }) => {
+}> = ({ line, side, percent, payout, keys, busy, onSend }) => {
   const s = line.statement;
   const status = statusOf(line);
+  const receipts = useReceipts(line, payout?.account);
   const [note, setNote] = useState('');
   const [ref, setRef] = useState('');
   const [paidOn, setPaidOn] = useState(today());
@@ -351,6 +364,19 @@ const StatementLine: React.FC<{
           {line.paid.reference ? `, reference ${line.paid.reference}` : ''}
         </Typography>
       )}
+      {receipts.map((c) => (
+        <Alert
+          key={`${c.receipt.partner}:${c.receipt.reference}`}
+          severity={c.mismatch.length ? 'warning' : 'success'}
+          variant="outlined"
+        >
+          Paid through {c.partnerName ?? 'a payment partner'}
+          {c.nameChecked ? ' (name checked by VeilCore)' : ' (name not checked by VeilCore)'}: {c.receipt.amount}{' '}
+          {c.receipt.currency} to {c.receipt.payTo} on {new Date(c.receipt.paidAt).toLocaleDateString()}, reference{' '}
+          {c.receipt.reference}. Signed by the partner and checked here.
+          {c.mismatch.length > 0 && ` Doesn’t match: ${c.mismatch.join('; ')}.`}
+        </Alert>
+      ))}
       {line.received && (
         <Typography variant="body2" color="text.secondary">
           Confirmed received {line.received.amount} {line.received.currency}, {dateOf(line.received.at)}
@@ -413,9 +439,18 @@ const StatementLine: React.FC<{
       {side === 'licensee' && line.reply?.decision === 'accepted' && !line.paid && (
         <Stack spacing={1}>
           {payout && (
-            <Typography variant="body2">
-              Pay {s.amountOwed} {s.currency} by {payout.method} to {payout.account}, then record it here.
-            </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
+              <Typography variant="body2">
+                Pay {s.amountOwed} {s.currency} by {payout.method} to {payout.account}, then record it here.
+              </Typography>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => downloadPaymentRequest(paymentRequest(s, payout, keys, REGISTRY_BASE))}
+              >
+                Payment request for a partner
+              </Button>
+            </Stack>
           )}
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
             <TextField
@@ -454,4 +489,27 @@ const StatementLine: React.FC<{
       )}
     </Stack>
   );
+};
+
+/** Receipts filed by payment partners for an accepted statement, checked here, read every 30 seconds until confirmed. */
+const useReceipts = (line: Line, payTo: string | undefined): CheckedReceipt[] => {
+  const [list, setList] = useState<CheckedReceipt[]>([]);
+  const watch = line.reply?.decision === 'accepted';
+  const done = !!line.received;
+  const fp = line.statement.fingerprint;
+  useEffect(() => {
+    if (!watch) return;
+    let live = true;
+    const run = () =>
+      receiptsFor(line.statement, payTo)
+        .then((r) => live && setList(r))
+        .catch(() => undefined);
+    void run();
+    const t = done ? undefined : setInterval(() => void run(), 30_000);
+    return () => {
+      live = false;
+      if (t) clearInterval(t);
+    };
+  }, [fp, payTo, watch, done, line.statement]);
+  return list;
 };
