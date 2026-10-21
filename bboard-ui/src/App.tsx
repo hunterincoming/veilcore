@@ -71,6 +71,7 @@ const RestorePage = page(() => import('./components/flow/RestorePage'), 'Restore
 const BackupPage = page(() => import('./components/flow/BackupPage'), 'BackupPage');
 const ProvePage = page(() => import('./components/flow/ProvePage'), 'ProvePage');
 const LicenseInvitePage = page(() => import('./components/licensing/LicenseInvitePage'), 'LicenseInvitePage');
+const ProveLicensePage = page(() => import('./components/licensing/LicenseProof'), 'ProveLicensePage');
 const PartnersPage = page(() => import('./components/partners/PartnersPage'), 'PartnersPage');
 const TermsBuilder = page(() => import('./components/licensing/TermsBuilder'), 'TermsBuilder');
 const LicenseDetail = page(() => import('./components/licensing/LicenseDetail'), 'LicenseDetail', 'after');
@@ -294,6 +295,14 @@ const routes = (
     <Route path="/record/:id/license" element={withLayout(<TermsBuilder />)} />
     <Route path="/licenses" element={withLayout(<LicensingHub />)} />
     <Route path="/license/:id" element={withLayout(<LicenseDetail />)} />
+    <Route
+      path="/prove-license/:id"
+      element={
+        <Light>
+          <ProveLicensePage />
+        </Light>
+      }
+    />
     <Route
       path="/license-invite/:id"
       element={

@@ -9,7 +9,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useState } from 'react';
-import { useLocation, useParams, Link as RouterLink } from 'react-router-dom';
+import { Navigate, useLocation, useParams, Link as RouterLink } from 'react-router-dom';
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material';
 import {
   getProveRequest,
@@ -60,6 +60,9 @@ export const ProvePage: React.FC = () => {
       live = false;
     };
   }, [id]);
+
+  // A license request opened at the ownership address: send it where it belongs.
+  if (mine?.kind === 'license') return <Navigate to={`/prove-license/${id}${hash}`} replace />;
 
   // The person who asked: their own page, whatever the registry says.
   if (mine) {

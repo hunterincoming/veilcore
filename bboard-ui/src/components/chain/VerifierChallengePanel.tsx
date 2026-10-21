@@ -69,6 +69,7 @@ export const VerifierChallengePanel: React.FC<{ claim?: ClaimedChainAnchor | nul
   const [ask, setAsk] = useState<MyAsk | undefined>(() =>
     myAsks().find(
       (a) =>
+        !a.kind &&
         a.identity === identity &&
         (!recordId || a.recordId === recordId) &&
         // A request made for a record that names its key is shown only for that record.

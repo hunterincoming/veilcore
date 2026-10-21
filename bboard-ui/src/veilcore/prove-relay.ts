@@ -64,6 +64,12 @@ export type MyAsk = {
   readonly token?: string;
   readonly recordId?: string;
   readonly anchorTx?: string;
+  /**
+   * 'license': prove a live license FROM this identity (proveLicense, rule 5), answered at
+   * /prove-license/<id>. Absent: prove you hold the identity itself (proveOwnership, rule 8).
+   * The registry is the same mailbox for both; only this browser and the link know which.
+   */
+  readonly kind?: 'license';
   /** The record named this key when it was sealed: what ties the two (key-binding.ts). */
   readonly record?: KeyedRecord;
   readonly createdAt: number;
@@ -161,6 +167,7 @@ export const askToProve = async (input: {
   anchorTx?: string;
   /** For a record that names its key: checked here, before anything is asked. */
   record?: KeyedRecord;
+  kind?: 'license';
 }): Promise<{ ask: MyAsk; link: string } | { error: string }> => {
   const identity = input.identity.trim().toLowerCase();
   if (!HEX64.test(identity)) return { error: 'this link names no on-chain identity to check' };
@@ -196,15 +203,16 @@ export const askToProve = async (input: {
     ...(input.recordId ? { recordId: input.recordId } : {}),
     ...(input.anchorTx ? { anchorTx: input.anchorTx } : {}),
     ...(input.record ? { record: input.record } : {}),
+    ...(input.kind ? { kind: input.kind } : {}),
     createdAt: Date.now(),
   };
   writeAsks([...readAsks(), ask]);
-  return { ask, link: proveLink(ask.id, token) };
+  return { ask, link: proveLink(ask.id, token, input.kind) };
 };
 
 /** The holder's link. The token rides in the fragment, which is never sent to a server. */
-export const proveLink = (id: string, token?: string): string =>
-  `${typeof window === 'undefined' ? '' : window.location.origin}/prove/${id}${token ? `#t=${token}` : ''}`;
+export const proveLink = (id: string, token?: string, kind?: 'license'): string =>
+  `${typeof window === 'undefined' ? '' : window.location.origin}/${kind === 'license' ? 'prove-license' : 'prove'}/${id}${token ? `#t=${token}` : ''}`;
 
 // --- both sides -----------------------------------------------------------------------
 

@@ -50,6 +50,7 @@ export const contractStateAfter = (
       | 'anchorBatch'
       | 'issueLicense'
       | 'countersignLicense'
+      | 'proveLicense'
       | 'revokeLicense';
     args: unknown[];
     /** The whole private state, when the call needs more than a record secret (a licence). */

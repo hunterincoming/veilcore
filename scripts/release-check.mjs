@@ -203,6 +203,7 @@ export const APP_ROUTES = Object.freeze([
   '/implementations',
   '/new',
   '/prove/:prove',
+  '/prove-license/:prove',
   '/record/:record',
   '/record/:record/license',
   '/licenses',
