@@ -74,6 +74,20 @@ holds or moves anyone's money.
 - Payment rails are the partner's, under the partner's licenses. A money-moving feature
   inside VeilCore needs a lawyer's opinion first; none is planned.
 
+## Known limits (accepted, from review round 3)
+
+- **The registry can withhold a message.** It can't read, forge, alter or reorder one, but it
+  can hold back the newest (a changed payout account, say). A changed account shows beside
+  the old one; the payer is told to check before paying.
+- **A partner's name comes from the registry.** Receipts are kept only from partners whose
+  name VeilCore checked, and pages check each receipt's signature; which keys are partners
+  is not yet fixed in the website itself.
+- **Invites cost nothing to make.** Anyone can make invites and open channels for them, within
+  per-client daily limits; empty channels are deleted after a week. There is no total cap,
+  which would let an attacker stop every honest license.
+- **Receipts are readable by anyone holding the statement's fingerprint** (only the two parties
+  and their partner have it).
+
 ## Going live (the switch)
 
 One reviewed change, after a full run on the test network:
