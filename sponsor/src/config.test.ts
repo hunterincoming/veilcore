@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { assertNotForbidden, assertNotMaintenanceKey, ConfigError, loadConfig, MAINNET_CONTRACT, SPECKS_PER_DUST } from './config.js';
+import { AGREEMENT_CIRCUITS, PHASE1_PUBLIC_CIRCUITS } from './policy.js';
 
 const base = {
   SPONSOR_SEED: '11'.repeat(32),
@@ -47,7 +48,8 @@ describe('configuration', () => {
     const c = loadConfig(base);
     expect(c.network).toBe('preprod');
     expect(c.indexer).toMatch(/preprod/);
-    expect([...c.allowedCircuits].sort()).toEqual(['anchor', 'pairDna', 'proveOwnership']);
+    // A test network pays for the agreement calls too, so they can be tried before mainnet.
+    expect([...c.allowedCircuits].sort()).toEqual([...PHASE1_PUBLIC_CIRCUITS, ...AGREEMENT_CIRCUITS].sort());
     expect(c.maxFeeSpecks).toBe(5n * SPECKS_PER_DUST);
     expect(c.anchorer.enabled).toBe(false);
   });

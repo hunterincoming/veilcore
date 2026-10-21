@@ -46,6 +46,13 @@ export const AGREEMENTS_SIMULATED = `Simulated in ${THIS_SITE}: the other party 
  */
 export const AGREEMENTS_LIVE = false;
 
+/**
+ * Whether this build makes agreements on chain (a real license, parentage, offspring royalties).
+ * Always on a test network, so they can be tried first; on mainnet only once AGREEMENTS_LIVE
+ * is on, with the sponsor's MAINNET_AGREEMENTS (sponsor/src/policy.ts) paying for them.
+ */
+export const AGREEMENTS_ON_CHAIN = AGREEMENTS_LIVE || !IS_MAINNET;
+
 /** The label agreements carry while AGREEMENTS_LIVE is false. */
 export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';
 

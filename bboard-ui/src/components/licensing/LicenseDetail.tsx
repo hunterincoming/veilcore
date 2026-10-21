@@ -38,7 +38,7 @@ import { LicenseStateChip, ROYALTY_PENDING_TEXT } from './LicenseStateChip';
 import { ShareLicense } from './ShareLicense';
 import { AgreementTypeChip } from './AgreementTypeChip';
 import { AgreementsBackupFirst } from './AgreementsBackupFirst';
-import { AGREEMENTS_SIMULATED, SIMULATED_TAG } from '../../config/copy';
+import { AGREEMENTS_ON_CHAIN, AGREEMENTS_SIMULATED, SIMULATED_TAG } from '../../config/copy';
 import { chainNotReady } from '../../veilcore/chain/config';
 import { RealLicensePanel } from './RealLicensePanel';
 
@@ -93,8 +93,10 @@ export const LicenseDetail: React.FC = () => {
 
   const state = effectiveState(license);
   const type = agreementType(license);
-  // Where this site sends transactions, a license is made for real, between two browsers.
-  const real = chainNotReady() === undefined && type === 'license';
+  // Where this site sends transactions, every agreement is made for real, between two browsers:
+  // on chain a license, a breeder share and a lab transfer are each a license from the record,
+  // and their terms travel over the deal's own channel.
+  const real = AGREEMENTS_ON_CHAIN && chainNotReady() === undefined;
   const record = getRecord(license.recordId);
   const signLink = canonicalUrl(`/license/${encodeURIComponent(license.id)}/sign`);
   // Breeder-share lineage: if the counterparty may breed with the material, any cultivar

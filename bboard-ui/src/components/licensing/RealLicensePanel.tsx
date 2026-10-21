@@ -403,7 +403,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
             whatever end date the terms say.
             {agreed && ` They signed their agreement to these terms on ${new Date(agreed.at).toLocaleDateString()}.`}
           </Alert>
-          {party && oc.termsSentAt && (
+          {party && oc.termsSentAt && license.type === 'license' && (
             <RoyaltyLedger
               party={party}
               side="issuer"

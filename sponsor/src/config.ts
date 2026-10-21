@@ -3,7 +3,7 @@
 // sponsor/README.md documents each variable.
 // SPDX-License-Identifier: Apache-2.0
 
-import { allowList, PHASE1_PUBLIC_CIRCUITS } from './policy.js';
+import { allowList, defaultCircuits } from './policy.js';
 import { DEFAULT_LIMITS, type LimitConfig } from './limits.js';
 
 /** One DUST is 10^15 SPECKs. */
@@ -191,7 +191,7 @@ export const loadConfig = (env: Record<string, string | undefined>): Config => {
     problems.push('PROOF_SERVER_URL must be the address of a Midnight proof server this service can reach (http://…).');
   }
 
-  let allowedCircuits: ReadonlySet<string> = new Set(PHASE1_PUBLIC_CIRCUITS);
+  let allowedCircuits: ReadonlySet<string> = new Set(defaultCircuits(mainnet));
   if (env.SPONSOR_CIRCUITS?.trim()) {
     try {
       allowedCircuits = allowList(env.SPONSOR_CIRCUITS.split(',').map((s) => s.trim()).filter(Boolean));

@@ -103,6 +103,7 @@ import {
 import { useAnchorCheck } from '../components/verify/useAnchorCheck';
 import { VerifierChallengePanel } from '../components/chain/VerifierChallengePanel';
 import { LicenseProofPanel } from '../components/licensing/LicenseProof';
+import { AGREEMENTS_ON_CHAIN } from '../config/copy';
 import { publicCustodyLines, publicCustodyOf } from '../veilcore/custody';
 import { NameCheckText } from '../components/NameCheckText';
 import { rich, useT } from '../i18n/app';
@@ -1045,7 +1046,7 @@ export const VerifyPage: React.FC = () => {
           />
         )}
         {/* Someone says they're licensed from this record: ask them to prove it (rule 5). */}
-        {REAL_CHAIN && result?.found && linked('chain') && (
+        {REAL_CHAIN && AGREEMENTS_ON_CHAIN && result?.found && linked('chain') && (
           <LicenseProofPanel identity={linked('chain') ?? ''} recordId={id} />
         )}
       </Container>

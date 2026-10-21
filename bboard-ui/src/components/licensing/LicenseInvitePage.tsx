@@ -387,13 +387,15 @@ export const LicenseInvitePage: React.FC = () => {
 
       {held && isLive && !gone && party && held.agreement && (
         <Box sx={{ mt: 2 }}>
-          <RoyaltyLedger
-            party={party}
-            side="licensee"
-            terms={held.agreement.terms}
-            entries={deal.entries}
-            refresh={deal.refresh}
-          />
+          {held.agreement.type === 'license' && (
+            <RoyaltyLedger
+              party={party}
+              side="licensee"
+              terms={held.agreement.terms}
+              entries={deal.entries}
+              refresh={deal.refresh}
+            />
+          )}
 
           {(Number(held.agreement.terms.offspringRoyaltyPct) || 0) > 0 && (
             <Box sx={{ mt: 2 }}>

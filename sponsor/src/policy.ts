@@ -15,6 +15,39 @@ import { ContractCall, ContractDeploy, MaintenanceUpdate, Transaction } from '@m
 export const PHASE1_PUBLIC_CIRCUITS = ['anchor', 'proveOwnership', 'pairDna'] as const;
 
 /**
+ * The agreement calls (docs/agreements-live.md): a two-party license and its proof and
+ * revocation, parentage both holders confirm, and obligations such as an offspring royalty.
+ * Each is a call a visitor's browser has proved; the sponsor pays its fee within the same
+ * limits as every other call.
+ */
+export const AGREEMENT_CIRCUITS = [
+  'issueLicense',
+  'countersignLicense',
+  'proveLicense',
+  'revokeLicense',
+  'proposeParent',
+  'confirmParent',
+  'withdrawParent',
+  'proposeObligation',
+  'withdrawObligation',
+  'acceptObligation',
+  'rejectObligation',
+  'discharge',
+] as const;
+
+/**
+ * THE mainnet switch for agreements, on the sponsor's side: false until both founders approve
+ * in writing. The website's AGREEMENTS_LIVE (bboard-ui/src/config/copy.ts) must say the same
+ * (a test checks). On mainnet the list can't be changed by configuration, only by this
+ * reviewed line. Test networks pay for agreement calls already, so they can be tried first.
+ */
+export const MAINNET_AGREEMENTS = false;
+
+/** What the public endpoint pays for, unless SPONSOR_CIRCUITS (test networks only) says otherwise. */
+export const defaultCircuits = (mainnet: boolean): readonly string[] =>
+  mainnet && !MAINNET_AGREEMENTS ? PHASE1_PUBLIC_CIRCUITS : [...PHASE1_PUBLIC_CIRCUITS, ...AGREEMENT_CIRCUITS];
+
+/**
  * Circuits the public endpoint never pays for, whatever the configuration says.
  * anchorBatch and sealRevocations are run by our own background job only.
  */
