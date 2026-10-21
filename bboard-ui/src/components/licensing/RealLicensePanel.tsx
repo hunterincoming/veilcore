@@ -19,7 +19,9 @@ import { Link as RouterLink } from 'react-router-dom';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import { canonicalUrl } from '../../config/network';
 import { hexBytes, useRecordKeys } from '../../veilcore/record-keys';
-import { clearOnChain, setOnChain, revokeLicense, type License } from '../../veilcore/licenses';
+import { clearOnChain, setOnChain, revokeLicense, type License, type OnChainLicense } from '../../veilcore/licenses';
+import { useDeal, type DealParty } from '../../veilcore/deal-client';
+import { RoyaltyLedger } from './RoyaltyLedger';
 import {
   commitHashOf,
   createInvite,
@@ -28,7 +30,6 @@ import {
   invitePath,
   licenseCode,
   licenseStatusNow,
-  newNonce,
   postIssued,
   postNonce,
   verifyActivated,
@@ -38,6 +39,18 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 
 const POLL_MS = 8_000;
+
+/** The issuer's side of the deal's channel, once both keys and the license are known. */
+export const dealParty = (oc: OnChainLicense): DealParty | undefined =>
+  oc.partySecret && oc.licenseeNonce && oc.commitment && oc.issuerRecord
+    ? {
+        side: 'issuer',
+        mySecret: oc.partySecret,
+        theirPublic: oc.licenseeNonce,
+        commitment: oc.commitment,
+        issuerRecord: oc.issuerRecord,
+      }
+    : undefined;
 /** Once live: read the chain now and then, so a revoke from another device shows. */
 const LIVE_POLL_MS = 60_000;
 
@@ -55,6 +68,12 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
   const [code, setCode] = useState<string>();
   const call = useChainCall<ChainReceipt>();
   const checking = useRef(false);
+  const party = oc ? dealParty(oc) : undefined;
+  // The deal's channel, once the terms have gone: their agreement and royalties come back here.
+  const deal = useDeal(oc?.termsSentAt ? party : undefined);
+  const agreed = deal.entries?.find(
+    (e) => e.type === 'agree' && !e.mine && e.agreementFingerprint === license.agreementFingerprint,
+  );
 
   const gone = Boolean(oc?.revokeTx || oc?.goneSeenAt);
   const issued = Boolean(oc?.issueTx || oc?.issueSeenAt);
@@ -114,9 +133,16 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
         if (!active || !inv) return;
         // They committed: answer with a nonce, kept before it is posted and never replaced.
         if (inv.commitHash && !oc.issuerNonce) {
-          const nonce = newNonce();
-          setOnChain(license.id, (c) => ({ ...c!, issuerNonce: nonce, commitHash: inv.commitHash! }));
-          await postNonce(oc.inviteId, nonce, oc.issuerToken);
+          // This side's key for the deal; its public half is the nonce the code is made with.
+          const { newPartyKey } = await import('../../veilcore/deal');
+          const party = newPartyKey();
+          setOnChain(license.id, (c) => ({
+            ...c!,
+            issuerNonce: party.public,
+            partySecret: party.secret,
+            commitHash: inv.commitHash!,
+          }));
+          await postNonce(oc.inviteId, party.public, oc.issuerToken);
           return;
         }
         if (oc.issuerNonce && !inv.issuerNonce) {
@@ -215,6 +241,25 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
       // Again just before sending: a key change since their answer would strand it.
       if ((await headNow(oc.identity)) !== oc.issuerRecord)
         throw new Error('This record’s key changed since they accepted. Nothing was sent: start over with a new link.');
+      // The terms go to them first, over the deal's own channel: they read them before they
+      // activate, and their signed agreement comes back the same way.
+      if (!oc.termsSentAt) {
+        if (!oc.partySecret || !oc.licenseeNonce)
+          throw new Error('This link was made before private messages. Start over with a new link.');
+        if (!license.agreementSalt)
+          throw new Error('This agreement was drawn up before agreements had a salt. Make a fresh one.');
+        progress('Sending them the terms…');
+        const { say } = await import('../../veilcore/deal-client');
+        await say(dealParty(oc)!, {
+          type: 'terms',
+          agreementType: license.type,
+          terms: JSON.parse(JSON.stringify(license.terms)) as Record<string, unknown>,
+          recordFingerprint: license.recordFingerprint,
+          agreementSalt: license.agreementSalt,
+          agreementFingerprint: license.agreementFingerprint,
+        });
+        setOnChain(license.id, (c) => ({ ...c!, termsSentAt: Date.now() }));
+      }
       const { issueLicenseOnChain } = await import('../../veilcore/chain/actions');
       const r = await issueLicenseOnChain(hexBytes(keys.recordSecret), oc.commitment, { progress });
       // Kept before it is posted: a post that fails is sent again, never the transaction.
@@ -355,7 +400,17 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
             record, and activated with the key of whoever accepted your link and read you the code. They can prove they
             hold a live license from this record without showing which one. On chain it stays live until you revoke it,
             whatever end date the terms say.
+            {agreed && ` They signed their agreement to these terms on ${new Date(agreed.at).toLocaleDateString()}.`}
           </Alert>
+          {party && oc.termsSentAt && (
+            <RoyaltyLedger
+              party={party}
+              side="issuer"
+              terms={license.terms}
+              entries={deal.entries}
+              refresh={deal.refresh}
+            />
+          )}
           <Button
             color="error"
             variant="text"

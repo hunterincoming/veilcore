@@ -21,8 +21,17 @@ export type HeldLicense = {
   readonly identity: string;
   /** The issuer head the commitment was built against, hex: countersigning and proving name it. */
   readonly issuerRecord: string;
-  /** This browser's nonce for the read-aloud code (license-invites.ts licenseCode), hex. */
+  /**
+   * This side's public key for the deal (deal.ts), hex: also its nonce for the read-aloud code
+   * (license-invites.ts licenseCode), so the code covers it.
+   */
   readonly licenseeNonce: string;
+  /** The secret half of that key: signs this side's messages and opens the deal's channel. Secret. */
+  readonly partySecret?: string;
+  /** The agreement as the issuer sent it, checked against its fingerprint (deal messages, 'terms'). */
+  readonly agreement?: AgreementCopy;
+  /** When this side signed its agreement to those terms. */
+  readonly agreedAt?: number;
   /** The issuer's nonce, the first one this browser saw. */
   readonly issuerNonce?: string;
   /** The issuer's words for this license (from the invite). */
@@ -33,6 +42,15 @@ export type HeldLicense = {
   readonly activatedAt?: number;
   /** When a checked backup was seen to hold this license's secret. */
   readonly backedUpAt?: number;
+};
+
+/** What the licensee sees and agrees to: enough to recompute the agreement's fingerprint. */
+export type AgreementCopy = {
+  readonly type: string;
+  readonly terms: Record<string, unknown>;
+  readonly recordFingerprint: string;
+  readonly agreementSalt: string;
+  readonly agreementFingerprint: string;
 };
 
 export const isHeldLicense = (v: unknown): v is HeldLicense => {
@@ -50,6 +68,7 @@ export const isHeldLicense = (v: unknown): v is HeldLicense => {
     HEX64.test(h.issuerRecord) &&
     typeof h.licenseeNonce === 'string' &&
     HEX64.test(h.licenseeNonce) &&
+    (h.partySecret === undefined || (typeof h.partySecret === 'string' && HEX64.test(h.partySecret))) &&
     typeof h.label === 'string' &&
     typeof h.acceptedAt === 'number'
   );
@@ -119,6 +138,7 @@ export const updateHeldLicense = (
     next.commitment !== all[i].commitment ||
     next.identity !== all[i].identity ||
     next.licenseeNonce !== all[i].licenseeNonce ||
+    next.partySecret !== all[i].partySecret ||
     (all[i].issuerNonce !== undefined && next.issuerNonce !== all[i].issuerNonce)
   )
     throw new Error('A held license keeps its secret, and the nonces its code was made with.');
@@ -133,11 +153,14 @@ export const heldLicensesForBackup = (): HeldLicense[] => read().map(({ backedUp
 /** Backup check: the licenses in a checked file that hold the same secret as here are marked backed up. */
 export const markHeldBackedUp = (fromFile: unknown, now = Date.now()): void => {
   const inFile = new Map(
-    (Array.isArray(fromFile) ? fromFile : []).filter(isHeldLicense).map((h) => [h.inviteId, h.secret]),
+    (Array.isArray(fromFile) ? fromFile : [])
+      .filter(isHeldLicense)
+      .map((h) => [h.inviteId, `${h.secret}:${h.partySecret ?? ''}`]),
   );
+  const both = (h: HeldLicense) => `${h.secret}:${h.partySecret ?? ''}`;
   const all = read();
-  if (!all.some((h) => inFile.get(h.inviteId) === h.secret)) return;
-  write(all.map((h) => (inFile.get(h.inviteId) === h.secret ? { ...h, backedUpAt: now } : h)));
+  if (!all.some((h) => inFile.get(h.inviteId) === both(h))) return;
+  write(all.map((h) => (inFile.get(h.inviteId) === both(h) ? { ...h, backedUpAt: now } : h)));
 };
 
 /** Backup check: the licenses here that the file doesn't hold (same secret). */

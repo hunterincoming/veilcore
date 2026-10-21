@@ -174,10 +174,6 @@ export const commitHashOf = async (commitment: string, issuerRecord: string, lic
     .map((x) => x.toString(16).padStart(2, '0'))
     .join('');
 
-/** A fresh 32-byte nonce, hex. */
-export const newNonce = (): string =>
-  Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, '0')).join('');
-
 /**
  * The 6-digit code both people read to each other, e.g. "482 913": from the commitment, the
  * issuer record it names, and both nonces, tagged so it is never any other hash.
@@ -334,13 +330,17 @@ export const acceptAsLicensee = async (invite: LicenseInvite, token: string): Pr
     const { licenseRequestFor } = await import('./chain/actions');
     const secret = newLicenseSecret();
     const req = licenseRequestFor(bytes(secret), invite.identity, await latestLedger());
+    // This side's key for the deal: its public half is the nonce the code is made with.
+    const { newPartyKey } = await import('./deal');
+    const party = newPartyKey();
     held = keepHeldLicense({
       inviteId: invite.id,
       secret,
       commitment: req.commitment,
       identity: invite.identity,
       issuerRecord: req.issuerRecord,
-      licenseeNonce: newNonce(),
+      licenseeNonce: party.public,
+      partySecret: party.secret,
       label: invite.label,
       acceptedAt: Date.now(),
     });

@@ -15,7 +15,21 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useParams, Link as RouterLink } from 'react-router-dom';
-import { Alert, Box, Button, CircularProgress, Container, Paper, Stack, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  Checkbox,
+  CircularProgress,
+  Container,
+  FormControlLabel,
+  Paper,
+  Stack,
+  Typography,
+} from '@mui/material';
+import { say, useDeal, type DealParty } from '../../veilcore/deal-client';
+import { TermsBox, useOfferedTerms } from './DealTerms';
+import { RoyaltyLedger } from './RoyaltyLedger';
 import { tokenFromHash } from '../../veilcore/prove-relay';
 import {
   acceptAsLicensee,
@@ -68,6 +82,20 @@ export const LicenseInvitePage: React.FC = () => {
   const [code, setCode] = useState<string>();
   /** The license on chain now, read by this page itself: posts to the registry can be lost. */
   const [onChain, setOnChainStatus] = useState<'PENDING' | 'ACTIVE' | 'none'>();
+  const [agreeChecked, setAgreeChecked] = useState(false);
+  // The deal's private channel, once both keys are known: the terms arrive here, signed by the issuer.
+  const party: DealParty | undefined =
+    held?.partySecret && held.issuerNonce
+      ? {
+          side: 'licensee',
+          mySecret: held.partySecret,
+          theirPublic: held.issuerNonce,
+          commitment: held.commitment,
+          issuerRecord: held.issuerRecord,
+        }
+      : undefined;
+  const deal = useDeal(party);
+  const offered = useOfferedTerms(deal.entries);
 
   useEffect(() => {
     let on = true;
@@ -200,6 +228,13 @@ export const LicenseInvitePage: React.FC = () => {
   const activate = () =>
     call.run(async (progress) => {
       if (!held || !issued) throw new Error('It has not been issued yet.');
+      if (!party || offered?.ok !== true) throw new Error('The terms have not arrived, or didn’t check out.');
+      // Their signed agreement to exactly these terms goes first, kept here and sent to the issuer.
+      if (!held.agreedAt) {
+        progress('Signing your agreement to the terms…');
+        await say(party, { type: 'agree', agreementFingerprint: offered.copy.agreementFingerprint });
+        updateHeldLicense(id, (h) => ({ ...h, agreement: offered.copy, agreedAt: Date.now() }));
+      }
       const { countersignLicenseOnChain } = await import('../../veilcore/chain/actions');
       const r = await countersignLicenseOnChain(hexBytes(held.secret), held.issuerRecord, { progress });
       // Kept before it is posted: a post that fails is sent again, never the transaction.
@@ -295,8 +330,9 @@ export const LicenseInvitePage: React.FC = () => {
       {held && !takenByOther && issued && !isLive && !gone && (
         <Stack spacing={1.5}>
           <Alert severity="info" variant="outlined">
-            They issued it on Midnight (checked on chain). Activate it with your key.
+            They issued it on Midnight (checked on chain). Read the terms, then activate it with your key.
           </Alert>
+          <TermsBox offered={offered} />
           {!held.backedUpAt ? (
             <Alert
               severity="warning"
@@ -311,11 +347,34 @@ export const LicenseInvitePage: React.FC = () => {
               license from another device.
             </Alert>
           ) : (
-            <Button variant="contained" size="large" disabled={call.busy} onClick={() => void activate()}>
-              Activate
-            </Button>
+            <>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={agreeChecked}
+                    disabled={offered?.ok !== true}
+                    onChange={(e) => setAgreeChecked(e.target.checked)}
+                  />
+                }
+                label="I agree to these terms"
+              />
+              <Button
+                variant="contained"
+                size="large"
+                disabled={call.busy || !agreeChecked || offered?.ok !== true}
+                onClick={() => void activate()}
+              >
+                Agree and activate
+              </Button>
+            </>
           )}
         </Stack>
+      )}
+
+      {held && isLive && !gone && held.agreement && (
+        <Box sx={{ mb: 2 }}>
+          <TermsBox offered={{ ok: true, copy: held.agreement }} agreedAt={held.agreedAt} />
+        </Box>
       )}
 
       {held && isLive && !gone && (
@@ -323,6 +382,18 @@ export const LicenseInvitePage: React.FC = () => {
           Live on Midnight{held.activatedAt ? ` since ${new Date(held.activatedAt).toLocaleDateString()}` : ''}, issued
           by the record above and activated with your key. Keep your backup: it&apos;s how you prove this license later.
         </Alert>
+      )}
+
+      {held && isLive && !gone && party && held.agreement && (
+        <Box sx={{ mt: 2 }}>
+          <RoyaltyLedger
+            party={party}
+            side="licensee"
+            terms={held.agreement.terms}
+            entries={deal.entries}
+            refresh={deal.refresh}
+          />
+        </Box>
       )}
 
       {error && (

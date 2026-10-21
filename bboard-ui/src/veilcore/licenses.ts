@@ -119,8 +119,15 @@ export type OnChainLicense = {
   readonly invitedAt: number;
   /** The licensee's first step, as this page saw it when it answered with its nonce. */
   readonly commitHash?: string;
-  /** This page's nonce for the read-aloud code: made and kept before it is posted, never replaced. */
+  /**
+   * This side's public key for the deal (deal.ts), which is also its nonce for the read-aloud
+   * code: made and kept before it is posted, never replaced.
+   */
   readonly issuerNonce?: string;
+  /** The secret half of that key: signs this side's messages and opens the deal's channel. Secret. */
+  readonly partySecret?: string;
+  /** When the agreement's terms went to the licensee over the deal's channel. */
+  readonly termsSentAt?: number;
   /** From the licensee's reveal, checked against commitHash and this record's own head. */
   readonly commitment?: string;
   readonly issuerRecord?: string;

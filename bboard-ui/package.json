@@ -38,6 +38,7 @@
     "@midnight-ntwrk/zkir-v2": "2.1.0",
     "@mui/icons-material": "^9.1.1",
     "@mui/material": "^9.1.1",
+    "@noble/curves": "2.4.0",
     "@noble/hashes": "2.2.0",
     "@scure/base": "2.2.0",
     "age-encryption": "0.3.1",
