@@ -221,6 +221,7 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
               <span>© 2026 VeilCore</span>
               <span>{t('m.foot.fine')}</span>
               <RouterLink to="/privacy">{t('m.foot.privacy')}</RouterLink>
+              <RouterLink to="/terms">{t('m.foot.terms')}</RouterLink>
             </div>
           </div>
         </footer>

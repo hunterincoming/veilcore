@@ -27,6 +27,7 @@ export const ja: Strings = {
   'footer.yourRecords': 'あなたの記録',
   'footer.agreements': '契約',
   'footer.privacy': 'デモのプライバシー',
+  'footer.terms': '利用規約',
   'draft.banner': '機械で作成した翻訳の下書きで、現在確認中です。英語版のページが正式な版です。',
   'draft.showEnglish': '英語で表示',
   // The record app's frame and the browser tab's titles.
@@ -36,6 +37,7 @@ export const ja: Strings = {
   'app.frame.section.prove': '証明と確認',
   'app.frame.home': 'ホームへ。入力した内容は保存されています。',
   'title.founders': '創業者',
+  'title.terms': '利用規約',
   'title.privacy': 'デモのプライバシー',
   'title.privacyMainnet': 'サイトのプライバシー',
   'title.example': '記録の例',
@@ -142,6 +144,8 @@ export const ja: Strings = {
   'm.foot.verify': '記録を検証する',
   'm.foot.fine': 'ある日付までに記録を保有していたことの証拠。植物の権利証ではありません。',
   'm.foot.privacy': 'デモのプライバシー',
+  'm.foot.terms': '利用規約',
+  'm.terms.inEnglish': 'この規約は英語で書かれており、英語の文面が優先します。',
   'm.verify.label': '検証',
   'm.verify.title': '記録を確認する',
   'm.verify.lede':

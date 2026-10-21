@@ -19,6 +19,7 @@ export const de: Strings = {
   'footer.yourRecords': 'Ihre Datensätze',
   'footer.agreements': 'Vereinbarungen',
   'footer.privacy': 'Datenschutz in der Demo',
+  'footer.terms': 'Nutzungsbedingungen',
   'draft.banner': 'Maschinell erstellter Übersetzungsentwurf, wird noch geprüft. Maßgeblich ist die englische Seite.',
   'draft.showEnglish': 'Englisch anzeigen',
   // The record app's frame and the browser tab's titles.
@@ -28,6 +29,7 @@ export const de: Strings = {
   'app.frame.section.prove': 'Nachweisen und prüfen',
   'app.frame.home': 'Startseite. Ihr Fortschritt ist gespeichert.',
   'title.founders': 'Gründer',
+  'title.terms': 'Nutzungsbedingungen',
   'title.privacy': 'Datenschutz in der Demo',
   'title.privacyMainnet': 'Datenschutz der Website',
   'title.example': 'Beispieldatensatz',
@@ -136,6 +138,8 @@ export const de: Strings = {
   'm.foot.verify': 'Datensatz prüfen',
   'm.foot.fine': 'Nachweis, dass Sie einen Datensatz zu einem Datum hatten. Kein Rechtstitel an der Pflanze.',
   'm.foot.privacy': 'Datenschutz in der Demo',
+  'm.foot.terms': 'Nutzungsbedingungen',
+  'm.terms.inEnglish': 'Diese Bedingungen sind auf Englisch; es gilt der englische Text.',
   'm.verify.label': 'Prüfen',
   'm.verify.title': 'Einen Datensatz prüfen',
   'm.verify.lede':

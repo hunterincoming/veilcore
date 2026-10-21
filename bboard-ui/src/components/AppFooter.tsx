@@ -151,6 +151,7 @@ export const AppFooter: React.FC = () => {
               <Item to="/records">{t('footer.yourRecords')}</Item>
               <Item to="/licenses">{t('footer.agreements')}</Item>
               <Item to="/privacy">{t('footer.privacy')}</Item>
+              <Item to="/terms">{t('footer.terms')}</Item>
               <Link
                 component="button"
                 type="button"

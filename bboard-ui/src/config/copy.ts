@@ -48,3 +48,12 @@ export const AGREEMENTS_LIVE = false;
 
 /** The label agreements carry while AGREEMENTS_LIVE is false. */
 export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';
+
+/**
+ * Who runs VeilCore, as the terms of use say it (components/site/Terms.tsx). VeilCore is not
+ * incorporated yet; once it is, this names the company.
+ */
+export const OPERATOR = 'VeilCore’s founders, until VeilCore is incorporated';
+
+/** The date the terms of use last changed: change it with them. */
+export const TERMS_UPDATED = '21 October 2026';

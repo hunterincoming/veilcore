@@ -19,6 +19,7 @@ export const fr: Strings = {
   'footer.yourRecords': 'Vos enregistrements',
   'footer.agreements': 'Contrats',
   'footer.privacy': 'Confidentialité de la démo',
+  'footer.terms': 'Conditions d’utilisation',
   'draft.banner': 'Traduction provisoire faite par machine, en cours de relecture. La page en anglais fait foi.',
   'draft.showEnglish': 'Afficher en anglais',
   // The record app's frame and the browser tab's titles.
@@ -28,6 +29,7 @@ export const fr: Strings = {
   'app.frame.section.prove': 'Prouver et vérifier',
   'app.frame.home': 'Accueil. Votre progression est enregistrée.',
   'title.founders': 'Fondateurs',
+  'title.terms': 'Conditions d’utilisation',
   'title.privacy': 'Confidentialité de la démo',
   'title.privacyMainnet': 'Confidentialité du site',
   'title.example': 'Enregistrement d’exemple',
@@ -137,6 +139,8 @@ export const fr: Strings = {
   'm.foot.verify': 'Vérifier un enregistrement',
   'm.foot.fine': 'La preuve que vous déteniez un enregistrement à une date. Pas un titre sur la plante.',
   'm.foot.privacy': 'Confidentialité de la démo',
+  'm.foot.terms': 'Conditions d’utilisation',
+  'm.terms.inEnglish': 'Ces conditions sont en anglais, et le texte anglais fait foi.',
   'm.verify.label': 'Vérifier',
   'm.verify.title': 'Vérifier un enregistrement',
   'm.verify.lede':

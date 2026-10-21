@@ -190,6 +190,7 @@ export const APP_ROUTES = Object.freeze([
   '/',
   '/founders',
   '/privacy',
+  '/terms',
   '/check-this-site',
   '/partners',
   '/verify',

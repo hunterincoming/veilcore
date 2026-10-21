@@ -20,6 +20,7 @@ export const es: Strings = {
   'footer.yourRecords': 'Sus registros',
   'footer.agreements': 'Acuerdos',
   'footer.privacy': 'Privacidad de la demo',
+  'footer.terms': 'Términos de uso',
   'draft.banner':
     'Traducción preliminar hecha por máquina, en revisión. La página en inglés es la versión de referencia.',
   'draft.showEnglish': 'Ver en inglés',
@@ -30,6 +31,7 @@ export const es: Strings = {
   'app.frame.section.prove': 'Demostrar y comprobar',
   'app.frame.home': 'Inicio. Su avance está guardado.',
   'title.founders': 'Fundadores',
+  'title.terms': 'Términos de uso',
   'title.privacy': 'Privacidad de la demo',
   'title.privacyMainnet': 'Privacidad del sitio',
   'title.example': 'Registro de ejemplo',
@@ -135,6 +137,8 @@ export const es: Strings = {
   'm.foot.verify': 'Verificar un registro',
   'm.foot.fine': 'Prueba de que usted tenía un registro en una fecha. No es un título sobre la planta.',
   'm.foot.privacy': 'Privacidad de la demo',
+  'm.foot.terms': 'Términos de uso',
+  'm.terms.inEnglish': 'Estos términos están en inglés y rige el texto en inglés.',
   'm.verify.label': 'Verificar',
   'm.verify.title': 'Compruebe un registro',
   'm.verify.lede':

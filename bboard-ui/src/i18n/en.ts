@@ -24,6 +24,7 @@ export const en = {
   'footer.yourRecords': 'Your records',
   'footer.agreements': 'Agreements',
   'footer.privacy': 'Demo privacy',
+  'footer.terms': 'Terms of use',
   'draft.banner': 'Machine-drafted translation, under review. The English page is the authoritative version.',
   'draft.showEnglish': 'Show English',
   // The record app's frame (components/flow/FlowFrame.tsx) and the browser tab's title for
@@ -35,6 +36,7 @@ export const en = {
   'app.frame.section.prove': 'Prove & check',
   'app.frame.home': 'Home. Your progress is saved.',
   'title.founders': 'Founders',
+  'title.terms': 'Terms of use',
   'title.privacy': 'Demo privacy',
   'title.privacyMainnet': 'Site privacy',
   'title.example': 'Example record',
@@ -423,6 +425,8 @@ export const en = {
   'm.foot.verify': 'Verify a record',
   'm.foot.fine': 'Evidence you held a record by a date. Not a title to the plant.',
   'm.foot.privacy': 'Demo privacy',
+  'm.foot.terms': 'Terms of use',
+  'm.terms.inEnglish': 'These terms are in English, and the English text governs.',
 
   'm.verify.label': 'Verify',
   'm.verify.title': 'Check a record',
