@@ -1,0 +1,75 @@
+# Agreements: the test run before mainnet
+
+One full run on the test network (test.veilcore.org, preprod) of everything in
+`docs/agreements-live.md`, by Hunter, with two devices: the Mac as the breeder and a phone
+as the grower. About an hour. Nothing here touches mainnet.
+
+## 1. Put the new code up (Mac, 15 minutes)
+
+**Registry.** Railway → `veilcore-api-preprod` → Settings → Source → Branch: change
+`feat/lab-results` to `license-invites`. It redeploys by itself. Wait until the deployment
+is Active, then check it lists the new parts:
+
+```
+curl -s https://veilcore-api-preprod-production.up.railway.app/health
+```
+
+The `features` list must include `license-invites-v1`, `deals-v1` and `payment-receipts-v1`.
+
+**Sponsor** (the test one, `veilcore-sponsor`; never `veilcore-sponsor-mainnet`):
+
+```
+cd ~/Desktop/veilcore
+git fetch origin
+git checkout feat/real-licences
+git pull
+npm ci
+npm run stage -w sponsor
+```
+
+Then run the `railway up …` line it prints, linked to `veilcore-sponsor`. In Railway, check
+`veilcore-sponsor` has no `SPONSOR_CIRCUITS` variable: without it, a test sponsor pays for the
+agreement calls too.
+
+**Site:**
+
+```
+VEILCORE_TEST_REGISTRY=https://veilcore-api-preprod-production.up.railway.app VEILCORE_TEST_SPONSOR=https://veilcore-sponsor-production.up.railway.app npm run deploy:test
+```
+
+It refuses, and says why, if the registry or sponsor isn't ready.
+
+## 2. The run
+
+Write down anything that looks wrong or reads badly, with a screenshot.
+
+| # | Who | Do | You should see |
+|---|---|---|---|
+| 1 | Mac | test.veilcore.org: date a plant, save and check the backup, set up proof you hold it on its page | Its date, then "proof set up" |
+| 2 | Mac | On the plant's page: License. Royalty 5% of sales, royalty on offspring 2%. Open the license, **Make a link for them**, send it to the phone | A link |
+| 3 | Phone | Open the link, **Accept**, save and check the backup | "Accepted", then a 6-digit code |
+| 4 | Both | Read the codes to each other | The same 6 digits on both screens |
+| 5 | Mac | Tick "They read me this same code", **Issue it** | "Issued on Midnight" in a few minutes |
+| 6 | Phone | Read the terms, tick "I agree", **Agree and activate** | "Your license is live", the terms, Royalties |
+| 7 | Mac | Refresh the license | Live, "They signed their agreement…" |
+| 8 | Mac | Royalties: **Set it** (how you get paid) | "Paid to: …" on both |
+| 9 | Phone | **File a statement** for last month, sales 10000 | Owed 500.00 |
+| 10 | Mac | **Accept** it | "Accepted, to be paid" on both |
+| 11 | Phone | **Payment request for a partner** (a file downloads), then **I paid it** | "Paid, waiting for confirmation" |
+| 12 | Mac | **Confirm I received 500.00 USD** | "Paid and confirmed" on both |
+| 13 | Phone | Date the phone's own plant of these genetics and set up proof you hold it, then on the license: name it | "Their record: …" on the Mac |
+| 14 | Mac | **Put it on their record** | "proposed" |
+| 15 | Phone | **Accept it, as agreed** | "in force on Midnight" on both |
+| 16 | Mac (new private window) | Open the plant's check link, **Make a link for them** under "Check someone holds a license", send it to the phone | A link |
+| 17 | Phone | Open it, **Prove it** | "Done" |
+| 18 | Mac (private window) | Wait | "Checked on Midnight: a live license from this record" |
+| 19 | Mac | Plant page → Family on Midnight: put a second plant of yours on chain as its parent | The parent listed |
+| 20 | Mac | License: **Revoke on chain** | "No longer on Midnight" on both within a minute or two |
+| 21 | Both | Repeat 16 and 17 | The phone says its license is no longer live, and nothing is sent |
+
+## 3. After
+
+Send Claude the notes and screenshots. When the run is clean and Mako has said yes, the
+mainnet switch is two reviewed lines (`AGREEMENTS_LIVE` in `bboard-ui/src/config/copy.ts`,
+`MAINNET_AGREEMENTS` in `sponsor/src/policy.ts`) and merging `license-invites` into the
+registry's main.
