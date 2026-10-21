@@ -34,7 +34,7 @@ import { allSentCodes, mergeSentCodes } from './transfers';
 import { isVaultKey, markVaultBackedUp, setVaultKey, vaultHasSealed, vaultKeyIfAny, vaultKid } from './vault';
 import { raiseRevMarks, registryKids, revMarks } from './api-store';
 import { heldLicensesForBackup, heldMissingFrom, markHeldBackedUp, mergeHeldLicenses } from './held-licenses';
-import { issuerDealsForBackup, issuerDealsMissingFrom, mergeIssuerDeals } from './licenses';
+import { issuerDealsForBackup, issuerDealsMissingFrom, markIssuerDealsBackedUp, mergeIssuerDeals } from './licenses';
 import { enT } from '../i18n/translate';
 import { base64urlnopad } from '@scure/base';
 
@@ -391,6 +391,7 @@ export const checkBackup = async (file: File, password?: string): Promise<CheckR
   }
   markBackedUp(held.map((k) => k.recordId));
   markHeldBackedUp(v.heldLicenses);
+  markIssuerDealsBackedUp(v.issuerDeals);
   if (vault) markVaultBackedUp();
   return { ok: true, records: held.length, recordIds: held.map((k) => k.recordId) };
 };

@@ -809,9 +809,49 @@ const applyIssuerDeals = (): void => {
   const kept = storedDeals();
   for (const l of licenses) {
     const d = kept[l.id];
-    if (d && !l.onChain?.partySecret) update(l.id, (x) => ({ ...x, onChain: d }));
+    if (!d || l.onChain?.partySecret) continue;
+    // Only the key goes back onto a license that still has its chain state (the file's copy of the
+    // rest may be older); a license with none takes the file's whole copy (review round 3, N4).
+    const next = l.onChain
+      ? l.onChain.inviteId === d.inviteId
+        ? { ...l.onChain, partySecret: d.partySecret }
+        : undefined
+      : d;
+    if (!next) continue;
+    try {
+      update(l.id, (x) => ({ ...x, onChain: next }));
+    } catch {
+      // Saving is held until the vault is backed up: kept here, tried again on the next load.
+    }
   }
 };
+
+// Which licenses' deal keys a checked backup holds (review round 3, N5): a new key prompts a new backup.
+const DEALS_BACKED_UP = 'veilcore.issuer-deals-backed-up.v1';
+const backedUpDeals = (): Record<string, string> => {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(DEALS_BACKED_UP) ?? '{}');
+    return typeof v === 'object' && v !== null ? (v as Record<string, string>) : {};
+  } catch {
+    return {};
+  }
+};
+
+/** Backup check: remember which deal keys the checked file holds. */
+export const markIssuerDealsBackedUp = (fromFile: unknown): void => {
+  const file = typeof fromFile === 'object' && fromFile !== null ? (fromFile as Record<string, unknown>) : {};
+  const marks = backedUpDeals();
+  for (const [id, d] of Object.entries(file)) if (isDealEntry(d)) marks[id] = d.partySecret!;
+  try {
+    localStorage.setItem(DEALS_BACKED_UP, JSON.stringify(marks));
+  } catch {
+    /* private window */
+  }
+};
+
+/** Whether a checked backup holds this license's current deal key. */
+export const issuerDealBackedUp = (l: License): boolean =>
+  !l.onChain?.partySecret || backedUpDeals()[l.id] === l.onChain.partySecret;
 
 /** Restore: keep the file's deal keys (never replacing any already here), then put them back. */
 export const mergeIssuerDeals = (fromFile: unknown): number => {

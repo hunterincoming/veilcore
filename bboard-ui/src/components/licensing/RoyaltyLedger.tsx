@@ -276,8 +276,11 @@ const StatementForm: React.FC<{
   const [to, setTo] = useState(today());
   const [quantity, setQuantity] = useState('');
   const [note, setNote] = useState('');
-  const owed = amountOwed(terms, quantity);
-  const ok = from && to && from <= to && isDecimal(quantity);
+  // A rate the page can't read as a number (typed as words, say): the amount is typed instead.
+  const rateReadable = owedUnder(terms, '1') !== undefined;
+  const [typed, setTyped] = useState('');
+  const owed = rateReadable ? amountOwed(terms, quantity) : typed.trim();
+  const ok = from && to && from <= to && isDecimal(quantity) && isDecimal(owed);
   return (
     <Stack spacing={1.25}>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
@@ -305,12 +308,22 @@ const StatementForm: React.FC<{
         onChange={(e) => setQuantity(e.target.value.replace(/[^0-9.]/g, '').slice(0, 16))}
         inputMode="decimal"
       />
-      <Typography variant="body2">
-        Owed under the terms ({percent ? `${terms.royaltyAmount}% of sales` : `${terms.royaltyAmount} per unit`}):{' '}
-        <b>
-          {owed} {currency}
-        </b>
-      </Typography>
+      {rateReadable ? (
+        <Typography variant="body2">
+          Owed under the terms ({percent ? `${terms.royaltyAmount}% of sales` : `${terms.royaltyAmount} per unit`}):{' '}
+          <b>
+            {owed} {currency}
+          </b>
+        </Typography>
+      ) : (
+        <TextField
+          size="small"
+          label={`Amount owed (${currency}); the rate in the terms is “${terms.royaltyAmount ?? ''}”`}
+          value={typed}
+          onChange={(e) => setTyped(e.target.value.replace(/[^0-9.]/g, '').slice(0, 18))}
+          inputMode="decimal"
+        />
+      )}
       <TextField
         size="small"
         label="Note (optional)"

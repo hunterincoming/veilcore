@@ -65,6 +65,8 @@ export const connect = (p: DealParty): Promise<DealKeys> => {
   if (!k) {
     k = (async () => {
       const keys = await dealKeys(p.mySecret, p.theirPublic, p.commitment, p.issuerRecord);
+      // Only the issuer opens the channel (registry deals.mjs); the licensee reads the one it opened.
+      if (p.side !== 'issuer') return keys;
       await post('/deals', {
         dealId: keys.dealId,
         writeTokenHash: writeTokenHash(keys.writeToken),
@@ -95,7 +97,14 @@ export const readAll = async (p: DealParty): Promise<DealEntry[]> => {
   const seen = new Set<string>();
   let after = 0;
   for (let page = 0; page < 20; page++) {
-    const out = await post(`/deals/${keys.dealId}/read`, { token: keys.writeToken, after });
+    let out: unknown;
+    try {
+      out = await post(`/deals/${keys.dealId}/read`, { token: keys.writeToken, after });
+    } catch (e) {
+      // Not opened yet: the issuer opens it when it sends the terms. Nothing to show so far.
+      if (e instanceof Error && /no such deal/.test(e.message)) return [];
+      throw e;
+    }
     const list = isObject(out) && Array.isArray(out.messages) ? out.messages : [];
     for (const raw of list) {
       if (!isObject(raw) || !isNumber(raw.seq) || !isString(raw.iv) || !isString(raw.ct)) continue;

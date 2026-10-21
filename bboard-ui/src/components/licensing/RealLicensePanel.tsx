@@ -19,7 +19,14 @@ import { Link as RouterLink } from 'react-router-dom';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import { canonicalUrl } from '../../config/network';
 import { hexBytes, useRecordKeys } from '../../veilcore/record-keys';
-import { clearOnChain, setOnChain, revokeLicense, type License, type OnChainLicense } from '../../veilcore/licenses';
+import {
+  clearOnChain,
+  issuerDealBackedUp,
+  setOnChain,
+  revokeLicense,
+  type License,
+  type OnChainLicense,
+} from '../../veilcore/licenses';
 import { useDeal, type DealParty } from '../../veilcore/deal-client';
 import { RoyaltyLedger } from './RoyaltyLedger';
 import { OffspringRoyalty } from './OffspringRoyalty';
@@ -344,6 +351,21 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
             {startOverButton}
           </Stack>
         </>
+      )}
+
+      {oc?.partySecret && !issuerDealBackedUp(license) && !gone && (
+        <Alert
+          severity="warning"
+          variant="outlined"
+          action={
+            <Button component={RouterLink} to="/backup" color="inherit" variant="outlined">
+              Save backup
+            </Button>
+          }
+        >
+          Save a new backup: it now holds this license&apos;s private key, which you need to read their statements on
+          another device.
+        </Alert>
       )}
 
       {oc?.commitment && !issued && !gone && (
