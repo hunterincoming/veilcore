@@ -74,7 +74,8 @@ export const checkTestRegistry = async (registry) => {
   if (!allowed.ok) return allowed;
   if (!descriptor.anchors.some((a) => String(a?.network).toLowerCase() === 'preprod'))
     return { ok: false, problem: 'That registry does not say it anchors on preprod.' };
-  return checkRegistryFeatures(registry);
+  // A test site makes agreements on chain: the registry must serve them too.
+  return checkRegistryFeatures(registry, { agreements: true });
 };
 
 const main = async () => {

@@ -13,7 +13,7 @@
 import { pathToFileURL } from 'node:url';
 import { readMainnetPins, normaliseAddress, TEST_OVERRIDE } from './mainnet-pins.mjs';
 import { readPolicyStatus } from './maintenance-policy.mjs';
-import { checkRegistryFeatures, featuresLine } from './registry-features.mjs';
+import { agreementsLive, checkRegistryFeatures, featuresLine } from './registry-features.mjs';
 
 export const DEFAULT_API = 'https://veilcore-api-production.up.railway.app';
 
@@ -80,7 +80,7 @@ const main = async () => {
   if (!read.ok) fail(read.problem);
   const verdict = checkDescriptor(read.descriptor, pins.veilcore);
   if (!verdict.ok) fail(verdict.problem);
-  const features = await checkRegistryFeatures(api);
+  const features = await checkRegistryFeatures(api, { agreements: await agreementsLive() });
   if (!features.ok) fail(features.problem);
 
   console.log(`Main contract pinned: ${pins.veilcore}`);

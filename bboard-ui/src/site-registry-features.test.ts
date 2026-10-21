@@ -47,13 +47,23 @@ const ALL = [
   'lab-doc-binding-v1',
   'dating-first-v1',
 ];
+/** What agreements on chain use: required for a test site, and for mainnet once agreements are live. */
+const AGREEMENTS = ['license-invites-v1', 'deals-v1', 'payment-receipts-v1'];
 const DEPLOY_FIRST = /Deploy the registry first: put the registry's latest code live on Railway/;
+
+const healthOf = (o: { health?: unknown; noAgreements?: boolean }): unknown => {
+  const h = o.health ?? { ok: true, features: ALL };
+  const f = (h as { features?: unknown }).features;
+  return Array.isArray(f) && !o.noAgreements ? { ...h, features: [...f, ...AGREEMENTS] } : h;
+};
 
 /** A stand-in registry: its descriptor and its /health, each with a status. */
 const stubRegistry = async (o: {
   descriptor: unknown;
   health?: unknown;
   healthStatus?: number;
+  /** Leave the agreement features out of a given /health (every other test lists them). */
+  noAgreements?: boolean;
 }): Promise<{ api: string; asked: string[]; close: () => void }> => {
   const asked: string[] = [];
   const server = http.createServer((req, res) => {
@@ -62,7 +72,7 @@ const stubRegistry = async (o: {
       req.url === '/.well-known/veilcore-registry'
         ? [200, o.descriptor]
         : req.url === '/health'
-          ? [o.healthStatus ?? 200, o.health ?? { ok: true, features: ALL }]
+          ? [o.healthStatus ?? 200, healthOf(o)]
           : [404, {}];
     res.writeHead(status, { 'content-type': 'application/json' });
     res.end(typeof body === 'string' ? body : JSON.stringify(body));
@@ -218,6 +228,17 @@ describe('deploy:mainnet', () => {
 
 describe('deploy:test', () => {
   const preprod = { anchors: [{ chain: 'midnight', network: 'preprod', contractAddress: 'ab'.repeat(32) }] };
+
+  it('refuses a preprod registry that does not serve agreements: the test site makes them', async () => {
+    const noDeals = await stub({
+      descriptor: preprod,
+      noAgreements: true,
+      health: { ok: true, features: [...ALL, 'license-invites-v1'] },
+    });
+    const r = await checkTestRegistry(noDeals.api);
+    expect(r.ok).toBe(false);
+    expect(!r.ok && r.problem).toMatch(/is missing deals-v1 .*payment-receipts-v1/);
+  });
 
   it('accepts a preprod registry only when its /health lists all nine', async () => {
     const ready = await stub({ descriptor: preprod });

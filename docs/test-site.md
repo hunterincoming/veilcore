@@ -23,8 +23,9 @@ Deploy the registry before the site: the site's sample custody fields (the sampl
 
 `deploy:test` refuses (`NOT DEPLOYED. …`) unless the registry and the sponsor both say
 preprod, the registry's `/health` lists `sealed-records-v1`, `lab-results-v1`,
-`animal-profile-v1`, `claimant-offer-v1`, `sealed-custody-v1`, `record-rev-v1` and
-`license-rev-v1` (if not:
+`animal-profile-v1`, `claimant-offer-v1`, `sealed-custody-v1`, `record-rev-v1`,
+`license-rev-v1` and the agreement features `license-invites-v1`, `deals-v1` and
+`payment-receipts-v1` (the full list is `scripts/registry-features.mjs`; if not:
 deploy the registry first), the sponsor uses the practice contract, the relay answers for test.veilcore.org, and the proving files
 are on this computer. It makes a preview deployment (never `--prod`) and aliases it to
 test.veilcore.org only. The domain is deliberately not added to the Vercel project: a

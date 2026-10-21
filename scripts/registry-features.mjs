@@ -51,6 +51,24 @@ export const REQUIRED_FEATURES = Object.freeze({
   "dating-first-v1": "dating a record the moment it is sealed",
 });
 
+/**
+ * What agreements on chain use (docs/agreements-live.md): the license mailbox, the deal channel
+ * and payment receipts. Required wherever the site makes agreements: every test-network build,
+ * and a mainnet build once AGREEMENTS_LIVE is on (agreementsLive below).
+ */
+export const AGREEMENT_FEATURES = Object.freeze({
+  "license-invites-v1": "making a license between two people",
+  "deals-v1": "the private channel for terms and royalties",
+  "payment-receipts-v1": "receipts from payment partners",
+});
+
+/** Whether the site's source has agreements switched on for mainnet (config/copy.ts). */
+export const agreementsLive = async () => {
+  const { readFile } = await import("node:fs/promises");
+  const src = await readFile(new URL("../bboard-ui/src/config/copy.ts", import.meta.url), "utf8");
+  return /export const AGREEMENTS_LIVE = true;/.test(src);
+};
+
 const DEPLOY_FIRST =
   "Deploy the registry first: put the registry's latest code live on Railway, wait until " +
   "Railway shows the new deployment as active, then run this again.";
@@ -91,15 +109,14 @@ export const readHealth = async (api) => {
  * Whether a /health answer lists every feature the site uses.
  * @returns {{ ok: true } | { ok: false, missing: string[], problem: string }}
  */
-export const checkFeatures = (health, api) => {
+export const checkFeatures = (health, api, { agreements = false } = {}) => {
   const listed = Array.isArray(health?.features)
     ? health.features.filter((f) => typeof f === "string")
     : [];
-  const missing = Object.keys(REQUIRED_FEATURES).filter(
-    (f) => !listed.includes(f),
-  );
+  const wanted = { ...REQUIRED_FEATURES, ...(agreements ? AGREEMENT_FEATURES : {}) };
+  const missing = Object.keys(wanted).filter((f) => !listed.includes(f));
   if (missing.length === 0) return { ok: true };
-  const named = missing.map((f) => `${f} (${REQUIRED_FEATURES[f]})`).join(", ");
+  const named = missing.map((f) => `${f} (${wanted[f]})`).join(", ");
   const has = listed.length
     ? `it lists only: ${listed.join(", ")}`
     : "it lists no features, so it is an older registry";
@@ -111,9 +128,9 @@ export const checkFeatures = (health, api) => {
 };
 
 /** Both steps: read /health and check it. */
-export const checkRegistryFeatures = async (api) => {
+export const checkRegistryFeatures = async (api, opts = {}) => {
   const read = await readHealth(api);
-  return read.ok ? checkFeatures(read.health, api) : read;
+  return read.ok ? checkFeatures(read.health, api, opts) : read;
 };
 
 /** One line for the deploy log once the check has passed. */
