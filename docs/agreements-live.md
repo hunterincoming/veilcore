@@ -57,8 +57,12 @@ holds or moves anyone's money.
 7. **Parent links.** The child's holder names a parent on chain; the parent's holder
    confirms. The chain is the mailbox: a record's page lists the records waiting for it
    to confirm.
-8. **License transfers.** A licensee hands a license on to a new holder, whose key is
-   made on their own device. Takes effect only when the breeder approves.
+8. **Handing a license on.** Today the breeder revokes the license and issues a new one to
+   the new holder, with its own link, code and terms: the same checks as any license. The
+   contract can also move a license in place (proposeTransfer, approveTransfer), but doing it
+   safely from the website needs a second read-aloud code, between the breeder and the new
+   holder, so neither has to trust the old holder for the other's key. That is built when a
+   user needs it.
 
 ## Law and wording
 
