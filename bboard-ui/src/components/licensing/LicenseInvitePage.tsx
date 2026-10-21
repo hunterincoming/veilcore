@@ -46,6 +46,7 @@ import {
 import { hexBytes } from '../../veilcore/record-keys';
 import { updateHeldLicense, useHeldLicenses } from '../../veilcore/held-licenses';
 import { chainNotReady } from '../../veilcore/chain/config';
+import { AGREEMENTS_ON_CHAIN } from '../../config/copy';
 import { useChainCall } from '../chain/useChainCall';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
@@ -93,10 +94,20 @@ export const LicenseInvitePage: React.FC = () => {
           theirPublic: held.issuerNonce,
           commitment: held.commitment,
           issuerRecord: held.issuerRecord,
+          ...(token ? { invite: { id: held.inviteId, token } } : {}),
         }
       : undefined;
   const deal = useDeal(party);
   const offered = useOfferedTerms(deal.entries);
+  // A device restored from a backup made before agreeing: the agreement is still on the channel,
+  // signed by this side, so it is taken back from there (review round 3, L5).
+  useEffect(() => {
+    if (!held || held.agreement || offered?.ok !== true) return;
+    const signed = deal.entries?.find(
+      (e) => e.type === 'agree' && e.mine && e.agreementFingerprint === offered.copy.agreementFingerprint,
+    );
+    if (signed) updateHeldLicense(id, (h) => ({ ...h, agreement: offered.copy, agreedAt: signed.at }));
+  }, [held, offered, deal.entries, id]);
 
   useEffect(() => {
     let on = true;
@@ -125,6 +136,7 @@ export const LicenseInvitePage: React.FC = () => {
   useEffect(() => {
     let live = true;
     const tick = async () => {
+      if (!AGREEMENTS_ON_CHAIN) return;
       const inv = await load();
       if (!live || !inv || !held || !token) return;
       try {
@@ -156,7 +168,8 @@ export const LicenseInvitePage: React.FC = () => {
     };
   }, [id, held, load, token]);
 
-  if (chainNotReady()) {
+  // Agreements on chain are off on this site (a mainnet build before the switch): nothing is asked or sent.
+  if (chainNotReady() || !AGREEMENTS_ON_CHAIN) {
     return (
       <Frame>
         <Typography>This site can&apos;t make real licenses. Open the link on the site it was made on.</Typography>

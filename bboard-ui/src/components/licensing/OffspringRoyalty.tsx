@@ -163,6 +163,23 @@ export const OffspringRoyalty: React.FC<{
           Put it on their record
         </Button>
       )}
+      {plant && side === 'issuer' && issuerSecret && status === 'proposed' && (
+        <Button
+          color="inherit"
+          disabled={call.busy}
+          sx={{ alignSelf: 'flex-start' }}
+          onClick={() =>
+            void call.run(async (progress) => {
+              const { withdrawObligationOnChain } = await import('../../veilcore/chain/actions');
+              return after(
+                withdrawObligationOnChain(hexBytes(issuerSecret), plant.recordIdentity, obligation, { progress }),
+              );
+            })
+          }
+        >
+          Take it back
+        </Button>
+      )}
       {plant && side === 'issuer' && issuerSecret && status === 'in-force' && (
         <Button
           color="inherit"

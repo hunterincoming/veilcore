@@ -201,6 +201,7 @@ const hydrate = async (): Promise<void> => {
   // Back-compat: agreements saved before types existed are license agreements.
   licenses = loaded.map((l: License) => ({ ...l, type: l.type ?? 'license' }));
   notify();
+  applyIssuerDeals();
   await convertLegacy();
   void retryPendingObligations();
 };
@@ -751,4 +752,83 @@ export const agreementRows = (l: License): { k: string; v: string }[] => {
 
   if (t.extraTerms) rows.push({ k: 'Additional terms', v: t.extraTerms });
   return rows;
+};
+
+// ---- the issuer's deal keys, in the backup file (review round 3, L5) ----
+// A real license's onChain part holds the issuer's secret key for the deal's channel
+// (partySecret). The license itself is kept sealed at the registry, so a registry that lost
+// or withheld the row would take the channel with it. So the backup file carries each one too,
+// and a restore puts it back on its license when that license is there (now or once it loads).
+
+const DEALS_KEY = 'veilcore.issuer-deals.v1';
+const HEX64_RE = /^[0-9a-f]{64}$/;
+
+const isDealEntry = (v: unknown): v is OnChainLicense =>
+  typeof v === 'object' &&
+  v !== null &&
+  typeof (v as OnChainLicense).inviteId === 'string' &&
+  typeof (v as OnChainLicense).partySecret === 'string' &&
+  HEX64_RE.test((v as OnChainLicense).partySecret!);
+
+const storedDeals = (): Record<string, OnChainLicense> => {
+  try {
+    const raw = localStorage.getItem(DEALS_KEY);
+    const v: unknown = raw ? JSON.parse(raw) : {};
+    return typeof v === 'object' && v !== null
+      ? (Object.fromEntries(Object.entries(v as Record<string, unknown>).filter(([, d]) => isDealEntry(d))) as Record<
+          string,
+          OnChainLicense
+        >)
+      : {};
+  } catch {
+    return {};
+  }
+};
+
+/** What goes in the backup file: every license's deal keys this browser has, by license id. */
+export const issuerDealsForBackup = (): Record<string, OnChainLicense> => {
+  const out = { ...storedDeals() };
+  for (const l of licenses) if (l.onChain && isDealEntry(l.onChain)) out[l.id] = l.onChain;
+  return out;
+};
+
+/** Licenses whose deal keys a backup file doesn't hold (or holds different ones). */
+export const issuerDealsMissingFrom = (fromFile: unknown): string[] => {
+  const file = typeof fromFile === 'object' && fromFile !== null ? (fromFile as Record<string, unknown>) : {};
+  return licenses
+    .filter((l) => l.onChain?.partySecret)
+    .filter((l) => {
+      const f = file[l.id];
+      return !isDealEntry(f) || f.partySecret !== l.onChain!.partySecret;
+    })
+    .map((l) => l.id);
+};
+
+/** A license that has lost its deal keys gets them back from what a restore kept. */
+const applyIssuerDeals = (): void => {
+  const kept = storedDeals();
+  for (const l of licenses) {
+    const d = kept[l.id];
+    if (d && !l.onChain?.partySecret) update(l.id, (x) => ({ ...x, onChain: d }));
+  }
+};
+
+/** Restore: keep the file's deal keys (never replacing any already here), then put them back. */
+export const mergeIssuerDeals = (fromFile: unknown): number => {
+  const file = typeof fromFile === 'object' && fromFile !== null ? (fromFile as Record<string, unknown>) : {};
+  const kept = storedDeals();
+  let added = 0;
+  for (const [id, d] of Object.entries(file)) {
+    if (isDealEntry(d) && !kept[id]) {
+      kept[id] = d;
+      added++;
+    }
+  }
+  try {
+    localStorage.setItem(DEALS_KEY, JSON.stringify(kept));
+  } catch {
+    /* a private window: applied below for this tab */
+  }
+  applyIssuerDeals();
+  return added;
 };

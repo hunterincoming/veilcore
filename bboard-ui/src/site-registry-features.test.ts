@@ -54,7 +54,7 @@ const DEPLOY_FIRST = /Deploy the registry first: put the registry's latest code 
 const healthOf = (o: { health?: unknown; noAgreements?: boolean }): unknown => {
   const h = o.health ?? { ok: true, features: ALL };
   const f = (h as { features?: unknown }).features;
-  return Array.isArray(f) && !o.noAgreements ? { ...h, features: [...f, ...AGREEMENTS] } : h;
+  return Array.isArray(f) && !o.noAgreements ? { ...h, features: [...(f as unknown[]), ...AGREEMENTS] } : h;
 };
 
 /** A stand-in registry: its descriptor and its /health, each with a status. */

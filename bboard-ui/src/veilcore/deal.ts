@@ -37,6 +37,22 @@ const unb64u = (s: string): Uint8Array =>
     c.charCodeAt(0),
   );
 
+/**
+ * Ed25519 verification that refuses what lenient verification lets through (review round 3,
+ * M4): a public key of small order (with which a trivial signature "verifies" for every
+ * message), a non-canonical encoding, and anything but strict RFC 8032 (zip215: false).
+ */
+export const verifyStrict = (signature: Uint8Array, message: Uint8Array, publicKey: Uint8Array): boolean => {
+  try {
+    if (publicKey.length !== 32 || signature.length !== 64) return false;
+    const point = ed25519.Point.fromHex(hex(publicKey));
+    if (point.isSmallOrder()) return false;
+    return ed25519.verify(signature, message, publicKey, { zip215: false });
+  } catch {
+    return false;
+  }
+};
+
 /** A side's key for one deal: the secret stays on its device (and in its backup). */
 export type PartyKey = { readonly secret: string; readonly public: string };
 
@@ -144,21 +160,29 @@ export type DealBody =
   | {
       readonly type: 'reply';
       readonly statementId: string;
+      /** The statement's own signature: names exactly one statement, whatever its id (review round 3, M2). */
+      readonly statementSig: string;
       readonly decision: 'accepted' | 'disputed';
       readonly note?: string;
     }
   | {
       readonly type: 'paid';
       readonly statementId: string;
+      /** The statement's own signature: names exactly one statement, whatever its id (review round 3, M2). */
+      readonly statementSig: string;
       readonly amount: string;
       readonly currency: string;
       readonly method: string;
+      /** The account it was paid to, as the payer saw it. */
+      readonly payTo: string;
       readonly reference: string;
       readonly paidOn: string;
     }
   | {
       readonly type: 'received';
       readonly statementId: string;
+      /** The statement's own signature: names exactly one statement, whatever its id (review round 3, M2). */
+      readonly statementSig: string;
       readonly amount: string;
       readonly currency: string;
       readonly note?: string;
@@ -214,7 +238,7 @@ export const openMessage = async (s: Sealed, keys: DealKeys, myside: DealSide): 
     const mine = m.from === myside;
     const signer = mine ? keys.mine : keys.theirs;
     if (typeof sig !== 'string' || !/^[0-9a-f]{128}$/.test(sig)) return undefined;
-    if (!ed25519.verify(bytes(sig), utf8(DOMAIN + canonical(m)), bytes(signer))) return undefined;
+    if (!verifyStrict(bytes(sig), utf8(DOMAIN + canonical(m)), bytes(signer))) return undefined;
     return { message: m, signature: sig, mine };
   } catch {
     return undefined;
@@ -224,7 +248,7 @@ export const openMessage = async (s: Sealed, keys: DealKeys, myside: DealSide): 
 /** Check a disclosed message against a public key, without the channel: for a third party. */
 export const verifyDisclosed = (m: DealMessage, signature: string, signerPublic: string): boolean => {
   try {
-    return ed25519.verify(bytes(signature), utf8(DOMAIN + canonical(m)), bytes(signerPublic));
+    return verifyStrict(bytes(signature), utf8(DOMAIN + canonical(m)), bytes(signerPublic));
   } catch {
     return false;
   }

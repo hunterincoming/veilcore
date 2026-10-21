@@ -37,6 +37,7 @@ import {
 import { useHeldLicenses, type HeldLicense } from '../../veilcore/held-licenses';
 import { hexBytes } from '../../veilcore/record-keys';
 import { chainNotReady } from '../../veilcore/chain/config';
+import { AGREEMENTS_ON_CHAIN } from '../../config/copy';
 import { useChainCall } from '../chain/useChainCall';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import { SendLink } from '../chain/ProveWatch';
@@ -258,6 +259,7 @@ export const ProveLicensePage: React.FC = () => {
   const [req, setReq] = useState<ProveRequest | null | 'loading' | { error: string }>('loading');
 
   useEffect(() => {
+    if (!AGREEMENTS_ON_CHAIN) return;
     let live = true;
     void getProveRequest(id).then((r) => live && setReq(r));
     return () => {
@@ -265,6 +267,13 @@ export const ProveLicensePage: React.FC = () => {
     };
   }, [id]);
 
+  if (!AGREEMENTS_ON_CHAIN || chainNotReady()) {
+    return (
+      <Frame>
+        <Typography>This site can&apos;t check licenses yet. Open the link on the site it was made on.</Typography>
+      </Frame>
+    );
+  }
   if (mine?.kind === 'license') {
     return (
       <Frame>

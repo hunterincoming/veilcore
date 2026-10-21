@@ -50,6 +50,7 @@ export const dealParty = (oc: OnChainLicense): DealParty | undefined =>
         theirPublic: oc.licenseeNonce,
         commitment: oc.commitment,
         issuerRecord: oc.issuerRecord,
+        invite: { id: oc.inviteId, token: oc.issuerToken },
       }
     : undefined;
 /** Once live: read the chain now and then, so a revoke from another device shows. */

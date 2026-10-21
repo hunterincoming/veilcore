@@ -43,11 +43,13 @@ holds or moves anyone's money.
    answer is encrypted for the two of them, and its fingerprint is dated on Midnight in
    the registry's hourly batch, so neither side can rewrite the history later.
 5. **Payment through a partner.** VeilCore never touches money. The payer hands a
-   statement to a payment partner (for example a wallet that holds an API key with us).
+   statement to a payment partner (a wallet or payment company, registered with VeilCore and
+   its name checked).
    The partner pays through its own licensed rails, then signs a receipt over the
    statement's fingerprint with its registered key. Both sides see "paid, confirmed by
-   <partner>". A payment made any other way is marked by the payer and confirmed by the
-   payee. VeilCore's share of a deal is calculated and shown, never collected here.
+   <partner>", and the payee still confirms the money arrived. A payment made any other way is marked by the payer and confirmed by the
+   payee. Any fee VeilCore charges on deals later is a decision still to make; nothing is
+   charged or collected today.
 6. **Offspring royalties.** A license that carries a royalty on offspring becomes an
    obligation on chain against the licensee's own record of that plant: the breeder
    proposes it, the licensee accepts it, only the breeder can release it. Every record

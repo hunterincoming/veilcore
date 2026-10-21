@@ -34,6 +34,7 @@ import { allSentCodes, mergeSentCodes } from './transfers';
 import { isVaultKey, markVaultBackedUp, setVaultKey, vaultHasSealed, vaultKeyIfAny, vaultKid } from './vault';
 import { raiseRevMarks, registryKids, revMarks } from './api-store';
 import { heldLicensesForBackup, heldMissingFrom, markHeldBackedUp, mergeHeldLicenses } from './held-licenses';
+import { issuerDealsForBackup, issuerDealsMissingFrom, mergeIssuerDeals } from './licenses';
 import { enT } from '../i18n/translate';
 import { base64urlnopad } from '@scure/base';
 
@@ -66,6 +67,8 @@ export type BackupContents = {
    * without it a license can't be activated or shown live. Optional: older files have none.
    */
   readonly heldLicenses?: ReturnType<typeof heldLicensesForBackup>;
+  /** The issuer's secret key for each real license's private channel, by license id (licenses.ts). */
+  readonly issuerDeals?: ReturnType<typeof issuerDealsForBackup>;
 };
 
 const WARNING =
@@ -245,6 +248,7 @@ export const backupContents = (now = Date.now()): BackupContents => {
   const codes = allSentCodes();
   const revs = revMarks();
   const held = heldLicensesForBackup();
+  const deals = issuerDealsForBackup();
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
@@ -258,6 +262,7 @@ export const backupContents = (now = Date.now()): BackupContents => {
     ...(Object.keys(codes).length ? { sentCodes: codes } : {}),
     ...(Object.keys(revs).length ? { revs } : {}),
     ...(held.length ? { heldLicenses: held } : {}),
+    ...(Object.keys(deals).length ? { issuerDeals: deals } : {}),
   };
 };
 
@@ -276,7 +281,8 @@ export const hasAnythingToBackUp = (): boolean =>
   allKeys().length > 0 ||
   loadAttester() !== null ||
   Object.keys(allDeliveries()).length > 0 ||
-  heldLicensesForBackup().length > 0;
+  heldLicensesForBackup().length > 0 ||
+  Object.keys(issuerDealsForBackup()).length > 0;
 
 /**
  * Save the file. Deliberately does not mark anything as backed up: only checkBackup
@@ -380,7 +386,7 @@ export const checkBackup = async (file: File, password?: string): Promise<CheckR
     return { ok: false, reason: "That backup doesn't hold your latest deliveries. Save a new one and check that." };
   }
   // A license held here: without its secret on another device it can't be activated or shown.
-  if (heldMissingFrom(v.heldLicenses).length > 0) {
+  if (heldMissingFrom(v.heldLicenses).length > 0 || issuerDealsMissingFrom(v.issuerDeals).length > 0) {
     return { ok: false, reason: "That backup doesn't hold your latest licenses. Save a new one and check that." };
   }
   markBackedUp(held.map((k) => k.recordId));
@@ -475,6 +481,7 @@ export const restoreAny = async (file: File, password?: string): Promise<Restore
   // make it take an older copy.
   raiseRevMarks(v.revs);
   mergeHeldLicenses(v.heldLicenses);
+  mergeIssuerDeals(v.issuerDeals);
   return {
     records: entries.length,
     recordIds,

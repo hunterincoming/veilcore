@@ -130,10 +130,11 @@ export const FamilyOnChain: React.FC<{ record: StrainRecord }> = ({ record }) =>
 
   const confirm = (child: string) =>
     run(async (progress) => {
+      const who = nameOf(child) ? `“${nameOf(child)}” (key ${child})` : `the record with key ${child}`;
+      const fixes = family?.hasOffspring ? '' : ' Once a record has confirmed offspring, its own parents can’t change.';
       if (
-        !family?.hasOffspring &&
         !window.confirm(
-          'Confirm this record as its parent? Once a record has confirmed offspring, its own parents can’t change.',
+          `Confirm this plant is a parent of ${who}? Only confirm a record you know came from it: its line, and anything owed on this plant, will show on it.${fixes}`,
         )
       )
         throw new Error('Not confirmed.');

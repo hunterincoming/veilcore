@@ -9,8 +9,9 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Box, Button, Chip, Divider, Paper, Stack, TextField, Typography } from '@mui/material';
-import { say, type DealEntry, type DealParty } from '../../veilcore/deal-client';
+import { downloadDealRecord, say, type DealEntry, type DealParty } from '../../veilcore/deal-client';
 import { publicOf, type DealSide } from '../../veilcore/deal';
+import { isDecimal, owedUnder, sameAmount } from '../../veilcore/money';
 import {
   REGISTRY_BASE,
   downloadPaymentRequest,
@@ -29,32 +30,32 @@ type Line = {
   received?: Extract<DealEntry, { type: 'received' }>;
 };
 
-/** Two decimal places, as text: amounts never travel as floats. */
-const money = (n: number): string => (Number.isFinite(n) ? n.toFixed(2) : '0.00');
 const today = () => new Date().toISOString().slice(0, 10);
 const dateOf = (t: number) => new Date(t).toLocaleDateString();
 
-/** What a statement owes under the terms: a percent of reported sales, or a fee per unit. */
-export const amountOwed = (terms: Terms, quantity: string): string => {
-  const q = Number(quantity);
-  const rate = Number(terms.royaltyAmount);
-  if (!(q >= 0) || !(rate >= 0)) return '0.00';
-  return money(terms.royaltyType === 'percent' ? (q * rate) / 100 : q * rate);
-};
+/** What a statement owes under the terms, to the cent ('0.00' when the quantity isn't a number yet). */
+export const amountOwed = (terms: Terms, quantity: string): string => owedUnder(terms, quantity) ?? '0.00';
 
-/** The ledger as the messages make it: each side's latest word on each statement counts. */
+/**
+ * The ledger as the signed messages make it (they come sorted by their signed time). Each
+ * reply, payment and confirmation names its statement by the statement's own signature, so
+ * it can only ever count for that one statement. On each statement, each side's latest word
+ * counts. The payout account is the issuer's latest by its signed time; an earlier one is
+ * kept so a change shows.
+ */
 export const ledgerOf = (entries: readonly DealEntry[]) => {
-  const payout = [...entries].reverse().find((e) => e.type === 'payout' && e.from === 'issuer') as
-    | Extract<DealEntry, { type: 'payout' }>
-    | undefined;
+  const payouts = entries.filter((e) => e.type === 'payout' && e.from === 'issuer') as Extract<
+    DealEntry,
+    { type: 'payout' }
+  >[];
+  const payout = payouts[payouts.length - 1];
   const lines = new Map<string, Line>();
   for (const e of entries) {
-    if (e.type === 'statement' && e.from === 'licensee' && !lines.has(e.statementId))
-      lines.set(e.statementId, { statement: e });
+    if (e.type === 'statement' && e.from === 'licensee') lines.set(e.signature, { statement: e });
   }
   for (const e of entries) {
-    if (!('statementId' in e)) continue;
-    const l = lines.get(e.statementId);
+    if (!('statementSig' in e)) continue;
+    const l = lines.get(e.statementSig);
     if (!l) continue;
     if (e.type === 'reply' && e.from === 'issuer') l.reply = e;
     if (e.type === 'paid' && e.from === 'licensee') l.paid = e;
@@ -63,7 +64,7 @@ export const ledgerOf = (entries: readonly DealEntry[]) => {
   const agreed = entries.find((e) => e.type === 'agree' && e.from === 'licensee') as
     | Extract<DealEntry, { type: 'agree' }>
     | undefined;
-  return { payout, lines: [...lines.values()].reverse(), agreed };
+  return { payout, previousPayout: payouts[payouts.length - 2], lines: [...lines.values()].reverse(), agreed };
 };
 
 const statusOf = (l: Line): { label: string; color: 'default' | 'warning' | 'success' | 'error' | 'info' } =>
@@ -84,7 +85,7 @@ export const RoyaltyLedger: React.FC<{
   entries: readonly DealEntry[] | undefined;
   refresh: () => void;
 }> = ({ party, side, terms, entries, refresh }) => {
-  const { payout, lines } = useMemo(() => ledgerOf(entries ?? []), [entries]);
+  const { payout, previousPayout, lines } = useMemo(() => ledgerOf(entries ?? []), [entries]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const [form, setForm] = useState<'statement' | 'payout' | undefined>();
@@ -134,6 +135,19 @@ export const RoyaltyLedger: React.FC<{
         {payout ? (
           <Typography variant="body2">
             <b>Paid to:</b> {payout.method} · {payout.account} · {payout.currency}
+            {previousPayout && previousPayout.account !== payout.account && (
+              <Typography component="span" variant="body2" color="warning.main">
+                {' '}
+                (changed {dateOf(payout.at)} from {previousPayout.account}
+                {side === 'licensee' ? ': check with them before you pay' : ''})
+              </Typography>
+            )}
+            {side === 'issuer' && (
+              <Typography component="span" variant="body2" color="text.secondary">
+                {' '}
+                · if a payment partner asks, your key for this deal starts {mine.slice(0, 8)}
+              </Typography>
+            )}
             {side === 'issuer' && (
               <Button size="small" onClick={() => setForm('payout')} sx={{ ml: 1 }}>
                 Change
@@ -169,6 +183,14 @@ export const RoyaltyLedger: React.FC<{
           />
         )}
 
+        <Button
+          size="small"
+          color="inherit"
+          onClick={() => downloadDealRecord(party, mine, entries)}
+          sx={{ alignSelf: 'flex-start' }}
+        >
+          Download the signed record of this deal
+        </Button>
         {lines.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
             No statements yet.
@@ -177,12 +199,13 @@ export const RoyaltyLedger: React.FC<{
           <Stack divider={<Divider flexItem />} spacing={1.5}>
             {lines.map((l) => (
               <StatementLine
-                key={l.statement.statementId}
+                key={l.statement.signature}
                 line={l}
                 side={side}
                 percent={percent}
                 payout={payout}
                 keys={keys}
+                terms={terms}
                 busy={busy}
                 onSend={(b) => void send(b)}
               />
@@ -254,7 +277,7 @@ const StatementForm: React.FC<{
   const [quantity, setQuantity] = useState('');
   const [note, setNote] = useState('');
   const owed = amountOwed(terms, quantity);
-  const ok = from && to && from <= to && Number(quantity) >= 0 && quantity.trim() !== '';
+  const ok = from && to && from <= to && isDecimal(quantity);
   return (
     <Stack spacing={1.25}>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
@@ -327,9 +350,10 @@ const StatementLine: React.FC<{
   percent: boolean;
   payout?: Extract<DealEntry, { type: 'payout' }>;
   keys: { licensee: string; issuer: string };
+  terms: Terms;
   busy: boolean;
   onSend: Send;
-}> = ({ line, side, percent, payout, keys, busy, onSend }) => {
+}> = ({ line, side, percent, payout, keys, terms, busy, onSend }) => {
   const s = line.statement;
   const status = statusOf(line);
   const receipts = useReceipts(line, payout?.account);
@@ -352,6 +376,12 @@ const StatementLine: React.FC<{
         · filed {dateOf(s.at)}
         {s.note ? ` · “${s.note}”` : ''}
       </Typography>
+      {side === 'issuer' && !sameAmount(s.amountOwed, owedUnder(terms, s.quantity) ?? '') && (
+        <Alert severity="warning" variant="outlined">
+          Under the terms this comes to {owedUnder(terms, s.quantity) ?? 'an amount this page can’t work out'}, not{' '}
+          {s.amountOwed}. Check it before you accept.
+        </Alert>
+      )}
       {line.reply && (
         <Typography variant="body2" color="text.secondary">
           {line.reply.decision === 'accepted' ? 'Accepted' : 'Disputed'} {dateOf(line.reply.at)}
@@ -367,13 +397,15 @@ const StatementLine: React.FC<{
       {receipts.map((c) => (
         <Alert
           key={`${c.receipt.partner}:${c.receipt.reference}`}
-          severity={c.mismatch.length ? 'warning' : 'success'}
+          severity={c.mismatch.length || !c.nameChecked ? 'warning' : 'success'}
           variant="outlined"
         >
           Paid through {c.partnerName ?? 'a payment partner'}
           {c.nameChecked ? ' (name checked by VeilCore)' : ' (name not checked by VeilCore)'}: {c.receipt.amount}{' '}
           {c.receipt.currency} to {c.receipt.payTo} on {new Date(c.receipt.paidAt).toLocaleDateString()}, reference{' '}
           {c.receipt.reference}. Signed by the partner and checked here.
+          {!c.nameChecked &&
+            ' Anyone can sign as a partner under any name: confirm the money arrived before you rely on it.'}
           {c.mismatch.length > 0 && ` Doesn’t match: ${c.mismatch.join('; ')}.`}
         </Alert>
       ))}
@@ -399,6 +431,7 @@ const StatementLine: React.FC<{
               onSend({
                 type: 'reply',
                 statementId: s.statementId,
+                statementSig: s.signature,
                 decision: 'accepted',
                 ...(note.trim() ? { note: note.trim() } : {}),
               })
@@ -410,7 +443,13 @@ const StatementLine: React.FC<{
             color="error"
             disabled={busy || !note.trim()}
             onClick={() =>
-              onSend({ type: 'reply', statementId: s.statementId, decision: 'disputed', note: note.trim() })
+              onSend({
+                type: 'reply',
+                statementId: s.statementId,
+                statementSig: s.signature,
+                decision: 'disputed',
+                note: note.trim(),
+              })
             }
           >
             Dispute (say why)
@@ -425,6 +464,7 @@ const StatementLine: React.FC<{
             onSend({
               type: 'received',
               statementId: s.statementId,
+              statementSig: s.signature,
               amount: line.paid!.amount,
               currency: line.paid!.currency,
             })
@@ -474,9 +514,11 @@ const StatementLine: React.FC<{
                 onSend({
                   type: 'paid',
                   statementId: s.statementId,
+                  statementSig: s.signature,
                   amount: s.amountOwed,
                   currency: s.currency,
                   method: payout?.method ?? 'other',
+                  payTo: payout?.account ?? '',
                   reference: ref.trim(),
                   paidOn,
                 })

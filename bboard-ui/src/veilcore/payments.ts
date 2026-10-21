@@ -8,10 +8,11 @@
 // signature themselves: the registry is not believed.
 // SPDX-License-Identifier: Apache-2.0
 
-import { ed25519 } from '@noble/curves/ed25519.js';
 import { canonicalise } from 'veilcore-records';
 import { isObject, isString, readJson } from './json';
 import type { DealEntry } from './deal-client';
+import { verifyStrict } from './deal';
+import { sameAmount } from './money';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 /** Where receipts are filed: this site's registry. */
@@ -109,7 +110,7 @@ export type CheckedReceipt = {
 export const receiptVerifies = (r: Receipt, signature: string): boolean => {
   try {
     if (!HEX64.test(r.partner) || !/^[0-9a-f]{128}$/.test(signature)) return false;
-    return ed25519.verify(
+    return verifyStrict(
       bytes(signature),
       new TextEncoder().encode(`${RECEIPT_VERSION}\n${canonicalise(r)}`),
       bytes(r.partner),
@@ -135,7 +136,7 @@ export const receiptsFor = async (statement: DealEntry, payTo: string | undefine
     const mismatch: string[] = [];
     if (r.statementId !== statement.statementId) mismatch.push('it names another statement');
     if (r.currency !== statement.currency) mismatch.push(`paid in ${r.currency}, owed in ${statement.currency}`);
-    else if (Number(r.amount) !== Number(statement.amountOwed))
+    else if (!sameAmount(r.amount, statement.amountOwed))
       mismatch.push(`paid ${r.amount}, owed ${statement.amountOwed}`);
     if (payTo !== undefined && r.payTo !== payTo) mismatch.push(`paid to ${r.payTo}, not the account they gave`);
     const p = isObject(x.partner) ? x.partner : undefined;

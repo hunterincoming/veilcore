@@ -16,16 +16,17 @@ party to the deal. The payment is yours, under your licences and your compliance
 **What you get.**
 
 - A payment request the grower hands you, in which the amount owed is signed by the grower
-  and the account to pay is signed by the breeder. You can check both before you pay, so a
-  request that redirects the money fails the check.
+  and the account to pay is signed by the breeder. The signatures show neither was changed
+  after the two of them wrote it. They don't show whose keys they are: before the first
+  payment to an account, confirm it with the breeder (see step 3 below).
 - A place to file your receipt. Once you file it, both sides see "paid through <your name>"
   under the statement, checked by their own browsers against your key.
 
 **What you do.**
 
 1. Register your signing key with VeilCore's registry as a payment partner (once).
-2. Ask us to check your name (once a year). Until then your receipts show "name not
-   checked by VeilCore".
+2. Ask us to check your name (once a year). The registry takes receipts only from partners
+   whose name we have checked: anyone can register a key under any name.
 3. For each payment: check the request, pay, sign a receipt, file it.
 
 ---
@@ -64,10 +65,12 @@ Before paying, check:
    against `payout.signer` and say `"from": "issuer"`.
 2. `pay` matches them: `amount` and `currency` are the statement's `amountOwed` and
    `currency`; `to` is the payout's `account`.
-3. The two signers are the deal's two keys. VeilCore's code exchange binds them: the grower
-   and the breeder read each other a 6-digit code made from both, so each holds the other's
-   real key. If you want more, ask the breeder to confirm the first eight characters of
-   `payout.signer`.
+3. Whose keys they are. Inside VeilCore the code exchange binds them: the grower and the
+   breeder read each other a 6-digit code made from both keys, so each holds the other's
+   real key. You weren't part of that, and anyone who edits the request file can re-sign it
+   with keys of their own. So before the first payment to a new `payout.signer` or a new
+   `to` account, confirm with the breeder, through a channel you already trust, the first
+   eight characters of `payout.signer` and the account.
 
 Amounts are decimal strings. Never read them as floating-point numbers.
 

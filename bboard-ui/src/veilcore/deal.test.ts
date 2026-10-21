@@ -1,6 +1,14 @@
 // The private channel between licensor and licensee (deal.ts).
 import { describe, expect, it } from 'vitest';
-import { dealKeys, newPartyKey, openMessage, sealMessage, verifyDisclosed, type DealMessage } from './deal';
+import {
+  dealKeys,
+  newPartyKey,
+  openMessage,
+  sealMessage,
+  verifyDisclosed,
+  verifyStrict,
+  type DealMessage,
+} from './deal';
 import { amountOwed, ledgerOf } from '../components/licensing/RoyaltyLedger';
 import type { DealEntry } from './deal-client';
 
@@ -50,7 +58,7 @@ describe('the deal channel', () => {
     const licenseeKeys = await dealKeys(licensee.secret, issuer.public, C, H);
     // The licensee claims the issuer accepted: signed with the licensee's key, so it fails.
     const forged = await sealMessage(
-      { type: 'reply', statementId: 's1', decision: 'accepted', from: 'issuer', at: 2 },
+      { type: 'reply', statementId: 's1', statementSig: 'aa', decision: 'accepted', from: 'issuer', at: 2 },
       licensee.secret,
       licenseeKeys,
     );
@@ -75,11 +83,13 @@ describe('royalties', () => {
     const entries = [
       e({ ...statement }, 1),
       // The licensee can't accept its own statement, nor the issuer say it paid.
-      e({ type: 'reply', statementId: 's1', decision: 'accepted', from: 'licensee' }, 2),
+      e({ type: 'reply', statementId: 's1', statementSig: '1', decision: 'accepted', from: 'licensee' }, 2),
       e(
         {
           type: 'paid',
           statementId: 's1',
+          statementSig: '1',
+          payTo: 'x',
           amount: '500.00',
           currency: 'USD',
           method: 'x',
@@ -89,11 +99,39 @@ describe('royalties', () => {
         },
         3,
       ),
-      e({ type: 'reply', statementId: 's1', decision: 'accepted', from: 'issuer' }, 4),
+      e({ type: 'reply', statementId: 's1', statementSig: '1', decision: 'accepted', from: 'issuer' }, 4),
     ];
     const { lines } = ledgerOf(entries);
     expect(lines).toHaveLength(1);
     expect(lines[0].reply?.seq).toBe(4);
     expect(lines[0].paid).toBeUndefined();
+  });
+});
+
+describe('strict signatures', () => {
+  it('refuse a small-order public key, with which a trivial signature passes lenient checks', () => {
+    // The identity point (y = 1) and the signature R = identity, S = 0.
+    const pub = new Uint8Array(32);
+    pub[0] = 1;
+    const sig = new Uint8Array(64);
+    sig[0] = 1;
+    expect(verifyStrict(sig, new TextEncoder().encode('anything'), pub)).toBe(false);
+  });
+});
+
+describe('a reply counts for one statement only', () => {
+  it('two statements with the same id: each reply names its statement by signature', () => {
+    const e = (m: Record<string, unknown>, sig: string, at: number) =>
+      ({ seq: at, fingerprint: '', receivedAt: 0, signature: sig, mine: false, at, ...m }) as unknown as DealEntry;
+    const a = e({ ...statement, amountOwed: '5.00' }, 'sa', 1);
+    const b = e({ ...statement, amountOwed: '500.00' }, 'sb', 2);
+    const reply = e(
+      { type: 'reply', statementId: 's1', statementSig: 'sa', decision: 'accepted', from: 'issuer' },
+      'r',
+      3,
+    );
+    const { lines } = ledgerOf([a, b, reply]);
+    expect(lines.find((l) => l.statement.signature === 'sa')?.reply?.decision).toBe('accepted');
+    expect(lines.find((l) => l.statement.signature === 'sb')?.reply).toBeUndefined();
   });
 });
