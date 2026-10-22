@@ -62,6 +62,11 @@ describe('eddsa-jcs-2022, the W3C test vectors', () => {
         proof: { ...proof, proofValue: (other.proof as { proofValue: string }).proofValue },
       }).verified,
     ).toBe(false);
+    expect(verifyCredential({ ...signed, proof: { ...proof, proofPurpose: 'authentication' } }).verified).toBe(false);
+    expect(
+      verifyCredential({ ...signed, proof: { ...proof, verificationMethod: `${String(proof.verificationMethod)}#x` } })
+        .verified,
+    ).toBe(false);
     // The proof's @context must lead the document's.
     expect(verifyCredential({ ...signed, '@context': ['https://www.w3.org/ns/credentials/v2'] }).verified).toBe(false);
   });
@@ -75,5 +80,7 @@ describe('eddsa-jcs-2022, the W3C test vectors', () => {
       '{"a":{"c":0.5,"d":1e+21},"b":[1,"x",null,true]}',
     );
     expect(() => jcs({ a: Number.NaN })).toThrow();
+    expect(() => jcs({ a: '\ud800' })).toThrow('lone surrogate');
+    expect(() => jcs({ '\udc00': 1 })).toThrow('lone surrogate');
   });
 });

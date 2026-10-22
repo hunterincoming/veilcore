@@ -106,6 +106,9 @@ export const backup = {
     'パスキーのコピーを削除しました。パスキー自体は、電話のパスワード設定から削除してください。',
   'app.backup.passkey.restore': 'パスキーを使う',
   'app.backup.passkey.restoreHint': '前にパスキーのコピーを作りましたか？ファイルの代わりにパスキーを使えます。',
+  'app.backup.passkey.found': '{date}に保存したパスキーのコピーが見つかりました。ここに復元しますか？',
+  'app.backup.passkey.restoreIt': '復元する',
+  'app.backup.passkey.notThis': 'これではない',
   'app.backup.passkey.from': '{date}に保存したパスキーのコピーからです。',
   'app.backup.passkey.err.unsupported':
     'この電話またはブラウザでは、バックアップを開けるパスキーを作れません。バックアップファイルを使うか、iPhone（iOS 18.4以降）のSafariかChromeでお試しください。',

@@ -123,6 +123,9 @@ export const backup = {
   'app.backup.passkey.restore': 'Utiliser ma clé d’accès',
   'app.backup.passkey.restoreHint':
     'Vous avez déjà créé une copie avec clé d’accès ? Utilisez votre clé d’accès au lieu d’un fichier.',
+  'app.backup.passkey.found': 'Votre copie avec clé d’accès, enregistrée le {date}, a été trouvée. La restaurer ici ?',
+  'app.backup.passkey.restoreIt': 'La restaurer',
+  'app.backup.passkey.notThis': 'Pas celle-ci',
   'app.backup.passkey.from': 'Depuis votre copie avec clé d’accès enregistrée le {date}.',
   'app.backup.passkey.err.unsupported':
     'Ce téléphone ou ce navigateur ne peut pas créer de clé d’accès qui ouvre une copie de secours. Utilisez le fichier de secours, ou essayez Safari sur un iPhone (iOS 18.4 ou plus récent) ou Chrome.',

@@ -17,7 +17,7 @@
 // licensor's.
 // SPDX-License-Identifier: Apache-2.0
 
-import { didKeyOf, publicOfDidKey, signCredential, verifyCredential } from './vc';
+import { didKeyOf, jcs, publicOfDidKey, signCredential, verifyCredential } from './vc';
 import { publicOf } from './deal';
 import type { DealEntry, DealParty } from './deal-client';
 import { NETWORK } from '../config/network';
@@ -58,7 +58,7 @@ export const licenseCredential = (
       type: ['VerifiableCredential', LICENSE_CREDENTIAL],
       name: 'VeilCore license',
       description:
-        'A license between two parties, recorded on Midnight with VeilCore. The terms stay private to the two of them: agreementFingerprint commits to them. Whether the license is still live is checked on Midnight, not by this credential.',
+        'A license between two parties, recorded on Midnight with VeilCore. The terms stay private to the two of them: agreementFingerprint commits to them. Whether the license is still live is checked on Midnight, not by this credential. Showing this credential shows which license on Midnight it is.',
       issuer: didKeyOf(k.issuer),
       validFrom: iso(agreed.agreedAt),
       credentialSubject: {
@@ -125,13 +125,32 @@ export type CheckedCredential = {
 
 const typesOf = (c: Credential): unknown[] => (Array.isArray(c.type) ? (c.type as unknown[]) : []);
 
+/** What this page itself knows the two agreed to: from its own stored license, never from a message. */
+export type AgreedTerms = { readonly agreementType: string; readonly agreementFingerprint: string };
+
+const sameText = (a: unknown, b: unknown) => typeof a === 'string' && a === b;
+
 /**
  * The credentials the licensor sent in this deal that check out here: signed by the licensor's
- * deal key, about the licensee's, for this license. Anything else is left out.
+ * deal key, about the licensee's, for this license, and saying exactly what was agreed and paid.
+ * A license credential must carry the fingerprint and type this page holds for the agreement
+ * (attack pass 21 Oct, finding 1: a fingerprint from a message could be one the other side made
+ * up). A payment credential must name a statement the licensee filed and the licensor confirmed
+ * here, with the same period, amount and currency. Anything else is left out.
  */
-export const credentialsIn = (entries: readonly DealEntry[], p: DealParty): CheckedCredential[] => {
+export const credentialsIn = (
+  entries: readonly DealEntry[],
+  p: DealParty,
+  agreed: AgreedTerms | undefined,
+): CheckedCredential[] => {
   const issuer = p.side === 'issuer' ? publicOf(p.mySecret) : p.theirPublic;
   const licensee = p.side === 'issuer' ? p.theirPublic : publicOf(p.mySecret);
+  const statements = new Map<string, Statement>();
+  const confirmations = new Map<string, Received>();
+  for (const e of entries) {
+    if (e.type === 'statement' && e.from === 'licensee') statements.set(e.signature, e);
+    if (e.type === 'received' && e.from === 'issuer') confirmations.set(e.statementSig, e);
+  }
   const out: CheckedCredential[] = [];
   const seen = new Set<string>();
   for (const e of entries) {
@@ -139,19 +158,40 @@ export const credentialsIn = (entries: readonly DealEntry[], p: DealParty): Chec
     const v = verifyCredential(e.credential);
     if (!v.verified || v.signer !== issuer) continue;
     const d = v.document;
+    // Only what the proof covers: the document's @context must be exactly the proof's.
+    const proofContext = (e.credential.proof as Record<string, unknown> | undefined)?.['@context'];
+    if (proofContext === undefined || jcs(proofContext) !== jcs(e.credential['@context'])) continue;
     const subject = d.credentialSubject as Record<string, unknown> | undefined;
     if (typeof d.issuer !== 'string' || publicOfDidKey(d.issuer) !== issuer) continue;
     if (!subject || typeof subject.id !== 'string' || publicOfDidKey(subject.id) !== licensee) continue;
     const body = (subject.license ?? subject.royaltyPayment) as Record<string, unknown> | undefined;
     const l = body?.ledger as Record<string, unknown> | undefined;
-    if (!l || l.commitment !== p.commitment || l.licensorRecord !== p.issuerRecord) continue;
+    if (!body || !l || l.commitment !== p.commitment || l.licensorRecord !== p.issuerRecord) continue;
     const id = typeof d.id === 'string' ? d.id : '';
     if (seen.has(id)) continue;
-    seen.add(id);
     const types = typesOf(d);
-    if (types.includes(LICENSE_CREDENTIAL)) out.push({ kind: 'license', credential: e.credential });
-    else if (types.includes(PAYMENT_CREDENTIAL) && body && typeof body.statementSignature === 'string')
-      out.push({ kind: 'payment', credential: e.credential, statementSignature: body.statementSignature });
+    if (types.includes(LICENSE_CREDENTIAL)) {
+      if (!agreed) continue;
+      if (!sameText(body.agreementFingerprint, agreed.agreementFingerprint)) continue;
+      if (!sameText(body.agreementType, agreed.agreementType)) continue;
+      seen.add(id);
+      out.push({ kind: 'license', credential: e.credential });
+    } else if (types.includes(PAYMENT_CREDENTIAL)) {
+      const sig = body.statementSignature;
+      const st = typeof sig === 'string' ? statements.get(sig) : undefined;
+      const rc = typeof sig === 'string' ? confirmations.get(sig) : undefined;
+      if (!st || !rc) continue;
+      if (
+        !sameText(body.statementId, st.statementId) ||
+        !sameText(body.periodFrom, st.periodFrom) ||
+        !sameText(body.periodTo, st.periodTo) ||
+        !sameText(body.amount, rc.amount) ||
+        !sameText(body.currency, rc.currency)
+      )
+        continue;
+      seen.add(id);
+      out.push({ kind: 'payment', credential: e.credential, statementSignature: st.signature });
+    }
   }
   return out;
 };

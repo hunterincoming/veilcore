@@ -82,11 +82,24 @@ describe('W3C credentials for a license', () => {
   });
 
   it('the licensee’s page keeps only credentials from the licensor, about them, for this license', () => {
-    const license = licenseCredential(issuerParty, {
+    const agreed = { agreementType: 'license', agreementFingerprint: hex64() };
+    const license = licenseCredential(issuerParty, { ...agreed, agreedAt: 1 });
+    // Attack pass 21 Oct, finding 1: a credential for terms other than the ones this page holds.
+    const madeUp = licenseCredential(issuerParty, {
       agreementType: 'license',
       agreementFingerprint: hex64(),
       agreedAt: 1,
     });
+    // A payment credential whose amount differs from what the licensor confirmed.
+    const rawPayment: Record<string, unknown> = { ...paymentCredential(issuerParty, statement, received) };
+    delete rawPayment.proof;
+    const sub = rawPayment.credentialSubject as { royaltyPayment: Record<string, unknown> };
+    const inflated = signCredential(
+      { ...rawPayment, credentialSubject: { ...sub, royaltyPayment: { ...sub.royaltyPayment, amount: '5000.00' } } },
+      breeder.secret,
+    );
+    // Unsigned @context added after the proof's.
+    const extraContext = { ...license, '@context': [...(license['@context'] as string[]), 'https://evil.example/ctx'] };
     const payment = paymentCredential(issuerParty, statement, received);
     const otherDeal = licenseCredential(
       { ...issuerParty, commitment: hex64() },
@@ -99,6 +112,11 @@ describe('W3C credentials for a license', () => {
     const tampered = { ...payment, name: 'Changed' };
     const fromGrower = entry({ type: 'credential', from: 'licensee', credential: license });
     const entries = [
+      statement,
+      received,
+      entry({ type: 'credential', from: 'issuer', credential: madeUp }),
+      entry({ type: 'credential', from: 'issuer', credential: inflated }),
+      entry({ type: 'credential', from: 'issuer', credential: extraContext }),
       entry({ type: 'credential', from: 'issuer', credential: license }),
       entry({ type: 'credential', from: 'issuer', credential: license }), // the same one twice
       entry({ type: 'credential', from: 'issuer', credential: payment }),
@@ -107,10 +125,19 @@ describe('W3C credentials for a license', () => {
       entry({ type: 'credential', from: 'issuer', credential: tampered }),
       fromGrower,
     ];
-    const got = credentialsIn(entries, growerParty);
+    const got = credentialsIn(entries, growerParty, agreed);
     expect(got.map((c) => c.kind)).toEqual(['license', 'payment']);
+    expect(got[0].credential).toBe(license);
     expect(got[1].statementSignature).toBe(statement.signature);
-    expect(credentialsIn(entries, issuerParty).map((c) => c.kind)).toEqual(['license', 'payment']);
+    expect(credentialsIn(entries, issuerParty, agreed).map((c) => c.kind)).toEqual(['license', 'payment']);
+    // Without a confirmed payment in the deal, a payment credential isn't kept.
+    expect(
+      credentialsIn(
+        entries.filter((e) => e !== received),
+        growerParty,
+        agreed,
+      ).map((c) => c.kind),
+    ).toEqual(['license']);
   });
 
   it('a payment credential names exactly the statement it confirms', () => {

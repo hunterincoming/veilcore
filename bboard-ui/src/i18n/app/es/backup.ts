@@ -118,6 +118,9 @@ export const backup = {
   'app.backup.passkey.restore': 'Usar mi llave de acceso',
   'app.backup.passkey.restoreHint':
     '¿Ya creó una copia con llave de acceso? Use su llave de acceso en lugar de un archivo.',
+  'app.backup.passkey.found': 'Encontramos su copia con llave de acceso, guardada el {date}. ¿Restaurarla aquí?',
+  'app.backup.passkey.restoreIt': 'Restaurarla',
+  'app.backup.passkey.notThis': 'Esta no',
   'app.backup.passkey.from': 'De su copia con llave de acceso guardada el {date}.',
   'app.backup.passkey.err.unsupported':
     'Este teléfono o navegador no puede crear una llave de acceso que abra una copia de seguridad. Use el archivo de copia de seguridad, o pruebe Safari en un iPhone (iOS 18.4 o posterior) o Chrome.',

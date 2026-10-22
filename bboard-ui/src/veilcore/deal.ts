@@ -22,6 +22,7 @@ import { ed25519, x25519 } from '@noble/curves/ed25519.js';
 import { hkdf } from '@noble/hashes/hkdf.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { canonicalise } from 'veilcore-records';
+import { isDecimal } from './money';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const hex = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
@@ -226,6 +227,86 @@ export const sealMessage = async (m: DealMessage, mySecret: string, keys: DealKe
   return { iv: b64u(iv), ct: b64u(ct) };
 };
 
+/**
+ * Whether a signed message has the shape its type says, field by field. A message from the
+ * other side can be signed and still carry an object where a page expects text, or a time
+ * that isn't one; shown as is, that broke the whole license page, Revoke included (attack pass
+ * 21 Oct, finding 4). Anything that doesn't fit is dropped like a bad signature.
+ */
+export const wellFormed = (m: unknown, now = Date.now()): m is DealMessage => {
+  if (typeof m !== 'object' || m === null || Array.isArray(m)) return false;
+  const o = m as Record<string, unknown>;
+  const text = (v: unknown, max = 200) => typeof v === 'string' && v.length <= max;
+  const opt = (v: unknown, max = 1000) => v === undefined || text(v, max);
+  const day = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+  const dec = (v: unknown) => typeof v === 'string' && v.length <= 40 && isDecimal(v);
+  const sig = (v: unknown) => typeof v === 'string' && /^[0-9a-f]{128}$/.test(v);
+  const plain = (v: unknown) => typeof v === 'object' && v !== null && !Array.isArray(v);
+  if (o.from !== 'issuer' && o.from !== 'licensee') return false;
+  // Signed times from 2020 to a day ahead: the order of the deal is the order of these.
+  if (typeof o.at !== 'number' || !Number.isSafeInteger(o.at) || o.at < 1_577_836_800_000 || o.at > now + 86_400_000)
+    return false;
+  switch (o.type) {
+    case 'terms':
+      return (
+        text(o.agreementType, 40) &&
+        plain(o.terms) &&
+        text(o.recordFingerprint) &&
+        text(o.agreementSalt) &&
+        text(o.agreementFingerprint)
+      );
+    case 'agree':
+      return text(o.agreementFingerprint);
+    case 'plant-record':
+      return text(o.recordIdentity) && text(o.name);
+    case 'payout':
+      return text(o.method, 80) && text(o.account) && text(o.currency, 10);
+    case 'statement': {
+      const e = o.evidence as Record<string, unknown> | undefined;
+      return (
+        text(o.statementId, 100) &&
+        day(o.periodFrom) &&
+        day(o.periodTo) &&
+        (o.basis === 'sales' || o.basis === 'units') &&
+        dec(o.quantity) &&
+        text(o.currency, 10) &&
+        dec(o.amountOwed) &&
+        opt(o.note) &&
+        (e === undefined ||
+          (plain(e) &&
+            typeof e.sha256 === 'string' &&
+            /^[0-9a-f]{64}$/.test(e.sha256) &&
+            text(e.name) &&
+            Number.isSafeInteger(e.size)))
+      );
+    }
+    case 'reply':
+      return (
+        text(o.statementId, 100) &&
+        sig(o.statementSig) &&
+        (o.decision === 'accepted' || o.decision === 'disputed') &&
+        opt(o.note)
+      );
+    case 'paid':
+      return (
+        text(o.statementId, 100) &&
+        sig(o.statementSig) &&
+        dec(o.amount) &&
+        text(o.currency, 10) &&
+        text(o.method, 80) &&
+        text(o.payTo) &&
+        text(o.reference, 120) &&
+        day(o.paidOn)
+      );
+    case 'received':
+      return text(o.statementId, 100) && sig(o.statementSig) && dec(o.amount) && text(o.currency, 10) && opt(o.note);
+    case 'credential':
+      return plain(o.credential);
+    default:
+      return false;
+  }
+};
+
 /** A message that opened and whose signature is its claimed sender's. */
 export type Opened = { readonly message: DealMessage; readonly signature: string; readonly mine: boolean };
 
@@ -246,6 +327,7 @@ export const openMessage = async (s: Sealed, keys: DealKeys, myside: DealSide): 
     const signer = mine ? keys.mine : keys.theirs;
     if (typeof sig !== 'string' || !/^[0-9a-f]{128}$/.test(sig)) return undefined;
     if (!verifyStrict(bytes(sig), utf8(DOMAIN + canonical(m)), bytes(signer))) return undefined;
+    if (!wellFormed(m)) return undefined;
     return { message: m, signature: sig, mine };
   } catch {
     return undefined;

@@ -39,14 +39,21 @@ describe('a payment request', () => {
         currency: 'USD',
         amountOwed: '500.00',
         from: 'licensee',
-        at: 5,
+        at: Date.UTC(2026, 9, 5),
       },
       licensee,
       issuer,
       1,
     );
     const payout = await entry(
-      { type: 'payout', method: 'Example Pay', account: 'acct-123', currency: 'USD', from: 'issuer', at: 2 },
+      {
+        type: 'payout',
+        method: 'Example Pay',
+        account: 'acct-123',
+        currency: 'USD',
+        from: 'issuer',
+        at: Date.UTC(2026, 9, 2),
+      },
       issuer,
       licensee,
       2,

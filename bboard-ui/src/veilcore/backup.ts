@@ -330,7 +330,12 @@ export type CheckResult =
  * key, and every record's keys with the same anchor and pairing. Changes nothing unless it
  * passes; then every record is marked backed up.
  */
-export const checkBackup = async (file: File, password?: string): Promise<CheckResult> => {
+export const checkBackup = async (
+  file: File,
+  password?: string,
+  /** `mark: false` checks without marking anything backed up (the passkey copy, passkey-backup.ts). */
+  opts: { mark?: boolean } = {},
+): Promise<CheckResult> => {
   let v: Record<string, unknown>;
   try {
     v = await opened(parse(await file.text()), password);
@@ -389,10 +394,12 @@ export const checkBackup = async (file: File, password?: string): Promise<CheckR
   if (heldMissingFrom(v.heldLicenses).length > 0 || issuerDealsMissingFrom(v.issuerDeals).length > 0) {
     return { ok: false, reason: "That backup doesn't hold your latest licenses. Save a new one and check that." };
   }
-  markBackedUp(held.map((k) => k.recordId));
-  markHeldBackedUp(v.heldLicenses);
-  markIssuerDealsBackedUp(v.issuerDeals);
-  if (vault) markVaultBackedUp();
+  if (opts.mark !== false) {
+    markBackedUp(held.map((k) => k.recordId));
+    markHeldBackedUp(v.heldLicenses);
+    markIssuerDealsBackedUp(v.issuerDeals);
+    if (vault) markVaultBackedUp();
+  }
   return { ok: true, records: held.length, recordIds: held.map((k) => k.recordId) };
 };
 

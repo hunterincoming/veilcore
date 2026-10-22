@@ -16,6 +16,7 @@ import {
   updatePasskeyCopy,
 } from '../../veilcore/passkey-backup';
 import { PASSKEY_BACKUP } from '../../config/copy';
+import { hydrate } from '../../veilcore/records';
 import { useT } from '../../i18n/app';
 import { backupMessageWords } from './backup-words';
 
@@ -41,6 +42,8 @@ export const PasskeyCopyMaker: React.FC = () => {
     } catch (e) {
       setProblem(e instanceof Error ? e.message : String(e));
     } finally {
+      // A save may have merged in another device's newer copy first.
+      await hydrate().catch(() => undefined);
       setBusy(false);
       setState(passkeyCopyState());
     }

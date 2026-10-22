@@ -26,7 +26,7 @@ const statement: DealMessage = {
   currency: 'USD',
   amountOwed: '500.00',
   from: 'licensee',
-  at: 1,
+  at: Date.UTC(2026, 9, 1),
 };
 
 describe('the deal channel', () => {
@@ -105,6 +105,24 @@ describe('royalties', () => {
     expect(lines).toHaveLength(1);
     expect(lines[0].reply?.seq).toBe(4);
     expect(lines[0].paid).toBeUndefined();
+  });
+});
+
+describe('a signed message must have the shape its type says (attack pass 21 Oct, finding 4)', () => {
+  it('an object where text belongs, a time that isn’t one, or an unknown type: dropped', async () => {
+    const keys = await dealKeys(licensee.secret, issuer.public, C, H);
+    const theirs = await dealKeys(issuer.secret, licensee.public, C, H);
+    const send = (m: unknown) => sealMessage(m as DealMessage, licensee.secret, keys);
+    expect(await openMessage(await send(statement), theirs, 'issuer')).toBeDefined();
+    for (const bad of [
+      { ...statement, periodFrom: { $$typeof: 'x' } },
+      { ...statement, at: 'soon' },
+      { ...statement, at: Date.now() + 10 * 86_400_000 },
+      { ...statement, amountOwed: '1e9' },
+      { ...statement, evidence: { sha256: 'nope', name: 'a', size: 1 } },
+      { ...statement, type: 'something-else' },
+    ])
+      expect(await openMessage(await send(bad), theirs, 'issuer')).toBeUndefined();
   });
 });
 

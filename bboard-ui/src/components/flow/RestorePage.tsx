@@ -64,6 +64,7 @@ export const RestorePage: React.FC = () => {
   const [waiting, setWaiting] = useState<File>();
   // When the backup came from the passkey copy: the date it was saved, said on the result.
   const [fromPasskey, setFromPasskey] = useState<string>();
+  const [found, setFound] = useState<{ file: File; savedAt: string }>();
   const restore = async (f: File, password?: string, passkeySavedAt?: string) => {
     setBusy(true);
     setProblem(undefined);
@@ -163,11 +164,37 @@ export const RestorePage: React.FC = () => {
                   if (f) void restore(f);
                 }}
               />
-              <PasskeyRestore
-                busy={busy}
-                onFile={(file, savedAt) => void restore(file, undefined, savedAt)}
-                onProblem={setProblem}
-              />
+              {/* The copy's date first, and nothing changes until they say so (attack pass 21 Oct, finding 6). */}
+              {found ? (
+                <Alert severity="info" variant="outlined" data-passkey-found="">
+                  {t('app.backup.passkey.found', { date: new Date(found.savedAt).toLocaleString() })}
+                  <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                    <Button
+                      variant="contained"
+                      disabled={busy}
+                      onClick={() => {
+                        const f = found;
+                        setFound(undefined);
+                        void restore(f.file, undefined, f.savedAt);
+                      }}
+                    >
+                      {t('app.backup.passkey.restoreIt')}
+                    </Button>
+                    <Button color="inherit" onClick={() => setFound(undefined)}>
+                      {t('app.backup.passkey.notThis')}
+                    </Button>
+                  </Stack>
+                </Alert>
+              ) : (
+                <PasskeyRestore
+                  busy={busy}
+                  onFile={(file, savedAt) => {
+                    setProblem(undefined);
+                    setFound({ file, savedAt });
+                  }}
+                  onProblem={setProblem}
+                />
+              )}
               {waiting && <BackupPasswordAsk busy={busy} onOpen={(password) => void restore(waiting, password)} />}
               {problem && (
                 <Alert severity="warning" variant="outlined">

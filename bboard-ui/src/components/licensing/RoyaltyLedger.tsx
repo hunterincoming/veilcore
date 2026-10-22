@@ -20,6 +20,7 @@ import {
   type CheckedReceipt,
 } from '../../veilcore/payments';
 import { DealCredentials } from './DealCredentials';
+import type { AgreedTerms } from '../../veilcore/credentials';
 import { evidenceOf, isEvidence, isTheReport, sizeText, type Evidence } from '../../veilcore/evidence';
 
 type Terms = { royaltyType?: string; royaltyAmount?: string; unitBasis?: string };
@@ -86,7 +87,9 @@ export const RoyaltyLedger: React.FC<{
   terms: Terms;
   entries: readonly DealEntry[] | undefined;
   refresh: () => void;
-}> = ({ party, side, terms, entries, refresh }) => {
+  /** What this page holds as agreed (its own stored license), for the W3C credentials. */
+  agreed?: AgreedTerms;
+}> = ({ party, side, terms, entries, refresh, agreed }) => {
   const { payout, previousPayout, lines } = useMemo(() => ledgerOf(entries ?? []), [entries]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -220,6 +223,7 @@ export const RoyaltyLedger: React.FC<{
           confirmed={lines.flatMap((l) => (l.received ? [{ statement: l.statement, received: l.received }] : []))}
           busy={busy}
           onSend={(b) => void send(b)}
+          agreed={agreed}
         />
         {error && (
           <Alert severity="error" variant="outlined">

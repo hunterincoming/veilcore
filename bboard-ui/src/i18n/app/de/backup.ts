@@ -120,6 +120,9 @@ export const backup = {
   'app.backup.passkey.restore': 'Meinen Passkey verwenden',
   'app.backup.passkey.restoreHint':
     'Schon einmal eine Passkey-Kopie angelegt? Verwenden Sie Ihren Passkey statt einer Datei.',
+  'app.backup.passkey.found': 'Ihre Passkey-Kopie vom {date} wurde gefunden. Hier wiederherstellen?',
+  'app.backup.passkey.restoreIt': 'Wiederherstellen',
+  'app.backup.passkey.notThis': 'Nicht diese',
   'app.backup.passkey.from': 'Aus Ihrer Passkey-Kopie vom {date}.',
   'app.backup.passkey.err.unsupported':
     'Dieses Handy oder dieser Browser kann keinen Passkey erzeugen, der eine Sicherung öffnet. Verwenden Sie die Sicherungsdatei, oder versuchen Sie es mit Safari auf einem iPhone (iOS 18.4 oder neuer) oder mit Chrome.',

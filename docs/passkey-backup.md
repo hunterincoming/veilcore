@@ -26,8 +26,13 @@ phone signed into the same Apple or Google account can open the copy. The restor
 - The registry stores the id, the token's SHA-256 and the ciphertext (`/vault`, registry
   `lineage/passkey-vault.mjs`). No account, email or passkey public key. It can't open the
   copy, tie it to a person, or change it without the page noticing.
-- A copy counts as a backup only after it is read back from the registry, opened, and
-  passes the same check a saved file does (`checkBackup`).
+- A copy is read back from the registry, opened and checked to hold everything before the
+  page calls it up to date. It never counts as the backup file: only a checked file clears
+  "back up first" (attack pass, 21 Oct, finding 3).
+- Two devices on one synced passkey: each save names the copy it replaces (its fingerprint),
+  the registry refuses a save over a newer copy, and the page merges the newer copy in and
+  saves again, so neither device's records are lost (finding 2).
+- On restore, the page shows the copy's date and asks before anything changes (finding 6).
 
 ## Why the file stays
 
@@ -41,6 +46,7 @@ backup steps and the passkey copy is offered beside it, with that warning on scr
   Google Password Manager (Android, Chrome), 1Password and several others. Windows Hello only
   on recent Windows 11 builds. Others are told plainly and pointed to the file.
 - The registry could serve an older copy it kept. The copy carries its date inside the sealed
-  part and the restore result shows it.
+  part, and the restore screen shows it and asks first. Restoring only adds what's missing, so
+  an older copy can't take anything away.
 - A passkey is tied to the website it was made on: a copy made on test.veilcore.org opens
   there, not on the mainnet site.

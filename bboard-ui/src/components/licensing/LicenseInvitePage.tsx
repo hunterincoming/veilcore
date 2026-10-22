@@ -407,6 +407,10 @@ export const LicenseInvitePage: React.FC = () => {
               terms={held.agreement.terms}
               entries={deal.entries}
               refresh={deal.refresh}
+              agreed={{
+                agreementType: held.agreement.type,
+                agreementFingerprint: held.agreement.agreementFingerprint,
+              }}
             />
           )}
 

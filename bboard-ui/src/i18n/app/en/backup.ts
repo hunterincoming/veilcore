@@ -113,6 +113,9 @@ export const backup = {
     'Passkey copy deleted. To delete the passkey itself, use your phone’s password settings.',
   'app.backup.passkey.restore': 'Use my passkey',
   'app.backup.passkey.restoreHint': 'Made a passkey copy before? Use your passkey instead of a file.',
+  'app.backup.passkey.found': 'Found your passkey copy, saved {date}. Restore it here?',
+  'app.backup.passkey.restoreIt': 'Restore it',
+  'app.backup.passkey.notThis': 'Not this one',
   'app.backup.passkey.from': 'From your passkey copy saved {date}.',
   'app.backup.passkey.err.unsupported':
     "This phone or browser can't make a passkey that opens a backup. Use the backup file, or try Safari on an iPhone (iOS 18.4 or newer) or Chrome.",

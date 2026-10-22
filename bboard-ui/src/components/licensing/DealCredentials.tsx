@@ -11,6 +11,7 @@ import {
   downloadCredential,
   licenseCredential,
   paymentCredential,
+  type AgreedTerms,
   type CheckedCredential,
 } from '../../veilcore/credentials';
 
@@ -23,29 +24,28 @@ export const DealCredentials: React.FC<{
   confirmed: readonly { statement: Statement; received: Received }[];
   busy: boolean;
   onSend: (b: DealBody) => void;
-}> = ({ party, entries, confirmed, busy, onSend }) => {
-  const have = useMemo(() => credentialsIn(entries, party), [entries, party]);
-  const agree = entries.find((e) => e.type === 'agree' && e.from === 'licensee') as
-    | Extract<DealEntry, { type: 'agree' }>
-    | undefined;
-  const terms = entries.find((e) => e.type === 'terms' && e.from === 'issuer') as
-    | Extract<DealEntry, { type: 'terms' }>
-    | undefined;
+  /** From this page's own stored license (never from a message): what the two agreed to. */
+  agreed: AgreedTerms | undefined;
+}> = ({ party, entries, confirmed, busy, onSend, agreed }) => {
+  const have = useMemo(() => credentialsIn(entries, party, agreed), [entries, party, agreed]);
+  // The licensee's signed agreement to exactly these terms (attack pass 21 Oct, finding 1).
+  const agree = agreed
+    ? (entries.find(
+        (e) => e.type === 'agree' && e.from === 'licensee' && e.agreementFingerprint === agreed.agreementFingerprint,
+      ) as Extract<DealEntry, { type: 'agree' }> | undefined)
+    : undefined;
   const licenseSent = have.some((c) => c.kind === 'license');
   const unsentPayments = confirmed.filter((c) => !have.some((h) => h.statementSignature === c.statement.signature));
   const issuer = party.side === 'issuer';
   if (!agree && have.length === 0) return null;
 
-  const label = (c: CheckedCredential) =>
-    c.kind === 'license'
-      ? 'License credential'
-      : `Payment credential: ${
-          ((c.credential.credentialSubject as Record<string, unknown>).royaltyPayment as Record<string, string>)
-            .periodFrom
-        } to ${
-          ((c.credential.credentialSubject as Record<string, unknown>).royaltyPayment as Record<string, string>)
-            .periodTo
-        }`;
+  const label = (c: CheckedCredential) => {
+    if (c.kind === 'license') return 'License credential';
+    const st = entries.find((e) => e.type === 'statement' && e.signature === c.statementSignature) as
+      | Extract<DealEntry, { type: 'statement' }>
+      | undefined;
+    return st ? `Payment credential: ${st.periodFrom} to ${st.periodTo}` : 'Payment credential';
+  };
 
   return (
     <Box data-deal-credentials="">
@@ -58,7 +58,7 @@ export const DealCredentials: React.FC<{
           : 'Signed by the licensor, in the standard W3C format that wallets and other systems read. They hold the terms’ fingerprint, never the terms. Whether your license is still live is checked on Midnight.'}
       </Typography>
       <Stack spacing={1} sx={{ mt: 1 }}>
-        {issuer && agree && terms && !licenseSent && (
+        {issuer && agree && agreed && !licenseSent && (
           <Button
             variant="outlined"
             disabled={busy}
@@ -67,8 +67,8 @@ export const DealCredentials: React.FC<{
               onSend({
                 type: 'credential',
                 credential: licenseCredential(party, {
-                  agreementType: terms.agreementType,
-                  agreementFingerprint: agree.agreementFingerprint,
+                  agreementType: agreed.agreementType,
+                  agreementFingerprint: agreed.agreementFingerprint,
                   agreedAt: agree.at,
                 }),
               })

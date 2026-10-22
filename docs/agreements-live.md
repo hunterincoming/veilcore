@@ -89,7 +89,7 @@ holds or moves anyone's money.
 - Payment rails are the partner's, under the partner's licenses. A money-moving feature
   inside VeilCore needs a lawyer's opinion first; none is planned.
 
-## Known limits (accepted, from review round 3)
+## Known limits (accepted, from review round 3 and the attack pass of 21 October 2026)
 
 - **The registry can withhold a message.** It can't read, forge, alter or reorder one, but it
   can hold back the newest (a changed payout account, say). A changed account shows beside
@@ -100,6 +100,10 @@ holds or moves anyone's money.
 - **Invites cost nothing to make.** Anyone can make invites and open channels for them, within
   per-client daily limits; empty channels are deleted after a week. There is no total cap,
   which would let an attacker stop every honest license.
+- **Either side can fill a deal's channel so the other can't post** (2,000 messages). It takes
+  at least 20 client-days at 100 messages per client per deal per day. The on-chain license is
+  unaffected (the licensor can still revoke) and the signed record each side downloads shows
+  what happened. Attack pass of 21 October 2026, finding 7.
 - **Receipts are readable by anyone holding the statement's fingerprint** (only the two parties
   and their partner have it).
 

@@ -433,6 +433,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
               terms={license.terms}
               entries={deal.entries}
               refresh={deal.refresh}
+              agreed={{ agreementType: license.type, agreementFingerprint: license.agreementFingerprint }}
             />
           )}
           {party && oc.termsSentAt && (Number(license.terms.offspringRoyaltyPct) || 0) > 0 && (

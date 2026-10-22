@@ -13,7 +13,7 @@ const sha = async (s: string) =>
 
 /** The registry's /vault routes, as lineage/passkey-vault.mjs answers them. */
 const registry = vi.fn(async (url: string, init: RequestInit) => {
-  const body = JSON.parse(init.body as string) as { token: string; iv?: string; ct?: string };
+  const body = JSON.parse(init.body as string) as { token: string; iv?: string; ct?: string; prev?: string };
   const m = /\/vault\/([0-9a-f]{32})(\/read|\/delete)?$/.exec(url);
   const reply = (status: number, json: unknown) => new Response(JSON.stringify(json), { status });
   if (!m) return reply(404, { error: 'no route' });
@@ -21,6 +21,7 @@ const registry = vi.fn(async (url: string, init: RequestInit) => {
   const ok = row && row.hash === (await sha(body.token));
   if (!m[2]) {
     if (row && !ok) return reply(403, { error: 'this copy needs its passkey' });
+    if (row && body.prev !== (await sha(`${row.iv}.${row.ct}`))) return reply(409, { error: 'changed' });
     vault.set(m[1], { hash: await sha(body.token), iv: body.iv!, ct: body.ct! });
     return reply(200, { saved: true });
   }
@@ -158,5 +159,74 @@ describe('lost phone: make the copy, then restore it on a new device', () => {
     await pk.deletePasskeyCopy();
     expect(vault.size).toBe(0);
     expect(pk.passkeyCopyState()).toBe('none');
+  });
+});
+
+describe('attack pass 21 Oct: the passkey copy', () => {
+  it('finding 3: making the copy does not count as the backup file', async () => {
+    vi.resetModules();
+    vault.clear();
+    const pk = await import('./passkey-backup');
+    const { setHolderKey } = await import('./holder');
+    const { allKeys } = await import('./record-keys');
+    const { mergeIssuerDeals } = await import('./licenses');
+    setHolderKey(randomBytes(32).toString('hex'));
+    mergeIssuerDeals({ 'LIC-1': { inviteId: 'LI-1', partySecret: randomBytes(32).toString('hex') } });
+    const before = new Map(store);
+    expect((await pk.makePasskeyCopy()).ok).toBe(true);
+    // Nothing changed in this browser but the note of the copy itself: no "backed up" marks.
+    const changed = [...store.keys()].filter((k) => store.get(k) !== before.get(k));
+    expect(changed).toEqual(['veilcore:passkey-copy']);
+    expect(allKeys().every((k) => k.backedUpAt === undefined)).toBe(true);
+  });
+
+  it('finding 2: two devices on one synced passkey merge instead of overwriting', async () => {
+    vi.resetModules();
+    vault.clear();
+    const pk = await import('./passkey-backup');
+    const { setHolderKey } = await import('./holder');
+    const { mergeIssuerDeals, issuerDealsForBackup } = await import('./licenses');
+    const deal = (id: string) => ({ [id]: { inviteId: `LI-${id}`, partySecret: randomBytes(32).toString('hex') } });
+    setHolderKey(randomBytes(32).toString('hex'));
+    expect((await pk.makePasskeyCopy()).ok).toBe(true);
+    const deviceA = new Map(store);
+
+    // Device B: restores from the copy, adds something, saves.
+    store.clear();
+    pk._forgetSession();
+    const { restoreAny } = await import('./backup');
+    const got = await pk.fetchPasskeyCopy();
+    await restoreAny(got.file);
+    pk.adoptRestoredCopy(got.savedAt);
+    mergeIssuerDeals(deal('LIC-B'));
+    await pk.updatePasskeyCopy();
+
+    // Device A, which hasn't seen B's save, adds something else and saves: B's is merged in.
+    store = deviceA;
+    pk._forgetSession();
+    mergeIssuerDeals(deal('LIC-A'));
+    expect((await pk.updatePasskeyCopy()).ok).toBe(true);
+    expect(Object.keys(issuerDealsForBackup()).sort()).toEqual(['LIC-A', 'LIC-B']);
+
+    // A new phone gets both.
+    store = new Map();
+    pk._forgetSession();
+    await restoreAny((await pk.fetchPasskeyCopy()).file);
+    expect(Object.keys(issuerDealsForBackup()).sort()).toEqual(['LIC-A', 'LIC-B']);
+  });
+
+  it('finding 5: a passkey picked on the restore screen is not used until its restore is accepted', async () => {
+    vi.resetModules();
+    vault.clear();
+    const pk = await import('./passkey-backup');
+    const { setHolderKey } = await import('./holder');
+    setHolderKey(randomBytes(32).toString('hex'));
+    await pk.makePasskeyCopy();
+    pk._forgetSession();
+    await pk.fetchPasskeyCopy(); // picked, never adopted
+    credentials.get.mockClear();
+    await pk.deletePasskeyCopy();
+    // It asked for this browser's own passkey rather than using the picked one.
+    expect(credentials.get).toHaveBeenCalledTimes(1);
   });
 });

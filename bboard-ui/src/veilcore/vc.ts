@@ -24,8 +24,16 @@ const fromHex = (h: string): Uint8Array => Uint8Array.from(h.match(/../g) ?? [],
  * whitespace, strings and numbers as ECMAScript's JSON.stringify writes them (which is what
  * RFC 8785 adopts). Refuses what JSON can't hold.
  */
+/** A lone UTF-16 surrogate: RFC 8785 requires refusing it (it isn't valid Unicode). */
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
+const str = (s: string): string => {
+  if (LONE_SURROGATE.test(s)) throw new Error('JCS: lone surrogate');
+  return JSON.stringify(s);
+};
+
 export const jcs = (v: unknown): string => {
-  if (v === null || typeof v === 'boolean' || typeof v === 'string') return JSON.stringify(v);
+  if (v === null || typeof v === 'boolean') return JSON.stringify(v);
+  if (typeof v === 'string') return str(v);
   if (typeof v === 'number') {
     if (!Number.isFinite(v)) throw new Error('JCS: numbers must be finite');
     return JSON.stringify(v);
@@ -36,7 +44,7 @@ export const jcs = (v: unknown): string => {
     const keys = Object.keys(o)
       .filter((k) => o[k] !== undefined)
       .sort();
-    return `{${keys.map((k) => `${JSON.stringify(k)}:${jcs(o[k])}`).join(',')}}`;
+    return `{${keys.map((k) => `${str(k)}:${jcs(o[k])}`).join(',')}}`;
   }
   throw new Error(`JCS: can't encode a ${typeof v}`);
 };
@@ -146,7 +154,10 @@ export const verifyCredential = (secured: unknown): Verified => {
     }
     const vm = options.verificationMethod;
     if (typeof vm !== 'string') return { verified: false, reason: 'no verificationMethod' };
-    const [did, fragment] = vm.split('#');
+    if (options.proofPurpose !== 'assertionMethod') return { verified: false, reason: 'not an assertionMethod proof' };
+    const parts = vm.split('#');
+    if (parts.length !== 2) return { verified: false, reason: 'the verification method is not an Ed25519 did:key' };
+    const [did, fragment] = parts;
     const pub = publicOfDidKey(did);
     if (!pub || fragment !== did.slice('did:key:'.length))
       return { verified: false, reason: 'the verification method is not an Ed25519 did:key' };

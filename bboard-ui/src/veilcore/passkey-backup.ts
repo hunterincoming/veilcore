@@ -16,18 +16,21 @@
 //     hash (registry lineage/passkey-vault.mjs). It can't open, link or change the copy.
 //
 // What this is not: the only way back. A deleted passkey takes its key with it, so the backup
-// file stays the other way in, and the page says so. A copy only counts as a backup once it
-// has been read back from the registry, opened, and checked to hold everything (checkBackup),
-// the same test a saved file passes.
+// file stays the other way in, and the page says so. A copy is read back from the registry,
+// opened and checked to hold everything (checkBackup) before the page calls it up to date, but
+// it never counts as the backup file: only a checked file clears "back up first".
+//
+// Two devices on one synced passkey: each save names the copy it replaces, the registry refuses
+// a save over a newer one, and the page merges the newer copy in and saves again.
 //
 // The registry could serve an older copy it kept. The copy says when it was made, inside the
-// sealed part, and the restore page shows that date before anything changes.
+// sealed part, and the restore page shows that date and asks before anything changes.
 // SPDX-License-Identifier: Apache-2.0
 
 import { hkdf } from '@noble/hashes/hkdf.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { base64urlnopad } from '@scure/base';
-import { backupContents, checkBackup, type BackupContents, type CheckResult } from './backup';
+import { backupContents, checkBackup, restoreAny, type BackupContents, type CheckResult } from './backup';
 import { isObject, isString, readJson } from './json';
 import { enT } from '../i18n/translate';
 
@@ -142,15 +145,26 @@ const fail = (out: { status: number; json: unknown }): never => {
   );
 };
 
-const upload = async (keys: PasskeyKeys, contents: BackupContents): Promise<void> => {
-  const out = await call('PUT', `/vault/${keys.id}`, { token: keys.token, ...(await sealCopy(contents, keys)) });
+/** What the registry compares a save against: SHA-256 of "iv.ct" (registry passkey-vault.mjs). */
+export const boxFingerprint = (box: { iv: string; ct: string }): string => hex(sha256(utf8(`${box.iv}.${box.ct}`)));
+
+/** The copy changed since this browser last saw it (another device saved). */
+class Stale extends Error {}
+
+/** Save, but only over the copy this browser last saw (`prev`): never over another device's newer save. */
+const upload = async (keys: PasskeyKeys, contents: BackupContents, prev: string): Promise<string> => {
+  const box = await sealCopy(contents, keys);
+  const out = await call('PUT', `/vault/${keys.id}`, { token: keys.token, prev, ...box });
+  if (out.status === 409) throw new Stale();
   if (out.status !== 200) fail(out);
+  return boxFingerprint(box);
 };
 
-const fetchCopy = async (keys: PasskeyKeys): Promise<{ savedAt: string; text: string }> => {
+const fetchCopy = async (keys: PasskeyKeys): Promise<{ savedAt: string; text: string; fingerprint: string }> => {
   const out = await call('POST', `/vault/${keys.id}/read`, { token: keys.token });
   if (out.status !== 200 || !isObject(out.json) || !isString(out.json.iv) || !isString(out.json.ct)) return fail(out);
-  return openCopy({ iv: out.json.iv, ct: out.json.ct }, keys);
+  const box = { iv: out.json.iv, ct: out.json.ct };
+  return { ...(await openCopy(box, keys)), fingerprint: boxFingerprint(box) };
 };
 
 // --- the passkey (WebAuthn) ---
@@ -241,13 +255,15 @@ type Remembered = {
   readonly credentialId: string;
   readonly sameAs: string;
   readonly savedAt: string;
+  /** The fingerprint of the copy as this browser last saved or read it: 'none' before the first. */
+  readonly prev: string;
 };
 
 const remembered = (): Remembered | undefined => {
   try {
     const v: unknown = JSON.parse(localStorage.getItem(STORE) ?? 'null');
     return isObject(v) && isString(v.id) && isString(v.credentialId) && isString(v.sameAs) && isString(v.savedAt)
-      ? (v as Remembered)
+      ? ({ ...v, prev: isString(v.prev) ? v.prev : 'none' } as Remembered)
       : undefined;
   } catch {
     return undefined;
@@ -271,8 +287,17 @@ const sameAsOf = (c: BackupContents): string => {
   return hex(sha256(utf8(JSON.stringify(rest))));
 };
 
-/** Kept for this page's life only, so updating the copy doesn't ask for Face ID every time. */
+/**
+ * The keys of the passkey this browser's copy is under, kept for this page's life only so
+ * updating doesn't ask for Face ID every time. Only ever the remembered passkey's (attack pass
+ * 21 Oct, finding 5): a passkey picked on the restore screen is held apart until its restore
+ * is accepted.
+ */
 let session: { keys: PasskeyKeys; credentialId: string } | undefined;
+let pending: { keys: PasskeyKeys; credentialId: string; fingerprint: string } | undefined;
+
+const sessionFor = (r: Remembered | undefined) =>
+  session && r && session.credentialId === r.credentialId ? session : undefined;
 
 export type PasskeyCopyState = 'none' | 'current' | 'behind';
 
@@ -284,61 +309,89 @@ export const passkeyCopyState = (contents: BackupContents = backupContents()): P
 
 export const passkeyCopySavedAt = (): string | undefined => remembered()?.savedAt;
 
-/** Save the copy, read it back, and check it holds everything (marks things backed up, like a file). */
-const saveAndCheck = async (keys: PasskeyKeys, credentialId: string): Promise<CheckResult> => {
-  const contents = backupContents();
-  await upload(keys, contents);
-  const back = await fetchCopy(keys);
-  const checked = await checkBackup(new File([back.text], 'passkey-copy.json', { type: 'application/json' }));
-  if (checked.ok) {
-    session = { keys, credentialId };
-    remember({ id: keys.id, credentialId, sameAs: sameAsOf(contents), savedAt: contents.savedAt });
+/**
+ * Save the copy over the one this browser last saw, read it back, and check it holds everything.
+ * If another device on the same synced passkey saved since (attack pass 21 Oct, finding 2), its
+ * copy is merged into this browser first (restoreAny: only adds, refuses anything conflicting),
+ * then saved again, so neither device's records are lost.
+ *
+ * The check changes nothing (finding 3): a passkey copy doesn't count as the backup file. The
+ * file stays the one thing that clears "back up first".
+ */
+const saveAndCheck = async (keys: PasskeyKeys, credentialId: string, prevIn: string): Promise<CheckResult> => {
+  let prev = prevIn;
+  for (let tries = 0; ; tries++) {
+    const contents = backupContents();
+    try {
+      prev = await upload(keys, contents, prev);
+    } catch (e) {
+      if (!(e instanceof Stale) || tries >= 3) throw e;
+      const theirs = await fetchCopy(keys);
+      await restoreAny(new File([theirs.text], 'passkey-copy.json', { type: 'application/json' }));
+      prev = theirs.fingerprint;
+      continue;
+    }
+    const back = await fetchCopy(keys);
+    if (back.fingerprint !== prev) continue; // another device saved in between: merge and save again
+    const checked = await checkBackup(
+      new File([back.text], 'passkey-copy.json', { type: 'application/json' }),
+      undefined,
+      {
+        mark: false,
+      },
+    );
+    if (checked.ok) {
+      session = { keys, credentialId };
+      remember({ id: keys.id, credentialId, sameAs: sameAsOf(contents), savedAt: contents.savedAt, prev });
+    }
+    return checked;
   }
-  return checked;
 };
 
 /** Make a new passkey and keep a copy of the backup under it. */
 export const makePasskeyCopy = async (): Promise<CheckResult> => {
   const { prf, rawId } = await newPasskey();
-  return saveAndCheck(passkeyKeys(prf, rawId), base64urlnopad.encode(rawId));
+  return saveAndCheck(passkeyKeys(prf, rawId), base64urlnopad.encode(rawId), 'none');
 };
 
 /** Bring the copy up to date (asks for the passkey once per page visit). */
 export const updatePasskeyCopy = async (): Promise<CheckResult> => {
   const r = remembered();
-  if (session && (!r || r.credentialId === session.credentialId))
-    return saveAndCheck(session.keys, session.credentialId);
   if (!r) return makePasskeyCopy();
+  const s = sessionFor(r);
+  if (s) return saveAndCheck(s.keys, s.credentialId, r.prev);
   const { prf, rawId } = await askPasskey(base64urlnopad.decode(r.credentialId));
-  return saveAndCheck(passkeyKeys(prf, rawId), base64urlnopad.encode(rawId));
+  return saveAndCheck(passkeyKeys(prf, rawId), base64urlnopad.encode(rawId), r.prev);
 };
 
 /**
  * On a new device: ask for any of this site's passkeys and fetch its copy. Returns the backup as
- * a file for restoreAny (which checks it all before changing anything), and when it was made.
+ * a file for restoreAny (which checks it all before changing anything), and when it was made,
+ * for the page to show before anything changes.
  */
 export const fetchPasskeyCopy = async (): Promise<{ file: File; savedAt: string }> => {
   const { prf, rawId } = await askPasskey();
   const keys = passkeyKeys(prf, rawId);
   const got = await fetchCopy(keys);
-  const credentialId = base64urlnopad.encode(rawId);
-  session = { keys, credentialId };
+  pending = { keys, credentialId: base64urlnopad.encode(rawId), fingerprint: got.fingerprint };
   return { file: new File([got.text], 'passkey-copy.json', { type: 'application/json' }), savedAt: got.savedAt };
 };
 
-/** After a restore from the copy: remember it, so the page can keep it up to date. */
+/** After a restore from the copy was accepted: this browser keeps that copy up to date from now on. */
 export const adoptRestoredCopy = (savedAt: string): void => {
-  if (!session) return;
+  if (!pending) return;
+  session = { keys: pending.keys, credentialId: pending.credentialId };
   // Not yet "current": what this browser now holds may differ from the copy (it merged).
-  remember({ id: session.keys.id, credentialId: session.credentialId, sameAs: '', savedAt });
+  remember({ id: pending.keys.id, credentialId: pending.credentialId, sameAs: '', savedAt, prev: pending.fingerprint });
+  pending = undefined;
 };
 
-/** Delete the copy at the registry and forget it here. The passkey itself stays in the phone's settings. */
+/** Delete this browser's copy at the registry and forget it here. The passkey itself stays in the phone's settings. */
 export const deletePasskeyCopy = async (): Promise<void> => {
   const r = remembered();
-  let keys = session?.keys;
+  if (!r) return;
+  let keys = sessionFor(r)?.keys;
   if (!keys) {
-    if (!r) return;
     const { prf, rawId } = await askPasskey(base64urlnopad.decode(r.credentialId));
     keys = passkeyKeys(prf, rawId);
   }
@@ -351,4 +404,5 @@ export const deletePasskeyCopy = async (): Promise<void> => {
 /** For tests: forget the page-life session. */
 export const _forgetSession = (): void => {
   session = undefined;
+  pending = undefined;
 };
