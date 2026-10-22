@@ -126,7 +126,15 @@ export type CheckedCredential = {
 const typesOf = (c: Credential): unknown[] => (Array.isArray(c.type) ? (c.type as unknown[]) : []);
 
 /** What this page itself knows the two agreed to: from its own stored license, never from a message. */
-export type AgreedTerms = { readonly agreementType: string; readonly agreementFingerprint: string };
+export type AgreedTerms = {
+  readonly agreementType: string;
+  readonly agreementFingerprint: string;
+  /**
+   * The licensor's own record of when the terms went out: a credential is never valid from
+   * earlier, whatever time the licensee signed on its agreement (re-check, finding D).
+   */
+  readonly notBefore?: number;
+};
 
 const sameText = (a: unknown, b: unknown) => typeof a === 'string' && a === b;
 

@@ -27,7 +27,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { holderKeyIfAny, setHolderKey } from './holder';
-import { allKeys, keysEntry, keysFor, markBackedUp, restoreKeysEntry, type RecordKeys } from './record-keys';
+import {
+  allKeys,
+  keysEntry,
+  keysFor,
+  markBackedUp,
+  restoreKeysEntry,
+  wasForgotten,
+  type RecordKeys,
+} from './record-keys';
 import { adoptAttester, loadAttester } from './attester-keys';
 import { allDeliveries, deliveriesMissingFrom, mergeDeliveries } from './lab-results';
 import { allSentCodes, mergeSentCodes } from './transfers';
@@ -423,7 +431,19 @@ export type RestoreResult = {
  * Restore from any VeilCore backup: the one-file backup, an older single record's keys
  * file, or an older holder-key text file. Never replaces a different key already here.
  */
-export const restoreAny = async (file: File, password?: string): Promise<RestoreResult> => {
+/**
+ * How a restore treats what it brings back. A passkey copy (passkey-backup.ts) is not a backup
+ * file: restoring from one marks nothing backed up. A copy merged in automatically, when another
+ * device saved first, also leaves alone what this browser removed on purpose and never swaps
+ * this browser's vault key (attack pass of 21 Oct, re-check, findings A and B).
+ */
+export type RestoreOptions = {
+  readonly mark?: boolean;
+  readonly skipForgotten?: boolean;
+  readonly keepVault?: boolean;
+};
+
+export const restoreAny = async (file: File, password?: string, opts: RestoreOptions = {}): Promise<RestoreResult> => {
   const text = await file.text();
   // The older holder-key file is plain text with the key on its own line.
   const keyLine = text.split(/\r?\n/).find((l) => HEX64.test(l.trim()));
@@ -454,9 +474,9 @@ export const restoreAny = async (file: File, password?: string): Promise<Restore
     throw new Error("That file isn't a VeilCore backup. Pick the file you saved from VeilCore.");
 
   // Check everything before changing anything, so a refused file changes nothing.
-  const entries = (Array.isArray(v.records) ? v.records : []).filter(
-    (e): e is Record<string, unknown> => typeof e === 'object' && e !== null,
-  );
+  const entries = (Array.isArray(v.records) ? (v.records as unknown[]) : [])
+    .filter((e): e is Record<string, unknown> => typeof e === 'object' && e !== null)
+    .filter((e) => !(opts.skipForgotten && typeof e.recordId === 'string' && wasForgotten(e.recordId)));
   for (const e of entries) {
     const existing = typeof e.recordId === 'string' ? keysFor(e.recordId) : undefined;
     if (existing && existing.recordSecret !== str(e.recordSecret).toLowerCase()) {
@@ -476,11 +496,12 @@ export const restoreAny = async (file: File, password?: string): Promise<Restore
   // A version 2 file has no vault key: it restores the rest, and records sealed since stay
   // locked until a newer backup is opened.
   const fileVault = isVaultKey(v.vaultKey) ? v.vaultKey : undefined;
+  if (fileVault && opts.keepVault && vaultKeyIfAny() && vaultKeyIfAny() !== fileVault) throw new Error(DIFFERENT_VAULT);
   if (fileVault) await checkVaultFits(fileVault, fileKey);
 
   const holder = fileKey ? adoptHolderKey(fileKey) : 'none';
-  const vault = fileVault ? adoptVaultKey(fileVault) : 'none';
-  const recordIds = entries.map((e) => restoreKeysEntry(e).recordId);
+  const vault = fileVault ? adoptVaultKey(fileVault, opts.mark !== false) : 'none';
+  const recordIds = entries.map((e) => restoreKeysEntry(e, { mark: opts.mark }).recordId);
   const labAdopted = lab ? adoptAttester(lab) : false;
   // Merged, never replacing an entry already here (a lock this browser has stays).
   const deliveries = mergeDeliveries(v.labDeliveries);
@@ -488,7 +509,7 @@ export const restoreAny = async (file: File, password?: string): Promise<Restore
   // Only ever raises a mark here (P4): a file older than what this browser has seen can't
   // make it take an older copy.
   raiseRevMarks(v.revs);
-  mergeHeldLicenses(v.heldLicenses);
+  mergeHeldLicenses(v.heldLicenses, { mark: opts.mark });
   mergeIssuerDeals(v.issuerDeals);
   return {
     records: entries.length,
@@ -534,9 +555,9 @@ const checkVaultFits = async (fileVault: string, fileHolder: string | undefined)
   if (kid && kids.has(kid)) throw new Error(DIFFERENT_VAULT);
 };
 
-const adoptVaultKey = (key: string): 'restored' | 'already' => {
+const adoptVaultKey = (key: string, mark = true): 'restored' | 'already' => {
   if (vaultKeyIfAny() === key) {
-    markVaultBackedUp();
+    if (mark) markVaultBackedUp();
     return 'already';
   }
   setVaultKey(key);

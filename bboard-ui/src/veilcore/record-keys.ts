@@ -287,7 +287,11 @@ export const restoreBackup = async (file: File): Promise<RecordKeys> => {
  * Restore one record's keys from a parsed backup entry: the single-record file above, or
  * one entry of the one-file backup (backup.ts). Shared so both read keys the same way.
  */
-export const restoreKeysEntry = (parsed: Record<string, unknown>): RecordKeys => {
+export const restoreKeysEntry = (
+  parsed: Record<string, unknown>,
+  /** `mark: false`: from a passkey copy, which is not a backup file: keep this browser's mark as it was. */
+  opts: { mark?: boolean } = {},
+): RecordKeys => {
   const str = (v: unknown): string => (typeof v === 'string' ? v : '');
   const keys = {
     recordId: str(parsed.recordId),
@@ -326,7 +330,13 @@ export const restoreKeysEntry = (parsed: Record<string, unknown>): RecordKeys =>
     ...fromFile,
     ...(anchor ? { anchor } : {}),
     ...(dna ? { dnaOnChain: dna } : {}),
-    ...(sameAsFile ? { backedUpAt: Date.now() } : {}),
+    ...(opts.mark === false
+      ? existing?.backedUpAt !== undefined
+        ? { backedUpAt: existing.backedUpAt }
+        : {}
+      : sameAsFile
+        ? { backedUpAt: Date.now() }
+        : {}),
   };
   const all = readAll();
   if (!writeAll({ ...all, [keys.recordId]: merged })) sessionOnly = { ...sessionOnly, [keys.recordId]: merged };
@@ -456,7 +466,7 @@ const writeForgotten = (ids: readonly string[]): void => {
     /* a browser that keeps nothing keeps no keys to take back either */
   }
 };
-const wasForgotten = (recordId: string): boolean => readForgotten().includes(recordId);
+export const wasForgotten = (recordId: string): boolean => readForgotten().includes(recordId);
 
 /** Delete a record's keys from this browser. The UI asks first, and says what is lost. */
 export const forgetKeys = (recordId: string): void => {

@@ -69,7 +69,8 @@ export const RestorePage: React.FC = () => {
     setBusy(true);
     setProblem(undefined);
     try {
-      const r = await restoreAny(f, password);
+      // A passkey copy isn't a backup file: restoring from one marks nothing backed up.
+      const r = await restoreAny(f, password, passkeySavedAt ? { mark: false } : {});
       setWaiting(undefined);
       if (passkeySavedAt) {
         adoptRestoredCopy(passkeySavedAt);

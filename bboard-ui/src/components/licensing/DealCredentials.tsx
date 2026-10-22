@@ -69,7 +69,7 @@ export const DealCredentials: React.FC<{
                 credential: licenseCredential(party, {
                   agreementType: agreed.agreementType,
                   agreementFingerprint: agreed.agreementFingerprint,
-                  agreedAt: agree.at,
+                  agreedAt: Math.max(agree.at, agreed.notBefore ?? 0),
                 }),
               })
             }

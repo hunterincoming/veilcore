@@ -122,5 +122,7 @@ export const backup = {
   'app.backup.passkey.err.cancelled': 'Cancelled. Nothing was changed.',
   'app.backup.passkey.err.noCopy': 'No backup copy was found for that passkey. Open your backup file instead.',
   'app.backup.passkey.err.unreachable': 'Could not reach the VeilCore registry. Check your connection and try again.',
+  'app.backup.passkey.err.older':
+    'The registry offered an older copy than this device has already seen. Nothing was changed. Try again later, and keep your backup file.',
   'app.backup.passkey.err.damaged': "That copy didn't open. It may have been changed. Open your backup file instead.",
 };

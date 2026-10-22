@@ -117,6 +117,8 @@ export const backup = {
     'そのパスキーのコピーは見つかりませんでした。代わりにバックアップファイルを開いてください。',
   'app.backup.passkey.err.unreachable':
     'VeilCoreのレジストリに接続できませんでした。接続を確認して、もう一度お試しください。',
+  'app.backup.passkey.err.older':
+    'レジストリが、この端末がすでに見たものより古いコピーを返しました。何も変更していません。後でもう一度お試しください。バックアップファイルは残しておいてください。',
   'app.backup.passkey.err.damaged':
     'そのコピーは開けませんでした。変更された可能性があります。代わりにバックアップファイルを開いてください。',
 } satisfies Partial<AppTranslation>;

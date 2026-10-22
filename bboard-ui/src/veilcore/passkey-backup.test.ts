@@ -230,3 +230,85 @@ describe('attack pass 21 Oct: the passkey copy', () => {
     expect(credentials.get).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('attack pass re-check, 21 Oct: the merge after another device saved', () => {
+  it('A: a merged copy marks nothing backed up, and B: a removed record stays removed', async () => {
+    vi.resetModules();
+    vault.clear();
+    const pk = await import('./passkey-backup');
+    const { setHolderKey } = await import('./holder');
+    const rk = await import('./record-keys');
+    const { restoreAny } = await import('./backup');
+    setHolderKey(randomBytes(32).toString('hex'));
+    rk.ensureKeys('R-1');
+    rk.ensureKeys('R-2');
+    await pk.makePasskeyCopy();
+    const deviceA = new Map(store);
+
+    // Device B saves a newer copy.
+    store.clear();
+    pk._forgetSession();
+    const got = await pk.fetchPasskeyCopy();
+    await restoreAny(got.file, undefined, { mark: false });
+    pk.adoptRestoredCopy(got.savedAt);
+    rk.ensureKeys('R-3');
+    await pk.updatePasskeyCopy();
+
+    // Device A removed R-2 on purpose, then saves: B's copy merges in.
+    store = deviceA;
+    pk._forgetSession();
+    vi.resetModules();
+    const pkA = await import('./passkey-backup');
+    const rkA = await import('./record-keys');
+    rkA.forgetKeys('R-2');
+    expect((await pkA.updatePasskeyCopy()).ok).toBe(true);
+    const ids = rkA
+      .allKeys()
+      .map((k) => k.recordId)
+      .sort();
+    expect(ids).toEqual(['R-1', 'R-3']);
+    expect(rkA.allKeys().every((k) => k.backedUpAt === undefined)).toBe(true);
+  });
+
+  it('B: a registry that fakes "changed" to feed an older copy is refused', async () => {
+    vi.resetModules();
+    vault.clear();
+    const pk = await import('./passkey-backup');
+    const { setHolderKey } = await import('./holder');
+    const rk = await import('./record-keys');
+    setHolderKey(randomBytes(32).toString('hex'));
+    await pk.makePasskeyCopy();
+    const [id] = [...vault.keys()];
+    const old = { ...vault.get(id)! };
+    rk.ensureKeys('R-9');
+    await pk.updatePasskeyCopy();
+    // The registry puts back the older copy it kept, then answers the next save with "changed".
+    vault.set(id, old);
+    rk.ensureKeys('R-10');
+    await expect(pk.updatePasskeyCopy()).rejects.toThrow(pk.PASSKEY_WORDS.older);
+  });
+
+  it('C: a registry that never shows back what was saved can’t keep the page saving', async () => {
+    vi.resetModules();
+    vault.clear();
+    const pk = await import('./passkey-backup');
+    const { setHolderKey } = await import('./holder');
+    setHolderKey(randomBytes(32).toString('hex'));
+    let puts = 0;
+    // eslint-disable-next-line @typescript-eslint/require-await -- fetch's shape: it returns a promise
+    registry.mockImplementation(async (url: string, init: RequestInit) => {
+      const body = JSON.parse(init.body as string) as { iv?: string; ct?: string };
+      if (init.method === 'PUT') {
+        puts++;
+        return new Response(JSON.stringify({ saved: true }), { status: 200 });
+      }
+      void url;
+      void body;
+      // Always some other (valid-looking) box: the read-back never matches.
+      return new Response(JSON.stringify({ iv: 'A'.repeat(16), ct: 'B'.repeat(40) }), { status: 200 });
+    });
+    await expect(pk.makePasskeyCopy()).rejects.toThrow(pk.PASSKEY_WORDS.damaged);
+    expect(puts).toBeLessThanOrEqual(4);
+    registry.mockReset();
+  });
+});

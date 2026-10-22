@@ -31,7 +31,11 @@ phone signed into the same Apple or Google account can open the copy. The restor
   "back up first" (attack pass, 21 Oct, finding 3).
 - Two devices on one synced passkey: each save names the copy it replaces (its fingerprint),
   the registry refuses a save over a newer copy, and the page merges the newer copy in and
-  saves again, so neither device's records are lost (finding 2).
+  saves again, so neither device's records are lost (finding 2). The merge takes only a copy
+  whose sealed counter is higher than any this device has seen (so the registry can't feed it an
+  older one), marks nothing backed up, leaves out records removed on this device, and never
+  swaps the vault key (re-check, findings A and B). Removing a record on one device doesn't
+  remove it from another: that is by design for now, since a lost record can't be got back.
 - On restore, the page shows the copy's date and asks before anything changes (finding 6).
 
 ## Why the file stays

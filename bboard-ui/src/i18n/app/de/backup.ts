@@ -131,6 +131,8 @@ export const backup = {
     'Für diesen Passkey wurde keine Kopie gefunden. Öffnen Sie stattdessen Ihre Sicherungsdatei.',
   'app.backup.passkey.err.unreachable':
     'Das VeilCore-Register war nicht erreichbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+  'app.backup.passkey.err.older':
+    'Das Register hat eine ältere Kopie angeboten, als dieses Gerät bereits kennt. Es wurde nichts geändert. Versuchen Sie es später erneut, und behalten Sie Ihre Sicherungsdatei.',
   'app.backup.passkey.err.damaged':
     'Diese Kopie ließ sich nicht öffnen. Sie wurde möglicherweise verändert. Öffnen Sie stattdessen Ihre Sicherungsdatei.',
 } satisfies Partial<AppTranslation>;

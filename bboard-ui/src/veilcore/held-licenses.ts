@@ -172,10 +172,16 @@ export const heldMissingFrom = (fromFile: unknown): HeldLicense[] => {
 };
 
 /** Restore: add the file's licenses this browser doesn't have; never replaces one it has. */
-export const mergeHeldLicenses = (fromFile: unknown): number => {
+export const mergeHeldLicenses = (fromFile: unknown, opts: { mark?: boolean } = {}): number => {
   const have = new Set(read().map((h) => h.inviteId));
   const add = (Array.isArray(fromFile) ? fromFile : []).filter(isHeldLicense).filter((h) => !have.has(h.inviteId));
-  if (add.length) write([...add.map((h) => ({ ...h, backedUpAt: Date.now() })), ...read()]);
+  const stamp = (h: HeldLicense): HeldLicense => {
+    if (opts.mark !== false) return { ...h, backedUpAt: Date.now() };
+    const rest: Record<string, unknown> = { ...h };
+    delete rest.backedUpAt;
+    return rest as HeldLicense;
+  };
+  if (add.length) write([...add.map(stamp), ...read()]);
   return add.length;
 };
 

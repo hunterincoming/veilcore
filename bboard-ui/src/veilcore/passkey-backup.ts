@@ -52,6 +52,7 @@ export const PASSKEY_WORDS = {
   noCopy: enT.t('app.backup.passkey.err.noCopy'),
   unreachable: enT.t('app.backup.passkey.err.unreachable'),
   damaged: enT.t('app.backup.passkey.err.damaged'),
+  older: enT.t('app.backup.passkey.err.older'),
 } as const;
 
 export class PasskeyProblem extends Error {
@@ -83,12 +84,22 @@ export const passkeyKeys = (prfOutput: Uint8Array, credentialId: Uint8Array): Pa
 };
 
 /** What is sealed: the backup, and when this copy was made. */
-type Sealed = { readonly v: typeof PASSKEY_COPY_VERSION; readonly savedAt: string; readonly backup: BackupContents };
+type Sealed = {
+  readonly v: typeof PASSKEY_COPY_VERSION;
+  readonly savedAt: string;
+  /** Rises with every save, inside the sealed part: the registry can't pass an older copy off as newer. */
+  readonly seq: number;
+  readonly backup: BackupContents;
+};
 
 const aad = (id: string) => utf8(`${DOMAIN}:${id}`);
 
-export const sealCopy = async (contents: BackupContents, keys: PasskeyKeys): Promise<{ iv: string; ct: string }> => {
-  const body: Sealed = { v: PASSKEY_COPY_VERSION, savedAt: contents.savedAt, backup: contents };
+export const sealCopy = async (
+  contents: BackupContents,
+  keys: PasskeyKeys,
+  seq = 1,
+): Promise<{ iv: string; ct: string }> => {
+  const body: Sealed = { v: PASSKEY_COPY_VERSION, savedAt: contents.savedAt, seq, backup: contents };
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const k = await crypto.subtle.importKey('raw', keys.key, 'AES-GCM', false, ['encrypt']);
   const ct = await crypto.subtle.encrypt(
@@ -103,7 +114,7 @@ export const sealCopy = async (contents: BackupContents, keys: PasskeyKeys): Pro
 export const openCopy = async (
   box: { iv: string; ct: string },
   keys: PasskeyKeys,
-): Promise<{ savedAt: string; text: string }> => {
+): Promise<{ savedAt: string; seq: number; text: string }> => {
   let parsed: unknown;
   try {
     const k = await crypto.subtle.importKey('raw', keys.key, 'AES-GCM', false, ['decrypt']);
@@ -118,7 +129,8 @@ export const openCopy = async (
   }
   if (!isObject(parsed) || parsed.v !== PASSKEY_COPY_VERSION || !isString(parsed.savedAt) || !isObject(parsed.backup))
     throw new PasskeyProblem(PASSKEY_WORDS.damaged);
-  return { savedAt: parsed.savedAt, text: JSON.stringify(parsed.backup) };
+  const seq = typeof parsed.seq === 'number' && Number.isSafeInteger(parsed.seq) && parsed.seq > 0 ? parsed.seq : 0;
+  return { savedAt: parsed.savedAt, seq, text: JSON.stringify(parsed.backup) };
 };
 
 // --- the registry ---
@@ -152,15 +164,17 @@ export const boxFingerprint = (box: { iv: string; ct: string }): string => hex(s
 class Stale extends Error {}
 
 /** Save, but only over the copy this browser last saw (`prev`): never over another device's newer save. */
-const upload = async (keys: PasskeyKeys, contents: BackupContents, prev: string): Promise<string> => {
-  const box = await sealCopy(contents, keys);
+const upload = async (keys: PasskeyKeys, contents: BackupContents, prev: string, seq: number): Promise<string> => {
+  const box = await sealCopy(contents, keys, seq);
   const out = await call('PUT', `/vault/${keys.id}`, { token: keys.token, prev, ...box });
   if (out.status === 409) throw new Stale();
   if (out.status !== 200) fail(out);
   return boxFingerprint(box);
 };
 
-const fetchCopy = async (keys: PasskeyKeys): Promise<{ savedAt: string; text: string; fingerprint: string }> => {
+const fetchCopy = async (
+  keys: PasskeyKeys,
+): Promise<{ savedAt: string; seq: number; text: string; fingerprint: string }> => {
   const out = await call('POST', `/vault/${keys.id}/read`, { token: keys.token });
   if (out.status !== 200 || !isObject(out.json) || !isString(out.json.iv) || !isString(out.json.ct)) return fail(out);
   const box = { iv: out.json.iv, ct: out.json.ct };
@@ -257,13 +271,19 @@ type Remembered = {
   readonly savedAt: string;
   /** The fingerprint of the copy as this browser last saved or read it: 'none' before the first. */
   readonly prev: string;
+  /** That copy's sealed counter. */
+  readonly seq: number;
 };
 
 const remembered = (): Remembered | undefined => {
   try {
     const v: unknown = JSON.parse(localStorage.getItem(STORE) ?? 'null');
     return isObject(v) && isString(v.id) && isString(v.credentialId) && isString(v.sameAs) && isString(v.savedAt)
-      ? ({ ...v, prev: isString(v.prev) ? v.prev : 'none' } as Remembered)
+      ? ({
+          ...v,
+          prev: isString(v.prev) ? v.prev : 'none',
+          seq: typeof v.seq === 'number' && Number.isSafeInteger(v.seq) ? v.seq : 0,
+        } as Remembered)
       : undefined;
   } catch {
     return undefined;
@@ -294,7 +314,7 @@ const sameAsOf = (c: BackupContents): string => {
  * is accepted.
  */
 let session: { keys: PasskeyKeys; credentialId: string } | undefined;
-let pending: { keys: PasskeyKeys; credentialId: string; fingerprint: string } | undefined;
+let pending: { keys: PasskeyKeys; credentialId: string; fingerprint: string; seq: number } | undefined;
 
 const sessionFor = (r: Remembered | undefined) =>
   session && r && session.credentialId === r.credentialId ? session : undefined;
@@ -312,25 +332,41 @@ export const passkeyCopySavedAt = (): string | undefined => remembered()?.savedA
 /**
  * Save the copy over the one this browser last saw, read it back, and check it holds everything.
  * If another device on the same synced passkey saved since (attack pass 21 Oct, finding 2), its
- * copy is merged into this browser first (restoreAny: only adds, refuses anything conflicting),
- * then saved again, so neither device's records are lost.
+ * copy is merged into this browser first, then saved again, so neither device's records are lost.
+ * The merge (re-check, findings A and B) takes only a copy whose sealed counter is higher than any
+ * this browser has seen, so an untrusted registry can't feed it an older one; marks nothing
+ * backed up; skips records removed here on purpose; and never swaps the vault key.
  *
  * The check changes nothing (finding 3): a passkey copy doesn't count as the backup file. The
  * file stays the one thing that clears "back up first".
  */
-const saveAndCheck = async (keys: PasskeyKeys, credentialId: string, prevIn: string): Promise<CheckResult> => {
+const saveAndCheck = async (
+  keys: PasskeyKeys,
+  credentialId: string,
+  prevIn: string,
+  seqIn: number,
+): Promise<CheckResult> => {
   let prev = prevIn;
-  for (let tries = 0; ; tries++) {
+  let seen = seqIn;
+  for (let tries = 0; tries < 4; tries++) {
     const contents = backupContents();
+    const seq = seen + 1;
     try {
-      prev = await upload(keys, contents, prev);
+      prev = await upload(keys, contents, prev, seq);
     } catch (e) {
-      if (!(e instanceof Stale) || tries >= 3) throw e;
+      if (!(e instanceof Stale)) throw e;
       const theirs = await fetchCopy(keys);
-      await restoreAny(new File([theirs.text], 'passkey-copy.json', { type: 'application/json' }));
+      if (theirs.seq <= seen) throw new PasskeyProblem(PASSKEY_WORDS.older);
+      await restoreAny(new File([theirs.text], 'passkey-copy.json', { type: 'application/json' }), undefined, {
+        mark: false,
+        skipForgotten: true,
+        keepVault: true,
+      });
       prev = theirs.fingerprint;
+      seen = theirs.seq;
       continue;
     }
+    seen = seq;
     const back = await fetchCopy(keys);
     if (back.fingerprint !== prev) continue; // another device saved in between: merge and save again
     const checked = await checkBackup(
@@ -342,16 +378,18 @@ const saveAndCheck = async (keys: PasskeyKeys, credentialId: string, prevIn: str
     );
     if (checked.ok) {
       session = { keys, credentialId };
-      remember({ id: keys.id, credentialId, sameAs: sameAsOf(contents), savedAt: contents.savedAt, prev });
+      remember({ id: keys.id, credentialId, sameAs: sameAsOf(contents), savedAt: contents.savedAt, prev, seq });
     }
     return checked;
   }
+  // Re-check, finding C: a registry that never shows back what was saved can't keep this going.
+  throw new PasskeyProblem(PASSKEY_WORDS.damaged);
 };
 
 /** Make a new passkey and keep a copy of the backup under it. */
 export const makePasskeyCopy = async (): Promise<CheckResult> => {
   const { prf, rawId } = await newPasskey();
-  return saveAndCheck(passkeyKeys(prf, rawId), base64urlnopad.encode(rawId), 'none');
+  return saveAndCheck(passkeyKeys(prf, rawId), base64urlnopad.encode(rawId), 'none', 0);
 };
 
 /** Bring the copy up to date (asks for the passkey once per page visit). */
@@ -359,9 +397,9 @@ export const updatePasskeyCopy = async (): Promise<CheckResult> => {
   const r = remembered();
   if (!r) return makePasskeyCopy();
   const s = sessionFor(r);
-  if (s) return saveAndCheck(s.keys, s.credentialId, r.prev);
+  if (s) return saveAndCheck(s.keys, s.credentialId, r.prev, r.seq);
   const { prf, rawId } = await askPasskey(base64urlnopad.decode(r.credentialId));
-  return saveAndCheck(passkeyKeys(prf, rawId), base64urlnopad.encode(rawId), r.prev);
+  return saveAndCheck(passkeyKeys(prf, rawId), base64urlnopad.encode(rawId), r.prev, r.seq);
 };
 
 /**
@@ -373,7 +411,7 @@ export const fetchPasskeyCopy = async (): Promise<{ file: File; savedAt: string 
   const { prf, rawId } = await askPasskey();
   const keys = passkeyKeys(prf, rawId);
   const got = await fetchCopy(keys);
-  pending = { keys, credentialId: base64urlnopad.encode(rawId), fingerprint: got.fingerprint };
+  pending = { keys, credentialId: base64urlnopad.encode(rawId), fingerprint: got.fingerprint, seq: got.seq };
   return { file: new File([got.text], 'passkey-copy.json', { type: 'application/json' }), savedAt: got.savedAt };
 };
 
@@ -382,7 +420,14 @@ export const adoptRestoredCopy = (savedAt: string): void => {
   if (!pending) return;
   session = { keys: pending.keys, credentialId: pending.credentialId };
   // Not yet "current": what this browser now holds may differ from the copy (it merged).
-  remember({ id: pending.keys.id, credentialId: pending.credentialId, sameAs: '', savedAt, prev: pending.fingerprint });
+  remember({
+    id: pending.keys.id,
+    credentialId: pending.credentialId,
+    sameAs: '',
+    savedAt,
+    prev: pending.fingerprint,
+    seq: pending.seq,
+  });
   pending = undefined;
 };
 

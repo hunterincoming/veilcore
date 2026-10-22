@@ -134,6 +134,8 @@ export const backup = {
     'Aucune copie trouvée pour cette clé d’accès. Ouvrez plutôt votre fichier de secours.',
   'app.backup.passkey.err.unreachable':
     'Impossible de joindre le registre VeilCore. Vérifiez votre connexion et réessayez.',
+  'app.backup.passkey.err.older':
+    'Le registre a proposé une copie plus ancienne que celle que cet appareil connaît déjà. Rien n’a été modifié. Réessayez plus tard, et gardez votre fichier de secours.',
   'app.backup.passkey.err.damaged':
     'Cette copie ne s’est pas ouverte. Elle a peut-être été modifiée. Ouvrez plutôt votre fichier de secours.',
 } satisfies Partial<AppTranslation>;

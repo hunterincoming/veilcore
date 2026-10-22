@@ -35,6 +35,7 @@ const KNOWN: [string, AppKey][] = [
   [enT.t('app.backup.passkey.err.noCopy'), 'app.backup.passkey.err.noCopy'],
   [enT.t('app.backup.passkey.err.unreachable'), 'app.backup.passkey.err.unreachable'],
   [enT.t('app.backup.passkey.err.damaged'), 'app.backup.passkey.err.damaged'],
+  [enT.t('app.backup.passkey.err.older'), 'app.backup.passkey.err.older'],
 ];
 
 const MISSING = /^That backup is missing the latest for (\d+) of your records\. Save a new one and check that\.$/;
