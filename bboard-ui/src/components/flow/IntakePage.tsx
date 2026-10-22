@@ -22,6 +22,9 @@ import {
 import { useRecords } from '../../veilcore/records';
 import { verifyPath } from '../../veilcore/verify-link';
 import { emptyDraft, loadDraft, saveDraft } from './log-flow-state';
+import { loadLogKind } from './animal-draft';
+import { emptyStrainDraft } from './strain-draft';
+import { STRAIN_RECORDS_ENABLED } from '../../config/network';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 
@@ -68,10 +71,21 @@ export const IntakePage: React.FC = () => {
     // Their reference and suggested name go into the form; a draft already started here keeps
     // what was typed, and only gains the reference if it has none.
     const had = loadDraft();
+    // A strain (the last kind chosen here) gets the suggested name in its own form; the
+    // partner's reference is a plant's "your reference" and has no strain field, so it stays
+    // with the partner. The kind can still be changed on the form.
+    const strain = !had && STRAIN_RECORDS_ENABLED && loadLogKind() === 'strain';
     saveDraft(
       had
         ? { ...had, refId: had.refId || (r.ref ?? '') }
-        : { ...emptyDraft(), strainName: r.name ?? '', refId: r.ref ?? '' },
+        : strain
+          ? {
+              ...emptyDraft(),
+              kind: 'strain',
+              strain: { ...emptyStrainDraft(), name: r.name ?? '' },
+              refId: r.ref ?? '',
+            }
+          : { ...emptyDraft(), strainName: r.name ?? '', refId: r.ref ?? '' },
     );
     void navigate('/new');
   };

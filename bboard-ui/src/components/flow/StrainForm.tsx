@@ -270,9 +270,11 @@ export const StrainForm: React.FC<{
               ? t('app.strain.need.maker')
               : missing === 'deposits'
                 ? t('app.strain.need.deposits')
-                : missing === 'nameOrDesignation'
-                  ? t('app.strain.need.nameOrDesignation')
-                  : sizeWords(share, tr)}
+                : missing === 'tooLong'
+                  ? t('app.strain.need.tooLong')
+                  : missing === 'nameOrDesignation'
+                    ? t('app.strain.need.nameOrDesignation')
+                    : sizeWords(share, tr)}
         </Typography>
       )}
     </Stack>

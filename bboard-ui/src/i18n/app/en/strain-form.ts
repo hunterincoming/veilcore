@@ -69,4 +69,5 @@ export const strainForm = {
   'app.strain.f.generation': 'Generation or passage',
   'app.strain.f.parents': 'Parent strains',
   'app.strain.verify.parentsLine': 'Parent strains, as the holder states them: {v}',
+  'app.strain.need.tooLong': 'Each line can be at most 200 characters. Notes can be longer.',
 };

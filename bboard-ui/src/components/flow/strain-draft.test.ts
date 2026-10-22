@@ -68,6 +68,12 @@ describe('logging a strain or line', () => {
     expect(strainMissing({ ...DRAFT, deposits: 'x'.repeat(201) })).toBe('deposits');
   });
 
+  it('says a line is too long before sealing, not after', () => {
+    expect(strainMissing({ ...DRAFT, generation: 'P'.repeat(201) })).toBe('tooLong');
+    expect(strainMissing({ ...DRAFT, parent2: { name: 'x'.repeat(201), deposit: '' } })).toBe('tooLong');
+    expect(strainMissing({ ...DRAFT, notes: 'n'.repeat(5000) })).toBeUndefined();
+  });
+
   it('reads deposit numbers one per line (or comma), trimmed, blanks and repeats dropped', () => {
     expect(depositsOf(DRAFT.deposits)).toEqual(['NBRC 10217', 'TEST 0001']);
     expect(depositsOf('A, B; C')).toEqual(['A', 'B', 'C']);

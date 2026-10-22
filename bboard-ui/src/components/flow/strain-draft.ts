@@ -60,7 +60,7 @@ export const strainDraftHasContent = (d: StrainDraft): boolean =>
     d.notes.trim(),
   );
 
-export type StrainMissing = 'nameOrDesignation' | 'species' | 'maker' | 'deposits';
+export type StrainMissing = 'nameOrDesignation' | 'species' | 'maker' | 'deposits' | 'tooLong';
 
 /** One line, trimmed: a pasted line break or tab becomes a space (the profile seals one line). */
 const line = (v: string) =>
@@ -85,6 +85,10 @@ export const strainMissing = (d: StrainDraft): StrainMissing | undefined => {
   if (!d.maker.trim()) return 'maker';
   if (depositsOf(d.deposits).length > 8 || depositsOf(d.deposits).some((x) => Array.from(x).length > 200))
     return 'deposits';
+  // The profile's one-line limit (strain-profile.ts), said here rather than refused at sealing.
+  const lines = [d.name, d.designation, d.species, d.method, d.generation, d.maker];
+  for (const p of [d.parent1, d.parent2]) lines.push(p.name, p.deposit);
+  if (lines.some((v) => Array.from(line(v)).length > 200)) return 'tooLong';
   return undefined;
 };
 

@@ -73,4 +73,5 @@ export const strainForm = {
   'app.strain.f.generation': 'Generation oder Passage',
   'app.strain.f.parents': 'Elternstämme',
   'app.strain.verify.parentsLine': 'Elternstämme laut Inhaber: {v}',
+  'app.strain.need.tooLong': 'Jede Zeile darf höchstens 200 Zeichen lang sein. Notizen dürfen länger sein.',
 } satisfies Partial<AppTranslation>;

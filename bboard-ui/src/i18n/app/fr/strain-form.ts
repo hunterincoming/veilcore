@@ -70,4 +70,5 @@ export const strainForm = {
   'app.strain.f.generation': 'Génération ou passage',
   'app.strain.f.parents': 'Souches parentes',
   'app.strain.verify.parentsLine': 'Souches parentes, selon le détenteur : {v}',
+  'app.strain.need.tooLong': 'Chaque ligne peut compter au plus 200 caractères. Les notes peuvent être plus longues.',
 } satisfies Partial<AppTranslation>;

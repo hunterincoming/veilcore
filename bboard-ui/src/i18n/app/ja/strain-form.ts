@@ -70,4 +70,5 @@ export const strainForm = {
   'app.strain.f.generation': '世代・継代数',
   'app.strain.f.parents': '親株',
   'app.strain.verify.parentsLine': '親株（保有者の記載）：{v}',
+  'app.strain.need.tooLong': '各行は200文字までです。メモはそれより長くても構いません。',
 } satisfies Partial<AppTranslation>;

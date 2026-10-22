@@ -71,4 +71,5 @@ export const strainForm = {
   'app.strain.f.generation': 'Generación o pase',
   'app.strain.f.parents': 'Cepas progenitoras',
   'app.strain.verify.parentsLine': 'Cepas progenitoras, según el titular: {v}',
+  'app.strain.need.tooLong': 'Cada línea puede tener como máximo 200 caracteres. Las notas pueden ser más largas.',
 } satisfies Partial<AppTranslation>;
