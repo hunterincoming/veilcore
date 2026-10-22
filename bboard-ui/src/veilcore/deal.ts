@@ -186,6 +186,11 @@ export type DealBody =
       readonly amount: string;
       readonly currency: string;
       readonly note?: string;
+    }
+  | {
+      /** A W3C Verifiable Credential the licensor signed for the licensee to keep (credentials.ts). */
+      readonly type: 'credential';
+      readonly credential: Record<string, unknown>;
     };
 
 export type DealSide = 'issuer' | 'licensee';

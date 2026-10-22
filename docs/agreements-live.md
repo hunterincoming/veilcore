@@ -64,6 +64,16 @@ holds or moves anyone's money.
    holder, so neither has to trust the old holder for the other's key. That is built when a
    user needs it.
 
+9. **W3C credentials (done).** The licensor's page signs a license credential and, for each
+   payment it confirmed, a payment credential, and sends them over the deal's channel. They
+   are W3C Verifiable Credentials 2.0 with Data Integrity `eddsa-jcs-2022` proofs and
+   `did:key` identifiers (`veilcore/vc.ts`, `veilcore/credentials.ts`), checked against the
+   W3C's own test vectors byte for byte. Any W3C verifier checks them without VeilCore. They
+   carry the terms' fingerprint, never the terms, and say that liveness is checked on
+   Midnight, not by the credential.
+10. **Lost phone (done).** A copy of the backup that opens with a passkey
+    (`docs/passkey-backup.md`).
+
 ## Law and wording
 
 - Terms of Use: VeilCore is a record-keeping tool, not a party, broker, escrow, payment

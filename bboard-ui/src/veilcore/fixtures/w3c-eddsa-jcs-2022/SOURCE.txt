@@ -1,0 +1,2 @@
+13e7070534d1ba1c2987cb26bfb1535e0f15bb72 2026-09-01
+Copied from https://github.com/w3c/vc-di-eddsa TestVectors/ (keyPair.json, unsigned.json, eddsa-jcs-2022/*) at the commit above. W3C Software and Document License.

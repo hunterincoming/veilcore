@@ -19,6 +19,7 @@ import {
   receiptsFor,
   type CheckedReceipt,
 } from '../../veilcore/payments';
+import { DealCredentials } from './DealCredentials';
 
 type Terms = { royaltyType?: string; royaltyAmount?: string; unitBasis?: string };
 
@@ -212,6 +213,13 @@ export const RoyaltyLedger: React.FC<{
             ))}
           </Stack>
         )}
+        <DealCredentials
+          party={party}
+          entries={entries}
+          confirmed={lines.flatMap((l) => (l.received ? [{ statement: l.statement, received: l.received }] : []))}
+          busy={busy}
+          onSend={(b) => void send(b)}
+        />
         {error && (
           <Alert severity="error" variant="outlined">
             {error}
@@ -414,9 +422,10 @@ const StatementLine: React.FC<{
           variant="outlined"
         >
           Paid through {c.partnerName ?? 'a payment partner'}
-          {c.nameChecked ? ' (a partner VeilCore checked)' : ' (not a partner VeilCore has checked)'}: {c.receipt.amount}{' '}
-          {c.receipt.currency} to {c.receipt.payTo} on {new Date(c.receipt.paidAt).toLocaleDateString()}, reference{' '}
-          {c.receipt.reference}. Signed by the partner and checked here.
+          {c.nameChecked ? ' (a partner VeilCore checked)' : ' (not a partner VeilCore has checked)'}:{' '}
+          {c.receipt.amount} {c.receipt.currency} to {c.receipt.payTo} on{' '}
+          {new Date(c.receipt.paidAt).toLocaleDateString()}, reference {c.receipt.reference}. Signed by the partner and
+          checked here.
           {!c.nameChecked &&
             ' Anyone can sign as a partner under any name: confirm the money arrived before you rely on it.'}
           {c.mismatch.length > 0 && ` Doesn’t match: ${c.mismatch.join('; ')}.`}
