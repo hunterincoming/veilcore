@@ -54,8 +54,8 @@ export const DealCredentials: React.FC<{
       </Typography>
       <Typography variant="body2" color="text.secondary">
         {issuer
-          ? 'Signed by you, for them to show anyone in the standard W3C format. They hold the terms’ fingerprint, never the terms. Whether the license is still live is checked on Midnight.'
-          : 'Signed by the licensor, in the standard W3C format that wallets and other systems read. They hold the terms’ fingerprint, never the terms. Whether your license is still live is checked on Midnight.'}
+          ? 'Signed by you, for them to show anyone in the standard W3C format. They hold a proof code for the terms, never the terms. Whether the license is still live is checked on Midnight.'
+          : 'Signed by the licensor, in the standard W3C format that wallets and other systems read. They hold a proof code for the terms, never the terms. Whether your license is still live is checked on Midnight.'}
       </Typography>
       <Stack spacing={1} sx={{ mt: 1 }}>
         {issuer && agree && agreed && !licenseSent && (

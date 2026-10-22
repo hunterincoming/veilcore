@@ -349,7 +349,7 @@ const StatementForm: React.FC<{
       <Box>
         {evidence ? (
           <Typography variant="body2">
-            Sales report: <b>{evidence.name}</b> ({sizeText(evidence.size)}), fingerprint{' '}
+            Sales report: <b>{evidence.name}</b> ({sizeText(evidence.size)}), proof code{' '}
             <code>{evidence.sha256.slice(0, 12)}…</code>{' '}
             <Button size="small" color="inherit" onClick={() => setEvidence(undefined)}>
               Remove
@@ -375,7 +375,7 @@ const StatementForm: React.FC<{
         )}
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
           Your Metrc sales export, POS report or spreadsheet for this period. The file stays on your device: only its
-          fingerprint goes in the statement, signed by you. Send them the file yourself, and their page checks it is the
+          proof code goes in the statement, signed by you. Send them the file yourself, and their page checks it is the
           same one.
         </Typography>
         {evidenceError && (
@@ -642,7 +642,7 @@ const ReportCheck: React.FC<{ statement: Extract<DealEntry, { type: 'statement' 
   return (
     <Box data-sales-report="">
       <Typography variant="body2">
-        Backed by their sales report <b>{e.name}</b> ({sizeText(e.size)}), fingerprint{' '}
+        Backed by their sales report <b>{e.name}</b> ({sizeText(e.size)}), proof code{' '}
         <code>{e.sha256.slice(0, 12)}…</code>
         {side === 'licensee' ? '. Send them the file if you haven’t.' : ''}
       </Typography>
