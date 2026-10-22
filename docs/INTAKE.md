@@ -61,6 +61,20 @@ if (a.get('veilcore') === 'veilcore/intake/v1' && a.get('state') === myState) {
 history.replaceState(null, '', location.pathname + location.search); // clear the # from the address bar
 ```
 
-The answer is something the sender agreed to share and is public anyway: it proves nothing
-until you check it. Open the `check` link (or call the registry's `/verify/<record>`) and
-confirm the proof code there matches `proof`.
+## What the answer proves, and what it doesn't
+
+The answer says which record the sender points at. It does not prove that they hold it, or that
+it is the sample you received: the sender can see your `state` and could write an answer by hand
+naming someone else's public record. So:
+
+- **Check it on VeilCore yourself.** Never open the `check` link you were handed. Build the
+  address from `record` and `proof`: `https://veilcore.org/verify/<record>?fp=<proof>`, or ask
+  the registry's `/verify/<record>`, and confirm the proof code there is `proof`.
+- **When it matters who holds it, ask them to prove it.** VeilCore's prove-by-link flow (the
+  sender answers a link you make, from the device holding the record) shows they hold the
+  record's key, without showing you anything else.
+- **Your return address must serve your page directly, with no redirect.** Browsers carry the
+  `#` part across a redirect, so a redirect would hand the answer to wherever it points.
+
+A request lasts an hour in the sender's tab, and they can drop it at any time ("Not now, stay
+on VeilCore"); they then come back to you with nothing.

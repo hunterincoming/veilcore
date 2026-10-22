@@ -136,17 +136,23 @@ export const backup = {
   'app.backup.passkey.err.damaged':
     'Diese Kopie ließ sich nicht öffnen. Sie wurde möglicherweise verändert. Öffnen Sie stattdessen Ihre Sicherungsdatei.',
   // A partner's intake (flow/IntakePage.tsx, veilcore/intake.ts).
+  'app.intake.stay': 'Nicht jetzt, bei VeilCore bleiben',
+  'app.intake.pickAgain': 'Einen Datensatz für sie auswählen',
+  'app.intake.oddHost':
+    'Prüfen Sie diese Adresse genau: {host} ist eine Zahl, ein codierter Name oder hat einen Port, es ist also vielleicht nicht, wen Sie erwarten.',
+  'app.intake.err.notPicked':
+    'Dieser Datensatz wurde für diese Anfrage nicht ausgewählt. Wählen Sie den Datensatz, den Sie senden möchten.',
   'app.intake.title': 'Eine Probe für {host} erfassen',
   'app.intake.intro':
     '<b>{host}</b> hat Sie gebeten, diese Probe bei VeilCore zu erfassen. Sie legen den Datensatz hier an, bei VeilCore, und er bleibt Ihrer. Am Ende entscheiden Sie, ob Sie ihnen Datensatz-ID, Prüfcode und Prüflink senden. Sonst geht nichts an sie.',
-  'app.intake.ref': 'Ihre Referenz: {ref}',
+  'app.intake.ref': 'Ihre Referenz, so wie sie sie geschrieben haben:',
   'app.intake.new': 'Neu erfassen',
   'app.intake.pick': 'Oder einen bereits erfassten senden',
   'app.intake.back': 'Ohne Senden zu {host} zurückkehren',
   'app.intake.banner': 'Erfassung für {host}. Am Ende entscheiden Sie, was Sie senden.',
   'app.intake.send.title': 'Diesen Datensatz an {host} senden?',
   'app.intake.send.what':
-    'Sie erhalten die Datensatz-ID <b>{id}</b> ({name}), den Prüfcode und den Prüflink, damit sie ihn auf Midnight prüfen können.',
+    'Sie erhalten die Datensatz-ID {id} ({name}), den Prüfcode und den Prüflink, damit sie ihn bei VeilCore prüfen können.',
   'app.intake.send.not': 'Ihre Angaben, Fotos, DNA-Berichte, Schlüssel und Sicherung erhalten sie nicht.',
   'app.intake.send.button': 'An {host} senden',
   'app.intake.send.opening': '{id} wird geöffnet …',

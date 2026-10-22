@@ -134,17 +134,22 @@ export const backup = {
   'app.backup.passkey.err.damaged':
     'Esa copia no se abrió. Puede que la hayan cambiado. Abra su archivo de copia de seguridad.',
   // A partner's intake (flow/IntakePage.tsx, veilcore/intake.ts).
+  'app.intake.stay': 'Ahora no, quedarme en VeilCore',
+  'app.intake.pickAgain': 'Elegir un registro para ellos',
+  'app.intake.oddHost':
+    'Revise bien esta dirección: {host} es un número, un nombre codificado o tiene un puerto, así que puede no ser quien usted espera.',
+  'app.intake.err.notPicked': 'Ese registro no se eligió para esta solicitud. Elija el registro que quiere enviar.',
   'app.intake.title': 'Registre una muestra para {host}',
   'app.intake.intro':
     '<b>{host}</b> le pidió registrar esta muestra con VeilCore. Usted crea el registro aquí, en VeilCore, y sigue siendo suyo. Al final decide si les envía el ID del registro, su código de prueba y su enlace de verificación. No les llega nada más.',
-  'app.intake.ref': 'Su referencia: {ref}',
+  'app.intake.ref': 'Su referencia, tal como la escribieron:',
   'app.intake.new': 'Registrar uno nuevo',
   'app.intake.pick': 'O enviar uno que ya registró',
   'app.intake.back': 'Volver a {host} sin enviar',
   'app.intake.banner': 'Registrando para {host}. Al final decide qué enviarles.',
   'app.intake.send.title': '¿Enviar este registro a {host}?',
   'app.intake.send.what':
-    'Reciben el ID del registro <b>{id}</b> ({name}), su código de prueba y su enlace de verificación, para que puedan comprobarlo en Midnight.',
+    'Reciben el ID del registro {id} ({name}), su código de prueba y su enlace de verificación, para que puedan comprobarlo en VeilCore.',
   'app.intake.send.not': 'No reciben sus datos, fotos, informe de ADN, claves ni copia de seguridad.',
   'app.intake.send.button': 'Enviar a {host}',
   'app.intake.send.opening': 'Abriendo {id}…',

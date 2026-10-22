@@ -139,17 +139,23 @@ export const backup = {
   'app.backup.passkey.err.damaged':
     'Cette copie ne s’est pas ouverte. Elle a peut-être été modifiée. Ouvrez plutôt votre fichier de secours.',
   // A partner's intake (flow/IntakePage.tsx, veilcore/intake.ts).
+  'app.intake.stay': 'Pas maintenant, rester sur VeilCore',
+  'app.intake.pickAgain': 'Choisir un enregistrement pour eux',
+  'app.intake.oddHost':
+    'Vérifiez bien cette adresse : {host} est un nombre, un nom codé ou comporte un port, ce n’est peut-être pas qui vous croyez.',
+  'app.intake.err.notPicked':
+    'Cet enregistrement n’a pas été choisi pour cette demande. Choisissez celui que vous voulez envoyer.',
   'app.intake.title': 'Enregistrer un échantillon pour {host}',
   'app.intake.intro':
     '<b>{host}</b> vous a demandé d’enregistrer cet échantillon avec VeilCore. Vous créez l’enregistrement ici, sur VeilCore, et il reste le vôtre. À la fin, vous choisissez de leur envoyer ou non son identifiant, son code de preuve et son lien de vérification. Rien d’autre ne leur parvient.',
-  'app.intake.ref': 'Leur référence : {ref}',
+  'app.intake.ref': 'Leur référence, telle qu’ils l’ont écrite :',
   'app.intake.new': 'En enregistrer un nouveau',
   'app.intake.pick': 'Ou envoyer un enregistrement déjà fait',
   'app.intake.back': 'Revenir sur {host} sans rien envoyer',
   'app.intake.banner': 'Enregistrement pour {host}. À la fin, vous choisissez ce que vous leur envoyez.',
   'app.intake.send.title': 'Envoyer cet enregistrement à {host} ?',
   'app.intake.send.what':
-    'Ils reçoivent l’identifiant <b>{id}</b> ({name}), son code de preuve et son lien de vérification, pour le vérifier sur Midnight.',
+    'Ils reçoivent l’identifiant {id} ({name}), son code de preuve et son lien de vérification, pour le vérifier sur VeilCore.',
   'app.intake.send.not':
     'Ils ne reçoivent ni vos détails, ni vos photos, ni votre rapport ADN, ni vos clés, ni votre copie de secours.',
   'app.intake.send.button': 'Envoyer à {host}',

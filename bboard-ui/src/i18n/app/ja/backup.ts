@@ -122,17 +122,22 @@ export const backup = {
   'app.backup.passkey.err.damaged':
     'そのコピーは開けませんでした。変更された可能性があります。代わりにバックアップファイルを開いてください。',
   // A partner's intake (flow/IntakePage.tsx, veilcore/intake.ts).
+  'app.intake.stay': '今はやめて VeilCore に残る',
+  'app.intake.pickAgain': '相手に送る記録を選ぶ',
+  'app.intake.oddHost':
+    'このアドレスをよく確認してください。{host} は数字、符号化された名前、またはポート付きなので、想定した相手ではないかもしれません。',
+  'app.intake.err.notPicked': 'その記録はこの依頼のために選ばれていません。送りたい記録を選んでください。',
   'app.intake.title': '{host} のためにサンプルを記録する',
   'app.intake.intro':
     '<b>{host}</b> から、このサンプルを VeilCore で記録するよう頼まれています。記録はここ VeilCore で作り、あなたのものとして残ります。最後に、記録ID・証明コード・確認リンクを相手に送るかどうかを選べます。それ以外は送られません。',
-  'app.intake.ref': '相手の参照番号：{ref}',
+  'app.intake.ref': '相手の参照番号（相手が書いたまま）：',
   'app.intake.new': '新しく記録する',
   'app.intake.pick': 'または、記録済みのものを送る',
   'app.intake.back': '送らずに {host} に戻る',
   'app.intake.banner': '{host} のために記録中です。最後に何を送るかを選べます。',
   'app.intake.send.title': 'この記録を {host} に送りますか？',
   'app.intake.send.what':
-    '相手が受け取るのは、記録ID <b>{id}</b>（{name}）、その証明コードと確認リンクです。これで Midnight 上で確認できます。',
+    '相手が受け取るのは、記録ID {id}（{name}）、その証明コードと確認リンクです。これで VeilCore 上で確認できます。',
   'app.intake.send.not': 'あなたの詳細、写真、DNAレポート、鍵、バックアップは送られません。',
   'app.intake.send.button': '{host} に送る',
   'app.intake.send.opening': '{id} を開いています…',

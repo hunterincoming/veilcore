@@ -82,3 +82,31 @@ describe('a partner’s intake link', () => {
     expect(loadIntake(true)).toBeUndefined();
   });
 });
+
+describe('attack pass on the intake link, 22 Oct', () => {
+  it('4: a bare # at the end is refused too', async () => {
+    const { returnProblem } = await import('./intake');
+    expect(returnProblem('https://lab.example/x#', true)).toBe('hasHash');
+  });
+
+  it('3: format and line-separator characters are taken out of text from the link', async () => {
+    const { clean, oddHost } = await import('./intake');
+    expect(clean('a‮b​c d\u0085e', 100)).toBe('abcde');
+    expect(oddHost('10.0.0.5')).toBe(true);
+    expect(oddHost('xn--pple-43d.com')).toBe(true);
+    expect(oddHost('lab.example:8443')).toBe(true);
+    expect(oddHost('lab.example')).toBe(false);
+  });
+
+  it('2: a request expires after an hour, and only records picked for it can be sent', async () => {
+    const { saveIntake, loadIntake, allowRecord, INTAKE_TTL_MS } = await import('./intake');
+    const t0 = Date.now();
+    saveIntake({ returnTo: 'https://lab.example/', state: 'abcd1234' }, t0);
+    expect(loadIntake(true, t0)?.allowed).toEqual([]);
+    allowRecord('VEIL-1');
+    expect(loadIntake(true)?.allowed).toEqual(['VEIL-1']);
+    expect(loadIntake(true, t0 + INTAKE_TTL_MS + 1)).toBeUndefined();
+    // Gone for good once expired.
+    expect(loadIntake(true, t0)).toBeUndefined();
+  });
+});

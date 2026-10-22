@@ -44,7 +44,8 @@ test('a lab’s link: the breeder records the sample, then chooses to send only 
   const q = new URLSearchParams({ return: LAB, state: 'lab-state-0001', ref: 'S-42', name: 'Lab sample 42' });
   await page.goto(`/intake?${q.toString()}`);
   await expect(page.getByRole('heading', { name: 'Record a sample for lab.example' })).toBeVisible();
-  await expect(page.getByText('Their reference: S-42')).toBeVisible();
+  await expect(page.getByText('Their reference, as they wrote it:')).toBeVisible();
+  await expect(page.locator('code', { hasText: 'S-42' })).toBeVisible();
   await page.getByRole('button', { name: 'Record a new one' }).click();
 
   // The log flow says whom it's for, with their name and reference already in.
@@ -103,4 +104,17 @@ test('the breeder can go back without sending anything', async ({ page }) => {
   expect(back.get('declined')).toBe('1');
   expect(back.get('state')).toBe('lab-state-0002');
   expect(back.get('record')).toBeNull();
+});
+
+test('the partner can’t open the send screen with some other record chosen, and "Not now" drops the request', async ({
+  page,
+}) => {
+  await registry(page);
+  await page.goto(`/intake?${new URLSearchParams({ return: LAB, state: 'lab-state-0003' }).toString()}`);
+  await expect(page.getByRole('heading', { name: 'Record a sample for lab.example' })).toBeVisible();
+  await page.goto('/intake/send?record=VEIL-0000000000000000');
+  await expect(page.locator('[data-intake-not-picked]')).toBeVisible();
+  await page.getByRole('button', { name: 'Not now, stay on VeilCore' }).click();
+  await page.goto('/new');
+  await expect(page.locator('[data-intake-banner]')).toHaveCount(0);
 });

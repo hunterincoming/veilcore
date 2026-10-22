@@ -59,7 +59,7 @@ import { Step2PairDna } from '../wizard/Step2PairDna';
 import { AppHeader } from '../AppHeader';
 import { BackupStep } from './BackupStep';
 import { IntakeBanner } from './IntakePage';
-import { loadIntake } from '../../veilcore/intake';
+import { allowRecord, loadIntake } from '../../veilcore/intake';
 import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled, visuallyHidden } from './FlowFrame';
 import { useT, useRecordT, rich, type Translator } from '../../i18n/app';
 import { forKind } from '../../i18n/translate';
@@ -266,7 +266,7 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
             onDone={() =>
               // A partner's intake is waiting (/intake): the breeder decides what goes back.
               recordId && loadIntake()
-                ? navigate(`/intake/send?record=${encodeURIComponent(recordId)}`)
+                ? (allowRecord(recordId), navigate(`/intake/send?record=${encodeURIComponent(recordId)}`))
                 : recordId
                   ? navigate(`/record/${recordId}`)
                   : navigate('/records')

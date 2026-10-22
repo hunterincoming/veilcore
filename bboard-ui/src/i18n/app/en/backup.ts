@@ -126,17 +126,22 @@ export const backup = {
     'The registry offered an older copy than this device has already seen. Nothing was changed. Try again later, and keep your backup file.',
   'app.backup.passkey.err.damaged': "That copy didn't open. It may have been changed. Open your backup file instead.",
   // A partner's intake (flow/IntakePage.tsx, veilcore/intake.ts).
+  'app.intake.stay': 'Not now, stay on VeilCore',
+  'app.intake.pickAgain': 'Pick a record for them',
+  'app.intake.oddHost':
+    'Check this address carefully: {host} is a number, a coded name or has a port, so it may not be who you expect.',
+  'app.intake.err.notPicked': 'That record wasn’t picked for this request. Pick the record you want to send.',
   'app.intake.title': 'Record a sample for {host}',
   'app.intake.intro':
     '<b>{host}</b> asked you to record this sample with VeilCore. You make the record here, on VeilCore, and it stays yours. At the end you choose whether to send them its record ID, proof code and check link. Nothing else goes to them.',
-  'app.intake.ref': 'Their reference: {ref}',
+  'app.intake.ref': 'Their reference, as they wrote it:',
   'app.intake.new': 'Record a new one',
   'app.intake.pick': 'Or send one you already recorded',
   'app.intake.back': 'Go back to {host} without sending',
   'app.intake.banner': 'Recording for {host}. At the end you choose what to send them.',
   'app.intake.send.title': 'Send this record to {host}?',
   'app.intake.send.what':
-    'They get the record ID <b>{id}</b> ({name}), its proof code and its check link, so they can check it on Midnight.',
+    'They get the record ID {id} ({name}), its proof code and its check link, so they can check it on VeilCore.',
   'app.intake.send.not': 'They don’t get your details, photos, DNA report, keys or backup.',
   'app.intake.send.button': 'Send to {host}',
   'app.intake.send.opening': 'Opening {id}…',

@@ -9,13 +9,15 @@ import { AppHeader } from '../AppHeader';
 import { FlowFrame, ScreenHeading } from './FlowFrame';
 import { rich, useT } from '../../i18n/app';
 import {
+  allowRecord,
   clearIntake,
   hostOf,
   loadIntake,
+  oddHost,
   parseIntake,
   returnUrl,
   saveIntake,
-  type IntakeRequest,
+  type KeptIntake,
 } from '../../veilcore/intake';
 import { useRecords } from '../../veilcore/records';
 import { verifyPath } from '../../veilcore/verify-link';
@@ -44,7 +46,8 @@ export const IntakePage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useT();
   const parsed = useMemo(() => parseIntake(search), [search]);
-  const records = useRecords().filter((r) => HEX64.test(r.recordFingerprint));
+  // Current records only: a superseded one would send its old proof code (re-check finding 5).
+  const records = useRecords().filter((r) => HEX64.test(r.recordFingerprint) && !r.supersededBy);
   useEffect(() => {
     if (parsed.ok) saveIntake(parsed.request);
   }, [parsed]);
@@ -80,9 +83,17 @@ export const IntakePage: React.FC = () => {
         <Typography variant="body1" sx={{ mt: 1 }}>
           {rich(t('app.intake.intro', { host }), { b: (c) => <b>{c}</b> })}
         </Typography>
+        {oddHost(host) && (
+          <Alert severity="warning" variant="outlined" sx={{ mt: 1 }}>
+            {t('app.intake.oddHost', { host })}
+          </Alert>
+        )}
         {r.ref && (
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            {t('app.intake.ref', { ref: r.ref })}
+            {t('app.intake.ref')}{' '}
+            <Box component="code" sx={{ fontFamily: 'monospace', bgcolor: 'action.hover', px: 0.5 }}>
+              {r.ref}
+            </Box>
           </Typography>
         )}
       </Box>
@@ -101,7 +112,10 @@ export const IntakePage: React.FC = () => {
                 variant="outlined"
                 fullWidth
                 sx={{ justifyContent: 'flex-start', textTransform: 'none', minHeight: 48 }}
-                onClick={() => void navigate(`/intake/send?record=${encodeURIComponent(rec.id)}`)}
+                onClick={() => {
+                  allowRecord(rec.id);
+                  void navigate(`/intake/send?record=${encodeURIComponent(rec.id)}`);
+                }}
               >
                 {rec.strainName || rec.id} · {rec.id}
               </Button>
@@ -112,7 +126,26 @@ export const IntakePage: React.FC = () => {
       <Button color="inherit" onClick={() => leaveFor(returnUrl(r, 'declined'))} sx={{ alignSelf: 'flex-start' }}>
         {t('app.intake.back', { host })}
       </Button>
+      <StayButton />
     </Frame>
+  );
+};
+
+/** Drop the request and stay on VeilCore: nothing goes to the partner, and no later record is offered to them. */
+const StayButton: React.FC<{ to?: string }> = ({ to = '/records' }) => {
+  const { t } = useT();
+  const navigate = useNavigate();
+  return (
+    <Button
+      color="inherit"
+      sx={{ alignSelf: 'flex-start' }}
+      onClick={() => {
+        clearIntake();
+        void navigate(to);
+      }}
+    >
+      {t('app.intake.stay')}
+    </Button>
   );
 };
 
@@ -120,9 +153,10 @@ export const IntakePage: React.FC = () => {
 export const IntakeSendPage: React.FC = () => {
   const [params] = useSearchParams();
   const { t } = useT();
-  const [request] = useState<IntakeRequest | undefined>(() => loadIntake());
+  const [request] = useState<KeptIntake | undefined>(() => loadIntake());
   const id = params.get('record') ?? '';
   const record = useRecords().find((x) => x.id === id);
+  const navigate = useNavigate();
 
   if (!request)
     return (
@@ -134,11 +168,34 @@ export const IntakeSendPage: React.FC = () => {
       </Frame>
     );
   const host = hostOf(request);
+  // Only a record picked or finished for this request (re-check finding 2): the partner's page
+  // can't link straight here with some other record already chosen.
+  if (!request.allowed.includes(id))
+    return (
+      <Frame>
+        <ScreenHeading>{t('app.intake.err.title')}</ScreenHeading>
+        <Alert severity="warning" variant="outlined" data-intake-not-picked="">
+          {t('app.intake.err.notPicked')}
+        </Alert>
+        <Button
+          variant="outlined"
+          onClick={() =>
+            void navigate(
+              '/intake?' + new URLSearchParams({ return: request.returnTo, state: request.state }).toString(),
+            )
+          }
+        >
+          {t('app.intake.pickAgain')}
+        </Button>
+        <StayButton />
+      </Frame>
+    );
   if (!record || !HEX64.test(record.recordFingerprint))
     return (
       <Frame>
         <ScreenHeading>{t('app.intake.send.title', { host })}</ScreenHeading>
         <Typography variant="body1">{t('app.intake.send.opening', { id })}</Typography>
+        <StayButton />
       </Frame>
     );
   const checkLink = `${window.location.origin}${verifyPath(record.id, record.recordFingerprint)}`;
@@ -147,9 +204,8 @@ export const IntakeSendPage: React.FC = () => {
       <Box>
         <ScreenHeading>{t('app.intake.send.title', { host })}</ScreenHeading>
         <Typography variant="body1" sx={{ mt: 1 }}>
-          {rich(t('app.intake.send.what', { id: record.id, name: record.strainName || record.id }), {
-            b: (c) => <b>{c}</b>,
-          })}
+          {/* No markup from the name: it may be text the partner suggested (re-check finding 3). */}
+          {t('app.intake.send.what', { id: record.id, name: record.strainName || record.id })}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           {t('app.intake.send.not')}
@@ -170,6 +226,7 @@ export const IntakeSendPage: React.FC = () => {
       <Button color="inherit" onClick={() => leaveFor(returnUrl(request, 'declined'))} sx={{ alignSelf: 'flex-start' }}>
         {t('app.intake.back', { host })}
       </Button>
+      <StayButton to={`/record/${encodeURIComponent(record.id)}`} />
       <Typography variant="caption" color="text.secondary">
         {t('app.intake.send.kept')}
       </Typography>
@@ -180,10 +237,27 @@ export const IntakeSendPage: React.FC = () => {
 /** On the log flow, while a partner is waiting: whom it's for. */
 export const IntakeBanner: React.FC = () => {
   const { t } = useT();
-  const [request] = useState(() => loadIntake());
+  const [request, setRequest] = useState(() => loadIntake());
   if (!request) return null;
   return (
-    <Alert severity="info" variant="outlined" sx={{ mb: 2 }} data-intake-banner="">
+    <Alert
+      severity="info"
+      variant="outlined"
+      sx={{ mb: 2 }}
+      data-intake-banner=""
+      action={
+        <Button
+          color="inherit"
+          size="small"
+          onClick={() => {
+            clearIntake();
+            setRequest(undefined);
+          }}
+        >
+          {t('app.intake.stay')}
+        </Button>
+      }
+    >
       {t('app.intake.banner', { host: hostOf(request) })}
     </Alert>
   );
