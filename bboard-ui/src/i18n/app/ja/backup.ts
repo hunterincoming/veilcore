@@ -121,4 +121,31 @@ export const backup = {
     'レジストリが、この端末がすでに見たものより古いコピーを返しました。何も変更していません。後でもう一度お試しください。バックアップファイルは残しておいてください。',
   'app.backup.passkey.err.damaged':
     'そのコピーは開けませんでした。変更された可能性があります。代わりにバックアップファイルを開いてください。',
+  // A partner's intake (flow/IntakePage.tsx, veilcore/intake.ts).
+  'app.intake.title': '{host} のためにサンプルを記録する',
+  'app.intake.intro':
+    '<b>{host}</b> から、このサンプルを VeilCore で記録するよう頼まれています。記録はここ VeilCore で作り、あなたのものとして残ります。最後に、記録ID・証明コード・確認リンクを相手に送るかどうかを選べます。それ以外は送られません。',
+  'app.intake.ref': '相手の参照番号：{ref}',
+  'app.intake.new': '新しく記録する',
+  'app.intake.pick': 'または、記録済みのものを送る',
+  'app.intake.back': '送らずに {host} に戻る',
+  'app.intake.banner': '{host} のために記録中です。最後に何を送るかを選べます。',
+  'app.intake.send.title': 'この記録を {host} に送りますか？',
+  'app.intake.send.what':
+    '相手が受け取るのは、記録ID <b>{id}</b>（{name}）、その証明コードと確認リンクです。これで Midnight 上で確認できます。',
+  'app.intake.send.not': 'あなたの詳細、写真、DNAレポート、鍵、バックアップは送られません。',
+  'app.intake.send.button': '{host} に送る',
+  'app.intake.send.opening': '{id} を開いています…',
+  'app.intake.send.kept': 'どちらを選んでも、記録はあなたの VeilCore に残ります。',
+  'app.intake.err.title': 'このリンクは使えません',
+  'app.intake.err.help': '送ってきた相手に新しいリンクを頼んでください。何も記録・送信していません。',
+  'app.intake.err.gone':
+    '相手のサイトからの依頼はもうありません（このタブが閉じられたか、開き直されました）。相手のリンクをもう一度開いてください。',
+  'app.intake.err.noReturn': '戻り先が書かれていません。',
+  'app.intake.err.tooLong': '戻り先のアドレスが長すぎます。',
+  'app.intake.err.notUrl': '戻り先がウェブアドレスではありません。',
+  'app.intake.err.notHttps': '戻り先が安全ではありません（https ではありません）。',
+  'app.intake.err.credentials': '戻り先にユーザー名かパスワードが含まれています。',
+  'app.intake.err.hasHash': '戻り先にすでに # の部分があります。',
+  'app.intake.err.badState': 'セキュリティ値（state）がないか、形式が正しくありません。',
 } satisfies Partial<AppTranslation>;

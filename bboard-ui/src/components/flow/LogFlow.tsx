@@ -58,6 +58,8 @@ import { nextBatchWords, useAnchorCadence } from './dating-words';
 import { Step2PairDna } from '../wizard/Step2PairDna';
 import { AppHeader } from '../AppHeader';
 import { BackupStep } from './BackupStep';
+import { IntakeBanner } from './IntakePage';
+import { loadIntake } from '../../veilcore/intake';
 import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled, visuallyHidden } from './FlowFrame';
 import { useT, useRecordT, rich, type Translator } from '../../i18n/app';
 import { forKind } from '../../i18n/translate';
@@ -261,7 +263,14 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
             title={tr.t('app.backup.title')}
             stepLabel={step}
             finishLabel={tr.t('app.log.finish')}
-            onDone={() => (recordId ? navigate(`/record/${recordId}`) : navigate('/records'))}
+            onDone={() =>
+              // A partner's intake is waiting (/intake): the breeder decides what goes back.
+              recordId && loadIntake()
+                ? navigate(`/intake/send?record=${encodeURIComponent(recordId)}`)
+                : recordId
+                  ? navigate(`/record/${recordId}`)
+                  : navigate('/records')
+            }
           />
         );
     }
@@ -271,6 +280,7 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
     <Box>
       <AppHeader />
       <FlowFrame section="log" step={step}>
+        <IntakeBanner />
         {body}
       </FlowFrame>
     </Box>

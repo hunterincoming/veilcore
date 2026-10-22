@@ -69,6 +69,8 @@ const LogFlow = page(() => import('./components/flow/LogFlow'), 'LogFlow', 'afte
 const BulkImportPage = page(() => import('./components/lab-import/BulkImportPage'), 'BulkImportPage');
 const RestorePage = page(() => import('./components/flow/RestorePage'), 'RestorePage');
 const BackupPage = page(() => import('./components/flow/BackupPage'), 'BackupPage');
+const IntakePage = page(() => import('./components/flow/IntakePage'), 'IntakePage');
+const IntakeSendPage = page(() => import('./components/flow/IntakePage'), 'IntakeSendPage');
 const ProvePage = page(() => import('./components/flow/ProvePage'), 'ProvePage');
 const LicenseInvitePage = page(() => import('./components/licensing/LicenseInvitePage'), 'LicenseInvitePage');
 const ProveLicensePage = page(() => import('./components/licensing/LicenseProof'), 'ProveLicensePage');
@@ -294,6 +296,8 @@ const routes = (
     <Route path="/docs/:doc" element={withLayout(<DocPage />)} />
     <Route path="/implementations" element={withLayout(<Implementations />)} />
     <Route path="/new" element={withLayout(<LogFlow />)} />
+    <Route path="/intake" element={withLayout(<IntakePage />)} />
+    <Route path="/intake/send" element={withLayout(<IntakeSendPage />)} />
     <Route path="/prove/:id" element={withLayout(<ProvePage />)} />
     <Route path="/record/:id" element={withLayout(<RecordDetail />)} />
     <Route path="/record/:id/license" element={withLayout(<TermsBuilder />)} />

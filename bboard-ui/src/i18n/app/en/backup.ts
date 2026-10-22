@@ -125,4 +125,31 @@ export const backup = {
   'app.backup.passkey.err.older':
     'The registry offered an older copy than this device has already seen. Nothing was changed. Try again later, and keep your backup file.',
   'app.backup.passkey.err.damaged': "That copy didn't open. It may have been changed. Open your backup file instead.",
+  // A partner's intake (flow/IntakePage.tsx, veilcore/intake.ts).
+  'app.intake.title': 'Record a sample for {host}',
+  'app.intake.intro':
+    '<b>{host}</b> asked you to record this sample with VeilCore. You make the record here, on VeilCore, and it stays yours. At the end you choose whether to send them its record ID, proof code and check link. Nothing else goes to them.',
+  'app.intake.ref': 'Their reference: {ref}',
+  'app.intake.new': 'Record a new one',
+  'app.intake.pick': 'Or send one you already recorded',
+  'app.intake.back': 'Go back to {host} without sending',
+  'app.intake.banner': 'Recording for {host}. At the end you choose what to send them.',
+  'app.intake.send.title': 'Send this record to {host}?',
+  'app.intake.send.what':
+    'They get the record ID <b>{id}</b> ({name}), its proof code and its check link, so they can check it on Midnight.',
+  'app.intake.send.not': 'They don’t get your details, photos, DNA report, keys or backup.',
+  'app.intake.send.button': 'Send to {host}',
+  'app.intake.send.opening': 'Opening {id}…',
+  'app.intake.send.kept': 'The record stays in your VeilCore either way.',
+  'app.intake.err.title': 'This link can’t be used',
+  'app.intake.err.help': 'Ask whoever sent it for a new one. Nothing was recorded or sent.',
+  'app.intake.err.gone':
+    'The request from the other site is no longer here (this tab was closed or reopened). Open their link again.',
+  'app.intake.err.noReturn': 'It doesn’t say where to send you back.',
+  'app.intake.err.tooLong': 'Its return address is too long.',
+  'app.intake.err.notUrl': 'Its return address isn’t a web address.',
+  'app.intake.err.notHttps': 'Its return address isn’t secure (https).',
+  'app.intake.err.credentials': 'Its return address carries a user name or password.',
+  'app.intake.err.hasHash': 'Its return address already has a # part.',
+  'app.intake.err.badState': 'Its security value (state) is missing or malformed.',
 };

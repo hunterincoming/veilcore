@@ -138,4 +138,32 @@ export const backup = {
     'Le registre a proposé une copie plus ancienne que celle que cet appareil connaît déjà. Rien n’a été modifié. Réessayez plus tard, et gardez votre fichier de secours.',
   'app.backup.passkey.err.damaged':
     'Cette copie ne s’est pas ouverte. Elle a peut-être été modifiée. Ouvrez plutôt votre fichier de secours.',
+  // A partner's intake (flow/IntakePage.tsx, veilcore/intake.ts).
+  'app.intake.title': 'Enregistrer un échantillon pour {host}',
+  'app.intake.intro':
+    '<b>{host}</b> vous a demandé d’enregistrer cet échantillon avec VeilCore. Vous créez l’enregistrement ici, sur VeilCore, et il reste le vôtre. À la fin, vous choisissez de leur envoyer ou non son identifiant, son code de preuve et son lien de vérification. Rien d’autre ne leur parvient.',
+  'app.intake.ref': 'Leur référence : {ref}',
+  'app.intake.new': 'En enregistrer un nouveau',
+  'app.intake.pick': 'Ou envoyer un enregistrement déjà fait',
+  'app.intake.back': 'Revenir sur {host} sans rien envoyer',
+  'app.intake.banner': 'Enregistrement pour {host}. À la fin, vous choisissez ce que vous leur envoyez.',
+  'app.intake.send.title': 'Envoyer cet enregistrement à {host} ?',
+  'app.intake.send.what':
+    'Ils reçoivent l’identifiant <b>{id}</b> ({name}), son code de preuve et son lien de vérification, pour le vérifier sur Midnight.',
+  'app.intake.send.not':
+    'Ils ne reçoivent ni vos détails, ni vos photos, ni votre rapport ADN, ni vos clés, ni votre copie de secours.',
+  'app.intake.send.button': 'Envoyer à {host}',
+  'app.intake.send.opening': 'Ouverture de {id}…',
+  'app.intake.send.kept': 'L’enregistrement reste dans votre VeilCore dans tous les cas.',
+  'app.intake.err.title': 'Ce lien ne peut pas être utilisé',
+  'app.intake.err.help': 'Demandez-en un nouveau à la personne qui l’a envoyé. Rien n’a été enregistré ni envoyé.',
+  'app.intake.err.gone':
+    'La demande de l’autre site n’est plus là (cet onglet a été fermé ou rouvert). Rouvrez leur lien.',
+  'app.intake.err.noReturn': 'Il n’indique pas où vous renvoyer.',
+  'app.intake.err.tooLong': 'Son adresse de retour est trop longue.',
+  'app.intake.err.notUrl': 'Son adresse de retour n’est pas une adresse web.',
+  'app.intake.err.notHttps': 'Son adresse de retour n’est pas sécurisée (https).',
+  'app.intake.err.credentials': 'Son adresse de retour contient un nom d’utilisateur ou un mot de passe.',
+  'app.intake.err.hasHash': 'Son adresse de retour a déjà une partie #.',
+  'app.intake.err.badState': 'Sa valeur de sécurité (state) est absente ou invalide.',
 } satisfies Partial<AppTranslation>;

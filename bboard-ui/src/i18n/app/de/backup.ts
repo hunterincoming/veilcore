@@ -135,4 +135,31 @@ export const backup = {
     'Das Register hat eine ältere Kopie angeboten, als dieses Gerät bereits kennt. Es wurde nichts geändert. Versuchen Sie es später erneut, und behalten Sie Ihre Sicherungsdatei.',
   'app.backup.passkey.err.damaged':
     'Diese Kopie ließ sich nicht öffnen. Sie wurde möglicherweise verändert. Öffnen Sie stattdessen Ihre Sicherungsdatei.',
+  // A partner's intake (flow/IntakePage.tsx, veilcore/intake.ts).
+  'app.intake.title': 'Eine Probe für {host} erfassen',
+  'app.intake.intro':
+    '<b>{host}</b> hat Sie gebeten, diese Probe bei VeilCore zu erfassen. Sie legen den Datensatz hier an, bei VeilCore, und er bleibt Ihrer. Am Ende entscheiden Sie, ob Sie ihnen Datensatz-ID, Prüfcode und Prüflink senden. Sonst geht nichts an sie.',
+  'app.intake.ref': 'Ihre Referenz: {ref}',
+  'app.intake.new': 'Neu erfassen',
+  'app.intake.pick': 'Oder einen bereits erfassten senden',
+  'app.intake.back': 'Ohne Senden zu {host} zurückkehren',
+  'app.intake.banner': 'Erfassung für {host}. Am Ende entscheiden Sie, was Sie senden.',
+  'app.intake.send.title': 'Diesen Datensatz an {host} senden?',
+  'app.intake.send.what':
+    'Sie erhalten die Datensatz-ID <b>{id}</b> ({name}), den Prüfcode und den Prüflink, damit sie ihn auf Midnight prüfen können.',
+  'app.intake.send.not': 'Ihre Angaben, Fotos, DNA-Berichte, Schlüssel und Sicherung erhalten sie nicht.',
+  'app.intake.send.button': 'An {host} senden',
+  'app.intake.send.opening': '{id} wird geöffnet …',
+  'app.intake.send.kept': 'Der Datensatz bleibt in jedem Fall in Ihrem VeilCore.',
+  'app.intake.err.title': 'Dieser Link kann nicht verwendet werden',
+  'app.intake.err.help': 'Bitten Sie den Absender um einen neuen. Es wurde nichts erfasst oder gesendet.',
+  'app.intake.err.gone':
+    'Die Anfrage der anderen Seite ist nicht mehr da (dieser Tab wurde geschlossen oder neu geöffnet). Öffnen Sie deren Link erneut.',
+  'app.intake.err.noReturn': 'Er gibt nicht an, wohin Sie zurückgeschickt werden.',
+  'app.intake.err.tooLong': 'Seine Rückkehradresse ist zu lang.',
+  'app.intake.err.notUrl': 'Seine Rückkehradresse ist keine Webadresse.',
+  'app.intake.err.notHttps': 'Seine Rückkehradresse ist nicht sicher (https).',
+  'app.intake.err.credentials': 'Seine Rückkehradresse enthält einen Benutzernamen oder ein Passwort.',
+  'app.intake.err.hasHash': 'Seine Rückkehradresse hat bereits einen #-Teil.',
+  'app.intake.err.badState': 'Sein Sicherheitswert (state) fehlt oder ist fehlerhaft.',
 } satisfies Partial<AppTranslation>;

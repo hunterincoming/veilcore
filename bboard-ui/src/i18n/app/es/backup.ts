@@ -133,4 +133,31 @@ export const backup = {
     'El registro ofreció una copia más antigua que la que este dispositivo ya conoce. No se cambió nada. Inténtelo más tarde y conserve su archivo de copia de seguridad.',
   'app.backup.passkey.err.damaged':
     'Esa copia no se abrió. Puede que la hayan cambiado. Abra su archivo de copia de seguridad.',
+  // A partner's intake (flow/IntakePage.tsx, veilcore/intake.ts).
+  'app.intake.title': 'Registre una muestra para {host}',
+  'app.intake.intro':
+    '<b>{host}</b> le pidió registrar esta muestra con VeilCore. Usted crea el registro aquí, en VeilCore, y sigue siendo suyo. Al final decide si les envía el ID del registro, su código de prueba y su enlace de verificación. No les llega nada más.',
+  'app.intake.ref': 'Su referencia: {ref}',
+  'app.intake.new': 'Registrar uno nuevo',
+  'app.intake.pick': 'O enviar uno que ya registró',
+  'app.intake.back': 'Volver a {host} sin enviar',
+  'app.intake.banner': 'Registrando para {host}. Al final decide qué enviarles.',
+  'app.intake.send.title': '¿Enviar este registro a {host}?',
+  'app.intake.send.what':
+    'Reciben el ID del registro <b>{id}</b> ({name}), su código de prueba y su enlace de verificación, para que puedan comprobarlo en Midnight.',
+  'app.intake.send.not': 'No reciben sus datos, fotos, informe de ADN, claves ni copia de seguridad.',
+  'app.intake.send.button': 'Enviar a {host}',
+  'app.intake.send.opening': 'Abriendo {id}…',
+  'app.intake.send.kept': 'El registro se queda en su VeilCore en cualquier caso.',
+  'app.intake.err.title': 'Este enlace no se puede usar',
+  'app.intake.err.help': 'Pida uno nuevo a quien se lo envió. No se registró ni se envió nada.',
+  'app.intake.err.gone':
+    'La solicitud del otro sitio ya no está (esta pestaña se cerró o se volvió a abrir). Abra su enlace otra vez.',
+  'app.intake.err.noReturn': 'No indica adónde devolverle.',
+  'app.intake.err.tooLong': 'Su dirección de regreso es demasiado larga.',
+  'app.intake.err.notUrl': 'Su dirección de regreso no es una dirección web.',
+  'app.intake.err.notHttps': 'Su dirección de regreso no es segura (https).',
+  'app.intake.err.credentials': 'Su dirección de regreso lleva un nombre de usuario o una contraseña.',
+  'app.intake.err.hasHash': 'Su dirección de regreso ya tiene una parte #.',
+  'app.intake.err.badState': 'Su valor de seguridad (state) falta o no es válido.',
 } satisfies Partial<AppTranslation>;
