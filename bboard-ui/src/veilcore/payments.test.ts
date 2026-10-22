@@ -122,10 +122,17 @@ describe('receipts', () => {
       amountOwed: '500.00',
       fingerprint: 'ab'.repeat(32),
     } as DealEntry;
-    const got = await receiptsFor(statement, 'acct-123');
+    // The registry says "name checked", but this website doesn't list the key: not trusted.
+    const unlisted = await receiptsFor(statement, 'acct-123', []);
+    expect(unlisted[0].nameChecked).toBe(false);
+    expect(unlisted[0].partnerName).toBe('Example Pay');
+    const listed = [{ key: good.partner, name: 'Example Pay Ltd', checked: '2026-10-21' }];
+    const got = await receiptsFor(statement, 'acct-123', listed);
     expect(got.map((c) => c.receipt.reference)).toEqual(['PAY-1', 'PAY-2']);
     expect(got[0].mismatch).toEqual([]);
     expect(got[0].nameChecked).toBe(true);
+    // The website's own name wins over whatever the registry calls it.
+    expect(got[0].partnerName).toBe('Example Pay Ltd');
     expect(got[1].mismatch).toEqual(['paid 50.00, owed 500.00']);
     expect((await receiptsFor(statement, 'other-acct'))[0].mismatch).toEqual([
       'paid to acct-123, not the account they gave',

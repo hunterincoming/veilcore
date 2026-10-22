@@ -53,6 +53,14 @@ export const AGREEMENTS_LIVE = false;
  */
 export const AGREEMENTS_ON_CHAIN = AGREEMENTS_LIVE || !IS_MAINNET;
 
+/**
+ * Whether the backup screens offer a copy that opens with a passkey (veilcore/passkey-backup.ts).
+ * It ships with agreements: the registry routes it uses (/vault) come in the same registry
+ * release, and every deploy that turns agreements on checks the registry serves them
+ * (scripts/registry-features.mjs).
+ */
+export const PASSKEY_BACKUP = AGREEMENTS_ON_CHAIN;
+
 /** The label agreements carry while AGREEMENTS_LIVE is false. */
 export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';
 

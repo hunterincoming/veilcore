@@ -29,6 +29,12 @@ const KNOWN: [string, AppKey][] = [
   // A password on the file (version 4).
   [enT.t('app.backup.pw.needed'), 'app.backup.pw.needed'],
   [enT.t('app.backup.pw.wrong'), 'app.backup.pw.wrong'],
+  // The passkey copy (veilcore/passkey-backup.ts).
+  [enT.t('app.backup.passkey.err.unsupported'), 'app.backup.passkey.err.unsupported'],
+  [enT.t('app.backup.passkey.err.cancelled'), 'app.backup.passkey.err.cancelled'],
+  [enT.t('app.backup.passkey.err.noCopy'), 'app.backup.passkey.err.noCopy'],
+  [enT.t('app.backup.passkey.err.unreachable'), 'app.backup.passkey.err.unreachable'],
+  [enT.t('app.backup.passkey.err.damaged'), 'app.backup.passkey.err.damaged'],
 ];
 
 const MISSING = /^That backup is missing the latest for (\d+) of your records\. Save a new one and check that\.$/;

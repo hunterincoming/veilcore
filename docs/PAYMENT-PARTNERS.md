@@ -25,8 +25,9 @@ party to the deal. The payment is yours, under your licences and your compliance
 **What you do.**
 
 1. Register your signing key with VeilCore's registry as a payment partner (once).
-2. Ask us to check your name (once a year). The registry takes receipts only from partners
-   whose name we have checked: anyone can register a key under any name.
+2. Ask us to check your name (once a year). We then add your key to the list built into the
+   VeilCore website itself. Pages show your receipts as checked only when your key is on that
+   list: anyone can register a key at the registry under any name.
 3. For each payment: check the request, pay, sign a receipt, file it.
 
 ---
@@ -40,7 +41,8 @@ your identity at the registry. Register it once with `POST /attesters`, `role` s
 `payment-partner` and `displayName` set to your company's name, signed by the key itself
 (`registrationPayload` in the registry's `lineage/attesters.mjs`). Write to
 hunter@veilcore.org to have the name checked; we check it against a public listing and your
-email domain.
+email domain, take your public key from you directly, and add it to
+`bboard-ui/src/veilcore/payment-partners.ts` in a reviewed change.
 
 ### The payment request
 

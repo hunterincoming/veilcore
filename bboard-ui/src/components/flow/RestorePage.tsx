@@ -18,6 +18,8 @@ import { rich, useT } from '../../i18n/app';
 import { enT, type Translator } from '../../i18n/translate';
 import { backupMessageWords } from './backup-words';
 import { SupportDetails } from '../SupportDetails';
+import { PasskeyRestore } from './PasskeyCopy';
+import { adoptRestoredCopy } from '../../veilcore/passkey-backup';
 
 /** "2 lab deliveries and 1 lab code": what else the file brought back, or '' for nothing. */
 export const labWork = (r: RestoreResult, tr: Translator = enT): string => {
@@ -60,12 +62,18 @@ export const RestorePage: React.FC = () => {
 
   // A locked backup (a password on the file) waits here for its password; nothing changes until it opens.
   const [waiting, setWaiting] = useState<File>();
-  const restore = async (f: File, password?: string) => {
+  // When the backup came from the passkey copy: the date it was saved, said on the result.
+  const [fromPasskey, setFromPasskey] = useState<string>();
+  const restore = async (f: File, password?: string, passkeySavedAt?: string) => {
     setBusy(true);
     setProblem(undefined);
     try {
       const r = await restoreAny(f, password);
       setWaiting(undefined);
+      if (passkeySavedAt) {
+        adoptRestoredCopy(passkeySavedAt);
+        setFromPasskey(passkeySavedAt);
+      }
       await hydrate();
       setDone(r);
     } catch (e) {
@@ -113,6 +121,11 @@ export const RestorePage: React.FC = () => {
                 {labWork(done, tr) ? t('app.backup.workRestored', { work: labWork(done, tr) }) : ''}
                 {t('app.backup.worksLikeBefore')}
               </Typography>
+              {fromPasskey && (
+                <Typography variant="body2" color="text.secondary" data-from-passkey="">
+                  {t('app.backup.passkey.from', { date: new Date(fromPasskey).toLocaleDateString() })}
+                </Typography>
+              )}
               {/* Records the file had no key for (an older file, or only the holder key) stay locked. */}
               {locked.length > 0 && (
                 <Alert severity="warning" variant="outlined" data-still-locked="">
@@ -149,6 +162,11 @@ export const RestorePage: React.FC = () => {
                   e.target.value = '';
                   if (f) void restore(f);
                 }}
+              />
+              <PasskeyRestore
+                busy={busy}
+                onFile={(file, savedAt) => void restore(file, undefined, savedAt)}
+                onProblem={setProblem}
               />
               {waiting && <BackupPasswordAsk busy={busy} onOpen={(password) => void restore(waiting, password)} />}
               {problem && (

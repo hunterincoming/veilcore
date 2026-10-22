@@ -28,6 +28,7 @@ import { useRecords } from '../../veilcore/records';
 import { backupHoldsLine } from '../stage/record-kinds';
 import { rich, useT } from '../../i18n/app';
 import { backupMessageWords } from './backup-words';
+import { PasskeyCopyMaker } from './PasskeyCopy';
 
 const Done: React.FC<{ text: string; sub?: string }> = ({ text, sub }) => (
   <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
@@ -335,6 +336,7 @@ export const BackupStep: React.FC<{
             </Button>
           </Stack>
         )}
+        <PasskeyCopyMaker />
       </Part>
 
       <Part n={3} level={partLevel} title={t('app.backup.checkTitle')} active={!!saved && checked === undefined}>

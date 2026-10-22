@@ -102,4 +102,30 @@ export const backup = {
     'A esa copia de seguridad le falta lo último de {count} de sus registros. Guarde una nueva y compruébela.',
   'app.backup.err.missingLatest.other':
     'A esa copia de seguridad le falta lo último de {count} de sus registros. Guarde una nueva y compruébela.',
+  // The passkey copy (veilcore/passkey-backup.ts, flow/PasskeyCopy.tsx).
+  'app.backup.passkey.title': 'Guarde también una copia que se abre con una llave de acceso',
+  'app.backup.passkey.why':
+    'Si pierde este teléfono, su llave de acceso lo recupera todo: se sincroniza con su teléfono nuevo a través de su cuenta de Apple o Google. La copia está cerrada con una clave que solo su llave de acceso puede crear. VeilCore no puede abrirla.',
+  'app.backup.passkey.keepFile':
+    'Guarde también el archivo. Si borra la llave de acceso, borra la única clave de esta copia.',
+  'app.backup.passkey.make': 'Crear una copia con llave de acceso',
+  'app.backup.passkey.current': 'Copia con llave de acceso al día, guardada el {date}',
+  'app.backup.passkey.behind': 'Su copia con llave de acceso es del {date} y le faltan cambios más recientes.',
+  'app.backup.passkey.update': 'Actualizar la copia con llave de acceso',
+  'app.backup.passkey.remove': 'Borrar la copia con llave de acceso',
+  'app.backup.passkey.removed':
+    'Copia borrada. Para borrar la llave de acceso en sí, use los ajustes de contraseñas de su teléfono.',
+  'app.backup.passkey.restore': 'Usar mi llave de acceso',
+  'app.backup.passkey.restoreHint':
+    '¿Ya creó una copia con llave de acceso? Use su llave de acceso en lugar de un archivo.',
+  'app.backup.passkey.from': 'De su copia con llave de acceso guardada el {date}.',
+  'app.backup.passkey.err.unsupported':
+    'Este teléfono o navegador no puede crear una llave de acceso que abra una copia de seguridad. Use el archivo de copia de seguridad, o pruebe Safari en un iPhone (iOS 18.4 o posterior) o Chrome.',
+  'app.backup.passkey.err.cancelled': 'Cancelado. No se cambió nada.',
+  'app.backup.passkey.err.noCopy':
+    'No se encontró ninguna copia para esa llave de acceso. Abra su archivo de copia de seguridad.',
+  'app.backup.passkey.err.unreachable':
+    'No se pudo conectar con el registro de VeilCore. Revise su conexión e inténtelo de nuevo.',
+  'app.backup.passkey.err.damaged':
+    'Esa copia no se abrió. Puede que la hayan cambiado. Abra su archivo de copia de seguridad.',
 } satisfies Partial<AppTranslation>;

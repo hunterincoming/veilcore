@@ -91,4 +91,29 @@ export const backup = {
   'app.backup.err.differentLab': 'このブラウザにはすでに別のラボの署名があります。何も変更していません。',
   'app.backup.err.missingLatest.other':
     'そのバックアップには、記録{count}件の最新の状態が入っていません。新しく保存して、それを確認してください。',
+  // The passkey copy (veilcore/passkey-backup.ts, flow/PasskeyCopy.tsx).
+  'app.backup.passkey.title': 'パスキーで開けるコピーも置いておく',
+  'app.backup.passkey.why':
+    'この電話をなくしても、パスキーですべて取り戻せます。パスキーはAppleまたはGoogleのアカウントを通じて新しい電話に同期されます。コピーは、あなたのパスキーだけが作れる鍵でロックされています。VeilCoreには開けません。',
+  'app.backup.passkey.keepFile':
+    'ファイルも残しておいてください。パスキーを削除すると、このコピーの唯一の鍵も消えます。',
+  'app.backup.passkey.make': 'パスキーのコピーを作る',
+  'app.backup.passkey.current': 'パスキーのコピーは最新です（{date}に保存）',
+  'app.backup.passkey.behind': 'パスキーのコピーは{date}のもので、その後の変更が入っていません。',
+  'app.backup.passkey.update': 'パスキーのコピーを更新する',
+  'app.backup.passkey.remove': 'パスキーのコピーを削除する',
+  'app.backup.passkey.removed':
+    'パスキーのコピーを削除しました。パスキー自体は、電話のパスワード設定から削除してください。',
+  'app.backup.passkey.restore': 'パスキーを使う',
+  'app.backup.passkey.restoreHint': '前にパスキーのコピーを作りましたか？ファイルの代わりにパスキーを使えます。',
+  'app.backup.passkey.from': '{date}に保存したパスキーのコピーからです。',
+  'app.backup.passkey.err.unsupported':
+    'この電話またはブラウザでは、バックアップを開けるパスキーを作れません。バックアップファイルを使うか、iPhone（iOS 18.4以降）のSafariかChromeでお試しください。',
+  'app.backup.passkey.err.cancelled': 'キャンセルしました。何も変更していません。',
+  'app.backup.passkey.err.noCopy':
+    'そのパスキーのコピーは見つかりませんでした。代わりにバックアップファイルを開いてください。',
+  'app.backup.passkey.err.unreachable':
+    'VeilCoreのレジストリに接続できませんでした。接続を確認して、もう一度お試しください。',
+  'app.backup.passkey.err.damaged':
+    'そのコピーは開けませんでした。変更された可能性があります。代わりにバックアップファイルを開いてください。',
 } satisfies Partial<AppTranslation>;

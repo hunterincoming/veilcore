@@ -48,7 +48,7 @@ const ALL = [
   'dating-first-v1',
 ];
 /** What agreements on chain use: required for a test site, and for mainnet once agreements are live. */
-const AGREEMENTS = ['license-invites-v1', 'deals-v1', 'payment-receipts-v1'];
+const AGREEMENTS = ['license-invites-v1', 'deals-v1', 'payment-receipts-v1', 'passkey-vault-v1'];
 const DEPLOY_FIRST = /Deploy the registry first: put the registry's latest code live on Railway/;
 
 const healthOf = (o: { health?: unknown; noAgreements?: boolean }): unknown => {

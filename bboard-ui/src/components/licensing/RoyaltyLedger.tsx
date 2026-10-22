@@ -414,7 +414,7 @@ const StatementLine: React.FC<{
           variant="outlined"
         >
           Paid through {c.partnerName ?? 'a payment partner'}
-          {c.nameChecked ? ' (name checked by VeilCore)' : ' (name not checked by VeilCore)'}: {c.receipt.amount}{' '}
+          {c.nameChecked ? ' (a partner VeilCore checked)' : ' (not a partner VeilCore has checked)'}: {c.receipt.amount}{' '}
           {c.receipt.currency} to {c.receipt.payTo} on {new Date(c.receipt.paidAt).toLocaleDateString()}, reference{' '}
           {c.receipt.reference}. Signed by the partner and checked here.
           {!c.nameChecked &&

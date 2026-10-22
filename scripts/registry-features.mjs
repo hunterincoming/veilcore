@@ -60,6 +60,8 @@ export const AGREEMENT_FEATURES = Object.freeze({
   "license-invites-v1": "making a license between two people",
   "deals-v1": "the private channel for terms and royalties",
   "payment-receipts-v1": "receipts from payment partners",
+  // Ships with agreements (config/copy.ts PASSKEY_BACKUP): the lost-phone way back.
+  "passkey-vault-v1": "the backup copy that opens with a passkey",
 });
 
 /** Whether the site's source has agreements switched on for mainnet (config/copy.ts). */

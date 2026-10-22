@@ -106,4 +106,31 @@ export const backup = {
     'Il manque à cette copie de secours l’état le plus récent de {count} de vos enregistrements. Enregistrez-en une nouvelle et vérifiez-la.',
   'app.backup.err.missingLatest.other':
     'Il manque à cette copie de secours l’état le plus récent de {count} de vos enregistrements. Enregistrez-en une nouvelle et vérifiez-la.',
+  // The passkey copy (veilcore/passkey-backup.ts, flow/PasskeyCopy.tsx).
+  'app.backup.passkey.title': 'Gardez aussi une copie qui s’ouvre avec une clé d’accès',
+  'app.backup.passkey.why':
+    'Si vous perdez ce téléphone, votre clé d’accès récupère tout : elle se synchronise avec votre nouveau téléphone via votre compte Apple ou Google. La copie est verrouillée par une clé que seule votre clé d’accès peut produire. VeilCore ne peut pas l’ouvrir.',
+  'app.backup.passkey.keepFile':
+    'Gardez aussi le fichier. Supprimer la clé d’accès supprime la seule clé de cette copie.',
+  'app.backup.passkey.make': 'Créer une copie avec clé d’accès',
+  'app.backup.passkey.current': 'Copie avec clé d’accès à jour, enregistrée le {date}',
+  'app.backup.passkey.behind':
+    'Votre copie avec clé d’accès date du {date} et il lui manque des changements plus récents.',
+  'app.backup.passkey.update': 'Mettre à jour la copie avec clé d’accès',
+  'app.backup.passkey.remove': 'Supprimer la copie avec clé d’accès',
+  'app.backup.passkey.removed':
+    'Copie supprimée. Pour supprimer la clé d’accès elle-même, passez par les réglages des mots de passe de votre téléphone.',
+  'app.backup.passkey.restore': 'Utiliser ma clé d’accès',
+  'app.backup.passkey.restoreHint':
+    'Vous avez déjà créé une copie avec clé d’accès ? Utilisez votre clé d’accès au lieu d’un fichier.',
+  'app.backup.passkey.from': 'Depuis votre copie avec clé d’accès enregistrée le {date}.',
+  'app.backup.passkey.err.unsupported':
+    'Ce téléphone ou ce navigateur ne peut pas créer de clé d’accès qui ouvre une copie de secours. Utilisez le fichier de secours, ou essayez Safari sur un iPhone (iOS 18.4 ou plus récent) ou Chrome.',
+  'app.backup.passkey.err.cancelled': 'Annulé. Rien n’a été modifié.',
+  'app.backup.passkey.err.noCopy':
+    'Aucune copie trouvée pour cette clé d’accès. Ouvrez plutôt votre fichier de secours.',
+  'app.backup.passkey.err.unreachable':
+    'Impossible de joindre le registre VeilCore. Vérifiez votre connexion et réessayez.',
+  'app.backup.passkey.err.damaged':
+    'Cette copie ne s’est pas ouverte. Elle a peut-être été modifiée. Ouvrez plutôt votre fichier de secours.',
 } satisfies Partial<AppTranslation>;

@@ -79,9 +79,9 @@ holds or moves anyone's money.
 - **The registry can withhold a message.** It can't read, forge, alter or reorder one, but it
   can hold back the newest (a changed payout account, say). A changed account shows beside
   the old one; the payer is told to check before paying.
-- **A partner's name comes from the registry.** Receipts are kept only from partners whose
-  name VeilCore checked, and pages check each receipt's signature; which keys are partners
-  is not yet fixed in the website itself.
+- ~~A partner's name comes from the registry.~~ Closed: which keys are trusted partners is
+  fixed in the website's own source (`veilcore/payment-partners.ts`), changed only by a
+  reviewed commit. The registry's list is shown as unchecked.
 - **Invites cost nothing to make.** Anyone can make invites and open channels for them, within
   per-client daily limits; empty channels are deleted after a week. There is no total cap,
   which would let an attacker stop every honest license.

@@ -99,4 +99,25 @@ export const backup = {
     'That backup is missing the latest for {count} of your records. Save a new one and check that.',
   'app.backup.err.missingLatest.other':
     'That backup is missing the latest for {count} of your records. Save a new one and check that.',
+  // The passkey copy (veilcore/passkey-backup.ts, flow/PasskeyCopy.tsx).
+  'app.backup.passkey.title': 'Also keep a copy that opens with a passkey',
+  'app.backup.passkey.why':
+    "If you lose this phone, your passkey gets everything back: it syncs to your new phone through your Apple or Google account. The copy is locked with a key only your passkey can make. VeilCore can't open it.",
+  'app.backup.passkey.keepFile': 'Keep the file too. Deleting the passkey deletes the only key to this copy.',
+  'app.backup.passkey.make': 'Make a passkey copy',
+  'app.backup.passkey.current': 'Passkey copy up to date, saved {date}',
+  'app.backup.passkey.behind': 'Your passkey copy is from {date} and is missing newer changes.',
+  'app.backup.passkey.update': 'Update passkey copy',
+  'app.backup.passkey.remove': 'Delete passkey copy',
+  'app.backup.passkey.removed':
+    'Passkey copy deleted. To delete the passkey itself, use your phone’s password settings.',
+  'app.backup.passkey.restore': 'Use my passkey',
+  'app.backup.passkey.restoreHint': 'Made a passkey copy before? Use your passkey instead of a file.',
+  'app.backup.passkey.from': 'From your passkey copy saved {date}.',
+  'app.backup.passkey.err.unsupported':
+    "This phone or browser can't make a passkey that opens a backup. Use the backup file, or try Safari on an iPhone (iOS 18.4 or newer) or Chrome.",
+  'app.backup.passkey.err.cancelled': 'Cancelled. Nothing was changed.',
+  'app.backup.passkey.err.noCopy': 'No backup copy was found for that passkey. Open your backup file instead.',
+  'app.backup.passkey.err.unreachable': 'Could not reach the VeilCore registry. Check your connection and try again.',
+  'app.backup.passkey.err.damaged': "That copy didn't open. It may have been changed. Open your backup file instead.",
 };
