@@ -40,6 +40,7 @@ import { linkCard } from '../a11y';
 import { INK_COLOR, GROUND, POLLEN, WASH } from '../../config/theme';
 import { useT, useRecordT, rich } from '../../i18n/app';
 import { isAnimal, recordTitle } from '../../veilcore/animal-profile';
+import { isStrain } from '../../veilcore/strain-profile';
 import { SECTIONS, focusScreenHeading } from './FlowFrame';
 import { PasteBox } from './PasteBox';
 import { labCardLine, useLabCardFacts, useWaitingByRecord } from './LabResults';
@@ -340,7 +341,7 @@ export const AppHome: React.FC = () => {
           <Typography variant="h4" component="h1">
             {labOnly
               ? t('app.home.samplesReceived')
-              : records.some((r) => isAnimal(r))
+              : records.some((r) => isAnimal(r) || isStrain(r))
                 ? t('app.animal.home.yourRecords')
                 : t('app.home.yourPlants')}
           </Typography>

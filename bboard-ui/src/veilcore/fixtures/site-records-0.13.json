@@ -68,9 +68,7 @@
       "parents": [],
       "breedingMethod": "",
       "refId": "ref/é",
-      "photoFingerprints": [
-        "2933538bedbf52389f8668ac4bdbeaec1305766fef9393e1fe4c5efe29eac4c1"
-      ],
+      "photoFingerprints": ["2933538bedbf52389f8668ac4bdbeaec1305766fef9393e1fe4c5efe29eac4c1"],
       "profile": "veilcore/profile/cannabis/v0.1",
       "taxon": "Cannabis sativa L. subsp. indica",
       "recordFingerprint": "44a6314c21e1ef5b13500401f0bf97d73d9b45962e2d7ac9b9ab802a965ac1d6"
@@ -113,9 +111,7 @@
         "descentSeverity": "cosmetic",
         "termsSeverity": "cosmetic",
         "effectiveAt": "2026-09-02T00:00:00.000Z",
-        "changedFields": [
-          "dateCreated"
-        ]
+        "changedFields": ["dateCreated"]
       }
     },
     {

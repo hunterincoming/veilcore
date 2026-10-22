@@ -10,7 +10,7 @@ import type { AnimalSex } from '../../veilcore/animal-profile';
 import type { AnimalSealInput } from '../../veilcore/seal-record';
 import type { ParentRef } from '../../veilcore/records';
 
-export type LogKind = 'plant' | 'animal';
+export type LogKind = 'plant' | 'animal' | 'strain';
 export const LOG_KIND_KEY = 'veilcore.log-kind.v1';
 
 /** A sire or dam as typed: a name and an ID, or a logged animal picked (recordId). */
@@ -159,7 +159,8 @@ export const parseAnimalDraft = (v: unknown): AnimalDraft | undefined => {
 /** Which form the first screen opens on: the last one chosen in this browser, else a plant. */
 export const loadLogKind = (): LogKind => {
   try {
-    return localStorage.getItem(LOG_KIND_KEY) === 'animal' ? 'animal' : 'plant';
+    const k = localStorage.getItem(LOG_KIND_KEY);
+    return k === 'animal' || k === 'strain' ? k : 'plant';
   } catch {
     return 'plant';
   }

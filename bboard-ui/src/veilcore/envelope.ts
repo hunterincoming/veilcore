@@ -93,7 +93,7 @@ export const toEnvelope = (r: StrainRecord, holderId: string, anchor?: Partial<A
   return {
     formatVersion: FORMAT_VERSION,
     recordId: r.id,
-    // A strain or line is `other` in SPEC 0.1's list; its profile says what it is (SPEC 11.9).
+    // A strain or line is `other` in the SPEC's subjectType list; its profile says what it is (SPEC 11.9).
     subjectType: animal ? 'animal-genetic-material' : strain ? 'other' : 'plant-genetic-material',
     profile: profileOf(r),
     commitment: r.recordFingerprint,

@@ -12,6 +12,7 @@ import { DateLabReport } from './DateLabReport';
 import { canAddNextStage, nextStagePath } from './stage-notes';
 import { useRecordT } from '../../i18n/app';
 import { isAnimal } from '../../veilcore/animal-profile';
+import { isStrain } from '../../veilcore/strain-profile';
 
 export const StageRows: React.FC<{
   record: StrainRecord;
@@ -24,7 +25,7 @@ export const StageRows: React.FC<{
   return (
     <>
       {/* An animal has no next stage: its offspring is an animal logged with it as sire or dam. */}
-      {canAddNextStage(record, labOnly) && !isAnimal(record) && (
+      {canAddNextStage(record, labOnly) && !isAnimal(record) && !isStrain(record) && (
         <ActionRow
           section="log"
           label={t('app.plant.action.nextStage')}

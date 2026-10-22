@@ -11,6 +11,7 @@ import type { SealInput } from '../../veilcore/seal-record';
 import { parseStageHeader, stageNotes } from '../stage/stage-notes';
 import { enT, type Translator } from '../../i18n/translate';
 import { animalDraftHasContent, parseAnimalDraft, type AnimalDraft, type LogKind } from './animal-draft';
+import { parseStrainDraft, strainDraftHasContent, type StrainDraft } from './strain-draft';
 
 export const DRAFT_KEY = 'veilcore.log-draft.v1';
 
@@ -39,6 +40,8 @@ export type Draft = {
   kind?: LogKind;
   /** What was typed on the animal form, kept apart from the plant's fields above. */
   animal?: AnimalDraft;
+  /** What was typed on the strain form (strain-draft.ts). */
+  strain?: StrainDraft;
 };
 
 /** Today on the person's own calendar, not UTC: at 9pm in New Jersey it is still today. */
@@ -63,6 +66,7 @@ export const emptyDraft = (): Draft => ({
 export const draftHasContent = (d: Draft): boolean =>
   Boolean(
     (d.animal && animalDraftHasContent(d.animal)) ||
+    (d.strain && strainDraftHasContent(d.strain)) ||
     d.strainName.trim() ||
     d.bredBy.trim() ||
     d.parents.length ||
@@ -84,7 +88,9 @@ export const draftHeading = (draft: Draft | undefined, tr: Translator = enT): st
   const name =
     draft.kind === 'animal' && draft.animal
       ? draft.animal.name.trim() || draft.animal.individualId.trim()
-      : draft.strainName.trim();
+      : draft.kind === 'strain' && draft.strain
+        ? draft.strain.name.trim() || draft.strain.designation.trim()
+        : draft.strainName.trim();
   return name ? tr.t('app.home.continueDraftNamed', { name }) : tr.t('app.home.continueDraft');
 };
 
@@ -120,8 +126,9 @@ export const parseDraft = (raw: string | null): Draft | undefined => {
       ...(typeof v.stageOf === 'string' && v.stageOf ? { stageOf: str(v.stageOf, 100) } : {}),
       ...(typeof v.stage === 'string' ? { stage: str(v.stage, 200) } : {}),
       ...(typeof v.selectedFor === 'string' ? { selectedFor: str(v.selectedFor, 500) } : {}),
-      ...(v.kind === 'animal' || v.kind === 'plant' ? { kind: v.kind } : {}),
+      ...(v.kind === 'animal' || v.kind === 'plant' || v.kind === 'strain' ? { kind: v.kind } : {}),
       ...(v.animal !== undefined && parseAnimalDraft(v.animal) ? { animal: parseAnimalDraft(v.animal) } : {}),
+      ...(v.strain !== undefined && parseStrainDraft(v.strain) ? { strain: parseStrainDraft(v.strain) } : {}),
     };
     return draftHasContent(d) ? d : undefined;
   } catch {
@@ -241,7 +248,11 @@ export const unsavedPlantLine = (d: Draft, tr: Translator = enT): string =>
     ? tr.t('app.animal.unsaved', {
         name: d.animal.name.trim() || d.animal.individualId.trim() || tr.t('app.log.noNameYet'),
       })
-    : tr.t('app.log.unsavedPlant', { name: d.strainName.trim() || tr.t('app.log.noNameYet') });
+    : d.kind === 'strain' && d.strain
+      ? tr.t('app.strain.unsaved', {
+          name: d.strain.name.trim() || d.strain.designation.trim() || tr.t('app.log.noNameYet'),
+        })
+      : tr.t('app.log.unsavedPlant', { name: d.strainName.trim() || tr.t('app.log.noNameYet') });
 
 // ---------------------------------------------------------------------------------------
 

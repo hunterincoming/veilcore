@@ -8,6 +8,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { AppTranslation } from '../../translate';
 import { animal } from './animal';
+import { strain } from './strain';
+import { strainForm } from './strain-form';
 import { backup } from './backup';
 import { chain } from './chain';
 import { common } from './common';
@@ -41,6 +43,8 @@ export const appFr: AppTranslation = {
   ...importing,
   ...partners,
   ...animal,
+  ...strain,
+  ...strainForm,
   ...sealed,
   ...dating,
 };

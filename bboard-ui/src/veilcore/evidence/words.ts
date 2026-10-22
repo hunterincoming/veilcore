@@ -124,20 +124,24 @@ export const wrap = (text: string, width = 78): string =>
 
 /**
  * What the sealed fields describe: 'animal' for a record sealed under the animal profile
- * (veilcore/animal-profile.ts), else 'plant'. The bundle's files say "this animal" where a
- * plant's say "this plant"; nothing else about them changes.
+ * (veilcore/animal-profile.ts), 'strain' under the strain profile (strain-profile.ts), else
+ * 'plant'. The bundle's files say "this animal" or "this strain" where a plant's say "this
+ * plant"; nothing else about them changes.
  */
-export const subjectOf = (fields: unknown): 'plant' | 'animal' =>
-  typeof fields === 'object' &&
-  fields !== null &&
-  (fields as Record<string, unknown>).profile === 'veilcore/profile/animal-individual/v1'
+export const subjectOf = (fields: unknown): 'plant' | 'animal' | 'strain' => {
+  const profile =
+    typeof fields === 'object' && fields !== null ? (fields as Record<string, unknown>).profile : undefined;
+  return profile === 'veilcore/profile/animal-individual/v1'
     ? 'animal'
-    : 'plant';
+    : profile === 'veilcore/profile/strain/v1'
+      ? 'strain'
+      : 'plant';
+};
 
 /** The record's name as sealed: a plant's name, or an animal's name or individual ID; else ''. */
 export const sealedNameOf = (fields: unknown): string => {
   if (typeof fields !== 'object' || fields === null) return '';
   const f = fields as Record<string, unknown>;
-  for (const k of ['strainName', 'name', 'individualId']) if (isString(f[k]) && f[k]) return f[k];
+  for (const k of ['strainName', 'name', 'individualId', 'designation']) if (isString(f[k]) && f[k]) return f[k];
   return '';
 };

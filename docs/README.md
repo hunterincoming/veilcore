@@ -11,6 +11,7 @@ Start with [design.md](design.md). The record format itself is specified in
 | [claims-design.md](claims-design.md) | The claims contract: proving one fact about a sealed record |
 | [identity-in-record.md](identity-in-record.md) | A record that names its own key |
 | [animal-profile.md](animal-profile.md) | Animal records |
+| [strain-profile.md](strain-profile.md) | Strain and line records: microbes, cell lines, insect lines (draft, test networks) |
 | [simple-flow.md](simple-flow.md) | The order of steps in the web app, and why |
 | [corrections.md](corrections.md) | Correcting a record without losing the original |
 | [check-on-chain.md](check-on-chain.md) | How the check page looks a date up on Midnight |

@@ -48,7 +48,7 @@ import {
   useRecords,
   type ParentRef,
 } from '../../veilcore/records';
-import { sealAnimalRecord, sealRecord } from '../../veilcore/seal-record';
+import { sealAnimalRecord, sealRecord, sealStrainRecord } from '../../veilcore/seal-record';
 import { localStamp } from '../../veilcore/time';
 import { forgetKeys, keysFor, storageKeeps, useRecordKeys } from '../../veilcore/record-keys';
 import { REAL_CHAIN, chainNotReady } from '../../veilcore/chain/config';
@@ -63,8 +63,10 @@ import { allowRecord, loadIntake } from '../../veilcore/intake';
 import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled, visuallyHidden } from './FlowFrame';
 import { useT, useRecordT, rich, type Translator } from '../../i18n/app';
 import { forKind } from '../../i18n/translate';
-import { ANIMAL_RECORDS_ENABLED } from '../../config/network';
+import { ANIMAL_RECORDS_ENABLED, STRAIN_RECORDS_ENABLED } from '../../config/network';
 import { AnimalForm, AnimalReviewLines, KindChoice } from './AnimalForm';
+import { StrainForm, StrainReviewLines } from './StrainForm';
+import { emptyStrainDraft, strainSealInputOf } from './strain-draft';
 import { animalSealInputOf, emptyAnimalDraft, loadLogKind, saveLogKind, type LogKind } from './animal-draft';
 import { BREEDING_METHODS, breedingMethodWords } from './breeding-methods';
 import { progressWords } from '../chain/progress-words';
@@ -82,7 +84,7 @@ import {
   stampProblem,
   unsavedPlantLine,
 } from './log-flow-state';
-import { animalParentOptionsOf, parentOptionsOf } from '../stage/record-kinds';
+import { animalParentOptionsOf, parentOptionsOf, strainParentOptionsOf } from '../stage/record-kinds';
 // SEAL_EACH_STAGE, STAGE_PROMPT and SELECTED_PROMPT (stage-notes.ts) are shown here in the
 // visitor's language: app.log.sealEachStage, app.log.stagePrompt, app.log.selectedPrompt.
 
@@ -160,14 +162,24 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
   // "A plant" or "An animal" (animal-draft.ts): the draft's own choice, else the last one made
   // in this browser. A next stage of a plant is a plant; on a build without animal records
   // (mainnet, config/network.ts) there is no choice.
-  const offerKinds = ANIMAL_RECORDS_ENABLED && !nextOf;
+  const offerKinds = (ANIMAL_RECORDS_ENABLED || STRAIN_RECORDS_ENABLED) && !nextOf;
   const [lastKind] = useState<LogKind>(loadLogKind);
-  const kind: LogKind = offerKinds ? (draft.kind ?? lastKind) : 'plant';
+  const offered = (k: LogKind | undefined): k is LogKind =>
+    k === 'plant' || (k === 'animal' && ANIMAL_RECORDS_ENABLED) || (k === 'strain' && STRAIN_RECORDS_ENABLED);
+  const wanted = draft.kind ?? lastKind;
+  const kind: LogKind = offerKinds && offered(wanted) ? wanted : 'plant';
   const setKind = (k: LogKind) => {
     saveLogKind(k);
-    setDraft({ ...draft, kind: k, ...(k === 'animal' && !draft.animal ? { animal: emptyAnimalDraft() } : {}) });
+    setDraft({
+      ...draft,
+      kind: k,
+      ...(k === 'animal' && !draft.animal ? { animal: emptyAnimalDraft() } : {}),
+      ...(k === 'strain' && !draft.strain ? { strain: emptyStrainDraft() } : {}),
+    });
   };
-  const choice = offerKinds ? <KindChoice kind={kind} onKind={setKind} /> : undefined;
+  const choice = offerKinds ? (
+    <KindChoice kind={kind} onKind={setKind} animals={ANIMAL_RECORDS_ENABLED} strains={STRAIN_RECORDS_ENABLED} />
+  ) : undefined;
 
   // A new screen starts at the top, focus on its heading. The first one is the page's own
   // (App.tsx does that on arrival).
@@ -195,6 +207,19 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
                 setStart({ kind: 'ready', draft: start.draft, resumed: false });
               }}
               onContinue={() => void navigate('/new')}
+            />
+          );
+        if (kind === 'strain')
+          return (
+            <StrainForm
+              step={step}
+              choice={choice}
+              draft={draft.strain ?? emptyStrainDraft()}
+              setDraft={(s) => setDraft({ ...draft, kind: 'strain', strain: s })}
+              restored={start.resumed && draftHasContent(draft)}
+              onStartOver={() => setDraft({ ...emptyDraft(), kind: 'strain', strain: emptyStrainDraft() })}
+              parentOptions={strainParentOptionsOf(records)}
+              onNext={() => setScreen('review')}
             />
           );
         if (kind === 'animal')
@@ -342,6 +367,12 @@ const UnsavedPlantChoice: React.FC<{
   );
 };
 
+/** What was typed for the other kinds of record: kept when the plant's own form starts over. */
+const otherKindsOf = (d: Draft): Partial<Draft> => ({
+  ...(d.animal ? { animal: d.animal } : {}),
+  ...(d.strain ? { strain: d.strain } : {}),
+});
+
 const PlantForm: React.FC<{
   step: string;
   /** "A plant" / "An animal", when this build offers both. */
@@ -414,7 +445,7 @@ const PlantForm: React.FC<{
             variant="text"
             size="small"
             onClick={() => {
-              setDraft({ ...startOver(), ...(draft.animal ? { animal: draft.animal } : {}) });
+              setDraft({ ...startOver(), ...otherKindsOf(draft) });
               // The button goes away with the kept draft: focus the screen's heading (round 6).
               focusScreenHeading();
             }}
@@ -628,7 +659,8 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const animal = draft.kind === 'animal' && draft.animal ? draft.animal : undefined;
-  const tr = forKind(useT(), animal ? 'animal' : 'plant');
+  const strain = draft.kind === 'strain' && draft.strain ? draft.strain : undefined;
+  const tr = forKind(useT(), animal ? 'animal' : strain ? 'strain' : 'plant');
   const { t, tp } = tr;
 
   const seal = async () => {
@@ -640,7 +672,11 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
     try {
       // One sealing for every new record (seal-record.ts): the record names its key and the
       // fingerprint covers that, and the nonce is stored so anyone can recompute it.
-      const sealed = animal ? await sealAnimalRecord(animalSealInputOf(animal)) : await sealRecord(sealInputOf(draft));
+      const sealed = animal
+        ? await sealAnimalRecord(animalSealInputOf(animal))
+        : strain
+          ? await sealStrainRecord(strainSealInputOf(strain))
+          : await sealRecord(sealInputOf(draft));
       id = sealed.id;
       // Too large to save (CONTRACT.md #21): said here, with everything typed still in the form.
       if (tooLargeToSave(sealed)) {
@@ -683,6 +719,8 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
       </Box>
       {animal ? (
         <AnimalReviewLines draft={animal} onChange={onChange} />
+      ) : strain ? (
+        <StrainReviewLines draft={strain} onChange={onChange} />
       ) : (
         <Box>
           <Line k={t('app.log.k.plant')} v={draft.strainName} onChange={onChange} action={change} />

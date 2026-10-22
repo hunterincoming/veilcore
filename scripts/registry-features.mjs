@@ -62,6 +62,10 @@ export const AGREEMENT_FEATURES = Object.freeze({
   "payment-receipts-v1": "receipts from payment partners",
   // Ships with agreements (config/copy.ts PASSKEY_BACKUP): the lost-phone way back.
   "passkey-vault-v1": "the backup copy that opens with a passkey",
+  // Test networks log strains and lines (config/network.ts STRAIN_RECORDS_ENABLED); the
+  // registry must accept and describe them. Harmless to require later on mainnet: the same
+  // registry code ships it.
+  "strain-profile-v1": "strain and line records",
 });
 
 /** Whether the site's source has agreements switched on for mainnet (config/copy.ts). */

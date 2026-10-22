@@ -256,7 +256,22 @@ type VerifyResult = {
   /** An animal's individual ID and its scheme, under the individual-id grant. */
   individualId?: string;
   idScheme?: string;
+  /** A strain's parent strains, under the parent-names grant: name and deposit number. */
+  parentStrains?: unknown[];
 };
+
+/** A strain's parent strains as the registry sends them, keeping only well-formed ones (at most two). */
+const parentStrainsOf = (v: unknown[] | undefined): { name: string; deposit: string }[] =>
+  (v ?? [])
+    .filter(
+      (p): p is { name: string; deposit: string } =>
+        typeof p === 'object' &&
+        p !== null &&
+        typeof (p as Record<string, unknown>).name === 'string' &&
+        typeof (p as Record<string, unknown>).deposit === 'string',
+    )
+    .slice(0, 2)
+    .map((p) => ({ name: p.name, deposit: p.deposit }));
 
 /** A sire or dam as the registry sends it: a name and an individual ID, both text. */
 const isParentLine = (x: unknown): boolean =>
@@ -302,6 +317,7 @@ const isVerifyResult = (v: unknown): v is VerifyResult => {
     (r.sealedAt === undefined || typeof r.sealedAt === 'number' || typeof r.sealedAt === 'string') &&
     (r.disclosed === undefined || Array.isArray(r.disclosed)) &&
     (r.parents === undefined || Array.isArray(r.parents)) &&
+    (r.parentStrains === undefined || Array.isArray(r.parentStrains)) &&
     (r.unavailable === undefined || Array.isArray(r.unavailable)) &&
     (r.notGranted === undefined || Array.isArray(r.notGranted)) &&
     (r.staleGrant === undefined || Array.isArray(r.staleGrant)) &&
@@ -931,7 +947,9 @@ export const VerifyPage: React.FC = () => {
                         ...(result.individualId !== undefined ? { individualId: result.individualId } : {}),
                         ...(result.idScheme !== undefined ? { idScheme: result.idScheme } : {}),
                       }
-                    : {}),
+                    : result.subjectKind === 'strain'
+                      ? { subjectKind: 'strain', parentStrains: parentStrainsOf(result.parentStrains) }
+                      : {}),
                   labReport,
                 }}
               />

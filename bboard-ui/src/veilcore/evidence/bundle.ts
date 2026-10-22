@@ -52,6 +52,7 @@ import {
 } from './words';
 import { enT, forKind } from '../../i18n/translate';
 import { isAnimal } from '../animal-profile';
+import { isStrain } from '../strain-profile';
 import { dnaTieMeaning, dnaTieSentence, isTied, type DnaTie } from '../dna-tie';
 
 export { anchorLookup, bitcoinSteps, midnightSteps } from './words';
@@ -569,7 +570,7 @@ export const buildEvidence = async (
       const matches = fileSha256 ? sha === fileSha256 : pairingFingerprintOfSha(sha) === record.dnaFingerprint;
       if (!matches) {
         throw new BundleRefusal(
-          `${options.labFile.name || 'That file'} isn’t the lab report saved to this ${isAnimal(record) ? 'animal' : 'plant'}, so it wasn’t included. Nothing was downloaded.`,
+          `${options.labFile.name || 'That file'} isn’t the lab report saved to this ${isAnimal(record) ? 'animal' : isStrain(record) ? 'strain' : 'plant'}, so it wasn’t included. Nothing was downloaded.`,
         );
       }
       fileSha256 = sha;
@@ -589,7 +590,7 @@ export const buildEvidence = async (
     };
   } else if (options.labFile) {
     throw new BundleRefusal(
-      `No lab report is saved to this ${isAnimal(record) ? 'animal' : 'plant'}, so there is nothing to include.`,
+      `No lab report is saved to this ${isAnimal(record) ? 'animal' : isStrain(record) ? 'strain' : 'plant'}, so there is nothing to include.`,
     );
   }
 
@@ -666,7 +667,7 @@ export const signatureLines = async (
   fingerprint: string,
   savedFileSha?: string,
   /** What the record describes: "the lab report saved to this plant" or "… this animal". */
-  subject: 'plant' | 'animal' = 'plant',
+  subject: 'plant' | 'animal' | 'strain' = 'plant',
   /** The lab report salt (round 6, lab-doc.ts): a bound lab report signature is matched with it. */
   labSalt?: string,
 ): Promise<SignatureLine[]> => {
@@ -955,7 +956,7 @@ export const readmeText = (
     );
   }
   L.push('');
-  L.push(subject === 'animal' ? 'TIED TO THE ANIMAL' : 'TIED TO THE PLANT');
+  L.push(`TIED TO THE ${subject.toUpperCase()}`);
   L.push(...tiedToPlantLines(ev, sigs, dnaReportDatedBy));
   L.push('');
   L.push('HOW TO CHECK IT (nothing from VeilCore needed)');

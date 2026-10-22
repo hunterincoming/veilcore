@@ -19,6 +19,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /** The profile an animal record is sealed under. */
+import { isStrain } from './strain-profile';
 export const ANIMAL_PROFILE = 'veilcore/profile/animal-individual/v1';
 
 export type AnimalSex = 'female' | 'male' | 'unknown';
@@ -289,4 +290,4 @@ export const recordTitle = (r: {
   readonly refId?: string;
   readonly profile?: string;
   readonly id: string;
-}): string => r.strainName?.trim() || (isAnimal(r) && r.refId?.trim()) || r.id;
+}): string => r.strainName?.trim() || ((isAnimal(r) || isStrain(r)) && r.refId?.trim()) || r.id;

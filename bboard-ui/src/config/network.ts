@@ -145,3 +145,10 @@ export const LAB_RESULTS_ENABLED: boolean = labResultsEnabledFor(NETWORK);
 const ANIMAL_RECORDS_OFF: readonly string[] = [];
 export const animalRecordsEnabledFor = (n: string): boolean => !ANIMAL_RECORDS_OFF.includes(n);
 export const ANIMAL_RECORDS_ENABLED: boolean = animalRecordsEnabledFor(NETWORK);
+
+/**
+ * Strain and line records (veilcore/strain-profile.ts, docs/strain-profile.md): microbial
+ * strains, cell lines, insect lines. The profile is a draft, so test networks only, as animal
+ * records were before their v1 was final. Existing strain records show as strains everywhere.
+ */
+export const STRAIN_RECORDS_ENABLED: boolean = NETWORK !== 'mainnet';

@@ -80,23 +80,28 @@ export const makeTranslator = (lang: Lang, dict: AppDict): Translator => {
  * picks one wherever it exists, so a screen says "Tied to the animal" by asking for
  * `app.plant.tie.tied`, as it always did. A key with no animal version reads as before.
  */
-export type RecordKind = 'plant' | 'animal';
+export type RecordKind = 'plant' | 'animal' | 'strain';
 
 const ANIMAL_PREFIX = 'app.animal.v.';
+/** A strain or line record's sentences (app/<lang>/strain.ts): the plant's, with a strain noun. */
+const STRAIN_PREFIX = 'app.strain.v.';
 const kinded = new WeakMap<Translator, Translator>();
+const kindedStrain = new WeakMap<Translator, Translator>();
 
 /** The translator for a record of this kind: the same one for a plant. */
 export const forKind = (tr: Translator, kind: RecordKind): Translator => {
-  if (kind !== 'animal') return tr;
-  const have = kinded.get(tr);
+  if (kind === 'plant') return tr;
+  const cache = kind === 'animal' ? kinded : kindedStrain;
+  const have = cache.get(tr);
   if (have) return have;
-  const pick = (key: string, probe = key) => (tr.has(ANIMAL_PREFIX + probe) ? ANIMAL_PREFIX + key : key);
+  const prefix = kind === 'animal' ? ANIMAL_PREFIX : STRAIN_PREFIX;
+  const pick = (key: string, probe = key) => (tr.has(prefix + probe) ? prefix + key : key);
   const made: Translator = {
     ...tr,
     t: (key, vars) => tr.t(pick(key) as AppKey, vars),
     tp: (key, n, vars) => tr.tp(pick(key, `${key}.other`) as PluralKey, n, vars),
   };
-  kinded.set(tr, made);
+  cache.set(tr, made);
   return made;
 };
 

@@ -29,6 +29,8 @@ import { dnaTieMeaning, dnaTieOf, dnaTieSentence, isTied, type DnaTie } from '..
 import { useT, type Translator } from '../../i18n/app';
 import { forKind } from '../../i18n/translate';
 import { damOf, isAnimal, sireOf } from '../../veilcore/animal-profile';
+import { isStrain } from '../../veilcore/strain-profile';
+import { strainParentWords } from '../flow/StrainForm';
 import { parentWords } from '../flow/AnimalForm';
 import type { AppKey } from '../../i18n/app/en';
 import { networkWords } from '../../i18n/network-words';
@@ -136,6 +138,8 @@ export type SharedFactsData = {
   /** An animal's individual ID and its scheme, under the individual-id grant. */
   individualId?: string;
   idScheme?: string;
+  /** A strain's parent strains, under the parent-names grant: name and deposit number. */
+  parentStrains?: { name: string; deposit: string }[];
   /** The record's name, when the holder published it with the `name` grant (round 5). */
   name?: string;
   /**
@@ -157,9 +161,13 @@ export type SharedFactsData = {
  * dna-tie.ts), in neutral words for whoever reads the check page, with the same mark as
  * the report line. "Not tied yet" says only that none is saved; it blames no one.
  */
-const TieFact: React.FC<{ tie: DnaTie; status: FactStatus; animal?: boolean }> = ({ tie, status, animal = false }) => {
-  // "Tied to the animal" for an animal record (translate.ts forKind).
-  const tr = forKind(useT(), animal ? 'animal' : 'plant');
+const TieFact: React.FC<{ tie: DnaTie; status: FactStatus; kind?: 'plant' | 'animal' | 'strain' }> = ({
+  tie,
+  status,
+  kind = 'plant',
+}) => {
+  // "Tied to the animal" for an animal record, "the strain" for a strain (translate.ts forKind).
+  const tr = forKind(useT(), kind);
   return (
     <Stack spacing={0.25} data-dna-tie={tie.state}>
       <Fact status={tie.state === 'none' ? 'reported' : status}>
@@ -177,8 +185,9 @@ const TieFact: React.FC<{ tie: DnaTie; status: FactStatus; animal?: boolean }> =
 /** The shared facts, then what was not shared, then the genetics row. */
 export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }> = ({ data, preview = false }) => {
   const animal = data.subjectKind === 'animal';
-  // An animal's facts say "animal" where a plant's say "plant" (translate.ts forKind).
-  const tr = forKind(useT(), animal ? 'animal' : 'plant');
+  // An animal's facts say "animal" where a plant's say "plant", a strain's "strain" (translate.ts forKind).
+  const kindOf = animal ? 'animal' : data.subjectKind === 'strain' ? 'strain' : 'plant';
+  const tr = forKind(useT(), kindOf);
   const { t } = tr;
   const shared = new Set(data.disclosed);
   const notShared = fieldsFor(animal ? 'animal' : 'plant')
@@ -205,7 +214,7 @@ export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }>
       {shared.has('dna') &&
         (data.labReport ? (
           <>
-            {data.labReport.tie && <TieFact tie={data.labReport.tie} status={data.labReport.status} animal={animal} />}
+            {data.labReport.tie && <TieFact tie={data.labReport.tie} status={data.labReport.status} kind={kindOf} />}
             {/* With nothing saved, the tie line already says so. */}
             {data.labReport.tie?.state !== 'none' && <Fact status={data.labReport.status}>{data.labReport.text}</Fact>}
           </>
@@ -231,13 +240,25 @@ export const SharedFacts: React.FC<{ data: SharedFactsData; preview?: boolean }>
           {data.dam && <Fact ok={false}>{t('app.animal.verify.damLine', { v: clean(data.dam) })}</Fact>}
         </>
       )}
-      {shared.has('parents') && !(animal && (data.sire || data.dam)) && (
+      {/* A strain's parent strains, with their deposit numbers: as the holder states them. */}
+      {shared.has('parents') && kindOf === 'strain' && !!data.parentStrains?.length && (
         <Fact ok={false}>
-          {data.parents?.length
-            ? t('app.verify.parents', { list: data.parents.map(displayName).join(' × ') })
-            : t('app.verify.noParents')}
+          {t('app.strain.verify.parentsLine', {
+            v: data.parentStrains
+              .map((p) => strainParentWords({ name: displayName(p.name), deposit: displayName(p.deposit) }))
+              .join(' × '),
+          })}
         </Fact>
       )}
+      {shared.has('parents') &&
+        !(animal && (data.sire || data.dam)) &&
+        !(kindOf === 'strain' && data.parentStrains?.length) && (
+          <Fact ok={false}>
+            {data.parents?.length
+              ? t('app.verify.parents', { list: data.parents.map(displayName).join(' × ') })
+              : t('app.verify.noParents')}
+          </Fact>
+        )}
       {shared.has('individualId') && animal && (
         <Fact ok={false}>
           {data.individualId
@@ -314,7 +335,8 @@ export const DisclosedFacts: React.FC<{ record: StrainRecord; disclosure: Disclo
   saved,
 }) => {
   const animal = isAnimal(record);
-  const tr = forKind(useT(), animal ? 'animal' : 'plant');
+  const strain = isStrain(record);
+  const tr = forKind(useT(), animal ? 'animal' : strain ? 'strain' : 'plant');
   const labReport = previewReportLine(saved, tr);
   const sire = sireOf(record);
   const dam = damOf(record);
@@ -343,7 +365,12 @@ export const DisclosedFacts: React.FC<{ record: StrainRecord; disclosure: Disclo
                 individualId: record.refId ?? '',
                 idScheme: record.animal?.idScheme ?? '',
               }
-            : {}),
+            : strain
+              ? {
+                  subjectKind: 'strain',
+                  parentStrains: (record.parents ?? []).map((p) => ({ name: p.name, deposit: p.individualId ?? '' })),
+                }
+              : {}),
           ...(labReport ? { labReport } : {}),
         }}
       />

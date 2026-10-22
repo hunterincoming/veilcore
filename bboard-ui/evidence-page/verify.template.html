@@ -236,6 +236,20 @@ return canonicalise;
     ['keyBinding', 'Names a key'],
     ['nonce', 'Random salt (keeps the proof code unguessable)'],
   ];
+  // A strain or line record's own fields (the site's veilcore/strain-profile.ts): the same
+  // words as EXAMINER-SUMMARY.html (examiner.ts STRAIN_LABELS).
+  var STRAIN_PROFILE = 'veilcore/profile/strain/v1';
+  var STRAIN_LABELS = {
+    name: 'Strain or line name',
+    designation: 'Designation (the holder’s own code)',
+    group: 'Kind',
+    deposits: 'Deposit numbers',
+    method: 'How it was made',
+    generation: 'Generation or passage',
+    madeOn: 'Made or isolated on (the holder’s statement)',
+    maker: 'Made or isolated by',
+  };
+  var STRAIN_ORDER = ['name', 'designation', 'group', 'species', 'deposits', 'method', 'generation', 'madeOn', 'maker'];
   function fieldText(key, v) {
     if (v === '' || v === null || v === undefined) return '(empty)';
     if (key === 'parents' && Array.isArray(v)) {
@@ -246,9 +260,12 @@ return canonicalise;
         // An animal's sire or dam: its role, and its individual ID when it has one.
         var role = p.role === 'sire' ? 'Sire: ' : p.role === 'dam' ? 'Dam: ' : '';
         var id = typeof p.individualId === 'string' && p.individualId ? ' (ID ' + p.individualId + ')' : '';
+        // A strain's parent: its deposit number when it has one.
+        if (typeof p.deposit === 'string' && p.deposit) id += ' (deposit ' + p.deposit + ')';
         return role + name + id + (typeof p.recordId === 'string' && p.recordId ? ' (record ' + p.recordId + ')' : '');
       }).join('; ');
     }
+    if (key === 'deposits' && Array.isArray(v)) return v.length === 0 ? '(none)' : v.map(String).join('; ');
     if (key === 'photoFingerprints' && Array.isArray(v)) {
       return v.length === 0 ? '(none)' : v.length + ' photo' + (v.length === 1 ? '' : 's') + ', sealed by their codes: ' + v.join(', ');
     }
@@ -273,10 +290,16 @@ return canonicalise;
       tr.appendChild(el('td', null, text));
       body.appendChild(tr);
     }
-    for (var i = 0; i < FIELD_LABELS.length; i++) {
-      var k = FIELD_LABELS[i][0];
+    var labels = FIELD_LABELS;
+    if (fields.profile === STRAIN_PROFILE) {
+      labels = STRAIN_ORDER.map(function (k) { return [k, STRAIN_LABELS[k] || 'Species']; }).concat(
+        FIELD_LABELS.filter(function (l) { return STRAIN_ORDER.indexOf(l[0]) < 0; }),
+      );
+    }
+    for (var i = 0; i < labels.length; i++) {
+      var k = labels[i][0];
       seen[k] = true;
-      if (Object.prototype.hasOwnProperty.call(fields, k)) row(FIELD_LABELS[i][1], fieldText(k, fields[k]));
+      if (Object.prototype.hasOwnProperty.call(fields, k)) row(labels[i][1], fieldText(k, fields[k]));
     }
     var keys = Object.keys(fields).sort();
     for (var j = 0; j < keys.length; j++) if (!seen[keys[j]]) row(keys[j], fieldText(keys[j], fields[keys[j]]));
@@ -286,16 +309,17 @@ return canonicalise;
   var TYPES = { 'laboratory-report': 'a lab report', 'chain-of-custody': 'a receipt for a sample', 'genetic-fingerprint': 'a DNA fingerprint' };
 
   // What the record describes: "animal" for a record sealed under the animal profile (the
-  // site's veilcore/animal-profile.ts), else "plant". Set by render, read by the file checks.
+  // site's veilcore/animal-profile.ts), "strain" under the strain profile, else "plant". Set
+  // by render, read by the file checks.
   var SUBJECT = 'plant';
 
   function render(ev, report) {
     var rec = ev && ev.record ? ev.record : {};
     var sf = rec.sealedFields && typeof rec.sealedFields === 'object' ? rec.sealedFields : {};
-    SUBJECT = sf.profile === 'veilcore/profile/animal-individual/v1' ? 'animal' : 'plant';
+    SUBJECT = sf.profile === 'veilcore/profile/animal-individual/v1' ? 'animal' : sf.profile === STRAIN_PROFILE ? 'strain' : 'plant';
     var words = document.querySelectorAll('.vc-subject');
     for (var w = 0; w < words.length; w++) words[w].textContent = SUBJECT;
-    var name = ['strainName', 'name', 'individualId'].map(function (k) { return typeof sf[k] === 'string' ? sf[k] : ''; }).filter(Boolean)[0] || '';
+    var name = ['strainName', 'name', 'individualId', 'designation'].map(function (k) { return typeof sf[k] === 'string' ? sf[k] : ''; }).filter(Boolean)[0] || '';
     var title = name ? name + (rec.id ? ' · ' + rec.id : '') : rec.id || 'this record';
     document.title = 'Check ' + title + ' (offline)';
     var summary = clear('summary');

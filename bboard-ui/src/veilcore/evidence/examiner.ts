@@ -62,6 +62,24 @@ const FIELD_LABELS: [string, string][] = [
   ['nonce', 'Random salt (keeps the proof code unguessable)'],
 ];
 
+/**
+ * A strain or line record's own fields (veilcore/strain-profile.ts), first and in these words;
+ * the same as verify.html (its STRAIN_LABELS). `name` and `species` are shared with the animal
+ * profile, so a strain says what they are for it.
+ */
+const STRAIN_PROFILE = 'veilcore/profile/strain/v1';
+const STRAIN_LABELS: [string, string][] = [
+  ['name', 'Strain or line name'],
+  ['designation', 'Designation (the holder’s own code)'],
+  ['group', 'Kind'],
+  ['species', 'Species'],
+  ['deposits', 'Deposit numbers'],
+  ['method', 'How it was made'],
+  ['generation', 'Generation or passage'],
+  ['madeOn', 'Made or isolated on (the holder’s statement)'],
+  ['maker', 'Made or isolated by'],
+];
+
 /** What a record that names its key says about it, here and in verify.html (word for word). */
 export const KEY_NAMED =
   'Yes. The record names a key; the key itself is in this bundle only if the holder included it.';
@@ -77,11 +95,15 @@ export const fieldText = (key: string, v: unknown): string => {
         const name = isString(p.name) && p.name ? p.name : '(no name)';
         // An animal's sire or dam: its role, and its individual ID when it has one.
         const role = p.role === 'sire' ? 'Sire: ' : p.role === 'dam' ? 'Dam: ' : '';
-        const id = isString(p.individualId) && p.individualId ? ` (ID ${p.individualId})` : '';
+        const id =
+          (isString(p.individualId) && p.individualId ? ` (ID ${p.individualId})` : '') +
+          // A strain's parent: its deposit number when it has one.
+          (isString(p.deposit) && p.deposit ? ` (deposit ${p.deposit})` : '');
         return `${role}${name}${id}${isString(p.recordId) && p.recordId ? ` (record ${p.recordId})` : ''}`;
       })
       .join('; ');
   }
+  if (key === 'deposits' && Array.isArray(v)) return v.length === 0 ? '(none)' : v.map(String).join('; ');
   if (key === 'photoFingerprints' && Array.isArray(v)) {
     return v.length === 0
       ? '(none)'
@@ -99,7 +121,11 @@ export const fieldText = (key: string, v: unknown): string => {
 const sealedRows = (fields: Record<string, unknown>): [string, string][] => {
   const rows: [string, string][] = [];
   const seen = new Set<string>();
-  for (const [k, label] of FIELD_LABELS) {
+  const labels =
+    fields.profile === STRAIN_PROFILE
+      ? [...STRAIN_LABELS, ...FIELD_LABELS.filter(([k]) => !STRAIN_LABELS.some(([s]) => s === k))]
+      : FIELD_LABELS;
+  for (const [k, label] of labels) {
     seen.add(k);
     if (Object.prototype.hasOwnProperty.call(fields, k)) rows.push([label, fieldText(k, fields[k])]);
   }

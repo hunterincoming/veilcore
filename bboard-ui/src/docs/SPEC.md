@@ -80,12 +80,12 @@ Fields: `chain`, `network`, and optionally `contractAddress`, `txHash`, `blockHe
 
 **A record may carry several anchors**, and `anchor` accepts either a single object or an array. This is what makes the format usable across jurisdictions that recognise different mechanisms, without any jurisdiction-specific rule appearing in the format itself.
 
-| `kind` | What it is | Where it carries most weight |
-|---|---|---|
-| `ledger` | The commitment, or a batch root containing it, published in a public chain | No general presumption. Italy's Law 12/2019, Art. 8-ter, gives distributed-ledger timestamps the effect of an ordinary eIDAS electronic timestamp (Art. 41(1): not denied effect, no presumption), subject to technical standards; Chinese courts have accepted blockchain evidence since 2018; US courts authenticate under FRE 901(b)(9) and 902(13)-(14) |
-| `rfc3161` | A signed timestamp token from a Time Stamping Authority (RFC 3161). Fields: `token` (the DER TimeStampToken, base64; a verifier also accepts a full TimeStampResp), `tsa`, `qualified`. **What is stamped:** the 32 raw bytes of the record's commitment, or, for an anchor carried on an inclusion proof, of the batch root - never their hex text. The request's messageImprint is the hash of those 32 bytes, as `openssl ts -query -data commitment.bin -sha256` submits it. **An implementation checks:** (1) the imprint's `hashedMessage` equals the hash of the stamped bytes under the imprint's algorithm, which shall be SHA-256, SHA-384 or SHA-512; (2) the `messageDigest` signed attribute equals the hash of the encapsulated TSTInfo, and the content type is id-ct-TSTInfo; (3) the signature over the DER signed attributes, encoded as a SET OF, verifies with the signer certificate's public key, by RSASSA-PKCS1-v1_5 or ECDSA on P-256 or P-384 with SHA-256/384/512, any other algorithm being refused; (4) the signer certificate carries the id-kp-timeStamping extended key usage. The date is the TSTInfo `genTime`. These checks do not establish who the signer is: the certificate chain to a trusted root, qualified status on a trusted list, and revocation are separate checks, and a verifier that has not made them reports them as not checked | Where the TSA is a Qualified Trust Service Provider on an EU trusted list, eIDAS Article 41(2) gives the qualified timestamp a presumption of accuracy (Article 42 sets what makes it qualified), and the burden falls on whoever disputes the date |
-| `notarial` | A timestamp applied by a notary or equivalent officer | Follows local rules on notarial acts |
-| `opentimestamps` | An OpenTimestamps proof (`.ots`) that the commitment, or a batch root containing it, existed by the time of a Bitcoin block. Fields: `stamps` (what file was stamped: for a batch, the root as 32 raw bytes), `ots` (the file, base64 or a URL), `calendars` | No general presumption. Independent of the issuer and of any other chain; a French court accepted a blockchain timestamp as evidence of authorship in 2025 (Tribunal judiciaire de Marseille, 20 March 2025). A fresh proof is pending until the calendar's Bitcoin transaction confirms |
+| `kind`           | What it is                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Where it carries most weight                                                                                                                                                                                                                                                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ledger`         | The commitment, or a batch root containing it, published in a public chain                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | No general presumption. Italy's Law 12/2019, Art. 8-ter, gives distributed-ledger timestamps the effect of an ordinary eIDAS electronic timestamp (Art. 41(1): not denied effect, no presumption), subject to technical standards; Chinese courts have accepted blockchain evidence since 2018; US courts authenticate under FRE 901(b)(9) and 902(13)-(14) |
+| `rfc3161`        | A signed timestamp token from a Time Stamping Authority (RFC 3161). Fields: `token` (the DER TimeStampToken, base64; a verifier also accepts a full TimeStampResp), `tsa`, `qualified`. **What is stamped:** the 32 raw bytes of the record's commitment, or, for an anchor carried on an inclusion proof, of the batch root - never their hex text. The request's messageImprint is the hash of those 32 bytes, as `openssl ts -query -data commitment.bin -sha256` submits it. **An implementation checks:** (1) the imprint's `hashedMessage` equals the hash of the stamped bytes under the imprint's algorithm, which shall be SHA-256, SHA-384 or SHA-512; (2) the `messageDigest` signed attribute equals the hash of the encapsulated TSTInfo, and the content type is id-ct-TSTInfo; (3) the signature over the DER signed attributes, encoded as a SET OF, verifies with the signer certificate's public key, by RSASSA-PKCS1-v1_5 or ECDSA on P-256 or P-384 with SHA-256/384/512, any other algorithm being refused; (4) the signer certificate carries the id-kp-timeStamping extended key usage. The date is the TSTInfo `genTime`. These checks do not establish who the signer is: the certificate chain to a trusted root, qualified status on a trusted list, and revocation are separate checks, and a verifier that has not made them reports them as not checked | Where the TSA is a Qualified Trust Service Provider on an EU trusted list, eIDAS Article 41(2) gives the qualified timestamp a presumption of accuracy (Article 42 sets what makes it qualified), and the burden falls on whoever disputes the date                                                                                                         |
+| `notarial`       | A timestamp applied by a notary or equivalent officer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Follows local rules on notarial acts                                                                                                                                                                                                                                                                                                                        |
+| `opentimestamps` | An OpenTimestamps proof (`.ots`) that the commitment, or a batch root containing it, existed by the time of a Bitcoin block. Fields: `stamps` (what file was stamped: for a batch, the root as 32 raw bytes), `ots` (the file, base64 or a URL), `calendars`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | No general presumption. Independent of the issuer and of any other chain; a French court accepted a blockchain timestamp as evidence of authorship in 2025 (Tribunal judiciaire de Marseille, 20 March 2025). A fresh proof is pending until the calendar's Bitcoin transaction confirms                                                                    |
 
 An anchor with no `kind` is `ledger`, so records written before this field existed remain valid.
 
@@ -251,11 +251,11 @@ A record may additionally commit up to sixteen values as separate leaves, so tha
 
 **Schema.** A field schema is a published JSON document with an `id` (a non-empty string naming its publisher and version), a `title`, a `slots` list and an integer `k`. Each slot entry is an object with `slot` (0 to 15, each at most once), `type` (`uint` or `text`), `path` (a non-empty string saying what the slot holds), and optionally `unit` (a string), `scale` (a positive integer: the stored number is the measured value times `scale`), `comparable` (true or false) and `format`. A `comparable` text slot shall declare a `format`, and `format` is allowed only on text slots:
 
-| `format` | Canonical form | Example |
-|---|---|---|
+| `format`      | Canonical form                                                                                      | Example   |
+| ------------- | --------------------------------------------------------------------------------------------------- | --------- |
 | `allele-pair` | two allele sizes, decimal, no leading zeros, at most nine digits each, smaller first, joined by `/` | `180/184` |
-| `allele` | one allele size, decimal, no leading zeros, at most nine digits | `233` |
-| `code` | an upper-case letter or digit, then up to 63 upper-case letters, digits, `.`, `_` or `-` | `HM-3` |
+| `allele`      | one allele size, decimal, no leading zeros, at most nine digits                                     | `233`     |
+| `code`        | an upper-case letter or digit, then up to 63 upper-case letters, digits, `.`, `_` or `-`            | `HM-3`    |
 
 A value in a slot with a `format` shall be in that form; anything else shall be refused rather than normalised. Distinctness compares values byte for byte, so one genotype written two ways would otherwise count as a difference.
 
@@ -263,7 +263,7 @@ A value in a slot with a `format` shall be in that form; anything else shall be 
 
 `schemaId = H("veilcore:v1:fschema", SHA-256(canonical JSON of the schema), terms)`
 
-where `terms` is 32 bytes: the comparable mask in bytes 0-1 and the numeric mask in bytes 2-3 (bit *i* set for slot *i*, little-endian; the numeric mask names every `uint` slot), `k` in byte 4, and zero in bytes 5-31. Because the masks and `k` are inside the id, a claim cannot choose its comparable slots or threshold, and a range claim can be refused on a slot the schema does not call a number. **A verifier shall obtain the schema document from its publisher and recompute the id**; a claim names an id, and an id is only as meaningful as the document behind it.
+where `terms` is 32 bytes: the comparable mask in bytes 0-1 and the numeric mask in bytes 2-3 (bit _i_ set for slot _i_, little-endian; the numeric mask names every `uint` slot), `k` in byte 4, and zero in bytes 5-31. Because the masks and `k` are inside the id, a claim cannot choose its comparable slots or threshold, and a range claim can be refused on a slot the schema does not call a number. **A verifier shall obtain the schema document from its publisher and recompute the id**; a claim names an id, and an id is only as meaningful as the document behind it.
 
 **Slot values.** Each of the sixteen slots holds 32 bytes:
 
@@ -293,11 +293,11 @@ where `jsonDigest` is the SHA-256 of the canonical serialisation of the committe
 
 Because `fieldSetRoot` is in the JSON, anyone shown the JSON sees which field set it belongs to, and one JSON cannot be paired with two field sets. `fieldSetRoot` reveals nothing about the values. Disclosing the committed JSON (for `integrity`, section 8.1) does not disclose the values in the field set.
 
-**An opening** of slot *i* is its value, its salt, and the sixteen leaves. A verifier recomputes `leaf_i` from the value and salt, checks it is the *i*-th of the sixteen, and recomputes the root. The other fifteen leaves are salted hashes and disclose nothing about their values.
+**An opening** of slot _i_ is its value, its salt, and the sixteen leaves. A verifier recomputes `leaf_i` from the value and salt, checks it is the _i_-th of the sixteen, and recomputes the root. The other fifteen leaves are salted hashes and disclose nothing about their values.
 
 **Claims** (reference: the VeilCore claims contract, `contract/src/veilcore-claims.compact`, and its design note, `docs/claims-design.md`, in the veilcore-midnight-testnet repository; run end to end on Midnight preprod on 4 October 2026; not on mainnet as of that date) are proved against the record commitment and published on the ledger:
 
-- **value**: slot *i* holds a stated value. The value is published: this establishes authenticity, never confidentiality.
+- **value**: slot _i_ holds a stated value. The value is published: this establishes authenticity, never confidentiality.
 - **range**: a `uint` slot is at least, or at most, a bound. The number is not published.
 - **distinct**: two records under the same schema differ in at least `k` comparable slots, counting only slots present in both. Which slots differ, and how many, are not published. It shall be reported as "differs in at least k comparable values", never as a determination of distinctness, which is the examining body's.
 - **unchanged**: two records under the same schema have equal values outside a published mask. It establishes nothing else: not which record is the correction, nor that either names the other in `supersedes`.
@@ -373,7 +373,7 @@ Starting from the sorted, de-duplicated leaves:
 
 1. Hash each commitment with `hashLeaf` to produce the bottom level.
 2. While the level holds more than one node, produce the next level by taking nodes in pairs, left to right, and computing `hashNode(left, right)` for each pair.
-3. **If a level holds an odd number of nodes, the last node is carried up to the next level unchanged.** It is *not* hashed again, and it is *not* paired with itself. Duplicating it would let two different leaf sets produce the same root. **A promoted node contributes no step to the paths beneath it.** Nothing was combined at that level, so there is nothing to record.
+3. **If a level holds an odd number of nodes, the last node is carried up to the next level unchanged.** It is _not_ hashed again, and it is _not_ paired with itself. Duplicating it would let two different leaf sets produce the same root. **A promoted node contributes no step to the paths beneath it.** Nothing was combined at that level, so there is nothing to record.
 4. The single remaining node is the batch root.
 
 A batch of one leaf therefore has a root equal to `hashLeaf(commitment)`, and its proof path is empty.
@@ -384,16 +384,16 @@ An inclusion proof carries the commitment, a path of sibling hashes with a direc
 
 Field names, so that two implementations can exchange a proof:
 
-| Field | Type | Meaning |
-|---|---|---|
-| `commitment` | hex string | The commitment being proven |
-| `path` | array | Ordered from the leaf upward. Empty for a single-leaf batch |
-| `path[].sibling` | hex string | The other node at that level |
-| `path[].siblingIsLeft` | boolean | **True when the sibling is the left operand** and the node folded so far is the right one |
-| `root` | hex string | The root the path folds to |
-| `batchId` | string | Issuer-scoped batch identifier |
-| `sealedAt` | RFC 3339, UTC, second precision | When the batch was sealed |
-| `anchor` | object | Optional, per section 3.2 |
+| Field                  | Type                            | Meaning                                                                                   |
+| ---------------------- | ------------------------------- | ----------------------------------------------------------------------------------------- |
+| `commitment`           | hex string                      | The commitment being proven                                                               |
+| `path`                 | array                           | Ordered from the leaf upward. Empty for a single-leaf batch                               |
+| `path[].sibling`       | hex string                      | The other node at that level                                                              |
+| `path[].siblingIsLeft` | boolean                         | **True when the sibling is the left operand** and the node folded so far is the right one |
+| `root`                 | hex string                      | The root the path folds to                                                                |
+| `batchId`              | string                          | Issuer-scoped batch identifier                                                            |
+| `sealedAt`             | RFC 3339, UTC, second precision | When the batch was sealed                                                                 |
+| `anchor`               | object                          | Optional, per section 3.2                                                                 |
 
 **`siblingIsLeft` describes the sibling, not the node being folded.** The inverse reading is the single most likely divergence in this section, and roughly half of any given proof still verifies under it, which makes the error hard to see.
 
@@ -706,24 +706,24 @@ A challenge carries: `challengeId`, `subjectCommitment`, `claimCommitment`, `gro
 
 **Committed fields.** Exactly these, every one present, none other:
 
-| Field | What it holds |
-|---|---|
-| `profile` | `veilcore/profile/animal-individual/v1` |
-| `species` | The species, as the holder writes it. Not empty |
-| `breed` | The breed, or empty |
-| `name` | The animal's name, or empty |
-| `individualId` | Its individual ID exactly as written (an ear tag, a national ID), or empty |
-| `idScheme` | The ID scheme the individual ID belongs to, free text ("Japan cattle ID (10 digits)", "ear tag"). Empty exactly when `individualId` is |
-| `sex` | `female`, `male` or `unknown` |
-| `dateOfBirth` | `YYYY-MM-DD`, a real date, or empty. The holder's statement, like `claimedCreationDate` |
-| `parents` | The sire and the dam, as below |
-| `breeder` | The breeder or holder. Not empty |
-| `herd` | Herd or farm, or empty |
-| `notes` | Free text, or empty |
-| `photoFingerprints` | SHA-256 of each photo, 64 lowercase hex characters each |
-| `loggedAt` | When it was sealed, milliseconds since 1970 by the sealing device's clock, a whole number |
-| `nonce` | 32 to 64 random bytes, lowercase hex (section 4.3) |
-| `keyBinding` | Optional, as in section 3.6.1 |
+| Field               | What it holds                                                                                                                          |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `profile`           | `veilcore/profile/animal-individual/v1`                                                                                                |
+| `species`           | The species, as the holder writes it. Not empty                                                                                        |
+| `breed`             | The breed, or empty                                                                                                                    |
+| `name`              | The animal's name, or empty                                                                                                            |
+| `individualId`      | Its individual ID exactly as written (an ear tag, a national ID), or empty                                                             |
+| `idScheme`          | The ID scheme the individual ID belongs to, free text ("Japan cattle ID (10 digits)", "ear tag"). Empty exactly when `individualId` is |
+| `sex`               | `female`, `male` or `unknown`                                                                                                          |
+| `dateOfBirth`       | `YYYY-MM-DD`, a real date, or empty. The holder's statement, like `claimedCreationDate`                                                |
+| `parents`           | The sire and the dam, as below                                                                                                         |
+| `breeder`           | The breeder or holder. Not empty                                                                                                       |
+| `herd`              | Herd or farm, or empty                                                                                                                 |
+| `notes`             | Free text, or empty                                                                                                                    |
+| `photoFingerprints` | SHA-256 of each photo, 64 lowercase hex characters each                                                                                |
+| `loggedAt`          | When it was sealed, milliseconds since 1970 by the sealing device's clock, a whole number                                              |
+| `nonce`             | 32 to 64 random bytes, lowercase hex (section 4.3)                                                                                     |
+| `keyBinding`        | Optional, as in section 3.6.1                                                                                                          |
 
 `name` and `individualId` shall not both be empty.
 
@@ -740,6 +740,51 @@ A challenge carries: `challengeId`, `subjectCommitment`, `claimCommitment`, `gro
 **Vectors.** `animal-individual-v1.json` gives records under this profile (their fields, canonical bytes, content hash and fingerprint, with and without a key) and fields that shall be refused. It is published with the VeilCore web application and checked there, by the VeilCore registry, and by the TypeScript and Python implementations; the Rust implementation checks the fingerprints. Like the profiles themselves, it is outside the 100 record-format vectors of section 10.
 
 **What it does not establish.** Everything in section 9.3 holds. In particular a record establishes that a description of an animal existed by a date, not that a given animal, carcass or cut is that animal, and not who holds the animal now. An individual ID in the record is the holder's statement; that the ID belongs to the animal is for the scheme that issued it to say.
+
+## 11.9 - Strain and line records: the strain profile (draft)
+
+**Draft, 22 October 2026.** This section defines one profile, `veilcore/profile/strain/v1`, published by the authors of this specification, for one microbial strain, cell line or insect line. It is a draft: until this section says version 1 is final, its committed fields may still change under this identifier, and the VeilCore web application offers it on test networks only. Once final, any change to the committed fields is a new profile, `veilcore/profile/strain/v2`. The record format version is unchanged.
+
+**Why one profile for all of these.** A culture collection, a cell bank and an insect-rearing facility record the same shape: what it is (a kind and a species), what it is called (a name and the holder's own designation), where copies are deposited (culture collection or patent deposit numbers), how it was made, which generation or passage, and which strain or strains it came from. A standard that needed a new profile for every organism would not be adopted by any of them.
+
+**The fingerprint rules do not change**, exactly as in section 11.8: SHA-256 of the canonical serialisation of the committed fields, folded with a `keyBinding` when one is present (section 3.6.1).
+
+**Committed fields.** Exactly these, every one present, none other:
+
+| Field               | What it holds                                                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `profile`           | `veilcore/profile/strain/v1`                                                                                                   |
+| `group`             | One of `bacterium`, `archaeon`, `yeast`, `filamentous-fungus`, `microalga`, `protist`, `virus`, `cell-line`, `insect`, `other` |
+| `species`           | The species, as the holder writes it. Not empty                                                                                |
+| `name`              | The strain's name, or empty                                                                                                    |
+| `designation`       | The holder's own designation for it, or empty                                                                                  |
+| `deposits`          | At most 8 deposit numbers, each as the depositary writes it ("NBRC 10217"), none empty, none repeated. May be empty            |
+| `method`            | How it was made, free text ("wild isolate", "neutron beam irradiation"), or empty                                              |
+| `generation`        | Generation or passage, free text ("M2", "P5"), or empty                                                                        |
+| `madeOn`            | `YYYY-MM-DD`, a real date, or empty. The holder's statement, like `claimedCreationDate`                                        |
+| `parents`           | At most two parent strains, as below                                                                                           |
+| `maker`             | Who made or isolated it. Not empty                                                                                             |
+| `notes`             | Free text, or empty                                                                                                            |
+| `photoFingerprints` | SHA-256 of each photo, 64 lowercase hex characters each                                                                        |
+| `loggedAt`          | When it was sealed, milliseconds since 1970 by the sealing device's clock, a whole number                                      |
+| `nonce`             | 32 to 64 random bytes, lowercase hex (section 4.3)                                                                             |
+| `keyBinding`        | Optional, as in section 3.6.1                                                                                                  |
+
+`name` and `designation` shall not both be empty.
+
+**Canonical form.** As in section 11.8: a value in any other form shall be refused, never tidied. The one-line fields (`species`, `name`, `designation`, `method`, `generation`, `maker`, each deposit, and a parent's `name` and `deposit`) are text of at most 200 characters, with no control character and no white space at either end. `notes` is at most 20,000 characters. A deposit number is compared as written; this profile does not normalise any collection's numbering.
+
+**Parents.** `parents` lists at most two parent strains: one for a mutant, an isolate's subculture or an edited line; two for a cross, a mating or a fusion. Each entry is `{ name, deposit }` and, when the parent is a record the holder logged, `recordId`, naming it. An entry with no name, no deposit and no `recordId` shall be refused. A parent is the holder's declaration, not a test.
+
+**In an envelope.** `subjectType` is `other` (section 3.1's list has no microbial or cell subject), and the profile says what it is. `subject.name` is the name, `subject.originator` the maker, `subject.taxon` the species and `subject.claimedCreationDate` the date made or isolated. `profileData` carries `group`, `designation`, `deposits`, `method`, `generation`, the parents' deposit numbers and `notes`, with the nonce.
+
+**What a strain record is offered.** Everything that does not depend on the subject being a plant: the dated record and its key; a DNA report (for a strain, typically a genome sequence or a typing result) saved to the record and dated by a record of its own; parent strains, linked where the holder logged them; a laboratory's signed receipt and report; selective disclosure, where the parent strains are shown with their deposit numbers under `parent-names`; corrections (section 6).
+
+**What it is not offered.** The claims of section 4.5, for the reason given in section 11.8. Agreements, royalties and terms (section 3.5) are not offered for strain records by the VeilCore web application yet: a license for a strain turns on use, subculture and derived strains, not on propagation from a variety, and needs terms of its own.
+
+**What it does not establish.** Everything in section 9.3 holds. A strain record establishes that a description of a strain existed by a date. It is not a deposit: it does not replace a deposit with a recognised depositary, which is what patent procedure in most jurisdictions relies on for a microorganism, and a deposit number in the record is the holder's statement until the depositary confirms it. It does not establish that a culture is viable, pure, or the strain described.
+
+**Vectors.** `strain-v1.json` gives records under this profile and fields that shall be refused. It is checked by the VeilCore web application and the VeilCore registry. Like the other profiles' vectors, it is outside the 100 record-format vectors of section 10.
 
 ---
 
@@ -763,4 +808,4 @@ This document is published for comment, and specific correction is more useful t
 
 ---
 
-*This specification describes a format, not a service. Every property it claims is either demonstrable from the published implementations and vectors, or is stated as a limitation. Where the authors have made a judgement rather than followed a constraint - the field classification in section 6.2 above all - that is marked as such.*
+_This specification describes a format, not a service. Every property it claims is either demonstrable from the published implementations and vectors, or is stated as a limitation. Where the authors have made a judgement rather than followed a constraint - the field classification in section 6.2 above all - that is marked as such._

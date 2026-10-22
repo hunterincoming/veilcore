@@ -6,6 +6,8 @@
 // Plural keys come as `.one` and `.other` (translate.ts tp).
 // SPDX-License-Identifier: Apache-2.0
 import { animal } from './animal';
+import { strain } from './strain';
+import { strainForm } from './strain-form';
 import { backup } from './backup';
 import { chain } from './chain';
 import { common } from './common';
@@ -39,6 +41,8 @@ export const appEn = {
   ...importing,
   ...partners,
   ...animal,
+  ...strain,
+  ...strainForm,
   ...sealed,
   ...dating,
 };

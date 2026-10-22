@@ -14,6 +14,7 @@ import type { ParentRef, StrainRecord } from '../../veilcore/records';
 import { isLabReportRecord, parseLabReportNotes } from './lab-report-notes';
 import { enT, type Translator } from '../../i18n/translate';
 import { isAnimal, type AnimalSex } from '../../veilcore/animal-profile';
+import { isStrain } from '../../veilcore/strain-profile';
 
 type Rec = Pick<StrainRecord, 'id' | 'strainName' | 'breedingMethod' | 'notes' | 'parents'> &
   Partial<Pick<StrainRecord, 'profile' | 'refId' | 'animal'>>;
@@ -44,9 +45,26 @@ export const LAB_REPORT_DATED_HOME = 'DNA report dated';
 export const datingCardLine = (r: Pick<Rec, 'parents'>, tr: Translator = enT): string =>
   tr.t('app.home.datesReportFor', { name: r.parents?.[0]?.name || tr.t('app.home.aPlant') });
 
-/** Parents a new plant can be logged with: plants only, never an animal or a record that dates a lab report. */
+/** Parents a new plant can be logged with: plants only, never an animal, a strain or a record that dates a lab report. */
 export const parentOptionsOf = (records: readonly Rec[]): ParentRef[] =>
-  records.filter((r) => !isLabReportRecord(r) && !isAnimal(r)).map((r) => ({ recordId: r.id, name: r.strainName }));
+  records
+    .filter((r) => !isLabReportRecord(r) && !isAnimal(r) && !isStrain(r))
+    .map((r) => ({ recordId: r.id, name: r.strainName }));
+
+/**
+ * The logged strains a new strain can name as a parent: name, first deposit number (else the
+ * designation) and record, as the parent is sealed (strain-profile.ts). A superseded strain
+ * is not offered: its correction is.
+ */
+export const strainParentOptionsOf = (
+  records: readonly (Rec & {
+    readonly strain?: { readonly deposits?: readonly string[] };
+    readonly supersededBy?: string;
+  })[],
+): { recordId: string; name: string; deposit: string }[] =>
+  records
+    .filter((r) => isStrain(r) && !isLabReportRecord(r) && !r.supersededBy)
+    .map((r) => ({ recordId: r.id, name: r.strainName, deposit: r.strain?.deposits?.[0] ?? r.refId ?? '' }));
 
 /**
  * The logged animals a new animal can name as its sire (male or not stated) or dam (female or

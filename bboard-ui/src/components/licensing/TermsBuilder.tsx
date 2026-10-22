@@ -9,6 +9,7 @@ import { useNavigate, useParams, useSearchParams, Link as RouterLink } from 'rea
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import { getRecord } from '../../veilcore/records';
 import { isAnimal } from '../../veilcore/animal-profile';
+import { isStrain } from '../../veilcore/strain-profile';
 import { useT } from '../../i18n/app';
 import {
   sealAgreement,
@@ -69,13 +70,15 @@ export const TermsBuilder: React.FC = () => {
 
   // Agreements and royalties are for plant records only, for now (docs/animal-profile.md):
   // their terms speak of propagation and offspring declared from a variety.
-  if (isAnimal(record)) {
+  if (isAnimal(record) || isStrain(record)) {
     return (
       <Box data-no-licensing="">
         <AppHeader />
-        <Typography sx={{ mb: 1 }}>{tr.t('app.animal.noLicensing')}</Typography>
+        <Typography sx={{ mb: 1 }}>
+          {tr.t(isStrain(record) ? 'app.strain.noLicensing' : 'app.animal.noLicensing')}
+        </Typography>
         <Button component={RouterLink} to={`/record/${record.id}`} startIcon={<ArrowBackIcon />}>
-          {tr.t('app.animal.v.app.plant.backToPlant')}
+          {tr.t('app.plant.backToPlant')}
         </Button>
       </Box>
     );

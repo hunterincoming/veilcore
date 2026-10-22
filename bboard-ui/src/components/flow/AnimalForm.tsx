@@ -31,8 +31,13 @@ import { useT, rich, type Translator } from '../../i18n/app';
 import { animalMissing, animalSealInputOf, type AnimalDraft, type LogKind, type ParentDraft } from './animal-draft';
 import { draftSizeShare, sizeWords } from '../../veilcore/records';
 
-/** "What are you logging?": a plant or an animal. Radio semantics, one press. */
-export const KindChoice: React.FC<{ kind: LogKind; onKind: (k: LogKind) => void }> = ({ kind, onKind }) => {
+/** "What are you logging?": a plant, an animal, or (where offered) a strain or line. Radio semantics, one press. */
+export const KindChoice: React.FC<{
+  kind: LogKind;
+  onKind: (k: LogKind) => void;
+  animals?: boolean;
+  strains?: boolean;
+}> = ({ kind, onKind, animals = true, strains = false }) => {
   const { t } = useT();
   const labelId = useId();
   return (
@@ -50,9 +55,16 @@ export const KindChoice: React.FC<{ kind: LogKind; onKind: (k: LogKind) => void 
         <ToggleButton value="plant" sx={{ minHeight: 48, textTransform: 'none', fontWeight: 700 }}>
           {t('app.animal.choice.plant')}
         </ToggleButton>
-        <ToggleButton value="animal" sx={{ minHeight: 48, textTransform: 'none', fontWeight: 700 }}>
-          {t('app.animal.choice.animal')}
-        </ToggleButton>
+        {animals && (
+          <ToggleButton value="animal" sx={{ minHeight: 48, textTransform: 'none', fontWeight: 700 }}>
+            {t('app.animal.choice.animal')}
+          </ToggleButton>
+        )}
+        {strains && (
+          <ToggleButton value="strain" sx={{ minHeight: 48, textTransform: 'none', fontWeight: 700 }}>
+            {t('app.strain.choice')}
+          </ToggleButton>
+        )}
       </ToggleButtonGroup>
     </Box>
   );

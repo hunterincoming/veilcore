@@ -137,7 +137,7 @@ export const declarationText = async (
     '',
     'I, [full name], declare:',
     '',
-    `1. Who I am. I am [of legal age]. I live or work in [city, country]. I [bred / hold / keep the breeding records for] the ${subject === 'animal' ? 'animal' : 'plant material'} this record describes. [My role, for example: breeder; I run ___; employee of ___ working as ___.] I know the facts below myself [or: I know them because ___].`,
+    `1. Who I am. I am [of legal age]. I live or work in [city, country]. I [bred / hold / keep the breeding records for] the ${subject === 'animal' ? 'animal' : subject === 'strain' ? 'strain or line' : 'plant material'} this record describes. [My role, for example: breeder; I run ___; employee of ___ working as ___.] I know the facts below myself [or: I know them because ___].`,
     '',
     `2. The record. On or about [date], I [or: ___, acting for me,] made an electronic record of the ${subject} "${name}" on the VeilCore website at [web address], using [device and browser]. The website sealed the record on that device. Its record ID is ${t(ev.record.id)}. Its proof code is:`,
     `   ${t(ev.record.fingerprint)}`,
