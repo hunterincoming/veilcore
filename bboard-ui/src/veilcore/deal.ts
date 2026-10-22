@@ -156,6 +156,8 @@ export type DealBody =
       readonly currency: string;
       readonly amountOwed: string;
       readonly note?: string;
+      /** The sales report the figure came from: its fingerprint, not the file (evidence.ts). */
+      readonly evidence?: { readonly sha256: string; readonly name: string; readonly size: number };
     }
   | {
       readonly type: 'reply';

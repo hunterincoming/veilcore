@@ -42,6 +42,11 @@ holds or moves anyone's money.
    what is owed under the terms). The breeder accepts or disputes it. Every statement and
    answer is encrypted for the two of them, and its fingerprint is dated on Midnight in
    the registry's hourly batch, so neither side can rewrite the history later.
+   A statement can carry the sales report behind it (a Metrc export, a POS report): the file
+   stays on the licensee's device, its SHA-256 goes inside the signed statement, and the
+   licensor's page checks the file it is sent is that exact report (`veilcore/evidence.ts`).
+   Reading sales straight from Metrc is the next step and is a business one: VeilCore applies
+   to Metrc as a validated integrator, then each licensee grants it a read-only API key.
 5. **Payment through a partner.** VeilCore never touches money. The payer hands a
    statement to a payment partner (a wallet or payment company, registered with VeilCore and
    its name checked).

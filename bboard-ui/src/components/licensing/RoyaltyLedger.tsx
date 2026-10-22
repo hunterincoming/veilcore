@@ -20,6 +20,7 @@ import {
   type CheckedReceipt,
 } from '../../veilcore/payments';
 import { DealCredentials } from './DealCredentials';
+import { evidenceOf, isEvidence, isTheReport, sizeText, type Evidence } from '../../veilcore/evidence';
 
 type Terms = { royaltyType?: string; royaltyAmount?: string; unitBasis?: string };
 
@@ -284,6 +285,8 @@ const StatementForm: React.FC<{
   const [to, setTo] = useState(today());
   const [quantity, setQuantity] = useState('');
   const [note, setNote] = useState('');
+  const [evidence, setEvidence] = useState<Evidence>();
+  const [evidenceError, setEvidenceError] = useState<string>();
   // A rate the page can't read as a number (typed as words, say): the amount is typed instead.
   const rateReadable = owedUnder(terms, '1') !== undefined;
   const [typed, setTyped] = useState('');
@@ -339,6 +342,44 @@ const StatementForm: React.FC<{
         onChange={(e) => setNote(e.target.value.slice(0, 500))}
         multiline
       />
+      <Box>
+        {evidence ? (
+          <Typography variant="body2">
+            Sales report: <b>{evidence.name}</b> ({sizeText(evidence.size)}), fingerprint{' '}
+            <code>{evidence.sha256.slice(0, 12)}…</code>{' '}
+            <Button size="small" color="inherit" onClick={() => setEvidence(undefined)}>
+              Remove
+            </Button>
+          </Typography>
+        ) : (
+          <Button component="label" size="small" variant="outlined">
+            Attach the sales report (optional)
+            <input
+              hidden
+              type="file"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                e.target.value = '';
+                setEvidenceError(undefined);
+                if (f)
+                  evidenceOf(f)
+                    .then(setEvidence)
+                    .catch((x: unknown) => setEvidenceError(x instanceof Error ? x.message : String(x)));
+              }}
+            />
+          </Button>
+        )}
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+          Your Metrc sales export, POS report or spreadsheet for this period. The file stays on your device: only its
+          fingerprint goes in the statement, signed by you. Send them the file yourself, and their page checks it is the
+          same one.
+        </Typography>
+        {evidenceError && (
+          <Typography variant="caption" color="error">
+            {evidenceError}
+          </Typography>
+        )}
+      </Box>
       <Stack direction="row" spacing={1}>
         <Button
           variant="contained"
@@ -354,6 +395,7 @@ const StatementForm: React.FC<{
               currency,
               amountOwed: owed,
               ...(note.trim() ? { note: note.trim() } : {}),
+              ...(evidence ? { evidence } : {}),
             })
           }
         >
@@ -397,6 +439,7 @@ const StatementLine: React.FC<{
         · filed {dateOf(s.at)}
         {s.note ? ` · “${s.note}”` : ''}
       </Typography>
+      <ReportCheck statement={s} side={side} />
       {side === 'issuer' && !sameAmount(s.amountOwed, owedUnder(terms, s.quantity) ?? '') && (
         <Alert severity="warning" variant="outlined">
           Under the terms this comes to {owedUnder(terms, s.quantity) ?? 'an amount this page can’t work out'}, not{' '}
@@ -576,4 +619,57 @@ const useReceipts = (line: Line, payTo: string | undefined): CheckedReceipt[] =>
     };
   }, [fp, payTo, watch, done, line.statement]);
   return list;
+};
+
+/** The sales report behind a statement: shown, and for the licensor, checked against the file they were sent. */
+const ReportCheck: React.FC<{ statement: Extract<DealEntry, { type: 'statement' }>; side: DealSide }> = ({
+  statement,
+  side,
+}) => {
+  const [result, setResult] = useState<'same' | 'different'>();
+  const e = statement.evidence;
+  if (!isEvidence(e)) {
+    return side === 'issuer' ? (
+      <Typography variant="body2" color="text.secondary">
+        No sales report attached.
+      </Typography>
+    ) : null;
+  }
+  return (
+    <Box data-sales-report="">
+      <Typography variant="body2">
+        Backed by their sales report <b>{e.name}</b> ({sizeText(e.size)}), fingerprint{' '}
+        <code>{e.sha256.slice(0, 12)}…</code>
+        {side === 'licensee' ? '. Send them the file if you haven’t.' : ''}
+      </Typography>
+      {side === 'issuer' && (
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+          <Button component="label" size="small" variant="outlined">
+            Check the file they sent
+            <input
+              hidden
+              type="file"
+              onChange={(ev) => {
+                const f = ev.target.files?.[0];
+                ev.target.value = '';
+                if (f) void isTheReport(f, e).then((ok) => setResult(ok ? 'same' : 'different'));
+              }}
+            />
+          </Button>
+          <Box role="status">
+            {result === 'same' && (
+              <Typography variant="body2" color="success.main">
+                It’s the exact file they signed for.
+              </Typography>
+            )}
+            {result === 'different' && (
+              <Typography variant="body2" color="error">
+                That’s not the file they signed for. Ask them for the one this statement names.
+              </Typography>
+            )}
+          </Box>
+        </Stack>
+      )}
+    </Box>
+  );
 };

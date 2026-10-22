@@ -106,6 +106,7 @@ export const paymentCredential = (
           periodTo: statement.periodTo,
           amount: received.amount,
           currency: received.currency,
+          ...(statement.evidence ? { salesReportSha256: statement.evidence.sha256 } : {}),
           ledger: ledger(p),
         },
       },
