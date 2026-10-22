@@ -34,6 +34,7 @@ import type { StrainRecord } from './records';
 import { committedRecordFields } from './commitment';
 import { KEY_BOUND_ALGORITHM } from './key-binding';
 import { isAnimal } from './animal-profile';
+import { isStrain } from './strain-profile';
 
 /** The profile every new record is sealed under: plant varieties, any crop. */
 export const PLANT_VARIETY_PROFILE = 'veilcore/profile/plant-variety/v1';
@@ -88,10 +89,12 @@ export const toEnvelope = (r: StrainRecord, holderId: string, anchor?: Partial<A
   }
 
   const animal = isAnimal(r);
+  const strain = isStrain(r);
   return {
     formatVersion: FORMAT_VERSION,
     recordId: r.id,
-    subjectType: animal ? 'animal-genetic-material' : 'plant-genetic-material',
+    // A strain or line is `other` in SPEC 0.1's list; its profile says what it is (SPEC 11.9).
+    subjectType: animal ? 'animal-genetic-material' : strain ? 'other' : 'plant-genetic-material',
     profile: profileOf(r),
     commitment: r.recordFingerprint,
     commitmentAlgorithm: COMMITMENT_ALGORITHM,
@@ -112,7 +115,7 @@ export const toEnvelope = (r: StrainRecord, holderId: string, anchor?: Partial<A
       taxon: taxonOf(r),
       // An animal's individual ID belongs to an outside scheme, so it is in profileData with
       // that scheme, not here as the holder's own designation.
-      internalDesignation: animal ? undefined : r.refId || undefined,
+      internalDesignation: animal || strain ? undefined : r.refId || undefined,
       // The holder's own claim about when it came into existence, distinct from
       // sealedAt. The field a prior-possession argument turns on.
       claimedCreationDate: r.dateCreated || undefined,
@@ -138,24 +141,37 @@ export const toEnvelope = (r: StrainRecord, holderId: string, anchor?: Partial<A
     attestations,
     // What is specific to this domain, and nothing more. Everything universal moved
     // to the envelope above.
-    profileData: animal
+    profileData: strain
       ? {
-          breed: r.animal?.breed || undefined,
-          sex: r.animal?.sex,
-          individualId: r.refId || undefined,
-          idScheme: r.animal?.idScheme || undefined,
-          herd: r.animal?.herd || undefined,
-          parentIds: (r.parents ?? []).some((p) => p.individualId)
-            ? (r.parents ?? []).map((p) => ({ role: p.role, individualId: p.individualId ?? '' }))
+          group: r.strain?.group,
+          designation: r.refId || undefined,
+          deposits: r.strain?.deposits?.length ? [...r.strain.deposits] : undefined,
+          method: r.breedingMethod || undefined,
+          generation: r.strain?.generation || undefined,
+          parentDeposits: (r.parents ?? []).some((p) => p.individualId)
+            ? (r.parents ?? []).map((p) => p.individualId ?? '')
             : undefined,
           notes: r.notes || undefined,
           nonce: r.nonce,
         }
-      : {
-          breedingMethod: r.breedingMethod || undefined,
-          notes: r.notes || undefined,
-          nonce: r.nonce,
-        },
+      : animal
+        ? {
+            breed: r.animal?.breed || undefined,
+            sex: r.animal?.sex,
+            individualId: r.refId || undefined,
+            idScheme: r.animal?.idScheme || undefined,
+            herd: r.animal?.herd || undefined,
+            parentIds: (r.parents ?? []).some((p) => p.individualId)
+              ? (r.parents ?? []).map((p) => ({ role: p.role, individualId: p.individualId ?? '' }))
+              : undefined,
+            notes: r.notes || undefined,
+            nonce: r.nonce,
+          }
+        : {
+            breedingMethod: r.breedingMethod || undefined,
+            notes: r.notes || undefined,
+            nonce: r.nonce,
+          },
   };
 };
 

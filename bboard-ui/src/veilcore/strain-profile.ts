@@ -170,11 +170,15 @@ export const validateStrainFields = (fields: unknown): string[] => {
   }
   if (f.notes !== undefined) {
     if (typeof f.notes !== 'string') out.push('notes must be text');
-    else if (Array.from(f.notes).length > STRAIN_NOTES_MAX) out.push(`notes must be at most ${STRAIN_NOTES_MAX} characters`);
+    else if (Array.from(f.notes).length > STRAIN_NOTES_MAX)
+      out.push(`notes must be at most ${STRAIN_NOTES_MAX} characters`);
   }
   if (f.madeOn !== undefined && f.madeOn !== '' && !(typeof f.madeOn === 'string' && isCalendarDate(f.madeOn)))
     out.push('madeOn must be empty or a date written YYYY-MM-DD');
-  if (f.loggedAt !== undefined && !(typeof f.loggedAt === 'number' && Number.isSafeInteger(f.loggedAt) && f.loggedAt >= 0))
+  if (
+    f.loggedAt !== undefined &&
+    !(typeof f.loggedAt === 'number' && Number.isSafeInteger(f.loggedAt) && f.loggedAt >= 0)
+  )
     out.push('loggedAt must be a whole number of milliseconds, 0 or more');
   if (f.nonce !== undefined && !(typeof f.nonce === 'string' && NONCE.test(f.nonce)))
     out.push('nonce must be 32 to 64 bytes of lowercase hex');

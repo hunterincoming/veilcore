@@ -26,7 +26,7 @@ import type { StrainRecord } from './records';
 export const CHANGED_FIELD_NAMES: readonly string[] = Object.freeze([
   // The app's own record fields (records.ts StrainRecord).
   'id', 'nonce', 'strainName', 'bredBy', 'dateCreated', 'notes', 'loggedAt', 'recordFingerprint', 'keyBinding',
-  'parents', 'breedingMethod', 'profile', 'taxon', 'animal', 'photoFingerprints', 'refId', 'dnaFingerprint',
+  'parents', 'breedingMethod', 'profile', 'taxon', 'animal', 'strain', 'photoFingerprints', 'refId', 'dnaFingerprint',
   'dnaFileName', 'dnaPairedAt', 'dnaFileSha256', 'dnaResultId', 'attestation', 'supersedes', 'supersededBy',
   'receivedFrom', 'receivedFromCommitment', 'receivedAt', 'transferId', 'quantity', 'licenseIds',
   'deliveryNote', 'labRef', 'resultLock', 'receiptRejected',

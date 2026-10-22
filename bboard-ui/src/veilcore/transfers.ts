@@ -28,6 +28,7 @@ import {
   type SealedBox,
 } from './vault';
 import { isAnimal } from './animal-profile';
+import { isStrain } from './strain-profile';
 import { noteSentTo, offerKeyInRecords, sentToName, type StrainRecord } from './records';
 import { registerCustodySummaries, type CustodySummaryEntry } from './disclosure';
 import { inOutbox } from './outbox';
@@ -559,13 +560,24 @@ export const offerPlaintext = (
   opts: { quantity?: string; note?: string; resultLock?: string; from?: string } = {},
 ): Record<string, unknown> => {
   const animal = isAnimal(r);
+  const strain = isStrain(r);
   return {
     strainName: r.strainName,
     bredBy: r.bredBy,
     dateCreated: r.dateCreated,
     ...(r.profile !== undefined ? { profile: r.profile } : {}),
     ...(r.taxon !== undefined ? { taxon: r.taxon } : {}),
-    ...(animal ? { refId: r.refId ?? '' } : {}),
+    ...(animal || strain ? { refId: r.refId ?? '' } : {}),
+    // A strain's group, deposit numbers and generation say which strain a sample is.
+    ...(strain
+      ? {
+          strain: {
+            group: r.strain?.group ?? 'other',
+            deposits: [...(r.strain?.deposits ?? [])],
+            generation: r.strain?.generation ?? '',
+          },
+        }
+      : {}),
     ...(animal
       ? {
           animal: { breed: r.animal?.breed ?? '', idScheme: r.animal?.idScheme ?? '', sex: r.animal?.sex ?? 'unknown' },

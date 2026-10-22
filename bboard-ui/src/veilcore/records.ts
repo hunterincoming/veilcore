@@ -25,6 +25,7 @@ import { isString } from './json';
 import { withPairSalt } from './dna-link';
 import { newNameSalt } from './verify-link';
 import { isAnimal, type AnimalDetails, type ParentRole } from './animal-profile';
+import { isStrain, STRAIN_GROUPS, type StrainDetails } from './strain-profile';
 import {
   allowReplace,
   checkRecordIntegrity,
@@ -143,6 +144,11 @@ export type StrainRecord = {
    * the date of birth.
    */
   readonly animal?: AnimalDetails;
+  /**
+   * A strain or line record's own details: group, deposit numbers, generation (strain-profile.ts).
+   * Only on records sealed under the strain profile.
+   */
+  readonly strain?: StrainDetails;
   readonly photoFingerprints?: string[]; // photos hashed locally, never uploaded
   readonly refId?: string; // breeder's own reference / lot ID
   /**
@@ -300,7 +306,8 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
     num(r.loggedAt) &&
     num(r.dnaPairedAt) &&
     (r.parents === undefined || Array.isArray(r.parents)) &&
-    (r.animal === undefined || (typeof r.animal === 'object' && r.animal !== null && !Array.isArray(r.animal)))
+    (r.animal === undefined || (typeof r.animal === 'object' && r.animal !== null && !Array.isArray(r.animal))) &&
+    (r.strain === undefined || (typeof r.strain === 'object' && r.strain !== null && !Array.isArray(r.strain)))
   );
 };
 
@@ -322,6 +329,7 @@ export type NewRecordInput = {
   photoFingerprints?: string[];
   refId?: string;
   animal?: AnimalDetails;
+  strain?: StrainDetails;
   /** The name's salt (round 6): made when the record is sealed (seal-record.ts). */
   nameSalt?: string;
 };
@@ -1219,6 +1227,7 @@ const IMPORTABLE = [
   'profile',
   'taxon',
   'animal',
+  'strain',
   'photoFingerprints',
   'refId',
   'dnaFingerprint',
@@ -1395,6 +1404,7 @@ export type OfferFields = {
   readonly taxon?: string;
   readonly refId?: string;
   readonly animal?: { readonly breed?: string; readonly idScheme?: string; readonly sex?: string };
+  readonly strain?: { readonly group?: string; readonly deposits?: readonly string[]; readonly generation?: string };
   readonly quantity?: string;
   readonly note?: string;
   /** The sender's name, as they typed it (sealed offers made since 17 Oct). */
@@ -1432,6 +1442,15 @@ export const offerFieldsOf = (v: unknown): OfferFields => {
     if (s !== undefined) out[k] = s;
   }
   if (a) out.animal = { breed: text(a.breed) ?? '', idScheme: text(a.idScheme) ?? '', sex: text(a.sex) ?? 'unknown' };
+  const st = typeof o.strain === 'object' && o.strain !== null ? (o.strain as Record<string, unknown>) : undefined;
+  if (st)
+    out.strain = {
+      group: text(st.group) ?? '',
+      deposits: Array.isArray(st.deposits)
+        ? st.deposits.filter((d): d is string => typeof d === 'string').slice(0, 8)
+        : [],
+      generation: text(st.generation) ?? '',
+    };
   const lock = text(o.resultLock)?.toLowerCase();
   if (lock && LOCK.test(lock)) out.resultLock = lock;
   return out;
@@ -1475,6 +1494,16 @@ const receivedFields = (r: StrainRecord, offer: OfferFields): StrainRecord => {
       idScheme: offer.animal?.idScheme ?? '',
       sex: offer.animal?.sex ?? 'unknown',
       herd: '',
+    };
+  }
+  // A strain's group, deposit numbers and generation name the material, like an animal's ID.
+  if (isStrain(base)) {
+    base.refId = offer.refId ?? '';
+    const g = offer.strain?.group;
+    base.strain = {
+      group: (STRAIN_GROUPS as readonly string[]).includes(g ?? '') ? g : 'other',
+      deposits: offer.strain?.deposits ?? [],
+      generation: offer.strain?.generation ?? '',
     };
   }
   return base as StrainRecord;

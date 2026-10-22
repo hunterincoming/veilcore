@@ -14,6 +14,7 @@ import { ensureKeys, forgetKeys } from './record-keys';
 import { bindingForSecret } from './key-binding';
 import { PLANT_VARIETY_PROFILE } from './envelope';
 import { ANIMAL_PROFILE, type AnimalDetails } from './animal-profile';
+import { STRAIN_PROFILE, type StrainDetails } from './strain-profile';
 
 /** What the holder wrote, already tidied by the caller (trimmed, one line where it should be). */
 export type SealInput = {
@@ -98,6 +99,51 @@ export const sealAnimalRecord = (input: AnimalSealInput, now = Date.now()): Prom
     refId: input.individualId,
     taxon: input.species,
     animal: { breed: input.breed, idScheme: input.idScheme, sex: input.sex, herd: input.herd },
+  }));
+
+/**
+ * What the holder wrote about one strain or line, already tidied by the caller. Sealed under
+ * the strain profile (strain-profile.ts), with the same fingerprint rules as any record.
+ */
+export type StrainSealInput = {
+  readonly name: string;
+  readonly species: string;
+  readonly group: StrainDetails['group'];
+  /** The holder's own designation for it ('' when none). */
+  readonly designation: string;
+  readonly deposits: string[];
+  /** How it was made: wild isolate, neutron irradiation, chemical mutagenesis… ('' when not stated). */
+  readonly method: string;
+  readonly generation: string;
+  /** '' when not stated. */
+  readonly madeOn: string;
+  /** Parent strains, each a linked record or a name and deposit number (individualId). */
+  readonly parents: ParentRef[];
+  readonly maker: string;
+  readonly notes: string;
+  readonly photoFingerprints: string[];
+};
+
+export const sealStrainRecord = (input: StrainSealInput, now = Date.now()): Promise<SealedRecord> =>
+  sealWithKey(now, (keyBinding) => ({
+    nonce: newNonce(),
+    keyBinding,
+    profile: STRAIN_PROFILE,
+    strainName: input.name,
+    bredBy: input.maker,
+    dateCreated: input.madeOn,
+    notes: input.notes,
+    loggedAt: now,
+    parents: input.parents.map((p) => ({
+      name: p.name,
+      individualId: p.individualId ?? '',
+      ...(p.recordId ? { recordId: p.recordId } : {}),
+    })),
+    photoFingerprints: input.photoFingerprints,
+    refId: input.designation,
+    taxon: input.species,
+    breedingMethod: input.method,
+    strain: { group: input.group, deposits: input.deposits, generation: input.generation },
   }));
 
 /** Make the record's key, then seal the fields that name it; forget the key if sealing fails. */

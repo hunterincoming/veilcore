@@ -1,0 +1,1065 @@
+{
+  "about": "Strain and line records: microbial strains, cell lines, insect lines (profile veilcore/profile/strain/v1, SPEC 11.9; a draft until marked final). The fingerprint is computed exactly as for any record (SPEC 3.6.1 and 4.4): contentHash = SHA-256 of the canonical serialisation of fields; fingerprint = H(\"veilcore:v1:keyrecord\", keyBinding, contentHash) when fields has keyBinding, else contentHash. The profile adds validation only: a record in `refusals` must be refused before it is sealed or stored. `appRecord` is the VeilCore site's own stored shape for the same record (informational). All strains, names, designations and deposit numbers are test data.",
+  "source": "contract/scripts/strain-vectors.mjs (node:crypto and veilcore-records canonicalise); regenerate, never edit by hand",
+  "profile": "veilcore/profile/strain/v1",
+  "keys": [
+    {
+      "recordSecret": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "identity": "8bec8e42f0904da5b0472c39f870f0dd4fb5e859e0588bae9884805166b6252d",
+      "keySalt": "b53377ce0aa423e258c86024fde3c0648d63484a77f9c53734fa2812fa0ae7c2",
+      "keyBinding": "0c900780108dc20575338110047daebdcdc6132e925c936413c021e9b84db8ef"
+    },
+    {
+      "recordSecret": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0bc4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4",
+      "identity": "c7cb739079c5d41125ca5b4706f5d700ca7cad9295555ad66dca6eeb96f24ffe",
+      "keySalt": "11f9386d7fea640a07e0e7ca9864752f04cd64bdb4639023a45c0ff922242ee8",
+      "keyBinding": "6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503"
+    }
+  ],
+  "records": [
+    {
+      "name": "a neutron-irradiated yeast mutant with its wild-type parent typed in, naming key 0",
+      "algorithm": "sha256/key-bound/v1",
+      "appRecord": {
+        "profile": "veilcore/profile/strain/v1",
+        "strainName": "Practice Yeast One",
+        "bredBy": "Example Lab (test data)",
+        "dateCreated": "2026-09-30",
+        "notes": "Test data, not a real strain.",
+        "loggedAt": 1761100000000,
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "keyBinding": "0c900780108dc20575338110047daebdcdc6132e925c936413c021e9b84db8ef",
+        "taxon": "Saccharomyces cerevisiae",
+        "refId": "QY-0012",
+        "breedingMethod": "neutron irradiation",
+        "parents": [
+          {
+            "name": "Practice Wild Type",
+            "individualId": "NBRC 99998 (test data)"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "strain": {
+          "group": "yeast",
+          "deposits": [
+            "NBRC 99999 (test data)"
+          ],
+          "generation": "M2"
+        }
+      },
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae",
+        "keyBinding": "0c900780108dc20575338110047daebdcdc6132e925c936413c021e9b84db8ef"
+      },
+      "canonical": "{\"deposits\":[\"NBRC 99999 (test data)\"],\"designation\":\"QY-0012\",\"generation\":\"M2\",\"group\":\"yeast\",\"keyBinding\":\"0c900780108dc20575338110047daebdcdc6132e925c936413c021e9b84db8ef\",\"loggedAt\":1761100000000,\"madeOn\":\"2026-09-30\",\"maker\":\"Example Lab (test data)\",\"method\":\"neutron irradiation\",\"name\":\"Practice Yeast One\",\"nonce\":\"7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e\",\"notes\":\"Test data, not a real strain.\",\"parents\":[{\"deposit\":\"NBRC 99998 (test data)\",\"name\":\"Practice Wild Type\"}],\"photoFingerprints\":[\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd\"],\"profile\":\"veilcore/profile/strain/v1\",\"species\":\"Saccharomyces cerevisiae\"}",
+      "contentHash": "8c512863440faa2fdfc56b3d4b1062aecf95932e787d3798f753a0e03468a3a1",
+      "fingerprint": "c882f2b5e50b30f638bee1690e6583082abd035a9b95c214a93acfeace552ab7"
+    },
+    {
+      "name": "the same yeast sealed without a key (a registry that does not bind keys)",
+      "algorithm": "sha256/canonical-json/v1",
+      "appRecord": {
+        "profile": "veilcore/profile/strain/v1",
+        "strainName": "Practice Yeast One",
+        "bredBy": "Example Lab (test data)",
+        "dateCreated": "2026-09-30",
+        "notes": "Test data, not a real strain.",
+        "loggedAt": 1761100000000,
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "taxon": "Saccharomyces cerevisiae",
+        "refId": "QY-0012",
+        "breedingMethod": "neutron irradiation",
+        "parents": [
+          {
+            "name": "Practice Wild Type",
+            "individualId": "NBRC 99998 (test data)"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "strain": {
+          "group": "yeast",
+          "deposits": [
+            "NBRC 99999 (test data)"
+          ],
+          "generation": "M2"
+        }
+      },
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      },
+      "canonical": "{\"deposits\":[\"NBRC 99999 (test data)\"],\"designation\":\"QY-0012\",\"generation\":\"M2\",\"group\":\"yeast\",\"loggedAt\":1761100000000,\"madeOn\":\"2026-09-30\",\"maker\":\"Example Lab (test data)\",\"method\":\"neutron irradiation\",\"name\":\"Practice Yeast One\",\"nonce\":\"7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e\",\"notes\":\"Test data, not a real strain.\",\"parents\":[{\"deposit\":\"NBRC 99998 (test data)\",\"name\":\"Practice Wild Type\"}],\"photoFingerprints\":[\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd\"],\"profile\":\"veilcore/profile/strain/v1\",\"species\":\"Saccharomyces cerevisiae\"}",
+      "contentHash": "c59fe6f5a390145e66c64fa37441b0ab4fe26f4ce10bc930e5b153acac9417c1",
+      "fingerprint": "c59fe6f5a390145e66c64fa37441b0ab4fe26f4ce10bc930e5b153acac9417c1"
+    },
+    {
+      "name": "a designation and no name, no deposits, no parents, nothing optional stated, naming key 1",
+      "algorithm": "sha256/key-bound/v1",
+      "appRecord": {
+        "profile": "veilcore/profile/strain/v1",
+        "strainName": "",
+        "bredBy": "Example Lab (test data)",
+        "dateCreated": "",
+        "notes": "",
+        "loggedAt": 1761100000000,
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "keyBinding": "6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503",
+        "taxon": "Lactobacillus plantarum",
+        "refId": "QY-0012",
+        "breedingMethod": "",
+        "parents": [],
+        "photoFingerprints": [],
+        "strain": {
+          "group": "bacterium",
+          "deposits": [],
+          "generation": ""
+        }
+      },
+      "fields": {
+        "deposits": [],
+        "designation": "QY-0012",
+        "generation": "",
+        "group": "bacterium",
+        "loggedAt": 1761100000000,
+        "madeOn": "",
+        "maker": "Example Lab (test data)",
+        "method": "",
+        "name": "",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "",
+        "parents": [],
+        "photoFingerprints": [],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Lactobacillus plantarum",
+        "keyBinding": "6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503"
+      },
+      "canonical": "{\"deposits\":[],\"designation\":\"QY-0012\",\"generation\":\"\",\"group\":\"bacterium\",\"keyBinding\":\"6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503\",\"loggedAt\":1761100000000,\"madeOn\":\"\",\"maker\":\"Example Lab (test data)\",\"method\":\"\",\"name\":\"\",\"nonce\":\"7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e\",\"notes\":\"\",\"parents\":[],\"photoFingerprints\":[],\"profile\":\"veilcore/profile/strain/v1\",\"species\":\"Lactobacillus plantarum\"}",
+      "contentHash": "ea88360387baf89a64e4c6e2c2f0479a60c2d1648d452af154535bca92648d21",
+      "fingerprint": "4f3200e5e4f429681c676da6a56bf87edd281afa02eb7522be2e8a46e4313869"
+    },
+    {
+      "name": "a cell line with two deposits and a parent linked to a logged record",
+      "algorithm": "sha256/key-bound/v1",
+      "appRecord": {
+        "profile": "veilcore/profile/strain/v1",
+        "strainName": "Practice Cell Line",
+        "bredBy": "Example Lab (test data)",
+        "dateCreated": "2026-09-30",
+        "notes": "Test data, not a real strain.",
+        "loggedAt": 1761100000000,
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "keyBinding": "0c900780108dc20575338110047daebdcdc6132e925c936413c021e9b84db8ef",
+        "taxon": "Bos taurus",
+        "refId": "QY-0012",
+        "breedingMethod": "subculture",
+        "parents": [
+          {
+            "recordId": "VEIL-00000000000000000000000000000021",
+            "name": "Practice Parent Line",
+            "individualId": ""
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "strain": {
+          "group": "cell-line",
+          "deposits": [
+            "RCB 99999 (test data)",
+            "CVCL_TEST (test data)"
+          ],
+          "generation": "P12"
+        }
+      },
+      "fields": {
+        "deposits": [
+          "RCB 99999 (test data)",
+          "CVCL_TEST (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "P12",
+        "group": "cell-line",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "subculture",
+        "name": "Practice Cell Line",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "",
+            "name": "Practice Parent Line",
+            "recordId": "VEIL-00000000000000000000000000000021"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Bos taurus",
+        "keyBinding": "0c900780108dc20575338110047daebdcdc6132e925c936413c021e9b84db8ef"
+      },
+      "canonical": "{\"deposits\":[\"RCB 99999 (test data)\",\"CVCL_TEST (test data)\"],\"designation\":\"QY-0012\",\"generation\":\"P12\",\"group\":\"cell-line\",\"keyBinding\":\"0c900780108dc20575338110047daebdcdc6132e925c936413c021e9b84db8ef\",\"loggedAt\":1761100000000,\"madeOn\":\"2026-09-30\",\"maker\":\"Example Lab (test data)\",\"method\":\"subculture\",\"name\":\"Practice Cell Line\",\"nonce\":\"7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e\",\"notes\":\"Test data, not a real strain.\",\"parents\":[{\"deposit\":\"\",\"name\":\"Practice Parent Line\",\"recordId\":\"VEIL-00000000000000000000000000000021\"}],\"photoFingerprints\":[\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd\"],\"profile\":\"veilcore/profile/strain/v1\",\"species\":\"Bos taurus\"}",
+      "contentHash": "402c2018ae7513721c33d4b0e3a7f2024b529c6eb43b81d2f8a1459f6d8b2f2f",
+      "fingerprint": "a1b4a322f44a7a91b7cc48ac625a49ea7b3e46c125b83d8c17036875342f337a"
+    },
+    {
+      "name": "an insect line from a cross (two parents), Japanese text, notes over two lines",
+      "algorithm": "sha256/key-bound/v1",
+      "appRecord": {
+        "profile": "veilcore/profile/strain/v1",
+        "strainName": "フタホシコオロギ 練習系統",
+        "bredBy": "Example Lab (test data)",
+        "dateCreated": "2026-09-30",
+        "notes": "Line one.\nLine two.",
+        "loggedAt": 1761100000000,
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "keyBinding": "6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503",
+        "taxon": "Gryllus bimaculatus",
+        "refId": "QY-0012",
+        "breedingMethod": "crossing",
+        "parents": [
+          {
+            "name": "Practice Line A",
+            "individualId": ""
+          },
+          {
+            "name": "Practice Line B",
+            "individualId": ""
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "strain": {
+          "group": "insect",
+          "deposits": [],
+          "generation": "F3"
+        }
+      },
+      "fields": {
+        "deposits": [],
+        "designation": "QY-0012",
+        "generation": "F3",
+        "group": "insect",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "crossing",
+        "name": "フタホシコオロギ 練習系統",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Line one.\nLine two.",
+        "parents": [
+          {
+            "deposit": "",
+            "name": "Practice Line A"
+          },
+          {
+            "deposit": "",
+            "name": "Practice Line B"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Gryllus bimaculatus",
+        "keyBinding": "6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503"
+      },
+      "canonical": "{\"deposits\":[],\"designation\":\"QY-0012\",\"generation\":\"F3\",\"group\":\"insect\",\"keyBinding\":\"6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503\",\"loggedAt\":1761100000000,\"madeOn\":\"2026-09-30\",\"maker\":\"Example Lab (test data)\",\"method\":\"crossing\",\"name\":\"フタホシコオロギ 練習系統\",\"nonce\":\"7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e\",\"notes\":\"Line one.\\nLine two.\",\"parents\":[{\"deposit\":\"\",\"name\":\"Practice Line A\"},{\"deposit\":\"\",\"name\":\"Practice Line B\"}],\"photoFingerprints\":[\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd\"],\"profile\":\"veilcore/profile/strain/v1\",\"species\":\"Gryllus bimaculatus\"}",
+      "contentHash": "b87a9989364eec69fab76ad8ebb8382dff29348c4dc4e387be9a04e46e9b35b0",
+      "fingerprint": "ac41e755d98c3c3ad5bcc8adef992d4715086fbd343f426a2df5aa025b854884"
+    }
+  ],
+  "refusals": [
+    {
+      "name": "a missing group",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "a group not in the list",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "plant",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "a missing deposits list",
+      "fields": {
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "deposits that are not a list",
+      "fields": {
+        "deposits": "NBRC 99999",
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "nine deposits",
+      "fields": {
+        "deposits": [
+          "TEST 0",
+          "TEST 1",
+          "TEST 2",
+          "TEST 3",
+          "TEST 4",
+          "TEST 5",
+          "TEST 6",
+          "TEST 7",
+          "TEST 8"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "an empty deposit",
+      "fields": {
+        "deposits": [
+          ""
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "the same deposit twice",
+      "fields": {
+        "deposits": [
+          "NBRC 1",
+          "NBRC 1"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "a deposit with a space at the end",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 "
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "a made-on date that is not a date",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-02-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "a made-on date in another form",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "30/09/2026",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "neither a name nor a designation",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "a line break in the name",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice\nYeast",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "an empty species",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": ""
+      }
+    },
+    {
+      "name": "an empty maker",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "a plant field (strainName) in a strain record",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae",
+        "strainName": "Practice Yeast One"
+      }
+    },
+    {
+      "name": "an animal field (sex) in a strain record",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae",
+        "sex": "unknown"
+      }
+    },
+    {
+      "name": "the plant profile",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/plant-variety/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "three parents",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          },
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          },
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "a parent with a role",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type",
+            "role": "sire"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "a parent with nothing to name it",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "",
+            "name": ""
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "a parent with no deposit field",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "an upper-case photo fingerprint",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "CDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCDCD"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "an upper-case keyBinding",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae",
+        "keyBinding": "0C900780108DC20575338110047DAEBDCDC6132E925C936413C021E9B84DB8EF"
+      }
+    },
+    {
+      "name": "a clock that is not a whole number",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000.5,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    },
+    {
+      "name": "a short nonce",
+      "fields": {
+        "deposits": [
+          "NBRC 99999 (test data)"
+        ],
+        "designation": "QY-0012",
+        "generation": "M2",
+        "group": "yeast",
+        "loggedAt": 1761100000000,
+        "madeOn": "2026-09-30",
+        "maker": "Example Lab (test data)",
+        "method": "neutron irradiation",
+        "name": "Practice Yeast One",
+        "nonce": "7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e",
+        "notes": "Test data, not a real strain.",
+        "parents": [
+          {
+            "deposit": "NBRC 99998 (test data)",
+            "name": "Practice Wild Type"
+          }
+        ],
+        "photoFingerprints": [
+          "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+        ],
+        "profile": "veilcore/profile/strain/v1",
+        "species": "Saccharomyces cerevisiae"
+      }
+    }
+  ]
+}
