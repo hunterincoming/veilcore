@@ -57,6 +57,7 @@ These are adversarial reviews and run records, not a formal security audit.
 | Document | What it covers |
 |---|---|
 | [ops/runbook.md](ops/runbook.md) | Running the CLI: rehearsal, smoke test, mainnet deploy |
+| [ops/deploying.md](ops/deploying.md) | Deploying the web app: the three deploy commands and release manifests |
 | [ops/release-checklist.md](ops/release-checklist.md) | Before every release |
 | [ops/incident-response.md](ops/incident-response.md) | What happens after a security report |
 | [ops/mainnet-day-site.md](ops/mainnet-day-site.md) | Publishing the website in mainnet mode |
