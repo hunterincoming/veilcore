@@ -89,5 +89,15 @@
     "check:rebuild": "node scripts/check-rebuild.mjs",
     "check:bitcoin-stamp": "node scripts/check-bitcoin-stamp.mjs",
     "test:bitcoin-stamp": "node --test scripts/check-bitcoin-stamp.test.mjs"
+  },
+  "allowScripts": {
+    "@swc/core": false,
+    "classic-level": false,
+    "cpu-features": false,
+    "esbuild": false,
+    "fsevents": false,
+    "msgpackr-extract": false,
+    "protobufjs": false,
+    "ssh2": false
   }
 }
