@@ -65,6 +65,14 @@ describe('a backup that works without VeilCore', () => {
     expect(file.recordData.map((r) => r.id)).toEqual([rec.id]);
     expect(file.recordData[0].notes).toBe('kept only in the backup once the registry is gone');
     expect(Object.keys(file.proofs)).toEqual([rec.recordFingerprint]);
+    // The sealed fields recompute to the proof code by the spec alone: SHA-256 of their canonical
+    // form, folded with the key binding they carry (SPEC 3.6.1), no record shape from this app.
+    const sealed = (JSON.parse(text) as { sealedFields: Record<string, Record<string, unknown>> }).sealedFields[rec.id];
+    const { canonicalise } = await import('veilcore-records');
+    const { keyBoundFingerprint } = await import('./key-binding');
+    const { createHash } = await import('node:crypto');
+    const content = createHash('sha256').update(canonicalise(sealed)).digest('hex');
+    expect(keyBoundFingerprint(sealed.keyBinding as string, content)).toBe(rec.recordFingerprint);
 
     // A new device: nothing in this browser, and the registry doesn't answer.
     local.clear();

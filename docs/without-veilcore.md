@@ -41,6 +41,15 @@ the code stands for. Now the file also carries:
   a record that doesn't match still restores the keys, and says what went wrong.
 - `proofs`: the inclusion proof of each record whose batch is sealed, fetched when the file is
   made. Proofs are public data; the holder just keeps their own copy.
+- `sealedFields`: each record's sealed fields, exactly what its proof code is computed over.
+  With these, any implementation of the format checks the file without knowing anything
+  about this app.
+
+**Opening a backup without the website:** `npx veilcore-records backup <file>` (veilcore-sdk,
+from version 0.17.0) checks every record in the file, opens password-locked files, and names
+the transaction that dates each batch. It was checked against a real backup made by the app.
+Until 0.17.0 is published to npm, run it from a clone of veilcore-sdk
+(`node bin/veilcore.mjs backup <file>`).
 
 A passkey copy doesn't carry them: it lives on our registry, so it's no help if the registry
 is gone, and leaving them out keeps it small. The backup file is the thing to keep.
@@ -49,11 +58,11 @@ is gone, and leaving them out keeps it small. The backup file is the thing to ke
 
 1. **Publish the registry's code.** Before that: check its history for anything secret, and
    rotate whatever was ever in it. Hunter's call on timing.
-2. **Open a backup without the website.** A `veilcore backup <file>` command in veilcore-records:
-   unlock the file (password files included), recompute every record, fold every proof, and
-   say which Midnight transaction to look up. Then a holder needs no VeilCore page at all.
-3. **The strain profile in veilcore-records**, so the command above and `verify` handle strain
-   records like plant and animal ones.
+2. **Publish veilcore-records 0.17.0** to npm (from Hunter's Mac, RELEASING.md), so the backup
+   command works with `npx`.
+3. **The strain profile in veilcore-records.** Strain records already check by their
+   fingerprint; what's missing is refusing a strain record in the wrong form, as the animal
+   profile does.
 4. **Deal messages in the backup**, so the royalty history is kept too, not only by a download.
 5. **An implementation by someone else.** Everything an implementer needs is published; the
    vectors and the runner (`conformance/run-cli.mjs`) test any program that reads a JSON job

@@ -46,6 +46,7 @@ import { issuerDealsForBackup, issuerDealsMissingFrom, markIssuerDealsBackedUp, 
 import { enT } from '../i18n/translate';
 import { importRecordRows, recordsForBackup, type ImportResult } from './records';
 import { proofFor } from './proofs';
+import { committedRecordFields, type CommittedRecordInput } from './commitment';
 import { base64urlnopad } from '@scure/base';
 
 export const BACKUP_FORMAT = 'veilcore-backup';
@@ -92,6 +93,14 @@ export type BackupContents = {
    * without the registry. Best effort: what the registry answered when the file was made.
    */
   readonly proofs?: Readonly<Record<string, unknown>>;
+  /**
+   * Each record's sealed fields by record id: exactly what its proof code is computed over
+   * (SPEC 3.6.1, the profile's form), the same as an evidence bundle's sealed-fields.json.
+   * Any implementation of the format can check a backup with these and nothing of this app:
+   * `veilcore backup <file>` in veilcore-records does. A record too old to recompute (no
+   * nonce) has none.
+   */
+  readonly sealedFields?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
 };
 
 const WARNING =
@@ -281,7 +290,21 @@ export const withRecordsAndProofs = async (contents: BackupContents): Promise<Ba
       if (p.status !== 'none') proofs[batch[j]] = p.proof;
     });
   }
-  return { ...contents, recordData, ...(Object.keys(proofs).length ? { proofs } : {}) };
+  const sealedFields: Record<string, Record<string, unknown>> = {};
+  for (const r of recordData) {
+    if (!r.nonce) continue;
+    try {
+      sealedFields[r.id] = committedRecordFields(r as CommittedRecordInput);
+    } catch {
+      /* a record not in its profile's form: restored as it is, not given fields to check */
+    }
+  }
+  return {
+    ...contents,
+    recordData,
+    ...(Object.keys(proofs).length ? { proofs } : {}),
+    ...(Object.keys(sealedFields).length ? { sealedFields } : {}),
+  };
 };
 
 /** What goes in the file now. */
