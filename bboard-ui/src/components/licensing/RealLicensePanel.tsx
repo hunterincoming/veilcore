@@ -30,6 +30,7 @@ import {
 import { useDeal, type DealParty } from '../../veilcore/deal-client';
 import { RoyaltyLedger } from './RoyaltyLedger';
 import { OffspringRoyalty } from './OffspringRoyalty';
+import { HandOnIssuer } from './HandOnIssuer';
 import {
   commitHashOf,
   createInvite,
@@ -125,6 +126,18 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
           if (status === 'PENDING' && !issued) {
             setOnChain(license.id, (c) => ({ ...c!, issueSeenAt: Date.now() }));
             return;
+          }
+          // Gone because it was handed on (approved here or on another device): the license
+          // is now the new holder's, not revoked.
+          if (status === 'none' && live && oc.handOn?.commitment) {
+            const moved = await licenseStatusNow(oc.handOn.commitment, oc.issuerRecord);
+            if (!active) return;
+            if (moved === 'ACTIVE') {
+              const { afterHandOn } = await import('../../veilcore/hand-on');
+              setOnChain(license.id, (c) => afterHandOn(c!, c!.handOn?.approveTx, Date.now()));
+              onToast(`Handed on: the license is now ${oc.handOn.label}’s.`);
+              return;
+            }
           }
           if (status === 'none' && (issued || live)) {
             setOnChain(license.id, (c) => ({ ...c!, goneSeenAt: Date.now(), revokedAt: c!.revokedAt ?? Date.now() }));
@@ -480,6 +493,16 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
               obligation={license.agreementFingerprint}
               beneficiary={oc.identity}
               issuerSecret={keys.recordSecret}
+            />
+          )}
+          {party && oc.termsSentAt && (
+            <HandOnIssuer
+              license={license}
+              party={party}
+              entries={deal.entries}
+              recordSecret={keys.recordSecret}
+              blocked={blocked}
+              onToast={onToast}
             />
           )}
           <ConfirmInline

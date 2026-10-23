@@ -191,6 +191,27 @@ export type DealBody =
       readonly note?: string;
     }
   | {
+      /**
+       * The licensee asks the licensor to hand this license on to someone else (hand-on.ts).
+       * A request only: nothing moves until both of them act on chain.
+       */
+      readonly type: 'handon-ask';
+      /** Who to, in the licensee's words. */
+      readonly to: string;
+      readonly note?: string;
+    }
+  | {
+      /**
+       * The licensor names the new holder's license commitment, checked with them by a
+       * read-aloud code: what the current holder proposes the move to (proposeTransfer), and
+       * the only one the licensor will approve (approveTransfer checks it).
+       */
+      readonly type: 'handon';
+      readonly newLicense: string;
+      /** The new holder, in the licensor's words. */
+      readonly to: string;
+    }
+  | {
       /** A W3C Verifiable Credential the licensor signed for the licensee to keep (credentials.ts). */
       readonly type: 'credential';
       readonly credential: Record<string, unknown>;
@@ -300,6 +321,10 @@ export const wellFormed = (m: unknown, now = Date.now()): m is DealMessage => {
       );
     case 'received':
       return text(o.statementId, 100) && sig(o.statementSig) && dec(o.amount) && text(o.currency, 10) && opt(o.note);
+    case 'handon-ask':
+      return text(o.to, 80) && o.to !== '' && opt(o.note);
+    case 'handon':
+      return typeof o.newLicense === 'string' && /^[0-9a-f]{64}$/.test(o.newLicense) && text(o.to, 80) && o.to !== '';
     case 'credential':
       return plain(o.credential);
     default:

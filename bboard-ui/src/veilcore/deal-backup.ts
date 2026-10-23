@@ -17,20 +17,35 @@ import { dealRecordOf, readAll, type DealParty } from './deal-client';
 /** Every deal this browser can read: as licensor (its licenses) and as licensee (held). */
 export const dealPartiesHere = (): { party: DealParty; mine: string }[] => {
   const out: { party: DealParty; mine: string }[] = [];
-  for (const l of allLicenses()) {
-    const oc = l.onChain;
-    if (!oc?.partySecret || !oc.licenseeNonce || !oc.commitment || !oc.issuerRecord || !oc.termsSentAt) continue;
+  const issuerDeal = (d: {
+    partySecret?: string;
+    licenseeNonce?: string;
+    commitment?: string;
+    issuerRecord?: string;
+    termsSentAt?: number;
+    inviteId: string;
+    issuerToken: string;
+  }) => {
+    if (!d.partySecret || !d.licenseeNonce || !d.commitment || !d.issuerRecord || !d.termsSentAt) return;
     out.push({
       party: {
         side: 'issuer',
-        mySecret: oc.partySecret,
-        theirPublic: oc.licenseeNonce,
-        commitment: oc.commitment,
-        issuerRecord: oc.issuerRecord,
-        invite: { id: oc.inviteId, token: oc.issuerToken },
+        mySecret: d.partySecret,
+        theirPublic: d.licenseeNonce,
+        commitment: d.commitment,
+        issuerRecord: d.issuerRecord,
+        invite: { id: d.inviteId, token: d.issuerToken },
       },
-      mine: publicOf(oc.partySecret),
+      mine: publicOf(d.partySecret),
     });
+  };
+  for (const l of allLicenses()) {
+    const oc = l.onChain;
+    if (!oc) continue;
+    issuerDeal(oc);
+    // Earlier holders' deals (hand-on.ts), and the new holder's while a hand-on is under way.
+    for (const p of oc.previous ?? []) issuerDeal(p);
+    if (oc.handOn) issuerDeal({ ...oc.handOn, issuerRecord: oc.issuerRecord });
   }
   for (const h of heldLicenses()) {
     if (!h.partySecret || !h.issuerNonce) continue;

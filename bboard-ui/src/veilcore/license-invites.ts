@@ -323,13 +323,16 @@ export const licenseStatusNow = async (
  * this browser (held-licenses.ts), then answer the invite. A retried accept reuses the secret
  * already kept for this invite.
  */
-export const acceptAsLicensee = async (invite: LicenseInvite, token: string): Promise<void> => {
+export const acceptAsLicensee = async (invite: LicenseInvite, token: string, handOnRecord?: string): Promise<void> => {
   const { heldLicense, keepHeldLicense, newLicenseSecret } = await import('./held-licenses');
   let held = heldLicense(invite.id);
   if (!held) {
-    const { licenseRequestFor } = await import('./chain/actions');
+    const { licenseRequestAgainst, licenseRequestFor } = await import('./chain/actions');
     const secret = newLicenseSecret();
-    const req = licenseRequestFor(bytes(secret), invite.identity, await latestLedger());
+    // A hand-on is built against the record the license was issued from (hand-on.ts).
+    const req = handOnRecord
+      ? licenseRequestAgainst(bytes(secret), invite.identity, handOnRecord, await latestLedger())
+      : licenseRequestFor(bytes(secret), invite.identity, await latestLedger());
     // This side's key for the deal: its public half is the nonce the code is made with.
     const { newPartyKey } = await import('./deal');
     const party = newPartyKey();
@@ -343,6 +346,7 @@ export const acceptAsLicensee = async (invite: LicenseInvite, token: string): Pr
       partySecret: party.secret,
       label: invite.label,
       acceptedAt: Date.now(),
+      ...(handOnRecord ? { handOn: true } : {}),
     });
   }
   await acceptInvite(invite.id, await commitHashOf(held.commitment, held.issuerRecord, held.licenseeNonce), token);
@@ -363,4 +367,33 @@ export const revealAsLicensee = async (invite: LicenseInvite, token: string): Pr
     { commitment: held.commitment, issuerRecord: held.issuerRecord, licenseeNonce: held.licenseeNonce },
     token,
   );
+};
+
+/**
+ * The commitment a live license is proposed to move to (proposeTransfer), read from the chain
+ * now, hex; undefined when no move is proposed. What the issuer checks before approving.
+ */
+export const pendingTransferNow = async (
+  commitment: string,
+  issuerRecord: string,
+  read = latestLedger,
+): Promise<string | undefined> => {
+  const { licenseKeyOf } = await import('./chain/actions');
+  const l = await read();
+  const k = bytes(licenseKeyOf(commitment, issuerRecord));
+  return l.pendingTransferOf.member(k) ? hexOf(l.pendingTransferOf.lookup(k)) : undefined;
+};
+
+/**
+ * A hand-on link (hand-on.ts): the invite link, plus the issuing record the new holder's
+ * commitment must be built against (the license's own, not the issuer's head now: a moved
+ * license keeps its key in the contract). In the fragment, so it never reaches a server.
+ */
+export const handOnPath = (inviteId: string, acceptToken: string, issuerRecord: string): string =>
+  `${invitePath(inviteId, acceptToken)}&h=${encodeURIComponent(issuerRecord)}`;
+
+/** The issuing record a hand-on link names, if it is one. */
+export const handOnRecordFromHash = (hash: string): string | undefined => {
+  const m = /[#&]h=([0-9a-f]{64})(?:&|$)/.exec(hash);
+  return m ? m[1] : undefined;
 };

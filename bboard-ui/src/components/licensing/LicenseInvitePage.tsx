@@ -36,6 +36,7 @@ import {
   acceptAsLicensee,
   commitHashOf,
   getInvite,
+  handOnRecordFromHash,
   licenseCode,
   licenseStatusNow,
   postActivated,
@@ -51,6 +52,8 @@ import { useChainCall } from '../chain/useChainCall';
 import { backupReturnTo } from '../flow/backup-return';
 import { DealSteps, HowItWorks } from './DealSteps';
 import { licenseeSteps } from './steps';
+import { newHolderSteps } from '../../veilcore/hand-on';
+import { HandOnHolder } from './HandOnHolder';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { Wordmark } from '../Wordmark';
@@ -79,6 +82,10 @@ export const LicenseInvitePage: React.FC = () => {
   const { hash } = useLocation();
   const token = tokenFromHash(hash);
   const held = useHeldLicenses().find((h) => h.inviteId === id);
+  // A hand-on link (hand-on.ts) names the license's issuing record: this side takes over a
+  // live license rather than being issued a new one.
+  const handOnRecord = handOnRecordFromHash(hash);
+  const handOnMode = Boolean(held?.handOn ?? handOnRecord);
   const [invite, setInvite] = useState<LicenseInvite | null | 'loading'>('loading');
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
@@ -154,6 +161,9 @@ export const LicenseInvitePage: React.FC = () => {
         const status = await licenseStatusNow(held.commitment, held.issuerRecord);
         if (!live) return;
         setOnChainStatus(status);
+        // Taken over: live from the licensor's approval, with no activation from here.
+        if (status === 'ACTIVE' && held.handOn && !held.activatedAt)
+          updateHeldLicense(id, (h) => ({ ...h, activatedAt: Date.now() }));
         if (!held.issueTx && inv.issueTx) {
           const v = await verifyIssued(inv.issueTx, held.commitment, held.issuerRecord);
           if (!live) return;
@@ -224,7 +234,9 @@ export const LicenseInvitePage: React.FC = () => {
   const issued = Boolean(held?.issueTx || onChain === 'PENDING' || onChain === 'ACTIVE');
   const isLive = Boolean(held?.activateTx || onChain === 'ACTIVE');
   // Issued once, now gone from the chain: cancelled or revoked by the sender.
-  const gone = Boolean(onChain === 'none' && (held?.issueTx || held?.activateTx));
+  const gone = Boolean(onChain === 'none' && (held?.issueTx || held?.activateTx || held?.activatedAt));
+  // Gone because this side handed it on and the licensor approved it.
+  const handedOn = Boolean(gone && held?.handOnTx);
   // Once accepted, the record is the one this device accepted for, whatever the registry says now.
   const issuerKey = held?.identity ?? invite.identity;
   const swapped = held && held.identity !== invite.identity;
@@ -233,8 +245,23 @@ export const LicenseInvitePage: React.FC = () => {
     setBusy(true);
     setError(undefined);
     try {
-      await acceptAsLicensee(invite, token);
+      await acceptAsLicensee(invite, token, handOnRecord);
       await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** A hand-on: sign the agreement to the terms; the license goes live when the licensor approves. */
+  const agreeOnly = async () => {
+    setBusy(true);
+    setError(undefined);
+    try {
+      if (!party || offered?.ok !== true) throw new Error('The terms have not arrived, or didn’t check out.');
+      await say(party, { type: 'agree', agreementFingerprint: offered.copy.agreementFingerprint });
+      updateHeldLicense(id, (h) => ({ ...h, agreement: offered.copy, agreedAt: Date.now() }));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -263,7 +290,15 @@ export const LicenseInvitePage: React.FC = () => {
   return (
     <Frame>
       <Typography variant="h5" component="h1" sx={{ mb: 1 }}>
-        {gone ? 'This license was cancelled' : isLive ? 'Your license is live' : 'You’ve been offered a license'}
+        {handedOn
+          ? 'You handed this license on'
+          : gone
+            ? 'This license was cancelled'
+            : isLive
+              ? 'Your license is live'
+              : handOnMode
+                ? 'A license is being handed on to you'
+                : 'You’ve been offered a license'}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
         For: <b>{invite.label || 'you'}</b> · from the record with on-chain key{' '}
@@ -284,7 +319,103 @@ export const LicenseInvitePage: React.FC = () => {
         </Alert>
       )}
 
-      {!takenByOther && !isLive && !gone && (
+      {!takenByOther && !isLive && !gone && handOnMode && (
+        <DealSteps
+          steps={newHolderSteps({
+            accepted: !!held,
+            backedUp: !!held?.backedUpAt,
+            agreed: !!held?.agreedAt,
+            live: isLive,
+          })}
+        >
+          {!held && (
+            <Stack spacing={1.25}>
+              <Button variant="contained" size="large" disabled={busy} onClick={() => void accept()}>
+                {busy ? 'Accepting…' : 'Accept'}
+              </Button>
+              <HowItWorks>
+                Someone holds a live license from this record and is handing it on to you, with the licensor&apos;s
+                agreement. Accepting makes your own license key on this device; it never leaves it. You read the
+                licensor a code, read and agree to the terms, and once the current holder hands it on and the licensor
+                approves, it&apos;s yours on Midnight. VeilCore pays the network fee and never sees the terms.
+              </HowItWorks>
+            </Stack>
+          )}
+
+          {held && !held.backedUpAt && (
+            <Stack spacing={1.25}>
+              <Typography variant="body2">
+                Your license key is on this device only. Save your backup now: without it you can&apos;t show this
+                license from another device.
+              </Typography>
+              <Button
+                component={RouterLink}
+                to="/backup"
+                onClick={() => backupReturnTo(window.location.pathname + window.location.hash)}
+                variant="contained"
+                size="large"
+                sx={{ alignSelf: 'flex-start' }}
+              >
+                Save backup
+              </Button>
+            </Stack>
+          )}
+
+          {held && held.backedUpAt && !held.agreedAt && offered?.ok !== true && (
+            <Stack spacing={1.25}>
+              {code ? (
+                <>
+                  <Typography variant="body2">Read this code to the licensor, by phone or in person:</Typography>
+                  <Typography
+                    data-license-code=""
+                    sx={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, letterSpacing: '0.15em' }}
+                  >
+                    {code}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    When it matches theirs, they send you the terms and this page moves on by itself.
+                  </Typography>
+                </>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Waiting for the licensor&apos;s page to answer. Your code shows here once it does.
+                </Typography>
+              )}
+            </Stack>
+          )}
+
+          {held && held.backedUpAt && !held.agreedAt && offered?.ok === true && (
+            <Stack spacing={1.25}>
+              <Typography variant="body2">
+                The terms you take the license over on (the same as the current holder&apos;s):
+              </Typography>
+              <TermsBox offered={offered} />
+              <FormControlLabel
+                control={<Checkbox checked={agreeChecked} onChange={(e) => setAgreeChecked(e.target.checked)} />}
+                label="I agree to these terms"
+              />
+              <Button
+                variant="contained"
+                size="large"
+                disabled={busy || !agreeChecked}
+                onClick={() => void agreeOnly()}
+                sx={{ alignSelf: 'flex-start' }}
+              >
+                Agree
+              </Button>
+            </Stack>
+          )}
+
+          {held && held.agreedAt && (
+            <Typography variant="body2">
+              Waiting for the current holder to hand it on and the licensor to approve it. This page reads the chain
+              itself and moves on when they do. You can close it and open the link again later.
+            </Typography>
+          )}
+        </DealSteps>
+      )}
+
+      {!takenByOther && !isLive && !gone && !handOnMode && (
         <DealSteps steps={licenseeSteps({ accepted: !!held, backedUp: !!held?.backedUpAt, issued, live: isLive })}>
           {!held && (
             <Stack spacing={1.25}>
@@ -372,7 +503,13 @@ export const LicenseInvitePage: React.FC = () => {
         </DealSteps>
       )}
 
-      {gone && (
+      {handedOn && (
+        <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
+          The licensor approved it: this license is now {held?.handOnTo ?? 'the new holder'}&apos;s, not yours. Your
+          royalty history is kept in your backup.
+        </Alert>
+      )}
+      {gone && !handedOn && (
         <Alert severity="error" variant="outlined" sx={{ mb: 2 }}>
           It is no longer on Midnight: the sender cancelled or revoked it. Ask them if you think that&apos;s a mistake.
         </Alert>
@@ -406,6 +543,10 @@ export const LicenseInvitePage: React.FC = () => {
               }}
             />
           )}
+
+          <Box sx={{ mt: 2 }}>
+            <HandOnHolder held={held} party={party} entries={deal.entries} refresh={deal.refresh} />
+          </Box>
 
           {(Number(held.agreement.terms.offspringRoyaltyPct) || 0) > 0 && (
             <Box sx={{ mt: 2 }}>

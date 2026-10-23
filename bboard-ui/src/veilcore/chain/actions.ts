@@ -24,7 +24,7 @@ import { NETWORK } from '../../config/network';
 import { CompiledVeilcore, PROVABLE_CIRCUITS } from '../../../../contract/src/veilcore';
 import { createVeilcorePrivateState, withLicense, type VeilcorePrivateState } from '../../../../contract/src/witnesses';
 import { ledger as readLedger, pureCircuits } from '../../../../contract/src/managed/veilcore/contract/index.js';
-import { currentHead } from '../../../../contract/src/verify';
+import { currentHead, identityOf } from '../../../../contract/src/verify';
 import { recoveryCommitmentOf } from './identity';
 import { CHAIN_CONTRACT, chainNotReady, type BrowserCircuit } from './config';
 import { makeProviders, PRIVATE_STATE_ID, type Hooks } from './providers';
@@ -215,6 +215,23 @@ export const licenseRequestFor = (
   return { commitment: toHexLocal(pureCircuits.licenseCommit(licenseSecret, head)), issuerRecord: toHexLocal(head) };
 };
 
+/**
+ * The new holder's side of a hand-on (hand-on.ts): the commitment built against the record the
+ * license was ISSUED from, which keeps its key in the contract when it moves, not the issuer's
+ * head now. Refuses a record that isn't one of the issuer identity's own. Reads, sends nothing.
+ */
+export const licenseRequestAgainst = (
+  licenseSecret: Uint8Array,
+  issuerIdentity: string,
+  issuingRecordHex: string,
+  l: ReturnType<typeof readLedger>,
+): LicenseRequest => {
+  const rc = hexToBytes(issuingRecordHex);
+  if (toHexLocal(identityOf(l, rc)) !== issuerIdentity.toLowerCase())
+    throw new Error('This link names a record that isn’t the sender’s. Nothing was sent: ask them for a new link.');
+  return { commitment: toHexLocal(pureCircuits.licenseCommit(licenseSecret, rc)), issuerRecord: toHexLocal(rc) };
+};
+
 /** The key a license has in the contract's status map (all hex in, hex out). */
 export const licenseKeyOf = (commitmentHex: string, issuerRecordHex: string): string =>
   toHexLocal(pureCircuits.licenseKey(hexToBytes(commitmentHex), hexToBytes(issuerRecordHex)));
@@ -275,6 +292,50 @@ export const revokeLicenseOnChain = (
   call(
     'revokeLicense',
     [hexToBytes(commitmentHex), hexToBytes(issuingRecordHex)],
+    createVeilcorePrivateState(recordSecret),
+    opts,
+  );
+
+/**
+ * The current holder proposes handing their license on to the commitment the new holder built
+ * (hand-on.ts). Proves the holder's license secret; nothing moves until the issuer approves.
+ */
+export const proposeTransferOnChain = (
+  licenseSecret: Uint8Array,
+  issuerRecordHex: string,
+  newCommitmentHex: string,
+  opts: CallOptions = {},
+) =>
+  call(
+    'proposeTransfer',
+    [hexToBytes(issuerRecordHex), hexToBytes(newCommitmentHex)],
+    withLicense(createVeilcorePrivateState(new Uint8Array(32)), licenseSecret, hexToBytes(issuerRecordHex)),
+    opts,
+  );
+
+/** The current holder takes back a proposal the issuer has not approved. */
+export const withdrawTransferOnChain = (licenseSecret: Uint8Array, issuerRecordHex: string, opts: CallOptions = {}) =>
+  call(
+    'withdrawTransfer',
+    [hexToBytes(issuerRecordHex)],
+    withLicense(createVeilcorePrivateState(new Uint8Array(32)), licenseSecret, hexToBytes(issuerRecordHex)),
+    opts,
+  );
+
+/**
+ * The issuer approves the move, naming the new holder's commitment it checked by code: the
+ * contract refuses if the proposal names any other. The license keeps its place in the tree.
+ */
+export const approveTransferOnChain = (
+  recordSecret: Uint8Array,
+  commitmentHex: string,
+  issuingRecordHex: string,
+  newCommitmentHex: string,
+  opts: CallOptions = {},
+) =>
+  call(
+    'approveTransfer',
+    [hexToBytes(commitmentHex), hexToBytes(issuingRecordHex), hexToBytes(newCommitmentHex)],
     createVeilcorePrivateState(recordSecret),
     opts,
   );

@@ -170,7 +170,7 @@ export const CHAIN_READY: boolean = chainNotReady() === undefined;
 
 /**
  * The circuits the browser may call, and nothing else: the record calls, and a real
- * two-party license (issue, countersign, prove, revoke). All need public parameters k<=14.
+ * two-party license (issue, countersign, prove, revoke, hand on). All need public parameters k<=14.
  */
 export const BROWSER_CIRCUITS = [
   'anchor',
@@ -180,6 +180,9 @@ export const BROWSER_CIRCUITS = [
   'countersignLicense',
   'proveLicense',
   'revokeLicense',
+  'proposeTransfer',
+  'approveTransfer',
+  'withdrawTransfer',
   'proposeParent',
   'confirmParent',
   'withdrawParent',

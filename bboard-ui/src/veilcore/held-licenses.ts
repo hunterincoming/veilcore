@@ -42,6 +42,15 @@ export type HeldLicense = {
   readonly activatedAt?: number;
   /** When a checked backup was seen to hold this license's secret. */
   readonly backedUpAt?: number;
+  /**
+   * Taken over from its previous holder (hand-on.ts), not issued new: it goes live when the
+   * licensor approves the move, with no activation from this side.
+   */
+  readonly handOn?: boolean;
+  /** This side handed the license on: the proposal it sent (proposeTransfer), and to whom. */
+  readonly handOnTx?: string;
+  readonly handOnTo?: string;
+  readonly handOnCommitment?: string;
 };
 
 /** What the licensee sees and agrees to: enough to recompute the agreement's fingerprint. */

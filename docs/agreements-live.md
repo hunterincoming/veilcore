@@ -62,12 +62,16 @@ holds or moves anyone's money.
 7. **Parent links.** The child's holder names a parent on chain; the parent's holder
    confirms. The chain is the mailbox: a record's page lists the records waiting for it
    to confirm.
-8. **Handing a license on.** Today the breeder revokes the license and issues a new one to
-   the new holder, with its own link, code and terms: the same checks as any license. The
-   contract can also move a license in place (proposeTransfer, approveTransfer), but doing it
-   safely from the website needs a second read-aloud code, between the breeder and the new
-   holder, so neither has to trust the old holder for the other's key. That is built when a
-   user needs it.
+8. **Handing a license on (built 23 Oct).** The license moves in place on chain
+   (proposeTransfer, approveTransfer), keeping its terms and its place, and only with both
+   the holder and the breeder (`veilcore/hand-on.ts`). The breeder sends the new holder a
+   hand-on link; they accept with their own key and read the breeder a second 6-digit code,
+   so the breeder approves exactly the key the new holder made, whatever the old holder or
+   the registry say. The breeder signs that key to the current holder ('handon'); the holder
+   hands it on; the breeder approves. The holder can ask first ('handon-ask') and can take a
+   proposal back until it is approved. Each earlier holder's deal and signed history stays
+   with the license and in the backup. Tested against the compiled contract
+   (`hand-on-actions.test.ts`). Needs the sponsor redeployed with the three calls allowed.
 
    **Why a license is not a Midnight token (researched 23 Oct 2026).** A license must not
    move without the breeder: selling or passing on a protected variety without the owner's

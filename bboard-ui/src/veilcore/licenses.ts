@@ -148,6 +148,35 @@ export type OnChainLicense = {
   readonly activeSeenAt?: number;
   readonly revokeTx?: string;
   readonly revokedAt?: number;
+  /** Handing this license on to a new holder, while it is under way (hand-on.ts). */
+  readonly handOn?: HandOnInvite;
+  /** Who held it before, oldest first: each earlier holder's deal, kept for its signed history. */
+  readonly previous?: readonly OnChainLicense[];
+};
+
+/**
+ * The issuer's side of handing a live license on (hand-on.ts): an invite to the new holder,
+ * the same handshake as a new license, then the current holder's proposal and this side's
+ * approval on chain.
+ */
+export type HandOnInvite = {
+  readonly inviteId: string;
+  readonly acceptToken: string;
+  readonly issuerToken: string;
+  readonly label: string;
+  readonly invitedAt: number;
+  readonly commitHash?: string;
+  /** This side's deal key with the NEW holder (public half = its nonce for the code). */
+  readonly issuerNonce?: string;
+  readonly partySecret?: string;
+  /** The new holder's reveal, checked against commitHash and built on the license's own record. */
+  readonly commitment?: string;
+  readonly licenseeNonce?: string;
+  /** When the terms went to the new holder. */
+  readonly termsSentAt?: number;
+  /** When the signed 'handon' message went to the current holder. */
+  readonly askedAt?: number;
+  readonly approveTx?: string;
 };
 
 /** A license live on chain: issued and countersigned by the other party's own secret, checked here, not revoked. */

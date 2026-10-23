@@ -55,7 +55,10 @@ export const contractStateAfter = (
       | 'proposeParent'
       | 'confirmParent'
       | 'proposeObligation'
-      | 'acceptObligation';
+      | 'acceptObligation'
+      | 'proposeTransfer'
+      | 'approveTransfer'
+      | 'withdrawTransfer';
     args: unknown[];
     /** The whole private state, when the call needs more than a record secret (a licence). */
     privateState?: VeilcorePrivateState;

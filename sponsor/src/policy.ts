@@ -15,8 +15,8 @@ import { ContractCall, ContractDeploy, MaintenanceUpdate, Transaction } from '@m
 export const PHASE1_PUBLIC_CIRCUITS = ['anchor', 'proveOwnership', 'pairDna'] as const;
 
 /**
- * The agreement calls (docs/agreements-live.md): a two-party license and its proof and
- * revocation, parentage both holders confirm, and obligations such as an offspring royalty.
+ * The agreement calls (docs/agreements-live.md): a two-party license and its proof,
+ * revocation and hand-on, parentage both holders confirm, and obligations such as an offspring royalty.
  * Each is a call a visitor's browser has proved; the sponsor pays its fee within the same
  * limits as every other call.
  */
@@ -25,6 +25,9 @@ export const AGREEMENT_CIRCUITS = [
   'countersignLicense',
   'proveLicense',
   'revokeLicense',
+  'proposeTransfer',
+  'approveTransfer',
+  'withdrawTransfer',
   'proposeParent',
   'confirmParent',
   'withdrawParent',
