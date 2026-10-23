@@ -46,6 +46,7 @@ import { issuerDealsForBackup, issuerDealsMissingFrom, markIssuerDealsBackedUp, 
 import { enT } from '../i18n/translate';
 import { importRecordRows, recordsForBackup, type ImportResult } from './records';
 import { proofFor } from './proofs';
+import { dealRecordsForBackup } from './deal-backup';
 import { committedRecordFields, type CommittedRecordInput } from './commitment';
 import { base64urlnopad } from '@scure/base';
 
@@ -101,6 +102,12 @@ export type BackupContents = {
    * nonce) has none.
    */
   readonly sealedFields?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
+  /**
+   * The signed record of each license deal here (deal-backup.ts): terms, royalty statements,
+   * replies, payments and confirmations, as their senders signed them. Kept for the holder,
+   * not restored: the deal itself stays on the registry. Best effort, as `proofs`.
+   */
+  readonly dealRecords?: readonly unknown[];
 };
 
 const WARNING =
@@ -279,8 +286,10 @@ const PROOF_FETCHES = 6;
  * can't give now (not batched yet, offline) is simply left out: the next backup has it.
  */
 export const withRecordsAndProofs = async (contents: BackupContents): Promise<BackupContents> => {
+  const dealRecords = await dealRecordsForBackup().catch(() => []);
+  const deals = dealRecords.length ? { dealRecords } : {};
   const recordData = await recordsForBackup().catch(() => []);
-  if (recordData.length === 0) return contents;
+  if (recordData.length === 0) return { ...contents, ...deals };
   const prints = [...new Set(recordData.map((r) => r.recordFingerprint).filter((f) => HEX64.test(f ?? '')))];
   const proofs: Record<string, unknown> = {};
   for (let i = 0; i < prints.length; i += PROOF_FETCHES) {
@@ -304,6 +313,7 @@ export const withRecordsAndProofs = async (contents: BackupContents): Promise<Ba
     recordData,
     ...(Object.keys(proofs).length ? { proofs } : {}),
     ...(Object.keys(sealedFields).length ? { sealedFields } : {}),
+    ...deals,
   };
 };
 

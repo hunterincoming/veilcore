@@ -174,9 +174,21 @@ export const useDeal = (
  * whoever they choose to show.
  */
 export const downloadDealRecord = (p: DealParty, mine: string, entries: readonly DealEntry[]): void => {
+  const record = dealRecordOf(p, mine, entries);
+  const blob = new Blob([JSON.stringify(record, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `veilcore-deal-record-${p.commitment.slice(0, 8)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+/** The deal's record as an object (downloadDealRecord's file, and the backup's dealRecords). */
+export const dealRecordOf = (p: DealParty, mine: string, entries: readonly DealEntry[]) => {
   const keys =
     p.side === 'issuer' ? { issuer: mine, licensee: p.theirPublic } : { issuer: p.theirPublic, licensee: mine };
-  const record = {
+  return {
     v: 'veilcore/deal-record/v1',
     savedAt: new Date().toISOString(),
     license: { commitment: p.commitment, issuerRecord: p.issuerRecord },
@@ -193,11 +205,4 @@ export const downloadDealRecord = (p: DealParty, mine: string, entries: readonly
       proof: `${BASE}/proof/${e.fingerprint}`,
     })),
   };
-  const blob = new Blob([JSON.stringify(record, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `veilcore-deal-record-${p.commitment.slice(0, 8)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
 };
