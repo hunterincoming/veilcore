@@ -125,6 +125,24 @@ holds or moves anyone's money.
      transfer's identifier (refused before sending if over 120 characters).
    - **Before mainnet:** Mako's yes and a lawyer's review (a payment feature, even with no
      custody). Then change the one line.
+12. **Borrowing against licenses (researched 23 Oct; the checker is built).** The plan was
+    zero-knowledge proofs that show a lender what licenses earn without showing the terms.
+    Research says that is the wrong goal: a royalty lender reads everything, under a
+    confidentiality agreement. It wants the license agreements themselves (assignment,
+    termination, payment terms), a lien search, chain of title, and a UCC-1 filing over the
+    royalties, which no chain record replaces (Berkeley Law, "Securities Interests in Royalty
+    Financings", 2025). What VeilCore adds is what a spreadsheet can't:
+    - **A history the payer signed.** `npx veilcore-records deal <backup>` (veilcore-sdk, next
+      release) checks every signed message of each deal and totals what both sides signed as
+      paid. It says what it can't show: whether the licensee is a real, separate person. The
+      lender confirms that with the licensee, as lenders already confirm receivables.
+    - **Dated prior possession and chain of title:** the records and their evidence bundles.
+    - **A lien anyone can see:** an obligation on the record with the lender as beneficiary
+      (proposeObligation, acceptObligation; only the lender can discharge it). It flags a
+      pledge to the next lender; it is not a legal filing.
+    Not built: a lender screen. Built when a lender asks. A lawyer decides how the chain lien
+    and a UCC-1 sit together (UCC Article 12 "controllable electronic records", in force in
+    more than 30 states, may matter here).
 
 ## Law and wording
 
