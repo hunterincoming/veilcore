@@ -44,6 +44,8 @@ import { raiseRevMarks, registryKids, revMarks } from './api-store';
 import { heldLicensesForBackup, heldMissingFrom, markHeldBackedUp, mergeHeldLicenses } from './held-licenses';
 import { issuerDealsForBackup, issuerDealsMissingFrom, markIssuerDealsBackedUp, mergeIssuerDeals } from './licenses';
 import { enT } from '../i18n/translate';
+import { importRecordRows, recordsForBackup, type ImportResult } from './records';
+import { proofFor } from './proofs';
 import { base64urlnopad } from '@scure/base';
 
 export const BACKUP_FORMAT = 'veilcore-backup';
@@ -77,6 +79,19 @@ export type BackupContents = {
   readonly heldLicenses?: ReturnType<typeof heldLicensesForBackup>;
   /** The issuer's secret key for each real license's private channel, by license id (licenses.ts). */
   readonly issuerDeals?: ReturnType<typeof issuerDealsForBackup>;
+  /**
+   * The records themselves, as this browser holds them open (records.ts recordsForBackup).
+   * Keys alone prove a key and nothing it stands for: with these, the file is enough to show
+   * a record and recompute its proof code if VeilCore's registry is gone. Optional: older
+   * files, and passkey copies (which live on the registry anyway), have none.
+   */
+  readonly recordData?: readonly unknown[];
+  /**
+   * Each record's inclusion proof once its batch is sealed, by proof code: the path from the
+   * record to the batch root anchored on Midnight. Public data, kept so the date can be shown
+   * without the registry. Best effort: what the registry answered when the file was made.
+   */
+  readonly proofs?: Readonly<Record<string, unknown>>;
 };
 
 const WARNING =
@@ -243,8 +258,30 @@ export const backupFileText = async (
   now = Date.now(),
   iterations: number = BACKUP_PBKDF2_ITERATIONS,
 ): Promise<string> => {
-  const contents = backupContents(now);
+  const contents = await withRecordsAndProofs(backupContents(now));
   return JSON.stringify(password ? await lockBackup(contents, password, iterations) : contents, null, 2);
+};
+
+/** How many proofs are asked for at once when a file is made. */
+const PROOF_FETCHES = 6;
+
+/**
+ * The records and their inclusion proofs, added to a file's contents. A proof the registry
+ * can't give now (not batched yet, offline) is simply left out: the next backup has it.
+ */
+export const withRecordsAndProofs = async (contents: BackupContents): Promise<BackupContents> => {
+  const recordData = await recordsForBackup().catch(() => []);
+  if (recordData.length === 0) return contents;
+  const prints = [...new Set(recordData.map((r) => r.recordFingerprint).filter((f) => HEX64.test(f ?? '')))];
+  const proofs: Record<string, unknown> = {};
+  for (let i = 0; i < prints.length; i += PROOF_FETCHES) {
+    const batch = prints.slice(i, i + PROOF_FETCHES);
+    const got = await Promise.all(batch.map((fp) => proofFor(fp)));
+    got.forEach((p, j) => {
+      if (p.status !== 'none') proofs[batch[j]] = p.proof;
+    });
+  }
+  return { ...contents, recordData, ...(Object.keys(proofs).length ? { proofs } : {}) };
 };
 
 /** What goes in the file now. */
@@ -425,6 +462,8 @@ export type RestoreResult = {
   /** Deliveries (a lab's) and lab codes (a breeder's) added from the file. */
   readonly deliveries?: number;
   readonly sentCodes?: number;
+  /** The records the file carried (recordData): what was put back, or why none were. */
+  readonly fromFile?: ImportResult | { readonly error: string };
 };
 
 /**
@@ -511,7 +550,19 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
   raiseRevMarks(v.revs);
   mergeHeldLicenses(v.heldLicenses, { mark: opts.mark });
   mergeIssuerDeals(v.issuerDeals);
+  // The records the file carries, once their keys are back: put back any this browser and
+  // its registry don't have (the same rules as an import: each must recompute, none
+  // overwrites one already here). A problem here doesn't undo the keys restored above.
+  let fromFile: ImportResult | { error: string } | undefined;
+  if (Array.isArray(v.recordData) && v.recordData.length > 0) {
+    try {
+      fromFile = await importRecordRows(v.recordData as unknown[]);
+    } catch (e) {
+      fromFile = { error: e instanceof Error ? e.message : String(e) };
+    }
+  }
   return {
+    ...(fromFile ? { fromFile } : {}),
     records: entries.length,
     recordIds,
     holderKey: holder,

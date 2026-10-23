@@ -165,4 +165,7 @@ export const backup = {
   'app.intake.err.credentials': 'Su dirección de regreso lleva un nombre de usuario o una contraseña.',
   'app.intake.err.hasHash': 'Su dirección de regreso ya tiene una parte #.',
   'app.intake.err.badState': 'Su valor de seguridad (state) falta o no es válido.',
+  'app.backup.fromFileAdded': 'Registros recuperados del propio archivo: {n}.',
+  'app.backup.fromFileProblem':
+    'No se pudieron recuperar los registros del archivo: {why} Sus claves están restauradas.',
 } satisfies Partial<AppTranslation>;

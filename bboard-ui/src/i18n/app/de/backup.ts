@@ -168,4 +168,7 @@ export const backup = {
   'app.intake.err.credentials': 'Seine Rückkehradresse enthält einen Benutzernamen oder ein Passwort.',
   'app.intake.err.hasHash': 'Seine Rückkehradresse hat bereits einen #-Teil.',
   'app.intake.err.badState': 'Sein Sicherheitswert (state) fehlt oder ist fehlerhaft.',
+  'app.backup.fromFileAdded': 'Aus der Datei selbst wiederhergestellte Datensätze: {n}.',
+  'app.backup.fromFileProblem':
+    'Die Datensätze in der Datei konnten nicht wiederhergestellt werden: {why} Ihre Schlüssel sind wiederhergestellt.',
 } satisfies Partial<AppTranslation>;

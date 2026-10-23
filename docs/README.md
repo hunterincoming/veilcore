@@ -12,6 +12,8 @@ Start with [design.md](design.md). The record format itself is specified in
 | [identity-in-record.md](identity-in-record.md) | A record that names its own key |
 | [animal-profile.md](animal-profile.md) | Animal records |
 | [strain-profile.md](strain-profile.md) | Strain and line records: microbes, cell lines, insect lines (draft, test networks) |
+| [without-veilcore.md](without-veilcore.md) | If VeilCore disappears: what a holder can still do, and the gaps still open |
+| [spec-handover.md](spec-handover.md) | Moving the spec, profiles and code to homes that aren't VeilCore |
 | [simple-flow.md](simple-flow.md) | The order of steps in the web app, and why |
 | [corrections.md](corrections.md) | Correcting a record without losing the original |
 | [check-on-chain.md](check-on-chain.md) | How the check page looks a date up on Midnight |

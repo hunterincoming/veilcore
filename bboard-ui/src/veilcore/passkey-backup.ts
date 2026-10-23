@@ -322,6 +322,7 @@ const sessionFor = (r: Remembered | undefined) =>
 export type PasskeyCopyState = 'none' | 'current' | 'behind';
 
 export const passkeyCopyState = (contents: BackupContents = backupContents()): PasskeyCopyState => {
+  // A passkey copy lives on the registry, so it carries keys only, never recordData (backup.ts).
   const r = remembered();
   if (!r) return 'none';
   return r.sameAs === sameAsOf(contents) ? 'current' : 'behind';

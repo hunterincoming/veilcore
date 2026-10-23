@@ -1285,6 +1285,23 @@ export const importRecords = async (file: File): Promise<ImportResult> => {
     throw new Error('That file is not a VeilCore records export. Nothing was imported.');
   }
   if (!Array.isArray(parsed)) throw new Error('That file is not a VeilCore records export.');
+  return importRecordRows(parsed);
+};
+
+/**
+ * The records this browser holds open, as the backup file carries them (backup.ts): every
+ * field the holder wrote, the holder-only salts included (the backup is the holder's own
+ * secret file). With them, a backup is enough to show a record and recompute its proof code
+ * even if VeilCore's registry is gone; keys alone would prove a key and nothing it stands for.
+ */
+export const recordsForBackup = async (): Promise<StrainRecord[]> => {
+  // What this page shows is what is backed up; a page opened straight on /backup loads first.
+  if (records.length === 0) await hydrate();
+  return records.map(importable);
+};
+
+/** importRecords, from rows already read (an export file, or a backup's `recordData`). Same rules. */
+export const importRecordRows = async (parsed: readonly unknown[]): Promise<ImportResult> => {
   // Rows still sealed with a key this browser doesn't have (an opened export keeps them as
   // the registry holds them) are skipped and counted, not a reason to import nothing.
   const lockedRows = parsed.filter(isLockedRow).length;

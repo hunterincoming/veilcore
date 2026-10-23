@@ -123,6 +123,17 @@ export const RestorePage: React.FC = () => {
                 {labWork(done, tr) ? t('app.backup.workRestored', { work: labWork(done, tr) }) : ''}
                 {t('app.backup.worksLikeBefore')}
               </Typography>
+              {/* The records the file itself carried (backup.ts recordData): what came back from it. */}
+              {done.fromFile && 'error' in done.fromFile && (
+                <Alert severity="warning" variant="outlined" data-from-file="problem">
+                  {t('app.backup.fromFileProblem', { why: done.fromFile.error })}
+                </Alert>
+              )}
+              {done.fromFile && 'added' in done.fromFile && done.fromFile.added > 0 && (
+                <Typography variant="body2" color="text.secondary" data-from-file="added">
+                  {t('app.backup.fromFileAdded', { n: tr.num(done.fromFile.added) })}
+                </Typography>
+              )}
               {fromPasskey && (
                 <Typography variant="body2" color="text.secondary" data-from-passkey="">
                   {t('app.backup.passkey.from', { date: new Date(fromPasskey).toLocaleDateString() })}

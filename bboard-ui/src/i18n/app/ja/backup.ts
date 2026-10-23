@@ -153,4 +153,6 @@ export const backup = {
   'app.intake.err.credentials': '戻り先にユーザー名かパスワードが含まれています。',
   'app.intake.err.hasHash': '戻り先にすでに # の部分があります。',
   'app.intake.err.badState': 'セキュリティ値（state）がないか、形式が正しくありません。',
+  'app.backup.fromFileAdded': 'ファイル自体から戻した記録：{n}件。',
+  'app.backup.fromFileProblem': 'ファイル内の記録は戻せませんでした：{why} 鍵は復元されています。',
 } satisfies Partial<AppTranslation>;
