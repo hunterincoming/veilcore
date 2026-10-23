@@ -46,10 +46,9 @@ the code stands for. Now the file also carries:
   about this app.
 
 **Opening a backup without the website:** `npx veilcore-records backup <file>` (veilcore-sdk,
-from version 0.17.0) checks every record in the file, opens password-locked files, and names
-the transaction that dates each batch. It was checked against a real backup made by the app.
-Until 0.17.0 is published to npm, run it from a clone of veilcore-sdk
-(`node bin/veilcore.mjs backup <file>`).
+on npm from version 0.17.1, with provenance) checks every record in the file, opens password-locked files, and names
+the transaction that dates each batch. It was checked against a real backup made by the app,
+and the published package was checked again after release.
 
 A passkey copy doesn't carry them: it lives on our registry, so it's no help if the registry
 is gone, and leaving them out keeps it small. The backup file is the thing to keep.
@@ -58,8 +57,8 @@ is gone, and leaving them out keeps it small. The backup file is the thing to ke
 
 1. **Publish the registry's code.** Before that: check its history for anything secret, and
    rotate whatever was ever in it. Hunter's call on timing.
-2. **Publish veilcore-records 0.17.0** to npm (from Hunter's Mac, RELEASING.md), so the backup
-   command works with `npx`.
+2. ~~Publish the backup command to npm~~: done 23 Oct (veilcore-records 0.17.1, built and
+   signed by CI, approved by a person with 2FA before it went live).
 3. ~~The strain profile in veilcore-records~~: done 23 Oct (SPEC 11.9 and 30 vectors in
    veilcore-sdk; TypeScript and Python check the profile, Rust computes the fingerprints).
 4. ~~Deal messages in the backup~~: done 23 Oct (`dealRecords`).
