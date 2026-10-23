@@ -142,7 +142,9 @@ describe('every new offer goes sealed (A5)', () => {
     const res = await offerTransfer(plain, 'Dr Jane, Secret Lab', {
       quantity: 'PRIV-quantity',
       note: 'PRIV-note',
-      sample: { sampleId: 'S-1' },
+      // A marker no base64url ciphertext can contain (the space): 'S-1' turned up inside random
+      // ciphertext about once in 250 runs, failing the test for no real leak.
+      sample: { sampleId: 'PRIV sample 1' },
     });
     if ('error' in res) throw new Error(res.error);
     expect(sent).toHaveLength(2);
@@ -155,11 +157,11 @@ describe('every new offer goes sealed (A5)', () => {
     expect(Object.keys(sent[1].body)).toEqual(['sample']);
     expect(Object.keys(sent[1].body.sample as object).sort()).toEqual(['alg', 'ct', 'iv', 'kid', 'v']);
     const wire = JSON.stringify(sent);
-    for (const secret of ['PRIV-quantity', 'PRIV-note', 'PRIV-breeder', 'Dr Jane', 'Secret Lab', 'S-1']) {
+    for (const secret of ['PRIV-quantity', 'PRIV-note', 'PRIV-breeder', 'Dr Jane', 'Secret Lab', 'PRIV sample 1']) {
       expect(wire.includes(secret), secret).toBe(false);
     }
     const sample = await openCustody(res.offerKey, 'TR-0A1B2C3D', 'sample', sent[1].body.sample);
-    expect(sample).toMatchObject({ sampleId: 'S-1' });
+    expect(sample).toMatchObject({ sampleId: 'PRIV sample 1' });
     expect(sample?.salt).toMatch(/^[A-Za-z0-9_-]{43}$/);
     expect(await openCustody(res.offerKey, 'TR-0A1B2C3D', 'arrival', sent[1].body.sample)).toBeNull();
     // The recipient opens it with the code's key.

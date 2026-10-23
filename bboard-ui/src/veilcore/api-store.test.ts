@@ -145,7 +145,24 @@ beforeEach(() => {
   stubWebLocks();
 });
 
-const settle = () => new Promise((r) => setTimeout(r, 30));
+/**
+ * Until the app has gone quiet: no new request to the registry for three windows in a row.
+ * A fixed 30 ms was overrun when the machine was busy (sealing runs between a change and its
+ * save), and these tests failed under a full parallel run while passing alone.
+ */
+const settle = async (): Promise<void> => {
+  let last = -1;
+  let quiet = 0;
+  const until = Date.now() + 5000;
+  while (quiet < 3 && Date.now() < until) {
+    await new Promise((r) => setTimeout(r, 40));
+    if (sent.length === last) quiet++;
+    else {
+      quiet = 0;
+      last = sent.length;
+    }
+  }
+};
 
 /** Private values, each one findable in a request if it leaked. */
 const S = {
@@ -440,8 +457,11 @@ describe('locked rows', () => {
     vi.resetModules();
     const lic2 = await import('./licenses');
     lic2.startLicenseSync();
-    await settle();
-    expect(lic2.lockedLicenses()).toEqual([{ id: 'LIC-LOCKED', kid: 'f00dfacecafe0001' }]);
+    // Waits for the load to land rather than a fixed 30 ms, which a busy machine overran
+    // (the test failed under a full parallel run and passed alone).
+    await vi.waitFor(() => expect(lic2.lockedLicenses()).toEqual([{ id: 'LIC-LOCKED', kid: 'f00dfacecafe0001' }]), {
+      timeout: 5000,
+    });
     expect(lic2.allLicenses().map((l) => l.id)).not.toContain('LIC-LOCKED');
 
     // Shown like a locked record: plainly, with a Delete button and the way back; no edit.
@@ -611,7 +631,8 @@ describe('a whole-set read the registry cut short', () => {
   it('is finished by paging', async () => {
     const { records } = await modules();
     for (const n of ['A', 'B', 'C', 'D', 'E']) records.createRecord(await plantInput({ strainName: n }));
-    await settle();
+    // Until the registry holds all five: a fixed wait was overrun on a busy machine.
+    await vi.waitFor(() => expect(rows.size).toBe(5), { timeout: 5000 });
     truncate = 2;
     vi.resetModules();
     const again = await modules();
@@ -624,7 +645,7 @@ describe('a whole-set read the registry cut short', () => {
   it('is said when paging fails, not passed off as the whole set', async () => {
     const { records } = await modules();
     for (const n of ['A', 'B', 'C']) records.createRecord(await plantInput({ strainName: n }));
-    await settle();
+    await vi.waitFor(() => expect(rows.size).toBe(3), { timeout: 5000 });
     truncate = 1;
     failPaging = true;
     vi.resetModules();
