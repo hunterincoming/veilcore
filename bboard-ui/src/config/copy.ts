@@ -61,6 +61,13 @@ export const AGREEMENTS_ON_CHAIN = AGREEMENTS_LIVE || !IS_MAINNET;
  */
 export const PASSKEY_BACKUP = AGREEMENTS_ON_CHAIN;
 
+/**
+ * Royalties paid on Midnight, from the licensee's wallet straight to the licensor's address
+ * (veilcore/onchain-pay.ts). Test networks only, whatever AGREEMENTS_LIVE says: money moving
+ * goes to mainnet only after Mako's yes and a lawyer's review, by changing this line on purpose.
+ */
+export const ONCHAIN_PAYMENTS = !IS_MAINNET;
+
 /** The label agreements carry while AGREEMENTS_LIVE is false. */
 export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';
 

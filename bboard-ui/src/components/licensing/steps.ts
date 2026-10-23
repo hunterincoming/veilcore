@@ -11,6 +11,8 @@
 // signed messages, or "nothing to do" with who acts next.
 // SPDX-License-Identifier: Apache-2.0
 
+import { tokenOfMethod } from '../../veilcore/onchain-pay';
+
 export type StepState = 'done' | 'now' | 'later';
 export type Step = { readonly title: string; readonly state: StepState };
 
@@ -112,7 +114,9 @@ export const nextRoyaltyStep = (
   if (toPay)
     return payout
       ? {
-          text: `Pay ${toPay.statement.amountOwed} ${toPay.statement.currency} by ${payout.method} to ${payout.account}, then tap “I paid it”.`,
+          text: tokenOfMethod(payout.method)
+            ? `Pay ${toPay.statement.amountOwed} ${toPay.statement.currency} on Midnight from your wallet: tap “Pay … with” below.`
+            : `Pay ${toPay.statement.amountOwed} ${toPay.statement.currency} by ${payout.method} to ${payout.account}, then tap “I paid it”.`,
           yours: true,
         }
       : { text: 'They accepted your statement. Waiting for them to say how they want to be paid.', yours: false };

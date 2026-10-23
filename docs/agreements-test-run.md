@@ -69,6 +69,21 @@ Write down anything that looks wrong or reads badly, with a screenshot. Each sid
 | 22 | Phone | Backup page: **Make a passkey copy** (Face ID) | "Passkey copy up to date" |
 | 23 | Phone | Private tab on the same phone: Restore → **Use my passkey** | Everything back, "From your passkey copy saved …" |
 
+**Optional: paying on Midnight (needs a computer with Lace or 1AM on preprod, with some
+test NIGHT from the faucet, as the licensee).** Make a second license as in steps 2 to 7,
+with the computer as the licensee and a flat royalty, say 2 per unit.
+
+| # | Who | Do | You should see |
+|---|---|---|---|
+| 24 | Mac (licensor) | Royalties: **Set it** → **On Midnight (NIGHT)** → **Use my Lace address** (or paste yours) → **Send** | "Paid to: on Midnight, in NIGHT · mn_addr_preprod1…" on both |
+| 25 | Computer (licensee) | **File a statement**: 3 units | Owed 6 NIGHT |
+| 26 | Mac | **Accept it** | "Your turn: Pay 6 NIGHT on Midnight…" on the computer |
+| 27 | Computer | **Pay 6 NIGHT with Lace**, approve in the wallet | "Paid, waiting for confirmation" |
+| 28 | Mac | Wait a minute | "Checked on Midnight: 6 NIGHT reached your address in transaction …" Then **Confirm I received 6 NIGHT** |
+
+If step 28 says the transaction paid no NIGHT to your address when Lace shows it did, screenshot
+it: that's the token-format check to adjust (docs/agreements-live.md, item 11).
+
 Optional, on a computer: paste a downloaded credential into a W3C verifier that supports
 `eddsa-jcs-2022` (for example the Digital Bazaar or Spruce playgrounds) to see it check out
 without VeilCore.

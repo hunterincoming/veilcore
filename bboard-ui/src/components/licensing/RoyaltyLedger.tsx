@@ -24,6 +24,9 @@ import type { AgreedTerms } from '../../veilcore/credentials';
 import { evidenceOf, isEvidence, isTheReport, sizeText, type Evidence } from '../../veilcore/evidence';
 import { NextUp } from './DealSteps';
 import { nextRoyaltyStep, suggestedPeriod } from './steps';
+import { MidnightPayoutForm, OnChainPaymentCheck, PayOnMidnight } from './OnChainPay';
+import { methodWords, reusedPayments, tokenOfMethod } from '../../veilcore/onchain-pay';
+import { ONCHAIN_PAYMENTS } from '../../config/copy';
 
 type Terms = { royaltyType?: string; royaltyAmount?: string; unitBasis?: string };
 
@@ -97,6 +100,26 @@ export const RoyaltyLedger: React.FC<{
   const [error, setError] = useState<string>();
   const [form, setForm] = useState<'statement' | 'payout' | undefined>();
   const [more, setMore] = useState(false);
+  const [payoutKind, setPayoutKind] = useState<'other' | 'midnight'>('other');
+  // One on-chain transaction counts for one statement only (onchain-pay.ts reusedPayments).
+  const reused = useMemo(
+    () =>
+      reusedPayments(
+        lines.flatMap((l) =>
+          l.paid
+            ? [
+                {
+                  statementSig: l.statement.signature,
+                  method: l.paid.method,
+                  reference: l.paid.reference,
+                  at: l.paid.at,
+                },
+              ]
+            : [],
+        ),
+      ),
+    [lines],
+  );
   const next = nextRoyaltyStep(side, lines, payout);
   const percent = terms.royaltyType === 'percent';
   const mine = useMemo(() => publicOf(party.mySecret), [party.mySecret]);
@@ -144,7 +167,7 @@ export const RoyaltyLedger: React.FC<{
         {/* How the licensor gets paid. */}
         {payout ? (
           <Typography variant="body2">
-            <b>Paid to:</b> {payout.method} · {payout.account} · {payout.currency}
+            <b>Paid to:</b> {methodWords(payout.method)} · {payout.account} · {payout.currency}
             {previousPayout && previousPayout.account !== payout.account && (
               <Typography component="span" variant="body2" color="warning.main">
                 {' '}
@@ -167,8 +190,29 @@ export const RoyaltyLedger: React.FC<{
             They haven&apos;t said how they want to be paid yet.
           </Typography>
         )}
-        {form === 'payout' && (
+        {form === 'payout' && ONCHAIN_PAYMENTS && (
+          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }} role="radiogroup" aria-label="How you get paid">
+            <Button
+              size="small"
+              variant={payoutKind === 'other' ? 'contained' : 'outlined'}
+              onClick={() => setPayoutKind('other')}
+            >
+              Bank or payment partner
+            </Button>
+            <Button
+              size="small"
+              variant={payoutKind === 'midnight' ? 'contained' : 'outlined'}
+              onClick={() => setPayoutKind('midnight')}
+            >
+              On Midnight (NIGHT)
+            </Button>
+          </Stack>
+        )}
+        {form === 'payout' && (!ONCHAIN_PAYMENTS || payoutKind === 'other') && (
           <PayoutForm busy={busy} onSend={(b) => void send(b)} onCancel={() => setForm(undefined)} />
+        )}
+        {form === 'payout' && ONCHAIN_PAYMENTS && payoutKind === 'midnight' && (
+          <MidnightPayoutForm busy={busy} onSend={(b) => void send(b)} onCancel={() => setForm(undefined)} />
         )}
 
         {side === 'licensee' && form !== 'statement' && (
@@ -209,6 +253,7 @@ export const RoyaltyLedger: React.FC<{
                 terms={terms}
                 busy={busy}
                 onSend={(b) => void send(b)}
+                reusedFor={reused.get(l.statement.signature)}
               />
             ))}
           </Stack>
@@ -441,7 +486,11 @@ const StatementLine: React.FC<{
   terms: Terms;
   busy: boolean;
   onSend: Send;
-}> = ({ line, side, percent, payout, keys, terms, busy, onSend }) => {
+  /** Another statement this one's on-chain payment was already counted for. */
+  reusedFor?: string;
+}> = ({ line, side, percent, payout, keys, terms, busy, onSend, reusedFor }) => {
+  const payToken = payout ? tokenOfMethod(payout.method) : undefined;
+  const paidToken = line.paid ? tokenOfMethod(line.paid.method) : undefined;
   const s = line.statement;
   const status = statusOf(line);
   const receipts = useReceipts(line, payout?.account);
@@ -500,6 +549,16 @@ const StatementLine: React.FC<{
           {c.mismatch.length > 0 && ` Doesn’t match: ${c.mismatch.join('; ')}.`}
         </Alert>
       ))}
+      {side === 'issuer' && line.paid && paidToken && line.paid.reference && !line.received && (
+        <OnChainPaymentCheck
+          token={paidToken}
+          txId={line.paid.reference}
+          payTo={payout?.account ?? line.paid.payTo}
+          amount={s.amountOwed}
+          statementSig={s.signature}
+          reusedFor={reusedFor}
+        />
+      )}
       {line.received && (
         <Typography variant="body2" color="text.secondary">
           Confirmed received {line.received.amount} {line.received.currency}, {dateOf(line.received.at)}
@@ -585,6 +644,39 @@ const StatementLine: React.FC<{
       )}
 
       {/* The licensee's turn: pay, then say how. */}
+      {side === 'licensee' &&
+        line.reply?.decision === 'accepted' &&
+        !line.paid &&
+        payout &&
+        payToken &&
+        ONCHAIN_PAYMENTS &&
+        (s.currency === payToken.code ? (
+          <PayOnMidnight
+            token={payToken}
+            amount={s.amountOwed}
+            payTo={payout.account}
+            busy={busy}
+            statementSig={s.signature}
+            onPaid={(txId) =>
+              onSend({
+                type: 'paid',
+                statementId: s.statementId,
+                statementSig: s.signature,
+                amount: s.amountOwed,
+                currency: s.currency,
+                method: payout.method,
+                payTo: payout.account,
+                reference: txId,
+                paidOn: today(),
+              })
+            }
+          />
+        ) : (
+          <Alert severity="info" variant="outlined">
+            They take payment on Midnight in {payToken.code}, and this statement is in {s.currency}. VeilCore doesn’t
+            convert currencies: agree the amount with them and pay it another way below, or file it in {payToken.code}.
+          </Alert>
+        ))}
       {side === 'licensee' && line.reply?.decision === 'accepted' && !line.paid && (
         <Stack spacing={1}>
           {payout && (

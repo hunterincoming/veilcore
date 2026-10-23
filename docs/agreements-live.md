@@ -79,6 +79,36 @@ holds or moves anyone's money.
 10. **Lost phone (done).** A copy of the backup that opens with a passkey
     (`docs/passkey-backup.md`).
 
+11. **Paying on Midnight (built 23 Oct, test networks only).** The licensor can set their
+   payout to "On Midnight (NIGHT)": their unshielded Midnight address, checked for typos and
+   for the right network before it's sent (or taken straight from their wallet). For a
+   statement in NIGHT, the licensee's page then shows **Pay 500 NIGHT with Lace** (or 1AM):
+   their own wallet builds, shows, pays the fee for and sends a plain transfer to that address,
+   and the page records it in the signed "I paid it" with the transaction. The licensor's page
+   checks it on Midnight's indexer itself: the transaction succeeded and paid at least that
+   much NIGHT to their address. The amount checked is the one on the statement they accepted,
+   never the one the payer wrote in "I paid it", and the address is the licensor's own signed
+   payout, never one the payer names. One transaction counts for one statement, across every
+   deal on the licensor's device (so two licenses from the same licensor can't share one
+   payment). A payment sent but
+   not yet recorded (page closed, registry down) is kept in the payer's browser, and the page
+   offers to record it, never to pay again. Code: `veilcore/onchain-pay.ts`,
+   `components/licensing/OnChainPay.tsx`; switch: `ONCHAIN_PAYMENTS` in `config/copy.ts`,
+   off on mainnet.
+   - **No contract change, no custody, no conversion.** VeilCore never holds or routes the
+     money, and doesn't turn dollars into NIGHT: on-chain payment is offered only when the
+     statement is in the token itself.
+   - **NIGHT payments are public.** NIGHT is always unshielded: amounts and addresses (not
+     names, not what for) are visible to anyone. The payout form says so. A shielded USD
+     stablecoin would fix both this and the currency problem; none is confirmed live on
+     Midnight mainnet (ShieldUSD was announced in January 2026). When one is, it is one line in
+     `ONCHAIN_TOKENS`, by a reviewed commit.
+   - **To confirm on the first run:** the indexer's `tokenType` format for NIGHT (the check
+     reads the raw all-zero type with or without a leading tag byte), and the length of a
+     transfer's identifier (refused before sending if over 120 characters).
+   - **Before mainnet:** Mako's yes and a lawyer's review (a payment feature, even with no
+     custody). Then change the one line.
+
 ## Law and wording
 
 - Terms of Use: VeilCore is a record-keeping tool, not a party, broker, escrow, payment

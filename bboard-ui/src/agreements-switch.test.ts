@@ -18,6 +18,11 @@ describe('the agreements switch', () => {
     expect(m?.[1]).toBe(String(AGREEMENTS_LIVE));
   });
 
+  it('paying on Midnight is off on mainnet, whatever AGREEMENTS_LIVE says, until that line is changed on purpose', () => {
+    const copy = readFileSync(new URL('./config/copy.ts', import.meta.url), 'utf8');
+    expect(copy).toMatch(/export const ONCHAIN_PAYMENTS = !IS_MAINNET;/);
+  });
+
   it('every call the browser may make is one the sponsor pays for, and no more', () => {
     expect([...BROWSER_CIRCUITS].sort()).toEqual(
       [...list('PHASE1_PUBLIC_CIRCUITS'), ...list('AGREEMENT_CIRCUITS')].sort(),

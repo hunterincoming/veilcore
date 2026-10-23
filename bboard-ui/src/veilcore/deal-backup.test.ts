@@ -60,7 +60,7 @@ describe("a deal's messages in the backup", () => {
       acceptedAt: 1,
     });
     const { dealRecordsForBackup } = await import('./deal-backup');
-    const recs = (await dealRecordsForBackup()) as {
+    const recs = (await dealRecordsForBackup()) as unknown as {
       v: string;
       keys: unknown;
       messages: { message: { type: string } }[];
