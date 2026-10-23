@@ -18,6 +18,7 @@ import { allRecords } from '../../veilcore/records';
 import { say, type DealEntry, type DealParty } from '../../veilcore/deal-client';
 import { useChainCall } from '../chain/useChainCall';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
+import { ConfirmInline } from './DealSteps';
 
 type Status = 'none' | 'proposed' | 'in-force';
 
@@ -181,27 +182,22 @@ export const OffspringRoyalty: React.FC<{
         </Button>
       )}
       {plant && side === 'issuer' && issuerSecret && status === 'in-force' && (
-        <Button
-          color="inherit"
+        <ConfirmInline
+          label="Release it"
+          question="Release the offspring royalty? Their record and its offspring will no longer show it. This goes on Midnight."
+          confirmLabel="Yes, release it"
           disabled={call.busy}
-          sx={{ alignSelf: 'flex-start' }}
-          onClick={() =>
+          onConfirm={() =>
             void call.run(async (progress) => {
-              if (
-                !window.confirm('Release the offspring royalty? Their record and its offspring will no longer show it.')
-              )
-                throw new Error('Not released.');
               const { dischargeOnChain } = await import('../../veilcore/chain/actions');
               return after(dischargeOnChain(hexBytes(issuerSecret), plant.recordIdentity, obligation, { progress }));
             })
           }
-        >
-          Release it
-        </Button>
+        />
       )}
 
       {plant && side === 'licensee' && status === 'proposed' && myPlant && (
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', alignItems: 'flex-start' }}>
           <Button
             variant="contained"
             disabled={call.busy}
@@ -214,20 +210,18 @@ export const OffspringRoyalty: React.FC<{
           >
             Accept it, as agreed
           </Button>
-          <Button
-            color="error"
+          <ConfirmInline
+            label="Decline"
+            question="Decline it? This goes against the terms you agreed to, and they will see it."
+            confirmLabel="Yes, decline it"
             disabled={call.busy}
-            onClick={() =>
+            onConfirm={() =>
               void call.run(async (progress) => {
-                if (!window.confirm('Decline it? This goes against the terms you agreed to.'))
-                  throw new Error('Not declined.');
                 const { rejectObligationOnChain } = await import('../../veilcore/chain/actions');
                 return after(rejectObligationOnChain(hexBytes(myPlant.secret), obligation, beneficiary, { progress }));
               })
             }
-          >
-            Decline
-          </Button>
+          />
         </Stack>
       )}
       <ChainStatusLine busy={call.busy} progress={call.progress} error={call.error} step="agreement" />

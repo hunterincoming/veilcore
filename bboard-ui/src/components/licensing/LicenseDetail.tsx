@@ -41,6 +41,7 @@ import { AgreementsBackupFirst } from './AgreementsBackupFirst';
 import { AGREEMENTS_ON_CHAIN, AGREEMENTS_SIMULATED, SIMULATED_TAG } from '../../config/copy';
 import { chainNotReady } from '../../veilcore/chain/config';
 import { RealLicensePanel } from './RealLicensePanel';
+import { ConfirmInline } from './DealSteps';
 
 const money = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
@@ -109,13 +110,10 @@ export const LicenseDetail: React.FC = () => {
     setToast(msg);
   };
 
-  const onRevoke = () => {
+  const onRevoke = (reason: string) => {
     if (blocked) return;
-    const reason = window.prompt('Reason for revoking this license?');
-    if (reason !== null) {
-      revokeLicense(license.id, reason || 'No reason given');
-      setToast('License revoked.');
-    }
+    revokeLicense(license.id, reason || 'No reason given');
+    setToast('License revoked.');
   };
 
   const owed = (n: number) =>
@@ -250,9 +248,14 @@ export const LicenseDetail: React.FC = () => {
                 <Button component={RouterLink} to={`/license/${encodeURIComponent(license.id)}/sign`} variant="text">
                   Open the counter-sign page {SIMULATED_TAG}
                 </Button>
-                <Button color="error" variant="text" onClick={onRevoke}>
-                  Revoke
-                </Button>
+                <ConfirmInline
+                  label="Revoke"
+                  question="Revoke this agreement?"
+                  confirmLabel="Yes, revoke it"
+                  reason="Reason (kept with your copy)"
+                  disabled={blocked}
+                  onConfirm={onRevoke}
+                />
               </Stack>
             </Stack>
           )}
@@ -273,9 +276,14 @@ export const LicenseDetail: React.FC = () => {
                 >
                   Renew / amend
                 </Button>
-                <Button color="error" variant="text" onClick={onRevoke}>
-                  Revoke
-                </Button>
+                <ConfirmInline
+                  label="Revoke"
+                  question="Revoke this agreement?"
+                  confirmLabel="Yes, revoke it"
+                  reason="Reason (kept with your copy)"
+                  disabled={blocked}
+                  onConfirm={onRevoke}
+                />
               </Stack>
             </Stack>
           )}

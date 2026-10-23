@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Box, Button, Chip, Divider, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Chip, Collapse, Divider, Paper, Stack, TextField, Typography } from '@mui/material';
 import { downloadDealRecord, say, type DealEntry, type DealParty } from '../../veilcore/deal-client';
 import { publicOf, type DealSide } from '../../veilcore/deal';
 import { isDecimal, owedUnder, sameAmount } from '../../veilcore/money';
@@ -22,6 +22,8 @@ import {
 import { DealCredentials } from './DealCredentials';
 import type { AgreedTerms } from '../../veilcore/credentials';
 import { evidenceOf, isEvidence, isTheReport, sizeText, type Evidence } from '../../veilcore/evidence';
+import { NextUp } from './DealSteps';
+import { nextRoyaltyStep, suggestedPeriod } from './steps';
 
 type Terms = { royaltyType?: string; royaltyAmount?: string; unitBasis?: string };
 
@@ -94,6 +96,8 @@ export const RoyaltyLedger: React.FC<{
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const [form, setForm] = useState<'statement' | 'payout' | undefined>();
+  const [more, setMore] = useState(false);
+  const next = nextRoyaltyStep(side, lines, payout);
   const percent = terms.royaltyType === 'percent';
   const mine = useMemo(() => publicOf(party.mySecret), [party.mySecret]);
   const keys =
@@ -130,11 +134,12 @@ export const RoyaltyLedger: React.FC<{
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {side === 'licensee'
-              ? 'File what you owe for each period. They review it, you pay them the way they ask, and they confirm it arrived.'
-              : 'They file what they owe for each period. You accept or dispute it, they pay you, and you confirm it arrived.'}{' '}
-            Every step is signed, private to the two of you, and dated on Midnight. VeilCore never holds the money.
+              ? 'Each period: you file what you owe, they check it, you pay them, they confirm it arrived.'
+              : 'Each period: they file what they owe, you check it, they pay you, you confirm it arrived.'}{' '}
+            Private to the two of you. VeilCore never holds the money.
           </Typography>
         </Box>
+        <NextUp text={next.text} yours={next.yours} />
 
         {/* How the licensor gets paid. */}
         {payout ? (
@@ -145,12 +150,6 @@ export const RoyaltyLedger: React.FC<{
                 {' '}
                 (changed {dateOf(payout.at)} from {previousPayout.account}
                 {side === 'licensee' ? ': check with them before you pay' : ''})
-              </Typography>
-            )}
-            {side === 'issuer' && (
-              <Typography component="span" variant="body2" color="text.secondary">
-                {' '}
-                · if a payment partner asks, your key for this deal starts {mine.slice(0, 8)}
               </Typography>
             )}
             {side === 'issuer' && (
@@ -173,7 +172,11 @@ export const RoyaltyLedger: React.FC<{
         )}
 
         {side === 'licensee' && form !== 'statement' && (
-          <Button variant="contained" onClick={() => setForm('statement')} sx={{ alignSelf: 'flex-start' }}>
+          <Button
+            variant={next.file ? 'contained' : 'outlined'}
+            onClick={() => setForm('statement')}
+            sx={{ alignSelf: 'flex-start' }}
+          >
             File a statement
           </Button>
         )}
@@ -185,17 +188,10 @@ export const RoyaltyLedger: React.FC<{
             busy={busy}
             onSend={(b) => void send(b)}
             onCancel={() => setForm(undefined)}
+            period={suggestedPeriod(lines)}
           />
         )}
 
-        <Button
-          size="small"
-          color="inherit"
-          onClick={() => downloadDealRecord(party, mine, entries)}
-          sx={{ alignSelf: 'flex-start' }}
-        >
-          Download the signed record of this deal
-        </Button>
         {lines.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
             No statements yet.
@@ -217,14 +213,37 @@ export const RoyaltyLedger: React.FC<{
             ))}
           </Stack>
         )}
-        <DealCredentials
-          party={party}
-          entries={entries}
-          confirmed={lines.flatMap((l) => (l.received ? [{ statement: l.statement, received: l.received }] : []))}
-          busy={busy}
-          onSend={(b) => void send(b)}
-          agreed={agreed}
-        />
+        {/* What most people never need, one tap away: the signed record, the W3C credentials. */}
+        <Box>
+          <Button size="small" color="inherit" onClick={() => setMore(!more)} aria-expanded={more} sx={{ px: 0 }}>
+            {more ? 'Fewer options' : 'Records and credentials'}
+          </Button>
+          <Collapse in={more}>
+            <Stack spacing={1.25} sx={{ pt: 1 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => downloadDealRecord(party, mine, entries)}
+                sx={{ alignSelf: 'flex-start' }}
+              >
+                Download the signed record of this deal
+              </Button>
+              <DealCredentials
+                party={party}
+                entries={entries}
+                confirmed={lines.flatMap((l) => (l.received ? [{ statement: l.statement, received: l.received }] : []))}
+                busy={busy}
+                onSend={(b) => void send(b)}
+                agreed={agreed}
+              />
+              {side === 'issuer' && (
+                <Typography variant="caption" color="text.secondary">
+                  If a payment partner asks, your key for this deal starts {mine.slice(0, 8)}.
+                </Typography>
+              )}
+            </Stack>
+          </Collapse>
+        </Box>
         {error && (
           <Alert severity="error" variant="outlined">
             {error}
@@ -284,9 +303,11 @@ const StatementForm: React.FC<{
   busy: boolean;
   onSend: Send;
   onCancel: () => void;
-}> = ({ terms, percent, currency, busy, onSend, onCancel }) => {
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState(today());
+  /** The period it most likely covers (steps.ts suggestedPeriod): filled in, and changeable. */
+  period: { from: string; to: string };
+}> = ({ terms, percent, currency, busy, onSend, onCancel, period }) => {
+  const [from, setFrom] = useState(period.from);
+  const [to, setTo] = useState(period.to);
   const [quantity, setQuantity] = useState('');
   const [note, setNote] = useState('');
   const [evidence, setEvidence] = useState<Evidence>();
@@ -425,6 +446,7 @@ const StatementLine: React.FC<{
   const status = statusOf(line);
   const receipts = useReceipts(line, payout?.account);
   const [note, setNote] = useState('');
+  const [disputing, setDisputing] = useState(false);
   const [ref, setRef] = useState('');
   const [paidOn, setPaidOn] = useState(today());
   return (
@@ -443,7 +465,7 @@ const StatementLine: React.FC<{
         · filed {dateOf(s.at)}
         {s.note ? ` · “${s.note}”` : ''}
       </Typography>
-      <ReportCheck statement={s} side={side} />
+      <ReportCheck statement={s} side={side} checking={!line.reply} />
       {side === 'issuer' && !sameAmount(s.amountOwed, owedUnder(terms, s.quantity) ?? '') && (
         <Alert severity="warning" variant="outlined">
           Under the terms this comes to {owedUnder(terms, s.quantity) ?? 'an amount this page can’t work out'}, not{' '}
@@ -486,43 +508,61 @@ const StatementLine: React.FC<{
 
       {/* The licensor's turn: review, then confirm the money arrived. */}
       {side === 'issuer' && !line.reply && (
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-          <TextField
-            size="small"
-            label="Note (optional)"
-            value={note}
-            onChange={(e) => setNote(e.target.value.slice(0, 500))}
-          />
-          <Button
-            variant="contained"
-            disabled={busy}
-            onClick={() =>
-              onSend({
-                type: 'reply',
-                statementId: s.statementId,
-                statementSig: s.signature,
-                decision: 'accepted',
-                ...(note.trim() ? { note: note.trim() } : {}),
-              })
-            }
-          >
-            Accept
-          </Button>
-          <Button
-            color="error"
-            disabled={busy || !note.trim()}
-            onClick={() =>
-              onSend({
-                type: 'reply',
-                statementId: s.statementId,
-                statementSig: s.signature,
-                decision: 'disputed',
-                note: note.trim(),
-              })
-            }
-          >
-            Dispute (say why)
-          </Button>
+        <Stack spacing={1}>
+          {disputing && (
+            <TextField
+              size="small"
+              label="What's wrong with it? (they'll see this)"
+              value={note}
+              onChange={(e) => setNote(e.target.value.slice(0, 500))}
+              autoFocus
+            />
+          )}
+          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+            {!disputing ? (
+              <>
+                <Button
+                  variant="contained"
+                  disabled={busy}
+                  onClick={() =>
+                    onSend({
+                      type: 'reply',
+                      statementId: s.statementId,
+                      statementSig: s.signature,
+                      decision: 'accepted',
+                    })
+                  }
+                >
+                  Accept it
+                </Button>
+                <Button color="error" disabled={busy} onClick={() => setDisputing(true)}>
+                  Dispute it
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  color="error"
+                  variant="contained"
+                  disabled={busy || !note.trim()}
+                  onClick={() =>
+                    onSend({
+                      type: 'reply',
+                      statementId: s.statementId,
+                      statementSig: s.signature,
+                      decision: 'disputed',
+                      note: note.trim(),
+                    })
+                  }
+                >
+                  Send the dispute
+                </Button>
+                <Button color="inherit" disabled={busy} onClick={() => setDisputing(false)}>
+                  Back
+                </Button>
+              </>
+            )}
+          </Stack>
         </Stack>
       )}
       {side === 'issuer' && line.paid && !line.received && (
@@ -626,10 +666,12 @@ const useReceipts = (line: Line, payTo: string | undefined): CheckedReceipt[] =>
 };
 
 /** The sales report behind a statement: shown, and for the licensor, checked against the file they were sent. */
-const ReportCheck: React.FC<{ statement: Extract<DealEntry, { type: 'statement' }>; side: DealSide }> = ({
-  statement,
-  side,
-}) => {
+const ReportCheck: React.FC<{
+  statement: Extract<DealEntry, { type: 'statement' }>;
+  side: DealSide;
+  /** Before they answer it: the check is offered only while it can change the answer. */
+  checking: boolean;
+}> = ({ statement, side, checking }) => {
   const [result, setResult] = useState<'same' | 'different'>();
   const e = statement.evidence;
   if (!isEvidence(e)) {
@@ -646,7 +688,7 @@ const ReportCheck: React.FC<{ statement: Extract<DealEntry, { type: 'statement' 
         <code>{e.sha256.slice(0, 12)}…</code>
         {side === 'licensee' ? '. Send them the file if you haven’t.' : ''}
       </Typography>
-      {side === 'issuer' && (
+      {side === 'issuer' && checking && (
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
           <Button component="label" size="small" variant="outlined">
             Check the file they sent

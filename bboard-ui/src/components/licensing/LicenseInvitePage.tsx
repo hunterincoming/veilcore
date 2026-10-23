@@ -48,6 +48,9 @@ import { updateHeldLicense, useHeldLicenses } from '../../veilcore/held-licenses
 import { chainNotReady } from '../../veilcore/chain/config';
 import { AGREEMENTS_ON_CHAIN } from '../../config/copy';
 import { useChainCall } from '../chain/useChainCall';
+import { backupReturnTo } from '../flow/backup-return';
+import { DealSteps, HowItWorks } from './DealSteps';
+import { licenseeSteps } from './steps';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { Wordmark } from '../Wordmark';
@@ -281,87 +284,71 @@ export const LicenseInvitePage: React.FC = () => {
         </Alert>
       )}
 
-      {!takenByOther && !held && (
-        <Stack spacing={1.5}>
-          <Typography variant="body2">
-            Accepting makes your own license key on this device. It never leaves it: the person who sent this gets only
-            a code made from it. Once they issue the license, you activate it with your key, and it&apos;s on Midnight
-            with both of your keys. VeilCore pays the network fee.
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            The terms are between you and them. VeilCore records that the license exists and is live; it doesn&apos;t
-            write or enforce the terms.
-          </Typography>
-          <Button variant="contained" size="large" disabled={busy} onClick={() => void accept()}>
-            {busy ? 'Accepting…' : 'Accept'}
-          </Button>
-        </Stack>
-      )}
-
-      {gone && (
-        <Alert severity="error" variant="outlined" sx={{ mb: 2 }}>
-          It is no longer on Midnight: the sender cancelled or revoked it. Ask them if you think that&apos;s a mistake.
-        </Alert>
-      )}
-
-      {held && !takenByOther && !issued && !gone && (
-        <Stack spacing={1.5}>
-          <Alert severity="success" variant="outlined">
-            Accepted. Your license key is on this device.
-          </Alert>
-          {code ? (
-            <Alert severity="info" variant="outlined">
-              Read this code to the person who sent the link, by phone or in person. Their screen shows one too, and
-              they check it before they issue:{' '}
-              <b style={{ fontFamily: 'monospace', fontSize: '1.3em', whiteSpace: 'nowrap' }}>{code}</b>
-            </Alert>
-          ) : (
-            <Typography variant="body2" color="text.secondary">
-              Waiting for the sender&apos;s page to answer. Your code shows here once it does; their page needs to be
-              open.
-            </Typography>
+      {!takenByOther && !isLive && !gone && (
+        <DealSteps steps={licenseeSteps({ accepted: !!held, backedUp: !!held?.backedUpAt, issued, live: isLive })}>
+          {!held && (
+            <Stack spacing={1.25}>
+              <Button variant="contained" size="large" disabled={busy} onClick={() => void accept()}>
+                {busy ? 'Accepting…' : 'Accept'}
+              </Button>
+              <HowItWorks>
+                Accepting makes your own license key on this device. It never leaves it: the person who sent this gets
+                only a code made from it. Once they issue the license, you activate it with your key, and it&apos;s on
+                Midnight with both of your keys. The terms are between you and them: VeilCore records that the license
+                exists and is live, and doesn&apos;t write, see or enforce the terms. VeilCore pays the network fee.
+              </HowItWorks>
+            </Stack>
           )}
-          {!held.backedUpAt && (
-            <Alert
-              severity="warning"
-              variant="outlined"
-              action={
-                <Button component={RouterLink} to="/backup" color="inherit" variant="outlined">
-                  Save backup
-                </Button>
-              }
-            >
-              Save your backup now: it holds your license key. You&apos;ll need it to activate.
-            </Alert>
-          )}
-          <Typography variant="body2" color="text.secondary">
-            Then they issue it. This page checks every few seconds. If you close it, open the link again later to carry
-            on.
-          </Typography>
-        </Stack>
-      )}
 
-      {held && !takenByOther && issued && !isLive && !gone && (
-        <Stack spacing={1.5}>
-          <Alert severity="info" variant="outlined">
-            They issued it on Midnight (checked on chain). Read the terms, then activate it with your key.
-          </Alert>
-          <TermsBox offered={offered} />
-          {!held.backedUpAt ? (
-            <Alert
-              severity="warning"
-              variant="outlined"
-              action={
-                <Button component={RouterLink} to="/backup" color="inherit" variant="outlined">
-                  Save backup
-                </Button>
-              }
-            >
-              First save and check your backup: it holds your license key. Without it you couldn&apos;t show this
-              license from another device.
-            </Alert>
-          ) : (
-            <>
+          {held && !held.backedUpAt && (
+            <Stack spacing={1.25}>
+              <Typography variant="body2">
+                Your license key is on this device only. Save your backup now: you need it to activate, and to show this
+                license from another device.
+              </Typography>
+              <Button
+                component={RouterLink}
+                to="/backup"
+                onClick={() => backupReturnTo(window.location.pathname + window.location.hash)}
+                variant="contained"
+                size="large"
+                sx={{ alignSelf: 'flex-start' }}
+              >
+                Save backup
+              </Button>
+            </Stack>
+          )}
+
+          {held && held.backedUpAt && !issued && (
+            <Stack spacing={1.25}>
+              {code ? (
+                <>
+                  <Typography variant="body2">
+                    Read this code to whoever sent you the link, by phone or in person:
+                  </Typography>
+                  <Typography
+                    data-license-code=""
+                    sx={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, letterSpacing: '0.15em' }}
+                  >
+                    {code}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Their screen shows one too. When it matches, they issue it and this page moves on by itself. You can
+                    close it and open the link again later.
+                  </Typography>
+                </>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Waiting for their page to answer. Your code shows here once it does: their page needs to be open.
+                </Typography>
+              )}
+            </Stack>
+          )}
+
+          {held && held.backedUpAt && issued && (
+            <Stack spacing={1.25}>
+              <Typography variant="body2">They issued it on Midnight (checked on chain). Read the terms:</Typography>
+              <TermsBox offered={offered} />
               <FormControlLabel
                 control={
                   <Checkbox
@@ -380,9 +367,15 @@ export const LicenseInvitePage: React.FC = () => {
               >
                 Agree and activate
               </Button>
-            </>
+            </Stack>
           )}
-        </Stack>
+        </DealSteps>
+      )}
+
+      {gone && (
+        <Alert severity="error" variant="outlined" sx={{ mb: 2 }}>
+          It is no longer on Midnight: the sender cancelled or revoked it. Ask them if you think that&apos;s a mistake.
+        </Alert>
       )}
 
       {held && isLive && !gone && held.agreement && (
@@ -392,9 +385,9 @@ export const LicenseInvitePage: React.FC = () => {
       )}
 
       {held && isLive && !gone && (
-        <Alert severity="success" variant="outlined">
-          Live on Midnight{held.activatedAt ? ` since ${new Date(held.activatedAt).toLocaleDateString()}` : ''}, issued
-          by the record above and activated with your key. Keep your backup: it&apos;s how you prove this license later.
+        <Alert severity="success" variant="outlined" data-license-live="">
+          Live on Midnight{held.activatedAt ? ` since ${new Date(held.activatedAt).toLocaleDateString()}` : ''}. Keep
+          your backup: it&apos;s how you prove this license later.
         </Alert>
       )}
 

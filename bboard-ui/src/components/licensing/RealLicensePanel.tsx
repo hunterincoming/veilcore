@@ -43,6 +43,9 @@ import {
   verifyActivated,
 } from '../../veilcore/license-invites';
 import { useChainCall } from '../chain/useChainCall';
+import { backupReturnTo } from '../flow/backup-return';
+import { ConfirmInline, DealSteps, HowItWorks } from './DealSteps';
+import { issuerSteps } from './steps';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 
@@ -277,25 +280,22 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
       return r;
     });
 
-  const revoke = () =>
+  /**
+   * Cancel (not activated yet) or revoke (live), confirmed on the page. The chain is read first:
+   * if they activated it a moment ago, a cancel is not turned into a revoke without asking.
+   */
+  const revoke = (reason: string, meantLive: boolean) =>
     call.run(async (progress) => {
       if (!oc?.commitment || !oc.issuerRecord) throw new Error('Nothing to revoke on chain.');
-      // Read it first: a license they activated a moment ago is revoked, not cancelled.
       const wasActive = (await licenseStatusNow(oc.commitment, oc.issuerRecord)) === 'ACTIVE';
-      const reason = wasActive
-        ? window.prompt(
-            live
-              ? 'Reason for revoking this license?'
-              : 'They have just activated it, so this revokes a live license. Reason for revoking?',
-          )
-        : window.confirm('Cancel this license? They won’t be able to activate it.')
-          ? 'Cancelled before it was activated'
-          : null;
-      if (reason === null) throw new Error(wasActive ? 'Not revoked.' : 'Not cancelled.');
+      if (wasActive && !meantLive)
+        throw new Error(
+          'They activated it a moment ago, so it is live now. Nothing was sent. Revoke it below if you mean to.',
+        );
       const { revokeLicenseOnChain } = await import('../../veilcore/chain/actions');
       const r = await revokeLicenseOnChain(hexBytes(keys.recordSecret), oc.commitment, oc.issuerRecord, { progress });
       setOnChain(license.id, (c) => ({ ...c!, revokeTx: r.txId, revokedAt: r.blockTime ?? Date.now() }));
-      revokeLicense(license.id, reason || 'No reason given');
+      revokeLicense(license.id, wasActive ? reason || 'No reason given' : 'Cancelled before it was activated');
       return r;
     });
 
@@ -309,48 +309,119 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
     </Button>
   );
 
+  const steps = issuerSteps({ linkMade: !!oc, accepted: !!oc?.commitment, issued, live });
+  const who = oc?.label || label.trim() || 'them';
+
   return (
     <Stack spacing={1.5}>
-      {!oc && (
-        <>
-          <Typography variant="body2" color="text.secondary">
-            A real license takes both of you. You send a link; they accept on their own phone or computer, and their own
-            key is made there. You read each other a 6-digit code, you issue it, they activate it, and it is on Midnight
-            with both keys. VeilCore pays the network fee.
-          </Typography>
-          <TextField
-            label="Who is it for? (they'll see this)"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            size="small"
-            slotProps={{ htmlInput: { maxLength: 80 } }}
-          />
-          <Button
-            variant="contained"
-            disabled={blocked || busy || !label.trim()}
-            onClick={() => void send()}
-            sx={{ alignSelf: 'flex-start' }}
-          >
-            Make a link for them
-          </Button>
-        </>
-      )}
+      {!live && !gone && (
+        <DealSteps steps={steps}>
+          {!oc && (
+            <Stack spacing={1.25}>
+              <TextField
+                label="Who is it for? (they'll see this)"
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                slotProps={{ htmlInput: { maxLength: 80 } }}
+              />
+              <Button
+                variant="contained"
+                size="large"
+                disabled={blocked || busy || !label.trim()}
+                onClick={() => void send()}
+                sx={{ alignSelf: 'flex-start' }}
+              >
+                Make a link for them
+              </Button>
+              <HowItWorks>
+                A real license takes both of you. You send a link; they accept on their own phone or computer, and their
+                own key is made there. You read each other a 6-digit code, you issue it, they agree and activate it, and
+                it is on Midnight with both keys. VeilCore pays the network fee and never sees the terms.
+              </HowItWorks>
+            </Stack>
+          )}
 
-      {oc && !oc.commitment && !gone && (
-        <>
-          <Alert severity="info" variant="outlined">
-            {oc.issuerNonce
-              ? `${oc.label} opened the link and accepted. Waiting for their device to finish; this takes a few seconds while their page is open.`
-              : `Send this link to ${oc.label}. When they accept, the next step shows here.`}
-          </Alert>
-          <TextField label="Their link" value={link} fullWidth size="small" slotProps={{ input: { readOnly: true } }} />
-          <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
-            <Button variant="outlined" startIcon={<ContentCopyIcon />} onClick={() => void copy()}>
-              Copy link
-            </Button>
-            {startOverButton}
-          </Stack>
-        </>
+          {oc && !oc.commitment && (
+            <Stack spacing={1.25}>
+              <Typography variant="body2">
+                {oc.issuerNonce
+                  ? `${who} accepted. Finishing on their device: this takes a few seconds while their page is open.`
+                  : `Send this link to ${who}: text or email. This page moves on by itself when they accept.`}
+              </Typography>
+              <TextField
+                label="Their link"
+                value={link}
+                fullWidth
+                size="small"
+                slotProps={{ input: { readOnly: true } }}
+              />
+              <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
+                <Button variant="contained" startIcon={<ContentCopyIcon />} onClick={() => void copy()}>
+                  Copy link
+                </Button>
+                {startOverButton}
+              </Stack>
+            </Stack>
+          )}
+
+          {oc?.commitment && !issued && (
+            <Stack spacing={1.25}>
+              <Typography variant="body2">
+                Call {who} or meet up. Their screen shows a code. It must be this one:
+              </Typography>
+              <Typography
+                data-license-code=""
+                sx={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, letterSpacing: '0.15em' }}
+              >
+                {code ?? '…'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                A different code means someone else answered your link: don&apos;t issue, start over.
+              </Typography>
+              <FormControlLabel
+                control={<Checkbox checked={codeChecked} onChange={(e) => setCodeChecked(e.target.checked)} />}
+                label="They read me this same code"
+              />
+              <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  disabled={blocked || call.busy || !codeChecked || !code}
+                  onClick={() => void issue()}
+                >
+                  Issue it
+                </Button>
+                {startOverButton}
+              </Stack>
+            </Stack>
+          )}
+
+          {oc && issued && !live && (
+            <Stack spacing={1.25}>
+              <Typography variant="body2">
+                Issued on Midnight. Waiting for {who} to read the terms, agree and activate it: their link shows them
+                how. This page reads the chain itself and moves on when they do.
+              </Typography>
+              <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
+                <Button variant="outlined" startIcon={<ContentCopyIcon />} onClick={() => void copy()}>
+                  Copy their link again
+                </Button>
+                {oc.issueTx && (
+                  <Button variant="text" onClick={repost}>
+                    They don&apos;t see it? Send it again
+                  </Button>
+                )}
+              </Stack>
+              <ConfirmInline
+                label="Cancel it"
+                question="Cancel this license? They won’t be able to activate it. This goes on Midnight and can’t be undone."
+                confirmLabel="Yes, cancel it"
+                disabled={blocked || call.busy}
+                onConfirm={(r) => void revoke(r, false)}
+              />
+            </Stack>
+          )}
+        </DealSteps>
       )}
 
       {oc?.partySecret && !issuerDealBackedUp(license) && !gone && (
@@ -358,74 +429,33 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
           severity="warning"
           variant="outlined"
           action={
-            <Button component={RouterLink} to="/backup" color="inherit" variant="outlined">
+            <Button
+              component={RouterLink}
+              to="/backup"
+              onClick={() => backupReturnTo(window.location.pathname + window.location.hash)}
+              color="inherit"
+              variant="outlined"
+            >
               Save backup
             </Button>
           }
         >
-          Save a new backup: it now holds this license&apos;s private key, which you need to read their statements on
+          Save a new backup: it now holds this license&apos;s key. Without it you can&apos;t read their statements on
           another device.
         </Alert>
       )}
 
-      {oc?.commitment && !issued && !gone && (
-        <>
-          <Alert severity="success" variant="outlined">
-            {oc.label} accepted. Before you issue it, call them or meet up. Their screen shows a code, and it must be
-            the same as this one:{' '}
-            <b style={{ fontFamily: 'monospace', fontSize: '1.3em', whiteSpace: 'nowrap' }}>{code ?? '…'}</b>
-          </Alert>
-          <Typography variant="body2" color="text.secondary">
-            If their code is different, don&apos;t issue: someone else answered your link. Start over with a new one.
-          </Typography>
-          <FormControlLabel
-            control={<Checkbox checked={codeChecked} onChange={(e) => setCodeChecked(e.target.checked)} />}
-            label="They read me this same code"
-          />
-          <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
-            <Button
-              variant="contained"
-              disabled={blocked || call.busy || !codeChecked || !code}
-              onClick={() => void issue()}
-            >
-              Issue it
-            </Button>
-            {startOverButton}
-          </Stack>
-        </>
-      )}
-
-      {oc && issued && !live && !gone && (
-        <>
-          <Alert severity="info" variant="outlined">
-            Issued on Midnight. Waiting for {oc.label} to activate it from their device: their link shows them the
-            button. This page reads the license on the chain itself.
-          </Alert>
-          <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
-            <Button variant="outlined" startIcon={<ContentCopyIcon />} onClick={() => void copy()}>
-              Copy their link again
-            </Button>
-            {oc.issueTx && (
-              <Button variant="text" onClick={repost}>
-                They don&apos;t see it? Send the issue again
-              </Button>
-            )}
-            <Button color="error" variant="text" disabled={blocked || call.busy} onClick={() => void revoke()}>
-              Cancel it
-            </Button>
-          </Stack>
-        </>
-      )}
-
       {live && oc && (
         <>
-          <Alert severity="success" variant="outlined">
-            Live on Midnight since {new Date(oc.activatedAt ?? Date.now()).toLocaleDateString()}: issued from this
-            record, and activated with the key of whoever accepted your link and read you the code. They can prove they
-            hold a live license from this record without showing which one. On chain it stays live until you revoke it,
-            whatever end date the terms say.
-            {agreed && ` They signed their agreement to these terms on ${new Date(agreed.at).toLocaleDateString()}.`}
+          <Alert severity="success" variant="outlined" data-license-live="">
+            Live on Midnight since {new Date(oc.activatedAt ?? Date.now()).toLocaleDateString()}.
+            {agreed && ` They agreed to these terms on ${new Date(agreed.at).toLocaleDateString()}.`}
           </Alert>
+          <HowItWorks label="What “live” means">
+            Issued from this record and activated with the key of whoever accepted your link and read you the code. They
+            can prove they hold a live license from this record without showing which one. On chain it stays live until
+            you revoke it, whatever end date the terms say.
+          </HowItWorks>
           {party && oc.termsSentAt && license.type === 'license' && (
             <RoyaltyLedger
               party={party}
@@ -452,15 +482,14 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
               issuerSecret={keys.recordSecret}
             />
           )}
-          <Button
-            color="error"
-            variant="text"
+          <ConfirmInline
+            label="Revoke on chain"
+            question="Revoke this license? It stops being live on Midnight for everyone who checks it. This can’t be undone."
+            confirmLabel="Yes, revoke it"
+            reason="Reason (kept with your copy of the license)"
             disabled={blocked || call.busy}
-            onClick={() => void revoke()}
-            sx={{ alignSelf: 'flex-start' }}
-          >
-            Revoke on chain
-          </Button>
+            onConfirm={(r) => void revoke(r, true)}
+          />
         </>
       )}
 
