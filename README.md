@@ -12,11 +12,37 @@ said and when it existed: free, no account, without having to trust us.
 [test.veilcore.org](https://test.veilcore.org) is for practice ·
 the record format is an open spec: [veilcore-sdk](https://github.com/hunterincoming/veilcore-sdk)
 
+```mermaid
+flowchart LR
+  A["Breeder's browser<br/>seals the record"] -->|"details locked,<br/>key stays with the breeder"| R[("VeilCore registry<br/>stores the locked box")]
+  A -->|"32-byte proof code"| B["Hourly batch"]
+  B -->|"anchored"| M["Midnight mainnet"]
+  M -->|"date"| V["Check page / CLI"]
+  A -. "breeder shares what they choose" .-> V
+```
+
+## Try it
+
+1. **See a check page, nothing to install:** [veilcore.org/verify/example](https://veilcore.org/verify/example)
+   walks through what a stranger sees when they check a record, line by line.
+2. **Check a record yourself, offline:**
+
+   ```bash
+   curl -sO https://raw.githubusercontent.com/hunterincoming/veilcore-sdk/main/examples/record.json
+   npx veilcore-records verify record.json
+   ```
+
+   It prints `commitment holds` and `Verified.` (exit 0). Edit the record's name in the file and it
+   prints `DOES NOT HOLD` with both fingerprints (exit 1). Full output in the
+   [veilcore-sdk README](https://github.com/hunterincoming/veilcore-sdk#try-it-in-30-seconds).
+3. **Make a practice record:** [test.veilcore.org](https://test.veilcore.org): no wallet, no
+   account, on a Midnight test network.
+
 ## On mainnet since 8 October 2026
 
 | Contract | Address | Can it be changed? |
 |---|---|---|
-| `veilcore.compact`: records, licences, lineage (24 circuits) | `a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347` | By a maintenance key ([policy](docs/maintenance-policy.md)) |
+| `veilcore.compact`: records, licenses, lineage (24 circuits) | `a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347` | By a maintenance key ([policy](docs/maintenance-policy.md)) |
 | `veilcore-claims.compact`: prove one fact about sealed values | `ef763eb4ad1846b716dbfa90c00560a9a943ffb4d1fc638b0707df5adefd070d` | No. It has no maintenance key |
 
 Deploy transactions and blocks: [the deployment record](docs/deployment-record-revision-4.md#mainnet-deployment).
@@ -30,7 +56,7 @@ Build fingerprints: [docs/fingerprints.md](docs/fingerprints.md).
   and reports signed with the lab's own key; choosing what a record's check page shows; check
   pages that read the date from Midnight themselves. No wallet needed: VeilCore's fee service
   pays the network fee for what the browser sends.
-- **Practice only:** licences, royalties and lab agreements. They're in the contract; the
+- **Practice only:** licenses, royalties and lab agreements. They're in the contract; the
   website doesn't submit them yet.
 - **No audit.** Twelve rounds of adversarial review are public, with the attacks kept as tests
   ([docs/security-pass-30sep.md](docs/security-pass-30sep.md)). They are not a formal audit.
@@ -47,20 +73,20 @@ A breeder who holds genetic material may later need to establish three things: t
 
 Written agreements have a related problem. A contract binds the parties who signed it. It cannot bind a plant that did not exist when it was signed, which is why a cutting that becomes a mother that becomes ten thousand clones carries no obligation anyone can point at.
 
-VeilCore records what was held and when, lets licences be granted against a record, and lets an obligation on an ancestor be carried by everything derived from it.
+VeilCore records what was held and when, lets licenses be granted against a record, and lets an obligation on an ancestor be carried by everything derived from it.
 
 - **Prove prior possession** — an anchored record is dated by the block its batch lands in.
 - **Pair a DNA report** — record a DNA report against your record. The contract binds whatever 32-byte value the holder submits: it is the holder's own statement that this report belongs to this record, not a check of the genetics. The client submits a salted binding of the report's hash to the record's identity, not the raw hash, so the pairing cannot be copied to another record. It shows that whoever controlled the record's identity at that date had the report, or its SHA-256, by then (verifier rule 9 in [`docs/design.md`](docs/design.md), which also flags a report hash paired raw earlier and key changes since). The web app keeps the pairing in the registry, not on chain.
-- **License against the record** — on chain a licence is only PENDING (issued) or ACTIVE (countersigned), and revoking removes it. The contract stores no terms and has no expiry. Terms, dates, expiry and the royalty log are kept by the app, in the VeilCore registry. A presentation proves "a live licence from this issuer", not which licence or on what terms.
-- **Prove a claim without showing the secret** — prove you hold a record, or a licence, without revealing the secret behind it. A control proof publishes the record's commitment. A licence presentation hides the licence and the licensee, and the issuer only among issuers with live licences; while only one issuer has live licences, as at launch, it names that issuer.
+- **License against the record** — on chain a license is only PENDING (issued) or ACTIVE (countersigned), and revoking removes it. The contract stores no terms and has no expiry. Terms, dates, expiry and the royalty log are kept by the app, in the VeilCore registry. A presentation proves "a live license from this issuer", not which license or on what terms.
+- **Prove a claim without showing the secret** — prove you hold a record, or a license, without revealing the secret behind it. A control proof publishes the record's commitment. A license presentation hides the license and the licensee, and the issuer only among issuers with live licenses; while only one issuer has live licenses, as at launch, it names that issuer.
 
 Plant genetics is the first use, not the limit. The record format is domain-blind: the same envelope serves ornamental propagation, a livestock herd book, or a microbial culture collection.
 
 ## What leaves your browser
 
-- **Sealed in the browser.** Everything a holder types into a record or licence (name,
+- **Sealed in the browser.** Everything a holder types into a record or license (name,
   breeder, species, dates, notes, reference numbers, parents, method, the record's own secret
-  keys; a licence's counterparty, terms, dates and royalty log) and a delivery's sample
+  keys; a license's counterparty, terms, dates and royalty log) and a delivery's sample
   details are encrypted in the browser (AES-256-GCM) before they are sent.
 - **Stored locked; we don't have the key.** The registry (a server we run) stores the locked
   box. The key stays in the holder's browser and backup file. A delivery's sample-details key
@@ -72,7 +98,7 @@ Plant genetics is the first use, not the limit. The record format is domain-blin
 - **What the registry can read:** each record's id, profile, proof code and key binding; a
   code made from its name (useless without the salt in the holder's check link); correction
   links; when it first saw the record; save counts and times; a size bucket; what the holder
-  chooses to show on its check page; parent links; batch and date stamp; for a licence with a
+  chooses to show on its check page; parent links; batch and date stamp; for a license with a
   royalty on offspring, which record carries it and since when (not its terms or parties); for
   a delivery, which record it came from, which holder account received it, and a tag in place
   of the recipient's name; a
@@ -96,11 +122,11 @@ a host sent everyone the same files.
 
 This is the application — the contract, the API, the CLI and the web app.
 
-The record format itself is a separate, open specification with implementations in TypeScript, Python and Rust (all three written by the same team; an implementation by someone else is still to come): **[veilcore-sdk](https://github.com/hunterincoming/veilcore-sdk)**. Checking a record's fingerprint needs SHA-256 and nothing from this repository or from us. Checking what the contract says (anchors, licences, lineage) needs Midnight's tooling to read chain state; see Current status.
+The record format itself is a separate, open specification with implementations in TypeScript, Python and Rust (all three written by the same team; an implementation by someone else is still to come): **[veilcore-sdk](https://github.com/hunterincoming/veilcore-sdk)**. Checking a record's fingerprint needs SHA-256 and nothing from this repository or from us. Checking what the contract says (anchors, licenses, lineage) needs Midnight's tooling to read chain state; see Current status.
 
 ```
 contract/     # The Compact contract (veilcore.compact), verifier rules (verify.ts), tests, hash vectors
-api/          # VeilcoreAPI: records, licences and lineage from a client
+api/          # VeilcoreAPI: records, licenses and lineage from a client
 bboard-cli/   # CLI for wallet sync and deployment
 bboard-ui/    # The web app — React + Vite
 ```
@@ -117,7 +143,10 @@ cd bboard-ui
 npm run dev                      # http://localhost:5173
 ```
 
-Log a record, pair a DNA report, view the evidence package, issue and countersign a licence, prove possession. Records and licences are saved to the registry named by `VITE_API_BASE` (the live site uses VeilCore's). With it unset, `npm run dev` has no registry to save to, so records last only for the browser session; to keep them, run the registry (the `veilcore-api` repository, not yet public; `npm start`, port 8787) and start the app with `VITE_API_BASE=http://localhost:8787`. Only the holder key, and a few settings, are kept in `localStorage`. The dashboard has Export, Import and Reset.
+The app opens and you can log a record, but with no registry set it keeps records for that
+browser session only. The registry (`veilcore-api`) isn't public yet: to save records, point
+the app at one with `VITE_API_BASE=<registry address>`. For a full practice run with a
+registry and the test network, use [test.veilcore.org](https://test.veilcore.org).
 
 ## Building from a fresh clone
 
@@ -144,13 +173,13 @@ cd ../bboard-ui && npm run build
 ## Current status
 
 **Two contracts, both on Midnight mainnet since 8 October 2026** (addresses above). `contract/src/veilcore.compact`
-(protocol version 1, frozen) covers records, licences and lineage. `contract/src/veilcore-claims.compact`
+(protocol version 1, frozen) covers records, licenses and lineage. `contract/src/veilcore-claims.compact`
 proves one fact about a sealed record without showing the rest (a value, a bound on a number,
 that two records differ, that a correction changed only some values), optionally on values a
 laboratory signed; see [`docs/claims-design.md`](docs/claims-design.md) and SPEC 4.5 in veilcore-sdk.
 The claims contract has no maintenance authority (an empty committee).
 
-The main contract covers records, licences and lineage in 24 circuits. The design, the normative
+The main contract covers records, licenses and lineage in 24 circuits. The design, the normative
 verifier rules and the trust model are in [`docs/design.md`](docs/design.md).
 
 An outside developer reviewed it in August. Since then it has had twelve rounds of
@@ -159,7 +188,7 @@ our own pass over both contracts, and rounds 2 to 7 by reviewers who had not see
 fixes, all on 30 September 2026; then rounds 8 to 12 on 1 October, three of them (8, 11
 and 12) followed by a fresh re-attack of their fixes. Round 12 attacked the per-identity state
 bounds added that evening (caps on rotations, recoveries, parents, obligations and
-licences; see State bounds in `docs/design.md`). Contract findings were demonstrated against
+licenses; see State bounds in `docs/design.md`). Contract findings were demonstrated against
 the build before being fixed or documented. Contract attacks are kept as
 tests in `contract/src/test/` (`cd contract && npm test`). Many fixes were in the CLI, the
 API, the registry or the website, and are tested there instead: `bboard-cli/src/*.test.ts`
@@ -167,11 +196,11 @@ API, the registry or the website, and are tested there instead: `bboard-cli/src/
 `test/*.test.mjs`. Not every attack has a test. These were adversarial reviews, not a
 formal security audit, and we do not call them one.
 
-The six commitment hashes (record, recovery, licence, licence key, presentation tag,
+The six commitment hashes (record, recovery, license, license key, presentation tag,
 obligation), and the client's DNA pairing binding, are plain SHA-256 over a tag and their inputs, with published test vectors
-(`contract/vectors/v1.json`), so they can be recomputed in any language. The licence
+(`contract/vectors/v1.json`), so they can be recomputed in any language. The license
 tree is not: its inner nodes use Midnight's own field hash, and verifier rule 5 compares
-tree roots, so checking a licence presentation, like reading any contract state, needs
+tree roots, so checking a license presentation, like reading any contract state, needs
 Midnight's tooling.
 
 **What the web app sends to the chain.** On both sites the browser proves and sends its own
@@ -180,7 +209,7 @@ a fee service pays the network fee, so nobody needs a wallet. Batches are anchor
 automatically by the same service. On test.veilcore.org (preprod) this was first run end to
 end on 12 and 13 October 2026 ([`docs/no-wallet-run-12oct.md`](docs/no-wallet-run-12oct.md));
 on veilcore.org (mainnet) it went live on 19 October and was checked by hand on 20 October
-([`docs/mainnet-sponsor.md`](docs/mainnet-sponsor.md)). Licences, royalties and lab agreements
+([`docs/mainnet-sponsor.md`](docs/mainnet-sponsor.md)). Licenses, royalties and lab agreements
 are practice only on both sites.
 
 **The CLI** in `bboard-cli/` talks to a deployed contract. Its smoke test
@@ -204,43 +233,15 @@ Midnight's standards repository.
 - A record establishes **prior possession, not ownership**. It is evidence a lawyer can rely on, not a verdict.
 - A parent link on chain means both holders **agreed** the child descends from the parent. It is not a genetic test.
 - It **pairs** the DNA report a laboratory returns, as the holder's own statement. It does not sequence anything, check the report, or confirm it came from a laboratory.
-- In-app "signing" and countersigning of a licence record a time in the registry. They are not cryptographic signatures, and not qualified eIDAS signatures. On chain, a countersign is proved with the licensee's licence secret.
+- In-app "signing" and countersigning of a license record a time in the registry. They are not cryptographic signatures, and not qualified eIDAS signatures. On chain, a countersign is proved with the licensee's license secret.
 - The royalty log records and proves obligations. It does not move money.
 - It raises the cost and the evidentiary risk of laundering stolen genetics. It does not prevent it.
-- Licences, royalties and lab agreements on the website are practice only: they are in the contract, but the website doesn't submit them yet.
-- VeilCore does not vouch for any record, holder or lab. A lab's signature shows which key signed; a lab's name is shown as checked only after the operator has matched it to a public licence, and even then only that match is claimed ([`docs/lab-name-checks.md`](docs/lab-name-checks.md)).
+- Licenses, royalties and lab agreements on the website are practice only: they are in the contract, but the website doesn't submit them yet.
+- VeilCore does not vouch for any record, holder or lab. A lab's signature shows which key signed; a lab's name is shown as checked only after the operator has matched it to a public license, and even then only that match is claimed ([`docs/lab-name-checks.md`](docs/lab-name-checks.md)).
 
-## Deploying the web app
+## Deploying
 
-Always use `--prebuilt`. A bare `vercel --prod` builds from source and has broken production before.
-
-The script runs the Vercel CLI pinned in `tools/vercel/` (exact version, own lockfile), never `npx vercel`, which would download whatever version is newest at deploy time. To upgrade it, change the version in `tools/vercel/package.json` and run `npm install --package-lock-only` in that folder.
-
-```bash
-npm run deploy:prod
-```
-
-veilcore.org is published with `npm run deploy:mainnet` ([`docs/ops/mainnet-day-site.md`](docs/ops/mainnet-day-site.md)),
-and test.veilcore.org with `npm run deploy:test` ([`docs/test-site.md`](docs/test-site.md)).
-`deploy:prod` published the test-network wording before mainnet; it reads the registry's
-`/.well-known/veilcore-registry` and refuses now that the registry anchors on mainnet.
-
-Deploy the registry before the site. All three deploys (`deploy:prod`, `deploy:mainnet` and
-`deploy:test`) refuse unless the registry's `/health` lists every feature in
-`scripts/registry-features.mjs` (`sealed-records-v1`, `lab-results-v1`, `animal-profile-v1`,
-`claimant-offer-v1`, `sealed-custody-v1`, `record-rev-v1`, `license-rev-v1`,
-`sealed-name-v1`, `dna-pair-binding-v1`, `bred-by-grant-v1`, `name-code-v1` and
-`lab-doc-binding-v1`): a site build against a registry without one of them fails the people
-who use it.
-
-Each of the three writes a release manifest before uploading (`scripts/release-manifest.mjs`):
-the SHA-256 of every file served, the security headers, the build mode, every `VITE_*` setting
-and the Node and npm versions, at `releases/<network>/<commit>.json` (`prod` for
-`deploy:prod`). Commit and push it with the release. Anyone can then check a live copy
-(`npm run check:site -- <address>`, which also fetches every page address the app serves and a
-random one, the way a browser opens a page) and rebuild the release from the code to compare
-(`npm run check:rebuild -- releases/<network>/<commit>.json`; use the Node version it names).
-Neither can prove a host sent everyone the same files.
+For whoever runs the site: [docs/ops/deploying.md](docs/ops/deploying.md).
 
 ## Contributing and security
 
@@ -248,6 +249,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately: [SECUR
 Much of this code was written with an AI coding assistant. Every change goes through the
 tests and the public reviews in [`docs/`](docs/README.md).
 
-## Licence
+## License
 
 Apache-2.0. Built on the Midnight Network.
