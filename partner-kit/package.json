@@ -76,6 +76,6 @@
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
-    "veilcore-records": "^0.15.0"
+    "veilcore-records": "^0.18.0"
   }
 }

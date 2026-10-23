@@ -129,24 +129,22 @@ holds or moves anyone's money.
      transfer's identifier (refused before sending if over 120 characters).
    - **Before mainnet:** Mako's yes and a lawyer's review (a payment feature, even with no
      custody). Then change the one line.
-12. **Borrowing against licenses (researched 23 Oct; the checker is built).** The plan was
-    zero-knowledge proofs that show a lender what licenses earn without showing the terms.
-    Research says that is the wrong goal: a royalty lender reads everything, under a
-    confidentiality agreement. It wants the license agreements themselves (assignment,
-    termination, payment terms), a lien search, chain of title, and a UCC-1 filing over the
-    royalties, which no chain record replaces (Berkeley Law, "Securities Interests in Royalty
-    Financings", 2025). What VeilCore adds is what a spreadsheet can't:
-    - **A history the payer signed.** `npx veilcore-records deal <backup>` (veilcore-sdk, next
-      release) checks every signed message of each deal and totals what both sides signed as
-      paid. It says what it can't show: whether the licensee is a real, separate person. The
-      lender confirms that with the licensee, as lenders already confirm receivables.
+12. **Borrowing against licenses (built 23 Oct).** A royalty lender reads everything, under a
+    confidentiality agreement: the license agreements themselves, a lien search, chain of
+    title, and a UCC-1 filing over the royalties, which no chain record replaces (Berkeley Law,
+    "Securities Interests in Royalty Financings", 2025). So no zero-knowledge proofs for
+    lenders. What VeilCore adds is what a spreadsheet can't:
+    - **A lender pack** (`veilcore/lender-pack.ts`): from a live license, a .zip of the signed
+      record of each holder's deal, a summary worked out by the published checker
+      (veilcore-records `checkDealRecord`, the same as `npx veilcore-records deal`), and a
+      README saying what it shows and what it can't: whether the licensee is a real, separate
+      person. The lender confirms that with the licensee.
     - **Dated prior possession and chain of title:** the records and their evidence bundles.
-    - **A lien anyone can see:** an obligation on the record with the lender as beneficiary
-      (proposeObligation, acceptObligation; only the lender can discharge it). It flags a
-      pledge to the next lender; it is not a legal filing.
-    Not built: a lender screen. Built when a lender asks. A lawyer decides how the chain lien
-    and a UCC-1 sit together (UCC Article 12 "controllable electronic records", in force in
-    more than 30 states, may matter here).
+    - **A claim on the record** (`veilcore/claims.ts`, the /claim page): the lender proposes
+      it from its own identity (partner kit `proposeObligation`, `claimLink`), the holder
+      accepts it on the record's own key, only the lender can release it. Anyone checking the
+      record sees a claim is in force. Not a legal filing.
+    Lender's guide: [docs/partners/lenders.md](partners/lenders.md).
 
 ## Law and wording
 

@@ -86,6 +86,7 @@ export { errorChain, isContractRefusal } from './errors.js';
 
 // ── secrets and commitments (offline) ────────────────────────────────────────
 export { commit, fromHex, newChallenge, newSecret, toHex } from './commitments.js';
+export { claimLink } from './links.js';
 export {
   attesterKeyOf as labKeyOf,
   newAttesterKey as newLabKey,

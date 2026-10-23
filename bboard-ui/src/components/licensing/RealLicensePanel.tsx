@@ -496,6 +496,33 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
             />
           )}
           {party && oc.termsSentAt && (
+            <Stack spacing={0.75} data-lender-pack="">
+              <Button
+                variant="text"
+                disabled={busy}
+                onClick={() => {
+                  setBusy(true);
+                  setError(undefined);
+                  void import('../../veilcore/lender-pack')
+                    .then((m) => m.downloadLenderPack(license))
+                    .then(() => onToast('Lender pack downloaded.'))
+                    .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
+                    .finally(() => setBusy(false));
+                }}
+                sx={{ alignSelf: 'flex-start' }}
+              >
+                Download a pack for a lender or buyer
+              </Button>
+              <HowItWorks label="What’s in the pack">
+                This license&apos;s royalty history as both of you signed it, with a summary and plain instructions. A
+                lender checks it with a free open tool, no account, nothing from VeilCore. It shows what the licensee
+                signed, which a spreadsheet can&apos;t. It can&apos;t show the licensee is a real separate person, so
+                the pack tells the lender to confirm that with them. Share it only with someone you trust with the
+                terms.
+              </HowItWorks>
+            </Stack>
+          )}
+          {party && oc.termsSentAt && (
             <HandOnIssuer
               license={license}
               party={party}

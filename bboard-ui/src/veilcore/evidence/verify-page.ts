@@ -11,7 +11,7 @@
 
 import template from '../../../evidence-page/verify.template.html?raw';
 import core from '../../../evidence-page/verify-core.js?raw';
-import sdkCanonical from '../../../node_modules/veilcore-records/dist/canonical.js?raw';
+import sdkCanonical from '../../../../node_modules/veilcore-records/dist/canonical.js?raw';
 import sdkPackage from 'veilcore-records/package.json';
 
 /** The SDK version whose canonicalisation is copied into the page. */

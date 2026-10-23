@@ -28,7 +28,7 @@ the private messages of a license deal.
 | The registry (stores sealed records, batches them, relays lab codes and deal messages) | Our server. Its code (`veilcore-api`) **is not public yet** | ❌ The biggest gap. Without its code, someone else can't run a compatible one |
 | The fee service (pays the network fee so nobody needs a wallet) | Our server (`sponsor/`, in this repository) | ⚠️ The code is here; someone has to run it and fund it |
 | License state (issued, active, revoked) | The main contract on Midnight | ✅ Public chain state; the verifier rules are in `docs/design.md` |
-| License terms and royalty messages | Encrypted on our registry; **and, from 23 Oct, in the backup file** (`dealRecords`) | ✅ Each side's backup keeps every message of its deals as signed (terms, statements, replies, payments, confirmations), checkable by anyone with `npx veilcore-records deal <file>` (veilcore-sdk, next release). Kept for the holder, not restored: a deal's channel itself stays on the registry |
+| License terms and royalty messages | Encrypted on our registry; **and, from 23 Oct, in the backup file** (`dealRecords`) | ✅ Each side's backup keeps every message of its deals as signed (terms, statements, replies, payments, confirmations), checkable by anyone with `npx veilcore-records deal <file>` (veilcore-records 0.18.0 on npm). Kept for the holder, not restored: a deal's channel itself stays on the registry |
 
 ## What changed on 23 October
 
