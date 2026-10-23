@@ -69,6 +69,23 @@ holds or moves anyone's money.
    holder, so neither has to trust the old holder for the other's key. That is built when a
    user needs it.
 
+   **Why a license is not a Midnight token (researched 23 Oct 2026).** A license must not
+   move without the breeder: selling or passing on a protected variety without the owner's
+   authority is what the US PVP Act calls infringement (7 U.S.C. 2541). A token a contract
+   mints on Midnight, once it sits in someone's wallet, moves wallet to wallet without the
+   contract (Midnight docs, "Create and transfer an unshielded token"), so the breeder could
+   not stop a resale, and an unshielded token would also show every holder publicly. The
+   deployed contract already does what a "consent-gated token" would: a license is a private
+   leaf only its holder can prove, and it moves only when the holder proposes and the breeder
+   approves (proposeTransfer, approveTransfer). So: no token, no contract change.
+
+   **Paying and activating in one step: later, on test networks first.** Midnight can merge
+   transactions built separately (ledger 9 intents), which could let a licensee's activation
+   and their payment to the breeder land together or not at all, with no contract change.
+   Midnight's own docs say this isn't usable on a live network yet (midnight-docs issue
+   1291). Try it on a test network when it is; until then the breeder can revoke an unpaid
+   license, which covers the same risk.
+
 9. **W3C credentials (done).** The licensor's page signs a license credential and, for each
    payment it confirmed, a payment credential, and sends them over the deal's channel. They
    are W3C Verifiable Credentials 2.0 with Data Integrity `eddsa-jcs-2022` proofs and
