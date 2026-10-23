@@ -41,7 +41,7 @@
     "@noble/hashes": "2.2.0",
     "@scure/base": "2.2.0",
     "age-encryption": "0.3.1",
-    "dompurify": "^3.4.16",
+    "dompurify": "^3.4.17",
     "fflate": "0.8.3",
     "framer-motion": "^12.42.2",
     "html-to-image": "^1.11.13",
