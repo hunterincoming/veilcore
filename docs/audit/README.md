@@ -701,6 +701,11 @@ not read the main contract; a verifier checks that a record is anchored separate
 
 ## 12. Changes since 6 October (added 15 October 2026)
 
+> **Update, 24 October 2026.** This section is a snapshot from 15 October. Since then the
+> branches it names are merged into `main` (the site's `feat/lab-results`, and the license
+> work after it), lab reports are on for veilcore.org (16 October), and the contracts are
+> still byte-identical to `a3d1884`.
+
 Read from the history of both repositories on 15 October: this repository from `a3d1884`
 to `19674df` (branch `feat/lab-results`), and the registry (`veilcore-api`) from 6 October
 to `1f35505` (its branch `feat/lab-results`). Sections 1 to 11 above are unchanged and still

@@ -21,7 +21,7 @@ The `features` list must include `license-invites-v1`, `deals-v1`, `payment-rece
 ```
 cd ~/Desktop/veilcore
 git fetch origin
-git checkout feat/real-licences
+git checkout main
 git pull
 npm ci
 npm run stage -w sponsor

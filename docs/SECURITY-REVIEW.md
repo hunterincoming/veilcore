@@ -46,13 +46,16 @@ Review rounds 1 to 3 on this layer and an independent attack pass on 21 October 
 High: a credential signed for terms other than the agreed ones; four Medium: passkey copies
 overwriting each other, a passkey copy counting as the backup file, a malformed signed message
 breaking the license page, and a delete using the wrong passkey; all fixed with tests) are in
-the git history of `feat/real-licences` (site) and `license-invites` (registry). The accepted
-limits are in `docs/agreements-live.md`.
+the git history of the site's `main` and the registry's `license-invites`. A further independent
+review on 24 October 2026, of handing a license on, lenders' claims and the lender pack, found
+one High (the breeder could approve a hand-on before the new holder had agreed to the terms)
+and four smaller issues; all fixed with tests (commit `13d6afc`). The accepted limits are in
+`docs/agreements-live.md`.
 
 ## How to run it
 
 ```
-git clone <site repo>; git checkout feat/real-licences
+git clone <site repo>   # main
 cd bboard-ui && npm ci && npx vitest run
 git clone <registry repo>; git checkout license-invites
 npm ci && npm test
