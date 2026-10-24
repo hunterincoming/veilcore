@@ -27,7 +27,7 @@ key fingerprints it checks against.
 npm install --save-exact @veilcore/contracts@0.3.0
 ```
 
-**Read [docs/PARTNERS.md](https://github.com/hunterincoming/veilcore-midnight-testnet/blob/main/docs/PARTNERS.md)
+**Read [docs/PARTNERS.md](https://github.com/hunterincoming/veilcore/blob/main/docs/PARTNERS.md)
 first.** It says what this does and does not prove, how fees work, and where your secrets
 must be kept.
 
@@ -63,7 +63,7 @@ await vc.anchor(commit.recovery(recoverySecretKeptOffline));
 
 Requiring applicants to bring a VeilCore record (a membership, a library, a registry, a lab's
 intake)? The lighter `record-check/` package checks a record from its check link in one call,
-with a copy-paste form field: see [docs/partners/require-a-record.md](https://github.com/hunterincoming/veilcore-midnight-testnet/blob/main/docs/partners/require-a-record.md).
+with a copy-paste form field: see [docs/partners/require-a-record.md](https://github.com/hunterincoming/veilcore/blob/main/docs/partners/require-a-record.md).
 
 Verifying needs no wallet:
 
@@ -112,7 +112,7 @@ const verdict = await checkPresentation({ network: 'preprod', blockfrostProjectI
 - `pairReport`, `pairingEvidence`, `checkPairing` and `findPairingTransactions`: a report paired
   as a salted binding to the record, checked with the pairing's history; weak salts refused.
 - `claimLink`: the link a lender sends a holder to record a claim on a record
-  ([docs/partners/lenders.md](https://github.com/hunterincoming/veilcore-midnight-testnet/blob/main/docs/partners/lenders.md)).
+  ([docs/partners/lenders.md](https://github.com/hunterincoming/veilcore/blob/main/docs/partners/lenders.md)).
 - A remote proof server is refused unless asked for, and then only over https. Secrets are
   kept off the terminal.
 - Verifier checks: pinned verifier keys, a second indexer, network agreement, and an

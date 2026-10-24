@@ -5,9 +5,9 @@
   "homepage": "https://veilcore.org",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hunterincoming/veilcore-midnight-testnet.git"
+    "url": "git+https://github.com/hunterincoming/veilcore.git"
   },
-  "bugs": "https://github.com/hunterincoming/veilcore-midnight-testnet/issues",
+  "bugs": "https://github.com/hunterincoming/veilcore/issues",
   "author": "VeilCore <hunter@veilcore.org>",
   "license": "Apache-2.0",
   "private": true,

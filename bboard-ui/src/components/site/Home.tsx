@@ -30,11 +30,11 @@ import { FoldGroup, FoldItem, FoldPoint, usePhone } from './Fold';
 import { hasRecordsHere } from './returning';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
 
-const TESTNET_REPO = 'https://github.com/hunterincoming/veilcore-midnight-testnet';
+const APP_REPO = 'https://github.com/hunterincoming/veilcore';
 /** The public test site (docs/test-site.md). It goes live with this release. */
 const TEST_SITE_URL = 'https://test.veilcore.org';
 /** Our own reviews (not audits), listed in the public repository's audit pack, section 8. */
-const REVIEWS_URL = `${TESTNET_REPO}/blob/main/docs/audit/README.md#8-history-of-internal-attack-rounds`;
+const REVIEWS_URL = `${APP_REPO}/blob/main/docs/audit/README.md#8-history-of-internal-attack-rounds`;
 
 /**
  * A founder's photo, as on the Founders page. The initials show only if the photo can't
@@ -420,7 +420,7 @@ const Technical: React.FC = () => {
                 {t('m.status.keyText')}
                 {sp}
                 <a
-                  href={`${TESTNET_REPO}/blob/main/docs/maintenance-policy.md`}
+                  href={`${APP_REPO}/blob/main/docs/maintenance-policy.md`}
                   rel="noopener noreferrer"
                   target="_blank"
                 >
@@ -457,7 +457,7 @@ export const Home: React.FC = () => {
   const post = (k: 'postC' | 'postB' | 'postA' | 'post0' | 'post1' | 'post2', doc: string, iso: string) => (
     <Post
       key={k}
-      href={`${TESTNET_REPO}/blob/main/docs/${doc}`}
+      href={`${APP_REPO}/blob/main/docs/${doc}`}
       iso={iso}
       date={t(`m.${k}.date`)}
       tag={t(`m.${k}.tag`)}

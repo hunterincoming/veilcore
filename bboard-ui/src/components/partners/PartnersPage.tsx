@@ -18,8 +18,8 @@ import type { AppKey } from '../../i18n/app/en';
 import './partners.css';
 
 const API: string = import.meta.env.VITE_API_BASE ?? '';
-const GUIDE = 'https://github.com/hunterincoming/veilcore-midnight-testnet/blob/main/docs/partners/require-a-record.md';
-const KIT = 'https://github.com/hunterincoming/veilcore-midnight-testnet/tree/main/partner-kit/record-check';
+const GUIDE = 'https://github.com/hunterincoming/veilcore/blob/main/docs/partners/require-a-record.md';
+const KIT = 'https://github.com/hunterincoming/veilcore/tree/main/partner-kit/record-check';
 /** The site's contact address (the privacy page's). */
 const CONTACT = 'hunter@veilcore.org';
 

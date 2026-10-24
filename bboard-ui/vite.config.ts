@@ -105,7 +105,7 @@ const SUMMARY_TAIL = `<h2>Team</h2>
 </ul>
 <h2>No token</h2>
 <p>VeilCore has never sold a token, coin or presale. Anyone offering one in VeilCore's name is not us.</p>
-<p>Code and spec: <a href="https://github.com/hunterincoming/veilcore-midnight-testnet">the app and contracts</a> and <a href="https://github.com/hunterincoming/veilcore-sdk">the open record format</a>.</p>
+<p>Code and spec: <a href="https://github.com/hunterincoming/veilcore">the app and contracts</a> and <a href="https://github.com/hunterincoming/veilcore-sdk">the open record format</a>.</p>
 </main>`;
 
 const SUMMARY = {

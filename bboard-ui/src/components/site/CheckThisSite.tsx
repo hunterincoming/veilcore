@@ -35,7 +35,7 @@ import {
 } from '../../../../scripts/release-check.mjs';
 
 /** Where the site's code is published, with each release's list. */
-export const CODE_REPO = 'https://github.com/hunterincoming/veilcore-midnight-testnet';
+export const CODE_REPO = 'https://github.com/hunterincoming/veilcore';
 
 type State =
   | { kind: 'loading' }

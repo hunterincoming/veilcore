@@ -13,10 +13,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hunterincoming/veilcore-midnight-testnet.git",
+    "url": "git+https://github.com/hunterincoming/veilcore.git",
     "directory": "partner-kit/record-check"
   },
-  "homepage": "https://github.com/hunterincoming/veilcore-midnight-testnet/blob/main/docs/partners/require-a-record.md",
+  "homepage": "https://github.com/hunterincoming/veilcore/blob/main/docs/partners/require-a-record.md",
   "keywords": [
     "veilcore",
     "provenance",

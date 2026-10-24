@@ -46,7 +46,7 @@ export type KeySource = { readonly dir: string } | { readonly url: string; reado
  * Where VeilCore publishes the files for this build: one release asset per file, named as
  * above. Every file is checked against FINGERPRINTS, so a wrong or tampered copy is refused.
  */
-export const DEFAULT_KEYS_URL = 'https://github.com/hunterincoming/veilcore-midnight-testnet/releases/download/zk-r4/';
+export const DEFAULT_KEYS_URL = 'https://github.com/hunterincoming/veilcore/releases/download/zk-r4/';
 
 export type ArtefactKind = 'prover' | 'verifier' | 'bzkir';
 export const ARTEFACT_KINDS: readonly ArtefactKind[] = ['prover', 'verifier', 'bzkir'];
