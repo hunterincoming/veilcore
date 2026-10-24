@@ -90,7 +90,7 @@ const salt = newSecret();
 const claim = commit.obligation(`Loan ${loanReference}`, salt);
 await vc.proposeObligation(recordIdentity, claim);
 
-// The holder's link (claimLink: in @veilcore/contracts from its next release).
+// The holder's link (claimLink: in @veilcore/contracts from 0.3.0).
 const link = claimLink('https://veilcore.org', {
   record: recordIdentity,
   claim,

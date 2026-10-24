@@ -235,7 +235,7 @@ const c = await checkRecord('https://veilcore.org/verify/VEIL-…?fp=…', {
 ```
 
 The date stamp look-up uses `checkBatchAnchor` from `@veilcore/contracts`
-(`npm install --save-exact @veilcore/contracts@0.2.0` beside it). The transaction must
+(`npm install --save-exact @veilcore/contracts@0.3.0` beside it). The transaction must
 be a single date stamp call at VeilCore's pinned contract (never the address the registry
 names), carry the pinned build's verifier keys, and leave exactly this batch root in the
 contract. Give `chain.indexer` and `chain.secondIndexer` to ask indexers you choose; with

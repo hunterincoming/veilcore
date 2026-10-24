@@ -24,7 +24,7 @@ Install an exact version, not a range: the package carries the mainnet addresses
 key fingerprints it checks against.
 
 ```sh
-npm install --save-exact @veilcore/contracts@0.2.0
+npm install --save-exact @veilcore/contracts@0.3.0
 ```
 
 **Read [docs/PARTNERS.md](https://github.com/hunterincoming/veilcore-midnight-testnet/blob/main/docs/PARTNERS.md)
@@ -75,14 +75,13 @@ const verdict = await checkPresentation({ network: 'preprod', blockfrostProjectI
 
 - Node 24, ES modules. A proof server on your own machine (`docker run -d -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:8.1.3@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c midnight-proof-server -v`; bound to
   127.0.0.1 so nothing else on your network can reach it). Every proof sends it record and
-  licence secrets. From 0.3.0 (not yet published), `connect` and `seedWallet` refuse a
-  proof server that is not on this machine unless you pass `allowRemoteProofServer: true`,
-  and then only over https; 0.2.0 only warns.
+  licence secrets. `connect` and `seedWallet` refuse a proof server that is not on this
+  machine unless you pass `allowRemoteProofServer: true`, and then only over https.
 - Proving keys and circuits are not in this package. `veilcore-keys fetch --to <dir>` downloads
   them from VeilCore's `zk-r4` release and checks every file against the fingerprints in
   VeilCore's deployment record; any file that differs is refused. `veilcore-keys check --dir
   <dir>` checks a folder you already have. Run it as `npm exec
-  --package=@veilcore/contracts@0.2.0 -- veilcore-keys …`, or `node
+  --package=@veilcore/contracts@0.3.0 -- veilcore-keys …`, or `node
   node_modules/@veilcore/contracts/dist/veilcore-keys.js …`. Never a bare `npx veilcore-keys`:
   VeilCore does not own that npm name, so from a folder without this package installed npx
   would download someone else's.
@@ -100,9 +99,24 @@ const verdict = await checkPresentation({ network: 'preprod', blockfrostProjectI
   hash was paired raw earlier (then anyone could have made the pairing; 0.2.0's lab example
   paired raw) and when the identity changed keys since. Keep the salt with the report and
   back it up: it is also in your private state (`pairings()`), but not derived from the
-  record secret. Not in 0.2.0.
+  record secret.
 - Not exposed, on purpose: deploying VeilCore's contracts, adding circuit keys, the
   maintenance authority. That code is bundled (the clients are built on it) but nothing
   reaches it from the package's exports. It is VeilCore's operator work.
+
+## Changes
+
+**0.3.0**
+- Preprod is reached through Blockfrost (pass `blockfrostProjectId`): Midnight's own preprod
+  endpoints closed on 9 October 2026, so 0.2.0 can no longer reach preprod.
+- `pairReport`, `pairingEvidence`, `checkPairing` and `findPairingTransactions`: a report paired
+  as a salted binding to the record, checked with the pairing's history; weak salts refused.
+- `claimLink`: the link a lender sends a holder to record a claim on a record
+  ([docs/partners/lenders.md](https://github.com/hunterincoming/veilcore-midnight-testnet/blob/main/docs/partners/lenders.md)).
+- A remote proof server is refused unless asked for, and then only over https. Secrets are
+  kept off the terminal.
+- Verifier checks: pinned verifier keys, a second indexer, network agreement, and an
+  issuer-scoped acceptance for license presentations (rule 5).
+- Proof server 8.1.3 (Midnight's 2 October security patch), pinned by digest.
 
 Apache-2.0.

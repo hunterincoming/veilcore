@@ -70,8 +70,8 @@ Here a record's proof code goes by its technical name, its **fingerprint** (a co
 ### Install
 
 ```sh
-npm install --save-exact @veilcore/contracts@0.2.0 veilcore-records
-npm exec --package=@veilcore/contracts@0.2.0 -- veilcore-keys fetch --to ./veilcore-keys   # proving keys, checked (below)
+npm install --save-exact @veilcore/contracts@0.3.0 veilcore-records
+npm exec --package=@veilcore/contracts@0.3.0 -- veilcore-keys fetch --to ./veilcore-keys   # proving keys, checked (below)
 docker run -d -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:8.1.3@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c midnight-proof-server -v
 ```
 
@@ -82,7 +82,7 @@ reinstall does for you.
 
 **Do not run a bare `npx veilcore-keys`.** VeilCore does not own the npm name
 `veilcore-keys`. From a folder where the package is not installed, `npx` would download
-whatever package has that name, from anyone. Use `npm exec --package=@veilcore/contracts@0.2.0
+whatever package has that name, from anyone. Use `npm exec --package=@veilcore/contracts@0.3.0
 -- veilcore-keys …` as above, or the installed file directly:
 `node node_modules/@veilcore/contracts/dist/veilcore-keys.js …`.
 
@@ -304,7 +304,7 @@ circuit it calls, the circuit and its two keys: 72 files for the main contract, 
 claims contract. They are large, so they are not in
 the npm package.
 
-- `npm exec --package=@veilcore/contracts@0.2.0 -- veilcore-keys fetch --to <dir>` (or
+- `npm exec --package=@veilcore/contracts@0.3.0 -- veilcore-keys fetch --to <dir>` (or
   `node node_modules/@veilcore/contracts/dist/veilcore-keys.js fetch --to <dir>`; never a bare
   `npx veilcore-keys`, see *Install*) downloads them from VeilCore's release
   (`DEFAULT_KEYS_URL`) and **checks every file's SHA-256 against the fingerprints in the
