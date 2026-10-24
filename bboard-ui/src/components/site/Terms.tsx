@@ -58,7 +58,7 @@ const SECTIONS: readonly Section[] = [
     id: 'payments',
     title: 'Payments',
     body: [
-      'Royalties are paid directly between the parties, or through a payment partner the payer chooses. Payment partners are independent companies with their own terms and their own licences. A receipt from a payment partner is that partner’s statement, signed with its key; whether VeilCore checked the partner’s name is shown beside it.',
+      'Royalties are paid directly between the parties, or through a payment partner the payer chooses. Payment partners are independent companies with their own terms and their own licenses. A receipt from a payment partner is that partner’s statement, signed with its key; whether VeilCore checked the partner’s name is shown beside it.',
       'Using VeilCore is free today. If that changes, we will say so on this page before it applies, and a change will never apply to anything already done.',
     ],
   },
