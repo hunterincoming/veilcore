@@ -600,6 +600,8 @@ export const licensing = {
   'app.lic.hi.nothing': 'Noch nichts zuzustimmen.',
   'app.lic.hi.notProposed':
     'Der jetzige Inhaber hat sie nicht an die Person weitergegeben, die Sie geprüft haben. Es wurde nichts gesendet.',
+  'app.lic.hi.notAgreed':
+    '{name} hat den Bedingungen noch nicht zugestimmt. Es wurde nichts gesendet: Stimmen Sie zu, sobald das geschehen ist.',
   'app.lic.hi.done': 'Weitergegeben. Die Lizenz liegt jetzt bei {name}.',
   'app.lic.hi.askedNote':
     'Der Inhaber bittet darum, diese Lizenz an <b>{to}</b> weiterzugeben: „{note}“ Sie wechselt nur, wenn Sie zustimmen: Beginnen Sie unten oder ignorieren Sie es.',
@@ -689,6 +691,7 @@ export const licensing = {
   'app.lic.steps.l.activate': 'Bedingungen lesen, zustimmen und aktivieren',
   'app.lic.handon.steps.i.link': 'Einen Link für den neuen Inhaber erstellen',
   'app.lic.handon.steps.i.code': 'Er nimmt an und liest Ihnen seinen Code vor',
+  'app.lic.handon.steps.i.agree': 'Die Person liest die Bedingungen und stimmt zu',
   'app.lic.handon.steps.i.holder': 'Der jetzige Inhaber gibt sie weiter',
   'app.lic.handon.steps.i.approve': 'Sie stimmen zu',
   'app.lic.handon.steps.n.code': 'Ihren 6-stelligen Code vorlesen',

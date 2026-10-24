@@ -583,6 +583,7 @@ export const licensing = {
   'app.lic.hi.notAnswered': 'They have not answered yet.',
   'app.lic.hi.nothing': 'Nothing to approve yet.',
   'app.lic.hi.notProposed': 'The current holder has not handed it on to the person you checked. Nothing was sent.',
+  'app.lic.hi.notAgreed': '{name} has not agreed to the terms yet. Nothing was sent: approve once they have.',
   'app.lic.hi.done': 'Handed on. The license is now {name}’s.',
   'app.lic.hi.askedNote':
     'They ask to hand this license on to <b>{to}</b>: “{note}” It moves only if you agree: start below, or ignore it.',
@@ -669,6 +670,7 @@ export const licensing = {
   'app.lic.steps.l.activate': 'Read the terms, agree and activate',
   'app.lic.handon.steps.i.link': 'Make a link for the new holder',
   'app.lic.handon.steps.i.code': 'They accept and read you their code',
+  'app.lic.handon.steps.i.agree': 'They read the terms and agree',
   'app.lic.handon.steps.i.holder': 'The current holder hands it on',
   'app.lic.handon.steps.i.approve': 'You approve it',
   'app.lic.handon.steps.n.code': 'Read them your 6-digit code',

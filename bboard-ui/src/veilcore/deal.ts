@@ -212,6 +212,14 @@ export type DealBody =
       readonly to: string;
     }
   | {
+      /**
+       * The licensor called off the hand-on to `newLicense`: the current holder's page stops
+       * offering it. Nothing on chain changes (the contract still approves only one commitment).
+       */
+      readonly type: 'handon-off';
+      readonly newLicense: string;
+    }
+  | {
       /** A W3C Verifiable Credential the licensor signed for the licensee to keep (credentials.ts). */
       readonly type: 'credential';
       readonly credential: Record<string, unknown>;
@@ -325,6 +333,8 @@ export const wellFormed = (m: unknown, now = Date.now()): m is DealMessage => {
       return text(o.to, 80) && o.to !== '' && opt(o.note);
     case 'handon':
       return typeof o.newLicense === 'string' && /^[0-9a-f]{64}$/.test(o.newLicense) && text(o.to, 80) && o.to !== '';
+    case 'handon-off':
+      return typeof o.newLicense === 'string' && /^[0-9a-f]{64}$/.test(o.newLicense);
     case 'credential':
       return plain(o.credential);
     default:

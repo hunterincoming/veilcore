@@ -104,7 +104,10 @@ export const ClaimPage: React.FC = () => {
         {rich(
           tr.t('app.lic.claim.from'),
           { b: (c) => <b>{c}</b> },
-          { name: claim.name, key: <span style={{ fontFamily: 'monospace' }}>{short(claim.claimant)}</span> },
+          {
+            name: claim.name,
+            key: <span style={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>{claim.claimant}</span>,
+          },
         )}
       </Typography>
 

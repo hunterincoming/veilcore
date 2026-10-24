@@ -589,6 +589,8 @@ export const licensing = {
   'app.lic.hi.nothing': 'Rien à approuver pour l’instant.',
   'app.lic.hi.notProposed':
     'Le détenteur actuel ne l’a pas transmise à la personne que vous avez vérifiée. Rien n’a été envoyé.',
+  'app.lic.hi.notAgreed':
+    '{name} n’a pas encore accepté les conditions. Rien n’a été envoyé : approuvez une fois que ce sera fait.',
   'app.lic.hi.done': 'Transmise. La licence est désormais détenue par {name}.',
   'app.lic.hi.askedNote':
     'Le détenteur demande à transmettre cette licence à <b>{to}</b> : « {note} » Elle ne change de mains que si vous êtes d’accord : commencez ci-dessous, ou ignorez la demande.',
@@ -638,32 +640,34 @@ export const licensing = {
   'app.lic.hh.ask': 'Demander au concédant',
   'app.lic.hh.how':
     'Une licence ne change de mains qu’avec l’accord du concédant. Il envoie un lien au nouveau détenteur et le vérifie par un code lu à voix haute ; ensuite vous la transmettez ici et il l’approuve. Personne ne peut la déplacer seul.',
-  'app.lic.claim.cant': 'Ce site ne peut pas enregistrer de sûretés. Ouvrez le lien sur le site où il a été créé.',
+  'app.lic.claim.cant':
+    'Ce site ne peut pas enregistrer de mentions de prêteur. Ouvrez le lien sur le site où il a été créé.',
   'app.lic.claim.partial':
-    'Ce lien de sûreté est incomplet. Rouvrez-le exactement tel que vous l’avez reçu, y compris tout ce qui suit le #.',
+    'Ce lien de mention de prêteur est incomplet. Rouvrez-le exactement tel que vous l’avez reçu, y compris tout ce qui suit le #.',
   'app.lic.claim.notHeld': 'Cet appareil ne détient pas l’enregistrement.',
-  'app.lic.claim.notWaiting': 'La sûreté n’est plus en attente. Rien n’a été envoyé.',
-  'app.lic.claim.hInForce': 'Une sûreté est en vigueur sur votre enregistrement',
-  'app.lic.claim.h': 'Une sûreté sur votre enregistrement',
+  'app.lic.claim.notWaiting': 'La mention de prêteur n’est plus en attente. Rien n’a été envoyé.',
+  'app.lic.claim.hInForce': 'Une mention de prêteur est en vigueur sur votre enregistrement',
+  'app.lic.claim.h': 'Une mention de prêteur sur votre enregistrement',
   'app.lic.claim.from':
     'De : <b>{name}</b> (selon ses propres dires ; vérifiez son identité comme pour tout prêt) · sa clé on-chain {key}',
   'app.lic.claim.noRecord':
-    'Cet appareil ne détient pas l’enregistrement visé par cette sûreté (clé {key}). Ouvrez le lien sur l’appareil qui le détient, ou restaurez d’abord votre copie de secours ici.',
-  'app.lic.claim.reading': 'Lecture de la sûreté sur Midnight…',
+    'Cet appareil ne détient pas l’enregistrement visé par cette mention de prêteur (clé {key}). Ouvrez le lien sur l’appareil qui le détient, ou restaurez d’abord votre copie de secours ici.',
+  'app.lic.claim.reading': 'Lecture de la mention de prêteur sur Midnight…',
   'app.lic.claim.none':
-    'Midnight n’affiche aucune sûreté de ce type en attente sur <b>{record}</b> : elle a été retirée, refusée ou jamais créée. Rien à faire.',
-  'app.lic.claim.asks': '<b>{name}</b> demande à inscrire une sûreté sur <b>{record}</b> (vérifié sur Midnight).',
+    'Midnight n’affiche aucune mention de prêteur de ce type en attente sur <b>{record}</b> : elle a été retirée, refusée ou jamais créée. Rien à faire.',
+  'app.lic.claim.asks':
+    '<b>{name}</b> demande à inscrire une mention de prêteur sur <b>{record}</b> (vérifié sur Midnight).',
   'app.lic.claim.ifAccept':
-    'Si vous acceptez, quiconque vérifie cet enregistrement voit qu’une sûreté est en vigueur, jusqu’à ce que {name} la lève. Personne d’autre ne le peut. Cela ne déplace pas l’enregistrement et ne vous empêche pas de l’utiliser.',
-  'app.lic.claim.accept': 'Accepter la sûreté',
+    'Si vous acceptez, quiconque vérifie cet enregistrement voit qu’une mention de prêteur est en vigueur, jusqu’à ce que {name} la lève. Personne d’autre ne le peut. Cela ne déplace pas l’enregistrement et ne vous empêche pas de l’utiliser.',
+  'app.lic.claim.accept': 'Accepter la mention de prêteur',
   'app.lic.claim.reject': 'La refuser',
   'app.lic.claim.rejectQ':
-    'Refuser la sûreté de {name} ? Elle est effacée de Midnight. Une nouvelle demande reste possible.',
+    'Refuser la mention de prêteur de {name} ? Elle est effacée de Midnight. Une nouvelle demande reste possible.',
   'app.lic.claim.rejectYes': 'Oui, la refuser',
   'app.lic.claim.how':
-    'Les prêteurs utilisent une sûreté pour montrer qu’un enregistrement leur est nanti, afin qu’il ne puisse pas être nanti deux fois en silence. Ce n’est pas une inscription légale : le prêteur effectue toujours ses propres formalités. Les conditions restent entre vous ; Midnight montre seulement qu’une sûreté existe et qui peut la lever. VeilCore paie les frais de réseau.',
+    'Les prêteurs utilisent une mention de prêteur pour montrer qu’un enregistrement leur est nanti, afin qu’il ne puisse pas être nanti deux fois en silence. Ce n’est pas une inscription légale : le prêteur effectue toujours ses propres formalités. Les conditions restent entre vous ; Midnight montre seulement qu’une mention de prêteur existe et qui peut la lever. VeilCore paie les frais de réseau.',
   'app.lic.claim.inForce':
-    'En vigueur sur Midnight. Seul {name} peut la lever. Quiconque vérifie {record} voit qu’une sûreté est en vigueur.',
+    'En vigueur sur Midnight. Seul {name} peut la lever. Quiconque vérifie {record} voit qu’une mention de prêteur est en vigueur.',
   'app.lic.claim.readError': 'Impossible de lire Midnight pour le moment : {error}',
   'app.lic.claim.thisRecord': 'cet enregistrement',
   'app.lic.steps.i.link': 'Créer un lien et l’envoyer',
@@ -676,6 +680,7 @@ export const licensing = {
   'app.lic.steps.l.activate': 'Lire les conditions, accepter et activer',
   'app.lic.handon.steps.i.link': 'Créer un lien pour le nouveau détenteur',
   'app.lic.handon.steps.i.code': 'Il accepte et vous lit son code',
+  'app.lic.handon.steps.i.agree': 'La personne lit les conditions et les accepte',
   'app.lic.handon.steps.i.holder': 'Le détenteur actuel la transmet',
   'app.lic.handon.steps.i.approve': 'Vous l’approuvez',
   'app.lic.handon.steps.n.code': 'Lire votre code à 6 chiffres',

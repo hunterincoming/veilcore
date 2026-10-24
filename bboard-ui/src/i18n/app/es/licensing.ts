@@ -581,6 +581,7 @@ export const licensing = {
   'app.lic.hi.notAnswered': 'Todavía no han respondido.',
   'app.lic.hi.nothing': 'Todavía no hay nada que aprobar.',
   'app.lic.hi.notProposed': 'El titular actual no la ha traspasado a la persona que usted comprobó. No se envió nada.',
+  'app.lic.hi.notAgreed': '{name} aún no ha aceptado las condiciones. No se envió nada: apruébelo cuando lo haga.',
   'app.lic.hi.done': 'Traspasada. La licencia ahora es de {name}.',
   'app.lic.hi.askedNote':
     'Piden traspasar esta licencia a <b>{to}</b>: “{note}” Solo se mueve si usted está de acuerdo: empiece abajo, o ignórelo.',
@@ -629,31 +630,34 @@ export const licensing = {
   'app.lic.hh.ask': 'Pedírselo al licenciante',
   'app.lic.hh.how':
     'Una licencia solo se mueve con el sí del licenciante. Le envía al nuevo titular un enlace y lo comprueba con un código leído en voz alta; después usted la traspasa aquí y el licenciante lo aprueba. Nadie puede moverla solo.',
-  'app.lic.claim.cant': 'Este sitio no puede registrar gravámenes. Abra el enlace en el sitio donde se creó.',
+  'app.lic.claim.cant':
+    'Este sitio no puede registrar anotaciones de prestamista. Abra el enlace en el sitio donde se creó.',
   'app.lic.claim.partial':
-    'Este enlace de gravamen está incompleto. Ábralo de nuevo tal como lo recibió, incluido todo lo que va después del #.',
+    'Este enlace de anotación de prestamista está incompleto. Ábralo de nuevo tal como lo recibió, incluido todo lo que va después del #.',
   'app.lic.claim.notHeld': 'Este dispositivo no tiene el registro.',
-  'app.lic.claim.notWaiting': 'El gravamen ya no está pendiente. No se envió nada.',
-  'app.lic.claim.hInForce': 'Hay un gravamen en vigor sobre su registro',
-  'app.lic.claim.h': 'Un gravamen sobre su registro',
+  'app.lic.claim.notWaiting': 'La anotación de prestamista ya no está pendiente. No se envió nada.',
+  'app.lic.claim.hInForce': 'Hay una anotación de prestamista en vigor sobre su registro',
+  'app.lic.claim.h': 'Una anotación de prestamista sobre su registro',
   'app.lic.claim.from':
     'De: <b>{name}</b> (palabras suyas; compruebe quién es como lo haría para cualquier préstamo) · su clave en la cadena {key}',
   'app.lic.claim.noRecord':
-    'Este dispositivo no tiene el registro sobre el que es este gravamen (clave {key}). Abra el enlace en el dispositivo que lo tiene, o restaure primero aquí su copia de seguridad.',
-  'app.lic.claim.reading': 'Leyendo el gravamen en Midnight…',
+    'Este dispositivo no tiene el registro al que se refiere esta anotación (clave {key}). Abra el enlace en el dispositivo que lo tiene, o restaure primero aquí su copia de seguridad.',
+  'app.lic.claim.reading': 'Leyendo la anotación de prestamista en Midnight…',
   'app.lic.claim.none':
-    'Midnight no muestra ningún gravamen así pendiente sobre <b>{record}</b>: se retiró, se rechazó o nunca se hizo. No hay nada que hacer.',
-  'app.lic.claim.asks': '<b>{name}</b> pide registrar un gravamen sobre <b>{record}</b> (comprobado en Midnight).',
+    'Midnight no muestra ninguna anotación así pendiente sobre <b>{record}</b>: se retiró, se rechazó o nunca se hizo. No hay nada que hacer.',
+  'app.lic.claim.asks':
+    '<b>{name}</b> pide registrar una anotación de prestamista sobre <b>{record}</b> (comprobado en Midnight).',
   'app.lic.claim.ifAccept':
-    'Si lo acepta, cualquiera que compruebe este registro verá que hay un gravamen en vigor, hasta que {name} lo libere. Solo esa parte puede hacerlo. No mueve el registro ni le impide usarlo.',
-  'app.lic.claim.accept': 'Aceptar el gravamen',
-  'app.lic.claim.reject': 'Rechazarlo',
-  'app.lic.claim.rejectQ': '¿Rechazar el gravamen de {name}? Se borra de Midnight. Pueden volver a pedirlo.',
-  'app.lic.claim.rejectYes': 'Sí, rechazarlo',
+    'Si la acepta, cualquiera que compruebe este registro verá que hay una anotación de prestamista en vigor, hasta que {name} la libere. Solo esa parte puede hacerlo. No mueve el registro ni le impide usarlo.',
+  'app.lic.claim.accept': 'Aceptar la anotación de prestamista',
+  'app.lic.claim.reject': 'Rechazarla',
+  'app.lic.claim.rejectQ':
+    '¿Rechazar la anotación de prestamista de {name}? Se borra de Midnight. Pueden volver a pedirla.',
+  'app.lic.claim.rejectYes': 'Sí, rechazarla',
   'app.lic.claim.how':
-    'Los prestamistas usan un gravamen para mostrar que un registro está pignorado a su favor, de modo que no pueda pignorarse dos veces a escondidas. No es una inscripción legal: el prestamista presenta igualmente su propia documentación. Las condiciones quedan entre ustedes; Midnight solo muestra que existe un gravamen y quién puede liberarlo. VeilCore paga la comisión de la red.',
+    'Los prestamistas usan una anotación de prestamista para mostrar que un registro está pignorado a su favor, de modo que no pueda pignorarse dos veces a escondidas. No es una inscripción legal: el prestamista presenta igualmente su propia documentación. Las condiciones quedan entre ustedes; Midnight solo muestra que existe una anotación de prestamista y quién puede liberarla. VeilCore paga la comisión de la red.',
   'app.lic.claim.inForce':
-    'En vigor en Midnight. Solo {name} puede liberarlo. Cualquiera que compruebe {record} ve que hay un gravamen en vigor.',
+    'En vigor en Midnight. Solo {name} puede liberarla. Cualquiera que compruebe {record} ve que hay una anotación de prestamista en vigor.',
   'app.lic.claim.readError': 'No se pudo leer Midnight en este momento: {error}',
   'app.lic.claim.thisRecord': 'este registro',
   'app.lic.steps.i.link': 'Crear un enlace y enviárselo',
@@ -666,6 +670,7 @@ export const licensing = {
   'app.lic.steps.l.activate': 'Leer las condiciones, aceptarlas y activarla',
   'app.lic.handon.steps.i.link': 'Crear un enlace para el nuevo titular',
   'app.lic.handon.steps.i.code': 'La otra parte acepta y le lee su código',
+  'app.lic.handon.steps.i.agree': 'Lee las condiciones y las acepta',
   'app.lic.handon.steps.i.holder': 'El titular actual la traspasa',
   'app.lic.handon.steps.i.approve': 'Usted lo aprueba',
   'app.lic.handon.steps.n.code': 'Leerles su código de 6 dígitos',

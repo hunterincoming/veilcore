@@ -51,6 +51,11 @@ export type HeldLicense = {
   readonly handOnTx?: string;
   readonly handOnTo?: string;
   readonly handOnCommitment?: string;
+  /**
+   * Seen on chain that the license moved to the commitment the licensor named in its 'handon':
+   * set when this device didn't send the proposal itself (another device, an older backup).
+   */
+  readonly handedOnSeenAt?: number;
 };
 
 /** What the licensee sees and agrees to: enough to recompute the agreement's fingerprint. */

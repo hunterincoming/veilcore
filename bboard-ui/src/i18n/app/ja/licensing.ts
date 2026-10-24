@@ -574,6 +574,8 @@ export const licensing = {
   'app.lic.hi.notAnswered': '相手はまだ答えていません。',
   'app.lic.hi.nothing': 'まだ承認するものはありません。',
   'app.lic.hi.notProposed': '現在の保有者は、あなたが確認した人に引き継いでいません。何も送信していません。',
+  'app.lic.hi.notAgreed':
+    '{name}はまだ条件に同意していません。何も送信していません。同意を確認してから承認してください。',
   'app.lic.hi.done': '引き継ぎ完了。ライセンスは{name}のものになりました。',
   'app.lic.hi.askedNote':
     'このライセンスを<b>{to}</b>に引き継ぎたいという依頼です:「{note}」あなたが同意した場合にのみ移ります。下で始めるか、無視してください。',
@@ -623,31 +625,31 @@ export const licensing = {
   'app.lic.hh.ask': 'ライセンサーに依頼する',
   'app.lic.hh.how':
     'ライセンスはライセンサーの同意がなければ移りません。ライセンサーが新しい保有者にリンクを送り、読み上げたコードで本人を確認します。そのあとあなたがここで引き継ぎ、ライセンサーが承認します。誰も一人では動かせません。',
-  'app.lic.claim.cant': 'このサイトでは担保権を記録できません。リンクが作られたサイトで開いてください。',
+  'app.lic.claim.cant': 'このサイトでは貸し手の請求を記録できません。リンクが作られたサイトで開いてください。',
   'app.lic.claim.partial':
-    'この担保権のリンクは不完全です。受け取ったとおり、#以降もすべて含めてもう一度開いてください。',
+    'この貸し手の請求のリンクは不完全です。受け取ったとおり、#以降もすべて含めてもう一度開いてください。',
   'app.lic.claim.notHeld': 'この端末はその記録を保有していません。',
-  'app.lic.claim.notWaiting': 'この担保権はもう待機中ではありません。何も送信していません。',
-  'app.lic.claim.hInForce': 'あなたの記録に担保権が設定されています',
-  'app.lic.claim.h': 'あなたの記録への担保権',
+  'app.lic.claim.notWaiting': 'この貸し手の請求はもう待機中ではありません。何も送信していません。',
+  'app.lic.claim.hInForce': 'あなたの記録に貸し手の請求が設定されています',
+  'app.lic.claim.h': 'あなたの記録への貸し手の請求',
   'app.lic.claim.from':
     '依頼者: <b>{name}</b>（相手自身の名乗りです。融資のときと同じように相手を確認してください）· チェーン上の鍵 {key}',
   'app.lic.claim.noRecord':
-    'この端末は、この担保権の対象の記録（鍵 {key}）を保有していません。保有している端末でリンクを開くか、先にここでバックアップを復元してください。',
-  'app.lic.claim.reading': 'Midnight上の担保権を読み取っています…',
+    'この端末は、この貸し手の請求の対象の記録（鍵 {key}）を保有していません。保有している端末でリンクを開くか、先にここでバックアップを復元してください。',
+  'app.lic.claim.reading': 'Midnight上の貸し手の請求を読み取っています…',
   'app.lic.claim.none':
-    'Midnightには、<b>{record}</b>で待機中のこのような担保権はありません。取り下げられたか、拒否されたか、作られていません。何もする必要はありません。',
-  'app.lic.claim.asks': '<b>{name}</b>が<b>{record}</b>への担保権の記録を求めています（Midnightで確認済み）。',
+    'Midnightには、<b>{record}</b>で待機中のこのような貸し手の請求はありません。取り下げられたか、拒否されたか、作られていません。何もする必要はありません。',
+  'app.lic.claim.asks': '<b>{name}</b>が<b>{record}</b>への貸し手の請求の記録を求めています（Midnightで確認済み）。',
   'app.lic.claim.ifAccept':
-    '受け入れると、この記録を確認する誰にでも、{name}が解除するまで担保権が設定されていることが表示されます。解除できるのは相手だけです。記録が移ったり、あなたが使えなくなったりはしません。',
-  'app.lic.claim.accept': '担保権を受け入れる',
+    '受け入れると、この記録を確認する誰にでも、{name}が解除するまで貸し手の請求が設定されていることが表示されます。解除できるのは相手だけです。記録が移ったり、あなたが使えなくなったりはしません。',
+  'app.lic.claim.accept': '貸し手の請求を受け入れる',
   'app.lic.claim.reject': '拒否する',
-  'app.lic.claim.rejectQ': '{name}の担保権を拒否しますか？Midnightから消去されます。相手は改めて依頼できます。',
+  'app.lic.claim.rejectQ': '{name}の貸し手の請求を拒否しますか？Midnightから消去されます。相手は改めて依頼できます。',
   'app.lic.claim.rejectYes': 'はい、拒否します',
   'app.lic.claim.how':
-    '貸し手は、記録が自分への担保になっていることを示すために担保権を使います。そうすれば、黙って二重に担保に入れることはできません。法的な登記ではなく、貸し手は自分の書類を別に届け出ます。条件はお二人の間のもので、Midnightに表示されるのは担保権があることと、誰が解除できるかだけです。ネットワーク手数料はVeilCoreが支払います。',
+    '貸し手は、記録が自分への担保になっていることを示すために貸し手の請求を使います。そうすれば、黙って二重に担保に入れることはできません。法的な登記ではなく、貸し手は自分の書類を別に届け出ます。条件はお二人の間のもので、Midnightに表示されるのは貸し手の請求があることと、誰が解除できるかだけです。ネットワーク手数料はVeilCoreが支払います。',
   'app.lic.claim.inForce':
-    'Midnight上で有効です。解除できるのは{name}だけです。{record}を確認する誰にでも、担保権が設定されていることが表示されます。',
+    'Midnight上で有効です。解除できるのは{name}だけです。{record}を確認する誰にでも、貸し手の請求が設定されていることが表示されます。',
   'app.lic.claim.readError': 'いまMidnightを読み取れませんでした: {error}',
   'app.lic.claim.thisRecord': 'この記録',
   'app.lic.steps.i.link': 'リンクを作って相手に送る',
@@ -660,6 +662,7 @@ export const licensing = {
   'app.lic.steps.l.activate': '条件を読み、同意して有効化する',
   'app.lic.handon.steps.i.link': '新しい保有者用のリンクを作る',
   'app.lic.handon.steps.i.code': '相手が受け入れ、コードを読み上げる',
+  'app.lic.handon.steps.i.agree': '相手が条件を読んで同意する',
   'app.lic.handon.steps.i.holder': '現在の保有者が引き継ぐ',
   'app.lic.handon.steps.i.approve': 'あなたが承認する',
   'app.lic.handon.steps.n.code': '6桁のコードを読み上げる',

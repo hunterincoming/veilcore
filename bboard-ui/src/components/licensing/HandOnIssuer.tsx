@@ -10,7 +10,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import { canonicalUrl } from '../../config/network';
 import { hexBytes } from '../../veilcore/record-keys';
 import { setOnChain, type License, type OnChainLicense } from '../../veilcore/licenses';
-import type { DealEntry, DealParty } from '../../veilcore/deal-client';
+import { useDeal, type DealEntry, type DealParty } from '../../veilcore/deal-client';
 import {
   commitHashOf,
   createInvite,
@@ -68,6 +68,12 @@ export const HandOnIssuer: React.FC<{
   const [proposed, setProposed] = useState<string>();
   const call = useChainCall<ChainReceipt>();
   const checking = useRef(false);
+  // The new holder's signed agreement to exactly these terms: no approval without it, or the
+  // license would go live for someone who never agreed and whose page then has no terms.
+  const newHolder = useDeal(h?.termsSentAt ? newHolderParty(oc) : undefined, POLL_MS);
+  const agreedBy = (es: readonly DealEntry[] | undefined) =>
+    !!es?.some((e) => e.type === 'agree' && !e.mine && e.agreementFingerprint === license.agreementFingerprint);
+  const agreed = agreedBy(newHolder.entries);
 
   useEffect(() => {
     let on = true;
@@ -166,8 +172,18 @@ export const HandOnIssuer: React.FC<{
     }
   };
 
-  const cancel = () => {
+  const cancel = async () => {
     setError(undefined);
+    // Tell the current holder, so their page stops offering it. If this can't be sent, the
+    // hand-on still can't complete: only the licensor approves, and only this commitment.
+    if (h?.askedAt && h.commitment) {
+      try {
+        const { say } = await import('../../veilcore/deal-client');
+        await say(party, { type: 'handon-off', newLicense: h.commitment });
+      } catch {
+        /* best effort */
+      }
+    }
     setCodeChecked(false);
     setProposed(undefined);
     setOnChain(license.id, (c) => {
@@ -208,6 +224,9 @@ export const HandOnIssuer: React.FC<{
   const approve = () =>
     call.run(async (progress) => {
       if (!h?.commitment || !oc.commitment || !oc.issuerRecord) throw new Error(tr.t('app.lic.hi.nothing'));
+      const np = newHolderParty(oc);
+      const { readAll } = await import('../../veilcore/deal-client');
+      if (!np || !agreedBy(await readAll(np))) throw new Error(tr.t('app.lic.hi.notAgreed', { name: h.label }));
       // Read again just before sending: it must still be the one checked by code.
       if ((await pendingTransferNow(oc.commitment, oc.issuerRecord)) !== h.commitment)
         throw new Error(tr.t('app.lic.hi.notProposed'));
@@ -286,7 +305,7 @@ export const HandOnIssuer: React.FC<{
   return (
     <Stack spacing={1.5} data-hand-on="">
       <Typography variant="subtitle2">{tr.t('app.lic.hi.title', { name: h.label })}</Typography>
-      <DealSteps steps={issuerHandOnSteps(h, { proposed: proposed === h.commitment }, tr)}>
+      <DealSteps steps={issuerHandOnSteps(h, { proposed: proposed === h.commitment, agreed }, tr)}>
         {!h.commitment && (
           <Stack spacing={1.25}>
             <Typography variant="body2">
@@ -340,11 +359,11 @@ export const HandOnIssuer: React.FC<{
           </Stack>
         )}
 
-        {h.askedAt && proposed !== h.commitment && (
+        {h.askedAt && (proposed !== h.commitment || !agreed) && (
           <Typography variant="body2">{tr.t('app.lic.hi.waiting', { holder, name: h.label })}</Typography>
         )}
 
-        {h.askedAt && proposed === h.commitment && (
+        {h.askedAt && proposed === h.commitment && agreed && (
           <Stack spacing={1.25}>
             <Typography variant="body2">{tr.t('app.lic.hi.ready', { holder, name: h.label })}</Typography>
             <Button
@@ -375,7 +394,7 @@ export const HandOnIssuer: React.FC<{
         question={tr.t('app.lic.hi.cancelQ', { name: h.label, holder })}
         confirmLabel={tr.t('app.lic.real.cancelYes')}
         disabled={call.busy}
-        onConfirm={cancel}
+        onConfirm={() => void cancel()}
       />
       <ChainStatusLine busy={call.busy} progress={call.progress} error={call.error} step="agreement" />
     </Stack>

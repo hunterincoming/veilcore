@@ -52,7 +52,7 @@ import { useChainCall } from '../chain/useChainCall';
 import { backupReturnTo } from '../flow/backup-return';
 import { DealSteps, HowItWorks } from './DealSteps';
 import { licenseeSteps } from './steps';
-import { newHolderSteps } from '../../veilcore/hand-on';
+import { handOnOffered, newHolderSteps } from '../../veilcore/hand-on';
 import { HandOnHolder } from './HandOnHolder';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
@@ -118,6 +118,23 @@ export const LicenseInvitePage: React.FC = () => {
     );
     if (signed) updateHeldLicense(id, (h) => ({ ...h, agreement: offered.copy, agreedAt: signed.at }));
   }, [held, offered, deal.entries, id]);
+
+  // Gone from the chain, and the license the licensor named for a hand-on is live: it was handed
+  // on (perhaps proposed from another device), not cancelled or revoked. Checked on chain.
+  const offer = handOnOffered(deal.entries);
+  useEffect(() => {
+    if (onChain !== 'none' || !held?.activatedAt || held.handOnTx || held.handedOnSeenAt || !offer) return;
+    let live = true;
+    void licenseStatusNow(offer.newLicense, held.issuerRecord)
+      .then((s) => {
+        if (live && s === 'ACTIVE')
+          updateHeldLicense(id, (h) => ({ ...h, handOnTo: offer.to, handedOnSeenAt: Date.now() }));
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [onChain, held, offer?.newLicense, offer?.to, id]);
 
   useEffect(() => {
     let on = true;
@@ -233,7 +250,7 @@ export const LicenseInvitePage: React.FC = () => {
   // Issued once, now gone from the chain: cancelled or revoked by the sender.
   const gone = Boolean(onChain === 'none' && (held?.issueTx || held?.activateTx || held?.activatedAt));
   // Gone because this side handed it on and the licensor approved it.
-  const handedOn = Boolean(gone && held?.handOnTx);
+  const handedOn = Boolean(gone && (held?.handOnTx || held?.handedOnSeenAt));
   // Once accepted, the record is the one this device accepted for, whatever the registry says now.
   const issuerKey = held?.identity ?? invite.identity;
   const swapped = held && held.identity !== invite.identity;

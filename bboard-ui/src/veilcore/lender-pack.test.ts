@@ -137,6 +137,8 @@ describe('lender pack', () => {
       ...(sent ? { termsSentAt: 1 } : {}),
     });
     const oc: OnChainLicense = { ...d('Third'), previous: [d('First'), d('Second', false)] };
-    expect(dealsOf(oc).map((x) => x.label)).toEqual(['First', 'Third']);
+    expect(dealsOf(oc, true).map((x) => x.label)).toEqual(['First', 'Third']);
+    // By default only today's holder: earlier holders' payments are theirs too.
+    expect(dealsOf(oc).map((x) => x.label)).toEqual(['Third']);
   });
 });

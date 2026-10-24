@@ -22,9 +22,13 @@ import type { DealParty } from './deal-client';
 
 type DealRecord = Record<string, unknown> & { license?: { commitment?: string } };
 
-/** Each deal this license has had, oldest first: earlier holders (hand-on.ts), then today's. */
-export const dealsOf = (oc: OnChainLicense): { label: string; party: DealParty }[] =>
-  [...(oc.previous ?? []), oc].flatMap((d) =>
+/**
+ * The deals to put in a pack: today's holder only, unless `earlier` asks for the deals of
+ * holders it was handed on from (hand-on.ts), oldest first. Earlier holders' statements and
+ * payments are theirs too, so they go to a third party only when asked for.
+ */
+export const dealsOf = (oc: OnChainLicense, earlier = false): { label: string; party: DealParty }[] =>
+  [...(earlier ? (oc.previous ?? []) : []), oc].flatMap((d) =>
     d.partySecret && d.licenseeNonce && d.commitment && d.issuerRecord && d.termsSentAt
       ? [
           {
@@ -173,5 +177,5 @@ export const downloadLenderPack = async (license: License): Promise<void> => {
   a.href = url;
   a.download = `veilcore-lender-pack-${safe(license.recordId)}.zip`;
   a.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 };

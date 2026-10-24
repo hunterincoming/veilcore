@@ -78,14 +78,16 @@ describe('afterHandOn', () => {
 });
 
 describe('steps', () => {
-  it('licensor: link, code, holder, approve', () => {
+  it('licensor: link, code, they agree, holder, approve', () => {
     const now = (s: ReturnType<typeof issuerHandOnSteps>) => s.findIndex((x) => x.state === 'now');
-    expect(now(issuerHandOnSteps(undefined, { proposed: false }))).toBe(0);
-    expect(
-      now(issuerHandOnSteps({ ...live.handOn!, commitment: undefined, askedAt: undefined }, { proposed: false })),
-    ).toBe(1);
-    expect(now(issuerHandOnSteps(live.handOn, { proposed: false }))).toBe(2);
-    expect(now(issuerHandOnSteps(live.handOn, { proposed: true }))).toBe(3);
+    const no = { proposed: false, agreed: false };
+    expect(now(issuerHandOnSteps(undefined, no))).toBe(0);
+    expect(now(issuerHandOnSteps({ ...live.handOn!, commitment: undefined, askedAt: undefined }, no))).toBe(1);
+    expect(now(issuerHandOnSteps(live.handOn, no))).toBe(2);
+    // Proposed by the holder but not yet agreed by the new one: still waiting on the agreement.
+    expect(now(issuerHandOnSteps(live.handOn, { proposed: true, agreed: false }))).toBe(2);
+    expect(now(issuerHandOnSteps(live.handOn, { proposed: false, agreed: true }))).toBe(3);
+    expect(now(issuerHandOnSteps(live.handOn, { proposed: true, agreed: true }))).toBe(4);
   });
   it('new holder: accept, backup, code, agree, wait', () => {
     const now = (s: ReturnType<typeof newHolderSteps>) => s.findIndex((x) => x.state === 'now');
@@ -110,6 +112,16 @@ describe('which messages count', () => {
     expect(handOnOffered(entries)?.newLicense).toBe(H('2'));
     expect(handOnOffered([])).toBeUndefined();
   });
+  it('a hand-on the licensor called off is no longer offered', () => {
+    const on = e({ type: 'handon', from: 'issuer', newLicense: H('2'), to: 'B', at: 3 });
+    const off = e({ type: 'handon-off', from: 'issuer', newLicense: H('2'), at: 4 });
+    expect(handOnOffered([on, off])).toBeUndefined();
+    // Called off by someone else: ignored.
+    expect(handOnOffered([on, { ...off, from: 'licensee' }])?.newLicense).toBe(H('2'));
+    // A new hand-on after the call-off is offered again.
+    const again = e({ type: 'handon', from: 'issuer', newLicense: H('5'), to: 'C', at: 6 });
+    expect(handOnOffered([on, off, again])?.newLicense).toBe(H('5'));
+  });
   it('a request only from the holder, and only after the last hand-on began', () => {
     const entries = [
       e({ type: 'handon-ask', from: 'licensee', to: 'Second Grower', note: 'Selling the farm', at: 5 }),
@@ -125,6 +137,8 @@ describe('which messages count', () => {
     expect(wellFormed({ type: 'handon', from: 'issuer', at, newLicense: 'zz', to: 'X' }, at)).toBe(false);
     expect(wellFormed({ type: 'handon', from: 'issuer', at, newLicense: H('a'), to: '' }, at)).toBe(false);
     expect(wellFormed({ type: 'handon-ask', from: 'licensee', at, to: 'Second Grower' }, at)).toBe(true);
+    expect(wellFormed({ type: 'handon-off', from: 'issuer', at, newLicense: H('a') }, at)).toBe(true);
+    expect(wellFormed({ type: 'handon-off', from: 'issuer', at, newLicense: 'zz' }, at)).toBe(false);
     expect(wellFormed({ type: 'handon-ask', from: 'licensee', at, to: 'X', note: { not: 'text' } }, at)).toBe(false);
   });
 });

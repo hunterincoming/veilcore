@@ -40,12 +40,13 @@ const stepsOf = (list: readonly (readonly [string, boolean])[]): Step[] => {
 /** The licensor's steps for a hand-on under way. */
 export const issuerHandOnSteps = (
   h: HandOnInvite | undefined,
-  s: { proposed: boolean },
+  s: { proposed: boolean; agreed: boolean },
   tr: Translator = enT,
 ): Step[] =>
   stepsOf([
     [tr.t('app.lic.handon.steps.i.link'), !!h],
     [tr.t('app.lic.handon.steps.i.code'), !!h?.commitment && !!h.askedAt],
+    [tr.t('app.lic.handon.steps.i.agree'), s.agreed],
     [tr.t('app.lic.handon.steps.i.holder'), s.proposed],
     [tr.t('app.lic.handon.steps.i.approve'), !!h?.approveTx],
   ]);
@@ -98,13 +99,18 @@ export const afterHandOn = (oc: OnChainLicense, approveTx: string | undefined, a
 
 type Entry = { readonly type: string; readonly mine: boolean; readonly from?: string; readonly at: number };
 
-/** The licensor's latest signed 'handon' on the current holder's channel, if any. */
+/**
+ * The licensor's latest signed 'handon' on the current holder's channel, if any, and if the
+ * licensor hasn't called it off since ('handon-off').
+ */
 export const handOnOffered = <E extends Entry & { newLicense?: string; to?: string }>(
   entries: readonly E[] | undefined,
-): (E & { newLicense: string; to: string }) | undefined =>
-  [...(entries ?? [])]
-    .filter((e) => e.type === 'handon' && !e.mine && e.from === 'issuer' && !!e.newLicense && !!e.to)
-    .sort((a, b) => b.at - a.at)[0] as (E & { newLicense: string; to: string }) | undefined;
+): (E & { newLicense: string; to: string }) | undefined => {
+  const latest = [...(entries ?? [])]
+    .filter((e) => (e.type === 'handon' || e.type === 'handon-off') && !e.mine && e.from === 'issuer' && !!e.newLicense)
+    .sort((a, b) => b.at - a.at)[0];
+  return latest?.type === 'handon' && latest.to ? (latest as E & { newLicense: string; to: string }) : undefined;
+};
 
 /** The holder's latest request to hand the license on, if the licensor hasn't started one since. */
 export const handOnAsked = (
