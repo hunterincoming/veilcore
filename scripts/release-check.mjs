@@ -212,6 +212,7 @@ export const APP_ROUTES = Object.freeze([
   '/license/:license/sign',
   '/license-invite/:invite',
   '/claim',
+  '/lender',
   '/intake',
   '/intake/send',
 ]);

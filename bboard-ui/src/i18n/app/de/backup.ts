@@ -94,6 +94,10 @@ export const backup = {
     'Diese Sicherungskopie enthält Ihre Datensätze nicht im aktuellen Stand. Speichern Sie eine neue und prüfen Sie diese.',
   'app.backup.err.noLabSignature':
     'Diese Sicherungskopie enthält die Signatur Ihres Labors nicht. Speichern Sie eine neue und prüfen Sie diese.',
+  'app.backup.err.noLicenses':
+    'Diese Sicherungskopie enthält Ihre neuesten Lizenzen nicht. Speichern Sie eine neue und prüfen Sie diese.',
+  'app.backup.err.noLender':
+    'Diese Sicherungskopie enthält Ihren Kreditgeber-Schlüssel und Ihre neuesten Ansprüche nicht. Speichern Sie eine neue und prüfen Sie diese.',
   'app.backup.err.noDeliveries':
     'Diese Sicherungskopie enthält Ihre neuesten Lieferungen nicht. Speichern Sie eine neue und prüfen Sie diese.',
   'app.backup.err.differentKeys':

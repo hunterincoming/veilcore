@@ -50,6 +50,8 @@ const PAGES: [string, RegExp][] = [
   [`/license-invite/LI-${'0'.repeat(32)}#t=${'A'.repeat(22)}&h=${'1'.repeat(64)}`, /couldn.t open this license|expired or doesn.t exist/i],
   // A lender's claim link cut short says so, and asks for the whole link.
   ['/claim#r=abc', /incomplete|can.t record claims/i],
+  // A lender's page: makes its key here, or says this site can't record claims.
+  ['/lender', /record a claim as a lender|can.t record claims/i],
 ];
 
 for (const [path, text] of PAGES) {

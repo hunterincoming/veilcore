@@ -15,6 +15,11 @@ const KNOWN: [string, AppKey][] = [
   ["That backup doesn't hold your records as they are now. Save a new one and check that.", 'app.backup.err.notNow'],
   ["That backup doesn't hold your lab's signature. Save a new one and check that.", 'app.backup.err.noLabSignature'],
   ["That backup doesn't hold your latest deliveries. Save a new one and check that.", 'app.backup.err.noDeliveries'],
+  ["That backup doesn't hold your latest licenses. Save a new one and check that.", 'app.backup.err.noLicenses'],
+  [
+    "That backup doesn't hold your lender key and latest claims. Save a new one and check that.",
+    'app.backup.err.noLender',
+  ],
   [
     'This browser already holds different keys for one of those plants. Nothing was changed.',
     'app.backup.err.differentKeys',

@@ -692,4 +692,56 @@ export const licensing = {
   'app.lic.next.l.waitCheck': 'Esperando a que revisen su estado de cuenta de {period}.',
   'app.lic.next.l.waitConfirm': 'Esperando a que confirmen que su pago llegó.',
   'app.lic.next.l.file': 'Presente su estado de cuenta cuando termine el período.',
+  'app.lic.lend.title': 'Registrar una anotación como prestamista',
+  'app.lic.lend.intro':
+    '¿Presta con el registro o la licencia de un obtentor como respaldo? Registre en Midnight que el registro está pignorado a su favor, para que no pueda pignorarse dos veces a escondidas. El titular la acepta desde su propio dispositivo, y solo usted puede liberarla. No es una inscripción legal: presente su propia documentación como siempre.',
+  'app.lic.lend.name': 'Su nombre, tal como lo verán los titulares',
+  'app.lic.lend.nameHelp':
+    'El nombre de su institución. Los titulares lo ven junto a su clave y comprueban quién es usted como lo harían para cualquier préstamo.',
+  'app.lic.lend.make': 'Crear mi clave de prestamista',
+  'app.lic.lend.backupKey':
+    'Su clave de prestamista se creó en este dispositivo y solo existe aquí. Guarde ahora su copia de seguridad: sin ella, nadie podrá liberar nunca una anotación que usted haga.',
+  'app.lic.lend.anchorWhy':
+    'Ahora, ponga en Midnight la clave de {name}. Tarda unos minutos, y VeilCore paga la comisión de la red.',
+  'app.lic.lend.anchor': 'Poner mi clave en Midnight',
+  'app.lic.lend.yourKey': 'Su clave en Midnight, para {name}:',
+  'app.lic.lend.newTitle': 'Una nueva anotación',
+  'app.lic.lend.record': 'El registro del titular',
+  'app.lic.lend.recordHelp':
+    'Pegue el enlace de comprobación que el titular le envió para el registro, o su clave en la cadena.',
+  'app.lic.lend.recordFromCheck': 'Desde la página de comprobación de {id}.',
+  'app.lic.lend.words': 'Sus palabras para el préstamo',
+  'app.lic.lend.wordsHelp':
+    'Por ejemplo, un número de préstamo. Solo un código hecho a partir de ellas va a Midnight; las palabras se quedan con usted y en su copia de seguridad.',
+  'app.lic.lend.start': 'Preparar la anotación',
+  'app.lic.lend.yours': 'Sus anotaciones',
+  'app.lic.lend.onRecord': 'Sobre el registro {record}',
+  'app.lic.lend.backupClaim':
+    'Primero guarde una nueva copia de seguridad: conserva de qué se hizo esta anotación, para que siempre pueda liberarla.',
+  'app.lic.lend.readyToSend': 'Listo. Envíe la anotación a Midnight y después envíe el enlace al titular.',
+  'app.lic.lend.send': 'Enviar la anotación',
+  'app.lic.lend.proposed':
+    'En Midnight, a la espera del titular. Envíele este enlace: la acepta o la rechaza desde el dispositivo que tiene el registro.',
+  'app.lic.lend.holderLink': 'Enlace para el titular',
+  'app.lic.lend.withdraw': 'Retirarla',
+  'app.lic.lend.withdrawQ': '¿Retirar esta anotación antes de que el titular responda? Esto queda en Midnight.',
+  'app.lic.lend.withdrawYes': 'Sí, retirarla',
+  'app.lic.lend.inForce':
+    'En vigor en Midnight. Cualquiera que compruebe el registro ve que hay una anotación en vigor hasta que usted la libere.',
+  'app.lic.lend.release': 'Liberarla (pagado)',
+  'app.lic.lend.releaseQ':
+    '¿Liberar esta anotación? Quien compruebe el registro ya no la verá. Esto queda en Midnight y no se puede deshacer.',
+  'app.lic.lend.releaseYes': 'Sí, liberarla',
+  'app.lic.lend.released': 'Liberada.',
+  'app.lic.lend.withdrawn': 'Retirada.',
+  'app.lic.lend.gone': 'No está en Midnight: el titular la rechazó, o aún no ha llegado.',
+  'app.lic.lend.notWaiting': 'La anotación ya no está pendiente. No se envió nada.',
+  'app.lic.lend.notInForce': 'La anotación no está en vigor. No se envió nada.',
+  'app.lic.lend.badRecord':
+    'Eso no es un enlace de comprobación ni una clave en la cadena. Pida al titular el enlace de comprobación de su registro.',
+  'app.lic.lend.ownRecord': 'Esa es su propia clave de prestamista, no un registro.',
+  'app.lic.lend.fromCheck.title': '¿Presta con este registro como respaldo?',
+  'app.lic.lend.fromCheck.text':
+    'Registre una anotación sobre él como prestamista. El titular la acepta desde su propio dispositivo, y solo usted puede liberarla.',
+  'app.lic.lend.fromCheck.button': 'Registrar una anotación',
 };

@@ -90,6 +90,9 @@ export const backup = {
   'app.backup.err.otherSet': 'That backup belongs to a different set of records. Pick the one you just saved.',
   'app.backup.err.notNow': "That backup doesn't hold your records as they are now. Save a new one and check that.",
   'app.backup.err.noLabSignature': "That backup doesn't hold your lab's signature. Save a new one and check that.",
+  'app.backup.err.noLicenses': "That backup doesn't hold your latest licenses. Save a new one and check that.",
+  'app.backup.err.noLender':
+    "That backup doesn't hold your lender key and latest claims. Save a new one and check that.",
   'app.backup.err.noDeliveries': "That backup doesn't hold your latest deliveries. Save a new one and check that.",
   'app.backup.err.differentKeys':
     'This browser already holds different keys for one of those records. Nothing was changed.',

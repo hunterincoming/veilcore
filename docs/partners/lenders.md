@@ -64,11 +64,21 @@ relate in your jurisdiction is for your counsel.
 
 How it goes:
 
-1. You propose the claim on chain from your own identity (Part 2).
+1. You propose the claim on chain from your own identity: from a browser at
+   [veilcore.org/lender](https://veilcore.org/lender), or from your own systems (Part 2).
 2. You send the holder a claim link.
 3. They open it on the device that holds the record. Their page reads Midnight for exactly that
    claim and offers to accept or reject it.
 4. Once they accept, it is in force. When the loan is repaid, you release it.
+
+**From a browser, no code.** Ask the holder for their record's check link and open it: the
+check page has **Record a claim**. (Or open veilcore.org/lender and paste the link.) The first
+time, the page makes your lender key on your device, asks you to save and check a backup (without
+it, nobody can ever release your claims), and puts the key on Midnight. Then, for each loan:
+your own words for it (a loan number, say; only a code made from them goes on chain), a new
+backup, **Send the claim**, and the link to send the holder. The same page withdraws a claim the
+holder hasn't answered and releases one when the loan is repaid. VeilCore pays the network fee.
+Keep the backup safe: it is the only key to your claims.
 
 ---
 

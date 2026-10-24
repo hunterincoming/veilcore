@@ -693,4 +693,54 @@ export const licensing = {
   'app.lic.next.l.waitCheck': 'Waiting for them to check your statement for {period}.',
   'app.lic.next.l.waitConfirm': 'Waiting for them to confirm your payment arrived.',
   'app.lic.next.l.file': 'File your statement when the period ends.',
+  'app.lic.lend.title': 'Record a claim as a lender',
+  'app.lic.lend.intro':
+    "Lending against a breeder's record or license? Record on Midnight that the record is pledged to you, so it can't quietly be pledged twice. The holder accepts it from their own device, and only you can release it. It isn't a legal filing: file your own paperwork as usual.",
+  'app.lic.lend.name': 'Your name, as holders will see it',
+  'app.lic.lend.nameHelp':
+    "Your institution's name. Holders see it beside your key and check who you are the way they would for any loan.",
+  'app.lic.lend.make': 'Make my lender key',
+  'app.lic.lend.backupKey':
+    'Your lender key was made on this device and exists only here. Save your backup now: without it, nobody can ever release a claim you make.',
+  'app.lic.lend.anchorWhy':
+    'Next, put the key for {name} on Midnight. It takes a few minutes, and VeilCore pays the network fee.',
+  'app.lic.lend.anchor': 'Put my key on Midnight',
+  'app.lic.lend.yourKey': 'Your key on Midnight, for {name}:',
+  'app.lic.lend.newTitle': 'A new claim',
+  'app.lic.lend.record': "The holder's record",
+  'app.lic.lend.recordHelp': 'Paste the check link the holder sent you for the record, or its on-chain key.',
+  'app.lic.lend.recordFromCheck': 'From the check page of {id}.',
+  'app.lic.lend.words': 'Your words for the loan',
+  'app.lic.lend.wordsHelp':
+    'A loan number, for example. Only a code made from them goes on Midnight; the words stay with you and in your backup.',
+  'app.lic.lend.start': 'Prepare the claim',
+  'app.lic.lend.yours': 'Your claims',
+  'app.lic.lend.onRecord': 'On record {record}',
+  'app.lic.lend.backupClaim':
+    'Save a new backup first: it keeps what this claim was made from, so you can always release it.',
+  'app.lic.lend.readyToSend': 'Ready. Send the claim to Midnight, then send the holder the link.',
+  'app.lic.lend.send': 'Send the claim',
+  'app.lic.lend.proposed':
+    'On Midnight, waiting for the holder. Send them this link: they accept or reject it from the device that holds the record.',
+  'app.lic.lend.holderLink': "The holder's link",
+  'app.lic.lend.withdraw': 'Withdraw it',
+  'app.lic.lend.withdrawQ': 'Withdraw this claim before the holder answers? This goes on Midnight.',
+  'app.lic.lend.withdrawYes': 'Yes, withdraw it',
+  'app.lic.lend.inForce':
+    'In force on Midnight. Anyone checking the record sees a claim is in force until you release it.',
+  'app.lic.lend.release': 'Release it (repaid)',
+  'app.lic.lend.releaseQ':
+    "Release this claim? Anyone checking the record will no longer see it. This goes on Midnight and can't be undone.",
+  'app.lic.lend.releaseYes': 'Yes, release it',
+  'app.lic.lend.released': 'Released.',
+  'app.lic.lend.withdrawn': 'Withdrawn.',
+  'app.lic.lend.gone': "Not on Midnight: the holder rejected it, or it hasn't landed yet.",
+  'app.lic.lend.notWaiting': 'The claim is no longer waiting. Nothing was sent.',
+  'app.lic.lend.notInForce': "The claim isn't in force. Nothing was sent.",
+  'app.lic.lend.badRecord': "That isn't a check link or an on-chain key. Ask the holder for their record's check link.",
+  'app.lic.lend.ownRecord': 'That is your own lender key, not a record.',
+  'app.lic.lend.fromCheck.title': 'Lending against this record?',
+  'app.lic.lend.fromCheck.text':
+    'Record a claim on it as a lender. The holder accepts it from their own device, and only you can release it.',
+  'app.lic.lend.fromCheck.button': 'Record a claim',
 };

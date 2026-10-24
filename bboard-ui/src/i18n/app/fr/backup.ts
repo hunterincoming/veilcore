@@ -95,6 +95,10 @@ export const backup = {
     'Cette copie de secours ne contient pas vos enregistrements dans leur état actuel. Enregistrez-en une nouvelle et vérifiez-la.',
   'app.backup.err.noLabSignature':
     'Cette copie de secours ne contient pas la signature de votre laboratoire. Enregistrez-en une nouvelle et vérifiez-la.',
+  'app.backup.err.noLicenses':
+    'Cette copie de secours ne contient pas vos dernières licences. Enregistrez-en une nouvelle et vérifiez-la.',
+  'app.backup.err.noLender':
+    'Cette copie de secours ne contient pas votre clé de prêteur ni vos dernières mentions de prêteur. Enregistrez-en une nouvelle et vérifiez-la.',
   'app.backup.err.noDeliveries':
     'Cette copie de secours ne contient pas vos dernières livraisons. Enregistrez-en une nouvelle et vérifiez-la.',
   'app.backup.err.differentKeys':

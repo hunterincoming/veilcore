@@ -144,7 +144,8 @@ holds or moves anyone's money.
       person. The lender confirms that with the licensee.
     - **Dated prior possession and chain of title:** the records and their evidence bundles.
     - **A claim on the record** (`veilcore/claims.ts`, the /claim page): the lender proposes
-      it from its own identity (partner kit `proposeObligation`, `claimLink`), the holder
+      it from its own identity (from a browser at /lender, `veilcore/lender.ts`, reached from
+      any record's check page; or the partner kit's `proposeObligation` and `claimLink`), the holder
       accepts it on the record's own key, only the lender can release it. Anyone checking the
       record sees a claim is in force. Not a legal filing.
     Lender's guide: [docs/partners/lenders.md](partners/lenders.md).

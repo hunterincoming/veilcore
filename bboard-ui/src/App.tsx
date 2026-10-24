@@ -74,6 +74,7 @@ const IntakeSendPage = page(() => import('./components/flow/IntakePage'), 'Intak
 const ProvePage = page(() => import('./components/flow/ProvePage'), 'ProvePage');
 const LicenseInvitePage = page(() => import('./components/licensing/LicenseInvitePage'), 'LicenseInvitePage');
 const ClaimPage = page(() => import('./components/licensing/ClaimPage'), 'ClaimPage');
+const LenderPage = page(() => import('./components/licensing/LenderPage'), 'LenderPage');
 const ProveLicensePage = page(() => import('./components/licensing/LicenseProof'), 'ProveLicensePage');
 const PartnersPage = page(() => import('./components/partners/PartnersPage'), 'PartnersPage');
 const TermsBuilder = page(() => import('./components/licensing/TermsBuilder'), 'TermsBuilder');
@@ -325,6 +326,14 @@ const routes = (
       element={
         <Light>
           <ClaimPage />
+        </Light>
+      }
+    />
+    <Route
+      path="/lender"
+      element={
+        <Light>
+          <LenderPage />
         </Light>
       }
     />

@@ -704,4 +704,56 @@ export const licensing = {
   'app.lic.next.l.waitCheck': 'En attente que l’autre partie vérifie votre relevé pour {period}.',
   'app.lic.next.l.waitConfirm': 'En attente que l’autre partie confirme la réception de votre paiement.',
   'app.lic.next.l.file': 'Déposez votre relevé à la fin de la période.',
+  'app.lic.lend.title': 'Inscrire une mention de prêteur',
+  'app.lic.lend.intro':
+    'Vous prêtez en vous appuyant sur l’enregistrement ou la licence d’un obtenteur ? Inscrivez sur Midnight que l’enregistrement vous est nanti, afin qu’il ne puisse pas être nanti deux fois en silence. Le détenteur l’accepte depuis son propre appareil, et vous seul pouvez la lever. Ce n’est pas une inscription légale : effectuez vos formalités comme d’habitude.',
+  'app.lic.lend.name': 'Votre nom, tel que les détenteurs le verront',
+  'app.lic.lend.nameHelp':
+    'Le nom de votre établissement. Les détenteurs le voient à côté de votre clé et vérifient votre identité comme pour tout prêt.',
+  'app.lic.lend.make': 'Créer ma clé de prêteur',
+  'app.lic.lend.backupKey':
+    'Votre clé de prêteur a été créée sur cet appareil et n’existe qu’ici. Enregistrez votre copie de secours maintenant : sans elle, personne ne pourra jamais lever une mention que vous inscrivez.',
+  'app.lic.lend.anchorWhy':
+    'Ensuite, placez la clé de {name} sur Midnight. Cela prend quelques minutes, et VeilCore paie les frais de réseau.',
+  'app.lic.lend.anchor': 'Placer ma clé sur Midnight',
+  'app.lic.lend.yourKey': 'Votre clé sur Midnight, pour {name} :',
+  'app.lic.lend.newTitle': 'Une nouvelle mention',
+  'app.lic.lend.record': 'L’enregistrement du détenteur',
+  'app.lic.lend.recordHelp':
+    'Collez le lien de vérification que le détenteur vous a envoyé pour l’enregistrement, ou sa clé on-chain.',
+  'app.lic.lend.recordFromCheck': 'Depuis la page de vérification de {id}.',
+  'app.lic.lend.words': 'Vos mots pour le prêt',
+  'app.lic.lend.wordsHelp':
+    'Un numéro de prêt, par exemple. Seul un code tiré de ces mots va sur Midnight ; les mots restent chez vous et dans votre copie de secours.',
+  'app.lic.lend.start': 'Préparer la mention',
+  'app.lic.lend.yours': 'Vos mentions',
+  'app.lic.lend.onRecord': 'Sur l’enregistrement {record}',
+  'app.lic.lend.backupClaim':
+    'Enregistrez d’abord une nouvelle copie de secours : elle garde ce à partir de quoi cette mention a été faite, pour que vous puissiez toujours la lever.',
+  'app.lic.lend.readyToSend': 'Prêt. Envoyez la mention sur Midnight, puis envoyez le lien au détenteur.',
+  'app.lic.lend.send': 'Envoyer la mention',
+  'app.lic.lend.proposed':
+    'Sur Midnight, en attente du détenteur. Envoyez-lui ce lien : il l’accepte ou la refuse depuis l’appareil qui détient l’enregistrement.',
+  'app.lic.lend.holderLink': 'Le lien du détenteur',
+  'app.lic.lend.withdraw': 'La retirer',
+  'app.lic.lend.withdrawQ': 'Retirer cette mention avant que le détenteur ne réponde ? Ceci est inscrit sur Midnight.',
+  'app.lic.lend.withdrawYes': 'Oui, la retirer',
+  'app.lic.lend.inForce':
+    'En vigueur sur Midnight. Quiconque vérifie l’enregistrement voit qu’une mention de prêteur est en vigueur jusqu’à ce que vous la leviez.',
+  'app.lic.lend.release': 'La lever (remboursé)',
+  'app.lic.lend.releaseQ':
+    'Lever cette mention ? Quiconque vérifie l’enregistrement ne la verra plus. Ceci est inscrit sur Midnight et irréversible.',
+  'app.lic.lend.releaseYes': 'Oui, la lever',
+  'app.lic.lend.released': 'Levée.',
+  'app.lic.lend.withdrawn': 'Retirée.',
+  'app.lic.lend.gone': 'Pas sur Midnight : le détenteur l’a refusée, ou elle n’est pas encore arrivée.',
+  'app.lic.lend.notWaiting': 'La mention n’est plus en attente. Rien n’a été envoyé.',
+  'app.lic.lend.notInForce': 'La mention n’est pas en vigueur. Rien n’a été envoyé.',
+  'app.lic.lend.badRecord':
+    'Ce n’est ni un lien de vérification ni une clé on-chain. Demandez au détenteur le lien de vérification de son enregistrement.',
+  'app.lic.lend.ownRecord': 'C’est votre propre clé de prêteur, pas un enregistrement.',
+  'app.lic.lend.fromCheck.title': 'Vous prêtez sur cet enregistrement ?',
+  'app.lic.lend.fromCheck.text':
+    'Inscrivez une mention de prêteur sur celui-ci. Le détenteur l’accepte depuis son propre appareil, et vous seul pouvez la lever.',
+  'app.lic.lend.fromCheck.button': 'Inscrire une mention',
 };

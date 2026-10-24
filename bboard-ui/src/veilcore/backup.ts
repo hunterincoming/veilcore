@@ -42,6 +42,7 @@ import { allSentCodes, mergeSentCodes } from './transfers';
 import { isVaultKey, markVaultBackedUp, setVaultKey, vaultHasSealed, vaultKeyIfAny, vaultKid } from './vault';
 import { raiseRevMarks, registryKids, revMarks } from './api-store';
 import { heldLicensesForBackup, heldMissingFrom, markHeldBackedUp, mergeHeldLicenses } from './held-licenses';
+import { lenderForBackup, lenderHeldBy, markLenderBackedUp, mergeLender } from './lender';
 import { issuerDealsForBackup, issuerDealsMissingFrom, markIssuerDealsBackedUp, mergeIssuerDeals } from './licenses';
 import { enT } from '../i18n/translate';
 import { importRecordRows, recordsForBackup, type ImportResult } from './records';
@@ -81,6 +82,11 @@ export type BackupContents = {
   readonly heldLicenses?: ReturnType<typeof heldLicensesForBackup>;
   /** The issuer's secret key for each real license's private channel, by license id (licenses.ts). */
   readonly issuerDeals?: ReturnType<typeof issuerDealsForBackup>;
+  /**
+   * A lender's identity on chain and each claim it made (lender.ts): the secrets that release a
+   * claim, and the words and salt each claim was made from. Optional: most files have none.
+   */
+  readonly lender?: ReturnType<typeof lenderForBackup>;
   /**
    * The records themselves, as this browser holds them open (records.ts recordsForBackup).
    * Keys alone prove a key and nothing it stands for: with these, the file is enough to show
@@ -327,6 +333,7 @@ export const backupContents = (now = Date.now()): BackupContents => {
   const revs = revMarks();
   const held = heldLicensesForBackup();
   const deals = issuerDealsForBackup();
+  const lenderEntry = lenderForBackup();
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
@@ -341,6 +348,7 @@ export const backupContents = (now = Date.now()): BackupContents => {
     ...(Object.keys(revs).length ? { revs } : {}),
     ...(held.length ? { heldLicenses: held } : {}),
     ...(Object.keys(deals).length ? { issuerDeals: deals } : {}),
+    ...(lenderEntry ? { lender: lenderEntry } : {}),
   };
 };
 
@@ -360,7 +368,8 @@ export const hasAnythingToBackUp = (): boolean =>
   loadAttester() !== null ||
   Object.keys(allDeliveries()).length > 0 ||
   heldLicensesForBackup().length > 0 ||
-  Object.keys(issuerDealsForBackup()).length > 0;
+  Object.keys(issuerDealsForBackup()).length > 0 ||
+  lenderForBackup() !== undefined;
 
 /**
  * Save the file. Deliberately does not mark anything as backed up: only checkBackup
@@ -472,10 +481,18 @@ export const checkBackup = async (
   if (heldMissingFrom(v.heldLicenses).length > 0 || issuerDealsMissingFrom(v.issuerDeals).length > 0) {
     return { ok: false, reason: "That backup doesn't hold your latest licenses. Save a new one and check that." };
   }
+  // A lender's identity: without its secret nobody can ever release a claim it made.
+  if (!lenderHeldBy(v.lender)) {
+    return {
+      ok: false,
+      reason: "That backup doesn't hold your lender key and latest claims. Save a new one and check that.",
+    };
+  }
   if (opts.mark !== false) {
     markBackedUp(held.map((k) => k.recordId));
     markHeldBackedUp(v.heldLicenses);
     markIssuerDealsBackedUp(v.issuerDeals);
+    markLenderBackedUp(v.lender);
     if (vault) markVaultBackedUp();
   }
   return { ok: true, records: held.length, recordIds: held.map((k) => k.recordId) };
@@ -583,6 +600,7 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
   raiseRevMarks(v.revs);
   mergeHeldLicenses(v.heldLicenses, { mark: opts.mark });
   mergeIssuerDeals(v.issuerDeals);
+  mergeLender(v.lender, { mark: opts.mark });
   // The records the file carries, once their keys are back: put back any this browser and
   // its registry don't have (the same rules as an import: each must recompute, none
   // overwrites one already here). A problem here doesn't undo the keys restored above.

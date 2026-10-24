@@ -717,4 +717,57 @@ export const licensing = {
   'app.lic.next.l.waitCheck': 'Warten, bis die andere Seite Ihre Abrechnung für {period} prüft.',
   'app.lic.next.l.waitConfirm': 'Warten, bis die andere Seite den Eingang Ihrer Zahlung bestätigt.',
   'app.lic.next.l.file': 'Reichen Sie Ihre Abrechnung ein, wenn der Zeitraum endet.',
+  'app.lic.lend.title': 'Einen Anspruch als Kreditgeber erfassen',
+  'app.lic.lend.intro':
+    'Sie geben einen Kredit gegen den Datensatz oder die Lizenz eines Züchters? Erfassen Sie auf Midnight, dass der Datensatz Ihnen verpfändet ist, damit er nicht unbemerkt zweimal verpfändet wird. Der Inhaber nimmt den Anspruch auf seinem eigenen Gerät an, und nur Sie können ihn aufheben. Es ist keine rechtliche Eintragung: Reichen Sie Ihre eigenen Unterlagen wie gewohnt ein.',
+  'app.lic.lend.name': 'Ihr Name, wie Inhaber ihn sehen',
+  'app.lic.lend.nameHelp':
+    'Der Name Ihres Instituts. Inhaber sehen ihn neben Ihrem Schlüssel und prüfen, wer Sie sind, wie bei jedem Kredit.',
+  'app.lic.lend.make': 'Meinen Kreditgeber-Schlüssel erzeugen',
+  'app.lic.lend.backupKey':
+    'Ihr Kreditgeber-Schlüssel wurde auf diesem Gerät erzeugt und existiert nur hier. Speichern Sie jetzt Ihre Sicherungskopie: Ohne sie kann niemand einen Anspruch aufheben, den Sie erfassen.',
+  'app.lic.lend.anchorWhy':
+    'Als Nächstes kommt der Schlüssel für {name} auf Midnight. Das dauert ein paar Minuten, und VeilCore zahlt die Netzwerkgebühr.',
+  'app.lic.lend.anchor': 'Meinen Schlüssel auf Midnight setzen',
+  'app.lic.lend.yourKey': 'Ihr Schlüssel auf Midnight, für {name}:',
+  'app.lic.lend.newTitle': 'Ein neuer Anspruch',
+  'app.lic.lend.record': 'Der Datensatz des Inhabers',
+  'app.lic.lend.recordHelp':
+    'Fügen Sie den Prüflink ein, den der Inhaber Ihnen für den Datensatz gesendet hat, oder seinen On-Chain-Schlüssel.',
+  'app.lic.lend.recordFromCheck': 'Von der Prüfseite von {id}.',
+  'app.lic.lend.words': 'Ihre Worte für den Kredit',
+  'app.lic.lend.wordsHelp':
+    'Zum Beispiel eine Kreditnummer. Nur ein daraus erzeugter Code kommt auf Midnight; die Worte bleiben bei Ihnen und in Ihrer Sicherungskopie.',
+  'app.lic.lend.start': 'Anspruch vorbereiten',
+  'app.lic.lend.yours': 'Ihre Ansprüche',
+  'app.lic.lend.onRecord': 'Auf Datensatz {record}',
+  'app.lic.lend.backupClaim':
+    'Speichern Sie zuerst eine neue Sicherungskopie: Sie enthält, woraus dieser Anspruch erzeugt wurde, damit Sie ihn immer aufheben können.',
+  'app.lic.lend.readyToSend': 'Bereit. Senden Sie den Anspruch an Midnight und dann dem Inhaber den Link.',
+  'app.lic.lend.send': 'Anspruch senden',
+  'app.lic.lend.proposed':
+    'Auf Midnight, wartet auf den Inhaber. Senden Sie ihm diesen Link: Er nimmt den Anspruch auf dem Gerät, das den Datensatz hält, an oder lehnt ihn ab.',
+  'app.lic.lend.holderLink': 'Link für den Inhaber',
+  'app.lic.lend.withdraw': 'Zurückziehen',
+  'app.lic.lend.withdrawQ':
+    'Diesen Anspruch zurückziehen, bevor der Inhaber antwortet? Dies wird auf Midnight erfasst.',
+  'app.lic.lend.withdrawYes': 'Ja, zurückziehen',
+  'app.lic.lend.inForce':
+    'Auf Midnight in Kraft. Jeder, der den Datensatz prüft, sieht, dass ein Anspruch besteht, bis Sie ihn aufheben.',
+  'app.lic.lend.release': 'Aufheben (zurückgezahlt)',
+  'app.lic.lend.releaseQ':
+    'Diesen Anspruch aufheben? Wer den Datensatz prüft, sieht ihn dann nicht mehr. Dies wird auf Midnight erfasst und lässt sich nicht rückgängig machen.',
+  'app.lic.lend.releaseYes': 'Ja, aufheben',
+  'app.lic.lend.released': 'Aufgehoben.',
+  'app.lic.lend.withdrawn': 'Zurückgezogen.',
+  'app.lic.lend.gone': 'Nicht auf Midnight: Der Inhaber hat ihn abgelehnt, oder er ist noch nicht angekommen.',
+  'app.lic.lend.notWaiting': 'Der Anspruch wartet nicht mehr. Es wurde nichts gesendet.',
+  'app.lic.lend.notInForce': 'Der Anspruch ist nicht in Kraft. Es wurde nichts gesendet.',
+  'app.lic.lend.badRecord':
+    'Das ist kein Prüflink und kein On-Chain-Schlüssel. Bitten Sie den Inhaber um den Prüflink seines Datensatzes.',
+  'app.lic.lend.ownRecord': 'Das ist Ihr eigener Kreditgeber-Schlüssel, kein Datensatz.',
+  'app.lic.lend.fromCheck.title': 'Sie geben einen Kredit gegen diesen Datensatz?',
+  'app.lic.lend.fromCheck.text':
+    'Erfassen Sie als Kreditgeber einen Anspruch darauf. Der Inhaber nimmt ihn auf seinem eigenen Gerät an, und nur Sie können ihn aufheben.',
+  'app.lic.lend.fromCheck.button': 'Anspruch erfassen',
 };

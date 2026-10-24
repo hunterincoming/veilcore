@@ -419,11 +419,7 @@ const Technical: React.FC = () => {
               <p>
                 {t('m.status.keyText')}
                 {sp}
-                <a
-                  href={`${APP_REPO}/blob/main/docs/maintenance-policy.md`}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
+                <a href={`${APP_REPO}/blob/main/docs/maintenance-policy.md`} rel="noopener noreferrer" target="_blank">
                   {t('m.status.keyLink')}
                 </a>
               </p>

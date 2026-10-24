@@ -685,4 +685,54 @@ export const licensing = {
   'app.lic.next.l.waitCheck': '相手が{period}のあなたの明細を確認するのを待っています。',
   'app.lic.next.l.waitConfirm': '相手が支払いの受け取りを確認するのを待っています。',
   'app.lic.next.l.file': '期間が終わったら明細を提出してください。',
+  'app.lic.lend.title': '貸し手として請求を記録する',
+  'app.lic.lend.intro':
+    '育成者の記録やライセンスを担保に融資しますか？その記録があなたへの担保になっていることをMidnightに記録すれば、黙って二重に担保に入れることはできません。保有者は自分の端末で受け入れ、解除できるのはあなただけです。法的な登記ではありません。書類はいつもどおり別に届け出てください。',
+  'app.lic.lend.name': '保有者に表示されるあなたの名前',
+  'app.lic.lend.nameHelp':
+    'あなたの機関の名前です。保有者はあなたの鍵の横にこれを見て、融資のときと同じようにあなたを確認します。',
+  'app.lic.lend.make': '貸し手の鍵を作る',
+  'app.lic.lend.backupKey':
+    '貸し手の鍵はこの端末で作られ、ここにしかありません。今すぐバックアップを保存してください。これがないと、あなたが記録した請求は誰も解除できなくなります。',
+  'app.lic.lend.anchorWhy':
+    '次に、{name}の鍵をMidnightに置きます。数分かかり、ネットワーク手数料はVeilCoreが支払います。',
+  'app.lic.lend.anchor': '鍵をMidnightに置く',
+  'app.lic.lend.yourKey': '{name}のMidnight上の鍵:',
+  'app.lic.lend.newTitle': '新しい請求',
+  'app.lic.lend.record': '保有者の記録',
+  'app.lic.lend.recordHelp': '保有者から送られた記録の確認リンク、またはそのチェーン上の鍵を貼り付けてください。',
+  'app.lic.lend.recordFromCheck': '{id}の確認ページから。',
+  'app.lic.lend.words': '融資についてのあなたの言葉',
+  'app.lic.lend.wordsHelp':
+    'たとえば融資番号です。Midnightに載るのはそこから作られたコードだけで、言葉そのものはあなたの手元とバックアップに残ります。',
+  'app.lic.lend.start': '請求を準備する',
+  'app.lic.lend.yours': 'あなたの請求',
+  'app.lic.lend.onRecord': '記録{record}について',
+  'app.lic.lend.backupClaim':
+    '先に新しいバックアップを保存してください。この請求の元になったものが残るので、いつでも解除できます。',
+  'app.lic.lend.readyToSend': '準備ができました。請求をMidnightに送り、それから保有者にリンクを送ってください。',
+  'app.lic.lend.send': '請求を送る',
+  'app.lic.lend.proposed':
+    'Midnight上で保有者の返答待ちです。このリンクを送ってください。保有者は記録を持つ端末で受け入れるか拒否します。',
+  'app.lic.lend.holderLink': '保有者へのリンク',
+  'app.lic.lend.withdraw': '取り下げる',
+  'app.lic.lend.withdrawQ': '保有者が答える前にこの請求を取り下げますか？Midnightに記録されます。',
+  'app.lic.lend.withdrawYes': 'はい、取り下げます',
+  'app.lic.lend.inForce':
+    'Midnight上で有効です。記録を確認する誰にでも、あなたが解除するまで請求が設定されていることが表示されます。',
+  'app.lic.lend.release': '解除する（返済済み）',
+  'app.lic.lend.releaseQ':
+    'この請求を解除しますか？記録を確認する人にはもう表示されません。Midnightに記録され、元に戻せません。',
+  'app.lic.lend.releaseYes': 'はい、解除します',
+  'app.lic.lend.released': '解除しました。',
+  'app.lic.lend.withdrawn': '取り下げました。',
+  'app.lic.lend.gone': 'Midnight上にありません。保有者が拒否したか、まだ届いていません。',
+  'app.lic.lend.notWaiting': 'この請求はもう待機中ではありません。何も送信していません。',
+  'app.lic.lend.notInForce': 'この請求は有効ではありません。何も送信していません。',
+  'app.lic.lend.badRecord': '確認リンクでもチェーン上の鍵でもありません。保有者に記録の確認リンクを頼んでください。',
+  'app.lic.lend.ownRecord': 'それはあなた自身の貸し手の鍵で、記録ではありません。',
+  'app.lic.lend.fromCheck.title': 'この記録を担保に融資しますか？',
+  'app.lic.lend.fromCheck.text':
+    '貸し手としてこの記録に請求を記録します。保有者は自分の端末で受け入れ、解除できるのはあなただけです。',
+  'app.lic.lend.fromCheck.button': '請求を記録する',
 };

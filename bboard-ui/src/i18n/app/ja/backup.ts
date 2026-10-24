@@ -83,6 +83,10 @@ export const backup = {
   'app.backup.err.notNow': 'そのバックアップには現在の記録が入っていません。新しく保存して、それを確認してください。',
   'app.backup.err.noLabSignature':
     'そのバックアップにはラボの署名が入っていません。新しく保存して、それを確認してください。',
+  'app.backup.err.noLicenses':
+    'そのバックアップには最新のライセンスが入っていません。新しく保存して、それを確認してください。',
+  'app.backup.err.noLender':
+    'そのバックアップには貸し手の鍵と最新の請求が入っていません。新しく保存して、それを確認してください。',
   'app.backup.err.noDeliveries':
     'そのバックアップには最新の送付が入っていません。新しく保存して、それを確認してください。',
   'app.backup.err.differentKeys':

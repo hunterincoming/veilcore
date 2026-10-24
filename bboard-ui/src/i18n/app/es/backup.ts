@@ -93,6 +93,9 @@ export const backup = {
     'Esa copia de seguridad no tiene sus registros tal como están ahora. Guarde una nueva y compruébela.',
   'app.backup.err.noLabSignature':
     'Esa copia de seguridad no tiene la firma de su laboratorio. Guarde una nueva y compruébela.',
+  'app.backup.err.noLicenses': 'Esa copia de seguridad no tiene sus últimas licencias. Guarde una nueva y compruébela.',
+  'app.backup.err.noLender':
+    'Esa copia de seguridad no tiene su clave de prestamista ni sus últimas anotaciones. Guarde una nueva y compruébela.',
   'app.backup.err.noDeliveries': 'Esa copia de seguridad no tiene sus últimos envíos. Guarde una nueva y compruébela.',
   'app.backup.err.differentKeys':
     'Este navegador ya tiene claves distintas para uno de esos registros. No se cambió nada.',
