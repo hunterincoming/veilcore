@@ -21,6 +21,7 @@
 // confirmed live on Midnight mainnet as of 23 October 2026, so none is listed.
 // SPDX-License-Identifier: Apache-2.0
 
+import { enT, type Translator } from '../i18n/translate';
 import { bech32m } from '@scure/base';
 import { NETWORK } from '../config/network';
 
@@ -54,9 +55,9 @@ export const tokenOfMethod = (method: string | undefined): OnChainToken | undefi
 };
 
 /** A payout method in words: "on Midnight, in NIGHT", or the method as the licensor wrote it. */
-export const methodWords = (method: string): string => {
+export const methodWords = (method: string, tr: Translator = enT): string => {
   const t = tokenOfMethod(method);
-  return t ? `on Midnight, in ${t.code}` : method;
+  return t ? tr.t('app.lic.pay.method', { code: t.code }) : method;
 };
 
 /**
@@ -64,14 +65,14 @@ export const methodWords = (method: string): string => {
  * that isn't a plain positive decimal, or has more decimals than the token: rounding money
  * silently is how a statement and a payment come to disagree.
  */
-export const toBaseUnits = (amount: string, decimals: number): bigint => {
+export const toBaseUnits = (amount: string, decimals: number, tr: Translator = enT): bigint => {
   const m = /^(\d{1,30})(?:\.(\d+))?$/.exec(amount.trim());
-  if (!m) throw new Error(`“${amount}” isn’t an amount.`);
+  if (!m) throw new Error(tr.t('app.lic.pay.notAmount', { amount }));
   const frac = m[2] ?? '';
-  if (frac.length > decimals) throw new Error(`“${amount}” has more than ${decimals} decimal places.`);
+  if (frac.length > decimals) throw new Error(tr.t('app.lic.pay.tooPrecise', { amount, decimals }));
   const units =
     BigInt(m[1]) * 10n ** BigInt(decimals) + BigInt((frac + '0'.repeat(decimals)).slice(0, decimals) || '0');
-  if (units <= 0n) throw new Error('The amount must be more than zero.');
+  if (units <= 0n) throw new Error(tr.t('app.lic.pay.zero'));
   return units;
 };
 
@@ -93,18 +94,22 @@ export const addressPrefix = (network: string = NETWORK): string =>
  * @midnight-ntwrk/wallet-sdk-address-format). A typo fails the checksum, so it is caught here
  * and not after the money has gone.
  */
-export const addressProblem = (address: string, network: string = NETWORK): string | undefined => {
+export const addressProblem = (
+  address: string,
+  network: string = NETWORK,
+  tr: Translator = enT,
+): string | undefined => {
   const a = address.trim();
   let prefix: string;
   try {
     prefix = bech32m.decode(a as `${string}1${string}`, 200).prefix;
   } catch {
-    return 'That isn’t a Midnight address (check it was copied whole).';
+    return tr.t('app.lic.pay.notAddress');
   }
   if (prefix !== addressPrefix(network))
     return prefix.startsWith('mn_addr')
-      ? `That address is for another Midnight network, not ${network}.`
-      : 'That isn’t an unshielded Midnight address (it should start with mn_addr).';
+      ? tr.t('app.lic.pay.otherNetwork', { network })
+      : tr.t('app.lic.pay.notUnshielded');
   return undefined;
 };
 
@@ -150,7 +155,7 @@ export const identifierOf = async (txHex: string): Promise<string> => {
   const bytes = Uint8Array.from(txHex.match(/../g) ?? [], (h) => parseInt(h, 16));
   const tx = Transaction.deserialize('signature', 'proof', 'binding', bytes);
   const id = tx.identifiers()[0];
-  if (!id) throw new Error('The wallet’s transaction has no identifier.');
+  if (!id) throw new Error(enT.t('app.lic.pay.noId'));
   return String(id).toLowerCase();
 };
 
@@ -162,12 +167,13 @@ export const identifierOf = async (txHex: string): Promise<string> => {
 export const payOnChain = async (
   wallet: WalletEntry,
   p: { token: OnChainToken; amount: string; recipient: string },
-  deps: { network?: string; identifierOf?: (tx: string) => Promise<string> } = {},
+  deps: { network?: string; identifierOf?: (tx: string) => Promise<string>; tr?: Translator } = {},
 ): Promise<string> => {
+  const tr = deps.tr ?? enT;
   const network = deps.network ?? NETWORK;
-  const bad = addressProblem(p.recipient, network);
+  const bad = addressProblem(p.recipient, network, tr);
   if (bad) throw new Error(bad);
-  const value = toBaseUnits(p.amount, p.token.decimals);
+  const value = toBaseUnits(p.amount, p.token.decimals, tr);
   const api = await wallet.connect(network);
   const { tx } = await api.makeTransfer(
     [{ kind: p.token.kind, type: p.token.type, value, recipient: p.recipient.trim() }],
@@ -176,8 +182,7 @@ export const payOnChain = async (
   const id = await (deps.identifierOf ?? identifierOf)(tx);
   // Checked before anything is sent: a reference the "I paid it" message can't carry would
   // leave a payment nobody can point at (deal.ts allows 120 characters).
-  if (!/^[0-9a-f]{2,120}$/.test(id))
-    throw new Error('The wallet’s transaction has an id this page can’t record. Nothing was sent.');
+  if (!/^[0-9a-f]{2,120}$/.test(id)) throw new Error(tr.t('app.lic.pay.badId'));
   await api.submitTransaction(tx);
   return id;
 };
@@ -296,18 +301,18 @@ const sameTokenType = (indexerHex: unknown, raw: string): boolean => {
  */
 export const checkPayment = async (
   p: { txId: string; payTo: string; token: OnChainToken; amount: string },
-  deps: { indexers: readonly string[]; fetch?: typeof fetch; timeoutMs?: number },
+  deps: { indexers: readonly string[]; fetch?: typeof fetch; timeoutMs?: number; tr?: Translator },
 ): Promise<PaymentCheck> => {
+  const tr = deps.tr ?? enT;
   const txId = norm(p.txId);
-  if (!/^[0-9a-f]{2,}$/.test(txId)) return { ok: false, reason: 'The payment reference isn’t a transaction id.' };
+  if (!/^[0-9a-f]{2,}$/.test(txId)) return { ok: false, reason: tr.t('app.lic.pay.c.notTx') };
   let want: bigint;
   try {
-    want = toBaseUnits(p.amount, p.token.decimals);
+    want = toBaseUnits(p.amount, p.token.decimals, tr);
   } catch (e) {
     return { ok: false, reason: e instanceof Error ? e.message : String(e) };
   }
-  if (deps.indexers.length === 0)
-    return { ok: false, unreachable: true, reason: 'No Midnight indexer is set up on this site to check it.' };
+  if (deps.indexers.length === 0) return { ok: false, unreachable: true, reason: tr.t('app.lic.pay.c.noIndexer') };
   for (const indexer of deps.indexers) {
     let body: { data?: { byId?: unknown; byHash?: unknown } | null; errors?: unknown };
     try {
@@ -334,11 +339,11 @@ export const checkPayment = async (
       const ids = Array.isArray(r.identifiers) ? r.identifiers.map(norm) : [];
       if (norm(r.hash) === txId || ids.includes(txId)) txs.set(norm(r.hash), r);
     }
-    if (txs.size === 0) return { ok: false, reason: 'Midnight has no such transaction (yet: it can take a minute).' };
-    if (txs.size > 1) return { ok: false, reason: 'More than one transaction answers to that reference.' };
+    if (txs.size === 0) return { ok: false, reason: tr.t('app.lic.pay.c.noTx') };
+    if (txs.size > 1) return { ok: false, reason: tr.t('app.lic.pay.c.many') };
     const [[txHash, tx]] = [...txs];
     if ((tx.transactionResult as { status?: unknown } | undefined)?.status !== 'SUCCESS')
-      return { ok: false, reason: 'That transaction didn’t succeed on Midnight.' };
+      return { ok: false, reason: tr.t('app.lic.pay.c.failed') };
     const outs = Array.isArray(tx.unshieldedCreatedOutputs)
       ? (tx.unshieldedCreatedOutputs as Record<string, unknown>[])
       : [];
@@ -350,16 +355,20 @@ export const checkPayment = async (
       if (typeof o.value !== 'string' || !/^\d{1,40}$/.test(o.value)) continue;
       paid += BigInt(o.value);
     }
-    if (paid === 0n) return { ok: false, reason: `That transaction paid no ${p.token.code} to your payout address.` };
+    if (paid === 0n) return { ok: false, reason: tr.t('app.lic.pay.c.none', { code: p.token.code }) };
     if (paid < want)
       return {
         ok: false,
-        reason: `That transaction paid ${fromBaseUnits(paid, p.token.decimals)} ${p.token.code}, less than ${p.amount}.`,
+        reason: tr.t('app.lic.pay.c.less', {
+          paid: fromBaseUnits(paid, p.token.decimals),
+          code: p.token.code,
+          amount: p.amount,
+        }),
       };
     const height = (tx.block as { height?: unknown } | undefined)?.height;
     return { ok: true, txHash, paid, ...(typeof height === 'number' ? { blockHeight: height } : {}) };
   }
-  return { ok: false, unreachable: true, reason: 'Midnight’s indexer didn’t answer. The page tries again.' };
+  return { ok: false, unreachable: true, reason: tr.t('app.lic.pay.c.noAnswer') };
 };
 
 /**

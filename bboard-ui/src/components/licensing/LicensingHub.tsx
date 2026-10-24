@@ -10,10 +10,9 @@ import { motion } from 'framer-motion';
 import { useLicenses, allLicenses, agreementType, useLockedLicenses } from '../../veilcore/licenses';
 import { getRecord } from '../../veilcore/records';
 import { AppHeader } from '../AppHeader';
-import { InEnglishPage } from '../../i18n/app';
+import { useT } from '../../i18n/app';
 import { LicenseStateChip } from './LicenseStateChip';
 import { AgreementTypeChip } from './AgreementTypeChip';
-import { AGREEMENTS_SIMULATED } from '../../config/copy';
 import { linkCard } from '../a11y';
 import { LockedAgreements } from '../LockedRecords';
 
@@ -24,17 +23,16 @@ export const LicensingHub: React.FC = () => {
   const navigate = useNavigate();
   const licenses = allLicenses();
   const locked = useLockedLicenses();
+  const tr = useT();
 
   return (
     <Box>
       <AppHeader />
-      <InEnglishPage />
       <Typography variant="h4" component="h1" sx={{ mb: 0.5 }}>
-        Agreements
+        {tr.t('app.lic.hub.title')}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Every agreement you&apos;ve made (licenses, lab transfers and breeder shares) across all your records.{' '}
-        {AGREEMENTS_SIMULATED}
+        {tr.t('app.lic.hub.intro')} {tr.t('app.copy.agreementsSimulated')}
       </Typography>
 
       <Box sx={{ mb: 2 }}>
@@ -43,10 +41,10 @@ export const LicensingHub: React.FC = () => {
       {licenses.length === 0 && locked.length === 0 ? (
         <Paper sx={{ p: 4, textAlign: 'center', borderStyle: 'dashed' }}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            No agreements yet. Open one of your records and choose License, Send to a lab, or Share with a breeder.
+            {tr.t('app.lic.hub.empty')}
           </Typography>
           <Link component={RouterLink} to="/records">
-            Go to your records
+            {tr.t('app.lic.hub.toRecords')}
           </Link>
         </Paper>
       ) : (
@@ -58,7 +56,7 @@ export const LicensingHub: React.FC = () => {
                 key={l.id}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                {...linkCard(() => navigate(`/license/${l.id}`), `Open agreement ${l.id}`)}
+                {...linkCard(() => navigate(`/license/${l.id}`), tr.t('app.lic.hub.open', { id: l.id }))}
                 sx={{
                   p: 2.5,
                   cursor: 'pointer',
@@ -72,7 +70,7 @@ export const LicensingHub: React.FC = () => {
                 >
                   <Box sx={{ minWidth: 0 }}>
                     <Typography variant="h6" component="h2" noWrap>
-                      {record?.strainName ?? l.recordId} → {l.terms?.licensee || 'unnamed counterparty'}
+                      {record?.strainName ?? l.recordId} → {l.terms?.licensee || tr.t('app.lic.hub.unnamed')}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
                       {l.id} · {l.terms?.startDate} → {l.terms?.endDate}

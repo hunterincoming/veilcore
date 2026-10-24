@@ -26,6 +26,7 @@ import { plant } from './plant';
 import { prove } from './prove';
 import { sealed } from './sealed';
 import { verify } from './verify';
+import { licensing } from './licensing';
 
 export const appEs: AppTranslation = {
   ...common,
@@ -47,4 +48,5 @@ export const appEs: AppTranslation = {
   ...strainForm,
   ...sealed,
   ...dating,
+  ...licensing,
 };

@@ -20,6 +20,7 @@ import {
   type CheckedReceipt,
 } from '../../veilcore/payments';
 import { DealCredentials } from './DealCredentials';
+import { basisLabel } from '../../veilcore/licenses';
 import type { AgreedTerms } from '../../veilcore/credentials';
 import { evidenceOf, isEvidence, isTheReport, sizeText, type Evidence } from '../../veilcore/evidence';
 import { NextUp } from './DealSteps';
@@ -27,6 +28,8 @@ import { nextRoyaltyStep, suggestedPeriod } from './steps';
 import { MidnightPayoutForm, OnChainPaymentCheck, PayOnMidnight } from './OnChainPay';
 import { methodWords, reusedPayments, tokenOfMethod } from '../../veilcore/onchain-pay';
 import { ONCHAIN_PAYMENTS } from '../../config/copy';
+import { rich, useT } from '../../i18n/app';
+import type { Translator } from '../../i18n/translate';
 
 type Terms = { royaltyType?: string; royaltyAmount?: string; unitBasis?: string };
 
@@ -39,7 +42,6 @@ type Line = {
 };
 
 const today = () => new Date().toISOString().slice(0, 10);
-const dateOf = (t: number) => new Date(t).toLocaleDateString();
 
 /** What a statement owes under the terms, to the cent ('0.00' when the quantity isn't a number yet). */
 export const amountOwed = (terms: Terms, quantity: string): string => owedUnder(terms, quantity) ?? '0.00';
@@ -75,16 +77,19 @@ export const ledgerOf = (entries: readonly DealEntry[]) => {
   return { payout, previousPayout: payouts[payouts.length - 2], lines: [...lines.values()].reverse(), agreed };
 };
 
-const statusOf = (l: Line): { label: string; color: 'default' | 'warning' | 'success' | 'error' | 'info' } =>
+const statusOf = (
+  l: Line,
+  tr: Translator,
+): { label: string; color: 'default' | 'warning' | 'success' | 'error' | 'info' } =>
   l.received
-    ? { label: 'Paid and confirmed', color: 'success' }
+    ? { label: tr.t('app.lic.ledger.s.confirmed'), color: 'success' }
     : l.paid
-      ? { label: 'Paid, waiting for confirmation', color: 'info' }
+      ? { label: tr.t('app.lic.ledger.s.paid'), color: 'info' }
       : l.reply?.decision === 'disputed'
-        ? { label: 'Disputed', color: 'error' }
+        ? { label: tr.t('app.lic.ledger.s.disputed'), color: 'error' }
         : l.reply?.decision === 'accepted'
-          ? { label: 'Accepted, to be paid', color: 'warning' }
-          : { label: 'Filed, waiting for review', color: 'default' };
+          ? { label: tr.t('app.lic.ledger.s.accepted'), color: 'warning' }
+          : { label: tr.t('app.lic.ledger.s.filed'), color: 'default' };
 
 export const RoyaltyLedger: React.FC<{
   party: DealParty;
@@ -95,6 +100,7 @@ export const RoyaltyLedger: React.FC<{
   /** What this page holds as agreed (its own stored license), for the W3C credentials. */
   agreed?: AgreedTerms;
 }> = ({ party, side, terms, entries, refresh, agreed }) => {
+  const tr = useT();
   const { payout, previousPayout, lines } = useMemo(() => ledgerOf(entries ?? []), [entries]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -120,7 +126,7 @@ export const RoyaltyLedger: React.FC<{
       ),
     [lines],
   );
-  const next = nextRoyaltyStep(side, lines, payout);
+  const next = nextRoyaltyStep(side, lines, payout, tr);
   const percent = terms.royaltyType === 'percent';
   const mine = useMemo(() => publicOf(party.mySecret), [party.mySecret]);
   const keys =
@@ -143,23 +149,21 @@ export const RoyaltyLedger: React.FC<{
   if (!entries) {
     return (
       <Typography variant="body2" color="text.secondary">
-        Opening your private channel…
+        {tr.t('app.lic.ledger.opening')}
       </Typography>
     );
   }
 
   return (
-    <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }} lang="en">
+    <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }}>
       <Stack spacing={1.75}>
         <Box>
           <Typography variant="h6" component="h3">
-            Royalties
+            {tr.t('app.lic.ledger.title')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {side === 'licensee'
-              ? 'Each period: you file what you owe, they check it, you pay them, they confirm it arrived.'
-              : 'Each period: they file what they owe, you check it, they pay you, you confirm it arrived.'}{' '}
-            Private to the two of you. VeilCore never holds the money.
+            {side === 'licensee' ? tr.t('app.lic.ledger.howL') : tr.t('app.lic.ledger.howI')}{' '}
+            {tr.t('app.lic.ledger.private')}
           </Typography>
         </Box>
         <NextUp text={next.text} yours={next.yours} />
@@ -167,44 +171,56 @@ export const RoyaltyLedger: React.FC<{
         {/* How the licensor gets paid. */}
         {payout ? (
           <Typography variant="body2">
-            <b>Paid to:</b> {methodWords(payout.method)} · {payout.account} · {payout.currency}
+            <b>{tr.t('app.lic.ledger.paidTo')}</b> {methodWords(payout.method, tr)} · {payout.account} ·{' '}
+            {payout.currency}
             {previousPayout && previousPayout.account !== payout.account && (
               <Typography component="span" variant="body2" color="warning.main">
                 {' '}
-                (changed {dateOf(payout.at)} from {previousPayout.account}
-                {side === 'licensee' ? ': check with them before you pay' : ''})
+                {side === 'licensee'
+                  ? tr.t('app.lic.ledger.changedCheck', { date: tr.date(payout.at), old: previousPayout.account })
+                  : tr.t('app.lic.ledger.changed', { date: tr.date(payout.at), old: previousPayout.account })}
               </Typography>
             )}
             {side === 'issuer' && (
               <Button size="small" onClick={() => setForm('payout')} sx={{ ml: 1 }}>
-                Change
+                {tr.t('app.lic.ledger.change')}
               </Button>
             )}
           </Typography>
         ) : side === 'issuer' ? (
-          <Alert severity="info" variant="outlined" action={<Button onClick={() => setForm('payout')}>Set it</Button>}>
-            Tell them how you want to be paid.
+          <Alert
+            severity="info"
+            variant="outlined"
+            action={<Button onClick={() => setForm('payout')}>{tr.t('app.lic.ledger.setIt')}</Button>}
+          >
+            {tr.t('app.lic.next.i.payout')}
           </Alert>
         ) : (
           <Typography variant="body2" color="text.secondary">
-            They haven&apos;t said how they want to be paid yet.
+            {tr.t('app.lic.ledger.noPayout')}
           </Typography>
         )}
         {form === 'payout' && ONCHAIN_PAYMENTS && (
-          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }} role="radiogroup" aria-label="How you get paid">
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ flexWrap: 'wrap' }}
+            role="radiogroup"
+            aria-label={tr.t('app.lic.ledger.howPaid')}
+          >
             <Button
               size="small"
               variant={payoutKind === 'other' ? 'contained' : 'outlined'}
               onClick={() => setPayoutKind('other')}
             >
-              Bank or payment partner
+              {tr.t('app.lic.ledger.bank')}
             </Button>
             <Button
               size="small"
               variant={payoutKind === 'midnight' ? 'contained' : 'outlined'}
               onClick={() => setPayoutKind('midnight')}
             >
-              On Midnight (NIGHT)
+              {tr.t('app.lic.ledger.onMidnight')}
             </Button>
           </Stack>
         )}
@@ -221,7 +237,7 @@ export const RoyaltyLedger: React.FC<{
             onClick={() => setForm('statement')}
             sx={{ alignSelf: 'flex-start' }}
           >
-            File a statement
+            {tr.t('app.lic.ledger.file')}
           </Button>
         )}
         {form === 'statement' && (
@@ -238,7 +254,7 @@ export const RoyaltyLedger: React.FC<{
 
         {lines.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
-            No statements yet.
+            {tr.t('app.lic.ledger.none')}
           </Typography>
         ) : (
           <Stack divider={<Divider flexItem />} spacing={1.5}>
@@ -261,7 +277,7 @@ export const RoyaltyLedger: React.FC<{
         {/* What most people never need, one tap away: the signed record, the W3C credentials. */}
         <Box>
           <Button size="small" color="inherit" onClick={() => setMore(!more)} aria-expanded={more} sx={{ px: 0 }}>
-            {more ? 'Fewer options' : 'Records and credentials'}
+            {more ? tr.t('app.lic.ledger.fewer') : tr.t('app.lic.ledger.more')}
           </Button>
           <Collapse in={more}>
             <Stack spacing={1.25} sx={{ pt: 1 }}>
@@ -271,7 +287,7 @@ export const RoyaltyLedger: React.FC<{
                 onClick={() => downloadDealRecord(party, mine, entries)}
                 sx={{ alignSelf: 'flex-start' }}
               >
-                Download the signed record of this deal
+                {tr.t('app.lic.ledger.download')}
               </Button>
               <DealCredentials
                 party={party}
@@ -283,7 +299,7 @@ export const RoyaltyLedger: React.FC<{
               />
               {side === 'issuer' && (
                 <Typography variant="caption" color="text.secondary">
-                  If a payment partner asks, your key for this deal starts {mine.slice(0, 8)}.
+                  {tr.t('app.lic.ledger.keyStarts', { key: mine.slice(0, 8) })}
                 </Typography>
               )}
             </Stack>
@@ -302,6 +318,7 @@ export const RoyaltyLedger: React.FC<{
 type Send = (b: Parameters<typeof say>[1]) => void;
 
 const PayoutForm: React.FC<{ busy: boolean; onSend: Send; onCancel: () => void }> = ({ busy, onSend, onCancel }) => {
+  const tr = useT();
   const [method, setMethod] = useState('');
   const [account, setAccount] = useState('');
   const [currency, setCurrency] = useState('USD');
@@ -309,19 +326,19 @@ const PayoutForm: React.FC<{ busy: boolean; onSend: Send; onCancel: () => void }
     <Stack spacing={1.25}>
       <TextField
         size="small"
-        label="Paid how (a payment partner, bank transfer, …)"
+        label={tr.t('app.lic.ledger.pf.how')}
         value={method}
         onChange={(e) => setMethod(e.target.value.slice(0, 80))}
       />
       <TextField
         size="small"
-        label="Where (the account or wallet they pay to)"
+        label={tr.t('app.lic.ledger.pf.where')}
         value={account}
         onChange={(e) => setAccount(e.target.value.slice(0, 200))}
       />
       <TextField
         size="small"
-        label="Currency"
+        label={tr.t('app.lic.ledger.pf.currency')}
         value={currency}
         onChange={(e) => setCurrency(e.target.value.toUpperCase().slice(0, 10))}
       />
@@ -333,9 +350,9 @@ const PayoutForm: React.FC<{ busy: boolean; onSend: Send; onCancel: () => void }
             onSend({ type: 'payout', method: method.trim(), account: account.trim(), currency: currency.trim() })
           }
         >
-          Send
+          {tr.t('app.lic.ledger.send')}
         </Button>
-        <Button onClick={onCancel}>Cancel</Button>
+        <Button onClick={onCancel}>{tr.t('app.lic.ledger.cancel')}</Button>
       </Stack>
     </Stack>
   );
@@ -351,6 +368,7 @@ const StatementForm: React.FC<{
   /** The period it most likely covers (steps.ts suggestedPeriod): filled in, and changeable. */
   period: { from: string; to: string };
 }> = ({ terms, percent, currency, busy, onSend, onCancel, period }) => {
+  const tr = useT();
   const [from, setFrom] = useState(period.from);
   const [to, setTo] = useState(period.to);
   const [quantity, setQuantity] = useState('');
@@ -368,7 +386,7 @@ const StatementForm: React.FC<{
         <TextField
           size="small"
           type="date"
-          label="From"
+          label={tr.t('app.lic.ledger.sf.from')}
           value={from}
           onChange={(e) => setFrom(e.target.value)}
           slotProps={{ inputLabel: { shrink: true } }}
@@ -376,7 +394,7 @@ const StatementForm: React.FC<{
         <TextField
           size="small"
           type="date"
-          label="To"
+          label={tr.t('app.lic.ledger.sf.to')}
           value={to}
           onChange={(e) => setTo(e.target.value)}
           slotProps={{ inputLabel: { shrink: true } }}
@@ -384,22 +402,29 @@ const StatementForm: React.FC<{
       </Stack>
       <TextField
         size="small"
-        label={percent ? `Sales in the period (${currency})` : `Units in the period (${terms.unitBasis ?? 'units'})`}
+        label={
+          percent
+            ? tr.t('app.lic.ledger.sf.sales', { currency })
+            : tr.t('app.lic.ledger.sf.units', {
+                basis: basisLabel(terms.unitBasis, tr) || tr.t('app.lic.ledger.unitsWord'),
+              })
+        }
         value={quantity}
         onChange={(e) => setQuantity(e.target.value.replace(/[^0-9.]/g, '').slice(0, 16))}
         inputMode="decimal"
       />
       {rateReadable ? (
         <Typography variant="body2">
-          Owed under the terms ({percent ? `${terms.royaltyAmount}% of sales` : `${terms.royaltyAmount} per unit`}):{' '}
-          <b>
-            {owed} {currency}
-          </b>
+          {rich(
+            percent ? tr.t('app.lic.ledger.sf.owedPct') : tr.t('app.lic.ledger.sf.owedUnit'),
+            { b: (c) => <b>{c}</b> },
+            { rate: terms.royaltyAmount ?? '', owed, currency },
+          )}
         </Typography>
       ) : (
         <TextField
           size="small"
-          label={`Amount owed (${currency}); the rate in the terms is “${terms.royaltyAmount ?? ''}”`}
+          label={tr.t('app.lic.ledger.sf.typed', { currency, rate: terms.royaltyAmount ?? '' })}
           value={typed}
           onChange={(e) => setTyped(e.target.value.replace(/[^0-9.]/g, '').slice(0, 18))}
           inputMode="decimal"
@@ -407,7 +432,7 @@ const StatementForm: React.FC<{
       )}
       <TextField
         size="small"
-        label="Note (optional)"
+        label={tr.t('app.lic.detail.note')}
         value={note}
         onChange={(e) => setNote(e.target.value.slice(0, 500))}
         multiline
@@ -415,15 +440,22 @@ const StatementForm: React.FC<{
       <Box>
         {evidence ? (
           <Typography variant="body2">
-            Sales report: <b>{evidence.name}</b> ({sizeText(evidence.size)}), proof code{' '}
-            <code>{evidence.sha256.slice(0, 12)}…</code>{' '}
+            {rich(
+              tr.t('app.lic.ledger.sf.report'),
+              { b: (c) => <b>{c}</b> },
+              {
+                name: evidence.name,
+                size: sizeText(evidence.size),
+                code: <code>{evidence.sha256.slice(0, 12)}…</code>,
+              },
+            )}{' '}
             <Button size="small" color="inherit" onClick={() => setEvidence(undefined)}>
-              Remove
+              {tr.t('app.lic.ledger.sf.remove')}
             </Button>
           </Typography>
         ) : (
           <Button component="label" size="small" variant="outlined">
-            Attach the sales report (optional)
+            {tr.t('app.lic.ledger.sf.attach')}
             <input
               hidden
               type="file"
@@ -440,9 +472,7 @@ const StatementForm: React.FC<{
           </Button>
         )}
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-          Your Metrc sales export, POS report or spreadsheet for this period. The file stays on your device: only its
-          proof code goes in the statement, signed by you. Send them the file yourself, and their page checks it is the
-          same one.
+          {tr.t('app.lic.ledger.sf.reportHelp')}
         </Typography>
         {evidenceError && (
           <Typography variant="caption" color="error">
@@ -469,9 +499,9 @@ const StatementForm: React.FC<{
             })
           }
         >
-          File it
+          {tr.t('app.lic.ledger.sf.fileIt')}
         </Button>
-        <Button onClick={onCancel}>Cancel</Button>
+        <Button onClick={onCancel}>{tr.t('app.lic.ledger.cancel')}</Button>
       </Stack>
     </Stack>
   );
@@ -489,10 +519,11 @@ const StatementLine: React.FC<{
   /** Another statement this one's on-chain payment was already counted for. */
   reusedFor?: string;
 }> = ({ line, side, percent, payout, keys, terms, busy, onSend, reusedFor }) => {
+  const tr = useT();
   const payToken = payout ? tokenOfMethod(payout.method) : undefined;
   const paidToken = line.paid ? tokenOfMethod(line.paid.method) : undefined;
   const s = line.statement;
-  const status = statusOf(line);
+  const status = statusOf(line, tr);
   const receipts = useReceipts(line, payout?.account);
   const [note, setNote] = useState('');
   const [disputing, setDisputing] = useState(false);
@@ -507,30 +538,39 @@ const StatementLine: React.FC<{
         <Chip size="small" label={status.label} color={status.color} variant="outlined" />
       </Stack>
       <Typography variant="body2">
-        {percent ? `Sales ${s.quantity} ${s.currency}` : `${s.quantity} units`} · owed{' '}
-        <b>
-          {s.amountOwed} {s.currency}
-        </b>{' '}
-        · filed {dateOf(s.at)}
+        {rich(
+          percent ? tr.t('app.lic.ledger.l.sales') : tr.t('app.lic.ledger.l.units'),
+          { b: (c) => <b>{c}</b> },
+          { qty: s.quantity, currency: s.currency, owed: s.amountOwed, date: tr.date(s.at) },
+        )}
         {s.note ? ` · “${s.note}”` : ''}
       </Typography>
       <ReportCheck statement={s} side={side} checking={!line.reply} />
       {side === 'issuer' && !sameAmount(s.amountOwed, owedUnder(terms, s.quantity) ?? '') && (
         <Alert severity="warning" variant="outlined">
-          Under the terms this comes to {owedUnder(terms, s.quantity) ?? 'an amount this page can’t work out'}, not{' '}
-          {s.amountOwed}. Check it before you accept.
+          {tr.t('app.lic.ledger.l.mismatch', {
+            expected: owedUnder(terms, s.quantity) ?? tr.t('app.lic.ledger.l.unknownAmount'),
+            owed: s.amountOwed,
+          })}
         </Alert>
       )}
       {line.reply && (
         <Typography variant="body2" color="text.secondary">
-          {line.reply.decision === 'accepted' ? 'Accepted' : 'Disputed'} {dateOf(line.reply.at)}
+          {tr.t(line.reply.decision === 'accepted' ? 'app.lic.ledger.l.acceptedOn' : 'app.lic.ledger.l.disputedOn', {
+            date: tr.date(line.reply.at),
+          })}
           {line.reply.note ? `: “${line.reply.note}”` : ''}
         </Typography>
       )}
       {line.paid && (
         <Typography variant="body2" color="text.secondary">
-          Paid {line.paid.amount} {line.paid.currency} on {line.paid.paidOn} by {line.paid.method}
-          {line.paid.reference ? `, reference ${line.paid.reference}` : ''}
+          {tr.t('app.lic.ledger.l.paid', {
+            amount: line.paid.amount,
+            currency: line.paid.currency,
+            date: line.paid.paidOn,
+            method: line.paid.method,
+          })}
+          {line.paid.reference ? tr.t('app.lic.ledger.l.reference', { ref: line.paid.reference }) : ''}
         </Typography>
       )}
       {receipts.map((c) => (
@@ -539,14 +579,15 @@ const StatementLine: React.FC<{
           severity={c.mismatch.length || !c.nameChecked ? 'warning' : 'success'}
           variant="outlined"
         >
-          Paid through {c.partnerName ?? 'a payment partner'}
-          {c.nameChecked ? ' (a partner VeilCore checked)' : ' (not a partner VeilCore has checked)'}:{' '}
-          {c.receipt.amount} {c.receipt.currency} to {c.receipt.payTo} on{' '}
-          {new Date(c.receipt.paidAt).toLocaleDateString()}, reference {c.receipt.reference}. Signed by the partner and
-          checked here.
-          {!c.nameChecked &&
-            ' Anyone can sign as a partner under any name: confirm the money arrived before you rely on it.'}
-          {c.mismatch.length > 0 && ` Doesn’t match: ${c.mismatch.join('; ')}.`}
+          {tr.t(c.nameChecked ? 'app.lic.ledger.r.checked' : 'app.lic.ledger.r.unchecked', {
+            partner: c.partnerName ?? tr.t('app.lic.ledger.r.aPartner'),
+            amount: c.receipt.amount,
+            currency: c.receipt.currency,
+            to: c.receipt.payTo,
+            date: tr.date(c.receipt.paidAt),
+            ref: c.receipt.reference,
+          })}
+          {c.mismatch.length > 0 && ` ${tr.t('app.lic.ledger.r.mismatch', { what: c.mismatch.join('; ') })}`}
         </Alert>
       ))}
       {side === 'issuer' && line.paid && paidToken && line.paid.reference && !line.received && (
@@ -561,7 +602,11 @@ const StatementLine: React.FC<{
       )}
       {line.received && (
         <Typography variant="body2" color="text.secondary">
-          Confirmed received {line.received.amount} {line.received.currency}, {dateOf(line.received.at)}
+          {tr.t('app.lic.ledger.l.received', {
+            amount: line.received.amount,
+            currency: line.received.currency,
+            date: tr.date(line.received.at),
+          })}
         </Typography>
       )}
 
@@ -571,7 +616,7 @@ const StatementLine: React.FC<{
           {disputing && (
             <TextField
               size="small"
-              label="What's wrong with it? (they'll see this)"
+              label={tr.t('app.lic.ledger.l.whatsWrong')}
               value={note}
               onChange={(e) => setNote(e.target.value.slice(0, 500))}
               autoFocus
@@ -592,10 +637,10 @@ const StatementLine: React.FC<{
                     })
                   }
                 >
-                  Accept it
+                  {tr.t('app.lic.ledger.l.accept')}
                 </Button>
                 <Button color="error" disabled={busy} onClick={() => setDisputing(true)}>
-                  Dispute it
+                  {tr.t('app.lic.ledger.l.dispute')}
                 </Button>
               </>
             ) : (
@@ -614,10 +659,10 @@ const StatementLine: React.FC<{
                     })
                   }
                 >
-                  Send the dispute
+                  {tr.t('app.lic.ledger.l.sendDispute')}
                 </Button>
                 <Button color="inherit" disabled={busy} onClick={() => setDisputing(false)}>
-                  Back
+                  {tr.t('app.lic.ledger.l.back')}
                 </Button>
               </>
             )}
@@ -639,7 +684,7 @@ const StatementLine: React.FC<{
           }
           sx={{ alignSelf: 'flex-start' }}
         >
-          Confirm I received {line.paid.amount} {line.paid.currency}
+          {tr.t('app.lic.ledger.l.confirm', { amount: line.paid.amount, currency: line.paid.currency })}
         </Button>
       )}
 
@@ -673,8 +718,7 @@ const StatementLine: React.FC<{
           />
         ) : (
           <Alert severity="info" variant="outlined">
-            They take payment on Midnight in {payToken.code}, and this statement is in {s.currency}. VeilCore doesn’t
-            convert currencies: agree the amount with them and pay it another way below, or file it in {payToken.code}.
+            {tr.t('app.lic.ledger.l.currencyMismatch', { token: payToken.code, currency: s.currency })}
           </Alert>
         ))}
       {side === 'licensee' && line.reply?.decision === 'accepted' && !line.paid && (
@@ -682,14 +726,19 @@ const StatementLine: React.FC<{
           {payout && (
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
               <Typography variant="body2">
-                Pay {s.amountOwed} {s.currency} by {payout.method} to {payout.account}, then record it here.
+                {tr.t('app.lic.ledger.l.payThen', {
+                  amount: s.amountOwed,
+                  currency: s.currency,
+                  method: payout.method,
+                  account: payout.account,
+                })}
               </Typography>
               <Button
                 size="small"
                 variant="outlined"
                 onClick={() => downloadPaymentRequest(paymentRequest(s, payout, keys, REGISTRY_BASE))}
               >
-                Payment request for a partner
+                {tr.t('app.lic.ledger.l.request')}
               </Button>
             </Stack>
           )}
@@ -697,14 +746,14 @@ const StatementLine: React.FC<{
             <TextField
               size="small"
               type="date"
-              label="Paid on"
+              label={tr.t('app.lic.ledger.l.paidOn')}
               value={paidOn}
               onChange={(e) => setPaidOn(e.target.value)}
               slotProps={{ inputLabel: { shrink: true } }}
             />
             <TextField
               size="small"
-              label="Payment reference"
+              label={tr.t('app.lic.ledger.l.ref')}
               value={ref}
               onChange={(e) => setRef(e.target.value.slice(0, 120))}
             />
@@ -725,7 +774,7 @@ const StatementLine: React.FC<{
                 })
               }
             >
-              I paid it
+              {tr.t('app.lic.ledger.l.iPaid')}
             </Button>
           </Stack>
         </Stack>
@@ -764,26 +813,29 @@ const ReportCheck: React.FC<{
   /** Before they answer it: the check is offered only while it can change the answer. */
   checking: boolean;
 }> = ({ statement, side, checking }) => {
+  const tr = useT();
   const [result, setResult] = useState<'same' | 'different'>();
   const e = statement.evidence;
   if (!isEvidence(e)) {
     return side === 'issuer' ? (
       <Typography variant="body2" color="text.secondary">
-        No sales report attached.
+        {tr.t('app.lic.ledger.rc.none')}
       </Typography>
     ) : null;
   }
   return (
     <Box data-sales-report="">
       <Typography variant="body2">
-        Backed by their sales report <b>{e.name}</b> ({sizeText(e.size)}), proof code{' '}
-        <code>{e.sha256.slice(0, 12)}…</code>
-        {side === 'licensee' ? '. Send them the file if you haven’t.' : ''}
+        {rich(
+          side === 'licensee' ? tr.t('app.lic.ledger.rc.backedL') : tr.t('app.lic.ledger.rc.backedI'),
+          { b: (c) => <b>{c}</b> },
+          { name: e.name, size: sizeText(e.size), code: <code>{e.sha256.slice(0, 12)}…</code> },
+        )}
       </Typography>
       {side === 'issuer' && checking && (
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
           <Button component="label" size="small" variant="outlined">
-            Check the file they sent
+            {tr.t('app.lic.ledger.rc.check')}
             <input
               hidden
               type="file"
@@ -797,12 +849,12 @@ const ReportCheck: React.FC<{
           <Box role="status">
             {result === 'same' && (
               <Typography variant="body2" color="success.main">
-                It’s the exact file they signed for.
+                {tr.t('app.lic.ledger.rc.same')}
               </Typography>
             )}
             {result === 'different' && (
               <Typography variant="body2" color="error">
-                That’s not the file they signed for. Ask them for the one this statement names.
+                {tr.t('app.lic.ledger.rc.different')}
               </Typography>
             )}
           </Box>

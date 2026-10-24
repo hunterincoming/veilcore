@@ -26,23 +26,13 @@ import {
 import ShareIcon from '@mui/icons-material/IosShareOutlined';
 import { exportCertificate, type LicenseGrant } from '../../veilcore/license-certificate';
 import type { License } from '../../veilcore/licenses';
-import { THIS_SITE } from '../../config/copy';
+import { useT } from '../../i18n/app';
 
-/** Named after what the recipient learns, not the field revealed. */
-const GRANTS: { key: LicenseGrant; label: string; why: string }[] = [
-  { key: 'scope', label: 'What they may do', why: 'Rights granted, whether they can sublicense, exclusivity' },
-  { key: 'territory', label: 'Where it applies', why: 'The licensed territory' },
-  { key: 'term', label: 'How long it runs', why: 'Start and end dates' },
-  { key: 'royalty', label: 'The commercial terms', why: 'Royalty type, amount and basis. Usually the most sensitive' },
-  {
-    key: 'offspring',
-    label: 'The obligation on offspring',
-    why: 'What descendants owe. A downstream buyer often needs this',
-  },
-  { key: 'parties', label: 'Who the counterparty is', why: 'The licensee name' },
-];
+/** Named after what the recipient learns, not the field revealed (app.lic.share.g.<key>, .why). */
+const GRANTS: LicenseGrant[] = ['scope', 'territory', 'term', 'royalty', 'offspring', 'parties'];
 
 export const ShareLicense: React.FC<{ license: License }> = ({ license }) => {
+  const tr = useT();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [chosen, setChosen] = useState<Set<LicenseGrant>>(new Set(['offspring']));
@@ -65,38 +55,36 @@ export const ShareLicense: React.FC<{ license: License }> = ({ license }) => {
   return (
     <>
       <Button variant="outlined" startIcon={<ShareIcon />} onClick={() => setOpen(true)}>
-        Share license
+        {tr.t('app.lic.share.button')}
       </Button>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Share {license.id}</DialogTitle>
+        <DialogTitle>{tr.t('app.lic.share.title', { id: license.id })}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             <Box>
               <Typography variant="overline" sx={{ display: 'block' }}>
-                Always included
+                {tr.t('app.lic.share.always')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                That this license exists, its current state, the record it was issued against, and whether it carries an
-                obligation on declared offspring: the license&apos;s public side. In {THIS_SITE} the license itself is
-                simulated, so this file is for trying the format.
+                {tr.t('app.lic.share.alwaysText', { site: tr.t('app.copy.thisSite') })}
               </Typography>
             </Box>
 
             <Box>
               <Typography variant="overline" sx={{ display: 'block', mb: 0.5 }}>
-                Choose what else they see
+                {tr.t('app.lic.share.choose')}
               </Typography>
               <Stack>
                 {GRANTS.map((g) => (
                   <FormControlLabel
-                    key={g.key}
-                    control={<Checkbox checked={chosen.has(g.key)} onChange={() => toggle(g.key)} />}
+                    key={g}
+                    control={<Checkbox checked={chosen.has(g)} onChange={() => toggle(g)} />}
                     label={
                       <Box>
-                        <Typography variant="body2">{g.label}</Typography>
+                        <Typography variant="body2">{tr.t(`app.lic.share.g.${g}` as never)}</Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {g.why}
+                          {tr.t(`app.lic.share.g.${g}.why` as never)}
                         </Typography>
                       </Box>
                     }
@@ -107,15 +95,14 @@ export const ShareLicense: React.FC<{ license: License }> = ({ license }) => {
             </Box>
 
             <Alert severity="info" variant="outlined">
-              What you leave unchecked isn&apos;t in the file at all: not hidden, absent. They can&apos;t read it
-              however they open it.
+              {tr.t('app.lic.share.absent')}
             </Alert>
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={() => setOpen(false)}>{tr.t('app.lic.share.cancel')}</Button>
           <Button variant="contained" onClick={share} disabled={busy}>
-            Download certificate
+            {tr.t('app.lic.share.download')}
           </Button>
         </DialogActions>
       </Dialog>

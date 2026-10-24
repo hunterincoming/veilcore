@@ -49,6 +49,7 @@ import { ConfirmInline, DealSteps, HowItWorks } from './DealSteps';
 import { issuerSteps } from './steps';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
+import { useT } from '../../i18n/app';
 
 const POLL_MS = 8_000;
 
@@ -72,6 +73,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
   blocked,
   onToast,
 }) => {
+  const tr = useT();
   const keys = useRecordKeys()[license.recordId];
   const oc = license.onChain;
   const [label, setLabel] = useState(license.terms.licensee ?? '');
@@ -120,7 +122,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
               activeSeenAt: Date.now(),
               activatedAt: c!.activatedAt ?? Date.now(),
             }));
-            onToast('They activated it. The license is live on chain.');
+            onToast(tr.t('app.lic.real.toastLive'));
             return;
           }
           if (status === 'PENDING' && !issued) {
@@ -135,13 +137,13 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
             if (moved === 'ACTIVE') {
               const { afterHandOn } = await import('../../veilcore/hand-on');
               setOnChain(license.id, (c) => afterHandOn(c!, c!.handOn?.approveTx, Date.now()));
-              onToast(`Handed on: the license is now ${oc.handOn.label}’s.`);
+              onToast(tr.t('app.lic.real.toastHandedOn', { name: oc.handOn.label }));
               return;
             }
           }
           if (status === 'none' && (issued || live)) {
             setOnChain(license.id, (c) => ({ ...c!, goneSeenAt: Date.now(), revokedAt: c!.revokedAt ?? Date.now() }));
-            onToast('This license is no longer on chain: it was revoked or cancelled.');
+            onToast(tr.t('app.lic.real.toastGone'));
             return;
           }
           if (live && !oc.activateTx) {
@@ -175,9 +177,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
           return;
         }
         if (oc.issuerNonce && inv.issuerNonce && inv.issuerNonce !== oc.issuerNonce) {
-          setError(
-            'The registry shows a different answer than this page gave. Don’t issue: start over with a new link.',
-          );
+          setError(tr.t('app.lic.real.errNonce'));
           return;
         }
         // They revealed: it must be what they committed to, and name this record's own head now.
@@ -186,11 +186,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
           const head = await headNow(oc.identity);
           if (!active) return;
           if (!matches || inv.issuerRecord !== head) {
-            setError(
-              matches
-                ? 'Their answer names a different record, or an older key of this one. Don’t issue it: start over with a new link.'
-                : 'Their answer doesn’t match what they first sent. Don’t issue it: start over with a new link.',
-            );
+            setError(matches ? tr.t('app.lic.real.errRecord') : tr.t('app.lic.real.errCommit'));
             return;
           }
           setOnChain(license.id, (c) => ({
@@ -212,14 +208,15 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
       active = false;
       clearInterval(t);
     };
-  }, [oc, gone, issued, live, license.id, onToast]);
+  }, [oc, gone, issued, live, license.id, onToast, tr]);
 
   if (!keys?.anchor) {
     return (
       <Alert severity="info" variant="outlined">
-        To license this record for real, first set up proof you hold it on its page. The license is issued from the
-        record&apos;s own key.{' '}
-        <RouterLink to={`/record/${encodeURIComponent(license.recordId)}`}>Open the record</RouterLink>
+        {tr.t('app.lic.real.needAnchor')}{' '}
+        <RouterLink to={`/record/${encodeURIComponent(license.recordId)}`}>
+          {tr.t('app.lic.real.openRecord')}
+        </RouterLink>
       </Alert>
     );
   }
@@ -227,7 +224,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
   const link = oc ? canonicalUrl(invitePath(oc.inviteId, oc.acceptToken)) : '';
   const copy = async () => {
     await navigator.clipboard.writeText(link);
-    onToast('Link copied.');
+    onToast(tr.t('app.lic.detail.copied'));
   };
 
   const send = async () => {
@@ -262,18 +259,15 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
 
   const issue = () =>
     call.run(async (progress) => {
-      if (!oc?.commitment || !oc.issuerRecord) throw new Error('They have not accepted yet.');
+      if (!oc?.commitment || !oc.issuerRecord) throw new Error(tr.t('app.lic.real.notAccepted'));
       // Again just before sending: a key change since their answer would strand it.
-      if ((await headNow(oc.identity)) !== oc.issuerRecord)
-        throw new Error('This record’s key changed since they accepted. Nothing was sent: start over with a new link.');
+      if ((await headNow(oc.identity)) !== oc.issuerRecord) throw new Error(tr.t('app.lic.real.keyChanged'));
       // The terms go to them first, over the deal's own channel: they read them before they
       // activate, and their signed agreement comes back the same way.
       if (!oc.termsSentAt) {
-        if (!oc.partySecret || !oc.licenseeNonce)
-          throw new Error('This link was made before private messages. Start over with a new link.');
-        if (!license.agreementSalt)
-          throw new Error('This agreement was drawn up before agreements had a salt. Make a fresh one.');
-        progress('Sending them the terms…');
+        if (!oc.partySecret || !oc.licenseeNonce) throw new Error(tr.t('app.lic.real.oldLink'));
+        if (!license.agreementSalt) throw new Error(tr.t('app.lic.real.noSalt'));
+        progress(tr.t('app.lic.real.sendingTerms'));
         const { say } = await import('../../veilcore/deal-client');
         await say(dealParty(oc)!, {
           type: 'terms',
@@ -299,31 +293,32 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
    */
   const revoke = (reason: string, meantLive: boolean) =>
     call.run(async (progress) => {
-      if (!oc?.commitment || !oc.issuerRecord) throw new Error('Nothing to revoke on chain.');
+      if (!oc?.commitment || !oc.issuerRecord) throw new Error(tr.t('app.lic.real.nothingToRevoke'));
       const wasActive = (await licenseStatusNow(oc.commitment, oc.issuerRecord)) === 'ACTIVE';
-      if (wasActive && !meantLive)
-        throw new Error(
-          'They activated it a moment ago, so it is live now. Nothing was sent. Revoke it below if you mean to.',
-        );
+      if (wasActive && !meantLive) throw new Error(tr.t('app.lic.real.justActivated'));
       const { revokeLicenseOnChain } = await import('../../veilcore/chain/actions');
       const r = await revokeLicenseOnChain(hexBytes(keys.recordSecret), oc.commitment, oc.issuerRecord, { progress });
       setOnChain(license.id, (c) => ({ ...c!, revokeTx: r.txId, revokedAt: r.blockTime ?? Date.now() }));
-      revokeLicense(license.id, wasActive ? reason || 'No reason given' : 'Cancelled before it was activated');
+      revokeLicense(
+        license.id,
+        wasActive ? reason || tr.t('app.lic.detail.noReason') : tr.t('app.lic.real.cancelledBefore'),
+      );
       return r;
     });
 
   // A post that didn't reach the registry after the issue landed: send it again (same transaction).
   const repost = () =>
-    oc?.issueTx && void postIssued(oc.inviteId, oc.issueTx, oc.issuerToken).then(() => onToast('Sent again.'));
+    oc?.issueTx &&
+    void postIssued(oc.inviteId, oc.issueTx, oc.issuerToken).then(() => onToast(tr.t('app.lic.real.sentAgain')));
 
   const startOverButton = (
     <Button variant="text" color="inherit" onClick={startOver}>
-      Start over with a new link
+      {tr.t('app.lic.real.startOver')}
     </Button>
   );
 
-  const steps = issuerSteps({ linkMade: !!oc, accepted: !!oc?.commitment, issued, live });
-  const who = oc?.label || label.trim() || 'them';
+  const steps = issuerSteps({ linkMade: !!oc, accepted: !!oc?.commitment, issued, live }, tr);
+  const who = oc?.label || label.trim() || tr.t('app.lic.real.them');
 
   return (
     <Stack spacing={1.5}>
@@ -332,7 +327,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
           {!oc && (
             <Stack spacing={1.25}>
               <TextField
-                label="Who is it for? (they'll see this)"
+                label={tr.t('app.lic.real.whoFor')}
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 slotProps={{ htmlInput: { maxLength: 80 } }}
@@ -344,25 +339,19 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
                 onClick={() => void send()}
                 sx={{ alignSelf: 'flex-start' }}
               >
-                Make a link for them
+                {tr.t('app.lic.proof.make')}
               </Button>
-              <HowItWorks>
-                A real license takes both of you. You send a link; they accept on their own phone or computer, and their
-                own key is made there. You read each other a 6-digit code, you issue it, they agree and activate it, and
-                it is on Midnight with both keys. VeilCore pays the network fee and never sees the terms.
-              </HowItWorks>
+              <HowItWorks>{tr.t('app.lic.real.how')}</HowItWorks>
             </Stack>
           )}
 
           {oc && !oc.commitment && (
             <Stack spacing={1.25}>
               <Typography variant="body2">
-                {oc.issuerNonce
-                  ? `${who} accepted. Finishing on their device: this takes a few seconds while their page is open.`
-                  : `Send this link to ${who}: text or email. This page moves on by itself when they accept.`}
+                {oc.issuerNonce ? tr.t('app.lic.real.accepted', { who }) : tr.t('app.lic.real.sendLink', { who })}
               </Typography>
               <TextField
-                label="Their link"
+                label={tr.t('app.lic.real.theirLink')}
                 value={link}
                 fullWidth
                 size="small"
@@ -370,7 +359,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
               />
               <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
                 <Button variant="contained" startIcon={<ContentCopyIcon />} onClick={() => void copy()}>
-                  Copy link
+                  {tr.t('app.lic.detail.copyLink')}
                 </Button>
                 {startOverButton}
               </Stack>
@@ -379,9 +368,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
 
           {oc?.commitment && !issued && (
             <Stack spacing={1.25}>
-              <Typography variant="body2">
-                Call {who} or meet up. Their screen shows a code. It must be this one:
-              </Typography>
+              <Typography variant="body2">{tr.t('app.lic.real.callThem', { who })}</Typography>
               <Typography
                 data-license-code=""
                 sx={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, letterSpacing: '0.15em' }}
@@ -389,11 +376,11 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
                 {code ?? '…'}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                A different code means someone else answered your link: don&apos;t issue, start over.
+                {tr.t('app.lic.real.differentCode')}
               </Typography>
               <FormControlLabel
                 control={<Checkbox checked={codeChecked} onChange={(e) => setCodeChecked(e.target.checked)} />}
-                label="They read me this same code"
+                label={tr.t('app.lic.real.sameCode')}
               />
               <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
                 <Button
@@ -402,7 +389,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
                   disabled={blocked || call.busy || !codeChecked || !code}
                   onClick={() => void issue()}
                 >
-                  Issue it
+                  {tr.t('app.lic.detail.issue')}
                 </Button>
                 {startOverButton}
               </Stack>
@@ -411,24 +398,21 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
 
           {oc && issued && !live && (
             <Stack spacing={1.25}>
-              <Typography variant="body2">
-                Issued on Midnight. Waiting for {who} to read the terms, agree and activate it: their link shows them
-                how. This page reads the chain itself and moves on when they do.
-              </Typography>
+              <Typography variant="body2">{tr.t('app.lic.real.issued', { who })}</Typography>
               <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
                 <Button variant="outlined" startIcon={<ContentCopyIcon />} onClick={() => void copy()}>
-                  Copy their link again
+                  {tr.t('app.lic.real.copyAgain')}
                 </Button>
                 {oc.issueTx && (
                   <Button variant="text" onClick={repost}>
-                    They don&apos;t see it? Send it again
+                    {tr.t('app.lic.real.resend')}
                   </Button>
                 )}
               </Stack>
               <ConfirmInline
-                label="Cancel it"
-                question="Cancel this license? They won’t be able to activate it. This goes on Midnight and can’t be undone."
-                confirmLabel="Yes, cancel it"
+                label={tr.t('app.lic.real.cancel')}
+                question={tr.t('app.lic.real.cancelQ')}
+                confirmLabel={tr.t('app.lic.real.cancelYes')}
                 disabled={blocked || call.busy}
                 onConfirm={(r) => void revoke(r, false)}
               />
@@ -449,26 +433,21 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
               color="inherit"
               variant="outlined"
             >
-              Save backup
+              {tr.t('app.lic.real.saveBackup')}
             </Button>
           }
         >
-          Save a new backup: it now holds this license&apos;s key. Without it you can&apos;t read their statements on
-          another device.
+          {tr.t('app.lic.real.backupNow')}
         </Alert>
       )}
 
       {live && oc && (
         <>
           <Alert severity="success" variant="outlined" data-license-live="">
-            Live on Midnight since {new Date(oc.activatedAt ?? Date.now()).toLocaleDateString()}.
-            {agreed && ` They agreed to these terms on ${new Date(agreed.at).toLocaleDateString()}.`}
+            {tr.t('app.lic.real.liveSince', { date: tr.date(oc.activatedAt ?? Date.now()) })}
+            {agreed && ` ${tr.t('app.lic.real.agreedOn', { date: tr.date(agreed.at) })}`}
           </Alert>
-          <HowItWorks label="What “live” means">
-            Issued from this record and activated with the key of whoever accepted your link and read you the code. They
-            can prove they hold a live license from this record without showing which one. On chain it stays live until
-            you revoke it, whatever end date the terms say.
-          </HowItWorks>
+          <HowItWorks label={tr.t('app.lic.real.liveMeans')}>{tr.t('app.lic.real.liveText')}</HowItWorks>
           {party && oc.termsSentAt && license.type === 'license' && (
             <RoyaltyLedger
               party={party}
@@ -505,21 +484,15 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
                   setError(undefined);
                   void import('../../veilcore/lender-pack')
                     .then((m) => m.downloadLenderPack(license))
-                    .then(() => onToast('Lender pack downloaded.'))
+                    .then(() => onToast(tr.t('app.lic.real.packDone')))
                     .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
                     .finally(() => setBusy(false));
                 }}
                 sx={{ alignSelf: 'flex-start' }}
               >
-                Download a pack for a lender or buyer
+                {tr.t('app.lic.real.pack')}
               </Button>
-              <HowItWorks label="What’s in the pack">
-                This license&apos;s royalty history as both of you signed it, with a summary and plain instructions. A
-                lender checks it with a free open tool, no account, nothing from VeilCore. It shows what the licensee
-                signed, which a spreadsheet can&apos;t. It can&apos;t show the licensee is a real separate person, so
-                the pack tells the lender to confirm that with them. Share it only with someone you trust with the
-                terms.
-              </HowItWorks>
+              <HowItWorks label={tr.t('app.lic.real.packWhat')}>{tr.t('app.lic.real.packText')}</HowItWorks>
             </Stack>
           )}
           {party && oc.termsSentAt && (
@@ -533,10 +506,10 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
             />
           )}
           <ConfirmInline
-            label="Revoke on chain"
-            question="Revoke this license? It stops being live on Midnight for everyone who checks it. This can’t be undone."
-            confirmLabel="Yes, revoke it"
-            reason="Reason (kept with your copy of the license)"
+            label={tr.t('app.lic.real.revoke')}
+            question={tr.t('app.lic.real.revokeQ')}
+            confirmLabel={tr.t('app.lic.detail.revokeYes')}
+            reason={tr.t('app.lic.real.revokeReason')}
             disabled={blocked || call.busy}
             onConfirm={(r) => void revoke(r, true)}
           />
@@ -545,8 +518,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
 
       {gone && (
         <Alert severity="error" variant="outlined">
-          No longer on Midnight
-          {oc?.revokedAt ? `: revoked or cancelled on ${new Date(oc.revokedAt).toLocaleDateString()}` : ''}.
+          {oc?.revokedAt ? tr.t('app.lic.real.goneOn', { date: tr.date(oc.revokedAt) }) : tr.t('app.lic.real.gone')}
         </Alert>
       )}
 

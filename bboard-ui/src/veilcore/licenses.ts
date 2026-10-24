@@ -22,7 +22,8 @@ import {
 } from './api-store';
 import { beneficiaryId, onVaultChange, useVaultNeedsBackup, vaultKeyIfAny, vaultNeedsBackup } from './vault';
 import { BACKUP_FIRST_REASON } from './api-store';
-import { enT } from '../i18n/translate';
+import { enT, type Translator } from '../i18n/translate';
+import type { AppKey } from '../i18n/app/en';
 
 export type LicenseState = 'draft' | 'sent' | 'active' | 'expired' | 'revoked';
 
@@ -644,20 +645,24 @@ export const veilcoreFee = (dealValue: number): number => (dealValue * VEILCORE_
 export const dealValueOf = (l: License, input: number): number =>
   l.terms?.royaltyType === 'percent' ? input : input * (Number(l.terms?.royaltyAmount) || 0);
 
-export const FEE_NOTE = `VeilCore fee (${VEILCORE_FEE_PCT}% of deal value): calculated, not collected.`;
+/** VeilCore's fee note, in the reader's language. */
+export const feeNote = (tr: Translator = enT): string => tr.t('app.lic.fee.note', { pct: VEILCORE_FEE_PCT });
+export const FEE_NOTE = feeNote();
 
-// display helpers
+// display helpers: each in the reader's language (English by default, for the tests and files)
+export const rightsLabel = (r: Rights, tr: Translator = enT): string => tr.t(`app.lic.rights.${r}` as AppKey);
+export const stateLabel = (s: LicenseState, tr: Translator = enT): string => tr.t(`app.lic.state.${s}` as AppKey);
 export const RIGHTS_LABEL: Record<Rights, string> = {
-  cultivate: 'Cultivate only',
-  'cultivate+propagate': 'Cultivate + propagate',
-  'full-transfer': 'Full transfer',
+  cultivate: rightsLabel('cultivate'),
+  'cultivate+propagate': rightsLabel('cultivate+propagate'),
+  'full-transfer': rightsLabel('full-transfer'),
 };
 export const STATE_LABEL: Record<LicenseState, string> = {
-  draft: 'Draft',
-  sent: 'Sent, waiting for counter-signature',
-  active: 'Marked active',
-  expired: 'Expired',
-  revoked: 'Revoked',
+  draft: stateLabel('draft'),
+  sent: stateLabel('sent'),
+  active: stateLabel('active'),
+  expired: stateLabel('expired'),
+  revoked: stateLabel('revoked'),
 };
 
 // ---- agreement types ----
@@ -685,101 +690,121 @@ export const hasVeilcoreFee = (type: AgreementType, terms?: LicenseTerms): boole
   return false;
 };
 
+export const agreementLabel = (t: AgreementType, tr: Translator = enT): string => tr.t(`app.lic.type.${t}` as AppKey);
+export const agreementTagline = (t: AgreementType, tr: Translator = enT): string =>
+  tr.t(`app.lic.tagline.${t}` as AppKey);
 export const AGREEMENT_LABEL: Record<AgreementType, string> = {
-  license: 'License agreement',
-  'lab-transfer': 'Lab transfer',
-  'breeder-share': 'Breeder share',
+  license: agreementLabel('license'),
+  'lab-transfer': agreementLabel('lab-transfer'),
+  'breeder-share': agreementLabel('breeder-share'),
 };
 
 /** The verb-y action label surfaced on the record page and dashboard card. */
 export const AGREEMENT_ACTION: Record<AgreementType, string> = {
-  license: 'License',
-  'lab-transfer': 'Send to a lab',
-  'breeder-share': 'Share with a breeder',
+  license: enT.t('app.lic.action.license'),
+  'lab-transfer': enT.t('app.lic.action.lab-transfer'),
+  'breeder-share': enT.t('app.lic.action.breeder-share'),
 };
 
 export const AGREEMENT_TAGLINE: Record<AgreementType, string> = {
-  license: 'A commercial license: rights, territory, royalty and exclusivity, attached to the record.',
-  'lab-transfer':
-    'Sending your genetics to a lab? Attach the terms to the record and its report’s code before it leaves your hands.',
-  'breeder-share':
-    "Sharing material with another breeder? Handshakes are how varieties get renamed and sold as someone else's work. Put terms on it.",
+  license: agreementTagline('license'),
+  'lab-transfer': agreementTagline('lab-transfer'),
+  'breeder-share': agreementTagline('breeder-share'),
 };
 
+export const labPurposeLabel = (p: LabPurpose, tr: Translator = enT): string => tr.t(`app.lic.purpose.${p}` as AppKey);
 export const LAB_PURPOSE_LABEL: Record<LabPurpose, string> = {
-  'tissue-culture': 'Tissue culture',
-  propagation: 'Propagation',
-  'dna-testing': 'DNA testing',
-  storage: 'Storage',
+  'tissue-culture': labPurposeLabel('tissue-culture'),
+  propagation: labPurposeLabel('propagation'),
+  'dna-testing': labPurposeLabel('dna-testing'),
+  storage: labPurposeLabel('storage'),
 };
 
 /** What to call the counterparty for a given agreement type. */
-export const counterpartyLabel = (type: AgreementType): string =>
-  type === 'lab-transfer' ? 'Receiving lab' : type === 'breeder-share' ? 'Receiving breeder' : 'Licensee';
+export const counterpartyLabel = (type: AgreementType, tr: Translator = enT): string =>
+  tr.t(
+    type === 'lab-transfer'
+      ? 'app.lic.who.lab'
+      : type === 'breeder-share'
+        ? 'app.lic.who.breeder'
+        : 'app.lic.who.licensee',
+  );
 
-const yesNo = (b?: boolean): string => (b ? 'Yes' : 'No');
-const money = (n: number): string => `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+/** A royalty's basis in words ('per unit sold'); anything else as it was saved. */
+export const basisLabel = (b: string | undefined, tr: Translator = enT): string =>
+  b === 'per-plant' || b === 'per-harvest' || b === 'per-unit-sold' ? tr.t(`app.lic.basis.${b}`) : (b ?? '');
+
+const money = (n: number, tr: Translator): string => `$${n.toLocaleString(tr.locale, { maximumFractionDigits: 2 })}`;
 
 /**
  * The plain-language term rows for an agreement, computed once and reused by the
  * breeder's detail view and the counterparty's counter-sign page so both always agree.
+ * Labels in the reader's language; the values as the parties wrote them.
  */
-export const agreementRows = (l: License): { k: string; v: string }[] => {
+export const agreementRows = (l: License, tr: Translator = enT): { k: string; v: string }[] => {
   const t = l.terms ?? {};
   const type = agreementType(l);
-  const rows: { k: string; v: string }[] = [{ k: counterpartyLabel(type), v: t.licensee || '—' }];
+  const yesNo = (b?: boolean): string => tr.t(b ? 'app.lic.yes' : 'app.lic.no');
+  const term = tr.t('app.lic.row.termValue', { from: t.startDate ?? '', to: t.endDate ?? '' });
+  const fee = { k: tr.t('app.lic.row.fee', { pct: VEILCORE_FEE_PCT }), v: tr.t('app.lic.row.feeValue') };
+  const rows: { k: string; v: string }[] = [{ k: counterpartyLabel(type, tr), v: t.licensee || '—' }];
 
   if (type === 'license') {
     rows.push(
-      { k: 'Rights', v: RIGHTS_LABEL[t.rights] },
-      { k: 'Territory', v: t.territory || '—' },
-      { k: 'Term', v: `${t.startDate} → ${t.endDate}` },
+      { k: tr.t('app.lic.row.rights'), v: rightsLabel(t.rights, tr) },
+      { k: tr.t('app.lic.row.territory'), v: t.territory || '—' },
+      { k: tr.t('app.lic.row.term'), v: term },
       {
-        k: 'Royalty',
+        k: tr.t('app.lic.row.royalty'),
         v:
           t.royaltyType === 'percent'
-            ? `${t.royaltyAmount || '—'}% ${t.unitBasis}`
-            : `${money(Number(t.royaltyAmount) || 0)} ${t.unitBasis}`,
+            ? `${t.royaltyAmount || '—'}% ${basisLabel(t.unitBasis, tr)}`
+            : `${money(Number(t.royaltyAmount) || 0, tr)} ${basisLabel(t.unitBasis, tr)}`,
       },
-      ...(SHOW_VEILCORE_FEE
-        ? [{ k: `VeilCore fee (${VEILCORE_FEE_PCT}% of deal value)`, v: 'calculated, not collected' }]
-        : []),
+      ...(SHOW_VEILCORE_FEE ? [fee] : []),
       // Shown explicitly because it is the one term that binds beyond the signatories:
       // it carries to descendants declared from the record, so a counter-signer has to see it.
       {
-        k: 'Royalty on offspring',
+        k: tr.t('app.lic.row.offspring'),
         v:
           (Number(t.offspringRoyaltyPct) || 0) > 0
-            ? `${t.offspringRoyaltyPct}% — on descendants declared from this cultivar`
-            : 'None',
+            ? tr.t('app.lic.row.offspringValue', { pct: String(t.offspringRoyaltyPct) })
+            : tr.t('app.lic.none'),
       },
-      { k: 'Exclusivity', v: t.exclusive ? 'Exclusive' : 'Non-exclusive' },
-      { k: 'Sublicensing', v: t.sublicensable ? 'Allowed' : 'Not allowed' },
+      { k: tr.t('app.lic.row.exclusivity'), v: tr.t(t.exclusive ? 'app.lic.exclusive' : 'app.lic.nonExclusive') },
+      { k: tr.t('app.lic.row.sublicensing'), v: tr.t(t.sublicensable ? 'app.lic.allowed' : 'app.lic.notAllowed') },
     );
   } else if (type === 'lab-transfer') {
     rows.push(
-      { k: 'Purpose', v: LAB_PURPOSE_LABEL[t.labPurpose ?? 'tissue-culture'] },
-      { k: 'Propagation beyond purpose', v: t.noPropagationBeyondPurpose ? 'Not permitted' : 'Permitted' },
-      { k: 'On completion', v: t.onCompletion === 'destroy' ? 'Destroy material' : 'Return material' },
-      { k: 'Confidentiality', v: yesNo(t.confidentiality) },
-      { k: 'Term', v: `${t.startDate} → ${t.endDate}` },
+      { k: tr.t('app.lic.row.purpose'), v: labPurposeLabel(t.labPurpose ?? 'tissue-culture', tr) },
+      {
+        k: tr.t('app.lic.row.beyondPurpose'),
+        v: tr.t(t.noPropagationBeyondPurpose ? 'app.lic.notPermitted' : 'app.lic.permitted'),
+      },
+      {
+        k: tr.t('app.lic.row.onCompletion'),
+        v: tr.t(t.onCompletion === 'destroy' ? 'app.lic.destroy' : 'app.lic.return'),
+      },
+      { k: tr.t('app.lic.row.confidentiality'), v: yesNo(t.confidentiality) },
+      { k: tr.t('app.lic.row.term'), v: term },
     );
   } else {
     const offspringRoyalty = Number(t.offspringRoyaltyPct) || 0;
     rows.push(
-      { k: 'May breed with it', v: yesNo(t.mayBreed) },
-      { k: 'May distribute or sell', v: yesNo(t.mayDistribute) },
-      { k: 'Attribution / credit required', v: yesNo(t.attributionRequired) },
-      { k: 'Royalty on offspring', v: offspringRoyalty > 0 ? `${t.offspringRoyaltyPct}%` : 'None' },
+      { k: tr.t('app.lic.row.mayBreed'), v: yesNo(t.mayBreed) },
+      { k: tr.t('app.lic.row.mayDistribute'), v: yesNo(t.mayDistribute) },
+      { k: tr.t('app.lic.row.attribution'), v: yesNo(t.attributionRequired) },
+      {
+        k: tr.t('app.lic.row.offspring'),
+        v: offspringRoyalty > 0 ? `${t.offspringRoyaltyPct}%` : tr.t('app.lic.none'),
+      },
     );
     // An offspring royalty makes it a commercial deal — the fee applies, same as a license.
-    if (offspringRoyalty > 0 && SHOW_VEILCORE_FEE) {
-      rows.push({ k: `VeilCore fee (${VEILCORE_FEE_PCT}% of deal value)`, v: 'calculated, not collected' });
-    }
-    rows.push({ k: 'Term', v: `${t.startDate} → ${t.endDate}` });
+    if (offspringRoyalty > 0 && SHOW_VEILCORE_FEE) rows.push(fee);
+    rows.push({ k: tr.t('app.lic.row.term'), v: term });
   }
 
-  if (t.extraTerms) rows.push({ k: 'Additional terms', v: t.extraTerms });
+  if (t.extraTerms) rows.push({ k: tr.t('app.lic.row.extra'), v: t.extraTerms });
   return rows;
 };
 

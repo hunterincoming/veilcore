@@ -16,21 +16,19 @@ import {
   createLicense,
   renewLicense,
   getLicense,
-  FEE_NOTE,
+  feeNote,
   hasVeilcoreFee,
   SHOW_VEILCORE_FEE,
-  AGREEMENT_LABEL,
-  AGREEMENT_TAGLINE,
+  agreementLabel,
+  agreementTagline,
   type AgreementType,
   type LicenseTerms,
   useAgreementsWaitForBackup,
 } from '../../veilcore/licenses';
 import { AgreementsBackupFirst } from './AgreementsBackupFirst';
 import { AppHeader } from '../AppHeader';
-import { InEnglishPage } from '../../i18n/app';
 import { AgreementTermsFields, emptyTermsFor, type SetTerm } from './LicenseTermsFields';
 import { AgreementTypeChip } from './AgreementTypeChip';
-import { AGREEMENTS_SIMULATED } from '../../config/copy';
 
 const isType = (v: string | null): v is AgreementType =>
   v === 'license' || v === 'lab-transfer' || v === 'breeder-share';
@@ -57,12 +55,9 @@ export const TermsBuilder: React.FC = () => {
     return (
       <Box>
         <AppHeader />
-        <InEnglishPage />
-        <Typography sx={{ mb: 1 }}>
-          This record isn&apos;t in this browser, so no agreement can be attached to it here.
-        </Typography>
+        <Typography sx={{ mb: 1 }}>{tr.t('app.lic.builder.notHere')}</Typography>
         <Button component={RouterLink} to="/records" startIcon={<ArrowBackIcon />}>
-          Your records
+          {tr.t('app.lic.builder.records')}
         </Button>
       </Box>
     );
@@ -111,13 +106,16 @@ export const TermsBuilder: React.FC = () => {
     }
   };
 
-  const heading = supersedeId ? `Renew or amend: ${AGREEMENT_LABEL[type]}` : AGREEMENT_LABEL[type];
-  const saveLabel = busy ? 'Saving…' : supersedeId ? 'Save the amended agreement' : 'Save as a draft';
+  const heading = supersedeId
+    ? tr.t('app.lic.builder.renewHeading', { type: agreementLabel(type, tr) })
+    : agreementLabel(type, tr);
+  const saveLabel = tr.t(
+    busy ? 'app.lic.builder.saving' : supersedeId ? 'app.lic.builder.saveAmended' : 'app.lic.builder.saveDraft',
+  );
 
   return (
     <Box>
       <AppHeader />
-      <InEnglishPage />
       <AgreementsBackupFirst />
       <Button
         component={RouterLink}
@@ -126,25 +124,24 @@ export const TermsBuilder: React.FC = () => {
         startIcon={<ArrowBackIcon />}
         sx={{ mb: 2 }}
       >
-        Back to {record.strainName}
+        {tr.t('app.lic.builder.back', { name: record.strainName })}
       </Button>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap', mb: 0.5 }}>
         <Typography variant="h4">{heading}</Typography>
         <AgreementTypeChip type={type} />
       </Stack>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        {AGREEMENT_TAGLINE[type]}
+        {agreementTagline(type, tr)}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Set the terms in plain language. When you save, the agreement is sealed and attached to {record.strainName}
-        &apos;s record. {AGREEMENTS_SIMULATED}
+        {tr.t('app.lic.builder.intro', { name: record.strainName })} {tr.t('app.copy.agreementsSimulated')}
       </Typography>
 
       <AgreementTermsFields type={type} terms={t} set={set} />
 
       {SHOW_VEILCORE_FEE && hasVeilcoreFee(type, t) && (
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
-          {FEE_NOTE}
+          {feeNote(tr)}
         </Typography>
       )}
 

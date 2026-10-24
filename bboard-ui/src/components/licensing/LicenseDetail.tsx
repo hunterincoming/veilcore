@@ -17,10 +17,10 @@ import {
   effectiveState,
   agreementType,
   agreementRows,
-  AGREEMENT_LABEL,
+  agreementLabel,
   VEILCORE_FEE_PCT,
   SHOW_VEILCORE_FEE,
-  FEE_NOTE,
+  feeNote,
   veilcoreFee,
   dealValueOf,
   signedByTwoParties,
@@ -33,21 +33,22 @@ import { getRecord, allRecords } from '../../veilcore/records';
 import { offspringOf } from '../stage/self-chain';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { AppHeader } from '../AppHeader';
-import { InEnglishPage } from '../../i18n/app';
-import { LicenseStateChip, ROYALTY_PENDING_TEXT } from './LicenseStateChip';
+import { rich, useT } from '../../i18n/app';
+import type { Translator } from '../../i18n/translate';
+import { LicenseStateChip } from './LicenseStateChip';
 import { ShareLicense } from './ShareLicense';
 import { AgreementTypeChip } from './AgreementTypeChip';
 import { AgreementsBackupFirst } from './AgreementsBackupFirst';
-import { AGREEMENTS_ON_CHAIN, AGREEMENTS_SIMULATED, SIMULATED_TAG } from '../../config/copy';
+import { AGREEMENTS_ON_CHAIN } from '../../config/copy';
 import { chainNotReady } from '../../veilcore/chain/config';
 import { RealLicensePanel } from './RealLicensePanel';
 import { ConfirmInline } from './DealSteps';
 
-const money = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+const money = (n: number, tr: Translator) => `$${n.toLocaleString(tr.locale, { maximumFractionDigits: 2 })}`;
 
-const TermsSummary: React.FC<{ l: License }> = ({ l }) => (
+const TermsSummary: React.FC<{ l: License; tr: Translator }> = ({ l, tr }) => (
   <Stack spacing={1}>
-    {agreementRows(l).map((r) => (
+    {agreementRows(l, tr).map((r) => (
       <Row key={r.k} k={r.k} v={r.v} />
     ))}
   </Stack>
@@ -69,6 +70,7 @@ export const LicenseDetail: React.FC = () => {
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const license = getLicense(id);
+  const tr = useT();
   const [toast, setToast] = useState<string>();
   const blocked = useAgreementsWaitForBackup();
   const [royaltyInput, setRoyaltyInput] = useState('');
@@ -78,14 +80,13 @@ export const LicenseDetail: React.FC = () => {
     return (
       <Box>
         <AppHeader />
-        <InEnglishPage />
         <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography sx={{ mb: 1 }}>This agreement isn&apos;t in this browser.</Typography>
+          <Typography sx={{ mb: 1 }}>{tr.t('app.lic.detail.notHere')}</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Agreements open only in the browser that made them, or one where you restored the same holder key.
+            {tr.t('app.lic.detail.notHereWhy')}
           </Typography>
           <Button component={RouterLink} to="/licenses" startIcon={<ArrowBackIcon />}>
-            Your agreements
+            {tr.t('app.lic.detail.yours')}
           </Button>
         </Paper>
       </Box>
@@ -112,8 +113,8 @@ export const LicenseDetail: React.FC = () => {
 
   const onRevoke = (reason: string) => {
     if (blocked) return;
-    revokeLicense(license.id, reason || 'No reason given');
-    setToast('License revoked.');
+    revokeLicense(license.id, reason || tr.t('app.lic.detail.noReason'));
+    setToast(tr.t('app.lic.detail.revoked'));
   };
 
   const owed = (n: number) =>
@@ -127,22 +128,23 @@ export const LicenseDetail: React.FC = () => {
     addRoyalty(license.id, n, owed(n), royaltyNote.trim());
     setRoyaltyInput('');
     setRoyaltyNote('');
-    setToast('Royalty owed recorded.');
+    setToast(tr.t('app.lic.detail.royaltyRecorded'));
   };
 
   const totalOwed = license.royaltyLog.reduce((s, e) => s + e.amountOwed, 0);
   const totalDeal = license.royaltyLog.reduce((s, e) => s + dealValueOf(license, e.input), 0);
   const totalFee = veilcoreFee(totalDeal);
   const royaltyInputLabel =
-    license.terms.royaltyType === 'percent' ? 'Reported sales ($)' : `Units (${license.terms.unitBasis})`;
+    license.terms.royaltyType === 'percent'
+      ? tr.t('app.lic.detail.salesInput')
+      : tr.t('app.lic.detail.unitsInput', { basis: license.terms.unitBasis });
 
   return (
     <Box>
       <AppHeader />
-      <InEnglishPage />
       <AgreementsBackupFirst />
       <Button component={RouterLink} to="/licenses" size="small" startIcon={<ArrowBackIcon />} sx={{ mb: 2 }}>
-        All agreements
+        {tr.t('app.lic.detail.all')}
       </Button>
 
       <Stack
@@ -152,12 +154,12 @@ export const LicenseDetail: React.FC = () => {
         <Box>
           <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
             <Typography variant="h4">
-              {AGREEMENT_LABEL[type]} · {record?.strainName ?? license.recordId}
+              {agreementLabel(type, tr)} · {record?.strainName ?? license.recordId}
             </Typography>
             <AgreementTypeChip type={type} />
           </Stack>
           <Typography variant="caption" color="text.secondary">
-            {license.id} {license.supersedesId ? `· amends ${license.supersedesId}` : ''}
+            {license.id} {license.supersedesId ? tr.t('app.lic.detail.amends', { id: license.supersedesId }) : ''}
           </Typography>
         </Box>
         <LicenseStateChip license={license} size="medium" />
@@ -166,26 +168,24 @@ export const LicenseDetail: React.FC = () => {
       <Stack spacing={2.5}>
         {royaltyProtectionPending(license) && (
           <Alert severity="warning" variant="outlined" data-royalty-pending-text="">
-            {ROYALTY_PENDING_TEXT}
+            {tr.t('app.lic.royaltyPending.text')}
           </Alert>
         )}
         <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
           <Typography variant="overline" sx={{ display: 'block', mb: 1.5 }}>
-            Agreement terms
+            {tr.t('app.lic.detail.terms')}
           </Typography>
-          <TermsSummary l={license} />
+          <TermsSummary l={license} tr={tr} />
           <Divider sx={{ my: 2 }} />
           <Alert severity="info" variant="outlined">
-            These terms are attached to the sealed record and the code of its paired report
-            {license.dnaFingerprint ? ` (${shortFingerprint(license.dnaFingerprint)})` : ''}.
+            {license.dnaFingerprint
+              ? tr.t('app.lic.detail.attachedCode', { code: shortFingerprint(license.dnaFingerprint) })
+              : tr.t('app.lic.detail.attached')}
           </Alert>
           {showLineageNote && (
             <Alert severity="info" variant="outlined" sx={{ mt: 1.5 }}>
-              If a cultivar is later logged with {record?.strainName ?? 'this cultivar'} as a parent, and both holders
-              confirm it, the link to this agreement shows on its record. Offspring nobody logs are not detected.
-              {knownDerivatives > 0
-                ? ` ${knownDerivatives} cultivar${knownDerivatives === 1 ? '' : 's'} already logged descend${knownDerivatives === 1 ? 's' : ''} from it.`
-                : ''}
+              {tr.t('app.lic.detail.lineage', { name: record?.strainName ?? tr.t('app.lic.detail.thisCultivar') })}
+              {knownDerivatives > 0 ? ` ${tr.tp('app.lic.detail.derivatives', knownDerivatives)}` : ''}
             </Alert>
           )}
         </Paper>
@@ -193,11 +193,11 @@ export const LicenseDetail: React.FC = () => {
         {/* lifecycle actions */}
         <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
           <Typography variant="overline" sx={{ display: 'block', mb: 0.5 }}>
-            Status and actions
+            {tr.t('app.lic.detail.status')}
           </Typography>
           {!real && (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.75 }}>
-              {AGREEMENTS_SIMULATED}
+              {tr.t('app.copy.agreementsSimulated')}
             </Typography>
           )}
 
@@ -208,18 +208,18 @@ export const LicenseDetail: React.FC = () => {
           {!real && state === 'draft' && (
             <Stack spacing={1.5} sx={{ alignItems: 'flex-start' }}>
               <Typography variant="body2" color="text.secondary">
-                Draft, not issued yet. Issuing it makes a link you send to the other party to counter-sign.
+                {tr.t('app.lic.detail.draft')}
               </Typography>
               <Button
                 variant="contained"
                 disabled={blocked}
                 onClick={() =>
                   void issueLicense(license.id)
-                    .then(() => setToast('Issued. Send the link to the other party.'))
+                    .then(() => setToast(tr.t('app.lic.detail.issuedToast')))
                     .catch(() => undefined)
                 }
               >
-                Issue it
+                {tr.t('app.lic.detail.issue')}
               </Button>
             </Stack>
           )}
@@ -227,11 +227,10 @@ export const LicenseDetail: React.FC = () => {
           {!real && state === 'sent' && (
             <Stack spacing={1.5}>
               <Alert severity="warning" variant="outlined">
-                Issued, waiting for the other party to counter-sign: it is <b>not active yet</b>. For now the
-                counter-sign link opens only in your own browser; they can&apos;t sign from theirs yet.
+                {rich(tr.t('app.lic.detail.sent'), { b: (c) => <b>{c}</b> })}
               </Alert>
               <TextField
-                label="Counter-sign link (for the other party)"
+                label={tr.t('app.lic.detail.signLink')}
                 value={signLink}
                 fullWidth
                 size="small"
@@ -241,18 +240,18 @@ export const LicenseDetail: React.FC = () => {
                 <Button
                   variant="outlined"
                   startIcon={<ContentCopyIcon />}
-                  onClick={() => copy(signLink, 'Link copied.')}
+                  onClick={() => copy(signLink, tr.t('app.lic.detail.copied'))}
                 >
-                  Copy link
+                  {tr.t('app.lic.detail.copyLink')}
                 </Button>
                 <Button component={RouterLink} to={`/license/${encodeURIComponent(license.id)}/sign`} variant="text">
-                  Open the counter-sign page {SIMULATED_TAG}
+                  {tr.t('app.lic.detail.openSign')} {tr.t('app.copy.simulatedTag')}
                 </Button>
                 <ConfirmInline
-                  label="Revoke"
-                  question="Revoke this agreement?"
-                  confirmLabel="Yes, revoke it"
-                  reason="Reason (kept with your copy)"
+                  label={tr.t('app.lic.detail.revoke')}
+                  question={tr.t('app.lic.detail.revokeQ')}
+                  confirmLabel={tr.t('app.lic.detail.revokeYes')}
+                  reason={tr.t('app.lic.detail.revokeReason')}
                   disabled={blocked}
                   onConfirm={onRevoke}
                 />
@@ -263,10 +262,9 @@ export const LicenseDetail: React.FC = () => {
           {state === 'active' && !license.onChain && (
             <Stack spacing={1.5}>
               <Alert severity="success" variant="outlined">
-                {signedByTwoParties(license)
-                  ? 'Active: issued and counter-signed from two different holder keys. Effective '
-                  : 'Marked active from the issuer’s own browser; the other party has not signed anything in VeilCore. Effective '}
-                {new Date(license.licenseeSignedAt ?? license.createdAt).toLocaleDateString()}.
+                {tr.t(signedByTwoParties(license) ? 'app.lic.detail.activeTwo' : 'app.lic.detail.activeOne', {
+                  date: tr.date(license.licenseeSignedAt ?? license.createdAt),
+                })}
               </Alert>
               <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
                 <ShareLicense license={license} />
@@ -274,13 +272,13 @@ export const LicenseDetail: React.FC = () => {
                   variant="outlined"
                   onClick={() => navigate(`/record/${license.recordId}/license?supersede=${license.id}`)}
                 >
-                  Renew / amend
+                  {tr.t('app.lic.detail.renewAmend')}
                 </Button>
                 <ConfirmInline
-                  label="Revoke"
-                  question="Revoke this agreement?"
-                  confirmLabel="Yes, revoke it"
-                  reason="Reason (kept with your copy)"
+                  label={tr.t('app.lic.detail.revoke')}
+                  question={tr.t('app.lic.detail.revokeQ')}
+                  confirmLabel={tr.t('app.lic.detail.revokeYes')}
+                  reason={tr.t('app.lic.detail.revokeReason')}
                   disabled={blocked}
                   onConfirm={onRevoke}
                 />
@@ -291,21 +289,25 @@ export const LicenseDetail: React.FC = () => {
           {state === 'expired' && (
             <Stack spacing={1.5} sx={{ alignItems: 'flex-start' }}>
               <Alert severity="info" variant="outlined">
-                Expired on {license.terms.endDate}.
+                {tr.t('app.lic.detail.expired', { date: license.terms.endDate })}
               </Alert>
               <Button
                 variant="outlined"
                 onClick={() => navigate(`/record/${license.recordId}/license?supersede=${license.id}`)}
               >
-                Renew
+                {tr.t('app.lic.detail.renew')}
               </Button>
             </Stack>
           )}
 
           {state === 'revoked' && !license.onChain && (
             <Alert severity="error" variant="outlined">
-              Revoked{license.revokedAt ? ` ${new Date(license.revokedAt).toLocaleDateString()}` : ''}:{' '}
-              {license.revokedReason}
+              {license.revokedAt
+                ? tr.t('app.lic.detail.revokedOn', {
+                    date: tr.date(license.revokedAt),
+                    reason: license.revokedReason ?? '',
+                  })
+                : tr.t('app.lic.detail.revokedNoDate', { reason: license.revokedReason ?? '' })}
             </Alert>
           )}
         </Paper>
@@ -316,10 +318,10 @@ export const LicenseDetail: React.FC = () => {
         {type === 'license' && (state === 'active' || license.royaltyLog.length > 0) && (
           <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
             <Typography variant="overline" sx={{ display: 'block', mb: 0.5 }}>
-              Royalty obligations
+              {tr.t('app.lic.detail.royalties')}
             </Typography>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
-              VeilCore records what is owed. It doesn&apos;t process payments: no money moves here.
+              {tr.t('app.lic.detail.noMoney')}
             </Typography>
             {state === 'active' && (
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 2 }}>
@@ -331,14 +333,14 @@ export const LicenseDetail: React.FC = () => {
                   sx={{ maxWidth: 200 }}
                 />
                 <TextField
-                  label="Note (optional)"
+                  label={tr.t('app.lic.detail.note')}
                   value={royaltyNote}
                   onChange={(e) => setRoyaltyNote(e.target.value)}
                   size="small"
                   fullWidth
                 />
                 <Button variant="outlined" onClick={onLogRoyalty}>
-                  Record
+                  {tr.t('app.lic.detail.record')}
                 </Button>
               </Stack>
             )}
@@ -349,46 +351,49 @@ export const LicenseDetail: React.FC = () => {
                   return (
                     <Box key={i} sx={{ p: 1, borderRadius: 1, background: 'rgba(30,34,39,0.02)' }}>
                       <Typography variant="caption" color="text.secondary">
-                        {new Date(e.at).toLocaleDateString()}
+                        {tr.date(e.at)}
                         {e.note ? ` · ${e.note}` : ''}
                       </Typography>
-                      <Row k="Deal value" v={money(dv)} />
-                      <Row k="Your royalty" v={money(e.amountOwed)} />
+                      <Row k={tr.t('app.lic.detail.dealValue')} v={money(dv, tr)} />
+                      <Row k={tr.t('app.lic.detail.yourRoyalty')} v={money(e.amountOwed, tr)} />
                       {SHOW_VEILCORE_FEE && (
-                        <Row k={`VeilCore fee (${VEILCORE_FEE_PCT}%)`} v={money(veilcoreFee(dv))} />
+                        <Row
+                          k={tr.t('app.lic.detail.feeShort', { pct: VEILCORE_FEE_PCT })}
+                          v={money(veilcoreFee(dv), tr)}
+                        />
                       )}
                     </Box>
                   );
                 })}
                 <Divider />
                 <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
-                  <Typography variant="subtitle2">Total deal value</Typography>
-                  <Typography variant="subtitle2">{money(totalDeal)}</Typography>
+                  <Typography variant="subtitle2">{tr.t('app.lic.detail.totalDeal')}</Typography>
+                  <Typography variant="subtitle2">{money(totalDeal, tr)}</Typography>
                 </Stack>
                 <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
                   <Typography variant="body2" color="text.secondary">
-                    Your royalty (recorded)
+                    {tr.t('app.lic.detail.totalRoyalty')}
                   </Typography>
-                  <Typography variant="body2">{money(totalOwed)}</Typography>
+                  <Typography variant="body2">{money(totalOwed, tr)}</Typography>
                 </Stack>
                 {SHOW_VEILCORE_FEE && (
                   <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
                     <Typography variant="body2" color="text.secondary">
-                      VeilCore fee ({VEILCORE_FEE_PCT}%)
+                      {tr.t('app.lic.detail.feeShort', { pct: VEILCORE_FEE_PCT })}
                     </Typography>
-                    <Typography variant="body2">{money(totalFee)}</Typography>
+                    <Typography variant="body2">{money(totalFee, tr)}</Typography>
                   </Stack>
                 )}
                 {SHOW_VEILCORE_FEE && (
                   <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-                    {FEE_NOTE}
+                    {feeNote(tr)}
                   </Typography>
                 )}
               </Stack>
             ) : (
               <Typography variant="body2" color="text.secondary">
-                Nothing recorded yet. Enter sales or units above as the licensee reports them.
-                {SHOW_VEILCORE_FEE ? ` ${FEE_NOTE}` : ''}
+                {tr.t('app.lic.detail.nothingYet')}
+                {SHOW_VEILCORE_FEE ? ` ${feeNote(tr)}` : ''}
               </Typography>
             )}
           </Paper>

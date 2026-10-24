@@ -18,7 +18,7 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { ConfirmInline, HowItWorks } from './DealSteps';
 import { Wordmark } from '../Wordmark';
-import { InEnglishPage } from '../../i18n/app';
+import { rich, useT } from '../../i18n/app';
 import { LanguageBar } from '../../i18n/LanguagePicker';
 
 const short = (h: string) => (h.slice(0, 16).match(/..../g) ?? []).join(' ');
@@ -27,7 +27,6 @@ const Frame: React.FC<React.PropsWithChildren> = ({ children }) => (
   <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
     <Container maxWidth="sm" sx={{ py: { xs: 4, md: 7 } }}>
       <LanguageBar />
-      <InEnglishPage />
       <Stack direction="row" sx={{ justifyContent: 'center', mb: 3 }}>
         <Wordmark />
       </Stack>
@@ -39,6 +38,7 @@ const Frame: React.FC<React.PropsWithChildren> = ({ children }) => (
 export const ClaimPage: React.FC = () => {
   const { hash } = useLocation();
   const claim = claimFromHash(hash);
+  const tr = useT();
   const keys = useRecordKeys();
   const records = useRecords();
   const [status, setStatus] = useState<ClaimStatus | 'loading'>('loading');
@@ -68,23 +68,22 @@ export const ClaimPage: React.FC = () => {
   if (!AGREEMENTS_ON_CHAIN || chainNotReady())
     return (
       <Frame>
-        <Typography>This site can&apos;t record claims. Open the link on the site it was made on.</Typography>
+        <Typography>{tr.t('app.lic.claim.cant')}</Typography>
       </Frame>
     );
   if (!claim)
     return (
       <Frame>
         <Alert severity="warning" variant="outlined">
-          This claim link is incomplete. Open it again exactly as you got it, including everything after the #.
+          {tr.t('app.lic.claim.partial')}
         </Alert>
       </Frame>
     );
 
   const answer = (accept: boolean) =>
     call.run(async (progress) => {
-      if (!mine) throw new Error('This device doesn’t hold the record.');
-      if ((await claimStatusNow(claim)) !== 'proposed')
-        throw new Error('The claim is no longer waiting. Nothing was sent.');
+      if (!mine) throw new Error(tr.t('app.lic.claim.notHeld'));
+      if ((await claimStatusNow(claim)) !== 'proposed') throw new Error(tr.t('app.lic.claim.notWaiting'));
       const { acceptObligationOnChain, rejectObligationOnChain } = await import('../../veilcore/chain/actions');
       const r = await (accept ? acceptObligationOnChain : rejectObligationOnChain)(
         hexBytes(mine.recordSecret),
@@ -99,22 +98,29 @@ export const ClaimPage: React.FC = () => {
   return (
     <Frame>
       <Typography variant="h5" component="h1" sx={{ mb: 1 }}>
-        {status === 'in-force' ? 'A claim is in force on your record' : 'A claim on your record'}
+        {status === 'in-force' ? tr.t('app.lic.claim.hInForce') : tr.t('app.lic.claim.h')}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
-        From: <b>{claim.name}</b> (their words; check who they are as you would for any loan) · their on-chain key{' '}
-        <span style={{ fontFamily: 'monospace' }}>{short(claim.claimant)}</span>
+        {rich(
+          tr.t('app.lic.claim.from'),
+          { b: (c) => <b>{c}</b> },
+          { name: claim.name, key: <span style={{ fontFamily: 'monospace' }}>{short(claim.claimant)}</span> },
+        )}
       </Typography>
 
       {!mine && (
         <Stack spacing={1.25}>
           <Typography variant="body2">
-            This device doesn&apos;t hold the record this claim is on (key{' '}
-            <span style={{ fontFamily: 'monospace' }}>{short(claim.record)}</span>). Open the link on the device that
-            holds it, or restore your backup here first.
+            {rich(
+              tr.t('app.lic.claim.noRecord'),
+              {},
+              {
+                key: <span style={{ fontFamily: 'monospace' }}>{short(claim.record)}</span>,
+              },
+            )}
           </Typography>
           <Button variant="outlined" component={RouterLink} to="/restore" sx={{ alignSelf: 'flex-start' }}>
-            Restore a backup
+            {tr.t('app.lic.proof.restore')}
           </Button>
         </Stack>
       )}
@@ -122,57 +128,58 @@ export const ClaimPage: React.FC = () => {
       {mine && status === 'loading' && !readError && (
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <CircularProgress size={20} />
-          <Typography>Reading the claim on Midnight…</Typography>
+          <Typography>{tr.t('app.lic.claim.reading')}</Typography>
         </Stack>
       )}
 
       {mine && status === 'none' && (
         <Alert severity="info" variant="outlined">
-          Midnight shows no claim like this waiting on <b>{record ? recordTitle(record) : mine.recordId}</b>: it was
-          withdrawn, rejected, or never made. Nothing to do.
+          {rich(
+            tr.t('app.lic.claim.none'),
+            { b: (c) => <b>{c}</b> },
+            { record: record ? recordTitle(record) : mine.recordId },
+          )}
         </Alert>
       )}
 
       {mine && status === 'proposed' && (
         <Stack spacing={1.5}>
           <Typography variant="body1">
-            <b>{claim.name}</b> asks to record a claim on <b>{record ? recordTitle(record) : mine.recordId}</b> (checked
-            on Midnight).
+            {rich(
+              tr.t('app.lic.claim.asks'),
+              { b: (c) => <b>{c}</b> },
+              { name: claim.name, record: record ? recordTitle(record) : mine.recordId },
+            )}
           </Typography>
-          <Typography variant="body2">
-            If you accept, anyone who checks this record sees a claim is in force, until {claim.name} releases it. Only
-            they can. It doesn&apos;t move the record or stop you using it.
-          </Typography>
+          <Typography variant="body2">{tr.t('app.lic.claim.ifAccept', { name: claim.name })}</Typography>
           <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', alignItems: 'flex-start' }}>
             <Button variant="contained" size="large" disabled={call.busy} onClick={() => void answer(true)}>
-              Accept the claim
+              {tr.t('app.lic.claim.accept')}
             </Button>
             <ConfirmInline
-              label="Reject it"
-              question={`Reject ${claim.name}’s claim? It is cleared from Midnight. They can ask again.`}
-              confirmLabel="Yes, reject it"
+              label={tr.t('app.lic.claim.reject')}
+              question={tr.t('app.lic.claim.rejectQ', { name: claim.name })}
+              confirmLabel={tr.t('app.lic.claim.rejectYes')}
               disabled={call.busy}
               onConfirm={() => void answer(false)}
             />
           </Stack>
-          <HowItWorks>
-            Lenders use a claim to show a record is pledged to them, so it can&apos;t quietly be pledged twice. It is
-            not a legal filing: a lender still files its own paperwork. The terms stay between you; Midnight shows only
-            that a claim exists and who can release it. VeilCore pays the network fee.
-          </HowItWorks>
+          <HowItWorks>{tr.t('app.lic.claim.how')}</HowItWorks>
         </Stack>
       )}
 
       {mine && status === 'in-force' && (
         <Alert severity="success" variant="outlined" data-claim="in-force">
-          In force on Midnight. Only {claim.name} can release it. Anyone checking{' '}
-          {record ? recordTitle(record) : 'this record'} sees a claim is in force.
+          {tr.t('app.lic.claim.inForce', {
+            name: claim.name,
+            record: record ? recordTitle(record) : tr.t('app.lic.claim.thisRecord'),
+          })}
         </Alert>
       )}
 
       {readError && (
         <Alert severity="error" variant="outlined" sx={{ mt: 2 }}>
-          Couldn&apos;t read Midnight just now: {readError}
+          {tr.t('app.lic.claim.readError', { error: readError })}
         </Alert>
       )}
       <Box sx={{ mt: 1.5 }}>

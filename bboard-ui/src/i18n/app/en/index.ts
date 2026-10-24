@@ -24,6 +24,7 @@ import { plant } from './plant';
 import { prove } from './prove';
 import { sealed } from './sealed';
 import { verify } from './verify';
+import { licensing } from './licensing';
 
 export const appEn = {
   ...common,
@@ -45,6 +46,7 @@ export const appEn = {
   ...strainForm,
   ...sealed,
   ...dating,
+  ...licensing,
 };
 
 export type AppKey = keyof typeof appEn;

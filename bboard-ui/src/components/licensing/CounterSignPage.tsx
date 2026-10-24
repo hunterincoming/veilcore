@@ -19,17 +19,15 @@ import {
   effectiveState,
   agreementType,
   agreementRows,
-  AGREEMENT_LABEL,
+  agreementLabel,
   royaltyProtectionPending,
   useAgreementsWaitForBackup,
 } from '../../veilcore/licenses';
-import { ROYALTY_PENDING_TEXT } from './LicenseStateChip';
 import { Wordmark } from '../Wordmark';
 import { AgreementsBackupFirst } from './AgreementsBackupFirst';
 import { LanguageBar } from '../../i18n/LanguagePicker';
-import { InEnglishPage } from '../../i18n/app';
+import { useT } from '../../i18n/app';
 import { startRecordSync } from '../../veilcore/records';
-import { AGREEMENTS_SIMULATED, LICENSE_PROOF_NOTE, SIMULATED_TAG, THIS_SITE } from '../../config/copy';
 
 const Line: React.FC<{ k: string; v: string }> = ({ k, v }) => (
   <Stack direction="row" spacing={2} sx={{ justifyContent: 'space-between' }}>
@@ -50,6 +48,7 @@ export const CounterSignPage: React.FC = () => {
   }, []);
   const { id = '' } = useParams();
   const license = getLicense(id);
+  const tr = useT();
   const [issuerHere, setIssuerHere] = useState<boolean | null>(null);
   const blocked = useAgreementsWaitForBackup();
   useEffect(() => {
@@ -60,39 +59,36 @@ export const CounterSignPage: React.FC = () => {
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
         <LanguageBar />
-        <InEnglishPage />
         <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center', justifyContent: 'center', mb: 4 }}>
           <Wordmark />
         </Stack>
 
         {!license ? (
           <Paper sx={{ p: 4, textAlign: 'center' }}>
-            <Typography sx={{ mb: 1 }}>This agreement can&apos;t be opened in this browser.</Typography>
+            <Typography sx={{ mb: 1 }}>{tr.t('app.lic.sign.notHere')}</Typography>
             <Typography variant="body2" color="text.secondary">
-              For now an agreement opens only in the browser that made it: counter-signing from the other party&apos;s
-              own browser isn&apos;t built yet. If someone sent you this link, ask them for the terms directly.
+              {tr.t('app.lic.sign.notHereWhy')}
             </Typography>
           </Paper>
         ) : (
           <Paper sx={{ p: { xs: 3, md: 4 } }}>
             <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center', mb: 0.5, flexWrap: 'wrap' }}>
-              <Typography variant="h5">You&apos;ve been sent an agreement to review</Typography>
-              <Chip size="small" variant="outlined" label={AGREEMENT_LABEL[agreementType(license)]} />
+              <Typography variant="h5">{tr.t('app.lic.sign.title')}</Typography>
+              <Chip size="small" variant="outlined" label={agreementLabel(agreementType(license), tr)} />
             </Stack>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
-              Read the terms below. In {THIS_SITE} it becomes active when it is counter-signed here.
+              {tr.t('app.lic.sign.intro', { site: tr.t('app.copy.thisSite') })}
             </Typography>
 
             <Stack spacing={1}>
-              {agreementRows(license).map((r) => (
+              {agreementRows(license, tr).map((r) => (
                 <Line key={r.k} k={r.k} v={r.v} />
               ))}
             </Stack>
 
             {agreementType(license) === 'breeder-share' && license.terms.mayBreed && (
               <Alert severity="info" variant="outlined" sx={{ mt: 2 }}>
-                You may breed with this material. A cultivar logged with it as a parent links back to this agreement in
-                the lineage graph. Offspring nobody logs are not detected.
+                {tr.t('app.lic.sign.mayBreed')}
               </Alert>
             )}
 
@@ -102,14 +98,11 @@ export const CounterSignPage: React.FC = () => {
               <Stack spacing={1.5}>
                 {issuerHere !== false && (
                   <Alert severity="warning" variant="outlined">
-                    This browser holds the key that issued this agreement, so pressing the button below records that the
-                    issuer marked it active — not that the other party agreed. They cannot open or sign it from their
-                    own browser yet.
+                    {tr.t('app.lic.sign.issuerHere')}
                   </Alert>
                 )}
                 <Typography variant="body2" color="text.secondary">
-                  This records a time and the holder key that pressed it in VeilCore&apos;s registry. It is not a
-                  cryptographic signature and not a qualified (eIDAS) electronic signature.
+                  {tr.t('app.lic.sign.whatItRecords')}
                 </Typography>
                 <AgreementsBackupFirst />
                 <Button
@@ -119,15 +112,15 @@ export const CounterSignPage: React.FC = () => {
                   onClick={() => void countersignLicense(license.id).catch(() => undefined)}
                 >
                   {issuerHere === false
-                    ? 'Review complete — sign & accept'
-                    : `Mark active as the issuer ${SIMULATED_TAG}`}
+                    ? tr.t('app.lic.sign.accept')
+                    : tr.t('app.lic.sign.markActive', { tag: tr.t('app.copy.simulatedTag') })}
                 </Button>
               </Stack>
             )}
 
             {effectiveState(license) === 'draft' && (
               <Alert severity="info" variant="outlined">
-                This license hasn&apos;t been issued yet. Ask the breeder to issue it.
+                {tr.t('app.lic.sign.notIssued')}
               </Alert>
             )}
 
@@ -135,15 +128,12 @@ export const CounterSignPage: React.FC = () => {
               <Stack spacing={1.5}>
                 {royaltyProtectionPending(license) && (
                   <Alert severity="warning" variant="outlined" data-royalty-pending-text="">
-                    {ROYALTY_PENDING_TEXT}
+                    {tr.t('app.lic.royaltyPending.text')}
                   </Alert>
                 )}
                 <Alert severity={signedByTwoParties(license) ? 'success' : 'info'} variant="outlined">
-                  {signedByTwoParties(license)
-                    ? 'Active: issued and counter-signed from two different holder keys (not cryptographic signatures).'
-                    : 'Marked active by the issuer. The other party has not signed anything in VeilCore.'}{' '}
-                  The terms are attached to the record. What they are worth in a dispute is for the parties and, if it
-                  comes to it, a court.
+                  {tr.t(signedByTwoParties(license) ? 'app.lic.sign.activeTwo' : 'app.lic.sign.activeOne')}{' '}
+                  {tr.t('app.lic.sign.worth')}
                 </Alert>
                 {/* This button used to set a boolean and render "license proven". No
                     circuit ran, nothing was checked, and the word next to it was
@@ -152,24 +142,24 @@ export const CounterSignPage: React.FC = () => {
                     it is. Wiring it to proveLicense means a wallet, a proof server and
                     a deployed contract, which the web app does not have. */}
                 <Alert severity="info" variant="outlined">
-                  {LICENSE_PROOF_NOTE}
+                  {tr.t('app.copy.licenseProofNote')}
                 </Alert>
               </Stack>
             )}
 
             {effectiveState(license) === 'expired' && (
               <Alert severity="info" variant="outlined">
-                This license has expired ({license.terms.endDate}).
+                {tr.t('app.lic.sign.expired', { date: license.terms.endDate })}
               </Alert>
             )}
             {effectiveState(license) === 'revoked' && (
               <Alert severity="error" variant="outlined">
-                This license was revoked: {license.revokedReason}.
+                {tr.t('app.lic.sign.revoked', { reason: license.revokedReason ?? '' })}
               </Alert>
             )}
 
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2.5 }}>
-              {AGREEMENTS_SIMULATED}
+              {tr.t('app.copy.agreementsSimulated')}
             </Typography>
           </Paper>
         )}

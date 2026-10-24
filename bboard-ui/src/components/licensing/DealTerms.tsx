@@ -15,12 +15,14 @@ import {
 } from '../../veilcore/licenses';
 import type { AgreementCopy } from '../../veilcore/held-licenses';
 import type { DealEntry } from '../../veilcore/deal-client';
+import { rich, useT } from '../../i18n/app';
 
 export type Offered = { ok: true; copy: AgreementCopy } | { ok: false; reason: string } | undefined;
 
 /** The first terms the issuer sent, checked. Undefined while none has arrived. */
 export const useOfferedTerms = (entries: readonly DealEntry[] | undefined): Offered => {
   const [offered, setOffered] = useState<Offered>();
+  const tr = useT();
   const first = entries?.find((e) => e.type === 'terms' && !e.mine);
   const key = first?.signature ?? '';
   useEffect(() => {
@@ -48,23 +50,24 @@ export const useOfferedTerms = (entries: readonly DealEntry[] | undefined): Offe
               }
             : {
                 ok: false,
-                reason: 'The terms sent don’t match their own fingerprint. Don’t activate; tell the sender.',
+                reason: tr.t('app.lic.terms.mismatch'),
               },
         );
       })
-      .catch(() => on && setOffered({ ok: false, reason: 'The terms sent could not be checked.' }));
+      .catch(() => on && setOffered({ ok: false, reason: tr.t('app.lic.terms.unchecked') }));
     return () => {
       on = false;
     };
-  }, [key]);
+  }, [key, tr]);
   return offered;
 };
 
 export const TermsBox: React.FC<{ offered: Offered; agreedAt?: number }> = ({ offered, agreedAt }) => {
+  const tr = useT();
   if (!offered) {
     return (
       <Typography variant="body2" color="text.secondary">
-        Waiting for the terms to arrive over your private channel with them…
+        {tr.t('app.lic.terms.waiting')}
       </Typography>
     );
   }
@@ -75,14 +78,17 @@ export const TermsBox: React.FC<{ offered: Offered; agreedAt?: number }> = ({ of
       </Alert>
     );
   }
-  const rows = agreementRows({
-    type: offered.copy.type as AgreementType,
-    terms: offered.copy.terms as unknown as LicenseTerms,
-  } as License);
+  const rows = agreementRows(
+    {
+      type: offered.copy.type as AgreementType,
+      terms: offered.copy.terms as unknown as LicenseTerms,
+    } as License,
+    tr,
+  );
   return (
-    <Paper variant="outlined" sx={{ p: 2 }} lang="en">
+    <Paper variant="outlined" sx={{ p: 2 }}>
       <Typography variant="subtitle2" sx={{ mb: 1 }}>
-        The terms{agreedAt ? `, agreed ${new Date(agreedAt).toLocaleDateString()}` : ''}
+        {agreedAt ? tr.t('app.lic.terms.titleAgreed', { date: tr.date(agreedAt) }) : tr.t('app.lic.terms.title')}
       </Typography>
       <Stack spacing={0.75}>
         {rows.map((r) => (
@@ -97,10 +103,11 @@ export const TermsBox: React.FC<{ offered: Offered; agreedAt?: number }> = ({ of
         ))}
       </Stack>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.25 }}>
-        Signed by the sender and checked against the agreement&apos;s fingerprint{' '}
-        <span style={{ fontFamily: 'monospace' }}>{offered.copy.agreementFingerprint.slice(0, 16)}…</span>. The terms
-        are between you and them: VeilCore records that the agreement exists and its state on Midnight, and doesn&apos;t
-        enforce it.
+        {rich(
+          tr.t('app.lic.terms.signed'),
+          {},
+          { fp: <span style={{ fontFamily: 'monospace' }}>{offered.copy.agreementFingerprint.slice(0, 16)}…</span> },
+        )}
       </Typography>
     </Paper>
   );

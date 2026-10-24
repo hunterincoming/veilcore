@@ -14,6 +14,7 @@ import {
   type AgreedTerms,
   type CheckedCredential,
 } from '../../veilcore/credentials';
+import { useT } from '../../i18n/app';
 
 type Statement = Extract<DealEntry, { type: 'statement' }>;
 type Received = Extract<DealEntry, { type: 'received' }>;
@@ -27,6 +28,7 @@ export const DealCredentials: React.FC<{
   /** From this page's own stored license (never from a message): what the two agreed to. */
   agreed: AgreedTerms | undefined;
 }> = ({ party, entries, confirmed, busy, onSend, agreed }) => {
+  const tr = useT();
   const have = useMemo(() => credentialsIn(entries, party, agreed), [entries, party, agreed]);
   // The licensee's signed agreement to exactly these terms (attack pass 21 Oct, finding 1).
   const agree = agreed
@@ -40,22 +42,20 @@ export const DealCredentials: React.FC<{
   if (!agree && have.length === 0) return null;
 
   const label = (c: CheckedCredential) => {
-    if (c.kind === 'license') return 'License credential';
+    if (c.kind === 'license') return tr.t('app.lic.vc.license');
     const st = entries.find((e) => e.type === 'statement' && e.signature === c.statementSignature) as
       | Extract<DealEntry, { type: 'statement' }>
       | undefined;
-    return st ? `Payment credential: ${st.periodFrom} to ${st.periodTo}` : 'Payment credential';
+    return st ? tr.t('app.lic.vc.paymentFor', { from: st.periodFrom, to: st.periodTo }) : tr.t('app.lic.vc.payment');
   };
 
   return (
     <Box data-deal-credentials="">
       <Typography variant="subtitle2" component="h4" sx={{ fontWeight: 700 }}>
-        W3C credentials
+        {tr.t('app.lic.vc.title')}
       </Typography>
       <Typography variant="body2" color="text.secondary">
-        {issuer
-          ? 'Signed by you, for them to show anyone in the standard W3C format. They hold a proof code for the terms, never the terms. Whether the license is still live is checked on Midnight.'
-          : 'Signed by the licensor, in the standard W3C format that wallets and other systems read. They hold a proof code for the terms, never the terms. Whether your license is still live is checked on Midnight.'}
+        {tr.t(issuer ? 'app.lic.vc.introIssuer' : 'app.lic.vc.introLicensee')}
       </Typography>
       <Stack spacing={1} sx={{ mt: 1 }}>
         {issuer && agree && agreed && !licenseSent && (
@@ -74,7 +74,7 @@ export const DealCredentials: React.FC<{
               })
             }
           >
-            Send them a license credential
+            {tr.t('app.lic.vc.sendLicense')}
           </Button>
         )}
         {issuer &&
@@ -88,7 +88,7 @@ export const DealCredentials: React.FC<{
                 onSend({ type: 'credential', credential: paymentCredential(party, c.statement, c.received) })
               }
             >
-              Send a payment credential for {c.statement.periodFrom} to {c.statement.periodTo}
+              {tr.t('app.lic.vc.sendPayment', { from: c.statement.periodFrom, to: c.statement.periodTo })}
             </Button>
           ))}
         {have.map((c) => (
@@ -99,12 +99,12 @@ export const DealCredentials: React.FC<{
             sx={{ alignSelf: 'flex-start' }}
             onClick={() => downloadCredential(c)}
           >
-            Download: {label(c)}
+            {tr.t('app.lic.vc.download', { what: label(c) })}
           </Button>
         ))}
         {!issuer && have.length === 0 && (
           <Typography variant="body2" color="text.secondary">
-            None yet. The licensor sends them from their page.
+            {tr.t('app.lic.vc.none')}
           </Typography>
         )}
       </Stack>

@@ -57,7 +57,7 @@ import { HandOnHolder } from './HandOnHolder';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { Wordmark } from '../Wordmark';
-import { InEnglishPage } from '../../i18n/app';
+import { rich, useT } from '../../i18n/app';
 import { LanguageBar } from '../../i18n/LanguagePicker';
 
 const POLL_MS = 8_000;
@@ -68,7 +68,6 @@ const Frame: React.FC<React.PropsWithChildren> = ({ children }) => (
   <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
     <Container maxWidth="sm" sx={{ py: { xs: 4, md: 7 } }}>
       <LanguageBar />
-      <InEnglishPage />
       <Stack direction="row" sx={{ justifyContent: 'center', mb: 3 }}>
         <Wordmark />
       </Stack>
@@ -81,6 +80,7 @@ export const LicenseInvitePage: React.FC = () => {
   const { id = '' } = useParams();
   const { hash } = useLocation();
   const token = tokenFromHash(hash);
+  const tr = useT();
   const held = useHeldLicenses().find((h) => h.inviteId === id);
   // A hand-on link (hand-on.ts) names the license's issuing record: this side takes over a
   // live license rather than being issued a new one.
@@ -153,9 +153,7 @@ export const LicenseInvitePage: React.FC = () => {
         // The issuer's page answered: reveal (the first answer seen is the one kept).
         if (inv.issuerNonce && !inv.commitment) await revealAsLicensee(inv, token);
         if (held.issuerNonce && inv.issuerNonce && held.issuerNonce !== inv.issuerNonce) {
-          setError(
-            'The registry now shows a different answer from the sender than before. Tell them; don’t rely on this link.',
-          );
+          setError(tr.t('app.lic.inv.errNonce'));
           return;
         }
         const status = await licenseStatusNow(held.commitment, held.issuerRecord);
@@ -179,13 +177,13 @@ export const LicenseInvitePage: React.FC = () => {
       live = false;
       clearInterval(t);
     };
-  }, [id, held, load, token]);
+  }, [id, held, load, token, tr]);
 
   // Agreements on chain are off on this site (a mainnet build before the switch): nothing is asked or sent.
   if (chainNotReady() || !AGREEMENTS_ON_CHAIN) {
     return (
       <Frame>
-        <Typography>This site can&apos;t make real licenses. Open the link on the site it was made on.</Typography>
+        <Typography>{tr.t('app.lic.inv.cant')}</Typography>
       </Frame>
     );
   }
@@ -193,7 +191,7 @@ export const LicenseInvitePage: React.FC = () => {
     return (
       <Frame>
         <Alert severity="error" variant="outlined">
-          Couldn&apos;t open this license: {error}
+          {tr.t('app.lic.inv.openFailed', { error })}
         </Alert>
       </Frame>
     );
@@ -203,7 +201,7 @@ export const LicenseInvitePage: React.FC = () => {
       <Frame>
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <CircularProgress size={20} />
-          <Typography>Opening the license…</Typography>
+          <Typography>{tr.t('app.lic.inv.opening')}</Typography>
         </Stack>
       </Frame>
     );
@@ -211,9 +209,9 @@ export const LicenseInvitePage: React.FC = () => {
   if (!invite) {
     return (
       <Frame>
-        <Typography sx={{ mb: 1 }}>This license link has expired or doesn&apos;t exist.</Typography>
+        <Typography sx={{ mb: 1 }}>{tr.t('app.lic.inv.expired')}</Typography>
         <Typography variant="body2" color="text.secondary">
-          Ask whoever sent it for a new one. Links last 30 days.
+          {tr.t('app.lic.inv.askNew')}
         </Typography>
       </Frame>
     );
@@ -222,8 +220,7 @@ export const LicenseInvitePage: React.FC = () => {
     return (
       <Frame>
         <Alert severity="warning" variant="outlined">
-          This link is missing its last part. Open it again exactly as you got it (all of it, including what comes after
-          the #).
+          {tr.t('app.lic.proof.partial')}
         </Alert>
       </Frame>
     );
@@ -259,7 +256,7 @@ export const LicenseInvitePage: React.FC = () => {
     setBusy(true);
     setError(undefined);
     try {
-      if (!party || offered?.ok !== true) throw new Error('The terms have not arrived, or didn’t check out.');
+      if (!party || offered?.ok !== true) throw new Error(tr.t('app.lic.inv.noTerms'));
       await say(party, { type: 'agree', agreementFingerprint: offered.copy.agreementFingerprint });
       updateHeldLicense(id, (h) => ({ ...h, agreement: offered.copy, agreedAt: Date.now() }));
     } catch (e) {
@@ -271,11 +268,11 @@ export const LicenseInvitePage: React.FC = () => {
 
   const activate = () =>
     call.run(async (progress) => {
-      if (!held || !issued) throw new Error('It has not been issued yet.');
-      if (!party || offered?.ok !== true) throw new Error('The terms have not arrived, or didn’t check out.');
+      if (!held || !issued) throw new Error(tr.t('app.lic.inv.notIssued'));
+      if (!party || offered?.ok !== true) throw new Error(tr.t('app.lic.inv.noTerms'));
       // Their signed agreement to exactly these terms goes first, kept here and sent to the issuer.
       if (!held.agreedAt) {
-        progress('Signing your agreement to the terms…');
+        progress(tr.t('app.lic.inv.signing'));
         await say(party, { type: 'agree', agreementFingerprint: offered.copy.agreementFingerprint });
         updateHeldLicense(id, (h) => ({ ...h, agreement: offered.copy, agreedAt: Date.now() }));
       }
@@ -291,63 +288,62 @@ export const LicenseInvitePage: React.FC = () => {
     <Frame>
       <Typography variant="h5" component="h1" sx={{ mb: 1 }}>
         {handedOn
-          ? 'You handed this license on'
+          ? tr.t('app.lic.inv.h.handedOn')
           : gone
-            ? 'This license was cancelled'
+            ? tr.t('app.lic.inv.h.cancelled')
             : isLive
-              ? 'Your license is live'
+              ? tr.t('app.lic.inv.h.live')
               : handOnMode
-                ? 'A license is being handed on to you'
-                : 'You’ve been offered a license'}
+                ? tr.t('app.lic.inv.h.handOn')
+                : tr.t('app.lic.inv.h.offered')}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
-        For: <b>{invite.label || 'you'}</b> · from the record with on-chain key{' '}
-        <span style={{ fontFamily: 'monospace' }}>{shown(issuerKey)}</span>. Check that key with whoever sent you this.
+        {rich(
+          tr.t('app.lic.inv.forWhom'),
+          { b: (c) => <b>{c}</b> },
+          {
+            label: invite.label || tr.t('app.lic.inv.you'),
+            key: <span style={{ fontFamily: 'monospace' }}>{shown(issuerKey)}</span>,
+          },
+        )}
       </Typography>
 
       {swapped && (
         <Alert severity="error" variant="outlined" sx={{ mb: 2 }}>
-          The registry now names a different record than the one you accepted for. Don&apos;t rely on this page: ask the
-          sender to check their license on their own page.
+          {tr.t('app.lic.inv.swapped')}
         </Alert>
       )}
 
       {takenByOther && (
         <Alert severity="error" variant="outlined">
-          This link was already accepted on another device. If that wasn&apos;t you, tell whoever sent it: they should
-          make a new link and not issue this one.
+          {tr.t('app.lic.inv.taken')}
         </Alert>
       )}
 
       {!takenByOther && !isLive && !gone && handOnMode && (
         <DealSteps
-          steps={newHolderSteps({
-            accepted: !!held,
-            backedUp: !!held?.backedUpAt,
-            agreed: !!held?.agreedAt,
-            live: isLive,
-          })}
+          steps={newHolderSteps(
+            {
+              accepted: !!held,
+              backedUp: !!held?.backedUpAt,
+              agreed: !!held?.agreedAt,
+              live: isLive,
+            },
+            tr,
+          )}
         >
           {!held && (
             <Stack spacing={1.25}>
               <Button variant="contained" size="large" disabled={busy} onClick={() => void accept()}>
-                {busy ? 'Accepting…' : 'Accept'}
+                {busy ? tr.t('app.lic.inv.accepting') : tr.t('app.lic.steps.l.accept')}
               </Button>
-              <HowItWorks>
-                Someone holds a live license from this record and is handing it on to you, with the licensor&apos;s
-                agreement. Accepting makes your own license key on this device; it never leaves it. You read the
-                licensor a code, read and agree to the terms, and once the current holder hands it on and the licensor
-                approves, it&apos;s yours on Midnight. VeilCore pays the network fee and never sees the terms.
-              </HowItWorks>
+              <HowItWorks>{tr.t('app.lic.inv.howHandOn')}</HowItWorks>
             </Stack>
           )}
 
           {held && !held.backedUpAt && (
             <Stack spacing={1.25}>
-              <Typography variant="body2">
-                Your license key is on this device only. Save your backup now: without it you can&apos;t show this
-                license from another device.
-              </Typography>
+              <Typography variant="body2">{tr.t('app.lic.inv.backupHandOn')}</Typography>
               <Button
                 component={RouterLink}
                 to="/backup"
@@ -356,7 +352,7 @@ export const LicenseInvitePage: React.FC = () => {
                 size="large"
                 sx={{ alignSelf: 'flex-start' }}
               >
-                Save backup
+                {tr.t('app.lic.real.saveBackup')}
               </Button>
             </Stack>
           )}
@@ -365,7 +361,7 @@ export const LicenseInvitePage: React.FC = () => {
             <Stack spacing={1.25}>
               {code ? (
                 <>
-                  <Typography variant="body2">Read this code to the licensor, by phone or in person:</Typography>
+                  <Typography variant="body2">{tr.t('app.lic.inv.readToLicensor')}</Typography>
                   <Typography
                     data-license-code=""
                     sx={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, letterSpacing: '0.15em' }}
@@ -373,12 +369,12 @@ export const LicenseInvitePage: React.FC = () => {
                     {code}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    When it matches theirs, they send you the terms and this page moves on by itself.
+                    {tr.t('app.lic.inv.whenMatches')}
                   </Typography>
                 </>
               ) : (
                 <Typography variant="body2" color="text.secondary">
-                  Waiting for the licensor&apos;s page to answer. Your code shows here once it does.
+                  {tr.t('app.lic.inv.waitLicensor')}
                 </Typography>
               )}
             </Stack>
@@ -386,13 +382,11 @@ export const LicenseInvitePage: React.FC = () => {
 
           {held && held.backedUpAt && !held.agreedAt && offered?.ok === true && (
             <Stack spacing={1.25}>
-              <Typography variant="body2">
-                The terms you take the license over on (the same as the current holder&apos;s):
-              </Typography>
+              <Typography variant="body2">{tr.t('app.lic.inv.takeOverTerms')}</Typography>
               <TermsBox offered={offered} />
               <FormControlLabel
                 control={<Checkbox checked={agreeChecked} onChange={(e) => setAgreeChecked(e.target.checked)} />}
-                label="I agree to these terms"
+                label={tr.t('app.lic.inv.iAgree')}
               />
               <Button
                 variant="contained"
@@ -401,42 +395,29 @@ export const LicenseInvitePage: React.FC = () => {
                 onClick={() => void agreeOnly()}
                 sx={{ alignSelf: 'flex-start' }}
               >
-                Agree
+                {tr.t('app.lic.inv.agree')}
               </Button>
             </Stack>
           )}
 
-          {held && held.agreedAt && (
-            <Typography variant="body2">
-              Waiting for the current holder to hand it on and the licensor to approve it. This page reads the chain
-              itself and moves on when they do. You can close it and open the link again later.
-            </Typography>
-          )}
+          {held && held.agreedAt && <Typography variant="body2">{tr.t('app.lic.inv.waitHandOn')}</Typography>}
         </DealSteps>
       )}
 
       {!takenByOther && !isLive && !gone && !handOnMode && (
-        <DealSteps steps={licenseeSteps({ accepted: !!held, backedUp: !!held?.backedUpAt, issued, live: isLive })}>
+        <DealSteps steps={licenseeSteps({ accepted: !!held, backedUp: !!held?.backedUpAt, issued, live: isLive }, tr)}>
           {!held && (
             <Stack spacing={1.25}>
               <Button variant="contained" size="large" disabled={busy} onClick={() => void accept()}>
-                {busy ? 'Accepting…' : 'Accept'}
+                {busy ? tr.t('app.lic.inv.accepting') : tr.t('app.lic.steps.l.accept')}
               </Button>
-              <HowItWorks>
-                Accepting makes your own license key on this device. It never leaves it: the person who sent this gets
-                only a code made from it. Once they issue the license, you activate it with your key, and it&apos;s on
-                Midnight with both of your keys. The terms are between you and them: VeilCore records that the license
-                exists and is live, and doesn&apos;t write, see or enforce the terms. VeilCore pays the network fee.
-              </HowItWorks>
+              <HowItWorks>{tr.t('app.lic.inv.how')}</HowItWorks>
             </Stack>
           )}
 
           {held && !held.backedUpAt && (
             <Stack spacing={1.25}>
-              <Typography variant="body2">
-                Your license key is on this device only. Save your backup now: you need it to activate, and to show this
-                license from another device.
-              </Typography>
+              <Typography variant="body2">{tr.t('app.lic.inv.backup')}</Typography>
               <Button
                 component={RouterLink}
                 to="/backup"
@@ -445,7 +426,7 @@ export const LicenseInvitePage: React.FC = () => {
                 size="large"
                 sx={{ alignSelf: 'flex-start' }}
               >
-                Save backup
+                {tr.t('app.lic.real.saveBackup')}
               </Button>
             </Stack>
           )}
@@ -454,9 +435,7 @@ export const LicenseInvitePage: React.FC = () => {
             <Stack spacing={1.25}>
               {code ? (
                 <>
-                  <Typography variant="body2">
-                    Read this code to whoever sent you the link, by phone or in person:
-                  </Typography>
+                  <Typography variant="body2">{tr.t('app.lic.inv.readCode')}</Typography>
                   <Typography
                     data-license-code=""
                     sx={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, letterSpacing: '0.15em' }}
@@ -464,13 +443,12 @@ export const LicenseInvitePage: React.FC = () => {
                     {code}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Their screen shows one too. When it matches, they issue it and this page moves on by itself. You can
-                    close it and open the link again later.
+                    {tr.t('app.lic.inv.theirsToo')}
                   </Typography>
                 </>
               ) : (
                 <Typography variant="body2" color="text.secondary">
-                  Waiting for their page to answer. Your code shows here once it does: their page needs to be open.
+                  {tr.t('app.lic.inv.waitTheirs')}
                 </Typography>
               )}
             </Stack>
@@ -478,7 +456,7 @@ export const LicenseInvitePage: React.FC = () => {
 
           {held && held.backedUpAt && issued && (
             <Stack spacing={1.25}>
-              <Typography variant="body2">They issued it on Midnight (checked on chain). Read the terms:</Typography>
+              <Typography variant="body2">{tr.t('app.lic.inv.issuedRead')}</Typography>
               <TermsBox offered={offered} />
               <FormControlLabel
                 control={
@@ -488,7 +466,7 @@ export const LicenseInvitePage: React.FC = () => {
                     onChange={(e) => setAgreeChecked(e.target.checked)}
                   />
                 }
-                label="I agree to these terms"
+                label={tr.t('app.lic.inv.iAgree')}
               />
               <Button
                 variant="contained"
@@ -496,7 +474,7 @@ export const LicenseInvitePage: React.FC = () => {
                 disabled={call.busy || !agreeChecked || offered?.ok !== true}
                 onClick={() => void activate()}
               >
-                Agree and activate
+                {tr.t('app.lic.inv.agreeActivate')}
               </Button>
             </Stack>
           )}
@@ -505,13 +483,12 @@ export const LicenseInvitePage: React.FC = () => {
 
       {handedOn && (
         <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
-          The licensor approved it: this license is now {held?.handOnTo ?? 'the new holder'}&apos;s, not yours. Your
-          royalty history is kept in your backup.
+          {tr.t('app.lic.inv.handedOn', { name: held?.handOnTo ?? tr.t('app.lic.inv.newHolder') })}
         </Alert>
       )}
       {gone && !handedOn && (
         <Alert severity="error" variant="outlined" sx={{ mb: 2 }}>
-          It is no longer on Midnight: the sender cancelled or revoked it. Ask them if you think that&apos;s a mistake.
+          {tr.t('app.lic.inv.gone')}
         </Alert>
       )}
 
@@ -523,8 +500,9 @@ export const LicenseInvitePage: React.FC = () => {
 
       {held && isLive && !gone && (
         <Alert severity="success" variant="outlined" data-license-live="">
-          Live on Midnight{held.activatedAt ? ` since ${new Date(held.activatedAt).toLocaleDateString()}` : ''}. Keep
-          your backup: it&apos;s how you prove this license later.
+          {held.activatedAt
+            ? tr.t('app.lic.inv.liveSince', { date: tr.date(held.activatedAt) })
+            : tr.t('app.lic.inv.live')}
         </Alert>
       )}
 

@@ -19,6 +19,7 @@ import { say, type DealEntry, type DealParty } from '../../veilcore/deal-client'
 import { useChainCall } from '../chain/useChainCall';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import { ConfirmInline } from './DealSteps';
+import { rich, useT } from '../../i18n/app';
 
 type Status = 'none' | 'proposed' | 'in-force';
 
@@ -43,6 +44,7 @@ export const OffspringRoyalty: React.FC<{
   /** The breeder's record secret (issuer side only). */
   issuerSecret?: string;
 }> = ({ side, party, entries, refresh, pct, obligation, beneficiary, issuerSecret }) => {
+  const tr = useT();
   const allKeys = useRecordKeys();
   const plant = [...(entries ?? [])].reverse().find((e) => e.type === 'plant-record' && e.from === 'licensee') as
     | Extract<DealEntry, { type: 'plant-record' }>
@@ -80,12 +82,11 @@ export const OffspringRoyalty: React.FC<{
   };
 
   return (
-    <Stack spacing={1.25} lang="en">
+    <Stack spacing={1.25}>
       <Box>
-        <Typography variant="subtitle2">Royalty on offspring: {pct}%</Typography>
+        <Typography variant="subtitle2">{tr.t('app.lic.off.title', { pct })}</Typography>
         <Typography variant="body2" color="text.secondary">
-          On Midnight it sits on the licensee&apos;s own record of this plant, so every offspring both holders confirm
-          shows it when anyone checks the line. The licensee accepts it; only the breeder can release it.
+          {tr.t('app.lic.off.intro')}
         </Typography>
       </Box>
 
@@ -93,14 +94,14 @@ export const OffspringRoyalty: React.FC<{
         side === 'licensee' &&
         (mine.length === 0 ? (
           <Alert severity="info" variant="outlined">
-            Date your plant of these genetics first, then name it here. <RouterLink to="/new">Date a plant</RouterLink>
+            {tr.t('app.lic.off.dateFirst')} <RouterLink to="/new">{tr.t('app.lic.off.datePlant')}</RouterLink>
           </Alert>
         ) : (
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
             <TextField
               select
               size="small"
-              label="Your record of this plant"
+              label={tr.t('app.lic.off.yourRecord')}
               value={pick}
               onChange={(e) => setPick(e.target.value)}
               sx={{ minWidth: 240 }}
@@ -123,27 +124,34 @@ export const OffspringRoyalty: React.FC<{
                 })
               }
             >
-              Name it
+              {tr.t('app.lic.off.nameIt')}
             </Button>
           </Stack>
         ))}
       {!plant && side === 'issuer' && (
         <Typography variant="body2" color="text.secondary">
-          Waiting for them to name their record of this plant.
+          {tr.t('app.lic.off.waitName')}
         </Typography>
       )}
 
       {plant && (
         <Typography variant="body2">
-          Their record: <b>{plant.name}</b>{' '}
-          <span style={{ fontFamily: 'monospace' }}>{plant.recordIdentity.slice(0, 8)}…</span> ·{' '}
-          {status === 'in-force'
-            ? 'in force on Midnight'
-            : status === 'proposed'
-              ? 'proposed, waiting for the licensee to accept'
-              : status === 'none'
-                ? 'not on Midnight yet'
-                : 'checking…'}
+          {rich(
+            tr.t('app.lic.off.theirRecord'),
+            { b: (c) => <b>{c}</b> },
+            {
+              name: plant.name,
+              key: <span style={{ fontFamily: 'monospace' }}>{plant.recordIdentity.slice(0, 8)}…</span>,
+              state:
+                status === 'in-force'
+                  ? tr.t('app.lic.off.inForce')
+                  : status === 'proposed'
+                    ? tr.t('app.lic.off.proposed')
+                    : status === 'none'
+                      ? tr.t('app.lic.off.notYet')
+                      : tr.t('app.lic.off.checking'),
+            },
+          )}
         </Typography>
       )}
 
@@ -161,7 +169,7 @@ export const OffspringRoyalty: React.FC<{
             })
           }
         >
-          Put it on their record
+          {tr.t('app.lic.off.put')}
         </Button>
       )}
       {plant && side === 'issuer' && issuerSecret && status === 'proposed' && (
@@ -178,14 +186,14 @@ export const OffspringRoyalty: React.FC<{
             })
           }
         >
-          Take it back
+          {tr.t('app.lic.off.takeBack')}
         </Button>
       )}
       {plant && side === 'issuer' && issuerSecret && status === 'in-force' && (
         <ConfirmInline
-          label="Release it"
-          question="Release the offspring royalty? Their record and its offspring will no longer show it. This goes on Midnight."
-          confirmLabel="Yes, release it"
+          label={tr.t('app.lic.off.release')}
+          question={tr.t('app.lic.off.releaseQ')}
+          confirmLabel={tr.t('app.lic.off.releaseYes')}
           disabled={call.busy}
           onConfirm={() =>
             void call.run(async (progress) => {
@@ -208,12 +216,12 @@ export const OffspringRoyalty: React.FC<{
               })
             }
           >
-            Accept it, as agreed
+            {tr.t('app.lic.off.accept')}
           </Button>
           <ConfirmInline
-            label="Decline"
-            question="Decline it? This goes against the terms you agreed to, and they will see it."
-            confirmLabel="Yes, decline it"
+            label={tr.t('app.lic.off.decline')}
+            question={tr.t('app.lic.off.declineQ')}
+            confirmLabel={tr.t('app.lic.off.declineYes')}
             disabled={call.busy}
             onConfirm={() =>
               void call.run(async (progress) => {

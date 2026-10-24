@@ -15,13 +15,13 @@ import {
   sentFor,
   onChainMethod,
   payOnChain,
-  tokenOfMethod,
   type OnChainToken,
   type PaymentCheck,
   type WalletEntry,
 } from '../../veilcore/onchain-pay';
 import { READ_INDEXERS } from '../../veilcore/chain/config';
 import { NETWORK } from '../../config/network';
+import { useT } from '../../i18n/app';
 
 export { methodWords } from '../../veilcore/onchain-pay';
 
@@ -33,11 +33,12 @@ export const MidnightPayoutForm: React.FC<{
   onSend: (b: { type: 'payout'; method: string; account: string; currency: string }) => void;
   onCancel: () => void;
 }> = ({ busy, onSend, onCancel }) => {
+  const tr = useT();
   const token = ONCHAIN_TOKENS[0];
   const [address, setAddress] = useState('');
   const [error, setError] = useState<string>();
   const wallets = findWallets();
-  const problem = address.trim() ? addressProblem(address) : undefined;
+  const problem = address.trim() ? addressProblem(address, NETWORK, tr) : undefined;
   const fromWallet = async (w: WalletEntry) => {
     setError(undefined);
     try {
@@ -50,13 +51,11 @@ export const MidnightPayoutForm: React.FC<{
   return (
     <Stack spacing={1.25} data-midnight-payout="">
       <Alert severity="info" variant="outlined">
-        They pay you {token.code} from their own wallet, straight to this address; VeilCore never touches it.{' '}
-        {token.code} payments are public on Midnight (amounts and addresses, not names), and statements are then in{' '}
-        {token.code}: VeilCore doesn’t convert currencies.
+        {tr.t('app.lic.pay.payoutInfo', { code: token.code })}
       </Alert>
       <TextField
         size="small"
-        label="Your Midnight address (mn_addr…)"
+        label={tr.t('app.lic.pay.address')}
         value={address}
         onChange={(e) => setAddress(e.target.value.trim().slice(0, 200))}
         error={!!problem}
@@ -66,7 +65,7 @@ export const MidnightPayoutForm: React.FC<{
         <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
           {wallets.map((w) => (
             <Button key={w.id} size="small" variant="outlined" onClick={() => void fromWallet(w)}>
-              Use my {w.name} address
+              {tr.t('app.lic.pay.useMine', { name: w.name })}
             </Button>
           ))}
         </Stack>
@@ -84,9 +83,9 @@ export const MidnightPayoutForm: React.FC<{
             onSend({ type: 'payout', method: onChainMethod(token.code), account: address.trim(), currency: token.code })
           }
         >
-          Send
+          {tr.t('app.lic.ledger.send')}
         </Button>
-        <Button onClick={onCancel}>Cancel</Button>
+        <Button onClick={onCancel}>{tr.t('app.lic.ledger.cancel')}</Button>
       </Stack>
     </Stack>
   );
@@ -102,6 +101,7 @@ export const PayOnMidnight: React.FC<{
   statementSig: string;
   onPaid: (txId: string) => void;
 }> = ({ token, amount, payTo, busy, statementSig, onPaid }) => {
+  const tr = useT();
   const wallets = findWallets();
   const [sent, setSent] = useState(() => sentFor(statementSig));
   const [pick, setPick] = useState(wallets[0]?.id ?? '');
@@ -116,19 +116,17 @@ export const PayOnMidnight: React.FC<{
         data-pay-on-midnight="sent"
         action={
           <Button color="inherit" variant="outlined" disabled={busy} onClick={() => onPaid(sent)}>
-            Record it
+            {tr.t('app.lic.pay.recordIt')}
           </Button>
         }
       >
-        You already paid this on Midnight (transaction {short(sent)}), but it isn’t recorded for them yet. Record it;
-        don’t pay again.
+        {tr.t('app.lic.pay.alreadyPaid', { tx: short(sent) })}
       </Alert>
     );
   if (wallets.length === 0)
     return (
       <Alert severity="info" variant="outlined" data-pay-on-midnight="no-wallet">
-        To pay on Midnight, open this page in a browser with a Midnight wallet (Lace or 1AM) on {NETWORK}, or pay
-        another way and record it below.
+        {tr.t('app.lic.pay.noWallet', { network: NETWORK })}
       </Alert>
     );
   const wallet = wallets.find((w) => w.id === pick) ?? wallets[0];
@@ -136,7 +134,7 @@ export const PayOnMidnight: React.FC<{
     setState('paying');
     setError(undefined);
     try {
-      const txId = await payOnChain(wallet, { token, amount, recipient: payTo });
+      const txId = await payOnChain(wallet, { token, amount, recipient: payTo }, { tr });
       keepSent(statementSig, txId);
       setSent(txId);
       onPaid(txId);
@@ -150,7 +148,13 @@ export const PayOnMidnight: React.FC<{
     <Stack spacing={1} data-pay-on-midnight="">
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
         {wallets.length > 1 && (
-          <TextField select size="small" label="Wallet" value={wallet.id} onChange={(e) => setPick(e.target.value)}>
+          <TextField
+            select
+            size="small"
+            label={tr.t('app.lic.pay.wallet')}
+            value={wallet.id}
+            onChange={(e) => setPick(e.target.value)}
+          >
             {wallets.map((w) => (
               <MenuItem key={w.id} value={w.id}>
                 {w.name}
@@ -159,12 +163,13 @@ export const PayOnMidnight: React.FC<{
           </TextField>
         )}
         <Button variant="contained" disabled={busy || state === 'paying'} onClick={() => void pay()}>
-          {state === 'paying' ? 'Waiting for your wallet…' : `Pay ${amount} ${token.code} with ${wallet.name}`}
+          {state === 'paying'
+            ? tr.t('app.lic.pay.waiting')
+            : tr.t('app.lic.pay.payWith', { amount, code: token.code, name: wallet.name })}
         </Button>
       </Stack>
       <Typography variant="caption" color="text.secondary">
-        Your wallet shows the payment and the fee before you approve it, to {short(payTo)}. Once it is sent, this page
-        records it for them, with the transaction.
+        {tr.t('app.lic.pay.walletShows', { to: short(payTo) })}
       </Typography>
       {error && (
         <Alert severity="error" variant="outlined">
@@ -187,13 +192,14 @@ export const OnChainPaymentCheck: React.FC<{
   /** Another statement of this deal this transaction was already given for, if any. */
   reusedFor?: string;
 }> = ({ token, txId, payTo, amount, statementSig, reusedFor }) => {
+  const tr = useT();
   const [r, setR] = useState<PaymentCheck>();
   const [elsewhere, setElsewhere] = useState<string>();
   useEffect(() => {
     let live = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const run = () =>
-      void checkPayment({ txId, payTo, token, amount }, { indexers: READ_INDEXERS }).then((x) => {
+      void checkPayment({ txId, payTo, token, amount }, { indexers: READ_INDEXERS, tr }).then((x) => {
         if (!live) return;
         // Counted once across every deal on this device (onchain-pay.ts countPayment).
         if (x.ok && !reusedFor) setElsewhere(countPayment(txId, statementSig));
@@ -205,24 +211,24 @@ export const OnChainPaymentCheck: React.FC<{
       live = false;
       if (timer) clearTimeout(timer);
     };
-  }, [txId, payTo, token, amount, statementSig, reusedFor]);
+  }, [txId, payTo, token, amount, statementSig, reusedFor, tr]);
   if (reusedFor || elsewhere)
     return (
       <Alert severity="warning" variant="outlined" data-onchain-check="reused">
-        This transaction was already given for another statement. It counts for one only: ask them for the payment of
-        this one.
+        {tr.t('app.lic.pay.reused')}
       </Alert>
     );
   if (!r)
     return (
       <Typography variant="body2" color="text.secondary">
-        Checking the payment on Midnight…
+        {tr.t('app.lic.pay.checking')}
       </Typography>
     );
   return r.ok ? (
     <Alert severity="success" variant="outlined" data-onchain-check="ok">
-      Checked on Midnight: {amount} {token.code} reached your address in transaction {short(r.txHash)}
-      {r.blockHeight ? `, block ${r.blockHeight}` : ''}. Read from Midnight’s indexer, not from them or VeilCore.
+      {r.blockHeight
+        ? tr.t('app.lic.pay.checkedBlock', { amount, code: token.code, tx: short(r.txHash), block: r.blockHeight })
+        : tr.t('app.lic.pay.checked', { amount, code: token.code, tx: short(r.txHash) })}
     </Alert>
   ) : (
     <Alert severity={r.unreachable ? 'info' : 'warning'} variant="outlined" data-onchain-check="not-yet">

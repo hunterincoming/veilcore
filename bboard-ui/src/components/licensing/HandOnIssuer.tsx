@@ -26,6 +26,7 @@ import { useChainCall } from '../chain/useChainCall';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { ConfirmInline, DealSteps, HowItWorks } from './DealSteps';
+import { rich, useT } from '../../i18n/app';
 
 const POLL_MS = 8_000;
 
@@ -53,6 +54,7 @@ export const HandOnIssuer: React.FC<{
   blocked: boolean;
   onToast: (m: string) => void;
 }> = ({ license, party, entries, recordSecret, blocked, onToast }) => {
+  const tr = useT();
   const oc = license.onChain!;
   const h = oc.handOn;
   const asked = handOnAsked(entries, h?.invitedAt);
@@ -108,23 +110,18 @@ export const HandOnIssuer: React.FC<{
           return;
         }
         if (h.issuerNonce && inv.issuerNonce && inv.issuerNonce !== h.issuerNonce) {
-          setError('The registry shows a different answer than this page gave. Cancel this hand-on and start again.');
+          setError(tr.t('app.lic.hi.errNonce'));
           return;
         }
         if (inv.commitment && inv.issuerRecord && inv.licenseeNonce && h.commitHash) {
           const matches = (await commitHashOf(inv.commitment, inv.issuerRecord, inv.licenseeNonce)) === h.commitHash;
           if (!active) return;
           if (!matches || inv.issuerRecord !== oc.issuerRecord) {
-            setError(
-              matches
-                ? 'Their answer names a different record than this license’s. Cancel this hand-on and start again.'
-                : 'Their answer doesn’t match what they first sent. Cancel this hand-on and start again.',
-            );
+            setError(matches ? tr.t('app.lic.hi.errRecord') : tr.t('app.lic.hi.errCommit'));
             return;
           }
           if ((await licenseStatusNow(inv.commitment, oc.issuerRecord)) !== 'none') {
-            if (active)
-              setError('Their answer names a license that already exists. Cancel this hand-on and start again.');
+            if (active) setError(tr.t('app.lic.hi.errExists'));
             return;
           }
           setOnChain(license.id, (c) => ({
@@ -144,7 +141,7 @@ export const HandOnIssuer: React.FC<{
       active = false;
       clearInterval(t);
     };
-  }, [h, oc.commitment, oc.issuerRecord, license.id]);
+  }, [h, oc.commitment, oc.issuerRecord, license.id, tr]);
 
   const start = async () => {
     setBusy(true);
@@ -185,8 +182,8 @@ export const HandOnIssuer: React.FC<{
     setError(undefined);
     try {
       const np = newHolderParty(oc);
-      if (!np || !h?.commitment) throw new Error('They have not answered yet.');
-      if (!license.agreementSalt) throw new Error('This agreement was drawn up before agreements had a salt.');
+      if (!np || !h?.commitment) throw new Error(tr.t('app.lic.hi.notAnswered'));
+      if (!license.agreementSalt) throw new Error(tr.t('app.lic.real.noSalt'));
       const { say } = await import('../../veilcore/deal-client');
       if (!h.termsSentAt) {
         await say(np, {
@@ -210,10 +207,10 @@ export const HandOnIssuer: React.FC<{
 
   const approve = () =>
     call.run(async (progress) => {
-      if (!h?.commitment || !oc.commitment || !oc.issuerRecord) throw new Error('Nothing to approve yet.');
+      if (!h?.commitment || !oc.commitment || !oc.issuerRecord) throw new Error(tr.t('app.lic.hi.nothing'));
       // Read again just before sending: it must still be the one checked by code.
       if ((await pendingTransferNow(oc.commitment, oc.issuerRecord)) !== h.commitment)
-        throw new Error('The current holder has not handed it on to the person you checked. Nothing was sent.');
+        throw new Error(tr.t('app.lic.hi.notProposed'));
       const { approveTransferOnChain } = await import('../../veilcore/chain/actions');
       const r = await approveTransferOnChain(hexBytes(recordSecret), oc.commitment, oc.issuerRecord, h.commitment, {
         progress,
@@ -221,13 +218,13 @@ export const HandOnIssuer: React.FC<{
       // Kept at once: the approval went through; the deal is now with the new holder.
       setOnChain(license.id, (c) => ({ ...c!, handOn: { ...c!.handOn!, approveTx: r.txId } }));
       setOnChain(license.id, (c) => afterHandOn(c!, r.txId, r.blockTime ?? Date.now()));
-      onToast(`Handed on. The license is now ${h.label}’s.`);
+      onToast(tr.t('app.lic.hi.done', { name: h.label }));
       return r;
     });
 
   const copy = async (link: string) => {
     await navigator.clipboard.writeText(link);
-    onToast('Link copied.');
+    onToast(tr.t('app.lic.detail.copied'));
   };
 
   if (!h) {
@@ -235,8 +232,11 @@ export const HandOnIssuer: React.FC<{
       <Stack spacing={1.25} data-hand-on="">
         {asked && (
           <Alert severity="warning" variant="outlined">
-            They ask to hand this license on to <b>{asked.to}</b>
-            {asked.note ? `: “${asked.note}”` : '.'} It moves only if you agree: start below, or ignore it.
+            {rich(
+              asked.note ? tr.t('app.lic.hi.askedNote') : tr.t('app.lic.hi.asked'),
+              { b: (c) => <b>{c}</b> },
+              { to: asked.to, note: asked.note ?? '' },
+            )}
           </Alert>
         )}
         {!open ? (
@@ -249,30 +249,25 @@ export const HandOnIssuer: React.FC<{
             }}
             sx={{ alignSelf: 'flex-start' }}
           >
-            Hand this license on to someone new
+            {tr.t('app.lic.hi.start')}
           </Button>
         ) : (
           <Stack spacing={1.25}>
             <TextField
-              label="Who is it going to? (they'll see this)"
+              label={tr.t('app.lic.hi.whoTo')}
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               slotProps={{ htmlInput: { maxLength: 80 } }}
             />
             <Stack direction="row" spacing={1.5}>
               <Button variant="contained" disabled={busy || !label.trim()} onClick={() => void start()}>
-                Make a link for them
+                {tr.t('app.lic.proof.make')}
               </Button>
               <Button color="inherit" onClick={() => setOpen(false)}>
-                Not now
+                {tr.t('app.lic.hi.notNow')}
               </Button>
             </Stack>
-            <HowItWorks>
-              The license moves to the new holder on the same terms, keeping its place on Midnight. It takes all three
-              of you: the new holder accepts with their own key and reads you a code, the current holder hands it on,
-              and you approve it. Nobody can move it alone, you included. The current holder&apos;s royalty history
-              stays with this license.
-            </HowItWorks>
+            <HowItWorks>{tr.t('app.lic.hi.how')}</HowItWorks>
           </Stack>
         )}
         {error && (
@@ -285,22 +280,22 @@ export const HandOnIssuer: React.FC<{
   }
 
   const link = canonicalUrl(handOnPath(h.inviteId, h.acceptToken, oc.issuerRecord!));
-  const holder = oc.label || 'the current holder';
+  const holder = oc.label || tr.t('app.lic.hi.currentHolder');
   const wrongProposal = Boolean(proposed && proposed !== h.commitment);
 
   return (
     <Stack spacing={1.5} data-hand-on="">
-      <Typography variant="subtitle2">Handing this license on to {h.label}</Typography>
-      <DealSteps steps={issuerHandOnSteps(h, { proposed: proposed === h.commitment })}>
+      <Typography variant="subtitle2">{tr.t('app.lic.hi.title', { name: h.label })}</Typography>
+      <DealSteps steps={issuerHandOnSteps(h, { proposed: proposed === h.commitment }, tr)}>
         {!h.commitment && (
           <Stack spacing={1.25}>
             <Typography variant="body2">
               {h.issuerNonce
-                ? `${h.label} accepted. Finishing on their device: this takes a few seconds while their page is open.`
-                : `Send this link to ${h.label}. This page moves on by itself when they accept.`}
+                ? tr.t('app.lic.real.accepted', { who: h.label })
+                : tr.t('app.lic.hi.sendLink', { who: h.label })}
             </Typography>
             <TextField
-              label="Their link"
+              label={tr.t('app.lic.real.theirLink')}
               value={link}
               size="small"
               fullWidth
@@ -312,16 +307,14 @@ export const HandOnIssuer: React.FC<{
               onClick={() => void copy(link)}
               sx={{ alignSelf: 'flex-start' }}
             >
-              Copy link
+              {tr.t('app.lic.detail.copyLink')}
             </Button>
           </Stack>
         )}
 
         {h.commitment && !h.askedAt && (
           <Stack spacing={1.25}>
-            <Typography variant="body2">
-              Call {h.label} or meet up. Their screen shows a code. It must be this one:
-            </Typography>
+            <Typography variant="body2">{tr.t('app.lic.real.callThem', { who: h.label })}</Typography>
             <Typography
               data-license-code=""
               sx={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, letterSpacing: '0.15em' }}
@@ -329,11 +322,11 @@ export const HandOnIssuer: React.FC<{
               {code ?? '…'}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              A different code means someone else answered your link: cancel and start again.
+              {tr.t('app.lic.hi.differentCode')}
             </Typography>
             <FormControlLabel
               control={<Checkbox checked={codeChecked} onChange={(e) => setCodeChecked(e.target.checked)} />}
-              label="They read me this same code"
+              label={tr.t('app.lic.real.sameCode')}
             />
             <Button
               variant="contained"
@@ -342,24 +335,18 @@ export const HandOnIssuer: React.FC<{
               onClick={() => void send()}
               sx={{ alignSelf: 'flex-start' }}
             >
-              Send them the terms, and ask {holder} to hand it on
+              {tr.t('app.lic.hi.send', { holder })}
             </Button>
           </Stack>
         )}
 
         {h.askedAt && proposed !== h.commitment && (
-          <Typography variant="body2">
-            Waiting for {holder} to hand it on from their page, and for {h.label} to agree to the terms. This page reads
-            the chain itself and moves on when they do.
-          </Typography>
+          <Typography variant="body2">{tr.t('app.lic.hi.waiting', { holder, name: h.label })}</Typography>
         )}
 
         {h.askedAt && proposed === h.commitment && (
           <Stack spacing={1.25}>
-            <Typography variant="body2">
-              {holder} handed it on to {h.label}, the person who read you the code (checked on chain). Approve it to
-              finish: from then on the license is {h.label}&apos;s.
-            </Typography>
+            <Typography variant="body2">{tr.t('app.lic.hi.ready', { holder, name: h.label })}</Typography>
             <Button
               variant="contained"
               size="large"
@@ -367,7 +354,7 @@ export const HandOnIssuer: React.FC<{
               onClick={() => void approve()}
               sx={{ alignSelf: 'flex-start' }}
             >
-              Approve the hand-on
+              {tr.t('app.lic.hi.approve')}
             </Button>
           </Stack>
         )}
@@ -375,8 +362,7 @@ export const HandOnIssuer: React.FC<{
 
       {wrongProposal && (
         <Alert severity="error" variant="outlined">
-          {holder} proposed handing it to someone other than the person who read you the code. Don&apos;t approve: this
-          page won&apos;t. Ask them to withdraw it.
+          {tr.t('app.lic.hi.wrong', { holder })}
         </Alert>
       )}
       {error && (
@@ -385,9 +371,9 @@ export const HandOnIssuer: React.FC<{
         </Alert>
       )}
       <ConfirmInline
-        label="Cancel the hand-on"
-        question={`Stop handing this license on to ${h.label}? The license stays with ${holder}.`}
-        confirmLabel="Yes, cancel it"
+        label={tr.t('app.lic.hi.cancel')}
+        question={tr.t('app.lic.hi.cancelQ', { name: h.label, holder })}
+        confirmLabel={tr.t('app.lic.real.cancelYes')}
         disabled={call.busy}
         onConfirm={cancel}
       />

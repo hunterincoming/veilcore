@@ -30,6 +30,7 @@
 
 import type { HandOnInvite, OnChainLicense } from './licenses';
 import type { Step } from '../components/licensing/steps';
+import { enT, type Translator } from '../i18n/translate';
 
 const stepsOf = (list: readonly (readonly [string, boolean])[]): Step[] => {
   const now = list.findIndex(([, done]) => !done);
@@ -37,22 +38,29 @@ const stepsOf = (list: readonly (readonly [string, boolean])[]): Step[] => {
 };
 
 /** The licensor's steps for a hand-on under way. */
-export const issuerHandOnSteps = (h: HandOnInvite | undefined, s: { proposed: boolean }): Step[] =>
+export const issuerHandOnSteps = (
+  h: HandOnInvite | undefined,
+  s: { proposed: boolean },
+  tr: Translator = enT,
+): Step[] =>
   stepsOf([
-    ['Make a link for the new holder', !!h],
-    ['They accept and read you their code', !!h?.commitment && !!h.askedAt],
-    ['The current holder hands it on', s.proposed],
-    ['You approve it', !!h?.approveTx],
+    [tr.t('app.lic.handon.steps.i.link'), !!h],
+    [tr.t('app.lic.handon.steps.i.code'), !!h?.commitment && !!h.askedAt],
+    [tr.t('app.lic.handon.steps.i.holder'), s.proposed],
+    [tr.t('app.lic.handon.steps.i.approve'), !!h?.approveTx],
   ]);
 
 /** The new holder's steps. */
-export const newHolderSteps = (s: { accepted: boolean; backedUp: boolean; agreed: boolean; live: boolean }): Step[] =>
+export const newHolderSteps = (
+  s: { accepted: boolean; backedUp: boolean; agreed: boolean; live: boolean },
+  tr: Translator = enT,
+): Step[] =>
   stepsOf([
-    ['Accept', s.accepted],
-    ['Save your backup (it holds your license key)', s.accepted && s.backedUp],
-    ['Read them your 6-digit code', s.agreed || s.live],
-    ['Read the terms and agree', s.agreed],
-    ['The current holder hands it on and they approve it', s.live],
+    [tr.t('app.lic.steps.l.accept'), s.accepted],
+    [tr.t('app.lic.steps.l.backup'), s.accepted && s.backedUp],
+    [tr.t('app.lic.handon.steps.n.code'), s.agreed || s.live],
+    [tr.t('app.lic.handon.steps.n.agree'), s.agreed],
+    [tr.t('app.lic.handon.steps.n.wait'), s.live],
   ]);
 
 /**

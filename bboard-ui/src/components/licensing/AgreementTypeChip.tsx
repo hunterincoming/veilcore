@@ -7,7 +7,8 @@ import { Chip } from '@mui/material';
 import GavelIcon from '@mui/icons-material/GavelOutlined';
 import ScienceIcon from '@mui/icons-material/ScienceOutlined';
 import ShareIcon from '@mui/icons-material/ShareOutlined';
-import { AGREEMENT_LABEL, type AgreementType } from '../../veilcore/licenses';
+import { agreementLabel, type AgreementType } from '../../veilcore/licenses';
+import { useT } from '../../i18n/app';
 
 const ICON: Record<AgreementType, React.ReactElement> = {
   license: <GavelIcon />,
@@ -21,6 +22,15 @@ const COLOR: Record<AgreementType, 'primary' | 'info' | 'secondary'> = {
   'breeder-share': 'secondary',
 };
 
-export const AgreementTypeChip: React.FC<{ type: AgreementType; size?: 'small' | 'medium' }> = ({ type, size }) => (
-  <Chip size={size ?? 'small'} variant="outlined" color={COLOR[type]} icon={ICON[type]} label={AGREEMENT_LABEL[type]} />
-);
+export const AgreementTypeChip: React.FC<{ type: AgreementType; size?: 'small' | 'medium' }> = ({ type, size }) => {
+  const tr = useT();
+  return (
+    <Chip
+      size={size ?? 'small'}
+      variant="outlined"
+      color={COLOR[type]}
+      icon={ICON[type]}
+      label={agreementLabel(type, tr)}
+    />
+  );
+};
