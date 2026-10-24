@@ -88,9 +88,34 @@ Optional, on a computer: paste a downloaded credential into a W3C verifier that 
 `eddsa-jcs-2022` (for example the Digital Bazaar or Spruce playgrounds) to see it check out
 without VeilCore.
 
+**Handing a license on (needs a third browser for the new holder: a private window on the
+Mac works, a second phone is better).** Do this before step 20, or on a fresh license made as
+in steps 2 to 7, because a revoked license can't be handed on.
+
+| # | Who | Do | You should see |
+|---|---|---|---|
+| 29 | Phone (holder) | On the live license: **Hand this license on to someone else**, name "Second Grower", a note, **Ask the licensor** | "You asked the licensor…" |
+| 30 | Mac | Refresh the license | "They ask to hand this license on to Second Grower" with the note |
+| 31 | Mac | **Hand this license on to someone new** → **Make a link**, send it to the new holder | A link |
+| 32 | New holder | Open it, **Accept**, **Save backup** | A 6-digit code |
+| 33 | Mac + new holder | Read the codes to each other; Mac ticks "They read me this same code", **Send them the terms, and ask … to hand it on** | The terms on the new holder's screen |
+| 34 | Phone | **Hand it on to Second Grower**, **Yes, hand it on** | "You handed this license on… still yours until the licensor approves" |
+| 35 | Mac | Wait a minute | Still "Waiting for … to agree to the terms". **There must be no Approve button yet.** If there is, stop and screenshot it |
+| 36 | New holder | Read the terms, tick "I agree", **Agree** | "Waiting for the current holder to hand it on and the licensor to approve" |
+| 37 | Mac | Wait, then **Approve the hand-on** | "Handed on. The license is now Second Grower's." |
+| 38 | All three | Refresh | Phone: "You handed this license on"; new holder: "Your license is live" with the terms and Royalties; Mac: the license with Second Grower |
+| 39 | Mac | **Download a pack for a lender or buyer**, open `summary.txt` in the zip | Second Grower's deal only, every signature checked |
+
+**Other languages (any device).** Language menu → 日本語, then Español, Deutsch, Français. Open a
+license page and the Royalties box in each.
+
+| # | Who | Do | You should see |
+|---|---|---|---|
+| 40 | Any | Each language: a license page, Royalties, a hand-on screen | No English left over, no `app.lic…` text, nothing cut off on the phone |
+
 ## 3. After
 
-Send Claude the notes and screenshots. When the run is clean and Mako has said yes, the
+Send Claude the notes and screenshots. When the run is clean, the
 mainnet switch is two reviewed lines (`AGREEMENTS_LIVE` in `bboard-ui/src/config/copy.ts`,
 `MAINNET_AGREEMENTS` in `sponsor/src/policy.ts`) and merging `license-invites` into the
 registry's main.
