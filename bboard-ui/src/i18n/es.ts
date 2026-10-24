@@ -241,6 +241,11 @@ export const es: Strings = {
   'm.postA.title': 'En la red principal de Midnight',
   'm.postA.text':
     'Ambos contratos están desplegados en la red principal de Midnight. El contrato de pruebas de un hecho no tiene clave de mantenimiento: nadie, ni siquiera nosotros, puede cambiarlo.',
+  'm.postC.date': '19 oct 2026',
+  'm.postC.tag': 'Sitio web',
+  'm.postC.title': 'Su navegador envía sus propias transacciones',
+  'm.postC.text':
+    'En veilcore.org su navegador ahora fecha por sí mismo el emparejamiento de un informe de ADN, demuestra un registro por enlace y pone un sello de fecha a la clave propia de un registro, y VeilCore paga la comisión de la red. Los lotes se anclan en la red principal de Midnight cada hora, de forma automática. No hace falta billetera.',
   'm.postB.date': '11 oct 2026',
   'm.postB.tag': 'Registro',
   'm.postB.title': 'Primer lote fechado también en Bitcoin',
@@ -283,9 +288,9 @@ export const es: Strings = {
   'm.live.claims.main': 'En la red principal, sin clave de mantenimiento. El sitio aún no puede usarlo.',
   'm.live.claims.not': 'Usarlo desde el sitio web.',
   'm.live.lic.t': 'Licencias y regalías',
-  'm.live.lic.main': 'Solo de práctica.',
-  'm.live.lic.test': 'Solo de práctica.',
-  'm.live.lic.not': 'Licencias reales desde el sitio. Están integradas en el contrato.',
+  'm.live.lic.main': 'Desactivado hasta una última prueba completa.',
+  'm.live.lic.test': 'Sí, con transacciones reales: regalías, pagos, traspaso de una licencia.',
+  'm.live.lic.not': 'En veilcore.org, tras una última prueba completa.',
   'm.live.chain.t': 'La página de comprobación lee Midnight por sí misma',
   'm.live.chain.main': 'Todavía no: necesita nuestro relé de solo lectura.',
   'm.live.chain.test': 'Sí.',
@@ -451,7 +456,7 @@ export const es: Strings = {
   // Round 5 (15 Oct 2026): landing page rework, keys added.
   'm.open.6t': 'Comprobar sin nosotros.',
   'm.open.6p':
-    'Con ese paquete de evidencia, cualquiera puede comprobar un registro sin conexión: abrir su verify.html y luego buscar en un explorador de Midnight la única transacción que nombra. Los registros sellados desde el 14 de octubre también necesitan la sección 3.6.1 de la especificación, en la especificación de este sitio y en el SDK 0.16.0.',
+    'Con ese paquete de evidencia, cualquiera puede comprobar un registro sin conexión: abrir su verify.html y luego buscar en un explorador de Midnight la única transacción que nombra. Los registros sellados desde el 14 de octubre también necesitan la sección 3.6.1 de la especificación, en la especificación de este sitio y en el SDK 0.16.0 y posteriores.',
   'm.open.6link': 'Leer la especificación →',
   'm.updates.older': 'Novedades anteriores',
   'm.live.colTestHere': 'Este sitio de prueba (test.veilcore.org)',
@@ -462,10 +467,10 @@ export const es: Strings = {
   'm.tech.show': 'Ver el detalle',
   'm.tech.check.t': 'Comprobar un registro a mano',
   'm.tech.check.p':
-    'Recalcular el código de prueba de un registro solo requiere SHA-256 y la especificación abierta. Su prueba de inclusión une ese código de prueba con el código de prueba de un lote anclado en Midnight, y la transacción que lo ancló da la fecha del lote. El verify.html del paquete de evidencia rehace ese cálculo sin conexión y nombra la transacción y el código de prueba del lote que hay que buscar. La página de comprobación consulta esa transacción en Midnight por sí misma cuando puede llegar a Midnight; si no, dice que la fecha es la que informa nuestro registro, y usted puede buscarla en un explorador de Midnight. Los registros sellados desde el 14 de octubre nombran su propia clave, así que comprobarlos también requiere la sección 3.6.1, en la especificación de este sitio y en el SDK 0.16.0. Buscar un registro por su identificador en este sitio usa nuestro servidor.',
+    'Recalcular el código de prueba de un registro solo requiere SHA-256 y la especificación abierta. Su prueba de inclusión une ese código de prueba con el código de prueba de un lote anclado en Midnight, y la transacción que lo ancló da la fecha del lote. El verify.html del paquete de evidencia rehace ese cálculo sin conexión y nombra la transacción y el código de prueba del lote que hay que buscar. La página de comprobación consulta esa transacción en Midnight por sí misma cuando puede llegar a Midnight; si no, dice que la fecha es la que informa nuestro registro, y usted puede buscarla en un explorador de Midnight. Los registros sellados desde el 14 de octubre nombran su propia clave, así que comprobarlos también requiere la sección 3.6.1, en la especificación de este sitio y en el SDK 0.16.0 y posteriores. Buscar un registro por su identificador en este sitio usa nuestro servidor.',
   'm.tech.impl.t': 'Una especificación, tres implementaciones',
   'm.tech.impl.p':
-    'Libre de implementar, para siempre. TypeScript, Python y Rust coinciden en los 100 vectores de prueba del formato de registro en GitHub, y cualquiera puede ejecutarlos; un 101.º, para la vinculación de informes, aún no está en Rust. Un mismo autor escribió las tres, y la de TypeScript está en npm como 0.18.0. Una escrita por otra persona es la prueba que más deseamos.',
+    'Libre de implementar, para siempre. TypeScript, Python y Rust coinciden en los 121 vectores de prueba del formato de registro en GitHub, y cualquiera puede ejecutarlos. Un mismo autor escribió las tres, y la de TypeScript está en npm como 0.18.0. Una escrita por otra persona es la prueba que más deseamos.',
   'm.tech.btc.t': 'El sello de Bitcoin',
   'm.tech.btc.p':
     'Nuestro registro sella en Bitcoin el código de cada lote sellado, con OpenTimestamps. El primero entró en el bloque 971004 de Bitcoin el 11 de octubre. Comprobado el 15 de octubre con dos exploradores de bloques: el sello lleva a los bloques 971004 y 971005 de Bitcoin. Aún falta comprobarlo con la herramienta oficial de OpenTimestamps y un nodo completo de Bitcoin. El archivo de sello es el archivo .ots del lote: «Descargar el archivo de sello de Bitcoin», en la página de la planta. El registro del sitio de prueba no sella en Bitcoin.',
@@ -535,5 +540,5 @@ export const esTestchain: Strings = {
   'm.privacy.hosts.text':
     'Este sitio web está alojado en Vercel, que registra direcciones IP y solicitudes. Nuestro servidor de registros, y el servicio que paga las tarifas de la red de pruebas y transmite las lecturas de la red de esta página, funcionan en Railway, que registra solicitudes. Ese servicio lee la red a través de Blockfrost.',
   'm.tech.check.p':
-    'Recalcular el código de prueba de un registro solo requiere SHA-256 y la especificación abierta. Su prueba de inclusión une ese código de prueba con el código de prueba de un lote anclado en Midnight, y la transacción que lo ancló da la fecha del lote. El verify.html del paquete de evidencia rehace ese cálculo sin conexión y nombra la transacción y el código de prueba del lote que hay que buscar. La página de comprobación consulta esa transacción en Midnight por sí misma cuando puede llegar a Midnight. Los registros sellados desde el 14 de octubre nombran su propia clave, así que comprobarlos también requiere la sección 3.6.1, en la especificación de este sitio y en el SDK 0.16.0. Buscar un registro por su identificador en este sitio usa nuestro servidor.',
+    'Recalcular el código de prueba de un registro solo requiere SHA-256 y la especificación abierta. Su prueba de inclusión une ese código de prueba con el código de prueba de un lote anclado en Midnight, y la transacción que lo ancló da la fecha del lote. El verify.html del paquete de evidencia rehace ese cálculo sin conexión y nombra la transacción y el código de prueba del lote que hay que buscar. La página de comprobación consulta esa transacción en Midnight por sí misma cuando puede llegar a Midnight. Los registros sellados desde el 14 de octubre nombran su propia clave, así que comprobarlos también requiere la sección 3.6.1, en la especificación de este sitio y en el SDK 0.16.0 y posteriores. Buscar un registro por su identificador en este sitio usa nuestro servidor.',
 };

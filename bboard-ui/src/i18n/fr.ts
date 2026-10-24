@@ -244,6 +244,11 @@ export const fr: Strings = {
   'm.postA.title': 'En service sur le réseau principal de Midnight',
   'm.postA.text':
     "Les deux contrats sont déployés sur le réseau principal de Midnight. Le contrat des preuves d'un fait n'a pas de clé de maintenance : personne, nous compris, ne peut le modifier.",
+  'm.postC.date': '19 oct. 2026',
+  'm.postC.tag': 'Site web',
+  'm.postC.title': 'Votre navigateur envoie ses propres transactions',
+  'm.postC.text':
+    'Sur veilcore.org, votre navigateur date désormais lui-même l’association d’un rapport ADN, prouve un enregistrement par lien et horodate la clé propre d’un enregistrement, et VeilCore paie les frais de réseau. Les lots sont ancrés sur le réseau principal de Midnight toutes les heures, automatiquement. Aucun portefeuille nécessaire.',
   'm.postB.date': '11 oct. 2026',
   'm.postB.tag': 'Registre',
   'm.postB.title': 'Premier lot daté aussi sur Bitcoin',
@@ -286,9 +291,9 @@ export const fr: Strings = {
   'm.live.claims.main': "Sur le réseau principal, sans clé de maintenance. Le site ne peut pas encore l'utiliser.",
   'm.live.claims.not': "L'utiliser depuis le site.",
   'm.live.lic.t': 'Licences et redevances',
-  'm.live.lic.main': "Pour s'entraîner seulement.",
-  'm.live.lic.test': "Pour s'entraîner seulement.",
-  'm.live.lic.not': 'De vraies licences depuis le site. Elles sont intégrées au contrat.',
+  'm.live.lic.main': 'Désactivé jusqu’à un dernier essai complet.',
+  'm.live.lic.test': 'Oui, avec de vraies transactions : redevances, paiements, transmission d’une licence.',
+  'm.live.lic.not': 'Sur veilcore.org, après un dernier essai complet.',
   'm.live.chain.t': 'La page de vérification lit Midnight elle-même',
   'm.live.chain.main': 'Pas encore : il faut notre relais en lecture seule.',
   'm.live.chain.test': 'Oui.',
@@ -457,7 +462,7 @@ export const fr: Strings = {
   // Round 5 (15 Oct 2026): landing page rework, keys added.
   'm.open.6t': 'Vérifier sans nous.',
   'm.open.6p':
-    "Avec ce dossier de preuve, n'importe qui peut vérifier un enregistrement hors ligne : ouvrir son verify.html, puis consulter sur un explorateur Midnight la transaction qu'il nomme. Les enregistrements scellés depuis le 14 octobre demandent aussi la section 3.6.1 de la spécification, dans la spécification sur ce site et dans le SDK 0.16.0.",
+    "Avec ce dossier de preuve, n'importe qui peut vérifier un enregistrement hors ligne : ouvrir son verify.html, puis consulter sur un explorateur Midnight la transaction qu'il nomme. Les enregistrements scellés depuis le 14 octobre demandent aussi la section 3.6.1 de la spécification, dans la spécification sur ce site et dans le SDK 0.16.0 et suivants.",
   'm.open.6link': 'Lire la spécification →',
   'm.updates.older': 'Actualités plus anciennes',
   'm.live.colTestHere': 'Ce site de test (test.veilcore.org)',
@@ -468,10 +473,10 @@ export const fr: Strings = {
   'm.tech.show': 'Afficher le détail',
   'm.tech.check.t': 'Vérifier un enregistrement à la main',
   'm.tech.check.p':
-    "Recalculer le code de preuve d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa preuve d'inclusion relie ce code de preuve à un code de preuve de lot ancré sur Midnight, et la transaction qui l'a ancré donne la date du lot. Le verify.html du dossier de preuve refait ce calcul hors ligne et nomme la transaction et le code de preuve de lot à consulter. La page de vérification consulte elle-même cette transaction sur Midnight quand elle peut joindre Midnight ; sinon, elle indique que la date est celle que rapporte notre registre, et vous pouvez la consulter sur un explorateur Midnight. Les enregistrements scellés depuis le 14 octobre nomment leur propre clé ; les vérifier demande donc aussi la section 3.6.1, dans la spécification sur ce site et dans le SDK 0.16.0. Rechercher un enregistrement par son identifiant sur ce site passe par notre serveur.",
+    "Recalculer le code de preuve d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa preuve d'inclusion relie ce code de preuve à un code de preuve de lot ancré sur Midnight, et la transaction qui l'a ancré donne la date du lot. Le verify.html du dossier de preuve refait ce calcul hors ligne et nomme la transaction et le code de preuve de lot à consulter. La page de vérification consulte elle-même cette transaction sur Midnight quand elle peut joindre Midnight ; sinon, elle indique que la date est celle que rapporte notre registre, et vous pouvez la consulter sur un explorateur Midnight. Les enregistrements scellés depuis le 14 octobre nomment leur propre clé ; les vérifier demande donc aussi la section 3.6.1, dans la spécification sur ce site et dans le SDK 0.16.0 et suivants. Rechercher un enregistrement par son identifiant sur ce site passe par notre serveur.",
   'm.tech.impl.t': 'Une spécification, trois implémentations',
   'm.tech.impl.p':
-    "Libre à implémenter, pour toujours. TypeScript, Python et Rust s'accordent sur les 100 vecteurs de test du format d'enregistrement sur GitHub, et chacun peut les exécuter ; un 101e, pour l'association de rapports, n'est pas encore dans Rust. Un seul auteur a écrit les trois, et la version TypeScript est sur npm en 0.18.0. Une implémentation écrite par quelqu'un d'autre est le test que nous souhaitons le plus.",
+    "Libre à implémenter, pour toujours. TypeScript, Python et Rust s'accordent sur les 121 vecteurs de test du format d'enregistrement sur GitHub, et chacun peut les exécuter. Un seul auteur a écrit les trois, et la version TypeScript est sur npm en 0.18.0. Une implémentation écrite par quelqu'un d'autre est le test que nous souhaitons le plus.",
   'm.tech.btc.t': "L'horodatage Bitcoin",
   'm.tech.btc.p':
     "Notre registre horodate sur Bitcoin le code de chaque lot scellé, avec OpenTimestamps. Le premier est arrivé dans le bloc Bitcoin 971004 le 11 octobre. Vérifié le 15 octobre avec deux explorateurs de blocs : l'horodatage mène aux blocs Bitcoin 971004 et 971005. Une vérification avec l'outil officiel OpenTimestamps et un nœud Bitcoin complet reste à faire. Le fichier d'horodatage est le fichier .ots du lot : « Télécharger le fichier d’horodatage Bitcoin », sur la page de la plante. Le registre du site de test n'horodate pas sur Bitcoin.",
@@ -540,5 +545,5 @@ export const frTestchain: Strings = {
   'm.privacy.hosts.text':
     'Ce site est hébergé chez Vercel, qui enregistre les adresses IP et les requêtes. Notre serveur de registre, et le service qui paie les frais du réseau de test et relaie les lectures du réseau faites par cette page, fonctionnent chez Railway, qui enregistre les requêtes. Ce service lit le réseau via Blockfrost.',
   'm.tech.check.p':
-    "Recalculer le code de preuve d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa preuve d'inclusion relie ce code de preuve à un code de preuve de lot ancré sur Midnight, et la transaction qui l'a ancré donne la date du lot. Le verify.html du dossier de preuve refait ce calcul hors ligne et nomme la transaction et le code de preuve de lot à consulter. La page de vérification consulte elle-même cette transaction sur Midnight quand elle peut joindre Midnight. Les enregistrements scellés depuis le 14 octobre nomment leur propre clé ; les vérifier demande donc aussi la section 3.6.1, dans la spécification sur ce site et dans le SDK 0.16.0. Rechercher un enregistrement par son identifiant sur ce site passe par notre serveur.",
+    "Recalculer le code de preuve d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa preuve d'inclusion relie ce code de preuve à un code de preuve de lot ancré sur Midnight, et la transaction qui l'a ancré donne la date du lot. Le verify.html du dossier de preuve refait ce calcul hors ligne et nomme la transaction et le code de preuve de lot à consulter. La page de vérification consulte elle-même cette transaction sur Midnight quand elle peut joindre Midnight. Les enregistrements scellés depuis le 14 octobre nomment leur propre clé ; les vérifier demande donc aussi la section 3.6.1, dans la spécification sur ce site et dans le SDK 0.16.0 et suivants. Rechercher un enregistrement par son identifiant sur ce site passe par notre serveur.",
 };

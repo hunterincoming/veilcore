@@ -454,7 +454,7 @@ export const Home: React.FC = () => {
     if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
   }, [hash]);
 
-  const post = (k: 'postB' | 'postA' | 'post0' | 'post1' | 'post2', doc: string, iso: string) => (
+  const post = (k: 'postC' | 'postB' | 'postA' | 'post0' | 'post1' | 'post2', doc: string, iso: string) => (
     <Post
       key={k}
       href={`${TESTNET_REPO}/blob/main/docs/${doc}`}
@@ -467,11 +467,15 @@ export const Home: React.FC = () => {
     />
   );
   const latest = [
+    post('postC', 'mainnet-sponsor.md', '2026-10-19'),
     post('postB', 'mainnet-completeness.md', '2026-10-11'),
-    post('postA', 'deployment-record-revision-4.md', '2026-10-08'),
   ];
-  const third = post('post0', 'preprod-run-4oct.md', '2026-10-04');
-  const older = [post('post1', 'self-audit-3oct.md', '2026-10-03'), post('post2', 'preprod-run-2oct.md', '2026-10-02')];
+  const third = post('postA', 'deployment-record-revision-4.md', '2026-10-08');
+  const older = [
+    post('post0', 'log/preprod-run-4oct.md', '2026-10-04'),
+    post('post1', 'log/self-audit-3oct.md', '2026-10-03'),
+    post('post2', 'log/preprod-run-2oct.md', '2026-10-02'),
+  ];
 
   return (
     <SiteShell>

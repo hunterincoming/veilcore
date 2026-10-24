@@ -334,11 +334,11 @@ describe('what to keep if VeilCore is gone', () => {
     }
     // The section really is in the spec this site serves.
     expect(source('docs/SPEC.md')).toMatch(/#### 3\.6\.1 A record that names its own key/);
-    // The 100 vectors are never offered as the whole check on their own.
-    expect(en['m.tech.impl.p']).toMatch(/100 record-format test vectors/);
+    // The record-format vectors are the 121 that include records naming their own key (3.6.1);
+    // the older count of 100, without them, is never offered as the whole check.
+    expect(en['m.tech.impl.p']).toMatch(/121 record-format test vectors/);
     for (const s of ALL_ENGLISH)
-      for (const [k, v] of Object.entries(s))
-        if (/100 (record-format )?(test )?vectors/.test(v)) expect(k).toBe('m.tech.impl.p');
+      for (const v of Object.values(s)) expect(v).not.toMatch(/\b10[01](st)? (record-format )?(test )?vectors/);
   });
 });
 
@@ -414,7 +414,7 @@ describe("what's live where", () => {
     expect(e['m.live.stamp.test']).toMatch(/Batches are dated automatically, and that dates your record/);
     expect(e['m.live.stamp.test']).toMatch(/date stamps your plant's own key, which dates only the key/);
     expect(e['m.live.claims.main']).toMatch(/no maintenance key.*can’t use it yet/);
-    expect(e['m.live.lic.main']).toBe('Practice only.');
+    expect(e['m.live.lic.main']).toBe('Switched off until a final test run.');
     // The check page reads Midnight itself on the test site; on veilcore.org only with the
     // read-only relay (round 7, docs/check-on-chain.md).
     expect(rows.find((r) => r.row === 'chain')?.has).toEqual([true, true, false]);
@@ -424,7 +424,7 @@ describe("what's live where", () => {
     expect(testSite['m.live.chain.main']).toBe('Not yet: needs our read-only relay.');
     expect(mainnetNoRelay['m.live.chain.main']).toBe('Not yet: needs our read-only relay.');
     expect(mainnetRelay['m.live.chain.main']).toBe('Yes.');
-    expect(e['m.live.lic.test']).toBe('Practice only.');
+    expect(e['m.live.lic.test']).toMatch(/^Yes, with real transactions/);
     expect(e['m.live.dna.main']).toMatch(/not dated/);
     // Lab reports are on on veilcore.org and the test site alike (LAB_RESULTS_ENABLED, 16 Oct).
     expect(rows.find((r) => r.row === 'results')?.has).toEqual([labResultsEnabledFor('mainnet'), true, false]);

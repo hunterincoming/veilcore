@@ -141,7 +141,7 @@ const keyStrings = (claimsOnMainnet: boolean, policyApproved: boolean): Overlay 
 const TECH_HEAD =
   "Recomputing a record's proof code needs only SHA-256 and the open spec. Its inclusion proof ties that proof code to a batch's code anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up.";
 const TECH_TAIL =
-  ' Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, in the spec on this site and in SDK 0.16.0. Looking a record up by its identifier on this site uses our server.';
+  ' Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, in the spec on this site and in SDK 0.16.0 and later. Looking a record up by its identifier on this site uses our server.';
 /** Before the relay: what the check page does today, and that you can look it up yourself. */
 const RELAY_PENDING =
   " The check page will read Midnight itself once our read-only relay is live; until then it says the date is our registry's report, and you can look the transaction up yourself.";

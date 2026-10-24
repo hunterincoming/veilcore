@@ -84,12 +84,12 @@ export const Implementations: React.FC = () => (
         Three implementations, one author, one shared test suite.
       </Typography>
       <Typography variant="h6" sx={{ color: 'text.secondary', maxWidth: 620, fontWeight: 400, lineHeight: 1.6 }}>
-        TypeScript, Python and Rust, all written by the same author. All three agree on the 100 record-format test
-        vectors; a 101st, for the report pairing added on 9 October 2026, passes in TypeScript and Python and is not in
-        Rust yet. The edge cases we know of where they can still differ (characters added to Unicode since 2021, very
-        deep nesting, duplicate keys) are listed in our public notes and being fixed in the spec. That shows the rules
-        hold across three languages. It does not yet show that someone else could implement the format from the document
-        alone: an implementation by someone else is still the missing test.
+        TypeScript, Python and Rust, all written by the same author. All three agree on the same 121 record-format test
+        vectors, including the report pairing and records that name their own key. The edge cases we know of where they
+        can still differ (characters added to Unicode since 2021, very deep nesting, duplicate keys) are listed in our
+        public notes and being fixed in the spec. That shows the rules hold across three languages. It does not yet show
+        that someone else could implement the format from the document alone: an implementation by someone else is still
+        the missing test.
       </Typography>
     </Box>
 
@@ -99,7 +99,7 @@ export const Implementations: React.FC = () => (
         lang="TypeScript"
         who="the same author as the other two"
         deps="none"
-        note="The reference implementation. Commitments, canonical serialization, batch inclusion proofs, attester signatures, corrections, challenges and registry resolution. Runs in a browser and in Node with separate entry points, so a frontend build pulls in nothing it cannot use. Version 0.18.0 on npm passes all 181 vectors, the record format and the animal and strain profiles."
+        note="The reference implementation. Commitments, canonical serialization, batch inclusion proofs, attester signatures, corrections, challenges and registry resolution. Runs in a browser and in Node with separate entry points, so a frontend build pulls in nothing it cannot use. Version 0.18.0 on npm passes all 181 vectors: the record format and the animal and strain profiles."
         href="https://github.com/hunterincoming/veilcore-sdk"
         hrefLabel="View the repository"
       />
@@ -117,7 +117,7 @@ export const Implementations: React.FC = () => (
         lang="Rust"
         who="the same author, from the specification"
         deps="SHA-256, a JSON parser, Unicode normalization"
-        note="A third implementation in a language with different string handling, different number formatting, and different map ordering — the three places where a serialization specification usually breaks. The 3 October differential test found it disagreeing too, including on the last digit of some numbers; fixed in veilcore-rs 0.2.0."
+        note="A third implementation in a language with different string handling, different number formatting, and different map ordering, the three places where a serialization specification usually breaks. The 3 October differential test found it disagreeing too, including on the last digit of some numbers; fixed in veilcore-rs 0.2.0. It passes the 121 record-format vectors and computes animal and strain records' fingerprints; the profiles' own checks are left to the other two."
         href="https://github.com/hunterincoming/veilcore-rs"
         hrefLabel="View the repository"
       />
@@ -131,7 +131,7 @@ export const Implementations: React.FC = () => (
         variant="h3"
         sx={{ fontSize: { xs: 26, md: 34 }, mb: 3, maxWidth: 720, lineHeight: 1.2, letterSpacing: '-0.02em' }}
       >
-        A hundred and one vectors, and one program written to fail them.
+        A hundred and eighty-one vectors, and one program written to fail them.
       </Typography>
 
       <Stack spacing={2.5} sx={{ maxWidth: 680 }}>
@@ -140,11 +140,12 @@ export const Implementations: React.FC = () => (
           explicit null, array order, Unicode normalization, nested sorting, and number formatting. Then commitment
           computation across a range of record shapes, including the requirement that changing where a record is
           anchored must not change the record. Since 3 October they also cover the number and surrogate rules the
-          differential test exposed.
+          differential test exposed, and since then what an implementation must refuse, records that name their own key,
+          and the animal and strain profiles.
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.8, fontSize: 16 }}>
           A suite that only ever passes proves nothing, so the repository also contains a deliberately incorrect
-          implementation. It uses plain JSON serialization without sorted keys — a bug that produces correct-looking
+          implementation. It uses plain JSON serialization without sorted keys: a bug that produces correct-looking
           output for records whose fields happen to be in the right order, and silently wrong commitments for everything
           else. The suite catches it, including a Unicode case where two visually identical strings hash differently.
         </Typography>

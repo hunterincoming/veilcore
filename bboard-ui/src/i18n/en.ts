@@ -226,7 +226,7 @@ export const en = {
     "The format lets a lab, certifier or rights body run its own, under its own web domain, and anchor without asking us. Our own registry code isn't published.",
   'm.open.6t': 'Checking without us.',
   'm.open.6p':
-    'With that bundle, anyone can check a record offline: open its verify.html, then look up the one transaction it names on a Midnight explorer. Records sealed since 14 October also need spec section 3.6.1, in the spec on this site and in SDK 0.16.0.',
+    'With that bundle, anyone can check a record offline: open its verify.html, then look up the one transaction it names on a Midnight explorer. Records sealed since 14 October also need spec section 3.6.1, in the spec on this site and in SDK 0.16.0 and later.',
   'm.open.6link': 'Read the spec →',
 
   'm.faq.label': 'Questions',
@@ -289,6 +289,11 @@ export const en = {
   'm.updates.follow': 'Follow',
   // Dated posts. Facts from docs/mainnet-completeness.md (R4, M2) and
   // docs/deployment-record-revision-4.md ("Mainnet deployment").
+  'm.postC.date': '19 Oct 2026',
+  'm.postC.tag': 'Website',
+  'm.postC.title': 'Your browser sends its own transactions',
+  'm.postC.text':
+    "On veilcore.org your browser now dates a DNA report pairing, proves a record by link and stamps a record's own key itself, and VeilCore pays the network fee. Batches are anchored on Midnight's main network every hour, automatically. No wallet needed.",
   'm.postB.date': '11 Oct 2026',
   'm.postB.tag': 'Registry',
   'm.postB.title': 'First batch dated on Bitcoin too',
@@ -340,10 +345,10 @@ export const en = {
   'm.tech.show': 'Show the detail',
   'm.tech.check.t': 'Checking a record by hand',
   'm.tech.check.p':
-    "Recomputing a record's proof code needs only SHA-256 and the open spec. Its inclusion proof ties that proof code to a batch's code anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up. The check page looks that transaction up on Midnight itself when it can reach Midnight; otherwise it says the date is our registry's report, and you can look it up on a Midnight explorer. Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, in the spec on this site and in SDK 0.16.0. Looking a record up by its identifier on this site uses our server.",
+    "Recomputing a record's proof code needs only SHA-256 and the open spec. Its inclusion proof ties that proof code to a batch's code anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up. The check page looks that transaction up on Midnight itself when it can reach Midnight; otherwise it says the date is our registry's report, and you can look it up on a Midnight explorer. Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, in the spec on this site and in SDK 0.16.0 and later. Looking a record up by its identifier on this site uses our server.",
   'm.tech.impl.t': 'One spec, three implementations',
   'm.tech.impl.p':
-    "Free to implement, permanently. TypeScript, Python and Rust agree on all 100 record-format test vectors on GitHub, and anyone can run them; a 101st, for report pairing, isn't in Rust yet. One author wrote all three, and the TypeScript one is on npm as 0.18.0. One written by someone else is the test we most want.",
+    'Free to implement, permanently. TypeScript, Python and Rust agree on all 121 record-format test vectors on GitHub, and anyone can run them. One author wrote all three, and the TypeScript one is on npm as 0.18.0. One written by someone else is the test we most want.',
   'm.tech.btc.t': 'The Bitcoin stamp',
   'm.tech.btc.p':
     "Our registry stamps each sealed batch's code on Bitcoin with OpenTimestamps. The first reached Bitcoin block 971004 on 11 October. Checked on 15 October against two block explorers: the stamp leads to Bitcoin blocks 971004 and 971005. A check with the official OpenTimestamps tool and a full Bitcoin node is still to do. The stamp file is the batch's .ots file: Download Bitcoin stamp file, on the plant's page. The test site's registry doesn't stamp on Bitcoin.",
@@ -393,9 +398,9 @@ export const en = {
   'm.live.claims.main': 'On the main network, with no maintenance key. The website can’t use it yet.',
   'm.live.claims.not': 'Using it from the website.',
   'm.live.lic.t': 'Licenses and royalties',
-  'm.live.lic.main': 'Practice only.',
-  'm.live.lic.test': 'Practice only.',
-  'm.live.lic.not': "Real licenses from the website. They're built into the contract.",
+  'm.live.lic.main': 'Switched off until a final test run.',
+  'm.live.lic.test': 'Yes, with real transactions: royalties, payments, handing a license on.',
+  'm.live.lic.not': 'On veilcore.org, after a final test run.',
   // The check page looking a record's date up on Midnight itself (docs/check-on-chain.md).
   // On veilcore.org it needs the read-only relay; the mainnet overlay says "Yes." once a
   // build has one (CHAIN_READS).

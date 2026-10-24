@@ -113,7 +113,7 @@ refused (and logged once), rather than counted against the proxy's own address.
 `*SIGNING_KEY*`, `*AUTHORITY*`). The service refuses to start if one is present, and it
 also refuses if the seed you gave it is the contract's maintenance key.
 
-## Setting it up on preprod (for Hunter)
+## Setting it up on preprod (for the operator)
 
 **Use `docs/log/no-wallet-preprod-run.md`.** It replaces the steps below, which pointed the
 anchoring job at the production registry: a preprod sponsor must use a preprod registry

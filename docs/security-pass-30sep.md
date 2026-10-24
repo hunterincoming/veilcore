@@ -9,7 +9,7 @@ replace earlier time-of-day labels that were out of order.
 
 > **Note, 30 Sep (round 4).** The contracts were merged into one, `veilcore.compact`, and
 > the hand-rolled test scripts named below (`attack-30sep.mjs`, `attack-lineage-30sep.mjs`,
-> `verify-max-*.mjs`) were replaced by the Vitest suites in `contract/src/test/`, which
+> `verify-*.mjs`) were replaced by the Vitest suites in `contract/src/test/`, which
 > cover every attack listed here. See round 4 at the end.
 
 **Scope:** `contract/src/veilcore.compact` at f652ae2 (the contract going to preprod and then mainnet), its witnesses, and the CLI that deploys it.

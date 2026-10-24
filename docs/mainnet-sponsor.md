@@ -1,4 +1,4 @@
-# Turning on the mainnet sponsor (for Hunter)
+# Turning on the mainnet sponsor (for the operator)
 
 What it gives veilcore.org: batches dated automatically, and from the browser the record-key
 stamp, "prove it by link" and the DNA pairing date, with VeilCore paying the network fee.
