@@ -36,7 +36,8 @@ pages, `i18n/app.tsx` for the app). `i18n/catalogs.ts` has every language at onc
 
 App keys are named by screen: `app.log.*`, `app.backup.*`, `app.home.*`, `app.plant.*`,
 `app.lab.*`, `app.pair.*`, `app.verify.*`, `app.prove.*`, `app.chain.*`, `app.import.*`,
-`app.history.*`, `app.partners.*`, with `app.common.*`
+`app.history.*`, `app.partners.*`, `app.lic.*` (licenses, royalties, handing a license on,
+proving a license, lenders' claims), with `app.common.*`
 for words that several screens share. `{name}` is a placeholder for a value, and `<b>…</b>` or
 `<link>…</link>` marks a part shown in bold or as a link. Keep both exactly, and move them to
 wherever the sentence needs them. A key ending `.one` or `.other` is one plural form.
@@ -56,8 +57,8 @@ evidence that other people check, and one wording keeps them comparable:
 - the certificate card and its PNG and JSON downloads (the screen around it is translated).
 
 Some pages and parts stay in English for now, with a line in the page's language saying so:
-the agreements (licensing pages, and the obligations section they add to a plant page),
-the published documents and the implementations page. The partners page's live form field
+the published documents and the implementations page. A lender pack (its `README.txt` and
+`summary.txt`) is in English too, like the other evidence files. The partners page's live form field
 (`partner-kit/record-check`) has its own English words. Downloaded lab report file names
 are in English.
 
@@ -83,8 +84,8 @@ for the site, `bboard-ui/src/i18n/translations.test.ts` for the app):
 
 1. Open the test site (test.veilcore.org) and choose the language in the picker. Go through
    the whole product in it: the home page, logging a plant, saving the backup, the plant page,
-   sending to a lab with a lab code, receiving with a lab code, the check page, and proving
-   you hold a plant. Then check the files listed under "Where the text lives" side by side
+   sending to a lab with a lab code, receiving with a lab code, the check page, proving
+   you hold a plant, and a license from start to finish (making it, royalties, handing it on). Then check the files listed under "Where the text lives" side by side
    with the English, key by key.
 2. Correct the translation in the language's files and send the change as a pull request.
    Say in it what you changed and why. If a sentence can't say what the English says
@@ -93,9 +94,6 @@ for the site, `bboard-ui/src/i18n/translations.test.ts` for the app):
    only", "doesn't vouch". These must say exactly what the English says.
 4. When the whole language is right, site **and** app, add one line for it to the sign-off
    table below, in the same pull request or a later one.
-
-The `review-<language>.md` worksheets in this folder cover the public pages only, and are
-out of date. Check against the files and the test site instead.
 
 ## How to switch a language on
 

@@ -56,8 +56,16 @@ Build fingerprints: [docs/fingerprints.md](docs/fingerprints.md).
   and reports signed with the lab's own key; choosing what a record's check page shows; check
   pages that read the date from Midnight themselves. No wallet needed: VeilCore's fee service
   pays the network fee for what the browser sends.
-- **Practice only:** licenses, royalties and lab agreements. They're in the contract; the
-  website doesn't submit them yet.
+- **Licenses and royalties: built, live on the test network, switched off on veilcore.org
+  until a final test run.** On [test.veilcore.org](https://test.veilcore.org) a breeder
+  licenses a record to a grower with real transactions: two devices, a 6-digit code read
+  aloud, a private signed channel per deal for terms and royalty statements, payment straight
+  from payer to payee (VeilCore never holds money), royalties on declared offspring, handing a
+  license on with the breeder's approval, and a pack a lender can check with a free tool.
+  [docs/agreements-live.md](docs/agreements-live.md). Lab hand-over and breeder-share
+  agreements are still practice only.
+- **Five languages:** English, plus Spanish, Japanese, German and French as drafts on the test
+  site until a fluent speaker signs each off ([how](docs/translations/README.md)).
 - **No audit.** Twelve rounds of adversarial review are public, with the attacks kept as tests
   ([docs/security-pass-30sep.md](docs/security-pass-30sep.md)). They are not a formal audit.
 - **Open to first users** since 20 October 2026. Every record so far is our own test data.
@@ -69,16 +77,16 @@ DNA, and we don't vouch for any lab. [What VeilCore does not claim](#what-veilco
 
 ## What it does
 
-A breeder who holds genetic material may later need to establish three things: that they held it, from a date preceding someone else's acquisition of it, and that material in another party's possession descends from theirs. These are historical claims, ordinarily supported by the holder's own records — which is the weakest evidence available, because it is produced by the party relying on it and can be created after the fact.
+A breeder who holds genetic material may later need to establish three things: that they held it, from a date preceding someone else's acquisition of it, and that material in another party's possession descends from theirs. These are historical claims, ordinarily supported by the holder's own records, which are the weakest evidence available, because it is produced by the party relying on it and can be created after the fact.
 
 Written agreements have a related problem. A contract binds the parties who signed it. It cannot bind a plant that did not exist when it was signed, which is why a cutting that becomes a mother that becomes ten thousand clones carries no obligation anyone can point at.
 
 VeilCore records what was held and when, lets licenses be granted against a record, and lets an obligation on an ancestor be carried by everything derived from it.
 
-- **Prove prior possession** — an anchored record is dated by the block its batch lands in.
-- **Pair a DNA report** — record a DNA report against your record. The contract binds whatever 32-byte value the holder submits: it is the holder's own statement that this report belongs to this record, not a check of the genetics. The client submits a salted binding of the report's hash to the record's identity, not the raw hash, so the pairing cannot be copied to another record. It shows that whoever controlled the record's identity at that date had the report, or its SHA-256, by then (verifier rule 9 in [`docs/design.md`](docs/design.md), which also flags a report hash paired raw earlier and key changes since). The web app keeps the pairing in the registry, not on chain.
-- **License against the record** — on chain a license is only PENDING (issued) or ACTIVE (countersigned), and revoking removes it. The contract stores no terms and has no expiry. Terms, dates, expiry and the royalty log are kept by the app, in the VeilCore registry. A presentation proves "a live license from this issuer", not which license or on what terms.
-- **Prove a claim without showing the secret** — prove you hold a record, or a license, without revealing the secret behind it. A control proof publishes the record's commitment. A license presentation hides the license and the licensee, and the issuer only among issuers with live licenses; while only one issuer has live licenses, as at launch, it names that issuer.
+- **Prove prior possession:** an anchored record is dated by the block its batch lands in.
+- **Pair a DNA report:** record a DNA report against your record. The contract binds whatever 32-byte value the holder submits: it is the holder's own statement that this report belongs to this record, not a check of the genetics. The client submits a salted binding of the report's hash to the record's identity, not the raw hash, so the pairing cannot be copied to another record. It shows that whoever controlled the record's identity at that date had the report, or its SHA-256, by then (verifier rule 9 in [`docs/design.md`](docs/design.md), which also flags a report hash paired raw earlier and key changes since). The web app keeps the pairing in the registry, not on chain.
+- **License against the record:** on chain a license is only PENDING (issued) or ACTIVE (countersigned), and revoking removes it. The contract stores no terms and has no expiry. The terms, statements and payment records travel between the two sides over a private channel: each message is signed by its sender and locked so the registry, which relays it, can't read or change it. A presentation proves "a live license from this issuer", not which license or on what terms.
+- **Prove a claim without showing the secret:** prove you hold a record, or a license, without revealing the secret behind it. A control proof publishes the record's commitment. A license presentation hides the license and the licensee, and the issuer only among issuers with live licenses; while only one issuer has live licenses, as at launch, it names that issuer.
 
 Plant genetics is the first use, not the limit. The record format is domain-blind: the same envelope serves ornamental propagation, a livestock herd book, or a microbial culture collection.
 
@@ -120,7 +128,7 @@ a host sent everyone the same files.
 
 ## What this repository is
 
-This is the application — the contract, the API, the CLI and the web app.
+This is the application: the contract, the API, the CLI and the web app.
 
 The record format itself is a separate, open specification with implementations in TypeScript, Python and Rust (all three written by the same team; an implementation by someone else is still to come): **[veilcore-sdk](https://github.com/hunterincoming/veilcore-sdk)**. Checking a record's fingerprint needs SHA-256 and nothing from this repository or from us. Checking what the contract says (anchors, licenses, lineage) needs Midnight's tooling to read chain state; see Current status.
 
@@ -128,7 +136,7 @@ The record format itself is a separate, open specification with implementations 
 contract/     # The Compact contract (veilcore.compact), verifier rules (verify.ts), tests, hash vectors
 api/          # VeilcoreAPI: records, licenses and lineage from a client
 bboard-cli/   # CLI for wallet sync and deployment
-bboard-ui/    # The web app — React + Vite
+bboard-ui/    # The web app (React + Vite)
 ```
 
 > The `bboard-` directory names are inherited from the Midnight scaffold this was forked from. The example code itself has been removed; only the directory names remain, because renaming them touches every relative import for no benefit.
@@ -209,8 +217,8 @@ a fee service pays the network fee, so nobody needs a wallet. Batches are anchor
 automatically by the same service. On test.veilcore.org (preprod) this was first run end to
 end on 12 and 13 October 2026 ([`docs/no-wallet-run-12oct.md`](docs/no-wallet-run-12oct.md));
 on veilcore.org (mainnet) it went live on 19 October and was checked by hand on 20 October
-([`docs/mainnet-sponsor.md`](docs/mainnet-sponsor.md)). Licenses, royalties and lab agreements
-are practice only on both sites.
+([`docs/mainnet-sponsor.md`](docs/mainnet-sponsor.md)). Licenses and royalties run with real
+transactions on test.veilcore.org and stay switched off on veilcore.org until a final test run.
 
 **The CLI** in `bboard-cli/` talks to a deployed contract. Its smoke test
 (`bboard-cli/src/smoke.ts`) deploys a fresh contract and calls 16 of the 24 circuits with
@@ -233,10 +241,10 @@ Midnight's standards repository.
 - A record establishes **prior possession, not ownership**. It is evidence a lawyer can rely on, not a verdict.
 - A parent link on chain means both holders **agreed** the child descends from the parent. It is not a genetic test.
 - It **pairs** the DNA report a laboratory returns, as the holder's own statement. It does not sequence anything, check the report, or confirm it came from a laboratory.
-- In-app "signing" and countersigning of a license record a time in the registry. They are not cryptographic signatures, and not qualified eIDAS signatures. On chain, a countersign is proved with the licensee's license secret.
+- A license is activated on chain with the licensee's own license secret, and every message in a deal is signed with the sender's Ed25519 key. Neither is a qualified eIDAS signature. The older practice licenses only record a time in the registry.
 - The royalty log records and proves obligations. It does not move money.
 - It raises the cost and the evidentiary risk of laundering stolen genetics. It does not prevent it.
-- Licenses, royalties and lab agreements on the website are practice only: they are in the contract, but the website doesn't submit them yet.
+- Licenses and royalties are switched off on veilcore.org until a final test run. They run on test.veilcore.org, where nothing carries legal or evidential weight.
 - VeilCore does not vouch for any record, holder or lab. A lab's signature shows which key signed; a lab's name is shown as checked only after the operator has matched it to a public license, and even then only that match is claimed ([`docs/lab-name-checks.md`](docs/lab-name-checks.md)).
 
 ## Deploying

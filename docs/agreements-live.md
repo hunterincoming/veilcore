@@ -1,9 +1,10 @@
 # Agreements on chain: the build to "live"
 
-Status: in progress, 21 October 2026. Owner: hunter@veilcore.org. This page says what
-the website does with VeilCore's contract once agreements are live, who does what, and
-what VeilCore never does. Going live on mainnet needs both founders' approval (the switch
-is in one reviewed place, below).
+Status: built, 24 October 2026. Everything below runs on the test network
+(test.veilcore.org); on veilcore.org it stays switched off until a clean test run
+([agreements-test-run.md](agreements-test-run.md)). Owner: hunter@veilcore.org. This page says
+what the website does with VeilCore's contract once agreements are live, who does what, and
+what VeilCore never does. The switch is in one reviewed place, below.
 
 ## What does not change
 
@@ -34,11 +35,11 @@ holds or moves anyone's money.
 2. **Prove a license (done).** A checker sends a link; the holder answers from the device
    with the license; the checker's page checks it on chain (verifier rule 5). The checker
    learns only that a live license from that record was held when the answer landed.
-3. **A private channel per deal.** The random values both sides already exchange for the
+3. **A private channel per deal (done).** The random values both sides already exchange for the
    code become key-exchange keys (X25519). The code covers them, so the two people who
    read it to each other are the only ones who share the resulting key. The registry
    stores the deal's messages encrypted under it and can't read or forge them.
-4. **Royalty statements.** The licensee files a statement for a period (what was sold,
+4. **Royalty statements (done).** The licensee files a statement for a period (what was sold,
    what is owed under the terms). The breeder accepts or disputes it. Every statement and
    answer is encrypted for the two of them, and its fingerprint is dated on Midnight in
    the registry's hourly batch, so neither side can rewrite the history later.
@@ -47,7 +48,7 @@ holds or moves anyone's money.
    licensor's page checks the file it is sent is that exact report (`veilcore/evidence.ts`).
    Reading sales straight from Metrc is the next step and is a business one: VeilCore applies
    to Metrc as a validated integrator, then each licensee grants it a read-only API key.
-5. **Payment through a partner.** VeilCore never touches money. The payer hands a
+5. **Payment through a partner (done).** VeilCore never touches money. The payer hands a
    statement to a payment partner (a wallet or payment company, registered with VeilCore and
    its name checked).
    The partner pays through its own licensed rails, then signs a receipt over the
@@ -55,26 +56,28 @@ holds or moves anyone's money.
    <partner>", and the payee still confirms the money arrived. A payment made any other way is marked by the payer and confirmed by the
    payee. Any fee VeilCore charges on deals later is a decision still to make; nothing is
    charged or collected today.
-6. **Offspring royalties.** A license that carries a royalty on offspring becomes an
+6. **Offspring royalties (done).** A license that carries a royalty on offspring becomes an
    obligation on chain against the licensee's own record of that plant: the breeder
    proposes it, the licensee accepts it, only the breeder can release it. Every record
    both holders confirm as a descendant shows it (verifier rule 3).
-7. **Parent links.** The child's holder names a parent on chain; the parent's holder
+7. **Parent links (done).** The child's holder names a parent on chain; the parent's holder
    confirms. The chain is the mailbox: a record's page lists the records waiting for it
    to confirm.
-8. **Handing a license on (built 23 Oct).** The license moves in place on chain
+8. **Handing a license on (done).** The license moves in place on chain
    (proposeTransfer, approveTransfer), keeping its terms and its place, and only with both
    the holder and the breeder (`veilcore/hand-on.ts`). The breeder sends the new holder a
    hand-on link; they accept with their own key and read the breeder a second 6-digit code,
    so the breeder approves exactly the key the new holder made, whatever the old holder or
    the registry say. The breeder signs that key to the current holder ('handon'); the holder
-   hands it on; the breeder approves. The holder can ask first ('handon-ask') and can take a
+   hands it on; the new holder signs their agreement to the terms; only then can the breeder
+   approve (checked again just before sending). Calling it off sends 'handon-off', so the
+   holder's page stops offering it. The holder can ask first ('handon-ask') and can take a
    proposal back until it is approved. Each earlier holder's deal and signed history stays
    with the license and in the backup. Tested against the compiled contract
    (`hand-on-actions.test.ts`). Needs the sponsor redeployed with the three calls allowed.
 
    **Why a license is not a Midnight token (researched 23 Oct 2026).** A license must not
-   move without the breeder: selling or passing on a protected variety without the owner's
+   move without the breeder: selling or passing on a protected variety without the breeder's
    authority is what the US PVP Act calls infringement (7 U.S.C. 2541). A token a contract
    mints on Midnight, once it sits in someone's wallet, moves wallet to wallet without the
    contract (Midnight docs, "Create and transfer an unshielded token"), so the breeder could
@@ -129,7 +132,7 @@ holds or moves anyone's money.
      transfer's identifier (refused before sending if over 120 characters).
    - **Before mainnet:** Mako's yes and a lawyer's review (a payment feature, even with no
      custody). Then change the one line.
-12. **Borrowing against licenses (built 23 Oct).** A royalty lender reads everything, under a
+12. **Borrowing against licenses (done).** A royalty lender reads everything, under a
     confidentiality agreement: the license agreements themselves, a lien search, chain of
     title, and a UCC-1 filing over the royalties, which no chain record replaces (Berkeley Law,
     "Securities Interests in Royalty Financings", 2025). So no zero-knowledge proofs for
@@ -185,4 +188,4 @@ One reviewed change, after a full run on the test network:
   reviewed code change.
 - The registry's deal and statement routes deployed to the mainnet registry.
 
-Approval: Hunter and Mako, in writing.
+Approval: the founders, in writing, after a clean test run.

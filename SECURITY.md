@@ -23,10 +23,13 @@ We credit reporters in the fix and the deployment record unless asked not to.
 
 ## What is in scope
 
-- `contract/src/veilcore.compact` as deployed (fingerprints: `docs/fingerprints.md`)
+- `contract/src/veilcore.compact` and `contract/src/veilcore-claims.compact` as deployed
+  (fingerprints: `docs/fingerprints.md`)
 - `contract/src/verify.ts` (the off-chain checks a verifier relies on)
 - `api/` and `bboard-cli/` (deploy, maintenance, key handling)
 - `bboard-ui/` (the reference web app)
+- `sponsor/` (the fee service that pays network fees for the browser)
+- `partner-kit/` (`@veilcore/contracts`, for partners calling the contracts)
 
 The record format and its other implementations live in
 [veilcore-sdk](https://github.com/hunterincoming/veilcore-sdk) and

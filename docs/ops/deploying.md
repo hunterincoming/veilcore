@@ -10,8 +10,8 @@ The script runs the Vercel CLI pinned in `tools/vercel/` (exact version, own loc
 npm run deploy:prod
 ```
 
-veilcore.org is published with `npm run deploy:mainnet` ([`docs/ops/mainnet-day-site.md`](docs/ops/mainnet-day-site.md)),
-and test.veilcore.org with `npm run deploy:test` ([`docs/test-site.md`](docs/test-site.md)).
+veilcore.org is published with `npm run deploy:mainnet` ([`docs/ops/mainnet-day-site.md`](mainnet-day-site.md)),
+and test.veilcore.org with `npm run deploy:test` ([`docs/test-site.md`](../test-site.md)).
 `deploy:prod` published the test-network wording before mainnet; it reads the registry's
 `/.well-known/veilcore-registry` and refuses now that the registry anchors on mainnet.
 

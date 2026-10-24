@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Licenses with royalties, on the test network (21 to 24 Oct 2026)
+
+- Real licenses from the website on test.veilcore.org: the licensee's key is made on their own
+  device, both sides read a 6-digit code aloud, the breeder issues and the licensee activates
+  on chain. Switched off on veilcore.org until a final test run (`docs/agreements-test-run.md`).
+- A private channel per deal: every message signed (Ed25519) and locked (AES-GCM); the registry
+  relays what it can't read. Terms, royalty statements with an optional sales report, accept or
+  dispute, paid and received, W3C credentials.
+- Payment straight from payer to payee, through a payment partner or in NIGHT on Midnight
+  (test networks only); VeilCore never holds money.
+- Royalties on declared offspring; handing a license on with the breeder's approval (the new
+  holder must sign the terms before the breeder can approve); a pack for lenders, checked with
+  `npx veilcore-records deal`; lenders' claims on a record (`/claim`).
+- A passkey copy of the backup, for a lost phone.
+- Every license screen in Spanish, Japanese, German and French (drafts until signed off).
+
 ### Repository tidy (17 Oct 2026)
 
 - README opens with what is live: both mainnet addresses, what works on veilcore.org, what is
