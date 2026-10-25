@@ -20,8 +20,6 @@ VeilCore is a records system for plant and animal genetics - plant varieties, br
 
 Each of these is separately disclosable. A holder decides which facts a given recipient sees. **The genetics themselves are never disclosable through the system at all.**
 
-**On veilcore.org today:** dates and lab signatures. Licenses and obligations on offspring: practice only. Proving control: test network only.
-
 The authors are not lawyers. Corrections are welcome and more useful than agreement.
 
 ---

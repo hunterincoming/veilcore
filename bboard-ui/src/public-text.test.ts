@@ -38,8 +38,7 @@ describe('times', () => {
 });
 
 describe('public files', () => {
-  it('robots.txt allows everything and names nothing', () => {
-    const robots = fs.readFileSync(path.resolve(HERE, '../public/robots.txt'), 'utf8');
-    expect(robots).toBe('User-agent: *\nAllow: /\n');
+  it('robots.txt is written by the build (findable.ts), not kept in public/', () => {
+    expect(fs.existsSync(path.resolve(HERE, '../public/robots.txt'))).toBe(false);
   });
 });

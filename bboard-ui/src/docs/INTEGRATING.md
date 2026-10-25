@@ -32,7 +32,8 @@ makes it fixed, which is the thing a court, a customs officer, or a buyer can wo
 npm install veilcore-records
 ```
 
-Version 0.15.0 or later includes the October 2026 number and string rules.
+Version 0.15.0 or later includes the October 2026 number and string rules; 0.16.0 or later
+also checks records that name their own key (SPEC 3.6.1) and animal records (SPEC 11.8).
 
 ```js
 import { computeCommitment, newNonce } from 'veilcore-records';
@@ -102,6 +103,23 @@ const result = await verifyCommitment(record);
 
 No account, no key, no network. This will always be free.
 
+A VeilCore export also carries the fingerprint its registry anchored, with the fields it
+covers, in `extensions["org.veilcore.registered-fingerprint"]`. Records sealed since
+14 October 2026 name their own key there (SPEC 3.6.1). To check the fingerprint, and that
+a key someone proves control of is the one the record named:
+
+```js
+import { verifyRecordFingerprint, keyMatchesRecord } from 'veilcore-records';
+const registered = record.extensions['org.veilcore.registered-fingerprint'];
+const fp = await verifyRecordFingerprint(registered); // older and key-bound records alike
+// From the holder's link: the key (chain=), its salt (ks) and the content hash (cd).
+const named = await keyMatchesRecord(identity, { fingerprint: registered.fingerprint, keySalt, contentHash });
+```
+
+`named` false means the key is not the record's: treat no proof by it as a proof about
+the record. An older record, with no `keyBinding`, names no key; for it the link between a
+key and the record is the holder's statement, and a verifier says so.
+
 ## Confirming your implementation is correct
 
 If you implement the format yourself rather than using this package — in another language,
@@ -110,8 +128,10 @@ or inside an existing system — the conformance vectors tell you whether you go
     node conformance/run-cli.mjs "your-command"
 
 Your program reads a job on standard input and writes a result on standard output. There
-are 101 vectors: 100 for the record format and one for the report pairing of SPEC 3.7 (op
-`dnaPair`). Three implementations pass all of them: TypeScript, Python and Rust. All three
+are 121 vectors: 100 for the record format, one for the report pairing of SPEC 3.7 (op
+`dnaPair`) and 20 for records that name their own key, SPEC 3.6.1 (ops `keyFromSecret`,
+`recordFingerprint`, `keyMatch`). Three implementations pass all of them: TypeScript,
+Python and Rust. All three
 have the same author, so they show the rules give one answer across languages, not that
 someone else can implement the format from the specification alone. An implementation by
 an unrelated party is the test the format still needs. The Python implementation, in

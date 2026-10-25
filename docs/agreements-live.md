@@ -188,5 +188,7 @@ One reviewed change, after a full run on the test network:
   agreement circuits. It cannot be changed by configuration on mainnet, only by this
   reviewed code change.
 - The registry's deal and statement routes deployed to the mainnet registry.
+- `bboard-ui/vite.config.ts` SUMMARY: the plain summary crawlers read says licenses are
+  practice only; change that line. (llms.txt follows `AGREEMENTS_LIVE` by itself.)
 
 Approval: the founders, in writing, after a clean test run.

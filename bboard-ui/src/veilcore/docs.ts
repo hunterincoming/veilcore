@@ -20,10 +20,10 @@ import evidenceMd from '../docs/EVIDENCE.md?raw';
 import integratingMd from '../docs/INTEGRATING.md?raw';
 
 /** The SDK version (its package.json at DOCS_COMMIT) the documents were copied from. */
-export const DOCS_VERSION = '0.15.0';
+export const DOCS_VERSION = '0.18.1';
 
 /** The exact SDK commit the documents were copied from, so "Source" opens the same text. */
-export const DOCS_COMMIT = 'd3c339e28c29bcad0f6df573ecf1aa4815257ec8';
+export const DOCS_COMMIT = '3196c68e7b314076e332f7ffa812395fd714c34f';
 export const REPO_VIEW = `https://github.com/hunterincoming/veilcore-sdk/blob/${DOCS_COMMIT}`;
 
 export const DOCS: Record<string, { file: string; md: string; title: string; blurb: string }> = {

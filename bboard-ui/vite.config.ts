@@ -17,6 +17,7 @@ import { defineConfig, loadEnv, type Plugin, type ResolvedConfig } from 'vite';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 // The published documents (SPEC, EVIDENCE, INTEGRATING) are vendored in src/docs from an
 // exact SDK commit (see src/veilcore/docs.ts); nothing is resolved from a package for them.
 import react from '@vitejs/plugin-react';
@@ -24,6 +25,7 @@ import wasm from 'vite-plugin-wasm';
 import topLevelAwait from 'vite-plugin-top-level-await';
 import { readMainnetPins } from '../scripts/mainnet-pins.mjs';
 import { readPolicyStatus } from '../scripts/maintenance-policy.mjs';
+import { agreementsLive, llmsFullTxt, llmsTxt, robotsTxt, sitemapXml, structuredData } from './findable';
 
 // What the site says about where records are dated depends on the build mode, never on
 // hand-edited strings: `--mode mainnet` describes Midnight's main network, every other
@@ -114,7 +116,7 @@ const SUMMARY = {
 <ul>
 <li>On Midnight's main network since 8 October 2026. Open to first users since 20 October 2026; every record so far is the team's own test data.</li>
 <li>Works on veilcore.org: sealing records; batches dated on Midnight automatically, every hour; proving a record by link; dating a DNA report pairing; lab receipts and reports signed with the lab's own key. No wallet needed: VeilCore pays the network fee.</li>
-<li>Practice only: licences, royalties and lab agreements.</li>
+<li>Practice only on veilcore.org: licenses, royalties and lab agreements.</li>
 <li>No formal audit yet. Twelve rounds of adversarial review are public.</li>
 </ul>
 ${SUMMARY_TAIL}`,
@@ -122,12 +124,39 @@ ${SUMMARY_TAIL}`,
 <h2>Where it stands</h2>
 <ul>
 <li>On Midnight's main network since 8 October 2026. Every record so far is the team's own test data.</li>
-<li>Practice only: licences, royalties and lab agreements. No formal audit yet.</li>
+<li>Practice only on veilcore.org: licenses, royalties and lab agreements. No formal audit yet.</li>
 </ul>
 ${SUMMARY_TAIL}`,
   test: `${SUMMARY_HEAD}
 <p>This is the test site: records made here are practice records on a Midnight test network and carry no evidential weight. The real site is <a href="https://veilcore.org">veilcore.org</a>.</p>
 ${SUMMARY_TAIL}`,
+};
+
+// Being found (findable.ts): veilcore.org gets a sitemap, llms.txt and llms-full.txt, and who
+// VeilCore is as schema.org data; every other build asks not to be indexed. No dates in these
+// files, so a rebuild from the same commit gives the same bytes (npm run check:rebuild).
+const findable = (mode: string): Plugin => {
+  const indexed = mode === 'mainnet';
+  const root = fileURLToPath(new URL('.', import.meta.url));
+  return {
+    name: 'veilcore-findable',
+    transformIndexHtml: (html) =>
+      html.replace(
+        '</head>',
+        indexed
+          ? `  <script type="application/ld+json">${structuredData()}</script>\n  </head>`
+          : '  <meta name="robots" content="noindex" />\n  </head>',
+      ),
+    generateBundle() {
+      const emit = (fileName: string, source: string) => this.emitFile({ type: 'asset', fileName, source });
+      emit('robots.txt', robotsTxt(indexed));
+      if (!indexed) return;
+      const live = agreementsLive(root);
+      emit('sitemap.xml', sitemapXml());
+      emit('llms.txt', llmsTxt(live));
+      emit('llms-full.txt', llmsFullTxt(root, live));
+    },
+  };
 };
 
 const siteSummary = (mode: string, sends: boolean): Plugin => ({
@@ -255,6 +284,7 @@ export default defineConfig(({ mode, command }) => {
         mode,
         mode === 'mainnet' && { ...loadEnv(mode, process.cwd(), 'VITE_'), ...process.env }.VITE_REAL_CHAIN === '1',
       ),
+      findable(mode),
       preloadFonts(),
       recordBuildSettings(),
       react(),
