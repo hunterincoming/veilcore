@@ -44,7 +44,7 @@ export const AGREEMENTS_SIMULATED = `Simulated in ${THIS_SITE}: the other party 
  * founders' sign-off: every "Practice only" label and "not legally binding" line in the
  * app reads from here, so going live is one change, reviewed in one place.
  */
-export const AGREEMENTS_LIVE = false;
+export const AGREEMENTS_LIVE = true;
 
 /**
  * Whether this build makes agreements on chain (a real license, parentage, offspring royalties).

@@ -44,7 +44,7 @@ export const AGREEMENT_CIRCUITS = [
  * (a test checks). On mainnet the list can't be changed by configuration, only by this
  * reviewed line. Test networks pay for agreement calls already, so they can be tried first.
  */
-export const MAINNET_AGREEMENTS = false;
+export const MAINNET_AGREEMENTS = true;
 
 /** What the public endpoint pays for, unless SPONSOR_CIRCUITS (test networks only) says otherwise. */
 export const defaultCircuits = (mainnet: boolean): readonly string[] =>
