@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { assertNotForbidden, assertNotMaintenanceKey, ConfigError, loadConfig, MAINNET_CONTRACT, SPECKS_PER_DUST } from './config.js';
-import { AGREEMENT_CIRCUITS, PHASE1_PUBLIC_CIRCUITS } from './policy.js';
+import { AGREEMENT_CIRCUITS, MAINNET_AGREEMENTS, PHASE1_PUBLIC_CIRCUITS } from './policy.js';
 
 const base = {
   SPONSOR_SEED: '11'.repeat(32),
@@ -91,7 +91,10 @@ describe('configuration', () => {
       expect(c.dailyBudgetSpecks).toBe(20n * SPECKS_PER_DUST);
       expect(c.maxFeeSpecks).toBe(1n * SPECKS_PER_DUST);
       expect(c.limits.perIpDay).toBe(30);
-      expect([...c.allowedCircuits].sort()).toEqual(['anchor', 'pairDna', 'proveOwnership']);
+      // The record calls; the agreement calls too once MAINNET_AGREEMENTS is switched on.
+      expect([...c.allowedCircuits].sort()).toEqual(
+        [...PHASE1_PUBLIC_CIRCUITS, ...(MAINNET_AGREEMENTS ? AGREEMENT_CIRCUITS : [])].sort(),
+      );
     });
 
     it('pays only for VeilCore’s pinned contract, the one api/src/deploy-guard.ts pins', () => {
