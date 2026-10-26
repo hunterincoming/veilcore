@@ -55,9 +55,12 @@ describe('the record app in every language', () => {
   it('has English for every key, namespaced by screen', () => {
     const keys = Object.keys(EN);
     expect(keys.length).toBeGreaterThan(1000);
+    // Empty on purpose once licenses are live (config/copy.ts PRACTICE_LABEL): no label to show.
+    const emptyWhenLive = new Set(['app.copy.practiceLabel']);
     for (const k of keys) {
       expect(k, k).toMatch(/^app\.[a-z]+\./);
-      expect(EN[k], k).toBeTruthy();
+      if (emptyWhenLive.has(k)) expect(typeof EN[k], k).toBe('string');
+      else expect(EN[k], k).toBeTruthy();
     }
   });
 
