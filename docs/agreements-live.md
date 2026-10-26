@@ -1,8 +1,8 @@
 # Agreements on chain: the build to "live"
 
-Status: built, 24 October 2026. Everything below runs on the test network
-(test.veilcore.org); on veilcore.org it stays switched off until a clean test run
-([agreements-test-run.md](agreements-test-run.md)). Owner: hunter@veilcore.org. This page says
+Status: live on veilcore.org and on the test network (test.veilcore.org), after a clean test
+run ([agreements-test-run.md](agreements-test-run.md)). Paying in NIGHT on Midnight itself stays
+on test networks (`ONCHAIN_PAYMENTS`). Owner: hunter@veilcore.org. This page says
 what the website does with VeilCore's contract once agreements are live, who does what, and
 what VeilCore never does. The switch is in one reviewed place, below.
 

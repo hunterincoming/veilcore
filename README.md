@@ -56,11 +56,11 @@ Build fingerprints: [docs/fingerprints.md](docs/fingerprints.md).
   and reports signed with the lab's own key; choosing what a record's check page shows; check
   pages that read the date from Midnight themselves. No wallet needed: VeilCore's fee service
   pays the network fee for what the browser sends.
-- **Licenses and royalties: built, live on the test network, switched off on veilcore.org
-  until a final test run.** On [test.veilcore.org](https://test.veilcore.org) a breeder
-  licenses a record to a grower with real transactions: two devices, a 6-digit code read
+- **Licenses and royalties: live on veilcore.org.** A breeder licenses a record to a grower
+  with real transactions: two devices, a 6-digit code read
   aloud, a private signed channel per deal for terms and royalty statements, payment straight
-  from payer to payee (VeilCore never holds money), royalties on declared offspring, handing a
+  from payer to payee or through a payment partner (VeilCore never holds money; paying in NIGHT
+  on Midnight itself is on the test network only), royalties on declared offspring, handing a
   license on with the breeder's approval, and a pack a lender can check with a free tool.
   Lab hand-overs and breeder shares work the same way.
   [docs/agreements-live.md](docs/agreements-live.md)
@@ -218,7 +218,7 @@ automatically by the same service. On test.veilcore.org (preprod) this was first
 end on 12 and 13 October 2026 ([`docs/no-wallet-run-12oct.md`](docs/no-wallet-run-12oct.md));
 on veilcore.org (mainnet) it went live on 19 October and was checked by hand on 20 October
 ([`docs/mainnet-sponsor.md`](docs/mainnet-sponsor.md)). Licenses and royalties run with real
-transactions on test.veilcore.org and stay switched off on veilcore.org until a final test run.
+transactions on both.
 
 **The CLI** in `bboard-cli/` talks to a deployed contract. Its smoke test
 (`bboard-cli/src/smoke.ts`) deploys a fresh contract and calls 16 of the 24 circuits with
@@ -244,7 +244,7 @@ Midnight's standards repository.
 - A license is activated on chain with the licensee's own license secret, and every message in a deal is signed with the sender's Ed25519 key. Neither is a qualified eIDAS signature. The older practice licenses only record a time in the registry.
 - The royalty log records and proves obligations. It does not move money.
 - It raises the cost and the evidentiary risk of laundering stolen genetics. It does not prevent it.
-- Licenses and royalties are switched off on veilcore.org until a final test run. They run on test.veilcore.org, where nothing carries legal or evidential weight.
+- A license on VeilCore records what two parties agreed and signed. VeilCore is not a party to it, doesn't enforce it and doesn't decide disputes.
 - VeilCore does not vouch for any record, holder or lab. A lab's signature shows which key signed; a lab's name is shown as checked only after the operator has matched it to a public license, and even then only that match is claimed ([`docs/lab-name-checks.md`](docs/lab-name-checks.md)).
 
 ## Deploying
