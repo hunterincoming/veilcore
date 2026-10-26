@@ -4,7 +4,7 @@
 // anchored automatically (the sponsor's anchoring job, docs/no-wallet-run-12oct.md), which
 // dates each record; the browser date stamps each plant's own key, which dates only the key
 // (docs/identity-in-record.md, "Dates"); a DNA report pairing can be dated, and
-// "prove it" by link works. Licenses and lab agreements are still practice only.
+// "prove it" by link works, and every kind of agreement is made with real transactions.
 //
 // Order in i18n/index.tsx: en, then this overlay (and its translation, where a language
 // has one) when REAL_CHAIN && !IS_MAINNET; en-mainnet.ts on a mainnet build. A mainnet
@@ -35,7 +35,7 @@ export const testchainStrings: Overlay = {
   'm.for.1p':
     "Seal a record and pair its DNA report. If the plant turns up under another name, a lab can compare a new test with your report. On this test site you can date the pairing from your browser, and nobody can copy it to their own record. VeilCore doesn't test DNA.",
   'm.demo.lede':
-    "No sign-up, no wallet. This is the test site, so use made-up details. Batches are anchored on Midnight's test network automatically, and that dates your records. A lab's receipt is a real signature with the lab's own key, kept off the chain. Licenses and lab agreements are practice only.",
+    "No sign-up, no wallet. This is the test site, so use made-up details. Batches are anchored on Midnight's test network automatically, and that dates your records. A lab's receipt is a real signature with the lab's own key, kept off the chain. Licenses and lab agreements are made with real transactions here too, on the test network.",
   'm.privacy.test.text':
     "This site uses Midnight's preprod test network, not the main one. Your browser sends each date stamp to that network through VeilCore's fee service; what you typed and your files are never sent to it. A test network can be reset, and test data may be deleted.",
   'm.privacy.hosts.text':
@@ -43,4 +43,10 @@ export const testchainStrings: Overlay = {
   // (docs/check-on-chain.md), when it can reach Midnight: it says so, as en.ts does.
   'm.tech.check.p':
     "Recomputing a record's proof code needs only SHA-256 and the open spec. Its inclusion proof ties that proof code to a batch's code anchored on Midnight, and the transaction that anchored it gives the batch's date. The evidence bundle's verify.html does the recomputing offline and names the transaction and root to look up. The check page looks that transaction up on Midnight itself when it can reach Midnight. Records sealed since 14 October name their own key, so checking them also needs spec section 3.6.1, in the spec on this site and in SDK 0.16.0 and later. Looking a record up by its identifier on this site uses our server.",
+  // Agreements are real on the test site: every type, on Midnight's test network.
+  'm.get.2b':
+    "They attach to the record. A licensee can prove they hold a live license without showing which one. A royalty or other obligation on a parent shows on every offspring both holders confirmed; VeilCore records it and doesn't collect it. Made from this test site with real transactions on Midnight's test network.",
+  // Agreements are real on the test site: every type, on Midnight's test network.
+  'm.for.3p':
+    "Send material with a lab code. The lab signs a receipt with its own key, so the record shows a second party. The receipt is a real signature, kept by VeilCore's registry, not on the chain. Terms such as no propagation go in a lab agreement, which you and the lab make here on Midnight's test network.",
 };

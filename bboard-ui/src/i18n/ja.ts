@@ -9,6 +9,7 @@
 // (登録 alone would read as registering the material, which a record is not).
 // SPDX-License-Identifier: Apache-2.0
 import type { Strings } from './en';
+import { applyLiveSwaps, type LiveSwaps } from './mainnet-overlay';
 export const ja: Strings = {
   // Header and footer
   'nav.language': '言語',
@@ -295,6 +296,9 @@ export const ja: Strings = {
   'm.live.lic.main': '最終テストが終わるまで停止中。',
   'm.live.lic.test': 'はい。本物のトランザクションで：ロイヤリティ、支払い、ライセンスの引き継ぎ。',
   'm.live.lic.not': 'veilcore.orgでは、最終テストの後に。',
+  // Licenses switched on at veilcore.org (AGREEMENTS_LIVE): the main-network cell (components/site/Home.tsx).
+  'm.live.lic.live':
+    'はい。本物のトランザクションで：ライセンス、ロイヤリティの明細、ライセンスの引き継ぎ。Midnight上でのロイヤリティの支払いはテストサイトだけです。',
   'm.live.chain.t': '確認ページがMidnightを自ら読む',
   'm.live.chain.main': '未対応。私たちの読み取り専用リレーが必要です。',
   'm.live.chain.test': 'あり。',
@@ -536,13 +540,19 @@ export const jaTestchain: Strings = {
   'm.for.1p':
     '記録を封印し、DNA報告書を紐付けます。その植物が別の名前で出回ったら、ラボは新しい検査をあなたの報告書と比較できます。このテストサイトでは、ブラウザから紐付けに日付を付けられ、誰もそれを自分の記録にコピーできません。VeilCoreはDNA検査を行いません。',
   'm.demo.lede':
-    'アカウント登録もウォレットも不要です。ここはテストサイトなので、架空の情報をお使いください。バッチはMidnightのテストネットワークに自動でアンカーされ、それが記録の日付になります。ラボの受領書は、ラボ自身の鍵による本物の署名で、チェーンの外に保管されます。ライセンスやラボとの契約は練習用です。',
+    'アカウント登録もウォレットも不要です。ここはテストサイトなので、架空の情報をお使いください。バッチはMidnightのテストネットワークに自動でアンカーされ、それが記録の日付になります。ラボの受領書は、ラボ自身の鍵による本物の署名で、チェーンの外に保管されます。ライセンスやラボとの契約も、ここではテストネットワーク上の本物のトランザクションで結べます。',
   'm.privacy.test.text':
     'このサイトは、メインネットワークではなくMidnightのpreprodテストネットワークを使用しています。ブラウザは各日付スタンプを、VeilCoreの手数料サービスを通じてそのネットワークに送ります。入力した内容やファイルがそこへ送られることはありません。テストネットワークはリセットされることがあり、テストデータが削除される場合があります。',
   'm.privacy.hosts.text':
     'このウェブサイトはVercelでホストされており、VercelはIPアドレスとリクエストを記録します。レジストリサーバーと、テストネットワークの手数料を支払いこのページからのネットワーク読み取りを中継するサービスはRailwayで稼働しており、Railwayはリクエストを記録します。このサービスはBlockfrost経由でネットワークを読み取ります。',
   'm.tech.check.p':
     '記録の証明コードの再計算に必要なのは、SHA-256と公開仕様だけです。包含証明がその証明コードを、Midnightにアンカーされたバッチの証明コードに結び付け、それをアンカーしたトランザクションでバッチの日付がわかります。証拠パッケージのverify.htmlは、この再計算をオフラインで行い、照会すべきトランザクションとバッチの証明コードを示します。確認ページは、Midnightに接続できればそのトランザクションをMidnight上で自ら照会します。10月14日以降に封印された記録は自らの鍵を指定しているため、確認には仕様の3.6.1節も必要です。この節は、このサイトの仕様とSDK 0.16.0以降に入っています。このサイトで識別子から記録を調べる場合は、私たちのサーバーを使います。',
+  // Agreements are real on the test site: every type, on Midnight's test network.
+  'm.get.2b':
+    'これらは記録に付きます。ライセンシーは、どのライセンスかを見せずに、有効なライセンスを持っていることを証明できます。ロイヤルティなど親に付いた義務は、双方の保有者が確認したすべての子孫に表示されます。VeilCoreはそれを記録しますが、徴収はしません。このテストサイトから、Midnightのテストネットワーク上の本物のトランザクションで使えます。',
+  // Agreements are real on the test site: every type, on Midnight's test network.
+  'm.for.3p':
+    'ラボコードを付けて素材を送ります。ラボが自らの鍵で受領書に署名するので、記録にもう一方の当事者が残ります。受領書は本物の署名で、チェーン上ではなくVeilCoreのレジストリが保管します。増殖禁止などの条件はラボとの契約に入り、その契約はあなたとラボがここでMidnightのテストネットワーク上で結びます。',
 };
 
 /**
@@ -562,14 +572,35 @@ export const jaMainnet = ({
   policyApproved,
   chainReads = false,
   chainSends = false,
+  agreementsLive = false,
 }: {
   claimsOnMainnet: boolean;
   policyApproved: boolean;
   chainReads?: boolean;
   chainSends?: boolean;
+  agreementsLive?: boolean;
 }): Strings => {
   const o = jaMainnetBase({ claimsOnMainnet, policyApproved, chainReads });
-  return chainSends ? { ...o, ...jaSends(o) } : o;
+  if (!chainSends) return o;
+  const sent = { ...o, ...jaSends(o) };
+  return agreementsLive ? { ...sent, ...applyLiveSwaps(sent, JA_LIVE, 'ja') } : sent;
+};
+
+/** Licenses switched on: the same facts as en-mainnet.ts LIVE_SWAPS. */
+const JA_LIVE: LiveSwaps = {
+  'm.hero.status': [
+    'ライセンスとラボとの契約は、ここではまだシミュレーションです。',
+    'ライセンスとラボとの契約も、両当事者のブラウザ同士でここで結べます。',
+  ],
+  'm.get.2b': [
+    'Midnightのメインネットワーク上のコントラクトに組み込まれており、このウェブサイトではシミュレーションです。',
+    'Midnightのメインネットワーク上のコントラクトに組み込まれており、このウェブサイトから使えます。',
+  ],
+  'm.demo.lede': ['ライセンスとラボとの契約はシミュレーションです。', 'ライセンスとラボとの契約もMidnightに載ります。'],
+  'm.for.3p': [
+    '増殖禁止などの条件は、このウェブサイトでは練習用です。',
+    '増殖禁止などの条件はラボとの契約に入り、その契約はあなたとラボがMidnight上で結びます。',
+  ],
 };
 
 const swapJa = (text: string | undefined, from: string, to: string): string => {

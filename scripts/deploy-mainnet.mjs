@@ -21,6 +21,7 @@ import { cpSync, existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { normaliseAddress, readMainnetPins } from './mainnet-pins.mjs';
 import { vercelEnv } from './vercel-token.mjs';
+import { agreementsLive } from './registry-features.mjs';
 
 export const API = 'https://veilcore-api-production.up.railway.app';
 
@@ -48,7 +49,7 @@ export const httpsOrigin = (name, value) => {
  * What the sponsor's public status must say before veilcore.org sends anything through it.
  * @returns {string | undefined} the problem, or undefined when it is fine
  */
-export const sponsorProblem = (status, pinned) => {
+export const sponsorProblem = (status, pinned, agreements = false) => {
   if (!status || typeof status !== 'object') return 'The sponsor did not answer /sponsor/status.';
   if (String(status.network).toLowerCase() !== 'mainnet')
     return `The sponsor says it is on "${status.network}", not mainnet.`;
@@ -59,6 +60,12 @@ export const sponsorProblem = (status, pinned) => {
   // The site then says batches are anchored automatically: only true with the job on.
   if (status.anchorer?.enabled !== true)
     return 'The sponsor\'s anchoring job is off. Set REGISTRY_URL and REGISTRY_OPERATOR_TOKEN on it (Railway), wait for the redeploy, then run this again.';
+  // Licenses on (AGREEMENTS_LIVE): the sponsor must pay for the agreement calls, or every
+  // license a visitor starts would be refused at the first step. It says so only when its own
+  // MAINNET_AGREEMENTS is on (sponsor/src/policy.ts), so this also catches a sponsor still
+  // running the code from before the switch.
+  if (agreements && status.agreements !== true)
+    return 'Licenses are switched on in the site, but the sponsor does not pay for license transactions yet. Deploy the sponsor from this same commit first (Railway), wait until its /sponsor/status says "agreements": true, then run this again.';
   return undefined;
 };
 
@@ -107,8 +114,14 @@ const main = async () => {
     fail(e.message);
   }
 
+  // Licenses happen in the visitor's browser, through the sponsor: switched on with no sponsor,
+  // the site would offer them and send nothing.
+  const live = await agreementsLive();
+  if (live && !sponsor)
+    fail('Licenses are switched on (AGREEMENTS_LIVE), and they need the sponsor: set VEILCORE_MAINNET_SPONSOR and VITE_INDEXER_RELAY_URL, then run this again.');
+
   if (sponsor) {
-    const problem = sponsorProblem(await getJson(`${sponsor}/sponsor/status`), pins.veilcore);
+    const problem = sponsorProblem(await getJson(`${sponsor}/sponsor/status`), pins.veilcore, live);
     if (problem) fail(problem);
     const probe = await fetch(chain.VITE_INDEXER_URL, {
       method: 'POST',

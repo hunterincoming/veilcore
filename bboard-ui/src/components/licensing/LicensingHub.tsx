@@ -1,5 +1,5 @@
 // LicensingHub (/licenses) — every agreement this browser holds (licenses, lab transfers,
-// breeder shares), across all records. Simulated in the web demo, and says so.
+// breeder shares), across all records. Where they are practice only, it says so.
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
@@ -15,6 +15,7 @@ import { LicenseStateChip } from './LicenseStateChip';
 import { AgreementTypeChip } from './AgreementTypeChip';
 import { linkCard } from '../a11y';
 import { LockedAgreements } from '../LockedRecords';
+import { AGREEMENTS_REAL } from '../../veilcore/agreements-real';
 
 const MPaper = motion(Paper);
 
@@ -32,7 +33,8 @@ export const LicensingHub: React.FC = () => {
         {tr.t('app.lic.hub.title')}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        {tr.t('app.lic.hub.intro')} {tr.t('app.copy.agreementsSimulated')}
+        {tr.t('app.lic.hub.intro')}
+        {!AGREEMENTS_REAL && ` ${tr.t('app.copy.agreementsSimulated')}`}
       </Typography>
 
       <Box sx={{ mb: 2 }}>

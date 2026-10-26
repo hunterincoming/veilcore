@@ -115,6 +115,25 @@ export const deMainnet = buildMainnet({
     'm.tech.check.p':
       'Um den Prüfcode eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Einschlussnachweis verbindet diesen Prüfcode mit einem Code des Stapels, der auf Midnight verankert ist, und die Transaktion, die ihn verankert hat, liefert das Datum des Stapels. Die verify.html im Beweispaket rechnet das offline nach und nennt die Transaktion und den Code des Stapels, die nachzuschlagen sind. Die Prüfseite wird Midnight selbst lesen, sobald unser Nur-Lese-Relay läuft; bis dahin sagt sie, dass das Datum die Angabe unseres Registers ist, und Sie können die Transaktion selbst in einem Midnight-Explorer nachschlagen. Datensätze, die seit dem 14. Oktober versiegelt wurden, benennen ihren eigenen Schlüssel; ihre Prüfung braucht deshalb auch Abschnitt 3.6.1, in der Spezifikation auf dieser Website und im SDK ab 0.16.0. Wer auf dieser Website einen Datensatz über seine Kennung nachschlägt, nutzt dafür unseren Server.',
   },
+  // Licenses switched on: the same facts as en-mainnet.ts LIVE_SWAPS.
+  live: {
+    'm.hero.status': [
+      'Lizenzen und Laborvereinbarungen sind hier noch simuliert.',
+      'Lizenzen und Laborvereinbarungen werden hier ebenfalls geschlossen, zwischen den Browsern der beiden Parteien.',
+    ],
+    'm.get.2b': [
+      'Im Contract im Hauptnetz von Midnight eingebaut; auf dieser Website simuliert.',
+      'Im Contract im Hauptnetz von Midnight eingebaut und auf dieser Website nutzbar.',
+    ],
+    'm.demo.lede': [
+      'Lizenzen und Laborvereinbarungen sind simuliert.',
+      'Lizenzen und Laborvereinbarungen kommen ebenfalls auf Midnight.',
+    ],
+    'm.for.3p': [
+      'Bedingungen wie „keine Vermehrung“ sind auf dieser Website nur zum Üben.',
+      'Bedingungen wie „keine Vermehrung“ stehen in einer Laborvereinbarung, die Sie und das Labor auf Midnight schließen.',
+    ],
+  },
   sends: (claimsOnMainnet) => ({
     ...sendsCommon,
     'm.stat2.s': claimsOnMainnet

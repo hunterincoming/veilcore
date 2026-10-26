@@ -69,6 +69,10 @@ export const licensing = {
   'app.lic.row.mayDistribute': 'Peut le distribuer ou le vendre',
   'app.lic.row.attribution': 'Mention de l’obtenteur exigée',
   'app.lic.row.extra': 'Conditions supplémentaires',
+  // A practice agreement on a site where agreements are now real (veilcore/agreements-real.ts).
+  'app.lic.practice.chip': 'Exercice',
+  'app.lic.practice.text':
+    'Un contrat d’exercice, conclu quand les contrats ici servaient seulement à s’exercer. L’autre partie ne l’a jamais signé, et il n’est pas sur Midnight. Pour un vrai contrat, commencez-en un nouveau depuis l’enregistrement.',
   'app.lic.royaltyPending.label': 'Protection de la redevance en attente',
   'app.lic.royaltyPending.text':
     'Protection de la redevance en attente. VeilCore n’a pas encore confirmé la redevance sur la descendance, donc la vérification publique de la lignée ne l’affiche pas. Ce navigateur la renvoie à chaque synchronisation. Laissez VeilCore ouvert ou revenez bientôt.',

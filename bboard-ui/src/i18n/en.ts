@@ -401,6 +401,9 @@ export const en = {
   'm.live.lic.main': 'Switched off until a final test run.',
   'm.live.lic.test': 'Yes, with real transactions: royalties, payments, handing a license on.',
   'm.live.lic.not': 'On veilcore.org, after a final test run.',
+  // Licenses switched on at veilcore.org (AGREEMENTS_LIVE): the main-network cell (components/site/Home.tsx).
+  'm.live.lic.live':
+    'Yes: licenses, royalty statements and handing a license on, with real transactions. Paying royalties on Midnight itself is on the test site only.',
   // The check page looking a record's date up on Midnight itself (docs/check-on-chain.md).
   // On veilcore.org it needs the read-only relay; the mainnet overlay says "Yes." once a
   // build has one (CHAIN_READS).

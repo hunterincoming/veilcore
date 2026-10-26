@@ -29,6 +29,7 @@ import { FOUNDERS_MAIL, RoleLine, SDK_REPO, SiteShell, X_HANDLE } from './SiteSh
 import { FoldGroup, FoldItem, FoldPoint, usePhone } from './Fold';
 import { hasRecordsHere } from './returning';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
+import { AGREEMENTS_LIVE } from '../../config/copy';
 
 const APP_REPO = 'https://github.com/hunterincoming/veilcore';
 /** The public test site (docs/test-site.md). It goes live with this release. */
@@ -297,13 +298,19 @@ const LIVE_ROWS = [
  */
 type LiveRow = (typeof LIVE_ROWS)[number];
 const liveRows = (): readonly LiveRow[] =>
-  MAINNET_SENDS
-    ? LIVE_ROWS.map((r): LiveRow => (r[0] === 'prove' ? (['prove', true, true, false] as unknown as LiveRow) : r))
-    : LIVE_ROWS;
+  LIVE_ROWS.map((r): LiveRow => {
+    if (MAINNET_SENDS && r[0] === 'prove') return ['prove', true, true, false] as unknown as LiveRow;
+    // Licenses switched on at veilcore.org (config/copy.ts AGREEMENTS_LIVE): on every build's
+    // table, the test site's included, since the column is about veilcore.org.
+    if (AGREEMENTS_LIVE && r[0] === 'lic') return ['lic', true, true, false] as unknown as LiveRow;
+    return r;
+  });
 const cellKey = (row: string, col: string) =>
-  (MAINNET_SENDS && row === 'prove' && col === 'main' ? 'm.live.prove.test' : `m.live.${row}.${col}`) as Parameters<
-    ReturnType<typeof useI18n>['t']
-  >[0];
+  (MAINNET_SENDS && row === 'prove' && col === 'main'
+    ? 'm.live.prove.test'
+    : AGREEMENTS_LIVE && row === 'lic' && col === 'main'
+      ? 'm.live.lic.live'
+      : `m.live.${row}.${col}`) as Parameters<ReturnType<typeof useI18n>['t']>[0];
 
 const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
   const { t } = useI18n();

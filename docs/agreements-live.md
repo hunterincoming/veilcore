@@ -180,15 +180,34 @@ holds or moves anyone's money.
 
 ## Going live (the switch)
 
-One reviewed change, after a full run on the test network:
+One reviewed change, after a full run on the test network. Everything that depends on it reads
+these two lines, so the change itself is two lines:
 
-- `bboard-ui/src/config/copy.ts`: `AGREEMENTS_LIVE = true` (removes every "Practice only"
-  label in one place).
-- `sponsor/src/policy.ts`: the mainnet list of circuits the sponsor pays for gains the
-  agreement circuits. It cannot be changed by configuration on mainnet, only by this
-  reviewed code change.
-- The registry's deal and statement routes deployed to the mainnet registry.
-- `bboard-ui/vite.config.ts` SUMMARY: the plain summary crawlers read says licenses are
-  practice only; change that line. (llms.txt follows `AGREEMENTS_LIVE` by itself.)
+- `bboard-ui/src/config/copy.ts`: `AGREEMENTS_LIVE = true`.
+- `sponsor/src/policy.ts`: `MAINNET_AGREEMENTS = true` (a test checks the two agree). On
+  mainnet the sponsor's list of circuits can't be changed by configuration, only by this line.
+
+What follows from them, with nothing else to edit:
+
+- The app: every "Practice only" label goes. A practice agreement made before the switch stays
+  marked "Practice" wherever it appears, with a line saying it was never on Midnight
+  (`veilcore/agreements-real.ts`).
+- The public pages, in every language: the four sentences that called licenses and lab
+  agreements simulated say they are made here (`LIVE_SWAPS` in `i18n/en-mainnet.ts`, and each
+  language's own), and the "What's live where" table says yes for veilcore.org. Royalties paid
+  on Midnight itself stay on test networks (`ONCHAIN_PAYMENTS`), and the pages say so.
+- What crawlers read: the static summary (`vite.config.ts`) and llms.txt.
+- The sponsor's `/sponsor/status` says `"agreements": true`.
+
+The order, because each step checks the one before:
+
+1. The registry: its deal and statement routes (`license-invites-v1`, `deals-v1`,
+   `payment-receipts-v1`, `passkey-vault-v1`) deployed to the mainnet registry.
+   `deploy:mainnet` refuses to build until `/health` lists them.
+2. The mainnet sponsor, deployed from the switch commit. `deploy:mainnet` refuses until its
+   `/sponsor/status` says `"agreements": true`, so a site can't offer licenses the sponsor would
+   refuse to pay for.
+3. The site: `npm run deploy:mainnet` with `VEILCORE_MAINNET_SPONSOR` and
+   `VITE_INDEXER_RELAY_URL` set. With licenses on it refuses to run without them.
 
 Approval: the founders, in writing, after a clean test run.

@@ -110,13 +110,18 @@ const SUMMARY_TAIL = `<h2>Team</h2>
 <p>Code and spec: <a href="https://github.com/hunterincoming/veilcore">the app and contracts</a> and <a href="https://github.com/hunterincoming/veilcore-sdk">the open record format</a>.</p>
 </main>`;
 
-const SUMMARY = {
+// Licenses on veilcore.org: the line follows AGREEMENTS_LIVE (config/copy.ts), as llms.txt does.
+const LICENSES_PRACTICE = '<li>Practice only on veilcore.org: licenses, royalties and lab agreements.</li>';
+const LICENSES_LIVE =
+  '<li>Licenses, royalty statements and lab agreements are made on veilcore.org, between the two parties, with real transactions. Paying royalties on Midnight itself is on the test site only.</li>';
+
+const summaryOf = (live: boolean) => ({
   mainnetSends: `${SUMMARY_HEAD}
 <h2>Where it stands</h2>
 <ul>
 <li>On Midnight's main network since 8 October 2026. Open to first users since 20 October 2026; every record so far is the team's own test data.</li>
 <li>Works on veilcore.org: sealing records; batches dated on Midnight automatically, every hour; proving a record by link; dating a DNA report pairing; lab receipts and reports signed with the lab's own key. No wallet needed: VeilCore pays the network fee.</li>
-<li>Practice only on veilcore.org: licenses, royalties and lab agreements.</li>
+${live ? LICENSES_LIVE : LICENSES_PRACTICE}
 <li>No formal audit yet. Twelve rounds of adversarial review are public.</li>
 </ul>
 ${SUMMARY_TAIL}`,
@@ -130,7 +135,7 @@ ${SUMMARY_TAIL}`,
   test: `${SUMMARY_HEAD}
 <p>This is the test site: records made here are practice records on a Midnight test network and carry no evidential weight. The real site is <a href="https://veilcore.org">veilcore.org</a>.</p>
 ${SUMMARY_TAIL}`,
-};
+});
 
 // Being found (findable.ts): veilcore.org gets a sitemap, llms.txt and llms-full.txt, and who
 // VeilCore is as schema.org data; every other build asks not to be indexed. No dates in these
@@ -159,14 +164,17 @@ const findable = (mode: string): Plugin => {
   };
 };
 
-const siteSummary = (mode: string, sends: boolean): Plugin => ({
-  name: 'veilcore-site-summary',
-  transformIndexHtml: (html) =>
-    html.replace(
-      '<div id="root"></div>',
-      `<div id="root">${mode === 'mainnet' ? (sends ? SUMMARY.mainnetSends : SUMMARY.mainnet) : SUMMARY.test}</div>`,
-    ),
-});
+const siteSummary = (mode: string, sends: boolean): Plugin => {
+  const SUMMARY = summaryOf(agreementsLive(fileURLToPath(new URL('.', import.meta.url))));
+  return {
+    name: 'veilcore-site-summary',
+    transformIndexHtml: (html) =>
+      html.replace(
+        '<div id="root"></div>',
+        `<div id="root">${mode === 'mainnet' ? (sends ? SUMMARY.mainnetSends : SUMMARY.mainnet) : SUMMARY.test}</div>`,
+      ),
+  };
+};
 
 // The font the first screen is drawn in, asked for with the page instead of after the
 // script has run and the browser has worked out which ones it needs: Atkinson Hyperlegible

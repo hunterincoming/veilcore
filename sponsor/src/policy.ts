@@ -50,6 +50,10 @@ export const MAINNET_AGREEMENTS = false;
 export const defaultCircuits = (mainnet: boolean): readonly string[] =>
   mainnet && !MAINNET_AGREEMENTS ? PHASE1_PUBLIC_CIRCUITS : [...PHASE1_PUBLIC_CIRCUITS, ...AGREEMENT_CIRCUITS];
 
+/** Whether a sponsor with these circuits pays for every agreement call (shown on /sponsor/status). */
+export const paysForAgreements = (allowed: ReadonlySet<string>): boolean =>
+  AGREEMENT_CIRCUITS.every((c) => allowed.has(c));
+
 /**
  * Circuits the public endpoint never pays for, whatever the configuration says.
  * anchorBatch and sealRevocations are run by our own background job only.

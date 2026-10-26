@@ -36,6 +36,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { StringKey } from './en';
+import { applyLiveSwaps, type LiveSwaps } from './mainnet-overlay';
 
 type Overlay = Partial<Record<StringKey, string>>;
 
@@ -220,12 +221,35 @@ const sendsStrings = (o: Overlay): Overlay => ({
   'm.live.dna.main': 'Yes, sent from your browser. VeilCore pays the fee.',
 });
 
+/**
+ * Licenses switched on at veilcore.org (config/copy.ts AGREEMENTS_LIVE, with the sponsor live):
+ * the sentences that called licenses and lab agreements simulated say they are made here.
+ * Paying royalties on Midnight stays on test networks (ONCHAIN_PAYMENTS), so nothing here says
+ * payments move on the main network.
+ */
+export const LIVE_SWAPS: LiveSwaps = {
+  'm.hero.status': [
+    'Licenses and lab agreements here are still simulated.',
+    "Licenses and lab agreements are made here too, between the two parties' own browsers.",
+  ],
+  'm.get.2b': [
+    "Built into the contract on Midnight's main network; simulated on this website.",
+    "Built into the contract on Midnight's main network, and made from this website.",
+  ],
+  'm.demo.lede': ['Licenses and lab agreements are simulated.', 'Licenses and lab agreements go on Midnight too.'],
+  'm.for.3p': [
+    'Terms such as no propagation are practice only on this website.',
+    'Terms such as no propagation go in a lab agreement, which you and the lab make on Midnight.',
+  ],
+};
+
 /** The overlay for a mainnet build. */
 export const mainnetStrings = ({
   claimsOnMainnet,
   policyApproved,
   chainReads = false,
   chainSends = false,
+  agreementsLive = false,
 }: {
   claimsOnMainnet: boolean;
   policyApproved: boolean;
@@ -233,6 +257,8 @@ export const mainnetStrings = ({
   chainReads?: boolean;
   /** The browser sends transactions and batches are anchored automatically (the mainnet sponsor is live). */
   chainSends?: boolean;
+  /** Licenses are switched on (AGREEMENTS_LIVE); applied only with chainSends. */
+  agreementsLive?: boolean;
 }): Overlay => {
   const o: Overlay = {
     ...common,
@@ -240,5 +266,7 @@ export const mainnetStrings = ({
     ...keyStrings(claimsOnMainnet, policyApproved),
     ...chainStrings(chainReads),
   };
-  return chainSends ? { ...o, ...sendsStrings(o) } : o;
+  if (!chainSends) return o;
+  const sent = { ...o, ...sendsStrings(o) };
+  return agreementsLive ? { ...sent, ...applyLiveSwaps(sent, LIVE_SWAPS, 'en') } : sent;
 };

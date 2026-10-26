@@ -291,6 +291,9 @@ export const es: Strings = {
   'm.live.lic.main': 'Desactivado hasta una última prueba completa.',
   'm.live.lic.test': 'Sí, con transacciones reales: regalías, pagos, traspaso de una licencia.',
   'm.live.lic.not': 'En veilcore.org, tras una última prueba completa.',
+  // Licenses switched on at veilcore.org (AGREEMENTS_LIVE): the main-network cell (components/site/Home.tsx).
+  'm.live.lic.live':
+    'Sí: licencias, declaraciones de regalías y traspaso de una licencia, con transacciones reales. Pagar regalías en Midnight mismo solo está en el sitio de pruebas.',
   'm.live.chain.t': 'La página de comprobación lee Midnight por sí misma',
   'm.live.chain.main': 'Todavía no: necesita nuestro relé de solo lectura.',
   'm.live.chain.test': 'Sí.',
@@ -534,11 +537,17 @@ export const esTestchain: Strings = {
   'm.for.1p':
     'Selle un registro y vincule su informe de ADN. Si la planta aparece con otro nombre, un laboratorio puede comparar una prueba nueva con su informe. En este sitio de prueba puede fechar el vínculo desde su navegador, y nadie puede copiarlo a su propio registro. VeilCore no hace pruebas de ADN.',
   'm.demo.lede':
-    'Sin registro, sin billetera. Este es el sitio de prueba, así que use datos inventados. Los lotes se anclan automáticamente en la red de pruebas de Midnight, y eso fecha sus registros. El acuse de recibo de un laboratorio es una firma real con la propia clave del laboratorio, guardada fuera de la cadena. Las licencias y los acuerdos de laboratorio son solo de práctica.',
+    'Sin registro, sin billetera. Este es el sitio de prueba, así que use datos inventados. Los lotes se anclan automáticamente en la red de pruebas de Midnight, y eso fecha sus registros. El acuse de recibo de un laboratorio es una firma real con la propia clave del laboratorio, guardada fuera de la cadena. Las licencias y los acuerdos de laboratorio también se hacen aquí con transacciones reales, en la red de pruebas.',
   'm.privacy.test.text':
     'Este sitio usa la red de pruebas preprod de Midnight, no la principal. Su navegador envía cada sello de fecha a esa red a través del servicio de tarifas de VeilCore; lo que usted escribió y sus archivos nunca se envían allí. Una red de pruebas puede reiniciarse, y los datos de prueba pueden borrarse.',
   'm.privacy.hosts.text':
     'Este sitio web está alojado en Vercel, que registra direcciones IP y solicitudes. Nuestro servidor de registros, y el servicio que paga las tarifas de la red de pruebas y transmite las lecturas de la red de esta página, funcionan en Railway, que registra solicitudes. Ese servicio lee la red a través de Blockfrost.',
   'm.tech.check.p':
     'Recalcular el código de prueba de un registro solo requiere SHA-256 y la especificación abierta. Su prueba de inclusión une ese código de prueba con el código de prueba de un lote anclado en Midnight, y la transacción que lo ancló da la fecha del lote. El verify.html del paquete de evidencia rehace ese cálculo sin conexión y nombra la transacción y el código de prueba del lote que hay que buscar. La página de comprobación consulta esa transacción en Midnight por sí misma cuando puede llegar a Midnight. Los registros sellados desde el 14 de octubre nombran su propia clave, así que comprobarlos también requiere la sección 3.6.1, en la especificación de este sitio y en el SDK 0.16.0 y posteriores. Buscar un registro por su identificador en este sitio usa nuestro servidor.',
+  // Agreements are real on the test site: every type, on Midnight's test network.
+  'm.get.2b':
+    'Se adjuntan al registro. Un licenciatario puede probar que tiene una licencia vigente sin mostrar cuál. Una regalía u otra obligación sobre un progenitor aparece en cada descendiente que ambos titulares confirmaron; VeilCore la anota y no la cobra. Se usa desde este sitio de prueba, con transacciones reales en la red de pruebas de Midnight.',
+  // Agreements are real on the test site: every type, on Midnight's test network.
+  'm.for.3p':
+    'Envíe material con un código de laboratorio. El laboratorio firma un acuse de recibo con su propia clave, así el registro muestra a una segunda parte. El acuse es una firma real, guardada por el registro de VeilCore, no en la cadena. Condiciones como no propagar van en un acuerdo con el laboratorio, que usted y el laboratorio hacen aquí en la red de pruebas de Midnight.',
 };

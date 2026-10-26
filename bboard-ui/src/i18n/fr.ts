@@ -294,6 +294,9 @@ export const fr: Strings = {
   'm.live.lic.main': 'Désactivé jusqu’à un dernier essai complet.',
   'm.live.lic.test': 'Oui, avec de vraies transactions : redevances, paiements, transmission d’une licence.',
   'm.live.lic.not': 'Sur veilcore.org, après un dernier essai complet.',
+  // Licenses switched on at veilcore.org (AGREEMENTS_LIVE): the main-network cell (components/site/Home.tsx).
+  'm.live.lic.live':
+    'Oui : licences, relevés de redevances et transmission d’une licence, avec de vraies transactions. Payer les redevances sur Midnight même n’existe que sur le site de test.',
   'm.live.chain.t': 'La page de vérification lit Midnight elle-même',
   'm.live.chain.main': 'Pas encore : il faut notre relais en lecture seule.',
   'm.live.chain.test': 'Oui.',
@@ -539,11 +542,17 @@ export const frTestchain: Strings = {
   'm.for.1p':
     "Scellez un enregistrement et associez-y son rapport ADN. Si la plante réapparaît sous un autre nom, un laboratoire peut comparer un nouveau test avec votre rapport. Sur ce site de test, vous pouvez dater l'association depuis votre navigateur, et personne ne peut la copier sur son propre enregistrement. VeilCore ne fait pas de tests ADN.",
   'm.demo.lede':
-    "Pas d'inscription, pas de portefeuille. Ceci est le site de test, utilisez donc des données inventées. Les lots sont ancrés automatiquement sur le réseau de test de Midnight, ce qui date vos enregistrements. L'accusé de réception d'un laboratoire est une vraie signature avec la propre clé du laboratoire, conservée hors chaîne. Les licences et les accords de laboratoire ne sont qu'un exercice.",
+    "Pas d'inscription, pas de portefeuille. Ceci est le site de test, utilisez donc des données inventées. Les lots sont ancrés automatiquement sur le réseau de test de Midnight, ce qui date vos enregistrements. L'accusé de réception d'un laboratoire est une vraie signature avec la propre clé du laboratoire, conservée hors chaîne. Les licences et les accords de laboratoire se font aussi ici avec de vraies transactions, sur le réseau de test.",
   'm.privacy.test.text':
     "Ce site utilise le réseau de test preprod de Midnight, pas le réseau principal. Votre navigateur envoie chaque horodatage à ce réseau via le service de frais de VeilCore ; ce que vous avez saisi et vos fichiers n'y sont jamais envoyés. Un réseau de test peut être réinitialisé, et les données de test peuvent être supprimées.",
   'm.privacy.hosts.text':
     'Ce site est hébergé chez Vercel, qui enregistre les adresses IP et les requêtes. Notre serveur de registre, et le service qui paie les frais du réseau de test et relaie les lectures du réseau faites par cette page, fonctionnent chez Railway, qui enregistre les requêtes. Ce service lit le réseau via Blockfrost.',
   'm.tech.check.p':
     "Recalculer le code de preuve d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa preuve d'inclusion relie ce code de preuve à un code de preuve de lot ancré sur Midnight, et la transaction qui l'a ancré donne la date du lot. Le verify.html du dossier de preuve refait ce calcul hors ligne et nomme la transaction et le code de preuve de lot à consulter. La page de vérification consulte elle-même cette transaction sur Midnight quand elle peut joindre Midnight. Les enregistrements scellés depuis le 14 octobre nomment leur propre clé ; les vérifier demande donc aussi la section 3.6.1, dans la spécification sur ce site et dans le SDK 0.16.0 et suivants. Rechercher un enregistrement par son identifiant sur ce site passe par notre serveur.",
+  // Agreements are real on the test site: every type, on Midnight's test network.
+  'm.get.2b':
+    "Ils sont attachés à l'enregistrement. Un licencié peut prouver qu'il détient une licence en vigueur sans montrer laquelle. Une redevance ou autre obligation sur un parent apparaît sur chaque descendant confirmé par les deux détenteurs ; VeilCore l'enregistre et ne la perçoit pas. Utilisable depuis ce site de test, avec de vraies transactions sur le réseau de test de Midnight.",
+  // Agreements are real on the test site: every type, on Midnight's test network.
+  'm.for.3p':
+    "Envoyez du matériel avec un code laboratoire. Le laboratoire signe un accusé de réception avec sa propre clé, et l'enregistrement montre ainsi une seconde partie. L'accusé est une vraie signature, conservée par le registre de VeilCore, pas sur la chaîne. Des conditions comme l'interdiction de multiplier figurent dans un accord avec le laboratoire, que vous et le laboratoire concluez ici sur le réseau de test de Midnight.",
 };

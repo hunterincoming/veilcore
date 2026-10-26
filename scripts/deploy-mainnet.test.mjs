@@ -44,6 +44,14 @@ test('the sponsor must say mainnet, the pinned contract and synced', () => {
   assert.match(sponsorProblem({ ...ok, anchorer: { enabled: false } }, PIN), /anchoring job is off/);
 });
 
+test('with licenses switched on, the sponsor must pay for license transactions', () => {
+  const ok = { network: 'mainnet', contractAddress: PIN, synced: true, anchorer: { enabled: true } };
+  assert.equal(sponsorProblem(ok, PIN, false), undefined);
+  assert.match(sponsorProblem(ok, PIN, true), /does not pay for license transactions/);
+  assert.match(sponsorProblem({ ...ok, agreements: false }, PIN, true), /does not pay for license transactions/);
+  assert.equal(sponsorProblem({ ...ok, agreements: true }, PIN, true), undefined);
+});
+
 test('the Vercel token comes from the environment or the keychain, and only into Vercel calls', async () => {
   const { vercelToken, vercelEnv } = await import('./vercel-token.mjs');
   assert.equal(vercelToken({ VERCEL_TOKEN: ' abc ' }), 'abc');

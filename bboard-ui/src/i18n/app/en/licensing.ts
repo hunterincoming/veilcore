@@ -72,6 +72,10 @@ export const licensing = {
   'app.lic.row.mayDistribute': 'May distribute or sell',
   'app.lic.row.attribution': 'Attribution / credit required',
   'app.lic.row.extra': 'Additional terms',
+  // A practice agreement on a site where agreements are now real (veilcore/agreements-real.ts).
+  'app.lic.practice.chip': 'Practice',
+  'app.lic.practice.text':
+    'A practice agreement, made while agreements here were practice only. The other party never signed it, and it isn’t on Midnight. For a real one, start a new agreement from the record.',
   'app.lic.royaltyPending.label': 'Royalty protection pending',
   'app.lic.royaltyPending.text':
     'Royalty protection pending. VeilCore hasn’t confirmed the royalty on offspring yet, so the public lineage check doesn’t show it. This browser sends it again each time it syncs. Keep VeilCore open, or come back soon.',

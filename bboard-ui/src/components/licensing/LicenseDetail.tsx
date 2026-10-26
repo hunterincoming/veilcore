@@ -36,6 +36,7 @@ import { AppHeader } from '../AppHeader';
 import { rich, useT } from '../../i18n/app';
 import type { Translator } from '../../i18n/translate';
 import { LicenseStateChip } from './LicenseStateChip';
+import { isPracticeAgreement } from '../../veilcore/agreements-real';
 import { ShareLicense } from './ShareLicense';
 import { AgreementTypeChip } from './AgreementTypeChip';
 import { AgreementsBackupFirst } from './AgreementsBackupFirst';
@@ -195,6 +196,11 @@ export const LicenseDetail: React.FC = () => {
           <Typography variant="overline" sx={{ display: 'block', mb: 0.5 }}>
             {tr.t('app.lic.detail.status')}
           </Typography>
+          {real && isPracticeAgreement(license, real) && (
+            <Alert severity="info" variant="outlined" sx={{ mb: 1.75 }} data-practice-agreement-text="">
+              {tr.t('app.lic.practice.text')}
+            </Alert>
+          )}
           {!real && (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.75 }}>
               {tr.t('app.copy.agreementsSimulated')}

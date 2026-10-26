@@ -54,9 +54,9 @@ export const explorerFor = (n: string = NETWORK): string | undefined => {
 /**
  * Which network the site DESCRIBES: Midnight's main network in a `--mode mainnet` build,
  * a test network in every other build. It decides wording, labels and the explorer the
- * site links to. It switches on nothing else: the site never sends a transaction in any
- * build (records are dated by the registry's operator, in batches; licenses and lab
- * agreements in the web demo are simulated). There is deliberately no switch here that
+ * site links to. It switches on nothing else: whether the browser sends transactions is
+ * decided by the chain settings (veilcore/chain/config.ts CHAIN_READY), and whether
+ * agreements go on chain by config/copy.ts. There is deliberately no switch here that
  * turns on chain-writing code.
  */
 export const IS_MAINNET: boolean = NETWORK === 'mainnet';

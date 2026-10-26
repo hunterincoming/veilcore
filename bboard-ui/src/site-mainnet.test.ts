@@ -315,6 +315,36 @@ describe('the mainnet strings', () => {
       }
   });
 
+  it('with licenses switched on (AGREEMENTS_LIVE), no language still calls licenses or lab agreements simulated or practice', async () => {
+    const { LANGUAGES } = await import('./i18n/catalogs');
+    const { MAINNET_DRAFTS } = await import('./config/languages');
+    const PRACTICE =
+      /simulat|practice only|simuliert|nur zum Üben|simulad|solo de práctica|simulé|qu'un exercice|シミュレーション|練習用/i;
+    const LICENSE_KEYS = ['m.hero.status', 'm.get.2b', 'm.demo.lede', 'm.for.3p'] as const;
+    for (const claimsOnMainnet of [true, false])
+      for (const chainReads of [true, false]) {
+        const base = { claimsOnMainnet, policyApproved: true, chainReads, chainSends: true };
+        const builds: [
+          string,
+          (f: typeof base & { agreementsLive?: boolean }) => Record<string, string | undefined>,
+        ][] = [['en', mainnetStrings], ...MAINNET_DRAFTS.map((l) => [l, LANGUAGES[l].mainnet!] as [string, never])];
+        for (const [lang, build] of builds) {
+          const before = build(base);
+          const live = build({ ...base, agreementsLive: true });
+          for (const k of LICENSE_KEYS) {
+            expect(before[k], `${lang} ${k} says practice before the switch`).toMatch(PRACTICE);
+            expect(live[k], `${lang} ${k} after the switch`).not.toMatch(PRACTICE);
+          }
+          // Only those sentences change; every other one is the same.
+          const changed = Object.keys(live).filter((k) => live[k] !== before[k]);
+          expect(changed.sort(), lang).toEqual([...LICENSE_KEYS].sort());
+          // Without the sponsor, licenses can't be live: nothing changes.
+          const noSends = { ...base, chainSends: false };
+          expect(build({ ...noSends, agreementsLive: true }), lang).toEqual(build(noSends));
+        }
+      }
+  });
+
   it("with the mainnet sponsor live, the app's send screens (prove, DNA date, key stamp) never say test network, in every language", async () => {
     const { APP_SENDS, SEND_SCREEN_KEYS, withSends } = await import('./i18n/app/sends');
     const { appEn } = await import('./i18n/app/en');

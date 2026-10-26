@@ -33,6 +33,7 @@ import { mainnetStrings } from './en-mainnet';
 import { testchainStrings } from './en-testchain';
 import { IS_MAINNET, CLAIMS_ON_MAINNET, MAINTENANCE_POLICY_APPROVED } from '../config/network';
 import { CHAIN_READY, CHAIN_READS, REAL_CHAIN } from '../veilcore/chain/config';
+import { AGREEMENTS_LIVE } from '../config/copy';
 import { LANGUAGE_CODES, MAINNET_DRAFTS, PUBLISHED_LANGUAGES, type Lang } from '../config/languages';
 
 export type { Lang };
@@ -131,6 +132,8 @@ export type BuildKind = {
   chainReads?: boolean;
   /** Mainnet: the browser sends transactions through the mainnet sponsor, which also anchors batches. */
   chainSends?: boolean;
+  /** Mainnet: licenses are switched on (config/copy.ts AGREEMENTS_LIVE). */
+  agreementsLive?: boolean;
 };
 
 /**
@@ -152,6 +155,7 @@ export const networkOverlayOf = (build: BuildKind, pack: LanguagePack): Strings 
       policyApproved: build.policyApproved,
       chainReads: build.chainReads ?? false,
       chainSends: build.chainSends ?? false,
+      agreementsLive: build.agreementsLive ?? false,
     };
     return { ...mainnetStrings(flags), ...(pack.mainnet?.(flags) ?? {}) };
   }
@@ -166,6 +170,7 @@ export const THIS_BUILD: BuildKind = {
   policyApproved: MAINTENANCE_POLICY_APPROVED,
   chainReads: CHAIN_READS,
   chainSends: IS_MAINNET && CHAIN_READY,
+  agreementsLive: IS_MAINNET && AGREEMENTS_LIVE,
 };
 
 /** veilcore.org sends real transactions (the mainnet sponsor is live in this build). */

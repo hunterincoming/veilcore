@@ -69,6 +69,10 @@ export const licensing = {
   'app.lic.row.mayDistribute': 'Darf weitergeben oder verkaufen',
   'app.lic.row.attribution': 'Namensnennung erforderlich',
   'app.lic.row.extra': 'Weitere Bedingungen',
+  // A practice agreement on a site where agreements are now real (veilcore/agreements-real.ts).
+  'app.lic.practice.chip': 'Übung',
+  'app.lic.practice.text':
+    'Eine Übungsvereinbarung aus der Zeit, als Vereinbarungen hier nur zur Übung waren. Die andere Partei hat sie nie unterschrieben, und sie ist nicht auf Midnight. Für eine echte beginnen Sie beim Datensatz eine neue Vereinbarung.',
   'app.lic.royaltyPending.label': 'Schutz der Lizenzgebühr ausstehend',
   'app.lic.royaltyPending.text':
     'Schutz der Lizenzgebühr ausstehend. VeilCore hat die Lizenzgebühr auf Nachkommen noch nicht bestätigt, daher zeigt die öffentliche Abstammungsprüfung sie nicht. Dieser Browser sendet sie bei jeder Synchronisierung erneut. Lassen Sie VeilCore geöffnet oder kommen Sie bald wieder.',

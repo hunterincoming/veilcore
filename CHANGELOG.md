@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Ready to switch licenses on at veilcore.org (25 Oct 2026)
+
+- The switch is two lines: `AGREEMENTS_LIVE` (site) and `MAINNET_AGREEMENTS` (sponsor). The
+  public pages in all five languages, the "What's live where" table and the crawler summary
+  follow them; nothing else to edit (`docs/agreements-live.md`, "Going live").
+- `deploy:mainnet` refuses to put licenses live without the sponsor, or with a sponsor that
+  doesn't pay for license transactions (its `/sponsor/status` now says `agreements`).
+- A practice agreement made before the switch stays marked "Practice" where agreements are real.
+- The test site no longer calls licenses, lab agreements and breeder shares practice only or
+  simulated: every type is made with real transactions there. The license screens dropped the
+  "Simulated…" line where agreements are real.
+
 ### Licenses with royalties, on the test network (21 to 24 Oct 2026)
 
 - Real licenses from the website on test.veilcore.org: the licensee's key is made on their own

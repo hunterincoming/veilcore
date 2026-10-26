@@ -69,6 +69,10 @@ export const licensing = {
   'app.lic.row.mayDistribute': 'Puede distribuirlo o venderlo',
   'app.lic.row.attribution': 'Se exige reconocer la autoría',
   'app.lic.row.extra': 'Condiciones adicionales',
+  // A practice agreement on a site where agreements are now real (veilcore/agreements-real.ts).
+  'app.lic.practice.chip': 'Práctica',
+  'app.lic.practice.text':
+    'Un acuerdo de práctica, hecho cuando los acuerdos aquí eran solo de práctica. La otra parte nunca lo firmó y no está en Midnight. Para uno real, empiece un acuerdo nuevo desde el registro.',
   'app.lic.royaltyPending.label': 'Protección de regalías pendiente',
   'app.lic.royaltyPending.text':
     'Protección de regalías pendiente. VeilCore aún no ha confirmado la regalía sobre la descendencia, así que la comprobación pública del linaje no la muestra. Este navegador la vuelve a enviar cada vez que se sincroniza. Mantenga VeilCore abierto o vuelva pronto.',

@@ -115,6 +115,25 @@ export const esMainnet = buildMainnet({
     'm.tech.check.p':
       'Recalcular el código de prueba de un registro solo requiere SHA-256 y la especificación abierta. Su prueba de inclusión une ese código de prueba con el código de prueba de un lote anclado en Midnight, y la transacción que lo ancló da la fecha del lote. El verify.html del paquete de evidencia rehace ese cálculo sin conexión y nombra la transacción y el código de prueba del lote que hay que buscar. La página de comprobación leerá Midnight por sí misma cuando nuestro relé de solo lectura esté activo; hasta entonces dice que la fecha es la que informa nuestro registro, y usted puede buscar la transacción por su cuenta en un explorador de Midnight. Los registros sellados desde el 14 de octubre nombran su propia clave, así que comprobarlos también requiere la sección 3.6.1, en la especificación de este sitio y en el SDK 0.16.0 y posteriores. Buscar un registro por su identificador en este sitio usa nuestro servidor.',
   },
+  // Licenses switched on: the same facts as en-mainnet.ts LIVE_SWAPS.
+  live: {
+    'm.hero.status': [
+      'Las licencias y los acuerdos con laboratorios aquí siguen siendo simulados.',
+      'Las licencias y los acuerdos con laboratorios también se hacen aquí, entre los navegadores de las dos partes.',
+    ],
+    'm.get.2b': [
+      'Incorporado al contrato en la red principal de Midnight; simulado en este sitio web.',
+      'Incorporado al contrato en la red principal de Midnight, y se usa desde este sitio web.',
+    ],
+    'm.demo.lede': [
+      'Las licencias y los acuerdos con laboratorios son simulados.',
+      'Las licencias y los acuerdos con laboratorios también van a Midnight.',
+    ],
+    'm.for.3p': [
+      'Condiciones como no propagar son solo de práctica en este sitio web.',
+      'Condiciones como no propagar van en un acuerdo con el laboratorio, que usted y el laboratorio hacen en Midnight.',
+    ],
+  },
   sends: (claimsOnMainnet) => ({
     ...sendsCommon,
     'm.stat2.s': claimsOnMainnet

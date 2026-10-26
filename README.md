@@ -62,8 +62,8 @@ Build fingerprints: [docs/fingerprints.md](docs/fingerprints.md).
   aloud, a private signed channel per deal for terms and royalty statements, payment straight
   from payer to payee (VeilCore never holds money), royalties on declared offspring, handing a
   license on with the breeder's approval, and a pack a lender can check with a free tool.
-  [docs/agreements-live.md](docs/agreements-live.md). Lab hand-over and breeder-share
-  agreements are still practice only.
+  Lab hand-overs and breeder shares work the same way.
+  [docs/agreements-live.md](docs/agreements-live.md)
 - **Five languages:** English, plus Spanish, Japanese, German and French as drafts on the test
   site until a fluent speaker signs each off ([how](docs/translations/README.md)).
 - **No audit.** Twelve rounds of adversarial review are public, with the attacks kept as tests

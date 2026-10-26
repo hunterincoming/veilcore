@@ -27,6 +27,7 @@ import {
 } from '../../veilcore/licenses';
 import { AgreementsBackupFirst } from './AgreementsBackupFirst';
 import { AppHeader } from '../AppHeader';
+import { AGREEMENTS_REAL } from '../../veilcore/agreements-real';
 import { AgreementTermsFields, emptyTermsFor, type SetTerm } from './LicenseTermsFields';
 import { AgreementTypeChip } from './AgreementTypeChip';
 
@@ -134,7 +135,8 @@ export const TermsBuilder: React.FC = () => {
         {agreementTagline(type, tr)}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        {tr.t('app.lic.builder.intro', { name: record.strainName })} {tr.t('app.copy.agreementsSimulated')}
+        {tr.t('app.lic.builder.intro', { name: record.strainName })}
+        {!AGREEMENTS_REAL && ` ${tr.t('app.copy.agreementsSimulated')}`}
       </Typography>
 
       <AgreementTermsFields type={type} terms={t} set={set} />

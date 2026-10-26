@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { allowList, inspect, PHASE1_PUBLIC_CIRCUITS, type PolicyConfig } from './policy.js';
+import {
+  AGREEMENT_CIRCUITS,
+  allowList,
+  defaultCircuits,
+  inspect,
+  MAINNET_AGREEMENTS,
+  paysForAgreements,
+  PHASE1_PUBLIC_CIRCUITS,
+  type PolicyConfig,
+} from './policy.js';
 import { hostile, OTHER, sealedCall, ttlIn, VC } from './test-tx.js';
 
 const config: PolicyConfig = {
@@ -76,4 +85,15 @@ describe('allow-list configuration', () => {
     expect(() => allowList(['sealRevocations'])).toThrow();
   });
   it('refuses something that is not a circuit name', () => expect(() => allowList(['anchor; drop'])).toThrow());
+});
+
+describe('what the status says about agreements', () => {
+  it('true only when every agreement call is paid for', () => {
+    expect(paysForAgreements(new Set(defaultCircuits(false)))).toBe(true);
+    expect(paysForAgreements(new Set(PHASE1_PUBLIC_CIRCUITS))).toBe(false);
+    expect(paysForAgreements(new Set([...PHASE1_PUBLIC_CIRCUITS, ...AGREEMENT_CIRCUITS.slice(1)]))).toBe(false);
+  });
+  it('on mainnet, follows MAINNET_AGREEMENTS', () => {
+    expect(paysForAgreements(new Set(defaultCircuits(true)))).toBe(MAINNET_AGREEMENTS);
+  });
 });

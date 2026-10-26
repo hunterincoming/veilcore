@@ -115,6 +115,25 @@ export const frMainnet = buildMainnet({
     'm.tech.check.p':
       "Recalculer le code de preuve d'un enregistrement ne demande que SHA-256 et la spécification ouverte. Sa preuve d'inclusion relie ce code de preuve à un code de preuve de lot ancré sur Midnight, et la transaction qui l'a ancré donne la date du lot. Le verify.html du dossier de preuve refait ce calcul hors ligne et nomme la transaction et le code de preuve de lot à consulter. La page de vérification lira elle-même Midnight une fois notre relais en lecture seule en service ; d'ici là, elle indique que la date est celle que rapporte notre registre, et vous pouvez consulter la transaction vous-même sur un explorateur Midnight. Les enregistrements scellés depuis le 14 octobre nomment leur propre clé ; les vérifier demande donc aussi la section 3.6.1, dans la spécification sur ce site et dans le SDK 0.16.0 et suivants. Rechercher un enregistrement par son identifiant sur ce site passe par notre serveur.",
   },
+  // Licenses switched on: the same facts as en-mainnet.ts LIVE_SWAPS.
+  live: {
+    'm.hero.status': [
+      'Les licences et les accords avec les laboratoires sont encore simulés ici.',
+      'Les licences et les accords avec les laboratoires se font aussi ici, entre les navigateurs des deux parties.',
+    ],
+    'm.get.2b': [
+      'Intégré au contrat sur le réseau principal de Midnight ; simulé sur ce site.',
+      'Intégré au contrat sur le réseau principal de Midnight, et utilisable depuis ce site.',
+    ],
+    'm.demo.lede': [
+      'Les licences et les accords avec les laboratoires sont simulés.',
+      'Les licences et les accords avec les laboratoires vont aussi sur Midnight.',
+    ],
+    'm.for.3p': [
+      "Des conditions comme l'interdiction de multiplier ne sont qu'un exercice sur ce site.",
+      "Des conditions comme l'interdiction de multiplier figurent dans un accord avec le laboratoire, que vous et le laboratoire concluez sur Midnight.",
+    ],
+  },
   sends: (claimsOnMainnet) => ({
     ...sendsCommon,
     'm.stat2.s': claimsOnMainnet

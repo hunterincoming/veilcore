@@ -58,7 +58,7 @@ waiting.
 
 | Route | What |
 |---|---|
-| `GET /sponsor/status` | Synced or not, accepting or not, queue depth, the anchoring job's last outcome as a short code. No budget figures and no error text. With the header `x-operator-token: <SPONSOR_STATUS_TOKEN>`: also the exact budget, counters and the anchoring job's own messages |
+| `GET /sponsor/status` | Synced or not, accepting or not, queue depth, the anchoring job's last outcome as a short code, and `agreements`: whether it pays for license and other agreement calls (`policy.ts`). No budget figures and no error text. With the header `x-operator-token: <SPONSOR_STATUS_TOKEN>`: also the exact budget, counters and the anchoring job's own messages |
 | `GET /sponsor/challenge` | A proof-of-work challenge |
 | `POST /sponsor` | `{ tx, ticket, challenge, nonce }` → `{ txId }` or a refusal with a plain reason |
 | `GET /health` | `{ ok: true }` |

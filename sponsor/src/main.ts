@@ -10,6 +10,7 @@ import { signatureVerifyingKey } from '@midnight-ntwrk/ledger-v8';
 import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import { assertNotForbidden, assertNotMaintenanceKey, ConfigError, loadConfig } from './config.js';
+import { paysForAgreements } from './policy.js';
 import { FacadeWallet } from './wallet.js';
 import { ProofOfWork } from './pow.js';
 import { DailyBudget, Limits, MINUTE, SingleFlight, type BudgetState } from './limits.js';
@@ -175,6 +176,9 @@ const main = async (): Promise<void> => {
       extraStatus: (detail) => ({
         network: cfg.network,
         contractAddress: cfg.contractAddress,
+        // Whether this sponsor pays for license and other agreement calls (policy.ts): what
+        // deploy:mainnet checks before it puts a site with licenses switched on live.
+        agreements: paysForAgreements(cfg.allowedCircuits),
         // True while the wallet sync has applied nothing for 30 minutes (wallet.ts checkStall).
         syncStalled: wallet.syncStalled(),
         sealer: sealer ? { enabled: true, ...sealer.publicStatus() } : { enabled: false },

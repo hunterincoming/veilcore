@@ -68,6 +68,10 @@ export const licensing = {
   'app.lic.row.mayDistribute': '配布・販売できる',
   'app.lic.row.attribution': '出所の表示が必要',
   'app.lic.row.extra': 'その他の条件',
+  // A practice agreement on a site where agreements are now real (veilcore/agreements-real.ts).
+  'app.lic.practice.chip': '練習',
+  'app.lic.practice.text':
+    '練習用の契約です。ここでの契約が練習用だけだったときに作られました。相手方は署名しておらず、Midnight上にもありません。本物の契約にするには、記録から新しい契約を始めてください。',
   'app.lic.royaltyPending.label': 'ロイヤリティ保護を待機中',
   'app.lic.royaltyPending.text':
     'ロイヤリティ保護を待機中です。VeilCoreはまだ子孫へのロイヤリティを確認していないため、公開の系譜チェックには表示されません。このブラウザは同期のたびに再送します。VeilCoreを開いたままにするか、すぐにまた来てください。',

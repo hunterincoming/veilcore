@@ -292,6 +292,9 @@ export const de: Strings = {
   'm.live.lic.main': 'Abgeschaltet bis zu einem letzten Testlauf.',
   'm.live.lic.test': 'Ja, mit echten Transaktionen: Lizenzgebühren, Zahlungen, Weitergabe einer Lizenz.',
   'm.live.lic.not': 'Auf veilcore.org, nach einem letzten Testlauf.',
+  // Licenses switched on at veilcore.org (AGREEMENTS_LIVE): the main-network cell (components/site/Home.tsx).
+  'm.live.lic.live':
+    'Ja: Lizenzen, Abrechnungen von Lizenzgebühren und die Weitergabe einer Lizenz, mit echten Transaktionen. Lizenzgebühren direkt auf Midnight zahlen gibt es nur auf der Testseite.',
   'm.live.chain.t': 'Die Prüfseite liest Midnight selbst',
   'm.live.chain.main': 'Noch nicht: Dafür braucht es unseren Relaisdienst, der nur liest.',
   'm.live.chain.test': 'Ja.',
@@ -538,11 +541,17 @@ export const deTestchain: Strings = {
   'm.for.1p':
     'Versiegeln Sie einen Datensatz und koppeln Sie seinen DNA-Bericht. Taucht die Pflanze unter anderem Namen auf, kann ein Labor einen neuen Test mit Ihrem Bericht vergleichen. Auf dieser Test-Website können Sie die Kopplung aus Ihrem Browser datieren, und niemand kann sie auf seinen eigenen Datensatz kopieren. VeilCore führt keine DNA-Tests durch.',
   'm.demo.lede':
-    'Keine Anmeldung, keine Wallet. Dies ist die Test-Website, verwenden Sie also erfundene Angaben. Stapel werden im Testnetz von Midnight automatisch verankert, und das datiert Ihre Datensätze. Die Empfangsbestätigung eines Labors ist eine echte Signatur mit dem eigenen Schlüssel des Labors, außerhalb der Chain gespeichert. Lizenzen und Laborvereinbarungen sind nur zum Üben.',
+    'Keine Anmeldung, keine Wallet. Dies ist die Test-Website, verwenden Sie also erfundene Angaben. Stapel werden im Testnetz von Midnight automatisch verankert, und das datiert Ihre Datensätze. Die Empfangsbestätigung eines Labors ist eine echte Signatur mit dem eigenen Schlüssel des Labors, außerhalb der Chain gespeichert. Lizenzen und Laborvereinbarungen laufen hier ebenfalls mit echten Transaktionen, im Testnetz.',
   'm.privacy.test.text':
     'Diese Website nutzt das Preprod-Testnetz von Midnight, nicht das Hauptnetz. Ihr Browser sendet jeden Datumsstempel über den Gebührendienst von VeilCore an dieses Netz; was Sie eingegeben haben und Ihre Dateien werden nie dorthin gesendet. Ein Testnetz kann zurückgesetzt werden, und Testdaten können gelöscht werden.',
   'm.privacy.hosts.text':
     'Diese Website wird bei Vercel gehostet, das IP-Adressen und Anfragen protokolliert. Unser Registerserver und der Dienst, der die Gebühren im Testnetz zahlt und die Netzabfragen dieser Seite weiterreicht, laufen bei Railway, das Anfragen protokolliert. Dieser Dienst liest das Netz über Blockfrost.',
   'm.tech.check.p':
     'Um den Prüfcode eines Datensatzes neu zu berechnen, braucht es nur SHA-256 und die offene Spezifikation. Sein Einschlussnachweis verbindet diesen Prüfcode mit einem Code des Stapels, der auf Midnight verankert ist, und die Transaktion, die ihn verankert hat, liefert das Datum des Stapels. Die verify.html im Beweispaket rechnet das offline nach und nennt die Transaktion und den Code des Stapels, die nachzuschlagen sind. Die Prüfseite schlägt diese Transaktion selbst auf Midnight nach, wenn sie Midnight erreicht. Datensätze, die seit dem 14. Oktober versiegelt wurden, benennen ihren eigenen Schlüssel; ihre Prüfung braucht deshalb auch Abschnitt 3.6.1, in der Spezifikation auf dieser Website und im SDK ab 0.16.0. Wer auf dieser Website einen Datensatz über seine Kennung nachschlägt, nutzt dafür unseren Server.',
+  // Agreements are real on the test site: every type, on Midnight's test network.
+  'm.get.2b':
+    'Sie hängen am Datensatz. Ein Lizenznehmer kann beweisen, dass er eine gültige Lizenz hält, ohne zu zeigen, welche. Eine Lizenzgebühr oder andere Verpflichtung auf einem Elternteil erscheint bei jedem Nachkommen, den beide Inhaber bestätigt haben; VeilCore erfasst sie und zieht sie nicht ein. Auf dieser Test-Website mit echten Transaktionen im Testnetz von Midnight nutzbar.',
+  // Agreements are real on the test site: every type, on Midnight's test network.
+  'm.for.3p':
+    'Senden Sie Material mit einem Laborcode. Das Labor signiert eine Empfangsbestätigung mit seinem eigenen Schlüssel, sodass der Datensatz eine zweite Partei zeigt. Die Bestätigung ist eine echte Signatur, gespeichert im Register von VeilCore, nicht auf der Chain. Bedingungen wie „keine Vermehrung“ stehen in einer Laborvereinbarung, die Sie und das Labor hier im Testnetz von Midnight schließen.',
 };
