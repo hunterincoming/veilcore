@@ -552,6 +552,9 @@ export const licensing = {
   'app.lic.inv.waitLicensor':
     'Esperando a que responda la página del licenciante. Su código aparece aquí cuando lo haga.',
   'app.lic.inv.takeOverTerms': 'Las condiciones con las que asume la licencia (las mismas del titular actual):',
+  // What a license here is and isn't (shown where terms are set and agreed).
+  'app.lic.evidenceNote':
+    'Una licencia aquí es un registro firmado y fechado de lo que ambos acordaron, no asesoramiento legal. Algunos tribunales se han negado a hacer cumplir acuerdos sobre cannabis, así que pida a su propio abogado que revise lo que sea importante.',
   'app.lic.inv.iAgree': 'Acepto estas condiciones',
   'app.lic.inv.agree': 'Aceptar',
   'app.lic.inv.waitHandOn':

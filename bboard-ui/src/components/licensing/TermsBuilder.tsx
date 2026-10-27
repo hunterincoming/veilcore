@@ -138,6 +138,16 @@ export const TermsBuilder: React.FC = () => {
         {tr.t('app.lic.builder.intro', { name: record.strainName })}
         {!AGREEMENTS_REAL && ` ${tr.t('app.copy.agreementsSimulated')}`}
       </Typography>
+      {type === 'license' && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: 'block', mt: -2, mb: 3 }}
+          data-evidence-note=""
+        >
+          {tr.t('app.lic.evidenceNote')}
+        </Typography>
+      )}
 
       <AgreementTermsFields type={type} terms={t} set={set} />
 

@@ -543,6 +543,9 @@ export const licensing = {
   'app.lic.inv.waitLicensor':
     'ライセンサーのページの応答を待っています。応答があると、ここにあなたのコードが表示されます。',
   'app.lic.inv.takeOverTerms': 'ライセンスを引き継ぐ条件（現在の保有者と同じ）:',
+  // What a license here is and isn't (shown where terms are set and agreed).
+  'app.lic.evidenceNote':
+    'ここでのライセンスは、双方が合意した内容の署名・日付入りの記録であり、法的助言ではありません。大麻に関する契約の履行を認めなかった裁判所もあるため、重要なものはご自身の弁護士に確認してください。',
   'app.lic.inv.iAgree': 'これらの条件に同意します',
   'app.lic.inv.agree': '同意する',
   'app.lic.inv.waitHandOn':

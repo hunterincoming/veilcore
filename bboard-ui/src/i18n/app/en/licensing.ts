@@ -555,6 +555,9 @@ export const licensing = {
   'app.lic.inv.whenMatches': 'When it matches theirs, they send you the terms and this page moves on by itself.',
   'app.lic.inv.waitLicensor': 'Waiting for the licensor’s page to answer. Your code shows here once it does.',
   'app.lic.inv.takeOverTerms': 'The terms you take the license over on (the same as the current holder’s):',
+  // What a license here is and isn't (shown where terms are set and agreed).
+  'app.lic.evidenceNote':
+    'A license here is a signed, dated record of what you both agreed, not legal advice. Some courts have refused to enforce cannabis agreements, so have your own lawyer review anything that matters.',
   'app.lic.inv.iAgree': 'I agree to these terms',
   'app.lic.inv.agree': 'Agree',
   'app.lic.inv.waitHandOn':
