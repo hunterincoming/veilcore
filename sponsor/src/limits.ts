@@ -85,11 +85,38 @@ export type LimitConfig = {
   readonly perTicketDay: Readonly<Record<string, number>>;
 };
 
+/**
+ * Every circuit the sponsor pays for needs its own per-browser allowance here: a circuit
+ * missing from perTicketDay gets 0, so its very first call is refused ("used today's free
+ * … calls"). That is how the agreement calls were refused on the test site in the 27 October
+ * test run; limits.test.ts now checks every paid circuit has one.
+ */
 export const DEFAULT_LIMITS: LimitConfig = {
   requestsPerMinute: 30,
   perIpHour: 3,
   perIpDay: 10,
-  perTicketDay: { anchor: 3, pairDna: 5, proveOwnership: 20 },
+  perTicketDay: {
+    anchor: 3,
+    pairDna: 5,
+    proveOwnership: 20,
+    // Agreements (policy.ts AGREEMENT_CIRCUITS): a license, its hand-on, parentage and
+    // obligations. A browser making a few deals a day stays well inside these.
+    issueLicense: 10,
+    countersignLicense: 10,
+    proveLicense: 20,
+    revokeLicense: 10,
+    proposeTransfer: 10,
+    approveTransfer: 10,
+    withdrawTransfer: 10,
+    proposeParent: 10,
+    confirmParent: 10,
+    withdrawParent: 10,
+    proposeObligation: 10,
+    withdrawObligation: 10,
+    acceptObligation: 10,
+    rejectObligation: 10,
+    discharge: 10,
+  },
 };
 
 export type LimitCheck = { ok: true } | { ok: false; reason: string; retryAfterSeconds: number };

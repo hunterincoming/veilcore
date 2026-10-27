@@ -67,7 +67,7 @@ describe('per-network and per-ticket quotas (fake clock)', () => {
 
   it('a circuit with no quota gets none', () => {
     const l = new Limits(DEFAULT_LIMITS, clock().now);
-    expect(l.canSponsor('n', T1, 'issueLicense').ok).toBe(false);
+    expect(l.canSponsor('n', T1, 'anchorBatch').ok).toBe(false);
   });
 
   it('forgets addresses once their window has passed', () => {
@@ -138,5 +138,18 @@ describe('queue', () => {
     const q = new SingleFlight(5);
     await expect(q.run(async () => Promise.reject(new Error('x')))).rejects.toThrow('x');
     expect(await q.run(async () => 1)).toBe(1);
+  });
+});
+
+describe('every circuit the sponsor pays for has a per-browser allowance', () => {
+  it('none is missing (a missing one refuses its first call)', async () => {
+    const { AGREEMENT_CIRCUITS, PHASE1_PUBLIC_CIRCUITS } = await import('./policy.js');
+    for (const c of [...PHASE1_PUBLIC_CIRCUITS, ...AGREEMENT_CIRCUITS])
+      expect(DEFAULT_LIMITS.perTicketDay[c] ?? 0, c).toBeGreaterThan(0);
+  });
+  it('a first license call from a fresh browser goes through', () => {
+    const c = clock();
+    const l = new Limits(DEFAULT_LIMITS, c.now);
+    expect(l.canSponsor('203.0.113.0/24', T1, 'issueLicense')).toEqual({ ok: true });
   });
 });
