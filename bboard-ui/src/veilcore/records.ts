@@ -26,6 +26,7 @@ import { withPairSalt } from './dna-link';
 import { newNameSalt } from './verify-link';
 import { isAnimal, type AnimalDetails, type ParentRole } from './animal-profile';
 import { isStrain, STRAIN_GROUPS, type StrainDetails } from './strain-profile';
+import type { DocumentDetails } from './document-profile';
 import {
   allowReplace,
   checkRecordIntegrity,
@@ -149,6 +150,12 @@ export type StrainRecord = {
    * Only on records sealed under the strain profile.
    */
   readonly strain?: StrainDetails;
+  /**
+   * A document record's own details: type, issuer, files (fingerprints only), the records it is
+   * about (document-profile.ts). Only on records sealed under the document profile, where
+   * strainName is the title, refId the reference and dateCreated the date on the document.
+   */
+  readonly document?: DocumentDetails;
   readonly photoFingerprints?: string[]; // photos hashed locally, never uploaded
   readonly refId?: string; // breeder's own reference / lot ID
   /**
@@ -307,7 +314,8 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
     num(r.dnaPairedAt) &&
     (r.parents === undefined || Array.isArray(r.parents)) &&
     (r.animal === undefined || (typeof r.animal === 'object' && r.animal !== null && !Array.isArray(r.animal))) &&
-    (r.strain === undefined || (typeof r.strain === 'object' && r.strain !== null && !Array.isArray(r.strain)))
+    (r.strain === undefined || (typeof r.strain === 'object' && r.strain !== null && !Array.isArray(r.strain))) &&
+    (r.document === undefined || (typeof r.document === 'object' && r.document !== null && !Array.isArray(r.document)))
   );
 };
 
@@ -330,6 +338,7 @@ export type NewRecordInput = {
   refId?: string;
   animal?: AnimalDetails;
   strain?: StrainDetails;
+  document?: DocumentDetails;
   /** The name's salt (round 6): made when the record is sealed (seal-record.ts). */
   nameSalt?: string;
 };

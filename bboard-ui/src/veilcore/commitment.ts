@@ -8,6 +8,7 @@
 import { isHex64, keyBoundFingerprint } from './key-binding';
 import { checkedAnimalFields, isAnimal, type AnimalDetails } from './animal-profile';
 import { checkedStrainFields, isStrain, type StrainDetails } from './strain-profile';
+import { checkedDocumentFields, isDocument, type DocumentDetails } from './document-profile';
 
 // The compiled `commit` circuit runs on Midnight's on-chain runtime, about 1.4 MB of
 // WebAssembly. It is loaded the first time it is needed, not with every page that imports
@@ -128,6 +129,8 @@ export type CommittedRecordInput = {
   animal?: Partial<AnimalDetails>;
   /** A strain or line record's own details (strain-profile.ts). Never on a plant record. */
   strain?: Partial<StrainDetails>;
+  /** A document record's own details (document-profile.ts). Never on a plant record. */
+  document?: Partial<DocumentDetails>;
 };
 
 const checkedBinding = (v: unknown): string => {
@@ -144,7 +147,13 @@ const checkedBinding = (v: unknown): string => {
  * other record, old ones included, seals exactly the fields below, as before.
  */
 export const committedRecordFields = (r: CommittedRecordInput): Record<string, unknown> =>
-  isAnimal(r) ? checkedAnimalFields(r) : isStrain(r) ? checkedStrainFields(r) : plantRecordFields(r);
+  isAnimal(r)
+    ? checkedAnimalFields(r)
+    : isStrain(r)
+      ? checkedStrainFields(r)
+      : isDocument(r)
+        ? checkedDocumentFields(r)
+        : plantRecordFields(r);
 
 const plantRecordFields = (r: CommittedRecordInput): Record<string, unknown> => ({
   breedingMethod: r.breedingMethod ?? '',
