@@ -28,6 +28,7 @@ import { isAnimal, type AnimalDetails, type ParentRole } from './animal-profile'
 import { isStrain, STRAIN_GROUPS, type StrainDetails } from './strain-profile';
 import type { DocumentDetails } from './document-profile';
 import type { HeldFieldSet } from './field-set';
+import type { MadeClaim } from './claim-link';
 import {
   allowReplace,
   checkRecordIntegrity,
@@ -162,6 +163,8 @@ export type StrainRecord = {
   readonly fieldSetRoot?: string;
   /** The numbers behind them and the secret their salts come from: the holder's copy only, never sealed. */
   readonly fieldSet?: HeldFieldSet;
+  /** Claims this holder made about the record's numbers (claim-link.ts): outside the fingerprint. */
+  readonly claims?: readonly MadeClaim[];
   readonly photoFingerprints?: string[]; // photos hashed locally, never uploaded
   readonly refId?: string; // breeder's own reference / lot ID
   /**
@@ -320,6 +323,7 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
     str(r.fieldSetRoot) &&
     (r.fieldSet === undefined ||
       (typeof r.fieldSet === 'object' && r.fieldSet !== null && !Array.isArray(r.fieldSet))) &&
+    (r.claims === undefined || Array.isArray(r.claims)) &&
     num(r.loggedAt) &&
     num(r.dnaPairedAt) &&
     (r.parents === undefined || Array.isArray(r.parents)) &&
@@ -1612,6 +1616,22 @@ export const sealReceived = async (
 ): Promise<StrainRecord | undefined> => {
   const out = await finishReceived(id, notes, offer);
   return 'record' in out ? out.record : undefined;
+};
+
+/**
+ * Keep a claim this holder just made on Midnight about one of the record's numbers, so the page
+ * can show it again, give its link, and say what earlier claims on that number already published
+ * (SPEC 4.5, disclosure accounting). Outside the fingerprint, like any note.
+ */
+export const addClaim = (id: string, claim: MadeClaim): StrainRecord | undefined => {
+  let updated: StrainRecord | undefined;
+  records = records.map((r) => {
+    if (r.id !== id) return r;
+    updated = { ...r, claims: [...(r.claims ?? []), claim] };
+    return updated;
+  });
+  if (updated) persist();
+  return updated;
 };
 
 /**

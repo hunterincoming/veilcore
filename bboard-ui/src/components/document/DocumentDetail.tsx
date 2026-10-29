@@ -21,6 +21,7 @@ import { AppHeader } from '../AppHeader';
 import { useT } from '../../i18n/app';
 import { DocumentDate, DocumentFacts, Fact, FileCompare } from './DocumentParts';
 import { schemaWords, slotWords } from './NumbersFields';
+import { ProveNumber } from './ProveNumber';
 import { SCHEMAS, shownNumber, type HeldFieldSet } from '../../veilcore/field-set';
 
 /** The numbers sealed with the document, from the holder's own copy: nobody else has them. */
@@ -111,6 +112,7 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
           <DocumentFacts fields={f} />
         </Paper>
         {record.fieldSet && <HeldNumbers held={record.fieldSet} />}
+        {record.fieldSet && <ProveNumber record={record} />}
         <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-document-share="">
           <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
             {t('app.doc.share.title')}

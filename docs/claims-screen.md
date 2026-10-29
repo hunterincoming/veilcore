@@ -55,11 +55,25 @@ Status: DESIGN AND BUILD, 29 October 2026. Test networks first. The claims contr
 - **The sponsor must pay for claims.** It pays for the main contract's calls today. Claims need
   the claims contract's address and circuits added to its allowance, and a sponsor redeploy.
 
-## Build order
+## Build order, and where it stands
 
-1. Schemas, field-set sealing in the browser, the document profile allowing a field set (site,
-   registry, SDK vectors). Testable here end to end.
-2. The claim call from the browser (claims contract, proving keys served by the site, the
-   sponsor's allowance). Testable here up to the proof; the proof itself on the test site.
-3. The check page for a claim link.
-4. Measure on a laptop and a phone (Hunter). Then decide what veilcore.org offers.
+1. **Done (29 Oct).** Schemas, field-set sealing in the browser, the document profile allowing a
+   field set (site, registry, SDK vectors).
+2. **Done (29 Oct), not yet run on a network.** The claim call from the browser
+   (`bboard-ui/src/veilcore/chain/claims-call.ts`): the claims contract named by
+   `VITE_REAL_CHAIN_CLAIMS_ADDRESS`, its proving files copied into the build when they exist
+   (`scripts/copy-claims-keys.mjs`), the public parameters k=15 and k=16 pinned (from Midnight's
+   own `data_provider.rs`), and the sponsor paying for claims on the claims contract only
+   (`VEILCORE_CLAIMS_ADDRESS`, `MAINNET_CLAIMS` off). Checked here: the claim's inputs pass the
+   claims contract's compiled circuits, Midnight's own circuit checker accepts them, the sponsor
+   policy would pay, and the number and its salt are not in what is sent. Not checked here: a
+   real proof (the parameters can't be downloaded in this environment).
+3. **Done (29 Oct).** The check page for a claim link (`/check-claim`): the claim read per call
+   from the indexer on this site's claims contract, compared exactly with the link, the record
+   dated by its proof code recomputed from the claim and the key binding.
+4. **To do (Hunter).** On the test site: claims keys in the build (`veilcore-keys fetch`), the
+   test network's claims contract in the site's and sponsor's settings, then a real claim on a
+   laptop and on a phone. How long each took and whether the phone managed it decides what
+   veilcore.org offers.
+5. **Later.** A laboratory signing a certificate's record (`proveAttested`), so a claim is about
+   numbers a lab sealed, not the holder's typing.

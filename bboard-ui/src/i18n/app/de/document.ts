@@ -116,4 +116,43 @@ export const document = {
   'app.doc.nums.heldTitle': 'Seine Zahlen',
   'app.doc.nums.heldText':
     'Mit diesem Dokument versiegelt als {schema}. Nur Sie sehen sie: Der Datensatz enthält einen Code, der sie bindet, nicht die Zahlen.',
+  'app.claim.title': 'Eine Zahl belegen',
+  'app.claim.text':
+    'Belegen Sie jedem eine Tatsache über eine Zahl, ohne sie, die anderen Zahlen oder das Zertifikat zu zeigen. Der Beleg kommt auf Midnight, wo jeder ihn prüfen kann.',
+  'app.claim.notReady': 'Belege sind auf dieser Website noch nicht eingeschaltet.',
+  'app.claim.number': 'Welche Zahl',
+  'app.claim.how': 'Was belegt werden soll',
+  'app.claim.atMost': 'Sie ist höchstens…',
+  'app.claim.atLeast': 'Sie ist mindestens…',
+  'app.claim.exactly': 'Sie ist genau diese (zeigt die Zahl)',
+  'app.claim.bound': 'Grenze',
+  'app.claim.boundBad': 'Eine Zahl mit höchstens {places} Nachkommastellen.',
+  'app.claim.wontMeet':
+    'Ihre versiegelte Zahl erfüllt das nicht, daher lässt es sich nicht belegen. Es wurde nichts gesendet.',
+  'app.claim.exactWarn': 'Damit wird {label}: {value} {unit} für alle sichtbar, dauerhaft.',
+  'app.claim.already': 'Über {label} bereits öffentlich: {list}.',
+  'app.claim.leak': 'Jede belegte Grenze ist dauerhaft öffentlich, und zusammen grenzen sie die Zahl ein.',
+  'app.claim.computer':
+    'Der Beleg dauert einige Minuten und braucht viel Speicher: Nutzen Sie einen Computer, kein Telefon.',
+  'app.claim.go': 'Auf Midnight belegen',
+  'app.claim.going': 'Wird belegt…',
+  'app.claim.done': 'Auf Midnight belegt:',
+  'app.claim.copy': 'Beleg-Link kopieren',
+  'app.claim.copied': 'Kopiert.',
+  'app.claim.made': 'Ihre Belege',
+  'app.claim.line.atMost': '{label} ist höchstens {bound} {unit}',
+  'app.claim.line.atLeast': '{label} ist mindestens {bound} {unit}',
+  'app.claim.line.value': '{label} ist {value} {unit}',
+  'app.claim.holderTyped': 'Die Zahlen sind Ihre eigenen Eingaben: Kein Labor hat sie signiert.',
+  'app.claim.check.title': 'Einen Beleg prüfen',
+  'app.claim.check.intro':
+    'Jemand hat Ihnen diesen Link geschickt, um eine Tatsache über eine Zahl auf einem versiegelten Zertifikat zu zeigen, ohne die Zahl oder das Zertifikat zu zeigen. Diese Seite liest den Beleg auf Midnight und prüft ihn.',
+  'app.claim.check.bad': 'Dieser Link ist nicht lesbar. Bitten Sie erneut darum.',
+  'app.claim.check.checking': 'Der Beleg wird auf Midnight gelesen…',
+  'app.claim.check.okWhen': 'Auf Midnight belegt in Block {block}{date}.',
+  'app.claim.check.failed': 'Nicht bestätigt: {reason} Verlassen Sie sich nicht darauf.',
+  'app.claim.check.record': 'Der Datensatz, um den es geht',
+  'app.claim.check.what':
+    'Was das zeigt: Die in diesem Datensatz versiegelte Zahl hält die Grenze ein (oder ist dieser Wert). Was nicht: dass ein Labor sie gemessen hat oder dass das Zertifikat echt ist; der Inhaber hat die Zahlen eingegeben. Jede belegte Grenze ist öffentlich, und zusammen grenzen sie die Zahl ein.',
+  'app.claim.check.schema': 'Unter dem veröffentlichten Formular „{schema}“.',
 } satisfies Partial<AppTranslation>;

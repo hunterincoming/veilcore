@@ -68,6 +68,7 @@ const RecordDetail = page(() => import('./components/RecordDetail'), 'RecordDeta
 const LogFlow = page(() => import('./components/flow/LogFlow'), 'LogFlow', 'after');
 const DocumentNew = page(() => import('./components/document/DocumentNew'), 'DocumentNew', 'after');
 const DocumentCheck = page(() => import('./components/document/DocumentCheck'), 'DocumentCheck', 'wait');
+const ClaimCheck = page(() => import('./components/document/ClaimCheck'), 'ClaimCheck');
 const BulkImportPage = page(() => import('./components/lab-import/BulkImportPage'), 'BulkImportPage');
 const RestorePage = page(() => import('./components/flow/RestorePage'), 'RestorePage');
 const BackupPage = page(() => import('./components/flow/BackupPage'), 'BackupPage');
@@ -301,6 +302,14 @@ const routes = (
     <Route path="/implementations" element={withLayout(<Implementations />)} />
     <Route path="/new" element={withLayout(<LogFlow />)} />
     <Route path="/documents/new" element={withLayout(<DocumentNew />)} />
+    <Route
+      path="/check-claim"
+      element={
+        <Light>
+          <ClaimCheck />
+        </Light>
+      }
+    />
     <Route
       path="/check-document"
       element={

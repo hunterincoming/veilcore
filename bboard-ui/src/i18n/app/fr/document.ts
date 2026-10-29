@@ -115,4 +115,43 @@ export const document = {
   'app.doc.nums.heldTitle': 'Ses chiffres',
   'app.doc.nums.heldText':
     'Scellés avec ce document sous {schema}. Vous seul les voyez : l’enregistrement contient un code qui les engage, pas les chiffres.',
+  'app.claim.title': 'Prouver un chiffre',
+  'app.claim.text':
+    'Prouvez à quiconque un fait sur un chiffre, sans le montrer, ni les autres chiffres ni le certificat. La preuve va sur Midnight, où chacun peut la vérifier.',
+  'app.claim.notReady': 'Les preuves ne sont pas encore activées sur ce site.',
+  'app.claim.number': 'Quel chiffre',
+  'app.claim.how': 'Que prouver',
+  'app.claim.atMost': 'Il est au plus…',
+  'app.claim.atLeast': 'Il est au moins…',
+  'app.claim.exactly': 'Il est exactement celui-ci (montre le chiffre)',
+  'app.claim.bound': 'Seuil',
+  'app.claim.boundBad': 'Un nombre avec au plus {places} décimales.',
+  'app.claim.wontMeet':
+    'Votre chiffre scellé ne respecte pas cela, il ne peut donc pas être prouvé. Rien n’a été envoyé.',
+  'app.claim.exactWarn': 'Cela publie {label} : {value} {unit}, visible de tous, pour toujours.',
+  'app.claim.already': 'Déjà public sur {label} : {list}.',
+  'app.claim.leak': 'Chaque seuil prouvé est public pour toujours, et ensemble ils resserrent le chiffre.',
+  'app.claim.computer':
+    'La preuve prend quelques minutes et beaucoup de mémoire : utilisez un ordinateur, pas un téléphone.',
+  'app.claim.go': 'Le prouver sur Midnight',
+  'app.claim.going': 'Preuve en cours…',
+  'app.claim.done': 'Prouvé sur Midnight :',
+  'app.claim.copy': 'Copier le lien de la preuve',
+  'app.claim.copied': 'Copié.',
+  'app.claim.made': 'Vos preuves',
+  'app.claim.line.atMost': '{label} est au plus {bound} {unit}',
+  'app.claim.line.atLeast': '{label} est au moins {bound} {unit}',
+  'app.claim.line.value': '{label} est {value} {unit}',
+  'app.claim.holderTyped': 'Les chiffres sont les vôtres, tels que saisis : aucun laboratoire ne les a signés.',
+  'app.claim.check.title': 'Vérifier une preuve',
+  'app.claim.check.intro':
+    'Quelqu’un vous a envoyé ce lien pour montrer un fait sur un chiffre d’un certificat scellé, sans montrer le chiffre ni le certificat. Cette page lit la preuve sur Midnight et la vérifie.',
+  'app.claim.check.bad': 'Ce lien est illisible. Redemandez-le.',
+  'app.claim.check.checking': 'Lecture de la preuve sur Midnight…',
+  'app.claim.check.okWhen': 'Prouvé sur Midnight dans le bloc {block}{date}.',
+  'app.claim.check.failed': 'Non confirmé : {reason} Ne vous y fiez pas.',
+  'app.claim.check.record': 'L’enregistrement concerné',
+  'app.claim.check.what':
+    'Ce que cela montre : le chiffre scellé dans cet enregistrement respecte le seuil (ou est cette valeur). Ce que cela ne montre pas : qu’un laboratoire l’a mesuré, ni que le certificat est authentique ; le détenteur a saisi les chiffres. Chaque seuil prouvé sur un chiffre est public, et ensemble ils le resserrent.',
+  'app.claim.check.schema': 'Selon le formulaire publié « {schema} ».',
 } satisfies Partial<AppTranslation>;

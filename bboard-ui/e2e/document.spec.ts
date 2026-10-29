@@ -180,9 +180,39 @@ test('seal a certificate with its numbers: refused until each one fits, then kep
   await expect(nums).toContainText('Total THC: 0.210 %');
   await expect(nums).toContainText('Total CBD: 11.400 %');
   await expect(nums).toContainText('Sealed with this document as Cannabinoid potency');
+  // Proving a number: offered on the page, and said plainly when this build can't make claims.
+  await expect(page.locator('[data-prove-number]')).toContainText('Prove one number');
+  await expect(page.locator('[data-claims-not-ready]')).toBeVisible();
   // What reached the registry is sealed: neither the numbers nor the field secret are readable.
   const sent = JSON.stringify(held.records);
   expect(sent).not.toContain('11400');
   expect(sent).not.toContain('fieldSecret');
+  expectNoErrors(errors);
+});
+
+test('a claim link: a damaged one says so; a whole one is not believed when nothing can confirm it', async ({
+  page,
+}) => {
+  const errors = watch(page);
+  await standIn(page);
+  await page.goto('/check-claim#c=%%%');
+  await expect(page.getByRole('heading', { name: 'Check a claim' })).toBeVisible();
+  await expect(page.locator('[data-claim-link="bad"]')).toBeVisible();
+  const claim = {
+    v: 1,
+    kind: 'range',
+    contract: 'c1'.repeat(32),
+    txId: 'ab'.repeat(32),
+    record: 'cd'.repeat(32),
+    schema: 'veilcore/schema/potency/v1',
+    slot: 0,
+    op: 'at-most',
+    bound: '300',
+  };
+  await page.goto(`/check-claim#c=${Buffer.from(JSON.stringify(claim)).toString('base64url')}`);
+  await expect(page.locator('[data-claim-statement]')).toHaveText('Total THC is at most 0.300 %');
+  // This build names no claims contract: the claim is not confirmed, and the page says not to rely on it.
+  await expect(page.locator('[data-claim-verdict="failed"]')).toContainText('Don’t rely on it');
+  await expect(page.locator('[data-document-not-dated]')).toBeVisible();
   expectNoErrors(errors);
 });

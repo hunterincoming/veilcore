@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Claims: prove one number from a sealed certificate, test networks (29 Oct 2026)
+
+- A certificate's numbers can be sealed with it, under a published form (cannabinoid potency,
+  seed quality), each salted under one root (SPEC 4.5). Only the form's id and the root are in
+  the record.
+- "Prove one number": at most or at least a bound (the number is never published), or exactly
+  (it is), proved in the browser on the claims contract and paid for by the sponsor. The page
+  shows what earlier claims on that number already made public.
+- A claim link and its check page (`/check-claim`): the claim read from Midnight for that one
+  call, compared exactly with the link, and the record dated by its own proof code.
+- Not yet run on a network: needs the claims keys in the build and the claims contract in the
+  site's and sponsor's settings (docs/claims-screen.md).
+
 ### Document records, test networks (29 Oct 2026)
 
 - Seal a document (`/documents/new`): a permit, a COA, a contract, a transport document. Each
