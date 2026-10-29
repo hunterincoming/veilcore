@@ -16,6 +16,7 @@ import { PLANT_VARIETY_PROFILE } from './envelope';
 import { ANIMAL_PROFILE, type AnimalDetails } from './animal-profile';
 import { STRAIN_PROFILE, type StrainDetails } from './strain-profile';
 import { DOCUMENT_PROFILE, type DocumentDetails } from './document-profile';
+import type { HeldFieldSet } from './field-set';
 
 /** What the holder wrote, already tidied by the caller (trimmed, one line where it should be). */
 export type SealInput = {
@@ -163,6 +164,8 @@ export type DocumentSealInput = {
   readonly about: DocumentDetails['about'];
   readonly holder: string;
   readonly notes: string;
+  /** The numbers on it, sealed as a field set (field-set.ts makeFieldSet); none when absent. */
+  readonly fieldSet?: { readonly held: HeldFieldSet; readonly fieldSchema: string; readonly fieldSetRoot: string };
 };
 
 export const sealDocumentRecord = (input: DocumentSealInput, now = Date.now()): Promise<SealedRecord> =>
@@ -184,6 +187,9 @@ export const sealDocumentRecord = (input: DocumentSealInput, now = Date.now()): 
       files: input.files.map((f) => ({ name: f.name, sha256: f.sha256, size: f.size })),
       about: input.about.map((a) => ({ name: a.name, ...(a.recordId ? { recordId: a.recordId } : {}) })),
     },
+    ...(input.fieldSet
+      ? { fieldSchema: input.fieldSet.fieldSchema, fieldSetRoot: input.fieldSet.fieldSetRoot, fieldSet: input.fieldSet.held }
+      : {}),
   }));
 
 /** Make the record's key, then seal the fields that name it; forget the key if sealing fails. */

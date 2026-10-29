@@ -35,6 +35,8 @@ import { DOCUMENT_RECORDS_ENABLED } from '../../config/network';
 import { AppHeader } from '../AppHeader';
 import { useT } from '../../i18n/app';
 import { typeWords } from './DocumentParts';
+import { NumbersFields } from './NumbersFields';
+import { makeFieldSet, numbersOf, type TypedNumbers } from '../../veilcore/field-set';
 
 const MB = Math.floor(MAX_DOCUMENT_BYTES / (1024 * 1024));
 /** A one-line field as sealed: trimmed, no line breaks or tabs. */
@@ -51,6 +53,9 @@ export const DocumentNew: React.FC = () => {
   const [fileProblem, setFileProblem] = useState<string>();
   const [title, setTitle] = useState('');
   const [type, setType] = useState<DocumentType>('other');
+  // The numbers on it (field-set.ts): a published schema and what was typed into its slots.
+  const [schema, setSchema] = useState('');
+  const [typed, setTyped] = useState<TypedNumbers>({});
   const [issuer, setIssuer] = useState('');
   const [reference, setReference] = useState('');
   const [issued, setIssued] = useState('');
@@ -91,13 +96,18 @@ export const DocumentNew: React.FC = () => {
     if (!title && next[0]) setTitle(line(next[0].name.replace(/\.[^.]{1,8}$/, '')));
   };
 
+  const numbers = schema ? numbersOf(schema, typed) : undefined;
   const missing = !files.length
     ? t('app.doc.need.file')
     : !line(title)
       ? t('app.doc.need.title')
       : !line(holder)
         ? t('app.doc.need.holder')
-        : undefined;
+        : numbers?.bad.length
+          ? t('app.doc.need.numbers')
+          : schema && !numbers?.any
+            ? t('app.doc.need.aNumber')
+            : undefined;
 
   const seal = async () => {
     setTried(true);
@@ -120,6 +130,7 @@ export const DocumentNew: React.FC = () => {
           .map((r) => ({ recordId: r.id, name: line(r.strainName) || r.id })),
         holder: line(holder),
         notes: notes.trim(),
+        ...(numbers?.any ? { fieldSet: await makeFieldSet(schema, numbers.values) } : {}),
       });
       id = sealed.id;
       if (tooLargeToSave(sealed)) {
@@ -221,6 +232,18 @@ export const DocumentNew: React.FC = () => {
               </MenuItem>
             ))}
           </TextField>
+          {(type === 'certificate-of-analysis' || type === 'lab-report' || schema) && (
+            <NumbersFields
+              schema={schema}
+              onSchema={(id) => {
+                setSchema(id);
+                setTyped({});
+              }}
+              typed={typed}
+              onTyped={setTyped}
+              bad={tried ? (numbers?.bad ?? []) : []}
+            />
+          )}
           <TextField
             label={t('app.doc.f.issuer')}
             helperText={t('app.doc.f.issuerHelp')}

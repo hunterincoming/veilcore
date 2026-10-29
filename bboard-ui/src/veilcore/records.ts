@@ -27,6 +27,7 @@ import { newNameSalt } from './verify-link';
 import { isAnimal, type AnimalDetails, type ParentRole } from './animal-profile';
 import { isStrain, STRAIN_GROUPS, type StrainDetails } from './strain-profile';
 import type { DocumentDetails } from './document-profile';
+import type { HeldFieldSet } from './field-set';
 import {
   allowReplace,
   checkRecordIntegrity,
@@ -156,6 +157,11 @@ export type StrainRecord = {
    * strainName is the title, refId the reference and dateCreated the date on the document.
    */
   readonly document?: DocumentDetails;
+  /** A document's field set (SPEC 4.5), sealed: the schema's id and the set's root (field-set.ts). */
+  readonly fieldSchema?: string;
+  readonly fieldSetRoot?: string;
+  /** The numbers behind them and the secret their salts come from: the holder's copy only, never sealed. */
+  readonly fieldSet?: HeldFieldSet;
   readonly photoFingerprints?: string[]; // photos hashed locally, never uploaded
   readonly refId?: string; // breeder's own reference / lot ID
   /**
@@ -310,6 +316,10 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
     str(r.profile) &&
     str(r.taxon) &&
     str(r.keyBinding) &&
+    str(r.fieldSchema) &&
+    str(r.fieldSetRoot) &&
+    (r.fieldSet === undefined ||
+      (typeof r.fieldSet === 'object' && r.fieldSet !== null && !Array.isArray(r.fieldSet))) &&
     num(r.loggedAt) &&
     num(r.dnaPairedAt) &&
     (r.parents === undefined || Array.isArray(r.parents)) &&
@@ -339,6 +349,9 @@ export type NewRecordInput = {
   animal?: AnimalDetails;
   strain?: StrainDetails;
   document?: DocumentDetails;
+  fieldSchema?: string;
+  fieldSetRoot?: string;
+  fieldSet?: HeldFieldSet;
   /** The name's salt (round 6): made when the record is sealed (seal-record.ts). */
   nameSalt?: string;
 };

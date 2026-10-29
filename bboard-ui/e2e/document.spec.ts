@@ -150,3 +150,39 @@ test('seal a document from its files, compare a file, and check it from the link
   await expect(page.locator('[data-document-link="missing"]')).toBeVisible();
   expectNoErrors(errors);
 });
+
+test('seal a certificate with its numbers: refused until each one fits, then kept only in the holder’s copy', async ({
+  page,
+}) => {
+  const errors = watch(page);
+  const held = await standIn(page);
+  await page.goto('/documents/new');
+  await page
+    .locator('input[type=file]')
+    .first()
+    .setInputFiles({ name: 'coa-7.pdf', mimeType: 'application/pdf', buffer: PERMIT });
+  await page.getByLabel('Type').click();
+  await page.getByRole('option', { name: 'Certificate of analysis (COA)' }).click();
+  await page.getByLabel('Which numbers').click();
+  await page.getByRole('option', { name: 'Cannabinoid potency' }).click();
+  // Four decimals where the form holds three: refused, never rounded.
+  await page.getByLabel('Total THC').fill('0.2105');
+  await page.getByLabel('Total CBD').fill('11.4');
+  await page.getByLabel('Held by').fill('E2E grower (test data)');
+  await page.getByRole('button', { name: 'Seal it' }).click();
+  await expect(page.locator('[data-document-missing]')).toContainText('isn’t one this form can hold');
+  await expect(page.getByText('A number with at most 3 decimals, like 0.21.')).toBeVisible();
+  await page.getByLabel('Total THC').fill('0.21');
+  await page.getByRole('button', { name: 'Seal it' }).click();
+
+  await expect(page.locator('[data-document-page]')).toBeVisible();
+  const nums = page.locator('[data-held-numbers]');
+  await expect(nums).toContainText('Total THC: 0.210 %');
+  await expect(nums).toContainText('Total CBD: 11.400 %');
+  await expect(nums).toContainText('Sealed with this document as Cannabinoid potency');
+  // What reached the registry is sealed: neither the numbers nor the field secret are readable.
+  const sent = JSON.stringify(held.records);
+  expect(sent).not.toContain('11400');
+  expect(sent).not.toContain('fieldSecret');
+  expectNoErrors(errors);
+});

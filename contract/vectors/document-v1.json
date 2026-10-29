@@ -1,5 +1,5 @@
 {
-  "about": "Document records: a permit, a certificate of analysis, a contract, a protocol, a transport document, sealed by the SHA-256 of each file (profile veilcore/profile/document/v1, SPEC 11.11; a draft until marked final). The fingerprint is computed exactly as for any record (SPEC 3.6.1 and 4.4): contentHash = SHA-256 of the canonical serialisation of fields; fingerprint = H(\"veilcore:v1:keyrecord\", keyBinding, contentHash) when fields has keyBinding, else contentHash. The profile adds validation only: a record in `refusals` must be refused before it is sealed or stored. `appRecord` is the VeilCore site's own stored shape for the same record (informational). Every document, issuer, reference and file fingerprint is test data.",
+  "about": "Document records: a permit, a certificate of analysis, a contract, a protocol, a transport document, sealed by the SHA-256 of each file (profile veilcore/profile/document/v1, SPEC 11.11; a draft until marked final). The fingerprint is computed exactly as for any record (SPEC 3.6.1 and 4.4): contentHash = SHA-256 of the canonical serialisation of fields; fingerprint = H(\"veilcore:v1:keyrecord\", keyBinding, contentHash) when fields has keyBinding, else contentHash. The profile adds validation only: a record in `refusals` must be refused before it is sealed or stored. `appRecord` is the VeilCore site's own stored shape for the same record (informational). A record with fieldSchema and fieldSetRoot carries a field set (SPEC 4.5): its contentHash is H(\"veilcore:v1:frecord\", fieldSetRoot, SHA-256 of the canonical serialisation), and its `fieldSet` gives the published schema, the stored numbers and the field secret that make the root (the holder's private copy, never sealed). Every document, issuer, reference, number and file fingerprint is test data.",
   "source": "contract/scripts/document-vectors.mjs (node:crypto and veilcore-records canonicalise); regenerate, never edit by hand",
   "profile": "veilcore/profile/document/v1",
   "keys": [
@@ -282,6 +282,170 @@
       "canonical": "{\"about\":[{\"name\":\"Planta madre 1\"},{\"name\":\"母株 2\",\"recordId\":\"VEIL-00000000000000000000000000000022\"}],\"files\":[{\"name\":\"carta de porte 0042.pdf\",\"sha256\":\"3e8520ca3837c5a82f3f21c6233209fb7f4b9bf0941309cfe4a1d75ec4468d92\",\"size\":90210}],\"holder\":\"Example Grower (test data)\",\"issued\":\"2026-10-01\",\"issuer\":\"Asociación de práctica (datos de prueba)\",\"keyBinding\":\"0c900780108dc20575338110047daebdcdc6132e925c936413c021e9b84db8ef\",\"loggedAt\":1761700000000,\"nonce\":\"5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d\",\"notes\":\"Line one.\\nLine two.\",\"profile\":\"veilcore/profile/document/v1\",\"reference\":\"CP-0042\",\"title\":\"Carta de porte 0042\",\"type\":\"transport\"}",
       "contentHash": "1b83a48f9866e88cd20f81f2439333c1811c4ba450fef231c7f1a2f9f87b88de",
       "fingerprint": "42692a35e8ad791d42f691e922ed260eecf1acc1feb622e9e45acf5492ab73c8"
+    },
+    {
+      "name": "a certificate of analysis with its numbers sealed as a field set (potency schema), naming key 1",
+      "algorithm": "sha256/key-bound/v1",
+      "appRecord": {
+        "profile": "veilcore/profile/document/v1",
+        "strainName": "Certificate of analysis, batch 7",
+        "bredBy": "Example Grower (test data)",
+        "dateCreated": "2026-10-01",
+        "notes": "Test data, not a real certificate.",
+        "loggedAt": 1761700000000,
+        "nonce": "5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d",
+        "keyBinding": "6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503",
+        "fieldSchema": "b287933bb4e93c58fa45b1f58d0ca71827d5965268376e72a7f90a5e52a57788",
+        "fieldSetRoot": "51b1ba55fc1cd89a0c1005f644bc02e8da1dfdc2bd0597130f4921f4be1bce05",
+        "refId": "COA-0007",
+        "parents": [],
+        "photoFingerprints": [],
+        "document": {
+          "type": "certificate-of-analysis",
+          "issuer": "Example Testing Lab (test data)",
+          "files": [
+            {
+              "name": "COA batch 7 (test data).pdf",
+              "sha256": "b82e614b63db38faa5d2b1a830e449b7242cb576aa7f2275de53bcbe4f6a0780",
+              "size": 184321
+            },
+            {
+              "name": "chromatogram.png",
+              "sha256": "542d85a8a823d55bc9f2a7be34ec8aa163227a1a16d5b9d6ac788abcb3470e81",
+              "size": 52011
+            }
+          ],
+          "about": [
+            {
+              "name": "Practice Plant 7",
+              "recordId": "VEIL-00000000000000000000000000000007"
+            }
+          ]
+        }
+      },
+      "fields": {
+        "about": [
+          {
+            "name": "Practice Plant 7",
+            "recordId": "VEIL-00000000000000000000000000000007"
+          }
+        ],
+        "files": [
+          {
+            "name": "COA batch 7 (test data).pdf",
+            "sha256": "b82e614b63db38faa5d2b1a830e449b7242cb576aa7f2275de53bcbe4f6a0780",
+            "size": 184321
+          },
+          {
+            "name": "chromatogram.png",
+            "sha256": "542d85a8a823d55bc9f2a7be34ec8aa163227a1a16d5b9d6ac788abcb3470e81",
+            "size": 52011
+          }
+        ],
+        "holder": "Example Grower (test data)",
+        "issued": "2026-10-01",
+        "issuer": "Example Testing Lab (test data)",
+        "loggedAt": 1761700000000,
+        "nonce": "5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d",
+        "notes": "Test data, not a real certificate.",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "COA-0007",
+        "title": "Certificate of analysis, batch 7",
+        "type": "certificate-of-analysis",
+        "fieldSchema": "b287933bb4e93c58fa45b1f58d0ca71827d5965268376e72a7f90a5e52a57788",
+        "fieldSetRoot": "51b1ba55fc1cd89a0c1005f644bc02e8da1dfdc2bd0597130f4921f4be1bce05",
+        "keyBinding": "6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503"
+      },
+      "canonical": "{\"about\":[{\"name\":\"Practice Plant 7\",\"recordId\":\"VEIL-00000000000000000000000000000007\"}],\"fieldSchema\":\"b287933bb4e93c58fa45b1f58d0ca71827d5965268376e72a7f90a5e52a57788\",\"fieldSetRoot\":\"51b1ba55fc1cd89a0c1005f644bc02e8da1dfdc2bd0597130f4921f4be1bce05\",\"files\":[{\"name\":\"COA batch 7 (test data).pdf\",\"sha256\":\"b82e614b63db38faa5d2b1a830e449b7242cb576aa7f2275de53bcbe4f6a0780\",\"size\":184321},{\"name\":\"chromatogram.png\",\"sha256\":\"542d85a8a823d55bc9f2a7be34ec8aa163227a1a16d5b9d6ac788abcb3470e81\",\"size\":52011}],\"holder\":\"Example Grower (test data)\",\"issued\":\"2026-10-01\",\"issuer\":\"Example Testing Lab (test data)\",\"keyBinding\":\"6bd1ad94e8376a775992d5650db0cd7a8d17b883b5f5d59b0b7b3b1de1066503\",\"loggedAt\":1761700000000,\"nonce\":\"5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d\",\"notes\":\"Test data, not a real certificate.\",\"profile\":\"veilcore/profile/document/v1\",\"reference\":\"COA-0007\",\"title\":\"Certificate of analysis, batch 7\",\"type\":\"certificate-of-analysis\"}",
+      "contentHash": "1bb112b674a42ff4419d53678b3bc61edd291fd8b27adbf76ecdf114908186ec",
+      "fingerprint": "6ba39a4bf032911b7d94a55a79a738c765060805050ea07783b44dec5a11ceac",
+      "fieldSet": {
+        "schema": "veilcore/schema/potency/v1",
+        "schemaDocument": {
+          "id": "veilcore/schema/potency/v1",
+          "title": "Cannabinoid potency, as on a certificate of analysis. Each number is the percentage by weight times 1000 (0.210 % is 210). Published by VeilCore (veilcore.org).",
+          "slots": [
+            {
+              "slot": 0,
+              "type": "uint",
+              "path": "potency.totalThc",
+              "unit": "%",
+              "scale": 1000,
+              "comparable": true
+            },
+            {
+              "slot": 1,
+              "type": "uint",
+              "path": "potency.delta9Thc",
+              "unit": "%",
+              "scale": 1000,
+              "comparable": true
+            },
+            {
+              "slot": 2,
+              "type": "uint",
+              "path": "potency.thca",
+              "unit": "%",
+              "scale": 1000,
+              "comparable": true
+            },
+            {
+              "slot": 3,
+              "type": "uint",
+              "path": "potency.totalCbd",
+              "unit": "%",
+              "scale": 1000,
+              "comparable": true
+            },
+            {
+              "slot": 4,
+              "type": "uint",
+              "path": "potency.cbda",
+              "unit": "%",
+              "scale": 1000,
+              "comparable": true
+            },
+            {
+              "slot": 5,
+              "type": "uint",
+              "path": "potency.cbg",
+              "unit": "%",
+              "scale": 1000,
+              "comparable": true
+            },
+            {
+              "slot": 6,
+              "type": "uint",
+              "path": "potency.totalCannabinoids",
+              "unit": "%",
+              "scale": 1000,
+              "comparable": true
+            },
+            {
+              "slot": 7,
+              "type": "uint",
+              "path": "potency.moisture",
+              "unit": "%",
+              "scale": 1000,
+              "comparable": false
+            }
+          ],
+          "k": 1
+        },
+        "schemaId": "b287933bb4e93c58fa45b1f58d0ca71827d5965268376e72a7f90a5e52a57788",
+        "values": [
+          "210",
+          "45",
+          "180",
+          "11400",
+          "12650",
+          "320",
+          "13800",
+          null
+        ],
+        "fieldSecret": "f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5",
+        "fieldSetRoot": "51b1ba55fc1cd89a0c1005f644bc02e8da1dfdc2bd0597130f4921f4be1bce05"
+      }
     }
   ],
   "refusals": [
@@ -1305,6 +1469,109 @@
         "reference": "COA-0007",
         "title": "Certificate of analysis, batch 7",
         "type": "certificate-of-analysis"
+      }
+    },
+    {
+      "name": "a field-set schema without its root",
+      "fields": {
+        "about": [
+          {
+            "name": "Practice Plant 7",
+            "recordId": "VEIL-00000000000000000000000000000007"
+          }
+        ],
+        "files": [
+          {
+            "name": "COA batch 7 (test data).pdf",
+            "sha256": "b82e614b63db38faa5d2b1a830e449b7242cb576aa7f2275de53bcbe4f6a0780",
+            "size": 184321
+          },
+          {
+            "name": "chromatogram.png",
+            "sha256": "542d85a8a823d55bc9f2a7be34ec8aa163227a1a16d5b9d6ac788abcb3470e81",
+            "size": 52011
+          }
+        ],
+        "holder": "Example Grower (test data)",
+        "issued": "2026-10-01",
+        "issuer": "Example Testing Lab (test data)",
+        "loggedAt": 1761700000000,
+        "nonce": "5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d",
+        "notes": "Test data, not a real certificate.",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "COA-0007",
+        "title": "Certificate of analysis, batch 7",
+        "type": "certificate-of-analysis",
+        "fieldSchema": "b287933bb4e93c58fa45b1f58d0ca71827d5965268376e72a7f90a5e52a57788"
+      }
+    },
+    {
+      "name": "a field-set root without its schema",
+      "fields": {
+        "about": [
+          {
+            "name": "Practice Plant 7",
+            "recordId": "VEIL-00000000000000000000000000000007"
+          }
+        ],
+        "files": [
+          {
+            "name": "COA batch 7 (test data).pdf",
+            "sha256": "b82e614b63db38faa5d2b1a830e449b7242cb576aa7f2275de53bcbe4f6a0780",
+            "size": 184321
+          },
+          {
+            "name": "chromatogram.png",
+            "sha256": "542d85a8a823d55bc9f2a7be34ec8aa163227a1a16d5b9d6ac788abcb3470e81",
+            "size": 52011
+          }
+        ],
+        "holder": "Example Grower (test data)",
+        "issued": "2026-10-01",
+        "issuer": "Example Testing Lab (test data)",
+        "loggedAt": 1761700000000,
+        "nonce": "5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d",
+        "notes": "Test data, not a real certificate.",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "COA-0007",
+        "title": "Certificate of analysis, batch 7",
+        "type": "certificate-of-analysis",
+        "fieldSetRoot": "51b1ba55fc1cd89a0c1005f644bc02e8da1dfdc2bd0597130f4921f4be1bce05"
+      }
+    },
+    {
+      "name": "an upper-case field-set root",
+      "fields": {
+        "about": [
+          {
+            "name": "Practice Plant 7",
+            "recordId": "VEIL-00000000000000000000000000000007"
+          }
+        ],
+        "files": [
+          {
+            "name": "COA batch 7 (test data).pdf",
+            "sha256": "b82e614b63db38faa5d2b1a830e449b7242cb576aa7f2275de53bcbe4f6a0780",
+            "size": 184321
+          },
+          {
+            "name": "chromatogram.png",
+            "sha256": "542d85a8a823d55bc9f2a7be34ec8aa163227a1a16d5b9d6ac788abcb3470e81",
+            "size": 52011
+          }
+        ],
+        "holder": "Example Grower (test data)",
+        "issued": "2026-10-01",
+        "issuer": "Example Testing Lab (test data)",
+        "loggedAt": 1761700000000,
+        "nonce": "5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d",
+        "notes": "Test data, not a real certificate.",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "COA-0007",
+        "title": "Certificate of analysis, batch 7",
+        "type": "certificate-of-analysis",
+        "fieldSchema": "b287933bb4e93c58fa45b1f58d0ca71827d5965268376e72a7f90a5e52a57788",
+        "fieldSetRoot": "51B1BA55FC1CD89A0C1005F644BC02E8DA1DFDC2BD0597130F4921F4BE1BCE05"
       }
     }
   ]

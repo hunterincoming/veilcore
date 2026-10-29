@@ -11,7 +11,7 @@
 // Every record here is test data: made-up documents, issuers, references and file fingerprints.
 // SPDX-License-Identifier: Apache-2.0
 import { createHash } from "node:crypto";
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 
@@ -88,19 +88,101 @@ const appRecordOf = (f) => ({
   loggedAt: f.loggedAt,
   nonce: f.nonce,
   ...(f.keyBinding !== undefined ? { keyBinding: f.keyBinding } : {}),
+  ...(f.fieldSchema !== undefined
+    ? { fieldSchema: f.fieldSchema, fieldSetRoot: f.fieldSetRoot }
+    : {}),
   refId: f.reference,
   parents: [],
   photoFingerprints: [],
   document: { type: f.type, issuer: f.issuer, files: f.files, about: f.about },
 });
 
-const recordOf = (name, fields) => {
+// ---- a field set (SPEC 4.5): the numbers on a certificate, from the spec's own words ----
+const potencySchema = JSON.parse(
+  readFileSync(
+    new URL("../../bboard-ui/public/schemas/potency-v1.json", import.meta.url),
+    "utf8",
+  ),
+);
+const count32 = (n) => {
+  const b = Buffer.alloc(32);
+  b.writeBigUInt64LE(BigInt(n));
+  return b.toString("hex");
+};
+const termsOf = (schema) => {
+  const t = Buffer.alloc(32);
+  let comparable = 0;
+  let numeric = 0;
+  for (const s of schema.slots) {
+    if (s.comparable) comparable |= 1 << s.slot;
+    if (s.type === "uint") numeric |= 1 << s.slot;
+  }
+  t.writeUInt16LE(comparable, 0);
+  t.writeUInt16LE(numeric, 2);
+  t[4] = schema.k;
+  return t.toString("hex");
+};
+const schemaIdOf = (schema) =>
+  H("veilcore:v1:fschema", sha(canonicalise(schema)), termsOf(schema));
+const uintValue = (n) => {
+  const b = Buffer.alloc(32);
+  b.writeBigUInt64LE(BigInt(n));
+  b[8] = 1;
+  return b;
+};
+const fieldSetRootOf = (schemaId, values, secret) => {
+  const leaves = Array.from({ length: 16 }, (_, i) => {
+    const v =
+      values[i] === null || values[i] === undefined
+        ? Buffer.alloc(32)
+        : uintValue(values[i]);
+    const salt = Buffer.from(
+      H("veilcore:v1:fsalt", secret, count32(i)),
+      "hex",
+    ).subarray(0, 23);
+    return createHash("sha256")
+      .update(Buffer.concat([v, salt]))
+      .digest();
+  });
+  return createHash("sha256")
+    .update(
+      Buffer.concat([
+        Buffer.from("veilcore:v1:fset", "utf8"),
+        Buffer.from(schemaId, "hex"),
+        ...leaves,
+      ]),
+    )
+    .digest("hex");
+};
+const potencyValues = [
+  "210",
+  "45",
+  "180",
+  "11400",
+  "12650",
+  "320",
+  "13800",
+  null,
+];
+const fieldSecret = "f5".repeat(32);
+const potencyId = schemaIdOf(potencySchema);
+const potencyRoot = fieldSetRootOf(potencyId, potencyValues, fieldSecret);
+
+const recordOf = (name, fields, extra = {}) => {
   const canonical = canonicalise(fields);
-  const contentHash = sha(canonical);
+  // A field set (SPEC 4.5): H("veilcore:v1:frecord", fieldSetRoot, SHA-256 of the canonical JSON).
+  const withSet = fields.fieldSetRoot !== undefined;
+  const contentHash = withSet
+    ? H("veilcore:v1:frecord", fields.fieldSetRoot, sha(canonical))
+    : sha(canonical);
   const bound = fields.keyBinding !== undefined;
   return {
     name,
-    algorithm: bound ? "sha256/key-bound/v1" : "sha256/canonical-json/v1",
+    algorithm: bound
+      ? "sha256/key-bound/v1"
+      : withSet
+        ? "sha256/fields/v1"
+        : "sha256/canonical-json/v1",
     appRecord: appRecordOf(fields),
     fields,
     canonical,
@@ -108,6 +190,7 @@ const recordOf = (name, fields) => {
     fingerprint: bound
       ? H("veilcore:v1:keyrecord", fields.keyBinding, contentHash)
       : contentHash,
+    ...extra,
   };
 };
 
@@ -156,6 +239,25 @@ const records = [
       type: "transport",
       notes: "Line one.\nLine two.",
       keyBinding: keys[0].keyBinding,
+    },
+  ),
+  recordOf(
+    "a certificate of analysis with its numbers sealed as a field set (potency schema), naming key 1",
+    {
+      ...coa,
+      fieldSchema: potencyId,
+      fieldSetRoot: potencyRoot,
+      keyBinding: keys[1].keyBinding,
+    },
+    {
+      fieldSet: {
+        schema: potencySchema.id,
+        schemaDocument: potencySchema,
+        schemaId: potencyId,
+        values: potencyValues,
+        fieldSecret,
+        fieldSetRoot: potencyRoot,
+      },
     },
   ),
 ];
@@ -241,6 +343,15 @@ const refusals = [
   ],
   ["a clock that is not a whole number", { ...coa, loggedAt: 1761700000000.5 }],
   ["a short nonce", { ...coa, nonce: "5d".repeat(16) }],
+  ["a field-set schema without its root", { ...coa, fieldSchema: potencyId }],
+  [
+    "a field-set root without its schema",
+    { ...coa, fieldSetRoot: potencyRoot },
+  ],
+  [
+    "an upper-case field-set root",
+    { ...coa, fieldSchema: potencyId, fieldSetRoot: potencyRoot.toUpperCase() },
+  ],
 ].map(([name, fields]) => ({ name, fields }));
 
 writeFileSync(
@@ -248,7 +359,7 @@ writeFileSync(
   JSON.stringify(
     {
       about:
-        'Document records: a permit, a certificate of analysis, a contract, a protocol, a transport document, sealed by the SHA-256 of each file (profile veilcore/profile/document/v1, SPEC 11.11; a draft until marked final). The fingerprint is computed exactly as for any record (SPEC 3.6.1 and 4.4): contentHash = SHA-256 of the canonical serialisation of fields; fingerprint = H("veilcore:v1:keyrecord", keyBinding, contentHash) when fields has keyBinding, else contentHash. The profile adds validation only: a record in `refusals` must be refused before it is sealed or stored. `appRecord` is the VeilCore site\'s own stored shape for the same record (informational). Every document, issuer, reference and file fingerprint is test data.',
+        'Document records: a permit, a certificate of analysis, a contract, a protocol, a transport document, sealed by the SHA-256 of each file (profile veilcore/profile/document/v1, SPEC 11.11; a draft until marked final). The fingerprint is computed exactly as for any record (SPEC 3.6.1 and 4.4): contentHash = SHA-256 of the canonical serialisation of fields; fingerprint = H("veilcore:v1:keyrecord", keyBinding, contentHash) when fields has keyBinding, else contentHash. The profile adds validation only: a record in `refusals` must be refused before it is sealed or stored. `appRecord` is the VeilCore site\'s own stored shape for the same record (informational). A record with fieldSchema and fieldSetRoot carries a field set (SPEC 4.5): its contentHash is H("veilcore:v1:frecord", fieldSetRoot, SHA-256 of the canonical serialisation), and its `fieldSet` gives the published schema, the stored numbers and the field secret that make the root (the holder\'s private copy, never sealed). Every document, issuer, reference, number and file fingerprint is test data.',
       source:
         "contract/scripts/document-vectors.mjs (node:crypto and veilcore-records canonicalise); regenerate, never edit by hand",
       profile: PROFILE,

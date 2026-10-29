@@ -1,0 +1,13 @@
+{
+  "id": "veilcore/schema/seed-quality/v1",
+  "title": "Seed quality, as on a seed analysis certificate. Each number is the percentage times 100 (98.50 % is 9850). Published by VeilCore (veilcore.org).",
+  "slots": [
+    { "slot": 0, "type": "uint", "path": "seed.germination", "unit": "%", "scale": 100, "comparable": true },
+    { "slot": 1, "type": "uint", "path": "seed.pureSeed", "unit": "%", "scale": 100, "comparable": true },
+    { "slot": 2, "type": "uint", "path": "seed.otherCropSeed", "unit": "%", "scale": 100, "comparable": true },
+    { "slot": 3, "type": "uint", "path": "seed.weedSeed", "unit": "%", "scale": 100, "comparable": true },
+    { "slot": 4, "type": "uint", "path": "seed.inertMatter", "unit": "%", "scale": 100, "comparable": true },
+    { "slot": 5, "type": "uint", "path": "seed.moisture", "unit": "%", "scale": 100, "comparable": false }
+  ],
+  "k": 1
+}

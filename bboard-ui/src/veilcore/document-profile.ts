@@ -66,6 +66,13 @@ export type DocumentRecordLike = {
   readonly keyBinding?: string;
   readonly refId?: string;
   readonly document?: Partial<DocumentDetails>;
+  /**
+   * The numbers on it, sealed as a field set (SPEC 4.5; docs/claims-screen.md): the schema's id
+   * and the set's root, both 64 lowercase hex characters, together or not at all. The numbers
+   * themselves and the salts' secret are never sealed here; they stay in the holder's copy.
+   */
+  readonly fieldSchema?: string;
+  readonly fieldSetRoot?: string;
 };
 
 /** A document record (by its profile). */
@@ -89,6 +96,8 @@ export const documentFieldsOf = (r: DocumentRecordLike): Record<string, unknown>
   title: r.strainName,
   type: r.document?.type,
   ...(r.keyBinding !== undefined ? { keyBinding: r.keyBinding } : {}),
+  ...(r.fieldSchema !== undefined ? { fieldSchema: r.fieldSchema } : {}),
+  ...(r.fieldSetRoot !== undefined ? { fieldSetRoot: r.fieldSetRoot } : {}),
 });
 
 // ---- validation (the profile's canonical form) ---------------------------------------------
@@ -112,7 +121,7 @@ const REQUIRED = [
   'title',
   'type',
 ] as const;
-const ALLOWED = new Set<string>([...REQUIRED, 'keyBinding']);
+const ALLOWED = new Set<string>([...REQUIRED, 'keyBinding', 'fieldSchema', 'fieldSetRoot']);
 const LINES = ['title', 'issuer', 'reference', 'holder'] as const;
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -225,6 +234,12 @@ export const validateDocumentFields = (fields: unknown): string[] => {
     out.push('nonce must be 32 to 64 bytes of lowercase hex');
   if (f.keyBinding !== undefined && !(typeof f.keyBinding === 'string' && HEX64.test(f.keyBinding)))
     out.push('keyBinding must be 64 lowercase hex characters');
+  // A field set (SPEC 4.5): its schema id and root come together, or neither is there.
+  if ((f.fieldSchema === undefined) !== (f.fieldSetRoot === undefined))
+    out.push('fieldSchema and fieldSetRoot come together, or neither');
+  for (const k of ['fieldSchema', 'fieldSetRoot'] as const)
+    if (f[k] !== undefined && !(typeof f[k] === 'string' && HEX64.test(f[k])))
+      out.push(`${k} must be 64 lowercase hex characters`);
   return out;
 };
 

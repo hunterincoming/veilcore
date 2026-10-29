@@ -34,6 +34,8 @@ export type DocumentFields = {
   readonly issued: string;
   readonly issuer: string;
   readonly keyBinding?: string;
+  readonly fieldSchema?: string;
+  readonly fieldSetRoot?: string;
   readonly loggedAt: number;
   readonly nonce: string;
   readonly notes: string;
@@ -53,6 +55,7 @@ export const appRecordOfFields = (f: DocumentFields): DocumentRecordLike & { par
   loggedAt: f.loggedAt,
   nonce: f.nonce,
   ...(f.keyBinding !== undefined ? { keyBinding: f.keyBinding } : {}),
+  ...(f.fieldSchema !== undefined ? { fieldSchema: f.fieldSchema, fieldSetRoot: f.fieldSetRoot } : {}),
   refId: f.reference,
   parents: [],
   photoFingerprints: [],
