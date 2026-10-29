@@ -270,12 +270,17 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   await expect(row).toHaveAttribute('data-mark', 'done');
   await expect(row).toContainText('Tied to the animal');
   await expect(row).toContainText('A lab can compare a new test of the animal with it.');
-  // No agreements for an animal yet, said so; no next generation.
-  await expect(page.getByText('License it')).toHaveCount(0);
-  await expect(page.locator('[data-no-licensing]')).toHaveText(
-    'Agreements and royalties aren’t available for animal records yet.',
-  );
+  // An animal can be licensed, in an animal's terms (breeding, doses, offspring); no next generation.
+  await expect(page.locator('[data-no-licensing]')).toHaveCount(0);
   await expect(page.getByText('Add the next generation or selection')).toHaveCount(0);
+  await page.getByText('License it', { exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`/record/${rec.id}/license`));
+  await expect(page.getByText('Breed with their own animals only')).toBeVisible();
+  await expect(page.getByText('Per dose (straw or embryo)')).toBeVisible();
+  await expect(page.getByText(/sire or dam, both holders confirming/)).toBeVisible();
+  await expect(page.getByText(/Cultivate/)).toHaveCount(0);
+  await page.goto(`/record/${rec.id}`);
+  await expect(page.getByRole('heading', { name })).toBeVisible();
   await page.getByRole('button', { name: 'Technical details' }).click();
   const details = page.locator('#record-technical-details');
   await expect(details).toContainText('Individual ID');
@@ -337,7 +342,7 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   await expect(cert).toContainText('Individual ID');
   await expect(cert).toContainText('0000000017 (Japan cattle ID (10 digits))');
   await expect(cert).toContainText('Sire');
-  await expect(cert).not.toContainText('Agreements marked active');
+  await expect(cert).toContainText('Agreements marked active0');
   await expect(cert.locator('[data-dna-tie="self"]')).toContainText('Tied to the animal: DNA report you saved');
   await page.getByRole('button', { name: /Back/ }).first().click();
 

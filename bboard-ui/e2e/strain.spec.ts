@@ -251,17 +251,22 @@ test('log a strain with its designation, deposits and parent; tie a DNA report; 
     localStorage.removeItem('veilcore.log-draft.v1');
   }, rec.id);
 
-  // 4. The strain's page: tied to the strain, its own fields; no licensing yet, no next stage.
+  // 4. The strain's page: tied to the strain, its own fields; licensed in a strain's terms, no next stage.
   await page.goto(`/record/${rec.id}`);
   await expect(page.getByRole('heading', { name })).toBeVisible();
   const row = page.locator('[data-status-row="DNA report"]');
   await expect(row).toHaveAttribute('data-mark', 'done');
   await expect(row).toContainText('Tied to the strain');
-  await expect(page.getByText('License it')).toHaveCount(0);
-  await expect(page.locator('[data-no-licensing]')).toContainText(
-    'Agreements and royalties aren’t available for strain records yet',
-  );
+  await expect(page.locator('[data-no-licensing]')).toHaveCount(0);
   await expect(page.getByText('Add the next generation or selection')).toHaveCount(0);
+  await page.getByText('License it', { exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`/record/${rec.id}/license`));
+  await expect(page.getByText('Use only (no subculturing or passing it on)')).toBeVisible();
+  await expect(page.getByText('Per production batch')).toBeVisible();
+  await expect(page.getByLabel('Royalty on derived strains (%)')).toBeVisible();
+  await expect(page.getByText(/Cultivate/)).toHaveCount(0);
+  await page.goto(`/record/${rec.id}`);
+  await expect(page.getByRole('heading', { name })).toBeVisible();
   await page.getByRole('button', { name: 'Technical details' }).click();
   const details = page.locator('#record-technical-details');
   await expect(details).toContainText('Yeast · Saccharomyces cerevisiae');
@@ -277,7 +282,7 @@ test('log a strain with its designation, deposits and parent; tie a DNA report; 
   await expect(cert).toContainText('TEST 0002 · TEST 0003');
   await expect(cert).toContainText('Practice parent (TEST 0001)');
   await expect(cert).not.toContainText('Cultivar');
-  await expect(cert).not.toContainText('Agreements marked active');
+  await expect(cert).toContainText('Agreements marked active0');
   await expect(cert.locator('[data-dna-tie="self"]')).toContainText('Tied to the strain: DNA report you saved');
   await page.getByRole('button', { name: /Back/ }).first().click();
 

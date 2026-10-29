@@ -61,7 +61,6 @@ export const animal = {
   'app.animal.x.dam': 'Mutter: {v}',
   'app.animal.x.herd': 'Herde: {v}',
   'app.animal.f.statedBirth': 'Geburtsdatum (Angabe des Inhabers)',
-  'app.animal.noLicensing': 'Vereinbarungen und Lizenzgebühren gibt es für Tierdatensätze noch nicht.',
   'app.animal.tree.sire': 'Vater',
   'app.animal.tree.dam': 'Mutter',
   'app.animal.home.yourRecords': 'Ihre Datensätze',
@@ -173,7 +172,7 @@ export const animal = {
     'Ein Labor hat signiert, dass es eine Probe erhalten hat. Wenn sein DNA-Bericht zurückkommt, speichern Sie ihn bei diesem Tier: Das verknüpft Ihren Datensatz mit dem Tier, damit ein späterer Test damit verglichen werden kann.',
   'app.animal.v.app.plant.next.save.action': 'Bei diesem Tier speichern',
   'app.animal.v.app.plant.next.ready.why':
-    'Ein Labor hat signiert, dass es eine Probe erhalten hat, und ein DNA-Bericht ist bei diesem Tier gespeichert. Vereinbarungen und Lizenzgebühren gibt es für Tierdatensätze noch nicht.',
+    'Ein Labor hat signiert, dass es eine Probe erhalten hat, und ein DNA-Bericht ist bei diesem Tier gespeichert. Sie können Material weitergeben oder es lizenzieren, mit Bedingungen, die für von diesem Datensatz angemeldete Nachkommen gelten.',
   'app.animal.v.app.plant.tree.none': 'Noch kein Vater und keine Mutter erfasst.',
   'app.animal.v.app.plant.anchor.keysNotHere':
     'Der Schlüssel dieses Tieres ist nicht in diesem Browser. Holen Sie ihn aus Ihrer Sicherungsdatei zurück: Ein neuer Schlüssel würde nicht zum versiegelten Datensatz passen.',
@@ -240,4 +239,21 @@ export const animal = {
   'app.animal.v.app.lab.send.nothingYet':
     'Noch hat sich nichts geändert. Die Seite Ihres Tieres zeigt „wartet“, bis der Code eingegeben wird, und kann diesen Code erneut anzeigen. Er wird in das Feld auf der Startseite von VeilCore eingefügt.',
   'app.animal.v.app.lab.send.takenFromHelp': 'Die Einzeltierkennung des Tieres oder wo die Probe genommen wurde.',
+  'app.animal.v.app.lic.row.offspringValue': '{pct} %, auf Nachkommen, die von diesem Tier angemeldet werden',
+  'app.animal.v.app.lic.f.offspringHelp':
+    'Gilt für Nachkommen, die von diesem Datensatz angemeldet werden (mit ihm als Vater oder Mutter erfasst, von beiden Inhabern bestätigt). Nachkommen, die niemand erfasst, werden nicht erkannt. Leer lassen, wenn keine.',
+  'app.animal.v.app.lic.f.extraHelpDeal':
+    'Alles, was sonst zum Geschäft gehört, in Ihren eigenen Worten. Zum Beispiel: höchstens zwei Würfe oder Abkalbungen, kein Weiterverkauf von Pailletten, Nachkommen bei einem genannten Zuchtverband eingetragen.',
+  'app.animal.v.app.lic.detail.thisCultivar': 'diesem Tier',
+  'app.animal.v.app.lic.detail.lineage':
+    'Wird später ein Tier mit {name} als Vater oder Mutter erfasst und bestätigen beide Inhaber dies, erscheint die Verbindung zu dieser Vereinbarung in seinem Datensatz. Nachkommen, die niemand erfasst, werden nicht erkannt.',
+  'app.animal.v.app.lic.detail.derivatives.one': '{count} bereits erfasstes Tier stammt davon ab.',
+  'app.animal.v.app.lic.detail.derivatives.other': '{count} bereits erfasste Tiere stammen davon ab.',
+  'app.animal.v.app.lic.off.intro':
+    'Auf Midnight liegt sie auf dem eigenen Datensatz des Lizenznehmers zu dieser Genetik, sodass jeder Nachkomme, den beide Inhaber bestätigen, sie zeigt, wenn jemand die Linie prüft. Der Lizenznehmer nimmt sie an; nur der Züchter kann sie aufheben.',
+  'app.animal.v.app.lic.off.dateFirst':
+    'Datieren Sie zuerst Ihren eigenen Datensatz zu dieser Genetik (das Tier oder das erhaltene Sperma bzw. die Embryonen) und nennen Sie ihn dann hier.',
+  'app.animal.v.app.lic.off.datePlant': 'Einen Datensatz datieren',
+  'app.animal.v.app.lic.off.yourRecord': 'Ihr Datensatz zu dieser Genetik',
+  'app.animal.v.app.lic.off.waitName': 'Warten, bis die andere Seite ihren Datensatz zu dieser Genetik nennt.',
 } satisfies Partial<AppTranslation>;

@@ -63,8 +63,6 @@ export const animal = {
   'app.animal.x.dam': 'Mère : {v}',
   'app.animal.x.herd': 'Troupeau : {v}',
   'app.animal.f.statedBirth': 'Date de naissance (déclaration du détenteur)',
-  'app.animal.noLicensing':
-    'Les accords et les redevances ne sont pas encore disponibles pour les enregistrements d’animaux.',
   'app.animal.tree.sire': 'Père',
   'app.animal.tree.dam': 'Mère',
   'app.animal.home.yourRecords': 'Vos enregistrements',
@@ -178,7 +176,7 @@ export const animal = {
     'Un laboratoire a signé avoir reçu un échantillon. Quand son rapport ADN reviendra, enregistrez-le sur cet animal : c’est ce qui lie votre enregistrement à l’animal, pour pouvoir le comparer à un test ultérieur.',
   'app.animal.v.app.plant.next.save.action': 'L’enregistrer sur cet animal',
   'app.animal.v.app.plant.next.ready.why':
-    'Un laboratoire a signé avoir reçu un échantillon, et un rapport ADN est enregistré sur cet animal. Les accords et les redevances ne sont pas encore disponibles pour les enregistrements d’animaux.',
+    'Un laboratoire a signé avoir reçu un échantillon, et un rapport ADN est enregistré sur cet animal. Vous pouvez transmettre du matériel ou le concéder sous licence, avec des conditions qui s’appliquent à la descendance déclarée à partir de cet enregistrement.',
   'app.animal.v.app.plant.tree.none': 'Ni père ni mère enregistrés pour l’instant.',
   'app.animal.v.app.plant.anchor.keysNotHere':
     'La clé de cet animal n’est pas dans ce navigateur. Récupérez-la depuis votre fichier de copie de secours : une nouvelle clé ne correspondrait pas à l’enregistrement scellé.',
@@ -246,4 +244,21 @@ export const animal = {
     'Rien n’a encore changé. La page de votre animal affiche « en attente » jusqu’à ce que le code soit saisi, et peut réafficher ce code. Il se colle dans le champ de l’accueil de VeilCore.',
   'app.animal.v.app.lab.send.takenFromHelp':
     'Le numéro d’identification de l’animal, ou l’endroit où l’échantillon a été prélevé.',
+  'app.animal.v.app.lic.row.offspringValue': '{pct} %, sur les descendants déclarés de cet animal',
+  'app.animal.v.app.lic.f.offspringHelp':
+    'S’applique aux descendants déclarés à partir de cet enregistrement (enregistrés avec lui comme père ou mère, confirmés par les deux détenteurs). Une descendance que personne n’enregistre n’est pas détectée. Laissez vide s’il n’y en a pas.',
+  'app.animal.v.app.lic.f.extraHelpDeal':
+    'Tout ce qui fait aussi partie de l’accord, avec vos propres mots. Par exemple : au plus deux portées ou vêlages, pas de revente des paillettes, descendants inscrits auprès d’une association de race nommée.',
+  'app.animal.v.app.lic.detail.thisCultivar': 'cet animal',
+  'app.animal.v.app.lic.detail.lineage':
+    'Si un animal est enregistré plus tard avec {name} comme père ou mère et que les deux détenteurs le confirment, le lien vers ce contrat apparaît dans son enregistrement. Une descendance que personne n’enregistre n’est pas détectée.',
+  'app.animal.v.app.lic.detail.derivatives.one': '{count} animal déjà enregistré en descend.',
+  'app.animal.v.app.lic.detail.derivatives.other': '{count} animaux déjà enregistrés en descendent.',
+  'app.animal.v.app.lic.off.intro':
+    'Sur Midnight, elle figure sur l’enregistrement que le licencié a de cette génétique, donc chaque descendant que les deux détenteurs confirment l’affiche quand quelqu’un vérifie la lignée. Le licencié l’accepte ; seul l’éleveur peut la lever.',
+  'app.animal.v.app.lic.off.dateFirst':
+    'Datez d’abord votre propre enregistrement de cette génétique (l’animal, ou la semence ou les embryons reçus), puis indiquez-le ici.',
+  'app.animal.v.app.lic.off.datePlant': 'Dater un enregistrement',
+  'app.animal.v.app.lic.off.yourRecord': 'Votre enregistrement de cette génétique',
+  'app.animal.v.app.lic.off.waitName': 'En attente que l’autre partie indique son enregistrement de cette génétique.',
 } satisfies Partial<AppTranslation>;

@@ -169,7 +169,7 @@ export const Step3Certificate: React.FC<{
     const data = certificateSummary({
       ...(IS_MAINNET ? {} : { practice: PRACTICE_BAND }),
       record,
-      ...(animal || strain ? {} : { agreements: licensesForRecord(record.id) }),
+      agreements: licensesForRecord(record.id),
       anchored: anchorLine,
       secondParty: deliveryLine,
       ...(sampleCustody ? { sampleCustody } : {}),
@@ -414,7 +414,7 @@ export const Step3Certificate: React.FC<{
               </Field>
               {/* Date-checked (effectiveState: past its end date is expired), and said for what it
                   is: marked active, in this version from the issuer's own browser. */}
-              {!animal && !strain && <Field label="Agreements marked active">{activeLicenseCount(record.id)}</Field>}
+              <Field label="Agreements marked active">{activeLicenseCount(record.id)}</Field>
               <Field label="Record ID" mono>
                 {record.id}
               </Field>

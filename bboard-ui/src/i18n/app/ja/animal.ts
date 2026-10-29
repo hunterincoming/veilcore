@@ -59,7 +59,6 @@ export const animal = {
   'app.animal.x.dam': '母：{v}',
   'app.animal.x.herd': '牧場：{v}',
   'app.animal.f.statedBirth': '生年月日（保有者の申告）',
-  'app.animal.noLicensing': '動物の記録では、契約とロイヤリティはまだ使えません。',
   'app.animal.tree.sire': '父',
   'app.animal.tree.dam': '母',
   'app.animal.home.yourRecords': 'あなたの記録',
@@ -169,7 +168,7 @@ export const animal = {
     'ラボがサンプルを受け取ったことに署名しました。DNA報告書が戻ってきたらこの動物に保存してください。それが記録を動物に結び付け、後の検査と比較できるようにします。',
   'app.animal.v.app.plant.next.save.action': 'この動物に保存する',
   'app.animal.v.app.plant.next.ready.why':
-    'ラボがサンプルを受け取ったことに署名し、DNA報告書がこの動物に保存されています。動物の記録では、契約とロイヤリティはまだ使えません。',
+    'ラボがサンプルを受け取ったことに署名し、DNA報告書がこの動物に保存されています。素材を送ることも、ライセンスを出すこともできます。条件はこの記録から申告された子に適用されます。',
   'app.animal.v.app.plant.tree.none': 'まだ父と母が記録されていません。',
   'app.animal.v.app.plant.anchor.keysNotHere':
     'この動物の鍵はこのブラウザにありません。バックアップファイルから取り戻してください。新しい鍵は、封印された記録と一致しません。',
@@ -234,4 +233,20 @@ export const animal = {
   'app.animal.v.app.lab.send.nothingYet':
     'まだ何も変わっていません。相手がコードを入力するまで、動物のページには「待機中」と表示され、このコードをもう一度表示できます。相手はVeilCoreのホームの入力欄に貼り付けます。',
   'app.animal.v.app.lab.send.takenFromHelp': '動物の個体識別番号、またはサンプルを採取した場所。',
+  'app.animal.v.app.lic.row.offspringValue': '{pct}%（この動物から申告された子に対して）',
+  'app.animal.v.app.lic.f.offspringHelp':
+    'この記録から申告された子（この記録を父または母として記録され、双方の保有者が確認したもの）に適用されます。誰も記録しない子は検出されません。なければ空欄にしてください。',
+  'app.animal.v.app.lic.f.extraHelpDeal':
+    '取引に含まれるその他のことを、あなた自身の言葉で。例: 産子は2回まで、ストローの転売禁止、指定の登録団体に子を登録。',
+  'app.animal.v.app.lic.detail.thisCultivar': 'この動物',
+  'app.animal.v.app.lic.detail.lineage':
+    'のちに{name}を父または母として動物が記録され、双方の保有者が確認すると、その記録にこの契約へのつながりが表示されます。誰も記録しない子は検出されません。',
+  'app.animal.v.app.lic.detail.derivatives.other': '記録済みの{count}頭がこの動物の子孫です。',
+  'app.animal.v.app.lic.off.intro':
+    'Midnight上では、この遺伝資源についてのライセンシー自身の記録に付きます。そのため、双方の保有者が確認した子はすべて、誰かが系譜を確認するときにこれを表示します。ライセンシーが受け入れ、解除できるのは育種者だけです。',
+  'app.animal.v.app.lic.off.dateFirst':
+    'まずこの遺伝資源についてのあなた自身の記録（動物、または受け取った精液・胚）を日付記録し、それからここで指定してください。',
+  'app.animal.v.app.lic.off.datePlant': '記録を日付記録する',
+  'app.animal.v.app.lic.off.yourRecord': 'この遺伝資源についてのあなたの記録',
+  'app.animal.v.app.lic.off.waitName': '相手がこの遺伝資源の記録を指定するのを待っています。',
 } satisfies Partial<AppTranslation>;

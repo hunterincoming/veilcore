@@ -100,7 +100,7 @@ export const strain = {
     'ラボがサンプルを受け取ったことに署名しました。DNA報告書が戻ってきたらこの系統に保存してください。それが記録を系統に結び付け、後の検査と比較できるようにします。',
   'app.strain.v.app.plant.next.save.action': 'この系統に保存する',
   'app.strain.v.app.plant.next.ready.why':
-    'ラボがサンプルを受け取ったことに署名し、DNA報告書がこの系統に保存されています。素材を送ったりライセンスを出したりできます。条件は、この記録から申告された子孫にも適用されます。',
+    'ラボがサンプルを受け取ったことに署名し、DNA報告書がこの株に保存されています。素材を送ることも、ライセンスを出すこともできます。条件はこの記録から派生したと申告された株に適用されます。',
   'app.strain.v.app.plant.tree.none': 'まだ系統が記録されていません。記録するときに親株を加えると、系統図ができます。',
   'app.strain.v.app.plant.anchor.keysNotHere':
     'この系統の鍵はこのブラウザにありません。バックアップファイルから取り戻してください。新しい鍵は、封印された記録と一致しません。',
@@ -176,4 +176,23 @@ export const strain = {
   'app.strain.v.app.verify.noMethod': '作出方法の記録はありません。',
   'app.strain.v.app.verify.bredByShared': '作出者・分離者（保有者の記載）：{name}',
   'app.strain.v.app.verify.noBredBy': '作出者・分離者の記録はありません。',
+  'app.strain.v.app.lic.row.offspring': '派生株へのロイヤリティ',
+  'app.strain.v.app.lic.row.offspringValue': '{pct}%（この株から派生したと申告された株に対して）',
+  'app.strain.v.app.lic.f.offspring': '派生株へのロイヤリティ（%）',
+  'app.strain.v.app.lic.f.offspringHelp':
+    'この記録から派生したと申告された株（この記録を親として記録され、双方の保有者が確認したもの）に適用されます。申告されない派生は検出されません。なければ空欄にしてください。',
+  'app.strain.v.app.lic.f.extraHelpDeal':
+    '取引に含まれるその他のことを、あなた自身の言葉で。例: 第三者への提供禁止、論文で出所を明記、終了時に残りの株を廃棄。',
+  'app.strain.v.app.lic.detail.thisCultivar': 'この株',
+  'app.strain.v.app.lic.detail.lineage':
+    'のちに{name}を親として株が記録され、双方の保有者が確認すると、その記録にこの契約へのつながりが表示されます。誰も記録しない派生株は検出されません。',
+  'app.strain.v.app.lic.detail.derivatives.other': '記録済みの{count}株がこの株から派生しています。',
+  'app.strain.v.app.lic.off.title': '派生株へのロイヤリティ: {pct}%',
+  'app.strain.v.app.lic.off.intro':
+    'Midnight上では、この株についてのライセンシー自身の記録に付きます。そのため、双方の保有者が確認した派生株はすべて、誰かが系譜を確認するときにこれを表示します。ライセンシーが受け入れ、解除できるのはライセンサーだけです。',
+  'app.strain.v.app.lic.off.dateFirst':
+    'まずこの株についてのあなた自身の記録を日付記録し、それからここで指定してください。',
+  'app.strain.v.app.lic.off.datePlant': '記録を日付記録する',
+  'app.strain.v.app.lic.off.yourRecord': 'この株についてのあなたの記録',
+  'app.strain.v.app.lic.off.waitName': '相手がこの株の記録を指定するのを待っています。',
 } satisfies Partial<AppTranslation>;

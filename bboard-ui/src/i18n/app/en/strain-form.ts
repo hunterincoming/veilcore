@@ -64,8 +64,6 @@ export const strainForm = {
   'app.strain.x.method': 'Made by: {v}',
   'app.strain.x.generation': 'Generation: {v}',
   'app.strain.x.parents': 'Parents: {v}',
-  'app.strain.noLicensing':
-    'Agreements and royalties aren’t available for strain records yet: a strain license needs its own terms (use, subculture, derived strains), not a plant’s.',
   'app.strain.f.generation': 'Generation or passage',
   'app.strain.f.parents': 'Parent strains',
   'app.strain.verify.parentsLine': 'Parent strains, as the holder states them: {v}',

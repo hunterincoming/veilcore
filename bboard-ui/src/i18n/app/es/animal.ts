@@ -60,7 +60,6 @@ export const animal = {
   'app.animal.x.dam': 'Madre: {v}',
   'app.animal.x.herd': 'Rebaño: {v}',
   'app.animal.f.statedBirth': 'Fecha de nacimiento (declaración del titular)',
-  'app.animal.noLicensing': 'Los acuerdos y las regalías aún no están disponibles para registros de animales.',
   'app.animal.tree.sire': 'Padre',
   'app.animal.tree.dam': 'Madre',
   'app.animal.home.yourRecords': 'Sus registros',
@@ -172,7 +171,7 @@ export const animal = {
     'Un laboratorio firmó que recibió una muestra. Cuando llegue su informe de ADN, guárdelo en este animal: eso es lo que vincula su registro con el animal, para poder compararlo con una prueba posterior.',
   'app.animal.v.app.plant.next.save.action': 'Guardarlo en este animal',
   'app.animal.v.app.plant.next.ready.why':
-    'Un laboratorio firmó que recibió una muestra, y hay un informe de ADN guardado en este animal. Los acuerdos y las regalías aún no están disponibles para registros de animales.',
+    'Un laboratorio firmó que recibió una muestra, y hay un informe de ADN guardado en este animal. Puede enviar material o licenciarlo, con términos que se aplican a la descendencia declarada de este registro.',
   'app.animal.v.app.plant.tree.none': 'Todavía no hay padre ni madre registrados.',
   'app.animal.v.app.plant.anchor.keysNotHere':
     'La clave de este animal no está en este navegador. Recupérela desde su archivo de copia de seguridad: una clave nueva no coincidiría con el registro sellado.',
@@ -238,4 +237,21 @@ export const animal = {
   'app.animal.v.app.lab.send.nothingYet':
     'Todavía no cambió nada. La página de su animal muestra “esperando” hasta que ingresen el código, y puede volver a mostrar este código. Lo pegan en el cuadro del Inicio de VeilCore.',
   'app.animal.v.app.lab.send.takenFromHelp': 'La identificación individual del animal, o dónde se tomó la muestra.',
+  'app.animal.v.app.lic.row.offspringValue': '{pct}%, sobre los descendientes declarados de este animal',
+  'app.animal.v.app.lic.f.offspringHelp':
+    'Se aplica a los descendientes declarados de este registro (registrados con él como padre o madre y confirmados por ambos titulares). La descendencia que nadie registra no se detecta. Déjelo en blanco si no hay.',
+  'app.animal.v.app.lic.f.extraHelpDeal':
+    'Cualquier otra cosa que forme parte del trato, con sus propias palabras. Por ejemplo: como máximo dos camadas o partos, sin reventa de pajuelas, crías inscritas en una asociación de raza concreta.',
+  'app.animal.v.app.lic.detail.thisCultivar': 'este animal',
+  'app.animal.v.app.lic.detail.lineage':
+    'Si más adelante se registra un animal con {name} como padre o madre y ambos titulares lo confirman, el vínculo con este acuerdo aparece en su registro. La descendencia que nadie registra no se detecta.',
+  'app.animal.v.app.lic.detail.derivatives.one': '{count} animal ya registrado desciende de él.',
+  'app.animal.v.app.lic.detail.derivatives.other': '{count} animales ya registrados descienden de él.',
+  'app.animal.v.app.lic.off.intro':
+    'En Midnight queda en el propio registro del licenciatario de esta genética, así que toda descendencia que ambos titulares confirmen la muestra cuando alguien comprueba el linaje. El licenciatario la acepta; solo el criador puede liberarla.',
+  'app.animal.v.app.lic.off.dateFirst':
+    'Primero feche su propio registro de esta genética (el animal, o el semen o los embriones recibidos) y luego indíquelo aquí.',
+  'app.animal.v.app.lic.off.datePlant': 'Fechar un registro',
+  'app.animal.v.app.lic.off.yourRecord': 'Su registro de esta genética',
+  'app.animal.v.app.lic.off.waitName': 'Esperando a que indiquen su registro de esta genética.',
 } satisfies Partial<AppTranslation>;

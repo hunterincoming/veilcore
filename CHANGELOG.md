@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Licenses on animal and strain records (29 Oct 2026)
+
+- An animal or a strain record can now be licensed, with terms in its own words. An animal:
+  breed only; breed and collect semen or embryos; breed, collect and sell; royalty per dose,
+  per offspring born or per unit sold. A strain: use only; use and subculture; use, subculture
+  and make derived strains; royalty per production batch or per unit sold. A royalty on
+  offspring (animals) or on derived strains (strains) works as it does for plants.
+- The terms seal what the record is about (`subject`), so the licensee's page, the license
+  page and the certificate use the same words without holding the record. A plant's terms carry
+  no `subject`: every plant agreement already made keeps its fingerprint.
+- Same transactions as a plant license; no contract change. The record summary now counts
+  agreements for animals and strains too.
+
 ### Ready to switch licenses on at veilcore.org (25 Oct 2026)
 
 - The switch is two lines: `AGREEMENTS_LIVE` (site) and `MAINNET_AGREEMENTS` (sponsor). The
