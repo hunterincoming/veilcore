@@ -1,5 +1,5 @@
 // A document record: one document (a permit, a COA, a contract, a protocol, a transport
-// document), sealed by the fingerprints of its files (docs/document-profile.md, SPEC 11.10).
+// document), sealed by the fingerprints of its files (docs/document-profile.md, SPEC 11.11).
 // Draft until it is marked final: test networks only (DOCUMENT_RECORDS_ENABLED).
 //
 // The file never leaves the device: its SHA-256, name and size are sealed, the way

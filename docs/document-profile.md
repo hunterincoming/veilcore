@@ -4,10 +4,10 @@
 protocol, a transport document) so they can later show that exactly this file existed by a
 date, without the file ever leaving their device.
 
-**Draft, test networks only.** The profile `veilcore/profile/document/v1` (SPEC section 11.10)
+**Draft, test networks only.** The profile `veilcore/profile/document/v1` (SPEC section 11.11)
 may still change before it is marked final. "A document" is offered only where
 `DOCUMENT_RECORDS_ENABLED` is on (`bboard-ui/src/config/network.ts`). To offer it on
-veilcore.org: mark SPEC 11.10 final, then switch that flag on. Deploys refuse a registry whose
+veilcore.org: mark SPEC 11.11 final, then switch that flag on. Deploys refuse a registry whose
 `/health` doesn't list `document-profile-v1`.
 
 ## The problem it answers
@@ -73,18 +73,32 @@ against the same vectors, made without any checker's code.
 
 ## Privacy
 
-- **The file never leaves the device.** Only its SHA-256, name and size are sealed, and like
-  every sealed field they stay in the sealed record until the holder shares them.
-- **Its fingerprint is shared only when the holder chooses** ("The file's fingerprint" in Show
-  someone, off by default). A plain SHA-256 of a well-known file is guessable by anyone who has
-  the file; that is why it is not public by default.
-- **The registry sees what it sees for any record:** a sealed box and its proof code.
+- **The file never leaves the device.** Only its SHA-256, name and size are sealed.
+- **The registry never sees them either:** it holds the record sealed, like any record, and its
+  check page says only "a document", its proof code and its date.
 
-## What a checker sees, and does
+## How someone checks a document
 
-The check page shows what the holder shared and the record's date. With the fingerprint
-shared, it offers **"Compare a file"**: the checker picks the file they were sent, the browser
-hashes it (nothing is uploaded) and says whether it is byte for byte one of the sealed files.
+A fingerprint the holder simply *says* is the file's proves nothing: they could say it after
+the date. So a document is checked against the sealed record itself, never against a value
+typed in later.
+
+The holder sends a **document check link**. Everything needed to check it rides after the `#`,
+which a browser never sends to a server: the record's sealed fields. The checker opens the
+link, picks the file they were sent, and their browser:
+
+1. hashes the file (nothing is uploaded);
+2. recomputes the record's proof code from the sealed fields in the link, with the same rules
+   as any record (SPEC 3.6.1, 4.4);
+3. asks the registry for the record's date, and Midnight for the anchor, by that proof code;
+4. says: this exact file was sealed in that record, dated on that day; or it is not.
+
+The link shows the checker everything in the document record (title, type, issuer, reference,
+date, every file's name and fingerprint, what it is about, notes): the holder is told so before
+making it. It never carries a genetic record's contents; "About" names them only.
+
+Not yet: the same check offline in an evidence bundle (verify.html). The link is the way to
+check a document for now.
 
 ## What it shows, and what it does not
 
@@ -99,12 +113,16 @@ hashes it (nothing is uploaded) and says whether it is byte for byte one of the 
 
 - **No licensing, no DNA report, no lab codes, no family tree:** those are about genetics. A
   document points at the genetics through "About".
-- **A correction** changes the title, type, issuer, reference, date, about and notes. The files
-  can't be changed by a correction: a different file is a different document.
+- **When corrections come** (not yet), they will change the title, type, issuer, reference,
+  date, about and notes, never the files: a different file is a different document.
 
 ## Where it shows
 
-- **Home:** under "Documents", apart from plants, animals and strains.
-- **Log a record:** "A document" beside a plant, an animal and a strain.
-- **A genetic record's page:** documents that name it under "About".
-- **Certificate and evidence bundle:** labelled for a document; `verify.html` checks it offline.
+- **Log a record:** "Seal a document" under the plant, animal and strain choice, on a page of
+  its own (`/documents/new`).
+- **Home:** with the other records, marked "Document" and its type.
+- **Its own page:** what was sealed, its date on Midnight, "Copy the check link" and "Is this
+  the same file?".
+- **The check page:** `/check-document#d=…`.
+- **Not yet:** a certificate, an evidence bundle, corrections, and listing a genetic record's
+  documents on its own page.

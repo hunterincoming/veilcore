@@ -63,7 +63,7 @@ import { allowRecord, loadIntake } from '../../veilcore/intake';
 import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled, visuallyHidden } from './FlowFrame';
 import { useT, useRecordT, rich, type Translator } from '../../i18n/app';
 import { forKind } from '../../i18n/translate';
-import { ANIMAL_RECORDS_ENABLED, STRAIN_RECORDS_ENABLED } from '../../config/network';
+import { ANIMAL_RECORDS_ENABLED, DOCUMENT_RECORDS_ENABLED, STRAIN_RECORDS_ENABLED } from '../../config/network';
 import { AnimalForm, AnimalReviewLines, KindChoice } from './AnimalForm';
 import { StrainForm, StrainReviewLines } from './StrainForm';
 import { emptyStrainDraft, strainSealInputOf } from './strain-draft';
@@ -177,8 +177,20 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
       ...(k === 'strain' && !draft.strain ? { strain: emptyStrainDraft() } : {}),
     });
   };
+  // A document is sealed on a page of its own (components/document/DocumentNew.tsx): it has
+  // files, not parents, photos or a DNA report.
   const choice = offerKinds ? (
-    <KindChoice kind={kind} onKind={setKind} animals={ANIMAL_RECORDS_ENABLED} strains={STRAIN_RECORDS_ENABLED} />
+    <Box>
+      <KindChoice kind={kind} onKind={setKind} animals={ANIMAL_RECORDS_ENABLED} strains={STRAIN_RECORDS_ENABLED} />
+      {DOCUMENT_RECORDS_ENABLED && (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }} data-or-document="">
+          {tr.t('app.doc.orDocument')}{' '}
+          <Link component={RouterLink} to="/documents/new">
+            {tr.t('app.doc.orDocumentAction')}
+          </Link>
+        </Typography>
+      )}
+    </Box>
   ) : undefined;
 
   // A new screen starts at the top, focus on its heading. The first one is the page's own

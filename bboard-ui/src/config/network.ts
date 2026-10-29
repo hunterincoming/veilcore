@@ -152,3 +152,10 @@ export const ANIMAL_RECORDS_ENABLED: boolean = animalRecordsEnabledFor(NETWORK);
  * records were before their v1 was final. Existing strain records show as strains everywhere.
  */
 export const STRAIN_RECORDS_ENABLED: boolean = NETWORK !== 'mainnet';
+
+/**
+ * Document records (veilcore/document-profile.ts, docs/document-profile.md): a permit, a COA, a
+ * contract, sealed by its files' fingerprints. The profile is a draft, so test networks only.
+ * Existing document records show as documents everywhere, whatever this says.
+ */
+export const DOCUMENT_RECORDS_ENABLED: boolean = NETWORK !== 'mainnet';

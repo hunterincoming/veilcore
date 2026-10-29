@@ -25,6 +25,7 @@ import { prove } from './prove';
 import { sealed } from './sealed';
 import { verify } from './verify';
 import { licensing } from './licensing';
+import { document } from './document';
 
 export const appEn = {
   ...common,
@@ -47,6 +48,7 @@ export const appEn = {
   ...sealed,
   ...dating,
   ...licensing,
+  ...document,
 };
 
 export type AppKey = keyof typeof appEn;

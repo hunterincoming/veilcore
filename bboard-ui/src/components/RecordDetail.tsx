@@ -66,6 +66,8 @@ import { CorrectRecord } from './CorrectRecord';
 import { LicenseStateChip } from './licensing/LicenseStateChip';
 import { AgreementTypeChip } from './licensing/AgreementTypeChip';
 import { AppHeader } from './AppHeader';
+import { isDocument } from '../veilcore/document-profile';
+import { DocumentDetail } from './document/DocumentDetail';
 import { linkCard } from './a11y';
 import { Step2PairDna } from './wizard/Step2PairDna';
 import { Step3Certificate } from './wizard/Step3Certificate';
@@ -268,6 +270,9 @@ export const RecordDetail: React.FC = () => {
       </Box>
     );
   }
+
+  // A document has its own page: no DNA report, lab codes, licensing or family tree.
+  if (isDocument(record)) return <DocumentDetail record={record} />;
 
   const back = () => setMode('overview');
   const openResult = (resultId?: string) => {

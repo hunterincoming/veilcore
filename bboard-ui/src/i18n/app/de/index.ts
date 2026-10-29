@@ -26,6 +26,7 @@ import { prove } from './prove';
 import { sealed } from './sealed';
 import { verify } from './verify';
 import { licensing } from './licensing';
+import { document } from './document';
 
 export const appDe: AppTranslation = {
   ...common,
@@ -48,4 +49,5 @@ export const appDe: AppTranslation = {
   ...sealed,
   ...dating,
   ...licensing,
+  ...document,
 };

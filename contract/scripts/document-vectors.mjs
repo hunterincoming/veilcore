@@ -1,5 +1,5 @@
 // Regenerate contract/vectors/document-v1.json: records sealed under the document profile,
-// veilcore/profile/document/v1 (docs/document-profile.md, SPEC 11.10; a draft until marked final).
+// veilcore/profile/document/v1 (docs/document-profile.md, SPEC 11.11; a draft until marked final).
 //   node contract/scripts/document-vectors.mjs
 // Written with node:crypto and the published canonicaliser only, so the checkers it tests
 // (bboard-ui veilcore/document-profile.ts and commitment.ts, the registry's
@@ -248,7 +248,7 @@ writeFileSync(
   JSON.stringify(
     {
       about:
-        'Document records: a permit, a certificate of analysis, a contract, a protocol, a transport document, sealed by the SHA-256 of each file (profile veilcore/profile/document/v1, SPEC 11.10; a draft until marked final). The fingerprint is computed exactly as for any record (SPEC 3.6.1 and 4.4): contentHash = SHA-256 of the canonical serialisation of fields; fingerprint = H("veilcore:v1:keyrecord", keyBinding, contentHash) when fields has keyBinding, else contentHash. The profile adds validation only: a record in `refusals` must be refused before it is sealed or stored. `appRecord` is the VeilCore site\'s own stored shape for the same record (informational). Every document, issuer, reference and file fingerprint is test data.',
+        'Document records: a permit, a certificate of analysis, a contract, a protocol, a transport document, sealed by the SHA-256 of each file (profile veilcore/profile/document/v1, SPEC 11.11; a draft until marked final). The fingerprint is computed exactly as for any record (SPEC 3.6.1 and 4.4): contentHash = SHA-256 of the canonical serialisation of fields; fingerprint = H("veilcore:v1:keyrecord", keyBinding, contentHash) when fields has keyBinding, else contentHash. The profile adds validation only: a record in `refusals` must be refused before it is sealed or stored. `appRecord` is the VeilCore site\'s own stored shape for the same record (informational). Every document, issuer, reference and file fingerprint is test data.',
       source:
         "contract/scripts/document-vectors.mjs (node:crypto and veilcore-records canonicalise); regenerate, never edit by hand",
       profile: PROFILE,
