@@ -84,6 +84,7 @@ Required:
 | `SPONSOR_SEED` | The sponsor wallet's 64-character hex seed. A wallet made only for this. |
 | `SPONSOR_FORBIDDEN_ADDRESSES` | The deployer wallet's addresses (`mn_addr_preprod1…` and `mn_dust_preprod1…`), comma-separated. The service refuses to start if its own wallet is one of them. |
 | `VEILCORE_CONTRACT_ADDRESS` | The demo contract's address on preprod (64 hex characters). |
+| `VEILCORE_CLAIMS_ADDRESS` | Optional. The claims contract's address (64 hex characters). When set, the sponsor also pays for `proveRange`, `proveValue` and `proveAttested` on that contract, and nothing else there (`policy.ts` `CLAIMS_CIRCUITS`). Refused on mainnet until `MAINNET_CLAIMS` is switched (docs/claims-screen.md). `/sponsor/status` says `claims`. |
 | `PROOF_SERVER_URL` | The proof server this service uses for its own fee payments and for `anchorBatch` (see step 4 below). Nothing secret of a visitor's is ever sent to it. |
 | `STATE_DIR` | Where the Railway volume is mounted, e.g. `/data`. Holds sync progress, the day's budget and the anchoring attempt. |
 | `ALLOWED_ORIGINS` | `https://veilcore.org,https://www.veilcore.org` (the default) |

@@ -116,6 +116,11 @@ export const DEFAULT_LIMITS: LimitConfig = {
     acceptObligation: 10,
     rejectObligation: 10,
     discharge: 10,
+    // Claims (policy.ts CLAIMS_CIRCUITS): one number from a sealed certificate, or a lab's
+    // signature. Each range proved is public, so a holder rarely needs many in a day.
+    proveRange: 10,
+    proveValue: 10,
+    proveAttested: 10,
   },
 };
 

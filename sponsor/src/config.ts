@@ -3,7 +3,7 @@
 // sponsor/README.md documents each variable.
 // SPDX-License-Identifier: Apache-2.0
 
-import { allowList, defaultCircuits } from './policy.js';
+import { MAINNET_CLAIMS, allowList, defaultCircuits } from './policy.js';
 import { DEFAULT_LIMITS, type LimitConfig } from './limits.js';
 
 /** One DUST is 10^15 SPECKs. */
@@ -16,6 +16,8 @@ export type Network = 'mainnet' | 'preprod' | 'preview' | 'undeployed';
  * api/src/deploy-guard.ts (MAINNET_VEILCORE_ADDRESS; config.test.ts checks they agree).
  */
 export const MAINNET_CONTRACT = 'a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347';
+/** VeilCore's claims contract on mainnet (api/src/deploy-guard.ts MAINNET_CLAIMS_ADDRESS). */
+export const MAINNET_CLAIMS_CONTRACT = 'ef763eb4ad1846b716dbfa90c00560a9a943ffb4d1fc638b0707df5adefd070d';
 
 type Endpoints = { indexer: string; indexerWS: string; nodeWS: string };
 
@@ -58,6 +60,8 @@ export type Config = {
   readonly seed: string;
   readonly forbiddenAddresses: readonly string[];
   readonly contractAddress: string;
+  /** The claims contract the sponsor pays claims on (VEILCORE_CLAIMS_ADDRESS); absent: none. */
+  readonly claimsAddress?: string;
   readonly indexer: string;
   readonly indexerWS: string;
   readonly nodeWS: string;
@@ -186,6 +190,20 @@ export const loadConfig = (env: Record<string, string | undefined>): Config => {
   else if (mainnet && contractAddress !== MAINNET_CONTRACT)
     problems.push(`On mainnet VEILCORE_CONTRACT_ADDRESS must be VeilCore's contract, ${MAINNET_CONTRACT}.`);
 
+  // Claims (policy.ts CLAIMS_CIRCUITS): paid only on the claims contract named here. On mainnet
+  // only once MAINNET_CLAIMS says so, and only on VeilCore's own claims contract.
+  let claimsAddress: string | undefined;
+  if (env.VEILCORE_CLAIMS_ADDRESS?.trim()) {
+    claimsAddress = hex(env.VEILCORE_CLAIMS_ADDRESS, 32);
+    if (!claimsAddress) problems.push('VEILCORE_CLAIMS_ADDRESS must be the 64-character claims contract address.');
+    else if (mainnet && !MAINNET_CLAIMS)
+      problems.push('Claims are not paid for on mainnet yet (policy.ts MAINNET_CLAIMS): remove VEILCORE_CLAIMS_ADDRESS.');
+    else if (mainnet && claimsAddress !== MAINNET_CLAIMS_CONTRACT)
+      problems.push(`On mainnet VEILCORE_CLAIMS_ADDRESS must be VeilCore's claims contract, ${MAINNET_CLAIMS_CONTRACT}.`);
+    else if (claimsAddress === contractAddress)
+      problems.push('VEILCORE_CLAIMS_ADDRESS is the main contract’s address: it must be the claims contract’s.');
+  }
+
   const proofServer = (env.PROOF_SERVER_URL ?? '').trim();
   if (!/^https?:\/\//.test(proofServer)) {
     problems.push('PROOF_SERVER_URL must be the address of a Midnight proof server this service can reach (http://…).');
@@ -242,6 +260,7 @@ export const loadConfig = (env: Record<string, string | undefined>): Config => {
     seed: seed ?? '',
     forbiddenAddresses,
     contractAddress: contractAddress ?? '',
+    ...(claimsAddress ? { claimsAddress } : {}),
     indexer: env.INDEXER_URL?.trim() || ep.indexer,
     indexerWS: env.INDEXER_WS_URL?.trim() || ep.indexerWS,
     nodeWS: env.NODE_WS_URL?.trim() || ep.nodeWS,
