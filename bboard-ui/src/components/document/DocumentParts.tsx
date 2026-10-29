@@ -162,12 +162,13 @@ export const FileCompare: React.FC<{ files: readonly DocumentFile[]; title?: str
       </Button>
       {result?.kind === 'match' && (
         <Alert severity="success" variant="outlined" sx={{ mt: 1.5 }} data-compare="match">
-          {rich(t('app.doc.compare.match', { name: result.name, sealed: result.sealed }), { b: (c) => <b>{c}</b> })}
+          {/* File names go in as values, never as markup: a name can't add emphasis or tags. */}
+          {rich(t('app.doc.compare.match'), { b: (c) => <b>{c}</b> }, { name: result.name, sealed: result.sealed })}
         </Alert>
       )}
       {result?.kind === 'no-match' && (
         <Alert severity="error" variant="outlined" sx={{ mt: 1.5 }} data-compare="no-match">
-          {rich(t('app.doc.compare.noMatch', { name: result.name }), { b: (c) => <b>{c}</b> })}
+          {rich(t('app.doc.compare.noMatch'), { b: (c) => <b>{c}</b> }, { name: result.name })}
         </Alert>
       )}
       {result?.kind === 'too-large' && (
