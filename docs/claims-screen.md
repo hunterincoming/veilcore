@@ -71,9 +71,10 @@ Status: DESIGN AND BUILD, 29 October 2026. Test networks first. The claims contr
 3. **Done (29 Oct).** The check page for a claim link (`/check-claim`): the claim read per call
    from the indexer on this site's claims contract, compared exactly with the link, the record
    dated by its proof code recomputed from the claim and the key binding.
-4. **To do (Hunter).** On the test site: claims keys in the build (`veilcore-keys fetch`), the
-   test network's claims contract in the site's and sponsor's settings, then a real claim on a
-   laptop and on a phone. How long each took and whether the phone managed it decides what
+4. **To do (Hunter).** On the test site: the test network's claims contract in the sponsor's
+   settings (`VEILCORE_CLAIMS_ADDRESS`; the site takes it from the sponsor when it is built), the
+   claims keys and the k=15 and k=16 parameters on the Mac (`deploy:test` refuses without them),
+   then a real claim on a laptop and on a phone. How long each took and whether the phone managed it decides what
    veilcore.org offers.
 5. **Later.** A laboratory signing a certificate's record (`proveAttested`), so a claim is about
    numbers a lab sealed, not the holder's typing.

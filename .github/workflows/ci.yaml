@@ -109,6 +109,12 @@ jobs:
         run: |
           node --test scripts/committee/committee.test.mjs
 
+      # The deploy scripts' refusals (a test site with claims but no claims keys, a mainnet
+      # build with a leftover indexer). Nothing is deployed.
+      - name: Deploy script checks
+        run: |
+          node --test scripts/deploy-test-site.test.mjs scripts/deploy-mainnet.test.mjs
+
       - name: Maintenance committee launcher
         working-directory: bboard-cli
         run: |
