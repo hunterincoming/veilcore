@@ -64,7 +64,8 @@ import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled, visuallyHid
 import { useT, useRecordT, rich, type Translator } from '../../i18n/app';
 import { forKind } from '../../i18n/translate';
 import { ANIMAL_RECORDS_ENABLED, DOCUMENT_RECORDS_ENABLED, STRAIN_RECORDS_ENABLED } from '../../config/network';
-import { AnimalForm, AnimalReviewLines, KindChoice } from './AnimalForm';
+import { AnimalForm, AnimalReviewLines } from './AnimalForm';
+import { StartChoice } from './StartChoice';
 import { StrainForm, StrainReviewLines } from './StrainForm';
 import { emptyStrainDraft, strainSealInputOf } from './strain-draft';
 import { animalSealInputOf, emptyAnimalDraft, loadLogKind, saveLogKind, type LogKind } from './animal-draft';
@@ -159,10 +160,15 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
     saveDraft(d, nextOf);
   };
 
-  // "A plant" or "An animal" (animal-draft.ts): the draft's own choice, else the last one made
-  // in this browser. A next stage of a plant is a plant; on a build without animal records
-  // (mainnet, config/network.ts) there is no choice.
-  const offerKinds = (ANIMAL_RECORDS_ENABLED || STRAIN_RECORDS_ENABLED) && !nextOf;
+  // What is being sealed (animal-draft.ts): the draft's own choice, else the last one made in
+  // this browser. A next stage of a plant is a plant; a build that offers nothing but plants
+  // (mainnet today, config/network.ts) asks nothing. Otherwise the first screen is the one
+  // question, "What do you want to prove?" (StartChoice.tsx), and the form comes after it; a
+  // draft already under way goes straight back to its form.
+  const offerKinds = (ANIMAL_RECORDS_ENABLED || STRAIN_RECORDS_ENABLED || DOCUMENT_RECORDS_ENABLED) && !nextOf;
+  const [picked, setPicked] = useState<boolean>(
+    () => !offerKinds || (start.kind === 'ready' && start.resumed && draftHasContent(start.draft)),
+  );
   const [lastKind] = useState<LogKind>(loadLogKind);
   const offered = (k: LogKind | undefined): k is LogKind =>
     k === 'plant' || (k === 'animal' && ANIMAL_RECORDS_ENABLED) || (k === 'strain' && STRAIN_RECORDS_ENABLED);
@@ -177,19 +183,13 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
       ...(k === 'strain' && !draft.strain ? { strain: emptyStrainDraft() } : {}),
     });
   };
-  // A document is sealed on a page of its own (components/document/DocumentNew.tsx): it has
-  // files, not parents, photos or a DNA report.
+  // On the form, the way back to the first screen. (A document is sealed on a page of its own,
+  // components/document/DocumentNew.tsx: it has files, not parents, photos or a DNA report.)
   const choice = offerKinds ? (
-    <Box>
-      <KindChoice kind={kind} onKind={setKind} animals={ANIMAL_RECORDS_ENABLED} strains={STRAIN_RECORDS_ENABLED} />
-      {DOCUMENT_RECORDS_ENABLED && (
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }} data-or-document="">
-          {tr.t('app.doc.orDocument')}{' '}
-          <Link component={RouterLink} to="/documents/new">
-            {tr.t('app.doc.orDocumentAction')}
-          </Link>
-        </Typography>
-      )}
+    <Box data-log-kind={kind}>
+      <Button size="small" onClick={() => setPicked(false)} sx={{ px: 0, minHeight: 44 }} data-start-change="">
+        ← {tr.t('app.start.change')}
+      </Button>
     </Box>
   ) : undefined;
 
@@ -201,7 +201,7 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
       return;
     }
     return focusScreenHeading();
-  }, [screen]);
+  }, [screen, picked]);
 
   const step = stepWords(screen, tr);
 
@@ -219,6 +219,18 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
                 setStart({ kind: 'ready', draft: start.draft, resumed: false });
               }}
               onContinue={() => void navigate('/new')}
+            />
+          );
+        if (!picked)
+          return (
+            <StartChoice
+              animals={ANIMAL_RECORDS_ENABLED}
+              strains={STRAIN_RECORDS_ENABLED}
+              documents={DOCUMENT_RECORDS_ENABLED}
+              onPick={(k) => {
+                setKind(k);
+                setPicked(true);
+              }}
             />
           );
         if (kind === 'strain')

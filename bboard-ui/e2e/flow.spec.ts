@@ -17,6 +17,7 @@ import {
   receiveWithBackupFirst,
   saveAndCheckBackup,
   untilSaved,
+  startPlant,
 } from './helpers';
 
 /** Screenshots for people to look at, when E2E_SHOTS names a folder. */
@@ -50,6 +51,7 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   await holder.getByRole('button', { name: /I breed or hold genetics/ }).click();
   await holder.getByText('Start', { exact: true }).click();
   const name = `E2E ${Date.now()}`;
+  await startPlant(holder);
   await holder.getByLabel(/Plant or line name/).fill(name);
   await holder.getByLabel(/Bred by/).fill('E2E');
   await holder.getByRole('button', { name: /Next: check it/ }).click();
@@ -210,6 +212,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   await breeder.getByRole('button', { name: /I breed or hold genetics/ }).click();
   await breeder.getByText('Start', { exact: true }).click();
   const name = `E2E Lab Run ${Date.now()}`;
+  await startPlant(breeder);
   await breeder.getByLabel(/Plant or line name/).fill(name);
   await breeder.getByLabel(/Bred by/).fill('E2E');
   await breeder.getByRole('button', { name: /Next: check it/ }).click();

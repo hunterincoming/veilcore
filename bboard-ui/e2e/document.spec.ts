@@ -60,10 +60,9 @@ test('seal a document from its files, compare a file, and check it from the link
   await standIn(page);
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
-  // 1. From the first screen: a document is one link away, on a page of its own.
+  // 1. From the first screen: a document is one of the choices, on a page of its own.
   await page.goto('/new');
-  await expect(page.locator('[data-or-document]')).toBeVisible();
-  await page.getByRole('link', { name: 'Seal a document' }).click();
+  await page.getByRole('link', { name: /^A document/ }).click();
   await expect(page).toHaveURL(/\/documents\/new$/);
   await expect(page.getByRole('heading', { name: 'Seal a document' })).toBeVisible();
 

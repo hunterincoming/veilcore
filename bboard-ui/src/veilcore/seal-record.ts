@@ -188,7 +188,11 @@ export const sealDocumentRecord = (input: DocumentSealInput, now = Date.now()): 
       about: input.about.map((a) => ({ name: a.name, ...(a.recordId ? { recordId: a.recordId } : {}) })),
     },
     ...(input.fieldSet
-      ? { fieldSchema: input.fieldSet.fieldSchema, fieldSetRoot: input.fieldSet.fieldSetRoot, fieldSet: input.fieldSet.held }
+      ? {
+          fieldSchema: input.fieldSet.fieldSchema,
+          fieldSetRoot: input.fieldSet.fieldSetRoot,
+          fieldSet: input.fieldSet.held,
+        }
       : {}),
   }));
 

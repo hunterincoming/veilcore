@@ -174,12 +174,12 @@ test('log a strain with its designation, deposits and parent; tie a DNA report; 
   const held = await standIn(page);
   const name = `Practice Yeast ${Date.now()}`;
 
-  // 1. The first screen: a plant by default, a strain or line one press away.
+  // 1. The first screen asks one question; a strain is "Microbes and cell lines", never "strain"
+  //    (a grower would read that as a cannabis strain).
   await page.goto('/new');
-  const choice = page.locator('[data-log-kind]');
-  await expect(choice).toHaveAttribute('data-log-kind', 'plant');
-  await page.getByRole('button', { name: 'A strain or line', exact: true }).click();
-  await expect(choice).toHaveAttribute('data-log-kind', 'strain');
+  await expect(page.locator('[data-start-choice]')).not.toContainText('strain');
+  await page.getByRole('button', { name: /Microbes and cell lines/ }).click();
+  await expect(page.locator('[data-log-kind]')).toHaveAttribute('data-log-kind', 'strain');
   await expect(page.getByRole('heading', { name: /Your strain or line/ })).toBeVisible();
   // Not ready until it has a name or designation, the species and who made it.
   await expect(page.getByText(/A name or a designation, the species, and who made or isolated it/)).toBeVisible();
@@ -360,9 +360,9 @@ test('log a strain with its designation, deposits and parent; tie a DNA report; 
   expectNoErrors(vErrors);
   await ctx.close();
 
-  // The choice is remembered: the next new record starts as a strain.
+  // A new record asks again, from the first screen.
   await page.goto('/new');
-  await expect(page.locator('[data-log-kind]')).toHaveAttribute('data-log-kind', 'strain');
+  await expect(page.locator('[data-start-choice]')).toBeVisible();
   expectNoErrors(errors);
 });
 

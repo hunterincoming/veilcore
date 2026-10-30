@@ -13,7 +13,15 @@
 import fs from 'node:fs';
 import { expect, test } from '@playwright/test';
 import type { Browser, Page } from '@playwright/test';
-import { REAL_REGISTRY, backupAfterLogging, expectNoErrors, isolate, receiveWithBackupFirst, watch } from './helpers';
+import {
+  REAL_REGISTRY,
+  backupAfterLogging,
+  expectNoErrors,
+  isolate,
+  receiveWithBackupFirst,
+  watch,
+  startPlant,
+} from './helpers';
 
 test.skip(!REAL_REGISTRY, 'needs a real registry: set E2E_API_BASE and build with it');
 
@@ -38,6 +46,7 @@ const logPlant = async (page: Page, p: Plant): Promise<{ recordId: string; backu
   await page.goto('/records');
   await page.getByRole('button', { name: /I breed or hold genetics/ }).click();
   await page.getByText('Start', { exact: true }).click();
+  await startPlant(page);
   await page.getByLabel(/Plant or line name/).fill(p.name);
   await page.getByLabel(/Bred by/).fill(p.bredBy);
   if (p.made) await page.getByLabel(/When you made it/).fill(p.made);

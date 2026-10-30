@@ -180,12 +180,11 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   const held = await standIn(page);
   const name = `Practice Cow ${Date.now()}`;
 
-  // 1. The first screen: a plant by default, an animal one press away.
+  // 1. The first screen asks one question; an animal is one press away, and the form says so.
   await page.goto('/new');
-  const choice = page.locator('[data-log-kind]');
-  await expect(choice).toHaveAttribute('data-log-kind', 'plant');
-  await page.getByRole('button', { name: 'An animal', exact: true }).click();
-  await expect(choice).toHaveAttribute('data-log-kind', 'animal');
+  await expect(page.getByRole('heading', { name: 'What do you want to prove?' })).toBeVisible();
+  await page.locator('[data-start="animal"]').click();
+  await expect(page.locator('[data-log-kind]')).toHaveAttribute('data-log-kind', 'animal');
   await expect(page.getByRole('heading', { name: /Log your animal/ })).toBeVisible();
   await page.getByLabel('Animal’s name').fill(name);
   await page.getByLabel('Individual ID', { exact: true }).fill('0000000017');
@@ -412,9 +411,9 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   expectNoErrors(vErrors);
   await ctx.close();
 
-  // The choice is remembered: the next new record starts as an animal.
+  // A new record asks again, from the first screen.
   await page.goto('/new');
-  await expect(page.locator('[data-log-kind]')).toHaveAttribute('data-log-kind', 'animal');
+  await expect(page.locator('[data-start-choice]')).toBeVisible();
   expectNoErrors(errors);
 });
 

@@ -22,6 +22,7 @@ import {
   receiveWithBackupFirst,
   expectNoErrors,
   watch,
+  startPlant,
 } from './helpers';
 
 const sha = (b: Buffer) => createHash('sha256').update(b).digest('hex');
@@ -50,6 +51,7 @@ test.describe('round 6 against a real registry: the lab report hash and the name
     await breeder.goto('/records');
     await breeder.getByRole('button', { name: /I breed or hold genetics/ }).click();
     await breeder.getByText('Start', { exact: true }).click();
+    await startPlant(breeder);
     await breeder.getByLabel(/Plant or line name/).fill(NAME);
     await breeder.getByLabel(/Bred by/).fill('round6');
     await breeder.getByRole('button', { name: /Next: check it/ }).click();

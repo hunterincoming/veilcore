@@ -38,7 +38,7 @@ const PAGES: [string, RegExp][] = [
   ['/verify/example', /example/i],
   ['/records', /log your first plant|your plants/i],
   ['/records/import', /date your whole collection/i],
-  ['/new', /plant or line name/i],
+  ['/new', /what do you want to prove\?/i],
   ['/restore', /backup/i],
   ['/backup', /backup/i],
   ['/docs/spec', /specification|spec/i],
@@ -47,7 +47,10 @@ const PAGES: [string, RegExp][] = [
   // No registry here: the page says it couldn't open the license, never spins forever.
   [`/license-invite/LI-${'0'.repeat(32)}#t=${'A'.repeat(22)}`, /couldn.t open this license|expired or doesn.t exist/i],
   // A hand-on invite carries the issuing record too; same honest failure without a registry.
-  [`/license-invite/LI-${'0'.repeat(32)}#t=${'A'.repeat(22)}&h=${'1'.repeat(64)}`, /couldn.t open this license|expired or doesn.t exist/i],
+  [
+    `/license-invite/LI-${'0'.repeat(32)}#t=${'A'.repeat(22)}&h=${'1'.repeat(64)}`,
+    /couldn.t open this license|expired or doesn.t exist/i,
+  ],
   // A lender's claim link cut short says so, and asks for the whole link.
   ['/claim#r=abc', /incomplete|can.t record claims/i],
   // A lender's page: makes its key here, or says this site can't record claims.
