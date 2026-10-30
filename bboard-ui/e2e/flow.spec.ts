@@ -46,9 +46,6 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   const holderErrors = watch(holder);
   await isolate(holder);
   await holder.goto('/records');
-  // A fresh browser is asked who it is; the question can open a moment after the page, so
-  // wait for it rather than checking once (that raced and the dialog then blocked "Start").
-  await holder.getByRole('button', { name: /I breed or hold genetics/ }).click();
   await holder.getByText('Start', { exact: true }).click();
   const name = `E2E ${Date.now()}`;
   await startPlant(holder);
@@ -209,7 +206,6 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   const breederErrors = watch(breeder);
   await isolate(breeder);
   await breeder.goto('/records');
-  await breeder.getByRole('button', { name: /I breed or hold genetics/ }).click();
   await breeder.getByText('Start', { exact: true }).click();
   const name = `E2E Lab Run ${Date.now()}`;
   await startPlant(breeder);
@@ -241,6 +237,7 @@ test('a lab sends results back: signed by the lab, locked for the breeder, opene
   const labErrors = watch(lab);
   await isolate(lab);
   await lab.goto('/records');
+  await lab.getByRole('button', { name: "I'm a lab" }).click();
   await lab.getByRole('button', { name: /I run a lab/ }).click();
   await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');

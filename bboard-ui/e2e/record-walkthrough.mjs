@@ -397,6 +397,10 @@ const run = async () => {
     await sleep(1200);
     if (await role.isVisible()) await tap(b, role);
     await tap(b, start);
+    // The first screen asks what to prove (StartChoice.tsx): a plant.
+    const plantCard = b.locator('[data-start="plant"]');
+    await b.locator('[data-screen-heading]').first().waitFor();
+    if (await plantCard.isVisible()) await tap(b, plantCard);
     const nameBox = b.getByLabel(/Plant or line name/);
     await nameBox.waitFor({ timeout: 30_000 });
     await type(nameBox, PLANT);

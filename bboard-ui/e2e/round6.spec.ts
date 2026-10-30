@@ -49,7 +49,6 @@ test.describe('round 6 against a real registry: the lab report hash and the name
     watchAll(breeder, 'breeder');
     await isolate(breeder);
     await breeder.goto('/records');
-    await breeder.getByRole('button', { name: /I breed or hold genetics/ }).click();
     await breeder.getByText('Start', { exact: true }).click();
     await startPlant(breeder);
     await breeder.getByLabel(/Plant or line name/).fill(NAME);
@@ -76,6 +75,7 @@ test.describe('round 6 against a real registry: the lab report hash and the name
     watchAll(lab, 'lab');
     await isolate(lab);
     await lab.goto('/records');
+    await lab.getByRole('button', { name: "I'm a lab" }).click();
     await lab.getByRole('button', { name: /I run a lab/ }).click();
     await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
     await lab.getByLabel(/^Name/).fill('Round6 Lab');

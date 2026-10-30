@@ -97,9 +97,6 @@ const RolePicker = page<{ ask: boolean }>(layoutParts, 'RolePicker');
 const SaveProblemBar = page(layoutParts, 'SaveProblemBar');
 const AppFooter = page(layoutParts, 'AppFooter');
 
-/** Pages where someone is using the app, as opposed to reading about it. */
-const APP_PAGE = /^\/(new|records(?!\/import)|record\/|licenses|license\/|restore|backup)/;
-
 const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   // The role question belongs to the app: making records, holding them, licensing them.
   // The documents and the implementations list are read by people deciding whether to
@@ -107,7 +104,6 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   // they have read a line, is the wrong first thing. The public pages outside this
   // layout (/, /founders, /verify, /privacy) never ask either.
   const { pathname } = useLocation();
-  const askRole = APP_PAGE.test(pathname);
   // The app pages load and follow the holder's records; the landing page, the public
   // verify page and the documents do not (attack round D). Without a holder key in this
   // browser nothing is requested at all.
@@ -128,9 +124,11 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
         bgcolor: 'background.default',
       }}
     >
-      {/* Asked once, on first use. Without it the app has to guess who is reading,
-        which is how a lab was told to send its own sample to a lab. */}
-      <RolePicker ask={askRole} />
+      {/* Never asked up front (Hunter, 30 Oct): a newcomer is a breeder unless they say
+        otherwise, and the first question is what they want to prove (flow/StartChoice.tsx).
+        A lab says so with "I'm a lab" on its home screen or the footer's "change" link,
+        which open this. */}
+      <RolePicker ask={false} />
       {/* The one main landmark: the header, the page and its notices. The footer stays outside. */}
       <Container component="main" maxWidth="md" sx={{ py: { xs: 3, md: 6 } }}>
         <SaveProblemBar />

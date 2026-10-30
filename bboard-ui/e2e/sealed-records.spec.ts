@@ -44,7 +44,6 @@ type Plant = {
  */
 const logPlant = async (page: Page, p: Plant): Promise<{ recordId: string; backupFile: string }> => {
   await page.goto('/records');
-  await page.getByRole('button', { name: /I breed or hold genetics/ }).click();
   await page.getByText('Start', { exact: true }).click();
   await startPlant(page);
   await page.getByLabel(/Plant or line name/).fill(p.name);
@@ -115,6 +114,7 @@ test('(a) a plant with a marker in every field, sent to a lab: no marker is in t
   // The lab receives it: the sender's details reach its browser, through the sealed offer.
   const l = await newPage(browser);
   await l.page.goto('/records');
+  await l.page.getByRole('button', { name: "I'm a lab" }).click();
   await l.page.getByRole('button', { name: /I run a lab/ }).click();
   await l.page.getByRole('button', { name: /Set up your lab.s signature/ }).click();
   await l.page.getByLabel(/^Name/).fill('E2E Lab');
