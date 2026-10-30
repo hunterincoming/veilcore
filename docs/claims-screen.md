@@ -23,7 +23,7 @@ Status: DESIGN AND BUILD, 29 October 2026. Test networks first. The claims contr
 - **The document and the numbers in one record.** The PDF's fingerprint and the numbers are
   sealed together, so the numbers can't be swapped for a different certificate's later, and
   "which certificate did these come from" has one answer. SPEC 4.5 already puts `fieldSchema`
-  and `fieldSetRoot` in the committed JSON; the document profile (a draft) allows the two.
+  and `fieldSetRoot` in the committed JSON; the document profile allows the two.
 - **Published schemas, not free-form numbers.** A claim names a schema id; the checker
   recomputes the id from the published schema document (SPEC 4.5, check 3), so "slot 0 is total
   THC in % × 1000" can't be reinterpreted. Two to start, both public in this repository and on

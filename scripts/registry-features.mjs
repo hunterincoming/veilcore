@@ -49,6 +49,9 @@ export const REQUIRED_FEATURES = Object.freeze({
   // it is sealed, before its locked copy (PUT /api/records/dating). An older registry answers
   // 404, and records made before a checked backup would wait for a date again.
   "dating-first-v1": "dating a record the moment it is sealed",
+  // Every site seals documents (config/network.ts DOCUMENT_RECORDS_ENABLED, 31 Oct): an older
+  // registry refuses a sealed record under an unknown profile, so every document save fails.
+  "document-profile-v1": "document records",
 });
 
 /**
@@ -66,9 +69,6 @@ export const AGREEMENT_FEATURES = Object.freeze({
   // registry must accept and describe them. Harmless to require later on mainnet: the same
   // registry code ships it.
   "strain-profile-v1": "strain and line records",
-  // Test networks seal documents (config/network.ts DOCUMENT_RECORDS_ENABLED): an older
-  // registry refuses a sealed record under an unknown profile, so every document save fails.
-  "document-profile-v1": "document records",
 });
 
 /** Whether the site's source has agreements switched on for mainnet (config/copy.ts). */

@@ -115,7 +115,7 @@ test('seal a document from its files, compare a file, and check it from the link
       .first()
       .textContent()
   )?.trim();
-  await page.getByRole('button', { name: 'Copy the check link' }).click();
+  await page.getByRole('button', { name: 'Copy link: proves you had this file' }).click();
   await expect(page.getByText('Copied.')).toBeVisible();
   const link = await page.evaluate(() => navigator.clipboard.readText());
   expect(link).toMatch(/\/check-document#d=[A-Za-z0-9_-]+$/);

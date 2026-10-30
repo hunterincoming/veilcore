@@ -1,14 +1,18 @@
-# Document records (29 Oct 2026, draft)
+# Document records (29 Oct 2026; version 1 final 31 Oct)
 
 **In one line:** anyone can seal a document (a permit, a certificate of analysis, a contract, a
 protocol, a transport document) so they can later show that exactly this file existed by a
 date, without the file ever leaving their device.
 
-**Draft, test networks only.** The profile `veilcore/profile/document/v1` (SPEC section 11.11)
-may still change before it is marked final. "A document" is offered only where
-`DOCUMENT_RECORDS_ENABLED` is on (`bboard-ui/src/config/network.ts`). To offer it on
-veilcore.org: mark SPEC 11.11 final, then switch that flag on. Deploys refuse a registry whose
-`/health` doesn't list `document-profile-v1`.
+**Version 1 is final (31 Oct 2026).** The profile `veilcore/profile/document/v1` (SPEC section
+11.11) will not change: a change to its fields is `veilcore/profile/document/v2`, and v1 records
+keep checking exactly as they do. "A document" is offered on every site, veilcore.org included
+(`DOCUMENT_RECORDS_ENABLED` in `bboard-ui/src/config/network.ts`). Every site deploy refuses a
+registry whose `/health` doesn't list `document-profile-v1` (`scripts/registry-features.mjs`).
+
+Before it was marked final, a review found SPEC 11.11 didn't list the two optional field-set
+fields the code accepts (`fieldSchema`, `fieldSetRoot`), and still said documents weren't
+offered claims. Both are fixed in the spec; the code and vectors were already right.
 
 ## The problem it answers
 
@@ -118,11 +122,12 @@ check a document for now.
 
 ## Where it shows
 
-- **Log a record:** "Seal a document" under the plant, animal and strain choice, on a page of
-  its own (`/documents/new`).
+- **Log a record:** "A document" on the first screen ("What do you want to prove?"), on a page
+  of its own (`/documents/new`).
 - **Home:** with the other records, marked "Document" and its type.
-- **Its own page:** what was sealed, its date on Midnight, "Copy the check link" and "Is this
-  the same file?".
+- **Its own page:** what was sealed, its date on Midnight, "Copy link: proves you had this
+  file", "Is this the same file?", and, for a certificate with numbers, "Prove one number"
+  (`docs/claims-screen.md`; on veilcore.org once claims are switched on there).
 - **The check page:** `/check-document#d=…`.
 - **Not yet:** a certificate, an evidence bundle, corrections, and listing a genetic record's
   documents on its own page.

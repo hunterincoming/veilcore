@@ -64,12 +64,12 @@ export const document = {
   'app.doc.k.dated': 'Datum auf Midnight',
   'app.doc.k.proofCode': 'Prüfcode',
   'app.doc.fileSize': '{size} Byte',
-  'app.doc.share.title': 'Jemanden prüfen lassen',
+  'app.doc.share.title': 'Belegen, dass Sie diese Datei hatten',
   'app.doc.share.text':
     'Senden Sie die Datei und diesen Link. Der Browser der anderen Person prüft, ob die Datei Byte für Byte eine der hier versiegelten ist und wann sie datiert wurde: Nichts wird hochgeladen, und die Antwort beruht nicht auf dem Wort von VeilCore.',
   'app.doc.share.warn':
     'Der Link zeigt jedem, der ihn hat, alles in diesem Dokument-Datensatz: Titel, Art, Aussteller, Referenz, Datum, Name und SHA-256 jeder Datei, die Namen der Datensätze, die es betrifft, und Ihre Notizen. Nie die Datei selbst.',
-  'app.doc.share.copy': 'Prüflink kopieren',
+  'app.doc.share.copy': 'Link kopieren: belegt, dass Sie diese Datei hatten',
   'app.doc.share.copied': 'Kopiert.',
   'app.doc.compare.title': 'Ist das dieselbe Datei?',
   'app.doc.compare.text':
@@ -133,13 +133,13 @@ export const document = {
   'app.claim.already': 'Über {label} bereits öffentlich: {list}.',
   'app.claim.leak': 'Jede belegte Grenze ist dauerhaft öffentlich, und zusammen grenzen sie die Zahl ein.',
   'app.claim.computer':
-    'Der Beleg dauert einige Minuten und braucht viel Speicher: Nutzen Sie einen Computer, kein Telefon.',
+    'Der Beleg dauert auf einem Laptop ein bis zwei Minuten und braucht viel Speicher: Nutzen Sie einen Computer. Telefone wurden noch nicht getestet.',
   'app.claim.go': 'Auf Midnight belegen',
   'app.claim.going': 'Wird belegt…',
   'app.claim.done': 'Auf Midnight belegt:',
-  'app.claim.copy': 'Beleg-Link kopieren',
+  'app.claim.copy': 'Den Link kopieren, der das belegt',
   'app.claim.copied': 'Kopiert.',
-  'app.claim.made': 'Ihre Belege',
+  'app.claim.made': 'Was Sie belegt haben',
   'app.claim.line.atMost': '{label} ist höchstens {bound} {unit}',
   'app.claim.line.atLeast': '{label} ist mindestens {bound} {unit}',
   'app.claim.line.value': '{label} ist {value} {unit}',

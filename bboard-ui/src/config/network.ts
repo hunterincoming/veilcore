@@ -155,7 +155,8 @@ export const STRAIN_RECORDS_ENABLED: boolean = NETWORK !== 'mainnet';
 
 /**
  * Document records (veilcore/document-profile.ts, docs/document-profile.md): a permit, a COA, a
- * contract, sealed by its files' fingerprints. The profile is a draft, so test networks only.
- * Existing document records show as documents everywhere, whatever this says.
+ * contract, sealed by its files' fingerprints. On in every build, mainnet included (31 Oct 2026):
+ * veilcore/profile/document/v1 is final (SPEC 11.11). Every site deploy refuses a registry whose
+ * /health doesn't list "document-profile-v1" (scripts/registry-features.mjs).
  */
-export const DOCUMENT_RECORDS_ENABLED: boolean = NETWORK !== 'mainnet';
+export const DOCUMENT_RECORDS_ENABLED = true;
