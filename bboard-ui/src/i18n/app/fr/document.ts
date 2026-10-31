@@ -154,4 +154,14 @@ export const document = {
   'app.claim.check.what':
     'Ce que cela montre : le chiffre scellé dans cet enregistrement respecte le seuil (ou est cette valeur). Ce que cela ne montre pas : qu’un laboratoire l’a mesuré, ni que le certificat est authentique ; le détenteur a saisi les chiffres. Chaque seuil prouvé sur un chiffre est public, et ensemble ils le resserrent.',
   'app.claim.check.schema': 'Selon le formulaire publié « {schema} ».',
+  // EvidenceBundle.tsx: what differs for a document record.
+  'app.doc.bundle.keyIs':
+    '(La clé de l’enregistrement est l’identifiant public de la clé créée pour ce document lors du scellement. Sa partie secrète reste dans votre sauvegarde et n’entre jamais dans le dossier.)',
+  'app.doc.bundle.includeFiles':
+    'Inclure une copie du document. Sans elle, le dossier ne contient que le code de chaque fichier, et la personne qui vérifie aura besoin du fichier séparément.',
+  'app.doc.bundle.chooseFiles': 'Choisir le ou les fichiers du document',
+  'app.doc.bundle.checkedAgainst':
+    'Chacun est comparé aux fichiers scellés dans cet enregistrement avant d’être inclus.',
+  'app.doc.bundle.filesAria': 'Fichiers du document',
+  'app.doc.bundle.chooseOrUntick': 'Choisissez le fichier du document, ou décochez la case.',
 } satisfies Partial<AppTranslation>;

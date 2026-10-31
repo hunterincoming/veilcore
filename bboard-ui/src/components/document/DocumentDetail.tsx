@@ -1,6 +1,7 @@
 // A document record's own page (docs/document-profile.md): what was sealed, its date, the
 // check link to send with the file, and "is this the same file?". No licensing, DNA report,
 // lab codes or family tree: those are about genetics, and a document only points at them.
+// The evidence bundle is here too: the offline package a lawyer or examiner checks without us.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useState } from 'react';
@@ -18,6 +19,8 @@ import { documentCheckLink } from '../../veilcore/document-link';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { AnchorOnChainPanel } from '../chain/AnchorOnChainPanel';
 import { AppHeader } from '../AppHeader';
+import { EvidenceBundle } from '../EvidenceBundle';
+import { useRecordKeys } from '../../veilcore/record-keys';
 import { useT } from '../../i18n/app';
 import { DocumentDate, DocumentFacts, Fact, FileCompare } from './DocumentParts';
 import { schemaWords, slotWords } from './NumbersFields';
@@ -55,6 +58,7 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   const { t } = tr;
   const [copied, setCopied] = useState(false);
   const [linkError, setLinkError] = useState<string>();
+  const keys = useRecordKeys()[record.id];
   const d = record.document;
   const files: readonly DocumentFile[] = d?.files ?? [];
 
@@ -145,6 +149,12 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
             <AnchorOnChainPanel recordId={record.id} />
           </Paper>
         )}
+        <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-document-bundle="">
+          <Typography variant="body2" sx={{ mb: 1.5 }}>
+            {t('app.plant.bundle.intro')}
+          </Typography>
+          <EvidenceBundle record={record} keys={keys} />
+        </Paper>
       </Stack>
     </Box>
   );

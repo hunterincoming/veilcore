@@ -137,13 +137,31 @@ export const declarationText = async (
     '',
     'I, [full name], declare:',
     '',
-    `1. Who I am. I am [of legal age]. I live or work in [city, country]. I [bred / hold / keep the breeding records for] the ${subject === 'animal' ? 'animal' : subject === 'strain' ? 'strain or line' : 'plant material'} this record describes. [My role, for example: breeder; I run ___; employee of ___ working as ___.] I know the facts below myself [or: I know them because ___].`,
+    subject === 'document'
+      ? `1. Who I am. I am [of legal age]. I live or work in [city, country]. I [hold / keep the records of ___, which holds] the document this record describes. [My role, for example: secretary of ___; I run ___; employee of ___ working as ___.] I know the facts below myself [or: I know them because ___].`
+      : `1. Who I am. I am [of legal age]. I live or work in [city, country]. I [bred / hold / keep the breeding records for] the ${subject === 'animal' ? 'animal' : subject === 'strain' ? 'strain or line' : 'plant material'} this record describes. [My role, for example: breeder; I run ___; employee of ___ working as ___.] I know the facts below myself [or: I know them because ___].`,
     '',
     `2. The record. On or about [date], I [or: ___, acting for me,] made an electronic record of the ${subject} "${name}" on the VeilCore website at [web address], using [device and browser]. The website sealed the record on that device. Its record ID is ${t(ev.record.id)}. Its proof code is:`,
     `   ${t(ev.record.fingerprint)}`,
     `   The sealing time inside the record, by that device's clock, is ${utcWords(ev.record.sealedAtDeviceClock) ?? t(ev.record.sealedAtDeviceClock)}. The record's contents, exactly as sealed, are in record/sealed-fields.json in the bundle and are shown in EXAMINER-SUMMARY.html. [I typed them myself / ___ typed them from ___.] [They were true to the best of my knowledge when they were typed.]`,
-    '',
   );
+  // A document record seals its files by SHA-256: the declarant says which files they are.
+  const sealedFiles = subject === 'document' && Array.isArray(fields.files) ? fields.files : [];
+  if (sealedFiles.length) {
+    add(
+      `   The record seals ${sealedFiles.length === 1 ? 'this file' : 'these files'} by SHA-256, name and size (the file${sealedFiles.length === 1 ? ' itself is' : 's themselves are'} not in the record):`,
+    );
+    for (const f of sealedFiles) {
+      const o = typeof f === 'object' && f !== null ? (f as Record<string, unknown>) : {};
+      add(
+        `   - ${t(typeof o.name === 'string' ? o.name : '[no name]')}, ${typeof o.size === 'number' ? `${o.size} bytes` : '[size]'}, SHA-256 ${t(typeof o.sha256 === 'string' ? o.sha256 : '[missing]')}`,
+      );
+    }
+    add(
+      '   [The file ___ is the document I sealed: I received it from ___ on ___ / I made it on ___. It has the SHA-256 above; I checked on [date] using [tool].]',
+    );
+  }
+  add('');
   if (ev.batch) {
     add(
       `3. How the record was dated. VeilCore's registry put the record's proof code in batch ${t(ev.batch.batchId)}. The batch root, one code that stands for every record in the batch, is:`,
@@ -176,6 +194,10 @@ export const declarationText = async (
   if (ev.labReport?.fileIncluded)
     add(
       `   I chose to include the lab report file ${t(ev.labReport.fileIncluded)}. [It is the file I received from [lab] on [date] by [email / ___].]`,
+    );
+  if (ev.documentFiles?.length)
+    add(
+      `   I chose to include a copy of ${ev.documentFiles.length === 1 ? 'the sealed file' : 'the sealed files'}: ${ev.documentFiles.map((d) => t(d.path)).join(', ')}. The website checked that each is byte for byte a file the record seals before putting it in.`,
     );
   if (ev.key) add("   I chose to include the record's key (key/key-binding.json).");
   add(

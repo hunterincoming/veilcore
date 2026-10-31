@@ -155,4 +155,14 @@ export const document = {
   'app.claim.check.what':
     'Was das zeigt: Die in diesem Datensatz versiegelte Zahl hält die Grenze ein (oder ist dieser Wert). Was nicht: dass ein Labor sie gemessen hat oder dass das Zertifikat echt ist; der Inhaber hat die Zahlen eingegeben. Jede belegte Grenze ist öffentlich, und zusammen grenzen sie die Zahl ein.',
   'app.claim.check.schema': 'Unter dem veröffentlichten Formular „{schema}“.',
+  // EvidenceBundle.tsx: what differs for a document record.
+  'app.doc.bundle.keyIs':
+    '(Der Schlüssel des Datensatzes ist die öffentliche Kennung des Schlüssels, der beim Versiegeln für dieses Dokument erstellt wurde. Sein geheimer Teil bleibt in Ihrer Sicherung und kommt nie in das Paket.)',
+  'app.doc.bundle.includeFiles':
+    'Eine Kopie des Dokuments beilegen. Ohne sie enthält das Paket nur den Code jeder Datei, und wer es prüft, braucht die Datei gesondert von Ihnen.',
+  'app.doc.bundle.chooseFiles': 'Datei(en) des Dokuments auswählen',
+  'app.doc.bundle.checkedAgainst':
+    'Jede wird vor dem Beilegen mit den in diesem Datensatz versiegelten Dateien abgeglichen.',
+  'app.doc.bundle.filesAria': 'Dateien des Dokuments',
+  'app.doc.bundle.chooseOrUntick': 'Wählen Sie die Datei des Dokuments aus oder entfernen Sie das Häkchen.',
 } satisfies Partial<AppTranslation>;
