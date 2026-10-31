@@ -105,6 +105,33 @@ On veilcore.org, with made-up details you are fine having on mainnet:
 3. Make a prove link and open it on your phone: it checks.
 4. Add a DNA file and date the pairing.
 
-Send me `/sponsor/status` with the token (from your Mac:
-`curl -s -H "authorization: Bearer <token>" https://<sponsor>/sponsor/status`). The fees it
-shows set the real caps.
+Send me `/sponsor/status` with the token. From your Mac, without the token showing on screen
+or in the shell's history: copy `SPONSOR_STATUS_TOKEN` from Railway, run `read -s TOKEN`,
+paste, Enter, then
+`curl -s -H "x-operator-token: $TOKEN" https://<sponsor>/sponsor/status; unset TOKEN; pbcopy < /dev/null`.
+The fees it shows set the real caps.
+
+## 7. The alarm (10 minutes, once)
+
+On 31 Oct 2026 the stamping job failed for hours, "could not balance dust": the service was
+still running a wallet with no DUST. The public status said `"alert":true`, but nothing was
+watching it, and it was found only because a record stayed undated. So the sponsor has an
+address for an outside monitor: `GET /sponsor/alerts` answers **200** when nothing needs you
+and **503** with codes when something does:
+
+- `anchoring-failing`: three stamping runs in a row failed.
+- `sync-stalled`: the wallet sync has made no progress for 30 minutes.
+- `not-synced`: still not synced three hours after starting.
+- `fuel-low`: under `ALERT_DUST_LOW_DUST` DUST left (default 50, ten stamps at the default cap).
+  The wallet holds no NIGHT of its own, so its DUST doesn't refill: top it up before this fires.
+
+Codes only: no balances, no error text, no token.
+
+1. Make a free account at uptimerobot.com (free plan: checks every 5 minutes, any use).
+2. **Add New Monitor → HTTP(s)**. URL: `https://veilcore-sponsor-mainnet-production.up.railway.app/sponsor/alerts`.
+   Name: `VeilCore stamping (mainnet)`. Interval: 5 minutes.
+3. Alert contacts: your email, and the UptimeRobot app on your phone for a push.
+4. Save. It shows **Up**. If it shows **Down**, open the address in a browser: the codes say why.
+
+Optional: a second monitor on the test sponsor's `/sponsor/alerts`, so test-site problems
+show up too.

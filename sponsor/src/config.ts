@@ -74,6 +74,8 @@ export type Config = {
   readonly maxTtlMs: number;
   readonly maxFeeSpecks: bigint;
   readonly dailyBudgetSpecks: bigint;
+  /** Below this much DUST, GET /sponsor/alerts reports fuel-low (ALERT_DUST_LOW_DUST, default 50). */
+  readonly alertDustLowSpecks: bigint;
   readonly powDifficulty: number;
   readonly queueDepth: number;
   readonly limits: LimitConfig;
@@ -277,6 +279,8 @@ export const loadConfig = (env: Record<string, string | undefined>): Config => {
     maxTtlMs: minTtl(int(env.MAX_TTL_MINUTES, 65, 1, 120, 'MAX_TTL_MINUTES', problems), problems) * 60_000,
     maxFeeSpecks: dust(env.MAX_FEE_DUST, 5n * SPECKS_PER_DUST, 'MAX_FEE_DUST', problems),
     dailyBudgetSpecks: dust(env.DAILY_BUDGET_DUST, 50n * SPECKS_PER_DUST, 'DAILY_BUDGET_DUST', problems),
+    // Ten stamps at the default fee cap: room to refill before the stamping job stops.
+    alertDustLowSpecks: dust(env.ALERT_DUST_LOW_DUST, 50n * SPECKS_PER_DUST, 'ALERT_DUST_LOW_DUST', problems),
     powDifficulty: int(env.POW_DIFFICULTY, 18, 0, 28, 'POW_DIFFICULTY', problems),
     queueDepth: int(env.QUEUE_DEPTH, 20, 1, 500, 'QUEUE_DEPTH', problems),
     limits: {
