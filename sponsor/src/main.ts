@@ -78,6 +78,7 @@ const main = async (): Promise<void> => {
       policy: {
         contractAddress: cfg.contractAddress,
         allowedCircuits: cfg.allowedCircuits,
+        ...(cfg.claimsAddress ? { claimsAddress: cfg.claimsAddress } : {}),
         maxBytes: cfg.maxTxBytes,
         maxTtlMs: cfg.maxTtlMs,
       },
@@ -179,6 +180,9 @@ const main = async (): Promise<void> => {
         // Whether this sponsor pays for license and other agreement calls (policy.ts): what
         // deploy:mainnet checks before it puts a site with licenses switched on live.
         agreements: paysForAgreements(cfg.allowedCircuits),
+        // Whether this sponsor pays for claims (policy.ts CLAIMS_CIRCUITS), and on which contract.
+        claims: cfg.claimsAddress !== undefined,
+        ...(cfg.claimsAddress ? { claimsAddress: cfg.claimsAddress } : {}),
         // True while the wallet sync has applied nothing for 30 minutes (wallet.ts checkStall).
         syncStalled: wallet.syncStalled(),
         sealer: sealer ? { enabled: true, ...sealer.publicStatus() } : { enabled: false },

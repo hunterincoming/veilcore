@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   AGREEMENT_CIRCUITS,
+  CLAIMS_CIRCUITS,
+  MAINNET_CLAIMS,
   allowList,
   defaultCircuits,
   inspect,
@@ -95,5 +97,36 @@ describe('what the status says about agreements', () => {
   });
   it('on mainnet, follows MAINNET_AGREEMENTS', () => {
     expect(paysForAgreements(new Set(defaultCircuits(true)))).toBe(MAINNET_AGREEMENTS);
+  });
+});
+
+describe('sponsor policy: claims (docs/claims-screen.md)', () => {
+  const withClaims: PolicyConfig = { ...config, claimsAddress: OTHER };
+  it.each(CLAIMS_CIRCUITS)('pays for %s on the claims contract it was given', async (circuit) => {
+    expect(code(await sealedCall(circuit, ttlIn(600_000), OTHER), withClaims)).toBe('ok');
+  });
+  it('pays for no claim without a claims contract', async () => {
+    expect(code(await sealedCall('proveRange', ttlIn(600_000), OTHER))).toBe('wrong-contract');
+  });
+  it('never pays for the heavy claims, or a main-contract circuit, on the claims contract', async () => {
+    for (const c of ['proveDistinct', 'proveUnchanged', 'anchor', 'anchorBatch'])
+      expect(code(await sealedCall(c, ttlIn(600_000), OTHER), withClaims), c).toBe('circuit-not-allowed');
+  });
+  it('never pays for a claim circuit on the main contract', async () => {
+    expect(code(await sealedCall('proveRange'), withClaims)).toBe('circuit-not-allowed');
+  });
+  it('is off on mainnet until MAINNET_CLAIMS is switched, and then only on VeilCore’s claims contract', async () => {
+    expect(MAINNET_CLAIMS).toBe(false);
+    const { loadConfig } = await import('./config.js');
+    const base = {
+      SPONSOR_SEED: '11'.repeat(32),
+      SPONSOR_FORBIDDEN_ADDRESSES: 'mn_addr_preprod1deployer',
+      VEILCORE_CONTRACT_ADDRESS: VC,
+      PROOF_SERVER_URL: 'http://proof-server.railway.internal:6300',
+      BLOCKFROST_PROJECT_ID: 'preprodTestProjectId123',
+    };
+    expect(loadConfig({ ...base, VEILCORE_CLAIMS_ADDRESS: OTHER }).claimsAddress).toBe(OTHER);
+    expect(() => loadConfig({ ...base, VEILCORE_CLAIMS_ADDRESS: VC })).toThrow(/main contract/);
+    expect(() => loadConfig({ ...base, VEILCORE_CLAIMS_ADDRESS: 'abc' })).toThrow(/64-character/);
   });
 });

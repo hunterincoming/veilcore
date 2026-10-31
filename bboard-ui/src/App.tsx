@@ -66,6 +66,9 @@ const page = <P extends object = object>(
 const AppHome = page(() => import('./components/flow/AppHome'), 'AppHome', 'wait');
 const RecordDetail = page(() => import('./components/RecordDetail'), 'RecordDetail', 'wait');
 const LogFlow = page(() => import('./components/flow/LogFlow'), 'LogFlow', 'after');
+const DocumentNew = page(() => import('./components/document/DocumentNew'), 'DocumentNew', 'after');
+const DocumentCheck = page(() => import('./components/document/DocumentCheck'), 'DocumentCheck', 'wait');
+const ClaimCheck = page(() => import('./components/document/ClaimCheck'), 'ClaimCheck');
 const BulkImportPage = page(() => import('./components/lab-import/BulkImportPage'), 'BulkImportPage');
 const RestorePage = page(() => import('./components/flow/RestorePage'), 'RestorePage');
 const BackupPage = page(() => import('./components/flow/BackupPage'), 'BackupPage');
@@ -94,9 +97,6 @@ const RolePicker = page<{ ask: boolean }>(layoutParts, 'RolePicker');
 const SaveProblemBar = page(layoutParts, 'SaveProblemBar');
 const AppFooter = page(layoutParts, 'AppFooter');
 
-/** Pages where someone is using the app, as opposed to reading about it. */
-const APP_PAGE = /^\/(new|records(?!\/import)|record\/|licenses|license\/|restore|backup)/;
-
 const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   // The role question belongs to the app: making records, holding them, licensing them.
   // The documents and the implementations list are read by people deciding whether to
@@ -104,7 +104,6 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   // they have read a line, is the wrong first thing. The public pages outside this
   // layout (/, /founders, /verify, /privacy) never ask either.
   const { pathname } = useLocation();
-  const askRole = APP_PAGE.test(pathname);
   // The app pages load and follow the holder's records; the landing page, the public
   // verify page and the documents do not (attack round D). Without a holder key in this
   // browser nothing is requested at all.
@@ -125,9 +124,11 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
         bgcolor: 'background.default',
       }}
     >
-      {/* Asked once, on first use. Without it the app has to guess who is reading,
-        which is how a lab was told to send its own sample to a lab. */}
-      <RolePicker ask={askRole} />
+      {/* Never asked up front (Hunter, 30 Oct): a newcomer is a breeder unless they say
+        otherwise, and the first question is what they want to prove (flow/StartChoice.tsx).
+        A lab says so with "I'm a lab" on its home screen or the footer's "change" link,
+        which open this. */}
+      <RolePicker ask={false} />
       {/* The one main landmark: the header, the page and its notices. The footer stays outside. */}
       <Container component="main" maxWidth="md" sx={{ py: { xs: 3, md: 6 } }}>
         <SaveProblemBar />
@@ -298,6 +299,23 @@ const routes = (
     <Route path="/docs/:doc" element={withLayout(<DocPage />)} />
     <Route path="/implementations" element={withLayout(<Implementations />)} />
     <Route path="/new" element={withLayout(<LogFlow />)} />
+    <Route path="/documents/new" element={withLayout(<DocumentNew />)} />
+    <Route
+      path="/check-claim"
+      element={
+        <Light>
+          <ClaimCheck />
+        </Light>
+      }
+    />
+    <Route
+      path="/check-document"
+      element={
+        <Light>
+          <DocumentCheck />
+        </Light>
+      }
+    />
     <Route path="/intake" element={withLayout(<IntakePage />)} />
     <Route path="/intake/send" element={withLayout(<IntakeSendPage />)} />
     <Route path="/prove/:id" element={withLayout(<ProvePage />)} />

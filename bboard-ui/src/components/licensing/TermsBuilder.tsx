@@ -1,6 +1,6 @@
 // TermsBuilder (/record/:id/license) — standalone terms builder. On save, the agreement
-// is hashed locally and attached to the cultivar record + its report fingerprint, then created
-// as a Draft the breeder can issue.
+// is hashed locally and attached to the record (a plant, an animal or a strain) + its report
+// fingerprint, then created as a Draft the breeder can issue.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useState } from 'react';
@@ -11,6 +11,7 @@ import { getRecord } from '../../veilcore/records';
 import { isAnimal } from '../../veilcore/animal-profile';
 import { isStrain } from '../../veilcore/strain-profile';
 import { useT } from '../../i18n/app';
+import { forKind, type RecordKind } from '../../i18n/translate';
 import {
   sealAgreement,
   createLicense,
@@ -47,10 +48,15 @@ export const TermsBuilder: React.FC = () => {
   const typeParam = params.get('type');
   const type: AgreementType = prior?.type ?? (isType(typeParam) ? typeParam : 'license');
 
-  const [t, setT] = useState<LicenseTerms>(prior?.terms ?? emptyTermsFor(type));
+  // What the record is about decides the words and the options (licenses.ts RIGHTS_FOR): a
+  // plant is cultivated and propagated, an animal bred and its semen or embryos collected, a
+  // strain used, subcultured and the source of derived strains.
+  const kind: RecordKind = isAnimal(record) ? 'animal' : isStrain(record) ? 'strain' : 'plant';
+  const [t, setT] = useState<LicenseTerms>(prior?.terms ?? emptyTermsFor(type, kind));
   const [busy, setBusy] = useState(false);
   const set: SetTerm = (k, v) => setT((p) => ({ ...p, [k]: v }));
-  const tr = useT();
+  const tr = forKind(useT(), kind);
+  const blocked = useAgreementsWaitForBackup();
 
   if (!record) {
     return (
@@ -64,24 +70,7 @@ export const TermsBuilder: React.FC = () => {
     );
   }
 
-  // Agreements and royalties are for plant records only, for now (docs/animal-profile.md):
-  // their terms speak of propagation and offspring declared from a variety.
-  if (isAnimal(record) || isStrain(record)) {
-    return (
-      <Box data-no-licensing="">
-        <AppHeader />
-        <Typography sx={{ mb: 1 }}>
-          {tr.t(isStrain(record) ? 'app.strain.noLicensing' : 'app.animal.noLicensing')}
-        </Typography>
-        <Button component={RouterLink} to={`/record/${record.id}`} startIcon={<ArrowBackIcon />}>
-          {tr.t('app.plant.backToPlant')}
-        </Button>
-      </Box>
-    );
-  }
-
   // A commercial license needs a royalty amount; the others just need a counterparty.
-  const blocked = useAgreementsWaitForBackup();
   const canSave =
     type === 'license' ? Boolean(t.licensee.trim() && t.royaltyAmount.trim()) : Boolean(t.licensee.trim());
 

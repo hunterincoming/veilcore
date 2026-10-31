@@ -68,11 +68,20 @@ deposits and generation.
 - The certificate, corrections, the evidence bundle (its verify.html and examiner summary label
   a strain's fields), the envelope export.
 
+## Licensing (from 29 Oct 2026)
+
+A strain license turns on use, subculture and derived strains, not on cuttings or seed, so it
+has its own terms: use only (no subculturing or passing it on); use and subculture for their
+own production; use, subculture and make derived strains; or a full transfer. A royalty is
+charged per production batch or per unit sold, and a royalty on derived strains rides on
+strains later logged with it as a parent, both holders confirming. No distribution to third
+parties, credit in publications and what happens to remaining stock go in the additional
+terms. These are the questions a culture collection's material transfer agreement answers;
+VeilCore records what the parties agreed and when, and is not one. The terms seal
+`subject: "strain"`, so both sides' pages use these words.
+
 ## What doesn't, yet, and why
 
-- **Licensing and royalties.** A strain license turns on use, subculture and derived strains,
-  not on cuttings or seed. The plant terms would say the wrong thing, so strains get none until
-  they have terms of their own. The record page and the license page say so.
 - **Next stage.** A derived strain is logged as a new strain with its parent linked.
 - **Claims (SPEC 4.5).** Same reason as animals: the questions asked of a strain's DNA are
   identity and relatedness, answered by a lab's report, not a count of differing values.

@@ -19,6 +19,14 @@ hosted.
    command it prints (linked to `veilcore-sponsor`).
 3. `VEILCORE_TEST_REGISTRY=https://<preprod registry> VEILCORE_TEST_SPONSOR=https://<sponsor> npm run deploy:test`
 
+Claims (`docs/claims-screen.md`) follow the sponsor: if its `/sponsor/status` names a
+`claimsAddress` (Railway variable `VEILCORE_CLAIMS_ADDRESS`), the site is built to prove on that
+contract, and `deploy:test` refuses unless the claims proving keys
+(`npm exec --package=@veilcore/contracts@0.3.0 -- veilcore-keys fetch --to contract/src/managed`)
+and the k=15 and k=16 parameters (`node scripts/fetch-params.mjs` in `bboard-ui`) are on this
+computer. No claims address at the sponsor: the site offers no claims. There is no site
+setting to forget.
+
 Deploy the registry before the site: the site's sample custody fields (the sample details a lab sees, and what it notes on arrival) use the registry's `/transfers/:id/custody` route.
 
 `deploy:test` refuses (`NOT DEPLOYED. …`) unless the registry and the sponsor both say

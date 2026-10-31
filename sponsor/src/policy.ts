@@ -46,6 +46,21 @@ export const AGREEMENT_CIRCUITS = [
  */
 export const MAINNET_AGREEMENTS = false;
 
+/**
+ * The claims contract's calls a visitor's browser makes (docs/claims-screen.md): proving one
+ * number from a sealed certificate is at most or at least a bound, or is a stated value, and a
+ * laboratory's signature on a record. The heavy two (proveDistinct, proveUnchanged) are not
+ * paid for: nothing on the site makes them yet.
+ */
+export const CLAIMS_CIRCUITS = ['proveRange', 'proveValue', 'proveAttested'] as const;
+
+/**
+ * THE mainnet switch for claims, on the sponsor's side, like MAINNET_AGREEMENTS: false until
+ * proving them in a browser has been measured on a laptop and a phone (docs/claims-screen.md).
+ * Test networks pay for them once VEILCORE_CLAIMS_ADDRESS is set.
+ */
+export const MAINNET_CLAIMS = false;
+
 /** What the public endpoint pays for, unless SPONSOR_CIRCUITS (test networks only) says otherwise. */
 export const defaultCircuits = (mainnet: boolean): readonly string[] =>
   mainnet && !MAINNET_AGREEMENTS ? PHASE1_PUBLIC_CIRCUITS : [...PHASE1_PUBLIC_CIRCUITS, ...AGREEMENT_CIRCUITS];
@@ -65,6 +80,11 @@ export type PolicyConfig = {
   readonly contractAddress: string;
   /** Circuits the public endpoint pays for. */
   readonly allowedCircuits: ReadonlySet<string>;
+  /**
+   * The VeilCore claims contract on this network, hex, no 0x, when the sponsor pays for claims.
+   * Its calls are paid only for CLAIMS_CIRCUITS. Absent: no claim is paid for.
+   */
+  readonly claimsAddress?: string;
   /** Largest transaction accepted, in bytes. */
   readonly maxBytes: number;
   /** Furthest ahead a transaction's expiry may be, in ms. */
@@ -185,11 +205,16 @@ const check = (tx: SealedTx, size: number, config: PolicyConfig, now: Date): Ver
   if (action instanceof MaintenanceUpdate) return refuse('maintenance', 'Contract maintenance is never paid for.');
   if (!(action instanceof ContractCall)) return refuse('not-a-call', 'Only contract calls are paid for.');
 
-  if (norm(action.address) !== norm(config.contractAddress)) {
+  const circuit = entryName(action.entryPoint);
+  const onClaims = config.claimsAddress !== undefined && norm(action.address) === norm(config.claimsAddress);
+  if (!onClaims && norm(action.address) !== norm(config.contractAddress)) {
     return refuse('wrong-contract', 'That call is not on the VeilCore contract.');
   }
-  const circuit = entryName(action.entryPoint);
-  if (NEVER_PUBLIC.has(circuit) || !config.allowedCircuits.has(circuit)) {
+  // Each contract's own list: a circuit name allowed on one is never paid for on the other.
+  const allowed = onClaims
+    ? (CLAIMS_CIRCUITS as readonly string[]).includes(circuit)
+    : !NEVER_PUBLIC.has(circuit) && config.allowedCircuits.has(circuit);
+  if (!allowed) {
     return refuse('circuit-not-allowed', `The sponsor does not pay for "${circuit.slice(0, 40)}".`);
   }
 

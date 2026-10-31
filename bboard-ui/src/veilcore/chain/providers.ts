@@ -30,7 +30,7 @@ export type Hooks = {
   readonly onSent?: (txId: string) => void;
 };
 
-export const makeProviders = (cacheName: string, hooks: Hooks, deps = browserCallDeps()) => {
+export const makeProviders = <PS = VeilcorePrivateState>(cacheName: string, hooks: Hooks, deps = browserCallDeps()) => {
   // Throwaway keys for this call only.
   const ephemeral = ZswapSecretKeys.fromSeed(crypto.getRandomValues(new Uint8Array(32)));
   let submitted: string | undefined;
@@ -54,7 +54,7 @@ export const makeProviders = (cacheName: string, hooks: Hooks, deps = browserCal
   };
 
   return {
-    privateStateProvider: inMemoryPrivateStateProvider<typeof PRIVATE_STATE_ID, VeilcorePrivateState>(),
+    privateStateProvider: inMemoryPrivateStateProvider<typeof PRIVATE_STATE_ID, PS>(),
     publicDataProvider:
       deps.publicData ?? indexerPublicDataProvider(INDEXER_HTTP ?? '', INDEXER_WS ?? '', globalThis.WebSocket as never),
     zkConfigProvider: new FetchZkConfigProvider<string>(deps.origin, deps.fetch),

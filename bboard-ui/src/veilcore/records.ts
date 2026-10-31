@@ -26,6 +26,9 @@ import { withPairSalt } from './dna-link';
 import { newNameSalt } from './verify-link';
 import { isAnimal, type AnimalDetails, type ParentRole } from './animal-profile';
 import { isStrain, STRAIN_GROUPS, type StrainDetails } from './strain-profile';
+import type { DocumentDetails } from './document-profile';
+import type { HeldFieldSet } from './field-set';
+import type { MadeClaim } from './claim-link';
 import {
   allowReplace,
   checkRecordIntegrity,
@@ -149,6 +152,19 @@ export type StrainRecord = {
    * Only on records sealed under the strain profile.
    */
   readonly strain?: StrainDetails;
+  /**
+   * A document record's own details: type, issuer, files (fingerprints only), the records it is
+   * about (document-profile.ts). Only on records sealed under the document profile, where
+   * strainName is the title, refId the reference and dateCreated the date on the document.
+   */
+  readonly document?: DocumentDetails;
+  /** A document's field set (SPEC 4.5), sealed: the schema's id and the set's root (field-set.ts). */
+  readonly fieldSchema?: string;
+  readonly fieldSetRoot?: string;
+  /** The numbers behind them and the secret their salts come from: the holder's copy only, never sealed. */
+  readonly fieldSet?: HeldFieldSet;
+  /** Claims this holder made about the record's numbers (claim-link.ts): outside the fingerprint. */
+  readonly claims?: readonly MadeClaim[];
   readonly photoFingerprints?: string[]; // photos hashed locally, never uploaded
   readonly refId?: string; // breeder's own reference / lot ID
   /**
@@ -303,11 +319,17 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
     str(r.profile) &&
     str(r.taxon) &&
     str(r.keyBinding) &&
+    str(r.fieldSchema) &&
+    str(r.fieldSetRoot) &&
+    (r.fieldSet === undefined ||
+      (typeof r.fieldSet === 'object' && r.fieldSet !== null && !Array.isArray(r.fieldSet))) &&
+    (r.claims === undefined || Array.isArray(r.claims)) &&
     num(r.loggedAt) &&
     num(r.dnaPairedAt) &&
     (r.parents === undefined || Array.isArray(r.parents)) &&
     (r.animal === undefined || (typeof r.animal === 'object' && r.animal !== null && !Array.isArray(r.animal))) &&
-    (r.strain === undefined || (typeof r.strain === 'object' && r.strain !== null && !Array.isArray(r.strain)))
+    (r.strain === undefined || (typeof r.strain === 'object' && r.strain !== null && !Array.isArray(r.strain))) &&
+    (r.document === undefined || (typeof r.document === 'object' && r.document !== null && !Array.isArray(r.document)))
   );
 };
 
@@ -330,6 +352,10 @@ export type NewRecordInput = {
   refId?: string;
   animal?: AnimalDetails;
   strain?: StrainDetails;
+  document?: DocumentDetails;
+  fieldSchema?: string;
+  fieldSetRoot?: string;
+  fieldSet?: HeldFieldSet;
   /** The name's salt (round 6): made when the record is sealed (seal-record.ts). */
   nameSalt?: string;
 };
@@ -1590,6 +1616,22 @@ export const sealReceived = async (
 ): Promise<StrainRecord | undefined> => {
   const out = await finishReceived(id, notes, offer);
   return 'record' in out ? out.record : undefined;
+};
+
+/**
+ * Keep a claim this holder just made on Midnight about one of the record's numbers, so the page
+ * can show it again, give its link, and say what earlier claims on that number already published
+ * (SPEC 4.5, disclosure accounting). Outside the fingerprint, like any note.
+ */
+export const addClaim = (id: string, claim: MadeClaim): StrainRecord | undefined => {
+  let updated: StrainRecord | undefined;
+  records = records.map((r) => {
+    if (r.id !== id) return r;
+    updated = { ...r, claims: [...(r.claims ?? []), claim] };
+    return updated;
+  });
+  if (updated) persist();
+  return updated;
 };
 
 /**

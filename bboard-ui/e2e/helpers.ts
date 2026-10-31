@@ -256,3 +256,13 @@ export const openRecordRow = <T extends { id: string }>(row: T, key: string): T 
 /** Every row opened (openRecordRow). */
 export const openRecordRows = <T extends { id: string }>(rows: T[], key: string) =>
   rows.map((r) => openRecordRow(r, key));
+
+/**
+ * On /new, past the first screen ("What do you want to prove?", flow/StartChoice.tsx) to the
+ * plant form. A build that offers only plants, or a draft already under way, has no first
+ * screen; then this does nothing.
+ */
+export const startPlant = async (page: Page): Promise<void> => {
+  await page.locator('[data-screen-heading]').first().waitFor();
+  if (await page.locator('[data-start-choice]').isVisible()) await page.locator('[data-start="plant"]').click();
+};

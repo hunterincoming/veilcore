@@ -17,6 +17,7 @@ import {
   openRecordRows,
   plainRowRefusal,
   watch,
+  startPlant,
 } from './helpers';
 
 test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
@@ -65,6 +66,7 @@ test('seal, see it is not tied to the plant, save a DNA report, see it tied, dat
   // 1. Seal a plant. The optional screen says in one line why a DNA report matters, and
   //    stays optional (not counted in the steps).
   await page.goto('/new');
+  await startPlant(page);
   await page.getByLabel(/Plant or line name/).fill(name);
   await page.getByLabel(/Bred by/).fill('E2E');
   await page.getByRole('button', { name: /Next: check it/ }).click();

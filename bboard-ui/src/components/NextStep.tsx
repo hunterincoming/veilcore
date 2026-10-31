@@ -33,8 +33,6 @@ import { useNavigate } from 'react-router-dom';
 import { isLabReportRecord } from './stage/lab-report-notes';
 import { DatingNameField, dateErrorWords, useDateReport } from './stage/DateLabReport';
 import { useRecordT } from '../i18n/app';
-import { isAnimal } from '../veilcore/animal-profile';
-import { isStrain } from '../veilcore/strain-profile';
 import { recipientName } from '../veilcore/transfers';
 
 type Step = {
@@ -319,9 +317,6 @@ export const NextStep: React.FC<{
       icon: <VerifiedIcon />,
       custom: <SendToLab record={record} />,
     };
-  } else if (isAnimal(record) || isStrain(record)) {
-    // Agreements and royalties are for plant records only, for now: the words say so.
-    step = { title: t('app.plant.next.ready.title'), why: t('app.plant.next.ready.why') };
   } else {
     step = {
       title: t('app.plant.next.ready.title'),

@@ -152,3 +152,11 @@ export const ANIMAL_RECORDS_ENABLED: boolean = animalRecordsEnabledFor(NETWORK);
  * records were before their v1 was final. Existing strain records show as strains everywhere.
  */
 export const STRAIN_RECORDS_ENABLED: boolean = NETWORK !== 'mainnet';
+
+/**
+ * Document records (veilcore/document-profile.ts, docs/document-profile.md): a permit, a COA, a
+ * contract, sealed by its files' fingerprints. On in every build, mainnet included (31 Oct 2026):
+ * veilcore/profile/document/v1 is final (SPEC 11.11). Every site deploy refuses a registry whose
+ * /health doesn't list "document-profile-v1" (scripts/registry-features.mjs).
+ */
+export const DOCUMENT_RECORDS_ENABLED = true;

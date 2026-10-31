@@ -17,6 +17,7 @@ import {
   openRecordRows,
   plainRowRefusal,
   watch,
+  startPlant,
 } from './helpers';
 
 test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
@@ -79,6 +80,7 @@ test('seal a plant, add the next stage from its page, and date its lab report on
 
   // 1. Seal a plant, and save a lab report to it on the optional screen.
   await page.goto('/new');
+  await startPlant(page);
   await page.getByLabel(/Plant or line name/).fill(f1);
   await page.getByLabel(/Bred by/).fill('E2E');
   await page.getByRole('button', { name: /\+ Add parents, species/ }).click();
@@ -101,6 +103,7 @@ test('seal a plant, add the next stage from its page, and date its lab report on
   // A plant half-logged, not sealed: starting a next stage must not replace it.
   const unsaved = 'Unsaved mother (practice)';
   await page.goto('/new');
+  await startPlant(page);
   await page.getByLabel(/Plant or line name/).fill(unsaved);
   await expect.poll(() => page.evaluate(() => localStorage.getItem('veilcore.log-draft.v1') ?? '')).toContain(unsaved);
 
@@ -227,6 +230,7 @@ test('seal a plant, add the next stage from its page, and date its lab report on
 
   // Logging: it is never offered as a parent.
   await page.goto('/new');
+  await startPlant(page);
   await page.getByRole('button', { name: /\+ Add parents, species/ }).click();
   await page.getByLabel('Parents').click();
   await expect(page.getByRole('option', { name: f1, exact: true })).toBeVisible();

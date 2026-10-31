@@ -23,6 +23,7 @@ import {
   receiveWithBackupFirst,
   untilSaved,
   watch,
+  startPlant,
 } from './helpers';
 
 test.skip(!REAL_REGISTRY, 'needs a real registry: set E2E_API_BASE and build with it');
@@ -86,8 +87,8 @@ const sendAndReceive = async (browser: Browser, t: Typed, arrivedSeal: string, t
   const breederErrors = watch(breeder);
   await isolate(breeder);
   await breeder.goto('/records');
-  await breeder.getByRole('button', { name: /I breed or hold genetics/ }).click();
   await breeder.getByText('Start', { exact: true }).click();
+  await startPlant(breeder);
   await breeder.getByLabel(/Plant or line name/).fill(`E2E Custody ${tag} ${Date.now()}`);
   await breeder.getByLabel(/Bred by/).fill('E2E');
   await breeder.getByRole('button', { name: /Next: check it/ }).click();
@@ -121,6 +122,7 @@ const sendAndReceive = async (browser: Browser, t: Typed, arrivedSeal: string, t
   const labErrors = watch(lab);
   await isolate(lab);
   await lab.goto('/records');
+  await lab.getByRole('button', { name: "I'm a lab" }).click();
   await lab.getByRole('button', { name: /I run a lab/ }).click();
   await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');
@@ -398,9 +400,9 @@ test('the whole way round: logged, backed up, sent with sample details; received
   const breederErrors = watch(breeder);
   await isolate(breeder);
   await breeder.goto('/records');
-  await breeder.getByRole('button', { name: /I breed or hold genetics/ }).click();
   await breeder.getByText('Start', { exact: true }).click();
   const name = `E2E Round ${u}`;
+  await startPlant(breeder);
   await breeder.getByLabel(/Plant or line name/).fill(name);
   await breeder.getByLabel(/Bred by/).fill(typed.bredBy);
   await breeder.getByRole('button', { name: /Add parents, species, photos or notes/ }).click();
@@ -441,6 +443,7 @@ test('the whole way round: logged, backed up, sent with sample details; received
   const labErrors = watch(lab);
   await isolate(lab);
   await lab.goto('/records');
+  await lab.getByRole('button', { name: "I'm a lab" }).click();
   await lab.getByRole('button', { name: /I run a lab/ }).click();
   await lab.getByRole('button', { name: /Set up your lab.s signature/ }).click();
   await lab.getByLabel(/^Name/).fill('E2E Lab');

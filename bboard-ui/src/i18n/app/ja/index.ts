@@ -34,6 +34,8 @@ import { prove } from './prove';
 import { sealed } from './sealed';
 import { verify } from './verify';
 import { licensing } from './licensing';
+import { document } from './document';
+import { start } from './start';
 
 export const appJa: AppTranslation = {
   ...common,
@@ -56,4 +58,6 @@ export const appJa: AppTranslation = {
   ...sealed,
   ...dating,
   ...licensing,
+  ...document,
+  ...start,
 };

@@ -12,10 +12,9 @@ import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 import { isolate, watch, expectNoErrors } from './helpers';
 
-/** The backup page, past the first-visit "Which describes you?" question. */
+/** The backup page (no first-visit question: everyone starts as a breeder). */
 const openBackup = async (page: Page) => {
   await page.goto('/backup');
-  await page.getByRole('button', { name: /I breed or hold genetics/ }).click();
   await expect(page.getByRole('button', { name: /Save backup file/ })).toBeVisible();
 };
 

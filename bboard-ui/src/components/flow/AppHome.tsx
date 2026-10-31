@@ -41,6 +41,8 @@ import { INK_COLOR, GROUND, POLLEN, WASH } from '../../config/theme';
 import { useT, useRecordT, rich } from '../../i18n/app';
 import { isAnimal, recordTitle } from '../../veilcore/animal-profile';
 import { isStrain } from '../../veilcore/strain-profile';
+import { isDocument } from '../../veilcore/document-profile';
+import { typeWords } from '../document/DocumentParts';
 import { SECTIONS, focusScreenHeading } from './FlowFrame';
 import { PasteBox } from './PasteBox';
 import { labCardLine, useLabCardFacts, useWaitingByRecord } from './LabResults';
@@ -415,7 +417,8 @@ export const AppHome: React.FC = () => {
         <Stack spacing={1.25}>
           {visible.map((r) => {
             const own = isLabReportRecord(r);
-            const s = own
+            const doc = isDocument(r);
+            const base = own
               ? (() => {
                   const d = datingHomeStatus(r, keys[r.id], REAL_CHAIN, tr);
                   return { text: `${datingCardLine(r, tr)} · ${d.text}`, unfinished: d.unfinished };
@@ -423,6 +426,10 @@ export const AppHome: React.FC = () => {
               : lab && r.receivedFrom
                 ? { text: labCardLine(r, labFacts[r.id], tr), unfinished: false }
                 : homeStatusLine(r, keys[r.id], { realChain: REAL_CHAIN, queued: imported.has(r.id) }, tr);
+            // A document says so on its card: its type, then the same status as any record.
+            const s = doc
+              ? { ...base, text: `${t('app.doc.homeLine', { type: typeWords(r.document?.type, tr) })} · ${base.text}` }
+              : base;
             const datings = (datingsOf.get(r.id) ?? []).map((d) => ({
               id: d.id,
               ...datingHomeStatus(d, keys[d.id], REAL_CHAIN, tr),
@@ -498,7 +505,7 @@ export const AppHome: React.FC = () => {
                       </Typography>
                     )}
                     {/* The breeder's own plant: whether a DNA report ties the record to it. */}
-                    {!own && !r.receivedFrom && <TieLine record={r} saved={savedReports[r.id]} />}
+                    {!own && !doc && !r.receivedFrom && <TieLine record={r} saved={savedReports[r.id]} />}
                     {datings.map((d) => (
                       <Typography
                         key={d.id}

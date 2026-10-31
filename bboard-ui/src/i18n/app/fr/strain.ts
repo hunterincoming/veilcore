@@ -102,7 +102,7 @@ export const strain = {
     'Un laboratoire a signé avoir reçu un échantillon. Quand son rapport ADN reviendra, enregistrez-le sur cette souche : c’est ce qui lie votre enregistrement à la souche, pour pouvoir le comparer à un test ultérieur.',
   'app.strain.v.app.plant.next.save.action': 'L’enregistrer sur cette souche',
   'app.strain.v.app.plant.next.ready.why':
-    'Un laboratoire a signé avoir reçu un échantillon, et un rapport ADN est enregistré sur cette souche. Vous pouvez transmettre du matériel ou accorder une licence, avec des conditions qui s’appliquent à la descendance déclarée à partir de cet enregistrement.',
+    'Un laboratoire a signé avoir reçu un échantillon, et un rapport ADN est enregistré sur cette souche. Vous pouvez transmettre du matériel ou la concéder sous licence, avec des conditions qui s’appliquent aux souches déclarées comme dérivées de cet enregistrement.',
   'app.strain.v.app.plant.tree.none':
     'Aucune lignée enregistrée pour l’instant. Ajoutez les souches parentes lors de l’enregistrement pour construire l’arbre généalogique.',
   'app.strain.v.app.plant.anchor.keysNotHere':
@@ -181,4 +181,24 @@ export const strain = {
   'app.strain.v.app.verify.noMethod': 'Aucune méthode d’obtention enregistrée.',
   'app.strain.v.app.verify.bredByShared': 'Obtenue ou isolée par, selon le détenteur : {name}',
   'app.strain.v.app.verify.noBredBy': 'Personne n’est enregistré comme l’ayant obtenue ou isolée.',
+  'app.strain.v.app.lic.row.offspring': 'Redevance sur les souches dérivées',
+  'app.strain.v.app.lic.row.offspringValue': '{pct} %, sur les souches déclarées comme dérivées de celle-ci',
+  'app.strain.v.app.lic.f.offspring': 'Redevance sur les souches dérivées (%)',
+  'app.strain.v.app.lic.f.offspringHelp':
+    'S’applique aux souches déclarées comme dérivées de cet enregistrement (enregistrées avec lui comme parent, confirmées par les deux détenteurs). Une dérivation non déclarée n’est pas détectée. Laissez vide s’il n’y en a pas.',
+  'app.strain.v.app.lic.f.extraHelpDeal':
+    'Tout ce qui fait aussi partie de l’accord, avec vos propres mots. Par exemple : pas de cession à des tiers, citer la source dans les publications, détruire le stock restant à la fin.',
+  'app.strain.v.app.lic.detail.thisCultivar': 'cette souche',
+  'app.strain.v.app.lic.detail.lineage':
+    'Si une souche est enregistrée plus tard avec {name} comme parent et que les deux détenteurs le confirment, le lien vers ce contrat apparaît dans son enregistrement. Les souches dérivées que personne n’enregistre ne sont pas détectées.',
+  'app.strain.v.app.lic.detail.derivatives.one': '{count} souche déjà enregistrée en descend.',
+  'app.strain.v.app.lic.detail.derivatives.other': '{count} souches déjà enregistrées en descendent.',
+  'app.strain.v.app.lic.off.title': 'Redevance sur les souches dérivées : {pct} %',
+  'app.strain.v.app.lic.off.intro':
+    'Sur Midnight, elle figure sur l’enregistrement que le licencié a de cette souche, donc chaque souche dérivée que les deux détenteurs confirment l’affiche quand quelqu’un vérifie la lignée. Le licencié l’accepte ; seul le concédant peut la lever.',
+  'app.strain.v.app.lic.off.dateFirst':
+    'Datez d’abord votre propre enregistrement de cette souche, puis indiquez-le ici.',
+  'app.strain.v.app.lic.off.datePlant': 'Dater un enregistrement',
+  'app.strain.v.app.lic.off.yourRecord': 'Votre enregistrement de cette souche',
+  'app.strain.v.app.lic.off.waitName': 'En attente que l’autre partie indique son enregistrement de cette souche.',
 } satisfies Partial<AppTranslation>;

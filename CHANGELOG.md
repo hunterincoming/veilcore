@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Claims: prove one number from a sealed certificate, test networks (29 Oct 2026)
+
+- A certificate's numbers can be sealed with it, under a published form (cannabinoid potency,
+  seed quality), each salted under one root (SPEC 4.5). Only the form's id and the root are in
+  the record.
+- "Prove one number": at most or at least a bound (the number is never published), or exactly
+  (it is), proved in the browser on the claims contract and paid for by the sponsor. The page
+  shows what earlier claims on that number already made public.
+- A claim link and its check page (`/check-claim`): the claim read from Midnight for that one
+  call, compared exactly with the link, and the record dated by its own proof code.
+- Not yet run on a network: needs the claims keys in the build and the claims contract in the
+  site's and sponsor's settings (docs/claims-screen.md).
+
+### Document records, test networks (29 Oct 2026)
+
+- Seal a document (`/documents/new`): a permit, a COA, a contract, a transport document. Each
+  file is hashed in the browser; only its SHA-256, name and size are sealed. Draft profile
+  `veilcore/profile/document/v1` (SPEC 11.11), test networks only (`DOCUMENT_RECORDS_ENABLED`).
+- A document's page: what was sealed, its date on Midnight, "Is this the same file?", and a
+  check link that carries the sealed fields after the `#`. The check page (`/check-document`)
+  recomputes the proof code from the link, looks up that proof code's date, and compares the
+  file byte for byte. Nothing is uploaded and nothing in the link is believed.
+- Test-site deploys require a registry that lists `document-profile-v1`.
+
+### Licenses on animal and strain records (29 Oct 2026)
+
+- An animal or a strain record can now be licensed, with terms in its own words. An animal:
+  breed only; breed and collect semen or embryos; breed, collect and sell; royalty per dose,
+  per offspring born or per unit sold. A strain: use only; use and subculture; use, subculture
+  and make derived strains; royalty per production batch or per unit sold. A royalty on
+  offspring (animals) or on derived strains (strains) works as it does for plants.
+- The terms seal what the record is about (`subject`), so the licensee's page, the license
+  page and the certificate use the same words without holding the record. A plant's terms carry
+  no `subject`: every plant agreement already made keeps its fingerprint.
+- Same transactions as a plant license; no contract change. The record summary now counts
+  agreements for animals and strains too.
+
 ### Ready to switch licenses on at veilcore.org (25 Oct 2026)
 
 - The switch is two lines: `AGREEMENTS_LIVE` (site) and `MAINNET_AGREEMENTS` (sponsor). The

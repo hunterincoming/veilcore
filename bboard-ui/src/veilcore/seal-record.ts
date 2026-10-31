@@ -15,6 +15,8 @@ import { bindingForSecret } from './key-binding';
 import { PLANT_VARIETY_PROFILE } from './envelope';
 import { ANIMAL_PROFILE, type AnimalDetails } from './animal-profile';
 import { STRAIN_PROFILE, type StrainDetails } from './strain-profile';
+import { DOCUMENT_PROFILE, type DocumentDetails } from './document-profile';
+import type { HeldFieldSet } from './field-set';
 
 /** What the holder wrote, already tidied by the caller (trimmed, one line where it should be). */
 export type SealInput = {
@@ -144,6 +146,54 @@ export const sealStrainRecord = (input: StrainSealInput, now = Date.now()): Prom
     taxon: input.species,
     breedingMethod: input.method,
     strain: { group: input.group, deposits: input.deposits, generation: input.generation },
+  }));
+
+/**
+ * What the holder wrote about one document, already tidied by the caller, and its files'
+ * fingerprints (document-profile.ts fingerprintFile). Sealed under the document profile. The
+ * files themselves never reach here: only their SHA-256, name and size.
+ */
+export type DocumentSealInput = {
+  readonly title: string;
+  readonly type: DocumentDetails['type'];
+  readonly issuer: string;
+  readonly reference: string;
+  /** The date written on the document, YYYY-MM-DD, or '' when not stated. */
+  readonly issued: string;
+  readonly files: DocumentDetails['files'];
+  readonly about: DocumentDetails['about'];
+  readonly holder: string;
+  readonly notes: string;
+  /** The numbers on it, sealed as a field set (field-set.ts makeFieldSet); none when absent. */
+  readonly fieldSet?: { readonly held: HeldFieldSet; readonly fieldSchema: string; readonly fieldSetRoot: string };
+};
+
+export const sealDocumentRecord = (input: DocumentSealInput, now = Date.now()): Promise<SealedRecord> =>
+  sealWithKey(now, (keyBinding) => ({
+    nonce: newNonce(),
+    keyBinding,
+    profile: DOCUMENT_PROFILE,
+    strainName: input.title,
+    bredBy: input.holder,
+    dateCreated: input.issued,
+    notes: input.notes,
+    loggedAt: now,
+    parents: [],
+    photoFingerprints: [],
+    refId: input.reference,
+    document: {
+      type: input.type,
+      issuer: input.issuer,
+      files: input.files.map((f) => ({ name: f.name, sha256: f.sha256, size: f.size })),
+      about: input.about.map((a) => ({ name: a.name, ...(a.recordId ? { recordId: a.recordId } : {}) })),
+    },
+    ...(input.fieldSet
+      ? {
+          fieldSchema: input.fieldSet.fieldSchema,
+          fieldSetRoot: input.fieldSet.fieldSetRoot,
+          fieldSet: input.fieldSet.held,
+        }
+      : {}),
   }));
 
 /** Make the record's key, then seal the fields that name it; forget the key if sealing fails. */
