@@ -59,6 +59,7 @@ waiting.
 | Route | What |
 |---|---|
 | `GET /sponsor/status` | Synced or not, accepting or not, queue depth, the anchoring job's last outcome as a short code, and `agreements`: whether it pays for license and other agreement calls (`policy.ts`). No budget figures and no error text. With the header `x-operator-token: <SPONSOR_STATUS_TOKEN>`: also the exact budget, counters and the anchoring job's own messages |
+| `GET /sponsor/alerts` | For an outside monitor (`docs/mainnet-sponsor.md`, step 7): **200** `{ ok: true, problems: [] }` when nothing needs the operator, **503** with codes when something does: `anchoring-failing`, `sync-stalled`, `not-synced` (three hours after start), `fuel-low` (under `ALERT_DUST_LOW_DUST`). Codes only (`alerts.ts`) |
 | `GET /sponsor/challenge` | A proof-of-work challenge |
 | `POST /sponsor` | `{ tx, ticket, challenge, nonce }` → `{ txId }` or a refusal with a plain reason |
 | `GET /health` | `{ ok: true }` |
@@ -104,6 +105,7 @@ Optional, with defaults: `SPONSOR_NETWORK` (preprod), `MAX_FEE_DUST` (5),
 turn the job off), `TRUST_PROXY_HOPS` (1 on Railway), `INDEXER_URL`, `INDEXER_WS_URL`,
 `NODE_WS_URL`, `POW_SECRET`, `VEILCORE_ARTIFACTS_DIR`, `SPONSOR_STATUS_TOKEN` (at least 32
 characters, e.g. 64 random hex; without it `/sponsor/status` only has the public view).
+`ALERT_DUST_LOW_DUST` (50): below this much DUST, `/sponsor/alerts` reports `fuel-low`.
 
 `TRUST_PROXY_HOPS` must be the real number of proxies in front. A request to
 `/sponsor` or `/sponsor/challenge` with fewer `X-Forwarded-For` entries than that is

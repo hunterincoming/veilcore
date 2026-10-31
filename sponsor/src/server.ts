@@ -4,6 +4,9 @@
 //   GET  /sponsor/status     public: synced, accepting, queue depth, anchoring job outcome code.
 //                            With the operator token (x-operator-token): exact budget
 //                            figures, counters and the anchoring job's own words.
+//   GET  /sponsor/alerts     200 { ok: true, problems: [] } when nothing needs the operator,
+//                            503 { ok: false, problems: [codes] } when something does
+//                            (alerts.ts). For an outside monitor; codes only.
 // Plain node:http, no framework. Request bodies are never logged.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -29,6 +32,8 @@ export type ServerDeps = {
   readonly maxBodyBytes: number;
   /** The indexer relay (indexer-relay.ts): POST /indexer and the /indexer/ws socket. */
   readonly indexerRelay?: IndexerRelay;
+  /** What needs the operator now (alerts.ts), for GET /sponsor/alerts. Unset: the route is 404. */
+  readonly alerts?: () => readonly string[];
 };
 
 /**
@@ -108,6 +113,15 @@ export const handler = (deps: ServerDeps) => async (req: IncomingMessage, res: S
       return;
     }
     if (req.method === 'GET' && path === '/health') return send(res, 200, { ok: true });
+    if (req.method === 'GET' && path === '/sponsor/alerts' && deps.alerts) {
+      let problems: readonly string[];
+      try {
+        problems = deps.alerts();
+      } catch {
+        problems = ['check-failed'];
+      }
+      return send(res, problems.length ? 503 : 200, { ok: problems.length === 0, problems });
+    }
     if (req.method === 'GET' && path === '/sponsor/status') {
       const operator = operatorTokenMatches(req, deps.statusToken);
       if (operator === false) return send(res, 401, { ok: false, code: 'unauthorized', reason: 'Wrong operator token.' }, cors);

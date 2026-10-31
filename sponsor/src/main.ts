@@ -12,6 +12,7 @@ import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-p
 import { assertNotForbidden, assertNotMaintenanceKey, ConfigError, loadConfig } from './config.js';
 import { paysForAgreements } from './policy.js';
 import { FacadeWallet } from './wallet.js';
+import { alertsOf, SYNC_GRACE_MS } from './alerts.js';
 import { ProofOfWork } from './pow.js';
 import { DailyBudget, Limits, MINUTE, SingleFlight, type BudgetState } from './limits.js';
 import { Sponsor } from './sponsor.js';
@@ -42,6 +43,7 @@ const isAttempt = (v: unknown): v is Attempt =>
 const main = async (): Promise<void> => {
   if (!('WebSocket' in globalThis)) (globalThis as { WebSocket?: unknown }).WebSocket = WebSocket;
   const cfg = loadConfig(process.env);
+  const startedAt = Date.now();
   // Before anything can print an endpoint URL: they carry the Blockfrost project id.
   scrubOutput(cfg.logSecrets);
   setNetworkId(cfg.network);
@@ -194,6 +196,18 @@ const main = async (): Promise<void> => {
             ? { enabled: false, note: anchorerNote }
             : { enabled: false },
       }),
+      // For an outside monitor (alerts.ts): stamping failing, sync stuck, or fuel low.
+      alerts: () =>
+        alertsOf({
+          anchoringFailing: anchorer ? anchorer.publicStatus().alert : undefined,
+          syncStalled: wallet.syncStalled(),
+          synced: wallet.isSynced(),
+          startedAt,
+          now: Date.now(),
+          syncGraceMs: SYNC_GRACE_MS,
+          dustSpecks: wallet.isSynced() ? wallet.dustBalance() : undefined,
+          dustLowSpecks: cfg.alertDustLowSpecks,
+        }),
       statusToken: cfg.statusToken || undefined,
       allowedOrigins: cfg.allowedOrigins,
       trustProxyHops: cfg.trustProxyHops,
