@@ -176,3 +176,38 @@ describe('a document record’s evidence bundle', () => {
     );
   });
 });
+
+describe('a document file’s name in the zip', () => {
+  it('stays readable in any language, and is never a path, a hidden file or a device name', async () => {
+    const { documentFileName } = await import('./bundle');
+    expect(documentFileName('Resolución 41.pdf')).toBe('Resolución 41.pdf');
+    expect(documentFileName('契約書.pdf')).toBe('契約書.pdf');
+    expect(documentFileName('../../etc/passwd')).toBe('-..-etc-passwd.bin');
+    expect(documentFileName('..\\..\\evil.pdf')).toBe('-..-evil.pdf');
+    expect(documentFileName('.hidden.pdf')).toBe('hidden.pdf');
+    expect(documentFileName('CON.pdf')).toBe('_CON.pdf');
+    expect(documentFileName('a‮fdp.exe')).toBe('afdp.exe');
+    expect(documentFileName('.pdf')).toBe('document.pdf');
+    expect(documentFileName('')).toBe('document.bin');
+    expect(documentFileName(`${'x'.repeat(300)}.PDF`)).toBe(`${'x'.repeat(110)}.pdf`);
+  });
+
+  it('goes into the zip in UTF-8, so a zip tool shows it as written', async () => {
+    const PERMIT_ES = new TextEncoder().encode('Resolución (test data)\n');
+    const name = 'Resolución 41.pdf';
+    const { files, dir } = await docSetupNamed(name, PERMIT_ES);
+    const { zipFiles } = await import('./bundle');
+    const zip = zipFiles(files, NOW);
+    const { unzipSync } = await import('fflate');
+    expect(unzipSync(zip)[`${dir}/document/files/${name}`]).toEqual(PERMIT_ES);
+  });
+});
+
+/** A one-file document whose file has this name, with a copy of it included. */
+const docSetupNamed = async (name: string, bytes: Uint8Array) => {
+  const files = [{ name, sha256: await sha256(bytes), size: bytes.length }];
+  return docSetup(
+    { document: { type: 'permit', issuer: '', files, about: [] } },
+    { documentFiles: [{ name: 'x.pdf', bytes }] },
+  );
+};

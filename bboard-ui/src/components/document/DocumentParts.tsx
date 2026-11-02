@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useId, useState } from 'react';
+import { oneLine } from '../../veilcore/evidence/words';
 import { Alert, Box, Button, Stack, Typography } from '@mui/material';
 import {
   MAX_DOCUMENT_BYTES,
@@ -38,6 +39,15 @@ export const Fact: React.FC<{ label: string; children: React.ReactNode; mono?: b
   </Box>
 );
 
+/**
+ * What someone else typed, shown as typed but on one line and with no invisible characters:
+ * a direction mark (U+202E) could make "invoice‮fdp.exe" read as "invoiceexe.pdf", and a
+ * zero-width space could make two names look alike (the evidence bundle does the same, words.ts).
+ */
+export const seen = oneLine;
+/** Notes keep their line breaks; only the invisible characters go. */
+const seenNotes = (v: string) => v.replace(/[\p{Cf}\u2028\u2029]+/gu, ' ');
+
 /** The document's facts as sealed. Empty ones are left out. */
 export const DocumentFacts: React.FC<{
   /** Shown to a checker: "Issued by" is then the holder's statement, not "your" statement. */
@@ -59,25 +69,25 @@ export const DocumentFacts: React.FC<{
   return (
     <Stack spacing={1.5} data-document-facts="">
       <Fact label={t('app.doc.k.type')}>{typeWords(f.type, tr)}</Fact>
-      {f.issuer && <Fact label={t(checker ? 'app.doc.k.issuerHolder' : 'app.doc.k.issuer')}>{f.issuer}</Fact>}
-      {f.reference && <Fact label={t('app.doc.k.reference')}>{f.reference}</Fact>}
+      {f.issuer && <Fact label={t(checker ? 'app.doc.k.issuerHolder' : 'app.doc.k.issuer')}>{seen(f.issuer)}</Fact>}
+      {f.reference && <Fact label={t('app.doc.k.reference')}>{seen(f.reference)}</Fact>}
       {f.issued && <Fact label={t('app.doc.k.issued')}>{f.issued}</Fact>}
       <Fact label={t('app.doc.k.files')}>
         {f.files.map((file) => (
           <Box component="span" key={file.sha256} sx={{ display: 'block', mb: 0.75 }} data-document-file="">
-            <b>{file.name}</b> · {t('app.doc.fileSize', { size: file.size.toLocaleString(tr.locale) })}
+            <b>{seen(file.name)}</b> · {t('app.doc.fileSize', { size: file.size.toLocaleString(tr.locale) })}
             <Box component="span" sx={{ display: 'block', fontFamily: 'monospace', wordBreak: 'break-all' }}>
               SHA-256 {file.sha256}
             </Box>
           </Box>
         ))}
       </Fact>
-      {f.about.length > 0 && <Fact label={t('app.doc.k.about')}>{f.about.map((a) => a.name).join(' · ')}</Fact>}
-      <Fact label={t('app.doc.k.holder')}>{f.holder}</Fact>
+      {f.about.length > 0 && <Fact label={t('app.doc.k.about')}>{f.about.map((a) => seen(a.name)).join(' · ')}</Fact>}
+      <Fact label={t('app.doc.k.holder')}>{seen(f.holder)}</Fact>
       {f.notes && (
         <Fact label={t('app.doc.k.notes')}>
           <Box component="span" sx={{ whiteSpace: 'pre-wrap' }}>
-            {f.notes}
+            {seenNotes(f.notes)}
           </Box>
         </Fact>
       )}
@@ -163,12 +173,16 @@ export const FileCompare: React.FC<{ files: readonly DocumentFile[]; title?: str
       {result?.kind === 'match' && (
         <Alert severity="success" variant="outlined" sx={{ mt: 1.5 }} data-compare="match">
           {/* File names go in as values, never as markup: a name can't add emphasis or tags. */}
-          {rich(t('app.doc.compare.match'), { b: (c) => <b>{c}</b> }, { name: result.name, sealed: result.sealed })}
+          {rich(
+            t('app.doc.compare.match'),
+            { b: (c) => <b>{c}</b> },
+            { name: seen(result.name), sealed: seen(result.sealed) },
+          )}
         </Alert>
       )}
       {result?.kind === 'no-match' && (
         <Alert severity="error" variant="outlined" sx={{ mt: 1.5 }} data-compare="no-match">
-          {rich(t('app.doc.compare.noMatch'), { b: (c) => <b>{c}</b> }, { name: result.name })}
+          {rich(t('app.doc.compare.noMatch'), { b: (c) => <b>{c}</b> }, { name: seen(result.name) })}
         </Alert>
       )}
       {result?.kind === 'too-large' && (
