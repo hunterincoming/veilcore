@@ -77,12 +77,13 @@
   <h2>What this does not show</h2>
   <div class="note">
     <ul>
-      <li>That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.</li>
+      <li class="vc-not-document">That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.</li>
+      <li class="vc-document-only" hidden>That the document is genuine, that the issuer named in it issued it, or that what it says is true. The title, type, issuer and dates are the holder’s statements. A file that matches shows only that a file with exactly those bytes was in the holder’s hands by the date.</li>
       <li>Who holds the <span class="vc-subject">plant</span> or the record now.</li>
       <li>That a signing key belongs to the lab it names. VeilCore doesn’t vouch for anyone, and neither does this page.</li>
       <li>Any date at all, until you find the batch root in the transaction named above (or the Bitcoin stamp checks). Until then the files only agree with each other.</li>
       <li>The Bitcoin block itself: this page reads the stamp file, but it can’t reach Bitcoin to see that the block holds the value the file names.</li>
-      <li>When a lab report was saved to the <span class="vc-subject">plant</span>. That came after sealing and isn’t inside the record’s proof code, so the batch doesn’t date it.</li>
+      <li class="vc-not-document">When a lab report was saved to the <span class="vc-subject">plant</span>. That came after sealing and isn’t inside the record’s proof code, so the batch doesn’t date it.</li>
     </ul>
   </div>
 
@@ -90,7 +91,7 @@
   <p id="other-files"><code>README.txt</code> explains every file. <code>EXAMINER-SUMMARY.html</code> is a printable summary for a lawyer or examiner: open it and print it to PDF. It checks nothing itself; this page does the checks. <code>DECLARATION-TEMPLATE.txt</code> is sample text for a written declaration about this record and bundle. It is not legal advice: have a lawyer where you are adapt it.</p>
 
   <h2>Check other files</h2>
-  <p>To check the files themselves rather than the copy inside this page, choose them here: <code>evidence.json</code>, or any of <code>record/sealed-fields.json</code>, <code>record/sealed-fields.canonical.json</code>, <code>record/proof-code.txt</code>, <code>proof/inclusion-proof.json</code>, <code>proof/batch-root.txt</code>, <code>proof/root.bin</code>, <code>proof/root.bin.ots</code>, <code>key/key-binding.json</code>, <code>lab/signatures.json</code>, or the lab report file. Nothing is sent anywhere.</p>
+  <p>To check the files themselves rather than the copy inside this page, choose them here: <code>evidence.json</code>, or any of <code>record/sealed-fields.json</code>, <code>record/sealed-fields.canonical.json</code>, <code>record/proof-code.txt</code>, <code>proof/inclusion-proof.json</code>, <code>proof/batch-root.txt</code>, <code>proof/root.bin</code>, <code>proof/root.bin.ots</code>, <code>key/key-binding.json</code>, <code>lab/signatures.json</code>, the lab report file, or, for a document record, the document’s own file: this page says whether it is byte for byte one the record seals. Nothing is sent anywhere.</p>
   <input type="file" id="files" multiple aria-label="Choose files to check">
   <div id="filechecks"></div>
 </main>
@@ -232,7 +233,7 @@ return canonicalise;
     ['notes', 'Notes'],
     ['photoFingerprints', 'Photos'],
     ['profile', 'Kind of record'],
-    ['loggedAt', 'Sealed at (the breeder’s device clock)'],
+    ['loggedAt', 'Sealed at (the holder’s device clock)'],
     ['keyBinding', 'Names a key'],
     ['nonce', 'Random salt (keeps the proof code unguessable)'],
   ];
@@ -250,6 +251,21 @@ return canonicalise;
     maker: 'Made or isolated by',
   };
   var STRAIN_ORDER = ['name', 'designation', 'group', 'species', 'deposits', 'method', 'generation', 'madeOn', 'maker'];
+  // A document record's own fields (the site's veilcore/document-profile.ts, SPEC 11.11): the
+  // same words as EXAMINER-SUMMARY.html (examiner.ts DOCUMENT_LABELS).
+  var DOCUMENT_PROFILE = 'veilcore/profile/document/v1';
+  var DOCUMENT_LABELS = [
+    ['title', 'Title'],
+    ['type', 'Type'],
+    ['files', 'Files (sealed by SHA-256; the files themselves are not in the record)'],
+    ['issuer', 'Issued by (the holder’s statement)'],
+    ['reference', 'Reference'],
+    ['issued', 'Date on the document (the holder’s statement)'],
+    ['about', 'Records it concerns'],
+    ['holder', 'Held by'],
+    ['fieldSchema', 'Numbers sealed with it: form'],
+    ['fieldSetRoot', 'Numbers sealed with it: code that commits to them (the numbers are not shown)'],
+  ];
   function fieldText(key, v) {
     if (v === '' || v === null || v === undefined) return '(empty)';
     if (key === 'parents' && Array.isArray(v)) {
@@ -266,12 +282,25 @@ return canonicalise;
       }).join('; ');
     }
     if (key === 'deposits' && Array.isArray(v)) return v.length === 0 ? '(none)' : v.map(String).join('; ');
+    // A document's files and the records it concerns (the same words as examiner.ts fieldText).
+    if (key === 'files' && Array.isArray(v)) {
+      return v.length === 0 ? '(none)' : v.map(function (f) {
+        if (!f || typeof f !== 'object') return String(f);
+        return (typeof f.name === 'string' ? plain(f.name) : '(no name)') + ', ' + (typeof f.size === 'number' ? f.size + ' bytes' : 'size not given') + ', SHA-256 ' + (typeof f.sha256 === 'string' ? f.sha256 : '(missing)');
+      }).join('; ');
+    }
+    if (key === 'about' && Array.isArray(v)) {
+      return v.length === 0 ? '(none)' : v.map(function (a) {
+        if (!a || typeof a !== 'object') return String(a);
+        return (typeof a.name === 'string' && a.name ? plain(a.name) : '(no name)') + (typeof a.recordId === 'string' && a.recordId ? ' (record ' + a.recordId + ')' : '');
+      }).join('; ');
+    }
     if (key === 'photoFingerprints' && Array.isArray(v)) {
       return v.length === 0 ? '(none)' : v.length + ' photo' + (v.length === 1 ? '' : 's') + ', sealed by their codes: ' + v.join(', ');
     }
     if (key === 'loggedAt' && typeof v === 'number') {
       var when = VeilcoreVerify.utc(v);
-      return (when || String(v)) + ' (the breeder’s word only)';
+      return (when || String(v)) + ' (the holder’s word only)';
     }
     // The same words as EXAMINER-SUMMARY.html (the site's examiner.ts KEY_NAMED).
     if (key === 'keyBinding' && typeof v === 'string') return 'Yes. The record names a key; the key itself is in this bundle only if the holder included it. Key binding: ' + v;
@@ -295,6 +324,10 @@ return canonicalise;
       labels = STRAIN_ORDER.map(function (k) { return [k, STRAIN_LABELS[k] || 'Species']; }).concat(
         FIELD_LABELS.filter(function (l) { return STRAIN_ORDER.indexOf(l[0]) < 0; }),
       );
+    } else if (fields.profile === DOCUMENT_PROFILE) {
+      labels = DOCUMENT_LABELS.concat(FIELD_LABELS.filter(function (l) {
+        return !DOCUMENT_LABELS.some(function (d) { return d[0] === l[0]; });
+      }));
     }
     for (var i = 0; i < labels.length; i++) {
       var k = labels[i][0];
@@ -316,10 +349,15 @@ return canonicalise;
   function render(ev, report) {
     var rec = ev && ev.record ? ev.record : {};
     var sf = rec.sealedFields && typeof rec.sealedFields === 'object' ? rec.sealedFields : {};
-    SUBJECT = sf.profile === 'veilcore/profile/animal-individual/v1' ? 'animal' : sf.profile === STRAIN_PROFILE ? 'strain' : 'plant';
+    SUBJECT = sf.profile === 'veilcore/profile/animal-individual/v1' ? 'animal' : sf.profile === STRAIN_PROFILE ? 'strain' : sf.profile === DOCUMENT_PROFILE ? 'document' : 'plant';
+    // A document: what a matching file does and doesn't show, in place of the lab report line.
+    var docOnly = document.querySelectorAll('.vc-document-only');
+    for (var d = 0; d < docOnly.length; d++) docOnly[d].hidden = SUBJECT !== 'document';
+    var notDoc = document.querySelectorAll('.vc-not-document');
+    for (var n = 0; n < notDoc.length; n++) notDoc[n].hidden = SUBJECT === 'document';
     var words = document.querySelectorAll('.vc-subject');
     for (var w = 0; w < words.length; w++) words[w].textContent = SUBJECT;
-    var name = ['strainName', 'name', 'individualId', 'designation'].map(function (k) { return typeof sf[k] === 'string' ? sf[k] : ''; }).filter(Boolean)[0] || '';
+    var name = ['strainName', 'name', 'individualId', 'designation', 'title'].map(function (k) { return typeof sf[k] === 'string' ? sf[k] : ''; }).filter(Boolean)[0] || '';
     var title = name ? name + (rec.id ? ' · ' + rec.id : '') : rec.id || 'this record';
     document.title = 'Check ' + title + ' (offline)';
     var summary = clear('summary');
@@ -343,7 +381,7 @@ return canonicalise;
     var sealed = clear('sealed');
     if (rec.sealedFields && typeof rec.sealedFields === 'object' && !Array.isArray(rec.sealedFields)) {
       sealed.appendChild(para([report.fingerprint.ok
-        ? 'Exactly what the proof code was made from, in the breeder’s own words. The checks show these fields haven’t changed since sealing; they don’t show that what they say is true.'
+        ? 'Exactly what the proof code was made from, in the holder’s own words. The checks show these fields haven’t changed since sealing; they don’t show that what they say is true.'
         : 'These fields do NOT match the record’s proof code: they, or the proof code, were changed after sealing. Don’t rely on them.']));
       var t = sealedTable(rec.sealedFields);
       t.setAttribute('data-sealed', report.fingerprint.ok ? 'matches' : 'changed');
@@ -621,6 +659,8 @@ return canonicalise;
         out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? f.name + ' is a stamp file for this batch root' : f.name + ' is not a stamp file for this batch root', [para([words])], 'file'));
       } else if (f.is === 'root.bin') {
         out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? 'root.bin is the batch root' : 'root.bin is not the batch root', [para(['SHA-256 of the file: ', hex(f.sha256)])], 'file'));
+      } else if (f.is === 'sealed file') {
+        out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? f.name + ' is byte for byte ' + (f.sealedName ? '“' + plain(f.sealedName) + '”' : 'a file') + ', sealed in this record' : f.name + ' doesn’t match any file sealed in this record. A match needs every byte to be the same.', [para(['Its SHA-256: ', hex(f.sha256)])], 'file'));
       } else if (f.is === 'lab report?') {
         out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? f.name + ' is the lab report saved to this ' + SUBJECT : f.name + ' is not the lab report saved to this ' + SUBJECT, [para(['Its SHA-256: ', hex(f.sha256)])], 'file'));
       } else {

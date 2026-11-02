@@ -151,4 +151,13 @@ export const document = {
   'app.claim.check.what':
     'これで示せること：その記録に封印された数値が境界値を満たしている（またはその値である）こと。示せないこと：検査機関が測定したこと、証明書が本物であること。数値は保有者が入力したものです。数値について証明された境界値はすべて公開され、合わせると範囲が狭まります。',
   'app.claim.check.schema': '公開されたフォーム「{schema}」に基づく。',
+  // EvidenceBundle.tsx: what differs for a document record.
+  'app.doc.bundle.keyIs':
+    '（記録の鍵とは、封印したときにこの書類用に作られた鍵の公開IDです。秘密の部分はバックアップに残り、パッケージには入りません。）',
+  'app.doc.bundle.includeFiles':
+    '書類のコピーを含める。含めない場合、パッケージには各ファイルのコードしか入らないため、確認する人は別途ファイルを受け取る必要があります。',
+  'app.doc.bundle.chooseFiles': '書類のファイルを選ぶ',
+  'app.doc.bundle.checkedAgainst': '含める前に、それぞれこの記録に封印されたファイルと照合されます。',
+  'app.doc.bundle.filesAria': '書類のファイル',
+  'app.doc.bundle.chooseOrUntick': '書類のファイルを選ぶか、チェックを外してください。',
 } satisfies Partial<AppTranslation>;

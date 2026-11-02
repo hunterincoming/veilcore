@@ -47,6 +47,7 @@ import {
   oneLine,
   sealedNameOf,
   subjectOf,
+  type Subject,
   utcWords,
   wrap,
 } from './words';
@@ -63,6 +64,8 @@ const BASE = import.meta.env.VITE_API_BASE ?? '';
 export const EVIDENCE_FORMAT = 'veilcore-evidence-bundle/v1';
 /** Where the lab report file goes, when the holder includes it: nothing else is in there. */
 export const LAB_FILE_DIR = 'lab/report';
+/** Where a document record's own files go, when the holder includes them. */
+export const DOCUMENT_FILE_DIR = 'document/files';
 const CONTENT_ALGORITHM = 'sha256/canonical-json/v1';
 /** The OpenTimestamps file header: anything else from a registry is left out, not shipped. */
 const OTS_MAGIC = '\x00OpenTimestamps\x00\x00Proof\x00';
@@ -269,6 +272,11 @@ export type EvidenceOptions = {
   readonly includeKey: boolean;
   /** The lab report file, when the holder ticks it and picks it. Checked before it goes in. */
   readonly labFile?: { readonly name: string; readonly bytes: Uint8Array };
+  /**
+   * A document record's own files, when the holder picks them to go in (document-profile.ts).
+   * Each must be byte for byte one of the files the record sealed, or nothing is downloaded.
+   */
+  readonly documentFiles?: readonly { readonly name: string; readonly bytes: Uint8Array }[];
   /** For tests: when the bundle was made. */
   readonly now?: Date;
   /**
@@ -380,6 +388,8 @@ export type Evidence = {
    * where the holder's deliveries could be read; absent otherwise.
    */
   readonly custody?: readonly CustodyEntry[];
+  /** A document record's files copied into the bundle, each checked against the seal. */
+  readonly documentFiles?: readonly { readonly path: string; readonly sha256: string; readonly sealedName: string }[];
   readonly key: {
     readonly identity: string;
     readonly keySalt: string;
@@ -405,6 +415,15 @@ export const specVersionLine = (spec: string = DOCS.spec.md): string =>
     .find((l) => /^Version /.test(l))
     ?.trim() ?? `the spec in VeilCore SDK ${DOCS_VERSION}`;
 const hexOf = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+/** The picked file with this SHA-256, if any. */
+const findBytes = async (
+  picked: readonly { readonly bytes: Uint8Array }[],
+  sha: string,
+): Promise<Uint8Array | undefined> => {
+  for (const p of picked) if ((await sha256OfBytes(p.bytes)) === sha) return p.bytes;
+  return undefined;
+};
+
 const sha256OfBytes = async (bytes: Uint8Array): Promise<string> =>
   hexOf(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes as unknown as BufferSource)));
 
@@ -596,6 +615,35 @@ export const buildEvidence = async (
 
   const custody = options.deliveries ? await custodyEntries(record, options.deliveries, gathered.attestations) : [];
 
+  // A document's own files, when the holder picked them: each must be one of the sealed files.
+  const documentFiles: { path: string; sha256: string; sealedName: string }[] = [];
+  if (options.documentFiles?.length) {
+    const sealed = Array.isArray(sealedFields.files)
+      ? (sealedFields.files as { name?: unknown; sha256?: unknown }[])
+      : null;
+    if (!sealed) throw new BundleRefusal('This record seals no files, so there is nothing to include.');
+    const used = new Set<string>();
+    for (const f of options.documentFiles) {
+      const sha = await sha256OfBytes(f.bytes);
+      const match = sealed.find((s) => s.sha256 === sha);
+      if (!match) {
+        throw new BundleRefusal(
+          `${f.name || 'That file'} isn’t byte for byte any file sealed in this record, so it wasn’t included. Nothing was downloaded.`,
+        );
+      }
+      if (documentFiles.some((d) => d.sha256 === sha)) continue;
+      // In a folder of their own; two different files can't take one name.
+      let name = safeFileName(isString(match.name) ? match.name : f.name);
+      for (let n = 2; used.has(name); n++) name = `${n}-${safeFileName(isString(match.name) ? match.name : f.name)}`;
+      used.add(name);
+      documentFiles.push({
+        path: `${DOCUMENT_FILE_DIR}/${name}`,
+        sha256: sha,
+        sealedName: isString(match.name) ? match.name : '',
+      });
+    }
+  }
+
   return {
     format: EVIDENCE_FORMAT,
     createdAt: now.toISOString(),
@@ -625,6 +673,7 @@ export const buildEvidence = async (
     labReport,
     signatures: gathered.attestations,
     ...(custody.length ? { custody } : {}),
+    ...(documentFiles.length ? { documentFiles } : {}),
     key,
   };
 };
@@ -667,7 +716,7 @@ export const signatureLines = async (
   fingerprint: string,
   savedFileSha?: string,
   /** What the record describes: "the lab report saved to this plant" or "… this animal". */
-  subject: 'plant' | 'animal' | 'strain' = 'plant',
+  subject: Subject = 'plant',
   /** The lab report salt (round 6, lab-doc.ts): a bound lab report signature is matched with it. */
   labSalt?: string,
 ): Promise<SignatureLine[]> => {
@@ -815,7 +864,7 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
     },
     {
       path: EXAMINER_FILE,
-      what: 'a printable summary for a lawyer or examiner: the record as sealed, its proof code, batch and transaction, how it was checked, lab signatures and sample receipts, and what it shows and does not. Open it in a browser and print it to PDF. It checks nothing itself; verify.html rechecks what it reports.',
+      what: 'a printable summary for a lawyer or examiner: the record as sealed, its proof code, batch and transaction, how it was checked, any lab signatures and sample receipts, and what it shows and does not. Open it in a browser and print it to PDF. It checks nothing itself; verify.html rechecks what it reports.',
     },
     {
       path: DECLARATION_FILE,
@@ -829,6 +878,12 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
       what: `the record's proof code, worked out from the sealed fields${ev.record.fingerprintAlgorithm === KEY_BOUND_ALGORITHM ? " and the record's key" : ''}.`,
     },
   ];
+  for (const f of ev.documentFiles ?? []) {
+    out.push({
+      path: f.path,
+      what: `a copy of the sealed file ${f.sealedName ? `“${oneLine(f.sealedName)}”` : ''}, byte for byte (SHA-256 ${f.sha256}). verify.html checks it if you pick it.`,
+    });
+  }
   if (ev.proof && ev.batch) {
     out.push(
       {
@@ -878,7 +933,8 @@ export const tiedToPlantLines = (ev: Evidence, sigs: readonly SignatureLine[], d
   // (A test's evidence may carry only its lab report: then it reads as a plant's, as before.)
   const subject = subjectOf((ev as Partial<Evidence>).record?.sealedFields);
   // In English (the bundle's files are), with "animal" for an animal record (translate.ts forKind).
-  const en = forKind(enT, subject);
+  // (Never called for a document: README.txt gives it documentFileLines instead.)
+  const en = forKind(enT, subject === 'document' ? 'plant' : subject);
   let tie: DnaTie;
   if (!ev.labReport) tie = { state: 'none' };
   else if (!ev.labReport.fileSha256) tie = { state: 'saved' };
@@ -912,6 +968,38 @@ export const tiedToPlantLines = (ev: Evidence, sigs: readonly SignatureLine[], d
     );
   }
   return out;
+};
+
+/**
+ * README.txt's "THE DOCUMENT'S FILES", for a document record (SPEC 11.11): each sealed file's
+ * name, size and SHA-256, how to check a file against them by hand, and what that does and
+ * doesn't show. The file itself is never in the record; a copy is in this bundle only if the
+ * holder included it.
+ */
+export const documentFileLines = (ev: Evidence): string[] => {
+  const f = ev.record.sealedFields;
+  const files = Array.isArray(f.files) ? (f.files as { name?: unknown; sha256?: unknown; size?: unknown }[]) : [];
+  const L: string[] = ["THE DOCUMENT'S FILES"];
+  L.push(
+    `This record seals ${files.length === 1 ? 'one file' : `${files.length} files`} by name, size and SHA-256 code. The ${files.length === 1 ? 'file itself is' : 'files themselves are'} not in the record.`,
+  );
+  for (const x of files) {
+    L.push(
+      `- ${isString(x.name) ? oneLine(x.name) : '(no name)'}, ${isNumber(x.size) ? `${x.size} bytes` : 'size not given'}, SHA-256 ${isString(x.sha256) ? x.sha256 : '(missing)'}`,
+    );
+  }
+  L.push(
+    ev.documentFiles?.length
+      ? `A copy of ${ev.documentFiles.length === files.length ? 'every file' : `${ev.documentFiles.length} of them`} is in ${DOCUMENT_FILE_DIR}/.`
+      : 'No copy of the files is in this bundle: the holder gives them to you separately.',
+  );
+  L.push(
+    'To check that a file you have is one of these: open verify.html and pick it under "Check other files", or work out its SHA-256 yourself. On a Mac: shasum -a 256 "the file". On Windows: certutil -hashfile "the file" SHA256. On Linux: sha256sum "the file". It must equal one of the codes above exactly; if one character differs, it is not the same file.',
+  );
+  L.push(
+    "What a match shows: a file with exactly these bytes was in the holder's hands by the record's date. What it doesn't: that the document is genuine, that the issuer named in it issued it, or that what it says is true; the title, type, issuer and dates are the holder's own statements.",
+  );
+  return L;
 };
 
 /** README.txt: what each file is, what it proves, what it doesn't. Plain words; formulas at the end. */
@@ -956,8 +1044,12 @@ export const readmeText = (
     );
   }
   L.push('');
-  L.push(`TIED TO THE ${subject.toUpperCase()}`);
-  L.push(...tiedToPlantLines(ev, sigs, dnaReportDatedBy));
+  if (subject === 'document') {
+    L.push(...documentFileLines(ev));
+  } else {
+    L.push(`TIED TO THE ${subject.toUpperCase()}`);
+    L.push(...tiedToPlantLines(ev, sigs, dnaReportDatedBy));
+  }
   L.push('');
   L.push('HOW TO CHECK IT (nothing from VeilCore needed)');
   L.push(
@@ -1006,7 +1098,11 @@ export const readmeText = (
   for (const s of sigs) L.push(`- ${s.text}`);
   L.push('');
   L.push('WHAT THIS DOES NOT PROVE');
-  L.push('- That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.');
+  L.push(
+    subject === 'document'
+      ? "- That the document is genuine, that the issuer named in it issued it, or that what it says is true. The title, type, issuer and dates are the holder's own statements."
+      : '- That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.',
+  );
   L.push(`- Who holds the ${subject} or the record now.`);
   L.push("- That a signing key belongs to the lab it names. VeilCore doesn't vouch for anyone.");
   L.push(
@@ -1159,6 +1255,12 @@ export const bundleFiles = async (
         throw new BundleRefusal('The bundle couldn’t be made. Nothing was downloaded.');
       add(ev.labReport.fileIncluded, options.labFile.bytes);
     }
+  }
+  for (const d of ev.documentFiles ?? []) {
+    const picked = options.documentFiles ? await findBytes(options.documentFiles, d.sha256) : undefined;
+    if (!picked || files[`${dir}/${d.path}`])
+      throw new BundleRefusal('The bundle couldn’t be made. Nothing was downloaded.');
+    add(d.path, picked);
   }
   if (ev.signatures.length) add('lab/signatures.json', json(ev.signatures));
   if (ev.key) add('key/key-binding.json', json(ev.key));

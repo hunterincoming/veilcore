@@ -153,4 +153,13 @@ export const document = {
   'app.claim.check.what':
     'Lo que esto muestra: el número sellado en ese registro cumple el límite (o es ese valor). Lo que no: que un laboratorio lo midiera, ni que el certificado sea auténtico; el titular escribió los números. Cada límite probado sobre un número es público, y juntos lo acotan.',
   'app.claim.check.schema': 'Según el formulario publicado «{schema}».',
+  // EvidenceBundle.tsx: what differs for a document record.
+  'app.doc.bundle.keyIs':
+    '(La clave del registro es el identificador público de la clave creada para este documento al sellarlo. Su parte secreta queda en su copia de seguridad y nunca entra en el paquete.)',
+  'app.doc.bundle.includeFiles':
+    'Incluir una copia del documento. Sin ella, el paquete solo tiene el código de cada archivo, y quien lo compruebe necesitará el archivo aparte.',
+  'app.doc.bundle.chooseFiles': 'Elegir el archivo o archivos del documento',
+  'app.doc.bundle.checkedAgainst': 'Cada uno se compara con los archivos sellados en este registro antes de incluirlo.',
+  'app.doc.bundle.filesAria': 'Archivos del documento',
+  'app.doc.bundle.chooseOrUntick': 'Elija el archivo del documento o desmarque la casilla.',
 } satisfies Partial<AppTranslation>;

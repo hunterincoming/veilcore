@@ -57,7 +57,7 @@ const FIELD_LABELS: [string, string][] = [
   ['notes', 'Notes'],
   ['photoFingerprints', 'Photos'],
   ['profile', 'Kind of record'],
-  ['loggedAt', 'Sealed at (the breeder’s device clock)'],
+  ['loggedAt', 'Sealed at (the holder’s device clock)'],
   ['keyBinding', 'Names a key'],
   ['nonce', 'Random salt (keeps the proof code unguessable)'],
 ];
@@ -78,6 +78,24 @@ const STRAIN_LABELS: [string, string][] = [
   ['generation', 'Generation or passage'],
   ['madeOn', 'Made or isolated on (the holder’s statement)'],
   ['maker', 'Made or isolated by'],
+];
+
+/**
+ * A document record's own fields (veilcore/document-profile.ts, SPEC 11.11), first and in these
+ * words; the same as verify.html (its DOCUMENT_LABELS). The holder states all of them.
+ */
+const DOCUMENT_PROFILE = 'veilcore/profile/document/v1';
+const DOCUMENT_LABELS: [string, string][] = [
+  ['title', 'Title'],
+  ['type', 'Type'],
+  ['files', 'Files (sealed by SHA-256; the files themselves are not in the record)'],
+  ['issuer', 'Issued by (the holder’s statement)'],
+  ['reference', 'Reference'],
+  ['issued', 'Date on the document (the holder’s statement)'],
+  ['about', 'Records it concerns'],
+  ['holder', 'Held by'],
+  ['fieldSchema', 'Numbers sealed with it: form'],
+  ['fieldSetRoot', 'Numbers sealed with it: code that commits to them (the numbers are not shown)'],
 ];
 
 /** What a record that names its key says about it, here and in verify.html (word for word). */
@@ -104,12 +122,35 @@ export const fieldText = (key: string, v: unknown): string => {
       .join('; ');
   }
   if (key === 'deposits' && Array.isArray(v)) return v.length === 0 ? '(none)' : v.map(String).join('; ');
+  // A document's files: name, size and SHA-256 each (the same words as verify.html's fieldText).
+  if (key === 'files' && Array.isArray(v)) {
+    return v.length === 0
+      ? '(none)'
+      : v
+          .map((f) =>
+            isObject(f)
+              ? `${isString(f.name) ? f.name : '(no name)'}, ${isNumber(f.size) ? `${f.size} bytes` : 'size not given'}, SHA-256 ${isString(f.sha256) ? f.sha256 : '(missing)'}`
+              : String(f),
+          )
+          .join('; ');
+  }
+  if (key === 'about' && Array.isArray(v)) {
+    return v.length === 0
+      ? '(none)'
+      : v
+          .map((a) =>
+            isObject(a)
+              ? `${isString(a.name) && a.name ? a.name : '(no name)'}${isString(a.recordId) && a.recordId ? ` (record ${a.recordId})` : ''}`
+              : String(a),
+          )
+          .join('; ');
+  }
   if (key === 'photoFingerprints' && Array.isArray(v)) {
     return v.length === 0
       ? '(none)'
       : `${v.length} photo${v.length === 1 ? '' : 's'}, sealed by their codes: ${v.map(String).join(', ')}`;
   }
-  if (key === 'loggedAt' && isNumber(v)) return `${utcWords(v) ?? String(v)} (the breeder’s word only)`;
+  if (key === 'loggedAt' && isNumber(v)) return `${utcWords(v) ?? String(v)} (the holder’s word only)`;
   // The same words as verify.html (its fieldText): the record names a key; whether the key
   // itself is here depends on the holder (round 2 of the 15 Oct review: "Yes: 4bcad…" read as
   // the key being in the bundle, beside verify.html saying it wasn't).
@@ -121,10 +162,9 @@ export const fieldText = (key: string, v: unknown): string => {
 const sealedRows = (fields: Record<string, unknown>): [string, string][] => {
   const rows: [string, string][] = [];
   const seen = new Set<string>();
-  const labels =
-    fields.profile === STRAIN_PROFILE
-      ? [...STRAIN_LABELS, ...FIELD_LABELS.filter(([k]) => !STRAIN_LABELS.some(([s]) => s === k))]
-      : FIELD_LABELS;
+  const first =
+    fields.profile === STRAIN_PROFILE ? STRAIN_LABELS : fields.profile === DOCUMENT_PROFILE ? DOCUMENT_LABELS : [];
+  const labels = [...first, ...FIELD_LABELS.filter(([k]) => !first.some(([s]) => s === k))];
   for (const [k, label] of labels) {
     seen.add(k);
     if (Object.prototype.hasOwnProperty.call(fields, k)) rows.push([label, fieldText(k, fields[k])]);
@@ -395,7 +435,9 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
       'Each signature that checks was made with the key shown, over the SHA-256 shown. For a receipt, that is the code of the lab’s own record of the delivery, not of the sample.',
     );
   const doesNot: string[] = [
-    'That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.',
+    subject === 'document'
+      ? 'That the document is genuine, that the issuer named in it issued it, or that what it says is true. The title, type, issuer and dates are the holder’s statements. A matching file shows only that a file with exactly those bytes was in the holder’s hands by the date.'
+      : 'That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.',
     `Who holds the ${subject} or the record now.`,
     'That a signing key belongs to the lab it names. VeilCore doesn’t vouch for anyone.',
     `Any date at all until the batch root is found in the named transaction${ots ? ' (or the Bitcoin stamp checks)' : ''}.`,
@@ -474,7 +516,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   <div class="note">${p('This page is a printout of what the VeilCore site found when it made this bundle. It runs no code and checks nothing when opened. To check the files yourself, open verify.html in the same folder (it works offline); README.txt explains every file.')}</div>
 
   <h2>1. The record as it was sealed</h2>
-  ${p('Exactly what the proof code was made from, in the breeder’s own words.', 'muted')}
+  ${p('Exactly what the proof code was made from, in the holder’s own words.', 'muted')}
   ${table(sealedRows(fields), 'sealed')}
 
   <h2>2. Proof code, batch and transaction</h2>

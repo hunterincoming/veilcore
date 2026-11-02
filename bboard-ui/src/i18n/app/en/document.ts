@@ -155,4 +155,13 @@ export const document = {
   'app.claim.check.what':
     'What this shows: the number sealed in that record meets the bound (or is that value). What it doesn’t: that a laboratory measured it, or that the certificate is genuine; the holder typed the numbers. Every bound proved about a number is public, and together they narrow it.',
   'app.claim.check.schema': 'Under the published form “{schema}”.',
+  // EvidenceBundle.tsx: what differs for a document record.
+  'app.doc.bundle.keyIs':
+    '(The record’s key is the public ID of the key made for this document when you sealed it. Its secret part stays in your backup and never goes in the bundle.)',
+  'app.doc.bundle.includeFiles':
+    'Include a copy of the document. Without it, the bundle has only each file’s code, so whoever checks it needs the file from you separately.',
+  'app.doc.bundle.chooseFiles': 'Choose the document’s file(s)',
+  'app.doc.bundle.checkedAgainst': 'Each one is checked against the files sealed in this record before it goes in.',
+  'app.doc.bundle.filesAria': 'The document’s files',
+  'app.doc.bundle.chooseOrUntick': 'Choose the document’s file, or untick it.',
 };

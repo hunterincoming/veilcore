@@ -3,10 +3,15 @@
 // sent), seal it, see its page, compare the same file and a different one, copy the check link,
 // and open it as a stranger would: the proof code is recomputed from the link, the file is
 // compared byte for byte, and with nothing dating it the page says not to rely on it. A changed
-// link recomputes to another proof code. All files and records are test data.
+// link recomputes to another proof code. The evidence bundle, with a copy of one of its files,
+// checks offline in verify.html. All files and records are test data.
 // SPDX-License-Identifier: Apache-2.0
 import { createHash, randomBytes } from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
+import { unzipSync } from 'fflate';
+import { buildBatch } from 'veilcore-records';
 import {
   REAL_REGISTRY,
   expectNoErrors,
@@ -48,6 +53,40 @@ const standIn = async (page: Page) => {
     'GET /api/licenses': (route) => json(route, 200, []),
     'PUT /api/licenses': (route) => json(route, 200, { ok: true }),
     'GET /transfers/sent': (route) => json(route, 200, { transfers: [] }),
+    // The evidence route, as if the record were in a batch dated on the test network.
+    'GET /records/:record/evidence': async (route, url) => {
+      const id = decodeURIComponent(url.pathname.split('/')[2] ?? '');
+      const r = held.records.find((x) => x.id === id);
+      if (!r) return json(route, 404, { error: 'no such record for this holder key' });
+      const batch = await buildBatch([r.recordFingerprint], 'B-20261031-DOCS');
+      const anchor = {
+        chain: 'midnight',
+        network: 'preprod',
+        contractAddress: '7a'.repeat(32),
+        txHash: 'c3'.repeat(32),
+        blockHeight: 4243,
+        anchoredAt: new Date().toISOString(),
+        testNetwork: true,
+      };
+      return json(route, 200, {
+        format: 'veilcore-record-evidence/v1',
+        recordId: r.id,
+        record: r,
+        registryFirstSeen: new Date().toISOString(),
+        proof: { ...batch.proofs[r.recordFingerprint], anchor, anchors: [{ kind: 'ledger', ...anchor }] },
+        batch: {
+          batchId: batch.batchId,
+          root: batch.root,
+          sealedAt: batch.sealedAt,
+          recordCount: 1,
+          anchor,
+          earlierAnchors: [],
+          opentimestamps: { available: false, status: 'none', calendars: [] },
+        },
+        attestations: [],
+        attestationsTotal: 0,
+      });
+    },
   });
   return held;
 };
@@ -55,7 +94,8 @@ const standIn = async (page: Page) => {
 test('seal a document from its files, compare a file, and check it from the link as a stranger', async ({
   page,
   context,
-}) => {
+  browser,
+}, info) => {
   const errors = watch(page);
   await standIn(page);
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
@@ -106,6 +146,54 @@ test('seal a document from its files, compare a file, and check it from the link
     .locator('input[type=file]')
     .setInputFiles({ name: 'other.pdf', mimeType: 'application/pdf', buffer: OTHER });
   await expect(page.locator('[data-compare="no-match"]')).toBeVisible();
+
+  // 4b. The evidence bundle with a copy of the annex: a file the record doesn't seal is refused,
+  //     the annex goes in, and verify.html checks it all from disk with the network off.
+  await page.getByRole('button', { name: 'Download evidence bundle' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Download evidence bundle' });
+  await dialog.getByText(/^Include a copy of the document\./).click();
+  const picker = dialog.locator('input[type=file]');
+  await picker.setInputFiles({ name: 'other.pdf', mimeType: 'application/pdf', buffer: OTHER });
+  await dialog.getByRole('button', { name: /^Download$/ }).click();
+  await expect(dialog.getByText(/isn’t byte for byte any file sealed in this record/)).toBeVisible();
+  await picker.setInputFiles({ name: 'my copy.pdf', mimeType: 'application/pdf', buffer: ANNEX });
+  await expect(dialog.getByText('my copy.pdf')).toBeVisible();
+  const download = page.waitForEvent('download');
+  await dialog.getByRole('button', { name: /^Download$/ }).click();
+  await expect(dialog.getByText(/^Downloaded .+\.zip\./)).toBeVisible();
+  const zip = fs.readFileSync(await (await download).path());
+  const dir = info.outputPath('document-bundle');
+  for (const [file, bytes] of Object.entries(unzipSync(new Uint8Array(zip)))) {
+    const out = path.join(dir, file);
+    fs.mkdirSync(path.dirname(out), { recursive: true });
+    fs.writeFileSync(out, bytes);
+  }
+  const top = path.join(dir, fs.readdirSync(dir)[0]);
+  expect(fs.readFileSync(path.join(top, 'document/files/annex.pdf'))).toEqual(ANNEX);
+  const readme = fs.readFileSync(path.join(top, 'README.txt'), 'utf8').replace(/\s+/g, ' ');
+  expect(readme).toContain("THE DOCUMENT'S FILES");
+  expect(readme).toContain(`SHA-256 ${sha(PERMIT)}`);
+  await dialog.getByRole('button', { name: 'Close' }).click();
+
+  const offline = await browser.newContext({ offline: true, viewport: { width: 360, height: 800 } });
+  const requests: string[] = [];
+  await offline.route('**/*', (route) =>
+    route.request().url().startsWith('file:')
+      ? route.continue()
+      : (requests.push(route.request().url()), route.abort()),
+  );
+  const v = await offline.newPage();
+  const vErrors = watch(v);
+  await v.goto(`file://${path.join(top, 'verify.html')}`);
+  await expect(v.locator('body')).toHaveAttribute('data-checked', 'yes', { timeout: 20_000 });
+  await expect(v.getByText('Proof code matches', { exact: true })).toBeVisible();
+  const table = v.locator('table[data-sealed="matches"]');
+  await expect(table.locator('tr', { hasText: 'Title' })).toContainText('Practice permit 0042');
+  await expect(table.locator('tr', { hasText: 'Files' })).toContainText(sha(ANNEX));
+  await expect(table.locator('tr', { hasText: 'Plant name' })).toHaveCount(0);
+  expect(requests).toEqual([]);
+  expectNoErrors(vErrors);
+  await offline.close();
 
   // 5. The check link: everything after the #, and the record's own proof code.
   const proofCode = (
