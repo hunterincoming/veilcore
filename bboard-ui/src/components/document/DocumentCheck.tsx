@@ -12,7 +12,7 @@ import { readDocumentLink, type ReadLink } from '../../veilcore/document-link';
 import { Wordmark } from '../Wordmark';
 import { LanguageBar } from '../../i18n/LanguagePicker';
 import { useT } from '../../i18n/app';
-import { DocumentDate, DocumentFacts, Fact, FileCompare } from './DocumentParts';
+import { DocumentDate, DocumentFacts, Fact, FileCompare, seen } from './DocumentParts';
 
 export const DocumentCheck: React.FC = () => {
   const { t } = useT();
@@ -79,7 +79,7 @@ export const DocumentCheck: React.FC = () => {
                 {t('app.doc.check.inLink')}
               </Typography>
               <Typography variant="h6" component="h2" sx={{ mb: 1.5 }}>
-                {read.fields.title}
+                {seen(read.fields.title)}
               </Typography>
               <DocumentFacts fields={read.fields} checker />
             </Paper>

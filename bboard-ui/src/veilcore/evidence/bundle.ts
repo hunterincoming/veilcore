@@ -440,6 +440,29 @@ export const safeFileName = (name: string): string => {
   return cleaned || 'lab-report.bin';
 };
 
+/**
+ * A document file's name in the zip: the sealed name, kept readable in any language
+ * ("Resolución 41.pdf", "契約書.pdf"), but never a path, a hidden file or a control character.
+ * zipSync marks non-ASCII names as UTF-8, so zip tools show them as written.
+ */
+export const documentFileName = (name: string): string => {
+  const ext = /\.([A-Za-z0-9]{1,8})$/.exec(name)?.[1]?.toLowerCase();
+  const clean = (v: string) =>
+    v
+      .normalize('NFC')
+      .replace(/[\\/:*?"<>|]/g, '-')
+      .replace(/[^\p{L}\p{M}\p{N} ._()\-,'&+]/gu, '')
+      .replace(/ {2,}/g, ' ')
+      .replace(/^[.\s]+/, '')
+      .replace(/[.\s]+$/, '')
+      .trim();
+  let stem = clean(ext ? name.slice(0, -(ext.length + 1)) : name);
+  // Windows can't make a file called CON, NUL, COM1 and so on, whatever its extension.
+  if (/^(con|prn|aux|nul|com\d|lpt\d)$/i.test(stem)) stem = `_${stem}`;
+  if (!stem || /^[.\-_ ]*$/.test(stem)) stem = 'document';
+  return `${stem.slice(0, 110).trim()}.${ext ?? 'bin'}`;
+};
+
 /** The saved lab report's SHA-256: kept on the record since round 5, else from a lab signature it matches. */
 const savedSha = (record: StrainRecord, attestations: readonly Record<string, unknown>[]): string | undefined => {
   if (!record.dnaFingerprint) return undefined;
@@ -633,9 +656,10 @@ export const buildEvidence = async (
       }
       if (documentFiles.some((d) => d.sha256 === sha)) continue;
       // In a folder of their own; two different files can't take one name.
-      let name = safeFileName(isString(match.name) ? match.name : f.name);
-      for (let n = 2; used.has(name); n++) name = `${n}-${safeFileName(isString(match.name) ? match.name : f.name)}`;
-      used.add(name);
+      const base = documentFileName(isString(match.name) ? match.name : f.name);
+      let name = base;
+      for (let n = 2; used.has(name.toLowerCase()); n++) name = `${n}-${base}`;
+      used.add(name.toLowerCase());
       documentFiles.push({
         path: `${DOCUMENT_FILE_DIR}/${name}`,
         sha256: sha,
