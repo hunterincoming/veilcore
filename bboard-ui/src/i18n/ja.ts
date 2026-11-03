@@ -292,6 +292,8 @@ export const ja: Strings = {
   'm.live.claims.t': '1つの事実を証明する（クレーム）',
   'm.live.claims.main': 'メインネットワーク上にあり、メンテナンス鍵はありません。ウェブサイトからはまだ使えません。',
   'm.live.claims.not': 'ウェブサイトからの利用。',
+  'm.live.claims.live':
+    'はい、パソコンから。封印した証明書の数値を1つ、ほかを見せずに証明できます。スマートフォンではまだ試していません。',
   'm.live.lic.t': 'ライセンスとロイヤルティ',
   'm.live.lic.main': '最終テストが終わるまで停止中。',
   'm.live.lic.test': 'はい。本物のトランザクションで：ロイヤリティ、支払い、ライセンスの引き継ぎ。',
@@ -573,16 +575,27 @@ export const jaMainnet = ({
   chainReads = false,
   chainSends = false,
   agreementsLive = false,
+  claimsOnSite = false,
 }: {
   claimsOnMainnet: boolean;
   policyApproved: boolean;
   chainReads?: boolean;
   chainSends?: boolean;
   agreementsLive?: boolean;
+  claimsOnSite?: boolean;
 }): Strings => {
   const o = jaMainnetBase({ claimsOnMainnet, policyApproved, chainReads });
   if (!chainSends) return o;
-  const sent = { ...o, ...jaSends(o) };
+  const sent = {
+    ...o,
+    ...jaSends(o),
+    ...(claimsOnMainnet && claimsOnSite
+      ? {
+          'm.claims.status':
+            '2つ目のMidnightコントラクトで、Midnightのメインネットワーク上にあります。このウェブサイトでは、数値ごと封印した証明書の数値を1つ選び、それが上限以下か下限以上であること、またはちょうどその値であることを、ほかの数値を見せずに証明できます。パソコンをお使いください。スマートフォンではまだ試していません。上に挙げたほかの種類の証明は、このウェブサイトにはまだありません。',
+        }
+      : {}),
+  };
   return agreementsLive ? { ...sent, ...applyLiveSwaps(sent, JA_LIVE, 'ja') } : sent;
 };
 

@@ -287,6 +287,8 @@ export const es: Strings = {
   'm.live.claims.t': 'Probar un solo hecho',
   'm.live.claims.main': 'En la red principal, sin clave de mantenimiento. El sitio aún no puede usarlo.',
   'm.live.claims.not': 'Usarlo desde el sitio web.',
+  'm.live.claims.live':
+    'Sí, desde una computadora: probar un número de un certificado sellado sin mostrar el resto. En teléfonos todavía no se ha probado.',
   'm.live.lic.t': 'Licencias y regalías',
   'm.live.lic.main': 'Desactivado hasta una última prueba completa.',
   'm.live.lic.test': 'Sí, con transacciones reales: regalías, pagos, traspaso de una licencia.',

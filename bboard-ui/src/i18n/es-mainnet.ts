@@ -89,6 +89,10 @@ export const esMainnet = buildMainnet({
     'm.stat2.s':
       'Los dos contratos están en la red principal de Midnight. Los registros sellados en este sitio van a lotes que, por ahora, anclamos allí a mano.',
   },
+  claimsOnSite: {
+    'm.claims.status':
+      'Un segundo contrato de Midnight, en la red principal de Midnight. En este sitio web puede usarlo para probar un número de un certificado que selló con sus números: que es como máximo o como mínimo un límite, o exactamente un valor, sin mostrar el resto. Use una computadora; en teléfonos todavía no se ha probado. Las otras pruebas de arriba todavía no están en este sitio web.',
+  },
   claimsPending: {
     'm.claims.status':
       'Un segundo contrato de Midnight. En las pruebas previas al lanzamiento pasó todas las comprobaciones de extremo a extremo, con datos de marcadores inventados. Todavía no está en la red principal de Midnight ni en este sitio web.',

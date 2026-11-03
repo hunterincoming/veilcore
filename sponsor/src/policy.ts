@@ -55,11 +55,13 @@ export const MAINNET_AGREEMENTS = false;
 export const CLAIMS_CIRCUITS = ['proveRange', 'proveValue', 'proveAttested'] as const;
 
 /**
- * THE mainnet switch for claims, on the sponsor's side, like MAINNET_AGREEMENTS: false until
- * proving them in a browser has been measured on a laptop and a phone (docs/claims-screen.md).
- * Test networks pay for them once VEILCORE_CLAIMS_ADDRESS is set.
+ * THE mainnet switch for claims, on the sponsor's side, like MAINNET_AGREEMENTS. On since
+ * 2 November 2026: a real claim was proved end to end on the test network in a laptop's browser
+ * (31 October, about 80 seconds, block 3205450). Phones haven't been tried, so the site tells
+ * people to use a computer (docs/claims-screen.md). Still paid only on VeilCore's own claims
+ * contract (config.ts), and only once VEILCORE_CLAIMS_ADDRESS names it; test networks the same.
  */
-export const MAINNET_CLAIMS = false;
+export const MAINNET_CLAIMS = true;
 
 /** What the public endpoint pays for, unless SPONSOR_CIRCUITS (test networks only) says otherwise. */
 export const defaultCircuits = (mainnet: boolean): readonly string[] =>

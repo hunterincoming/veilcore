@@ -288,6 +288,8 @@ export const de: Strings = {
   'm.live.claims.t': 'Eine Tatsache beweisen (Claims)',
   'm.live.claims.main': 'Im Hauptnetz, ohne Wartungsschlüssel. Die Website kann ihn noch nicht nutzen.',
   'm.live.claims.not': 'Ihn über die Website nutzen.',
+  'm.live.claims.live':
+    'Ja, an einem Computer: eine Zahl aus einem versiegelten Zertifikat belegen, ohne den Rest zu zeigen. Auf Telefonen noch nicht ausprobiert.',
   'm.live.lic.t': 'Lizenzen und Lizenzgebühren',
   'm.live.lic.main': 'Abgeschaltet bis zu einem letzten Testlauf.',
   'm.live.lic.test': 'Ja, mit echten Transaktionen: Lizenzgebühren, Zahlungen, Weitergabe einer Lizenz.',

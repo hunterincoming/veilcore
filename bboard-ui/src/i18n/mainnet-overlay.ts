@@ -14,6 +14,8 @@ export type MainnetFlags = {
   chainSends?: boolean;
   /** Licenses are switched on at veilcore.org (config/copy.ts AGREEMENTS_LIVE); applied only with chainSends. */
   agreementsLive?: boolean;
+  /** Mainnet: the site offers "prove one number" (the sponsor pays for VeilCore's claims contract). Applied only with chainSends. */
+  claimsOnSite?: boolean;
 };
 
 /** Sentences that change when licenses go live: key → [the practice sentence, the live one]. */
@@ -53,6 +55,8 @@ export type MainnetWords = {
   notReads: Strings;
   /** The mainnet sponsor is live; `stat2` depends on the claims pin. */
   sends: (claimsOnMainnet: boolean) => Strings;
+  /** The site offers "prove one number" on the claims contract (with the sponsor live). */
+  claimsOnSite: Strings;
   /** Licenses switched on (with the sponsor live). */
   live: LiveSwaps;
 };
@@ -65,6 +69,7 @@ export const buildMainnet =
     chainReads = false,
     chainSends = false,
     agreementsLive = false,
+    claimsOnSite = false,
   }: MainnetFlags): Strings => {
     const o: Strings = {
       ...w.common,
@@ -75,6 +80,7 @@ export const buildMainnet =
       'm.status.keyLink': policyApproved ? w.keyLinkApproved : w.keyLinkProposed,
       ...(chainReads ? w.reads : w.notReads),
       ...(chainSends ? w.sends(claimsOnMainnet) : {}),
+      ...(chainSends && claimsOnMainnet && claimsOnSite ? w.claimsOnSite : {}),
     };
     return chainSends && agreementsLive ? { ...o, ...applyLiveSwaps(o, w.live, 'translated') } : o;
   };
