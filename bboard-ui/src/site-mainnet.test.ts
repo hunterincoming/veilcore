@@ -18,6 +18,7 @@
 // skipped when Chromium is missing. Run: npx vitest run --maxWorkers=1 src/site-mainnet.test.ts
 // SPDX-License-Identifier: Apache-2.0
 
+import type { MainnetFlags } from './i18n/mainnet-overlay';
 import { REQUIRED_FEATURES } from '../../scripts/registry-features.mjs';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createRequire } from 'node:module';
@@ -341,6 +342,39 @@ describe('the mainnet strings', () => {
           // Without the sponsor, licenses can't be live: nothing changes.
           const noSends = { ...base, chainSends: false };
           expect(build({ ...noSends, agreementsLive: true }), lang).toEqual(build(noSends));
+        }
+      }
+  });
+
+  it('with "prove one number" on the site, every language says so, and says use a computer; only that sentence changes', async () => {
+    const { LANGUAGES } = await import('./i18n/catalogs');
+    const { MAINNET_DRAFTS } = await import('./config/languages');
+    const NOT_HERE =
+      /isn't on this website|aren't on this website yet\.$|noch nicht\.$|todavía no está en este sitio|pas encore sur ce site\.$|組み込まれていません/i;
+    const COMPUTER = /computer|Computer|computadora|ordinateur|パソコン/;
+    const builds: [string, (f: MainnetFlags) => Record<string, string | undefined>][] = [
+      ['en', mainnetStrings],
+      ...MAINNET_DRAFTS.map((l) => [l, LANGUAGES[l].mainnet!] as [string, never]),
+    ];
+    for (const chainReads of [true, false])
+      for (const agreementsLive of [true, false]) {
+        const base = { claimsOnMainnet: true, policyApproved: true, chainReads, chainSends: true, agreementsLive };
+        for (const [lang, build] of builds) {
+          const before = build(base);
+          const on = build({ ...base, claimsOnSite: true });
+          expect(before['m.claims.status'], lang).toMatch(NOT_HERE);
+          expect(on['m.claims.status'], lang).toMatch(COMPUTER);
+          expect(
+            Object.keys(on).filter((k) => on[k] !== before[k]),
+            lang,
+          ).toEqual(['m.claims.status']);
+          // Without the sponsor, or with no pinned claims contract, nothing changes.
+          expect(build({ ...base, chainSends: false, claimsOnSite: true }), lang).toEqual(
+            build({ ...base, chainSends: false }),
+          );
+          expect(build({ ...base, claimsOnMainnet: false, claimsOnSite: true }), lang).toEqual(
+            build({ ...base, claimsOnMainnet: false }),
+          );
         }
       }
   });

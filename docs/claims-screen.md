@@ -39,12 +39,10 @@ Status: DESIGN AND BUILD, 29 October 2026. Test networks first. The claims contr
 
 ## The honest risks
 
-- **Proving in the browser at k=16 has not been measured.** The proof server on a 16 GB laptop
-  made `proveRange` in seconds (4 October). The browser's WebAssembly prover is slower and
-  single-threaded; the main contract's largest circuit is k=14. k=16 needs about four times the
-  memory and a 19.5 MB proving key, downloaded once. It may be fine on a laptop and too heavy
-  on a phone. **This has to be tried on the test site on a real laptop and a real phone before
-  it is offered on veilcore.org.** The page says "prove it on a computer" until then.
+- **Proving in the browser at k=16: measured on a laptop, not on a phone.** On 31 October a real
+  `proveRange` claim went from the test site in a laptop's browser to the test network in about
+  80 seconds (block 3205450), and its check link confirmed it. Phones haven't been tried, so
+  the screen and veilcore.org's "What's live where" say to use a computer.
 - **The numbers are the holder's statement.** A claim proves "the number this holder sealed is
   at most 0.3 %", not that a lab measured it. A lab-signed version (`proveAttested`, where the
   lab signs the record) is the strong form; it needs the lab's signing flow and comes next. The
@@ -52,8 +50,9 @@ Status: DESIGN AND BUILD, 29 October 2026. Test networks first. The claims contr
 - **Range claims leak.** Each bound proved is public; a series narrows the number (SPEC 4.5,
   "Disclosure accounting"). The screen shows what earlier claims on that number already reveal
   before proving another.
-- **The sponsor must pay for claims.** It pays for the main contract's calls today. Claims need
-  the claims contract's address and circuits added to its allowance, and a sponsor redeploy.
+- **The sponsor must pay for claims.** It pays only on the claims contract its
+  `VEILCORE_CLAIMS_ADDRESS` names, on mainnet only VeilCore's pinned one (`MAINNET_CLAIMS`, on
+  since 2 November), and only for `proveRange`, `proveValue` and `proveAttested`.
 
 ## Build order, and where it stands
 
@@ -71,10 +70,14 @@ Status: DESIGN AND BUILD, 29 October 2026. Test networks first. The claims contr
 3. **Done (29 Oct).** The check page for a claim link (`/check-claim`): the claim read per call
    from the indexer on this site's claims contract, compared exactly with the link, the record
    dated by its proof code recomputed from the claim and the key binding.
-4. **To do (Hunter).** On the test site: the test network's claims contract in the sponsor's
-   settings (`VEILCORE_CLAIMS_ADDRESS`; the site takes it from the sponsor when it is built), the
-   claims keys and the k=15 and k=16 parameters on the Mac (`deploy:test` refuses without them),
-   then a real claim on a laptop and on a phone. How long each took and whether the phone managed it decides what
-   veilcore.org offers.
-5. **Later.** A laboratory signing a certificate's record (`proveAttested`), so a claim is about
+4. **Done (31 Oct).** On the test site: a real claim from a laptop's browser, about 80 seconds,
+   confirmed by its check link. Not tried on a phone.
+5. **veilcore.org (2 Nov).** The mainnet sponsor pays for claims once its Railway settings have
+   `VEILCORE_CLAIMS_ADDRESS` set to VeilCore's claims contract
+   (`ef763eb4ad1846b716dbfa90c00560a9a943ffb4d1fc638b0707df5adefd070d`) and it is redeployed from
+   this code. `npm run deploy:mainnet` then reads that from the sponsor's status, checks it is the
+   pinned contract and that the claims keys and parameters are on the Mac, and builds the site
+   with claims on; with no claims contract on the sponsor, the site has none. Then one real claim
+   on veilcore.org from a laptop, and its check link opened in another browser.
+6. **Later.** A laboratory signing a certificate's record (`proveAttested`), so a claim is about
    numbers a lab sealed, not the holder's typing.

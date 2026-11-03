@@ -24,7 +24,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { computeCommitment, newNonce } from 'veilcore-records';
-import { IS_TEST_SITE, MAINNET_SENDS, useI18n } from '../../i18n';
+import { IS_TEST_SITE, MAINNET_SENDS, THIS_BUILD, useI18n } from '../../i18n';
 import { FOUNDERS_MAIL, RoleLine, SDK_REPO, SiteShell, X_HANDLE } from './SiteShell';
 import { FoldGroup, FoldItem, FoldPoint, usePhone } from './Fold';
 import { hasRecordsHere } from './returning';
@@ -297,12 +297,15 @@ const LIVE_ROWS = [
  * veilcore.org exactly as on the test site, so its cell says the same thing the test cell does.
  */
 type LiveRow = (typeof LIVE_ROWS)[number];
+const CLAIMS_ON_SITE = THIS_BUILD.claimsOnSite === true;
 const liveRows = (): readonly LiveRow[] =>
   LIVE_ROWS.map((r): LiveRow => {
     if (MAINNET_SENDS && r[0] === 'prove') return ['prove', true, true, false] as unknown as LiveRow;
     // Licenses switched on at veilcore.org (config/copy.ts AGREEMENTS_LIVE): on every build's
     // table, the test site's included, since the column is about veilcore.org.
     if (AGREEMENTS_LIVE && r[0] === 'lic') return ['lic', true, true, false] as unknown as LiveRow;
+    // "Prove one number" on veilcore.org (the sponsor pays for VeilCore's claims contract).
+    if (CLAIMS_ON_SITE && r[0] === 'claims') return ['claims', true, true, false] as unknown as LiveRow;
     return r;
   });
 const cellKey = (row: string, col: string) =>
@@ -310,7 +313,9 @@ const cellKey = (row: string, col: string) =>
     ? 'm.live.prove.test'
     : AGREEMENTS_LIVE && row === 'lic' && col === 'main'
       ? 'm.live.lic.live'
-      : `m.live.${row}.${col}`) as Parameters<ReturnType<typeof useI18n>['t']>[0];
+      : CLAIMS_ON_SITE && row === 'claims' && col !== 'not'
+        ? 'm.live.claims.live'
+        : `m.live.${row}.${col}`) as Parameters<ReturnType<typeof useI18n>['t']>[0];
 
 const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
   const { t } = useI18n();

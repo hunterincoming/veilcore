@@ -14,6 +14,10 @@
 // Without the sponsor the site is exactly what it was: nothing sent from the browser.
 // With it, the deploy first checks the sponsor says mainnet, VeilCore's pinned contract and
 // synced, and that the relay answers this site. Nothing is built if any of that is not so.
+//
+// Claims ("prove one number", docs/claims-screen.md) are on when the sponsor pays for them:
+// its /sponsor/status names a claims contract, which must be VeilCore's pinned one, and the
+// claims proving keys and the k=15 and k=16 parameters must be on this computer.
 // SPDX-License-Identifier: Apache-2.0
 
 import { execFileSync } from 'node:child_process';
@@ -69,6 +73,39 @@ export const sponsorProblem = (status, pinned, agreements = false) => {
   return undefined;
 };
 
+const CLAIMS_KEYS = ['proveRange', 'proveValue'].map((c) => `contract/src/managed/veilcore-claims/keys/${c}.prover`);
+const CLAIMS_PARAMS = ['bboard-ui/public/params/bls_midnight_2p15', 'bboard-ui/public/params/bls_midnight_2p16'];
+const FETCH_KEYS = 'npm exec --package=@veilcore/contracts@0.3.0 -- veilcore-keys fetch --to contract/src/managed';
+
+/**
+ * Whether veilcore.org offers claims, from the sponsor's /sponsor/status: only when the sponsor
+ * pays for a claims contract, only when that is VeilCore's pinned one, and only with the
+ * claims proving keys and parameters on this computer.
+ * @returns {{ ok: true, address: string, line: string } | { ok: false, problem: string }}
+ */
+export const mainnetClaims = (status, pinnedClaims, exists) => {
+  const raw = status?.claimsAddress;
+  if (raw === undefined || raw === null || raw === '')
+    return { ok: true, address: '', line: 'Claims: off (the sponsor names no claims contract).' };
+  const address = normaliseAddress(String(raw));
+  if (!pinnedClaims) return { ok: false, problem: 'The sponsor pays for claims, but no claims contract is pinned (api/src/deploy-guard.ts).' };
+  if (address !== pinnedClaims)
+    return { ok: false, problem: `The sponsor pays for claims on ${raw}, not VeilCore's claims contract ${pinnedClaims}.` };
+  const keys = CLAIMS_KEYS.filter((f) => !exists(f));
+  if (keys.length)
+    return {
+      ok: false,
+      problem: `The sponsor pays for claims but the claims proving keys are not on this computer (${keys.join(', ')}): run \`${FETCH_KEYS}\` first (it checks every file against the published fingerprints).`,
+    };
+  const params = CLAIMS_PARAMS.filter((f) => !exists(f));
+  if (params.length)
+    return {
+      ok: false,
+      problem: `Claims need the k=15 and k=16 parameters (${params.join(', ')}): run \`cd bboard-ui && node scripts/fetch-params.mjs && cd ..\` first.`,
+    };
+  return { ok: true, address, line: `Claims: on, claims contract ${address}.` };
+};
+
 const getJson = async (url) => {
   try {
     const r = await fetch(url, { signal: AbortSignal.timeout(20_000) });
@@ -120,9 +157,16 @@ const main = async () => {
   if (live && !sponsor)
     fail('Licenses are switched on (AGREEMENTS_LIVE), and they need the sponsor: set VEILCORE_MAINNET_SPONSOR and VITE_INDEXER_RELAY_URL, then run this again.');
 
+  // Always set, so an address left in this shell never reaches the build.
+  let claimsAddress = '';
   if (sponsor) {
-    const problem = sponsorProblem(await getJson(`${sponsor}/sponsor/status`), pins.veilcore, live);
+    const status = await getJson(`${sponsor}/sponsor/status`);
+    const problem = sponsorProblem(status, pins.veilcore, live);
     if (problem) fail(problem);
+    const claims = mainnetClaims(status, pins.claims, existsSync);
+    if (!claims.ok) fail(claims.problem);
+    claimsAddress = claims.address;
+    console.log(claims.line);
     const probe = await fetch(chain.VITE_INDEXER_URL, {
       method: 'POST',
       headers: { 'content-type': 'application/json', origin: 'https://veilcore.org' },
@@ -142,7 +186,13 @@ const main = async () => {
     console.log('No VEILCORE_MAINNET_SPONSOR: the site sends no transactions (as before).');
   }
 
-  const env = { ...process.env, VITE_API_BASE: API, ...chain, VITE_NETWORK_ID: 'mainnet' };
+  const env = {
+    ...process.env,
+    VITE_API_BASE: API,
+    ...chain,
+    VITE_NETWORK_ID: 'mainnet',
+    VITE_REAL_CHAIN_CLAIMS_ADDRESS: claimsAddress,
+  };
   delete env.VERCEL_TOKEN;
   const run = (cmd, args, opts = {}) => execFileSync(cmd, args, { stdio: 'inherit', env, ...opts });
 

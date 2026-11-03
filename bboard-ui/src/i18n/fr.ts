@@ -290,6 +290,8 @@ export const fr: Strings = {
   'm.live.claims.t': 'Prouver un seul fait',
   'm.live.claims.main': "Sur le réseau principal, sans clé de maintenance. Le site ne peut pas encore l'utiliser.",
   'm.live.claims.not': "L'utiliser depuis le site.",
+  'm.live.claims.live':
+    "Oui, depuis un ordinateur : prouver un chiffre d'un certificat scellé sans montrer le reste. Pas encore essayé sur téléphone.",
   'm.live.lic.t': 'Licences et redevances',
   'm.live.lic.main': 'Désactivé jusqu’à un dernier essai complet.',
   'm.live.lic.test': 'Oui, avec de vraies transactions : redevances, paiements, transmission d’une licence.',

@@ -115,8 +115,8 @@ describe('sponsor policy: claims (docs/claims-screen.md)', () => {
   it('never pays for a claim circuit on the main contract', async () => {
     expect(code(await sealedCall('proveRange'), withClaims)).toBe('circuit-not-allowed');
   });
-  it('is off on mainnet until MAINNET_CLAIMS is switched, and then only on VeilCore’s claims contract', async () => {
-    expect(MAINNET_CLAIMS).toBe(false);
+  it('is on for mainnet, and then only on VeilCore’s claims contract', async () => {
+    expect(MAINNET_CLAIMS).toBe(true);
     const { loadConfig } = await import('./config.js');
     const base = {
       SPONSOR_SEED: '11'.repeat(32),

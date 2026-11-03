@@ -397,6 +397,8 @@ export const en = {
   'm.live.claims.t': 'Proving one fact (claims)',
   'm.live.claims.main': 'On the main network, with no maintenance key. The website can’t use it yet.',
   'm.live.claims.not': 'Using it from the website.',
+  'm.live.claims.live':
+    "Yes, from a computer: prove one number from a certificate you sealed, without showing the rest. Phones haven't been tried.",
   'm.live.lic.t': 'Licenses and royalties',
   'm.live.lic.main': 'Switched off until a final test run.',
   'm.live.lic.test': 'Yes, with real transactions: royalties, payments, handing a license on.',

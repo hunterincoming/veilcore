@@ -89,6 +89,10 @@ export const frMainnet = buildMainnet({
     'm.stat2.s':
       "Les deux contrats sont sur le réseau principal de Midnight. Les enregistrements scellés sur ce site vont dans des lots que nous y ancrons à la main pour l'instant.",
   },
+  claimsOnSite: {
+    'm.claims.status':
+      "Un second contrat Midnight, sur le réseau principal de Midnight. Sur ce site, vous pouvez l'utiliser pour prouver un chiffre d'un certificat scellé avec ses chiffres : qu'il est au plus ou au moins une limite, ou exactement une valeur, sans montrer le reste. Utilisez un ordinateur ; les téléphones n'ont pas encore été essayés. Les autres preuves ci-dessus ne sont pas encore sur ce site.",
+  },
   claimsPending: {
     'm.claims.status':
       "Un second contrat Midnight. Lors des tests avant le lancement, il a réussi toutes les vérifications de bout en bout, avec des données de marqueurs inventées. Il n'est pas encore sur le réseau principal de Midnight, ni sur ce site.",

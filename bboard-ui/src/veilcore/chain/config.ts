@@ -8,7 +8,7 @@
 //   VITE_INDEXER_URL / VITE_INDEXER_WS_URL  the network's indexer (required on preprod: see INDEXERS)
 // SPDX-License-Identifier: Apache-2.0
 
-import { MAINNET_CONTRACT_ADDRESS, NETWORK } from '../../config/network';
+import { MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, NETWORK } from '../../config/network';
 
 const env = import.meta.env as unknown as Record<string, string | undefined>;
 
@@ -199,8 +199,9 @@ export type BrowserCircuit = (typeof BROWSER_CIRCUITS)[number];
 //   VITE_REAL_CHAIN_CLAIMS_ADDRESS=…   the claims contract on this network (64 hex characters)
 //
 // A claim proves one number from a sealed certificate (proveRange, proveValue) or a lab's
-// signature on a record (proveAttested). Offered only on test networks until proving them in
-// a browser has been measured on a laptop and a phone: the sponsor's MAINNET_CLAIMS and this
+// signature on a record (proveAttested). On mainnet since 2 November 2026 (measured in a
+// laptop's browser on the test network; phones untried, so the screen says use a computer),
+// and there only on VeilCore's pinned claims contract: the sponsor's MAINNET_CLAIMS and this
 // say the same.
 const claimsAddr = (env.VITE_REAL_CHAIN_CLAIMS_ADDRESS ?? '').trim().toLowerCase().replace(/^0x/, '');
 /** The claims contract this build calls, or undefined when none is configured. */
@@ -214,8 +215,9 @@ export type ClaimsCircuit = (typeof CLAIMS_BROWSER_CIRCUITS)[number];
 export const claimsNotReady = (): string | undefined => {
   const why = chainNotReady();
   if (why) return why;
-  if (NETWORK === 'mainnet') return 'Claims aren’t offered on the main network yet.';
   if (!CLAIMS_CONTRACT) return 'No claims contract is configured (VITE_REAL_CHAIN_CLAIMS_ADDRESS).';
+  if (NETWORK === 'mainnet' && !sameContract(CLAIMS_CONTRACT, MAINNET_CLAIMS_ADDRESS))
+    return 'The claims contract configured isn’t VeilCore’s on the main network.';
   if (CHAIN_CONTRACT && sameContract(CLAIMS_CONTRACT, CHAIN_CONTRACT))
     return 'The claims contract configured is the main contract.';
   return undefined;

@@ -90,6 +90,10 @@ export const deMainnet = buildMainnet({
     'm.stat2.s':
       'Beide Contracts laufen im Hauptnetz von Midnight. Datensätze, die auf dieser Website versiegelt werden, kommen in Stapel, die wir dort vorerst von Hand verankern.',
   },
+  claimsOnSite: {
+    'm.claims.status':
+      'Ein zweiter Midnight-Contract, im Hauptnetz von Midnight. Auf dieser Website können Sie damit eine Zahl aus einem Zertifikat belegen, das Sie mit seinen Zahlen versiegelt haben: dass sie höchstens oder mindestens einen Grenzwert erreicht oder genau einen Wert hat, ohne den Rest zu zeigen. Nutzen Sie dafür einen Computer; auf Telefonen ist es noch nicht ausprobiert. Die anderen Belege oben gibt es auf dieser Website noch nicht.',
+  },
   claimsPending: {
     'm.claims.status':
       'Ein zweiter Midnight-Contract. In den Tests vor dem Start hat er jede End-to-End-Prüfung bestanden, mit erfundenen Markerdaten. Im Hauptnetz von Midnight ist er noch nicht, und auf dieser Website auch nicht.',

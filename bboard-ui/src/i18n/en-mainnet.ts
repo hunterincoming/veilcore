@@ -108,6 +108,12 @@ const claimsLive: Overlay = {
     "Both contracts are on Midnight's main network. Records sealed on this site go into batches that we anchor there by hand for now.",
 };
 
+/** "Prove one number" is on this website (the sponsor pays for VeilCore's claims contract). */
+export const CLAIMS_ON_SITE: Overlay = {
+  'm.claims.status':
+    "A second Midnight contract, on Midnight's main network. On this website you can use it to prove one number from a certificate you sealed with its numbers: that it is at most or at least a limit, or exactly a value, without showing the rest. Use a computer; phones haven't been tried. The other kinds of proof above aren't on this website yet.",
+};
+
 /** Not pinned yet: the main contract is live, the claims contract is still to follow. */
 const claimsPending: Overlay = {
   'm.claims.status':
@@ -250,6 +256,7 @@ export const mainnetStrings = ({
   chainReads = false,
   chainSends = false,
   agreementsLive = false,
+  claimsOnSite = false,
 }: {
   claimsOnMainnet: boolean;
   policyApproved: boolean;
@@ -259,6 +266,8 @@ export const mainnetStrings = ({
   chainSends?: boolean;
   /** Licenses are switched on (AGREEMENTS_LIVE); applied only with chainSends. */
   agreementsLive?: boolean;
+  /** Mainnet: the site offers "prove one number" (the sponsor pays for VeilCore's claims contract). Applied only with chainSends. */
+  claimsOnSite?: boolean;
 }): Overlay => {
   const o: Overlay = {
     ...common,
@@ -267,6 +276,6 @@ export const mainnetStrings = ({
     ...chainStrings(chainReads),
   };
   if (!chainSends) return o;
-  const sent = { ...o, ...sendsStrings(o) };
+  const sent = { ...o, ...sendsStrings(o), ...(claimsOnMainnet && claimsOnSite ? CLAIMS_ON_SITE : {}) };
   return agreementsLive ? { ...sent, ...applyLiveSwaps(sent, LIVE_SWAPS, 'en') } : sent;
 };
