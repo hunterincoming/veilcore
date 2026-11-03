@@ -1,5 +1,5 @@
 // A strain or line record: one microbial strain, cell line or insect line (docs/strain-profile.md,
-// SPEC 11.9). Draft until it is marked final: test networks only (STRAIN_RECORDS_ENABLED).
+// SPEC 11.9). Version 1 final since 3 November 2026: offered on every network.
 //
 // Why one profile for all of these and not one each: a standard shouldn't need a new record
 // type for every organism. What a culture collection, a cell bank and an insect-rearing
