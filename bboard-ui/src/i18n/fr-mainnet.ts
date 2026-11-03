@@ -53,7 +53,8 @@ export const frMainnet = buildMainnet({
     'm.demo.label': "L'utiliser",
     'm.demo.title1': 'Créez un enregistrement',
     'm.demo.title2': 'ou vérifiez-en un.',
-    'm.demo.create.text': 'Enregistrez une plante ou un animal, gardez votre sauvegarde, puis voyez sa page.',
+    'm.demo.create.text':
+      'Une plante, un animal ou un document : scellez-le, gardez votre sauvegarde, puis voyez sa page.',
     'm.demo.privacy': 'Ce que ce site conserve →',
     'm.faq.4link1': 'Ce que ce site conserve →',
     'm.faq.2a':

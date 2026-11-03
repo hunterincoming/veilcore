@@ -42,7 +42,7 @@ export const fr: Strings = {
   'title.evidence': 'Les enregistrements comme preuve',
   'title.integrate': 'Intégrer VeilCore',
   'title.implementations': 'Implémentations',
-  'title.new': 'Enregistrer une plante ou un animal',
+  'title.new': 'Créer un enregistrement',
   'title.record': 'Enregistrement',
   'title.agreements': 'Contrats',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
@@ -79,9 +79,9 @@ export const fr: Strings = {
   'm.demo.label': 'Démo',
   'm.demo.title1': 'Essayez',
   'm.demo.title2': 'la démo.',
-  'm.demo.create.title': 'Enregistrer une plante ou un animal',
+  'm.demo.create.title': 'Créer un enregistrement',
   'm.demo.create.text':
-    'Enregistrez une plante ou un animal fictif, sauvegardez votre copie de secours, puis découvrez sa page.',
+    'Une plante, un animal ou un document fictif : scellez-le, sauvegardez votre copie de secours, puis découvrez sa page.',
   'm.demo.verify.title': 'Vérifier un enregistrement',
   'm.demo.verify.text':
     "Saisissez l'identifiant d'un enregistrement et voyez ce que son détenteur a divulgué et s'il est ancré.",
@@ -244,6 +244,16 @@ export const fr: Strings = {
   'm.postA.title': 'En service sur le réseau principal de Midnight',
   'm.postA.text':
     "Les deux contrats sont déployés sur le réseau principal de Midnight. Le contrat des preuves d'un fait n'a pas de clé de maintenance : personne, nous compris, ne peut le modifier.",
+  'm.postE.date': '2 nov. 2026',
+  'm.postE.tag': 'Preuve',
+  'm.postE.title': 'Un dossier prêt pour un tribunal, pour tout document',
+  'm.postE.text':
+    "La page d'un document télécharge désormais un fichier qu'un avocat ou un examinateur peut vérifier sans notre site : l'enregistrement tel que scellé, sa preuve, où il a été daté, une page qui fait les vérifications hors ligne, un résumé à imprimer et un modèle de déclaration. Vous pouvez y joindre une copie du document ; elle est d'abord comparée à l'enregistrement.",
+  'm.postD.date': '31 oct. 2026',
+  'm.postD.tag': 'Site web',
+  'm.postD.title': 'Sceller un document',
+  'm.postD.text':
+    "Permis, certificats, contrats : votre ordinateur calcule le code du fichier, et seul le code de preuve de l'enregistrement est daté sur Midnight. Le fichier ne quitte jamais votre appareil. Envoyez un lien de vérification avec le fichier : celui qui le reçoit voit que c'est le même fichier, octet pour octet, et quand vous l'aviez.",
   'm.postC.date': '19 oct. 2026',
   'm.postC.tag': 'Site web',
   'm.postC.title': 'Votre navigateur envoie ses propres transactions',

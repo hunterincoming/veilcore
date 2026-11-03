@@ -51,7 +51,7 @@ export const ja: Strings = {
   'title.evidence': '証拠としての記録',
   'title.integrate': 'VeilCoreの統合',
   'title.implementations': '実装',
-  'title.new': '植物か動物を記録する',
+  'title.new': '記録を作る',
   'title.record': '記録',
   'title.agreements': '契約',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
@@ -88,8 +88,8 @@ export const ja: Strings = {
   'm.demo.label': 'デモ',
   'm.demo.title1': 'デモを',
   'm.demo.title2': '試す。',
-  'm.demo.create.title': '植物か動物を記録する',
-  'm.demo.create.text': '架空の植物か動物を記録し、バックアップを保存して、そのページを開きます。',
+  'm.demo.create.title': '記録を作る',
+  'm.demo.create.text': '架空の植物、動物、または書類を封印し、バックアップを保存して、そのページを開きます。',
   'm.demo.verify.title': '記録を検証する',
   'm.demo.verify.text': '記録の識別子を入力すると、保有者が開示した内容と、アンカー済みかどうかを確認できます。',
   'm.demo.video.title': '仕組みを動画で見る',
@@ -247,6 +247,16 @@ export const ja: Strings = {
   'm.postA.title': 'Midnightのメインネットワークで稼働',
   'm.postA.text':
     '2つのコントラクトをMidnightのメインネットワークにデプロイしました。クレーム用コントラクトにはメンテナンス鍵がなく、私たちを含め誰も変更できません。',
+  'm.postE.date': '2026年11月2日',
+  'm.postE.tag': '証拠',
+  'm.postE.title': 'どんな書類にも、法廷で使えるファイルを',
+  'm.postE.text':
+    '書類のページから、弁護士や審査官が私たちのサイトなしで確認できるファイルを1つダウンロードできるようになりました。封印したときのままの記録、その証明、日付が付いた場所、オフラインで確認を行うページ、印刷用の要約、宣誓書の文例が入っています。書類のコピーも含められます。含める前に記録と照合されます。',
+  'm.postD.date': '2026年10月31日',
+  'm.postD.tag': 'ウェブサイト',
+  'm.postD.title': '書類を封印する',
+  'm.postD.text':
+    '許可証、証明書、契約書。ファイルのコードはあなたのパソコンで計算され、Midnightで日付が付くのは記録の証明コードだけです。ファイルが端末から出ることはありません。ファイルと一緒に確認リンクを送れば、受け取った人は、それがバイト単位で同じファイルであること、そしていつあなたが持っていたかを確認できます。',
   'm.postC.date': '2026年10月19日',
   'm.postC.tag': 'ウェブサイト',
   'm.postC.title': 'ブラウザが自分でトランザクションを送信',
@@ -713,7 +723,7 @@ const jaMainnetBase = ({
   'm.demo.label': '使ってみる',
   'm.demo.title1': '記録を作る、',
   'm.demo.title2': 'または確認する。',
-  'm.demo.create.text': '植物か動物を記録し、バックアップを保存して、そのページを開きます。',
+  'm.demo.create.text': '植物、動物、または書類を封印し、バックアップを保存して、そのページを開きます。',
   'm.demo.privacy': 'このサイトが保存するもの →',
   'm.faq.4link1': 'このサイトが保存するもの →',
   'm.faq.2a':
