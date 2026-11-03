@@ -223,7 +223,7 @@ const PAGE_TITLES: [RegExp, string][] = [
   [/^\/docs\/evidence/, 'Records in evidence'],
   [/^\/docs\/integrate/, 'Integrating VeilCore'],
   [/^\/implementations/, 'Implementations'],
-  [/^\/new/, 'Log a plant or animal'],
+  [/^\/new/, 'Make a record'],
   [/^\/record\//, 'Record'],
   [/^\/licenses?(\/|$)/, 'Agreements'],
 ];
@@ -246,7 +246,7 @@ const TITLE_KEYS: Record<string, StringKey> = {
   'Records in evidence': 'title.evidence',
   'Integrating VeilCore': 'title.integrate',
   Implementations: 'title.implementations',
-  'Log a plant or animal': 'title.new',
+  'Make a record': 'title.new',
   Record: 'title.record',
   Agreements: 'title.agreements',
 };

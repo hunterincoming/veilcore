@@ -53,7 +53,8 @@ export const esMainnet = buildMainnet({
     'm.demo.label': 'Úselo',
     'm.demo.title1': 'Cree un registro',
     'm.demo.title2': 'o compruebe uno.',
-    'm.demo.create.text': 'Registre una planta o un animal, guarde su copia de seguridad y luego vea su página.',
+    'm.demo.create.text':
+      'Una planta, un animal o un documento: séllelo, guarde su copia de seguridad y luego vea su página.',
     'm.demo.privacy': 'Qué guarda este sitio →',
     'm.faq.4link1': 'Qué guarda este sitio →',
     'm.faq.2a':

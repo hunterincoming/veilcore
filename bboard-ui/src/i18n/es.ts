@@ -44,7 +44,7 @@ export const es: Strings = {
   'title.evidence': 'Registros como prueba',
   'title.integrate': 'Integrar VeilCore',
   'title.implementations': 'Implementaciones',
-  'title.new': 'Registrar una planta o un animal',
+  'title.new': 'Crear un registro',
   'title.record': 'Registro',
   'title.agreements': 'Acuerdos',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
@@ -80,8 +80,9 @@ export const es: Strings = {
   'm.demo.label': 'Demo',
   'm.demo.title1': 'Pruebe',
   'm.demo.title2': 'la demo.',
-  'm.demo.create.title': 'Registrar una planta o un animal',
-  'm.demo.create.text': 'Registre una planta o un animal inventados, guarde su copia de seguridad y vea su página.',
+  'm.demo.create.title': 'Crear un registro',
+  'm.demo.create.text':
+    'Una planta, un animal o un documento inventados: séllelo, guarde su copia de seguridad y vea su página.',
   'm.demo.verify.title': 'Verificar un registro',
   'm.demo.verify.text': 'Ingrese el identificador de un registro y vea lo que su titular divulgó y si está anclado.',
   'm.demo.video.title': 'Ver cómo funciona',
@@ -241,6 +242,16 @@ export const es: Strings = {
   'm.postA.title': 'En la red principal de Midnight',
   'm.postA.text':
     'Ambos contratos están desplegados en la red principal de Midnight. El contrato de pruebas de un hecho no tiene clave de mantenimiento: nadie, ni siquiera nosotros, puede cambiarlo.',
+  'm.postE.date': '2 nov 2026',
+  'm.postE.tag': 'Prueba',
+  'm.postE.title': 'Un archivo listo para un tribunal, para cualquier documento',
+  'm.postE.text':
+    'La página de un documento ahora descarga un archivo que un abogado o un examinador puede comprobar sin nuestro sitio: el registro tal como se selló, su prueba, dónde se fechó, una página que hace las comprobaciones sin conexión, un resumen para imprimir y un texto de ejemplo para una declaración. Puede incluir una copia del documento; antes se compara con el registro.',
+  'm.postD.date': '31 oct 2026',
+  'm.postD.tag': 'Sitio web',
+  'm.postD.title': 'Sellar un documento',
+  'm.postD.text':
+    'Permisos, certificados, contratos: su computadora calcula el código del archivo y solo el código de prueba del registro se fecha en Midnight. El archivo nunca sale de su dispositivo. Envíe un enlace de comprobación con el archivo, y quien lo reciba verá que es el mismo archivo, byte a byte, y cuándo lo tenía usted.',
   'm.postC.date': '19 oct 2026',
   'm.postC.tag': 'Sitio web',
   'm.postC.title': 'Su navegador envía sus propias transacciones',

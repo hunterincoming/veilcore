@@ -54,7 +54,7 @@ export const deMainnet = buildMainnet({
     'm.demo.title1': 'Datensatz anlegen',
     'm.demo.title2': 'oder prüfen.',
     'm.demo.create.text':
-      'Erfassen Sie eine Pflanze oder ein Tier, speichern Sie Ihre Sicherungskopie und sehen Sie dann seine Seite.',
+      'Eine Pflanze, ein Tier oder ein Dokument: versiegeln, Sicherungskopie speichern und dann seine Seite ansehen.',
     'm.demo.privacy': 'Was diese Website speichert →',
     'm.faq.4link1': 'Was diese Website speichert →',
     'm.faq.2a':

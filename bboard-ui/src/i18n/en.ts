@@ -49,7 +49,7 @@ export const en = {
   'title.evidence': 'Records in evidence',
   'title.integrate': 'Integrating VeilCore',
   'title.implementations': 'Implementations',
-  'title.new': 'Log a plant or animal',
+  'title.new': 'Make a record',
   'title.record': 'Record',
   'title.agreements': 'Agreements',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
@@ -254,8 +254,8 @@ export const en = {
   'm.demo.lede':
     "No sign-up, no wallet. It's a test version, so use made-up details. Records are anchored in batches, by hand for now; licenses and lab agreements are simulated, and DNA report pairings aren't dated yet.",
   'm.demo.privacy': 'What the demo keeps →',
-  'm.demo.create.title': 'Log a plant or animal',
-  'm.demo.create.text': 'Log a made-up plant or animal, save your backup, then see its page.',
+  'm.demo.create.title': 'Make a record',
+  'm.demo.create.text': 'A made-up plant, animal or document: seal it, save your backup, then see its page.',
   'm.demo.verify.title': 'Verify a record',
   'm.demo.verify.text': "Enter a record's identifier and see what its holder disclosed and whether it is anchored.",
   'm.demo.video.title': 'Watch how it works',
@@ -289,6 +289,16 @@ export const en = {
   'm.updates.follow': 'Follow',
   // Dated posts. Facts from docs/mainnet-completeness.md (R4, M2) and
   // docs/deployment-record-revision-4.md ("Mainnet deployment").
+  'm.postE.date': '2 Nov 2026',
+  'm.postE.tag': 'Evidence',
+  'm.postE.title': 'A court-ready file for any document',
+  'm.postE.text':
+    "A document's page now downloads one file a lawyer or examiner can check without our website: the record as sealed, its proof, where it was dated, a page that runs the checks offline, a summary to print and sample text for a declaration. You can include a copy of the document; it's checked against the record first.",
+  'm.postD.date': '31 Oct 2026',
+  'm.postD.tag': 'Website',
+  'm.postD.title': 'Seal a document',
+  'm.postD.text':
+    "Permits, certificates, contracts: your computer works out the file's code, and only the record's proof code is dated on Midnight. The file never leaves your device. Send a check link with the file, and whoever gets it can see it's the same file, byte for byte, and when you had it.",
   'm.postC.date': '19 Oct 2026',
   'm.postC.tag': 'Website',
   'm.postC.title': 'Your browser sends its own transactions',
