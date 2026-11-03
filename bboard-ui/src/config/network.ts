@@ -148,10 +148,10 @@ export const ANIMAL_RECORDS_ENABLED: boolean = animalRecordsEnabledFor(NETWORK);
 
 /**
  * Strain and line records (veilcore/strain-profile.ts, docs/strain-profile.md): microbial
- * strains, cell lines, insect lines. The profile is a draft, so test networks only, as animal
- * records were before their v1 was final. Existing strain records show as strains everywhere.
+ * strains, fungi, cell lines, insect lines. On in every build, mainnet included, since the
+ * profile's version 1 was marked final (SPEC 11.9, 3 November 2026).
  */
-export const STRAIN_RECORDS_ENABLED: boolean = NETWORK !== 'mainnet';
+export const STRAIN_RECORDS_ENABLED = true;
 
 /**
  * Document records (veilcore/document-profile.ts, docs/document-profile.md): a permit, a COA, a
