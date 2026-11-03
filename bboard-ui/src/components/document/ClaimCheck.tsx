@@ -22,11 +22,15 @@ export const ClaimCheck: React.FC = () => {
   const link = readClaimLink(hash);
   const [verdict, setVerdict] = useState<ClaimVerdict>();
   useEffect(() => {
+    // A new link starts unchecked: the last link's "Proved on Midnight" must never show under
+    // this one's claim while it is being read (security round, 2 Nov 2026).
+    setVerdict(undefined);
     if (!link) return;
     let live = true;
-    void import('../../veilcore/chain/claim-check').then(({ checkClaim }) =>
-      checkClaim(link).then((v) => live && setVerdict(v)),
-    );
+    void import('../../veilcore/chain/claim-check')
+      .then(({ checkClaim }) => checkClaim(link))
+      .catch((e: unknown) => ({ ok: false as const, reason: e instanceof Error ? e.message : String(e) }))
+      .then((v) => live && setVerdict(v));
     return () => {
       live = false;
     };
@@ -65,7 +69,14 @@ export const ClaimCheck: React.FC = () => {
         ) : (
           <Stack spacing={2.5}>
             <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
-              <Typography variant="h6" component="p" sx={{ mb: 1 }} data-claim-statement="">
+              {/* What the link says: plain until the chain confirms it, never styled as a fact before. */}
+              <Typography
+                variant="h6"
+                component="p"
+                color={verdict?.ok ? 'text.primary' : 'text.secondary'}
+                sx={{ mb: 1, textDecoration: verdict && !verdict.ok ? 'line-through' : 'none' }}
+                data-claim-statement=""
+              >
                 {claimWords(link, tr)}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>

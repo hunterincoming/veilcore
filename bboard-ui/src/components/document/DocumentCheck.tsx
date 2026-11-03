@@ -20,6 +20,8 @@ export const DocumentCheck: React.FC = () => {
   const [read, setRead] = useState<ReadLink>();
   useEffect(() => {
     let live = true;
+    // A new link starts blank: the last link's document must never show under this one's.
+    setRead(undefined);
     void readDocumentLink(hash).then((r) => live && setRead(r));
     return () => {
       live = false;
