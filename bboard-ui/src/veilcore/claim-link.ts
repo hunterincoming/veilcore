@@ -90,6 +90,8 @@ export const readClaimLink = (hash: string): MadeClaim | undefined => {
     typeof o.slot === 'number' && Number.isInteger(o.slot) && o.slot >= 0 && o.slot < 16 ? o.slot : undefined;
   if (!kind || !contract || !HEX64.test(contract) || !txId || !/^[0-9a-f]{2,256}$/.test(txId)) return undefined;
   if (!record || !HEX64.test(record) || !schema || !SCHEMAS[schema] || slot === undefined) return undefined;
+  // Only a number the schema names: a slot it doesn't describe has no meaning to show a checker.
+  if (!SCHEMAS[schema].slots.some((s) => s.slot === slot && s.type === 'uint')) return undefined;
   const keyBinding = str('keyBinding');
   if (keyBinding !== undefined && !HEX64.test(keyBinding)) return undefined;
   let attested: MadeClaim['attested'];

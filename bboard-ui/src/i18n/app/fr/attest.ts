@@ -72,6 +72,8 @@ export const attest = {
   'app.labsign.req.what':
     'Vérifiez chaque ligne d’après votre rapport. Vous signez tout : les chiffres et les détails du document.',
   'app.labsign.req.k.title': 'Document',
+  'app.labsign.req.k.type': 'Type',
+  'app.labsign.req.k.about': 'Concerne',
   'app.labsign.req.k.issuer': 'Émis par',
   'app.labsign.req.k.reference': 'Référence',
   'app.labsign.req.k.holder': 'Titulaire',

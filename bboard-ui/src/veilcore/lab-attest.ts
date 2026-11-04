@@ -34,12 +34,14 @@ import {
   type JubjubPoint,
 } from '../../../contract/src/attest';
 import { claimMaterial, commitmentHex } from './claims-input';
-import type { DocumentRecordLike } from './document-profile';
-import { SCHEMAS, type HeldFieldSet } from './field-set';
+import { checkedDocumentFields, isDocument, type DocumentRecordLike } from './document-profile';
+import { SCHEMAS, fieldSetOf, type HeldFieldSet } from './field-set';
+import { fieldSetRootOf } from 'veilcore-records';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const DEC = /^(0|[1-9]\d{0,99})$/;
 const h64 = (n: bigint): string => n.toString(16).padStart(64, '0');
+const toHex = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
 const unhex = (h: string): Uint8Array => Uint8Array.from(h.match(/../g) ?? [], (b) => parseInt(b, 16));
 
 /** A key as text: x then y, 64 hex characters each. What a laboratory publishes. */
@@ -161,9 +163,34 @@ export const readLabRequest = async (text: string): Promise<LabRequest> => {
     rec.fieldSet === null
   )
     throw new Error('That file isn’t a request for a laboratory signature.');
-  if (!SCHEMAS[rec.fieldSet.schema]) throw new Error('The request uses numbers this site doesn’t publish a form for.');
+  const schema = SCHEMAS[rec.fieldSet.schema];
+  if (!schema) throw new Error('The request uses numbers this site doesn’t publish a form for.');
+  // Everything committed must be something the laboratory is shown: a number only in a slot the
+  // form names (a value hidden in an unnamed slot would be signed unseen), written one way only
+  // (so what is shown is exactly the number), and the record's sealed root must be the root of
+  // these numbers, not merely a root the request names.
+  const values = rec.fieldSet.values as unknown;
+  const shown = new Set(schema.slots.filter((s) => s.type === 'uint').map((s) => s.slot));
+  if (
+    !Array.isArray(values) ||
+    values.length !== 16 ||
+    values.some((v, i) => v !== null && (typeof v !== 'string' || !/^(0|[1-9]\d{0,30})$/.test(v) || !shown.has(i))) ||
+    typeof rec.fieldSet.fieldSecret !== 'string' ||
+    !HEX64.test(rec.fieldSet.fieldSecret)
+  )
+    throw new Error('The request’s numbers aren’t in the form it names. Don’t sign it; ask for it again.');
+  // A document record in the profile's canonical form (lengths, types, file codes): what the
+  // laboratory reads is the same thing the record's own page would show.
+  try {
+    if (!isDocument(rec)) throw new Error('it isn’t a document record.');
+    checkedDocumentFields(rec);
+  } catch (e) {
+    throw new Error(`The request can’t be checked: ${e instanceof Error ? e.message : String(e)}`);
+  }
   let commitment: string;
   try {
+    const root = toHex(await fieldSetRootOf(await fieldSetOf(rec.fieldSet)));
+    if (root !== rec.fieldSetRoot) throw new Error('its numbers don’t make the root it sealed.');
     commitment = commitmentHex(await claimMaterial(rec));
   } catch (e) {
     throw new Error(`The request can’t be checked: ${e instanceof Error ? e.message : String(e)}`);

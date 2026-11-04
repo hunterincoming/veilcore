@@ -357,7 +357,7 @@ test('a laboratory signs a similarity certificate on /lab, and the holder adds t
   await lab
     .locator('[data-lab-request-file]')
     .setInputFiles({ name: 'req.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(changed)) });
-  await expect(lab.locator('[data-lab-error]')).toContainText('don’t make the record');
+  await expect(lab.locator('[data-lab-error]')).toContainText('don’t make the root');
   await expect(lab.locator('[data-lab-request-view]')).toHaveCount(0);
 
   await lab

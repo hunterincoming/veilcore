@@ -25,7 +25,7 @@ import { keyShort } from '../../veilcore/lab-key-text';
 import { Wordmark } from '../Wordmark';
 import { LanguageBar } from '../../i18n/LanguagePicker';
 import { useT } from '../../i18n/app';
-import { Fact } from './DocumentParts';
+import { Fact, seen, typeWords } from './DocumentParts';
 import { schemaWords, slotWords } from './NumbersFields';
 
 type Key = LabKeyFile & { readonly secretN: bigint };
@@ -44,20 +44,24 @@ const RequestView: React.FC<{ req: LabRequest }> = ({ req }) => {
   const { t } = tr;
   const r = req.record;
   const schema = SCHEMAS[r.fieldSet.schema];
+  // What someone else typed, with no invisible or direction characters, line by line: the
+  // laboratory must read exactly what it signs (DocumentParts seen).
   const line = (label: string, v: string | undefined) =>
     v ? (
       <Fact label={label}>
-        <span style={{ whiteSpace: 'pre-wrap' }}>{v}</span>
+        <span style={{ whiteSpace: 'pre-wrap' }}>{v.split('\n').map(seen).join('\n')}</span>
       </Fact>
     ) : null;
   return (
     <Stack spacing={1.25} data-lab-request-view="">
       {line(t('app.labsign.req.k.title'), r.strainName)}
+      {line(t('app.labsign.req.k.type'), r.document?.type ? typeWords(r.document.type, tr) : undefined)}
       {line(t('app.labsign.req.k.issuer'), r.document?.issuer)}
       {line(t('app.labsign.req.k.reference'), r.refId)}
       {line(t('app.labsign.req.k.holder'), r.bredBy)}
       {line(t('app.labsign.req.k.issued'), r.dateCreated)}
       {line(t('app.labsign.req.k.notes'), r.notes)}
+      {line(t('app.labsign.req.k.about'), (r.document?.about ?? []).map((a) => a.name).join('\n'))}
       {(r.document?.files ?? []).length > 0 &&
         line(t('app.labsign.req.k.files'), (r.document?.files ?? []).map((f) => `${f.name}  ${f.sha256}`).join('\n'))}
       {line(t('app.labsign.req.k.form'), schemaWords(r.fieldSet.schema, tr))}

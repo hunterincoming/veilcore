@@ -99,10 +99,38 @@ describe('a request, signed by a laboratory', () => {
     const values = [...req.record.fieldSet.values];
     values[0] = '9300';
     const changedNumber = { ...req, record: { ...req.record, fieldSet: { ...req.record.fieldSet, values } } };
-    await expect(readLabRequest(JSON.stringify(changedNumber))).rejects.toThrow(/don’t make the record/);
+    await expect(readLabRequest(JSON.stringify(changedNumber))).rejects.toThrow(/don’t make the root/);
     const changedTitle = { ...req, record: { ...req.record, strainName: 'Something else' } };
     await expect(readLabRequest(JSON.stringify(changedTitle))).rejects.toThrow(/don’t make the record/);
     await expect(readLabRequest('{"kind":"veilcore-lab-request"}')).rejects.toThrow(/isn’t a request/);
+  });
+
+  it('is refused when anything committed would be signed unseen, or written two ways', async () => {
+    const req = await labRequestFor(await similarityRecord());
+    const withValues = (values: (string | null)[]) => ({
+      ...req,
+      record: { ...req.record, fieldSet: { ...req.record.fieldSet, values } },
+    });
+    const v = [...req.record.fieldSet.values];
+    // A number in slot 9, which the form doesn't name, so the laboratory would never see it.
+    const hidden = [...v];
+    hidden[9] = '1';
+    await expect(readLabRequest(JSON.stringify(withValues(hidden)))).rejects.toThrow(/aren’t in the form/);
+    // The same number written another way.
+    for (const odd of ['09437', '0x24dd', ' 9437', '-1', '9437.0']) {
+      const w = [...v];
+      w[0] = odd;
+      await expect(readLabRequest(JSON.stringify(withValues(w))), odd).rejects.toThrow(/aren’t in the form/);
+    }
+    await expect(readLabRequest(JSON.stringify(withValues(v.slice(0, 4))))).rejects.toThrow(/aren’t in the form/);
+    // A sealed root that isn't these numbers' root, with the commitment recomputed to match.
+    const lying = { ...req.record, fieldSetRoot: 'ab'.repeat(32) };
+    const lyingReq = { ...req, record: lying, commitment: commitmentHex(await claimMaterial(lying)) };
+    await expect(readLabRequest(JSON.stringify(lyingReq))).rejects.toThrow(/don’t make the root/);
+    // Not a document record at all.
+    const plant = { ...req.record, profile: 'veilcore/profile/cannabis/v1' };
+    const plantReq = { ...req, record: plant, commitment: commitmentHex(await claimMaterial(plant)) };
+    await expect(readLabRequest(JSON.stringify(plantReq))).rejects.toThrow(/isn’t a document record/);
   });
 
   it('gives a signature that is refused on any other record, by any other key, or altered', async () => {
@@ -214,5 +242,17 @@ describe('on the claims contract', () => {
     expect(bad({ txId: 'ab', attester: 'aa' })).toBeUndefined();
     expect(bad(null)).toBeUndefined();
     expect(bad({ txId: 'ab', attester: 'aa'.repeat(64) })).toBeDefined();
+    // A claim on a slot the schema doesn't name is not a claim this page can describe.
+    const link: MadeClaim = {
+      kind: 'range',
+      contract: CONTRACT,
+      txId: 'ab'.repeat(32),
+      record: 'ee'.repeat(32),
+      schema: SOY,
+      slot: 9,
+      op: 'at-most',
+      bound: '1',
+    };
+    expect(readClaimLink(claimLink(link, 'https://veilcore.org').split('/check-claim')[1])).toBeUndefined();
   });
 });

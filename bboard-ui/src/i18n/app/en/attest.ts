@@ -75,6 +75,8 @@ export const attest = {
   'app.labsign.req.what':
     'Check every line against your report. You sign all of it: the numbers and the details of the document.',
   'app.labsign.req.k.title': 'Document',
+  'app.labsign.req.k.type': 'Type',
+  'app.labsign.req.k.about': 'About',
   'app.labsign.req.k.issuer': 'Issued by',
   'app.labsign.req.k.reference': 'Reference',
   'app.labsign.req.k.holder': 'Holder',

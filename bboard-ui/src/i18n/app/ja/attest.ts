@@ -71,6 +71,8 @@ export const attest = {
   'app.labsign.req.what':
     'すべての行を報告書と照合してください。数値と書類の詳細、そのすべてに署名することになります。',
   'app.labsign.req.k.title': '書類',
+  'app.labsign.req.k.type': '種類',
+  'app.labsign.req.k.about': '対象',
   'app.labsign.req.k.issuer': '発行者',
   'app.labsign.req.k.reference': '参照番号',
   'app.labsign.req.k.holder': '保有者',

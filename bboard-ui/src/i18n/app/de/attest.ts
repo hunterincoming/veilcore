@@ -72,6 +72,8 @@ export const attest = {
   'app.labsign.req.what':
     'Prüfen Sie jede Zeile gegen Ihren Bericht. Sie signieren alles: die Zahlen und die Angaben zum Dokument.',
   'app.labsign.req.k.title': 'Dokument',
+  'app.labsign.req.k.type': 'Art',
+  'app.labsign.req.k.about': 'Betrifft',
   'app.labsign.req.k.issuer': 'Ausgestellt von',
   'app.labsign.req.k.reference': 'Referenz',
   'app.labsign.req.k.holder': 'Inhaber',
