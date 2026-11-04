@@ -28,6 +28,8 @@ export const attest = {
   'app.doc.slot.damOutcome': 'Résultat de la mère (0 accepté, 1 douteux, 2 exclu)',
   'app.doc.slot.trioConflicts': 'Conflits dans le trio',
   'app.doc.slot.trioOutcome': 'Résultat du trio (0 accepté, 1 douteux, 2 exclu)',
+  'app.doc.slot.sire': 'N° d’enregistrement du père',
+  'app.doc.slot.dam': 'N° d’enregistrement de la mère',
   'app.doc.nums.badWhole': 'Un nombre entier, comme 5103.',
   'app.claim.boundBadWhole': 'Un nombre entier.',
 
@@ -43,6 +45,8 @@ export const attest = {
   'app.labnums.cantUse': 'Ce rapport contient des chiffres inutilisables : {reason}',
   'app.labnums.otherPlant': 'ils portent sur une autre plante.',
   'app.labnums.otherReport': 'ils désignent un autre fichier de rapport.',
+  'app.labnums.oldCode':
+    'Les chiffres ne peuvent accompagner qu’un rapport envoyé avec un code de laboratoire plus récent. Demandez un nouveau code à l’obtenteur.',
   'app.attest.title': 'Signature du laboratoire',
   'app.attest.signedBy': 'Clé de signature {key}.',
   'app.attest.publishText': 'Publiez la signature sur Midnight pour que les liens que vous copiez puissent la montrer.',

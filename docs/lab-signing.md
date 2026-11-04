@@ -29,10 +29,13 @@ VeilCore says exactly what it can check and nothing more.
    sealed field it wrote: its result name, its registered name, the breeder's name from the plant
    record, the date, the report file's SHA-256, the plant by name, and the numbers with a fresh
    field secret. It signs the record's commitment with its claims key.
-3. **It binds the key, per record.** It publishes an ordinary attestation from its attester key
-   (type `other`, id ending `_ck1_` + an owner proof): about the numbers record, naming the claims
-   key and the plant's proof code. The owner proof is the claims key's own signature naming the
-   attester, so no other registered lab can post a binding to a key it doesn't hold.
+3. **It binds the key, per record, to its report.** It signs the report as always, then publishes an
+   ordinary attestation from its attester key (type `other`, id ending `_ck1_` + an owner proof):
+   about the numbers record, naming the claims key, the plant's proof code and that report
+   signature's id. The owner proof is the claims key's own signature naming the attester, so no
+   other registered lab can post a binding to a key it doesn't hold. A checker names the lab only
+   while that report signature stands: withdrawing the report, from any device, withdraws the name.
+   Only fields the commitment covers ever reach the breeder's record.
 4. **Locked into the report.** The record and signature travel inside the report, locked to the
    breeder (a third padding trailer, `lab-results.ts`); the report's bytes and its own signature
    are unchanged. Withdrawing or correcting the report withdraws the binding too.
@@ -70,4 +73,9 @@ a claim can disclose which variety was compared (`proveValue`).
 
 Built after four independent reviews on 4 November 2026 (animal genetics, plant varieties, the lab
 key trust model, a skeptic) and an independent attack on this design, all of whose nine changes
-are in. The first version (a separate /lab page with files) was withdrawn the same day.
+are in. The first version (a separate /lab page with files) was withdrawn the same day. A third
+independent attack on the finished build found two real holes (a lab could add uncommitted fields
+to the breeder's record; a withdrawal could miss the numbers if the lab's browser had lost its
+note), both fixed with tests, plus smaller ones: a self-named lab no longer gets a green box, the
+genetic forms require what was compared (and parentage now names the sire and dam), and only an
+Ed25519 key is read for the derived key.

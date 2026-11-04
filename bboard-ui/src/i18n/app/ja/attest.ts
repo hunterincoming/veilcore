@@ -28,6 +28,8 @@ export const attest = {
   'app.doc.slot.damOutcome': '母の判定（0 適合、1 疑義、2 否定）',
   'app.doc.slot.trioConflicts': 'トリオでの不一致数',
   'app.doc.slot.trioOutcome': 'トリオの判定（0 適合、1 疑義、2 否定）',
+  'app.doc.slot.sire': '父の登録番号',
+  'app.doc.slot.dam': '母の登録番号',
   'app.doc.nums.badWhole': '整数で入力してください（例：5103）。',
   'app.claim.boundBadWhole': '整数で入力してください。',
 
@@ -43,6 +45,8 @@ export const attest = {
   'app.labnums.cantUse': 'この報告書の数値は使用できません：{reason}',
   'app.labnums.otherPlant': '別の植物についての数値です。',
   'app.labnums.otherReport': '別の報告書ファイルを指しています。',
+  'app.labnums.oldCode':
+    '数値を送れるのは、新しい検査機関コードで送る報告書だけです。育成者に新しいコードを依頼してください。',
   'app.attest.title': '検査機関の署名',
   'app.attest.signedBy': '署名鍵 {key}。',
   'app.attest.publishText': 'コピーするリンクで署名を示せるよう、署名をMidnight上に公開してください。',

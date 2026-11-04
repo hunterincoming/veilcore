@@ -1058,49 +1058,52 @@ export const SendResultsPanel: React.FC<{
       if (record.receivedFrom && (await publicFingerprintOf(record.receivedFrom)) !== subject) {
         throw new Error(t('app.lab.out.notConfirmed'));
       }
-      // Numbers the lab signs (docs/lab-signing.md): the lab writes the record, signs it with the
-      // claims key its own attester key makes, and binds that key to this record about this
-      // plant. The binding is published first; if anything after fails, it is withdrawn.
-      let numbersBytes: Uint8Array | undefined;
-      let bindingId: string | undefined;
-      const nums = LAB_SIGNING_ENABLED && numSchema ? numbersOf(numSchema, numTyped) : undefined;
-      if (nums?.bad.length) throw new Error(t('app.doc.need.numbers'));
-      if (nums?.any) {
-        const { makeLabNumbers } = await import('../../veilcore/lab-numbers');
-        const { bindingHash, bindingIdSuffix, claimsKeyFor } = await import('../../veilcore/claims-key');
-        const made = await makeLabNumbers(attester.keypair.privateKey, {
-          title: numTitle.trim() || file.name,
-          labName: attester.displayName ?? '',
-          holder: record.bredBy || t('app.lab.card.unknownBreeder'),
-          plantName: record.strainName,
-          issued: new Date().toISOString().slice(0, 10),
-          report: { name: file.name, sha256: file.sha, size: file.bytes.length },
-          schema: numSchema,
-          values: nums.values,
-        });
-        const k = claimsKeyFor(attester.keypair.privateKey);
-        const bound = await attestRecord(
-          attester,
-          made.commitment,
-          bindingHash(made.keyText, subject),
-          'other',
-          bindingIdSuffix(k, attester.keypair.publicKey),
-        );
-        if (bound.error || !bound.attestationId)
-          throw new Error(t('app.lab.out.notRecorded', { error: bound.error ?? t('app.lab.out.noAnswer') }));
-        bindingId = bound.attestationId;
-        numbersBytes = new TextEncoder().encode(
-          JSON.stringify({ ...made.numbers, about: subject, binding: bindingId }),
-        );
-      }
-      const locked = await lockReport(file.bytes, lock, kind, numbersBytes);
       // The registry links the signature when the file arrives, so the signature comes
       // first; if the file then doesn't arrive, the signature is withdrawn at once.
       const signed = await attestRecord(attester, subject, doc, 'laboratory-report', salt ? LAB_DOC_ID_SUFFIX : '');
-      if (signed.error || !signed.attestationId) {
-        if (bindingId) await retract(attester, bindingId, 'issued-in-error');
+      if (signed.error || !signed.attestationId)
         throw new Error(t('app.lab.out.notRecorded', { error: signed.error ?? t('app.lab.out.noAnswer') }));
+      // Numbers the lab signs (docs/lab-signing.md): the lab writes the record, signs it with the
+      // claims key its own attester key makes, and binds that key to this record, about this
+      // plant, for the report signature just made: withdrawing that withdraws the name too.
+      let numbersBytes: Uint8Array | undefined;
+      let bindingId: string | undefined;
+      try {
+        const nums = LAB_SIGNING_ENABLED && numSchema ? numbersOf(numSchema, numTyped) : undefined;
+        if (nums?.bad.length) throw new Error(t('app.doc.need.numbers'));
+        if (nums?.any) {
+          // Only a report signature bound to the record can be checked by anyone (lab-doc.ts).
+          if (!salt) throw new Error(t('app.labnums.oldCode'));
+          const { makeLabNumbers } = await import('../../veilcore/lab-numbers');
+          const { bindingHash, bindingIdSuffix, claimsKeyFor } = await import('../../veilcore/claims-key');
+          const made = await makeLabNumbers(attester.keypair.privateKey, {
+            title: numTitle.trim() || file.name,
+            labName: attester.displayName ?? '',
+            holder: record.bredBy || t('app.lab.card.unknownBreeder'),
+            plantName: record.strainName,
+            issued: new Date().toISOString().slice(0, 10),
+            report: { name: file.name, sha256: file.sha, size: file.bytes.length },
+            schema: numSchema,
+            values: nums.values,
+          });
+          const k = claimsKeyFor(attester.keypair.privateKey);
+          const bound = await attestRecord(
+            attester,
+            made.commitment,
+            bindingHash(made.keyText, subject, signed.attestationId),
+            'other',
+            bindingIdSuffix(k, attester.keypair.publicKey),
+          );
+          if (bound.error || !bound.attestationId)
+            throw new Error(t('app.lab.out.notRecorded', { error: bound.error ?? t('app.lab.out.noAnswer') }));
+          bindingId = bound.attestationId;
+          numbersBytes = new TextEncoder().encode(JSON.stringify({ ...made.numbers, about: subject }));
+        }
+      } catch (e) {
+        await retract(attester, signed.attestationId, 'issued-in-error');
+        throw e;
       }
+      const locked = await lockReport(file.bytes, lock, kind, numbersBytes);
       const out = await sendLockedResult(transferId, locked, signed.attestationId, replacing?.id);
       if ('error' in out) {
         if (bindingId) await retract(attester, bindingId, 'issued-in-error');

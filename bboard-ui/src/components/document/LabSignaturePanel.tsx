@@ -37,8 +37,12 @@ const useSigner = (record: StrainRecord): LabSigner | undefined => {
           import('../../veilcore/lab-attest'),
         ]);
         const key = keyFromHex(sig.key);
-        const list = await attestationsFor(sig.record, { claimsKeyBindings: true });
-        if (live) setSigner(key && sig.about ? findBinding(list, sig.record, key, sig.about) : { kind: 'none' });
+        const about = sig.about;
+        const [list, aboutList] = await Promise.all([
+          attestationsFor(sig.record, { claimsKeyBindings: true }),
+          about ? attestationsFor(about) : Promise.resolve([]),
+        ]);
+        if (live) setSigner(key && about ? findBinding(list, sig.record, key, about, aboutList) : { kind: 'none' });
       } catch {
         if (live) setSigner({ kind: 'none' });
       }
@@ -105,10 +109,12 @@ export const LabSignaturePanel: React.FC<{
         {t('app.attest.title')}
       </Typography>
       <Stack spacing={1.5}>
-        {signatureOk === false ? (
-          <Alert severity="error" variant="outlined" data-lab-stale="">
-            {t('app.attest.stale')}
-          </Alert>
+        {signatureOk !== true ? (
+          signatureOk === false && (
+            <Alert severity="error" variant="outlined" data-lab-stale="">
+              {t('app.attest.stale')}
+            </Alert>
+          )
         ) : (
           <Box data-lab-signed={signer?.kind ?? 'checking'}>
             <Typography variant="body2" sx={{ mb: 1 }}>

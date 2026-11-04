@@ -92,3 +92,49 @@ describe('the report format', () => {
     expect(unpadReportWithKind(bad).numbers).toBeUndefined();
   });
 });
+
+describe('what a lab sends can’t reach past the record', () => {
+  it('drops every field the commitment doesn’t cover', async () => {
+    const lab = await generateKeypair();
+    const { numbers } = await makeLabNumbers(lab.privateKey, input);
+    const stuffed = {
+      ...numbers,
+      record: {
+        ...numbers.record,
+        labOnChain: { contract: 'c1'.repeat(32), txId: 'ab'.repeat(32), blockHeight: 1 },
+        supersedes: { recordId: 'VEIL-X' },
+        claims: [{ kind: 'range' }],
+        grant: { all: true },
+        secrets: { x: 1 },
+        document: { ...numbers.record.document, extra: 'x' },
+        fieldSet: { ...numbers.record.fieldSet, extra: 'x' },
+      },
+    };
+    const back = await readLabNumbers(JSON.stringify(stuffed));
+    for (const k of ['labOnChain', 'supersedes', 'claims', 'grant', 'secrets'])
+      expect(back.record as Record<string, unknown>, k).not.toHaveProperty(k);
+    expect(back.record.document as Record<string, unknown>).not.toHaveProperty('extra');
+    expect(back.record.fieldSet as Record<string, unknown>).not.toHaveProperty('extra');
+  });
+
+  it('a genetic form needs what was compared, and a percentage stays at or under 100', async () => {
+    const lab = await generateKeypair();
+    const sim = { ...input, schema: 'veilcore/schema/variety-similarity/v1' };
+    await expect(
+      makeLabNumbers(lab.privateKey, { ...sim, values: [9437n, 5103n, 287n, 12n, null, 1n] }),
+    ).rejects.toThrow(/names what was compared/);
+    await expect(
+      makeLabNumbers(lab.privateKey, { ...sim, values: [10001n, 5103n, 287n, 12n, 201900123n, 1n] }),
+    ).rejects.toThrow(/more than 100/);
+    await expect(
+      makeLabNumbers(lab.privateKey, { ...sim, values: [9437n, 5103n, 287n, 12n, 201900123n, 1n] }),
+    ).resolves.toBeDefined();
+    await expect(
+      makeLabNumbers(lab.privateKey, {
+        ...input,
+        schema: 'veilcore/schema/animal-parentage/v1',
+        values: [1n, 195n, 190n, 0n, 0n, null, null, null, null, null, null, null],
+      }),
+    ).rejects.toThrow(/names what was compared/);
+  });
+});

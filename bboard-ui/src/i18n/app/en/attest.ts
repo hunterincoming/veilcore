@@ -28,6 +28,8 @@ export const attest = {
   'app.doc.slot.damOutcome': 'Dam outcome (0 accepted, 1 doubtful, 2 excluded)',
   'app.doc.slot.trioConflicts': 'Conflicts across the trio',
   'app.doc.slot.trioOutcome': 'Trio outcome (0 accepted, 1 doubtful, 2 excluded)',
+  'app.doc.slot.sire': 'Registration no. of the sire',
+  'app.doc.slot.dam': 'Registration no. of the dam',
   'app.doc.nums.badWhole': 'A whole number, like 5103.',
   'app.claim.boundBadWhole': 'A whole number.',
 
@@ -44,6 +46,7 @@ export const attest = {
   'app.labnums.cantUse': 'This report carries numbers that can’t be used: {reason}',
   'app.labnums.otherPlant': 'they are about a different plant.',
   'app.labnums.otherReport': 'they name a different report file.',
+  'app.labnums.oldCode': 'Numbers can only go with a report on a newer lab code. Ask the breeder for a new code.',
   'app.attest.title': 'Laboratory signature',
   'app.attest.signedBy': 'Signing key {key}.',
   'app.attest.publishText': 'Publish the signature on Midnight, so the links you copy can show it.',

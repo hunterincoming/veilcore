@@ -41,6 +41,9 @@ import {
 
 import { CLAIMS_KEY_SUFFIX, isClaimsKeyBinding } from './lab-key-text';
 
+/** The id ending of a lab report signature bound to its record (lab-doc.ts LAB_DOC_ID_SUFFIX). */
+const LAB_DOC_SUFFIX = '_ld1';
+
 export { CLAIMS_KEY_SUFFIX, isClaimsKeyBinding };
 const enc = new TextEncoder();
 const KEY_TAG = enc.encode('veilcore:claims-key:v1\0');
@@ -80,11 +83,14 @@ const unb64u = (s: string): Uint8Array | undefined => {
  */
 export const ed25519SeedOf = (pkcs8Hex: string): Uint8Array => {
   if (!/^([0-9a-f]{2})+$/.test(pkcs8Hex)) throw new Error('not a PKCS#8 key');
-  const b = fromHex(pkcs8Hex);
-  for (let i = 0; i + 36 <= b.length; i++) {
-    if (b[i] === 0x04 && b[i + 1] === 0x22 && b[i + 2] === 0x04 && b[i + 3] === 0x20) return b.slice(i + 4, i + 36);
-  }
-  throw new Error('not an Ed25519 PKCS#8 key');
+  // RFC 8410: SEQUENCE, version 0 or 1, AlgorithmIdentifier id-Ed25519 (1.3.101.112), then the
+  // OCTET STRING 04 22 wrapping the 32-byte seed. Only that exact prefix is read.
+  const h = pkcs8Hex;
+  const m =
+    /^30[0-9a-f]{2}020100300506032b657004220420([0-9a-f]{64})/.exec(h) ??
+    /^30[0-9a-f]{2}020101300506032b657004220420([0-9a-f]{64})/.exec(h);
+  if (!m) throw new Error('not an Ed25519 PKCS#8 key');
+  return fromHex(m[1]);
 };
 
 export type ClaimsKey = { readonly secret: bigint; readonly key: JubjubPoint; readonly keyText: string };
@@ -107,11 +113,19 @@ export const claimsKeyFor = (attesterPrivateKeyPkcs8: string, n = 0): ClaimsKey 
   return { secret, key, keyText: claimsKeyText(key) };
 };
 
-/** What the binding attestation's documentHash is: this key, about this plant's record. */
-export const bindingHash = (keyText: string, aboutProofCode: string): string => {
-  if (!/^[0-9a-f]{128}$/.test(keyText) || !/^[0-9a-f]{64}$/.test(aboutProofCode))
-    throw new Error('a claims key and a proof code');
-  return toHex(sha256(cat(KEY_TAG, fromHex(keyText), fromHex(aboutProofCode))));
+/**
+ * What the binding attestation's documentHash is: this key, about this plant's record, for this
+ * report (the lab's own signature on the report it sent, by id). Withdrawing that report
+ * signature, anywhere, withdraws the name.
+ */
+export const bindingHash = (keyText: string, aboutProofCode: string, reportAttestationId: string): string => {
+  if (
+    !/^[0-9a-f]{128}$/.test(keyText) ||
+    !/^[0-9a-f]{64}$/.test(aboutProofCode) ||
+    !/^[A-Za-z0-9_.-]{1,200}$/.test(reportAttestationId)
+  )
+    throw new Error('a claims key, a proof code and a report signature id');
+  return toHex(sha256(cat(KEY_TAG, fromHex(keyText), fromHex(aboutProofCode), enc.encode(reportAttestationId))));
 };
 
 const ownerMessage = (attesterPublicKeyHex: string): Uint8Array => {
@@ -157,41 +171,62 @@ export type BindingCandidate = {
   readonly retraction: unknown;
 };
 
+/** The fields of a lab report signature the check needs (attesters.ts ResolvedAttestation has them). */
+export type ReportCandidate = BindingCandidate;
+
 /**
  * The binding that says whose this key is on this record, about that plant, or why there is none.
- * Every check is made here: the attestation's own signature (attesters.ts verified it), the owner
- * proof, the hash, the subject, not retracted. Two different attesters: none (a conflict is not
- * a name).
+ * Every check is made here: the binding's own signature (attesters.ts verified it), its owner
+ * proof, its subject, and that its hash names a lab report signature by the SAME lab on that
+ * plant which still stands (signed, bound to the record, not withdrawn). Withdrawing the report
+ * withdraws the name. Two different labs: none (a conflict is not a name).
  */
 export const findBinding = <A extends BindingCandidate>(
   attestations: readonly A[],
   record: string,
   key: JubjubPoint,
   aboutProofCode: string,
+  aboutAttestations: readonly ReportCandidate[],
 ):
   | { readonly kind: 'bound'; readonly attestation: A }
   | { readonly kind: 'retracted'; readonly attestation: A }
   | { readonly kind: 'conflict' }
   | { readonly kind: 'none' } => {
   const keyText = claimsKeyText(key);
-  let want: string;
-  try {
-    want = bindingHash(keyText, aboutProofCode);
-  } catch {
-    return { kind: 'none' };
-  }
-  const good = attestations.filter(
-    (a) =>
-      a.type === 'other' &&
-      isClaimsKeyBinding(a.attestationId) &&
-      a.subjectCommitment === record &&
-      a.documentHash === want &&
-      a.signatureValid &&
-      ownerProofChecks(a.attestationId, key, a.attester.publicKey),
+  const reports = aboutAttestations.filter(
+    (r) =>
+      r.type === 'laboratory-report' &&
+      r.attestationId.endsWith(LAB_DOC_SUFFIX) &&
+      r.subjectCommitment === aboutProofCode &&
+      r.signatureValid,
   );
-  const attesters = new Set(good.map((a) => a.attester.publicKey));
-  if (attesters.size > 1) return { kind: 'conflict' };
-  if (good.length === 0) return { kind: 'none' };
-  const live = good.find((a) => a.retraction === null || a.retraction === undefined);
-  return live ? { kind: 'bound', attestation: live } : { kind: 'retracted', attestation: good[0] };
+  const hashFor = (reportId: string): string | undefined => {
+    try {
+      return bindingHash(keyText, aboutProofCode, reportId);
+    } catch {
+      return undefined;
+    }
+  };
+  const matched = attestations
+    .filter(
+      (a) =>
+        a.type === 'other' &&
+        isClaimsKeyBinding(a.attestationId) &&
+        a.subjectCommitment === record &&
+        a.signatureValid &&
+        ownerProofChecks(a.attestationId, key, a.attester.publicKey),
+    )
+    .map((a) => ({
+      a,
+      report: reports.find(
+        (r) => r.attester.publicKey === a.attester.publicKey && hashFor(r.attestationId) === a.documentHash,
+      ),
+    }))
+    .filter((m) => m.report !== undefined);
+  const labs = new Set(matched.map((m) => m.a.attester.publicKey));
+  if (labs.size > 1) return { kind: 'conflict' };
+  if (matched.length === 0) return { kind: 'none' };
+  const standing = (x: unknown) => x === null || x === undefined;
+  const live = matched.find((m) => standing(m.a.retraction) && standing(m.report?.retraction));
+  return live ? { kind: 'bound', attestation: live.a } : { kind: 'retracted', attestation: matched[0].a };
 };

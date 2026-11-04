@@ -18,6 +18,19 @@ import { fieldSchemaId } from '../../../contract/src/field-schema';
 
 const RECORD = 'aa'.repeat(32);
 const PLANT = 'bb'.repeat(32);
+const REPORT_ID = 'att_00112233445566ff_ld1';
+
+/** The lab's own report signature on the plant (lab-doc.ts), which the binding names. */
+const report = (lab: { publicKey: string }, over: Partial<BindingCandidate> = {}): BindingCandidate => ({
+  attestationId: REPORT_ID,
+  type: 'laboratory-report',
+  subjectCommitment: PLANT,
+  documentHash: 'ee'.repeat(32),
+  attester: { publicKey: lab.publicKey },
+  signatureValid: true,
+  retraction: null,
+  ...over,
+});
 
 const binding = (
   lab: { publicKey: string },
@@ -60,18 +73,18 @@ describe('a binding', () => {
   it('names the lab that holds the key, on this record, about this plant', async () => {
     const lab = await generateKeypair();
     const k = claimsKeyFor(lab.privateKey);
-    const b = binding(lab, bindingIdSuffix(k, lab.publicKey), {}, bindingHash(k.keyText, PLANT));
-    expect(findBinding([b], RECORD, k.key, PLANT)).toEqual({ kind: 'bound', attestation: b });
+    const b = binding(lab, bindingIdSuffix(k, lab.publicKey), {}, bindingHash(k.keyText, PLANT, REPORT_ID));
+    expect(findBinding([b], RECORD, k.key, PLANT, [report(lab)])).toEqual({ kind: 'bound', attestation: b });
   });
 
   it('is not believed about another plant, another record, unsigned, or as another type', async () => {
     const lab = await generateKeypair();
     const k = claimsKeyFor(lab.privateKey);
-    const b = binding(lab, bindingIdSuffix(k, lab.publicKey), {}, bindingHash(k.keyText, PLANT));
-    expect(findBinding([b], RECORD, k.key, 'cc'.repeat(32)).kind).toBe('none');
-    expect(findBinding([b], 'dd'.repeat(32), k.key, PLANT).kind).toBe('none');
-    expect(findBinding([{ ...b, signatureValid: false }], RECORD, k.key, PLANT).kind).toBe('none');
-    expect(findBinding([{ ...b, type: 'laboratory-report' }], RECORD, k.key, PLANT).kind).toBe('none');
+    const b = binding(lab, bindingIdSuffix(k, lab.publicKey), {}, bindingHash(k.keyText, PLANT, REPORT_ID));
+    expect(findBinding([b], RECORD, k.key, 'cc'.repeat(32), [report(lab)]).kind).toBe('none');
+    expect(findBinding([b], 'dd'.repeat(32), k.key, PLANT, [report(lab)]).kind).toBe('none');
+    expect(findBinding([{ ...b, signatureValid: false }], RECORD, k.key, PLANT, [report(lab)]).kind).toBe('none');
+    expect(findBinding([{ ...b, type: 'laboratory-report' }], RECORD, k.key, PLANT, [report(lab)]).kind).toBe('none');
   });
 
   it('can’t be posted by another registered lab for a key it doesn’t hold', async () => {
@@ -79,16 +92,16 @@ describe('a binding', () => {
     const other = await generateKeypair();
     const k = claimsKeyFor(real.privateKey);
     // The other lab copies the real lab's owner proof: it names the real lab, not the other.
-    const copied = binding(other, bindingIdSuffix(k, real.publicKey), {}, bindingHash(k.keyText, PLANT));
-    expect(findBinding([copied], RECORD, k.key, PLANT).kind).toBe('none');
+    const copied = binding(other, bindingIdSuffix(k, real.publicKey), {}, bindingHash(k.keyText, PLANT, REPORT_ID));
+    expect(findBinding([copied], RECORD, k.key, PLANT, [report(real), report(other)]).kind).toBe('none');
     // Its own claims key's proof, for the real lab's key: doesn't check.
     const own = binding(
       other,
       bindingIdSuffix(claimsKeyFor(other.privateKey), other.publicKey),
       {},
-      bindingHash(k.keyText, PLANT),
+      bindingHash(k.keyText, PLANT, REPORT_ID),
     );
-    expect(findBinding([own], RECORD, k.key, PLANT).kind).toBe('none');
+    expect(findBinding([own], RECORD, k.key, PLANT, [report(real), report(other)]).kind).toBe('none');
     expect(ownerProofChecks(own.attestationId, k.key, other.publicKey)).toBe(false);
   });
 
@@ -97,10 +110,10 @@ describe('a binding', () => {
     const b = await generateKeypair();
     const k = claimsKeyFor(a.privateKey);
     // Only possible if the claims secret leaked; even then, no name is printed.
-    const h = bindingHash(k.keyText, PLANT);
+    const h = bindingHash(k.keyText, PLANT, REPORT_ID);
     const ba = binding(a, bindingIdSuffix(k, a.publicKey), {}, h);
     const bb = binding(b, bindingIdSuffix(k, b.publicKey), {}, h);
-    expect(findBinding([ba, bb], RECORD, k.key, PLANT).kind).toBe('conflict');
+    expect(findBinding([ba, bb], RECORD, k.key, PLANT, [report(a), report(b)]).kind).toBe('conflict');
   });
 
   it('withdrawn by the lab reads as withdrawn', async () => {
@@ -110,9 +123,37 @@ describe('a binding', () => {
       lab,
       bindingIdSuffix(k, lab.publicKey),
       { retraction: { reason: 'issued-in-error' } },
-      bindingHash(k.keyText, PLANT),
+      bindingHash(k.keyText, PLANT, REPORT_ID),
     );
-    expect(findBinding([b], RECORD, k.key, PLANT).kind).toBe('retracted');
+    expect(findBinding([b], RECORD, k.key, PLANT, [report(lab)]).kind).toBe('retracted');
+  });
+
+  it('goes with its report: no standing report signature by that lab on that plant, no name', async () => {
+    const lab = await generateKeypair();
+    const other = await generateKeypair();
+    const k = claimsKeyFor(lab.privateKey);
+    const b = binding(lab, bindingIdSuffix(k, lab.publicKey), {}, bindingHash(k.keyText, PLANT, REPORT_ID));
+    // No report signature at all, or one by another lab, or about another plant, or unsigned.
+    expect(findBinding([b], RECORD, k.key, PLANT, []).kind).toBe('none');
+    expect(findBinding([b], RECORD, k.key, PLANT, [report(other)]).kind).toBe('none');
+    expect(findBinding([b], RECORD, k.key, PLANT, [report(lab, { subjectCommitment: 'cc'.repeat(32) })]).kind).toBe(
+      'none',
+    );
+    expect(findBinding([b], RECORD, k.key, PLANT, [report(lab, { signatureValid: false })]).kind).toBe('none');
+    // A different report by the same lab on the same plant: not the one the binding names.
+    expect(
+      findBinding([b], RECORD, k.key, PLANT, [report(lab, { attestationId: 'att_ffeeddccbbaa0099_ld1' })]).kind,
+    ).toBe('none');
+    // The lab withdrew the report, from anywhere: the numbers' name goes with it.
+    expect(
+      findBinding([b], RECORD, k.key, PLANT, [report(lab, { retraction: { reason: 'issued-in-error' } })]).kind,
+    ).toBe('retracted');
+  });
+
+  it('reads only an Ed25519 key, by its exact form', async () => {
+    const lab = await generateKeypair();
+    // The same bytes under X25519's identifier (1.3.101.110): refused.
+    expect(() => ed25519SeedOf(lab.privateKey.replace('06032b6570', '06032b656e'))).toThrow();
   });
 
   it('a damaged owner proof is refused, not read', async () => {
@@ -154,13 +195,14 @@ describe('the check page', () => {
     const onChainAttested = { kind: 'attested', record: Uint8Array.from(Buffer.from(RECORD, 'hex')), attester: k.key };
     const read = (_c: string, txId: string) =>
       Promise.resolve({ claim: (txId === link.txId ? onChainRange : onChainAttested) as never, blockHeight: 7 });
-    const good = binding(lab, bindingIdSuffix(k, lab.publicKey), {}, bindingHash(k.keyText, PLANT));
-    const v = await checkClaim(link, { read, contract: CONTRACT, attestations: () => Promise.resolve([good]) });
+    const good = binding(lab, bindingIdSuffix(k, lab.publicKey), {}, bindingHash(k.keyText, PLANT, REPORT_ID));
+    const lists = (r: string) => Promise.resolve(r === PLANT ? [report(lab)] : [good]);
+    const v = await checkClaim(link, { read, contract: CONTRACT, attestations: lists });
     expect(v.ok && v.lab).toMatchObject({ ok: true, signer: { kind: 'bound' } });
     // The same binding, for a link saying the numbers are about another plant: no name.
     const elsewhere = await checkClaim(
       { ...link, attested: { ...link.attested, about: 'ee'.repeat(32) } },
-      { read, contract: CONTRACT, attestations: () => Promise.resolve([good]) },
+      { read, contract: CONTRACT, attestations: lists },
     );
     expect(elsewhere.ok && elsewhere.lab?.ok && elsewhere.lab.signer).toEqual({ kind: 'none' });
     // No plant named in the link (an older link): no name, the registry is not asked.
@@ -169,7 +211,7 @@ describe('the check page', () => {
     void _drop;
     const old = await checkClaim(
       { ...link, attested: noAbout },
-      { read, contract: CONTRACT, attestations: () => ((asked = true), Promise.resolve([good])) },
+      { read, contract: CONTRACT, attestations: (r: string) => ((asked = true), lists(r)) },
     );
     expect(old.ok && old.lab?.ok && old.lab.signer).toEqual({ kind: 'none' });
     expect(asked).toBe(false);

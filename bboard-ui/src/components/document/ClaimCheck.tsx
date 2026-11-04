@@ -109,7 +109,13 @@ export const ClaimCheck: React.FC = () => {
                 {verdict.lab.ok ? (
                   <Stack spacing={1.5}>
                     <Alert
-                      severity={verdict.lab.signer?.kind === 'bound' ? 'success' : 'warning'}
+                      severity={
+                        verdict.lab.signer?.kind === 'bound' &&
+                        signerLabel(verdict.lab.signer.attestation as ResolvedAttestation, 'Signed by', Date.now(), tr)
+                          .checked
+                          ? 'success'
+                          : 'info'
+                      }
                       variant="outlined"
                       data-claim-signer={verdict.lab.signer?.kind ?? 'none'}
                     >

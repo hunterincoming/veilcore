@@ -62,7 +62,8 @@ export const makeLabNumbers = async (
   input: LabNumbersInput,
   now = Date.now(),
 ): Promise<{ readonly numbers: LabNumbers; readonly commitment: string; readonly keyText: string }> => {
-  if (!SCHEMAS[input.schema]) throw new Error('No published form for these numbers.');
+  const problem = labNumbersProblem(input.schema, input.values);
+  if (problem) throw new Error(problem);
   const fs = await makeFieldSet(input.schema, input.values);
   const record: LabNumbersRecord = {
     profile: DOCUMENT_PROFILE,
@@ -98,6 +99,73 @@ export const makeLabNumbers = async (
  * make its sealed root and commitment under a published form, and a signature by the key it
  * names that the claims contract will accept. Throws in plain words.
  */
+/**
+ * Only what the commitment covers, rebuilt key by key: nothing else in what a lab sends can reach
+ * the breeder's record (a field the lab added, like a claimed Midnight call or a correction, would
+ * otherwise ride along into it).
+ */
+const committedOnly = (r: LabNumbersRecord): LabNumbersRecord => {
+  const d = r.document;
+  return {
+    profile: r.profile,
+    strainName: r.strainName,
+    bredBy: r.bredBy,
+    dateCreated: r.dateCreated,
+    notes: r.notes,
+    loggedAt: r.loggedAt,
+    nonce: r.nonce,
+    refId: r.refId,
+    ...(d
+      ? {
+          document: {
+            ...(d.type !== undefined ? { type: d.type } : {}),
+            ...(d.issuer !== undefined ? { issuer: d.issuer } : {}),
+            ...(d.files ? { files: d.files.map((f) => ({ name: f.name, sha256: f.sha256, size: f.size })) } : {}),
+            ...(d.about
+              ? {
+                  about: d.about.map((a) => ({
+                    name: a.name,
+                    ...(a.recordId !== undefined ? { recordId: a.recordId } : {}),
+                  })),
+                }
+              : {}),
+          },
+        }
+      : {}),
+    fieldSchema: r.fieldSchema,
+    fieldSetRoot: r.fieldSetRoot,
+    fieldSet: { schema: r.fieldSet.schema, values: [...r.fieldSet.values], fieldSecret: r.fieldSet.fieldSecret },
+  };
+};
+
+/** Numbers that must be there, and percentages no more than 100 % (labNumbersProblem). */
+const REQUIRED_SLOTS: Readonly<Record<string, readonly number[]>> = {
+  'veilcore/schema/variety-similarity/v1': [0, 4, 5],
+  'veilcore/schema/variety-identity/v1': [0, 3, 4],
+  'veilcore/schema/animal-parentage/v1': [0, 10],
+};
+
+/** What is wrong with a lab's numbers under its form, or undefined. */
+export const labNumbersProblem = (
+  schemaId: string,
+  values: readonly (bigint | string | null)[],
+): string | undefined => {
+  const schema = SCHEMAS[schemaId];
+  if (!schema) return 'No published form for these numbers.';
+  for (const slot of REQUIRED_SLOTS[schemaId] ?? [])
+    if (values[slot] === null || values[slot] === undefined)
+      return 'This form needs every number that names what was compared.';
+  for (const s of schema.slots)
+    if (
+      s.unit === '%' &&
+      values[s.slot] !== null &&
+      values[s.slot] !== undefined &&
+      BigInt(values[s.slot] as string) > 100n * BigInt(s.scale ?? 1)
+    )
+      return 'A percentage can’t be more than 100.';
+  return undefined;
+};
+
 export const readLabNumbers = async (text: string): Promise<LabNumbers> => {
   let o: Record<string, unknown>;
   try {
@@ -105,15 +173,31 @@ export const readLabNumbers = async (text: string): Promise<LabNumbers> => {
   } catch {
     throw new Error('The numbers in this report can’t be read.');
   }
-  const record = o?.record as LabNumbersRecord | undefined;
-  if (o?.kind !== 'veilcore-lab-numbers' || o.v !== 1 || typeof record !== 'object' || record === null)
+  const raw = o?.record as LabNumbersRecord | undefined;
+  if (
+    o?.kind !== 'veilcore-lab-numbers' ||
+    o.v !== 1 ||
+    typeof raw !== 'object' ||
+    raw === null ||
+    typeof raw.fieldSet !== 'object' ||
+    raw.fieldSet === null ||
+    !Array.isArray(raw.fieldSet.values)
+  )
     throw new Error('The numbers in this report can’t be read.');
-  if (record.keyBinding !== undefined) throw new Error('The numbers in this report can’t be read.');
+  if (raw.keyBinding !== undefined) throw new Error('The numbers in this report can’t be read.');
+  let record: LabNumbersRecord;
+  try {
+    record = committedOnly(raw);
+  } catch {
+    throw new Error('The numbers in this report can’t be read.');
+  }
   const { readLabRequest } = await import('./lab-attest');
   // The same checks a laboratory makes on a request: form, plain numbers, root, canonical fields.
   const commitment = commitmentHex(await claimMaterial(record));
   await readLabRequest(JSON.stringify({ kind: 'veilcore-lab-request', v: 1, commitment, record }));
   if (!HEX64.test(commitment)) throw new Error('The numbers in this report can’t be read.');
+  const problem = labNumbersProblem(record.fieldSet.schema, record.fieldSet.values);
+  if (problem) throw new Error(problem);
   const signature = readLabSignature(JSON.stringify(o.signature), commitment);
   return { kind: 'veilcore-lab-numbers', v: 1, record, signature };
 };
