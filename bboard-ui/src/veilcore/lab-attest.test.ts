@@ -14,19 +14,23 @@ import {
   keyHex,
   labRequestFor,
   labSignatureChecks,
-  newLabKeyFile,
-  readLabKeyFile,
   readLabRequest,
   readLabSignature,
   signLabRequest,
   signatureParts,
 } from './lab-attest';
-import { verifyRecordSignature } from '../../../contract/src/attest';
+import { newAttesterKey, verifyRecordSignature } from '../../../contract/src/attest';
 import { ClaimsSimulator } from '../../../contract/src/test/claims-simulator';
 import { RangeOp } from '../../../contract/src/managed/veilcore-claims/contract/index.js';
 import { claimFromCells } from '../../../contract/src/verify-claims';
 import { claimLink, compareAttested, readClaimLink, type MadeClaim } from './claim-link';
 import { checkClaim } from './chain/claim-check';
+
+/** A laboratory's signing key, as tests need one (the app derives it: claims-key.ts). */
+const labKey = () => {
+  const { secret, key } = newAttesterKey();
+  return { secretN: secret, name: 'Lab', key: keyHex(key) };
+};
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const v = JSON.parse(fs.readFileSync(path.join(dir, '../../../contract/vectors/document-v1.json'), 'utf8')) as {
@@ -65,27 +69,13 @@ describe('the similarity forms', () => {
   });
 });
 
-describe('a laboratory key file', () => {
-  it('opens again as the same key, and a damaged one is refused', () => {
-    const f = newLabKeyFile('  Example Seed Lab ');
-    expect(f.name).toBe('Example Seed Lab');
-    const back = readLabKeyFile(JSON.stringify(f));
-    expect(back.key).toBe(f.key);
-    expect(keyFromHex(f.key)).toBeDefined();
-    expect(() => readLabKeyFile(JSON.stringify({ ...f, key: newLabKeyFile('x').key }))).toThrow(/damaged/);
-    expect(() => readLabKeyFile(JSON.stringify({ ...f, secret: '00'.repeat(32) }))).toThrow(/damaged/);
-    expect(() => readLabKeyFile('{"kind":"something-else"}')).toThrow(/isn’t a laboratory key/);
-    expect(() => readLabKeyFile('not json')).toThrow(/isn’t a laboratory key/);
-  });
-});
-
 describe('a request, signed by a laboratory', () => {
   it('round-trips, and the signature is one the contract’s own check accepts', async () => {
     const record = await similarityRecord();
     const req = await labRequestFor(record);
     const read = await readLabRequest(JSON.stringify(req));
     expect(read.commitment).toBe(commitmentHex(await claimMaterial(record)));
-    const key = readLabKeyFile(JSON.stringify(newLabKeyFile('Lab')));
+    const key = labKey();
     const sig = signLabRequest(key, read);
     expect(sig.key).toBe(key.key);
     const { key: point, signature } = signatureParts(sig);
@@ -137,14 +127,14 @@ describe('a request, signed by a laboratory', () => {
     const a = await labRequestFor(await similarityRecord());
     const b = await labRequestFor(await similarityRecord()); // same numbers, fresh salts: another record
     expect(a.commitment).not.toBe(b.commitment);
-    const key = readLabKeyFile(JSON.stringify(newLabKeyFile('Lab')));
+    const key = labKey();
     const sig = signLabRequest(key, a);
     expect(() => readLabSignature(JSON.stringify(sig), b.commitment)).toThrow(/different record/);
     // Moved to the other record by hand: the signature no longer checks.
     expect(() => readLabSignature(JSON.stringify({ ...sig, record: b.commitment }), b.commitment)).toThrow(
       /doesn’t check/,
     );
-    const other = newLabKeyFile('Other').key;
+    const other = labKey().key;
     expect(() => readLabSignature(JSON.stringify({ ...sig, key: other }), a.commitment)).toThrow(/doesn’t check/);
     expect(() =>
       readLabSignature(JSON.stringify({ ...sig, s: (BigInt(sig.s) + 1n).toString() }), a.commitment),
@@ -160,7 +150,7 @@ describe('on the claims contract', () => {
   it('proveAttested accepts the browser’s signature, and a claim link naming it checks', async () => {
     const record = await similarityRecord();
     const m = await claimMaterial(record);
-    const key = readLabKeyFile(JSON.stringify(newLabKeyFile('Lab')));
+    const key = labKey();
     const sig = signLabRequest(key, await labRequestFor(record));
     const { key: attester, signature } = signatureParts(sig);
 
@@ -200,7 +190,7 @@ describe('on the claims contract', () => {
     });
 
     // The link names another key, or its "signature" is the range claim itself: not confirmed.
-    const wrongKey = { ...link, attested: { ...link.attested!, attester: newLabKeyFile('x').key } };
+    const wrongKey = { ...link, attested: { ...link.attested!, attester: labKey().key } };
     const w = await checkClaim(wrongKey, { read, contract: CONTRACT });
     expect(w.ok && w.lab && !w.lab.ok && w.lab.reason).toMatch(/different key/);
     const notASignature = { ...link, attested: { ...link.attested!, txId: link.txId } };
@@ -211,7 +201,7 @@ describe('on the claims contract', () => {
   it('the contract refuses a laboratory’s signature offered for another record', async () => {
     const r1 = await similarityRecord();
     const r2 = await similarityRecord();
-    const key = readLabKeyFile(JSON.stringify(newLabKeyFile('Lab')));
+    const key = labKey();
     const sig = signLabRequest(key, await labRequestFor(r1));
     const { key: attester, signature } = signatureParts(sig);
     const other = (await claimMaterial(r2)).commitment;
@@ -262,7 +252,9 @@ describe('on veilcore.org', () => {
     const src = (f: string) => fs.readFileSync(path.join(dir, f), 'utf8');
     expect(src('../config/network.ts')).toContain('export const LAB_SIGNING_ENABLED = !IS_MAINNET;');
     expect(src('../components/document/DocumentDetail.tsx')).toContain('LAB_SIGNING_ENABLED && <LabSignaturePanel');
-    expect(src('../App.tsx')).toContain('LAB_SIGNING_ENABLED ? <LabSign />');
+    expect(src('../components/flow/LabResults.tsx')).toContain('LAB_SIGNING_ENABLED && file && kind &&');
+    expect(src('../components/flow/LabResults.tsx')).toContain('if (numbersBytes && LAB_SIGNING_ENABLED)');
+    expect(src('../App.tsx')).not.toContain('/lab"');
     expect(src('../components/document/NumbersFields.tsx')).toContain('OFFERED_SCHEMAS.map');
   });
 });

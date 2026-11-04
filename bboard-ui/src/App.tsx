@@ -13,8 +13,8 @@ import { Box, Container, GlobalStyles, ThemeProvider } from '@mui/material';
 import { MotionConfig } from 'framer-motion';
 import { FONT, lightFocusStyles, lightTheme } from './config/theme';
 import { focusScreenHeading } from './components/flow/FlowFrame';
-import { Navigate, Routes, Route, createRoutesFromChildren, matchRoutes, useLocation } from 'react-router-dom';
-import { IS_MAINNET, LAB_SIGNING_ENABLED } from './config/network';
+import { Routes, Route, createRoutesFromChildren, matchRoutes, useLocation } from 'react-router-dom';
+import { IS_MAINNET } from './config/network';
 import { useI18n } from './i18n';
 import type { StringKey } from './i18n/en';
 
@@ -69,7 +69,6 @@ const LogFlow = page(() => import('./components/flow/LogFlow'), 'LogFlow', 'afte
 const DocumentNew = page(() => import('./components/document/DocumentNew'), 'DocumentNew', 'after');
 const DocumentCheck = page(() => import('./components/document/DocumentCheck'), 'DocumentCheck', 'wait');
 const ClaimCheck = page(() => import('./components/document/ClaimCheck'), 'ClaimCheck');
-const LabSign = page(() => import('./components/document/LabSign'), 'LabSign');
 const BulkImportPage = page(() => import('./components/lab-import/BulkImportPage'), 'BulkImportPage');
 const RestorePage = page(() => import('./components/flow/RestorePage'), 'RestorePage');
 const BackupPage = page(() => import('./components/flow/BackupPage'), 'BackupPage');
@@ -227,7 +226,6 @@ const PAGE_TITLES: [RegExp, string][] = [
   [/^\/new/, 'Make a record'],
   [/^\/record\//, 'Record'],
   [/^\/licenses?(\/|$)/, 'Agreements'],
-  [/^\/lab$/, 'Laboratory signing'],
 ];
 const HOME_TITLE = typeof document === 'undefined' ? '' : document.title;
 
@@ -251,7 +249,6 @@ const TITLE_KEYS: Record<string, StringKey> = {
   'Make a record': 'title.new',
   Record: 'title.record',
   Agreements: 'title.agreements',
-  'Laboratory signing': 'title.lab',
 };
 
 const PageTitle: React.FC = () => {
@@ -311,7 +308,6 @@ const routes = (
         </Light>
       }
     />
-    <Route path="/lab" element={<Light>{LAB_SIGNING_ENABLED ? <LabSign /> : <Navigate to="/" replace />}</Light>} />
     <Route
       path="/check-document"
       element={

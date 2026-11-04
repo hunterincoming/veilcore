@@ -234,6 +234,11 @@ export type LabDelivery = {
    * from then on the code's lock is used.
    */
   readonly lockConfirmed?: true;
+  /**
+   * The numbers binding (claims-key.ts) published with each report this lab sent, by the
+   * report signature's id, so withdrawing or correcting a report withdraws its numbers too.
+   */
+  readonly numbersBindings?: Readonly<Record<string, string>>;
 };
 
 const isDelivery = (v: unknown): v is LabDelivery =>
@@ -245,7 +250,9 @@ const isDelivery = (v: unknown): v is LabDelivery =>
   optional(v.recipient, isString) &&
   isNumber(v.receivedAt) &&
   optional(v.receiptLinked, isString) &&
-  (v.lockConfirmed === undefined || v.lockConfirmed === true);
+  (v.lockConfirmed === undefined || v.lockConfirmed === true) &&
+  (v.numbersBindings === undefined ||
+    (isObject(v.numbersBindings) && Object.values(v.numbersBindings).every(isString)));
 
 const readDeliveries = (): Record<string, LabDelivery> => {
   try {
@@ -310,6 +317,17 @@ export const rememberDelivery = (d: LabDelivery): void => {
  * Note that the lab's signed receipt is tied to its delivery. A delivery this browser has
  * no note of (received in another browser) is noted from the record.
  */
+/** Remember the numbers binding sent with a report (by the report signature's id). */
+export const rememberBinding = (transferId: string, reportAttestationId: string, bindingId: string): void => {
+  const here = readDeliveries()[transferId];
+  if (!here) return;
+  rememberDelivery({ ...here, numbersBindings: { ...(here.numbersBindings ?? {}), [reportAttestationId]: bindingId } });
+};
+
+/** The numbers binding sent with a report, if any. */
+export const bindingFor = (transferId: string, reportAttestationId: string): string | undefined =>
+  readDeliveries()[transferId]?.numbersBindings?.[reportAttestationId];
+
 export const markReceiptLinked = (base: LabDelivery, attestationId: string): void => {
   const here = readDeliveries()[base.transferId] ?? base;
   rememberDelivery({ ...here, receiptLinked: attestationId });

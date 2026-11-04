@@ -24,10 +24,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
-  JUBJUB_ORDER,
   attesterKeyOf,
   isSigningKey,
-  newAttesterKey,
   signRecord,
   verifyRecordSignature,
   type AttestationSignature,
@@ -53,57 +51,6 @@ export const keyFromHex = (t: string): JubjubPoint | undefined => {
   return isSigningKey(k) ? k : undefined;
 };
 export { keyShort } from './lab-key-text';
-
-// ---- the laboratory's key file ---------------------------------------------------------------
-
-export type LabKeyFile = {
-  readonly kind: 'veilcore-lab-key';
-  readonly v: 1;
-  /** The laboratory's name, as it typed it. Not checked by anything: a label for its own files. */
-  readonly name: string;
-  /** The signing secret, hex. Whoever has this file can sign as this key. */
-  readonly secret: string;
-  /** The public key (keyHex). */
-  readonly key: string;
-  readonly made: string;
-};
-
-export const newLabKeyFile = (name: string): LabKeyFile => {
-  const { secret, key } = newAttesterKey();
-  return {
-    kind: 'veilcore-lab-key',
-    v: 1,
-    name: name.trim().slice(0, 200),
-    secret: h64(secret),
-    key: keyHex(key),
-    made: new Date().toISOString(),
-  };
-};
-
-/** A key file, checked: its secret makes its key. Throws in plain words. */
-export const readLabKeyFile = (text: string): LabKeyFile & { readonly secretN: bigint } => {
-  let o: Record<string, unknown>;
-  try {
-    o = JSON.parse(text) as Record<string, unknown>;
-  } catch {
-    throw new Error('That file isn’t a laboratory key file.');
-  }
-  if (o?.kind !== 'veilcore-lab-key' || o.v !== 1 || typeof o.secret !== 'string' || !HEX64.test(o.secret))
-    throw new Error('That file isn’t a laboratory key file.');
-  const secretN = BigInt('0x' + o.secret);
-  if (secretN === 0n || secretN >= JUBJUB_ORDER) throw new Error('That key file is damaged.');
-  const key = keyHex(attesterKeyOf(secretN));
-  if (o.key !== key) throw new Error('That key file is damaged: its secret doesn’t make its key.');
-  return {
-    kind: 'veilcore-lab-key',
-    v: 1,
-    name: typeof o.name === 'string' ? o.name.slice(0, 200) : '',
-    secret: o.secret,
-    key,
-    made: typeof o.made === 'string' ? o.made : '',
-    secretN,
-  };
-};
 
 // ---- the holder's request ----------------------------------------------------------------------
 
@@ -215,6 +162,11 @@ export type LabSignature = {
   readonly rx: string;
   readonly ry: string;
   readonly s: string;
+  /**
+   * Kept with a record, not part of the signature file: the proof code of the record the
+   * numbers are about, from the lab's report (lab-numbers.ts). Claim links carry it.
+   */
+  readonly about?: string;
 };
 
 export const signLabRequest = (key: { secretN: bigint; name: string }, req: LabRequest): LabSignature => {
@@ -296,14 +248,4 @@ export const labSignatureChecks = (s: LabSignature, commitment: string): boolean
   } catch {
     return false;
   }
-};
-
-/** A file to save: the text, as a download. */
-export const saveFile = (name: string, text: string): void => {
-  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 };

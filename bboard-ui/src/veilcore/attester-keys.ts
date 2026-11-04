@@ -150,7 +150,7 @@ export const attestRecord = async (
   p: AttesterProfile,
   subjectCommitment: string,
   documentHash: string,
-  type: 'laboratory-report' | 'genetic-fingerprint' | 'inspection' | 'chain-of-custody' = 'laboratory-report',
+  type: 'laboratory-report' | 'genetic-fingerprint' | 'inspection' | 'chain-of-custody' | 'other' = 'laboratory-report',
   idSuffix = '',
 ): Promise<{ attestationId?: string; strength?: string; error?: string }> => {
   const signed = await signAttestation(

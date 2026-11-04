@@ -22,12 +22,10 @@ import { claimMaterial, commitmentHex } from './claims-input';
 import { checkedDocumentFields, DOCUMENT_PROFILE, type DocumentRecordLike } from './document-profile';
 import { makeFieldSet, SCHEMAS, type HeldFieldSet } from './field-set';
 import { newNonce } from './commitment';
-import { claimsKeyFor, claimsKeyText } from './claims-key';
-import { readLabSignature, type LabSignature } from './lab-attest';
-import { signRecord } from '../../../contract/src/attest';
+import { claimsKeyFor } from './claims-key';
+import { readLabSignature, signLabRequest, type LabSignature } from './lab-attest';
 
 const HEX64 = /^[0-9a-f]{64}$/;
-const fromHex = (h: string): Uint8Array => Uint8Array.from(h.match(/../g) ?? [], (x) => parseInt(x, 16));
 
 /** What the lab types or already knows. */
 export type LabNumbersInput = {
@@ -88,16 +86,10 @@ export const makeLabNumbers = async (
   checkedDocumentFields(record);
   const commitment = commitmentHex(await claimMaterial(record));
   const k = claimsKeyFor(attesterPrivateKeyPkcs8);
-  const sig = signRecord(k.secret, fromHex(commitment));
-  const signature: LabSignature = {
-    kind: 'veilcore-lab-signature',
-    v: 1,
-    record: commitment,
-    key: claimsKeyText(k.key),
-    rx: sig.announcement.x.toString(),
-    ry: sig.announcement.y.toString(),
-    s: sig.response.toString(),
-  };
+  const signature: LabSignature = signLabRequest(
+    { secretN: k.secret, name: '' },
+    { kind: 'veilcore-lab-request', v: 1, commitment, record },
+  );
   return { numbers: { kind: 'veilcore-lab-numbers', v: 1, record, signature }, commitment, keyText: k.keyText };
 };
 
