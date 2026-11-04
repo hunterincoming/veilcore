@@ -38,10 +38,17 @@ export const attest = {
   'app.claim.labSigned': 'Der Laborschlüssel {key} hat diese Zahlen signiert, und die Links enthalten diese Signatur.',
 
   'app.claim.check.labOk':
-    'Die Zahlen in diesem Datensatz wurden mit dem Laborschlüssel {key} signiert, auf Midnight veröffentlicht in Block {block}{date}.',
+    'Die Zahlen in diesem Datensatz wurden mit dem Schlüssel {key} signiert, auf Midnight veröffentlicht in Block {block}{date}.',
+  'app.claim.check.labWithdrawn':
+    'Das Labor hat diese Signatur zurückgezogen. Lesen Sie die Zahlen als Eingaben des Inhabers.',
+  'app.claim.check.labConflict':
+    'Mehr als ein Labor beansprucht diesen Schlüssel, daher wird kein Name angezeigt. Lesen Sie die Zahlen als Eingaben des Inhabers.',
+  'app.claim.check.labUnidentified':
+    'Kein Labor hat erklärt, dass dieser Schlüssel für diesen Datensatz seiner ist. Lesen Sie die Zahlen als Eingaben des Inhabers.',
+  'app.claim.check.labAbout': 'Die Ergebnisse betreffen den Datensatz mit dem Nachweiscode',
+  'app.claim.check.labFieldSecret':
+    'Das Labor kennt diese Zahlen ebenfalls und könnte selbst Aussagen darüber belegen.',
   'app.claim.check.labKey': 'Laborschlüssel',
-  'app.claim.check.labWhose':
-    'Diese Website kann nicht sagen, wem der Schlüssel gehört. Vergleichen Sie ihn mit dem Schlüssel, den das Labor veröffentlicht.',
   'app.claim.check.labFailed':
     'Die Signatur des Labors ist nicht bestätigt: {reason} Lesen Sie die Zahlen als Eingaben des Inhabers.',
   'app.claim.check.whatLab':

@@ -38,10 +38,16 @@ export const attest = {
   'app.claim.labSigned': 'La clave de laboratorio {key} firmó estos números, y los enlaces incluyen esa firma.',
 
   'app.claim.check.labOk':
-    'Los números de ese registro los firmó la clave de laboratorio {key}, publicada en Midnight en el bloque {block}{date}.',
+    'Los números de ese registro se firmaron con la clave {key}, publicada en Midnight en el bloque {block}{date}.',
+  'app.claim.check.labWithdrawn': 'El laboratorio ha retirado esta firma. Tome los números como del propio titular.',
+  'app.claim.check.labConflict':
+    'Más de un laboratorio reclama esta clave, así que no se muestra ningún nombre. Tome los números como del propio titular.',
+  'app.claim.check.labUnidentified':
+    'Ningún laboratorio ha dicho que esta clave sea suya para este registro. Tome los números como del propio titular.',
+  'app.claim.check.labAbout': 'Los resultados se refieren al registro con el código de prueba',
+  'app.claim.check.labFieldSecret':
+    'El laboratorio también conoce estos números y podría demostrar cosas sobre ellos por su cuenta.',
   'app.claim.check.labKey': 'Clave del laboratorio',
-  'app.claim.check.labWhose':
-    'Este sitio no puede decirle de quién es esta clave. Compárela con la clave que publica el laboratorio.',
   'app.claim.check.labFailed':
     'La firma del laboratorio no está confirmada: {reason} Tome los números como del propio titular.',
   'app.claim.check.whatLab':

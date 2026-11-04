@@ -37,10 +37,16 @@ export const attest = {
   'app.claim.labSigned': '検査機関の鍵 {key} がこれらの数値に署名しており、リンクにはその署名が含まれます。',
 
   'app.claim.check.labOk':
-    'その記録の数値は検査機関の鍵 {key} で署名され、ブロック {block}{date} でMidnight上に公開されています。',
+    'その記録の数値は鍵 {key} で署名され、ブロック {block}{date} でMidnight上に公開されています。',
+  'app.claim.check.labWithdrawn':
+    '検査機関はこの署名を取り消しました。数値は保有者自身が入力したものとして扱ってください。',
+  'app.claim.check.labConflict':
+    '複数の検査機関がこの鍵を自らのものと主張しているため、名前は表示しません。数値は保有者自身が入力したものとして扱ってください。',
+  'app.claim.check.labUnidentified':
+    'この記録について、この鍵を自らのものと表明した検査機関はありません。数値は保有者自身が入力したものとして扱ってください。',
+  'app.claim.check.labAbout': '結果の対象となる記録の証明コード',
+  'app.claim.check.labFieldSecret': '検査機関もこれらの数値を知っており、自ら数値について証明することもできます。',
   'app.claim.check.labKey': '検査機関の鍵',
-  'app.claim.check.labWhose':
-    'この鍵が誰のものかは、このサイトでは分かりません。検査機関が公開している鍵と照合してください。',
   'app.claim.check.labFailed':
     '検査機関の署名は確認できませんでした：{reason} 数値は保有者自身が入力したものとして扱ってください。',
   'app.claim.check.whatLab':

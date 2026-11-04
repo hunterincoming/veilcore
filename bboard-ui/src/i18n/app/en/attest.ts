@@ -41,10 +41,15 @@ export const attest = {
 
   // The claim check page, when the link names a laboratory signature.
   'app.claim.check.labOk':
-    'The numbers in that record were signed by laboratory key {key}, published on Midnight in block {block}{date}.',
+    'The numbers in that record were signed with key {key}, published on Midnight in block {block}{date}.',
+  'app.claim.check.labWithdrawn': 'The laboratory has withdrawn this signature. Read the numbers as the holder’s own.',
+  'app.claim.check.labConflict':
+    'More than one laboratory claims this key, so no name is shown. Read the numbers as the holder’s own.',
+  'app.claim.check.labUnidentified':
+    'No laboratory has said this key is theirs for this record. Read the numbers as the holder’s own.',
+  'app.claim.check.labAbout': 'The results are about the record with proof code',
+  'app.claim.check.labFieldSecret': 'The laboratory knows these numbers too, and could prove things about them itself.',
   'app.claim.check.labKey': 'Laboratory key',
-  'app.claim.check.labWhose':
-    'This site can’t tell you whose key this is. Compare it with the key the laboratory publishes.',
   'app.claim.check.labFailed':
     'The laboratory signature isn’t confirmed: {reason} Read the numbers as the holder’s own.',
   'app.claim.check.whatLab':

@@ -39,10 +39,17 @@ export const attest = {
   'app.claim.labSigned': 'La clé de laboratoire {key} a signé ces chiffres, et les liens incluent cette signature.',
 
   'app.claim.check.labOk':
-    'Les chiffres de cet enregistrement ont été signés par la clé de laboratoire {key}, publiée sur Midnight dans le bloc {block}{date}.',
+    'Les chiffres de cet enregistrement ont été signés avec la clé {key}, publiée sur Midnight dans le bloc {block}{date}.',
+  'app.claim.check.labWithdrawn':
+    'Le laboratoire a retiré cette signature. Considérez les chiffres comme ceux du titulaire.',
+  'app.claim.check.labConflict':
+    'Plus d’un laboratoire revendique cette clé, aucun nom n’est donc affiché. Considérez les chiffres comme ceux du titulaire.',
+  'app.claim.check.labUnidentified':
+    'Aucun laboratoire n’a déclaré que cette clé était la sienne pour cet enregistrement. Considérez les chiffres comme ceux du titulaire.',
+  'app.claim.check.labAbout': 'Les résultats portent sur l’enregistrement au code de preuve',
+  'app.claim.check.labFieldSecret':
+    'Le laboratoire connaît aussi ces chiffres et pourrait lui-même prouver des choses à leur sujet.',
   'app.claim.check.labKey': 'Clé du laboratoire',
-  'app.claim.check.labWhose':
-    'Ce site ne peut pas vous dire à qui appartient cette clé. Comparez-la avec la clé que publie le laboratoire.',
   'app.claim.check.labFailed':
     'La signature du laboratoire n’est pas confirmée : {reason} Considérez les chiffres comme ceux du titulaire.',
   'app.claim.check.whatLab':

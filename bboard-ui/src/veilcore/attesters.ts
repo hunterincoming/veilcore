@@ -23,6 +23,7 @@
 import type { SignedAttestation, AttestationStrength, Retraction } from 'veilcore-records';
 import { verifyAttestation, verifyRetraction } from 'veilcore-records';
 import { readJson, isObject, isString } from './json';
+import { isClaimsKeyBinding } from './lab-key-text';
 import { holderKeyIfAny, holderRequestsPaused } from './holder';
 import { enT, type Translator } from '../i18n/translate';
 import type { AppKey } from '../i18n/app/en';
@@ -138,7 +139,7 @@ const checkRetraction = async (r: unknown, a: SignedAttestation): Promise<Retrac
  */
 export const attestationsFor = async (
   commitment?: string,
-  opts: { asHolder?: boolean } = {},
+  opts: { asHolder?: boolean; claimsKeyBindings?: boolean } = {},
 ): Promise<ResolvedAttestation[]> => {
   if (!commitment || !HEX64.test(commitment)) return [];
   try {
@@ -154,7 +155,10 @@ export const attestationsFor = async (
       .filter(isIncomingAttestation)
       // Bound to the record on screen. A valid signature about another record is a
       // valid signature about another record.
-      .filter((a) => a.subjectCommitment === commitment);
+      .filter((a) => a.subjectCommitment === commitment)
+      // A laboratory's claims-key binding (claims-key.ts) is not a report or a receipt: only the
+      // claim check page, which asks for them, reads it.
+      .filter((a) => opts.claimsKeyBindings === true || !isClaimsKeyBinding(a.attestationId));
 
     return await Promise.all(
       incoming.map(async (a): Promise<ResolvedAttestation> => {

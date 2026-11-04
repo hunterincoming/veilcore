@@ -56,7 +56,15 @@ export type MadeClaim = {
    * (lab-attest.ts): that transaction and the key the holder says signed. Checked like the
    * claim itself; never believed from the link.
    */
-  readonly attested?: { readonly txId: string; readonly attester: string };
+  readonly attested?: {
+    readonly txId: string;
+    readonly attester: string;
+    /**
+     * The proof code of the record the numbers are about (the plant, animal or lot the lab
+     * tested). The laboratory's binding names it (claims-key.ts); the check page prints it.
+     */
+    readonly about?: string;
+  };
 };
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -103,10 +111,11 @@ export const readClaimLink = (hash: string): MadeClaim | undefined => {
       typeof a.txId !== 'string' ||
       !/^[0-9a-f]{2,256}$/.test(a.txId) ||
       typeof a.attester !== 'string' ||
-      !/^[0-9a-f]{128}$/.test(a.attester)
+      !/^[0-9a-f]{128}$/.test(a.attester) ||
+      (a.about !== undefined && (typeof a.about !== 'string' || !HEX64.test(a.about)))
     )
       return undefined;
-    attested = { txId: a.txId, attester: a.attester };
+    attested = { txId: a.txId, attester: a.attester, ...(typeof a.about === 'string' ? { about: a.about } : {}) };
   }
   const op = o.op === 'at-most' || o.op === 'at-least' ? o.op : undefined;
   const bound = str('bound');
@@ -144,8 +153,25 @@ export type ChainClaim = {
 };
 
 /** The laboratory signature a link names, as checked: confirmed on Midnight, or why not. */
+/**
+ * Whose the signing key is, from the laboratory's binding at the registry (claims-key.ts
+ * findBinding), checked in the browser: a lab named by its own attestation, a binding the lab
+ * withdrew, two labs claiming one key, or nothing that names anyone.
+ */
+export type LabSigner<A = unknown> =
+  | { readonly kind: 'bound'; readonly attestation: A }
+  | { readonly kind: 'retracted'; readonly attestation: A }
+  | { readonly kind: 'conflict' }
+  | { readonly kind: 'none' };
+
 export type LabVerdict =
-  | { readonly ok: true; readonly attester: string; readonly blockHeight?: number; readonly blockTime?: number }
+  | {
+      readonly ok: true;
+      readonly attester: string;
+      readonly blockHeight?: number;
+      readonly blockTime?: number;
+      readonly signer?: LabSigner;
+    }
   | { readonly ok: false; readonly reason: string };
 
 export type ClaimVerdict =

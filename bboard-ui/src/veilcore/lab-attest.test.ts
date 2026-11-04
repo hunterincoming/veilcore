@@ -196,7 +196,7 @@ describe('on the claims contract', () => {
     expect(await checkClaim(link, { read, contract: CONTRACT })).toEqual({
       ok: true,
       blockHeight: 9,
-      lab: { ok: true, attester: key.key, blockHeight: 8, blockTime: 5 },
+      lab: { ok: true, attester: key.key, blockHeight: 8, blockTime: 5, signer: { kind: 'none' } },
     });
 
     // The link names another key, or its "signature" is the range claim itself: not confirmed.
