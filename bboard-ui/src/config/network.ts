@@ -154,11 +154,9 @@ export const ANIMAL_RECORDS_ENABLED: boolean = animalRecordsEnabledFor(NETWORK);
 export const STRAIN_RECORDS_ENABLED = true;
 
 /**
- * Laboratory signing (veilcore/lab-attest.ts, /lab) and the genetic similarity forms. Test
- * network only for now: a review on 4 November 2026 found that nothing yet ties a signing key to
- * an accredited laboratory, and that "similarity to the closest variety compared" lets the
- * holder choose what it is compared with. Both are being redesigned before veilcore.org offers
- * them (docs/lab-attested-similarity.md).
+ * Numbers a laboratory signs with its report, and the genetic forms (docs/lab-signing.md). Test
+ * network only until the whole journey has run once there by hand: lab adds numbers, breeder
+ * adds them as a record, the signature goes on Midnight, a claim's check page names the lab.
  */
 export const LAB_SIGNING_ENABLED = !IS_MAINNET;
 

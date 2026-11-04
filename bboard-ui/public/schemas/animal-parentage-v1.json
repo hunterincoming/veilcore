@@ -1,0 +1,17 @@
+{
+  "id": "veilcore/schema/animal-parentage/v1",
+  "title": "Parentage verification of an animal by SNP genotyping, in the terms of ICAR's guidelines for parentage verification based on SNP genotypes (May 2023). Outcomes: 0 accepted, 1 doubtful, 2 excluded. Slot 0 is the species: 1 cattle, 2 sheep, 3 goat, 4 pig, 5 horse, 6 dog, 0 another, named in the laboratory's report. The sire and dam are named in the report and on the animal's family links. The laboratory signs the record. Published by VeilCore (veilcore.org).",
+  "slots": [
+    { "slot": 0, "type": "uint", "path": "parentage.species", "scale": 1, "comparable": false },
+    { "slot": 1, "type": "uint", "path": "parentage.panelSnps", "scale": 1, "comparable": false },
+    { "slot": 2, "type": "uint", "path": "parentage.sireCompared", "scale": 1, "comparable": false },
+    { "slot": 3, "type": "uint", "path": "parentage.sireConflicts", "scale": 1, "comparable": true },
+    { "slot": 4, "type": "uint", "path": "parentage.sireOutcome", "scale": 1, "comparable": false },
+    { "slot": 5, "type": "uint", "path": "parentage.damCompared", "scale": 1, "comparable": false },
+    { "slot": 6, "type": "uint", "path": "parentage.damConflicts", "scale": 1, "comparable": true },
+    { "slot": 7, "type": "uint", "path": "parentage.damOutcome", "scale": 1, "comparable": false },
+    { "slot": 8, "type": "uint", "path": "parentage.trioConflicts", "scale": 1, "comparable": true },
+    { "slot": 9, "type": "uint", "path": "parentage.trioOutcome", "scale": 1, "comparable": false }
+  ],
+  "k": 1
+}

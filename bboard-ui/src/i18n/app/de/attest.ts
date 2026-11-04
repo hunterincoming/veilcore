@@ -5,13 +5,29 @@
 import type { AppTranslation } from '../../translate';
 
 export const attest = {
-  'app.doc.schema.soybean-snp-similarity': 'Genetische Ähnlichkeit Soja (SNP, BARCSoySNP6K)',
-  'app.doc.schema.maize-snp-similarity': 'Genetische Ähnlichkeit Mais (SNP)',
-  'app.doc.schema.genetic-similarity': 'Genetische Ähnlichkeit (jede Kultur oder jeder Stamm)',
-  'app.doc.slot.similarity': 'Ähnlichkeit zur nächsten Sorte',
+  'app.doc.schema.variety-similarity': 'Genetische Ähnlichkeit zu einer benannten Sorte',
+  'app.doc.schema.variety-identity': 'Sortenidentität (Übereinstimmung mit dem Referenzprofil)',
+  'app.doc.schema.animal-parentage': 'Abstammung von Tieren (SNP, ICAR)',
+  'app.doc.slot.similarity': 'Ähnlichkeit zur benannten Sorte',
   'app.doc.slot.markersCompared': 'Verglichene Marker',
   'app.doc.slot.markersDiffering': 'Abweichende Marker',
-  'app.doc.slot.varietiesCompared': 'Verglichene Sorten',
+  'app.doc.slot.missingCalls': 'Fehlende Werte',
+  'app.doc.slot.comparedVariety': 'Registernr. der verglichenen Sorte',
+  'app.doc.slot.panel': 'Markerpanel (Code)',
+  'app.doc.slot.match': 'Übereinstimmung mit dem Referenzprofil',
+  'app.doc.slot.unitsTested': 'Geprüfte Samen oder Pflanzen',
+  'app.doc.slot.offTypes': 'Gefundene Abweicher',
+  'app.doc.slot.variety': 'Registernr. der Sorte',
+  'app.doc.slot.species': 'Tierart (Code)',
+  'app.doc.slot.panelSnps': 'SNPs im Panel',
+  'app.doc.slot.sireCompared': 'Mit dem Vater verglichene SNPs',
+  'app.doc.slot.sireConflicts': 'Konflikte mit dem Vater',
+  'app.doc.slot.sireOutcome': 'Ergebnis Vater (0 bestätigt, 1 fraglich, 2 ausgeschlossen)',
+  'app.doc.slot.damCompared': 'Mit der Mutter verglichene SNPs',
+  'app.doc.slot.damConflicts': 'Konflikte mit der Mutter',
+  'app.doc.slot.damOutcome': 'Ergebnis Mutter (0 bestätigt, 1 fraglich, 2 ausgeschlossen)',
+  'app.doc.slot.trioConflicts': 'Konflikte im Trio',
+  'app.doc.slot.trioOutcome': 'Ergebnis Trio (0 bestätigt, 1 fraglich, 2 ausgeschlossen)',
   'app.doc.nums.badWhole': 'Eine ganze Zahl, z. B. 5103.',
   'app.claim.boundBadWhole': 'Eine ganze Zahl.',
 
@@ -28,7 +44,7 @@ export const attest = {
   'app.labnums.otherPlant': 'sie betreffen eine andere Pflanze.',
   'app.labnums.otherReport': 'sie nennen eine andere Berichtsdatei.',
   'app.attest.title': 'Signatur des Labors',
-  'app.attest.signedBy': 'Signiert mit dem Laborschlüssel {key}.',
+  'app.attest.signedBy': 'Signaturschlüssel {key}.',
   'app.attest.publishText': 'Veröffentlichen Sie die Signatur auf Midnight, damit Ihre Links sie zeigen können.',
   'app.attest.publish': 'Auf Midnight veröffentlichen',
   'app.attest.publishing': 'Wird veröffentlicht…',
@@ -36,7 +52,8 @@ export const attest = {
     'Auf Midnight in Block {block} veröffentlicht. Die Links unter „Was Sie belegt haben“ enthalten sie jetzt.',
   'app.attest.stale': 'Die gespeicherte Signatur passt nicht mehr zu diesem Datensatz. Fügen Sie sie erneut hinzu.',
 
-  'app.claim.labSigned': 'Der Laborschlüssel {key} hat diese Zahlen signiert, und die Links enthalten diese Signatur.',
+  'app.claim.labSigned':
+    'Der Signaturschlüssel {key} hat diese Zahlen signiert, und die Links enthalten diese Signatur.',
 
   'app.claim.check.labOk':
     'Die Zahlen in diesem Datensatz wurden mit dem Schlüssel {key} signiert, auf Midnight veröffentlicht in Block {block}{date}.',
@@ -49,7 +66,7 @@ export const attest = {
   'app.claim.check.labAbout': 'Die Ergebnisse betreffen den Datensatz mit dem Nachweiscode',
   'app.claim.check.labFieldSecret':
     'Das Labor kennt diese Zahlen ebenfalls und könnte selbst Aussagen darüber belegen.',
-  'app.claim.check.labKey': 'Laborschlüssel',
+  'app.claim.check.labKey': 'Signaturschlüssel',
   'app.claim.check.labFailed':
     'Die Signatur des Labors ist nicht bestätigt: {reason} Lesen Sie die Zahlen als Eingaben des Inhabers.',
   'app.claim.check.whatLab':

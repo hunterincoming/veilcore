@@ -1,4 +1,4 @@
-// A laboratory signs the numbers it measured (docs/lab-attested-similarity.md).
+// A laboratory signs the numbers it measured (docs/lab-signing.md).
 //
 // Without this, the numbers sealed with a document are the holder's as typed: a claim like
 // "similarity to the closest variety is at most 95 %" says only that the holder typed a number

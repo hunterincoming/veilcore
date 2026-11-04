@@ -5,13 +5,29 @@
 import type { AppTranslation } from '../../translate';
 
 export const attest = {
-  'app.doc.schema.soybean-snp-similarity': 'ダイズの遺伝的類似度（SNP、BARCSoySNP6K）',
-  'app.doc.schema.maize-snp-similarity': 'トウモロコシの遺伝的類似度（SNP）',
-  'app.doc.schema.genetic-similarity': '遺伝的類似度（あらゆる作物・菌株）',
-  'app.doc.slot.similarity': '最も近い品種との類似度',
+  'app.doc.schema.variety-similarity': '指定品種との遺伝的類似度',
+  'app.doc.schema.variety-identity': '品種同一性（参照プロファイルとの一致）',
+  'app.doc.schema.animal-parentage': '動物の親子判定（SNP、ICAR）',
+  'app.doc.slot.similarity': '指定品種との類似度',
   'app.doc.slot.markersCompared': '比較したマーカー数',
   'app.doc.slot.markersDiffering': '異なるマーカー数',
-  'app.doc.slot.varietiesCompared': '比較した品種数',
+  'app.doc.slot.missingCalls': '欠測数',
+  'app.doc.slot.comparedVariety': '比較品種の登録番号',
+  'app.doc.slot.panel': 'マーカーパネル（コード）',
+  'app.doc.slot.match': '参照プロファイルとの一致率',
+  'app.doc.slot.unitsTested': '検査した種子・植物の数',
+  'app.doc.slot.offTypes': '異型個体数',
+  'app.doc.slot.variety': '品種の登録番号',
+  'app.doc.slot.species': '動物種（コード）',
+  'app.doc.slot.panelSnps': 'パネルのSNP数',
+  'app.doc.slot.sireCompared': '父と比較したSNP数',
+  'app.doc.slot.sireConflicts': '父との不一致数',
+  'app.doc.slot.sireOutcome': '父の判定（0 適合、1 疑義、2 否定）',
+  'app.doc.slot.damCompared': '母と比較したSNP数',
+  'app.doc.slot.damConflicts': '母との不一致数',
+  'app.doc.slot.damOutcome': '母の判定（0 適合、1 疑義、2 否定）',
+  'app.doc.slot.trioConflicts': 'トリオでの不一致数',
+  'app.doc.slot.trioOutcome': 'トリオの判定（0 適合、1 疑義、2 否定）',
   'app.doc.nums.badWhole': '整数で入力してください（例：5103）。',
   'app.claim.boundBadWhole': '整数で入力してください。',
 
@@ -28,7 +44,7 @@ export const attest = {
   'app.labnums.otherPlant': '別の植物についての数値です。',
   'app.labnums.otherReport': '別の報告書ファイルを指しています。',
   'app.attest.title': '検査機関の署名',
-  'app.attest.signedBy': '検査機関の鍵 {key} で署名されています。',
+  'app.attest.signedBy': '署名鍵 {key}。',
   'app.attest.publishText': 'コピーするリンクで署名を示せるよう、署名をMidnight上に公開してください。',
   'app.attest.publish': 'Midnight上に公開する',
   'app.attest.publishing': '公開中…',
@@ -36,7 +52,7 @@ export const attest = {
     'ブロック {block} でMidnight上に公開しました。「証明した内容」からコピーするリンクに、署名が含まれるようになりました。',
   'app.attest.stale': 'この記録に保存された署名が、記録と一致しなくなっています。もう一度追加してください。',
 
-  'app.claim.labSigned': '検査機関の鍵 {key} がこれらの数値に署名しており、リンクにはその署名が含まれます。',
+  'app.claim.labSigned': '署名鍵 {key} がこれらの数値に署名しており、リンクにはその署名が含まれます。',
 
   'app.claim.check.labOk':
     'その記録の数値は鍵 {key} で署名され、ブロック {block}{date} でMidnight上に公開されています。',
@@ -48,7 +64,7 @@ export const attest = {
     'この記録について、この鍵を自らのものと表明した検査機関はありません。数値は保有者自身が入力したものとして扱ってください。',
   'app.claim.check.labAbout': '結果の対象となる記録の証明コード',
   'app.claim.check.labFieldSecret': '検査機関もこれらの数値を知っており、自ら数値について証明することもできます。',
-  'app.claim.check.labKey': '検査機関の鍵',
+  'app.claim.check.labKey': '署名鍵',
   'app.claim.check.labFailed':
     '検査機関の署名は確認できませんでした：{reason} 数値は保有者自身が入力したものとして扱ってください。',
   'app.claim.check.whatLab':

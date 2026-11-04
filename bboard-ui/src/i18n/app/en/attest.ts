@@ -1,17 +1,33 @@
 // The record app in English: a laboratory's signature on a document's numbers
-// (veilcore/lab-attest.ts; docs/lab-attested-similarity.md). The /lab page, the panel on a
-// document's page, the genetic similarity forms, and what the claim check says about it.
+// (veilcore/lab-numbers.ts; docs/lab-signing.md). What a lab adds when it sends a report,
+// what the breeder sees, the panel on the record, the genetic forms, and the claim check.
 // SPDX-License-Identifier: Apache-2.0
 
 export const attest = {
-  // The genetic similarity forms (public/schemas/*-similarity-v1.json).
-  'app.doc.schema.soybean-snp-similarity': 'Soybean genetic similarity (SNP, BARCSoySNP6K)',
-  'app.doc.schema.maize-snp-similarity': 'Maize genetic similarity (SNP)',
-  'app.doc.schema.genetic-similarity': 'Genetic similarity (any crop or strain)',
-  'app.doc.slot.similarity': 'Similarity to the closest variety',
+  // The genetic forms a laboratory fills (public/schemas/variety-*, animal-parentage-v1.json).
+  'app.doc.schema.variety-similarity': 'Genetic similarity to one named variety',
+  'app.doc.schema.variety-identity': 'Variety identity (match to its reference profile)',
+  'app.doc.schema.animal-parentage': 'Animal parentage (SNP, ICAR)',
+  'app.doc.slot.similarity': 'Similarity to the named variety',
   'app.doc.slot.markersCompared': 'Markers compared',
   'app.doc.slot.markersDiffering': 'Markers that differ',
-  'app.doc.slot.varietiesCompared': 'Varieties compared against',
+  'app.doc.slot.missingCalls': 'Missing calls',
+  'app.doc.slot.comparedVariety': 'Registration no. of the variety compared',
+  'app.doc.slot.panel': 'Marker panel (code)',
+  'app.doc.slot.match': 'Match to the reference profile',
+  'app.doc.slot.unitsTested': 'Seeds or plants tested',
+  'app.doc.slot.offTypes': 'Off-types found',
+  'app.doc.slot.variety': 'Registration no. of the variety',
+  'app.doc.slot.species': 'Species (code)',
+  'app.doc.slot.panelSnps': 'SNPs in the panel',
+  'app.doc.slot.sireCompared': 'SNPs compared with the sire',
+  'app.doc.slot.sireConflicts': 'Conflicts with the sire',
+  'app.doc.slot.sireOutcome': 'Sire outcome (0 accepted, 1 doubtful, 2 excluded)',
+  'app.doc.slot.damCompared': 'SNPs compared with the dam',
+  'app.doc.slot.damConflicts': 'Conflicts with the dam',
+  'app.doc.slot.damOutcome': 'Dam outcome (0 accepted, 1 doubtful, 2 excluded)',
+  'app.doc.slot.trioConflicts': 'Conflicts across the trio',
+  'app.doc.slot.trioOutcome': 'Trio outcome (0 accepted, 1 doubtful, 2 excluded)',
   'app.doc.nums.badWhole': 'A whole number, like 5103.',
   'app.claim.boundBadWhole': 'A whole number.',
 
@@ -29,7 +45,7 @@ export const attest = {
   'app.labnums.otherPlant': 'they are about a different plant.',
   'app.labnums.otherReport': 'they name a different report file.',
   'app.attest.title': 'Laboratory signature',
-  'app.attest.signedBy': 'Signed by laboratory key {key}.',
+  'app.attest.signedBy': 'Signing key {key}.',
   'app.attest.publishText': 'Publish the signature on Midnight, so the links you copy can show it.',
   'app.attest.publish': 'Publish it on Midnight',
   'app.attest.publishing': 'Publishing…',
@@ -38,7 +54,7 @@ export const attest = {
   'app.attest.stale': 'The signature kept with this record no longer checks against it. Add it again.',
 
   // What "Prove one number" says once the numbers are signed.
-  'app.claim.labSigned': 'Laboratory key {key} signed these numbers, and the links include that signature.',
+  'app.claim.labSigned': 'Signing key {key} signed these numbers, and the links include that signature.',
 
   // The claim check page, when the link names a laboratory signature.
   'app.claim.check.labOk':
@@ -50,7 +66,7 @@ export const attest = {
     'No laboratory has said this key is theirs for this record. Read the numbers as the holder’s own.',
   'app.claim.check.labAbout': 'The results are about the record with proof code',
   'app.claim.check.labFieldSecret': 'The laboratory knows these numbers too, and could prove things about them itself.',
-  'app.claim.check.labKey': 'Laboratory key',
+  'app.claim.check.labKey': 'Signing key',
   'app.claim.check.labFailed':
     'The laboratory signature isn’t confirmed: {reason} Read the numbers as the holder’s own.',
   'app.claim.check.whatLab':

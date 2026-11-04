@@ -67,6 +67,9 @@ test('a lab signs numbers with its report; the breeder adds them; the record nam
   const box = lab.locator('[data-lab-numbers]');
   await expect(box).toContainText('Numbers from this report, signed by you');
   await box.getByLabel('Which numbers').click();
+  // A lab is offered the genetic forms; a holder typing their own numbers never is.
+  await expect(lab.getByRole('option', { name: 'Genetic similarity to one named variety' })).toBeVisible();
+  await expect(lab.getByRole('option', { name: 'Animal parentage (SNP, ICAR)' })).toBeVisible();
   await lab.getByRole('option', { name: 'Seed quality' }).click();
   await box.getByLabel('Germination').fill('96');
   await box.getByLabel(/Name of this result/).fill('GT-2026-0412');

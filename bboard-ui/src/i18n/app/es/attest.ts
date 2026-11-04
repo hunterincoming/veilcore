@@ -5,13 +5,29 @@
 import type { AppTranslation } from '../../translate';
 
 export const attest = {
-  'app.doc.schema.soybean-snp-similarity': 'Similitud genética de soja (SNP, BARCSoySNP6K)',
-  'app.doc.schema.maize-snp-similarity': 'Similitud genética de maíz (SNP)',
-  'app.doc.schema.genetic-similarity': 'Similitud genética (cualquier cultivo o cepa)',
-  'app.doc.slot.similarity': 'Similitud con la variedad más cercana',
+  'app.doc.schema.variety-similarity': 'Similitud genética con una variedad nombrada',
+  'app.doc.schema.variety-identity': 'Identidad varietal (coincidencia con su perfil de referencia)',
+  'app.doc.schema.animal-parentage': 'Filiación animal (SNP, ICAR)',
+  'app.doc.slot.similarity': 'Similitud con la variedad nombrada',
   'app.doc.slot.markersCompared': 'Marcadores comparados',
   'app.doc.slot.markersDiffering': 'Marcadores que difieren',
-  'app.doc.slot.varietiesCompared': 'Variedades comparadas',
+  'app.doc.slot.missingCalls': 'Datos faltantes',
+  'app.doc.slot.comparedVariety': 'N.º de registro de la variedad comparada',
+  'app.doc.slot.panel': 'Panel de marcadores (código)',
+  'app.doc.slot.match': 'Coincidencia con el perfil de referencia',
+  'app.doc.slot.unitsTested': 'Semillas o plantas analizadas',
+  'app.doc.slot.offTypes': 'Fuera de tipo encontrados',
+  'app.doc.slot.variety': 'N.º de registro de la variedad',
+  'app.doc.slot.species': 'Especie (código)',
+  'app.doc.slot.panelSnps': 'SNP del panel',
+  'app.doc.slot.sireCompared': 'SNP comparados con el padre',
+  'app.doc.slot.sireConflicts': 'Conflictos con el padre',
+  'app.doc.slot.sireOutcome': 'Resultado del padre (0 aceptado, 1 dudoso, 2 excluido)',
+  'app.doc.slot.damCompared': 'SNP comparados con la madre',
+  'app.doc.slot.damConflicts': 'Conflictos con la madre',
+  'app.doc.slot.damOutcome': 'Resultado de la madre (0 aceptado, 1 dudoso, 2 excluido)',
+  'app.doc.slot.trioConflicts': 'Conflictos en el trío',
+  'app.doc.slot.trioOutcome': 'Resultado del trío (0 aceptado, 1 dudoso, 2 excluido)',
   'app.doc.nums.badWhole': 'Un número entero, como 5103.',
   'app.claim.boundBadWhole': 'Un número entero.',
 
@@ -28,7 +44,7 @@ export const attest = {
   'app.labnums.otherPlant': 'se refieren a otra planta.',
   'app.labnums.otherReport': 'nombran otro archivo de informe.',
   'app.attest.title': 'Firma del laboratorio',
-  'app.attest.signedBy': 'Firmado con la clave de laboratorio {key}.',
+  'app.attest.signedBy': 'Clave de firma {key}.',
   'app.attest.publishText': 'Publique la firma en Midnight para que los enlaces que copie puedan mostrarla.',
   'app.attest.publish': 'Publicarla en Midnight',
   'app.attest.publishing': 'Publicando…',
@@ -36,7 +52,7 @@ export const attest = {
     'Publicada en Midnight en el bloque {block}. Los enlaces que copie en «Lo que ha demostrado» ya la incluyen.',
   'app.attest.stale': 'La firma guardada con este registro ya no coincide con él. Añádala de nuevo.',
 
-  'app.claim.labSigned': 'La clave de laboratorio {key} firmó estos números, y los enlaces incluyen esa firma.',
+  'app.claim.labSigned': 'La clave de firma {key} firmó estos números, y los enlaces incluyen esa firma.',
 
   'app.claim.check.labOk':
     'Los números de ese registro se firmaron con la clave {key}, publicada en Midnight en el bloque {block}{date}.',
@@ -48,7 +64,7 @@ export const attest = {
   'app.claim.check.labAbout': 'Los resultados se refieren al registro con el código de prueba',
   'app.claim.check.labFieldSecret':
     'El laboratorio también conoce estos números y podría demostrar cosas sobre ellos por su cuenta.',
-  'app.claim.check.labKey': 'Clave del laboratorio',
+  'app.claim.check.labKey': 'Clave de firma',
   'app.claim.check.labFailed':
     'La firma del laboratorio no está confirmada: {reason} Tome los números como del propio titular.',
   'app.claim.check.whatLab':

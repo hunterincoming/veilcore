@@ -251,6 +251,8 @@ test('seal a certificate with its numbers: refused until each one fits, then kep
   await page.getByLabel('Type').click();
   await page.getByRole('option', { name: 'Certificate of analysis (COA)' }).click();
   await page.getByLabel('Which numbers').click();
+  // The genetic forms are a lab's to fill, with its report: never offered here.
+  await expect(page.getByRole('option', { name: 'Genetic similarity to one named variety' })).toHaveCount(0);
   await page.getByRole('option', { name: 'Cannabinoid potency' }).click();
   // Four decimals where the form holds three: refused, never rounded.
   await page.getByLabel('Total THC').fill('0.2105');

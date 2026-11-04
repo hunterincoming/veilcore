@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { claimMaterial, commitmentHex, slotInput } from './claims-input';
-import { makeFieldSet, SCHEMAS } from './field-set';
+import { makeFieldSet, OFFERED_SCHEMAS, SCHEMAS } from './field-set';
 import {
   keyFromHex,
   keyHex,
@@ -37,13 +37,13 @@ const v = JSON.parse(fs.readFileSync(path.join(dir, '../../../contract/vectors/d
   records: { appRecord: Record<string, unknown>; fields: { keyBinding?: string }; fieldSet?: unknown }[];
 };
 const base = v.records.find((r) => r.fieldSet)!;
-const SOY = 'veilcore/schema/soybean-snp-similarity/v1';
+const SOY = 'veilcore/schema/variety-similarity/v1';
 const CONTRACT = 'c1'.repeat(32);
 const unhex = (h: string): Uint8Array => Uint8Array.from(h.match(/../g) ?? [], (b) => parseInt(b, 16));
 
 /** A document record carrying a soybean similarity certificate: 94.37 %, 5,103 SNPs, 287 differ, 412 varieties. */
 const similarityRecord = async () => {
-  const { held, fieldSchema, fieldSetRoot } = await makeFieldSet(SOY, [9437n, 5103n, 287n, 412n]);
+  const { held, fieldSchema, fieldSetRoot } = await makeFieldSet(SOY, [9437n, 5103n, 287n, 12n, 201900123n, 1n]);
   return {
     ...base.appRecord,
     strainName: 'Similarity report SB-2026-118',
@@ -53,19 +53,14 @@ const similarityRecord = async () => {
   } as never;
 };
 
-describe('the similarity forms', () => {
-  it('are published, each with the same four numbers', () => {
-    for (const id of [SOY, 'veilcore/schema/maize-snp-similarity/v1', 'veilcore/schema/genetic-similarity/v1']) {
-      const s = SCHEMAS[id];
-      expect(s, id).toBeDefined();
-      expect(s.slots.map((x) => x.path)).toEqual([
-        'genetic.similarity',
-        'genetic.markersCompared',
-        'genetic.markersDiffering',
-        'genetic.varietiesCompared',
-      ]);
-      expect(s.slots[0]).toMatchObject({ unit: '%', scale: 100 });
+describe('the genetic forms', () => {
+  it('are published, offered only to a laboratory, and name what was compared in numbers a claim can show', () => {
+    for (const id of [SOY, 'veilcore/schema/variety-identity/v1', 'veilcore/schema/animal-parentage/v1']) {
+      expect(SCHEMAS[id], id).toBeDefined();
+      expect(OFFERED_SCHEMAS).not.toContain(id);
     }
+    expect(SCHEMAS[SOY].slots.map((x) => x.path)).toContain('genetic.comparedVariety');
+    expect(SCHEMAS['veilcore/schema/variety-identity/v1'].slots.map((x) => x.path)).toContain('identity.variety');
   });
 });
 
@@ -248,13 +243,13 @@ describe('on the claims contract', () => {
 });
 
 describe('on veilcore.org', () => {
-  it('laboratory signing and the similarity forms stay off until the redesign', () => {
+  it('laboratory signing and the genetic forms stay off on mainnet until it has been tested', () => {
     const src = (f: string) => fs.readFileSync(path.join(dir, f), 'utf8');
     expect(src('../config/network.ts')).toContain('export const LAB_SIGNING_ENABLED = !IS_MAINNET;');
     expect(src('../components/document/DocumentDetail.tsx')).toContain('LAB_SIGNING_ENABLED && <LabSignaturePanel');
     expect(src('../components/flow/LabResults.tsx')).toContain('LAB_SIGNING_ENABLED && file && kind &&');
     expect(src('../components/flow/LabResults.tsx')).toContain('if (numbersBytes && LAB_SIGNING_ENABLED)');
     expect(src('../App.tsx')).not.toContain('/lab"');
-    expect(src('../components/document/NumbersFields.tsx')).toContain('OFFERED_SCHEMAS.map');
+    expect(src('../veilcore/field-set.ts')).toContain('LAB_SIGNING_ENABLED ? Object.keys(SCHEMAS) : []');
   });
 });

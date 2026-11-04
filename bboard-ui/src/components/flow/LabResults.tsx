@@ -68,7 +68,7 @@ import {
 } from '../../veilcore/custody';
 import { LAB_RESULTS_ENABLED, LAB_SIGNING_ENABLED } from '../../config/network';
 import { NumbersFields } from '../document/NumbersFields';
-import { numbersOf, type TypedNumbers } from '../../veilcore/field-set';
+import { LAB_SCHEMAS, numbersOf, type TypedNumbers } from '../../veilcore/field-set';
 import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
 import { NameCheckText } from '../NameCheckText';
 import { focusScreenHeading } from './FlowFrame';
@@ -1385,6 +1385,8 @@ export const SendResultsPanel: React.FC<{
                 typed={numTyped}
                 onTyped={setNumTyped}
                 bad={numSchema ? numbersOf(numSchema, numTyped).bad : []}
+                forms={LAB_SCHEMAS}
+                bare
               />
               {numSchema && (
                 <TextField
