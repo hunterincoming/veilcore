@@ -29,6 +29,7 @@ import { isStrain, STRAIN_GROUPS, type StrainDetails } from './strain-profile';
 import type { DocumentDetails } from './document-profile';
 import type { HeldFieldSet } from './field-set';
 import type { MadeClaim } from './claim-link';
+import type { LabSignature } from './lab-attest';
 import {
   allowReplace,
   checkRecordIntegrity,
@@ -165,6 +166,13 @@ export type StrainRecord = {
   readonly fieldSet?: HeldFieldSet;
   /** Claims this holder made about the record's numbers (claim-link.ts): outside the fingerprint. */
   readonly claims?: readonly MadeClaim[];
+  /**
+   * A laboratory's signature on the record's numbers (lab-attest.ts), checked when it was added:
+   * outside the fingerprint, like a claim. `labOnChain` is the proveAttested call that published
+   * it on Midnight; claim links carry it so a checker reads both.
+   */
+  readonly labSignature?: LabSignature;
+  readonly labOnChain?: LabOnChain;
   readonly photoFingerprints?: string[]; // photos hashed locally, never uploaded
   readonly refId?: string; // breeder's own reference / lot ID
   /**
@@ -324,6 +332,10 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
     (r.fieldSet === undefined ||
       (typeof r.fieldSet === 'object' && r.fieldSet !== null && !Array.isArray(r.fieldSet))) &&
     (r.claims === undefined || Array.isArray(r.claims)) &&
+    (r.labSignature === undefined ||
+      (typeof r.labSignature === 'object' && r.labSignature !== null && !Array.isArray(r.labSignature))) &&
+    (r.labOnChain === undefined ||
+      (typeof r.labOnChain === 'object' && r.labOnChain !== null && !Array.isArray(r.labOnChain))) &&
     num(r.loggedAt) &&
     num(r.dnaPairedAt) &&
     (r.parents === undefined || Array.isArray(r.parents)) &&
@@ -1628,6 +1640,44 @@ export const addClaim = (id: string, claim: MadeClaim): StrainRecord | undefined
   records = records.map((r) => {
     if (r.id !== id) return r;
     updated = { ...r, claims: [...(r.claims ?? []), claim] };
+    return updated;
+  });
+  if (updated) persist();
+  return updated;
+};
+
+/** The proveAttested call that published a record's laboratory signature on Midnight. */
+export type LabOnChain = {
+  readonly contract: string;
+  readonly txId: string;
+  readonly blockHeight?: number;
+  readonly blockTime?: number;
+};
+
+/**
+ * Keep a laboratory's signature on a record's numbers, already checked against the record
+ * (lab-attest.ts readLabSignature). A new signature replaces the old one and forgets the old
+ * one's Midnight call, which was about another key.
+ */
+export const setLabSignature = (id: string, sig: LabSignature): StrainRecord | undefined => {
+  let updated: StrainRecord | undefined;
+  records = records.map((r) => {
+    if (r.id !== id) return r;
+    const { labOnChain: _gone, ...rest } = r;
+    void _gone;
+    updated = { ...rest, labSignature: sig };
+    return updated;
+  });
+  if (updated) persist();
+  return updated;
+};
+
+/** Keep the Midnight call that published the record's laboratory signature. */
+export const setLabOnChain = (id: string, on: LabOnChain): StrainRecord | undefined => {
+  let updated: StrainRecord | undefined;
+  records = records.map((r) => {
+    if (r.id !== id) return r;
+    updated = { ...r, labOnChain: on };
     return updated;
   });
   if (updated) persist();

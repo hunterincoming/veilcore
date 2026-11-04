@@ -14,6 +14,7 @@ import { useT } from '../../i18n/app';
 import { DocumentDate, Fact } from './DocumentParts';
 import { claimWords } from './ProveNumber';
 import { schemaWords } from './NumbersFields';
+import { keyShort } from '../../veilcore/lab-key-text';
 
 export const ClaimCheck: React.FC = () => {
   const tr = useT();
@@ -102,6 +103,29 @@ export const ClaimCheck: React.FC = () => {
                 </Alert>
               )}
             </Paper>
+            {verdict?.ok && verdict.lab && (
+              <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-claim-lab={verdict.lab.ok ? 'ok' : 'failed'}>
+                {verdict.lab.ok ? (
+                  <Stack spacing={1.5}>
+                    <Alert severity="success" variant="outlined">
+                      {t('app.claim.check.labOk', {
+                        key: keyShort(verdict.lab.attester),
+                        block: String(verdict.lab.blockHeight ?? '?'),
+                        date: verdict.lab.blockTime ? ` (${tr.date(verdict.lab.blockTime)})` : '',
+                      })}
+                    </Alert>
+                    <Fact label={t('app.claim.check.labKey')} mono>
+                      {verdict.lab.attester}
+                    </Fact>
+                    <Typography variant="body2">{t('app.claim.check.labWhose')}</Typography>
+                  </Stack>
+                ) : (
+                  <Alert severity="error" variant="outlined">
+                    {t('app.claim.check.labFailed', { reason: verdict.lab.reason })}
+                  </Alert>
+                )}
+              </Paper>
+            )}
             <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
               <Typography variant="overline" sx={{ display: 'block', mb: 1 }}>
                 {t('app.claim.check.record')}
@@ -114,7 +138,7 @@ export const ClaimCheck: React.FC = () => {
               </Stack>
             </Paper>
             <Typography variant="body2" color="text.secondary">
-              {t('app.claim.check.what')}
+              {verdict?.ok && verdict.lab?.ok ? t('app.claim.check.whatLab') : t('app.claim.check.what')}
             </Typography>
           </Stack>
         )}

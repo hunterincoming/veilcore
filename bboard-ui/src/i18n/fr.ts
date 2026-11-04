@@ -45,6 +45,7 @@ export const fr: Strings = {
   'title.new': 'Créer un enregistrement',
   'title.record': 'Enregistrement',
   'title.agreements': 'Contrats',
+  'title.lab': 'Signature du laboratoire',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
   'error.page.title': 'Cette page n’a pas pu être affichée',
   'error.page.text':

@@ -69,6 +69,7 @@ const LogFlow = page(() => import('./components/flow/LogFlow'), 'LogFlow', 'afte
 const DocumentNew = page(() => import('./components/document/DocumentNew'), 'DocumentNew', 'after');
 const DocumentCheck = page(() => import('./components/document/DocumentCheck'), 'DocumentCheck', 'wait');
 const ClaimCheck = page(() => import('./components/document/ClaimCheck'), 'ClaimCheck');
+const LabSign = page(() => import('./components/document/LabSign'), 'LabSign');
 const BulkImportPage = page(() => import('./components/lab-import/BulkImportPage'), 'BulkImportPage');
 const RestorePage = page(() => import('./components/flow/RestorePage'), 'RestorePage');
 const BackupPage = page(() => import('./components/flow/BackupPage'), 'BackupPage');
@@ -226,6 +227,7 @@ const PAGE_TITLES: [RegExp, string][] = [
   [/^\/new/, 'Make a record'],
   [/^\/record\//, 'Record'],
   [/^\/licenses?(\/|$)/, 'Agreements'],
+  [/^\/lab$/, 'Laboratory signing'],
 ];
 const HOME_TITLE = typeof document === 'undefined' ? '' : document.title;
 
@@ -249,6 +251,7 @@ const TITLE_KEYS: Record<string, StringKey> = {
   'Make a record': 'title.new',
   Record: 'title.record',
   Agreements: 'title.agreements',
+  'Laboratory signing': 'title.lab',
 };
 
 const PageTitle: React.FC = () => {
@@ -305,6 +308,14 @@ const routes = (
       element={
         <Light>
           <ClaimCheck />
+        </Light>
+      }
+    />
+    <Route
+      path="/lab"
+      element={
+        <Light>
+          <LabSign />
         </Light>
       }
     />

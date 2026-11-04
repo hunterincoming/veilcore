@@ -17,7 +17,8 @@
 //
 // Claims ("prove one number", docs/claims-screen.md) are on when the sponsor pays for them:
 // its /sponsor/status names a claims contract, which must be VeilCore's pinned one, and the
-// claims proving keys and the k=15 and k=16 parameters must be on this computer.
+// claims proving keys (proveRange, proveValue, proveAttested) and the k=15 and k=16 parameters
+// must be on this computer (proveAttested's k=13 is the main contract's too).
 // SPDX-License-Identifier: Apache-2.0
 
 import { execFileSync } from 'node:child_process';
@@ -73,7 +74,7 @@ export const sponsorProblem = (status, pinned, agreements = false) => {
   return undefined;
 };
 
-const CLAIMS_KEYS = ['proveRange', 'proveValue'].map((c) => `contract/src/managed/veilcore-claims/keys/${c}.prover`);
+const CLAIMS_KEYS = ['proveRange', 'proveValue', 'proveAttested'].map((c) => `contract/src/managed/veilcore-claims/keys/${c}.prover`);
 const CLAIMS_PARAMS = ['bboard-ui/public/params/bls_midnight_2p15', 'bboard-ui/public/params/bls_midnight_2p16'];
 const FETCH_KEYS = 'npm exec --package=@veilcore/contracts@0.3.0 -- veilcore-keys fetch --to contract/src/managed';
 

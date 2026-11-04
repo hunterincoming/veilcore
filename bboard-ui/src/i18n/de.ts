@@ -45,6 +45,7 @@ export const de: Strings = {
   'title.new': 'Einen Datensatz anlegen',
   'title.record': 'Datensatz',
   'title.agreements': 'Vereinbarungen',
+  'title.lab': 'Laborsignatur',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
   'error.page.title': 'Diese Seite konnte nicht angezeigt werden',
   'error.page.text':

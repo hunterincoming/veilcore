@@ -1,0 +1,282 @@
+// A laboratory signs the numbers it measured (docs/lab-attested-similarity.md).
+//
+// Without this, the numbers sealed with a document are the holder's as typed: a claim like
+// "similarity to the closest variety is at most 95 %" says only that the holder typed a number
+// that meets it. With it, the laboratory that did the genotyping signs the record itself, and the
+// claims contract's proveAttested publishes that signature's key on Midnight. A claim on the same
+// record, read with it, is then a claim on numbers that laboratory signed.
+//
+// Three small files go between two people, nothing through VeilCore:
+//
+//   1. the holder downloads a REQUEST: the record's sealed fields and its numbers with their
+//      field secret, so the laboratory can recompute exactly what it is signing;
+//   2. the laboratory opens it on /lab with its KEY file, reads every number against its own
+//      report, and signs: out comes a SIGNATURE file;
+//   3. the holder adds the signature to the record (checked here against the record and the
+//      key) and proves it on Midnight.
+//
+// The signing is contract/src/attest.ts, the same code the contract's tests check against
+// schnorr.compact: Schnorr over Jubjub on the record commitment (SPEC 4.5), which binds every
+// number and every sealed field, so a signature can't be moved to another record.
+//
+// A key is a key: who holds it is not something this site or the contract knows. A laboratory
+// publishes its key (on its own website, on its reports) and a checker compares.
+// SPDX-License-Identifier: Apache-2.0
+
+import {
+  JUBJUB_ORDER,
+  attesterKeyOf,
+  isSigningKey,
+  newAttesterKey,
+  signRecord,
+  verifyRecordSignature,
+  type AttestationSignature,
+  type JubjubPoint,
+} from '../../../contract/src/attest';
+import { claimMaterial, commitmentHex } from './claims-input';
+import type { DocumentRecordLike } from './document-profile';
+import { SCHEMAS, type HeldFieldSet } from './field-set';
+
+const HEX64 = /^[0-9a-f]{64}$/;
+const DEC = /^(0|[1-9]\d{0,99})$/;
+const h64 = (n: bigint): string => n.toString(16).padStart(64, '0');
+const unhex = (h: string): Uint8Array => Uint8Array.from(h.match(/../g) ?? [], (b) => parseInt(b, 16));
+
+/** A key as text: x then y, 64 hex characters each. What a laboratory publishes. */
+export const keyHex = (k: JubjubPoint): string => h64(k.x) + h64(k.y);
+export const keyFromHex = (t: string): JubjubPoint | undefined => {
+  const s = t.trim().toLowerCase().replace(/\s+/g, '');
+  if (!/^[0-9a-f]{128}$/.test(s)) return undefined;
+  const k = { x: BigInt('0x' + s.slice(0, 64)), y: BigInt('0x' + s.slice(64)) };
+  return isSigningKey(k) ? k : undefined;
+};
+export { keyShort } from './lab-key-text';
+
+// ---- the laboratory's key file ---------------------------------------------------------------
+
+export type LabKeyFile = {
+  readonly kind: 'veilcore-lab-key';
+  readonly v: 1;
+  /** The laboratory's name, as it typed it. Not checked by anything: a label for its own files. */
+  readonly name: string;
+  /** The signing secret, hex. Whoever has this file can sign as this key. */
+  readonly secret: string;
+  /** The public key (keyHex). */
+  readonly key: string;
+  readonly made: string;
+};
+
+export const newLabKeyFile = (name: string): LabKeyFile => {
+  const { secret, key } = newAttesterKey();
+  return {
+    kind: 'veilcore-lab-key',
+    v: 1,
+    name: name.trim().slice(0, 200),
+    secret: h64(secret),
+    key: keyHex(key),
+    made: new Date().toISOString(),
+  };
+};
+
+/** A key file, checked: its secret makes its key. Throws in plain words. */
+export const readLabKeyFile = (text: string): LabKeyFile & { readonly secretN: bigint } => {
+  let o: Record<string, unknown>;
+  try {
+    o = JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    throw new Error('That file isn’t a laboratory key file.');
+  }
+  if (o?.kind !== 'veilcore-lab-key' || o.v !== 1 || typeof o.secret !== 'string' || !HEX64.test(o.secret))
+    throw new Error('That file isn’t a laboratory key file.');
+  const secretN = BigInt('0x' + o.secret);
+  if (secretN === 0n || secretN >= JUBJUB_ORDER) throw new Error('That key file is damaged.');
+  const key = keyHex(attesterKeyOf(secretN));
+  if (o.key !== key) throw new Error('That key file is damaged: its secret doesn’t make its key.');
+  return {
+    kind: 'veilcore-lab-key',
+    v: 1,
+    name: typeof o.name === 'string' ? o.name.slice(0, 200) : '',
+    secret: o.secret,
+    key,
+    made: typeof o.made === 'string' ? o.made : '',
+    secretN,
+  };
+};
+
+// ---- the holder's request ----------------------------------------------------------------------
+
+/** The record's sealed fields a request carries: everything its commitment is made from. */
+type RequestRecord = DocumentRecordLike & { readonly fieldSet: HeldFieldSet };
+
+export type LabRequest = {
+  readonly kind: 'veilcore-lab-request';
+  readonly v: 1;
+  /** The record commitment to be signed, hex (claims-input.ts). */
+  readonly commitment: string;
+  readonly record: RequestRecord;
+};
+
+const requestFields = (r: RequestRecord): RequestRecord => ({
+  ...(r.profile !== undefined ? { profile: r.profile } : {}),
+  strainName: r.strainName,
+  bredBy: r.bredBy,
+  dateCreated: r.dateCreated,
+  notes: r.notes,
+  loggedAt: r.loggedAt,
+  nonce: r.nonce,
+  ...(r.keyBinding !== undefined ? { keyBinding: r.keyBinding } : {}),
+  ...(r.refId !== undefined ? { refId: r.refId } : {}),
+  ...(r.document !== undefined ? { document: r.document } : {}),
+  ...(r.fieldSchema !== undefined ? { fieldSchema: r.fieldSchema } : {}),
+  ...(r.fieldSetRoot !== undefined ? { fieldSetRoot: r.fieldSetRoot } : {}),
+  fieldSet: r.fieldSet,
+});
+
+/** The request file for a record with sealed numbers. */
+export const labRequestFor = async (r: RequestRecord): Promise<LabRequest> => {
+  const m = await claimMaterial(r);
+  return { kind: 'veilcore-lab-request', v: 1, commitment: commitmentHex(m), record: requestFields(r) };
+};
+
+/**
+ * A request, checked: the numbers and fields it carries make the commitment it names, under a
+ * schema this site publishes. What the laboratory reads is then exactly what it signs.
+ */
+export const readLabRequest = async (text: string): Promise<LabRequest> => {
+  let o: Record<string, unknown>;
+  try {
+    o = JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    throw new Error('That file isn’t a request for a laboratory signature.');
+  }
+  const rec = o?.record as RequestRecord | undefined;
+  if (
+    o?.kind !== 'veilcore-lab-request' ||
+    o.v !== 1 ||
+    typeof o.commitment !== 'string' ||
+    !HEX64.test(o.commitment) ||
+    typeof rec !== 'object' ||
+    rec === null ||
+    typeof rec.fieldSet !== 'object' ||
+    rec.fieldSet === null
+  )
+    throw new Error('That file isn’t a request for a laboratory signature.');
+  if (!SCHEMAS[rec.fieldSet.schema]) throw new Error('The request uses numbers this site doesn’t publish a form for.');
+  let commitment: string;
+  try {
+    commitment = commitmentHex(await claimMaterial(rec));
+  } catch (e) {
+    throw new Error(`The request can’t be checked: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  if (commitment !== o.commitment)
+    throw new Error('The request’s numbers don’t make the record it names. Don’t sign it; ask for it again.');
+  return { kind: 'veilcore-lab-request', v: 1, commitment, record: requestFields(rec) };
+};
+
+// ---- the laboratory's signature ------------------------------------------------------------------
+
+export type LabSignature = {
+  readonly kind: 'veilcore-lab-signature';
+  readonly v: 1;
+  /** The record commitment signed, hex. */
+  readonly record: string;
+  /** The laboratory's public key (keyHex). */
+  readonly key: string;
+  /** The laboratory's name as on its key file: a label, never checked. */
+  readonly name?: string;
+  /** Schnorr signature: announcement (x, y) and response, decimal. */
+  readonly rx: string;
+  readonly ry: string;
+  readonly s: string;
+};
+
+export const signLabRequest = (key: { secretN: bigint; name: string }, req: LabRequest): LabSignature => {
+  const sig = signRecord(key.secretN, unhex(req.commitment));
+  return {
+    kind: 'veilcore-lab-signature',
+    v: 1,
+    record: req.commitment,
+    key: keyHex(attesterKeyOf(key.secretN)),
+    ...(key.name ? { name: key.name } : {}),
+    rx: sig.announcement.x.toString(),
+    ry: sig.announcement.y.toString(),
+    s: sig.response.toString(),
+  };
+};
+
+/** The key and signature as the contract's witnesses take them. */
+export const signatureParts = (s: LabSignature): { key: JubjubPoint; signature: AttestationSignature } => {
+  const key = keyFromHex(s.key);
+  if (!key) throw new Error('That isn’t a laboratory signing key.');
+  return {
+    key,
+    signature: { announcement: { x: BigInt(s.rx), y: BigInt(s.ry) }, response: BigInt(s.s) },
+  };
+};
+
+/**
+ * A signature file, checked against the record it is for: same commitment, a real signing key,
+ * and a signature the claims contract will accept (verifyRecordSignature does the contract's
+ * own check). Throws in plain words.
+ */
+export const readLabSignature = (text: string, commitment: string): LabSignature => {
+  let o: Record<string, unknown>;
+  try {
+    o = JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    throw new Error('That file isn’t a laboratory signature.');
+  }
+  const str = (k: string): string => {
+    const x = o[k];
+    return typeof x === 'string' ? x : '';
+  };
+  if (
+    o?.kind !== 'veilcore-lab-signature' ||
+    o.v !== 1 ||
+    !HEX64.test(str('record')) ||
+    !DEC.test(str('rx')) ||
+    !DEC.test(str('ry')) ||
+    !DEC.test(str('s'))
+  )
+    throw new Error('That file isn’t a laboratory signature.');
+  if (str('record') !== commitment) throw new Error('That signature is for a different record.');
+  const sig: LabSignature = {
+    kind: 'veilcore-lab-signature',
+    v: 1,
+    record: str('record'),
+    key: str('key').toLowerCase(),
+    ...(str('name') ? { name: str('name').slice(0, 200) } : {}),
+    rx: str('rx'),
+    ry: str('ry'),
+    s: str('s'),
+  };
+  let parts: ReturnType<typeof signatureParts>;
+  try {
+    parts = signatureParts(sig);
+  } catch {
+    throw new Error('That signature’s key isn’t a laboratory signing key.');
+  }
+  if (!verifyRecordSignature(parts.key, unhex(commitment), parts.signature))
+    throw new Error('That signature doesn’t check: it wasn’t made for this record by that key.');
+  return sig;
+};
+
+/** A stored signature still checks (records restored from a backup, or edited by hand). */
+export const labSignatureChecks = (s: LabSignature, commitment: string): boolean => {
+  try {
+    readLabSignature(JSON.stringify(s), commitment);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/** A file to save: the text, as a download. */
+export const saveFile = (name: string, text: string): void => {
+  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};

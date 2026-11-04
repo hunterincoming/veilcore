@@ -33,6 +33,8 @@ Status: DESIGN AND BUILD, 29 October 2026. Test networks first. The claims contr
   - `veilcore/schema/seed-quality/v1`: germination, pure seed, other crop seed, weed seed, inert
     matter, moisture (the numbers on a seed analysis certificate, AOSCA and ISTA style), each
     % × 100.
+  - Added 4 November 2026: `soybean-snp-similarity/v1`, `maize-snp-similarity/v1`,
+    `genetic-similarity/v1` (docs/lab-attested-similarity.md).
 - **Range and value only, to start.** `proveRange` (k=16) and `proveValue` (k=15) are the two a
   grower, a buyer and a regulator ask for. `proveDistinct` and `proveUnchanged` (k=17) answer an
   examiner's question and are the heaviest; they wait for someone who asks.
@@ -79,5 +81,6 @@ Status: DESIGN AND BUILD, 29 October 2026. Test networks first. The claims contr
    pinned contract and that the claims keys and parameters are on the Mac, and builds the site
    with claims on; with no claims contract on the sponsor, the site has none. Then one real claim
    on veilcore.org from a laptop, and its check link opened in another browser.
-6. **Later.** A laboratory signing a certificate's record (`proveAttested`), so a claim is about
-   numbers a lab sealed, not the holder's typing.
+6. **Built (4 November 2026).** A laboratory signing a certificate's record (`proveAttested`), so
+   a claim is about numbers a lab signed, not the holder's typing, with three genetic similarity
+   forms (soybean, maize, any crop or strain): docs/lab-attested-similarity.md.

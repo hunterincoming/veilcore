@@ -26,6 +26,7 @@ import { sealed } from './sealed';
 import { verify } from './verify';
 import { licensing } from './licensing';
 import { document } from './document';
+import { attest } from './attest';
 import { start } from './start';
 
 export const appEn = {
@@ -50,6 +51,7 @@ export const appEn = {
   ...dating,
   ...licensing,
   ...document,
+  ...attest,
   ...start,
 };
 

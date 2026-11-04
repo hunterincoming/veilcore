@@ -26,6 +26,10 @@ import { makeProviders, PRIVATE_STATE_ID, type Hooks } from './providers';
 import { setProverProgress } from './prover';
 import { browserCallDeps, type CallDeps } from './prover-choice';
 import { slotInput, type ClaimMaterial } from '../claims-input';
+import { signatureParts, type LabSignature } from '../lab-attest';
+import { verifyRecordSignature } from '../../../../contract/src/attest';
+
+const hexOf = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
 
 export type ClaimReceipt = {
   readonly circuit: ClaimsCircuit;
@@ -183,4 +187,21 @@ export const proveValueOnChain = (
 ): Promise<ClaimReceipt> => {
   const { opening } = slotInput(m, slot);
   return claimCall('proveValue', [m.commitment, m.schemaId, BigInt(slot), opening.value], { opening }, opts);
+};
+
+/**
+ * A laboratory signed this record (lab-attest.ts): publishes the laboratory's key and that it
+ * signed the record's commitment. The numbers stay private. The signature is checked here first,
+ * as the contract will check it, so a bad one is refused before a minute of proving.
+ */
+export const proveAttestedOnChain = async (
+  m: ClaimMaterial,
+  sig: LabSignature,
+  opts: ClaimCallOptions = {},
+): Promise<ClaimReceipt> => {
+  const { key, signature } = signatureParts(sig);
+  if (sig.record !== hexOf(m.commitment)) throw new Error('That signature is for a different record.');
+  if (!verifyRecordSignature(key, m.commitment, signature))
+    throw new Error('That signature doesn’t check: it wasn’t made for this record by that key.');
+  return claimCall('proveAttested', [m.commitment], { attester: key, signature }, opts);
 };

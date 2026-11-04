@@ -4,7 +4,7 @@
 // The evidence bundle is here too: the offline package a lawyer or examiner checks without us.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Alert, Box, Button, Chip, Paper, Stack, Typography } from '@mui/material';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
@@ -25,6 +25,7 @@ import { useT } from '../../i18n/app';
 import { DocumentDate, DocumentFacts, Fact, FileCompare } from './DocumentParts';
 import { schemaWords, slotWords } from './NumbersFields';
 import { ProveNumber } from './ProveNumber';
+import { LabSignaturePanel } from './LabSignaturePanel';
 import { SCHEMAS, shownNumber, type HeldFieldSet } from '../../veilcore/field-set';
 
 /** The numbers sealed with the document, from the holder's own copy: nobody else has them. */
@@ -59,6 +60,30 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
   const [copied, setCopied] = useState(false);
   const [linkError, setLinkError] = useState<string>();
   const keys = useRecordKeys()[record.id];
+  // A kept laboratory signature is checked again against the record before anything shows it
+  // as signed (lab-attest.ts): a record restored or edited by hand may no longer match.
+  const [labOk, setLabOk] = useState<boolean>();
+  useEffect(() => {
+    setLabOk(undefined);
+    const sig = record.labSignature;
+    if (!sig || !record.fieldSet) return;
+    let live = true;
+    void (async () => {
+      try {
+        const [{ labSignatureChecks }, { claimMaterial, commitmentHex }] = await Promise.all([
+          import('../../veilcore/lab-attest'),
+          import('../../veilcore/claims-input'),
+        ]);
+        const m = await claimMaterial(record as DocumentRecordLike & { fieldSet: NonNullable<typeof record.fieldSet> });
+        if (live) setLabOk(labSignatureChecks(sig, commitmentHex(m)));
+      } catch {
+        if (live) setLabOk(false);
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, [record]);
   const d = record.document;
   const files: readonly DocumentFile[] = d?.files ?? [];
 
@@ -116,7 +141,8 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
           <DocumentFacts fields={f} />
         </Paper>
         {record.fieldSet && <HeldNumbers held={record.fieldSet} />}
-        {record.fieldSet && <ProveNumber record={record} />}
+        {record.fieldSet && <LabSignaturePanel record={record} signatureOk={labOk} />}
+        {record.fieldSet && <ProveNumber record={record} labSignatureOk={labOk === true} />}
         <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-document-share="">
           <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
             {t('app.doc.share.title')}

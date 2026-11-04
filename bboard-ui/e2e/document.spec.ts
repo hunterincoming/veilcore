@@ -303,3 +303,95 @@ test('a claim link: a damaged one says so; a whole one is not believed when noth
   await expect(page.locator('[data-document-not-dated]')).toBeVisible();
   expectNoErrors(errors);
 });
+
+test('a laboratory signs a similarity certificate on /lab, and the holder adds the signature to the record', async ({
+  page,
+  context,
+}) => {
+  const errors = watch(page);
+  await standIn(page);
+  await page.goto('/documents/new');
+  await page
+    .locator('input[type=file]')
+    .first()
+    .setInputFiles({ name: 'similarity-7.pdf', mimeType: 'application/pdf', buffer: PERMIT });
+  await page.getByLabel('Type').click();
+  await page.getByRole('option', { name: 'Certificate of analysis (COA)' }).click();
+  await page.getByLabel('Which numbers').click();
+  await page.getByRole('option', { name: 'Soybean genetic similarity (SNP, BARCSoySNP6K)' }).click();
+  await page.getByLabel('Similarity to the closest variety').fill('94.37');
+  // A count of markers is a whole number: refused, never rounded.
+  await page.getByLabel('Markers compared').fill('5103.5');
+  await page.getByLabel('Held by').fill('E2E breeder (test data)');
+  await page.getByRole('button', { name: 'Seal it' }).click();
+  await expect(page.getByText('A whole number, like 5103.')).toBeVisible();
+  await page.getByLabel('Markers compared').fill('5103');
+  await page.getByRole('button', { name: 'Seal it' }).click();
+  await expect(page.locator('[data-held-numbers]')).toContainText('Similarity to the closest variety: 94.37 %');
+
+  // The holder's request for the laboratory.
+  const panel = page.locator('[data-lab-signature]');
+  await expect(panel).toContainText('Laboratory signature');
+  const reqDownload = page.waitForEvent('download');
+  await panel.locator('[data-lab-request]').click();
+  const reqText = fs.readFileSync(await (await reqDownload).path(), 'utf8');
+  const req = JSON.parse(reqText) as { kind: string; record: { fieldSet: { values: (string | null)[] } } };
+  expect(req.kind).toBe('veilcore-lab-request');
+
+  // The laboratory, in its own browser tab: a key, then the request, read, then signed.
+  const lab = await context.newPage();
+  const labErrors = watch(lab);
+  await lab.goto('/lab');
+  await expect(lab.getByRole('heading', { name: 'Sign numbers as a laboratory' })).toBeVisible();
+  await expect(lab.locator('[data-lab-request-panel]')).toContainText('Make or open your key first.');
+  await lab.getByLabel('Laboratory name (a label for your own files)').fill('E2E Seed Lab (test data)');
+  const keyDownload = lab.waitForEvent('download');
+  await lab.locator('[data-lab-make-key]').click();
+  const keyFile = JSON.parse(fs.readFileSync(await (await keyDownload).path(), 'utf8')) as { key: string };
+  await expect(lab.locator('[data-lab-key-made]')).toBeVisible();
+  await expect(lab.locator('[data-lab-public-key]')).toHaveText(keyFile.key);
+
+  // A request whose numbers were changed after it was made is refused before anything is shown.
+  const changed = JSON.parse(reqText) as typeof req;
+  changed.record.fieldSet.values[0] = '9300';
+  await lab
+    .locator('[data-lab-request-file]')
+    .setInputFiles({ name: 'req.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(changed)) });
+  await expect(lab.locator('[data-lab-error]')).toContainText('don’t make the record');
+  await expect(lab.locator('[data-lab-request-view]')).toHaveCount(0);
+
+  await lab
+    .locator('[data-lab-request-file]')
+    .setInputFiles({ name: 'req.json', mimeType: 'application/json', buffer: Buffer.from(reqText) });
+  const view = lab.locator('[data-lab-request-view]');
+  await expect(view).toContainText('Similarity to the closest variety: 94.37 %');
+  await expect(view).toContainText('Markers compared: 5103');
+  await expect(view).toContainText('E2E breeder (test data)');
+  await expect(lab.locator('[data-lab-sign-button]')).toBeDisabled();
+  await lab.getByLabel('I checked every number against our report, and they are ours.').check();
+  const sigDownload = lab.waitForEvent('download');
+  await lab.locator('[data-lab-sign-button]').click();
+  const sigText = fs.readFileSync(await (await sigDownload).path(), 'utf8');
+  await expect(lab.locator('[data-lab-signed-done]')).toBeVisible();
+  const sig = JSON.parse(sigText) as Record<string, string>;
+  expect(sig.kind).toBe('veilcore-lab-signature');
+  expect(sigText).not.toContain('9437');
+  expectNoErrors(labErrors);
+
+  // Back with the holder: an altered signature is refused, the real one is checked and kept.
+  await page.locator('[data-lab-signature-file]').setInputFiles({
+    name: 'sig.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ ...sig, s: '12345' })),
+  });
+  await expect(panel.locator('[data-lab-error]')).toContainText('doesn’t check');
+  await page
+    .locator('[data-lab-signature-file]')
+    .setInputFiles({ name: 'sig.json', mimeType: 'application/json', buffer: Buffer.from(sigText) });
+  await expect(panel.locator('[data-lab-signed]')).toContainText(keyFile.key);
+  await expect(panel).toContainText(`Signed by laboratory key ${keyFile.key.slice(0, 8)}…${keyFile.key.slice(-8)}.`);
+  await expect(panel).toContainText('“E2E Seed Lab (test data)”. That’s only a label');
+  // This build names no claims contract: publishing is offered, and said plainly to be off.
+  await expect(panel).toContainText('Proving isn’t switched on for this site yet.');
+  expectNoErrors(errors);
+});

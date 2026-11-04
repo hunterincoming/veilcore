@@ -16,6 +16,10 @@
 // What it can't show is said on the page: the holder typed the numbers (no laboratory signed
 // them, unless an attested claim says so), and each bound published narrows the number.
 //
+// A link may also name the laboratory signature on the same record (lab-attest.ts): the
+// proveAttested transaction and the key. That call is read and compared the same way, and the
+// page then says which key signed the numbers. Whose key it is, the page can't say.
+//
 //   /check-claim#c=<base64url of {"v":1,...}>
 // SPDX-License-Identifier: Apache-2.0
 
@@ -47,6 +51,12 @@ export type MadeClaim = {
   readonly bound?: string;
   /** value: the number published, as stored. */
   readonly value?: string;
+  /**
+   * The laboratory's signature on the same record, as published by a proveAttested call
+   * (lab-attest.ts): that transaction and the key the holder says signed. Checked like the
+   * claim itself; never believed from the link.
+   */
+  readonly attested?: { readonly txId: string; readonly attester: string };
 };
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -82,6 +92,20 @@ export const readClaimLink = (hash: string): MadeClaim | undefined => {
   if (!record || !HEX64.test(record) || !schema || !SCHEMAS[schema] || slot === undefined) return undefined;
   const keyBinding = str('keyBinding');
   if (keyBinding !== undefined && !HEX64.test(keyBinding)) return undefined;
+  let attested: MadeClaim['attested'];
+  if (o.attested !== undefined) {
+    const a = o.attested as Record<string, unknown> | null;
+    if (
+      typeof a !== 'object' ||
+      a === null ||
+      typeof a.txId !== 'string' ||
+      !/^[0-9a-f]{2,256}$/.test(a.txId) ||
+      typeof a.attester !== 'string' ||
+      !/^[0-9a-f]{128}$/.test(a.attester)
+    )
+      return undefined;
+    attested = { txId: a.txId, attester: a.attester };
+  }
   const op = o.op === 'at-most' || o.op === 'at-least' ? o.op : undefined;
   const bound = str('bound');
   const value = str('value');
@@ -95,6 +119,7 @@ export const readClaimLink = (hash: string): MadeClaim | undefined => {
     schema,
     slot,
     ...(keyBinding ? { keyBinding } : {}),
+    ...(attested ? { attested } : {}),
     ...(kind === 'range' ? { op, bound } : { value }),
     ...(typeof o.blockHeight === 'number' ? { blockHeight: o.blockHeight } : {}),
     ...(typeof o.blockTime === 'number' ? { blockTime: o.blockTime } : {}),
@@ -116,9 +141,33 @@ export type ChainClaim = {
   readonly op?: 'at least' | 'at most';
 };
 
-export type ClaimVerdict =
-  | { readonly ok: true; readonly blockHeight?: number; readonly blockTime?: number }
+/** The laboratory signature a link names, as checked: confirmed on Midnight, or why not. */
+export type LabVerdict =
+  | { readonly ok: true; readonly attester: string; readonly blockHeight?: number; readonly blockTime?: number }
   | { readonly ok: false; readonly reason: string };
+
+export type ClaimVerdict =
+  | { readonly ok: true; readonly blockHeight?: number; readonly blockTime?: number; readonly lab?: LabVerdict }
+  | { readonly ok: false; readonly reason: string };
+
+const h64 = (n: bigint): string => n.toString(16).padStart(64, '0');
+
+/**
+ * Compare a proveAttested call with what the link says: an attested claim, on the same record,
+ * by the key the link names. The key is shown to the checker; whose it is, they decide.
+ */
+export const compareAttested = (
+  link: Pick<MadeClaim, 'record' | 'attested'>,
+  onChain: { readonly kind: string; readonly record: Uint8Array; readonly attester?: { x: bigint; y: bigint } },
+): LabVerdict => {
+  if (!link.attested) return { ok: false, reason: 'The link names no laboratory signature.' };
+  if (onChain.kind !== 'attested') return { ok: false, reason: 'That transaction is not a laboratory signature.' };
+  if (hex(onChain.record) !== link.record)
+    return { ok: false, reason: 'That laboratory signature is on a different record.' };
+  const key = onChain.attester ? h64(onChain.attester.x) + h64(onChain.attester.y) : '';
+  if (key !== link.attested.attester) return { ok: false, reason: 'That record was signed by a different key.' };
+  return { ok: true, attester: key };
+};
 
 /**
  * Compare what the chain recorded with what the link says. The schema id is recomputed from the
