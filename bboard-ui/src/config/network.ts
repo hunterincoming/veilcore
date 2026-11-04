@@ -154,6 +154,15 @@ export const ANIMAL_RECORDS_ENABLED: boolean = animalRecordsEnabledFor(NETWORK);
 export const STRAIN_RECORDS_ENABLED = true;
 
 /**
+ * Laboratory signing (veilcore/lab-attest.ts, /lab) and the genetic similarity forms. Test
+ * network only for now: a review on 4 November 2026 found that nothing yet ties a signing key to
+ * an accredited laboratory, and that "similarity to the closest variety compared" lets the
+ * holder choose what it is compared with. Both are being redesigned before veilcore.org offers
+ * them (docs/lab-attested-similarity.md).
+ */
+export const LAB_SIGNING_ENABLED = !IS_MAINNET;
+
+/**
  * Document records (veilcore/document-profile.ts, docs/document-profile.md): a permit, a COA, a
  * contract, sealed by its files' fingerprints. On in every build, mainnet included (31 Oct 2026):
  * veilcore/profile/document/v1 is final (SPEC 11.11). Every site deploy refuses a registry whose

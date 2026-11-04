@@ -13,8 +13,8 @@ import { Box, Container, GlobalStyles, ThemeProvider } from '@mui/material';
 import { MotionConfig } from 'framer-motion';
 import { FONT, lightFocusStyles, lightTheme } from './config/theme';
 import { focusScreenHeading } from './components/flow/FlowFrame';
-import { Routes, Route, createRoutesFromChildren, matchRoutes, useLocation } from 'react-router-dom';
-import { IS_MAINNET } from './config/network';
+import { Navigate, Routes, Route, createRoutesFromChildren, matchRoutes, useLocation } from 'react-router-dom';
+import { IS_MAINNET, LAB_SIGNING_ENABLED } from './config/network';
 import { useI18n } from './i18n';
 import type { StringKey } from './i18n/en';
 
@@ -311,14 +311,7 @@ const routes = (
         </Light>
       }
     />
-    <Route
-      path="/lab"
-      element={
-        <Light>
-          <LabSign />
-        </Light>
-      }
-    />
+    <Route path="/lab" element={<Light>{LAB_SIGNING_ENABLED ? <LabSign /> : <Navigate to="/" replace />}</Light>} />
     <Route
       path="/check-document"
       element={

@@ -256,3 +256,13 @@ describe('on the claims contract', () => {
     expect(readClaimLink(claimLink(link, 'https://veilcore.org').split('/check-claim')[1])).toBeUndefined();
   });
 });
+
+describe('on veilcore.org', () => {
+  it('laboratory signing and the similarity forms stay off until the redesign', () => {
+    const src = (f: string) => fs.readFileSync(path.join(dir, f), 'utf8');
+    expect(src('../config/network.ts')).toContain('export const LAB_SIGNING_ENABLED = !IS_MAINNET;');
+    expect(src('../components/document/DocumentDetail.tsx')).toContain('LAB_SIGNING_ENABLED && <LabSignaturePanel');
+    expect(src('../App.tsx')).toContain('LAB_SIGNING_ENABLED ? <LabSign />');
+    expect(src('../components/document/NumbersFields.tsx')).toContain('OFFERED_SCHEMAS.map');
+  });
+});

@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { Box, InputAdornment, MenuItem, Stack, TextField, Typography } from '@mui/material';
-import { SCHEMAS, slotKey, type TypedNumbers } from '../../veilcore/field-set';
+import { OFFERED_SCHEMAS, SCHEMAS, slotKey, type TypedNumbers } from '../../veilcore/field-set';
 import { useT } from '../../i18n/app';
 import type { Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
@@ -45,7 +45,7 @@ export const NumbersFields: React.FC<{
         sx={{ mb: s ? 2 : 0 }}
       >
         <MenuItem value="">{t('app.doc.nums.none')}</MenuItem>
-        {Object.keys(SCHEMAS).map((id) => (
+        {OFFERED_SCHEMAS.map((id) => (
           <MenuItem key={id} value={id}>
             {schemaWords(id, tr)}
           </MenuItem>

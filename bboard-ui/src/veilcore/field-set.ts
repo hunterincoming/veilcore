@@ -22,6 +22,7 @@ import {
   type FieldSchema,
   type FieldSet,
 } from 'veilcore-records';
+import { LAB_SIGNING_ENABLED } from '../config/network';
 import potency from '../../public/schemas/potency-v1.json';
 import seedQuality from '../../public/schemas/seed-quality-v1.json';
 import geneticSimilarity from '../../public/schemas/genetic-similarity-v1.json';
@@ -41,6 +42,11 @@ export const SCHEMAS: Readonly<Record<string, FieldSchema>> = {
 export type SchemaName = keyof typeof SCHEMAS;
 
 /** Where each schema's document is published on this site. */
+/** The forms offered when sealing numbers on this site: the similarity forms only where laboratory signing is on. */
+export const OFFERED_SCHEMAS: readonly string[] = Object.keys(SCHEMAS).filter(
+  (id) => LAB_SIGNING_ENABLED || !id.includes('similarity'),
+);
+
 export const schemaPath = (id: string): string => `/schemas/${id.split('/').slice(-2).join('-')}.json`;
 
 /** The holder's private field set, as kept on their copy of the record. Never sealed. */

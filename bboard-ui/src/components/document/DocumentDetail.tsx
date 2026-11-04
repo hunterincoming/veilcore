@@ -17,6 +17,7 @@ import {
 } from '../../veilcore/document-profile';
 import { documentCheckLink } from '../../veilcore/document-link';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
+import { LAB_SIGNING_ENABLED } from '../../config/network';
 import { AnchorOnChainPanel } from '../chain/AnchorOnChainPanel';
 import { AppHeader } from '../AppHeader';
 import { EvidenceBundle } from '../EvidenceBundle';
@@ -141,7 +142,7 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
           <DocumentFacts fields={f} />
         </Paper>
         {record.fieldSet && <HeldNumbers held={record.fieldSet} />}
-        {record.fieldSet && <LabSignaturePanel record={record} signatureOk={labOk} />}
+        {record.fieldSet && LAB_SIGNING_ENABLED && <LabSignaturePanel record={record} signatureOk={labOk} />}
         {record.fieldSet && <ProveNumber record={record} labSignatureOk={labOk === true} />}
         <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-document-share="">
           <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
