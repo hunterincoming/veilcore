@@ -47,6 +47,7 @@ export const es: Strings = {
   'title.new': 'Crear un registro',
   'title.record': 'Registro',
   'title.agreements': 'Acuerdos',
+  'title.lab': 'Firma del laboratorio',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
   'error.page.title': 'No se pudo mostrar esta página',
   'error.page.text': 'Algo salió mal al mostrarla. No se cambió nada. Recargue la página o vaya a sus registros.',

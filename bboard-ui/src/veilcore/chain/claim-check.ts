@@ -8,7 +8,7 @@ import { claimsLedger } from '../../../../contract/src/claims';
 import { claimFromCells } from '../../../../contract/src/verify-claims';
 import { singleCallState } from '../../../../api/src/presentation-lookup';
 import { CLAIMS_CONTRACT, INDEXER_HTTP } from './config';
-import { compareClaim, type ClaimVerdict, type MadeClaim } from '../claim-link';
+import { compareAttested, compareClaim, type ClaimVerdict, type LabVerdict, type MadeClaim } from '../claim-link';
 
 export type ClaimReader = (
   contract: string,
@@ -20,7 +20,7 @@ const readFromIndexer: ClaimReader = async (contract, txId) => {
     INDEXER_HTTP ?? '',
     contract,
     txId,
-    ['proveRange', 'proveValue'],
+    ['proveRange', 'proveValue', 'proveAttested'],
     'That transaction is not a single claim on VeilCore’s claims contract.',
   );
   return {
@@ -40,9 +40,20 @@ export const checkClaim = async (
   if (link.contract !== contract)
     return { ok: false, reason: 'The link names a claims contract that isn’t VeilCore’s on this network.' };
   try {
-    const { claim, blockHeight, blockTime } = await (deps.read ?? readFromIndexer)(contract, link.txId);
+    const read = deps.read ?? readFromIndexer;
+    const { claim, blockHeight, blockTime } = await read(contract, link.txId);
     const v = compareClaim(link, claim);
-    return v.ok ? { ok: true, blockHeight, blockTime } : v;
+    if (!v.ok) return v;
+    if (!link.attested) return { ok: true, blockHeight, blockTime };
+    let lab: LabVerdict;
+    try {
+      const a = await read(contract, link.attested.txId);
+      const c = compareAttested(link, a.claim);
+      lab = c.ok ? { ...c, blockHeight: a.blockHeight, blockTime: a.blockTime } : c;
+    } catch (e) {
+      lab = { ok: false, reason: e instanceof Error ? e.message : String(e) };
+    }
+    return { ok: true, blockHeight, blockTime, lab };
   } catch (e) {
     return { ok: false, reason: e instanceof Error ? e.message : String(e) };
   }

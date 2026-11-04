@@ -65,9 +65,15 @@ export const NumbersFields: React.FC<{
                   value={typed[slot.slot] ?? ''}
                   onChange={(e) => onTyped({ ...typed, [slot.slot]: e.target.value })}
                   error={wrong}
-                  helperText={wrong ? t('app.doc.nums.bad', { places: String(places) }) : undefined}
+                  helperText={
+                    wrong
+                      ? places === 0
+                        ? t('app.doc.nums.badWhole')
+                        : t('app.doc.nums.bad', { places: String(places) })
+                      : undefined
+                  }
                   slotProps={{
-                    htmlInput: { inputMode: 'decimal', 'data-slot': slot.slot },
+                    htmlInput: { inputMode: places === 0 ? 'numeric' : 'decimal', 'data-slot': slot.slot },
                     input: slot.unit
                       ? { endAdornment: <InputAdornment position="end">{slot.unit}</InputAdornment> }
                       : {},

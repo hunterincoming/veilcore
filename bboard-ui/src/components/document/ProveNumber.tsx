@@ -17,6 +17,7 @@ import type { DocumentRecordLike } from '../../veilcore/document-profile';
 import { useT } from '../../i18n/app';
 import type { Translator } from '../../i18n/translate';
 import { slotWords } from './NumbersFields';
+import { keyShort } from '../../veilcore/lab-key-text';
 
 type How = 'at-most' | 'at-least' | 'exactly';
 
@@ -36,7 +37,10 @@ export const claimWords = (c: MadeClaim, tr: Translator): string => {
       });
 };
 
-export const ProveNumber: React.FC<{ record: StrainRecord }> = ({ record }) => {
+export const ProveNumber: React.FC<{ record: StrainRecord; labSignatureOk?: boolean }> = ({
+  record,
+  labSignatureOk = false,
+}) => {
   const tr = useT();
   const { t } = tr;
   const held = record.fieldSet;
@@ -97,8 +101,15 @@ export const ProveNumber: React.FC<{ record: StrainRecord }> = ({ record }) => {
     }
   };
 
+  // The laboratory's signature, once published on the same claims contract, goes in every link.
+  const lab =
+    record.labSignature && record.labOnChain && labSignatureOk
+      ? { txId: record.labOnChain.txId, attester: record.labSignature.key, contract: record.labOnChain.contract }
+      : undefined;
   const copy = async (c: MadeClaim) => {
-    await navigator.clipboard.writeText(claimLink(c, window.location.origin));
+    const withLab: MadeClaim =
+      lab && lab.contract === c.contract ? { ...c, attested: { txId: lab.txId, attester: lab.attester } } : c;
+    await navigator.clipboard.writeText(claimLink(withLab, window.location.origin));
     setCopied(true);
   };
 
@@ -140,7 +151,11 @@ export const ProveNumber: React.FC<{ record: StrainRecord }> = ({ record }) => {
               onChange={(e) => setTyped(e.target.value)}
               error={typed !== '' && bound === undefined}
               helperText={
-                typed !== '' && bound === undefined ? t('app.claim.boundBad', { places: String(places) }) : ''
+                typed !== '' && bound === undefined
+                  ? places === 0
+                    ? t('app.claim.boundBadWhole')
+                    : t('app.claim.boundBad', { places: String(places) })
+                  : ''
               }
               slotProps={{ htmlInput: { inputMode: 'decimal' } }}
             />
@@ -206,8 +221,8 @@ export const ProveNumber: React.FC<{ record: StrainRecord }> = ({ record }) => {
               {t('app.claim.copied')}
             </Typography>
           )}
-          <Typography variant="caption" color="text.secondary">
-            {t('app.claim.holderTyped')}
+          <Typography variant="caption" color="text.secondary" data-claims-signed={lab ? 'lab' : 'holder'}>
+            {lab ? t('app.claim.labSigned', { key: keyShort(lab.attester) }) : t('app.claim.holderTyped')}
           </Typography>
         </Box>
       )}

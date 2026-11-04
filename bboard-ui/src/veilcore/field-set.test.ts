@@ -30,7 +30,13 @@ const hex = (b: Uint8Array) => Buffer.from(b).toString('hex');
 
 describe('a field set on a document', () => {
   it('the published schemas are the ones served, and their ids are the vectors’', async () => {
-    expect(Object.keys(SCHEMAS).sort()).toEqual(['veilcore/schema/potency/v1', 'veilcore/schema/seed-quality/v1']);
+    expect(Object.keys(SCHEMAS).sort()).toEqual([
+      'veilcore/schema/genetic-similarity/v1',
+      'veilcore/schema/maize-snp-similarity/v1',
+      'veilcore/schema/potency/v1',
+      'veilcore/schema/seed-quality/v1',
+      'veilcore/schema/soybean-snp-similarity/v1',
+    ]);
     expect(await schemaIdHex('veilcore/schema/potency/v1')).toBe(withSet.fieldSet!.schemaId);
     expect(schemaPath('veilcore/schema/potency/v1')).toBe('/schemas/potency-v1.json');
     expect(fs.existsSync(path.join(dir, '../../public', schemaPath('veilcore/schema/seed-quality/v1')))).toBe(true);

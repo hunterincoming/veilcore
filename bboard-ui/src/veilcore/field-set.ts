@@ -24,11 +24,19 @@ import {
 } from 'veilcore-records';
 import potency from '../../public/schemas/potency-v1.json';
 import seedQuality from '../../public/schemas/seed-quality-v1.json';
+import geneticSimilarity from '../../public/schemas/genetic-similarity-v1.json';
+import soybeanSimilarity from '../../public/schemas/soybean-snp-similarity-v1.json';
+import maizeSimilarity from '../../public/schemas/maize-snp-similarity-v1.json';
 
 /** The published schemas this site seals numbers under, by their document id. */
 export const SCHEMAS: Readonly<Record<string, FieldSchema>> = {
   [potency.id]: potency as FieldSchema,
   [seedQuality.id]: seedQuality as FieldSchema,
+  // Genetic similarity to the closest variety compared (docs/lab-attested-similarity.md): a
+  // laboratory signs the record, so "at most 95 %" is a claim on the laboratory's number.
+  [soybeanSimilarity.id]: soybeanSimilarity as FieldSchema,
+  [maizeSimilarity.id]: maizeSimilarity as FieldSchema,
+  [geneticSimilarity.id]: geneticSimilarity as FieldSchema,
 };
 export type SchemaName = keyof typeof SCHEMAS;
 
