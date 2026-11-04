@@ -95,8 +95,34 @@ const KIND_BYTE: Record<ReportKind, number> = { dna: 1, pathogen: 2, other: 3 };
 const PAD_MAGIC_2 = new TextEncoder().encode('VCPAD\x002\n');
 const TRAILER_2 = 17;
 
-/** The report, padded to its bucket, with the trailer that says how long it is (and its kind). */
-export const padReport = (bytes: Uint8Array, kind?: ReportKind): Uint8Array => {
+// --- numbers the lab signed (lab-numbers.ts; docs/lab-signing.md) -------------------------
+//
+// A third form of the trailer carries a section after the report: the lab-signed numbers, as
+// JSON. Layout: the report, the numbers, zeros, then the numbers' length (4 bytes, big-endian),
+// the kind byte, the report's length (8 bytes) and PAD_MAGIC_3. The report's own bytes, and so
+// what the lab's report signature covers, are unchanged. Like the kind, the registry sees none
+// of it.
+const PAD_MAGIC_3 = new TextEncoder().encode('VCPAD\x003\n');
+const TRAILER_3 = 21;
+/** The most the numbers section may be: a record and a signature, with room to spare. */
+export const LAB_NUMBERS_MAX = 64 * 1024;
+
+/** The report, padded to its bucket, with the trailer that says how long it is (and its kind, and the numbers). */
+export const padReport = (bytes: Uint8Array, kind?: ReportKind, numbers?: Uint8Array): Uint8Array => {
+  if (numbers) {
+    if (!kind) throw new Error('Numbers go with a report kind.');
+    if (numbers.length > LAB_NUMBERS_MAX) throw new Error('The numbers are too large to send.');
+    const size = paddedSize(bytes.length + numbers.length + TRAILER_3);
+    const out = new Uint8Array(size);
+    out.set(bytes);
+    out.set(numbers, bytes.length);
+    const view = new DataView(out.buffer);
+    view.setUint32(size - TRAILER_3, numbers.length);
+    out[size - TRAILER_2] = KIND_BYTE[kind];
+    view.setBigUint64(size - TRAILER, BigInt(bytes.length));
+    out.set(PAD_MAGIC_3, size - PAD_MAGIC_3.length);
+    return out;
+  }
   const trailer = kind ? TRAILER_2 : TRAILER;
   const size = paddedSize(bytes.length + trailer);
   const out = new Uint8Array(size);
@@ -113,22 +139,31 @@ export const padReport = (bytes: Uint8Array, kind?: ReportKind): Uint8Array => {
 const endsWith = (bytes: Uint8Array, magic: Uint8Array): boolean =>
   bytes.length >= magic.length && bytes.subarray(bytes.length - magic.length).every((b, i) => b === magic[i]);
 
-/** The report without its padding, and the kind the lab gave it; a file without a trailer is returned as it is. */
-export const unpadReportWithKind = (bytes: Uint8Array): { bytes: Uint8Array; kind?: ReportKind } => {
-  const two = endsWith(bytes, PAD_MAGIC_2);
-  if (!two && !endsWith(bytes, PAD_MAGIC)) return { bytes };
-  const trailer = two ? TRAILER_2 : TRAILER;
+/** The report without its padding, the kind the lab gave it, and any numbers it signed; a file without a trailer is returned as it is. */
+export const unpadReportWithKind = (
+  bytes: Uint8Array,
+): { bytes: Uint8Array; kind?: ReportKind; numbers?: Uint8Array } => {
+  const three = endsWith(bytes, PAD_MAGIC_3);
+  const two = !three && endsWith(bytes, PAD_MAGIC_2);
+  if (!three && !two && !endsWith(bytes, PAD_MAGIC)) return { bytes };
+  const trailer = three ? TRAILER_3 : two ? TRAILER_2 : TRAILER;
   if (bytes.length < trailer) return { bytes };
-  const n = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getBigUint64(bytes.length - TRAILER);
-  if (n > BigInt(bytes.length - trailer)) return { bytes };
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const n = view.getBigUint64(bytes.length - TRAILER);
+  const extra = three ? view.getUint32(bytes.length - TRAILER_3) : 0;
+  if (extra > LAB_NUMBERS_MAX || n + BigInt(extra) > BigInt(bytes.length - trailer)) return { bytes };
   const len = Number(n);
-  // Only zeros between the report and the trailer: anything else is a file of its own.
-  if (!bytes.subarray(len, bytes.length - trailer).every((b) => b === 0)) return { bytes };
-  if (!two) return { bytes: bytes.slice(0, len) };
+  // Only zeros between what was sent and the trailer: anything else is a file of its own.
+  if (!bytes.subarray(len + extra, bytes.length - trailer).every((b) => b === 0)) return { bytes };
+  if (!two && !three) return { bytes: bytes.slice(0, len) };
   const kind = REPORT_KINDS.find((k) => KIND_BYTE[k] === bytes[bytes.length - TRAILER_2]);
   // A kind byte this app doesn't know: the trailer isn't one of ours, so the file is its own.
   if (!kind) return { bytes };
-  return { bytes: bytes.slice(0, len), kind };
+  return {
+    bytes: bytes.slice(0, len),
+    kind,
+    ...(three && extra > 0 ? { numbers: bytes.slice(len, len + extra) } : {}),
+  };
 };
 
 /** The report without its padding; a file without the trailer is returned as it is. */
@@ -138,12 +173,17 @@ export const unpadReport = (bytes: Uint8Array): Uint8Array => unpadReportWithKin
  * Lock a report so only the plant's holder can open it. Padded first, so its size says
  * little; with `kind`, the lab's word for what kind of report it is goes inside too.
  */
-export const lockReport = async (bytes: Uint8Array, recipient: string, kind?: ReportKind): Promise<Uint8Array> => {
+export const lockReport = async (
+  bytes: Uint8Array,
+  recipient: string,
+  kind?: ReportKind,
+  numbers?: Uint8Array,
+): Promise<Uint8Array> => {
   if (!RECIPIENT.test(recipient)) throw new Error('The lab code has no lock for lab reports in it.');
   const { Encrypter } = await age();
   const e = new Encrypter();
   e.addRecipient(recipient);
-  return e.encrypt(padReport(bytes, kind));
+  return e.encrypt(padReport(bytes, kind, numbers));
 };
 
 /**
@@ -155,7 +195,7 @@ export const openReportWithKind = async (
   locked: Uint8Array,
   recordSecretHex: string,
   transferId?: string,
-): Promise<{ bytes: Uint8Array; kind?: ReportKind }> => {
+): Promise<{ bytes: Uint8Array; kind?: ReportKind; numbers?: Uint8Array }> => {
   const { Decrypter } = await age();
   const d = new Decrypter();
   if (transferId) d.addIdentity(resultIdentityFor(recordSecretHex, transferId));
