@@ -104,11 +104,21 @@ export const ProveNumber: React.FC<{ record: StrainRecord; labSignatureOk?: bool
   // The laboratory's signature, once published on the same claims contract, goes in every link.
   const lab =
     record.labSignature && record.labOnChain && labSignatureOk
-      ? { txId: record.labOnChain.txId, attester: record.labSignature.key, contract: record.labOnChain.contract }
+      ? {
+          txId: record.labOnChain.txId,
+          attester: record.labSignature.key,
+          contract: record.labOnChain.contract,
+          about: record.labSignature.about,
+        }
       : undefined;
   const copy = async (c: MadeClaim) => {
     const withLab: MadeClaim =
-      lab && lab.contract === c.contract ? { ...c, attested: { txId: lab.txId, attester: lab.attester } } : c;
+      lab && lab.contract === c.contract
+        ? {
+            ...c,
+            attested: { txId: lab.txId, attester: lab.attester, ...(lab.about ? { about: lab.about } : {}) },
+          }
+        : c;
     await navigator.clipboard.writeText(claimLink(withLab, window.location.origin));
     setCopied(true);
   };

@@ -52,7 +52,6 @@ export const en = {
   'title.new': 'Make a record',
   'title.record': 'Record',
   'title.agreements': 'Agreements',
-  'title.lab': 'Laboratory signing',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
   'error.page.title': 'This page couldn’t be shown',
   'error.page.text':

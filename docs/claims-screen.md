@@ -34,7 +34,7 @@ Status: DESIGN AND BUILD, 29 October 2026. Test networks first. The claims contr
     matter, moisture (the numbers on a seed analysis certificate, AOSCA and ISTA style), each
     % × 100.
   - Added 4 November 2026: `soybean-snp-similarity/v1`, `maize-snp-similarity/v1`,
-    `genetic-similarity/v1` (docs/lab-attested-similarity.md).
+    `genetic-similarity/v1` (docs/lab-signing.md).
 - **Range and value only, to start.** `proveRange` (k=16) and `proveValue` (k=15) are the two a
   grower, a buyer and a regulator ask for. `proveDistinct` and `proveUnchanged` (k=17) answer an
   examiner's question and are the heaviest; they wait for someone who asks.
@@ -83,4 +83,4 @@ Status: DESIGN AND BUILD, 29 October 2026. Test networks first. The claims contr
    on veilcore.org from a laptop, and its check link opened in another browser.
 6. **Built (4 November 2026).** A laboratory signing a certificate's record (`proveAttested`), so
    a claim is about numbers a lab signed, not the holder's typing, with three genetic similarity
-   forms (soybean, maize, any crop or strain): docs/lab-attested-similarity.md.
+   forms (soybean, maize, any crop or strain): docs/lab-signing.md.

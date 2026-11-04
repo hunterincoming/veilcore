@@ -1,0 +1,12 @@
+{
+  "id": "veilcore/schema/variety-identity/v1",
+  "title": "Whether a seed lot or plant is the variety it is said to be: its genetic match to that variety's registered reference profile, from a laboratory's marker genotyping. Slot 0 is the match in percent times 100 (99.20 % is 9920). Slot 3 is the registration or certificate number of the variety, digits only. Slot 4 is the marker panel: 1 BARCSoySNP6K (soybean), 2 the maize SNP set of the International Seed Federation guidelines, 3 the 56-SNP soybean identity set of Argentina's INASE, 0 another panel, named in the laboratory's report. The laboratory signs the record. Published by VeilCore (veilcore.org).",
+  "slots": [
+    { "slot": 0, "type": "uint", "path": "identity.match", "unit": "%", "scale": 100, "comparable": true },
+    { "slot": 1, "type": "uint", "path": "identity.unitsTested", "scale": 1, "comparable": false },
+    { "slot": 2, "type": "uint", "path": "identity.offTypes", "scale": 1, "comparable": false },
+    { "slot": 3, "type": "uint", "path": "identity.variety", "scale": 1, "comparable": false },
+    { "slot": 4, "type": "uint", "path": "identity.panel", "scale": 1, "comparable": false }
+  ],
+  "k": 1
+}

@@ -22,25 +22,35 @@ import {
   type FieldSchema,
   type FieldSet,
 } from 'veilcore-records';
+import { LAB_SIGNING_ENABLED } from '../config/network';
 import potency from '../../public/schemas/potency-v1.json';
 import seedQuality from '../../public/schemas/seed-quality-v1.json';
-import geneticSimilarity from '../../public/schemas/genetic-similarity-v1.json';
-import soybeanSimilarity from '../../public/schemas/soybean-snp-similarity-v1.json';
-import maizeSimilarity from '../../public/schemas/maize-snp-similarity-v1.json';
+import varietySimilarity from '../../public/schemas/variety-similarity-v1.json';
+import varietyIdentity from '../../public/schemas/variety-identity-v1.json';
+import animalParentage from '../../public/schemas/animal-parentage-v1.json';
 
 /** The published schemas this site seals numbers under, by their document id. */
 export const SCHEMAS: Readonly<Record<string, FieldSchema>> = {
   [potency.id]: potency as FieldSchema,
   [seedQuality.id]: seedQuality as FieldSchema,
-  // Genetic similarity to the closest variety compared (docs/lab-attested-similarity.md): a
-  // laboratory signs the record, so "at most 95 %" is a claim on the laboratory's number.
-  [soybeanSimilarity.id]: soybeanSimilarity as FieldSchema,
-  [maizeSimilarity.id]: maizeSimilarity as FieldSchema,
-  [geneticSimilarity.id]: geneticSimilarity as FieldSchema,
+  // Genetic results a laboratory signs (docs/lab-signing.md): only offered to a lab sending a
+  // report, never for a holder to type, since a number nobody measured proves nothing here.
+  [varietySimilarity.id]: varietySimilarity as FieldSchema,
+  [varietyIdentity.id]: varietyIdentity as FieldSchema,
+  [animalParentage.id]: animalParentage as FieldSchema,
 };
 export type SchemaName = keyof typeof SCHEMAS;
 
 /** Where each schema's document is published on this site. */
+/** Forms only a laboratory fills, with its report (lab-numbers.ts). */
+export const LAB_ONLY_SCHEMAS: readonly string[] = [varietySimilarity.id, varietyIdentity.id, animalParentage.id];
+
+/** The forms a holder is offered when sealing their own document's numbers. */
+export const OFFERED_SCHEMAS: readonly string[] = Object.keys(SCHEMAS).filter((id) => !LAB_ONLY_SCHEMAS.includes(id));
+
+/** The forms a laboratory is offered when it adds numbers to a report (test network only for now). */
+export const LAB_SCHEMAS: readonly string[] = LAB_SIGNING_ENABLED ? Object.keys(SCHEMAS) : [];
+
 export const schemaPath = (id: string): string => `/schemas/${id.split('/').slice(-2).join('-')}.json`;
 
 /** The holder's private field set, as kept on their copy of the record. Never sealed. */

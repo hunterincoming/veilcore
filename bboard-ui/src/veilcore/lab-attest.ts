@@ -1,4 +1,4 @@
-// A laboratory signs the numbers it measured (docs/lab-attested-similarity.md).
+// A laboratory signs the numbers it measured (docs/lab-signing.md).
 //
 // Without this, the numbers sealed with a document are the holder's as typed: a claim like
 // "similarity to the closest variety is at most 95 %" says only that the holder typed a number
@@ -24,22 +24,22 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
-  JUBJUB_ORDER,
   attesterKeyOf,
   isSigningKey,
-  newAttesterKey,
   signRecord,
   verifyRecordSignature,
   type AttestationSignature,
   type JubjubPoint,
 } from '../../../contract/src/attest';
 import { claimMaterial, commitmentHex } from './claims-input';
-import type { DocumentRecordLike } from './document-profile';
-import { SCHEMAS, type HeldFieldSet } from './field-set';
+import { checkedDocumentFields, isDocument, type DocumentRecordLike } from './document-profile';
+import { SCHEMAS, fieldSetOf, type HeldFieldSet } from './field-set';
+import { fieldSetRootOf } from 'veilcore-records';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const DEC = /^(0|[1-9]\d{0,99})$/;
 const h64 = (n: bigint): string => n.toString(16).padStart(64, '0');
+const toHex = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
 const unhex = (h: string): Uint8Array => Uint8Array.from(h.match(/../g) ?? [], (b) => parseInt(b, 16));
 
 /** A key as text: x then y, 64 hex characters each. What a laboratory publishes. */
@@ -51,57 +51,6 @@ export const keyFromHex = (t: string): JubjubPoint | undefined => {
   return isSigningKey(k) ? k : undefined;
 };
 export { keyShort } from './lab-key-text';
-
-// ---- the laboratory's key file ---------------------------------------------------------------
-
-export type LabKeyFile = {
-  readonly kind: 'veilcore-lab-key';
-  readonly v: 1;
-  /** The laboratory's name, as it typed it. Not checked by anything: a label for its own files. */
-  readonly name: string;
-  /** The signing secret, hex. Whoever has this file can sign as this key. */
-  readonly secret: string;
-  /** The public key (keyHex). */
-  readonly key: string;
-  readonly made: string;
-};
-
-export const newLabKeyFile = (name: string): LabKeyFile => {
-  const { secret, key } = newAttesterKey();
-  return {
-    kind: 'veilcore-lab-key',
-    v: 1,
-    name: name.trim().slice(0, 200),
-    secret: h64(secret),
-    key: keyHex(key),
-    made: new Date().toISOString(),
-  };
-};
-
-/** A key file, checked: its secret makes its key. Throws in plain words. */
-export const readLabKeyFile = (text: string): LabKeyFile & { readonly secretN: bigint } => {
-  let o: Record<string, unknown>;
-  try {
-    o = JSON.parse(text) as Record<string, unknown>;
-  } catch {
-    throw new Error('That file isn’t a laboratory key file.');
-  }
-  if (o?.kind !== 'veilcore-lab-key' || o.v !== 1 || typeof o.secret !== 'string' || !HEX64.test(o.secret))
-    throw new Error('That file isn’t a laboratory key file.');
-  const secretN = BigInt('0x' + o.secret);
-  if (secretN === 0n || secretN >= JUBJUB_ORDER) throw new Error('That key file is damaged.');
-  const key = keyHex(attesterKeyOf(secretN));
-  if (o.key !== key) throw new Error('That key file is damaged: its secret doesn’t make its key.');
-  return {
-    kind: 'veilcore-lab-key',
-    v: 1,
-    name: typeof o.name === 'string' ? o.name.slice(0, 200) : '',
-    secret: o.secret,
-    key,
-    made: typeof o.made === 'string' ? o.made : '',
-    secretN,
-  };
-};
 
 // ---- the holder's request ----------------------------------------------------------------------
 
@@ -161,9 +110,34 @@ export const readLabRequest = async (text: string): Promise<LabRequest> => {
     rec.fieldSet === null
   )
     throw new Error('That file isn’t a request for a laboratory signature.');
-  if (!SCHEMAS[rec.fieldSet.schema]) throw new Error('The request uses numbers this site doesn’t publish a form for.');
+  const schema = SCHEMAS[rec.fieldSet.schema];
+  if (!schema) throw new Error('The request uses numbers this site doesn’t publish a form for.');
+  // Everything committed must be something the laboratory is shown: a number only in a slot the
+  // form names (a value hidden in an unnamed slot would be signed unseen), written one way only
+  // (so what is shown is exactly the number), and the record's sealed root must be the root of
+  // these numbers, not merely a root the request names.
+  const values = rec.fieldSet.values as unknown;
+  const shown = new Set(schema.slots.filter((s) => s.type === 'uint').map((s) => s.slot));
+  if (
+    !Array.isArray(values) ||
+    values.length !== 16 ||
+    values.some((v, i) => v !== null && (typeof v !== 'string' || !/^(0|[1-9]\d{0,30})$/.test(v) || !shown.has(i))) ||
+    typeof rec.fieldSet.fieldSecret !== 'string' ||
+    !HEX64.test(rec.fieldSet.fieldSecret)
+  )
+    throw new Error('The request’s numbers aren’t in the form it names. Don’t sign it; ask for it again.');
+  // A document record in the profile's canonical form (lengths, types, file codes): what the
+  // laboratory reads is the same thing the record's own page would show.
+  try {
+    if (!isDocument(rec)) throw new Error('it isn’t a document record.');
+    checkedDocumentFields(rec);
+  } catch (e) {
+    throw new Error(`The request can’t be checked: ${e instanceof Error ? e.message : String(e)}`);
+  }
   let commitment: string;
   try {
+    const root = toHex(await fieldSetRootOf(await fieldSetOf(rec.fieldSet)));
+    if (root !== rec.fieldSetRoot) throw new Error('its numbers don’t make the root it sealed.');
     commitment = commitmentHex(await claimMaterial(rec));
   } catch (e) {
     throw new Error(`The request can’t be checked: ${e instanceof Error ? e.message : String(e)}`);
@@ -188,6 +162,11 @@ export type LabSignature = {
   readonly rx: string;
   readonly ry: string;
   readonly s: string;
+  /**
+   * Kept with a record, not part of the signature file: the proof code of the record the
+   * numbers are about, from the lab's report (lab-numbers.ts). Claim links carry it.
+   */
+  readonly about?: string;
 };
 
 export const signLabRequest = (key: { secretN: bigint; name: string }, req: LabRequest): LabSignature => {
@@ -269,14 +248,4 @@ export const labSignatureChecks = (s: LabSignature, commitment: string): boolean
   } catch {
     return false;
   }
-};
-
-/** A file to save: the text, as a download. */
-export const saveFile = (name: string, text: string): void => {
-  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 };

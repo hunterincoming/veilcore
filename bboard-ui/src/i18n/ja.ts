@@ -54,7 +54,6 @@ export const ja: Strings = {
   'title.new': '記録を作る',
   'title.record': '記録',
   'title.agreements': '契約',
-  'title.lab': '検査機関の署名',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
   'error.page.title': 'このページを表示できませんでした',
   'error.page.text':

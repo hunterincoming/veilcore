@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { Box, InputAdornment, MenuItem, Stack, TextField, Typography } from '@mui/material';
-import { SCHEMAS, slotKey, type TypedNumbers } from '../../veilcore/field-set';
+import { OFFERED_SCHEMAS, SCHEMAS, slotKey, type TypedNumbers } from '../../veilcore/field-set';
 import { useT } from '../../i18n/app';
 import type { Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
@@ -24,18 +24,26 @@ export const NumbersFields: React.FC<{
   typed: TypedNumbers;
   onTyped: (t: TypedNumbers) => void;
   bad: readonly number[];
-}> = ({ schema, onSchema, typed, onTyped, bad }) => {
+  /** The forms to offer: a holder's by default, a laboratory's when it sends a report. */
+  forms?: readonly string[];
+  /** Leave out the heading and help (a caller that says it its own way). */
+  bare?: boolean;
+}> = ({ schema, onSchema, typed, onTyped, bad, forms = OFFERED_SCHEMAS, bare = false }) => {
   const tr = useT();
   const { t } = tr;
   const s = SCHEMAS[schema];
   return (
     <Box data-document-numbers="">
-      <Typography variant="overline" sx={{ display: 'block' }}>
-        {t('app.doc.nums.title')}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-        {t('app.doc.nums.help')}
-      </Typography>
+      {!bare && (
+        <>
+          <Typography variant="overline" sx={{ display: 'block' }}>
+            {t('app.doc.nums.title')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            {t('app.doc.nums.help')}
+          </Typography>
+        </>
+      )}
       <TextField
         select
         label={t('app.doc.nums.which')}
@@ -45,7 +53,7 @@ export const NumbersFields: React.FC<{
         sx={{ mb: s ? 2 : 0 }}
       >
         <MenuItem value="">{t('app.doc.nums.none')}</MenuItem>
-        {Object.keys(SCHEMAS).map((id) => (
+        {forms.map((id) => (
           <MenuItem key={id} value={id}>
             {schemaWords(id, tr)}
           </MenuItem>

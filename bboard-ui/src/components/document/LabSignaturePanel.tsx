@@ -1,30 +1,58 @@
-// "Laboratory signature" on a document with sealed numbers (veilcore/lab-attest.ts;
-// docs/lab-attested-similarity.md): download the request for the laboratory, add the signature
-// it sends back (checked against this record and the key), then publish it on Midnight with
-// proveAttested. After that, every claim link from this record names the signature too. The
-// record store notifies the page (records.ts useRecords), so nothing here re-reads it.
+// "Laboratory signature" on a record of numbers a lab signed (veilcore/lab-numbers.ts;
+// docs/lab-signing.md). The lab wrote the record and sent it inside its report; the breeder added
+// it here. This panel says who signed (from the lab's binding, checked in this browser, in the
+// wording every page uses for signers) and publishes the signature on Midnight with
+// proveAttested. After that, every claim link from this record names it too. The record store
+// notifies the page (records.ts useRecords), so nothing here re-reads the record.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Box, Button, LinearProgress, Paper, Stack, Typography } from '@mui/material';
 import type { StrainRecord } from '../../veilcore/records';
-import { setLabOnChain, setLabSignature } from '../../veilcore/records';
+import { setLabOnChain } from '../../veilcore/records';
 import type { DocumentRecordLike } from '../../veilcore/document-profile';
 import type { HeldFieldSet } from '../../veilcore/field-set';
 import { CLAIMS_READY } from '../../veilcore/chain/config';
 import { keyShort } from '../../veilcore/lab-key-text';
+import { signerLabel, type ResolvedAttestation } from '../../veilcore/attesters';
+import type { LabSigner } from '../../veilcore/claim-link';
 import { useT } from '../../i18n/app';
 import { Fact } from './DocumentParts';
 
 type Held = DocumentRecordLike & { readonly fieldSet: HeldFieldSet };
 
-const fileName = (title: string, what: string): string =>
-  `${
-    (title || 'record')
-      .replace(/[^\p{L}\p{N}]+/gu, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 60) || 'record'
-  }-${what}.json`;
+/** Who the lab's binding names for this record's signature, checked here (claims-key.ts). */
+const useSigner = (record: StrainRecord): LabSigner | undefined => {
+  const [signer, setSigner] = useState<LabSigner>();
+  const sig = record.labSignature;
+  useEffect(() => {
+    setSigner(undefined);
+    if (!sig?.about) return void setSigner({ kind: 'none' });
+    let live = true;
+    void (async () => {
+      try {
+        const [{ attestationsFor }, { findBinding }, { keyFromHex }] = await Promise.all([
+          import('../../veilcore/attesters'),
+          import('../../veilcore/claims-key'),
+          import('../../veilcore/lab-attest'),
+        ]);
+        const key = keyFromHex(sig.key);
+        const about = sig.about;
+        const [list, aboutList] = await Promise.all([
+          attestationsFor(sig.record, { claimsKeyBindings: true }),
+          about ? attestationsFor(about) : Promise.resolve([]),
+        ]);
+        if (live) setSigner(key && about ? findBinding(list, sig.record, key, about, aboutList) : { kind: 'none' });
+      } catch {
+        if (live) setSigner({ kind: 'none' });
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, [sig]);
+  return signer;
+};
 
 export const LabSignaturePanel: React.FC<{
   record: StrainRecord;
@@ -33,47 +61,17 @@ export const LabSignaturePanel: React.FC<{
 }> = ({ record, signatureOk }) => {
   const tr = useT();
   const { t } = tr;
-  const pick = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<string>();
   const [error, setError] = useState<string>();
-  const [note, setNote] = useState<string>();
   const sig = record.labSignature;
   const on = record.labOnChain;
-  if (!record.fieldSet) return null;
+  const signer = useSigner(record);
+  if (!record.fieldSet || !sig) return null;
   const held = record as unknown as Held;
 
-  const download = async () => {
-    setError(undefined);
-    try {
-      const { labRequestFor, saveFile } = await import('../../veilcore/lab-attest');
-      const req = await labRequestFor(held);
-      saveFile(fileName(record.strainName, 'lab-request'), JSON.stringify(req, null, 2));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    }
-  };
-
-  const add = async (file: File | undefined) => {
-    if (!file) return;
-    setError(undefined);
-    setNote(undefined);
-    try {
-      const { readLabSignature } = await import('../../veilcore/lab-attest');
-      const { claimMaterial, commitmentHex } = await import('../../veilcore/claims-input');
-      const commitment = commitmentHex(await claimMaterial(held));
-      const checked = readLabSignature(await file.text(), commitment);
-      setLabSignature(record.id, checked);
-      setNote(t('app.attest.added'));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      if (pick.current) pick.current.value = '';
-    }
-  };
-
   const publish = async () => {
-    if (!sig || busy) return;
+    if (busy) return;
     setBusy(true);
     setError(undefined);
     try {
@@ -94,45 +92,45 @@ export const LabSignaturePanel: React.FC<{
     }
   };
 
+  const who =
+    signer?.kind === 'bound'
+      ? signerLabel(signer.attestation as ResolvedAttestation, 'Signed by', Date.now(), tr).text
+      : signer?.kind === 'retracted'
+        ? t('app.claim.check.labWithdrawn')
+        : signer?.kind === 'conflict'
+          ? t('app.claim.check.labConflict')
+          : signer
+            ? t('app.claim.check.labUnidentified')
+            : '';
+
   return (
     <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-lab-signature="">
       <Typography variant="h6" component="h2" sx={{ mb: 0.5 }}>
         {t('app.attest.title')}
       </Typography>
-      <Typography variant="body2" sx={{ mb: 1.5 }}>
-        {t('app.attest.text')}
-      </Typography>
-      <input
-        ref={pick}
-        type="file"
-        accept="application/json,.json"
-        hidden
-        data-lab-signature-file=""
-        onChange={(e) => void add(e.target.files?.[0])}
-      />
       <Stack spacing={1.5}>
-        {sig && signatureOk === false && (
-          <Alert severity="error" variant="outlined" data-lab-stale="">
-            {t('app.attest.stale')}
-          </Alert>
-        )}
-        {sig && signatureOk !== false && (
-          <Box data-lab-signed="">
+        {signatureOk !== true ? (
+          signatureOk === false && (
+            <Alert severity="error" variant="outlined" data-lab-stale="">
+              {t('app.attest.stale')}
+            </Alert>
+          )
+        ) : (
+          <Box data-lab-signed={signer?.kind ?? 'checking'}>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              {t('app.attest.signedBy', { key: keyShort(sig.key) })} {who}
+            </Typography>
             <Fact label={t('app.claim.check.labKey')} mono>
               {sig.key}
             </Fact>
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              {t('app.attest.signedBy', { key: keyShort(sig.key) })}{' '}
-              {sig.name ? t('app.attest.fileSays', { name: sig.name }) : ''}
-            </Typography>
           </Box>
         )}
-        {sig && signatureOk && on && (
+        {signatureOk && on && (
           <Alert severity="success" variant="outlined" data-lab-published="">
             {t('app.attest.published', { block: String(on.blockHeight ?? '?') })}
           </Alert>
         )}
-        {sig && signatureOk && !on && (
+        {signatureOk && !on && (
           <>
             <Typography variant="body2">{t('app.attest.publishText')}</Typography>
             {!CLAIMS_READY ? (
@@ -156,34 +154,6 @@ export const LabSignaturePanel: React.FC<{
             <LinearProgress sx={{ mb: 0.5 }} />
             <Typography variant="body2">{progress}</Typography>
           </Box>
-        )}
-        {!sig && (
-          <>
-            <Box>
-              <Button variant="outlined" onClick={() => void download()} sx={{ minHeight: 44 }} data-lab-request="">
-                {t('app.attest.request')}
-              </Button>
-            </Box>
-            <Alert severity="info" variant="outlined">
-              {t('app.attest.requestWarn')} {t('app.attest.how', { site: window.location.origin })}
-            </Alert>
-          </>
-        )}
-        <Box>
-          <Button
-            variant={sig ? 'text' : 'contained'}
-            onClick={() => pick.current?.click()}
-            disabled={busy}
-            sx={{ minHeight: 44 }}
-            data-lab-add=""
-          >
-            {sig ? t('app.attest.addOther') : t('app.attest.add')}
-          </Button>
-        </Box>
-        {note && (
-          <Typography variant="body2" role="status">
-            {note}
-          </Typography>
         )}
         {error && (
           <Alert severity="error" variant="outlined" data-lab-error="">

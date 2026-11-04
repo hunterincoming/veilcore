@@ -27,7 +27,17 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
-import { RECORDS_KEY, updateReceivedNotes, type StrainRecord } from '../../veilcore/records';
+import {
+  RECORDS_KEY,
+  createRecord,
+  newRecordId,
+  updateReceivedNotes,
+  useRecords,
+  type StrainRecord,
+} from '../../veilcore/records';
+import type { LabNumbers } from '../../veilcore/lab-numbers';
+import { SCHEMAS, shownNumber } from '../../veilcore/field-set';
+import { schemaWords, slotWords } from '../document/NumbersFields';
 import { rowStateOf } from '../../veilcore/api-store';
 import type { RecordKeys } from '../../veilcore/record-keys';
 import {
@@ -56,7 +66,9 @@ import {
   type BreederReceipt,
   type ReportSigner,
 } from '../../veilcore/custody';
-import { LAB_RESULTS_ENABLED } from '../../config/network';
+import { LAB_RESULTS_ENABLED, LAB_SIGNING_ENABLED } from '../../config/network';
+import { NumbersFields } from '../document/NumbersFields';
+import { LAB_SCHEMAS, numbersOf, type TypedNumbers } from '../../veilcore/field-set';
 import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
 import { NameCheckText } from '../NameCheckText';
 import { focusScreenHeading } from './FlowFrame';
@@ -86,6 +98,8 @@ import {
   sendRefusal,
   shortResultId,
   wasOpened,
+  rememberBinding,
+  bindingFor,
   type ResultState,
   type ResultSummary,
 } from '../../veilcore/lab-results';
@@ -375,6 +389,9 @@ type Opened = {
   type: ReportFileType;
   /** What kind of report the lab said it is (inside the locked file); absent on older reports. */
   kind?: ReportKind;
+  /** Numbers the lab signed with this report (lab-numbers.ts), checked; or why they can't be used. */
+  numbers?: LabNumbers;
+  numbersProblem?: string;
 };
 
 /** What the breeder is told once, when a lab report first arrives: what others can see. */
@@ -427,6 +444,90 @@ const SignerLine: React.FC<{ signer: ReportSigner }> = ({ signer }) => {
   );
 };
 
+/**
+ * Numbers the lab signed with its report (lab-numbers.ts): shown, and added as a document
+ * record the breeder holds, with the lab's signature kept on it. Added once: a record already
+ * carrying this signature is linked instead.
+ */
+const SignedNumbers: React.FC<{ numbers?: LabNumbers; problem?: string; about: string }> = ({
+  numbers,
+  problem,
+  about,
+}) => {
+  const tr = useT();
+  const { t } = tr;
+  const all = useRecords();
+  const [error, setError] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  if (!numbers)
+    return (
+      <Alert severity="warning" variant="outlined" data-lab-numbers-problem="">
+        {t('app.labnums.cantUse', { reason: problem ?? '' })}
+      </Alert>
+    );
+  const have = all.find((r) => r.labSignature?.record === numbers.signature.record);
+  const schema = SCHEMAS[numbers.record.fieldSet.schema];
+  const add = async () => {
+    setBusy(true);
+    setError(undefined);
+    try {
+      const { fingerprintRecord } = await import('../../veilcore/commitment');
+      createRecord({
+        ...numbers.record,
+        id: newRecordId(),
+        recordFingerprint: await fingerprintRecord(numbers.record),
+        labSignature: { ...numbers.signature, about },
+        parents: [],
+        photoFingerprints: [],
+      } as never);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 1.5 }} data-lab-numbers-in="">
+      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+        {t('app.labnums.inReport', { form: schemaWords(numbers.record.fieldSet.schema, tr) })}
+      </Typography>
+      {(schema?.slots ?? [])
+        .filter((s) => s.type === 'uint' && numbers.record.fieldSet.values[s.slot] != null)
+        .map((s) => (
+          <Typography key={s.slot} variant="body2">
+            {slotWords(s.path, tr)}:{' '}
+            <b>{shownNumber(numbers.record.fieldSet.values[s.slot] as string, s.scale ?? 1)}</b> {s.unit ?? ''}
+          </Typography>
+        ))}
+      {have ? (
+        <Button component={RouterLink} to={`/record/${have.id}`} sx={{ mt: 1, minHeight: 44 }}>
+          {t('app.labnums.openRecord')}
+        </Button>
+      ) : (
+        <>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            {t('app.labnums.addText')}
+          </Typography>
+          <Button
+            variant="contained"
+            disabled={busy}
+            onClick={() => void add()}
+            sx={{ mt: 1, minHeight: 44 }}
+            data-lab-numbers-add=""
+          >
+            {t('app.labnums.add')}
+          </Button>
+        </>
+      )}
+      {error && (
+        <Alert severity="error" variant="outlined" sx={{ mt: 1 }}>
+          {error}
+        </Alert>
+      )}
+    </Box>
+  );
+};
+
 /** The breeder's side: lab reports back on this plant. `autoOpen` opens one straight away. */
 export const LabResultsPanel: React.FC<{
   record: StrainRecord;
@@ -453,7 +554,24 @@ export const LabResultsPanel: React.FC<{
       try {
         const locked = await fetchLockedResult(transfer.id, result.id);
         if ('error' in locked) throw new Error(locked.error);
-        const { bytes, kind } = await openReportWithKind(locked, keys.recordSecret, transfer.id);
+        const { bytes, kind, numbers: numbersBytes } = await openReportWithKind(locked, keys.recordSecret, transfer.id);
+        // Numbers the lab signed: checked here, and only for this plant.
+        let numbers: LabNumbers | undefined;
+        let numbersProblem: string | undefined;
+        if (numbersBytes && LAB_SIGNING_ENABLED) {
+          try {
+            const text = new TextDecoder().decode(numbersBytes);
+            const { readLabNumbers } = await import('../../veilcore/lab-numbers');
+            numbers = await readLabNumbers(text);
+            const about = (JSON.parse(text) as { about?: unknown }).about;
+            if (about !== record.recordFingerprint) throw new Error(t('app.labnums.otherPlant'));
+            if (numbers.record.document?.files?.[0]?.sha256 !== reportFingerprint(bytes))
+              throw new Error(t('app.labnums.otherReport'));
+          } catch (e) {
+            numbers = undefined;
+            numbersProblem = e instanceof Error ? e.message : String(e);
+          }
+        }
         const sha = reportFingerprint(bytes);
         const atts = await attestationsFor(record.recordFingerprint, { asHolder: true });
         // A lab report signed since round 6 names the file bound with s from this delivery's
@@ -476,6 +594,8 @@ export const LabResultsPanel: React.FC<{
             signer,
             type: reportFileType(bytes),
             ...(kind ? { kind } : {}),
+            ...(numbers ? { numbers } : {}),
+            ...(numbersProblem ? { numbersProblem } : {}),
           },
         }));
       } catch (e) {
@@ -484,7 +604,7 @@ export const LabResultsPanel: React.FC<{
         setBusy(undefined);
       }
     },
-    [keys, record.recordFingerprint],
+    [keys, record.recordFingerprint, t],
   );
 
   // One tap from the plant page lands on the opened lab report, not on another Open.
@@ -640,6 +760,9 @@ export const LabResultsPanel: React.FC<{
                       {t('app.lab.results.replacesSaved')}
                     </Typography>
                   )}
+                  {(o.numbers || o.numbersProblem) && (
+                    <SignedNumbers numbers={o.numbers} problem={o.numbersProblem} about={record.recordFingerprint} />
+                  )}
                   {o.kind !== undefined && o.kind !== 'dna' && (
                     <Typography variant="body2" color="text.secondary" data-report-not-tie="">
                       {t('app.lab.results.notTie')}
@@ -787,6 +910,10 @@ export const SendResultsPanel: React.FC<{
   const [file, setFile] = useState<{ name: string; bytes: Uint8Array; sha: string }>();
   // What kind of report the lab sends (persona review, 17 Oct): the lab chooses; nothing is assumed.
   const [kind, setKind] = useState<ReportKind>();
+  // Numbers from the report the lab signs (lab-numbers.ts), test network only for now.
+  const [numSchema, setNumSchema] = useState('');
+  const [numTyped, setNumTyped] = useState<TypedNumbers>({});
+  const [numTitle, setNumTitle] = useState('');
   const [busy, setBusy] = useState<string>();
   const [problem, setProblem] = useState<string>();
   const [note, setNote] = useState<string>();
@@ -874,6 +1001,12 @@ export const SendResultsPanel: React.FC<{
         const out = await retract(attester, r.attestationId, 'issued-in-error');
         if (out.error) throw new Error(t('app.lab.out.withdrawFailed', { error: out.error }));
       }
+      // The numbers signed with that report go with it (lab-numbers.ts).
+      const numbersBinding = r.attestationId ? bindingFor(transferId, r.attestationId) : undefined;
+      if (numbersBinding) {
+        const out = await retract(attester, numbersBinding, 'issued-in-error');
+        if (out.error) throw new Error(t('app.lab.out.withdrawFailed', { error: out.error }));
+      }
       const del = await deleteResult(transferId, r.id);
       if ('error' in del) {
         throw new Error(t('app.lab.out.fileStillThere', { error: del.error }));
@@ -925,14 +1058,55 @@ export const SendResultsPanel: React.FC<{
       if (record.receivedFrom && (await publicFingerprintOf(record.receivedFrom)) !== subject) {
         throw new Error(t('app.lab.out.notConfirmed'));
       }
-      const locked = await lockReport(file.bytes, lock, kind);
       // The registry links the signature when the file arrives, so the signature comes
       // first; if the file then doesn't arrive, the signature is withdrawn at once.
       const signed = await attestRecord(attester, subject, doc, 'laboratory-report', salt ? LAB_DOC_ID_SUFFIX : '');
       if (signed.error || !signed.attestationId)
         throw new Error(t('app.lab.out.notRecorded', { error: signed.error ?? t('app.lab.out.noAnswer') }));
+      // Numbers the lab signs (docs/lab-signing.md): the lab writes the record, signs it with the
+      // claims key its own attester key makes, and binds that key to this record, about this
+      // plant, for the report signature just made: withdrawing that withdraws the name too.
+      let numbersBytes: Uint8Array | undefined;
+      let bindingId: string | undefined;
+      try {
+        const nums = LAB_SIGNING_ENABLED && numSchema ? numbersOf(numSchema, numTyped) : undefined;
+        if (nums?.bad.length) throw new Error(t('app.doc.need.numbers'));
+        if (nums?.any) {
+          // Only a report signature bound to the record can be checked by anyone (lab-doc.ts).
+          if (!salt) throw new Error(t('app.labnums.oldCode'));
+          const { makeLabNumbers } = await import('../../veilcore/lab-numbers');
+          const { bindingHash, bindingIdSuffix, claimsKeyFor } = await import('../../veilcore/claims-key');
+          const made = await makeLabNumbers(attester.keypair.privateKey, {
+            title: numTitle.trim() || file.name,
+            labName: attester.displayName ?? '',
+            holder: record.bredBy || t('app.lab.card.unknownBreeder'),
+            plantName: record.strainName,
+            issued: new Date().toISOString().slice(0, 10),
+            report: { name: file.name, sha256: file.sha, size: file.bytes.length },
+            schema: numSchema,
+            values: nums.values,
+          });
+          const k = claimsKeyFor(attester.keypair.privateKey);
+          const bound = await attestRecord(
+            attester,
+            made.commitment,
+            bindingHash(made.keyText, subject, signed.attestationId),
+            'other',
+            bindingIdSuffix(k, attester.keypair.publicKey),
+          );
+          if (bound.error || !bound.attestationId)
+            throw new Error(t('app.lab.out.notRecorded', { error: bound.error ?? t('app.lab.out.noAnswer') }));
+          bindingId = bound.attestationId;
+          numbersBytes = new TextEncoder().encode(JSON.stringify({ ...made.numbers, about: subject }));
+        }
+      } catch (e) {
+        await retract(attester, signed.attestationId, 'issued-in-error');
+        throw e;
+      }
+      const locked = await lockReport(file.bytes, lock, kind, numbersBytes);
       const out = await sendLockedResult(transferId, locked, signed.attestationId, replacing?.id);
       if ('error' in out) {
+        if (bindingId) await retract(attester, bindingId, 'issued-in-error');
         const undo = await retract(attester, signed.attestationId, 'issued-in-error');
         throw new Error(
           undo.error
@@ -948,12 +1122,18 @@ export const SendResultsPanel: React.FC<{
           const old = await retract(attester, replacing.attestationId, 'superseded');
           if (old.error) left.push(t('app.lab.out.oldSigLeft', { error: old.error }));
         }
+        const oldNumbers = replacing.attestationId ? bindingFor(transferId, replacing.attestationId) : undefined;
+        if (oldNumbers) {
+          const old = await retract(attester, oldNumbers, 'superseded');
+          if (old.error) left.push(t('app.lab.out.oldSigLeft', { error: old.error }));
+        }
         const gone = await deleteResult(transferId, replacing.id);
         if ('error' in gone) left.push(t('app.lab.out.oldFileLeft', { error: gone.error }));
         if (left.length) {
           setNote(t('app.lab.out.oldLeft', { left: left.join(t('app.lab.out.andJoin')) }));
         }
       }
+      if (bindingId) rememberBinding(transferId, signed.attestationId, bindingId);
       setSent(true);
       setScreen((n) => n + 1);
       labChanged();
@@ -1191,6 +1371,39 @@ export const SendResultsPanel: React.FC<{
               {t('app.lab.out.kindHelp')}
             </Typography>
           </FormControl>
+          {LAB_SIGNING_ENABLED && file && kind && (
+            <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2 }} data-lab-numbers="">
+              <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 700 }}>
+                {t('app.labnums.title')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                {t('app.labnums.text')}
+              </Typography>
+              <NumbersFields
+                schema={numSchema}
+                onSchema={(id) => {
+                  setNumSchema(id);
+                  setNumTyped({});
+                }}
+                typed={numTyped}
+                onTyped={setNumTyped}
+                bad={numSchema ? numbersOf(numSchema, numTyped).bad : []}
+                forms={LAB_SCHEMAS}
+                bare
+              />
+              {numSchema && (
+                <TextField
+                  label={t('app.labnums.resultTitle')}
+                  placeholder={file.name}
+                  value={numTitle}
+                  onChange={(e) => setNumTitle(e.target.value)}
+                  fullWidth
+                  sx={{ mt: 2 }}
+                  slotProps={{ htmlInput: { maxLength: 200 } }}
+                />
+              )}
+            </Box>
+          )}
           <Button
             variant="contained"
             size="large"

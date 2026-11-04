@@ -8,7 +8,16 @@ import { claimsLedger } from '../../../../contract/src/claims';
 import { claimFromCells } from '../../../../contract/src/verify-claims';
 import { singleCallState } from '../../../../api/src/presentation-lookup';
 import { CLAIMS_CONTRACT, INDEXER_HTTP } from './config';
-import { compareAttested, compareClaim, type ClaimVerdict, type LabVerdict, type MadeClaim } from '../claim-link';
+import {
+  compareAttested,
+  compareClaim,
+  type ClaimVerdict,
+  type LabSigner,
+  type LabVerdict,
+  type MadeClaim,
+} from '../claim-link';
+import { findBinding, type BindingCandidate } from '../claims-key';
+import { attestationsFor } from '../attesters';
 
 export type ClaimReader = (
   contract: string,
@@ -33,7 +42,12 @@ const readFromIndexer: ClaimReader = async (contract, txId) => {
 /** Check a claim link against the chain. Never throws: a failure is a verdict with a reason. */
 export const checkClaim = async (
   link: MadeClaim,
-  deps: { read?: ClaimReader; contract?: string } = {},
+  deps: {
+    read?: ClaimReader;
+    contract?: string;
+    /** The attestations about a record (attesters.ts attestationsFor, signatures checked there). */
+    attestations?: (record: string) => Promise<readonly BindingCandidate[]>;
+  } = {},
 ): Promise<ClaimVerdict> => {
   const contract = deps.contract ?? CLAIMS_CONTRACT;
   if (!contract) return { ok: false, reason: 'This site can’t read claims: no claims contract is configured.' };
@@ -49,7 +63,20 @@ export const checkClaim = async (
     try {
       const a = await read(contract, link.attested.txId);
       const c = compareAttested(link, a.claim);
-      lab = c.ok ? { ...c, blockHeight: a.blockHeight, blockTime: a.blockTime } : c;
+      if (c.ok) {
+        // Whose key: only from a binding checked here, about the record the link names.
+        let signer: LabSigner = { kind: 'none' };
+        if (link.attested.about && a.claim.attester) {
+          try {
+            const get = deps.attestations ?? ((r: string) => attestationsFor(r, { claimsKeyBindings: true }));
+            const [list, aboutList] = await Promise.all([get(link.record), get(link.attested.about)]);
+            signer = findBinding(list, link.record, a.claim.attester, link.attested.about, aboutList);
+          } catch {
+            signer = { kind: 'none' };
+          }
+        }
+        lab = { ...c, blockHeight: a.blockHeight, blockTime: a.blockTime, signer };
+      } else lab = c;
     } catch (e) {
       lab = { ok: false, reason: e instanceof Error ? e.message : String(e) };
     }

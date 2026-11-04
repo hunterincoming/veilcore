@@ -15,6 +15,7 @@ import { DocumentDate, Fact } from './DocumentParts';
 import { claimWords } from './ProveNumber';
 import { schemaWords } from './NumbersFields';
 import { keyShort } from '../../veilcore/lab-key-text';
+import { signerLabel, type ResolvedAttestation } from '../../veilcore/attesters';
 
 export const ClaimCheck: React.FC = () => {
   const tr = useT();
@@ -107,17 +108,46 @@ export const ClaimCheck: React.FC = () => {
               <Paper sx={{ p: { xs: 2.5, md: 3 } }} data-claim-lab={verdict.lab.ok ? 'ok' : 'failed'}>
                 {verdict.lab.ok ? (
                   <Stack spacing={1.5}>
-                    <Alert severity="success" variant="outlined">
+                    <Alert
+                      severity={
+                        verdict.lab.signer?.kind === 'bound' &&
+                        signerLabel(verdict.lab.signer.attestation as ResolvedAttestation, 'Signed by', Date.now(), tr)
+                          .checked
+                          ? 'success'
+                          : 'info'
+                      }
+                      variant="outlined"
+                      data-claim-signer={verdict.lab.signer?.kind ?? 'none'}
+                    >
                       {t('app.claim.check.labOk', {
                         key: keyShort(verdict.lab.attester),
                         block: String(verdict.lab.blockHeight ?? '?'),
                         date: verdict.lab.blockTime ? ` (${tr.date(verdict.lab.blockTime)})` : '',
-                      })}
+                      })}{' '}
+                      {verdict.lab.signer?.kind === 'bound'
+                        ? signerLabel(
+                            verdict.lab.signer.attestation as ResolvedAttestation,
+                            'Signed by',
+                            Date.now(),
+                            tr,
+                          ).text
+                        : verdict.lab.signer?.kind === 'retracted'
+                          ? t('app.claim.check.labWithdrawn')
+                          : verdict.lab.signer?.kind === 'conflict'
+                            ? t('app.claim.check.labConflict')
+                            : t('app.claim.check.labUnidentified')}
                     </Alert>
+                    {verdict.lab.signer?.kind === 'bound' && link?.attested?.about && (
+                      <Fact label={t('app.claim.check.labAbout')} mono>
+                        {link.attested.about}
+                      </Fact>
+                    )}
                     <Fact label={t('app.claim.check.labKey')} mono>
                       {verdict.lab.attester}
                     </Fact>
-                    <Typography variant="body2">{t('app.claim.check.labWhose')}</Typography>
+                    {verdict.lab.signer?.kind === 'bound' && (
+                      <Typography variant="body2">{t('app.claim.check.labFieldSecret')}</Typography>
+                    )}
                   </Stack>
                 ) : (
                   <Alert severity="error" variant="outlined">
@@ -138,7 +168,9 @@ export const ClaimCheck: React.FC = () => {
               </Stack>
             </Paper>
             <Typography variant="body2" color="text.secondary">
-              {verdict?.ok && verdict.lab?.ok ? t('app.claim.check.whatLab') : t('app.claim.check.what')}
+              {verdict?.ok && verdict.lab?.ok && verdict.lab.signer?.kind === 'bound'
+                ? t('app.claim.check.whatLab')
+                : t('app.claim.check.what')}
             </Typography>
           </Stack>
         )}

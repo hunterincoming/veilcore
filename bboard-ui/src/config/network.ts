@@ -154,6 +154,13 @@ export const ANIMAL_RECORDS_ENABLED: boolean = animalRecordsEnabledFor(NETWORK);
 export const STRAIN_RECORDS_ENABLED = true;
 
 /**
+ * Numbers a laboratory signs with its report, and the genetic forms (docs/lab-signing.md). Test
+ * network only until the whole journey has run once there by hand: lab adds numbers, breeder
+ * adds them as a record, the signature goes on Midnight, a claim's check page names the lab.
+ */
+export const LAB_SIGNING_ENABLED = !IS_MAINNET;
+
+/**
  * Document records (veilcore/document-profile.ts, docs/document-profile.md): a permit, a COA, a
  * contract, sealed by its files' fingerprints. On in every build, mainnet included (31 Oct 2026):
  * veilcore/profile/document/v1 is final (SPEC 11.11). Every site deploy refuses a registry whose
