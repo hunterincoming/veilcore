@@ -1,0 +1,7 @@
+# VeilCore security contact (RFC 9116). Policy: SECURITY.md in the repository below.
+Contact: mailto:hunter@veilcore.org
+Contact: https://github.com/hunterincoming/veilcore/security/advisories/new
+Expires: 2027-11-05T00:00:00.000Z
+Preferred-Languages: en, ja
+Canonical: https://veilcore.org/.well-known/security.txt
+Policy: https://github.com/hunterincoming/veilcore/blob/main/SECURITY.md
