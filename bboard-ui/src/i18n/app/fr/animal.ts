@@ -19,6 +19,9 @@ export const animal = {
   'app.animal.idScheme': 'Système d’identification',
   'app.animal.idSchemeHelp':
     'La numérotation à laquelle appartient le numéro. Choisissez-en une ou saisissez la vôtre.',
+  'app.animal.idShape.jp': 'Un identifiant bovin japonais a 10 chiffres. Vérifiez le numéro de la boucle.',
+  'app.animal.idShape.usda840': 'Un numéro USDA 840 a 15 chiffres et commence par 840. Vérifiez la boucle.',
+  'app.animal.idShape.microchip': 'Un numéro de puce a 15 chiffres. Vérifiez-le avec le lecteur.',
   'app.animal.scheme.jp': 'Identification des bovins au Japon (10 chiffres)',
   'app.animal.scheme.earTag': 'Boucle auriculaire',
   'app.animal.scheme.microchip': 'Puce électronique',
