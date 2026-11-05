@@ -47,8 +47,10 @@ instead of sending a second one (which would pay twice and write two roots). Thr
 failures in a row raise an alert on `/sponsor/status` and in the log.
 
 Its fees come out of the same `DAILY_BUDGET_DUST` as the public endpoint (one wallet pays
-both), each one capped at `MAX_FEE_DUST`. If the day's budget is used up, anchoring waits
-for the next day. If it is only held by visitors' requests still in flight, the run reports
+both), each one capped at `MAX_FEE_DUST`. A share of it, `ANCHOR_RESERVE_DUST` (a fifth of
+the daily budget by default), is kept for anchoring and sealing: the public endpoint can't
+spend it, so a busy or abusive day can't stop batch dating. If the day's budget is used up
+anyway, anchoring waits for the next day. If it is only held by visitors' requests still in flight, the run reports
 `busy` and tries again next time; that is not counted as a failure. It refuses a registry answer it did not expect: a batch id with odd
 characters, a root that is not 32 bytes of hex or is all zero, a root another batch already
 has, and a batch (or root) it has already anchored, even if the registry still lists it as
@@ -99,7 +101,7 @@ For the anchoring job (it stays off without these two):
 | `REGISTRY_OPERATOR_TOKEN` | The same value as `VEILCORE_OPERATOR_TOKEN` on the registry service |
 
 Optional, with defaults: `SPONSOR_NETWORK` (preprod), `MAX_FEE_DUST` (5),
-`DAILY_BUDGET_DUST` (50), `POW_DIFFICULTY` (18), `QUEUE_DEPTH` (20),
+`DAILY_BUDGET_DUST` (50), `ANCHOR_RESERVE_DUST` (a fifth of the daily budget), `POW_DIFFICULTY` (18), `QUEUE_DEPTH` (20),
 `LIMIT_PER_NETWORK_HOUR` (3), `LIMIT_PER_NETWORK_DAY` (10), `LIMIT_REQUESTS_PER_MINUTE` (30),
 `ANCHOR_EVERY_MINUTES` (60), `ANCHOR_AT_PENDING` (25), `ANCHORER_ENABLED` (set `0` to
 turn the job off), `TRUST_PROXY_HOPS` (1 on Railway), `INDEXER_URL`, `INDEXER_WS_URL`,

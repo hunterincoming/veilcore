@@ -14,25 +14,33 @@ export const HOUR = 60 * MINUTE;
 export const DAY = 24 * HOUR;
 
 /**
- * The bucket an address falls in: /24 for IPv4, /64 for IPv6. One household or one
- * cloud host gets one bucket, so rotating through neighbouring addresses gains nothing.
+ * The bucket an address falls in: /24 for IPv4, /48 for IPv6. One household or one cloud
+ * host gets one bucket, so rotating through neighbouring addresses gains nothing. IPv6 was
+ * /64 until 5 Nov 2026: a cheap server is routinely given a /48, which is 65,536 /64s, so an
+ * ops review showed one machine could pose as that many networks.
  */
 export const clientBucket = (ip: string): string => {
-  const v4 = /^(?:::ffff:)?(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.\d{1,3}$/i.exec(ip.trim());
+  const v4 = /^(?:::ffff:)?(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.\d{1,3}$/i.exec(
+    ip.trim(),
+  );
   if (v4) return `${v4[1]}.${v4[2]}.${v4[3]}.0/24`;
   const s = ip.trim().toLowerCase();
-  if (s.includes(':')) {
-    // Expand :: so the first four groups are the /64.
-    const [head, tail = ''] = s.split('::');
-    const h = head ? head.split(':') : [];
-    const t = tail ? tail.split(':') : [];
-    const groups = [...h, ...Array<string>(Math.max(0, 8 - h.length - t.length)).fill('0'), ...t];
+  if (s.includes(":")) {
+    // Expand :: so the first three groups are the /48.
+    const [head, tail = ""] = s.split("::");
+    const h = head ? head.split(":") : [];
+    const t = tail ? tail.split(":") : [];
+    const groups = [
+      ...h,
+      ...Array<string>(Math.max(0, 8 - h.length - t.length)).fill("0"),
+      ...t,
+    ];
     return `${groups
-      .slice(0, 4)
-      .map((g) => g.replace(/^0+(?=.)/, ''))
-      .join(':')}::/64`;
+      .slice(0, 3)
+      .map((g) => g.replace(/^0+(?=.)/, ""))
+      .join(":")}::/48`;
   }
-  return 'unknown';
+  return "unknown";
 };
 
 /** Timestamps per key, kept only as long as the longest window that reads them. */
@@ -47,7 +55,9 @@ class EventLog {
   }
 
   add(key: string, now: number): void {
-    const list = (this.events.get(key) ?? []).filter((t) => t > now - this.keepMs);
+    const list = (this.events.get(key) ?? []).filter(
+      (t) => t > now - this.keepMs,
+    );
     list.push(now);
     this.events.set(key, list);
   }
@@ -124,12 +134,19 @@ export const DEFAULT_LIMITS: LimitConfig = {
   },
 };
 
-export type LimitCheck = { ok: true } | { ok: false; reason: string; retryAfterSeconds: number };
+export type LimitCheck =
+  | { ok: true }
+  | { ok: false; reason: string; retryAfterSeconds: number };
 
 /** What `Limits.commit` counted, so exactly that can be taken back. */
-export type QuotaClaim = { readonly bucket: string; readonly ticketKey: string; readonly at: number };
+export type QuotaClaim = {
+  readonly bucket: string;
+  readonly ticketKey: string;
+  readonly at: number;
+};
 
-export const isTicket = (t: unknown): t is string => typeof t === 'string' && /^[0-9a-f]{32,64}$/.test(t);
+export const isTicket = (t: unknown): t is string =>
+  typeof t === "string" && /^[0-9a-f]{32,64}$/.test(t);
 
 export class Limits {
   private readonly requests = new EventLog(MINUTE);
@@ -144,8 +161,14 @@ export class Limits {
   /** Every request counts here, before anything is parsed. */
   request(bucket: string): LimitCheck {
     const t = this.now();
-    if (this.requests.count(bucket, MINUTE, t) >= this.config.requestsPerMinute) {
-      return { ok: false, reason: 'Too many requests from your network. Wait a minute.', retryAfterSeconds: 60 };
+    if (
+      this.requests.count(bucket, MINUTE, t) >= this.config.requestsPerMinute
+    ) {
+      return {
+        ok: false,
+        reason: "Too many requests from your network. Wait a minute.",
+        retryAfterSeconds: 60,
+      };
     }
     this.requests.add(bucket, t);
     return { ok: true };
@@ -159,14 +182,28 @@ export class Limits {
   canSponsor(bucket: string, ticket: string, circuit: string): LimitCheck {
     const t = this.now();
     if (this.sponsoredByIp.count(bucket, HOUR, t) >= this.config.perIpHour) {
-      return { ok: false, reason: 'Your network has used this hour’s free transactions. Try later.', retryAfterSeconds: 3600 };
+      return {
+        ok: false,
+        reason:
+          "Your network has used this hour’s free transactions. Try later.",
+        retryAfterSeconds: 3600,
+      };
     }
     if (this.sponsoredByIp.count(bucket, DAY, t) >= this.config.perIpDay) {
-      return { ok: false, reason: 'Your network has used today’s free transactions. Try tomorrow.', retryAfterSeconds: 86400 };
+      return {
+        ok: false,
+        reason:
+          "Your network has used today’s free transactions. Try tomorrow.",
+        retryAfterSeconds: 86400,
+      };
     }
     const cap = this.config.perTicketDay[circuit] ?? 0;
     if (this.sponsoredByTicket.count(`${ticket}:${circuit}`, DAY, t) >= cap) {
-      return { ok: false, reason: `This browser has used today’s free ${circuit} calls. Try tomorrow.`, retryAfterSeconds: 86400 };
+      return {
+        ok: false,
+        reason: `This browser has used today’s free ${circuit} calls. Try tomorrow.`,
+        retryAfterSeconds: 86400,
+      };
     }
     return { ok: true };
   }
@@ -212,6 +249,84 @@ export interface FeeBudget {
   shrink(id: number, amount: bigint): void;
   settle(id: number, actual?: bigint): void;
   release(id: number): void;
+}
+
+/** What the public endpoint needs from a budget: a fee budget it can also raise a hold in. */
+export interface GrowableBudget extends FeeBudget {
+  grow(id: number, amount: bigint): boolean;
+  /** Left today for this payer. */
+  remaining(): bigint;
+  readonly limit: bigint;
+  readonly spentToday: bigint;
+}
+
+/**
+ * The public endpoint's view of the daily budget: everything but `keep`, which only the
+ * anchoring and sealing jobs may spend. Without it, someone using up the day's budget
+ * through the public endpoint also stopped that day's batch dating for everyone (ops
+ * review, 5 Nov 2026). Holds and spending are the shared budget's; this only refuses
+ * earlier.
+ */
+export class PublicBudget implements GrowableBudget {
+  constructor(
+    private readonly base: DailyBudget,
+    readonly keep: bigint,
+  ) {
+    if (keep < 0n) throw new Error("negative amount");
+  }
+
+  private left(): bigint {
+    const l = this.base.remaining() - this.keep;
+    return l > 0n ? l : 0n;
+  }
+
+  /** Left today for the public endpoint: the shared budget's remainder, less the kept share. */
+  remaining(): bigint {
+    return this.left();
+  }
+
+  /** The whole day's budget (the kept share is part of it). */
+  get limit(): bigint {
+    return this.base.limit;
+  }
+
+  get spentToday(): bigint {
+    return this.base.spentToday;
+  }
+
+  reserveUpTo(max: bigint): { id: number; amount: bigint } | undefined {
+    if (max < 0n) throw new Error("negative amount");
+    const left = this.left();
+    if (left === 0n) return undefined;
+    const amount = max < left ? max : left;
+    const id = this.base.reserve(amount);
+    return id === undefined ? undefined : { id, amount };
+  }
+
+  unspent(): bigint {
+    const l = this.base.unspent() - this.keep;
+    return l > 0n ? l : 0n;
+  }
+
+  grow(id: number, amount: bigint): boolean {
+    const held = this.base.held(id);
+    if (held === undefined) return false;
+    if (amount <= held) return true;
+    if (amount - held > this.left()) return false;
+    return this.base.grow(id, amount);
+  }
+
+  shrink(id: number, amount: bigint): void {
+    this.base.shrink(id, amount);
+  }
+
+  settle(id: number, actual?: bigint): void {
+    this.base.settle(id, actual);
+  }
+
+  release(id: number): void {
+    this.base.release(id);
+  }
 }
 
 /** Saved budget state, so a restart does not reset the day's spending. */
@@ -269,7 +384,7 @@ export class DailyBudget implements FeeBudget {
 
   /** Reserve `amount`; returns a hold id, or undefined when it does not fit. */
   reserve(amount: bigint): number | undefined {
-    if (amount < 0n) throw new Error('negative amount');
+    if (amount < 0n) throw new Error("negative amount");
     if (amount > this.remaining()) return undefined;
     const id = this.nextHold++;
     this.holds.set(id, amount);
@@ -283,12 +398,17 @@ export class DailyBudget implements FeeBudget {
    * claim budget before the real fee is known; `shrink` it once it is.
    */
   reserveUpTo(max: bigint): { id: number; amount: bigint } | undefined {
-    if (max < 0n) throw new Error('negative amount');
+    if (max < 0n) throw new Error("negative amount");
     const left = this.remaining();
     if (left === 0n) return undefined;
     const amount = max < left ? max : left;
     const id = this.reserve(amount);
     return id === undefined ? undefined : { id, amount };
+  }
+
+  /** What a hold holds now, or undefined. */
+  held(id: number): bigint | undefined {
+    return this.holds.get(id);
   }
 
   /** Lower a hold to `amount` (never raises it), giving the rest back. */
@@ -346,8 +466,8 @@ export class DailyBudget implements FeeBudget {
 
 export class QueueFullError extends Error {
   constructor() {
-    super('The network is busy. Try again in a few minutes.');
-    this.name = 'QueueFullError';
+    super("The network is busy. Try again in a few minutes.");
+    this.name = "QueueFullError";
   }
 }
 
@@ -366,8 +486,12 @@ export class SingleFlight {
     return this.depth;
   }
 
-  run<T>(job: () => Promise<T>, opts: { bypassLimit?: boolean } = {}): Promise<T> {
-    if (!opts.bypassLimit && this.depth >= this.maxDepth) return Promise.reject(new QueueFullError());
+  run<T>(
+    job: () => Promise<T>,
+    opts: { bypassLimit?: boolean } = {},
+  ): Promise<T> {
+    if (!opts.bypassLimit && this.depth >= this.maxDepth)
+      return Promise.reject(new QueueFullError());
     this.depth++;
     const result = this.tail.then(job, job);
     this.tail = result.then(
