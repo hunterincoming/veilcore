@@ -16,7 +16,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { zipSync, strToU8 } from 'fflate';
-import { verifyAttestation, verifyRetraction } from 'veilcore-records';
+import { timestampTokenBytes, verifyAttestation, verifyRetraction, verifyTimestampToken } from 'veilcore-records';
 import type { InclusionProof, SignedAttestation, Retraction } from 'veilcore-records';
 import type { StrainRecord } from '../records';
 import type { RecordKeys } from '../record-keys';
@@ -48,6 +48,7 @@ import {
   sealedNameOf,
   subjectOf,
   type Subject,
+  tsaSteps,
   utcWords,
   wrap,
 } from './words';
@@ -88,6 +89,19 @@ export type BatchFacts = {
     readonly calendars?: string[];
     readonly file?: string;
   };
+  /**
+   * An RFC 3161 timestamp on the batch root from a Time Stamping Authority (registry
+   * lineage/tsa.mjs). Kept only when the token checks here against the root; genTime and
+   * signer are read from the token itself, tsa and qualified are what the registry said.
+   */
+  readonly rfc3161: {
+    readonly available: boolean;
+    readonly genTime?: string;
+    readonly signer?: string;
+    readonly tsa?: string;
+    readonly qualified?: { readonly scheme: string; readonly trustedList?: string };
+    readonly file?: string;
+  };
 };
 
 export type Gathered = {
@@ -102,6 +116,8 @@ export type Gathered = {
   readonly batch: BatchFacts | null;
   /** The batch's .ots file. */
   readonly ots: Uint8Array | null;
+  /** The batch root's RFC 3161 token (DER), checked against the root. */
+  readonly tst: Uint8Array | null;
   /** Lab signatures (attestations) about the record's proof code, as served. */
   readonly attestations: Record<string, unknown>[];
 };
@@ -135,6 +151,7 @@ export const reconcile = async (
     attestations?: unknown;
   },
 ): Promise<Gathered> => {
+  let tst: Uint8Array | null = null;
   const state =
     raw.proof === null || raw.proof === undefined
       ? { status: 'none' as const }
@@ -152,6 +169,40 @@ export const reconcile = async (
       : undefined;
     const otsFacts = ots ?? (isObject(proofOts) ? { available: true, ...proofOts } : null);
     const otsOk = looksLikeOts(raw.ots ?? null);
+    // The RFC 3161 token: from the batch facts, or the proof's anchors (older route).
+    const proofTsa = Array.isArray((proof as unknown as Record<string, unknown>).anchors)
+      ? ((proof as unknown as Record<string, unknown>).anchors as unknown[]).find(
+          (a) => isObject(a) && a.kind === 'rfc3161',
+        )
+      : undefined;
+    const tsaFacts =
+      (sameBatch && isObject(b.rfc3161) && isString(b.rfc3161.token) ? b.rfc3161 : null) ??
+      (isObject(proofTsa) && isString(proofTsa.token) ? proofTsa : null);
+    let rfc3161: BatchFacts['rfc3161'] = { available: false };
+    if (tsaFacts) {
+      const bytes = timestampTokenBytes(tsaFacts.token as string);
+      const rootBytes = Uint8Array.from(proof.root.match(/../g) ?? [], (x) => parseInt(x, 16));
+      const v = bytes ? await verifyTimestampToken(bytes, rootBytes).catch(() => null) : null;
+      if (bytes && v?.ok) {
+        tst = bytes;
+        const q = isObject(tsaFacts.qualified) && isString(tsaFacts.qualified.scheme) ? tsaFacts.qualified : null;
+        rfc3161 = {
+          available: true,
+          ...(v.genTime ? { genTime: v.genTime } : {}),
+          ...(v.signerSubject ? { signer: v.signerSubject } : {}),
+          ...(isString(tsaFacts.tsa) ? { tsa: tsaFacts.tsa } : {}),
+          ...(q
+            ? {
+                qualified: {
+                  scheme: q.scheme as string,
+                  ...(isString(q.trustedList) ? { trustedList: q.trustedList } : {}),
+                },
+              }
+            : {}),
+          file: 'proof/root.tst',
+        };
+      }
+    }
     batch = {
       batchId: proof.batchId,
       root: proof.root,
@@ -176,6 +227,7 @@ export const reconcile = async (
         ...(otsFacts && Array.isArray(otsFacts.calendars) ? { calendars: otsFacts.calendars.filter(isString) } : {}),
         ...(otsOk ? { file: 'proof/root.bin.ots' } : {}),
       },
+      rfc3161,
     };
   }
   const attestations = (Array.isArray(raw.attestations) ? raw.attestations : []).filter(
@@ -188,6 +240,7 @@ export const reconcile = async (
     proofRefused: raw.proof !== null && raw.proof !== undefined && proof === null,
     batch,
     ots: proof && looksLikeOts(raw.ots ?? null) ? (raw.ots as Uint8Array) : null,
+    tst,
     attestations,
   };
 };
@@ -919,6 +972,11 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
       { path: 'proof/anchors.json', what: "where the batch root was recorded, as VeilCore's registry reported it." },
     );
     if (hasOts) out.push({ path: 'proof/root.bin.ots', what: 'the Bitcoin stamp file (OpenTimestamps) for root.bin.' });
+    if (ev.batch.rfc3161?.available)
+      out.push({
+        path: 'proof/root.tst',
+        what: 'the timestamp token (RFC 3161) a Time Stamping Authority signed over root.bin.',
+      });
     if (checkScriptFor(ev))
       out.push({
         path: 'proof/check-on-midnight.mjs',
@@ -1053,6 +1111,14 @@ export const readmeText = (
   L.push(
     "A batch is a group of records dated together. Its batch root is one code that stands for every record in it: the batch root is what gets recorded on Midnight, and this record's proof leads from its own proof code to it.",
   );
+  const tsa = ev.batch?.rfc3161?.available ? ev.batch.rfc3161 : null;
+  if (ev.batch && (bitcoin || tsa)) {
+    L.push('');
+    L.push('THE DATES');
+    L.push(
+      `The batch root is dated ${[bitcoin ? 'on Bitcoin (OpenTimestamps)' : null, tsa ? 'by a Time Stamping Authority (RFC 3161)' : null, anchor ? 'on Midnight' : null].filter(Boolean).join(', ')}. Each is separate. ${bitcoin || tsa ? `${[bitcoin ? 'The Bitcoin stamp' : null, tsa ? 'the timestamp token' : null].filter(Boolean).join(' and ')} can be checked with standard public tools, by anyone, without VeilCore or Midnight. ` : ''}Rely on the earliest date you have checked yourself.`,
+    );
+  }
   if (lockedParents > 0) {
     L.push('');
     L.push(
@@ -1102,6 +1168,10 @@ export const readmeText = (
     L.push(
       `   VeilCore's registry reported the stamp as ${reported} when the bundle was made. verify.html reads the stamp file itself and says what it shows.`,
     );
+  }
+  if (tsa) {
+    L.push(`${bitcoin ? '4' : '3'}. A Time Stamping Authority (another separate date):`);
+    tsaSteps(tsa).forEach((step, i) => L.push(`   ${String.fromCharCode(97 + i)}. ${step}`));
   }
   if (ev.batch?.earlierAnchors && ev.batch.earlierAnchors.length) {
     for (const a of ev.batch.earlierAnchors) {
@@ -1265,9 +1335,11 @@ export const bundleFiles = async (
         current: ev.batch.anchor,
         earlier: ev.batch.earlierAnchors ?? 'not reported by this registry',
         opentimestamps: ev.batch.opentimestamps,
+        rfc3161: ev.batch.rfc3161 ?? { available: false },
       }),
     );
     if (ots) add('proof/root.bin.ots', ots);
+    if (gathered.tst && ev.batch.rfc3161?.available) add('proof/root.tst', gathered.tst);
     const script = checkScriptFor(ev);
     if (script) add('proof/check-on-midnight.mjs', text(script));
   }
