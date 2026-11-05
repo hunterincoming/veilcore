@@ -6,16 +6,16 @@ throughout: tokens go in with `read -s`, never into a chat or a note.
 
 ## What watches what
 
-| Monitor (UptimeRobot) | Address                                                                                           | Alarm when           |
-| --------------------- | ------------------------------------------------------------------------------------------------- | -------------------- |
-| Site                  | `https://veilcore.org`                                                                            | not 200              |
-| Registry up           | `https://veilcore-api-production.up.railway.app/health`                                           | not 200              |
-| Registry problems     | `…/alerts` (keyword `"ok":true`)                                                                  | keyword missing      |
-| Sponsor problems      | `https://veilcore-sponsor-mainnet-production.up.railway.app/sponsor/alerts` (keyword `"ok":true`) | keyword missing      |
-| Relay                 | `https://veilcore-indexer-relay-production.up.railway.app/health`                                 | not 200              |
-| Backups               | the healthchecks.io check behind `BACKUP_PING_URL`                                                | a day with no backup |
+| Monitor (UptimeRobot) | Address                                                                     | Alarm when           |
+| --------------------- | --------------------------------------------------------------------------- | -------------------- |
+| Site                  | `https://veilcore.org`                                                      | not 200              |
+| Registry up           | `https://veilcore-api-production.up.railway.app/health`                     | not 200              |
+| Registry problems     | `https://veilcore-api-production.up.railway.app/alerts`                     | not 200              |
+| Sponsor problems      | `https://veilcore-sponsor-mainnet-production.up.railway.app/sponsor/alerts` | not 200              |
+| Relay                 | `https://veilcore-indexer-relay-production.up.railway.app/health`           | not 200              |
+| Backups               | the healthchecks.io check behind `BACKUP_PING_URL`                          | a day with no backup |
 
-`/alerts` and `/sponsor/alerts` answer short codes; each one is below.
+`/alerts` and `/sponsor/alerts` answer 503 with short codes when something needs you; each one is below.
 
 ## What each outage does to people
 
