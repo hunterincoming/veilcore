@@ -37,7 +37,7 @@ treaties, so where VeilCore stands has to be plain. Not legal advice.
 - **Plant Treaty.** A holder can keep the Standard Material Transfer Agreement (SMTA) ID
   and the GLIS DOI of the accession they received, the same way.
 - **WIPO Treaty on Intellectual Property, Genetic Resources and Associated Traditional
-  Knowledge** (adopted 24 May 2024): patent applicants must disclose the country of origin
+  Knowledge** (adopted 24 May 2024; binding once in force): patent applicants must disclose the country of origin
   or source of genetic resources an invention is based on. A dated record of where material
   came from, made at the time, is evidence for that disclosure.
 
