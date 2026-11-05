@@ -18,7 +18,7 @@ export const lab = {
   'app.signer.keyNamed': 'una clave llamada “{name}” (nombre no comprobado)',
   'app.signer.keyUnnamed': 'una clave a la que nadie ha puesto nombre',
   'app.signer.domainBefore': 'El sitio web ',
-  'app.signer.domainAfter': ' publica esta clave como suya (consultado el {date}).',
+  'app.signer.domainAfter': ' publica esta clave, y la clave nombra ese sitio (consultado el {date}).',
   'app.lab.saved.lab': 'guardado · coincide con el informe firmado por el laboratorio',
   'app.lab.saved.self': 'guardado · ninguna firma de laboratorio coincide',
   'app.lab.saved.replacedNewer': 'reemplazado por el laboratorio: guarde el corregido',
@@ -262,7 +262,7 @@ export const lab = {
   'app.lab.key.publicKey': 'Clave pública',
   'app.lab.key.domain.title': 'Su clave en su propio sitio web',
   'app.lab.key.domain.why':
-    'Ponga este archivo en su sitio web en /.well-known/veilcore-lab.json. Así cualquiera puede ver que la clave es suya sin preguntar a VeilCore, y cada página que muestra sus firmas dice que su sitio la publica. Para retirar la clave, quítela del archivo.',
+    'Ponga este archivo en su sitio web en /.well-known/veilcore-lab.json, escriba su dominio abajo y pulse «Consultar ahora». Su clave nombra el sitio y el sitio publica su clave, así cualquiera puede ver que van juntos sin preguntar a VeilCore, y las páginas que muestran sus firmas lo dicen. Para retirar la clave, quítela del archivo.',
   'app.lab.key.domain.saveFile': 'Guardar veilcore-lab.json',
   'app.lab.key.domain.orTxt': 'O, si solo puede cambiar su DNS, añada este registro TXT en _veilcore-lab.<su dominio>:',
   'app.lab.key.domain.field': 'Dominio de su sitio web',

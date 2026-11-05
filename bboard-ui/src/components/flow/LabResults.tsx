@@ -439,7 +439,14 @@ const SignerLine: React.FC<{ signer: ReportSigner }> = ({ signer }) => {
   return (
     <Alert severity={label.checked ? 'success' : 'info'} variant="outlined" icon={<VerifiedIcon />}>
       {rich(t('app.lab.results.signed'), { b }, { lead: label.lead, key: short(a.attester.publicKey) })}
-      {label.checked ? <NameCheckText label={label} /> : t('app.lab.results.anyName')}
+      {label.checked ? (
+        <NameCheckText label={label} />
+      ) : (
+        <>
+          <NameCheckText label={label} />
+          {t('app.lab.results.anyName')}
+        </>
+      )}
     </Alert>
   );
 };

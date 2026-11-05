@@ -18,7 +18,7 @@ export const lab = {
   'app.signer.keyNamed': 'une clé nommée « {name} » (nom non vérifié)',
   'app.signer.keyUnnamed': 'une clé que personne n’a nommée',
   'app.signer.domainBefore': 'Le site ',
-  'app.signer.domainAfter': ' publie cette clé comme la sienne (consulté le {date}).',
+  'app.signer.domainAfter': ' publie cette clé, et la clé désigne ce site (consulté le {date}).',
   'app.lab.saved.lab': 'enregistré · correspond au rapport signé du laboratoire',
   'app.lab.saved.self': 'enregistré · aucune signature de laboratoire ne correspond',
   'app.lab.saved.replacedNewer': 'remplacé par le laboratoire — enregistrez le rapport corrigé',
@@ -267,7 +267,7 @@ export const lab = {
   'app.lab.key.publicKey': 'Clé publique',
   'app.lab.key.domain.title': 'Votre clé sur votre propre site',
   'app.lab.key.domain.why':
-    'Placez ce fichier sur votre site à /.well-known/veilcore-lab.json. Chacun peut alors voir que la clé est la vôtre sans demander à VeilCore, et chaque page qui affiche vos signatures indique que votre site la publie. Pour retirer la clé, enlevez-la du fichier.',
+    'Placez ce fichier sur votre site à /.well-known/veilcore-lab.json, saisissez votre domaine ci-dessous et appuyez sur « Vérifier maintenant ». Votre clé désigne le site et le site publie votre clé : chacun peut voir qu’ils vont ensemble sans demander à VeilCore, et les pages qui affichent vos signatures le disent. Pour retirer la clé, enlevez-la du fichier.',
   'app.lab.key.domain.saveFile': 'Enregistrer veilcore-lab.json',
   'app.lab.key.domain.orTxt':
     'Ou, si vous ne pouvez modifier que votre DNS, ajoutez cet enregistrement TXT à _veilcore-lab.<votre domaine> :',

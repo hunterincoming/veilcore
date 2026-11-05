@@ -76,7 +76,7 @@ export const AttesterSetup: React.FC<{
   const look = async (p: AttesterProfile) => {
     setLooked(null);
     setBusy(true);
-    const out = await lookAtLabDomain(p.keypair.publicKey, domain.trim());
+    const out = await lookAtLabDomain(p, domain);
     setBusy(false);
     if ('error' in out)
       setLooked({ severity: 'warning', text: t('app.lab.key.domain.couldNot', { error: out.error }) });

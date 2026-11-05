@@ -19,7 +19,7 @@ export const lab = {
   'app.signer.keyNamed': 'a key named “{name}” (name not checked)',
   'app.signer.keyUnnamed': 'a key nobody has named',
   'app.signer.domainBefore': 'The website ',
-  'app.signer.domainAfter': ' lists this key as its own (looked up on {date}).',
+  'app.signer.domainAfter': ' lists this key, and the key names that website (looked up on {date}).',
   // saved-report.ts
   'app.lab.saved.lab': 'saved · matches the lab’s signed report',
   'app.lab.saved.self': 'saved · no lab signature matches it',
@@ -257,7 +257,7 @@ export const lab = {
   'app.lab.key.publicKey': 'Public key',
   'app.lab.key.domain.title': 'Your key on your own website',
   'app.lab.key.domain.why':
-    'Put this file on your website at /.well-known/veilcore-lab.json. Then anyone can see the key is yours without asking VeilCore, and every page that shows your signatures says your website lists it. To retire the key, take it out of the file.',
+    'Put this file on your website at /.well-known/veilcore-lab.json, then type your domain below and press Look now. Your key names the website and the website lists your key, so anyone can see they go together without asking VeilCore, and pages that show your signatures say so. To retire the key, take it out of the file.',
   'app.lab.key.domain.saveFile': 'Save veilcore-lab.json',
   'app.lab.key.domain.orTxt':
     'Or, if you can only change your DNS, add this TXT record at _veilcore-lab.<your domain>:',

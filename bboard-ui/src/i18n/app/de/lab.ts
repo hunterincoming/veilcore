@@ -18,7 +18,7 @@ export const lab = {
   'app.signer.keyNamed': 'einem Schlüssel namens „{name}“ (Name nicht geprüft)',
   'app.signer.keyUnnamed': 'einem Schlüssel, den niemand benannt hat',
   'app.signer.domainBefore': 'Die Website ',
-  'app.signer.domainAfter': ' führt diesen Schlüssel als ihren eigenen (abgerufen am {date}).',
+  'app.signer.domainAfter': ' führt diesen Schlüssel, und der Schlüssel nennt diese Website (abgerufen am {date}).',
   'app.lab.saved.lab': 'gespeichert · passt zum signierten Bericht des Labors',
   'app.lab.saved.self': 'gespeichert · keine Laborsignatur passt dazu',
   'app.lab.saved.replacedNewer': 'vom Labor ersetzt – speichern Sie den korrigierten',
@@ -265,7 +265,7 @@ export const lab = {
   'app.lab.key.publicKey': 'Öffentlicher Schlüssel',
   'app.lab.key.domain.title': 'Ihr Schlüssel auf Ihrer eigenen Website',
   'app.lab.key.domain.why':
-    'Legen Sie diese Datei auf Ihrer Website unter /.well-known/veilcore-lab.json ab. Dann kann jeder sehen, dass der Schlüssel Ihnen gehört, ohne VeilCore zu fragen, und jede Seite mit Ihren Signaturen sagt, dass Ihre Website ihn führt. Um den Schlüssel stillzulegen, entfernen Sie ihn aus der Datei.',
+    'Legen Sie diese Datei auf Ihrer Website unter /.well-known/veilcore-lab.json ab, geben Sie unten Ihre Domain ein und drücken Sie „Jetzt nachsehen“. Ihr Schlüssel nennt die Website und die Website führt Ihren Schlüssel, sodass jeder ohne VeilCore sehen kann, dass beide zusammengehören, und Seiten mit Ihren Signaturen sagen das. Um den Schlüssel stillzulegen, entfernen Sie ihn aus der Datei.',
   'app.lab.key.domain.saveFile': 'veilcore-lab.json speichern',
   'app.lab.key.domain.orTxt':
     'Oder, wenn Sie nur Ihr DNS ändern können, fügen Sie diesen TXT-Eintrag unter _veilcore-lab.<Ihre Domain> hinzu:',

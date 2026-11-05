@@ -156,7 +156,7 @@ describe('a lab key published on the lab’s own domain (docs/lab-domain-keys.md
     const s = signerLabel(withDomain(null), 'Receipt signed by', NOW);
     expect(s.checked).toBe(false);
     expect(s.text).toBe(
-      `${NOT_CHECKED}. The website acmelabs.example lists this key as its own (looked up on 2026-10-14).`,
+      `${NOT_CHECKED}. The website acmelabs.example lists this key, and the key names that website (looked up on 2026-10-14).`,
     );
     expect(s.published?.href).toBe('https://acmelabs.example/.well-known/veilcore-lab.json');
     expect(`${s.lead}.${s.rest}`).toBe(s.text);
@@ -164,7 +164,9 @@ describe('a lab key published on the lab’s own domain (docs/lab-domain-keys.md
 
   it('a checked name and a domain: both, the operator’s match first', () => {
     const s = signerLabel(withDomain(check()), 'Receipt signed by', NOW);
-    expect(s.text).toBe(`${CHECKED} The website acmelabs.example lists this key as its own (looked up on 2026-10-14).`);
+    expect(s.text).toBe(
+      `${CHECKED} The website acmelabs.example lists this key, and the key names that website (looked up on 2026-10-14).`,
+    );
   });
 
   it('nothing from a stale look, a bad domain, an unsigned signature or a withdrawn one', () => {
