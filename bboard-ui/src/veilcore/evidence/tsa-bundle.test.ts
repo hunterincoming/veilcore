@@ -9,7 +9,6 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { strFromU8 } from 'fflate';
-import type { InclusionProof } from 'veilcore-records';
 import { buildEvidence, bundleFiles, readmeText, reconcile } from './bundle';
 import { practiceBatch, practiceRecord } from './test-records';
 
