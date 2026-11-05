@@ -57,9 +57,11 @@ a domain that lists nothing.
   next look; a domain not found for 30 days is forgotten.
 - The fetch only goes to public addresses (global IPv4 and IPv6 unicast, checked when
   connecting, so a name can't be switched to a private one in between), with no redirects,
-  one 5-second deadline for the whole look and 16 KiB at most.
+  5 seconds for the file (body included), 5 for the DNS record, and 16 KiB at most.
 - `GET /attesters/<public key>` and every attestation carry `domainCheck`, only while the
-  last look found the key and is under 7 days old.
+  last look found the key and is under 7 days old. It includes `claim` (`issuedAt` and the
+  key's signature over the payload above), so anyone can check that the key named the
+  domain, not only the registry.
 
 ## What pages say
 
