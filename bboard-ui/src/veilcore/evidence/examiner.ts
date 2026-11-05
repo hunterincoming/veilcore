@@ -426,7 +426,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   });
 
   const shows: string[] = [
-    `Once the Midnight transaction${ots ? ' (or the Bitcoin stamp)' : ''} is looked up and holds this batch root: this record existed, unchanged, by that date. Whoever had it sealed held this record by then.`,
+    `Once the Midnight transaction${ots ? ' (or the Bitcoin stamp)' : ''}${ev.batch?.rfc3161?.available ? ' (or the RFC 3161 token in proof/root.tst, by the time it states)' : ''} is looked up and holds this batch root: this record existed, unchanged, by that date. Whoever had it sealed held this record by then.`,
     'The sealed fields above are exactly what the proof code was made from: any change to them, even one character, gives a different proof code.',
   ];
   if (ev.key) shows.push('The record named this key when it was sealed, so the key can’t have been swapped since.');

@@ -100,6 +100,8 @@ export type BatchFacts = {
     readonly signer?: string;
     readonly tsa?: string;
     readonly qualified?: { readonly scheme: string; readonly trustedList?: string };
+    /** The token was asked for well after sealing (registry: over two hours), so its time is later. */
+    readonly requestedAfterSeal?: boolean;
     readonly file?: string;
   };
 };
@@ -191,6 +193,7 @@ export const reconcile = async (
           ...(v.genTime ? { genTime: v.genTime } : {}),
           ...(v.signerSubject ? { signer: v.signerSubject } : {}),
           ...(isString(tsaFacts.tsa) ? { tsa: tsaFacts.tsa } : {}),
+          ...(tsaFacts.requestedAfterSeal === true ? { requestedAfterSeal: true } : {}),
           ...(q
             ? {
                 qualified: {
@@ -1156,6 +1159,13 @@ export const readmeText = (
   } else {
     L.push("2. Date it: the record isn't in a batch yet. Download a new bundle once it is.");
   }
+  if (ev.batch?.earlierAnchors && ev.batch.earlierAnchors.length) {
+    for (const a of ev.batch.earlierAnchors) {
+      L.push(
+        `   Earlier, the same root was recorded on ${networkWords(a.network)} in transaction ${String(a.txHash)}. A later one took its place; both are listed in proof/anchors.json.`,
+      );
+    }
+  }
   if (bitcoin) {
     const reported =
       bitcoin.status === 'bitcoin'
@@ -1173,20 +1183,23 @@ export const readmeText = (
     L.push(`${bitcoin ? '4' : '3'}. A Time Stamping Authority (another separate date):`);
     tsaSteps(tsa).forEach((step, i) => L.push(`   ${String.fromCharCode(97 + i)}. ${step}`));
   }
-  if (ev.batch?.earlierAnchors && ev.batch.earlierAnchors.length) {
-    for (const a of ev.batch.earlierAnchors) {
-      L.push(
-        `   Earlier, the same root was recorded on ${networkWords(a.network)} in transaction ${String(a.txHash)}. A later one took its place; both are listed in proof/anchors.json.`,
-      );
-    }
-  }
   L.push('');
   L.push('WHAT EACH FILE IS');
   for (const f of fileList(ev, !!bitcoin)) L.push(`- ${f.path}: ${f.what}`);
   L.push('');
-  L.push(`WHAT THIS PROVES, once step 2${bitcoin ? ' or step 3' : ''} checks out`);
+  const tsaStep = tsa ? (bitcoin ? '4' : '3') : null;
+  const otherSteps = [bitcoin ? '3' : null, tsaStep].filter(Boolean);
   L.push(
-    `- This record existed, unchanged, by the date of that transaction${bitcoin ? ' (or Bitcoin block)' : ''}. Whoever had it sealed held this record by that date.`,
+    `WHAT THIS PROVES, once step 2${otherSteps.length ? ` or step ${otherSteps.join(' or step ')}` : ''} checks out`,
+  );
+  L.push(
+    `- This record existed, unchanged, by the date of that transaction${[
+      bitcoin ? 'Bitcoin block' : null,
+      tsa ? 'the time the token states' : null,
+    ]
+      .filter(Boolean)
+      .map((x) => ` (or ${x})`)
+      .join('')}. Whoever had it sealed held this record by that date.`,
   );
   if (ev.key) L.push("- The record named this key when it was sealed, so the key can't have been swapped since.");
   for (const s of sigs) L.push(`- ${s.text}`);

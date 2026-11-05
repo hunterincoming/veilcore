@@ -65,10 +65,20 @@ beforeAll(() => {
 });
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
 
-const scenario = async (token: string | null) => {
+const scenario = async (token: string | null, extra: Record<string, unknown> = {}, viaProof = false) => {
   const record = await practiceRecord(0);
   const batch = await practiceBatch([record, await practiceRecord(1)]);
-  const proof = { ...batch.proofs[record.recordFingerprint] };
+  const entry = token
+    ? {
+        kind: 'rfc3161',
+        token,
+        tsa: 'https://tsa.example/',
+        qualified: { scheme: 'eIDAS' },
+        genTime: '1999-01-01T00:00:00Z',
+        ...extra,
+      }
+    : null;
+  const proof = { ...batch.proofs[record.recordFingerprint], ...(viaProof && entry ? { anchors: [entry] } : {}) };
   const g = await reconcile(record.recordFingerprint, {
     source: 'evidence-route',
     proof,
@@ -78,15 +88,7 @@ const scenario = async (token: string | null) => {
       sealedAt: '2026-11-05T12:00:00.000Z',
       anchor: null,
       opentimestamps: { available: false, status: 'none' },
-      rfc3161: token
-        ? {
-            kind: 'rfc3161',
-            token,
-            tsa: 'https://tsa.example/',
-            qualified: { scheme: 'eIDAS' },
-            genTime: '1999-01-01T00:00:00Z',
-          }
-        : { available: false },
+      rfc3161: !viaProof && entry ? entry : { available: false },
     },
   });
   return { record, batch, g };
@@ -105,6 +107,11 @@ describe('RFC 3161 token in the bundle', () => {
     expect(readme).toContain('THE DATES');
     expect(readme).toContain('openssl ts -verify -data root.bin -in root.tst -token_in');
     expect(readme).toContain('qualified under eIDAS');
+    expect(readme).toContain('nothing earlier');
+    expect(readme).toContain('https://tsa.example/');
+    expect(readme).toContain('names its signer as');
+    expect(readme).toMatch(/or step 3 checks out/);
+    expect(readme).toContain('(or the time the token states)');
     const files = await bundleFiles(ev, g, { includeKey: false });
     const tst = Object.entries(files).find(([k]) => k.endsWith('proof/root.tst'));
     expect(tst).toBeTruthy();
@@ -130,6 +137,24 @@ describe('RFC 3161 token in the bundle', () => {
 
   it('a token over another root is left out', async () => {
     const { g } = await scenario(tokenFor('ee'.repeat(32)));
+    expect(g.tst).toBeNull();
+    expect(g.batch?.rfc3161.available).toBe(false);
+  });
+
+  it("from the older public route (the proof's anchors) too, and says when the token came after sealing", async () => {
+    const first = await scenario(null);
+    const { record, g } = await scenario(tokenFor(first.batch.root), { requestedAfterSeal: true }, true);
+    expect(g.batch?.rfc3161.available).toBe(true);
+    expect(g.batch?.rfc3161.requestedAfterSeal).toBe(true);
+    const ev = await buildEvidence(record, g, { includeKey: false, now: new Date('2026-11-05T13:00:00Z') });
+    expect(readmeText(ev, []).replace(/\s+/g, ' ')).toContain('asked for after the batch was sealed');
+  });
+
+  it('a token with a broken signature is left out', async () => {
+    const first = await scenario(null);
+    const bytes = Buffer.from(tokenFor(first.batch.root), 'base64');
+    bytes[bytes.length - 5] ^= 0xff;
+    const { g } = await scenario(bytes.toString('base64'));
     expect(g.tst).toBeNull();
     expect(g.batch?.rfc3161.available).toBe(false);
   });
