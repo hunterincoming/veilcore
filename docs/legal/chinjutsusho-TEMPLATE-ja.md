@@ -8,8 +8,8 @@ case's lawyer before anyone uses it.)
 
 VeilCore's evidence bundle carries a declaration in the US federal form (28 U.S.C. 1746).
 A Japanese court expects a witness statement (陳述書), in Japanese (民事訴訟規則 138条:
-documents in a foreign language need a Japanese translation), and gives weight to a
-document carrying the person's own seal or electronic signature (民事訴訟法 228条4項;
+documents in a foreign language need a Japanese translation), and presumes genuine
+(真正に成立したものと推定) a document carrying the person's own seal or electronic signature (民事訴訟法 228条4項;
 電子署名法 3条). From 1 December 2026 the amended Seed Act (種苗法) presumes seed sold under
 a registered variety's name is that variety, so a defendant who says otherwise needs dated
 evidence of what they had, and when. An outside review of the evidence path (5 November
@@ -46,8 +46,10 @@ everything else in their own words. Attachments are numbered as the party's exhi
 １　私は、〔年月日〕、VeilCore（ベールコア）というソフトウェアを使い、本件〔　〕について
 　記録を作成しました。記録の内容は〔記録に書いた項目。例：名称、親、入手日、写真〕です。
 
-２　VeilCoreでは、記録の内容は私の端末の中に保存され、VeilCoreのサーバーには記録から計算した
-　「指紋」（SHA-256による値）だけが送られます。遺伝情報そのものは送られません。
+２　VeilCoreでは、記録の内容は私の端末の中に保存されます。VeilCoreのサーバーには、記録から
+　計算した「指紋」（SHA-256による値）と、私だけが持つ鍵で施錠した記録の写し（VeilCoreは
+　開くことができません）、記録の番号・種類などの少数の項目が送られます。〔確認ページで公開を
+　選んだ項目があればその項目〕
 
 ３　この記録の指紋は〔64桁の値〕であり、乙第〔　〕号証の記録ファイルから誰でも同じ値を
 　計算し直すことができます。
@@ -60,10 +62,10 @@ everything else in their own words. Attachments are numbered as the party's exhi
 ２　このルートについては、次の三つの方法で日時が付けられています。
 
 　(1) ビットコイン：OpenTimestamps により、ビットコインのブロック〔高さ〕（〔日時・UTC〕）に
-　　記録されています（乙第〔　〕号証）。VeilCoreがなくなっても、公開の道具で確認できます。
+　　記録されています（乙第〔　〕号証）。VeilCoreがなくなっても、公開されているツールで確認できます。
 
-　(2) タイムスタンプ局（RFC 3161）：〔事業者名〕が〔日時〕付けで発行したタイムスタンプトークンが
-　　あります（乙第〔　〕号証）。〔認定タイムスタンプである場合はその旨と確認した日〕
+　(2) タイムスタンプ局（RFC 3161）：〔事業者名〕により〔日時〕付けのタイムスタンプトークンが
+　　発行されています（乙第〔　〕号証）。〔認定タイムスタンプである場合はその旨と確認した日〕
 
 　(3) Midnight：Midnight ネットワークの取引〔取引ハッシュ〕（ブロック〔高さ〕、〔日時・UTC〕）に
 　　記録されています（乙第〔　〕号証）。
@@ -77,9 +79,9 @@ everything else in their own words. Attachments are numbered as the party's exhi
 １　〔検査機関名〕は、〔日付〕、本件〔　〕の試料について〔検査の種類〕を行いました。試料は
 　〔誰が、いつ、どのように採取し封をしたか〕。結果は乙第〔　〕号証のとおりです。
 
-２　〔検査機関が VeilCore 上で署名している場合〕その署名は、同機関の鍵によるもので、
-　〔同機関のウェブサイト〔ドメイン〕がその鍵を掲載していること／VeilCoreの運営者が〔日付〕に
-　名称を照合したこと〕を確認できます。VeilCore は検査機関の作業を保証しません。
+２　〔検査機関が VeilCore 上で署名している場合〕その署名は、〔ドメイン〕のウェブサイトが
+　掲載している鍵によるものであること〔／VeilCoreの運営者が〔日付〕に名称を照合したこと〕を
+　確認できます。VeilCore は検査機関の作業を保証しません。
 
 第６　添付資料
 
@@ -102,6 +104,6 @@ everything else in their own words. Attachments are numbered as the party's exhi
 - A registry operator's statement on how the registry works is
   `operator-certification-TEMPLATE.md` (to be put into Japanese by a translator if used).
 - Sources: 民事訴訟規則 138条; 民事訴訟法 228条4項; 電子署名法 3条; 種苗法 (2026 amendment,
-  MAFF Q&A, `docs/evidence-in-practice.md`).
+  Art. 35-3 as amended, in force 1 December 2026: MAFF bill outline https://www.maff.go.jp/j/law/bill/attach/pdf/221-37.pdf).
 
 **これは見本の文章です。法的助言ではありません。**
