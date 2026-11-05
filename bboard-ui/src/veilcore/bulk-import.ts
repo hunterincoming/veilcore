@@ -1779,6 +1779,34 @@ export const loadStampState = (): StampQueueState => {
   }
 };
 
+const STAMPS_ON_KEY = 'veilcore.bulk-import.stamps-on.v1';
+
+/**
+ * Whether imported records' key stamps go out now, a few a day, or wait until each is needed
+ * (proving you hold a plant, licensing it). Waiting is the default (5 Nov 2026): the records
+ * are dated by their batch either way, and a key stamp only matters for acting on chain, so a
+ * 500-row import no longer means months of stamps (and fees) for plants that may never be
+ * proved. A browser that was already stamping (a queue state saved) carries on as before.
+ */
+export const importStampsOn = (): boolean => {
+  try {
+    const v = localStorage.getItem(STAMPS_ON_KEY);
+    if (v === 'on') return true;
+    if (v === 'off') return false;
+    return localStorage.getItem(STAMPS_KEY) !== null;
+  } catch {
+    return false;
+  }
+};
+
+export const setImportStampsOn = (on: boolean): void => {
+  try {
+    localStorage.setItem(STAMPS_ON_KEY, on ? 'on' : 'off');
+  } catch {
+    /* kept on this screen only */
+  }
+};
+
 export const saveStampState = (s: StampQueueState): void => {
   try {
     localStorage.setItem(STAMPS_KEY, JSON.stringify(s));

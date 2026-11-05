@@ -30,6 +30,7 @@ import { REAL_CHAIN } from '../../veilcore/chain/config';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { outboxRecords } from '../../veilcore/outbox';
 import { importedRecordIds } from '../../veilcore/bulk-import-ledger';
+import { importStampsOn } from '../../veilcore/bulk-import';
 import { useRole, isBreeder, isLab, requestRoleChange } from '../../veilcore/role';
 import { loadAttester } from '../../veilcore/attester-keys';
 import { RecordFinder, matchesQuery, sortRecords, type SortKey } from '../RecordFinder';
@@ -176,7 +177,8 @@ export const AppHome: React.FC = () => {
   // A breeder's plants with a lab report waiting; a lab's received samples at a glance.
   const waiting = useWaitingByRecord(isBreeder(role) && records.some((r) => !r.receivedFrom));
   // Plants a collection import made: their key stamps are queued (/records/import), a few a day.
-  const imported = useMemo(() => new Set(REAL_CHAIN ? importedRecordIds() : []), [records]);
+  // Only while this browser is stamping them; otherwise each waits until it's needed.
+  const imported = useMemo(() => new Set(REAL_CHAIN && importStampsOn() ? importedRecordIds() : []), [records]);
   const labFacts = useLabCardFacts(visible, lab);
   // Where each plant's saved DNA report stands: a lab may have replaced or withdrawn it.
   const savedReports = useSavedReports(visible, !labOnly);
