@@ -69,7 +69,7 @@ afterAll(() => rmSync(dir, { recursive: true, force: true }));
 const scenario = async (token: string | null) => {
   const record = await practiceRecord(0);
   const batch = await practiceBatch([record, await practiceRecord(1)]);
-  const proof = { ...batch.proofs[record.recordFingerprint] } as unknown as InclusionProof;
+  const proof = { ...batch.proofs[record.recordFingerprint] };
   const g = await reconcile(record.recordFingerprint, {
     source: 'evidence-route',
     proof,
@@ -109,7 +109,7 @@ describe('RFC 3161 token in the bundle', () => {
     const files = await bundleFiles(ev, g, { includeKey: false });
     const tst = Object.entries(files).find(([k]) => k.endsWith('proof/root.tst'));
     expect(tst).toBeTruthy();
-    writeFileSync(join(dir, 'b.tst'), tst![1] as Uint8Array);
+    writeFileSync(join(dir, 'b.tst'), tst![1]);
     writeFileSync(join(dir, 'b.bin'), Buffer.from(g.batch!.root, 'hex'));
     const out = ssl(
       'ts',
@@ -126,7 +126,7 @@ describe('RFC 3161 token in the bundle', () => {
     ).toString();
     expect(out).toContain('Verification: OK');
     const anchors = Object.entries(files).find(([k]) => k.endsWith('proof/anchors.json'));
-    expect(JSON.parse(strFromU8(anchors![1] as Uint8Array)).rfc3161.available).toBe(true);
+    expect((JSON.parse(strFromU8(anchors![1])) as { rfc3161: { available: boolean } }).rfc3161.available).toBe(true);
   });
 
   it('a token over another root is left out', async () => {
