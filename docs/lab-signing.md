@@ -63,9 +63,10 @@ a claim can disclose which variety was compared (`proveValue`).
 
 ## What it does not show
 
-- Whose key it is beyond what the lab's registered key and the operator's name check say. A lab
-  publishing its keys on its own website (`/.well-known/veilcore-lab.json`), and a body publishing
-  which lab keys count, are the next steps and need no contract change.
+- Whose key it is beyond what the lab's registered key, the operator's name check and the lab's
+  own website say. A lab can now list its keys on its own website (`/.well-known/veilcore-lab.json`
+  or a DNS record, `docs/lab-domain-keys.md`); a body publishing which lab keys count is the next
+  step and needs no contract change.
 - That the method was sound or the certificate genuine.
 - The lab knows the numbers and the field secret, so it could prove things about them itself.
 

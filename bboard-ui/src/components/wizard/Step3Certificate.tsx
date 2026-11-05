@@ -155,7 +155,7 @@ export const Step3Certificate: React.FC<{
   // `rest` exactly when the name is checked; that tail is drawn by NameCheckText instead.
   const receiptLabel = !record.receivedFrom && receipt?.kind === 'signed' ? signerLabel(receipt.by) : null;
   const deliveryHead =
-    receiptLabel?.checked && deliveryLine.endsWith(receiptLabel.rest)
+    receiptLabel?.rest && deliveryLine.endsWith(receiptLabel.rest)
       ? deliveryLine.slice(0, deliveryLine.length - receiptLabel.rest.length)
       : null;
 

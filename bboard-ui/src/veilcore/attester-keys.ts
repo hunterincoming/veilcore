@@ -108,6 +108,45 @@ const signRegistration = async (p: AttesterProfile, issuedAt: number): Promise<s
   return toHex(new Uint8Array(sig));
 };
 
+/**
+ * The file a lab puts on its own website, at /.well-known/veilcore-lab.json (docs/lab-domain-keys.md),
+ * so anyone can see the key is the lab's without asking VeilCore.
+ */
+export const labFileFor = (p: AttesterProfile): string =>
+  JSON.stringify(
+    { format: 'veilcore-lab/v1', name: p.displayName, keys: [{ publicKey: p.keypair.publicKey }] },
+    null,
+    2,
+  ) + '\n';
+
+/** The same, as a DNS TXT record at _veilcore-lab.<domain>, for a lab that can't add a file. */
+export const labTxtFor = (p: AttesterProfile): string => `veilcore-lab=v1 key=${p.keypair.publicKey}`;
+
+/** Ask the registry to look at the lab's domain now. What it saw, or why it couldn't look. */
+export const lookAtLabDomain = async (
+  publicKey: string,
+  domain: string,
+): Promise<{ listed: boolean; method?: 'file' | 'dns'; why?: string } | { error: string }> => {
+  try {
+    const res = await fetch(`${BASE}/attesters/${publicKey}/domain`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain }),
+    });
+    const body = await readJson(res);
+    if (!isObject(body)) return { error: 'unexpected response from the registry' };
+    if (isString(body.error)) return { error: body.error };
+    if (typeof body.listed !== 'boolean') return { error: 'unexpected response from the registry' };
+    return {
+      listed: body.listed,
+      ...(body.method === 'file' || body.method === 'dns' ? { method: body.method } : {}),
+      ...(isString(body.why) ? { why: body.why } : {}),
+    };
+  } catch {
+    return { error: 'could not reach the registry' };
+  }
+};
+
 export const publishAttester = async (p: AttesterProfile): Promise<{ attesterId?: string; error?: string }> => {
   try {
     const issuedAt = Date.now();

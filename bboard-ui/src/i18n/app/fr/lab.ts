@@ -17,6 +17,8 @@ export const lab = {
   'app.signer.text': '{lead}.{rest}',
   'app.signer.keyNamed': 'une clé nommée « {name} » (nom non vérifié)',
   'app.signer.keyUnnamed': 'une clé que personne n’a nommée',
+  'app.signer.domainBefore': 'Le site ',
+  'app.signer.domainAfter': ' publie cette clé comme la sienne (consulté le {date}).',
   'app.lab.saved.lab': 'enregistré · correspond au rapport signé du laboratoire',
   'app.lab.saved.self': 'enregistré · aucune signature de laboratoire ne correspond',
   'app.lab.saved.replacedNewer': 'remplacé par le laboratoire — enregistrez le rapport corrigé',
@@ -263,6 +265,18 @@ export const lab = {
     ' · pas encore publiée : d’ici là, personne ne peut rattacher vos signatures à ce nom.',
   'app.lab.key.publishAgain': 'Publier de nouveau',
   'app.lab.key.publicKey': 'Clé publique',
+  'app.lab.key.domain.title': 'Votre clé sur votre propre site',
+  'app.lab.key.domain.why':
+    'Placez ce fichier sur votre site à /.well-known/veilcore-lab.json. Chacun peut alors voir que la clé est la vôtre sans demander à VeilCore, et chaque page qui affiche vos signatures indique que votre site la publie. Pour retirer la clé, enlevez-la du fichier.',
+  'app.lab.key.domain.saveFile': 'Enregistrer veilcore-lab.json',
+  'app.lab.key.domain.orTxt':
+    'Ou, si vous ne pouvez modifier que votre DNS, ajoutez cet enregistrement TXT à _veilcore-lab.<votre domaine> :',
+  'app.lab.key.domain.field': 'Domaine de votre site',
+  'app.lab.key.domain.look': 'Vérifier maintenant',
+  'app.lab.key.domain.found': 'Trouvée : {domain} publie cette clé. VeilCore vérifie à nouveau chaque jour.',
+  'app.lab.key.domain.notFound':
+    'Pas encore trouvée ({why}). Vérifiez l’adresse du fichier, puis vérifiez à nouveau dans dix minutes.',
+  'app.lab.key.domain.couldNot': 'Impossible de vérifier : {error}',
   'app.lab.key.privateWarning':
     'Votre clé privée est stockée dans l’espace de stockage de ce navigateur, non chiffrée, et nulle part ailleurs. C’est suffisant pour essayer. Tout ce qui peut s’exécuter sur ce site, ou une extension de navigateur qui y a accès, pourrait la lire. Si vous la perdez, vous ne pourrez plus rien signer de nouveau ; ce que vous avez signé reste valide, alors sauvegardez-la en lieu sûr. Un laboratoire qui l’utiliserait réellement signerait dans ses propres systèmes : voir le <link>guide d’intégration</link>.',
   'app.lab.key.downloadBackup': 'Télécharger la copie de secours de la clé',

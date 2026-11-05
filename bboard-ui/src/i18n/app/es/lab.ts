@@ -17,6 +17,8 @@ export const lab = {
   'app.signer.text': '{lead}.{rest}',
   'app.signer.keyNamed': 'una clave llamada “{name}” (nombre no comprobado)',
   'app.signer.keyUnnamed': 'una clave a la que nadie ha puesto nombre',
+  'app.signer.domainBefore': 'El sitio web ',
+  'app.signer.domainAfter': ' publica esta clave como suya (consultado el {date}).',
   'app.lab.saved.lab': 'guardado · coincide con el informe firmado por el laboratorio',
   'app.lab.saved.self': 'guardado · ninguna firma de laboratorio coincide',
   'app.lab.saved.replacedNewer': 'reemplazado por el laboratorio: guarde el corregido',
@@ -258,6 +260,17 @@ export const lab = {
     ' · todavía no publicada: hasta que lo esté, nadie puede relacionar sus firmas con este nombre.',
   'app.lab.key.publishAgain': 'Publicar de nuevo',
   'app.lab.key.publicKey': 'Clave pública',
+  'app.lab.key.domain.title': 'Su clave en su propio sitio web',
+  'app.lab.key.domain.why':
+    'Ponga este archivo en su sitio web en /.well-known/veilcore-lab.json. Así cualquiera puede ver que la clave es suya sin preguntar a VeilCore, y cada página que muestra sus firmas dice que su sitio la publica. Para retirar la clave, quítela del archivo.',
+  'app.lab.key.domain.saveFile': 'Guardar veilcore-lab.json',
+  'app.lab.key.domain.orTxt': 'O, si solo puede cambiar su DNS, añada este registro TXT en _veilcore-lab.<su dominio>:',
+  'app.lab.key.domain.field': 'Dominio de su sitio web',
+  'app.lab.key.domain.look': 'Consultar ahora',
+  'app.lab.key.domain.found': 'Encontrada: {domain} publica esta clave. VeilCore vuelve a consultar cada día.',
+  'app.lab.key.domain.notFound':
+    'Aún no se encuentra ({why}). Revise la dirección del archivo y vuelva a consultar en diez minutos.',
+  'app.lab.key.domain.couldNot': 'No se pudo consultar: {error}',
   'app.lab.key.privateWarning':
     'Su clave privada se guarda en el almacenamiento de este navegador, sin cifrar, y en ningún otro lugar. Para probar está bien. Cualquier cosa que pueda ejecutarse en este sitio, o una extensión del navegador con acceso a él, podría leerla. Si la pierde, no podrá firmar nada nuevo; lo que firmó antes sigue siendo válido, así que guarde una copia en un lugar seguro. Un laboratorio que la use de verdad firmaría dentro de sus propios sistemas: consulte la <link>guía de integración</link>.',
   'app.lab.key.downloadBackup': 'Descargar la copia de seguridad de la clave',
