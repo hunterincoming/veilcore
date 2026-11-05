@@ -48,9 +48,10 @@ I, [full name], declare:
    fingerprint (a SHA-256 commitment computed in the holder's browser) when the holder's
    app saves it, at or near the time the record is made, together with a copy of the record
    locked with the holder's vault key, which the registry does not hold and cannot open,
-   and a few readable fields (the record's id, kind and fingerprint, and anything the holder
-   chose to show on a check page) [check against the privacy terms in force on the date,
-   `docs/privacy-and-data-terms.md`]. By default, when 25 fingerprints are waiting or an hour has passed (checked
+   and readable fields that let a record be found and checked, among them its id, kind,
+   fingerprint and key binding, when it was saved and changed, and anything the holder chose
+   to show on a check page [list them in full from the privacy terms in force on the date,
+   `docs/privacy-and-data-terms.md`, including any record saved before sealing as typed]. By default, when 25 fingerprints are waiting or an hour has passed (checked
    every few minutes), VeilCore's anchoring service has the registry seal every
    fingerprint received since the last batch into a batch: a Merkle tree whose
    root (the batch root) commits to each fingerprint, and gives each record an inclusion

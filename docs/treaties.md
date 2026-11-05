@@ -8,8 +8,9 @@ treaties, so where VeilCore stands has to be plain. Not legal advice.
 ## The position
 
 - **VeilCore is not a system for tracking genetic sequence data.** It never receives
-  sequences or genotypes in readable form: what reaches its servers is a fingerprint and,
-  for the holder's own backup, a copy encrypted with a key only the holder has. It dates a holder's own record of their own material, by a
+  sequences or genotypes in readable form: what reaches its servers is a fingerprint, the
+  holder's own copy locked with a key only the holder has, and the few readable fields that
+  let a record be found and checked (`docs/privacy-and-data-terms.md`). It dates a holder's own record of their own material, by a
   fingerprint, and the holder shows a record, or one fact from it, only when they choose.
 - **It doesn't decide or report anyone's benefit-sharing.** It records nothing on anyone's
   behalf and sends nothing to any authority.
