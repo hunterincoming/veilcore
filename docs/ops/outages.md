@@ -6,25 +6,25 @@ throughout: tokens go in with `read -s`, never into a chat or a note.
 
 ## What watches what
 
-| Monitor (UptimeRobot) | Address | Alarm when |
-| --- | --- | --- |
-| Site | `https://veilcore.org` | not 200 |
-| Registry up | `https://veilcore-api-production.up.railway.app/health` | not 200 |
-| Registry problems | `…/alerts` (keyword `"ok":true`) | keyword missing |
-| Sponsor problems | `https://veilcore-sponsor-mainnet-production.up.railway.app/sponsor/alerts` (keyword `"ok":true`) | keyword missing |
-| Relay | `https://veilcore-indexer-relay-production.up.railway.app/health` | not 200 |
-| Backups | the healthchecks.io check behind `BACKUP_PING_URL` | a day with no backup |
+| Monitor (UptimeRobot) | Address                                                                                           | Alarm when           |
+| --------------------- | ------------------------------------------------------------------------------------------------- | -------------------- |
+| Site                  | `https://veilcore.org`                                                                            | not 200              |
+| Registry up           | `https://veilcore-api-production.up.railway.app/health`                                           | not 200              |
+| Registry problems     | `…/alerts` (keyword `"ok":true`)                                                                  | keyword missing      |
+| Sponsor problems      | `https://veilcore-sponsor-mainnet-production.up.railway.app/sponsor/alerts` (keyword `"ok":true`) | keyword missing      |
+| Relay                 | `https://veilcore-indexer-relay-production.up.railway.app/health`                                 | not 200              |
+| Backups               | the healthchecks.io check behind `BACKUP_PING_URL`                                                | a day with no backup |
 
 `/alerts` and `/sponsor/alerts` answer short codes; each one is below.
 
 ## What each outage does to people
 
-| Down | What stops | What keeps working |
-| --- | --- | --- |
-| Site | everything in the browser | records already saved; evidence bundles check offline |
-| Registry | saving, check pages, lab deliveries and reports, dating of new records | records in people's browsers and backup files; bundles offline |
-| Sponsor | new records get no date; proving a key, claims, licences, DNA pairing on chain | everything else |
-| Relay | check pages say they can't reach Midnight | everything else |
+| Down     | What stops                                                                     | What keeps working                                             |
+| -------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| Site     | everything in the browser                                                      | records already saved; evidence bundles check offline          |
+| Registry | saving, check pages, lab deliveries and reports, dating of new records         | records in people's browsers and backup files; bundles offline |
+| Sponsor  | new records get no date; proving a key, claims, licences, DNA pairing on chain | everything else                                                |
+| Relay    | check pages say they can't reach Midnight                                      | everything else                                                |
 
 Nothing anyone already holds is lost by any of these. Say so in any message to users.
 
