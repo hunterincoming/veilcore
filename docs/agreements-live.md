@@ -1,7 +1,8 @@
 # Agreements on chain: the build to "live"
 
-Status: live on veilcore.org and on the test network (test.veilcore.org), after a clean test
-run ([agreements-test-run.md](agreements-test-run.md)). Paying in NIGHT on Midnight itself stays
+Status: switched on at veilcore.org and on the test network (test.veilcore.org), after the
+licence steps of the test run ([agreements-test-run.md](agreements-test-run.md)) went through on
+the test network with a phone. Paying in NIGHT on Midnight itself stays
 on test networks (`ONCHAIN_PAYMENTS`). Owner: hunter@veilcore.org. This page says
 what the website does with VeilCore's contract once agreements are live, who does what, and
 what VeilCore never does. The switch is in one reviewed place, below.
@@ -207,7 +208,7 @@ The order, because each step checks the one before:
 2. The mainnet sponsor, deployed from the switch commit. `deploy:mainnet` refuses until its
    `/sponsor/status` says `"agreements": true`, so a site can't offer licenses the sponsor would
    refuse to pay for.
-   On the mainnet sponsor, also set `LIMIT_PER_NETWORK_HOUR=10` (the default, 3, is too few
+   On the mainnet sponsor, also set `LIMIT_PER_NETWORK_HOUR=15` (the default, 3, is too few
    when a breeder and a grower make a license on the same Wi-Fi: issue, countersign and a
    royalty obligation are already four transactions from one network).
 3. The site: `npm run deploy:mainnet` with `VEILCORE_MAINNET_SPONSOR` and
