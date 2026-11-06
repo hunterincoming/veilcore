@@ -35,6 +35,7 @@ import { AgreementTypeChip } from './AgreementTypeChip';
 import {
   applyPreset,
   currencyForLocale,
+  isCannabisRecord,
   lawForLocale,
   PRESETS_FOR,
   ruleOf,
@@ -51,13 +52,6 @@ import {
   TermsSummaryLine,
 } from './RoyaltyTermsForm';
 import type { AppKey } from '../../i18n/app/en';
-
-/**
- * Cannabis records (design v3, 1 and 10): the territory is required, and the licensor's own
- * payment link isn't offered. A plant sealed before profiles existed was sealed as cannabis.
- */
-export const isCannabisRecord = (r: { profile?: string; taxon?: string } | undefined): boolean =>
-  Boolean(r && (!r.profile || /cannabis|hemp|marijuana/i.test(r.taxon ?? '')));
 
 /** The browser's own locale (navigator.language), for a first guess at currency and law. */
 const browserLocale = (): string | undefined => {

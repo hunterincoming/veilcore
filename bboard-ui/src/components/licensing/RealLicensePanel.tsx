@@ -31,8 +31,7 @@ import {
 import { useDeal, type DealParty } from '../../veilcore/deal-client';
 import { RoyaltyLedger } from './RoyaltyLedger';
 import { getRecord } from '../../veilcore/records';
-import { hasOffspringRoyalty } from '../../veilcore/royalty-terms';
-import { isCannabisRecord } from './TermsBuilder';
+import { hasOffspringRoyalty, isCannabisRecord } from '../../veilcore/royalty-terms';
 import { OffspringRoyalty } from './OffspringRoyalty';
 import { HandOnIssuer } from './HandOnIssuer';
 import {

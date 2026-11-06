@@ -21,8 +21,8 @@ holds or moves anyone's money.
 
 | Who | What they do | What they see of others |
 |---|---|---|
-| Breeder (licensor) | Licenses a record, gets royalty statements, confirms payment, approves transfers | Only what the licensee sends them |
-| Grower (licensee) | Accepts a license on their own device, files statements, proves the license to buyers | Only their own deal |
+| Breeder (licensor) | Licenses a record, answers royalty reports, confirms payment, approves transfers | Only what the licensee sends them |
+| Grower (licensee) | Accepts a license on their own device, sends royalty reports and pays, proves the license to buyers | Only their own deal |
 | Buyer, dispensary, regulator | Checks a license is live, checks a plant's line is clean | That a live license exists; nothing about terms or people |
 | Payment partner | Pays a statement through its own rails and signs a receipt | The statement the payer hands it |
 | Anyone | Re-checks all of it from the chain | Commitments, never terms or genetics |
@@ -40,17 +40,53 @@ holds or moves anyone's money.
    code become key-exchange keys (X25519). The code covers them, so the two people who
    read it to each other are the only ones who share the resulting key. The registry
    stores the deal's messages encrypted under it and can't read or forge them.
-4. **Royalty statements (done).** The licensee files a statement for a period (what was sold,
-   what is owed under the terms). The breeder accepts or disputes it. Every statement and
-   answer is encrypted for the two of them, and its fingerprint is dated on Midnight in
-   the registry's hourly batch, so neither side can rewrite the history later.
-   A statement can carry the sales report behind it (a Metrc export, a POS report): the file
-   stays on the licensee's device, its SHA-256 goes inside the signed statement, and the
-   licensor's page checks the file it is sent is that exact report (`veilcore/evidence.ts`).
-   Reading sales straight from Metrc is the next step and is a business one: VeilCore applies
-   to Metrc as a validated integrator, then each licensee grants it a read-only API key.
-5. **Payment through a partner (done).** VeilCore never touches money. The payer hands a
-   statement to a payment partner (a wallet or payment company, registered with VeilCore and
+4. **Royalties (v2: built, not deployed yet: not on the test site or veilcore.org).** Phone-first, the
+   same screens on both sides; only who can press what differs. VeilCore never holds, routes or
+   starts a payment.
+   - *Terms.* The form opens on presets (clone, seed, breeding, semen or embryo, custom). A
+     preset fills explicit values before the agreement is sealed and is never stored, so the
+     signed terms never depend on what a preset means later (`veilcore/royalty-terms.ts`).
+     The common case is three taps: a preset, the amount, a look at the governing law (filled
+     in from the browser). The terms say the currency; the royalty as a percent of gross or
+     net sales (net of returns, excise or freight, capped) or a fixed amount per named unit
+     with a one-line definition; an optional royalty on offspring and how long it runs; an
+     optional yearly minimum; how often reports come (default quarterly), report due N days
+     after a period ends (30), payment due N days after that (14); bank fees; the exchange
+     rate source; records kept N years and checked with N days' notice (over 5% underpaid:
+     the licensee pays the check); governing law and where disputes go. Both sides see the
+     deal in one paragraph with every value. Old terms keep their fingerprint and are read
+     through fallback readers that add nothing (old flat fees read as dollars, as their form
+     said). On cannabis records the territory is required and no payment link is offered.
+   - *Each period.* The home card shows the next due date, overdue days, the balance accepted
+     and not paid, the minimum so far, and one button. Due dates come only from the period
+     dates in the terms, as calendar dates in the user's own day (`veilcore/royalty-periods.ts`;
+     periods run from the start date; a start on the 31st falls back to a shorter month's last
+     day). The licensee writes a report with one question per line, or taps "Nothing sold",
+     and can attach the sales report (its SHA-256 goes in the signed report; the file stays
+     on the device, `veilcore/evidence.ts`). Each line is rounded in the currency's own digits
+     (JPY none, USD two), then added; the year's last report adds the top-up to the minimum.
+     The licensor answers once: Accept, or Ask to fix with a reason; the licensee then sends a
+     corrected report that replaces it. "I paid" opens only after Accept (no deemed acceptance:
+     signed times are the sender's clock). The pay screen shows the amount, the licensor's
+     details with copy buttons, a reference made from the report's signature with the
+     licensor's initials, and who pays fees; tax withheld can be declared under "More", and
+     the amount paid is the amount owed less that. If the payout details changed, "I paid"
+     stays locked until the licensee ticks that they confirmed the new ones another way. The
+     licensor confirms receipt of exactly the amount paid. Either side can send a signed,
+     dated reminder; the licensor can send a notice of breach. Reminders say only what the
+     dates and messages show. A timeline, a printable statement (an invoice when the
+     licensor added invoice details), a CSV and a calendar file are on both sides.
+   - *Messages and the checker.* Reports keep the top-level basis, quantity, currency and
+     amount owed, with `lines` that add up to it; one first answer, one "paid", one
+     "received" per report, as `veilcore-records` checkDealRecord reads them. New message
+     types (`invoice-details`, `notice`) are filed as unread by the published checker. Payout
+     and invoice-details messages never go into a lender pack. Payment details are encrypted
+     on VeilCore's servers, which can't read them; copies a user downloads include them.
+   - *Next.* Real reminders by email or push; prefilling reports from the grower's own
+     records; audits as a step; partial payments and changing answers after payment (needs a
+     `veilcore-records` release); co-breeder splits.
+5. **Payment through a partner (receipts still read; the request button is hidden in v2).**
+   VeilCore never touches money. The payer hands a statement to a payment partner (a wallet or payment company, registered with VeilCore and
    its name checked).
    The partner pays through its own licensed rails, then signs a receipt over the
    statement's fingerprint with its registered key. Both sides see "paid, confirmed by
