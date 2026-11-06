@@ -193,7 +193,7 @@ export const strain = {
     'Wird später ein Stamm mit {name} als Elternteil erfasst und bestätigen beide Inhaber dies, erscheint die Verbindung zu dieser Vereinbarung in seinem Datensatz. Abgeleitete Stämme, die niemand erfasst, werden nicht erkannt.',
   'app.strain.v.app.lic.detail.derivatives.one': '{count} bereits erfasster Stamm stammt davon ab.',
   'app.strain.v.app.lic.detail.derivatives.other': '{count} bereits erfasste Stämme stammen davon ab.',
-  'app.strain.v.app.lic.off.title': 'Lizenzgebühr auf abgeleitete Stämme: {pct} %',
+  'app.strain.v.app.lic.off.title': 'Lizenzgebühr auf abgeleitete Stämme: {pct}',
   'app.strain.v.app.lic.off.intro':
     'Auf Midnight liegt sie auf dem eigenen Datensatz des Lizenznehmers zu diesem Stamm, sodass jeder abgeleitete Stamm, den beide Inhaber bestätigen, sie zeigt, wenn jemand die Linie prüft. Der Lizenznehmer nimmt sie an; nur der Lizenzgeber kann sie aufheben.',
   'app.strain.v.app.lic.off.dateFirst':

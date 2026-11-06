@@ -398,7 +398,7 @@ export const licensing = {
     'Midnightで確認済み: 取引 {tx}（ブロック {block}）で{amount} {code}があなたのアドレスに届きました。相手やVeilCoreからではなく、Midnightのインデクサーから読み取っています。',
   'app.lic.pay.checked':
     'Midnightで確認済み: 取引 {tx}で{amount} {code}があなたのアドレスに届きました。相手やVeilCoreからではなく、Midnightのインデクサーから読み取っています。',
-  'app.lic.off.title': '子孫へのロイヤリティ: {pct}%',
+  'app.lic.off.title': '子孫へのロイヤリティ: {pct}',
   'app.lic.off.intro':
     'Midnight上では、この植物についてのライセンシー自身の記録に付きます。そのため、双方の保有者が確認した子孫はすべて、誰かが系譜を確認するときにこれを表示します。ライセンシーが受け入れ、解除できるのは育成者だけです。',
   'app.lic.off.dateFirst': 'まずこの遺伝資源の植物を日付記録し、それからここで指定してください。',
@@ -506,7 +506,12 @@ export const licensing = {
   'app.lic.real.issued':
     'Midnight上で発行しました。{who}が条件を読み、同意して有効化するのを待っています。やり方は相手のリンクに表示されます。このページはチェーンを自分で読み、相手が済ませると自動で進みます。',
   'app.lic.real.copyAgain': '相手のリンクをもう一度コピー',
-  'app.lic.real.resend': '相手に表示されませんか？もう一度送る',
+  'app.lic.real.resend': '発行のお知らせをもう一度投稿',
+  'app.lic.real.resendFailed': '発行のお知らせを投稿できませんでした：{error}',
+  'app.lic.code.making': 'コードを作成しています。数秒かかります。',
+  'app.lic.inv.notThisDevice':
+    'この端末またはブラウザには、このリンクを受け入れたコピーがありません。以前ここで受け入れた場合は、バックアップを復元してからリンクをもう一度開いてください。',
+  'app.lic.inv.restore': 'バックアップを復元',
   'app.lic.real.cancel': 'キャンセルする',
   'app.lic.real.cancelQ':
     'このライセンスをキャンセルしますか？相手は有効化できなくなります。これはMidnightに記録され、元に戻せません。',
@@ -695,21 +700,21 @@ export const licensing = {
   'app.lic.handon.steps.n.wait': '現在の保有者が引き継ぎ、ライセンサーが承認する',
   'app.lic.next.period': '{from}〜{to}',
   'app.lic.next.i.payout': '受け取り方法を相手に伝えてください。',
-  'app.lic.next.i.check': '{period}の相手の明細を確認し、承認するか異議を出してください。',
+  'app.lic.next.i.check': '{period}の相手の報告を確認し、承認するか修正を依頼してください。',
   'app.lic.next.i.confirm':
     '相手は{period}分として{amount} {currency}を支払ったと言っています。届いたか確認してから、確認済みにしてください。',
   'app.lic.next.i.waitPay': '相手が{amount} {currency}を支払うのを待っています。',
-  'app.lic.next.i.disputed': '{period}に異議を出しました。訂正された明細を待っています。',
-  'app.lic.next.i.nothing': 'することはありません。相手が期間ごとに明細を提出します。',
+  'app.lic.next.i.disputed': '{period}の修正を依頼しました。修正した報告を待っています。',
+  'app.lic.next.i.nothing': '今はすることはありません。相手が期間ごとに報告を送ります。',
   'app.lic.next.l.payOnChain':
     '{amount} {currency}をウォレットからMidnight上で支払ってください。下の「…で支払う」をタップします。',
   'app.lic.next.l.pay': '{amount} {currency}を{method}で{account}に支払い、「支払いました」をタップしてください。',
-  'app.lic.next.l.waitPayout': '相手が明細を承認しました。相手が受け取り方法を伝えるのを待っています。',
-  'app.lic.next.l.disputed': '相手が{period}に異議を出しました。訂正した明細を提出してください。',
-  'app.lic.next.l.disputedNote': '相手が{period}に異議を出しました:「{note}」。訂正した明細を提出してください。',
-  'app.lic.next.l.waitCheck': '相手が{period}のあなたの明細を確認するのを待っています。',
+  'app.lic.next.l.waitPayout': '報告が承認されました。相手が受け取り方法を伝えるのを待っています。',
+  'app.lic.next.l.disputed': '{period}の修正を依頼されました。修正した報告を送ってください。',
+  'app.lic.next.l.disputedNote': '{period}の修正を依頼されました：「{note}」。修正した報告を送ってください。',
+  'app.lic.next.l.waitCheck': '相手が{period}の報告を確認するのを待っています。',
   'app.lic.next.l.waitConfirm': '相手が支払いの受け取りを確認するのを待っています。',
-  'app.lic.next.l.file': '期間が終わったら明細を提出してください。',
+  'app.lic.next.l.file': '期間が終わったら報告を送ってください。',
   'app.lic.lend.title': '貸し手として請求を記録する',
   'app.lic.lend.intro':
     '育成者の記録やライセンスを担保に融資しますか？その記録があなたへの担保になっていることをMidnightに記録すれば、黙って二重に担保に入れることはできません。保有者は自分の端末で受け入れ、解除できるのはあなただけです。法的な登記ではありません。書類はいつもどおり別に届け出てください。',

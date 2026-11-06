@@ -30,6 +30,8 @@ import {
   useAgreementsWaitForBackup,
 } from '../../veilcore/licenses';
 import { canonicalUrl } from '../../config/network';
+import { currencyDigits, formatMoney } from '../../veilcore/money';
+import { currencyOf } from '../../veilcore/royalty-terms';
 import { getRecord, allRecords } from '../../veilcore/records';
 import { offspringOf } from '../stage/self-chain';
 import { shortFingerprint } from '../../veilcore/commitment';
@@ -46,7 +48,9 @@ import { chainNotReady } from '../../veilcore/chain/config';
 import { RealLicensePanel } from './RealLicensePanel';
 import { ConfirmInline } from './DealSteps';
 
-const money = (n: number, tr: Translator) => `$${n.toLocaleString(tr.locale, { maximumFractionDigits: 2 })}`;
+/** A practice amount in the terms' currency (old terms: US dollars, as their form said). */
+const money = (n: number, tr: Translator, currency: string) =>
+  formatMoney((Number.isFinite(n) ? n : 0).toFixed(currencyDigits(currency)), currency, tr.locale);
 
 const TermsSummary: React.FC<{ l: License; tr: Translator }> = ({ l, tr }) => (
   <Stack spacing={1}>
@@ -323,7 +327,8 @@ export const LicenseDetail: React.FC = () => {
         {/* royalty ledger — license agreements only; its per-sale/unit mechanics don't apply to
             lab transfers or breeder shares (a breeder share's offspring-royalty fee shows in the
             terms summary above, not as a sales ledger). */}
-        {type === 'license' && (state === 'active' || license.royaltyLog.length > 0) && (
+        {/* Practice only: a real license keeps its royalties on the deal's channel (RoyaltyLedger). */}
+        {type === 'license' && !real && !license.onChain && (state === 'active' || license.royaltyLog.length > 0) && (
           <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
             <Typography variant="overline" sx={{ display: 'block', mb: 0.5 }}>
               {tr.t('app.lic.detail.royalties')}
@@ -362,12 +367,15 @@ export const LicenseDetail: React.FC = () => {
                         {tr.date(e.at)}
                         {e.note ? ` · ${e.note}` : ''}
                       </Typography>
-                      <Row k={tr.t('app.lic.detail.dealValue')} v={money(dv, tr)} />
-                      <Row k={tr.t('app.lic.detail.yourRoyalty')} v={money(e.amountOwed, tr)} />
+                      <Row k={tr.t('app.lic.detail.dealValue')} v={money(dv, tr, currencyOf(license.terms))} />
+                      <Row
+                        k={tr.t('app.lic.detail.yourRoyalty')}
+                        v={money(e.amountOwed, tr, currencyOf(license.terms))}
+                      />
                       {SHOW_VEILCORE_FEE && (
                         <Row
                           k={tr.t('app.lic.detail.feeShort', { pct: VEILCORE_FEE_PCT })}
-                          v={money(veilcoreFee(dv), tr)}
+                          v={money(veilcoreFee(dv), tr, currencyOf(license.terms))}
                         />
                       )}
                     </Box>
@@ -376,20 +384,20 @@ export const LicenseDetail: React.FC = () => {
                 <Divider />
                 <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
                   <Typography variant="subtitle2">{tr.t('app.lic.detail.totalDeal')}</Typography>
-                  <Typography variant="subtitle2">{money(totalDeal, tr)}</Typography>
+                  <Typography variant="subtitle2">{money(totalDeal, tr, currencyOf(license.terms))}</Typography>
                 </Stack>
                 <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
                   <Typography variant="body2" color="text.secondary">
                     {tr.t('app.lic.detail.totalRoyalty')}
                   </Typography>
-                  <Typography variant="body2">{money(totalOwed, tr)}</Typography>
+                  <Typography variant="body2">{money(totalOwed, tr, currencyOf(license.terms))}</Typography>
                 </Stack>
                 {SHOW_VEILCORE_FEE && (
                   <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
                     <Typography variant="body2" color="text.secondary">
                       {tr.t('app.lic.detail.feeShort', { pct: VEILCORE_FEE_PCT })}
                     </Typography>
-                    <Typography variant="body2">{money(totalFee, tr)}</Typography>
+                    <Typography variant="body2">{money(totalFee, tr, currencyOf(license.terms))}</Typography>
                   </Stack>
                 )}
                 {SHOW_VEILCORE_FEE && (

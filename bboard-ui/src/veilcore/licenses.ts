@@ -24,6 +24,18 @@ import { beneficiaryId, onVaultChange, useVaultNeedsBackup, vaultKeyIfAny, vault
 import { BACKUP_FIRST_REASON } from './api-store';
 import { enT, forKind, type RecordKind, type Translator } from '../i18n/translate';
 import type { AppKey } from '../i18n/app/en';
+import {
+  currencyOf,
+  hasOffspringRoyalty,
+  isNewTerms,
+  offspringOf,
+  ruleOf,
+  ruleText,
+  scheduleOf,
+  periodLabel,
+  type RoyaltyTermsFields,
+} from './royalty-terms';
+import { formatMoney } from './money';
 
 export type LicenseState = 'draft' | 'sent' | 'active' | 'expired' | 'revoked';
 
@@ -69,7 +81,7 @@ const ALL_BASES: readonly string[] = [...new Set(Object.values(BASES_FOR).flat()
 export const subjectOf = (t: Pick<LicenseTerms, 'subject'> | undefined): RecordKind => t?.subject ?? 'plant';
 export type LabPurpose = 'tissue-culture' | 'propagation' | 'dna-testing' | 'storage';
 
-export type LicenseTerms = {
+export type LicenseTerms = RoyaltyTermsFields & {
   /**
    * What the record is about, sealed with the terms so the licensee's page (which doesn't hold
    * the record) words them the same way. Absent means a plant: every agreement made before
@@ -720,11 +732,11 @@ export const agreementType = (l: License): AgreementType => l.type ?? 'license';
  * agreement is called.
  */
 export const createsHeritableObligation = (type: AgreementType, terms?: LicenseTerms): boolean =>
-  (Number(terms?.offspringRoyaltyPct) || 0) > 0;
+  hasOffspringRoyalty(terms);
 
 export const hasVeilcoreFee = (type: AgreementType, terms?: LicenseTerms): boolean => {
   if (type === 'license') return true;
-  if (type === 'breeder-share') return (Number(terms?.offspringRoyaltyPct) || 0) > 0;
+  if (type === 'breeder-share') return hasOffspringRoyalty(terms);
   return false;
 };
 
@@ -768,11 +780,61 @@ export const counterpartyLabel = (type: AgreementType, tr: Translator = enT): st
         : 'app.lic.who.licensee',
   );
 
+/** The royalty on offspring in words: old terms as they always read, new ones with their rule and term. */
+const offspringWords = (t: LicenseTerms, tr: Translator): string => {
+  const o = offspringOf(t);
+  if (!o) return tr.t('app.lic.none');
+  if (!t.offspring) return tr.t('app.lic.row.offspringValue', { pct: String(t.offspringRoyaltyPct) });
+  const rule = ruleText(o.rule, currencyOf(t), tr);
+  return o.years
+    ? tr.t('app.roy.row.for', { rule, n: tr.tp('app.roy.years', o.years) })
+    : o.generations
+      ? tr.t('app.roy.row.for', { rule, n: tr.tp('app.roy.generations', o.generations) })
+      : rule;
+};
+
+/** The money terms only new agreements carry: none of these rows shows on an old one. */
+const royaltyRows = (t: LicenseTerms, tr: Translator): { k: string; v: string }[] => {
+  const rows: { k: string; v: string }[] = [];
+  const r = ruleOf(t);
+  if (r?.kind === 'per-unit' && r.unitDefinition) rows.push({ k: tr.t('app.roy.row.counts'), v: r.unitDefinition });
+  if (t.currency) rows.push({ k: tr.t('app.roy.row.currency'), v: t.currency });
+  if (t.yearlyMinimum)
+    rows.push({ k: tr.t('app.roy.row.minimum'), v: formatMoney(t.yearlyMinimum, currencyOf(t), tr.locale) });
+  const s = scheduleOf(t);
+  if (s)
+    rows.push(
+      {
+        k: tr.t('app.roy.row.reporting'),
+        v: tr.t('app.roy.row.reportingValue', {
+          every: periodLabel(s.every, tr),
+          n: tr.tp('app.roy.days', s.reportDueDays),
+        }),
+      },
+      {
+        k: tr.t('app.roy.row.payment'),
+        v: tr.t('app.roy.row.paymentValue', { n: tr.tp('app.roy.days', s.paymentDueDays) }),
+      },
+    );
+  if (t.bankFees) rows.push({ k: tr.t('app.roy.row.fees'), v: tr.t(`app.roy.fees.${t.bankFees}` as AppKey) });
+  if (t.fxSource) rows.push({ k: tr.t('app.roy.row.fx'), v: t.fxSource });
+  if (t.recordsYears)
+    rows.push({
+      k: tr.t('app.roy.row.records'),
+      v: tr.t('app.roy.row.recordsValue', {
+        years: tr.tp('app.roy.years', t.recordsYears),
+        days: tr.tp('app.roy.days', t.checkNoticeDays ?? 0),
+      }),
+    });
+  if (t.governingLaw) rows.push({ k: tr.t('app.roy.row.law'), v: t.governingLaw });
+  if (t.disputes) rows.push({ k: tr.t('app.roy.row.disputes'), v: t.disputes });
+  if (t.licensor) rows.push({ k: tr.t('app.roy.row.licensor'), v: t.licensor });
+  return rows;
+};
+
 /** A royalty's basis in words ('per unit sold'); anything else as it was saved. */
 export const basisLabel = (b: string | undefined, tr: Translator = enT): string =>
   b !== undefined && ALL_BASES.includes(b) ? tr.t(`app.lic.basis.${b}` as AppKey) : (b ?? '');
-
-const money = (n: number, tr: Translator): string => `$${n.toLocaleString(tr.locale, { maximumFractionDigits: 2 })}`;
 
 /**
  * The plain-language term rows for an agreement, computed once and reused by the
@@ -796,23 +858,19 @@ export const agreementRows = (l: License, reader: Translator = enT): { k: string
       { k: tr.t('app.lic.row.term'), v: term },
       {
         k: tr.t('app.lic.row.royalty'),
-        v:
-          t.royaltyType === 'percent'
+        v: isNewTerms(t)
+          ? ruleText(ruleOf(t)!, currencyOf(t), tr)
+          : t.royaltyType === 'percent'
             ? `${t.royaltyAmount || '—'}% ${basisLabel(t.unitBasis, tr)}`
-            : `${money(Number(t.royaltyAmount) || 0, tr)} ${basisLabel(t.unitBasis, tr)}`,
+            : `${formatMoney(t.royaltyAmount || '0', currencyOf(t), tr.locale)} ${basisLabel(t.unitBasis, tr)}`,
       },
       ...(SHOW_VEILCORE_FEE ? [fee] : []),
       // Shown explicitly because it is the one term that binds beyond the signatories:
       // it carries to descendants declared from the record, so a counter-signer has to see it.
-      {
-        k: tr.t('app.lic.row.offspring'),
-        v:
-          (Number(t.offspringRoyaltyPct) || 0) > 0
-            ? tr.t('app.lic.row.offspringValue', { pct: String(t.offspringRoyaltyPct) })
-            : tr.t('app.lic.none'),
-      },
+      { k: tr.t('app.lic.row.offspring'), v: offspringWords(t, tr) },
       { k: tr.t('app.lic.row.exclusivity'), v: tr.t(t.exclusive ? 'app.lic.exclusive' : 'app.lic.nonExclusive') },
       { k: tr.t('app.lic.row.sublicensing'), v: tr.t(t.sublicensable ? 'app.lic.allowed' : 'app.lic.notAllowed') },
+      ...royaltyRows(t, tr),
     );
   } else if (type === 'lab-transfer') {
     rows.push(
@@ -829,19 +887,20 @@ export const agreementRows = (l: License, reader: Translator = enT): { k: string
       { k: tr.t('app.lic.row.term'), v: term },
     );
   } else {
-    const offspringRoyalty = Number(t.offspringRoyaltyPct) || 0;
+    const offspring = offspringOf(t);
     rows.push(
       { k: tr.t('app.lic.row.mayBreed'), v: yesNo(t.mayBreed) },
       { k: tr.t('app.lic.row.mayDistribute'), v: yesNo(t.mayDistribute) },
       { k: tr.t('app.lic.row.attribution'), v: yesNo(t.attributionRequired) },
       {
         k: tr.t('app.lic.row.offspring'),
-        v: offspringRoyalty > 0 ? `${t.offspringRoyaltyPct}%` : tr.t('app.lic.none'),
+        v: !offspring ? tr.t('app.lic.none') : t.offspring ? offspringWords(t, tr) : `${t.offspringRoyaltyPct}%`,
       },
     );
     // An offspring royalty makes it a commercial deal — the fee applies, same as a license.
-    if (offspringRoyalty > 0 && SHOW_VEILCORE_FEE) rows.push(fee);
+    if (offspring && SHOW_VEILCORE_FEE) rows.push(fee);
     rows.push({ k: tr.t('app.lic.row.term'), v: term });
+    if (offspring) rows.push(...royaltyRows(t, tr));
   }
 
   if (t.extraTerms) rows.push({ k: tr.t('app.lic.row.extra'), v: t.extraTerms });

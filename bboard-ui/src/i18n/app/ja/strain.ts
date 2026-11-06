@@ -187,7 +187,7 @@ export const strain = {
   'app.strain.v.app.lic.detail.lineage':
     'のちに{name}を親として株が記録され、双方の保有者が確認すると、その記録にこの契約へのつながりが表示されます。誰も記録しない派生株は検出されません。',
   'app.strain.v.app.lic.detail.derivatives.other': '記録済みの{count}株がこの株から派生しています。',
-  'app.strain.v.app.lic.off.title': '派生株へのロイヤリティ: {pct}%',
+  'app.strain.v.app.lic.off.title': '派生株へのロイヤリティ: {pct}',
   'app.strain.v.app.lic.off.intro':
     'Midnight上では、この株についてのライセンシー自身の記録に付きます。そのため、双方の保有者が確認した派生株はすべて、誰かが系譜を確認するときにこれを表示します。ライセンシーが受け入れ、解除できるのはライセンサーだけです。',
   'app.strain.v.app.lic.off.dateFirst':

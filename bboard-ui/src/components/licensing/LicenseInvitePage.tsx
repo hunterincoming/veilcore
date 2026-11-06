@@ -15,7 +15,8 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useParams, Link as RouterLink } from 'react-router-dom';
-import { subjectOf } from '../../veilcore/licenses';
+import { subjectOf, type LicenseTerms } from '../../veilcore/licenses';
+import { hasOffspringRoyalty } from '../../veilcore/royalty-terms';
 import {
   Alert,
   Box,
@@ -332,7 +333,29 @@ export const LicenseInvitePage: React.FC = () => {
         </Alert>
       )}
 
-      {takenByOther && (
+      {takenByOther && !held && (
+        // Accepted, but not by a copy this browser holds: most often the same person on another
+        // phone, or this browser before its storage was cleared. Their backup brings it back.
+        <Alert
+          severity="warning"
+          variant="outlined"
+          data-not-this-device=""
+          action={
+            <Button
+              component={RouterLink}
+              to="/restore"
+              onClick={() => backupReturnTo(window.location.pathname + window.location.hash)}
+              color="inherit"
+              variant="outlined"
+            >
+              {tr.t('app.lic.inv.restore')}
+            </Button>
+          }
+        >
+          {tr.t('app.lic.inv.notThisDevice')}
+        </Alert>
+      )}
+      {takenByOther && held && (
         <Alert severity="error" variant="outlined">
           {tr.t('app.lic.inv.taken')}
         </Alert>
@@ -390,6 +413,10 @@ export const LicenseInvitePage: React.FC = () => {
                     {tr.t('app.lic.inv.whenMatches')}
                   </Typography>
                 </>
+              ) : held.issuerNonce ? (
+                <Typography variant="body2" color="text.secondary" role="status" data-code-making="">
+                  {tr.t('app.lic.code.making')}
+                </Typography>
               ) : (
                 <Typography variant="body2" color="text.secondary">
                   {tr.t('app.lic.inv.waitLicensor')}
@@ -467,6 +494,10 @@ export const LicenseInvitePage: React.FC = () => {
                     {tr.t('app.lic.inv.theirsToo')}
                   </Typography>
                 </>
+              ) : held.issuerNonce ? (
+                <Typography variant="body2" color="text.secondary" role="status" data-code-making="">
+                  {tr.t('app.lic.code.making')}
+                </Typography>
               ) : (
                 <Typography variant="body2" color="text.secondary">
                   {tr.t('app.lic.inv.waitTheirs')}
@@ -532,11 +563,13 @@ export const LicenseInvitePage: React.FC = () => {
 
       {held && isLive && !gone && party && held.agreement && (
         <Box sx={{ mt: 2 }}>
-          {held.agreement.type === 'license' && (
+          {(held.agreement.type === 'license' ||
+            (held.agreement.type === 'breeder-share' && hasOffspringRoyalty(held.agreement.terms))) && (
             <RoyaltyLedger
               party={party}
               side="licensee"
-              terms={held.agreement.terms}
+              terms={held.agreement.terms as unknown as LicenseTerms}
+              agreementType={held.agreement.type}
               entries={deal.entries}
               refresh={deal.refresh}
               agreed={{
@@ -550,14 +583,14 @@ export const LicenseInvitePage: React.FC = () => {
             <HandOnHolder held={held} party={party} entries={deal.entries} refresh={deal.refresh} />
           </Box>
 
-          {(Number(held.agreement.terms.offspringRoyaltyPct) || 0) > 0 && (
+          {hasOffspringRoyalty(held.agreement.terms) && (
             <Box sx={{ mt: 2 }}>
               <OffspringRoyalty
                 side="licensee"
                 party={party}
                 entries={deal.entries}
                 refresh={deal.refresh}
-                pct={String(held.agreement.terms.offspringRoyaltyPct)}
+                terms={held.agreement.terms as unknown as LicenseTerms}
                 obligation={held.agreement.agreementFingerprint}
                 beneficiary={held.identity}
                 kind={subjectOf(held.agreement.terms)}

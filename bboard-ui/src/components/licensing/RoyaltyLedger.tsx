@@ -1,26 +1,49 @@
 // Royalties on a live license, between the two of them (docs/agreements-live.md, 4 and 5).
 //
-// The licensee files a statement for a period; the licensor accepts or disputes it; the
-// licensee says how it was paid; the licensor confirms it arrived. The licensor says once how
-// they want to be paid. Every step is a message on the deal's private channel (deal.ts):
-// encrypted for the two of them, signed by whoever took it, and dated by the registry's
-// hourly anchor on Midnight. VeilCore never holds or moves the money.
+// Each period: the licensee sends a royalty report; the licensor answers once, Accept or Ask to
+// fix; once accepted the licensee pays where the licensor said, and taps "I paid"; the licensor
+// confirms what arrived. Either side can send a signed reminder; the licensor can send a notice of
+// breach. Every step is a message on the deal's private channel (deal.ts): encrypted for the two
+// of them, signed by whoever took it, dated by the registry's hourly anchor on Midnight. VeilCore
+// never holds, routes or starts a payment. The same screen on both sides; only who can press what
+// differs. The rules live in veilcore/royalty-ledger.ts (pure, tested).
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Box, Button, Chip, Collapse, Divider, Paper, Stack, TextField, Typography } from '@mui/material';
-import { downloadDealRecord, say, type DealEntry, type DealParty } from '../../veilcore/deal-client';
-import { publicOf, type DealSide } from '../../veilcore/deal';
-import { isDecimal, owedUnder, sameAmount } from '../../veilcore/money';
 import {
-  REGISTRY_BASE,
-  downloadPaymentRequest,
-  paymentRequest,
-  receiptsFor,
-  type CheckedReceipt,
-} from '../../veilcore/payments';
+  Alert,
+  Box,
+  Button,
+  Checkbox,
+  Chip,
+  Collapse,
+  Divider,
+  FormControlLabel,
+  IconButton,
+  Link,
+  Paper,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
+import { downloadDealRecord, say, type DealEntry, type DealParty } from '../../veilcore/deal-client';
+import { publicOf, type DealSide, type StatementLine } from '../../veilcore/deal';
+import {
+  currencyDigits,
+  formatMoney,
+  isDecimal,
+  normaliseDecimal,
+  owedUnder,
+  sameAmount,
+  sumAmounts,
+  subtractAmount,
+  toMinor,
+} from '../../veilcore/money';
+import { receiptsFor, type CheckedReceipt } from '../../veilcore/payments';
 import { DealCredentials } from './DealCredentials';
-import { basisLabel } from '../../veilcore/licenses';
+import { subjectOf, type LicenseTerms } from '../../veilcore/licenses';
 import type { AgreedTerms } from '../../veilcore/credentials';
 import { evidenceOf, isEvidence, isTheReport, sizeText, type Evidence } from '../../veilcore/evidence';
 import { NextUp } from './DealSteps';
@@ -29,67 +52,61 @@ import { MidnightPayoutForm, OnChainPaymentCheck, PayOnMidnight } from './OnChai
 import { methodWords, reusedPayments, tokenOfMethod } from '../../veilcore/onchain-pay';
 import { ONCHAIN_PAYMENTS } from '../../config/copy';
 import { rich, useT } from '../../i18n/app';
-import type { Translator } from '../../i18n/translate';
+import { forKind, type Translator } from '../../i18n/translate';
+import type { AppKey } from '../../i18n/app/en';
+import {
+  balanceOwed,
+  ledgerCsv,
+  ledgerOf as ledgerOfEntries,
+  liveReports,
+  minimumProgress,
+  paymentReference,
+  payoutLock,
+  periodRows,
+  reportLines,
+  stateOf,
+  statementHtml,
+  toPayOf,
+  upcomingPeriods,
+  type Ledger,
+  type NoticeEntry,
+  type PeriodRow,
+  type Report,
+  type ReportInput,
+} from '../../veilcore/royalty-ledger';
+import { calendarFile, endsContractYear, periodsOf, type RoyaltyPeriod } from '../../veilcore/royalty-periods';
+import { currencyOf, localDay, offspringOf, ruleOf, scheduleOf, unitLabel } from '../../veilcore/royalty-terms';
 
-type Terms = { royaltyType?: string; royaltyAmount?: string; unitBasis?: string };
+type Terms = LicenseTerms;
 
-type Statement = Extract<DealEntry, { type: 'statement' }>;
-type Line = {
-  statement: Statement;
-  reply?: Extract<DealEntry, { type: 'reply' }>;
-  paid?: Extract<DealEntry, { type: 'paid' }>;
-  received?: Extract<DealEntry, { type: 'received' }>;
-};
+/** What a statement owes under old terms, to the cent ('0.00' when the quantity isn't a number yet). */
+export const amountOwed = (terms: { royaltyType?: string; royaltyAmount?: string }, quantity: string): string =>
+  owedUnder(terms, quantity) ?? '0.00';
 
-const today = () => new Date().toISOString().slice(0, 10);
-
-/** What a statement owes under the terms, to the cent ('0.00' when the quantity isn't a number yet). */
-export const amountOwed = (terms: Terms, quantity: string): string => owedUnder(terms, quantity) ?? '0.00';
-
-/**
- * The ledger as the signed messages make it (they come sorted by their signed time). Each
- * reply, payment and confirmation names its statement by the statement's own signature, so
- * it can only ever count for that one statement. On each statement, each side's latest word
- * counts. The payout account is the issuer's latest by its signed time; an earlier one is
- * kept so a change shows.
- */
+/** The ledger, with its reports also as `lines` (newest first), as the older pages and tests read it. */
 export const ledgerOf = (entries: readonly DealEntry[]) => {
-  const payouts = entries.filter((e) => e.type === 'payout' && e.from === 'issuer') as Extract<
-    DealEntry,
-    { type: 'payout' }
-  >[];
-  const payout = payouts[payouts.length - 1];
-  const lines = new Map<string, Line>();
-  for (const e of entries) {
-    if (e.type === 'statement' && e.from === 'licensee') lines.set(e.signature, { statement: e });
-  }
-  for (const e of entries) {
-    if (!('statementSig' in e)) continue;
-    const l = lines.get(e.statementSig);
-    if (!l) continue;
-    if (e.type === 'reply' && e.from === 'issuer') l.reply = e;
-    if (e.type === 'paid' && e.from === 'licensee') l.paid = e;
-    if (e.type === 'received' && e.from === 'issuer') l.received = e;
-  }
-  const agreed = entries.find((e) => e.type === 'agree' && e.from === 'licensee') as
-    | Extract<DealEntry, { type: 'agree' }>
-    | undefined;
-  return { payout, previousPayout: payouts[payouts.length - 2], lines: [...lines.values()].reverse(), agreed };
+  const l = ledgerOfEntries(entries);
+  return { ...l, lines: l.reports };
 };
 
-const statusOf = (
-  l: Line,
-  tr: Translator,
-): { label: string; color: 'default' | 'warning' | 'success' | 'error' | 'info' } =>
-  l.received
-    ? { label: tr.t('app.lic.ledger.s.confirmed'), color: 'success' }
-    : l.paid
-      ? { label: tr.t('app.lic.ledger.s.paid'), color: 'info' }
-      : l.reply?.decision === 'disputed'
-        ? { label: tr.t('app.lic.ledger.s.disputed'), color: 'error' }
-        : l.reply?.decision === 'accepted'
-          ? { label: tr.t('app.lic.ledger.s.accepted'), color: 'warning' }
-          : { label: tr.t('app.lic.ledger.s.filed'), color: 'default' };
+/** A file the user saves: a blob in a link they tap. */
+const saveFile = (name: string, text: string, type: string) => {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+const periodText = (from: string, to: string, tr: Translator): string => {
+  const f = (d: string) => tr.date(`${d}T12:00:00`, { day: 'numeric', month: 'short', year: 'numeric' });
+  return `${f(from)} – ${f(to)}`;
+};
+const dayText = (d: string, tr: Translator): string =>
+  tr.date(`${d}T12:00:00`, { day: 'numeric', month: 'long', year: 'numeric' });
+
+type Send = (b: Parameters<typeof say>[1]) => Promise<boolean>;
 
 export const RoyaltyLedger: React.FC<{
   party: DealParty;
@@ -99,19 +116,34 @@ export const RoyaltyLedger: React.FC<{
   refresh: () => void;
   /** What this page holds as agreed (its own stored license), for the W3C credentials. */
   agreed?: AgreedTerms;
-}> = ({ party, side, terms, entries, refresh, agreed }) => {
-  const tr = useT();
-  const { payout, previousPayout, lines } = useMemo(() => ledgerOf(entries ?? []), [entries]);
+  /** A breeder share: only the royalty on offspring is reported. */
+  agreementType?: string;
+  /** A cannabis record: the licensor's own payment link isn't offered (design v3, 10). */
+  cannabis?: boolean;
+}> = ({ party, side, terms, entries, refresh, agreed, agreementType, cannabis }) => {
+  const tr = forKind(useT(), subjectOf(terms));
+  const ledger = useMemo(() => ledgerOfEntries(entries ?? []), [entries]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  const [form, setForm] = useState<'statement' | 'payout' | undefined>();
+  const [form, setForm] = useState<
+    { kind: 'report'; period?: RoyaltyPeriod; replaces?: Report } | { kind: 'payout' } | { kind: 'invoice' }
+  >();
   const [more, setMore] = useState(false);
   const [payoutKind, setPayoutKind] = useState<'other' | 'midnight'>('other');
-  // One on-chain transaction counts for one statement only (onchain-pay.ts reusedPayments).
+  const today = localDay();
+  const schedule = scheduleOf(terms);
+  const names = {
+    licensor: terms.licensor || tr.t('app.roy.who.licensor'),
+    licensee: terms.licensee || tr.t('app.roy.who.licensee'),
+  };
+  const rows = useMemo(() => periodRows(terms, ledger, today), [terms, ledger, today]);
+  const mine = useMemo(() => publicOf(party.mySecret), [party.mySecret]);
+  const live = liveReports(ledger);
+  // One on-chain transaction counts for one report only (onchain-pay.ts reusedPayments).
   const reused = useMemo(
     () =>
       reusedPayments(
-        lines.flatMap((l) =>
+        ledger.reports.flatMap((l) =>
           l.paid
             ? [
                 {
@@ -124,23 +156,20 @@ export const RoyaltyLedger: React.FC<{
             : [],
         ),
       ),
-    [lines],
+    [ledger],
   );
-  const next = nextRoyaltyStep(side, lines, payout, tr);
-  const percent = terms.royaltyType === 'percent';
-  const mine = useMemo(() => publicOf(party.mySecret), [party.mySecret]);
-  const keys =
-    side === 'licensee' ? { licensee: mine, issuer: party.theirPublic } : { licensee: party.theirPublic, issuer: mine };
 
-  const send = async (body: Parameters<typeof say>[1]) => {
+  const send: Send = async (body) => {
     setBusy(true);
     setError(undefined);
     try {
       await say(party, body);
       setForm(undefined);
       refresh();
+      return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
+      return false;
     } finally {
       setBusy(false);
     }
@@ -154,127 +183,72 @@ export const RoyaltyLedger: React.FC<{
     );
   }
 
+  const ctx: Ctx = { side, terms, ledger, names, tr, busy, send, today, cannabis: !!cannabis, agreementType };
+
   return (
-    <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }}>
-      <Stack spacing={1.75}>
+    <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }} data-royalties="">
+      <Stack spacing={2}>
         <Box>
           <Typography variant="h6" component="h3">
             {tr.t('app.lic.ledger.title')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {side === 'licensee' ? tr.t('app.lic.ledger.howL') : tr.t('app.lic.ledger.howI')}{' '}
-            {tr.t('app.lic.ledger.private')}
+            {side === 'licensee' ? tr.t('app.roy.howL') : tr.t('app.roy.howI')}
           </Typography>
         </Box>
-        <NextUp text={next.text} yours={next.yours} />
 
-        {/* How the licensor gets paid. */}
-        {payout ? (
-          <Typography variant="body2">
-            <b>{tr.t('app.lic.ledger.paidTo')}</b> {methodWords(payout.method, tr)} · {payout.account} ·{' '}
-            {payout.currency}
-            {previousPayout && previousPayout.account !== payout.account && (
-              <Typography component="span" variant="body2" color="warning.main">
-                {' '}
-                {side === 'licensee'
-                  ? tr.t('app.lic.ledger.changedCheck', { date: tr.date(payout.at), old: previousPayout.account })
-                  : tr.t('app.lic.ledger.changed', { date: tr.date(payout.at), old: previousPayout.account })}
-              </Typography>
-            )}
-            {side === 'issuer' && (
-              <Button size="small" onClick={() => setForm('payout')} sx={{ ml: 1 }}>
-                {tr.t('app.lic.ledger.change')}
-              </Button>
-            )}
-          </Typography>
-        ) : side === 'issuer' ? (
-          <Alert
-            severity="info"
-            variant="outlined"
-            action={<Button onClick={() => setForm('payout')}>{tr.t('app.lic.ledger.setIt')}</Button>}
-          >
-            {tr.t('app.lic.next.i.payout')}
-          </Alert>
+        {schedule ? (
+          <HomeCard
+            ctx={ctx}
+            rows={rows}
+            onReport={(period, replaces) => setForm({ kind: 'report', period, replaces })}
+          />
         ) : (
-          <Typography variant="body2" color="text.secondary">
-            {tr.t('app.lic.ledger.noPayout')}
-          </Typography>
-        )}
-        {form === 'payout' && ONCHAIN_PAYMENTS && (
-          <Stack
-            direction="row"
-            spacing={1}
-            sx={{ flexWrap: 'wrap' }}
-            role="radiogroup"
-            aria-label={tr.t('app.lic.ledger.howPaid')}
-          >
-            <Button
-              size="small"
-              variant={payoutKind === 'other' ? 'contained' : 'outlined'}
-              onClick={() => setPayoutKind('other')}
-            >
-              {tr.t('app.lic.ledger.bank')}
-            </Button>
-            <Button
-              size="small"
-              variant={payoutKind === 'midnight' ? 'contained' : 'outlined'}
-              onClick={() => setPayoutKind('midnight')}
-            >
-              {tr.t('app.lic.ledger.onMidnight')}
-            </Button>
-          </Stack>
-        )}
-        {form === 'payout' && (!ONCHAIN_PAYMENTS || payoutKind === 'other') && (
-          <PayoutForm busy={busy} onSend={(b) => void send(b)} onCancel={() => setForm(undefined)} />
-        )}
-        {form === 'payout' && ONCHAIN_PAYMENTS && payoutKind === 'midnight' && (
-          <MidnightPayoutForm busy={busy} onSend={(b) => void send(b)} onCancel={() => setForm(undefined)} />
+          <LegacyNext ctx={ctx} onFile={() => setForm({ kind: 'report' })} />
         )}
 
-        {side === 'licensee' && form !== 'statement' && (
-          <Button
-            variant={next.file ? 'contained' : 'outlined'}
-            onClick={() => setForm('statement')}
-            sx={{ alignSelf: 'flex-start' }}
-          >
-            {tr.t('app.lic.ledger.file')}
-          </Button>
-        )}
-        {form === 'statement' && (
-          <StatementForm
-            terms={terms}
-            percent={percent}
-            currency={payout?.currency ?? 'USD'}
-            busy={busy}
-            onSend={(b) => void send(b)}
+        {form?.kind === 'report' && (
+          <ReportForm
+            ctx={ctx}
+            period={form.period}
+            replaces={form.replaces}
             onCancel={() => setForm(undefined)}
-            period={suggestedPeriod(lines)}
+            legacyPeriod={schedule ? undefined : suggestedPeriod(live, new Date())}
           />
         )}
 
-        {lines.length === 0 ? (
+        <PayoutBlock
+          ctx={ctx}
+          editing={form?.kind === 'payout' || form?.kind === 'invoice' ? form.kind : undefined}
+          onEdit={(k) => setForm(k ? { kind: k } : undefined)}
+          payoutKind={payoutKind}
+          setPayoutKind={setPayoutKind}
+        />
+
+        {ledger.reports.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
-            {tr.t('app.lic.ledger.none')}
+            {tr.t('app.roy.none')}
           </Typography>
         ) : (
-          <Stack divider={<Divider flexItem />} spacing={1.5}>
-            {lines.map((l) => (
-              <StatementLine
-                key={l.statement.signature}
-                line={l}
-                side={side}
-                percent={percent}
-                payout={payout}
-                keys={keys}
-                terms={terms}
-                busy={busy}
-                onSend={(b) => void send(b)}
-                reusedFor={reused.get(l.statement.signature)}
+          <Stack divider={<Divider flexItem />} spacing={1.75}>
+            {ledger.reports.map((r) => (
+              <ReportCard
+                key={r.statement.signature}
+                ctx={ctx}
+                report={r}
+                period={rows.find((x) => x.report === r)?.period}
+                onCorrect={() =>
+                  setForm({ kind: 'report', period: rows.find((x) => x.report === r)?.period, replaces: r })
+                }
+                reusedFor={reused.get(r.statement.signature)}
               />
             ))}
           </Stack>
         )}
-        {/* What most people never need, one tap away: the signed record, the W3C credentials. */}
+
+        <Timeline ctx={ctx} entries={entries} />
+
+        {/* What most people never need, one tap away: the signed record, the CSV, the W3C credentials. */}
         <Box>
           <Button size="small" color="inherit" onClick={() => setMore(!more)} aria-expanded={more} sx={{ px: 0 }}>
             {more ? tr.t('app.lic.ledger.fewer') : tr.t('app.lic.ledger.more')}
@@ -289,10 +263,30 @@ export const RoyaltyLedger: React.FC<{
               >
                 {tr.t('app.lic.ledger.download')}
               </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() =>
+                  saveFile(
+                    `veilcore-royalties-${party.commitment.slice(0, 8)}.csv`,
+                    ledgerCsv(ledger, terms.licensor),
+                    'text/csv',
+                  )
+                }
+                sx={{ alignSelf: 'flex-start' }}
+                data-csv=""
+              >
+                {tr.t('app.roy.csv')}
+              </Button>
+              <Typography variant="caption" color="text.secondary">
+                {tr.t('app.roy.downloadsInclude')}
+              </Typography>
               <DealCredentials
                 party={party}
                 entries={entries}
-                confirmed={lines.flatMap((l) => (l.received ? [{ statement: l.statement, received: l.received }] : []))}
+                confirmed={ledger.reports.flatMap((l) =>
+                  l.received ? [{ statement: l.statement, received: l.received }] : [],
+                )}
                 busy={busy}
                 onSend={(b) => void send(b)}
                 agreed={agreed}
@@ -305,6 +299,8 @@ export const RoyaltyLedger: React.FC<{
             </Stack>
           </Collapse>
         </Box>
+
+        <HowToRead tr={tr} />
         {error && (
           <Alert severity="error" variant="outlined">
             {error}
@@ -315,262 +311,725 @@ export const RoyaltyLedger: React.FC<{
   );
 };
 
-type Send = (b: Parameters<typeof say>[1]) => void;
+type Ctx = {
+  side: DealSide;
+  terms: Terms;
+  ledger: Ledger;
+  names: { licensor: string; licensee: string };
+  tr: Translator;
+  busy: boolean;
+  send: Send;
+  today: string;
+  cannabis: boolean;
+  agreementType?: string;
+};
 
-const PayoutForm: React.FC<{ busy: boolean; onSend: Send; onCancel: () => void }> = ({ busy, onSend, onCancel }) => {
-  const tr = useT();
-  const [method, setMethod] = useState('');
-  const [account, setAccount] = useState('');
-  const [currency, setCurrency] = useState('USD');
+// ---- the home card: the next date, the balance, one button -------------------------------------
+
+const HomeCard: React.FC<{
+  ctx: Ctx;
+  rows: readonly PeriodRow[];
+  onReport: (p: RoyaltyPeriod, replaces?: Report) => void;
+}> = ({ ctx, rows, onReport }) => {
+  const { side, terms, ledger, names, tr, today, busy, send } = ctx;
+  const currency = currencyOf(terms);
+  const [breach, setBreach] = useState(false);
+  const [reason, setReason] = useState('');
+  const open = rows.filter((r) => r.step !== 'done' && r.step !== 'running');
+  const row = open[0] ?? rows.find((r) => r.step === 'running');
+  const next = row
+    ? undefined
+    : periodsOf(terms.reporting!, terms.startDate, terms.endDate, today).find((p) => p.from > today);
+  const balance = balanceOwed(ledger, currency);
+  const min = minimumProgress(terms, ledger.reports, today);
+  const mineToAct = row && whoActs(row.step) === side;
+  const bigDate = row ? (row.due ?? row.period.to) : next?.from;
+  const reminded = row && lastReminder(ledger, row);
+
+  const remind = () =>
+    row &&
+    void send({
+      type: 'notice',
+      kind: 'reminder',
+      about: aboutOf(row.step),
+      periodFrom: row.period.from,
+      periodTo: row.period.to,
+      ...(row.report ? { statementSig: row.report.statement.signature } : {}),
+      ...(row.due ? { dueOn: row.due } : {}),
+      asOf: today,
+    });
+
   return (
-    <Stack spacing={1.25}>
-      <TextField
-        size="small"
-        label={tr.t('app.lic.ledger.pf.how')}
-        value={method}
-        onChange={(e) => setMethod(e.target.value.slice(0, 80))}
-      />
-      <TextField
-        size="small"
-        label={tr.t('app.lic.ledger.pf.where')}
-        value={account}
-        onChange={(e) => setAccount(e.target.value.slice(0, 200))}
-      />
-      <TextField
-        size="small"
-        label={tr.t('app.lic.ledger.pf.currency')}
-        value={currency}
-        onChange={(e) => setCurrency(e.target.value.toUpperCase().slice(0, 10))}
-      />
-      <Stack direction="row" spacing={1}>
-        <Button
-          variant="contained"
-          disabled={busy || !method.trim() || !account.trim() || !currency.trim()}
-          onClick={() =>
-            onSend({ type: 'payout', method: method.trim(), account: account.trim(), currency: currency.trim() })
-          }
-        >
-          {tr.t('app.lic.ledger.send')}
-        </Button>
-        <Button onClick={onCancel}>{tr.t('app.lic.ledger.cancel')}</Button>
+    <Paper variant="outlined" sx={{ p: 2, bgcolor: 'action.hover' }} data-royalty-home="">
+      <Stack spacing={1.25}>
+        {row ? (
+          <>
+            <Typography variant="body2" color="text.secondary">
+              {tr.t(`app.roy.home.${side === 'licensee' ? 'l' : 'i'}.${row.step}` as AppKey, {
+                period: periodText(row.period.from, row.period.to, tr),
+                n: row.report?.number ?? '',
+                licensor: names.licensor,
+                licensee: names.licensee,
+              })}
+            </Typography>
+            {bigDate && (
+              <Typography variant="h4" component="p" sx={{ fontWeight: 700 }} data-next-date="">
+                {dayText(bigDate, tr)}
+              </Typography>
+            )}
+            {row.overdue > 0 && (
+              <Chip
+                color="error"
+                label={tr.tp('app.roy.overdue', row.overdue)}
+                sx={{ alignSelf: 'flex-start' }}
+                data-overdue=""
+              />
+            )}
+          </>
+        ) : (
+          <>
+            <Typography variant="body2" color="text.secondary">
+              {next ? tr.t('app.roy.home.nextStarts') : tr.t('app.roy.home.allDone')}
+            </Typography>
+            {bigDate && (
+              <Typography variant="h4" component="p" sx={{ fontWeight: 700 }} data-next-date="">
+                {dayText(bigDate, tr)}
+              </Typography>
+            )}
+          </>
+        )}
+        <Stack direction="row" spacing={3} sx={{ flexWrap: 'wrap' }}>
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              {tr.t('app.roy.home.balance')}
+            </Typography>
+            <Typography variant="subtitle1" data-balance="">
+              {formatMoney(balance, currency, tr.locale)}
+            </Typography>
+          </Box>
+          {min && (
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                {tr.t('app.roy.home.minimum')}
+              </Typography>
+              <Typography variant="subtitle1" data-minimum="">
+                {tr.t('app.roy.home.minimumOf', {
+                  owed: formatMoney(min.owed, currency, tr.locale),
+                  minimum: formatMoney(min.minimum, currency, tr.locale),
+                })}
+              </Typography>
+            </Box>
+          )}
+        </Stack>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
+          {row && side === 'licensee' && (row.step === 'report' || row.step === 'running') && (
+            <Button variant={mineToAct ? 'contained' : 'outlined'} size="large" onClick={() => onReport(row.period)}>
+              {tr.t('app.roy.home.write')}
+            </Button>
+          )}
+          {row && side === 'licensee' && row.step === 'fix' && row.report && (
+            <Button variant="contained" size="large" onClick={() => onReport(row.period, row.report)}>
+              {tr.t('app.roy.home.correct')}
+            </Button>
+          )}
+          {row && row.report && mineToAct && row.step !== 'fix' && (
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() =>
+                document.getElementById(`report-${row.report!.number}`)?.scrollIntoView({ behavior: 'smooth' })
+              }
+            >
+              {tr.t(`app.roy.home.go.${row.step}` as AppKey, { n: row.report.number })}
+            </Button>
+          )}
+          {row && !mineToAct && row.step !== 'running' && (
+            <Button variant="outlined" disabled={busy || reminded === today} onClick={remind} data-remind="">
+              {reminded === today ? tr.t('app.roy.remindSent') : tr.t('app.roy.remind')}
+            </Button>
+          )}
+          <Button
+            size="small"
+            color="inherit"
+            onClick={() =>
+              saveFile(
+                'veilcore-royalty-dates.ics',
+                calendarFile(
+                  upcomingPeriods(terms, today),
+                  {
+                    report: (p) => tr.t('app.roy.cal.report', { period: periodText(p.from, p.to, tr) }),
+                    payment: (p) => tr.t('app.roy.cal.payment', { period: periodText(p.from, p.to, tr) }),
+                  },
+                  `royalty-${(terms.startDate || 'x').replace(/-/g, '')}`,
+                ),
+                'text/calendar',
+              )
+            }
+          >
+            {tr.t('app.roy.cal.add')}
+          </Button>
+        </Stack>
+        {side === 'issuer' && row && row.overdue > 0 && (
+          <Box>
+            {!breach ? (
+              <Button size="small" color="error" onClick={() => setBreach(true)}>
+                {tr.t('app.roy.breach.open')}
+              </Button>
+            ) : (
+              <Stack spacing={1}>
+                <Typography variant="body2">{tr.t('app.roy.breach.what')}</Typography>
+                <TextField
+                  size="small"
+                  label={tr.t('app.roy.breach.reason')}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value.slice(0, 1000))}
+                  multiline
+                />
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    color="error"
+                    variant="contained"
+                    disabled={busy || !reason.trim()}
+                    onClick={() =>
+                      void send({
+                        type: 'notice',
+                        kind: 'breach',
+                        about: aboutOf(row.step),
+                        periodFrom: row.period.from,
+                        periodTo: row.period.to,
+                        ...(row.report ? { statementSig: row.report.statement.signature } : {}),
+                        ...(row.due ? { dueOn: row.due } : {}),
+                        asOf: today,
+                        note: reason.trim(),
+                      }).then((ok) => ok && (setBreach(false), setReason('')))
+                    }
+                  >
+                    {tr.t('app.roy.breach.send')}
+                  </Button>
+                  <Button color="inherit" onClick={() => setBreach(false)}>
+                    {tr.t('app.lic.ledger.cancel')}
+                  </Button>
+                </Stack>
+              </Stack>
+            )}
+          </Box>
+        )}
       </Stack>
+    </Paper>
+  );
+};
+
+const whoActs = (step: PeriodRow['step']): DealSide | undefined =>
+  step === 'report' || step === 'fix' || step === 'pay' || step === 'running'
+    ? 'licensee'
+    : step === 'answer' || step === 'confirm'
+      ? 'issuer'
+      : undefined;
+const aboutOf = (step: PeriodRow['step']): 'report' | 'answer' | 'payment' | 'receipt' | 'other' =>
+  step === 'report' || step === 'fix'
+    ? 'report'
+    : step === 'answer'
+      ? 'answer'
+      : step === 'pay'
+        ? 'payment'
+        : step === 'confirm'
+          ? 'receipt'
+          : 'other';
+/** The day this side last sent a reminder for the row's step: one a day is enough. */
+const lastReminder = (ledger: Ledger, row: PeriodRow): string | undefined =>
+  [...ledger.notices]
+    .reverse()
+    .find(
+      (n) =>
+        n.kind === 'reminder' &&
+        n.mine &&
+        n.periodFrom === row.period.from &&
+        n.periodTo === row.period.to &&
+        n.about === aboutOf(row.step),
+    )?.asOf;
+
+/** Old terms (no schedule): the one next thing, as before, and the button to file. */
+const LegacyNext: React.FC<{ ctx: Ctx; onFile: () => void }> = ({ ctx, onFile }) => {
+  const { side, ledger, tr } = ctx;
+  const next = nextRoyaltyStep(side, ledger.reports, ledger.payout, tr);
+  return (
+    <Stack spacing={1}>
+      <NextUp text={next.text} yours={next.yours} />
+      {side === 'licensee' && (
+        <Button variant={next.file ? 'contained' : 'outlined'} onClick={onFile} sx={{ alignSelf: 'flex-start' }}>
+          {tr.t('app.roy.home.write')}
+        </Button>
+      )}
     </Stack>
   );
 };
 
-const StatementForm: React.FC<{
-  terms: Terms;
-  percent: boolean;
-  currency: string;
-  busy: boolean;
-  onSend: Send;
+// ---- the report form (licensee, phone-first) -----------------------------------------------------
+
+const ReportForm: React.FC<{
+  ctx: Ctx;
+  period?: RoyaltyPeriod;
+  replaces?: Report;
   onCancel: () => void;
-  /** The period it most likely covers (steps.ts suggestedPeriod): filled in, and changeable. */
-  period: { from: string; to: string };
-}> = ({ terms, percent, currency, busy, onSend, onCancel, period }) => {
-  const tr = useT();
-  const [from, setFrom] = useState(period.from);
-  const [to, setTo] = useState(period.to);
-  const [quantity, setQuantity] = useState('');
+  /** Old terms: the period is typed, starting from the one most likely. */
+  legacyPeriod?: { from: string; to: string };
+}> = ({ ctx, period, replaces, onCancel, legacyPeriod }) => {
+  const { terms, tr, busy, send, ledger, names, agreementType } = ctx;
+  const currency = currencyOf(terms);
+  const digits = currencyDigits(currency);
+  const share = agreementType === 'breeder-share';
+  const rule = share ? undefined : ruleOf(terms);
+  const off = offspringOf(terms);
+  const old = replaces?.statement;
+  const oldLine = (k: StatementLine['kind']) => old?.lines?.find((l) => l.kind === k);
+  const [from, setFrom] = useState(period?.from ?? old?.periodFrom ?? legacyPeriod?.from ?? '');
+  const [to, setTo] = useState(period?.to ?? old?.periodTo ?? legacyPeriod?.to ?? '');
+  const [quantity, setQuantity] = useState(
+    oldLine('royalty')?.gross ?? oldLine('royalty')?.quantity ?? (rule ? (old?.quantity ?? '') : ''),
+  );
+  const [ded, setDed] = useState<Record<string, string>>({});
+  const [offQty, setOffQty] = useState(oldLine('offspring')?.quantity ?? '');
   const [note, setNote] = useState('');
+  const [tax, setTax] = useState(old?.taxWithheld ?? '');
+  const [taxNote, setTaxNote] = useState(old?.taxNote ?? '');
+  const [moreOpen, setMoreOpen] = useState(false);
   const [evidence, setEvidence] = useState<Evidence>();
   const [evidenceError, setEvidenceError] = useState<string>();
-  // A rate the page can't read as a number (typed as words, say): the amount is typed instead.
-  const rateReadable = owedUnder(terms, '1') !== undefined;
-  const [typed, setTyped] = useState('');
-  const owed = rateReadable ? amountOwed(terms, quantity) : typed.trim();
-  const ok = from && to && from <= to && isDecimal(quantity) && isDecimal(owed);
+  const periodWords = from && to ? periodText(from, to, tr) : '';
+
+  // The minimum is topped up on the last report of a contract year (royalty-ledger.ts minimumProgress).
+  const p =
+    period ??
+    (terms.reporting
+      ? periodsOf(terms.reporting, terms.startDate, terms.endDate, to).find((x) => x.from === from && x.to === to)
+      : undefined);
+  const yearEnd = p && terms.yearlyMinimum ? endsContractYear(terms.startDate, p, terms.endDate) : false;
+  const input: ReportInput = {
+    quantity: rule ? quantity || '0' : '0',
+    ...(rule?.kind === 'percent' && rule.base === 'net' ? { deductions: ded } : {}),
+    offspring: offQty || '0',
+  };
+  const base = reportLines(terms, input, { type: agreementType });
+  const minimum = yearEnd ? minimumProgress(terms, ledger.reports, from, old?.signature) : undefined;
+  const topUp =
+    minimum && base
+      ? subtractAmount(minimum.minimum, sumAmounts([minimum.owed, base.total], digits) ?? '0', digits)
+      : undefined;
+  const result = reportLines(terms, input, { type: agreementType, minimumTopUp: topUp });
+  const taxOk =
+    !tax || (isDecimal(tax) && result && (toMinor(tax, digits) ?? 0n) <= (toMinor(result.total, digits) ?? 0n));
+  const ok = Boolean(from && to && from <= to && result && taxOk);
+
+  const sendReport = (nothing = false) => {
+    const r = nothing
+      ? reportLines(terms, { quantity: '0', offspring: '0' }, { type: agreementType, minimumTopUp: topUp })
+      : result;
+    if (!r) return;
+    const taxN = !nothing && tax ? normaliseDecimal(tax) : undefined;
+    void send({
+      type: 'statement',
+      statementId: crypto.randomUUID(),
+      periodFrom: from,
+      periodTo: to,
+      basis: r.basis,
+      quantity: r.quantity,
+      currency,
+      amountOwed: r.total,
+      lines: r.lines,
+      ...(taxN && toMinor(taxN, digits)! > 0n
+        ? { taxWithheld: taxN, ...(taxNote.trim() ? { taxNote: taxNote.trim() } : {}) }
+        : {}),
+      ...(old ? { replaces: old.signature } : {}),
+      ...(note.trim() ? { note: note.trim() } : {}),
+      ...(!nothing && evidence ? { evidence } : {}),
+    });
+  };
+
+  const question = (kind: 'royalty' | 'offspring', r: NonNullable<ReturnType<typeof ruleOf>>) =>
+    r.kind === 'percent'
+      ? tr.t(kind === 'royalty' ? (r.base === 'net' ? 'app.roy.r.gross' : 'app.roy.r.sales') : 'app.roy.r.offSales', {
+          period: periodWords,
+          currency,
+        })
+      : tr.t(kind === 'royalty' ? 'app.roy.r.units' : 'app.roy.r.offUnits', {
+          unit: unitLabel(r.unit, tr),
+          period: periodWords,
+        });
+
   return (
-    <Stack spacing={1.25}>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
-        <TextField
-          size="small"
-          type="date"
-          label={tr.t('app.lic.ledger.sf.from')}
-          value={from}
-          onChange={(e) => setFrom(e.target.value)}
-          slotProps={{ inputLabel: { shrink: true } }}
-        />
-        <TextField
-          size="small"
-          type="date"
-          label={tr.t('app.lic.ledger.sf.to')}
-          value={to}
-          onChange={(e) => setTo(e.target.value)}
-          slotProps={{ inputLabel: { shrink: true } }}
-        />
-      </Stack>
-      <TextField
-        size="small"
-        label={
-          percent
-            ? tr.t('app.lic.ledger.sf.sales', { currency })
-            : tr.t('app.lic.ledger.sf.units', {
-                basis: basisLabel(terms.unitBasis, tr) || tr.t('app.lic.ledger.unitsWord'),
-              })
-        }
-        value={quantity}
-        onChange={(e) => setQuantity(e.target.value.replace(/[^0-9.]/g, '').slice(0, 16))}
-        inputMode="decimal"
-      />
-      {rateReadable ? (
-        <Typography variant="body2">
-          {rich(
-            percent ? tr.t('app.lic.ledger.sf.owedPct') : tr.t('app.lic.ledger.sf.owedUnit'),
-            { b: (c) => <b>{c}</b> },
-            { rate: terms.royaltyAmount ?? '', owed, currency },
-          )}
-        </Typography>
-      ) : (
-        <TextField
-          size="small"
-          label={tr.t('app.lic.ledger.sf.typed', { currency, rate: terms.royaltyAmount ?? '' })}
-          value={typed}
-          onChange={(e) => setTyped(e.target.value.replace(/[^0-9.]/g, '').slice(0, 18))}
-          inputMode="decimal"
-        />
-      )}
-      <TextField
-        size="small"
-        label={tr.t('app.lic.detail.note')}
-        value={note}
-        onChange={(e) => setNote(e.target.value.slice(0, 500))}
-        multiline
-      />
-      <Box>
-        {evidence ? (
-          <Typography variant="body2">
-            {rich(
-              tr.t('app.lic.ledger.sf.report'),
-              { b: (c) => <b>{c}</b> },
-              {
-                name: evidence.name,
-                size: sizeText(evidence.size),
-                code: <code>{evidence.sha256.slice(0, 12)}…</code>,
-              },
-            )}{' '}
-            <Button size="small" color="inherit" onClick={() => setEvidence(undefined)}>
-              {tr.t('app.lic.ledger.sf.remove')}
-            </Button>
+    <Paper variant="outlined" sx={{ p: 2 }} data-report-form="">
+      <Stack spacing={2}>
+        <Box>
+          <Typography variant="h6" component="h4">
+            {old ? tr.t('app.roy.r.correctTitle', { n: replaces.number }) : tr.t('app.roy.r.title')}
           </Typography>
-        ) : (
-          <Button component="label" size="small" variant="outlined">
-            {tr.t('app.lic.ledger.sf.attach')}
-            <input
-              hidden
-              type="file"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                e.target.value = '';
-                setEvidenceError(undefined);
-                if (f)
-                  evidenceOf(f)
-                    .then(setEvidence)
-                    .catch((x: unknown) => setEvidenceError(x instanceof Error ? x.message : String(x)));
-              }}
+          {legacyPeriod ? null : (
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>
+              {periodWords}
+            </Typography>
+          )}
+          {old && replaces?.reply?.note && (
+            <Alert severity="warning" variant="outlined" sx={{ mt: 1 }}>
+              {tr.t('app.roy.r.askedFix', { who: names.licensor, note: replaces.reply.note })}
+            </Alert>
+          )}
+        </Box>
+        {legacyPeriod && (
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
+            <TextField
+              type="date"
+              label={tr.t('app.lic.ledger.sf.from')}
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
+            <TextField
+              type="date"
+              label={tr.t('app.lic.ledger.sf.to')}
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+          </Stack>
+        )}
+        {!old && (
+          <Button
+            variant="outlined"
+            size="large"
+            disabled={busy || !from || !to}
+            onClick={() => sendReport(true)}
+            data-nothing-sold=""
+          >
+            {tr.t('app.roy.r.nothing')}
           </Button>
         )}
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-          {tr.t('app.lic.ledger.sf.reportHelp')}
-        </Typography>
-        {evidenceError && (
-          <Typography variant="caption" color="error">
-            {evidenceError}
-          </Typography>
+        {rule && (
+          <TextField
+            label={question('royalty', rule)}
+            helperText={rule.kind === 'per-unit' ? rule.unitDefinition : undefined}
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value.replace(/[^0-9.]/g, '').slice(0, 16))}
+            slotProps={{ htmlInput: { inputMode: 'decimal', 'data-quantity': '' } }}
+            fullWidth
+          />
         )}
-      </Box>
-      <Stack direction="row" spacing={1}>
-        <Button
-          variant="contained"
-          disabled={busy || !ok}
-          onClick={() =>
-            onSend({
-              type: 'statement',
-              statementId: crypto.randomUUID(),
-              periodFrom: from,
-              periodTo: to,
-              basis: percent ? 'sales' : 'units',
-              quantity,
-              currency,
-              amountOwed: owed,
-              ...(note.trim() ? { note: note.trim() } : {}),
-              ...(evidence ? { evidence } : {}),
-            })
-          }
-        >
-          {tr.t('app.lic.ledger.sf.fileIt')}
-        </Button>
-        <Button onClick={onCancel}>{tr.t('app.lic.ledger.cancel')}</Button>
+        {rule?.kind === 'percent' && rule.base === 'net' && (
+          <Stack spacing={1.25}>
+            {(rule.deductions ?? []).map((d) => (
+              <TextField
+                key={d}
+                label={tr.t('app.roy.r.deduction', { what: tr.t(`app.roy.ded.${d}` as AppKey), currency })}
+                value={ded[d] ?? ''}
+                onChange={(e) => setDed({ ...ded, [d]: e.target.value.replace(/[^0-9.]/g, '').slice(0, 16) })}
+                slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+                size="small"
+              />
+            ))}
+            {rule.deductionCapPct && (
+              <Typography variant="caption" color="text.secondary">
+                {tr.t('app.roy.r.cap', { cap: rule.deductionCapPct })}
+              </Typography>
+            )}
+          </Stack>
+        )}
+        {off && (
+          <TextField
+            label={question('offspring', off.rule)}
+            value={offQty}
+            onChange={(e) => setOffQty(e.target.value.replace(/[^0-9.]/g, '').slice(0, 16))}
+            slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+            fullWidth
+          />
+        )}
+        {result && (
+          <LinesTable lines={result.lines} total={result.total} currency={currency} tr={tr} terms={terms} live />
+        )}
+        <Box>
+          {evidence ? (
+            <Typography variant="body2">
+              {rich(
+                tr.t('app.lic.ledger.sf.report'),
+                { b: (c) => <b>{c}</b> },
+                {
+                  name: evidence.name,
+                  size: sizeText(evidence.size),
+                  code: <code>{evidence.sha256.slice(0, 12)}…</code>,
+                },
+              )}{' '}
+              <Button size="small" color="inherit" onClick={() => setEvidence(undefined)}>
+                {tr.t('app.lic.ledger.sf.remove')}
+              </Button>
+            </Typography>
+          ) : (
+            <Button component="label" size="small" variant="outlined">
+              {tr.t('app.lic.ledger.sf.attach')}
+              <input
+                hidden
+                type="file"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = '';
+                  setEvidenceError(undefined);
+                  if (f)
+                    evidenceOf(f)
+                      .then(setEvidence)
+                      .catch((x: unknown) => setEvidenceError(x instanceof Error ? x.message : String(x)));
+                }}
+              />
+            </Button>
+          )}
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+            {tr.t('app.roy.r.reportHelp')}
+          </Typography>
+          {evidenceError && (
+            <Typography variant="caption" color="error">
+              {evidenceError}
+            </Typography>
+          )}
+        </Box>
+        <Box>
+          <Button
+            size="small"
+            color="inherit"
+            onClick={() => setMoreOpen(!moreOpen)}
+            aria-expanded={moreOpen}
+            sx={{ px: 0 }}
+          >
+            {moreOpen ? tr.t('app.roy.less') : tr.t('app.roy.moreOptions')}
+          </Button>
+          <Collapse in={moreOpen}>
+            <Stack spacing={1.25} sx={{ pt: 1 }}>
+              <TextField
+                size="small"
+                label={tr.t('app.roy.tax.amount', { currency })}
+                helperText={tr.t('app.roy.tax.help')}
+                value={tax}
+                error={!taxOk}
+                onChange={(e) => setTax(e.target.value.replace(/[^0-9.]/g, '').slice(0, 16))}
+                slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+              />
+              {tax && (
+                <TextField
+                  size="small"
+                  label={tr.t('app.roy.tax.note')}
+                  value={taxNote}
+                  onChange={(e) => setTaxNote(e.target.value.slice(0, 300))}
+                />
+              )}
+              <TextField
+                size="small"
+                label={tr.t('app.roy.r.note', { who: names.licensor })}
+                value={note}
+                onChange={(e) => setNote(e.target.value.slice(0, 500))}
+                multiline
+              />
+            </Stack>
+          </Collapse>
+        </Box>
+        <Typography variant="caption" color="text.secondary" data-privacy-line="">
+          {tr.t('app.roy.r.privacy', { who: names.licensor })}
+        </Typography>
+        <Stack direction="row" spacing={1}>
+          <Button
+            variant="contained"
+            size="large"
+            disabled={busy || !ok}
+            onClick={() => sendReport(false)}
+            data-send-report=""
+          >
+            {old ? tr.t('app.roy.r.sendCorrected') : tr.t('app.roy.r.send')}
+          </Button>
+          <Button onClick={onCancel}>{tr.t('app.lic.ledger.cancel')}</Button>
+        </Stack>
       </Stack>
-    </Stack>
+    </Paper>
   );
 };
 
-const StatementLine: React.FC<{
-  line: Line;
-  side: DealSide;
-  percent: boolean;
-  payout?: Extract<DealEntry, { type: 'payout' }>;
-  keys: { licensee: string; issuer: string };
+/** A report's lines and total, as the terms worked them out (or as the report says). */
+const LinesTable: React.FC<{
+  lines: readonly StatementLine[];
+  total: string;
+  currency: string;
+  tr: Translator;
   terms: Terms;
-  busy: boolean;
-  onSend: Send;
-  /** Another statement this one's on-chain payment was already counted for. */
+  live?: boolean;
+}> = ({ lines, total, currency, tr, terms, live }) => (
+  <Box
+    component="table"
+    sx={{ width: '100%', borderCollapse: 'collapse', '& td': { py: 0.5, verticalAlign: 'top' } }}
+    data-lines=""
+  >
+    <tbody>
+      {lines.map((l, i) => (
+        <tr key={i}>
+          <td>
+            <Typography variant="body2">{lineWords(l, currency, tr, terms)}</Typography>
+          </td>
+          <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+            <Typography variant="body2">{formatMoney(l.amount, currency, tr.locale)}</Typography>
+          </td>
+        </tr>
+      ))}
+      <tr>
+        <td>
+          <Typography variant="subtitle2">{live ? tr.t('app.roy.r.total') : tr.t('app.roy.c.total')}</Typography>
+        </td>
+        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+          <Typography variant="subtitle2" data-total="">
+            {formatMoney(total, currency, tr.locale)}
+          </Typography>
+        </td>
+      </tr>
+    </tbody>
+  </Box>
+);
+
+const lineWords = (l: StatementLine, currency: string, tr: Translator, terms: Terms): string => {
+  if (l.kind === 'minimum') return tr.t('app.roy.line.minimum');
+  const what = tr.t(l.kind === 'royalty' ? 'app.roy.line.royalty' : 'app.roy.line.offspring');
+  if (l.gross !== undefined)
+    return tr.t('app.roy.line.net', {
+      what,
+      gross: formatMoney(l.gross, currency, tr.locale),
+      ded: formatMoney(l.deducted ?? '0', currency, tr.locale),
+      rate: l.rate ?? '',
+    });
+  // Which kind of rate it is comes from the terms the line was worked out under.
+  const rule = l.kind === 'royalty' ? ruleOf(terms) : offspringOf(terms)?.rule;
+  return rule?.kind === 'percent'
+    ? tr.t('app.roy.line.pct', {
+        what,
+        rate: l.rate ?? rule.rate,
+        sales: formatMoney(l.quantity ?? '0', currency, tr.locale),
+      })
+    : tr.t('app.roy.line.units', {
+        what,
+        qty: l.quantity ?? '',
+        rate: formatMoney(l.rate ?? '0', currency, tr.locale),
+      });
+};
+
+// ---- one report: what it says, its answer, paying it, confirming it --------------------------
+
+const ReportCard: React.FC<{
+  ctx: Ctx;
+  report: Report;
+  period?: RoyaltyPeriod;
+  onCorrect: () => void;
   reusedFor?: string;
-}> = ({ line, side, percent, payout, keys, terms, busy, onSend, reusedFor }) => {
-  const tr = useT();
-  const payToken = payout ? tokenOfMethod(payout.method) : undefined;
-  const paidToken = line.paid ? tokenOfMethod(line.paid.method) : undefined;
-  const s = line.statement;
-  const status = statusOf(line, tr);
-  const receipts = useReceipts(line, payout?.account);
+}> = ({ ctx, report: r, period, onCorrect, reusedFor }) => {
+  const { side, terms, ledger, names, tr, busy, send, today } = ctx;
+  const s = r.statement;
+  const st = stateOf(r);
+  const [asking, setAsking] = useState(false);
   const [note, setNote] = useState('');
-  const [disputing, setDisputing] = useState(false);
-  const [ref, setRef] = useState('');
-  const [paidOn, setPaidOn] = useState(today());
+  const receipts = useReceipts(r, ledger.payout?.account);
+  const payToken = ledger.payout ? tokenOfMethod(ledger.payout.method) : undefined;
+  const paidToken = r.paid ? tokenOfMethod(r.paid.method) : undefined;
+  const lines: readonly StatementLine[] = s.lines ?? [{ kind: 'royalty', quantity: s.quantity, amount: s.amountOwed }];
+  // What the terms say these figures come to, worked out here: shown to both sides if it differs.
+  const expected = s.lines
+    ? reportLines(
+        terms,
+        {
+          quantity:
+            s.lines.find((l) => l.kind === 'royalty')?.gross ??
+            s.lines.find((l) => l.kind === 'royalty')?.quantity ??
+            '0',
+          offspring: s.lines.find((l) => l.kind === 'offspring')?.quantity ?? '0',
+          ...(s.lines.find((l) => l.kind === 'royalty')?.deducted !== undefined
+            ? { deductions: { returns: s.lines.find((l) => l.kind === 'royalty')!.deducted } }
+            : {}),
+        },
+        { type: ctx.agreementType, minimumTopUp: s.lines.find((l) => l.kind === 'minimum')?.amount },
+      )?.total
+    : owedUnder(terms, s.quantity, currencyDigits(s.currency));
+  const mismatch = expected !== undefined && !sameAmount(expected, s.amountOwed, currencyDigits(s.currency));
+  const currencyOff = s.currency !== currencyOf(terms) && Boolean(terms.currency);
+  const label =
+    st === 'replaced'
+      ? tr.t('app.roy.st.replaced', {
+          n: ledger.reports.find((x) => x.statement.signature === r.replacedBy!.signature)?.number ?? '',
+        })
+      : tr.t(`app.roy.st.${st}` as AppKey);
+  const color =
+    st === 'received'
+      ? 'success'
+      : st === 'fix'
+        ? 'error'
+        : st === 'to-pay'
+          ? 'warning'
+          : st === 'paid'
+            ? 'info'
+            : 'default';
+  const reminded = r.notices.filter((n) => n.mine && n.kind === 'reminder').pop()?.asOf;
+
   return (
-    <Stack spacing={0.75}>
+    <Stack spacing={1} id={`report-${r.number}`} data-report={r.number} sx={{ opacity: st === 'replaced' ? 0.6 : 1 }}>
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-        <Typography variant="subtitle2">
-          {s.periodFrom} → {s.periodTo}
+        <Typography variant="subtitle1" component="h4">
+          {r.replaces
+            ? tr.t('app.roy.c.titleCorrected', { n: r.number, old: r.replaces.number })
+            : tr.t('app.roy.c.title', { n: r.number })}
         </Typography>
-        <Chip size="small" label={status.label} color={status.color} variant="outlined" />
+        <Chip size="small" label={label} color={color} variant="outlined" />
       </Stack>
-      <Typography variant="body2">
-        {rich(
-          percent ? tr.t('app.lic.ledger.l.sales') : tr.t('app.lic.ledger.l.units'),
-          { b: (c) => <b>{c}</b> },
-          { qty: s.quantity, currency: s.currency, owed: s.amountOwed, date: tr.date(s.at) },
-        )}
-        {s.note ? ` · “${s.note}”` : ''}
+      <Typography variant="body2" color="text.secondary">
+        {tr.t('app.roy.c.period', { period: periodText(s.periodFrom, s.periodTo, tr), date: tr.date(s.at) })}
       </Typography>
-      <ReportCheck statement={s} side={side} checking={!line.reply} />
-      {side === 'issuer' && !sameAmount(s.amountOwed, owedUnder(terms, s.quantity) ?? '') && (
-        <Alert severity="warning" variant="outlined">
-          {tr.t('app.lic.ledger.l.mismatch', {
-            expected: owedUnder(terms, s.quantity) ?? tr.t('app.lic.ledger.l.unknownAmount'),
-            owed: s.amountOwed,
-          })}
-        </Alert>
+      {st !== 'replaced' && (
+        <>
+          <LinesTable lines={lines} total={s.amountOwed} currency={s.currency} tr={tr} terms={terms} />
+          {s.taxWithheld && (
+            <Typography variant="body2">
+              {tr.t('app.roy.tax.declared', {
+                amount: formatMoney(s.taxWithheld, s.currency, tr.locale),
+                net: formatMoney(toPayOf(r), s.currency, tr.locale),
+              })}
+              {s.taxNote ? ` · “${s.taxNote}”` : ''}
+            </Typography>
+          )}
+          {s.note && (
+            <Typography variant="body2" color="text.secondary">
+              “{s.note}”
+            </Typography>
+          )}
+          <ReportCheck statement={s} side={side} checking={!r.reply} />
+          {(mismatch || currencyOff) && (
+            <Alert severity="warning" variant="outlined" data-mismatch="">
+              {currencyOff
+                ? tr.t('app.roy.c.currencyOff', { currency: s.currency, terms: currencyOf(terms) })
+                : tr.t('app.roy.c.mismatch', {
+                    expected: formatMoney(expected!, s.currency, tr.locale),
+                    owed: formatMoney(s.amountOwed, s.currency, tr.locale),
+                  })}
+            </Alert>
+          )}
+        </>
       )}
-      {line.reply && (
+      {r.reply && (
         <Typography variant="body2" color="text.secondary">
-          {tr.t(line.reply.decision === 'accepted' ? 'app.lic.ledger.l.acceptedOn' : 'app.lic.ledger.l.disputedOn', {
-            date: tr.date(line.reply.at),
+          {tr.t(r.reply.decision === 'accepted' ? 'app.roy.c.acceptedOn' : 'app.roy.c.fixOn', {
+            who: names.licensor,
+            date: tr.date(r.reply.at),
           })}
-          {line.reply.note ? `: “${line.reply.note}”` : ''}
+          {r.reply.note ? `: “${r.reply.note}”` : ''}
         </Typography>
       )}
-      {line.paid && (
+      {r.paid && (
         <Typography variant="body2" color="text.secondary">
-          {tr.t('app.lic.ledger.l.paid', {
-            amount: line.paid.amount,
-            currency: line.paid.currency,
-            date: line.paid.paidOn,
-            method: line.paid.method,
+          {tr.t('app.roy.c.paid', {
+            who: names.licensee,
+            amount: formatMoney(r.paid.amount, r.paid.currency, tr.locale),
+            date: dayText(r.paid.paidOn, tr),
+            ref: r.paid.reference,
           })}
-          {line.paid.reference ? tr.t('app.lic.ledger.l.reference', { ref: line.paid.reference }) : ''}
+        </Typography>
+      )}
+      {r.received && (
+        <Typography variant="body2" color="success.main">
+          {tr.t('app.roy.c.received', { who: names.licensor, date: tr.date(r.received.at) })}
         </Typography>
       )}
       {receipts.map((c) => (
@@ -590,57 +1049,47 @@ const StatementLine: React.FC<{
           {c.mismatch.length > 0 && ` ${tr.t('app.lic.ledger.r.mismatch', { what: c.mismatch.join('; ') })}`}
         </Alert>
       ))}
-      {side === 'issuer' && line.paid && paidToken && line.paid.reference && !line.received && (
-        <OnChainPaymentCheck
-          token={paidToken}
-          txId={line.paid.reference}
-          payTo={payout?.account ?? line.paid.payTo}
-          amount={s.amountOwed}
-          statementSig={s.signature}
-          reusedFor={reusedFor}
-        />
-      )}
-      {line.received && (
-        <Typography variant="body2" color="text.secondary">
-          {tr.t('app.lic.ledger.l.received', {
-            amount: line.received.amount,
-            currency: line.received.currency,
-            date: tr.date(line.received.at),
-          })}
-        </Typography>
-      )}
+      {r.notices.map((n) => (
+        <NoticeLine key={n.signature} n={n} ctx={ctx} />
+      ))}
 
-      {/* The licensor's turn: review, then confirm the money arrived. */}
-      {side === 'issuer' && !line.reply && (
+      {/* The licensor answers once: Accept, or Ask to fix with a reason. */}
+      {side === 'issuer' && st === 'waiting' && (
         <Stack spacing={1}>
-          {disputing && (
+          {asking && (
             <TextField
               size="small"
-              label={tr.t('app.lic.ledger.l.whatsWrong')}
+              label={tr.t('app.roy.c.whatsWrong')}
               value={note}
               onChange={(e) => setNote(e.target.value.slice(0, 500))}
               autoFocus
+              multiline
             />
           )}
+          <Typography variant="caption" color="text.secondary">
+            {tr.t('app.roy.c.answerOnce')}
+          </Typography>
           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-            {!disputing ? (
+            {!asking ? (
               <>
                 <Button
                   variant="contained"
+                  size="large"
                   disabled={busy}
                   onClick={() =>
-                    onSend({
+                    void send({
                       type: 'reply',
                       statementId: s.statementId,
                       statementSig: s.signature,
                       decision: 'accepted',
                     })
                   }
+                  data-accept=""
                 >
-                  {tr.t('app.lic.ledger.l.accept')}
+                  {tr.t('app.roy.c.accept')}
                 </Button>
-                <Button color="error" disabled={busy} onClick={() => setDisputing(true)}>
-                  {tr.t('app.lic.ledger.l.dispute')}
+                <Button size="large" color="error" disabled={busy} onClick={() => setAsking(true)}>
+                  {tr.t('app.roy.c.askFix')}
                 </Button>
               </>
             ) : (
@@ -650,7 +1099,7 @@ const StatementLine: React.FC<{
                   variant="contained"
                   disabled={busy || !note.trim()}
                   onClick={() =>
-                    onSend({
+                    void send({
                       type: 'reply',
                       statementId: s.statementId,
                       statementSig: s.signature,
@@ -659,9 +1108,9 @@ const StatementLine: React.FC<{
                     })
                   }
                 >
-                  {tr.t('app.lic.ledger.l.sendDispute')}
+                  {tr.t('app.roy.c.sendFix')}
                 </Button>
-                <Button color="inherit" disabled={busy} onClick={() => setDisputing(false)}>
+                <Button color="inherit" disabled={busy} onClick={() => setAsking(false)}>
                   {tr.t('app.lic.ledger.l.back')}
                 </Button>
               </>
@@ -669,80 +1118,314 @@ const StatementLine: React.FC<{
           </Stack>
         </Stack>
       )}
-      {side === 'issuer' && line.paid && !line.received && (
-        <Button
-          variant="contained"
-          disabled={busy}
-          onClick={() =>
-            onSend({
-              type: 'received',
-              statementId: s.statementId,
-              statementSig: s.signature,
-              amount: line.paid!.amount,
-              currency: line.paid!.currency,
-            })
-          }
-          sx={{ alignSelf: 'flex-start' }}
-        >
-          {tr.t('app.lic.ledger.l.confirm', { amount: line.paid.amount, currency: line.paid.currency })}
+
+      {side === 'licensee' && st === 'fix' && (
+        <Button variant="contained" onClick={onCorrect} sx={{ alignSelf: 'flex-start' }}>
+          {tr.t('app.roy.home.correct')}
         </Button>
       )}
 
-      {/* The licensee's turn: pay, then say how. */}
-      {side === 'licensee' &&
-        line.reply?.decision === 'accepted' &&
-        !line.paid &&
-        payout &&
-        payToken &&
-        ONCHAIN_PAYMENTS &&
-        (s.currency === payToken.code ? (
-          <PayOnMidnight
-            token={payToken}
-            amount={s.amountOwed}
-            payTo={payout.account}
-            busy={busy}
-            statementSig={s.signature}
-            onPaid={(txId) =>
-              onSend({
-                type: 'paid',
+      {side === 'licensee' && st === 'to-pay' && <PayPanel ctx={ctx} report={r} period={period} payToken={payToken} />}
+
+      {side === 'issuer' && r.paid && paidToken && r.paid.reference && !r.received && (
+        <OnChainPaymentCheck
+          token={paidToken}
+          txId={r.paid.reference}
+          payTo={ledger.payout?.account ?? r.paid.payTo}
+          amount={r.paid.amount}
+          statementSig={s.signature}
+          reusedFor={reusedFor}
+        />
+      )}
+      {side === 'issuer' && r.paid && !r.received && (
+        <Stack spacing={0.5}>
+          <Typography variant="body2">{tr.t('app.roy.c.checkArrived', { ref: r.paid.reference })}</Typography>
+          <Button
+            variant="contained"
+            size="large"
+            disabled={busy}
+            onClick={() =>
+              void send({
+                type: 'received',
                 statementId: s.statementId,
                 statementSig: s.signature,
-                amount: s.amountOwed,
-                currency: s.currency,
-                method: payout.method,
-                payTo: payout.account,
-                reference: txId,
-                paidOn: today(),
+                // Exactly what they said they sent: the checker settles a report only when the two match.
+                amount: r.paid!.amount,
+                currency: r.paid!.currency,
               })
             }
-          />
-        ) : (
+            sx={{ alignSelf: 'flex-start' }}
+            data-confirm-received=""
+          >
+            {tr.t('app.roy.c.confirm', { amount: formatMoney(r.paid.amount, r.paid.currency, tr.locale) })}
+          </Button>
+        </Stack>
+      )}
+
+      {/* A reminder on a report waiting for the other side. */}
+      {((side === 'licensee' && (st === 'waiting' || st === 'paid')) || (side === 'issuer' && st === 'to-pay')) && (
+        <Button
+          size="small"
+          variant="text"
+          disabled={busy || reminded === today}
+          sx={{ alignSelf: 'flex-start' }}
+          onClick={() =>
+            void send({
+              type: 'notice',
+              kind: 'reminder',
+              about: st === 'waiting' ? 'answer' : st === 'paid' ? 'receipt' : 'payment',
+              periodFrom: s.periodFrom,
+              periodTo: s.periodTo,
+              statementSig: s.signature,
+              ...(st === 'to-pay' && period ? { dueOn: period.paymentDue } : {}),
+              asOf: today,
+            })
+          }
+        >
+          {reminded === today ? tr.t('app.roy.remindSent') : tr.t('app.roy.remind')}
+        </Button>
+      )}
+
+      {(st === 'to-pay' || st === 'paid' || st === 'received' || st === 'nothing-due') && (
+        <Button
+          size="small"
+          variant="outlined"
+          sx={{ alignSelf: 'flex-start' }}
+          onClick={() => downloadStatement(ctx, r)}
+          data-download-statement=""
+        >
+          {ledger.invoice ? tr.t('app.roy.c.invoice') : tr.t('app.roy.c.statement')}
+        </Button>
+      )}
+    </Stack>
+  );
+};
+
+const NoticeLine: React.FC<{ n: NoticeEntry; ctx: Ctx }> = ({ n, ctx }) => {
+  const { tr, names } = ctx;
+  const who = n.mine ? tr.t('app.roy.who.you') : n.from === 'issuer' ? names.licensor : names.licensee;
+  const period = periodText(n.periodFrom, n.periodTo, tr);
+  const text =
+    n.kind === 'breach'
+      ? tr.t('app.roy.notice.breach', { who, period, note: n.note ?? '', date: dayText(n.asOf, tr) })
+      : n.dueOn && (n.about === 'report' || n.about === 'payment')
+        ? tr.t(`app.roy.notice.${n.about}Due` as AppKey, {
+            who,
+            period,
+            due: dayText(n.dueOn, tr),
+            date: dayText(n.asOf, tr),
+          })
+        : tr.t(`app.roy.notice.${n.about}` as AppKey, { who, period, date: dayText(n.asOf, tr) });
+  return (
+    <Alert severity={n.kind === 'breach' ? 'error' : 'info'} variant="outlined" data-notice={n.kind}>
+      {text}
+    </Alert>
+  );
+};
+
+/** Copy a value, with a small button. */
+const CopyValue: React.FC<{ label: string; value: string; tr: Translator; mono?: boolean }> = ({
+  label,
+  value,
+  tr,
+  mono,
+}) => {
+  const [done, setDone] = useState(false);
+  return (
+    <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography variant="caption" color="text.secondary">
+          {label}
+        </Typography>
+        <Typography
+          variant="body1"
+          sx={{
+            whiteSpace: 'pre-wrap',
+            overflowWrap: 'anywhere',
+            fontFamily: mono ? 'monospace' : undefined,
+            fontWeight: mono ? 700 : 400,
+          }}
+        >
+          {value}
+        </Typography>
+      </Box>
+      <Tooltip title={done ? tr.t('app.roy.copied') : tr.t('app.roy.copy')}>
+        <IconButton
+          aria-label={tr.t('app.roy.copyWhat', { what: label })}
+          onClick={() =>
+            void navigator.clipboard
+              ?.writeText(value)
+              .then(() => setDone(true))
+              .catch(() => undefined)
+          }
+        >
+          <ContentCopyIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+    </Stack>
+  );
+};
+
+/** The licensee pays an accepted report: amount, where, reference, fees, then "I paid". */
+const PayPanel: React.FC<{
+  ctx: Ctx;
+  report: Report;
+  period?: RoyaltyPeriod;
+  payToken: ReturnType<typeof tokenOfMethod>;
+}> = ({ ctx, report: r, period, payToken }) => {
+  const { terms, ledger, names, tr, busy, send, today } = ctx;
+  const s = r.statement;
+  const payout = ledger.payout;
+  const lock = payoutLock(ledger);
+  const [confirmed, setConfirmed] = useState(false);
+  const [tax, setTax] = useState(s.taxWithheld ?? '');
+  const [taxNote, setTaxNote] = useState(s.taxNote ?? '');
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [paidOn, setPaidOn] = useState(today);
+  const digits = currencyDigits(s.currency);
+  const taxOk = !tax || (isDecimal(tax) && (toMinor(tax, digits) ?? 0n) <= (toMinor(s.amountOwed, digits) ?? 0n));
+  const amount = toPayOf(r, tax && taxOk ? tax : '0');
+  const reference = paymentReference(s.signature, terms.licensor);
+  const locked = lock.locked && !confirmed;
+  const taxN = tax && taxOk ? normaliseDecimal(tax) : undefined;
+  const paid = (method: string, payTo: string, ref: string) =>
+    send({
+      type: 'paid',
+      statementId: s.statementId,
+      statementSig: s.signature,
+      amount,
+      currency: s.currency,
+      method,
+      payTo,
+      reference: ref,
+      paidOn,
+      ...(payout ? { payoutSig: payout.signature } : {}),
+      ...(taxN && (toMinor(taxN, digits) ?? 0n) > 0n
+        ? { taxWithheld: taxN, ...(taxNote.trim() ? { taxNote: taxNote.trim() } : {}) }
+        : {}),
+      ...(lock.locked ? { detailsConfirmed: true } : {}),
+    });
+
+  return (
+    <Paper variant="outlined" sx={{ p: 2 }} data-pay="">
+      <Stack spacing={1.5}>
+        <Typography variant="overline">{tr.t('app.roy.pay.title')}</Typography>
+        <Typography variant="h4" component="p" sx={{ fontWeight: 700 }} data-pay-amount="">
+          {formatMoney(amount, s.currency, tr.locale)}
+        </Typography>
+        {period && (
+          <Typography variant="body2" color="text.secondary">
+            {tr.t('app.roy.pay.due', { date: dayText(period.paymentDue, tr) })}
+          </Typography>
+        )}
+        {!payout ? (
           <Alert severity="info" variant="outlined">
-            {tr.t('app.lic.ledger.l.currencyMismatch', { token: payToken.code, currency: s.currency })}
+            {tr.t('app.roy.payout.waiting', { who: names.licensor })}
           </Alert>
-        ))}
-      {side === 'licensee' && line.reply?.decision === 'accepted' && !line.paid && (
-        <Stack spacing={1}>
-          {payout && (
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
-              <Typography variant="body2">
-                {tr.t('app.lic.ledger.l.payThen', {
-                  amount: s.amountOwed,
-                  currency: s.currency,
-                  method: payout.method,
-                  account: payout.account,
-                })}
+        ) : (
+          <>
+            <Typography variant="body2">{tr.t('app.roy.payout.sets', { who: names.licensor })}</Typography>
+            {lock.locked && (
+              <Alert severity="warning" variant="outlined" data-payout-changed="">
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  {tr.t('app.roy.pay.changed', { who: names.licensor, date: tr.date(lock.now.at) })}
+                </Typography>
+                <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' } }}>
+                  <Box>
+                    <Typography variant="caption">{tr.t('app.roy.pay.before')}</Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', textDecoration: 'line-through' }}
+                    >
+                      {payoutText(lock.before, tr)}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption">{tr.t('app.roy.pay.now')}</Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontWeight: 700 }}
+                    >
+                      {payoutText(lock.now, tr)}
+                    </Typography>
+                  </Box>
+                </Box>
+                <FormControlLabel
+                  control={<Checkbox checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />}
+                  label={tr.t('app.roy.pay.confirmed', { who: names.licensor })}
+                />
+              </Alert>
+            )}
+            {!payToken && (
+              <Stack spacing={1}>
+                {payout.account && <CopyValue label={tr.t('app.roy.payout.holder')} value={payout.account} tr={tr} />}
+                {payout.details && <CopyValue label={tr.t('app.roy.payout.bank')} value={payout.details} tr={tr} />}
+                {payout.link && (
+                  <Link href={payout.link} target="_blank" rel="noopener noreferrer" sx={{ fontWeight: 600 }}>
+                    {tr.t('app.roy.payout.openLink', { who: names.licensor })}
+                  </Link>
+                )}
+              </Stack>
+            )}
+            <CopyValue label={tr.t('app.roy.pay.reference')} value={reference} tr={tr} mono />
+            {terms.bankFees && (
+              <Typography variant="body2" color="text.secondary">
+                {tr.t(`app.roy.s.fees.${terms.bankFees}` as AppKey)}
               </Typography>
-              <Button
+            )}
+          </>
+        )}
+        <Box>
+          <Button
+            size="small"
+            color="inherit"
+            onClick={() => setMoreOpen(!moreOpen)}
+            aria-expanded={moreOpen}
+            sx={{ px: 0 }}
+          >
+            {moreOpen ? tr.t('app.roy.less') : tr.t('app.roy.moreOptions')}
+          </Button>
+          <Collapse in={moreOpen}>
+            <Stack spacing={1.25} sx={{ pt: 1 }}>
+              <TextField
                 size="small"
-                variant="outlined"
-                onClick={() => downloadPaymentRequest(paymentRequest(s, payout, keys, REGISTRY_BASE))}
-              >
-                {tr.t('app.lic.ledger.l.request')}
-              </Button>
+                label={tr.t('app.roy.tax.amount', { currency: s.currency })}
+                helperText={tr.t('app.roy.tax.help')}
+                value={tax}
+                error={!taxOk}
+                onChange={(e) => setTax(e.target.value.replace(/[^0-9.]/g, '').slice(0, 16))}
+                slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+              />
+              {tax && (
+                <TextField
+                  size="small"
+                  label={tr.t('app.roy.tax.note')}
+                  value={taxNote}
+                  onChange={(e) => setTaxNote(e.target.value.slice(0, 300))}
+                />
+              )}
             </Stack>
-          )}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+          </Collapse>
+        </Box>
+        {payout &&
+          payToken &&
+          ONCHAIN_PAYMENTS &&
+          (s.currency === payToken.code ? (
+            <PayOnMidnight
+              token={payToken}
+              amount={amount}
+              payTo={payout.account}
+              busy={busy || locked}
+              statementSig={s.signature}
+              onPaid={(txId) => void paid(payout.method, payout.account, txId)}
+            />
+          ) : (
+            <Alert severity="info" variant="outlined">
+              {tr.t('app.lic.ledger.l.currencyMismatch', { token: payToken.code, currency: s.currency })}
+            </Alert>
+          ))}
+        {!payToken && (
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' } }}>
             <TextField
               size="small"
               type="date"
@@ -751,50 +1434,391 @@ const StatementLine: React.FC<{
               onChange={(e) => setPaidOn(e.target.value)}
               slotProps={{ inputLabel: { shrink: true } }}
             />
-            <TextField
-              size="small"
-              label={tr.t('app.lic.ledger.l.ref')}
-              value={ref}
-              onChange={(e) => setRef(e.target.value.slice(0, 120))}
-            />
             <Button
               variant="contained"
-              disabled={busy || !paidOn}
-              onClick={() =>
-                onSend({
-                  type: 'paid',
-                  statementId: s.statementId,
-                  statementSig: s.signature,
-                  amount: s.amountOwed,
-                  currency: s.currency,
-                  method: payout?.method ?? 'other',
-                  payTo: payout?.account ?? '',
-                  reference: ref.trim(),
-                  paidOn,
-                })
-              }
+              size="large"
+              disabled={busy || !paidOn || !payout || locked || !taxOk}
+              onClick={() => void paid(payout?.method ?? 'other', payout?.account ?? '', reference)}
+              data-i-paid=""
             >
-              {tr.t('app.lic.ledger.l.iPaid')}
+              {tr.t('app.roy.pay.iPaid')}
             </Button>
           </Stack>
+        )}
+        <Typography variant="caption" color="text.secondary">
+          {tr.t('app.roy.pay.never')}
+        </Typography>
+      </Stack>
+    </Paper>
+  );
+};
+
+const payoutText = (p: Extract<DealEntry, { type: 'payout' }>, tr: Translator): string =>
+  [tokenOfMethod(p.method) ? methodWords(p.method, tr) : '', p.account, p.details, p.link].filter(Boolean).join('\n');
+
+// ---- where the licensor is paid ---------------------------------------------------------------
+
+const PayoutBlock: React.FC<{
+  ctx: Ctx;
+  editing?: 'payout' | 'invoice';
+  onEdit: (k: 'payout' | 'invoice' | undefined) => void;
+  payoutKind: 'other' | 'midnight';
+  setPayoutKind: (k: 'other' | 'midnight') => void;
+}> = ({ ctx, editing, onEdit, payoutKind, setPayoutKind }) => {
+  const { side, ledger, names, tr, busy, send, terms, cannabis } = ctx;
+  const payout = ledger.payout;
+  return (
+    <Stack spacing={1} data-payout="">
+      <Typography variant="subtitle2">{tr.t('app.roy.payout.title')}</Typography>
+      {payout ? (
+        <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+          {payoutText(payout, tr)}
+        </Typography>
+      ) : (
+        <Typography variant="body2" color="text.secondary">
+          {side === 'issuer' ? tr.t('app.roy.payout.none') : tr.t('app.roy.payout.waiting', { who: names.licensor })}
+        </Typography>
+      )}
+      {side === 'licensee' && payout && (
+        <Typography variant="body2" color="text.secondary">
+          {tr.t('app.roy.payout.sets', { who: names.licensor })}
+        </Typography>
+      )}
+      {ledger.invoice && (
+        <Typography variant="body2" color="text.secondary">
+          {tr.t('app.roy.inv.set', { name: ledger.invoice.legalName })}
+        </Typography>
+      )}
+      {side === 'issuer' && !editing && (
+        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+          <Button variant={payout ? 'outlined' : 'contained'} onClick={() => onEdit('payout')} data-set-payout="">
+            {payout ? tr.t('app.roy.payout.change') : tr.t('app.roy.payout.add')}
+          </Button>
+          <Button variant="text" onClick={() => onEdit('invoice')}>
+            {ledger.invoice ? tr.t('app.roy.inv.change') : tr.t('app.roy.inv.add')}
+          </Button>
         </Stack>
       )}
+      {editing === 'payout' && ONCHAIN_PAYMENTS && (
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ flexWrap: 'wrap' }}
+          role="radiogroup"
+          aria-label={tr.t('app.lic.ledger.howPaid')}
+        >
+          <Button
+            size="small"
+            variant={payoutKind === 'other' ? 'contained' : 'outlined'}
+            onClick={() => setPayoutKind('other')}
+          >
+            {tr.t('app.roy.payout.bankOrLink')}
+          </Button>
+          <Button
+            size="small"
+            variant={payoutKind === 'midnight' ? 'contained' : 'outlined'}
+            onClick={() => setPayoutKind('midnight')}
+          >
+            {tr.t('app.lic.ledger.onMidnight')}
+          </Button>
+        </Stack>
+      )}
+      {editing === 'payout' && (!ONCHAIN_PAYMENTS || payoutKind === 'other') && (
+        <PayoutForm
+          busy={busy}
+          currency={currencyOf(terms)}
+          allowLink={!cannabis}
+          before={payout}
+          tr={tr}
+          onSend={(b) => void send(b)}
+          onCancel={() => onEdit(undefined)}
+        />
+      )}
+      {editing === 'payout' && ONCHAIN_PAYMENTS && payoutKind === 'midnight' && (
+        <MidnightPayoutForm busy={busy} onSend={(b) => void send(b)} onCancel={() => onEdit(undefined)} />
+      )}
+      {editing === 'invoice' && (
+        <InvoiceForm
+          busy={busy}
+          before={ledger.invoice}
+          tr={tr}
+          onSend={(b) => void send(b)}
+          onCancel={() => onEdit(undefined)}
+        />
+      )}
+      <Typography variant="caption" color="text.secondary" data-payout-privacy="">
+        {tr.t('app.roy.payout.privacy')}
+      </Typography>
     </Stack>
   );
 };
 
-/** Receipts filed by payment partners for an accepted statement, checked here, read every 30 seconds until confirmed. */
-const useReceipts = (line: Line, payTo: string | undefined): CheckedReceipt[] => {
+const PayoutForm: React.FC<{
+  busy: boolean;
+  currency: string;
+  allowLink: boolean;
+  before?: Extract<DealEntry, { type: 'payout' }>;
+  tr: Translator;
+  onSend: (b: Parameters<typeof say>[1]) => void;
+  onCancel: () => void;
+}> = ({ busy, currency, allowLink, before, tr, onSend, onCancel }) => {
+  const [holder, setHolder] = useState(before && !tokenOfMethod(before.method) ? before.account : '');
+  const [details, setDetails] = useState(before?.details ?? '');
+  const [link, setLink] = useState(allowLink ? (before?.link ?? '') : '');
+  const linkOk = !link || /^https:\/\/\S+$/.test(link.trim());
+  const ok = holder.trim() && (details.trim() || (allowLink && link.trim())) && linkOk;
+  return (
+    <Stack spacing={1.25}>
+      <TextField
+        size="small"
+        label={tr.t('app.roy.payout.holder')}
+        value={holder}
+        onChange={(e) => setHolder(e.target.value.slice(0, 200))}
+      />
+      <TextField
+        size="small"
+        label={tr.t('app.roy.payout.bank')}
+        helperText={tr.t('app.roy.payout.bankHelp')}
+        value={details}
+        onChange={(e) => setDetails(e.target.value.slice(0, 1000))}
+        multiline
+        minRows={3}
+      />
+      {allowLink && (
+        <TextField
+          size="small"
+          label={tr.t('app.roy.payout.link')}
+          helperText={tr.t('app.roy.payout.linkHelp')}
+          value={link}
+          error={!linkOk}
+          onChange={(e) => setLink(e.target.value.slice(0, 300))}
+          slotProps={{ htmlInput: { inputMode: 'url' } }}
+        />
+      )}
+      <Typography variant="caption" color="text.secondary">
+        {tr.t('app.roy.payout.currency', { currency })}
+      </Typography>
+      <Stack direction="row" spacing={1}>
+        <Button
+          variant="contained"
+          disabled={busy || !ok}
+          onClick={() =>
+            onSend({
+              type: 'payout',
+              method: details.trim() ? 'bank' : 'link',
+              account: holder.trim(),
+              currency,
+              ...(details.trim() ? { details: details.trim() } : {}),
+              ...(allowLink && link.trim() ? { link: link.trim() } : {}),
+            })
+          }
+        >
+          {tr.t('app.lic.ledger.send')}
+        </Button>
+        <Button onClick={onCancel}>{tr.t('app.lic.ledger.cancel')}</Button>
+      </Stack>
+    </Stack>
+  );
+};
+
+const InvoiceForm: React.FC<{
+  busy: boolean;
+  before?: Extract<DealEntry, { type: 'invoice-details' }>;
+  tr: Translator;
+  onSend: (b: Parameters<typeof say>[1]) => void;
+  onCancel: () => void;
+}> = ({ busy, before, tr, onSend, onCancel }) => {
+  const [name, setName] = useState(before?.legalName ?? '');
+  const [address, setAddress] = useState(before?.address ?? '');
+  const [taxId, setTaxId] = useState(before?.taxId ?? '');
+  return (
+    <Stack spacing={1.25}>
+      <Typography variant="body2" color="text.secondary">
+        {tr.t('app.roy.inv.why')}
+      </Typography>
+      <TextField
+        size="small"
+        label={tr.t('app.roy.inv.name')}
+        value={name}
+        onChange={(e) => setName(e.target.value.slice(0, 200))}
+      />
+      <TextField
+        size="small"
+        label={tr.t('app.roy.inv.address')}
+        value={address}
+        onChange={(e) => setAddress(e.target.value.slice(0, 500))}
+        multiline
+      />
+      <TextField
+        size="small"
+        label={tr.t('app.roy.inv.taxId')}
+        value={taxId}
+        onChange={(e) => setTaxId(e.target.value.slice(0, 80))}
+      />
+      <Stack direction="row" spacing={1}>
+        <Button
+          variant="contained"
+          disabled={busy || !name.trim()}
+          onClick={() =>
+            onSend({
+              type: 'invoice-details',
+              legalName: name.trim(),
+              ...(address.trim() ? { address: address.trim() } : {}),
+              ...(taxId.trim() ? { taxId: taxId.trim() } : {}),
+            })
+          }
+        >
+          {tr.t('app.lic.ledger.send')}
+        </Button>
+        <Button onClick={onCancel}>{tr.t('app.lic.ledger.cancel')}</Button>
+      </Stack>
+    </Stack>
+  );
+};
+
+// ---- the timeline, the statement file, the reading help ---------------------------------------
+
+const Timeline: React.FC<{ ctx: Ctx; entries: readonly DealEntry[] }> = ({ ctx, entries }) => {
+  const { tr, names, ledger } = ctx;
+  const [open, setOpen] = useState(false);
+  const numberOf = (sig: string) => ledger.reports.find((r) => r.statement.signature === sig)?.number ?? '';
+  const items = entries
+    .flatMap((e) => {
+      const who = e.mine ? tr.t('app.roy.who.you') : e.from === 'issuer' ? names.licensor : names.licensee;
+      const k = (key: string, vars: Record<string, string | number> = {}) =>
+        tr.t(`app.roy.tl.${key}` as AppKey, { who, ...vars });
+      switch (e.type) {
+        case 'terms':
+          return [k('terms')];
+        case 'agree':
+          return [k('agree')];
+        case 'payout':
+          return [k('payout')];
+        case 'invoice-details':
+          return [k('invoice')];
+        case 'statement':
+          return [k('statement', { n: numberOf(e.signature), period: periodText(e.periodFrom, e.periodTo, tr) })];
+        case 'reply':
+          return [k(e.decision === 'accepted' ? 'accepted' : 'fix', { n: numberOf(e.statementSig) })];
+        case 'paid':
+          return [k('paid', { n: numberOf(e.statementSig), amount: formatMoney(e.amount, e.currency, tr.locale) })];
+        case 'received':
+          return [k('received', { n: numberOf(e.statementSig), amount: formatMoney(e.amount, e.currency, tr.locale) })];
+        case 'notice':
+          return [k(e.kind === 'breach' ? 'breach' : 'reminder', { period: periodText(e.periodFrom, e.periodTo, tr) })];
+        default:
+          return [];
+      }
+    })
+    .map((text, i) => ({ text, i }));
+  const dated = entries.filter((e) =>
+    ['terms', 'agree', 'payout', 'invoice-details', 'statement', 'reply', 'paid', 'received', 'notice'].includes(
+      e.type,
+    ),
+  );
+  return (
+    <Box data-timeline="">
+      <Button size="small" color="inherit" onClick={() => setOpen(!open)} aria-expanded={open} sx={{ px: 0 }}>
+        {open ? tr.t('app.roy.tl.hide') : tr.t('app.roy.tl.show', { n: items.length })}
+      </Button>
+      <Collapse in={open}>
+        <Stack component="ol" spacing={0.5} sx={{ pl: 2.5, m: 0, pt: 0.5 }}>
+          {items.map(({ text, i }) => (
+            <Typography component="li" variant="body2" key={i}>
+              <Box component="span" sx={{ color: 'text.secondary' }}>
+                {tr.date(dated[i].at)}
+              </Box>{' '}
+              {text}
+            </Typography>
+          ))}
+        </Stack>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
+          {tr.t('app.roy.tl.dated')}
+        </Typography>
+      </Collapse>
+    </Box>
+  );
+};
+
+/** A statement for an accepted report as a printable file; called an invoice only when the licensor set invoice details. */
+const downloadStatement = (ctx: Ctx, r: Report) => {
+  const { tr, terms, ledger, names } = ctx;
+  const s = r.statement;
+  const inv = ledger.invoice;
+  const payout = ledger.payout;
+  const money = (a: string) => formatMoney(a, s.currency, tr.locale);
+  const lines = (s.lines ?? [{ kind: 'royalty' as const, quantity: s.quantity, amount: s.amountOwed }]).map(
+    (l) => [lineWords(l, s.currency, tr, terms), money(l.amount)] as const,
+  );
+  const title = tr.t(inv ? 'app.roy.file.invoice' : 'app.roy.file.statement', { n: r.number });
+  const html = statementHtml(
+    {
+      title,
+      rows: [
+        [tr.t('app.roy.file.number'), String(r.number)],
+        [tr.t('app.roy.file.period'), periodText(s.periodFrom, s.periodTo, tr)],
+        [
+          tr.t('app.roy.file.from'),
+          [inv?.legalName ?? names.licensor, inv?.address, inv?.taxId].filter(Boolean).join('\n'),
+        ],
+        [tr.t('app.roy.file.to'), names.licensee],
+        ...(r.reply ? [[tr.t('app.roy.file.accepted'), tr.date(r.reply.at)] as const] : []),
+        [tr.t('app.roy.pay.reference'), paymentReference(s.signature, terms.licensor)],
+      ],
+      lines: [
+        ...lines,
+        ...(s.taxWithheld || r.paid?.taxWithheld
+          ? [[tr.t('app.roy.file.tax'), `− ${money(r.paid?.taxWithheld ?? s.taxWithheld!)}`] as const]
+          : []),
+      ],
+      total: [tr.t('app.roy.file.toPay'), money(toPayOf(r))],
+      payTo: payout ? [[tr.t('app.roy.file.payTo'), payoutText(payout, tr)]] : undefined,
+      footer: [
+        ...(r.received ? [tr.t('app.roy.file.receivedOn', { date: tr.date(r.received.at) })] : []),
+        ...(inv ? [tr.t('app.roy.file.issuedBy', { who: inv.legalName })] : []),
+        tr.t('app.roy.disclaimer'),
+      ],
+    },
+    tr.lang,
+  );
+  saveFile(`${inv ? 'invoice' : 'statement'}-${r.number}-${s.periodFrom}.html`, html, 'text/html');
+};
+
+const HowToRead: React.FC<{ tr: Translator }> = ({ tr }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <Box>
+      <Button size="small" color="inherit" onClick={() => setOpen(!open)} aria-expanded={open} sx={{ px: 0 }}>
+        {tr.t('app.roy.read.title')}
+      </Button>
+      <Collapse in={open}>
+        <Stack spacing={0.75} sx={{ pt: 0.5 }}>
+          {(['1', '2', '3', '4'] as const).map((n) => (
+            <Typography key={n} variant="body2">
+              {tr.t(`app.roy.read.${n}` as AppKey)}
+            </Typography>
+          ))}
+        </Stack>
+      </Collapse>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }} data-disclaimer="">
+        {tr.t('app.roy.disclaimer')}
+      </Typography>
+    </Box>
+  );
+};
+
+/** Receipts filed by payment partners for an accepted report, checked here, read every 30 seconds until confirmed. */
+const useReceipts = (r: Report, payTo: string | undefined): CheckedReceipt[] => {
   const [list, setList] = useState<CheckedReceipt[]>([]);
-  const watch = line.reply?.decision === 'accepted';
-  const done = !!line.received;
-  const fp = line.statement.fingerprint;
+  const watch = r.reply?.decision === 'accepted';
+  const done = !!r.received;
+  const fp = r.statement.fingerprint;
   useEffect(() => {
     if (!watch) return;
     let live = true;
     const run = () =>
-      receiptsFor(line.statement, payTo)
-        .then((r) => live && setList(r))
+      receiptsFor(r.statement, payTo)
+        .then((x) => live && setList(x))
         .catch(() => undefined);
     void run();
     const t = done ? undefined : setInterval(() => void run(), 30_000);
@@ -802,7 +1826,7 @@ const useReceipts = (line: Line, payTo: string | undefined): CheckedReceipt[] =>
       live = false;
       if (t) clearInterval(t);
     };
-  }, [fp, payTo, watch, done, line.statement]);
+  }, [fp, payTo, watch, done, r.statement]);
   return list;
 };
 
@@ -816,13 +1840,7 @@ const ReportCheck: React.FC<{
   const tr = useT();
   const [result, setResult] = useState<'same' | 'different'>();
   const e = statement.evidence;
-  if (!isEvidence(e)) {
-    return side === 'issuer' ? (
-      <Typography variant="body2" color="text.secondary">
-        {tr.t('app.lic.ledger.rc.none')}
-      </Typography>
-    ) : null;
-  }
+  if (!isEvidence(e)) return null;
   return (
     <Box data-sales-report="">
       <Typography variant="body2">

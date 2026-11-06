@@ -191,7 +191,7 @@ export const strain = {
     'Si más adelante se registra una cepa con {name} como progenitora y ambos titulares lo confirman, el vínculo con este acuerdo aparece en su registro. Las cepas derivadas que nadie registra no se detectan.',
   'app.strain.v.app.lic.detail.derivatives.one': '{count} cepa ya registrada desciende de ella.',
   'app.strain.v.app.lic.detail.derivatives.other': '{count} cepas ya registradas descienden de ella.',
-  'app.strain.v.app.lic.off.title': 'Regalía sobre cepas derivadas: {pct}%',
+  'app.strain.v.app.lic.off.title': 'Regalía sobre cepas derivadas: {pct}',
   'app.strain.v.app.lic.off.intro':
     'En Midnight queda en el propio registro del licenciatario de esta cepa, así que toda cepa derivada que ambos titulares confirmen la muestra cuando alguien comprueba el linaje. El licenciatario la acepta; solo el licenciante puede liberarla.',
   'app.strain.v.app.lic.off.dateFirst': 'Primero feche su propio registro de esta cepa y luego indíquelo aquí.',

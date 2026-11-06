@@ -406,7 +406,7 @@ export const licensing = {
     'Comprobado en Midnight: {amount} {code} llegaron a su dirección en la transacción {tx}, bloque {block}. Leído del indexador de Midnight, no de la otra parte ni de VeilCore.',
   'app.lic.pay.checked':
     'Comprobado en Midnight: {amount} {code} llegaron a su dirección en la transacción {tx}. Leído del indexador de Midnight, no de la otra parte ni de VeilCore.',
-  'app.lic.off.title': 'Regalía sobre la descendencia: {pct}%',
+  'app.lic.off.title': 'Regalía sobre la descendencia: {pct}',
   'app.lic.off.intro':
     'En Midnight queda en el propio registro del licenciatario de esta planta, así que toda descendencia que ambos titulares confirmen la muestra cuando alguien comprueba el linaje. El licenciatario la acepta; solo el obtentor puede liberarla.',
   'app.lic.off.dateFirst': 'Primero feche su planta de esta genética y luego indíquela aquí.',
@@ -514,7 +514,12 @@ export const licensing = {
   'app.lic.real.issued':
     'Emitida en Midnight. Esperando a que {who} lea las condiciones, las acepte y la active: su enlace le indica cómo. Esta página lee la cadena por sí misma y avanza cuando lo haga.',
   'app.lic.real.copyAgain': 'Copiar de nuevo su enlace',
-  'app.lic.real.resend': '¿No lo ven? Enviarlo de nuevo',
+  'app.lic.real.resend': 'Publicar de nuevo el aviso de emisión',
+  'app.lic.real.resendFailed': 'No se pudo publicar el aviso de emisión: {error}',
+  'app.lic.code.making': 'Creando su código, tarda unos segundos.',
+  'app.lic.inv.notThisDevice':
+    'Este teléfono o navegador no tiene la copia que aceptó este enlace. Si ya lo aceptó aquí, restaure su copia de seguridad y vuelva a abrir el enlace.',
+  'app.lic.inv.restore': 'Restaurar una copia de seguridad',
   'app.lic.real.cancel': 'Cancelarla',
   'app.lic.real.cancelQ':
     '¿Cancelar esta licencia? No podrán activarla. Esto queda en Midnight y no se puede deshacer.',
@@ -703,20 +708,20 @@ export const licensing = {
   'app.lic.handon.steps.n.wait': 'El titular actual la traspasa y el licenciante lo aprueba',
   'app.lic.next.period': '{from} a {to}',
   'app.lic.next.i.payout': 'Indíqueles cómo quiere cobrar.',
-  'app.lic.next.i.check': 'Revise su estado de cuenta de {period} y luego acéptelo o dispútelo.',
+  'app.lic.next.i.check': 'Revise su informe de {period} y luego acéptelo o pida corregirlo.',
   'app.lic.next.i.confirm':
     'Dicen que pagaron {amount} {currency} por {period}. Compruebe que llegó y luego confírmelo.',
   'app.lic.next.i.waitPay': 'Esperando a que paguen {amount} {currency}.',
-  'app.lic.next.i.disputed': 'Disputó {period}. Esperando un estado de cuenta corregido.',
-  'app.lic.next.i.nothing': 'Nada que hacer. Presentan un estado de cuenta por cada período.',
+  'app.lic.next.i.disputed': 'Usted pidió corregir {period}. Esperando un informe corregido.',
+  'app.lic.next.i.nothing': 'Nada que hacer. La otra parte envía un informe por cada período.',
   'app.lic.next.l.payOnChain': 'Pague {amount} {currency} en Midnight desde su billetera: toque “Pagar … con” abajo.',
-  'app.lic.next.l.pay': 'Pague {amount} {currency} por {method} a {account} y luego toque “Ya lo pagué”.',
-  'app.lic.next.l.waitPayout': 'Aceptaron su estado de cuenta. Esperando a que indiquen cómo quieren cobrar.',
-  'app.lic.next.l.disputed': 'Disputaron {period}. Presente un estado de cuenta corregido.',
-  'app.lic.next.l.disputedNote': 'Disputaron {period}: “{note}”. Presente un estado de cuenta corregido.',
-  'app.lic.next.l.waitCheck': 'Esperando a que revisen su estado de cuenta de {period}.',
+  'app.lic.next.l.pay': 'Pague {amount} {currency} por {method} a {account} y luego toque «Ya pagué».',
+  'app.lic.next.l.waitPayout': 'Aceptaron su informe. Esperando a que indiquen cómo quieren cobrar.',
+  'app.lic.next.l.disputed': 'Le pidieron corregir {period}. Envíe un informe corregido.',
+  'app.lic.next.l.disputedNote': 'Le pidieron corregir {period}: «{note}». Envíe un informe corregido.',
+  'app.lic.next.l.waitCheck': 'Esperando a que revisen su informe de {period}.',
   'app.lic.next.l.waitConfirm': 'Esperando a que confirmen que su pago llegó.',
-  'app.lic.next.l.file': 'Presente su estado de cuenta cuando termine el período.',
+  'app.lic.next.l.file': 'Envíe su informe cuando termine el período.',
   'app.lic.lend.title': 'Registrar una anotación como prestamista',
   'app.lic.lend.intro':
     '¿Presta con el registro o la licencia de un obtentor como respaldo? Registre en Midnight que el registro está pignorado a su favor, para que no pueda pignorarse dos veces a escondidas. El titular la acepta desde su propio dispositivo, y solo usted puede liberarla. No es una inscripción legal: presente su propia documentación como siempre.',

@@ -187,7 +187,7 @@ export const strain = {
     'If a strain is later logged with {name} as a parent, and both holders confirm it, the link to this agreement shows on its record. Derived strains nobody logs are not detected.',
   'app.strain.v.app.lic.detail.derivatives.one': '{count} strain already logged descends from it.',
   'app.strain.v.app.lic.detail.derivatives.other': '{count} strains already logged descend from it.',
-  'app.strain.v.app.lic.off.title': 'Royalty on derived strains: {pct}%',
+  'app.strain.v.app.lic.off.title': 'Royalty on derived strains: {pct}',
   'app.strain.v.app.lic.off.intro':
     'On Midnight it sits on the licensee’s own record of this strain, so every derived strain both holders confirm shows it when anyone checks the line. The licensee accepts it; only the licensor can release it.',
   'app.strain.v.app.lic.off.dateFirst': 'Date your own record of this strain first, then name it here.',

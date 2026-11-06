@@ -410,7 +410,7 @@ export const licensing = {
   'app.lic.pay.checked':
     'Checked on Midnight: {amount} {code} reached your address in transaction {tx}. Read from Midnight’s indexer, not from them or VeilCore.',
   // ---- royalty on offspring (OffspringRoyalty.tsx) ----
-  'app.lic.off.title': 'Royalty on offspring: {pct}%',
+  'app.lic.off.title': 'Royalty on offspring: {pct}',
   'app.lic.off.intro':
     'On Midnight it sits on the licensee’s own record of this plant, so every offspring both holders confirm shows it when anyone checks the line. The licensee accepts it; only the breeder can release it.',
   'app.lic.off.dateFirst': 'Date your plant of these genetics first, then name it here.',
@@ -517,7 +517,12 @@ export const licensing = {
   'app.lic.real.issued':
     'Issued on Midnight. Waiting for {who} to read the terms, agree and activate it: their link shows them how. This page reads the chain itself and moves on when they do.',
   'app.lic.real.copyAgain': 'Copy their link again',
-  'app.lic.real.resend': 'They don’t see it? Send it again',
+  'app.lic.real.resend': 'Post the issue notice again',
+  'app.lic.real.resendFailed': 'Couldn’t post the issue notice: {error}',
+  'app.lic.code.making': 'Making your code, this takes a few seconds.',
+  'app.lic.inv.notThisDevice':
+    'This phone or browser doesn’t have the copy that accepted this link. If you accepted it here before, restore your backup, then open the link again.',
+  'app.lic.inv.restore': 'Restore a backup',
   'app.lic.real.cancel': 'Cancel it',
   'app.lic.real.cancelQ':
     'Cancel this license? They won’t be able to activate it. This goes on Midnight and can’t be undone.',
@@ -705,19 +710,19 @@ export const licensing = {
   // ---- the royalty side's one next thing (steps.ts nextRoyaltyStep) ----
   'app.lic.next.period': '{from} to {to}',
   'app.lic.next.i.payout': 'Tell them how you want to be paid.',
-  'app.lic.next.i.check': 'Check their statement for {period}, then accept or dispute it.',
+  'app.lic.next.i.check': 'Check their report for {period}, then accept it or ask them to fix it.',
   'app.lic.next.i.confirm': 'They say they paid {amount} {currency} for {period}. Check it arrived, then confirm.',
   'app.lic.next.i.waitPay': 'Waiting for them to pay {amount} {currency}.',
-  'app.lic.next.i.disputed': 'You disputed {period}. Waiting for a corrected statement.',
-  'app.lic.next.i.nothing': 'Nothing to do. They file a statement for each period.',
+  'app.lic.next.i.disputed': 'You asked them to fix {period}. Waiting for a corrected report.',
+  'app.lic.next.i.nothing': 'Nothing to do. They send a report for each period.',
   'app.lic.next.l.payOnChain': 'Pay {amount} {currency} on Midnight from your wallet: tap “Pay … with” below.',
-  'app.lic.next.l.pay': 'Pay {amount} {currency} by {method} to {account}, then tap “I paid it”.',
-  'app.lic.next.l.waitPayout': 'They accepted your statement. Waiting for them to say how they want to be paid.',
-  'app.lic.next.l.disputed': 'They disputed {period}. File a corrected statement.',
-  'app.lic.next.l.disputedNote': 'They disputed {period}: “{note}”. File a corrected statement.',
-  'app.lic.next.l.waitCheck': 'Waiting for them to check your statement for {period}.',
+  'app.lic.next.l.pay': 'Pay {amount} {currency} by {method} to {account}, then tap “I paid”.',
+  'app.lic.next.l.waitPayout': 'They accepted your report. Waiting for them to say how they want to be paid.',
+  'app.lic.next.l.disputed': 'They asked you to fix {period}. Send a corrected report.',
+  'app.lic.next.l.disputedNote': 'They asked you to fix {period}: “{note}”. Send a corrected report.',
+  'app.lic.next.l.waitCheck': 'Waiting for them to check your report for {period}.',
   'app.lic.next.l.waitConfirm': 'Waiting for them to confirm your payment arrived.',
-  'app.lic.next.l.file': 'File your statement when the period ends.',
+  'app.lic.next.l.file': 'Send your report when the period ends.',
   'app.lic.lend.title': 'Record a claim as a lender',
   'app.lic.lend.intro':
     "Lending against a breeder's record or license? Record on Midnight that the record is pledged to you, so it can't quietly be pledged twice. The holder accepts it from their own device, and only you can release it. It isn't a legal filing: file your own paperwork as usual.",

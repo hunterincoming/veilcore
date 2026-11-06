@@ -193,7 +193,7 @@ export const strain = {
     'Si une souche est enregistrée plus tard avec {name} comme parent et que les deux détenteurs le confirment, le lien vers ce contrat apparaît dans son enregistrement. Les souches dérivées que personne n’enregistre ne sont pas détectées.',
   'app.strain.v.app.lic.detail.derivatives.one': '{count} souche déjà enregistrée en descend.',
   'app.strain.v.app.lic.detail.derivatives.other': '{count} souches déjà enregistrées en descendent.',
-  'app.strain.v.app.lic.off.title': 'Redevance sur les souches dérivées : {pct} %',
+  'app.strain.v.app.lic.off.title': 'Redevance sur les souches dérivées : {pct}',
   'app.strain.v.app.lic.off.intro':
     'Sur Midnight, elle figure sur l’enregistrement que le licencié a de cette souche, donc chaque souche dérivée que les deux détenteurs confirment l’affiche quand quelqu’un vérifie la lignée. Le licencié l’accepte ; seul le concédant peut la lever.',
   'app.strain.v.app.lic.off.dateFirst':
