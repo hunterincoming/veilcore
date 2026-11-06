@@ -187,8 +187,7 @@ export const licensing = {
   'app.lic.f.b.dose': '1回分あたり（ストローまたは胚）',
   'app.lic.f.b.offspring': '産子1頭あたり',
   'app.lic.f.b.batch': '生産ロットあたり',
-  'app.lic.f.offspringHelp':
-    'この記録から申告された子孫（この記録を親として記録され、双方の保有者が確認したもの）に適用されます。申告されない増殖は検出されません。なければ空欄にしてください。',
+  'app.lic.f.offspringHelp': 'この株から育ったとVeilCoreに記録された株だけを数えます。なければ空欄にしてください。',
   'app.lic.f.sublicense': 'サブライセンス可',
   'app.lic.f.exclusive': '独占',
   'app.lic.f.extraHelpDeal': '取引に含まれるその他のことを、あなた自身の言葉で。',

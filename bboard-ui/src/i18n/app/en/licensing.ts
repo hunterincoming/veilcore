@@ -195,8 +195,7 @@ export const licensing = {
   'app.lic.f.b.dose': 'Per dose (straw or embryo)',
   'app.lic.f.b.offspring': 'Per offspring born',
   'app.lic.f.b.batch': 'Per production batch',
-  'app.lic.f.offspringHelp':
-    'Applies to descendants declared from this record (logged with it as a parent, both holders confirming). Undeclared propagation is not detected. Leave blank if none.',
+  'app.lic.f.offspringHelp': 'Only counts plants recorded in VeilCore as grown from this one. Leave blank if none.',
   'app.lic.f.sublicense': 'Can sublicense',
   'app.lic.f.exclusive': 'Exclusive',
   'app.lic.f.extraHelpDeal': 'Anything else that’s part of the deal, in your own words.',

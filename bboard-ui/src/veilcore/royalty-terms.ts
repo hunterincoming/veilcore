@@ -146,7 +146,16 @@ export const hasOffspringRoyalty = (t: Partial<LicenseTerms> | undefined): boole
  * The deal's currency. Old terms named none: their form asked for a flat fee in "$", so they are
  * read as US dollars. A reading, not a value written into them.
  */
-export const currencyOf = (t: Partial<LicenseTerms> | undefined): string => t?.currency ?? 'USD';
+export const currencyOf = (t: Partial<LicenseTerms> | undefined, fallback?: string): string =>
+  t?.currency ?? fallback ?? 'USD';
+
+/**
+ * Old terms with the currency the deal was actually paid in (review round 1, 5): their reports took
+ * the licensor's payout currency (EUR, tNIGHT, ...), so that is read before US dollars. In memory,
+ * for the ledger: nothing is written into the terms.
+ */
+export const withDealCurrency = <T extends Partial<LicenseTerms>>(t: T, payoutCurrency?: string): T =>
+  t.currency || !payoutCurrency ? t : { ...t, currency: payoutCurrency };
 
 /** The reporting schedule, or undefined for old terms (each statement then names its own dates). */
 export const scheduleOf = (t: Partial<LicenseTerms> | undefined): Reporting | undefined => t?.reporting;
@@ -402,16 +411,26 @@ export const ruleText = (r: RoyaltyRule, currency: string, tr: Translator = enT)
  * The deal in one paragraph, every value in it (design v3, 1): shown on the form before saving
  * and to the licensee before they agree. Old terms say only what they hold.
  */
-export const termsSentence = (t: LicenseTerms, tr: Translator, rightsWords: string): string => {
+/** A calendar date as people read it, in the reader's language ("Nov 6, 2026"): one format everywhere. */
+export const dateWords = (day: string, tr: Translator): string =>
+  /^\d{4}-\d{2}-\d{2}$/.test(day)
+    ? tr.date(`${day}T12:00:00`, { day: 'numeric', month: 'short', year: 'numeric' })
+    : day;
+
+export const termsSentence = (t: LicenseTerms, tr: Translator): string => {
   const currency = currencyOf(t);
   const parts: string[] = [];
+  const names = {
+    licensee: t.licensee || tr.t('app.roy.who.licensee'),
+    licensor: t.licensor || tr.t('app.roy.who.licensor'),
+  };
   parts.push(
     tr.t(t.exclusive ? 'app.roy.s.grantEx' : 'app.roy.s.grant', {
-      who: t.licensee || '—',
-      rights: rightsWords,
+      who: names.licensee,
+      rights: tr.t(`app.roy.rights.${t.rights}` as AppKey),
       where: t.territory || tr.t('app.roy.s.anywhere'),
-      from: t.startDate || '—',
-      to: t.endDate || '—',
+      from: t.startDate ? dateWords(t.startDate, tr) : '—',
+      to: t.endDate ? dateWords(t.endDate, tr) : '—',
     }),
   );
   parts.push(tr.t(t.sublicensable ? 'app.roy.s.subYes' : 'app.roy.s.subNo'));
@@ -446,11 +465,12 @@ export const termsSentence = (t: LicenseTerms, tr: Translator, rightsWords: stri
       }),
     );
   }
-  if (t.bankFees) parts.push(tr.t(`app.roy.s.fees.${t.bankFees}` as AppKey));
+  if (t.bankFees) parts.push(tr.t(`app.roy.s.fees.${t.bankFees}` as AppKey, names));
   if (t.fxSource) parts.push(tr.t('app.roy.s.fx', { source: t.fxSource }));
   if (t.recordsYears)
     parts.push(
       tr.t('app.roy.s.records', {
+        ...names,
         years: tr.tp('app.roy.years', t.recordsYears),
         days: tr.tp('app.roy.days', t.checkNoticeDays ?? 0),
       }),

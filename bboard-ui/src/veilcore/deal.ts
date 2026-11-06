@@ -22,7 +22,7 @@ import { ed25519, x25519 } from '@noble/curves/ed25519.js';
 import { hkdf } from '@noble/hashes/hkdf.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { canonicalise } from 'veilcore-records';
-import { isDecimal, sumAmounts } from './money';
+import { currencyDigits, isDecimal, sumAmounts } from './money';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const hex = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
@@ -334,7 +334,10 @@ export const wellFormed = (m: unknown, now = Date.now()): m is DealMessage => {
   const plain = (v: unknown) => typeof v === 'object' && v !== null && !Array.isArray(v);
   const optDec = (v: unknown) => v === undefined || dec(v);
   const optSig = (v: unknown) => v === undefined || sig(v);
-  const line = (v: unknown): boolean => {
+  /** An amount as the published checker reads it (no leading zeros), in at most the currency's digits. */
+  const money = (v: unknown, digits: number) =>
+    dec(v) && /^(0|[1-9][0-9]*)(\.[0-9]+)?$/.test(v as string) && ((v as string).split('.')[1] ?? '').length <= digits;
+  const line = (v: unknown, digits: number): boolean => {
     if (!plain(v)) return false;
     const l = v as Record<string, unknown>;
     const known = ['kind', 'quantity', 'rate', 'gross', 'deducted', 'amount'];
@@ -345,13 +348,14 @@ export const wellFormed = (m: unknown, now = Date.now()): m is DealMessage => {
       opt(l.rate, 40) &&
       optDec(l.gross) &&
       optDec(l.deducted) &&
-      dec(l.amount)
+      money(l.amount, digits)
     );
   };
   /** Lines, when there are any: well formed, and adding up to the amount owed to the last digit. */
-  const linesSumTo = (v: unknown, owed: unknown): boolean => {
+  const linesSumTo = (v: unknown, owed: unknown, currency: unknown): boolean => {
     if (v === undefined) return true;
-    if (!Array.isArray(v) || v.length === 0 || v.length > 12 || !v.every(line)) return false;
+    const digits = currencyDigits(typeof currency === 'string' ? currency : undefined);
+    if (!Array.isArray(v) || v.length === 0 || v.length > 12 || !v.every((l) => line(l, digits))) return false;
     const amounts = (v as { amount: string }[]).map((l) => l.amount);
     const places = Math.max(0, ...[...amounts, owed as string].map((a) => (a.split('.')[1] ?? '').length));
     if (places > 8) return false;
@@ -408,7 +412,7 @@ export const wellFormed = (m: unknown, now = Date.now()): m is DealMessage => {
         text(o.currency, 10) &&
         dec(o.amountOwed) &&
         opt(o.note) &&
-        linesSumTo(o.lines, o.amountOwed) &&
+        linesSumTo(o.lines, o.amountOwed, o.currency) &&
         optDec(o.taxWithheld) &&
         opt(o.taxNote, 300) &&
         optSig(o.replaces) &&
