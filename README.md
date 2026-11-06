@@ -56,7 +56,7 @@ Build fingerprints: [docs/fingerprints.md](docs/fingerprints.md).
   and reports signed with the lab's own key; choosing what a record's check page shows; check
   pages that read the date from Midnight themselves. No wallet needed: VeilCore's fee service
   pays the network fee for what the browser sends.
-- **Licenses and royalties: live on veilcore.org.** A breeder licenses a record to a grower
+- **Licenses and royalties: switched on at veilcore.org.** A breeder licenses a record to a grower
   with real transactions: two devices, a 6-digit code read
   aloud, a private signed channel per deal for terms and royalty statements, payment straight
   from payer to payee or through a payment partner (VeilCore never holds money; paying in NIGHT
