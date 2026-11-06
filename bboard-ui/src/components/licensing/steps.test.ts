@@ -51,7 +51,7 @@ describe('royalties: the one next thing', () => {
     // Newest first, as ledgerOf gives them: the oldest unchecked one is asked about.
     const lines = [{ statement: st('2026-09-01', '2026-09-30') }, { statement: st('2026-08-01', '2026-08-31') }];
     expect(nextRoyaltyStep('issuer', lines, PAYOUT).text).toBe(
-      'Check their statement for 2026-08-01 to 2026-08-31, then accept or dispute it.',
+      'Check their report for 2026-08-01 to 2026-08-31, then accept it or ask them to fix it.',
     );
     const paid = [
       {
@@ -69,19 +69,19 @@ describe('royalties: the one next thing', () => {
       /^They say they paid 500.00 USD for 2026-08-01/,
     );
     expect(nextRoyaltyStep('issuer', [{ ...paid[0], received: {} }], PAYOUT).text).toBe(
-      'Nothing to do. They file a statement for each period.',
+      'Nothing to do. They send a report for each period.',
     );
   });
 
   it('the licensee: pay what was accepted, fix what was disputed, else file', () => {
     expect(nextRoyaltyStep('licensee', [], undefined)).toEqual({
-      text: 'File your statement when the period ends.',
+      text: 'Send your report when the period ends.',
       yours: true,
       file: true,
     });
     const accepted = [{ statement: st('2026-08-01', '2026-08-31'), reply: { decision: 'accepted' } }];
     expect(nextRoyaltyStep('licensee', accepted, PAYOUT)).toEqual({
-      text: 'Pay 500.00 USD by bank transfer to Practice Bank 0001, then tap “I paid it”.',
+      text: 'Pay 500.00 USD by bank transfer to Practice Bank 0001, then tap “I paid”.',
       yours: true,
     });
     expect(nextRoyaltyStep('licensee', accepted, undefined).yours).toBe(false);
@@ -89,18 +89,18 @@ describe('royalties: the one next thing', () => {
       { statement: st('2026-08-01', '2026-08-31'), reply: { decision: 'disputed', note: 'sales were higher' } },
     ];
     expect(nextRoyaltyStep('licensee', disputed, PAYOUT).text).toBe(
-      'They disputed 2026-08-01 to 2026-08-31: “sales were higher”. File a corrected statement.',
+      'They asked you to fix 2026-08-01 to 2026-08-31: “sales were higher”. Send a corrected report.',
     );
     // Once a corrected statement for those days is filed, the dispute is answered.
     const refiled = [{ statement: st('2026-08-01', '2026-08-31', '600.00') }, ...disputed];
     expect(nextRoyaltyStep('licensee', refiled, PAYOUT).text).toBe(
-      'Waiting for them to check your statement for 2026-08-01 to 2026-08-31.',
+      'Waiting for them to check your report for 2026-08-01 to 2026-08-31.',
     );
     expect(nextRoyaltyStep('issuer', refiled, PAYOUT).text).toBe(
-      'Check their statement for 2026-08-01 to 2026-08-31, then accept or dispute it.',
+      'Check their report for 2026-08-01 to 2026-08-31, then accept it or ask them to fix it.',
     );
     expect(nextRoyaltyStep('licensee', [{ statement: st('2026-08-01', '2026-08-31') }], PAYOUT)).toEqual({
-      text: 'Waiting for them to check your statement for 2026-08-01 to 2026-08-31.',
+      text: 'Waiting for them to check your report for 2026-08-01 to 2026-08-31.',
       yours: false,
     });
   });

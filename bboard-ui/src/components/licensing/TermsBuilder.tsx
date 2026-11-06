@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useState } from 'react';
-import { Box, Button, Divider, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Collapse, Divider, Stack, TextField, Typography } from '@mui/material';
 import { useNavigate, useParams, useSearchParams, Link as RouterLink } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import { getRecord } from '../../veilcore/records';
@@ -13,6 +13,7 @@ import { isStrain } from '../../veilcore/strain-profile';
 import { useT } from '../../i18n/app';
 import { forKind, type RecordKind } from '../../i18n/translate';
 import {
+  subjectOf,
   sealAgreement,
   createLicense,
   renewLicense,
@@ -31,6 +32,53 @@ import { AppHeader } from '../AppHeader';
 import { AGREEMENTS_REAL } from '../../veilcore/agreements-real';
 import { AgreementTermsFields, emptyTermsFor, type SetTerm } from './LicenseTermsFields';
 import { AgreementTypeChip } from './AgreementTypeChip';
+import {
+  applyPreset,
+  currencyForLocale,
+  lawForLocale,
+  PRESETS_FOR,
+  ruleOf,
+  termsProblems,
+  termsToSeal,
+  type PresetId,
+} from '../../veilcore/royalty-terms';
+import {
+  AmountField,
+  FullLicenseFields,
+  LawField,
+  MoneyTermsFields,
+  PresetPicker,
+  TermsSummaryLine,
+} from './RoyaltyTermsForm';
+import type { AppKey } from '../../i18n/app/en';
+
+/**
+ * Cannabis records (design v3, 1 and 10): the territory is required, and the licensor's own
+ * payment link isn't offered. A plant sealed before profiles existed was sealed as cannabis.
+ */
+export const isCannabisRecord = (r: { profile?: string; taxon?: string } | undefined): boolean =>
+  Boolean(r && (!r.profile || /cannabis|hemp|marijuana/i.test(r.taxon ?? '')));
+
+/** The browser's own locale (navigator.language), for a first guess at currency and law. */
+const browserLocale = (): string | undefined => {
+  try {
+    return typeof navigator === 'undefined' ? undefined : navigator.language;
+  } catch {
+    return undefined;
+  }
+};
+
+/** A renewal of terms made before the royalty fields: the same deal, written out in them. */
+const asNewTerms = (t: LicenseTerms, ctx: { currency: string; governingLaw: string }): LicenseTerms => {
+  if (t.royalty) return t;
+  const rule = ruleOf(t);
+  const base = applyPreset('custom', t, { kind: subjectOf(t), ...ctx });
+  return rule?.kind === 'per-unit' && ['plant', 'cutting', 'dose', 'offspring', 'batch'].includes(rule.unit)
+    ? { ...base, royalty: { ...rule, unitDefinition: '' } }
+    : rule?.kind === 'percent'
+      ? { ...base, royalty: { kind: 'percent', rate: rule.rate, base: 'gross' } }
+      : base;
+};
 
 const isType = (v: string | null): v is AgreementType =>
   v === 'license' || v === 'lab-transfer' || v === 'breeder-share';
@@ -52,11 +100,41 @@ export const TermsBuilder: React.FC = () => {
   // plant is cultivated and propagated, an animal bred and its semen or embryos collected, a
   // strain used, subcultured and the source of derived strains.
   const kind: RecordKind = isAnimal(record) ? 'animal' : isStrain(record) ? 'strain' : 'plant';
-  const [t, setT] = useState<LicenseTerms>(prior?.terms ?? emptyTermsFor(type, kind));
+  const tr = forKind(useT(), kind);
+  const locale = browserLocale();
+  const guess = { currency: currencyForLocale(locale), governingLaw: lawForLocale(locale, tr.locale) };
+  const presets = PRESETS_FOR[kind];
+  // A license is made from a preset (or Custom, the full form). A kind with only Custom opens on it.
+  const [preset, setPreset] = useState<PresetId | undefined>(
+    prior ? 'custom' : type === 'license' && presets.length === 1 ? 'custom' : undefined,
+  );
+  const [details, setDetails] = useState(Boolean(prior) || (type === 'license' && presets.length === 1));
+  const [t, setT] = useState<LicenseTerms>(() => {
+    const start = prior?.terms ?? emptyTermsFor(type, kind);
+    const named = { ...start, licensor: start.licensor ?? record?.bredBy ?? '' };
+    if (type === 'breeder-share')
+      return {
+        ...named,
+        currency: guess.currency,
+        governingLaw: guess.governingLaw,
+        reporting: { every: 'quarter', reportDueDays: 30, paymentDueDays: 14 },
+        bankFees: 'each-own',
+        recordsYears: 3,
+        checkNoticeDays: 30,
+      };
+    if (type !== 'license') return named;
+    if (prior) return asNewTerms(named, guess);
+    return presets.length === 1 ? applyPreset('custom', named, { kind, ...guess, tr }) : named;
+  });
   const [busy, setBusy] = useState(false);
   const set: SetTerm = (k, v) => setT((p) => ({ ...p, [k]: v }));
-  const tr = forKind(useT(), kind);
   const blocked = useAgreementsWaitForBackup();
+  const cannabis = kind === 'plant' && isCannabisRecord(record);
+  const pick = (id: PresetId) => {
+    setPreset(id);
+    setT((p) => applyPreset(id, p, { kind, ...guess, tr }));
+    if (id === 'custom') setDetails(true);
+  };
 
   if (!record) {
     return (
@@ -70,23 +148,61 @@ export const TermsBuilder: React.FC = () => {
     );
   }
 
-  // A commercial license needs a royalty amount; the others just need a counterparty.
-  const canSave =
-    type === 'license' ? Boolean(t.licensee.trim() && t.royaltyAmount.trim()) : Boolean(t.licensee.trim());
+  // A breeder share with a royalty on offspring carries the same money terms as a license.
+  const shareMoney = type === 'breeder-share' && (Number(t.offspringRoyaltyPct) || 0) > 0;
+  const toSeal = (): LicenseTerms => {
+    if (type === 'breeder-share' && !shareMoney) {
+      // A free share keeps the shape it always had: none of the money terms.
+      const {
+        currency: _c,
+        governingLaw: _g,
+        reporting: _r,
+        bankFees: _b,
+        recordsYears: _y,
+        checkNoticeDays: _n,
+        fxSource: _f,
+        disputes: _d,
+        yearlyMinimum: _m,
+        licensor: _l,
+        ...rest
+      } = t;
+      void [_c, _g, _r, _b, _y, _n, _f, _d, _m, _l];
+      return rest;
+    }
+    return termsToSeal(
+      shareMoney
+        ? { ...t, offspring: { rule: { kind: 'percent', rate: t.offspringRoyaltyPct ?? '', base: 'gross' } } }
+        : t,
+    );
+  };
+  // A commercial license needs its royalty and the money terms; the others just need a counterparty.
+  const problems =
+    type === 'license'
+      ? preset
+        ? termsProblems(t, { territoryRequired: cannabis })
+        : ['preset']
+      : shareMoney && !t.governingLaw?.trim()
+        ? ['law']
+        : t.licensee.trim()
+          ? []
+          : ['licensee'];
+  const canSave = problems.length === 0;
 
   const onSave = async () => {
     if (!canSave || blocked) return;
     setBusy(true);
     try {
-      const { agreementFingerprint, agreementSalt } = await sealAgreement(type, t, record.recordFingerprint);
+      // Presets are expanded already: what is sealed is every value, as shown (royalty-terms.ts).
+      const terms = toSeal();
+      const { agreementFingerprint, agreementSalt } = await sealAgreement(type, terms, record.recordFingerprint);
       const lic = supersedeId
-        ? renewLicense(supersedeId, t, agreementFingerprint, agreementSalt)
+        ? renewLicense(supersedeId, terms, agreementFingerprint, agreementSalt)
         : createLicense({
             type,
             recordId: record.id,
             recordFingerprint: record.recordFingerprint,
             dnaFingerprint: record.dnaFingerprint,
-            terms: t,
+            terms,
             agreementFingerprint,
             agreementSalt,
           });
@@ -138,7 +254,56 @@ export const TermsBuilder: React.FC = () => {
         </Typography>
       )}
 
-      <AgreementTermsFields type={type} terms={t} set={set} />
+      {type === 'license' ? (
+        <Stack spacing={2.5}>
+          {!prior && presets.length > 1 && <PresetPicker kind={kind} picked={preset} onPick={pick} />}
+          {preset && !details && (
+            <Stack spacing={2.5} data-quick-terms="">
+              <TextField
+                label={tr.t('app.lic.f.licensee')}
+                helperText={tr.t('app.lic.f.licenseeHelp')}
+                value={t.licensee}
+                onChange={(e) => set('licensee', e.target.value)}
+                fullWidth
+              />
+              <AmountField terms={t} set={set} tr={tr} />
+              {cannabis && (
+                <TextField
+                  label={tr.t('app.lic.f.territory')}
+                  placeholder={tr.t('app.lic.f.territoryPh')}
+                  helperText={tr.t('app.roy.f.territoryRequired')}
+                  required
+                  value={t.territory}
+                  onChange={(e) => set('territory', e.target.value)}
+                  fullWidth
+                />
+              )}
+              <LawField terms={t} set={set} tr={tr} />
+            </Stack>
+          )}
+          {preset && (
+            <Box>
+              <Button size="small" onClick={() => setDetails(!details)} aria-expanded={details} data-edit-details="">
+                {details ? tr.t('app.roy.f.hide') : tr.t('app.roy.f.edit')}
+              </Button>
+              <Collapse in={details} unmountOnExit>
+                <Box sx={{ pt: 1.5 }}>
+                  <FullLicenseFields terms={t} set={set} territoryRequired={cannabis} />
+                </Box>
+              </Collapse>
+            </Box>
+          )}
+          {preset && <TermsSummaryLine terms={t} kind={kind} />}
+        </Stack>
+      ) : (
+        <AgreementTermsFields type={type} terms={t} set={set} />
+      )}
+      {shareMoney && (
+        <Stack spacing={2} sx={{ mt: 3 }} data-share-money="">
+          <Typography variant="overline">{tr.t('app.roy.f.moneyTitle')}</Typography>
+          <MoneyTermsFields terms={t} set={set} tr={tr} />
+        </Stack>
+      )}
 
       {SHOW_VEILCORE_FEE && hasVeilcoreFee(type, t) && (
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
@@ -147,6 +312,13 @@ export const TermsBuilder: React.FC = () => {
       )}
 
       <Divider sx={{ my: 3 }} />
+      {problems.length > 0 && preset && (
+        <Alert severity="info" variant="outlined" sx={{ mb: 2 }} data-still-needed="">
+          {tr.t('app.roy.f.missing', {
+            what: problems.map((p) => tr.t(`app.roy.f.need.${p}` as AppKey)).join(', '),
+          })}
+        </Alert>
+      )}
       <Box>
         <Button variant="contained" size="large" disabled={busy || !canSave || blocked} onClick={onSave}>
           {saveLabel}

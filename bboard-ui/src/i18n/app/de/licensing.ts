@@ -411,7 +411,7 @@ export const licensing = {
     'Auf Midnight geprüft: {amount} {code} sind in Transaktion {tx}, Block {block}, an Ihre Adresse gegangen. Gelesen vom Midnight-Indexer, nicht von der anderen Seite oder von VeilCore.',
   'app.lic.pay.checked':
     'Auf Midnight geprüft: {amount} {code} sind in Transaktion {tx} an Ihre Adresse gegangen. Gelesen vom Midnight-Indexer, nicht von der anderen Seite oder von VeilCore.',
-  'app.lic.off.title': 'Lizenzgebühr auf Nachkommen: {pct} %',
+  'app.lic.off.title': 'Lizenzgebühr auf Nachkommen: {pct}',
   'app.lic.off.intro':
     'Auf Midnight liegt sie auf dem eigenen Datensatz des Lizenznehmers für diese Pflanze, sodass jeder Nachkomme, den beide Inhaber bestätigen, sie zeigt, wenn jemand die Linie prüft. Der Lizenznehmer nimmt sie an; nur der Züchter kann sie aufheben.',
   'app.lic.off.dateFirst': 'Datieren Sie zuerst Ihre Pflanze mit dieser Genetik und nennen Sie sie dann hier.',
@@ -526,7 +526,12 @@ export const licensing = {
   'app.lic.real.issued':
     'Auf Midnight ausgestellt. Warten, bis {who} die Bedingungen liest, zustimmt und aktiviert: Der Link zeigt, wie. Diese Seite liest die Chain selbst und geht weiter, sobald das geschieht.',
   'app.lic.real.copyAgain': 'Link erneut kopieren',
-  'app.lic.real.resend': 'Nicht angekommen? Erneut senden',
+  'app.lic.real.resend': 'Ausstellungsmitteilung erneut senden',
+  'app.lic.real.resendFailed': 'Die Ausstellungsmitteilung konnte nicht gesendet werden: {error}',
+  'app.lic.code.making': 'Ihr Code wird erstellt, das dauert ein paar Sekunden.',
+  'app.lic.inv.notThisDevice':
+    'Dieses Telefon oder dieser Browser hat nicht die Kopie, die diesen Link angenommen hat. Wenn Sie ihn hier schon angenommen haben, stellen Sie Ihre Sicherungskopie wieder her und öffnen Sie den Link dann erneut.',
+  'app.lic.inv.restore': 'Sicherungskopie wiederherstellen',
   'app.lic.real.cancel': 'Stornieren',
   'app.lic.real.cancelQ':
     'Diese Lizenz stornieren? Die andere Seite kann sie dann nicht aktivieren. Dies wird auf Midnight erfasst und lässt sich nicht rückgängig machen.',
@@ -724,24 +729,25 @@ export const licensing = {
   'app.lic.handon.steps.n.wait': 'Der jetzige Inhaber gibt sie weiter und der Lizenzgeber stimmt zu',
   'app.lic.next.period': 'den Zeitraum {from} bis {to}',
   'app.lic.next.i.payout': 'Geben Sie an, wie Sie bezahlt werden möchten.',
-  'app.lic.next.i.check': 'Prüfen Sie die Abrechnung für {period} und nehmen Sie sie an oder beanstanden Sie sie.',
+  'app.lic.next.i.check': 'Prüfen Sie den Bericht für {period}, dann nehmen Sie ihn an oder bitten um Korrektur.',
   'app.lic.next.i.confirm':
     'Die andere Seite gibt an, {amount} {currency} für {period} bezahlt zu haben. Prüfen Sie den Eingang und bestätigen Sie dann.',
   'app.lic.next.i.waitPay': 'Warten auf die Zahlung von {amount} {currency}.',
-  'app.lic.next.i.disputed': 'Sie haben {period} beanstandet. Warten auf eine korrigierte Abrechnung.',
-  'app.lic.next.i.nothing': 'Nichts zu tun. Die andere Seite reicht für jeden Zeitraum eine Abrechnung ein.',
+  'app.lic.next.i.disputed': 'Sie haben um Korrektur von {period} gebeten. Warten auf einen korrigierten Bericht.',
+  'app.lic.next.i.nothing': 'Nichts zu tun. Die andere Seite sendet je Zeitraum einen Bericht.',
   'app.lic.next.l.payOnChain':
     'Zahlen Sie {amount} {currency} auf Midnight aus Ihrem Wallet: Tippen Sie unten auf „… zahlen“.',
   'app.lic.next.l.pay':
-    'Zahlen Sie {amount} {currency} per {method} an {account} und tippen Sie dann auf „Ich habe bezahlt“.',
+    'Zahlen Sie {amount} {currency} per {method} an {account}, dann tippen Sie auf „Ich habe bezahlt“.',
   'app.lic.next.l.waitPayout':
-    'Ihre Abrechnung wurde angenommen. Warten, bis die andere Seite angibt, wie sie bezahlt werden möchte.',
-  'app.lic.next.l.disputed': 'Die andere Seite hat {period} beanstandet. Reichen Sie eine korrigierte Abrechnung ein.',
+    'Ihr Bericht wurde angenommen. Warten, bis die andere Seite angibt, wie sie bezahlt werden möchte.',
+  'app.lic.next.l.disputed':
+    'Die andere Seite bittet um Korrektur von {period}. Senden Sie einen korrigierten Bericht.',
   'app.lic.next.l.disputedNote':
-    'Die andere Seite hat {period} beanstandet: „{note}“. Reichen Sie eine korrigierte Abrechnung ein.',
-  'app.lic.next.l.waitCheck': 'Warten, bis die andere Seite Ihre Abrechnung für {period} prüft.',
+    'Die andere Seite bittet um Korrektur von {period}: „{note}“. Senden Sie einen korrigierten Bericht.',
+  'app.lic.next.l.waitCheck': 'Warten, bis die andere Seite Ihren Bericht für {period} prüft.',
   'app.lic.next.l.waitConfirm': 'Warten, bis die andere Seite den Eingang Ihrer Zahlung bestätigt.',
-  'app.lic.next.l.file': 'Reichen Sie Ihre Abrechnung ein, wenn der Zeitraum endet.',
+  'app.lic.next.l.file': 'Senden Sie Ihren Bericht, wenn der Zeitraum endet.',
   'app.lic.lend.title': 'Einen Anspruch als Kreditgeber erfassen',
   'app.lic.lend.intro':
     'Sie geben einen Kredit gegen den Datensatz oder die Lizenz eines Züchters? Erfassen Sie auf Midnight, dass der Datensatz Ihnen verpfändet ist, damit er nicht unbemerkt zweimal verpfändet wird. Der Inhaber nimmt den Anspruch auf seinem eigenen Gerät an, und nur Sie können ihn aufheben. Es ist keine rechtliche Eintragung: Reichen Sie Ihre eigenen Unterlagen wie gewohnt ein.',
