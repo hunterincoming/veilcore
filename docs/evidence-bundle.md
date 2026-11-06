@@ -34,6 +34,7 @@ One folder, `VEIL-…-evidence/`:
 | `proof/batch-root.txt`, `proof/root.bin` | The batch root, as text and as the 32 bytes the Bitcoin stamp covers. |
 | `proof/anchors.json` | Where the batch root was recorded (network, contract, transaction, block), and any earlier anchor the batch had, as the registry reported them. |
 | `proof/root.bin.ots` | The batch's Bitcoin stamp file (OpenTimestamps), when the batch has one. |
+| `proof/root.tst` | The batch's RFC 3161 timestamp token from a Time Stamping Authority, when the batch has one and it checks against the root in the browser. Check with `openssl ts -verify -data root.bin -in root.tst -token_in -CAfile <the authority's chain>`. README.txt says which dates the bundle has, and to rely on the earliest one the reader checked. |
 | `lab/lab-report-pairing.json` | When a lab report is saved to the plant: the pairing fingerprint and the file's SHA-256. |
 | `lab/report/<file>` | The lab report file itself, **only if the holder ticks "Include the lab report file"** and picks it. The site checks it is the saved file first. |
 | `lab/signatures.json` | Lab signatures (receipts, lab reports) about this record's fingerprint. |

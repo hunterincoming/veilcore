@@ -86,6 +86,21 @@ export const bitcoinSteps = (pending: boolean): string[] => [
     (pending ? ' (run ots upgrade root.bin.ots first; that needs the internet once).' : '.'),
 ];
 
+/** How to check the RFC 3161 token, with any standard tool and no VeilCore. */
+export const tsaSteps = (t: {
+  genTime?: string;
+  tsa?: string;
+  signer?: string;
+  qualified?: { scheme: string; trustedList?: string };
+  requestedAfterSeal?: boolean;
+}): string[] => [
+  `The batch root was also stamped by a Time Stamping Authority${t.tsa ? ` (${oneLine(t.tsa)}, as VeilCore's registry reported it)` : ''}${t.signer ? `; the token names its signer as ${oneLine(t.signer)}` : ''}. The token is proof/root.tst; the file it stamps is proof/root.bin. It states the time ${t.genTime ?? '(not read)'}: it shows the batch root existed by that time, and nothing earlier.${t.requestedAfterSeal ? ' This token was asked for after the batch was sealed, so its time is later than the sealing.' : ''}`,
+  "With OpenSSL, in the proof folder: openssl ts -verify -data root.bin -in root.tst -token_in -CAfile <the authority's certificate chain>. It must print Verification: OK. Get the chain from the authority's own website, not from VeilCore.",
+  t.qualified
+    ? `VeilCore's registry stated this authority is qualified under ${oneLine(t.qualified.scheme)}${t.qualified.trustedList ? ` (${oneLine(t.qualified.trustedList)})` : ''}. Check the trusted list for ${oneLine(t.qualified.scheme)} yourself, for the date of the token.`
+    : 'VeilCore does not state this authority is qualified: its date counts as any signed timestamp does, without the legal presumption a qualified one carries in some countries.',
+];
+
 /**
  * Text someone else typed (a plant's name, a signer's name, a lab's notes), made safe to put
  * on one line of README.txt, the examiner summary or the declaration (round 2 of the 15 Oct

@@ -288,6 +288,13 @@ export const declarationText = async (
     '- US federal courts: Federal Rules of Evidence 902(13) and 902(14) let a record made by an electronic process, or data copied from a device or file and identified by its hash, be authenticated by a written certification of a qualified person instead of live testimony. The certification must meet Rule 902(11) or 902(12), and the other side must get reasonable written notice before the trial or hearing. It goes only to authenticity: the other side can still object on other grounds, such as hearsay or relevance. 28 U.S.C. 1746 gives the "under penalty of perjury" wording used above.',
     '- Vermont, 12 V.S.A. 1913: a record registered in a blockchain is self-authenticating with a written declaration, made under oath, of a qualified person stating their qualification, when the record entered the blockchain, when it was received from it, and that it was kept and made as a regular practice. The presumptions it gives do not cover whether the contents of the record are true.',
     '- European Union: under eIDAS (Regulation 910/2014, Article 41) only a qualified electronic time stamp, from a qualified trust service provider, is presumed accurate. The Midnight transaction and the Bitcoin stamp in this bundle are not qualified time stamps. A court may still accept them, and weighs them case by case with the rest of the evidence.',
+    ...(ev.batch?.rfc3161?.available
+      ? [
+          ev.batch.rfc3161.qualified
+            ? `- The bundle also has an RFC 3161 time stamp token (proof/root.tst) from an authority VeilCore's registry stated is qualified under ${t(ev.batch.rfc3161.qualified.scheme)}. Check the trusted list yourself for the token's date before relying on that; only then does the presumption apply.`
+            : '- The bundle also has an RFC 3161 time stamp token (proof/root.tst). VeilCore does not state its authority is qualified, so it carries no presumption: it is weighed like the other dates.',
+        ]
+      : []),
     '- Courts look closely at how a sample or document was taken, sealed and kept (its chain of custody). Say who took and sealed the sample, and who saw it, if anyone did.',
     '- Sources and plain-English background: docs/evidence-in-practice.md in the VeilCore repository.',
     '',
