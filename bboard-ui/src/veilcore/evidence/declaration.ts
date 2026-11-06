@@ -137,13 +137,31 @@ export const declarationText = async (
     '',
     'I, [full name], declare:',
     '',
-    `1. Who I am. I am [of legal age]. I live or work in [city, country]. I [bred / hold / keep the breeding records for] the ${subject === 'animal' ? 'animal' : subject === 'strain' ? 'strain or line' : 'plant material'} this record describes. [My role, for example: breeder; I run ___; employee of ___ working as ___.] I know the facts below myself [or: I know them because ___].`,
+    subject === 'document'
+      ? `1. Who I am. I am [of legal age]. I live or work in [city, country]. I [hold / keep the records of ___, which holds] the document this record describes. [My role, for example: secretary of ___; I run ___; employee of ___ working as ___.] I know the facts below myself [or: I know them because ___].`
+      : `1. Who I am. I am [of legal age]. I live or work in [city, country]. I [bred / hold / keep the breeding records for] the ${subject === 'animal' ? 'animal' : subject === 'strain' ? 'strain or line' : 'plant material'} this record describes. [My role, for example: breeder; I run ___; employee of ___ working as ___.] I know the facts below myself [or: I know them because ___].`,
     '',
     `2. The record. On or about [date], I [or: ___, acting for me,] made an electronic record of the ${subject} "${name}" on the VeilCore website at [web address], using [device and browser]. The website sealed the record on that device. Its record ID is ${t(ev.record.id)}. Its proof code is:`,
     `   ${t(ev.record.fingerprint)}`,
     `   The sealing time inside the record, by that device's clock, is ${utcWords(ev.record.sealedAtDeviceClock) ?? t(ev.record.sealedAtDeviceClock)}. The record's contents, exactly as sealed, are in record/sealed-fields.json in the bundle and are shown in EXAMINER-SUMMARY.html. [I typed them myself / ___ typed them from ___.] [They were true to the best of my knowledge when they were typed.]`,
-    '',
   );
+  // A document record seals its files by SHA-256: the declarant says which files they are.
+  const sealedFiles = subject === 'document' && Array.isArray(fields.files) ? fields.files : [];
+  if (sealedFiles.length) {
+    add(
+      `   The record seals ${sealedFiles.length === 1 ? 'this file' : 'these files'} by SHA-256, name and size (the file${sealedFiles.length === 1 ? ' itself is' : 's themselves are'} not in the record):`,
+    );
+    for (const f of sealedFiles) {
+      const o = typeof f === 'object' && f !== null ? (f as Record<string, unknown>) : {};
+      add(
+        `   - ${t(typeof o.name === 'string' ? o.name : '[no name]')}, ${typeof o.size === 'number' ? `${o.size} bytes` : '[size]'}, SHA-256 ${t(typeof o.sha256 === 'string' ? o.sha256 : '[missing]')}`,
+      );
+    }
+    add(
+      '   [The file ___ is the document I sealed: I received it from ___ on ___ / I made it on ___. It has the SHA-256 above; I checked on [date] using [tool].]',
+    );
+  }
+  add('');
   if (ev.batch) {
     add(
       `3. How the record was dated. VeilCore's registry put the record's proof code in batch ${t(ev.batch.batchId)}. The batch root, one code that stands for every record in the batch, is:`,
@@ -176,6 +194,10 @@ export const declarationText = async (
   if (ev.labReport?.fileIncluded)
     add(
       `   I chose to include the lab report file ${t(ev.labReport.fileIncluded)}. [It is the file I received from [lab] on [date] by [email / ___].]`,
+    );
+  if (ev.documentFiles?.length)
+    add(
+      `   I chose to include a copy of ${ev.documentFiles.length === 1 ? 'the sealed file' : 'the sealed files'}: ${ev.documentFiles.map((d) => t(d.path)).join(', ')}. The website checked that each is byte for byte a file the record seals before putting it in.`,
     );
   if (ev.key) add("   I chose to include the record's key (key/key-binding.json).");
   add(
@@ -266,6 +288,13 @@ export const declarationText = async (
     '- US federal courts: Federal Rules of Evidence 902(13) and 902(14) let a record made by an electronic process, or data copied from a device or file and identified by its hash, be authenticated by a written certification of a qualified person instead of live testimony. The certification must meet Rule 902(11) or 902(12), and the other side must get reasonable written notice before the trial or hearing. It goes only to authenticity: the other side can still object on other grounds, such as hearsay or relevance. 28 U.S.C. 1746 gives the "under penalty of perjury" wording used above.',
     '- Vermont, 12 V.S.A. 1913: a record registered in a blockchain is self-authenticating with a written declaration, made under oath, of a qualified person stating their qualification, when the record entered the blockchain, when it was received from it, and that it was kept and made as a regular practice. The presumptions it gives do not cover whether the contents of the record are true.',
     '- European Union: under eIDAS (Regulation 910/2014, Article 41) only a qualified electronic time stamp, from a qualified trust service provider, is presumed accurate. The Midnight transaction and the Bitcoin stamp in this bundle are not qualified time stamps. A court may still accept them, and weighs them case by case with the rest of the evidence.',
+    ...(ev.batch?.rfc3161?.available
+      ? [
+          ev.batch.rfc3161.qualified
+            ? `- The bundle also has an RFC 3161 time stamp token (proof/root.tst) from an authority VeilCore's registry stated is qualified under ${t(ev.batch.rfc3161.qualified.scheme)}. Check the trusted list yourself for the token's date before relying on that; only then does the presumption apply.`
+            : '- The bundle also has an RFC 3161 time stamp token (proof/root.tst). VeilCore does not state its authority is qualified, so it carries no presumption: it is weighed like the other dates.',
+        ]
+      : []),
     '- Courts look closely at how a sample or document was taken, sealed and kept (its chain of custody). Say who took and sealed the sample, and who saw it, if anyone did.',
     '- Sources and plain-English background: docs/evidence-in-practice.md in the VeilCore repository.',
     '',

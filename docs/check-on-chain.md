@@ -51,13 +51,16 @@ so the browser can't ask Blockfrost directly.
 - **Test site (test.veilcore.org):** already works. It reads through the sponsor's
   indexer relay, which holds the preprod Blockfrost id on its server. Redeploying the test
   site is enough (`npm run deploy:test`).
-- **veilcore.org (mainnet):** needs a small relay. The sponsor can't do it: it
-  refuses mainnet, because it holds a wallet and pays fees. So the same relay code now
-  also runs alone, read-only: no wallet, no seed, no fees, nothing else.
+- **veilcore.org (mainnet):** reads through a small read-only relay of its own
+  (`veilcore-indexer-relay` on Railway): the same relay code, run alone, with no wallet,
+  no seed and no fees. It is kept apart from the sponsor so the service that reads the
+  chain for every visitor holds nothing worth stealing.
 
-Until that relay is deployed and the site is rebuilt with its address, veilcore.org keeps
-saying exactly what it says today: the date is the registry's report and the page has not
-looked it up. Nothing is shown as checked that wasn't.
+The relay is deployed, and the mainnet build has carried its address since the release of
+3 November (`releases/mainnet/`). The site's "the check page reads Midnight itself" line
+says "Yes." only in a build that has it. If the relay is down, the page says so and shows the
+registry's report; nothing is shown as checked that wasn't. The steps below are kept for
+redeploying it.
 
 ## What Hunter deploys (about 20 minutes, from the Mac)
 

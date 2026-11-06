@@ -78,6 +78,39 @@ export const checkTestRegistry = async (registry) => {
   return checkRegistryFeatures(registry, { agreements: true });
 };
 
+const CLAIMS_KEYS = ['proveRange', 'proveValue'].map((c) => `contract/src/managed/veilcore-claims/keys/${c}.prover`);
+const CLAIMS_PARAMS = ['bboard-ui/public/params/bls_midnight_2p15', 'bboard-ui/public/params/bls_midnight_2p16'];
+const FETCH_KEYS = 'npm exec --package=@veilcore/contracts@0.3.0 -- veilcore-keys fetch --to contract/src/managed';
+
+/**
+ * Whether this test site offers claims, from the sponsor's /sponsor/status: only when the
+ * sponsor pays for a claims contract, and then only with the claims proving keys and the k=15
+ * and k=16 parameters on this computer.
+ * @returns {{ ok: true, address?: string, line: string } | { ok: false, problem: string }}
+ */
+export const claimsFor = (status, exists) => {
+  const raw = status?.claimsAddress;
+  if (raw === undefined || raw === null || raw === '')
+    return { ok: true, line: 'Claims: off (the sponsor names no claims contract).' };
+  const address = String(raw).trim().toLowerCase().replace(/^0x/, '');
+  if (!/^[0-9a-f]{64}$/.test(address))
+    return { ok: false, problem: `The sponsor's claims address "${raw}" is not a contract address.` };
+  if (address === CONTRACT) return { ok: false, problem: 'The sponsor names the main contract as its claims contract.' };
+  const keys = CLAIMS_KEYS.filter((f) => !exists(f));
+  if (keys.length)
+    return {
+      ok: false,
+      problem: `The sponsor pays for claims but the claims proving keys are not on this computer (${keys.join(', ')}): run \`${FETCH_KEYS}\` first (it checks every file against the published fingerprints).`,
+    };
+  const params = CLAIMS_PARAMS.filter((f) => !exists(f));
+  if (params.length)
+    return {
+      ok: false,
+      problem: `Claims need the k=15 and k=16 parameters (${params.join(', ')}): run \`cd bboard-ui && node scripts/fetch-params.mjs && cd ..\` first.`,
+    };
+  return { ok: true, address, line: `Claims: on, claims contract ${address}.` };
+};
+
 const main = async () => {
   if (!existsSync('bboard-ui/public/params') || readdirSync('bboard-ui/public/params').length === 0)
     fail('The proving parameters are missing: run `cd bboard-ui && node scripts/fetch-params.mjs && cd ..` first.');
@@ -99,6 +132,11 @@ const main = async () => {
     fail(`The sponsor says it is on "${status.network}", not preprod.`);
   if (status.contractAddress && String(status.contractAddress).toLowerCase() !== CONTRACT)
     fail(`The sponsor uses contract ${status.contractAddress}, not the practice contract ${CONTRACT}.`);
+  // The claims contract comes from the sponsor itself, so the site never names a contract the
+  // sponsor won't pay for (docs/claims-screen.md). No claims address there: no claims on the site.
+  const claims = claimsFor(status, existsSync);
+  if (!claims.ok) fail(claims.problem);
+  console.log(claims.line);
   const relay = await fetch(`${sponsor}/indexer`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', origin: `https://${DOMAIN}` },
@@ -135,6 +173,8 @@ const main = async () => {
     VITE_API_BASE: registry,
     // Shared links and QR codes point at the test site, not at veilcore.org (config/network.ts).
     VITE_CANONICAL_ORIGIN: `https://${DOMAIN}`,
+    // Always set, so an address left in this shell never reaches the build.
+    VITE_REAL_CHAIN_CLAIMS_ADDRESS: claims.address ?? '',
   };
   const run = (cmd, args, opts = {}) => execFileSync(cmd, args, { stdio: 'inherit', env, ...opts });
 

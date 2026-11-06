@@ -25,7 +25,15 @@ import {
   Typography,
 } from '@mui/material';
 import BadgeIcon from '@mui/icons-material/VerifiedUserOutlined';
-import { createAttester, publishAttester, loadAttester, type AttesterProfile } from '../veilcore/attester-keys';
+import {
+  createAttester,
+  labFileFor,
+  labTxtFor,
+  lookAtLabDomain,
+  publishAttester,
+  loadAttester,
+  type AttesterProfile,
+} from '../veilcore/attester-keys';
 import { prepareToReceive } from '../veilcore/receive';
 import { BackupStep } from './flow/BackupStep';
 import { Link as RouterLink } from 'react-router-dom';
@@ -62,6 +70,28 @@ export const AttesterSetup: React.FC<{
   const [backingUp, setBackingUp] = useState(false);
   const [backedUp, setBackedUp] = useState(false);
   const { t } = useT();
+  // Publishing the key on the lab's own website (docs/lab-domain-keys.md).
+  const [domain, setDomain] = useState('');
+  const [looked, setLooked] = useState<{ severity: 'success' | 'warning'; text: string } | null>(null);
+  const look = async (p: AttesterProfile) => {
+    setLooked(null);
+    setBusy(true);
+    const out = await lookAtLabDomain(p, domain);
+    setBusy(false);
+    if ('error' in out)
+      setLooked({ severity: 'warning', text: t('app.lab.key.domain.couldNot', { error: out.error }) });
+    else if (out.listed)
+      setLooked({ severity: 'success', text: t('app.lab.key.domain.found', { domain: domain.trim().toLowerCase() }) });
+    else setLooked({ severity: 'warning', text: t('app.lab.key.domain.notFound', { why: out.why ?? '' }) });
+  };
+  const saveLabFile = (p: AttesterProfile) => {
+    const url = URL.createObjectURL(new Blob([labFileFor(p)], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'veilcore-lab.json';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
 
   useEffect(() => {
     const show = () => setOpen(true);
@@ -173,6 +203,41 @@ export const AttesterSetup: React.FC<{
                   mail: (c) => <Link href="mailto:hunter@veilcore.org">{c}</Link>,
                 })}
               </Typography>
+              {profile.registeredAt && (
+                <Stack spacing={1} data-lab-domain-setup="">
+                  <Typography variant="overline">{t('app.lab.key.domain.title')}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('app.lab.key.domain.why')}
+                  </Typography>
+                  <Button variant="outlined" onClick={() => saveLabFile(profile)} sx={{ alignSelf: 'flex-start' }}>
+                    {t('app.lab.key.domain.saveFile')}
+                  </Button>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('app.lab.key.domain.orTxt')}
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all' }}>
+                    {labTxtFor(profile)}
+                  </Typography>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                    <TextField
+                      size="small"
+                      label={t('app.lab.key.domain.field')}
+                      placeholder="acme-labs.com"
+                      value={domain}
+                      onChange={(e) => setDomain(e.target.value)}
+                      fullWidth
+                    />
+                    <Button variant="contained" onClick={() => void look(profile)} disabled={busy || !domain.trim()}>
+                      {t('app.lab.key.domain.look')}
+                    </Button>
+                  </Stack>
+                  {looked && (
+                    <Alert severity={looked.severity} variant="outlined" data-lab-domain-result="">
+                      {looked.text}
+                    </Alert>
+                  )}
+                </Stack>
+              )}
               <Alert severity="warning" variant="outlined">
                 {rich(t('app.lab.key.privateWarning'), {
                   link: (c) => (

@@ -1,15 +1,14 @@
-# Strain and line records (22 Oct 2026, draft)
+# Strain and line records (22 Oct 2026; version 1 final 3 Nov 2026)
 
 **In one line:** a lab, a culture collection or a breeder can log one microbial strain, cell
 line or insect line, with its deposit numbers and parent strains, and tie a DNA report to it,
 dated, using everything plant records already use.
 
-**Draft, test networks only.** The profile `veilcore/profile/strain/v1` (SPEC section 11.9)
-may still change before it is marked final. "A strain or line" is offered only on test-network
-builds (`STRAIN_RECORDS_ENABLED` in `bboard-ui/src/config/network.ts`). To offer it on
-veilcore.org: mark SPEC 11.9 final, then switch that flag on. Strain records already made
-show as strains everywhere, whatever the flag says. Test-network deploys refuse a registry
-whose `/health` doesn't list `strain-profile-v1` (`scripts/registry-features.mjs`).
+**Final, on every network.** The profile `veilcore/profile/strain/v1` (SPEC section 11.9) was
+marked final on 3 November 2026 with no field changed, and "Microbes and cell lines" is offered
+on veilcore.org too (`STRAIN_RECORDS_ENABLED` in `bboard-ui/src/config/network.ts`). Any change
+to its fields is a new profile, v2. Every deploy refuses a registry whose `/health` doesn't
+list `strain-profile-v1` (`scripts/registry-features.mjs`).
 
 ## Why one record type for all of these
 
@@ -68,11 +67,20 @@ deposits and generation.
 - The certificate, corrections, the evidence bundle (its verify.html and examiner summary label
   a strain's fields), the envelope export.
 
+## Licensing (from 29 Oct 2026)
+
+A strain license turns on use, subculture and derived strains, not on cuttings or seed, so it
+has its own terms: use only (no subculturing or passing it on); use and subculture for their
+own production; use, subculture and make derived strains; or a full transfer. A royalty is
+charged per production batch or per unit sold, and a royalty on derived strains rides on
+strains later logged with it as a parent, both holders confirming. No distribution to third
+parties, credit in publications and what happens to remaining stock go in the additional
+terms. These are the questions a culture collection's material transfer agreement answers;
+VeilCore records what the parties agreed and when, and is not one. The terms seal
+`subject: "strain"`, so both sides' pages use these words.
+
 ## What doesn't, yet, and why
 
-- **Licensing and royalties.** A strain license turns on use, subculture and derived strains,
-  not on cuttings or seed. The plant terms would say the wrong thing, so strains get none until
-  they have terms of their own. The record page and the license page say so.
 - **Next stage.** A derived strain is logged as a new strain with its parent linked.
 - **Claims (SPEC 4.5).** Same reason as animals: the questions asked of a strain's DNA are
   identity and relatedness, answered by a lab's report, not a count of differing values.

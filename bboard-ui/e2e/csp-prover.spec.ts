@@ -19,7 +19,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
-import { API, REAL_REGISTRY } from './helpers';
+import { API, REAL_REGISTRY, startPlant } from './helpers';
 
 test.skip(REAL_REGISTRY, 'served from the stand-in build');
 
@@ -118,6 +118,7 @@ test('the key date stamp starts the prover under the site’s Content-Security-P
     });
 
     await page.goto(`${origin}/new`);
+    await startPlant(page);
     await page.getByLabel(/Plant or line name/).fill(`CSP stamp (practice) ${Date.now()}`);
     await page.getByLabel(/Bred by/).fill('E2E');
     await page.getByRole('button', { name: /Next: check it/ }).click();

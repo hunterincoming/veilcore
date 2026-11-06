@@ -51,7 +51,7 @@ export const ja: Strings = {
   'title.evidence': '証拠としての記録',
   'title.integrate': 'VeilCoreの統合',
   'title.implementations': '実装',
-  'title.new': '植物か動物を記録する',
+  'title.new': '記録を作る',
   'title.record': '記録',
   'title.agreements': '契約',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
@@ -88,8 +88,8 @@ export const ja: Strings = {
   'm.demo.label': 'デモ',
   'm.demo.title1': 'デモを',
   'm.demo.title2': '試す。',
-  'm.demo.create.title': '植物か動物を記録する',
-  'm.demo.create.text': '架空の植物か動物を記録し、バックアップを保存して、そのページを開きます。',
+  'm.demo.create.title': '記録を作る',
+  'm.demo.create.text': '架空の植物、動物、または書類を封印し、バックアップを保存して、そのページを開きます。',
   'm.demo.verify.title': '記録を検証する',
   'm.demo.verify.text': '記録の識別子を入力すると、保有者が開示した内容と、アンカー済みかどうかを確認できます。',
   'm.demo.video.title': '仕組みを動画で見る',
@@ -247,6 +247,16 @@ export const ja: Strings = {
   'm.postA.title': 'Midnightのメインネットワークで稼働',
   'm.postA.text':
     '2つのコントラクトをMidnightのメインネットワークにデプロイしました。クレーム用コントラクトにはメンテナンス鍵がなく、私たちを含め誰も変更できません。',
+  'm.postE.date': '2026年11月2日',
+  'm.postE.tag': '証拠',
+  'm.postE.title': 'どんな書類にも、法廷で使えるファイルを',
+  'm.postE.text':
+    '書類のページから、弁護士や審査官が私たちのサイトなしで確認できるファイルを1つダウンロードできるようになりました。封印したときのままの記録、その証明、日付が付いた場所、オフラインで確認を行うページ、印刷用の要約、宣誓書の文例が入っています。書類のコピーも含められます。含める前に記録と照合されます。',
+  'm.postD.date': '2026年10月31日',
+  'm.postD.tag': 'ウェブサイト',
+  'm.postD.title': '書類を封印する',
+  'm.postD.text':
+    '許可証、証明書、契約書。ファイルのコードはあなたのパソコンで計算され、Midnightで日付が付くのは記録の証明コードだけです。ファイルが端末から出ることはありません。ファイルと一緒に確認リンクを送れば、受け取った人は、それがバイト単位で同じファイルであること、そしていつあなたが持っていたかを確認できます。',
   'm.postC.date': '2026年10月19日',
   'm.postC.tag': 'ウェブサイト',
   'm.postC.title': 'ブラウザが自分でトランザクションを送信',
@@ -292,6 +302,8 @@ export const ja: Strings = {
   'm.live.claims.t': '1つの事実を証明する（クレーム）',
   'm.live.claims.main': 'メインネットワーク上にあり、メンテナンス鍵はありません。ウェブサイトからはまだ使えません。',
   'm.live.claims.not': 'ウェブサイトからの利用。',
+  'm.live.claims.live':
+    'はい、パソコンから。封印した証明書の数値を1つ、ほかを見せずに証明できます。スマートフォンではまだ試していません。',
   'm.live.lic.t': 'ライセンスとロイヤルティ',
   'm.live.lic.main': '最終テストが終わるまで停止中。',
   'm.live.lic.test': 'はい。本物のトランザクションで：ロイヤリティ、支払い、ライセンスの引き継ぎ。',
@@ -573,16 +585,27 @@ export const jaMainnet = ({
   chainReads = false,
   chainSends = false,
   agreementsLive = false,
+  claimsOnSite = false,
 }: {
   claimsOnMainnet: boolean;
   policyApproved: boolean;
   chainReads?: boolean;
   chainSends?: boolean;
   agreementsLive?: boolean;
+  claimsOnSite?: boolean;
 }): Strings => {
   const o = jaMainnetBase({ claimsOnMainnet, policyApproved, chainReads });
   if (!chainSends) return o;
-  const sent = { ...o, ...jaSends(o) };
+  const sent = {
+    ...o,
+    ...jaSends(o),
+    ...(claimsOnMainnet && claimsOnSite
+      ? {
+          'm.claims.status':
+            '2つ目のMidnightコントラクトで、Midnightのメインネットワーク上にあります。このウェブサイトでは、数値ごと封印した証明書の数値を1つ選び、それが上限以下か下限以上であること、またはちょうどその値であることを、ほかの数値を見せずに証明できます。パソコンをお使いください。スマートフォンではまだ試していません。上に挙げたほかの種類の証明は、このウェブサイトにはまだありません。',
+        }
+      : {}),
+  };
   return agreementsLive ? { ...sent, ...applyLiveSwaps(sent, JA_LIVE, 'ja') } : sent;
 };
 
@@ -700,7 +723,7 @@ const jaMainnetBase = ({
   'm.demo.label': '使ってみる',
   'm.demo.title1': '記録を作る、',
   'm.demo.title2': 'または確認する。',
-  'm.demo.create.text': '植物か動物を記録し、バックアップを保存して、そのページを開きます。',
+  'm.demo.create.text': '植物、動物、または書類を封印し、バックアップを保存して、そのページを開きます。',
   'm.demo.privacy': 'このサイトが保存するもの →',
   'm.faq.4link1': 'このサイトが保存するもの →',
   'm.faq.2a':

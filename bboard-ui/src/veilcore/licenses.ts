@@ -22,7 +22,7 @@ import {
 } from './api-store';
 import { beneficiaryId, onVaultChange, useVaultNeedsBackup, vaultKeyIfAny, vaultNeedsBackup } from './vault';
 import { BACKUP_FIRST_REASON } from './api-store';
-import { enT, type Translator } from '../i18n/translate';
+import { enT, forKind, type RecordKind, type Translator } from '../i18n/translate';
 import type { AppKey } from '../i18n/app/en';
 
 export type LicenseState = 'draft' | 'sent' | 'active' | 'expired' | 'revoked';
@@ -31,11 +31,51 @@ export type LicenseState = 'draft' | 'sent' | 'active' | 'expired' | 'revoked';
 // hub) — `type` only changes which terms it carries and whether money is in play.
 export type AgreementType = 'license' | 'lab-transfer' | 'breeder-share';
 
-export type Rights = 'cultivate' | 'cultivate+propagate' | 'full-transfer';
-export type UnitBasis = 'per-plant' | 'per-harvest' | 'per-unit-sold';
+// What the licensee may do, and what a royalty is charged per, depend on what the record is
+// about: a plant is cultivated and propagated from cuttings or seed; an animal is bred, and its
+// semen or embryos collected and sold; a strain (a microbe, a cell line) is used, subcultured,
+// and the source of derived strains. Each kind gets its own words (RIGHTS_FOR, BASES_FOR), so a
+// cattle deal never says "cultivate" and a yeast deal never says "per plant". The terms are
+// sealed as written, so an agreement made before this keeps the values it had.
+export type Rights =
+  | 'cultivate'
+  | 'cultivate+propagate'
+  | 'breed'
+  | 'breed+collect'
+  | 'breed+sell'
+  | 'use'
+  | 'use+subculture'
+  | 'use+derive'
+  | 'full-transfer';
+export type UnitBasis = 'per-plant' | 'per-harvest' | 'per-dose' | 'per-offspring' | 'per-batch' | 'per-unit-sold';
+
+/** The rights a license on each kind of record can grant, narrowest first. */
+export const RIGHTS_FOR: Record<RecordKind, readonly Rights[]> = {
+  plant: ['cultivate', 'cultivate+propagate', 'full-transfer'],
+  animal: ['breed', 'breed+collect', 'breed+sell', 'full-transfer'],
+  strain: ['use', 'use+subculture', 'use+derive', 'full-transfer'],
+};
+
+/** What a royalty on each kind of record can be charged per. */
+export const BASES_FOR: Record<RecordKind, readonly UnitBasis[]> = {
+  plant: ['per-plant', 'per-harvest', 'per-unit-sold'],
+  animal: ['per-dose', 'per-offspring', 'per-unit-sold'],
+  strain: ['per-batch', 'per-unit-sold'],
+};
+
+const ALL_BASES: readonly string[] = [...new Set(Object.values(BASES_FOR).flat())];
+
+/** The kind of record an agreement's terms are about (absent: a plant). */
+export const subjectOf = (t: Pick<LicenseTerms, 'subject'> | undefined): RecordKind => t?.subject ?? 'plant';
 export type LabPurpose = 'tissue-culture' | 'propagation' | 'dna-testing' | 'storage';
 
 export type LicenseTerms = {
+  /**
+   * What the record is about, sealed with the terms so the licensee's page (which doesn't hold
+   * the record) words them the same way. Absent means a plant: every agreement made before
+   * animals and strains could be licensed, unchanged.
+   */
+  subject?: Exclude<RecordKind, 'plant'>;
   // shared across every agreement type
   licensee: string; // the counterparty (licensee / receiving lab / receiving breeder)
   startDate: string;
@@ -652,11 +692,9 @@ export const FEE_NOTE = feeNote();
 // display helpers: each in the reader's language (English by default, for the tests and files)
 export const rightsLabel = (r: Rights, tr: Translator = enT): string => tr.t(`app.lic.rights.${r}` as AppKey);
 export const stateLabel = (s: LicenseState, tr: Translator = enT): string => tr.t(`app.lic.state.${s}` as AppKey);
-export const RIGHTS_LABEL: Record<Rights, string> = {
-  cultivate: rightsLabel('cultivate'),
-  'cultivate+propagate': rightsLabel('cultivate+propagate'),
-  'full-transfer': rightsLabel('full-transfer'),
-};
+export const RIGHTS_LABEL = Object.fromEntries(
+  [...new Set(Object.values(RIGHTS_FOR).flat())].map((r) => [r, rightsLabel(r)]),
+) as Record<Rights, string>;
 export const STATE_LABEL: Record<LicenseState, string> = {
   draft: stateLabel('draft'),
   sent: stateLabel('sent'),
@@ -732,7 +770,7 @@ export const counterpartyLabel = (type: AgreementType, tr: Translator = enT): st
 
 /** A royalty's basis in words ('per unit sold'); anything else as it was saved. */
 export const basisLabel = (b: string | undefined, tr: Translator = enT): string =>
-  b === 'per-plant' || b === 'per-harvest' || b === 'per-unit-sold' ? tr.t(`app.lic.basis.${b}`) : (b ?? '');
+  b !== undefined && ALL_BASES.includes(b) ? tr.t(`app.lic.basis.${b}` as AppKey) : (b ?? '');
 
 const money = (n: number, tr: Translator): string => `$${n.toLocaleString(tr.locale, { maximumFractionDigits: 2 })}`;
 
@@ -741,8 +779,10 @@ const money = (n: number, tr: Translator): string => `$${n.toLocaleString(tr.loc
  * breeder's detail view and the counterparty's counter-sign page so both always agree.
  * Labels in the reader's language; the values as the parties wrote them.
  */
-export const agreementRows = (l: License, tr: Translator = enT): { k: string; v: string }[] => {
+export const agreementRows = (l: License, reader: Translator = enT): { k: string; v: string }[] => {
   const t = l.terms ?? {};
+  // In the words of what the record is about: an animal's offspring, a strain's derived strains.
+  const tr = forKind(reader, subjectOf(t));
   const type = agreementType(l);
   const yesNo = (b?: boolean): string => tr.t(b ? 'app.lic.yes' : 'app.lic.no');
   const term = tr.t('app.lic.row.termValue', { from: t.startDate ?? '', to: t.endDate ?? '' });

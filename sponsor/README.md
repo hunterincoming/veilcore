@@ -4,8 +4,11 @@ A small service that pays the Midnight network fee (DUST) for a few VeilCore cal
 from the website demo, so a visitor needs no wallet and no crypto. It also anchors the
 registry's batch roots on chain on a schedule, replacing the manual operator step.
 
-**Status:** built and unit-tested; not yet run against preprod. Test networks only: it
-refuses to start on mainnet.
+**Status:** running on test.veilcore.org (preprod, first run end to end 12 and 13 October
+2026, `docs/no-wallet-run-12oct.md`) and on veilcore.org (mainnet, live since 19 October,
+checked by hand on 20 October, `docs/mainnet-sponsor.md`). On mainnet it pays only for
+VeilCore's pinned contracts. Licences and royalties stay switched off there until a final
+test run.
 
 ## What it does, and what it can see
 
@@ -47,8 +50,10 @@ instead of sending a second one (which would pay twice and write two roots). Thr
 failures in a row raise an alert on `/sponsor/status` and in the log.
 
 Its fees come out of the same `DAILY_BUDGET_DUST` as the public endpoint (one wallet pays
-both), each one capped at `MAX_FEE_DUST`. If the day's budget is used up, anchoring waits
-for the next day. If it is only held by visitors' requests still in flight, the run reports
+both), each one capped at `MAX_FEE_DUST`. A share of it, `ANCHOR_RESERVE_DUST` (a fifth of
+the daily budget by default), is kept for anchoring and sealing: the public endpoint can't
+spend it, so a busy or abusive day can't stop batch dating. If the day's budget is used up
+anyway, anchoring waits for the next day. If it is only held by visitors' requests still in flight, the run reports
 `busy` and tries again next time; that is not counted as a failure. It refuses a registry answer it did not expect: a batch id with odd
 characters, a root that is not 32 bytes of hex or is all zero, a root another batch already
 has, and a batch (or root) it has already anchored, even if the registry still lists it as
@@ -59,6 +64,7 @@ waiting.
 | Route | What |
 |---|---|
 | `GET /sponsor/status` | Synced or not, accepting or not, queue depth, the anchoring job's last outcome as a short code, and `agreements`: whether it pays for license and other agreement calls (`policy.ts`). No budget figures and no error text. With the header `x-operator-token: <SPONSOR_STATUS_TOKEN>`: also the exact budget, counters and the anchoring job's own messages |
+| `GET /sponsor/alerts` | For an outside monitor (`docs/mainnet-sponsor.md`, step 7): **200** `{ ok: true, problems: [] }` when nothing needs the operator, **503** with codes when something does: `anchoring-failing`, `sync-stalled`, `not-synced` (three hours after start), `fuel-low` (under `ALERT_DUST_LOW_DUST`). Codes only (`alerts.ts`) |
 | `GET /sponsor/challenge` | A proof-of-work challenge |
 | `POST /sponsor` | `{ tx, ticket, challenge, nonce }` → `{ txId }` or a refusal with a plain reason |
 | `GET /health` | `{ ok: true }` |
@@ -84,6 +90,7 @@ Required:
 | `SPONSOR_SEED` | The sponsor wallet's 64-character hex seed. A wallet made only for this. |
 | `SPONSOR_FORBIDDEN_ADDRESSES` | The deployer wallet's addresses (`mn_addr_preprod1…` and `mn_dust_preprod1…`), comma-separated. The service refuses to start if its own wallet is one of them. |
 | `VEILCORE_CONTRACT_ADDRESS` | The demo contract's address on preprod (64 hex characters). |
+| `VEILCORE_CLAIMS_ADDRESS` | Optional. The claims contract's address (64 hex characters). When set, the sponsor also pays for `proveRange`, `proveValue` and `proveAttested` on that contract, and nothing else there (`policy.ts` `CLAIMS_CIRCUITS`). On mainnet only VeilCore's pinned claims contract (`MAINNET_CLAIMS`, on since 2 Nov 2026; docs/claims-screen.md). `/sponsor/status` says `claims`. |
 | `PROOF_SERVER_URL` | The proof server this service uses for its own fee payments and for `anchorBatch` (see step 4 below). Nothing secret of a visitor's is ever sent to it. |
 | `STATE_DIR` | Where the Railway volume is mounted, e.g. `/data`. Holds sync progress, the day's budget and the anchoring attempt. |
 | `ALLOWED_ORIGINS` | `https://veilcore.org,https://www.veilcore.org` (the default) |
@@ -97,12 +104,13 @@ For the anchoring job (it stays off without these two):
 | `REGISTRY_OPERATOR_TOKEN` | The same value as `VEILCORE_OPERATOR_TOKEN` on the registry service |
 
 Optional, with defaults: `SPONSOR_NETWORK` (preprod), `MAX_FEE_DUST` (5),
-`DAILY_BUDGET_DUST` (50), `POW_DIFFICULTY` (18), `QUEUE_DEPTH` (20),
+`DAILY_BUDGET_DUST` (50), `ANCHOR_RESERVE_DUST` (a fifth of the daily budget), `POW_DIFFICULTY` (18), `QUEUE_DEPTH` (20),
 `LIMIT_PER_NETWORK_HOUR` (3), `LIMIT_PER_NETWORK_DAY` (10), `LIMIT_REQUESTS_PER_MINUTE` (30),
 `ANCHOR_EVERY_MINUTES` (60), `ANCHOR_AT_PENDING` (25), `ANCHORER_ENABLED` (set `0` to
 turn the job off), `TRUST_PROXY_HOPS` (1 on Railway), `INDEXER_URL`, `INDEXER_WS_URL`,
 `NODE_WS_URL`, `POW_SECRET`, `VEILCORE_ARTIFACTS_DIR`, `SPONSOR_STATUS_TOKEN` (at least 32
 characters, e.g. 64 random hex; without it `/sponsor/status` only has the public view).
+`ALERT_DUST_LOW_DUST` (50): below this much DUST, `/sponsor/alerts` reports `fuel-low`.
 
 `TRUST_PROXY_HOPS` must be the real number of proxies in front. A request to
 `/sponsor` or `/sponsor/challenge` with fewer `X-Forwarded-For` entries than that is

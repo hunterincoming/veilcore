@@ -73,12 +73,21 @@ var VeilcoreVerify = (function () {
   /**
    * Recompute the fingerprint from the sealed fields. A record that names its key (it has
    * keyBinding) folds it in at the top, SPEC 3.6.1: H(keyrecord, keyBinding, contentHash).
-   * Any other record: the content hash, SHA-256 of the canonical fields (SPEC 4.4).
+   * Any other record: the content hash, SHA-256 of the canonical fields (SPEC 4.4). A record
+   * that carries a field set (fieldSchema and fieldSetRoot, both or neither: a certificate's
+   * numbers sealed with a document, SPEC 4.5 and 11.11) has the field-set commitment as its
+   * content hash: H(frecord, fieldSetRoot, SHA-256 of the canonical fields).
    */
   async function fingerprintOf(fields) {
     if (!isObject(fields)) throw new Error('the sealed fields are not a JSON object');
     var canonical = canonicalise(fields);
     var contentHash = await sha256Text(canonical);
+    if (fields.fieldSchema !== undefined || fields.fieldSetRoot !== undefined) {
+      if (!isHex64(fields.fieldSchema) || !isHex64(fields.fieldSetRoot)) {
+        throw new Error('fieldSchema and fieldSetRoot come together, each 64 lowercase hex characters');
+      }
+      contentHash = await tagged('veilcore:v1:frecord', [fields.fieldSetRoot, contentHash]);
+    }
     if (fields.keyBinding !== undefined) {
       if (!isHex64(fields.keyBinding)) throw new Error('keyBinding is not 64 lowercase hex characters');
       return {
@@ -768,6 +777,14 @@ var VeilcoreVerify = (function () {
         entry.stamp = await readStamp(f.bytes, out.lookups.root);
         entry.ok = entry.stamp.status === 'bitcoin' || entry.stamp.status === 'pending';
         if (!out.stamp) out.stamp = entry.stamp;
+      } else if (record && isObject(record.sealedFields) && Array.isArray(record.sealedFields.files)) {
+        // A document record (SPEC 11.11): is it byte for byte one of the files it seals?
+        entry.is = 'sealed file';
+        var sealedList = record.sealedFields.files;
+        var hit = null;
+        for (var s = 0; s < sealedList.length; s++) if (isObject(sealedList[s]) && sealedList[s].sha256 === sha) hit = sealedList[s];
+        entry.ok = hit !== null;
+        entry.sealedName = hit && typeof hit.name === 'string' ? hit.name : null;
       } else if (isObject(ev.labReport) && isHex64(ev.labReport.fileSha256)) {
         entry.is = 'lab report?';
         entry.ok = sha === ev.labReport.fileSha256;

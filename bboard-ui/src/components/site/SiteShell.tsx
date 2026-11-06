@@ -98,15 +98,13 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
                 {t('m.nav.menu')}
               </button>
               <ul className={`nav-links${open ? ' open' : ''}`} id="site-menu">
+                {/* Every item is a section of the home page, in the order they come down it, so
+                    the menu behaves one way (Mako's note, 30 Oct). The specification is for
+                    engineers: it's in the footer with the other documents. */}
                 <li>
                   <Section id="about" onClick={close}>
                     {t('m.nav.about')}
                   </Section>
-                </li>
-                <li>
-                  <RouterLink to="/founders" onClick={close}>
-                    {t('m.nav.team')}
-                  </RouterLink>
                 </li>
                 <li>
                   <Section id="updates" onClick={close}>
@@ -114,9 +112,9 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
                   </Section>
                 </li>
                 <li>
-                  <RouterLink to="/docs/spec" onClick={close}>
-                    {t('m.nav.spec')}
-                  </RouterLink>
+                  <Section id="team" onClick={close}>
+                    {t('m.nav.team')}
+                  </Section>
                 </li>
                 <li>
                   {returning ? (

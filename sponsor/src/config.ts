@@ -3,19 +3,23 @@
 // sponsor/README.md documents each variable.
 // SPDX-License-Identifier: Apache-2.0
 
-import { allowList, defaultCircuits } from './policy.js';
-import { DEFAULT_LIMITS, type LimitConfig } from './limits.js';
+import { MAINNET_CLAIMS, allowList, defaultCircuits } from "./policy.js";
+import { DEFAULT_LIMITS, type LimitConfig } from "./limits.js";
 
 /** One DUST is 10^15 SPECKs. */
 export const SPECKS_PER_DUST = 1_000_000_000_000_000n;
 
-export type Network = 'mainnet' | 'preprod' | 'preview' | 'undeployed';
+export type Network = "mainnet" | "preprod" | "preview" | "undeployed";
 
 /**
  * The only contract a mainnet sponsor pays for: VeilCore's, as pinned in
  * api/src/deploy-guard.ts (MAINNET_VEILCORE_ADDRESS; config.test.ts checks they agree).
  */
-export const MAINNET_CONTRACT = 'a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347';
+export const MAINNET_CONTRACT =
+  "a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347";
+/** VeilCore's claims contract on mainnet (api/src/deploy-guard.ts MAINNET_CLAIMS_ADDRESS). */
+export const MAINNET_CLAIMS_CONTRACT =
+  "ef763eb4ad1846b716dbfa90c00560a9a943ffb4d1fc638b0707df5adefd070d";
 
 type Endpoints = { indexer: string; indexerWS: string; nodeWS: string };
 
@@ -23,16 +27,19 @@ type Endpoints = { indexer: string; indexerWS: string; nodeWS: string };
  * Midnight's own public endpoints, where it still runs them. Preprod has none since
  * 22:00 UTC on 9 October 2026: it is reached through Blockfrost (blockfrostPreprod).
  */
-export const ENDPOINTS: Record<Exclude<Network, 'preprod' | 'mainnet'>, Endpoints> = {
+export const ENDPOINTS: Record<
+  Exclude<Network, "preprod" | "mainnet">,
+  Endpoints
+> = {
   preview: {
-    indexer: 'https://indexer.preview.midnight.network/api/v4/graphql',
-    indexerWS: 'wss://indexer.preview.midnight.network/api/v4/graphql/ws',
-    nodeWS: 'wss://rpc.preview.midnight.network',
+    indexer: "https://indexer.preview.midnight.network/api/v4/graphql",
+    indexerWS: "wss://indexer.preview.midnight.network/api/v4/graphql/ws",
+    nodeWS: "wss://rpc.preview.midnight.network",
   },
   undeployed: {
-    indexer: 'http://127.0.0.1:8088/api/v4/graphql',
-    indexerWS: 'ws://127.0.0.1:8088/api/v4/graphql/ws',
-    nodeWS: 'ws://127.0.0.1:9944',
+    indexer: "http://127.0.0.1:8088/api/v4/graphql",
+    indexerWS: "ws://127.0.0.1:8088/api/v4/graphql/ws",
+    nodeWS: "ws://127.0.0.1:9944",
   },
 };
 
@@ -41,7 +48,10 @@ export const ENDPOINTS: Record<Exclude<Network, 'preprod' | 'mainnet'>, Endpoint
  * bboard-cli/src/config.ts). The project id rides in the URLs: they are secrets (main.ts
  * scrubs the logs).
  */
-export const blockfrostEndpoints = (network: 'preprod' | 'mainnet', projectId: string): Endpoints => {
+export const blockfrostEndpoints = (
+  network: "preprod" | "mainnet",
+  projectId: string,
+): Endpoints => {
   const q = `?project_id=${encodeURIComponent(projectId)}`;
   const host = `midnight-${network}.blockfrost.io`;
   return {
@@ -50,7 +60,8 @@ export const blockfrostEndpoints = (network: 'preprod' | 'mainnet', projectId: s
     nodeWS: `wss://rpc.${host}/${q}`,
   };
 };
-export const blockfrostPreprod = (projectId: string): Endpoints => blockfrostEndpoints('preprod', projectId);
+export const blockfrostPreprod = (projectId: string): Endpoints =>
+  blockfrostEndpoints("preprod", projectId);
 
 export type Config = {
   readonly network: Network;
@@ -58,6 +69,8 @@ export type Config = {
   readonly seed: string;
   readonly forbiddenAddresses: readonly string[];
   readonly contractAddress: string;
+  /** The claims contract the sponsor pays claims on (VEILCORE_CLAIMS_ADDRESS); absent: none. */
+  readonly claimsAddress?: string;
   readonly indexer: string;
   readonly indexerWS: string;
   readonly nodeWS: string;
@@ -70,6 +83,14 @@ export type Config = {
   readonly maxTtlMs: number;
   readonly maxFeeSpecks: bigint;
   readonly dailyBudgetSpecks: bigint;
+  /**
+   * The part of the daily budget only the anchoring and sealing jobs may spend
+   * (ANCHOR_RESERVE_DUST, default a fifth of the daily budget): the public endpoint can't use
+   * it up, so a busy or abusive day can't stop batch dating (limits.ts PublicBudget).
+   */
+  readonly anchorReserveSpecks: bigint;
+  /** Below this much DUST, GET /sponsor/alerts reports fuel-low (ALERT_DUST_LOW_DUST, default 50). */
+  readonly alertDustLowSpecks: bigint;
   readonly powDifficulty: number;
   readonly queueDepth: number;
   readonly limits: LimitConfig;
@@ -94,22 +115,34 @@ export type Config = {
  * key. The sponsor's seed lives on Railway; the maintenance key must never be anywhere
  * near it (design: "Keep the maintenance key off Railway entirely").
  */
-const MAINTENANCE_HINTS = [/MAINTENANCE/i, /SIGNING_KEY/i, /AUTHORITY/i, /^VEILCORE_PRIVATE_STATE_PASSWORD$/];
+const MAINTENANCE_HINTS = [
+  /MAINTENANCE/i,
+  /SIGNING_KEY/i,
+  /AUTHORITY/i,
+  /^VEILCORE_PRIVATE_STATE_PASSWORD$/,
+];
 
 export class ConfigError extends Error {
   constructor(readonly problems: readonly string[]) {
-    super(`The sponsor will not start:\n - ${problems.join('\n - ')}`);
-    this.name = 'ConfigError';
+    super(`The sponsor will not start:\n - ${problems.join("\n - ")}`);
+    this.name = "ConfigError";
   }
 }
 
 const hex = (s: string | undefined, bytes: number): string | undefined => {
-  const v = (s ?? '').trim().toLowerCase().replace(/^0x/, '');
+  const v = (s ?? "").trim().toLowerCase().replace(/^0x/, "");
   return new RegExp(`^[0-9a-f]{${bytes * 2}}$`).test(v) ? v : undefined;
 };
 
-const int = (s: string | undefined, dflt: number, min: number, max: number, name: string, problems: string[]): number => {
-  if (s === undefined || s.trim() === '') return dflt;
+const int = (
+  s: string | undefined,
+  dflt: number,
+  min: number,
+  max: number,
+  name: string,
+  problems: string[],
+): number => {
+  if (s === undefined || s.trim() === "") return dflt;
   const n = Number(s);
   if (!Number.isInteger(n) || n < min || n > max) {
     problems.push(`${name} must be a whole number from ${min} to ${max}.`);
@@ -118,15 +151,37 @@ const int = (s: string | undefined, dflt: number, min: number, max: number, name
   return n;
 };
 
-const dust = (s: string | undefined, dflt: bigint, name: string, problems: string[]): bigint => {
-  if (s === undefined || s.trim() === '') return dflt;
+/** ANCHOR_RESERVE_DUST, or a fifth of the daily budget; it must leave the public endpoint something. */
+const anchorReserve = (
+  env: NodeJS.ProcessEnv,
+  daily: bigint,
+  problems: string[],
+): bigint => {
+  if (!env.ANCHOR_RESERVE_DUST?.trim()) return daily / 5n;
+  const v = dust(env.ANCHOR_RESERVE_DUST, 0n, "ANCHOR_RESERVE_DUST", problems);
+  if (v >= daily)
+    problems.push(
+      "ANCHOR_RESERVE_DUST must be less than DAILY_BUDGET_DUST, or the public endpoint can pay for nothing",
+    );
+  return v;
+};
+
+const dust = (
+  s: string | undefined,
+  dflt: bigint,
+  name: string,
+  problems: string[],
+): bigint => {
+  if (s === undefined || s.trim() === "") return dflt;
   // Accept DUST with up to 15 decimals ("2.5") so nobody has to count SPECK zeros.
   const m = /^(\d{1,9})(?:\.(\d{1,15}))?$/.exec(s.trim());
   if (!m) {
     problems.push(`${name} must be an amount of DUST, like 2 or 0.5.`);
     return dflt;
   }
-  return BigInt(m[1]) * SPECKS_PER_DUST + BigInt((m[2] ?? '').padEnd(15, '0') || '0');
+  return (
+    BigInt(m[1]) * SPECKS_PER_DUST + BigInt((m[2] ?? "").padEnd(15, "0") || "0")
+  );
 };
 
 /** The shortest MAX_TTL_MINUTES that still accepts a transaction built with midnight-js's one-hour expiry. */
@@ -143,142 +198,311 @@ const minTtl = (minutes: number, problems: string[]): number => {
 export const loadConfig = (env: Record<string, string | undefined>): Config => {
   const problems: string[] = [];
 
-  const holdsMaintenance = Object.keys(env).filter((k) => env[k] && MAINTENANCE_HINTS.some((r) => r.test(k)));
+  const holdsMaintenance = Object.keys(env).filter(
+    (k) => env[k] && MAINTENANCE_HINTS.some((r) => r.test(k)),
+  );
   if (holdsMaintenance.length > 0) {
     problems.push(
-      `Remove ${holdsMaintenance.join(', ')}: the sponsor must never hold the contract's maintenance key or what unlocks it.`,
+      `Remove ${holdsMaintenance.join(", ")}: the sponsor must never hold the contract's maintenance key or what unlocks it.`,
     );
   }
 
-  const networkRaw = (env.SPONSOR_NETWORK ?? 'preprod').trim().toLowerCase();
-  const network: Network = (['mainnet', 'preprod', 'preview', 'undeployed'] as const).includes(networkRaw as Network)
+  const networkRaw = (env.SPONSOR_NETWORK ?? "preprod").trim().toLowerCase();
+  const network: Network = (
+    ["mainnet", "preprod", "preview", "undeployed"] as const
+  ).includes(networkRaw as Network)
     ? (networkRaw as Network)
-    : (problems.push(`SPONSOR_NETWORK must be mainnet, preprod, preview or undeployed (got "${networkRaw}").`), 'preprod');
-  const mainnet = network === 'mainnet';
+    : (problems.push(
+        `SPONSOR_NETWORK must be mainnet, preprod, preview or undeployed (got "${networkRaw}").`,
+      ),
+      "preprod");
+  const mainnet = network === "mainnet";
   // Mainnet spends real DUST: every limit is the operator's own number, never a test default.
   if (mainnet) {
-    const unset = ['DAILY_BUDGET_DUST', 'MAX_FEE_DUST', 'LIMIT_PER_NETWORK_DAY', 'SPONSOR_STATUS_TOKEN'].filter(
-      (k) => !env[k]?.trim(),
-    );
-    if (unset.length > 0) problems.push(`On mainnet these must be set explicitly: ${unset.join(', ')}.`);
-    if (env.INDEXER_URL?.trim() || env.INDEXER_WS_URL?.trim() || env.NODE_WS_URL?.trim())
-      problems.push('On mainnet the endpoints come from BLOCKFROST_PROJECT_ID only: remove INDEXER_URL, INDEXER_WS_URL and NODE_WS_URL.');
-    if (env.SPONSOR_CIRCUITS?.trim()) problems.push('On mainnet SPONSOR_CIRCUITS cannot be changed: remove it.');
+    const unset = [
+      "DAILY_BUDGET_DUST",
+      "MAX_FEE_DUST",
+      "LIMIT_PER_NETWORK_DAY",
+      "SPONSOR_STATUS_TOKEN",
+    ].filter((k) => !env[k]?.trim());
+    if (unset.length > 0)
+      problems.push(
+        `On mainnet these must be set explicitly: ${unset.join(", ")}.`,
+      );
+    if (
+      env.INDEXER_URL?.trim() ||
+      env.INDEXER_WS_URL?.trim() ||
+      env.NODE_WS_URL?.trim()
+    )
+      problems.push(
+        "On mainnet the endpoints come from BLOCKFROST_PROJECT_ID only: remove INDEXER_URL, INDEXER_WS_URL and NODE_WS_URL.",
+      );
+    if (env.SPONSOR_CIRCUITS?.trim())
+      problems.push(
+        "On mainnet SPONSOR_CIRCUITS cannot be changed: remove it.",
+      );
   }
 
   // 32 bytes (npm run new-wallet) or 64 bytes (a wallet app's 24-word phrase turned into its
   // seed by npm run seed-from-phrase: the same BIP-39 seed the operator tool restores from).
   const seed = hex(env.SPONSOR_SEED, 32) ?? hex(env.SPONSOR_SEED, 64);
-  if (!seed) problems.push('SPONSOR_SEED must be the sponsor wallet’s hex seed (64 or 128 characters).');
+  if (!seed)
+    problems.push(
+      "SPONSOR_SEED must be the sponsor wallet’s hex seed (64 or 128 characters).",
+    );
 
-  const forbiddenAddresses = (env.SPONSOR_FORBIDDEN_ADDRESSES ?? '')
-    .split(',')
+  const forbiddenAddresses = (env.SPONSOR_FORBIDDEN_ADDRESSES ?? "")
+    .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
   if (forbiddenAddresses.length === 0) {
     problems.push(
-      'SPONSOR_FORBIDDEN_ADDRESSES must list the deployer wallet’s addresses (comma-separated), so the sponsor can refuse to run as that wallet.',
+      "SPONSOR_FORBIDDEN_ADDRESSES must list the deployer wallet’s addresses (comma-separated), so the sponsor can refuse to run as that wallet.",
     );
   }
 
   const contractAddress = hex(env.VEILCORE_CONTRACT_ADDRESS, 32);
-  if (!contractAddress) problems.push('VEILCORE_CONTRACT_ADDRESS must be the 64-character contract address.');
+  if (!contractAddress)
+    problems.push(
+      "VEILCORE_CONTRACT_ADDRESS must be the 64-character contract address.",
+    );
   else if (mainnet && contractAddress !== MAINNET_CONTRACT)
-    problems.push(`On mainnet VEILCORE_CONTRACT_ADDRESS must be VeilCore's contract, ${MAINNET_CONTRACT}.`);
+    problems.push(
+      `On mainnet VEILCORE_CONTRACT_ADDRESS must be VeilCore's contract, ${MAINNET_CONTRACT}.`,
+    );
 
-  const proofServer = (env.PROOF_SERVER_URL ?? '').trim();
+  // Claims (policy.ts CLAIMS_CIRCUITS): paid only on the claims contract named here. On mainnet
+  // only once MAINNET_CLAIMS says so, and only on VeilCore's own claims contract.
+  let claimsAddress: string | undefined;
+  if (env.VEILCORE_CLAIMS_ADDRESS?.trim()) {
+    claimsAddress = hex(env.VEILCORE_CLAIMS_ADDRESS, 32);
+    if (!claimsAddress)
+      problems.push(
+        "VEILCORE_CLAIMS_ADDRESS must be the 64-character claims contract address.",
+      );
+    else if (mainnet && !MAINNET_CLAIMS)
+      problems.push(
+        "Claims are not paid for on mainnet yet (policy.ts MAINNET_CLAIMS): remove VEILCORE_CLAIMS_ADDRESS.",
+      );
+    else if (mainnet && claimsAddress !== MAINNET_CLAIMS_CONTRACT)
+      problems.push(
+        `On mainnet VEILCORE_CLAIMS_ADDRESS must be VeilCore's claims contract, ${MAINNET_CLAIMS_CONTRACT}.`,
+      );
+    else if (claimsAddress === contractAddress)
+      problems.push(
+        "VEILCORE_CLAIMS_ADDRESS is the main contract’s address: it must be the claims contract’s.",
+      );
+  }
+
+  const proofServer = (env.PROOF_SERVER_URL ?? "").trim();
   if (!/^https?:\/\//.test(proofServer)) {
-    problems.push('PROOF_SERVER_URL must be the address of a Midnight proof server this service can reach (http://…).');
+    problems.push(
+      "PROOF_SERVER_URL must be the address of a Midnight proof server this service can reach (http://…).",
+    );
   }
 
   let allowedCircuits: ReadonlySet<string> = new Set(defaultCircuits(mainnet));
   if (env.SPONSOR_CIRCUITS?.trim()) {
     try {
-      allowedCircuits = allowList(env.SPONSOR_CIRCUITS.split(',').map((s) => s.trim()).filter(Boolean));
+      allowedCircuits = allowList(
+        env.SPONSOR_CIRCUITS.split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      );
     } catch (e) {
       problems.push(`SPONSOR_CIRCUITS: ${(e as Error).message}`);
     }
   }
 
-  const origins = (env.ALLOWED_ORIGINS ?? 'https://veilcore.org,https://www.veilcore.org')
-    .split(',')
+  const origins = (
+    env.ALLOWED_ORIGINS ?? "https://veilcore.org,https://www.veilcore.org"
+  )
+    .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
-  for (const o of origins) if (!/^https?:\/\/[^/]+$/.test(o)) problems.push(`ALLOWED_ORIGINS: "${o}" is not an origin.`);
+  for (const o of origins)
+    if (!/^https?:\/\/[^/]+$/.test(o))
+      problems.push(`ALLOWED_ORIGINS: "${o}" is not an origin.`);
 
-  const registryUrl = (env.REGISTRY_URL ?? '').trim();
-  const operatorToken = (env.REGISTRY_OPERATOR_TOKEN ?? '').trim();
-  const anchorerOff = env.ANCHORER_ENABLED === '0';
-  if (!anchorerOff && registryUrl && !/^https?:\/\//.test(registryUrl)) problems.push('REGISTRY_URL must start with http:// or https://.');
+  const registryUrl = (env.REGISTRY_URL ?? "").trim();
+  const operatorToken = (env.REGISTRY_OPERATOR_TOKEN ?? "").trim();
+  const anchorerOff = env.ANCHORER_ENABLED === "0";
+  if (!anchorerOff && registryUrl && !/^https?:\/\//.test(registryUrl))
+    problems.push("REGISTRY_URL must start with http:// or https://.");
 
-  const statusToken = (env.SPONSOR_STATUS_TOKEN ?? '').trim();
+  const statusToken = (env.SPONSOR_STATUS_TOKEN ?? "").trim();
   if (statusToken && !/^[\x21-\x7e]{32,256}$/.test(statusToken)) {
-    problems.push('SPONSOR_STATUS_TOKEN must be at least 32 characters with no spaces (for example 64 random hex characters).');
+    problems.push(
+      "SPONSOR_STATUS_TOKEN must be at least 32 characters with no spaces (for example 64 random hex characters).",
+    );
   }
 
   // Preprod: a Blockfrost "Midnight Preprod" project id, or all three endpoints given.
-  const blockfrostId = env.BLOCKFROST_PROJECT_ID?.trim() || '';
-  const allGiven = Boolean(env.INDEXER_URL?.trim() && env.INDEXER_WS_URL?.trim() && env.NODE_WS_URL?.trim());
-  let ep: Endpoints = { indexer: '', indexerWS: '', nodeWS: '' };
+  const blockfrostId = env.BLOCKFROST_PROJECT_ID?.trim() || "";
+  const allGiven = Boolean(
+    env.INDEXER_URL?.trim() &&
+    env.INDEXER_WS_URL?.trim() &&
+    env.NODE_WS_URL?.trim(),
+  );
+  let ep: Endpoints = { indexer: "", indexerWS: "", nodeWS: "" };
   if (mainnet) {
     // Blockfrost ids carry their network ("mainnet…", "preprod…"): a preprod id here is a mistake.
-    if (!/^[A-Za-z0-9_-]{8,}$/.test(blockfrostId) || /^preprod|^preview/i.test(blockfrostId))
-      problems.push('BLOCKFROST_PROJECT_ID must be a Blockfrost "Midnight Mainnet" project id (not a preprod one).');
-    else ep = blockfrostEndpoints('mainnet', blockfrostId);
-  } else if (network === 'preprod') {
+    if (
+      !/^[A-Za-z0-9_-]{8,}$/.test(blockfrostId) ||
+      /^preprod|^preview/i.test(blockfrostId)
+    )
+      problems.push(
+        'BLOCKFROST_PROJECT_ID must be a Blockfrost "Midnight Mainnet" project id (not a preprod one).',
+      );
+    else ep = blockfrostEndpoints("mainnet", blockfrostId);
+  } else if (network === "preprod") {
     if (blockfrostId) {
       if (!/^[A-Za-z0-9_-]{8,}$/.test(blockfrostId))
-        problems.push('BLOCKFROST_PROJECT_ID is not a Blockfrost project id (a Midnight Preprod project at blockfrost.io).');
+        problems.push(
+          "BLOCKFROST_PROJECT_ID is not a Blockfrost project id (a Midnight Preprod project at blockfrost.io).",
+        );
       else ep = blockfrostPreprod(blockfrostId);
     } else if (!allGiven)
       problems.push(
-        'BLOCKFROST_PROJECT_ID is required on preprod: Midnight shut its own preprod indexer and RPC on 9 October 2026. ' +
-          'Create a Midnight Preprod project at blockfrost.io (or set INDEXER_URL, INDEXER_WS_URL and NODE_WS_URL).',
+        "BLOCKFROST_PROJECT_ID is required on preprod: Midnight shut its own preprod indexer and RPC on 9 October 2026. " +
+          "Create a Midnight Preprod project at blockfrost.io (or set INDEXER_URL, INDEXER_WS_URL and NODE_WS_URL).",
       );
   } else ep = ENDPOINTS[network];
   const cfg: Config = {
     network,
-    port: int(env.PORT, 8080, 1, 65535, 'PORT', problems),
-    seed: seed ?? '',
+    port: int(env.PORT, 8080, 1, 65535, "PORT", problems),
+    seed: seed ?? "",
     forbiddenAddresses,
-    contractAddress: contractAddress ?? '',
+    contractAddress: contractAddress ?? "",
+    ...(claimsAddress ? { claimsAddress } : {}),
     indexer: env.INDEXER_URL?.trim() || ep.indexer,
     indexerWS: env.INDEXER_WS_URL?.trim() || ep.indexerWS,
     nodeWS: env.NODE_WS_URL?.trim() || ep.nodeWS,
     proofServer,
-    stateDir: env.STATE_DIR?.trim() || './state',
-    artifactsDir: env.VEILCORE_ARTIFACTS_DIR?.trim() || '',
+    stateDir: env.STATE_DIR?.trim() || "./state",
+    artifactsDir: env.VEILCORE_ARTIFACTS_DIR?.trim() || "",
     allowedOrigins: origins,
     allowedCircuits,
-    maxTxBytes: int(env.MAX_TX_BYTES, 64_000, 1_000, 1_000_000, 'MAX_TX_BYTES', problems),
+    maxTxBytes: int(
+      env.MAX_TX_BYTES,
+      64_000,
+      1_000,
+      1_000_000,
+      "MAX_TX_BYTES",
+      problems,
+    ),
     // midnight-js gives every call it builds a one-hour expiry (ttlOneHour), and the site
     // cannot choose another. Below an hour, every transaction from the site was refused
     // ("expires too far in the future": first live preprod run, 12 Oct 2026). 65 minutes
     // leaves room for the browser's proving time; MIN_TTL_MINUTES enforces the floor.
-    maxTtlMs: minTtl(int(env.MAX_TTL_MINUTES, 65, 1, 120, 'MAX_TTL_MINUTES', problems), problems) * 60_000,
-    maxFeeSpecks: dust(env.MAX_FEE_DUST, 5n * SPECKS_PER_DUST, 'MAX_FEE_DUST', problems),
-    dailyBudgetSpecks: dust(env.DAILY_BUDGET_DUST, 50n * SPECKS_PER_DUST, 'DAILY_BUDGET_DUST', problems),
-    powDifficulty: int(env.POW_DIFFICULTY, 18, 0, 28, 'POW_DIFFICULTY', problems),
-    queueDepth: int(env.QUEUE_DEPTH, 20, 1, 500, 'QUEUE_DEPTH', problems),
+    maxTtlMs:
+      minTtl(
+        int(env.MAX_TTL_MINUTES, 65, 1, 120, "MAX_TTL_MINUTES", problems),
+        problems,
+      ) * 60_000,
+    maxFeeSpecks: dust(
+      env.MAX_FEE_DUST,
+      5n * SPECKS_PER_DUST,
+      "MAX_FEE_DUST",
+      problems,
+    ),
+    dailyBudgetSpecks: dust(
+      env.DAILY_BUDGET_DUST,
+      50n * SPECKS_PER_DUST,
+      "DAILY_BUDGET_DUST",
+      problems,
+    ),
+    anchorReserveSpecks: anchorReserve(
+      env,
+      dust(
+        env.DAILY_BUDGET_DUST,
+        50n * SPECKS_PER_DUST,
+        "DAILY_BUDGET_DUST",
+        [],
+      ),
+      problems,
+    ),
+    // Ten stamps at the default fee cap: room to refill before the stamping job stops.
+    alertDustLowSpecks: dust(
+      env.ALERT_DUST_LOW_DUST,
+      50n * SPECKS_PER_DUST,
+      "ALERT_DUST_LOW_DUST",
+      problems,
+    ),
+    powDifficulty: int(
+      env.POW_DIFFICULTY,
+      18,
+      0,
+      28,
+      "POW_DIFFICULTY",
+      problems,
+    ),
+    queueDepth: int(env.QUEUE_DEPTH, 20, 1, 500, "QUEUE_DEPTH", problems),
     limits: {
-      requestsPerMinute: int(env.LIMIT_REQUESTS_PER_MINUTE, DEFAULT_LIMITS.requestsPerMinute, 1, 10_000, 'LIMIT_REQUESTS_PER_MINUTE', problems),
-      perIpHour: int(env.LIMIT_PER_NETWORK_HOUR, DEFAULT_LIMITS.perIpHour, 1, 10_000, 'LIMIT_PER_NETWORK_HOUR', problems),
-      perIpDay: int(env.LIMIT_PER_NETWORK_DAY, DEFAULT_LIMITS.perIpDay, 1, 100_000, 'LIMIT_PER_NETWORK_DAY', problems),
+      requestsPerMinute: int(
+        env.LIMIT_REQUESTS_PER_MINUTE,
+        DEFAULT_LIMITS.requestsPerMinute,
+        1,
+        10_000,
+        "LIMIT_REQUESTS_PER_MINUTE",
+        problems,
+      ),
+      perIpHour: int(
+        env.LIMIT_PER_NETWORK_HOUR,
+        DEFAULT_LIMITS.perIpHour,
+        1,
+        10_000,
+        "LIMIT_PER_NETWORK_HOUR",
+        problems,
+      ),
+      perIpDay: int(
+        env.LIMIT_PER_NETWORK_DAY,
+        DEFAULT_LIMITS.perIpDay,
+        1,
+        100_000,
+        "LIMIT_PER_NETWORK_DAY",
+        problems,
+      ),
       perTicketDay: DEFAULT_LIMITS.perTicketDay,
     },
-    trustProxyHops: int(env.TRUST_PROXY_HOPS, 1, 0, 5, 'TRUST_PROXY_HOPS', problems),
+    trustProxyHops: int(
+      env.TRUST_PROXY_HOPS,
+      1,
+      0,
+      5,
+      "TRUST_PROXY_HOPS",
+      problems,
+    ),
     statusToken,
     logSecrets: blockfrostId ? [blockfrostId] : [],
     anchorer: anchorerOff
-      ? { enabled: false, why: 'ANCHORER_ENABLED=0' }
+      ? { enabled: false, why: "ANCHORER_ENABLED=0" }
       : !registryUrl || !operatorToken
-        ? { enabled: false, why: 'REGISTRY_URL or REGISTRY_OPERATOR_TOKEN is not set' }
+        ? {
+            enabled: false,
+            why: "REGISTRY_URL or REGISTRY_OPERATOR_TOKEN is not set",
+          }
         : {
             enabled: true,
             registryUrl,
             operatorToken,
-            everyMs: int(env.ANCHOR_EVERY_MINUTES, 60, 5, 24 * 60, 'ANCHOR_EVERY_MINUTES', problems) * 60_000,
-            sealAtPending: int(env.ANCHOR_AT_PENDING, 25, 1, 100_000, 'ANCHOR_AT_PENDING', problems),
+            everyMs:
+              int(
+                env.ANCHOR_EVERY_MINUTES,
+                60,
+                5,
+                24 * 60,
+                "ANCHOR_EVERY_MINUTES",
+                problems,
+              ) * 60_000,
+            sealAtPending: int(
+              env.ANCHOR_AT_PENDING,
+              25,
+              1,
+              100_000,
+              "ANCHOR_AT_PENDING",
+              problems,
+            ),
           },
   };
   if (problems.length > 0) throw new ConfigError(problems);
@@ -289,7 +513,10 @@ export const loadConfig = (env: Record<string, string | undefined>): Config => {
  * Refuse a wallet that is the deployer's. Compared against every address the operator
  * listed; any match stops the service.
  */
-export const assertNotForbidden = (own: readonly string[], forbidden: readonly string[]): void => {
+export const assertNotForbidden = (
+  own: readonly string[],
+  forbidden: readonly string[],
+): void => {
   const f = new Set(forbidden.map((a) => a.trim().toLowerCase()));
   const hit = own.find((a) => f.has(a.trim().toLowerCase()));
   if (hit !== undefined) {
@@ -315,6 +542,8 @@ export const assertNotMaintenanceKey = (
     return; // not a valid signing key at all, so it cannot be one
   }
   if (committee.some((c) => c.toLowerCase() === vk.toLowerCase())) {
-    throw new ConfigError(['SPONSOR_SEED is the contract’s maintenance key. Never put that key on Railway.']);
+    throw new ConfigError([
+      "SPONSOR_SEED is the contract’s maintenance key. Never put that key on Railway.",
+    ]);
   }
 };

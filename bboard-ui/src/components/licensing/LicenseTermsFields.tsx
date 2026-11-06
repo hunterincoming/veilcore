@@ -4,8 +4,18 @@
 
 import React from 'react';
 import { FormControlLabel, MenuItem, Stack, Switch, TextField } from '@mui/material';
-import type { AgreementType, LicenseTerms } from '../../veilcore/licenses';
+import {
+  BASES_FOR,
+  RIGHTS_FOR,
+  subjectOf,
+  type AgreementType,
+  type LicenseTerms,
+  type Rights,
+  type UnitBasis,
+} from '../../veilcore/licenses';
 import { useT } from '../../i18n/app';
+import { forKind, type RecordKind } from '../../i18n/translate';
+import type { AppKey } from '../../i18n/app/en';
 
 export type SetTerm = <K extends keyof LicenseTerms>(k: K, v: LicenseTerms[K]) => void;
 
@@ -20,8 +30,32 @@ export const AgreementTermsFields: React.FC<{ type: AgreementType; terms: Licens
   return <LicenseTermsFields terms={terms} set={set} />;
 };
 
+// The plant options keep the words they always had; the others read app.lic.f.r.<right>.
+const RIGHT_OPTION: Partial<Record<Rights, AppKey>> = {
+  cultivate: 'app.lic.f.r.cultivate',
+  'cultivate+propagate': 'app.lic.f.r.propagate',
+  'full-transfer': 'app.lic.f.r.full',
+};
+const BASIS_OPTION: Record<UnitBasis, AppKey> = {
+  'per-plant': 'app.lic.f.b.plant',
+  'per-harvest': 'app.lic.f.b.harvest',
+  'per-dose': 'app.lic.f.b.dose',
+  'per-offspring': 'app.lic.f.b.offspring',
+  'per-batch': 'app.lic.f.b.batch',
+  'per-unit-sold': 'app.lic.f.b.unit',
+};
+export const rightOptionKey = (r: Rights): AppKey => RIGHT_OPTION[r] ?? (`app.lic.f.r.${r}` as AppKey);
+export const basisOptionKey = (b: UnitBasis): AppKey => BASIS_OPTION[b];
+
 export const LicenseTermsFields: React.FC<{ terms: LicenseTerms; set: SetTerm }> = ({ terms: t, set }) => {
-  const tr = useT();
+  // The terms say what the record is about (subject), so the form, the licensee's page and the
+  // certificate all use that kind's words: breeding and doses for an animal, use and batches
+  // for a strain.
+  const kind: RecordKind = subjectOf(t);
+  const tr = forKind(useT(), kind);
+  // A saved value this kind doesn't list (an old draft) stays selectable rather than vanishing.
+  const rights = RIGHTS_FOR[kind].includes(t.rights) ? RIGHTS_FOR[kind] : [...RIGHTS_FOR[kind], t.rights];
+  const bases = BASES_FOR[kind].includes(t.unitBasis) ? BASES_FOR[kind] : [...BASES_FOR[kind], t.unitBasis];
   return (
     <Stack spacing={2.5}>
       <TextField
@@ -39,9 +73,11 @@ export const LicenseTermsFields: React.FC<{ terms: LicenseTerms; set: SetTerm }>
         onChange={(e) => set('rights', e.target.value as LicenseTerms['rights'])}
         fullWidth
       >
-        <MenuItem value="cultivate">{tr.t('app.lic.f.r.cultivate')}</MenuItem>
-        <MenuItem value="cultivate+propagate">{tr.t('app.lic.f.r.propagate')}</MenuItem>
-        <MenuItem value="full-transfer">{tr.t('app.lic.f.r.full')}</MenuItem>
+        {rights.map((r) => (
+          <MenuItem key={r} value={r}>
+            {tr.t(rightOptionKey(r))}
+          </MenuItem>
+        ))}
       </TextField>
       <TextField
         label={tr.t('app.lic.f.territory')}
@@ -96,9 +132,11 @@ export const LicenseTermsFields: React.FC<{ terms: LicenseTerms; set: SetTerm }>
           onChange={(e) => set('unitBasis', e.target.value as LicenseTerms['unitBasis'])}
           sx={{ minWidth: 180 }}
         >
-          <MenuItem value="per-plant">{tr.t('app.lic.f.b.plant')}</MenuItem>
-          <MenuItem value="per-harvest">{tr.t('app.lic.f.b.harvest')}</MenuItem>
-          <MenuItem value="per-unit-sold">{tr.t('app.lic.f.b.unit')}</MenuItem>
+          {bases.map((b) => (
+            <MenuItem key={b} value={b}>
+              {tr.t(basisOptionKey(b))}
+            </MenuItem>
+          ))}
         </TextField>
       </Stack>
       <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
@@ -153,9 +191,24 @@ export const emptyTerms = (): LicenseTerms => {
   };
 };
 
-/** Blank terms seeded with sensible defaults for the chosen agreement type. */
-export const emptyTermsFor = (type: AgreementType): LicenseTerms => {
-  const base = emptyTerms();
+/** The royalty basis a new license on this kind of record starts with. */
+const FIRST_BASIS: Record<RecordKind, UnitBasis> = {
+  plant: 'per-unit-sold',
+  animal: 'per-dose',
+  strain: 'per-batch',
+};
+
+/**
+ * Blank terms seeded with sensible defaults for the chosen agreement type and what the record
+ * is about. A plant's terms carry no subject, so they are exactly what they were before.
+ */
+export const emptyTermsFor = (type: AgreementType, kind: RecordKind = 'plant'): LicenseTerms => {
+  const base: LicenseTerms = {
+    ...emptyTerms(),
+    rights: RIGHTS_FOR[kind][0],
+    unitBasis: FIRST_BASIS[kind],
+    ...(kind === 'plant' ? {} : { subject: kind }),
+  };
   if (type === 'lab-transfer') {
     return {
       ...base,

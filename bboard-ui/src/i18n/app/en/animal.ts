@@ -24,6 +24,9 @@ export const animal = {
   'app.animal.idScheme': 'ID scheme',
   'app.animal.idSchemeHelp': 'Which numbering the ID belongs to. Pick one or type your own.',
   'app.animal.scheme.jp': 'Japan cattle ID (10 digits)',
+  'app.animal.idShape.jp': 'A Japan cattle ID is 10 digits. Check the number on the ear tag.',
+  'app.animal.idShape.usda840': 'A USDA 840 tag number is 15 digits starting with 840. Check the tag.',
+  'app.animal.idShape.microchip': 'A microchip number is 15 digits. Check it with the reader.',
   'app.animal.scheme.earTag': 'Ear tag',
   'app.animal.scheme.microchip': 'Microchip',
   'app.animal.scheme.herdBook': 'Herd book number',
@@ -68,7 +71,6 @@ export const animal = {
 
   // An animal's page (RecordDetail.tsx), Home and the family tree.
   'app.animal.f.statedBirth': 'Date of birth (holder’s statement)',
-  'app.animal.noLicensing': 'Agreements and royalties aren’t available for animal records yet.',
   'app.animal.tree.sire': 'Sire',
   'app.animal.tree.dam': 'Dam',
   'app.animal.home.yourRecords': 'Your records',
@@ -184,7 +186,7 @@ export const animal = {
     'A lab signed that it received a sample. When its DNA report comes back, save it to this animal: that is what ties your record to the animal, so a later test can be compared with it.',
   'app.animal.v.app.plant.next.save.action': 'Save it to this animal',
   'app.animal.v.app.plant.next.ready.why':
-    'A lab signed that it received a sample, and a DNA report is saved to this animal. Agreements and royalties aren’t available for animal records yet.',
+    'A lab signed that it received a sample, and a DNA report is saved to this animal. You can send material onward or license it, with terms that apply to offspring declared from this record.',
   'app.animal.v.app.plant.tree.none': 'No sire or dam recorded yet.',
   'app.animal.v.app.plant.anchor.keysNotHere':
     'This animal’s key isn’t in this browser. Get it back from your backup file: a new key wouldn’t match the sealed record.',
@@ -249,4 +251,21 @@ export const animal = {
   'app.animal.v.app.lab.send.nothingYet':
     "Nothing has changed yet. Your animal's page shows “waiting” until they enter the code, and can show this code again. They paste it into the box on VeilCore's Home.",
   'app.animal.v.app.lab.send.takenFromHelp': "The animal's individual ID, or where the sample was taken.",
+  'app.animal.v.app.lic.row.offspringValue': '{pct}%, on offspring declared from this animal',
+  'app.animal.v.app.lic.f.offspringHelp':
+    'Applies to offspring declared from this record (logged with it as sire or dam, both holders confirming). Offspring nobody logs are not detected. Leave blank if none.',
+  'app.animal.v.app.lic.f.extraHelpDeal':
+    'Anything else that’s part of the deal, in your own words. For example: at most two litters or calvings, no resale of straws, offspring registered with a named breed society.',
+  'app.animal.v.app.lic.detail.thisCultivar': 'this animal',
+  'app.animal.v.app.lic.detail.lineage':
+    'If an animal is later logged with {name} as sire or dam, and both holders confirm it, the link to this agreement shows on its record. Offspring nobody logs are not detected.',
+  'app.animal.v.app.lic.detail.derivatives.one': '{count} animal already logged descends from it.',
+  'app.animal.v.app.lic.detail.derivatives.other': '{count} animals already logged descend from it.',
+  'app.animal.v.app.lic.off.intro':
+    'On Midnight it sits on the licensee’s own record of these genetics, so every offspring both holders confirm shows it when anyone checks the line. The licensee accepts it; only the breeder can release it.',
+  'app.animal.v.app.lic.off.dateFirst':
+    'Date your own record of these genetics first (the animal, or the semen or embryos you received), then name it here.',
+  'app.animal.v.app.lic.off.datePlant': 'Date a record',
+  'app.animal.v.app.lic.off.yourRecord': 'Your record of these genetics',
+  'app.animal.v.app.lic.off.waitName': 'Waiting for them to name their record of these genetics.',
 };

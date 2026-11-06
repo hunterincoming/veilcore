@@ -11,7 +11,10 @@ afterEach(() => server?.close());
 const XFF = { 'x-forwarded-for': '203.0.113.9' };
 const OPERATOR_TOKEN = 'o'.repeat(40);
 
-const start = (handle: (r: SponsorRequest) => Promise<{ status: number; body: Record<string, unknown> }>) => {
+const start = (
+  handle: (r: SponsorRequest) => Promise<{ status: number; body: Record<string, unknown> }>,
+  alerts?: () => readonly string[],
+) => {
   const seen: SponsorRequest[] = [];
   const statusCalls: boolean[] = [];
   server = startServer(
@@ -33,6 +36,7 @@ const start = (handle: (r: SponsorRequest) => Promise<{ status: number; body: Re
       allowedOrigins: ['https://veilcore.org'],
       trustProxyHops: 1,
       maxBodyBytes: 2_000,
+      ...(alerts ? { alerts } : {}),
     },
     0,
   );
@@ -101,5 +105,32 @@ describe('HTTP routes', () => {
     expect(post.status).toBe(400);
     expect(seen).toHaveLength(0); // never reached the sponsor, so never fell into a shared bucket
     expect((await fetch(`${url}/health`)).status).toBe(200); // the health check needs no proxy header
+  });
+
+  it('alerts: 200 when nothing needs the operator, 503 with codes when something does, 404 when off', async () => {
+    let now: readonly string[] = [];
+    const { url } = start(() => Promise.resolve({ status: 200, body: {} }), () => now);
+    const fine = await fetch(`${url}/sponsor/alerts`);
+    expect(fine.status).toBe(200);
+    expect(await fine.json()).toEqual({ ok: true, problems: [] });
+    now = ['anchoring-failing', 'fuel-low'];
+    const bad = await fetch(`${url}/sponsor/alerts`);
+    expect(bad.status).toBe(503);
+    expect(await bad.json()).toEqual({ ok: false, problems: ['anchoring-failing', 'fuel-low'] });
+    server?.close();
+    const off = start(() => Promise.resolve({ status: 200, body: {} }));
+    expect((await fetch(`${off.url}/sponsor/alerts`)).status).toBe(404);
+  });
+
+  it('alerts: a check that throws is itself a problem, never a 200', async () => {
+    const { url } = start(
+      () => Promise.resolve({ status: 200, body: {} }),
+      () => {
+        throw new Error('wallet gone');
+      },
+    );
+    const r = await fetch(`${url}/sponsor/alerts`);
+    expect(r.status).toBe(503);
+    expect(JSON.stringify(await r.json())).not.toMatch(/wallet gone/);
   });
 });

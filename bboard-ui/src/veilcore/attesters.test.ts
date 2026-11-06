@@ -6,6 +6,7 @@ import {
   nameChecked,
   signerLabel,
   strengthLabel,
+  type DomainCheck,
   type NameCheck,
   type ResolvedAttestation,
 } from './attesters';
@@ -137,5 +138,52 @@ describe('signerLabel', () => {
     });
     expect(signerLabel(withdrawn, 'Receipt signed by', NOW).text).toBe(NOT_CHECKED);
     expect(signerLabel(att({ signatureValid: false }), 'Receipt signed by', NOW).text).toBe(NOT_CHECKED);
+  });
+});
+
+describe('a lab key published on the lab’s own domain (docs/lab-domain-keys.md)', () => {
+  const dc: DomainCheck = { domain: 'acmelabs.example', method: 'file', checkedAt: '2026-10-14T03:00:00.000Z' };
+  const withDomain = (nameCheck: NameCheck | null, over: Partial<typeof dc> = {}) =>
+    att(
+      {
+        vettedAttester: nameCheck !== null,
+        registeredAs: { displayName: 'Acme Labs', nameCheck, domainCheck: { ...dc, ...over } },
+      },
+      nameCheck,
+    );
+
+  it('a name not checked, but listed on its domain: says which website lists it and when, links the file', () => {
+    const s = signerLabel(withDomain(null), 'Receipt signed by', NOW);
+    expect(s.checked).toBe(false);
+    expect(s.text).toBe(
+      `${NOT_CHECKED}. The website acmelabs.example lists this key, and the key names that website (looked up on 2026-10-14).`,
+    );
+    expect(s.published?.href).toBe('https://acmelabs.example/.well-known/veilcore-lab.json');
+    expect(`${s.lead}.${s.rest}`).toBe(s.text);
+  });
+
+  it('a checked name and a domain: both, the operator’s match first', () => {
+    const s = signerLabel(withDomain(check()), 'Receipt signed by', NOW);
+    expect(s.text).toBe(
+      `${CHECKED} The website acmelabs.example lists this key, and the key names that website (looked up on 2026-10-14).`,
+    );
+  });
+
+  it('nothing from a stale look, a bad domain, an unsigned signature or a withdrawn one', () => {
+    expect(signerLabel(withDomain(null, { checkedAt: '2026-10-01T00:00:00Z' }), 'Receipt signed by', NOW).text).toBe(
+      NOT_CHECKED,
+    );
+    expect(signerLabel(withDomain(null, { domain: 'localhost' }), 'Receipt signed by', NOW).text).toBe(NOT_CHECKED);
+    expect(signerLabel(withDomain(null, { domain: 'evil.example/x' }), 'Receipt signed by', NOW).text).toBe(
+      NOT_CHECKED,
+    );
+    const unsigned = { ...withDomain(null), signatureValid: false };
+    expect(signerLabel(unsigned, 'Receipt signed by', NOW).published).toBeNull();
+  });
+
+  it('a TXT record links the domain itself', () => {
+    expect(signerLabel(withDomain(null, { method: 'dns' }), 'Receipt signed by', NOW).published?.href).toBe(
+      'https://acmelabs.example',
+    );
   });
 });

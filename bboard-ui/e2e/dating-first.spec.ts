@@ -14,7 +14,17 @@ import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page, type Route } from '@playwright/test';
 import { buildBatch } from 'veilcore-records';
-import { API, REAL_REGISTRY, expectNoErrors, isolate, json, saveAndCheckBackup, watch, type Handler } from './helpers';
+import {
+  API,
+  REAL_REGISTRY,
+  expectNoErrors,
+  isolate,
+  json,
+  saveAndCheckBackup,
+  watch,
+  type Handler,
+  startPlant,
+} from './helpers';
 
 const OPERATOR = process.env.E2E_OPERATOR_TOKEN ?? '';
 const ANCHOR_CONTRACT = process.env.E2E_ANCHOR_CONTRACT ?? '';
@@ -135,6 +145,7 @@ test('a plant logged with no backup is still dated in the next batch, and Home p
 
   const name = `Dating first (practice) ${Date.now()}`;
   await page.goto('/new');
+  await startPlant(page);
   await page.getByLabel(/Plant or line name/).fill(name);
   await page.getByLabel(/Bred by/).fill('E2E');
   await page.getByRole('button', { name: /Next: check it/ }).click();

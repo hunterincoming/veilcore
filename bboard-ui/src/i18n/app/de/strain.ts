@@ -101,7 +101,7 @@ export const strain = {
     'Ein Labor hat signiert, dass es eine Probe erhalten hat. Wenn sein DNA-Bericht zurückkommt, speichern Sie ihn bei dieser Linie: Das verknüpft Ihren Datensatz mit der Linie, damit ein späterer Test damit verglichen werden kann.',
   'app.strain.v.app.plant.next.save.action': 'Bei dieser Linie speichern',
   'app.strain.v.app.plant.next.ready.why':
-    'Ein Labor hat signiert, dass es eine Probe erhalten hat, und ein DNA-Bericht ist bei dieser Linie gespeichert. Sie können Material weitergeben oder es lizenzieren, mit Bedingungen, die für aus diesem Datensatz angegebene Nachkommen gelten.',
+    'Ein Labor hat signiert, dass es eine Probe erhalten hat, und ein DNA-Bericht ist bei diesem Stamm gespeichert. Sie können Material weitergeben oder es lizenzieren, mit Bedingungen, die für als von diesem Datensatz abgeleitet angemeldete Stämme gelten.',
   'app.strain.v.app.plant.tree.none':
     'Noch keine Abstammung erfasst. Fügen Sie beim Erfassen Elternstämme hinzu, um den Stammbaum aufzubauen.',
   'app.strain.v.app.plant.anchor.keysNotHere':
@@ -181,4 +181,24 @@ export const strain = {
   'app.strain.v.app.verify.noMethod': 'Kein Herstellungsweg erfasst.',
   'app.strain.v.app.verify.bredByShared': 'Hergestellt oder isoliert von, wie vom Inhaber angegeben: {name}',
   'app.strain.v.app.verify.noBredBy': 'Nicht erfasst, wer ihn hergestellt oder isoliert hat.',
+  'app.strain.v.app.lic.row.offspring': 'Lizenzgebühr auf abgeleitete Stämme',
+  'app.strain.v.app.lic.row.offspringValue': '{pct} %, auf Stämme, die als von diesem abgeleitet angemeldet werden',
+  'app.strain.v.app.lic.f.offspring': 'Lizenzgebühr auf abgeleitete Stämme (%)',
+  'app.strain.v.app.lic.f.offspringHelp':
+    'Gilt für Stämme, die als von diesem Datensatz abgeleitet angemeldet werden (mit ihm als Elternteil erfasst, von beiden Inhabern bestätigt). Nicht angemeldete Ableitung wird nicht erkannt. Leer lassen, wenn keine.',
+  'app.strain.v.app.lic.f.extraHelpDeal':
+    'Alles, was sonst zum Geschäft gehört, in Ihren eigenen Worten. Zum Beispiel: keine Weitergabe an Dritte, Quelle in Veröffentlichungen nennen, Restbestände am Ende vernichten.',
+  'app.strain.v.app.lic.detail.thisCultivar': 'diesem Stamm',
+  'app.strain.v.app.lic.detail.lineage':
+    'Wird später ein Stamm mit {name} als Elternteil erfasst und bestätigen beide Inhaber dies, erscheint die Verbindung zu dieser Vereinbarung in seinem Datensatz. Abgeleitete Stämme, die niemand erfasst, werden nicht erkannt.',
+  'app.strain.v.app.lic.detail.derivatives.one': '{count} bereits erfasster Stamm stammt davon ab.',
+  'app.strain.v.app.lic.detail.derivatives.other': '{count} bereits erfasste Stämme stammen davon ab.',
+  'app.strain.v.app.lic.off.title': 'Lizenzgebühr auf abgeleitete Stämme: {pct} %',
+  'app.strain.v.app.lic.off.intro':
+    'Auf Midnight liegt sie auf dem eigenen Datensatz des Lizenznehmers zu diesem Stamm, sodass jeder abgeleitete Stamm, den beide Inhaber bestätigen, sie zeigt, wenn jemand die Linie prüft. Der Lizenznehmer nimmt sie an; nur der Lizenzgeber kann sie aufheben.',
+  'app.strain.v.app.lic.off.dateFirst':
+    'Datieren Sie zuerst Ihren eigenen Datensatz zu diesem Stamm und nennen Sie ihn dann hier.',
+  'app.strain.v.app.lic.off.datePlant': 'Einen Datensatz datieren',
+  'app.strain.v.app.lic.off.yourRecord': 'Ihr Datensatz zu diesem Stamm',
+  'app.strain.v.app.lic.off.waitName': 'Warten, bis die andere Seite ihren Datensatz zu diesem Stamm nennt.',
 } satisfies Partial<AppTranslation>;

@@ -66,8 +66,6 @@ export const strainForm = {
   'app.strain.x.method': 'Obtenida por: {v}',
   'app.strain.x.generation': 'Generación: {v}',
   'app.strain.x.parents': 'Progenitores: {v}',
-  'app.strain.noLicensing':
-    'Los acuerdos y las regalías aún no están disponibles para registros de cepas: una licencia de cepa necesita sus propios términos (uso, subcultivo, cepas derivadas), no los de una planta.',
   'app.strain.f.generation': 'Generación o pase',
   'app.strain.f.parents': 'Cepas progenitoras',
   'app.strain.verify.parentsLine': 'Cepas progenitoras, según el titular: {v}',

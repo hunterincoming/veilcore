@@ -126,6 +126,8 @@ export const importing = {
     'Sus registros ya están sellados y se fecharán con su lote en {dated}; eso no depende de los sellos de fecha de sus claves. La clave de cada planta también recibe su propio sello de fecha desde este navegador, unos {perDay} por día, así que los {n} en cola tardan unos {days}. Empiezan después de su copia de seguridad.',
   'app.import.sum.byBatch':
     'Su sello de fecha público llega cuando su lote se fecha en {dated}. No tiene que hacer nada.',
+  'app.import.sum.stampsLater':
+    'Sus registros ya están sellados y se fecharán con su lote en {dated}. El sello de la clave de cada planta espera a que lo necesite: antes de demostrar que tiene una planta o de licenciarla, su página lo hace en uno o dos minutos.',
   'app.import.sum.untilSaved':
     'Hasta que la guarde y la compruebe, las claves de los registros nuevos están solo en este navegador.',
   'app.import.sum.noDna.one':
@@ -144,6 +146,10 @@ export const importing = {
   'app.import.stamps.stamping': 'Poniendo el sello de fecha a {name}…',
   'app.import.stamps.allDone': 'Todo listo.',
   'app.import.stamps.goOn': 'Continuar',
+  'app.import.stamps.notNeeded':
+    'Todavía no los necesita. Sus registros se fechan con su lote en {dated}. El sello de la clave de una planta solo importa antes de demostrar que la tiene o de licenciarla, y la página de esa planta lo hace en uno o dos minutos cuando lo necesite. Sin semanas de espera.',
+  'app.import.stamps.startAll': 'Sellarlos todos ahora',
+  'app.import.stamps.stopAll': 'Parar y sellar cada uno cuando haga falta',
   'app.import.stamps.saveIt': 'Guardarla',
   'app.import.stamps.newSince.one':
     '{count} sello de fecha de clave llegó después de su copia de seguridad. Guarde una copia nueva para conservarlo.',

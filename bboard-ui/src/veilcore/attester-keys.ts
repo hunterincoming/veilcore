@@ -108,6 +108,67 @@ const signRegistration = async (p: AttesterProfile, issuedAt: number): Promise<s
   return toHex(new Uint8Array(sig));
 };
 
+/**
+ * The file a lab puts on its own website, at /.well-known/veilcore-lab.json (docs/lab-domain-keys.md),
+ * so anyone can see the key is the lab's without asking VeilCore.
+ */
+export const labFileFor = (p: AttesterProfile): string =>
+  JSON.stringify(
+    { format: 'veilcore-lab/v1', name: p.displayName, keys: [{ publicKey: p.keypair.publicKey }] },
+    null,
+    2,
+  ) + '\n';
+
+/** The same, as a DNS TXT record at _veilcore-lab.<domain>, for a lab that can't add a file. */
+export const labTxtFor = (p: AttesterProfile): string => `veilcore-lab=v1 key=${p.keypair.publicKey}`;
+
+/**
+ * Name the lab's website, signed by its key (so nobody else can name one for it), and ask the
+ * registry to look now. What it saw, or why it couldn't look.
+ */
+/** What the key signs to name its website (registry lineage/lab-domain.mjs domainClaimPayload). */
+export const domainClaimPayload = (publicKey: string, domain: string, issuedAt: number): string =>
+  `veilcore:lab-domain:v1\n${publicKey}\n${domain}\n${issuedAt}`;
+
+export const lookAtLabDomain = async (
+  p: AttesterProfile,
+  typed: string,
+): Promise<{ listed: boolean; method?: 'file' | 'dns'; why?: string } | { error: string }> => {
+  // The registry's cleanDomain, so the signed text and the stored domain are the same.
+  const domain = typed.trim().toLowerCase().replace(/\.$/, '');
+  try {
+    const issuedAt = Date.now();
+    const key = await crypto.subtle.importKey(
+      'pkcs8',
+      fromHex(p.keypair.privateKey) as unknown as BufferSource,
+      { name: 'Ed25519' },
+      false,
+      ['sign'],
+    );
+    const sig = await crypto.subtle.sign(
+      'Ed25519',
+      key,
+      new TextEncoder().encode(domainClaimPayload(p.keypair.publicKey, domain, issuedAt)),
+    );
+    const res = await fetch(`${BASE}/attesters/${p.keypair.publicKey}/domain`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain, issuedAt, signature: toHex(new Uint8Array(sig)) }),
+    });
+    const body = await readJson(res);
+    if (!isObject(body)) return { error: 'unexpected response from the registry' };
+    if (isString(body.error)) return { error: body.error };
+    if (typeof body.listed !== 'boolean') return { error: 'unexpected response from the registry' };
+    return {
+      listed: body.listed,
+      ...(body.method === 'file' || body.method === 'dns' ? { method: body.method } : {}),
+      ...(isString(body.why) ? { why: body.why } : {}),
+    };
+  } catch {
+    return { error: 'could not reach the registry' };
+  }
+};
+
 export const publishAttester = async (p: AttesterProfile): Promise<{ attesterId?: string; error?: string }> => {
   try {
     const issuedAt = Date.now();
@@ -150,7 +211,7 @@ export const attestRecord = async (
   p: AttesterProfile,
   subjectCommitment: string,
   documentHash: string,
-  type: 'laboratory-report' | 'genetic-fingerprint' | 'inspection' | 'chain-of-custody' = 'laboratory-report',
+  type: 'laboratory-report' | 'genetic-fingerprint' | 'inspection' | 'chain-of-custody' | 'other' = 'laboratory-report',
   idSuffix = '',
 ): Promise<{ attestationId?: string; strength?: string; error?: string }> => {
   const signed = await signAttestation(

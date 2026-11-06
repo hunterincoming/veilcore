@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { chainEnv, httpsOrigin, sponsorProblem } from './deploy-mainnet.mjs';
+import { chainEnv, httpsOrigin, mainnetClaims, sponsorProblem } from './deploy-mainnet.mjs';
 
 const PIN = 'a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347';
 
@@ -61,4 +61,19 @@ test('the Vercel token comes from the environment or the keychain, and only into
   assert.deepEqual(vercelEnv({ A: '1', VERCEL_TOKEN: 't' }), { A: '1', VERCEL_TOKEN: 't' });
   const src = (await import('node:fs')).readFileSync(new URL('./deploy-mainnet.mjs', import.meta.url), 'utf8');
   assert.match(src, /delete env\.VERCEL_TOKEN;/);
+});
+
+test('claims: on only when the sponsor pays for VeilCore\'s pinned claims contract, with the keys here', () => {
+  const CLAIMS = 'ef763eb4ad1846b716dbfa90c00560a9a943ffb4d1fc638b0707df5adefd070d';
+  const all = () => true;
+  assert.deepEqual(mainnetClaims({}, CLAIMS, all), {
+    ok: true,
+    address: '',
+    line: 'Claims: off (the sponsor names no claims contract).',
+  });
+  assert.equal(mainnetClaims({ claimsAddress: CLAIMS.toUpperCase() }, CLAIMS, all).address, CLAIMS);
+  assert.match(mainnetClaims({ claimsAddress: 'ab'.repeat(32) }, CLAIMS, all).problem, /not VeilCore's claims contract/);
+  assert.match(mainnetClaims({ claimsAddress: CLAIMS }, '', all).problem, /no claims contract is pinned/);
+  assert.match(mainnetClaims({ claimsAddress: CLAIMS }, CLAIMS, (f) => !f.endsWith('.prover')).problem, /proving keys/);
+  assert.match(mainnetClaims({ claimsAddress: CLAIMS }, CLAIMS, (f) => !f.includes('2p16')).problem, /k=15 and k=16/);
 });

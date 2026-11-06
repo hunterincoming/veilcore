@@ -65,8 +65,6 @@ export const strainForm = {
   'app.strain.x.method': '作出方法：{v}',
   'app.strain.x.generation': '世代：{v}',
   'app.strain.x.parents': '親株：{v}',
-  'app.strain.noLicensing':
-    '菌株の記録では、契約とロイヤリティはまだ使えません。菌株のライセンスには植物とは別の条件（使用、継代、派生株）が必要です。',
   'app.strain.f.generation': '世代・継代数',
   'app.strain.f.parents': '親株',
   'app.strain.verify.parentsLine': '親株（保有者の記載）：{v}',

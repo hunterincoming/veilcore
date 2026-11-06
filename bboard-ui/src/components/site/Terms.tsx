@@ -51,6 +51,7 @@ const SECTIONS: readonly Section[] = [
       'The terms of a license are between you and the other party. VeilCore records that the license exists, when it was issued, activated or revoked, and the messages the two of you send each other about it: the terms, each side’s agreement to them, statements of what is owed, replies, and notices of payment.',
       'Each of those messages is signed by the person who sent it and encrypted so that only the two of you can read it. Its fingerprint is dated on Midnight. Either of you may show your messages to anyone, a court included, and anyone can check the signatures. We can’t read them, and we don’t decide disputes.',
       'Amounts the site works out from the terms are a convenience. Check them before you agree to them.',
+      'A license made here is a signed, dated record of what the two of you agreed. It is not legal advice and does not make an agreement enforceable. Cannabis is still illegal under US federal law, and some courts have refused to enforce agreements about it, so have your own lawyer review any agreement that matters to you.',
       'A license stays live on Midnight until the breeder revokes it, whatever end date its terms give. A royalty on offspring stays on the record it was accepted for until the breeder releases it.',
     ],
   },

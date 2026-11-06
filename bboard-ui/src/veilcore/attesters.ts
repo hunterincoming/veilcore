@@ -23,6 +23,7 @@
 import type { SignedAttestation, AttestationStrength, Retraction } from 'veilcore-records';
 import { verifyAttestation, verifyRetraction } from 'veilcore-records';
 import { readJson, isObject, isString } from './json';
+import { isClaimsKeyBinding } from './lab-key-text';
 import { holderKeyIfAny, holderRequestsPaused } from './holder';
 import { enT, type Translator } from '../i18n/translate';
 import type { AppKey } from '../i18n/app/en';
@@ -51,6 +52,15 @@ export type NameCheck = {
   checkedName: string;
 };
 
+/** What the registry saw at a lab's own domain: the file at /.well-known/veilcore-lab.json, or a TXT record. */
+export type DomainCheck = {
+  domain: string;
+  method: 'file' | 'dns';
+  checkedAt: string;
+  listedName?: string;
+  fileSha256?: string;
+};
+
 export type ResolvedAttestation = SignedAttestation & {
   strength: AttestationStrength;
   /**
@@ -66,6 +76,11 @@ export type ResolvedAttestation = SignedAttestation & {
     /** The operator's record of the name check (round 4). Absent from older registries. */
     nameCheck?: NameCheck | null;
     nameCheckStatus?: 'checked' | 'expired' | 'not-checked' | 'withdrawn';
+    /**
+     * The lab's own domain lists this key (registry lineage/lab-domain.mjs; docs/lab-domain-keys.md),
+     * as the registry last saw it. Absent from older registries.
+     */
+    domainCheck?: DomainCheck | null;
   } | null;
   /** A retraction, present only when its signature verified against this attestation. */
   retraction: Retraction | null;
@@ -138,7 +153,7 @@ const checkRetraction = async (r: unknown, a: SignedAttestation): Promise<Retrac
  */
 export const attestationsFor = async (
   commitment?: string,
-  opts: { asHolder?: boolean } = {},
+  opts: { asHolder?: boolean; claimsKeyBindings?: boolean } = {},
 ): Promise<ResolvedAttestation[]> => {
   if (!commitment || !HEX64.test(commitment)) return [];
   try {
@@ -154,7 +169,10 @@ export const attestationsFor = async (
       .filter(isIncomingAttestation)
       // Bound to the record on screen. A valid signature about another record is a
       // valid signature about another record.
-      .filter((a) => a.subjectCommitment === commitment);
+      .filter((a) => a.subjectCommitment === commitment)
+      // A laboratory's claims-key binding (claims-key.ts) is not a report or a receipt: only the
+      // claim check page, which asks for them, reads it.
+      .filter((a) => opts.claimsKeyBindings === true || !isClaimsKeyBinding(a.attestationId));
 
     return await Promise.all(
       incoming.map(async (a): Promise<ResolvedAttestation> => {
@@ -242,6 +260,34 @@ export const currentNameCheck = (
   };
 };
 
+/** How long a look at a lab's domain counts (the registry looks daily; lab-domain.mjs). */
+const DOMAIN_CHECK_MS = 7 * 86_400_000;
+const LAB_DOMAIN = /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+
+/**
+ * The lab's own domain listing this key, if the registry's last look found it and is recent.
+ * Where anyone can look for themselves: the file's address, or the TXT record's name.
+ */
+export const currentDomainCheck = (
+  a: ResolvedAttestation,
+  now: number = Date.now(),
+): { domain: string; method: 'file' | 'dns'; href: string; where: string; date: string } | null => {
+  if (!countsAsSigned(a)) return null;
+  const c: unknown = a.registeredAs?.domainCheck;
+  if (!isObject(c) || !isString(c.domain) || !LAB_DOMAIN.test(c.domain)) return null;
+  if (c.method !== 'file' && c.method !== 'dns') return null;
+  const at = isString(c.checkedAt) ? Date.parse(c.checkedAt) : NaN;
+  if (!Number.isFinite(at) || at > now + 60_000 || now - at > DOMAIN_CHECK_MS) return null;
+  const href = `https://${c.domain}/.well-known/veilcore-lab.json`;
+  return {
+    domain: c.domain,
+    method: c.method,
+    href,
+    where: c.method === 'file' ? href : `_veilcore-lab.${c.domain}`,
+    date: new Date(at).toISOString().slice(0, 10),
+  };
+};
+
 /** A name check that counts, on a signature that counts. Used everywhere a page names a signer. */
 export const nameChecked = (a: ResolvedAttestation, now: number = Date.now()): boolean =>
   countsAsSigned(a) && currentNameCheck(a, now) !== null;
@@ -259,6 +305,8 @@ export type SignerLabel = {
   match: { before: string; host: string; href: string; after: string } | null;
   /** Only when checked. */
   disclaimer: string | null;
+  /** When the lab's own domain lists the key: in pieces so a page can link the domain. */
+  published: { before: string; host: string; href: string; after: string } | null;
   /** What follows the lead's full stop: '' or " VeilCore’s operator matched … VeilCore doesn’t vouch …". */
   rest: string;
   /** The whole label as plain text. */
@@ -291,6 +339,18 @@ export const signerLabel = (
   tr: Translator = enT,
 ): SignerLabel => {
   const check = countsAsSigned(a) ? currentNameCheck(a, now) : null;
+  const dc = currentDomainCheck(a, now);
+  const published = dc
+    ? {
+        before: tr.t('app.signer.domainBefore'),
+        host: dc.domain,
+        href: dc.method === 'dns' ? `https://${dc.domain}` : dc.href,
+        after: tr.t('app.signer.domainAfter', { date: dc.date }),
+      }
+    : null;
+  const publishedText = published
+    ? `${tr.t('app.signer.sep')}${published.before}${published.host}${published.after}`
+    : '';
   const leadOf = (who: string) =>
     LEADS[leadWords] ? tr.t(LEADS[leadWords], { who }) : leadWords ? `${leadWords} ${who}` : ` ${who}`;
   if (check) {
@@ -308,13 +368,35 @@ export const signerLabel = (
       after: tr.t('app.signer.matchAfter', { number, date: check.checkedAt }),
     };
     const disclaimer = tr.t('app.signer.disclaimer');
-    const rest = tr.t('app.signer.rest', { before: match.before, host: match.host, after: match.after, disclaimer });
-    return { checked: true, lead, who, match, disclaimer, rest, text: tr.t('app.signer.text', { lead, rest }) };
+    const rest =
+      tr.t('app.signer.rest', { before: match.before, host: match.host, after: match.after, disclaimer }) +
+      publishedText;
+    return {
+      checked: true,
+      lead,
+      who,
+      match,
+      disclaimer,
+      published,
+      rest,
+      text: tr.t('app.signer.text', { lead, rest }),
+    };
   }
   const name = (a.registeredAs?.displayName ?? a.attester.displayName)?.trim();
   const who = name ? tr.t('app.signer.keyNamed', { name }) : tr.t('app.signer.keyUnnamed');
   const lead = leadOf(who);
-  return { checked: false, lead, who, match: null, disclaimer: null, rest: '', text: lead };
+  if (published)
+    return {
+      checked: false,
+      lead,
+      who,
+      match: null,
+      disclaimer: null,
+      published,
+      rest: publishedText,
+      text: tr.t('app.signer.text', { lead, rest: publishedText }),
+    };
+  return { checked: false, lead, who, match: null, disclaimer: null, published: null, rest: '', text: lead };
 };
 
 /** What to tell a breeder about how much an attestation is worth. */
