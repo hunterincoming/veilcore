@@ -23,7 +23,12 @@ import { SerializedContractState } from "@midnight-ntwrk/midnight-js-types";
 import { Contract, ledger } from "../managed/veilcore/contract/index.js";
 import { createVeilcorePrivateState, veilcoreWitnesses } from "../witnesses";
 import { ledgerDataHex } from "../veilcore";
-import { fromSerialized, readContractState, readContractStateHex, stateEraOf } from "../contract-state";
+import {
+  fromSerialized,
+  readContractState,
+  readContractStateHex,
+  stateEraOf,
+} from "../contract-state";
 
 const COIN = "0".repeat(64);
 const ADDRESS = "c0".repeat(32);
@@ -40,7 +45,10 @@ const VK = new Uint8Array(
 /** A deployed-looking state: constructor, one anchor, every operation keyed, a 2-of-3 authority. */
 const ledger8State = (): ContractState => {
   const initial = new Contract(veilcoreWitnesses).initialState(
-    createConstructorContext(createVeilcorePrivateState(new Uint8Array(32).fill(9)), COIN),
+    createConstructorContext(
+      createVeilcorePrivateState(new Uint8Array(32).fill(9)),
+      COIN,
+    ),
   ).currentContractState;
   const ctx = createCircuitContext(
     ADDRESS,
@@ -48,7 +56,10 @@ const ledger8State = (): ContractState => {
     Object.assign(new ContractState(), { data: initial.data }),
     createVeilcorePrivateState(new Uint8Array(32).fill(5)),
   );
-  const out = new Contract(veilcoreWitnesses).impureCircuits.anchor(ctx, new Uint8Array(32).fill(7));
+  const out = new Contract(veilcoreWitnesses).impureCircuits.anchor(
+    ctx,
+    new Uint8Array(32).fill(7),
+  );
   const cs = new ContractState();
   cs.data = new ChargedState(out.context.currentQueryContext.state.state);
   for (const op of initial.operations()) {
@@ -67,14 +78,19 @@ const ledger8State = (): ContractState => {
 /** The same state as the network serves it after the fork: ledger 9's encoding. */
 const asLedger9 = (s: ContractState): Uint8Array => {
   const cs = new Runtime9.ContractState();
-  cs.data = new Runtime9.ChargedState(Runtime9.StateValue.decode(s.data.state.encode() as never));
+  cs.data = new Runtime9.ChargedState(
+    Runtime9.StateValue.decode(s.data.state.encode()),
+  );
   for (const op of s.operations()) {
     const o = new Runtime9.ContractOperation();
     o.verifierKey = s.operation(op)!.verifierKey;
     cs.setOperation(op, o);
   }
   cs.maintenanceAuthority = new Runtime9.ContractMaintenanceAuthority(
-    s.maintenanceAuthority.committee.map((value) => ({ tag: "schnorr" as const, value })),
+    s.maintenanceAuthority.committee.map((value) => ({
+      tag: "schnorr" as const,
+      value,
+    })),
     s.maintenanceAuthority.threshold,
     s.maintenanceAuthority.counter,
   );
@@ -95,27 +111,44 @@ describe("contract states of both ledgers", () => {
   it("tells the two encodings apart by their own tags", () => {
     expect(stateEraOf(v8)).toBe("v8");
     expect(stateEraOf(v9)).toBe("v9");
-    expect(() => stateEraOf(new TextEncoder().encode("midnight:contract-state[v5]:"))).toThrow();
+    expect(() =>
+      stateEraOf(new TextEncoder().encode("midnight:contract-state[v5]:")),
+    ).toThrow();
     expect(() => readContractState(new Uint8Array([1, 2, 3]))).toThrow();
   });
 
   it("reads the same ledger data, operations, keys and authority from either", () => {
-    for (const read of [readContractState(v8), readContractState(v9), fromSerialized(SerializedContractState.fromBytes("v9", v9))]) {
+    for (const read of [
+      readContractState(v8),
+      readContractState(v9),
+      fromSerialized(SerializedContractState.fromBytes("v9", v9)),
+    ]) {
       expect(ledgerDataHex(read)).toBe(ledgerDataHex(original));
       expect(Buffer.from(ledger(read.data).lastAnchor).toString("hex")).toBe(
         Buffer.from(ledger(original.data).lastAnchor).toString("hex"),
       );
       expect(opNames(read)).toEqual(opNames(original));
-      for (const op of opNames(original)) expect(Buffer.from(read.operation(op)!.verifierKey).equals(Buffer.from(VK))).toBe(true);
-      expect(read.maintenanceAuthority.committee).toEqual(original.maintenanceAuthority.committee);
+      for (const op of opNames(original))
+        expect(
+          Buffer.from(read.operation(op)!.verifierKey).equals(Buffer.from(VK)),
+        ).toBe(true);
+      expect(read.maintenanceAuthority.committee).toEqual(
+        original.maintenanceAuthority.committee,
+      );
       expect(read.maintenanceAuthority.threshold).toBe(2);
       expect(read.maintenanceAuthority.counter).toBe(3n);
     }
-    expect(ledgerDataHex(readContractStateHex(`0x${Buffer.from(v9).toString("hex")}`))).toBe(ledgerDataHex(original));
+    expect(
+      ledgerDataHex(
+        readContractStateHex(`0x${Buffer.from(v9).toString("hex")}`),
+      ),
+    ).toBe(ledgerDataHex(original));
   });
 
   it("refuses a state whose era label does not match its bytes", () => {
-    expect(() => fromSerialized(SerializedContractState.fromBytes("v8", v9))).toThrow();
+    expect(() =>
+      fromSerialized(SerializedContractState.fromBytes("v8", v9)),
+    ).toThrow();
   });
 
   it("the sponsor's copy (sponsor/src/contract-state.ts) is this file below its header", () => {
@@ -123,6 +156,8 @@ describe("contract states of both ledgers", () => {
       const s = readFileSync(resolve(import.meta.dirname, f), "utf8");
       return s.slice(s.indexOf("import {"));
     };
-    expect(body("../../../sponsor/src/contract-state.ts")).toBe(body("../contract-state.ts"));
+    expect(body("../../../sponsor/src/contract-state.ts")).toBe(
+      body("../contract-state.ts"),
+    );
   });
 });

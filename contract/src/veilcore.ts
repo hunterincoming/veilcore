@@ -24,9 +24,10 @@ import {
  * no longer be deployed or maintained through midnight-js once a network has forked.
  * See ./contract-state.ts for how its state is read after the fork.
  */
-export const CompiledVeilcore = new CompiledVeilcoreContract.Contract<VeilcorePrivateState>(
-  veilcoreWitnesses,
-);
+export const CompiledVeilcore =
+  new CompiledVeilcoreContract.Contract<VeilcorePrivateState>(
+    veilcoreWitnesses,
+  );
 
 /** Every circuit that needs a verifier key on chain, sorted by code unit. */
 export const PROVABLE_CIRCUITS: readonly string[] = Object.keys(

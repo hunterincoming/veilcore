@@ -26,18 +26,23 @@ const ledger8Key = (k: unknown): string => {
   if (typeof k === "string") return k;
   const key = k as { tag?: unknown; value?: unknown } | null;
   if (key?.tag === "schnorr" && typeof key.value === "string") return key.value;
-  throw new Error("The contract's maintenance committee holds a key that is not a Schnorr key; refused.");
+  throw new Error(
+    "The contract's maintenance committee holds a key that is not a Schnorr key; refused.",
+  );
 };
 
 /** The decoders midnight-js's `deserialize` takes: one per ledger era, each this repo's own runtime. */
 const decoders = {
-  v8: { deserialize: (bytes: Uint8Array): ContractState => ContractState.deserialize(bytes) },
+  v8: {
+    deserialize: (bytes: Uint8Array): ContractState =>
+      ContractState.deserialize(bytes),
+  },
   v9: {
     deserialize: (bytes: Uint8Array): ContractState => {
       const v9 = Ledger9ContractState.deserialize(bytes);
       const out = new ContractState();
       // The migration guide's step: decode with 0.21, pass the value across as its encoding.
-      out.data = new ChargedState(StateValue.decode(v9.data.state.encode() as never));
+      out.data = new ChargedState(StateValue.decode(v9.data.state.encode()));
       for (const name of v9.operations()) {
         const op = v9.operation(name);
         if (op === undefined) continue;
@@ -61,10 +66,11 @@ const decoders = {
  * them), as a runtime-0.16 ContractState that this repo's `ledger()` and checks read.
  */
 export const fromSerialized = (s: SerializedContractState): ContractState =>
-  s.deserialize(decoders) as ContractState;
+  s.deserialize(decoders);
 
 /** Which ledger wrote these contract-state bytes, from their own tag. Throws on anything else. */
-export const stateEraOf = (bytes: Uint8Array): "v8" | "v9" => ledgerVersionOfContractState(bytes);
+export const stateEraOf = (bytes: Uint8Array): "v8" | "v9" =>
+  ledgerVersionOfContractState(bytes);
 
 /**
  * Raw contract-state bytes of either ledger (as an indexer's GraphQL hands them over), as a
@@ -77,6 +83,9 @@ export const readContractState = (bytes: Uint8Array): ContractState =>
 /** readContractState for hex, with or without 0x. */
 export const readContractStateHex = (hex: string): ContractState => {
   const h = hex.replace(/^0x/i, "");
-  if (!/^(?:[0-9a-fA-F]{2})+$/.test(h)) throw new Error("A contract state is hex.");
-  return readContractState(Uint8Array.from(h.match(/../g) ?? [], (b) => parseInt(b, 16)));
+  if (!/^(?:[0-9a-fA-F]{2})+$/.test(h))
+    throw new Error("A contract state is hex.");
+  return readContractState(
+    Uint8Array.from(h.match(/../g) ?? [], (b) => parseInt(b, 16)),
+  );
 };
