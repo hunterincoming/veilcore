@@ -10,8 +10,8 @@
 
 import { describe, expect, it } from 'vitest';
 import { WalletSeeds } from '@midnight-ntwrk/testkit-js';
-import { createKeystore, DustAddress } from '@midnight-ntwrk/wallet-sdk';
-import { DustSecretKey, ZswapSecretKeys } from '@midnight-ntwrk/ledger-v8';
+import { createKeystore, DustAddress } from '@midnightntwrk/wallet-sdk';
+import { DustSecretKey, ZswapSecretKeys } from '@midnightntwrk/ledger-v9';
 import { deriveRoleSeeds } from './wallet.js';
 
 const DEV_SEED = '0'.repeat(63) + '1';
@@ -35,7 +35,7 @@ const derived = (s: { shielded: Uint8Array; unshielded: Uint8Array; dust: Uint8A
     dust: hex(s.dust),
     coinPublicKey: zswap.coinPublicKey,
     encryptionPublicKey: zswap.encryptionPublicKey,
-    unshieldedAddress: createKeystore(s.unshielded, network as never).getBech32Address().asString(),
+    unshieldedAddress: createKeystore({ kind: 'schnorr', secret: s.unshielded }, network as never).getBech32Address().asString(),
     dustPublicKey: String(dustKey.publicKey),
     dustAddress: DustAddress.encodePublicKey(network, dustKey.publicKey),
   };

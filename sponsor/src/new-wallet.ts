@@ -4,8 +4,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { randomBytes } from 'node:crypto';
-import { DustSecretKey } from '@midnight-ntwrk/ledger-v8';
-import { createKeystore, DustAddress } from '@midnight-ntwrk/wallet-sdk';
+import { DustSecretKey } from '@midnightntwrk/ledger-v9';
+import { createKeystore, DustAddress } from '@midnightntwrk/wallet-sdk';
 import { deriveRoleSeeds } from './wallet.js';
 
 export type NewWallet = { readonly seed: string; readonly unshielded: string; readonly dust: string };
@@ -14,7 +14,7 @@ export type NewWallet = { readonly seed: string; readonly unshielded: string; re
 export const addressesOf = (seed: string, network: string): Omit<NewWallet, 'seed'> => {
   const s = deriveRoleSeeds(seed);
   return {
-    unshielded: createKeystore(s.unshielded, network as never).getBech32Address().asString(),
+    unshielded: createKeystore({ kind: 'schnorr', secret: s.unshielded }, network as never).getBech32Address().asString(),
     dust: DustAddress.encodePublicKey(network as never, DustSecretKey.fromSeed(s.dust).publicKey),
   };
 };

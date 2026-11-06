@@ -10,16 +10,19 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { CompiledContract } from '@midnight-ntwrk/midnight-js-protocol/compact-js';
-import { ContractState } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
-import type { UnprovenTransaction } from '@midnight-ntwrk/ledger-v8';
 import { createUnprovenCallTx } from '@midnight-ntwrk/midnight-js-contracts';
+import {
+  createMidnightProviderFromHandlers,
+  createWalletProviderFromHandlers,
+  type UnprovenTx,
+} from '@midnight-ntwrk/midnight-js-types';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import { NodeZkConfigProvider } from '@midnight-ntwrk/midnight-js-node-zk-config-provider';
 import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
 import type { AnchorChain, Landing, PreparedAnchor } from './anchorer.js';
 import type { SealChain, SealView } from './sealer.js';
 import { lookupCall } from './lookup.js';
+import { fromSerialized, readContractState } from './contract-state.js';
 import type { FacadeWallet } from './wallet.js';
 
 export type VeilcoreModule = typeof import('../../contract/src/managed/veilcore/contract/index.js');
@@ -57,8 +60,8 @@ const PRIVATE_STATE_ID = 'anchorer';
 /** A private-state store with nothing in it but a placeholder (anchorBatch reads none). */
 const emptyPrivateState = () => {
   const states = new Map<string, unknown>();
-  return {
-    setContractAddress: () => undefined,
+  const view = (contractAddress: string) => ({
+    contractAddress,
     get: (id: string) => Promise.resolve(states.get(id) ?? null),
     set: (id: string, s: unknown) => {
       states.set(id, s);
@@ -69,6 +72,16 @@ const emptyPrivateState = () => {
       return Promise.resolve();
     },
     clear: () => {
+      states.clear();
+      return Promise.resolve();
+    },
+    exportPrivateStates: () => Promise.reject(new Error('not kept')),
+    importPrivateStates: () => Promise.reject(new Error('not kept')),
+  });
+  return {
+    // midnight-js 5: private state is reached per contract.
+    forContract: view,
+    clearAll: () => {
       states.clear();
       return Promise.resolve();
     },
@@ -96,17 +109,19 @@ export class MidnightAnchorChain implements AnchorChain, SealChain {
     private readonly wallet: FacadeWallet,
     private readonly coinPublicKey: string,
     private readonly encryptionPublicKey: string,
+    /** The network id transactions are built for (midnight-js 5 takes it per call, not process-wide). */
+    private readonly networkId: string,
     /** Tests only: stand-ins for the indexer and the proof server. */
     overrides: { publicData?: unknown; prover?: unknown } = {},
   ) {
     this.publicData = (overrides.publicData as ReturnType<typeof indexerPublicDataProvider>) ?? indexerPublicDataProvider(indexer, indexerWS);
-    this.zk = new NodeZkConfigProvider<'anchorBatch' | 'sealRevocations'>(artifactsDir);
+    // compactc 0.31 writes compiler/contract-info.json (runtime 0.16: a ledger 8 contract) but no
+    // integrity manifest; the keys are compared with the chain's before any job runs (contractCheck).
+    this.zk = new NodeZkConfigProvider<'anchorBatch' | 'sealRevocations'>(artifactsDir, { verify: 'require-if-present' });
     this.prover = (overrides.prover as ReturnType<typeof httpClientProofProvider>) ?? httpClientProofProvider(proofServer, this.zk);
     const witnesses = Object.fromEntries(WITNESS_NAMES.map((n) => [n, (noSecrets as Record<string, unknown>)[n]]));
-    this.compiled = CompiledContract.make('Veilcore', veilcore.Contract).pipe(
-      CompiledContract.withWitnesses(witnesses as never),
-      CompiledContract.withCompiledFileAssets(artifactsDir as never),
-    );
+    // A ledger 8 contract, as midnight-js 5 takes one: an instance of the generated class.
+    this.compiled = new veilcore.Contract(witnesses as never);
   }
 
   /**
@@ -119,8 +134,10 @@ export class MidnightAnchorChain implements AnchorChain, SealChain {
     sealKeyMatches: boolean;
     operations: string[];
   }> {
-    const state = await this.publicData.queryContractState(this.contractAddress);
-    if (!state) throw new Error(`No contract at ${this.contractAddress} on this network.`);
+    const read = await this.publicData.queryContractState(this.contractAddress);
+    if (!read) throw new Error(`No contract at ${this.contractAddress} on this network.`);
+    // Either ledger's state (before or after the network's fork): contract-state.ts.
+    const state = fromSerialized(read.contractState);
     const matches = (circuit: string) => {
       const op = state.operation(circuit);
       const file = join(this.artifactsDir, 'keys', `${circuit}.verifier`);
@@ -136,14 +153,14 @@ export class MidnightAnchorChain implements AnchorChain, SealChain {
   }
 
   private ledgerOf = (stateHex: string) => {
-    const l = this.veilcore.ledger(ContractState.deserialize(Uint8Array.from(Buffer.from(stateHex, 'hex'))).data);
+    const l = this.veilcore.ledger(readContractState(Uint8Array.from(Buffer.from(stateHex, 'hex'))).data);
     return { lastBatchRoot: Buffer.from(l.lastBatchRoot).toString('hex'), batchSeq: l.batchSeq };
   };
 
   async batchSeq(): Promise<bigint> {
-    const state = await this.publicData.queryContractState(this.contractAddress);
-    if (!state) throw new Error('contract not found');
-    return this.veilcore.ledger(state.data).batchSeq;
+    const read = await this.publicData.queryContractState(this.contractAddress);
+    if (!read) throw new Error('contract not found');
+    return this.veilcore.ledger(fromSerialized(read.contractState).data).batchSeq;
   }
 
   prepare(rootHex: string): Promise<PreparedAnchor> {
@@ -151,9 +168,9 @@ export class MidnightAnchorChain implements AnchorChain, SealChain {
   }
 
   async sealView(): Promise<SealView> {
-    const state = await this.publicData.queryContractState(this.contractAddress);
-    if (!state) throw new Error('contract not found');
-    const l = this.veilcore.ledger(state.data);
+    const read = await this.publicData.queryContractState(this.contractAddress);
+    if (!read) throw new Error('contract not found');
+    const l = this.veilcore.ledger(fromSerialized(read.contractState).data);
     return { unsealedChanges: l.unsealedChanges, rootsSinceSeal: l.rootsSinceSeal, lastSealTime: l.lastSealTime };
   }
 
@@ -166,16 +183,24 @@ export class MidnightAnchorChain implements AnchorChain, SealChain {
   }
 
   private async prepareCall(circuitId: 'anchorBatch' | 'sealRevocations', args: unknown[]): Promise<PreparedAnchor> {
-    await this.privateState.set(PRIVATE_STATE_ID, {});
+    await this.privateState.forContract(this.contractAddress).set(PRIVATE_STATE_ID, {});
+    const notUsed = () => Promise.reject(new Error('not used: the call is proved, balanced and sent below'));
+    // midnight-js 5 builds a ledger 8 contract's call only with the full provider set, each
+    // serving both ledgers: it reads the network's ledger first (a ledger 9 transaction after
+    // the fork) and refuses a set that could not carry it before anything is built.
     const providers = {
       publicDataProvider: this.publicData,
       zkConfigProvider: this.zk,
       privateStateProvider: this.privateState,
-      walletProvider: {
+      proofProvider: this.prover,
+      walletProvider: createWalletProviderFromHandlers({
         getCoinPublicKey: () => this.coinPublicKey,
         getEncryptionPublicKey: () => this.encryptionPublicKey,
-        balanceTx: () => Promise.reject(new Error('not used')),
-      },
+        v8: notUsed,
+        v9: notUsed,
+      }),
+      midnightProvider: createMidnightProviderFromHandlers({ v8: notUsed, v9: notUsed }),
+      config: { networkId: this.networkId, ttlSeconds: 30 * 60 },
     };
     const data = await createUnprovenCallTx(providers as never, {
       compiledContract: this.compiled,
@@ -184,7 +209,7 @@ export class MidnightAnchorChain implements AnchorChain, SealChain {
       args,
       privateStateId: PRIVATE_STATE_ID,
     } as never);
-    const unproven = (data as { private: { unprovenTx: UnprovenTransaction } }).private.unprovenTx;
+    const unproven = (data as unknown as { private: { unprovenTx: UnprovenTx } }).private.unprovenTx;
     const proven = await this.prover.proveTx(unproven);
     const ttl = new Date(Date.now() + 30 * 60_000);
     const finalized = await this.wallet.balanceUnbound(proven, ttl);
@@ -197,7 +222,7 @@ export class MidnightAnchorChain implements AnchorChain, SealChain {
       await this.wallet.revert(finalized).catch(() => undefined);
       throw e;
     }
-    const [txId] = finalized.identifiers();
+    const [txId] = this.wallet.identifiersOf(finalized);
     return {
       txId,
       ttl,

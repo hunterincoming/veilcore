@@ -81,9 +81,10 @@ describe('the sponsor wallet heals a stalled sync once', () => {
     const w = FacadeWallet.forTests(facade, { restored, stateDir: dir });
     await w.start();
     const facadeState = (applied: bigint, tip: bigint) => ({
-      shielded: { state: { progress: { ...prog(1n, 1n), isStrictlyComplete: () => true } } },
+      // Wallet SDK 2: each wallet's state carries its progress directly.
+      shielded: { progress: { ...prog(1n, 1n), isStrictlyComplete: () => true } },
       unshielded: { progress: { appliedId: 1n, highestTransactionId: 1n, isConnected: true, isStrictlyComplete: () => true } },
-      dust: { state: { progress: { ...prog(applied, tip), isStrictlyComplete: () => applied === tip } } },
+      dust: { progress: { ...prog(applied, tip), isStrictlyComplete: () => applied === tip } },
     });
     return { w, states, facadeState, logged, dir };
   };

@@ -9,7 +9,12 @@ const REFUSED_154 = new Error('1010: Invalid Transaction: Custom error: 154');
 const facade = (over: Partial<Record<string, (...a: unknown[]) => Promise<unknown>>> = {}) => {
   const calls: string[] = [];
   const f = {
-    balanceFinalizedTransaction: (_tx: unknown, _k: unknown, opts: { tokenKindsToBalance: string[] }) => {
+    // Wallet SDK 2: the visitor's checked bytes are handed over as the SDK's own handle.
+    adoptTransaction: (bytes: Uint8Array, stage: string) => {
+      calls.push(`adopt:${stage}:${bytes.length}`);
+      return { type: 'handle' };
+    },
+    balanceFinalizedTransaction: (_tx: unknown, opts: { tokenKindsToBalance: string[] }) => {
       calls.push(`balance:${opts.tokenKindsToBalance.join(',')}`);
       return Promise.resolve({ type: 'recipe' });
     },
@@ -38,7 +43,7 @@ const facade = (over: Partial<Record<string, (...a: unknown[]) => Promise<unknow
   return { f, calls };
 };
 
-const TX = {} as SealedTx;
+const TX = { serialize: () => new Uint8Array(3) } as unknown as SealedTx;
 const OK = () => undefined;
 
 describe('sponsor wallet (stand-in facade)', () => {
@@ -48,7 +53,7 @@ describe('sponsor wallet (stand-in facade)', () => {
     const out = await FacadeWallet.forTests(f).payAndSubmit(TX, new Date(), (fee) => void approved.push(fee));
     expect(out).toEqual({ txId: 'txid-1', fee: 1_234n });
     expect(approved).toEqual([1_234n]);
-    expect(calls).toEqual(['balance:dust', 'sign', 'finalize', 'fee', 'submit']);
+    expect(calls).toEqual(['adopt:Finalized:3', 'balance:dust', 'sign', 'finalize', 'fee', 'submit']);
   });
 
   it('a refused fee is never sent: the coins are released and the refusal passes through', async () => {

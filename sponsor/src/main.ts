@@ -6,8 +6,7 @@ import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { WebSocket } from "ws";
-import { signatureVerifyingKey } from "@midnight-ntwrk/ledger-v8";
-import { setNetworkId } from "@midnight-ntwrk/midnight-js-network-id";
+import { signatureVerifyingKey } from "@midnightntwrk/ledger-v8";
 import { indexerPublicDataProvider } from "@midnight-ntwrk/midnight-js-indexer-public-data-provider";
 import {
   assertNotForbidden,
@@ -35,6 +34,7 @@ import { ANCHOR_TICK_MINUTES, Anchorer, type Attempt } from "./anchorer.js";
 import { Sealer, isSealAttempt, type SealAttempt } from "./sealer.js";
 import { HttpRegistry } from "./registry.js";
 import { loadVeilcore, MidnightAnchorChain } from "./chain.js";
+import { fromSerialized } from "./contract-state.js";
 import { log, scrubOutput } from "./log.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -65,7 +65,6 @@ const main = async (): Promise<void> => {
   const startedAt = Date.now();
   // Before anything can print an endpoint URL: they carry the Blockfrost project id.
   scrubOutput(cfg.logSecrets);
-  setNetworkId(cfg.network);
   const now = () => Date.now();
 
   const wallet = await FacadeWallet.build(cfg.seed, {
@@ -87,10 +86,12 @@ const main = async (): Promise<void> => {
   });
 
   // The contract must exist here, and the seed must not be its maintenance key.
-  const contract = await indexerPublicDataProvider(
+  const read = await indexerPublicDataProvider(
     cfg.indexer,
     cfg.indexerWS,
   ).queryContractState(cfg.contractAddress);
+  // Either ledger's state (before or after the network's fork): contract-state.ts.
+  const contract = read ? fromSerialized(read.contractState) : null;
   if (!contract)
     throw new ConfigError([
       `There is no contract at ${cfg.contractAddress} on ${cfg.network}.`,
@@ -179,6 +180,7 @@ const main = async (): Promise<void> => {
       wallet,
       wallet.coinPublicKey,
       wallet.encryptionPublicKey,
+      cfg.network,
     );
     check = await chain.contractCheck();
   } catch (e) {
