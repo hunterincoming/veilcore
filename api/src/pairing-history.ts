@@ -16,7 +16,7 @@
  * for it: one that hides a raw pairing hides the warning. It gets no second-indexer
  * comparison.
  */
-import { ContractState } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
+import { readContractState } from '../../contract/src/contract-state.js';
 import * as Veilcore from '../../contract/src/managed/veilcore/contract/index.js';
 import { matchEntryPoint, blockTimeMs } from './presentation-lookup.js';
 
@@ -54,7 +54,7 @@ const hex = (b: Uint8Array): string => Buffer.from(b).toString('hex');
 export async function* pairDnaCalls(actions: AsyncIterable<ContractActionRecord>): AsyncGenerator<PairingSeen> {
   for await (const a of actions) {
     if (a.entryPoint === undefined || matchEntryPoint(a.entryPoint, ['pairDna']) === undefined) continue;
-    const l = Veilcore.ledger(ContractState.deserialize(Uint8Array.from(Buffer.from(norm(a.stateHex), 'hex'))).data);
+    const l = Veilcore.ledger(readContractState(Uint8Array.from(Buffer.from(norm(a.stateHex), 'hex'))).data);
     yield {
       txId: a.identifiers[0],
       identifiers: a.identifiers,

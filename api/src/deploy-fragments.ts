@@ -9,10 +9,11 @@
 
 import { inspect } from 'node:util';
 import { type Logger } from 'pino';
-import { type ContractAddress, type SigningKey } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
-import { type UnprovenTransaction } from '@midnight-ntwrk/midnight-js-protocol/ledger';
-import { DeployTxFailedError } from '@midnight-ntwrk/midnight-js-contracts';
-import { type PublicDataProvider, SucceedEntirely } from '@midnight-ntwrk/midnight-js-types';
+import { type ContractAddress } from '@midnight-ntwrk/compact-runtime';
+import { type SigningKey } from '@midnight-ntwrk/midnight-js-protocol/v9/compact-runtime';
+import { TxFailedError } from '@midnight-ntwrk/midnight-js-contracts';
+import { type PublicDataProvider, SucceedEntirely, type UnprovenTx } from '@midnight-ntwrk/midnight-js-types';
+import { fromSerialized } from '../../contract/src/contract-state.js';
 
 /** Circuit keys carried by the deploy transaction itself; the rest follow it. */
 export const FIRST_FRAGMENT = 8;
@@ -53,7 +54,9 @@ export const nodeRefusal = (e: unknown): string | undefined => {
 export type UnsubmittedDeploy = {
   readonly public: { readonly contractAddress: ContractAddress };
   readonly private: {
-    readonly unprovenTx: UnprovenTransaction;
+    /** A midnight-js 5 transaction handle. */
+    readonly unprovenTx: UnprovenTx;
+    /** `{ tag: 'schnorr', value }`, as midnight-js 5 keeps keys (signing-key.ts). */
     readonly signingKey: SigningKey;
     readonly initialPrivateState: unknown;
   };
@@ -81,7 +84,7 @@ export const deployInFragments = async (args: {
   /** Build the deploy transaction carrying the keys of `keep`. */
   readonly create: (keep: readonly string[]) => Promise<UnsubmittedDeploy>;
   /** Prove, balance and submit (midnight-js submitTxAsync); returns the transaction id. */
-  readonly submit: (unprovenTx: UnprovenTransaction) => Promise<string>;
+  readonly submit: (unprovenTx: UnprovenTx) => Promise<string>;
   /** Store the private state and the authority's key for `candidate`, before sending. */
   readonly store: (candidate: ContractAddress, unsubmitted: UnsubmittedDeploy) => Promise<void>;
   /** The menu choice that finishes a deploy that stopped partway. */
@@ -105,7 +108,11 @@ export const deployInFragments = async (args: {
       const txId = await args.submit(unsubmitted.private.unprovenTx);
       logger?.info(`deploy transaction submitted (${txId}); waiting for it to be confirmed`);
       const finalized = await providers.publicDataProvider.watchForTxData(txId);
-      if (finalized.status !== SucceedEntirely) throw new DeployTxFailedError(finalized);
+      if (finalized.status !== SucceedEntirely)
+        throw new TxFailedError('deploy', finalized, {
+          contractAddress: candidate,
+          signingKey: unsubmitted.private.signingKey,
+        });
       logger?.info({
         contractDeployed: { ...finalized, contractAddress: candidate },
         circuitKeysInDeploy: keep.length,
@@ -181,8 +188,9 @@ export const addMissingKeys = async (args: {
   const { providers, address, circuits, logger } = args;
   const onChain = async (): Promise<Set<string>> => {
     for (let i = 0; i < 30; i++) {
-      const state = await providers.publicDataProvider.queryContractState(address);
-      if (state !== null && state !== undefined) return new Set(state.operations().map(operationName));
+      const read = await providers.publicDataProvider.queryContractState(address);
+      if (read !== null && read !== undefined)
+        return new Set(fromSerialized(read.contractState).operations().map(operationName));
       await sleep(2_000);
     }
     throw new Error(
@@ -221,7 +229,7 @@ export const unknownCircuits = async (
   address: ContractAddress,
   known: readonly string[],
 ): Promise<string[]> => {
-  const onChain =
-    (await providers.publicDataProvider.queryContractState(address))?.operations().map(operationName) ?? [];
+  const read = await providers.publicDataProvider.queryContractState(address);
+  const onChain = read ? fromSerialized(read.contractState).operations().map(operationName) : [];
   return onChain.filter((c) => !known.includes(c));
 };

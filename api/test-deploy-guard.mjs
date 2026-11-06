@@ -106,7 +106,7 @@ const live = [
 
 for (const [network, expected, note] of live) {
   const script =
-    (network === null ? '' : `const n=await import('@midnight-ntwrk/midnight-js-network-id');n.setNetworkId(${JSON.stringify(network)});`) +
+    (network === null ? '' : `const n=await import('./dist/api/src/network-id.js');n.setNetworkId(${JSON.stringify(network)});`) +
     `const g=await import('./dist/api/src/deploy-guard.js');` +
     `try{g.assertDeploymentRecordCurrent('lineage');process.stdout.write('${ALLOW}');}` +
     `catch{process.stdout.write('${REFUSE}');}`;

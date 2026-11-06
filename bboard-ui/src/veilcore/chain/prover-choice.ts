@@ -2,7 +2,7 @@
 // network's indexer. Tests pass stand-ins (actions.test.ts).
 // SPDX-License-Identifier: Apache-2.0
 
-import type { ProvingProvider } from '@midnight-ntwrk/midnight-js-protocol/ledger';
+import type { ProvingProvider } from '@midnight-ntwrk/midnight-js-protocol/v9';
 import type { PublicDataProvider } from '@midnight-ntwrk/midnight-js-types';
 import { proverReady, workerPow, workerProvingProvider } from './prover';
 

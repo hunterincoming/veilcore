@@ -18,13 +18,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { createUnprovenCallTx, submitTxAsync } from '@midnight-ntwrk/midnight-js-contracts';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { SucceedEntirely } from '@midnight-ntwrk/midnight-js-types';
-import { NETWORK } from '../../config/network';
 import { CompiledVeilcore, PROVABLE_CIRCUITS } from '../../../../contract/src/veilcore';
 import { createVeilcorePrivateState, withLicense, type VeilcorePrivateState } from '../../../../contract/src/witnesses';
 import { ledger as readLedger, pureCircuits } from '../../../../contract/src/managed/veilcore/contract/index.js';
 import { currentHead, identityOf } from '../../../../contract/src/verify';
+import { fromSerialized } from '../../../../contract/src/contract-state';
 import { recoveryCommitmentOf } from './identity';
 import { CHAIN_CONTRACT, chainNotReady, type BrowserCircuit } from './config';
 import { makeProviders, PRIVATE_STATE_ID, type Hooks } from './providers';
@@ -97,8 +96,6 @@ const call = async (
 ): Promise<ChainReceipt> => {
   const why = chainNotReady();
   if (why && !opts.deps) throw new Error(why);
-  // The Midnight libraries serialise for one network; set it here, only when a call is made.
-  setNetworkId(NETWORK);
   const contractAddress = CHAIN_CONTRACT ?? '';
   const progress = opts.progress ?? (() => undefined);
   let sentAs: string | undefined;
@@ -106,7 +103,7 @@ const call = async (
   const deps = opts.deps ?? browserCallDeps();
   const providers = makeProviders(`veilcore-zk-${contractAddress.slice(0, 16)}`, hooks, deps);
 
-  providers.privateStateProvider.setContractAddress(contractAddress);
+  const privateStates = providers.privateStateProvider.forContract(contractAddress);
   setProverProgress(progress);
   try {
     // The prover first: a browser that won't run it (a policy, a blocked file) says so before
@@ -116,12 +113,15 @@ const call = async (
       await deps.warmUp();
     }
     progress('Reading the contract from the network…');
-    const state = await withTimeout(
+    const read = await withTimeout(
       providers.publicDataProvider.queryContractState(contractAddress),
       45_000,
       'Could not reach the Midnight network’s indexer. Nothing was sent. Try again in a few minutes.',
     );
-    if (!state) throw new Error('The demo contract was not found on the network.');
+    if (!read) throw new Error('The demo contract was not found on the network.');
+    // Ledger 8 or ledger 9 bytes (before or after the network's fork), read the one way
+    // (contract-state.ts): the same operations, verifier keys and ledger data either way.
+    const state = fromSerialized(read.contractState);
     // Refuse a contract carrying a circuit this build does not know (the same guard the
     // operator tool uses when joining): one added by maintenance would otherwise pass.
     const onChain = state.operations().map(operationName);
@@ -139,7 +139,7 @@ const call = async (
       throw new Error('This site’s proving files are not the ones the contract on the network uses. Nothing was sent.');
     }
 
-    await providers.privateStateProvider.set(PRIVATE_STATE_ID, privateState);
+    await privateStates.set(PRIVATE_STATE_ID, privateState);
     const callArgs = typeof args === 'function' ? args(readLedger(state.data)) : args;
 
     progress('Preparing the transaction on your device…');
@@ -171,10 +171,10 @@ const call = async (
     }
     return { circuit, txId, txHash: fin.txHash, blockHeight: fin.blockHeight, blockTime: fin.blockTimestamp };
   } catch (e) {
-    throw plainError(e, sentAs);
+    throw plainError(providers.sponsorFailure() ?? e, sentAs);
   } finally {
     // The secret was only ever in memory for this call; drop it.
-    await providers.privateStateProvider.clear().catch(() => undefined);
+    await providers.privateStateProvider.clearAll().catch(() => undefined);
     setProverProgress(undefined);
   }
 };

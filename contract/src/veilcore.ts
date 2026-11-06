@@ -2,7 +2,6 @@
 // veilcore contract, in its own file to avoid `export *` name collisions.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CompiledContract } from "@midnight-ntwrk/midnight-js-protocol/compact-js";
 import {
   ContractState,
   createConstructorContext,
@@ -15,11 +14,18 @@ import {
   type VeilcorePrivateState,
 } from "./witnesses";
 
-export const CompiledVeilcore = CompiledContract.make<
-  CompiledVeilcoreContract.Contract<VeilcorePrivateState>
->("Veilcore", CompiledVeilcoreContract.Contract<VeilcorePrivateState>).pipe(
-  CompiledContract.withWitnesses(veilcoreWitnesses),
-  CompiledContract.withCompiledFileAssets("./managed/veilcore"),
+/**
+ * The contract as midnight-js 5 takes a LEDGER 8 contract: an instance of the class
+ * compactc 0.31 generated, not a `CompiledContract` (midnight-js refuses to wrap ledger 8
+ * artifacts in one, EraMismatchError 'ledger8-artifacts-in-ledger9-container'). The
+ * contract was deployed before Midnight's ledger 9 fork (6 Nov 2026) and is never
+ * recompiled: a recompiled circuit has another verifier key, which the chain would refuse.
+ * midnight-js calls it on either side of the fork (a ledger 9 transaction after it); it can
+ * no longer be deployed or maintained through midnight-js once a network has forked.
+ * See ./contract-state.ts for how its state is read after the fork.
+ */
+export const CompiledVeilcore = new CompiledVeilcoreContract.Contract<VeilcorePrivateState>(
+  veilcoreWitnesses,
 );
 
 /** Every circuit that needs a verifier key on chain, sorted by code unit. */
@@ -79,12 +85,8 @@ export const veilcoreDeployingContract = (keep: readonly string[]) => {
 /** CompiledVeilcore, deploying with verifier keys for `keep` only. */
 export const compiledVeilcoreDeploying = (keep: readonly string[]) => {
   const VeilcoreDeploying = veilcoreDeployingContract(keep);
-  return CompiledContract.make<
-    InstanceType<typeof VeilcoreDeploying<VeilcorePrivateState>>
-  >("Veilcore", VeilcoreDeploying<VeilcorePrivateState>).pipe(
-    CompiledContract.withWitnesses(veilcoreWitnesses),
-    CompiledContract.withCompiledFileAssets("./managed/veilcore"),
-  );
+  // A ledger 8 deploy: only possible while the network is still on ledger 8.
+  return new VeilcoreDeploying<VeilcorePrivateState>(veilcoreWitnesses);
 };
 
 /* **********************************************************************

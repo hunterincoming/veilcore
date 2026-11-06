@@ -17,7 +17,7 @@
  *    challenge) are kept in this process and written to disk as zeros. The record secret
  *    itself, and everything else, is stored as before.
  */
-import { type ContractAddress, type SigningKey } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
+import { type ContractAddress, type SigningKey } from '@midnight-ntwrk/compact-runtime';
 
 /** Signing keys live in this process only; nothing about them reaches the wrapped store. */
 export const memorySigningKeys = <P extends object>(store: P): P => {

@@ -5,7 +5,6 @@
 // commitment, the new holder ends up holding a live license with no countersign, and their
 // secret never leaves their browser.
 import { describe, expect, it } from 'vitest';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { ContractState } from '@midnight-ntwrk/compact-runtime';
 import { ledger } from '../../../../contract/src/managed/veilcore/contract/index.js';
 import { createVeilcorePrivateState, withLicense } from '../../../../contract/src/witnesses';
@@ -23,8 +22,6 @@ import {
 import { contractStateAfter, standIns } from './test-chain';
 import { BROWSER_CIRCUITS } from './config';
 import { AGREEMENT_CIRCUITS, PHASE1_PUBLIC_CIRCUITS } from '../../../../sponsor/src/policy';
-
-setNetworkId('preprod');
 
 const ISSUER = new Uint8Array(32).fill(0x31);
 const OTHER_ISSUER = new Uint8Array(32).fill(0x41);

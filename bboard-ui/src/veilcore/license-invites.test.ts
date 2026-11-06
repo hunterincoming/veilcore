@@ -3,7 +3,6 @@
 // licensee's key in this browser and its backup (held-licenses.ts, backup.ts).
 import { createHash } from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { ContractState } from '@midnight-ntwrk/compact-runtime';
 import { ledger } from '../../../contract/src/managed/veilcore/contract/index.js';
 import { createVeilcorePrivateState, withLicense } from '../../../contract/src/witnesses';
@@ -29,8 +28,6 @@ import {
   updateHeldLicense,
   type HeldLicense,
 } from './held-licenses';
-
-setNetworkId('preprod');
 
 const ISSUER = new Uint8Array(32).fill(0x31);
 const RECOVERY = new Uint8Array(32).fill(0x13);

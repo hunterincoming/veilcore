@@ -11,9 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { createUnprovenCallTx, submitTxAsync } from '@midnight-ntwrk/midnight-js-contracts';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { SucceedEntirely } from '@midnight-ntwrk/midnight-js-types';
-import { NETWORK } from '../../config/network';
 import {
   CLAIMS_PROVABLE_CIRCUITS,
   CompiledVeilcoreClaims,
@@ -28,6 +26,7 @@ import { browserCallDeps, type CallDeps } from './prover-choice';
 import { slotInput, type ClaimMaterial } from '../claims-input';
 import { signatureParts, type LabSignature } from '../lab-attest';
 import { verifyRecordSignature } from '../../../../contract/src/attest';
+import { fromSerialized } from '../../../../contract/src/contract-state';
 
 const hexOf = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
 
@@ -81,7 +80,6 @@ const claimCall = async (
 ): Promise<ClaimReceipt> => {
   const why = claimsNotReady();
   if (why && !opts.deps) throw new Error(why);
-  setNetworkId(NETWORK);
   const contractAddress = opts.contract ?? CLAIMS_CONTRACT ?? '';
   const progress = opts.progress ?? (() => undefined);
   let sentAs: string | undefined;
@@ -92,7 +90,7 @@ const claimCall = async (
     hooks,
     deps,
   );
-  providers.privateStateProvider.setContractAddress(contractAddress);
+  const privateStates = providers.privateStateProvider.forContract(contractAddress);
   setProverProgress(progress);
   try {
     if (deps.warmUp) {
@@ -100,12 +98,14 @@ const claimCall = async (
       await deps.warmUp();
     }
     progress('Reading the claims contract from the network…');
-    const state = await withTimeout(
+    const read = await withTimeout(
       providers.publicDataProvider.queryContractState(contractAddress),
       45_000,
       'Could not reach the Midnight network’s indexer. Nothing was sent. Try again in a few minutes.',
     );
-    if (!state) throw new Error('The claims contract was not found on the network.');
+    if (!read) throw new Error('The claims contract was not found on the network.');
+    // Ledger 8 or ledger 9 bytes, read the one way (contract-state.ts).
+    const state = fromSerialized(read.contractState);
     const onChain = state.operations().map(operationName);
     if (onChain.some((c) => !CLAIMS_PROVABLE_CIRCUITS.includes(c)) || !onChain.includes(circuit))
       throw new Error('The claims contract on the network is not the one this site was built for. Nothing was sent.');
@@ -115,7 +115,7 @@ const claimCall = async (
     if (!onChainKey || !sameBytes(served, onChainKey))
       throw new Error('This site’s proving files are not the ones the claims contract uses. Nothing was sent.');
 
-    await providers.privateStateProvider.set(PRIVATE_STATE_ID, { input });
+    await privateStates.set(PRIVATE_STATE_ID, { input });
     progress('Preparing the claim on your device…');
     const unproven = await createUnprovenCallTx(
       providers as never,
@@ -149,10 +149,10 @@ const claimCall = async (
       blockTime: fin.blockTimestamp,
     };
   } catch (e) {
-    throw plainError(e, sentAs);
+    throw plainError(providers.sponsorFailure() ?? e, sentAs);
   } finally {
     // The numbers and salts were only ever in memory for this call; drop them.
-    await providers.privateStateProvider.clear().catch(() => undefined);
+    await providers.privateStateProvider.clearAll().catch(() => undefined);
     setProverProgress(undefined);
   }
 };

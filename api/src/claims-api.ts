@@ -17,8 +17,10 @@
 // (maintenance.ts, retireMaintenanceAuthorityProvably), visible to anyone who reads the
 // contract's state. Design and limits: docs/claims-design.md.
 
-import { type ContractAddress, sampleSigningKey } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
-import { type StateValue } from '@midnight-ntwrk/midnight-js-protocol/onchain-runtime';
+import { type ContractAddress, sampleSigningKey } from '@midnight-ntwrk/compact-runtime';
+import { StateValue } from '@midnight-ntwrk/compact-runtime';
+import { fromSerialized } from '../../contract/src/contract-state.js';
+import { frameworkKey } from './signing-key.js';
 import { type Logger } from 'pino';
 import {
   createCircuitMaintenanceTxInterfaces,
@@ -48,7 +50,12 @@ import {
   resolveNetwork,
 } from './deploy-guard.js';
 import { FIRST_FRAGMENT, addMissingKeys, deployInFragments, unknownCircuits } from './deploy-fragments.js';
-import { type AuthorityView, isProvablyRetired, retireMaintenanceAuthorityProvably } from './maintenance.js';
+import {
+  type AuthorityView,
+  assertMaintenanceAvailable,
+  isProvablyRetired,
+  retireMaintenanceAuthorityProvably,
+} from './maintenance.js';
 import { type LookupCheck, singleCallState } from './presentation-lookup.js';
 import { type AuthorityReport, withMainnetPins } from './state-check.js';
 import { type TxRef } from './veilcore-api.js';
@@ -92,7 +99,8 @@ export type ClaimReading = {
 };
 
 /** The transaction data a claim call returns (midnight-js FinalizedCallTxData), as far as it is read. */
-export type ClaimCallTxData = { readonly public: { readonly nextContractState: Parameters<typeof claimsLedger>[0] } };
+/** A claim call's result as midnight-js 5 reports it: the state after the call, as its plain encoding. */
+export type ClaimCallTxData = { readonly public: { readonly nextContractStateEncoded: unknown } };
 
 const toContractFieldSet = (r: SealedRecord): FieldSet => {
   if (r.fieldSet.values.length !== SLOTS || r.fieldSet.salts.length !== SLOTS)
@@ -190,6 +198,8 @@ export class ClaimsAPI {
   readonly deployedContractAddress: ContractAddress;
   /** Claims made by this client in this run, for disclosure accounting (SPEC 4.5). */
   private readonly made: Claim[] = [];
+  /** This contract's private states (midnight-js 5 reaches them per contract). */
+  private readonly states: ReturnType<ClaimsProviders['privateStateProvider']['forContract']>;
 
   private constructor(
     public readonly deployedContract: DeployedClaimsContract,
@@ -197,7 +207,7 @@ export class ClaimsAPI {
     private readonly logger?: Logger,
   ) {
     this.deployedContractAddress = deployedContract.deployTxData.public.contractAddress;
-    providers.privateStateProvider.setContractAddress(this.deployedContractAddress);
+    this.states = providers.privateStateProvider.forContract(this.deployedContractAddress);
   }
 
   // ─────────────────────────────────────────────────────────── claims
@@ -280,7 +290,7 @@ export class ClaimsAPI {
     check: LookupCheck = {},
   ): Promise<ClaimReading & { readonly authority?: AuthorityReport }> {
     if (typeof source !== 'string') {
-      const cells = claimsLedger(source.public.nextContractState);
+      const cells = claimsLedger(StateValue.decode(source.public.nextContractStateEncoded as never));
       return { claim: claimFromCells(cells), cells };
     }
     if (indexerUri === undefined) throw new Error('Reading a claim by transaction id needs the indexer address.');
@@ -322,18 +332,20 @@ export class ClaimsAPI {
   private async claim(
     circuit: string,
     input: ClaimInput,
-    call: (c: DeployedClaimsContract) => Promise<{ public: TxRef & { nextContractState: StateValue } }>,
+    call: (c: DeployedClaimsContract) => Promise<{ public: TxRef & { nextContractStateEncoded: unknown } }>,
   ): Promise<ClaimRef> {
-    await this.providers.privateStateProvider.set(claimsPrivateStateKey, { input });
+    await this.states.set(claimsPrivateStateKey, { input });
     let txData;
     try {
       txData = await call(this.deployedContract);
     } finally {
-      await this.providers.privateStateProvider.set(claimsPrivateStateKey, emptyClaimsPrivateState());
+      await this.states.set(claimsPrivateStateKey, emptyClaimsPrivateState());
     }
     const { txId, txHash, blockHeight } = txData.public;
     this.logger?.info({ transactionAdded: { circuit, txHash, blockHeight } });
-    const claim = claimFromCells(claimsLedger(txData.public.nextContractState));
+    // midnight-js 5: the state after the call as a plain encoding (the live object is a
+    // Ledger 8 runtime's, and differs by era), read with this repo's runtime 0.16.
+    const claim = claimFromCells(claimsLedger(StateValue.decode(txData.public.nextContractStateEncoded as never)));
     this.made.push(claim);
     return { txId, txHash, blockHeight, claim };
   }
@@ -342,9 +354,9 @@ export class ClaimsAPI {
     providers: ClaimsProviders,
     address: ContractAddress,
   ): Promise<AuthorityView & { readonly retired: boolean }> {
-    const state = await providers.publicDataProvider.queryContractState(address);
-    if (state === null || state === undefined) throw new Error(`No claims contract state at ${address}.`);
-    const a = state.maintenanceAuthority;
+    const read = await providers.publicDataProvider.queryContractState(address);
+    if (read === null || read === undefined) throw new Error(`No claims contract state at ${address}.`);
+    const a = fromSerialized(read.contractState).maintenanceAuthority;
     return { committee: a.committee, threshold: a.threshold, counter: a.counter, retired: isProvablyRetired(a) };
   }
 
@@ -375,15 +387,13 @@ export class ClaimsAPI {
           compiledContract: compiledClaimsDeploying(keep),
           initialPrivateState: emptyClaimsPrivateState(),
           // A key that exists only to add the circuit keys; it is retired, provably, below.
-          signingKey: sampleSigningKey(),
+          signingKey: frameworkKey(sampleSigningKey()),
         }),
       submit: async (unprovenTx) => (deployTxId = await submitTxAsync(providers, { unprovenTx })),
       store: async (candidate, unsubmitted) => {
-        providers.privateStateProvider.setContractAddress(candidate);
-        await providers.privateStateProvider.set(
-          claimsPrivateStateKey,
-          unsubmitted.private.initialPrivateState as ClaimsPrivateState,
-        );
+        await providers.privateStateProvider
+          .forContract(candidate)
+          .set(claimsPrivateStateKey, unsubmitted.private.initialPrivateState as ClaimsPrivateState);
         await providers.privateStateProvider.setSigningKey(candidate, unsubmitted.private.signingKey);
       },
       finish: 'Finish a claims deploy',
@@ -440,6 +450,8 @@ export class ClaimsAPI {
     address: ContractAddress,
     logger?: Logger,
   ): Promise<void> {
+    // Refused, before anything is built, on a network past the Ledger 9 fork (maintenance.ts).
+    await assertMaintenanceAvailable(providers.publicDataProvider);
     const maintenance = createCircuitMaintenanceTxInterfaces(providers, CompiledVeilcoreClaims, address);
     type Circuit = keyof typeof maintenance;
     await addMissingKeys({
@@ -471,7 +483,6 @@ export class ClaimsAPI {
     options: { readonly deploying?: boolean } = {},
   ): Promise<ClaimsAPI> {
     if (options.deploying !== true) assertClaimsJoinAllowed(contractAddress, logger);
-    providers.privateStateProvider.setContractAddress(contractAddress);
     const deployed = await findDeployedContract<ClaimsContract>(providers, {
       contractAddress,
       compiledContract: CompiledVeilcoreClaims,

@@ -7,7 +7,6 @@
 // holder proves from stays in private state between calls.
 // SPDX-License-Identifier: Apache-2.0
 
-import { CompiledContract } from "@midnight-ntwrk/midnight-js-protocol/compact-js";
 import { ContractState } from "@midnight-ntwrk/compact-runtime";
 
 import * as Claims from "./managed/veilcore-claims/contract/index.js";
@@ -100,11 +99,15 @@ export const claimsWitnesses: W = {
   ],
 };
 
-export const CompiledVeilcoreClaims = CompiledContract.make<
-  Claims.Contract<ClaimsPrivateState>
->("VeilcoreClaims", Claims.Contract<ClaimsPrivateState>).pipe(
-  CompiledContract.withWitnesses(claimsWitnesses),
-  CompiledContract.withCompiledFileAssets("./managed/veilcore-claims"),
+/**
+ * The claims contract as midnight-js 5 takes a LEDGER 8 contract: an instance of the class
+ * compactc 0.31 generated, not a `CompiledContract` (midnight-js refuses to wrap ledger 8
+ * artifacts in one). It was deployed before Midnight's ledger 9 fork and is never
+ * recompiled: a recompiled circuit has another verifier key, which the chain would refuse.
+ * See ./contract-state.ts for how its state is read after the fork.
+ */
+export const CompiledVeilcoreClaims = new Claims.Contract<ClaimsPrivateState>(
+  claimsWitnesses,
 );
 
 /** Every claims circuit that needs a verifier key on chain, sorted by code unit. */
@@ -158,10 +161,6 @@ export const claimsDeployingContract = (keep: readonly string[]) => {
 /** CompiledVeilcoreClaims, deploying with verifier keys for `keep` only. */
 export const compiledClaimsDeploying = (keep: readonly string[]) => {
   const ClaimsDeploying = claimsDeployingContract(keep);
-  return CompiledContract.make<
-    InstanceType<typeof ClaimsDeploying<ClaimsPrivateState>>
-  >("VeilcoreClaims", ClaimsDeploying<ClaimsPrivateState>).pipe(
-    CompiledContract.withWitnesses(claimsWitnesses),
-    CompiledContract.withCompiledFileAssets("./managed/veilcore-claims"),
-  );
+  // A ledger 8 deploy: only possible while the network is still on ledger 8.
+  return new ClaimsDeploying<ClaimsPrivateState>(claimsWitnesses);
 };

@@ -1,7 +1,6 @@
 // The checker's side of a license proof (license-check.ts): against the real contract,
 // run here, with the state the indexer would report after the holder's proveLicense.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { ContractState } from '@midnight-ntwrk/compact-runtime';
 import { ledger } from '../../../../contract/src/managed/veilcore/contract/index.js';
 import { createVeilcorePrivateState, withLicense } from '../../../../contract/src/witnesses';
@@ -9,8 +8,6 @@ import { identityOf, licenseRequestFor, recoveryCommitmentOf } from './actions';
 import { contractStateAfter } from './test-chain';
 import { checkLicense } from './license-check';
 import { newChallenge } from './challenge-book';
-
-setNetworkId('preprod');
 
 const ISSUER = new Uint8Array(32).fill(0x31);
 const OTHER = new Uint8Array(32).fill(0x41);

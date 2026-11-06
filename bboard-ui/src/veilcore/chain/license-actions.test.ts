@@ -6,7 +6,6 @@
 // contract refuses the wrong party here before anything is sent, and the license secret
 // never leaves the licensee's browser.
 import { describe, expect, it } from 'vitest';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { ContractState } from '@midnight-ntwrk/compact-runtime';
 import { ledger } from '../../../../contract/src/managed/veilcore/contract/index.js';
 import { createVeilcorePrivateState, withLicense } from '../../../../contract/src/witnesses';
@@ -21,8 +20,6 @@ import {
   revokeLicenseOnChain,
 } from './actions';
 import { contractStateAfter, standIns } from './test-chain';
-
-setNetworkId('preprod');
 
 const ISSUER = new Uint8Array(32).fill(0x31);
 const RECOVERY = new Uint8Array(32).fill(0x13);

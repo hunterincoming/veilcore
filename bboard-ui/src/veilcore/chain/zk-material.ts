@@ -11,6 +11,25 @@ import { jsonIrToBinary, type KeyMaterialProvider, type ProvingKeyMaterial } fro
 import { BROWSER_CIRCUITS, CLAIMS_BROWSER_CIRCUITS } from './config';
 
 /**
+ * Which circuit a prover is asked for. Ledger 8 names the circuit itself (`anchor`). Ledger 9,
+ * the network's ledger after its fork (mainnet since 6 November 2026), names the deployed key:
+ * `contract:<address>/<circuit>?vk=<SHA-256 of the verifier key the contract holds>`
+ * (midnight-js 5 / compact-js ContractKeyLocation, the same grammar). Anything else is refused.
+ */
+export const circuitOfKeyLocation = (
+  keyLocation: string,
+): { readonly circuit: string; readonly verifierKeySha256?: string } | undefined => {
+  if (/^[A-Za-z0-9_]+$/.test(keyLocation)) return { circuit: keyLocation };
+  const m = /^contract:[0-9a-fA-F]{64}\/([A-Za-z0-9_]+)\?vk=([0-9a-f]{64})$/.exec(keyLocation);
+  return m ? { circuit: m[1], verifierKeySha256: m[2] } : undefined;
+};
+
+const sha256Hex = async (b: Uint8Array): Promise<string> =>
+  Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new Uint8Array(b))), (x) =>
+    x.toString(16).padStart(2, '0'),
+  ).join('');
+
+/**
  * k of each circuit the browser proves (measured with Zkir.getK on the compiled circuits): the
  * main contract's are 13 and 14; the claims contract's proveAttested 13, proveValue 15 and
  * proveRange 16 (docs/claims-design.md, Size).
@@ -55,16 +74,24 @@ export const makeKeyMaterialProvider = (origin: string, cacheName: string, progr
   };
 
   return {
-    lookupKey: (keyLocation: string) => {
-      if (![...BROWSER_CIRCUITS, ...CLAIMS_BROWSER_CIRCUITS].includes(keyLocation as never))
-        return Promise.resolve(undefined);
-      let m = memo.get(keyLocation);
+    lookupKey: async (keyLocation: string) => {
+      const at = circuitOfKeyLocation(keyLocation);
+      if (!at || ![...BROWSER_CIRCUITS, ...CLAIMS_BROWSER_CIRCUITS].includes(at.circuit as never)) return undefined;
+      let m = memo.get(at.circuit);
       if (!m) {
-        m = load(keyLocation);
-        memo.set(keyLocation, m);
-        m.catch(() => memo.delete(keyLocation));
+        m = load(at.circuit);
+        memo.set(at.circuit, m);
+        m.catch(() => memo.delete(at.circuit));
       }
-      return m;
+      const material = await m;
+      // Ledger 9 names the key the contract holds: this site's files must be exactly those.
+      if (
+        material &&
+        at.verifierKeySha256 !== undefined &&
+        (await sha256Hex(material.verifierKey)) !== at.verifierKeySha256
+      )
+        throw new Error(`This site's proving files for ${at.circuit} are not the ones the contract uses.`);
+      return material;
     },
     getParams: (k: number) => {
       if (!(PARAMS_K as readonly number[]).includes(k))

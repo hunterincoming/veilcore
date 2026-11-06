@@ -1,11 +1,21 @@
 // Provable retirement (src/maintenance.ts), against a real ledger: Midnight's own ledger
-// code (ledger-v8, the WebAssembly build the node is made from) holding a contract in a
-// local LedgerState. No proofs are involved: maintenance updates are signed, not proved.
+// code (ledger-v8, the WebAssembly build the node is made from; midnight-js 5's own copy, the
+// one maintenance.ts builds with) holding a contract in a local LedgerState. No proofs are
+// involved: maintenance updates are signed, not proved. It is a Ledger 8 update: after a
+// network's Ledger 9 fork it is refused before anything is built (checked at the end).
 // SPDX-License-Identifier: Apache-2.0
 import assert from 'node:assert/strict';
-import * as L from '@midnight-ntwrk/ledger-v8';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { loadLedger8Protocol } from '@midnight-ntwrk/midnight-js-protocol';
+import {
+  SerializedContractState,
+  createMidnightProviderFromHandlers,
+  createProofProviderFromHandlers,
+  createWalletProviderFromHandlers,
+} from '@midnight-ntwrk/midnight-js-types';
+import { setNetworkId } from './src/network-id.ts';
 import { isProvablyRetired, provableRetirementUpdate, retireMaintenanceAuthorityProvably } from './src/maintenance.ts';
+
+const L = await loadLedger8Protocol();
 
 const NET = 'undeployed';
 setNetworkId(NET);
@@ -50,7 +60,7 @@ const chain = () => {
   const c = chain();
   const before = c.authority();
   assert.equal(isProvablyRetired(before), false);
-  const u = provableRetirementUpdate(c.address, before, c.key);
+  const u = await provableRetirementUpdate(c.address, before, c.key);
   assert.equal(u.address, c.address);
   assert.equal(u.counter, 0n, 'valid against the current counter');
   assert.equal(u.updates.length, 1, 'one instruction, nothing else');
@@ -68,7 +78,7 @@ const chain = () => {
 // ── applied by the ledger ──────────────────────────────────────────────────────
 {
   const c = chain();
-  c.update(provableRetirementUpdate(c.address, c.authority(), c.key));
+  c.update(await provableRetirementUpdate(c.address, c.authority(), c.key));
   const after = c.authority();
   assert.equal(after.committee.length, 0);
   assert.equal(after.threshold, 1);
@@ -104,26 +114,46 @@ const chain = () => {
 // ── the API function, end to end against the same ledger ──────────────────────
 {
   const c = chain();
-  const store = new Map([[c.address, c.key]]);
+  // midnight-js 5 keeps keys as { tag, value } (src/signing-key.ts).
+  const store = new Map([[c.address, { tag: 'schnorr', value: c.key }]]);
   let submitted = 0;
+  const v8 = { protocolVersion: 1_000_000 };
+  const readOf = (ledgerState, a) => ({
+    ...v8,
+    contractState: SerializedContractState.fromBytes('v8', ledgerState.index(a).serialize()),
+  });
+  const placeholderProver = { check: async () => [], prove: async () => new L.Proof('0100').serialize() };
+  const none = undefined;
   const providers = {
     publicDataProvider: {
-      queryContractState: async (a) => c.state().index(a),
-      watchForTxData: async (txId) => ({ txId, txHash: txId, blockHeight: 1, status: 'SucceedEntirely' }),
+      queryContractState: async (a) => readOf(c.state(), a),
+      queryLatestProtocolVersion: async () => v8.protocolVersion,
+      watchForTxData: async (txId) => ({ era: 'v8', txId, txHash: txId, blockHeight: 1, status: 'SucceedEntirely' }),
     },
-    proofProvider: { proveTx: async (tx) => tx },
-    walletProvider: { balanceTx: async (tx) => tx },
-    midnightProvider: {
-      submitTx: async (tx) => {
+    // A maintenance transaction has no circuit to prove: proving it only changes its stage.
+    proofProvider: createProofProviderFromHandlers({
+      v8: (tx) => tx.deserialize({ v8: L.Transaction }).prove(placeholderProver, L.CostModel.initialCostModel()),
+      v9: none,
+    }),
+    walletProvider: createWalletProviderFromHandlers({
+      v8: async (tx) => tx.deserialize({ v8: L.Transaction }).bind(),
+      v9: none,
+      getCoinPublicKey: () => '00'.repeat(32),
+      getEncryptionPublicKey: () => '00'.repeat(32),
+    }),
+    midnightProvider: createMidnightProviderFromHandlers({
+      v8: async (tx) => {
         submitted++;
-        c.apply(tx);
+        c.apply(tx.deserialize({ v8: L.Transaction }));
         return `tx${submitted}`;
       },
-    },
+      v9: none,
+    }),
     privateStateProvider: {
       getSigningKey: async (a) => store.get(a),
       removeSigningKey: async (a) => void store.delete(a),
     },
+    config: { networkId: NET, ttlSeconds: 3600 },
   };
   await retireMaintenanceAuthorityProvably(providers, c.address, undefined, 1);
   assert.equal(isProvablyRetired(c.authority()), true);
@@ -140,7 +170,7 @@ const chain = () => {
       retireMaintenanceAuthorityProvably(
         {
           ...providers,
-          publicDataProvider: { ...providers.publicDataProvider, queryContractState: async (a) => d.state().index(a) },
+          publicDataProvider: { ...providers.publicDataProvider, queryContractState: async (a) => readOf(d.state(), a) },
         },
         d.address,
         undefined,
@@ -149,6 +179,32 @@ const chain = () => {
     /not on this computer/,
   );
   console.log('refused, as it should be: no key on this computer, nothing sent');
+
+  // After the network's Ledger 9 fork: refused before anything is built (maintenance.ts).
+  const e = chain();
+  const storeE = new Map([[e.address, { tag: 'schnorr', value: e.key }]]);
+  const sentBefore = submitted;
+  await assert.rejects(
+    () =>
+      retireMaintenanceAuthorityProvably(
+        {
+          ...providers,
+          publicDataProvider: {
+            ...providers.publicDataProvider,
+            queryContractState: async (a) => readOf(e.state(), a),
+            queryLatestProtocolVersion: async () => 2_001_000,
+          },
+          privateStateProvider: { getSigningKey: async (a) => storeE.get(a), removeSigningKey: async () => {} },
+        },
+        e.address,
+        undefined,
+        1,
+      ),
+    /not available on this network: it has moved to Midnight Ledger 9/,
+  );
+  assert.equal(submitted, sentBefore, 'nothing sent');
+  assert.equal(isProvablyRetired(e.authority()), false);
+  console.log('refused, as it should be: after the Ledger 9 fork, before anything is built or sent');
 }
 
 console.log('\nall provable-retirement checks pass');
