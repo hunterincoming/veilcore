@@ -18,6 +18,9 @@ export const animal = {
   'app.animal.idScheme': 'Kennzeichnungssystem',
   'app.animal.idSchemeHelp':
     'Zu welcher Nummerierung die Kennung gehört. Wählen Sie eine aus oder geben Sie Ihre eigene ein.',
+  'app.animal.idShape.jp': 'Eine japanische Rinder-ID hat 10 Ziffern. Prüfen Sie die Nummer auf der Ohrmarke.',
+  'app.animal.idShape.usda840': 'Eine USDA-840-Nummer hat 15 Ziffern und beginnt mit 840. Prüfen Sie die Marke.',
+  'app.animal.idShape.microchip': 'Eine Mikrochipnummer hat 15 Ziffern. Prüfen Sie sie mit dem Lesegerät.',
   'app.animal.scheme.jp': 'Japanische Rinderkennung (10 Ziffern)',
   'app.animal.scheme.earTag': 'Ohrmarke',
   'app.animal.scheme.microchip': 'Mikrochip',
