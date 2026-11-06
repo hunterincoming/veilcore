@@ -4,8 +4,11 @@ A small service that pays the Midnight network fee (DUST) for a few VeilCore cal
 from the website demo, so a visitor needs no wallet and no crypto. It also anchors the
 registry's batch roots on chain on a schedule, replacing the manual operator step.
 
-**Status:** built and unit-tested; not yet run against preprod. Test networks only: it
-refuses to start on mainnet.
+**Status:** running on test.veilcore.org (preprod, first run end to end 12 and 13 October
+2026, `docs/no-wallet-run-12oct.md`) and on veilcore.org (mainnet, live since 19 October,
+checked by hand on 20 October, `docs/mainnet-sponsor.md`). On mainnet it pays only for
+VeilCore's pinned contracts. Licences and royalties stay switched off there until a final
+test run.
 
 ## What it does, and what it can see
 
