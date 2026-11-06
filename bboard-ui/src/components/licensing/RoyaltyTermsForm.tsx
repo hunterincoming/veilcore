@@ -38,6 +38,8 @@ import { useT } from '../../i18n/app';
 import { forKind, type RecordKind, type Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
 import { rightOptionKey, type SetTerm } from './LicenseTermsFields';
+import { ONCHAIN_PAYMENTS } from '../../config/copy';
+import { ONCHAIN_TOKENS } from '../../veilcore/onchain-pay';
 
 /** Common currencies first; any ISO code can be typed in the full form. */
 export const CURRENCIES = [
@@ -55,6 +57,8 @@ export const CURRENCIES = [
   'UYU',
   'ZAR',
   'THB',
+  // On the test network a deal can be in a Midnight token, paid from a wallet (OnChainPay.tsx).
+  ...(ONCHAIN_PAYMENTS ? ONCHAIN_TOKENS.map((t) => t.code) : []),
 ];
 
 const numeric = (s: string, max = 16) => s.replace(/[^0-9.]/g, '').slice(0, max);

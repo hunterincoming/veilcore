@@ -343,7 +343,8 @@ const HomeCard: React.FC<{
   const balance = balanceOwed(ledger, currency);
   const min = minimumProgress(terms, ledger.reports, today);
   const mineToAct = row && whoActs(row.step) === side;
-  const bigDate = row ? (row.due ?? row.period.to) : next?.from;
+  // A date only where the terms set one: a report's or a payment's due date, or a period's end.
+  const bigDate = row ? (row.due ?? (row.step === 'running' ? row.period.reportDue : undefined)) : next?.from;
   const reminded = row && lastReminder(ledger, row);
 
   const remind = () =>
@@ -398,7 +399,7 @@ const HomeCard: React.FC<{
             )}
           </>
         )}
-        <Stack direction="row" spacing={3} sx={{ flexWrap: 'wrap' }}>
+        <Stack direction="row" useFlexGap spacing={3} sx={{ flexWrap: 'wrap' }}>
           <Box>
             <Typography variant="caption" color="text.secondary">
               {tr.t('app.roy.home.balance')}
@@ -704,14 +705,24 @@ const ReportForm: React.FC<{
           </Button>
         )}
         {rule && (
-          <TextField
-            label={question('royalty', rule)}
-            helperText={rule.kind === 'per-unit' ? rule.unitDefinition : undefined}
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value.replace(/[^0-9.]/g, '').slice(0, 16))}
-            slotProps={{ htmlInput: { inputMode: 'decimal', 'data-quantity': '' } }}
-            fullWidth
-          />
+          <Box>
+            <Typography
+              component="label"
+              htmlFor="royalty-quantity"
+              variant="body1"
+              sx={{ display: 'block', mb: 0.75 }}
+            >
+              {question('royalty', rule)}
+            </Typography>
+            <TextField
+              id="royalty-quantity"
+              helperText={rule.kind === 'per-unit' ? rule.unitDefinition : undefined}
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value.replace(/[^0-9.]/g, '').slice(0, 16))}
+              slotProps={{ htmlInput: { inputMode: 'decimal', 'data-quantity': '' } }}
+              fullWidth
+            />
+          </Box>
         )}
         {rule?.kind === 'percent' && rule.base === 'net' && (
           <Stack spacing={1.25}>
@@ -733,13 +744,23 @@ const ReportForm: React.FC<{
           </Stack>
         )}
         {off && (
-          <TextField
-            label={question('offspring', off.rule)}
-            value={offQty}
-            onChange={(e) => setOffQty(e.target.value.replace(/[^0-9.]/g, '').slice(0, 16))}
-            slotProps={{ htmlInput: { inputMode: 'decimal' } }}
-            fullWidth
-          />
+          <Box>
+            <Typography
+              component="label"
+              htmlFor="offspring-quantity"
+              variant="body1"
+              sx={{ display: 'block', mb: 0.75 }}
+            >
+              {question('offspring', off.rule)}
+            </Typography>
+            <TextField
+              id="offspring-quantity"
+              value={offQty}
+              onChange={(e) => setOffQty(e.target.value.replace(/[^0-9.]/g, '').slice(0, 16))}
+              slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+              fullWidth
+            />
+          </Box>
         )}
         {result && (
           <LinesTable lines={result.lines} total={result.total} currency={currency} tr={tr} terms={terms} live />

@@ -151,6 +151,13 @@ export const currencyOf = (t: Partial<LicenseTerms> | undefined): string => t?.c
 /** The reporting schedule, or undefined for old terms (each statement then names its own dates). */
 export const scheduleOf = (t: Partial<LicenseTerms> | undefined): Reporting | undefined => t?.reporting;
 
+/**
+ * Cannabis records (design v3, 1 and 10): the territory is required, and the licensor's own
+ * payment link isn't offered. A plant sealed before profiles existed was sealed as cannabis.
+ */
+export const isCannabisRecord = (r: { profile?: string; taxon?: string } | undefined): boolean =>
+  Boolean(r && (!r.profile || /cannabis|hemp|marijuana/i.test(r.taxon ?? '')));
+
 // ---- presets -----------------------------------------------------------------------------------
 
 export type PresetId = 'clone' | 'seed' | 'breeding' | 'semen' | 'custom';
@@ -359,7 +366,7 @@ export const termsProblems = (t: LicenseTerms, opts: { territoryRequired: boolea
     if (r.kind === 'percent' && !(isDecimal(r.rate) && Number(r.rate) > 0 && Number(r.rate) <= 100)) out.push('rate');
     if (r.kind === 'per-unit' && !(isDecimal(r.amount) && Number(r.amount) > 0)) out.push('amount');
     if (r.kind === 'percent' && r.base === 'net' && r.deductionCapPct && !isDecimal(r.deductionCapPct)) out.push('cap');
-    if (!t.currency || !/^[A-Z]{3}$/.test(t.currency)) out.push('currency');
+    if (!t.currency || !/^[A-Z]{3,6}$/.test(t.currency)) out.push('currency');
     if (!t.governingLaw?.trim()) out.push('law');
     if (t.yearlyMinimum?.trim() && !isDecimal(t.yearlyMinimum)) out.push('minimum');
     const o = t.offspring?.rule;

@@ -274,8 +274,12 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   await expect(page.getByText('Add the next generation or selection')).toHaveCount(0);
   await page.getByText('License it', { exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/record/${rec.id}/license`));
+  // Presets first, in an animal's words: a breeding or a semen/embryo license, or Custom.
+  await expect(page.locator('[data-preset="breeding"]')).toBeVisible();
+  await expect(page.locator('[data-preset="clone"]')).toHaveCount(0);
+  await page.locator('[data-preset="custom"]').click();
   await expect(page.getByText('Breed with their own animals only')).toBeVisible();
-  await expect(page.getByText('Per dose (straw or embryo)')).toBeVisible();
+  await expect(page.getByText('dose (straw or embryo)', { exact: true })).toBeVisible();
   await expect(page.getByText(/sire or dam, both holders confirming/)).toBeVisible();
   await expect(page.getByText(/Cultivate/)).toHaveCount(0);
   await page.goto(`/record/${rec.id}`);
