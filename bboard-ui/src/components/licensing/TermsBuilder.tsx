@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useState } from 'react';
-import { Alert, Box, Button, Collapse, Divider, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Divider, Stack, Typography } from '@mui/material';
 import { useNavigate, useParams, useSearchParams, Link as RouterLink } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import { getRecord } from '../../veilcore/records';
@@ -41,16 +41,10 @@ import {
   ruleOf,
   termsProblems,
   termsToSeal,
+  unitDefinitionText,
   type PresetId,
 } from '../../veilcore/royalty-terms';
-import {
-  AmountField,
-  FullLicenseFields,
-  LawField,
-  MoneyTermsFields,
-  PresetPicker,
-  TermsSummaryLine,
-} from './RoyaltyTermsForm';
+import { LicenseTermsStep, MoneyTermsFields } from './RoyaltyTermsForm';
 import type { AppKey } from '../../i18n/app/en';
 
 /** The browser's own locale (navigator.language), for a first guess at currency and law. */
@@ -67,11 +61,12 @@ const asNewTerms = (t: LicenseTerms, ctx: { currency: string; governingLaw: stri
   if (t.royalty) return t;
   const rule = ruleOf(t);
   const base = applyPreset('custom', t, { kind: subjectOf(t), ...ctx });
-  return rule?.kind === 'per-unit' && ['plant', 'cutting', 'dose', 'offspring', 'batch'].includes(rule.unit)
-    ? { ...base, royalty: { ...rule, unitDefinition: '' } }
-    : rule?.kind === 'percent'
-      ? { ...base, royalty: { kind: 'percent', rate: rule.rate, base: 'gross' } }
-      : base;
+  // The same rule, written out (review round 1, 8): a fee per harvest or per unit sold stays one,
+  // with its unit's own definition, rather than turning into an empty percent.
+  if (rule?.kind === 'per-unit')
+    return { ...base, royalty: { ...rule, unitDefinition: unitDefinitionText(rule.unit) } };
+  if (rule?.kind === 'percent') return { ...base, royalty: { kind: 'percent', rate: rule.rate, base: 'gross' } };
+  return base;
 };
 
 const isType = (v: string | null): v is AgreementType =>
@@ -250,44 +245,16 @@ export const TermsBuilder: React.FC = () => {
 
       {type === 'license' ? (
         <Stack spacing={2.5}>
-          {!prior && presets.length > 1 && <PresetPicker kind={kind} picked={preset} onPick={pick} />}
-          {preset && !details && (
-            <Stack spacing={2.5} data-quick-terms="">
-              <TextField
-                label={tr.t('app.lic.f.licensee')}
-                helperText={tr.t('app.lic.f.licenseeHelp')}
-                value={t.licensee}
-                onChange={(e) => set('licensee', e.target.value)}
-                fullWidth
-              />
-              <AmountField terms={t} set={set} tr={tr} />
-              {cannabis && (
-                <TextField
-                  label={tr.t('app.lic.f.territory')}
-                  placeholder={tr.t('app.lic.f.territoryPh')}
-                  helperText={tr.t('app.roy.f.territoryRequired')}
-                  required
-                  value={t.territory}
-                  onChange={(e) => set('territory', e.target.value)}
-                  fullWidth
-                />
-              )}
-              <LawField terms={t} set={set} tr={tr} />
-            </Stack>
-          )}
-          {preset && (
-            <Box>
-              <Button size="small" onClick={() => setDetails(!details)} aria-expanded={details} data-edit-details="">
-                {details ? tr.t('app.roy.f.hide') : tr.t('app.roy.f.edit')}
-              </Button>
-              <Collapse in={details} unmountOnExit>
-                <Box sx={{ pt: 1.5 }}>
-                  <FullLicenseFields terms={t} set={set} territoryRequired={cannabis} />
-                </Box>
-              </Collapse>
-            </Box>
-          )}
-          {preset && <TermsSummaryLine terms={t} kind={kind} />}
+          <LicenseTermsStep
+            kind={kind}
+            terms={t}
+            set={set}
+            preset={preset}
+            onPick={!prior && presets.length > 1 ? pick : undefined}
+            details={details}
+            setDetails={setDetails}
+            cannabis={cannabis}
+          />
         </Stack>
       ) : (
         <AgreementTermsFields type={type} terms={t} set={set} />

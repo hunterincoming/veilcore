@@ -33,12 +33,11 @@ import { publicOf, type DealSide, type StatementLine } from '../../veilcore/deal
 import {
   currencyDigits,
   formatMoney,
+  isZero,
   isDecimal,
   normaliseDecimal,
   owedUnder,
   sameAmount,
-  sumAmounts,
-  subtractAmount,
   toMinor,
 } from '../../veilcore/money';
 import { receiptsFor, type CheckedReceipt } from '../../veilcore/payments';
@@ -60,6 +59,10 @@ import {
   ledgerOf as ledgerOfEntries,
   liveReports,
   minimumProgress,
+  expectedTopUp,
+  expectedTotal,
+  offspringRuns,
+  paidMessage,
   paymentReference,
   payoutLock,
   periodRows,
@@ -74,8 +77,17 @@ import {
   type Report,
   type ReportInput,
 } from '../../veilcore/royalty-ledger';
-import { calendarFile, endsContractYear, periodsOf, type RoyaltyPeriod } from '../../veilcore/royalty-periods';
-import { currencyOf, localDay, offspringOf, ruleOf, scheduleOf, unitLabel } from '../../veilcore/royalty-terms';
+import { calendarFile, periodsOf, type RoyaltyPeriod } from '../../veilcore/royalty-periods';
+import {
+  currencyOf,
+  dateWords,
+  localDay,
+  offspringOf,
+  ruleOf,
+  scheduleOf,
+  unitLabel,
+  withDealCurrency,
+} from '../../veilcore/royalty-terms';
 
 type Terms = LicenseTerms;
 
@@ -105,6 +117,8 @@ const periodText = (from: string, to: string, tr: Translator): string => {
 };
 const dayText = (d: string, tr: Translator): string =>
   tr.date(`${d}T12:00:00`, { day: 'numeric', month: 'long', year: 'numeric' });
+/** A signed time as a calendar date, in the same short form as every other date here. */
+const when = (ms: number, tr: Translator): string => tr.date(ms, { day: 'numeric', month: 'short', year: 'numeric' });
 
 type Send = (b: Parameters<typeof say>[1]) => Promise<boolean>;
 
@@ -120,9 +134,14 @@ export const RoyaltyLedger: React.FC<{
   agreementType?: string;
   /** A cannabis record: the licensor's own payment link isn't offered (design v3, 10). */
   cannabis?: boolean;
-}> = ({ party, side, terms, entries, refresh, agreed, agreementType, cannabis }) => {
-  const tr = forKind(useT(), subjectOf(terms));
+}> = ({ party, side, terms: agreedTerms, entries, refresh, agreed, agreementType, cannabis }) => {
+  const tr = forKind(useT(), subjectOf(agreedTerms));
   const ledger = useMemo(() => ledgerOfEntries(entries ?? []), [entries]);
+  // Old terms named no currency: their reports were in the licensor's payout currency (review round 1, 5).
+  const terms = useMemo(
+    () => withDealCurrency(agreedTerms, ledger.payout?.currency ?? ledger.reports[0]?.statement.currency),
+    [agreedTerms, ledger],
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const [form, setForm] = useState<
@@ -217,13 +236,15 @@ export const RoyaltyLedger: React.FC<{
           />
         )}
 
-        <PayoutBlock
-          ctx={ctx}
-          editing={form?.kind === 'payout' || form?.kind === 'invoice' ? form.kind : undefined}
-          onEdit={(k) => setForm(k ? { kind: k } : undefined)}
-          payoutKind={payoutKind}
-          setPayoutKind={setPayoutKind}
-        />
+        {!(side === 'licensee' && live.some((r) => stateOf(r) === 'to-pay')) && (
+          <PayoutBlock
+            ctx={ctx}
+            editing={form?.kind === 'payout' || form?.kind === 'invoice' ? form.kind : undefined}
+            onEdit={(k) => setForm(k ? { kind: k } : undefined)}
+            payoutKind={payoutKind}
+            setPayoutKind={setPayoutKind}
+          />
+        )}
 
         {ledger.reports.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
@@ -251,7 +272,7 @@ export const RoyaltyLedger: React.FC<{
         {/* What most people never need, one tap away: the signed record, the CSV, the W3C credentials. */}
         <Box>
           <Button size="small" color="inherit" onClick={() => setMore(!more)} aria-expanded={more} sx={{ px: 0 }}>
-            {more ? tr.t('app.lic.ledger.fewer') : tr.t('app.lic.ledger.more')}
+            {more ? tr.t('app.roy.files.hide') : tr.t('app.roy.files.show')}
           </Button>
           <Collapse in={more}>
             <Stack spacing={1.25} sx={{ pt: 1 }}>
@@ -346,6 +367,8 @@ const HomeCard: React.FC<{
   // A date only where the terms set one: a report's or a payment's due date, or a period's end.
   const bigDate = row ? (row.due ?? (row.step === 'running' ? row.period.reportDue : undefined)) : next?.from;
   const reminded = row && lastReminder(ledger, row);
+  // Another report waiting for the licensor's answer, when the card is about something else.
+  const alsoAnswer = open.find((r) => r.step === 'answer' && r !== row);
 
   const remind = () =>
     row &&
@@ -366,7 +389,7 @@ const HomeCard: React.FC<{
         {row ? (
           <>
             <Typography variant="body2" color="text.secondary">
-              {tr.t(`app.roy.home.${side === 'licensee' ? 'l' : 'i'}.${row.step}` as AppKey, {
+              {tr.t(`app.roy.home.${side === 'licensee' ? 'l' : 'i'}.${homeKey(row)}` as AppKey, {
                 period: periodText(row.period.from, row.period.to, tr),
                 n: row.report?.number ?? '',
                 licensor: names.licensor,
@@ -399,15 +422,29 @@ const HomeCard: React.FC<{
             )}
           </>
         )}
+        {side === 'issuer' && row?.step === 'confirm' && row.report?.paid && (
+          <Typography variant="h5" component="p" data-awaiting="">
+            {tr.t('app.roy.home.i.awaiting', {
+              amount: formatMoney(row.report.paid.amount, row.report.paid.currency, tr.locale),
+            })}
+          </Typography>
+        )}
+        {side === 'issuer' && alsoAnswer && (
+          <Typography variant="body2" data-also-answer="">
+            {tr.t('app.roy.home.i.alsoAnswer', { n: alsoAnswer.report!.number })}
+          </Typography>
+        )}
         <Stack direction="row" useFlexGap spacing={3} sx={{ flexWrap: 'wrap' }}>
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              {tr.t('app.roy.home.balance')}
-            </Typography>
-            <Typography variant="subtitle1" data-balance="">
-              {formatMoney(balance, currency, tr.locale)}
-            </Typography>
-          </Box>
+          {!isZero(balance) && (
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                {tr.t('app.roy.home.balance')}
+              </Typography>
+              <Typography variant="subtitle1" data-balance="">
+                {formatMoney(balance, currency, tr.locale)}
+              </Typography>
+            </Box>
+          )}
           {min && (
             <Box>
               <Typography variant="caption" color="text.secondary">
@@ -520,6 +557,14 @@ const HomeCard: React.FC<{
   );
 };
 
+/** The card's words for a row: past due dates say "was due" (UX review 2). */
+const homeKey = (row: PeriodRow): string =>
+  row.overdue > 0 && row.step === 'report'
+    ? 'reportLate'
+    : row.overdue > 0 && row.step === 'pay'
+      ? 'payLate'
+      : row.step;
+
 const whoActs = (step: PeriodRow['step']): DealSide | undefined =>
   step === 'report' || step === 'fix' || step === 'pay' || step === 'running'
     ? 'licensee'
@@ -598,32 +643,31 @@ const ReportForm: React.FC<{
   const [evidenceError, setEvidenceError] = useState<string>();
   const periodWords = from && to ? periodText(from, to, tr) : '';
 
-  // The minimum is topped up on the last report of a contract year (royalty-ledger.ts minimumProgress).
-  const p =
-    period ??
-    (terms.reporting
-      ? periodsOf(terms.reporting, terms.startDate, terms.endDate, to).find((x) => x.from === from && x.to === to)
-      : undefined);
-  const yearEnd = p && terms.yearlyMinimum ? endsContractYear(terms.startDate, p, terms.endDate) : false;
   const input: ReportInput = {
     quantity: rule ? quantity || '0' : '0',
     ...(rule?.kind === 'percent' && rule.base === 'net' ? { deductions: ded } : {}),
     offspring: offQty || '0',
   };
-  const base = reportLines(terms, input, { type: agreementType });
-  const minimum = yearEnd ? minimumProgress(terms, ledger.reports, from, old?.signature) : undefined;
+  // The royalty on offspring only while it runs; the minimum topped up on a contract year's last
+  // report, from the other reports of that year (royalty-ledger.ts expectedTopUp).
+  const offRuns = Boolean(off && from && offspringRuns(terms, from));
+  const base = reportLines(terms, input, { type: agreementType, periodFrom: from });
   const topUp =
-    minimum && base
-      ? subtractAmount(minimum.minimum, sumAmounts([minimum.owed, base.total], digits) ?? '0', digits)
+    base && from && to
+      ? expectedTopUp(terms, ledger.reports, { periodFrom: from, periodTo: to, replaces: old?.signature }, base.total)
       : undefined;
-  const result = reportLines(terms, input, { type: agreementType, minimumTopUp: topUp });
+  const result = reportLines(terms, input, { type: agreementType, minimumTopUp: topUp, periodFrom: from });
   const taxOk =
     !tax || (isDecimal(tax) && result && (toMinor(tax, digits) ?? 0n) <= (toMinor(result.total, digits) ?? 0n));
   const ok = Boolean(from && to && from <= to && result && taxOk);
 
   const sendReport = (nothing = false) => {
     const r = nothing
-      ? reportLines(terms, { quantity: '0', offspring: '0' }, { type: agreementType, minimumTopUp: topUp })
+      ? reportLines(
+          terms,
+          { quantity: '0', offspring: '0' },
+          { type: agreementType, minimumTopUp: topUp, periodFrom: from },
+        )
       : result;
     if (!r) return;
     const taxN = !nothing && tax ? normaliseDecimal(tax) : undefined;
@@ -743,7 +787,7 @@ const ReportForm: React.FC<{
             )}
           </Stack>
         )}
-        {off && (
+        {off && offRuns && (
           <Box>
             <Typography
               component="label"
@@ -950,22 +994,7 @@ const ReportCard: React.FC<{
   const paidToken = r.paid ? tokenOfMethod(r.paid.method) : undefined;
   const lines: readonly StatementLine[] = s.lines ?? [{ kind: 'royalty', quantity: s.quantity, amount: s.amountOwed }];
   // What the terms say these figures come to, worked out here: shown to both sides if it differs.
-  const expected = s.lines
-    ? reportLines(
-        terms,
-        {
-          quantity:
-            s.lines.find((l) => l.kind === 'royalty')?.gross ??
-            s.lines.find((l) => l.kind === 'royalty')?.quantity ??
-            '0',
-          offspring: s.lines.find((l) => l.kind === 'offspring')?.quantity ?? '0',
-          ...(s.lines.find((l) => l.kind === 'royalty')?.deducted !== undefined
-            ? { deductions: { returns: s.lines.find((l) => l.kind === 'royalty')!.deducted } }
-            : {}),
-        },
-        { type: ctx.agreementType, minimumTopUp: s.lines.find((l) => l.kind === 'minimum')?.amount },
-      )?.total
-    : owedUnder(terms, s.quantity, currencyDigits(s.currency));
+  const expected = expectedTotal(terms, ledger.reports, s, ctx.agreementType);
   const mismatch = expected !== undefined && !sameAmount(expected, s.amountOwed, currencyDigits(s.currency));
   const currencyOff = s.currency !== currencyOf(terms) && Boolean(terms.currency);
   const label =
@@ -997,12 +1026,12 @@ const ReportCard: React.FC<{
         <Chip size="small" label={label} color={color} variant="outlined" />
       </Stack>
       <Typography variant="body2" color="text.secondary">
-        {tr.t('app.roy.c.period', { period: periodText(s.periodFrom, s.periodTo, tr), date: tr.date(s.at) })}
+        {tr.t('app.roy.c.period', { period: periodText(s.periodFrom, s.periodTo, tr), date: when(s.at, tr) })}
       </Typography>
       {st !== 'replaced' && (
         <>
           <LinesTable lines={lines} total={s.amountOwed} currency={s.currency} tr={tr} terms={terms} />
-          {s.taxWithheld && (
+          {s.taxWithheld && !(side === 'licensee' && st === 'to-pay') && (
             <Typography variant="body2">
               {tr.t('app.roy.tax.declared', {
                 amount: formatMoney(s.taxWithheld, s.currency, tr.locale),
@@ -1033,7 +1062,7 @@ const ReportCard: React.FC<{
         <Typography variant="body2" color="text.secondary">
           {tr.t(r.reply.decision === 'accepted' ? 'app.roy.c.acceptedOn' : 'app.roy.c.fixOn', {
             who: names.licensor,
-            date: tr.date(r.reply.at),
+            date: when(r.reply.at, tr),
           })}
           {r.reply.note ? `: “${r.reply.note}”` : ''}
         </Typography>
@@ -1043,14 +1072,14 @@ const ReportCard: React.FC<{
           {tr.t('app.roy.c.paid', {
             who: names.licensee,
             amount: formatMoney(r.paid.amount, r.paid.currency, tr.locale),
-            date: dayText(r.paid.paidOn, tr),
+            date: dateWords(r.paid.paidOn, tr),
             ref: r.paid.reference,
           })}
         </Typography>
       )}
       {r.received && (
         <Typography variant="body2" color="success.main">
-          {tr.t('app.roy.c.received', { who: names.licensor, date: tr.date(r.received.at) })}
+          {tr.t('app.roy.c.received', { who: names.licensor, date: when(r.received.at, tr) })}
         </Typography>
       )}
       {receipts.map((c) => (
@@ -1064,7 +1093,7 @@ const ReportCard: React.FC<{
             amount: c.receipt.amount,
             currency: c.receipt.currency,
             to: c.receipt.payTo,
-            date: tr.date(c.receipt.paidAt),
+            date: tr.date(c.receipt.paidAt, { day: 'numeric', month: 'short', year: 'numeric' }),
             ref: c.receipt.reference,
           })}
           {c.mismatch.length > 0 && ` ${tr.t('app.lic.ledger.r.mismatch', { what: c.mismatch.join('; ') })}`}
@@ -1228,15 +1257,15 @@ const NoticeLine: React.FC<{ n: NoticeEntry; ctx: Ctx }> = ({ n, ctx }) => {
   const period = periodText(n.periodFrom, n.periodTo, tr);
   const text =
     n.kind === 'breach'
-      ? tr.t('app.roy.notice.breach', { who, period, note: n.note ?? '', date: dayText(n.asOf, tr) })
+      ? tr.t('app.roy.notice.breach', { who, period, note: n.note ?? '', date: dateWords(n.asOf, tr) })
       : n.dueOn && (n.about === 'report' || n.about === 'payment')
         ? tr.t(`app.roy.notice.${n.about}Due` as AppKey, {
             who,
             period,
-            due: dayText(n.dueOn, tr),
-            date: dayText(n.asOf, tr),
+            due: dateWords(n.dueOn, tr),
+            date: dateWords(n.asOf, tr),
           })
-        : tr.t(`app.roy.notice.${n.about}` as AppKey, { who, period, date: dayText(n.asOf, tr) });
+        : tr.t(`app.roy.notice.${n.about}` as AppKey, { who, period, date: dateWords(n.asOf, tr) });
   return (
     <Alert severity={n.kind === 'breach' ? 'error' : 'info'} variant="outlined" data-notice={n.kind}>
       {text}
@@ -1299,33 +1328,16 @@ const PayPanel: React.FC<{
   const payout = ledger.payout;
   const lock = payoutLock(ledger);
   const [confirmed, setConfirmed] = useState(false);
-  const [tax, setTax] = useState(s.taxWithheld ?? '');
-  const [taxNote, setTaxNote] = useState(s.taxNote ?? '');
-  const [moreOpen, setMoreOpen] = useState(false);
   const [paidOn, setPaidOn] = useState(today);
-  const digits = currencyDigits(s.currency);
-  const taxOk = !tax || (isDecimal(tax) && (toMinor(tax, digits) ?? 0n) <= (toMinor(s.amountOwed, digits) ?? 0n));
-  const amount = toPayOf(r, tax && taxOk ? tax : '0');
+  // Tax withheld is what the report declared, and the licensor accepted: it can't change at
+  // payment (review round 1, 4).
+  const amount = toPayOf(r);
   const reference = paymentReference(s.signature, terms.licensor);
   const locked = lock.locked && !confirmed;
-  const taxN = tax && taxOk ? normaliseDecimal(tax) : undefined;
-  const paid = (method: string, payTo: string, ref: string) =>
-    send({
-      type: 'paid',
-      statementId: s.statementId,
-      statementSig: s.signature,
-      amount,
-      currency: s.currency,
-      method,
-      payTo,
-      reference: ref,
-      paidOn,
-      ...(payout ? { payoutSig: payout.signature } : {}),
-      ...(taxN && (toMinor(taxN, digits) ?? 0n) > 0n
-        ? { taxWithheld: taxN, ...(taxNote.trim() ? { taxNote: taxNote.trim() } : {}) }
-        : {}),
-      ...(lock.locked ? { detailsConfirmed: true } : {}),
-    });
+  // payTo is left empty: the payout it used is named by its signature, and the account itself
+  // never goes into a message a lender may read (review round 1, 3).
+  const paid = (method: string, ref: string) =>
+    send(paidMessage(r, { method, reference: ref, paidOn, payout, detailsConfirmed: lock.locked }));
 
   return (
     <Paper variant="outlined" sx={{ p: 2 }} data-pay="">
@@ -1336,7 +1348,7 @@ const PayPanel: React.FC<{
         </Typography>
         {period && (
           <Typography variant="body2" color="text.secondary">
-            {tr.t('app.roy.pay.due', { date: dayText(period.paymentDue, tr) })}
+            {tr.t('app.roy.pay.due', { date: dateWords(period.paymentDue, tr) })}
           </Typography>
         )}
         {!payout ? (
@@ -1345,11 +1357,10 @@ const PayPanel: React.FC<{
           </Alert>
         ) : (
           <>
-            <Typography variant="body2">{tr.t('app.roy.payout.sets', { who: names.licensor })}</Typography>
             {lock.locked && (
               <Alert severity="warning" variant="outlined" data-payout-changed="">
                 <Typography variant="body2" sx={{ mb: 1 }}>
-                  {tr.t('app.roy.pay.changed', { who: names.licensor, date: tr.date(lock.now.at) })}
+                  {tr.t('app.roy.pay.changed', { who: names.licensor, date: when(lock.now.at, tr) })}
                 </Typography>
                 <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' } }}>
                   <Box>
@@ -1372,7 +1383,14 @@ const PayPanel: React.FC<{
                   </Box>
                 </Box>
                 <FormControlLabel
-                  control={<Checkbox checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />}
+                  sx={{ alignItems: 'flex-start', mt: 1, ml: 0 }}
+                  control={
+                    <Checkbox
+                      checked={confirmed}
+                      onChange={(e) => setConfirmed(e.target.checked)}
+                      sx={{ pt: 0, pl: 0 }}
+                    />
+                  }
                   label={tr.t('app.roy.pay.confirmed', { who: names.licensor })}
                 />
               </Alert>
@@ -1396,38 +1414,14 @@ const PayPanel: React.FC<{
             )}
           </>
         )}
-        <Box>
-          <Button
-            size="small"
-            color="inherit"
-            onClick={() => setMoreOpen(!moreOpen)}
-            aria-expanded={moreOpen}
-            sx={{ px: 0 }}
-          >
-            {moreOpen ? tr.t('app.roy.less') : tr.t('app.roy.moreOptions')}
-          </Button>
-          <Collapse in={moreOpen}>
-            <Stack spacing={1.25} sx={{ pt: 1 }}>
-              <TextField
-                size="small"
-                label={tr.t('app.roy.tax.amount', { currency: s.currency })}
-                helperText={tr.t('app.roy.tax.help')}
-                value={tax}
-                error={!taxOk}
-                onChange={(e) => setTax(e.target.value.replace(/[^0-9.]/g, '').slice(0, 16))}
-                slotProps={{ htmlInput: { inputMode: 'decimal' } }}
-              />
-              {tax && (
-                <TextField
-                  size="small"
-                  label={tr.t('app.roy.tax.note')}
-                  value={taxNote}
-                  onChange={(e) => setTaxNote(e.target.value.slice(0, 300))}
-                />
-              )}
-            </Stack>
-          </Collapse>
-        </Box>
+        {s.taxWithheld && (
+          <Typography variant="body2" color="text.secondary" data-pay-tax="">
+            {tr.t('app.roy.tax.declared', {
+              amount: formatMoney(s.taxWithheld, s.currency, tr.locale),
+              net: formatMoney(amount, s.currency, tr.locale),
+            })}
+          </Typography>
+        )}
         {payout &&
           payToken &&
           ONCHAIN_PAYMENTS &&
@@ -1438,7 +1432,7 @@ const PayPanel: React.FC<{
               payTo={payout.account}
               busy={busy || locked}
               statementSig={s.signature}
-              onPaid={(txId) => void paid(payout.method, payout.account, txId)}
+              onPaid={(txId) => void paid(payout.method, txId)}
             />
           ) : (
             <Alert severity="info" variant="outlined">
@@ -1458,13 +1452,18 @@ const PayPanel: React.FC<{
             <Button
               variant="contained"
               size="large"
-              disabled={busy || !paidOn || !payout || locked || !taxOk}
-              onClick={() => void paid(payout?.method ?? 'other', payout?.account ?? '', reference)}
+              disabled={busy || !paidOn || !payout || locked}
+              onClick={() => void paid(payout?.method ?? 'other', reference)}
               data-i-paid=""
             >
               {tr.t('app.roy.pay.iPaid')}
             </Button>
           </Stack>
+        )}
+        {locked && (
+          <Typography variant="body2" color="warning.main" data-pay-locked="">
+            {tr.t('app.roy.pay.locked')}
+          </Typography>
         )}
         <Typography variant="caption" color="text.secondary">
           {tr.t('app.roy.pay.never')}
@@ -1703,7 +1702,24 @@ const Timeline: React.FC<{ ctx: Ctx; entries: readonly DealEntry[] }> = ({ ctx, 
   const { tr, names, ledger } = ctx;
   const [open, setOpen] = useState(false);
   const numberOf = (sig: string) => ledger.reports.find((r) => r.statement.signature === sig)?.number ?? '';
-  const items = entries
+  // Only what the ledger counts: a second answer, a payment before an accepted answer or a
+  // message from the wrong side is left out, as the checker leaves it out.
+  const counted = new Set<string>([
+    ...ledger.reports.flatMap((r) =>
+      [r.statement, r.reply, r.paid, r.received].flatMap((x) => (x ? [x.signature] : [])),
+    ),
+    ...ledger.payouts.map((x) => x.signature),
+    ...ledger.notices.map((x) => x.signature),
+    ...(ledger.invoice ? [ledger.invoice.signature] : []),
+  ]);
+  const shown = entries.filter(
+    (e) =>
+      (e.type === 'terms' && e.from === 'issuer') ||
+      (e.type === 'agree' && e.from === 'licensee') ||
+      (e.type === 'invoice-details' && e.from === 'issuer') ||
+      counted.has(e.signature),
+  );
+  const items = shown
     .flatMap((e) => {
       const who = e.mine ? tr.t('app.roy.who.you') : e.from === 'issuer' ? names.licensor : names.licensee;
       const k = (key: string, vars: Record<string, string | number> = {}) =>
@@ -1732,11 +1748,7 @@ const Timeline: React.FC<{ ctx: Ctx; entries: readonly DealEntry[] }> = ({ ctx, 
       }
     })
     .map((text, i) => ({ text, i }));
-  const dated = entries.filter((e) =>
-    ['terms', 'agree', 'payout', 'invoice-details', 'statement', 'reply', 'paid', 'received', 'notice'].includes(
-      e.type,
-    ),
-  );
+  const dated = shown;
   return (
     <Box data-timeline="">
       <Button size="small" color="inherit" onClick={() => setOpen(!open)} aria-expanded={open} sx={{ px: 0 }}>
@@ -1747,7 +1759,7 @@ const Timeline: React.FC<{ ctx: Ctx; entries: readonly DealEntry[] }> = ({ ctx, 
           {items.map(({ text, i }) => (
             <Typography component="li" variant="body2" key={i}>
               <Box component="span" sx={{ color: 'text.secondary' }}>
-                {tr.date(dated[i].at)}
+                {when(dated[i].at, tr)}
               </Box>{' '}
               {text}
             </Typography>
@@ -1766,7 +1778,8 @@ const downloadStatement = (ctx: Ctx, r: Report) => {
   const { tr, terms, ledger, names } = ctx;
   const s = r.statement;
   const inv = ledger.invoice;
-  const payout = ledger.payout;
+  // The details this payment was made to, when it names them; else the current ones.
+  const payout = ledger.payouts.find((x) => x.signature === r.paid?.payoutSig) ?? ledger.payout;
   const money = (a: string) => formatMoney(a, s.currency, tr.locale);
   const lines = (s.lines ?? [{ kind: 'royalty' as const, quantity: s.quantity, amount: s.amountOwed }]).map(
     (l) => [lineWords(l, s.currency, tr, terms), money(l.amount)] as const,
@@ -1783,7 +1796,7 @@ const downloadStatement = (ctx: Ctx, r: Report) => {
           [inv?.legalName ?? names.licensor, inv?.address, inv?.taxId].filter(Boolean).join('\n'),
         ],
         [tr.t('app.roy.file.to'), names.licensee],
-        ...(r.reply ? [[tr.t('app.roy.file.accepted'), tr.date(r.reply.at)] as const] : []),
+        ...(r.reply ? [[tr.t('app.roy.file.accepted'), when(r.reply.at, tr)] as const] : []),
         [tr.t('app.roy.pay.reference'), paymentReference(s.signature, terms.licensor)],
       ],
       lines: [
@@ -1795,7 +1808,7 @@ const downloadStatement = (ctx: Ctx, r: Report) => {
       total: [tr.t('app.roy.file.toPay'), money(toPayOf(r))],
       payTo: payout ? [[tr.t('app.roy.file.payTo'), payoutText(payout, tr)]] : undefined,
       footer: [
-        ...(r.received ? [tr.t('app.roy.file.receivedOn', { date: tr.date(r.received.at) })] : []),
+        ...(r.received ? [tr.t('app.roy.file.receivedOn', { date: when(r.received.at, tr) })] : []),
         ...(inv ? [tr.t('app.roy.file.issuedBy', { who: inv.legalName })] : []),
         tr.t('app.roy.disclaimer'),
       ],
@@ -1821,7 +1834,9 @@ const HowToRead: React.FC<{ tr: Translator }> = ({ tr }) => {
           ))}
         </Stack>
       </Collapse>
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }} data-disclaimer="">
+      {/* Apart from the reading help, with a rule above it: it stands whatever is open. */}
+      <Divider sx={{ mt: 1.5, mb: 1.25 }} />
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }} data-disclaimer="">
         {tr.t('app.roy.disclaimer')}
       </Typography>
     </Box>

@@ -98,7 +98,7 @@ export const summaryText = (
     for (const r of c.rejected) out.push(`Does not count: message ${r.index} (${r.type}): ${r.reason}`);
     for (const s of c.statements) {
       const state = s.settled
-        ? `settled, paid ${s.paid!.paidOn} by ${s.paid!.method}, ref ${s.paid!.reference}`
+        ? `paid and confirmed, paid ${s.paid!.paidOn} by ${s.paid!.method}, ref ${s.paid!.reference}`
         : s.paid
           ? 'licensee says paid; not confirmed'
           : s.reply === 'accepted'
@@ -109,8 +109,8 @@ export const summaryText = (
       out.push(`  ${s.periodFrom} to ${s.periodTo}: ${s.amountOwed} ${s.currency}, ${state}`);
       for (const n of s.notes) out.push(`      ${n}`);
     }
-    out.push(`Settled (both signed): ${sums(c.settled)}`);
-    out.push(`Accepted, not settled: ${sums(c.open)}`);
+    out.push(`Paid and confirmed (both signed): ${sums(c.settled)}`);
+    out.push(`Accepted, not yet paid and confirmed: ${sums(c.open)}`);
     out.push('');
   }
   return out.join('\n');
@@ -126,7 +126,7 @@ export const readmeText = (): string =>
     'WHAT IT SHOWS',
     'Each royalty statement in deal-records/ is signed by the licensee (the payer).',
     'Each acceptance and each "received" is signed by the licensor. Each "paid" is signed',
-    'by the licensee. A statement counts as settled only when the licensee signed that they',
+    'by the licensee. A statement counts as paid and confirmed only when the licensee signed that they',
     'paid AND the licensor signed that the same amount arrived. Change one character in a',
     'file and its signature no longer checks.',
     '',

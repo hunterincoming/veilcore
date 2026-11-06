@@ -6,7 +6,9 @@
 import React from 'react';
 import {
   Box,
+  Button,
   ButtonBase,
+  Collapse,
   Checkbox,
   FormControlLabel,
   InputAdornment,
@@ -19,7 +21,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material';
-import { RIGHTS_FOR, rightsLabel, subjectOf, type LicenseTerms } from '../../veilcore/licenses';
+import { RIGHTS_FOR, subjectOf, type LicenseTerms } from '../../veilcore/licenses';
 import {
   DEDUCTIONS,
   PERIODS,
@@ -158,7 +160,7 @@ export const TermsSummaryLine: React.FC<{ terms: LicenseTerms; kind: RecordKind 
       <Typography variant="overline" sx={{ display: 'block' }}>
         {tr.t('app.roy.f.summary')}
       </Typography>
-      <Typography variant="body2">{termsSentence(terms, tr, rightsLabel(terms.rights, tr))}</Typography>
+      <Typography variant="body2">{termsSentence(terms, tr)}</Typography>
     </Paper>
   );
 };
@@ -529,7 +531,7 @@ export const FullLicenseFields: React.FC<{ terms: LicenseTerms; set: SetTerm; te
                 ? {
                     kind: 'per-unit',
                     amount: v,
-                    unit: kind === 'animal' ? 'offspring' : kind === 'strain' ? 'batch' : 'plant',
+                    unit: kind === 'plant' ? 'plant' : 'offspring',
                   }
                 : undefined,
             );
@@ -577,6 +579,67 @@ export const FullLicenseFields: React.FC<{ terms: LicenseTerms; set: SetTerm; te
         minRows={2}
         fullWidth
       />
+    </Stack>
+  );
+};
+
+/**
+ * The license terms step: presets, then the three fields a preset leaves (who, the amount, the
+ * law; the territory too on cannabis), an "Edit details" button for the full form, and the deal in
+ * one paragraph. TermsBuilder shows it; nothing else decides what it holds.
+ */
+export const LicenseTermsStep: React.FC<{
+  kind: RecordKind;
+  terms: LicenseTerms;
+  set: SetTerm;
+  preset?: PresetId;
+  /** Absent when renewing: the preset list isn't offered again. */
+  onPick?: (id: PresetId) => void;
+  details: boolean;
+  setDetails: (open: boolean) => void;
+  cannabis: boolean;
+}> = ({ kind, terms: t, set, preset, onPick, details, setDetails, cannabis }) => {
+  const tr = forKind(useT(), kind);
+  return (
+    <Stack spacing={2.5}>
+      {onPick && <PresetPicker kind={kind} picked={preset} onPick={onPick} />}
+      {preset && !details && (
+        <Stack spacing={2.5} data-quick-terms="">
+          <TextField
+            label={tr.t('app.lic.f.licensee')}
+            helperText={tr.t('app.lic.f.licenseeHelp')}
+            value={t.licensee}
+            onChange={(e) => set('licensee', e.target.value)}
+            fullWidth
+          />
+          <AmountField terms={t} set={set} tr={tr} />
+          {cannabis && (
+            <TextField
+              label={tr.t('app.lic.f.territory')}
+              placeholder={tr.t('app.lic.f.territoryPh')}
+              helperText={tr.t('app.roy.f.territoryRequired')}
+              required
+              value={t.territory}
+              onChange={(e) => set('territory', e.target.value)}
+              fullWidth
+            />
+          )}
+          <LawField terms={t} set={set} tr={tr} />
+        </Stack>
+      )}
+      {preset && (
+        <Box>
+          <Button variant="outlined" onClick={() => setDetails(!details)} aria-expanded={details} data-edit-details="">
+            {details ? tr.t('app.roy.f.hide') : tr.t('app.roy.f.edit')}
+          </Button>
+          <Collapse in={details} unmountOnExit>
+            <Box sx={{ pt: 1.5 }}>
+              <FullLicenseFields terms={t} set={set} territoryRequired={cannabis} />
+            </Box>
+          </Collapse>
+        </Box>
+      )}
+      {preset && <TermsSummaryLine terms={t} kind={kind} />}
     </Stack>
   );
 };

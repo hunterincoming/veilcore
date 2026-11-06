@@ -137,7 +137,7 @@ describe('terms from presets', () => {
     expect(ruleOf(clone())?.kind).toBe('per-unit');
   });
   it('the one paragraph says every value', () => {
-    const s = termsSentence(clone(), enT, 'cultivate + propagate');
+    const s = termsSentence(clone(), enT);
     for (const w of ['Practice Grower', 'New Jersey', '$2.50 per cutting or clone', 'quarter', '30 days', '14 days'])
       expect(s).toContain(w);
     expect(s).toContain('own bank fees');

@@ -12,11 +12,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { DealEntry } from './deal-client';
-import type { StatementLine } from './deal';
+import type { DealBody, StatementLine } from './deal';
 import type { LicenseTerms } from './licenses';
 import {
   currencyDigits,
   isDecimal,
+  owedUnder,
   minorText,
   normaliseDecimal,
   owedAt,
@@ -24,8 +25,8 @@ import {
   sumAmounts,
   toMinor,
 } from './money';
-import { currencyOf, offspringOf, ruleOf, type RoyaltyRule } from './royalty-terms';
-import { contractYearOf, daysBetween, periodsOf, type RoyaltyPeriod } from './royalty-periods';
+import { addYears, currencyOf, localDay, offspringOf, ruleOf, type RoyaltyRule } from './royalty-terms';
+import { contractYearOf, daysBetween, endsContractYear, periodsOf, type RoyaltyPeriod } from './royalty-periods';
 
 export type StatementEntry = Extract<DealEntry, { type: 'statement' }>;
 export type ReplyEntry = Extract<DealEntry, { type: 'reply' }>;
@@ -75,25 +76,31 @@ export const ledgerOf = (entries: readonly DealEntry[]): Ledger => {
   }
   const notices: NoticeEntry[] = [];
   for (const e of sorted) {
-    if (e.type === 'notice') {
-      notices.push(e);
-      if (e.statementSig) bySig.get(e.statementSig)?.notices.push(e);
-      continue;
-    }
-    if (!('statementSig' in e)) continue;
-    const r = bySig.get(e.statementSig);
-    if (!r) continue;
-    // The first of each stands (veilcore-records keeps the first reply, the first paid, the first received).
-    if (e.type === 'reply' && e.from === 'issuer' && !r.reply) r.reply = e;
-    if (e.type === 'paid' && e.from === 'licensee' && !r.paid && r.reply?.decision === 'accepted') r.paid = e;
-    if (e.type === 'received' && e.from === 'issuer' && !r.received && r.paid) r.received = e;
+    if (e.type !== 'notice') continue;
+    notices.push(e);
+    if (e.statementSig) bySig.get(e.statementSig)?.notices.push(e);
   }
-  // A corrected report replaces one the licensor asked to fix, or one not answered when it was sent.
+  // The first of each stands, as veilcore-records reads them: the first answer, the first "I paid",
+  // the first "received". Answers are taken first, then payments, then confirmations, so a
+  // payment signed on a clock that runs behind the licensor's still counts (review round 1, 1).
+  const attach = (type: 'reply' | 'paid' | 'received', from: 'issuer' | 'licensee') => {
+    for (const e of sorted) {
+      if (e.type !== type || e.from !== from) continue;
+      const r = bySig.get(e.statementSig);
+      if (!r) continue;
+      if (e.type === 'reply' && !r.reply) r.reply = e;
+      if (e.type === 'paid' && !r.paid && r.reply?.decision === 'accepted') r.paid = e;
+      if (e.type === 'received' && !r.received && r.paid) r.received = e;
+    }
+  };
+  attach('reply', 'issuer');
+  attach('paid', 'licensee');
+  attach('received', 'issuer');
+  // A corrected report replaces only one whose answer was "Ask to fix" (review round 1, 2): an
+  // unanswered report may still be accepted, and then it counts, here as in the published checker.
   for (const r of ordered) {
     const target = r.statement.replaces ? bySig.get(r.statement.replaces) : undefined;
-    if (!target || target === r || target.replacedBy) continue;
-    const answeredBefore = target.reply && target.reply.at <= r.statement.at;
-    if (answeredBefore && target.reply!.decision !== 'disputed') continue;
+    if (!target || target === r || target.replacedBy || target.reply?.decision !== 'disputed') continue;
     target.replacedBy = r.statement;
     r.replaces = target;
   }
@@ -138,6 +145,33 @@ export const toPayOf = (r: Report, taxWithheld?: string): string => {
   const tax = taxWithheld ?? r.paid?.taxWithheld ?? s.taxWithheld;
   if (!tax || !isDecimal(tax)) return minorText(toMinor(s.amountOwed, digits) ?? 0n, digits);
   return subtractAmount(s.amountOwed, tax, digits) ?? minorText(0n, digits);
+};
+
+/**
+ * The "I paid" message for an accepted report, as the pay screen sends it. The amount is what the
+ * report owes less the tax it declared: tax is fixed by the report the licensor accepted, never
+ * changed at payment (review round 1, 4). payTo is left empty: the payout used is named by its
+ * signature, so the account never sits in a message a lender may read (review round 1, 3).
+ */
+export const paidMessage = (
+  r: Report,
+  p: { method: string; reference: string; paidOn: string; payout?: PayoutEntry; detailsConfirmed?: boolean },
+): Extract<DealBody, { type: 'paid' }> => {
+  const s = r.statement;
+  return {
+    type: 'paid',
+    statementId: s.statementId,
+    statementSig: s.signature,
+    amount: toPayOf(r, s.taxWithheld ?? '0'),
+    currency: s.currency,
+    method: p.method,
+    payTo: '',
+    reference: p.reference,
+    paidOn: p.paidOn,
+    ...(p.payout ? { payoutSig: p.payout.signature } : {}),
+    ...(s.taxWithheld ? { taxWithheld: s.taxWithheld, ...(s.taxNote ? { taxNote: s.taxNote } : {}) } : {}),
+    ...(p.detailsConfirmed ? { detailsConfirmed: true } : {}),
+  };
 };
 
 // ---- payout details: a change locks "I paid" until confirmed another way (design v3, 7) ------
@@ -252,11 +286,12 @@ const lineFor = (
 export const reportLines = (
   terms: LicenseTerms,
   input: ReportInput,
-  opts: { minimumTopUp?: string; type?: string } = {},
+  opts: { minimumTopUp?: string; type?: string; periodFrom?: string } = {},
 ): { lines: StatementLine[]; total: string; basis: 'sales' | 'units'; quantity: string } | undefined => {
   const digits = currencyDigits(currencyOf(terms));
   const rule = opts.type === 'breeder-share' ? undefined : ruleOf(terms);
-  const off = offspringOf(terms);
+  // The royalty on offspring runs only as long as the terms say (review round 1, 8).
+  const off = opts.periodFrom && !offspringRuns(terms, opts.periodFrom) ? undefined : offspringOf(terms);
   const lines: StatementLine[] = [];
   if (rule) {
     const l = lineFor('royalty', rule, input.quantity, digits, input.deductions);
@@ -270,7 +305,17 @@ export const reportLines = (
   }
   if (opts.minimumTopUp && (toMinor(opts.minimumTopUp, digits) ?? 0n) > 0n)
     lines.push({ kind: 'minimum', amount: minorText(toMinor(opts.minimumTopUp, digits)!, digits) });
-  if (lines.length === 0) return undefined;
+  if (lines.length === 0) {
+    // A breeder share whose royalty on offspring has run out: nothing left to report on.
+    if (!rule && offspringOf(terms))
+      return {
+        lines: [{ kind: 'offspring', quantity: '0', amount: minorText(0n, digits) }],
+        total: minorText(0n, digits),
+        basis: 'units',
+        quantity: '0',
+      };
+    return undefined;
+  }
   const total = sumAmounts(
     lines.map((l) => l.amount),
     digits,
@@ -321,6 +366,68 @@ export const minimumProgress = (
   const minimum = minorText(toMinor(terms.yearlyMinimum, digits) ?? 0n, digits);
   const topUp = subtractAmount(minimum, owed, digits) ?? minorText(0n, digits);
   return { ...year, owed, minimum, topUp };
+};
+
+/**
+ * Whether the royalty on offspring still runs for a period starting on `periodFrom`: a limit in
+ * years counts from the start date. A limit in generations can't be read from a date, so it is
+ * left to the two of them (the report still asks).
+ */
+export const offspringRuns = (terms: LicenseTerms, periodFrom: string): boolean => {
+  const years = offspringOf(terms)?.years;
+  return !years || !terms.startDate || periodFrom < addYears(terms.startDate, years);
+};
+
+/**
+ * The top-up to the yearly minimum a report should carry (review round 1, 6): worked out from the
+ * other reports of its contract year, never taken from the report itself. '0' when its period
+ * doesn't end a contract year; undefined when the terms set no minimum or no schedule.
+ */
+export const expectedTopUp = (
+  terms: LicenseTerms,
+  reports: readonly Report[],
+  report: { periodFrom: string; periodTo: string; signature?: string; replaces?: string },
+  ownTotal: string,
+): string | undefined => {
+  if (!terms.yearlyMinimum || !terms.reporting || !terms.startDate) return undefined;
+  const digits = currencyDigits(currencyOf(terms));
+  const zero = minorText(0n, digits);
+  const p = periodsOf(terms.reporting, terms.startDate, terms.endDate, report.periodTo).find(
+    (x) => x.from === report.periodFrom && x.to === report.periodTo,
+  );
+  if (!p || !endsContractYear(terms.startDate, p, terms.endDate)) return zero;
+  const others = reports.filter((r) => r.statement.signature !== report.replaces);
+  const progress = minimumProgress(terms, others, report.periodFrom, report.signature);
+  if (!progress) return undefined;
+  return subtractAmount(progress.minimum, sumAmounts([progress.owed, ownTotal], digits) ?? '0', digits) ?? zero;
+};
+
+/**
+ * What a report should come to under the terms, worked out here from its own quantities and the
+ * other reports (the top-up never taken on the sender's word). Undefined if it can't be worked out.
+ */
+export const expectedTotal = (
+  terms: LicenseTerms,
+  reports: readonly Report[],
+  s: StatementEntry,
+  type?: string,
+): string | undefined => {
+  if (!s.lines) return owedUnder(terms, s.quantity, currencyDigits(s.currency));
+  const royalty = s.lines.find((l) => l.kind === 'royalty');
+  const input: ReportInput = {
+    quantity: royalty?.gross ?? royalty?.quantity ?? '0',
+    offspring: s.lines.find((l) => l.kind === 'offspring')?.quantity ?? '0',
+    ...(royalty?.deducted !== undefined ? { deductions: { returns: royalty.deducted } } : {}),
+  };
+  const base = reportLines(terms, input, { type, periodFrom: s.periodFrom });
+  if (!base) return undefined;
+  const topUp = expectedTopUp(
+    terms,
+    reports,
+    { periodFrom: s.periodFrom, periodTo: s.periodTo, signature: s.signature, replaces: s.replaces },
+    base.total,
+  );
+  return reportLines(terms, input, { type, periodFrom: s.periodFrom, minimumTopUp: topUp })?.total;
 };
 
 // ---- where each period stands, and the one next date -----------------------------------------
@@ -397,7 +504,7 @@ export const ledgerCsv = (ledger: Ledger, licensorName?: string): string => {
     'received_on',
     'replaced_by_report',
   ];
-  const day = (t?: number) => (t ? new Date(t).toISOString().slice(0, 10) : '');
+  const day = (t?: number) => (t ? localDay(new Date(t)) : '');
   const rows = [...ledger.reports].reverse().map((r) => {
     const s = r.statement;
     const by = r.replacedBy ? ledger.reports.find((x) => x.statement.signature === r.replacedBy!.signature) : undefined;

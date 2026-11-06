@@ -195,7 +195,7 @@ export const licensing = {
   'app.lic.f.b.offspring': 'Por descendiente nacido',
   'app.lic.f.b.batch': 'Por lote de producción',
   'app.lic.f.offspringHelp':
-    'Se aplica a los descendientes declarados de este registro (registrados con él como progenitor y confirmados por ambos titulares). La propagación no declarada no se detecta. Déjelo en blanco si no hay.',
+    'Solo cuenta las plantas registradas en VeilCore como cultivadas a partir de esta. Déjelo en blanco si no hay.',
   'app.lic.f.sublicense': 'Puede sublicenciar',
   'app.lic.f.exclusive': 'Exclusiva',
   'app.lic.f.extraHelpDeal': 'Cualquier otra cosa que forme parte del trato, con sus propias palabras.',

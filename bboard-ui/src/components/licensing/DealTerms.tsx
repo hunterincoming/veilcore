@@ -8,7 +8,6 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Box, Paper, Stack, Typography } from '@mui/material';
 import {
   agreementRows,
-  rightsLabel,
   subjectOf,
   sealAgreement,
   type AgreementType,
@@ -99,7 +98,7 @@ export const TermsBox: React.FC<{ offered: Offered; agreedAt?: number }> = ({ of
       {/* The deal in one paragraph, every value in it (royalty-terms.ts): new terms only. */}
       {isNewTerms(terms) && (
         <Typography variant="body2" sx={{ mb: 1.25 }} data-terms-sentence="">
-          {termsSentence(terms, kt, rightsLabel(terms.rights, kt))}
+          {termsSentence(terms, kt)}
         </Typography>
       )}
       <Stack spacing={0.75}>

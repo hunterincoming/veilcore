@@ -196,7 +196,7 @@ export const licensing = {
   'app.lic.f.b.offspring': 'Pro geborenem Nachkommen',
   'app.lic.f.b.batch': 'Pro Produktionscharge',
   'app.lic.f.offspringHelp':
-    'Gilt für Nachkommen, die von diesem Datensatz angemeldet werden (mit ihm als Elternteil erfasst, von beiden Inhabern bestätigt). Nicht angemeldete Vermehrung wird nicht erkannt. Leer lassen, wenn keine.',
+    'Zählt nur Pflanzen, die in VeilCore als aus dieser gezogen erfasst sind. Leer lassen, wenn keine.',
   'app.lic.f.sublicense': 'Darf Unterlizenzen vergeben',
   'app.lic.f.exclusive': 'Exklusiv',
   'app.lic.f.extraHelpDeal': 'Alles, was sonst zum Geschäft gehört, in Ihren eigenen Worten.',
