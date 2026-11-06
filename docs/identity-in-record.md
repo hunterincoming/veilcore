@@ -110,3 +110,17 @@ Two different things get dated, and binding does not merge them:
 - The SDK (`veilcore-records`), its Python and Rust ports and their SPEC copy live in other
   repositories and are not changed here; the vectors for them are in
   `contract/vectors/key-bound-v1.json`.
+
+## Imported records: key stamps wait until needed (5 Nov 2026)
+
+A collection import no longer stamps every row's key, a few a day for months. The rows are
+dated by their batch either way; a key stamp is made from the plant's own page when it is
+first needed (proving you hold it, licensing it). Reviewed before building: nobody else can
+stamp a record's key, because `anchor` needs the record's secret, and nothing later reads
+when the key was stamped.
+
+The trade-off, stated plainly: the recovery commitment is fixed when the key is stamped. Until
+then, someone who stole the record's secret could stamp it first with their own recovery
+commitment and keep the record. The secrets are made, backed up and sealed together, so this
+needs the backup itself to leak; a holder who keeps the recovery secret apart can still stamp
+everything at once ("Stamp them all now instead" on the import page).

@@ -5,6 +5,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { strToU8, zipSync } from 'fflate';
 import {
+  importStampsOn,
+  setImportStampsOn,
   KEY_STAMPS_PER_DAY,
   LIMITS,
   MAX_COLUMNS,
@@ -988,5 +990,19 @@ describe('key date stamps: the rate and the words', () => {
     const ids = importedRecordIds();
     expect(ids).toHaveLength(2);
     expect(ids.every((id) => /^VEIL-/.test(id))).toBe(true);
+  });
+});
+
+describe('imported key stamps wait until needed (importStampsOn)', () => {
+  it('off by default; on for a browser that was already stamping; remembered either way', () => {
+    localStorage.removeItem('veilcore.bulk-import.stamps-on.v1');
+    localStorage.removeItem('veilcore.bulk-import.stamps.v1');
+    expect(importStampsOn()).toBe(false);
+    localStorage.setItem('veilcore.bulk-import.stamps.v1', '{}');
+    expect(importStampsOn()).toBe(true);
+    setImportStampsOn(false);
+    expect(importStampsOn()).toBe(false);
+    setImportStampsOn(true);
+    expect(importStampsOn()).toBe(true);
   });
 });

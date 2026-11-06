@@ -130,6 +130,8 @@ export const importing = {
     'Ihre Datensätze sind schon versiegelt und werden durch ihren Stapel auf {dated} datiert; das hängt nicht von den Datumsstempeln ihrer Schlüssel ab. Der Schlüssel jeder Pflanze erhält außerdem einen eigenen Datumsstempel aus diesem Browser, etwa {perDay} pro Tag, daher dauern {n} wartende etwa {days}. Sie beginnen nach Ihrer Sicherungskopie.',
   'app.import.sum.byBatch':
     'Ihr öffentlicher Datumsstempel kommt, wenn ihr Stapel auf {dated} datiert wird. Sie müssen nichts tun.',
+  'app.import.sum.stampsLater':
+    'Ihre Einträge sind bereits versiegelt und werden mit ihrem Stapel auf {dated} datiert. Der Schlüsselstempel jeder Pflanze wartet, bis Sie ihn brauchen: Bevor Sie nachweisen, dass Sie eine Pflanze halten, oder sie lizenzieren, erledigt ihre Seite das in ein bis zwei Minuten.',
   'app.import.sum.untilSaved':
     'Bis sie gespeichert und geprüft ist, sind die Schlüssel der neuen Datensätze nur in diesem Browser.',
   'app.import.sum.noDna.one':
@@ -148,6 +150,10 @@ export const importing = {
   'app.import.stamps.stamping': '{name} erhält einen Datumsstempel…',
   'app.import.stamps.allDone': 'Alles erledigt.',
   'app.import.stamps.goOn': 'Weiter',
+  'app.import.stamps.notNeeded':
+    'Diese brauchen Sie noch nicht. Ihre Einträge werden mit ihrem Stapel auf {dated} datiert. Der Schlüsselstempel einer Pflanze zählt erst, bevor Sie nachweisen, dass Sie sie halten, oder sie lizenzieren, und die Seite der Pflanze erledigt das dann in ein bis zwei Minuten. Kein wochenlanges Warten.',
+  'app.import.stamps.startAll': 'Doch jetzt alle stempeln',
+  'app.import.stamps.stopAll': 'Anhalten und jeden erst bei Bedarf stempeln',
   'app.import.stamps.saveIt': 'Speichern',
   'app.import.stamps.newSince.one':
     '{count} Datumsstempel für einen Schlüssel kam nach Ihrer Sicherungskopie. Speichern Sie eine neue, um ihn zu behalten.',
