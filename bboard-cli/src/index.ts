@@ -31,7 +31,7 @@ import {
 } from '../../api/src/index';
 import { type ClaimsPrivateState } from '../../contract/src/claims.js';
 import { CLAIMS_MENU, type ClaimsMenuContext, handleClaimsChoice } from './claims-menu';
-import { type WalletFacade } from '@midnight-ntwrk/wallet-sdk-facade';
+import { type WalletFacade } from '@midnightntwrk/wallet-sdk';
 import { pureCircuits } from '../../contract/src/managed/veilcore/contract/index.js';
 import { NodeZkConfigProvider } from '@midnight-ntwrk/midnight-js-node-zk-config-provider';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
@@ -39,19 +39,20 @@ import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client
 import { type Logger } from 'pino';
 import { type Config, StandaloneConfig } from './config.js';
 import { toHex } from '@midnight-ntwrk/midnight-js-utils';
-import { sampleSigningKey } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
+import { sampleSigningKey } from '@midnight-ntwrk/compact-runtime';
 import { TestEnvironment } from '@midnight-ntwrk/testkit-js';
 import { MidnightWalletProvider, SavedProgressNotOpenedError } from './midnight-wallet-provider';
 import { randomBytes } from '../../api/src/utils';
 import { assertFinishAllowed } from '../../api/src/deploy-guard';
 import { showSecret } from './secret-out';
-import { unshieldedToken } from '@midnight-ntwrk/midnight-js-protocol/ledger';
+import { unshieldedToken } from '@midnight-ntwrk/midnight-js-protocol/v9';
 import { syncWallet, waitForUnshieldedFunds } from './wallet-utils';
 import { generateDust } from './generate-dust';
 import { CLAIMS_CHECKS, runSmoke } from './smoke';
 import { assertKeysMatchRecord } from './keys-check';
 import path from 'node:path';
-import { getNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { getNetworkId, midnightConfig } from '../../api/src/network-id.js';
+import { frameworkKey } from '../../api/src/signing-key.js';
 import { type VeilcorePrivateState } from '../../contract/src/witnesses.js';
 import { type ChallengeBook } from '../../contract/src/verify.js';
 import {
@@ -214,8 +215,8 @@ const askObligation = async (rli: Interface, logger: Logger): Promise<Uint8Array
   return c;
 };
 
-const mySecret = async (providers: VeilcoreProviders): Promise<Uint8Array> => {
-  const s = (await providers.privateStateProvider.get(veilcorePrivateStateKey))?.geneticSecret;
+const mySecret = async (providers: VeilcoreProviders, address: string): Promise<Uint8Array> => {
+  const s = (await providers.privateStateProvider.forContract(address).get(veilcorePrivateStateKey))?.geneticSecret;
   if (s === undefined) throw new InputError('No record secret in private state.');
   return s;
 };
@@ -403,7 +404,7 @@ export const deployOrJoin = async (
           }
           const r = parseSigningKey(typed.replace(/[\s-]/g, ''));
           if ('value' in r) {
-            await providers.privateStateProvider.setSigningKey(address, r.value);
+            await providers.privateStateProvider.setSigningKey(address, frameworkKey(r.value));
             break;
           }
           logger.error(`${r.problem} Try again.`);
@@ -567,7 +568,7 @@ const mainLoop = async (
             showSecret('RECOVERY SECRET — SAVE THIS NOW, IT IS NOT STORED AND NOT SHOWN AGAIN:', toHex(recovery));
             logger.info('It moves this record even if the record secret is lost OR STOLEN. Keep it offline.');
             await rli.question('Press Enter once it is stored, to anchor. ');
-            const me = C.commit(await mySecret(providers));
+            const me = C.commit(await mySecret(providers, api.deployedContractAddress));
             try {
               tx(await api.anchor(C.recoveryCommit(recovery)));
             } catch (e) {
@@ -761,7 +762,7 @@ const mainLoop = async (
             const issuer = await ask32Or(
               rli,
               'Record it was issued under (hex; blank = your current record): ',
-              C.commit(await mySecret(providers)),
+              C.commit(await mySecret(providers, api.deployedContractAddress)),
             );
             const r = await api.approveTransfer(lc, issuer, incoming);
             tx(r);
@@ -779,7 +780,7 @@ const mainLoop = async (
             const issuer = await ask32Or(
               rli,
               'Record it was issued under (hex; blank = your current record): ',
-              C.commit(await mySecret(providers)),
+              C.commit(await mySecret(providers, api.deployedContractAddress)),
             );
             const r = await api.revokeLicense(lc, issuer);
             tx(r);
@@ -949,7 +950,7 @@ const mainLoop = async (
             }
             break;
           case '32':
-            showSecret('YOUR RECORD SECRET:', toHex(await mySecret(providers)));
+            showSecret('YOUR RECORD SECRET:', toHex(await mySecret(providers, api.deployedContractAddress)));
             break;
           case '33': {
             const sure = (
@@ -1438,6 +1439,7 @@ export const run = async (config: Config, testEnv: TestEnvironment, logger: Logg
       proofProvider: httpClientProofProvider(envConfiguration.proofServer, zkConfigProvider),
       walletProvider: walletProvider,
       midnightProvider: walletProvider,
+      config: midnightConfig(),
     };
     // The claims contract: its own compiled keys, and its own private-state store, since a
     // provider holds one contract address at a time and the main client sets it too.
@@ -1451,6 +1453,7 @@ export const run = async (config: Config, testEnv: TestEnvironment, logger: Logg
       proofProvider: httpClientProofProvider(envConfiguration.proofServer, claimsZkConfigProvider),
       walletProvider: walletProvider,
       midnightProvider: walletProvider,
+      config: midnightConfig(),
     };
 
     await mainLoop(

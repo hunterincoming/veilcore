@@ -15,11 +15,15 @@
 
 // import { webcrypto } from 'crypto';
 
-import { type WalletFacade } from '@midnight-ntwrk/wallet-sdk-facade';
-import { createKeystore, UnshieldedWalletState } from '@midnight-ntwrk/wallet-sdk-unshielded-wallet';
+import {
+  createKeystore,
+  HDWallet,
+  Roles,
+  type UnshieldedWalletState,
+  type WalletFacade,
+} from '@midnightntwrk/wallet-sdk';
 import { Logger } from 'pino';
-import { HDWallet, Roles } from '@midnight-ntwrk/wallet-sdk-hd';
-import { getNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { getNetworkId } from '../../api/src/network-id.js';
 import * as rx from 'rxjs';
 
 export const getUnshieldedSeed = (seed: string): Uint8Array<ArrayBufferLike> => {
@@ -48,7 +52,7 @@ export const generateDust = async (
 ) => {
   const dustState = await walletFacade.dust.waitForSyncedState();
   const networkId = getNetworkId();
-  const unshieldedKeystore = createKeystore(getUnshieldedSeed(walletSeed), networkId);
+  const unshieldedKeystore = createKeystore({ kind: 'schnorr', secret: getUnshieldedSeed(walletSeed) }, networkId);
   const utxos = unshieldedState.availableCoins.filter((coin) => !coin.meta.registeredForDustGeneration);
 
   if (utxos.length === 0) {
@@ -61,7 +65,7 @@ export const generateDust = async (
   const recipe = await walletFacade.registerNightUtxosForDustGeneration(
     utxos,
     unshieldedKeystore.getPublicKey(),
-    (payload) => unshieldedKeystore.signData(payload),
+    (payload) => Promise.resolve(unshieldedKeystore.signData(payload) as never),
     dustState.address,
   );
   const transaction = await walletFacade.finalizeRecipe(recipe);

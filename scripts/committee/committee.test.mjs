@@ -18,8 +18,13 @@ import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { test } from 'node:test';
 import { createHash } from 'node:crypto';
-import * as L from '@midnight-ntwrk/ledger-v8';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import * as L from '@midnightntwrk/ledger-v8';
+import {
+  SerializedContractState,
+  createMidnightProviderFromHandlers,
+  createProofProviderFromHandlers,
+  createWalletProviderFromHandlers,
+} from '@midnight-ntwrk/midnight-js-types';
 import {
   assembleSigned,
   checkKeyCard,
@@ -32,11 +37,10 @@ import {
   requestLanded,
   signRequest,
 } from './core.mjs';
-import { sendMaintenanceUpdate } from './submit.mjs';
+import { readAuthorityNow, sendMaintenanceUpdate } from './submit.mjs';
 import { main, makeIo, unsafeKeyPath } from './cli.mjs';
 
 const NET = 'undeployed';
-setNetworkId(NET);
 
 const VK_FILE =
   process.env.COMMITTEE_TEST_VK ??
@@ -403,6 +407,80 @@ test(
 
 // ────────────────────────────────────────────── sending, against the same ledger
 
+/**
+ * midnight-js 5 providers over a local ledger: a network not yet past the Ledger 9 fork
+ * (protocol version 1.x), whose indexer hands over Ledger 8 state bytes. A maintenance
+ * update has no circuit to prove: proving it only changes its stage.
+ */
+const framework = (c, { watch, submit, protocolVersion = 1_000_000 }) => {
+  const placeholderProver = { check: async () => [], prove: async () => new L.Proof('0100').serialize() };
+  return {
+    publicDataProvider: {
+      queryContractState: async (a) => ({
+        protocolVersion,
+        contractState: SerializedContractState.fromBytes('v8', c.state().index(a).serialize()),
+      }),
+      queryLatestProtocolVersion: async () => protocolVersion,
+      watchForTxData: async (txId) => {
+        if (watch()) throw new Error('websocket closed');
+        return { era: 'v8', txId, txHash: txId, blockHeight: 1, status: 'SucceedEntirely' };
+      },
+    },
+    proofProvider: createProofProviderFromHandlers({
+      v8: (tx) => tx.deserialize({ v8: L.Transaction }).prove(placeholderProver, L.CostModel.initialCostModel()),
+      v9: undefined,
+    }),
+    walletProvider: createWalletProviderFromHandlers({
+      v8: async (tx) => tx.deserialize({ v8: L.Transaction }).bind(),
+      v9: undefined,
+      getCoinPublicKey: () => '00'.repeat(32),
+      getEncryptionPublicKey: () => '00'.repeat(32),
+    }),
+    midnightProvider: createMidnightProviderFromHandlers({
+      v8: async (tx) => submit(tx.deserialize({ v8: L.Transaction })),
+      v9: undefined,
+    }),
+    config: { networkId: NET, ttlSeconds: 3600 },
+  };
+};
+
+test('sendMaintenanceUpdate: refused before anything is built on a network past the Ledger 9 fork', async () => {
+  const c = chain();
+  const h = holders();
+  const req = request(c, [{ kind: 'replace-authority', committee: h.list, threshold: 2 }]);
+  const signed = assembleSigned(req, [signRequest(req, c.paperKey)], c.authority());
+  assert.ok(signed.ok);
+  let submitted = 0;
+  const forked = framework(c, { watch: () => false, submit: () => `tx${++submitted}`, protocolVersion: 2_001_000 });
+  await assert.rejects(
+    () => sendMaintenanceUpdate(forked, c.address, signed.update, (a) => requestLanded(req, a), { waitMs: 1 }),
+    /not available on this network: it has moved to Midnight Ledger 9.*Nothing was built or sent/s,
+  );
+  assert.equal(submitted, 0);
+  assert.equal(c.authority().counter, 0n, 'nothing changed on chain');
+});
+
+test('readAuthorityNow reads the authority from either ledger\'s state bytes', async () => {
+  const c = chain();
+  const read8 = await readAuthorityNow(framework(c, { watch: () => false, submit: () => '' }).publicDataProvider, c.address);
+  assert.deepEqual(read8.committee, [L.signatureVerifyingKey(c.paperKey)]);
+  assert.equal(read8.threshold, 1);
+  assert.equal(read8.counter, 0n);
+  // A Ledger 9 state: keys are { tag: 'schnorr', value }; the view is the same plain hex.
+  const L9 = await import('@midnight-ntwrk/midnight-js-protocol/v9');
+  const cs9 = new L9.ContractState();
+  cs9.maintenanceAuthority = new L9.ContractMaintenanceAuthority(
+    [{ tag: 'schnorr', value: L.signatureVerifyingKey(c.paperKey) }],
+    1,
+    3n,
+  );
+  const read9 = await readAuthorityNow(
+    { queryContractState: async () => ({ contractState: SerializedContractState.fromBytes('v9', cs9.serialize()) }) },
+    c.address,
+  );
+  assert.deepEqual(read9, { committee: read8.committee, threshold: 1, counter: 3n });
+});
+
 test('sendMaintenanceUpdate: sent once, confirmed from the chain, never twice', async () => {
   const c = chain();
   const h = holders();
@@ -411,24 +489,14 @@ test('sendMaintenanceUpdate: sent once, confirmed from the chain, never twice', 
   assert.ok(signed.ok);
   let submitted = 0;
   let loseConfirmation = false;
-  const providers = {
-    publicDataProvider: {
-      queryContractState: async (a) => c.state().index(a),
-      watchForTxData: async (txId) => {
-        if (loseConfirmation) throw new Error('websocket closed');
-        return { txId, txHash: txId, blockHeight: 1, status: 'SucceedEntirely' };
-      },
+  const providers = framework(c, {
+    watch: () => loseConfirmation,
+    submit: (tx) => {
+      submitted++;
+      c.apply(tx);
+      return `tx${submitted}`;
     },
-    proofProvider: { proveTx: async (tx) => tx },
-    walletProvider: { balanceTx: async (tx) => tx },
-    midnightProvider: {
-      submitTx: async (tx) => {
-        submitted++;
-        c.apply(tx);
-        return `tx${submitted}`;
-      },
-    },
-  };
+  });
   const landed = (a) => requestLanded(req, a);
   const r = await sendMaintenanceUpdate(providers, c.address, signed.update, landed, { waitMs: 1 });
   assert.equal(r.sent, true);
@@ -443,11 +511,7 @@ test('sendMaintenanceUpdate: sent once, confirmed from the chain, never twice', 
   const req2 = request(d, [{ kind: 'replace-authority', committee: h.list, threshold: 2 }]);
   const s2 = assembleSigned(req2, [signRequest(req2, d.paperKey)], d.authority());
   loseConfirmation = true;
-  const p2 = {
-    ...providers,
-    publicDataProvider: { ...providers.publicDataProvider, queryContractState: async (a) => d.state().index(a) },
-    midnightProvider: { submitTx: async (tx) => (d.apply(tx), 'txL') },
-  };
+  const p2 = framework(d, { watch: () => loseConfirmation, submit: (tx) => (d.apply(tx), 'txL') });
   const lost = await sendMaintenanceUpdate(p2, d.address, s2.update, (a) => requestLanded(req2, a), { waitMs: 1 });
   assert.equal(lost.sent, true);
   assert.ok(requestLanded(req2, d.authority()));
@@ -460,14 +524,11 @@ test('sendMaintenanceUpdate: sent once, confirmed from the chain, never twice', 
     0n,
     L.signData(L.sampleSigningKey(), rebuildRequest(req3).update.dataToSign),
   );
-  const p3 = {
-    ...providers,
-    publicDataProvider: { ...providers.publicDataProvider, queryContractState: async (a) => e.state().index(a) },
-    midnightProvider: { submitTx: async (tx) => (e.apply(tx), 'txR') },
-  };
+  const p3 = framework(e, { watch: () => false, submit: (tx) => (e.apply(tx), 'txR') });
   await assert.rejects(
     () => sendMaintenanceUpdate(p3, e.address, bad, (a) => requestLanded(req3, a), { waitMs: 1 }),
-    /invalid/,
+    // midnight-js 5 wraps a provider's failure (ProviderFailedError); the ledger's reason is its cause.
+    (err) => /invalid/.test(String(err?.cause?.message ?? err?.message)),
   );
   assert.equal(e.authority().committee.length, 1);
 });

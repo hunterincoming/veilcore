@@ -15,9 +15,10 @@ import {
   signatureVerifyingKey,
   type CircuitContext,
 } from '@midnight-ntwrk/compact-runtime';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { setNetworkId } from '../../api/src/network-id.js';
 import { Contract } from '../../contract/src/managed/veilcore-claims/contract/index.js';
 import { type ClaimsPrivateState, claimsWitnesses, emptyClaimsPrivateState } from '../../contract/src/claims.js';
+import { LEDGER8_PROTOCOL, served } from './test-midnight5';
 
 const fake = vi.hoisted(() => ({
   createUnprovenDeployTx: undefined as undefined | ((...a: unknown[]) => Promise<unknown>),
@@ -52,7 +53,9 @@ const standIn = (opts: { retireLands?: boolean; lieAboutBound?: boolean } = {}) 
   let n = 0;
   const providers = {
     privateStateProvider: {
-      setContractAddress: () => undefined,
+      forContract() {
+        return this; // midnight-js 5: one contract, one view
+      },
       get: async (k: string) => store.get(k),
       set: async (k: string, v: unknown) => void store.set(k, v),
       setSigningKey: async (a: string, k: string) => void keys.set(a, k),
@@ -60,14 +63,18 @@ const standIn = (opts: { retireLands?: boolean; lieAboutBound?: boolean } = {}) 
       removeSigningKey: async (a: string) => void keys.delete(a),
     },
     publicDataProvider: {
-      queryContractState: async () => state,
+      queryContractState: async () => served(state),
+      queryLatestProtocolVersion: async () => LEDGER8_PROTOCOL,
       watchForTxData: async (txId: string) => ({ txId, txHash: txId, blockHeight: 1, status: 'SucceedEntirely' }),
     },
     zkConfigProvider: { getVerifierKey: async () => new Uint8Array(0) },
   };
   fake.createUnprovenDeployTx = async (_p, o) => {
-    const { signingKey, initialPrivateState } = o as { signingKey: string; initialPrivateState: unknown };
-    state.maintenanceAuthority = new ContractMaintenanceAuthority([signatureVerifyingKey(signingKey)], 1, 0n);
+    const { signingKey, initialPrivateState } = o as {
+      signingKey: { tag: 'schnorr'; value: string }; // midnight-js 5 keeps keys tagged
+      initialPrivateState: unknown;
+    };
+    state.maintenanceAuthority = new ContractMaintenanceAuthority([signatureVerifyingKey(signingKey.value)], 1, 0n);
     return { public: { contractAddress: ADDR }, private: { unprovenTx: {}, signingKey, initialPrivateState } };
   };
   fake.submitTxAsync = async () => 'deploy';
@@ -98,7 +105,12 @@ const standIn = (opts: { retireLands?: boolean; lieAboutBound?: boolean } = {}) 
           const txId = (++n).toString(16).padStart(64, '0');
           txs.set(txId, { address: ADDR, state: Buffer.from(state.serialize()).toString('hex'), entryPoint: circuit });
           return {
-            public: { txId, txHash: txId, blockHeight: n, nextContractState: r.context.currentQueryContext.state },
+            public: {
+              txId,
+              txHash: txId,
+              blockHeight: n,
+              nextContractStateEncoded: r.context.currentQueryContext.state.state.encode(),
+            },
           };
         },
     },

@@ -5,7 +5,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { setNetworkId } from '../../api/src/network-id.js';
 import type { VeilCore, VeilCoreClaims } from '@veilcore/contracts';
 import type * as FsPromises from 'node:fs/promises';
 

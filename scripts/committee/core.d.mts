@@ -1,6 +1,6 @@
 // Types for core.mjs, so the operator tool (bboard-cli/src/launcher/committee.ts) can import it.
 // SPDX-License-Identifier: Apache-2.0
-import type { MaintenanceUpdate } from '@midnight-ntwrk/ledger-v8';
+import type { MaintenanceUpdate } from '@midnightntwrk/ledger-v8';
 
 export declare const COMMITTEE_SIZE: number;
 export declare const COMMITTEE_THRESHOLD: number;

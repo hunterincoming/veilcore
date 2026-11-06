@@ -23,6 +23,7 @@ import { parseSecret32, parseSigningKey } from './prompt';
 import { redactThisSession, scrub } from './logger-utils';
 import { isContractRefusal } from './smoke';
 import { ChallengeFile } from './challenge-file';
+import { servedAuthority } from './test-midnight5';
 
 // checkOwnership's indexer lookup, replaced so the test decides what "the state after the
 // proof" is (the real one fetches it by transaction id).
@@ -59,15 +60,15 @@ const fakeApi = (
   calls: Record<string, (...a: unknown[]) => Promise<unknown>>,
   maintenance?: () => Promise<unknown>,
   // Round D: retirement is provable (an empty committee); it reads the authority first.
-  queryContractState: () => Promise<unknown> = async () => ({
-    maintenanceAuthority: { committee: [], threshold: 1, counter: 1n },
-  }),
+  queryContractState: () => Promise<unknown> = async () => servedAuthority(true),
 ) => {
   let ps: Record<string, unknown> = { geneticSecret: old };
   const signingKeys = new Map<string, string>();
   const providers = {
     privateStateProvider: {
-      setContractAddress: () => undefined,
+      forContract() {
+        return this; // midnight-js 5: one contract, one view
+      },
       get: async () => ps,
       set: async (_: string, v: Record<string, unknown>) => {
         ps = v;
@@ -348,7 +349,7 @@ describe("R11-K FIXED: checkOwnership refuses a thief's proof once the owner rec
 
 describe('verification review: on mainnet a caller cannot replace the pinned keys', () => {
   it("the lookup runs with the deployment record's keys, whatever table the caller passes", async () => {
-    const { setNetworkId, getNetworkId } = await import('@midnight-ntwrk/midnight-js-network-id');
+    const { setNetworkId, getNetworkId } = await import('../../api/src/network-id.js');
     const { pinnedVerifierKeys } = await import('../../api/src/state-check');
     const was = (() => {
       try {
@@ -431,8 +432,8 @@ describe('R11-5 FIXED: the Blockfrost project id never reaches testkit logs', ()
     const dir = mkdtempSync(path.join(tmpdir(), 'r11-'));
     process.chdir(dir); // testkit resolves its log dir from cwd when it is first loaded
     const { WalletFactory, WalletSeeds } = await import('@midnight-ntwrk/testkit-js');
-    const { LedgerParameters } = await import('@midnight-ntwrk/midnight-js-protocol/ledger');
-    const { setNetworkId } = await import('@midnight-ntwrk/midnight-js-network-id');
+    const { LedgerParameters } = await import('@midnight-ntwrk/midnight-js-protocol/v9');
+    const { setNetworkId } = await import('../../api/src/network-id.js');
     const { createWallets, walletConfiguration } = await import('./midnight-wallet-provider');
     setNetworkId('mainnet');
     const env = (id: string) => {

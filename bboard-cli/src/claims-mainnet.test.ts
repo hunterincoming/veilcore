@@ -11,7 +11,8 @@ import { spawnSync } from 'node:child_process';
 import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { setNetworkId } from '../../api/src/network-id.js';
+import { servedAuthority } from './test-midnight5';
 
 // findDeployedContract is the first thing a join reads from the chain: reaching it means
 // the address pin let the join through.
@@ -271,12 +272,9 @@ describe('joining the claims contract on mainnet: the pinned address only', () =
     return {
       set,
       providers: {
-        privateStateProvider: { setContractAddress: set, removeSigningKey: async () => undefined },
+        privateStateProvider: { forContract: set, removeSigningKey: async () => undefined },
         publicDataProvider: {
-          queryContractState: async () => ({
-            maintenanceAuthority: { committee: [], threshold: 1, counter: 1n },
-            operations: () => [],
-          }),
+          queryContractState: async () => servedAuthority(true),
         },
       },
     };
@@ -309,7 +307,7 @@ describe('joining the claims contract on mainnet: the pinned address only', () =
   it("a deploy's own join, and finishing a deploy, are not joins by address", async () => {
     const p = providers();
     await expect(ClaimsAPI.join(p.providers as never, ADDR, silent, { deploying: true })).rejects.toThrow(REACHED);
-    expect(p.set).toHaveBeenCalledWith(ADDR);
+    // It reached findDeployedContract (REACHED); midnight-js 5 opens the address's private state only after it.
     // finishDeploy on an already retired contract goes straight to its own join.
     const q = providers();
     await expect(ClaimsAPI.finishDeploy(q.providers as never, ADDR, silent)).rejects.toThrow(REACHED);

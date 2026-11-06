@@ -10,7 +10,14 @@ import { mkdtempSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import pino from 'pino';
-import * as L from '@midnight-ntwrk/ledger-v8';
+import * as L from '@midnightntwrk/ledger-v8';
+import {
+  SerializedContractState,
+  createMidnightProviderFromHandlers,
+  createProofProviderFromHandlers,
+  createWalletProviderFromHandlers,
+  type UnprovenTx,
+} from '@midnight-ntwrk/midnight-js-types';
 import { type Prompt } from '../prompt';
 import { main, parseOptions, UsageError, type Ctx } from './committee';
 import { makeKeyCard, signRequest, type Request } from '../../../scripts/committee/core.mjs';
@@ -18,7 +25,8 @@ import { MAINNET_VEILCORE_ADDRESS } from '../../../api/src/deploy-guard';
 
 const NET = 'undeployed';
 
-const chain = () => {
+/** A local ledger as a network not yet past Midnight's Ledger 9 fork (1.x), or one past it (2.x). */
+const chain = (protocolVersion = 1_000_000) => {
   let state = L.LedgerState.blank(NET);
   const strict = new L.WellFormedStrictness();
   strict.enforceBalancing = false;
@@ -53,30 +61,53 @@ const chain = () => {
   );
   let sent = 0;
   const reader = {
-    queryContractState: async (a: string) => state.index(a),
+    queryContractState: async (a: string) => ({
+      protocolVersion,
+      contractState: SerializedContractState.fromBytes('v8', state.index(a)!.serialize()),
+    }),
+    queryLatestProtocolVersion: async () => protocolVersion,
     watchForTxData: async (txId: string) => ({ txId, blockHeight: 7, status: 'SucceedEntirely' }),
   } as unknown as Ctx['reader'];
-  const openSender: Ctx['openSender'] = async () => ({
-    providers: {
-      publicDataProvider: reader,
-      proofProvider: { proveTx: async (tx: unknown) => tx },
-      walletProvider: { balanceTx: async (tx: unknown) => tx },
-      midnightProvider: {
-        submitTx: async (tx: Parameters<typeof apply>[0]) => {
-          apply(tx);
-          sent++;
-          return `tx${sent}`;
-        },
+  // A maintenance update has no circuit to prove: proving it only changes its stage.
+  const placeholderProver = { check: async () => [], prove: async () => new L.Proof('0100').serialize() };
+  type Tx8 = L.Transaction<L.SignatureEnabled, L.PreProof, L.PreBinding>;
+  const read8 = (tx: { deserialize(d: never): unknown }) => tx.deserialize({ v8: L.Transaction } as never) as Tx8;
+  let opened = 0;
+  const openSender: Ctx['openSender'] = async () => {
+    opened++;
+    return {
+      providers: {
+        publicDataProvider: reader,
+        proofProvider: createProofProviderFromHandlers({
+          v8: (tx: UnprovenTx) => read8(tx).prove(placeholderProver, L.CostModel.initialCostModel()),
+          v9: undefined,
+        }),
+        walletProvider: createWalletProviderFromHandlers({
+          v8: async (tx: { deserialize(d: never): unknown }) => read8(tx).bind(),
+          v9: undefined,
+          getCoinPublicKey: () => '00'.repeat(32),
+          getEncryptionPublicKey: () => '00'.repeat(32),
+        }),
+        midnightProvider: createMidnightProviderFromHandlers({
+          v8: async (tx: { deserialize(d: never): unknown }) => {
+            apply(read8(tx));
+            sent++;
+            return `tx${sent}`;
+          },
+          v9: undefined,
+        }),
+        config: { networkId: NET, ttlSeconds: 3600 },
       },
-    },
-    stop: async () => undefined,
-  });
+      stop: async () => undefined,
+    };
+  };
   return {
     paperKey,
     address: deploy.address,
     reader,
     openSender,
     sent: () => sent,
+    opened: () => opened,
     authority: () => state.index(deploy.address)!.maintenanceAuthority,
   };
 };
@@ -133,6 +164,26 @@ describe('the command line', () => {
 });
 
 describe('install, request, sign, submit: against the real ledger', () => {
+  it("past Midnight's Ledger 9 fork: refused before any wallet is opened, nothing sent", async () => {
+    const c = chain(2_001_000);
+    const d = dir();
+    const h = holders(d);
+    const out = capture();
+    expect(
+      await main([NET, 'install', '--address', c.address, ...h.cardArgs], {
+        reader: c.reader,
+        openSender: c.openSender,
+        prompt: scripted(['INSTALL'], [c.paperKey]),
+        logger: out.logger,
+        sendOptions: { waitMs: 1 },
+      }),
+    ).not.toBe(0);
+    expect(out.text()).toMatch(/not available on this network: it has moved to Midnight Ledger 9/);
+    expect(c.opened()).toBe(0);
+    expect(c.sent()).toBe(0);
+    expect(c.authority().committee.length).toBe(1);
+  });
+
   it('a dry run checks the paper key and sends nothing; the real run installs 2 of 3', async () => {
     const c = chain();
     const d = dir();

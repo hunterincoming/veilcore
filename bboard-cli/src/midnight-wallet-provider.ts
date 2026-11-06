@@ -13,21 +13,26 @@
  * limitations under the License.
  */
 
-import { DustAddress } from '@midnight-ntwrk/wallet-sdk-address-format';
 import { showSecret } from './secret-out';
 import {
   type CoinPublicKey,
   DustSecretKey,
   type EncPublicKey,
-  type FinalizedTransaction,
   LedgerParameters,
   ZswapSecretKeys,
-} from '@midnight-ntwrk/midnight-js-protocol/ledger';
-import { type MidnightProvider, type UnboundTransaction, type WalletProvider } from '@midnight-ntwrk/midnight-js-types';
-import { ttlOneHour } from '@midnight-ntwrk/midnight-js-utils';
-import { WalletFacade } from '@midnight-ntwrk/wallet-sdk-facade';
+} from '@midnight-ntwrk/midnight-js-protocol/v9';
 import {
+  type FinalizedTx,
+  LedgerTransaction,
+  type MidnightProvider,
+  type UnboundTx,
+  type WalletProvider,
+} from '@midnight-ntwrk/midnight-js-types';
+import { ttlOneHour } from '@midnight-ntwrk/midnight-js-utils';
+import {
+  DustAddress,
   DustWallet,
+  WalletFacade,
   InMemoryTransactionHistoryStorage,
   PublicKey,
   ShieldedWallet,
@@ -35,7 +40,7 @@ import {
   WalletEntrySchema,
   createKeystore,
   mergeWalletEntries,
-} from '@midnight-ntwrk/wallet-sdk';
+} from '@midnightntwrk/wallet-sdk';
 import { type SavedWalletState, WalletStateFile } from './wallet-state';
 import type { Logger } from 'pino';
 
@@ -44,8 +49,10 @@ import { type DustWalletOptions, type EnvironmentConfiguration, WalletSeeds } fr
 
 type UnshieldedKeystore = {
   getPublicKey(): unknown;
-  signData(payload: Uint8Array): string;
+  signData(payload: Uint8Array): unknown;
 };
+
+type RoleSeeds = { readonly shielded: Uint8Array; readonly unshielded: Uint8Array; readonly dust: Uint8Array };
 
 /**
  * Provider class that implements wallet functionality for the Midnight network.
@@ -60,6 +67,8 @@ export class MidnightWalletProvider implements MidnightProvider, WalletProvider 
   readonly dustSecretKey: DustSecretKey;
   /** The HD master seed, used to key this wallet's private-state store. A secret. */
   readonly masterSeed: string;
+  /** The role seeds the facade starts from (wallet SDK 2 derives both ledgers' keys from them). Secret. */
+  private readonly seeds: RoleSeeds;
   /** Where sync progress is saved, so a restart resumes instead of starting over. */
   private stateFile: WalletStateFile | undefined;
   private saveTimer: NodeJS.Timeout | undefined;
@@ -72,8 +81,10 @@ export class MidnightWalletProvider implements MidnightProvider, WalletProvider 
     dustSecretKey: DustSecretKey,
     unshieldedKeystore: UnshieldedKeystore,
     masterSeed: string,
+    seeds: RoleSeeds,
   ) {
     this.masterSeed = masterSeed;
+    this.seeds = seeds;
     this.logger = logger;
     this.env = environmentConfiguration;
     this.wallet = wallet;
@@ -90,24 +101,35 @@ export class MidnightWalletProvider implements MidnightProvider, WalletProvider 
     return this.zswapSecretKeys.encryptionPublicKey;
   }
 
-  async balanceTx(tx: UnboundTransaction, ttl: Date = ttlOneHour()): Promise<FinalizedTransaction> {
-    const recipe = await this.wallet.balanceUnboundTransaction(
-      tx,
-      { shieldedSecretKeys: this.zswapSecretKeys, dustSecretKey: this.dustSecretKey },
-      { ttl },
-    );
-    const signedRecipe = await this.wallet.signRecipe(recipe, (payload) => this.unshieldedKeystore.signData(payload));
-    return this.wallet.finalizeRecipe(signedRecipe);
+  /**
+   * Both ledgers (midnight-js 5): a transaction for a network not yet past Midnight's Ledger 9
+   * fork is a Ledger 8 one, after it a Ledger 9 one. The wallet SDK reads either as bytes, at the
+   * protocol version it is acting at, and hands back its own; the handle keeps the era.
+   */
+  get supportedEras(): readonly ('v8' | 'v9')[] {
+    return ['v8', 'v9'];
   }
 
-  submitTx(tx: FinalizedTransaction): Promise<string> {
-    return this.wallet.submitTransaction(tx);
+  async balanceTx(tx: UnboundTx, ttl: Date = ttlOneHour()): Promise<FinalizedTx> {
+    const recipe = await this.wallet.balanceUnboundTransaction(
+      this.wallet.adoptTransaction(tx.serialize(), 'Unbound'),
+      { ttl },
+    );
+    const signedRecipe = await this.wallet.signRecipe(recipe, (payload) =>
+      Promise.resolve(this.unshieldedKeystore.signData(payload) as never),
+    );
+    const finalized = await this.wallet.finalizeRecipe(signedRecipe);
+    return LedgerTransaction.fromBytes(tx.era, 'Finalized', new Uint8Array(finalized.serialize()));
+  }
+
+  submitTx(tx: FinalizedTx): Promise<string> {
+    return this.wallet.submitTransaction(this.wallet.adoptTransaction(tx.serialize(), 'Finalized'));
   }
 
   // We do not wait for funds here; the CLI flow handles it explicitly.
   async start(): Promise<void> {
     this.logger.info('Starting wallet...');
-    await this.wallet.start(this.zswapSecretKeys, this.dustSecretKey);
+    await this.wallet.start(this.seeds);
     if (this.stateFile?.enabled) {
       // Save as it goes, so even a crash or a closed laptop loses minutes, not the hour.
       this.saveTimer = setInterval(() => void this.saveProgress(), 120_000);
@@ -236,6 +258,7 @@ export class MidnightWalletProvider implements MidnightProvider, WalletProvider 
       DustSecretKey.fromSeed(seeds.dust),
       keystore,
       seeds.masterSeed,
+      { shielded: seeds.shielded, unshielded: seeds.unshielded, dust: seeds.dust },
     );
     provider.stateFile = stateFile;
     return provider;
@@ -250,15 +273,20 @@ export class SavedProgressNotOpenedError extends Error {
   }
 }
 
-/** The wallet configuration testkit derives from an environment (its mapEnvironmentToConfiguration). */
-export const walletConfiguration = (env: EnvironmentConfiguration): Record<string, unknown> => ({
-  indexerClientConnection: { indexerHttpUrl: env.indexer, indexerWsUrl: env.indexerWS },
-  provingServerUrl: new URL(env.proofServer),
-  networkId: env.walletNetworkId,
-  relayURL: new URL(env.nodeWS),
-  txHistoryStorage: new InMemoryTransactionHistoryStorage(WalletEntrySchema, mergeWalletEntries),
-  costParameters: { feeBlocksMargin: 5 },
-});
+/**
+ * The wallet configuration testkit derives from an environment (its mapEnvironmentToConfiguration),
+ * with `forks` filled in (wallet SDK 2): where the chain moves from Ledger 8 to Ledger 9, the SDK's
+ * default schedule (Ledger 9 from the protocol version a 2.x node reports).
+ */
+export const walletConfiguration = (env: EnvironmentConfiguration): Record<string, unknown> =>
+  WalletFacade.resolveConfiguration({
+    indexerClientConnection: { indexerHttpUrl: env.indexer, indexerWsUrl: env.indexerWS },
+    provingServerUrl: new URL(env.proofServer),
+    networkId: env.walletNetworkId,
+    relayURL: new URL(env.nodeWS),
+    txHistoryStorage: new InMemoryTransactionHistoryStorage(WalletEntrySchema, mergeWalletEntries),
+    costParameters: { feeBlocksMargin: 5 },
+  } as never);
 
 /**
  * The three wallets and their facade, not started: what testkit's
@@ -271,13 +299,14 @@ export const createWallets = async (
   dustOptions: DustWalletOptions,
 ): Promise<{ wallet: WalletFacade; keystore: UnshieldedKeystore; config: Record<string, unknown> }> => {
   const config = walletConfiguration(env);
-  const keystore = createKeystore(seeds.unshielded, env.walletNetworkId);
-  const shielded = ShieldedWallet(config as never).startWithSeed(seeds.shielded);
-  const unshielded = UnshieldedWallet({
+  // Wallet SDK 2: the keystore names its signature kind.
+  const keystore = createKeystore({ kind: 'schnorr', secret: seeds.unshielded }, env.walletNetworkId);
+  const shielded = await ShieldedWallet(config as never).startWithSeed(seeds.shielded);
+  const unshielded = await UnshieldedWallet({
     ...config,
     txHistoryStorage: new InMemoryTransactionHistoryStorage(WalletEntrySchema, mergeWalletEntries),
   } as never).startWithPublicKey(PublicKey.fromKeyStore(keystore));
-  const dust = DustWallet({
+  const dust = await DustWallet({
     ...config,
     costParameters: {
       ledgerParams: dustOptions.ledgerParams,

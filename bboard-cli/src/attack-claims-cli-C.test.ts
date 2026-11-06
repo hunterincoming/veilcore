@@ -15,11 +15,12 @@ import {
   createConstructorContext,
   type CircuitContext,
 } from '@midnight-ntwrk/compact-runtime';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { setNetworkId } from '../../api/src/network-id.js';
 import { Contract } from '../../contract/src/managed/veilcore-claims/contract/index.js';
 import { type ClaimsPrivateState, claimsWitnesses, emptyClaimsPrivateState } from '../../contract/src/claims.js';
 import { type FieldSetFile } from '../../contract/src/field-schema.js';
 import { JUBJUB_ORDER, attesterKeyOf, newAttesterKey } from '../../contract/src/attest.js';
+import { served } from './test-midnight5';
 
 const local = vi.hoisted(() => ({ find: undefined as undefined | ((...a: unknown[]) => Promise<unknown>) }));
 vi.mock('@midnight-ntwrk/midnight-js-contracts', async (orig) => {
@@ -58,11 +59,13 @@ const chain = (fail: (circuit: string, n: number) => boolean = () => false) => {
   let n = 0;
   const providers = {
     privateStateProvider: {
-      setContractAddress: () => undefined,
+      forContract() {
+        return this; // midnight-js 5: one contract, one view
+      },
       get: async (k: string) => store.get(k),
       set: async (k: string, v: unknown) => void store.set(k, v),
     },
-    publicDataProvider: { queryContractState: async () => state },
+    publicDataProvider: { queryContractState: async () => served(state) },
   };
   const callTx = new Proxy(
     {},
@@ -90,7 +93,7 @@ const chain = (fail: (circuit: string, n: number) => boolean = () => false) => {
               txId,
               txHash: `hash${n}`,
               blockHeight: n,
-              nextContractState: r.context.currentQueryContext.state,
+              nextContractStateEncoded: r.context.currentQueryContext.state.state.encode(),
             },
           };
         },

@@ -21,7 +21,7 @@ import {
   RemoteTestEnvironment,
   TestEnvironment,
 } from '@midnight-ntwrk/testkit-js';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { setNetworkId } from '../../api/src/network-id.js';
 import { Logger } from 'pino';
 
 export interface Config {
@@ -49,7 +49,7 @@ export class StandaloneConfig implements Config {
     // cannot say where it is deploying is not one that should be deploying, so the
     // fix is to say, not to make absence permissive.
     setNetworkId('undeployed');
-    return getTestEnvironment(logger) as TestEnvironment;
+    return getTestEnvironment(logger);
   }
   privateStateStoreName = 'bboard-private-state';
   logDir = path.resolve(currentDir, '..', 'logs', 'standalone', `${new Date().toISOString()}.log`);

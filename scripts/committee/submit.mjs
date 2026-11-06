@@ -9,26 +9,66 @@
 // The chain decides whether it worked: if sending throws, the authority is read again, and
 // an update that landed with only the confirmation lost is reported as landed. Running it
 // again after it landed sends nothing.
+//
+// AFTER MIDNIGHT'S LEDGER 9 FORK (mainnet, 6 November 2026) SENDING IS NOT AVAILABLE. VeilCore's
+// contracts are Ledger 8 contracts; midnight-js 5 calls them on either side of the fork but
+// refuses to maintain them on a forked network (that needs the contract recompiled, which would
+// change every circuit key; see api/src/maintenance.ts). So on a forked network sending is
+// refused before anything is built; reading the authority (show) and preparing and signing
+// requests still work. On a network not yet forked it sends a Ledger 8 transaction, as before.
 // SPDX-License-Identifier: Apache-2.0
 
-import { Intent, Transaction } from '@midnight-ntwrk/ledger-v8';
+import { ContractState as Ledger8ContractState, Intent, Transaction } from '@midnightntwrk/ledger-v8';
+import { ContractState as Ledger9ContractState } from '@midnight-ntwrk/midnight-js-protocol/v9';
+import { protocolVersionToLedger } from '@midnight-ntwrk/midnight-js-protocol';
 import { submitTx } from '@midnight-ntwrk/midnight-js-contracts';
-import { getNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { LedgerTransaction } from '@midnight-ntwrk/midnight-js-types';
 import { ttlOneHour } from '@midnight-ntwrk/midnight-js-utils';
 import { authorityView } from './core.mjs';
 
 const SUCCEED_ENTIRELY = 'SucceedEntirely';
 
+/** Ledger 9 keeps committee keys as { tag, value }; Ledger 8 as bare hex. Both hold Schnorr keys only. */
+const bareKey = (k) => {
+  if (typeof k === 'string') return k;
+  if (k?.tag === 'schnorr' && typeof k.value === 'string') return k.value;
+  throw new Error("The contract's maintenance committee holds a key that is not a Schnorr key; refused.");
+};
+
+/**
+ * The maintenance authority from an indexer read: midnight-js 5's `{ contractState }` (bytes
+ * of either ledger, decoded by the ledger that wrote them), or a state that has it already.
+ */
+const authorityOf = (read) => {
+  const s = read.contractState ?? read;
+  if (typeof s.deserialize === 'function' && 'era' in s)
+    return s.deserialize({ v8: Ledger8ContractState, v9: Ledger9ContractState }).maintenanceAuthority;
+  return s.maintenanceAuthority;
+};
+
 /** The contract's maintenance authority as the indexer shows it now. */
 export const readAuthorityNow = async (publicDataProvider, address) => {
   const state = await publicDataProvider.queryContractState(address);
   if (state === null || state === undefined) throw new Error(`No contract found at ${address} on this network.`);
-  return authorityView(state.maintenanceAuthority);
+  const a = authorityOf(state);
+  return authorityView({ committee: [...a.committee].map(bareKey), threshold: a.threshold, counter: a.counter });
+};
+
+/** Refuse on a network past the Ledger 9 fork (see the top of this file). Nothing is built or sent. */
+export const assertMaintenanceAvailable = async (publicDataProvider) => {
+  const era = protocolVersionToLedger(await publicDataProvider.queryLatestProtocolVersion());
+  if (era !== 'v8')
+    throw new Error(
+      "Contract maintenance is not available on this network: it has moved to Midnight Ledger 9, and VeilCore's " +
+        'contracts are Ledger 8 contracts, which midnight-js can call but no longer maintain (that needs the contract ' +
+        'recompiled, which would change every circuit key). Nothing was built or sent.',
+    );
 };
 
 /**
  * Send `update` and wait until `landed(authority)` holds on chain.
- * @param providers { publicDataProvider, proofProvider, walletProvider, midnightProvider }
+ * @param providers midnight-js 5 providers: { publicDataProvider, proofProvider, walletProvider,
+ *   midnightProvider, config: { networkId } }. Refused past the Ledger 9 fork (top of file).
  * @returns {Promise<{ sent: boolean, txId?: string, blockHeight?: number, authority: object }>}
  */
 export const sendMaintenanceUpdate = async (
@@ -47,11 +87,16 @@ export const sendMaintenanceUpdate = async (
     throw new Error(
       `The chain's counter is ${before.counter}, but this update is for ${update.counter}. Nothing was sent.`,
     );
-  const unprovenTx = Transaction.fromParts(
-    getNetworkId(),
-    undefined,
-    undefined,
-    Intent.new(ttlOneHour()).addMaintenanceUpdate(update),
+  await assertMaintenanceAvailable(providers.publicDataProvider);
+  const unprovenTx = LedgerTransaction.seal(
+    'v8',
+    'Unproven',
+    Transaction.fromParts(
+      providers.config.networkId,
+      undefined,
+      undefined,
+      Intent.new(ttlOneHour()).addMaintenanceUpdate(update),
+    ),
   );
   let finalized;
   try {

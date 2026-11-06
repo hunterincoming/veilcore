@@ -26,6 +26,7 @@ import {
   reportFromAnswer,
   writeEvidence,
 } from './pairing-evidence';
+import { servedData } from './test-midnight5';
 
 /** txId -> the raw contract state right after that call, and its block time. In order. */
 const txs = vi.hoisted(
@@ -102,13 +103,18 @@ const client = (own: Uint8Array) => {
   let ps: Record<string, unknown> = { geneticSecret: own };
   const providers = {
     privateStateProvider: {
-      setContractAddress: () => undefined,
+      forContract() {
+        return this; // midnight-js 5: one contract, one view
+      },
       get: async () => ps,
       set: async (_: string, v: Record<string, unknown>) => {
         ps = v;
       },
     },
-    publicDataProvider: { contractStateObservable: () => NEVER, queryContractState: async () => ({ data: raw() }) },
+    publicDataProvider: {
+      contractStateObservable: () => NEVER,
+      queryContractState: async () => servedData(raw() as never),
+    },
   };
   const callTx = {
     pairDna: async (v: Uint8Array) => {

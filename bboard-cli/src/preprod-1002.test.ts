@@ -10,7 +10,7 @@ import { mkdtempSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { type Logger } from 'pino';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { setNetworkId } from '../../api/src/network-id.js';
 
 const chain = vi.hoisted(() => ({
   createUnprovenDeployTx: undefined as undefined | ((...a: unknown[]) => Promise<unknown>),
@@ -64,7 +64,9 @@ describe('a refusal is only taken for size when it says so', () => {
     };
     const providers = {
       privateStateProvider: {
-        setContractAddress: () => undefined,
+        forContract() {
+          return this; // midnight-js 5: one contract, one view
+        },
         set: async () => undefined,
         setSigningKey: async (a: string, k: string) => void keys.set(a, k),
         removeSigningKey: async (a: string) => void keys.delete(a),
@@ -116,7 +118,9 @@ const harness = () => {
   };
   const providers = {
     privateStateProvider: {
-      setContractAddress: () => undefined,
+      forContract() {
+        return this; // midnight-js 5: one contract, one view
+      },
       set: async () => undefined,
       setSigningKey: async (a: string, k: string) => void keys.set(a, k),
       removeSigningKey: async (a: string) => void keys.delete(a),
