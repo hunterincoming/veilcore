@@ -123,12 +123,12 @@ describe('licenses on every kind of record', () => {
       }
     };
     const animal = html('animal');
-    expect(animal).toContain('sire or dam, both holders confirming');
+    expect(animal).toContain('with this animal as sire or dam');
     expect(animal).toContain('no resale of straws');
     expect(animal).not.toMatch(/cultivar|Cultivate/);
     const strain = html('strain');
     expect(strain).toContain('Royalty on derived strains (%)');
-    expect(strain).toContain('Undeclared derivation is not detected');
+    expect(strain).toContain('as derived from this one');
     expect(strain).not.toMatch(/cultivar|Cultivate|offspring/i);
     const plant = html('plant');
     expect(plant).toContain('Royalty on offspring (%)');

@@ -109,7 +109,7 @@ export const royalties = {
   'app.roy.p.customHelp': 'Alle Bedingungen selbst festlegen.',
   'app.roy.f.amountPct': 'Lizenzgebühr (% vom Umsatz)',
   'app.roy.f.amountUnit': 'Gebühr pro {unit}',
-  'app.roy.f.amountPlain': 'Betrag ({currency})',
+  'app.roy.f.amountPlain': 'Betrag',
   'app.roy.f.law': 'Anwendbares Recht',
   'app.roy.f.lawHelp':
     'Das Recht welches Landes oder Bundesstaats gilt. Aus Ihrem Browser übernommen: ändern Sie es bei Bedarf.',

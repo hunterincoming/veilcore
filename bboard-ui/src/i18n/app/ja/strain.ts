@@ -180,7 +180,7 @@ export const strain = {
   'app.strain.v.app.lic.row.offspringValue': '{pct}%（この株から派生したと申告された株に対して）',
   'app.strain.v.app.lic.f.offspring': '派生株へのロイヤリティ（%）',
   'app.strain.v.app.lic.f.offspringHelp':
-    'この記録から派生したと申告された株（この記録を親として記録され、双方の保有者が確認したもの）に適用されます。申告されない派生は検出されません。なければ空欄にしてください。',
+    'この株から派生したとVeilCoreに記録された株だけを数えます。なければ空欄にしてください。',
   'app.strain.v.app.lic.f.extraHelpDeal':
     '取引に含まれるその他のことを、あなた自身の言葉で。例: 第三者への提供禁止、論文で出所を明記、終了時に残りの株を廃棄。',
   'app.strain.v.app.lic.detail.thisCultivar': 'この株',

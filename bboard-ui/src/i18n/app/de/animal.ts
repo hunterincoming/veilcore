@@ -244,7 +244,7 @@ export const animal = {
   'app.animal.v.app.lab.send.takenFromHelp': 'Die Einzeltierkennung des Tieres oder wo die Probe genommen wurde.',
   'app.animal.v.app.lic.row.offspringValue': '{pct} %, auf Nachkommen, die von diesem Tier angemeldet werden',
   'app.animal.v.app.lic.f.offspringHelp':
-    'Gilt für Nachkommen, die von diesem Datensatz angemeldet werden (mit ihm als Vater oder Mutter erfasst, von beiden Inhabern bestätigt). Nachkommen, die niemand erfasst, werden nicht erkannt. Leer lassen, wenn keine.',
+    'Zählt nur Nachkommen, die in VeilCore mit diesem Tier als Vater oder Mutter erfasst sind. Leer lassen, wenn keine.',
   'app.animal.v.app.lic.f.extraHelpDeal':
     'Alles, was sonst zum Geschäft gehört, in Ihren eigenen Worten. Zum Beispiel: höchstens zwei Würfe oder Abkalbungen, kein Weiterverkauf von Pailletten, Nachkommen bei einem genannten Zuchtverband eingetragen.',
   'app.animal.v.app.lic.detail.thisCultivar': 'diesem Tier',

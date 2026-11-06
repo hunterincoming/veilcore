@@ -150,12 +150,19 @@ export const currencyOf = (t: Partial<LicenseTerms> | undefined, fallback?: stri
   t?.currency ?? fallback ?? 'USD';
 
 /**
- * Old terms with the currency the deal was actually paid in (review round 1, 5): their reports took
- * the licensor's payout currency (EUR, tNIGHT, ...), so that is read before US dollars. In memory,
- * for the ledger: nothing is written into the terms.
+ * Old terms with the currency the deal was actually paid in (review round 1, 5): their reports
+ * took the licensor's payout currency (EUR, tNIGHT, ...). Read from the newest report's own
+ * currency first, then the newest payout, then US dollars. In memory, for the ledger: nothing is
+ * written into the terms. Each report still shows in its own currency.
  */
-export const withDealCurrency = <T extends Partial<LicenseTerms>>(t: T, payoutCurrency?: string): T =>
-  t.currency || !payoutCurrency ? t : { ...t, currency: payoutCurrency };
+export const withDealCurrency = <T extends Partial<LicenseTerms>>(
+  t: T,
+  reportCurrency?: string,
+  payoutCurrency?: string,
+): T => {
+  const c = reportCurrency || payoutCurrency;
+  return t.currency || !c ? t : { ...t, currency: c };
+};
 
 /** The reporting schedule, or undefined for old terms (each statement then names its own dates). */
 export const scheduleOf = (t: Partial<LicenseTerms> | undefined): Reporting | undefined => t?.reporting;
@@ -407,16 +414,16 @@ export const ruleText = (r: RoyaltyRule, currency: string, tr: Translator = enT)
   });
 };
 
-/**
- * The deal in one paragraph, every value in it (design v3, 1): shown on the form before saving
- * and to the licensee before they agree. Old terms say only what they hold.
- */
 /** A calendar date as people read it, in the reader's language ("Nov 6, 2026"): one format everywhere. */
 export const dateWords = (day: string, tr: Translator): string =>
   /^\d{4}-\d{2}-\d{2}$/.test(day)
     ? tr.date(`${day}T12:00:00`, { day: 'numeric', month: 'short', year: 'numeric' })
     : day;
 
+/**
+ * The deal in one paragraph, every value in it (design v3, 1): shown on the form before saving
+ * and to the licensee before they agree. Old terms say only what they hold.
+ */
 export const termsSentence = (t: LicenseTerms, tr: Translator): string => {
   const currency = currencyOf(t);
   const parts: string[] = [];

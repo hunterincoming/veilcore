@@ -280,7 +280,7 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   await page.locator('[data-preset="custom"]').click();
   await expect(page.getByText('Breed with their own animals only')).toBeVisible();
   await expect(page.getByText('dose (straw or embryo)', { exact: true })).toBeVisible();
-  await expect(page.getByText(/sire or dam, both holders confirming/)).toBeVisible();
+  await expect(page.getByText(/with this animal as sire or dam/)).toBeVisible();
   await expect(page.getByText(/Cultivate/)).toHaveCount(0);
   await page.goto(`/record/${rec.id}`);
   await expect(page.getByRole('heading', { name })).toBeVisible();

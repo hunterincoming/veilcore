@@ -185,7 +185,7 @@ export const strain = {
   'app.strain.v.app.lic.row.offspringValue': '{pct} %, auf Stämme, die als von diesem abgeleitet angemeldet werden',
   'app.strain.v.app.lic.f.offspring': 'Lizenzgebühr auf abgeleitete Stämme (%)',
   'app.strain.v.app.lic.f.offspringHelp':
-    'Gilt für Stämme, die als von diesem Datensatz abgeleitet angemeldet werden (mit ihm als Elternteil erfasst, von beiden Inhabern bestätigt). Nicht angemeldete Ableitung wird nicht erkannt. Leer lassen, wenn keine.',
+    'Zählt nur Stämme, die in VeilCore als von diesem abgeleitet erfasst sind. Leer lassen, wenn keine.',
   'app.strain.v.app.lic.f.extraHelpDeal':
     'Alles, was sonst zum Geschäft gehört, in Ihren eigenen Worten. Zum Beispiel: keine Weitergabe an Dritte, Quelle in Veröffentlichungen nennen, Restbestände am Ende vernichten.',
   'app.strain.v.app.lic.detail.thisCultivar': 'diesem Stamm',

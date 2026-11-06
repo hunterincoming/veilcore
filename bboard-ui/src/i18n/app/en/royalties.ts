@@ -115,7 +115,7 @@ export const royalties = {
   // ---- the terms form ----
   'app.roy.f.amountPct': 'Royalty (% of sales)',
   'app.roy.f.amountUnit': 'Fee per {unit}',
-  'app.roy.f.amountPlain': 'Amount ({currency})',
+  'app.roy.f.amountPlain': 'Amount',
   'app.roy.f.law': 'Governing law',
   'app.roy.f.lawHelp':
     'Which country’s or state’s law the deal is under. Filled in from your browser: change it if needed.',

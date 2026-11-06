@@ -109,7 +109,7 @@ export const royalties = {
   'app.roy.p.customHelp': 'Fije usted cada condición.',
   'app.roy.f.amountPct': 'Regalía (% de las ventas)',
   'app.roy.f.amountUnit': 'Tarifa por {unit}',
-  'app.roy.f.amountPlain': 'Importe ({currency})',
+  'app.roy.f.amountPlain': 'Importe',
   'app.roy.f.law': 'Ley aplicable',
   'app.roy.f.lawHelp': 'La ley de qué país o estado rige el acuerdo. Tomada de su navegador: cámbiela si hace falta.',
   'app.roy.f.territoryRequired': 'Obligatorio para cannabis: dónde se aplica la licencia.',

@@ -184,9 +184,11 @@ describe('review round 1: the page and the published checker agree', () => {
 
   it('5. old terms read in the currency the deal was paid in, not dollars', async () => {
     const old: LicenseTerms = { ...emptyTermsFor('license'), royaltyAmount: '5' };
-    expect(currencyOf(withDealCurrency(old, 'EUR'))).toBe('EUR');
+    expect(currencyOf(withDealCurrency(old, undefined, 'EUR'))).toBe('EUR');
+    // A report's own currency comes before the payout's.
+    expect(currencyOf(withDealCurrency(old, 'JPY', 'EUR'))).toBe('JPY');
     expect(currencyOf(withDealCurrency(old))).toBe('USD');
-    expect(currencyOf(withDealCurrency(clone(), 'EUR'))).toBe('USD');
+    expect(currencyOf(withDealCurrency(clone(), 'EUR', 'EUR'))).toBe('USD');
     expect('currency' in old).toBe(false);
     const { entries } = await build([
       statement({ currency: 'EUR', lines: undefined, amountOwed: '500.00', quantity: '10000' }),

@@ -179,7 +179,7 @@ export const strain = {
   'app.strain.v.app.lic.row.offspringValue': '{pct}%, on strains declared as derived from this one',
   'app.strain.v.app.lic.f.offspring': 'Royalty on derived strains (%)',
   'app.strain.v.app.lic.f.offspringHelp':
-    'Applies to strains declared as derived from this record (logged with it as a parent, both holders confirming). Undeclared derivation is not detected. Leave blank if none.',
+    'Only counts strains recorded in VeilCore as derived from this one. Leave blank if none.',
   'app.strain.v.app.lic.f.extraHelpDeal':
     'Anything else that’s part of the deal, in your own words. For example: no distribution to third parties, credit the source in publications, destroy remaining stock when it ends.',
   'app.strain.v.app.lic.detail.thisCultivar': 'this strain',
