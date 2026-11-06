@@ -30,7 +30,7 @@ import { fileURLToPath } from 'node:url';
 import {
   DEFAULT_KEYS_URL,
   DEFAULT_PROOF_SERVER,
-  PROOF_SERVER_IMAGE,
+  proofServerImageFor,
   VeilCore,
   VeilCoreClaims,
   checkKeys,
@@ -163,27 +163,21 @@ const healthy = async (url) => {
 /**
  * A proof server: the one at `url` if it answers, or one started here in Docker when
  * `url` is this machine's default. Returns a function that stops what this started.
+ * @param {string} url
+ * @param {(m: string) => void} [say]
+ * @param {import('../src/network.js').Network} [network]
  */
-export const proofServer = async (url, say = console.log) => {
+export const proofServer = async (url, say = console.log, network = 'preprod') => {
+  // A proof server serves one Midnight ledger: 9.0.0 for mainnet (Ledger 9), 8.1.3 elsewhere.
+  const image = proofServerImageFor(network);
   if (await healthy(url)) return () => undefined;
   if (url !== DEFAULT_PROOF_SERVER)
     throw new Error(`No proof server answers at ${url}. Start yours, or unset VEILCORE_PROOF_SERVER.`);
-  say(`Starting a proof server in Docker (${PROOF_SERVER_IMAGE}) on port 6300...`);
+  say(`Starting a proof server in Docker (${image}) on port 6300...`);
   const name = `veilcore-kit-proof-server-${process.pid}`;
   const run = spawnSync(
     'docker',
-    [
-      'run',
-      '-d',
-      '--rm',
-      '--name',
-      name,
-      '-p',
-      '127.0.0.1:6300:6300',
-      PROOF_SERVER_IMAGE,
-      'midnight-proof-server',
-      '-v',
-    ],
+    ['run', '-d', '--rm', '--name', name, '-p', '127.0.0.1:6300:6300', image, 'midnight-proof-server', '-v'],
     { encoding: 'utf8', env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' } },
   );
   if (run.status !== 0)
@@ -239,7 +233,7 @@ export const setup = async ({ say = console.log, prompt = false } = {}) => {
     const keysFrom = 'dir' in s.keys ? s.keys.dir : s.keys.url;
     say(`Checking proving keys and circuits from ${keysFrom} against the deployment record...`);
     const nKeys = await checkKeys(s.keys);
-    stops.push(await proofServer(s.proofServer, say));
+    stops.push(await proofServer(s.proofServer, say, s.network));
 
     const logger = quietLogger(say);
     // The wallet: sync progress is saved (encrypted with the same password) so the next run resumes.

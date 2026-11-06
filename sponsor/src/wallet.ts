@@ -195,14 +195,17 @@ export class FacadeWallet implements PayingWallet {
   /** Derive keys and addresses from the seed. Nothing connects to the network yet. */
   static async build(seedHex: string, ep: WalletEndpoints): Promise<FacadeWallet> {
     const seeds = deriveRoleSeeds(seedHex);
-    const config = {
+    // Wallet SDK 2 needs `forks`, where the chain moves from Ledger 8 to Ledger 9: the SDK's
+    // default schedule (Ledger 9 from the version a 2.x node reports). One proof server
+    // (PROOF_SERVER_URL) for the network this service is on: 9.0.0 on mainnet since its fork.
+    const config = WalletFacade.resolveConfiguration({
       indexerClientConnection: { indexerHttpUrl: ep.indexer, indexerWsUrl: ep.indexerWS },
       provingServerUrl: new URL(ep.proofServer),
       networkId: ep.network,
       relayURL: new URL(ep.nodeWS),
       txHistoryStorage: new InMemoryTransactionHistoryStorage(WalletEntrySchema, mergeWalletEntries),
       costParameters: { feeBlocksMargin: 5 },
-    };
+    } as never) as unknown as Record<string, unknown>;
     const costParameters = {
       ledgerParams: LedgerParameters.initialParameters(),
       additionalFeeOverhead: ep.network === 'undeployed' ? 500_000_000_000_000_000n : 1_000n,

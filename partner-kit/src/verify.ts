@@ -11,7 +11,7 @@
 // with every verdict, so a change is visible. The indexer is trusted for what it reports:
 // for a decision that matters, give `secondIndexer` and both must agree.
 
-import { ContractState } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
+import { ContractState } from '@midnight-ntwrk/compact-runtime';
 import * as Veilcore from '../../contract/src/managed/veilcore/contract/index.js';
 import { CLAIMS_PROVABLE_CIRCUITS, claimsLedger } from '../../contract/src/claims.js';
 import {

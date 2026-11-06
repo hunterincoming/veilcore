@@ -18,6 +18,7 @@ import {
   type CircuitContext,
 } from '@midnight-ntwrk/compact-runtime';
 import { NEVER } from 'rxjs';
+import { SerializedContractState } from '@midnight-ntwrk/midnight-js-types';
 import { vi } from 'vitest';
 import { Contract as VeilcoreContract } from '../../contract/src/managed/veilcore/contract/index.js';
 import { Contract as ClaimsContract } from '../../contract/src/managed/veilcore-claims/contract/index.js';
@@ -41,20 +42,19 @@ let txCount = 0;
 const nextTxId = (): string => (++txCount).toString(16).padStart(64, '0');
 
 /**
- * What midnight-js 4.1.1 throws when a circuit fails while the call is built locally
- * (submitCallTx → scoped transaction → createUnprovenCallTx; test/witness-error.test.ts
- * checks this against the real code): the circuit's error inside a ContractRuntimeError
- * naming the circuit, a failed assert's message lifted into a plain Error above that, and
- * all of it inside "Unexpected error executing scoped transaction". The refusal is never
- * in the top message.
+ * What midnight-js 5 throws when a circuit fails while a Ledger 8 contract's call is built
+ * locally (submitCallTx; test/witness-error.test.ts checks this against the real code): a
+ * ContractExecutionError whose message names the circuit and repeats the refusal, around a
+ * ContractRuntimeError naming the circuit, around the circuit's own error.
  */
 export const asMidnightJsThrows = (circuit: string, e: unknown): Error => {
   const message = e instanceof Error ? e.message : String(e);
   const runtime = Object.assign(new Error(`Error executing circuit '${circuit}'`, { cause: e }), {
     name: 'ContractRuntimeError',
   });
-  const inner = /^failed assert: /.test(message) ? new Error(message, { cause: runtime }) : runtime;
-  return new Error(`Unexpected error executing scoped transaction '<unnamed>': ${String(inner)}`, { cause: inner });
+  return Object.assign(new Error(`Error executing circuit '${circuit}': ${message}`, { cause: runtime }), {
+    name: 'ContractExecutionError',
+  });
 };
 
 type Runner = { find: (...a: unknown[]) => Promise<unknown> };
@@ -65,7 +65,7 @@ const contractOnChain = (
   contract: { impureCircuits: object; initialState: (c: never) => { currentContractState: ContractState } },
   initialPrivate: unknown,
   stateKey: string,
-  store: { get: (k: string) => Promise<unknown> },
+  store: { forContract: (a: string) => { get: (k: string) => Promise<unknown> } },
   authority: ContractMaintenanceAuthority,
 ) => {
   let state = contract.initialState(createConstructorContext(initialPrivate, COIN) as never).currentContractState;
@@ -76,7 +76,7 @@ const contractOnChain = (
       get:
         (_t, circuit: string) =>
         async (...args: unknown[]) => {
-          const ps = await store.get(stateKey);
+          const ps = await store.forContract(address).get(stateKey);
           const ctx: CircuitContext<unknown> = createCircuitContext(address, COIN, state, ps);
           const now = Math.floor(Date.now() / 1000);
           ctx.currentQueryContext.block = { ...ctx.currentQueryContext.block, secondsSinceEpoch: BigInt(now) };
@@ -97,7 +97,13 @@ const contractOnChain = (
           const txId = nextTxId();
           chainLog.push({ txId, address, entryPoint: circuit, state, height: chainLog.length + 1, time: Date.now() });
           return {
-            public: { txId, txHash: `h${txId.slice(-8)}`, blockHeight: chainLog.length, nextContractState: next.data },
+            // midnight-js 5 reports the state after a call as its plain encoding too.
+            public: {
+              txId,
+              txHash: `h${txId.slice(-8)}`,
+              blockHeight: chainLog.length,
+              nextContractStateEncoded: next.data.state.encode(),
+            },
             private: { result: r.result },
           };
         },
@@ -134,8 +140,17 @@ export const fakeChain = (fake: Runner, network: Network = 'undeployed', claimsR
   );
   const stateAt = (address: string): ContractState | null =>
     address === VEILCORE_ADDR ? main.state() : address === CLAIMS_ADDR ? claims.state() : null;
+  // midnight-js 5 reads hand back the state's bytes with the ledger that wrote them (here Ledger 8;
+  // reading a Ledger 9 state the same way is checked in contract/src/test/contract-state.test.ts).
+  const readAt = (address: string) => {
+    const s = stateAt(address);
+    return s === null
+      ? null
+      : { protocolVersion: 1_000_000, contractState: SerializedContractState.fromBytes('v8', s.serialize()) };
+  };
   const publicDataProvider = {
-    queryContractState: async (address: string) => stateAt(address),
+    queryContractState: async (address: string) => readAt(address),
+    queryLatestProtocolVersion: async () => 1_000_000,
     contractStateObservable: () => NEVER,
     // The latest action led nowhere: join then checks the ledger is still the constructor's.
     watchForDeployTxData: async () => {
@@ -147,12 +162,12 @@ export const fakeChain = (fake: Runner, network: Network = 'undeployed', claimsR
   // As midnight-js's findDeployedContract: store the initial private state, then the contract.
   fake.find = async (...a: unknown[]) => {
     const [providers, o] = a as [
-      { privateStateProvider: { set: (k: string, v: unknown) => Promise<void> } },
+      { privateStateProvider: { forContract: (a: string) => { set: (k: string, v: unknown) => Promise<void> } } },
       { contractAddress: string; privateStateId: string; initialPrivateState: unknown },
     ];
     const c = o.contractAddress === VEILCORE_ADDR ? main : o.contractAddress === CLAIMS_ADDR ? claims : undefined;
     if (c === undefined) throw new Error('no contract at that address');
-    await providers.privateStateProvider.set(o.privateStateId, o.initialPrivateState);
+    await providers.privateStateProvider.forContract(o.contractAddress).set(o.privateStateId, o.initialPrivateState);
     return { deployTxData: { public: { contractAddress: o.contractAddress } }, callTx: c.callTx };
   };
   vi.stubGlobal('fetch', fakeIndexer(stateAt));

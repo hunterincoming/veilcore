@@ -15,7 +15,7 @@
 import { chmod, mkdir } from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { type ContractAddress, type SigningKey } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
+import { type ContractAddress, type SigningKey } from '@midnight-ntwrk/midnight-js-protocol/v9/compact-runtime';
 import { type PrivateStateProvider } from '@midnight-ntwrk/midnight-js-types';
 import { PasswordValidationError, validatePassword } from '@midnight-ntwrk/midnight-js-utils';
 import { openStores } from '../../bboard-cli/src/private-store.js';
@@ -66,27 +66,35 @@ export const passwordProblem = (password: string): string | null => {
  * acts as must be given again (useRecordSecret) every run.
  */
 export const memoryPrivateState = <PSI extends string, PS>(): PrivateStateProvider<PSI, PS> => {
+  // midnight-js 5: private states are reached per contract (forContract), addresses compared in
+  // lower case; signing keys are { tag, value }.
   const states = new Map<string, PS>();
   const keys = new Map<string, SigningKey>();
-  let address = '';
   const refuse = (): Promise<never> =>
     Promise.reject(new Error('This private state is held in memory only and cannot be exported or imported.'));
   const done = <T>(f: () => T): Promise<T> => Promise.resolve().then(f);
+  const norm = (a: ContractAddress): string => a.toLowerCase();
   return {
-    setContractAddress: (a: ContractAddress) => void (address = a),
-    set: (id: PSI, s: PS) => done(() => void states.set(`${address}:${id}`, s)),
-    get: (id: PSI) => done(() => states.get(`${address}:${id}`) ?? null),
-    remove: (id: PSI) => done(() => void states.delete(`${address}:${id}`)),
-    clear: () =>
-      done(() => {
-        for (const k of [...states.keys()]) if (k.startsWith(`${address}:`)) states.delete(k);
-      }),
-    setSigningKey: (a: ContractAddress, k: SigningKey) => done(() => void keys.set(a, k)),
-    getSigningKey: (a: ContractAddress) => done(() => keys.get(a) ?? null),
-    removeSigningKey: (a: ContractAddress) => done(() => void keys.delete(a)),
+    forContract: (contractAddress: ContractAddress) => {
+      const address = norm(contractAddress);
+      return {
+        contractAddress,
+        set: (id: PSI, s: PS) => done(() => void states.set(`${address}:${id}`, s)),
+        get: (id: PSI) => done(() => states.get(`${address}:${id}`) ?? null),
+        remove: (id: PSI) => done(() => void states.delete(`${address}:${id}`)),
+        clear: () =>
+          done(() => {
+            for (const k of [...states.keys()]) if (k.startsWith(`${address}:`)) states.delete(k);
+          }),
+        exportPrivateStates: refuse,
+        importPrivateStates: refuse,
+      };
+    },
+    clearAll: () => done(() => states.clear()),
+    setSigningKey: (a: ContractAddress, k: SigningKey) => done(() => void keys.set(norm(a), k)),
+    getSigningKey: (a: ContractAddress) => done(() => keys.get(norm(a)) ?? null),
+    removeSigningKey: (a: ContractAddress) => done(() => void keys.delete(norm(a))),
     clearSigningKeys: () => done(() => keys.clear()),
-    exportPrivateStates: refuse,
-    importPrivateStates: refuse,
     exportSigningKeys: refuse,
     importSigningKeys: refuse,
   };

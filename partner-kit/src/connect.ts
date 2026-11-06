@@ -2,7 +2,7 @@
 // partner supplies (a wallet, private state, keys) and the network's endpoints.
 // SPDX-License-Identifier: Apache-2.0
 
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { midnightConfig, setNetworkId } from '../../api/src/network-id.js';
 import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import { type MidnightProvider, type PublicDataProvider, type WalletProvider } from '@midnight-ntwrk/midnight-js-types';
@@ -129,6 +129,7 @@ export const connect = (o: ConnectOptions): Connection => {
         proofProvider: httpClientProofProvider(endpoints.proofServer, veilcoreZk),
         walletProvider: o.wallet,
         midnightProvider: o.wallet,
+        config: midnightConfig(),
       },
       claims: {
         privateStateProvider: o.privateState.claims,
@@ -137,6 +138,7 @@ export const connect = (o: ConnectOptions): Connection => {
         proofProvider: httpClientProofProvider(endpoints.proofServer, claimsZk),
         walletProvider: o.wallet,
         midnightProvider: o.wallet,
+        config: midnightConfig(),
       },
     },
   };

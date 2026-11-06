@@ -9,9 +9,9 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { WalletSeeds, TEST_MNEMONIC } from '@midnight-ntwrk/testkit-js';
-import { DustSecretKey } from '@midnight-ntwrk/midnight-js-protocol/ledger';
+import { DustSecretKey } from '@midnight-ntwrk/midnight-js-protocol/v9';
 import { DustAddress } from '@midnight-ntwrk/wallet-sdk-address-format';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { setNetworkId } from '../../api/src/network-id.js';
 import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
 import { type Logger } from 'pino';
 import { SeedWallet, WalletProgressNotOpenedError } from '../src/wallet';
@@ -214,12 +214,12 @@ describe('private state', () => {
     const stores = await encryptedPrivateState({ network: 'preprod', password: PASSWORD, accountId: 'lab-1', dir });
     expect(statSync(dir).mode & 0o777).toBe(0o700);
     const main = stores.veilcore;
-    main.setContractAddress(ADDR);
+    const mainHere = main.forContract(ADDR);
     const recordSecret = new Uint8Array(32).fill(3);
     const recoverySecret = new Uint8Array(32).fill(9);
-    await main.set('veilcorePrivateState', { ...createVeilcorePrivateState(recordSecret), recoverySecret });
-    expect((await main.get('veilcorePrivateState'))?.recoverySecret).toEqual(recoverySecret);
-    await main.setSigningKey(ADDR, 'ee'.repeat(32));
+    await mainHere.set('veilcorePrivateState', { ...createVeilcorePrivateState(recordSecret), recoverySecret });
+    expect((await mainHere.get('veilcorePrivateState'))?.recoverySecret).toEqual(recoverySecret);
+    await main.setSigningKey(ADDR, { tag: 'schnorr', value: 'ee'.repeat(32) });
 
     // What is in the folder, read with the password by anyone with a copy of it.
     const raw = levelPrivateStateProvider<string, { geneticSecret: Uint8Array; recoverySecret: Uint8Array }>({
@@ -229,14 +229,12 @@ describe('private state', () => {
       privateStoragePasswordProvider: () => PASSWORD,
       accountId: 'lab-1',
     });
-    raw.setContractAddress(ADDR);
-    const onDisk = await raw.get('veilcorePrivateState');
+    const onDisk = await raw.forContract(ADDR).get('veilcorePrivateState');
     expect(Buffer.from(onDisk!.geneticSecret)).toEqual(Buffer.from(recordSecret));
     expect(Buffer.from(onDisk!.recoverySecret)).toEqual(Buffer.alloc(32));
     expect(await raw.getSigningKey(ADDR)).toBeNull();
 
-    const claims = stores.claims;
-    claims.setContractAddress(ADDR);
+    const claims = stores.claims.forContract(ADDR);
     await claims.set('veilcoreClaimsPrivateState', { input: { number: 9650n } });
     expect(await claims.get('veilcoreClaimsPrivateState')).toEqual({ input: { number: 9650n } });
     await expect(claims.exportPrivateStates()).rejects.toThrow(/memory only/);

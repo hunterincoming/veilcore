@@ -96,7 +96,9 @@ export class VeilCore {
 
   /** The record this client acts as, and what the chain says about it. */
   async whoAmI(): Promise<WhoAmI> {
-    const ps = await this.#conn.providers.veilcore.privateStateProvider.get(veilcorePrivateStateKey);
+    const ps = await this.#conn.providers.veilcore.privateStateProvider
+      .forContract(this.#api.deployedContractAddress)
+      .get(veilcorePrivateStateKey);
     if (ps === null) throw new Error('No record secret yet: call useRecordSecret first.');
     const l = await this.ledger();
     const record = commit.record(ps.geneticSecret);

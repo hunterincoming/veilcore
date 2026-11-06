@@ -29,12 +29,26 @@ export type Endpoints = {
   readonly proofServer: string;
 };
 
-/** A proof server on this machine: `docker run -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:8.1.3@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c midnight-proof-server -v`. */
+/** A proof server on this machine, run from the image for its network (proofServerImageFor). */
 export const DEFAULT_PROOF_SERVER = 'http://127.0.0.1:6300';
 
-/** The proof server image VeilCore's own tools run, by tag. */
-export const PROOF_SERVER_IMAGE =
+/**
+ * A proof server is built for one Midnight ledger, and no published image serves both. Mainnet
+ * moved to Ledger 9 on 6 November 2026 and needs proof server 9.0.0. The test networks stay on
+ * Ledger 8 until they fork, with 8.1.3 (Midnight's 2 October 2026 security patch, by digest).
+ * 9.0.0 is pinned by tag only: add its digest, from Midnight's signed release manifest, before
+ * relying on it.
+ */
+export const PROOF_SERVER_IMAGE_LEDGER9 = 'midnightntwrk/proof-server:9.0.0';
+export const PROOF_SERVER_IMAGE_LEDGER8 =
   'midnightntwrk/proof-server:8.1.3@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c';
+
+/** The proof server image for a network: Ledger 9's on mainnet, Ledger 8's elsewhere (until those networks fork). */
+export const proofServerImageFor = (network: Network): string =>
+  network === 'mainnet' ? PROOF_SERVER_IMAGE_LEDGER9 : PROOF_SERVER_IMAGE_LEDGER8;
+
+/** The proof server image VeilCore's own tools run on mainnet. */
+export const PROOF_SERVER_IMAGE = PROOF_SERVER_IMAGE_LEDGER9;
 
 /** The networks served only through Blockfrost: mainnet since 30 September 2026, preprod since 9 October 2026. */
 export type BlockfrostNetwork = 'mainnet' | 'preprod';
