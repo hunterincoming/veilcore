@@ -17,6 +17,8 @@ export const lab = {
   'app.signer.text': '{lead}.{rest}',
   'app.signer.keyNamed': 'einem Schlüssel namens „{name}“ (Name nicht geprüft)',
   'app.signer.keyUnnamed': 'einem Schlüssel, den niemand benannt hat',
+  'app.signer.domainBefore': 'Die Website ',
+  'app.signer.domainAfter': ' listet diesen Schlüssel, und der Schlüssel nennt diese Website (abgerufen am {date}).',
   'app.lab.saved.lab': 'gespeichert · passt zum signierten Bericht des Labors',
   'app.lab.saved.self': 'gespeichert · keine Laborsignatur passt dazu',
   'app.lab.saved.replacedNewer': 'vom Labor ersetzt – speichern Sie den korrigierten',
@@ -261,6 +263,18 @@ export const lab = {
     ' · noch nicht veröffentlicht: Bis dahin kann niemand Ihre Signaturen diesem Namen zuordnen.',
   'app.lab.key.publishAgain': 'Erneut veröffentlichen',
   'app.lab.key.publicKey': 'Öffentlicher Schlüssel',
+  'app.lab.key.domain.title': 'Ihr Schlüssel auf Ihrer eigenen Website',
+  'app.lab.key.domain.why':
+    'Legen Sie diese Datei auf Ihrer Website unter /.well-known/veilcore-lab.json ab, geben Sie unten Ihre Domain ein und drücken Sie „Jetzt nachsehen“. Ihr Schlüssel nennt die Website und die Website listet Ihren Schlüssel, sodass jeder ohne VeilCore sehen kann, dass beide zusammengehören, und Seiten mit Ihren Signaturen sagen das. Um den Schlüssel stillzulegen, entfernen Sie ihn aus der Datei.',
+  'app.lab.key.domain.saveFile': 'veilcore-lab.json speichern',
+  'app.lab.key.domain.orTxt':
+    'Oder, wenn Sie nur Ihr DNS ändern können, fügen Sie diesen TXT-Eintrag unter _veilcore-lab.<Ihre Domain> hinzu:',
+  'app.lab.key.domain.field': 'Domain Ihrer Website',
+  'app.lab.key.domain.look': 'Jetzt nachsehen',
+  'app.lab.key.domain.found': 'Gefunden: {domain} listet diesen Schlüssel. VeilCore sieht jeden Tag erneut nach.',
+  'app.lab.key.domain.notFound':
+    'Noch nicht gefunden ({why}). Prüfen Sie die Adresse der Datei und sehen Sie in zehn Minuten erneut nach.',
+  'app.lab.key.domain.couldNot': 'Konnte nicht nachsehen: {error}',
   'app.lab.key.privateWarning':
     'Ihr privater Schlüssel liegt unverschlüsselt im Speicher dieses Browsers und nirgendwo sonst. Zum Ausprobieren ist das in Ordnung. Alles, was auf dieser Website laufen kann, oder eine Browsererweiterung mit Zugriff darauf, könnte ihn lesen. Wenn Sie ihn verlieren, können Sie nichts Neues signieren; was Sie zuvor signiert haben, bleibt gültig, also sichern Sie ihn an einem sicheren Ort. Ein Labor, das ihn wirklich nutzt, würde in seinen eigenen Systemen signieren: siehe den <link>Integrationsleitfaden</link>.',
   'app.lab.key.downloadBackup': 'Schlüsselsicherung herunterladen',

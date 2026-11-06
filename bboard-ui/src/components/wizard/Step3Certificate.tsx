@@ -151,11 +151,12 @@ export const Step3Certificate: React.FC<{
   // takes delivery, with no name and no signature. Only a receipt the lab linked to the
   // delivery, checked here, is printed as one.
   const deliveryLine = receiptLineFor(record, receipt);
-  // On screen, a checked name's listing is a link (round 4). The line ends with the label's
-  // `rest` exactly when the name is checked; that tail is drawn by NameCheckText instead.
+  // On screen, a checked name's listing and the lab's own website are links (round 4;
+  // docs/lab-domain-keys.md). The line ends with the label's `rest` whenever there is one;
+  // that tail is drawn by NameCheckText instead.
   const receiptLabel = !record.receivedFrom && receipt?.kind === 'signed' ? signerLabel(receipt.by) : null;
   const deliveryHead =
-    receiptLabel?.checked && deliveryLine.endsWith(receiptLabel.rest)
+    receiptLabel?.rest && deliveryLine.endsWith(receiptLabel.rest)
       ? deliveryLine.slice(0, deliveryLine.length - receiptLabel.rest.length)
       : null;
 
