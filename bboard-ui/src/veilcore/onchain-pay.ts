@@ -91,7 +91,7 @@ export const addressPrefix = (network: string = NETWORK): string =>
 /**
  * Why an unshielded address can't be paid to on this network, or undefined when it can: a
  * Bech32m string with a good checksum and this network's prefix (Midnight's address format,
- * @midnight-ntwrk/wallet-sdk-address-format). A typo fails the checksum, so it is caught here
+ * @midnightntwrk/wallet-sdk-address-format). A typo fails the checksum, so it is caught here
  * and not after the money has gone.
  */
 export const addressProblem = (

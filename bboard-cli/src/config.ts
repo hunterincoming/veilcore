@@ -15,10 +15,12 @@
 
 import path from 'node:path';
 import {
+  defaultContainersConfiguration,
   EnvironmentConfiguration,
   getTestEnvironment,
   ProofServerClient,
   RemoteTestEnvironment,
+  setContainersConfiguration,
   TestEnvironment,
 } from '@midnight-ntwrk/testkit-js';
 import { setNetworkId } from '../../api/src/network-id.js';
@@ -90,6 +92,7 @@ export class PreprodRemoteConfig implements Config {
 export class MainnetConfig implements Config {
   getEnvironment(logger: Logger): TestEnvironment {
     setNetworkId('mainnet');
+    useMainnetProofServer();
     return new MainnetEnvironment(logger);
   }
   privateStateStoreName = 'veilcore-mainnet-private-state';
@@ -98,6 +101,18 @@ export class MainnetConfig implements Config {
   generateDust = false;
   mainnet = true;
 }
+
+/**
+ * Mainnet moved to Midnight Ledger 9 on 6 November 2026, and a proof server serves one ledger:
+ * the CLI starts proof-server-mainnet.yml (9.0.0) for mainnet, proof-server.yml (8.1.3) for the
+ * test networks until they fork. testkit-js reads the file name when it starts the container.
+ */
+export const MAINNET_PROOF_SERVER_FILE = 'proof-server-mainnet.yml';
+export const useMainnetProofServer = (): void =>
+  setContainersConfiguration({
+    ...defaultContainersConfiguration,
+    proofServer: { ...defaultContainersConfiguration.proofServer, fileName: MAINNET_PROOF_SERVER_FILE },
+  });
 
 /** The networks served only through Blockfrost: mainnet since 30 Sep 2026, preprod since 9 Oct 2026. */
 export type BlockfrostNetwork = 'mainnet' | 'preprod';

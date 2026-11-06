@@ -51,7 +51,7 @@ SPONSOR_SEED=<paste from step 3>
 SPONSOR_FORBIDDEN_ADDRESSES=<1AM mn_addr1…>,<1AM mn_dust1…>
 VEILCORE_CONTRACT_ADDRESS=a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347
 BLOCKFROST_PROJECT_ID=<your Midnight Mainnet Blockfrost id>
-PROOF_SERVER_URL=http://proof-server.railway.internal:6300
+PROOF_SERVER_URL=http://proof-server-ledger9.railway.internal:6300
 STATE_DIR=/data
 ALLOWED_ORIGINS=https://veilcore.org,https://www.veilcore.org
 TRUST_PROXY_HOPS=1
@@ -135,3 +135,28 @@ Codes only: no balances, no error text, no token.
 
 Optional: a second monitor on the test sponsor's `/sponsor/alerts`, so test-site problems
 show up too.
+
+## 8. After Midnight's Ledger 9 fork (6 November 2026)
+
+Mainnet moved to Ledger 9. The `ledger-9` branch moves the site, sponsor and tools to
+midnight-js 5, which calls VeilCore's unchanged Ledger 8 contract on either ledger. A proof
+server serves one ledger, so the mainnet sponsor needs a 9.0.0 one. In this order (registry,
+then sponsor, then site):
+
+1. **Registry**: nothing in this repo. If `veilcore-api` calls Midnight itself, it needs the
+   same upgrade in its own repo first.
+2. **Proof server**: Railway → New → Docker Image → `midnightntwrk/proof-server:9.0.0`, start
+   command `midnight-proof-server -v`, name it `proof-server-ledger9`, no public domain. Leave
+   `proof-server` (8.1.3) as it is: preprod still uses it.
+3. **Sponsor**: `npm run stage -w sponsor`, then
+   `railway up "<stage folder>" --path-as-root --service veilcore-sponsor-mainnet`. When that
+   deploy is up, change its variable `PROOF_SERVER_URL` to
+   `http://proof-server-ledger9.railway.internal:6300` and deploy again (a Restart does not
+   apply variables). Wait until `/sponsor/status` says `"synced": true`.
+4. **Site**: `VITE_INDEXER_RELAY_URL=<relay>/indexer VEILCORE_MAINNET_SPONSOR=<sponsor> npm run deploy:mainnet`,
+   then commit `releases/` ("Release list: mainnet") and push.
+
+If dating does not work after that, the site can say so: add `VITE_DATING_PAUSED=true` in
+front of the step 4 command and deploy. It shows "Dating on Midnight is paused for Midnight's
+network upgrade. Your records are saved and will be dated when it's back." in all five
+languages. Deploy again without it to take it down.

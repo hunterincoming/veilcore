@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Midnight's Ledger 9 fork: midnight-js 5 (6 Nov 2026)
+
+- Mainnet moved to Midnight Ledger 9 on 6 November 2026. The site, sponsor, client API,
+  partner kit, CLI, VeilCore-run and committee tools move to midnight-js 5.0.0 and wallet SDK
+  2.0.0, and call the same Ledger 8 contracts on a network before or after the fork. The
+  contracts are not changed or recompiled.
+- Contract state written by either ledger is read (`contract/src/contract-state.ts`).
+- The sponsor reads and checks a transaction with the ledger that wrote it; every policy
+  refusal is tested on both.
+- The browser proves with zkir-v2, which proves these contracts' circuits in a Ledger 9
+  transaction (zkir-v3 refuses them).
+- Contract maintenance (circuit keys, authority, retirement, the committee tools) is refused
+  on a network past the fork, before anything is built: midnight-js 5 cannot maintain a Ledger
+  8 contract there.
+- Proof server: 9.0.0 on mainnet, 8.1.3 on test networks until they fork.
+- A switch for a notice that dating is paused (`VITE_DATING_PAUSED`), off by default, in all
+  five languages.
+- Lockfile review: `docs/log/ledger-9-lockfile.md`.
+
 ### Claims: prove one number from a sealed certificate, test networks (29 Oct 2026)
 
 - A certificate's numbers can be sealed with it, under a published form (cannabinoid potency,

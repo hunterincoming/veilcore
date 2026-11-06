@@ -10,7 +10,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { WalletSeeds, TEST_MNEMONIC } from '@midnight-ntwrk/testkit-js';
 import { DustSecretKey } from '@midnight-ntwrk/midnight-js-protocol/v9';
-import { DustAddress } from '@midnight-ntwrk/wallet-sdk-address-format';
+import { DustAddress } from '@midnightntwrk/wallet-sdk';
 import { setNetworkId } from '../../api/src/network-id.js';
 import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
 import { type Logger } from 'pino';

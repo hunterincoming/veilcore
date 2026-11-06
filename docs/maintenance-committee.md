@@ -5,6 +5,17 @@ The tools are built and tested against Midnight's own ledger code on a computer.
 not run on preprod or mainnet. The preprod rehearsal below comes first. Who holds the three
 keys is the founders' decision.
 
+**Since 6 November 2026 this cannot be sent on mainnet.** Mainnet moved to Midnight Ledger 9
+that day. VeilCore's contracts are Ledger 8 contracts (compactc 0.31.1). midnight-js 5 still
+calls them, but refuses to maintain a Ledger 8 contract on a Ledger 9 network: that needs the
+contract recompiled with a Ledger 9 compiler, which would change every circuit key, so VeilCore
+does not do it. The tools now say so and stop before a wallet is opened (`submit.mjs`,
+`assertMaintenanceAvailable`); `show`, `request` and signing still work. On preprod, until it
+forks, everything below works as before. The same holds for adding or removing circuit keys
+and for retiring the authority (`api/src/maintenance.ts`). Whether Midnight will offer a way
+to maintain Ledger 8 contracts after the fork is not known; `docs/upgrades.md` has the plan
+for a new contract version instead.
+
 ---
 
 ## The short version

@@ -22,6 +22,7 @@ import {
   isNetwork,
   memoryPrivateState,
   passwordProblem,
+  proofServerImageFor,
   scrubTerminal,
   seedWallet,
 } from '@veilcore/contracts';
@@ -111,7 +112,7 @@ export const openChain = async (
   if (health === null || !health.ok)
     throw new Error(
       `No proof server answers at ${s.proofServer}. Start one on this machine: ` +
-        'docker run -d -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:8.1.3@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c midnight-proof-server -v',
+        `docker run -d -p 127.0.0.1:6300:6300 ${proofServerImageFor(s.network)} midnight-proof-server -v`,
     );
   io.print(`Checking the proving keys against the deployment record...`);
   await checkKeys(s.keys);
