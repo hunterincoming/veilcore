@@ -16,7 +16,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { zipSync, strToU8 } from 'fflate';
-import { verifyAttestation, verifyRetraction } from 'veilcore-records';
+import { timestampTokenBytes, verifyAttestation, verifyRetraction, verifyTimestampToken } from 'veilcore-records';
 import type { InclusionProof, SignedAttestation, Retraction } from 'veilcore-records';
 import type { StrainRecord } from '../records';
 import type { RecordKeys } from '../record-keys';
@@ -47,6 +47,8 @@ import {
   oneLine,
   sealedNameOf,
   subjectOf,
+  type Subject,
+  tsaSteps,
   utcWords,
   wrap,
 } from './words';
@@ -63,6 +65,8 @@ const BASE = import.meta.env.VITE_API_BASE ?? '';
 export const EVIDENCE_FORMAT = 'veilcore-evidence-bundle/v1';
 /** Where the lab report file goes, when the holder includes it: nothing else is in there. */
 export const LAB_FILE_DIR = 'lab/report';
+/** Where a document record's own files go, when the holder includes them. */
+export const DOCUMENT_FILE_DIR = 'document/files';
 const CONTENT_ALGORITHM = 'sha256/canonical-json/v1';
 /** The OpenTimestamps file header: anything else from a registry is left out, not shipped. */
 const OTS_MAGIC = '\x00OpenTimestamps\x00\x00Proof\x00';
@@ -85,6 +89,21 @@ export type BatchFacts = {
     readonly calendars?: string[];
     readonly file?: string;
   };
+  /**
+   * An RFC 3161 timestamp on the batch root from a Time Stamping Authority (registry
+   * lineage/tsa.mjs). Kept only when the token checks here against the root; genTime and
+   * signer are read from the token itself, tsa and qualified are what the registry said.
+   */
+  readonly rfc3161: {
+    readonly available: boolean;
+    readonly genTime?: string;
+    readonly signer?: string;
+    readonly tsa?: string;
+    readonly qualified?: { readonly scheme: string; readonly trustedList?: string };
+    /** The token was asked for well after sealing (registry: over two hours), so its time is later. */
+    readonly requestedAfterSeal?: boolean;
+    readonly file?: string;
+  };
 };
 
 export type Gathered = {
@@ -99,6 +118,8 @@ export type Gathered = {
   readonly batch: BatchFacts | null;
   /** The batch's .ots file. */
   readonly ots: Uint8Array | null;
+  /** The batch root's RFC 3161 token (DER), checked against the root. */
+  readonly tst: Uint8Array | null;
   /** Lab signatures (attestations) about the record's proof code, as served. */
   readonly attestations: Record<string, unknown>[];
 };
@@ -132,6 +153,7 @@ export const reconcile = async (
     attestations?: unknown;
   },
 ): Promise<Gathered> => {
+  let tst: Uint8Array | null = null;
   const state =
     raw.proof === null || raw.proof === undefined
       ? { status: 'none' as const }
@@ -149,6 +171,41 @@ export const reconcile = async (
       : undefined;
     const otsFacts = ots ?? (isObject(proofOts) ? { available: true, ...proofOts } : null);
     const otsOk = looksLikeOts(raw.ots ?? null);
+    // The RFC 3161 token: from the batch facts, or the proof's anchors (older route).
+    const proofTsa = Array.isArray((proof as unknown as Record<string, unknown>).anchors)
+      ? ((proof as unknown as Record<string, unknown>).anchors as unknown[]).find(
+          (a) => isObject(a) && a.kind === 'rfc3161',
+        )
+      : undefined;
+    const tsaFacts =
+      (sameBatch && isObject(b.rfc3161) && isString(b.rfc3161.token) ? b.rfc3161 : null) ??
+      (isObject(proofTsa) && isString(proofTsa.token) ? proofTsa : null);
+    let rfc3161: BatchFacts['rfc3161'] = { available: false };
+    if (tsaFacts) {
+      const bytes = timestampTokenBytes(tsaFacts.token as string);
+      const rootBytes = Uint8Array.from(proof.root.match(/../g) ?? [], (x) => parseInt(x, 16));
+      const v = bytes ? await verifyTimestampToken(bytes, rootBytes).catch(() => null) : null;
+      if (bytes && v?.ok) {
+        tst = bytes;
+        const q = isObject(tsaFacts.qualified) && isString(tsaFacts.qualified.scheme) ? tsaFacts.qualified : null;
+        rfc3161 = {
+          available: true,
+          ...(v.genTime ? { genTime: v.genTime } : {}),
+          ...(v.signerSubject ? { signer: v.signerSubject } : {}),
+          ...(isString(tsaFacts.tsa) ? { tsa: tsaFacts.tsa } : {}),
+          ...(tsaFacts.requestedAfterSeal === true ? { requestedAfterSeal: true } : {}),
+          ...(q
+            ? {
+                qualified: {
+                  scheme: q.scheme as string,
+                  ...(isString(q.trustedList) ? { trustedList: q.trustedList } : {}),
+                },
+              }
+            : {}),
+          file: 'proof/root.tst',
+        };
+      }
+    }
     batch = {
       batchId: proof.batchId,
       root: proof.root,
@@ -173,6 +230,7 @@ export const reconcile = async (
         ...(otsFacts && Array.isArray(otsFacts.calendars) ? { calendars: otsFacts.calendars.filter(isString) } : {}),
         ...(otsOk ? { file: 'proof/root.bin.ots' } : {}),
       },
+      rfc3161,
     };
   }
   const attestations = (Array.isArray(raw.attestations) ? raw.attestations : []).filter(
@@ -185,6 +243,7 @@ export const reconcile = async (
     proofRefused: raw.proof !== null && raw.proof !== undefined && proof === null,
     batch,
     ots: proof && looksLikeOts(raw.ots ?? null) ? (raw.ots as Uint8Array) : null,
+    tst,
     attestations,
   };
 };
@@ -269,6 +328,11 @@ export type EvidenceOptions = {
   readonly includeKey: boolean;
   /** The lab report file, when the holder ticks it and picks it. Checked before it goes in. */
   readonly labFile?: { readonly name: string; readonly bytes: Uint8Array };
+  /**
+   * A document record's own files, when the holder picks them to go in (document-profile.ts).
+   * Each must be byte for byte one of the files the record sealed, or nothing is downloaded.
+   */
+  readonly documentFiles?: readonly { readonly name: string; readonly bytes: Uint8Array }[];
   /** For tests: when the bundle was made. */
   readonly now?: Date;
   /**
@@ -380,6 +444,8 @@ export type Evidence = {
    * where the holder's deliveries could be read; absent otherwise.
    */
   readonly custody?: readonly CustodyEntry[];
+  /** A document record's files copied into the bundle, each checked against the seal. */
+  readonly documentFiles?: readonly { readonly path: string; readonly sha256: string; readonly sealedName: string }[];
   readonly key: {
     readonly identity: string;
     readonly keySalt: string;
@@ -405,6 +471,15 @@ export const specVersionLine = (spec: string = DOCS.spec.md): string =>
     .find((l) => /^Version /.test(l))
     ?.trim() ?? `the spec in VeilCore SDK ${DOCS_VERSION}`;
 const hexOf = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+/** The picked file with this SHA-256, if any. */
+const findBytes = async (
+  picked: readonly { readonly bytes: Uint8Array }[],
+  sha: string,
+): Promise<Uint8Array | undefined> => {
+  for (const p of picked) if ((await sha256OfBytes(p.bytes)) === sha) return p.bytes;
+  return undefined;
+};
+
 const sha256OfBytes = async (bytes: Uint8Array): Promise<string> =>
   hexOf(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes as unknown as BufferSource)));
 
@@ -419,6 +494,29 @@ export const safeFileName = (name: string): string => {
     .slice(0, 120)
     .trim();
   return cleaned || 'lab-report.bin';
+};
+
+/**
+ * A document file's name in the zip: the sealed name, kept readable in any language
+ * ("Resolución 41.pdf", "契約書.pdf"), but never a path, a hidden file or a control character.
+ * zipSync marks non-ASCII names as UTF-8, so zip tools show them as written.
+ */
+export const documentFileName = (name: string): string => {
+  const ext = /\.([A-Za-z0-9]{1,8})$/.exec(name)?.[1]?.toLowerCase();
+  const clean = (v: string) =>
+    v
+      .normalize('NFC')
+      .replace(/[\\/:*?"<>|]/g, '-')
+      .replace(/[^\p{L}\p{M}\p{N} ._()\-,'&+]/gu, '')
+      .replace(/ {2,}/g, ' ')
+      .replace(/^[.\s]+/, '')
+      .replace(/[.\s]+$/, '')
+      .trim();
+  let stem = clean(ext ? name.slice(0, -(ext.length + 1)) : name);
+  // Windows can't make a file called CON, NUL, COM1 and so on, whatever its extension.
+  if (/^(con|prn|aux|nul|com\d|lpt\d)$/i.test(stem)) stem = `_${stem}`;
+  if (!stem || /^[.\-_ ]*$/.test(stem)) stem = 'document';
+  return `${stem.slice(0, 110).trim()}.${ext ?? 'bin'}`;
 };
 
 /** The saved lab report's SHA-256: kept on the record since round 5, else from a lab signature it matches. */
@@ -596,6 +694,36 @@ export const buildEvidence = async (
 
   const custody = options.deliveries ? await custodyEntries(record, options.deliveries, gathered.attestations) : [];
 
+  // A document's own files, when the holder picked them: each must be one of the sealed files.
+  const documentFiles: { path: string; sha256: string; sealedName: string }[] = [];
+  if (options.documentFiles?.length) {
+    const sealed = Array.isArray(sealedFields.files)
+      ? (sealedFields.files as { name?: unknown; sha256?: unknown }[])
+      : null;
+    if (!sealed) throw new BundleRefusal('This record seals no files, so there is nothing to include.');
+    const used = new Set<string>();
+    for (const f of options.documentFiles) {
+      const sha = await sha256OfBytes(f.bytes);
+      const match = sealed.find((s) => s.sha256 === sha);
+      if (!match) {
+        throw new BundleRefusal(
+          `${f.name || 'That file'} isn’t byte for byte any file sealed in this record, so it wasn’t included. Nothing was downloaded.`,
+        );
+      }
+      if (documentFiles.some((d) => d.sha256 === sha)) continue;
+      // In a folder of their own; two different files can't take one name.
+      const base = documentFileName(isString(match.name) ? match.name : f.name);
+      let name = base;
+      for (let n = 2; used.has(name.toLowerCase()); n++) name = `${n}-${base}`;
+      used.add(name.toLowerCase());
+      documentFiles.push({
+        path: `${DOCUMENT_FILE_DIR}/${name}`,
+        sha256: sha,
+        sealedName: isString(match.name) ? match.name : '',
+      });
+    }
+  }
+
   return {
     format: EVIDENCE_FORMAT,
     createdAt: now.toISOString(),
@@ -625,6 +753,7 @@ export const buildEvidence = async (
     labReport,
     signatures: gathered.attestations,
     ...(custody.length ? { custody } : {}),
+    ...(documentFiles.length ? { documentFiles } : {}),
     key,
   };
 };
@@ -667,7 +796,7 @@ export const signatureLines = async (
   fingerprint: string,
   savedFileSha?: string,
   /** What the record describes: "the lab report saved to this plant" or "… this animal". */
-  subject: 'plant' | 'animal' | 'strain' = 'plant',
+  subject: Subject = 'plant',
   /** The lab report salt (round 6, lab-doc.ts): a bound lab report signature is matched with it. */
   labSalt?: string,
 ): Promise<SignatureLine[]> => {
@@ -815,7 +944,7 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
     },
     {
       path: EXAMINER_FILE,
-      what: 'a printable summary for a lawyer or examiner: the record as sealed, its proof code, batch and transaction, how it was checked, lab signatures and sample receipts, and what it shows and does not. Open it in a browser and print it to PDF. It checks nothing itself; verify.html rechecks what it reports.',
+      what: 'a printable summary for a lawyer or examiner: the record as sealed, its proof code, batch and transaction, how it was checked, any lab signatures and sample receipts, and what it shows and does not. Open it in a browser and print it to PDF. It checks nothing itself; verify.html rechecks what it reports.',
     },
     {
       path: DECLARATION_FILE,
@@ -829,6 +958,12 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
       what: `the record's proof code, worked out from the sealed fields${ev.record.fingerprintAlgorithm === KEY_BOUND_ALGORITHM ? " and the record's key" : ''}.`,
     },
   ];
+  for (const f of ev.documentFiles ?? []) {
+    out.push({
+      path: f.path,
+      what: `a copy of the sealed file ${f.sealedName ? `“${oneLine(f.sealedName)}”` : ''}, byte for byte (SHA-256 ${f.sha256}). verify.html checks it if you pick it.`,
+    });
+  }
   if (ev.proof && ev.batch) {
     out.push(
       {
@@ -840,6 +975,11 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
       { path: 'proof/anchors.json', what: "where the batch root was recorded, as VeilCore's registry reported it." },
     );
     if (hasOts) out.push({ path: 'proof/root.bin.ots', what: 'the Bitcoin stamp file (OpenTimestamps) for root.bin.' });
+    if (ev.batch.rfc3161?.available)
+      out.push({
+        path: 'proof/root.tst',
+        what: 'the timestamp token (RFC 3161) a Time Stamping Authority signed over root.bin.',
+      });
     if (checkScriptFor(ev))
       out.push({
         path: 'proof/check-on-midnight.mjs',
@@ -878,7 +1018,8 @@ export const tiedToPlantLines = (ev: Evidence, sigs: readonly SignatureLine[], d
   // (A test's evidence may carry only its lab report: then it reads as a plant's, as before.)
   const subject = subjectOf((ev as Partial<Evidence>).record?.sealedFields);
   // In English (the bundle's files are), with "animal" for an animal record (translate.ts forKind).
-  const en = forKind(enT, subject);
+  // (Never called for a document: README.txt gives it documentFileLines instead.)
+  const en = forKind(enT, subject === 'document' ? 'plant' : subject);
   let tie: DnaTie;
   if (!ev.labReport) tie = { state: 'none' };
   else if (!ev.labReport.fileSha256) tie = { state: 'saved' };
@@ -914,6 +1055,38 @@ export const tiedToPlantLines = (ev: Evidence, sigs: readonly SignatureLine[], d
   return out;
 };
 
+/**
+ * README.txt's "THE DOCUMENT'S FILES", for a document record (SPEC 11.11): each sealed file's
+ * name, size and SHA-256, how to check a file against them by hand, and what that does and
+ * doesn't show. The file itself is never in the record; a copy is in this bundle only if the
+ * holder included it.
+ */
+export const documentFileLines = (ev: Evidence): string[] => {
+  const f = ev.record.sealedFields;
+  const files = Array.isArray(f.files) ? (f.files as { name?: unknown; sha256?: unknown; size?: unknown }[]) : [];
+  const L: string[] = ["THE DOCUMENT'S FILES"];
+  L.push(
+    `This record seals ${files.length === 1 ? 'one file' : `${files.length} files`} by name, size and SHA-256 code. The ${files.length === 1 ? 'file itself is' : 'files themselves are'} not in the record.`,
+  );
+  for (const x of files) {
+    L.push(
+      `- ${isString(x.name) ? oneLine(x.name) : '(no name)'}, ${isNumber(x.size) ? `${x.size} bytes` : 'size not given'}, SHA-256 ${isString(x.sha256) ? x.sha256 : '(missing)'}`,
+    );
+  }
+  L.push(
+    ev.documentFiles?.length
+      ? `A copy of ${ev.documentFiles.length === files.length ? 'every file' : `${ev.documentFiles.length} of them`} is in ${DOCUMENT_FILE_DIR}/.`
+      : 'No copy of the files is in this bundle: the holder gives them to you separately.',
+  );
+  L.push(
+    'To check that a file you have is one of these: open verify.html and pick it under "Check other files", or work out its SHA-256 yourself. On a Mac: shasum -a 256 "the file". On Windows: certutil -hashfile "the file" SHA256. On Linux: sha256sum "the file". It must equal one of the codes above exactly; if one character differs, it is not the same file.',
+  );
+  L.push(
+    "What a match shows: a file with exactly these bytes was in the holder's hands by the record's date. What it doesn't: that the document is genuine, that the issuer named in it issued it, or that what it says is true; the title, type, issuer and dates are the holder's own statements.",
+  );
+  return L;
+};
+
 /** README.txt: what each file is, what it proves, what it doesn't. Plain words; formulas at the end. */
 export const readmeText = (
   ev: Evidence,
@@ -941,6 +1114,14 @@ export const readmeText = (
   L.push(
     "A batch is a group of records dated together. Its batch root is one code that stands for every record in it: the batch root is what gets recorded on Midnight, and this record's proof leads from its own proof code to it.",
   );
+  const tsa = ev.batch?.rfc3161?.available ? ev.batch.rfc3161 : null;
+  if (ev.batch && (bitcoin || tsa)) {
+    L.push('');
+    L.push('THE DATES');
+    L.push(
+      `The batch root is dated ${[bitcoin ? 'on Bitcoin (OpenTimestamps)' : null, tsa ? 'by a Time Stamping Authority (RFC 3161)' : null, anchor ? 'on Midnight' : null].filter(Boolean).join(', ')}. Each is separate. ${bitcoin || tsa ? `${[bitcoin ? 'The Bitcoin stamp' : null, tsa ? 'the timestamp token' : null].filter(Boolean).join(' and ')} can be checked with standard public tools, by anyone, without VeilCore or Midnight. ` : ''}Rely on the earliest date you have checked yourself.`,
+    );
+  }
   if (lockedParents > 0) {
     L.push('');
     L.push(
@@ -956,8 +1137,12 @@ export const readmeText = (
     );
   }
   L.push('');
-  L.push(`TIED TO THE ${subject.toUpperCase()}`);
-  L.push(...tiedToPlantLines(ev, sigs, dnaReportDatedBy));
+  if (subject === 'document') {
+    L.push(...documentFileLines(ev));
+  } else {
+    L.push(`TIED TO THE ${subject.toUpperCase()}`);
+    L.push(...tiedToPlantLines(ev, sigs, dnaReportDatedBy));
+  }
   L.push('');
   L.push('HOW TO CHECK IT (nothing from VeilCore needed)');
   L.push(
@@ -974,6 +1159,13 @@ export const readmeText = (
   } else {
     L.push("2. Date it: the record isn't in a batch yet. Download a new bundle once it is.");
   }
+  if (ev.batch?.earlierAnchors && ev.batch.earlierAnchors.length) {
+    for (const a of ev.batch.earlierAnchors) {
+      L.push(
+        `   Earlier, the same root was recorded on ${networkWords(a.network)} in transaction ${String(a.txHash)}. A later one took its place; both are listed in proof/anchors.json.`,
+      );
+    }
+  }
   if (bitcoin) {
     const reported =
       bitcoin.status === 'bitcoin'
@@ -987,26 +1179,37 @@ export const readmeText = (
       `   VeilCore's registry reported the stamp as ${reported} when the bundle was made. verify.html reads the stamp file itself and says what it shows.`,
     );
   }
-  if (ev.batch?.earlierAnchors && ev.batch.earlierAnchors.length) {
-    for (const a of ev.batch.earlierAnchors) {
-      L.push(
-        `   Earlier, the same root was recorded on ${networkWords(a.network)} in transaction ${String(a.txHash)}. A later one took its place; both are listed in proof/anchors.json.`,
-      );
-    }
+  if (tsa) {
+    L.push(`${bitcoin ? '4' : '3'}. A Time Stamping Authority (another separate date):`);
+    tsaSteps(tsa).forEach((step, i) => L.push(`   ${String.fromCharCode(97 + i)}. ${step}`));
   }
   L.push('');
   L.push('WHAT EACH FILE IS');
   for (const f of fileList(ev, !!bitcoin)) L.push(`- ${f.path}: ${f.what}`);
   L.push('');
-  L.push(`WHAT THIS PROVES, once step 2${bitcoin ? ' or step 3' : ''} checks out`);
+  const tsaStep = tsa ? (bitcoin ? '4' : '3') : null;
+  const otherSteps = [bitcoin ? '3' : null, tsaStep].filter(Boolean);
   L.push(
-    `- This record existed, unchanged, by the date of that transaction${bitcoin ? ' (or Bitcoin block)' : ''}. Whoever had it sealed held this record by that date.`,
+    `WHAT THIS PROVES, once step 2${otherSteps.length ? ` or step ${otherSteps.join(' or step ')}` : ''} checks out`,
+  );
+  L.push(
+    `- This record existed, unchanged, by the date of that transaction${[
+      bitcoin ? 'Bitcoin block' : null,
+      tsa ? 'the time the token states' : null,
+    ]
+      .filter(Boolean)
+      .map((x) => ` (or ${x})`)
+      .join('')}. Whoever had it sealed held this record by that date.`,
   );
   if (ev.key) L.push("- The record named this key when it was sealed, so the key can't have been swapped since.");
   for (const s of sigs) L.push(`- ${s.text}`);
   L.push('');
   L.push('WHAT THIS DOES NOT PROVE');
-  L.push('- That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.');
+  L.push(
+    subject === 'document'
+      ? "- That the document is genuine, that the issuer named in it issued it, or that what it says is true. The title, type, issuer and dates are the holder's own statements."
+      : '- That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.',
+  );
   L.push(`- Who holds the ${subject} or the record now.`);
   L.push("- That a signing key belongs to the lab it names. VeilCore doesn't vouch for anyone.");
   L.push(
@@ -1145,9 +1348,11 @@ export const bundleFiles = async (
         current: ev.batch.anchor,
         earlier: ev.batch.earlierAnchors ?? 'not reported by this registry',
         opentimestamps: ev.batch.opentimestamps,
+        rfc3161: ev.batch.rfc3161 ?? { available: false },
       }),
     );
     if (ots) add('proof/root.bin.ots', ots);
+    if (gathered.tst && ev.batch.rfc3161?.available) add('proof/root.tst', gathered.tst);
     const script = checkScriptFor(ev);
     if (script) add('proof/check-on-midnight.mjs', text(script));
   }
@@ -1159,6 +1364,12 @@ export const bundleFiles = async (
         throw new BundleRefusal('The bundle couldn’t be made. Nothing was downloaded.');
       add(ev.labReport.fileIncluded, options.labFile.bytes);
     }
+  }
+  for (const d of ev.documentFiles ?? []) {
+    const picked = options.documentFiles ? await findBytes(options.documentFiles, d.sha256) : undefined;
+    if (!picked || files[`${dir}/${d.path}`])
+      throw new BundleRefusal('The bundle couldn’t be made. Nothing was downloaded.');
+    add(d.path, picked);
   }
   if (ev.signatures.length) add('lab/signatures.json', json(ev.signatures));
   if (ev.key) add('key/key-binding.json', json(ev.key));

@@ -101,7 +101,7 @@ export const strain = {
     'Un laboratorio firmó que recibió una muestra. Cuando llegue su informe de ADN, guárdelo en esta cepa: eso es lo que vincula su registro con la cepa, para poder compararlo con una prueba posterior.',
   'app.strain.v.app.plant.next.save.action': 'Guardarlo en esta cepa',
   'app.strain.v.app.plant.next.ready.why':
-    'Un laboratorio firmó que recibió una muestra, y hay un informe de ADN guardado en esta cepa. Puede enviar material o licenciarlo, con condiciones que se aplican a la descendencia declarada a partir de este registro.',
+    'Un laboratorio firmó que recibió una muestra, y hay un informe de ADN guardado en esta cepa. Puede enviar material o licenciarla, con términos que se aplican a las cepas declaradas como derivadas de este registro.',
   'app.strain.v.app.plant.tree.none':
     'Todavía no hay linaje registrado. Agregue las cepas progenitoras al registrar para construir el árbol genealógico.',
   'app.strain.v.app.plant.anchor.keysNotHere':
@@ -179,4 +179,23 @@ export const strain = {
   'app.strain.v.app.verify.noMethod': 'No se registró cómo se obtuvo.',
   'app.strain.v.app.verify.bredByShared': 'Obtenida o aislada por, según lo escribió el titular: {name}',
   'app.strain.v.app.verify.noBredBy': 'No se registró quién la obtuvo o aisló.',
+  'app.strain.v.app.lic.row.offspring': 'Regalía sobre cepas derivadas',
+  'app.strain.v.app.lic.row.offspringValue': '{pct}%, sobre las cepas declaradas como derivadas de esta',
+  'app.strain.v.app.lic.f.offspring': 'Regalía sobre cepas derivadas (%)',
+  'app.strain.v.app.lic.f.offspringHelp':
+    'Se aplica a las cepas declaradas como derivadas de este registro (registradas con él como progenitor y confirmadas por ambos titulares). La derivación no declarada no se detecta. Déjelo en blanco si no hay.',
+  'app.strain.v.app.lic.f.extraHelpDeal':
+    'Cualquier otra cosa que forme parte del trato, con sus propias palabras. Por ejemplo: sin cesión a terceros, citar la fuente en las publicaciones, destruir las existencias restantes al terminar.',
+  'app.strain.v.app.lic.detail.thisCultivar': 'esta cepa',
+  'app.strain.v.app.lic.detail.lineage':
+    'Si más adelante se registra una cepa con {name} como progenitora y ambos titulares lo confirman, el vínculo con este acuerdo aparece en su registro. Las cepas derivadas que nadie registra no se detectan.',
+  'app.strain.v.app.lic.detail.derivatives.one': '{count} cepa ya registrada desciende de ella.',
+  'app.strain.v.app.lic.detail.derivatives.other': '{count} cepas ya registradas descienden de ella.',
+  'app.strain.v.app.lic.off.title': 'Regalía sobre cepas derivadas: {pct}%',
+  'app.strain.v.app.lic.off.intro':
+    'En Midnight queda en el propio registro del licenciatario de esta cepa, así que toda cepa derivada que ambos titulares confirmen la muestra cuando alguien comprueba el linaje. El licenciatario la acepta; solo el licenciante puede liberarla.',
+  'app.strain.v.app.lic.off.dateFirst': 'Primero feche su propio registro de esta cepa y luego indíquelo aquí.',
+  'app.strain.v.app.lic.off.datePlant': 'Fechar un registro',
+  'app.strain.v.app.lic.off.yourRecord': 'Su registro de esta cepa',
+  'app.strain.v.app.lic.off.waitName': 'Esperando a que indiquen su registro de esta cepa.',
 } satisfies Partial<AppTranslation>;

@@ -28,7 +28,26 @@ import { solvePow } from './pow';
 import type { CallDeps } from './prover-choice';
 
 const ZKIR = resolve(import.meta.dirname, '..', '..', '..', '..', 'contract', 'src', 'managed', 'veilcore', 'zkir');
+const CLAIMS_ZKIR = resolve(
+  import.meta.dirname,
+  '..',
+  '..',
+  '..',
+  '..',
+  'contract',
+  'src',
+  'managed',
+  'veilcore-claims',
+  'zkir',
+);
 const COIN = '0'.repeat(64);
+
+/** The claims contract's state as deployed: nothing claimed yet. */
+export const claimsContractState = async (): Promise<ContractState> => {
+  const { Contract: Claims } = await import('../../../../contract/src/managed/veilcore-claims/contract/index.js');
+  const { claimsWitnesses } = await import('../../../../contract/src/claims');
+  return new Claims(claimsWitnesses).initialState(createConstructorContext({ input: {} }, COIN)).currentContractState;
+};
 export const ADDRESS = 'c0'.repeat(32);
 
 /**
@@ -93,8 +112,14 @@ export type Recorded = { url: string; body?: string; headers?: Record<string, st
 /** `servedKeys: 'wrong'` serves verifier keys that are not the contract's. */
 export const standIns = (
   state: ContractState,
-  opts: { servedKeys?: 'contract' | 'wrong'; allowedCircuits?: readonly string[] } = {},
+  opts: {
+    servedKeys?: 'contract' | 'wrong';
+    allowedCircuits?: readonly string[];
+    /** The stand-in is the claims contract (claims-call.ts): its circuits, and the sponsor paying claims on it. */
+    claims?: boolean;
+  } = {},
 ) => {
+  const zkirDir = opts.claims ? CLAIMS_ZKIR : ZKIR;
   const requests: Recorded[] = [];
   const sealed: Uint8Array[] = [];
   const checkedCircuits: string[] = [];
@@ -105,7 +130,7 @@ export const standIns = (
       Promise.resolve({
         proverKey: new Uint8Array(),
         verifierKey: new Uint8Array(),
-        ir: jsonIrToBinary(readFileSync(resolve(ZKIR, `${loc}.zkir`), 'utf8')),
+        ir: jsonIrToBinary(readFileSync(resolve(zkirDir, `${loc}.zkir`), 'utf8')),
       }),
     getParams: () => Promise.reject(new Error('offline')),
   };
@@ -131,7 +156,9 @@ export const standIns = (
       const { verdict } = inspect(
         bytes,
         {
-          contractAddress: ADDRESS,
+          // A claims stand-in: the main contract is elsewhere, the claims contract is this one.
+          contractAddress: opts.claims ? 'ee'.repeat(32) : ADDRESS,
+          ...(opts.claims ? { claimsAddress: ADDRESS } : {}),
           allowedCircuits: new Set(opts.allowedCircuits ?? PHASE1_PUBLIC_CIRCUITS),
           maxBytes: 64_000,
           maxTtlMs: 3_600_000,

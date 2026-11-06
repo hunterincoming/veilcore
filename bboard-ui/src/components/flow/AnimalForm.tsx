@@ -30,6 +30,7 @@ import { ScreenHeading, focusScreenHeading, softDisabled } from './FlowFrame';
 import { useT, rich, type Translator } from '../../i18n/app';
 import { animalMissing, animalSealInputOf, type AnimalDraft, type LogKind, type ParentDraft } from './animal-draft';
 import { draftSizeShare, sizeWords } from '../../veilcore/records';
+import type { AppKey } from '../../i18n/app/en';
 
 /** "What are you logging?": a plant, an animal, or (where offered) a strain or line. Radio semantics, one press. */
 export const KindChoice: React.FC<{
@@ -140,6 +141,30 @@ const SCHEMES = [
   'app.animal.scheme.breedReg',
 ] as const;
 
+/**
+ * The shape an ID has under the official numberings (outside reviews, 5 Nov 2026: a herd book
+ * or registry joins records on its own IDs). Only a hint: the value is kept as typed, and the
+ * scheme that issued the number decides whether it is real.
+ *   Japan cattle ID: 10 digits (NLBC 個体識別番号).
+ *   USDA 840 / AIN: 15 digits starting 840 (ISO 11784 with the US country code).
+ *   Microchip: 15 digits (ISO 11784/11785 FDX-B).
+ */
+const ID_SHAPES: Partial<Record<(typeof SCHEMES)[number], { re: RegExp; hint: AppKey }>> = {
+  'app.animal.scheme.jp': { re: /^\d{10}$/, hint: 'app.animal.idShape.jp' },
+  'app.animal.scheme.usda840': { re: /^840\d{12}$/, hint: 'app.animal.idShape.usda840' },
+  'app.animal.scheme.microchip': { re: /^\d{15}$/, hint: 'app.animal.idShape.microchip' },
+};
+
+/** A hint when the ID doesn't have the shape its chosen scheme gives it; spaces and dashes ignored. */
+export const idShapeHint = (id: string, schemeText: string, label: (k: AppKey) => string): AppKey | undefined => {
+  const digits = id.replace(/[\s-]/g, '');
+  if (!digits) return undefined;
+  for (const [k, shape] of Object.entries(ID_SHAPES)) {
+    if (shape && label(k as AppKey) === schemeText.trim() && !shape.re.test(digits)) return shape.hint;
+  }
+  return undefined;
+};
+
 export const AnimalForm: React.FC<{
   step: string;
   choice?: React.ReactNode;
@@ -225,7 +250,7 @@ export const AnimalForm: React.FC<{
         label={t('app.animal.individualId')}
         value={draft.individualId}
         onChange={(e) => set('individualId', e.target.value)}
-        helperText={t('app.animal.individualIdHelp')}
+        helperText={t(idShapeHint(draft.individualId, draft.idScheme, (k) => t(k)) ?? 'app.animal.individualIdHelp')}
         fullWidth
       />
       <Autocomplete<string, false, false, true>

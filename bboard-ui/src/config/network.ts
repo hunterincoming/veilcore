@@ -148,7 +148,22 @@ export const ANIMAL_RECORDS_ENABLED: boolean = animalRecordsEnabledFor(NETWORK);
 
 /**
  * Strain and line records (veilcore/strain-profile.ts, docs/strain-profile.md): microbial
- * strains, cell lines, insect lines. The profile is a draft, so test networks only, as animal
- * records were before their v1 was final. Existing strain records show as strains everywhere.
+ * strains, fungi, cell lines, insect lines. On in every build, mainnet included, since the
+ * profile's version 1 was marked final (SPEC 11.9, 3 November 2026).
  */
-export const STRAIN_RECORDS_ENABLED: boolean = NETWORK !== 'mainnet';
+export const STRAIN_RECORDS_ENABLED = true;
+
+/**
+ * Numbers a laboratory signs with its report, and the genetic forms (docs/lab-signing.md). Test
+ * network only until the whole journey has run once there by hand: lab adds numbers, breeder
+ * adds them as a record, the signature goes on Midnight, a claim's check page names the lab.
+ */
+export const LAB_SIGNING_ENABLED = !IS_MAINNET;
+
+/**
+ * Document records (veilcore/document-profile.ts, docs/document-profile.md): a permit, a COA, a
+ * contract, sealed by its files' fingerprints. On in every build, mainnet included (31 Oct 2026):
+ * veilcore/profile/document/v1 is final (SPEC 11.11). Every site deploy refuses a registry whose
+ * /health doesn't list "document-profile-v1" (scripts/registry-features.mjs).
+ */
+export const DOCUMENT_RECORDS_ENABLED = true;

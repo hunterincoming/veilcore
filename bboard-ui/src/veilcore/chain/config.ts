@@ -8,7 +8,7 @@
 //   VITE_INDEXER_URL / VITE_INDEXER_WS_URL  the network's indexer (required on preprod: see INDEXERS)
 // SPDX-License-Identifier: Apache-2.0
 
-import { MAINNET_CONTRACT_ADDRESS, NETWORK } from '../../config/network';
+import { MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, NETWORK } from '../../config/network';
 
 const env = import.meta.env as unknown as Record<string, string | undefined>;
 
@@ -193,3 +193,35 @@ export const BROWSER_CIRCUITS = [
   'discharge',
 ] as const;
 export type BrowserCircuit = (typeof BROWSER_CIRCUITS)[number];
+
+// ── Claims (docs/claims-screen.md) ─────────────────────────────────────────────────────
+//
+//   VITE_REAL_CHAIN_CLAIMS_ADDRESS=…   the claims contract on this network (64 hex characters)
+//
+// A claim proves one number from a sealed certificate (proveRange, proveValue) or a lab's
+// signature on a record (proveAttested). On mainnet since 2 November 2026 (measured in a
+// laptop's browser on the test network; phones untried, so the screen says use a computer),
+// and there only on VeilCore's pinned claims contract: the sponsor's MAINNET_CLAIMS and this
+// say the same.
+const claimsAddr = (env.VITE_REAL_CHAIN_CLAIMS_ADDRESS ?? '').trim().toLowerCase().replace(/^0x/, '');
+/** The claims contract this build calls, or undefined when none is configured. */
+export const CLAIMS_CONTRACT: string | undefined = /^[0-9a-f]{64}$/.test(claimsAddr) ? claimsAddr : undefined;
+
+/** The claims circuits the browser may call. proveRange is k=16, proveValue k=15, proveAttested k=13. */
+export const CLAIMS_BROWSER_CIRCUITS = ['proveRange', 'proveValue', 'proveAttested'] as const;
+export type ClaimsCircuit = (typeof CLAIMS_BROWSER_CIRCUITS)[number];
+
+/** Why this build can't make claims, or undefined when it can. */
+export const claimsNotReady = (): string | undefined => {
+  const why = chainNotReady();
+  if (why) return why;
+  if (!CLAIMS_CONTRACT) return 'No claims contract is configured (VITE_REAL_CHAIN_CLAIMS_ADDRESS).';
+  if (NETWORK === 'mainnet' && !sameContract(CLAIMS_CONTRACT, MAINNET_CLAIMS_ADDRESS))
+    return 'The claims contract configured isn’t VeilCore’s on the main network.';
+  if (CHAIN_CONTRACT && sameContract(CLAIMS_CONTRACT, CHAIN_CONTRACT))
+    return 'The claims contract configured is the main contract.';
+  return undefined;
+};
+
+/** True when this build can make claims. */
+export const CLAIMS_READY: boolean = claimsNotReady() === undefined;

@@ -9,6 +9,7 @@ import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import {
+  subjectOf,
   useLicenses,
   getLicense,
   issueLicense,
@@ -34,7 +35,7 @@ import { offspringOf } from '../stage/self-chain';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { AppHeader } from '../AppHeader';
 import { rich, useT } from '../../i18n/app';
-import type { Translator } from '../../i18n/translate';
+import { forKind, type Translator } from '../../i18n/translate';
 import { LicenseStateChip } from './LicenseStateChip';
 import { isPracticeAgreement } from '../../veilcore/agreements-real';
 import { ShareLicense } from './ShareLicense';
@@ -71,7 +72,8 @@ export const LicenseDetail: React.FC = () => {
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const license = getLicense(id);
-  const tr = useT();
+  // An animal's or a strain's agreement in its own words (offspring, derived strains).
+  const tr = forKind(useT(), subjectOf(license?.terms));
   const [toast, setToast] = useState<string>();
   const blocked = useAgreementsWaitForBackup();
   const [royaltyInput, setRoyaltyInput] = useState('');

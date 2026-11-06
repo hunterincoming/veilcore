@@ -151,11 +151,12 @@ export const Step3Certificate: React.FC<{
   // takes delivery, with no name and no signature. Only a receipt the lab linked to the
   // delivery, checked here, is printed as one.
   const deliveryLine = receiptLineFor(record, receipt);
-  // On screen, a checked name's listing is a link (round 4). The line ends with the label's
-  // `rest` exactly when the name is checked; that tail is drawn by NameCheckText instead.
+  // On screen, a checked name's listing and the lab's own website are links (round 4;
+  // docs/lab-domain-keys.md). The line ends with the label's `rest` whenever there is one;
+  // that tail is drawn by NameCheckText instead.
   const receiptLabel = !record.receivedFrom && receipt?.kind === 'signed' ? signerLabel(receipt.by) : null;
   const deliveryHead =
-    receiptLabel?.checked && deliveryLine.endsWith(receiptLabel.rest)
+    receiptLabel?.rest && deliveryLine.endsWith(receiptLabel.rest)
       ? deliveryLine.slice(0, deliveryLine.length - receiptLabel.rest.length)
       : null;
 
@@ -169,7 +170,7 @@ export const Step3Certificate: React.FC<{
     const data = certificateSummary({
       ...(IS_MAINNET ? {} : { practice: PRACTICE_BAND }),
       record,
-      ...(animal || strain ? {} : { agreements: licensesForRecord(record.id) }),
+      agreements: licensesForRecord(record.id),
       anchored: anchorLine,
       secondParty: deliveryLine,
       ...(sampleCustody ? { sampleCustody } : {}),
@@ -414,7 +415,7 @@ export const Step3Certificate: React.FC<{
               </Field>
               {/* Date-checked (effectiveState: past its end date is expired), and said for what it
                   is: marked active, in this version from the issuer's own browser. */}
-              {!animal && !strain && <Field label="Agreements marked active">{activeLicenseCount(record.id)}</Field>}
+              <Field label="Agreements marked active">{activeLicenseCount(record.id)}</Field>
               <Field label="Record ID" mono>
                 {record.id}
               </Field>

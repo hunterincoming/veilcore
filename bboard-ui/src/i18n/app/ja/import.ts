@@ -110,6 +110,8 @@ export const importing = {
     '記録はすでに封印されており、{dated}でバッチによって日付が付きます。これは鍵の日付スタンプには左右されません。各植物の鍵にも、このブラウザから1日約{perDay}件ずつ日付スタンプが押されるので、待機中の{n}件には約{days}かかります。バックアップの後に始まります。',
   'app.import.sum.byBatch':
     '公開の日付スタンプは、バッチに{dated}で日付が付いたときに押されます。あなたがすることはありません。',
+  'app.import.sum.stampsLater':
+    '記録はすでに封印され、バッチとして{dated}に日付が付けられます。各植物の鍵の日付スタンプは必要になるまで待ちます。保有の証明やライセンスの前に、その植物のページで1〜2分で押せます。',
   'app.import.sum.untilSaved': '保存して確認するまで、新しい記録の鍵はこのブラウザにしかありません。',
   'app.import.sum.noDna.other':
     'このうち{count}件の植物にはまだDNA報告書がないため、植物そのものに結び付いていません。追加するには、植物のページを開いて「この植物のDNA報告書を取得する」に従ってください。ラボコードを付けてサンプルをラボに送るか、お手元の報告書を保存します。',
@@ -124,6 +126,10 @@ export const importing = {
   'app.import.stamps.stamping': '{name}に日付スタンプを押しています…',
   'app.import.stamps.allDone': 'すべて完了しました。',
   'app.import.stamps.goOn': '続ける',
+  'app.import.stamps.notNeeded':
+    '今は必要ありません。記録はバッチとして{dated}に日付が付けられます。鍵の日付スタンプが必要になるのは、その植物を保有していることを証明するときやライセンスを出すときだけで、そのときにその植物のページで1〜2分で押せます。何週間も待つ必要はありません。',
+  'app.import.stamps.startAll': '今すぐ全部にスタンプを押す',
+  'app.import.stamps.stopAll': 'やめて、必要なときに1件ずつ押す',
   'app.import.stamps.saveIt': '保存する',
   'app.import.stamps.newSince.other':
     'バックアップの後に、鍵の日付スタンプが{count}件押されました。残すには、新しいバックアップを保存してください。',

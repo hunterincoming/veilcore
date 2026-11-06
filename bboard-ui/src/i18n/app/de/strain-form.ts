@@ -68,8 +68,6 @@ export const strainForm = {
   'app.strain.x.method': 'Entstanden durch: {v}',
   'app.strain.x.generation': 'Generation: {v}',
   'app.strain.x.parents': 'Eltern: {v}',
-  'app.strain.noLicensing':
-    'Vereinbarungen und Lizenzgebühren gibt es für Stamm-Datensätze noch nicht: Eine Stammlizenz braucht eigene Bedingungen (Nutzung, Subkultur, abgeleitete Stämme), nicht die einer Pflanze.',
   'app.strain.f.generation': 'Generation oder Passage',
   'app.strain.f.parents': 'Elternstämme',
   'app.strain.verify.parentsLine': 'Elternstämme laut Inhaber: {v}',

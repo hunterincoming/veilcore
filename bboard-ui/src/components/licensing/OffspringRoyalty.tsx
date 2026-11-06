@@ -1,7 +1,7 @@
 // An offspring royalty on chain (docs/agreements-live.md, 6).
 //
 // A license whose terms carry a royalty on offspring becomes an obligation on Midnight
-// against the licensee's own record of the plant: the licensee names that record over the
+// against the licensee's own record of the genetics (a plant, an animal or a strain): the licensee names that record over the
 // deal's channel, the breeder proposes the obligation, the licensee accepts it, and only the
 // breeder can release it. From then on every record both holders confirm as its descendant
 // shows it when anyone checks the line (verify.ts, rule 3).
@@ -20,6 +20,7 @@ import { useChainCall } from '../chain/useChainCall';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import { ConfirmInline } from './DealSteps';
 import { rich, useT } from '../../i18n/app';
+import { forKind, type RecordKind } from '../../i18n/translate';
 
 type Status = 'none' | 'proposed' | 'in-force';
 
@@ -43,8 +44,10 @@ export const OffspringRoyalty: React.FC<{
   beneficiary: string;
   /** The breeder's record secret (issuer side only). */
   issuerSecret?: string;
-}> = ({ side, party, entries, refresh, pct, obligation, beneficiary, issuerSecret }) => {
-  const tr = useT();
+  /** What the licensed record is about (the terms' subject), for its words. */
+  kind?: RecordKind;
+}> = ({ side, party, entries, refresh, pct, obligation, beneficiary, issuerSecret, kind = 'plant' }) => {
+  const tr = forKind(useT(), kind);
   const allKeys = useRecordKeys();
   const plant = [...(entries ?? [])].reverse().find((e) => e.type === 'plant-record' && e.from === 'licensee') as
     | Extract<DealEntry, { type: 'plant-record' }>

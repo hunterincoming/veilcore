@@ -129,6 +129,8 @@ export const importing = {
     'Vos enregistrements sont déjà scellés et seront datés par leur lot sur {dated} ; cela ne dépend pas des horodatages de leurs clés. La clé de chaque plante reçoit aussi son propre horodatage depuis ce navigateur, environ {perDay} par jour : les {n} en attente prennent donc environ {days}. Ils commencent après votre copie de secours.',
   'app.import.sum.byBatch':
     'Leur horodatage public arrive quand leur lot est daté sur {dated}. Vous n’avez rien à faire.',
+  'app.import.sum.stampsLater':
+    "Vos fiches sont déjà scellées et seront datées avec leur lot sur {dated}. L'horodatage de la clé de chaque plante attend que vous en ayez besoin : avant de prouver que vous détenez une plante ou de la licencier, sa page le fait en une ou deux minutes.",
   'app.import.sum.untilSaved':
     'Tant qu’elle n’est pas enregistrée et vérifiée, les clés des nouveaux enregistrements ne sont que dans ce navigateur.',
   'app.import.sum.noDna.one':
@@ -147,6 +149,10 @@ export const importing = {
   'app.import.stamps.stamping': 'Horodatage de {name}…',
   'app.import.stamps.allDone': 'Tout est fait.',
   'app.import.stamps.goOn': 'Continuer',
+  'app.import.stamps.notNeeded':
+    "Vous n'en avez pas encore besoin. Vos fiches sont datées avec leur lot sur {dated}. L'horodatage de la clé d'une plante ne compte qu'avant de prouver que vous la détenez ou de la licencier, et la page de cette plante le fait alors en une ou deux minutes. Pas des semaines d'attente.",
+  'app.import.stamps.startAll': 'Les horodater toutes maintenant',
+  'app.import.stamps.stopAll': 'Arrêter, et horodater chacune quand il le faut',
   'app.import.stamps.saveIt': 'L’enregistrer',
   'app.import.stamps.newSince.one':
     '{count} horodatage de clé est arrivé après votre copie de secours. Enregistrez-en une nouvelle pour le garder.',

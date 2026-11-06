@@ -18,6 +18,8 @@ export const lab = {
   'app.signer.text': '{lead}.{rest}',
   'app.signer.keyNamed': 'a key named “{name}” (name not checked)',
   'app.signer.keyUnnamed': 'a key nobody has named',
+  'app.signer.domainBefore': 'The website ',
+  'app.signer.domainAfter': ' lists this key, and the key names that website (looked up on {date}).',
   // saved-report.ts
   'app.lab.saved.lab': 'saved · matches the lab’s signed report',
   'app.lab.saved.self': 'saved · no lab signature matches it',
@@ -253,6 +255,17 @@ export const lab = {
   'app.lab.key.notPublishedYet': ' · not published yet: until it is, nobody can match your signatures to this name.',
   'app.lab.key.publishAgain': 'Publish again',
   'app.lab.key.publicKey': 'Public key',
+  'app.lab.key.domain.title': 'Your key on your own website',
+  'app.lab.key.domain.why':
+    'Put this file on your website at /.well-known/veilcore-lab.json, then type your domain below and press Look now. Your key names the website and the website lists your key, so anyone can see they go together without asking VeilCore, and pages that show your signatures say so. To retire the key, take it out of the file.',
+  'app.lab.key.domain.saveFile': 'Save veilcore-lab.json',
+  'app.lab.key.domain.orTxt':
+    'Or, if you can only change your DNS, add this TXT record at _veilcore-lab.<your domain>:',
+  'app.lab.key.domain.field': 'Your website’s domain',
+  'app.lab.key.domain.look': 'Look now',
+  'app.lab.key.domain.found': 'Found: {domain} lists this key. VeilCore looks again every day.',
+  'app.lab.key.domain.notFound': 'Not found yet ({why}). Check the file’s address, then look again in ten minutes.',
+  'app.lab.key.domain.couldNot': 'Couldn’t look: {error}',
   'app.lab.key.privateWarning':
     "Your private key is stored in this browser's storage, unencrypted, and nowhere else. That's fine for trying it out. Anything that can run in this site, or a browser extension with access to it, could read it. If you lose it you can't sign anything new; what you signed before stays valid, so back it up somewhere safe. A lab using it for real would sign inside its own systems: see the <link>integration guide</link>.",
   'app.lab.key.downloadBackup': 'Download key backup',

@@ -8,10 +8,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { jsonIrToBinary, type KeyMaterialProvider, type ProvingKeyMaterial } from '@midnight-ntwrk/zkir-v2';
-import { BROWSER_CIRCUITS } from './config';
+import { BROWSER_CIRCUITS, CLAIMS_BROWSER_CIRCUITS } from './config';
 
-/** k of each phase-1 circuit (measured with Zkir.getK on the compiled circuits). */
-export const PARAMS_K = [13, 14] as const;
+/**
+ * k of each circuit the browser proves (measured with Zkir.getK on the compiled circuits): the
+ * main contract's are 13 and 14; the claims contract's proveAttested 13, proveValue 15 and
+ * proveRange 16 (docs/claims-design.md, Size).
+ */
+export const PARAMS_K = [13, 14, 15, 16] as const;
 
 export type Progress = (msg: string) => void;
 
@@ -52,7 +56,8 @@ export const makeKeyMaterialProvider = (origin: string, cacheName: string, progr
 
   return {
     lookupKey: (keyLocation: string) => {
-      if (!(BROWSER_CIRCUITS as readonly string[]).includes(keyLocation)) return Promise.resolve(undefined);
+      if (![...BROWSER_CIRCUITS, ...CLAIMS_BROWSER_CIRCUITS].includes(keyLocation as never))
+        return Promise.resolve(undefined);
       let m = memo.get(keyLocation);
       if (!m) {
         m = load(keyLocation);

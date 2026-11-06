@@ -46,9 +46,11 @@ const ALL = [
   'name-code-v1',
   'lab-doc-binding-v1',
   'dating-first-v1',
+  'document-profile-v1',
+  'strain-profile-v1',
 ];
 /** What agreements on chain use: required for a test site, and for mainnet once agreements are live. */
-const AGREEMENTS = ['license-invites-v1', 'deals-v1', 'payment-receipts-v1', 'passkey-vault-v1', 'strain-profile-v1'];
+const AGREEMENTS = ['license-invites-v1', 'deals-v1', 'payment-receipts-v1', 'passkey-vault-v1'];
 const DEPLOY_FIRST = /Deploy the registry first: put the registry's latest code live on Railway/;
 
 const healthOf = (o: { health?: unknown; noAgreements?: boolean }): unknown => {
@@ -106,10 +108,10 @@ const runScript = (script: string, env: Record<string, string>, cwd = ROOT) =>
   });
 
 describe('the features the site needs', () => {
-  it('are exactly sealed records, lab results, animal records, finishing a delivery, locked sample details, the record and agreement rev, locked names, bound DNA reports, sharing who bred it, name codes, bound lab reports and dating first', () => {
+  it('are exactly sealed records, lab results, animal records, finishing a delivery, locked sample details, the record and agreement rev, locked names, bound DNA reports, sharing who bred it, name codes, bound lab reports, dating first, document records and strain records', () => {
     expect(Object.keys(REQUIRED_FEATURES)).toEqual(ALL);
     expect(featuresLine('https://r.example')).toBe(
-      'Registry https://r.example serves sealed records, lab results, animal records, finishing a received delivery, locked sample details, refusing an older copy of a record, refusing an older copy of an agreement, locked record names, DNA reports shown only as a bound code, sharing who bred it, checking the name in a link, keeping lab report hashes private and dating a record the moment it is sealed.',
+      'Registry https://r.example serves sealed records, lab results, animal records, finishing a received delivery, locked sample details, refusing an older copy of a record, refusing an older copy of an agreement, locked record names, DNA reports shown only as a bound code, sharing who bred it, checking the name in a link, keeping lab report hashes private, dating a record the moment it is sealed, document records and strain and line records.',
     );
   });
 
@@ -149,6 +151,8 @@ describe('the features the site needs', () => {
           'name-code-v1',
           'lab-doc-binding-v1',
           'dating-first-v1',
+          'document-profile-v1',
+          'strain-profile-v1',
         ],
       },
       'R',
@@ -260,6 +264,8 @@ describe('deploy:test', () => {
           'name-code-v1',
           'lab-doc-binding-v1',
           'dating-first-v1',
+          'document-profile-v1',
+          'strain-profile-v1',
         ],
       },
     });
@@ -285,6 +291,8 @@ describe('deploy:test', () => {
           'name-code-v1',
           'lab-doc-binding-v1',
           'dating-first-v1',
+          'document-profile-v1',
+          'strain-profile-v1',
         ],
       },
     });
@@ -310,6 +318,8 @@ describe('deploy:test', () => {
           'name-code-v1',
           'lab-doc-binding-v1',
           'dating-first-v1',
+          'document-profile-v1',
+          'strain-profile-v1',
         ],
       },
     });
@@ -335,6 +345,8 @@ describe('deploy:test', () => {
           'name-code-v1',
           'lab-doc-binding-v1',
           'dating-first-v1',
+          'document-profile-v1',
+          'strain-profile-v1',
         ],
       },
     });
@@ -360,6 +372,8 @@ describe('deploy:test', () => {
           'name-code-v1',
           'lab-doc-binding-v1',
           'dating-first-v1',
+          'document-profile-v1',
+          'strain-profile-v1',
         ],
       },
     });

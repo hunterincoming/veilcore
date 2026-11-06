@@ -9,11 +9,13 @@ import type { Lang } from '../../config/languages';
 export const SEND_SCREEN_KEYS = [
   'app.prove.whatSends',
   'app.animal.v.app.prove.whatSends',
+  'app.strain.v.app.prove.whatSends',
   'app.prove.fewMinutes',
   'app.prove.ask.intro',
   'app.prove.watch.checkedAt',
   'app.prove.own.title',
   'app.animal.v.app.prove.own.title',
+  'app.strain.v.app.prove.own.title',
   'app.pair.chain.dated',
   'app.pair.chain.title',
   'app.pair.chain.testOnly',
@@ -34,6 +36,9 @@ export const APP_SENDS: Record<Lang, SendWords> = {
     'app.prove.watch.checkedAt': "Checked {when} on Midnight's main network.",
     'app.prove.own.title': 'Prove you hold this plant’s key',
     'app.animal.v.app.prove.own.title': 'Prove you hold this animal’s key',
+    'app.strain.v.app.prove.whatSends':
+      "<b>What this sends:</b> only proof that you hold this strain's record, put on Midnight's main network. No name, no genetics, nothing about your other records. VeilCore pays the fee.",
+    'app.strain.v.app.prove.own.title': 'Prove you hold this strain’s key',
     'app.pair.chain.dated': "This pairing is dated on Midnight's main network against this record.",
     'app.pair.chain.title': 'Also date this pairing on Midnight (optional)',
     'app.pair.chain.testOnly':
@@ -51,6 +56,9 @@ export const APP_SENDS: Record<Lang, SendWords> = {
     'app.prove.watch.checkedAt': 'Geprüft {when} im Hauptnetz von Midnight.',
     'app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieser Pflanze halten',
     'app.animal.v.app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieses Tieres halten',
+    'app.strain.v.app.prove.whatSends':
+      '<b>Was gesendet wird:</b> nur der Beweis, dass Sie den Datensatz dieser Linie halten, im Hauptnetz von Midnight. Kein Name, keine Genetik, nichts über Ihre anderen Datensätze. VeilCore zahlt die Gebühr.',
+    'app.strain.v.app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieser Linie halten',
     'app.pair.chain.dated': 'Diese Kopplung ist im Hauptnetz von Midnight für diesen Datensatz datiert.',
     'app.pair.chain.title': 'Diese Kopplung auch auf Midnight datieren (optional)',
     'app.pair.chain.testOnly':
@@ -68,6 +76,9 @@ export const APP_SENDS: Record<Lang, SendWords> = {
     'app.prove.watch.checkedAt': 'Comprobado {when} en la red principal de Midnight.',
     'app.prove.own.title': 'Demuestre que tiene la clave de esta planta',
     'app.animal.v.app.prove.own.title': 'Demuestre que tiene la clave de este animal',
+    'app.strain.v.app.prove.whatSends':
+      '<b>Qué se envía:</b> solo la prueba de que usted tiene el registro de esta cepa, puesta en la red principal de Midnight. Ni nombre, ni genética, ni nada sobre sus otros registros. VeilCore paga la tarifa.',
+    'app.strain.v.app.prove.own.title': 'Demuestre que tiene la clave de esta cepa',
     'app.pair.chain.dated': 'Este vínculo está fechado en la red principal de Midnight para este registro.',
     'app.pair.chain.title': 'Fechar también este vínculo en Midnight (opcional)',
     'app.pair.chain.testOnly':
@@ -85,6 +96,9 @@ export const APP_SENDS: Record<Lang, SendWords> = {
     'app.prove.watch.checkedAt': 'Vérifié {when} sur le réseau principal de Midnight.',
     'app.prove.own.title': 'Prouvez que vous détenez la clé de cette plante',
     'app.animal.v.app.prove.own.title': 'Prouvez que vous détenez la clé de cet animal',
+    'app.strain.v.app.prove.whatSends':
+      '<b>Ce qui est envoyé :</b> seulement la preuve que vous détenez l’enregistrement de cette souche, placée sur le réseau principal de Midnight. Pas de nom, pas de génétique, rien sur vos autres enregistrements. VeilCore paie les frais.',
+    'app.strain.v.app.prove.own.title': 'Prouvez que vous détenez la clé de cette souche',
     'app.pair.chain.dated': 'Cette association est datée sur le réseau principal de Midnight, pour cet enregistrement.',
     'app.pair.chain.title': 'Dater aussi cette association sur Midnight (facultatif)',
     'app.pair.chain.testOnly':
@@ -102,6 +116,9 @@ export const APP_SENDS: Record<Lang, SendWords> = {
     'app.prove.watch.checkedAt': '{when}にMidnightのメインネットワークで確認しました。',
     'app.prove.own.title': 'この植物の鍵を保有していることを証明する',
     'app.animal.v.app.prove.own.title': 'この動物の鍵を保有していることを証明する',
+    'app.strain.v.app.prove.whatSends':
+      '<b>送信される内容：</b>この系統の記録を保有していることの証明だけで、Midnightのメインネットワークに載せます。名前も、遺伝情報も、ほかの記録についても送りません。手数料はVeilCoreが支払います。',
+    'app.strain.v.app.prove.own.title': 'この系統の鍵を保有していることを証明する',
     'app.pair.chain.dated': 'この紐付けには、この記録に対してMidnightのメインネットワーク上で日付が付いています。',
     'app.pair.chain.title': 'この紐付けにもMidnight上で日付を付ける（任意）',
     'app.pair.chain.testOnly':

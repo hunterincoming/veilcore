@@ -12,14 +12,14 @@ import type { SignerLabel } from '../veilcore/attesters';
 import { useT } from '../i18n/app';
 
 /**
- * signerLabel's `rest` (nothing when the name isn't checked), with a leading space. `english`:
+ * signerLabel's `rest` (nothing when the name isn't checked and no domain lists the key), with a leading space. `english`:
  * inside a part that stays in English whatever the page's language (the certificate card).
  */
 export const NameCheckText: React.FC<{ label: SignerLabel; english?: boolean }> = ({ label, english }) => {
   // The space between sentences: ' ' in English, none in Japanese (app.signer.sep).
   const page = useT().t('app.signer.sep');
   const sep = english ? ' ' : page;
-  return label.match ? (
+  const match = label.match ? (
     <>
       {sep}
       {label.match.before}
@@ -29,6 +29,23 @@ export const NameCheckText: React.FC<{ label: SignerLabel; english?: boolean }> 
       {label.match.after}
       {sep}
       {label.disclaimer}
+    </>
+  ) : null;
+  // The lab's own domain listing the key (docs/lab-domain-keys.md): a link so anyone can look.
+  const published = label.published ? (
+    <>
+      {sep}
+      {label.published.before}
+      <Link href={label.published.href} target="_blank" rel="noopener noreferrer" data-lab-domain="">
+        {label.published.host}
+      </Link>
+      {label.published.after}
+    </>
+  ) : null;
+  return match || published ? (
+    <>
+      {match}
+      {published}
     </>
   ) : null;
 };

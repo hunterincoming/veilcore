@@ -8,6 +8,7 @@
 import { isHex64, keyBoundFingerprint } from './key-binding';
 import { checkedAnimalFields, isAnimal, type AnimalDetails } from './animal-profile';
 import { checkedStrainFields, isStrain, type StrainDetails } from './strain-profile';
+import { checkedDocumentFields, isDocument, type DocumentDetails } from './document-profile';
 
 // The compiled `commit` circuit runs on Midnight's on-chain runtime, about 1.4 MB of
 // WebAssembly. It is loaded the first time it is needed, not with every page that imports
@@ -128,6 +129,11 @@ export type CommittedRecordInput = {
   animal?: Partial<AnimalDetails>;
   /** A strain or line record's own details (strain-profile.ts). Never on a plant record. */
   strain?: Partial<StrainDetails>;
+  /** A document record's own details (document-profile.ts). Never on a plant record. */
+  document?: Partial<DocumentDetails>;
+  /** A document's field set (SPEC 4.5), sealed with it: the schema id and the set's root. */
+  fieldSchema?: string;
+  fieldSetRoot?: string;
 };
 
 const checkedBinding = (v: unknown): string => {
@@ -144,7 +150,13 @@ const checkedBinding = (v: unknown): string => {
  * other record, old ones included, seals exactly the fields below, as before.
  */
 export const committedRecordFields = (r: CommittedRecordInput): Record<string, unknown> =>
-  isAnimal(r) ? checkedAnimalFields(r) : isStrain(r) ? checkedStrainFields(r) : plantRecordFields(r);
+  isAnimal(r)
+    ? checkedAnimalFields(r)
+    : isStrain(r)
+      ? checkedStrainFields(r)
+      : isDocument(r)
+        ? checkedDocumentFields(r)
+        : plantRecordFields(r);
 
 const plantRecordFields = (r: CommittedRecordInput): Record<string, unknown> => ({
   breedingMethod: r.breedingMethod ?? '',
@@ -164,12 +176,32 @@ const plantRecordFields = (r: CommittedRecordInput): Record<string, unknown> => 
   // Sealed when present, and only then: an older record's fields and fingerprint stay
   // exactly as they were. A malformed one is refused rather than sealed.
   ...(r.keyBinding !== undefined ? { keyBinding: checkedBinding(r.keyBinding) } : {}),
+  // A field set (SPEC 4.5): sealed when present, the two together, each 64 lowercase hex
+  // characters, or the record is refused (contentHashOf then folds the root in).
+  ...checkedFieldSet(r),
 });
 
-/** SHA-256 of the canonical sealed fields: the whole fingerprint of an older record. */
+const checkedFieldSet = (r: CommittedRecordInput): { fieldSchema?: string; fieldSetRoot?: string } => {
+  if (r.fieldSchema === undefined && r.fieldSetRoot === undefined) return {};
+  if (!isHex64(r.fieldSchema) || !isHex64(r.fieldSetRoot))
+    throw new Error('fieldSchema and fieldSetRoot come together, each 64 lowercase hex characters.');
+  return { fieldSchema: r.fieldSchema, fieldSetRoot: r.fieldSetRoot };
+};
+
+/**
+ * SHA-256 of the canonical sealed fields: the whole fingerprint of an older record. A record
+ * whose sealed fields carry a field set (SPEC 4.5: fieldSchema and fieldSetRoot, which only
+ * a document record may) is H("veilcore:v1:frecord", fieldSetRoot, that digest) instead, as
+ * the SDK's computeRecordFingerprint computes it.
+ */
 export const contentHashOf = async (r: CommittedRecordInput): Promise<string> => {
-  const { canonicalise: canon } = await import('veilcore-records');
-  return toHex(await sha256(new TextEncoder().encode(canon(committedRecordFields(r)))));
+  const { canonicalise: canon, fieldRecordCommitment, fromHex } = await import('veilcore-records');
+  const fields = committedRecordFields(r);
+  const digest = await sha256(new TextEncoder().encode(canon(fields)));
+  const root = fields.fieldSetRoot;
+  if (root === undefined) return toHex(digest);
+  if (!isHex64(root)) throw new Error('fieldSetRoot must be 64 lowercase hex characters.');
+  return toHex(await fieldRecordCommitment(fromHex(root), digest));
 };
 
 /**

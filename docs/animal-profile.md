@@ -91,9 +91,14 @@ name, date, photos, DNA report and key keeps working. What is sealed, and what a
   three profiles. That is what the lab's signed report says; this format dates it and ties
   it to the record. (The claims themselves don't depend on SNP data: the example field set
   is SSR loci. The reason is the question, not the marker type.)
-- **Agreements and royalties are not available for animal records yet.** Their terms speak of
-  propagation and offspring declared from a variety. The plant page's "License it" row and
-  the agreement screen say so for an animal.
+- **Agreements and royalties (from 29 Oct 2026).** An animal's license has its own terms:
+  breed with their own animals only; breed and collect semen or embryos for their own use;
+  breed, collect and sell semen, embryos or breeding stock; or a full transfer. A royalty is
+  charged per dose (straw or embryo), per offspring born or per unit sold, and a royalty on
+  offspring rides on animals later logged with it as sire or dam, both holders confirming.
+  Litter limits, no resale of straws and breed-society registration go in the additional
+  terms, in the parties' own words. The terms seal `subject: "animal"`, so both sides' pages
+  use these words. Offspring nobody logs are not detected.
 - **No "next generation" row.** An animal's offspring is another animal logged with it as
   sire or dam.
 - **A correction** changes an animal's name, breeder or notes; its ID, sex, sire and dam

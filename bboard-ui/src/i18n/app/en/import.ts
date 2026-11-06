@@ -128,6 +128,8 @@ export const importing = {
     "Your records are already sealed and will be dated by their batch on {dated}; that doesn't depend on their key stamps. Each plant's key also gets its own date stamp from this browser, about {perDay} a day, so {n} queued take about {days}. They start after your backup.",
   'app.import.sum.byBatch':
     'Their public date stamp comes when their batch is dated on {dated}. Nothing for you to do.',
+  'app.import.sum.stampsLater':
+    "Your records are already sealed and will be dated by their batch on {dated}. Each plant's own key stamp waits until you need it: before you prove you hold a plant or license it, its page does it in a minute or two.",
   'app.import.sum.untilSaved': "Until it's saved and checked, the new records' keys are only in this browser.",
   'app.import.sum.noDna.one':
     '{count} of these plants has no DNA report yet, so it isn’t tied to the plant itself. To add one, open the plant’s page and follow “Get a DNA report for this plant”: send a sample to a lab with a lab code, or save a report you already have.',
@@ -145,6 +147,10 @@ export const importing = {
   'app.import.stamps.stamping': 'Date stamping {name}…',
   'app.import.stamps.allDone': 'All done.',
   'app.import.stamps.goOn': 'Go on',
+  'app.import.stamps.notNeeded':
+    "You don't need these yet. Your records are dated by their batch on {dated}. A plant's key stamp only matters before you prove you hold it or license it, and that plant's own page does it in a minute or two when you need it. No weeks of waiting.",
+  'app.import.stamps.startAll': 'Stamp them all now instead',
+  'app.import.stamps.stopAll': "Stop, and stamp each when it's needed",
   'app.import.stamps.saveIt': 'Save it',
   'app.import.stamps.newSince.one': '{count} key date stamp landed after your backup. Save a new backup to keep it.',
   'app.import.stamps.newSince.other':

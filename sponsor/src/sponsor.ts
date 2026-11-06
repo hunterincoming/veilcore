@@ -7,9 +7,16 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { inspect, type PolicyConfig, type SealedTx } from './policy.js';
-import { ProofOfWork } from './pow.js';
-import { clientBucket, DailyBudget, isTicket, Limits, QueueFullError, SingleFlight } from './limits.js';
+import { inspect, type PolicyConfig, type SealedTx } from "./policy.js";
+import { ProofOfWork } from "./pow.js";
+import {
+  clientBucket,
+  isTicket,
+  Limits,
+  QueueFullError,
+  SingleFlight,
+  type GrowableBudget,
+} from "./limits.js";
 
 /** What the sponsor needs from a wallet. The real one is wallet.ts. */
 export interface PayingWallet {
@@ -27,7 +34,11 @@ export interface PayingWallet {
    * Throws NotSentError when nothing reached the network (any coins it set aside are
    * released), and any other error when it may have.
    */
-  payAndSubmit(tx: SealedTx, ttl: Date, approveFee: (fee: bigint) => void): Promise<{ txId: string; fee: bigint }>;
+  payAndSubmit(
+    tx: SealedTx,
+    ttl: Date,
+    approveFee: (fee: bigint) => void,
+  ): Promise<{ txId: string; fee: bigint }>;
   /** DUST available now, if known. */
   dustBalance(): bigint | undefined;
 }
@@ -40,15 +51,15 @@ export class NotSentError extends Error {
     options?: { cause?: unknown },
   ) {
     super(message, options);
-    this.name = 'NotSentError';
+    this.name = "NotSentError";
   }
 }
 
 /** The balanced transaction's real fee was refused before sending; `refusal` is the answer to give. */
 export class FeeRefusedError extends NotSentError {
   constructor(readonly refusal: SponsorResponse) {
-    super(String(refusal.body.reason ?? 'fee refused'), refusal.status === 503);
-    this.name = 'FeeRefusedError';
+    super(String(refusal.body.reason ?? "fee refused"), refusal.status === 503);
+    this.name = "FeeRefusedError";
   }
 }
 
@@ -66,7 +77,10 @@ export type SponsorResponse = {
 export type SponsorConfig = {
   readonly policy: PolicyConfig;
   /** Highest fee paid for one call, per circuit, in SPECKs. A circuit not listed gets `default`. */
-  readonly maxFeeSpecks: { readonly default: bigint; readonly [circuit: string]: bigint };
+  readonly maxFeeSpecks: {
+    readonly default: bigint;
+    readonly [circuit: string]: bigint;
+  };
   /** How far ahead the sponsor's own fee part may expire. */
   readonly sponsorTtlMs: number;
   /** How long a sealed call's identifiers are remembered, to refuse paying twice. */
@@ -89,7 +103,7 @@ export class Sponsor {
     private readonly wallet: PayingWallet,
     private readonly pow: ProofOfWork,
     private readonly limits: Limits,
-    private readonly budget: DailyBudget,
+    private readonly budget: GrowableBudget,
     readonly queue: SingleFlight,
     private readonly now: () => number,
   ) {}
@@ -98,7 +112,12 @@ export class Sponsor {
     this.counters[k] = (this.counters[k] ?? 0) + 1;
   }
 
-  private refuse(status: number, code: string, reason: string, retryAfterSeconds?: number): SponsorResponse {
+  private refuse(
+    status: number,
+    code: string,
+    reason: string,
+    retryAfterSeconds?: number,
+  ): SponsorResponse {
     this.count(`refused:${code}`);
     return { status, body: { ok: false, code, reason }, retryAfterSeconds };
   }
@@ -110,27 +129,52 @@ export class Sponsor {
   async handle(req: SponsorRequest): Promise<SponsorResponse> {
     const bucket = clientBucket(req.ip);
     const rate = this.limits.request(bucket);
-    if (!rate.ok) return this.refuse(429, 'rate', rate.reason, rate.retryAfterSeconds);
+    if (!rate.ok)
+      return this.refuse(429, "rate", rate.reason, rate.retryAfterSeconds);
 
-    const body = req.body as { tx?: unknown; ticket?: unknown; challenge?: unknown; nonce?: unknown } | null;
-    if (typeof body !== 'object' || body === null || typeof body.tx !== 'string') {
-      return this.refuse(400, 'bad-request', 'Send { tx, ticket, challenge, nonce }.');
+    const body = req.body as {
+      tx?: unknown;
+      ticket?: unknown;
+      challenge?: unknown;
+      nonce?: unknown;
+    } | null;
+    if (
+      typeof body !== "object" ||
+      body === null ||
+      typeof body.tx !== "string"
+    ) {
+      return this.refuse(
+        400,
+        "bad-request",
+        "Send { tx, ticket, challenge, nonce }.",
+      );
     }
     // A base64 string longer than the byte cap can ever decode to is refused unread.
     if (body.tx.length > Math.ceil((this.config.policy.maxBytes * 4) / 3) + 8) {
-      return this.refuse(413, 'too-large', `The transaction is larger than ${this.config.policy.maxBytes} bytes.`);
+      return this.refuse(
+        413,
+        "too-large",
+        `The transaction is larger than ${this.config.policy.maxBytes} bytes.`,
+      );
     }
-    if (!/^[A-Za-z0-9+/]*={0,2}$/.test(body.tx)) return this.refuse(400, 'bad-request', 'tx must be base64.');
-    if (!isTicket(body.ticket)) return this.refuse(400, 'bad-request', 'A sponsor ticket is required.');
+    if (!/^[A-Za-z0-9+/]*={0,2}$/.test(body.tx))
+      return this.refuse(400, "bad-request", "tx must be base64.");
+    if (!isTicket(body.ticket))
+      return this.refuse(400, "bad-request", "A sponsor ticket is required.");
     const ticket = body.ticket;
-    const bytes = new Uint8Array(Buffer.from(body.tx, 'base64'));
+    const bytes = new Uint8Array(Buffer.from(body.tx, "base64"));
 
     const work = this.pow.verify(body.challenge, body.nonce, bytes);
-    if (!work.ok) return this.refuse(403, 'pow', work.reason);
+    if (!work.ok) return this.refuse(403, "pow", work.reason);
 
     const t = this.now();
     const { verdict, tx } = inspect(bytes, this.config.policy, new Date(t));
-    if (!verdict.ok || tx === undefined) return this.refuse(400, verdict.ok ? 'unreadable' : verdict.code, verdict.ok ? '' : verdict.reason);
+    if (!verdict.ok || tx === undefined)
+      return this.refuse(
+        400,
+        verdict.ok ? "unreadable" : verdict.code,
+        verdict.ok ? "" : verdict.reason,
+      );
 
     // Admission. Everything from the duplicate check to the claim below runs in ONE
     // synchronous step, with no await in between: the quota, the replay slot and the
@@ -138,25 +182,39 @@ export class Sponsor {
     // all pass the checks before any of them is counted (round D, CWE-362).
     this.forgetOld(t);
     if (verdict.identifiers.some((id) => this.seen.has(id))) {
-      return this.refuse(409, 'duplicate', 'That transaction was already sent.');
+      return this.refuse(
+        409,
+        "duplicate",
+        "That transaction was already sent.",
+      );
     }
     const quota = this.limits.canSponsor(bucket, ticket, verdict.circuit);
-    if (!quota.ok) return this.refuse(429, 'quota', quota.reason, quota.retryAfterSeconds);
+    if (!quota.ok)
+      return this.refuse(429, "quota", quota.reason, quota.retryAfterSeconds);
     if (!this.wallet.isSynced()) {
-      return this.refuse(503, 'syncing', 'The sponsor is catching up with the network. Try again in a minute.', 60);
+      return this.refuse(
+        503,
+        "syncing",
+        "The sponsor is catching up with the network. Try again in a minute.",
+        60,
+      );
     }
-    const ceiling = this.config.maxFeeSpecks[verdict.circuit] ?? this.config.maxFeeSpecks.default;
+    const ceiling =
+      this.config.maxFeeSpecks[verdict.circuit] ??
+      this.config.maxFeeSpecks.default;
     // Hold the most this call may cost (or what is left of today's budget, if less);
     // it is lowered to the real fee once that is known.
     const hold = this.budget.reserveUpTo(ceiling);
     if (hold === undefined) return this.budgetRefusal(1n);
     const claim = this.limits.commit(bucket, ticket, verdict.circuit);
-    const owner = Symbol('sponsor-request');
+    const owner = Symbol("sponsor-request");
     const forgetAt = t + this.config.rememberMs;
-    for (const id of verdict.identifiers) this.seen.set(id, { until: forgetAt, owner });
+    for (const id of verdict.identifiers)
+      this.seen.set(id, { until: forgetAt, owner });
     // A refusal gives back only what THIS request claimed, never another request's slot.
     const releaseSeen = () => {
-      for (const id of verdict.identifiers) if (this.seen.get(id)?.owner === owner) this.seen.delete(id);
+      for (const id of verdict.identifiers)
+        if (this.seen.get(id)?.owner === owner) this.seen.delete(id);
     };
     const giveBackAll = () => {
       this.budget.release(hold.id);
@@ -167,14 +225,25 @@ export class Sponsor {
     let fee: bigint;
     try {
       // Bounded: the claim above is held while this runs, so a hang must not pin it.
-      fee = await withTimeout(this.wallet.estimateFee(tx), this.config.estimateTimeoutMs ?? 30_000);
+      fee = await withTimeout(
+        this.wallet.estimateFee(tx),
+        this.config.estimateTimeoutMs ?? 30_000,
+      );
     } catch {
       giveBackAll();
-      return this.refuse(400, 'fee-unknown', 'The fee for this transaction could not be worked out.');
+      return this.refuse(
+        400,
+        "fee-unknown",
+        "The fee for this transaction could not be worked out.",
+      );
     }
     if (fee < 0n || fee > ceiling) {
       giveBackAll();
-      return this.refuse(400, 'fee-too-high', 'This transaction costs more than the sponsor pays for one call.');
+      return this.refuse(
+        400,
+        "fee-too-high",
+        "This transaction costs more than the sponsor pays for one call.",
+      );
     }
     if (fee > hold.amount) {
       // Less than this call costs was free when it was admitted.
@@ -191,21 +260,36 @@ export class Sponsor {
     let paid: bigint | undefined;
     const approveFee = (actual: bigint): void => {
       if (actual < 0n || actual > ceiling) {
-        throw new FeeRefusedError(this.refuse(400, 'fee-too-high', 'This transaction costs more than the sponsor pays for one call.'));
+        throw new FeeRefusedError(
+          this.refuse(
+            400,
+            "fee-too-high",
+            "This transaction costs more than the sponsor pays for one call.",
+          ),
+        );
       }
-      if (!this.budget.grow(hold.id, actual)) throw new FeeRefusedError(this.budgetRefusal(actual));
+      if (!this.budget.grow(hold.id, actual))
+        throw new FeeRefusedError(this.budgetRefusal(actual));
       this.budget.shrink(hold.id, actual);
       paid = actual;
     };
 
     // Committed from here: the quota stays spent even if nothing is sent, so a flood
     // cannot retry its way past it; the budget and the replay slot are given back then.
-    const ttl = new Date(Math.min(verdict.ttl.getTime(), this.now() + this.config.sponsorTtlMs));
+    const ttl = new Date(
+      Math.min(verdict.ttl.getTime(), this.now() + this.config.sponsorTtlMs),
+    );
     let txId: string;
     try {
       const sent = await this.queue.run(async () => {
-        if (!this.wallet.isSynced() && !(await this.wallet.waitSynced(this.config.syncWaitMs))) {
-          throw new NotSentError('The sponsor is catching up with the network. Try again in a minute.', true);
+        if (
+          !this.wallet.isSynced() &&
+          !(await this.wallet.waitSynced(this.config.syncWaitMs))
+        ) {
+          throw new NotSentError(
+            "The sponsor is catching up with the network. Try again in a minute.",
+            true,
+          );
         }
         return this.wallet.payAndSubmit(tx, ttl, approveFee);
       });
@@ -222,23 +306,36 @@ export class Sponsor {
         this.budget.release(hold.id);
         releaseSeen();
         return e instanceof QueueFullError
-          ? this.refuse(503, 'busy', e.message, 120)
-          : this.refuse(e.retryable ? 503 : 400, e.retryable ? 'busy' : 'refused-by-network', e.message, e.retryable ? 60 : undefined);
+          ? this.refuse(503, "busy", e.message, 120)
+          : this.refuse(
+              e.retryable ? 503 : 400,
+              e.retryable ? "busy" : "refused-by-network",
+              e.message,
+              e.retryable ? 60 : undefined,
+            );
       }
       // It may have reached the network. Count the fee (the real one if the wallet got that
       // far, else the estimate) and never pay for it again.
       this.budget.settle(hold.id, paid ?? fee);
-      this.count('maybe-sent');
+      this.count("maybe-sent");
       return this.refuse(
         502,
-        'unknown',
-        'The transaction may or may not have been sent. Check the network before trying again; sending it again is refused.',
+        "unknown",
+        "The transaction may or may not have been sent. Check the network before trying again; sending it again is refused.",
       );
     }
     // Sent. Outside the try above, so nothing here can turn a sent transaction into "maybe".
     this.budget.settle(hold.id, paid);
     this.count(`sponsored:${verdict.circuit}`);
-    return { status: 200, body: { ok: true, txId, identifiers: verdict.identifiers, circuit: verdict.circuit } };
+    return {
+      status: 200,
+      body: {
+        ok: true,
+        txId,
+        identifiers: verdict.identifiers,
+        circuit: verdict.circuit,
+      },
+    };
   }
 
   /**
@@ -248,9 +345,19 @@ export class Sponsor {
    */
   private budgetRefusal(need: bigint): SponsorResponse {
     if (this.budget.unspent() >= need) {
-      return this.refuse(503, 'busy', 'Many people are using the demo right now. Try again in a minute.', 60);
+      return this.refuse(
+        503,
+        "busy",
+        "Many people are using the demo right now. Try again in a minute.",
+        60,
+      );
     }
-    return this.refuse(503, 'budget', 'Today’s free transactions are used up. Try again tomorrow.', 3600);
+    return this.refuse(
+      503,
+      "budget",
+      "Today’s free transactions are used up. Try again tomorrow.",
+      3600,
+    );
   }
 
   /**
@@ -261,7 +368,11 @@ export class Sponsor {
   status(detail = false): Record<string, unknown> {
     const synced = this.wallet.isSynced();
     // Accepting = the day's budget is not spent. Holds in flight only mean "busy for a moment".
-    const pub = { synced, queueDepth: this.queue.waiting, accepting: synced && this.budget.unspent() > 0n };
+    const pub = {
+      synced,
+      queueDepth: this.queue.waiting,
+      accepting: synced && this.budget.unspent() > 0n,
+    };
     if (!detail) return pub;
     let dust: string | undefined;
     try {
@@ -283,7 +394,7 @@ export class Sponsor {
 /** Reject if `p` has not settled within `ms`. */
 const withTimeout = <T>(p: Promise<T>, ms: number): Promise<T> =>
   new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('timed out')), ms);
+    const timer = setTimeout(() => reject(new Error("timed out")), ms);
     p.then(
       (v) => {
         clearTimeout(timer);

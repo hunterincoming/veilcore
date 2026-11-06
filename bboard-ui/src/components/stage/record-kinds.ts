@@ -15,6 +15,7 @@ import { isLabReportRecord, parseLabReportNotes } from './lab-report-notes';
 import { enT, type Translator } from '../../i18n/translate';
 import { isAnimal, type AnimalSex } from '../../veilcore/animal-profile';
 import { isStrain } from '../../veilcore/strain-profile';
+import { isDocument } from '../../veilcore/document-profile';
 
 type Rec = Pick<StrainRecord, 'id' | 'strainName' | 'breedingMethod' | 'notes' | 'parents'> &
   Partial<Pick<StrainRecord, 'profile' | 'refId' | 'animal'>>;
@@ -48,7 +49,7 @@ export const datingCardLine = (r: Pick<Rec, 'parents'>, tr: Translator = enT): s
 /** Parents a new plant can be logged with: plants only, never an animal, a strain or a record that dates a lab report. */
 export const parentOptionsOf = (records: readonly Rec[]): ParentRef[] =>
   records
-    .filter((r) => !isLabReportRecord(r) && !isAnimal(r) && !isStrain(r))
+    .filter((r) => !isLabReportRecord(r) && !isAnimal(r) && !isStrain(r) && !isDocument(r))
     .map((r) => ({ recordId: r.id, name: r.strainName }));
 
 /**

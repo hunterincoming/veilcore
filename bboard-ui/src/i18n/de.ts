@@ -42,7 +42,7 @@ export const de: Strings = {
   'title.evidence': 'Datensätze als Beweismittel',
   'title.integrate': 'VeilCore einbinden',
   'title.implementations': 'Implementierungen',
-  'title.new': 'Pflanze oder Tier erfassen',
+  'title.new': 'Einen Datensatz anlegen',
   'title.record': 'Datensatz',
   'title.agreements': 'Vereinbarungen',
   // PageErrorBoundary.tsx: a page that failed to draw (round 3)
@@ -79,9 +79,9 @@ export const de: Strings = {
   'm.demo.label': 'Demo',
   'm.demo.title1': 'Probieren Sie',
   'm.demo.title2': 'die Demo.',
-  'm.demo.create.title': 'Eine Pflanze oder ein Tier erfassen',
+  'm.demo.create.title': 'Einen Datensatz anlegen',
   'm.demo.create.text':
-    'Erfassen Sie eine erfundene Pflanze oder ein erfundenes Tier, speichern Sie Ihre Sicherungskopie und sehen Sie dann seine Seite.',
+    'Eine erfundene Pflanze, ein erfundenes Tier oder ein Dokument: versiegeln, Sicherungskopie speichern und dann seine Seite ansehen.',
   'm.demo.verify.title': 'Datensatz prüfen',
   'm.demo.verify.text':
     'Geben Sie die Kennung eines Datensatzes ein und sehen Sie, was sein Inhaber offengelegt hat und ob er verankert ist.',
@@ -242,6 +242,16 @@ export const de: Strings = {
   'm.postA.title': 'Live im Hauptnetz von Midnight',
   'm.postA.text':
     'Beide Contracts sind im Hauptnetz von Midnight bereitgestellt. Der Claims-Contract hat keinen Wartungsschlüssel: Niemand, auch wir nicht, kann ihn ändern.',
+  'm.postE.date': '2. Nov. 2026',
+  'm.postE.tag': 'Nachweis',
+  'm.postE.title': 'Eine gerichtsfeste Datei für jedes Dokument',
+  'm.postE.text':
+    'Auf der Seite eines Dokuments lässt sich jetzt eine Datei herunterladen, die eine Anwältin oder ein Prüfer ohne unsere Website prüfen kann: der Datensatz wie versiegelt, sein Nachweis, wo er datiert wurde, eine Seite, die die Prüfungen offline ausführt, eine Zusammenfassung zum Drucken und ein Mustertext für eine Erklärung. Sie können eine Kopie des Dokuments beilegen; sie wird vorher mit dem Datensatz abgeglichen.',
+  'm.postD.date': '31. Okt. 2026',
+  'm.postD.tag': 'Website',
+  'm.postD.title': 'Ein Dokument versiegeln',
+  'm.postD.text':
+    'Genehmigungen, Zertifikate, Verträge: Ihr Computer berechnet den Code der Datei, und nur der Nachweiscode des Datensatzes wird auf Midnight datiert. Die Datei verlässt Ihr Gerät nie. Schicken Sie einen Prüflink mit der Datei, und wer sie bekommt, sieht, dass es Byte für Byte dieselbe Datei ist und wann Sie sie hatten.',
   'm.postC.date': '19. Okt. 2026',
   'm.postC.tag': 'Website',
   'm.postC.title': 'Ihr Browser sendet seine eigenen Transaktionen',
@@ -288,6 +298,8 @@ export const de: Strings = {
   'm.live.claims.t': 'Eine Tatsache beweisen (Claims)',
   'm.live.claims.main': 'Im Hauptnetz, ohne Wartungsschlüssel. Die Website kann ihn noch nicht nutzen.',
   'm.live.claims.not': 'Ihn über die Website nutzen.',
+  'm.live.claims.live':
+    'Ja, an einem Computer: eine Zahl aus einem versiegelten Zertifikat belegen, ohne den Rest zu zeigen. Auf Telefonen noch nicht ausprobiert.',
   'm.live.lic.t': 'Lizenzen und Lizenzgebühren',
   'm.live.lic.main': 'Abgeschaltet bis zu einem letzten Testlauf.',
   'm.live.lic.test': 'Ja, mit echten Transaktionen: Lizenzgebühren, Zahlungen, Weitergabe einer Lizenz.',

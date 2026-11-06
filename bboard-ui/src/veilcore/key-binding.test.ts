@@ -63,8 +63,9 @@ describe('the published vectors', () => {
     for (const c of V.checks) expect(keyMatchesRecord(c.identity, c), c.name).toBe(c.matches);
   });
 
-  it('refusals: a malformed keyBinding is never sealed', async () => {
-    for (const r of V.refusals) await expect(fingerprintRecord(r.fields), r.name).rejects.toThrow(/keyBinding/);
+  it('refusals: a malformed keyBinding or field set is never sealed', async () => {
+    for (const r of V.refusals)
+      await expect(fingerprintRecord(r.fields), r.name).rejects.toThrow(/keyBinding|fieldSchema|fieldSetRoot/);
   });
 });
 

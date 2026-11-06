@@ -1,0 +1,13 @@
+{
+  "id": "veilcore/schema/variety-similarity/v1",
+  "title": "Genetic similarity of a variety to ONE named variety, from a laboratory's marker genotyping. Slot 0 is the similarity in percent times 100 (94.37 % is 9437): identical calls divided by markers called in both. Slot 4 is the registration or certificate number of the variety compared with, digits only, so a claim can show which variety it was. Slot 5 is the marker panel: 1 BARCSoySNP6K (soybean, as in the USDA Plant Variety Protection Office method), 2 the maize SNP set of the International Seed Federation guidelines on essentially derived varieties, 0 another panel, named in the laboratory's report. The laboratory signs the record. Published by VeilCore (veilcore.org).",
+  "slots": [
+    { "slot": 0, "type": "uint", "path": "genetic.similarity", "unit": "%", "scale": 100, "comparable": true },
+    { "slot": 1, "type": "uint", "path": "genetic.markersCompared", "scale": 1, "comparable": false },
+    { "slot": 2, "type": "uint", "path": "genetic.markersDiffering", "scale": 1, "comparable": false },
+    { "slot": 3, "type": "uint", "path": "genetic.missingCalls", "scale": 1, "comparable": false },
+    { "slot": 4, "type": "uint", "path": "genetic.comparedVariety", "scale": 1, "comparable": false },
+    { "slot": 5, "type": "uint", "path": "genetic.panel", "scale": 1, "comparable": false }
+  ],
+  "k": 1
+}

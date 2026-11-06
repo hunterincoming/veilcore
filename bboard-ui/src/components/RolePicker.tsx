@@ -1,5 +1,6 @@
-// Asked once, on first use, and again whenever someone asks to change it (the link in
-// the app footer).
+// Opened only when someone asks: "I'm a lab" on the home screen, or the footer's "change"
+// link. It used to open on its own on first use; a newcomer then met two questions before
+// doing anything, so it no longer does (30 Oct): everyone starts as a breeder.
 //
 // Without this the app has to guess from record fields, which is how a lab ended up
 // being told to send its own sample to a lab. One question removes the guesswork and

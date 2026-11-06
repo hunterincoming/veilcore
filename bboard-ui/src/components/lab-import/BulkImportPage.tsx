@@ -50,6 +50,8 @@ import {
   dateOrderFor,
   guessMapping,
   importedRecordIds,
+  importStampsOn,
+  setImportStampsOn,
   jobRecordIds,
   keyStampDays,
   jobSummary,
@@ -373,7 +375,7 @@ const EarlierKeyStamps: React.FC = () => {
   const ids = useMemo(() => importedRecordIds(), []);
   const waiting = ids.some((id) => keys[id] && !keys[id].anchor);
   const { t } = useT();
-  if (!REAL_CHAIN || chainNotReady() || !waiting) return null;
+  if (!REAL_CHAIN || chainNotReady() || !waiting || !importStampsOn()) return null;
   return <KeyStamps ids={ids} heading={t('app.import.earlierStamps')} />;
 };
 
@@ -975,12 +977,14 @@ const Summary: React.FC<{ step?: string; job: Job; onNext: () => void }> = ({ st
       {s.sealed > 0 && (
         <Typography variant="body1" color="text.secondary">
           {stampsFromHere
-            ? t('app.import.sum.stampsHere', {
-                dated: t('app.copy.datedOn'),
-                perDay: KEY_STAMPS_PER_DAY,
-                n: s.sealed,
-                days: tp('app.import.days', keyStampDays(s.sealed)),
-              })
+            ? importStampsOn()
+              ? t('app.import.sum.stampsHere', {
+                  dated: t('app.copy.datedOn'),
+                  perDay: KEY_STAMPS_PER_DAY,
+                  n: s.sealed,
+                  days: tp('app.import.days', keyStampDays(s.sealed)),
+                })
+              : t('app.import.sum.stampsLater', { dated: t('app.copy.datedOn') })
             : t('app.import.sum.byBatch', { dated: t('app.copy.datedOn') })}
         </Typography>
       )}
@@ -1030,12 +1034,18 @@ const downloadText = (text: string, name: string) => {
 
 /**
  * Key date stamps for imported records, from this browser, while this page is open. The
- * rate is said as it is: about KEY_STAMPS_PER_DAY a day, so a big import takes weeks. The
+ * rate is said as it is: about KEY_STAMPS_PER_DAY a day, so a big import takes weeks. Since 5 Nov 2026 they
+ * wait until each is needed unless the holder starts them all (importStampsOn). The
  * records themselves don't wait for these: each is dated by its batch (round 2).
  */
 const KeyStamps: React.FC<{ ids: readonly string[]; heading: string }> = ({ ids, heading }) => {
   const { t, tp } = useT();
-  const queue = useKeyStampQueue(ids, true);
+  const [on, setOn] = useState(importStampsOn);
+  const turn = (v: boolean) => {
+    setImportStampsOn(v);
+    setOn(v);
+  };
+  const queue = useKeyStampQueue(ids, on);
   const keys = useRecordKeys();
   const waiting = queue.total - queue.stamped;
   // A key stamp that landed after the backup was checked isn't in that backup.
@@ -1057,15 +1067,32 @@ const KeyStamps: React.FC<{ ids: readonly string[]; heading: string }> = ({ ids,
       <Typography variant="body2" color="text.secondary">
         {t('app.import.stamps.already', { dated: t('app.copy.datedOn') })}
       </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-        {t('app.import.stamps.each', {
-          perDay: KEY_STAMPS_PER_DAY,
-          queued:
-            waiting > 0
-              ? t('app.import.stamps.queued', { n: waiting, days: tp('app.import.days', keyStampDays(waiting)) })
-              : '',
-        })}
-      </Typography>
+      {!on && (
+        <>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }} data-stamps-later="">
+            {t('app.import.stamps.notNeeded')}
+          </Typography>
+          <Button variant="outlined" onClick={() => turn(true)} sx={{ mt: 1, minHeight: 44 }}>
+            {t('app.import.stamps.startAll')}
+          </Button>
+        </>
+      )}
+      {on && (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          {t('app.import.stamps.each', {
+            perDay: KEY_STAMPS_PER_DAY,
+            queued:
+              waiting > 0
+                ? t('app.import.stamps.queued', { n: waiting, days: tp('app.import.days', keyStampDays(waiting)) })
+                : '',
+          })}
+        </Typography>
+      )}
+      {on && queue.stamped < queue.total && (
+        <Button variant="text" onClick={() => turn(false)} sx={{ mt: 1, minHeight: 44 }}>
+          {t('app.import.stamps.stopAll')}
+        </Button>
+      )}
       <Typography variant="body2" role="status" sx={{ mt: 1 }}>
         {queue.stopped
           ? ''

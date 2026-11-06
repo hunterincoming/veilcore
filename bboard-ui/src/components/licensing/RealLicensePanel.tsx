@@ -20,6 +20,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import { canonicalUrl } from '../../config/network';
 import { hexBytes, useRecordKeys } from '../../veilcore/record-keys';
 import {
+  subjectOf,
   clearOnChain,
   issuerDealBackedUp,
   setOnChain,
@@ -472,6 +473,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
               obligation={license.agreementFingerprint}
               beneficiary={oc.identity}
               issuerSecret={keys.recordSecret}
+              kind={subjectOf(license.terms)}
             />
           )}
           {party && oc.termsSentAt && (

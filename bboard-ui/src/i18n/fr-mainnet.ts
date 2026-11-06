@@ -53,7 +53,8 @@ export const frMainnet = buildMainnet({
     'm.demo.label': "L'utiliser",
     'm.demo.title1': 'Créez un enregistrement',
     'm.demo.title2': 'ou vérifiez-en un.',
-    'm.demo.create.text': 'Enregistrez une plante ou un animal, gardez votre sauvegarde, puis voyez sa page.',
+    'm.demo.create.text':
+      'Une plante, un animal ou un document : scellez-le, gardez votre sauvegarde, puis voyez sa page.',
     'm.demo.privacy': 'Ce que ce site conserve →',
     'm.faq.4link1': 'Ce que ce site conserve →',
     'm.faq.2a':
@@ -88,6 +89,10 @@ export const frMainnet = buildMainnet({
       "Un second contrat Midnight, sur le réseau principal de Midnight. Avant le lancement, il a réussi toutes les vérifications de bout en bout, avec des données de marqueurs inventées. Il n'est pas encore sur ce site.",
     'm.stat2.s':
       "Les deux contrats sont sur le réseau principal de Midnight. Les enregistrements scellés sur ce site vont dans des lots que nous y ancrons à la main pour l'instant.",
+  },
+  claimsOnSite: {
+    'm.claims.status':
+      "Un second contrat Midnight, sur le réseau principal de Midnight. Sur ce site, vous pouvez l'utiliser pour prouver un chiffre d'un certificat scellé avec ses chiffres : qu'il est au plus ou au moins une limite, ou exactement une valeur, sans montrer le reste. Utilisez un ordinateur ; les téléphones n'ont pas encore été essayés. Les autres preuves ci-dessus ne sont pas encore sur ce site.",
   },
   claimsPending: {
     'm.claims.status':

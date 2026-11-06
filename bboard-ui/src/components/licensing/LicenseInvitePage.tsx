@@ -15,6 +15,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useParams, Link as RouterLink } from 'react-router-dom';
+import { subjectOf } from '../../veilcore/licenses';
 import {
   Alert,
   Box,
@@ -405,6 +406,9 @@ export const LicenseInvitePage: React.FC = () => {
                 control={<Checkbox checked={agreeChecked} onChange={(e) => setAgreeChecked(e.target.checked)} />}
                 label={tr.t('app.lic.inv.iAgree')}
               />
+              <Typography variant="caption" color="text.secondary" data-evidence-note="">
+                {tr.t('app.lic.evidenceNote')}
+              </Typography>
               <Button
                 variant="contained"
                 size="large"
@@ -485,6 +489,9 @@ export const LicenseInvitePage: React.FC = () => {
                 }
                 label={tr.t('app.lic.inv.iAgree')}
               />
+              <Typography variant="caption" color="text.secondary" data-evidence-note="">
+                {tr.t('app.lic.evidenceNote')}
+              </Typography>
               <Button
                 variant="contained"
                 size="large"
@@ -553,6 +560,7 @@ export const LicenseInvitePage: React.FC = () => {
                 pct={String(held.agreement.terms.offspringRoyaltyPct)}
                 obligation={held.agreement.agreementFingerprint}
                 beneficiary={held.identity}
+                kind={subjectOf(held.agreement.terms)}
               />
             </Box>
           )}

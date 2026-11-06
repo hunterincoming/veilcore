@@ -65,8 +65,6 @@ export const strainForm = {
   'app.strain.x.method': 'Obtenue par : {v}',
   'app.strain.x.generation': 'Génération : {v}',
   'app.strain.x.parents': 'Parents : {v}',
-  'app.strain.noLicensing':
-    'Les accords et les redevances ne sont pas encore disponibles pour les enregistrements de souches : une licence de souche a besoin de ses propres conditions (usage, sous-culture, souches dérivées), pas de celles d’une plante.',
   'app.strain.f.generation': 'Génération ou passage',
   'app.strain.f.parents': 'Souches parentes',
   'app.strain.verify.parentsLine': 'Souches parentes, selon le détenteur : {v}',

@@ -32,7 +32,7 @@ import { en, type StringKey, type Strings } from './en';
 import { mainnetStrings } from './en-mainnet';
 import { testchainStrings } from './en-testchain';
 import { IS_MAINNET, CLAIMS_ON_MAINNET, MAINTENANCE_POLICY_APPROVED } from '../config/network';
-import { CHAIN_READY, CHAIN_READS, REAL_CHAIN } from '../veilcore/chain/config';
+import { CHAIN_READY, CHAIN_READS, CLAIMS_READY, REAL_CHAIN } from '../veilcore/chain/config';
 import { AGREEMENTS_LIVE } from '../config/copy';
 import { LANGUAGE_CODES, MAINNET_DRAFTS, PUBLISHED_LANGUAGES, type Lang } from '../config/languages';
 
@@ -44,6 +44,7 @@ export type MainnetOverlay = (o: {
   policyApproved: boolean;
   chainReads?: boolean;
   chainSends?: boolean;
+  claimsOnSite?: boolean;
 }) => Strings;
 
 /** A language's words for the public pages: its own, its test-site overlay, and its mainnet one if it has one. */
@@ -134,6 +135,8 @@ export type BuildKind = {
   chainSends?: boolean;
   /** Mainnet: licenses are switched on (config/copy.ts AGREEMENTS_LIVE). */
   agreementsLive?: boolean;
+  /** Mainnet: the site offers "prove one number" (chain/config.ts CLAIMS_READY). */
+  claimsOnSite?: boolean;
 };
 
 /**
@@ -156,6 +159,7 @@ export const networkOverlayOf = (build: BuildKind, pack: LanguagePack): Strings 
       chainReads: build.chainReads ?? false,
       chainSends: build.chainSends ?? false,
       agreementsLive: build.agreementsLive ?? false,
+      claimsOnSite: build.claimsOnSite ?? false,
     };
     return { ...mainnetStrings(flags), ...(pack.mainnet?.(flags) ?? {}) };
   }
@@ -171,6 +175,7 @@ export const THIS_BUILD: BuildKind = {
   chainReads: CHAIN_READS,
   chainSends: IS_MAINNET && CHAIN_READY,
   agreementsLive: IS_MAINNET && AGREEMENTS_LIVE,
+  claimsOnSite: IS_MAINNET && CHAIN_READY && CLAIMS_READY,
 };
 
 /** veilcore.org sends real transactions (the mainnet sponsor is live in this build). */

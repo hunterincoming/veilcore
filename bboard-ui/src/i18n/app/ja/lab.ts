@@ -17,6 +17,8 @@ export const lab = {
   'app.signer.text': '{lead}。{rest}',
   'app.signer.keyNamed': '「{name}」という名前の鍵（名前は未確認）',
   'app.signer.keyUnnamed': '誰も名前を付けていない鍵',
+  'app.signer.domainBefore': 'ウェブサイト',
+  'app.signer.domainAfter': 'はこの鍵を掲載しており、この鍵もそのサイトを指定しています（{date}に確認）。',
   'app.lab.saved.lab': '保存済み · ラボが署名した報告書と一致',
   'app.lab.saved.self': '保存済み · 一致するラボの署名なし',
   'app.lab.saved.replacedNewer': 'ラボが差し替えました。訂正版を保存してください',
@@ -246,6 +248,18 @@ export const lab = {
     ' · まだ公開されていません。公開されるまで、誰もあなたの署名をこの名前と照合できません。',
   'app.lab.key.publishAgain': 'もう一度公開する',
   'app.lab.key.publicKey': '公開鍵',
+  'app.lab.key.domain.title': '自社サイトでの鍵の公開',
+  'app.lab.key.domain.why':
+    'このファイルを自社サイトの /.well-known/veilcore-lab.json に置き、下にドメインを入力して「今すぐ確認」を押してください。鍵がサイトを指定し、サイトが鍵を掲載するので、VeilCoreに問い合わせなくても両者が対応していることを誰でも確認でき、貴社の署名を表示するページにもそう表示されます。鍵を使わなくなったら、ファイルから削除してください。',
+  'app.lab.key.domain.saveFile': 'veilcore-lab.json を保存',
+  'app.lab.key.domain.orTxt':
+    'DNSしか変更できない場合は、_veilcore-lab.<ドメイン> に次のTXTレコードを追加してください：',
+  'app.lab.key.domain.field': '自社サイトのドメイン',
+  'app.lab.key.domain.look': '今すぐ確認',
+  'app.lab.key.domain.found': '確認できました：{domain} はこの鍵を掲載しています。VeilCoreは毎日確認し直します。',
+  'app.lab.key.domain.notFound':
+    'まだ見つかりません（{why}）。ファイルの場所を確認し、10分後にもう一度確認してください。',
+  'app.lab.key.domain.couldNot': '確認できませんでした：{error}',
   'app.lab.key.privateWarning':
     '秘密鍵は暗号化されずにこのブラウザの保存領域に保管され、他の場所にはありません。試すだけなら問題ありません。このサイトで動くもの、またはこのサイトにアクセスできるブラウザ拡張機能なら、読み取れる可能性があります。なくすと新しく署名できなくなります。以前に署名したものは有効なままなので、安全な場所にバックアップしてください。実際に使うラボは、自社のシステム内で署名します。<link>連携ガイド</link>をご覧ください。',
   'app.lab.key.downloadBackup': '鍵のバックアップをダウンロード',

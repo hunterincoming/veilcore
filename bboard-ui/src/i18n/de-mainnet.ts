@@ -54,7 +54,7 @@ export const deMainnet = buildMainnet({
     'm.demo.title1': 'Datensatz anlegen',
     'm.demo.title2': 'oder prüfen.',
     'm.demo.create.text':
-      'Erfassen Sie eine Pflanze oder ein Tier, speichern Sie Ihre Sicherungskopie und sehen Sie dann seine Seite.',
+      'Eine Pflanze, ein Tier oder ein Dokument: versiegeln, Sicherungskopie speichern und dann seine Seite ansehen.',
     'm.demo.privacy': 'Was diese Website speichert →',
     'm.faq.4link1': 'Was diese Website speichert →',
     'm.faq.2a':
@@ -89,6 +89,10 @@ export const deMainnet = buildMainnet({
       'Ein zweiter Midnight-Contract, im Hauptnetz von Midnight. Vor dem Start hat er jede End-to-End-Prüfung bestanden, mit erfundenen Markerdaten. Auf dieser Website ist er noch nicht.',
     'm.stat2.s':
       'Beide Contracts laufen im Hauptnetz von Midnight. Datensätze, die auf dieser Website versiegelt werden, kommen in Stapel, die wir dort vorerst von Hand verankern.',
+  },
+  claimsOnSite: {
+    'm.claims.status':
+      'Ein zweiter Midnight-Contract, im Hauptnetz von Midnight. Auf dieser Website können Sie damit eine Zahl aus einem Zertifikat belegen, das Sie mit seinen Zahlen versiegelt haben: dass sie höchstens oder mindestens einen Grenzwert erreicht oder genau einen Wert hat, ohne den Rest zu zeigen. Nutzen Sie dafür einen Computer; auf Telefonen ist es noch nicht ausprobiert. Die anderen Belege oben gibt es auf dieser Website noch nicht.',
   },
   claimsPending: {
     'm.claims.status':

@@ -1,7 +1,8 @@
 // "Download evidence bundle": one .zip with everything anyone needs to check this record's
 // date without VeilCore (veilcore/evidence/bundle.ts, docs/evidence-bundle.md), a printable
 // summary and a sample declaration (evidence/examiner.ts, evidence/declaration.ts). Two
-// choices, both off unless the holder ticks them: the record's key, and the lab report file.
+// choices, both off unless the holder ticks them: the record's key, and the lab report file
+// (for a document record: a copy of the document's own files, each checked against the record).
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useRef, useState } from 'react';
@@ -24,6 +25,7 @@ import type { RecordKeys } from '../veilcore/record-keys';
 import { downloadEvidenceBundle, lockedParentsOf } from '../veilcore/evidence/bundle';
 import { MAX_FINGERPRINT_BYTES } from '../veilcore/commitment';
 import { InEnglishNote, useRecordT } from '../i18n/app';
+import { isDocument } from '../veilcore/document-profile';
 
 /** The button's English (app.plant.bundle.download): the landing page names it. */
 export const DOWNLOAD_EVIDENCE_LABEL = 'Download evidence bundle';
@@ -38,6 +40,7 @@ export const EvidenceBundle: React.FC<{
   const [includeKey, setIncludeKey] = useState(false);
   const [includeLab, setIncludeLab] = useState(false);
   const [labFile, setLabFile] = useState<File | null>(null);
+  const [docFiles, setDocFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
@@ -49,7 +52,10 @@ export const EvidenceBundle: React.FC<{
   const label = t('app.plant.bundle.download');
 
   const canKey = !!record.keyBinding && !!keys?.recordSecret;
-  const hasLab = !!record.dnaFingerprint;
+  const doc = isDocument(record);
+  const hasLab = !doc && !!record.dnaFingerprint;
+  const hasDocFiles = doc && (record.document?.files?.length ?? 0) > 0;
+  const include = doc ? 'app.doc.bundle.includeFiles' : 'app.plant.bundle.includeLab';
   const sealed = !!record.recordFingerprint && !!record.nonce;
 
   const close = () => {
@@ -63,12 +69,13 @@ export const EvidenceBundle: React.FC<{
     setError(null);
     setDone(null);
     try {
-      if (includeLab && !labFile) {
-        setError(t('app.plant.bundle.chooseOrUntick'));
+      if (includeLab && (doc ? docFiles.length === 0 : !labFile)) {
+        setError(t(doc ? 'app.doc.bundle.chooseOrUntick' : 'app.plant.bundle.chooseOrUntick'));
         return;
       }
-      if (labFile && labFile.size > MAX_FINGERPRINT_BYTES) {
-        setError(t('app.plant.bundle.tooBig', { name: labFile.name }));
+      const tooBig = (doc ? docFiles : labFile ? [labFile] : []).find((f) => f.size > MAX_FINGERPRINT_BYTES);
+      if (includeLab && tooBig) {
+        setError(t('app.plant.bundle.tooBig', { name: tooBig.name }));
         return;
       }
       // The record dating the saved DNA report, if one does: README.txt names it.
@@ -77,8 +84,15 @@ export const EvidenceBundle: React.FC<{
         includeKey: canKey && includeKey,
         ...(datedBy ? { dnaReportDatedBy: datedBy } : {}),
         ...(lockedParents ? { lockedParents } : {}),
-        ...(includeLab && labFile
+        ...(!doc && includeLab && labFile
           ? { labFile: { name: labFile.name, bytes: new Uint8Array(await labFile.arrayBuffer()) } }
+          : {}),
+        ...(doc && includeLab && docFiles.length > 0
+          ? {
+              documentFiles: await Promise.all(
+                docFiles.map(async (f) => ({ name: f.name, bytes: new Uint8Array(await f.arrayBuffer()) })),
+              ),
+            }
           : {}),
       });
       if ('error' in out) setError(out.error);
@@ -129,7 +143,7 @@ export const EvidenceBundle: React.FC<{
                     {t('app.plant.bundle.includeKey')}
                     {t('app.common.sentenceSep')}
                     <Typography component="span" variant="body2" color="text.secondary">
-                      {t('app.plant.bundle.keyIs')}
+                      {t(doc ? 'app.doc.bundle.keyIs' : 'app.plant.bundle.keyIs')}
                     </Typography>
                     {t('app.common.sentenceSep')}
                     {canKey ? t('app.plant.bundle.keyWith') : t('app.plant.bundle.keyNotHere')}
@@ -137,26 +151,35 @@ export const EvidenceBundle: React.FC<{
                 }
               />
             )}
-            {hasLab && (
+            {(hasLab || hasDocFiles) && (
               <Stack spacing={1}>
                 <FormControlLabel
                   control={<Checkbox checked={includeLab} onChange={(e) => setIncludeLab(e.target.checked)} />}
-                  label={<Typography variant="body2">{t('app.plant.bundle.includeLab')}</Typography>}
+                  label={<Typography variant="body2">{t(include)}</Typography>}
                 />
                 {includeLab && (
                   <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1, pl: 4 }}>
                     <Button size="small" variant="outlined" onClick={() => fileInput.current?.click()}>
-                      {t('app.plant.bundle.chooseLab')}
+                      {t(doc ? 'app.doc.bundle.chooseFiles' : 'app.plant.bundle.chooseLab')}
                     </Button>
                     <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
-                      {labFile ? labFile.name : t('app.plant.bundle.checkedAgainst')}
+                      {doc
+                        ? docFiles.length > 0
+                          ? docFiles.map((f) => f.name).join(', ')
+                          : t('app.doc.bundle.checkedAgainst')
+                        : labFile
+                          ? labFile.name
+                          : t('app.plant.bundle.checkedAgainst')}
                     </Typography>
                     <input
                       ref={fileInput}
                       type="file"
                       hidden
-                      aria-label={t('app.plant.bundle.labFileAria')}
-                      onChange={(e) => setLabFile(e.target.files?.[0] ?? null)}
+                      multiple={doc}
+                      aria-label={t(doc ? 'app.doc.bundle.filesAria' : 'app.plant.bundle.labFileAria')}
+                      onChange={(e) =>
+                        doc ? setDocFiles(Array.from(e.target.files ?? [])) : setLabFile(e.target.files?.[0] ?? null)
+                      }
                     />
                   </Stack>
                 )}

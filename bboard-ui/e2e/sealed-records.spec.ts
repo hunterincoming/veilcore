@@ -13,7 +13,15 @@
 import fs from 'node:fs';
 import { expect, test } from '@playwright/test';
 import type { Browser, Page } from '@playwright/test';
-import { REAL_REGISTRY, backupAfterLogging, expectNoErrors, isolate, receiveWithBackupFirst, watch } from './helpers';
+import {
+  REAL_REGISTRY,
+  backupAfterLogging,
+  expectNoErrors,
+  isolate,
+  receiveWithBackupFirst,
+  watch,
+  startPlant,
+} from './helpers';
 
 test.skip(!REAL_REGISTRY, 'needs a real registry: set E2E_API_BASE and build with it');
 
@@ -36,8 +44,8 @@ type Plant = {
  */
 const logPlant = async (page: Page, p: Plant): Promise<{ recordId: string; backupFile: string }> => {
   await page.goto('/records');
-  await page.getByRole('button', { name: /I breed or hold genetics/ }).click();
   await page.getByText('Start', { exact: true }).click();
+  await startPlant(page);
   await page.getByLabel(/Plant or line name/).fill(p.name);
   await page.getByLabel(/Bred by/).fill(p.bredBy);
   if (p.made) await page.getByLabel(/When you made it/).fill(p.made);
@@ -106,6 +114,7 @@ test('(a) a plant with a marker in every field, sent to a lab: no marker is in t
   // The lab receives it: the sender's details reach its browser, through the sealed offer.
   const l = await newPage(browser);
   await l.page.goto('/records');
+  await l.page.getByRole('button', { name: "I'm a lab" }).click();
   await l.page.getByRole('button', { name: /I run a lab/ }).click();
   await l.page.getByRole('button', { name: /Set up your lab.s signature/ }).click();
   await l.page.getByLabel(/^Name/).fill('E2E Lab');
