@@ -115,8 +115,8 @@ const periodText = (from: string, to: string, tr: Translator): string => {
   const f = (d: string) => tr.date(`${d}T12:00:00`, { day: 'numeric', month: 'short', year: 'numeric' });
   return `${f(from)} – ${f(to)}`;
 };
-const dayText = (d: string, tr: Translator): string =>
-  tr.date(`${d}T12:00:00`, { day: 'numeric', month: 'long', year: 'numeric' });
+/** The card's headline date: the same short form as every other date here, only bigger. */
+const dayText = (d: string, tr: Translator): string => dateWords(d, tr);
 /** A signed time as a calendar date, in the same short form as every other date here. */
 const when = (ms: number, tr: Translator): string => tr.date(ms, { day: 'numeric', month: 'short', year: 'numeric' });
 
@@ -139,7 +139,7 @@ export const RoyaltyLedger: React.FC<{
   const ledger = useMemo(() => ledgerOfEntries(entries ?? []), [entries]);
   // Old terms named no currency: their reports were in the licensor's payout currency (review round 1, 5).
   const terms = useMemo(
-    () => withDealCurrency(agreedTerms, ledger.payout?.currency ?? ledger.reports[0]?.statement.currency),
+    () => withDealCurrency(agreedTerms, ledger.reports[0]?.statement.currency, ledger.payout?.currency),
     [agreedTerms, ledger],
   );
   const [busy, setBusy] = useState(false);

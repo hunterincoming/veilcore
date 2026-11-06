@@ -104,7 +104,7 @@ export const royalties = {
   'app.roy.p.customHelp': 'すべての条件を自分で決めます。',
   'app.roy.f.amountPct': 'ロイヤリティ（売上の%）',
   'app.roy.f.amountUnit': '{unit}あたりの料金',
-  'app.roy.f.amountPlain': '金額（{currency}）',
+  'app.roy.f.amountPlain': '金額',
   'app.roy.f.law': '準拠法',
   'app.roy.f.lawHelp': 'どの国・州の法律に従う契約か。ブラウザから入力しています。必要なら変更してください。',
   'app.roy.f.territoryRequired': '大麻の場合は必須：ライセンスが有効な地域。',

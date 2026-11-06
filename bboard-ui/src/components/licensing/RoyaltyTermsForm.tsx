@@ -270,7 +270,7 @@ const RuleFields: React.FC<{
         <>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <TextField
-              label={tr.t('app.roy.f.amountPlain', { currency })}
+              label={tr.t('app.roy.f.amountPlain')}
               value={r.amount}
               onChange={(e) => onChange({ ...r, amount: numeric(e.target.value) })}
               fullWidth

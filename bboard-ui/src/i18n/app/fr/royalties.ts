@@ -110,7 +110,7 @@ export const royalties = {
   'app.roy.p.customHelp': 'Fixez vous-même chaque condition.',
   'app.roy.f.amountPct': 'Redevance (% des ventes)',
   'app.roy.f.amountUnit': 'Somme par {unit}',
-  'app.roy.f.amountPlain': 'Montant ({currency})',
+  'app.roy.f.amountPlain': 'Montant',
   'app.roy.f.law': 'Droit applicable',
   'app.roy.f.lawHelp':
     'Le droit de quel pays ou État régit l’accord. Repris de votre navigateur : modifiez-le au besoin.',

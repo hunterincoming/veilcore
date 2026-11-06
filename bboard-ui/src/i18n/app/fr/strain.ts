@@ -185,7 +185,7 @@ export const strain = {
   'app.strain.v.app.lic.row.offspringValue': '{pct} %, sur les souches déclarées comme dérivées de celle-ci',
   'app.strain.v.app.lic.f.offspring': 'Redevance sur les souches dérivées (%)',
   'app.strain.v.app.lic.f.offspringHelp':
-    'S’applique aux souches déclarées comme dérivées de cet enregistrement (enregistrées avec lui comme parent, confirmées par les deux détenteurs). Une dérivation non déclarée n’est pas détectée. Laissez vide s’il n’y en a pas.',
+    'Ne compte que les souches enregistrées dans VeilCore comme dérivées de celle-ci. Laissez vide s’il n’y en a pas.',
   'app.strain.v.app.lic.f.extraHelpDeal':
     'Tout ce qui fait aussi partie de l’accord, avec vos propres mots. Par exemple : pas de cession à des tiers, citer la source dans les publications, détruire le stock restant à la fin.',
   'app.strain.v.app.lic.detail.thisCultivar': 'cette souche',

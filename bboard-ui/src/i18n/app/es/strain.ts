@@ -183,7 +183,7 @@ export const strain = {
   'app.strain.v.app.lic.row.offspringValue': '{pct}%, sobre las cepas declaradas como derivadas de esta',
   'app.strain.v.app.lic.f.offspring': 'Regalía sobre cepas derivadas (%)',
   'app.strain.v.app.lic.f.offspringHelp':
-    'Se aplica a las cepas declaradas como derivadas de este registro (registradas con él como progenitor y confirmadas por ambos titulares). La derivación no declarada no se detecta. Déjelo en blanco si no hay.',
+    'Solo cuenta las cepas registradas en VeilCore como derivadas de esta. Déjelo en blanco si no hay.',
   'app.strain.v.app.lic.f.extraHelpDeal':
     'Cualquier otra cosa que forme parte del trato, con sus propias palabras. Por ejemplo: sin cesión a terceros, citar la fuente en las publicaciones, destruir las existencias restantes al terminar.',
   'app.strain.v.app.lic.detail.thisCultivar': 'esta cepa',
