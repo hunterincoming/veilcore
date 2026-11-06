@@ -17,6 +17,7 @@ import { WalletBadge } from './veilcore/WalletBadge';
 import { Wordmark } from './Wordmark';
 import { NETWORK } from '../config/network';
 import { DraftBanner, LanguagePicker } from '../i18n/LanguagePicker';
+import { DatingPausedNotice } from './DatingPausedNotice';
 import { useT } from '../i18n/app';
 
 // The draft banner sits under the header, on every app page with one: a translation nobody
@@ -49,6 +50,7 @@ export const AppHeader: React.FC = () => {
           <WalletBadge network={NETWORK} />
         </Stack>
       </Stack>
+      <DatingPausedNotice />
       <DraftBanner />
     </>
   );

@@ -22,6 +22,8 @@ export const fr: Strings = {
   'footer.terms': 'Conditions d’utilisation',
   'draft.banner': 'Traduction provisoire faite par machine, en cours de relecture. La page en anglais fait foi.',
   'draft.showEnglish': 'Afficher en anglais',
+  'notice.datingPaused':
+    'La datation sur Midnight est suspendue pendant la mise à niveau du réseau de Midnight. Vos enregistrements sont sauvegardés et seront datés dès son retour.',
   // The record app's frame and the browser tab's titles.
   'app.frame.section.log': 'Enregistrer',
   'app.frame.section.send': 'Envoyer et recevoir',

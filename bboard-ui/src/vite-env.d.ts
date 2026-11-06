@@ -35,6 +35,8 @@ declare global {
     readonly VITE_INDEXER_SECOND_URL?: string;
     /** Test-network builds hosted at their own address (test.veilcore.org): the origin shared links use. */
     readonly VITE_CANONICAL_ORIGIN?: string;
+    /** 'true' shows the notice that dating on Midnight is paused (config/network.ts). Off otherwise. */
+    readonly VITE_DATING_PAUSED?: string;
   }
 
   interface ImportMeta {

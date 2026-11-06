@@ -10,6 +10,7 @@ import { ThemeProvider } from '@mui/material';
 import { useI18n } from '../../i18n';
 import { lightTheme } from '../../config/theme';
 import { DraftBanner, LanguagePicker } from '../../i18n/lazy-picker';
+import { DatingPausedNotice } from '../DatingPausedNotice';
 import { TagMark } from './TagMark';
 import { hasRecordsHere } from './returning';
 import './site.css';
@@ -135,6 +136,7 @@ export const SiteShell: React.FC<{ children: React.ReactNode }> = ({ children })
 
         <main>
           <div className="wrap draft-wrap">
+            <DatingPausedNotice />
             <DraftBanner />
           </div>
           {children}

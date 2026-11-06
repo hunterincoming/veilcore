@@ -82,6 +82,14 @@ export const MAINTENANCE_POLICY_APPROVED: boolean =
   IS_MAINNET && import.meta.env.VITE_MAINTENANCE_POLICY_APPROVED === 'true';
 
 /**
+ * The notice that dating on Midnight is paused (components/DatingPausedNotice.tsx), for while
+ * Midnight upgrades its network and the site cannot date records. Off unless a build sets
+ * VITE_DATING_PAUSED=true; turning it off again is a build without it. It only says so: records
+ * are still saved on the device as always, and batches are anchored when the network is back.
+ */
+export const DATING_PAUSED: boolean = import.meta.env.VITE_DATING_PAUSED === 'true';
+
+/**
  * The origin every shared link and QR code points at. Links used to be built from
  * window.location.origin, so a certificate printed from a preview deployment, or from
  * a copy of the static bundle hosted anywhere, sent whoever scanned it to that host.
