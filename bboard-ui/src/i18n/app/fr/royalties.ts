@@ -113,8 +113,9 @@ export const royalties = {
   'app.roy.f.amountPlain': 'Montant',
   'app.roy.f.law': 'Droit applicable',
   'app.roy.f.lawHelp':
-    'Le droit de quel pays ou État régit l’accord. Repris de votre navigateur : modifiez-le au besoin.',
-  'app.roy.f.territoryRequired': 'Obligatoire pour le cannabis : où la licence s’applique.',
+    'Le droit de quel État, province ou pays régit l’accord. Aux États-Unis, au Canada ou en Australie, indiquez l’État ou la province : il n’y a pas de droit des contrats national.',
+  'app.roy.f.territoryRequired':
+    'Obligatoire : où la licence s’applique (un État, une province ou un pays). Du matériel vivant qui passe une frontière peut demander des permis.',
   'app.roy.f.summary': 'L’accord en un paragraphe',
   'app.roy.f.edit': 'Modifier les détails',
   'app.roy.f.hide': 'Masquer les détails',
@@ -126,9 +127,11 @@ export const royalties = {
   'app.roy.f.need.cap': 'le plafond des déductions',
   'app.roy.f.need.currency': 'la devise',
   'app.roy.f.need.law': 'le droit applicable',
+  'app.roy.f.need.lawState': 'un État ou une province pour le droit applicable, pas seulement le pays',
   'app.roy.f.need.minimum': 'un minimum annuel valable',
   'app.roy.f.need.offspring': 'une redevance sur la descendance valable',
   'app.roy.f.need.territory': 'le territoire',
+  'app.roy.f.need.controlled': 's’il s’agit de cannabis ou d’une autre plante contrôlée',
   'app.roy.f.need.dates': 'une date de fin après le début',
   'app.roy.f.licensor': 'Votre nom ou entreprise',
   'app.roy.f.licensorHelp': 'Montré à l’autre partie ; ses initiales ouvrent chaque référence de paiement.',

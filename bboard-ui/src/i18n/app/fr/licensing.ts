@@ -24,6 +24,7 @@ export const licensing = {
   'app.lic.state.draft': 'Brouillon',
   'app.lic.state.sent': 'Envoyé, en attente de contresignature',
   'app.lic.state.active': 'Marqué actif',
+  'app.lic.state.activeOffChain': 'Marquée active ici, pas sur Midnight',
   'app.lic.state.expired': 'Expiré',
   'app.lic.state.revoked': 'Révoqué',
   'app.lic.type.license': 'Contrat de licence',
@@ -582,9 +583,24 @@ export const licensing = {
     'En attente d’une réponse de la page du concédant. Votre code s’affiche ici dès qu’elle arrive.',
   'app.lic.inv.takeOverTerms':
     'Les conditions auxquelles vous reprenez la licence (les mêmes que pour le détenteur actuel) :',
+  'app.lic.other': 'Autre : {value}',
   // What a license here is and isn't (shown where terms are set and agreed).
   'app.lic.evidenceNote':
-    'Une licence ici est une trace signée et datée de ce que vous avez convenu tous les deux, pas un conseil juridique. Certains tribunaux ont refusé de faire exécuter des accords portant sur le cannabis : faites relire par votre propre avocat tout ce qui compte.',
+    'Une licence ici est une trace signée et datée de ce que vous avez convenu tous les deux, pas un conseil juridique. Faites relire par votre propre avocat tout ce qui compte.',
+  'app.lic.controlled.q': 'S’agit-il de cannabis, de chanvre ou d’une autre plante contrôlée ?',
+  'app.lic.controlled.yes': 'Oui',
+  'app.lic.controlled.no': 'Non',
+  'app.lic.controlled.hint':
+    'L’espèce de cette fiche ressemble à du cannabis : Oui est donc choisi. Changez-le si c’est faux.',
+  'app.lic.controlled.courts': 'Certains tribunaux ont refusé de faire appliquer des accords portant sur le cannabis.',
+  'app.lic.controlled.border':
+    'Faire passer du cannabis ou son matériel végétal par une frontière d’État ou nationale est un délit presque partout, même entre deux États américains où il est légal dans les deux. Limitez le territoire à là où vous pouvez tous deux le cultiver et le vendre légalement, et n’expédiez rien par-delà une frontière.',
+  'app.lic.controlled.japan':
+    'Au Japon, cultiver, vendre ou consommer du cannabis sans autorisation est un délit. N’utilisez pas ceci pour un accord au Japon.',
+  'app.lic.controlled.regulator':
+    'Une redevance sur les ventes peut devoir être déclarée au régulateur du cannabis du licencié.',
+  'app.lic.inv.revokeNote':
+    'Le concédant peut désactiver cette licence sur Midnight à tout moment, quoi que disent vos conditions. La désactiver ne met pas fin au contrat entre vous : vos conditions signées sont votre preuve s’il le fait.',
   'app.lic.inv.iAgree': 'J’accepte ces conditions',
   'app.lic.inv.agree': 'Accepter',
   'app.lic.inv.waitHandOn':

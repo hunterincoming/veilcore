@@ -27,6 +27,7 @@ export const licensing = {
   'app.lic.state.draft': 'Draft',
   'app.lic.state.sent': 'Sent, waiting for counter-signature',
   'app.lic.state.active': 'Marked active',
+  'app.lic.state.activeOffChain': 'Marked active here, not on Midnight',
   'app.lic.state.expired': 'Expired',
   'app.lic.state.revoked': 'Revoked',
   'app.lic.type.license': 'License agreement',
@@ -578,9 +579,22 @@ export const licensing = {
   'app.lic.inv.whenMatches': 'When it matches theirs, they send you the terms and this page moves on by itself.',
   'app.lic.inv.waitLicensor': 'Waiting for the licensor’s page to answer. Your code shows here once it does.',
   'app.lic.inv.takeOverTerms': 'The terms you take the license over on (the same as the current holder’s):',
+  'app.lic.other': 'Other: {value}',
   // What a license here is and isn't (shown where terms are set and agreed).
   'app.lic.evidenceNote':
-    'A license here is a signed, dated record of what you both agreed, not legal advice. Some courts have refused to enforce cannabis agreements, so have your own lawyer review anything that matters.',
+    'A license here is a signed, dated record of what you both agreed, not legal advice. Have your own lawyer review anything that matters.',
+  'app.lic.controlled.q': 'Is this cannabis, hemp or another controlled plant?',
+  'app.lic.controlled.yes': 'Yes',
+  'app.lic.controlled.no': 'No',
+  'app.lic.controlled.hint': 'This record’s species looks like cannabis, so Yes is picked. Change it if that’s wrong.',
+  'app.lic.controlled.courts': 'Some courts have refused to enforce cannabis agreements.',
+  'app.lic.controlled.border':
+    'Moving cannabis or its plant material across a state or national border is a crime in most places, even between two US states where it is legal in both. Keep the territory to where you both may lawfully grow and sell it, and don’t ship across borders.',
+  'app.lic.controlled.japan':
+    'In Japan, growing, selling or using cannabis without a license is a crime. Don’t use this for a deal in Japan.',
+  'app.lic.controlled.regulator': 'A royalty on sales may need to be disclosed to the licensee’s cannabis regulator.',
+  'app.lic.inv.revokeNote':
+    'The licensor can switch this license off on Midnight at any time, whatever your terms say. Switching it off doesn’t end the contract between you: your signed terms are your evidence if they do.',
   'app.lic.inv.iAgree': 'I agree to these terms',
   'app.lic.inv.agree': 'Agree',
   'app.lic.inv.waitHandOn':

@@ -112,8 +112,9 @@ export const royalties = {
   'app.roy.f.amountPlain': 'Betrag',
   'app.roy.f.law': 'Anwendbares Recht',
   'app.roy.f.lawHelp':
-    'Das Recht welches Landes oder Bundesstaats gilt. Aus Ihrem Browser übernommen: ändern Sie es bei Bedarf.',
-  'app.roy.f.territoryRequired': 'Bei Cannabis erforderlich: wo die Lizenz gilt.',
+    'Das Recht welches Bundesstaats, welcher Provinz oder welches Landes gilt. In den USA, Kanada oder Australien den Bundesstaat oder die Provinz nennen: Ein landesweites Vertragsrecht gibt es dort nicht.',
+  'app.roy.f.territoryRequired':
+    'Erforderlich: wo die Lizenz gilt (ein Bundesstaat, eine Provinz oder ein Land). Für lebendes Material über eine Grenze können Genehmigungen nötig sein.',
   'app.roy.f.summary': 'Der Vertrag in einem Absatz',
   'app.roy.f.edit': 'Details bearbeiten',
   'app.roy.f.hide': 'Details ausblenden',
@@ -125,9 +126,11 @@ export const royalties = {
   'app.roy.f.need.cap': 'die Obergrenze für Abzüge',
   'app.roy.f.need.currency': 'die Währung',
   'app.roy.f.need.law': 'das anwendbare Recht',
+  'app.roy.f.need.lawState': 'einen Bundesstaat oder eine Provinz für das geltende Recht, nicht nur das Land',
   'app.roy.f.need.minimum': 'ein gültiges jährliches Minimum',
   'app.roy.f.need.offspring': 'eine gültige Lizenzgebühr auf Nachkommen',
   'app.roy.f.need.territory': 'das Gebiet',
+  'app.roy.f.need.controlled': 'ob es Cannabis oder eine andere kontrollierte Pflanze ist',
   'app.roy.f.need.dates': 'ein Enddatum nach dem Beginn',
   'app.roy.f.licensor': 'Ihr Name oder Ihre Firma',
   'app.roy.f.licensorHelp': 'Wird ihnen gezeigt; die Initialen stehen am Anfang jeder Zahlungsreferenz.',
