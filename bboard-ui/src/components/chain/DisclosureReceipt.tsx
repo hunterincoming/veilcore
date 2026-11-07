@@ -14,8 +14,9 @@ export const DisclosureReceipt: React.FC<{
   dense?: boolean;
   /** One sentence under the heading: what the button below does on Midnight. */
   lead?: string;
-  id?: string;
-}> = ({ circuits, dense, lead, id }) => {
+  /** An id for the lead sentence, for a button's aria-describedby (only the sentence, not the whole receipt). */
+  leadId?: string;
+}> = ({ circuits, dense, lead, leadId }) => {
   const { t } = useT();
   const facts = receiptFacts(circuits);
   const list = { m: 0, pl: 2.5, '& li': { mb: 0.25 } } as const;
@@ -24,14 +25,13 @@ export const DisclosureReceipt: React.FC<{
       component="section"
       aria-label={t('app.receipt.title')}
       data-receipt={circuits.join(' ')}
-      {...(id ? { id } : {})}
       sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: dense ? 1.5 : 2, bgcolor: 'action.hover' }}
     >
       <Typography variant="h6" component="h2" sx={{ fontSize: '1.1rem', fontWeight: 700, mb: 0.5 }}>
         {t('app.receipt.title')}
       </Typography>
       {lead && (
-        <Typography variant="body2" sx={{ mb: 1 }}>
+        <Typography variant="body2" sx={{ mb: 1 }} {...(leadId ? { id: leadId } : {})}>
           {lead}
         </Typography>
       )}

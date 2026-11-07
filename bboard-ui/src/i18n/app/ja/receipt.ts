@@ -41,11 +41,11 @@ export const receipt = {
   'app.receipt.fact.licenseLink': 'このライセンスが対象の記録に結び付いていること、そして有効かどうか',
   'app.receipt.fact.licenseList': '公開ライセンス一覧が変わったこと',
   'app.receipt.fact.licenseCount': 'この記録のライセンスの数',
-  'app.receipt.fact.parentLink': 'この記録があの記録を親として指定していること',
+  'app.receipt.fact.parentLink': 'この2つの記録が親と子として結び付いていること',
   'app.receipt.fact.obligationLink': 'この義務があの記録に結び付いていること',
   'app.receipt.fact.obligationCount': 'この記録の義務の数',
   'app.receipt.stay.genetics': '遺伝情報とDNAファイルがこの端末から出ることはありません。',
   'app.receipt.stay.locked': '名前とメモはあなたの鍵でロックされてレジストリに送られます。レジストリは読めません。',
   'app.receipt.stay.kind':
-    'レジストリに見えるのは、記録の種類、証明コードとそれに結び付いたコード、そして記録同士のつながり（どこから来たか、何に置き換えられたか）です。',
+    'レジストリに見えるのは、記録の種類、証明コードとそれに結び付いたコード、そして記録同士のつながり（どこから来たか、何に置き換えられたか）です。記録を訂正したときは、どの欄がいつから変わったかも見えます。',
 } satisfies Partial<AppTranslation>;

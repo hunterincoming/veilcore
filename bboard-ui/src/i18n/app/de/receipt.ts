@@ -43,12 +43,12 @@ export const receipt = {
   'app.receipt.fact.licenseLink': 'Dass diese Lizenz mit dem lizenzierten Datensatz verbunden ist, und ob sie gilt',
   'app.receipt.fact.licenseList': 'Dass sich die öffentliche Lizenzliste geändert hat',
   'app.receipt.fact.licenseCount': 'Wie viele Lizenzen dieser Datensatz hat',
-  'app.receipt.fact.parentLink': 'Dass dieser Datensatz jenen als seinen Elternteil nennt',
+  'app.receipt.fact.parentLink': 'Dass diese beiden Datensätze als Elternteil und Nachkomme verbunden sind',
   'app.receipt.fact.obligationLink': 'Dass diese Verpflichtung mit jenem Datensatz verbunden ist',
   'app.receipt.fact.obligationCount': 'Wie viele Verpflichtungen dieser Datensatz hat',
   'app.receipt.stay.genetics': 'Genetik und DNA-Dateien verlassen dieses Gerät nie.',
   'app.receipt.stay.locked':
     'Name und Notizen gehen mit Ihrem Schlüssel verschlossen an das Register. Es kann sie nicht lesen.',
   'app.receipt.stay.kind':
-    'Das Register sieht die Art des Datensatzes, seinen Prüfcode und die damit verbundenen Codes, und Verbindungen zwischen Datensätzen (woher einer kam, was ihn ersetzt hat).',
+    'Das Register sieht die Art des Datensatzes, seinen Prüfcode und die damit verbundenen Codes, und Verbindungen zwischen Datensätzen (woher einer kam, was ihn ersetzt hat). Wird ein Datensatz berichtigt, sieht es auch, welche Felder sich geändert haben und ab wann.',
 } satisfies Partial<AppTranslation>;

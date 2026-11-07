@@ -852,7 +852,9 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
       {/* What the seal's key date stamp puts on Midnight, before the button that starts it. Round 5:
           one button, one name; dating the key is part of sealing, said here as the receipt's lead
           (review round 1: one explanation, not three in a row). */}
-      {REAL_CHAIN && <DisclosureReceipt circuits={['anchor']} lead={t('app.log.sealStampsKey')} id="seal-stamps-key" />}
+      {REAL_CHAIN && (
+        <DisclosureReceipt circuits={['anchor']} lead={t('app.log.sealStampsKey')} leadId="seal-stamps-key" />
+      )}
       {error && (
         <Alert severity="error" variant="outlined">
           {error}
