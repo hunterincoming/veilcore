@@ -187,6 +187,7 @@ export default function AskSheet({
             variant="caption"
             color="text.secondary"
             data-ask-engine={engine.status === 'failed' ? `failed:${engine.why}` : engine.status}
+            data-ask-engine-detail={engine.status === 'failed' ? engine.detail : undefined}
           >
             {engine.status === 'model'
               ? t('app.ask.engine.model', { model: engine.model })

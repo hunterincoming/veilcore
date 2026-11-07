@@ -16,7 +16,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /** Hugging Face's file-storage hosts: a redirect host the pin script reports must be one of these. */
-export const HF_STORAGE_HOST = /^(cas-bridge\.xethub\.hf\.co|cdn-lfs(-[a-z0-9-]+)?\.hf\.co|cdn-lfs(-[a-z0-9-]+)?\.huggingface\.co)$/;
+export const HF_STORAGE_HOST =
+  /^(cas-bridge\.xethub\.hf\.co|cdn-lfs(-[a-z0-9-]+)?\.hf\.co|cdn-lfs(-[a-z0-9-]+)?\.huggingface\.co)$/;
 
 /** The worker files as Vite names them in the build: assets/<name>.worker-<hash>.js. */
 export const MODEL_WORKER_FILE = /^\/assets\/ask-model-(download|engine)\.worker-[A-Za-z0-9_-]+\.js$/;
@@ -38,11 +39,18 @@ export const manifestProblem = (manifest) => {
     if (!REPO.test(m.repo ?? '')) return `${m.id}: repo is not owner/name`;
     if (!COMMIT.test(m.commit ?? '')) return `${m.id}: not pinned to a commit`;
   }
-  for (const h of manifest.redirectHosts ?? []) if (!HF_STORAGE_HOST.test(h)) return `${h} is not a Hugging Face file-storage host`;
+  for (const h of manifest.redirectHosts ?? [])
+    if (!HF_STORAGE_HOST.test(h)) return `${h} is not a Hugging Face file-storage host`;
   return undefined;
 };
 
-const common = ["default-src 'none'", "base-uri 'none'", "form-action 'none'", "require-trusted-types-for 'script'", "trusted-types 'none'"];
+const common = [
+  "default-src 'none'",
+  "base-uri 'none'",
+  "form-action 'none'",
+  "require-trusted-types-for 'script'",
+  "trusted-types 'none'",
+];
 
 /** The download worker's policy. With nothing pinned it may fetch nothing at all. */
 export const downloadWorkerCsp = (manifest) => {
@@ -54,4 +62,5 @@ export const downloadWorkerCsp = (manifest) => {
 };
 
 /** The engine worker's policy: this site only, and WebAssembly. */
-export const engineWorkerCsp = () => [...common, "script-src 'self' 'wasm-unsafe-eval'", "connect-src 'self'"].join('; ');
+export const engineWorkerCsp = () =>
+  [...common, "script-src 'self' 'wasm-unsafe-eval'", "connect-src 'self'"].join('; ');

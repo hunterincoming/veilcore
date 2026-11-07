@@ -68,3 +68,7 @@ contract/src/lineage-shallow.compact
 bboard-ui/e2e-dist/
 bboard-ui/test-results/
 bboard-ui/playwright-report/
+
+# Ask model evaluation (scripts/eval-ask.mjs): a local build and its report
+bboard-ui/ask-eval-dist/
+ask-eval-report.json

@@ -182,7 +182,11 @@ let engineWorker: Worker | undefined;
 let session: Promise<ModelSession> | undefined;
 
 export class EngineFailed extends Error {
-  constructor(readonly reason: EngineFailure) {
+  constructor(
+    readonly reason: EngineFailure,
+    /** The error's name, for the console and the tests: never anything typed. */
+    readonly detail = '',
+  ) {
     super(reason);
   }
 }
@@ -199,7 +203,7 @@ export const startEngine = (m: PinnedModel, onProgress?: (stage: string, p: numb
       if (out.type === 'progress') onProgress?.(out.stage, out.progress);
       else if (out.type === 'failed') {
         stopEngine();
-        reject(new EngineFailed(out.reason));
+        reject(new EngineFailed(out.reason, out.detail));
       } else if (out.type === 'ready')
         resolve({
           modelId: m.id,
@@ -217,9 +221,9 @@ export const startEngine = (m: PinnedModel, onProgress?: (stage: string, p: numb
         else p?.ok(out.text);
       }
     };
-    w.onerror = () => {
+    w.onerror = (ev: ErrorEvent) => {
       stopEngine();
-      reject(new EngineFailed('failed'));
+      reject(new EngineFailed('failed', `worker error: ${String(ev.message ?? '').slice(0, 200)}`));
     };
     w.postMessage({ type: 'load', modelId: m.id } satisfies EngineIn);
   });
