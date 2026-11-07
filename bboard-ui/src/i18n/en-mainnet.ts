@@ -36,7 +36,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { StringKey } from './en';
-import { applyLiveSwaps, type LiveSwaps } from './mainnet-overlay';
+import { applyLiveSwaps, withoutCadence, type LiveSwaps } from './mainnet-overlay';
 
 type Overlay = Partial<Record<StringKey, string>>;
 
@@ -270,7 +270,7 @@ export const mainnetStrings = ({
     ...keyStrings(claimsOnMainnet, policyApproved),
     ...chainStrings(chainReads),
   };
-  if (!chainSends) return o;
+  if (!chainSends) return withoutCadence(o);
   const sent = { ...o, ...sendsStrings(o), ...(claimsOnMainnet && claimsOnSite ? CLAIMS_ON_SITE : {}) };
-  return agreementsLive ? { ...sent, ...applyLiveSwaps(sent, LIVE_SWAPS, 'en') } : sent;
+  return withoutCadence(agreementsLive ? { ...sent, ...applyLiveSwaps(sent, LIVE_SWAPS, 'en') } : sent);
 };

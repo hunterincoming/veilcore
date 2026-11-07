@@ -368,9 +368,11 @@ export const licensing = {
   'app.lic.ledger.l.unknownAmount': 'an amount this page can’t work out',
   'app.lic.ledger.r.aPartner': 'a payment partner',
   'app.lic.ledger.r.checked':
-    'Paid through {partner} (a partner VeilCore checked): {amount} {currency} to {to} on {date}, reference {ref}. Signed by the partner and checked here.',
+    'Paid through {partner} (a partner key you named): {amount} {currency} to {to} on {date}, reference {ref}. Signed with that key and checked here.',
   'app.lic.ledger.r.unchecked':
-    'Paid through {partner} (not a partner VeilCore has checked): {amount} {currency} to {to} on {date}, reference {ref}. Signed by the partner and checked here. Anyone can sign as a partner under any name: confirm the money arrived before you rely on it.',
+    'A receipt signed with key {key}, which the registry calls {partner}; nobody has checked that, VeilCore included: {amount} {currency} to {to} on {date}, reference {ref}. The signature checks out here. Check the key with the partner yourself, and confirm the money arrived, before you rely on it.',
+  'app.lic.ledger.r.trust': 'I checked this key: trust it',
+  'app.lic.ledger.r.forget': 'Stop trusting this key',
   'app.lic.ledger.r.mismatch': 'Doesn’t match: {what}.',
   // ---- paying on Midnight (veilcore/onchain-pay.ts, OnChainPay.tsx) ----
   'app.lic.pay.method': 'on Midnight, in {code}',
