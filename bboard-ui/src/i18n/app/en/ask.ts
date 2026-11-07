@@ -51,10 +51,12 @@ export const ask = {
   'app.ask.replace.use': 'Use the new draft',
   // ---- what's due ----
   'app.ask.due.title': 'What’s due',
-  'app.ask.due.from': 'From the terms of your agreements in this browser.',
+  'app.ask.due.from':
+    'From your agreements in this browser: their terms, and the reports and payments this page has read.',
   'app.ask.due.none': 'Nothing is due under the agreements in this browser.',
   'app.ask.due.report': 'Royalty report: {name}, {from} to {to}',
   'app.ask.due.payment': 'Royalty payment: {name}, {from} to {to}',
+  'app.ask.due.check': '{name}: open the agreement to see what’s due',
   'app.ask.due.ends': 'Agreement ends: {name}',
   'app.ask.due.line': '{date}: {what}',
   'app.ask.due.overdue': 'Overdue',

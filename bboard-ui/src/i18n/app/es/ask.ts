@@ -49,10 +49,12 @@ export const ask = {
   'app.ask.replace.note': 'Usar el borrador nuevo sustituye lo que escribió allí.',
   'app.ask.replace.use': 'Usar el borrador nuevo',
   'app.ask.due.title': 'Qué vence',
-  'app.ask.due.from': 'Según las condiciones de sus acuerdos en este navegador.',
+  'app.ask.due.from':
+    'Según sus acuerdos en este navegador: sus condiciones y los informes y pagos que esta página ha leído.',
   'app.ask.due.none': 'No vence nada según los acuerdos de este navegador.',
   'app.ask.due.report': 'Informe de regalías: {name}, del {from} al {to}',
   'app.ask.due.payment': 'Pago de regalías: {name}, del {from} al {to}',
+  'app.ask.due.check': '{name}: abra el acuerdo para ver qué vence',
   'app.ask.due.ends': 'Fin del acuerdo: {name}',
   'app.ask.due.line': '{date}: {what}',
   'app.ask.due.overdue': 'Atrasado',
