@@ -36,6 +36,9 @@ What the tools do not do:
 - `draft_link` puts only the kind of record, the preset and how many in the link (at most 500,
   the bulk import's limit). Never a name, a parent or a record: the person picks those on the
   screen, which marks everything the link filled and saves nothing until they press Save.
+- `check_document` reads only the file you name, and refuses a link to another file (a symbolic
+  link), the system's pseudo-files (`/proc`, `/sys`, `/dev`), anything over 1 GB, and a link
+  listing more than 20 files. Set `VEILCORE_MCP_ROOT` to a folder and it reads only files inside it.
 - None of them hashes or reads a file you did not name, and none keeps anything after it answers.
 
 `VEILCORE_REGISTRY` names another registry for `check_record`; `VEILCORE_ORIGIN` another site
