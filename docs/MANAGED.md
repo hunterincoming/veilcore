@@ -157,11 +157,11 @@ operating.
 | | VeilCore-run (this) | Partner kit (self-run) | Website self-custody |
 | --- | --- | --- | --- |
 | Who sends transactions | VeilCore | you | you, in your browser |
-| Who pays fees | VeilCore (fees per the agreement) | you (DUST) | you |
+| Who pays fees | VeilCore (fees per the agreement) | you (DUST) | VeilCore's fee service, on veilcore.org (no wallet) |
 | Who holds record secrets | VeilCore, in a store of yours | you | you |
 | Who holds recovery secrets | you (recommended) or VeilCore | you | you |
-| You need | a safe for one sheet of paper; to leave, one recovery run with a DUST wallet | a developer, a server, a DUST wallet | a browser and a wallet |
-| Available | at launch | at launch (docs/PARTNERS.md) | after launch |
+| You need | a safe for one sheet of paper; to leave, one recovery run with a DUST wallet | a developer, a server, a DUST wallet | a browser, nothing else |
+| Available | at launch | at launch (docs/PARTNERS.md) | on veilcore.org now (licences once switched on there) |
 
 ---
 
@@ -453,7 +453,9 @@ compares them with the chain.
 - Instructions from partners arrive outside the tool (email, phone). There is no partner login.
 - No hardware security module: secrets are bytes in a file, encrypted.
 - The partner's last step of an exit needs a DUST wallet and someone able to run one command; VeilCore
-  cannot pay for it without seeing the partner's recovery secret (fee sponsorship is not in service).
-- The website self-custody option is after launch.
+  cannot pay for it without seeing the partner's recovery secret (its fee service pays only for what
+  veilcore.org's own pages send, and recovery is not among those calls, `sponsor/src/policy.ts`).
+- Website self-custody is on veilcore.org: records, date stamps, proofs by link and DNA pairings
+  now, with VeilCore's fee service paying; licences once they are switched on there.
 - No independent security audit of VeilCore-run yet; one AI review (`review-managed.md`), whose findings
   this version addresses.
