@@ -7,7 +7,7 @@
 // opened. The only thing stored is that flag (ask-local/hint-flag.ts).
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { Suspense, lazy, useMemo, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { Fab, GlobalStyles, IconButton, Paper, Typography } from '@mui/material';
 import ChatIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import CloseIcon from '@mui/icons-material/Close';
@@ -16,6 +16,7 @@ import { useRecords } from '../../veilcore/records';
 import { hintForAnimals } from '../../ask/hint';
 import { ANIMAL_RECORDS_ENABLED } from '../../config/network';
 import { askSeen, markAskSeen } from '../../ask-local/hint-flag';
+import { MODEL_FLAG } from '../../ask-local/manifest';
 
 const AskSheet = lazy(() => import('./AskSheet'));
 
@@ -33,6 +34,11 @@ export const AskLauncher: React.FC = () => {
   const [seenAtLoad] = useState(askSeen);
   const [hint, setHint] = useState(!seenAtLoad);
   const animals = useMemo(() => hintForAnimals(records, ANIMAL_RECORDS_ENABLED), [records]);
+
+  // The evaluation build only (scripts/eval-ask.mjs): never in a site build.
+  useEffect(() => {
+    if (MODEL_FLAG === 'eval') void import('../../ask-local/eval-hook').then((m) => m.installEvalHook());
+  }, []);
 
   const seen = () => {
     setHint(false);

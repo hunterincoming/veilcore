@@ -188,6 +188,22 @@ describe.skipIf(!built)('the first download, in the built site (dist/)', () => {
     expect(text(first).some((src) => src.includes(en['draft.banner']))).toBe(true);
   });
 
+  it('WebLLM (Ask’s on-device model) is only in the engine worker’s own files: never the landing page or the app', () => {
+    const assets = fs.readdirSync(path.join(DIST, 'assets')).filter((f) => f.endsWith('.js'));
+    // A line from WebLLM's own code (its tensor-cache loader).
+    const webllm = assets.filter((f) =>
+      fs.readFileSync(path.join(DIST, 'assets', f), 'utf8').includes('Fetching param cache'),
+    );
+    expect(webllm.length).toBe(1);
+    for (const f of first) expect(webllm.map((w) => `assets/${w}`)).not.toContain(f);
+    // Who names it: only the engine worker (a dynamic import there, after its checks).
+    const naming = assets.filter(
+      (f) => !webllm.includes(f) && fs.readFileSync(path.join(DIST, 'assets', f), 'utf8').includes(webllm[0]),
+    );
+    expect(naming.length).toBe(1);
+    expect(naming[0]).toMatch(/^ask-model-engine\.worker-[A-Za-z0-9_-]+\.js$/);
+  });
+
   it('the check page’s own file brings no WebAssembly with it', () => {
     const verify = fs.readdirSync(path.join(DIST, 'assets')).filter((f) => /^VerifyPage-.*\.js$/.test(f));
     expect(verify).toHaveLength(1);

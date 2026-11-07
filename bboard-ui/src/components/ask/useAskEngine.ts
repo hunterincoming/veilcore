@@ -15,7 +15,7 @@ export type EngineState =
   | { readonly status: 'shortcuts'; readonly engine: AskEngine }
   | { readonly status: 'starting'; readonly engine: AskEngine; readonly model: string }
   | { readonly status: 'model'; readonly engine: AskEngine; readonly model: string }
-  | { readonly status: 'failed'; readonly engine: AskEngine; readonly why: EngineWhy };
+  | { readonly status: 'failed'; readonly engine: AskEngine; readonly why: EngineWhy; readonly detail?: string };
 
 /** "Qwen3-1.7B-q4f16_1-MLC" -> "Qwen3 1.7B". */
 export const modelName = (id: string): string => id.replace(/^(Qwen3)-([\d.]+B).*$/, '$1 $2');
@@ -59,7 +59,12 @@ export const useAskEngine = (again: number): EngineState => {
         set({ status: 'model', engine: modelEngine(session), model: modelName(m.id) });
       } catch (e) {
         stopEngine();
-        set({ status: 'failed', engine: shortcutsEngine, why: WHY[(e as EngineFailed).reason] ?? 'failed' });
+        set({
+          status: 'failed',
+          engine: shortcutsEngine,
+          why: WHY[(e as EngineFailed).reason] ?? 'failed',
+          detail: (e as EngineFailed).detail,
+        });
       }
     })();
     return () => {

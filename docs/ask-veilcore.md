@@ -232,5 +232,19 @@ counts requests while it asks its questions on a real GPU.
 **The one thing Ask stores:** a flag that the person has seen Ask (`veilcore.ask.seen.v1`, set
 when the hint by the button is dismissed or Ask is opened). Never what was typed.
 
+**To pin it and measure it (the maintainer, on the Mac, in order):**
+
+1. `node scripts/pin-model.mjs --check`, then `node scripts/pin-model.mjs` (downloads about
+   1.5 GB from Hugging Face; writes `bboard-ui/src/ask-local/model-manifest.json`). Read the
+   diff: two commits, the files and hashes, and the redirect host.
+2. `cd bboard-ui && VITE_ASK_MODEL=eval npx vite build --mode preview --outDir ask-eval-dist && cd ..`
+3. `node scripts/eval-ask.mjs` (opens Chrome; about 10 to 20 minutes), and again with
+   `--model Qwen3-0.6B-q4f16_1-MLC`. It prints Shortcuts' score, the model's, per language, the
+   requests made while answering, and "CLEARLY WINS" or not (`scripts/ask-eval-score.mjs`:
+   at least 20 more of the 200 right, no language worse, at most 4 that Shortcuts gets right and
+   the model gets wrong, no request). Shortcuts gets 144 of 200 (the unit test prints it).
+4. Commit the manifest. Only if a model clearly wins does `VITE_ASK_MODEL=on` go into a site
+   build, and that is the founders' call.
+
 Not before it: voice (browser speech sends audio to Apple or Google), photo-to-draft, a cloud
 model, WebMCP, agent-to-agent licensing.

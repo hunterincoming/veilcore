@@ -44,16 +44,14 @@ type Engine = {
 let engine: Engine | undefined;
 let loading = false;
 
+/** WebLLM's own error names (it sets each class's name), and the one fixed message below. */
 const failureOf = (e: unknown): EngineFailure => {
-  const name = (e as { name?: string })?.name ?? '';
-  const msg = String((e as { message?: string })?.message ?? e);
-  if (
-    name === 'WebGPUNotAvailableError' ||
-    /WebGPU is not supported|navigator\.gpu|Unable to find a compatible GPU|WebGPU/i.test(msg)
-  )
-    return 'no-gpu';
-  if (name === 'ShaderF16SupportError' || /shader-f16/i.test(msg)) return 'no-f16';
-  if (name === 'IntegrityError' || /integrity/i.test(msg)) return 'mismatch';
+  const name = (e as { name?: string } | undefined)?.name ?? '';
+  if (name === 'WebGPUNotAvailableError') return 'no-gpu';
+  // The TVM runtime's own wording when WebGPU is there but offers no adapter (detectGPUDevice).
+  if (String((e as Error | undefined)?.message ?? '').startsWith('Unable to find a compatible GPU.')) return 'no-gpu';
+  if (name === 'ShaderF16SupportError') return 'no-f16';
+  if (name === 'IntegrityError') return 'mismatch';
   return 'failed';
 };
 
@@ -98,7 +96,17 @@ const load = async (modelId: string): Promise<EngineOut> => {
     engine = e;
     return { type: 'ready' };
   } catch (err) {
-    return { type: 'failed', reason: failureOf(err), detail: String((err as Error)?.name ?? '') };
+    // For whoever looks at the console: which error, never anything typed.
+    console.warn(
+      'Ask: the on-device model did not start:',
+      (err as Error)?.name,
+      String((err as Error)?.message ?? err).slice(0, 300),
+    );
+    return {
+      type: 'failed',
+      reason: failureOf(err),
+      detail: `${String((err as Error)?.name ?? '')}: ${String((err as Error)?.message ?? err).slice(0, 200)}`,
+    };
   }
 };
 
