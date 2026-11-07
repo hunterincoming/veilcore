@@ -151,6 +151,29 @@ describe('the record app in every language', () => {
       for (const [k, v] of Object.entries(dict)) expect(OWN[lang].test(v), `${lang} ${k}: ${v}`).toBe(false);
   });
 
+  it('never claims nothing leaves the device; the receipt and Ask say only the approved sentence', () => {
+    // "Nothing leaves" is never true of a record that is saved, backed up or dated.
+    const NOTHING: RegExp[] = [
+      /nothing (ever )?leaves/i,
+      /nichts verlässt/i,
+      /rien ne quitte/i,
+      /nada sale|no sale nada/i,
+      /何も外に出ません/,
+    ];
+    // On the receipt and the Ask screens, "never leaves" only in the one approved sentence
+    // about genetics and DNA files (app.receipt.stay.genetics); everything else says exactly
+    // what goes where.
+    const NEVER =
+      /never leaves?|verlass\w* (dieses|Ihr) Gerät nie|ne quitte\w* jamais|nunca salen?|出ることはありません|外に出ません/i;
+    for (const [lang, dict] of [['en', EN], ...Object.entries(TRANSLATIONS)] as [Lang, Record<string, string>][])
+      for (const [k, v] of Object.entries(dict)) {
+        for (const re of NOTHING) expect(re.test(v), `${lang} ${k}: ${v}`).toBe(false);
+        if ((k.startsWith('app.receipt.') || k.startsWith('app.ask.')) && k !== 'app.receipt.stay.genetics')
+          expect(NEVER.test(v), `${lang} ${k}: ${v}`).toBe(false);
+      }
+    expect(EN['app.receipt.stay.genetics']).toBe('Genetics and DNA files never leave this device.');
+  });
+
   it('never says VeilCore vouches, or "track and trace"', () => {
     for (const dict of [EN, ...Object.values(TRANSLATIONS)])
       for (const [k, v] of Object.entries(dict)) {

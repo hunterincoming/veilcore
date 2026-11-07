@@ -18,6 +18,7 @@ import { signerLabel, type ResolvedAttestation } from '../../veilcore/attesters'
 import type { LabSigner } from '../../veilcore/claim-link';
 import { useT } from '../../i18n/app';
 import { Fact } from './DocumentParts';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 type Held = DocumentRecordLike & { readonly fieldSet: HeldFieldSet };
 
@@ -139,7 +140,13 @@ export const LabSignaturePanel: React.FC<{
               </Alert>
             ) : (
               <Box>
-                <Button variant="contained" disabled={busy} onClick={() => void publish()} sx={{ minHeight: 44 }}>
+                <DisclosureReceipt circuits={['proveAttested']} />
+                <Button
+                  variant="contained"
+                  disabled={busy}
+                  onClick={() => void publish()}
+                  sx={{ minHeight: 44, mt: 1.5 }}
+                >
                   {busy ? t('app.attest.publishing') : t('app.attest.publish')}
                 </Button>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>

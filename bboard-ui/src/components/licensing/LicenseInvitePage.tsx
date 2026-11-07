@@ -61,6 +61,7 @@ import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { Wordmark } from '../Wordmark';
 import { rich, useT } from '../../i18n/app';
 import { LanguageBar } from '../../i18n/LanguagePicker';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 const POLL_MS = 8_000;
 /** Enough of a record's key to compare with the sender: 16 characters, in groups of 4. */
@@ -520,6 +521,7 @@ export const LicenseInvitePage: React.FC = () => {
                 }
                 label={tr.t('app.lic.inv.iAgree')}
               />
+              <DisclosureReceipt circuits={['countersignLicense']} />
               <Typography variant="caption" color="text.secondary" data-evidence-note="">
                 {tr.t('app.lic.evidenceNote')}
               </Typography>

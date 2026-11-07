@@ -30,6 +30,7 @@ import { backupReturnTo } from '../flow/backup-return';
 import { Wordmark } from '../Wordmark';
 import { useT } from '../../i18n/app';
 import { LanguageBar } from '../../i18n/LanguagePicker';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const short = (h: string) => (h.slice(0, 16).match(/..../g) ?? []).join(' ');
@@ -154,6 +155,7 @@ const ClaimRow: React.FC<{ l: Lender; c: LenderClaim; busy: boolean; run: Run; o
       {!c.proposeTx && backedUp && (
         <Stack spacing={1}>
           <Typography variant="body2">{tr.t('app.lic.lend.readyToSend')}</Typography>
+          <DisclosureReceipt circuits={['proposeObligation']} />
           <Button variant="contained" disabled={busy} onClick={() => void propose()} sx={{ alignSelf: 'flex-start' }}>
             {tr.t('app.lic.lend.send')}
           </Button>
@@ -179,6 +181,7 @@ const ClaimRow: React.FC<{ l: Lender; c: LenderClaim; busy: boolean; run: Run; o
               label={tr.t('app.lic.lend.withdraw')}
               question={tr.t('app.lic.lend.withdrawQ')}
               confirmLabel={tr.t('app.lic.lend.withdrawYes')}
+              receipt={<DisclosureReceipt circuits={['withdrawObligation']} dense />}
               disabled={busy}
               onConfirm={() => void withdraw()}
             />
@@ -194,6 +197,7 @@ const ClaimRow: React.FC<{ l: Lender; c: LenderClaim; busy: boolean; run: Run; o
             label={tr.t('app.lic.lend.release')}
             question={tr.t('app.lic.lend.releaseQ')}
             confirmLabel={tr.t('app.lic.lend.releaseYes')}
+            receipt={<DisclosureReceipt circuits={['discharge']} dense />}
             disabled={busy}
             onConfirm={() => void release()}
           />
@@ -308,6 +312,7 @@ export const LenderPage: React.FC = () => {
       {l && !l.anchorTx && l.backedUpAt && (
         <Stack spacing={1.25}>
           <Typography variant="body2">{tr.t('app.lic.lend.anchorWhy', { name: l.name })}</Typography>
+          <DisclosureReceipt circuits={['anchor']} />
           <Button
             variant="contained"
             disabled={call.busy}

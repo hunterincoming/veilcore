@@ -15,6 +15,7 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { ConfirmInline, HowItWorks } from './DealSteps';
 import { rich, useT } from '../../i18n/app';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 const POLL_MS = 15_000;
 
@@ -106,6 +107,7 @@ export const HandOnHolder: React.FC<{
           label={tr.t('app.lic.hh.takeBack')}
           question={tr.t('app.lic.hh.takeBackQ')}
           confirmLabel={tr.t('app.lic.hh.takeBackYes')}
+          receipt={<DisclosureReceipt circuits={['withdrawTransfer']} dense />}
           disabled={call.busy}
           onConfirm={() => void withdraw()}
         />
@@ -125,6 +127,7 @@ export const HandOnHolder: React.FC<{
             label={tr.t('app.lic.hh.handOn', { name: offer.to })}
             question={tr.t('app.lic.hh.handOnQ', { name: offer.to })}
             confirmLabel={tr.t('app.lic.hh.handOnYes')}
+            receipt={<DisclosureReceipt circuits={['proposeTransfer']} dense />}
             disabled={call.busy}
             onConfirm={() => void handOn()}
           />

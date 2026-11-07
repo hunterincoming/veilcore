@@ -31,6 +31,7 @@ import { royalties } from './royalties';
 import { document } from './document';
 import { attest } from './attest';
 import { start } from './start';
+import { receipt } from './receipt';
 
 export const appFr: AppTranslation = {
   ...common,
@@ -57,4 +58,5 @@ export const appFr: AppTranslation = {
   ...document,
   ...attest,
   ...start,
+  ...receipt,
 };

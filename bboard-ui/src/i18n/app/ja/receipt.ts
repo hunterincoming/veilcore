@@ -1,0 +1,41 @@
+// 記録アプリ（日本語）：Midnightでの各操作の前に表示する開示レシート（../en/receipt.ts）。
+// DRAFT: machine-assisted, to be checked by a fluent speaker before publishing (docs/translations/README.md).
+// SPDX-License-Identifier: Apache-2.0
+import type { AppTranslation } from '../../translate';
+
+export const receipt = {
+  'app.receipt.title': 'この操作でMidnightに載るもの',
+  'app.receipt.public': 'Midnightで公開されるもの：',
+  'app.receipt.private': '非公開のままのもの：',
+  'app.receipt.when': 'Midnightに記録された日時',
+  'app.receipt.fact.yourRecord': 'あなたの記録の鍵から作ったコード（記録そのものではありません）',
+  'app.receipt.fact.recovery': '記録の復旧用シークレットから作ったコード',
+  'app.receipt.fact.newKey': '記録の新しい鍵から作ったコード',
+  'app.receipt.fact.otherRecord': 'もう一方の記録の鍵から作ったコード',
+  'app.receipt.fact.issuerRecord': 'ライセンス対象の記録の鍵から作ったコード',
+  'app.receipt.fact.challenge': '確認する人の一回限りのチャレンジコード',
+  'app.receipt.fact.dnaReport': 'DNAレポートから作ったコード（レポートそのものではありません）',
+  'app.receipt.fact.licence': 'ライセンスから作ったコード（条件ではありません）',
+  'app.receipt.fact.newLicence': '新しい保有者のライセンスから作ったコード',
+  'app.receipt.fact.licenceEntry': '公開ライセンス一覧でのライセンスの登録コード',
+  'app.receipt.fact.slot': 'その一覧でのライセンスの位置番号',
+  'app.receipt.fact.presentation': '確認する人だけが照合できる一回限りのコード',
+  'app.receipt.fact.listVersion': '一致したライセンス一覧の版',
+  'app.receipt.fact.checkPassed': '確認が通ったこと',
+  'app.receipt.fact.obligation': '義務から作ったコード（条件ではありません）',
+  'app.receipt.fact.certificate': '封印された証明書の証明コード',
+  'app.receipt.fact.otherCertificate': '2つ目の証明書の証明コード',
+  'app.receipt.fact.certKind': '証明書の種類',
+  'app.receipt.fact.line': '証明書のどの行か',
+  'app.receipt.fact.value': 'その行の値（全体）',
+  'app.receipt.fact.limit': '選んだ基準値（数値そのものは公開されません）',
+  'app.receipt.fact.comparison': 'その基準値以上か以下か',
+  'app.receipt.fact.mask': '変更してよい行',
+  'app.receipt.fact.labKey': '検査機関の公開署名鍵',
+  'app.receipt.fact.signatureCheck': '検査機関の署名を確認した数値',
+  'app.receipt.fact.batch': '記録のまとまり全体のコード1つ',
+  'app.receipt.fact.timeLimit': 'ライセンス一覧の期限時刻',
+  'app.receipt.stay.genetics': '遺伝情報とDNAファイルがこの端末から出ることはありません。',
+  'app.receipt.stay.locked': '名前とメモはあなたの鍵でロックされてレジストリに送られます。レジストリは読めません。',
+  'app.receipt.stay.kind': 'レジストリに見えるのは記録の種類（植物、動物、文書）と証明コードです。',
+} satisfies Partial<AppTranslation>;

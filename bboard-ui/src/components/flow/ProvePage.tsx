@@ -28,6 +28,7 @@ import { FlowFrame } from './FlowFrame';
 import { rich, useT } from '../../i18n/app';
 import { LanguageBar } from '../../i18n/LanguagePicker';
 import { DatingPausedNotice } from '../DatingPausedNotice';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 /** This page has no app header: the language picker and the draft banner sit above its frame. */
 const ProveFrame: React.FC<React.PropsWithChildren> = ({ children }) => (
@@ -220,6 +221,7 @@ const Answer: React.FC<{ req: ProveRequest; token: string; recordId: string; nam
       ) : (
         <>
           <Typography variant="body2">{t('app.prove.answering')}</Typography>
+          <DisclosureReceipt circuits={['proveOwnership']} />
           <DatingPausedNotice on={call.paused} />
           <Button
             variant="contained"

@@ -27,6 +27,7 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { ConfirmInline, DealSteps, HowItWorks } from './DealSteps';
 import { rich, useT } from '../../i18n/app';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 const POLL_MS = 8_000;
 
@@ -366,6 +367,7 @@ export const HandOnIssuer: React.FC<{
         {h.askedAt && proposed === h.commitment && agreed && (
           <Stack spacing={1.25}>
             <Typography variant="body2">{tr.t('app.lic.hi.ready', { holder, name: h.label })}</Typography>
+            <DisclosureReceipt circuits={['approveTransfer']} />
             <Button
               variant="contained"
               size="large"

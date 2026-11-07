@@ -96,8 +96,10 @@ export const ConfirmInline: React.FC<{
   confirmLabel: string;
   disabled?: boolean;
   reason?: string;
+  /** What the step puts on Midnight (DisclosureReceipt), shown with the question. */
+  receipt?: React.ReactNode;
   onConfirm: (reason: string) => void;
-}> = ({ label, question, confirmLabel, disabled, reason, onConfirm }) => {
+}> = ({ label, question, confirmLabel, disabled, reason, receipt, onConfirm }) => {
   const tr = useT();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
@@ -118,6 +120,7 @@ export const ConfirmInline: React.FC<{
       <Typography variant="body2" sx={{ mb: 1 }}>
         {question}
       </Typography>
+      {receipt && <Box sx={{ mb: 1 }}>{receipt}</Box>}
       {reason && (
         <TextField
           size="small"

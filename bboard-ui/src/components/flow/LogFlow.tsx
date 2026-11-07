@@ -87,6 +87,7 @@ import {
 } from './log-flow-state';
 import { animalParentOptionsOf, parentOptionsOf, strainParentOptionsOf } from '../stage/record-kinds';
 import { DatingPausedNotice } from '../DatingPausedNotice';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 // SEAL_EACH_STAGE, STAGE_PROMPT and SELECTED_PROMPT (stage-notes.ts) are shown here in the
 // visitor's language: app.log.sealEachStage, app.log.stagePrompt, app.log.selectedPrompt.
 
@@ -766,6 +767,8 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
       <Typography variant="body2" color="text.secondary">
         {t('app.log.savedOn', { server: t('app.copy.ourServer'), datedOn: t('app.copy.datedOn') })}
       </Typography>
+      {/* What the seal's key date stamp puts on Midnight, before the button that starts it. */}
+      {REAL_CHAIN && <DisclosureReceipt circuits={['anchor']} />}
       {error && (
         <Alert severity="error" variant="outlined">
           {error}
