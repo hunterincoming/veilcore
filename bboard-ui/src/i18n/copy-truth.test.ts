@@ -1063,3 +1063,18 @@ describe('the promise rule (round 8)', () => {
     expect([...hits]).toEqual([]);
   });
 });
+
+// Blueprint section 4: the price is "Free.", with no "today" or "for now" beside it.
+describe('the price', () => {
+  it('is free, with no time qualifier, in every language', () => {
+    expect(en['m.faq.6a']).toMatch(/^Free\. /);
+    for (const [l, p] of Object.entries(LANGUAGES)) {
+      const v = (p.strings as Record<string, string>)['m.faq.6a'];
+      expect(v, l).toBeTruthy();
+      expect(v, l).not.toMatch(/today|for now|heute|vorerst|hoy|por ahora|aujourd|pour l.instant|現在|当面/i);
+    }
+    const terms = fs.readFileSync(path.join(SRC, 'components/site/Terms.tsx'), 'utf8');
+    expect(terms).toMatch(/Using VeilCore is free\. /);
+    expect(terms).not.toMatch(/free today/);
+  });
+});

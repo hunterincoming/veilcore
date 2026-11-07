@@ -459,7 +459,7 @@ export const de: Strings = {
   'm.faq.4link2': 'Integrationsleitfaden →',
   'm.faq.6q': 'Was kostet es?',
   'm.faq.6a':
-    'Einen Datensatz auf dieser Website anzulegen, kostet heute nichts. Einen Datensatz zu prüfen, ist immer kostenlos.',
+    'Kostenlos. Einen Datensatz auf dieser Website anzulegen und jeden Datensatz zu prüfen, ist beides kostenlos.',
   'm.demo.lede':
     'Keine Anmeldung, keine Wallet. Es ist eine Testversion, verwenden Sie also erfundene Angaben. Datensätze werden in Stapeln auf Midnight datiert; Lizenzen und Laborvereinbarungen sind simuliert, und Kopplungen von DNA-Berichten werden noch nicht datiert.',
   'm.demo.privacy': 'Was die Demo speichert →',
