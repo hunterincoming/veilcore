@@ -850,8 +850,8 @@ describe('Japanese (round 6)', () => {
         [...new Set([...Object.keys(mainnetStrings(f)), 'm.status.keyTitle'])].sort(),
       );
       expect(networkOverlay({ ...MAINNET, ...f }, 'ja')).toEqual({ ...mainnetStrings(f), ...o });
-      for (const k of ['m.hero.status', 'm.demo.lede', 'm.stat2.s', 'm.privacy.test.text'] as const)
-        expect(o[k], k).toMatch(/手作業/);
+      for (const k of ['m.hero.status', 'm.demo.lede', 'm.stat2.s'] as const) expect(o[k], k).toMatch(/手作業/);
+      for (const k of ['m.privacy.lede', 'm.privacy.test.text'] as const) expect(o[k], k).not.toMatch(/手作業/);
       expect(o['m.status.keyText']).toMatch(
         f.policyApproved ? /書面のメンテナンスポリシーに基づき公表します/ : /提案段階/,
       );
