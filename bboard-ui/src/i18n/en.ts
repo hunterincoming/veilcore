@@ -245,7 +245,7 @@ export const en = {
   'm.faq.3link': 'Records in evidence →',
   'm.faq.4q': 'What do you see of my data?',
   'm.faq.4a':
-    "Your genetic data: nothing. Your computer reads the files you add to make a code from each, and they aren't uploaded. A lab report reaches our server only when a lab sends it back to you: it's locked so only you can open it, and deleted after 180 days. The details you type (the record's name, breeder, dates, notes, agreement terms) and your files' names are stored on our server locked, and we don't have the key. We can read each record's proof code, and anything you choose to show. The sample details you and a lab write for a delivery are stored locked too, with a key that travels in the lab code, and we don't have it. Labs and developers can seal records inside their own systems, so only the proof code goes out.",
+    "Your genetic data, unlocked: nothing. Your computer reads the files you add to make a code from each, and they aren't uploaded. A lab report reaches our server only when a lab sends it back to you: it's locked so only you can open it, and deleted after 180 days. The details you type (the record's name, breeder, dates, notes, agreement terms) and your files' names are stored on our server locked, and we don't have the key. We can read each record's proof code, and anything you choose to show. The sample details you and a lab write for a delivery are stored locked too, with a key that travels in the lab code, and we don't have it. Labs and developers can seal records inside their own systems, so only the proof code goes out.",
   'm.faq.4link1': 'What the demo keeps →',
   'm.faq.4link2': 'Integration guide →',
   'm.faq.6q': 'What does it cost?',

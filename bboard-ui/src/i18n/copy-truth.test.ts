@@ -59,6 +59,7 @@ import { networkOverlay, LANGUAGES } from './catalogs';
 import { ja, jaMainnet, jaTestchain } from './ja';
 import { animalRecordsEnabledFor, labResultsEnabledFor } from '../config/network';
 import { readIndexersFor } from '../veilcore/chain/config';
+import { brokenPromises } from './promise-rule';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.resolve(HERE, '..');
@@ -1002,4 +1003,62 @@ describe('translations', () => {
       );
     });
   }
+});
+
+// Round 8 (Trust Alchemist; blueprint section 4): the promise rule, in every language and every
+// build. A sentence saying genetic data, a record or typed details never/nothing leaves, or that
+// we can't see or read it, must say it is locked: those details do reach the registry, locked.
+// True sentences about files and keys that never leave the device pass.
+describe('the promise rule (round 8)', () => {
+  it('catches the old false sentences and passes the true ones', () => {
+    for (const bad of [
+      'Genetics and DNA files never leave this device.',
+      'Done on your computer. Genetic data never leaves it.',
+      'Your genetic data: nothing.',
+      "We can't see your records.",
+      'Genetische Daten verlassen ihn nie.',
+      'Los datos genéticos nunca salen de ella.',
+      'Les données génétiques ne le quittent jamais.',
+      '遺伝データがコンピューターから出ることはありません。',
+    ])
+      expect(brokenPromises(bad), bad).not.toEqual([]);
+    for (const ok of [
+      'Genetics and DNA files never leave this device unlocked.',
+      'Done on your computer. Genetic data never leaves it unlocked.',
+      'Your genetic data, unlocked: nothing.',
+      'Your DNA files never leave your device.',
+      'Your key never leaves this device.',
+      'Your payment details are encrypted on VeilCore’s servers, which can’t read them.',
+      '{count} records came back in a form this version can’t read, so they aren’t shown.',
+      'What you typed and your files are never sent to the network.',
+      'Genetische Daten verlassen ihn nie unverschlossen.',
+      '遺伝情報とDNAファイルが鍵のかからない形でこの端末から出ることはありません。',
+    ])
+      expect(brokenPromises(ok), ok).toEqual([]);
+  });
+
+  it('no string in any language or build breaks it', () => {
+    const sets: [string, Record<string, string | undefined>][] = [
+      ['en', en],
+      ['en-test', testchainStrings],
+      ['app-en', appEn],
+      ['app-ja', appJa],
+      ['app-es', appEs],
+      ['app-de', appDe],
+      ['app-fr', appFr],
+    ];
+    for (const claimsOnMainnet of [true, false])
+      for (const chainReads of [true, false])
+        for (const chainSends of [true, false])
+          for (const agreementsLive of [true, false]) {
+            const flags = { claimsOnMainnet, policyApproved: true, chainReads, chainSends, agreementsLive };
+            sets.push(['en-main', mainnetStrings(flags)]);
+            for (const [l, p] of Object.entries(LANGUAGES)) if (p.mainnet) sets.push([`${l}-main`, p.mainnet(flags)]);
+          }
+    for (const [l, p] of Object.entries(LANGUAGES)) sets.push([l, p.strings], [`${l}-test`, p.testchain]);
+    const hits = new Set<string>();
+    for (const [n, s] of sets)
+      for (const [k, v] of Object.entries(s)) if (v) for (const b of brokenPromises(v)) hits.add(`${n} ${k}: ${b}`);
+    expect([...hits]).toEqual([]);
+  });
 });
