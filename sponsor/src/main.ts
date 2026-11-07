@@ -38,7 +38,7 @@ import { fromSerialized, stateEraOf } from "./contract-state.js";
 import { forkLogFields, readFork, type Era, type ForkReading } from "./fork.js";
 import { protocolVersionToLedger } from "@midnight-ntwrk/midnight-js-protocol";
 import { log, scrubOutput } from "./log.js";
-import { installWsDiagnostics } from "./ws-diagnostics.js";
+import { installWsDiagnostics, midnightJsWebSocket } from "./ws-diagnostics.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -75,7 +75,13 @@ const main = async (): Promise<void> => {
 
   // Which side of Midnight's Ledger 9 fork the network is on (fork.ts): the protocol version
   // the indexer reports, and the ledger that wrote the contract's state.
-  const publicData = indexerPublicDataProvider(cfg.indexer, cfg.indexerWS);
+  // midnight-js dials with the `ws` package unless given a class: to Blockfrost, the plain
+  // protocol only (ws-diagnostics.ts).
+  const publicData = indexerPublicDataProvider(
+    cfg.indexer,
+    cfg.indexerWS,
+    midnightJsWebSocket(cfg.indexerWS, WebSocket, log) as never,
+  );
   const readChain = async (): Promise<{ protocolVersion: number; stateEra: Era | undefined; read: Awaited<ReturnType<typeof publicData.queryContractState>> }> => {
     const protocolVersion = await publicData.queryLatestProtocolVersion();
     const read = await publicData.queryContractState(cfg.contractAddress);
