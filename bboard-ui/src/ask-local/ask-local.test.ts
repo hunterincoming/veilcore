@@ -179,6 +179,13 @@ describe('where Ask fetches', () => {
         /\bfetch\(|WebSocket|XMLHttpRequest|sendBeacon|localStorage|sessionStorage|indexedDB/,
       );
   });
+  it('the one thing stored is the flag that Ask was seen', () => {
+    const s = src('hint-flag.ts');
+    expect(s.match(/localStorage\.\w+\(/g)).toEqual(['localStorage.getItem(', 'localStorage.setItem(']);
+    expect(s).toMatch(/setItem\(HINT_KEY, '1'\)/);
+    for (const f of fs.readdirSync(HERE).filter((x) => /\.tsx?$/.test(x) && !/test|hint-flag/.test(x)))
+      expect(src(f), f).not.toMatch(/localStorage|sessionStorage|indexedDB/);
+  });
   it('the download fetches only pinned addresses, with no cookies and no referrer', () => {
     const s = src('ask-model-download.worker.ts');
     expect(s).toMatch(/fetch\(fileUrl\(m, f\.path\)/);

@@ -30,6 +30,63 @@ export const ask = {
   'app.ask.kind.plant': '植物',
   'app.ask.kind.animal': '動物',
   'app.ask.kind.strain': '菌株・系統',
+  // ---- できること（最初に開いたとき。その後はリンクの下） ----
+  'app.ask.can.title': 'できること：',
+  'app.ask.can.list':
+    'クローンや子の記録をまとめて作る・期限が来るものを表示・言葉の説明・記録を探す・入力済みの画面を開く',
+  'app.ask.can.listPlants':
+    'クローンの記録をまとめて作る・期限が来るものを表示・言葉の説明・記録を探す・入力済みの画面を開く',
+  'app.ask.can.never': '署名や送信は一切しません。それはあなたが行います。',
+  'app.ask.can.toggle': 'VeilCoreに聞くでできること',
+  // ---- 初めての訪問で、ボタンの横に出るヒント ----
+  'app.ask.hint.plant': '例：Blue Dreamからクローンを12本取る',
+  'app.ask.hint.animal': '例：子牛を3頭記録する',
+  'app.ask.hint.dismiss': '閉じる',
+  // ---- 端末内の言語モデル（任意） ----
+  'app.ask.privacyModel':
+    'ここに入力しても何も送信されません。言語モデルはこの端末の中で動きます。送信するのは「保存」だけです。',
+  'app.ask.engine.model': 'この端末内の言語モデル（{model}）で読み取り、同じルールで確認しています。',
+  'app.ask.engine.starting': '端末内の言語モデルを起動しています。準備ができるまではショートカットが答えます。',
+  'app.ask.engine.failed': '端末内の言語モデルが起動しなかったため、ショートカットが答えます。{why}',
+  'app.ask.model.title': '端末内の言語モデル（任意）',
+  'app.ask.model.what':
+    'VeilCoreに聞くは今のままでも、オフラインでショートカットにより使えます。さらに、このブラウザの中で動き、入力内容を読み取る小さな言語モデル（Qwen3、Apache-2.0）をダウンロードすることもできます。その答えは同じルールで確認され、ショートカットにできないことは何もできません。',
+  'app.ask.model.pick': 'モデルを選ぶ',
+  'app.ask.model.option': '{name}：約{size}',
+  'app.ask.model.size': 'ダウンロード：{size}。削除するまでこのブラウザに保存されます。',
+  'app.ask.model.hf':
+    'ファイルはHugging Faceから届きます。Hugging Faceには、あなたのIPアドレス、日時、どのモデルか、そしてリクエストがveilcore.orgからであることがわかります。入力した内容は、そのときも後も送信されません。',
+  'app.ask.model.check': '各ファイルは、使う前にこのサイトに組み込まれたチェックサムと照合されます。',
+  'app.ask.model.download': 'ダウンロード（{size}）',
+  'app.ask.model.resume': 'ダウンロードを再開',
+  'app.ask.model.cancel': 'キャンセル',
+  'app.ask.model.progress': '{total}中{done}',
+  'app.ask.model.cancelled': '停止しました。ダウンロード済みの分は残っています。いつでも再開できます。',
+  'app.ask.model.delete': 'このブラウザからモデルを削除',
+  'app.ask.model.deleted': '削除しました。ショートカットを使います。',
+  'app.ask.model.stored': 'ダウンロード済み：{name}。この端末でテストの答えが合ってから使います。',
+  'app.ask.model.noRoom': 'このブラウザの空きは約{free}で、モデルには{size}必要です。ショートカットを使います。',
+  'app.ask.model.failed.network': 'ダウンロードが止まりました（接続）。ショートカットを使います。再開できます。',
+  'app.ask.model.failed.mismatch':
+    'ファイルがチェックサムと一致しなかったため、保存しませんでした。ショートカットを使います。',
+  'app.ask.model.failed.storage': 'このブラウザがファイルを保存しませんでした。ショートカットを使います。',
+  'app.ask.model.failed.policy':
+    'このブラウザはダウンロード専用のセキュリティ規則を適用しないため、ここでは始めません。ショートカットを使います。',
+  'app.ask.model.why.policy': 'このブラウザはモデル専用のセキュリティ規則を適用しません。',
+  'app.ask.model.why.mismatch':
+    '保存されたファイルがチェックサムと一致しませんでした。モデルを削除して、もう一度ダウンロードしてください。',
+  'app.ask.model.why.notStored': 'モデルの一部がありません。ダウンロードを再開してください。',
+  'app.ask.model.why.noGpu': 'このブラウザにはWebGPUがありません。',
+  'app.ask.model.why.noF16': 'このコンピューターのグラフィックスではこのモデルを動かせません。',
+  'app.ask.model.why.selfTest': 'この端末でテストの答えを間違えました。',
+  'app.ask.model.why.failed': '読み込みの途中で止まりました。',
+  'app.ask.model.notHere.phone': '言語モデルは今のところコンピューター向けです。ここではショートカットを使います。',
+  'app.ask.model.notHere.noWebgpu':
+    'このブラウザでは言語モデルを動かせません（WebGPUなし）。ショートカットを使います。',
+  'app.ask.model.notHere.noF16':
+    'このコンピューターのグラフィックスでは言語モデルを動かせません。ショートカットを使います。',
+  'app.ask.model.notHere.memory':
+    'このコンピューターはメモリが少なく、言語モデルを動かせません。ショートカットを使います。',
   'app.ask.draft.opens': '開く画面：{screen}',
   'app.ask.screen.record': '記録を作る（{kind}）',
   'app.ask.screen.cross': '記録を作る：交配（{kind}）',

@@ -2,18 +2,20 @@
 // a text box second. It drafts; only the person saves, signs or sends, on the screen it opens.
 //
 // "Typing here sends nothing. Only Save does." Nothing here makes a request: Shortcuts (ask/shortcuts.ts)
-// reads the text in this page, What's due, Explain and Search read what this browser already
+// reads the text in this page (or the optional language model, in a worker on this device:
+// useAskEngine.ts, docs/ask-veilcore.md v2.1), What's due, Explain and Search read what this browser already
 // holds. The conversation is kept in memory only, for as long as the page is open: never
 // stored, never in a backup (docs/ask-veilcore.md). e2e/ask.spec.ts checks the network stays
 // silent while a draft is made.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Box,
   Button,
   Chip,
+  Collapse,
   Divider,
   Drawer,
   IconButton,
@@ -40,11 +42,16 @@ import {
   type AskResult,
   type Topic,
 } from '../../ask/engine';
-import { chipResult, shortcutsEngine } from '../../ask/shortcuts';
+import { chipResult } from '../../ask/shortcuts';
 import { HANDOFF_STATE_KEY, type AskDraft, type DraftKind } from '../../ask/handoff';
 import { dueCalendar, dueItems, type DueItem } from '../../ask/due';
 import { searchRecords } from '../../ask/search';
 import { today } from '../flow/log-flow-state';
+import { MODEL_BUILT } from '../../ask-local/manifest';
+import { useAskEngine } from './useAskEngine';
+
+// The download screen for the optional model: its own file, only in a build with the model.
+const ModelPanel = lazy(() => import('./ModelPanel'));
 
 type Turn = { readonly id: number; readonly text?: string; readonly result: AskResult };
 
@@ -60,7 +67,16 @@ const KINDS: readonly DraftKind[] = [
   ...(STRAIN_RECORDS_ENABLED ? (['strain'] as const) : []),
 ];
 
-export default function AskSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function AskSheet({
+  open,
+  onClose,
+  firstOpen = false,
+}: {
+  open: boolean;
+  onClose: () => void;
+  /** Ask was never opened in this browser: what it can do is shown, then folded away. */
+  firstOpen?: boolean;
+}) {
   const theme = useTheme();
   const phone = useMediaQuery(theme.breakpoints.down('sm'));
   const tr = useT();
@@ -70,6 +86,14 @@ export default function AskSheet({ open, onClose }: { open: boolean; onClose: ()
   const [turns, setTurns] = useState<Turn[]>(kept);
   const [text, setText] = useState('');
   const end = useRef<HTMLDivElement>(null);
+  const [canShown, setCanShown] = useState(firstOpen);
+  const [engineAgain, setEngineAgain] = useState(0);
+  const engine = useAskEngine(engineAgain);
+  const modelOn = engine.status === 'model';
+  // Shown once: folded away when the sheet closes, and under "What can Ask do?" after that.
+  useEffect(() => {
+    if (!open) setCanShown(false);
+  }, [open]);
 
   const add = (turn: Omit<Turn, 'id'>) => {
     const next = [...turns, { id: nextId++, ...turn }].slice(-20);
@@ -85,7 +109,7 @@ export default function AskSheet({ open, onClose }: { open: boolean; onClose: ()
     const typed = text.trim().slice(0, ASK_MAX_CHARS);
     if (!typed) return;
     setText('');
-    add({ text: typed, result: await shortcutsEngine.interpret(typed, ctx) });
+    add({ text: typed, result: await engine.engine.interpret(typed, ctx) });
   };
 
   const chips = (actions: readonly AskAction[]) => (
@@ -127,12 +151,50 @@ export default function AskSheet({ open, onClose }: { open: boolean; onClose: ()
             <CloseIcon />
           </IconButton>
         </Stack>
+        <Collapse in={canShown} unmountOnExit>
+          <Box data-ask-can="" sx={{ bgcolor: 'action.hover', borderRadius: 2, borderTopLeftRadius: 4, p: 1.5 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              {t('app.ask.can.title')}
+            </Typography>
+            <Typography variant="body2">
+              {t(ANIMAL_RECORDS_ENABLED ? 'app.ask.can.list' : 'app.ask.can.listPlants')}
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              {t('app.ask.can.never')}
+            </Typography>
+          </Box>
+        </Collapse>
+        {!canShown && (
+          <Link
+            component="button"
+            type="button"
+            variant="body2"
+            onClick={() => setCanShown(true)}
+            sx={{ alignSelf: 'flex-start' }}
+            data-ask-can-toggle=""
+          >
+            {t('app.ask.can.toggle')}
+          </Link>
+        )}
         <Typography variant="body1">{t('app.ask.intro')}</Typography>
-        <Typography variant="body2" color="text.secondary" data-ask-privacy="">
-          {t('app.ask.privacy')}
+        <Typography variant="body2" color="text.secondary" data-ask-privacy={modelOn ? 'model' : ''}>
+          {modelOn ? t('app.ask.privacyModel') : t('app.ask.privacy')}
           {t('app.common.sentenceSep')}
           {t('app.ask.engine')}
         </Typography>
+        {engine.status !== 'shortcuts' && (
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            data-ask-engine={engine.status === 'failed' ? `failed:${engine.why}` : engine.status}
+          >
+            {engine.status === 'model'
+              ? t('app.ask.engine.model', { model: engine.model })
+              : engine.status === 'starting'
+                ? t('app.ask.engine.starting')
+                : t('app.ask.engine.failed', { why: t(`app.ask.model.why.${engine.why}` as AppKey) })}
+          </Typography>
+        )}
         {chips(CHIPS)}
         <Box
           component="form"
@@ -181,6 +243,11 @@ export default function AskSheet({ open, onClose }: { open: boolean; onClose: ()
               {t('app.ask.clear')}
             </Button>
           </>
+        )}
+        {MODEL_BUILT && (
+          <Suspense fallback={null}>
+            <ModelPanel onChange={() => setEngineAgain((n) => n + 1)} />
+          </Suspense>
         )}
         <div ref={end} />
       </Stack>

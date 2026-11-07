@@ -233,6 +233,10 @@ describe('What’s due', () => {
   });
 });
 
+// Ask's own code: src/ask/ and components/ask/. Two things are kept apart in src/ask-local/ and
+// checked there (ask-local.test.ts): the optional model's download worker, the only code that
+// fetches, and only when the person starts it; and the flag that the hint was seen, the only
+// thing stored.
 describe('Ask stays off the network and out of storage', () => {
   const here = path.dirname(fileURLToPath(import.meta.url));
   const files = [
@@ -257,6 +261,7 @@ describe('docs/ask-veilcore.md says what the app says', () => {
     const en = appEn as Record<string, string>;
     for (const k of [
       'app.ask.privacy',
+      'app.ask.privacyModel',
       'app.receipt.stay.genetics',
       'app.receipt.stay.locked',
       'app.receipt.stay.kind',
