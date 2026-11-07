@@ -96,12 +96,16 @@ holds or moves anyone's money.
      records; audits as a step; partial payments and changing answers after payment (needs a
      `veilcore-records` release); co-breeder splits.
 5. **Payment through a partner (receipts still read; the request button is hidden in v2).**
-   VeilCore never touches money. The payer hands a statement to a payment partner (a wallet or payment company, registered with VeilCore and
-   its name checked).
-   The partner pays through its own licensed rails, then signs a receipt over the
-   statement's fingerprint with its registered key. Both sides see "paid, confirmed by
-   <partner>", and the payee still confirms the money arrived. A payment made any other way is marked by the payer and confirmed by the
-   payee. VeilCore's only fee is a flat subscription, settled: never a fee per deal, per
+   VeilCore never touches money, and keeps no list of "trusted" partners: choosing whose
+   receipts count would be vouching for them. The payer hands a statement to a payment
+   partner they choose (a wallet or payment company). The partner pays through its own
+   licensed rails, then signs a receipt over the statement's fingerprint with its key. A page
+   checks each receipt's signature itself, and treats it as paid through a partner only when
+   the person checking has named that key, after checking it with the partner directly
+   (`veilcore/payment-partners.ts`, kept in their own browser); any other receipt is shown as
+   a signature from a key nobody has checked, with the registry's name for it marked unchecked.
+   Either way the payee still confirms the money arrived. A payment made any other way is
+   marked by the payer and confirmed by the payee. VeilCore's only fee is a flat subscription, settled: never a fee per deal, per
    payment or per royalty; nothing is charged or collected today.
 6. **Offspring royalties (done).** A license that carries a royalty on offspring becomes an
    obligation on chain against the licensee's own record of that plant: the breeder
@@ -213,9 +217,9 @@ holds or moves anyone's money.
 - **The registry can withhold a message.** It can't read, forge, alter or reorder one, but it
   can hold back the newest (a changed payout account, say). A changed account shows beside
   the old one; the payer is told to check before paying.
-- ~~A partner's name comes from the registry.~~ Closed: which keys are trusted partners is
-  fixed in the website's own source (`veilcore/payment-partners.ts`), changed only by a
-  reviewed commit. The registry's list is shown as unchecked.
+- ~~A partner's name comes from the registry.~~ Closed: a receipt's key counts only when the
+  person checking named it themselves (`veilcore/payment-partners.ts`); VeilCore keeps no list
+  of its own (blueprint section 4). The registry's name for a key is shown as unchecked.
 - **Invites cost nothing to make.** Anyone can make invites and open channels for them, within
   per-client daily limits; empty channels are deleted after a week. There is no total cap,
   which would let an attacker stop every honest license.

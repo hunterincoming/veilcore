@@ -9,6 +9,7 @@
 // differs. The rules live in veilcore/royalty-ledger.ts (pure, tested).
 // SPDX-License-Identifier: Apache-2.0
 
+import { forgetKey, nameKey } from '../../veilcore/payment-partners';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
@@ -990,7 +991,8 @@ const ReportCard: React.FC<{
   const st = stateOf(r);
   const [asking, setAsking] = useState(false);
   const [note, setNote] = useState('');
-  const receipts = useReceipts(r, ledger.payout?.account);
+  const [keysChanged, setKeysChanged] = useState(0);
+  const receipts = useReceipts(r, ledger.payout?.account, keysChanged);
   const payToken = ledger.payout ? tokenOfMethod(ledger.payout.method) : undefined;
   const paidToken = r.paid ? tokenOfMethod(r.paid.method) : undefined;
   const lines: readonly StatementLine[] = s.lines ?? [{ kind: 'royalty', quantity: s.quantity, amount: s.amountOwed }];
@@ -1095,11 +1097,26 @@ const ReportCard: React.FC<{
       {receipts.map((c) => (
         <Alert
           key={`${c.receipt.partner}:${c.receipt.reference}`}
-          severity={c.mismatch.length || !c.nameChecked ? 'warning' : 'success'}
+          severity={c.mismatch.length || !c.keyNamed ? 'warning' : 'success'}
           variant="outlined"
+          data-receipt-key={c.keyNamed ? 'named' : 'unnamed'}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => {
+                if (c.keyNamed) forgetKey(c.receipt.partner);
+                else nameKey(c.receipt.partner, c.partnerName ?? '');
+                setKeysChanged((n) => n + 1);
+              }}
+            >
+              {tr.t(c.keyNamed ? 'app.lic.ledger.r.forget' : 'app.lic.ledger.r.trust')}
+            </Button>
+          }
         >
-          {tr.t(c.nameChecked ? 'app.lic.ledger.r.checked' : 'app.lic.ledger.r.unchecked', {
+          {tr.t(c.keyNamed ? 'app.lic.ledger.r.checked' : 'app.lic.ledger.r.unchecked', {
             partner: c.partnerName ?? tr.t('app.lic.ledger.r.aPartner'),
+            key: `${c.receipt.partner.slice(0, 8)}…${c.receipt.partner.slice(-6)}`,
             amount: c.receipt.amount,
             currency: c.receipt.currency,
             to: c.receipt.payTo,
@@ -1860,7 +1877,7 @@ const HowToRead: React.FC<{ tr: Translator }> = ({ tr }) => {
 };
 
 /** Receipts filed by payment partners for an accepted report, checked here, read every 30 seconds until confirmed. */
-const useReceipts = (r: Report, payTo: string | undefined): CheckedReceipt[] => {
+const useReceipts = (r: Report, payTo: string | undefined, keysChanged = 0): CheckedReceipt[] => {
   const [list, setList] = useState<CheckedReceipt[]>([]);
   const watch = r.reply?.decision === 'accepted';
   const done = !!r.received;
@@ -1878,7 +1895,7 @@ const useReceipts = (r: Report, payTo: string | undefined): CheckedReceipt[] => 
       live = false;
       if (t) clearInterval(t);
     };
-  }, [fp, payTo, watch, done, r.statement]);
+  }, [fp, payTo, watch, done, r.statement, keysChanged]);
   return list;
 };
 
