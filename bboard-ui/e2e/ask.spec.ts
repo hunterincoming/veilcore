@@ -66,7 +66,9 @@ const standIn = async (page: Page, holder: string, vault: string, held: { record
 const openAsk = async (page: Page) => {
   await page.locator('[data-ask-open]').click();
   await expect(page.locator('[data-ask-sheet]')).toBeVisible();
-  await expect(page.locator('[data-ask-privacy]')).toHaveText('Ask sends nothing; Save does.');
+  await expect(page.locator('[data-ask-privacy]')).toHaveText(
+    'Typing here sends nothing. Only Save does. Works offline.',
+  );
 };
 
 const askFor = async (page: Page, text: string) => {
@@ -155,7 +157,8 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   const holder = randomBytes(32).toString('hex');
   const vault = newVaultKey();
   const held = await standIn(page, holder, vault);
-  const name = `Ask mother (practice) ${Date.now()}`;
+  // A short demo name, as growers use (review round 1): each test has its own stand-in registry.
+  const name = 'Blue Dream #12';
 
   // The receipt: on the check screen, before "Seal it", which starts the key's date stamp.
   await page.goto('/new');
@@ -168,7 +171,9 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   await expect(receipt.locator('[data-receipt-public]')).toContainText(
     'A code made from your record’s key (not the record)',
   );
-  await expect(receipt.locator('[data-receipt-public]')).toContainText('A code made from your backup secret (not the secret)');
+  await expect(receipt.locator('[data-receipt-public]')).toContainText(
+    'A code made from your backup secret (not the secret)',
+  );
   await expect(receipt.locator('[data-receipt-public]')).toContainText('The date and time it lands on Midnight');
   await expect(receipt.locator('[data-receipt-private]')).toContainText(
     'Genetics and DNA files never leave this device.',

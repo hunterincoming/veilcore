@@ -9,10 +9,13 @@ import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
 import { STAYS, receiptFacts, type ReceiptCircuit } from '../../veilcore/onchain-receipt';
 
-export const DisclosureReceipt: React.FC<{ circuits: readonly ReceiptCircuit[]; dense?: boolean }> = ({
-  circuits,
-  dense,
-}) => {
+export const DisclosureReceipt: React.FC<{
+  circuits: readonly ReceiptCircuit[];
+  dense?: boolean;
+  /** One sentence under the heading: what the button below does on Midnight. */
+  lead?: string;
+  id?: string;
+}> = ({ circuits, dense, lead, id }) => {
   const { t } = useT();
   const facts = receiptFacts(circuits);
   const list = { m: 0, pl: 2.5, '& li': { mb: 0.25 } } as const;
@@ -21,17 +24,30 @@ export const DisclosureReceipt: React.FC<{ circuits: readonly ReceiptCircuit[]; 
       component="section"
       aria-label={t('app.receipt.title')}
       data-receipt={circuits.join(' ')}
+      {...(id ? { id } : {})}
       sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: dense ? 1.5 : 2, bgcolor: 'action.hover' }}
     >
-      <Typography variant="subtitle2" component="h3" sx={{ mb: 0.5 }}>
+      <Typography variant="h6" component="h2" sx={{ fontSize: '1.1rem', fontWeight: 700, mb: 0.5 }}>
         {t('app.receipt.title')}
       </Typography>
+      {lead && (
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          {lead}
+        </Typography>
+      )}
       <Typography variant="body2" sx={{ fontWeight: 700 }}>
         {t('app.receipt.public')}
       </Typography>
       <Box component="ul" sx={list} data-receipt-public="">
         {facts.map((f) => (
-          <Typography component="li" variant="body2" key={f} data-fact={f}>
+          // A value proved exactly is published in full: said as a warning, not one line among many.
+          <Typography
+            component="li"
+            variant="body2"
+            key={f}
+            data-fact={f}
+            sx={f === 'value' ? { color: 'warning.dark', fontWeight: 700 } : undefined}
+          >
             {t(`app.receipt.fact.${f}` as AppKey)}
           </Typography>
         ))}

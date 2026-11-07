@@ -237,6 +237,8 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
                 {...mark('parent')}
                 label={t('app.ask.batch.cutFrom')}
                 value={parentId}
+                // A long name wraps on a phone instead of being cut off.
+                slotProps={{ select: { sx: { whiteSpace: 'normal', overflowWrap: 'anywhere' } } }}
                 onChange={(e) => setParentId(e.target.value)}
                 helperText={plants.length ? undefined : t('app.ask.batch.noPlants')}
                 fullWidth
@@ -256,6 +258,7 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
                     {...mark(role)}
                     label={t(role === 'sire' ? 'app.animal.sire' : 'app.animal.dam')}
                     value={role === 'sire' ? sireId : damId}
+                    slotProps={{ select: { sx: { whiteSpace: 'normal', overflowWrap: 'anywhere' } } }}
                     onChange={(e) => (role === 'sire' ? setSireId : setDamId)(e.target.value)}
                     helperText={animals.length ? undefined : t('app.ask.batch.noAnimals')}
                     fullWidth
@@ -304,6 +307,8 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
             <TextField
               label={t('app.ask.batch.baseName')}
               value={baseName}
+              multiline
+              maxRows={3}
               onChange={(e) => setBaseTyped(e.target.value.slice(0, 180))}
               helperText={names.length ? t('app.ask.batch.namedLike', { example: names[0] }) : undefined}
               fullWidth

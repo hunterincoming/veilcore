@@ -8,8 +8,8 @@ export const ask = {
   'app.ask.button': 'Ask',
   'app.ask.title': 'Ask VeilCore',
   'app.ask.intro': 'Pick one, or type what you want to do.',
-  'app.ask.privacy': 'Ask sends nothing; Save does.',
-  'app.ask.engine': 'Shortcuts: built into this page, works offline.',
+  'app.ask.privacy': 'Typing here sends nothing. Only Save does.',
+  'app.ask.engine': 'Works offline.',
   'app.ask.inputLabel': 'What do you want to do?',
   'app.ask.inputPlaceholder': 'e.g. cut 12 clones from Blue Dream',
   'app.ask.go': 'Go',
@@ -20,7 +20,7 @@ export const ask = {
   'app.ask.chip.record': 'New record',
   'app.ask.chip.clones': 'Cut clones',
   'app.ask.chip.offspring': 'Record offspring',
-  'app.ask.chip.cross': 'Cross two',
+  'app.ask.chip.cross': 'Record a cross',
   'app.ask.chip.due': 'What’s due',
   'app.ask.chip.explain': 'Explain a word',
   'app.ask.chip.search': 'Search my records',
@@ -45,14 +45,13 @@ export const ask = {
   'app.ask.draft.open': 'Open it',
   // ---- a filled screen ----
   'app.ask.banner.ask': 'Filled in by Ask. Check every highlighted field.',
-  'app.ask.banner.link':
-    'Opened from a link. It chose only the kind of record and how many: check every highlighted field.',
+  'app.ask.banner.link': 'Opened from a link. It only set the record type and how many. Check every highlighted field.',
   'app.ask.replace.title': 'You have a record half-typed',
   'app.ask.replace.note': 'Using the new draft replaces what you typed there.',
   'app.ask.replace.use': 'Use the new draft',
   // ---- what's due ----
   'app.ask.due.title': 'What’s due',
-  'app.ask.due.from': 'From the signed terms of your agreements in this browser.',
+  'app.ask.due.from': 'From the terms of your agreements in this browser.',
   'app.ask.due.none': 'Nothing is due under the agreements in this browser.',
   'app.ask.due.report': 'Royalty report: {name}, {from} to {to}',
   'app.ask.due.payment': 'Royalty payment: {name}, {from} to {to}',
@@ -83,7 +82,7 @@ export const ask = {
     'Your record’s proof code goes on Midnight in a batch with others. The batch’s date is the date your record existed by.',
   'app.ask.term.license': 'License',
   'app.ask.def.license':
-    'An agreement that lets someone use your genetics on terms you both signed. Midnight records that it exists and is live; the terms stay between you.',
+    'An agreement that lets someone use your genetics on terms you both agreed to. Midnight records that it exists and is live; the terms stay between you.',
   'app.ask.term.royaltyReport': 'Royalty report',
   'app.ask.def.royaltyReport':
     'What a licensee sends each period under the terms: how much they sold or grew, and what that comes to.',
@@ -115,10 +114,9 @@ export const ask = {
   'app.ask.batch.bornOn': 'Born on',
   'app.ask.batch.willMake.one': '{count} new record',
   'app.ask.batch.willMake.other': '{count} new records',
-  'app.ask.batch.private':
-    'Each new record names its parent inside its own locked record, so the link between them stays private.',
+  'app.ask.batch.private': 'Each record keeps its parent’s name locked inside it. No one else sees the link.',
   'app.ask.batch.offline': 'You’re offline. You can check everything here; saving needs a connection.',
-  'app.ask.batch.needsConnection': 'Saving needs a connection. Nothing is saved before your backup.',
+  'app.ask.batch.needsConnection': 'Saving needs a connection. Your backup comes first.',
   'app.ask.batch.needParent': 'Pick the plant they were cut from.',
   'app.ask.batch.needParents': 'Pick the sire, the dam, or both.',
   'app.ask.batch.needAll': 'Fill in every field above.',
