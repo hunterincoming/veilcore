@@ -249,3 +249,19 @@ describe('Ask stays off the network and out of storage', () => {
     }
   });
 });
+
+describe('docs/ask-veilcore.md says what the app says', () => {
+  it('quotes the privacy line and the receipt’s private lines word for word', () => {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const doc = fs.readFileSync(path.resolve(here, '../../../docs/ask-veilcore.md'), 'utf8');
+    const en = appEn as Record<string, string>;
+    for (const k of [
+      'app.ask.privacy',
+      'app.receipt.stay.genetics',
+      'app.receipt.stay.locked',
+      'app.receipt.stay.kind',
+    ])
+      expect(doc, k).toContain(`> ${en[k]}`);
+    expect(doc).toContain(en['app.ask.banner.ask']);
+  });
+});
