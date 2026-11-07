@@ -117,10 +117,12 @@ export const ask = {
   'app.ask.replace.note': 'Der neue Entwurf ersetzt, was Sie dort geschrieben haben.',
   'app.ask.replace.use': 'Den neuen Entwurf verwenden',
   'app.ask.due.title': 'Was ist fällig',
-  'app.ask.due.from': 'Aus den Bedingungen Ihrer Vereinbarungen in diesem Browser.',
+  'app.ask.due.from':
+    'Aus Ihren Vereinbarungen in diesem Browser: ihren Bedingungen und den Berichten und Zahlungen, die diese Seite gelesen hat.',
   'app.ask.due.none': 'Unter den Vereinbarungen in diesem Browser ist nichts fällig.',
   'app.ask.due.report': 'Lizenzgebühren-Bericht: {name}, {from} bis {to}',
   'app.ask.due.payment': 'Lizenzgebühren-Zahlung: {name}, {from} bis {to}',
+  'app.ask.due.check': '{name}: Öffnen Sie die Vereinbarung, um zu sehen, was fällig ist',
   'app.ask.due.ends': 'Vereinbarung endet: {name}',
   'app.ask.due.line': '{date}: {what}',
   'app.ask.due.overdue': 'Überfällig',

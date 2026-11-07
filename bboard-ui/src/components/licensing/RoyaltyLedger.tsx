@@ -70,14 +70,14 @@ import {
   stateOf,
   statementHtml,
   toPayOf,
-  upcomingPeriods,
   type Ledger,
   type NoticeEntry,
   type PeriodRow,
   type Report,
   type ReportInput,
 } from '../../veilcore/royalty-ledger';
-import { calendarFile, periodsOf, type RoyaltyPeriod } from '../../veilcore/royalty-periods';
+import { periodsOf, type RoyaltyPeriod } from '../../veilcore/royalty-periods';
+import { licenseCalendar } from '../../ask/due';
 import {
   currencyOf,
   dateWords,
@@ -492,13 +492,12 @@ const HomeCard: React.FC<{
             onClick={() =>
               saveFile(
                 'veilcore-royalty-dates.ics',
-                calendarFile(
-                  upcomingPeriods(terms, today),
-                  {
-                    report: (p) => tr.t('app.roy.cal.report', { period: periodText(p.from, p.to, tr) }),
-                    payment: (p) => tr.t('app.roy.cal.payment', { period: periodText(p.from, p.to, tr) }),
-                  },
-                  `royalty-${(terms.startDate || 'x').replace(/-/g, '')}`,
+                // The same due list as Ask's "What's due" (royalty-ledger.ts dueSteps): overdue
+                // items stay, done ones go, so the two calendar files agree.
+                licenseCalendar(terms, ledger, today, (kind, p) =>
+                  tr.t(kind === 'report' ? 'app.roy.cal.report' : 'app.roy.cal.payment', {
+                    period: periodText(p.from, p.to, tr),
+                  }),
                 ),
                 'text/calendar',
               )

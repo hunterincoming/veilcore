@@ -28,7 +28,7 @@ import {
   type License,
   type OnChainLicense,
 } from '../../veilcore/licenses';
-import { useDeal, type DealParty } from '../../veilcore/deal-client';
+import { dealParty, useDeal } from '../../veilcore/deal-client';
 import { RoyaltyLedger } from './RoyaltyLedger';
 import { getRecord } from '../../veilcore/records';
 import { hasOffspringRoyalty, isCannabisRecord } from '../../veilcore/royalty-terms';
@@ -57,18 +57,6 @@ import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 const POLL_MS = 8_000;
 
-/** The issuer's side of the deal's channel, once both keys and the license are known. */
-export const dealParty = (oc: OnChainLicense): DealParty | undefined =>
-  oc.partySecret && oc.licenseeNonce && oc.commitment && oc.issuerRecord
-    ? {
-        side: 'issuer',
-        mySecret: oc.partySecret,
-        theirPublic: oc.licenseeNonce,
-        commitment: oc.commitment,
-        issuerRecord: oc.issuerRecord,
-        invite: { id: oc.inviteId, token: oc.issuerToken },
-      }
-    : undefined;
 /** Once live: read the chain now and then, so a revoke from another device shows. */
 const LIVE_POLL_MS = 60_000;
 

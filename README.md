@@ -56,7 +56,8 @@ Build fingerprints: [docs/fingerprints.md](docs/fingerprints.md).
   and reports signed with the lab's own key; choosing what a record's check page shows; check
   pages that read the date from Midnight themselves. No wallet needed: VeilCore's fee service
   pays the network fee for what the browser sends.
-- **Licenses and royalties: switched on at veilcore.org.** A breeder licenses a record to a grower
+- **Licenses and royalties: built and switched on in code; they go live on veilcore.org with the
+  next deploy, once a real license has worked end to end on mainnet.** A breeder licenses a record to a grower
   with real transactions: two devices, a 6-digit code read
   aloud, a private signed channel per deal for terms and royalty statements, payment straight
   from payer to payee or through a payment partner (VeilCore never holds money; paying in NIGHT
@@ -217,8 +218,10 @@ a fee service pays the network fee, so nobody needs a wallet. Batches are anchor
 automatically by the same service. On test.veilcore.org (preprod) this was first run end to
 end on 12 and 13 October 2026 ([`docs/no-wallet-run-12oct.md`](docs/no-wallet-run-12oct.md));
 on veilcore.org (mainnet) it went live on 19 October and was checked by hand on 20 October
-([`docs/mainnet-sponsor.md`](docs/mainnet-sponsor.md)). Licenses and royalties run with real
-transactions on both.
+([`docs/mainnet-sponsor.md`](docs/mainnet-sponsor.md)). Licenses run with real transactions on
+the test network; on veilcore.org, licenses and royalties are switched on in code and go live with
+the next deploy, once a real license has worked end to end on mainnet
+([`docs/agreements-live.md`](docs/agreements-live.md)).
 
 **The CLI** in `bboard-cli/` talks to a deployed contract. Its smoke test
 (`bboard-cli/src/smoke.ts`) deploys a fresh contract and calls 16 of the 24 circuits with

@@ -306,7 +306,16 @@ export const es: Strings = {
   'm.live.lic.main': 'Desactivado hasta una última prueba completa.',
   'm.live.lic.test': 'Sí, con transacciones reales: regalías, pagos, traspaso de una licencia.',
   'm.live.lic.not': 'En veilcore.org, tras una última prueba completa.',
-  // Licenses switched on at veilcore.org (AGREEMENTS_LIVE): the main-network cell (components/site/Home.tsx).
+  // The veilcore.org cell until royalties v2 has worked on mainnet (config/copy.ts ROYALTIES_RUN_ON_MAINNET).
+  'm.live.lic.mainNext':
+    'Las licencias se activan con el despliegue que las enciende, cuando una licencia real haya funcionado de principio a fin en la red principal. Declaraciones de regalías y pagos: construidos, aún no activos.',
+  // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
+  'm.live.lic.testNext':
+    'Sí para las licencias, con transacciones reales. Declaraciones de regalías y pagos: construidos, y activos aquí cuando hayan funcionado de principio a fin en esta red.',
+  // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
+  'm.live.lic.next':
+    'Construido. Se activa con el próximo despliegue de veilcore.org, cuando una licencia real haya funcionado de principio a fin en la red principal.',
+  // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
     'Sí: licencias, declaraciones de regalías y traspaso de una licencia, con transacciones reales. Pagar regalías en Midnight mismo solo está en el sitio de pruebas.',
   'm.live.chain.t': 'La página de comprobación lee Midnight por sí misma',

@@ -4,10 +4,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useState } from 'react';
-import { Alert, Box, Button, Divider, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Divider, Stack, Typography } from '@mui/material';
 import { useNavigate, useParams, useSearchParams, Link as RouterLink } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
-import { getRecord } from '../../veilcore/records';
+import { getRecord, useRecords, useRecordsLoaded, type StrainRecord } from '../../veilcore/records';
 import { isAnimal } from '../../veilcore/animal-profile';
 import { isStrain } from '../../veilcore/strain-profile';
 import { useT } from '../../i18n/app';
@@ -72,12 +72,44 @@ const asNewTerms = (t: LicenseTerms, ctx: { currency: string; governingLaw: stri
 const isType = (v: string | null): v is AgreementType =>
   v === 'license' || v === 'lab-transfer' || v === 'breeder-share';
 
+/**
+ * The page opened straight on its address (a reload, a link): the records arrive after the
+ * first render, so it re-renders with them and waits for the first load before saying the
+ * record isn't here (final review, L1). The form itself starts only once the record is known,
+ * so its first values (the licensor, the record's kind) are read from the record.
+ */
 export const TermsBuilder: React.FC = () => {
   const { id = '' } = useParams();
+  useRecords();
+  const loaded = useRecordsLoaded();
+  const record = getRecord(id);
+  const tr = forKind(useT(), 'plant');
+  if (record) return <TermsBuilderFor key={record.id} record={record} />;
+  if (!loaded)
+    return (
+      <Box>
+        <AppHeader />
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }} role="status">
+          <CircularProgress size={20} />
+          <Typography>{tr.t('app.lic.builder.loading')}</Typography>
+        </Stack>
+      </Box>
+    );
+  return (
+    <Box>
+      <AppHeader />
+      <Typography sx={{ mb: 1 }}>{tr.t('app.lic.builder.notHere')}</Typography>
+      <Button component={RouterLink} to="/records" startIcon={<ArrowBackIcon />}>
+        {tr.t('app.lic.builder.records')}
+      </Button>
+    </Box>
+  );
+};
+
+const TermsBuilderFor: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const [params] = useSearchParams();
   const supersedeId = params.get('supersede') ?? undefined;
   const navigate = useNavigate();
-  const record = getRecord(id);
   const prior = supersedeId ? getLicense(supersedeId) : undefined;
 
   // When renewing, keep the prior agreement's type; otherwise take it from ?type= (the
@@ -100,7 +132,7 @@ export const TermsBuilder: React.FC = () => {
   const [details, setDetails] = useState(Boolean(prior) || (type === 'license' && presets.length === 1));
   const [t, setT] = useState<LicenseTerms>(() => {
     const start = prior?.terms ?? emptyTermsFor(type, kind);
-    const named = { ...start, licensor: start.licensor ?? record?.bredBy ?? '' };
+    const named = { ...start, licensor: start.licensor ?? record.bredBy ?? '' };
     if (type === 'breeder-share')
       return {
         ...named,
@@ -124,18 +156,6 @@ export const TermsBuilder: React.FC = () => {
     setT((p) => applyPreset(id, p, { kind, ...guess, tr }));
     if (id === 'custom') setDetails(true);
   };
-
-  if (!record) {
-    return (
-      <Box>
-        <AppHeader />
-        <Typography sx={{ mb: 1 }}>{tr.t('app.lic.builder.notHere')}</Typography>
-        <Button component={RouterLink} to="/records" startIcon={<ArrowBackIcon />}>
-          {tr.t('app.lic.builder.records')}
-        </Button>
-      </Box>
-    );
-  }
 
   // A breeder share with a royalty on offspring carries the same money terms as a license.
   const shareMoney = type === 'breeder-share' && (Number(t.offspringRoyaltyPct) || 0) > 0;

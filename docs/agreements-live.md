@@ -1,9 +1,19 @@
 # Agreements on chain: the build to "live"
 
-Status: switched on at veilcore.org and on the test network (test.veilcore.org), after the
-licence steps of the test run ([agreements-test-run.md](agreements-test-run.md)) went through on
-the test network with a phone. Paying in NIGHT on Midnight itself stays
-on test networks (`ONCHAIN_PAYMENTS`). Owner: hunter@veilcore.org. This page says
+Status: built and switched on in code (the two lines under "Going live", below). Licences are
+on the test network (test.veilcore.org): the licence steps of the test run
+([agreements-test-run.md](agreements-test-run.md)) went through there with a phone. They go live
+on veilcore.org with the next deploy, once a real licence has worked end to end on mainnet;
+until then nothing here is called live on veilcore.org. Royalties v2 (section 4) is built and
+not yet run on any network: its steps in the test run go through on test.veilcore.org before the
+mainnet site deploy. Until they have, the home page's test-site cell says royalties are built,
+not live (`ROYALTIES_RUN_ON_TEST` in `bboard-ui/src/config/copy.ts`, turned on by a reviewed
+commit after that run). On veilcore.org the same holds: until the first real royalty report has
+been sent, answered and paid on mainnet, the home page's veilcore.org cell says licences go live
+with the deploy and royalty statements and payments are built, not live
+(`ROYALTIES_RUN_ON_MAINNET`, same file). Hunter flips it in a reviewed commit after that first
+report has worked. Paying in NIGHT on Midnight itself stays on test networks
+(`ONCHAIN_PAYMENTS`). Owner: hunter@veilcore.org. This page says
 what the website does with VeilCore's contract once agreements are live, who does what, and
 what VeilCore never does. The switch is in one reviewed place, below.
 
@@ -40,7 +50,7 @@ holds or moves anyone's money.
    code become key-exchange keys (X25519). The code covers them, so the two people who
    read it to each other are the only ones who share the resulting key. The registry
    stores the deal's messages encrypted under it and can't read or forge them.
-4. **Royalties (v2: built, not deployed yet: not on the test site or veilcore.org).** Phone-first, the
+4. **Royalties (v2: built and switched on in code; not run on the test site or veilcore.org yet).** Phone-first, the
    same screens on both sides; only who can press what differs. VeilCore never holds, routes or
    starts a payment.
    - *Terms.* The form opens on presets (clone, seed, breeding, semen or embryo, custom). A

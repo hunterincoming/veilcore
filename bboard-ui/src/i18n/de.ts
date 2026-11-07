@@ -306,7 +306,16 @@ export const de: Strings = {
   'm.live.lic.main': 'Abgeschaltet bis zu einem letzten Testlauf.',
   'm.live.lic.test': 'Ja, mit echten Transaktionen: Lizenzgebühren, Zahlungen, Weitergabe einer Lizenz.',
   'm.live.lic.not': 'Auf veilcore.org, nach einem letzten Testlauf.',
-  // Licenses switched on at veilcore.org (AGREEMENTS_LIVE): the main-network cell (components/site/Home.tsx).
+  // The veilcore.org cell until royalties v2 has worked on mainnet (config/copy.ts ROYALTIES_RUN_ON_MAINNET).
+  'm.live.lic.mainNext':
+    'Lizenzen gehen mit dem Deployment live, das sie einschaltet, sobald eine echte Lizenz im Hauptnetz einmal vollständig funktioniert hat. Abrechnungen von Lizenzgebühren und Zahlungen: gebaut, noch nicht live.',
+  // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
+  'm.live.lic.testNext':
+    'Ja für Lizenzen, mit echten Transaktionen. Abrechnungen von Lizenzgebühren und Zahlungen: gebaut, und hier erst live, sobald sie in diesem Netz einmal vollständig funktioniert haben.',
+  // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
+  'm.live.lic.next':
+    'Gebaut. Geht mit dem nächsten Deployment von veilcore.org live, sobald eine echte Lizenz im Hauptnetz einmal vollständig funktioniert hat.',
+  // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
     'Ja: Lizenzen, Abrechnungen von Lizenzgebühren und die Weitergabe einer Lizenz, mit echten Transaktionen. Lizenzgebühren direkt auf Midnight zahlen gibt es nur auf der Testseite.',
   'm.live.chain.t': 'Die Prüfseite liest Midnight selbst',

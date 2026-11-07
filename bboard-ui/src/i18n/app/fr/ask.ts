@@ -120,10 +120,12 @@ export const ask = {
   'app.ask.replace.note': 'Utiliser le nouveau brouillon remplace ce que vous y avez écrit.',
   'app.ask.replace.use': 'Utiliser le nouveau brouillon',
   'app.ask.due.title': 'Ce qui est dû',
-  'app.ask.due.from': 'D’après les conditions de vos accords dans ce navigateur.',
+  'app.ask.due.from':
+    'D’après vos accords dans ce navigateur : leurs conditions, et les rapports et paiements que cette page a lus.',
   'app.ask.due.none': 'Rien n’est dû au titre des accords de ce navigateur.',
   'app.ask.due.report': 'Rapport de redevances : {name}, du {from} au {to}',
   'app.ask.due.payment': 'Paiement de redevances : {name}, du {from} au {to}',
+  'app.ask.due.check': '{name} : ouvrez l’accord pour voir ce qui est dû',
   'app.ask.due.ends': 'Fin de l’accord : {name}',
   'app.ask.due.line': '{date} : {what}',
   'app.ask.due.overdue': 'En retard',
