@@ -308,7 +308,10 @@ export const fr: Strings = {
   'm.live.lic.main': 'Désactivé jusqu’à un dernier essai complet.',
   'm.live.lic.test': 'Oui, avec de vraies transactions : redevances, paiements, transmission d’une licence.',
   'm.live.lic.not': 'Sur veilcore.org, après un dernier essai complet.',
-  // Licenses switched on at veilcore.org (AGREEMENTS_LIVE): the main-network cell (components/site/Home.tsx).
+  // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
+  'm.live.lic.next':
+    'Construit. Mis en service avec le prochain déploiement de veilcore.org, une fois qu’une vraie licence aura fonctionné de bout en bout sur le réseau principal.',
+  // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
     'Oui : licences, relevés de redevances et transmission d’une licence, avec de vraies transactions. Payer les redevances sur Midnight même n’existe que sur le site de test.',
   'm.live.chain.t': 'La page de vérification lit Midnight elle-même',
