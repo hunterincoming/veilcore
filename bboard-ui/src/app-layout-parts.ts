@@ -4,3 +4,5 @@
 export { RolePicker } from './components/RolePicker';
 export { SaveProblemBar } from './components/SaveProblemBar';
 export { AppFooter } from './components/AppFooter';
+// Ask VeilCore's button (the sheet is fetched when it is pressed).
+export { AskLauncher } from './components/ask/AskLauncher';
