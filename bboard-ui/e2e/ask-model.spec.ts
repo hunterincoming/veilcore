@@ -201,6 +201,11 @@ test.describe('the on-device model, under the production policies', () => {
       'The files come from Hugging Face. Hugging Face sees your IP address, the time, which model, and that the request comes from veilcore.org. Nothing you type is sent, then or later.',
     );
     await expect(panel).toContainText('Download: 1 MB, kept in this browser until you delete it.');
+    // With the download screen the sheet is taller than the window: what Ask can do keeps its height.
+    const can = await page.locator('[data-ask-can]').boundingBox();
+    const intro = await page.getByText('Pick one, or type what you want to do.').boundingBox();
+    expect(can && intro && can.y + can.height <= intro.y).toBe(true);
+    if (process.env.ASK_SHOTS) await page.screenshot({ path: `${process.env.ASK_SHOTS}/ask-bubble-desktop-model.png` });
     await page.locator('[data-ask-model-download]').click();
     await expect(page.locator('[data-ask-model-stored]')).toBeVisible({ timeout: 30_000 });
     // Only the pinned folder; nothing else asked for.

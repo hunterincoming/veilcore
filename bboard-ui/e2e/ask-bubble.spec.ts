@@ -47,6 +47,10 @@ for (const [label, viewport] of [
     await shot(page, label);
     await page.locator('[data-ask-open]').click();
     await expect(page.locator('[data-ask-can]')).toBeVisible();
+    // The card keeps its full height, above the text that follows it.
+    const can = await page.locator('[data-ask-can]').boundingBox();
+    const intro = await page.getByText('Pick one, or type what you want to do.').boundingBox();
+    expect(can && intro && can.y + can.height <= intro.y).toBe(true);
     await shot(page, `${label}-card`);
     expectNoErrors(errors);
   });
