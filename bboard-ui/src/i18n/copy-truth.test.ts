@@ -411,7 +411,7 @@ describe("what's live where", () => {
   });
   it('says what the code does', () => {
     const e = en as Record<string, string>;
-    expect(e['m.live.stamp.main']).toMatch(/by hand for now.*Your browser sends nothing to the chain/);
+    expect(e['m.live.stamp.main']).toMatch(/in batches dated on Midnight\. Your browser sends nothing to the chain/);
     // The record is dated by its batch; the browser's date stamp dates only the plant's key
     // (docs/identity-in-record.md, "Dates").
     expect(e['m.live.stamp.test']).toMatch(/Batches are dated automatically, and that dates your record/);
@@ -853,8 +853,9 @@ describe('Japanese (round 6)', () => {
         [...new Set([...Object.keys(mainnetStrings(f)), 'm.status.keyTitle'])].sort(),
       );
       expect(networkOverlay({ ...MAINNET, ...f }, 'ja')).toEqual({ ...mainnetStrings(f), ...o });
-      for (const k of ['m.hero.status', 'm.demo.lede', 'm.stat2.s'] as const) expect(o[k], k).toMatch(/手作業/);
-      for (const k of ['m.privacy.lede', 'm.privacy.test.text'] as const) expect(o[k], k).not.toMatch(/手作業/);
+      // No cadence until the scheduled job has run on mainnet (SCHEDULED_ANCHORING_RUN_ON_MAINNET).
+      for (const k of ['m.hero.status', 'm.demo.lede', 'm.stat2.s', 'm.privacy.lede', 'm.privacy.test.text'] as const)
+        expect(o[k], k).not.toMatch(/手作業|自動/);
       expect(o['m.status.keyText']).toMatch(
         f.policyApproved ? /書面のメンテナンスポリシーに基づき公表します/ : /提案段階/,
       );

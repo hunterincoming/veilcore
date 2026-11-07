@@ -187,6 +187,10 @@ Do these in order. Each says how you know it worked.
    the operator token, `/sponsor/status` shows `lastFeeSpecks` (per circuit, for visitors'
    calls) next to `maxFeeSpecks`, and the anchoring log shows `paidFeesSpecks`: each must be at
    or under the cap (10^15 SPECKs = 1 DUST).
+   Once the job has dated a batch on mainnet on its own schedule (not a call made by hand),
+   flip `SCHEDULED_ANCHORING_RUN_ON_MAINNET` to `true` in `bboard-ui/src/config/copy.ts` in a
+   reviewed commit: until then every page says records are batched and dated on Midnight, and
+   claims no cadence.
 10. **Site, live.** The step 8 command without `VITE_DATING_PAUSED=true`.
 11. **Commit the release list.** `git add releases && git commit -m "Release list: mainnet"`,
     then push.

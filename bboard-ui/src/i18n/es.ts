@@ -267,7 +267,7 @@ export const es: Strings = {
   'm.postC.tag': 'Sitio web',
   'm.postC.title': 'Su navegador envía sus propias transacciones',
   'm.postC.text':
-    'En veilcore.org su navegador ahora fecha por sí mismo el emparejamiento de un informe de ADN, demuestra un registro por enlace y pone un sello de fecha a la clave propia de un registro, y VeilCore paga la comisión de la red. Los lotes se anclan en la red principal de Midnight cada hora, de forma automática. No hace falta billetera.',
+    'En veilcore.org su navegador ahora fecha por sí mismo el emparejamiento de un informe de ADN, demuestra un registro por enlace y pone un sello de fecha a la clave propia de un registro, y VeilCore paga la comisión de la red. Los registros se agrupan en lotes y se fechan en la red principal de Midnight. No hace falta billetera.',
   'm.postB.date': '11 oct 2026',
   'm.postB.tag': 'Registro',
   'm.postB.title': 'Primer lote fechado también en Bitcoin',
@@ -284,7 +284,7 @@ export const es: Strings = {
   'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Todavía no',
   'm.live.stamp.t': 'Un sello de fecha para su registro',
-  'm.live.stamp.main': 'Sí, por lotes, a mano por ahora. Su navegador no envía nada a la cadena.',
+  'm.live.stamp.main': 'Sí, por lotes fechados en Midnight. Su navegador no envía nada a la cadena.',
   'm.live.stamp.test':
     'Sí. Los lotes se fechan automáticamente, y eso fecha su registro. Su navegador también pone un sello de fecha a la clave propia de su planta; ese sello fecha solo la clave.',
   'm.live.share.t': 'Elegir qué ven los demás',
@@ -459,7 +459,7 @@ export const es: Strings = {
   'm.faq.6q': '¿Cuánto cuesta?',
   'm.faq.6a': 'Crear un registro en este sitio no cuesta nada hoy. Comprobar un registro es gratis, siempre.',
   'm.demo.lede':
-    'Sin registro, sin billetera. Es una versión de prueba, así que use datos inventados. Los registros se anclan por lotes, a mano por ahora; las licencias y los acuerdos de laboratorio son simulados, y las vinculaciones de informes de ADN todavía no se fechan.',
+    'Sin registro, sin billetera. Es una versión de prueba, así que use datos inventados. Los registros se fechan por lotes en Midnight; las licencias y los acuerdos de laboratorio son simulados, y las vinculaciones de informes de ADN todavía no se fechan.',
   'm.demo.privacy': 'Lo que guarda la demo →',
   'm.updates.more': 'Todas las novedades',
   'm.stat3.s':

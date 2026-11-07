@@ -9,7 +9,7 @@
 // (登録 alone would read as registering the material, which a record is not).
 // SPDX-License-Identifier: Apache-2.0
 import type { Strings } from './en';
-import { applyLiveSwaps, type LiveSwaps } from './mainnet-overlay';
+import { applyLiveSwaps, withoutCadence, type LiveSwaps } from './mainnet-overlay';
 export const ja: Strings = {
   // Header and footer
   'nav.language': '言語',
@@ -272,7 +272,7 @@ export const ja: Strings = {
   'm.postC.tag': 'ウェブサイト',
   'm.postC.title': 'ブラウザが自分でトランザクションを送信',
   'm.postC.text':
-    'veilcore.orgでは、DNAレポートの紐付けの日付確定、リンクによる記録の証明、記録自身の鍵の日付スタンプを、ブラウザが自分で行うようになりました。ネットワーク手数料はVeilCoreが支払います。バッチは毎時自動でMidnightのメインネットワークにアンカーされます。ウォレットは不要です。',
+    'veilcore.orgでは、DNAレポートの紐付けの日付確定、リンクによる記録の証明、記録自身の鍵の日付スタンプを、ブラウザが自分で行うようになりました。ネットワーク手数料はVeilCoreが支払います。記録はバッチにまとめられ、Midnightのメインネットワークで日付が付きます。ウォレットは不要です。',
   'm.postB.date': '2026年10月11日',
   'm.postB.tag': 'レジストリ',
   'm.postB.title': 'Bitcoinでも日付が確定した最初のバッチ',
@@ -289,7 +289,7 @@ export const ja: Strings = {
   'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': '未対応',
   'm.live.stamp.t': '記録への日付スタンプ',
-  'm.live.stamp.main': 'あり。バッチ単位で、当面は手作業です。ブラウザからチェーンには何も送りません。',
+  'm.live.stamp.main': 'あり。バッチ単位でMidnight上で日付が付きます。ブラウザからチェーンには何も送りません。',
   'm.live.stamp.test':
     'あり。バッチが自動で日付確定され、それによって記録の日付が確定します。ブラウザは植物固有の鍵にも日付スタンプを押しますが、それで日付が確定するのは鍵だけです。',
   'm.live.share.t': '他の人に見せる内容を選ぶ',
@@ -463,7 +463,7 @@ export const ja: Strings = {
   'm.faq.6q': '費用はかかりますか？',
   'm.faq.6a': '現在、このサイトでの記録の作成は無料です。記録の確認は、いつでも無料です。',
   'm.demo.lede':
-    'アカウント登録もウォレットも不要です。テスト版なので、架空の情報をお使いください。記録はバッチ単位でアンカーされます（現在は手作業）。ライセンスとラボとの契約はシミュレーションで、DNA報告書の紐付けにはまだ日付が付きません。',
+    'アカウント登録もウォレットも不要です。テスト版なので、架空の情報をお使いください。記録はバッチ単位でMidnight上で日付が付きます。ライセンスとラボとの契約はシミュレーションで、DNA報告書の紐付けにはまだ日付が付きません。',
   'm.demo.privacy': 'デモが保存するもの →',
   'm.updates.more': 'すべてのお知らせ',
   'm.stat3.s':
@@ -616,7 +616,7 @@ export const jaMainnet = ({
   claimsOnSite?: boolean;
 }): Strings => {
   const o = jaMainnetBase({ claimsOnMainnet, policyApproved, chainReads });
-  if (!chainSends) return o;
+  if (!chainSends) return withoutCadence(o);
   const sent = {
     ...o,
     ...jaSends(o),
@@ -627,7 +627,7 @@ export const jaMainnet = ({
         }
       : {}),
   };
-  return agreementsLive ? { ...sent, ...applyLiveSwaps(sent, JA_LIVE, 'ja') } : sent;
+  return withoutCadence(agreementsLive ? { ...sent, ...applyLiveSwaps(sent, JA_LIVE, 'ja') } : sent);
 };
 
 /** Licenses switched on: the same facts as en-mainnet.ts LIVE_SWAPS. */

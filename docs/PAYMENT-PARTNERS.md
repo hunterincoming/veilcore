@@ -122,4 +122,4 @@ from the statement.
 
 Your receipt says you paid. The breeder still confirms the money arrived, in their own
 words, on their own page. Both steps are signed, private to the two of them, and dated on
-Midnight by the registry's hourly anchor.
+Midnight in the registry's batches.
