@@ -3,15 +3,22 @@
 //
 // The rules match the published checker (veilcore-records checkDealRecord), so what a page shows
 // and what a lender's copy says never differ:
-//   - a report is the licensee's signed statement; reports are numbered by their signed time;
+//   - messages are in the registry's order (its `seq`), never the sender's own clock: a message
+//     signed with an earlier time can't jump ahead of one already there (panel M2). Only a copy
+//     with no registry order (an old downloaded record) falls back to signed times;
+//   - a report is the licensee's signed statement; reports are numbered in that order;
 //   - the licensor's FIRST answer to a report stands (Accept or Ask to fix); a later one is ignored;
 //   - one "I paid" per report, and one "received" (the first of each);
+//   - a payment settles a report only if it is exactly the accepted amount, in its currency (to
+//     the currency's own digits). Anything else is a short payment: the rest stays owed, and
+//     the report stays to pay (and overdue) (panel M2);
 //   - a report the licensor asked to fix is replaced by a corrected one naming it (`replaces`).
 // "I paid" opens only once the licensor has accepted (design v3, 3): there is no deemed acceptance,
 // because signed times are the sender's own clock.
 // SPDX-License-Identifier: Apache-2.0
 
 import type { DealEntry } from './deal-client';
+import { dealOrder } from './deal-order';
 import type { DealBody, StatementLine } from './deal';
 import type { LicenseTerms } from './licenses';
 import {
@@ -38,10 +45,15 @@ export type NoticeEntry = Extract<DealEntry, { type: 'notice' }>;
 
 export type Report = {
   readonly statement: StatementEntry;
-  /** 1 for the first report signed, by signed time. */
+  /** 1 for the first report, in the registry's order. */
   readonly number: number;
   reply?: ReplyEntry;
   paid?: PaidEntry;
+  /**
+   * When `paid` isn't exactly the accepted amount in its currency: what is still owed, in the
+   * report's currency (the whole amount when the currency differs).
+   */
+  short?: string;
   received?: ReceivedEntry;
   /** The corrected report that took this one's place. */
   replacedBy?: StatementEntry;
@@ -61,9 +73,23 @@ export type Ledger = {
   readonly agreed?: Extract<DealEntry, { type: 'agree' }>;
 };
 
-/** The ledger as the signed messages make it (they come sorted by signed time, deal-client readAll). */
+/** What is still owed after a payment, or undefined when it is exactly the accepted amount. */
+export const shortOf = (r: Report, paid: Pick<PaidEntry, 'amount' | 'currency'>): string | undefined => {
+  const s = r.statement;
+  const digits = currencyDigits(s.currency);
+  // Owed: the accepted report's amount less the tax that report declared (never the payment's).
+  const owed = toPayOf(r, s.taxWithheld ?? '0');
+  if (paid.currency !== s.currency) return owed;
+  const want = toMinor(owed, digits);
+  const got = isDecimal(paid.amount) ? toMinor(paid.amount, digits) : undefined;
+  if (want === undefined || got === undefined) return owed;
+  if (got === want) return undefined;
+  return got > want ? undefined : minorText(want - got, digits);
+};
+
+/** The ledger as the signed messages make it, in the registry's order (dealOrder). */
 export const ledgerOf = (entries: readonly DealEntry[]): Ledger => {
-  const sorted = [...entries].sort((a, b) => a.at - b.at || (a.signature < b.signature ? -1 : 1));
+  const sorted = dealOrder(entries);
   const payouts = sorted.filter((e): e is PayoutEntry => e.type === 'payout' && e.from === 'issuer');
   const invoices = sorted.filter((e): e is InvoiceEntry => e.type === 'invoice-details' && e.from === 'issuer');
   const bySig = new Map<string, Report>();
@@ -89,7 +115,10 @@ export const ledgerOf = (entries: readonly DealEntry[]): Ledger => {
       const r = bySig.get(e.statementSig);
       if (!r) continue;
       if (e.type === 'reply' && !r.reply) r.reply = e;
-      if (e.type === 'paid' && !r.paid && r.reply?.decision === 'accepted') r.paid = e;
+      if (e.type === 'paid' && !r.paid && r.reply?.decision === 'accepted') {
+        r.paid = e;
+        r.short = shortOf(r, e);
+      }
       if (e.type === 'received' && !r.received && r.paid) r.received = e;
     }
   };
@@ -121,22 +150,24 @@ export const ledgerOf = (entries: readonly DealEntry[]): Ledger => {
 /** Reports still in play: not replaced by a corrected one. Newest first. */
 export const liveReports = (l: Ledger): Report[] => l.reports.filter((r) => !r.replacedBy);
 
-export type ReportState = 'waiting' | 'fix' | 'to-pay' | 'paid' | 'received' | 'replaced' | 'nothing-due';
+export type ReportState = 'waiting' | 'fix' | 'to-pay' | 'short' | 'paid' | 'received' | 'replaced' | 'nothing-due';
 
 export const stateOf = (r: Report): ReportState =>
   r.replacedBy
     ? 'replaced'
-    : r.received
-      ? 'received'
-      : r.paid
-        ? 'paid'
-        : r.reply?.decision === 'disputed'
-          ? 'fix'
-          : r.reply?.decision === 'accepted'
-            ? toPayOf(r) === '0' || /^0(\.0+)?$/.test(toPayOf(r))
-              ? 'nothing-due'
-              : 'to-pay'
-            : 'waiting';
+    : r.paid && r.short !== undefined
+      ? 'short'
+      : r.received
+        ? 'received'
+        : r.paid
+          ? 'paid'
+          : r.reply?.decision === 'disputed'
+            ? 'fix'
+            : r.reply?.decision === 'accepted'
+              ? toPayOf(r) === '0' || /^0(\.0+)?$/.test(toPayOf(r))
+                ? 'nothing-due'
+                : 'to-pay'
+              : 'waiting';
 
 /** What the payer sends for a report: the amount owed less any tax withheld (as the report or payment says). */
 export const toPayOf = (r: Report, taxWithheld?: string): string => {
@@ -187,11 +218,9 @@ export type PayoutLock =
 export const payoutLock = (l: Pick<Ledger, 'payouts' | 'reports'>): PayoutLock => {
   const now = l.payouts[l.payouts.length - 1];
   if (!now) return { locked: false };
-  const paids = l.reports
-    .map((r) => r.paid)
-    .filter((p): p is PaidEntry => !!p)
-    .sort((a, b) => a.at - b.at);
-  const lastUsed = [...paids].reverse().find((p) => p.payoutSig)?.payoutSig;
+  const paids = l.reports.map((r) => r.paid).filter((p): p is PaidEntry => !!p);
+  const ordered = dealOrder(paids);
+  const lastUsed = [...ordered].reverse().find((p) => p.payoutSig)?.payoutSig;
   const seenSig = lastUsed ?? (l.payouts.length > 1 ? l.payouts[0].signature : undefined);
   if (!seenSig || seenSig === now.signature) return { locked: false };
   const before = l.payouts.find((p) => p.signature === seenSig) ?? l.payouts[l.payouts.length - 2];
@@ -458,7 +487,9 @@ export const periodRows = (terms: LicenseTerms, ledger: Ledger, today: string): 
     const st = stateOf(report);
     if (st === 'waiting') return { period, report, step: 'answer', overdue: 0 };
     if (st === 'fix') return { period, report, step: 'fix', due: period.reportDue, overdue: at(period.reportDue) };
-    if (st === 'to-pay') return { period, report, step: 'pay', due: period.paymentDue, overdue: at(period.paymentDue) };
+    // A short payment leaves the rest to pay: still the licensee's step, still overdue.
+    if (st === 'to-pay' || st === 'short')
+      return { period, report, step: 'pay', due: period.paymentDue, overdue: at(period.paymentDue) };
     if (st === 'paid') return { period, report, step: 'confirm', overdue: 0 };
     return { period, report, step: 'done', overdue: 0 };
   });
@@ -470,8 +501,8 @@ export const balanceOwed = (ledger: Ledger, currency: string): string => {
   return (
     sumAmounts(
       liveReports(ledger)
-        .filter((r) => stateOf(r) === 'to-pay' && r.statement.currency === currency)
-        .map((r) => toPayOf(r)),
+        .filter((r) => (stateOf(r) === 'to-pay' || stateOf(r) === 'short') && r.statement.currency === currency)
+        .map((r) => (stateOf(r) === 'short' ? r.short! : toPayOf(r))),
       digits,
     ) ?? minorText(0n, digits)
   );

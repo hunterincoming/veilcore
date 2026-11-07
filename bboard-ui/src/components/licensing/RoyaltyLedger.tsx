@@ -170,6 +170,7 @@ export const RoyaltyLedger: React.FC<{
                   method: l.paid.method,
                   reference: l.paid.reference,
                   at: l.paid.at,
+                  seq: l.paid.seq,
                 },
               ]
             : [],
@@ -1006,7 +1007,7 @@ const ReportCard: React.FC<{
   const color =
     st === 'received'
       ? 'success'
-      : st === 'fix'
+      : st === 'fix' || st === 'short'
         ? 'error'
         : st === 'to-pay'
           ? 'warning'
@@ -1076,6 +1077,15 @@ const ReportCard: React.FC<{
             ref: r.paid.reference,
           })}
         </Typography>
+      )}
+      {r.paid && r.short !== undefined && (
+        <Alert severity="warning" variant="outlined" data-short-payment="">
+          {tr.t('app.roy.c.short', {
+            paid: formatMoney(r.paid.amount, r.paid.currency, tr.locale),
+            owed: formatMoney(toPayOf(r, s.taxWithheld ?? '0'), s.currency, tr.locale),
+            left: formatMoney(r.short, s.currency, tr.locale),
+          })}
+        </Alert>
       )}
       {r.received && (
         <Typography variant="body2" color="success.main">
@@ -1207,13 +1217,19 @@ const ReportCard: React.FC<{
             sx={{ alignSelf: 'flex-start' }}
             data-confirm-received=""
           >
-            {tr.t('app.roy.c.confirm', { amount: formatMoney(r.paid.amount, r.paid.currency, tr.locale) })}
+            {r.short !== undefined
+              ? tr.t('app.roy.c.confirmShort', {
+                  amount: formatMoney(r.paid.amount, r.paid.currency, tr.locale),
+                  left: formatMoney(r.short, s.currency, tr.locale),
+                })
+              : tr.t('app.roy.c.confirm', { amount: formatMoney(r.paid.amount, r.paid.currency, tr.locale) })}
           </Button>
         </Stack>
       )}
 
       {/* A reminder on a report waiting for the other side. */}
-      {((side === 'licensee' && (st === 'waiting' || st === 'paid')) || (side === 'issuer' && st === 'to-pay')) && (
+      {((side === 'licensee' && (st === 'waiting' || st === 'paid')) ||
+        (side === 'issuer' && (st === 'to-pay' || st === 'short'))) && (
         <Button
           size="small"
           variant="text"
@@ -1227,7 +1243,7 @@ const ReportCard: React.FC<{
               periodFrom: s.periodFrom,
               periodTo: s.periodTo,
               statementSig: s.signature,
-              ...(st === 'to-pay' && period ? { dueOn: period.paymentDue } : {}),
+              ...((st === 'to-pay' || st === 'short') && period ? { dueOn: period.paymentDue } : {}),
               asOf: today,
             })
           }
@@ -1236,7 +1252,7 @@ const ReportCard: React.FC<{
         </Button>
       )}
 
-      {(st === 'to-pay' || st === 'paid' || st === 'received' || st === 'nothing-due') && (
+      {(st === 'to-pay' || st === 'short' || st === 'paid' || st === 'received' || st === 'nothing-due') && (
         <Button
           size="small"
           variant="outlined"
