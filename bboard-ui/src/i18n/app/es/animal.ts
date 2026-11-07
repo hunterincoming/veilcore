@@ -257,4 +257,11 @@ export const animal = {
   'app.animal.v.app.lic.off.datePlant': 'Fechar un registro',
   'app.animal.v.app.lic.off.yourRecord': 'Su registro de esta genética',
   'app.animal.v.app.lic.off.waitName': 'Esperando a que indiquen su registro de esta genética.',
+  // components/chain/FamilyOnChain.tsx
+  'app.animal.v.app.family.intro':
+    'Parentesco que ambos titulares aceptaron, en la cadena. Es lo que permite a cualquiera comprobar la línea de un animal, y lo que lleva la regalía por descendencia de un progenitor a sus descendientes. Un enlace confirmado es público y permanente: no se puede deshacer, y las regalías que el titular del progenitor asuma después también aparecen en la línea de este registro.',
+  'app.animal.v.app.family.namesParent':
+    '{who} nombra este registro como progenitor. Confirme solo si de verdad procede de este animal. Confirmar es público y permanente, y todo lo que se deba sobre este animal, ahora o después, aparecerá en su línea.',
+  'app.animal.v.app.family.confirmQ':
+    '¿Confirmar que este animal es progenitor de {who}? Confirme solo un registro que sepa que procede de ella. Esto es público y permanente: su línea, y todo lo que se deba sobre este animal ahora o después, aparecerán en él.{fixes}',
 } satisfies Partial<AppTranslation>;

@@ -35,4 +35,33 @@ export const chain = {
   'app.chain.progress.readingAnswer': 'Leyendo la respuesta desde la red…',
   'app.chain.working': 'Trabajando…',
   'app.chain.txLine': '{label}: transacción {tx} · bloque {block}',
+  // components/chain/FamilyOnChain.tsx: a record's parents and offspring on Midnight.
+  'app.family.title': 'Familia en Midnight',
+  'app.family.intro':
+    'Parentesco que ambos titulares aceptaron, en la cadena. Es lo que permite a cualquiera comprobar la línea de una planta, y lo que lleva la regalía por descendencia de un progenitor a sus descendientes. Un enlace confirmado es público y permanente: no se puede deshacer, y las regalías que el titular del progenitor asuma después también aparecen en la línea de este registro.',
+  'app.family.reading': 'Leyendo la cadena…',
+  'app.family.parents': 'Progenitores:',
+  'app.family.noneConfirmed': 'ninguno confirmado',
+  'app.family.offspring': 'Descendencia:',
+  'app.family.waitingParent':
+    'Esperando a que {name} confirme que es progenitor. Su titular lo ve en la página de su registro.',
+  'app.family.theRecord': 'el registro {key}',
+  'app.family.takeBack': 'Retirar',
+  'app.family.putOnChain': 'Poner «{name}» en Midnight como progenitor',
+  'app.family.pasteLabel': 'Un progenitor en manos de otra persona: su enlace de comprobación o su clave en cadena',
+  'app.family.nameIt': 'Nombrarlo',
+  'app.family.namesParent':
+    '{who} nombra este registro como progenitor. Confirme solo si de verdad procede de esta planta. Confirmar es público y permanente, y todo lo que se deba sobre esta planta, ahora o después, aparecerá en su línea.',
+  'app.family.confirm': 'Confirmar',
+  'app.family.confirmQ':
+    '¿Confirmar que esta planta es progenitora de {who}? Confirme solo un registro que sepa que procede de ella. Esto es público y permanente: su línea, y todo lo que se deba sobre esta planta ahora o después, aparecerán en él.{fixes}',
+  'app.family.confirmFixes':
+    ' Una vez que un registro tiene descendencia confirmada, sus propios progenitores ya no pueden cambiar.',
+  'app.family.notConfirmed': 'No confirmado.',
+  'app.family.noParentHere': 'Este navegador no tiene el registro de ese progenitor.',
+  'app.family.step1': 'Nombrando al progenitor en Midnight (1 de 2)…',
+  'app.family.step2': 'Confirmándolo desde el progenitor (2 de 2)…',
+  'app.family.readError': 'No se pudo leer la cadena: {error}',
+  'app.family.named': '«{name}» (clave {key})',
+  'app.family.namedKey': 'el registro con clave {key}',
 } satisfies Partial<AppTranslation>;

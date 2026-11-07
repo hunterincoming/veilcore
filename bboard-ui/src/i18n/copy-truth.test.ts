@@ -188,10 +188,10 @@ describe('privacy, said plainly', () => {
     for (const s of ALL_ENGLISH) expect(offenders(s, HIDDEN_WHAT)).toEqual([]);
     expect(en['m.hero.title2']).toMatch(/genetics/);
   });
-  it('the hero title is the one the CTO chose, and never "had it first"', () => {
+  it('the hero title is the chosen one (privacy, not ownership: panel review), and never "had it first"', () => {
     for (const s of ALL_ENGLISH) {
       expect(s['m.hero.title1']).toBe('Date your record.');
-      expect(s['m.hero.title2']).toBe('Keep your genetics.');
+      expect(s['m.hero.title2']).toBe('Keep your genetics private.');
       expect(offenders(s, /had it first/i)).toEqual([]);
     }
     const OLD_TITLE1: Record<string, string> = {
@@ -210,10 +210,12 @@ describe('privacy, said plainly', () => {
   it('the hero is short and makes the one privacy claim precisely (round 5)', () => {
     const lede = en['m.hero.lede'];
     // Who it's for and what it does, then the privacy line: genetic data, not "everything".
+    // "Stays locked", not "stays on your computer": the description does reach the server,
+    // locked (panel review). What goes on Midnight is the proof code.
     expect(lede).toMatch(
-      /Your genetic data stays on your computer\. Only a proof code goes on Midnight, which dates it\.$/,
+      /Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked\. Only a proof code goes on Midnight, which dates it\.$/,
     );
-    expect(lede.split(/(?<=\.)\s+/).length).toBeLessThanOrEqual(3);
+    expect(lede.split(/(?<=\.)\s+/).length).toBeLessThanOrEqual(4);
     // No lab-report sentence next to "stays on your computer" (it read as a contradiction):
     // that is said in the FAQ and the privacy note, below.
     expect(lede).not.toMatch(/lab report/i);

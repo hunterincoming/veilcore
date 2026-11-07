@@ -63,7 +63,7 @@ export const de: Strings = {
   'm.nav.menu': 'Menü',
   'm.hero.label': 'Nachweis dessen, was Sie in Händen halten',
   'm.hero.title1': 'Datieren Sie Ihren Datensatz.',
-  'm.hero.title2': 'Behalten Sie Ihre Genetik.',
+  'm.hero.title2': 'Ihre Genetik bleibt privat.',
   'm.hero.how': 'So funktioniert es',
   'm.hero.cultivar': 'Sorte',
   'm.hero.bredBy': 'Gezüchtet von',
@@ -232,7 +232,7 @@ export const de: Strings = {
   'm.privacy.contact': 'Fragen: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher und tierischer Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand zurückdatieren kann. Ihre genetischen Daten bleiben auf Ihrem Computer. Nur ein Prüfcode kommt auf Midnight, das ihn datiert.',
+    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher und tierischer Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand zurückdatieren kann. Ihre genetischen Daten bleiben verschlossen: DNA-Dateien verlassen Ihren Computer nie, und was Sie eingeben, erreicht unseren Server verschlossen. Nur ein Prüfcode kommt auf Midnight, das ihn datiert.',
   'm.for.3p':
     'Senden Sie Material mit einem Laborcode. Das Labor signiert eine Empfangsbestätigung mit seinem eigenen Schlüssel, sodass der Datensatz eine zweite Partei zeigt. Die Bestätigung ist eine echte Signatur, gespeichert im Register von VeilCore, nicht auf der Chain. Bedingungen wie „keine Vermehrung“ sind in der Web-Demo nur zum Üben.',
   'm.get.1b': 'für einen Datensatz dessen, was Sie haben, ohne Ihre Genetik zu zeigen.',
@@ -380,7 +380,7 @@ export const de: Strings = {
   'm.step1.text':
     'Was es ist und woher es stammt. Der Server von VeilCore speichert die Angaben verschlossen, auch den Namen, und wir haben den Schlüssel nicht. Ein Prüflink trägt den Namen nur, wenn Sie das einschalten, für die Menschen, denen Sie ihn schicken.',
   'm.step2.title': 'Prüfcode erstellen',
-  'm.step2.text': 'Auf Ihrem Computer. Genetische Daten verlassen ihn nie.',
+  'm.step2.text': 'Auf Ihrem Computer. Genetische Daten verlassen ihn nie unverschlossen.',
   'm.step3.title': 'Ein Datum bekommen',
   'm.step3.text':
     'Nur der Prüfcode kommt auf Midnight, in einem Stapel mit anderen. Das Datum ist der Block, in dem der Stapel landet: Er zeigt, dass der Datensatz bis dahin existierte.',

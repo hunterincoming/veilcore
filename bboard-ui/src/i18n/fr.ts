@@ -63,7 +63,7 @@ export const fr: Strings = {
   'm.nav.menu': 'Menu',
   'm.hero.label': 'La preuve de ce que vous détenez',
   'm.hero.title1': 'Datez votre enregistrement.',
-  'm.hero.title2': 'Gardez votre génétique.',
+  'm.hero.title2': 'Gardez votre génétique privée.',
   'm.hero.how': 'Comment ça marche',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Obtenu par',
@@ -234,7 +234,7 @@ export const fr: Strings = {
   'm.privacy.contact': 'Questions : hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Pour les sélectionneurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale et animale : donnez à vos enregistrements une date que personne ne peut antidater. Vos données génétiques restent sur votre ordinateur. Seul un code de preuve va sur Midnight, qui le date.',
+    'Pour les sélectionneurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale et animale : donnez à vos enregistrements une date que personne ne peut antidater. Vos données génétiques restent verrouillées : les fichiers ADN ne quittent jamais votre ordinateur, et ce que vous saisissez arrive verrouillé sur notre serveur. Seul un code de preuve va sur Midnight, qui le date.',
   'm.for.3p':
     "Envoyez du matériel avec un code laboratoire. Le laboratoire signe un accusé de réception avec sa propre clé, et l'enregistrement montre ainsi une seconde partie. L'accusé est une vraie signature, conservée par le registre de VeilCore, pas sur la chaîne. Des conditions comme l'interdiction de multiplier ne sont qu'un exercice dans la démo web.",
   'm.get.1b': 'pour un enregistrement de ce que vous détenez, sans montrer votre génétique.',
@@ -383,7 +383,7 @@ export const fr: Strings = {
   'm.step1.text':
     "Ce que c'est et d'où ça vient. Le serveur de VeilCore conserve les détails verrouillés, le nom compris, et nous n'avons pas la clé. Un lien de vérification ne porte le nom que si vous l'activez, pour les personnes à qui vous l'envoyez.",
   'm.step2.title': 'En faire le code de preuve',
-  'm.step2.text': 'Sur votre ordinateur. Les données génétiques ne le quittent jamais.',
+  'm.step2.text': 'Sur votre ordinateur. Les données génétiques ne le quittent jamais déverrouillées.',
   'm.step3.title': 'Obtenir une date',
   'm.step3.text':
     "Seul le code de preuve va sur Midnight, dans un lot avec d'autres. La date est celle du bloc où arrive le lot : elle montre que l'enregistrement existait à ce moment-là.",
