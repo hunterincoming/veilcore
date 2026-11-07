@@ -51,7 +51,7 @@ import { MidnightPayoutForm, OnChainPaymentCheck, PayOnMidnight } from './OnChai
 import { methodWords, reusedPayments, tokenOfMethod } from '../../veilcore/onchain-pay';
 import { ONCHAIN_PAYMENTS } from '../../config/copy';
 import { rich, useT } from '../../i18n/app';
-import { forKind, type Translator } from '../../i18n/translate';
+import { forKind, labelOr, type Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
 import {
   balanceOwed,
@@ -774,7 +774,7 @@ const ReportForm: React.FC<{
             {(rule.deductions ?? []).map((d) => (
               <TextField
                 key={d}
-                label={tr.t('app.roy.r.deduction', { what: tr.t(`app.roy.ded.${d}` as AppKey), currency })}
+                label={tr.t('app.roy.r.deduction', { what: labelOr(tr, `app.roy.ded.${d}`, d), currency })}
                 value={ded[d] ?? ''}
                 onChange={(e) => setDed({ ...ded, [d]: e.target.value.replace(/[^0-9.]/g, '').slice(0, 16) })}
                 slotProps={{ htmlInput: { inputMode: 'decimal' } }}
@@ -1425,7 +1425,7 @@ const PayPanel: React.FC<{
             <CopyValue label={tr.t('app.roy.pay.reference')} value={reference} tr={tr} mono />
             {terms.bankFees && (
               <Typography variant="body2" color="text.secondary">
-                {tr.t(`app.roy.s.fees.${terms.bankFees}` as AppKey)}
+                {labelOr(tr, `app.roy.s.fees.${terms.bankFees}`, terms.bankFees)}
               </Typography>
             )}
           </>

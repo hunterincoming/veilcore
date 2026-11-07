@@ -24,6 +24,7 @@ export const licensing = {
   'app.lic.state.draft': 'Borrador',
   'app.lic.state.sent': 'Enviado, a la espera de la contrafirma',
   'app.lic.state.active': 'Marcado como activo',
+  'app.lic.state.activeOffChain': 'Marcada activa aquí, no en Midnight',
   'app.lic.state.expired': 'Vencido',
   'app.lic.state.revoked': 'Revocado',
   'app.lic.type.license': 'Acuerdo de licencia',
@@ -576,9 +577,24 @@ export const licensing = {
   'app.lic.inv.waitLicensor':
     'Esperando a que responda la página del licenciante. Su código aparece aquí cuando lo haga.',
   'app.lic.inv.takeOverTerms': 'Las condiciones con las que asume la licencia (las mismas del titular actual):',
+  'app.lic.other': 'Otro: {value}',
   // What a license here is and isn't (shown where terms are set and agreed).
   'app.lic.evidenceNote':
-    'Una licencia aquí es un registro firmado y fechado de lo que ambos acordaron, no asesoramiento legal. Algunos tribunales se han negado a hacer cumplir acuerdos sobre cannabis, así que pida a su propio abogado que revise lo que sea importante.',
+    'Una licencia aquí es un registro firmado y fechado de lo que ambos acordaron, no asesoría legal. Haga que su propio abogado revise todo lo importante.',
+  'app.lic.controlled.q': '¿Es cannabis, cáñamo u otra planta controlada?',
+  'app.lic.controlled.yes': 'Sí',
+  'app.lic.controlled.no': 'No',
+  'app.lic.controlled.hint':
+    'La especie de este registro parece cannabis, así que está marcado Sí. Cámbielo si no es así.',
+  'app.lic.controlled.courts': 'Algunos tribunales se han negado a hacer cumplir acuerdos sobre cannabis.',
+  'app.lic.controlled.border':
+    'Llevar cannabis o su material vegetal a través de una frontera estatal o nacional es delito en casi todas partes, incluso entre dos estados de EE. UU. donde es legal en ambos. Limite el territorio a donde ambos puedan cultivarlo y venderlo legalmente, y no envíe nada a través de fronteras.',
+  'app.lic.controlled.japan':
+    'En Japón, cultivar, vender o consumir cannabis sin licencia es delito. No use esto para un acuerdo en Japón.',
+  'app.lic.controlled.regulator':
+    'Una regalía sobre ventas puede tener que declararse al regulador de cannabis del licenciatario.',
+  'app.lic.inv.revokeNote':
+    'El licenciante puede desactivar esta licencia en Midnight en cualquier momento, digan lo que digan sus condiciones. Desactivarla no pone fin al contrato entre ustedes: sus condiciones firmadas son su prueba si lo hace.',
   'app.lic.inv.iAgree': 'Acepto estas condiciones',
   'app.lic.inv.agree': 'Aceptar',
   'app.lic.inv.waitHandOn':

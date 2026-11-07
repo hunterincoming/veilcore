@@ -24,6 +24,7 @@ export const licensing = {
   'app.lic.state.draft': 'Entwurf',
   'app.lic.state.sent': 'Gesendet, wartet auf Gegenzeichnung',
   'app.lic.state.active': 'Als aktiv markiert',
+  'app.lic.state.activeOffChain': 'Hier als aktiv markiert, nicht auf Midnight',
   'app.lic.state.expired': 'Abgelaufen',
   'app.lic.state.revoked': 'Widerrufen',
   'app.lic.type.license': 'Lizenzvereinbarung',
@@ -591,9 +592,24 @@ export const licensing = {
     'Warten auf eine Antwort von der Seite des Lizenzgebers. Ihr Code erscheint hier, sobald sie da ist.',
   'app.lic.inv.takeOverTerms':
     'Die Bedingungen, zu denen Sie die Lizenz übernehmen (dieselben wie beim jetzigen Inhaber):',
+  'app.lic.other': 'Sonstiges: {value}',
   // What a license here is and isn't (shown where terms are set and agreed).
   'app.lic.evidenceNote':
-    'Eine Lizenz hier ist ein unterschriebener, datierter Nachweis dessen, was Sie beide vereinbart haben, keine Rechtsberatung. Manche Gerichte haben sich geweigert, Cannabis-Vereinbarungen durchzusetzen. Lassen Sie alles Wichtige von Ihrem eigenen Anwalt prüfen.',
+    'Eine Lizenz hier ist ein signierter, datierter Nachweis dessen, was Sie beide vereinbart haben, keine Rechtsberatung. Lassen Sie alles Wichtige von Ihrer eigenen Anwältin oder Ihrem eigenen Anwalt prüfen.',
+  'app.lic.controlled.q': 'Ist das Cannabis, Hanf oder eine andere kontrollierte Pflanze?',
+  'app.lic.controlled.yes': 'Ja',
+  'app.lic.controlled.no': 'Nein',
+  'app.lic.controlled.hint':
+    'Die Art dieses Datensatzes sieht nach Cannabis aus, daher ist Ja gewählt. Ändern Sie es, wenn das falsch ist.',
+  'app.lic.controlled.courts': 'Manche Gerichte haben es abgelehnt, Cannabis-Verträge durchzusetzen.',
+  'app.lic.controlled.border':
+    'Cannabis oder sein Pflanzenmaterial über eine Landes- oder Staatsgrenze zu bringen, ist fast überall strafbar, selbst zwischen zwei US-Bundesstaaten, in denen es jeweils legal ist. Beschränken Sie das Gebiet auf Orte, an denen Sie beide es rechtmäßig anbauen und verkaufen dürfen, und versenden Sie nichts über Grenzen.',
+  'app.lic.controlled.japan':
+    'In Japan sind Anbau, Verkauf und Konsum von Cannabis ohne Genehmigung strafbar. Nutzen Sie dies nicht für ein Geschäft in Japan.',
+  'app.lic.controlled.regulator':
+    'Eine Lizenzgebühr auf Verkäufe muss der Cannabis-Aufsicht des Lizenznehmers womöglich gemeldet werden.',
+  'app.lic.inv.revokeNote':
+    'Der Lizenzgeber kann diese Lizenz auf Midnight jederzeit abschalten, egal was Ihre Bedingungen sagen. Das Abschalten beendet den Vertrag zwischen Ihnen nicht: Ihre signierten Bedingungen sind dann Ihr Nachweis.',
   'app.lic.inv.iAgree': 'Ich stimme diesen Bedingungen zu',
   'app.lic.inv.agree': 'Zustimmen',
   'app.lic.inv.waitHandOn':

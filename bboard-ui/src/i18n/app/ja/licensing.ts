@@ -24,6 +24,7 @@ export const licensing = {
   'app.lic.state.draft': '下書き',
   'app.lic.state.sent': '送付済み、相手の署名待ち',
   'app.lic.state.active': '有効と記録',
+  'app.lic.state.activeOffChain': 'ここで有効と記録（Midnight上ではない）',
   'app.lic.state.expired': '期限切れ',
   'app.lic.state.revoked': '取り消し済み',
   'app.lic.type.license': 'ライセンス契約',
@@ -566,9 +567,23 @@ export const licensing = {
   'app.lic.inv.waitLicensor':
     'ライセンサーのページの応答を待っています。応答があると、ここにあなたのコードが表示されます。',
   'app.lic.inv.takeOverTerms': 'ライセンスを引き継ぐ条件（現在の保有者と同じ）:',
+  'app.lic.other': 'その他：{value}',
   // What a license here is and isn't (shown where terms are set and agreed).
   'app.lic.evidenceNote':
-    'ここでのライセンスは、双方が合意した内容の署名・日付入りの記録であり、法的助言ではありません。大麻に関する契約の履行を認めなかった裁判所もあるため、重要なものはご自身の弁護士に確認してください。',
+    'ここでのライセンスは、双方が合意した内容の署名・日付つきの記録であり、法的助言ではありません。重要なものはご自身の弁護士に確認してもらってください。',
+  'app.lic.controlled.q': 'これは大麻・ヘンプその他の規制植物ですか？',
+  'app.lic.controlled.yes': 'はい',
+  'app.lic.controlled.no': 'いいえ',
+  'app.lic.controlled.hint': 'この記録の種は大麻のようなので「はい」を選んでいます。違う場合は変更してください。',
+  'app.lic.controlled.courts': '大麻に関する契約の履行を認めなかった裁判所もあります。',
+  'app.lic.controlled.border':
+    '大麻やその植物素材を州境・国境を越えて移すことは、ほとんどの地域で犯罪です。双方で合法な米国の2つの州の間でも同じです。地域は双方が合法に栽培・販売できる場所に限り、国境・州境を越えて送らないでください。',
+  'app.lic.controlled.japan':
+    '日本では、免許なく大麻を栽培・販売・使用することは犯罪です。日本での取引には使わないでください。',
+  'app.lic.controlled.regulator':
+    '売上に対するロイヤリティは、ライセンシーの大麻規制当局への届出が必要な場合があります。',
+  'app.lic.inv.revokeNote':
+    'ライセンサーは、条件の内容にかかわらず、いつでもMidnight上でこのライセンスを無効にできます。無効にしても二人の間の契約は終わりません。その場合、署名済みの条件があなたの証拠になります。',
   'app.lic.inv.iAgree': 'これらの条件に同意します',
   'app.lic.inv.agree': '同意する',
   'app.lic.inv.waitHandOn':

@@ -118,8 +118,9 @@ export const royalties = {
   'app.roy.f.amountPlain': 'Amount',
   'app.roy.f.law': 'Governing law',
   'app.roy.f.lawHelp':
-    'Which country’s or state’s law the deal is under. Filled in from your browser: change it if needed.',
-  'app.roy.f.territoryRequired': 'Required for cannabis: where the license applies.',
+    'Which state’s, province’s or country’s law the deal is under. In the US, Canada or Australia, name the state or province: there is no country-wide contract law.',
+  'app.roy.f.territoryRequired':
+    'Required: where the license applies (a state, province or country). Living material moved across a border may need permits.',
   'app.roy.f.summary': 'The deal in one paragraph',
   'app.roy.f.edit': 'Edit details',
   'app.roy.f.hide': 'Hide details',
@@ -131,9 +132,11 @@ export const royalties = {
   'app.roy.f.need.cap': 'the deductions limit',
   'app.roy.f.need.currency': 'the currency',
   'app.roy.f.need.law': 'the governing law',
+  'app.roy.f.need.lawState': 'a state or province for the governing law, not just the country',
   'app.roy.f.need.minimum': 'a valid yearly minimum',
   'app.roy.f.need.offspring': 'a valid royalty on offspring',
   'app.roy.f.need.territory': 'the territory',
+  'app.roy.f.need.controlled': 'whether this is cannabis or another controlled plant',
   'app.roy.f.need.dates': 'an end date after the start',
   'app.roy.f.licensor': 'Your name or company',
   'app.roy.f.licensorHelp': 'Shown to them, and its initials start each payment reference.',
