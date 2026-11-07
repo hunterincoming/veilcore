@@ -24,6 +24,8 @@ export const es: Strings = {
   'draft.banner':
     'Traducción preliminar hecha por máquina, en revisión. La página en inglés es la versión de referencia.',
   'draft.showEnglish': 'Ver en inglés',
+  'notice.datingPaused':
+    'El fechado en Midnight está en pausa por la actualización de la red de Midnight. Sus registros están guardados y se fecharán cuando vuelva a funcionar.',
   // The record app's frame and the browser tab's titles.
   'app.frame.section.log': 'Registrar',
   'app.frame.section.send': 'Enviar y recibir',

@@ -10,7 +10,7 @@ import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { type Interface } from 'node:readline/promises';
 import { type Logger } from 'pino';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { setNetworkId } from '../../api/src/network-id.js';
 import { SucceedEntirely } from '@midnight-ntwrk/midnight-js-types';
 
 // Feed the CLI's one readline from a stream instead of the keyboard, and keep what it shows.
@@ -276,7 +276,9 @@ describe('M1 FIXED: a deploy whose confirmation fails can still be finished', ()
       order,
       privateState: () => ps,
       privateStateProvider: {
-        setContractAddress: () => undefined,
+        forContract() {
+          return this; // midnight-js 5: one contract, one view
+        },
         get: async () => ps,
         set: async (_: string, v: unknown) => {
           order.push('set private state');

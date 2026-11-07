@@ -7,7 +7,16 @@
 //
 // Sync progress is saved on the service's volume (STATE_DIR) so a restart resumes
 // instead of reading the chain from the start. The file is encrypted with a key derived
-// from the seed: it is no more secret than the seed, which sits next to it.
+// from the seed: it is no more secret than the seed, which sits next to it. It records the
+// ledger the network was on when it was saved: progress saved before Midnight's Ledger 9 fork
+// is not resumed on a forked network (Midnight: drop cached DUST tree indices when crossing
+// the fork), it is set aside and the wallet syncs from the start.
+//
+// Fees: wallet SDK 2 prices every fee (estimateTransactionFee, calculateTransactionFee and
+// balancing) with the ledger parameters of the latest block it has synced, as the indexer
+// serves them (dust wallet RunningV1Variant/RunningV2Variant, `blockData.ledgerParameters`),
+// not with a configured copy. So Ledger 9's fee floor (min block price 10) is what it charges
+// once the chain is on Ledger 9. Only the margin settings below are this service's.
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -15,8 +24,11 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as Rx from 'rxjs';
-import { DustSecretKey, LedgerParameters, ZswapSecretKeys, type FinalizedTransaction } from '@midnight-ntwrk/ledger-v8';
-import { WalletFacade, type FacadeState } from '@midnight-ntwrk/wallet-sdk-facade';
+import * as Ledger8 from '@midnightntwrk/ledger-v8';
+import { DustSecretKey, LedgerParameters, Transaction, ZswapSecretKeys } from '@midnightntwrk/ledger-v9';
+import type { Era } from './fork.js';
+import { WalletFacade, type FacadeState } from '@midnightntwrk/wallet-sdk-facade';
+import type { FinalizedTx } from '@midnightntwrk/wallet-sdk-abstractions';
 import {
   DustAddress,
   DustWallet,
@@ -29,8 +41,8 @@ import {
   WalletEntrySchema,
   createKeystore,
   mergeWalletEntries,
-} from '@midnight-ntwrk/wallet-sdk';
-import type { UnboundTransaction } from '@midnight-ntwrk/midnight-js-types';
+} from '@midnightntwrk/wallet-sdk';
+import type { UnboundTx } from '@midnight-ntwrk/midnight-js-types';
 import type { SealedTx } from './policy.js';
 import { NotSentError, type PayingWallet } from './sponsor.js';
 import { log } from './log.js';
@@ -82,17 +94,18 @@ const isStrictlyComplete = (progress: unknown): boolean =>
 
 /** Each wallet's progress and whether it has finished, for the stall tracker (sync-stall.ts). */
 const syncParts = (s: FacadeState): SyncPart[] =>
-  [s.shielded.state.progress, s.dust.state.progress, s.unshielded.progress].map((progress) => ({
+  [s.shielded.progress, s.dust.progress, s.unshielded.progress].map((progress) => ({
     progress,
     complete: isStrictlyComplete(progress),
   }));
 
 export const isFacadeSynced = (s: FacadeState): boolean =>
-  isStrictlyComplete(s.shielded.state.progress) &&
-  isStrictlyComplete(s.dust.state.progress) &&
+  isStrictlyComplete(s.shielded.progress) &&
+  isStrictlyComplete(s.dust.progress) &&
   isStrictlyComplete(s.unshielded.progress);
 
-type Saved = { shielded: string; unshielded: string; dust: string };
+/** `era`: the ledger the network was on when this was saved (absent in files from before it was recorded). */
+type Saved = { shielded: string; unshielded: string; dust: string; era?: Era };
 
 /** Encrypted sync progress on the volume. */
 class ProgressFile {
@@ -119,7 +132,7 @@ class ProgressFile {
       d.setAuthTag(tag);
       const parsed = JSON.parse(Buffer.concat([d.update(blob.subarray(28)), d.final()]).toString('utf8')) as Saved;
       return typeof parsed.shielded === 'string' && typeof parsed.unshielded === 'string' && typeof parsed.dust === 'string'
-        ? parsed
+        ? { ...parsed, era: parsed.era === 'v8' || parsed.era === 'v9' ? parsed.era : undefined }
         : undefined;
     } catch {
       return undefined;
@@ -152,6 +165,33 @@ export type WalletEndpoints = {
   readonly nodeWS: string;
   readonly proofServer: string;
   readonly stateDir: string;
+  /**
+   * The ledger the network is on now (fork.ts). Saved progress from before the network's
+   * Ledger 9 fork is not resumed on a forked network. Undefined: not known, resume as before.
+   */
+  readonly chainEra?: Era;
+};
+
+/**
+ * Whether saved progress can be resumed on a network on `chainEra`: not progress saved before
+ * the network's Ledger 9 fork (or by a build that did not record the ledger) once it is on
+ * Ledger 9. Midnight's guidance for the crossing is to drop cached DUST tree indices; a fresh
+ * sync is the plain way to do that.
+ */
+export const resumable = (savedEra: Era | undefined, chainEra: Era | undefined): boolean =>
+  chainEra !== 'v9' || savedEra === 'v9';
+
+/** Saved progress to resume on a network on `chainEra`, or undefined; progress that cannot be is set aside (kept). */
+const openProgress = (progress: ProgressFile, chainEra: Era | undefined): Saved | undefined => {
+  const saved = progress.read();
+  if (!saved || resumable(saved.era, chainEra)) return saved;
+  const kept = progress.setAside();
+  log('warn', 'wallet: saved sync progress predates the network’s Ledger 9 fork; set aside, syncing from the start', {
+    savedEra: saved.era ?? 'unrecorded',
+    chainEra,
+    keptAs: kept ?? 'not moved',
+  });
+  return undefined;
 };
 
 export class FacadeWallet implements PayingWallet {
@@ -161,51 +201,97 @@ export class FacadeWallet implements PayingWallet {
   private stallTimer: NodeJS.Timeout | undefined;
   private readonly stall = new StallTracker();
   private stallWarned = false;
+  /** The ledger the network is on, as last read (fork.ts); written into saved progress. */
+  private era: Era | undefined;
 
   private constructor(
     readonly facade: WalletFacade,
     private readonly zswap: ZswapSecretKeys,
     private readonly dustKey: DustSecretKey,
     private readonly keystore: Keystore,
+    /** The three role seeds the facade starts from (wallet SDK 2 derives both ledgers' keys from them). */
+    private readonly seeds: RoleSeeds,
     private readonly progress: ProgressFile,
     /** Whether this run resumed from saved progress (a stall then means that progress is bad). */
     private readonly restored: boolean,
     /** Public addresses of this wallet (not secrets), for the forbidden-wallet check and the logs. */
     readonly addresses: { readonly unshielded: string; readonly dust: string },
-  ) {}
+    /** Where this wallet's fork schedule starts Ledger 9 (resolveConfiguration's `forks.v9`). */
+    readonly forksV9: bigint = 2_000_000n,
+    chainEra?: Era,
+  ) {
+    this.era = chainEra;
+  }
 
   /** Tests only: a wallet around a stand-in facade, with no keys and no network. */
-  static forTests(facade: unknown, opts: { restored?: boolean; stateDir?: string } = {}): FacadeWallet {
+  static forTests(facade: unknown, opts: { restored?: boolean; stateDir?: string; chainEra?: Era } = {}): FacadeWallet {
     return new FacadeWallet(
       facade as WalletFacade,
       {} as ZswapSecretKeys,
       {} as DustSecretKey,
       { signData: () => 'signature' } as unknown as Keystore,
+      { shielded: new Uint8Array(32), unshielded: new Uint8Array(32), dust: new Uint8Array(32) },
       new ProgressFile(opts.stateDir ?? '/nonexistent', 'test', 'test'),
       opts.restored ?? false,
       { unshielded: '', dust: '' },
+      2_000_000n,
+      opts.chainEra,
     );
+  }
+
+  /** Tests only: the saved progress (as forTests's wallet keeps it) that build would resume on `chainEra`. */
+  static openProgressForTests(stateDir: string, chainEra: Era | undefined): { era?: Era } | undefined {
+    return openProgress(new ProgressFile(stateDir, 'test', 'test'), chainEra);
+  }
+
+  /** Tests only: write progress as forTests's wallet would have, saved on `era`. */
+  static writeProgressForTests(stateDir: string, era: Era | undefined): void {
+    new ProgressFile(stateDir, 'test', 'test').write({ shielded: 's', unshielded: 'u', dust: 'd', ...(era ? { era } : {}) });
+  }
+
+  /** The ledger the network is on, as last read; saved progress records it. */
+  setChainEra(era: Era): void {
+    this.era = era;
+  }
+
+  /**
+   * The network moved to Ledger 9 while this process ran: do not keep resuming progress made
+   * on Ledger 8. Set the saved progress aside (kept, renamed), and exit so the platform
+   * restarts the service and it syncs from the start, as checkStall does.
+   */
+  crossedFork(exit: (code: number) => void = (c) => process.exit(c)): void {
+    if (this.saveTimer) clearInterval(this.saveTimer);
+    if (this.stallTimer) clearInterval(this.stallTimer);
+    const kept = this.progress.setAside();
+    log('warn', 'wallet: the network moved to Ledger 9 while running; set saved progress aside, restarting to sync from the start', {
+      keptAs: kept ?? 'not moved',
+    });
+    exit(1);
   }
 
   /** Derive keys and addresses from the seed. Nothing connects to the network yet. */
   static async build(seedHex: string, ep: WalletEndpoints): Promise<FacadeWallet> {
     const seeds = deriveRoleSeeds(seedHex);
-    const config = {
+    // Wallet SDK 2 needs `forks`, where the chain moves from Ledger 8 to Ledger 9: the SDK's
+    // default schedule (Ledger 9 from the version a 2.x node reports). One proof server
+    // (PROOF_SERVER_URL) for the network this service is on: 9.0.0 on mainnet since its fork.
+    const config = WalletFacade.resolveConfiguration({
       indexerClientConnection: { indexerHttpUrl: ep.indexer, indexerWsUrl: ep.indexerWS },
       provingServerUrl: new URL(ep.proofServer),
       networkId: ep.network,
       relayURL: new URL(ep.nodeWS),
       txHistoryStorage: new InMemoryTransactionHistoryStorage(WalletEntrySchema, mergeWalletEntries),
       costParameters: { feeBlocksMargin: 5 },
-    };
+    } as never) as unknown as Record<string, unknown>;
+    // Margins only: the fee itself is priced with the chain's own ledger parameters (top of file).
     const costParameters = {
-      ledgerParams: LedgerParameters.initialParameters(),
       additionalFeeOverhead: ep.network === 'undeployed' ? 500_000_000_000_000_000n : 1_000n,
       feeBlocksMargin: 5,
     };
-    const keystore = createKeystore(seeds.unshielded, ep.network as never);
+    // Wallet SDK 2: the keystore names its signature kind (ledger 9 keys are tagged).
+    const keystore = createKeystore({ kind: 'schnorr', secret: seeds.unshielded }, ep.network as never);
     const progress = new ProgressFile(ep.stateDir, ep.network, seedHex);
-    const saved = progress.read();
+    const saved = openProgress(progress, ep.chainEra);
 
     const shieldedB = ShieldedWallet(config as never);
     const unshieldedB = UnshieldedWallet({
@@ -229,9 +315,10 @@ export class FacadeWallet implements PayingWallet {
     }
     const restored = parts !== undefined;
     const p = (parts ??= {
-      shielded: shieldedB.startWithSeed(seeds.shielded),
-      unshielded: unshieldedB.startWithPublicKey(PublicKey.fromKeyStore(keystore)),
-      dust: dustB.startWithSeed(seeds.dust, LedgerParameters.initialParameters().dust),
+      shielded: await shieldedB.startWithSeed(seeds.shielded),
+      unshielded: await unshieldedB.startWithPublicKey(PublicKey.fromKeyStore(keystore)),
+      // The generation rates an empty DUST state starts from; the synced chain's own follow.
+      dust: await dustB.startWithSeed(seeds.dust, LedgerParameters.initialParameters().dust as never),
     });
     const facade = await WalletFacade.init({
       configuration: config as never,
@@ -240,14 +327,28 @@ export class FacadeWallet implements PayingWallet {
       dust: () => p.dust as never,
     });
     const dustKey = DustSecretKey.fromSeed(seeds.dust);
-    return new FacadeWallet(facade, ZswapSecretKeys.fromSeed(seeds.shielded), dustKey, keystore, progress, restored, {
-      unshielded: keystore.getBech32Address().asString(),
-      dust: DustAddress.encodePublicKey(ep.network, dustKey.publicKey),
-    });
+    const forks = (config as { forks?: { v9?: bigint | number } }).forks;
+    return new FacadeWallet(
+      facade,
+      ZswapSecretKeys.fromSeed(seeds.shielded),
+      dustKey,
+      keystore,
+      seeds,
+      progress,
+      restored,
+      {
+        unshielded: keystore.getBech32Address().asString(),
+        dust: DustAddress.encodePublicKey(ep.network, dustKey.publicKey),
+      },
+      BigInt(forks?.v9 ?? 2_000_000),
+      ep.chainEra,
+    );
   }
 
   async start(): Promise<void> {
-    await this.facade.start(this.zswap, this.dustKey);
+    // Wallet SDK 2 starts from the seeds and derives each ledger's keys itself, so the wallet
+    // reads the chain on both sides of the ledger 9 fork.
+    await this.facade.start(this.seeds);
     this.sub = this.facade.state().subscribe({
       next: (s) => {
         this.latest = s;
@@ -306,6 +407,7 @@ export class FacadeWallet implements PayingWallet {
         shielded: await this.facade.shielded.serializeState(),
         unshielded: await this.facade.unshielded.serializeState(),
         dust: await this.facade.dust.serializeState(),
+        ...(this.era ? { era: this.era } : {}),
       });
     } catch (e) {
       log('warn', 'wallet: could not save sync progress', { error: (e as Error).message });
@@ -345,24 +447,39 @@ export class FacadeWallet implements PayingWallet {
     return this.latest?.dust.balance(new Date());
   }
 
-  async estimateFee(tx: SealedTx): Promise<bigint> {
-    return this.facade.estimateTransactionFee(tx, this.dustKey);
+  /**
+   * A transaction this service checked (policy.ts), handed to the wallet SDK as its bytes: the
+   * SDK reads them with its own ledger, at the protocol version it is acting at, and refuses
+   * bytes of the other side of the fork. The bytes are exactly the ones the policy read.
+   */
+  private adopt(tx: SealedTx): FinalizedTx {
+    return this.facade.adoptTransaction(tx.serialize(), 'Finalized');
   }
 
-  private sign = (payload: Uint8Array) => this.keystore.signData(payload);
+  /** The identifiers of a transaction the wallet SDK handed back, read with the ledger that wrote it. */
+  identifiersOf(tx: FinalizedTx): string[] {
+    const bytes = new Uint8Array(tx.serialize() as unknown as Uint8Array);
+    try {
+      return Transaction.deserialize('signature', 'proof', 'binding', bytes).identifiers();
+    } catch {
+      return Ledger8.Transaction.deserialize('signature', 'proof', 'binding', bytes).identifiers();
+    }
+  }
+
+  async estimateFee(tx: SealedTx): Promise<bigint> {
+    return this.facade.estimateTransactionFee(this.adopt(tx));
+  }
+
+  private sign = (payload: Uint8Array) => Promise.resolve(this.keystore.signData(payload));
 
   async payAndSubmit(tx: SealedTx, ttl: Date, approveFee: (fee: bigint) => void): Promise<{ txId: string; fee: bigint }> {
     let recipe;
     try {
-      recipe = await this.facade.balanceFinalizedTransaction(
-        tx,
-        { shieldedSecretKeys: this.zswap, dustSecretKey: this.dustKey },
-        { ttl, tokenKindsToBalance: ['dust'] },
-      );
+      recipe = await this.facade.balanceFinalizedTransaction(this.adopt(tx), { ttl, tokenKindsToBalance: ['dust'] });
     } catch (e) {
       throw new NotSentError('The sponsor could not add its fee payment (it may be out of DUST). Try later.', true, { cause: e });
     }
-    let finalized: FinalizedTransaction;
+    let finalized: FinalizedTx;
     try {
       finalized = await this.facade.finalizeRecipe(await this.facade.signRecipe(recipe, this.sign));
     } catch (e) {
@@ -384,7 +501,7 @@ export class FacadeWallet implements PayingWallet {
   }
 
   /** Submit; a node refusal (never admitted) becomes NotSentError and the coins are released. */
-  async submit(finalized: FinalizedTransaction): Promise<string> {
+  async submit(finalized: FinalizedTx): Promise<string> {
     try {
       return await this.facade.submitTransaction(finalized);
     } catch (e) {
@@ -401,12 +518,11 @@ export class FacadeWallet implements PayingWallet {
   }
 
   /** For the anchoring job, which calls anchorBatch itself: balance an unbound call the CLI way. */
-  async balanceUnbound(tx: UnboundTransaction, ttl: Date): Promise<FinalizedTransaction> {
-    const recipe = await this.facade.balanceUnboundTransaction(
-      tx,
-      { shieldedSecretKeys: this.zswap, dustSecretKey: this.dustKey },
-      { ttl },
-    );
+  async balanceUnbound(tx: UnboundTx, ttl: Date): Promise<FinalizedTx> {
+    // midnight-js's handle crosses into the wallet SDK as its bytes (each has its own ledger copy).
+    const recipe = await this.facade.balanceUnboundTransaction(this.facade.adoptTransaction(tx.serialize(), 'Unbound'), {
+      ttl,
+    });
     try {
       return await this.facade.finalizeRecipe(await this.facade.signRecipe(recipe, this.sign));
     } catch (e) {
@@ -416,11 +532,11 @@ export class FacadeWallet implements PayingWallet {
   }
 
   /** The fee a balanced, finished transaction pays, in SPECKs (the anchoring job's own calls). */
-  async feeOf(tx: FinalizedTransaction): Promise<bigint> {
+  async feeOf(tx: FinalizedTx): Promise<bigint> {
     return this.facade.calculateTransactionFee(tx);
   }
 
-  async revert(tx: FinalizedTransaction): Promise<void> {
+  async revert(tx: FinalizedTx): Promise<void> {
     await this.facade.revert(tx);
   }
 }

@@ -13,16 +13,21 @@
  * limitations under the License.
  */
 
-import { UnshieldedTokenType } from '@midnight-ntwrk/midnight-js-protocol/ledger';
-import { type FacadeState, type WalletFacade } from '@midnight-ntwrk/wallet-sdk-facade';
-import { type ShieldedWalletAPI, type ShieldedWalletState } from '@midnight-ntwrk/wallet-sdk-shielded';
-import { type UnshieldedWalletAPI, type UnshieldedWalletState } from '@midnight-ntwrk/wallet-sdk-unshielded-wallet';
+import { UnshieldedTokenType } from '@midnight-ntwrk/midnight-js-protocol/v9';
+import {
+  type FacadeState,
+  type ShieldedWalletAPI,
+  type ShieldedWalletState,
+  type UnshieldedWalletAPI,
+  type UnshieldedWalletState,
+  type WalletFacade,
+} from '@midnightntwrk/wallet-sdk';
 import * as Rx from 'rxjs';
 
 import { FaucetClient, type EnvironmentConfiguration } from '@midnight-ntwrk/testkit-js';
 import { Logger } from 'pino';
-import { UnshieldedAddress } from '@midnight-ntwrk/wallet-sdk-address-format';
-import { getNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { UnshieldedAddress } from '@midnightntwrk/wallet-sdk';
+import { getNetworkId } from '../../api/src/network-id.js';
 import { type SyncPart, watchSync } from './sync-watch';
 
 export const getInitialShieldedState = async (
@@ -54,14 +59,14 @@ const isProgressStrictlyComplete = (progress: unknown): boolean => {
 
 /** Each wallet's progress and whether it has finished, for the stall watch (sync-watch.ts). */
 const syncParts = (state: FacadeState): SyncPart[] =>
-  [state.shielded.state.progress, state.dust.state.progress, state.unshielded.progress].map((progress) => ({
+  [state.shielded.progress, state.dust.progress, state.unshielded.progress].map((progress) => ({
     progress,
     complete: isProgressStrictlyComplete(progress),
   }));
 
 const isFacadeStateSynced = (state: FacadeState): boolean =>
-  isProgressStrictlyComplete(state.shielded.state.progress) &&
-  isProgressStrictlyComplete(state.dust.state.progress) &&
+  isProgressStrictlyComplete(state.shielded.progress) &&
+  isProgressStrictlyComplete(state.dust.progress) &&
   isProgressStrictlyComplete(state.unshielded.progress);
 
 export const syncWallet = (logger: Logger, wallet: WalletFacade, throttleTime = 2_000) => {
@@ -74,18 +79,18 @@ export const syncWallet = (logger: Logger, wallet: WalletFacade, throttleTime = 
       Rx.tap((state: FacadeState) => watch.see(syncParts(state))),
       Rx.finalize(() => watch.stop()),
       Rx.tap((state: FacadeState) => {
-        const shieldedSynced = isProgressStrictlyComplete(state.shielded.state.progress);
+        const shieldedSynced = isProgressStrictlyComplete(state.shielded.progress);
         const unshieldedSynced = isProgressStrictlyComplete(state.unshielded.progress);
-        const dustSynced = isProgressStrictlyComplete(state.dust.state.progress);
+        const dustSynced = isProgressStrictlyComplete(state.dust.progress);
         logger.debug(
           `Wallet synced state emission: { shielded=${shieldedSynced}, unshielded=${unshieldedSynced}, dust=${dustSynced} }`,
         );
       }),
       Rx.throttleTime(throttleTime),
       Rx.tap((state: FacadeState) => {
-        const shieldedSynced = isProgressStrictlyComplete(state.shielded.state.progress);
+        const shieldedSynced = isProgressStrictlyComplete(state.shielded.progress);
         const unshieldedSynced = isProgressStrictlyComplete(state.unshielded.progress);
-        const dustSynced = isProgressStrictlyComplete(state.dust.state.progress);
+        const dustSynced = isProgressStrictlyComplete(state.dust.progress);
         const isSynced = shieldedSynced && dustSynced && unshieldedSynced;
 
         logger.debug(

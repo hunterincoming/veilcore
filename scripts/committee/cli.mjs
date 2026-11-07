@@ -19,7 +19,7 @@ import path from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { Writable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
-import { sampleSigningKey } from '@midnight-ntwrk/ledger-v8';
+import { sampleSigningKey } from '@midnightntwrk/ledger-v8';
 import { readMainnetPins } from '../mainnet-pins.mjs';
 import {
   checkKeyCard,

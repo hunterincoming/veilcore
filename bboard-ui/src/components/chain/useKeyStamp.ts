@@ -17,6 +17,7 @@ import {
   type StampRetryEntry,
 } from '../../veilcore/chain/key-stamp';
 import { holdStamp } from '../../veilcore/chain/stamp-background';
+import { DATING_PAUSED } from '../../veilcore/chain/paused';
 
 export type KeyStampState = {
   readonly busy: boolean;
@@ -31,6 +32,8 @@ export type KeyStampState = {
   readonly quickTries: number;
   readonly run: () => Promise<void>;
   readonly tryNow: () => Promise<void>;
+  /** Dating on Midnight is paused (DATING_PAUSED): nothing is tried; the screen says why. */
+  readonly paused: boolean;
 };
 
 export const useStampRetries = (): Record<string, StampRetryEntry> =>
@@ -55,7 +58,7 @@ export const useKeyStamp = (recordId: string, opts: { auto: boolean }): KeyStamp
   }, [recordId]);
 
   const run = useCallback(async () => {
-    if (running.current) return;
+    if (running.current || DATING_PAUSED) return;
     running.current = true;
     setBusy(true);
     setError(undefined);
@@ -88,7 +91,9 @@ export const useKeyStamp = (recordId: string, opts: { auto: boolean }): KeyStamp
   // closed the background goes on with it.
   const quickTries = QUICK_RETRY_MS.length + 1;
   const autoNext =
-    opts.auto && !busy && entry && !entry.stopped && entry.nextAt !== undefined ? entry.nextAt : undefined;
+    opts.auto && !DATING_PAUSED && !busy && entry && !entry.stopped && entry.nextAt !== undefined
+      ? entry.nextAt
+      : undefined;
   useEffect(() => {
     if (autoNext === undefined) return;
     const tick = window.setInterval(() => setNow(Date.now()), 1000);
@@ -109,5 +114,6 @@ export const useKeyStamp = (recordId: string, opts: { auto: boolean }): KeyStamp
     quickTries,
     run,
     tryNow,
+    paused: DATING_PAUSED,
   };
 };

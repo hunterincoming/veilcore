@@ -3,20 +3,33 @@
  * The local private-state store (LevelDB) opens the database for each operation and
  * holds a lock while it does, so two operations at the same moment fail with "Database
  * failed to open". This wraps the store so its operations run one after another, in the
- * order they were called. setContractAddress is queued too, so it never changes which
- * contract an earlier, still-waiting operation applies to.
+ * order they were called, including those made through a contract's view (forContract).
  */
 export const oneAtATime = <T extends object>(store: T): T => {
   let queue: Promise<unknown> = Promise.resolve();
+  const queued =
+    <O extends object>(target: O, value: (...a: unknown[]) => unknown) =>
+    (...args: unknown[]) => {
+      const run = queue.then(() => value.apply(target, args));
+      queue = run.catch(() => undefined); // a failed operation does not block the next
+      return run;
+    };
+  // midnight-js 5 reaches one contract's states through forContract(address), a view made at
+  // once (no I/O); its operations join the same queue as the store's own.
+  const view = <V extends object>(v: V): V =>
+    new Proxy(v, {
+      get(target, name, receiver) {
+        const value = Reflect.get(target, name, receiver) as unknown;
+        return typeof value === 'function' ? queued(target, value as (...a: unknown[]) => unknown) : value;
+      },
+    });
   return new Proxy(store, {
     get(target, name, receiver) {
-      const value = Reflect.get(target, name, receiver);
+      const value = Reflect.get(target, name, receiver) as unknown;
       if (typeof value !== 'function') return value;
-      return (...args: unknown[]) => {
-        const run = queue.then(() => value.apply(target, args));
-        queue = run.catch(() => undefined); // a failed operation does not block the next
-        return run;
-      };
+      const fn = value as (...a: unknown[]) => unknown;
+      if (name === 'forContract') return (...args: unknown[]) => view(fn.apply(target, args) as object);
+      return queued(target, fn);
     },
   });
 };

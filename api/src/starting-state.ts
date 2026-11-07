@@ -31,8 +31,11 @@
 // A contract is called forged only when its deploy transaction was actually read.
 
 import { type Logger } from 'pino';
-import { ContractState } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
-import { type FinalizedTxData, type PublicDataProvider, SucceedEntirely } from '@midnight-ntwrk/midnight-js-types';
+import { type ContractState } from '@midnight-ntwrk/compact-runtime';
+import { loadLedger8Protocol } from '@midnight-ntwrk/midnight-js-protocol';
+import { Transaction as Ledger9Transaction } from '@midnight-ntwrk/midnight-js-protocol/v9';
+import { type FinalizedTxRead, type PublicDataProvider, SucceedEntirely } from '@midnight-ntwrk/midnight-js-types';
+import { readContractState } from '../../contract/src/contract-state.js';
 import { startsFromConstructor } from '../../contract/src/veilcore';
 
 /** How long to wait for the indexer to hand over a transaction it should already have. */
@@ -41,13 +44,20 @@ export const DEPLOY_LOOKUP_MS = 60_000;
 const norm = (h: string): string => h.trim().toLowerCase().replace(/^0x/, '');
 
 /** The starting state a transaction deploys `address` with, if it deploys it. */
-export const deployedStateIn = (tx: FinalizedTxData['tx'], address: string): ContractState | undefined => {
+export const deployedStateIn = async (record: FinalizedTxRead, address: string): Promise<ContractState | undefined> => {
+  // midnight-js 5: a finalized record names the ledger that recorded it (a deploy made before
+  // Midnight's Ledger 9 fork is a Ledger 8 record); decode it with that ledger.
+  type Action = { readonly address: string; readonly initialState?: { serialize(): Uint8Array } };
+  type Readable = { readonly intents?: Map<number, { readonly actions: readonly Action[] }> };
+  const tx = (record.era === 'v8'
+    ? record.tx.deserialize({ v8: (await loadLedger8Protocol()).Transaction })
+    : record.tx.deserialize({ v9: Ledger9Transaction })) as unknown as Readable;
   for (const intent of tx.intents?.values() ?? []) {
     for (const action of intent.actions) {
-      if ('initialState' in action && norm(action.address) === norm(address)) {
-        // The ledger's ContractState, as the runtime's (what startsFromConstructor reads),
-        // the way midnight-js converts between the two.
-        return ContractState.deserialize(action.initialState.serialize());
+      if (action.initialState !== undefined && norm(action.address) === norm(address)) {
+        // The ledger's ContractState, as the runtime-0.16 one startsFromConstructor reads,
+        // whichever ledger wrote it (contract-state.ts).
+        return readContractState(action.initialState.serialize());
       }
     }
   }
@@ -117,7 +127,8 @@ export const checkStartingState = async (args: {
 }): Promise<StartingStateCheck> => {
   const { publicDataProvider: pdp, address, logger } = args;
   const ms = args.timeoutMs ?? DEPLOY_LOOKUP_MS;
-  const current = await pdp.queryContractState(address);
+  const currentRead = await pdp.queryContractState(address);
+  const current = currentRead ? readContractState(currentRead.contractState.serialize()) : undefined;
   if (current === null || current === undefined) {
     throw new Error(`The indexer has no contract at ${address}, so it cannot be checked. Do not use it.`);
   }
@@ -133,7 +144,7 @@ export const checkStartingState = async (args: {
           'Nothing was written for this address.',
       );
     }
-    const state = data.status === SucceedEntirely ? deployedStateIn(data.tx, address) : undefined;
+    const state = data.status === SucceedEntirely ? await deployedStateIn(data, address) : undefined;
     if (state === undefined) {
       throw new Error(
         `Transaction ${given} is not a successful deploy of the contract at ${address}. Check the id. ` +
@@ -146,7 +157,7 @@ export const checkStartingState = async (args: {
   }
 
   // 2. The deploy transaction, as the latest action leads to it (a deploy, or a call).
-  let data: FinalizedTxData | 'timeout' | undefined;
+  let data: FinalizedTxRead | 'timeout' | undefined;
   try {
     data = await within(pdp.watchForDeployTxData(address), ms);
   } catch (e) {
@@ -156,7 +167,7 @@ export const checkStartingState = async (args: {
     if (!(e instanceof Error && e.name === 'IndexerDataError')) throw e;
     data = undefined;
   }
-  const state = data === undefined || data === 'timeout' ? undefined : deployedStateIn(data.tx, address);
+  const state = data === undefined || data === 'timeout' ? undefined : await deployedStateIn(data, address);
   if (state !== undefined && data !== undefined && data !== 'timeout') {
     if (!startsFromConstructor(state)) throw forged(address);
     logger?.info(`Starting state checked: deploy transaction ${data.txId} carries the VeilCore constructor's state.`);

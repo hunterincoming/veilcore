@@ -17,7 +17,7 @@
  *    challenge) are kept in this process and written to disk as zeros. The record secret
  *    itself, and everything else, is stored as before.
  */
-import { type ContractAddress, type SigningKey } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
+import { type ContractAddress, type SigningKey } from '@midnight-ntwrk/midnight-js-protocol/v9/compact-runtime';
 
 /** Signing keys live in this process only; nothing about them reaches the wrapped store. */
 export const memorySigningKeys = <P extends object>(store: P): P => {
@@ -26,14 +26,15 @@ export const memorySigningKeys = <P extends object>(store: P): P => {
     get(target, name, receiver) {
       if (name === 'setSigningKey')
         return (address: ContractAddress, key: SigningKey): Promise<void> => {
-          keys.set(address, key);
+          keys.set(address.toLowerCase(), key);
           return Promise.resolve();
         };
       if (name === 'getSigningKey')
-        return (address: ContractAddress): Promise<SigningKey | null> => Promise.resolve(keys.get(address) ?? null);
+        return (address: ContractAddress): Promise<SigningKey | null> =>
+          Promise.resolve(keys.get(address.toLowerCase()) ?? null);
       if (name === 'removeSigningKey')
         return (address: ContractAddress): Promise<void> => {
-          keys.delete(address);
+          keys.delete(address.toLowerCase());
           return Promise.resolve();
         };
       if (name === 'clearSigningKeys')
@@ -57,58 +58,74 @@ export const TRANSIENT_FIELDS = [
   'presentationChallenge',
 ] as const;
 
-type Store = {
-  setContractAddress(address: ContractAddress): void;
+/** One contract's private states, as midnight-js 5 reaches them (`forContract`). */
+type View = {
   get(id: string): Promise<unknown>;
   set(id: string, state: never): Promise<void>;
+  remove(id: string): Promise<void>;
+  clear(): Promise<void>;
 };
+type Store = { forContract(address: ContractAddress): View; clearAll(): Promise<void> };
 
 /**
  * One-call secrets are kept in this process and written to the wrapped store as 32 zero
  * bytes. A read gives back what this process last set; a fresh process reads zeros,
  * which is what every call that needs one of these fields expects to replace first.
- * Memory is keyed by contract address and state id, as the store itself is.
+ * Memory is keyed by contract address (lower case, as midnight-js 5 compares them) and
+ * state id, as the store itself is.
  */
 export const transientSecrets = <P extends object>(store: P): P => {
   const inner = store as unknown as Store;
   const mem = new Map<string, Record<string, Uint8Array>>();
-  let address: ContractAddress | null = null;
-  const slot = (id: string): string => `${address ?? ''}:${id}`;
+  const view = (contractAddress: ContractAddress): View => {
+    const here = inner.forContract(contractAddress);
+    const address = contractAddress.toLowerCase();
+    const slot = (id: string): string => `${address}:${id}`;
+    return new Proxy(here, {
+      get(target, name, receiver) {
+        if (name === 'set')
+          return async (id: string, state: unknown): Promise<void> => {
+            if (state === null || typeof state !== 'object') return here.set(id, state as never);
+            const s = state as Record<string, unknown>;
+            const kept: Record<string, Uint8Array> = {};
+            const onDisk: Record<string, unknown> = { ...s };
+            for (const f of TRANSIENT_FIELDS) {
+              const v = s[f];
+              if (v instanceof Uint8Array) {
+                kept[f] = new Uint8Array(v);
+                onDisk[f] = new Uint8Array(v.length);
+              }
+            }
+            mem.set(slot(id), kept);
+            return here.set(id, onDisk as never);
+          };
+        if (name === 'get')
+          return async (id: string): Promise<unknown> => {
+            const s = await here.get(id);
+            if (s === null || s === undefined || typeof s !== 'object') return s;
+            return { ...s, ...(mem.get(slot(id)) ?? {}) };
+          };
+        if (name === 'remove')
+          return (id: string): Promise<void> => {
+            mem.delete(slot(id));
+            return here.remove(id);
+          };
+        if (name === 'clear')
+          return (): Promise<void> => {
+            for (const k of [...mem.keys()]) if (k.startsWith(`${address}:`)) mem.delete(k);
+            return here.clear();
+          };
+        return Reflect.get(target, name, receiver) as unknown;
+      },
+    });
+  };
   return new Proxy(store, {
     get(target, name, receiver) {
-      if (name === 'setContractAddress')
-        return (a: ContractAddress): void => {
-          address = a;
-          inner.setContractAddress(a);
-        };
-      if (name === 'set')
-        return async (id: string, state: unknown): Promise<void> => {
-          if (state === null || typeof state !== 'object') return inner.set(id, state as never);
-          const s = state as Record<string, unknown>;
-          const kept: Record<string, Uint8Array> = {};
-          const onDisk: Record<string, unknown> = { ...s };
-          for (const f of TRANSIENT_FIELDS) {
-            const v = s[f];
-            if (v instanceof Uint8Array) {
-              kept[f] = new Uint8Array(v);
-              onDisk[f] = new Uint8Array(v.length);
-            }
-          }
-          mem.set(slot(id), kept);
-          return inner.set(id, onDisk as never);
-        };
-      if (name === 'get')
-        return async (id: string): Promise<unknown> => {
-          const key = slot(id); // the address as of this call, before anything awaits
-          const s = await inner.get(id);
-          if (s === null || s === undefined || typeof s !== 'object') return s;
-          return { ...s, ...(mem.get(key) ?? {}) };
-        };
-      if (name === 'remove' || name === 'clear')
-        return async (...args: unknown[]): Promise<unknown> => {
-          if (name === 'remove') mem.delete(slot(args[0] as string));
-          else for (const k of [...mem.keys()]) if (k.startsWith(`${address ?? ''}:`)) mem.delete(k);
-          return (Reflect.get(target, name, receiver) as (...a: unknown[]) => Promise<unknown>).apply(target, args);
+      if (name === 'forContract') return view;
+      if (name === 'clearAll')
+        return (): Promise<void> => {
+          mem.clear();
+          return inner.clearAll();
         };
       return Reflect.get(target, name, receiver) as unknown;
     },

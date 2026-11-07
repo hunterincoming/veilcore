@@ -91,7 +91,7 @@ export const addressPrefix = (network: string = NETWORK): string =>
 /**
  * Why an unshielded address can't be paid to on this network, or undefined when it can: a
  * Bech32m string with a good checksum and this network's prefix (Midnight's address format,
- * @midnight-ntwrk/wallet-sdk-address-format). A typo fails the checksum, so it is caught here
+ * @midnightntwrk/wallet-sdk-address-format). A typo fails the checksum, so it is caught here
  * and not after the money has gone.
  */
 export const addressProblem = (
@@ -149,12 +149,26 @@ export const findWallets = (root: unknown = (globalThis as { midnight?: unknown 
   return out;
 };
 
-/** The transaction's identifier, read from the transaction the wallet built (ledger-v8). */
+/**
+ * The transaction's identifier, read from the transaction the wallet built: a ledger 9
+ * transaction on a network past Midnight's ledger 9 fork (mainnet since 6 November 2026), a
+ * ledger 8 one on a network not yet forked. Each ledger refuses the other's bytes.
+ */
 export const identifierOf = async (txHex: string): Promise<string> => {
-  const { Transaction } = await import('@midnight-ntwrk/ledger-v8');
   const bytes = Uint8Array.from(txHex.match(/../g) ?? [], (h) => parseInt(h, 16));
-  const tx = Transaction.deserialize('signature', 'proof', 'binding', bytes);
-  const id = tx.identifiers()[0];
+  let ids: string[];
+  try {
+    const { Transaction } = await import('@midnightntwrk/ledger-v9');
+    ids = Transaction.deserialize('signature', 'proof', 'binding', bytes).identifiers();
+  } catch (v9Refused) {
+    try {
+      const { Transaction } = await import('@midnightntwrk/ledger-v8');
+      ids = Transaction.deserialize('signature', 'proof', 'binding', bytes).identifiers();
+    } catch {
+      throw v9Refused;
+    }
+  }
+  const id = ids[0];
   if (!id) throw new Error(enT.t('app.lic.pay.noId'));
   return String(id).toLowerCase();
 };

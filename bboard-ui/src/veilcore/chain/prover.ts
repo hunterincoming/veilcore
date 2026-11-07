@@ -11,7 +11,7 @@
 // `veilcore-prover`, which the CSP names and which allows exactly that address and nothing else.
 // SPDX-License-Identifier: Apache-2.0
 
-import type { ProvingProvider } from '@midnight-ntwrk/midnight-js-protocol/ledger';
+import type { ProvingProvider } from '@midnight-ntwrk/midnight-js-protocol/v9';
 import proverWorkerUrl from './prover.worker.ts?worker&url';
 
 type Pending = { resolve: (v: unknown) => void; reject: (e: Error) => void };
@@ -160,11 +160,22 @@ export const setProverProgress = (fn: ((msg: string) => void) | undefined): void
   onProgress = fn;
 };
 
-/** A ProvingProvider backed by the worker. `cacheName` keys the downloaded files to one contract build. */
+/**
+ * A ProvingProvider backed by the worker. `cacheName` keys the downloaded files to one contract build.
+ * The same provider serves a ledger 8 and a ledger 9 transaction (providers.ts): VeilCore's
+ * circuits are ZKIR v2 whichever ledger carries the call. Ledger 9's prover may also ask for a
+ * circuit's files (`lookupKey`); the worker answers from the same files it proves with.
+ */
 export const workerProvingProvider = (cacheName: string): ProvingProvider => ({
   check: (preimage, keyLocation) => call<(bigint | undefined)[]>({ op: 'check', preimage, keyLocation, cacheName }),
   prove: (preimage, keyLocation, bindingInput) =>
     call<Uint8Array>({ op: 'prove', preimage, keyLocation, bindingInput, cacheName }),
+  lookupKey: (keyLocation) =>
+    call<{ proverKey: Uint8Array; verifierKey: Uint8Array; ir: Uint8Array } | undefined>({
+      op: 'lookup',
+      keyLocation,
+      cacheName,
+    }),
 });
 
 export const workerPow = (challenge: string, tx: Uint8Array, difficulty: number): Promise<string> =>

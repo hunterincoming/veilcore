@@ -10,7 +10,7 @@
 import { type Interface } from 'node:readline/promises';
 import { type Logger } from 'pino';
 import { toHex } from '@midnight-ntwrk/midnight-js-utils';
-import { getNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { getNetworkId } from '../../api/src/network-id.js';
 import { type ClaimRef, ClaimsAPI, type LabSignature, assertClaimsDeployAllowed } from '../../api/src/claims-api.js';
 import { FIRST_FRAGMENT } from '../../api/src/deploy-fragments.js';
 import { type ClaimsProviders } from '../../api/src/claims-types.js';

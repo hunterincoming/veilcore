@@ -8,7 +8,7 @@
 // so the decision table can be tested on its own (test-deploy-guard.mjs).
 
 import { type Logger } from 'pino';
-import { getNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { getNetworkId } from './network-id.js';
 
 /** The record revision that describes this build. A constant, so moving it is a reviewed change. */
 export const REQUIRED_RECORD_REVISION = 4;

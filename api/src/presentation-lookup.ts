@@ -11,7 +11,8 @@
  * The indexer is trusted for what it reports (design.md, trust model). For a decision
  * that matters, give a second indexer (LookupCheck.secondIndexer): both must agree.
  */
-import { ContractState } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
+import { type ContractState } from '@midnight-ntwrk/compact-runtime';
+import { readContractState } from '../../contract/src/contract-state.js';
 import * as Veilcore from '../../contract/src/managed/veilcore/contract/index.js';
 import { type AuthorityReport, type StateRequirements, checkContractState } from './state-check.js';
 
@@ -230,7 +231,7 @@ export const singleCallState = async (
     if (differs.length > 0)
       throw new Error(`The two indexers disagree about that transaction (${differs.join(', ')}). Refused.`);
   }
-  const state = ContractState.deserialize(Uint8Array.from(Buffer.from(first.stateHex, 'hex')));
+  const state = readContractState(Uint8Array.from(Buffer.from(first.stateHex, 'hex')));
   const checked = checkContractState(state, check);
   return {
     entryPoint: first.entryPoint,
@@ -265,5 +266,5 @@ export const contractStateNow = async (
   const hex = body.data?.contractAction?.state;
   if (typeof hex !== 'string' || !/^(0x)?[0-9a-fA-F]+$/.test(hex))
     throw new Error(`The indexer has no contract at ${address}.`);
-  return ContractState.deserialize(Uint8Array.from(Buffer.from(hex.replace(/^0x/, ''), 'hex')));
+  return readContractState(Uint8Array.from(Buffer.from(hex.replace(/^0x/, ''), 'hex')));
 };

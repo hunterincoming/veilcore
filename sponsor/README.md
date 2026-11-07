@@ -152,6 +152,12 @@ Also note your deployer wallet's two addresses: run the tool with the deployer w
 (option 2 or 3) and copy "Using unshielded address: …" and "This wallet's DUST address: …".
 Those go in `SPONSOR_FORBIDDEN_ADDRESSES`.
 
+**Midnight's Ledger 9 fork (mainnet, 6 November 2026).** A proof server serves one ledger. The
+mainnet sponsor needs `midnightntwrk/proof-server:9.0.0` (its own Railway service,
+`proof-server-ledger9`, set up as below with that image); a sponsor on preprod keeps 8.1.3 until
+preprod forks. Set the mainnet sponsor's `PROOF_SERVER_URL` to the 9.0.0 one. The sponsor itself
+reads and pays for transactions of either ledger (`src/policy.ts`).
+
 **4. On Railway, add a proof server** in the same project: New → Docker Image →
 `midnightntwrk/proof-server@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c` (8.1.3, Midnight's 2 October security patch; the digest is
 from Midnight's signed build manifest). Railway refuses a tag and a digest together; if it

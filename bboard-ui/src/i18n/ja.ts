@@ -31,6 +31,8 @@ export const ja: Strings = {
   'footer.terms': '利用規約',
   'draft.banner': '機械で作成した翻訳の下書きで、現在確認中です。英語版のページが正式な版です。',
   'draft.showEnglish': '英語で表示',
+  'notice.datingPaused':
+    'Midnightのネットワークアップグレードのため、Midnightでの日付付けを一時停止しています。記録は保存されており、再開しだい日付が付けられます。',
   // The record app's frame and the browser tab's titles.
   'app.frame.section.log': '記録',
   'app.frame.section.send': '送付と受け取り',

@@ -73,7 +73,7 @@ import { checkPresentation } from '@veilcore/contracts';
 const verdict = await checkPresentation({ network: 'preprod', blockfrostProjectId, txId, issuer, challenge, issuedAt });
 ```
 
-- Node 24, ES modules. A proof server on your own machine (`docker run -d -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:8.1.3@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c midnight-proof-server -v`; bound to
+- Node 24, ES modules. A proof server on your own machine, the one for your network (mainnet, Midnight Ledger 9 since 6 November 2026: `docker run -d -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:9.0.0 midnight-proof-server -v`; preprod until it forks: `docker run -d -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:8.1.3@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c midnight-proof-server -v`; `proofServerImageFor(network)` names it; bound to
   127.0.0.1 so nothing else on your network can reach it). Every proof sends it record and
   licence secrets. `connect` and `seedWallet` refuse a proof server that is not on this
   machine unless you pass `allowRemoteProofServer: true`, and then only over https.
@@ -117,6 +117,9 @@ const verdict = await checkPresentation({ network: 'preprod', blockfrostProjectI
   kept off the terminal.
 - Verifier checks: pinned verifier keys, a second indexer, network agreement, and an
   issuer-scoped acceptance for license presentations (rule 5).
-- Proof server 8.1.3 (Midnight's 2 October security patch), pinned by digest.
+- midnight-js 5 and wallet SDK 2: the same calls work on a network before and after Midnight's
+  Ledger 9 fork (mainnet forked on 6 November 2026). VeilCore's contracts stay Ledger 8 contracts.
+- Proof server: 9.0.0 on mainnet (pinned by tag until its digest is checked); 8.1.3 (Midnight's
+  2 October security patch, pinned by digest) on test networks until they fork.
 
 Apache-2.0.

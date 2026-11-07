@@ -8,12 +8,10 @@ import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { proveRangeOnChain, proveValueOnChain } from './claims-call';
 import { ADDRESS, claimsContractState, standIns } from './test-chain';
 import { claimMaterial, slotInput } from '../claims-input';
 
-setNetworkId('preprod');
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const v = JSON.parse(fs.readFileSync(path.join(dir, '../../../../contract/vectors/document-v1.json'), 'utf8')) as {
   records: {

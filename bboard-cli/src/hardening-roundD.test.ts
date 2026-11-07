@@ -22,8 +22,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { type Interface } from 'node:readline/promises';
 import { type Logger } from 'pino';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
-import { SucceedEntirely } from '@midnight-ntwrk/midnight-js-types';
+import { setNetworkId } from '../../api/src/network-id.js';
+import { LedgerTransaction, SucceedEntirely } from '@midnight-ntwrk/midnight-js-types';
 import { StorageEncryption, levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
 import {
   ChargedState,
@@ -38,7 +38,8 @@ import {
   Intent,
   MaintenanceUpdate,
   Transaction,
-} from '@midnight-ntwrk/midnight-js-protocol/ledger';
+} from '@midnightntwrk/ledger-v8';
+import { LEDGER8_PROTOCOL, byAddress, served, servedAuthority } from './test-midnight5';
 
 // The provable retirement sends one transaction through midnight-js's submitTx; here it
 // is recorded, and the chain (a fake) flips to an empty committee when it is "sent".
@@ -134,20 +135,23 @@ const cliStore = async () => {
     accountId: 'cd'.repeat(32),
     home,
   });
-  return { home, dir, store: stores.main as any, claims: stores.claims as any };
+  // Driven one contract at a time, as VeilcoreAPI drives it (midnight-js 5: forContract).
+  return { home, dir, store: byAddress(stores.main as any), claims: byAddress(stores.claims as any) };
 };
 
 /** The store as an OLDER CLI built it: no overlays, the default folder name. */
 const oldCliStore = (dir: string) =>
-  oneAtATime(
-    levelPrivateStateProvider<string, any>({
-      midnightDbName: path.join(dir, 'midnight-level-db'),
-      privateStateStoreName: STORE,
-      signingKeyStoreName: `${STORE}-signing-keys`,
-      privateStoragePasswordProvider: () => PASSWORD,
-      accountId: 'cd'.repeat(32),
-    }),
-  ) as any;
+  byAddress(
+    oneAtATime(
+      levelPrivateStateProvider<string, any>({
+        midnightDbName: path.join(dir, 'midnight-level-db'),
+        privateStateStoreName: STORE,
+        signingKeyStoreName: `${STORE}-signing-keys`,
+        privateStoragePasswordProvider: () => PASSWORD,
+        accountId: 'cd'.repeat(32),
+      }),
+    ) as any,
+  );
 
 /** A VeilcoreAPI over `store`; `calls` stands in for the chain's callTx. */
 const apiOver = (store: any, calls: Record<string, (...a: unknown[]) => Promise<unknown>>, extra: object = {}) => {
@@ -166,7 +170,9 @@ const apiOver = (store: any, calls: Record<string, (...a: unknown[]) => Promise<
 const memoryStore = (initial: Record<string, unknown>) => {
   let ps = initial;
   return {
-    setContractAddress: () => undefined,
+    forContract() {
+      return this; // midnight-js 5: one contract, one view
+    },
     get: async () => ps,
     set: async (_: string, v: Record<string, unknown>) => void (ps = v),
     state: () => ps,
@@ -264,19 +270,24 @@ describe('D-2 FIXED: the maintenance key and one-call secrets never reach the st
 
   it('memory is per contract address: a one-call secret set under one contract is not read under another', async () => {
     const inner = new Map<string, unknown>();
-    let addr = '';
+    // midnight-js 5: one view per contract address.
     const base = {
-      setContractAddress: (a: string) => void (addr = a),
-      get: async (id: string) => inner.get(`${addr}:${id}`) ?? null,
-      set: async (id: string, v: unknown) => void inner.set(`${addr}:${id}`, v),
+      forContract: (addr: string) => ({
+        get: async (id: string) => inner.get(`${addr}:${id}`) ?? null,
+        set: async (id: string, v: unknown) => void inner.set(`${addr}:${id}`, v),
+        remove: async (id: string) => void inner.delete(`${addr}:${id}`),
+        clear: async () => undefined,
+      }),
+      clearAll: async () => inner.clear(),
     };
     const store = transientSecrets(base) as any;
-    store.setContractAddress('aa');
-    await store.set('k', { geneticSecret: new Uint8Array(32).fill(1), recoverySecret: new Uint8Array(32).fill(9) });
-    store.setContractAddress('bb');
-    await store.set('k', { geneticSecret: new Uint8Array(32).fill(2), recoverySecret: new Uint8Array(32) });
-    store.setContractAddress('aa');
-    expect((await store.get('k')).recoverySecret).toEqual(new Uint8Array(32).fill(9));
+    await store
+      .forContract('aa')
+      .set('k', { geneticSecret: new Uint8Array(32).fill(1), recoverySecret: new Uint8Array(32).fill(9) });
+    await store
+      .forContract('bb')
+      .set('k', { geneticSecret: new Uint8Array(32).fill(2), recoverySecret: new Uint8Array(32) });
+    expect((await store.forContract('aa').get('k')).recoverySecret).toEqual(new Uint8Array(32).fill(9));
     expect((inner.get('aa:k') as any).recoverySecret).toEqual(new Uint8Array(32)); // zeros on "disk"
     const keys = memorySigningKeys({}) as any;
     await keys.setSigningKey('aa', 'k1');
@@ -376,7 +387,7 @@ describe('D-2 FIXED: the maintenance key and one-call secrets never reach the st
         accountId: 'cd'.repeat(32),
         home,
       });
-      const main = stores.main as any;
+      const main = byAddress(stores.main as any);
       main.setContractAddress(ADDR);
       const ps = await main.get(veilcorePrivateStateKey);
       expect(hex(ps.geneticSecret)).toBe(hex(own));
@@ -557,7 +568,9 @@ describe('D-2 FIXED: the maintenance key and one-call secrets never reach the st
       return {
         keys,
         privateStateProvider: {
-          setContractAddress: () => undefined,
+          forContract() {
+            return this; // midnight-js 5: one contract, one view
+          },
           get: async () => null,
           set: async () => undefined,
           getSigningKey: async (a: string) => keys.get(a) ?? null,
@@ -572,7 +585,7 @@ describe('D-2 FIXED: the maintenance key and one-call secrets never reach the st
       setNetworkId('preview');
       const store = keyStore('11'.repeat(32));
       const add = vi.spyOn(VeilcoreAPI, 'addMissingCircuitKeys').mockImplementation(async () => {
-        expect(store.keys.get(ADDR)).toBe(KEY); // the paper key, not the one "held"
+        expect(store.keys.get(ADDR)).toEqual({ tag: 'schnorr', value: KEY }); // the paper key, not the one "held"
       });
       const join = vi.spyOn(VeilcoreAPI, 'join').mockResolvedValue({ deployedContractAddress: ADDR } as never);
       const answers = ['4', ADDR, ''];
@@ -750,19 +763,29 @@ describe('D-1 FIXED: join checks the starting state, and on mainnet the pinned a
           ? unprovenTx(Intent.new(ttl).addMaintenanceUpdate(new MaintenanceUpdate(address, [], 0n)))
           : unprovenTx(Intent.new(ttl)), // a call: no deploy in it (its call is not needed here)
       );
-    const finalized = (txId: string) => ({ tx: txs.get(txId), status: SucceedEntirely, txId, identifiers: [txId] });
+    // midnight-js 5: a finalized record names its ledger and carries the transaction as a handle.
+    const finalized = (txId: string) => ({
+      era: 'v8' as const,
+      tx: LedgerTransaction.seal('v8', 'Unproven', txs.get(txId) as never),
+      status: SucceedEntirely,
+      txId,
+      identifiers: [txId],
+    });
     const latest = (): Act => acts[acts.length - 1];
     const writes: string[] = [];
     const providers = {
       privateStateProvider: {
-        setContractAddress: () => void writes.push('setContractAddress'),
+        forContract() {
+          writes.push('forContract');
+          return this;
+        },
         get: async () => (writes.push('get'), null),
         set: async () => void writes.push('set'),
         getSigningKey: async () => null,
         setSigningKey: async () => void writes.push('setSigningKey'),
       },
       publicDataProvider: {
-        queryContractState: async (a: string) => (a === address ? latest().state : null),
+        queryContractState: async (a: string) => (a === address ? served(latest().state) : null),
         // DEPLOY_CONTRACT_STATE_TX_QUERY: `if (!('deploy' in contract)) return contract.state`.
         queryDeployContractState: async (a: string) =>
           a !== address ? null : latest().kind === 'call' ? acts[0].state : latest().state,
@@ -783,7 +806,7 @@ describe('D-1 FIXED: join checks the starting state, and on mainnet the pinned a
       (x: unknown) => x,
     );
     expect(String(e)).not.toMatch(/did not start from|not a genuine|Could not check|cannot be checked/);
-    expect(writes[0]).toBe('setContractAddress');
+    expect(writes[0]).toBe('forContract');
   };
   const refusedUntouched = async (p: Promise<unknown>, writes: string[], why: RegExp) => {
     await expect(p).rejects.toThrow(why);
@@ -1424,7 +1447,9 @@ describe('Low FIXED: the main contract retires provably, and no replacement key 
     const keys = new Map<string, string>();
     const setKey = vi.fn(async (a: string, k: string) => void keys.set(a, k));
     const store = {
-      setContractAddress: () => undefined,
+      forContract() {
+        return this; // midnight-js 5: one contract, one view
+      },
       get: async () => null,
       set: async () => undefined,
       setSigningKey: setKey,
@@ -1437,11 +1462,8 @@ describe('Low FIXED: the main contract retires provably, and no replacement key 
       privateStateProvider: store,
       publicDataProvider: {
         contractStateObservable: () => NEVER,
-        queryContractState: async () => ({
-          maintenanceAuthority: retired
-            ? { committee: [], threshold: 1, counter: 1n }
-            : { committee: ['k'], threshold: 1, counter: 0n },
-        }),
+        queryContractState: async () => servedAuthority(retired),
+        queryLatestProtocolVersion: async () => LEDGER8_PROTOCOL,
       },
     };
     const deployed = {
@@ -1453,14 +1475,17 @@ describe('Low FIXED: the main contract retires provably, and no replacement key 
     await api.retireMaintenanceAuthority(typed);
     expect(sent.txs).toHaveLength(1);
     expect(replaceAuthority).not.toHaveBeenCalled();
-    expect(setKey.mock.calls).toEqual([[ADDR, typed]]); // only the typed key, never a replacement
+    // only the typed key (as midnight-js 5 keeps keys), never a replacement
+    expect(setKey.mock.calls).toEqual([[ADDR, { tag: 'schnorr', value: typed }]]);
     expect(keys.size).toBe(0);
   });
 
   it('a retirement that fails leaves no key either', async () => {
     const keys = new Map<string, string>();
     const store = {
-      setContractAddress: () => undefined,
+      forContract() {
+        return this; // midnight-js 5: one contract, one view
+      },
       get: async () => null,
       set: async () => undefined,
       setSigningKey: async (a: string, k: string) => void keys.set(a, k),

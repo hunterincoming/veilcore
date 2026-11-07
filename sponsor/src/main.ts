@@ -6,8 +6,7 @@ import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { WebSocket } from "ws";
-import { signatureVerifyingKey } from "@midnight-ntwrk/ledger-v8";
-import { setNetworkId } from "@midnight-ntwrk/midnight-js-network-id";
+import { signatureVerifyingKey } from "@midnightntwrk/ledger-v8";
 import { indexerPublicDataProvider } from "@midnight-ntwrk/midnight-js-indexer-public-data-provider";
 import {
   assertNotForbidden,
@@ -35,6 +34,9 @@ import { ANCHOR_TICK_MINUTES, Anchorer, type Attempt } from "./anchorer.js";
 import { Sealer, isSealAttempt, type SealAttempt } from "./sealer.js";
 import { HttpRegistry } from "./registry.js";
 import { loadVeilcore, MidnightAnchorChain } from "./chain.js";
+import { fromSerialized, stateEraOf } from "./contract-state.js";
+import { forkLogFields, readFork, type Era, type ForkReading } from "./fork.js";
+import { protocolVersionToLedger } from "@midnight-ntwrk/midnight-js-protocol";
 import { log, scrubOutput } from "./log.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -65,8 +67,31 @@ const main = async (): Promise<void> => {
   const startedAt = Date.now();
   // Before anything can print an endpoint URL: they carry the Blockfrost project id.
   scrubOutput(cfg.logSecrets);
-  setNetworkId(cfg.network);
   const now = () => Date.now();
+
+  // Which side of Midnight's Ledger 9 fork the network is on (fork.ts): the protocol version
+  // the indexer reports, and the ledger that wrote the contract's state.
+  const publicData = indexerPublicDataProvider(cfg.indexer, cfg.indexerWS);
+  const readChain = async (): Promise<{ protocolVersion: number; stateEra: Era | undefined; read: Awaited<ReturnType<typeof publicData.queryContractState>> }> => {
+    const protocolVersion = await publicData.queryLatestProtocolVersion();
+    const read = await publicData.queryContractState(cfg.contractAddress);
+    let stateEra: Era | undefined;
+    try {
+      stateEra = read ? stateEraOf(read.contractState.serialize()) : undefined;
+    } catch {
+      stateEra = undefined;
+    }
+    return { protocolVersion, stateEra, read };
+  };
+  const first = await readChain();
+  let chainEra: Era | undefined = first.stateEra;
+  if (chainEra === undefined) {
+    try {
+      chainEra = protocolVersionToLedger(first.protocolVersion);
+    } catch {
+      chainEra = undefined;
+    }
+  }
 
   const wallet = await FacadeWallet.build(cfg.seed, {
     network: cfg.network,
@@ -75,7 +100,11 @@ const main = async (): Promise<void> => {
     nodeWS: cfg.nodeWS,
     proofServer: cfg.proofServer,
     stateDir: cfg.stateDir,
+    chainEra,
   });
+  let fork: ForkReading = readFork(first.protocolVersion, wallet.forksV9, first.stateEra);
+  log(fork.agree ? "info" : "error", "fork check", forkLogFields(fork));
+  if (fork.agree) wallet.setChainEra(fork.walletEra);
   assertNotForbidden(
     [wallet.addresses.unshielded, wallet.addresses.dust],
     cfg.forbiddenAddresses,
@@ -87,10 +116,9 @@ const main = async (): Promise<void> => {
   });
 
   // The contract must exist here, and the seed must not be its maintenance key.
-  const contract = await indexerPublicDataProvider(
-    cfg.indexer,
-    cfg.indexerWS,
-  ).queryContractState(cfg.contractAddress);
+  const read = first.read;
+  // Either ledger's state (before or after the network's fork): contract-state.ts.
+  const contract = read ? fromSerialized(read.contractState) : null;
   if (!contract)
     throw new ConfigError([
       `There is no contract at ${cfg.contractAddress} on ${cfg.network}.`,
@@ -179,6 +207,7 @@ const main = async (): Promise<void> => {
       wallet,
       wallet.coinPublicKey,
       wallet.encryptionPublicKey,
+      cfg.network,
     );
     check = await chain.contractCheck();
   } catch (e) {
@@ -266,6 +295,8 @@ const main = async (): Promise<void> => {
         ...(cfg.claimsAddress ? { claimsAddress: cfg.claimsAddress } : {}),
         // True while the wallet sync has applied nothing for 30 minutes (wallet.ts checkStall).
         syncStalled: wallet.syncStalled(),
+        // Which side of Midnight's Ledger 9 fork, and whether wallet, midnight-js and chain agree (fork.ts).
+        fork: { protocolVersion: fork.protocolVersion, ledger: fork.walletEra, agree: fork.agree },
         sealer: sealer
           ? { enabled: true, ...sealer.publicStatus() }
           : { enabled: false },
@@ -280,6 +311,7 @@ const main = async (): Promise<void> => {
       // For an outside monitor (alerts.ts): stamping failing, sync stuck, or fuel low.
       alerts: () =>
         alertsOf({
+          forkMismatch: !fork.agree,
           anchoringFailing: anchorer
             ? anchorer.publicStatus().alert
             : undefined,
@@ -307,6 +339,29 @@ const main = async (): Promise<void> => {
   log("info", "listening", { port: cfg.port });
 
   setInterval(() => limits.sweep(), MINUTE).unref();
+  // The fork check again every ten minutes: a network can fork while this runs (preprod).
+  setInterval(
+    () =>
+      void readChain()
+        .then((c) => {
+          const was = fork;
+          fork = readFork(c.protocolVersion, wallet.forksV9, c.stateEra);
+          if (!fork.agree || !was.agree) log(fork.agree ? "info" : "error", "fork check", forkLogFields(fork));
+          if (!fork.agree) return;
+          if (was.agree && was.walletEra === "v8" && fork.walletEra === "v9") {
+            log("warn", "fork check: the network moved to Ledger 9", forkLogFields(fork));
+            wallet.crossedFork();
+            return;
+          }
+          wallet.setChainEra(fork.walletEra);
+        })
+        .catch((e: unknown) =>
+          log("warn", "fork check: could not read the chain", {
+            error: e instanceof Error ? e.message : String(e),
+          }),
+        ),
+    10 * MINUTE,
+  ).unref();
   setInterval(
     () =>
       log("info", "counters", { ...sponsor.counters, queue: queue.waiting }),

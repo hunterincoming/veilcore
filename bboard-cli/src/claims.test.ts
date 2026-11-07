@@ -17,7 +17,8 @@ import {
   signatureVerifyingKey,
   type CircuitContext,
 } from '@midnight-ntwrk/compact-runtime';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { SerializedContractState } from '@midnight-ntwrk/midnight-js-types';
+import { setNetworkId } from '../../api/src/network-id.js';
 import { Contract } from '../../contract/src/managed/veilcore-claims/contract/index.js';
 import { type ClaimsPrivateState, claimsWitnesses, emptyClaimsPrivateState } from '../../contract/src/claims.js';
 import { type FieldSetFile } from '../../contract/src/field-schema.js';
@@ -61,12 +62,17 @@ const chain = (retired = true) => {
   const seen: unknown[] = [];
   let n = 0;
   const providers = {
+    // midnight-js 5: private state is reached through a per-contract view.
     privateStateProvider: {
-      setContractAddress: () => undefined,
-      get: async (k: string) => store.get(k),
-      set: async (k: string, v: unknown) => void store.set(k, v),
+      forContract: () => ({
+        get: async (k: string) => store.get(k),
+        set: async (k: string, v: unknown) => void store.set(k, v),
+      }),
     },
-    publicDataProvider: { queryContractState: async () => state },
+    // midnight-js 5: a state read is bytes tagged with the ledger that wrote them.
+    publicDataProvider: {
+      queryContractState: async () => ({ contractState: SerializedContractState.fromBytes('v8', state.serialize()) }),
+    },
   };
   const callTx = new Proxy(
     {},
@@ -91,7 +97,7 @@ const chain = (retired = true) => {
               txId: `tx${n}`,
               txHash: `hash${n}`,
               blockHeight: n,
-              nextContractState: r.context.currentQueryContext.state,
+              nextContractStateEncoded: r.context.currentQueryContext.state.state.encode(),
             },
           };
         },
@@ -169,7 +175,7 @@ describe('ClaimsAPI against the compiled contract', () => {
     expect((ch.seen[0] as ClaimsPrivateState).input.number).toBe(9650n);
     expect(ch.store.get(claimsPrivateStateKey)).toEqual({ input: {} });
     // Read back from the call's own result, and as the indexer would serve it.
-    const back = await api.readClaim({ public: { nextContractState: ch.state().data } });
+    const back = await api.readClaim({ public: { nextContractStateEncoded: ch.state().data.state.encode() } });
     expect(back.claim.bound).toBe(9500n);
     expect(api.disclosedSoFar(a.record, 12, fileA.schema)).toBe('the number is at least 95.00 percent');
     expect(api.disclosedSoFar(a.record, 13)).toBe('nothing about its value');

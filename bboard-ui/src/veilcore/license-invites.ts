@@ -277,16 +277,15 @@ export const latestLedger = async () => {
   const { indexerPublicDataProvider } = await import('@midnight-ntwrk/midnight-js-indexer-public-data-provider');
   const { CHAIN_CONTRACT, INDEXER_HTTP, INDEXER_WS } = await import('./chain/config');
   const { ledger } = await import('../../../contract/src/managed/veilcore/contract/index.js');
-  const { setNetworkId } = await import('@midnight-ntwrk/midnight-js-network-id');
-  const { NETWORK } = await import('../config/network');
-  setNetworkId(NETWORK);
-  const state = await indexerPublicDataProvider(
+  const { fromSerialized } = await import('../../../contract/src/contract-state');
+  const read = await indexerPublicDataProvider(
     INDEXER_HTTP ?? '',
     INDEXER_WS ?? '',
     globalThis.WebSocket as never,
   ).queryContractState(CHAIN_CONTRACT ?? '');
-  if (!state) throw new Error('VeilCore’s contract was not found on the network. Nothing was sent.');
-  return ledger(state.data);
+  if (!read) throw new Error('VeilCore’s contract was not found on the network. Nothing was sent.');
+  // Either ledger's bytes (before or after the network's fork): contract-state.ts.
+  return ledger(fromSerialized(read.contractState).data);
 };
 
 const hexOf = (b: Uint8Array): string => [...b].map((x) => x.toString(16).padStart(2, '0')).join('');

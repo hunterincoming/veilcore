@@ -23,7 +23,7 @@ import {
 import {
   WitnessContext,
   type MerkleTreePath,
-} from "@midnight-ntwrk/midnight-js-protocol/compact-runtime";
+} from "@midnight-ntwrk/compact-runtime";
 
 /* **********************************************************************
  * Veilcore private state.

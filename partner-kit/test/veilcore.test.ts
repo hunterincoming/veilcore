@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { createHash } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { setNetworkId } from '../../api/src/network-id.js';
 
 const fake = vi.hoisted(() => ({ find: undefined as undefined | ((...a: unknown[]) => Promise<unknown>) }));
 vi.mock('@midnight-ntwrk/midnight-js-contracts', async (orig) => {

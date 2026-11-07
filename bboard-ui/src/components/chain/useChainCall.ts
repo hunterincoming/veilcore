@@ -3,35 +3,46 @@
 
 import { useCallback, useState } from 'react';
 import { SponsorRefusal } from '../../veilcore/chain/sponsor-client';
+import { DATING_PAUSED } from '../../veilcore/chain/paused';
+import { useI18n } from '../../i18n';
 
-export const useChainCall = <T>() => {
+/** `paused`: dating on Midnight is paused (DATING_PAUSED); `run` then sends nothing and says why. */
+export const useChainCall = <T>(paused: boolean = DATING_PAUSED) => {
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<string>();
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<T>();
 
-  const run = useCallback(async (job: (progress: (m: string) => void) => Promise<T>): Promise<T | undefined> => {
-    setBusy(true);
-    setError(undefined);
-    setProgress('Starting…');
-    try {
-      const r = await job(setProgress);
-      setResult(r);
-      return r;
-    } catch (e) {
-      setError(
-        e instanceof SponsorRefusal
-          ? `${e.message}${e.retryAfterSeconds ? ` (try again in about ${Math.ceil(e.retryAfterSeconds / 60)} min)` : ''}`
-          : e instanceof Error
-            ? e.message
-            : String(e),
-      );
-      return undefined;
-    } finally {
-      setBusy(false);
-      setProgress(undefined);
-    }
-  }, []);
+  const run = useCallback(
+    async (job: (progress: (m: string) => void) => Promise<T>): Promise<T | undefined> => {
+      if (paused) {
+        setError(t('notice.datingPaused'));
+        return undefined;
+      }
+      setBusy(true);
+      setError(undefined);
+      setProgress('Starting…');
+      try {
+        const r = await job(setProgress);
+        setResult(r);
+        return r;
+      } catch (e) {
+        setError(
+          e instanceof SponsorRefusal
+            ? `${e.message}${e.retryAfterSeconds ? ` (try again in about ${Math.ceil(e.retryAfterSeconds / 60)} min)` : ''}`
+            : e instanceof Error
+              ? e.message
+              : String(e),
+        );
+        return undefined;
+      } finally {
+        setBusy(false);
+        setProgress(undefined);
+      }
+    },
+    [paused, t],
+  );
 
-  return { busy, progress, error, result, run };
+  return { busy, progress, error, result, run, paused };
 };

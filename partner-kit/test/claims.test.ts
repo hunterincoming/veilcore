@@ -5,7 +5,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { setNetworkId } from '../../api/src/network-id.js';
 import { type FieldSetFile } from '../../contract/src/field-schema.js';
 
 const fake = vi.hoisted(() => ({ find: undefined as undefined | ((...a: unknown[]) => Promise<unknown>) }));
@@ -115,7 +115,7 @@ describe('a claim, end to end', () => {
     ).rejects.toThrow(/does not verify .* Nothing was sent/);
     expect(chainLog).toHaveLength(0);
     // Nothing a claim was proved from stays in private state.
-    expect(await chain.claimsStore.get('veilcoreClaimsPrivateState')).toEqual({ input: {} });
+    expect(await chain.claimsStore.forContract(CLAIMS_ADDR).get('veilcoreClaimsPrivateState')).toEqual({ input: {} });
   });
 
   it('a verifier is refused a transaction that made no claim here', async () => {

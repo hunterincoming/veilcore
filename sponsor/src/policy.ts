@@ -9,7 +9,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { ContractCall, ContractDeploy, MaintenanceUpdate, Transaction } from '@midnight-ntwrk/ledger-v8';
+import * as Ledger8 from '@midnightntwrk/ledger-v8';
+import * as Ledger9 from '@midnightntwrk/ledger-v9';
 
 /** The circuits a visitor may have paid for in phase 1. */
 export const PHASE1_PUBLIC_CIRCUITS = ['anchor', 'proveOwnership', 'pairDna'] as const;
@@ -128,16 +129,49 @@ export type Acceptance = {
 
 export type Verdict = Acceptance | Refusal;
 
-/** A sealed (bound), proven transaction, as the network accepts it. */
-export type SealedTx = Transaction<
-  import('@midnight-ntwrk/ledger-v8').SignatureEnabled,
-  import('@midnight-ntwrk/ledger-v8').Proof,
-  import('@midnight-ntwrk/ledger-v8').Binding
->;
+/**
+ * A sealed (bound), proven transaction, as the network accepts it: ledger 9's (mainnet from
+ * the 6 November 2026 fork on) or ledger 8's (a test network not yet forked). The two have
+ * the same structure (same parts, same fields); the checks below run the same on either,
+ * each with its own ledger's classes.
+ */
+export type SealedTx =
+  | Ledger9.Transaction<Ledger9.SignatureEnabled, Ledger9.Proof, Ledger9.Binding>
+  | Ledger8.Transaction<Ledger8.SignatureEnabled, Ledger8.Proof, Ledger8.Binding>;
 
-/** Read bytes only as a proven, bound transaction. Anything else throws. */
-export const readSealed = (bytes: Uint8Array): SealedTx =>
-  Transaction.deserialize('signature', 'proof', 'binding', bytes);
+/** What the checks read of a contract call; the same fields in both ledgers. */
+type CallLike = { readonly entryPoint: string | Uint8Array; readonly address: string };
+
+/** The classes a check needs, from the ledger that read the transaction. */
+type ActionClasses = {
+  readonly ContractCall: abstract new (...a: never[]) => CallLike;
+  readonly ContractDeploy: abstract new (...a: never[]) => unknown;
+  readonly MaintenanceUpdate: abstract new (...a: never[]) => unknown;
+};
+
+/**
+ * Read bytes only as a proven, bound transaction of ledger 9 or ledger 8. Anything else
+ * throws. Each ledger refuses the other's bytes (each writes its own version tag), so a
+ * transaction is read by exactly one of them.
+ */
+export const readSealed = (bytes: Uint8Array): SealedTx => {
+  try {
+    return Ledger9.Transaction.deserialize('signature', 'proof', 'binding', bytes) as SealedTx;
+  } catch (v9Refused) {
+    try {
+      return Ledger8.Transaction.deserialize('signature', 'proof', 'binding', bytes) as SealedTx;
+    } catch {
+      throw v9Refused;
+    }
+  }
+};
+
+/** Which ledger a transaction read by readSealed belongs to: 'v9' or 'v8'. */
+export const eraOf = (tx: SealedTx): 'v8' | 'v9' => (tx instanceof Ledger9.Transaction ? 'v9' : 'v8');
+
+/** The classes of the ledger that read `tx`: an action is only ever recognised by its own ledger's. */
+const classesOf = (tx: SealedTx): ActionClasses =>
+  (tx instanceof Ledger9.Transaction ? Ledger9 : Ledger8) as unknown as ActionClasses;
 
 const refuse = (code: Refusal['code'], reason: string): Refusal => ({ ok: false, code, reason });
 
@@ -192,7 +226,8 @@ const check = (tx: SealedTx, size: number, config: PolicyConfig, now: Date): Ver
   if (tx.intents.size !== 1) {
     return refuse('intent-count', 'The transaction must contain exactly one part.');
   }
-  const [intent] = [...tx.intents.values()];
+  // Read through one shape: both ledgers' transactions have exactly these parts.
+  const [intent] = [...(tx.intents as Map<number, Ledger9.Intent<Ledger9.SignatureEnabled, Ledger9.Proof, Ledger9.Binding>>).values()];
   if (intent.guaranteedUnshieldedOffer !== undefined || intent.fallibleUnshieldedOffer !== undefined) {
     return refuse('unshielded-offer', 'The transaction moves unshielded tokens. Only contract calls are paid for.');
   }
@@ -203,6 +238,9 @@ const check = (tx: SealedTx, size: number, config: PolicyConfig, now: Date): Ver
     return refuse('action-count', 'The transaction must contain exactly one contract call.');
   }
   const action = intent.actions[0];
+  // A transaction that is neither ledger's own object (read by something other than
+  // readSealed) is recognised by neither ledger's classes, and so is refused below.
+  const { ContractCall, ContractDeploy, MaintenanceUpdate } = classesOf(tx);
   if (action instanceof ContractDeploy) return refuse('deploy', 'Deploying a contract is never paid for.');
   if (action instanceof MaintenanceUpdate) return refuse('maintenance', 'Contract maintenance is never paid for.');
   if (!(action instanceof ContractCall)) return refuse('not-a-call', 'Only contract calls are paid for.');

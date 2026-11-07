@@ -20,9 +20,9 @@
 // between identity and record stays the holder's statement, and the page says so.
 // SPDX-License-Identifier: Apache-2.0
 
-import { ContractState } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
 import { ledger } from '../../../../contract/src/managed/veilcore/contract/index.js';
 import { acceptOwnership } from '../../../../contract/src/verify';
+import { fromSerialized } from '../../../../contract/src/contract-state';
 import { callState } from '../../../../api/src/presentation-lookup';
 import { CHAIN_CONTRACT, INDEXER_HTTP } from './config';
 import { KEY_NOT_THIS_RECORDS, keyMatchesRecord, type KeyedRecord } from '../key-binding';
@@ -47,13 +47,14 @@ const defaultStateAfter = (txId: string, entryPoint: string) =>
 const defaultLatest = async () => {
   const { indexerPublicDataProvider } = await import('@midnight-ntwrk/midnight-js-indexer-public-data-provider');
   const { INDEXER_WS } = await import('./config');
-  const s: ContractState | null = await indexerPublicDataProvider(
+  const read = await indexerPublicDataProvider(
     INDEXER_HTTP ?? '',
     INDEXER_WS ?? '',
     globalThis.WebSocket as never,
   ).queryContractState(CHAIN_CONTRACT ?? '');
-  if (!s) throw new Error('The demo contract was not found on the network.');
-  return ledger(s.data);
+  if (!read) throw new Error('The demo contract was not found on the network.');
+  // Either ledger's bytes (before or after the network's fork): contract-state.ts.
+  return ledger(fromSerialized(read.contractState).data);
 };
 
 /** Check a holder's answer to this tab's challenge. */

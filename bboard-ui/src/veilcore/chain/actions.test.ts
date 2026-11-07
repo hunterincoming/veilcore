@@ -3,11 +3,8 @@
 // work. The checks that matter most: the sponsor would pay for each call, and no secret
 // is in anything that leaves the browser.
 import { describe, expect, it } from 'vitest';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { anchorOnChain, identityOf, pairDnaOnChain, proveOwnershipOnChain, recoveryCommitmentOf } from './actions';
 import { contractStateAfter, standIns } from './test-chain';
-
-setNetworkId('preprod');
 
 const RECORD = new Uint8Array(32).fill(0x5a);
 const RECOVERY = new Uint8Array(32).fill(0xa5);
@@ -73,8 +70,9 @@ describe('real calls from the browser (stand-in network)', () => {
   it('refuses here, before anything is sent, when the contract would refuse', async () => {
     const r = standIns(contractStateAfter()); // not anchored
     await expect(proveOwnershipOnChain(RECORD, 'c4'.repeat(32), { deps: r.deps })).rejects.toThrow();
-    // Only this site's own proving key was read; nothing went to the sponsor.
-    expect(r.requests.filter((q) => !q.url.startsWith('https://veilcore.test/keys/'))).toHaveLength(0);
+    // Only this site's own proving files were read (the key, and since midnight-js 5 the
+    // compiler's description of the build: compiler/); nothing went to the sponsor.
+    expect(r.requests.filter((q) => !/^https:\/\/veilcore\.test\/(keys|compiler)\//.test(q.url))).toHaveLength(0);
   });
 
   it('refuses a contract carrying a circuit this build does not know', async () => {
@@ -95,7 +93,12 @@ describe('real calls from the browser (stand-in network)', () => {
     // so whether the registry has the record yet (outbox.ts) can't stop a date stamp.
     const urls = r.requests.map((q) => q.url);
     expect(urls.length).toBeGreaterThan(0);
-    expect(urls.filter((u) => !/\/keys\/[A-Za-z]+\.verifier$|\/sponsor(\/challenge)?$/.test(u))).toEqual([]);
+    expect(
+      urls.filter(
+        (u) =>
+          !/\/keys\/[A-Za-z]+\.verifier$|\/compiler\/contract-(info|manifest)\.json$|\/sponsor(\/challenge)?$/.test(u),
+      ),
+    ).toEqual([]);
     expect(r.sealed).toHaveLength(1);
   });
 
@@ -105,7 +108,7 @@ describe('real calls from the browser (stand-in network)', () => {
     const deps = {
       ...r.deps,
       fetch: ((input: string, init?: RequestInit) =>
-        input.includes('/keys/')
+        input.includes('/keys/') || input.includes('/compiler/')
           ? r.deps.fetch(input, init)
           : Promise.resolve(new Response('{}', { status: 503 }))) as typeof fetch,
     };

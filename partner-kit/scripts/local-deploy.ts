@@ -7,7 +7,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { existsSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { sampleSigningKey } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
+import { sampleSigningKey } from '@midnight-ntwrk/compact-runtime';
 import { type Logger } from 'pino';
 import { VeilcoreAPI } from '../../api/src/veilcore-api.js';
 import { ClaimsAPI } from '../../api/src/claims-api.js';

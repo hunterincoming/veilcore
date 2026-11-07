@@ -2,7 +2,6 @@
 // against the real contract on the stand-in network and is refused here, before anything is
 // sent, when the contract would refuse it.
 import { describe, expect, it } from 'vitest';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { ledger } from '../../../../contract/src/managed/veilcore/contract/index.js';
 import { checkLineage } from '../../../../contract/src/verify';
 import {
@@ -18,8 +17,6 @@ import {
 } from './actions';
 import { contractStateAfter, standIns } from './test-chain';
 import { BROWSER_CIRCUITS } from './config';
-
-setNetworkId('preprod');
 
 const PARENT = new Uint8Array(32).fill(0x31);
 const CHILD = new Uint8Array(32).fill(0x32);

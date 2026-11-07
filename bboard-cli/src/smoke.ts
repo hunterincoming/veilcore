@@ -9,7 +9,7 @@
  */
 import { type Logger } from 'pino';
 import { toHex } from '@midnight-ntwrk/midnight-js-utils';
-import { sampleSigningKey } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
+import { sampleSigningKey } from '@midnight-ntwrk/compact-runtime';
 import { pureCircuits as C } from '../../contract/src/managed/veilcore/contract/index.js';
 import { VeilcoreAPI, newPresentationChallenge } from '../../api/src/veilcore-api.js';
 import { randomBytes } from '../../api/src/utils/index.js';
@@ -47,18 +47,20 @@ const errorTexts = (e: unknown): string[] => {
  * wrong (the proof server down, the indexer unreachable, a timeout, a bug).
  *
  * - A Compact `assert` that fails throws compact-runtime's CompactError
- *   "failed assert: <message>"; midnight-js rethrows it as `new Error(<that message>)`
- *   (midnight-js-contracts, createUnprovenCallTx). This is how every refusal here shows
- *   up, since midnight-js runs the circuit locally before proving.
+ *   "failed assert: <message>"; midnight-js 5 rethrows it as a ContractExecutionError with
+ *   that message (midnight-js-contracts, createUnprovenCallTx). This is how every refusal
+ *   here shows up, since midnight-js runs the circuit locally before proving.
  * - The licensePath witness throws "No live licence for that secret and record" when the
  *   licence is not in the tree: the call cannot even be built, which is the refusal.
- * - A call the chain itself rejected after landing is a CallTxFailedError.
+ * - A call the chain itself rejected after landing is a TxFailedError (midnight-js 5; it was
+ *   CallTxFailedError before).
  */
 export const isContractRefusal = (e: unknown): boolean =>
   errorTexts(e).some(
     (t) =>
       /^failed assert: /.test(t) ||
       t.includes('No live licence for that secret and record') ||
+      t === 'TxFailedError' ||
       t === 'CallTxFailedError',
   );
 

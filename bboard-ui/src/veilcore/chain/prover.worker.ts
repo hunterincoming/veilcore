@@ -3,6 +3,7 @@
 // this browser. Runs in a worker so the page stays responsive while it works.
 //
 // Messages in:  { id, op: 'check' | 'prove', preimage, keyLocation, bindingInput? }
+//               { id, op: 'lookup', keyLocation } (a circuit's files, for ledger 9's prover)
 //               { id, op: 'pow', challenge, tx, difficulty }
 // Messages out: { ready } once listening, then { id, ok: true, value } | { id, ok: false, error } | { progress }
 //
@@ -17,6 +18,7 @@ import { solvePow } from './pow';
 type In =
   | { id: number; op: 'check'; preimage: Uint8Array; keyLocation: string; cacheName: string }
   | { id: number; op: 'prove'; preimage: Uint8Array; keyLocation: string; bindingInput?: bigint; cacheName: string }
+  | { id: number; op: 'lookup'; keyLocation: string; cacheName: string }
   | { id: number; op: 'pow'; challenge: string; tx: Uint8Array; difficulty: number };
 
 const progress = (msg: string): void => postMessage({ progress: msg });
@@ -35,6 +37,7 @@ self.onmessage = async (ev: MessageEvent<In>) => {
   try {
     let value: unknown;
     if (m.op === 'check') value = await check(m.preimage, kmFor(m.cacheName));
+    else if (m.op === 'lookup') value = await kmFor(m.cacheName).lookupKey(m.keyLocation);
     else if (m.op === 'prove') {
       progress('Proving on your device…');
       value = await prove(m.preimage, kmFor(m.cacheName), m.bindingInput);

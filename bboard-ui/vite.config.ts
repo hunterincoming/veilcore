@@ -346,9 +346,13 @@ export default defineConfig(({ mode, command }) => {
       // Explicitly include these packages for pre-bundling, but force ESM
       include: ['@midnight-ntwrk/compact-runtime'],
       // Exclude WASM files and modules with top-level await from optimization
+      // midnight-js 5 (Ledger 9 fork): the Ledger 9 ledger and runtime, and midnight-js's Ledger 8
+      // copy, which it loads lazily (keep its chunk separate: migration guide, "Bundlers").
       exclude: [
         '@midnight-ntwrk/zkir-v2',
-        '@midnight-ntwrk/ledger-v8',
+        '@midnightntwrk/ledger-v8',
+        '@midnightntwrk/ledger-v9',
+        '@midnightntwrk/onchain-runtime-v4',
         '@midnight-ntwrk/onchain-runtime-v3',
         '@midnight-ntwrk/onchain-runtime-v3/midnight_onchain_runtime_wasm_bg.wasm',
         '@midnight-ntwrk/onchain-runtime-v3/midnight_onchain_runtime_wasm.js',

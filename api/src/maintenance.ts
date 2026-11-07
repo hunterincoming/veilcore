@@ -21,31 +21,47 @@
  * delete the signing-key store for this contract by hand.
  */
 import { type Logger } from 'pino';
-import {
-  type ContractAddress,
-  sampleSigningKey,
-  type SigningKey,
-} from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
-import {
-  ContractMaintenanceAuthority,
-  Intent,
-  MaintenanceUpdate,
-  ReplaceAuthority,
-  Transaction,
-  signData,
-} from '@midnight-ntwrk/midnight-js-protocol/ledger';
-import { type Contract } from '@midnight-ntwrk/midnight-js-protocol/compact-js/effect/Contract';
-import {
-  ReplaceMaintenanceAuthorityTxFailedError,
-  submitTx,
-  type SubmitTxProviders,
-} from '@midnight-ntwrk/midnight-js-contracts';
-import { SucceedEntirely } from '@midnight-ntwrk/midnight-js-types';
-import { getNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { type ContractAddress, sampleSigningKey } from '@midnight-ntwrk/compact-runtime';
+import { loadLedger8Protocol, protocolVersionToLedger } from '@midnight-ntwrk/midnight-js-protocol';
+import { type SigningKey as FrameworkSigningKey } from '@midnight-ntwrk/midnight-js-protocol/v9/compact-runtime';
+import { submitTx, TxFailedError } from '@midnight-ntwrk/midnight-js-contracts';
+import { LedgerTransaction, SucceedEntirely, type MidnightProviders } from '@midnight-ntwrk/midnight-js-types';
 import { ttlOneHour } from '@midnight-ntwrk/midnight-js-utils';
+import { fromSerialized } from '../../contract/src/contract-state.js';
+import { getNetworkId } from './network-id.js';
+import { type AnySigningKey, frameworkKey, hexKey } from './signing-key.js';
+
+/*
+ * AFTER MIDNIGHT'S LEDGER 9 FORK (mainnet, 6 November 2026) THIS IS NOT AVAILABLE.
+ *
+ * VeilCore's contracts are Ledger 8 contracts (compactc 0.31) and stay so. midnight-js 5 calls
+ * them on either side of the fork, but refuses to maintain them once a network has forked
+ * (EraMismatchError 'ledger8-maintenance-on-ledger9-network'): a maintenance update is built
+ * against the contract's own build, and maintaining a Ledger 8 contract on a Ledger 9 network
+ * needs the contract recompiled with compactc 0.36, which VeilCore does not do (it would change
+ * every verifier key; migration guide, "If you keep ledger 8 contracts"). So on a forked
+ * network (mainnet now) adding or removing a circuit key, replacing the authority and the
+ * retirement below are refused here, before anything is built or sent, with that reason. On a
+ * network not yet forked (preprod, preview) they work as before, as Ledger 8 transactions.
+ */
+
+/** Refuse maintenance on a network past the Ledger 9 fork (see above). Nothing is built or sent. */
+export const assertMaintenanceAvailable = async (publicDataProvider: {
+  queryLatestProtocolVersion(): Promise<number>;
+}): Promise<void> => {
+  const era = protocolVersionToLedger(await publicDataProvider.queryLatestProtocolVersion());
+  if (era !== 'v8')
+    throw new Error(
+      "Contract maintenance is not available on this network: it has moved to Midnight Ledger 9, and VeilCore's " +
+        'contracts are Ledger 8 contracts, which midnight-js can call but no longer maintain (that needs the contract ' +
+        'recompiled, which would change every circuit key). Nothing was built or sent.',
+    );
+};
+
+type SigningKey = AnySigningKey;
 
 type Retirable = {
-  readonly contractMaintenanceTx: { replaceAuthority: (newAuthority: SigningKey) => Promise<unknown> };
+  readonly contractMaintenanceTx: { replaceAuthority: (newAuthority: FrameworkSigningKey) => Promise<unknown> };
 };
 type SigningKeyStore = { removeSigningKey: (address: ContractAddress) => Promise<void> };
 
@@ -56,7 +72,7 @@ export const retireMaintenanceAuthority = async (
   logger?: Logger,
 ): Promise<void> => {
   logger?.info('retiring the maintenance authority: replacing it with a key that is never stored');
-  await deployed.contractMaintenanceTx.replaceAuthority(sampleSigningKey());
+  await deployed.contractMaintenanceTx.replaceAuthority(frameworkKey(sampleSigningKey()));
   await signingKeys.removeSigningKey(address);
   logger?.info("maintenance authority retired. Nobody, including us, can change this contract's circuits.");
 };
@@ -95,22 +111,32 @@ export type AuthorityView = {
 export const isProvablyRetired = (a: AuthorityView): boolean => a.threshold > a.committee.length;
 
 /** The authority a provable retirement installs: no members, one signature needed. */
-export const retiredAuthority = (current: AuthorityView): ContractMaintenanceAuthority =>
-  new ContractMaintenanceAuthority([], 1, current.counter + 1n);
+type Ledger8 = Awaited<ReturnType<typeof loadLedger8Protocol>>;
 
-/** The signed update replacing `current` with an empty committee. Pure: nothing is sent. */
-export const provableRetirementUpdate = (
+export const retiredAuthority = (L: Ledger8, current: AuthorityView) =>
+  new L.ContractMaintenanceAuthority([], 1, current.counter + 1n);
+
+/** The signed update replacing `current` with an empty committee: a Ledger 8 update. Pure: nothing is sent. */
+export const provableRetirementUpdate = async (
   address: ContractAddress,
   current: AuthorityView,
   signingKey: SigningKey,
-): MaintenanceUpdate => {
-  const update = new MaintenanceUpdate(address, [new ReplaceAuthority(retiredAuthority(current))], current.counter);
-  return update.addSignature(0n, signData(signingKey, update.dataToSign));
+) => {
+  const L = await loadLedger8Protocol();
+  const update = new L.MaintenanceUpdate(
+    address,
+    [new L.ReplaceAuthority(retiredAuthority(L, current))],
+    current.counter,
+  );
+  return update.addSignature(0n, L.signData(hexKey(signingKey), update.dataToSign));
 };
 
-type RetireProviders = SubmitTxProviders<Contract.Any, Contract.ProvableCircuitId<Contract.Any>> & {
+type RetireProviders = Pick<
+  MidnightProviders,
+  'publicDataProvider' | 'proofProvider' | 'walletProvider' | 'midnightProvider'
+> & {
   readonly privateStateProvider: SigningKeyStore & {
-    getSigningKey: (address: ContractAddress) => Promise<SigningKey | undefined | null>;
+    getSigningKey: (address: ContractAddress) => Promise<FrameworkSigningKey | undefined | null>;
   };
 };
 
@@ -129,9 +155,9 @@ export const retireMaintenanceAuthorityProvably = async (
   waitMs = 2_000,
 ): Promise<void> => {
   const read = async (): Promise<AuthorityView> => {
-    const state = await providers.publicDataProvider.queryContractState(address);
-    if (state === null || state === undefined) throw new Error(`No contract state found at ${address}.`);
-    return state.maintenanceAuthority;
+    const read = await providers.publicDataProvider.queryContractState(address);
+    if (read === null || read === undefined) throw new Error(`No contract state found at ${address}.`);
+    return fromSerialized(read.contractState).maintenanceAuthority;
   };
   const before = await read();
   if (isProvablyRetired(before)) {
@@ -142,16 +168,26 @@ export const retireMaintenanceAuthorityProvably = async (
   const key = await providers.privateStateProvider.getSigningKey(address);
   if (key === undefined || key === null)
     throw new Error(`The maintenance key for ${address} is not on this computer, so the authority cannot be retired.`);
+  await assertMaintenanceAvailable(providers.publicDataProvider);
   logger?.info('retiring the maintenance authority provably: replacing it with an empty committee');
-  const unprovenTx = Transaction.fromParts(
-    getNetworkId(),
-    undefined,
-    undefined,
-    Intent.new(ttlOneHour()).addMaintenanceUpdate(provableRetirementUpdate(address, before, key)),
+  const L = await loadLedger8Protocol();
+  const unprovenTx = LedgerTransaction.seal(
+    'v8',
+    'Unproven',
+    L.Transaction.fromParts(
+      getNetworkId(),
+      undefined,
+      undefined,
+      L.Intent.new(ttlOneHour()).addMaintenanceUpdate(await provableRetirementUpdate(address, before, key)),
+    ),
   );
   try {
-    const finalized = await submitTx(providers, { unprovenTx });
-    if (finalized.status !== SucceedEntirely) throw new ReplaceMaintenanceAuthorityTxFailedError(finalized);
+    const finalized = await submitTx(providers as never, { unprovenTx });
+    if (finalized.status !== SucceedEntirely)
+      throw new TxFailedError('replace-authority', finalized, {
+        contractAddress: address,
+        signingKey: frameworkKey(key),
+      });
     logger?.info({ transactionAdded: { circuit: 'retireMaintenanceAuthorityProvably', ...finalized } });
   } catch (e) {
     // It may have landed with only the confirmation failing: the chain decides below.

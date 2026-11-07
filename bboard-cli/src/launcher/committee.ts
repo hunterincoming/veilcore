@@ -35,7 +35,7 @@ import { type Logger } from 'pino';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
 import { NodeZkConfigProvider } from '@midnight-ntwrk/midnight-js-node-zk-config-provider';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { midnightConfig, setNetworkId } from '../../../api/src/network-id.js';
 import { type TestEnvironment } from '@midnight-ntwrk/testkit-js';
 import {
   type Action,
@@ -53,7 +53,11 @@ import {
   requestLanded,
   signRequest,
 } from '../../../scripts/committee/core.mjs';
-import { readAuthorityNow, sendMaintenanceUpdate } from '../../../scripts/committee/submit.mjs';
+import {
+  assertMaintenanceAvailable,
+  readAuthorityNow,
+  sendMaintenanceUpdate,
+} from '../../../scripts/committee/submit.mjs';
 import { MAINNET_VEILCORE_ADDRESS } from '../../../api/src/deploy-guard';
 import { endpointsFor } from '../../../partner-kit/src/network';
 import {
@@ -375,6 +379,7 @@ const openWallet = async (
         proofProvider: httpClientProofProvider(env.proofServer, zk),
         walletProvider: wallet,
         midnightProvider: wallet,
+        config: midnightConfig(),
       },
       stop,
     };
@@ -396,7 +401,7 @@ const contractOf = (o: Options, req?: Request): string => {
   return a;
 };
 
-type StateReader = Parameters<typeof readAuthorityNow>[0];
+type StateReader = Parameters<typeof sendMaintenanceUpdate>[0]['publicDataProvider'];
 
 /** What a command works with. Tests give their own reader and sender (a local ledger). */
 export type Ctx = {
@@ -418,6 +423,14 @@ const send = async (
   word: string,
 ): Promise<boolean> => {
   const { o, prompt, logger } = c;
+  // Past Midnight's Ledger 9 fork a Ledger 8 contract cannot be maintained (submit.mjs): say so
+  // before a wallet is opened, so nobody syncs a wallet for an hour to be refused at the end.
+  try {
+    await assertMaintenanceAvailable(c.reader);
+  } catch (e) {
+    logger.error(e instanceof Error ? e.message : String(e));
+    return false;
+  }
   const sender = await c.openSender(o.network, prompt, logger);
   if (sender === undefined) return false;
   try {

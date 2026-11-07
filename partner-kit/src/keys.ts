@@ -91,6 +91,9 @@ type FetchLike = (url: string) => Promise<{
   arrayBuffer(): Promise<ArrayBuffer>;
 }>;
 
+/** The runtime compactc 0.31.1 compiles for (the build the deployment record pins). */
+export const LEDGER8_RUNTIME_VERSION = '0.16.0';
+
 /**
  * A ZK config provider for one VeilCore contract that serves only files whose SHA-256 is
  * in the deployment record's table.
@@ -114,6 +117,16 @@ export class VerifiedZkConfigProvider<K extends string> extends ZKConfigProvider
     }
     this.table = table;
     this.fetchFn = options.fetch ?? ((url) => fetch(url));
+  }
+
+  /**
+   * The Compact runtime these artifacts were compiled for, which tells midnight-js 5 the
+   * contract's ledger. Every file this serves is pinned by the deployment record to the build
+   * made with compiler 0.31.1, whose runtime is 0.16.0: a Ledger 8 contract, which midnight-js
+   * calls on either side of Midnight's Ledger 9 fork.
+   */
+  override getArtifactRuntimeVersion(): Promise<string> {
+    return Promise.resolve(LEDGER8_RUNTIME_VERSION);
   }
 
   async getProverKey(circuitId: K): Promise<ProverKey> {

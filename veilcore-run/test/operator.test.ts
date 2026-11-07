@@ -6,7 +6,7 @@
 import { readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { setNetworkId } from '../../api/src/network-id.js';
 import type { FieldSetFile, VeilCore, VeilCoreClaims } from '@veilcore/contracts';
 
 const fake = vi.hoisted(() => ({ find: undefined as undefined | ((...a: unknown[]) => Promise<unknown>) }));

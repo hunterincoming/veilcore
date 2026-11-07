@@ -34,7 +34,7 @@ import {
   signData,
   signatureVerifyingKey,
   verifySignature,
-} from '@midnight-ntwrk/ledger-v8';
+} from '@midnightntwrk/ledger-v8';
 
 /** VeilCore's committee: three keys, two signatures. Anything else is refused. */
 export const COMMITTEE_SIZE = 3;

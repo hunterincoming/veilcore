@@ -4,7 +4,13 @@
 
 import { createHash } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { verifyContractState } from "@midnight-ntwrk/midnight-js-contracts";
+import { SerializedContractState } from "@midnight-ntwrk/midnight-js-types";
+import {
+  ContractOperation,
+  ContractState,
+} from "@midnight-ntwrk/compact-runtime";
 import { PROVABLE_CIRCUITS } from "../veilcore.js";
 import { acceptPresentation } from "../verify.js";
 import {
@@ -172,40 +178,54 @@ describe("COMPOSITION / verifier misreads", () => {
 });
 
 describe("FRAGMENTED DEPLOY", () => {
-  // This build has no key files, so the chain's contract state is stood in for by an
-  // object with the same operation() interface midnight-js's check reads.
-  const vk = (n: string): Uint8Array => sha(`vk:${n}`);
+  // This build has no key files, so every circuit's key is one real verifier key (midnight-js
+  // 5's own hard-fork fixture; a contract state refuses bytes that are not a key). The check is
+  // about which circuits are there. midnight-js 5 reads the state as an indexer serves it
+  // (Ledger 8 bytes) and its check is async.
+  const VK = new Uint8Array(
+    readFileSync(
+      new URL(
+        "../../../node_modules/@midnight-ntwrk/testkit-js/dist/fixtures/hf/counter-016/compiled/keys/increment.verifier",
+        import.meta.url,
+      ),
+    ),
+  );
   const localKeys = PROVABLE_CIRCUITS.map(
-    (n) => [n, vk(n)] as [string, Uint8Array],
+    (n) => [n, VK] as [string, Uint8Array],
   );
   const chain = (ops: string[]) => {
-    const m = new Map(ops.map((n) => [n, { verifierKey: vk(n) }]));
+    const cs = new ContractState();
+    for (const n of ops) {
+      const op = new ContractOperation();
+      op.verifierKey = VK;
+      cs.setOperation(n, op);
+    }
     return {
-      operation: (n: string) => m.get(n),
-      operations: () => [...m.keys()],
+      served: SerializedContractState.fromBytes("v8", cs.serialize()),
+      operations: () => cs.operations(),
     };
   };
 
-  it("HELD: join()'s check (verifyContractState) refuses a contract missing any circuit key", () => {
-    expect(() =>
+  it("HELD: join()'s check (verifyContractState) refuses a contract missing any circuit key", async () => {
+    await expect(
       verifyContractState(
         localKeys as never,
-        chain(PROVABLE_CIRCUITS.slice(0, 8)) as never,
+        chain(PROVABLE_CIRCUITS.slice(0, 8)).served,
       ),
-    ).toThrow();
-    expect(() =>
+    ).rejects.toThrow();
+    await expect(
       verifyContractState(
         localKeys as never,
-        chain([...PROVABLE_CIRCUITS]) as never,
+        chain([...PROVABLE_CIRCUITS]).served,
       ),
-    ).not.toThrow();
+    ).resolves.toBeUndefined();
   });
 
-  it("FINDING (low): join()'s check passes a contract carrying an EXTRA operation the build does not have", () => {
+  it("FINDING (low): join()'s check passes a contract carrying an EXTRA operation the build does not have", async () => {
     const withExtra = chain([...PROVABLE_CIRCUITS, "rewriteEverything"]);
-    expect(() =>
-      verifyContractState(localKeys as never, withExtra as never),
-    ).not.toThrow();
+    await expect(
+      verifyContractState(localKeys as never, withExtra.served),
+    ).resolves.toBeUndefined();
     expect(withExtra.operations().length).toBe(PROVABLE_CIRCUITS.length + 1);
   });
 

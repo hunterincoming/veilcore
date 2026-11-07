@@ -72,8 +72,15 @@ Here a record's proof code goes by its technical name, its **fingerprint** (a co
 ```sh
 npm install --save-exact @veilcore/contracts@0.3.0 veilcore-records
 npm exec --package=@veilcore/contracts@0.3.0 -- veilcore-keys fetch --to ./veilcore-keys   # proving keys, checked (below)
+# mainnet (Midnight Ledger 9 since 6 November 2026):
+docker run -d -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:9.0.0 midnight-proof-server -v
+# preprod and preview, until they move to Ledger 9:
 docker run -d -p 127.0.0.1:6300:6300 midnightntwrk/proof-server:8.1.3@sha256:0f4ab0716985eaebbe55a970348f52ff05ffd8a96631ed7232bd0c4ba02c115c midnight-proof-server -v
 ```
+
+A proof server serves one Midnight ledger, so run the one for your network
+(`proofServerImageFor(network)` names it). 9.0.0 is pinned by tag until its digest is
+checked against Midnight's signed release manifest.
 
 Node 24, ES modules. On npm as `@veilcore/contracts`. **Pin an exact version** (`0.2.0`, not
 `^0.2.0`): the package carries the mainnet contract addresses and the key fingerprints it

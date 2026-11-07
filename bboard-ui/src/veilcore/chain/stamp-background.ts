@@ -20,6 +20,7 @@ import {
   stampRetries,
   type StampRetryEntry,
 } from './key-stamp';
+import { DATING_PAUSED } from './paused';
 
 const held = new Map<string, number>();
 
@@ -55,7 +56,8 @@ let busy = false;
 
 /** One pass: forget stamps that landed, then try the most overdue one. */
 export const stampRetryTick = async (): Promise<void> => {
-  if (busy || stampInProgress() || holderRequestsPaused()) return;
+  // Dating paused (DATING_PAUSED): nothing is tried, so no record runs out of retries meanwhile.
+  if (busy || stampInProgress() || holderRequestsPaused() || DATING_PAUSED) return;
   if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
   for (const id of Object.keys(stampRetries())) if (keysFor(id)?.anchor) clearStampRetry(id);
   const next = dueStamps()[0];

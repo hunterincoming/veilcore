@@ -86,6 +86,7 @@ import {
   unsavedPlantLine,
 } from './log-flow-state';
 import { animalParentOptionsOf, parentOptionsOf, strainParentOptionsOf } from '../stage/record-kinds';
+import { DatingPausedNotice } from '../DatingPausedNotice';
 // SEAL_EACH_STAGE, STAGE_PROMPT and SELECTED_PROMPT (stage-notes.ts) are shown here in the
 // visitor's language: app.log.sealEachStage, app.log.stagePrompt, app.log.selectedPrompt.
 
@@ -825,17 +826,19 @@ const Stamp: React.FC<{ step: string; recordId: string; onNext: () => void }> = 
 
   // Start on arrival: the seal button already said sealing date stamps the key.
   // A browser that won't keep the keys gets the backup first instead.
-  const canStart = REAL_CHAIN && !notReady && (keeps || backupFirstDone);
+  const canStart = REAL_CHAIN && !notReady && !stamp.paused && (keeps || backupFirstDone);
   useEffect(() => {
     if (!canStart || anchored || started.current) return;
     started.current = true;
     void stamp.run();
   }, [canStart]);
 
-  if (!REAL_CHAIN || notReady) {
+  // Dating paused (DATING_PAUSED): sealed and saved here; the stamp waits until it's back.
+  if (!REAL_CHAIN || notReady || stamp.paused) {
     return (
       <Stack spacing={2.5}>
         <DoneTitle step={step} title={t('app.log.sealed')} />
+        <DatingPausedNotice on={stamp.paused} />
         <Typography variant="body1" color="text.secondary">
           {t('app.log.publicStampLater', { datedOn })}
         </Typography>

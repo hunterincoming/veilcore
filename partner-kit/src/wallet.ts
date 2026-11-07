@@ -14,12 +14,17 @@ import {
   type CoinPublicKey,
   DustSecretKey,
   type EncPublicKey,
-  type FinalizedTransaction,
   LedgerParameters,
   ZswapSecretKeys,
   unshieldedToken,
-} from '@midnight-ntwrk/midnight-js-protocol/ledger';
-import { type MidnightProvider, type UnboundTransaction, type WalletProvider } from '@midnight-ntwrk/midnight-js-types';
+} from '@midnight-ntwrk/midnight-js-protocol/v9';
+import {
+  type FinalizedTx,
+  LedgerTransaction,
+  type MidnightProvider,
+  type UnboundTx,
+  type WalletProvider,
+} from '@midnight-ntwrk/midnight-js-types';
 import { ttlOneHour } from '@midnight-ntwrk/midnight-js-utils';
 import {
   DustAddress,
@@ -37,7 +42,7 @@ import {
   createKeystore,
   generateRandomSeed,
   mergeWalletEntries,
-} from '@midnight-ntwrk/wallet-sdk';
+} from '@midnightntwrk/wallet-sdk';
 import { type Logger } from 'pino';
 import { firstValueFrom, filter } from 'rxjs';
 import { type Endpoints, type Network, isNetwork } from './network.js';
@@ -45,7 +50,7 @@ import { type SavedWalletState, WalletProgressFile } from './wallet-progress.js'
 import { scrubTerminal, urlSecrets } from './terminal.js';
 import { assertProofServer } from './connect.js';
 
-type Keystore = { getPublicKey(): unknown; signData(payload: Uint8Array): string };
+type Keystore = { getPublicKey(): unknown; signData(payload: Uint8Array): unknown };
 
 export type SeedWalletOptions = {
   readonly network: Network;
@@ -100,9 +105,7 @@ const strictlyComplete = (progress: unknown): boolean => {
 
 /** Whether every part of the wallet has caught up with the chain. */
 export const isSynced = (s: FacadeState): boolean =>
-  strictlyComplete(s.shielded.state.progress) &&
-  strictlyComplete(s.dust.state.progress) &&
-  strictlyComplete(s.unshielded.progress);
+  strictlyComplete(s.shielded.progress) && strictlyComplete(s.dust.progress) && strictlyComplete(s.unshielded.progress);
 
 const balancesOf = (s: FacadeState): WalletBalances => ({
   dust: s.dust.balance(new Date()) ?? 0n,
@@ -120,15 +123,20 @@ const deriveRole = (seedHex: string, role: number): Uint8Array => {
   return k.key;
 };
 
-/** The wallet configuration midnight-js's test kit derives from endpoints. */
-const configurationFor = (network: Network, e: Endpoints): Record<string, unknown> => ({
-  indexerClientConnection: { indexerHttpUrl: e.indexer, indexerWsUrl: e.indexerWS },
-  provingServerUrl: new URL(e.proofServer),
-  networkId: network,
-  relayURL: new URL(e.nodeWS),
-  txHistoryStorage: new InMemoryTransactionHistoryStorage(WalletEntrySchema, mergeWalletEntries),
-  costParameters: { feeBlocksMargin: 5 },
-});
+/**
+ * The wallet configuration midnight-js's test kit derives from endpoints, with `forks` filled
+ * in (wallet SDK 2): where the chain moves from Ledger 8 to Ledger 9, the SDK's default
+ * schedule (Ledger 9 from the version a 2.x node reports), which every network's fork follows.
+ */
+const configurationFor = (network: Network, e: Endpoints): Record<string, unknown> =>
+  WalletFacade.resolveConfiguration({
+    indexerClientConnection: { indexerHttpUrl: e.indexer, indexerWsUrl: e.indexerWS },
+    provingServerUrl: new URL(e.proofServer),
+    networkId: network,
+    relayURL: new URL(e.nodeWS),
+    txHistoryStorage: new InMemoryTransactionHistoryStorage(WalletEntrySchema, mergeWalletEntries),
+    costParameters: { feeBlocksMargin: 5 },
+  } as never);
 
 /**
  * A wallet from a seed. `SeedWallet.create` builds it, `start()` starts syncing, and
@@ -141,6 +149,8 @@ export class SeedWallet implements WalletProvider, MidnightProvider {
   readonly #zswap: ZswapSecretKeys;
   readonly #dustKey: DustSecretKey;
   readonly #keystore: Keystore;
+  /** The role seeds the facade starts from (wallet SDK 2 derives both ledgers' keys from them). */
+  readonly #seeds: { readonly shielded: Uint8Array; readonly unshielded: Uint8Array; readonly dust: Uint8Array };
   readonly #progress: WalletProgressFile | undefined;
   readonly #logger: Logger | undefined;
   #timer: NodeJS.Timeout | undefined;
@@ -152,9 +162,11 @@ export class SeedWallet implements WalletProvider, MidnightProvider {
     zswap: ZswapSecretKeys,
     dustKey: DustSecretKey,
     keystore: Keystore,
+    seeds: { readonly shielded: Uint8Array; readonly unshielded: Uint8Array; readonly dust: Uint8Array },
     progress: WalletProgressFile | undefined,
     logger?: Logger,
   ) {
+    this.#seeds = seeds;
     this.#facade = facade;
     this.#zswap = zswap;
     this.#dustKey = dustKey;
@@ -200,13 +212,17 @@ export class SeedWallet implements WalletProvider, MidnightProvider {
       unshielded: deriveRole(master, Roles.NightExternal),
       dust: deriveRole(master, Roles.Dust),
     };
+    // Margins only. Wallet SDK 2 prices every fee with the ledger parameters of the latest block it
+    // has synced (dust wallet `blockData.ledgerParameters`), so after Midnight's Ledger 9 fork it
+    // charges the chain's own prices (min block price 10); `ledgerParams` here is not read for that.
     const dustOptions = {
       ledgerParams: LedgerParameters.initialParameters(),
       additionalFeeOverhead: o.network === 'undeployed' ? 500_000_000_000_000_000n : 1_000n,
       feeBlocksMargin: 5,
     };
     const config = configurationFor(o.network, o.endpoints);
-    const keystore = createKeystore(seeds.unshielded, o.network) as unknown as Keystore;
+    // Wallet SDK 2: the keystore names its signature kind.
+    const keystore = createKeystore({ kind: 'schnorr', secret: seeds.unshielded }, o.network) as unknown as Keystore;
     const unshieldedConfig = {
       ...config,
       txHistoryStorage: new InMemoryTransactionHistoryStorage(WalletEntrySchema, mergeWalletEntries),
@@ -255,11 +271,14 @@ export class SeedWallet implements WalletProvider, MidnightProvider {
       }
     }
     if (facade === undefined) {
-      const shielded = ShieldedWallet(config as never).startWithSeed(seeds.shielded);
-      const unshielded = UnshieldedWallet(unshieldedConfig as never).startWithPublicKey(
+      const shielded = await ShieldedWallet(config as never).startWithSeed(seeds.shielded);
+      const unshielded = await UnshieldedWallet(unshieldedConfig as never).startWithPublicKey(
         PublicKey.fromKeyStore(keystore as never),
       );
-      const dust = DustWallet(dustConfig as never).startWithSeed(seeds.dust, LedgerParameters.initialParameters().dust);
+      const dust = await DustWallet(dustConfig as never).startWithSeed(
+        seeds.dust,
+        LedgerParameters.initialParameters().dust,
+      );
       facade = await WalletFacade.init({
         configuration: config as never,
         shielded: () => shielded,
@@ -273,6 +292,7 @@ export class SeedWallet implements WalletProvider, MidnightProvider {
       ZswapSecretKeys.fromSeed(seeds.shielded),
       DustSecretKey.fromSeed(seeds.dust),
       keystore,
+      seeds,
       progress,
       o.logger,
     );
@@ -291,23 +311,37 @@ export class SeedWallet implements WalletProvider, MidnightProvider {
     return this.#zswap.encryptionPublicKey;
   }
 
-  async balanceTx(tx: UnboundTransaction, ttl: Date = ttlOneHour()): Promise<FinalizedTransaction> {
-    const recipe = await this.#facade.balanceUnboundTransaction(
-      tx,
-      { shieldedSecretKeys: this.#zswap, dustSecretKey: this.#dustKey },
-      { ttl },
-    );
-    const signed = await this.#facade.signRecipe(recipe, (payload) => this.#keystore.signData(payload));
-    return this.#facade.finalizeRecipe(signed);
+  /**
+   * Both ledgers (midnight-js 5): a transaction for a network not yet past Midnight's Ledger 9
+   * fork is a Ledger 8 one, after it a Ledger 9 one. The wallet SDK reads either as bytes, at
+   * the protocol version it is acting at, and hands back its own; the handle keeps the era.
+   */
+  get supportedEras(): readonly ('v8' | 'v9')[] {
+    return ['v8', 'v9'];
   }
 
-  submitTx(tx: FinalizedTransaction): Promise<string> {
-    return this.#facade.submitTransaction(tx);
+  async balanceTx(tx: UnboundTx, ttl: Date = ttlOneHour()): Promise<FinalizedTx> {
+    const recipe = await this.#facade.balanceUnboundTransaction(
+      this.#facade.adoptTransaction(tx.serialize(), 'Unbound'),
+      {
+        ttl,
+      },
+    );
+    const signed = await this.#facade.signRecipe(recipe, (payload) => this.#sign(payload));
+    const finalized = await this.#facade.finalizeRecipe(signed);
+    return LedgerTransaction.fromBytes(tx.era, 'Finalized', new Uint8Array(finalized.serialize()));
   }
+
+  submitTx(tx: FinalizedTx): Promise<string> {
+    return this.#facade.submitTransaction(this.#facade.adoptTransaction(tx.serialize(), 'Finalized'));
+  }
+
+  #sign = (payload: Uint8Array) => Promise.resolve(this.#keystore.signData(payload) as never);
 
   /** Start syncing with the chain. Progress is saved every two minutes when saveProgress was given. */
   async start(): Promise<void> {
-    await this.#facade.start(this.#zswap, this.#dustKey);
+    // Wallet SDK 2 starts from the role seeds and derives both ledgers' keys from them.
+    await this.#facade.start(this.#seeds);
     this.#started = true;
     if (this.#progress?.enabled) {
       this.#timer = setInterval(() => void this.saveProgress(), 120_000);
@@ -358,7 +392,7 @@ export class SeedWallet implements WalletProvider, MidnightProvider {
     const recipe = await this.#facade.registerNightUtxosForDustGeneration(
       utxos,
       this.#keystore.getPublicKey() as never,
-      (payload) => this.#keystore.signData(payload),
+      (payload) => this.#sign(payload),
       state.dust.address,
     );
     const txId = await this.#facade.submitTransaction(await this.#facade.finalizeRecipe(recipe));

@@ -97,6 +97,8 @@ export class Sponsor {
   /** Identifier -> when to forget it, and which request put it there. */
   private readonly seen = new Map<string, { until: number; owner: symbol }>();
   readonly counters: Counters = {};
+  /** The fee paid for the last sponsored call of each circuit, in SPECKs (operator status only). */
+  private readonly lastFees: Record<string, bigint> = {};
 
   constructor(
     private readonly config: SponsorConfig,
@@ -326,6 +328,7 @@ export class Sponsor {
     }
     // Sent. Outside the try above, so nothing here can turn a sent transaction into "maybe".
     this.budget.settle(hold.id, paid);
+    this.lastFees[verdict.circuit] = paid;
     this.count(`sponsored:${verdict.circuit}`);
     return {
       status: 200,
@@ -387,6 +390,10 @@ export class Sponsor {
       budgetSpentTodaySpecks: this.budget.spentToday.toString(),
       dustBalanceSpecks: dust,
       counters: { ...this.counters },
+      // What the last sponsored call of each circuit paid, against the per-call ceiling: after
+      // Midnight's Ledger 9 fork (min block price 10), the first real call shows the new fee.
+      lastFeeSpecks: Object.fromEntries(Object.entries(this.lastFees).map(([c, f]) => [c, f.toString()])),
+      maxFeeSpecks: this.config.maxFeeSpecks.default.toString(),
     };
   }
 }

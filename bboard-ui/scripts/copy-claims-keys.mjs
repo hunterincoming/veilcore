@@ -8,7 +8,7 @@
 // has no claims files, and a claim stops before proving with "the proving files for … are not
 // on this site yet". This says so instead of failing the build.
 // SPDX-License-Identifier: Apache-2.0
-import { cpSync, existsSync, mkdirSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -40,3 +40,23 @@ if (missing.length)
       'Get them with `veilcore-keys fetch` (release zk-r4) to offer claims.',
   );
 else console.log(`copy-claims-keys: ${copied} claims proving files copied`);
+
+// midnight-js 5 (Midnight's Ledger 9 fork, 6 Nov 2026) reads which ledger a contract's artifacts
+// are for from compiler/contract-info.json, served next to keys/ and zkir/. Both contracts are
+// compactc 0.31 builds (runtime 0.16: Ledger 8 contracts) and share this site's one keys/ and
+// zkir/, so they share one compiler/ too: the main contract's, refused if the claims contract's
+// says another runtime. Without it every call stops before proving.
+const infoOf = (contract) => join(here, '..', '..', 'contract', 'src', 'managed', contract, 'compiler', 'contract-info.json');
+const runtimeOf = (f) => JSON.parse(readFileSync(f, 'utf8'))['runtime-version'];
+const mainInfo = infoOf('veilcore');
+if (!existsSync(mainInfo)) {
+  console.error(`copy-claims-keys: ${mainInfo} is missing; compile the contracts first.`);
+  process.exit(1);
+}
+if (existsSync(infoOf('veilcore-claims')) && runtimeOf(infoOf('veilcore-claims')) !== runtimeOf(mainInfo)) {
+  console.error('copy-claims-keys: the two contracts were compiled for different runtimes; they cannot share compiler/.');
+  process.exit(1);
+}
+mkdirSync(join(dist, 'compiler'), { recursive: true });
+cpSync(mainInfo, join(dist, 'compiler', 'contract-info.json'));
+console.log(`copy-claims-keys: compiler/contract-info.json copied (runtime ${runtimeOf(mainInfo)})`);

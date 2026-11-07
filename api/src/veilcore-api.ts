@@ -14,7 +14,7 @@ import {
   type ContractState,
   sampleSigningKey,
   type SigningKey,
-} from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
+} from '@midnight-ntwrk/compact-runtime';
 import { type Logger } from 'pino';
 import * as Veilcore from '../../contract/src/managed/veilcore/contract/index.js';
 import { CompiledVeilcore, PROVABLE_CIRCUITS, compiledVeilcoreDeploying } from '../../contract/src/veilcore';
@@ -46,7 +46,9 @@ import { combineLatest, map, from, defer, type Observable } from 'rxjs';
 import { toHex } from '@midnight-ntwrk/midnight-js-utils';
 import { assertDeploymentRecordCurrent, assertJoinAllowed, resolveNetwork } from './deploy-guard.js';
 import { FIRST_FRAGMENT, addMissingKeys, deployInFragments, unknownCircuits } from './deploy-fragments.js';
-import { retireMaintenanceAuthorityProvably } from './maintenance.js';
+import { assertMaintenanceAvailable, retireMaintenanceAuthorityProvably } from './maintenance.js';
+import { fromSerialized } from '../../contract/src/contract-state.js';
+import { frameworkKey } from './signing-key.js';
 import { type LookupCheck, contractStateNow, presentationWithTime, singleCallState } from './presentation-lookup.js';
 import { type ActionSource, type PairingSeen, findBindingPairings, rawPairingsBefore } from './pairing-history.js';
 import {
@@ -92,6 +94,8 @@ const ZERO32 = (): Uint8Array => new Uint8Array(32);
 export class VeilcoreAPI {
   readonly deployedContractAddress: ContractAddress;
   readonly state$: Observable<VeilcoreDerivedState>;
+  /** This contract's private states (midnight-js 5 reaches them per contract). */
+  private readonly states: ReturnType<VeilcoreProviders['privateStateProvider']['forContract']>;
 
   private constructor(
     public readonly deployedContract: DeployedVeilcoreContract,
@@ -99,16 +103,18 @@ export class VeilcoreAPI {
     private readonly logger?: Logger,
   ) {
     this.deployedContractAddress = deployedContract.deployTxData.public.contractAddress;
-    providers.privateStateProvider.setContractAddress(this.deployedContractAddress);
+    this.states = providers.privateStateProvider.forContract(this.deployedContractAddress);
+    const states = this.states;
     this.state$ = combineLatest(
       [
         providers.publicDataProvider
           .contractStateObservable(this.deployedContractAddress, { type: 'latest' })
-          .pipe(map((contractState) => Veilcore.ledger(contractState.data))),
+          // Either ledger's state (before or after the network's fork): contract-state.ts.
+          .pipe(map((record) => Veilcore.ledger(fromSerialized(record.value.contractState).data))),
         // Read only when someone subscribes. Reading here, in the constructor, ran the read
         // alongside whatever the caller did next with the store, and the local store opens
         // for one operation at a time ("Database failed to open").
-        defer(() => from(providers.privateStateProvider.get(veilcorePrivateStateKey) as Promise<VeilcorePrivateState>)),
+        defer(() => from(states.get(veilcorePrivateStateKey) as Promise<VeilcorePrivateState>)),
       ],
       (ledger, privateState) => {
         const mine = Veilcore.pureCircuits.commit(privateState.geneticSecret);
@@ -202,7 +208,7 @@ export class VeilcoreAPI {
 
   /** The bound pairings this client made (pairReport), with their salts. Oldest first. */
   async pairings(): Promise<readonly PairingNote[]> {
-    const ps = await this.providers.privateStateProvider.get(veilcorePrivateStateKey);
+    const ps = await this.states.get(veilcorePrivateStateKey);
     return ps?.pairings ?? [];
   }
 
@@ -799,10 +805,9 @@ export class VeilcoreAPI {
 
   /** The contract's whole state now (data, circuits, authority), as this client reads it. */
   private async currentState(): Promise<ContractState> {
-    const contractState = await this.providers.publicDataProvider.queryContractState(this.deployedContractAddress);
-    if (contractState === null || contractState === undefined)
-      throw new Error('the VeilCore contract has no state at its address');
-    return contractState;
+    const read = await this.providers.publicDataProvider.queryContractState(this.deployedContractAddress);
+    if (read === null || read === undefined) throw new Error('the VeilCore contract has no state at its address');
+    return fromSerialized(read.contractState);
   }
 
   /**
@@ -815,7 +820,7 @@ export class VeilcoreAPI {
    */
   async retireMaintenanceAuthority(currentKey?: SigningKey): Promise<void> {
     const store = this.providers.privateStateProvider;
-    if (currentKey !== undefined) await store.setSigningKey(this.deployedContractAddress, currentKey);
+    if (currentKey !== undefined) await store.setSigningKey(this.deployedContractAddress, frameworkKey(currentKey));
     try {
       await retireMaintenanceAuthorityProvably(this.providers as never, this.deployedContractAddress, this.logger);
     } finally {
@@ -858,7 +863,7 @@ export class VeilcoreAPI {
   }
 
   private async currentSecret(): Promise<Uint8Array> {
-    const s = (await this.providers.privateStateProvider.get(veilcorePrivateStateKey))?.geneticSecret;
+    const s = (await this.states.get(veilcorePrivateStateKey))?.geneticSecret;
     if (s === undefined) throw new Error('No record secret in private state.');
     return s;
   }
@@ -895,7 +900,7 @@ export class VeilcoreAPI {
   }
 
   private async revokedLicenses(): Promise<readonly string[]> {
-    const ps = await this.providers.privateStateProvider.get(veilcorePrivateStateKey);
+    const ps = await this.states.get(veilcorePrivateStateKey);
     return ps?.revokedLicenses ?? [];
   }
 
@@ -929,8 +934,8 @@ export class VeilcoreAPI {
   }
 
   private async patchPrivateState(patch: Partial<VeilcorePrivateState>): Promise<void> {
-    const current = (await this.providers.privateStateProvider.get(veilcorePrivateStateKey)) as VeilcorePrivateState;
-    await this.providers.privateStateProvider.set(veilcorePrivateStateKey, { ...current, ...patch });
+    const current = (await this.states.get(veilcorePrivateStateKey)) as VeilcorePrivateState;
+    await this.states.set(veilcorePrivateStateKey, { ...current, ...patch });
   }
 
   private logged(circuit: string, txData: { public: TxRef }): TxRef {
@@ -970,15 +975,13 @@ export class VeilcoreAPI {
         createUnprovenDeployTx(providers, {
           compiledContract: compiledVeilcoreDeploying(keep),
           initialPrivateState: createVeilcorePrivateState(utils.randomBytes(32)),
-          signingKey: signingKey ?? sampleSigningKey(),
+          signingKey: frameworkKey(signingKey ?? sampleSigningKey()),
         }),
       submit: async (unprovenTx) => (deployTxId = await submitTxAsync(providers, { unprovenTx })),
       store: async (candidate, unsubmitted) => {
-        providers.privateStateProvider.setContractAddress(candidate);
-        await providers.privateStateProvider.set(
-          veilcorePrivateStateKey,
-          unsubmitted.private.initialPrivateState as VeilcorePrivateState,
-        );
+        await providers.privateStateProvider
+          .forContract(candidate)
+          .set(veilcorePrivateStateKey, unsubmitted.private.initialPrivateState as VeilcorePrivateState);
         await providers.privateStateProvider.setSigningKey(candidate, unsubmitted.private.signingKey);
       },
       finish: 'Finish a deploy',
@@ -1024,6 +1027,8 @@ export class VeilcoreAPI {
     address: ContractAddress,
     logger?: Logger,
   ): Promise<void> {
+    // Refused, before anything is built, on a network past the Ledger 9 fork (maintenance.ts).
+    await assertMaintenanceAvailable(providers.publicDataProvider);
     const maintenance = createCircuitMaintenanceTxInterfaces(providers, CompiledVeilcore, address);
     type Circuit = keyof typeof maintenance;
     await addMissingKeys({
@@ -1066,8 +1071,7 @@ export class VeilcoreAPI {
       pinned,
       logger,
     });
-    providers.privateStateProvider.setContractAddress(contractAddress);
-    const existing = await providers.privateStateProvider.get(veilcorePrivateStateKey);
+    const existing = await providers.privateStateProvider.forContract(contractAddress).get(veilcorePrivateStateKey);
     const deployed = await findDeployedContract<VeilcoreContract>(providers, {
       contractAddress,
       compiledContract: CompiledVeilcore,

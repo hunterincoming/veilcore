@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { setNetworkId } from '../../api/src/network-id.js';
 
 const PIN = vi.hoisted(() => ({ veilcore: 'a1'.repeat(32), claims: 'c1'.repeat(32) }));
 vi.mock('../../api/src/deploy-guard.js', async (orig) => ({

@@ -35,6 +35,7 @@ if (target.startsWith(repo + '/') || target === repo) {
 
 const need = [
   join(managed, 'contract', 'index.js'),
+  join(managed, 'compiler', 'contract-info.json'),
   join(managed, 'keys', 'anchorBatch.prover'),
   join(managed, 'keys', 'anchorBatch.verifier'),
   join(managed, 'keys', 'sealRevocations.prover'),
@@ -82,6 +83,10 @@ async function stage() {
       writeFileSync(join(art, 'zkir', `${c}.bzkir`), jsonIrToBinary(readFileSync(join(managed, 'zkir', `${c}.zkir`), 'utf8')));
     }
   }
+  // midnight-js 5 reads which ledger the artifacts are for (runtime 0.16: a Ledger 8 contract,
+  // called on either side of Midnight's Ledger 9 fork) from compiler/contract-info.json.
+  mkdirSync(join(art, 'compiler'), { recursive: true });
+  cpSync(join(managed, 'compiler', 'contract-info.json'), join(art, 'compiler', 'contract-info.json'));
   // The compiled contract is an ES module; say so for its folder.
   writeFileSync(join(art, 'package.json'), JSON.stringify({ type: 'module' }, null, 2));
 

@@ -27,6 +27,9 @@ export const en = {
   'footer.terms': 'Terms of use',
   'draft.banner': 'Machine-drafted translation, under review. The English page is the authoritative version.',
   'draft.showEnglish': 'Show English',
+  // Shown only while a build turns it on (DATING_PAUSED, config/network.ts).
+  'notice.datingPaused':
+    "Dating on Midnight is paused for Midnight's network upgrade. Your records are saved and will be dated when it's back.",
   // The record app's frame (components/flow/FlowFrame.tsx) and the browser tab's title for
   // each page (App.tsx). Here, with the public pages' text, because they load with the first
   // file; the rest of the app's text is in app/.
