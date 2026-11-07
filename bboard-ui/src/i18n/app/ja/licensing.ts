@@ -357,9 +357,11 @@ export const licensing = {
   'app.lic.ledger.l.unknownAmount': 'このページでは計算できない額',
   'app.lic.ledger.r.aPartner': '決済パートナー',
   'app.lic.ledger.r.checked':
-    '{partner}（VeilCoreが確認したパートナー）経由で支払い: {date}に{to}へ{amount} {currency}、参照番号 {ref}。パートナーが署名し、ここで確認済みです。',
+    '{partner}（あなたが指定したパートナーの鍵）経由で支払い: {date}に{to}へ{amount} {currency}、参照番号 {ref}。その鍵で署名され、ここで確認済みです。',
   'app.lic.ledger.r.unchecked':
-    '{partner}（VeilCoreが確認していないパートナー）経由で支払い: {date}に{to}へ{amount} {currency}、参照番号 {ref}。パートナーが署名し、ここで確認済みです。誰でもどんな名前でもパートナーとして署名できます。頼る前に、お金が届いたことを確認してください。',
+    '鍵{key}で署名された受領証です。レジストリはこの鍵を{partner}と呼んでいますが、VeilCoreを含め誰も確認していません: {date}に{to}へ{amount} {currency}、参照番号 {ref}。署名はここで確認済みです。頼る前に、鍵をパートナーに直接確認し、お金が届いたことも確かめてください。',
+  'app.lic.ledger.r.trust': 'この鍵を確認した：信頼する',
+  'app.lic.ledger.r.forget': 'この鍵の信頼をやめる',
   'app.lic.ledger.r.mismatch': '一致しない点: {what}。',
   'app.lic.pay.method': 'Midnight上で{code}',
   'app.lic.pay.notAmount': '「{amount}」は金額ではありません。',

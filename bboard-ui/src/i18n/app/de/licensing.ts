@@ -371,9 +371,11 @@ export const licensing = {
   'app.lic.ledger.l.unknownAmount': 'ein Betrag, den diese Seite nicht ermitteln kann',
   'app.lic.ledger.r.aPartner': 'einen Zahlungspartner',
   'app.lic.ledger.r.checked':
-    'Bezahlt über {partner} (ein von VeilCore geprüfter Partner): {amount} {currency} an {to} am {date}, Referenz {ref}. Vom Partner unterzeichnet und hier geprüft.',
+    'Bezahlt über {partner} (ein Partnerschlüssel, den Sie benannt haben): {amount} {currency} an {to} am {date}, Referenz {ref}. Mit diesem Schlüssel unterzeichnet und hier geprüft.',
   'app.lic.ledger.r.unchecked':
-    'Bezahlt über {partner} (kein von VeilCore geprüfter Partner): {amount} {currency} an {to} am {date}, Referenz {ref}. Vom Partner unterzeichnet und hier geprüft. Jeder kann unter beliebigem Namen als Partner unterzeichnen: Prüfen Sie, ob das Geld angekommen ist, bevor Sie sich darauf verlassen.',
+    'Eine Quittung, unterzeichnet mit dem Schlüssel {key}, den das Register {partner} nennt; das hat niemand geprüft, auch VeilCore nicht: {amount} {currency} an {to} am {date}, Referenz {ref}. Die Signatur ist hier geprüft. Prüfen Sie den Schlüssel selbst beim Partner und ob das Geld angekommen ist, bevor Sie sich darauf verlassen.',
+  'app.lic.ledger.r.trust': 'Schlüssel geprüft: vertrauen',
+  'app.lic.ledger.r.forget': 'Diesem Schlüssel nicht mehr vertrauen',
   'app.lic.ledger.r.mismatch': 'Stimmt nicht überein: {what}.',
   'app.lic.pay.method': 'auf Midnight, in {code}',
   'app.lic.pay.notAmount': '„{amount}“ ist kein Betrag.',
