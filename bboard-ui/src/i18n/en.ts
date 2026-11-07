@@ -100,9 +100,9 @@ export const en = {
   // and the one privacy line. What the server keeps (locked, the name included) is in
   // step 1 of "How it works"; lab reports reaching the server are in the FAQ and the privacy note.
   'm.hero.title1': 'Date your record.',
-  'm.hero.title2': 'Keep your genetics.',
+  'm.hero.title2': 'Keep your genetics private.',
   'm.hero.lede':
-    'For breeders, seed companies and labs working with plant and animal genetics: give your records a date nobody can backdate. Your genetic data stays on your computer. Only a proof code goes on Midnight, which dates it.',
+    'For breeders, seed companies and labs working with plant and animal genetics: give your records a date nobody can backdate. Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked. Only a proof code goes on Midnight, which dates it.',
   'm.hero.how': 'How it works',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Bred by',
@@ -154,7 +154,7 @@ export const en = {
     "What it is and where it came from. VeilCore's server stores the details locked, the name included, and we don't have the key. A check link carries the name only if you switch that on, for the people you send it to.",
   'm.step2.n': '02 · Proof code',
   'm.step2.title': 'Make its proof code',
-  'm.step2.text': 'Done on your computer. Genetic data never leaves it.',
+  'm.step2.text': 'Done on your computer. Genetic data never leaves it unlocked.',
   'm.step3.n': '03 · Anchor',
   'm.step3.title': 'Get a date',
   'm.step3.text':

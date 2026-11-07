@@ -64,7 +64,7 @@ export const es: Strings = {
   'm.nav.menu': 'Menú',
   'm.hero.label': 'Prueba de lo que usted tiene',
   'm.hero.title1': 'Feche su registro.',
-  'm.hero.title2': 'Conserve su genética.',
+  'm.hero.title2': 'Mantenga su genética en privado.',
   'm.hero.how': 'Cómo funciona',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Obtenido por',
@@ -232,7 +232,7 @@ export const es: Strings = {
   'm.privacy.contact': 'Preguntas: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal y animal: dé a sus registros una fecha que nadie puede antedatar. Sus datos genéticos se quedan en su computadora. Solo un código de prueba va a Midnight, que lo fecha.',
+    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal y animal: dé a sus registros una fecha que nadie puede antedatar. Sus datos genéticos se quedan cerrados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega cerrado a nuestro servidor. Solo un código de prueba va a Midnight, que lo fecha.',
   'm.for.3p':
     'Envíe material con un código de laboratorio. El laboratorio firma un acuse de recibo con su propia clave, así el registro muestra a una segunda parte. El acuse es una firma real, guardada por el registro de VeilCore, no en la cadena. Condiciones como no propagar son solo de práctica en la demo web.',
   'm.get.1b': 'para un registro de lo que usted tiene, sin mostrar su genética.',
@@ -381,7 +381,7 @@ export const es: Strings = {
   'm.step1.text':
     'Qué es y de dónde viene. El servidor de VeilCore guarda los detalles bloqueados, el nombre incluido, y nosotros no tenemos la clave. Un enlace de comprobación lleva el nombre solo si usted lo activa, para las personas a las que se lo envía.',
   'm.step2.title': 'Saque su código de prueba',
-  'm.step2.text': 'En su computadora. Los datos genéticos nunca salen de ella.',
+  'm.step2.text': 'En su computadora. Los datos genéticos nunca salen de ella sin cerrar.',
   'm.step3.title': 'Obtenga una fecha',
   'm.step3.text':
     'Solo el código de prueba va a Midnight, en un lote con otros. La fecha es el bloque en el que entra el lote: muestra que el registro existía para entonces.',

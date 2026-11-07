@@ -212,7 +212,10 @@ a commitment cannot be live twice under one issuer.
 the parent's holder. The stored proposal must still name the confirming parent. The
 edge is recorded between identities in `parentsOf`, so the pedigree is readable from
 state. An edge means both holders said so, not that the child is biologically
-descended. The DNA pairing narrows that; it does not close it. A record can have at most
+descended. The DNA pairing doesn't change that: it is the holder's own statement that a
+report belongs to the record (dated, so it can't be swapped later), not a check of the
+genetics or of descent. Only a laboratory comparing the two reports can speak to descent,
+and the record never does that. A record can have at most
 two confirmed parents (`MAX_PARENTS`); a third is refused at proposal and at
 confirmation.
 

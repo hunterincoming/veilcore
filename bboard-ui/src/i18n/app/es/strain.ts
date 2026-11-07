@@ -198,4 +198,11 @@ export const strain = {
   'app.strain.v.app.lic.off.datePlant': 'Fechar un registro',
   'app.strain.v.app.lic.off.yourRecord': 'Su registro de esta cepa',
   'app.strain.v.app.lic.off.waitName': 'Esperando a que indiquen su registro de esta cepa.',
+  // components/chain/FamilyOnChain.tsx
+  'app.strain.v.app.family.intro':
+    'Parentesco que ambos titulares aceptaron, en la cadena. Es lo que permite a cualquiera comprobar la línea de una cepa, y lo que lleva la regalía por descendencia de un progenitor a sus descendientes. Un enlace confirmado es público y permanente: no se puede deshacer, y las regalías que el titular del progenitor asuma después también aparecen en la línea de este registro.',
+  'app.strain.v.app.family.namesParent':
+    '{who} nombra este registro como progenitor. Confirme solo si de verdad procede de esta cepa. Confirmar es público y permanente, y todo lo que se deba sobre esta cepa, ahora o después, aparecerá en su línea.',
+  'app.strain.v.app.family.confirmQ':
+    '¿Confirmar que esta cepa es progenitora de {who}? Confirme solo un registro que sepa que procede de ella. Esto es público y permanente: su línea, y todo lo que se deba sobre esta cepa ahora o después, aparecerán en él.{fixes}',
 } satisfies Partial<AppTranslation>;
