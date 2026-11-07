@@ -89,7 +89,7 @@ import { animalParentOptionsOf, parentOptionsOf, strainParentOptionsOf } from '.
 import { DatingPausedNotice } from '../DatingPausedNotice';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import { AskFillContext, AskFilledBanner, useAskMark } from '../ask/AskFill';
-import { isBatch, readHandoff, type Handoff } from '../../ask/handoff';
+import { HANDOFF_STATE_KEY, isBatch, readHandoff, type Handoff } from '../../ask/handoff';
 import { prefillOf, type Prefill } from '../../ask/prefill';
 import { BatchFlow } from './BatchFlow';
 import { allRecords } from '../../veilcore/records';
@@ -119,19 +119,28 @@ export const LogFlow: React.FC = () => {
   // so moving between them starts the screen afresh.
   const [params] = useSearchParams();
   const nextOf = params.get('next') ?? undefined;
-  // A draft handed over by Ask, a record's own page or a link (ask/handoff.ts): read once, then
-  // cleared from the address and the router state, so a reload or Back doesn't fill it again.
+  // A draft handed over by Ask, a record's own page or a link (ask/handoff.ts): read once per
+  // arrival, then cleared from the address and the router state, so a reload or Back doesn't
+  // fill it again. Ask can hand over a new one while this page is open: that starts afresh.
   const location = useLocation();
   const navigate = useNavigate();
-  const [handoff] = useState<Handoff | undefined>(() =>
-    nextOf ? undefined : readHandoff(location, new Set(allRecords().map((r) => r.id))),
-  );
-  const [handoffKey] = useState(() => (handoff ? String(Date.now()) : ''));
+  const carries = (l: { state: unknown; hash: string }) =>
+    !!(l.state && typeof l.state === 'object' && HANDOFF_STATE_KEY in l.state) || l.hash.startsWith('#draft=');
+  const [entry, setEntry] = useState(() => ({
+    key: location.key,
+    handoff: nextOf ? undefined : readHandoff(location, new Set(allRecords().map((r) => r.id))),
+  }));
   useEffect(() => {
-    if (location.hash.startsWith('#draft=') || location.state)
+    if (location.key !== entry.key && carries(location) && !nextOf)
+      setEntry({ key: location.key, handoff: readHandoff(location, new Set(allRecords().map((r) => r.id))) });
+  }, [location.key]);
+  useEffect(() => {
+    if (carries(location))
       void navigate({ pathname: location.pathname, search: location.search }, { replace: true, state: null });
-  }, []);
-  if (handoff && isBatch(handoff.preset)) return <BatchFlow handoff={handoff} />;
+  }, [location.key]);
+  const { handoff } = entry;
+  const handoffKey = handoff ? entry.key : '';
+  if (handoff && isBatch(handoff.preset)) return <BatchFlow key={handoffKey} handoff={handoff} />;
   return <LogFlowFor key={(nextOf ?? '') + handoffKey} nextOf={nextOf} handoff={handoff} />;
 };
 
@@ -215,15 +224,26 @@ const LogFlowFor: React.FC<{ nextOf?: string; handoff?: Handoff }> = ({ nextOf, 
       ...(k === 'strain' && !draft.strain ? { strain: emptyStrainDraft() } : {}),
     });
   };
+  // Filled in by Ask or a link: said under the form's heading, with the filled fields marked.
+  const banner =
+    handoff && handoff.source !== 'record' && start.kind === 'ready' ? (
+      <AskFilledBanner source={handoff.source} />
+    ) : undefined;
   // On the form, the way back to the first screen. (A document is sealed on a page of its own,
   // components/document/DocumentNew.tsx: it has files, not parents, photos or a DNA report.)
-  const choice = offerKinds ? (
-    <Box data-log-kind={kind}>
-      <Button size="small" onClick={() => setPicked(false)} sx={{ px: 0, minHeight: 44 }} data-start-change="">
-        ← {tr.t('app.start.change')}
-      </Button>
-    </Box>
-  ) : undefined;
+  const choice =
+    offerKinds || banner ? (
+      <>
+        {banner}
+        {offerKinds && (
+          <Box data-log-kind={kind}>
+            <Button size="small" onClick={() => setPicked(false)} sx={{ px: 0, minHeight: 44 }} data-start-change="">
+              ← {tr.t('app.start.change')}
+            </Button>
+          </Box>
+        )}
+      </>
+    ) : undefined;
 
   // A new screen starts at the top, focus on its heading. The first one is the page's own
   // (App.tsx does that on arrival).
@@ -382,9 +402,6 @@ const LogFlowFor: React.FC<{ nextOf?: string; handoff?: Handoff }> = ({ nextOf, 
       <AppHeader />
       <FlowFrame section="log" step={step}>
         <IntakeBanner />
-        {screen === 'plant' && start.kind === 'ready' && picked && handoff && handoff.source !== 'record' && (
-          <AskFilledBanner source={handoff.source} />
-        )}
         <AskFillContext.Provider value={screen === 'plant' ? filled : NONE}>{body}</AskFillContext.Provider>
       </FlowFrame>
     </Box>
