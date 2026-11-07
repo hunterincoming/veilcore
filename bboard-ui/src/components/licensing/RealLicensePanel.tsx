@@ -30,6 +30,8 @@ import {
 } from '../../veilcore/licenses';
 import { useDeal, type DealParty } from '../../veilcore/deal-client';
 import { RoyaltyLedger } from './RoyaltyLedger';
+import { getRecord } from '../../veilcore/records';
+import { hasOffspringRoyalty, isCannabisRecord } from '../../veilcore/royalty-terms';
 import { OffspringRoyalty } from './OffspringRoyalty';
 import { HandOnIssuer } from './HandOnIssuer';
 import {
@@ -308,9 +310,18 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
     });
 
   // A post that didn't reach the registry after the issue landed: send it again (same transaction).
-  const repost = () =>
-    oc?.issueTx &&
-    void postIssued(oc.inviteId, oc.issueTx, oc.issuerToken).then(() => onToast(tr.t('app.lic.real.sentAgain')));
+  // It only posts the notice; their page also reads the chain itself.
+  const repost = () => {
+    if (!oc?.issueTx) return;
+    setError(undefined);
+    postIssued(oc.inviteId, oc.issueTx, oc.issuerToken)
+      .then(() => onToast(tr.t('app.lic.real.sentAgain')))
+      .catch((e: unknown) => {
+        const error = e instanceof Error ? e.message : String(e);
+        onToast(tr.t('app.lic.real.resendFailed', { error }));
+        setError(tr.t('app.lic.real.resendFailed', { error }));
+      });
+  };
 
   const startOverButton = (
     <Button variant="text" color="inherit" onClick={startOver}>
@@ -376,6 +387,11 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
               >
                 {code ?? '…'}
               </Typography>
+              {!code && (
+                <Typography variant="body2" color="text.secondary" role="status" data-code-making="">
+                  {tr.t('app.lic.code.making')}
+                </Typography>
+              )}
               <Typography variant="body2" color="text.secondary">
                 {tr.t('app.lic.real.differentCode')}
               </Typography>
@@ -449,27 +465,32 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
             {agreed && ` ${tr.t('app.lic.real.agreedOn', { date: tr.date(agreed.at) })}`}
           </Alert>
           <HowItWorks label={tr.t('app.lic.real.liveMeans')}>{tr.t('app.lic.real.liveText')}</HowItWorks>
-          {party && oc.termsSentAt && license.type === 'license' && (
-            <RoyaltyLedger
-              party={party}
-              side="issuer"
-              terms={license.terms}
-              entries={deal.entries}
-              refresh={deal.refresh}
-              agreed={{
-                agreementType: license.type,
-                agreementFingerprint: license.agreementFingerprint,
-                notBefore: oc.termsSentAt,
-              }}
-            />
-          )}
-          {party && oc.termsSentAt && (Number(license.terms.offspringRoyaltyPct) || 0) > 0 && (
+          {party &&
+            oc.termsSentAt &&
+            (license.type === 'license' ||
+              (license.type === 'breeder-share' && hasOffspringRoyalty(license.terms))) && (
+              <RoyaltyLedger
+                party={party}
+                side="issuer"
+                terms={license.terms}
+                agreementType={license.type}
+                cannabis={isCannabisRecord(getRecord(license.recordId))}
+                entries={deal.entries}
+                refresh={deal.refresh}
+                agreed={{
+                  agreementType: license.type,
+                  agreementFingerprint: license.agreementFingerprint,
+                  notBefore: oc.termsSentAt,
+                }}
+              />
+            )}
+          {party && oc.termsSentAt && hasOffspringRoyalty(license.terms) && (
             <OffspringRoyalty
               side="issuer"
               party={party}
               entries={deal.entries}
               refresh={deal.refresh}
-              pct={license.terms.offspringRoyaltyPct ?? ''}
+              terms={license.terms}
               obligation={license.agreementFingerprint}
               beneficiary={oc.identity}
               issuerSecret={keys.recordSecret}

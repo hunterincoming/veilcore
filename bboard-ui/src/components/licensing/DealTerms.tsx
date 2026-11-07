@@ -8,6 +8,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Box, Paper, Stack, Typography } from '@mui/material';
 import {
   agreementRows,
+  subjectOf,
   sealAgreement,
   type AgreementType,
   type License,
@@ -16,6 +17,8 @@ import {
 import type { AgreementCopy } from '../../veilcore/held-licenses';
 import type { DealEntry } from '../../veilcore/deal-client';
 import { rich, useT } from '../../i18n/app';
+import { forKind } from '../../i18n/translate';
+import { isNewTerms, termsSentence } from '../../veilcore/royalty-terms';
 
 export type Offered = { ok: true; copy: AgreementCopy } | { ok: false; reason: string } | undefined;
 
@@ -85,11 +88,19 @@ export const TermsBox: React.FC<{ offered: Offered; agreedAt?: number }> = ({ of
     } as License,
     tr,
   );
+  const terms = offered.copy.terms as unknown as LicenseTerms;
+  const kt = forKind(tr, subjectOf(terms));
   return (
     <Paper variant="outlined" sx={{ p: 2 }}>
       <Typography variant="subtitle2" sx={{ mb: 1 }}>
         {agreedAt ? tr.t('app.lic.terms.titleAgreed', { date: tr.date(agreedAt) }) : tr.t('app.lic.terms.title')}
       </Typography>
+      {/* The deal in one paragraph, every value in it (royalty-terms.ts): new terms only. */}
+      {isNewTerms(terms) && (
+        <Typography variant="body2" sx={{ mb: 1.25 }} data-terms-sentence="">
+          {termsSentence(terms, kt)}
+        </Typography>
+      )}
       <Stack spacing={0.75}>
         {rows.map((r) => (
           <Box key={r.k} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '11rem 1fr' }, gap: 0.5 }}>

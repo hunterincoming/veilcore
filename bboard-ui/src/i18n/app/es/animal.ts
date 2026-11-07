@@ -242,7 +242,7 @@ export const animal = {
   'app.animal.v.app.lab.send.takenFromHelp': 'La identificación individual del animal, o dónde se tomó la muestra.',
   'app.animal.v.app.lic.row.offspringValue': '{pct}%, sobre los descendientes declarados de este animal',
   'app.animal.v.app.lic.f.offspringHelp':
-    'Se aplica a los descendientes declarados de este registro (registrados con él como padre o madre y confirmados por ambos titulares). La descendencia que nadie registra no se detecta. Déjelo en blanco si no hay.',
+    'Solo cuenta las crías registradas en VeilCore con este animal como padre o madre. Déjelo en blanco si no hay.',
   'app.animal.v.app.lic.f.extraHelpDeal':
     'Cualquier otra cosa que forme parte del trato, con sus propias palabras. Por ejemplo: como máximo dos camadas o partos, sin reventa de pajuelas, crías inscritas en una asociación de raza concreta.',
   'app.animal.v.app.lic.detail.thisCultivar': 'este animal',

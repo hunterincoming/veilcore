@@ -185,7 +185,7 @@ export const strain = {
   'app.strain.v.app.lic.row.offspringValue': '{pct} %, sur les souches déclarées comme dérivées de celle-ci',
   'app.strain.v.app.lic.f.offspring': 'Redevance sur les souches dérivées (%)',
   'app.strain.v.app.lic.f.offspringHelp':
-    'S’applique aux souches déclarées comme dérivées de cet enregistrement (enregistrées avec lui comme parent, confirmées par les deux détenteurs). Une dérivation non déclarée n’est pas détectée. Laissez vide s’il n’y en a pas.',
+    'Ne compte que les souches enregistrées dans VeilCore comme dérivées de celle-ci. Laissez vide s’il n’y en a pas.',
   'app.strain.v.app.lic.f.extraHelpDeal':
     'Tout ce qui fait aussi partie de l’accord, avec vos propres mots. Par exemple : pas de cession à des tiers, citer la source dans les publications, détruire le stock restant à la fin.',
   'app.strain.v.app.lic.detail.thisCultivar': 'cette souche',
@@ -193,7 +193,7 @@ export const strain = {
     'Si une souche est enregistrée plus tard avec {name} comme parent et que les deux détenteurs le confirment, le lien vers ce contrat apparaît dans son enregistrement. Les souches dérivées que personne n’enregistre ne sont pas détectées.',
   'app.strain.v.app.lic.detail.derivatives.one': '{count} souche déjà enregistrée en descend.',
   'app.strain.v.app.lic.detail.derivatives.other': '{count} souches déjà enregistrées en descendent.',
-  'app.strain.v.app.lic.off.title': 'Redevance sur les souches dérivées : {pct} %',
+  'app.strain.v.app.lic.off.title': 'Redevance sur les souches dérivées : {pct}',
   'app.strain.v.app.lic.off.intro':
     'Sur Midnight, elle figure sur l’enregistrement que le licencié a de cette souche, donc chaque souche dérivée que les deux détenteurs confirment l’affiche quand quelqu’un vérifie la lignée. Le licencié l’accepte ; seul le concédant peut la lever.',
   'app.strain.v.app.lic.off.dateFirst':

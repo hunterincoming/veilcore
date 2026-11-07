@@ -160,26 +160,27 @@ export const nextRoyaltyStep = (
   return { text: tr.t('app.lic.next.l.file'), yours: true, file: true };
 };
 
-const iso = (d: Date) => d.toISOString().slice(0, 10);
+/** A calendar date in the user's own day (not UTC's). */
+const iso = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 /**
  * The period a new statement most likely covers, so the form starts filled in: the day after
  * the last statement ended, through the end of last month (or today, if that's earlier than
- * the start). With no statement yet: last calendar month. Dates are UTC calendar days.
+ * the start). With no statement yet: last calendar month. Dates are the user's own calendar days.
  */
 export const suggestedPeriod = (lines: readonly LineLike[], now = new Date()): { from: string; to: string } => {
   const today = iso(now);
-  const endOfLastMonth = iso(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0)));
-  const startOfLastMonth = iso(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)));
+  const endOfLastMonth = iso(new Date(now.getFullYear(), now.getMonth(), 0));
+  const startOfLastMonth = iso(new Date(now.getFullYear(), now.getMonth() - 1, 1));
   const lastEnd = lines
     .map((l) => l.statement.periodTo)
     .filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d))
     .sort()
     .pop();
   if (!lastEnd) return { from: startOfLastMonth, to: endOfLastMonth };
-  const d = new Date(`${lastEnd}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + 1);
-  const from = iso(d);
+  const [y, m, d] = lastEnd.split('-').map(Number);
+  const from = iso(new Date(y, m - 1, d + 1));
   const to = from <= endOfLastMonth ? endOfLastMonth : today;
   return { from, to: to < from ? from : to };
 };
