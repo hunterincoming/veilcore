@@ -352,8 +352,12 @@ Every action that writes to the chain pays a fee in **DUST**. Checking costs not
    the transactions on your behalf. See _Three ways to use VeilCore at launch_ below and
    [MANAGED.md](MANAGED.md).
 
-**Not offered yet:** VeilCore paying the fees of transactions you prove and send yourself
-(fee sponsorship). It is built for VeilCore's website demo and not in service.
+**Fee sponsorship, for the website only.** VeilCore's fee service pays the network fee for the
+transactions a visitor's browser proves and sends on veilcore.org: in service on mainnet since
+19 October 2026 (docs/mainnet-sponsor.md) for a record key's date stamp, proving a record by
+link and dating a DNA pairing, and the calls it lists in `sponsor/src/policy.ts` (licences
+once they are switched on). This package doesn't use it: what you send from the kit, you pay
+for with your own DUST.
 
 Proving the two heavy claims (`proveDistinct`, `proveUnchanged`) takes the most memory: on
 VeilCore's own 16 GB laptop the proof server peaked at 3.7 GB proving every claim back to
@@ -364,12 +368,12 @@ back (docs/log/preprod-run-4oct.md). Everything else needs much less.
 | | **VeilCore-run** (custody, with an exit) | **Partner kit** (self-run) | **Website self-custody** |
 | --- | --- | --- | --- |
 | Who sends transactions | VeilCore, on your written instruction | you, with this package | you, in your browser |
-| Who pays fees | VeilCore's wallet (fees per the agreement) | your wallet (DUST) | your wallet |
+| Who pays fees | VeilCore's wallet (fees per the agreement) | your wallet (DUST) | VeilCore's fee service, on veilcore.org (no wallet) |
 | Record, licence and claim secrets | held by VeilCore, in an encrypted store that is yours alone | you | you |
 | Recovery secrets | you, from one master sheet VeilCore never sees (recommended); or VeilCore | you | you |
-| What you need | a safe for one sheet of paper (your master secret) | a developer, Node 24, Docker, a DUST wallet | a browser and a wallet |
+| What you need | a safe for one sheet of paper (your master secret) | a developer, Node 24, Docker, a DUST wallet | a browser, nothing else |
 | Leaving | any time, in two parts. VeilCore hands you a bundle only your master opens, and (assisted) moves every record off the secrets it stored, or (self) stops acting. Then **you** take each record back with your own recovery secret (`partner-recover`, which needs a DUST wallet): only after that does nothing VeilCore's software made or held control your records. Licences you hold stay usable with VeilCore's old copy until their issuer approves the move. VeilCore then deletes its copies, as far as deleting can (MANAGED.md) | nothing to leave | nothing to leave |
-| Available | **at launch** ([MANAGED.md](MANAGED.md)) | **at launch** (this guide) | **after launch** |
+| Available | **at launch** ([MANAGED.md](MANAGED.md)) | **at launch** (this guide) | **on veilcore.org now** for records, date stamps, proofs by link and DNA pairings; licences once switched on there |
 
 VeilCore-run is built on this package's public surface only: VeilCore does for you exactly
 what your own developer would do with it, nothing more. What it means that VeilCore holds
@@ -429,9 +433,9 @@ provider, those guarantees are yours to keep.
 
 ### What it does not do yet
 
-- Fee sponsorship (above). Website self-custody (after launch; until then, VeilCore-run or
-  this package). Browsers (this package is for Node; the website is a demo and
-  verification page, not an integration point). Signing keys held in an HSM: secrets are
+- Fee sponsorship for what you send from this package (the fee service pays only for what
+  veilcore.org's own pages send). Browsers (this package is for Node; for self-custody in a
+  browser, people use veilcore.org itself, which is not an integration point). Signing keys held in an HSM: secrets are
   passed to the package as bytes.
 
 Questions and corrections: hunter@veilcore.org.
