@@ -248,7 +248,7 @@ export const fr: Strings = {
     "Les deux contrats sont déployés sur le réseau principal de Midnight. Le contrat des preuves d'un fait n'a pas de clé de maintenance : personne, nous compris, ne peut le modifier.",
   'm.postE.date': '2 nov. 2026',
   'm.postE.tag': 'Preuve',
-  'm.postE.title': 'Un dossier prêt pour un tribunal, pour tout document',
+  'm.postE.title': 'Un dossier de preuve pour tout document',
   'm.postE.text':
     "La page d'un document télécharge désormais un fichier qu'un avocat ou un examinateur peut vérifier sans notre site : l'enregistrement tel que scellé, sa preuve, où il a été daté, une page qui fait les vérifications hors ligne, un résumé à imprimer et un modèle de déclaration. Vous pouvez y joindre une copie du document ; elle est d'abord comparée à l'enregistrement.",
   'm.postD.date': '31 oct. 2026',

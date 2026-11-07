@@ -246,7 +246,7 @@ export const es: Strings = {
     'Ambos contratos están desplegados en la red principal de Midnight. El contrato de pruebas de un hecho no tiene clave de mantenimiento: nadie, ni siquiera nosotros, puede cambiarlo.',
   'm.postE.date': '2 nov 2026',
   'm.postE.tag': 'Prueba',
-  'm.postE.title': 'Un archivo listo para un tribunal, para cualquier documento',
+  'm.postE.title': 'Un archivo de evidencia para cualquier documento',
   'm.postE.text':
     'La página de un documento ahora descarga un archivo que un abogado o un examinador puede comprobar sin nuestro sitio: el registro tal como se selló, su prueba, dónde se fechó, una página que hace las comprobaciones sin conexión, un resumen para imprimir y un texto de ejemplo para una declaración. Puede incluir una copia del documento; antes se compara con el registro.',
   'm.postD.date': '31 oct 2026',

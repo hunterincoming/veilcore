@@ -33,7 +33,7 @@ holds or moves anyone's money.
 |---|---|---|
 | Breeder (licensor) | Licenses a record, answers royalty reports, confirms payment, approves transfers | Only what the licensee sends them |
 | Grower (licensee) | Accepts a license on their own device, sends royalty reports and pays, proves the license to buyers | Only their own deal |
-| Buyer, dispensary, regulator | Checks a license is live, checks a plant's line is clean | That a live license exists; nothing about terms or people |
+| Buyer, dispensary, regulator | Checks a license is live on Midnight (not revoked: it doesn't show the terms are current), sees the obligations recorded on confirmed ancestors | That a live license exists; nothing about terms or people |
 | Payment partner | Pays a statement through its own rails and signs a receipt | The statement the payer hands it |
 | Anyone | Re-checks all of it from the chain | Commitments, never terms or genetics |
 
@@ -101,8 +101,8 @@ holds or moves anyone's money.
    The partner pays through its own licensed rails, then signs a receipt over the
    statement's fingerprint with its registered key. Both sides see "paid, confirmed by
    <partner>", and the payee still confirms the money arrived. A payment made any other way is marked by the payer and confirmed by the
-   payee. Any fee VeilCore charges on deals later is a decision still to make; nothing is
-   charged or collected today.
+   payee. VeilCore's only fee is a flat subscription, settled: never a fee per deal, per
+   payment or per royalty; nothing is charged or collected today.
 6. **Offspring royalties (done).** A license that carries a royalty on offspring becomes an
    obligation on chain against the licensee's own record of that plant: the breeder
    proposes it, the licensee accepts it, only the breeder can release it. Every record
@@ -194,7 +194,8 @@ holds or moves anyone's money.
       it from its own identity (from a browser at /lender, `veilcore/lender.ts`, reached from
       any record's check page; or the partner kit's `proposeObligation` and `claimLink`), the holder
       accepts it on the record's own key, only the lender can release it. Anyone checking the
-      record sees a claim is in force. Not a legal filing.
+      record sees a claim is recorded on it. Not a legal filing, and it doesn't stop the same
+      material being pledged elsewhere.
     Lender's guide: [docs/partners/lenders.md](partners/lenders.md).
 
 ## Law and wording
