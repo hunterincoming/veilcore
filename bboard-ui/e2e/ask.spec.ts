@@ -8,7 +8,7 @@
 // ASK_SHOTS=<dir> saves the screens for review (phone, and a computer for the sheet).
 // SPDX-License-Identifier: Apache-2.0
 import { randomBytes } from 'node:crypto';
-import { expect, test, type Page, type Request } from '@playwright/test';
+import { expect, test, type Page, type Request, type WebSocket } from '@playwright/test';
 import {
   REAL_REGISTRY,
   expectNoErrors,
@@ -87,9 +87,13 @@ test('Ask makes no request while it drafts, online or offline, and fills the log
   await shot(page, 'sheet');
   await shot(page, 'sheet', true);
 
+  // Every request from the page, its workers and service workers (the context), and every
+  // WebSocket the page opens.
   const requests: string[] = [];
   const count = (r: Request) => requests.push(r.url());
-  page.on('request', count);
+  const socket = (ws: WebSocket) => requests.push(`websocket ${ws.url()}`);
+  context.on('request', count);
+  page.on('websocket', socket);
   await askFor(page, 'new plant Harbour Mist');
   const card = page.locator('[data-ask-card="draft"]').first();
   await expect(card).toContainText('Opens: Make a record (plant)');
@@ -100,6 +104,9 @@ test('Ask makes no request while it drafts, online or offline, and fills the log
   await expect(page.locator('[data-ask-card="explain"]').last()).toContainText('Pick a word:');
   await page.locator('[data-ask-chip="due"]').first().click();
   await expect(page.locator('[data-ask-card="due"]').last()).toContainText('Nothing is due');
+  await askFor(page, 'find gelato 2025');
+  await expect(page.locator('[data-ask-card="search"]').last()).toBeVisible();
+  await page.locator('[data-ask-card="search"]').last().getByLabel('Search your records').fill('blue dream');
   await page.waitForTimeout(1500);
   expect(requests, requests.join('\n')).toEqual([]);
 
@@ -110,7 +117,8 @@ test('Ask makes no request while it drafts, online or offline, and fills the log
   await page.waitForTimeout(500);
   expect(requests, requests.join('\n')).toEqual([]);
   await context.setOffline(false);
-  page.off('request', count);
+  context.off('request', count);
+  page.off('websocket', socket);
 
   // Open the first draft: the logging screen, filled, with the banner and the field marked.
   await card.getByRole('button', { name: 'Open it' }).click();
@@ -160,7 +168,7 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   await expect(receipt.locator('[data-receipt-public]')).toContainText(
     'A code made from your record’s key (not the record)',
   );
-  await expect(receipt.locator('[data-receipt-public]')).toContainText('A code made from the record’s recovery secret');
+  await expect(receipt.locator('[data-receipt-public]')).toContainText('A code made from your backup secret (not the secret)');
   await expect(receipt.locator('[data-receipt-public]')).toContainText('The date and time it lands on Midnight');
   await expect(receipt.locator('[data-receipt-private]')).toContainText(
     'Genetics and DNA files never leave this device.',
