@@ -76,6 +76,14 @@ export const ONCHAIN_PAYMENTS = !IS_MAINNET;
  */
 export const ROYALTIES_RUN_ON_TEST = false;
 
+/**
+ * Whether royalties v2 has worked on mainnet: the first real royalty report sent, answered and
+ * paid on veilcore.org. Until it has, the home page's veilcore.org cell says licenses go live with
+ * the deploy and royalty statements and payments are built, not live (m.live.lic.mainNext).
+ * Hunter turns it on in a reviewed commit after that first report, never before.
+ */
+export const ROYALTIES_RUN_ON_MAINNET = false;
+
 /** The label agreements carry while AGREEMENTS_LIVE is false. */
 export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';
 
