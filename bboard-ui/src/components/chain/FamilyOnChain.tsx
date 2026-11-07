@@ -17,6 +17,7 @@ import { allRecords, type StrainRecord } from '../../veilcore/records';
 import { chainNotReady } from '../../veilcore/chain/config';
 import { useChainCall } from './useChainCall';
 import { ChainStatusLine } from './ChainStatusLine';
+import { DisclosureReceipt } from './DisclosureReceipt';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const hex = (b: Uint8Array) => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
@@ -185,6 +186,7 @@ export const FamilyOnChain: React.FC<{ record: StrainRecord }> = ({ record }) =>
             </Stack>
           )}
 
+          <DisclosureReceipt circuits={['proposeParent', 'confirmParent', 'withdrawParent']} />
           {family.pendingParent && (
             <Alert
               severity="info"

@@ -53,6 +53,7 @@ import { issuerSteps } from './steps';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { useT } from '../../i18n/app';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 const POLL_MS = 8_000;
 
@@ -399,6 +400,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
                 control={<Checkbox checked={codeChecked} onChange={(e) => setCodeChecked(e.target.checked)} />}
                 label={tr.t('app.lic.real.sameCode')}
               />
+              <DisclosureReceipt circuits={['issueLicense']} />
               <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
                 <Button
                   variant="contained"
@@ -430,6 +432,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
                 label={tr.t('app.lic.real.cancel')}
                 question={tr.t('app.lic.real.cancelQ')}
                 confirmLabel={tr.t('app.lic.real.cancelYes')}
+                receipt={<DisclosureReceipt circuits={['revokeLicense']} dense />}
                 disabled={blocked || call.busy}
                 onConfirm={(r) => void revoke(r, false)}
               />
@@ -533,6 +536,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
             question={tr.t('app.lic.real.revokeQ')}
             confirmLabel={tr.t('app.lic.detail.revokeYes')}
             reason={tr.t('app.lic.real.revokeReason')}
+            receipt={<DisclosureReceipt circuits={['revokeLicense']} dense />}
             disabled={blocked || call.busy}
             onConfirm={(r) => void revoke(r, true)}
           />

@@ -75,6 +75,7 @@ import {
   type Sheet,
 } from '../../veilcore/bulk-import';
 import { useKeyStampQueue } from './useKeyStampQueue';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import { InEnglishNote, rich, useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
 
@@ -1072,6 +1073,9 @@ const KeyStamps: React.FC<{ ids: readonly string[]; heading: string }> = ({ ids,
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }} data-stamps-later="">
             {t('app.import.stamps.notNeeded')}
           </Typography>
+          <Box sx={{ mt: 1 }}>
+            <DisclosureReceipt circuits={['anchor']} dense />
+          </Box>
           <Button variant="outlined" onClick={() => turn(true)} sx={{ mt: 1, minHeight: 44 }}>
             {t('app.import.stamps.startAll')}
           </Button>

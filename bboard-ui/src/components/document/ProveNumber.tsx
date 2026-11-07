@@ -20,6 +20,7 @@ import { slotWords } from './NumbersFields';
 import { keyShort } from '../../veilcore/lab-key-text';
 import { DatingPausedNotice } from '../DatingPausedNotice';
 import { DATING_PAUSED } from '../../veilcore/chain/paused';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 type How = 'at-most' | 'at-least' | 'exactly';
 
@@ -190,6 +191,7 @@ export const ProveNumber: React.FC<{ record: StrainRecord; labSignatureOk?: bool
           <Typography variant="body2" color="text.secondary">
             {t('app.claim.leak')} {t('app.claim.computer')}
           </Typography>
+          <DisclosureReceipt circuits={[how === 'exactly' ? 'proveValue' : 'proveRange']} />
           <DatingPausedNotice on={DATING_PAUSED} />
           <Box>
             <Button

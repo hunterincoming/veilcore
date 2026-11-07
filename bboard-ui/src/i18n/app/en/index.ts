@@ -29,6 +29,7 @@ import { royalties } from './royalties';
 import { document } from './document';
 import { attest } from './attest';
 import { start } from './start';
+import { receipt } from './receipt';
 
 export const appEn = {
   ...common,
@@ -55,6 +56,7 @@ export const appEn = {
   ...document,
   ...attest,
   ...start,
+  ...receipt,
 };
 
 export type AppKey = keyof typeof appEn;

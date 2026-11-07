@@ -38,6 +38,7 @@ import { royalties } from './royalties';
 import { document } from './document';
 import { attest } from './attest';
 import { start } from './start';
+import { receipt } from './receipt';
 
 export const appJa: AppTranslation = {
   ...common,
@@ -64,4 +65,5 @@ export const appJa: AppTranslation = {
   ...document,
   ...attest,
   ...start,
+  ...receipt,
 };

@@ -43,6 +43,7 @@ import { SendLink } from '../chain/ProveWatch';
 import { Wordmark } from '../Wordmark';
 import { rich, useT } from '../../i18n/app';
 import { LanguageBar } from '../../i18n/LanguagePicker';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 const WEEK = 7 * 24 * 60 * 60_000;
 const shortKey = (h: string) => `${h.slice(0, 8)}…${h.slice(-6)}`;
@@ -402,6 +403,7 @@ const HolderAnswer: React.FC<{ req: ProveRequest; token: string; licenses: reado
       <Alert severity="info" variant="outlined" icon={false}>
         <Typography variant="body2">{tr.t('app.lic.proof.learn')}</Typography>
       </Alert>
+      <DisclosureReceipt circuits={['proveLicense']} />
       <Button variant="contained" size="large" fullWidth disabled={call.busy} onClick={() => void prove()}>
         {call.busy ? tr.t('app.lic.proof.proving') : tr.t('app.lic.proof.proveIt')}
       </Button>

@@ -23,6 +23,16 @@ import { rich, useT } from '../../i18n/app';
 import { forKind, type RecordKind } from '../../i18n/translate';
 import type { LicenseTerms } from '../../veilcore/licenses';
 import { currencyOf, offspringOf, ruleText } from '../../veilcore/royalty-terms';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
+import type { ReceiptCircuit } from '../../veilcore/onchain-receipt';
+
+/** The steps each side can send from here, by the obligation's status. */
+const RECEIPT_FOR: Record<string, readonly ReceiptCircuit[]> = {
+  'issuer:none': ['proposeObligation'],
+  'issuer:proposed': ['withdrawObligation'],
+  'issuer:in-force': ['discharge'],
+  'licensee:proposed': ['acceptObligation', 'rejectObligation'],
+};
 
 type Status = 'none' | 'proposed' | 'in-force';
 
@@ -89,6 +99,15 @@ export const OffspringRoyalty: React.FC<{
     return out;
   };
 
+  // What the button below puts on Midnight, by whose turn it is (DisclosureReceipt).
+  const receiptCircuits: readonly ReceiptCircuit[] | undefined =
+    side === 'issuer'
+      ? issuerSecret
+        ? RECEIPT_FOR[`issuer:${status}`]
+        : undefined
+      : myPlant
+        ? RECEIPT_FOR[`licensee:${status}`]
+        : undefined;
   return (
     <Stack spacing={1.25}>
       <Box>
@@ -163,6 +182,7 @@ export const OffspringRoyalty: React.FC<{
         </Typography>
       )}
 
+      {plant && receiptCircuits && <DisclosureReceipt circuits={receiptCircuits} dense />}
       {plant && side === 'issuer' && issuerSecret && status === 'none' && (
         <Button
           variant="contained"
