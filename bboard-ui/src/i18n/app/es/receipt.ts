@@ -42,11 +42,11 @@ export const receipt = {
   'app.receipt.fact.licenseLink': 'Que esta licencia está unida al registro licenciado, y si está vigente',
   'app.receipt.fact.licenseList': 'Que la lista pública de licencias cambió',
   'app.receipt.fact.licenseCount': 'Cuántas licencias tiene este registro',
-  'app.receipt.fact.parentLink': 'Que este registro nombra a aquel como su progenitor',
+  'app.receipt.fact.parentLink': 'Que estos dos registros están unidos como progenitor y descendiente',
   'app.receipt.fact.obligationLink': 'Que esta obligación está unida a ese registro',
   'app.receipt.fact.obligationCount': 'Cuántas obligaciones tiene este registro',
   'app.receipt.stay.genetics': 'La genética y los archivos de ADN nunca salen de este dispositivo.',
   'app.receipt.stay.locked': 'El nombre y las notas van al registro cerrados con su clave. No puede leerlos.',
   'app.receipt.stay.kind':
-    'El registro ve el tipo de registro, su código de prueba y los códigos unidos a él, y los vínculos entre registros (de dónde vino uno, qué lo sustituyó).',
+    'El registro ve el tipo de registro, su código de prueba y los códigos unidos a él, y los vínculos entre registros (de dónde vino uno, qué lo sustituyó). Cuando un registro se corrige, también ve qué campos cambiaron y desde cuándo.',
 } satisfies Partial<AppTranslation>;

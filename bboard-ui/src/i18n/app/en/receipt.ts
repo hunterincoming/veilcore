@@ -41,11 +41,11 @@ export const receipt = {
   'app.receipt.fact.licenseLink': 'That this license is tied to the licensed record, and whether it is live',
   'app.receipt.fact.licenseList': 'That the public license list changed',
   'app.receipt.fact.licenseCount': 'How many licenses this record has',
-  'app.receipt.fact.parentLink': 'That this record names that one as its parent',
+  'app.receipt.fact.parentLink': 'That these two records are linked as parent and child',
   'app.receipt.fact.obligationLink': 'That this obligation is tied to that record',
   'app.receipt.fact.obligationCount': 'How many obligations this record has',
   'app.receipt.stay.genetics': 'Genetics and DNA files never leave this device.',
   'app.receipt.stay.locked': 'Name and notes go to the registry locked with your key. It can’t read them.',
   'app.receipt.stay.kind':
-    'The registry sees the kind of record, its proof code and the codes tied to it, and links between records (where one came from, what replaced it).',
+    'The registry sees the kind of record, its proof code and the codes tied to it, and links between records (where one came from, what replaced it). When a record is corrected, it also sees which fields changed and from when.',
 };

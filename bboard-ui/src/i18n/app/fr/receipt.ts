@@ -43,12 +43,12 @@ export const receipt = {
     'Que cette licence est liée à l’enregistrement sous licence, et si elle est en vigueur',
   'app.receipt.fact.licenseList': 'Que la liste publique des licences a changé',
   'app.receipt.fact.licenseCount': 'Combien de licences a cet enregistrement',
-  'app.receipt.fact.parentLink': 'Que cet enregistrement nomme celui-là comme parent',
+  'app.receipt.fact.parentLink': 'Que ces deux enregistrements sont liés comme parent et descendant',
   'app.receipt.fact.obligationLink': 'Que cette obligation est liée à cet enregistrement',
   'app.receipt.fact.obligationCount': 'Combien d’obligations a cet enregistrement',
   'app.receipt.stay.genetics': 'La génétique et les fichiers ADN ne quittent jamais cet appareil.',
   'app.receipt.stay.locked':
     'Le nom et les notes vont au registre verrouillés avec votre clé. Il ne peut pas les lire.',
   'app.receipt.stay.kind':
-    'Le registre voit le type d’enregistrement, son code de preuve et les codes qui y sont liés, et les liens entre enregistrements (d’où l’un vient, ce qui l’a remplacé).',
+    'Le registre voit le type d’enregistrement, son code de preuve et les codes qui y sont liés, et les liens entre enregistrements (d’où l’un vient, ce qui l’a remplacé). Quand un enregistrement est corrigé, il voit aussi quels champs ont changé et à partir de quand.',
 } satisfies Partial<AppTranslation>;

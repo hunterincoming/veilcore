@@ -44,7 +44,7 @@ from the contract's own `disclose()` calls and ledger writes ([The receipt](#the
 >
 > Name and notes go to the registry locked with your key. It can’t read them.
 >
-> The registry sees the kind of record, its proof code and the codes tied to it, and links between records (where one came from, what replaced it).
+> The registry sees the kind of record, its proof code and the codes tied to it, and links between records (where one came from, what replaced it). When a record is corrected, it also sees which fields changed and from when.
 
 How that is kept true:
 
@@ -108,8 +108,8 @@ the Schnorr module), and the fact the receipt names for it. `onchain-receipt.tes
 
 A step reveals more than its disclosed values: it writes the ledger. The same table lists every
 ledger field each circuit writes, and `LEDGER_FACTS` says what writing each field reveals: which
-step this was and that it ties the codes together (on every receipt), that a record names
-another as its parent, that a license or obligation is tied to a record, that the public license
+step this was and that it ties the codes together (on every receipt), that two records are linked as
+parent and child, that a license or obligation is tied to a record, that the public license
 list changed, and how many licenses, obligations or key moves a record has. The test checks the
 writes against the sources too, and that every ledger field of both contracts has its words.
 

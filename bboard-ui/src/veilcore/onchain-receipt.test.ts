@@ -305,6 +305,11 @@ describe('every step a screen can send has a receipt', () => {
     // Sent beside the sealed box on every row: the name's salted code, the rev, the correction pointer.
     expect(store).toMatch(/\.\.\.publicPart\(item\), \.\.\.nameCodeField\(item\), rev, sealed/);
     expect(kind).toContain('the codes tied to it');
+    // A correction's pointer goes in the clear with which fields changed and from when (publicPart).
+    const part = /export const publicPart = [\s\S]*?\n\};/.exec(store)?.[0] ?? '';
+    for (const f of ['recordId', 'changedFields', 'effectiveAt']) expect(part, f).toContain(f);
+    expect(kind).toContain('what replaced it');
+    expect(kind).toContain('which fields changed and from when');
     expect(kind).toContain('links between records');
     // The name is sealed; the kind (`profile`) is not.
     expect(publicFields).toContain('profile');
