@@ -17,7 +17,7 @@ import {
   topicsCovered,
 } from './shortcuts';
 import { searchRecords } from './search';
-import { dealStateHere, dueCalendar, dueItems, type DealState } from './due';
+import { dealStateHere, dueCalendar, dueItems, licenseCalendar, type DealState } from './due';
 import { ledgerOf, periodRows } from '../veilcore/royalty-ledger';
 import type { DealEntry } from '../veilcore/deal-client';
 import { ASK_ACTIONS, ASK_MAX_CHARS, TOPICS, type AskContext, type AskResult } from './engine';
@@ -372,6 +372,40 @@ describe('What’s due', () => {
       expect(ics).toContain('DTSTART;VALUE=DATE:20261114');
       expect(ics).not.toContain('DTSTART;VALUE=DATE:20260430');
       expect(ics).not.toContain('DTSTART;VALUE=DATE:20260730');
+    });
+
+    it('the license page’s calendar file has the same dates as Ask’s, overdue kept, done gone', () => {
+      const events = (ics: string) =>
+        [...ics.matchAll(/DTSTART;VALUE=DATE:(\d+)\r\nDTEND[^\r]*\r\nSUMMARY:(report|payment)/g)]
+          .map((m) => `${m[2]} ${m[1]}`)
+          .sort();
+      const now = new Date(Date.UTC(2026, 10, 15));
+      const states = [
+        [],
+        [cycle(Q[0], 'fix'), cycle(Q[1], 'accepted')],
+        [...q3done(), cycle(Q[2], 'accepted')],
+        [...q3done(), cycle(Q[2], 'received')],
+      ];
+      for (const entries of states)
+        for (const day of ['2026-02-01', '2026-07-31', '2026-11-14', '2026-11-15', '2027-03-01']) {
+          const ledger = ledgerOf(entries.flat());
+          const page = licenseCalendar(license().terms, ledger, day, (kind) => kind, now);
+          const ask = dueCalendar(
+            dueItems([license()], records, day, 99, () => ({ kind: 'ledger', ledger })),
+            (i) => i.kind,
+            now,
+          );
+          expect(events(page), `${entries.length} ${day}`).toEqual(events(ask));
+        }
+      const page = licenseCalendar(
+        license().terms,
+        ledgerOf([...q3done(), cycle(Q[2], 'accepted')].flat()),
+        '2026-11-15',
+        (kind) => kind,
+        now,
+      );
+      expect(events(page)).toContain('payment 20261114');
+      expect(events(page).some((e) => /20260430|20260515|20260730|20260814/.test(e))).toBe(false);
     });
 
     it('a deal this page hasn’t read: a link to the agreement, never a guess; not in the calendar', () => {

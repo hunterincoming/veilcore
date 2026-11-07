@@ -1,17 +1,17 @@
 // What's due: royalty reports, payments and agreement end dates for the live agreements in
 // this browser. Where this page has read a deal's messages (deal-client.ts dealEntriesReadHere:
 // a license page, the backup), each period's step comes from them, exactly as the license page
-// works it out (royalty-ledger.ts periodRows): a report not sent or sent back to fix, a payment
+// works it out (royalty-ledger.ts dueSteps, from periodRows): a report not sent or sent back to fix, a payment
 // accepted and not made, each overdue from its due date until it is done; nothing once it is.
 // Where it hasn't, the item says to open the agreement, rather than guess. Read here; nothing
 // is sent. The calendar file and the reminder are made here too: the reminder says only how
 // many items are due, never a name, a date or an amount, so it can go to a chat app.
 // SPDX-License-Identifier: Apache-2.0
 
-import type { License } from '../veilcore/licenses';
+import type { License, LicenseTerms } from '../veilcore/licenses';
 import type { StrainRecord } from '../veilcore/records';
-import { ledgerOf, periodRows, upcomingPeriods, type Ledger } from '../veilcore/royalty-ledger';
-import { addDays, periodsOf } from '../veilcore/royalty-periods';
+import { dueSteps, ledgerOf, upcomingPeriods, type Ledger } from '../veilcore/royalty-ledger';
+import { addDays } from '../veilcore/royalty-periods';
 import { dealEntriesReadHere, dealParty } from '../veilcore/deal-client';
 
 export type DueItem = {
@@ -68,25 +68,8 @@ export const dueItems = (
     if (deal.kind === 'unread') {
       if (terms.reporting) out.push({ kind: 'check', date: today, licenseId: l.id, name, overdue: false });
     } else if (deal.kind === 'ledger') {
-      // The license page's own steps (periodRows): due and overdue exactly as it shows them.
-      const rows = periodRows(terms, deal.ledger, today);
-      for (const r of rows) {
-        if ((r.step === 'report' || r.step === 'fix') && r.due) item('report', r.due, r.period, r.overdue > 0);
-        else if (r.step === 'pay' && r.due) item('payment', r.due, r.period, r.overdue > 0);
-        else if (r.step === 'running') {
-          item('report', r.period.reportDue, r.period);
-          item('payment', r.period.paymentDue, r.period);
-        }
-        // 'answer' and 'confirm' wait on a reply, with no date in the terms; 'done' is done.
-      }
-      // Before the first period starts: its dates, as the license page's "next" date.
-      if (terms.reporting && !rows.some((r) => r.step === 'running')) {
-        const next = periodsOf(terms.reporting, terms.startDate, terms.endDate, today).find((p) => p.from > today);
-        if (next) {
-          item('report', next.reportDue, next);
-          item('payment', next.paymentDue, next);
-        }
-      }
+      // The license page's own steps (royalty-ledger.ts dueSteps): due and overdue exactly as it shows them.
+      for (const d of dueSteps(terms, deal.ledger, today)) item(d.kind, d.date, d.period, d.overdue);
     } else {
       for (const p of upcomingPeriods(terms, today).slice(0, 2)) {
         item('report', p.reportDue, p, p.reportDue < today);
@@ -139,3 +122,28 @@ export const dueCalendar = (items: readonly DueItem[], what: (i: DueItem) => str
     '',
   ].join('\r\n');
 };
+
+/**
+ * The license page's calendar file: the same due list as What's due for that license
+ * (dueSteps), so the two files agree, worded by `words`.
+ */
+export const licenseCalendar = (
+  terms: LicenseTerms,
+  ledger: Ledger,
+  today: string,
+  words: (kind: 'report' | 'payment', period: { from: string; to: string }) => string,
+  now = new Date(),
+): string =>
+  dueCalendar(
+    dueSteps(terms, ledger, today).map((d) => ({
+      kind: d.kind,
+      date: d.date,
+      licenseId: `royalty-${(terms.startDate || 'x').replace(/-/g, '')}`,
+      name: '',
+      from: d.period.from,
+      to: d.period.to,
+      overdue: d.overdue,
+    })),
+    (i) => words(i.kind as 'report' | 'payment', { from: i.from!, to: i.to! }),
+    now,
+  );
