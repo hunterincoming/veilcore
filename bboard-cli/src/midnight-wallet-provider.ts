@@ -181,6 +181,9 @@ export class MidnightWalletProvider implements MidnightProvider, WalletProvider 
     options: { confirmFreshSync?: () => Promise<boolean> } = {},
   ): Promise<MidnightWalletProvider> {
     const { seed, mnemonic } = source;
+    // Margins only. Wallet SDK 2 prices every fee with the ledger parameters of the latest block it
+    // has synced (dust wallet `blockData.ledgerParameters`), so after Midnight's Ledger 9 fork it
+    // charges the chain's own prices (min block price 10); `ledgerParams` here is not read for that.
     const dustOptions: DustWalletOptions = {
       ledgerParams: LedgerParameters.initialParameters(),
       additionalFeeOverhead: env.walletNetworkId === 'undeployed' ? 500_000_000_000_000_000n : 1_000n,

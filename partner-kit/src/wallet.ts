@@ -212,6 +212,9 @@ export class SeedWallet implements WalletProvider, MidnightProvider {
       unshielded: deriveRole(master, Roles.NightExternal),
       dust: deriveRole(master, Roles.Dust),
     };
+    // Margins only. Wallet SDK 2 prices every fee with the ledger parameters of the latest block it
+    // has synced (dust wallet `blockData.ledgerParameters`), so after Midnight's Ledger 9 fork it
+    // charges the chain's own prices (min block price 10); `ledgerParams` here is not read for that.
     const dustOptions = {
       ledgerParams: LedgerParameters.initialParameters(),
       additionalFeeOverhead: o.network === 'undeployed' ? 500_000_000_000_000_000n : 1_000n,

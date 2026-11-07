@@ -7,12 +7,18 @@
 // Each problem is a short code, never the job's own words, a balance or a token: the address
 // is public, and the codes tell an outsider no more than the public status already does
 // (accepting, synced, alert), except that fuel is low.
+//
+// `fork-mismatch`: the wallet's fork schedule, midnight-js and the contract state the indexer
+// serves do not name the same side of Midnight's Ledger 9 fork (fork.ts), so fee payments
+// would be built for the wrong ledger and fail. The log line "fork check" says which part.
 // SPDX-License-Identifier: Apache-2.0
 
 /** The codes, in the order they're checked. */
-export type AlertCode = 'anchoring-failing' | 'sync-stalled' | 'not-synced' | 'fuel-low';
+export type AlertCode = 'fork-mismatch' | 'anchoring-failing' | 'sync-stalled' | 'not-synced' | 'fuel-low';
 
 export type AlertInput = {
+  /** The last fork check found the wallet, midnight-js and the chain disagreeing (fork.ts). */
+  readonly forkMismatch?: boolean;
   /** The anchoring job has failed three runs in a row (anchorer.ts). Undefined: no anchoring job. */
   readonly anchoringFailing: boolean | undefined;
   /** The wallet sync has applied nothing for 30 minutes (wallet.ts checkStall). */
@@ -32,6 +38,7 @@ export type AlertInput = {
 /** What needs attention now; empty when all is well. */
 export const alertsOf = (i: AlertInput): AlertCode[] => {
   const out: AlertCode[] = [];
+  if (i.forkMismatch === true) out.push('fork-mismatch');
   if (i.anchoringFailing === true) out.push('anchoring-failing');
   if (i.syncStalled) out.push('sync-stalled');
   if (!i.synced && i.now - i.startedAt > i.syncGraceMs) out.push('not-synced');
