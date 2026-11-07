@@ -17,7 +17,8 @@
 
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { stat } from 'node:fs/promises';
+import { lstat, realpath } from 'node:fs/promises';
+import path from 'node:path';
 import { acceptable, checkRecord, type CheckOptions } from '../../record-check/src/check.js';
 
 export const DEFAULT_ORIGIN = 'https://veilcore.org';
@@ -26,6 +27,10 @@ export const MAX_BATCH = 500;
 /** The largest file check_document reads. */
 export const MAX_FILE_BYTES = 1024 * 1024 * 1024;
 export const DOCUMENT_PROFILE = 'veilcore/profile/document/v1';
+/** The most files a document link may list (a document record has a handful). */
+export const MAX_DOCUMENT_FILES = 20;
+/** Never read: the kernel's and devices' pseudo-files, whatever size they report. */
+const SYSTEM_DIRS = ['/proc', '/sys', '/dev'];
 
 const KINDS = ['plant', 'animal', 'strain'] as const;
 const PRESETS = ['record', 'cross', 'clones', 'offspring'] as const;
@@ -38,6 +43,8 @@ export type ToolContext = {
   readonly origin?: string;
   readonly registry?: string;
   readonly fetch?: CheckOptions['fetch'];
+  /** When set (VEILCORE_MCP_ROOT), check_document reads only files inside this folder. */
+  readonly root?: string;
 };
 
 export type ToolDefinition = {
@@ -164,22 +171,44 @@ export const documentFilesOf = (link: string): DocumentFile[] => {
       Number.isInteger((f as DocumentFile).size),
   );
   if (!out.length) throw new ToolInputError('That document record names no files.');
+  if (files.length > MAX_DOCUMENT_FILES) throw new ToolInputError('That document link lists too many files.');
   return out;
 };
 
-/** SHA-256 of a file on this computer, read as a stream; refuses what isn't a file or is too large. */
-export const fileSha256 = async (path: string): Promise<{ sha256: string; size: number }> => {
-  const s = await stat(path).catch(() => undefined);
-  if (!s?.isFile()) throw new ToolInputError('No file at that path.');
-  if (s.size > MAX_FILE_BYTES) throw new ToolInputError('That file is too large to check here.');
+const inside = (dir: string, p: string) => p === dir || p.startsWith(dir.endsWith(path.sep) ? dir : dir + path.sep);
+
+/**
+ * SHA-256 of a file on this computer, read as a stream. Refuses a symbolic link, anything that
+ * isn't a plain file, the system's pseudo-files (/proc, /sys, /dev), anything outside `root`
+ * when one is set, and more than MAX_FILE_BYTES however large the file says it is.
+ */
+export const fileSha256 = async (file: string, root?: string): Promise<{ sha256: string; size: number }> => {
+  const abs = path.resolve(file);
+  const l = await lstat(abs).catch(() => undefined);
+  if (!l) throw new ToolInputError('No file at that path.');
+  if (l.isSymbolicLink()) throw new ToolInputError('That path is a link to another file: give the file itself.');
+  if (!l.isFile()) throw new ToolInputError('No file at that path.');
+  const real = await realpath(abs);
+  if (SYSTEM_DIRS.some((d) => inside(d, real))) throw new ToolInputError('That is a system file, not a document.');
+  if (root) {
+    const r = await realpath(path.resolve(root)).catch(() => undefined);
+    if (!r || !inside(r, real)) throw new ToolInputError('That file is outside the folder this server may read.');
+  }
+  if (l.size > MAX_FILE_BYTES) throw new ToolInputError('That file is too large to check here.');
   const h = createHash('sha256');
-  await new Promise<void>((resolve, reject) =>
-    createReadStream(path)
-      .on('data', (c) => h.update(c))
+  let size = 0;
+  await new Promise<void>((resolve, reject) => {
+    const stream = createReadStream(real);
+    stream
+      .on('data', (c: Buffer) => {
+        size += c.length;
+        if (size > MAX_FILE_BYTES) stream.destroy(new ToolInputError('That file is too large to check here.'));
+        else h.update(c);
+      })
       .on('end', () => resolve())
-      .on('error', reject),
-  );
-  return { sha256: h.digest('hex'), size: s.size };
+      .on('error', reject);
+  });
+  return { sha256: h.digest('hex'), size };
 };
 
 // ---- the calls ----
@@ -199,7 +228,7 @@ export const callTool = async (
     }
     case 'check_document': {
       const files = documentFilesOf(str(args, 'link'));
-      const mine = await fileSha256(str(args, 'path', 4096));
+      const mine = await fileSha256(str(args, 'path', 4096), ctx.root);
       // Yes or no only: never the file's hash, name or size, nor the record's files.
       return { match: files.some((f) => f.sha256 === mine.sha256 && f.size === mine.size) };
     }

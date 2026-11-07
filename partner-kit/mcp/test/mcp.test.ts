@@ -5,13 +5,13 @@
 /* eslint-disable @typescript-eslint/require-await -- the stand-ins replace fetch */
 import { createHash } from 'node:crypto';
 import { spawn, execFileSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { PROTOCOL_VERSIONS, handle, handleLine, type Response } from '../src/server';
-import { DOCUMENT_PROFILE, MAX_BATCH, TOOLS, draftLink } from '../src/tools';
+import { DOCUMENT_PROFILE, MAX_BATCH, MAX_DOCUMENT_FILES, TOOLS, draftLink } from '../src/tools';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const call = (name: string, args: Record<string, unknown>, ctx = {}) =>
@@ -107,6 +107,39 @@ describe('check_document', () => {
     expect(no.structuredContent).toEqual({ match: false });
     // The answer carries no hash, name or size.
     expect(yes.content[0].text).toBe('{"match":true}');
+  });
+
+  it('refuses links to other files, system pseudo-files, and files outside the allowed folder', async () => {
+    const link2 = path.join(dir, 'link.pdf');
+    symlinkSync(sealedFile, link2);
+    const viaLink = resultOf(await call('check_document', { link: doc, path: link2 }));
+    expect(viaLink.isError).toBe(true);
+    expect(viaLink.content[0].text).toMatch(/link to another file/);
+    for (const p of ['/proc/self/status', '/proc/self/environ', '/dev/null', '/sys/kernel/mm'])
+      expect(resultOf(await call('check_document', { link: doc, path: p })).isError, p).toBe(true);
+    const elsewhere = mkdtempSync(path.join(tmpdir(), 'veilcore-mcp-root-'));
+    const outside = resultOf(await call('check_document', { link: doc, path: sealedFile }, { root: elsewhere }));
+    expect(outside.isError).toBe(true);
+    expect(outside.content[0].text).toMatch(/outside the folder/);
+    const insideRoot = resultOf(await call('check_document', { link: doc, path: sealedFile }, { root: dir }));
+    expect(insideRoot.structuredContent).toEqual({ match: true });
+    // Relative paths that climb out of the root are judged where they land.
+    const climb = path.relative(process.cwd(), path.join(elsewhere, '..', path.basename(dir), 'permit.pdf'));
+    expect(resultOf(await call('check_document', { link: doc, path: climb }, { root: elsewhere })).isError).toBe(true);
+  });
+
+  it('refuses a link listing more than a document has', async () => {
+    const many = link({
+      profile: DOCUMENT_PROFILE,
+      files: Array.from({ length: MAX_DOCUMENT_FILES + 1 }, (_, i) => ({
+        name: `f${i}`,
+        sha256: sha(String(i)),
+        size: 1,
+      })),
+    });
+    const r = resultOf(await call('check_document', { link: many, path: sealedFile }));
+    expect(r.isError).toBe(true);
+    expect(r.content[0].text).toMatch(/too many files/);
   });
 
   it('refuses a link that is not a document’s, and a path that is not a file', async () => {
