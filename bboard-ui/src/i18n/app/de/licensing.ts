@@ -153,6 +153,7 @@ export const licensing = {
   'app.lic.basis.per-dose': 'pro Dosis',
   'app.lic.basis.per-offspring': 'pro Nachkomme',
   'app.lic.basis.per-batch': 'pro Charge',
+  'app.lic.builder.loading': 'Ihre Datensätze werden geladen…',
   'app.lic.builder.notHere':
     'Dieser Datensatz ist nicht in diesem Browser, daher kann hier keine Vereinbarung an ihn angehängt werden.',
   'app.lic.builder.records': 'Ihre Datensätze',

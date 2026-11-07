@@ -381,6 +381,12 @@ export const RECORDS_KEY = 'veilcore.records.v1';
 
 let records: StrainRecord[] = [];
 const listeners = new Set<() => void>();
+/**
+ * Whether a load from the registry has finished once on this page (with records or without,
+ * or failed). A page opened straight on a record's address waits for it before saying the
+ * record isn't in this browser (final review, L1).
+ */
+let loadedOnce = false;
 
 const notify = () => listeners.forEach((l) => l());
 
@@ -508,10 +514,10 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
   } catch {
     // The registry could not answer now: keep what is shown, try again at the next sync. A
     // first load still shows what this browser keeps for the registry (outbox.ts).
-    if (before.length === 0) {
-      records = Object.values(outboxRecords()).filter(isStrainRecord);
-      if (records.length) notify();
-    }
+    const first = !loadedOnce;
+    loadedOnce = true;
+    if (before.length === 0) records = Object.values(outboxRecords()).filter(isStrainRecord);
+    if (first || (before.length === 0 && records.length)) notify();
     return;
   }
   // A record's secrets sealed with it (round 4, F5): kept here when this browser has none for
@@ -540,6 +546,7 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
   // A record sealed before round 5 whose name is still in the clear on the registry
   // (CONTRACT.md #28): saved again, with the name inside the box only.
   const nameFix = (loadNoticeOf(RECORDS_KEY).nameInClear ?? 0) > 0;
+  loadedOnce = true;
   notify();
   // Sent again with the next save; not straight after a refusal (saveAll reads the set back
   // with resave off), so a registry that keeps refusing is asked once per sync, not in a loop.
@@ -1416,6 +1423,7 @@ export const startOver = (): void => {
   clearSealedState();
   converted.clear();
   syncedOnce = false;
+  loadedOnce = false;
   vaultProblem = undefined;
   refreshSealedView();
 };
@@ -1439,6 +1447,12 @@ const subscribe = (l: () => void): (() => void) => {
 };
 
 export const useRecords = (): StrainRecord[] => useSyncExternalStore(subscribe, () => records);
+
+/** Whether the records have finished loading once on this page (see loadedOnce). */
+export const recordsLoadedOnce = (): boolean => loadedOnce;
+
+/** recordsLoadedOnce, for a component: re-renders when the first load finishes. */
+export const useRecordsLoaded = (): boolean => useSyncExternalStore(subscribe, () => loadedOnce);
 
 /** What useSealedView gives, outside a component. */
 export const sealedViewNow = (): SealedView => sealedView;

@@ -425,6 +425,12 @@ describe("what's live where", () => {
     expect(mainnetNoRelay['m.live.chain.main']).toBe('Not yet: needs our read-only relay.');
     expect(mainnetRelay['m.live.chain.main']).toBe('Yes.');
     expect(e['m.live.lic.test']).toMatch(/^Yes, with real transactions/);
+    // Nothing is called live on veilcore.org until it has worked there: only veilcore.org's
+    // own build (licenses on, mainnet sponsor live) says "Yes"; the test site never does.
+    expect(home).toMatch(/const LICENSES_ON_SITE = THIS_BUILD\.agreementsLive === true && MAINNET_SENDS;/);
+    expect(home).toMatch(/LICENSES_ON_SITE\s*\?\s*'m\.live\.lic\.live'\s*:\s*'m\.live\.lic\.next'/);
+    expect(e['m.live.lic.next']).not.toMatch(/^Yes/);
+    expect(e['m.live.lic.next']).toMatch(/next veilcore\.org deploy/);
     expect(e['m.live.dna.main']).toMatch(/not dated/);
     // Lab reports are on on veilcore.org and the test site alike (LAB_RESULTS_ENABLED, 16 Oct).
     expect(rows.find((r) => r.row === 'results')?.has).toEqual([labResultsEnabledFor('mainnet'), true, false]);

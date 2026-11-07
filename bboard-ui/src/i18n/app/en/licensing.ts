@@ -154,6 +154,7 @@ export const licensing = {
   'app.lic.basis.per-dose': 'per dose',
   'app.lic.basis.per-offspring': 'per offspring',
   'app.lic.basis.per-batch': 'per batch',
+  'app.lic.builder.loading': 'Loading your records…',
   'app.lic.builder.notHere': 'This record isn’t in this browser, so no agreement can be attached to it here.',
   'app.lic.builder.records': 'Your records',
   'app.lic.builder.renewHeading': 'Renew or amend: {type}',

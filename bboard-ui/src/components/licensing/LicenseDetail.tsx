@@ -60,9 +60,12 @@ const TermsSummary: React.FC<{ l: License; tr: Translator }> = ({ l, tr }) => (
   </Stack>
 );
 
+// The label keeps its own width (up to under half the row) and the value wraps: with the
+// app's overflow-wrap: anywhere (App.tsx), a long value used to squeeze the label until it
+// broke mid-word on a phone, "Repor / ts" (final review, L2).
 const Row: React.FC<{ k: string; v: string }> = ({ k, v }) => (
   <Stack direction="row" spacing={2} sx={{ justifyContent: 'space-between' }}>
-    <Typography variant="body2" color="text.secondary">
+    <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0, maxWidth: '45%' }}>
       {k}
     </Typography>
     <Typography variant="body2" sx={{ textAlign: 'right' }}>
