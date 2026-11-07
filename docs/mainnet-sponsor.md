@@ -58,6 +58,7 @@ TRUST_PROXY_HOPS=1
 MAX_FEE_DUST=5
 DAILY_BUDGET_DUST=25
 LIMIT_PER_NETWORK_DAY=30
+LIMIT_PER_NETWORK_HOUR=15
 SPONSOR_STATUS_TOKEN=<64 random characters: run `openssl rand -hex 32` on your Mac>
 REGISTRY_URL=https://veilcore-api-production.up.railway.app
 REGISTRY_OPERATOR_TOKEN=${{veilcore-api.VEILCORE_OPERATOR_TOKEN}}
