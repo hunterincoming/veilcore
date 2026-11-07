@@ -140,23 +140,61 @@ show up too.
 
 Mainnet moved to Ledger 9. The `ledger-9` branch moves the site, sponsor and tools to
 midnight-js 5, which calls VeilCore's unchanged Ledger 8 contract on either ledger. A proof
-server serves one ledger, so the mainnet sponsor needs a 9.0.0 one. In this order (registry,
-then sponsor, then site):
+server serves one ledger, so the mainnet sponsor needs a 9.0.0 one.
 
-1. **Registry**: nothing in this repo. If `veilcore-api` calls Midnight itself, it needs the
-   same upgrade in its own repo first.
-2. **Proof server**: Railway → New → Docker Image → `midnightntwrk/proof-server:9.0.0`, start
-   command `midnight-proof-server -v`, name it `proof-server-ledger9`, no public domain. Leave
-   `proof-server` (8.1.3) as it is: preprod still uses it.
-3. **Sponsor**: `npm run stage -w sponsor`, then
-   `railway up "<stage folder>" --path-as-root --service veilcore-sponsor-mainnet`. When that
-   deploy is up, change its variable `PROOF_SERVER_URL` to
-   `http://proof-server-ledger9.railway.internal:6300` and deploy again (a Restart does not
-   apply variables). Wait until `/sponsor/status` says `"synced": true`.
-4. **Site**: `VITE_INDEXER_RELAY_URL=<relay>/indexer VEILCORE_MAINNET_SPONSOR=<sponsor> npm run deploy:mainnet`,
-   then commit `releases/` ("Release list: mainnet") and push.
+**What the chain side needs.** Midnight's support matrix for Ledger 9 mainnet names indexer
+**4.4.101, re-indexed from genesis** (not 4.4.0-rc.6). VeilCore runs no indexer: the sponsor
+and the relay read Blockfrost's. Before step 8, make sure Blockfrost serves 4.4.101 (their
+status page or support); step 7 shows it answers on Ledger 9.
 
-If dating does not work after that, the site can say so: add `VITE_DATING_PAUSED=true` in
-front of the step 4 command and deploy. It shows "Dating on Midnight is paused for Midnight's
-network upgrade. Your records are saved and will be dated when it's back." in all five
-languages. Deploy again without it to take it down.
+Do these in order. Each says how you know it worked.
+
+1. **Merge.** Merge the `ledger-9` pull request once CI is green.
+2. **Your Mac.** In the repository folder: `git checkout main`, `git pull`, then `npm ci`
+   (Node 24 and npm 11.6.2: `node -v` and `npm -v` say so).
+3. **Proof server.** Railway → VeilCore project → New → Docker Image →
+   `midnightntwrk/proof-server:9.0.0`. Start command `midnight-proof-server -v`, name it
+   `proof-server-ledger9`, no public domain. When it is up, write down the image digest Railway
+   shows for the deploy (`sha256:…`), check it against Midnight's signed release manifest, and
+   send it so it is recorded in the repo. Leave `proof-server` (8.1.3) alone: preprod uses it.
+4. **Point the sponsor at it, BEFORE the new code.** `veilcore-sponsor-mainnet` → Variables:
+   `PROOF_SERVER_URL=http://proof-server-ledger9.railway.internal:6300`. The running code
+   accepts any http address, so this is safe to do first.
+5. **Deploy the sponsor.** `npm run stage -w sponsor`, then
+   `railway up "<stage folder>" --path-as-root --service veilcore-sponsor-mainnet` (the stage
+   step prints a line for the TEST service: don't use it). The first start sets aside the
+   wallet sync progress saved before the fork and syncs from the start; that can take an hour.
+6. **Wait until synced.** `https://<sponsor>/sponsor/status` shows `"synced": true` and
+   `"fork": {"protocolVersion": …, "ledger": "v9", "agree": true}`. `/sponsor/alerts` must not
+   show `fork-mismatch` (the wallet would pay for the wrong ledger; send the log line
+   "fork check").
+7. **Relay liveness.** `curl -s https://<relay>/health` says `"ok":true`, and
+
+   ```
+   curl -s -X POST https://<relay>/indexer -H 'content-type: application/json' \
+     -H 'origin: https://veilcore.org' -d '{"query":"{ block { height protocolVersion } }"}'
+   ```
+
+   answers with a recent block and a `protocolVersion` of 2000000 or more.
+8. **Site, paused first.**
+   `VITE_DATING_PAUSED=true VITE_INDEXER_RELAY_URL=<relay>/indexer VEILCORE_MAINNET_SPONSOR=<sponsor> npm run deploy:mainnet`.
+   Visitors see "Dating on Midnight is paused…" in their language, and the dating, stamp and
+   proof buttons are off while you check the next step.
+9. **One real call.** Let the sponsor's anchoring job date a batch: its log line
+   `anchoring: recorded` with a block height means the call finished `SucceedEntirely`. With
+   the operator token, `/sponsor/status` shows `lastFeeSpecks` (per circuit, for visitors'
+   calls) next to `maxFeeSpecks`, and the anchoring log shows `paidFeesSpecks`: each must be at
+   or under the cap (10^15 SPECKs = 1 DUST).
+10. **Site, live.** The step 8 command without `VITE_DATING_PAUSED=true`.
+11. **Commit the release list.** `git add releases && git commit -m "Release list: mainnet"`,
+    then push.
+
+**Fees after the fork.** Ledger 9 sets a minimum block price of 10. Midnight's starting
+parameters for both ledgers already price a full block at 10, and wallet SDK 2 charges the
+chain's current prices (the latest synced block's parameters), so the sponsor's fees follow
+the chain. Worked out offline at those prices for the real contract's calls (proof bytes left
+out; they add a little block usage): `anchor` about 0.43 DUST (0.54 with the 5-block margin
+the wallet adds), `proveOwnership` about 0.20 DUST (0.25 with the margin), the same on either
+ledger. That is about a tenth of `MAX_FEE_DUST=5`, so no new cap is proposed. If step 9 shows
+a fee over 2.5 DUST, the chain's price has climbed well above the floor: raise `MAX_FEE_DUST`
+to twice the fee seen, and `DAILY_BUDGET_DUST` to match, rather than refusing visitors.
