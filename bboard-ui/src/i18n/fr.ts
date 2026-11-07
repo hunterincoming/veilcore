@@ -308,6 +308,9 @@ export const fr: Strings = {
   'm.live.lic.main': 'Désactivé jusqu’à un dernier essai complet.',
   'm.live.lic.test': 'Oui, avec de vraies transactions : redevances, paiements, transmission d’une licence.',
   'm.live.lic.not': 'Sur veilcore.org, après un dernier essai complet.',
+  // The veilcore.org cell until royalties v2 has worked on mainnet (config/copy.ts ROYALTIES_RUN_ON_MAINNET).
+  'm.live.lic.mainNext':
+    'Les licences sont mises en service avec le déploiement qui les active, une fois qu’une vraie licence aura fonctionné de bout en bout sur le réseau principal. Relevés de redevances et paiements : construits, pas encore en service.',
   // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
   'm.live.lic.testNext':
     'Oui pour les licences, avec de vraies transactions. Relevés de redevances et paiements : construits, et en service ici une fois qu’ils auront fonctionné de bout en bout sur ce réseau.',
