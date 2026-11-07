@@ -20,9 +20,9 @@ export type ReceiptFact =
   | 'issuerRecord'
   | 'challenge'
   | 'dnaReport'
-  | 'licence'
-  | 'newLicence'
-  | 'licenceEntry'
+  | 'license'
+  | 'newLicense'
+  | 'licenseEntry'
   | 'slot'
   | 'presentation'
   | 'listVersion'
@@ -76,24 +76,24 @@ export const RECEIPTS = {
     screen: false,
     disclosed: { recordCommitment: 'yourRecord', newRecoveryCommitment: 'recovery' },
   },
-  // ---- licences ----
+  // ---- licenses ----
   issueLicense: {
     contract: 'veilcore',
     screen: true,
-    disclosed: { [SELF]: 'yourRecord', licenseCommitment: 'licence' },
+    disclosed: { [SELF]: 'yourRecord', licenseCommitment: 'license' },
   },
   countersignLicense: {
     contract: 'veilcore',
     screen: true,
-    disclosed: { recordCommitment: 'issuerRecord', 'licenseKey(lc, rc)': 'licenceEntry', slot: 'slot', lc: 'licence' },
+    disclosed: { recordCommitment: 'issuerRecord', 'licenseKey(lc, rc)': 'licenseEntry', slot: 'slot', lc: 'license' },
   },
   proposeTransfer: {
     contract: 'veilcore',
     screen: true,
     disclosed: {
       recordCommitment: 'issuerRecord',
-      'licenseKey(licenseCommit(licenseSecret(), rc), rc)': 'licenceEntry',
-      newLicenseCommitment: 'newLicence',
+      'licenseKey(licenseCommit(licenseSecret(), rc), rc)': 'licenseEntry',
+      newLicenseCommitment: 'newLicense',
     },
   },
   approveTransfer: {
@@ -102,8 +102,8 @@ export const RECEIPTS = {
     disclosed: {
       [SELF]: 'yourRecord',
       issuingRecord: 'issuerRecord',
-      licenseCommitment: 'licence',
-      expectedNewLicense: 'newLicence',
+      licenseCommitment: 'license',
+      expectedNewLicense: 'newLicense',
     },
   },
   withdrawTransfer: {
@@ -111,13 +111,13 @@ export const RECEIPTS = {
     screen: true,
     disclosed: {
       recordCommitment: 'issuerRecord',
-      'licenseKey(licenseCommit(licenseSecret(), rc), rc)': 'licenceEntry',
+      'licenseKey(licenseCommit(licenseSecret(), rc), rc)': 'licenseEntry',
     },
   },
   revokeLicense: {
     contract: 'veilcore',
     screen: true,
-    disclosed: { [SELF]: 'yourRecord', issuingRecord: 'issuerRecord', licenseCommitment: 'licence' },
+    disclosed: { [SELF]: 'yourRecord', issuingRecord: 'issuerRecord', licenseCommitment: 'license' },
   },
   sealRevocations: { contract: 'veilcore', screen: false, disclosed: { bound: 'timeLimit' } },
   proveLicense: {

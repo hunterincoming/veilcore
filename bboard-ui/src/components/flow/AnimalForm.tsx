@@ -31,6 +31,7 @@ import { useT, rich, type Translator } from '../../i18n/app';
 import { animalMissing, animalSealInputOf, type AnimalDraft, type LogKind, type ParentDraft } from './animal-draft';
 import { draftSizeShare, sizeWords } from '../../veilcore/records';
 import type { AppKey } from '../../i18n/app/en';
+import { useAskMark } from '../ask/AskFill';
 
 /** "What are you logging?": a plant, an animal, or (where offered) a strain or line. Radio semantics, one press. */
 export const KindChoice: React.FC<{
@@ -94,6 +95,7 @@ const ParentFields: React.FC<{
 }> = ({ role, value, options, onChange }) => {
   const tr = useT();
   const { t } = tr;
+  const mark = useAskMark();
   const linked = value.recordId ? options.find((o) => o.recordId === value.recordId) : undefined;
   return (
     <Stack spacing={1.5} data-parent-role={role}>
@@ -114,6 +116,7 @@ const ParentFields: React.FC<{
         renderInput={(params) => (
           <TextField
             {...params}
+            {...mark(role)}
             label={t(role === 'sire' ? 'app.animal.sire' : 'app.animal.dam')}
             helperText={options.length ? t('app.animal.parentHelp') : t('app.animal.parentHelpNone')}
           />
@@ -178,6 +181,7 @@ export const AnimalForm: React.FC<{
 }> = ({ step, choice, draft, setDraft, restored, onStartOver, sireOptions, damOptions, onNext }) => {
   const tr = useT();
   const { t, tp } = tr;
+  const mark = useAskMark();
   // How full the record would be (CONTRACT.md #21): said only near the limit.
   const share = draftSizeShare({ ...animalSealInputOf(draft) });
   const set = <K extends keyof AnimalDraft>(k: K, v: AnimalDraft[K]) => setDraft({ ...draft, [k]: v });
@@ -239,6 +243,7 @@ export const AnimalForm: React.FC<{
         </Stack>
       )}
       <TextField
+        {...mark('name')}
         label={t('app.animal.nameField')}
         placeholder={t('app.animal.namePlaceholder')}
         helperText={t('app.log.nameHelp')}

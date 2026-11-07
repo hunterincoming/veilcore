@@ -31,6 +31,7 @@ import { document } from './document';
 import { attest } from './attest';
 import { start } from './start';
 import { receipt } from './receipt';
+import { ask } from './ask';
 
 export const appDe: AppTranslation = {
   ...common,
@@ -58,4 +59,5 @@ export const appDe: AppTranslation = {
   ...attest,
   ...start,
   ...receipt,
+  ...ask,
 };

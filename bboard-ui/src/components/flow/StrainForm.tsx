@@ -16,6 +16,7 @@ import { STRAIN_GROUPS, type StrainGroup } from '../../veilcore/strain-profile';
 import { depositsOf, strainMissing, strainSealInputOf, type StrainDraft, type StrainParentDraft } from './strain-draft';
 import { draftSizeShare, sizeWords } from '../../veilcore/records';
 import type { AppKey } from '../../i18n/app/en';
+import { useAskMark } from '../ask/AskFill';
 
 export type StrainParentOption = { recordId: string; name: string; deposit: string };
 
@@ -98,6 +99,7 @@ export const StrainForm: React.FC<{
 }> = ({ step, choice, draft, setDraft, restored, onStartOver, parentOptions, onNext }) => {
   const tr = useT();
   const { t } = tr;
+  const mark = useAskMark();
   const share = draftSizeShare({ ...strainSealInputOf(draft) });
   const set = <K extends keyof StrainDraft>(k: K, v: StrainDraft[K]) => setDraft({ ...draft, [k]: v });
   const hasMore = Boolean(
@@ -145,6 +147,7 @@ export const StrainForm: React.FC<{
         </Stack>
       )}
       <TextField
+        {...mark('name')}
         label={t('app.strain.nameField')}
         placeholder={t('app.strain.namePlaceholder')}
         helperText={t('app.log.nameHelp')}
