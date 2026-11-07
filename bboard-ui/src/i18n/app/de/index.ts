@@ -26,6 +26,7 @@ import { prove } from './prove';
 import { sealed } from './sealed';
 import { verify } from './verify';
 import { licensing } from './licensing';
+import { royalties } from './royalties';
 import { document } from './document';
 import { attest } from './attest';
 import { start } from './start';
@@ -51,6 +52,7 @@ export const appDe: AppTranslation = {
   ...sealed,
   ...dating,
   ...licensing,
+  ...royalties,
   ...document,
   ...attest,
   ...start,

@@ -249,7 +249,7 @@ export const animal = {
     'Le numéro d’identification de l’animal, ou l’endroit où l’échantillon a été prélevé.',
   'app.animal.v.app.lic.row.offspringValue': '{pct} %, sur les descendants déclarés de cet animal',
   'app.animal.v.app.lic.f.offspringHelp':
-    'S’applique aux descendants déclarés à partir de cet enregistrement (enregistrés avec lui comme père ou mère, confirmés par les deux détenteurs). Une descendance que personne n’enregistre n’est pas détectée. Laissez vide s’il n’y en a pas.',
+    'Ne compte que les descendants enregistrés dans VeilCore avec cet animal comme père ou mère. Laissez vide s’il n’y en a pas.',
   'app.animal.v.app.lic.f.extraHelpDeal':
     'Tout ce qui fait aussi partie de l’accord, avec vos propres mots. Par exemple : au plus deux portées ou vêlages, pas de revente des paillettes, descendants inscrits auprès d’une association de race nommée.',
   'app.animal.v.app.lic.detail.thisCultivar': 'cet animal',

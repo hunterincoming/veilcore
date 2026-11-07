@@ -21,6 +21,8 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import { ConfirmInline } from './DealSteps';
 import { rich, useT } from '../../i18n/app';
 import { forKind, type RecordKind } from '../../i18n/translate';
+import type { LicenseTerms } from '../../veilcore/licenses';
+import { currencyOf, offspringOf, ruleText } from '../../veilcore/royalty-terms';
 
 type Status = 'none' | 'proposed' | 'in-force';
 
@@ -37,7 +39,8 @@ export const OffspringRoyalty: React.FC<{
   party: DealParty;
   entries: readonly DealEntry[] | undefined;
   refresh: () => void;
-  pct: string;
+  /** The agreement's terms: the royalty on offspring is worded from them. */
+  terms: LicenseTerms;
   /** The agreement's fingerprint: the obligation itself. */
   obligation: string;
   /** The breeder's record identity: the beneficiary. */
@@ -46,8 +49,10 @@ export const OffspringRoyalty: React.FC<{
   issuerSecret?: string;
   /** What the licensed record is about (the terms' subject), for its words. */
   kind?: RecordKind;
-}> = ({ side, party, entries, refresh, pct, obligation, beneficiary, issuerSecret, kind = 'plant' }) => {
+}> = ({ side, party, entries, refresh, terms, obligation, beneficiary, issuerSecret, kind = 'plant' }) => {
   const tr = forKind(useT(), kind);
+  const rule = offspringOf(terms)?.rule;
+  const pct = rule ? ruleText(rule, currencyOf(terms), tr) : '';
   const allKeys = useRecordKeys();
   const plant = [...(entries ?? [])].reverse().find((e) => e.type === 'plant-record' && e.from === 'licensee') as
     | Extract<DealEntry, { type: 'plant-record' }>

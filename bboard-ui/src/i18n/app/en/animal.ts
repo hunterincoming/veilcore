@@ -253,7 +253,7 @@ export const animal = {
   'app.animal.v.app.lab.send.takenFromHelp': "The animal's individual ID, or where the sample was taken.",
   'app.animal.v.app.lic.row.offspringValue': '{pct}%, on offspring declared from this animal',
   'app.animal.v.app.lic.f.offspringHelp':
-    'Applies to offspring declared from this record (logged with it as sire or dam, both holders confirming). Offspring nobody logs are not detected. Leave blank if none.',
+    'Only counts offspring recorded in VeilCore with this animal as sire or dam. Leave blank if none.',
   'app.animal.v.app.lic.f.extraHelpDeal':
     'Anything else that’s part of the deal, in your own words. For example: at most two litters or calvings, no resale of straws, offspring registered with a named breed society.',
   'app.animal.v.app.lic.detail.thisCultivar': 'this animal',
