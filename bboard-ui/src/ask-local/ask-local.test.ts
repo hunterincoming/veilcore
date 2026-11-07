@@ -349,6 +349,13 @@ describe('scripts/release-check.mjs: the model workers, in the release check', (
     });
     expect(off).toMatchObject({ skipped: 'built without the model', ok: true });
     expect((await checkModelWorkers('https://x', release(''), { fetchImpl: none })).ok).toBe(false);
+    // A list with no build settings says nothing about the model: not checked, and not "without".
+    expect(await checkModelWorkers('https://x', { files } as never, { fetchImpl: none, modelManifest: stub })).toEqual({
+      skipped: 'release list has no build settings',
+      ok: true,
+      checked: [],
+      wrong: [],
+    });
     expect(await checkModelWorkers('https://x', release('on'), { fetchImpl: none })).toMatchObject({
       skipped: 'no model pins given',
       ok: true,

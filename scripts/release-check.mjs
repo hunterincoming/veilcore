@@ -311,7 +311,10 @@ export const routesMatch = (r) =>
  * @returns {Promise<{ skipped?: string, ok: boolean, checked: string[], wrong: { path: string, problem: string }[] }>}
  */
 export const checkModelWorkers = async (site, manifest, { fetchImpl = fetch, modelManifest } = {}) => {
-  const flag = String(manifest.build?.settings?.VITE_ASK_MODEL ?? '').trim();
+  // A list without build settings (made before they were listed) can't say whether the release
+  // has the model: nothing is claimed either way.
+  if (!manifest.build?.settings) return { skipped: 'release list has no build settings', ok: true, checked: [], wrong: [] };
+  const flag = String(manifest.build.settings.VITE_ASK_MODEL ?? '').trim();
   const workers = Object.keys(manifest.files)
     .filter((p) => MODEL_WORKER_FILE.test(p))
     .sort();

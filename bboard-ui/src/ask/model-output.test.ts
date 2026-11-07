@@ -9,7 +9,7 @@ import type { AskContext, AskResult } from './engine';
 import { modelEngine, selfTest, type ModelAsk } from './model-engine';
 import { modelMessages, modelSchema, readModelAnswer, recordsForModel } from './model-output';
 import { interpret } from './shortcuts';
-import { hintExample } from './hint';
+import { hintExample, hintPage } from './hint';
 
 const rec = (id: string, strainName: string, animal = false) =>
   ({ id, strainName, ...(animal ? { profile: ANIMAL_PROFILE } : {}) }) as unknown as StrainRecord;
@@ -142,7 +142,7 @@ describe('readModelAnswer: the provenance rule', () => {
     expect(s.properties.action.enum).toContain('clones');
     expect(s.properties.parents.items?.enum).toEqual(['VEIL-000A']);
     expect(s.properties.topic.enum).toContain('royaltyReport');
-    expect(JSON.parse(modelSchema([])).properties.parents).toBeUndefined();
+    expect((JSON.parse(modelSchema([])) as { properties: Record<string, unknown> }).properties.parents).toBeUndefined();
   });
 
   it('Explain is the fixed glossary: only a known word, never the model’s text', () => {
@@ -279,5 +279,23 @@ describe('the hint by the bubble', () => {
     const en = renderer((await dicts()).en);
     for (const name of ['Explain', 'Due Diligence', 'Backup'])
       expect(hintExample([plant(name, 1)], true, en), name).toBeUndefined();
+  });
+});
+
+describe('where the hint shows', () => {
+  it('the records list and a record’s page; never a licence, its terms, royalties, the backup or an import', () => {
+    for (const p of ['/records', '/records/', '/record/VEIL-AB12', '/record/VEIL-AB12/'])
+      expect(hintPage(p), p).toBe(true);
+    for (const p of [
+      '/record/VEIL-AB12/license',
+      '/license/L-1',
+      '/license/L-1/sign',
+      '/licenses',
+      '/backup',
+      '/records/import',
+      '/new',
+      '/prove/VEIL-1',
+    ])
+      expect(hintPage(p), p).toBe(false);
   });
 });

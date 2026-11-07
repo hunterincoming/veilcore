@@ -2,7 +2,7 @@
 // app-layout-parts.ts), bottom right. Never on the landing page or the public pages. The sheet
 // itself (AskSheet.tsx) is its own file, fetched the first time the bubble is pressed.
 //
-// Once someone has a record, a small hint sits by the bubble with an example that names their
+// Once someone has a record, on the records list and a record's page only, a small hint sits by the bubble with an example that names their
 // own record ("Try: cut 6 clones from Gelato", or calves for someone whose records are mostly
 // animals). Tapping it opens Ask with the example typed in. It shows on three visits at most,
 // and not again once dismissed or once Ask is opened (ask-local/hint-flag.ts: the only thing
@@ -16,7 +16,8 @@ import ChatIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import { useT } from '../../i18n/app';
 import { useRecords } from '../../veilcore/records';
-import { hintExample } from '../../ask/hint';
+import { hintExample, hintPage } from '../../ask/hint';
+import { useLocation } from 'react-router-dom';
 import { ANIMAL_RECORDS_ENABLED } from '../../config/network';
 import { askOpened, dismissHint, hintDone, markAskOpened, noteHintShown } from '../../ask-local/hint-flag';
 
@@ -77,7 +78,8 @@ export const AskLauncher: React.FC = () => {
     [records, t],
   );
   const exampleText = example?.text ?? '';
-  const hint = !hintDoneAtLoad && !dismissed && !!example;
+  const { pathname } = useLocation();
+  const hint = !hintDoneAtLoad && !dismissed && !!example && hintPage(pathname);
 
   // Counted once per visit, the first time the hint shows.
   const [counted, setCounted] = useState(false);

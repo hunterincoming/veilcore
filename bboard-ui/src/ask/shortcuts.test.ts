@@ -250,7 +250,9 @@ describe('What’s due', () => {
 
   it('reports, payments and the end date from signed terms, soonest first', () => {
     const items = dueItems([license()], records, '2026-11-06');
-    expect(items[0]).toMatchObject({ kind: 'report', date: '2026-10-30', overdue: true, name: 'Blue Dream' });
+    // A practice agreement has no messages: every report past its date stays, overdue.
+    expect(items[0]).toMatchObject({ kind: 'report', date: '2026-04-30', overdue: true, name: 'Blue Dream' });
+    expect(items).toContainEqual(expect.objectContaining({ kind: 'report', date: '2026-10-30', overdue: true }));
     expect(items.map((i) => i.kind)).toContain('ends');
     expect(items.every((i, k) => k === 0 || items[k - 1].date <= i.date)).toBe(true);
     // Never the other side's words: the record's name, or the agreement's id.
@@ -267,8 +269,23 @@ describe('What’s due', () => {
     const ics = dueCalendar(items, (i) => `VeilCore: ${i.kind}`, new Date(Date.UTC(2026, 10, 6)));
     expect(ics).toMatch(/^BEGIN:VCALENDAR\r\n/);
     expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(2);
-    expect(ics).toContain('DTSTART;VALUE=DATE:20261030');
-    expect(ics).toContain('DTEND;VALUE=DATE:20261031');
+    expect(ics).toContain('DTSTART;VALUE=DATE:20260430');
+    expect(ics).toContain('DTEND;VALUE=DATE:20260501');
+  });
+
+  it('a practice agreement keeps what is past its date, overdue, exactly as a real license with no messages yet', () => {
+    // 15 Nov: Q3's payment date (14 Nov) has passed. Before, the dates-only list dropped it.
+    for (const day of ['2026-11-15', '2027-01-20', '2027-06-01']) {
+      const practice = dueItems([license()], records, day, 99);
+      const empty = dueItems([license()], records, day, 99, () => ({ kind: 'ledger', ledger: ledgerOf([]) }));
+      expect(practice, day).toEqual(empty);
+      expect(practice, day).toContainEqual(
+        expect.objectContaining({ kind: 'report', from: '2026-07-01', date: '2026-10-30', overdue: true }),
+      );
+      // Overdue items are never dropped for being past their date; only the running period is not overdue.
+      for (const i of practice.filter((x) => x.kind === 'report' || x.kind === 'payment'))
+        expect(i.overdue, `${day} ${i.kind} ${i.date}`).toBe(i.date < day);
+    }
   });
 
   // Final review, S2: the list is built from the deal's actual state (royalty-ledger.ts

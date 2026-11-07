@@ -8,13 +8,14 @@
 // All records and files are practice data.
 // SPDX-License-Identifier: Apache-2.0
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join, normalize } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { REAL_REGISTRY, expectNoErrors, isolate, json, watch } from './helpers';
-import { writeRelease } from '../../scripts/release-manifest.mjs';
+import { buildFacts, writeRelease } from '../../scripts/release-manifest.mjs';
+import { downloadWorkerCsp, engineWorkerCsp, modelWorkerRouteSrc } from '../../scripts/ask-model-csp.mjs';
 import { checkSite } from '../../scripts/check-site.mjs';
 
 const RECORD = `VEIL-${'5E'.repeat(16)}`;
@@ -123,11 +124,27 @@ test.describe('the check page, round 5', () => {
   });
 });
 
-/** A folder served as Vercel serves the site: a file if there is one, else the app's page. */
-const serve = (dir: string): Promise<{ server: Server; url: string }> =>
+/**
+ * A folder served as Vercel serves the site: a file if there is one, else the app's page. Ask's
+ * model workers (in this e2e build, VITE_ASK_MODEL=test) get their own policy, as
+ * scripts/vercel-config.mjs routes them, from the model pins given (`workerPolicies`).
+ */
+const serve = (
+  dir: string,
+  opts: { workerPolicies?: { pins: unknown; on: () => boolean } } = {},
+): Promise<{ server: Server; url: string }> =>
   new Promise((ok) => {
     const server = createServer((req, res) => {
       const path = decodeURIComponent(new URL(req.url ?? '/', 'http://x').pathname);
+      const w = opts.workerPolicies;
+      const workerCsp =
+        w && w.on()
+          ? new RegExp(modelWorkerRouteSrc('download')).test(path)
+            ? downloadWorkerCsp(w.pins as never)
+            : new RegExp(modelWorkerRouteSrc('engine')).test(path)
+              ? engineWorkerCsp()
+              : undefined
+          : undefined;
       const file = normalize(join(dir, path === '/' ? 'index.html' : path));
       const isFile = file.startsWith(dir) && existsSync(file) && !file.endsWith('/') && !path.endsWith('/');
       const type = /\.js$/.test(file)
@@ -143,7 +160,10 @@ const serve = (dir: string): Promise<{ server: Server; url: string }> =>
                 : 'text/html';
       try {
         res
-          .writeHead(200, { 'content-type': isFile ? type : 'text/html' })
+          .writeHead(200, {
+            'content-type': isFile ? type : 'text/html',
+            ...(workerCsp ? { 'content-security-policy': workerCsp } : {}),
+          })
           .end(readFileSync(isFile ? file : join(dir, 'index.html')));
       } catch {
         res.writeHead(200, { 'content-type': 'text/html' }).end(readFileSync(join(dir, 'index.html')));
@@ -160,6 +180,7 @@ test.describe('check this site (CONTRACT.md #31)', () => {
   let dir = '';
   let repo = '';
   let site: { server: Server; url: string } | undefined;
+  let workerPoliciesOn = true;
 
   test.beforeAll(async () => {
     // This build, copied, with a release manifest written as a deploy writes one.
@@ -167,8 +188,23 @@ test.describe('check this site (CONTRACT.md #31)', () => {
     dir = mkdtempSync(join(tmpdir(), 'vc-e2e-site-'));
     repo = mkdtempSync(join(tmpdir(), 'vc-e2e-repo-'));
     cpSync(built, dir, { recursive: true });
-    writeRelease({ network: 'preprod', staticDir: dir, repoRoot: repo, commit: COMMIT, uncommittedChanges: false });
-    site = await serve(dir);
+    // With the build's own settings, as a deploy writes them: this build says VITE_ASK_MODEL=test,
+    // so the check looks at Ask's model workers, against the pins in this copy of the code.
+    const build = buildFacts({ staticDir: dir });
+    expect(build.settings.VITE_ASK_MODEL).toBe('test');
+    writeRelease({
+      network: 'preprod',
+      staticDir: dir,
+      repoRoot: repo,
+      commit: COMMIT,
+      uncommittedChanges: false,
+      build,
+    });
+    const pinsAt = join(repo, 'bboard-ui/src/ask-local');
+    mkdirSync(pinsAt, { recursive: true });
+    cpSync(join(process.cwd(), 'src/ask-local/model-manifest.stub.json'), join(pinsAt, 'model-manifest.json'));
+    const pins = JSON.parse(readFileSync(join(pinsAt, 'model-manifest.json'), 'utf8')) as unknown;
+    site = await serve(dir, { workerPolicies: { pins, on: () => workerPoliciesOn } });
   });
   test.afterAll(() => {
     site?.server.close();
@@ -180,6 +216,18 @@ test.describe('check this site (CONTRACT.md #31)', () => {
     let r = await checkSite(site!.url, { repoRoot: repo });
     expect(r.code, r.lines.join('\n')).toBe(0);
     expect(r.lines.join('\n')).toMatch(/^All \d+ files match the release’s published list\.$/m);
+    expect(r.lines).toContain("Ask's model workers: 2 files, each with exactly its own security policy.");
+    // Served without their own policy (a routing mistake): found.
+    workerPoliciesOn = false;
+    try {
+      r = await checkSite(site!.url, { repoRoot: repo });
+      expect(r.code).toBe(1);
+      expect(r.lines.join('\n')).toMatch(
+        /model worker: \/assets\/ask-model-engine\.worker-[^:]+: not exactly its own Content-Security-Policy/,
+      );
+    } finally {
+      workerPoliciesOn = true;
+    }
     const index = join(dir, 'index.html');
     const before = readFileSync(index);
     writeFileSync(index, Buffer.concat([before, Buffer.from('<!-- not the released page -->')]));

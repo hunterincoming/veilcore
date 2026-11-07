@@ -13,6 +13,13 @@ import type { StrainRecord } from '../veilcore/records';
 import type { DraftKind } from './handoff';
 import { interpret } from './shortcuts';
 
+/**
+ * The pages the hint shows on: the records list and a record's own page. Never over a licence,
+ * its terms, royalties, the backup or an import, where it would sit on a table or a form.
+ */
+export const hintPage = (pathname: string): boolean =>
+  /^\/records\/?$/.test(pathname) || /^\/record\/[^/]+\/?$/.test(pathname);
+
 type HintRecord = Pick<StrainRecord, 'id' | 'strainName'> & { readonly profile?: string; readonly loggedAt?: number };
 export type HintKind = 'clones' | 'calves';
 
