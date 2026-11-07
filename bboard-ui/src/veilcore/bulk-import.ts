@@ -942,6 +942,11 @@ export type RowFields = {
   readonly animal?: AnimalDetails;
   /** An animal row's sex cell, when it isn't female, male or empty (a problem to fix). */
   readonly sexAsWritten?: string;
+  /**
+   * "How it was made" (breeding-methods.ts), for a batch of clones made in the app (ask/batch.ts).
+   * A spreadsheet row has none. Sealed with the record; not part of the row's hash.
+   */
+  readonly breedingMethod?: string;
 };
 
 // eslint-disable-next-line no-control-regex
@@ -1428,7 +1433,7 @@ export const sealRowRecord = async (f: RowFields, now = Date.now()): Promise<Str
       dateCreated: f.dateCreated,
       notes: f.notes,
       parents: f.parents,
-      breedingMethod: '',
+      breedingMethod: f.breedingMethod ?? '',
       photoFingerprints: [],
       refId: f.refId,
       taxon: f.taxon,
@@ -1465,6 +1470,17 @@ export const registryCommit: Committer = async (batch) => {
   const no = new Set(refused.map((r) => r.id));
   return { stored: batch.filter((r) => !no.has(r.id)).map((r) => r.id), refused };
 };
+
+/** Said when sealRows stops at holdForBackup: the records are sealed here and kept for the backup. */
+export const HELD_FOR_BACKUP = 'Kept here until the backup is saved and checked.';
+
+/**
+ * A committer that sends nothing: the rows are sealed in this browser and written to the ledger
+ * as waiting, and sealRows stops. A batch made in the app (ask/batch.ts) seals first, so the
+ * backup that comes next holds every new record's key, then sends with registryCommit: the
+ * same records, never new ones.
+ */
+export const holdForBackup: Committer = () => Promise.resolve({ stored: [], refused: [], retry: HELD_FOR_BACKUP });
 
 export type RowOutcome =
   | { readonly state: 'sealed'; readonly recordId: string; readonly fingerprint: string; readonly before?: boolean }
