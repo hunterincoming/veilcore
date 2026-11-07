@@ -15,7 +15,7 @@ the record format is an open spec: [veilcore-sdk](https://github.com/hunterincom
 ```mermaid
 flowchart LR
   A["Breeder's browser<br/>seals the record"] -->|"details locked,<br/>key stays with the breeder"| R[("VeilCore registry<br/>stores the locked box")]
-  A -->|"32-byte proof code"| B["Hourly batch"]
+  A -->|"32-byte proof code"| B["Batch"]
   B -->|"anchored"| M["Midnight mainnet"]
   M -->|"date"| V["Check page / CLI"]
   A -. "breeder shares what they choose" .-> V
@@ -50,9 +50,10 @@ Build fingerprints: [docs/fingerprints.md](docs/fingerprints.md).
 
 ## Where it stands
 
-- **Works on veilcore.org:** sealing records; batches anchored on mainnet automatically, every
-  hour (the first batch, `B-20261011-FE71`, is also stamped on Bitcoin, blocks 971004 and
-  971005); proving a record by link; dating a DNA report pairing from the browser; lab receipts
+- **Works on veilcore.org:** sealing records; batches dated on Midnight's main network (the
+  first batches were anchored by hand, and the site claims no schedule until the scheduled job
+  has run there: `SCHEDULED_ANCHORING_RUN_ON_MAINNET` in `bboard-ui/src/config/copy.ts`; the
+  first batch, `B-20261011-FE71`, is also stamped on Bitcoin, blocks 971004 and 971005); proving a record by link; dating a DNA report pairing from the browser; lab receipts
   and reports signed with the lab's own key; choosing what a record's check page shows; check
   pages that read the date from Midnight themselves. No wallet needed: VeilCore's fee service
   pays the network fee for what the browser sends.
@@ -214,8 +215,10 @@ Midnight's tooling.
 
 **What the web app sends to the chain.** On both sites the browser proves and sends its own
 transactions (a record key's date stamp, proving a record by link, dating a DNA pairing) and
-a fee service pays the network fee, so nobody needs a wallet. Batches are anchored
-automatically by the same service. On test.veilcore.org (preprod) this was first run end to
+a fee service pays the network fee, so nobody needs a wallet. The same service anchors batches
+on a schedule; on test.veilcore.org that has run, and on veilcore.org the site claims no
+schedule until it has run there once (`SCHEDULED_ANCHORING_RUN_ON_MAINNET`). On
+test.veilcore.org (preprod) this was first run end to
 end on 12 and 13 October 2026 ([`docs/no-wallet-run-12oct.md`](docs/no-wallet-run-12oct.md));
 on veilcore.org (mainnet) it went live on 19 October and was checked by hand on 20 October
 ([`docs/mainnet-sponsor.md`](docs/mainnet-sponsor.md)). Licenses run with real transactions on

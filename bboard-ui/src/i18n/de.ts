@@ -267,7 +267,7 @@ export const de: Strings = {
   'm.postC.tag': 'Website',
   'm.postC.title': 'Ihr Browser sendet seine eigenen Transaktionen',
   'm.postC.text':
-    'Auf veilcore.org datiert Ihr Browser jetzt selbst die Kopplung eines DNA-Berichts, weist einen Datensatz per Link nach und versieht den eigenen Schlüssel eines Datensatzes mit einem Datumsstempel; VeilCore zahlt die Netzwerkgebühr. Batches werden stündlich und automatisch im Hauptnetz von Midnight verankert. Kein Wallet nötig.',
+    'Auf veilcore.org datiert Ihr Browser jetzt selbst die Kopplung eines DNA-Berichts, weist einen Datensatz per Link nach und versieht den eigenen Schlüssel eines Datensatzes mit einem Datumsstempel; VeilCore zahlt die Netzwerkgebühr. Datensätze werden in Stapeln im Hauptnetz von Midnight datiert. Kein Wallet nötig.',
   'm.postB.date': '11. Okt. 2026',
   'm.postB.tag': 'Register',
   'm.postB.title': 'Erster Stapel auch auf Bitcoin datiert',
@@ -284,7 +284,7 @@ export const de: Strings = {
   'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Noch nicht',
   'm.live.stamp.t': 'Ein Datumsstempel für Ihren Datensatz',
-  'm.live.stamp.main': 'Ja, in Stapeln, vorerst von Hand. Ihr Browser sendet nichts an die Chain.',
+  'm.live.stamp.main': 'Ja, in Stapeln, auf Midnight datiert. Ihr Browser sendet nichts an die Chain.',
   'm.live.stamp.test':
     'Ja. Stapel werden automatisch datiert, und das datiert Ihren Datensatz. Ihr Browser versieht außerdem den eigenen Schlüssel Ihrer Pflanze mit einem Datumsstempel; der datiert nur den Schlüssel.',
   'm.live.share.t': 'Wählen, was andere sehen',
@@ -454,14 +454,14 @@ export const de: Strings = {
   'm.faq.3link': 'Datensätze als Beweismittel →',
   'm.faq.4q': 'Was sehen Sie von meinen Daten?',
   'm.faq.4a':
-    'Von Ihren genetischen Daten: nichts. Ihr Computer liest die Dateien, die Sie hinzufügen, um aus jeder einen Code zu machen; hochgeladen werden sie nicht. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt: verschlossen, sodass nur Sie ihn öffnen können, und nach 180 Tagen gelöscht. Die Angaben, die Sie eingeben (der Name des Datensatzes, Züchter, Daten, Notizen, Vertragsbedingungen), und die Namen Ihrer Dateien speichert unser Server verschlossen, und wir haben den Schlüssel nicht. Lesen können wir den Prüfcode jedes Datensatzes und alles, was Sie zeigen möchten. Auch die Probenangaben, die Sie und ein Labor zu einer Lieferung schreiben, werden verschlossen gespeichert, mit einem Schlüssel, der im Laborcode steckt und den wir nicht haben. Labore und Entwickler können Datensätze in ihren eigenen Systemen versiegeln, sodass nur der Prüfcode hinausgeht.',
+    'Von Ihren genetischen Daten, unverschlossen: nichts. Ihr Computer liest die Dateien, die Sie hinzufügen, um aus jeder einen Code zu machen; hochgeladen werden sie nicht. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt: verschlossen, sodass nur Sie ihn öffnen können, und nach 180 Tagen gelöscht. Die Angaben, die Sie eingeben (der Name des Datensatzes, Züchter, Daten, Notizen, Vertragsbedingungen), und die Namen Ihrer Dateien speichert unser Server verschlossen, und wir haben den Schlüssel nicht. Lesen können wir den Prüfcode jedes Datensatzes und alles, was Sie zeigen möchten. Auch die Probenangaben, die Sie und ein Labor zu einer Lieferung schreiben, werden verschlossen gespeichert, mit einem Schlüssel, der im Laborcode steckt und den wir nicht haben. Labore und Entwickler können Datensätze in ihren eigenen Systemen versiegeln, sodass nur der Prüfcode hinausgeht.',
   'm.faq.4link1': 'Was die Demo speichert →',
   'm.faq.4link2': 'Integrationsleitfaden →',
   'm.faq.6q': 'Was kostet es?',
   'm.faq.6a':
-    'Einen Datensatz auf dieser Website anzulegen, kostet heute nichts. Einen Datensatz zu prüfen, ist immer kostenlos.',
+    'Kostenlos. Einen Datensatz auf dieser Website anzulegen und jeden Datensatz zu prüfen, ist beides kostenlos.',
   'm.demo.lede':
-    'Keine Anmeldung, keine Wallet. Es ist eine Testversion, verwenden Sie also erfundene Angaben. Datensätze werden in Stapeln verankert, vorerst von Hand; Lizenzen und Laborvereinbarungen sind simuliert, und Kopplungen von DNA-Berichten werden noch nicht datiert.',
+    'Keine Anmeldung, keine Wallet. Es ist eine Testversion, verwenden Sie also erfundene Angaben. Datensätze werden in Stapeln auf Midnight datiert; Lizenzen und Laborvereinbarungen sind simuliert, und Kopplungen von DNA-Berichten werden noch nicht datiert.',
   'm.demo.privacy': 'Was die Demo speichert →',
   'm.updates.more': 'Alle Neuigkeiten',
   'm.stat3.s': 'Noch kein unabhängiges Sicherheitsaudit. Unsere eigenen Prüfungen der Contracts sind öffentlich.',

@@ -13,7 +13,7 @@ import { isObject, isString, readJson } from './json';
 import type { DealEntry } from './deal-client';
 import { verifyStrict } from './deal';
 import { sameAmount } from './money';
-import { PAYMENT_PARTNERS, pinnedPartner, type PinnedPartner } from './payment-partners';
+import { namedKey, namedPartnerKeys, type NamedKey } from './payment-partners';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 /** Where receipts are filed: this site's registry. */
@@ -99,13 +99,16 @@ export type Receipt = {
   readonly partner: string;
 };
 
-/** A receipt this page checked itself, and whether its partner is one this website lists. */
+/** A receipt this page checked itself, and whether its key is one the checker named. */
 export type CheckedReceipt = {
   readonly receipt: Receipt;
-  /** The name this website lists for the partner, or else the name the registry gives (unchecked). */
+  /** What the checker calls the key when they named it; otherwise the registry's name (unchecked). */
   readonly partnerName?: string;
-  /** True only when the partner's key is in this website's own list (payment-partners.ts). */
-  readonly nameChecked: boolean;
+  /**
+   * True only when the receipt's key is one the person checking named themselves
+   * (payment-partners.ts). VeilCore keeps no list of its own.
+   */
+  readonly keyNamed: boolean;
   /** Where the receipt differs from the statement or the payout details: shown, never hidden. */
   readonly mismatch: readonly string[];
 };
@@ -127,7 +130,7 @@ export const receiptVerifies = (r: Receipt, signature: string): boolean => {
 export const receiptsFor = async (
   statement: DealEntry,
   payTo: string | undefined,
-  partners: readonly PinnedPartner[] = PAYMENT_PARTNERS,
+  named: readonly NamedKey[] = namedPartnerKeys(),
 ): Promise<CheckedReceipt[]> => {
   if (statement.type !== 'statement' || !HEX64.test(statement.fingerprint)) return [];
   const res = await fetch(`${BASE}/payment-receipts/${statement.fingerprint}`, { cache: 'no-store' });
@@ -146,15 +149,15 @@ export const receiptsFor = async (
     else if (!sameAmount(r.amount, statement.amountOwed))
       mismatch.push(`paid ${r.amount}, owed ${statement.amountOwed}`);
     if (payTo !== undefined && r.payTo !== payTo) mismatch.push(`paid to ${r.payTo}, not the account they gave`);
-    // Trusted only from this website's own list: what the registry says of the partner is shown
-    // as unchecked, whatever it claims (review round 3, known limit closed).
-    const pinned = pinnedPartner(r.partner, partners);
+    // Trusted only when the checker named this key: what the registry says of the partner is
+    // shown as unchecked, whatever it claims. VeilCore keeps no list of trusted partners.
+    const mine = namedKey(r.partner, named);
     const p = isObject(x.partner) ? x.partner : undefined;
-    const name = pinned?.name ?? (p && isString(p.displayName) ? p.displayName : undefined);
+    const name = mine?.label ?? (p && isString(p.displayName) ? p.displayName.slice(0, 80) : undefined);
     out.push({
       receipt: r,
       ...(name !== undefined ? { partnerName: name } : {}),
-      nameChecked: pinned !== undefined,
+      keyNamed: mine !== undefined,
       mismatch,
     });
   }
