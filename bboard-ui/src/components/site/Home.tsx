@@ -29,7 +29,7 @@ import { FOUNDERS_MAIL, RoleLine, SDK_REPO, SiteShell, X_HANDLE } from './SiteSh
 import { FoldGroup, FoldItem, FoldPoint, usePhone } from './Fold';
 import { hasRecordsHere } from './returning';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
-import { AGREEMENTS_LIVE, ROYALTIES_RUN_ON_TEST } from '../../config/copy';
+import { AGREEMENTS_LIVE, ROYALTIES_RUN_ON_MAINNET, ROYALTIES_RUN_ON_TEST } from '../../config/copy';
 
 const APP_REPO = 'https://github.com/hunterincoming/veilcore';
 /** The public test site (docs/test-site.md). It goes live with this release. */
@@ -316,9 +316,12 @@ const cellKey = (row: string, col: string) =>
   (MAINNET_SENDS && row === 'prove' && col === 'main'
     ? 'm.live.prove.test'
     : AGREEMENTS_LIVE && row === 'lic' && col === 'main'
-      ? LICENSES_ON_SITE
-        ? 'm.live.lic.live'
-        : 'm.live.lic.next'
+      ? // "Yes" only on veilcore.org's own build, and only once royalties have worked there too.
+        !ROYALTIES_RUN_ON_MAINNET
+        ? 'm.live.lic.mainNext'
+        : LICENSES_ON_SITE
+          ? 'm.live.lic.live'
+          : 'm.live.lic.next'
       : // The test site: licenses are there; royalties say "Yes" only once v2 has run there.
         row === 'lic' && col === 'test' && !ROYALTIES_RUN_ON_TEST
         ? 'm.live.lic.testNext'

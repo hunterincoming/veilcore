@@ -310,6 +310,9 @@ export const ja: Strings = {
   'm.live.lic.main': '最終テストが終わるまで停止中。',
   'm.live.lic.test': 'はい。本物のトランザクションで：ロイヤリティ、支払い、ライセンスの引き継ぎ。',
   'm.live.lic.not': 'veilcore.orgでは、最終テストの後に。',
+  // The veilcore.org cell until royalties v2 has worked on mainnet (config/copy.ts ROYALTIES_RUN_ON_MAINNET).
+  'm.live.lic.mainNext':
+    'ライセンスは、本物のライセンスがメインネットワークで最初から最後まで一度動いた後、それを有効にするデプロイで公開されます。ロイヤリティの明細と支払いは構築済みで、まだ公開されていません。',
   // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
   'm.live.lic.testNext':
     'ライセンスは、はい（本物のトランザクションで）。ロイヤリティの明細と支払いは構築済みで、このネットワークで最初から最後まで一度動いた後に公開されます。',
