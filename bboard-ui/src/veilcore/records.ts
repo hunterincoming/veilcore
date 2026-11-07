@@ -1050,10 +1050,27 @@ export const sizeWords = (share: number, tr: Translator = enT): string | undefin
 const withNameSalt = <T extends StrainRecord>(r: T): T =>
   r.nameSalt || !r.strainName?.trim() ? r : { ...r, nameSalt: newNameSalt() };
 
+/**
+ * The first record kept in this browser: ask the browser to keep this site's data rather than
+ * clear it to make room (Safari can also clear it after 7 days without a visit; the backup screen
+ * says to keep the backup). The browser decides, and may ask the person; nothing is sent.
+ */
+const keepDataIfFirst = (before: number): void => {
+  if (before !== 0) return;
+  try {
+    const storage = (globalThis as { navigator?: { storage?: { persist?: () => Promise<boolean> } } }).navigator
+      ?.storage;
+    void storage?.persist?.().catch(() => false);
+  } catch {
+    /* not offered here */
+  }
+};
+
 export const createRecord = (input: NewRecordInput): StrainRecord => {
   const record: StrainRecord = withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() });
   // Refused before it is shown or sent: the caller still has what was typed.
   if (tooLargeToSave(record)) throw new Error(enT.t('app.sealed.tooLarge'));
+  keepDataIfFirst(records.length);
   records = [record, ...records];
   // Kept in this browser until the registry has it (L12): a refused or held save never
   // takes away what was typed.
@@ -1072,6 +1089,7 @@ export const createRecordSaved = async (
   input: NewRecordInput,
 ): Promise<{ readonly record: StrainRecord; readonly result: SaveResult }> => {
   const record: StrainRecord = withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() });
+  keepDataIfFirst(records.length);
   records = [record, ...records];
   holderKey();
   putInOutbox([record]);
@@ -1094,6 +1112,7 @@ export const createRecords = async (inputs: readonly NewRecordInput[]): Promise<
     withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() }),
   );
   const ids = new Set(batch.map((r) => r.id));
+  keepDataIfFirst(records.length);
   const result = await store.save(RECORDS_KEY, [...batch, ...records.filter((r) => !ids.has(r.id))]);
   // Held for the backup (L1): nothing was sent, and the importer stops and says why.
   if (result.held?.length) {

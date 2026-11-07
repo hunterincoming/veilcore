@@ -171,6 +171,7 @@ export const ask = {
   'app.ask.batch.howManyClones': 'Cuántos esquejes',
   'app.ask.batch.howManyYoung': 'Cuántas crías',
   'app.ask.batch.upTo': 'Hasta {max}.',
+  'app.ask.batch.unlikely': 'Más de {n} crías a la vez es poco habitual. Revise el número; puede guardarlo igualmente.',
   'app.ask.batch.baseName': 'Nombre',
   'app.ask.batch.namedLike': 'Numerados: «{example}», y así.',
   'app.ask.batch.cloneName': '{name} esqueje',

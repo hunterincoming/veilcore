@@ -14,6 +14,8 @@ export const backup = {
   'app.backup.saveFile': 'Save backup file',
   'app.backup.copyTitle': 'Put a copy somewhere else (recommended)',
   'app.backup.wayBack': 'If this phone or computer breaks, that copy is your way back.',
+  'app.backup.safari':
+    'Safari can clear a site’s data after 7 days without a visit. Your backup file is what brings your records back, so keep it.',
   'app.backup.actAsYou':
     'Anyone with this file can open your records and act as you. Best: a USB stick or a password manager. If you email it, use an account with two-step login.',
   'app.backup.sentCopy': 'Sent a copy ✓',

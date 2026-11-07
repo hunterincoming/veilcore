@@ -174,6 +174,8 @@ export const ask = {
   'app.ask.batch.howManyClones': 'Wie viele Stecklinge',
   'app.ask.batch.howManyYoung': 'Wie viele Jungtiere',
   'app.ask.batch.upTo': 'Bis zu {max}.',
+  'app.ask.batch.unlikely':
+    'Mehr als {n} Jungtiere auf einmal sind ungewöhnlich. Prüfen Sie die Zahl; speichern können Sie trotzdem.',
   'app.ask.batch.baseName': 'Name',
   'app.ask.batch.namedLike': 'Nummeriert: „{example}“ und so weiter.',
   'app.ask.batch.cloneName': '{name} Steckling',

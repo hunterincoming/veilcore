@@ -302,6 +302,9 @@ export const BackupStep: React.FC<{
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }}>
           {t('app.backup.wayBack')}
         </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.25 }} data-backup-safari="">
+          {t('app.backup.safari')}
+        </Typography>
         <Typography variant="body2" sx={{ mb: 1.25, fontWeight: 700 }} data-backup-warning="">
           {t('app.backup.actAsYou')}
         </Typography>

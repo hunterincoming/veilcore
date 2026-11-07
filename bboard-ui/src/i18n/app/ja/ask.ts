@@ -166,6 +166,7 @@ export const ask = {
   'app.ask.batch.howManyClones': 'クローンの数',
   'app.ask.batch.howManyYoung': '子の数',
   'app.ask.batch.upTo': '最大{max}。',
+  'app.ask.batch.unlikely': '一度に{n}頭を超える子は珍しい数です。数を確認してください。このまま保存もできます。',
   'app.ask.batch.baseName': '名前',
   'app.ask.batch.namedLike': '番号付き：「{example}」など。',
   'app.ask.batch.cloneName': '{name}クローン',

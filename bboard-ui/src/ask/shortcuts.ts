@@ -26,9 +26,15 @@ import { MAX_BATCH, type AskDraft, type DraftKind, type DraftPreset } from './ha
 // ---- word lists (a trailing * is a prefix; anything with a space or Japanese is a substring) ----
 
 // prettier-ignore
-const CLONES = ['clone*', 'cutting*', 'cut', 'klon*', 'steckling*', 'schneiden', 'clon*', 'esqueje*', 'cortar', 'bouture*', 'couper', 'クローン', '挿し木', '挿し穂'];
+const CLONES = ['clone*', 'cutting*', 'cut', 'cuts', 'klon*', 'steckling*', 'schneiden', 'clon*', 'esqueje*', 'cortar', 'bouture*', 'couper', 'クローン', '挿し木', '挿し穂'];
 // prettier-ignore
-const OFFSPRING = ['calf', 'calves', 'offspring', 'young', 'kid', 'kids', 'lamb*', 'foal*', 'piglet*', 'pup', 'puppies', 'litter', 'born', 'kalb', 'kälber', 'nachwuchs', 'nachkommen', 'jungtier*', 'geboren', 'ternero*', 'cría*', 'cria*', 'crías', 'descendencia', 'nacid*', 'veau', 'veaux', 'descendance', 'petits', 'nés', '子牛', '産子', '子を', '生まれ'];
+const OFFSPRING = ['calf', 'calves', 'offspring', 'young', 'kid', 'kids', 'lamb*', 'foal*', 'piglet*', 'pup', 'puppies', 'litter', 'born', 'kalb', 'kälber', 'nachwuchs', 'nachkommen', 'jungtier*', 'geboren', 'ternero*', 'cría*', 'cria*', 'crías', 'descendencia', 'nacid*', 'veau', 'veaux', 'descendance', 'petits', 'nés', '子牛', '産子', '子を', '生まれ',
+  // How breeders say it (the breeders' review): dogs, horses, sheep, goats, pigs, cats, and the verbs.
+  'pups', 'puppy', 'whelp*', 'calved', 'calving', 'kitten*', 'litters', 'farrow*', 'kidded',
+  'welpe*', 'fohlen', 'wurf', 'würfe', 'lamm', 'lämmer', 'ferkel', 'kitz*', 'kätzchen', 'gekalbt', 'abgekalbt', 'gefohlt', 'geworfen',
+  'cachorro*', 'potro*', 'potranca*', 'camada*', 'cordero*', 'lechón', 'lechones', 'cabrito*', 'gatito*', 'parió', 'parto',
+  'chiot*', 'poulain*', 'pouliche*', 'portée*', 'agneau*', 'porcelet*', 'chevreau*', 'chaton*', 'vêlé', 'vêlage', 'mis bas', 'mise bas',
+  '子犬', '仔犬', '仔馬', '子馬', '子羊', '仔羊', '子豚', '仔豚', '子猫', '仔猫', '子ヤギ', '仔牛', '分娩', '出産', '産んだ'];
 // prettier-ignore
 const CROSS = ['cross', 'crossed', 'crossing', 'kreuz*', 'cruce', 'cruza*', 'cruzar', 'crois*', '交配', '掛け合わせ', 'かけ合わせ'];
 // prettier-ignore
@@ -46,7 +52,7 @@ const AGREEMENTS = ['licen*', 'agreement*', 'lizenz*', 'vereinbarung*', 'licenci
 const IMPORT = ['import*', 'spreadsheet', 'collection', 'csv', 'excel', 'tabelle', 'sammlung', 'importar', 'hoja', 'colección', 'tableur', 'インポート', '一括', '表計算'];
 
 // prettier-ignore
-const ANIMAL_WORDS = ['animal*', 'tier', 'tiere', 'cow', 'cows', 'calf', 'calves', 'bull', 'heifer', 'steer', 'horse', 'mare', 'stallion', 'dog', 'goat', 'sheep', 'ewe', 'ram', 'pig', 'sow', 'boar', 'cattle', 'kuh', 'kühe', 'stier', 'bulle', 'pferd', 'stute', 'hund', 'ziege', 'schaf', 'schwein', 'rind*', 'vaca*', 'toro', 'novilla', 'caballo', 'yegua', 'perro', 'cabra', 'oveja', 'cerdo', 'vache*', 'taureau', 'génisse', 'cheval', 'jument', 'chien', 'chèvre', 'brebis', 'mouton', 'cochon', 'truie', '動物', '牛', '馬', '犬', '豚', '羊', '山羊'];
+const ANIMAL_WORDS = ['animal*', 'tier', 'tiere', 'cow', 'cows', 'calf', 'calves', 'bull', 'heifer', 'steer', 'horse', 'mare', 'stallion', 'dog', 'goat', 'sheep', 'ewe', 'ram', 'pig', 'sow', 'boar', 'cattle', 'kuh', 'kühe', 'stier', 'bulle', 'pferd', 'stute', 'hund', 'ziege', 'schaf', 'schwein', 'rind*', 'vaca*', 'toro', 'novilla', 'caballo', 'yegua', 'perro', 'cabra', 'oveja', 'cerdo', 'vache*', 'taureau', 'génisse', 'cheval', 'jument', 'chien', 'chèvre', 'brebis', 'mouton', 'cochon', 'truie', '動物', '牛', '馬', '犬', '豚', '羊', '山羊', 'puppy', 'pup', 'pups', 'cat', 'cats', 'welpe*', 'katze', 'perra', 'gato', 'chienne', '猫'];
 // prettier-ignore
 const STRAIN_WORDS = ['microbe*', 'bacteri*', 'yeast', 'cell line', 'mikrob*', 'bakteri*', 'hefe', 'zelllinie', 'levadura', 'línea celular', 'levure', 'bactérie*', 'lignée cellulaire', '微生物', '菌株', '酵母', '細胞株'];
 // prettier-ignore

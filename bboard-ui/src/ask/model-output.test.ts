@@ -9,7 +9,7 @@ import type { AskContext, AskResult } from './engine';
 import { modelEngine, selfTest, type ModelAsk } from './model-engine';
 import { modelMessages, modelSchema, readModelAnswer, recordsForModel } from './model-output';
 import { interpret } from './shortcuts';
-import { hintExample, hintPage } from './hint';
+import { agreementScreen, hintExample, hintPage } from './hint';
 
 const rec = (id: string, strainName: string, animal = false) =>
   ({ id, strainName, ...(animal ? { profile: ANIMAL_PROFILE } : {}) }) as unknown as StrainRecord;
@@ -297,5 +297,22 @@ describe('where the hint shows', () => {
       '/prove/VEIL-1',
     ])
       expect(hintPage(p), p).toBe(false);
+  });
+});
+
+describe('the agreement screens the bubble stays off on a phone', () => {
+  it('terms, accepting, signing, royalties; not the records, the agreements list or the backup', () => {
+    for (const p of [
+      '/record/VEIL-1/license',
+      '/license/L-1',
+      '/license/L-1/sign',
+      '/license-invite/I-1',
+      '/prove-license/L-1',
+      '/claim',
+      '/lender',
+    ])
+      expect(agreementScreen(p), p).toBe(true);
+    for (const p of ['/records', '/record/VEIL-1', '/licenses', '/backup', '/new'])
+      expect(agreementScreen(p), p).toBe(false);
   });
 });

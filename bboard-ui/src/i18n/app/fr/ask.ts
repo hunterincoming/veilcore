@@ -177,6 +177,8 @@ export const ask = {
   'app.ask.batch.howManyClones': 'Combien de boutures',
   'app.ask.batch.howManyYoung': 'Combien de jeunes',
   'app.ask.batch.upTo': 'Jusqu’à {max}.',
+  'app.ask.batch.unlikely':
+    'Plus de {n} petits à la fois, c’est inhabituel. Vérifiez le nombre ; vous pouvez quand même enregistrer.',
   'app.ask.batch.baseName': 'Nom',
   'app.ask.batch.namedLike': 'Numérotés : « {example} », et ainsi de suite.',
   'app.ask.batch.cloneName': '{name} bouture',

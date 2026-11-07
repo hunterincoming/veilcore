@@ -16,6 +16,8 @@ export const backup = {
   'app.backup.copyTitle': 'En mettre une copie ailleurs (recommandé)',
   'app.backup.wayBack':
     'Si ce téléphone ou cet ordinateur tombe en panne, cette copie vous permettra de tout récupérer.',
+  'app.backup.safari':
+    'Safari peut effacer les données d’un site après 7 jours sans visite. Votre fichier de sauvegarde est ce qui ramène vos enregistrements : gardez-le.',
   'app.backup.actAsYou':
     'Quiconque a ce fichier peut ouvrir vos enregistrements et agir en votre nom. Le mieux : une clé USB ou un gestionnaire de mots de passe. Si vous l’envoyez par e-mail, utilisez un compte avec validation en deux étapes.',
   'app.backup.sentCopy': 'Copie envoyée ✓',

@@ -36,6 +36,8 @@ import {
   firstFreeStart,
   isReceived,
   ownDefaults,
+  UNLIKELY_YOUNG,
+  unlikelyYoung,
   type BatchPlan,
   type BatchPreset,
 } from '../../ask/batch';
@@ -281,8 +283,17 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
               value={countText}
               onChange={(e) => setCountText(e.target.value.replace(/[^\d]/g, '').slice(0, 4))}
               error={problems.includes('count') && countText !== ''}
-              helperText={t('app.ask.batch.upTo', { max: MAX_BATCH })}
-              slotProps={{ htmlInput: { inputMode: 'numeric' } }}
+              helperText={
+                unlikelyYoung(preset, count)
+                  ? t('app.ask.batch.unlikely', { n: UNLIKELY_YOUNG })
+                  : t('app.ask.batch.upTo', { max: MAX_BATCH })
+              }
+              slotProps={{
+                htmlInput: { inputMode: 'numeric' },
+                formHelperText: unlikelyYoung(preset, count)
+                  ? ({ sx: { color: 'warning.dark' }, 'data-batch-unlikely': '' } as object)
+                  : {},
+              }}
               fullWidth
             />
             <TextField
