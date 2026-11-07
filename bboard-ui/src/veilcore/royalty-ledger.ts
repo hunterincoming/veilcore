@@ -568,7 +568,47 @@ ${w.footer.map((f) => `<p class="f">${html(f)}</p>`).join('\n')}
 `;
 };
 
-/** The periods (with due dates) still to come or to report, for a calendar file. */
+/** A report or a payment that waits on a date, as the license page shows it. */
+export type DueStep = {
+  readonly kind: 'report' | 'payment';
+  /** YYYY-MM-DD. */
+  readonly date: string;
+  readonly period: RoyaltyPeriod;
+  readonly overdue: boolean;
+};
+
+/**
+ * What is due under a license, from its deal's messages (periodRows): a report not sent or sent
+ * back to fix, and a payment accepted and not made, each overdue from its due date until it is
+ * done; the period running now (or the first, before it starts), not overdue. A period that is
+ * done, or waits on an answer or a confirmation (no date in the terms), isn't listed. Ask's
+ * "What's due" and the license page's calendar file both read this, so they agree.
+ */
+export const dueSteps = (terms: LicenseTerms, ledger: Ledger, today: string): DueStep[] => {
+  if (!terms.reporting) return [];
+  const out: DueStep[] = [];
+  const step = (kind: DueStep['kind'], date: string, period: RoyaltyPeriod, overdue = false) =>
+    out.push({ kind, date, period, overdue });
+  const rows = periodRows(terms, ledger, today);
+  for (const r of rows) {
+    if ((r.step === 'report' || r.step === 'fix') && r.due) step('report', r.due, r.period, r.overdue > 0);
+    else if (r.step === 'pay' && r.due) step('payment', r.due, r.period, r.overdue > 0);
+    else if (r.step === 'running') {
+      step('report', r.period.reportDue, r.period);
+      step('payment', r.period.paymentDue, r.period);
+    }
+  }
+  if (!rows.some((r) => r.step === 'running')) {
+    const next = periodsOf(terms.reporting, terms.startDate, terms.endDate, today).find((p) => p.from > today);
+    if (next) {
+      step('report', next.reportDue, next);
+      step('payment', next.paymentDue, next);
+    }
+  }
+  return out.sort((a, b) => a.date.localeCompare(b.date) || (a.kind < b.kind ? 1 : -1));
+};
+
+/** The periods (with due dates) still to come or to report, from the terms alone (a practice agreement). */
 export const upcomingPeriods = (terms: LicenseTerms, today: string): RoyaltyPeriod[] =>
   terms.reporting
     ? periodsOf(terms.reporting, terms.startDate, terms.endDate, today).filter((p) => p.paymentDue >= today)

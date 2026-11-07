@@ -44,7 +44,8 @@ import {
 } from '../../ask/engine';
 import { chipResult, shortcutsEngine } from '../../ask/shortcuts';
 import { HANDOFF_STATE_KEY, type AskDraft, type DraftKind } from '../../ask/handoff';
-import { dueCalendar, dueItems, type DueItem } from '../../ask/due';
+import { dealStateHere, dueCalendar, dueItems, type DueItem } from '../../ask/due';
+import { useDealsReadHere } from '../../veilcore/deal-client';
 import { searchRecords } from '../../ask/search';
 import { today } from '../flow/log-flow-state';
 import type { EngineState } from './useAskEngine';
@@ -400,19 +401,26 @@ const DueCard: React.FC<{ records: readonly StrainRecord[] }> = ({ records }) =>
   const tr = useT();
   const { t } = tr;
   const licenses = useLicenses();
+  // The deals' messages as this page has read them (a license page, the backup): Ask reads none itself.
+  useDealsReadHere();
   const day = today();
-  const items = dueItems(licenses, records, day);
+  const items = dueItems(licenses, records, day, 20, dealStateHere);
+  // What has a date: the calendar file and the reminder's count. An agreement this page
+  // hasn't checked is a link to it, not an item due.
+  const dated = items.filter((i) => i.kind !== 'check');
   const [copied, setCopied] = useState(false);
   const what = (i: DueItem): string =>
-    i.kind === 'ends'
-      ? t('app.ask.due.ends', { name: i.name })
-      : t(i.kind === 'report' ? 'app.ask.due.report' : 'app.ask.due.payment', {
-          name: i.name,
-          from: tr.date(`${i.from}T12:00:00`),
-          to: tr.date(`${i.to}T12:00:00`),
-        });
+    i.kind === 'check'
+      ? t('app.ask.due.check', { name: i.name })
+      : i.kind === 'ends'
+        ? t('app.ask.due.ends', { name: i.name })
+        : t(i.kind === 'report' ? 'app.ask.due.report' : 'app.ask.due.payment', {
+            name: i.name,
+            from: tr.date(`${i.from}T12:00:00`),
+            to: tr.date(`${i.to}T12:00:00`),
+          });
   const calendar = () => {
-    const body = dueCalendar(items, (i) => t('app.ask.due.calName', { what: what(i) }));
+    const body = dueCalendar(dated, (i) => t('app.ask.due.calName', { what: what(i) }));
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([body], { type: 'text/calendar' }));
     a.download = 'veilcore-due.ics';
@@ -421,7 +429,7 @@ const DueCard: React.FC<{ records: readonly StrainRecord[] }> = ({ records }) =>
   };
   const share = async () => {
     // Only how many: no names, dates or amounts, so it can go to LINE or WhatsApp.
-    const text = tr.tp('app.ask.due.shareText', items.length);
+    const text = tr.tp('app.ask.due.shareText', dated.length);
     try {
       if (navigator.share) await navigator.share({ text });
       else {
@@ -445,24 +453,30 @@ const DueCard: React.FC<{ records: readonly StrainRecord[] }> = ({ records }) =>
           <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
             {items.map((i) => (
               <Typography component="li" variant="body2" key={`${i.licenseId}-${i.kind}-${i.date}`}>
-                <Link component={RouterLink} to={`/license/${i.licenseId}`}>
-                  {t('app.ask.due.line', { date: tr.date(`${i.date}T12:00:00`), what: what(i) })}
+                <Link component={RouterLink} to={`/license/${i.licenseId}`} data-due-kind={i.kind}>
+                  {i.kind === 'check'
+                    ? what(i)
+                    : t('app.ask.due.line', { date: tr.date(`${i.date}T12:00:00`), what: what(i) })}
                 </Link>
                 {i.overdue && ` · ${t('app.ask.due.overdue')}`}
               </Typography>
             ))}
           </Box>
-          <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
-            <Button size="small" variant="outlined" onClick={calendar}>
-              {t('app.ask.due.ics')}
-            </Button>
-            <Button size="small" variant="outlined" onClick={() => void share()}>
-              {t('app.ask.due.share')}
-            </Button>
-          </Stack>
-          <Typography variant="caption" color="text.secondary">
-            {copied ? t('app.ask.due.copied') : t('app.ask.due.shareNote')}
-          </Typography>
+          {dated.length > 0 && (
+            <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
+              <Button size="small" variant="outlined" onClick={calendar}>
+                {t('app.ask.due.ics')}
+              </Button>
+              <Button size="small" variant="outlined" onClick={() => void share()}>
+                {t('app.ask.due.share')}
+              </Button>
+            </Stack>
+          )}
+          {dated.length > 0 && (
+            <Typography variant="caption" color="text.secondary">
+              {copied ? t('app.ask.due.copied') : t('app.ask.due.shareNote')}
+            </Typography>
+          )}
         </>
       )}
     </Card>

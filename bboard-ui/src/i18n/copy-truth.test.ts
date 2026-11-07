@@ -425,6 +425,23 @@ describe("what's live where", () => {
     expect(mainnetNoRelay['m.live.chain.main']).toBe('Not yet: needs our read-only relay.');
     expect(mainnetRelay['m.live.chain.main']).toBe('Yes.');
     expect(e['m.live.lic.test']).toMatch(/^Yes, with real transactions/);
+    // Nothing is called live on veilcore.org until it has worked there: only veilcore.org's
+    // own build (licenses on, mainnet sponsor live) says "Yes"; the test site never does.
+    expect(home).toMatch(/const LICENSES_ON_SITE = THIS_BUILD\.agreementsLive === true && MAINNET_SENDS;/);
+    expect(home).toMatch(/LICENSES_ON_SITE\s*\?\s*'m\.live\.lic\.live'\s*:\s*'m\.live\.lic\.next'/);
+    expect(e['m.live.lic.next']).not.toMatch(/^Yes/);
+    expect(e['m.live.lic.next']).toMatch(/next veilcore\.org deploy/);
+    // The test-site cell doesn't say "Yes" for royalties until v2 has run there.
+    expect(home).toMatch(/row === 'lic' && col === 'test' && !ROYALTIES_RUN_ON_TEST\s*\?\s*'m\.live\.lic\.testNext'/);
+    expect(e['m.live.lic.testNext']).toMatch(/^Yes for licenses/);
+    expect(e['m.live.lic.testNext']).toMatch(/Royalty statements and payments: built/);
+    // The veilcore.org cell: no "Yes" for royalties until v2 has worked on mainnet, on any build.
+    expect(home).toMatch(/!ROYALTIES_RUN_ON_MAINNET\s*\?\s*'m\.live\.lic\.mainNext'/);
+    expect(fs.readFileSync(path.join(SRC, 'config/copy.ts'), 'utf8')).toMatch(
+      /export const ROYALTIES_RUN_ON_MAINNET = false;/,
+    );
+    expect(e['m.live.lic.mainNext']).toMatch(/^Licenses go live with the deploy/);
+    expect(e['m.live.lic.mainNext']).toMatch(/Royalty statements and payments: built, not live yet\.$/);
     expect(e['m.live.dna.main']).toMatch(/not dated/);
     // Lab reports are on on veilcore.org and the test site alike (LAB_RESULTS_ENABLED, 16 Oct).
     expect(rows.find((r) => r.row === 'results')?.has).toEqual([labResultsEnabledFor('mainnet'), true, false]);

@@ -282,6 +282,12 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   await expect(page.getByText('dose (straw or embryo)', { exact: true })).toBeVisible();
   await expect(page.getByText(/with this animal as sire or dam/)).toBeVisible();
   await expect(page.getByText(/Cultivate/)).toHaveCount(0);
+  // Reloaded (or opened from a link), the page waits for the records instead of saying the
+  // record isn't here, and opens on the animal's presets, not a plant's (final review, L1).
+  await page.reload();
+  await expect(page.locator('[data-preset="breeding"]')).toBeVisible();
+  await expect(page.locator('[data-preset="clone"]')).toHaveCount(0);
+  await expect(page.getByText(/isn’t in this browser/)).toHaveCount(0);
   await page.goto(`/record/${rec.id}`);
   await expect(page.getByRole('heading', { name })).toBeVisible();
   await page.getByRole('button', { name: 'Technical details' }).click();

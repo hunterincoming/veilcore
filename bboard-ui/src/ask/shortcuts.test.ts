@@ -17,7 +17,9 @@ import {
   topicsCovered,
 } from './shortcuts';
 import { searchRecords } from './search';
-import { dueCalendar, dueItems } from './due';
+import { dealStateHere, dueCalendar, dueItems, licenseCalendar, type DealState } from './due';
+import { ledgerOf, periodRows } from '../veilcore/royalty-ledger';
+import type { DealEntry } from '../veilcore/deal-client';
 import { ASK_ACTIONS, ASK_MAX_CHARS, TOPICS, type AskContext, type AskResult } from './engine';
 import { readAskState, HANDOFF_STATE_KEY } from './handoff';
 import type { StrainRecord } from '../veilcore/records';
@@ -267,6 +269,213 @@ describe('What’s due', () => {
     expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(2);
     expect(ics).toContain('DTSTART;VALUE=DATE:20261030');
     expect(ics).toContain('DTEND;VALUE=DATE:20261031');
+  });
+
+  // Final review, S2: the list is built from the deal's actual state (royalty-ledger.ts
+  // periodRows, the license page's own steps), never from the dates alone.
+  describe('from the deal’s messages, as the license page works them out', () => {
+    // Quarterly from 1 Jan 2026: Q3 (Jul to Sep) has its report due 30 Oct, its payment 14 Nov.
+    const Q = [
+      ['2026-01-01', '2026-03-31'],
+      ['2026-04-01', '2026-06-30'],
+      ['2026-07-01', '2026-09-30'],
+    ] as const;
+    let n = 0;
+    const sig = () => `sig-${++n}`.padEnd(16, '0');
+    const at = (day: string) => Date.parse(`${day}T12:00:00Z`);
+    /** One report for a period, taken as far as `upTo`: sent, accepted (or sent back), paid, received. */
+    const cycle = (
+      q: readonly [string, string],
+      upTo: 'sent' | 'fix' | 'accepted' | 'paid' | 'received',
+      day = q[1],
+    ): DealEntry[] => {
+      const s = sig();
+      const e = (m: Record<string, unknown>) =>
+        ({ seq: 0, fingerprint: '', receivedAt: 0, mine: false, signature: sig(), ...m }) as unknown as DealEntry;
+      const out = [
+        e({
+          type: 'statement',
+          statementId: `S-${q[0]}`,
+          periodFrom: q[0],
+          periodTo: q[1],
+          basis: 'per-unit',
+          quantity: '40',
+          currency: 'USD',
+          amountOwed: '100.00',
+          from: 'licensee',
+          at: at(day) + 1,
+          signature: s,
+        }),
+      ];
+      if (upTo === 'sent') return out;
+      out.push(
+        e({
+          type: 'reply',
+          statementSig: s,
+          decision: upTo === 'fix' ? 'disputed' : 'accepted',
+          from: 'issuer',
+          at: at(day) + 2,
+        }),
+      );
+      if (upTo === 'fix' || upTo === 'accepted') return out;
+      out.push(
+        e({ type: 'paid', statementSig: s, amount: '100.00', currency: 'USD', from: 'licensee', at: at(day) + 3 }),
+      );
+      if (upTo === 'paid') return out;
+      out.push(
+        e({ type: 'received', statementSig: s, amount: '100.00', currency: 'USD', from: 'issuer', at: at(day) + 4 }),
+      );
+      return out;
+    };
+    const withLedger =
+      (...entries: DealEntry[][]) =>
+      (): DealState => ({ kind: 'ledger', ledger: ledgerOf(entries.flat()) });
+    const royalties = (items: ReturnType<typeof dueItems>) =>
+      items.filter((i) => i.kind === 'report' || i.kind === 'payment');
+    const q3done = () => [cycle(Q[0], 'received'), cycle(Q[1], 'received')];
+
+    it('an accepted, unpaid payment stays, overdue, the day after it falls due and long after', () => {
+      const state = withLedger(...q3done(), cycle(Q[2], 'accepted'));
+      const on14 = royalties(dueItems([license()], records, '2026-11-14', 20, state));
+      expect(on14[0]).toMatchObject({ kind: 'payment', date: '2026-11-14', from: Q[2][0], overdue: false });
+      for (const day of ['2026-11-15', '2027-03-01']) {
+        const items = royalties(dueItems([license()], records, day, 20, state));
+        expect(items[0], day).toMatchObject({ kind: 'payment', date: '2026-11-14', from: Q[2][0], overdue: true });
+      }
+    });
+
+    it('a report not sent, or sent back to fix, stays overdue until a report goes in', () => {
+      for (const q3 of [[], cycle(Q[2], 'fix')]) {
+        const state = withLedger(...q3done(), q3);
+        for (const day of ['2026-10-31', '2026-11-15', '2027-02-10']) {
+          const items = royalties(dueItems([license()], records, day, 20, state));
+          expect(items[0], day).toMatchObject({ kind: 'report', date: '2026-10-30', from: Q[2][0], overdue: true });
+          // No payment for it before a report is accepted ("I paid" opens only after Accept).
+          expect(
+            items.some((i) => i.kind === 'payment' && i.from === Q[2][0]),
+            day,
+          ).toBe(false);
+        }
+      }
+    });
+
+    it('nothing for a period whose report went in and was accepted and paid; nothing waits on a date while it is answered or confirmed', () => {
+      for (const last of ['received', 'paid', 'sent'] as const) {
+        const items = royalties(
+          dueItems([license()], records, '2026-11-20', 20, withLedger(...q3done(), cycle(Q[2], last))),
+        );
+        // Only the period running now (Oct to Dec), not overdue.
+        expect(
+          items.map((i) => [i.kind, i.from, i.overdue]),
+          last,
+        ).toEqual([
+          ['report', '2026-10-01', false],
+          ['payment', '2026-10-01', false],
+        ]);
+      }
+    });
+
+    it('agrees with the license page (periodRows) on every day, every state', () => {
+      const states = [
+        [],
+        [cycle(Q[0], 'sent')],
+        [cycle(Q[0], 'fix'), cycle(Q[1], 'accepted')],
+        [cycle(Q[0], 'received'), cycle(Q[1], 'paid'), cycle(Q[2], 'accepted')],
+        [...q3done(), cycle(Q[2], 'received')],
+      ];
+      const days = ['2026-02-01', '2026-04-30', '2026-05-01', '2026-07-31', '2026-10-30', '2026-11-14', '2026-11-15'];
+      for (const entries of states)
+        for (const day of days) {
+          const ledger = ledgerOf(entries.flat());
+          const page = periodRows(license().terms, ledger, day)
+            .filter((r) => r.step === 'report' || r.step === 'fix' || r.step === 'pay')
+            .map((r) => [r.step === 'pay' ? 'payment' : 'report', r.due, r.period.from, r.overdue > 0]);
+          const ask = royalties(dueItems([license()], records, day, 99, () => ({ kind: 'ledger', ledger }))).map(
+            (i) => [i.kind, i.date, i.from, i.overdue],
+          );
+          const at = `${entries.length} ${day}`;
+          // Everything the page shows as waiting on a date is in the list, overdue alike...
+          for (const row of page) expect(ask, at).toContainEqual(row);
+          // ...and the rest is only the period running now (or the first one, before it starts),
+          // not overdue: never a period the page shows as done, answered or confirmed.
+          const rows = periodRows(license().terms, ledger, day);
+          for (const a of ask.filter((x) => !page.some((r) => JSON.stringify(r) === JSON.stringify(x)))) {
+            const row = rows.find((r) => r.period.from === a[2]);
+            expect(a[3], at).toBe(false);
+            expect(row === undefined || row.step === 'running', `${at} ${JSON.stringify(a)}`).toBe(true);
+          }
+        }
+    });
+
+    it('the calendar file follows: the overdue payment is in it, done periods are not', () => {
+      const items = dueItems([license()], records, '2026-11-15', 20, withLedger(...q3done(), cycle(Q[2], 'accepted')));
+      const ics = dueCalendar(items, (i) => i.kind, new Date(Date.UTC(2026, 10, 15)));
+      expect(ics).toContain('DTSTART;VALUE=DATE:20261114');
+      expect(ics).not.toContain('DTSTART;VALUE=DATE:20260430');
+      expect(ics).not.toContain('DTSTART;VALUE=DATE:20260730');
+    });
+
+    it('the license page’s calendar file has the same dates as Ask’s, overdue kept, done gone', () => {
+      const events = (ics: string) =>
+        [...ics.matchAll(/DTSTART;VALUE=DATE:(\d+)\r\nDTEND[^\r]*\r\nSUMMARY:(report|payment)/g)]
+          .map((m) => `${m[2]} ${m[1]}`)
+          .sort();
+      const now = new Date(Date.UTC(2026, 10, 15));
+      const states = [
+        [],
+        [cycle(Q[0], 'fix'), cycle(Q[1], 'accepted')],
+        [...q3done(), cycle(Q[2], 'accepted')],
+        [...q3done(), cycle(Q[2], 'received')],
+      ];
+      for (const entries of states)
+        for (const day of ['2026-02-01', '2026-07-31', '2026-11-14', '2026-11-15', '2027-03-01']) {
+          const ledger = ledgerOf(entries.flat());
+          const page = licenseCalendar(license().terms, ledger, day, (kind) => kind, now);
+          const ask = dueCalendar(
+            dueItems([license()], records, day, 99, () => ({ kind: 'ledger', ledger })),
+            (i) => i.kind,
+            now,
+          );
+          expect(events(page), `${entries.length} ${day}`).toEqual(events(ask));
+        }
+      const page = licenseCalendar(
+        license().terms,
+        ledgerOf([...q3done(), cycle(Q[2], 'accepted')].flat()),
+        '2026-11-15',
+        (kind) => kind,
+        now,
+      );
+      expect(events(page)).toContain('payment 20261114');
+      expect(events(page).some((e) => /20260430|20260515|20260730|20260814/.test(e))).toBe(false);
+    });
+
+    it('a deal this page hasn’t read: a link to the agreement, never a guess; not in the calendar', () => {
+      const items = dueItems([license()], records, '2026-11-15', 20, () => ({ kind: 'unread' }));
+      expect(items[0]).toMatchObject({ kind: 'check', licenseId: 'LIC-1', name: 'Blue Dream' });
+      expect(royalties(items)).toEqual([]);
+      expect(dueCalendar(items, (i) => i.kind).match(/BEGIN:VEVENT/g)).toHaveLength(1); // the end date only
+      expect((appEn as Record<string, string>)['app.ask.due.check']).toBe(
+        '{name}: open the agreement to see what’s due',
+      );
+    });
+
+    it('which state a license is in, from what this page holds', () => {
+      expect(dealStateHere(license())).toEqual({ kind: 'schedule' });
+      const oc = {
+        inviteId: 'i',
+        issuerToken: 't',
+        partySecret: 'a'.repeat(64),
+        licenseeNonce: 'b'.repeat(64),
+        commitment: 'c'.repeat(64),
+        issuerRecord: 'd'.repeat(64),
+      };
+      // No channel yet: nothing can have been reported or paid.
+      expect(dealStateHere(license({ onChain: oc } as never))).toMatchObject({
+        kind: 'ledger',
+        ledger: { reports: [] },
+      });
+      expect(dealStateHere(license({ onChain: { ...oc, termsSentAt: 1 } } as never))).toEqual({ kind: 'unread' });
+    });
   });
 
   it('the reminder says only how many', () => {

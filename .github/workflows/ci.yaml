@@ -115,6 +115,19 @@ jobs:
         run: |
           node --test scripts/deploy-test-site.test.mjs scripts/deploy-mainnet.test.mjs
 
+      # The fee sponsor and its indexer relay (sponsor/): the code veilcore.org's sends go
+      # through. Nothing is sent; the network is stood in for.
+      - name: Sponsor
+        run: |
+          npm run typecheck -w sponsor
+          npm test -w sponsor
+
+      # The other script checks: file names that collide on a case-insensitive disk, the
+      # release list, and the Bitcoin stamp check. Nothing is deployed or sent.
+      - name: Other script checks
+        run: |
+          node --test scripts/case-collisions.test.mjs scripts/release-manifest.test.mjs scripts/check-bitcoin-stamp.test.mjs
+
       - name: Maintenance committee launcher
         working-directory: bboard-cli
         run: |
