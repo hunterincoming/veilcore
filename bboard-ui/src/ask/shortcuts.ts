@@ -54,6 +54,8 @@ const KIND_NOUNS = ['plant', 'plants', 'pflanze', 'planta', 'plante', 'cultivar'
 // prettier-ignore
 const NAME_MARKERS = ['called', 'named', 'genannt', 'namens', 'llamado', 'llamada', 'appelé', 'appelée', 'nommé', 'nommée'];
 const FROM_MARKERS = ['from', 'von', 'de', 'del', 'depuis', 'sur'];
+// prettier-ignore
+const FILLER = ['a', 'an', 'the', 'one', 'ein', 'eine', 'einen', 'un', 'una', 'uno', 'une', 'le', 'la', 'el', 'die', 'der', 'das', 'please', 'bitte', 'por', 'favor', 'plaît', 's\'il', 'vous'];
 
 // prettier-ignore
 const TOPIC_WORDS: Record<Topic, string[]> = {
@@ -102,7 +104,7 @@ const ACTION_WORDS: Record<AskAction, string[]> = {
 
 // ---- reading ----
 
-const CJK = /[぀-ヿ㐀-鿿ｦ-ﾟ]/;
+export const CJK = /[぀-ヿ㐀-鿿ｦ-ﾟ]/;
 
 /** NFKC (full-width digits and letters become plain), lower case, curly quotes plain, capped. */
 export const normalize = (s: string): string =>
@@ -155,6 +157,13 @@ export const countIn = (t: string): number | undefined => {
   return n >= 1 ? Math.min(n, MAX_BATCH) : undefined;
 };
 
+/** Every count in the text that countIn could read: not part of a name like "#12" or "12345". */
+export const countsIn = (t: string): number[] =>
+  [...t.matchAll(/(?<![#A-Za-z0-9.])(\d{1,4})(?![0-9.,])/g)]
+    .map((m) => Number(m[1]))
+    .filter((n) => n >= 1)
+    .map((n) => Math.min(n, MAX_BATCH));
+
 /** A name typed after "called" (or 「…」, or …という), else after the kind's noun ("new plant X"). */
 export const nameIn = (original: string): string | undefined => {
   const o = original.slice(0, ASK_MAX_CHARS).normalize('NFKC').trim();
@@ -171,6 +180,10 @@ export const nameIn = (original: string): string | undefined => {
     .slice(at + 1)
     .join(' ')
     .replace(/^[:,\s]+|[.,!?\s]+$/g, '');
+  // "neue Pflanze erfassen", "planta nueva": what follows the noun is the verb or "new", not a
+  // name. A name made only of such words is no name ("new plant New Dawn" keeps "New Dawn").
+  const rest = tokensOf(normalize(name));
+  if (rest.length && rest.every((w) => FILLER.includes(w) || matches(w, [w], NEW))) return undefined;
   return name ? name.slice(0, 200) : undefined;
 };
 

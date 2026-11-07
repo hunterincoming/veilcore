@@ -76,5 +76,34 @@ export const cacheScope = (path: string): 'webllm/config' | 'webllm/model' =>
   path === 'mlc-chat-config.json' || path === 'mlc-model-manifest.json' ? 'webllm/config' : 'webllm/model';
 export const MODEL_CACHES = ['webllm/config', 'webllm/model', 'webllm/wasm'] as const;
 
-/** Every byte the model takes on this device. */
-export const modelBytes = (m: PinnedModel): number => m.files.reduce((n, f) => n + f.bytes, 0);
+/**
+ * The model library on this site, as an absolute address: WebLLM keeps an absolute address in
+ * its own cache (`webllm/wasm`) and reads it from there, where a relative one would be fetched
+ * again on every start. The download stores it there, checked; the engine never fetches it.
+ */
+export const libUrl = (m: PinnedModel, origin: string): string =>
+  new URL(`${MANIFEST.libs.servedFrom}${m.lib.file}`, origin).href;
+
+export type CacheScope = (typeof MODEL_CACHES)[number];
+/** One file the model needs on this device: where it comes from, where it is kept, its pin. */
+export type NeededFile = {
+  readonly name: string;
+  readonly url: string;
+  readonly scope: CacheScope;
+  readonly bytes: number;
+  readonly sha256: string;
+};
+/** Every file the model needs, the model library last. */
+export const neededFiles = (m: PinnedModel, origin: string): NeededFile[] => [
+  ...m.files.map((f) => ({
+    name: f.path,
+    url: fileUrl(m, f.path),
+    scope: cacheScope(f.path),
+    bytes: f.bytes,
+    sha256: f.sha256,
+  })),
+  { name: m.lib.file, url: libUrl(m, origin), scope: 'webllm/wasm', bytes: m.lib.bytes, sha256: m.lib.sha256 },
+];
+
+/** Every byte the model takes on this device, the library included. */
+export const modelBytes = (m: PinnedModel): number => m.files.reduce((n, f) => n + f.bytes, 0) + m.lib.bytes;

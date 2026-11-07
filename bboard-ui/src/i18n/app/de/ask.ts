@@ -30,66 +30,74 @@ export const ask = {
   'app.ask.kind.plant': 'Pflanze',
   'app.ask.kind.animal': 'Tier',
   'app.ask.kind.strain': 'Stamm oder Linie',
-  // ---- was Fragen kann (beim ersten Öffnen, dann unter einem Link) ----
+  // ---- was Sie hier tun können (beim ersten Öffnen, dann unter einem Link) ----
   'app.ask.can.title': 'Ich kann:',
-  'app.ask.can.list':
-    'Stecklinge oder Nachwuchs in einem Schritt erfassen · zeigen, was fällig ist · jedes Wort erklären · Ihre Datensätze finden · jede Seite ausgefüllt öffnen',
-  'app.ask.can.listPlants':
-    'Stecklinge in einem Schritt erfassen · zeigen, was fällig ist · jedes Wort erklären · Ihre Datensätze finden · jede Seite ausgefüllt öffnen',
+  'app.ask.can.1': 'Stecklinge oder Nachwuchs erfassen, viele auf einmal',
+  'app.ask.can.1plants': 'Stecklinge erfassen, viele auf einmal',
+  'app.ask.can.2': 'Zeigen, was fällig ist',
+  'app.ask.can.3': 'Wörter wie „Prüfcode“ erklären',
+  'app.ask.can.4': 'Ihre Datensätze finden',
+  'app.ask.can.5': 'Einen neuen Datensatz für Sie ausfüllen, zum Prüfen und Speichern',
   'app.ask.can.never': 'Ich unterschreibe und sende nie etwas. Das tun Sie.',
-  'app.ask.can.toggle': 'Was kann Fragen?',
-  // ---- der Hinweis am Knopf, beim ersten Besuch ----
-  'app.ask.hint.plant': 'Probieren Sie: 12 Stecklinge von Blue Dream schneiden',
-  'app.ask.hint.animal': 'Probieren Sie: 3 Kälber erfassen',
+  'app.ask.can.toggle': 'Was kann ich hier tun?',
+  // ---- der Hinweis am Knopf, sobald es einen Datensatz gibt (das Beispiel nennt ihn) ----
+  'app.ask.hint.try': 'Probieren Sie: {example}',
   'app.ask.hint.dismiss': 'Ausblenden',
+  'app.ask.example.clones': '6 Stecklinge von {name} schneiden',
+  'app.ask.example.calves': '2 Kälber von {name} erfassen',
   // ---- das Sprachmodell auf diesem Gerät (optional) ----
   'app.ask.privacyModel':
     'Was Sie hier tippen, wird nicht gesendet. Das Sprachmodell läuft auf diesem Gerät. Nur Speichern sendet.',
-  'app.ask.engine.model': 'Gelesen vom Sprachmodell auf diesem Gerät ({model}), geprüft nach denselben Regeln.',
-  'app.ask.engine.starting': 'Das Sprachmodell auf diesem Gerät startet. Bis es bereit ist, antworten die Kurzbefehle.',
+  'app.ask.engine.model': 'Antworten kommen vom Sprachmodell auf diesem Gerät ({model}) und werden wie immer geprüft.',
+  'app.ask.engine.starting': 'Das Sprachmodell auf diesem Gerät startet. Bis dahin funktioniert alles wie gewohnt.',
   'app.ask.engine.failed':
-    'Das Sprachmodell auf diesem Gerät ist nicht gestartet, deshalb antworten die Kurzbefehle. {why}',
+    'Das Sprachmodell auf diesem Gerät ist nicht gestartet. {why} Ohne Modell funktioniert alles wie gewohnt.',
   'app.ask.model.title': 'Sprachmodell auf diesem Gerät (optional)',
   'app.ask.model.what':
-    'Fragen funktioniert jetzt schon, offline, mit Kurzbefehlen. Sie können zusätzlich ein kleines Sprachmodell (Qwen3, Apache-2.0) laden, das in diesem Browser läuft und liest, was Sie tippen. Seine Antworten werden nach denselben Regeln geprüft, und es kann nichts, was die Kurzbefehle nicht können.',
+    '„VeilCore fragen“ funktioniert schon ohne das, auch offline. Sie können ein kleines Sprachmodell (Qwen3) hinzufügen, das nur in diesem Browser läuft. Es versteht vielleicht mehr Arten, etwas zu sagen. Es kann nichts, was „VeilCore fragen“ nicht schon kann, und seine Antworten werden genauso geprüft.',
   'app.ask.model.pick': 'Welches Modell',
   'app.ask.model.option': '{name}: etwa {size}',
   'app.ask.model.size': 'Download: {size}, in diesem Browser gespeichert, bis Sie es löschen.',
   'app.ask.model.hf':
-    'Die Dateien kommen von Hugging Face. Hugging Face sieht Ihre IP-Adresse, die Uhrzeit, welches Modell und dass die Anfrage von veilcore.org kommt. Nichts, was Sie tippen, wird gesendet, weder dann noch später.',
-  'app.ask.model.check': 'Jede Datei wird vor der Nutzung mit einer in diese Website eingebauten Prüfsumme verglichen.',
-  'app.ask.model.download': 'Laden ({size})',
+    'Die Modelldateien kommen von Hugging Face. Hugging Face sieht Ihre IP-Adresse, die Uhrzeit, welches Modell und dass die Anfrage von veilcore.org kommt. Nichts, was Sie tippen, wird gesendet, weder dann noch später.',
+  'app.ask.model.check':
+    'Vor der Nutzung wird jede Datei geprüft: Sie muss genau die Datei sein, die diese Website erwartet.',
+  'app.ask.model.needsConnection':
+    'Bei jedem Start lädt dieser Browser das Programm des Modells von veilcore.org; dafür braucht es eine Verbindung. Nichts, was Sie tippen, wird gesendet.',
+  'app.ask.model.folded': 'Optional: ein Sprachmodell auf diesem Computer',
+  'app.ask.model.download': 'Herunterladen ({size})',
   'app.ask.model.resume': 'Download fortsetzen',
   'app.ask.model.cancel': 'Abbrechen',
   'app.ask.model.progress': '{done} von {total}',
   'app.ask.model.cancelled': 'Angehalten. Was geladen ist, bleibt; setzen Sie fort, wann Sie möchten.',
   'app.ask.model.delete': 'Modell aus diesem Browser löschen',
-  'app.ask.model.deleted': 'Gelöscht. Fragen nutzt die Kurzbefehle.',
-  'app.ask.model.stored': 'Geladen: {name}. Fragen nutzt es nach einer Testantwort auf diesem Gerät.',
+  'app.ask.model.deleted': 'Gelöscht. Alles funktioniert wie gewohnt.',
+  'app.ask.model.stored': 'Heruntergeladen: {name}. Es wird einmal auf diesem Gerät getestet und dann genutzt.',
   'app.ask.model.noRoom':
-    'Dieser Browser hat etwa {free} frei, das Modell braucht {size}. Fragen nutzt die Kurzbefehle.',
+    'Dieser Browser hat etwa {free} frei, das Modell braucht {size}. Ohne Modell funktioniert alles wie gewohnt.',
   'app.ask.model.failed.network':
-    'Der Download ist abgebrochen (Verbindung). Fragen nutzt die Kurzbefehle. Sie können fortsetzen.',
+    'Der Download ist abgebrochen (Verbindung). Sie können ihn fortsetzen. Ohne Modell funktioniert alles wie gewohnt.',
   'app.ask.model.failed.mismatch':
-    'Eine Datei passte nicht zu ihrer Prüfsumme und wurde nicht behalten. Fragen nutzt die Kurzbefehle.',
-  'app.ask.model.failed.storage': 'Dieser Browser hat die Dateien nicht gespeichert. Fragen nutzt die Kurzbefehle.',
+    'Eine Datei war nicht genau die, die diese Website erwartet, und wurde nicht behalten. Ohne Modell funktioniert alles wie gewohnt.',
+  'app.ask.model.failed.storage':
+    'Dieser Browser hat die Dateien nicht gespeichert. Ohne Modell funktioniert alles wie gewohnt.',
   'app.ask.model.failed.policy':
-    'Dieser Browser wendet die eigenen Sicherheitsregeln des Downloads nicht an, deshalb startet er hier nicht. Fragen nutzt die Kurzbefehle.',
-  'app.ask.model.why.policy': 'Dieser Browser wendet die eigenen Sicherheitsregeln des Modells nicht an.',
+    'Dieser Browser kann das Sprachmodell nicht ausführen. Ein aktueller Chrome oder Edge kann es meist. Ohne Modell funktioniert alles wie gewohnt.',
+  'app.ask.model.why.policy': 'Dieser Browser kann es nicht ausführen. Ein aktueller Chrome oder Edge kann es meist.',
   'app.ask.model.why.mismatch':
-    'Eine gespeicherte Datei passte nicht zu ihrer Prüfsumme; löschen Sie das Modell und laden Sie es neu.',
+    'Eine gespeicherte Datei ist nicht die, die diese Website erwartet. Löschen Sie das Modell und laden Sie es neu herunter.',
   'app.ask.model.why.notStored': 'Ein Teil des Modells fehlt; setzen Sie den Download fort.',
-  'app.ask.model.why.noGpu': 'Dieser Browser hat kein WebGPU.',
+  'app.ask.model.why.noGpu': 'Dieser Browser kann es nicht ausführen. Ein aktueller Chrome oder Edge kann es meist.',
   'app.ask.model.why.noF16': 'Die Grafik dieses Computers kann dieses Modell nicht ausführen.',
   'app.ask.model.why.selfTest': 'Es hat die Testantwort auf diesem Gerät falsch gegeben.',
   'app.ask.model.why.failed': 'Es ist beim Laden stehen geblieben.',
-  'app.ask.model.notHere.phone': 'Das Sprachmodell ist vorerst für Computer. Hier nutzt Fragen die Kurzbefehle.',
+  'app.ask.model.notHere.narrow': 'Machen Sie dieses Fenster breiter, um das optionale Sprachmodell zu sehen.',
   'app.ask.model.notHere.noWebgpu':
-    'Dieser Browser kann das Sprachmodell nicht ausführen (kein WebGPU). Fragen nutzt die Kurzbefehle.',
+    'Dieser Browser kann das Sprachmodell nicht ausführen. Ein aktueller Chrome oder Edge kann es meist. Ohne Modell funktioniert alles wie gewohnt.',
   'app.ask.model.notHere.noF16':
-    'Die Grafik dieses Computers kann das Sprachmodell nicht ausführen. Fragen nutzt die Kurzbefehle.',
+    'Die Grafik dieses Computers kann das Sprachmodell nicht ausführen. Ohne Modell funktioniert alles wie gewohnt.',
   'app.ask.model.notHere.memory':
-    'Dieser Computer hat zu wenig Arbeitsspeicher für das Sprachmodell. Fragen nutzt die Kurzbefehle.',
+    'Dieser Computer hat zu wenig Arbeitsspeicher für das Sprachmodell. Ohne Modell funktioniert alles wie gewohnt.',
   'app.ask.draft.opens': 'Öffnet: {screen}',
   'app.ask.screen.record': 'Einen Datensatz anlegen ({kind})',
   'app.ask.screen.cross': 'Einen Datensatz anlegen: eine Kreuzung ({kind})',

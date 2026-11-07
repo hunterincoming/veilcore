@@ -9,7 +9,8 @@ import type { AskContext, AskResult } from './engine';
 import { modelEngine, selfTest, type ModelAsk } from './model-engine';
 import { modelMessages, modelSchema, readModelAnswer, recordsForModel } from './model-output';
 import { interpret } from './shortcuts';
-import { hintForAnimals } from './hint';
+import { hintExample } from './hint';
+import type { DraftKind } from './handoff';
 
 const rec = (id: string, strainName: string, animal = false) =>
   ({ id, strainName, ...(animal ? { profile: ANIMAL_PROFILE } : {}) }) as unknown as StrainRecord;
@@ -42,12 +43,38 @@ describe('readModelAnswer: the provenance rule', () => {
     expect(c.unmatched).toEqual([]);
   });
 
-  it('keeps a name as typed (case and width aside)', () => {
+  it('keeps a name as the person typed it, not as the model wrote it', () => {
     const r = read({ action: 'record', kind: 'plant', name: 'Harbour Mist' }, 'NEW PLANT harbour mist') as Extract<
       AskResult,
       { type: 'draft' }
     >;
-    expect(r.draft.name).toBe('Harbour Mist');
+    expect(r.draft.name).toBe('harbour mist');
+  });
+
+  it('look-alike letters and word fragments from the model are refused or replaced by what was typed', () => {
+    const text = 'new plant Harbour Mist';
+    const draft = (o: unknown, t = text) => (read(o, t) as Extract<AskResult, { type: 'draft' }>).draft;
+    // Fullwidth and mathematical bold letters: the person's own characters come back.
+    expect(draft({ action: 'record', kind: 'plant', name: 'ＨＡＲＢＯＵＲ 𝐌𝐢𝐬𝐭' }).name).toBe('Harbour Mist');
+    // A piece of a word, or of two: no name.
+    expect(draft({ action: 'record', kind: 'plant', name: 'bour Mi' }).name).toBeUndefined();
+    expect(draft({ action: 'record', kind: 'plant', name: 'arbour' }).name).toBeUndefined();
+    // The same for a search and for a parent named but not held.
+    expect(read({ action: 'search', query: 'ＧＥＬＡＴＯ' }, 'find gelato 2025')).toEqual({
+      type: 'search',
+      query: 'gelato',
+    });
+    expect(read({ action: 'search', query: 'elat' }, 'find gelato')).toEqual({ type: 'search', query: '' });
+    expect(
+      (
+        read(
+          { action: 'clones', unknownParents: ['Ｐｕｒｐｌｅ Haze', 'urple'] },
+          'cut 2 clones from Purple Haze',
+        ) as Extract<AskResult, { type: 'draft' }>
+      ).unmatched,
+    ).toEqual(['Purple Haze']);
+    // Japanese: a name runs straight into the particle, and is still whole.
+    expect(draft({ action: 'record', kind: 'plant', name: 'Gelato' }, 'Gelatoという植物を登録').name).toBe('Gelato');
   });
 
   it('a count only if that number was typed; otherwise 1', () => {
@@ -60,6 +87,15 @@ describe('readModelAnswer: the provenance rule', () => {
     expect(b.draft.count).toBe(1);
     const c = read({ action: 'clones', count: 12 }, 'クローンを１２本') as Extract<AskResult, { type: 'draft' }>;
     expect(c.draft.count).toBe(12);
+  });
+
+  it('a count never comes from digits inside a name, a "#12" or a longer number', () => {
+    const count = (o: unknown, t: string) => (read(o, t) as Extract<AskResult, { type: 'draft' }>).draft.count;
+    expect(count({ action: 'clones', count: 12 }, 'cut clones from Blue Dream #12')).toBe(1);
+    expect(count({ action: 'offspring', count: 9, parents: ['VEIL-000D'] }, 'calves from Cow 9')).toBe(1);
+    expect(count({ action: 'offspring', count: 2, parents: ['VEIL-000D'] }, 'Cow 9 had 2 calves')).toBe(2);
+    expect(count({ action: 'clones', count: 1234 }, 'clones 12345')).toBe(1);
+    expect(count({ action: 'clones', count: 5 }, 'clones 12345')).toBe(1);
   });
 
   it('a parent only from the records whose names were typed, by id, and of the right kind', () => {
@@ -161,12 +197,36 @@ describe('modelEngine: Shortcuts answers when the model can’t', () => {
 });
 
 describe('the hint by the bubble', () => {
-  it('gives the calves example only where animals are offered and most records are animals', () => {
-    const a = { profile: ANIMAL_PROFILE };
-    const p = {};
-    expect(hintForAnimals([], true)).toBe(false);
-    expect(hintForAnimals([a, a, p], true)).toBe(true);
-    expect(hintForAnimals([a, p], true)).toBe(false);
-    expect(hintForAnimals([a, a, a], false)).toBe(false);
+  const plant = (name: string, loggedAt: number) => ({ strainName: name, loggedAt });
+  const animal = (name: string, loggedAt: number) => ({ strainName: name, loggedAt, profile: ANIMAL_PROFILE });
+  it('no hint without a record of theirs; their latest plant, or calves where most records are animals', () => {
+    expect(hintExample([], true)).toBeUndefined();
+    expect(hintExample([plant('Gelato', 1), plant('OG Kush', 2)], true)).toEqual({ kind: 'clones', name: 'OG Kush' });
+    expect(hintExample([animal('Daisy', 1), animal('Cow 9', 3), plant('Gelato', 2)], true)).toEqual({
+      kind: 'calves',
+      name: 'Cow 9',
+    });
+    expect(hintExample([animal('Daisy', 1)], false)).toBeUndefined();
+  });
+
+  it('the example works: Shortcuts reads it as that batch with their record, in all five languages', async () => {
+    const { appEn } = await import('../i18n/app/en');
+    const dicts: Record<string, Record<string, string>> = { en: appEn };
+    for (const l of ['de', 'es', 'fr', 'ja']) {
+      const m = (await import(`../i18n/app/${l}/ask.ts`)) as { ask: Record<string, string> };
+      dicts[l] = m.ask;
+    }
+    const gelato = rec('VEIL-00A1', 'Gelato');
+    const daisy = rec('VEIL-00A2', 'Daisy', true);
+    const c = { records: [gelato, daisy], kinds: ['plant', 'animal'] as DraftKind[] };
+    for (const [l, d] of Object.entries(dicts)) {
+      const clones = interpret(d['app.ask.example.clones'].replace('{name}', 'Gelato'), c);
+      expect(clones, l).toMatchObject({ type: 'draft', draft: { preset: 'clones', count: 6, parents: ['VEIL-00A1'] } });
+      const calves = interpret(d['app.ask.example.calves'].replace('{name}', 'Daisy'), c);
+      expect(calves, l).toMatchObject({
+        type: 'draft',
+        draft: { preset: 'offspring', count: 2, parents: ['VEIL-00A2'] },
+      });
+    }
   });
 });

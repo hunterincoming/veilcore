@@ -1,7 +1,10 @@
 // What the on-device model is asked, the one shape it may answer in, and the reader that turns
 // its answer into the same AskResult Shortcuts gives (docs/ask-veilcore.md, "v2.1").
 //
-// The model writes no text anyone reads. WebLLM constrains its output to MODEL_SCHEMA (JSON, a
+// The model writes no text anyone reads, and none of its characters reach a draft: a name, a
+// search or a parent said back is the person's own span of what they typed, found by whole
+// words (typedSpan), never the model's string.
+// WebLLM constrains its output to MODEL_SCHEMA (JSON, a
 // fixed set of fields, the actions and words Ask already has), and readModelAnswer checks it by
 // the provenance rule, as strictly as a draft from Shortcuts:
 //   - a name, a search or a word said back must appear in what the person typed;
@@ -26,7 +29,7 @@ import {
   type Topic,
 } from './engine';
 import { DRAFT_KINDS, MAX_BATCH, presetFits, type AskDraft, type DraftKind, type DraftPreset } from './handoff';
-import { normalize, recordsNamed } from './shortcuts';
+import { CJK, countsIn, normalize, recordsNamed } from './shortcuts';
 
 /** The person's records the model is shown: only those whose name is in what they typed. */
 export const recordsForModel = (text: string, ctx: AskContext): StrainRecord[] =>
@@ -80,6 +83,54 @@ export const modelMessages = (text: string, ctx: AskContext): { role: 'system' |
   ];
 };
 
+const WORD = /[\p{L}\p{N}]/u;
+const fold = (s: string) => s.normalize('NFKD').replace(/[’‘]/g, "'").toLowerCase();
+
+/**
+ * The part of what the person typed that `candidate` names, as they typed it: whole words only,
+ * matched with case and character width aside (so the model can't bring in look-alike letters
+ * or a fragment of a word), and returned from their own text. Undefined if it isn't there.
+ */
+export const typedSpan = (text: string, candidate: string): string | undefined => {
+  const orig = text.slice(0, ASK_MAX_CHARS);
+  let folded = '';
+  const at: number[] = [];
+  let space = true;
+  for (let i = 0; i < orig.length; ) {
+    const ch = String.fromCodePoint(orig.codePointAt(i) as number);
+    const f = fold(ch);
+    if (/^\s+$/u.test(f)) {
+      if (!space) {
+        folded += ' ';
+        at.push(i);
+      }
+      space = true;
+    } else {
+      for (const c of f) {
+        folded += c;
+        for (let n = 0; n < c.length; n++) at.push(i);
+      }
+      space = false;
+    }
+    i += ch.length;
+  }
+  const want = fold(candidate).replace(/\s+/gu, ' ').trim();
+  if (!want) return undefined;
+  for (let k = folded.indexOf(want); k !== -1; k = folded.indexOf(want, k + 1)) {
+    const before = folded[k - 1];
+    const after = folded[k + want.length];
+    const joinsBefore = !!before && WORD.test(before) && !CJK.test(before) && !CJK.test(want[0]);
+    const joinsAfter = !!after && WORD.test(after) && !CJK.test(after) && !CJK.test(want[want.length - 1]);
+    // A combining mark right after is part of the last letter.
+    if (joinsBefore || joinsAfter || (!!after && /\p{M}/u.test(after))) continue;
+    const start = at[k];
+    const last = at[k + want.length - 1];
+    const end = last + String.fromCodePoint(orig.codePointAt(last) as number).length;
+    return orig.slice(start, end).replace(/\s+/gu, ' ').trim();
+  }
+  return undefined;
+};
+
 const str = (v: unknown, max = 200): string | undefined =>
   typeof v === 'string' && v.trim() ? v.replace(/\s+/g, ' ').trim().slice(0, max) : undefined;
 
@@ -97,11 +148,10 @@ export const readModelAnswer = (raw: string, text: string, ctx: AskContext): Ask
     return undefined;
   }
   const typed = normalize(text);
-  /** A value the person typed: found in their text, as typed (case and width aside). */
+  /** A value the person typed: their own words from their text, never the model's string. */
   const typedValue = (x: unknown, max = 200): string | undefined => {
     const s = str(x, max);
-    if (!s) return undefined;
-    return typed.includes(normalize(s)) ? s : undefined;
+    return s ? typedSpan(text, s)?.slice(0, max) : undefined;
   };
   const action = v.action;
   if (typeof action !== 'string' || !(ASK_ACTIONS as readonly string[]).includes(action)) return undefined;
@@ -152,8 +202,9 @@ export const readModelAnswer = (raw: string, text: string, ctx: AskContext): Ask
   let count: number | undefined;
   if (preset === 'clones' || preset === 'offspring') {
     const n = v.count;
-    const numbers = (typed.match(/\d{1,4}/g) ?? []).map(Number);
-    count = typeof n === 'number' && Number.isInteger(n) && n >= 1 && numbers.includes(n) ? Math.min(n, MAX_BATCH) : 1;
+    // Only a count Shortcuts could read too: not digits in a record's name ("Cow 9"), a "#12" or a long number.
+    const numbers = countsIn(recordsNamed(typed, ctx.records).rest);
+    count = typeof n === 'number' && Number.isInteger(n) && n >= 1 && n <= MAX_BATCH && numbers.includes(n) ? n : 1;
   }
   const name = preset === 'record' || preset === 'cross' ? typedValue(v.name, 200) : undefined;
   const want = preset === 'clones' ? 1 : 2;

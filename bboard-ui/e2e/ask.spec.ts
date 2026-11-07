@@ -197,7 +197,26 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
 
   // The record page offers a batch; Ask drafts the same from what is typed.
   await expect(page.getByText('Cut clones from this')).toBeVisible();
-  await openAsk(page);
+
+  // Now there is a record, the hint by the bubble names it. Dismissed, it stays gone; only the
+  // flag is stored. (Cleared here to try the hint again.)
+  const hint = page.locator('[data-ask-hint]');
+  await expect(hint).toHaveText(`Try: cut 6 clones from ${name}`);
+  if (process.env.ASK_SHOTS) await page.screenshot({ path: `${process.env.ASK_SHOTS}/fix-hint-phone.png` });
+  await hint.getByRole('button', { name: 'Dismiss' }).click();
+  await expect(hint).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem('veilcore.ask.seen.v1'))).toBe('done');
+  await page.reload();
+  await expect(page.locator('[data-ask-open]')).toBeVisible();
+  await expect(hint).toHaveCount(0);
+  await page.evaluate(() => localStorage.removeItem('veilcore.ask.seen.v1'));
+  await page.reload();
+  // Tapping the hint opens Ask with the example typed in, ready to send.
+  await hint.locator('[data-ask-hint-try]').click();
+  await expect(page.locator('[data-ask-sheet]')).toBeVisible();
+  await expect(page.locator('[data-ask-input]')).toHaveValue(`cut 6 clones from ${name}`);
+  await expect(page.locator('[data-ask-input]')).toBeFocused();
+  if (process.env.ASK_SHOTS) await page.screenshot({ path: `${process.env.ASK_SHOTS}/fix-hint-prefilled-phone.png` });
   await askFor(page, `cut 3 clones from ${name}`);
   const card = page.locator('[data-ask-card="draft"]').last();
   await expect(card).toContainText('Opens: Cut clones');

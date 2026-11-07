@@ -16,10 +16,9 @@ import {
   MANIFEST,
   MODEL_BUILT,
   MODEL_CACHES,
-  cacheScope,
-  fileUrl,
   modelBytes,
   modelPinned,
+  neededFiles,
   type PinnedModel,
 } from './manifest';
 
@@ -61,7 +60,7 @@ const workerScript = (url: string): string => {
 
 export type DeviceCheck =
   | { readonly ok: true }
-  | { readonly ok: false; readonly reason: 'not-built' | 'phone' | 'no-webgpu' | 'no-f16' | 'memory' };
+  | { readonly ok: false; readonly reason: 'not-built' | 'touch' | 'narrow' | 'no-webgpu' | 'no-f16' | 'memory' };
 
 type GpuAdapter = { features: { has: (f: string) => boolean } };
 type Gpu = { requestAdapter: (o?: object) => Promise<GpuAdapter | null> };
@@ -80,7 +79,9 @@ export const checkDevice = async (
   },
 ): Promise<DeviceCheck> => {
   if (!MODEL_BUILT) return { ok: false, reason: 'not-built' };
-  if (!env.wide || !env.finePointer) return { ok: false, reason: 'phone' };
+  // A phone or tablet: not offered (nothing is shown). A computer with a narrow window: said so.
+  if (!env.finePointer) return { ok: false, reason: 'touch' };
+  if (!env.wide) return { ok: false, reason: 'narrow' };
   if (env.memoryGB !== undefined && env.memoryGB < 8) return { ok: false, reason: 'memory' };
   if (!env.gpu) return { ok: false, reason: 'no-webgpu' };
   let adapter: GpuAdapter | null = null;
@@ -113,9 +114,9 @@ export const storedModel = async (): Promise<PinnedModel | undefined> => {
   try {
     for (const m of offeredModels()) {
       let all = true;
-      for (const f of m.files) {
-        const c = await caches.open(cacheScope(f.path));
-        if (!(await c.match(fileUrl(m, f.path)))) {
+      for (const f of neededFiles(m, location.origin)) {
+        const c = await caches.open(f.scope);
+        if (!(await c.match(f.url))) {
           all = false;
           break;
         }
@@ -225,7 +226,11 @@ export const startEngine = (m: PinnedModel, onProgress?: (stage: string, p: numb
       stopEngine();
       reject(new EngineFailed('failed', `worker error: ${String(ev.message ?? '').slice(0, 200)}`));
     };
-    w.postMessage({ type: 'load', modelId: m.id } satisfies EngineIn);
+    // Test builds only: the browser test asks for the stand-in engine (no GPU in headless Chromium).
+    const standIn =
+      import.meta.env.VITE_ASK_MODEL === 'test' &&
+      (globalThis as { __askStandInEngine?: boolean }).__askStandInEngine === true;
+    w.postMessage({ type: 'load', modelId: m.id, standIn } satisfies EngineIn);
   });
   return session;
 };

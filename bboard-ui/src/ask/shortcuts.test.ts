@@ -178,6 +178,35 @@ describe('Shortcuts reads what was typed', () => {
   });
 });
 
+describe('a new record: the verb or "new" after the noun is not a name (review, side finding)', () => {
+  const name = (t: string) => {
+    const r = interpret(t, ctx);
+    return r.type === 'draft' ? r.draft.name : 'not a draft';
+  };
+  it('no name where none was typed, in all five languages', () => {
+    for (const t of [
+      'record a new plant',
+      'new plant please',
+      'neue Pflanze erfassen',
+      'Pflanze erfassen',
+      'eine neue Pflanze anlegen',
+      'registrar una planta nueva',
+      'planta nueva',
+      'enregistrer une nouvelle plante',
+      'nouvelle plante',
+      '新しい植物を記録する',
+    ])
+      expect(name(t), t).toBeUndefined();
+  });
+  it('a typed name is kept, in all five languages, even one that starts like "new"', () => {
+    expect(name('new plant New Dawn')).toBe('New Dawn');
+    expect(name('neue Pflanze namens Sunset Sherbet')).toBe('Sunset Sherbet');
+    expect(name('nueva planta Harbour Mist')).toBe('Harbour Mist');
+    expect(name('nouvelle plante appelée Harbour Mist')).toBe('Harbour Mist');
+    expect(name('Harbour Mistという植物を登録')).toBe('Harbour Mist');
+  });
+});
+
 describe('Search my records', () => {
   it('by words, year and kind', () => {
     expect(searchRecords(records, 'blue').map((r) => r.strainName)).toEqual(['Blue Dream', 'Blue Dream #12']);
