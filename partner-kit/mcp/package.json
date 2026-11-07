@@ -1,0 +1,25 @@
+{
+  "name": "@veilcore/mcp",
+  "version": "0.1.0",
+  "description": "veilcore-mcp: check VeilCore records and documents, and make a link to start a record, from an AI assistant that speaks the Model Context Protocol. Read-only: it never saves, signs or sends.",
+  "author": "VeilCore",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "veilcore-mcp": "./dist/veilcore-mcp.js"
+  },
+  "files": [
+    "dist/veilcore-mcp.js",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  },
+  "dependencies": {
+    "veilcore-records": "^0.18.0"
+  }
+}

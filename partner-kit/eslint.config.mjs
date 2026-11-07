@@ -6,7 +6,7 @@ import globals from 'globals';
 
 const config = tseslint.config(
   // The record-check test page is plain browser script served as is; its build output is generated.
-  { ignores: ['record-check/e2e/page/**', 'record-check/dist/**', 'record-check/test-results/**'] },
+  { ignores: ['record-check/e2e/page/**', 'record-check/dist/**', 'record-check/test-results/**', 'mcp/dist/**', 'mcp/.test-dist/**'] },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   reactPlugin.configs.flat.recommended,

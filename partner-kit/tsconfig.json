@@ -1,5 +1,5 @@
 {
-  "include": ["src/**/*.ts", "test/**/*.ts", "record-check/src/**/*.ts", "record-check/test/**/*.ts", "record-check/e2e/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "record-check/src/**/*.ts", "record-check/test/**/*.ts", "record-check/e2e/**/*.ts", "mcp/src/**/*.ts", "mcp/test/**/*.ts"],
   "compilerOptions": {
     "noEmit": true,
     "lib": ["ESNext", "DOM"],
