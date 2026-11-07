@@ -6,6 +6,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import type { OnChainLicense } from './licenses';
 import { isNumber, isObject, isString, readJson } from './json';
+import { dealOrder } from './deal-order';
 import {
   dealKeys,
   openMessage,
@@ -170,12 +171,9 @@ export const readAll = async (p: DealParty): Promise<DealEntry[]> => {
     }
     if (list.length < 200) break;
   }
-  // In the order their senders signed them, not the order the registry hands them over: the
-  // registry can't make an older word look like the latest (review round 3, M1, L2).
-  return keepRead(
-    p,
-    all.sort((x, y) => x.at - y.at || (x.signature < y.signature ? -1 : 1)),
-  );
+  // In the registry's order (seq), never the senders' own clocks: a message signed with an earlier
+  // time can't jump ahead of one already there (panel review, M2; deal-order.ts).
+  return keepRead(p, dealOrder(all));
 };
 
 /** What the registry dates for a message: SHA-256 of "iv.ct", hex (registry deals.mjs). */
@@ -249,6 +247,8 @@ export const dealRecordOf = (p: DealParty, mine: string, entries: readonly DealE
       ),
       signature: e.signature,
       fingerprint: e.fingerprint,
+      // The registry's order and time: a checker orders the deal by seq, never the signed times.
+      seq: e.seq,
       receivedAt: e.receivedAt,
       proof: `${BASE}/proof/${e.fingerprint}`,
     })),

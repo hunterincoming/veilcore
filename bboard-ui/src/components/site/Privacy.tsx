@@ -21,7 +21,21 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import { SiteShell } from './SiteShell';
 
-const SECTIONS = ['stored', 'local', 'browser', 'hosts', 'code', 'test', 'madeup', 'export', 'delete', 'who'] as const;
+const SECTIONS = [
+  'stored',
+  'local',
+  'deals',
+  'chain',
+  'browser',
+  'helper',
+  'hosts',
+  'code',
+  'test',
+  'madeup',
+  'export',
+  'delete',
+  'who',
+] as const;
 /**
  * The three lines first (persona review, 17 Oct): the "Stored on our server" paragraph is
  * about 400 words, and the plain answer was buried in it. The detail stays, word for word,

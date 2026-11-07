@@ -278,6 +278,11 @@ test('log an animal with its ID, sire and dam; tie a DNA report; date it; show s
   await expect(page.locator('[data-preset="breeding"]')).toBeVisible();
   await expect(page.locator('[data-preset="clone"]')).toHaveCount(0);
   await page.locator('[data-preset="custom"]').click();
+  // Never the cannabis question or its warnings on an animal; the territory is still required.
+  await expect(page.locator('[data-controlled-question]')).toHaveCount(0);
+  await expect(page.locator('[data-controlled-warnings]')).toHaveCount(0);
+  await expect(page.getByText(/cannabis/i)).toHaveCount(0);
+  await expect(page.getByLabel(/^Territory/)).toHaveAttribute('required', '');
   await expect(page.getByText('Breed with their own animals only')).toBeVisible();
   await expect(page.getByText('dose (straw or embryo)', { exact: true })).toBeVisible();
   await expect(page.getByText(/with this animal as sire or dam/)).toBeVisible();

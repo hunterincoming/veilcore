@@ -30,7 +30,8 @@ import {
   Typography,
 } from '@mui/material';
 import { say, useDeal, type DealParty } from '../../veilcore/deal-client';
-import { TermsBox, useOfferedTerms } from './DealTerms';
+import { TermsBox, useOfferedTerms, type Offered } from './DealTerms';
+import { ControlledWarnings } from './RoyaltyTermsForm';
 import { RoyaltyLedger } from './RoyaltyLedger';
 import { OffspringRoyalty } from './OffspringRoyalty';
 import { tokenFromHash } from '../../veilcore/prove-relay';
@@ -437,6 +438,7 @@ export const LicenseInvitePage: React.FC = () => {
               <Typography variant="caption" color="text.secondary" data-evidence-note="">
                 {tr.t('app.lic.evidenceNote')}
               </Typography>
+              <LicenseeWarnings offered={offered} tr={tr} />
               <Button
                 variant="contained"
                 size="large"
@@ -525,6 +527,7 @@ export const LicenseInvitePage: React.FC = () => {
               <Typography variant="caption" color="text.secondary" data-evidence-note="">
                 {tr.t('app.lic.evidenceNote')}
               </Typography>
+              <LicenseeWarnings offered={offered} tr={tr} />
               <Button
                 variant="contained"
                 size="large"
@@ -613,3 +616,19 @@ export const LicenseInvitePage: React.FC = () => {
     </Frame>
   );
 };
+
+/**
+ * What the licensee is told before agreeing, as plainly as the licensor is (panel review): the
+ * licensor can revoke on Midnight at any time, and revoking doesn't end the contract; and, on a
+ * cannabis license, the same warnings the licensor saw.
+ */
+const LicenseeWarnings: React.FC<{ offered: Offered; tr: ReturnType<typeof useT> }> = ({ offered, tr }) => (
+  <>
+    <Typography variant="body2" data-revoke-note="">
+      {tr.t('app.lic.inv.revokeNote')}
+    </Typography>
+    {offered?.ok === true && (offered.copy.terms as { controlled?: unknown }).controlled === true && (
+      <ControlledWarnings tr={tr} />
+    )}
+  </>
+);
