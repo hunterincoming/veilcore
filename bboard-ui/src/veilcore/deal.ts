@@ -22,7 +22,7 @@ import { ed25519, x25519 } from '@noble/curves/ed25519.js';
 import { hkdf } from '@noble/hashes/hkdf.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { canonicalise } from 'veilcore-records';
-import { isDecimal } from './money';
+import { currencyDigits, isDecimal, sumAmounts } from './money';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const hex = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
@@ -145,6 +145,37 @@ export type DealBody =
       readonly method: string;
       readonly account: string;
       readonly currency: string;
+      /** Bank transfer details as the payee wrote them (several lines). */
+      readonly details?: string;
+      /** The payee's own payment link (https), where offered. */
+      readonly link?: string;
+    }
+  | {
+      /** The payee's details for an invoice: only for a statement called an invoice. */
+      readonly type: 'invoice-details';
+      readonly legalName: string;
+      readonly address?: string;
+      /** A VAT number, a Japan T-number or the like, as the payee wrote it. */
+      readonly taxId?: string;
+    }
+  | {
+      /**
+       * A signed, dated note to the other side about one period (royalty-ledger.ts): a reminder
+       * from either side, or a notice of breach from the licensor. It says only what the
+       * period's dates and the messages show; it never decides who is late.
+       */
+      readonly type: 'notice';
+      readonly kind: 'reminder' | 'breach';
+      readonly about: 'report' | 'answer' | 'payment' | 'receipt' | 'other';
+      readonly periodFrom: string;
+      readonly periodTo: string;
+      /** The report it is about, by its signature, when there is one. */
+      readonly statementSig?: string;
+      /** The date the terms set for the step, when they set one. */
+      readonly dueOn?: string;
+      /** The sender's calendar date when it was sent. */
+      readonly asOf: string;
+      readonly note?: string;
     }
   | {
       readonly type: 'statement';
@@ -159,6 +190,16 @@ export type DealBody =
       readonly note?: string;
       /** The sales report the figure came from: its fingerprint, not the file (evidence.ts). */
       readonly evidence?: { readonly sha256: string; readonly name: string; readonly size: number };
+      /**
+       * The lines the amount is made of (royalty-ledger.ts StatementLine), each rounded to the
+       * currency on its own; amountOwed is their sum. Absent on statements made before them.
+       */
+      readonly lines?: readonly StatementLine[];
+      /** Tax the payer withholds and pays to its tax office, declared with the report. */
+      readonly taxWithheld?: string;
+      readonly taxNote?: string;
+      /** The report this one corrects, by its signature: one the licensor asked to fix. */
+      readonly replaces?: string;
     }
   | {
       readonly type: 'reply';
@@ -180,6 +221,13 @@ export type DealBody =
       readonly payTo: string;
       readonly reference: string;
       readonly paidOn: string;
+      /** The payout details it was paid to, by their signature: a change since shows. */
+      readonly payoutSig?: string;
+      /** Tax withheld from the amount owed: amount is what was sent after it. */
+      readonly taxWithheld?: string;
+      readonly taxNote?: string;
+      /** The payer ticked that it confirmed changed details with the payee another way. */
+      readonly detailsConfirmed?: boolean;
     }
   | {
       readonly type: 'received';
@@ -224,6 +272,19 @@ export type DealBody =
       readonly type: 'credential';
       readonly credential: Record<string, unknown>;
     };
+
+/** One line of a statement: what it is for, how it was worked out, and what it comes to. */
+export type StatementLine = {
+  readonly kind: 'royalty' | 'offspring' | 'minimum';
+  /** Sales in the currency, or a count of units (absent on a minimum top-up). */
+  readonly quantity?: string;
+  /** The rate as the terms set it: a percent for sales, an amount per unit. */
+  readonly rate?: string;
+  /** For a percent of net sales: the gross figure and what was taken off it (capped as the terms say). */
+  readonly gross?: string;
+  readonly deducted?: string;
+  readonly amount: string;
+};
 
 export type DealSide = 'issuer' | 'licensee';
 
@@ -271,6 +332,36 @@ export const wellFormed = (m: unknown, now = Date.now()): m is DealMessage => {
   const dec = (v: unknown) => typeof v === 'string' && v.length <= 40 && isDecimal(v);
   const sig = (v: unknown) => typeof v === 'string' && /^[0-9a-f]{128}$/.test(v);
   const plain = (v: unknown) => typeof v === 'object' && v !== null && !Array.isArray(v);
+  const optDec = (v: unknown) => v === undefined || dec(v);
+  const optSig = (v: unknown) => v === undefined || sig(v);
+  /** An amount as the published checker reads it (no leading zeros), in at most the currency's digits. */
+  const money = (v: unknown, digits: number) =>
+    dec(v) && /^(0|[1-9][0-9]*)(\.[0-9]+)?$/.test(v as string) && ((v as string).split('.')[1] ?? '').length <= digits;
+  const line = (v: unknown, digits: number): boolean => {
+    if (!plain(v)) return false;
+    const l = v as Record<string, unknown>;
+    const known = ['kind', 'quantity', 'rate', 'gross', 'deducted', 'amount'];
+    return (
+      Object.keys(l).every((k) => known.includes(k)) &&
+      (l.kind === 'royalty' || l.kind === 'offspring' || l.kind === 'minimum') &&
+      optDec(l.quantity) &&
+      opt(l.rate, 40) &&
+      optDec(l.gross) &&
+      optDec(l.deducted) &&
+      money(l.amount, digits)
+    );
+  };
+  /** Lines, when there are any: well formed, and adding up to the amount owed to the last digit. */
+  const linesSumTo = (v: unknown, owed: unknown, currency: unknown): boolean => {
+    if (v === undefined) return true;
+    const digits = currencyDigits(typeof currency === 'string' ? currency : undefined);
+    if (!Array.isArray(v) || v.length === 0 || v.length > 12 || !v.every((l) => line(l, digits))) return false;
+    const amounts = (v as { amount: string }[]).map((l) => l.amount);
+    const places = Math.max(0, ...[...amounts, owed as string].map((a) => (a.split('.')[1] ?? '').length));
+    if (places > 8) return false;
+    const sum = sumAmounts(amounts, places);
+    return sum !== undefined && sum === sumAmounts([owed as string], places);
+  };
   if (o.from !== 'issuer' && o.from !== 'licensee') return false;
   // Signed times from 2020 to a day ahead: the order of the deal is the order of these.
   if (typeof o.at !== 'number' || !Number.isSafeInteger(o.at) || o.at < 1_577_836_800_000 || o.at > now + 86_400_000)
@@ -289,7 +380,27 @@ export const wellFormed = (m: unknown, now = Date.now()): m is DealMessage => {
     case 'plant-record':
       return text(o.recordIdentity) && text(o.name);
     case 'payout':
-      return text(o.method, 80) && text(o.account) && text(o.currency, 10);
+      return (
+        text(o.method, 80) &&
+        text(o.account) &&
+        text(o.currency, 10) &&
+        opt(o.details, 1000) &&
+        (o.link === undefined || (text(o.link, 300) && /^https:\/\/\S+$/.test(o.link as string)))
+      );
+    case 'invoice-details':
+      return text(o.legalName, 200) && o.legalName !== '' && opt(o.address, 500) && opt(o.taxId, 80);
+    case 'notice':
+      return (
+        (o.kind === 'reminder' || (o.kind === 'breach' && o.from === 'issuer')) &&
+        ['report', 'answer', 'payment', 'receipt', 'other'].includes(o.about as string) &&
+        day(o.periodFrom) &&
+        day(o.periodTo) &&
+        optSig(o.statementSig) &&
+        (o.dueOn === undefined || day(o.dueOn)) &&
+        day(o.asOf) &&
+        opt(o.note) &&
+        (o.kind !== 'breach' || (typeof o.note === 'string' && o.note.trim() !== ''))
+      );
     case 'statement': {
       const e = o.evidence as Record<string, unknown> | undefined;
       return (
@@ -301,6 +412,10 @@ export const wellFormed = (m: unknown, now = Date.now()): m is DealMessage => {
         text(o.currency, 10) &&
         dec(o.amountOwed) &&
         opt(o.note) &&
+        linesSumTo(o.lines, o.amountOwed, o.currency) &&
+        optDec(o.taxWithheld) &&
+        opt(o.taxNote, 300) &&
+        optSig(o.replaces) &&
         (e === undefined ||
           (plain(e) &&
             typeof e.sha256 === 'string' &&
@@ -325,7 +440,11 @@ export const wellFormed = (m: unknown, now = Date.now()): m is DealMessage => {
         text(o.method, 80) &&
         text(o.payTo) &&
         text(o.reference, 120) &&
-        day(o.paidOn)
+        day(o.paidOn) &&
+        optSig(o.payoutSig) &&
+        optDec(o.taxWithheld) &&
+        opt(o.taxNote, 300) &&
+        (o.detailsConfirmed === undefined || typeof o.detailsConfirmed === 'boolean')
       );
     case 'received':
       return text(o.statementId, 100) && sig(o.statementSig) && dec(o.amount) && text(o.currency, 10) && opt(o.note);

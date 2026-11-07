@@ -238,7 +238,7 @@ export const animal = {
   'app.animal.v.app.lab.send.takenFromHelp': '動物の個体識別番号、またはサンプルを採取した場所。',
   'app.animal.v.app.lic.row.offspringValue': '{pct}%（この動物から申告された子に対して）',
   'app.animal.v.app.lic.f.offspringHelp':
-    'この記録から申告された子（この記録を父または母として記録され、双方の保有者が確認したもの）に適用されます。誰も記録しない子は検出されません。なければ空欄にしてください。',
+    'この動物を父または母としてVeilCoreに記録された子だけを数えます。なければ空欄にしてください。',
   'app.animal.v.app.lic.f.extraHelpDeal':
     '取引に含まれるその他のことを、あなた自身の言葉で。例: 産子は2回まで、ストローの転売禁止、指定の登録団体に子を登録。',
   'app.animal.v.app.lic.detail.thisCultivar': 'この動物',
