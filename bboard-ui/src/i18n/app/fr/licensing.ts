@@ -153,6 +153,7 @@ export const licensing = {
   'app.lic.basis.per-dose': 'par dose',
   'app.lic.basis.per-offspring': 'par descendant',
   'app.lic.basis.per-batch': 'par lot',
+  'app.lic.builder.loading': 'Chargement de vos fiches…',
   'app.lic.builder.notHere':
     'Cet enregistrement n’est pas dans ce navigateur, on ne peut donc pas y attacher de contrat ici.',
   'app.lic.builder.records': 'Vos enregistrements',

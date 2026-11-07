@@ -310,7 +310,10 @@ export const ja: Strings = {
   'm.live.lic.main': '最終テストが終わるまで停止中。',
   'm.live.lic.test': 'はい。本物のトランザクションで：ロイヤリティ、支払い、ライセンスの引き継ぎ。',
   'm.live.lic.not': 'veilcore.orgでは、最終テストの後に。',
-  // Licenses switched on at veilcore.org (AGREEMENTS_LIVE): the main-network cell (components/site/Home.tsx).
+  // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
+  'm.live.lic.next':
+    '構築済み。本物のライセンスがメインネットワークで最初から最後まで一度動いた後、次回のveilcore.orgのデプロイで公開されます。',
+  // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
     'はい。本物のトランザクションで：ライセンス、ロイヤリティの明細、ライセンスの引き継ぎ。Midnight上でのロイヤリティの支払いはテストサイトだけです。',
   'm.live.chain.t': '確認ページがMidnightを自ら読む',

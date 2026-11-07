@@ -146,6 +146,7 @@ export const licensing = {
   'app.lic.basis.per-dose': '1回分あたり',
   'app.lic.basis.per-offspring': '産子1頭あたり',
   'app.lic.basis.per-batch': '1ロットあたり',
+  'app.lic.builder.loading': '記録を読み込んでいます…',
   'app.lic.builder.notHere': 'この記録はこのブラウザにないため、ここでは契約を添付できません。',
   'app.lic.builder.records': 'あなたの記録',
   'app.lic.builder.renewHeading': '更新・変更: {type}',

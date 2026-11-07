@@ -416,7 +416,10 @@ export const en = {
   'm.live.lic.main': 'Switched off until a final test run.',
   'm.live.lic.test': 'Yes, with real transactions: royalties, payments, handing a license on.',
   'm.live.lic.not': 'On veilcore.org, after a final test run.',
-  // Licenses switched on at veilcore.org (AGREEMENTS_LIVE): the main-network cell (components/site/Home.tsx).
+  // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
+  'm.live.lic.next':
+    'Built. Goes live with the next veilcore.org deploy, once a real license has worked end to end on the main network.',
+  // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
     'Yes: licenses, royalty statements and handing a license on, with real transactions. Paying royalties on Midnight itself is on the test site only.',
   // The check page looking a record's date up on Midnight itself (docs/check-on-chain.md).
