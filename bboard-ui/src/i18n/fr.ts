@@ -269,7 +269,7 @@ export const fr: Strings = {
   'm.postC.tag': 'Site web',
   'm.postC.title': 'Votre navigateur envoie ses propres transactions',
   'm.postC.text':
-    'Sur veilcore.org, votre navigateur date désormais lui-même l’association d’un rapport ADN, prouve un enregistrement par lien et horodate la clé propre d’un enregistrement, et VeilCore paie les frais de réseau. Les lots sont ancrés sur le réseau principal de Midnight toutes les heures, automatiquement. Aucun portefeuille nécessaire.',
+    'Sur veilcore.org, votre navigateur date désormais lui-même l’association d’un rapport ADN, prouve un enregistrement par lien et horodate la clé propre d’un enregistrement, et VeilCore paie les frais de réseau. Les enregistrements sont regroupés en lots et datés sur le réseau principal de Midnight. Aucun portefeuille nécessaire.',
   'm.postB.date': '11 oct. 2026',
   'm.postB.tag': 'Registre',
   'm.postB.title': 'Premier lot daté aussi sur Bitcoin',
@@ -286,7 +286,7 @@ export const fr: Strings = {
   'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Pas encore',
   'm.live.stamp.t': 'Un horodatage pour votre enregistrement',
-  'm.live.stamp.main': "Oui, par lots, à la main pour l'instant. Votre navigateur n'envoie rien à la chaîne.",
+  'm.live.stamp.main': "Oui, par lots datés sur Midnight. Votre navigateur n'envoie rien à la chaîne.",
   'm.live.stamp.test':
     'Oui. Les lots sont datés automatiquement, ce qui date votre enregistrement. Votre navigateur horodate aussi la clé propre à votre plante ; cet horodatage ne date que la clé.',
   'm.live.share.t': 'Choisir ce que les autres voient',
@@ -457,14 +457,13 @@ export const fr: Strings = {
   'm.faq.3link': 'Les enregistrements comme preuve →',
   'm.faq.4q': 'Que voyez-vous de mes données ?',
   'm.faq.4a':
-    "De vos données génétiques : rien. Votre ordinateur lit les fichiers que vous ajoutez pour faire un code de chacun, et ils ne sont pas téléversés. Un rapport de laboratoire n'arrive sur notre serveur que lorsqu'un laboratoire vous le renvoie : il est verrouillé pour que vous seul puissiez l'ouvrir, et supprimé après 180 jours. Les détails que vous saisissez (le nom de l'enregistrement, obtenteur, dates, notes, conditions des accords) et les noms de vos fichiers sont conservés verrouillés sur notre serveur, et nous n'avons pas la clé. Nous pouvons lire le code de preuve de chaque enregistrement et tout ce que vous choisissez de montrer. Les informations d'échantillon que vous et un laboratoire écrivez pour un envoi sont elles aussi conservées verrouillées, avec une clé qui se trouve dans le code de laboratoire et que nous n'avons pas. Les laboratoires et les développeurs peuvent sceller des enregistrements dans leurs propres systèmes, pour que seul le code de preuve sorte.",
+    "De vos données génétiques déverrouillées : rien. Votre ordinateur lit les fichiers que vous ajoutez pour faire un code de chacun, et ils ne sont pas téléversés. Un rapport de laboratoire n'arrive sur notre serveur que lorsqu'un laboratoire vous le renvoie : il est verrouillé pour que vous seul puissiez l'ouvrir, et supprimé après 180 jours. Les détails que vous saisissez (le nom de l'enregistrement, obtenteur, dates, notes, conditions des accords) et les noms de vos fichiers sont conservés verrouillés sur notre serveur, et nous n'avons pas la clé. Nous pouvons lire le code de preuve de chaque enregistrement et tout ce que vous choisissez de montrer. Les informations d'échantillon que vous et un laboratoire écrivez pour un envoi sont elles aussi conservées verrouillées, avec une clé qui se trouve dans le code de laboratoire et que nous n'avons pas. Les laboratoires et les développeurs peuvent sceller des enregistrements dans leurs propres systèmes, pour que seul le code de preuve sorte.",
   'm.faq.4link1': 'Ce que la démo conserve →',
   'm.faq.4link2': "Guide d'intégration →",
   'm.faq.6q': 'Combien ça coûte ?',
-  'm.faq.6a':
-    "Créer un enregistrement sur ce site ne coûte rien aujourd'hui. Vérifier un enregistrement est gratuit, toujours.",
+  'm.faq.6a': 'Gratuit. Créer un enregistrement sur ce site et vérifier n’importe quel enregistrement sont gratuits.',
   'm.demo.lede':
-    "Sans inscription, sans portefeuille. C'est une version de test : utilisez des informations fictives. Les enregistrements sont ancrés par lots, à la main pour l'instant ; les licences et les accords de laboratoire sont simulés, et les associations de rapports ADN ne sont pas encore datées.",
+    "Sans inscription, sans portefeuille. C'est une version de test : utilisez des informations fictives. Les enregistrements sont datés par lots sur Midnight ; les licences et les accords de laboratoire sont simulés, et les associations de rapports ADN ne sont pas encore datées.",
   'm.demo.privacy': 'Ce que la démo conserve →',
   'm.updates.more': 'Toutes les actualités',
   'm.stat3.s': "Pas encore d'audit de sécurité indépendant. Nos propres revues des contrats sont publiques.",

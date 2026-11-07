@@ -129,20 +129,50 @@ describe('receipts', () => {
       amountOwed: '500.00',
       fingerprint: 'ab'.repeat(32),
     } as DealEntry;
-    // The registry says "name checked", but this website doesn't list the key: not trusted.
-    const unlisted = await receiptsFor(statement, 'acct-123', []);
-    expect(unlisted[0].nameChecked).toBe(false);
-    expect(unlisted[0].partnerName).toBe('Example Pay');
-    const listed = [{ key: good.partner, name: 'Example Pay Ltd', checked: '2026-10-21' }];
-    const got = await receiptsFor(statement, 'acct-123', listed);
+    // The registry says "name checked", but the checker hasn't named the key: not trusted.
+    // VeilCore keeps no list of its own (blueprint section 4).
+    const unnamed = await receiptsFor(statement, 'acct-123', []);
+    expect(unnamed[0].keyNamed).toBe(false);
+    expect(unnamed[0].partnerName).toBe('Example Pay');
+    // A key the checker named, after checking it with the partner: trusted, in their words.
+    const named = [{ key: good.partner, label: 'Example Pay Ltd' }];
+    const got = await receiptsFor(statement, 'acct-123', named);
     expect(got.map((c) => c.receipt.reference)).toEqual(['PAY-1', 'PAY-2']);
     expect(got[0].mismatch).toEqual([]);
-    expect(got[0].nameChecked).toBe(true);
-    // The website's own name wins over whatever the registry calls it.
+    expect(got[0].keyNamed).toBe(true);
     expect(got[0].partnerName).toBe('Example Pay Ltd');
     expect(got[1].mismatch).toEqual(['paid 50.00, owed 500.00']);
     expect((await receiptsFor(statement, 'other-acct'))[0].mismatch).toEqual([
       'paid to acct-123, not the account they gave',
     ]);
+  });
+});
+
+describe('partner keys the checker names (no VeilCore list)', () => {
+  it('names, finds and forgets a key in this browser only; a bad key is refused', async () => {
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => void store.set(k, v),
+    });
+    try {
+      const { nameKey, namedKey, namedPartnerKeys, forgetKey } = await import('./payment-partners');
+      expect(namedPartnerKeys()).toEqual([]);
+      expect(nameKey('XYZ', 'Bad')).toBe(false);
+      expect(nameKey('b'.repeat(64), '  Pay Co  ')).toBe(true);
+      expect(namedKey('b'.repeat(64))?.label).toBe('Pay Co');
+      expect(namedKey('B'.repeat(64))).toBeUndefined();
+      forgetKey('b'.repeat(64));
+      expect(namedPartnerKeys()).toEqual([]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('the app ships no list of trusted partners and never says VeilCore checked one', async () => {
+    const mod = await import('./payment-partners');
+    expect(Object.keys(mod)).not.toContain('PAYMENT_PARTNERS');
+    const { appEn } = await import('../i18n/app/en');
+    for (const v of Object.values(appEn)) expect(v).not.toMatch(/partner VeilCore checked|confirmed by <partner>/);
   });
 });

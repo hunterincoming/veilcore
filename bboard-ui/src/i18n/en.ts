@@ -245,17 +245,17 @@ export const en = {
   'm.faq.3link': 'Records in evidence →',
   'm.faq.4q': 'What do you see of my data?',
   'm.faq.4a':
-    "Your genetic data: nothing. Your computer reads the files you add to make a code from each, and they aren't uploaded. A lab report reaches our server only when a lab sends it back to you: it's locked so only you can open it, and deleted after 180 days. The details you type (the record's name, breeder, dates, notes, agreement terms) and your files' names are stored on our server locked, and we don't have the key. We can read each record's proof code, and anything you choose to show. The sample details you and a lab write for a delivery are stored locked too, with a key that travels in the lab code, and we don't have it. Labs and developers can seal records inside their own systems, so only the proof code goes out.",
+    "Your genetic data, unlocked: nothing. Your computer reads the files you add to make a code from each, and they aren't uploaded. A lab report reaches our server only when a lab sends it back to you: it's locked so only you can open it, and deleted after 180 days. The details you type (the record's name, breeder, dates, notes, agreement terms) and your files' names are stored on our server locked, and we don't have the key. We can read each record's proof code, and anything you choose to show. The sample details you and a lab write for a delivery are stored locked too, with a key that travels in the lab code, and we don't have it. Labs and developers can seal records inside their own systems, so only the proof code goes out.",
   'm.faq.4link1': 'What the demo keeps →',
   'm.faq.4link2': 'Integration guide →',
   'm.faq.6q': 'What does it cost?',
-  'm.faq.6a': 'Making a record on this site costs nothing today. Checking a record is free, always.',
+  'm.faq.6a': 'Free. Making a record on this site and checking any record are both free.',
 
   'm.demo.label': 'Demo',
   'm.demo.title1': 'Try the',
   'm.demo.title2': 'demo.',
   'm.demo.lede':
-    "No sign-up, no wallet. It's a test version, so use made-up details. Records are anchored in batches, by hand for now; licenses and lab agreements are simulated, and DNA report pairings aren't dated yet.",
+    "No sign-up, no wallet. It's a test version, so use made-up details. Records are batched and dated on Midnight; licenses and lab agreements are simulated, and DNA report pairings aren't dated yet.",
   'm.demo.privacy': 'What the demo keeps →',
   'm.demo.create.title': 'Make a record',
   'm.demo.create.text': 'A made-up plant, animal or document: seal it, save your backup, then see its page.',
@@ -306,7 +306,7 @@ export const en = {
   'm.postC.tag': 'Website',
   'm.postC.title': 'Your browser sends its own transactions',
   'm.postC.text':
-    "On veilcore.org your browser now dates a DNA report pairing, proves a record by link and stamps a record's own key itself, and VeilCore pays the network fee. Batches are anchored on Midnight's main network every hour, automatically. No wallet needed.",
+    "On veilcore.org your browser now dates a DNA report pairing, proves a record by link and stamps a record's own key itself, and VeilCore pays the network fee. Records are batched and dated on Midnight's main network. No wallet needed.",
   'm.postB.date': '11 Oct 2026',
   'm.postB.tag': 'Registry',
   'm.postB.title': 'First batch dated on Bitcoin too',
@@ -385,7 +385,7 @@ export const en = {
   'm.live.feature': 'Feature',
   'm.live.show': 'Show the list',
   'm.live.stamp.t': 'A date stamp for your record',
-  'm.live.stamp.main': 'Yes, in batches, by hand for now. Your browser sends nothing to the chain.',
+  'm.live.stamp.main': 'Yes, in batches dated on Midnight. Your browser sends nothing to the chain.',
   'm.live.stamp.test':
     "Yes. Batches are dated automatically, and that dates your record. Your browser also date stamps your plant's own key, which dates only the key.",
   'm.live.btc.t': 'A Bitcoin date stamp too',

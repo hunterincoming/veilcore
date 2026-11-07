@@ -367,9 +367,11 @@ export const licensing = {
   'app.lic.ledger.l.unknownAmount': 'un montant que cette page ne peut pas calculer',
   'app.lic.ledger.r.aPartner': 'un partenaire de paiement',
   'app.lic.ledger.r.checked':
-    'Payé via {partner} (un partenaire vérifié par VeilCore) : {amount} {currency} à {to} le {date}, référence {ref}. Signé par le partenaire et vérifié ici.',
+    'Payé via {partner} (une clé de partenaire que vous avez nommée) : {amount} {currency} à {to} le {date}, référence {ref}. Signé avec cette clé et vérifié ici.',
   'app.lic.ledger.r.unchecked':
-    'Payé via {partner} (un partenaire que VeilCore n’a pas vérifié) : {amount} {currency} à {to} le {date}, référence {ref}. Signé par le partenaire et vérifié ici. N’importe qui peut signer comme partenaire sous n’importe quel nom : vérifiez que l’argent est arrivé avant de vous y fier.',
+    'Un reçu signé avec la clé {key}, que le registre appelle {partner} ; personne ne l’a vérifié, VeilCore compris : {amount} {currency} à {to} le {date}, référence {ref}. La signature est vérifiée ici. Vérifiez vous-même la clé auprès du partenaire, et que l’argent est arrivé, avant de vous y fier.',
+  'app.lic.ledger.r.trust': 'J’ai vérifié cette clé : lui faire confiance',
+  'app.lic.ledger.r.forget': 'Ne plus faire confiance à cette clé',
   'app.lic.ledger.r.mismatch': 'Ne correspond pas : {what}.',
   'app.lic.pay.method': 'sur Midnight, en {code}',
   'app.lic.pay.notAmount': '« {amount} » n’est pas un montant.',

@@ -366,9 +366,11 @@ export const licensing = {
   'app.lic.ledger.l.unknownAmount': 'un monto que esta página no puede calcular',
   'app.lic.ledger.r.aPartner': 'un socio de pagos',
   'app.lic.ledger.r.checked':
-    'Pagado a través de {partner} (un socio que VeilCore comprobó): {amount} {currency} a {to} el {date}, referencia {ref}. Firmado por el socio y comprobado aquí.',
+    'Pagado a través de {partner} (una clave de socio que usted nombró): {amount} {currency} a {to} el {date}, referencia {ref}. Firmado con esa clave y comprobado aquí.',
   'app.lic.ledger.r.unchecked':
-    'Pagado a través de {partner} (un socio que VeilCore no ha comprobado): {amount} {currency} a {to} el {date}, referencia {ref}. Firmado por el socio y comprobado aquí. Cualquiera puede firmar como socio con cualquier nombre: confirme que el dinero llegó antes de confiar en ello.',
+    'Un recibo firmado con la clave {key}, que el registro llama {partner}; nadie lo ha comprobado, tampoco VeilCore: {amount} {currency} a {to} el {date}, referencia {ref}. La firma se comprueba aquí. Compruebe usted la clave con el socio, y que el dinero llegó, antes de confiar en ello.',
+  'app.lic.ledger.r.trust': 'Comprobé esta clave: confiar',
+  'app.lic.ledger.r.forget': 'Dejar de confiar en esta clave',
   'app.lic.ledger.r.mismatch': 'No coincide: {what}.',
   'app.lic.pay.method': 'en Midnight, en {code}',
   'app.lic.pay.notAmount': '“{amount}” no es un monto.',

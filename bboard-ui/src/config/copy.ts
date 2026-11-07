@@ -84,6 +84,14 @@ export const ROYALTIES_RUN_ON_TEST = false;
  */
 export const ROYALTIES_RUN_ON_MAINNET = false;
 
+/**
+ * Whether the sponsor's scheduled anchoring job has run on mainnet (batches dated on Midnight's
+ * main network on a schedule, not by hand). Until it has, no page claims either cadence: they
+ * say records are batched and dated on Midnight (i18n/mainnet-overlay.ts withoutCadence). Hunter
+ * turns it on in a reviewed commit after the job has run once on mainnet.
+ */
+export const SCHEDULED_ANCHORING_RUN_ON_MAINNET = false;
+
 /** The label agreements carry while AGREEMENTS_LIVE is false. */
 export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';
 

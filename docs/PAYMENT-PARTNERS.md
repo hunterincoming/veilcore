@@ -19,15 +19,17 @@ party to the deal. The payment is yours, under your licences and your compliance
   and the account to pay is signed by the breeder. The signatures show neither was changed
   after the two of them wrote it. They don't show whose keys they are: before the first
   payment to an account, confirm it with the breeder (see step 3 below).
-- A place to file your receipt. Once you file it, both sides see "paid through <your name>"
-  under the statement, checked by their own browsers against your key.
+- A place to file your receipt. Once you file it, both sides see it under the statement, its
+  signature checked by their own browsers against your key. VeilCore keeps no list of trusted
+  partners: each person decides whether to trust your key, after checking it with you
+  directly, and only then does their page read "paid through <the name they gave you>".
 
 **What you do.**
 
 1. Register your signing key with VeilCore's registry as a payment partner (once).
-2. Ask us to check your name (once a year). We then add your key to the list built into the
-   VeilCore website itself. Pages show your receipts as checked only when your key is on that
-   list: anyone can register a key at the registry under any name.
+2. Give your key to the breeders and growers who pay through you, directly (your website, your
+   onboarding email). VeilCore does not check or list partners: anyone can register a key at
+   the registry under any name, so a page trusts your key only when its user has named it.
 3. For each payment: check the request, pay, sign a receipt, file it.
 
 ---
@@ -39,10 +41,10 @@ party to the deal. The payment is yours, under your licences and your compliance
 One Ed25519 key, kept by you. Its public half (32 bytes, 64 lowercase hex characters) is
 your identity at the registry. Register it once with `POST /attesters`, `role` set to
 `payment-partner` and `displayName` set to your company's name, signed by the key itself
-(`registrationPayload` in the registry's `lineage/attesters.mjs`). Write to
-hunter@veilcore.org to have the name checked; we check it against a public listing and your
-email domain, take your public key from you directly, and add it to
-`bboard-ui/src/veilcore/payment-partners.ts` in a reviewed change.
+(`registrationPayload` in the registry's `lineage/attesters.mjs`). The name is your word,
+shown as unchecked: VeilCore keeps no list of partners. Publish your public key where your
+users can check it (your own website), so they can name it on their page
+(`bboard-ui/src/veilcore/payment-partners.ts`, kept in each user's browser).
 
 ### The payment request
 
@@ -122,4 +124,4 @@ from the statement.
 
 Your receipt says you paid. The breeder still confirms the money arrived, in their own
 words, on their own page. Both steps are signed, private to the two of them, and dated on
-Midnight by the registry's hourly anchor.
+Midnight in the registry's batches.

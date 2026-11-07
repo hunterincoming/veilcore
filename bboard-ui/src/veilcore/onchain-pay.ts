@@ -37,8 +37,8 @@ export type OnChainToken = {
 };
 
 /**
- * The tokens a royalty can be paid in on Midnight, fixed in this source like the payment
- * partners (payment-partners.ts): a token is added by a reviewed commit, never by a message.
+ * The tokens a royalty can be paid in on Midnight, fixed in this source: a token is added by a
+ * reviewed commit, never by a message.
  * NIGHT: the native token, raw type all zeros (ledger nativeToken()); 1 NIGHT = 10^6 STAR
  * (docs.midnight.network/tokens/overview).
  */

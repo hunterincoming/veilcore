@@ -267,7 +267,7 @@ export const es: Strings = {
   'm.postC.tag': 'Sitio web',
   'm.postC.title': 'Su navegador envía sus propias transacciones',
   'm.postC.text':
-    'En veilcore.org su navegador ahora fecha por sí mismo el emparejamiento de un informe de ADN, demuestra un registro por enlace y pone un sello de fecha a la clave propia de un registro, y VeilCore paga la comisión de la red. Los lotes se anclan en la red principal de Midnight cada hora, de forma automática. No hace falta billetera.',
+    'En veilcore.org su navegador ahora fecha por sí mismo el emparejamiento de un informe de ADN, demuestra un registro por enlace y pone un sello de fecha a la clave propia de un registro, y VeilCore paga la comisión de la red. Los registros se agrupan en lotes y se fechan en la red principal de Midnight. No hace falta billetera.',
   'm.postB.date': '11 oct 2026',
   'm.postB.tag': 'Registro',
   'm.postB.title': 'Primer lote fechado también en Bitcoin',
@@ -284,7 +284,7 @@ export const es: Strings = {
   'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Todavía no',
   'm.live.stamp.t': 'Un sello de fecha para su registro',
-  'm.live.stamp.main': 'Sí, por lotes, a mano por ahora. Su navegador no envía nada a la cadena.',
+  'm.live.stamp.main': 'Sí, por lotes fechados en Midnight. Su navegador no envía nada a la cadena.',
   'm.live.stamp.test':
     'Sí. Los lotes se fechan automáticamente, y eso fecha su registro. Su navegador también pone un sello de fecha a la clave propia de su planta; ese sello fecha solo la clave.',
   'm.live.share.t': 'Elegir qué ven los demás',
@@ -453,13 +453,13 @@ export const es: Strings = {
   'm.faq.3link': 'Los registros como prueba →',
   'm.faq.4q': '¿Qué ven ustedes de mis datos?',
   'm.faq.4a':
-    'De sus datos genéticos: nada. Su computadora lee los archivos que usted añade para hacer un código de cada uno, y no se suben. Un informe de laboratorio llega a nuestro servidor solo cuando un laboratorio se lo devuelve: va cerrado para que solo usted pueda abrirlo, y se borra a los 180 días. Los detalles que escribe (el nombre del registro, obtentor, fechas, notas, términos de acuerdos) y los nombres de sus archivos se guardan bloqueados en nuestro servidor, y nosotros no tenemos la clave. Podemos leer el código de prueba de cada registro y todo lo que usted decida mostrar. Los datos de muestra que usted y un laboratorio escriben para un envío también se guardan bloqueados, con una clave que va en el código de laboratorio y que nosotros no tenemos. Los laboratorios y desarrolladores pueden sellar registros dentro de sus propios sistemas, de modo que solo sale el código de prueba.',
+    'De sus datos genéticos sin cerrar: nada. Su computadora lee los archivos que usted añade para hacer un código de cada uno, y no se suben. Un informe de laboratorio llega a nuestro servidor solo cuando un laboratorio se lo devuelve: va cerrado para que solo usted pueda abrirlo, y se borra a los 180 días. Los detalles que escribe (el nombre del registro, obtentor, fechas, notas, términos de acuerdos) y los nombres de sus archivos se guardan bloqueados en nuestro servidor, y nosotros no tenemos la clave. Podemos leer el código de prueba de cada registro y todo lo que usted decida mostrar. Los datos de muestra que usted y un laboratorio escriben para un envío también se guardan bloqueados, con una clave que va en el código de laboratorio y que nosotros no tenemos. Los laboratorios y desarrolladores pueden sellar registros dentro de sus propios sistemas, de modo que solo sale el código de prueba.',
   'm.faq.4link1': 'Lo que guarda la demo →',
   'm.faq.4link2': 'Guía de integración →',
   'm.faq.6q': '¿Cuánto cuesta?',
-  'm.faq.6a': 'Crear un registro en este sitio no cuesta nada hoy. Comprobar un registro es gratis, siempre.',
+  'm.faq.6a': 'Gratis. Crear un registro en este sitio y comprobar cualquier registro son gratis.',
   'm.demo.lede':
-    'Sin registro, sin billetera. Es una versión de prueba, así que use datos inventados. Los registros se anclan por lotes, a mano por ahora; las licencias y los acuerdos de laboratorio son simulados, y las vinculaciones de informes de ADN todavía no se fechan.',
+    'Sin registro, sin billetera. Es una versión de prueba, así que use datos inventados. Los registros se fechan por lotes en Midnight; las licencias y los acuerdos de laboratorio son simulados, y las vinculaciones de informes de ADN todavía no se fechan.',
   'm.demo.privacy': 'Lo que guarda la demo →',
   'm.updates.more': 'Todas las novedades',
   'm.stat3.s':
