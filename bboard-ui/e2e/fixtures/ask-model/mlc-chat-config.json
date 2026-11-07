@@ -1,0 +1,21 @@
+{
+  "model_type": "qwen3",
+  "quantization": "q4f16_1",
+  "context_window_size": 4096,
+  "prefill_chunk_size": 1024,
+  "tokenizer_files": ["tokenizer.json"],
+  "conv_template": {
+    "name": "qwen2",
+    "system_template": "<|im_start|>system\n{system_message}<|im_end|>\n",
+    "system_message": "",
+    "roles": { "user": "<|im_start|>user", "assistant": "<|im_start|>assistant" },
+    "seps": ["<|im_end|>\n"],
+    "role_content_sep": "\n",
+    "role_empty_sep": "\n",
+    "stop_str": ["<|im_end|>"],
+    "stop_token_ids": [151643, 151645]
+  },
+  "temperature": 0.6,
+  "top_p": 0.95,
+  "_note": "A stub for the browser test (e2e/ask-model.spec.ts): not a model. The test never gets past WebGPU."
+}
