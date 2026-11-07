@@ -39,7 +39,7 @@ export const ask = {
   'app.ask.can.4': 'Encontrar sus registros',
   'app.ask.can.5': 'Rellenar un registro nuevo para que usted lo revise y guarde',
   'app.ask.can.never': 'Nunca firmo ni envío nada. Eso lo hace usted.',
-  'app.ask.can.toggle': '¿Qué puedo hacer aquí?',
+  'app.ask.can.toggle': '¿Qué se puede hacer aquí?',
   // ---- la pista junto al botón, cuando ya hay un registro (el ejemplo lo nombra) ----
   'app.ask.hint.try': 'Pruebe: {example}',
   'app.ask.hint.dismiss': 'Cerrar',

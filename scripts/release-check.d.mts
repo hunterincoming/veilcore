@@ -29,7 +29,7 @@ export type RouteCheck = {
   headerDiffers: { path: string; name: string }[];
   headersListed: boolean;
 };
-export type ReleaseCheck = { files: FileCheck; routes: RouteCheck };
+export type ReleaseCheck = { files: FileCheck; routes: RouteCheck; model?: ModelWorkerCheck };
 export type FileCheck = { total: number; matched: string[]; differ: string[]; missing: string[] };
 export function sha256Hex(bytes: ArrayBuffer | Uint8Array): Promise<string>;
 export function isRelease(v: unknown): v is Release;
@@ -61,10 +61,26 @@ export function checkRoutes(
   },
 ): Promise<RouteCheck>;
 export function routesMatch(r: RouteCheck): boolean;
+export type ModelWorkerCheck = {
+  skipped?: string;
+  ok: boolean;
+  checked: string[];
+  wrong: { path: string; problem: string }[];
+};
+export function checkModelWorkers(
+  site: string,
+  manifest: Manifest,
+  opts?: { fetchImpl?: typeof fetch; modelManifest?: object },
+): Promise<ModelWorkerCheck>;
 export function checkRelease(
   site: string,
   manifest: Manifest,
-  opts?: { fetchImpl?: typeof fetch; routes?: string[]; onProgress?: (done: number, total: number) => void },
+  opts?: {
+    fetchImpl?: typeof fetch;
+    routes?: string[];
+    onProgress?: (done: number, total: number) => void;
+    modelManifest?: object;
+  },
 ): Promise<ReleaseCheck>;
 export function releaseMatches(r: ReleaseCheck): boolean;
 export function extraScripts(liveDoc: Document, listedHtml: string): string[];

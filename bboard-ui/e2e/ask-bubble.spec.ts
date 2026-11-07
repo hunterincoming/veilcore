@@ -76,7 +76,7 @@ test('first open: what Ask can do, as a list, then folded under "What can Ask do
   await page.getByRole('button', { name: 'Close' }).click();
   await expect(page.locator('[data-ask-sheet]')).toBeHidden();
   // Opening Ask is remembered, as the one flag.
-  expect(await page.evaluate(() => localStorage.getItem('veilcore.ask.seen.v1'))).toBe('done');
+  expect(await page.evaluate(() => localStorage.getItem('veilcore.ask.seen.v1'))).toBe('opened');
   await page.locator('[data-ask-open]').click();
   await expect(page.locator('[data-ask-can]')).toHaveCount(0);
   const toggle = page.locator('[data-ask-can-toggle]');
@@ -107,6 +107,20 @@ test.describe('on a touch screen', () => {
     await field.blur();
     await page.setViewportSize({ width: 360, height: 740 });
     await expect(bubble).toBeVisible();
+    // A checkbox or radio brings up no keyboard: the bubble stays.
+    await page.evaluate(() => {
+      for (const type of ['checkbox', 'radio']) {
+        const el = document.createElement('input');
+        el.type = type;
+        el.dataset.probe = type;
+        document.querySelector('main')?.prepend(el);
+      }
+    });
+    for (const type of ['checkbox', 'radio']) {
+      await page.locator(`[data-probe="${type}"]`).focus();
+      await page.waitForTimeout(100);
+      await expect(bubble, type).toBeVisible();
+    }
     // A field inside Ask itself does not hide it (the sheet is open over it anyway).
     await bubble.click();
     await page.locator('[data-ask-input]').focus();

@@ -205,6 +205,18 @@ describe('a new record: the verb or "new" after the noun is not a name (review, 
     expect(name('nouvelle plante appelée Harbour Mist')).toBe('Harbour Mist');
     expect(name('Harbour Mistという植物を登録')).toBe('Harbour Mist');
   });
+  it('a real name that looks like one of those words is kept, in all five languages', () => {
+    expect(name('new plant One')).toBe('One');
+    expect(name('new plant La')).toBe('La');
+    expect(name('new plant Please')).toBe('Please');
+    expect(name('new plant Record')).toBe('Record');
+    expect(name('neue Pflanze Neuland')).toBe('Neuland');
+    expect(name('neue Pflanze Neumann')).toBe('Neumann');
+    expect(name('nueva planta Nuevo')).toBe('Nuevo');
+    expect(name('nueva planta Uno')).toBe('Uno');
+    expect(name('nouvelle plante Nouveau')).toBe('Nouveau');
+    expect(name('新しい植物「新」')).toBe('新');
+  });
 });
 
 describe('Search my records', () => {

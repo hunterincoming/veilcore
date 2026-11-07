@@ -10,7 +10,6 @@ import { modelEngine, selfTest, type ModelAsk } from './model-engine';
 import { modelMessages, modelSchema, readModelAnswer, recordsForModel } from './model-output';
 import { interpret } from './shortcuts';
 import { hintExample } from './hint';
-import type { DraftKind } from './handoff';
 
 const rec = (id: string, strainName: string, animal = false) =>
   ({ id, strainName, ...(animal ? { profile: ANIMAL_PROFILE } : {}) }) as unknown as StrainRecord;
@@ -197,36 +196,88 @@ describe('modelEngine: Shortcuts answers when the model can’t', () => {
 });
 
 describe('the hint by the bubble', () => {
-  const plant = (name: string, loggedAt: number) => ({ strainName: name, loggedAt });
-  const animal = (name: string, loggedAt: number) => ({ strainName: name, loggedAt, profile: ANIMAL_PROFILE });
-  it('no hint without a record of theirs; their latest plant, or calves where most records are animals', () => {
-    expect(hintExample([], true)).toBeUndefined();
-    expect(hintExample([plant('Gelato', 1), plant('OG Kush', 2)], true)).toEqual({ kind: 'clones', name: 'OG Kush' });
-    expect(hintExample([animal('Daisy', 1), animal('Cow 9', 3), plant('Gelato', 2)], true)).toEqual({
+  let n = 0;
+  const plant = (name: string, loggedAt: number) => ({
+    id: `VEIL-0B${(++n).toString(16).toUpperCase().padStart(2, '0')}`,
+    strainName: name,
+    loggedAt,
+  });
+  const animal = (name: string, loggedAt: number) => ({ ...plant(name, loggedAt), profile: ANIMAL_PROFILE });
+  const dicts = async () => {
+    const { appEn } = await import('../i18n/app/en');
+    const out: Record<string, Record<string, string>> = { en: appEn };
+    for (const l of ['de', 'es', 'fr', 'ja'])
+      out[l] = ((await import(`../i18n/app/${l}/ask.ts`)) as { ask: Record<string, string> }).ask;
+    return out;
+  };
+  const renderer = (d: Record<string, string>) => (kind: 'clones' | 'calves', name: string) =>
+    d[kind === 'calves' ? 'app.ask.example.calves' : 'app.ask.example.clones'].replace('{name}', name);
+
+  it('no hint without a record of theirs; their latest plant, or calves where most records are animals', async () => {
+    const r = renderer((await dicts()).en);
+    expect(hintExample([], true, r)).toBeUndefined();
+    expect(hintExample([plant('Gelato', 1), plant('OG Kush', 2)], true, r)).toMatchObject({
+      kind: 'clones',
+      name: 'OG Kush',
+    });
+    expect(hintExample([animal('Daisy', 1), animal('Cow 9', 3), plant('Gelato', 2)], true, r)).toMatchObject({
       kind: 'calves',
       name: 'Cow 9',
     });
-    expect(hintExample([animal('Daisy', 1)], false)).toBeUndefined();
+    expect(hintExample([animal('Daisy', 1)], false, r)).toBeUndefined();
   });
 
-  it('the example works: Shortcuts reads it as that batch with their record, in all five languages', async () => {
-    const { appEn } = await import('../i18n/app/en');
-    const dicts: Record<string, Record<string, string>> = { en: appEn };
-    for (const l of ['de', 'es', 'fr', 'ja']) {
-      const m = (await import(`../i18n/app/${l}/ask.ts`)) as { ask: Record<string, string> };
-      dicts[l] = m.ask;
-    }
-    const gelato = rec('VEIL-00A1', 'Gelato');
-    const daisy = rec('VEIL-00A2', 'Daisy', true);
-    const c = { records: [gelato, daisy], kinds: ['plant', 'animal'] as DraftKind[] };
-    for (const [l, d] of Object.entries(dicts)) {
-      const clones = interpret(d['app.ask.example.clones'].replace('{name}', 'Gelato'), c);
-      expect(clones, l).toMatchObject({ type: 'draft', draft: { preset: 'clones', count: 6, parents: ['VEIL-00A1'] } });
-      const calves = interpret(d['app.ask.example.calves'].replace('{name}', 'Daisy'), c);
-      expect(calves, l).toMatchObject({
-        type: 'draft',
-        draft: { preset: 'offspring', count: 2, parents: ['VEIL-00A2'] },
+  it('a name that would send the example elsewhere is passed over; every hint shown reads as that batch, in all five languages', async () => {
+    const tricky = [
+      'Explain',
+      'Due Diligence',
+      'Backup',
+      'Search Party',
+      'Import Special',
+      'What is Love',
+      'Licence Kush',
+      'Find Me',
+      'Cross Roads',
+      'New Dawn',
+    ];
+    for (const [l, d] of Object.entries(await dicts())) {
+      const r = renderer(d);
+      // Only tricky names: whatever is shown must still work.
+      for (const name of tricky) {
+        const recs = [plant(name, 5)];
+        const h = hintExample(recs, true, r);
+        if (h)
+          expect(
+            interpret(h.text, { records: recs as never, kinds: ['plant', 'animal'] }),
+            `${l} ${name}`,
+          ).toMatchObject({
+            type: 'draft',
+            draft: { preset: 'clones', count: 6, parents: [recs[0].id] },
+          });
+      }
+      // A latest name that doesn't work falls back to the next latest that does.
+      const recs = [plant('Gelato', 1), plant('Due Diligence', 9)];
+      const alone = hintExample([recs[1]], true, r);
+      expect(hintExample(recs, true, r)?.name, l).toBe(alone ? 'Due Diligence' : 'Gelato');
+      // Plain names, plants and animals: the batch, with their record, in every language.
+      const g = [plant('Gelato', 1)];
+      expect(
+        interpret(hintExample(g, true, r)?.text ?? '', { records: g as never, kinds: ['plant'] }),
+        l,
+      ).toMatchObject({
+        draft: { preset: 'clones', count: 6, parents: [g[0].id] },
+      });
+      const a = [animal('Daisy', 1)];
+      expect(
+        interpret(hintExample(a, true, r)?.text ?? '', { records: a as never, kinds: ['plant', 'animal'] }),
+        l,
+      ).toMatchObject({
+        draft: { preset: 'offspring', count: 2, parents: [a[0].id] },
       });
     }
+    // English: those names really are passed over (each would misroute).
+    const en = renderer((await dicts()).en);
+    for (const name of ['Explain', 'Due Diligence', 'Backup'])
+      expect(hintExample([plant(name, 1)], true, en), name).toBeUndefined();
   });
 });

@@ -205,7 +205,7 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   if (process.env.ASK_SHOTS) await page.screenshot({ path: `${process.env.ASK_SHOTS}/fix-hint-phone.png` });
   await hint.getByRole('button', { name: 'Dismiss' }).click();
   await expect(hint).toHaveCount(0);
-  expect(await page.evaluate(() => localStorage.getItem('veilcore.ask.seen.v1'))).toBe('done');
+  expect(await page.evaluate(() => localStorage.getItem('veilcore.ask.seen.v1'))).toBe('dismissed');
   await page.reload();
   await expect(page.locator('[data-ask-open]')).toBeVisible();
   await expect(hint).toHaveCount(0);

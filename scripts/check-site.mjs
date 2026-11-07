@@ -58,7 +58,13 @@ export const checkSite = async (url, { manifestFile, repoRoot = process.cwd(), f
     };
   if (manifest.uncommittedChanges)
     lines.push('Note: that release was built from a checkout with uncommitted changes, so its files are not exactly the published code at that commit.');
-  const out = await checkRelease(site, manifest, { fetchImpl, routes });
+  // Ask's model pins, for a release built with the model (release-check.mjs checkModelWorkers).
+  const pins = join(repoRoot, 'bboard-ui/src/ask-local/model-manifest.json');
+  const modelManifest = existsSync(pins) ? JSON.parse(readFileSync(pins, 'utf8')) : undefined;
+  const out = await checkRelease(site, manifest, { fetchImpl, routes, modelManifest });
+  const { model } = out;
+  if (model.skipped && model.ok) lines.push(`Ask's model workers: not checked (${model.skipped}).`);
+  else if (model.ok) lines.push(`Ask's model workers: ${model.checked.length} files, each with exactly its own security policy.`);
   const { files, routes: pages } = out;
   if (!manifest.headers)
     lines.push('Note: this release’s list has no response headers (it was made before they were listed), so the security headers were not compared.');
@@ -76,6 +82,7 @@ export const checkSite = async (url, { manifestFile, repoRoot = process.cwd(), f
   lines.push(`${pages.matched.length} of ${pages.total} page addresses are the listed index.html.`);
   for (const p of pages.differ) lines.push(`  page differs: ${p}`);
   for (const p of pages.missing) lines.push(`  page missing: ${p}`);
+  for (const w of model.wrong) lines.push(`  model worker: ${w.path}: ${w.problem}`);
   const byName = new Map();
   for (const h of pages.headerDiffers) byName.set(h.name, [...(byName.get(h.name) ?? []), h.path]);
   for (const [name, paths] of byName)

@@ -54,8 +54,12 @@ const KIND_NOUNS = ['plant', 'plants', 'pflanze', 'planta', 'plante', 'cultivar'
 // prettier-ignore
 const NAME_MARKERS = ['called', 'named', 'genannt', 'namens', 'llamado', 'llamada', 'appelé', 'appelée', 'nommé', 'nommée'];
 const FROM_MARKERS = ['from', 'von', 'de', 'del', 'depuis', 'sur'];
+// The words that can follow the noun in a request and are not a name: a verb at the end
+// ("neue Pflanze erfassen"), "new" after the noun ("planta nueva"). Whole words only, and only
+// as typed in lower case: "new plant Neuland", "nueva planta Nueva" and "new plant One" keep
+// their names.
 // prettier-ignore
-const FILLER = ['a', 'an', 'the', 'one', 'ein', 'eine', 'einen', 'un', 'una', 'uno', 'une', 'le', 'la', 'el', 'die', 'der', 'das', 'please', 'bitte', 'por', 'favor', 'plaît', 's\'il', 'vous'];
+const AFTER_NOUN = ['erfassen', 'anlegen', 'registrieren', 'eintragen', 'speichern', 'nueva', 'nuevo', 'registrar', 'crear', 'nouvelle', 'nouveau', 'enregistrer', 'créer', 'please', 'bitte'];
 
 // prettier-ignore
 const TOPIC_WORDS: Record<Topic, string[]> = {
@@ -180,10 +184,10 @@ export const nameIn = (original: string): string | undefined => {
     .slice(at + 1)
     .join(' ')
     .replace(/^[:,\s]+|[.,!?\s]+$/g, '');
-  // "neue Pflanze erfassen", "planta nueva": what follows the noun is the verb or "new", not a
-  // name. A name made only of such words is no name ("new plant New Dawn" keeps "New Dawn").
-  const rest = tokensOf(normalize(name));
-  if (rest.length && rest.every((w) => FILLER.includes(w) || matches(w, [w], NEW))) return undefined;
+  // "neue Pflanze erfassen", "planta nueva": one known word after the noun, typed in lower case,
+  // is the verb or "new", not a name (AFTER_NOUN).
+  const typedWords = name.normalize('NFKC').split(/\s+/).filter(Boolean);
+  if (typedWords.length === 1 && AFTER_NOUN.includes(typedWords[0].replace(/[.,!?]+$/, ''))) return undefined;
   return name ? name.slice(0, 200) : undefined;
 };
 

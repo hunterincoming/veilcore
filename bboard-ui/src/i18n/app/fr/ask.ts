@@ -39,7 +39,7 @@ export const ask = {
   'app.ask.can.4': 'Trouver vos enregistrements',
   'app.ask.can.5': 'Remplir un nouvel enregistrement, que vous vérifiez et enregistrez',
   'app.ask.can.never': 'Je ne signe et n’envoie jamais rien. C’est vous qui le faites.',
-  'app.ask.can.toggle': 'Que puis-je faire ici ?',
+  'app.ask.can.toggle': 'Que peut-on faire ici ?',
   // ---- l’astuce près du bouton, dès qu’il y a un enregistrement (l’exemple le nomme) ----
   'app.ask.hint.try': 'Essayez : {example}',
   'app.ask.hint.dismiss': 'Masquer',
@@ -92,7 +92,7 @@ export const ask = {
   'app.ask.model.why.notStored': 'Une partie du modèle manque ; reprenez le téléchargement.',
   'app.ask.model.why.noGpu': 'Ce navigateur ne peut pas le faire tourner. Un Chrome ou Edge à jour le peut en général.',
   'app.ask.model.why.noF16': 'La carte graphique de cet ordinateur ne peut pas faire tourner ce modèle.',
-  'app.ask.model.why.selfTest': 'Il s’est trompé à la réponse de test sur cet appareil.',
+  'app.ask.model.why.selfTest': 'Il a mal répondu au test sur cet appareil.',
   'app.ask.model.why.failed': 'Il s’est arrêté pendant le chargement.',
   'app.ask.model.notHere.narrow': 'Élargissez cette fenêtre pour voir le modèle de langage facultatif.',
   'app.ask.model.notHere.noWebgpu':
