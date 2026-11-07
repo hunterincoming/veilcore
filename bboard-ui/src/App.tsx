@@ -138,9 +138,10 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
       </Container>
       {/* Documents reachable from wherever someone happens to be, rather than only from
         the page they landed on. */}
-      <AppFooter />
-      {/* Ask VeilCore (docs/ask-veilcore.md): drafts on the app's pages, never on the public ones. */}
+      {/* Ask VeilCore (docs/ask-veilcore.md): drafts on the app's pages, never on the public ones.
+        Before the footer: its spacer keeps the page's last line clear of the button. */}
       <AskLauncher />
+      <AppFooter />
     </Box>
   );
 };

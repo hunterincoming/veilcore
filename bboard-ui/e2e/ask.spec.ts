@@ -119,6 +119,7 @@ test('Ask makes no request while it drafts, online or offline, and fills the log
   await expect(page).toHaveURL(/\/new$/);
   await expect(page.locator('[data-ask-sheet]')).toBeHidden();
   await shot(page, 'banner');
+  await shot(page, 'banner', true);
   // Read once: a reload doesn't fill it again or show the banner, and the draft is kept as typed.
   await page.reload();
   await expect(page.locator('[data-ask-banner]')).toHaveCount(0);
@@ -170,6 +171,8 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   expect(rBox && sBox && rBox.y < sBox.y).toBe(true);
   await receipt.scrollIntoViewIfNeeded();
   await shot(page, 'receipt');
+  await receipt.scrollIntoViewIfNeeded();
+  await shot(page, 'receipt', true);
   await seal.click();
   await page.getByRole('button', { name: /Do the date stamp later/ }).click({ timeout: 90_000 });
   await page.getByRole('button', { name: /No report yet: skip/ }).click();
