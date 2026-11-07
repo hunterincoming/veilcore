@@ -69,7 +69,7 @@ export const ask = {
   'app.ask.explain.pick': 'Wählen Sie ein Wort:',
   'app.ask.term.priorPossession': 'Früheres Halten',
   'app.ask.def.priorPossession':
-    'Ein Datensatz zeigt, dass Sie etwas zu einem Datum gehalten haben: Er wurde damals versiegelt, und sein Prüfcode wurde auf Midnight datiert. Mehr behauptet er nicht.',
+    'Ein Datensatz zeigt, dass Sie diesen Datensatz zu einem Datum gehalten haben: Er wurde damals versiegelt, und sein Prüfcode wurde auf Midnight datiert. Er zeigt nicht, dass Sie das Material hatten oder wer es gezüchtet hat. Mehr behauptet er nicht.',
   'app.ask.term.proofCode': 'Prüfcode',
   'app.ask.def.proofCode':
     'Ein kurzer Code, der aus einem versiegelten Datensatz entsteht. Jeder kann einen Datensatz damit prüfen, und er zeigt nichts von seinem Inhalt.',
@@ -81,7 +81,7 @@ export const ask = {
     'Der Prüfcode Ihres Datensatzes geht mit anderen in einem Stapel auf Midnight. Das Datum des Stapels ist das Datum, zu dem Ihr Datensatz bestand.',
   'app.ask.term.license': 'Lizenz',
   'app.ask.def.license':
-    'Eine Vereinbarung, mit der jemand Ihre Genetik zu Bedingungen nutzen darf, auf die Sie sich beide geeinigt haben. Midnight hält fest, dass sie besteht und gilt; die Bedingungen bleiben zwischen Ihnen.',
+    'Eine Vereinbarung, mit der jemand die Genetik in Ihrem Datensatz zu Bedingungen nutzen darf, auf die Sie sich beide geeinigt haben. Midnight hält fest, dass sie besteht und gilt; die Bedingungen bleiben zwischen Ihnen.',
   'app.ask.term.royaltyReport': 'Lizenzgebühren-Bericht',
   'app.ask.def.royaltyReport':
     'Was ein Lizenznehmer nach den Bedingungen jede Periode schickt: wie viel er verkauft oder angebaut hat und was das ausmacht.',

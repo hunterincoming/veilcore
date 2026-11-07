@@ -276,7 +276,7 @@ describe('every step a screen can send has a receipt', () => {
   });
 
   it('says what stays private in the approved words', () => {
-    expect(appEn['app.receipt.stay.genetics']).toBe('Genetics and DNA files never leave this device.');
+    expect(appEn['app.receipt.stay.genetics']).toBe('Genetics and DNA files never leave this device unlocked.');
   });
 
   it('names everything the registry holds in the clear (api-store.ts PUBLIC_FIELDS and the wire row)', () => {

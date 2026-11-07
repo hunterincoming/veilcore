@@ -46,7 +46,7 @@ What the sheet says, and what the receipt on every on-chain step says, word for 
 Before every step that writes to Midnight, a receipt lists what that step makes public, built
 from the contract's own `disclose()` calls and ledger writes ([The receipt](#the-disclosure-receipt)), and then:
 
-> Genetics and DNA files never leave this device.
+> Genetics and DNA files never leave this device unlocked.
 >
 > Name and notes go to the registry locked with your key. It can’t read them.
 >
