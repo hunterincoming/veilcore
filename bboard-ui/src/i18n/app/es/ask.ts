@@ -115,7 +115,7 @@ export const ask = {
   'app.ask.batch.needsConnection': 'Guardar necesita conexión. No se guarda nada antes de su copia de seguridad.',
   'app.ask.batch.needParent': 'Elija la planta de la que se cortaron.',
   'app.ask.batch.needParents': 'Elija el padre, la madre o ambos.',
-  'app.ask.batch.needAll': 'Indique cuántos, un nombre y una fecha.',
+  'app.ask.batch.needAll': 'Rellene cada campo de arriba.',
   'app.ask.batch.sealing': 'Sellando…',
   'app.ask.batch.backupTitle': 'Guarde primero su copia de seguridad',
   'app.ask.batch.saveThem.one': 'Guardar {count} registro',
@@ -132,4 +132,7 @@ export const ask = {
   'app.ask.batch.cutClonesHint': 'Un registro nuevo por esqueje, cada uno vinculado a esta planta.',
   'app.ask.batch.recordOffspring': 'Registrar crías',
   'app.ask.batch.recordOffspringHint': 'Un registro nuevo por cría, cada uno vinculado a este animal.',
+  'app.ask.batch.already': 'Algunos ya son registros suyos. Cambie el nombre o la fecha e inténtelo de nuevo.',
+  'app.ask.batch.receivedNote':
+    'Aquí no se rellena nada a partir de un registro que alguien le envió: escríbalo usted.',
 } satisfies Partial<AppTranslation>;

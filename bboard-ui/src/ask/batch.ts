@@ -19,8 +19,16 @@ export type BatchPreset = 'clones' | 'offspring';
 export type BatchPlan = {
   readonly preset: BatchPreset;
   readonly count: number;
-  /** Each child is named "<base> <n>", 1 to count. */
+  /** Each child is named "<base> <n>", from `start` (default 1). */
   readonly baseName: string;
+  /** The first number: past any child an earlier batch already made (firstFreeStart). */
+  readonly start?: number;
+  /**
+   * Who bred them, and the species: typed here, or filled from a parent the person logged
+   * themselves. Never from a record received from someone else (provenance rule).
+   */
+  readonly bredBy: string;
+  readonly taxon: string;
   /** Cut on, or born on (YYYY-MM-DD). */
   readonly date: string;
   /** Clones: the plant cut from. */
@@ -30,7 +38,7 @@ export type BatchPlan = {
   readonly dam?: StrainRecord;
 };
 
-export type BatchProblem = 'parent' | 'count' | 'name' | 'date';
+export type BatchProblem = 'parent' | 'count' | 'name' | 'bredBy' | 'species' | 'date';
 
 /** What stops a batch from being saved, in screen order; empty when it can be. */
 export const batchProblems = (p: BatchPlan): BatchProblem[] => {
@@ -38,13 +46,24 @@ export const batchProblems = (p: BatchPlan): BatchProblem[] => {
   if (p.preset === 'clones' ? !p.parent : !p.sire && !p.dam) out.push('parent');
   if (!Number.isInteger(p.count) || p.count < 1 || p.count > MAX_BATCH) out.push('count');
   if (!p.baseName.trim()) out.push('name');
+  if (!p.bredBy.trim()) out.push('bredBy');
+  if (p.preset === 'offspring' && !p.taxon.trim()) out.push('species');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date)) out.push('date');
   return out;
 };
 
-/** The children's names: "<base> 1" … "<base> N". */
-export const childNames = (baseName: string, count: number): string[] =>
-  Array.from({ length: Math.max(0, Math.min(count, MAX_BATCH)) }, (_, i) => `${baseName.trim()} ${i + 1}`);
+/** The children's names: "<base> <start>" … "<base> <start + N - 1>". */
+export const childNames = (baseName: string, count: number, start = 1): string[] =>
+  Array.from({ length: Math.max(0, Math.min(count, MAX_BATCH)) }, (_, i) => `${baseName.trim()} ${start + i}`);
+
+/** Whether a record came from someone else (a transfer or a delivery): its words are theirs. */
+export const isReceived = (r: StrainRecord | undefined): boolean => !!r?.receivedFrom;
+
+/** What a batch can fill in from its parent(s): only from records the person logged themselves. */
+export const ownDefaults = (parents: readonly (StrainRecord | undefined)[]): { bredBy: string; taxon: string } => {
+  const own = parents.filter((r): r is StrainRecord => !!r && !isReceived(r));
+  return { bredBy: own[0]?.bredBy ?? '', taxon: own.find((r) => r.taxon)?.taxon ?? '' };
+};
 
 const parentRef = (r: StrainRecord, role?: 'sire' | 'dam'): ParentRef => ({
   recordId: r.id,
@@ -60,35 +79,51 @@ export const childFields = (p: BatchPlan, name: string): RowFields => {
     return {
       strainName: name,
       refId: '',
-      taxon: parent.taxon ?? '',
+      taxon: p.taxon.trim(),
       parents: [parentRef(parent)],
-      bredBy: parent.bredBy,
+      bredBy: p.bredBy.trim(),
       dateCreated: p.date,
       notes: '',
       breedingMethod: CLONE_METHOD,
     };
   }
-  const first = p.dam ?? p.sire;
+  const own = (r: StrainRecord | undefined) => (r && !isReceived(r) ? r : undefined);
   return {
     strainName: name,
     refId: '',
-    taxon: first?.taxon ?? '',
+    taxon: p.taxon.trim(),
     parents: [...(p.sire ? [parentRef(p.sire, 'sire')] : []), ...(p.dam ? [parentRef(p.dam, 'dam')] : [])],
-    bredBy: first?.bredBy ?? '',
+    bredBy: p.bredBy.trim(),
     dateCreated: p.date,
     notes: '',
     animal: {
-      breed: p.dam?.animal?.breed || p.sire?.animal?.breed || '',
+      breed: own(p.dam)?.animal?.breed || own(p.sire)?.animal?.breed || '',
       idScheme: '',
       sex: 'unknown',
-      herd: p.dam?.animal?.herd || p.sire?.animal?.herd || '',
+      herd: own(p.dam)?.animal?.herd || own(p.sire)?.animal?.herd || '',
     },
   };
 };
 
 /** The batch as the bulk import's rows, ready to seal (bulk-import.ts sealRows). */
 export const batchRows = (p: BatchPlan): PreparedRow[] =>
-  childNames(p.baseName, p.count).map((name, i) => {
+  childNames(p.baseName, p.count, p.start).map((name, i) => {
     const fields = childFields(p, name);
     return { line: i + 1, cells: [], fields, hash: rowHashOf(fields), status: 'ready', problems: [] };
   });
+
+/**
+ * The first number at which none of the batch's children would be a record already made: by an
+ * earlier batch (in the bulk import's ledger, sent or waiting) or in the person's set. The bulk
+ * import treats a row it has seen as done, so a second litter of the same pair on the same day,
+ * or the same clones cut again, would otherwise save nothing and say they were saved.
+ */
+export const firstFreeStart = (p: BatchPlan, taken: ReadonlySet<string>): number => {
+  if (!p.baseName.trim() || !Number.isInteger(p.count) || p.count < 1) return 1;
+  const count = Math.min(p.count, MAX_BATCH);
+  // One pass up the numbers, each hashed once: a clash at n means the run starts after n.
+  let start = 1;
+  for (let n = 1; n - start < count && n < 1_000_000; n += 1)
+    if (taken.has(rowHashOf(childFields(p, `${p.baseName.trim()} ${n}`)))) start = n + 1;
+  return start;
+};

@@ -265,3 +265,26 @@ describe('docs/ask-veilcore.md says what the app says', () => {
     expect(doc).toContain(en['app.ask.banner.ask']);
   });
 });
+
+// Review round 1, item 4: nothing a name holds can start a new line or property in the calendar.
+describe('the calendar file can’t be injected into', () => {
+  it('escapes line breaks of every kind and drops other control characters; UIDs are plain', () => {
+    const items = [
+      {
+        kind: 'report' as const,
+        date: '2026-12-01',
+        licenseId: 'LIC-1\r\nATTENDEE:evil@x',
+        name: 'x',
+        overdue: false,
+      },
+    ];
+    const ics = dueCalendar(items, () => 'A;B,C\rEND:VEVENT\nBEGIN:VALARM\r\nX\u0007', new Date(Date.UTC(2026, 10, 6)));
+    const lines = ics.split('\r\n');
+    expect(lines.filter((l) => l.startsWith('END:VEVENT'))).toHaveLength(1);
+    expect(lines.some((l) => l.startsWith('BEGIN:VALARM') || l.startsWith('ATTENDEE'))).toBe(false);
+    expect(ics).toContain(`${String.raw`SUMMARY:A\;B\,C\nEND:VEVENT\nBEGIN:VALARM\nX`}\r\n`);
+    expect(ics).toContain('UID:LIC-1ATTENDEEevilx-report-2026-12-01@veilcore.org');
+    // eslint-disable-next-line no-control-regex
+    expect(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(ics)).toBe(false);
+  });
+});

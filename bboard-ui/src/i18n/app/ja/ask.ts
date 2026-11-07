@@ -112,7 +112,7 @@ export const ask = {
   'app.ask.batch.needsConnection': '保存には接続が必要です。バックアップの前には何も保存されません。',
   'app.ask.batch.needParent': '取った元の植物を選んでください。',
   'app.ask.batch.needParents': '父、母、または両方を選んでください。',
-  'app.ask.batch.needAll': '数、名前、日付を入力してください。',
+  'app.ask.batch.needAll': '上の欄をすべて入力してください。',
   'app.ask.batch.sealing': '封印中…',
   'app.ask.batch.backupTitle': '先にバックアップを保存',
   'app.ask.batch.saveThem.other': '{count}件の記録を保存',
@@ -127,4 +127,6 @@ export const ask = {
   'app.ask.batch.cutClonesHint': 'クローンごとに新しい記録を作り、この植物に紐付けます。',
   'app.ask.batch.recordOffspring': '子を記録',
   'app.ask.batch.recordOffspringHint': '子ごとに新しい記録を作り、この動物に紐付けます。',
+  'app.ask.batch.already': 'このうちいくつかは既にある記録です。名前か日付を変えて、もう一度試してください。',
+  'app.ask.batch.receivedNote': 'ほかの人から届いた記録からは何も入力しません。ご自身で入力してください。',
 } satisfies Partial<AppTranslation>;

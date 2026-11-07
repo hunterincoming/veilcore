@@ -13,8 +13,24 @@ import {
   HANDOFF_STATE_KEY,
 } from './handoff';
 import { prefillOf, sireAndDam } from './prefill';
-import { CLONE_METHOD, batchProblems, batchRows, childNames, type BatchPlan } from './batch';
-import { HELD_FOR_BACKUP, holdForBackup, loadLedger, sealRows, type Committer } from '../veilcore/bulk-import';
+import {
+  CLONE_METHOD,
+  batchProblems,
+  batchRows,
+  childNames,
+  firstFreeStart,
+  ownDefaults,
+  type BatchPlan,
+} from './batch';
+import {
+  HELD_FOR_BACKUP,
+  holdForBackup,
+  loadLedger,
+  recordRowHash,
+  sealRows,
+  type Committer,
+  type PreparedRow,
+} from '../veilcore/bulk-import';
 import { checkIntegrity, type StrainRecord } from '../veilcore/records';
 import { __resetRecordKeysForTests, keysFor } from '../veilcore/record-keys';
 import { ANIMAL_PROFILE } from '../veilcore/animal-profile';
@@ -160,17 +176,25 @@ describe('batches', () => {
     baseName: 'Blue Dream #12 clone',
     date: '2026-11-06',
     parent: mother,
+    bredBy: 'Harbour Farm',
+    taxon: 'Cannabis sativa',
     ...over,
   });
 
   it('names the children in order and says what is missing', () => {
     expect(childNames('X clone', 3)).toEqual(['X clone 1', 'X clone 2', 'X clone 3']);
     expect(batchProblems(plan())).toEqual([]);
-    expect(batchProblems(plan({ parent: undefined, count: 0, baseName: ' ', date: 'soon' }))).toEqual([
+    expect(batchProblems(plan({ parent: undefined, count: 0, baseName: ' ', bredBy: '', date: 'soon' }))).toEqual([
       'parent',
       'count',
       'name',
+      'bredBy',
       'date',
+    ]);
+    // Offspring need a species; clones may leave it out.
+    expect(batchProblems(plan({ taxon: '' }))).toEqual([]);
+    expect(batchProblems(plan({ preset: 'offspring', parent: undefined, dam: mother, taxon: '' }))).toEqual([
+      'species',
     ]);
     expect(batchProblems(plan({ count: MAX_BATCH + 1 }))).toEqual(['count']);
   });
@@ -197,6 +221,8 @@ describe('batches', () => {
       date: '2026-11-01',
       sire: bull,
       dam: cow,
+      bredBy: 'North Farm',
+      taxon: 'Bos taurus',
     });
     expect(first.fields.parents).toEqual([
       { recordId: bull.id, name: 'Bull #4', role: 'sire', individualId: 'ID4' },
@@ -228,5 +254,89 @@ describe('batches', () => {
     expect(done.stopped).toBeUndefined();
     expect(sent.sort()).toEqual([...ids].sort());
     expect(Object.values(done.outcomes).every((o) => o.state === 'sealed')).toBe(true);
+  });
+
+  // Review round 1, B3: the bulk import treats a row it has seen as done, so a second identical
+  // batch used to save nothing and say it was saved.
+  const taken = (extra: readonly StrainRecord[] = []) =>
+    new Set([...Object.keys(loadLedger().rows), ...extra.map(recordRowHash)]);
+  const saveAll = async (rows: PreparedRow[]) => {
+    const sent: string[] = [];
+    const commit: Committer = (batch) => {
+      sent.push(...batch.map((r) => r.id));
+      return Promise.resolve({ stored: batch.map((r) => r.id), refused: [] });
+    };
+    await sealRows(rows, { commit: holdForBackup, batchSize: rows.length, gapMs: 0 });
+    const done = await sealRows(rows, { commit, gapMs: 0 });
+    return { sent, done };
+  };
+
+  it('the same clones cut again are new records, numbered on', async () => {
+    const first = await saveAll(batchRows({ ...plan(), start: firstFreeStart(plan(), taken()) }));
+    expect(first.sent).toHaveLength(3);
+    const start = firstFreeStart(plan(), taken());
+    expect(start).toBe(4);
+    const again = batchRows({ ...plan(), start });
+    expect(again.map((r) => r.fields.strainName)).toEqual([4, 5, 6].map((n) => `Blue Dream #12 clone ${n}`));
+    const second = await saveAll(again);
+    expect(second.sent).toHaveLength(3);
+    expect(second.sent.some((id) => first.sent.includes(id))).toBe(false);
+    // And a record already in the set counts too (sealed on another device).
+    const elsewhere = {
+      ...mother,
+      id: ID(77),
+      strainName: 'Blue Dream #12 clone 7',
+      parents: [{ recordId: mother.id, name: 'Blue Dream #12' }],
+      dateCreated: '2026-11-06',
+      refId: '',
+      notes: '',
+    } as unknown as StrainRecord;
+    expect(firstFreeStart(plan(), taken([elsewhere]))).toBe(8);
+  });
+
+  it('two litters of the same pair on the same day are both saved', async () => {
+    const bull = animal(4, 'Bull #4', 'male');
+    const cow = animal(9, 'Cow #9', 'female');
+    const litter: BatchPlan = {
+      preset: 'offspring',
+      count: 2,
+      baseName: 'Cow #9 offspring',
+      date: '2026-11-06',
+      sire: bull,
+      dam: cow,
+      bredBy: 'North Farm',
+      taxon: 'Bos taurus',
+    };
+    const one = await saveAll(batchRows({ ...litter, start: firstFreeStart(litter, taken()) }));
+    const start = firstFreeStart(litter, taken());
+    expect(start).toBe(3);
+    const two = await saveAll(batchRows({ ...litter, start }));
+    expect(one.sent).toHaveLength(2);
+    expect(two.sent).toHaveLength(2);
+    expect(new Set([...one.sent, ...two.sent]).size).toBe(4);
+  });
+
+  // Review round 1, item 6: a received record's words are someone else's.
+  it('fills breeder, species and breed only from records the person logged', () => {
+    const received = {
+      ...mother,
+      bredBy: 'Their Farm',
+      taxon: 'Their species',
+      receivedFrom: 'aa'.repeat(32),
+    } as unknown as StrainRecord;
+    expect(ownDefaults([received])).toEqual({ bredBy: '', taxon: '' });
+    expect(ownDefaults([received, mother])).toEqual({ bredBy: 'Harbour Farm', taxon: 'Cannabis sativa' });
+    const cow = { ...animal(9, 'Cow #9', 'female'), receivedFrom: 'bb'.repeat(32) } as unknown as StrainRecord;
+    const [row] = batchRows({
+      preset: 'offspring',
+      count: 1,
+      baseName: 'Calf',
+      date: '2026-11-06',
+      dam: cow,
+      bredBy: 'Me',
+      taxon: 'Bos taurus',
+    });
+    expect(row.fields.animal).toEqual({ breed: '', idScheme: '', sex: 'unknown', herd: '' });
+    expect(row.fields.bredBy).toBe('Me');
   });
 });

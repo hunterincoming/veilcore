@@ -39,7 +39,97 @@ export type ReceiptFact =
   | 'labKey'
   | 'signatureCheck'
   | 'batch'
-  | 'timeLimit';
+  | 'timeLimit'
+  // What the ledger writes reveal (LEDGER_FACTS), beyond the disclosed values:
+  | 'step'
+  | 'keyLink'
+  | 'moveCount'
+  | 'licenseLink'
+  | 'licenseList'
+  | 'licenseCount'
+  | 'parentLink'
+  | 'obligationLink'
+  | 'obligationCount';
+
+/**
+ * What writing each ledger field makes public, for every field of both contracts. A step's own
+ * counter and its "last …" cells say which step this was, and tie its codes together (the
+ * receipt says that on every step); the maps and counters say how codes are linked and how
+ * many licenses and obligations a record carries.
+ */
+export const LEDGER_FACTS = {
+  // veilcore.compact
+  protocolVersion: 'step',
+  anchorSeq: 'step',
+  proofSeq: 'step',
+  batchSeq: 'step',
+  pairSeq: 'step',
+  rotationSeq: 'step',
+  transferSeq: 'step',
+  presentationSeq: 'step',
+  sealSeq: 'step',
+  descentSeq: 'step',
+  obligationSeq: 'step',
+  lastAnchor: 'step',
+  lastBatchRoot: 'step',
+  lastOwnershipProof: 'step',
+  lastOwnershipChallenge: 'step',
+  lastPairedRecord: 'step',
+  lastPairedDna: 'step',
+  lastRotatedFrom: 'step',
+  lastRotatedTo: 'step',
+  lastRecoveredOrigin: 'step',
+  lastPresentation: 'step',
+  lastPresentationRoot: 'step',
+  lastPresentationUnsealed: 'step',
+  lastIssuedLicense: 'step',
+  lastActivatedLicense: 'step',
+  lastTransferredLicense: 'step',
+  lastActivatedRecord: 'step',
+  lastDescentChild: 'step',
+  lastDescentParent: 'step',
+  lastObligationRecord: 'step',
+  lastObligation: 'step',
+  lastBeneficiary: 'step',
+  lastProposedObligation: 'step',
+  lastProposedAgainst: 'step',
+  lastProposedBy: 'step',
+  originOf: 'keyLink',
+  headOf: 'keyLink',
+  recoveryOf: 'keyLink',
+  licenseStatusOf: 'licenseLink',
+  pendingTransferOf: 'licenseLink',
+  licenseSlotOf: 'licenseLink',
+  licenseAtSlot: 'licenseLink',
+  activeLicenses: 'licenseList',
+  lastSealTime: 'licenseList',
+  unsealedChanges: 'licenseList',
+  rootsSinceSeal: 'licenseList',
+  pendingParentOf: 'parentLink',
+  parentsOf: 'parentLink',
+  hasOffspring: 'parentLink',
+  pendingObligations: 'obligationLink',
+  openObligations: 'obligationLink',
+  obligationCountOf: 'obligationCount',
+  pendingObligationsBy: 'obligationCount',
+  rotationsOf: 'moveCount',
+  recoveriesOf: 'moveCount',
+  pendingLicensesBy: 'licenseCount',
+  activeLicensesBy: 'licenseCount',
+  // veilcore-claims.compact
+  claimSeq: 'step',
+  lastClaimKind: 'step',
+  lastClaimRecord: 'step',
+  lastClaimOther: 'step',
+  lastClaimSchema: 'step',
+  lastClaimSlot: 'step',
+  lastClaimParam: 'step',
+  lastClaimOp: 'step',
+  lastClaimAttesterX: 'step',
+  lastClaimAttesterY: 'step',
+} as const satisfies Record<string, ReceiptFact>;
+
+export type LedgerField = keyof typeof LEDGER_FACTS;
 
 export type ReceiptContract = 'veilcore' | 'claims';
 
@@ -47,6 +137,12 @@ export type CircuitReceipt = {
   readonly contract: ReceiptContract;
   /** Each disclose() expression (whitespace collapsed) and the fact it is shown as. */
   readonly disclosed: Readonly<Record<string, ReceiptFact>>;
+  /**
+   * Every ledger field the circuit writes (directly or through the circuits it calls). What a
+   * write reveals is LEDGER_FACTS's: that the step happened, which codes it ties together, and
+   * the counts a record carries. onchain-receipt.test.ts checks this list against the sources.
+   */
+  readonly writes: readonly LedgerField[];
   /** Called from a screen in this app (config.ts BROWSER_CIRCUITS, CLAIMS_BROWSER_CIRCUITS). */
   readonly screen: boolean;
 };
@@ -57,37 +153,101 @@ const SELF = 'commit(localGeneticSecret())';
 
 export const RECEIPTS = {
   // ---- records ----
-  anchor: { contract: 'veilcore', screen: true, disclosed: { [SELF]: 'yourRecord', recoveryCommitment: 'recovery' } },
-  anchorBatch: { contract: 'veilcore', screen: false, disclosed: { root: 'batch' } },
-  proveOwnership: { contract: 'veilcore', screen: true, disclosed: { [SELF]: 'yourRecord', challenge: 'challenge' } },
-  pairDna: { contract: 'veilcore', screen: true, disclosed: { [SELF]: 'yourRecord', dnaCommitment: 'dnaReport' } },
+  anchor: {
+    writes: [
+      'activeLicensesBy',
+      'anchorSeq',
+      'lastAnchor',
+      'obligationCountOf',
+      'pendingLicensesBy',
+      'pendingObligationsBy',
+      'recoveriesOf',
+      'recoveryOf',
+      'rotationsOf',
+    ],
+    contract: 'veilcore',
+    screen: true,
+    disclosed: { [SELF]: 'yourRecord', recoveryCommitment: 'recovery' },
+  },
+  anchorBatch: {
+    writes: ['batchSeq', 'lastBatchRoot'],
+    contract: 'veilcore',
+    screen: false,
+    disclosed: { root: 'batch' },
+  },
+  proveOwnership: {
+    writes: ['lastOwnershipChallenge', 'lastOwnershipProof', 'proofSeq'],
+    contract: 'veilcore',
+    screen: true,
+    disclosed: { [SELF]: 'yourRecord', challenge: 'challenge' },
+  },
+  pairDna: {
+    writes: ['lastPairedDna', 'lastPairedRecord', 'pairSeq'],
+    contract: 'veilcore',
+    screen: true,
+    disclosed: { [SELF]: 'yourRecord', dnaCommitment: 'dnaReport' },
+  },
   rotateRecordSecret: {
+    writes: [
+      'headOf',
+      'lastRecoveredOrigin',
+      'lastRotatedFrom',
+      'lastRotatedTo',
+      'originOf',
+      'rotationSeq',
+      'rotationsOf',
+    ],
     contract: 'veilcore',
     screen: false,
     disclosed: { [SELF]: 'yourRecord', newRecordCommitment: 'newKey' },
   },
   recoverRecordSecret: {
+    writes: [
+      'headOf',
+      'lastRecoveredOrigin',
+      'lastRotatedFrom',
+      'lastRotatedTo',
+      'originOf',
+      'recoveriesOf',
+      'recoveryOf',
+      'rotationSeq',
+      'rotationsOf',
+    ],
     contract: 'veilcore',
     screen: false,
     disclosed: { recordCommitment: 'yourRecord', newRecordCommitment: 'newKey', newRecoveryCommitment: 'recovery' },
   },
   replaceRecoveryCommitment: {
+    writes: ['recoveryOf'],
     contract: 'veilcore',
     screen: false,
     disclosed: { recordCommitment: 'yourRecord', newRecoveryCommitment: 'recovery' },
   },
   // ---- licenses ----
   issueLicense: {
+    writes: ['lastIssuedLicense', 'licenseStatusOf', 'pendingLicensesBy'],
     contract: 'veilcore',
     screen: true,
     disclosed: { [SELF]: 'yourRecord', licenseCommitment: 'license' },
   },
   countersignLicense: {
+    writes: [
+      'activeLicenses',
+      'activeLicensesBy',
+      'lastActivatedLicense',
+      'lastActivatedRecord',
+      'licenseAtSlot',
+      'licenseSlotOf',
+      'licenseStatusOf',
+      'pendingLicensesBy',
+      'rootsSinceSeal',
+    ],
     contract: 'veilcore',
     screen: true,
     disclosed: { recordCommitment: 'issuerRecord', 'licenseKey(lc, rc)': 'licenseEntry', slot: 'slot', lc: 'license' },
   },
   proposeTransfer: {
+    writes: ['pendingTransferOf', 'transferSeq'],
     contract: 'veilcore',
     screen: true,
     disclosed: {
@@ -97,6 +257,16 @@ export const RECEIPTS = {
     },
   },
   approveTransfer: {
+    writes: [
+      'activeLicenses',
+      'lastTransferredLicense',
+      'licenseAtSlot',
+      'licenseSlotOf',
+      'licenseStatusOf',
+      'pendingTransferOf',
+      'transferSeq',
+      'unsealedChanges',
+    ],
     contract: 'veilcore',
     screen: true,
     disclosed: {
@@ -107,6 +277,7 @@ export const RECEIPTS = {
     },
   },
   withdrawTransfer: {
+    writes: ['pendingTransferOf', 'transferSeq'],
     contract: 'veilcore',
     screen: true,
     disclosed: {
@@ -115,12 +286,28 @@ export const RECEIPTS = {
     },
   },
   revokeLicense: {
+    writes: [
+      'activeLicenses',
+      'activeLicensesBy',
+      'licenseAtSlot',
+      'licenseSlotOf',
+      'licenseStatusOf',
+      'pendingLicensesBy',
+      'pendingTransferOf',
+      'unsealedChanges',
+    ],
     contract: 'veilcore',
     screen: true,
     disclosed: { [SELF]: 'yourRecord', issuingRecord: 'issuerRecord', licenseCommitment: 'license' },
   },
-  sealRevocations: { contract: 'veilcore', screen: false, disclosed: { bound: 'timeLimit' } },
+  sealRevocations: {
+    writes: ['activeLicenses', 'lastSealTime', 'rootsSinceSeal', 'sealSeq', 'unsealedChanges'],
+    contract: 'veilcore',
+    screen: false,
+    disclosed: { bound: 'timeLimit' },
+  },
   proveLicense: {
+    writes: ['lastPresentation', 'lastPresentationRoot', 'lastPresentationUnsealed', 'presentationSeq'],
     contract: 'veilcore',
     screen: true,
     disclosed: {
@@ -132,69 +319,171 @@ export const RECEIPTS = {
   },
   // ---- descent ----
   proposeParent: {
+    writes: ['pendingParentOf'],
     contract: 'veilcore',
     screen: true,
     disclosed: { [SELF]: 'yourRecord', parentRecord: 'otherRecord' },
   },
   confirmParent: {
+    writes: ['descentSeq', 'hasOffspring', 'lastDescentChild', 'lastDescentParent', 'parentsOf', 'pendingParentOf'],
     contract: 'veilcore',
     screen: true,
     disclosed: { [SELF]: 'yourRecord', childRecord: 'otherRecord' },
   },
-  withdrawParent: { contract: 'veilcore', screen: true, disclosed: { [SELF]: 'yourRecord' } },
+  withdrawParent: {
+    writes: ['pendingParentOf'],
+    contract: 'veilcore',
+    screen: true,
+    disclosed: { [SELF]: 'yourRecord' },
+  },
   // ---- obligations ----
   proposeObligation: {
+    writes: [
+      'lastProposedAgainst',
+      'lastProposedBy',
+      'lastProposedObligation',
+      'pendingObligations',
+      'pendingObligationsBy',
+    ],
     contract: 'veilcore',
     screen: true,
     disclosed: { [SELF]: 'yourRecord', record: 'otherRecord', obligationCommitment: 'obligation' },
   },
   encumberOwnRecord: {
+    writes: [
+      'lastBeneficiary',
+      'lastObligation',
+      'lastObligationRecord',
+      'obligationCountOf',
+      'obligationSeq',
+      'openObligations',
+    ],
     contract: 'veilcore',
     screen: false,
     disclosed: { [SELF]: 'yourRecord', obligationCommitment: 'obligation' },
   },
   withdrawObligation: {
+    writes: ['pendingObligations', 'pendingObligationsBy'],
     contract: 'veilcore',
     screen: true,
     disclosed: { [SELF]: 'yourRecord', record: 'otherRecord', obligationCommitment: 'obligation' },
   },
   acceptObligation: {
+    writes: [
+      'lastBeneficiary',
+      'lastObligation',
+      'lastObligationRecord',
+      'obligationCountOf',
+      'obligationSeq',
+      'openObligations',
+      'pendingObligations',
+      'pendingObligationsBy',
+    ],
     contract: 'veilcore',
     screen: true,
     disclosed: { [SELF]: 'yourRecord', beneficiary: 'otherRecord', obligationCommitment: 'obligation' },
   },
   rejectObligation: {
+    writes: ['pendingObligations', 'pendingObligationsBy'],
     contract: 'veilcore',
     screen: true,
     disclosed: { [SELF]: 'yourRecord', beneficiary: 'otherRecord', obligationCommitment: 'obligation' },
   },
   discharge: {
+    writes: [
+      'lastBeneficiary',
+      'lastObligation',
+      'lastObligationRecord',
+      'obligationCountOf',
+      'obligationSeq',
+      'openObligations',
+    ],
     contract: 'veilcore',
     screen: true,
     disclosed: { [SELF]: 'yourRecord', record: 'otherRecord', obligationCommitment: 'obligation' },
   },
   // ---- claims (veilcore-claims.compact) ----
   proveValue: {
+    writes: [
+      'claimSeq',
+      'lastClaimAttesterX',
+      'lastClaimAttesterY',
+      'lastClaimKind',
+      'lastClaimOp',
+      'lastClaimOther',
+      'lastClaimParam',
+      'lastClaimRecord',
+      'lastClaimSchema',
+      'lastClaimSlot',
+    ],
     contract: 'claims',
     screen: true,
     disclosed: { record: 'certificate', schema: 'certKind', slot: 'line', value: 'value' },
   },
   proveRange: {
+    writes: [
+      'claimSeq',
+      'lastClaimAttesterX',
+      'lastClaimAttesterY',
+      'lastClaimKind',
+      'lastClaimOp',
+      'lastClaimOther',
+      'lastClaimParam',
+      'lastClaimRecord',
+      'lastClaimSchema',
+      'lastClaimSlot',
+    ],
     contract: 'claims',
     screen: true,
     disclosed: { record: 'certificate', schema: 'certKind', slot: 'line', op: 'comparison', bound: 'limit' },
   },
   proveDistinct: {
+    writes: [
+      'claimSeq',
+      'lastClaimAttesterX',
+      'lastClaimAttesterY',
+      'lastClaimKind',
+      'lastClaimOp',
+      'lastClaimOther',
+      'lastClaimParam',
+      'lastClaimRecord',
+      'lastClaimSchema',
+      'lastClaimSlot',
+    ],
     contract: 'claims',
     screen: false,
     disclosed: { first: 'certificate', second: 'otherCertificate', 'schemaOf(terms)': 'certKind' },
   },
   proveUnchanged: {
+    writes: [
+      'claimSeq',
+      'lastClaimAttesterX',
+      'lastClaimAttesterY',
+      'lastClaimKind',
+      'lastClaimOp',
+      'lastClaimOther',
+      'lastClaimParam',
+      'lastClaimRecord',
+      'lastClaimSchema',
+      'lastClaimSlot',
+    ],
     contract: 'claims',
     screen: false,
     disclosed: { original: 'certificate', corrected: 'otherCertificate', schema: 'certKind', mayChange: 'mask' },
   },
   proveAttested: {
+    writes: [
+      'claimSeq',
+      'lastClaimAttesterX',
+      'lastClaimAttesterY',
+      'lastClaimKind',
+      'lastClaimOp',
+      'lastClaimOther',
+      'lastClaimParam',
+      'lastClaimRecord',
+      'lastClaimSchema',
+      'lastClaimSlot',
+    ],
     contract: 'claims',
     screen: true,
     disclosed: {
@@ -213,8 +502,14 @@ export type ReceiptCircuit = keyof typeof RECEIPTS;
 /** The facts a receipt for these circuits lists, once each, in table order. */
 export const receiptFacts = (circuits: readonly ReceiptCircuit[]): ReceiptFact[] => {
   const out: ReceiptFact[] = [];
+  const add = (f: ReceiptFact) => {
+    if (!out.includes(f)) out.push(f);
+  };
+  for (const c of circuits) for (const f of Object.values(RECEIPTS[c].disclosed) as ReceiptFact[]) add(f);
   for (const c of circuits)
-    for (const f of Object.values(RECEIPTS[c].disclosed) as ReceiptFact[]) if (!out.includes(f)) out.push(f);
+    for (const w of RECEIPTS[c].writes as readonly LedgerField[]) if (LEDGER_FACTS[w] !== 'step') add(LEDGER_FACTS[w]);
+  // Every step: which step it was, and that it ties the codes above together.
+  add('step');
   return out;
 };
 
