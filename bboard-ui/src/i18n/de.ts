@@ -246,7 +246,7 @@ export const de: Strings = {
     'Beide Contracts sind im Hauptnetz von Midnight bereitgestellt. Der Claims-Contract hat keinen Wartungsschlüssel: Niemand, auch wir nicht, kann ihn ändern.',
   'm.postE.date': '2. Nov. 2026',
   'm.postE.tag': 'Nachweis',
-  'm.postE.title': 'Eine gerichtsfeste Datei für jedes Dokument',
+  'm.postE.title': 'Eine Nachweisdatei für jedes Dokument',
   'm.postE.text':
     'Auf der Seite eines Dokuments lässt sich jetzt eine Datei herunterladen, die eine Anwältin oder ein Prüfer ohne unsere Website prüfen kann: der Datensatz wie versiegelt, sein Nachweis, wo er datiert wurde, eine Seite, die die Prüfungen offline ausführt, eine Zusammenfassung zum Drucken und ein Mustertext für eine Erklärung. Sie können eine Kopie des Dokuments beilegen; sie wird vorher mit dem Datensatz abgeglichen.',
   'm.postD.date': '31. Okt. 2026',

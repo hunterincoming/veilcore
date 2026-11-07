@@ -294,7 +294,7 @@ export const en = {
   // docs/deployment-record-revision-4.md ("Mainnet deployment").
   'm.postE.date': '2 Nov 2026',
   'm.postE.tag': 'Evidence',
-  'm.postE.title': 'A court-ready file for any document',
+  'm.postE.title': 'An evidence file for any document',
   'm.postE.text':
     "A document's page now downloads one file a lawyer or examiner can check without our website: the record as sealed, its proof, where it was dated, a page that runs the checks offline, a summary to print and sample text for a declaration. You can include a copy of the document; it's checked against the record first.",
   'm.postD.date': '31 Oct 2026',

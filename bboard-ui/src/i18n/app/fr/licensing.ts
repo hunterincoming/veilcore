@@ -14,7 +14,7 @@ export const licensing = {
   'app.lic.fee.note': 'Frais VeilCore ({pct} % de la valeur de l’accord) : calculés, non prélevés.',
   'app.lic.rights.cultivate': 'Culture uniquement',
   'app.lic.rights.cultivate+propagate': 'Culture et multiplication',
-  'app.lic.rights.full-transfer': 'Transfert complet',
+  'app.lic.rights.full-transfer': 'Cession des droits que détient le détenteur',
   'app.lic.rights.breed': 'Reproduction uniquement',
   'app.lic.rights.breed+collect': 'Reproduction + collecte',
   'app.lic.rights.breed+sell': 'Reproduction, collecte + vente',
@@ -171,7 +171,8 @@ export const licensing = {
   'app.lic.f.rightsHelp': 'Ce que le licencié peut faire avec la génétique.',
   'app.lic.f.r.cultivate': 'Culture uniquement',
   'app.lic.f.r.propagate': 'Culture et multiplication (boutures ou graines)',
-  'app.lic.f.r.full': 'Transfert complet des droits',
+  'app.lic.f.r.full':
+    'Cession des droits que détient le détenteur (un droit enregistré se cède auprès de son propre office)',
   'app.lic.f.r.breed': 'Reproduction avec ses propres animaux uniquement',
   'app.lic.f.r.breed+collect': 'Reproduction + collecte de semence ou d’embryons pour son propre usage',
   'app.lic.f.r.breed+sell': 'Reproduction, collecte + vente de semence, d’embryons ou de reproducteurs',
@@ -418,7 +419,7 @@ export const licensing = {
   'app.lic.off.nameIt': 'L’indiquer',
   'app.lic.off.waitName': 'En attente que l’autre partie indique son enregistrement de cette plante.',
   'app.lic.off.theirRecord': 'Leur enregistrement : <b>{name}</b> {key} · {state}',
-  'app.lic.off.inForce': 'en vigueur sur Midnight',
+  'app.lic.off.inForce': 'inscrit sur Midnight',
   'app.lic.off.proposed': 'proposée, en attente de l’acceptation du licencié',
   'app.lic.off.notYet': 'pas encore sur Midnight',
   'app.lic.off.checking': 'vérification…',
@@ -693,7 +694,7 @@ export const licensing = {
     'Ce lien de mention de prêteur est incomplet. Rouvrez-le exactement tel que vous l’avez reçu, y compris tout ce qui suit le #.',
   'app.lic.claim.notHeld': 'Cet appareil ne détient pas l’enregistrement.',
   'app.lic.claim.notWaiting': 'La mention de prêteur n’est plus en attente. Rien n’a été envoyé.',
-  'app.lic.claim.hInForce': 'Une mention de prêteur est en vigueur sur votre enregistrement',
+  'app.lic.claim.hInForce': 'Une mention de prêteur est inscrite sur votre enregistrement',
   'app.lic.claim.h': 'Une mention de prêteur sur votre enregistrement',
   'app.lic.claim.from':
     'De : <b>{name}</b> (selon ses propres dires ; vérifiez son identité comme pour tout prêt) · sa clé on-chain {key}',
@@ -705,16 +706,16 @@ export const licensing = {
   'app.lic.claim.asks':
     '<b>{name}</b> demande à inscrire une mention de prêteur sur <b>{record}</b> (vérifié sur Midnight).',
   'app.lic.claim.ifAccept':
-    'Si vous acceptez, quiconque vérifie cet enregistrement voit qu’une mention de prêteur est en vigueur, jusqu’à ce que {name} la lève. Personne d’autre ne le peut. Cela ne déplace pas l’enregistrement et ne vous empêche pas de l’utiliser.',
+    'Si vous acceptez, quiconque vérifie cet enregistrement voit qu’une mention de prêteur y est inscrite, jusqu’à ce que {name} la lève. Personne d’autre ne le peut. Cela ne déplace pas l’enregistrement et ne vous empêche pas de l’utiliser.',
   'app.lic.claim.accept': 'Accepter la mention de prêteur',
   'app.lic.claim.reject': 'La refuser',
   'app.lic.claim.rejectQ':
     'Refuser la mention de prêteur de {name} ? Elle est effacée de Midnight. Une nouvelle demande reste possible.',
   'app.lic.claim.rejectYes': 'Oui, la refuser',
   'app.lic.claim.how':
-    'Les prêteurs utilisent une mention de prêteur pour montrer qu’un enregistrement leur est nanti, afin qu’il ne puisse pas être nanti deux fois en silence. Ce n’est pas une inscription légale : le prêteur effectue toujours ses propres formalités. Les conditions restent entre vous ; Midnight montre seulement qu’une mention de prêteur existe et qui peut la lever. VeilCore paie les frais de réseau.',
+    'Les prêteurs utilisent une mention de prêteur pour que quiconque vérifie cet enregistrement voie qu’une mention y est inscrite. Elle n’empêche pas que le même matériel soit nanti ailleurs, et ce n’est pas une inscription légale : le prêteur effectue toujours ses propres formalités. Les conditions restent entre vous ; Midnight montre seulement qu’une mention de prêteur existe et qui peut la lever. VeilCore paie les frais de réseau.',
   'app.lic.claim.inForce':
-    'En vigueur sur Midnight. Seul {name} peut la lever. Quiconque vérifie {record} voit qu’une mention de prêteur est en vigueur.',
+    'Inscrit sur Midnight. Seul {name} peut la lever. Quiconque vérifie {record} voit qu’une mention de prêteur y est inscrite.',
   'app.lic.claim.readError': 'Impossible de lire Midnight pour le moment : {error}',
   'app.lic.claim.thisRecord': 'cet enregistrement',
   'app.lic.steps.i.link': 'Créer un lien et l’envoyer',
@@ -752,7 +753,7 @@ export const licensing = {
   'app.lic.next.l.file': 'Envoyez votre rapport à la fin de la période.',
   'app.lic.lend.title': 'Inscrire une mention de prêteur',
   'app.lic.lend.intro':
-    'Vous prêtez en vous appuyant sur l’enregistrement ou la licence d’un obtenteur ? Inscrivez sur Midnight que l’enregistrement vous est nanti, afin qu’il ne puisse pas être nanti deux fois en silence. Le détenteur l’accepte depuis son propre appareil, et vous seul pouvez la lever. Ce n’est pas une inscription légale : effectuez vos formalités comme d’habitude.',
+    'Vous prêtez en vous appuyant sur l’enregistrement ou la licence d’un obtenteur ? Inscrivez sur Midnight que vous détenez une mention de prêteur sur l’enregistrement, pour que quiconque le vérifie la voie. Cela n’empêche pas que le même matériel soit nanti ailleurs, et ce n’est pas une inscription légale : effectuez vos formalités comme d’habitude. Le détenteur l’accepte depuis son propre appareil, et vous seul pouvez la lever.',
   'app.lic.lend.name': 'Votre nom, tel que les détenteurs le verront',
   'app.lic.lend.nameHelp':
     'Le nom de votre établissement. Les détenteurs le voient à côté de votre clé et vérifient votre identité comme pour tout prêt.',
@@ -785,7 +786,7 @@ export const licensing = {
   'app.lic.lend.withdrawQ': 'Retirer cette mention avant que le détenteur ne réponde ? Ceci est inscrit sur Midnight.',
   'app.lic.lend.withdrawYes': 'Oui, la retirer',
   'app.lic.lend.inForce':
-    'En vigueur sur Midnight. Quiconque vérifie l’enregistrement voit qu’une mention de prêteur est en vigueur jusqu’à ce que vous la leviez.',
+    'Inscrit sur Midnight. Quiconque vérifie l’enregistrement voit qu’une mention de prêteur y est inscrite jusqu’à ce que vous la leviez.',
   'app.lic.lend.release': 'La lever (remboursé)',
   'app.lic.lend.releaseQ':
     'Lever cette mention ? Quiconque vérifie l’enregistrement ne la verra plus. Ceci est inscrit sur Midnight et irréversible.',
@@ -794,7 +795,7 @@ export const licensing = {
   'app.lic.lend.withdrawn': 'Retirée.',
   'app.lic.lend.gone': 'Pas sur Midnight : le détenteur l’a refusée, ou elle n’est pas encore arrivée.',
   'app.lic.lend.notWaiting': 'La mention n’est plus en attente. Rien n’a été envoyé.',
-  'app.lic.lend.notInForce': 'La mention n’est pas en vigueur. Rien n’a été envoyé.',
+  'app.lic.lend.notInForce': 'La mention n’est pas inscrite sur Midnight. Rien n’a été envoyé.',
   'app.lic.lend.badRecord':
     'Ce n’est ni un lien de vérification ni une clé on-chain. Demandez au détenteur le lien de vérification de son enregistrement.',
   'app.lic.lend.ownRecord': 'C’est votre propre clé de prêteur, pas un enregistrement.',

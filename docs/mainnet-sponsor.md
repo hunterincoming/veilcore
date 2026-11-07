@@ -2,7 +2,8 @@
 
 What it gives veilcore.org: batches dated automatically, and from the browser the record-key
 stamp, "prove it by link" and the DNA pairing date, with VeilCore paying the network fee.
-Licences and royalties stay practice-only.
+Licences, royalties and lab hand-overs too, once `MAINNET_AGREEMENTS` is on in the deployed
+sponsor and the site is built with licences on (docs/agreements-live.md, "Going live").
 
 What is safe about it: the sponsor wallet is a NEW wallet made only for this, holding a small
 amount of NIGHT. Its key sits on Railway, so never put more NIGHT in it than you'd accept losing.
