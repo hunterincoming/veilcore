@@ -1,0 +1,32 @@
+{
+  "pinned": true,
+  "webllm": "0.2.86",
+  "libs": {
+    "repo": "mlc-ai/binary-mlc-llm-libs",
+    "commit": "146ed9cd4b4062e967b017fd2291f7106b50599f",
+    "folder": "web-llm-models/v0_2_86/base",
+    "servedFrom": "/ask-model/v0_2_86/"
+  },
+  "redirectHosts": ["cas-bridge.xethub.hf.co"],
+  "models": [
+    {
+      "id": "Qwen3-0.6B-q4f16_1-MLC",
+      "repo": "veilcore-test/stub-model",
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "lib": {
+        "file": "Qwen3-0.6B-q4f16_1_cs1k-webgpu.wasm",
+        "bytes": 6358805,
+        "sha256": "19a1721867a481806adef35de0e0d0f2f4ff00a0c2e80d65b175fa55f21649c9"
+      },
+      "requiredFeatures": ["shader-f16"],
+      "vramMB": 1403.34,
+      "contextWindow": 4096,
+      "files": [
+        { "path": "mlc-chat-config.json", "bytes": 701, "sha256": "09e7a06df3bbb5d4b040cf6ee834db1ed291135f3444aa8e1c3b7f40641bd8c5" },
+        { "path": "tokenizer.json", "bytes": 16, "sha256": "ad386494539d45751cd4560d7b7a5fc285c0410a4da3fb9c6400540d05ec4274" },
+        { "path": "tensor-cache.json", "bytes": 153, "sha256": "8321e0aa63acaed02582ca90a913fb4a5ba624390c095d4e807a7a62ff9bdf15" },
+        { "path": "params_shard_0.bin", "bytes": 16, "sha256": "380c6f4b3c0652b36930856c66c3cef1f4a3d3668027474c9b03d3ea35c1ba3c" }
+      ]
+    }
+  ]
+}
