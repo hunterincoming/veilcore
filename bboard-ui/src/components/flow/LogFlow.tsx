@@ -849,8 +849,10 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
       <Typography variant="body2" color="text.secondary">
         {t('app.log.savedOn', { server: t('app.copy.ourServer'), datedOn: t('app.copy.datedOn') })}
       </Typography>
-      {/* What the seal's key date stamp puts on Midnight, before the button that starts it. */}
-      {REAL_CHAIN && <DisclosureReceipt circuits={['anchor']} />}
+      {/* What the seal's key date stamp puts on Midnight, before the button that starts it. Round 5:
+          one button, one name; dating the key is part of sealing, said here as the receipt's lead
+          (review round 1: one explanation, not three in a row). */}
+      {REAL_CHAIN && <DisclosureReceipt circuits={['anchor']} lead={t('app.log.sealStampsKey')} id="seal-stamps-key" />}
       {error && (
         <Alert severity="error" variant="outlined">
           {error}
@@ -873,13 +875,6 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
       <span role="status" style={visuallyHidden}>
         {busy ? t('app.log.sealingPlant') : ''}
       </span>
-      {/* Round 5: one button, one name. Dating the key is part of sealing, said here, not
-          a second "date stamp it" that reads like a second date for the record. */}
-      {REAL_CHAIN && (
-        <Typography id="seal-stamps-key" variant="body2" color="text.secondary">
-          {t('app.log.sealStampsKey')}
-        </Typography>
-      )}
     </Stack>
   );
 };

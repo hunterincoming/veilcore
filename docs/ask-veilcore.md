@@ -35,7 +35,7 @@ What it does:
 What the sheet says, and what the receipt on every on-chain step says, word for word (the test
 `bboard-ui/src/ask/shortcuts.test.ts` checks this page against the app's strings):
 
-> Ask sends nothing; Save does.
+> Typing here sends nothing. Only Save does.
 
 Before every step that writes to Midnight, a receipt lists what that step makes public, built
 from the contract's own `disclose()` calls and ledger writes ([The receipt](#the-disclosure-receipt)), and then:

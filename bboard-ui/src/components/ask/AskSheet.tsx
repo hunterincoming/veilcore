@@ -1,7 +1,7 @@
 // Ask VeilCore: a sheet over the record app (bottom on a phone, side on a computer). Chips first,
 // a text box second. It drafts; only the person saves, signs or sends, on the screen it opens.
 //
-// "Ask sends nothing; Save does." Nothing here makes a request: Shortcuts (ask/shortcuts.ts)
+// "Typing here sends nothing. Only Save does." Nothing here makes a request: Shortcuts (ask/shortcuts.ts)
 // reads the text in this page, What's due, Explain and Search read what this browser already
 // holds. The conversation is kept in memory only, for as long as the page is open: never
 // stored, never in a backup (docs/ask-veilcore.md). e2e/ask.spec.ts checks the network stays
@@ -127,13 +127,12 @@ export default function AskSheet({ open, onClose }: { open: boolean; onClose: ()
             <CloseIcon />
           </IconButton>
         </Stack>
-        <Typography variant="body2" sx={{ fontWeight: 700 }} data-ask-privacy="">
+        <Typography variant="body1">{t('app.ask.intro')}</Typography>
+        <Typography variant="body2" color="text.secondary" data-ask-privacy="">
           {t('app.ask.privacy')}
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
+          {t('app.common.sentenceSep')}
           {t('app.ask.engine')}
         </Typography>
-        <Typography variant="body2">{t('app.ask.intro')}</Typography>
         {chips(CHIPS)}
         <Box
           component="form"
@@ -146,11 +145,12 @@ export default function AskSheet({ open, onClose }: { open: boolean; onClose: ()
           <TextField
             size="small"
             fullWidth
-            label={t('app.ask.inputLabel')}
             placeholder={t('app.ask.inputPlaceholder')}
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, ASK_MAX_CHARS))}
-            slotProps={{ htmlInput: { maxLength: ASK_MAX_CHARS, 'data-ask-input': '' } }}
+            slotProps={{
+              htmlInput: { maxLength: ASK_MAX_CHARS, 'data-ask-input': '', 'aria-label': t('app.ask.inputLabel') },
+            }}
           />
           <Button type="submit" variant="contained" disabled={!text.trim()}>
             {t('app.ask.go')}

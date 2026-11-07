@@ -8,8 +8,8 @@ export const ask = {
   'app.ask.button': 'Demander',
   'app.ask.title': 'Demander à VeilCore',
   'app.ask.intro': 'Choisissez, ou écrivez ce que vous voulez faire.',
-  'app.ask.privacy': 'Demander n’envoie rien ; Enregistrer envoie.',
-  'app.ask.engine': 'Raccourcis : intégrés à cette page, marchent hors ligne.',
+  'app.ask.privacy': 'Ce que vous tapez ici n’est pas envoyé. Seul Enregistrer envoie.',
+  'app.ask.engine': 'Marche hors ligne.',
   'app.ask.inputLabel': 'Que voulez-vous faire ?',
   'app.ask.inputPlaceholder': 'ex. couper 12 boutures de Blue Dream',
   'app.ask.go': 'Aller',
@@ -20,7 +20,7 @@ export const ask = {
   'app.ask.chip.record': 'Nouvel enregistrement',
   'app.ask.chip.clones': 'Couper des boutures',
   'app.ask.chip.offspring': 'Enregistrer une descendance',
-  'app.ask.chip.cross': 'Croiser deux',
+  'app.ask.chip.cross': 'Enregistrer un croisement',
   'app.ask.chip.due': 'Ce qui est dû',
   'app.ask.chip.explain': 'Expliquer un mot',
   'app.ask.chip.search': 'Chercher mes enregistrements',
@@ -44,12 +44,12 @@ export const ask = {
   'app.ask.draft.open': 'Ouvrir',
   'app.ask.banner.ask': 'Rempli par Demander. Vérifiez chaque champ surligné.',
   'app.ask.banner.link':
-    'Ouvert depuis un lien. Il n’a choisi que le type d’enregistrement et le nombre : vérifiez chaque champ surligné.',
+    'Ouvert depuis un lien. Il n’a fixé que le type d’enregistrement et le nombre. Vérifiez chaque champ surligné.',
   'app.ask.replace.title': 'Vous avez un enregistrement à moitié rempli',
   'app.ask.replace.note': 'Utiliser le nouveau brouillon remplace ce que vous y avez écrit.',
   'app.ask.replace.use': 'Utiliser le nouveau brouillon',
   'app.ask.due.title': 'Ce qui est dû',
-  'app.ask.due.from': 'D’après les conditions signées de vos accords dans ce navigateur.',
+  'app.ask.due.from': 'D’après les conditions de vos accords dans ce navigateur.',
   'app.ask.due.none': 'Rien n’est dû au titre des accords de ce navigateur.',
   'app.ask.due.report': 'Rapport de redevances : {name}, du {from} au {to}',
   'app.ask.due.payment': 'Paiement de redevances : {name}, du {from} au {to}',
@@ -79,7 +79,7 @@ export const ask = {
     'Le code de preuve de votre enregistrement va sur Midnight dans un lot avec d’autres. La date du lot est la date à laquelle votre enregistrement existait.',
   'app.ask.term.license': 'Licence',
   'app.ask.def.license':
-    'Un accord qui permet à quelqu’un d’utiliser votre génétique aux conditions que vous avez tous deux signées. Midnight enregistre qu’il existe et qu’il est en vigueur ; les conditions restent entre vous.',
+    'Un accord qui permet à quelqu’un d’utiliser votre génétique aux conditions dont vous êtes tous deux convenus. Midnight enregistre qu’il existe et qu’il est en vigueur ; les conditions restent entre vous.',
   'app.ask.term.royaltyReport': 'Rapport de redevances',
   'app.ask.def.royaltyReport':
     'Ce qu’un licencié envoie à chaque période selon les conditions : combien il a vendu ou cultivé, et ce que cela représente.',
@@ -113,11 +113,10 @@ export const ask = {
   'app.ask.batch.willMake.one': '{count} nouvel enregistrement',
   'app.ask.batch.willMake.other': '{count} nouveaux enregistrements',
   'app.ask.batch.private':
-    'Chaque nouvel enregistrement nomme son parent dans son propre enregistrement verrouillé : le lien entre eux reste privé.',
+    'Chaque enregistrement garde le nom de son parent verrouillé à l’intérieur. Personne d’autre ne voit le lien.',
   'app.ask.batch.offline':
     'Vous êtes hors ligne. Vous pouvez tout vérifier ici ; l’enregistrement demande une connexion.',
-  'app.ask.batch.needsConnection':
-    'L’enregistrement demande une connexion. Rien n’est enregistré avant votre sauvegarde.',
+  'app.ask.batch.needsConnection': 'L’enregistrement demande une connexion. Votre sauvegarde passe d’abord.',
   'app.ask.batch.needParent': 'Choisissez la plante sur laquelle elles ont été coupées.',
   'app.ask.batch.needParents': 'Choisissez le père, la mère, ou les deux.',
   'app.ask.batch.needAll': 'Remplissez chaque champ ci-dessus.',
