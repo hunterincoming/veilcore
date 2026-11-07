@@ -238,7 +238,7 @@ export const animal = {
   'app.animal.v.app.lab.send.takenFromHelp': '動物の個体識別番号、またはサンプルを採取した場所。',
   'app.animal.v.app.lic.row.offspringValue': '{pct}%（この動物から申告された子に対して）',
   'app.animal.v.app.lic.f.offspringHelp':
-    'この記録から申告された子（この記録を父または母として記録され、双方の保有者が確認したもの）に適用されます。誰も記録しない子は検出されません。なければ空欄にしてください。',
+    'この動物を父または母としてVeilCoreに記録された子だけを数えます。なければ空欄にしてください。',
   'app.animal.v.app.lic.f.extraHelpDeal':
     '取引に含まれるその他のことを、あなた自身の言葉で。例: 産子は2回まで、ストローの転売禁止、指定の登録団体に子を登録。',
   'app.animal.v.app.lic.detail.thisCultivar': 'この動物',
@@ -252,4 +252,11 @@ export const animal = {
   'app.animal.v.app.lic.off.datePlant': '記録を日付記録する',
   'app.animal.v.app.lic.off.yourRecord': 'この遺伝資源についてのあなたの記録',
   'app.animal.v.app.lic.off.waitName': '相手がこの遺伝資源の記録を指定するのを待っています。',
+  // components/chain/FamilyOnChain.tsx
+  'app.animal.v.app.family.intro':
+    '両方の保有者が同意した親子関係を、チェーン上に記録します。これにより誰でも動物の系統を確認でき、親の子孫ロイヤリティがその子孫に引き継がれます。確認済みのつながりは公開かつ永久で、取り消せません。親の保有者が後から引き受けるロイヤリティも、この記録の系統に表示されます。',
+  'app.animal.v.app.family.namesParent':
+    '{who}がこの記録を親として指定しています。本当にこの動物から来たものである場合だけ確認してください。確認は公開かつ永久で、この動物に今後も含めて課されるものはその系統に表示されます。',
+  'app.animal.v.app.family.confirmQ':
+    'この動物が{who}の親であることを確認しますか？この動物から来たと分かっている記録だけを確認してください。これは公開かつ永久です。その系統と、この動物に今後も含めて課されるものが、その記録に表示されます。{fixes}',
 } satisfies Partial<AppTranslation>;

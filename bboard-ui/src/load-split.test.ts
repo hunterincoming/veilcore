@@ -188,6 +188,22 @@ describe.skipIf(!built)('the first download, in the built site (dist/)', () => {
     expect(text(first).some((src) => src.includes(en['draft.banner']))).toBe(true);
   });
 
+  it('a build without VITE_ASK_MODEL has none of Ask’s on-device model: no workers, no WebLLM, no model library', () => {
+    // dist/ is the site's own build (npm run build), never with the flag. The e2e build has the
+    // model (VITE_ASK_MODEL=test), and e2e/ask-model.spec.ts checks WebLLM loads only there,
+    // only in its worker.
+    const assets = fs.readdirSync(path.join(DIST, 'assets')).filter((f) => f.endsWith('.js'));
+    expect(assets.filter((f) => /^ask-model-/.test(f))).toEqual([]);
+    for (const f of assets) {
+      const src = fs.readFileSync(path.join(DIST, 'assets', f), 'utf8');
+      // A line from WebLLM's own code (its tensor-cache loader), the stub model, the eval hook.
+      expect(src.includes('Fetching param cache'), f).toBe(false);
+      expect(src.includes('veilcore-test/stub-model') || src.includes('__askEval'), f).toBe(false);
+      expect(src.includes('ask-model-engine.worker'), f).toBe(false);
+    }
+    expect(fs.existsSync(path.join(DIST, 'ask-model'))).toBe(false);
+  });
+
   it('the check page’s own file brings no WebAssembly with it', () => {
     const verify = fs.readdirSync(path.join(DIST, 'assets')).filter((f) => /^VerifyPage-.*\.js$/.test(f));
     expect(verify).toHaveLength(1);

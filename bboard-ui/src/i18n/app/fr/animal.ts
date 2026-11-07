@@ -249,7 +249,7 @@ export const animal = {
     'Le numéro d’identification de l’animal, ou l’endroit où l’échantillon a été prélevé.',
   'app.animal.v.app.lic.row.offspringValue': '{pct} %, sur les descendants déclarés de cet animal',
   'app.animal.v.app.lic.f.offspringHelp':
-    'S’applique aux descendants déclarés à partir de cet enregistrement (enregistrés avec lui comme père ou mère, confirmés par les deux détenteurs). Une descendance que personne n’enregistre n’est pas détectée. Laissez vide s’il n’y en a pas.',
+    'Ne compte que les descendants enregistrés dans VeilCore avec cet animal comme père ou mère. Laissez vide s’il n’y en a pas.',
   'app.animal.v.app.lic.f.extraHelpDeal':
     'Tout ce qui fait aussi partie de l’accord, avec vos propres mots. Par exemple : au plus deux portées ou vêlages, pas de revente des paillettes, descendants inscrits auprès d’une association de race nommée.',
   'app.animal.v.app.lic.detail.thisCultivar': 'cet animal',
@@ -264,4 +264,11 @@ export const animal = {
   'app.animal.v.app.lic.off.datePlant': 'Dater un enregistrement',
   'app.animal.v.app.lic.off.yourRecord': 'Votre enregistrement de cette génétique',
   'app.animal.v.app.lic.off.waitName': 'En attente que l’autre partie indique son enregistrement de cette génétique.',
+  // components/chain/FamilyOnChain.tsx
+  'app.animal.v.app.family.intro':
+    'La filiation acceptée par les deux détenteurs, sur la chaîne. C’est ce qui permet à quiconque de vérifier la lignée d’un animal, et ce qui transmet la redevance sur la descendance d’un parent à ses descendants. Un lien confirmé est public et permanent : il ne peut pas être défait, et les redevances que le détenteur du parent accepte plus tard apparaissent aussi dans la lignée de cet enregistrement.',
+  'app.animal.v.app.family.namesParent':
+    '{who} nomme cet enregistrement comme parent. Ne confirmez que s’il vient vraiment de cet animal. Confirmer est public et permanent, et tout ce qui est dû sur cet animal, maintenant ou plus tard, apparaîtra dans sa lignée.',
+  'app.animal.v.app.family.confirmQ':
+    'Confirmer que cet animal est un parent de {who} ? Ne confirmez qu’un enregistrement dont vous savez qu’il en vient. C’est public et permanent : sa lignée, et tout ce qui est dû sur cet animal maintenant ou plus tard, y apparaîtront.{fixes}',
 } satisfies Partial<AppTranslation>;

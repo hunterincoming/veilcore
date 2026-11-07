@@ -103,9 +103,11 @@ describe('lender pack', () => {
       'summary.txt',
     ]);
     const summary = strFromU8(files['summary.txt']);
-    expect(summary).toMatch(/== First Grower[\s\S]*Messages: 4 of 4 signed[\s\S]*Settled \(both signed\): 120\.5 USD/);
+    expect(summary).toMatch(
+      /== First Grower[\s\S]*Messages: 4 of 4 signed[\s\S]*Paid and confirmed \(both signed\): 120\.5 USD/,
+    );
     // Paid one amount, confirmed another: not counted, and said so.
-    expect(summary).toMatch(/== Second Grower[\s\S]*not counted[\s\S]*Settled \(both signed\): none/);
+    expect(summary).toMatch(/== Second Grower[\s\S]*not counted[\s\S]*Paid and confirmed \(both signed\): none/);
     const readme = strFromU8(files['README.txt']);
     expect(readme).toMatch(/Who holds the licensee key/);
     expect(readme).toMatch(/npx veilcore-records deal/);

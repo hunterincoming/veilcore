@@ -37,7 +37,7 @@ import {
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import DoneIcon from '@mui/icons-material/CheckCircleOutlined';
-import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { fingerprintFile } from '../../veilcore/commitment';
 import {
   createRecord,
@@ -87,6 +87,12 @@ import {
 } from './log-flow-state';
 import { animalParentOptionsOf, parentOptionsOf, strainParentOptionsOf } from '../stage/record-kinds';
 import { DatingPausedNotice } from '../DatingPausedNotice';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
+import { AskFillContext, AskFilledBanner, useAskMark } from '../ask/AskFill';
+import { HANDOFF_STATE_KEY, isBatch, readHandoff, type Handoff } from '../../ask/handoff';
+import { prefillOf, type Prefill } from '../../ask/prefill';
+import { BatchFlow } from './BatchFlow';
+import { allRecords } from '../../veilcore/records';
 // SEAL_EACH_STAGE, STAGE_PROMPT and SELECTED_PROMPT (stage-notes.ts) are shown here in the
 // visitor's language: app.log.sealEachStage, app.log.stagePrompt, app.log.selectedPrompt.
 
@@ -113,22 +119,56 @@ export const LogFlow: React.FC = () => {
   // so moving between them starts the screen afresh.
   const [params] = useSearchParams();
   const nextOf = params.get('next') ?? undefined;
-  return <LogFlowFor key={nextOf ?? ''} nextOf={nextOf} />;
+  // A draft handed over by Ask, a record's own page or a link (ask/handoff.ts): read once per
+  // arrival, then cleared from the address and the router state, so a reload or Back doesn't
+  // fill it again. Ask can hand over a new one while this page is open: that starts afresh.
+  const location = useLocation();
+  const navigate = useNavigate();
+  const carries = (l: { state: unknown; hash: string }) =>
+    !!(l.state && typeof l.state === 'object' && HANDOFF_STATE_KEY in l.state) || l.hash.startsWith('#draft=');
+  const [entry, setEntry] = useState(() => ({
+    key: location.key,
+    handoff: nextOf ? undefined : readHandoff(location, new Set(allRecords().map((r) => r.id))),
+  }));
+  useEffect(() => {
+    if (location.key !== entry.key && carries(location) && !nextOf)
+      setEntry({ key: location.key, handoff: readHandoff(location, new Set(allRecords().map((r) => r.id))) });
+  }, [location.key]);
+  useEffect(() => {
+    if (carries(location))
+      void navigate({ pathname: location.pathname, search: location.search }, { replace: true, state: null });
+  }, [location.key]);
+  const { handoff } = entry;
+  const handoffKey = handoff ? entry.key : '';
+  if (handoff && isBatch(handoff.preset)) return <BatchFlow key={handoffKey} handoff={handoff} />;
+  return <LogFlowFor key={(nextOf ?? '') + handoffKey} nextOf={nextOf} handoff={handoff} />;
 };
 
 /** How the first screen starts: undecided while a next stage's parent is still loading. */
 type Start =
   | { readonly kind: 'ready'; readonly draft: Draft; readonly resumed: boolean }
   | { readonly kind: 'ask'; readonly draft: Draft; readonly other: Draft }
+  // A handed-over draft while another is half-typed: replace it, or carry on with that one.
+  | { readonly kind: 'replace'; readonly draft: Draft; readonly other: Draft }
   | { readonly kind: 'waiting' };
 
-const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
+const NONE: ReadonlySet<string> = new Set();
+
+const LogFlowFor: React.FC<{ nextOf?: string; handoff?: Handoff }> = ({ nextOf, handoff }) => {
   const [screen, setScreen] = useState<Screen>('plant');
   const records = useRecords(); // the plant may arrive after this page does (a reload)
   const nextParent = nextOf ? records.find((r) => r.id === nextOf) : undefined;
+  const [prefill] = useState<Prefill | undefined>(() => (handoff ? prefillOf(handoff, records) : undefined));
+  // The fields Ask or a link filled, marked until the person moves on from this screen.
+  const [filled, setFilled] = useState<ReadonlySet<string>>(prefill?.filled ?? NONE);
   const startFor = (): Start => {
     if (!nextOf) {
       const plain = loadDraft();
+      if (prefill) {
+        if (plain) return { kind: 'replace', draft: prefill.draft, other: plain };
+        saveDraft(prefill.draft);
+        return { kind: 'ready', draft: prefill.draft, resumed: false };
+      }
       return { kind: 'ready', draft: plain ?? emptyDraft(), resumed: !!plain };
     }
     const own = loadDraft(nextOf);
@@ -168,7 +208,7 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
   // draft already under way goes straight back to its form.
   const offerKinds = (ANIMAL_RECORDS_ENABLED || STRAIN_RECORDS_ENABLED || DOCUMENT_RECORDS_ENABLED) && !nextOf;
   const [picked, setPicked] = useState<boolean>(
-    () => !offerKinds || (start.kind === 'ready' && start.resumed && draftHasContent(start.draft)),
+    () => !offerKinds || !!handoff || (start.kind === 'ready' && start.resumed && draftHasContent(start.draft)),
   );
   const [lastKind] = useState<LogKind>(loadLogKind);
   const offered = (k: LogKind | undefined): k is LogKind =>
@@ -184,15 +224,26 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
       ...(k === 'strain' && !draft.strain ? { strain: emptyStrainDraft() } : {}),
     });
   };
+  // Filled in by Ask or a link: said under the form's heading, with the filled fields marked.
+  const banner =
+    handoff && handoff.source !== 'record' && start.kind === 'ready' ? (
+      <AskFilledBanner source={handoff.source} />
+    ) : undefined;
   // On the form, the way back to the first screen. (A document is sealed on a page of its own,
   // components/document/DocumentNew.tsx: it has files, not parents, photos or a DNA report.)
-  const choice = offerKinds ? (
-    <Box data-log-kind={kind}>
-      <Button size="small" onClick={() => setPicked(false)} sx={{ px: 0, minHeight: 44 }} data-start-change="">
-        ← {tr.t('app.start.change')}
-      </Button>
-    </Box>
-  ) : undefined;
+  const choice =
+    offerKinds || banner ? (
+      <>
+        {banner}
+        {offerKinds && (
+          <Box data-log-kind={kind}>
+            <Button size="small" onClick={() => setPicked(false)} sx={{ px: 0, minHeight: 44 }} data-start-change="">
+              ← {tr.t('app.start.change')}
+            </Button>
+          </Box>
+        )}
+      </>
+    ) : undefined;
 
   // A new screen starts at the top, focus on its heading. The first one is the page's own
   // (App.tsx does that on arrival).
@@ -205,11 +256,31 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
   }, [screen, picked]);
 
   const step = stepWords(screen, tr);
+  const { t } = tr;
 
   const body = (() => {
     switch (screen) {
       case 'plant':
         if (start.kind === 'waiting') return <OpeningParent nextOf={nextOf ?? ''} />;
+        if (start.kind === 'replace')
+          return (
+            <UnsavedPlantChoice
+              step={step}
+              other={start.other}
+              title={t('app.ask.replace.title')}
+              note={t('app.ask.replace.note')}
+              keepLabel={t('app.ask.replace.use')}
+              continueLabel={t('app.log.continueThat')}
+              onKeep={() => {
+                saveDraft(start.draft, nextOf);
+                setStart({ kind: 'ready', draft: start.draft, resumed: false });
+              }}
+              onContinue={() => {
+                setFilled(NONE);
+                setStart({ kind: 'ready', draft: start.other, resumed: true });
+              }}
+            />
+          );
         if (start.kind === 'ask')
           return (
             <UnsavedPlantChoice
@@ -331,7 +402,7 @@ const LogFlowFor: React.FC<{ nextOf?: string }> = ({ nextOf }) => {
       <AppHeader />
       <FlowFrame section="log" step={step}>
         <IntakeBanner />
-        {body}
+        <AskFillContext.Provider value={screen === 'plant' ? filled : NONE}>{body}</AskFillContext.Provider>
       </FlowFrame>
     </Box>
   );
@@ -370,23 +441,28 @@ const UnsavedPlantChoice: React.FC<{
   other: Draft;
   onKeep: () => void;
   onContinue: () => void;
-}> = ({ step, other, onKeep, onContinue }) => {
+  /** For a handed-over draft (Ask, a link): its own words; otherwise the next stage's. */
+  title?: string;
+  note?: string;
+  keepLabel?: string;
+  continueLabel?: string;
+}> = ({ step, other, onKeep, onContinue, title, note, keepLabel, continueLabel }) => {
   const tr = useT();
   const { t } = tr;
   return (
     <Stack spacing={2} data-unsaved-plant="">
-      <ScreenHeading step={step}>{t('app.log.nextStageTitle')}</ScreenHeading>
+      <ScreenHeading step={step}>{title ?? t('app.log.nextStageTitle')}</ScreenHeading>
       <Typography variant="body1" sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
         {unsavedPlantLine(other, tr)}
       </Typography>
       <Typography variant="body2" color="text.secondary">
-        {t('app.log.keptEitherWay')}
+        {note ?? t('app.log.keptEitherWay')}
       </Typography>
       <Button variant="contained" size="large" fullWidth onClick={onKeep} sx={{ py: 1.4 }}>
-        {t('app.log.keepAndStart')}
+        {keepLabel ?? t('app.log.keepAndStart')}
       </Button>
       <Button variant="outlined" size="large" fullWidth onClick={onContinue} sx={{ py: 1.4 }}>
-        {t('app.log.continueThat')}
+        {continueLabel ?? t('app.log.continueThat')}
       </Button>
     </Stack>
   );
@@ -415,6 +491,7 @@ const PlantForm: React.FC<{
 }> = ({ step, choice, draft, setDraft, restored, startOver, namePlaceholder, parentOptions, onNext }) => {
   const tr = useT();
   const { t, tp } = tr;
+  const mark = useAskMark();
   // How full the record would be (CONTRACT.md #21): said only near the limit.
   const share = draftSizeShare({ ...sealInputOf(draft) });
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft({ ...draft, [k]: v });
@@ -481,6 +558,7 @@ const PlantForm: React.FC<{
         </Stack>
       )}
       <TextField
+        {...mark('strainName')}
         label={t('app.log.nameLabel')}
         required
         placeholder={namePlaceholder ?? t('app.log.namePlaceholder')}
@@ -552,7 +630,12 @@ const PlantForm: React.FC<{
                 )
               }
               renderInput={(params) => (
-                <TextField {...params} label={t('app.log.parents')} helperText={t('app.log.parentsHelp')} />
+                <TextField
+                  {...params}
+                  {...mark('parents')}
+                  label={t('app.log.parents')}
+                  helperText={t('app.log.parentsHelp')}
+                />
               )}
             />
             <TextField
@@ -766,6 +849,12 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
       <Typography variant="body2" color="text.secondary">
         {t('app.log.savedOn', { server: t('app.copy.ourServer'), datedOn: t('app.copy.datedOn') })}
       </Typography>
+      {/* What the seal's key date stamp puts on Midnight, before the button that starts it. Round 5:
+          one button, one name; dating the key is part of sealing, said here as the receipt's lead
+          (review round 1: one explanation, not three in a row). */}
+      {REAL_CHAIN && (
+        <DisclosureReceipt circuits={['anchor']} lead={t('app.log.sealStampsKey')} leadId="seal-stamps-key" />
+      )}
       {error && (
         <Alert severity="error" variant="outlined">
           {error}
@@ -788,13 +877,6 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
       <span role="status" style={visuallyHidden}>
         {busy ? t('app.log.sealingPlant') : ''}
       </span>
-      {/* Round 5: one button, one name. Dating the key is part of sealing, said here, not
-          a second "date stamp it" that reads like a second date for the record. */}
-      {REAL_CHAIN && (
-        <Typography id="seal-stamps-key" variant="body2" color="text.secondary">
-          {t('app.log.sealStampsKey')}
-        </Typography>
-      )}
     </Stack>
   );
 };

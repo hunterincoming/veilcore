@@ -1,0 +1,54 @@
+// The record app in English: the disclosure receipt shown before every on-chain step
+// (veilcore/onchain-receipt.ts, components/chain/DisclosureReceipt.tsx). Each fact is one public
+// value a contract's disclose() reveals. Fixed wording: never written by a model.
+// SPDX-License-Identifier: Apache-2.0
+
+export const receipt = {
+  'app.receipt.title': 'What this puts on Midnight',
+  'app.receipt.public': 'Goes public on Midnight, permanently (nobody, VeilCore included, can remove it):',
+  'app.receipt.private': 'Stays private:',
+  'app.receipt.when': 'The date and time it lands on Midnight. Everything above stays there permanently.',
+  'app.receipt.fact.yourRecord': 'A code made from your record’s key (not the record)',
+  'app.receipt.fact.recovery': 'A code made from your backup secret (not the secret)',
+  'app.receipt.fact.newKey': 'A code made from the record’s new key',
+  'app.receipt.fact.otherRecord': 'A code made from the other record’s key',
+  'app.receipt.fact.issuerRecord': 'A code made from the licensed record’s key',
+  'app.receipt.fact.challenge': 'The checker’s one-time challenge code',
+  'app.receipt.fact.dnaReport': 'A code made from the DNA report (not the report)',
+  'app.receipt.fact.license': 'A code made from the license (not its terms)',
+  'app.receipt.fact.newLicense': 'A code made from the new holder’s license',
+  'app.receipt.fact.licenseEntry': 'The license’s entry code on the public license list',
+  'app.receipt.fact.slot': 'The license’s place number on that list',
+  'app.receipt.fact.presentation': 'A one-time code only the person checking can match',
+  'app.receipt.fact.listVersion': 'Which version of the license list it matched',
+  'app.receipt.fact.checkPassed': 'That the check passed',
+  'app.receipt.fact.obligation': 'A code made from the obligation (not its terms)',
+  'app.receipt.fact.certificate': 'The sealed certificate’s proof code',
+  'app.receipt.fact.otherCertificate': 'The second certificate’s proof code',
+  'app.receipt.fact.certKind': 'Which kind of certificate it is',
+  'app.receipt.fact.line': 'Which line of the certificate',
+  'app.receipt.fact.value':
+    'The value on that line, in full. This is public and permanent: it can’t be taken back. A genetic result (a match, a marker, a herdbook number) published this way can be linked to you for good.',
+  'app.receipt.fact.limit': 'The limit you chose (not your actual number)',
+  'app.receipt.fact.comparison': 'Whether it is at least or at most that limit',
+  'app.receipt.fact.mask': 'Which lines were allowed to change',
+  'app.receipt.fact.labKey':
+    'The lab’s public key: which lab signed it. Labs list this key on their own websites, so it names the lab publicly.',
+  'app.receipt.fact.signatureCheck': 'Numbers that show the lab really issued it',
+  'app.receipt.fact.batch': 'One code for a whole batch of records',
+  'app.receipt.fact.timeLimit': 'A time limit for the license list',
+  'app.receipt.fact.step': 'Which step this was, and that it ties the codes above together',
+  'app.receipt.fact.keyLink': 'That this record’s key, its new key and its backup secret are tied together',
+  'app.receipt.fact.moveCount': 'How many times this record’s key has been moved or recovered',
+  'app.receipt.fact.licenseLink': 'That this license is tied to the licensed record, and whether it is live',
+  'app.receipt.fact.licenseList': 'That the public license list changed',
+  'app.receipt.fact.licenseCount': 'How many licenses this record has',
+  'app.receipt.fact.parentLink':
+    'That these two records are linked as parent and child, for good: a link can’t be undone, and the parent’s own parents are then fixed.',
+  'app.receipt.fact.obligationLink': 'That this obligation is tied to that record',
+  'app.receipt.fact.obligationCount': 'How many obligations this record has',
+  'app.receipt.stay.genetics': 'Genetics and DNA files never leave this device unlocked.',
+  'app.receipt.stay.locked': 'Name and notes go to the registry locked with your key. It can’t read them.',
+  'app.receipt.stay.kind':
+    'The registry sees the kind of record, its proof code and the codes tied to it, and links between records (where one came from, what replaced it). When a record is corrected, it also sees which fields changed and from when.',
+};

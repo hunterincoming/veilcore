@@ -1,2 +1,4 @@
 .local-deploy-*/
 zk-release/
+mcp/dist/
+mcp/.test-dist/

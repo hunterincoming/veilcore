@@ -100,9 +100,9 @@ export const en = {
   // and the one privacy line. What the server keeps (locked, the name included) is in
   // step 1 of "How it works"; lab reports reaching the server are in the FAQ and the privacy note.
   'm.hero.title1': 'Date your record.',
-  'm.hero.title2': 'Keep your genetics.',
+  'm.hero.title2': 'Keep your genetics private.',
   'm.hero.lede':
-    'For breeders, seed companies and labs working with plant and animal genetics: give your records a date nobody can backdate. Your genetic data stays on your computer. Only a proof code goes on Midnight, which dates it.',
+    'For breeders, seed companies and labs working with plant and animal genetics: give your records a date nobody can backdate. Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked. Only a proof code goes on Midnight, which dates it.',
   'm.hero.how': 'How it works',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Bred by',
@@ -154,7 +154,7 @@ export const en = {
     "What it is and where it came from. VeilCore's server stores the details locked, the name included, and we don't have the key. A check link carries the name only if you switch that on, for the people you send it to.",
   'm.step2.n': '02 · Proof code',
   'm.step2.title': 'Make its proof code',
-  'm.step2.text': 'Done on your computer. Genetic data never leaves it.',
+  'm.step2.text': 'Done on your computer. Genetic data never leaves it unlocked.',
   'm.step3.n': '03 · Anchor',
   'm.step3.title': 'Get a date',
   'm.step3.text':
@@ -245,17 +245,17 @@ export const en = {
   'm.faq.3link': 'Records in evidence →',
   'm.faq.4q': 'What do you see of my data?',
   'm.faq.4a':
-    "Your genetic data: nothing. Your computer reads the files you add to make a code from each, and they aren't uploaded. A lab report reaches our server only when a lab sends it back to you: it's locked so only you can open it, and deleted after 180 days. The details you type (the record's name, breeder, dates, notes, agreement terms) and your files' names are stored on our server locked, and we don't have the key. We can read each record's proof code, and anything you choose to show. The sample details you and a lab write for a delivery are stored locked too, with a key that travels in the lab code, and we don't have it. Labs and developers can seal records inside their own systems, so only the proof code goes out.",
+    "Your genetic data, unlocked: nothing. Your computer reads the files you add to make a code from each, and they aren't uploaded. A lab report reaches our server only when a lab sends it back to you: it's locked so only you can open it, and deleted after 180 days. The details you type (the record's name, breeder, dates, notes, agreement terms) and your files' names are stored on our server locked, and we don't have the key. We can read each record's proof code, and anything you choose to show. The sample details you and a lab write for a delivery are stored locked too, with a key that travels in the lab code, and we don't have it. Labs and developers can seal records inside their own systems, so only the proof code goes out.",
   'm.faq.4link1': 'What the demo keeps →',
   'm.faq.4link2': 'Integration guide →',
   'm.faq.6q': 'What does it cost?',
-  'm.faq.6a': 'Making a record on this site costs nothing today. Checking a record is free, always.',
+  'm.faq.6a': 'Free. Making a record on this site and checking any record are both free.',
 
   'm.demo.label': 'Demo',
   'm.demo.title1': 'Try the',
   'm.demo.title2': 'demo.',
   'm.demo.lede':
-    "No sign-up, no wallet. It's a test version, so use made-up details. Records are anchored in batches, by hand for now; licenses and lab agreements are simulated, and DNA report pairings aren't dated yet.",
+    "No sign-up, no wallet. It's a test version, so use made-up details. Records are batched and dated on Midnight; licenses and lab agreements are simulated, and DNA report pairings aren't dated yet.",
   'm.demo.privacy': 'What the demo keeps →',
   'm.demo.create.title': 'Make a record',
   'm.demo.create.text': 'A made-up plant, animal or document: seal it, save your backup, then see its page.',
@@ -294,7 +294,7 @@ export const en = {
   // docs/deployment-record-revision-4.md ("Mainnet deployment").
   'm.postE.date': '2 Nov 2026',
   'm.postE.tag': 'Evidence',
-  'm.postE.title': 'A court-ready file for any document',
+  'm.postE.title': 'An evidence file for any document',
   'm.postE.text':
     "A document's page now downloads one file a lawyer or examiner can check without our website: the record as sealed, its proof, where it was dated, a page that runs the checks offline, a summary to print and sample text for a declaration. You can include a copy of the document; it's checked against the record first.",
   'm.postD.date': '31 Oct 2026',
@@ -306,7 +306,7 @@ export const en = {
   'm.postC.tag': 'Website',
   'm.postC.title': 'Your browser sends its own transactions',
   'm.postC.text':
-    "On veilcore.org your browser now dates a DNA report pairing, proves a record by link and stamps a record's own key itself, and VeilCore pays the network fee. Batches are anchored on Midnight's main network every hour, automatically. No wallet needed.",
+    "On veilcore.org your browser now dates a DNA report pairing, proves a record by link and stamps a record's own key itself, and VeilCore pays the network fee. Records are batched and dated on Midnight's main network. No wallet needed.",
   'm.postB.date': '11 Oct 2026',
   'm.postB.tag': 'Registry',
   'm.postB.title': 'First batch dated on Bitcoin too',
@@ -385,7 +385,7 @@ export const en = {
   'm.live.feature': 'Feature',
   'm.live.show': 'Show the list',
   'm.live.stamp.t': 'A date stamp for your record',
-  'm.live.stamp.main': 'Yes, in batches, by hand for now. Your browser sends nothing to the chain.',
+  'm.live.stamp.main': 'Yes, in batches dated on Midnight. Your browser sends nothing to the chain.',
   'm.live.stamp.test':
     "Yes. Batches are dated automatically, and that dates your record. Your browser also date stamps your plant's own key, which dates only the key.",
   'm.live.btc.t': 'A Bitcoin date stamp too',
@@ -416,7 +416,16 @@ export const en = {
   'm.live.lic.main': 'Switched off until a final test run.',
   'm.live.lic.test': 'Yes, with real transactions: royalties, payments, handing a license on.',
   'm.live.lic.not': 'On veilcore.org, after a final test run.',
-  // Licenses switched on at veilcore.org (AGREEMENTS_LIVE): the main-network cell (components/site/Home.tsx).
+  // The veilcore.org cell until royalties v2 has worked on mainnet (config/copy.ts ROYALTIES_RUN_ON_MAINNET).
+  'm.live.lic.mainNext':
+    'Licenses go live with the deploy that switches them on, once a real license has worked end to end on the main network. Royalty statements and payments: built, not live yet.',
+  // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
+  'm.live.lic.testNext':
+    'Yes for licenses, with real transactions. Royalty statements and payments: built, and called live here once they have worked end to end on this network.',
+  // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
+  'm.live.lic.next':
+    'Built. Goes live with the next veilcore.org deploy, once a real license has worked end to end on the main network.',
+  // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
     'Yes: licenses, royalty statements and handing a license on, with real transactions. Paying royalties on Midnight itself is on the test site only.',
   // The check page looking a record's date up on Midnight itself (docs/check-on-chain.md).
@@ -524,6 +533,15 @@ export const en = {
   'm.privacy.browser.title': 'Kept in your browser',
   'm.privacy.browser.text':
     "Your browser keeps, on this device: your holder key (a copy also goes to our server, as above); the key that locks your records, which is never sent to us; your own copy of your records; each record's secret keys, which lock its lab reports (a locked copy also goes with the record to our server); the lab codes you make or use, which hold a claim code and the key to a delivery's details; a lab's signing key if you set one up (its private half is never sent to us); the role you picked; and your language. Your backup file holds a copy of each key and of the lab codes you made. To remove them, clear this site's data in your browser settings. Save your backup first: without it, you can't find or open your records again.",
+  'm.privacy.deals.title': 'Agreements and royalties',
+  'm.privacy.deals.text':
+    'The messages of a license deal (the terms, each royalty report, the answer to it, “I paid”, “received”, reminders and notices, and the licensor’s payout and business details) are locked with a key only the two parties share, made when they read each other the 6-digit code. Our server stores them locked and passes them on: it can’t read, change or forge them. It can see which license a deal belongs to, how many messages it has and when each arrived. Payout details (a bank account, a payment link or a Midnight address) and business details (a legal name, address and tax number) travel inside those locked messages: the other party can read them, we can’t. Every copy you download or back up (the signed record of a deal, your backup file) has them in the clear, so treat those files like a bank statement. A payment partner’s receipt can be read by anyone who holds the statement’s proof code; only the two parties and their partner have it. We keep a deal’s messages until a party asks us to delete them; the other party keeps their own copy. The license itself is on Midnight: see “What goes on Midnight”.',
+  'm.privacy.chain.title': 'What goes on Midnight, permanently',
+  'm.privacy.chain.text':
+    'Midnight is a public network: what goes there can’t be changed or removed by anyone, us included, and anyone can read it. Your genetics, your terms, your name and your files never go there. What does: the proof code of each batch of records; a record’s own key and its date stamp; a code made from a DNA report, when you date its pairing; which records are linked as parent and child, once both holders confirm (a link can’t be undone); that a record has a license, an obligation or a lender’s claim recorded on it, and when that changed; a lab’s public key when it signs a certificate there; a value you choose to prove exactly, in full; and, where this site lets a royalty be paid in NIGHT, the amount and the two addresses. Before each of these steps, the app shows a receipt listing exactly what that step makes public. A code or key on its own says nothing about you, but anyone you give a check link to can follow what happens to that record on the network from then on.',
+  'm.privacy.helper.title': 'The helper, and its optional model',
+  'm.privacy.helper.text':
+    'Ask, the helper in the app, where this site offers it, works on your device. Nothing you type into it is sent anywhere; only the app’s own Save sends anything, and that goes to our server locked, as above. Where this site offers the optional language model, it is downloaded once from Hugging Face, a separate company: Hugging Face sees your IP address, the time, which model files, and that the request comes from this site; we see that a download started. The model runs on your device, in a part of the page that can’t reach the network, so nothing you type reaches Hugging Face or us, then or later. You can delete the model from the helper’s panel.',
   'm.privacy.hosts.title': 'Hosting',
   'm.privacy.hosts.text':
     'This website is hosted on Vercel, which logs IP addresses and requests. Our registry server runs on Railway, which logs requests.',

@@ -44,7 +44,7 @@ export const AGREEMENTS_SIMULATED = `Simulated in ${THIS_SITE}: the other party 
  * founders' sign-off: every "Practice only" label and "not legally binding" line in the
  * app reads from here, so going live is one change, reviewed in one place.
  */
-export const AGREEMENTS_LIVE = false;
+export const AGREEMENTS_LIVE = true;
 
 /**
  * Whether this build makes agreements on chain (a real license, parentage, offspring royalties).
@@ -67,6 +67,30 @@ export const PASSKEY_BACKUP = AGREEMENTS_ON_CHAIN;
  * goes to mainnet only after Mako's yes and a lawyer's review, by changing this line on purpose.
  */
 export const ONCHAIN_PAYMENTS = !IS_MAINNET;
+
+/**
+ * Whether royalties v2 (statements, answers, payments, receipts) has worked end to end on the
+ * test network (docs/agreements-test-run.md). Until it has, the home page's test-site cell says
+ * licenses are there and royalties are built, not "Yes" (m.live.lic.testNext). Turned on by a
+ * reviewed commit after that run, never before.
+ */
+export const ROYALTIES_RUN_ON_TEST = false;
+
+/**
+ * Whether royalties v2 has worked on mainnet: the first real royalty report sent, answered and
+ * paid on veilcore.org. Until it has, the home page's veilcore.org cell says licenses go live with
+ * the deploy and royalty statements and payments are built, not live (m.live.lic.mainNext).
+ * Hunter turns it on in a reviewed commit after that first report, never before.
+ */
+export const ROYALTIES_RUN_ON_MAINNET = false;
+
+/**
+ * Whether the sponsor's scheduled anchoring job has run on mainnet (batches dated on Midnight's
+ * main network on a schedule, not by hand). Until it has, no page claims either cadence: they
+ * say records are batched and dated on Midnight (i18n/mainnet-overlay.ts withoutCadence). Hunter
+ * turns it on in a reviewed commit after the job has run once on mainnet.
+ */
+export const SCHEDULED_ANCHORING_RUN_ON_MAINNET = false;
 
 /** The label agreements carry while AGREEMENTS_LIVE is false. */
 export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';

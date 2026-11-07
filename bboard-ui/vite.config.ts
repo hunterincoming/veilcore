@@ -15,7 +15,7 @@
 
 import { defineConfig, loadEnv, type Plugin, type ResolvedConfig } from 'vite';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 // The published documents (SPEC, EVIDENCE, INTEGRATING) are vendored in src/docs from an
@@ -249,9 +249,36 @@ const recordBuildSettings = (): Plugin => {
   };
 };
 
+// Ask's on-device model (docs/ask-veilcore.md, v2.1): VITE_ASK_MODEL, from the environment or
+// the mode's .env file, made a constant in the code so a build without it leaves the model out
+// entirely: no workers, no WebLLM, and no model library files (public/ask-model/ is removed from
+// the output). A test or evaluation build ('test', 'eval') is refused for the site's modes.
+const askModelFlag = (mode: string): string => {
+  const v = String({ ...loadEnv(mode, process.cwd(), 'VITE_'), ...process.env }.VITE_ASK_MODEL ?? '').trim();
+  if (v && !['on', 'test', 'eval'].includes(v)) throw new Error(`\n\nVITE_ASK_MODEL=${v}: use on, test or eval, or leave it unset.\n`);
+  if ((v === 'test' || v === 'eval') && (mode === 'mainnet' || mode === 'preprod'))
+    throw new Error(`\n\nVITE_ASK_MODEL=${v} is a build for tests on this computer, never for --mode ${mode}.\n`);
+  return v;
+};
+const askModelFiles = (flag: string): Plugin => {
+  let config: ResolvedConfig | undefined;
+  return {
+    name: 'veilcore-ask-model-files',
+    apply: 'build',
+    configResolved(c) {
+      config = c;
+    },
+    closeBundle() {
+      if (!config || flag) return;
+      rmSync(resolve(config.root, config.build.outDir, 'ask-model'), { recursive: true, force: true });
+    },
+  };
+};
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, command }) => {
   const pins = mainnetBuild(mode, command);
+  const askModel = askModelFlag(mode);
   return {
     cacheDir: './.vite',
     build: {
@@ -295,6 +322,7 @@ export default defineConfig(({ mode, command }) => {
       findable(mode),
       preloadFonts(),
       recordBuildSettings(),
+      askModelFiles(askModel),
       react(),
       // Configure WASM plugin with more options
       wasm(),
@@ -362,6 +390,7 @@ export default defineConfig(({ mode, command }) => {
       'import.meta.env.VITE_MAINNET_CONTRACT_ADDRESS': JSON.stringify(pins.veilcore),
       'import.meta.env.VITE_MAINNET_CLAIMS_ADDRESS': JSON.stringify(pins.claims),
       'import.meta.env.VITE_MAINTENANCE_POLICY_APPROVED': JSON.stringify(pins.policyApproved ? 'true' : ''),
+      'import.meta.env.VITE_ASK_MODEL': JSON.stringify(askModel),
     },
     checks: {
       importIsUndefined: false,

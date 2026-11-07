@@ -29,7 +29,7 @@ import { FOUNDERS_MAIL, RoleLine, SDK_REPO, SiteShell, X_HANDLE } from './SiteSh
 import { FoldGroup, FoldItem, FoldPoint, usePhone } from './Fold';
 import { hasRecordsHere } from './returning';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
-import { AGREEMENTS_LIVE } from '../../config/copy';
+import { AGREEMENTS_LIVE, ROYALTIES_RUN_ON_MAINNET, ROYALTIES_RUN_ON_TEST } from '../../config/copy';
 
 const APP_REPO = 'https://github.com/hunterincoming/veilcore';
 /** The public test site (docs/test-site.md). It goes live with this release. */
@@ -298,11 +298,15 @@ const LIVE_ROWS = [
  */
 type LiveRow = (typeof LIVE_ROWS)[number];
 const CLAIMS_ON_SITE = THIS_BUILD.claimsOnSite === true;
+/** veilcore.org itself, built with licenses on and the mainnet sponsor live. */
+const LICENSES_ON_SITE = THIS_BUILD.agreementsLive === true && MAINNET_SENDS;
 const liveRows = (): readonly LiveRow[] =>
   LIVE_ROWS.map((r): LiveRow => {
     if (MAINNET_SENDS && r[0] === 'prove') return ['prove', true, true, false] as unknown as LiveRow;
-    // Licenses switched on at veilcore.org (config/copy.ts AGREEMENTS_LIVE): on every build's
-    // table, the test site's included, since the column is about veilcore.org.
+    // Licenses: "Yes" in the veilcore.org column only on a veilcore.org build that has them on
+    // (config/copy.ts AGREEMENTS_LIVE, with the mainnet sponsor live), like "prove" above. Any
+    // other build (the test site, the demo) can't know veilcore.org has been deployed with
+    // them, so it says they come with the next deploy (m.live.lic.next), never "Yes".
     if (AGREEMENTS_LIVE && r[0] === 'lic') return ['lic', true, true, false] as unknown as LiveRow;
     // "Prove one number" on veilcore.org (the sponsor pays for VeilCore's claims contract).
     if (CLAIMS_ON_SITE && r[0] === 'claims') return ['claims', true, true, false] as unknown as LiveRow;
@@ -312,10 +316,18 @@ const cellKey = (row: string, col: string) =>
   (MAINNET_SENDS && row === 'prove' && col === 'main'
     ? 'm.live.prove.test'
     : AGREEMENTS_LIVE && row === 'lic' && col === 'main'
-      ? 'm.live.lic.live'
-      : CLAIMS_ON_SITE && row === 'claims' && col !== 'not'
-        ? 'm.live.claims.live'
-        : `m.live.${row}.${col}`) as Parameters<ReturnType<typeof useI18n>['t']>[0];
+      ? // "Yes" only on veilcore.org's own build, and only once royalties have worked there too.
+        !ROYALTIES_RUN_ON_MAINNET
+        ? 'm.live.lic.mainNext'
+        : LICENSES_ON_SITE
+          ? 'm.live.lic.live'
+          : 'm.live.lic.next'
+      : // The test site: licenses are there; royalties say "Yes" only once v2 has run there.
+        row === 'lic' && col === 'test' && !ROYALTIES_RUN_ON_TEST
+        ? 'm.live.lic.testNext'
+        : CLAIMS_ON_SITE && row === 'claims' && col !== 'not'
+          ? 'm.live.claims.live'
+          : `m.live.${row}.${col}`) as Parameters<ReturnType<typeof useI18n>['t']>[0];
 
 const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
   const { t } = useI18n();

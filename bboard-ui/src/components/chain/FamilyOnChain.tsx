@@ -8,6 +8,11 @@
 //
 // When both records are held in this browser (a breeder's own cross or selection), one tap
 // sends both steps.
+//
+// Every sentence is in the five languages, and in an animal's or a strain's words for those
+// records (i18n/app/<lang>/chain.ts app.family.*; panel review). It says plainly that a
+// confirmed link is public and permanent, and that obligations the parent's holder takes on
+// later reach the child's line too.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useCallback, useEffect, useState } from 'react';
@@ -17,6 +22,8 @@ import { allRecords, type StrainRecord } from '../../veilcore/records';
 import { chainNotReady } from '../../veilcore/chain/config';
 import { useChainCall } from './useChainCall';
 import { ChainStatusLine } from './ChainStatusLine';
+import { DisclosureReceipt } from './DisclosureReceipt';
+import { useRecordT } from '../../i18n/app';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const hex = (b: Uint8Array) => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
@@ -64,6 +71,7 @@ export const FamilyOnChain: React.FC<{ record: StrainRecord }> = ({ record }) =>
   const [error, setError] = useState<string>();
   const [paste, setPaste] = useState('');
   const call = useChainCall<unknown>();
+  const tr = useRecordT(record);
 
   const nameOf = useCallback(
     (identity: string): string | undefined => {
@@ -107,12 +115,12 @@ export const FamilyOnChain: React.FC<{ record: StrainRecord }> = ({ record }) =>
     run(async (progress) => {
       const a = await import('../../veilcore/chain/actions');
       const parentSecret = secretOf(parent);
-      if (!parentSecret) throw new Error('This browser doesn’t hold that parent’s record.');
+      if (!parentSecret) throw new Error(tr.t('app.family.noParentHere'));
       if (family?.pendingParent !== parent) {
-        progress('Naming the parent on Midnight (1 of 2)…');
+        progress(tr.t('app.family.step1'));
         await a.proposeParentOnChain(hexBytes(keys.recordSecret), parent, { progress });
       }
-      progress('Confirming it from the parent (2 of 2)…');
+      progress(tr.t('app.family.step2'));
       return a.confirmParentOnChain(hexBytes(parentSecret), me, { progress });
     });
 
@@ -130,14 +138,12 @@ export const FamilyOnChain: React.FC<{ record: StrainRecord }> = ({ record }) =>
 
   const confirm = (child: string) =>
     run(async (progress) => {
-      const who = nameOf(child) ? `“${nameOf(child)}” (key ${child})` : `the record with key ${child}`;
-      const fixes = family?.hasOffspring ? '' : ' Once a record has confirmed offspring, its own parents can’t change.';
-      if (
-        !window.confirm(
-          `Confirm this plant is a parent of ${who}? Only confirm a record you know came from it: its line, and anything owed on this plant, will show on it.${fixes}`,
-        )
-      )
-        throw new Error('Not confirmed.');
+      const who = nameOf(child)
+        ? tr.t('app.family.named', { name: nameOf(child)!, key: child })
+        : tr.t('app.family.namedKey', { key: child });
+      const fixes = family?.hasOffspring ? '' : tr.t('app.family.confirmFixes');
+      if (!window.confirm(tr.t('app.family.confirmQ', { who, fixes })))
+        throw new Error(tr.t('app.family.notConfirmed'));
       const { confirmParentOnChain } = await import('../../veilcore/chain/actions');
       return confirmParentOnChain(hexBytes(keys.recordSecret), child, { progress });
     });
@@ -146,30 +152,29 @@ export const FamilyOnChain: React.FC<{ record: StrainRecord }> = ({ record }) =>
   const full = (family?.parents.length ?? 0) >= 2;
 
   return (
-    <Stack spacing={1.5} lang="en">
+    <Stack spacing={1.5} data-family-on-chain="">
       <Box>
         <Typography variant="overline" sx={{ display: 'block' }}>
-          Family on Midnight
+          {tr.t('app.family.title')}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Parentage both holders agreed to, on chain. It is what lets anyone check a plant&apos;s line, and what carries
-          a parent&apos;s offspring royalty down to its descendants.
+        <Typography variant="body2" color="text.secondary" data-family-intro="">
+          {tr.t('app.family.intro')}
         </Typography>
       </Box>
 
       {!family && !error && (
         <Typography variant="body2" color="text.secondary">
-          Reading the chain…
+          {tr.t('app.family.reading')}
         </Typography>
       )}
 
       {family && (
         <>
           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
-            <Typography variant="body2">Parents:</Typography>
+            <Typography variant="body2">{tr.t('app.family.parents')}</Typography>
             {family.parents.length === 0 && (
               <Typography variant="body2" color="text.secondary">
-                none confirmed
+                {tr.t('app.family.noneConfirmed')}
               </Typography>
             )}
             {family.parents.map((p) => (
@@ -178,25 +183,28 @@ export const FamilyOnChain: React.FC<{ record: StrainRecord }> = ({ record }) =>
           </Stack>
           {family.children.length > 0 && (
             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
-              <Typography variant="body2">Offspring:</Typography>
+              <Typography variant="body2">{tr.t('app.family.offspring')}</Typography>
               {family.children.map((c) => (
                 <Chip key={c} size="small" variant="outlined" label={nameOf(c) ?? short(c)} />
               ))}
             </Stack>
           )}
 
+          <DisclosureReceipt circuits={['proposeParent', 'confirmParent', 'withdrawParent']} />
           {family.pendingParent && (
             <Alert
               severity="info"
               variant="outlined"
               action={
                 <Button color="inherit" disabled={call.busy} onClick={() => void withdraw()}>
-                  Take back
+                  {tr.t('app.family.takeBack')}
                 </Button>
               }
             >
-              Waiting for {nameOf(family.pendingParent) ?? `the record ${short(family.pendingParent)}`} to confirm it is
-              a parent. Its holder sees this on their record&apos;s page.
+              {tr.t('app.family.waitingParent', {
+                name:
+                  nameOf(family.pendingParent) ?? tr.t('app.family.theRecord', { key: short(family.pendingParent) }),
+              })}
             </Alert>
           )}
 
@@ -209,7 +217,7 @@ export const FamilyOnChain: React.FC<{ record: StrainRecord }> = ({ record }) =>
                 onClick={() => void linkOwn(p)}
                 sx={{ alignSelf: 'flex-start' }}
               >
-                Put “{nameOf(p) ?? short(p)}” on Midnight as a parent
+                {tr.t('app.family.putOnChain', { name: nameOf(p) ?? short(p) })}
               </Button>
             ))}
 
@@ -218,7 +226,7 @@ export const FamilyOnChain: React.FC<{ record: StrainRecord }> = ({ record }) =>
               <TextField
                 size="small"
                 fullWidth
-                label="A parent held by someone else: their check link or on-chain key"
+                label={tr.t('app.family.pasteLabel')}
                 value={paste}
                 onChange={(e) => setPaste(e.target.value)}
                 error={paste.trim() !== '' && (!pasted || pasted === me)}
@@ -228,7 +236,7 @@ export const FamilyOnChain: React.FC<{ record: StrainRecord }> = ({ record }) =>
                 disabled={call.busy || !pasted || pasted === me}
                 onClick={() => pasted && void proposeOther(pasted)}
               >
-                Name it
+                {tr.t('app.family.nameIt')}
               </Button>
             </Stack>
           )}
@@ -240,12 +248,14 @@ export const FamilyOnChain: React.FC<{ record: StrainRecord }> = ({ record }) =>
               variant="outlined"
               action={
                 <Button color="inherit" disabled={call.busy} onClick={() => void confirm(c)}>
-                  Confirm
+                  {tr.t('app.family.confirm')}
                 </Button>
               }
+              data-family-waiting=""
             >
-              {nameOf(c) ? `“${nameOf(c)}”` : `The record ${short(c)}`} names this record as a parent. Confirm only if
-              it really came from this plant.
+              {tr.t('app.family.namesParent', {
+                who: nameOf(c) ? `“${nameOf(c)}”` : tr.t('app.family.theRecord', { key: short(c) }),
+              })}
             </Alert>
           ))}
         </>
@@ -253,7 +263,7 @@ export const FamilyOnChain: React.FC<{ record: StrainRecord }> = ({ record }) =>
 
       {error && (
         <Alert severity="warning" variant="outlined">
-          Couldn&apos;t read the chain: {error}
+          {tr.t('app.family.readError', { error })}
         </Alert>
       )}
       <ChainStatusLine busy={call.busy} progress={call.progress} error={call.error} step="agreement" />

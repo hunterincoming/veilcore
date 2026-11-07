@@ -107,3 +107,11 @@ export const forKind = (tr: Translator, kind: RecordKind): Translator => {
 
 /** The app in English: the default for the word files. */
 export const enT: Translator = makeTranslator('en', appEn);
+
+/**
+ * A label for a value that came from signed terms (the other side's, or an older or newer app's):
+ * its own label when this app knows it, otherwise "Other: <the value>", never a raw key (panel
+ * review).
+ */
+export const labelOr = (tr: Translator, key: string, value: string | undefined, vars?: Vars): string =>
+  tr.has(key) ? tr.t(key as AppKey, vars) : tr.t('app.lic.other', { value: value ?? '' });

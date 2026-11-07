@@ -3,6 +3,7 @@
 // on (proposeTransfer) or take that back before they approve it (withdrawTransfer).
 // SPDX-License-Identifier: Apache-2.0
 
+import { latestOf } from '../../veilcore/deal-order';
 import React, { useEffect, useState } from 'react';
 import { Alert, Button, Stack, TextField, Typography } from '@mui/material';
 import { hexBytes } from '../../veilcore/record-keys';
@@ -15,6 +16,7 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { ConfirmInline, HowItWorks } from './DealSteps';
 import { rich, useT } from '../../i18n/app';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 const POLL_MS = 15_000;
 
@@ -26,9 +28,9 @@ export const HandOnHolder: React.FC<{
 }> = ({ held, party, entries, refresh }) => {
   const tr = useT();
   const offer = handOnOffered(entries);
-  const mineAsked = [...(entries ?? [])]
-    .filter((e) => e.type === 'handon-ask' && e.mine)
-    .sort((a, b) => b.at - a.at)[0] as (DealEntry & { to?: string }) | undefined;
+  const mineAsked: (DealEntry & { to?: string }) | undefined = latestOf(
+    (entries ?? []).filter((e) => e.type === 'handon-ask' && e.mine),
+  );
   const [open, setOpen] = useState(false);
   const [to, setTo] = useState('');
   const [note, setNote] = useState('');
@@ -106,6 +108,7 @@ export const HandOnHolder: React.FC<{
           label={tr.t('app.lic.hh.takeBack')}
           question={tr.t('app.lic.hh.takeBackQ')}
           confirmLabel={tr.t('app.lic.hh.takeBackYes')}
+          receipt={<DisclosureReceipt circuits={['withdrawTransfer']} dense />}
           disabled={call.busy}
           onConfirm={() => void withdraw()}
         />
@@ -125,6 +128,7 @@ export const HandOnHolder: React.FC<{
             label={tr.t('app.lic.hh.handOn', { name: offer.to })}
             question={tr.t('app.lic.hh.handOnQ', { name: offer.to })}
             confirmLabel={tr.t('app.lic.hh.handOnYes')}
+            receipt={<DisclosureReceipt circuits={['proposeTransfer']} dense />}
             disabled={call.busy}
             onConfirm={() => void handOn()}
           />

@@ -4,15 +4,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useState } from 'react';
-import { Box, Button, Divider, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Divider, Stack, Typography } from '@mui/material';
 import { useNavigate, useParams, useSearchParams, Link as RouterLink } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackOutlined';
-import { getRecord } from '../../veilcore/records';
+import { getRecord, useRecords, useRecordsLoaded, type StrainRecord } from '../../veilcore/records';
 import { isAnimal } from '../../veilcore/animal-profile';
 import { isStrain } from '../../veilcore/strain-profile';
 import { useT } from '../../i18n/app';
 import { forKind, type RecordKind } from '../../i18n/translate';
 import {
+  subjectOf,
   sealAgreement,
   createLicense,
   renewLicense,
@@ -31,16 +32,85 @@ import { AppHeader } from '../AppHeader';
 import { AGREEMENTS_REAL } from '../../veilcore/agreements-real';
 import { AgreementTermsFields, emptyTermsFor, type SetTerm } from './LicenseTermsFields';
 import { AgreementTypeChip } from './AgreementTypeChip';
+import {
+  applyPreset,
+  currencyForLocale,
+  isCannabisRecord,
+  lawProblem,
+  lawForLocale,
+  PRESETS_FOR,
+  ruleOf,
+  termsProblems,
+  termsToSeal,
+  unitDefinitionText,
+  type PresetId,
+} from '../../veilcore/royalty-terms';
+import { ControlledQuestion, ControlledWarnings, LicenseTermsStep, MoneyTermsFields } from './RoyaltyTermsForm';
+import type { AppKey } from '../../i18n/app/en';
+
+/** The browser's own locale (navigator.language), for a first guess at currency and law. */
+const browserLocale = (): string | undefined => {
+  try {
+    return typeof navigator === 'undefined' ? undefined : navigator.language;
+  } catch {
+    return undefined;
+  }
+};
+
+/** A renewal of terms made before the royalty fields: the same deal, written out in them. */
+const asNewTerms = (t: LicenseTerms, ctx: { currency: string; governingLaw: string }): LicenseTerms => {
+  if (t.royalty) return t;
+  const rule = ruleOf(t);
+  const base = applyPreset('custom', t, { kind: subjectOf(t), ...ctx });
+  // The same rule, written out (review round 1, 8): a fee per harvest or per unit sold stays one,
+  // with its unit's own definition, rather than turning into an empty percent.
+  if (rule?.kind === 'per-unit')
+    return { ...base, royalty: { ...rule, unitDefinition: unitDefinitionText(rule.unit) } };
+  if (rule?.kind === 'percent') return { ...base, royalty: { kind: 'percent', rate: rule.rate, base: 'gross' } };
+  return base;
+};
 
 const isType = (v: string | null): v is AgreementType =>
   v === 'license' || v === 'lab-transfer' || v === 'breeder-share';
 
+/**
+ * The page opened straight on its address (a reload, a link): the records arrive after the
+ * first render, so it re-renders with them and waits for the first load before saying the
+ * record isn't here (final review, L1). The form itself starts only once the record is known,
+ * so its first values (the licensor, the record's kind) are read from the record.
+ */
 export const TermsBuilder: React.FC = () => {
   const { id = '' } = useParams();
+  useRecords();
+  const loaded = useRecordsLoaded();
+  const record = getRecord(id);
+  const tr = forKind(useT(), 'plant');
+  if (record) return <TermsBuilderFor key={record.id} record={record} />;
+  if (!loaded)
+    return (
+      <Box>
+        <AppHeader />
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }} role="status">
+          <CircularProgress size={20} />
+          <Typography>{tr.t('app.lic.builder.loading')}</Typography>
+        </Stack>
+      </Box>
+    );
+  return (
+    <Box>
+      <AppHeader />
+      <Typography sx={{ mb: 1 }}>{tr.t('app.lic.builder.notHere')}</Typography>
+      <Button component={RouterLink} to="/records" startIcon={<ArrowBackIcon />}>
+        {tr.t('app.lic.builder.records')}
+      </Button>
+    </Box>
+  );
+};
+
+const TermsBuilderFor: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const [params] = useSearchParams();
   const supersedeId = params.get('supersede') ?? undefined;
   const navigate = useNavigate();
-  const record = getRecord(id);
   const prior = supersedeId ? getLicense(supersedeId) : undefined;
 
   // When renewing, keep the prior agreement's type; otherwise take it from ?type= (the
@@ -52,41 +122,111 @@ export const TermsBuilder: React.FC = () => {
   // plant is cultivated and propagated, an animal bred and its semen or embryos collected, a
   // strain used, subcultured and the source of derived strains.
   const kind: RecordKind = isAnimal(record) ? 'animal' : isStrain(record) ? 'strain' : 'plant';
-  const [t, setT] = useState<LicenseTerms>(prior?.terms ?? emptyTermsFor(type, kind));
+  const tr = forKind(useT(), kind);
+  const locale = browserLocale();
+  const guess = { currency: currencyForLocale(locale), governingLaw: lawForLocale(locale, tr.locale) };
+  const presets = PRESETS_FOR[kind];
+  // A license is made from a preset (or Custom, the full form). A kind with only Custom opens on it.
+  const [preset, setPreset] = useState<PresetId | undefined>(
+    prior ? 'custom' : type === 'license' && presets.length === 1 ? 'custom' : undefined,
+  );
+  const [details, setDetails] = useState(Boolean(prior) || (type === 'license' && presets.length === 1));
+  const [t, setT] = useState<LicenseTerms>(() => {
+    const start = prior?.terms ?? emptyTermsFor(type, kind);
+    const named = {
+      ...start,
+      licensor: start.licensor ?? record.bredBy ?? '',
+      // A plant license asks whether it is cannabis; the record's species preselects Yes.
+      ...(type === 'license' && kind === 'plant' && start.controlled === undefined && isCannabisRecord(record)
+        ? { controlled: true }
+        : {}),
+    };
+    if (type === 'breeder-share')
+      return {
+        ...named,
+        currency: guess.currency,
+        governingLaw: guess.governingLaw,
+        reporting: { every: 'quarter', reportDueDays: 30, paymentDueDays: 14 },
+        bankFees: 'each-own',
+        recordsYears: 3,
+        checkNoticeDays: 30,
+      };
+    if (type !== 'license') return named;
+    if (prior) return asNewTerms(named, guess);
+    return presets.length === 1 ? applyPreset('custom', named, { kind, ...guess, tr }) : named;
+  });
   const [busy, setBusy] = useState(false);
   const set: SetTerm = (k, v) => setT((p) => ({ ...p, [k]: v }));
-  const tr = forKind(useT(), kind);
   const blocked = useAgreementsWaitForBackup();
+  // Cannabis or another controlled plant: asked of every plant license (panel review), never
+  // left to the species field, which only preselects the answer.
+  const askControlled = type === 'license' && kind === 'plant';
+  const hinted = askControlled && isCannabisRecord(record);
+  const cannabis = askControlled && t.controlled === true;
+  const pick = (id: PresetId) => {
+    setPreset(id);
+    setT((p) => applyPreset(id, p, { kind, ...guess, tr }));
+    if (id === 'custom') setDetails(true);
+  };
 
-  if (!record) {
-    return (
-      <Box>
-        <AppHeader />
-        <Typography sx={{ mb: 1 }}>{tr.t('app.lic.builder.notHere')}</Typography>
-        <Button component={RouterLink} to="/records" startIcon={<ArrowBackIcon />}>
-          {tr.t('app.lic.builder.records')}
-        </Button>
-      </Box>
+  // A breeder share with a royalty on offspring carries the same money terms as a license.
+  const shareMoney = type === 'breeder-share' && (Number(t.offspringRoyaltyPct) || 0) > 0;
+  const toSeal = (): LicenseTerms => {
+    if (type === 'breeder-share' && !shareMoney) {
+      // A free share keeps the shape it always had: none of the money terms.
+      const {
+        currency: _c,
+        governingLaw: _g,
+        reporting: _r,
+        bankFees: _b,
+        recordsYears: _y,
+        checkNoticeDays: _n,
+        fxSource: _f,
+        disputes: _d,
+        yearlyMinimum: _m,
+        licensor: _l,
+        ...rest
+      } = t;
+      void [_c, _g, _r, _b, _y, _n, _f, _d, _m, _l];
+      return rest;
+    }
+    return termsToSeal(
+      shareMoney
+        ? { ...t, offspring: { rule: { kind: 'percent', rate: t.offspringRoyaltyPct ?? '', base: 'gross' } } }
+        : t,
     );
-  }
-
-  // A commercial license needs a royalty amount; the others just need a counterparty.
-  const canSave =
-    type === 'license' ? Boolean(t.licensee.trim() && t.royaltyAmount.trim()) : Boolean(t.licensee.trim());
+  };
+  // A commercial license needs its royalty and the money terms; the others just need a counterparty.
+  const problems =
+    type === 'license'
+      ? preset
+        ? termsProblems(t, {
+            territoryRequired: true,
+            controlledUnanswered: askControlled && t.controlled === undefined,
+          })
+        : ['preset']
+      : shareMoney && lawProblem(t.governingLaw)
+        ? [lawProblem(t.governingLaw)!]
+        : t.licensee.trim()
+          ? []
+          : ['licensee'];
+  const canSave = problems.length === 0;
 
   const onSave = async () => {
     if (!canSave || blocked) return;
     setBusy(true);
     try {
-      const { agreementFingerprint, agreementSalt } = await sealAgreement(type, t, record.recordFingerprint);
+      // Presets are expanded already: what is sealed is every value, as shown (royalty-terms.ts).
+      const terms = toSeal();
+      const { agreementFingerprint, agreementSalt } = await sealAgreement(type, terms, record.recordFingerprint);
       const lic = supersedeId
-        ? renewLicense(supersedeId, t, agreementFingerprint, agreementSalt)
+        ? renewLicense(supersedeId, terms, agreementFingerprint, agreementSalt)
         : createLicense({
             type,
             recordId: record.id,
             recordFingerprint: record.recordFingerprint,
             dnaFingerprint: record.dnaFingerprint,
-            terms: t,
+            terms,
             agreementFingerprint,
             agreementSalt,
           });
@@ -137,8 +277,34 @@ export const TermsBuilder: React.FC = () => {
           {tr.t('app.lic.evidenceNote')}
         </Typography>
       )}
+      {askControlled && (
+        <Stack spacing={1.5} sx={{ mb: 3 }}>
+          <ControlledQuestion value={t.controlled} onChange={(v) => set('controlled', v)} hinted={hinted} tr={tr} />
+          {cannabis && <ControlledWarnings tr={tr} />}
+        </Stack>
+      )}
 
-      <AgreementTermsFields type={type} terms={t} set={set} />
+      {type === 'license' ? (
+        <Stack spacing={2.5}>
+          <LicenseTermsStep
+            kind={kind}
+            terms={t}
+            set={set}
+            preset={preset}
+            onPick={!prior && presets.length > 1 ? pick : undefined}
+            details={details}
+            setDetails={setDetails}
+          />
+        </Stack>
+      ) : (
+        <AgreementTermsFields type={type} terms={t} set={set} />
+      )}
+      {shareMoney && (
+        <Stack spacing={2} sx={{ mt: 3 }} data-share-money="">
+          <Typography variant="overline">{tr.t('app.roy.f.moneyTitle')}</Typography>
+          <MoneyTermsFields terms={t} set={set} tr={tr} />
+        </Stack>
+      )}
 
       {SHOW_VEILCORE_FEE && hasVeilcoreFee(type, t) && (
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
@@ -147,6 +313,13 @@ export const TermsBuilder: React.FC = () => {
       )}
 
       <Divider sx={{ my: 3 }} />
+      {problems.length > 0 && preset && (
+        <Alert severity="info" variant="outlined" sx={{ mb: 2 }} data-still-needed="">
+          {tr.t('app.roy.f.missing', {
+            what: problems.map((p) => tr.t(`app.roy.f.need.${p}` as AppKey)).join(', '),
+          })}
+        </Alert>
+      )}
       <Box>
         <Button variant="contained" size="large" disabled={busy || !canSave || blocked} onClick={onSave}>
           {saveLabel}

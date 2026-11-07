@@ -46,6 +46,26 @@ export const dealsOf = (oc: OnChainLicense, earlier = false): { label: string; p
       : [],
   );
 
+/**
+ * Messages that never go to a lender (design v3, 8): where the licensor is paid (bank details,
+ * payment links) and their invoice details. A lender needs what was owed and paid, not the account.
+ * The checker doesn't need them: a statement settles on the two sides' signatures alone.
+ */
+export const LEFT_OUT_OF_LENDER_PACKS: readonly string[] = ['payout', 'invoice-details'];
+
+/** A deal record with the payout and invoice-details messages taken out. */
+export const forLender = <R extends DealRecord>(record: R): R => {
+  const list = Array.isArray(record.messages) ? (record.messages as unknown[]) : undefined;
+  if (!list) return record;
+  return {
+    ...record,
+    messages: list.filter((m) => {
+      const type = (m as { message?: { type?: unknown } })?.message?.type;
+      return !(typeof type === 'string' && LEFT_OUT_OF_LENDER_PACKS.includes(type));
+    }),
+  };
+};
+
 const sums = (o: Record<string, string>): string =>
   Object.entries(o)
     .map(([cur, v]) => `${v} ${cur}`)
@@ -78,7 +98,7 @@ export const summaryText = (
     for (const r of c.rejected) out.push(`Does not count: message ${r.index} (${r.type}): ${r.reason}`);
     for (const s of c.statements) {
       const state = s.settled
-        ? `settled, paid ${s.paid!.paidOn} by ${s.paid!.method}, ref ${s.paid!.reference}`
+        ? `paid and confirmed, paid ${s.paid!.paidOn} by ${s.paid!.method}, ref ${s.paid!.reference}`
         : s.paid
           ? 'licensee says paid; not confirmed'
           : s.reply === 'accepted'
@@ -89,8 +109,8 @@ export const summaryText = (
       out.push(`  ${s.periodFrom} to ${s.periodTo}: ${s.amountOwed} ${s.currency}, ${state}`);
       for (const n of s.notes) out.push(`      ${n}`);
     }
-    out.push(`Settled (both signed): ${sums(c.settled)}`);
-    out.push(`Accepted, not settled: ${sums(c.open)}`);
+    out.push(`Paid and confirmed (both signed): ${sums(c.settled)}`);
+    out.push(`Accepted, not yet paid and confirmed: ${sums(c.open)}`);
     out.push('');
   }
   return out.join('\n');
@@ -106,7 +126,7 @@ export const readmeText = (): string =>
     'WHAT IT SHOWS',
     'Each royalty statement in deal-records/ is signed by the licensee (the payer).',
     'Each acceptance and each "received" is signed by the licensor. Each "paid" is signed',
-    'by the licensee. A statement counts as settled only when the licensee signed that they',
+    'by the licensee. A statement counts as paid and confirmed only when the licensee signed that they',
     'paid AND the licensor signed that the same amount arrived. Change one character in a',
     'file and its signature no longer checks.',
     '',
@@ -115,6 +135,7 @@ export const readmeText = (): string =>
     'themselves. Before relying on this history, confirm with the licensee directly that',
     'the licensee key in the file is theirs, as you would confirm any receivable.',
     'It also does not show that money moved, except as both sides’ signed statements.',
+    'Where the licensor is paid (account details) and their invoice details are left out.',
     '',
     'HOW TO CHECK IT (no account, nothing from VeilCore)',
     'With Node.js installed:',
@@ -150,8 +171,9 @@ export const lenderPackFiles = async (
   const deals: { label: string; file: string; check: DealRecordCheck }[] = [];
   for (const [i, r] of records.entries()) {
     const file = `deal-records/${i + 1}-${safe(r.label)}.json`;
-    files[file] = strToU8(JSON.stringify(r.record, null, 2) + '\n');
-    deals.push({ label: r.label, file, check: await checkDealRecord(r.record) });
+    const record = forLender(r.record);
+    files[file] = strToU8(JSON.stringify(record, null, 2) + '\n');
+    deals.push({ label: r.label, file, check: await checkDealRecord(record) });
   }
   files['summary.txt'] = strToU8(summaryText(license, deals, now));
   files['README.txt'] = strToU8(readmeText());

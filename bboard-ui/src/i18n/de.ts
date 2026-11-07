@@ -63,7 +63,7 @@ export const de: Strings = {
   'm.nav.menu': 'Menü',
   'm.hero.label': 'Nachweis dessen, was Sie in Händen halten',
   'm.hero.title1': 'Datieren Sie Ihren Datensatz.',
-  'm.hero.title2': 'Behalten Sie Ihre Genetik.',
+  'm.hero.title2': 'Ihre Genetik bleibt privat.',
   'm.hero.how': 'So funktioniert es',
   'm.hero.cultivar': 'Sorte',
   'm.hero.bredBy': 'Gezüchtet von',
@@ -210,6 +210,15 @@ export const de: Strings = {
   'm.privacy.browser.title': 'In Ihrem Browser gespeichert',
   'm.privacy.browser.text':
     'Ihr Browser speichert auf diesem Gerät: Ihren Inhaberschlüssel (eine Kopie geht auch an unseren Server, siehe oben); den Schlüssel, der Ihre Datensätze verschließt und nie an uns gesendet wird; Ihre eigene Kopie Ihrer Datensätze; die geheimen Schlüssel jedes Datensatzes, die seine Laborberichte verschließen (eine verschlossene Kopie geht auch mit dem Datensatz); die Labor-Codes, die Sie erstellen oder verwenden, mit einem Abholcode und dem Schlüssel zu den Angaben einer Lieferung; den Signaturschlüssel eines Labors, falls Sie einen eingerichtet haben (sein privater Teil wird nie an uns gesendet); die gewählte Rolle; und Ihre Sprache. Ihre Sicherungsdatei enthält eine Kopie jedes Schlüssels und der Labor-Codes, die Sie erstellt haben. Um sie zu entfernen, löschen Sie die Daten dieser Website in den Einstellungen Ihres Browsers. Speichern Sie vorher Ihre Sicherungskopie: Ohne sie können Sie Ihre Datensätze nicht mehr finden oder öffnen.',
+  'm.privacy.deals.title': 'Vereinbarungen und Lizenzgebühren',
+  'm.privacy.deals.text':
+    'Die Nachrichten eines Lizenzgeschäfts (die Bedingungen, jeder Bericht über Lizenzgebühren, die Antwort darauf, „Ich habe gezahlt“, „Erhalten“, Erinnerungen und Mitteilungen sowie die Auszahlungs- und Geschäftsangaben des Lizenzgebers) sind mit einem Schlüssel verschlossen, den nur die beiden Seiten teilen; er entsteht, wenn sie sich den 6-stelligen Code vorlesen. Unser Server speichert sie verschlossen und reicht sie weiter: Er kann sie weder lesen noch ändern noch fälschen. Er sieht, zu welcher Lizenz ein Geschäft gehört, wie viele Nachrichten es hat und wann jede ankam. Auszahlungsangaben (ein Bankkonto, ein Zahlungslink oder eine Midnight-Adresse) und Geschäftsangaben (rechtlicher Name, Anschrift und Steuernummer) reisen in diesen verschlossenen Nachrichten: Die andere Seite kann sie lesen, wir nicht. Jede Kopie, die Sie herunterladen oder sichern (der signierte Verlauf eines Geschäfts, Ihre Sicherungsdatei), enthält sie im Klartext; behandeln Sie diese Dateien also wie einen Kontoauszug. Die Quittung eines Zahlungspartners kann lesen, wer den Prüfcode der Abrechnung hat; den haben nur die beiden Seiten und ihr Partner. Wir bewahren die Nachrichten eines Geschäfts auf, bis eine Seite uns bittet, sie zu löschen; die andere Seite behält ihre eigene Kopie. Die Lizenz selbst liegt auf Midnight: siehe „Was auf Midnight landet“.',
+  'm.privacy.chain.title': 'Was auf Midnight landet, dauerhaft',
+  'm.privacy.chain.text':
+    'Midnight ist ein öffentliches Netzwerk: Was dort landet, kann niemand ändern oder entfernen, auch wir nicht, und jeder kann es lesen. Ihre Genetik, Ihre Bedingungen, Ihr Name und Ihre Dateien landen dort nie. Was dort landet: der Prüfcode jedes Stapels von Datensätzen; der eigene Schlüssel eines Datensatzes und sein Datumsstempel; ein Code aus einem DNA-Bericht, wenn Sie dessen Kopplung datieren; welche Datensätze als Eltern und Nachkommen verknüpft sind, sobald beide Inhaber bestätigen (eine Verknüpfung lässt sich nicht zurücknehmen); dass auf einem Datensatz eine Lizenz, eine Verpflichtung oder der Anspruch eines Kreditgebers vermerkt ist, und wann sich das geändert hat; der öffentliche Schlüssel eines Labors, wenn es dort ein Zertifikat signiert; ein Wert, den Sie exakt nachweisen wollen, vollständig; und, wo diese Website Lizenzgebühren in NIGHT zahlen lässt, der Betrag und die beiden Adressen. Vor jedem dieser Schritte zeigt die App eine Quittung, die genau auflistet, was der Schritt öffentlich macht. Ein Code oder Schlüssel allein sagt nichts über Sie, aber wer von Ihnen einen Prüflink bekommt, kann von da an verfolgen, was mit diesem Datensatz im Netzwerk geschieht.',
+  'm.privacy.helper.title': 'Der Helfer und sein optionales Modell',
+  'm.privacy.helper.text':
+    'Ask, der Helfer in der App, arbeitet dort, wo diese Website ihn anbietet, auf Ihrem Gerät. Nichts, was Sie dort eingeben, wird irgendwohin gesendet; nur das Speichern der App selbst sendet etwas, und das geht verschlossen an unseren Server, wie oben beschrieben. Wo diese Website das optionale Sprachmodell anbietet, wird es einmal von Hugging Face heruntergeladen, einem eigenen Unternehmen: Hugging Face sieht Ihre IP-Adresse, die Uhrzeit, welche Modelldateien und dass die Anfrage von dieser Website kommt; wir sehen, dass ein Download begonnen hat. Das Modell läuft auf Ihrem Gerät, in einem Teil der Seite, der das Netzwerk nicht erreichen kann; nichts, was Sie eingeben, gelangt zu Hugging Face oder zu uns, weder dann noch später. Sie können das Modell im Bereich des Helfers löschen.',
   'm.privacy.hosts.title': 'Hosting',
   'm.privacy.hosts.text':
     'Diese Website wird bei Vercel gehostet, das IP-Adressen und Anfragen protokolliert. Unser Registerserver läuft bei Railway, das Anfragen protokolliert.',
@@ -223,7 +232,7 @@ export const de: Strings = {
   'm.privacy.contact': 'Fragen: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher und tierischer Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand zurückdatieren kann. Ihre genetischen Daten bleiben auf Ihrem Computer. Nur ein Prüfcode kommt auf Midnight, das ihn datiert.',
+    'Für Züchter, Saatgutunternehmen und Labore, die mit pflanzlicher und tierischer Genetik arbeiten: Geben Sie Ihren Datensätzen ein Datum, das niemand zurückdatieren kann. Ihre genetischen Daten bleiben verschlossen: DNA-Dateien verlassen Ihren Computer nie, und was Sie eingeben, erreicht unseren Server verschlossen. Nur ein Prüfcode kommt auf Midnight, das ihn datiert.',
   'm.for.3p':
     'Senden Sie Material mit einem Laborcode. Das Labor signiert eine Empfangsbestätigung mit seinem eigenen Schlüssel, sodass der Datensatz eine zweite Partei zeigt. Die Bestätigung ist eine echte Signatur, gespeichert im Register von VeilCore, nicht auf der Chain. Bedingungen wie „keine Vermehrung“ sind in der Web-Demo nur zum Üben.',
   'm.get.1b': 'für einen Datensatz dessen, was Sie haben, ohne Ihre Genetik zu zeigen.',
@@ -246,7 +255,7 @@ export const de: Strings = {
     'Beide Contracts sind im Hauptnetz von Midnight bereitgestellt. Der Claims-Contract hat keinen Wartungsschlüssel: Niemand, auch wir nicht, kann ihn ändern.',
   'm.postE.date': '2. Nov. 2026',
   'm.postE.tag': 'Nachweis',
-  'm.postE.title': 'Eine gerichtsfeste Datei für jedes Dokument',
+  'm.postE.title': 'Eine Nachweisdatei für jedes Dokument',
   'm.postE.text':
     'Auf der Seite eines Dokuments lässt sich jetzt eine Datei herunterladen, die eine Anwältin oder ein Prüfer ohne unsere Website prüfen kann: der Datensatz wie versiegelt, sein Nachweis, wo er datiert wurde, eine Seite, die die Prüfungen offline ausführt, eine Zusammenfassung zum Drucken und ein Mustertext für eine Erklärung. Sie können eine Kopie des Dokuments beilegen; sie wird vorher mit dem Datensatz abgeglichen.',
   'm.postD.date': '31. Okt. 2026',
@@ -258,7 +267,7 @@ export const de: Strings = {
   'm.postC.tag': 'Website',
   'm.postC.title': 'Ihr Browser sendet seine eigenen Transaktionen',
   'm.postC.text':
-    'Auf veilcore.org datiert Ihr Browser jetzt selbst die Kopplung eines DNA-Berichts, weist einen Datensatz per Link nach und versieht den eigenen Schlüssel eines Datensatzes mit einem Datumsstempel; VeilCore zahlt die Netzwerkgebühr. Batches werden stündlich und automatisch im Hauptnetz von Midnight verankert. Kein Wallet nötig.',
+    'Auf veilcore.org datiert Ihr Browser jetzt selbst die Kopplung eines DNA-Berichts, weist einen Datensatz per Link nach und versieht den eigenen Schlüssel eines Datensatzes mit einem Datumsstempel; VeilCore zahlt die Netzwerkgebühr. Datensätze werden in Stapeln im Hauptnetz von Midnight datiert. Kein Wallet nötig.',
   'm.postB.date': '11. Okt. 2026',
   'm.postB.tag': 'Register',
   'm.postB.title': 'Erster Stapel auch auf Bitcoin datiert',
@@ -275,7 +284,7 @@ export const de: Strings = {
   'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Noch nicht',
   'm.live.stamp.t': 'Ein Datumsstempel für Ihren Datensatz',
-  'm.live.stamp.main': 'Ja, in Stapeln, vorerst von Hand. Ihr Browser sendet nichts an die Chain.',
+  'm.live.stamp.main': 'Ja, in Stapeln, auf Midnight datiert. Ihr Browser sendet nichts an die Chain.',
   'm.live.stamp.test':
     'Ja. Stapel werden automatisch datiert, und das datiert Ihren Datensatz. Ihr Browser versieht außerdem den eigenen Schlüssel Ihrer Pflanze mit einem Datumsstempel; der datiert nur den Schlüssel.',
   'm.live.share.t': 'Wählen, was andere sehen',
@@ -306,7 +315,16 @@ export const de: Strings = {
   'm.live.lic.main': 'Abgeschaltet bis zu einem letzten Testlauf.',
   'm.live.lic.test': 'Ja, mit echten Transaktionen: Lizenzgebühren, Zahlungen, Weitergabe einer Lizenz.',
   'm.live.lic.not': 'Auf veilcore.org, nach einem letzten Testlauf.',
-  // Licenses switched on at veilcore.org (AGREEMENTS_LIVE): the main-network cell (components/site/Home.tsx).
+  // The veilcore.org cell until royalties v2 has worked on mainnet (config/copy.ts ROYALTIES_RUN_ON_MAINNET).
+  'm.live.lic.mainNext':
+    'Lizenzen gehen mit dem Deployment live, das sie einschaltet, sobald eine echte Lizenz im Hauptnetz einmal vollständig funktioniert hat. Abrechnungen von Lizenzgebühren und Zahlungen: gebaut, noch nicht live.',
+  // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
+  'm.live.lic.testNext':
+    'Ja für Lizenzen, mit echten Transaktionen. Abrechnungen von Lizenzgebühren und Zahlungen: gebaut, und hier erst live, sobald sie in diesem Netz einmal vollständig funktioniert haben.',
+  // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
+  'm.live.lic.next':
+    'Gebaut. Geht mit dem nächsten Deployment von veilcore.org live, sobald eine echte Lizenz im Hauptnetz einmal vollständig funktioniert hat.',
+  // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
     'Ja: Lizenzen, Abrechnungen von Lizenzgebühren und die Weitergabe einer Lizenz, mit echten Transaktionen. Lizenzgebühren direkt auf Midnight zahlen gibt es nur auf der Testseite.',
   'm.live.chain.t': 'Die Prüfseite liest Midnight selbst',
@@ -362,7 +380,7 @@ export const de: Strings = {
   'm.step1.text':
     'Was es ist und woher es stammt. Der Server von VeilCore speichert die Angaben verschlossen, auch den Namen, und wir haben den Schlüssel nicht. Ein Prüflink trägt den Namen nur, wenn Sie das einschalten, für die Menschen, denen Sie ihn schicken.',
   'm.step2.title': 'Prüfcode erstellen',
-  'm.step2.text': 'Auf Ihrem Computer. Genetische Daten verlassen ihn nie.',
+  'm.step2.text': 'Auf Ihrem Computer. Genetische Daten verlassen ihn nie unverschlossen.',
   'm.step3.title': 'Ein Datum bekommen',
   'm.step3.text':
     'Nur der Prüfcode kommt auf Midnight, in einem Stapel mit anderen. Das Datum ist der Block, in dem der Stapel landet: Er zeigt, dass der Datensatz bis dahin existierte.',
@@ -436,14 +454,14 @@ export const de: Strings = {
   'm.faq.3link': 'Datensätze als Beweismittel →',
   'm.faq.4q': 'Was sehen Sie von meinen Daten?',
   'm.faq.4a':
-    'Von Ihren genetischen Daten: nichts. Ihr Computer liest die Dateien, die Sie hinzufügen, um aus jeder einen Code zu machen; hochgeladen werden sie nicht. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt: verschlossen, sodass nur Sie ihn öffnen können, und nach 180 Tagen gelöscht. Die Angaben, die Sie eingeben (der Name des Datensatzes, Züchter, Daten, Notizen, Vertragsbedingungen), und die Namen Ihrer Dateien speichert unser Server verschlossen, und wir haben den Schlüssel nicht. Lesen können wir den Prüfcode jedes Datensatzes und alles, was Sie zeigen möchten. Auch die Probenangaben, die Sie und ein Labor zu einer Lieferung schreiben, werden verschlossen gespeichert, mit einem Schlüssel, der im Laborcode steckt und den wir nicht haben. Labore und Entwickler können Datensätze in ihren eigenen Systemen versiegeln, sodass nur der Prüfcode hinausgeht.',
+    'Von Ihren genetischen Daten, unverschlossen: nichts. Ihr Computer liest die Dateien, die Sie hinzufügen, um aus jeder einen Code zu machen; hochgeladen werden sie nicht. Ein Laborbericht erreicht unseren Server nur, wenn ein Labor ihn an Sie zurückschickt: verschlossen, sodass nur Sie ihn öffnen können, und nach 180 Tagen gelöscht. Die Angaben, die Sie eingeben (der Name des Datensatzes, Züchter, Daten, Notizen, Vertragsbedingungen), und die Namen Ihrer Dateien speichert unser Server verschlossen, und wir haben den Schlüssel nicht. Lesen können wir den Prüfcode jedes Datensatzes und alles, was Sie zeigen möchten. Auch die Probenangaben, die Sie und ein Labor zu einer Lieferung schreiben, werden verschlossen gespeichert, mit einem Schlüssel, der im Laborcode steckt und den wir nicht haben. Labore und Entwickler können Datensätze in ihren eigenen Systemen versiegeln, sodass nur der Prüfcode hinausgeht.',
   'm.faq.4link1': 'Was die Demo speichert →',
   'm.faq.4link2': 'Integrationsleitfaden →',
   'm.faq.6q': 'Was kostet es?',
   'm.faq.6a':
-    'Einen Datensatz auf dieser Website anzulegen, kostet heute nichts. Einen Datensatz zu prüfen, ist immer kostenlos.',
+    'Kostenlos. Einen Datensatz auf dieser Website anzulegen und jeden Datensatz zu prüfen, ist beides kostenlos.',
   'm.demo.lede':
-    'Keine Anmeldung, keine Wallet. Es ist eine Testversion, verwenden Sie also erfundene Angaben. Datensätze werden in Stapeln verankert, vorerst von Hand; Lizenzen und Laborvereinbarungen sind simuliert, und Kopplungen von DNA-Berichten werden noch nicht datiert.',
+    'Keine Anmeldung, keine Wallet. Es ist eine Testversion, verwenden Sie also erfundene Angaben. Datensätze werden in Stapeln auf Midnight datiert; Lizenzen und Laborvereinbarungen sind simuliert, und Kopplungen von DNA-Berichten werden noch nicht datiert.',
   'm.demo.privacy': 'Was die Demo speichert →',
   'm.updates.more': 'Alle Neuigkeiten',
   'm.stat3.s': 'Noch kein unabhängiges Sicherheitsaudit. Unsere eigenen Prüfungen der Contracts sind öffentlich.',

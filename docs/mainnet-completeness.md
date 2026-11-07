@@ -235,8 +235,8 @@ once #1605 is resolved.
 - **Managed option at launch:** ~~dating only~~ changed later on 6 Oct: **VeilCore-run**, custody
   with an exit (docs/MANAGED.md). VeilCore holds a partner's record, licence and claim secrets
   in a store of that partner's own, and by default NOT their recovery secrets (the partner keeps
-  one master sheet). Three options at launch: VeilCore-run, the partner kit, website
-  self-custody after launch (docs/PARTNERS.md). See "VeilCore-run" below for what is open.
+  one master sheet). Three options: VeilCore-run, the partner kit, and website self-custody,
+  on veilcore.org since 19 October 2026 with VeilCore's fee service paying (docs/PARTNERS.md). See "VeilCore-run" below for what is open.
 - **Maintenance key:** one key, two paper copies (Hunter, Mako). Hunter approved 6 Oct;
   Mako confirmed 7 Oct. The policy's status line now says APPROVED, and the mainnet site
   says so.
@@ -263,4 +263,4 @@ stand-in, the reviewers' experiments among them; not run on a live network.
 | R5 | Decision: offer custody mode (VeilCore holds recovery secrets) at all, or partner-held recovery only | **Open.** Recommendation in MANAGED.md: partner-held; custody only with the risk in writing |
 | R6 | The operations computer (dedicated, FileVault, no cloud backup of `~/.veilcore/managed`), its offline encrypted backups with a written retention list | **Not done.** Hunter |
 | R7 | Outside security review of `veilcore-run/` (a paid one; the 6 Oct review was an AI review) | **Not done** |
-| R8 | The partner's last exit step needs a DUST wallet; a lab with no developer needs someone to run one command | **Open.** Options: a VeilCore-written guide for any IT person; website self-custody after launch |
+| R8 | The partner's last exit step needs a DUST wallet; a lab with no developer needs someone to run one command | **Open.** Options: a VeilCore-written guide for any IT person; website self-custody (on veilcore.org since 19 Oct 2026, but recovery is not a call its fee service pays for) |

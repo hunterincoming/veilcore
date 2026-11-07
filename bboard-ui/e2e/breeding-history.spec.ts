@@ -157,10 +157,17 @@ test.describe('breeding history (draft)', () => {
     const errors = watch(page);
     await openPlant(page, await evidenceFor());
 
+    // Open the details and wait until the panel has finished opening: a click on a button inside
+    // a panel still animating open, under load, once landed and opened nothing (7 Nov full run).
+    // Then click until the dialog is there, so a click lost to a re-render is tried again.
     await page.getByRole('button', { name: 'Technical details' }).click();
-    await page.getByRole('button', { name: 'Breeding history (draft)' }).click();
+    await expect(page.getByRole('button', { name: 'Technical details' })).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('#record-technical-details')).toHaveClass(/MuiCollapse-entered/);
     const dialog = page.getByRole('dialog', { name: 'Breeding history (draft)' });
-    await expect(dialog).toBeVisible();
+    await expect(async () => {
+      if (!(await dialog.isVisible())) await page.getByRole('button', { name: 'Breeding history (draft)' }).click();
+      await expect(dialog).toBeVisible({ timeout: 3_000 });
+    }).toPass({ timeout: 30_000 });
     await expect(dialog).toContainText('A record dates nothing earlier than the day it was sealed.');
     await expect(dialog).toContainText(
       '3 records you hold here, 1 linked parent held by someone else (listed as theirs), 1 parent named with no record.',

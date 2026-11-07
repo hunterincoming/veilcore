@@ -1,0 +1,2357 @@
+{
+ "_about": "Ask's evaluation set (scripts/eval-ask.mjs): 200 requests, 40 per language, each with the answer a careful reader gives under the provenance rule (names and counts only as typed; parents only the person's own records they named). The records every request is asked against are below.",
+ "records": [
+  {
+   "id": "VEIL-E001",
+   "name": "Blue Dream",
+   "kind": "plant"
+  },
+  {
+   "id": "VEIL-E002",
+   "name": "Gelato",
+   "kind": "plant"
+  },
+  {
+   "id": "VEIL-E003",
+   "name": "Harbour Mist",
+   "kind": "plant"
+  },
+  {
+   "id": "VEIL-E004",
+   "name": "OG Kush",
+   "kind": "plant"
+  },
+  {
+   "id": "VEIL-E005",
+   "name": "Bull 4",
+   "kind": "animal"
+  },
+  {
+   "id": "VEIL-E006",
+   "name": "Cow 9",
+   "kind": "animal"
+  },
+  {
+   "id": "VEIL-E007",
+   "name": "Daisy",
+   "kind": "animal"
+  },
+  {
+   "id": "VEIL-E008",
+   "name": "Lager Yeast 2",
+   "kind": "strain"
+  }
+ ],
+ "kinds": [
+  "plant",
+  "animal",
+  "strain"
+ ],
+ "cases": [
+  {
+   "id": "en-01",
+   "lang": "en",
+   "text": "cut 12 clones from Blue Dream",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 12,
+    "parents": [
+     "Blue Dream"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "en-02",
+   "lang": "en",
+   "text": "I took 6 cuttings off OG Kush today",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 6,
+    "parents": [
+     "OG Kush"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "en-03",
+   "lang": "en",
+   "text": "make 20 clones from Harbour Mist please",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 20,
+    "parents": [
+     "Harbour Mist"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "en-04",
+   "lang": "en",
+   "text": "cut 3 clones from Purple Haze",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 3,
+    "parents": [],
+    "unmatched": [
+     "Purple Haze"
+    ]
+   }
+  },
+  {
+   "id": "en-05",
+   "lang": "en",
+   "text": "3 calves from Bull 4 x Cow 9",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 3,
+    "parents": [
+     "Bull 4",
+     "Cow 9"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "en-06",
+   "lang": "en",
+   "text": "Cow 9 had 2 calves",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 2,
+    "parents": [
+     "Cow 9"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "en-07",
+   "lang": "en",
+   "text": "record 5 piglets",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 5,
+    "parents": []
+   }
+  },
+  {
+   "id": "en-08",
+   "lang": "en",
+   "text": "Daisy gave birth to 1 calf",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 1,
+    "parents": [
+     "Daisy"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "en-09",
+   "lang": "en",
+   "text": "cross Blue Dream x Gelato",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "Blue Dream",
+     "Gelato"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "en-10",
+   "lang": "en",
+   "text": "I crossed OG Kush with Harbour Mist",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "OG Kush",
+     "Harbour Mist"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "en-11",
+   "lang": "en",
+   "text": "cross Gelato and Zkittlez",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "Gelato"
+    ],
+    "unmatched": [
+     "Zkittlez"
+    ]
+   }
+  },
+  {
+   "id": "en-12",
+   "lang": "en",
+   "text": "new plant Harbour Mist 2",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "record",
+    "name": "Harbour Mist 2"
+   }
+  },
+  {
+   "id": "en-13",
+   "lang": "en",
+   "text": "add a new plant called Sunset Sherbet",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "record",
+    "name": "Sunset Sherbet"
+   }
+  },
+  {
+   "id": "en-14",
+   "lang": "en",
+   "text": "register a cow named Bella",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "record",
+    "name": "Bella"
+   }
+  },
+  {
+   "id": "en-15",
+   "lang": "en",
+   "text": "log a new yeast strain called Saison 3",
+   "expect": {
+    "type": "draft",
+    "kind": "strain",
+    "preset": "record",
+    "name": "Saison 3"
+   }
+  },
+  {
+   "id": "en-16",
+   "lang": "en",
+   "text": "what's due?",
+   "expect": {
+    "type": "due"
+   }
+  },
+  {
+   "id": "en-17",
+   "lang": "en",
+   "text": "do I owe any royalty reports",
+   "expect": {
+    "type": "due"
+   }
+  },
+  {
+   "id": "en-18",
+   "lang": "en",
+   "text": "what is prior possession",
+   "expect": {
+    "type": "explain",
+    "topic": "priorPossession"
+   }
+  },
+  {
+   "id": "en-19",
+   "lang": "en",
+   "text": "explain proof code",
+   "expect": {
+    "type": "explain",
+    "topic": "proofCode"
+   }
+  },
+  {
+   "id": "en-20",
+   "lang": "en",
+   "text": "what does dating mean",
+   "expect": {
+    "type": "explain",
+    "topic": "dating"
+   }
+  },
+  {
+   "id": "en-21",
+   "lang": "en",
+   "text": "what's a royalty report",
+   "expect": {
+    "type": "explain",
+    "topic": "royaltyReport"
+   }
+  },
+  {
+   "id": "en-22",
+   "lang": "en",
+   "text": "find Gelato",
+   "expect": {
+    "type": "search",
+    "query": "gelato"
+   }
+  },
+  {
+   "id": "en-23",
+   "lang": "en",
+   "text": "search my records for 2025",
+   "expect": {
+    "type": "search",
+    "query": "2025"
+   }
+  },
+  {
+   "id": "en-24",
+   "lang": "en",
+   "text": "show my animals",
+   "expect": {
+    "type": "search",
+    "query": "animals"
+   }
+  },
+  {
+   "id": "en-25",
+   "lang": "en",
+   "text": "back up my records",
+   "expect": {
+    "type": "go",
+    "action": "backup"
+   }
+  },
+  {
+   "id": "en-26",
+   "lang": "en",
+   "text": "open my agreements",
+   "expect": {
+    "type": "go",
+    "action": "agreements"
+   }
+  },
+  {
+   "id": "en-27",
+   "lang": "en",
+   "text": "import my spreadsheet",
+   "expect": {
+    "type": "go",
+    "action": "import"
+   }
+  },
+  {
+   "id": "en-28",
+   "lang": "en",
+   "text": "hello there",
+   "expect": {
+    "type": "miss"
+   }
+  },
+  {
+   "id": "en-29",
+   "lang": "en",
+   "text": "took 9 off the Gelato mom this morning",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 9,
+    "parents": [
+     "Gelato"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "en-30",
+   "lang": "en",
+   "text": "Daisy dropped 2 heifers last night",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 2,
+    "parents": [
+     "Daisy"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "en-31",
+   "lang": "en",
+   "text": "Blue Dream pollinated by Gelato",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "Blue Dream",
+     "Gelato"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "en-32",
+   "lang": "en",
+   "text": "anything I need to pay soon?",
+   "expect": {
+    "type": "due"
+   }
+  },
+  {
+   "id": "en-33",
+   "lang": "en",
+   "text": "how does VeilCore show I had it first",
+   "expect": {
+    "type": "explain",
+    "topic": "priorPossession"
+   }
+  },
+  {
+   "id": "en-34",
+   "lang": "en",
+   "text": "where are my Gelato ones",
+   "expect": {
+    "type": "search",
+    "query": "gelato"
+   }
+  },
+  {
+   "id": "en-35",
+   "lang": "en",
+   "text": "save everything to a file in case I lose this laptop",
+   "expect": {
+    "type": "go",
+    "action": "backup"
+   }
+  },
+  {
+   "id": "en-36",
+   "lang": "en",
+   "text": "I've got 15 new rooted cuts from Harbour Mist",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 15,
+    "parents": [
+     "Harbour Mist"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "en-37",
+   "lang": "en",
+   "text": "Cow 9 calved this morning, 1 bull calf",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 1,
+    "parents": [
+     "Cow 9"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "en-38",
+   "lang": "en",
+   "text": "keep track of my new mother plant Purple Punch",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "record",
+    "name": "Purple Punch"
+   }
+  },
+  {
+   "id": "en-39",
+   "lang": "en",
+   "text": "who is allowed to grow my genetics under contract",
+   "expect": {
+    "type": "go",
+    "action": "agreements"
+   }
+  },
+  {
+   "id": "en-40",
+   "lang": "en",
+   "text": "I have 300 plants in Excel to bring in",
+   "expect": {
+    "type": "go",
+    "action": "import"
+   }
+  },
+  {
+   "id": "de-01",
+   "lang": "de",
+   "text": "12 Stecklinge von Blue Dream schneiden",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 12,
+    "parents": [
+     "Blue Dream"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "de-02",
+   "lang": "de",
+   "text": "6 Klone von OG Kush",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 6,
+    "parents": [
+     "OG Kush"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "de-03",
+   "lang": "de",
+   "text": "Ich habe heute 3 Stecklinge von Harbour Mist genommen",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 3,
+    "parents": [
+     "Harbour Mist"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "de-04",
+   "lang": "de",
+   "text": "Klone 4 mal Blue Dream",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 4,
+    "parents": [
+     "Blue Dream"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "de-05",
+   "lang": "de",
+   "text": "3 Kälber von Bull 4 und Cow 9",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 3,
+    "parents": [
+     "Bull 4",
+     "Cow 9"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "de-06",
+   "lang": "de",
+   "text": "Cow 9 hat 2 Kälber bekommen",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 2,
+    "parents": [
+     "Cow 9"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "de-07",
+   "lang": "de",
+   "text": "5 Ferkel erfassen",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 5,
+    "parents": []
+   }
+  },
+  {
+   "id": "de-08",
+   "lang": "de",
+   "text": "Daisy hat 1 Kalb geboren",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 1,
+    "parents": [
+     "Daisy"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "de-09",
+   "lang": "de",
+   "text": "Kreuzung Blue Dream x Gelato",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "Blue Dream",
+     "Gelato"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "de-10",
+   "lang": "de",
+   "text": "OG Kush mit Harbour Mist gekreuzt",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "OG Kush",
+     "Harbour Mist"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "de-11",
+   "lang": "de",
+   "text": "kreuze Gelato und Zkittlez",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "Gelato"
+    ],
+    "unmatched": [
+     "Zkittlez"
+    ]
+   }
+  },
+  {
+   "id": "de-12",
+   "lang": "de",
+   "text": "neue Pflanze Harbour Mist 2",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "record",
+    "name": "Harbour Mist 2"
+   }
+  },
+  {
+   "id": "de-13",
+   "lang": "de",
+   "text": "neue Pflanze namens Sunset Sherbet anlegen",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "record",
+    "name": "Sunset Sherbet"
+   }
+  },
+  {
+   "id": "de-14",
+   "lang": "de",
+   "text": "eine Kuh namens Bella erfassen",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "record",
+    "name": "Bella"
+   }
+  },
+  {
+   "id": "de-15",
+   "lang": "de",
+   "text": "neue Hefe namens Saison 3",
+   "expect": {
+    "type": "draft",
+    "kind": "strain",
+    "preset": "record",
+    "name": "Saison 3"
+   }
+  },
+  {
+   "id": "de-16",
+   "lang": "de",
+   "text": "was ist fällig?",
+   "expect": {
+    "type": "due"
+   }
+  },
+  {
+   "id": "de-17",
+   "lang": "de",
+   "text": "welche Fristen habe ich",
+   "expect": {
+    "type": "due"
+   }
+  },
+  {
+   "id": "de-18",
+   "lang": "de",
+   "text": "was ist früheres Halten",
+   "expect": {
+    "type": "explain",
+    "topic": "priorPossession"
+   }
+  },
+  {
+   "id": "de-19",
+   "lang": "de",
+   "text": "erkläre Prüfcode",
+   "expect": {
+    "type": "explain",
+    "topic": "proofCode"
+   }
+  },
+  {
+   "id": "de-20",
+   "lang": "de",
+   "text": "was bedeutet Datierung",
+   "expect": {
+    "type": "explain",
+    "topic": "dating"
+   }
+  },
+  {
+   "id": "de-21",
+   "lang": "de",
+   "text": "was ist ein Lizenzgebührenbericht",
+   "expect": {
+    "type": "explain",
+    "topic": "royaltyReport"
+   }
+  },
+  {
+   "id": "de-22",
+   "lang": "de",
+   "text": "finde Gelato",
+   "expect": {
+    "type": "search",
+    "query": "gelato"
+   }
+  },
+  {
+   "id": "de-23",
+   "lang": "de",
+   "text": "suche meine Datensätze von 2025",
+   "expect": {
+    "type": "search",
+    "query": "datensätze von 2025"
+   }
+  },
+  {
+   "id": "de-24",
+   "lang": "de",
+   "text": "zeig meine Tiere",
+   "expect": {
+    "type": "search",
+    "query": "tiere"
+   }
+  },
+  {
+   "id": "de-25",
+   "lang": "de",
+   "text": "Sicherung speichern",
+   "expect": {
+    "type": "go",
+    "action": "backup"
+   }
+  },
+  {
+   "id": "de-26",
+   "lang": "de",
+   "text": "meine Vereinbarungen öffnen",
+   "expect": {
+    "type": "go",
+    "action": "agreements"
+   }
+  },
+  {
+   "id": "de-27",
+   "lang": "de",
+   "text": "Tabelle importieren",
+   "expect": {
+    "type": "go",
+    "action": "import"
+   }
+  },
+  {
+   "id": "de-28",
+   "lang": "de",
+   "text": "hallo",
+   "expect": {
+    "type": "miss"
+   }
+  },
+  {
+   "id": "de-29",
+   "lang": "de",
+   "text": "heute Morgen 9 von der Gelato Mutter genommen",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 9,
+    "parents": [
+     "Gelato"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "de-30",
+   "lang": "de",
+   "text": "Daisy hat letzte Nacht 2 Färsen bekommen",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 2,
+    "parents": [
+     "Daisy"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "de-31",
+   "lang": "de",
+   "text": "Blue Dream mit Gelato bestäubt",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "Blue Dream",
+     "Gelato"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "de-32",
+   "lang": "de",
+   "text": "muss ich bald etwas zahlen?",
+   "expect": {
+    "type": "due"
+   }
+  },
+  {
+   "id": "de-33",
+   "lang": "de",
+   "text": "wie zeigt VeilCore, dass ich es zuerst hatte",
+   "expect": {
+    "type": "explain",
+    "topic": "priorPossession"
+   }
+  },
+  {
+   "id": "de-34",
+   "lang": "de",
+   "text": "wo sind meine Gelato",
+   "expect": {
+    "type": "search",
+    "query": "gelato"
+   }
+  },
+  {
+   "id": "de-35",
+   "lang": "de",
+   "text": "alles in eine Datei sichern, falls der Laptop kaputtgeht",
+   "expect": {
+    "type": "go",
+    "action": "backup"
+   }
+  },
+  {
+   "id": "de-36",
+   "lang": "de",
+   "text": "15 bewurzelte Ableger von Harbour Mist",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 15,
+    "parents": [
+     "Harbour Mist"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "de-37",
+   "lang": "de",
+   "text": "Cow 9 hat heute früh gekalbt, 1 Stierkalb",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 1,
+    "parents": [
+     "Cow 9"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "de-38",
+   "lang": "de",
+   "text": "meine neue Mutterpflanze Purple Punch festhalten",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "record",
+    "name": "Purple Punch"
+   }
+  },
+  {
+   "id": "de-39",
+   "lang": "de",
+   "text": "wer darf meine Genetik per Vertrag anbauen",
+   "expect": {
+    "type": "go",
+    "action": "agreements"
+   }
+  },
+  {
+   "id": "de-40",
+   "lang": "de",
+   "text": "ich habe 300 Pflanzen in Excel zum Übernehmen",
+   "expect": {
+    "type": "go",
+    "action": "import"
+   }
+  },
+  {
+   "id": "es-01",
+   "lang": "es",
+   "text": "cortar 12 esquejes de Blue Dream",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 12,
+    "parents": [
+     "Blue Dream"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "es-02",
+   "lang": "es",
+   "text": "saqué 6 esquejes de OG Kush hoy",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 6,
+    "parents": [
+     "OG Kush"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "es-03",
+   "lang": "es",
+   "text": "haz 20 clones de Harbour Mist",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 20,
+    "parents": [
+     "Harbour Mist"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "es-04",
+   "lang": "es",
+   "text": "clonar Blue Dream 4 veces",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 4,
+    "parents": [
+     "Blue Dream"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "es-05",
+   "lang": "es",
+   "text": "3 terneros de Bull 4 y Cow 9",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 3,
+    "parents": [
+     "Bull 4",
+     "Cow 9"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "es-06",
+   "lang": "es",
+   "text": "Cow 9 tuvo 2 terneros",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 2,
+    "parents": [
+     "Cow 9"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "es-07",
+   "lang": "es",
+   "text": "registrar 5 crías",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 5,
+    "parents": []
+   }
+  },
+  {
+   "id": "es-08",
+   "lang": "es",
+   "text": "Daisy parió 1 ternero",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 1,
+    "parents": [
+     "Daisy"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "es-09",
+   "lang": "es",
+   "text": "cruce Blue Dream x Gelato",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "Blue Dream",
+     "Gelato"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "es-10",
+   "lang": "es",
+   "text": "crucé OG Kush con Harbour Mist",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "OG Kush",
+     "Harbour Mist"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "es-11",
+   "lang": "es",
+   "text": "cruzar Gelato y Zkittlez",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "Gelato"
+    ],
+    "unmatched": [
+     "Zkittlez"
+    ]
+   }
+  },
+  {
+   "id": "es-12",
+   "lang": "es",
+   "text": "nueva planta Harbour Mist 2",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "record",
+    "name": "Harbour Mist 2"
+   }
+  },
+  {
+   "id": "es-13",
+   "lang": "es",
+   "text": "crear una planta llamada Sunset Sherbet",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "record",
+    "name": "Sunset Sherbet"
+   }
+  },
+  {
+   "id": "es-14",
+   "lang": "es",
+   "text": "registrar una vaca llamada Bella",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "record",
+    "name": "Bella"
+   }
+  },
+  {
+   "id": "es-15",
+   "lang": "es",
+   "text": "nueva levadura llamada Saison 3",
+   "expect": {
+    "type": "draft",
+    "kind": "strain",
+    "preset": "record",
+    "name": "Saison 3"
+   }
+  },
+  {
+   "id": "es-16",
+   "lang": "es",
+   "text": "¿qué vence?",
+   "expect": {
+    "type": "due"
+   }
+  },
+  {
+   "id": "es-17",
+   "lang": "es",
+   "text": "¿tengo regalías pendientes?",
+   "expect": {
+    "type": "due"
+   }
+  },
+  {
+   "id": "es-18",
+   "lang": "es",
+   "text": "qué es tenencia previa",
+   "expect": {
+    "type": "explain",
+    "topic": "priorPossession"
+   }
+  },
+  {
+   "id": "es-19",
+   "lang": "es",
+   "text": "explica código de prueba",
+   "expect": {
+    "type": "explain",
+    "topic": "proofCode"
+   }
+  },
+  {
+   "id": "es-20",
+   "lang": "es",
+   "text": "qué significa fechado",
+   "expect": {
+    "type": "explain",
+    "topic": "dating"
+   }
+  },
+  {
+   "id": "es-21",
+   "lang": "es",
+   "text": "qué es un informe de regalías",
+   "expect": {
+    "type": "explain",
+    "topic": "royaltyReport"
+   }
+  },
+  {
+   "id": "es-22",
+   "lang": "es",
+   "text": "busca Gelato",
+   "expect": {
+    "type": "search",
+    "query": "gelato"
+   }
+  },
+  {
+   "id": "es-23",
+   "lang": "es",
+   "text": "busca mis registros de 2025",
+   "expect": {
+    "type": "search",
+    "query": "2025"
+   }
+  },
+  {
+   "id": "es-24",
+   "lang": "es",
+   "text": "muestra mis animales",
+   "expect": {
+    "type": "search",
+    "query": "animales"
+   }
+  },
+  {
+   "id": "es-25",
+   "lang": "es",
+   "text": "hacer copia de seguridad",
+   "expect": {
+    "type": "go",
+    "action": "backup"
+   }
+  },
+  {
+   "id": "es-26",
+   "lang": "es",
+   "text": "abrir mis acuerdos",
+   "expect": {
+    "type": "go",
+    "action": "agreements"
+   }
+  },
+  {
+   "id": "es-27",
+   "lang": "es",
+   "text": "importar mi hoja de cálculo",
+   "expect": {
+    "type": "go",
+    "action": "import"
+   }
+  },
+  {
+   "id": "es-28",
+   "lang": "es",
+   "text": "hola",
+   "expect": {
+    "type": "miss"
+   }
+  },
+  {
+   "id": "es-29",
+   "lang": "es",
+   "text": "saqué 9 de la madre Gelato esta mañana",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 9,
+    "parents": [
+     "Gelato"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "es-30",
+   "lang": "es",
+   "text": "Daisy parió 2 novillas anoche",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 2,
+    "parents": [
+     "Daisy"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "es-31",
+   "lang": "es",
+   "text": "Blue Dream polinizada con Gelato",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "Blue Dream",
+     "Gelato"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "es-32",
+   "lang": "es",
+   "text": "¿tengo que pagar algo pronto?",
+   "expect": {
+    "type": "due"
+   }
+  },
+  {
+   "id": "es-33",
+   "lang": "es",
+   "text": "cómo muestra VeilCore que lo tuve primero",
+   "expect": {
+    "type": "explain",
+    "topic": "priorPossession"
+   }
+  },
+  {
+   "id": "es-34",
+   "lang": "es",
+   "text": "dónde están mis Gelato",
+   "expect": {
+    "type": "search",
+    "query": "gelato"
+   }
+  },
+  {
+   "id": "es-35",
+   "lang": "es",
+   "text": "guardar todo en un archivo por si pierdo el portátil",
+   "expect": {
+    "type": "go",
+    "action": "backup"
+   }
+  },
+  {
+   "id": "es-36",
+   "lang": "es",
+   "text": "tengo 15 esquejes enraizados de Harbour Mist",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 15,
+    "parents": [
+     "Harbour Mist"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "es-37",
+   "lang": "es",
+   "text": "Cow 9 parió esta mañana, 1 ternero macho",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 1,
+    "parents": [
+     "Cow 9"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "es-38",
+   "lang": "es",
+   "text": "llevar control de mi nueva planta madre Purple Punch",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "record",
+    "name": "Purple Punch"
+   }
+  },
+  {
+   "id": "es-39",
+   "lang": "es",
+   "text": "quién puede cultivar mi genética por contrato",
+   "expect": {
+    "type": "go",
+    "action": "agreements"
+   }
+  },
+  {
+   "id": "es-40",
+   "lang": "es",
+   "text": "tengo 300 plantas en Excel para pasar",
+   "expect": {
+    "type": "go",
+    "action": "import"
+   }
+  },
+  {
+   "id": "fr-01",
+   "lang": "fr",
+   "text": "couper 12 boutures de Blue Dream",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 12,
+    "parents": [
+     "Blue Dream"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "fr-02",
+   "lang": "fr",
+   "text": "j'ai pris 6 boutures sur OG Kush aujourd'hui",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 6,
+    "parents": [
+     "OG Kush"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "fr-03",
+   "lang": "fr",
+   "text": "faire 20 clones de Harbour Mist",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 20,
+    "parents": [
+     "Harbour Mist"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "fr-04",
+   "lang": "fr",
+   "text": "cloner Blue Dream 4 fois",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 4,
+    "parents": [
+     "Blue Dream"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "fr-05",
+   "lang": "fr",
+   "text": "3 veaux de Bull 4 et Cow 9",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 3,
+    "parents": [
+     "Bull 4",
+     "Cow 9"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "fr-06",
+   "lang": "fr",
+   "text": "Cow 9 a eu 2 veaux",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 2,
+    "parents": [
+     "Cow 9"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "fr-07",
+   "lang": "fr",
+   "text": "enregistrer 5 petits",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 5,
+    "parents": []
+   }
+  },
+  {
+   "id": "fr-08",
+   "lang": "fr",
+   "text": "Daisy a donné naissance à 1 veau",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 1,
+    "parents": [
+     "Daisy"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "fr-09",
+   "lang": "fr",
+   "text": "croisement Blue Dream x Gelato",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "Blue Dream",
+     "Gelato"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "fr-10",
+   "lang": "fr",
+   "text": "j'ai croisé OG Kush avec Harbour Mist",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "OG Kush",
+     "Harbour Mist"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "fr-11",
+   "lang": "fr",
+   "text": "croiser Gelato et Zkittlez",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "Gelato"
+    ],
+    "unmatched": [
+     "Zkittlez"
+    ]
+   }
+  },
+  {
+   "id": "fr-12",
+   "lang": "fr",
+   "text": "nouvelle plante Harbour Mist 2",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "record",
+    "name": "Harbour Mist 2"
+   }
+  },
+  {
+   "id": "fr-13",
+   "lang": "fr",
+   "text": "créer une plante appelée Sunset Sherbet",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "record",
+    "name": "Sunset Sherbet"
+   }
+  },
+  {
+   "id": "fr-14",
+   "lang": "fr",
+   "text": "enregistrer une vache nommée Bella",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "record",
+    "name": "Bella"
+   }
+  },
+  {
+   "id": "fr-15",
+   "lang": "fr",
+   "text": "nouvelle levure appelée Saison 3",
+   "expect": {
+    "type": "draft",
+    "kind": "strain",
+    "preset": "record",
+    "name": "Saison 3"
+   }
+  },
+  {
+   "id": "fr-16",
+   "lang": "fr",
+   "text": "qu'est-ce qui est dû ?",
+   "expect": {
+    "type": "due"
+   }
+  },
+  {
+   "id": "fr-17",
+   "lang": "fr",
+   "text": "ai-je des redevances à payer",
+   "expect": {
+    "type": "due"
+   }
+  },
+  {
+   "id": "fr-18",
+   "lang": "fr",
+   "text": "qu'est-ce que la détention antérieure",
+   "expect": {
+    "type": "explain",
+    "topic": "priorPossession"
+   }
+  },
+  {
+   "id": "fr-19",
+   "lang": "fr",
+   "text": "explique code de preuve",
+   "expect": {
+    "type": "explain",
+    "topic": "proofCode"
+   }
+  },
+  {
+   "id": "fr-20",
+   "lang": "fr",
+   "text": "que veut dire datation",
+   "expect": {
+    "type": "explain",
+    "topic": "dating"
+   }
+  },
+  {
+   "id": "fr-21",
+   "lang": "fr",
+   "text": "c'est quoi un rapport de redevances",
+   "expect": {
+    "type": "explain",
+    "topic": "royaltyReport"
+   }
+  },
+  {
+   "id": "fr-22",
+   "lang": "fr",
+   "text": "cherche Gelato",
+   "expect": {
+    "type": "search",
+    "query": "gelato"
+   }
+  },
+  {
+   "id": "fr-23",
+   "lang": "fr",
+   "text": "cherche mes enregistrements de 2025",
+   "expect": {
+    "type": "search",
+    "query": "2025"
+   }
+  },
+  {
+   "id": "fr-24",
+   "lang": "fr",
+   "text": "montre mes animaux",
+   "expect": {
+    "type": "search",
+    "query": "animaux"
+   }
+  },
+  {
+   "id": "fr-25",
+   "lang": "fr",
+   "text": "faire une sauvegarde",
+   "expect": {
+    "type": "go",
+    "action": "backup"
+   }
+  },
+  {
+   "id": "fr-26",
+   "lang": "fr",
+   "text": "ouvrir mes accords",
+   "expect": {
+    "type": "go",
+    "action": "agreements"
+   }
+  },
+  {
+   "id": "fr-27",
+   "lang": "fr",
+   "text": "importer mon tableur",
+   "expect": {
+    "type": "go",
+    "action": "import"
+   }
+  },
+  {
+   "id": "fr-28",
+   "lang": "fr",
+   "text": "bonjour",
+   "expect": {
+    "type": "miss"
+   }
+  },
+  {
+   "id": "fr-29",
+   "lang": "fr",
+   "text": "j'ai prélevé 9 sur la mère Gelato ce matin",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 9,
+    "parents": [
+     "Gelato"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "fr-30",
+   "lang": "fr",
+   "text": "Daisy a mis bas 2 génisses cette nuit",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 2,
+    "parents": [
+     "Daisy"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "fr-31",
+   "lang": "fr",
+   "text": "Blue Dream pollinisée par Gelato",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "Blue Dream",
+     "Gelato"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "fr-32",
+   "lang": "fr",
+   "text": "est-ce que je dois payer quelque chose bientôt ?",
+   "expect": {
+    "type": "due"
+   }
+  },
+  {
+   "id": "fr-33",
+   "lang": "fr",
+   "text": "comment VeilCore montre que je l'avais en premier",
+   "expect": {
+    "type": "explain",
+    "topic": "priorPossession"
+   }
+  },
+  {
+   "id": "fr-34",
+   "lang": "fr",
+   "text": "où sont mes Gelato",
+   "expect": {
+    "type": "search",
+    "query": "gelato"
+   }
+  },
+  {
+   "id": "fr-35",
+   "lang": "fr",
+   "text": "tout garder dans un fichier au cas où je perds mon ordinateur",
+   "expect": {
+    "type": "go",
+    "action": "backup"
+   }
+  },
+  {
+   "id": "fr-36",
+   "lang": "fr",
+   "text": "j'ai 15 boutures enracinées de Harbour Mist",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 15,
+    "parents": [
+     "Harbour Mist"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "fr-37",
+   "lang": "fr",
+   "text": "Cow 9 a vêlé ce matin, 1 veau mâle",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 1,
+    "parents": [
+     "Cow 9"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "fr-38",
+   "lang": "fr",
+   "text": "suivre ma nouvelle plante mère Purple Punch",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "record",
+    "name": "Purple Punch"
+   }
+  },
+  {
+   "id": "fr-39",
+   "lang": "fr",
+   "text": "qui a le droit de cultiver ma génétique sous contrat",
+   "expect": {
+    "type": "go",
+    "action": "agreements"
+   }
+  },
+  {
+   "id": "fr-40",
+   "lang": "fr",
+   "text": "j'ai 300 plantes dans Excel à faire entrer",
+   "expect": {
+    "type": "go",
+    "action": "import"
+   }
+  },
+  {
+   "id": "ja-01",
+   "lang": "ja",
+   "text": "Blue Dreamからクローンを12本取る",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 12,
+    "parents": [
+     "Blue Dream"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "ja-02",
+   "lang": "ja",
+   "text": "今日OG Kushから挿し木を6本取った",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 6,
+    "parents": [
+     "OG Kush"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "ja-03",
+   "lang": "ja",
+   "text": "Harbour Mistからクローンを20本作って",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 20,
+    "parents": [
+     "Harbour Mist"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "ja-04",
+   "lang": "ja",
+   "text": "Blue Dreamを4本クローン",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 4,
+    "parents": [
+     "Blue Dream"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "ja-05",
+   "lang": "ja",
+   "text": "Bull 4とCow 9から子牛3頭",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 3,
+    "parents": [
+     "Bull 4",
+     "Cow 9"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "ja-06",
+   "lang": "ja",
+   "text": "Cow 9に子牛が2頭生まれた",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 2,
+    "parents": [
+     "Cow 9"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "ja-07",
+   "lang": "ja",
+   "text": "産子を5頭記録",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 5,
+    "parents": []
+   }
+  },
+  {
+   "id": "ja-08",
+   "lang": "ja",
+   "text": "Daisyが子牛を1頭産んだ",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 1,
+    "parents": [
+     "Daisy"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "ja-09",
+   "lang": "ja",
+   "text": "Blue Dream×Gelatoの交配",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "Blue Dream",
+     "Gelato"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "ja-10",
+   "lang": "ja",
+   "text": "OG KushとHarbour Mistを交配した",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "OG Kush",
+     "Harbour Mist"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "ja-11",
+   "lang": "ja",
+   "text": "GelatoとZkittlezを交配",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "Gelato"
+    ],
+    "unmatched": [
+     "Zkittlez"
+    ]
+   }
+  },
+  {
+   "id": "ja-12",
+   "lang": "ja",
+   "text": "新しい植物「Harbour Mist 2」",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "record",
+    "name": "Harbour Mist 2"
+   }
+  },
+  {
+   "id": "ja-13",
+   "lang": "ja",
+   "text": "Sunset Sherbetという植物を登録",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "record",
+    "name": "Sunset Sherbet"
+   }
+  },
+  {
+   "id": "ja-14",
+   "lang": "ja",
+   "text": "Bellaという牛を登録",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "record",
+    "name": "Bella"
+   }
+  },
+  {
+   "id": "ja-15",
+   "lang": "ja",
+   "text": "Saison 3という酵母を登録",
+   "expect": {
+    "type": "draft",
+    "kind": "strain",
+    "preset": "record",
+    "name": "Saison 3"
+   }
+  },
+  {
+   "id": "ja-16",
+   "lang": "ja",
+   "text": "期限は？",
+   "expect": {
+    "type": "due"
+   }
+  },
+  {
+   "id": "ja-17",
+   "lang": "ja",
+   "text": "ロイヤリティの支払いはある？",
+   "expect": {
+    "type": "due"
+   }
+  },
+  {
+   "id": "ja-18",
+   "lang": "ja",
+   "text": "先行保有とは",
+   "expect": {
+    "type": "explain",
+    "topic": "priorPossession"
+   }
+  },
+  {
+   "id": "ja-19",
+   "lang": "ja",
+   "text": "証明コードの意味",
+   "expect": {
+    "type": "explain",
+    "topic": "proofCode"
+   }
+  },
+  {
+   "id": "ja-20",
+   "lang": "ja",
+   "text": "日付とは",
+   "expect": {
+    "type": "explain",
+    "topic": "dating"
+   }
+  },
+  {
+   "id": "ja-21",
+   "lang": "ja",
+   "text": "ロイヤリティ報告とは",
+   "expect": {
+    "type": "explain",
+    "topic": "royaltyReport"
+   }
+  },
+  {
+   "id": "ja-22",
+   "lang": "ja",
+   "text": "Gelatoを探して",
+   "expect": {
+    "type": "search",
+    "query": "gelato"
+   }
+  },
+  {
+   "id": "ja-23",
+   "lang": "ja",
+   "text": "2025年の記録を検索",
+   "expect": {
+    "type": "search",
+    "query": "2025"
+   }
+  },
+  {
+   "id": "ja-24",
+   "lang": "ja",
+   "text": "動物の一覧",
+   "expect": {
+    "type": "search",
+    "query": "動物"
+   }
+  },
+  {
+   "id": "ja-25",
+   "lang": "ja",
+   "text": "バックアップを保存",
+   "expect": {
+    "type": "go",
+    "action": "backup"
+   }
+  },
+  {
+   "id": "ja-26",
+   "lang": "ja",
+   "text": "契約を開く",
+   "expect": {
+    "type": "go",
+    "action": "agreements"
+   }
+  },
+  {
+   "id": "ja-27",
+   "lang": "ja",
+   "text": "表計算をインポート",
+   "expect": {
+    "type": "go",
+    "action": "import"
+   }
+  },
+  {
+   "id": "ja-28",
+   "lang": "ja",
+   "text": "こんにちは",
+   "expect": {
+    "type": "miss"
+   }
+  },
+  {
+   "id": "ja-29",
+   "lang": "ja",
+   "text": "今朝Gelatoの母株から9本取った",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 9,
+    "parents": [
+     "Gelato"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "ja-30",
+   "lang": "ja",
+   "text": "Daisyが昨夜2頭産んだ",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 2,
+    "parents": [
+     "Daisy"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "ja-31",
+   "lang": "ja",
+   "text": "Blue DreamにGelatoの花粉をつけた",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "cross",
+    "parents": [
+     "Blue Dream",
+     "Gelato"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "ja-32",
+   "lang": "ja",
+   "text": "近いうちに払うものはある？",
+   "expect": {
+    "type": "due"
+   }
+  },
+  {
+   "id": "ja-33",
+   "lang": "ja",
+   "text": "自分が先に持っていたことをVeilCoreはどう示すの",
+   "expect": {
+    "type": "explain",
+    "topic": "priorPossession"
+   }
+  },
+  {
+   "id": "ja-34",
+   "lang": "ja",
+   "text": "私のGelatoはどこ",
+   "expect": {
+    "type": "search",
+    "query": "gelato"
+   }
+  },
+  {
+   "id": "ja-35",
+   "lang": "ja",
+   "text": "ノートパソコンをなくしたときのために全部ファイルに保存",
+   "expect": {
+    "type": "go",
+    "action": "backup"
+   }
+  },
+  {
+   "id": "ja-36",
+   "lang": "ja",
+   "text": "Harbour Mistの発根した挿し穂が15本",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "clones",
+    "count": 15,
+    "parents": [
+     "Harbour Mist"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "ja-37",
+   "lang": "ja",
+   "text": "Cow 9が今朝分娩、雄の子牛1頭",
+   "expect": {
+    "type": "draft",
+    "kind": "animal",
+    "preset": "offspring",
+    "count": 1,
+    "parents": [
+     "Cow 9"
+    ],
+    "unmatched": []
+   }
+  },
+  {
+   "id": "ja-38",
+   "lang": "ja",
+   "text": "新しい母株Purple Punchを管理したい",
+   "expect": {
+    "type": "draft",
+    "kind": "plant",
+    "preset": "record",
+    "name": "Purple Punch"
+   }
+  },
+  {
+   "id": "ja-39",
+   "lang": "ja",
+   "text": "契約で私の遺伝資源を育ててよいのは誰",
+   "expect": {
+    "type": "go",
+    "action": "agreements"
+   }
+  },
+  {
+   "id": "ja-40",
+   "lang": "ja",
+   "text": "Excelに300株あるので取り込みたい",
+   "expect": {
+    "type": "go",
+    "action": "import"
+   }
+  }
+ ]
+}

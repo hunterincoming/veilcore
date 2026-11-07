@@ -381,6 +381,12 @@ export const RECORDS_KEY = 'veilcore.records.v1';
 
 let records: StrainRecord[] = [];
 const listeners = new Set<() => void>();
+/**
+ * Whether a load from the registry has finished once on this page (with records or without,
+ * or failed). A page opened straight on a record's address waits for it before saying the
+ * record isn't in this browser (final review, L1).
+ */
+let loadedOnce = false;
 
 const notify = () => listeners.forEach((l) => l());
 
@@ -508,10 +514,10 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
   } catch {
     // The registry could not answer now: keep what is shown, try again at the next sync. A
     // first load still shows what this browser keeps for the registry (outbox.ts).
-    if (before.length === 0) {
-      records = Object.values(outboxRecords()).filter(isStrainRecord);
-      if (records.length) notify();
-    }
+    const first = !loadedOnce;
+    loadedOnce = true;
+    if (before.length === 0) records = Object.values(outboxRecords()).filter(isStrainRecord);
+    if (first || (before.length === 0 && records.length)) notify();
     return;
   }
   // A record's secrets sealed with it (round 4, F5): kept here when this browser has none for
@@ -540,6 +546,7 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
   // A record sealed before round 5 whose name is still in the clear on the registry
   // (CONTRACT.md #28): saved again, with the name inside the box only.
   const nameFix = (loadNoticeOf(RECORDS_KEY).nameInClear ?? 0) > 0;
+  loadedOnce = true;
   notify();
   // Sent again with the next save; not straight after a refusal (saveAll reads the set back
   // with resave off), so a registry that keeps refusing is asked once per sync, not in a loop.
@@ -1043,10 +1050,27 @@ export const sizeWords = (share: number, tr: Translator = enT): string | undefin
 const withNameSalt = <T extends StrainRecord>(r: T): T =>
   r.nameSalt || !r.strainName?.trim() ? r : { ...r, nameSalt: newNameSalt() };
 
+/**
+ * The first record kept in this browser: ask the browser to keep this site's data rather than
+ * clear it to make room (Safari can also clear it after 7 days without a visit; the backup screen
+ * says to keep the backup). The browser decides, and may ask the person; nothing is sent.
+ */
+const keepDataIfFirst = (before: number): void => {
+  if (before !== 0) return;
+  try {
+    const storage = (globalThis as { navigator?: { storage?: { persist?: () => Promise<boolean> } } }).navigator
+      ?.storage;
+    void storage?.persist?.().catch(() => false);
+  } catch {
+    /* not offered here */
+  }
+};
+
 export const createRecord = (input: NewRecordInput): StrainRecord => {
   const record: StrainRecord = withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() });
   // Refused before it is shown or sent: the caller still has what was typed.
   if (tooLargeToSave(record)) throw new Error(enT.t('app.sealed.tooLarge'));
+  keepDataIfFirst(records.length);
   records = [record, ...records];
   // Kept in this browser until the registry has it (L12): a refused or held save never
   // takes away what was typed.
@@ -1065,6 +1089,7 @@ export const createRecordSaved = async (
   input: NewRecordInput,
 ): Promise<{ readonly record: StrainRecord; readonly result: SaveResult }> => {
   const record: StrainRecord = withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() });
+  keepDataIfFirst(records.length);
   records = [record, ...records];
   holderKey();
   putInOutbox([record]);
@@ -1087,6 +1112,7 @@ export const createRecords = async (inputs: readonly NewRecordInput[]): Promise<
     withNameSalt({ licenseIds: [], ...input, id: input.id ?? newRecordId() }),
   );
   const ids = new Set(batch.map((r) => r.id));
+  keepDataIfFirst(records.length);
   const result = await store.save(RECORDS_KEY, [...batch, ...records.filter((r) => !ids.has(r.id))]);
   // Held for the backup (L1): nothing was sent, and the importer stops and says why.
   if (result.held?.length) {
@@ -1416,6 +1442,7 @@ export const startOver = (): void => {
   clearSealedState();
   converted.clear();
   syncedOnce = false;
+  loadedOnce = false;
   vaultProblem = undefined;
   refreshSealedView();
 };
@@ -1439,6 +1466,12 @@ const subscribe = (l: () => void): (() => void) => {
 };
 
 export const useRecords = (): StrainRecord[] => useSyncExternalStore(subscribe, () => records);
+
+/** Whether the records have finished loading once on this page (see loadedOnce). */
+export const recordsLoadedOnce = (): boolean => loadedOnce;
+
+/** recordsLoadedOnce, for a component: re-renders when the first load finishes. */
+export const useRecordsLoaded = (): boolean => useSyncExternalStore(subscribe, () => loadedOnce);
 
 /** What useSealedView gives, outside a component. */
 export const sealedViewNow = (): SealedView => sealedView;

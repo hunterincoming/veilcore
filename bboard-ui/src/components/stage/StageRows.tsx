@@ -13,6 +13,7 @@ import { canAddNextStage, nextStagePath } from './stage-notes';
 import { useRecordT } from '../../i18n/app';
 import { isAnimal } from '../../veilcore/animal-profile';
 import { isStrain } from '../../veilcore/strain-profile';
+import { HANDOFF_STATE_KEY } from '../../ask/handoff';
 
 export const StageRows: React.FC<{
   record: StrainRecord;
@@ -31,6 +32,29 @@ export const StageRows: React.FC<{
           label={t('app.plant.action.nextStage')}
           hint={t('app.plant.action.nextStageHint')}
           onClick={() => navigate(nextStagePath(record.id))}
+        />
+      )}
+      {/* A batch from this record (ask/batch.ts): clones of a plant, offspring of an animal. The
+          record goes as the parent in this tab's router state, never in the address. */}
+      {canAddNextStage(record, labOnly) && !isStrain(record) && (
+        <ActionRow
+          section="log"
+          label={isAnimal(record) ? t('app.ask.batch.recordOffspring') : t('app.ask.batch.cutClones')}
+          hint={isAnimal(record) ? t('app.ask.batch.recordOffspringHint') : t('app.ask.batch.cutClonesHint')}
+          onClick={() =>
+            navigate('/new', {
+              state: {
+                [HANDOFF_STATE_KEY]: {
+                  v: 1,
+                  source: 'record',
+                  kind: isAnimal(record) ? 'animal' : 'plant',
+                  preset: isAnimal(record) ? 'offspring' : 'clones',
+                  count: isAnimal(record) ? 1 : 6,
+                  parents: [record.id],
+                },
+              },
+            })
+          }
         />
       )}
       {!labOnly && <DateLabReport record={record} saved={saved} variant="row" />}

@@ -63,7 +63,7 @@ export const fr: Strings = {
   'm.nav.menu': 'Menu',
   'm.hero.label': 'La preuve de ce que vous détenez',
   'm.hero.title1': 'Datez votre enregistrement.',
-  'm.hero.title2': 'Gardez votre génétique.',
+  'm.hero.title2': 'Gardez votre génétique privée.',
   'm.hero.how': 'Comment ça marche',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Obtenu par',
@@ -212,6 +212,15 @@ export const fr: Strings = {
   'm.privacy.browser.title': 'Conservé dans votre navigateur',
   'm.privacy.browser.text':
     "Votre navigateur conserve, sur cet appareil : votre clé de détenteur (une copie est aussi envoyée à notre serveur, voir plus haut) ; la clé qui verrouille vos enregistrements, qui ne nous est jamais envoyée ; votre propre copie de vos enregistrements ; les clés secrètes de chaque enregistrement, qui verrouillent ses rapports de laboratoire (une copie verrouillée part aussi avec l'enregistrement) ; les codes de laboratoire que vous créez ou utilisez, avec un code de retrait et la clé des informations d'un envoi ; la clé de signature d'un laboratoire si vous en avez configuré une (sa partie privée ne nous est jamais envoyée) ; le rôle choisi ; et votre langue. Votre fichier de secours contient une copie de chaque clé et des codes de laboratoire que vous avez créés. Pour les supprimer, effacez les données de ce site dans les réglages de votre navigateur. Enregistrez d'abord votre copie de secours : sans elle, vous ne pourrez plus retrouver ni ouvrir vos enregistrements.",
+  'm.privacy.deals.title': 'Accords et redevances',
+  'm.privacy.deals.text':
+    'Les messages d’un accord de licence (les conditions, chaque rapport de redevances, sa réponse, « j’ai payé », « reçu », les rappels et avis, et les coordonnées de paiement et d’entreprise du concédant) sont verrouillés avec une clé que seules les deux parties partagent, créée quand elles se lisent le code à 6 chiffres. Notre serveur les conserve verrouillés et les transmet : il ne peut ni les lire, ni les modifier, ni les contrefaire. Il voit à quelle licence un accord appartient, combien de messages il compte et quand chacun est arrivé. Les coordonnées de paiement (un compte bancaire, un lien de paiement ou une adresse Midnight) et les coordonnées d’entreprise (nom légal, adresse et numéro fiscal) voyagent dans ces messages verrouillés : l’autre partie peut les lire, pas nous. Chaque copie que vous téléchargez ou sauvegardez (la trace signée d’un accord, votre fichier de sauvegarde) les contient en clair ; traitez donc ces fichiers comme un relevé bancaire. Le reçu d’un partenaire de paiement peut être lu par quiconque détient le code de preuve du relevé ; seules les deux parties et leur partenaire l’ont. Nous gardons les messages d’un accord jusqu’à ce qu’une partie nous demande de les supprimer ; l’autre partie garde sa propre copie. La licence elle-même est sur Midnight : voir « Ce qui va sur Midnight ».',
+  'm.privacy.chain.title': 'Ce qui va sur Midnight, pour toujours',
+  'm.privacy.chain.text':
+    'Midnight est un réseau public : ce qui y va ne peut être ni modifié ni retiré par personne, nous compris, et tout le monde peut le lire. Votre génétique, vos conditions, votre nom et vos fichiers n’y vont jamais. Ce qui y va : le code de preuve de chaque lot d’enregistrements ; la clé propre d’un enregistrement et son cachet de date ; un code tiré d’un rapport ADN, quand vous datez son association ; quels enregistrements sont liés comme parent et enfant, une fois que les deux détenteurs confirment (un lien ne peut pas être défait) ; qu’un enregistrement porte une licence, une obligation ou une mention de prêteur, et quand cela a changé ; la clé publique d’un laboratoire quand il y signe un certificat ; une valeur que vous choisissez de prouver exactement, en entier ; et, là où ce site permet de payer une redevance en NIGHT, le montant et les deux adresses. Avant chacune de ces étapes, l’application affiche un reçu qui liste exactement ce que l’étape rend public. Un code ou une clé seuls ne disent rien de vous, mais quiconque reçoit de vous un lien de vérification peut suivre dès lors ce qui arrive à cet enregistrement sur le réseau.',
+  'm.privacy.helper.title': 'L’assistant et son modèle facultatif',
+  'm.privacy.helper.text':
+    'Ask, l’assistant de l’application, là où ce site le propose, fonctionne sur votre appareil. Rien de ce que vous y tapez n’est envoyé nulle part ; seul le bouton Enregistrer de l’application envoie quelque chose, et cela part verrouillé vers notre serveur, comme décrit plus haut. Là où ce site propose le modèle de langue facultatif, il est téléchargé une fois depuis Hugging Face, une société distincte : Hugging Face voit votre adresse IP, l’heure, quels fichiers du modèle et que la demande vient de ce site ; nous voyons qu’un téléchargement a commencé. Le modèle tourne sur votre appareil, dans une partie de la page qui ne peut pas atteindre le réseau ; rien de ce que vous tapez n’atteint Hugging Face ni nous, ni à ce moment ni plus tard. Vous pouvez supprimer le modèle depuis le panneau de l’assistant.',
   'm.privacy.hosts.title': 'Hébergement',
   'm.privacy.hosts.text':
     'Ce site est hébergé chez Vercel, qui enregistre les adresses IP et les requêtes. Notre serveur de registre fonctionne chez Railway, qui enregistre les requêtes.',
@@ -225,7 +234,7 @@ export const fr: Strings = {
   'm.privacy.contact': 'Questions : hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Pour les sélectionneurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale et animale : donnez à vos enregistrements une date que personne ne peut antidater. Vos données génétiques restent sur votre ordinateur. Seul un code de preuve va sur Midnight, qui le date.',
+    'Pour les sélectionneurs, les semenciers et les laboratoires qui travaillent sur la génétique végétale et animale : donnez à vos enregistrements une date que personne ne peut antidater. Vos données génétiques restent verrouillées : les fichiers ADN ne quittent jamais votre ordinateur, et ce que vous saisissez arrive verrouillé sur notre serveur. Seul un code de preuve va sur Midnight, qui le date.',
   'm.for.3p':
     "Envoyez du matériel avec un code laboratoire. Le laboratoire signe un accusé de réception avec sa propre clé, et l'enregistrement montre ainsi une seconde partie. L'accusé est une vraie signature, conservée par le registre de VeilCore, pas sur la chaîne. Des conditions comme l'interdiction de multiplier ne sont qu'un exercice dans la démo web.",
   'm.get.1b': 'pour un enregistrement de ce que vous détenez, sans montrer votre génétique.',
@@ -248,7 +257,7 @@ export const fr: Strings = {
     "Les deux contrats sont déployés sur le réseau principal de Midnight. Le contrat des preuves d'un fait n'a pas de clé de maintenance : personne, nous compris, ne peut le modifier.",
   'm.postE.date': '2 nov. 2026',
   'm.postE.tag': 'Preuve',
-  'm.postE.title': 'Un dossier prêt pour un tribunal, pour tout document',
+  'm.postE.title': 'Un dossier de preuve pour tout document',
   'm.postE.text':
     "La page d'un document télécharge désormais un fichier qu'un avocat ou un examinateur peut vérifier sans notre site : l'enregistrement tel que scellé, sa preuve, où il a été daté, une page qui fait les vérifications hors ligne, un résumé à imprimer et un modèle de déclaration. Vous pouvez y joindre une copie du document ; elle est d'abord comparée à l'enregistrement.",
   'm.postD.date': '31 oct. 2026',
@@ -260,7 +269,7 @@ export const fr: Strings = {
   'm.postC.tag': 'Site web',
   'm.postC.title': 'Votre navigateur envoie ses propres transactions',
   'm.postC.text':
-    'Sur veilcore.org, votre navigateur date désormais lui-même l’association d’un rapport ADN, prouve un enregistrement par lien et horodate la clé propre d’un enregistrement, et VeilCore paie les frais de réseau. Les lots sont ancrés sur le réseau principal de Midnight toutes les heures, automatiquement. Aucun portefeuille nécessaire.',
+    'Sur veilcore.org, votre navigateur date désormais lui-même l’association d’un rapport ADN, prouve un enregistrement par lien et horodate la clé propre d’un enregistrement, et VeilCore paie les frais de réseau. Les enregistrements sont regroupés en lots et datés sur le réseau principal de Midnight. Aucun portefeuille nécessaire.',
   'm.postB.date': '11 oct. 2026',
   'm.postB.tag': 'Registre',
   'm.postB.title': 'Premier lot daté aussi sur Bitcoin',
@@ -277,7 +286,7 @@ export const fr: Strings = {
   'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Pas encore',
   'm.live.stamp.t': 'Un horodatage pour votre enregistrement',
-  'm.live.stamp.main': "Oui, par lots, à la main pour l'instant. Votre navigateur n'envoie rien à la chaîne.",
+  'm.live.stamp.main': "Oui, par lots datés sur Midnight. Votre navigateur n'envoie rien à la chaîne.",
   'm.live.stamp.test':
     'Oui. Les lots sont datés automatiquement, ce qui date votre enregistrement. Votre navigateur horodate aussi la clé propre à votre plante ; cet horodatage ne date que la clé.',
   'm.live.share.t': 'Choisir ce que les autres voient',
@@ -308,7 +317,16 @@ export const fr: Strings = {
   'm.live.lic.main': 'Désactivé jusqu’à un dernier essai complet.',
   'm.live.lic.test': 'Oui, avec de vraies transactions : redevances, paiements, transmission d’une licence.',
   'm.live.lic.not': 'Sur veilcore.org, après un dernier essai complet.',
-  // Licenses switched on at veilcore.org (AGREEMENTS_LIVE): the main-network cell (components/site/Home.tsx).
+  // The veilcore.org cell until royalties v2 has worked on mainnet (config/copy.ts ROYALTIES_RUN_ON_MAINNET).
+  'm.live.lic.mainNext':
+    'Les licences sont mises en service avec le déploiement qui les active, une fois qu’une vraie licence aura fonctionné de bout en bout sur le réseau principal. Relevés de redevances et paiements : construits, pas encore en service.',
+  // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
+  'm.live.lic.testNext':
+    'Oui pour les licences, avec de vraies transactions. Relevés de redevances et paiements : construits, et en service ici une fois qu’ils auront fonctionné de bout en bout sur ce réseau.',
+  // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
+  'm.live.lic.next':
+    'Construit. Mis en service avec le prochain déploiement de veilcore.org, une fois qu’une vraie licence aura fonctionné de bout en bout sur le réseau principal.',
+  // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
     'Oui : licences, relevés de redevances et transmission d’une licence, avec de vraies transactions. Payer les redevances sur Midnight même n’existe que sur le site de test.',
   'm.live.chain.t': 'La page de vérification lit Midnight elle-même',
@@ -365,7 +383,7 @@ export const fr: Strings = {
   'm.step1.text':
     "Ce que c'est et d'où ça vient. Le serveur de VeilCore conserve les détails verrouillés, le nom compris, et nous n'avons pas la clé. Un lien de vérification ne porte le nom que si vous l'activez, pour les personnes à qui vous l'envoyez.",
   'm.step2.title': 'En faire le code de preuve',
-  'm.step2.text': 'Sur votre ordinateur. Les données génétiques ne le quittent jamais.',
+  'm.step2.text': 'Sur votre ordinateur. Les données génétiques ne le quittent jamais déverrouillées.',
   'm.step3.title': 'Obtenir une date',
   'm.step3.text':
     "Seul le code de preuve va sur Midnight, dans un lot avec d'autres. La date est celle du bloc où arrive le lot : elle montre que l'enregistrement existait à ce moment-là.",
@@ -439,14 +457,13 @@ export const fr: Strings = {
   'm.faq.3link': 'Les enregistrements comme preuve →',
   'm.faq.4q': 'Que voyez-vous de mes données ?',
   'm.faq.4a':
-    "De vos données génétiques : rien. Votre ordinateur lit les fichiers que vous ajoutez pour faire un code de chacun, et ils ne sont pas téléversés. Un rapport de laboratoire n'arrive sur notre serveur que lorsqu'un laboratoire vous le renvoie : il est verrouillé pour que vous seul puissiez l'ouvrir, et supprimé après 180 jours. Les détails que vous saisissez (le nom de l'enregistrement, obtenteur, dates, notes, conditions des accords) et les noms de vos fichiers sont conservés verrouillés sur notre serveur, et nous n'avons pas la clé. Nous pouvons lire le code de preuve de chaque enregistrement et tout ce que vous choisissez de montrer. Les informations d'échantillon que vous et un laboratoire écrivez pour un envoi sont elles aussi conservées verrouillées, avec une clé qui se trouve dans le code de laboratoire et que nous n'avons pas. Les laboratoires et les développeurs peuvent sceller des enregistrements dans leurs propres systèmes, pour que seul le code de preuve sorte.",
+    "De vos données génétiques déverrouillées : rien. Votre ordinateur lit les fichiers que vous ajoutez pour faire un code de chacun, et ils ne sont pas téléversés. Un rapport de laboratoire n'arrive sur notre serveur que lorsqu'un laboratoire vous le renvoie : il est verrouillé pour que vous seul puissiez l'ouvrir, et supprimé après 180 jours. Les détails que vous saisissez (le nom de l'enregistrement, obtenteur, dates, notes, conditions des accords) et les noms de vos fichiers sont conservés verrouillés sur notre serveur, et nous n'avons pas la clé. Nous pouvons lire le code de preuve de chaque enregistrement et tout ce que vous choisissez de montrer. Les informations d'échantillon que vous et un laboratoire écrivez pour un envoi sont elles aussi conservées verrouillées, avec une clé qui se trouve dans le code de laboratoire et que nous n'avons pas. Les laboratoires et les développeurs peuvent sceller des enregistrements dans leurs propres systèmes, pour que seul le code de preuve sorte.",
   'm.faq.4link1': 'Ce que la démo conserve →',
   'm.faq.4link2': "Guide d'intégration →",
   'm.faq.6q': 'Combien ça coûte ?',
-  'm.faq.6a':
-    "Créer un enregistrement sur ce site ne coûte rien aujourd'hui. Vérifier un enregistrement est gratuit, toujours.",
+  'm.faq.6a': 'Gratuit. Créer un enregistrement sur ce site et vérifier n’importe quel enregistrement sont gratuits.',
   'm.demo.lede':
-    "Sans inscription, sans portefeuille. C'est une version de test : utilisez des informations fictives. Les enregistrements sont ancrés par lots, à la main pour l'instant ; les licences et les accords de laboratoire sont simulés, et les associations de rapports ADN ne sont pas encore datées.",
+    "Sans inscription, sans portefeuille. C'est une version de test : utilisez des informations fictives. Les enregistrements sont datés par lots sur Midnight ; les licences et les accords de laboratoire sont simulés, et les associations de rapports ADN ne sont pas encore datées.",
   'm.demo.privacy': 'Ce que la démo conserve →',
   'm.updates.more': 'Toutes les actualités',
   'm.stat3.s': "Pas encore d'audit de sécurité indépendant. Nos propres revues des contrats sont publiques.",

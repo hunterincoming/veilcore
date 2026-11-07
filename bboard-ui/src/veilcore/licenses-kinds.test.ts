@@ -92,8 +92,10 @@ describe('licenses on every kind of record', () => {
     }
     expect(rightsLabel('breed+sell')).toBe('Breed, collect + sell');
     expect(basisLabel('per-offspring')).toBe('per offspring');
-    // A value no kind lists (written by hand, or by a future version) is shown as saved.
-    expect(basisLabel('per-acre')).toBe('per-acre');
+    // A value no kind lists (written by hand, or by a future version) is shown as saved, named
+    // as "other" so it never reads as a label this app knows (panel review).
+    expect(basisLabel('per-acre')).toBe('Other: per-acre');
+    expect(rightsLabel('grow-and-sell' as never)).toBe('Other: grow-and-sell');
   });
 
   it("each kind's form offers only its own rights and bases, in its own words", () => {
@@ -123,12 +125,12 @@ describe('licenses on every kind of record', () => {
       }
     };
     const animal = html('animal');
-    expect(animal).toContain('sire or dam, both holders confirming');
+    expect(animal).toContain('with this animal as sire or dam');
     expect(animal).toContain('no resale of straws');
     expect(animal).not.toMatch(/cultivar|Cultivate/);
     const strain = html('strain');
     expect(strain).toContain('Royalty on derived strains (%)');
-    expect(strain).toContain('Undeclared derivation is not detected');
+    expect(strain).toContain('as derived from this one');
     expect(strain).not.toMatch(/cultivar|Cultivate|offspring/i);
     const plant = html('plant');
     expect(plant).toContain('Royalty on offspring (%)');

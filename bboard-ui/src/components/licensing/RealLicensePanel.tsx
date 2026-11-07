@@ -28,8 +28,10 @@ import {
   type License,
   type OnChainLicense,
 } from '../../veilcore/licenses';
-import { useDeal, type DealParty } from '../../veilcore/deal-client';
+import { dealParty, useDeal } from '../../veilcore/deal-client';
 import { RoyaltyLedger } from './RoyaltyLedger';
+import { getRecord } from '../../veilcore/records';
+import { hasOffspringRoyalty, isControlledTerms } from '../../veilcore/royalty-terms';
 import { OffspringRoyalty } from './OffspringRoyalty';
 import { HandOnIssuer } from './HandOnIssuer';
 import {
@@ -51,21 +53,10 @@ import { issuerSteps } from './steps';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { useT } from '../../i18n/app';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 const POLL_MS = 8_000;
 
-/** The issuer's side of the deal's channel, once both keys and the license are known. */
-export const dealParty = (oc: OnChainLicense): DealParty | undefined =>
-  oc.partySecret && oc.licenseeNonce && oc.commitment && oc.issuerRecord
-    ? {
-        side: 'issuer',
-        mySecret: oc.partySecret,
-        theirPublic: oc.licenseeNonce,
-        commitment: oc.commitment,
-        issuerRecord: oc.issuerRecord,
-        invite: { id: oc.inviteId, token: oc.issuerToken },
-      }
-    : undefined;
 /** Once live: read the chain now and then, so a revoke from another device shows. */
 const LIVE_POLL_MS = 60_000;
 
@@ -308,9 +299,18 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
     });
 
   // A post that didn't reach the registry after the issue landed: send it again (same transaction).
-  const repost = () =>
-    oc?.issueTx &&
-    void postIssued(oc.inviteId, oc.issueTx, oc.issuerToken).then(() => onToast(tr.t('app.lic.real.sentAgain')));
+  // It only posts the notice; their page also reads the chain itself.
+  const repost = () => {
+    if (!oc?.issueTx) return;
+    setError(undefined);
+    postIssued(oc.inviteId, oc.issueTx, oc.issuerToken)
+      .then(() => onToast(tr.t('app.lic.real.sentAgain')))
+      .catch((e: unknown) => {
+        const error = e instanceof Error ? e.message : String(e);
+        onToast(tr.t('app.lic.real.resendFailed', { error }));
+        setError(tr.t('app.lic.real.resendFailed', { error }));
+      });
+  };
 
   const startOverButton = (
     <Button variant="text" color="inherit" onClick={startOver}>
@@ -376,6 +376,11 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
               >
                 {code ?? '…'}
               </Typography>
+              {!code && (
+                <Typography variant="body2" color="text.secondary" role="status" data-code-making="">
+                  {tr.t('app.lic.code.making')}
+                </Typography>
+              )}
               <Typography variant="body2" color="text.secondary">
                 {tr.t('app.lic.real.differentCode')}
               </Typography>
@@ -383,6 +388,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
                 control={<Checkbox checked={codeChecked} onChange={(e) => setCodeChecked(e.target.checked)} />}
                 label={tr.t('app.lic.real.sameCode')}
               />
+              <DisclosureReceipt circuits={['issueLicense']} />
               <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
                 <Button
                   variant="contained"
@@ -414,6 +420,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
                 label={tr.t('app.lic.real.cancel')}
                 question={tr.t('app.lic.real.cancelQ')}
                 confirmLabel={tr.t('app.lic.real.cancelYes')}
+                receipt={<DisclosureReceipt circuits={['revokeLicense']} dense />}
                 disabled={blocked || call.busy}
                 onConfirm={(r) => void revoke(r, false)}
               />
@@ -449,27 +456,32 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
             {agreed && ` ${tr.t('app.lic.real.agreedOn', { date: tr.date(agreed.at) })}`}
           </Alert>
           <HowItWorks label={tr.t('app.lic.real.liveMeans')}>{tr.t('app.lic.real.liveText')}</HowItWorks>
-          {party && oc.termsSentAt && license.type === 'license' && (
-            <RoyaltyLedger
-              party={party}
-              side="issuer"
-              terms={license.terms}
-              entries={deal.entries}
-              refresh={deal.refresh}
-              agreed={{
-                agreementType: license.type,
-                agreementFingerprint: license.agreementFingerprint,
-                notBefore: oc.termsSentAt,
-              }}
-            />
-          )}
-          {party && oc.termsSentAt && (Number(license.terms.offspringRoyaltyPct) || 0) > 0 && (
+          {party &&
+            oc.termsSentAt &&
+            (license.type === 'license' ||
+              (license.type === 'breeder-share' && hasOffspringRoyalty(license.terms))) && (
+              <RoyaltyLedger
+                party={party}
+                side="issuer"
+                terms={license.terms}
+                agreementType={license.type}
+                cannabis={isControlledTerms(license.terms, getRecord(license.recordId))}
+                entries={deal.entries}
+                refresh={deal.refresh}
+                agreed={{
+                  agreementType: license.type,
+                  agreementFingerprint: license.agreementFingerprint,
+                  notBefore: oc.termsSentAt,
+                }}
+              />
+            )}
+          {party && oc.termsSentAt && hasOffspringRoyalty(license.terms) && (
             <OffspringRoyalty
               side="issuer"
               party={party}
               entries={deal.entries}
               refresh={deal.refresh}
-              pct={license.terms.offspringRoyaltyPct ?? ''}
+              terms={license.terms}
               obligation={license.agreementFingerprint}
               beneficiary={oc.identity}
               issuerSecret={keys.recordSecret}
@@ -512,6 +524,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
             question={tr.t('app.lic.real.revokeQ')}
             confirmLabel={tr.t('app.lic.detail.revokeYes')}
             reason={tr.t('app.lic.real.revokeReason')}
+            receipt={<DisclosureReceipt circuits={['revokeLicense']} dense />}
             disabled={blocked || call.busy}
             onConfirm={(r) => void revoke(r, true)}
           />

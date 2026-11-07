@@ -244,7 +244,7 @@ export const animal = {
   'app.animal.v.app.lab.send.takenFromHelp': 'Die Einzeltierkennung des Tieres oder wo die Probe genommen wurde.',
   'app.animal.v.app.lic.row.offspringValue': '{pct} %, auf Nachkommen, die von diesem Tier angemeldet werden',
   'app.animal.v.app.lic.f.offspringHelp':
-    'Gilt für Nachkommen, die von diesem Datensatz angemeldet werden (mit ihm als Vater oder Mutter erfasst, von beiden Inhabern bestätigt). Nachkommen, die niemand erfasst, werden nicht erkannt. Leer lassen, wenn keine.',
+    'Zählt nur Nachkommen, die in VeilCore mit diesem Tier als Vater oder Mutter erfasst sind. Leer lassen, wenn keine.',
   'app.animal.v.app.lic.f.extraHelpDeal':
     'Alles, was sonst zum Geschäft gehört, in Ihren eigenen Worten. Zum Beispiel: höchstens zwei Würfe oder Abkalbungen, kein Weiterverkauf von Pailletten, Nachkommen bei einem genannten Zuchtverband eingetragen.',
   'app.animal.v.app.lic.detail.thisCultivar': 'diesem Tier',
@@ -259,4 +259,11 @@ export const animal = {
   'app.animal.v.app.lic.off.datePlant': 'Einen Datensatz datieren',
   'app.animal.v.app.lic.off.yourRecord': 'Ihr Datensatz zu dieser Genetik',
   'app.animal.v.app.lic.off.waitName': 'Warten, bis die andere Seite ihren Datensatz zu dieser Genetik nennt.',
+  // components/chain/FamilyOnChain.tsx
+  'app.animal.v.app.family.intro':
+    'Abstammung, der beide Inhaber zugestimmt haben, auf der Chain. Sie erlaubt jedem, die Linie eines Tieres zu prüfen, und trägt die Nachkommen-Lizenzgebühr eines Elternteils zu dessen Nachkommen. Eine bestätigte Verknüpfung ist öffentlich und dauerhaft: Sie lässt sich nicht zurücknehmen, und Lizenzgebühren, die der Inhaber des Elternteils später übernimmt, erscheinen ebenfalls in der Linie dieses Datensatzes.',
+  'app.animal.v.app.family.namesParent':
+    '{who} benennt diesen Datensatz als Elternteil. Bestätigen Sie nur, wenn er wirklich von diesem Tier stammt. Die Bestätigung ist öffentlich und dauerhaft, und alles, was auf diesem Tier geschuldet ist, jetzt oder später, erscheint in seiner Linie.',
+  'app.animal.v.app.family.confirmQ':
+    'Bestätigen, dass dieses Tier ein Elternteil von {who} ist? Bestätigen Sie nur einen Datensatz, von dem Sie wissen, dass er von ihr stammt. Das ist öffentlich und dauerhaft: Seine Linie und alles, was auf diesem Tier jetzt oder später geschuldet ist, erscheinen darauf.{fixes}',
 } satisfies Partial<AppTranslation>;

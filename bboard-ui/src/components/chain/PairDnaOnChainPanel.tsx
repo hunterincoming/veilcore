@@ -23,6 +23,7 @@ import { useChainCall } from './useChainCall';
 import { ChainStatusLine, TxLine } from './ChainStatusLine';
 import { InEnglishNote, useT } from '../../i18n/app';
 import { DatingPausedNotice } from '../DatingPausedNotice';
+import { DisclosureReceipt } from './DisclosureReceipt';
 
 const download = (name: string, text: string): void => {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -170,6 +171,7 @@ export const PairDnaOnChainPanel: React.FC<{ recordId: string }> = ({ recordId }
             {t('app.pair.chain.earlier')}
           </Alert>
         )}
+        <DisclosureReceipt circuits={['pairDna']} />
         <DatingPausedNotice on={call.paused} />
         <Button
           variant="outlined"

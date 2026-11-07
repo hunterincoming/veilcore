@@ -14,7 +14,7 @@ export const licensing = {
   'app.lic.fee.note': 'VeilCore手数料（取引額の{pct}%）: 計算のみで、徴収はしません。',
   'app.lic.rights.cultivate': '栽培のみ',
   'app.lic.rights.cultivate+propagate': '栽培と増殖',
-  'app.lic.rights.full-transfer': '権利の全面譲渡',
+  'app.lic.rights.full-transfer': '保有者が持つ権利の譲渡',
   'app.lic.rights.breed': '繁殖のみ',
   'app.lic.rights.breed+collect': '繁殖と採取',
   'app.lic.rights.breed+sell': '繁殖・採取・販売',
@@ -24,6 +24,7 @@ export const licensing = {
   'app.lic.state.draft': '下書き',
   'app.lic.state.sent': '送付済み、相手の署名待ち',
   'app.lic.state.active': '有効と記録',
+  'app.lic.state.activeOffChain': 'ここで有効と記録（Midnight上ではない）',
   'app.lic.state.expired': '期限切れ',
   'app.lic.state.revoked': '取り消し済み',
   'app.lic.type.license': 'ライセンス契約',
@@ -146,6 +147,7 @@ export const licensing = {
   'app.lic.basis.per-dose': '1回分あたり',
   'app.lic.basis.per-offspring': '産子1頭あたり',
   'app.lic.basis.per-batch': '1ロットあたり',
+  'app.lic.builder.loading': '記録を読み込んでいます…',
   'app.lic.builder.notHere': 'この記録はこのブラウザにないため、ここでは契約を添付できません。',
   'app.lic.builder.records': 'あなたの記録',
   'app.lic.builder.renewHeading': '更新・変更: {type}',
@@ -161,7 +163,7 @@ export const licensing = {
   'app.lic.f.rightsHelp': 'ライセンシーが遺伝資源でしてよいことです。',
   'app.lic.f.r.cultivate': '栽培のみ',
   'app.lic.f.r.propagate': '栽培と増殖（挿し木または種子）',
-  'app.lic.f.r.full': '権利の全面譲渡',
+  'app.lic.f.r.full': '保有者が持つ権利の譲渡（登録された権利はその登録機関で譲渡します）',
   'app.lic.f.r.breed': '自分の動物との繁殖のみ',
   'app.lic.f.r.breed+collect': '繁殖と、自家用の精液・胚の採取',
   'app.lic.f.r.breed+sell': '繁殖、採取と、精液・胚・繁殖用個体の販売',
@@ -187,8 +189,7 @@ export const licensing = {
   'app.lic.f.b.dose': '1回分あたり（ストローまたは胚）',
   'app.lic.f.b.offspring': '産子1頭あたり',
   'app.lic.f.b.batch': '生産ロットあたり',
-  'app.lic.f.offspringHelp':
-    'この記録から申告された子孫（この記録を親として記録され、双方の保有者が確認したもの）に適用されます。申告されない増殖は検出されません。なければ空欄にしてください。',
+  'app.lic.f.offspringHelp': 'この株から育ったとVeilCoreに記録された株だけを数えます。なければ空欄にしてください。',
   'app.lic.f.sublicense': 'サブライセンス可',
   'app.lic.f.exclusive': '独占',
   'app.lic.f.extraHelpDeal': '取引に含まれるその他のことを、あなた自身の言葉で。',
@@ -356,9 +357,11 @@ export const licensing = {
   'app.lic.ledger.l.unknownAmount': 'このページでは計算できない額',
   'app.lic.ledger.r.aPartner': '決済パートナー',
   'app.lic.ledger.r.checked':
-    '{partner}（VeilCoreが確認したパートナー）経由で支払い: {date}に{to}へ{amount} {currency}、参照番号 {ref}。パートナーが署名し、ここで確認済みです。',
+    '{partner}（あなたが指定したパートナーの鍵）経由で支払い: {date}に{to}へ{amount} {currency}、参照番号 {ref}。その鍵で署名され、ここで確認済みです。',
   'app.lic.ledger.r.unchecked':
-    '{partner}（VeilCoreが確認していないパートナー）経由で支払い: {date}に{to}へ{amount} {currency}、参照番号 {ref}。パートナーが署名し、ここで確認済みです。誰でもどんな名前でもパートナーとして署名できます。頼る前に、お金が届いたことを確認してください。',
+    '鍵{key}で署名された受領証です。レジストリはこの鍵を{partner}と呼んでいますが、VeilCoreを含め誰も確認していません: {date}に{to}へ{amount} {currency}、参照番号 {ref}。署名はここで確認済みです。頼る前に、鍵をパートナーに直接確認し、お金が届いたことも確かめてください。',
+  'app.lic.ledger.r.trust': 'この鍵を確認した：信頼する',
+  'app.lic.ledger.r.forget': 'この鍵の信頼をやめる',
   'app.lic.ledger.r.mismatch': '一致しない点: {what}。',
   'app.lic.pay.method': 'Midnight上で{code}',
   'app.lic.pay.notAmount': '「{amount}」は金額ではありません。',
@@ -398,7 +401,7 @@ export const licensing = {
     'Midnightで確認済み: 取引 {tx}（ブロック {block}）で{amount} {code}があなたのアドレスに届きました。相手やVeilCoreからではなく、Midnightのインデクサーから読み取っています。',
   'app.lic.pay.checked':
     'Midnightで確認済み: 取引 {tx}で{amount} {code}があなたのアドレスに届きました。相手やVeilCoreからではなく、Midnightのインデクサーから読み取っています。',
-  'app.lic.off.title': '子孫へのロイヤリティ: {pct}%',
+  'app.lic.off.title': '子孫へのロイヤリティ: {pct}',
   'app.lic.off.intro':
     'Midnight上では、この植物についてのライセンシー自身の記録に付きます。そのため、双方の保有者が確認した子孫はすべて、誰かが系譜を確認するときにこれを表示します。ライセンシーが受け入れ、解除できるのは育成者だけです。',
   'app.lic.off.dateFirst': 'まずこの遺伝資源の植物を日付記録し、それからここで指定してください。',
@@ -407,7 +410,7 @@ export const licensing = {
   'app.lic.off.nameIt': '指定する',
   'app.lic.off.waitName': '相手がこの植物の記録を指定するのを待っています。',
   'app.lic.off.theirRecord': '相手の記録: <b>{name}</b> {key} · {state}',
-  'app.lic.off.inForce': 'Midnight上で有効',
+  'app.lic.off.inForce': 'Midnight上に記録済み',
   'app.lic.off.proposed': '提案済み、ライセンシーの受け入れ待ち',
   'app.lic.off.notYet': 'まだMidnight上にありません',
   'app.lic.off.checking': '確認中…',
@@ -506,7 +509,12 @@ export const licensing = {
   'app.lic.real.issued':
     'Midnight上で発行しました。{who}が条件を読み、同意して有効化するのを待っています。やり方は相手のリンクに表示されます。このページはチェーンを自分で読み、相手が済ませると自動で進みます。',
   'app.lic.real.copyAgain': '相手のリンクをもう一度コピー',
-  'app.lic.real.resend': '相手に表示されませんか？もう一度送る',
+  'app.lic.real.resend': '発行のお知らせをもう一度投稿',
+  'app.lic.real.resendFailed': '発行のお知らせを投稿できませんでした：{error}',
+  'app.lic.code.making': 'コードを作成しています。数秒かかります。',
+  'app.lic.inv.notThisDevice':
+    'この端末またはブラウザには、このリンクを受け入れたコピーがありません。以前ここで受け入れた場合は、バックアップを復元してからリンクをもう一度開いてください。',
+  'app.lic.inv.restore': 'バックアップを復元',
   'app.lic.real.cancel': 'キャンセルする',
   'app.lic.real.cancelQ':
     'このライセンスをキャンセルしますか？相手は有効化できなくなります。これはMidnightに記録され、元に戻せません。',
@@ -561,9 +569,23 @@ export const licensing = {
   'app.lic.inv.waitLicensor':
     'ライセンサーのページの応答を待っています。応答があると、ここにあなたのコードが表示されます。',
   'app.lic.inv.takeOverTerms': 'ライセンスを引き継ぐ条件（現在の保有者と同じ）:',
+  'app.lic.other': 'その他：{value}',
   // What a license here is and isn't (shown where terms are set and agreed).
   'app.lic.evidenceNote':
-    'ここでのライセンスは、双方が合意した内容の署名・日付入りの記録であり、法的助言ではありません。大麻に関する契約の履行を認めなかった裁判所もあるため、重要なものはご自身の弁護士に確認してください。',
+    'ここでのライセンスは、双方が合意した内容の署名・日付つきの記録であり、法的助言ではありません。重要なものはご自身の弁護士に確認してもらってください。',
+  'app.lic.controlled.q': 'これは大麻・ヘンプその他の規制植物ですか？',
+  'app.lic.controlled.yes': 'はい',
+  'app.lic.controlled.no': 'いいえ',
+  'app.lic.controlled.hint': 'この記録の種は大麻のようなので「はい」を選んでいます。違う場合は変更してください。',
+  'app.lic.controlled.courts': '大麻に関する契約の履行を認めなかった裁判所もあります。',
+  'app.lic.controlled.border':
+    '大麻やその植物素材を州境・国境を越えて移すことは、ほとんどの地域で犯罪です。双方で合法な米国の2つの州の間でも同じです。地域は双方が合法に栽培・販売できる場所に限り、国境・州境を越えて送らないでください。',
+  'app.lic.controlled.japan':
+    '日本では、免許なく大麻を栽培・販売・使用することは犯罪です。日本での取引には使わないでください。',
+  'app.lic.controlled.regulator':
+    '売上に対するロイヤリティは、ライセンシーの大麻規制当局への届出が必要な場合があります。',
+  'app.lic.inv.revokeNote':
+    'ライセンサーは、条件の内容にかかわらず、いつでもMidnight上でこのライセンスを無効にできます。無効にしても二人の間の契約は終わりません。その場合、署名済みの条件があなたの証拠になります。',
   'app.lic.inv.iAgree': 'これらの条件に同意します',
   'app.lic.inv.agree': '同意する',
   'app.lic.inv.waitHandOn':
@@ -655,7 +677,7 @@ export const licensing = {
     'この貸し手の請求のリンクは不完全です。受け取ったとおり、#以降もすべて含めてもう一度開いてください。',
   'app.lic.claim.notHeld': 'この端末はその記録を保有していません。',
   'app.lic.claim.notWaiting': 'この貸し手の請求はもう待機中ではありません。何も送信していません。',
-  'app.lic.claim.hInForce': 'あなたの記録に貸し手の請求が設定されています',
+  'app.lic.claim.hInForce': 'あなたの記録に貸し手の請求が記録されています',
   'app.lic.claim.h': 'あなたの記録への貸し手の請求',
   'app.lic.claim.from':
     '依頼者: <b>{name}</b>（相手自身の名乗りです。融資のときと同じように相手を確認してください）· チェーン上の鍵 {key}',
@@ -666,15 +688,15 @@ export const licensing = {
     'Midnightには、<b>{record}</b>で待機中のこのような貸し手の請求はありません。取り下げられたか、拒否されたか、作られていません。何もする必要はありません。',
   'app.lic.claim.asks': '<b>{name}</b>が<b>{record}</b>への貸し手の請求の記録を求めています（Midnightで確認済み）。',
   'app.lic.claim.ifAccept':
-    '受け入れると、この記録を確認する誰にでも、{name}が解除するまで貸し手の請求が設定されていることが表示されます。解除できるのは相手だけです。記録が移ったり、あなたが使えなくなったりはしません。',
+    '受け入れると、この記録を確認する誰にでも、{name}が解除するまで貸し手の請求が記録されていることが表示されます。解除できるのは相手だけです。記録が移ったり、あなたが使えなくなったりはしません。',
   'app.lic.claim.accept': '貸し手の請求を受け入れる',
   'app.lic.claim.reject': '拒否する',
   'app.lic.claim.rejectQ': '{name}の貸し手の請求を拒否しますか？Midnightから消去されます。相手は改めて依頼できます。',
   'app.lic.claim.rejectYes': 'はい、拒否します',
   'app.lic.claim.how':
-    '貸し手は、記録が自分への担保になっていることを示すために貸し手の請求を使います。そうすれば、黙って二重に担保に入れることはできません。法的な登記ではなく、貸し手は自分の書類を別に届け出ます。条件はお二人の間のもので、Midnightに表示されるのは貸し手の請求があることと、誰が解除できるかだけです。ネットワーク手数料はVeilCoreが支払います。',
+    '貸し手は、この記録を確認する誰にでも請求が記録されていることが見えるように、貸し手の請求を使います。同じ素材が別の場所で担保に入れられるのを防ぐものではなく、法的な登記でもありません。貸し手は自分の書類を別に届け出ます。条件はお二人の間のもので、Midnightに表示されるのは貸し手の請求があることと、誰が解除できるかだけです。ネットワーク手数料はVeilCoreが支払います。',
   'app.lic.claim.inForce':
-    'Midnight上で有効です。解除できるのは{name}だけです。{record}を確認する誰にでも、貸し手の請求が設定されていることが表示されます。',
+    'Midnight上に記録済みです。解除できるのは{name}だけです。{record}を確認する誰にでも、貸し手の請求が記録されていることが表示されます。',
   'app.lic.claim.readError': 'いまMidnightを読み取れませんでした: {error}',
   'app.lic.claim.thisRecord': 'この記録',
   'app.lic.steps.i.link': 'リンクを作って相手に送る',
@@ -695,24 +717,24 @@ export const licensing = {
   'app.lic.handon.steps.n.wait': '現在の保有者が引き継ぎ、ライセンサーが承認する',
   'app.lic.next.period': '{from}〜{to}',
   'app.lic.next.i.payout': '受け取り方法を相手に伝えてください。',
-  'app.lic.next.i.check': '{period}の相手の明細を確認し、承認するか異議を出してください。',
+  'app.lic.next.i.check': '{period}の相手の報告を確認し、承認するか修正を依頼してください。',
   'app.lic.next.i.confirm':
     '相手は{period}分として{amount} {currency}を支払ったと言っています。届いたか確認してから、確認済みにしてください。',
   'app.lic.next.i.waitPay': '相手が{amount} {currency}を支払うのを待っています。',
-  'app.lic.next.i.disputed': '{period}に異議を出しました。訂正された明細を待っています。',
-  'app.lic.next.i.nothing': 'することはありません。相手が期間ごとに明細を提出します。',
+  'app.lic.next.i.disputed': '{period}の修正を依頼しました。修正した報告を待っています。',
+  'app.lic.next.i.nothing': '今はすることはありません。相手が期間ごとに報告を送ります。',
   'app.lic.next.l.payOnChain':
     '{amount} {currency}をウォレットからMidnight上で支払ってください。下の「…で支払う」をタップします。',
   'app.lic.next.l.pay': '{amount} {currency}を{method}で{account}に支払い、「支払いました」をタップしてください。',
-  'app.lic.next.l.waitPayout': '相手が明細を承認しました。相手が受け取り方法を伝えるのを待っています。',
-  'app.lic.next.l.disputed': '相手が{period}に異議を出しました。訂正した明細を提出してください。',
-  'app.lic.next.l.disputedNote': '相手が{period}に異議を出しました:「{note}」。訂正した明細を提出してください。',
-  'app.lic.next.l.waitCheck': '相手が{period}のあなたの明細を確認するのを待っています。',
+  'app.lic.next.l.waitPayout': '報告が承認されました。相手が受け取り方法を伝えるのを待っています。',
+  'app.lic.next.l.disputed': '{period}の修正を依頼されました。修正した報告を送ってください。',
+  'app.lic.next.l.disputedNote': '{period}の修正を依頼されました：「{note}」。修正した報告を送ってください。',
+  'app.lic.next.l.waitCheck': '相手が{period}の報告を確認するのを待っています。',
   'app.lic.next.l.waitConfirm': '相手が支払いの受け取りを確認するのを待っています。',
-  'app.lic.next.l.file': '期間が終わったら明細を提出してください。',
+  'app.lic.next.l.file': '期間が終わったら報告を送ってください。',
   'app.lic.lend.title': '貸し手として請求を記録する',
   'app.lic.lend.intro':
-    '育成者の記録やライセンスを担保に融資しますか？その記録があなたへの担保になっていることをMidnightに記録すれば、黙って二重に担保に入れることはできません。保有者は自分の端末で受け入れ、解除できるのはあなただけです。法的な登記ではありません。書類はいつもどおり別に届け出てください。',
+    '育成者の記録やライセンスを担保に融資しますか？その記録に対する貸し手の請求をMidnightに記録すれば、記録を確認する誰にでもそれが見えます。同じ素材が別の場所で担保に入れられるのを防ぐものではなく、法的な登記でもありません。書類はいつもどおり別に届け出てください。保有者は自分の端末で受け入れ、解除できるのはあなただけです。',
   'app.lic.lend.name': '保有者に表示されるあなたの名前',
   'app.lic.lend.nameHelp':
     'あなたの機関の名前です。保有者はあなたの鍵の横にこれを見て、融資のときと同じようにあなたを確認します。',
@@ -744,7 +766,7 @@ export const licensing = {
   'app.lic.lend.withdrawQ': '保有者が答える前にこの請求を取り下げますか？Midnightに記録されます。',
   'app.lic.lend.withdrawYes': 'はい、取り下げます',
   'app.lic.lend.inForce':
-    'Midnight上で有効です。記録を確認する誰にでも、あなたが解除するまで請求が設定されていることが表示されます。',
+    'Midnight上に記録済みです。記録を確認する誰にでも、あなたが解除するまで請求が記録されていることが表示されます。',
   'app.lic.lend.release': '解除する（返済済み）',
   'app.lic.lend.releaseQ':
     'この請求を解除しますか？記録を確認する人にはもう表示されません。Midnightに記録され、元に戻せません。',
@@ -753,7 +775,7 @@ export const licensing = {
   'app.lic.lend.withdrawn': '取り下げました。',
   'app.lic.lend.gone': 'Midnight上にありません。保有者が拒否したか、まだ届いていません。',
   'app.lic.lend.notWaiting': 'この請求はもう待機中ではありません。何も送信していません。',
-  'app.lic.lend.notInForce': 'この請求は有効ではありません。何も送信していません。',
+  'app.lic.lend.notInForce': 'この請求はMidnight上に記録されていません。何も送信していません。',
   'app.lic.lend.badRecord': '確認リンクでもチェーン上の鍵でもありません。保有者に記録の確認リンクを頼んでください。',
   'app.lic.lend.ownRecord': 'それはあなた自身の貸し手の鍵で、記録ではありません。',
   'app.lic.lend.fromCheck.title': 'この記録を担保に融資しますか？',

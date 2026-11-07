@@ -253,7 +253,7 @@ export const animal = {
   'app.animal.v.app.lab.send.takenFromHelp': "The animal's individual ID, or where the sample was taken.",
   'app.animal.v.app.lic.row.offspringValue': '{pct}%, on offspring declared from this animal',
   'app.animal.v.app.lic.f.offspringHelp':
-    'Applies to offspring declared from this record (logged with it as sire or dam, both holders confirming). Offspring nobody logs are not detected. Leave blank if none.',
+    'Only counts offspring recorded in VeilCore with this animal as sire or dam. Leave blank if none.',
   'app.animal.v.app.lic.f.extraHelpDeal':
     'Anything else that’s part of the deal, in your own words. For example: at most two litters or calvings, no resale of straws, offspring registered with a named breed society.',
   'app.animal.v.app.lic.detail.thisCultivar': 'this animal',
@@ -268,4 +268,11 @@ export const animal = {
   'app.animal.v.app.lic.off.datePlant': 'Date a record',
   'app.animal.v.app.lic.off.yourRecord': 'Your record of these genetics',
   'app.animal.v.app.lic.off.waitName': 'Waiting for them to name their record of these genetics.',
+  // components/chain/FamilyOnChain.tsx
+  'app.animal.v.app.family.intro':
+    'Parentage both holders agreed to, on chain. It is what lets anyone check an animal’s line, and what carries a parent’s offspring royalty down to its descendants. A confirmed link is public and permanent: it can’t be undone, and royalties the parent’s holder takes on later show on this record’s line too.',
+  'app.animal.v.app.family.namesParent':
+    '{who} names this record as a parent. Confirm only if it really came from this animal. Confirming is public and permanent, and anything owed on this animal, now or later, will show on its line.',
+  'app.animal.v.app.family.confirmQ':
+    'Confirm this animal is a parent of {who}? Only confirm a record you know came from it. This is public and permanent: its line, and anything owed on this animal now or later, will show on it.{fixes}',
 };

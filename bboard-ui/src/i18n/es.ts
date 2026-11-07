@@ -64,7 +64,7 @@ export const es: Strings = {
   'm.nav.menu': 'Menú',
   'm.hero.label': 'Prueba de lo que usted tiene',
   'm.hero.title1': 'Feche su registro.',
-  'm.hero.title2': 'Conserve su genética.',
+  'm.hero.title2': 'Mantenga su genética en privado.',
   'm.hero.how': 'Cómo funciona',
   'm.hero.cultivar': 'Cultivar',
   'm.hero.bredBy': 'Obtenido por',
@@ -210,6 +210,15 @@ export const es: Strings = {
   'm.privacy.browser.title': 'Se guarda en su navegador',
   'm.privacy.browser.text':
     'Su navegador guarda, en este dispositivo: su clave de titular (también se envía una copia a nuestro servidor, como se indica arriba); la clave que bloquea sus registros, que nunca se nos envía; su propia copia de sus registros; las claves secretas de cada registro, que bloquean sus informes de laboratorio (una copia bloqueada también va con el registro); los códigos de laboratorio que crea o usa, con un código de recogida y la clave de los datos de un envío; la clave de firma de un laboratorio si configuró una (su parte privada nunca se nos envía); el rol que eligió; y su idioma. Su archivo de copia de seguridad contiene una copia de cada clave y de los códigos de laboratorio que creó. Para borrarlos, elimine los datos de este sitio en la configuración de su navegador. Guarde antes su copia de seguridad: sin ella, no podrá encontrar ni abrir sus registros de nuevo.',
+  'm.privacy.deals.title': 'Acuerdos y regalías',
+  'm.privacy.deals.text':
+    'Los mensajes de un acuerdo de licencia (las condiciones, cada informe de regalías, su respuesta, «pagué», «recibido», recordatorios y avisos, y los datos de cobro y de empresa del licenciante) van cerrados con una clave que solo comparten las dos partes, creada cuando se leen el código de 6 cifras. Nuestro servidor los guarda cerrados y los transmite: no puede leerlos, cambiarlos ni falsificarlos. Sí ve a qué licencia pertenece un acuerdo, cuántos mensajes tiene y cuándo llegó cada uno. Los datos de cobro (una cuenta bancaria, un enlace de pago o una dirección de Midnight) y los datos de empresa (nombre legal, dirección y número fiscal) viajan dentro de esos mensajes cerrados: la otra parte puede leerlos, nosotros no. Toda copia que descargue o respalde (el registro firmado de un acuerdo, su archivo de respaldo) los contiene en claro, así que trate esos archivos como un extracto bancario. El recibo de un socio de pagos puede leerlo quien tenga el código de prueba de la declaración; solo la tienen las dos partes y su socio. Guardamos los mensajes de un acuerdo hasta que una parte nos pida borrarlos; la otra parte conserva su propia copia. La licencia en sí está en Midnight: véase «Qué va a Midnight».',
+  'm.privacy.chain.title': 'Qué va a Midnight, para siempre',
+  'm.privacy.chain.text':
+    'Midnight es una red pública: lo que va allí no puede cambiarlo ni borrarlo nadie, nosotros incluidos, y cualquiera puede leerlo. Su genética, sus condiciones, su nombre y sus archivos nunca van allí. Lo que sí va: el código de prueba de cada lote de registros; la clave propia de un registro y su sello de fecha; un código hecho a partir de un informe de ADN, cuando fecha su vínculo; qué registros están enlazados como progenitor y descendiente, una vez que ambos titulares lo confirman (un enlace no se puede deshacer); que un registro tiene una licencia, una obligación o una anotación de prestamista registrada, y cuándo cambió; la clave pública de un laboratorio cuando firma allí un certificado; un valor que usted elige probar con exactitud, completo; y, donde este sitio permite pagar una regalía en NIGHT, el importe y las dos direcciones. Antes de cada uno de estos pasos, la aplicación muestra un recibo que enumera exactamente qué hace público ese paso. Un código o una clave por sí solos no dicen nada de usted, pero cualquiera a quien dé un enlace de comprobación puede seguir desde entonces lo que le ocurre a ese registro en la red.',
+  'm.privacy.helper.title': 'El asistente y su modelo opcional',
+  'm.privacy.helper.text':
+    'Ask, el asistente de la aplicación, donde este sitio lo ofrece, funciona en su dispositivo. Nada de lo que escriba en él se envía a ninguna parte; solo el botón Guardar de la aplicación envía algo, y eso va cerrado a nuestro servidor, como se explica arriba. Donde este sitio ofrece el modelo de lenguaje opcional, se descarga una vez desde Hugging Face, una empresa aparte: Hugging Face ve su dirección IP, la hora, qué archivos del modelo y que la petición viene de este sitio; nosotros vemos que empezó una descarga. El modelo se ejecuta en su dispositivo, en una parte de la página que no puede acceder a la red, así que nada de lo que escriba llega a Hugging Face ni a nosotros, ni entonces ni después. Puede borrar el modelo desde el panel del asistente.',
   'm.privacy.hosts.title': 'Alojamiento',
   'm.privacy.hosts.text':
     'Este sitio web está alojado en Vercel, que registra direcciones IP y solicitudes. Nuestro servidor de registro funciona en Railway, que registra solicitudes.',
@@ -223,7 +232,7 @@ export const es: Strings = {
   'm.privacy.contact': 'Preguntas: hunter@veilcore.org',
   // Round 2 truth pass (14 Oct 2026): keys added or newly translated.
   'm.hero.lede':
-    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal y animal: dé a sus registros una fecha que nadie puede antedatar. Sus datos genéticos se quedan en su computadora. Solo un código de prueba va a Midnight, que lo fecha.',
+    'Para obtentores, empresas de semillas y laboratorios que trabajan con genética vegetal y animal: dé a sus registros una fecha que nadie puede antedatar. Sus datos genéticos se quedan cerrados: los archivos de ADN nunca salen de su computadora, y lo que escribe llega cerrado a nuestro servidor. Solo un código de prueba va a Midnight, que lo fecha.',
   'm.for.3p':
     'Envíe material con un código de laboratorio. El laboratorio firma un acuse de recibo con su propia clave, así el registro muestra a una segunda parte. El acuse es una firma real, guardada por el registro de VeilCore, no en la cadena. Condiciones como no propagar son solo de práctica en la demo web.',
   'm.get.1b': 'para un registro de lo que usted tiene, sin mostrar su genética.',
@@ -246,7 +255,7 @@ export const es: Strings = {
     'Ambos contratos están desplegados en la red principal de Midnight. El contrato de pruebas de un hecho no tiene clave de mantenimiento: nadie, ni siquiera nosotros, puede cambiarlo.',
   'm.postE.date': '2 nov 2026',
   'm.postE.tag': 'Prueba',
-  'm.postE.title': 'Un archivo listo para un tribunal, para cualquier documento',
+  'm.postE.title': 'Un archivo de evidencia para cualquier documento',
   'm.postE.text':
     'La página de un documento ahora descarga un archivo que un abogado o un examinador puede comprobar sin nuestro sitio: el registro tal como se selló, su prueba, dónde se fechó, una página que hace las comprobaciones sin conexión, un resumen para imprimir y un texto de ejemplo para una declaración. Puede incluir una copia del documento; antes se compara con el registro.',
   'm.postD.date': '31 oct 2026',
@@ -258,7 +267,7 @@ export const es: Strings = {
   'm.postC.tag': 'Sitio web',
   'm.postC.title': 'Su navegador envía sus propias transacciones',
   'm.postC.text':
-    'En veilcore.org su navegador ahora fecha por sí mismo el emparejamiento de un informe de ADN, demuestra un registro por enlace y pone un sello de fecha a la clave propia de un registro, y VeilCore paga la comisión de la red. Los lotes se anclan en la red principal de Midnight cada hora, de forma automática. No hace falta billetera.',
+    'En veilcore.org su navegador ahora fecha por sí mismo el emparejamiento de un informe de ADN, demuestra un registro por enlace y pone un sello de fecha a la clave propia de un registro, y VeilCore paga la comisión de la red. Los registros se agrupan en lotes y se fechan en la red principal de Midnight. No hace falta billetera.',
   'm.postB.date': '11 oct 2026',
   'm.postB.tag': 'Registro',
   'm.postB.title': 'Primer lote fechado también en Bitcoin',
@@ -275,7 +284,7 @@ export const es: Strings = {
   'm.live.colTest': 'test.veilcore.org',
   'm.live.colNot': 'Todavía no',
   'm.live.stamp.t': 'Un sello de fecha para su registro',
-  'm.live.stamp.main': 'Sí, por lotes, a mano por ahora. Su navegador no envía nada a la cadena.',
+  'm.live.stamp.main': 'Sí, por lotes fechados en Midnight. Su navegador no envía nada a la cadena.',
   'm.live.stamp.test':
     'Sí. Los lotes se fechan automáticamente, y eso fecha su registro. Su navegador también pone un sello de fecha a la clave propia de su planta; ese sello fecha solo la clave.',
   'm.live.share.t': 'Elegir qué ven los demás',
@@ -306,7 +315,16 @@ export const es: Strings = {
   'm.live.lic.main': 'Desactivado hasta una última prueba completa.',
   'm.live.lic.test': 'Sí, con transacciones reales: regalías, pagos, traspaso de una licencia.',
   'm.live.lic.not': 'En veilcore.org, tras una última prueba completa.',
-  // Licenses switched on at veilcore.org (AGREEMENTS_LIVE): the main-network cell (components/site/Home.tsx).
+  // The veilcore.org cell until royalties v2 has worked on mainnet (config/copy.ts ROYALTIES_RUN_ON_MAINNET).
+  'm.live.lic.mainNext':
+    'Las licencias se activan con el despliegue que las enciende, cuando una licencia real haya funcionado de principio a fin en la red principal. Declaraciones de regalías y pagos: construidos, aún no activos.',
+  // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
+  'm.live.lic.testNext':
+    'Sí para las licencias, con transacciones reales. Declaraciones de regalías y pagos: construidos, y activos aquí cuando hayan funcionado de principio a fin en esta red.',
+  // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
+  'm.live.lic.next':
+    'Construido. Se activa con el próximo despliegue de veilcore.org, cuando una licencia real haya funcionado de principio a fin en la red principal.',
+  // Licenses on, on veilcore.org's own build (AGREEMENTS_LIVE, mainnet sponsor live): the main-network cell (components/site/Home.tsx).
   'm.live.lic.live':
     'Sí: licencias, declaraciones de regalías y traspaso de una licencia, con transacciones reales. Pagar regalías en Midnight mismo solo está en el sitio de pruebas.',
   'm.live.chain.t': 'La página de comprobación lee Midnight por sí misma',
@@ -363,7 +381,7 @@ export const es: Strings = {
   'm.step1.text':
     'Qué es y de dónde viene. El servidor de VeilCore guarda los detalles bloqueados, el nombre incluido, y nosotros no tenemos la clave. Un enlace de comprobación lleva el nombre solo si usted lo activa, para las personas a las que se lo envía.',
   'm.step2.title': 'Saque su código de prueba',
-  'm.step2.text': 'En su computadora. Los datos genéticos nunca salen de ella.',
+  'm.step2.text': 'En su computadora. Los datos genéticos nunca salen de ella sin cerrar.',
   'm.step3.title': 'Obtenga una fecha',
   'm.step3.text':
     'Solo el código de prueba va a Midnight, en un lote con otros. La fecha es el bloque en el que entra el lote: muestra que el registro existía para entonces.',
@@ -435,13 +453,13 @@ export const es: Strings = {
   'm.faq.3link': 'Los registros como prueba →',
   'm.faq.4q': '¿Qué ven ustedes de mis datos?',
   'm.faq.4a':
-    'De sus datos genéticos: nada. Su computadora lee los archivos que usted añade para hacer un código de cada uno, y no se suben. Un informe de laboratorio llega a nuestro servidor solo cuando un laboratorio se lo devuelve: va cerrado para que solo usted pueda abrirlo, y se borra a los 180 días. Los detalles que escribe (el nombre del registro, obtentor, fechas, notas, términos de acuerdos) y los nombres de sus archivos se guardan bloqueados en nuestro servidor, y nosotros no tenemos la clave. Podemos leer el código de prueba de cada registro y todo lo que usted decida mostrar. Los datos de muestra que usted y un laboratorio escriben para un envío también se guardan bloqueados, con una clave que va en el código de laboratorio y que nosotros no tenemos. Los laboratorios y desarrolladores pueden sellar registros dentro de sus propios sistemas, de modo que solo sale el código de prueba.',
+    'De sus datos genéticos sin cerrar: nada. Su computadora lee los archivos que usted añade para hacer un código de cada uno, y no se suben. Un informe de laboratorio llega a nuestro servidor solo cuando un laboratorio se lo devuelve: va cerrado para que solo usted pueda abrirlo, y se borra a los 180 días. Los detalles que escribe (el nombre del registro, obtentor, fechas, notas, términos de acuerdos) y los nombres de sus archivos se guardan bloqueados en nuestro servidor, y nosotros no tenemos la clave. Podemos leer el código de prueba de cada registro y todo lo que usted decida mostrar. Los datos de muestra que usted y un laboratorio escriben para un envío también se guardan bloqueados, con una clave que va en el código de laboratorio y que nosotros no tenemos. Los laboratorios y desarrolladores pueden sellar registros dentro de sus propios sistemas, de modo que solo sale el código de prueba.',
   'm.faq.4link1': 'Lo que guarda la demo →',
   'm.faq.4link2': 'Guía de integración →',
   'm.faq.6q': '¿Cuánto cuesta?',
-  'm.faq.6a': 'Crear un registro en este sitio no cuesta nada hoy. Comprobar un registro es gratis, siempre.',
+  'm.faq.6a': 'Gratis. Crear un registro en este sitio y comprobar cualquier registro son gratis.',
   'm.demo.lede':
-    'Sin registro, sin billetera. Es una versión de prueba, así que use datos inventados. Los registros se anclan por lotes, a mano por ahora; las licencias y los acuerdos de laboratorio son simulados, y las vinculaciones de informes de ADN todavía no se fechan.',
+    'Sin registro, sin billetera. Es una versión de prueba, así que use datos inventados. Los registros se fechan por lotes en Midnight; las licencias y los acuerdos de laboratorio son simulados, y las vinculaciones de informes de ADN todavía no se fechan.',
   'm.demo.privacy': 'Lo que guarda la demo →',
   'm.updates.more': 'Todas las novedades',
   'm.stat3.s':

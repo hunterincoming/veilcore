@@ -185,7 +185,7 @@ export const strain = {
   'app.strain.v.app.lic.row.offspringValue': '{pct} %, sur les souches déclarées comme dérivées de celle-ci',
   'app.strain.v.app.lic.f.offspring': 'Redevance sur les souches dérivées (%)',
   'app.strain.v.app.lic.f.offspringHelp':
-    'S’applique aux souches déclarées comme dérivées de cet enregistrement (enregistrées avec lui comme parent, confirmées par les deux détenteurs). Une dérivation non déclarée n’est pas détectée. Laissez vide s’il n’y en a pas.',
+    'Ne compte que les souches enregistrées dans VeilCore comme dérivées de celle-ci. Laissez vide s’il n’y en a pas.',
   'app.strain.v.app.lic.f.extraHelpDeal':
     'Tout ce qui fait aussi partie de l’accord, avec vos propres mots. Par exemple : pas de cession à des tiers, citer la source dans les publications, détruire le stock restant à la fin.',
   'app.strain.v.app.lic.detail.thisCultivar': 'cette souche',
@@ -193,7 +193,7 @@ export const strain = {
     'Si une souche est enregistrée plus tard avec {name} comme parent et que les deux détenteurs le confirment, le lien vers ce contrat apparaît dans son enregistrement. Les souches dérivées que personne n’enregistre ne sont pas détectées.',
   'app.strain.v.app.lic.detail.derivatives.one': '{count} souche déjà enregistrée en descend.',
   'app.strain.v.app.lic.detail.derivatives.other': '{count} souches déjà enregistrées en descendent.',
-  'app.strain.v.app.lic.off.title': 'Redevance sur les souches dérivées : {pct} %',
+  'app.strain.v.app.lic.off.title': 'Redevance sur les souches dérivées : {pct}',
   'app.strain.v.app.lic.off.intro':
     'Sur Midnight, elle figure sur l’enregistrement que le licencié a de cette souche, donc chaque souche dérivée que les deux détenteurs confirment l’affiche quand quelqu’un vérifie la lignée. Le licencié l’accepte ; seul le concédant peut la lever.',
   'app.strain.v.app.lic.off.dateFirst':
@@ -201,4 +201,11 @@ export const strain = {
   'app.strain.v.app.lic.off.datePlant': 'Dater un enregistrement',
   'app.strain.v.app.lic.off.yourRecord': 'Votre enregistrement de cette souche',
   'app.strain.v.app.lic.off.waitName': 'En attente que l’autre partie indique son enregistrement de cette souche.',
+  // components/chain/FamilyOnChain.tsx
+  'app.strain.v.app.family.intro':
+    'La filiation acceptée par les deux détenteurs, sur la chaîne. C’est ce qui permet à quiconque de vérifier la lignée d’une souche, et ce qui transmet la redevance sur la descendance d’un parent à ses descendants. Un lien confirmé est public et permanent : il ne peut pas être défait, et les redevances que le détenteur du parent accepte plus tard apparaissent aussi dans la lignée de cet enregistrement.',
+  'app.strain.v.app.family.namesParent':
+    '{who} nomme cet enregistrement comme parent. Ne confirmez que s’il vient vraiment de cette souche. Confirmer est public et permanent, et tout ce qui est dû sur cette souche, maintenant ou plus tard, apparaîtra dans sa lignée.',
+  'app.strain.v.app.family.confirmQ':
+    'Confirmer que cette souche est un parent de {who} ? Ne confirmez qu’un enregistrement dont vous savez qu’il en vient. C’est public et permanent : sa lignée, et tout ce qui est dû sur cette souche maintenant ou plus tard, y apparaîtront.{fixes}',
 } satisfies Partial<AppTranslation>;

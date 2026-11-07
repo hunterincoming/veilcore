@@ -15,6 +15,8 @@ export const backup = {
   'app.backup.saveFile': 'Guardar el archivo de copia de seguridad',
   'app.backup.copyTitle': 'Ponga una copia en otro lugar (recomendado)',
   'app.backup.wayBack': 'Si este teléfono o esta computadora se rompen, esa copia es su forma de recuperarlo todo.',
+  'app.backup.safari':
+    'Safari puede borrar los datos de un sitio tras 7 días sin visitarlo. Su archivo de copia de seguridad es lo que recupera sus registros: consérvelo.',
   'app.backup.actAsYou':
     'Cualquiera que tenga este archivo puede abrir sus registros y actuar como usted. Lo mejor: una memoria USB o un gestor de contraseñas. Si lo envía por correo, use una cuenta con verificación en dos pasos.',
   'app.backup.sentCopy': 'Copia enviada ✓',

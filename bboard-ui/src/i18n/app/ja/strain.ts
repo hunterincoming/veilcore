@@ -180,14 +180,14 @@ export const strain = {
   'app.strain.v.app.lic.row.offspringValue': '{pct}%（この株から派生したと申告された株に対して）',
   'app.strain.v.app.lic.f.offspring': '派生株へのロイヤリティ（%）',
   'app.strain.v.app.lic.f.offspringHelp':
-    'この記録から派生したと申告された株（この記録を親として記録され、双方の保有者が確認したもの）に適用されます。申告されない派生は検出されません。なければ空欄にしてください。',
+    'この株から派生したとVeilCoreに記録された株だけを数えます。なければ空欄にしてください。',
   'app.strain.v.app.lic.f.extraHelpDeal':
     '取引に含まれるその他のことを、あなた自身の言葉で。例: 第三者への提供禁止、論文で出所を明記、終了時に残りの株を廃棄。',
   'app.strain.v.app.lic.detail.thisCultivar': 'この株',
   'app.strain.v.app.lic.detail.lineage':
     'のちに{name}を親として株が記録され、双方の保有者が確認すると、その記録にこの契約へのつながりが表示されます。誰も記録しない派生株は検出されません。',
   'app.strain.v.app.lic.detail.derivatives.other': '記録済みの{count}株がこの株から派生しています。',
-  'app.strain.v.app.lic.off.title': '派生株へのロイヤリティ: {pct}%',
+  'app.strain.v.app.lic.off.title': '派生株へのロイヤリティ: {pct}',
   'app.strain.v.app.lic.off.intro':
     'Midnight上では、この株についてのライセンシー自身の記録に付きます。そのため、双方の保有者が確認した派生株はすべて、誰かが系譜を確認するときにこれを表示します。ライセンシーが受け入れ、解除できるのはライセンサーだけです。',
   'app.strain.v.app.lic.off.dateFirst':
@@ -195,4 +195,11 @@ export const strain = {
   'app.strain.v.app.lic.off.datePlant': '記録を日付記録する',
   'app.strain.v.app.lic.off.yourRecord': 'この株についてのあなたの記録',
   'app.strain.v.app.lic.off.waitName': '相手がこの株の記録を指定するのを待っています。',
+  // components/chain/FamilyOnChain.tsx
+  'app.strain.v.app.family.intro':
+    '両方の保有者が同意した親子関係を、チェーン上に記録します。これにより誰でも株の系統を確認でき、親の子孫ロイヤリティがその子孫に引き継がれます。確認済みのつながりは公開かつ永久で、取り消せません。親の保有者が後から引き受けるロイヤリティも、この記録の系統に表示されます。',
+  'app.strain.v.app.family.namesParent':
+    '{who}がこの記録を親として指定しています。本当にこの株から来たものである場合だけ確認してください。確認は公開かつ永久で、この株に今後も含めて課されるものはその系統に表示されます。',
+  'app.strain.v.app.family.confirmQ':
+    'この株が{who}の親であることを確認しますか？この株から来たと分かっている記録だけを確認してください。これは公開かつ永久です。その系統と、この株に今後も含めて課されるものが、その記録に表示されます。{fixes}',
 } satisfies Partial<AppTranslation>;

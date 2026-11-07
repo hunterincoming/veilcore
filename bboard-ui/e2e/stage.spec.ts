@@ -125,7 +125,7 @@ test('seal a plant, add the next stage from its page, and date its lab report on
   await expect(page.getByText('How was this stage made? It isn’t carried over from the parent.')).toBeVisible();
   await expect(page.getByLabel(/Bred by/)).toHaveValue('E2E');
   await expect(page.getByLabel('Species')).toHaveValue('Cannabis sativa');
-  await expect(page.getByRole('button', { name: f1 })).toBeVisible(); // the linked parent's chip
+  await expect(page.getByRole('button', { name: f1, exact: true })).toBeVisible(); // the linked parent's chip
   const f2 = `Stage test F2 (practice) ${Date.now()}`;
   await page.getByLabel(/Plant or line name/).fill(f2);
   await page.getByLabel('What stage is this? (e.g. F3, second clone run)').fill('F2');

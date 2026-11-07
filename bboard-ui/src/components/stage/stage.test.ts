@@ -504,10 +504,10 @@ describe('a breeder’s own selection chain: no royalty owed to themselves, lab 
 
   it('"Check its ancestry" says nothing upstream was checked when the registry walked no confirmed link', () => {
     expect(ancestryVerdictText({ ok: true, generationsChecked: 0 }, 1)).toBe(
-      'The registry reports no obligation in force on this record. It has no confirmed link to its parents, so nothing upstream was checked.',
+      'The registry reports no obligation recorded on this record. It has no confirmed link to its parents, so nothing upstream was checked.',
     );
     expect(ancestryVerdictText({ ok: true, generationsChecked: 2 }, 1)).toBe(
-      'No obligation in force found in its declared ancestry (2 generations checked, as the registry reports).',
+      'No obligation recorded in its declared ancestry (2 generations checked, as the registry reports).',
     );
     expect(ancestryVerdictText({ ok: false, reason: 'an ancestor carries an unmet obligation' }, 1)).toBe(
       'an ancestor carries an unmet obligation',

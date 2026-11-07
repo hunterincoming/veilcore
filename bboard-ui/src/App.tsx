@@ -96,6 +96,7 @@ const layoutParts = () => import('./app-layout-parts');
 const RolePicker = page<{ ask: boolean }>(layoutParts, 'RolePicker');
 const SaveProblemBar = page(layoutParts, 'SaveProblemBar');
 const AppFooter = page(layoutParts, 'AppFooter');
+const AskLauncher = page(layoutParts, 'AskLauncher');
 
 const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   // The role question belongs to the app: making records, holding them, licensing them.
@@ -137,6 +138,9 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
       </Container>
       {/* Documents reachable from wherever someone happens to be, rather than only from
         the page they landed on. */}
+      {/* Ask VeilCore (docs/ask-veilcore.md): drafts on the app's pages, never on the public ones.
+        Before the footer: its spacer keeps the page's last line clear of the button. */}
+      <AskLauncher />
       <AppFooter />
     </Box>
   );
@@ -144,7 +148,8 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
 
 /** The frame's own files, fetched with the page's (preloadPage). */
 const layoutPreload: Preloadable = {
-  preload: () => Promise.all([RolePicker.preload(), SaveProblemBar.preload(), AppFooter.preload()]),
+  preload: () =>
+    Promise.all([RolePicker.preload(), SaveProblemBar.preload(), AppFooter.preload(), AskLauncher.preload()]),
 };
 
 /**

@@ -26,9 +26,12 @@ import { prove } from './prove';
 import { sealed } from './sealed';
 import { verify } from './verify';
 import { licensing } from './licensing';
+import { royalties } from './royalties';
 import { document } from './document';
 import { attest } from './attest';
 import { start } from './start';
+import { receipt } from './receipt';
+import { ask } from './ask';
 
 export const appDe: AppTranslation = {
   ...common,
@@ -51,7 +54,10 @@ export const appDe: AppTranslation = {
   ...sealed,
   ...dating,
   ...licensing,
+  ...royalties,
   ...document,
   ...attest,
   ...start,
+  ...receipt,
+  ...ask,
 };

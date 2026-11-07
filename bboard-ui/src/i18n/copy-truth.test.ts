@@ -59,6 +59,7 @@ import { networkOverlay, LANGUAGES } from './catalogs';
 import { ja, jaMainnet, jaTestchain } from './ja';
 import { animalRecordsEnabledFor, labResultsEnabledFor } from '../config/network';
 import { readIndexersFor } from '../veilcore/chain/config';
+import { brokenPromises } from './promise-rule';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.resolve(HERE, '..');
@@ -188,10 +189,10 @@ describe('privacy, said plainly', () => {
     for (const s of ALL_ENGLISH) expect(offenders(s, HIDDEN_WHAT)).toEqual([]);
     expect(en['m.hero.title2']).toMatch(/genetics/);
   });
-  it('the hero title is the one the CTO chose, and never "had it first"', () => {
+  it('the hero title is the chosen one (privacy, not ownership: panel review), and never "had it first"', () => {
     for (const s of ALL_ENGLISH) {
       expect(s['m.hero.title1']).toBe('Date your record.');
-      expect(s['m.hero.title2']).toBe('Keep your genetics.');
+      expect(s['m.hero.title2']).toBe('Keep your genetics private.');
       expect(offenders(s, /had it first/i)).toEqual([]);
     }
     const OLD_TITLE1: Record<string, string> = {
@@ -210,10 +211,12 @@ describe('privacy, said plainly', () => {
   it('the hero is short and makes the one privacy claim precisely (round 5)', () => {
     const lede = en['m.hero.lede'];
     // Who it's for and what it does, then the privacy line: genetic data, not "everything".
+    // "Stays locked", not "stays on your computer": the description does reach the server,
+    // locked (panel review). What goes on Midnight is the proof code.
     expect(lede).toMatch(
-      /Your genetic data stays on your computer\. Only a proof code goes on Midnight, which dates it\.$/,
+      /Your genetic data stays locked: DNA files never leave your computer, and what you type reaches our server locked\. Only a proof code goes on Midnight, which dates it\.$/,
     );
-    expect(lede.split(/(?<=\.)\s+/).length).toBeLessThanOrEqual(3);
+    expect(lede.split(/(?<=\.)\s+/).length).toBeLessThanOrEqual(4);
     // No lab-report sentence next to "stays on your computer" (it read as a contradiction):
     // that is said in the FAQ and the privacy note, below.
     expect(lede).not.toMatch(/lab report/i);
@@ -408,7 +411,7 @@ describe("what's live where", () => {
   });
   it('says what the code does', () => {
     const e = en as Record<string, string>;
-    expect(e['m.live.stamp.main']).toMatch(/by hand for now.*Your browser sends nothing to the chain/);
+    expect(e['m.live.stamp.main']).toMatch(/in batches dated on Midnight\. Your browser sends nothing to the chain/);
     // The record is dated by its batch; the browser's date stamp dates only the plant's key
     // (docs/identity-in-record.md, "Dates").
     expect(e['m.live.stamp.test']).toMatch(/Batches are dated automatically, and that dates your record/);
@@ -425,6 +428,23 @@ describe("what's live where", () => {
     expect(mainnetNoRelay['m.live.chain.main']).toBe('Not yet: needs our read-only relay.');
     expect(mainnetRelay['m.live.chain.main']).toBe('Yes.');
     expect(e['m.live.lic.test']).toMatch(/^Yes, with real transactions/);
+    // Nothing is called live on veilcore.org until it has worked there: only veilcore.org's
+    // own build (licenses on, mainnet sponsor live) says "Yes"; the test site never does.
+    expect(home).toMatch(/const LICENSES_ON_SITE = THIS_BUILD\.agreementsLive === true && MAINNET_SENDS;/);
+    expect(home).toMatch(/LICENSES_ON_SITE\s*\?\s*'m\.live\.lic\.live'\s*:\s*'m\.live\.lic\.next'/);
+    expect(e['m.live.lic.next']).not.toMatch(/^Yes/);
+    expect(e['m.live.lic.next']).toMatch(/next veilcore\.org deploy/);
+    // The test-site cell doesn't say "Yes" for royalties until v2 has run there.
+    expect(home).toMatch(/row === 'lic' && col === 'test' && !ROYALTIES_RUN_ON_TEST\s*\?\s*'m\.live\.lic\.testNext'/);
+    expect(e['m.live.lic.testNext']).toMatch(/^Yes for licenses/);
+    expect(e['m.live.lic.testNext']).toMatch(/Royalty statements and payments: built/);
+    // The veilcore.org cell: no "Yes" for royalties until v2 has worked on mainnet, on any build.
+    expect(home).toMatch(/!ROYALTIES_RUN_ON_MAINNET\s*\?\s*'m\.live\.lic\.mainNext'/);
+    expect(fs.readFileSync(path.join(SRC, 'config/copy.ts'), 'utf8')).toMatch(
+      /export const ROYALTIES_RUN_ON_MAINNET = false;/,
+    );
+    expect(e['m.live.lic.mainNext']).toMatch(/^Licenses go live with the deploy/);
+    expect(e['m.live.lic.mainNext']).toMatch(/Royalty statements and payments: built, not live yet\.$/);
     expect(e['m.live.dna.main']).toMatch(/not dated/);
     // Lab reports are on on veilcore.org and the test site alike (LAB_RESULTS_ENABLED, 16 Oct).
     expect(rows.find((r) => r.row === 'results')?.has).toEqual([labResultsEnabledFor('mainnet'), true, false]);
@@ -833,8 +853,9 @@ describe('Japanese (round 6)', () => {
         [...new Set([...Object.keys(mainnetStrings(f)), 'm.status.keyTitle'])].sort(),
       );
       expect(networkOverlay({ ...MAINNET, ...f }, 'ja')).toEqual({ ...mainnetStrings(f), ...o });
-      for (const k of ['m.hero.status', 'm.demo.lede', 'm.stat2.s', 'm.privacy.test.text'] as const)
-        expect(o[k], k).toMatch(/手作業/);
+      // No cadence until the scheduled job has run on mainnet (SCHEDULED_ANCHORING_RUN_ON_MAINNET).
+      for (const k of ['m.hero.status', 'm.demo.lede', 'm.stat2.s', 'm.privacy.lede', 'm.privacy.test.text'] as const)
+        expect(o[k], k).not.toMatch(/手作業|自動/);
       expect(o['m.status.keyText']).toMatch(
         f.policyApproved ? /書面のメンテナンスポリシーに基づき公表します/ : /提案段階/,
       );
@@ -983,4 +1004,77 @@ describe('translations', () => {
       );
     });
   }
+});
+
+// Round 8 (Trust Alchemist; blueprint section 4): the promise rule, in every language and every
+// build. A sentence saying genetic data, a record or typed details never/nothing leaves, or that
+// we can't see or read it, must say it is locked: those details do reach the registry, locked.
+// True sentences about files and keys that never leave the device pass.
+describe('the promise rule (round 8)', () => {
+  it('catches the old false sentences and passes the true ones', () => {
+    for (const bad of [
+      'Genetics and DNA files never leave this device.',
+      'Done on your computer. Genetic data never leaves it.',
+      'Your genetic data: nothing.',
+      "We can't see your records.",
+      'Genetische Daten verlassen ihn nie.',
+      'Los datos genéticos nunca salen de ella.',
+      'Les données génétiques ne le quittent jamais.',
+      '遺伝データがコンピューターから出ることはありません。',
+    ])
+      expect(brokenPromises(bad), bad).not.toEqual([]);
+    for (const ok of [
+      'Genetics and DNA files never leave this device unlocked.',
+      'Done on your computer. Genetic data never leaves it unlocked.',
+      'Your genetic data, unlocked: nothing.',
+      'Your DNA files never leave your device.',
+      'Your key never leaves this device.',
+      'Your payment details are encrypted on VeilCore’s servers, which can’t read them.',
+      '{count} records came back in a form this version can’t read, so they aren’t shown.',
+      'What you typed and your files are never sent to the network.',
+      'Genetische Daten verlassen ihn nie unverschlossen.',
+      '遺伝情報とDNAファイルが鍵のかからない形でこの端末から出ることはありません。',
+    ])
+      expect(brokenPromises(ok), ok).toEqual([]);
+  });
+
+  it('no string in any language or build breaks it', () => {
+    const sets: [string, Record<string, string | undefined>][] = [
+      ['en', en],
+      ['en-test', testchainStrings],
+      ['app-en', appEn],
+      ['app-ja', appJa],
+      ['app-es', appEs],
+      ['app-de', appDe],
+      ['app-fr', appFr],
+    ];
+    for (const claimsOnMainnet of [true, false])
+      for (const chainReads of [true, false])
+        for (const chainSends of [true, false])
+          for (const agreementsLive of [true, false]) {
+            const flags = { claimsOnMainnet, policyApproved: true, chainReads, chainSends, agreementsLive };
+            sets.push(['en-main', mainnetStrings(flags)]);
+            for (const [l, p] of Object.entries(LANGUAGES)) if (p.mainnet) sets.push([`${l}-main`, p.mainnet(flags)]);
+          }
+    for (const [l, p] of Object.entries(LANGUAGES)) sets.push([l, p.strings], [`${l}-test`, p.testchain]);
+    const hits = new Set<string>();
+    for (const [n, s] of sets)
+      for (const [k, v] of Object.entries(s)) if (v) for (const b of brokenPromises(v)) hits.add(`${n} ${k}: ${b}`);
+    expect([...hits]).toEqual([]);
+  });
+});
+
+// Blueprint section 4: the price is "Free.", with no "today" or "for now" beside it.
+describe('the price', () => {
+  it('is free, with no time qualifier, in every language', () => {
+    expect(en['m.faq.6a']).toMatch(/^Free\. /);
+    for (const [l, p] of Object.entries(LANGUAGES)) {
+      const v = (p.strings as Record<string, string>)['m.faq.6a'];
+      expect(v, l).toBeTruthy();
+      expect(v, l).not.toMatch(/today|for now|heute|vorerst|hoy|por ahora|aujourd|pour l.instant|現在|当面/i);
+    }
+    const terms = fs.readFileSync(path.join(SRC, 'components/site/Terms.tsx'), 'utf8');
+    expect(terms).toMatch(/Using VeilCore is free\. /);
+    expect(terms).not.toMatch(/free today/);
+  });
 });

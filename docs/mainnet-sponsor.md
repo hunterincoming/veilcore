@@ -2,7 +2,8 @@
 
 What it gives veilcore.org: batches dated automatically, and from the browser the record-key
 stamp, "prove it by link" and the DNA pairing date, with VeilCore paying the network fee.
-Licences and royalties stay practice-only.
+Licences, royalties and lab hand-overs too, once `MAINNET_AGREEMENTS` is on in the deployed
+sponsor and the site is built with licences on (docs/agreements-live.md, "Going live").
 
 What is safe about it: the sponsor wallet is a NEW wallet made only for this, holding a small
 amount of NIGHT. Its key sits on Railway, so never put more NIGHT in it than you'd accept losing.
@@ -58,6 +59,7 @@ TRUST_PROXY_HOPS=1
 MAX_FEE_DUST=5
 DAILY_BUDGET_DUST=25
 LIMIT_PER_NETWORK_DAY=30
+LIMIT_PER_NETWORK_HOUR=15
 SPONSOR_STATUS_TOKEN=<64 random characters: run `openssl rand -hex 32` on your Mac>
 REGISTRY_URL=https://veilcore-api-production.up.railway.app
 REGISTRY_OPERATOR_TOKEN=${{veilcore-api.VEILCORE_OPERATOR_TOKEN}}
@@ -185,6 +187,10 @@ Do these in order. Each says how you know it worked.
    the operator token, `/sponsor/status` shows `lastFeeSpecks` (per circuit, for visitors'
    calls) next to `maxFeeSpecks`, and the anchoring log shows `paidFeesSpecks`: each must be at
    or under the cap (10^15 SPECKs = 1 DUST).
+   Once the job has dated a batch on mainnet on its own schedule (not a call made by hand),
+   flip `SCHEDULED_ANCHORING_RUN_ON_MAINNET` to `true` in `bboard-ui/src/config/copy.ts` in a
+   reviewed commit: until then every page says records are batched and dated on Midnight, and
+   claims no cadence.
 10. **Site, live.** The step 8 command without `VITE_DATING_PAUSED=true`.
 11. **Commit the release list.** `git add releases && git commit -m "Release list: mainnet"`,
     then push.

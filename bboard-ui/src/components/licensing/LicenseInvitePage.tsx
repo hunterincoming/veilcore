@@ -15,7 +15,8 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useParams, Link as RouterLink } from 'react-router-dom';
-import { subjectOf } from '../../veilcore/licenses';
+import { subjectOf, type LicenseTerms } from '../../veilcore/licenses';
+import { hasOffspringRoyalty } from '../../veilcore/royalty-terms';
 import {
   Alert,
   Box,
@@ -29,7 +30,8 @@ import {
   Typography,
 } from '@mui/material';
 import { say, useDeal, type DealParty } from '../../veilcore/deal-client';
-import { TermsBox, useOfferedTerms } from './DealTerms';
+import { TermsBox, useOfferedTerms, type Offered } from './DealTerms';
+import { ControlledWarnings } from './RoyaltyTermsForm';
 import { RoyaltyLedger } from './RoyaltyLedger';
 import { OffspringRoyalty } from './OffspringRoyalty';
 import { tokenFromHash } from '../../veilcore/prove-relay';
@@ -60,6 +62,7 @@ import type { ChainReceipt } from '../../veilcore/chain/actions';
 import { Wordmark } from '../Wordmark';
 import { rich, useT } from '../../i18n/app';
 import { LanguageBar } from '../../i18n/LanguagePicker';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 
 const POLL_MS = 8_000;
 /** Enough of a record's key to compare with the sender: 16 characters, in groups of 4. */
@@ -332,7 +335,29 @@ export const LicenseInvitePage: React.FC = () => {
         </Alert>
       )}
 
-      {takenByOther && (
+      {takenByOther && !held && (
+        // Accepted, but not by a copy this browser holds: most often the same person on another
+        // phone, or this browser before its storage was cleared. Their backup brings it back.
+        <Alert
+          severity="warning"
+          variant="outlined"
+          data-not-this-device=""
+          action={
+            <Button
+              component={RouterLink}
+              to="/restore"
+              onClick={() => backupReturnTo(window.location.pathname + window.location.hash)}
+              color="inherit"
+              variant="outlined"
+            >
+              {tr.t('app.lic.inv.restore')}
+            </Button>
+          }
+        >
+          {tr.t('app.lic.inv.notThisDevice')}
+        </Alert>
+      )}
+      {takenByOther && held && (
         <Alert severity="error" variant="outlined">
           {tr.t('app.lic.inv.taken')}
         </Alert>
@@ -390,6 +415,10 @@ export const LicenseInvitePage: React.FC = () => {
                     {tr.t('app.lic.inv.whenMatches')}
                   </Typography>
                 </>
+              ) : held.issuerNonce ? (
+                <Typography variant="body2" color="text.secondary" role="status" data-code-making="">
+                  {tr.t('app.lic.code.making')}
+                </Typography>
               ) : (
                 <Typography variant="body2" color="text.secondary">
                   {tr.t('app.lic.inv.waitLicensor')}
@@ -409,6 +438,7 @@ export const LicenseInvitePage: React.FC = () => {
               <Typography variant="caption" color="text.secondary" data-evidence-note="">
                 {tr.t('app.lic.evidenceNote')}
               </Typography>
+              <LicenseeWarnings offered={offered} tr={tr} />
               <Button
                 variant="contained"
                 size="large"
@@ -467,6 +497,10 @@ export const LicenseInvitePage: React.FC = () => {
                     {tr.t('app.lic.inv.theirsToo')}
                   </Typography>
                 </>
+              ) : held.issuerNonce ? (
+                <Typography variant="body2" color="text.secondary" role="status" data-code-making="">
+                  {tr.t('app.lic.code.making')}
+                </Typography>
               ) : (
                 <Typography variant="body2" color="text.secondary">
                   {tr.t('app.lic.inv.waitTheirs')}
@@ -489,9 +523,11 @@ export const LicenseInvitePage: React.FC = () => {
                 }
                 label={tr.t('app.lic.inv.iAgree')}
               />
+              <DisclosureReceipt circuits={['countersignLicense']} />
               <Typography variant="caption" color="text.secondary" data-evidence-note="">
                 {tr.t('app.lic.evidenceNote')}
               </Typography>
+              <LicenseeWarnings offered={offered} tr={tr} />
               <Button
                 variant="contained"
                 size="large"
@@ -532,11 +568,13 @@ export const LicenseInvitePage: React.FC = () => {
 
       {held && isLive && !gone && party && held.agreement && (
         <Box sx={{ mt: 2 }}>
-          {held.agreement.type === 'license' && (
+          {(held.agreement.type === 'license' ||
+            (held.agreement.type === 'breeder-share' && hasOffspringRoyalty(held.agreement.terms))) && (
             <RoyaltyLedger
               party={party}
               side="licensee"
-              terms={held.agreement.terms}
+              terms={held.agreement.terms as unknown as LicenseTerms}
+              agreementType={held.agreement.type}
               entries={deal.entries}
               refresh={deal.refresh}
               agreed={{
@@ -550,14 +588,14 @@ export const LicenseInvitePage: React.FC = () => {
             <HandOnHolder held={held} party={party} entries={deal.entries} refresh={deal.refresh} />
           </Box>
 
-          {(Number(held.agreement.terms.offspringRoyaltyPct) || 0) > 0 && (
+          {hasOffspringRoyalty(held.agreement.terms) && (
             <Box sx={{ mt: 2 }}>
               <OffspringRoyalty
                 side="licensee"
                 party={party}
                 entries={deal.entries}
                 refresh={deal.refresh}
-                pct={String(held.agreement.terms.offspringRoyaltyPct)}
+                terms={held.agreement.terms as unknown as LicenseTerms}
                 obligation={held.agreement.agreementFingerprint}
                 beneficiary={held.identity}
                 kind={subjectOf(held.agreement.terms)}
@@ -578,3 +616,19 @@ export const LicenseInvitePage: React.FC = () => {
     </Frame>
   );
 };
+
+/**
+ * What the licensee is told before agreeing, as plainly as the licensor is (panel review): the
+ * licensor can revoke on Midnight at any time, and revoking doesn't end the contract; and, on a
+ * cannabis license, the same warnings the licensor saw.
+ */
+const LicenseeWarnings: React.FC<{ offered: Offered; tr: ReturnType<typeof useT> }> = ({ offered, tr }) => (
+  <>
+    <Typography variant="body2" data-revoke-note="">
+      {tr.t('app.lic.inv.revokeNote')}
+    </Typography>
+    {offered?.ok === true && (offered.copy.terms as { controlled?: unknown }).controlled === true && (
+      <ControlledWarnings tr={tr} />
+    )}
+  </>
+);

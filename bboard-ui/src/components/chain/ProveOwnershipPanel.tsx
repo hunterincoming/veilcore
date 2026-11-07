@@ -17,6 +17,7 @@ import { ChainStatusLine } from './ChainStatusLine';
 import { proveLinkParams } from '../../veilcore/prove-link';
 import { nameLinkParams, verifyPath } from '../../veilcore/verify-link';
 import { DatingPausedNotice } from '../DatingPausedNotice';
+import { DisclosureReceipt } from './DisclosureReceipt';
 
 export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?: string }> = ({
   recordId,
@@ -86,6 +87,7 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
               size="small"
               fullWidth
             />
+            <DisclosureReceipt circuits={['proveOwnership']} />
             <DatingPausedNotice on={call.paused} />
             <Button
               variant="contained"

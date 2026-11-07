@@ -1,8 +1,9 @@
 // Writes .vercel/output/config.json for the prebuilt deploy (npm run deploy:prod).
 // Security headers on every page, then files, then the single-page app fallback.
 // SPDX-License-Identifier: Apache-2.0
-import { writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { normaliseAddress, readMainnetPins } from './mainnet-pins.mjs';
+import { SITE_ROUTE_SRC, downloadWorkerCsp, engineWorkerCsp, manifestProblem, modelWorkerRouteSrc } from './ask-model-csp.mjs';
 
 // The registry API the site talks to. Must match the VITE_API_BASE the site was built
 // with (deploy:prod sets it on the build step), or every API call is blocked by
@@ -153,8 +154,9 @@ const csp = [
   // its own parsing, created once when it loads. veilcore-prover: the proving worker's
   // address (bboard-ui/src/veilcore/chain/prover.ts), which lets through only that one file
   // on this site. Without it the browser refused to start the worker, and no date stamp
-  // could be made (17 Oct 2026).
-  'trusted-types veilcore-docs dompurify veilcore-prover',
+  // could be made (17 Oct 2026). veilcore-ask-model: the two on-device model workers'
+  // addresses (bboard-ui/src/ask-local/client.ts), exactly those two files on this site.
+  'trusted-types veilcore-docs dompurify veilcore-prover veilcore-ask-model',
   'upgrade-insecure-requests',
 ].join('; ');
 
@@ -173,12 +175,43 @@ export const headers = {
   'Cross-Origin-Resource-Policy': 'same-origin',
 };
 
+// Ask's on-device model (docs/ask-veilcore.md): its two worker files get their own policy
+// (scripts/ask-model-csp.mjs) and not the page's, so each has exactly one
+// Content-Security-Policy header. The page's policy above is unchanged by the model. A build
+// for tests or the model evaluation is never deployed.
+if (['test', 'eval'].includes((process.env.VITE_ASK_MODEL || '').trim()))
+  throw new Error(`VITE_ASK_MODEL=${process.env.VITE_ASK_MODEL} is a build for tests on this computer; it is never deployed.`);
+// The built files too: a .env file can set VITE_ASK_MODEL without the shell seeing it. A test
+// build carries the stub model's address, an evaluation build its hook.
+{
+  const assets = '.vercel/output/static/assets';
+  if (existsSync(assets))
+    for (const f of readdirSync(assets).filter((n) => n.endsWith('.js'))) {
+      const src = readFileSync(`${assets}/${f}`, 'utf8');
+      if (src.includes('veilcore-test/stub-model') || src.includes('__askEval'))
+        throw new Error(`${assets}/${f} is from a test or evaluation build of Ask's model (VITE_ASK_MODEL); it is never deployed.`);
+    }
+}
+const modelManifest = JSON.parse(
+  readFileSync(new URL('../bboard-ui/src/ask-local/model-manifest.json', import.meta.url), 'utf8'),
+);
+if (modelManifest.pinned && manifestProblem(modelManifest)) throw new Error(`model-manifest.json: ${manifestProblem(modelManifest)}`);
+const workerHeaders = (policy) => ({ ...headers, 'Content-Security-Policy': policy });
+
+const routes = [
+  { src: SITE_ROUTE_SRC, headers, continue: true },
+  { src: modelWorkerRouteSrc('download'), headers: workerHeaders(downloadWorkerCsp(modelManifest)), continue: true },
+  { src: modelWorkerRouteSrc('engine'), headers: workerHeaders(engineWorkerCsp()), continue: true },
+  { handle: 'filesystem' },
+  { src: '/.*', dest: '/index.html' },
+];
+
 writeFileSync(
   '.vercel/output/config.json',
   JSON.stringify(
     {
       version: 3,
-      routes: [{ src: '/(.*)', headers, continue: true }, { handle: 'filesystem' }, { src: '/.*', dest: '/index.html' }],
+      routes,
     },
     null,
     2,

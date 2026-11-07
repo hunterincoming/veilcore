@@ -3,8 +3,10 @@
 // opened under this deal's key and carry their sender's signature.
 // SPDX-License-Identifier: Apache-2.0
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
+import type { OnChainLicense } from './licenses';
 import { isNumber, isObject, isString, readJson } from './json';
+import { dealOrder } from './deal-order';
 import {
   dealKeys,
   openMessage,
@@ -56,6 +58,50 @@ export type DealParty = {
   readonly invite?: { readonly id: string; readonly token: string };
 };
 
+/** The issuer's side of the deal's channel, once both keys and the license are known. */
+export const dealParty = (oc: OnChainLicense): DealParty | undefined =>
+  oc.partySecret && oc.licenseeNonce && oc.commitment && oc.issuerRecord
+    ? {
+        side: 'issuer',
+        mySecret: oc.partySecret,
+        theirPublic: oc.licenseeNonce,
+        commitment: oc.commitment,
+        issuerRecord: oc.issuerRecord,
+        invite: { id: oc.inviteId, token: oc.issuerToken },
+      }
+    : undefined;
+
+const dealKeyOf = (p: DealParty): string => `${p.side}:${p.commitment}:${p.issuerRecord}:${p.theirPublic}`;
+
+/**
+ * The messages of each deal as this page last read them (a license page, the backup), in
+ * memory only, for as long as the page is open: never stored. Ask's "What's due" reads its
+ * royalty steps from here, so it makes no request of its own (docs/ask-veilcore.md).
+ */
+const readHere = new Map<string, DealEntry[]>();
+const readListeners = new Set<() => void>();
+let readVersion = 0;
+
+/** A deal's messages as this page last read them, or undefined when it hasn't read them. */
+export const dealEntriesReadHere = (p: DealParty): readonly DealEntry[] | undefined => readHere.get(dealKeyOf(p));
+
+/** Re-renders when this page reads a deal's messages again. */
+export const useDealsReadHere = (): number =>
+  useSyncExternalStore(
+    (l) => {
+      readListeners.add(l);
+      return () => readListeners.delete(l);
+    },
+    () => readVersion,
+  );
+
+const keepRead = (p: DealParty, entries: DealEntry[]): DealEntry[] => {
+  readHere.set(dealKeyOf(p), entries);
+  readVersion++;
+  readListeners.forEach((l) => l());
+  return entries;
+};
+
 const opened = new Map<string, Promise<DealKeys>>();
 
 /** The deal's keys, and the channel opened at the registry (once per page). */
@@ -102,7 +148,7 @@ export const readAll = async (p: DealParty): Promise<DealEntry[]> => {
       out = await post(`/deals/${keys.dealId}/read`, { token: keys.writeToken, after });
     } catch (e) {
       // Not opened yet: the issuer opens it when it sends the terms. Nothing to show so far.
-      if (e instanceof Error && /no such deal/.test(e.message)) return [];
+      if (e instanceof Error && /no such deal/.test(e.message)) return keepRead(p, []);
       throw e;
     }
     const list = isObject(out) && Array.isArray(out.messages) ? out.messages : [];
@@ -125,9 +171,9 @@ export const readAll = async (p: DealParty): Promise<DealEntry[]> => {
     }
     if (list.length < 200) break;
   }
-  // In the order their senders signed them, not the order the registry hands them over: the
-  // registry can't make an older word look like the latest (review round 3, M1, L2).
-  return all.sort((x, y) => x.at - y.at || (x.signature < y.signature ? -1 : 1));
+  // In the registry's order (seq), never the senders' own clocks: a message signed with an earlier
+  // time can't jump ahead of one already there (panel review, M2; deal-order.ts).
+  return keepRead(p, dealOrder(all));
 };
 
 /** What the registry dates for a message: SHA-256 of "iv.ct", hex (registry deals.mjs). */
@@ -144,7 +190,7 @@ export const useDeal = (
   const [entries, setEntries] = useState<DealEntry[]>();
   const [error, setError] = useState<string>();
   const [tick, setTick] = useState(0);
-  const key = p ? `${p.side}:${p.commitment}:${p.issuerRecord}:${p.theirPublic}` : '';
+  const key = p ? dealKeyOf(p) : '';
   useEffect(() => {
     if (!p) return;
     let live = true;
@@ -201,6 +247,8 @@ export const dealRecordOf = (p: DealParty, mine: string, entries: readonly DealE
       ),
       signature: e.signature,
       fingerprint: e.fingerprint,
+      // The registry's order and time: a checker orders the deal by seq, never the signed times.
+      seq: e.seq,
       receivedAt: e.receivedAt,
       proof: `${BASE}/proof/${e.fingerprint}`,
     })),

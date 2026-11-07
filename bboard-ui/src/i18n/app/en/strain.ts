@@ -179,7 +179,7 @@ export const strain = {
   'app.strain.v.app.lic.row.offspringValue': '{pct}%, on strains declared as derived from this one',
   'app.strain.v.app.lic.f.offspring': 'Royalty on derived strains (%)',
   'app.strain.v.app.lic.f.offspringHelp':
-    'Applies to strains declared as derived from this record (logged with it as a parent, both holders confirming). Undeclared derivation is not detected. Leave blank if none.',
+    'Only counts strains recorded in VeilCore as derived from this one. Leave blank if none.',
   'app.strain.v.app.lic.f.extraHelpDeal':
     'Anything else that’s part of the deal, in your own words. For example: no distribution to third parties, credit the source in publications, destroy remaining stock when it ends.',
   'app.strain.v.app.lic.detail.thisCultivar': 'this strain',
@@ -187,11 +187,18 @@ export const strain = {
     'If a strain is later logged with {name} as a parent, and both holders confirm it, the link to this agreement shows on its record. Derived strains nobody logs are not detected.',
   'app.strain.v.app.lic.detail.derivatives.one': '{count} strain already logged descends from it.',
   'app.strain.v.app.lic.detail.derivatives.other': '{count} strains already logged descend from it.',
-  'app.strain.v.app.lic.off.title': 'Royalty on derived strains: {pct}%',
+  'app.strain.v.app.lic.off.title': 'Royalty on derived strains: {pct}',
   'app.strain.v.app.lic.off.intro':
     'On Midnight it sits on the licensee’s own record of this strain, so every derived strain both holders confirm shows it when anyone checks the line. The licensee accepts it; only the licensor can release it.',
   'app.strain.v.app.lic.off.dateFirst': 'Date your own record of this strain first, then name it here.',
   'app.strain.v.app.lic.off.datePlant': 'Date a record',
   'app.strain.v.app.lic.off.yourRecord': 'Your record of this strain',
   'app.strain.v.app.lic.off.waitName': 'Waiting for them to name their record of this strain.',
+  // components/chain/FamilyOnChain.tsx
+  'app.strain.v.app.family.intro':
+    'Parentage both holders agreed to, on chain. It is what lets anyone check a strain’s line, and what carries a parent’s offspring royalty down to its descendants. A confirmed link is public and permanent: it can’t be undone, and royalties the parent’s holder takes on later show on this record’s line too.',
+  'app.strain.v.app.family.namesParent':
+    '{who} names this record as a parent. Confirm only if it really came from this strain. Confirming is public and permanent, and anything owed on this strain, now or later, will show on its line.',
+  'app.strain.v.app.family.confirmQ':
+    'Confirm this strain is a parent of {who}? Only confirm a record you know came from it. This is public and permanent: its line, and anything owed on this strain now or later, will show on it.{fixes}',
 };

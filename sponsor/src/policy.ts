@@ -45,7 +45,7 @@ export const AGREEMENT_CIRCUITS = [
  * (a test checks). On mainnet the list can't be changed by configuration, only by this
  * reviewed line. Test networks pay for agreement calls already, so they can be tried first.
  */
-export const MAINNET_AGREEMENTS = false;
+export const MAINNET_AGREEMENTS = true;
 
 /**
  * The claims contract's calls a visitor's browser makes (docs/claims-screen.md): proving one

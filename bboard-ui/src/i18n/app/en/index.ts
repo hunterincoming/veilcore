@@ -25,9 +25,12 @@ import { prove } from './prove';
 import { sealed } from './sealed';
 import { verify } from './verify';
 import { licensing } from './licensing';
+import { royalties } from './royalties';
 import { document } from './document';
 import { attest } from './attest';
 import { start } from './start';
+import { receipt } from './receipt';
+import { ask } from './ask';
 
 export const appEn = {
   ...common,
@@ -50,9 +53,12 @@ export const appEn = {
   ...sealed,
   ...dating,
   ...licensing,
+  ...royalties,
   ...document,
   ...attest,
   ...start,
+  ...receipt,
+  ...ask,
 };
 
 export type AppKey = keyof typeof appEn;

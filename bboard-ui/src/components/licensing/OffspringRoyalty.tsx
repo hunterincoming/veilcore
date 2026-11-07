@@ -21,6 +21,18 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import { ConfirmInline } from './DealSteps';
 import { rich, useT } from '../../i18n/app';
 import { forKind, type RecordKind } from '../../i18n/translate';
+import type { LicenseTerms } from '../../veilcore/licenses';
+import { currencyOf, offspringOf, ruleText } from '../../veilcore/royalty-terms';
+import { DisclosureReceipt } from '../chain/DisclosureReceipt';
+import type { ReceiptCircuit } from '../../veilcore/onchain-receipt';
+
+/** The steps each side can send from here, by the obligation's status. */
+const RECEIPT_FOR: Record<string, readonly ReceiptCircuit[]> = {
+  'issuer:none': ['proposeObligation'],
+  'issuer:proposed': ['withdrawObligation'],
+  'issuer:in-force': ['discharge'],
+  'licensee:proposed': ['acceptObligation', 'rejectObligation'],
+};
 
 type Status = 'none' | 'proposed' | 'in-force';
 
@@ -37,7 +49,8 @@ export const OffspringRoyalty: React.FC<{
   party: DealParty;
   entries: readonly DealEntry[] | undefined;
   refresh: () => void;
-  pct: string;
+  /** The agreement's terms: the royalty on offspring is worded from them. */
+  terms: LicenseTerms;
   /** The agreement's fingerprint: the obligation itself. */
   obligation: string;
   /** The breeder's record identity: the beneficiary. */
@@ -46,8 +59,10 @@ export const OffspringRoyalty: React.FC<{
   issuerSecret?: string;
   /** What the licensed record is about (the terms' subject), for its words. */
   kind?: RecordKind;
-}> = ({ side, party, entries, refresh, pct, obligation, beneficiary, issuerSecret, kind = 'plant' }) => {
+}> = ({ side, party, entries, refresh, terms, obligation, beneficiary, issuerSecret, kind = 'plant' }) => {
   const tr = forKind(useT(), kind);
+  const rule = offspringOf(terms)?.rule;
+  const pct = rule ? ruleText(rule, currencyOf(terms), tr) : '';
   const allKeys = useRecordKeys();
   const plant = [...(entries ?? [])].reverse().find((e) => e.type === 'plant-record' && e.from === 'licensee') as
     | Extract<DealEntry, { type: 'plant-record' }>
@@ -84,6 +99,15 @@ export const OffspringRoyalty: React.FC<{
     return out;
   };
 
+  // What the button below puts on Midnight, by whose turn it is (DisclosureReceipt).
+  const receiptCircuits: readonly ReceiptCircuit[] | undefined =
+    side === 'issuer'
+      ? issuerSecret
+        ? RECEIPT_FOR[`issuer:${status}`]
+        : undefined
+      : myPlant
+        ? RECEIPT_FOR[`licensee:${status}`]
+        : undefined;
   return (
     <Stack spacing={1.25}>
       <Box>
@@ -158,6 +182,7 @@ export const OffspringRoyalty: React.FC<{
         </Typography>
       )}
 
+      {plant && receiptCircuits && <DisclosureReceipt circuits={receiptCircuits} dense />}
       {plant && side === 'issuer' && issuerSecret && status === 'none' && (
         <Button
           variant="contained"

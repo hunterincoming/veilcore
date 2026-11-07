@@ -14,7 +14,7 @@ export const licensing = {
   'app.lic.fee.note': 'Frais VeilCore ({pct} % de la valeur de l’accord) : calculés, non prélevés.',
   'app.lic.rights.cultivate': 'Culture uniquement',
   'app.lic.rights.cultivate+propagate': 'Culture et multiplication',
-  'app.lic.rights.full-transfer': 'Transfert complet',
+  'app.lic.rights.full-transfer': 'Cession des droits que détient le détenteur',
   'app.lic.rights.breed': 'Reproduction uniquement',
   'app.lic.rights.breed+collect': 'Reproduction + collecte',
   'app.lic.rights.breed+sell': 'Reproduction, collecte + vente',
@@ -24,6 +24,7 @@ export const licensing = {
   'app.lic.state.draft': 'Brouillon',
   'app.lic.state.sent': 'Envoyé, en attente de contresignature',
   'app.lic.state.active': 'Marqué actif',
+  'app.lic.state.activeOffChain': 'Marquée active ici, pas sur Midnight',
   'app.lic.state.expired': 'Expiré',
   'app.lic.state.revoked': 'Révoqué',
   'app.lic.type.license': 'Contrat de licence',
@@ -153,6 +154,7 @@ export const licensing = {
   'app.lic.basis.per-dose': 'par dose',
   'app.lic.basis.per-offspring': 'par descendant',
   'app.lic.basis.per-batch': 'par lot',
+  'app.lic.builder.loading': 'Chargement de vos fiches…',
   'app.lic.builder.notHere':
     'Cet enregistrement n’est pas dans ce navigateur, on ne peut donc pas y attacher de contrat ici.',
   'app.lic.builder.records': 'Vos enregistrements',
@@ -169,7 +171,8 @@ export const licensing = {
   'app.lic.f.rightsHelp': 'Ce que le licencié peut faire avec la génétique.',
   'app.lic.f.r.cultivate': 'Culture uniquement',
   'app.lic.f.r.propagate': 'Culture et multiplication (boutures ou graines)',
-  'app.lic.f.r.full': 'Transfert complet des droits',
+  'app.lic.f.r.full':
+    'Cession des droits que détient le détenteur (un droit enregistré se cède auprès de son propre office)',
   'app.lic.f.r.breed': 'Reproduction avec ses propres animaux uniquement',
   'app.lic.f.r.breed+collect': 'Reproduction + collecte de semence ou d’embryons pour son propre usage',
   'app.lic.f.r.breed+sell': 'Reproduction, collecte + vente de semence, d’embryons ou de reproducteurs',
@@ -196,7 +199,7 @@ export const licensing = {
   'app.lic.f.b.offspring': 'Par descendant né',
   'app.lic.f.b.batch': 'Par lot de production',
   'app.lic.f.offspringHelp':
-    'S’applique aux descendants déclarés à partir de cet enregistrement (enregistrés avec lui comme parent, confirmés par les deux détenteurs). Une multiplication non déclarée n’est pas détectée. Laissez vide s’il n’y en a pas.',
+    'Ne compte que les plantes enregistrées dans VeilCore comme issues de celle-ci. Laissez vide s’il n’y en a pas.',
   'app.lic.f.sublicense': 'Peut accorder des sous-licences',
   'app.lic.f.exclusive': 'Exclusive',
   'app.lic.f.extraHelpDeal': 'Tout ce qui fait aussi partie de l’accord, avec vos propres mots.',
@@ -364,9 +367,11 @@ export const licensing = {
   'app.lic.ledger.l.unknownAmount': 'un montant que cette page ne peut pas calculer',
   'app.lic.ledger.r.aPartner': 'un partenaire de paiement',
   'app.lic.ledger.r.checked':
-    'Payé via {partner} (un partenaire vérifié par VeilCore) : {amount} {currency} à {to} le {date}, référence {ref}. Signé par le partenaire et vérifié ici.',
+    'Payé via {partner} (une clé de partenaire que vous avez nommée) : {amount} {currency} à {to} le {date}, référence {ref}. Signé avec cette clé et vérifié ici.',
   'app.lic.ledger.r.unchecked':
-    'Payé via {partner} (un partenaire que VeilCore n’a pas vérifié) : {amount} {currency} à {to} le {date}, référence {ref}. Signé par le partenaire et vérifié ici. N’importe qui peut signer comme partenaire sous n’importe quel nom : vérifiez que l’argent est arrivé avant de vous y fier.',
+    'Un reçu signé avec la clé {key}, que le registre appelle {partner} ; personne ne l’a vérifié, VeilCore compris : {amount} {currency} à {to} le {date}, référence {ref}. La signature est vérifiée ici. Vérifiez vous-même la clé auprès du partenaire, et que l’argent est arrivé, avant de vous y fier.',
+  'app.lic.ledger.r.trust': 'J’ai vérifié cette clé : lui faire confiance',
+  'app.lic.ledger.r.forget': 'Ne plus faire confiance à cette clé',
   'app.lic.ledger.r.mismatch': 'Ne correspond pas : {what}.',
   'app.lic.pay.method': 'sur Midnight, en {code}',
   'app.lic.pay.notAmount': '« {amount} » n’est pas un montant.',
@@ -407,7 +412,7 @@ export const licensing = {
     'Vérifié sur Midnight : {amount} {code} sont arrivés à votre adresse dans la transaction {tx}, bloc {block}. Lu sur l’indexeur de Midnight, ni auprès de l’autre partie ni auprès de VeilCore.',
   'app.lic.pay.checked':
     'Vérifié sur Midnight : {amount} {code} sont arrivés à votre adresse dans la transaction {tx}. Lu sur l’indexeur de Midnight, ni auprès de l’autre partie ni auprès de VeilCore.',
-  'app.lic.off.title': 'Redevance sur la descendance : {pct} %',
+  'app.lic.off.title': 'Redevance sur la descendance : {pct}',
   'app.lic.off.intro':
     'Sur Midnight, elle figure sur l’enregistrement que le licencié a de cette plante, donc chaque descendant que les deux détenteurs confirment l’affiche quand quelqu’un vérifie la lignée. Le licencié l’accepte ; seul l’obtenteur peut la lever.',
   'app.lic.off.dateFirst': 'Datez d’abord votre plante de cette génétique, puis indiquez-la ici.',
@@ -416,7 +421,7 @@ export const licensing = {
   'app.lic.off.nameIt': 'L’indiquer',
   'app.lic.off.waitName': 'En attente que l’autre partie indique son enregistrement de cette plante.',
   'app.lic.off.theirRecord': 'Leur enregistrement : <b>{name}</b> {key} · {state}',
-  'app.lic.off.inForce': 'en vigueur sur Midnight',
+  'app.lic.off.inForce': 'inscrit sur Midnight',
   'app.lic.off.proposed': 'proposée, en attente de l’acceptation du licencié',
   'app.lic.off.notYet': 'pas encore sur Midnight',
   'app.lic.off.checking': 'vérification…',
@@ -518,7 +523,12 @@ export const licensing = {
   'app.lic.real.issued':
     'Émise sur Midnight. En attente que {who} lise les conditions, les accepte et l’active : son lien lui explique comment. Cette page lit la chaîne elle-même et avance dès que c’est fait.',
   'app.lic.real.copyAgain': 'Copier à nouveau son lien',
-  'app.lic.real.resend': 'Rien reçu ? Renvoyer',
+  'app.lic.real.resend': 'Republier l’avis d’émission',
+  'app.lic.real.resendFailed': 'Impossible de publier l’avis d’émission : {error}',
+  'app.lic.code.making': 'Création de votre code, cela prend quelques secondes.',
+  'app.lic.inv.notThisDevice':
+    'Ce téléphone ou ce navigateur n’a pas la copie qui a accepté ce lien. Si vous l’avez déjà accepté ici, restaurez votre sauvegarde, puis rouvrez le lien.',
+  'app.lic.inv.restore': 'Restaurer une sauvegarde',
   'app.lic.real.cancel': 'L’annuler',
   'app.lic.real.cancelQ':
     'Annuler cette licence ? L’autre partie ne pourra pas l’activer. Ceci est inscrit sur Midnight et irréversible.',
@@ -576,9 +586,24 @@ export const licensing = {
     'En attente d’une réponse de la page du concédant. Votre code s’affiche ici dès qu’elle arrive.',
   'app.lic.inv.takeOverTerms':
     'Les conditions auxquelles vous reprenez la licence (les mêmes que pour le détenteur actuel) :',
+  'app.lic.other': 'Autre : {value}',
   // What a license here is and isn't (shown where terms are set and agreed).
   'app.lic.evidenceNote':
-    'Une licence ici est une trace signée et datée de ce que vous avez convenu tous les deux, pas un conseil juridique. Certains tribunaux ont refusé de faire exécuter des accords portant sur le cannabis : faites relire par votre propre avocat tout ce qui compte.',
+    'Une licence ici est une trace signée et datée de ce que vous avez convenu tous les deux, pas un conseil juridique. Faites relire par votre propre avocat tout ce qui compte.',
+  'app.lic.controlled.q': 'S’agit-il de cannabis, de chanvre ou d’une autre plante contrôlée ?',
+  'app.lic.controlled.yes': 'Oui',
+  'app.lic.controlled.no': 'Non',
+  'app.lic.controlled.hint':
+    'L’espèce de cette fiche ressemble à du cannabis : Oui est donc choisi. Changez-le si c’est faux.',
+  'app.lic.controlled.courts': 'Certains tribunaux ont refusé de faire appliquer des accords portant sur le cannabis.',
+  'app.lic.controlled.border':
+    'Faire passer du cannabis ou son matériel végétal par une frontière d’État ou nationale est un délit presque partout, même entre deux États américains où il est légal dans les deux. Limitez le territoire à là où vous pouvez tous deux le cultiver et le vendre légalement, et n’expédiez rien par-delà une frontière.',
+  'app.lic.controlled.japan':
+    'Au Japon, cultiver, vendre ou consommer du cannabis sans autorisation est un délit. N’utilisez pas ceci pour un accord au Japon.',
+  'app.lic.controlled.regulator':
+    'Une redevance sur les ventes peut devoir être déclarée au régulateur du cannabis du licencié.',
+  'app.lic.inv.revokeNote':
+    'Le concédant peut désactiver cette licence sur Midnight à tout moment, quoi que disent vos conditions. La désactiver ne met pas fin au contrat entre vous : vos conditions signées sont votre preuve s’il le fait.',
   'app.lic.inv.iAgree': 'J’accepte ces conditions',
   'app.lic.inv.agree': 'Accepter',
   'app.lic.inv.waitHandOn':
@@ -671,7 +696,7 @@ export const licensing = {
     'Ce lien de mention de prêteur est incomplet. Rouvrez-le exactement tel que vous l’avez reçu, y compris tout ce qui suit le #.',
   'app.lic.claim.notHeld': 'Cet appareil ne détient pas l’enregistrement.',
   'app.lic.claim.notWaiting': 'La mention de prêteur n’est plus en attente. Rien n’a été envoyé.',
-  'app.lic.claim.hInForce': 'Une mention de prêteur est en vigueur sur votre enregistrement',
+  'app.lic.claim.hInForce': 'Une mention de prêteur est inscrite sur votre enregistrement',
   'app.lic.claim.h': 'Une mention de prêteur sur votre enregistrement',
   'app.lic.claim.from':
     'De : <b>{name}</b> (selon ses propres dires ; vérifiez son identité comme pour tout prêt) · sa clé on-chain {key}',
@@ -683,16 +708,16 @@ export const licensing = {
   'app.lic.claim.asks':
     '<b>{name}</b> demande à inscrire une mention de prêteur sur <b>{record}</b> (vérifié sur Midnight).',
   'app.lic.claim.ifAccept':
-    'Si vous acceptez, quiconque vérifie cet enregistrement voit qu’une mention de prêteur est en vigueur, jusqu’à ce que {name} la lève. Personne d’autre ne le peut. Cela ne déplace pas l’enregistrement et ne vous empêche pas de l’utiliser.',
+    'Si vous acceptez, quiconque vérifie cet enregistrement voit qu’une mention de prêteur y est inscrite, jusqu’à ce que {name} la lève. Personne d’autre ne le peut. Cela ne déplace pas l’enregistrement et ne vous empêche pas de l’utiliser.',
   'app.lic.claim.accept': 'Accepter la mention de prêteur',
   'app.lic.claim.reject': 'La refuser',
   'app.lic.claim.rejectQ':
     'Refuser la mention de prêteur de {name} ? Elle est effacée de Midnight. Une nouvelle demande reste possible.',
   'app.lic.claim.rejectYes': 'Oui, la refuser',
   'app.lic.claim.how':
-    'Les prêteurs utilisent une mention de prêteur pour montrer qu’un enregistrement leur est nanti, afin qu’il ne puisse pas être nanti deux fois en silence. Ce n’est pas une inscription légale : le prêteur effectue toujours ses propres formalités. Les conditions restent entre vous ; Midnight montre seulement qu’une mention de prêteur existe et qui peut la lever. VeilCore paie les frais de réseau.',
+    'Les prêteurs utilisent une mention de prêteur pour que quiconque vérifie cet enregistrement voie qu’une mention y est inscrite. Elle n’empêche pas que le même matériel soit nanti ailleurs, et ce n’est pas une inscription légale : le prêteur effectue toujours ses propres formalités. Les conditions restent entre vous ; Midnight montre seulement qu’une mention de prêteur existe et qui peut la lever. VeilCore paie les frais de réseau.',
   'app.lic.claim.inForce':
-    'En vigueur sur Midnight. Seul {name} peut la lever. Quiconque vérifie {record} voit qu’une mention de prêteur est en vigueur.',
+    'Inscrit sur Midnight. Seul {name} peut la lever. Quiconque vérifie {record} voit qu’une mention de prêteur y est inscrite.',
   'app.lic.claim.readError': 'Impossible de lire Midnight pour le moment : {error}',
   'app.lic.claim.thisRecord': 'cet enregistrement',
   'app.lic.steps.i.link': 'Créer un lien et l’envoyer',
@@ -713,25 +738,24 @@ export const licensing = {
   'app.lic.handon.steps.n.wait': 'Le détenteur actuel la transmet et le concédant l’approuve',
   'app.lic.next.period': 'la période du {from} au {to}',
   'app.lic.next.i.payout': 'Indiquez comment vous voulez être payé.',
-  'app.lic.next.i.check': 'Vérifiez leur relevé pour {period}, puis acceptez-le ou contestez-le.',
+  'app.lic.next.i.check': 'Vérifiez leur rapport pour {period}, puis acceptez-le ou demandez une correction.',
   'app.lic.next.i.confirm':
     'L’autre partie dit avoir payé {amount} {currency} pour {period}. Vérifiez la réception, puis confirmez.',
   'app.lic.next.i.waitPay': 'En attente du paiement de {amount} {currency}.',
-  'app.lic.next.i.disputed': 'Vous avez contesté {period}. En attente d’un relevé corrigé.',
-  'app.lic.next.i.nothing': 'Rien à faire. L’autre partie dépose un relevé pour chaque période.',
+  'app.lic.next.i.disputed': 'Vous avez demandé une correction pour {period}. En attente d’un rapport corrigé.',
+  'app.lic.next.i.nothing': 'Rien à faire. L’autre partie envoie un rapport par période.',
   'app.lic.next.l.payOnChain':
     'Payez {amount} {currency} sur Midnight depuis votre portefeuille : touchez « Payer … avec » ci-dessous.',
   'app.lic.next.l.pay': 'Payez {amount} {currency} par {method} à {account}, puis touchez « J’ai payé ».',
-  'app.lic.next.l.waitPayout':
-    'Votre relevé a été accepté. En attente que l’autre partie indique comment elle veut être payée.',
-  'app.lic.next.l.disputed': 'L’autre partie a contesté {period}. Déposez un relevé corrigé.',
-  'app.lic.next.l.disputedNote': 'L’autre partie a contesté {period} : « {note} ». Déposez un relevé corrigé.',
-  'app.lic.next.l.waitCheck': 'En attente que l’autre partie vérifie votre relevé pour {period}.',
+  'app.lic.next.l.waitPayout': 'Votre rapport est accepté. En attente de leurs coordonnées de paiement.',
+  'app.lic.next.l.disputed': 'Une correction est demandée pour {period}. Envoyez un rapport corrigé.',
+  'app.lic.next.l.disputedNote': 'Une correction est demandée pour {period} : « {note} ». Envoyez un rapport corrigé.',
+  'app.lic.next.l.waitCheck': 'En attente de la vérification de votre rapport pour {period}.',
   'app.lic.next.l.waitConfirm': 'En attente que l’autre partie confirme la réception de votre paiement.',
-  'app.lic.next.l.file': 'Déposez votre relevé à la fin de la période.',
+  'app.lic.next.l.file': 'Envoyez votre rapport à la fin de la période.',
   'app.lic.lend.title': 'Inscrire une mention de prêteur',
   'app.lic.lend.intro':
-    'Vous prêtez en vous appuyant sur l’enregistrement ou la licence d’un obtenteur ? Inscrivez sur Midnight que l’enregistrement vous est nanti, afin qu’il ne puisse pas être nanti deux fois en silence. Le détenteur l’accepte depuis son propre appareil, et vous seul pouvez la lever. Ce n’est pas une inscription légale : effectuez vos formalités comme d’habitude.',
+    'Vous prêtez en vous appuyant sur l’enregistrement ou la licence d’un obtenteur ? Inscrivez sur Midnight que vous détenez une mention de prêteur sur l’enregistrement, pour que quiconque le vérifie la voie. Cela n’empêche pas que le même matériel soit nanti ailleurs, et ce n’est pas une inscription légale : effectuez vos formalités comme d’habitude. Le détenteur l’accepte depuis son propre appareil, et vous seul pouvez la lever.',
   'app.lic.lend.name': 'Votre nom, tel que les détenteurs le verront',
   'app.lic.lend.nameHelp':
     'Le nom de votre établissement. Les détenteurs le voient à côté de votre clé et vérifient votre identité comme pour tout prêt.',
@@ -764,7 +788,7 @@ export const licensing = {
   'app.lic.lend.withdrawQ': 'Retirer cette mention avant que le détenteur ne réponde ? Ceci est inscrit sur Midnight.',
   'app.lic.lend.withdrawYes': 'Oui, la retirer',
   'app.lic.lend.inForce':
-    'En vigueur sur Midnight. Quiconque vérifie l’enregistrement voit qu’une mention de prêteur est en vigueur jusqu’à ce que vous la leviez.',
+    'Inscrit sur Midnight. Quiconque vérifie l’enregistrement voit qu’une mention de prêteur y est inscrite jusqu’à ce que vous la leviez.',
   'app.lic.lend.release': 'La lever (remboursé)',
   'app.lic.lend.releaseQ':
     'Lever cette mention ? Quiconque vérifie l’enregistrement ne la verra plus. Ceci est inscrit sur Midnight et irréversible.',
@@ -773,7 +797,7 @@ export const licensing = {
   'app.lic.lend.withdrawn': 'Retirée.',
   'app.lic.lend.gone': 'Pas sur Midnight : le détenteur l’a refusée, ou elle n’est pas encore arrivée.',
   'app.lic.lend.notWaiting': 'La mention n’est plus en attente. Rien n’a été envoyé.',
-  'app.lic.lend.notInForce': 'La mention n’est pas en vigueur. Rien n’a été envoyé.',
+  'app.lic.lend.notInForce': 'La mention n’est pas inscrite sur Midnight. Rien n’a été envoyé.',
   'app.lic.lend.badRecord':
     'Ce n’est ni un lien de vérification ni une clé on-chain. Demandez au détenteur le lien de vérification de son enregistrement.',
   'app.lic.lend.ownRecord': 'C’est votre propre clé de prêteur, pas un enregistrement.',

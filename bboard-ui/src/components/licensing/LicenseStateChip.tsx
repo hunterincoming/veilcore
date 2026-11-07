@@ -19,12 +19,18 @@ const COLOR: Record<string, 'default' | 'warning' | 'success' | 'error'> = {
 export const LicenseStateChip: React.FC<{ license: License; size?: 'small' | 'medium' }> = ({ license, size }) => {
   const tr = useT();
   const s = effectiveState(license);
+  // Green only for a license that is live on Midnight. One marked active in this browser alone
+  // (a practice agreement, or one never put on chain) gets a plain chip that says so (panel review).
+  const oc = license.onChain;
+  const onChain = Boolean(oc && (oc.activateTx || oc.activeSeenAt) && !(oc.revokeTx || oc.goneSeenAt));
+  const offChainActive = s === 'active' && !onChain;
   const chip = (
     <Chip
       size={size ?? 'small'}
-      variant={s === 'active' ? 'filled' : 'outlined'}
-      color={COLOR[s]}
-      label={stateLabel(s, tr)}
+      variant={s === 'active' && onChain ? 'filled' : 'outlined'}
+      color={offChainActive ? 'default' : COLOR[s]}
+      label={offChainActive ? tr.t('app.lic.state.activeOffChain') : stateLabel(s, tr)}
+      data-license-state={offChainActive ? 'active-off-chain' : s}
     />
   );
   // A practice agreement where agreements are now real (agreements-real.ts): said beside the

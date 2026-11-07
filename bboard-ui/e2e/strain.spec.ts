@@ -262,7 +262,8 @@ test('log a strain with its designation, deposits and parent; tie a DNA report; 
   await page.getByText('License it', { exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/record/${rec.id}/license`));
   await expect(page.getByText('Use only (no subculturing or passing it on)')).toBeVisible();
-  await expect(page.getByText('Per production batch')).toBeVisible();
+  // A strain has one preset, Custom: the full form opens on it.
+  await expect(page.getByText('production batch', { exact: true })).toBeVisible();
   await expect(page.getByLabel('Royalty on derived strains (%)')).toBeVisible();
   await expect(page.getByText(/Cultivate/)).toHaveCount(0);
   await page.goto(`/record/${rec.id}`);
