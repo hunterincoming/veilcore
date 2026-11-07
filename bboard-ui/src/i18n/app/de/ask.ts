@@ -119,7 +119,7 @@ export const ask = {
     'Zum Speichern braucht es eine Verbindung. Vor Ihrer Sicherungskopie wird nichts gespeichert.',
   'app.ask.batch.needParent': 'Wählen Sie die Pflanze, von der geschnitten wurde.',
   'app.ask.batch.needParents': 'Wählen Sie Vater, Mutter oder beide.',
-  'app.ask.batch.needAll': 'Geben Sie Anzahl, Namen und Datum an.',
+  'app.ask.batch.needAll': 'Füllen Sie jedes Feld oben aus.',
   'app.ask.batch.sealing': 'Wird versiegelt…',
   'app.ask.batch.backupTitle': 'Zuerst die Sicherungskopie speichern',
   'app.ask.batch.saveThem.one': '{count} Datensatz speichern',
@@ -136,4 +136,8 @@ export const ask = {
   'app.ask.batch.cutClonesHint': 'Ein neuer Datensatz pro Steckling, jeder mit dieser Pflanze verknüpft.',
   'app.ask.batch.recordOffspring': 'Nachwuchs erfassen',
   'app.ask.batch.recordOffspringHint': 'Ein neuer Datensatz pro Jungtier, jeder mit diesem Tier verknüpft.',
+  'app.ask.batch.already':
+    'Einige davon sind Datensätze, die Sie schon haben. Ändern Sie Namen oder Datum und versuchen Sie es noch einmal.',
+  'app.ask.batch.receivedNote':
+    'Hier wird nichts aus einem Datensatz ausgefüllt, den Ihnen jemand geschickt hat: Geben Sie es selbst ein.',
 } satisfies Partial<AppTranslation>;

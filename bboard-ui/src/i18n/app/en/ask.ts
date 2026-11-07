@@ -121,7 +121,7 @@ export const ask = {
   'app.ask.batch.needsConnection': 'Saving needs a connection. Nothing is saved before your backup.',
   'app.ask.batch.needParent': 'Pick the plant they were cut from.',
   'app.ask.batch.needParents': 'Pick the sire, the dam, or both.',
-  'app.ask.batch.needAll': 'Fill in how many, a name and a date.',
+  'app.ask.batch.needAll': 'Fill in every field above.',
   'app.ask.batch.sealing': 'Sealing…',
   'app.ask.batch.backupTitle': 'Save your backup first',
   'app.ask.batch.saveThem.one': 'Save {count} record',
@@ -138,4 +138,6 @@ export const ask = {
   'app.ask.batch.cutClonesHint': 'One new record per clone, each linked to this plant.',
   'app.ask.batch.recordOffspring': 'Record offspring',
   'app.ask.batch.recordOffspringHint': 'One new record per young animal, each linked to this one.',
+  'app.ask.batch.already': 'Some of these are records you already have. Change the name or the date, then try again.',
+  'app.ask.batch.receivedNote': 'Nothing here is filled in from a record someone else sent you: type it yourself.',
 };

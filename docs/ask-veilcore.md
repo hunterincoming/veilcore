@@ -38,13 +38,13 @@ What the sheet says, and what the receipt on every on-chain step says, word for 
 > Ask sends nothing; Save does.
 
 Before every step that writes to Midnight, a receipt lists what that step makes public, built
-from the contract's own `disclose()` calls ([The receipt](#the-disclosure-receipt)), and then:
+from the contract's own `disclose()` calls and ledger writes ([The receipt](#the-disclosure-receipt)), and then:
 
 > Genetics and DNA files never leave this device.
 >
 > Name and notes go to the registry locked with your key. It can’t read them.
 >
-> The registry sees the kind of record (plant, animal, document) and its proof code.
+> The registry sees the kind of record, its proof code and the codes tied to it, and links between records (where one came from, what replaced it).
 
 How that is kept true:
 
@@ -105,6 +105,13 @@ explains this and links to the record's page (Family on Midnight). Ask never doe
 anything, each `disclose()` expression it reaches (through the helper circuits it calls, and
 the Schnorr module), and the fact the receipt names for it. `onchain-receipt.test.ts` parses the
 `.compact` sources and fails when a circuit's disclosures change and the table doesn't.
+
+A step reveals more than its disclosed values: it writes the ledger. The same table lists every
+ledger field each circuit writes, and `LEDGER_FACTS` says what writing each field reveals: which
+step this was and that it ties the codes together (on every receipt), that a record names
+another as its parent, that a license or obligation is tied to a record, that the public license
+list changed, and how many licenses, obligations or key moves a record has. The test checks the
+writes against the sources too, and that every ledger field of both contracts has its words.
 
 The receipt is shown just before the confirm button of every screen that sends a step: sealing
 (the key's date stamp), the bulk import's key stamps, prove you hold it, DNA pairing, family on

@@ -120,7 +120,7 @@ export const ask = {
     'L’enregistrement demande une connexion. Rien n’est enregistré avant votre sauvegarde.',
   'app.ask.batch.needParent': 'Choisissez la plante sur laquelle elles ont été coupées.',
   'app.ask.batch.needParents': 'Choisissez le père, la mère, ou les deux.',
-  'app.ask.batch.needAll': 'Indiquez combien, un nom et une date.',
+  'app.ask.batch.needAll': 'Remplissez chaque champ ci-dessus.',
   'app.ask.batch.sealing': 'Scellement…',
   'app.ask.batch.backupTitle': 'Enregistrez d’abord votre sauvegarde',
   'app.ask.batch.saveThem.one': 'Enregistrer {count} enregistrement',
@@ -137,4 +137,8 @@ export const ask = {
   'app.ask.batch.cutClonesHint': 'Un nouvel enregistrement par bouture, chacun lié à cette plante.',
   'app.ask.batch.recordOffspring': 'Enregistrer une descendance',
   'app.ask.batch.recordOffspringHint': 'Un nouvel enregistrement par jeune animal, chacun lié à celui-ci.',
+  'app.ask.batch.already':
+    'Certains sont des enregistrements que vous avez déjà. Changez le nom ou la date, puis réessayez.',
+  'app.ask.batch.receivedNote':
+    'Rien ici n’est rempli à partir d’un enregistrement que quelqu’un vous a envoyé : saisissez-le vous-même.',
 } satisfies Partial<AppTranslation>;

@@ -60,7 +60,16 @@ export const dueItems = (
 
 /** A calendar file (RFC 5545): one all-day event per item, worded by `what`. */
 export const dueCalendar = (items: readonly DueItem[], what: (i: DueItem) => string, now = new Date()): string => {
-  const esc = (s: string) => s.replace(/[\\;,]/g, (c) => `\\${c}`).replace(/\n/g, '\\n');
+  // RFC 5545 text: backslash, semicolon and comma escaped; any line break (\r\n, \r, \n) as \n;
+  // other control characters dropped, so a name can't start a new line or property.
+  const esc = (s: string) =>
+    s
+      .replace(/[\\;,]/g, (c) => `\\${c}`)
+      .replace(/\r\n|\r|\n/g, '\\n')
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\u0000-\u001f\u007f]/g, '');
+  /** A UID's parts: letters, digits, dot, dash and underscore only. */
+  const uid = (s: string) => s.replace(/[^A-Za-z0-9._-]/g, '');
   const stamp = now
     .toISOString()
     .replace(/[-:]/g, '')
@@ -72,7 +81,7 @@ export const dueCalendar = (items: readonly DueItem[], what: (i: DueItem) => str
     'CALSCALE:GREGORIAN',
     ...items.flatMap((i) => [
       'BEGIN:VEVENT',
-      `UID:${i.licenseId}-${i.kind}-${i.date}@veilcore.org`,
+      `UID:${uid(i.licenseId)}-${uid(i.kind)}-${uid(i.date)}@veilcore.org`,
       `DTSTAMP:${stamp}`,
       `DTSTART;VALUE=DATE:${i.date.replace(/-/g, '')}`,
       `DTEND;VALUE=DATE:${addDays(i.date, 1).replace(/-/g, '')}`,

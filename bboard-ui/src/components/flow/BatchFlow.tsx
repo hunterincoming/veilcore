@@ -7,7 +7,7 @@
 // sent, through the bulk import's own path (sealRows), as the same records.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useEffect, useId, useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useId, useMemo, useState, useSyncExternalStore } from 'react';
 import { Alert, Box, Button, LinearProgress, Link, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { AppHeader } from '../AppHeader';
@@ -16,13 +16,29 @@ import { FlowFrame, ScreenHeading, focusScreenHeading, softDisabled } from './Fl
 import { today } from './log-flow-state';
 import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
-import { useRecords, type StrainRecord } from '../../veilcore/records';
+import { allRecords, useRecords, type StrainRecord } from '../../veilcore/records';
 import { isAnimal } from '../../veilcore/animal-profile';
 import { isStrain } from '../../veilcore/strain-profile';
 import { holderKey } from '../../veilcore/holder';
 import { makeVaultIfSafe } from '../../veilcore/api-store';
-import { holdForBackup, sealRows, type PreparedRow, type SealProgress } from '../../veilcore/bulk-import';
-import { batchProblems, batchRows, childNames, type BatchPlan, type BatchPreset } from '../../ask/batch';
+import {
+  holdForBackup,
+  loadLedger,
+  recordRowHash,
+  sealRows,
+  type PreparedRow,
+  type SealProgress,
+} from '../../veilcore/bulk-import';
+import {
+  batchProblems,
+  batchRows,
+  childNames,
+  firstFreeStart,
+  isReceived,
+  ownDefaults,
+  type BatchPlan,
+  type BatchPreset,
+} from '../../ask/batch';
 import { MAX_BATCH, type Handoff } from '../../ask/handoff';
 import { sireAndDam } from '../../ask/prefill';
 import { AskFilledBanner } from '../ask/AskFill';
@@ -45,6 +61,10 @@ const useOnline = (): boolean =>
     () => navigator.onLine,
     () => true,
   );
+
+/** Rows this browser already has: in the bulk import's ledger (sent or waiting), or records in the set. */
+const takenRows = (records: readonly StrainRecord[]): ReadonlySet<string> =>
+  new Set([...Object.keys(loadLedger().rows), ...records.map(recordRowHash)]);
 
 const VAULT_WORDS: Record<string, AppKey> = {
   locked: 'app.sealed.refuse.noKey',
@@ -76,29 +96,46 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
   const parent = own(parentId);
   const sire = own(sireId);
   const dam = own(damId);
-  const defaultBase =
-    preset === 'clones'
-      ? parent
-        ? t('app.ask.batch.cloneName', { name: parent.strainName })
-        : ''
-      : dam || sire
-        ? t('app.ask.batch.youngName', { name: (dam ?? sire)?.strainName ?? '' })
-        : '';
+  // Defaults only from records the person logged themselves: a received record's name, breeder
+  // and species are someone else's words (the provenance rule, docs/ask-veilcore.md).
+  const named = preset === 'clones' ? [parent] : [dam, sire];
+  const firstOwn = named.find((r) => r && !isReceived(r));
+  const defaultBase = !firstOwn
+    ? ''
+    : preset === 'clones'
+      ? t('app.ask.batch.cloneName', { name: firstOwn.strainName })
+      : t('app.ask.batch.youngName', { name: firstOwn.strainName });
+  const defaults = ownDefaults(named);
+  const anyReceived = named.some((r) => isReceived(r));
   const [baseTyped, setBaseTyped] = useState<string>();
+  const [bredByTyped, setBredByTyped] = useState<string>();
+  const [taxonTyped, setTaxonTyped] = useState<string>();
   const baseName = baseTyped ?? defaultBase;
+  const bredBy = bredByTyped ?? defaults.bredBy;
+  const taxon = taxonTyped ?? defaults.taxon;
   const [date, setDate] = useState(today());
   const count = /^\d{1,4}$/.test(countText.trim()) ? Number(countText.trim()) : NaN;
-  const plan: BatchPlan = {
+  const unnumbered: BatchPlan = {
     preset,
     count,
     baseName,
     date,
+    bredBy,
+    taxon,
     ...(parent ? { parent } : {}),
     ...(sire ? { sire } : {}),
     ...(dam ? { dam } : {}),
   };
+  // Numbered past any child already made: the same clones again, or a second litter the same day,
+  // are new records, never the old ones said to be saved again.
+  const taken = useMemo(() => takenRows(records), [records]);
+  const start = useMemo(
+    () => firstFreeStart(unnumbered, taken),
+    [taken, preset, count, baseName, date, bredBy, taxon, parentId, sireId, damId],
+  );
+  const plan: BatchPlan = { ...unnumbered, start };
   const problems = batchProblems(plan);
-  const names = childNames(baseName, Number.isFinite(count) ? count : 0);
+  const names = childNames(baseName, Number.isFinite(count) ? count : 0, start);
 
   const [screen, setScreen] = useState<Screen>('review');
   const [rows, setRows] = useState<PreparedRow[]>([]);
@@ -131,11 +168,17 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
         setError(t(VAULT_WORDS[vault]));
         return;
       }
-      const made = batchRows(plan);
+      // Numbered again against what this browser holds now (another tab may have made some).
+      const made = batchRows({ ...plan, start: firstFreeStart(plan, takenRows(allRecords())) });
       const result = await sealRows(made, { commit: holdForBackup, batchSize: made.length, gapMs: 0 });
       const refused = Object.values(result.outcomes).find((o) => o.state === 'refused');
       if (refused && refused.state === 'refused') {
         setError(refused.reason);
+        return;
+      }
+      // Any outcome now is a row the bulk import already had: never say an old record was saved.
+      if (Object.values(result.outcomes).some((o) => o.state === 'sealed')) {
+        setError(t('app.ask.batch.already'));
         return;
       }
       setRows(made);
@@ -239,6 +282,25 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
               slotProps={{ htmlInput: { inputMode: 'numeric' } }}
               fullWidth
             />
+            <TextField
+              label={preset === 'clones' ? t('app.log.bredBy') : t('app.animal.breeder')}
+              value={bredBy}
+              onChange={(e) => setBredByTyped(e.target.value.slice(0, 200))}
+              required
+              fullWidth
+            />
+            <TextField
+              label={preset === 'clones' ? t('app.log.species') : t('app.animal.species')}
+              value={taxon}
+              onChange={(e) => setTaxonTyped(e.target.value.slice(0, 200))}
+              required={preset === 'offspring'}
+              fullWidth
+            />
+            {anyReceived && (
+              <Typography variant="body2" color="text.secondary" data-batch-received="">
+                {t('app.ask.batch.receivedNote')}
+              </Typography>
+            )}
             <TextField
               label={t('app.ask.batch.baseName')}
               value={baseName}
