@@ -300,7 +300,12 @@ describe('check_record', () => {
     const down = (async () => Promise.reject(new TypeError('fetch failed'))) as typeof globalThis.fetch;
     const r = resultOf(await call('check_record', { link: `https://veilcore.org/verify/${ID}` }, { fetch: down }));
     expect(r.isError).toBe(true);
-    expect(resultOf(await call('check_record', { link: 'hello' })).isError).toBe(true);
+    // "hello" alone is a valid bare record id, so it would reach the registry: use text that
+    // names no record, and a fetch that fails, so the test never touches the network.
+    expect(resultOf(await call('check_record', { link: 'not a check link' }, { fetch: down })).isError).toBe(true);
+    expect(resultOf(await call('check_record', { link: 'https://veilcore.org/about' }, { fetch: down })).isError).toBe(
+      true,
+    );
   });
 });
 
