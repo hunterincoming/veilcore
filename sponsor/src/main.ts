@@ -38,6 +38,7 @@ import { fromSerialized, stateEraOf } from "./contract-state.js";
 import { forkLogFields, readFork, type Era, type ForkReading } from "./fork.js";
 import { protocolVersionToLedger } from "@midnight-ntwrk/midnight-js-protocol";
 import { log, scrubOutput } from "./log.js";
+import { installWsDiagnostics } from "./ws-diagnostics.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -67,6 +68,9 @@ const main = async (): Promise<void> => {
   const startedAt = Date.now();
   // Before anything can print an endpoint URL: they carry the Blockfrost project id.
   scrubOutput(cfg.logSecrets);
+  // Log why an indexer socket closed (code, reason, which wallet), which the wallet SDK drops:
+  // it only prints "[object CloseEvent]". Observes only (ws-diagnostics.ts).
+  installWsDiagnostics(log);
   const now = () => Date.now();
 
   // Which side of Midnight's Ledger 9 fork the network is on (fork.ts): the protocol version
