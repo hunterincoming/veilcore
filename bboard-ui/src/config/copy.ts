@@ -68,6 +68,14 @@ export const PASSKEY_BACKUP = AGREEMENTS_ON_CHAIN;
  */
 export const ONCHAIN_PAYMENTS = !IS_MAINNET;
 
+/**
+ * Whether royalties v2 (statements, answers, payments, receipts) has worked end to end on the
+ * test network (docs/agreements-test-run.md). Until it has, the home page's test-site cell says
+ * licenses are there and royalties are built, not "Yes" (m.live.lic.testNext). Turned on by a
+ * reviewed commit after that run, never before.
+ */
+export const ROYALTIES_RUN_ON_TEST = false;
+
 /** The label agreements carry while AGREEMENTS_LIVE is false. */
 export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';
 
