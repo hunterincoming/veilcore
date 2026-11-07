@@ -21,9 +21,15 @@ What it does:
   (animals). See [Batches](#batches).
 - **A record or a cross.** "New plant Harbour Mist", "cross Blue Dream x Gelato" (交配): opens
   the logging screen with the name and the parents filled in.
-- **What's due.** Royalty reports, payments and agreement end dates, from the signed terms of
-  the live agreements in this browser. A calendar file (.ics), and a reminder to share that says
-  only how many items are due ("2 items due on VeilCore"): no names, dates or amounts.
+- **What's due.** Royalty reports, payments and agreement end dates for the live agreements in
+  this browser. Each period's step comes from the deal's signed messages as this page last read
+  them (on the license page, or for the backup), worked out exactly as the license page does
+  (`royalty-ledger.ts` `periodRows`): a report not sent or sent back to fix, and a payment
+  accepted and not made, stay on the list, marked overdue, until they are done; a period that is
+  done, or waiting on the other side's answer or confirmation, isn't listed. Ask reads no
+  messages itself, so an agreement whose messages this page hasn't read yet is a link to open it,
+  not a guess. A calendar file (.ics) of the dated items, and a reminder to share that says only
+  how many items are due ("2 items due on VeilCore"): no names, dates or amounts.
 - **Explain.** A fixed glossary: prior possession, proof code, proof, dating, license, royalty
   report.
 - **Search my records.** Words, a year, "plant" or "animal", over the records this browser
