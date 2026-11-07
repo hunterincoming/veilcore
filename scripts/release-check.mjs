@@ -25,6 +25,8 @@
 // manifest in that code, and needs nothing from VeilCore.
 // SPDX-License-Identifier: Apache-2.0
 
+import { MODEL_WORKER_FILE, downloadWorkerCsp, engineWorkerCsp } from './ask-model-csp.mjs';
+
 export const RELEASE_FORMAT = 'veilcore-release/v1';
 export const MANIFEST_FORMAT = 'veilcore-release-manifest/v1';
 
@@ -300,10 +302,49 @@ export const routesMatch = (r) =>
   r.total > 0 && r.matched.length === r.total && r.differ.length === 0 && r.missing.length === 0 && r.headerDiffers.length === 0;
 
 /**
- * The whole check: every listed file, then every page address. `total` and `done` in
- * onProgress count both.
+ * Ask's on-device model workers (docs/ask-veilcore.md, v2.1). A release built with
+ * VITE_ASK_MODEL (its build settings say so): every worker file it lists is served as
+ * JavaScript with exactly its own Content-Security-Policy (scripts/ask-model-csp.mjs), which
+ * needs the model's pins (`modelManifest`, bboard-ui/src/ask-local/model-manifest.json; the
+ * command passes it, the site's own page doesn't have it and skips). A release built without
+ * the model must list no worker file; nothing is fetched for it.
+ * @returns {Promise<{ skipped?: string, ok: boolean, checked: string[], wrong: { path: string, problem: string }[] }>}
  */
-export const checkRelease = async (site, manifest, { fetchImpl = fetch, onProgress, routes } = {}) => {
+export const checkModelWorkers = async (site, manifest, { fetchImpl = fetch, modelManifest } = {}) => {
+  const flag = String(manifest.build?.settings?.VITE_ASK_MODEL ?? '').trim();
+  const workers = Object.keys(manifest.files)
+    .filter((p) => MODEL_WORKER_FILE.test(p))
+    .sort();
+  if (!flag) {
+    const wrong = workers.map((path) => ({ path, problem: 'a model worker in a release built without the model' }));
+    return { skipped: 'built without the model', ok: wrong.length === 0, checked: [], wrong };
+  }
+  if (!modelManifest) return { skipped: 'no model pins given', ok: true, checked: [], wrong: [] };
+  const wrong = [];
+  if (workers.length !== 2) wrong.push({ path: '/assets/', problem: `${workers.length} model worker files listed, not 2` });
+  for (const path of workers) {
+    const want = /ask-model-download/.test(path) ? downloadWorkerCsp(modelManifest) : engineWorkerCsp();
+    let res;
+    try {
+      res = await fetchImpl(`${origin(site)}${path}`, { cache: 'no-store' });
+    } catch {
+      wrong.push({ path, problem: 'not reachable' });
+      continue;
+    }
+    const csp = res.headers.get('content-security-policy') ?? '';
+    if (res.status !== 200) wrong.push({ path, problem: `answered ${res.status}` });
+    else if (!/javascript/.test(res.headers.get('content-type') ?? '')) wrong.push({ path, problem: 'not JavaScript' });
+    // Two headers arrive joined with a comma, and then this is not the one policy.
+    else if (csp !== want) wrong.push({ path, problem: 'not exactly its own Content-Security-Policy' });
+  }
+  return { ok: wrong.length === 0, checked: workers, wrong };
+};
+
+/**
+ * The whole check: every listed file, then every page address, then the model workers' own
+ * headers when the release has the model. `total` and `done` in onProgress count the first two.
+ */
+export const checkRelease = async (site, manifest, { fetchImpl = fetch, onProgress, routes, modelManifest } = {}) => {
   const fileCount = Object.keys(manifest.files).length + (manifest.files['/index.html'] ? 1 : 0);
   const pages = routes ?? routesToCheck();
   const total = fileCount + pages.length;
@@ -313,11 +354,12 @@ export const checkRelease = async (site, manifest, { fetchImpl = fetch, onProgre
     routes: pages,
     onProgress: (d) => onProgress?.(fileCount + d, total),
   });
-  return { files, routes: pagesOut };
+  const model = await checkModelWorkers(site, manifest, { fetchImpl, modelManifest });
+  return { files, routes: pagesOut, model };
 };
 
-/** Whether a whole check found everything as listed. */
-export const releaseMatches = (r) => allMatch(r.files) && routesMatch(r.routes);
+/** Whether a whole check found everything as listed (a result without `model` predates it). */
+export const releaseMatches = (r) => allMatch(r.files) && routesMatch(r.routes) && (r.model?.ok ?? true);
 
 /**
  * The page a browser is showing, against the listed index.html (round 6): every script in it

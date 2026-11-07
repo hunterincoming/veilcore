@@ -192,9 +192,12 @@ describe('where Ask fetches', () => {
     const s = src('hint-flag.ts');
     expect(s.match(/localStorage\.\w+\(/g)).toEqual(['localStorage.getItem(', 'localStorage.setItem(']);
     expect(s).toMatch(/localStorage\.setItem\(HINT_KEY, v\)/);
-    // Only a count of visits or "done" is written.
-    expect(s).toMatch(/write\(n \+ 1 >= HINT_VISITS \? 'done' : String\(n \+ 1\)\)/);
-    expect(s).toMatch(/write\('done'\)/);
+    // Only a count of visits, "dismissed" or "opened" is written.
+    expect([...s.matchAll(/\bwrite\((.+)\);$/gm)].map((m) => m[1])).toEqual([
+      'String(Math.min(shown(v) + 1, HINT_VISITS))',
+      "'dismissed'",
+      "'opened'",
+    ]);
     for (const f of fs.readdirSync(HERE).filter((x) => /\.tsx?$/.test(x) && !/test|hint-flag/.test(x)))
       expect(src(f), f).not.toMatch(/localStorage|sessionStorage|indexedDB/);
   });
@@ -271,25 +274,90 @@ describe('scripts/check-model-headers.mjs: after a deploy', () => {
   });
 });
 
-describe('the hint is shown on three visits at most', () => {
-  it('counts visits, then "done"; dismissing or opening Ask is "done" at once', async () => {
+describe('the hint is shown on three visits at most, and seeing it is not opening Ask', () => {
+  it('counts visits to three; dismissing and opening are their own values; nothing else is stored', async () => {
     const mem = new Map<string, string>();
     vi.stubGlobal('localStorage', {
       getItem: (k: string) => mem.get(k) ?? null,
       setItem: (k: string, v: string) => void mem.set(k, v),
     });
     const f = await import('./hint-flag');
-    expect(f.askSeen()).toBe(false);
+    expect([f.hintDone(), f.askOpened()]).toEqual([false, false]);
     f.noteHintShown();
     expect(mem.get(f.HINT_KEY)).toBe('1');
     f.noteHintShown();
-    expect(f.askSeen()).toBe(false);
     f.noteHintShown();
-    expect(mem.get(f.HINT_KEY)).toBe('done');
-    expect(f.askSeen()).toBe(true);
-    mem.clear();
-    f.markAskSeen();
-    expect([...mem.entries()]).toEqual([[f.HINT_KEY, 'done']]);
+    f.noteHintShown();
+    expect(mem.get(f.HINT_KEY)).toBe('3');
+    // Shown three times: the hint is done, but Ask was never opened (its first open is still the first).
+    expect([f.hintDone(), f.askOpened()]).toEqual([true, false]);
+    f.dismissHint();
+    expect([f.hintDone(), f.askOpened()]).toEqual([true, false]);
+    f.markAskOpened();
+    expect([f.hintDone(), f.askOpened()]).toEqual([true, true]);
+    // Dismissing after opening keeps "opened"; counting stops.
+    f.dismissHint();
+    f.noteHintShown();
+    expect([...mem.entries()]).toEqual([[f.HINT_KEY, 'opened']]);
     vi.unstubAllGlobals();
+  });
+});
+
+describe('scripts/release-check.mjs: the model workers, in the release check', () => {
+  const files = {
+    '/index.html': 'a'.repeat(64),
+    '/assets/ask-model-download.worker-abc.js': 'b'.repeat(64),
+    '/assets/ask-model-engine.worker-def.js': 'c'.repeat(64),
+  };
+  const release = (flag: string, f: Record<string, string> = files) =>
+    ({ files: f, build: { settings: flag ? { VITE_ASK_MODEL: flag } : {} } }) as never;
+  const serve = (engineCsp: string): typeof fetch =>
+    ((url: string) => {
+      const p = new URL(url).pathname;
+      const csp = /download/.test(p) ? downloadWorkerCsp(stub) : engineCsp;
+      return Promise.resolve(
+        new Response('', {
+          status: 200,
+          headers: { 'content-type': 'text/javascript', 'content-security-policy': csp },
+        }),
+      );
+    }) as unknown as typeof fetch;
+
+  it('with the model: each worker must have exactly its own policy', async () => {
+    const { checkModelWorkers } = await import('../../../scripts/release-check.mjs');
+    const good = await checkModelWorkers('https://x', release('on'), {
+      fetchImpl: serve(engineWorkerCsp()),
+      modelManifest: stub,
+    });
+    expect(good).toMatchObject({ ok: true, checked: Object.keys(files).slice(1) });
+    const twice = await checkModelWorkers('https://x', release('on'), {
+      fetchImpl: serve(`default-src 'self', ${engineWorkerCsp()}`),
+      modelManifest: stub,
+    });
+    expect(twice.ok).toBe(false);
+    expect(twice.wrong).toEqual([
+      { path: '/assets/ask-model-engine.worker-def.js', problem: 'not exactly its own Content-Security-Policy' },
+    ]);
+  });
+
+  it('without the model: skipped cleanly, and a worker listed anyway is wrong; no pins given: skipped', async () => {
+    const { checkModelWorkers, releaseMatches } = await import('../../../scripts/release-check.mjs');
+    const none = () => Promise.reject(new Error('nothing is fetched'));
+    const off = await checkModelWorkers('https://x', release('', { '/index.html': 'a'.repeat(64) }), {
+      fetchImpl: none,
+      modelManifest: stub,
+    });
+    expect(off).toMatchObject({ skipped: 'built without the model', ok: true });
+    expect((await checkModelWorkers('https://x', release(''), { fetchImpl: none })).ok).toBe(false);
+    expect(await checkModelWorkers('https://x', release('on'), { fetchImpl: none })).toMatchObject({
+      skipped: 'no model pins given',
+      ok: true,
+    });
+    const all = {
+      files: { total: 1, matched: ['/'], differ: [], missing: [] },
+      routes: { total: 1, matched: ['/'], differ: [], missing: [], headerDiffers: [] },
+    };
+    expect(releaseMatches({ ...all, model: { ok: false, checked: [], wrong: [] } } as never)).toBe(false);
+    expect(releaseMatches(all as never)).toBe(true);
   });
 });

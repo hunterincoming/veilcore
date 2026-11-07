@@ -226,10 +226,7 @@ export default function ModelPanel({ onChange, folded = false }: { onChange: () 
                   </Button>
                 </Stack>
                 <Box role="status" aria-live="polite" sx={visuallyHidden}>
-                  {t('app.ask.model.progress', {
-                    done: `${tr.num(tenth)} %`,
-                    total: '100 %',
-                  })}
+                  {`${tr.num(tenth)} %`}
                 </Box>
               </>
             ) : (

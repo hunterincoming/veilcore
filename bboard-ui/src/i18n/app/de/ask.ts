@@ -39,7 +39,7 @@ export const ask = {
   'app.ask.can.4': 'Ihre Datensätze finden',
   'app.ask.can.5': 'Einen neuen Datensatz für Sie ausfüllen, zum Prüfen und Speichern',
   'app.ask.can.never': 'Ich unterschreibe und sende nie etwas. Das tun Sie.',
-  'app.ask.can.toggle': 'Was kann ich hier tun?',
+  'app.ask.can.toggle': 'Was ist hier möglich?',
   // ---- der Hinweis am Knopf, sobald es einen Datensatz gibt (das Beispiel nennt ihn) ----
   'app.ask.hint.try': 'Probieren Sie: {example}',
   'app.ask.hint.dismiss': 'Ausblenden',
@@ -69,7 +69,7 @@ export const ask = {
   'app.ask.model.resume': 'Download fortsetzen',
   'app.ask.model.cancel': 'Abbrechen',
   'app.ask.model.progress': '{done} von {total}',
-  'app.ask.model.cancelled': 'Angehalten. Was geladen ist, bleibt; setzen Sie fort, wann Sie möchten.',
+  'app.ask.model.cancelled': 'Angehalten. Was heruntergeladen ist, bleibt; setzen Sie fort, wann Sie möchten.',
   'app.ask.model.delete': 'Modell aus diesem Browser löschen',
   'app.ask.model.deleted': 'Gelöscht. Alles funktioniert wie gewohnt.',
   'app.ask.model.stored': 'Heruntergeladen: {name}. Es wird einmal auf diesem Gerät getestet und dann genutzt.',
@@ -89,7 +89,7 @@ export const ask = {
   'app.ask.model.why.notStored': 'Ein Teil des Modells fehlt; setzen Sie den Download fort.',
   'app.ask.model.why.noGpu': 'Dieser Browser kann es nicht ausführen. Ein aktueller Chrome oder Edge kann es meist.',
   'app.ask.model.why.noF16': 'Die Grafik dieses Computers kann dieses Modell nicht ausführen.',
-  'app.ask.model.why.selfTest': 'Es hat die Testantwort auf diesem Gerät falsch gegeben.',
+  'app.ask.model.why.selfTest': 'Es hat den Test auf diesem Gerät nicht bestanden.',
   'app.ask.model.why.failed': 'Es ist beim Laden stehen geblieben.',
   'app.ask.model.notHere.narrow': 'Machen Sie dieses Fenster breiter, um das optionale Sprachmodell zu sehen.',
   'app.ask.model.notHere.noWebgpu':

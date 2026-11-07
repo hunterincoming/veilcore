@@ -80,6 +80,9 @@ export const MODEL_CACHES = ['webllm/config', 'webllm/model', 'webllm/wasm'] as 
  * The model library on this site, as an absolute address: WebLLM keeps an absolute address in
  * its own cache (`webllm/wasm`) and reads it from there, where a relative one would be fetched
  * again on every start. The download stores it there, checked; the engine never fetches it.
+ * Not on `localhost`: WebLLM always fetches an address containing "localhost" past its cache,
+ * which the engine worker's policy (connect-src 'none') refuses. Serve a local build on
+ * 127.0.0.1 instead (the browser tests and scripts/eval-ask.mjs do).
  */
 export const libUrl = (m: PinnedModel, origin: string): string =>
   new URL(`${MANIFEST.libs.servedFrom}${m.lib.file}`, origin).href;

@@ -9,12 +9,15 @@ Ask drafts; only you save, sign or send. It works with Wi-Fi off.
 ## What it is
 
 An **Ask** button on the record app's pages (「VeilCoreに聞く」 in Japanese; never "AI"). It is a
-chat bubble at the bottom right; on a touch screen it steps aside while a text field on the page
-has focus, so it never sits on the field or its button with the keyboard up. Once someone has a
+chat bubble at the bottom right; on a touch screen it steps aside while a field that brings up
+the keyboard (not a checkbox or radio) has focus on the page, so it never sits on the field or
+its button with the keyboard up. Once someone has a
 record, a hint sits by it with an example naming their own latest record ("Try: cut 6 clones
 from Gelato", or "Try: record 2 calves from Daisy" for someone whose records are mostly
-animals); tapping it opens Ask with the example typed in. It shows on three visits at most, and
-not again once dismissed or once Ask has been opened. The sheet: on the first open, what Ask can
+animals); tapping it opens Ask with the example typed in. The example is read with Shortcuts
+first, and a record whose name would send it elsewhere ("Due Diligence", "Backup") is passed
+over for the next latest; with none that works there is no hint. It shows on three visits at
+most, and not again once dismissed or once Ask has been opened. The sheet: on the first open, what Ask can
 do, as a list that claims only what it does (batches, what's due, words like "proof code", your
 records, a new record filled in for you to check and save) and "I never sign or send anything.
 You do.", then folded under "What can Ask do?"; suggestion chips; a text box. By default there
@@ -217,6 +220,9 @@ computer").
   that doesn't match stops the download and is not kept. Every stored file is checked again
   before every start; WebLLM checks the library, the chat config and the tokenizer against the
   same hashes.
+- **Serve a local build on 127.0.0.1, not localhost.** WebLLM always fetches a library
+  address containing "localhost" past its cache, and the engine worker may fetch nothing, so
+  the model won't start there. The browser tests and `scripts/eval-ask.mjs` use 127.0.0.1.
 - **Known gap (accepted):** WebLLM re-reads `tensor-cache.json` and the weight shards from the
   cache after that check and doesn't check them itself. Only code running on this site's origin
   (another tab of it, a hostile extension, an XSS) could swap them in between, and such code
@@ -267,9 +273,10 @@ fetches only pinned addresses. `e2e/ask-model.spec.ts`:
   WebLLM. With the network off, a request Shortcuts can't read is answered by the model path,
   with no request. `scripts/eval-ask.mjs` counts requests while the real model answers on a GPU.
 
-**The one thing Ask stores:** whether the person has seen Ask (`veilcore.ask.seen.v1`: how many
-visits the hint has shown on, "1" or "2", or "done" after three, a dismissal or opening Ask).
-Never what was typed.
+**The one thing Ask stores:** how far the person has got with Ask, under one key
+(`veilcore.ask.seen.v1`): how many visits the hint has shown on ("1" to "3"), "dismissed", or
+"opened". Seeing the hint is not opening Ask: what Ask can do and the model panel are shown in
+full on the real first open. Never what was typed.
 
 **To pin it and measure it (the maintainer, on the Mac, in order):**
 
@@ -284,11 +291,13 @@ Never what was typed.
    the model gets wrong, no request). Shortcuts gets 144 of 200 (the unit test prints it).
 4. Commit the manifest. Only if a model clearly wins does `VITE_ASK_MODEL=on` go into a site
    build, and that is the founders' call.
-5. After any deploy of a build with the model:
-   `node scripts/check-model-headers.mjs https://veilcore.org` (from the repo, with the deploy's
-   `.vercel/output/static` still there). It fetches both worker files and checks each has
-   exactly its own policy, and that the page's policy names no Hugging Face host. On a build
-   without the model it checks that no model library is served.
+5. After any deploy, `npm run check:site -- https://veilcore.org` (the release check) now also
+   checks Ask's model: for a release built with `VITE_ASK_MODEL` (its build settings say so),
+   both worker files must be served with exactly their own policy; for a release without it,
+   it says "not checked (built without the model)" and fails if a worker file is listed anyway.
+   `node scripts/check-model-headers.mjs https://veilcore.org` does the same from the deploy's
+   `.vercel/output/static`, and also checks that the page's policy names no Hugging Face host
+   and that a build without the model serves no model library.
 
 Not before it: voice (browser speech sends audio to Apple or Google), photo-to-draft, a cloud
 model, WebMCP, agent-to-agent licensing.
