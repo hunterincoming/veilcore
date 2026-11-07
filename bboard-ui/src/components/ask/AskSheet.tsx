@@ -459,6 +459,7 @@ const DueCard: React.FC<{ records: readonly StrainRecord[] }> = ({ records }) =>
                     : t('app.ask.due.line', { date: tr.date(`${i.date}T12:00:00`), what: what(i) })}
                 </Link>
                 {i.overdue && ` · ${t('app.ask.due.overdue')}`}
+                {i.practice && ` · ${t('app.lic.practice.chip')}`}
               </Typography>
             ))}
           </Box>
