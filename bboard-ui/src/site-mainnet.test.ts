@@ -266,8 +266,14 @@ describe('the mainnet strings', () => {
   it('say records are anchored by hand for now, never that dating simply happens', () => {
     for (const claims of [true, false]) {
       const o = mainnetStrings({ claimsOnMainnet: claims, policyApproved: false });
-      for (const k of ['m.hero.status', 'm.demo.lede', 'm.stat2.s', 'm.privacy.test.text'] as const)
+      for (const k of ['m.hero.status', 'm.demo.lede', 'm.stat2.s'] as const)
         expect(o[k], k).toMatch(/by hand for now/);
+      // The privacy page never says "by hand": the sponsor's job anchors batches on mainnet
+      // (docs/mainnet-sponsor.md), whatever the site build (panel review).
+      for (const k of ['m.privacy.lede', 'm.privacy.test.text'] as const) {
+        expect(o[k], k).not.toMatch(/by hand/);
+        expect(o[k], k).toMatch(/automatically/);
+      }
       expect(Object.values(o).join('\n')).not.toMatch(/dated there, in batches|are dated on Midnight's main network/);
     }
   });
