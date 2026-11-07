@@ -202,6 +202,15 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   // flag is stored. (Cleared here to try the hint again.)
   const hint = page.locator('[data-ask-hint]');
   await expect(hint).toHaveText(`Try: cut 6 clones from ${name}`);
+  // Not on the agreements, backup or import screens, where it would sit on a table or a form.
+  const recordUrl = page.url();
+  for (const path of ['/licenses', '/backup', '/records/import']) {
+    await page.goto(path);
+    await expect(page.locator('[data-ask-open]')).toBeVisible();
+    await expect(hint, path).toHaveCount(0);
+  }
+  await page.goto(recordUrl);
+  await expect(hint).toHaveText(`Try: cut 6 clones from ${name}`);
   if (process.env.ASK_SHOTS) await page.screenshot({ path: `${process.env.ASK_SHOTS}/fix-hint-phone.png` });
   await hint.getByRole('button', { name: 'Dismiss' }).click();
   await expect(hint).toHaveCount(0);
