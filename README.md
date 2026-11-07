@@ -82,7 +82,7 @@ A breeder who holds genetic material may later need to establish three things: t
 
 Written agreements have a related problem. A contract binds the parties who signed it. It cannot bind a plant that did not exist when it was signed, which is why a cutting that becomes a mother that becomes ten thousand clones carries no obligation anyone can point at.
 
-VeilCore records what was held and when, lets licenses be granted against a record, and lets an obligation on an ancestor be carried by everything derived from it.
+VeilCore records what was held and when, lets licenses be granted against a record, and lets an obligation recorded on a record be shown on every descendant both holders confirm. A holder who never accepted an obligation isn't bound by it; the record shows that it exists upstream.
 
 - **Prove prior possession:** an anchored record is dated by the block its batch lands in.
 - **Pair a DNA report:** record a DNA report against your record. The contract binds whatever 32-byte value the holder submits: it is the holder's own statement that this report belongs to this record, not a check of the genetics. The client submits a salted binding of the report's hash to the record's identity, not the raw hash, so the pairing cannot be copied to another record. It shows that whoever controlled the record's identity at that date had the report, or its SHA-256, by then (verifier rule 9 in [`docs/design.md`](docs/design.md), which also flags a report hash paired raw earlier and key changes since). The web app keeps the pairing in the registry, not on chain.
@@ -241,11 +241,11 @@ Midnight's standards repository.
 ## What VeilCore does not claim
 
 - On chain, a record is dated by the block its batch's anchor lands in. Until then, the logging time comes from the browser's clock and the creation date is typed by the holder: both are the holder's own claims. The registry adds the time it first saw the record, which is the registry's word, not the chain's. None of this proves a backdated date wrong.
-- A record establishes **prior possession, not ownership**. It is evidence a lawyer can rely on, not a verdict.
+- A record establishes **prior possession, not ownership**. It is evidence a lawyer can assess, not a verdict; what weight it gets is for a court.
 - A parent link on chain means both holders **agreed** the child descends from the parent. It is not a genetic test.
 - It **pairs** the DNA report a laboratory returns, as the holder's own statement. It does not sequence anything, check the report, or confirm it came from a laboratory.
 - A license is activated on chain with the licensee's own license secret, and every message in a deal is signed with the sender's Ed25519 key. Neither is a qualified eIDAS signature. The older practice licenses only record a time in the registry.
-- The royalty log records and proves obligations. It does not move money.
+- The royalty record shows what each side declared and signed. It does not show that anything is owed, and it does not move money.
 - It raises the cost and the evidentiary risk of laundering stolen genetics. It does not prevent it.
 - A license on VeilCore records what two parties agreed and signed. VeilCore is not a party to it, doesn't enforce it and doesn't decide disputes.
 - VeilCore does not vouch for any record, holder or lab. A lab's signature shows which key signed; a lab's name is shown as checked only after the operator has matched it to a public license, and even then only that match is claimed ([`docs/lab-name-checks.md`](docs/lab-name-checks.md)).

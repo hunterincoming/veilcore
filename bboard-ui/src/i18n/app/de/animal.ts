@@ -259,4 +259,11 @@ export const animal = {
   'app.animal.v.app.lic.off.datePlant': 'Einen Datensatz datieren',
   'app.animal.v.app.lic.off.yourRecord': 'Ihr Datensatz zu dieser Genetik',
   'app.animal.v.app.lic.off.waitName': 'Warten, bis die andere Seite ihren Datensatz zu dieser Genetik nennt.',
+  // components/chain/FamilyOnChain.tsx
+  'app.animal.v.app.family.intro':
+    'Abstammung, der beide Inhaber zugestimmt haben, auf der Chain. Sie erlaubt jedem, die Linie eines Tieres zu prüfen, und trägt die Nachkommen-Lizenzgebühr eines Elternteils zu dessen Nachkommen. Eine bestätigte Verknüpfung ist öffentlich und dauerhaft: Sie lässt sich nicht zurücknehmen, und Lizenzgebühren, die der Inhaber des Elternteils später übernimmt, erscheinen ebenfalls in der Linie dieses Datensatzes.',
+  'app.animal.v.app.family.namesParent':
+    '{who} benennt diesen Datensatz als Elternteil. Bestätigen Sie nur, wenn er wirklich von diesem Tier stammt. Die Bestätigung ist öffentlich und dauerhaft, und alles, was auf diesem Tier geschuldet ist, jetzt oder später, erscheint in seiner Linie.',
+  'app.animal.v.app.family.confirmQ':
+    'Bestätigen, dass dieses Tier ein Elternteil von {who} ist? Bestätigen Sie nur einen Datensatz, von dem Sie wissen, dass er von ihr stammt. Das ist öffentlich und dauerhaft: Seine Linie und alles, was auf diesem Tier jetzt oder später geschuldet ist, erscheinen darauf.{fixes}',
 } satisfies Partial<AppTranslation>;

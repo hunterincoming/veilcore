@@ -14,7 +14,7 @@ export const licensing = {
   'app.lic.fee.note': 'Tarifa de VeilCore ({pct}% del valor del trato): calculada, no cobrada.',
   'app.lic.rights.cultivate': 'Solo cultivo',
   'app.lic.rights.cultivate+propagate': 'Cultivo y propagación',
-  'app.lic.rights.full-transfer': 'Transferencia total',
+  'app.lic.rights.full-transfer': 'Cesión de los derechos que tenga el titular',
   'app.lic.rights.breed': 'Solo cría',
   'app.lic.rights.breed+collect': 'Cría + recolección',
   'app.lic.rights.breed+sell': 'Cría, recolección + venta',
@@ -24,6 +24,7 @@ export const licensing = {
   'app.lic.state.draft': 'Borrador',
   'app.lic.state.sent': 'Enviado, a la espera de la contrafirma',
   'app.lic.state.active': 'Marcado como activo',
+  'app.lic.state.activeOffChain': 'Marcada activa aquí, no en Midnight',
   'app.lic.state.expired': 'Vencido',
   'app.lic.state.revoked': 'Revocado',
   'app.lic.type.license': 'Acuerdo de licencia',
@@ -169,7 +170,8 @@ export const licensing = {
   'app.lic.f.rightsHelp': 'Lo que el licenciatario puede hacer con la genética.',
   'app.lic.f.r.cultivate': 'Solo cultivo',
   'app.lic.f.r.propagate': 'Cultivo y propagación (esquejes o semilla)',
-  'app.lic.f.r.full': 'Transferencia total de derechos',
+  'app.lic.f.r.full':
+    'Cesión de los derechos que tenga el titular (un derecho registrado se cede ante su propia oficina)',
   'app.lic.f.r.breed': 'Cría solo con sus propios animales',
   'app.lic.f.r.breed+collect': 'Cría + recolección de semen o embriones para uso propio',
   'app.lic.f.r.breed+sell': 'Cría, recolección + venta de semen, embriones o reproductores',
@@ -416,7 +418,7 @@ export const licensing = {
   'app.lic.off.nameIt': 'Indicarlo',
   'app.lic.off.waitName': 'Esperando a que indiquen su registro de esta planta.',
   'app.lic.off.theirRecord': 'Su registro: <b>{name}</b> {key} · {state}',
-  'app.lic.off.inForce': 'en vigor en Midnight',
+  'app.lic.off.inForce': 'anotado en Midnight',
   'app.lic.off.proposed': 'propuesta, a la espera de que el licenciatario la acepte',
   'app.lic.off.notYet': 'aún no está en Midnight',
   'app.lic.off.checking': 'comprobando…',
@@ -576,9 +578,24 @@ export const licensing = {
   'app.lic.inv.waitLicensor':
     'Esperando a que responda la página del licenciante. Su código aparece aquí cuando lo haga.',
   'app.lic.inv.takeOverTerms': 'Las condiciones con las que asume la licencia (las mismas del titular actual):',
+  'app.lic.other': 'Otro: {value}',
   // What a license here is and isn't (shown where terms are set and agreed).
   'app.lic.evidenceNote':
-    'Una licencia aquí es un registro firmado y fechado de lo que ambos acordaron, no asesoramiento legal. Algunos tribunales se han negado a hacer cumplir acuerdos sobre cannabis, así que pida a su propio abogado que revise lo que sea importante.',
+    'Una licencia aquí es un registro firmado y fechado de lo que ambos acordaron, no asesoría legal. Haga que su propio abogado revise todo lo importante.',
+  'app.lic.controlled.q': '¿Es cannabis, cáñamo u otra planta controlada?',
+  'app.lic.controlled.yes': 'Sí',
+  'app.lic.controlled.no': 'No',
+  'app.lic.controlled.hint':
+    'La especie de este registro parece cannabis, así que está marcado Sí. Cámbielo si no es así.',
+  'app.lic.controlled.courts': 'Algunos tribunales se han negado a hacer cumplir acuerdos sobre cannabis.',
+  'app.lic.controlled.border':
+    'Llevar cannabis o su material vegetal a través de una frontera estatal o nacional es delito en casi todas partes, incluso entre dos estados de EE. UU. donde es legal en ambos. Limite el territorio a donde ambos puedan cultivarlo y venderlo legalmente, y no envíe nada a través de fronteras.',
+  'app.lic.controlled.japan':
+    'En Japón, cultivar, vender o consumir cannabis sin licencia es delito. No use esto para un acuerdo en Japón.',
+  'app.lic.controlled.regulator':
+    'Una regalía sobre ventas puede tener que declararse al regulador de cannabis del licenciatario.',
+  'app.lic.inv.revokeNote':
+    'El licenciante puede desactivar esta licencia en Midnight en cualquier momento, digan lo que digan sus condiciones. Desactivarla no pone fin al contrato entre ustedes: sus condiciones firmadas son su prueba si lo hace.',
   'app.lic.inv.iAgree': 'Acepto estas condiciones',
   'app.lic.inv.agree': 'Aceptar',
   'app.lic.inv.waitHandOn':
@@ -667,7 +684,7 @@ export const licensing = {
     'Este enlace de anotación de prestamista está incompleto. Ábralo de nuevo tal como lo recibió, incluido todo lo que va después del #.',
   'app.lic.claim.notHeld': 'Este dispositivo no tiene el registro.',
   'app.lic.claim.notWaiting': 'La anotación de prestamista ya no está pendiente. No se envió nada.',
-  'app.lic.claim.hInForce': 'Hay una anotación de prestamista en vigor sobre su registro',
+  'app.lic.claim.hInForce': 'Hay una anotación de prestamista registrada sobre su registro',
   'app.lic.claim.h': 'Una anotación de prestamista sobre su registro',
   'app.lic.claim.from':
     'De: <b>{name}</b> (palabras suyas; compruebe quién es como lo haría para cualquier préstamo) · su clave en la cadena {key}',
@@ -679,16 +696,16 @@ export const licensing = {
   'app.lic.claim.asks':
     '<b>{name}</b> pide registrar una anotación de prestamista sobre <b>{record}</b> (comprobado en Midnight).',
   'app.lic.claim.ifAccept':
-    'Si la acepta, cualquiera que compruebe este registro verá que hay una anotación de prestamista en vigor, hasta que {name} la libere. Solo esa parte puede hacerlo. No mueve el registro ni le impide usarlo.',
+    'Si la acepta, cualquiera que compruebe este registro verá que hay una anotación de prestamista registrada, hasta que {name} la libere. Solo esa parte puede hacerlo. No mueve el registro ni le impide usarlo.',
   'app.lic.claim.accept': 'Aceptar la anotación de prestamista',
   'app.lic.claim.reject': 'Rechazarla',
   'app.lic.claim.rejectQ':
     '¿Rechazar la anotación de prestamista de {name}? Se borra de Midnight. Pueden volver a pedirla.',
   'app.lic.claim.rejectYes': 'Sí, rechazarla',
   'app.lic.claim.how':
-    'Los prestamistas usan una anotación de prestamista para mostrar que un registro está pignorado a su favor, de modo que no pueda pignorarse dos veces a escondidas. No es una inscripción legal: el prestamista presenta igualmente su propia documentación. Las condiciones quedan entre ustedes; Midnight solo muestra que existe una anotación de prestamista y quién puede liberarla. VeilCore paga la comisión de la red.',
+    'Los prestamistas usan una anotación de prestamista para que cualquiera que compruebe este registro vea que hay una registrada sobre él. No impide que el mismo material se pignore en otra parte, y no es una inscripción legal: el prestamista presenta igualmente su propia documentación. Las condiciones quedan entre ustedes; Midnight solo muestra que existe una anotación de prestamista y quién puede liberarla. VeilCore paga la comisión de la red.',
   'app.lic.claim.inForce':
-    'En vigor en Midnight. Solo {name} puede liberarla. Cualquiera que compruebe {record} ve que hay una anotación de prestamista en vigor.',
+    'Anotado en Midnight. Solo {name} puede liberarla. Cualquiera que compruebe {record} ve que hay una anotación de prestamista registrada.',
   'app.lic.claim.readError': 'No se pudo leer Midnight en este momento: {error}',
   'app.lic.claim.thisRecord': 'este registro',
   'app.lic.steps.i.link': 'Crear un enlace y enviárselo',
@@ -725,7 +742,7 @@ export const licensing = {
   'app.lic.next.l.file': 'Envíe su informe cuando termine el período.',
   'app.lic.lend.title': 'Registrar una anotación como prestamista',
   'app.lic.lend.intro':
-    '¿Presta con el registro o la licencia de un obtentor como respaldo? Registre en Midnight que el registro está pignorado a su favor, para que no pueda pignorarse dos veces a escondidas. El titular la acepta desde su propio dispositivo, y solo usted puede liberarla. No es una inscripción legal: presente su propia documentación como siempre.',
+    '¿Presta con el registro o la licencia de un obtentor como respaldo? Registre en Midnight que tiene una anotación de prestamista sobre el registro, para que cualquiera que lo compruebe la vea. No impide que el mismo material se pignore en otra parte, y no es una inscripción legal: presente su propia documentación como siempre. El titular la acepta desde su propio dispositivo, y solo usted puede liberarla.',
   'app.lic.lend.name': 'Su nombre, tal como lo verán los titulares',
   'app.lic.lend.nameHelp':
     'El nombre de su institución. Los titulares lo ven junto a su clave y comprueban quién es usted como lo harían para cualquier préstamo.',
@@ -758,7 +775,7 @@ export const licensing = {
   'app.lic.lend.withdrawQ': '¿Retirar esta anotación antes de que el titular responda? Esto queda en Midnight.',
   'app.lic.lend.withdrawYes': 'Sí, retirarla',
   'app.lic.lend.inForce':
-    'En vigor en Midnight. Cualquiera que compruebe el registro ve que hay una anotación en vigor hasta que usted la libere.',
+    'Anotado en Midnight. Cualquiera que compruebe el registro ve que hay una anotación registrada hasta que usted la libere.',
   'app.lic.lend.release': 'Liberarla (pagado)',
   'app.lic.lend.releaseQ':
     '¿Liberar esta anotación? Quien compruebe el registro ya no la verá. Esto queda en Midnight y no se puede deshacer.',
@@ -767,7 +784,7 @@ export const licensing = {
   'app.lic.lend.withdrawn': 'Retirada.',
   'app.lic.lend.gone': 'No está en Midnight: el titular la rechazó, o aún no ha llegado.',
   'app.lic.lend.notWaiting': 'La anotación ya no está pendiente. No se envió nada.',
-  'app.lic.lend.notInForce': 'La anotación no está en vigor. No se envió nada.',
+  'app.lic.lend.notInForce': 'La anotación no está registrada en Midnight. No se envió nada.',
   'app.lic.lend.badRecord':
     'Eso no es un enlace de comprobación ni una clave en la cadena. Pida al titular el enlace de comprobación de su registro.',
   'app.lic.lend.ownRecord': 'Esa es su propia clave de prestamista, no un registro.',

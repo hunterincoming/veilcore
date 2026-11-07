@@ -36,4 +36,32 @@ export const chain = {
   // components/chain/ChainStatusLine.tsx
   'app.chain.working': 'Working…',
   'app.chain.txLine': '{label}: transaction {tx} · block {block}',
+  // components/chain/FamilyOnChain.tsx: a record's parents and offspring on Midnight.
+  'app.family.title': 'Family on Midnight',
+  'app.family.intro':
+    'Parentage both holders agreed to, on chain. It is what lets anyone check a plant’s line, and what carries a parent’s offspring royalty down to its descendants. A confirmed link is public and permanent: it can’t be undone, and royalties the parent’s holder takes on later show on this record’s line too.',
+  'app.family.reading': 'Reading the chain…',
+  'app.family.parents': 'Parents:',
+  'app.family.noneConfirmed': 'none confirmed',
+  'app.family.offspring': 'Offspring:',
+  'app.family.waitingParent':
+    'Waiting for {name} to confirm it is a parent. Its holder sees this on their record’s page.',
+  'app.family.theRecord': 'the record {key}',
+  'app.family.takeBack': 'Take back',
+  'app.family.putOnChain': 'Put “{name}” on Midnight as a parent',
+  'app.family.pasteLabel': 'A parent held by someone else: their check link or on-chain key',
+  'app.family.nameIt': 'Name it',
+  'app.family.namesParent':
+    '{who} names this record as a parent. Confirm only if it really came from this plant. Confirming is public and permanent, and anything owed on this plant, now or later, will show on its line.',
+  'app.family.confirm': 'Confirm',
+  'app.family.confirmQ':
+    'Confirm this plant is a parent of {who}? Only confirm a record you know came from it. This is public and permanent: its line, and anything owed on this plant now or later, will show on it.{fixes}',
+  'app.family.confirmFixes': ' Once a record has confirmed offspring, its own parents can’t change.',
+  'app.family.notConfirmed': 'Not confirmed.',
+  'app.family.noParentHere': 'This browser doesn’t hold that parent’s record.',
+  'app.family.step1': 'Naming the parent on Midnight (1 of 2)…',
+  'app.family.step2': 'Confirming it from the parent (2 of 2)…',
+  'app.family.readError': 'Couldn’t read the chain: {error}',
+  'app.family.named': '“{name}” (key {key})',
+  'app.family.namedKey': 'the record with key {key}',
 };

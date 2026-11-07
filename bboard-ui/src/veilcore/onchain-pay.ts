@@ -21,6 +21,7 @@
 // confirmed live on Midnight mainnet as of 23 October 2026, so none is listed.
 // SPDX-License-Identifier: Apache-2.0
 
+import { dealOrder } from './deal-order';
 import { enT, type Translator } from '../i18n/translate';
 import { bech32m } from '@scure/base';
 import { NETWORK } from '../config/network';
@@ -390,11 +391,12 @@ export const checkPayment = async (
  * later ones (by when they were signed) don't count it again.
  */
 export const reusedPayments = (
-  paid: readonly { statementSig: string; method: string; reference?: string; at: number }[],
+  paid: readonly { statementSig: string; method: string; reference?: string; at: number; seq?: number }[],
 ): Map<string, string> => {
   const firstFor = new Map<string, string>();
   const reused = new Map<string, string>();
-  for (const p of [...paid].sort((a, b) => a.at - b.at)) {
+  // In the registry's order (deal-order.ts) when it is known, never just the payer's clock.
+  for (const p of dealOrder(paid)) {
     if (!tokenOfMethod(p.method) || !p.reference) continue;
     const ref = norm(p.reference);
     const first = firstFor.get(ref);

@@ -35,4 +35,32 @@ export const chain = {
   'app.chain.progress.readingAnswer': 'ネットワークから回答を読み込んでいます…',
   'app.chain.working': '処理中…',
   'app.chain.txLine': '{label}：トランザクション {tx} · ブロック {block}',
+  // components/chain/FamilyOnChain.tsx: a record's parents and offspring on Midnight.
+  'app.family.title': 'Midnight上の家系',
+  'app.family.intro':
+    '両方の保有者が同意した親子関係を、チェーン上に記録します。これにより誰でも植物の系統を確認でき、親の子孫ロイヤリティがその子孫に引き継がれます。確認済みのつながりは公開かつ永久で、取り消せません。親の保有者が後から引き受けるロイヤリティも、この記録の系統に表示されます。',
+  'app.family.reading': 'チェーンを読み込んでいます…',
+  'app.family.parents': '親：',
+  'app.family.noneConfirmed': '確認済みの親はありません',
+  'app.family.offspring': '子孫：',
+  'app.family.waitingParent':
+    '{name}が親であることを確認するのを待っています。保有者には自分の記録のページに表示されます。',
+  'app.family.theRecord': '記録{key}',
+  'app.family.takeBack': '取り下げる',
+  'app.family.putOnChain': '「{name}」を親としてMidnightに登録',
+  'app.family.pasteLabel': '他の人が持つ親：その確認リンクまたはチェーン上の鍵',
+  'app.family.nameIt': '指定する',
+  'app.family.namesParent':
+    '{who}がこの記録を親として指定しています。本当にこの植物から来たものである場合だけ確認してください。確認は公開かつ永久で、この植物に今後も含めて課されるものはその系統に表示されます。',
+  'app.family.confirm': '確認する',
+  'app.family.confirmQ':
+    'この植物が{who}の親であることを確認しますか？この植物から来たと分かっている記録だけを確認してください。これは公開かつ永久です。その系統と、この植物に今後も含めて課されるものが、その記録に表示されます。{fixes}',
+  'app.family.confirmFixes': '確認済みの子孫がある記録は、自身の親を変更できなくなります。',
+  'app.family.notConfirmed': '確認されませんでした。',
+  'app.family.noParentHere': 'このブラウザにはその親の記録がありません。',
+  'app.family.step1': 'Midnight上で親を指定しています（1/2）…',
+  'app.family.step2': '親から確認しています（2/2）…',
+  'app.family.readError': 'チェーンを読めませんでした：{error}',
+  'app.family.named': '「{name}」（鍵{key}）',
+  'app.family.namedKey': '鍵{key}の記録',
 } satisfies Partial<AppTranslation>;

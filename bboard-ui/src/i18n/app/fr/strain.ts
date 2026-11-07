@@ -201,4 +201,11 @@ export const strain = {
   'app.strain.v.app.lic.off.datePlant': 'Dater un enregistrement',
   'app.strain.v.app.lic.off.yourRecord': 'Votre enregistrement de cette souche',
   'app.strain.v.app.lic.off.waitName': 'En attente que l’autre partie indique son enregistrement de cette souche.',
+  // components/chain/FamilyOnChain.tsx
+  'app.strain.v.app.family.intro':
+    'La filiation acceptée par les deux détenteurs, sur la chaîne. C’est ce qui permet à quiconque de vérifier la lignée d’une souche, et ce qui transmet la redevance sur la descendance d’un parent à ses descendants. Un lien confirmé est public et permanent : il ne peut pas être défait, et les redevances que le détenteur du parent accepte plus tard apparaissent aussi dans la lignée de cet enregistrement.',
+  'app.strain.v.app.family.namesParent':
+    '{who} nomme cet enregistrement comme parent. Ne confirmez que s’il vient vraiment de cette souche. Confirmer est public et permanent, et tout ce qui est dû sur cette souche, maintenant ou plus tard, apparaîtra dans sa lignée.',
+  'app.strain.v.app.family.confirmQ':
+    'Confirmer que cette souche est un parent de {who} ? Ne confirmez qu’un enregistrement dont vous savez qu’il en vient. C’est public et permanent : sa lignée, et tout ce qui est dû sur cette souche maintenant ou plus tard, y apparaîtront.{fixes}',
 } satisfies Partial<AppTranslation>;

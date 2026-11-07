@@ -5,6 +5,7 @@
 
 import React from 'react';
 import {
+  Alert,
   Box,
   Button,
   ButtonBase,
@@ -37,7 +38,7 @@ import {
   type RoyaltyUnit,
 } from '../../veilcore/royalty-terms';
 import { useT } from '../../i18n/app';
-import { forKind, type RecordKind, type Translator } from '../../i18n/translate';
+import { forKind, labelOr, type RecordKind, type Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
 import { rightOptionKey, type SetTerm } from './LicenseTermsFields';
 import { ONCHAIN_PAYMENTS } from '../../config/copy';
@@ -473,7 +474,7 @@ export const FullLicenseFields: React.FC<{ terms: LicenseTerms; set: SetTerm; te
       >
         {rights.map((r) => (
           <MenuItem key={r} value={r}>
-            {tr.t(rightOptionKey(r))}
+            {labelOr(tr, rightOptionKey(r), r)}
           </MenuItem>
         ))}
       </TextField>
@@ -585,7 +586,7 @@ export const FullLicenseFields: React.FC<{ terms: LicenseTerms; set: SetTerm; te
 
 /**
  * The license terms step: presets, then the three fields a preset leaves (who, the amount, the
- * law; the territory too on cannabis), an "Edit details" button for the full form, and the deal in
+ * law and the territory, required on every license), an "Edit details" button for the full form, and the deal in
  * one paragraph. TermsBuilder shows it; nothing else decides what it holds.
  */
 export const LicenseTermsStep: React.FC<{
@@ -597,8 +598,7 @@ export const LicenseTermsStep: React.FC<{
   onPick?: (id: PresetId) => void;
   details: boolean;
   setDetails: (open: boolean) => void;
-  cannabis: boolean;
-}> = ({ kind, terms: t, set, preset, onPick, details, setDetails, cannabis }) => {
+}> = ({ kind, terms: t, set, preset, onPick, details, setDetails }) => {
   const tr = forKind(useT(), kind);
   return (
     <Stack spacing={2.5}>
@@ -613,17 +613,17 @@ export const LicenseTermsStep: React.FC<{
             fullWidth
           />
           <AmountField terms={t} set={set} tr={tr} />
-          {cannabis && (
-            <TextField
-              label={tr.t('app.lic.f.territory')}
-              placeholder={tr.t('app.lic.f.territoryPh')}
-              helperText={tr.t('app.roy.f.territoryRequired')}
-              required
-              value={t.territory}
-              onChange={(e) => set('territory', e.target.value)}
-              fullWidth
-            />
-          )}
+          {/* Required on every license of living material: no "any territory" default (panel review). */}
+          <TextField
+            label={tr.t('app.lic.f.territory')}
+            placeholder={tr.t('app.lic.f.territoryPh')}
+            helperText={tr.t('app.roy.f.territoryRequired')}
+            required
+            value={t.territory}
+            onChange={(e) => set('territory', e.target.value)}
+            fullWidth
+            slotProps={{ htmlInput: { 'data-territory': '' } }}
+          />
           <LawField terms={t} set={set} tr={tr} />
         </Stack>
       )}
@@ -634,7 +634,7 @@ export const LicenseTermsStep: React.FC<{
           </Button>
           <Collapse in={details} unmountOnExit>
             <Box sx={{ pt: 1.5 }}>
-              <FullLicenseFields terms={t} set={set} territoryRequired={cannabis} />
+              <FullLicenseFields terms={t} set={set} territoryRequired />
             </Box>
           </Collapse>
         </Box>
@@ -643,3 +643,51 @@ export const LicenseTermsStep: React.FC<{
     </Stack>
   );
 };
+
+/**
+ * "Is this cannabis, hemp or another controlled plant?" (panel review): asked of every plant
+ * license, never left to the species field. The record's species only preselects the answer.
+ */
+export const ControlledQuestion: React.FC<{
+  value: boolean | undefined;
+  onChange: (v: boolean) => void;
+  hinted: boolean;
+  tr: Translator;
+}> = ({ value, onChange, hinted, tr }) => (
+  <Stack spacing={0.75} data-controlled-question="">
+    <Typography variant="subtitle2" component="p" id="controlled-q">
+      {tr.t('app.lic.controlled.q')}
+    </Typography>
+    <ToggleButtonGroup
+      exclusive
+      value={value === undefined ? null : value ? 'yes' : 'no'}
+      onChange={(_, v: 'yes' | 'no' | null) => v && onChange(v === 'yes')}
+      aria-labelledby="controlled-q"
+      size="small"
+    >
+      <ToggleButton value="yes" data-controlled="yes">
+        {tr.t('app.lic.controlled.yes')}
+      </ToggleButton>
+      <ToggleButton value="no" data-controlled="no">
+        {tr.t('app.lic.controlled.no')}
+      </ToggleButton>
+    </ToggleButtonGroup>
+    {hinted && (
+      <Typography variant="caption" color="text.secondary">
+        {tr.t('app.lic.controlled.hint')}
+      </Typography>
+    )}
+  </Stack>
+);
+
+/** What a cannabis license carries, on both sides' pages: shown only when it is one. */
+export const ControlledWarnings: React.FC<{ tr: Translator }> = ({ tr }) => (
+  <Alert severity="warning" variant="outlined" data-controlled-warnings="">
+    <Stack spacing={0.75}>
+      <span>{tr.t('app.lic.controlled.border')}</span>
+      <span>{tr.t('app.lic.controlled.japan')}</span>
+      <span>{tr.t('app.lic.controlled.regulator')}</span>
+      <span>{tr.t('app.lic.controlled.courts')}</span>
+    </Stack>
+  </Alert>
+);
