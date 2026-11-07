@@ -212,7 +212,6 @@ test.describe('the on-device model, under the production policies', () => {
     await expect(page.locator('[data-ask-model-stored]')).toBeVisible({ timeout: 30_000 });
     // The download fetched the library from this site, into WebLLM's own cache.
     expect(requested.some((u) => u === `${site.origin}/ask-model/v0_2_86/${MODEL.lib.file}`)).toBe(true);
-    const startedAt = requested.length;
     // Only the pinned folder; nothing else asked for.
     expect(net.hf.every((u) => u.startsWith(FOLDER))).toBe(true);
     expect(net.hf.filter((u) => u.startsWith(FOLDER)).length).toBe(MODEL.files.length);
@@ -232,7 +231,11 @@ test.describe('the on-device model, under the production policies', () => {
     );
     // It got as far as WebGPU, with WebLLM loaded and the library compiled from the cache: the
     // start fetched only its own code (the worker, WebLLM), never the library or a model file.
-    const atStart = requested.slice(startedAt);
+    // The engine starts by itself once the download is stored, maybe before this test looks:
+    // the start is everything after the download's last request (the library).
+    const libAt = requested.lastIndexOf(`${site.origin}/ask-model/v0_2_86/${MODEL.lib.file}`);
+    expect(libAt).toBeGreaterThan(-1);
+    const atStart = requested.slice(libAt + 1);
     expect(atStart.some((u) => chunks.some((c) => u.endsWith(c)))).toBe(true);
     expect(atStart.filter((u) => !u.startsWith(`${site.origin}/assets/`) || !u.endsWith('.js'))).toEqual([]);
     // Each worker had exactly its own policy.

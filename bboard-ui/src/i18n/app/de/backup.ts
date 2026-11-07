@@ -15,6 +15,8 @@ export const backup = {
   'app.backup.saveFile': 'Sicherungsdatei speichern',
   'app.backup.copyTitle': 'Eine Kopie woanders ablegen (empfohlen)',
   'app.backup.wayBack': 'Wenn dieses Handy oder dieser Computer kaputtgeht, ist diese Kopie Ihr Weg zurück.',
+  'app.backup.safari':
+    'Safari kann die Daten einer Website nach 7 Tagen ohne Besuch löschen. Ihre Sicherungsdatei holt Ihre Datensätze zurück: Bewahren Sie sie auf.',
   'app.backup.actAsYou':
     'Mit dieser Datei kann jeder Ihre Datensätze öffnen und als Sie auftreten. Am besten: ein USB-Stick oder ein Passwort-Manager. Wenn Sie sie per E-Mail senden, nutzen Sie ein Konto mit Anmeldung in zwei Schritten.',
   'app.backup.sentCopy': 'Kopie gesendet ✓',

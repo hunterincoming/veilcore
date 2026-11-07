@@ -340,3 +340,15 @@ describe('batches', () => {
     expect(row.fields.bredBy).toBe('Me');
   });
 });
+
+describe('an unlikely number of young is pointed out, never refused', () => {
+  it('more than 20 young from one dam: a note; clones and up to 20 young: none', async () => {
+    const { unlikelyYoung, UNLIKELY_YOUNG } = await import('./batch');
+    expect(UNLIKELY_YOUNG).toBe(20);
+    expect(unlikelyYoung('offspring', 20)).toBe(false);
+    expect(unlikelyYoung('offspring', 21)).toBe(true);
+    expect(unlikelyYoung('offspring', 500)).toBe(true);
+    expect(unlikelyYoung('clones', 500)).toBe(false);
+    expect(unlikelyYoung('offspring', NaN)).toBe(false);
+  });
+});

@@ -211,7 +211,15 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   }
   await page.goto(recordUrl);
   await expect(hint).toHaveText(`Try: cut 6 clones from ${name}`);
-  if (process.env.ASK_SHOTS) await page.screenshot({ path: `${process.env.ASK_SHOTS}/fix-hint-phone.png` });
+  // In the page's own flow, after its content: it covers nothing (the evidence line included).
+  expect(await hint.evaluate((el) => getComputedStyle(el).position)).not.toBe('fixed');
+  const mainBottom = await page.evaluate(() => document.querySelector('main')?.getBoundingClientRect().bottom ?? 0);
+  expect((await hint.boundingBox())?.y ?? 0).toBeGreaterThanOrEqual(mainBottom - 1);
+  await page.setViewportSize({ width: 360, height: 740 });
+  await hint.scrollIntoViewIfNeeded();
+  if (process.env.ASK_SHOTS) await page.screenshot({ path: `${process.env.ASK_SHOTS}/fix-hint-inline-360.png` });
+  if (process.env.ASK_SHOTS) await page.screenshot({ path: `${process.env.ASK_SHOTS}/fix-hint-record-360-full.png`, fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
   await hint.getByRole('button', { name: 'Dismiss' }).click();
   await expect(hint).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem('veilcore.ask.seen.v1'))).toBe('dismissed');

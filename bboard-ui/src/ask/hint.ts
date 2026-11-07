@@ -20,6 +20,16 @@ import { interpret } from './shortcuts';
 export const hintPage = (pathname: string): boolean =>
   /^\/records\/?$/.test(pathname) || /^\/record\/[^/]+\/?$/.test(pathname);
 
+/**
+ * An agreement's screens: its terms (being written or read), accepting or signing it, and its
+ * royalty reports and payments. On a phone the Ask bubble is not shown there, so it never sits
+ * on a term or a button someone is agreeing to.
+ */
+export const agreementScreen = (pathname: string): boolean =>
+  /^\/record\/[^/]+\/license\/?$/.test(pathname) ||
+  /^\/(license|license-invite|prove-license)\/[^/]+(\/.*)?$/.test(pathname) ||
+  /^\/(claim|lender)\/?$/.test(pathname);
+
 type HintRecord = Pick<StrainRecord, 'id' | 'strainName'> & { readonly profile?: string; readonly loggedAt?: number };
 export type HintKind = 'clones' | 'calves';
 

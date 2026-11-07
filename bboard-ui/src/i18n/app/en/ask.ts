@@ -174,6 +174,7 @@ export const ask = {
   'app.ask.batch.howManyClones': 'How many clones',
   'app.ask.batch.howManyYoung': 'How many young',
   'app.ask.batch.upTo': 'Up to {max}.',
+  'app.ask.batch.unlikely': 'More than {n} young at once is unusual. Check the number; you can still save it.',
   'app.ask.batch.baseName': 'Name',
   'app.ask.batch.namedLike': 'Numbered: “{example}”, and so on.',
   'app.ask.batch.cloneName': '{name} clone',

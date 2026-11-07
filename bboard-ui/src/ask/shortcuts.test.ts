@@ -221,6 +221,49 @@ describe('a new record: the verb or "new" after the noun is not a name (review, 
   });
 });
 
+describe('how breeders say it (the breeders’ review): litters, foals, calving, in all five languages', () => {
+  const bella = animal(21, 'Bella', 'female');
+  const daisy = animal(22, 'Daisy', 'female');
+  const c: AskContext = { records: [...records, bella, daisy], kinds: ['plant', 'animal', 'strain'] };
+  const off = (t: string) => {
+    const r = interpret(t, c);
+    return r.type === 'draft' ? { preset: r.draft.preset, count: r.draft.count, parents: r.draft.parents } : r.type;
+  };
+  const cases: [string, number, string][] = [
+    ['3 pups from Bella', 3, bella.id],
+    ['Bella whelped 6 pups', 6, bella.id],
+    ['Daisy calved today', 1, daisy.id],
+    ['2 foals from Daisy', 2, daisy.id],
+    ['Daisy kidded 2 kids', 2, daisy.id],
+    ['4 lambs from Daisy', 4, daisy.id],
+    ['Bella had 5 kittens', 5, bella.id],
+    ['9 piglets from Daisy', 9, daisy.id],
+    ['3 Welpen von Bella', 3, bella.id],
+    ['Wurf von Bella: 7', 7, bella.id],
+    ['2 Fohlen von Daisy', 2, daisy.id],
+    ['Daisy hat gekalbt', 1, daisy.id],
+    ['6 chiots de Bella', 6, bella.id],
+    ['portée de Bella', 1, bella.id],
+    ['2 poulains de Daisy', 2, daisy.id],
+    ['Daisy a vêlé ce matin', 1, daisy.id],
+    ['6 cachorros de Bella', 6, bella.id],
+    ['camada de Bella', 1, bella.id],
+    ['2 potros de Daisy', 2, daisy.id],
+    ['Bellaの子犬を6頭', 6, bella.id],
+    ['Daisyの仔馬', 1, daisy.id],
+    ['Daisyが子牛を出産', 1, daisy.id],
+  ];
+  it.each(cases)('%s', (text, count, parent) => {
+    expect(off(text)).toEqual({ preset: 'offspring', count, parents: [parent] });
+  });
+  it('plants: "take 12 cuts off" is a batch of clones', () => {
+    expect(off('take 12 cuts off Gelato')).toEqual({ preset: 'clones', count: 12, parents: [ID(3)] });
+  });
+  it('the bulk-import cap still holds', () => {
+    expect(off('900 pups from Bella')).toMatchObject({ preset: 'offspring', count: 500 });
+  });
+});
+
 describe('Search my records', () => {
   it('by words, year and kind', () => {
     expect(searchRecords(records, 'blue').map((r) => r.strainName)).toEqual(['Blue Dream', 'Blue Dream #12']);

@@ -127,3 +127,14 @@ export const firstFreeStart = (p: BatchPlan, taken: ReadonlySet<string>): number
     if (taken.has(rowHashOf(childFields(p, `${p.baseName.trim()} ${n}`)))) start = n + 1;
   return start;
 };
+
+/** More young than one dam has at once, as far as any species goes (litters run to about 20). */
+export const UNLIKELY_YOUNG = 20;
+
+/**
+ * A count to check, not refuse: more than UNLIKELY_YOUNG young in one batch from one dam. The
+ * person may still save it (embryo transfer, a record of several litters); the batch screen says
+ * so beside the number. Up to MAX_BATCH either way.
+ */
+export const unlikelyYoung = (preset: 'clones' | 'offspring', count: number): boolean =>
+  preset === 'offspring' && Number.isFinite(count) && count > UNLIKELY_YOUNG;

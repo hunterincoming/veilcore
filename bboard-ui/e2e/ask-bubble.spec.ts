@@ -91,6 +91,24 @@ test('first open: what Ask can do, as a list, then folded under "What can Ask do
   expectNoErrors(errors);
 });
 
+test('on a phone the bubble stays off an agreement’s screens (terms, accepting, royalties); on a computer it is there', async ({
+  page,
+}) => {
+  const errors = watch(page);
+  await isolate(page);
+  for (const path of ['/license/LIC-E2E', '/record/VEIL-0E2E/license', '/license-invite/INV-E2E']) {
+    await page.goto(path);
+    await page.waitForTimeout(800);
+    await expect(page.locator('[data-ask-open]'), path).toHaveCount(0);
+  }
+  await page.goto('/records');
+  await expect(page.locator('[data-ask-open]')).toBeVisible();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/license/LIC-E2E');
+  await expect(page.locator('[data-ask-open]')).toBeVisible();
+  expectNoErrors(errors);
+});
+
 test.describe('on a touch screen', () => {
   test.use({ viewport: { width: 360, height: 740 }, hasTouch: true, isMobile: true });
   test('the bubble steps aside while a text field on the page has focus', async ({ page }) => {
