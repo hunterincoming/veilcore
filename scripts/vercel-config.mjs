@@ -1,7 +1,7 @@
 // Writes .vercel/output/config.json for the prebuilt deploy (npm run deploy:prod).
 // Security headers on every page, then files, then the single-page app fallback.
 // SPDX-License-Identifier: Apache-2.0
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { normaliseAddress, readMainnetPins } from './mainnet-pins.mjs';
 import { SITE_ROUTE_SRC, downloadWorkerCsp, engineWorkerCsp, manifestProblem, modelWorkerRouteSrc } from './ask-model-csp.mjs';
 
@@ -181,6 +181,17 @@ export const headers = {
 // for tests or the model evaluation is never deployed.
 if (['test', 'eval'].includes((process.env.VITE_ASK_MODEL || '').trim()))
   throw new Error(`VITE_ASK_MODEL=${process.env.VITE_ASK_MODEL} is a build for tests on this computer; it is never deployed.`);
+// The built files too: a .env file can set VITE_ASK_MODEL without the shell seeing it. A test
+// build carries the stub model's address, an evaluation build its hook.
+{
+  const assets = '.vercel/output/static/assets';
+  if (existsSync(assets))
+    for (const f of readdirSync(assets).filter((n) => n.endsWith('.js'))) {
+      const src = readFileSync(`${assets}/${f}`, 'utf8');
+      if (src.includes('veilcore-test/stub-model') || src.includes('__askEval'))
+        throw new Error(`${assets}/${f} is from a test or evaluation build of Ask's model (VITE_ASK_MODEL); it is never deployed.`);
+    }
+}
 const modelManifest = JSON.parse(
   readFileSync(new URL('../bboard-ui/src/ask-local/model-manifest.json', import.meta.url), 'utf8'),
 );

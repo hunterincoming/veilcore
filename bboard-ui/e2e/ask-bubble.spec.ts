@@ -1,7 +1,8 @@
 // The Ask chat bubble (docs/ask-veilcore.md, "What it is"): bottom right, never covering a page's
-// last line; the hint on a first visit, gone once dismissed, with only a flag kept; what Ask can
-// do shown on the first open, then folded under "What can Ask do?".
-// ASK_SHOTS=<dir> saves ask-bubble-*.png (phone and desktop) for review.
+// last line, and out of the way of a text field on a touch screen; no hint for someone with no
+// record yet (e2e/ask.spec.ts tries the hint once there is one); what Ask can do shown on the
+// first open, as a list that claims only what Ask does, then folded under "What can Ask do?".
+// ASK_SHOTS=<dir> saves fix-bubble-*.png (phone and desktop) for review.
 // SPDX-License-Identifier: Apache-2.0
 import { expect, test, type Page } from '@playwright/test';
 import { REAL_REGISTRY, expectNoErrors, isolate, watch } from './helpers';
@@ -11,11 +12,16 @@ test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
 const shot = async (page: Page, name: string) => {
   const dir = process.env.ASK_SHOTS;
   if (!dir) return;
-  await page.screenshot({ path: `${dir}/ask-bubble-${name}.png` });
+  await page.screenshot({ path: `${dir}/fix-bubble-${name}.png` });
 };
 
-const CAN =
-  'cut clones or record offspring in one go · show what’s due · explain any word · find your records · open any screen filled in for you';
+const CAN = [
+  'Cut clones or record offspring, many at once',
+  'Show what’s due',
+  'Explain words like “proof code”',
+  'Find your records',
+  'Fill in a new record for you to check and save',
+];
 
 for (const [label, viewport] of [
   ['phone', { width: 390, height: 844 }],
@@ -43,7 +49,8 @@ for (const [label, viewport] of [
     expect(last).toBeGreaterThan(0);
     expect(last).toBeLessThanOrEqual(box.y);
     await page.evaluate(() => window.scrollTo(0, 0));
-    await expect(page.locator('[data-ask-hint]')).toBeVisible();
+    // No record yet: no hint (the page's own Start is the first step).
+    await expect(page.locator('[data-ask-hint]')).toHaveCount(0);
     await shot(page, label);
     await page.locator('[data-ask-open]').click();
     await expect(page.locator('[data-ask-can]')).toBeVisible();
@@ -56,49 +63,55 @@ for (const [label, viewport] of [
   });
 }
 
-test('the hint shows on a first visit and stays gone once dismissed; only a flag is stored', async ({ page }) => {
+test('first open: what Ask can do, as a list, then folded under "What can Ask do?"', async ({ page }) => {
   const errors = watch(page);
   await isolate(page);
   await page.goto('/records');
-  const hint = page.locator('[data-ask-hint]');
-  await expect(hint).toBeVisible();
-  await expect(hint).toContainText('Try: cut 12 clones from Blue Dream');
-  const before = await page.evaluate(() => Object.keys(localStorage).sort());
-  await hint.getByRole('button', { name: 'Dismiss' }).click();
-  await expect(hint).toHaveCount(0);
-  const after = await page.evaluate(() => Object.fromEntries(Object.entries(localStorage)));
-  // One new key, and it holds only "1".
-  expect(Object.keys(after).filter((k) => !before.includes(k))).toEqual(['veilcore.ask.seen.v1']);
-  expect(after['veilcore.ask.seen.v1']).toBe('1');
-  await page.reload();
-  await expect(page.locator('[data-ask-open]')).toBeVisible();
-  await expect(page.locator('[data-ask-hint]')).toHaveCount(0);
-  // Seen before: the sheet opens with what Ask can do folded away, under the link.
-  await page.locator('[data-ask-open]').click();
-  await expect(page.locator('[data-ask-sheet]')).toBeVisible();
-  await expect(page.locator('[data-ask-can]')).toHaveCount(0);
-  await page.locator('[data-ask-can-toggle]').click();
-  await expect(page.locator('[data-ask-can]')).toContainText(CAN);
-  expectNoErrors(errors);
-});
-
-test('first open: what Ask can do, then folded under "What can Ask do?"', async ({ page }) => {
-  const errors = watch(page);
-  await isolate(page);
-  await page.goto('/records');
-  await expect(page.locator('[data-ask-hint]')).toBeVisible();
   await page.locator('[data-ask-open]').click();
   const card = page.locator('[data-ask-can]');
   await expect(card).toContainText('I can:');
-  await expect(card).toContainText(CAN);
+  await expect(card.locator('li')).toHaveText(CAN);
   await expect(card).toContainText('I never sign or send anything. You do.');
   await expect(page.locator('[data-ask-can-toggle]')).toHaveCount(0);
-  // Opening Ask counts as seeing it: the hint is gone.
-  await expect(page.locator('[data-ask-hint]')).toHaveCount(0);
   await page.getByRole('button', { name: 'Close' }).click();
   await expect(page.locator('[data-ask-sheet]')).toBeHidden();
+  // Opening Ask is remembered, as the one flag.
+  expect(await page.evaluate(() => localStorage.getItem('veilcore.ask.seen.v1'))).toBe('done');
   await page.locator('[data-ask-open]').click();
   await expect(page.locator('[data-ask-can]')).toHaveCount(0);
-  await expect(page.locator('[data-ask-can-toggle]')).toHaveText('What can Ask do?');
+  const toggle = page.locator('[data-ask-can-toggle]');
+  await expect(toggle).toHaveText('What can Ask do?');
+  expect((await toggle.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+  await toggle.click();
+  await expect(page.locator('[data-ask-can] li')).toHaveText(CAN);
+  // Seen before this page loaded: the next visit opens folded too.
+  await page.reload();
+  await page.locator('[data-ask-open]').click();
+  await expect(page.locator('[data-ask-can]')).toHaveCount(0);
   expectNoErrors(errors);
+});
+
+test.describe('on a touch screen', () => {
+  test.use({ viewport: { width: 360, height: 740 }, hasTouch: true, isMobile: true });
+  test('the bubble steps aside while a text field on the page has focus', async ({ page }) => {
+    const errors = watch(page);
+    await isolate(page);
+    await page.goto('/records');
+    const bubble = page.locator('[data-ask-open]');
+    await expect(bubble).toBeVisible();
+    const field = page.getByPlaceholder('Paste it here');
+    await field.focus();
+    await page.setViewportSize({ width: 360, height: 420 });
+    await expect(bubble).toHaveCount(0);
+    await shot(page, 'phone-keyboard');
+    await field.blur();
+    await page.setViewportSize({ width: 360, height: 740 });
+    await expect(bubble).toBeVisible();
+    // A field inside Ask itself does not hide it (the sheet is open over it anyway).
+    await bubble.click();
+    await page.locator('[data-ask-input]').focus();
+    await page.getByRole('button', { name: 'Close' }).click();
+    await expect(bubble).toBeVisible();
+    expectNoErrors(errors);
+  });
 });

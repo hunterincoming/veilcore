@@ -32,55 +32,70 @@ export const ask = {
   'app.ask.kind.strain': 'strain or line',
   // ---- what Ask can do (first open, then under a link) ----
   'app.ask.can.title': 'I can:',
-  'app.ask.can.list':
-    'cut clones or record offspring in one go · show what’s due · explain any word · find your records · open any screen filled in for you',
-  'app.ask.can.listPlants':
-    'cut clones in one go · show what’s due · explain any word · find your records · open any screen filled in for you',
+  'app.ask.can.1': 'Cut clones or record offspring, many at once',
+  'app.ask.can.1plants': 'Cut clones, many at once',
+  'app.ask.can.2': 'Show what’s due',
+  'app.ask.can.3': 'Explain words like “proof code”',
+  'app.ask.can.4': 'Find your records',
+  'app.ask.can.5': 'Fill in a new record for you to check and save',
   'app.ask.can.never': 'I never sign or send anything. You do.',
   'app.ask.can.toggle': 'What can Ask do?',
-  // ---- the hint by the button, on a first visit ----
-  'app.ask.hint.plant': 'Try: cut 12 clones from Blue Dream',
-  'app.ask.hint.animal': 'Try: record 3 calves',
+  // ---- the hint by the button, once there is a record (the example names it) ----
+  'app.ask.hint.try': 'Try: {example}',
   'app.ask.hint.dismiss': 'Dismiss',
+  'app.ask.example.clones': 'cut 6 clones from {name}',
+  'app.ask.example.calves': 'record 2 calves from {name}',
   // ---- the language model on this device (optional; docs/ask-veilcore.md, v2.1) ----
   'app.ask.privacyModel': 'Typing here sends nothing. The language model runs on this device. Only Save sends.',
-  'app.ask.engine.model': 'Reading with the language model on this device ({model}), checked by the same rules.',
-  'app.ask.engine.starting': 'Starting the language model on this device. Shortcuts answers until it is ready.',
-  'app.ask.engine.failed': 'The language model on this device didn’t start, so Shortcuts answers. {why}',
+  'app.ask.engine.model':
+    'Using the language model on this device ({model}). Its answers get the same checks as always.',
+  'app.ask.engine.starting': 'Starting the language model on this device. Until then, everything works as usual.',
+  'app.ask.engine.failed':
+    'The language model on this device didn’t start. {why} Without it, everything works as usual.',
   'app.ask.model.title': 'Language model on this device (optional)',
   'app.ask.model.what':
-    'Ask works now, offline, with Shortcuts. You can also download a small language model (Qwen3, Apache-2.0) that runs in this browser and reads what you type. Its answers are checked by the same rules, and it can do nothing Shortcuts can’t.',
+    'Ask already works without this, offline. You can add a small language model (Qwen3) that runs only in this browser. It may understand more ways of saying things. It can’t do anything Ask can’t already do, and its answers get the same checks.',
   'app.ask.model.pick': 'Which model',
   'app.ask.model.option': '{name}: about {size}',
   'app.ask.model.size': 'Download: {size}, kept in this browser until you delete it.',
   'app.ask.model.hf':
-    'The files come from Hugging Face. Hugging Face sees your IP address, the time, which model, and that the request comes from veilcore.org. Nothing you type is sent, then or later.',
-  'app.ask.model.check': 'Every file is checked against a checksum built into this site before it is used.',
+    'The model files come from Hugging Face. Hugging Face sees your IP address, the time, which model, and that the request comes from veilcore.org. Nothing you type is sent, then or later.',
+  'app.ask.model.check': 'Before it’s used, every file is checked to be exactly the file this site expects.',
+  'app.ask.model.needsConnection':
+    'Each time it starts, this browser loads its program from veilcore.org, so starting it needs a connection. Nothing you type is sent.',
+  'app.ask.model.folded': 'Optional: a language model on this computer',
   'app.ask.model.download': 'Download ({size})',
   'app.ask.model.resume': 'Resume the download',
   'app.ask.model.cancel': 'Cancel',
   'app.ask.model.progress': '{done} of {total}',
   'app.ask.model.cancelled': 'Stopped. What is downloaded is kept; resume when you like.',
   'app.ask.model.delete': 'Delete the model from this browser',
-  'app.ask.model.deleted': 'Deleted. Ask uses Shortcuts.',
-  'app.ask.model.stored': 'Downloaded: {name}. Ask uses it after a test answer on this device.',
-  'app.ask.model.noRoom': 'This browser has about {free} free and the model needs {size}. Ask uses Shortcuts.',
-  'app.ask.model.failed.network': 'The download stopped (connection). Ask uses Shortcuts. You can resume.',
-  'app.ask.model.failed.mismatch': 'A file didn’t match its checksum, so it was not kept. Ask uses Shortcuts.',
-  'app.ask.model.failed.storage': 'This browser wouldn’t store the files. Ask uses Shortcuts.',
+  'app.ask.model.deleted': 'Deleted. Everything works as usual.',
+  'app.ask.model.stored': 'Downloaded: {name}. It’s tested once on this device, then used.',
+  'app.ask.model.noRoom':
+    'This browser has about {free} free and the model needs {size}. Without it, everything works as usual.',
+  'app.ask.model.failed.network':
+    'The download stopped (connection). You can resume it. Without it, everything works as usual.',
+  'app.ask.model.failed.mismatch':
+    'A file wasn’t exactly the one this site expects, so it wasn’t kept. Without the model, everything works as usual.',
+  'app.ask.model.failed.storage': 'This browser wouldn’t keep the files. Without the model, everything works as usual.',
   'app.ask.model.failed.policy':
-    'This browser doesn’t apply the download’s own security rules, so it won’t start here. Ask uses Shortcuts.',
-  'app.ask.model.why.policy': 'This browser doesn’t apply the model’s own security rules.',
-  'app.ask.model.why.mismatch': 'A stored file didn’t match its checksum; delete the model and download it again.',
+    'This browser can’t run the language model. An up-to-date Chrome or Edge usually can. Without it, everything works as usual.',
+  'app.ask.model.why.policy': 'This browser can’t run it. An up-to-date Chrome or Edge usually can.',
+  'app.ask.model.why.mismatch':
+    'A stored file isn’t the one this site expects. Delete the model and download it again.',
   'app.ask.model.why.notStored': 'Part of the model is missing; resume the download.',
-  'app.ask.model.why.noGpu': 'This browser has no WebGPU.',
+  'app.ask.model.why.noGpu': 'This browser can’t run it. An up-to-date Chrome or Edge usually can.',
   'app.ask.model.why.noF16': 'This computer’s graphics can’t run this model.',
   'app.ask.model.why.selfTest': 'It got the test answer wrong on this device.',
   'app.ask.model.why.failed': 'It stopped while loading.',
-  'app.ask.model.notHere.phone': 'The language model is for computers for now. Ask uses Shortcuts here.',
-  'app.ask.model.notHere.noWebgpu': 'This browser can’t run the language model (no WebGPU). Ask uses Shortcuts.',
-  'app.ask.model.notHere.noF16': 'This computer’s graphics can’t run the language model. Ask uses Shortcuts.',
-  'app.ask.model.notHere.memory': 'This computer has too little memory for the language model. Ask uses Shortcuts.',
+  'app.ask.model.notHere.narrow': 'Make this window wider to see the optional language model.',
+  'app.ask.model.notHere.noWebgpu':
+    'This browser can’t run the language model. An up-to-date Chrome or Edge usually can. Without it, everything works as usual.',
+  'app.ask.model.notHere.noF16':
+    'This computer’s graphics can’t run the language model. Without it, everything works as usual.',
+  'app.ask.model.notHere.memory':
+    'This computer has too little memory for the language model. Without it, everything works as usual.',
   // ---- a draft ----
   'app.ask.draft.opens': 'Opens: {screen}',
   'app.ask.screen.record': 'Make a record ({kind})',

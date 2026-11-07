@@ -37,7 +37,7 @@ let kept: EngineState | undefined;
 export const useAskEngine = (again: number): EngineState => {
   const [state, setState] = useState<EngineState>(kept ?? { status: 'shortcuts', engine: shortcutsEngine });
   useEffect(() => {
-    if (!MODEL_BUILT) return;
+    if (!MODEL_BUILT || again < 0) return;
     let live = true;
     const set = (s: EngineState) => {
       kept = s;

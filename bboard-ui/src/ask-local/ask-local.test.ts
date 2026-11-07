@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   MODEL_WORKER_FILE,
   downloadWorkerCsp,
@@ -20,6 +20,8 @@ import real from './model-manifest.json';
 import stub from './model-manifest.stub.json';
 import { modelPinned, type ModelManifest } from './manifest';
 import { sri } from './integrity';
+import { checkModelHeaders } from '../../../scripts/check-model-headers.mjs';
+import { libUrl, neededFiles } from './manifest';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const UI = path.resolve(HERE, '../..');
@@ -87,21 +89,20 @@ describe('the pins', () => {
 });
 
 describe('each model worker has its own policy', () => {
-  it('download: only the pinned folders at their commit, and the storage host; no site, no eval', () => {
+  it('download: only the pinned folders at their commit, the storage host and this site (the library); no eval', () => {
     const p = downloadWorkerCsp(stub);
     expect(p).toContain(
-      'connect-src https://huggingface.co/veilcore-test/stub-model/resolve/0123456789abcdef0123456789abcdef01234567/ https://cas-bridge.xethub.hf.co',
+      "connect-src https://huggingface.co/veilcore-test/stub-model/resolve/0123456789abcdef0123456789abcdef01234567/ https://cas-bridge.xethub.hf.co 'self'",
     );
-    expect(p).not.toMatch(/connect-src[^;]*'self'/);
     expect(p).not.toMatch(/resolve\/main/);
     expect(p).toContain("default-src 'none'");
     expect(p).not.toMatch(/unsafe-eval|wasm-unsafe-eval/);
     expect(p).toContain("require-trusted-types-for 'script'");
   });
 
-  it('engine: this site only, WebAssembly, no eval', () => {
+  it('engine: no network at all (it holds what is typed), WebAssembly, no eval', () => {
     const p = engineWorkerCsp();
-    expect(p).toMatch(/connect-src 'self'$|connect-src 'self';/);
+    expect(p).toMatch(/connect-src 'none'$/);
     expect(p).toContain("script-src 'self' 'wasm-unsafe-eval'");
     expect(p).not.toMatch(/huggingface|'unsafe-eval'/);
   });
@@ -127,9 +128,13 @@ describe('each model worker has its own policy', () => {
 
 describe('scripts/vercel-config.mjs: one Content-Security-Policy per response', () => {
   type Route = { src?: string; headers?: Record<string, string>; continue?: boolean };
-  const config = (extra: Record<string, string> = {}) => {
+  const config = (extra: Record<string, string> = {}, asset?: string) => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vcfg-model-'));
     fs.mkdirSync(path.join(dir, '.vercel/output'), { recursive: true });
+    if (asset !== undefined) {
+      fs.mkdirSync(path.join(dir, '.vercel/output/static/assets'), { recursive: true });
+      fs.writeFileSync(path.join(dir, '.vercel/output/static/assets/index-x.js'), asset);
+    }
     const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^VITE_/.test(k)));
     const r = spawnSync(process.execPath, [path.resolve(UI, '../scripts/vercel-config.mjs')], {
       cwd: dir,
@@ -167,6 +172,10 @@ describe('scripts/vercel-config.mjs: one Content-Security-Policy per response', 
   it('refuses to deploy a test or eval build', () => {
     expect(config({ VITE_ASK_MODEL: 'test' }).error).toMatch(/never deployed/);
     expect(config({ VITE_ASK_MODEL: 'eval' }).error).toMatch(/never deployed/);
+    // Set in a .env file the shell never saw: the built files give it away.
+    expect(config({}, 'const r="veilcore-test/stub-model";').error).toMatch(/never deployed/);
+    expect(config({}, 'window.__askEval={};').error).toMatch(/never deployed/);
+    expect(config({}, 'console.log(1)').error).toBeUndefined();
   });
 });
 
@@ -182,14 +191,105 @@ describe('where Ask fetches', () => {
   it('the one thing stored is the flag that Ask was seen', () => {
     const s = src('hint-flag.ts');
     expect(s.match(/localStorage\.\w+\(/g)).toEqual(['localStorage.getItem(', 'localStorage.setItem(']);
-    expect(s).toMatch(/setItem\(HINT_KEY, '1'\)/);
+    expect(s).toMatch(/localStorage\.setItem\(HINT_KEY, v\)/);
+    // Only a count of visits or "done" is written.
+    expect(s).toMatch(/write\(n \+ 1 >= HINT_VISITS \? 'done' : String\(n \+ 1\)\)/);
+    expect(s).toMatch(/write\('done'\)/);
     for (const f of fs.readdirSync(HERE).filter((x) => /\.tsx?$/.test(x) && !/test|hint-flag/.test(x)))
       expect(src(f), f).not.toMatch(/localStorage|sessionStorage|indexedDB/);
   });
   it('the download fetches only pinned addresses, with no cookies and no referrer', () => {
     const s = src('ask-model-download.worker.ts');
-    expect(s).toMatch(/fetch\(fileUrl\(m, f\.path\)/);
+    expect(s).toMatch(/fetch\(f\.url, \{/);
+    expect(s).toMatch(/neededFiles\(m, globalThis\.location\.origin\)/);
     expect(s).toMatch(/credentials: 'omit'/);
     expect(s).toMatch(/referrerPolicy: 'no-referrer'/);
+  });
+});
+
+describe('the files the model needs, and where each comes from', () => {
+  it('the pinned folder at its commit, and the library from this site, kept where WebLLM reads it', () => {
+    const m = (stub as ModelManifest).models[0];
+    const files = neededFiles(m, 'https://veilcore.org');
+    for (const f of files.slice(0, -1))
+      expect(f.url.startsWith(`https://huggingface.co/${m.repo}/resolve/${m.commit}/`), f.url).toBe(true);
+    expect(files.at(-1)).toMatchObject({
+      url: 'https://veilcore.org/ask-model/v0_2_86/Qwen3-0.6B-q4f16_1_cs1k-webgpu.wasm',
+      scope: 'webllm/wasm',
+      sha256: m.lib.sha256,
+    });
+    expect(libUrl(m, 'https://test.veilcore.org')).toBe(
+      'https://test.veilcore.org/ask-model/v0_2_86/Qwen3-0.6B-q4f16_1_cs1k-webgpu.wasm',
+    );
+  });
+});
+
+describe('scripts/check-model-headers.mjs: after a deploy', () => {
+  const dir = () => {
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'mh-'));
+    fs.mkdirSync(path.join(d, 'assets'));
+    return d;
+  };
+  const site = (h: Record<string, Record<string, string>>): typeof fetch =>
+    ((url: string) => {
+      const p = new URL(url).pathname;
+      const headers = h[p] ?? { 'content-type': 'text/html', 'content-security-policy': "default-src 'self'" };
+      return Promise.resolve(new Response('', { status: 200, headers }));
+    }) as unknown as typeof fetch;
+  const page = { 'content-type': 'text/html', 'content-security-policy': "default-src 'self'; connect-src 'self'" };
+
+  it('passes when each worker has exactly its own policy; fails on the page’s policy or two joined', async () => {
+    const d = dir();
+    fs.writeFileSync(path.join(d, 'assets/ask-model-engine.worker-abc.js'), '');
+    fs.writeFileSync(path.join(d, 'assets/ask-model-download.worker-def.js'), '');
+    const js = (csp: string) => ({ 'content-type': 'text/javascript', 'content-security-policy': csp });
+    const good = site({
+      '/': page,
+      '/assets/ask-model-engine.worker-abc.js': js(engineWorkerCsp()),
+      '/assets/ask-model-download.worker-def.js': js(downloadWorkerCsp(stub)),
+    });
+    expect((await checkModelHeaders('https://x', { staticDir: d, fetchImpl: good, manifest: stub })).ok).toBe(true);
+    const twice = site({
+      '/': page,
+      '/assets/ask-model-engine.worker-abc.js': js(`${page['content-security-policy']}, ${engineWorkerCsp()}`),
+      '/assets/ask-model-download.worker-def.js': js(downloadWorkerCsp(stub)),
+    });
+    const r = await checkModelHeaders('https://x', { staticDir: d, fetchImpl: twice, manifest: stub });
+    expect(r.ok).toBe(false);
+    expect(r.lines.join('\n')).toMatch(/engine\.worker-abc\.js policy is not the worker's own/);
+  });
+
+  it('a build without the model: fails if the model library is served anyway', async () => {
+    const d = dir();
+    fs.writeFileSync(path.join(d, 'assets/index-1.js'), '');
+    const lib = `${stub.libs.servedFrom}${stub.models[0].lib.file}`;
+    expect(
+      (await checkModelHeaders('https://x', { staticDir: d, fetchImpl: site({ '/': page }), manifest: stub })).ok,
+    ).toBe(true);
+    const served = site({ '/': page, [lib]: { 'content-type': 'application/wasm' } });
+    expect((await checkModelHeaders('https://x', { staticDir: d, fetchImpl: served, manifest: stub })).ok).toBe(false);
+  });
+});
+
+describe('the hint is shown on three visits at most', () => {
+  it('counts visits, then "done"; dismissing or opening Ask is "done" at once', async () => {
+    const mem = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => mem.get(k) ?? null,
+      setItem: (k: string, v: string) => void mem.set(k, v),
+    });
+    const f = await import('./hint-flag');
+    expect(f.askSeen()).toBe(false);
+    f.noteHintShown();
+    expect(mem.get(f.HINT_KEY)).toBe('1');
+    f.noteHintShown();
+    expect(f.askSeen()).toBe(false);
+    f.noteHintShown();
+    expect(mem.get(f.HINT_KEY)).toBe('done');
+    expect(f.askSeen()).toBe(true);
+    mem.clear();
+    f.markAskSeen();
+    expect([...mem.entries()]).toEqual([[f.HINT_KEY, 'done']]);
+    vi.unstubAllGlobals();
   });
 });

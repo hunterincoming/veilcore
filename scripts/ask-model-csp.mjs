@@ -5,11 +5,12 @@
 // the one in force before it does anything (bboard-ui/src/ask-local/worker-csp.ts):
 //
 //   download worker  may fetch only the pinned model folders on Hugging Face (one commit each,
-//                    resolve/<commit>/, never main) and Hugging Face's file-storage host, which
-//                    those addresses redirect to. Nothing on this site, no other host.
-//   engine worker    may fetch only this site (the model library, /ask-model/...). It reads the
-//                    weights from the browser's cache, where the download worker put them and
-//                    where they are checked again before every start.
+//                    resolve/<commit>/, never main), Hugging Face's file-storage host, which
+//                    those addresses redirect to, and this site (the model library,
+//                    /ask-model/...). No other host. It never sees what is typed.
+//   engine worker    may fetch nothing (connect-src 'none'). It holds what is typed; it reads the
+//                    weights and the library from the browser's cache, where the download worker
+//                    put them and where they are checked again before every start.
 //
 // Both: scripts only from this site, WebAssembly compiled (the engine), no eval, Trusted Types
 // required with no policy allowed, nothing else.
@@ -57,10 +58,10 @@ export const downloadWorkerCsp = (manifest) => {
   const pinned = manifest?.pinned === true && !manifestProblem(manifest);
   const connect = pinned
     ? [...manifest.models.map(modelFolder), ...(manifest.redirectHosts ?? []).map((h) => `https://${h}`)].join(' ')
-    : "'none'";
-  return [...common, "script-src 'self'", `connect-src ${connect}`].join('; ');
+    : '';
+  return [...common, "script-src 'self'", `connect-src ${connect ? `${connect} 'self'` : "'none'"}`].join('; ');
 };
 
-/** The engine worker's policy: this site only, and WebAssembly. */
+/** The engine worker's policy: WebAssembly, and no network at all. */
 export const engineWorkerCsp = () =>
-  [...common, "script-src 'self' 'wasm-unsafe-eval'", "connect-src 'self'"].join('; ');
+  [...common, "script-src 'self' 'wasm-unsafe-eval'", "connect-src 'none'"].join('; ');

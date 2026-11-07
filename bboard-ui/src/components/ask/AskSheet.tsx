@@ -2,8 +2,8 @@
 // a text box second. It drafts; only the person saves, signs or sends, on the screen it opens.
 //
 // "Typing here sends nothing. Only Save does." Nothing here makes a request: Shortcuts (ask/shortcuts.ts)
-// reads the text in this page (or the optional language model, in a worker on this device:
-// useAskEngine.ts, docs/ask-veilcore.md v2.1), What's due, Explain and Search read what this browser already
+// reads the text in this page (or the optional language model, in a worker on this device, in
+// builds with it: ModelBridge.tsx, docs/ask-veilcore.md v2.1), What's due, Explain and Search read what this browser already
 // holds. The conversation is kept in memory only, for as long as the page is open: never
 // stored, never in a backup (docs/ask-veilcore.md). e2e/ask.spec.ts checks the network stays
 // silent while a draft is made.
@@ -42,16 +42,18 @@ import {
   type AskResult,
   type Topic,
 } from '../../ask/engine';
-import { chipResult } from '../../ask/shortcuts';
+import { chipResult, shortcutsEngine } from '../../ask/shortcuts';
 import { HANDOFF_STATE_KEY, type AskDraft, type DraftKind } from '../../ask/handoff';
 import { dueCalendar, dueItems, type DueItem } from '../../ask/due';
 import { searchRecords } from '../../ask/search';
 import { today } from '../flow/log-flow-state';
-import { MODEL_BUILT } from '../../ask-local/manifest';
-import { useAskEngine } from './useAskEngine';
+import type { EngineState } from './useAskEngine';
 
-// The download screen for the optional model: its own file, only in a build with the model.
-const ModelPanel = lazy(() => import('./ModelPanel'));
+// The optional on-device model: its files only in a build with VITE_ASK_MODEL (vite.config.ts
+// makes it a constant, so without it these imports, the workers and WebLLM are left out).
+const ModelBridge = import.meta.env.VITE_ASK_MODEL ? lazy(() => import('./ModelBridge')) : undefined;
+const ModelPanel = import.meta.env.VITE_ASK_MODEL ? lazy(() => import('./ModelPanel')) : undefined;
+const SHORTCUTS: EngineState = { status: 'shortcuts', engine: shortcutsEngine };
 
 type Turn = { readonly id: number; readonly text?: string; readonly result: AskResult };
 
@@ -60,6 +62,15 @@ let kept: Turn[] = [];
 let nextId = 1;
 
 const CHIPS: readonly AskAction[] = ['record', 'clones', 'offspring', 'cross', 'due', 'explain', 'search'];
+
+/** What Ask can do, as a list (the first item without offspring where animals are off). */
+const CAN: readonly AppKey[] = [
+  ANIMAL_RECORDS_ENABLED ? 'app.ask.can.1' : 'app.ask.can.1plants',
+  'app.ask.can.2',
+  'app.ask.can.3',
+  'app.ask.can.4',
+  'app.ask.can.5',
+];
 
 const KINDS: readonly DraftKind[] = [
   'plant',
@@ -71,11 +82,14 @@ export default function AskSheet({
   open,
   onClose,
   firstOpen = false,
+  prefill,
 }: {
   open: boolean;
   onClose: () => void;
   /** Ask was never opened in this browser: what it can do is shown, then folded away. */
   firstOpen?: boolean;
+  /** Text to put in the box (the hint's example), and a number that changes each time it is asked for. */
+  prefill?: { readonly text: string; readonly n: number };
 }) {
   const theme = useTheme();
   const phone = useMediaQuery(theme.breakpoints.down('sm'));
@@ -86,10 +100,18 @@ export default function AskSheet({
   const [turns, setTurns] = useState<Turn[]>(kept);
   const [text, setText] = useState('');
   const end = useRef<HTMLDivElement>(null);
+  const input = useRef<HTMLInputElement>(null);
   const [canShown, setCanShown] = useState(firstOpen);
   const [engineAgain, setEngineAgain] = useState(0);
-  const engine = useAskEngine(engineAgain);
+  const [engine, setEngine] = useState<EngineState>(SHORTCUTS);
   const modelOn = engine.status === 'model';
+  // The hint's example, typed into the box for the person to send or change.
+  useEffect(() => {
+    if (!prefill || !open) return;
+    setText(prefill.text.slice(0, ASK_MAX_CHARS));
+    const id = setTimeout(() => input.current?.focus(), 150);
+    return () => clearTimeout(id);
+  }, [prefill, open]);
   // Shown once: folded away when the sheet closes, and under "What can Ask do?" after that.
   useEffect(() => {
     if (!open) setCanShown(false);
@@ -158,9 +180,13 @@ export default function AskSheet({
             <Typography variant="body2" sx={{ fontWeight: 700 }}>
               {t('app.ask.can.title')}
             </Typography>
-            <Typography variant="body2">
-              {t(ANIMAL_RECORDS_ENABLED ? 'app.ask.can.list' : 'app.ask.can.listPlants')}
-            </Typography>
+            <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
+              {CAN.map((k) => (
+                <Typography component="li" variant="body2" key={k}>
+                  {t(k)}
+                </Typography>
+              ))}
+            </Box>
             <Typography variant="body2" sx={{ mt: 1 }}>
               {t('app.ask.can.never')}
             </Typography>
@@ -172,7 +198,7 @@ export default function AskSheet({
             type="button"
             variant="body2"
             onClick={() => setCanShown(true)}
-            sx={{ alignSelf: 'flex-start' }}
+            sx={{ alignSelf: 'flex-start', minHeight: 44 }}
             data-ask-can-toggle=""
           >
             {t('app.ask.can.toggle')}
@@ -210,6 +236,7 @@ export default function AskSheet({
           <TextField
             size="small"
             fullWidth
+            inputRef={input}
             placeholder={t('app.ask.inputPlaceholder')}
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, ASK_MAX_CHARS))}
@@ -247,9 +274,10 @@ export default function AskSheet({
             </Button>
           </>
         )}
-        {MODEL_BUILT && (
+        {ModelBridge && ModelPanel && (
           <Suspense fallback={null}>
-            <ModelPanel onChange={() => setEngineAgain((n) => n + 1)} />
+            <ModelBridge again={engineAgain} onState={setEngine} />
+            <ModelPanel onChange={() => setEngineAgain((n) => n + 1)} folded={!firstOpen} />
           </Suspense>
         )}
         <div ref={end} />

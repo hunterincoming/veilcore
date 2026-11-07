@@ -198,16 +198,21 @@ test.describe('the on-device model, under the production policies', () => {
     const panel = page.locator('[data-ask-model-panel]');
     await expect(panel).toBeVisible();
     await expect(page.locator('[data-ask-model-hf]')).toHaveText(
-      'The files come from Hugging Face. Hugging Face sees your IP address, the time, which model, and that the request comes from veilcore.org. Nothing you type is sent, then or later.',
+      'The model files come from Hugging Face. Hugging Face sees your IP address, the time, which model, and that the request comes from veilcore.org. Nothing you type is sent, then or later.',
     );
-    await expect(panel).toContainText('Download: 1 MB, kept in this browser until you delete it.');
+    // The stub's files and this site's model library (6.4 MB) are what is downloaded.
+    await expect(panel).toContainText('Download: 6 MB, kept in this browser until you delete it.');
+    await expect(panel).toContainText('starting it needs a connection');
     // With the download screen the sheet is taller than the window: what Ask can do keeps its height.
     const can = await page.locator('[data-ask-can]').boundingBox();
     const intro = await page.getByText('Pick one, or type what you want to do.').boundingBox();
     expect(can && intro && can.y + can.height <= intro.y).toBe(true);
-    if (process.env.ASK_SHOTS) await page.screenshot({ path: `${process.env.ASK_SHOTS}/ask-bubble-desktop-model.png` });
+    if (process.env.ASK_SHOTS) await page.screenshot({ path: `${process.env.ASK_SHOTS}/fix-model-desktop.png` });
     await page.locator('[data-ask-model-download]').click();
     await expect(page.locator('[data-ask-model-stored]')).toBeVisible({ timeout: 30_000 });
+    // The download fetched the library from this site, into WebLLM's own cache.
+    expect(requested.some((u) => u === `${site.origin}/ask-model/v0_2_86/${MODEL.lib.file}`)).toBe(true);
+    const startedAt = requested.length;
     // Only the pinned folder; nothing else asked for.
     expect(net.hf.every((u) => u.startsWith(FOLDER))).toBe(true);
     expect(net.hf.filter((u) => u.startsWith(FOLDER)).length).toBe(MODEL.files.length);
@@ -222,10 +227,14 @@ test.describe('the on-device model, under the production policies', () => {
     expect(await engineNote.getAttribute('data-ask-engine-detail')).toMatch(
       /^(WebGPUNotAvailableError: |Error: Unable to find a compatible GPU\.)/,
     );
-    await expect(engineNote).toContainText('didn’t start, so Shortcuts answers. This browser has no WebGPU.');
-    // It got as far as WebGPU: the model library came from this site, and WebLLM was loaded.
-    expect(requested.some((u) => u === `${site.origin}/ask-model/v0_2_86/${MODEL.lib.file}`)).toBe(true);
-    expect(requested.some((u) => chunks.some((c) => u.endsWith(c)))).toBe(true);
+    await expect(engineNote).toContainText(
+      'didn’t start. This browser can’t run it. An up-to-date Chrome or Edge usually can. Without it, everything works as usual.',
+    );
+    // It got as far as WebGPU, with WebLLM loaded and the library compiled from the cache: the
+    // start fetched only its own code (the worker, WebLLM), never the library or a model file.
+    const atStart = requested.slice(startedAt);
+    expect(atStart.some((u) => chunks.some((c) => u.endsWith(c)))).toBe(true);
+    expect(atStart.filter((u) => !u.startsWith(`${site.origin}/assets/`) || !u.endsWith('.js'))).toEqual([]);
     // Each worker had exactly its own policy.
     const workerServes = site.served.filter((s) => /ask-model-(download|engine)\.worker-/.test(s.path));
     expect(workerServes.length).toBe(2);
@@ -234,7 +243,8 @@ test.describe('the on-device model, under the production policies', () => {
       expect(s.csp[0]).toBe(/download/.test(s.path) ? downloadWorkerCsp(stub) : engineWorkerCsp());
     }
 
-    // With the model stored and the network off: a question makes no request at all.
+    // The model didn't start here, so this question is Shortcuts' (the model's own answer path,
+    // offline, is the next test): still no request.
     const after: string[] = [];
     const count = (r: Request) => after.push(r.url());
     ctx.on('request', count);
@@ -297,7 +307,9 @@ test.describe('the on-device model, under the production policies', () => {
   });
 });
 
-test('a phone is not offered the model: Ask says so and uses Shortcuts', async ({ browser }) => {
+test('a phone is not offered the model and sees nothing about it; a narrow window is told to widen', async ({
+  browser,
+}) => {
   const site = await serve({ workerPolicies: true });
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
@@ -305,10 +317,65 @@ test('a phone is not offered the model: Ask says so and uses Shortcuts', async (
   await desktopWithGpu(page);
   await page.goto(`${site.origin}/records`);
   await openAsk(page);
-  await expect(page.locator('[data-ask-model-panel="not-here"]')).toHaveText(
-    'The language model is for computers for now. Ask uses Shortcuts here.',
+  await expect(page.locator('[data-ask-can]')).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(page.locator('[data-ask-model-panel]')).toHaveCount(0);
+  await ctx.close();
+  const wide = await browser.newContext({ viewport: { width: 700, height: 800 } });
+  const p2 = await wide.newPage();
+  await network(wide, site.origin);
+  await desktopWithGpu(p2);
+  await p2.goto(`${site.origin}/records`);
+  await openAsk(p2);
+  await expect(p2.locator('[data-ask-model-panel="not-here"]')).toHaveText(
+    'Make this window wider to see the optional language model.',
   );
-  await expect(page.locator('[data-ask-model-download]')).toHaveCount(0);
+  await wide.close();
+  site.close();
+});
+
+test('the model’s own answer path: stored, started (a stand-in past WebGPU), and with the network off, no request', async ({
+  browser,
+}) => {
+  const site = await serve({ workerPolicies: true });
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const page = await ctx.newPage();
+  const errors = watch(page);
+  await network(ctx, site.origin);
+  await desktopWithGpu(page);
+  // Test builds only: the engine worker runs every real check (its policy, every stored file's
+  // hash), then answers with a stand-in instead of WebLLM, which needs a GPU.
+  await page.addInitScript(() => {
+    (globalThis as { __askStandInEngine?: boolean }).__askStandInEngine = true;
+  });
+  await page.goto(`${site.origin}/records`);
+  await openAsk(page);
+  await page.locator('[data-ask-model-download]').click();
+  await expect(page.locator('[data-ask-model-stored]')).toBeVisible({ timeout: 30_000 });
+  const note = page.locator('[data-ask-engine]');
+  await expect(note).toHaveAttribute('data-ask-engine', 'model', { timeout: 30_000 });
+  await expect(note).toHaveText(
+    'Using the language model on this device (Qwen3 0.6B). Its answers get the same checks as always.',
+  );
+  await expect(page.locator('[data-ask-privacy]')).toHaveAttribute('data-ask-privacy', 'model');
+  await expect(page.locator('[data-ask-privacy]')).toContainText(
+    'Typing here sends nothing. The language model runs on this device. Only Save sends.',
+  );
+
+  const after: string[] = [];
+  ctx.on('request', (r: Request) => after.push(r.url()));
+  await ctx.setOffline(true);
+  // Shortcuts can't read this one ("took 9 off": no word it knows); the model's answer can.
+  await page.locator('[data-ask-input]').fill('took 9 off the mother plant');
+  await page.getByRole('button', { name: 'Go', exact: true }).click();
+  const card = page.locator('[data-ask-card="draft"]').last();
+  await expect(card).toContainText('Opens: Cut clones');
+  await expect(card).toContainText('How many: 9');
+  await page.waitForTimeout(1000);
+  expect(after, after.join('\n')).toEqual([]);
+  await ctx.setOffline(false);
+  if (process.env.ASK_SHOTS) await page.screenshot({ path: `${process.env.ASK_SHOTS}/fix-model-on-desktop.png` });
+  expectNoErrors(errors);
   await ctx.close();
   site.close();
 });

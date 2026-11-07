@@ -1,8 +1,9 @@
 // Ask's model download (docs/ask-veilcore.md, "v2.1"). The only code in Ask that fetches, and
 // only what the person asked for on the download screen: the pinned model files from Hugging
-// Face, one at a time. Its Content-Security-Policy (scripts/ask-model-csp.mjs) lets it reach
-// those folders at their pinned commit and Hugging Face's file storage, and nothing else; it
-// checks that policy is in force before it fetches anything.
+// Face, one at a time, then the model library from this site. Its Content-Security-Policy
+// (scripts/ask-model-csp.mjs) lets it reach those folders at their pinned commit, Hugging Face's
+// file storage and this site, and nothing else; it checks that policy is in force before it
+// fetches anything.
 //
 // Each file is checked against its SHA-256 in the bundle before it is stored. A file that
 // doesn't match stops the download, and nothing of it is kept. Files already stored and
@@ -13,7 +14,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { checkStored, sha256Hex, storeChecked } from './integrity';
-import { fileUrl, modelById } from './manifest';
+import { modelById, neededFiles } from './manifest';
 import { ownPolicyInForce } from './worker-csp';
 
 export type DownloadIn = { readonly type: 'start'; readonly modelId: string } | { readonly type: 'cancel' };
@@ -31,19 +32,20 @@ const download = async (modelId: string, signal: AbortSignal): Promise<DownloadO
   if (!(await ownPolicyInForce('download'))) return { type: 'failed', reason: 'policy' };
   const m = modelById(modelId);
   if (!m) return { type: 'failed', reason: 'unknown-model' };
-  const total = m.files.reduce((n, f) => n + f.bytes, 0);
+  const files = neededFiles(m, globalThis.location.origin);
+  const total = files.reduce((n, f) => n + f.bytes, 0);
   let done = 0;
   post({ type: 'progress', done, total });
-  for (const f of m.files) {
+  for (const f of files) {
     if (signal.aborted) return { type: 'cancelled' };
-    if ((await checkStored(m, f)) === 'ok') {
+    if ((await checkStored(f)) === 'ok') {
       done += f.bytes;
       post({ type: 'progress', done, total });
       continue;
     }
     let res: Response;
     try {
-      res = await fetch(fileUrl(m, f.path), {
+      res = await fetch(f.url, {
         signal,
         credentials: 'omit',
         referrerPolicy: 'no-referrer',
@@ -75,7 +77,7 @@ const download = async (modelId: string, signal: AbortSignal): Promise<DownloadO
     }
     if (at !== f.bytes || (await sha256Hex(body)) !== f.sha256) return { type: 'failed', reason: 'mismatch' };
     try {
-      await storeChecked(m, f, body.buffer);
+      await storeChecked(f, body.buffer);
     } catch {
       return { type: 'failed', reason: 'storage' };
     }

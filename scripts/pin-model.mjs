@@ -42,20 +42,20 @@ const getJson = async (url) => {
   return r.json();
 };
 
-/** Download a file at the pinned commit: its bytes, and the host it was redirected to, if any. */
+/** Download a file at the pinned commit: its bytes, and every host it was redirected through. */
 const download = async (url) => {
-  let host;
+  const hosts = [];
   let at = url;
   for (let hops = 0; hops < 5; hops++) {
     const r = await fetch(at, { redirect: 'manual' });
     if (r.status >= 300 && r.status < 400) {
       const next = new URL(r.headers.get('location') ?? '', at);
-      if (next.host !== 'huggingface.co') host = next.host;
+      if (next.host !== 'huggingface.co') hosts.push(next.host);
       at = next.href;
       continue;
     }
     if (!r.ok) fail(`${url} answered ${r.status}`);
-    return { body: Buffer.from(await r.arrayBuffer()), host };
+    return { body: Buffer.from(await r.arrayBuffer()), hosts };
   }
   return fail(`${url}: too many redirects`);
 };
@@ -87,8 +87,8 @@ for (const model of manifest.models) {
   const take = async (path, expectBytes) => {
     const entry = listed.get(path);
     if (!entry) fail(`${model.repo}@${commit} has no ${path}`);
-    const { body, host } = await download(new URL(path, folder).href);
-    if (host) redirectHosts.add(host);
+    const { body, hosts } = await download(new URL(path, folder).href);
+    for (const h of hosts) redirectHosts.add(h);
     if (body.length !== entry.size) fail(`${path}: ${body.length} bytes, Hugging Face lists ${entry.size}`);
     if (expectBytes !== undefined && body.length !== expectBytes)
       fail(`${path}: ${body.length} bytes, tensor-cache.json says ${expectBytes}`);
