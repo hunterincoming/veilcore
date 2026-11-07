@@ -160,10 +160,10 @@ export const ancestryVerdictText = (
   if (n === 0) {
     return (
       (declaredParents > 0
-        ? 'The registry reports no obligation in force on this record. It has no confirmed link to its parents, so nothing upstream was checked.'
-        : 'The registry reports no obligation in force on this record. It has no declared ancestors to check.') +
+        ? 'The registry reports no obligation recorded on this record. It has no confirmed link to its parents, so nothing upstream was checked.'
+        : 'The registry reports no obligation recorded on this record. It has no declared ancestors to check.') +
       ownWords
     );
   }
-  return `No obligation in force found in its declared ancestry (${n} generation${n === 1 ? '' : 's'} checked, as the registry reports).${ownWords}`;
+  return `No obligation recorded in its declared ancestry (${n} generation${n === 1 ? '' : 's'} checked, as the registry reports).${ownWords}`;
 };

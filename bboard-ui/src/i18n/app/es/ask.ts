@@ -137,7 +137,7 @@ export const ask = {
   'app.ask.explain.pick': 'Elija una palabra:',
   'app.ask.term.priorPossession': 'Tenencia previa',
   'app.ask.def.priorPossession':
-    'Un registro muestra que usted tenía algo en una fecha: se selló entonces, y su código de prueba se fechó en Midnight. Es todo lo que afirma.',
+    'Un registro muestra que usted tenía este registro en una fecha: se selló entonces, y su código de prueba se fechó en Midnight. No muestra que tuviera el material ni quién lo obtuvo. Es todo lo que afirma.',
   'app.ask.term.proofCode': 'Código de prueba',
   'app.ask.def.proofCode':
     'Un código corto hecho a partir de un registro sellado. Cualquiera puede comprobar un registro con él, y no muestra nada de su contenido.',
@@ -149,7 +149,7 @@ export const ask = {
     'El código de prueba de su registro va a Midnight en un lote con otros. La fecha del lote es la fecha en que su registro ya existía.',
   'app.ask.term.license': 'Licencia',
   'app.ask.def.license':
-    'Un acuerdo que permite a alguien usar su genética en las condiciones que ambos acordaron. Midnight registra que existe y está vigente; las condiciones quedan entre ustedes.',
+    'Un acuerdo que permite a alguien usar la genética de su registro en las condiciones que ambos acordaron. Midnight registra que existe y está vigente; las condiciones quedan entre ustedes.',
   'app.ask.term.royaltyReport': 'Informe de regalías',
   'app.ask.def.royaltyReport':
     'Lo que un licenciatario envía cada periodo según las condiciones: cuánto vendió o cultivó, y a cuánto asciende.',

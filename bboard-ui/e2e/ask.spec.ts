@@ -175,8 +175,10 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
     'A code made from your backup secret (not the secret)',
   );
   await expect(receipt.locator('[data-receipt-public]')).toContainText('The date and time it lands on Midnight');
+  // Public means permanent, and it says so (panel review).
+  await expect(receipt).toContainText('Goes public on Midnight, permanently');
   await expect(receipt.locator('[data-receipt-private]')).toContainText(
-    'Genetics and DNA files never leave this device.',
+    'Genetics and DNA files never leave this device unlocked.',
   );
   const seal = page.getByRole('button', { name: /Seal it/ });
   // The receipt comes before the button that sends.

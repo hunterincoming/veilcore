@@ -3,6 +3,7 @@
 // on (proposeTransfer) or take that back before they approve it (withdrawTransfer).
 // SPDX-License-Identifier: Apache-2.0
 
+import { latestOf } from '../../veilcore/deal-order';
 import React, { useEffect, useState } from 'react';
 import { Alert, Button, Stack, TextField, Typography } from '@mui/material';
 import { hexBytes } from '../../veilcore/record-keys';
@@ -27,9 +28,9 @@ export const HandOnHolder: React.FC<{
 }> = ({ held, party, entries, refresh }) => {
   const tr = useT();
   const offer = handOnOffered(entries);
-  const mineAsked = [...(entries ?? [])]
-    .filter((e) => e.type === 'handon-ask' && e.mine)
-    .sort((a, b) => b.at - a.at)[0] as (DealEntry & { to?: string }) | undefined;
+  const mineAsked: (DealEntry & { to?: string }) | undefined = latestOf(
+    (entries ?? []).filter((e) => e.type === 'handon-ask' && e.mine),
+  );
   const [open, setOpen] = useState(false);
   const [to, setTo] = useState('');
   const [note, setNote] = useState('');

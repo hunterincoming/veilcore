@@ -6,9 +6,9 @@ import type { AppTranslation } from '../../translate';
 
 export const receipt = {
   'app.receipt.title': 'Lo que esto pone en Midnight',
-  'app.receipt.public': 'Se hace público en Midnight:',
+  'app.receipt.public': 'Se hace público en Midnight, para siempre (nadie, ni VeilCore, puede quitarlo):',
   'app.receipt.private': 'Queda privado:',
-  'app.receipt.when': 'La fecha y la hora en que llega a Midnight',
+  'app.receipt.when': 'La fecha y la hora en que llega a Midnight. Todo lo anterior se queda allí para siempre.',
   'app.receipt.fact.yourRecord': 'Un código hecho con la clave de su registro (no el registro)',
   'app.receipt.fact.recovery': 'Un código hecho con su secreto de respaldo (no el secreto)',
   'app.receipt.fact.newKey': 'Un código hecho con la nueva clave del registro',
@@ -28,11 +28,13 @@ export const receipt = {
   'app.receipt.fact.otherCertificate': 'El código de prueba del segundo certificado',
   'app.receipt.fact.certKind': 'Qué tipo de certificado es',
   'app.receipt.fact.line': 'Qué línea del certificado',
-  'app.receipt.fact.value': 'El valor de esa línea, completo. Es público.',
+  'app.receipt.fact.value':
+    'El valor de esa línea, completo. Es público y permanente: no se puede retirar. Un resultado genético (una coincidencia, un marcador, un número de libro genealógico) publicado así puede vincularse a usted para siempre.',
   'app.receipt.fact.limit': 'El límite que eligió (no su número real)',
   'app.receipt.fact.comparison': 'Si es al menos o como máximo ese límite',
   'app.receipt.fact.mask': 'Qué líneas podían cambiar',
-  'app.receipt.fact.labKey': 'El código de identificación público del laboratorio',
+  'app.receipt.fact.labKey':
+    'La clave pública del laboratorio: qué laboratorio lo firmó. Los laboratorios publican esta clave en su propio sitio web, así que nombra al laboratorio públicamente.',
   'app.receipt.fact.signatureCheck': 'Números que muestran que el laboratorio de verdad lo emitió',
   'app.receipt.fact.batch': 'Un código para todo un lote de registros',
   'app.receipt.fact.timeLimit': 'Un límite de tiempo para la lista de licencias',
@@ -42,10 +44,11 @@ export const receipt = {
   'app.receipt.fact.licenseLink': 'Que esta licencia está unida al registro licenciado, y si está vigente',
   'app.receipt.fact.licenseList': 'Que la lista pública de licencias cambió',
   'app.receipt.fact.licenseCount': 'Cuántas licencias tiene este registro',
-  'app.receipt.fact.parentLink': 'Que estos dos registros están unidos como progenitor y descendiente',
+  'app.receipt.fact.parentLink':
+    'Que estos dos registros están unidos como progenitor y descendiente, para siempre: un enlace no se puede deshacer, y los propios progenitores del progenitor quedan fijados.',
   'app.receipt.fact.obligationLink': 'Que esta obligación está unida a ese registro',
   'app.receipt.fact.obligationCount': 'Cuántas obligaciones tiene este registro',
-  'app.receipt.stay.genetics': 'La genética y los archivos de ADN nunca salen de este dispositivo.',
+  'app.receipt.stay.genetics': 'La genética y los archivos de ADN nunca salen de este dispositivo sin cerrar.',
   'app.receipt.stay.locked': 'El nombre y las notas van al registro cerrados con su clave. No puede leerlos.',
   'app.receipt.stay.kind':
     'El registro ve el tipo de registro, su código de prueba y los códigos unidos a él, y los vínculos entre registros (de dónde vino uno, qué lo sustituyó). Cuando un registro se corrige, también ve qué campos cambiaron y desde cuándo.',

@@ -195,4 +195,11 @@ export const strain = {
   'app.strain.v.app.lic.off.datePlant': '記録を日付記録する',
   'app.strain.v.app.lic.off.yourRecord': 'この株についてのあなたの記録',
   'app.strain.v.app.lic.off.waitName': '相手がこの株の記録を指定するのを待っています。',
+  // components/chain/FamilyOnChain.tsx
+  'app.strain.v.app.family.intro':
+    '両方の保有者が同意した親子関係を、チェーン上に記録します。これにより誰でも株の系統を確認でき、親の子孫ロイヤリティがその子孫に引き継がれます。確認済みのつながりは公開かつ永久で、取り消せません。親の保有者が後から引き受けるロイヤリティも、この記録の系統に表示されます。',
+  'app.strain.v.app.family.namesParent':
+    '{who}がこの記録を親として指定しています。本当にこの株から来たものである場合だけ確認してください。確認は公開かつ永久で、この株に今後も含めて課されるものはその系統に表示されます。',
+  'app.strain.v.app.family.confirmQ':
+    'この株が{who}の親であることを確認しますか？この株から来たと分かっている記録だけを確認してください。これは公開かつ永久です。その系統と、この株に今後も含めて課されるものが、その記録に表示されます。{fixes}',
 } satisfies Partial<AppTranslation>;

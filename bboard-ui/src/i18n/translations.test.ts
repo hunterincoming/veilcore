@@ -171,7 +171,7 @@ describe('the record app in every language', () => {
         if ((k.startsWith('app.receipt.') || k.startsWith('app.ask.')) && k !== 'app.receipt.stay.genetics')
           expect(NEVER.test(v), `${lang} ${k}: ${v}`).toBe(false);
       }
-    expect(EN['app.receipt.stay.genetics']).toBe('Genetics and DNA files never leave this device.');
+    expect(EN['app.receipt.stay.genetics']).toBe('Genetics and DNA files never leave this device unlocked.');
   });
 
   it('never says VeilCore vouches, or "track and trace"', () => {

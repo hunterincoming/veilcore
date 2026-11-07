@@ -268,4 +268,11 @@ export const animal = {
   'app.animal.v.app.lic.off.datePlant': 'Date a record',
   'app.animal.v.app.lic.off.yourRecord': 'Your record of these genetics',
   'app.animal.v.app.lic.off.waitName': 'Waiting for them to name their record of these genetics.',
+  // components/chain/FamilyOnChain.tsx
+  'app.animal.v.app.family.intro':
+    'Parentage both holders agreed to, on chain. It is what lets anyone check an animal’s line, and what carries a parent’s offspring royalty down to its descendants. A confirmed link is public and permanent: it can’t be undone, and royalties the parent’s holder takes on later show on this record’s line too.',
+  'app.animal.v.app.family.namesParent':
+    '{who} names this record as a parent. Confirm only if it really came from this animal. Confirming is public and permanent, and anything owed on this animal, now or later, will show on its line.',
+  'app.animal.v.app.family.confirmQ':
+    'Confirm this animal is a parent of {who}? Only confirm a record you know came from it. This is public and permanent: its line, and anything owed on this animal now or later, will show on it.{fixes}',
 };

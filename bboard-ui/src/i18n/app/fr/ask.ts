@@ -140,7 +140,7 @@ export const ask = {
   'app.ask.explain.pick': 'Choisissez un mot :',
   'app.ask.term.priorPossession': 'Détention antérieure',
   'app.ask.def.priorPossession':
-    'Un enregistrement montre que vous déteniez quelque chose à une date : il a été scellé alors, et son code de preuve a été daté sur Midnight. C’est tout ce qu’il affirme.',
+    'Un enregistrement montre que vous déteniez cet enregistrement à une date : il a été scellé alors, et son code de preuve a été daté sur Midnight. Il ne montre pas que vous aviez le matériel, ni qui l’a sélectionné. C’est tout ce qu’il affirme.',
   'app.ask.term.proofCode': 'Code de preuve',
   'app.ask.def.proofCode':
     'Un code court tiré d’un enregistrement scellé. Chacun peut vérifier un enregistrement avec, et il ne montre rien de son contenu.',
@@ -152,7 +152,7 @@ export const ask = {
     'Le code de preuve de votre enregistrement va sur Midnight dans un lot avec d’autres. La date du lot est la date à laquelle votre enregistrement existait.',
   'app.ask.term.license': 'Licence',
   'app.ask.def.license':
-    'Un accord qui permet à quelqu’un d’utiliser votre génétique aux conditions dont vous êtes tous deux convenus. Midnight enregistre qu’il existe et qu’il est en vigueur ; les conditions restent entre vous.',
+    'Un accord qui permet à quelqu’un d’utiliser la génétique de votre enregistrement aux conditions dont vous êtes tous deux convenus. Midnight enregistre qu’il existe et qu’il est en vigueur ; les conditions restent entre vous.',
   'app.ask.term.royaltyReport': 'Rapport de redevances',
   'app.ask.def.royaltyReport':
     'Ce qu’un licencié envoie à chaque période selon les conditions : combien il a vendu ou cultivé, et ce que cela représente.',

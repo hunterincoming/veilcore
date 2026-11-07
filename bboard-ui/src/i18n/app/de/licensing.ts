@@ -14,7 +14,7 @@ export const licensing = {
   'app.lic.fee.note': 'VeilCore-Gebühr ({pct} % des Geschäftswerts): berechnet, nicht eingezogen.',
   'app.lic.rights.cultivate': 'Nur Anbau',
   'app.lic.rights.cultivate+propagate': 'Anbau und Vermehrung',
-  'app.lic.rights.full-transfer': 'Vollständige Übertragung',
+  'app.lic.rights.full-transfer': 'Abtretung aller Rechte, die der Inhaber hat',
   'app.lic.rights.breed': 'Nur Zucht',
   'app.lic.rights.breed+collect': 'Zucht + Gewinnung',
   'app.lic.rights.breed+sell': 'Zucht, Gewinnung + Verkauf',
@@ -24,6 +24,7 @@ export const licensing = {
   'app.lic.state.draft': 'Entwurf',
   'app.lic.state.sent': 'Gesendet, wartet auf Gegenzeichnung',
   'app.lic.state.active': 'Als aktiv markiert',
+  'app.lic.state.activeOffChain': 'Hier als aktiv markiert, nicht auf Midnight',
   'app.lic.state.expired': 'Abgelaufen',
   'app.lic.state.revoked': 'Widerrufen',
   'app.lic.type.license': 'Lizenzvereinbarung',
@@ -170,7 +171,8 @@ export const licensing = {
   'app.lic.f.rightsHelp': 'Was der Lizenznehmer mit der Genetik tun darf.',
   'app.lic.f.r.cultivate': 'Nur Anbau',
   'app.lic.f.r.propagate': 'Anbau und Vermehrung (Stecklinge oder Saatgut)',
-  'app.lic.f.r.full': 'Vollständige Übertragung der Rechte',
+  'app.lic.f.r.full':
+    'Abtretung aller Rechte, die der Inhaber hat (ein eingetragenes Recht wird bei seiner eigenen Behörde übertragen)',
   'app.lic.f.r.breed': 'Zucht nur mit eigenen Tieren',
   'app.lic.f.r.breed+collect': 'Zucht + Gewinnung von Sperma oder Embryonen für den eigenen Gebrauch',
   'app.lic.f.r.breed+sell': 'Zucht, Gewinnung + Verkauf von Sperma, Embryonen oder Zuchttieren',
@@ -421,7 +423,7 @@ export const licensing = {
   'app.lic.off.nameIt': 'Nennen',
   'app.lic.off.waitName': 'Warten, bis die andere Seite ihren Datensatz zu dieser Pflanze nennt.',
   'app.lic.off.theirRecord': 'Ihr Datensatz: <b>{name}</b> {key} · {state}',
-  'app.lic.off.inForce': 'auf Midnight in Kraft',
+  'app.lic.off.inForce': 'auf Midnight vermerkt',
   'app.lic.off.proposed': 'vorgeschlagen, wartet auf Annahme durch den Lizenznehmer',
   'app.lic.off.notYet': 'noch nicht auf Midnight',
   'app.lic.off.checking': 'wird geprüft…',
@@ -591,9 +593,24 @@ export const licensing = {
     'Warten auf eine Antwort von der Seite des Lizenzgebers. Ihr Code erscheint hier, sobald sie da ist.',
   'app.lic.inv.takeOverTerms':
     'Die Bedingungen, zu denen Sie die Lizenz übernehmen (dieselben wie beim jetzigen Inhaber):',
+  'app.lic.other': 'Sonstiges: {value}',
   // What a license here is and isn't (shown where terms are set and agreed).
   'app.lic.evidenceNote':
-    'Eine Lizenz hier ist ein unterschriebener, datierter Nachweis dessen, was Sie beide vereinbart haben, keine Rechtsberatung. Manche Gerichte haben sich geweigert, Cannabis-Vereinbarungen durchzusetzen. Lassen Sie alles Wichtige von Ihrem eigenen Anwalt prüfen.',
+    'Eine Lizenz hier ist ein signierter, datierter Nachweis dessen, was Sie beide vereinbart haben, keine Rechtsberatung. Lassen Sie alles Wichtige von Ihrer eigenen Anwältin oder Ihrem eigenen Anwalt prüfen.',
+  'app.lic.controlled.q': 'Ist das Cannabis, Hanf oder eine andere kontrollierte Pflanze?',
+  'app.lic.controlled.yes': 'Ja',
+  'app.lic.controlled.no': 'Nein',
+  'app.lic.controlled.hint':
+    'Die Art dieses Datensatzes sieht nach Cannabis aus, daher ist Ja gewählt. Ändern Sie es, wenn das falsch ist.',
+  'app.lic.controlled.courts': 'Manche Gerichte haben es abgelehnt, Cannabis-Verträge durchzusetzen.',
+  'app.lic.controlled.border':
+    'Cannabis oder sein Pflanzenmaterial über eine Landes- oder Staatsgrenze zu bringen, ist fast überall strafbar, selbst zwischen zwei US-Bundesstaaten, in denen es jeweils legal ist. Beschränken Sie das Gebiet auf Orte, an denen Sie beide es rechtmäßig anbauen und verkaufen dürfen, und versenden Sie nichts über Grenzen.',
+  'app.lic.controlled.japan':
+    'In Japan sind Anbau, Verkauf und Konsum von Cannabis ohne Genehmigung strafbar. Nutzen Sie dies nicht für ein Geschäft in Japan.',
+  'app.lic.controlled.regulator':
+    'Eine Lizenzgebühr auf Verkäufe muss der Cannabis-Aufsicht des Lizenznehmers womöglich gemeldet werden.',
+  'app.lic.inv.revokeNote':
+    'Der Lizenzgeber kann diese Lizenz auf Midnight jederzeit abschalten, egal was Ihre Bedingungen sagen. Das Abschalten beendet den Vertrag zwischen Ihnen nicht: Ihre signierten Bedingungen sind dann Ihr Nachweis.',
   'app.lic.inv.iAgree': 'Ich stimme diesen Bedingungen zu',
   'app.lic.inv.agree': 'Zustimmen',
   'app.lic.inv.waitHandOn':
@@ -688,7 +705,7 @@ export const licensing = {
     'Dieser Anspruchslink ist unvollständig. Öffnen Sie ihn genau so, wie Sie ihn erhalten haben, einschließlich allem nach dem #.',
   'app.lic.claim.notHeld': 'Dieses Gerät hält den Datensatz nicht.',
   'app.lic.claim.notWaiting': 'Der Anspruch wartet nicht mehr. Es wurde nichts gesendet.',
-  'app.lic.claim.hInForce': 'Auf Ihrem Datensatz besteht ein Anspruch',
+  'app.lic.claim.hInForce': 'Auf Ihrem Datensatz ist ein Anspruch vermerkt',
   'app.lic.claim.h': 'Ein Anspruch auf Ihren Datensatz',
   'app.lic.claim.from':
     'Von: <b>{name}</b> (eigene Angabe; prüfen Sie, wer das ist, wie bei jedem Kredit) · On-Chain-Schlüssel {key}',
@@ -700,16 +717,16 @@ export const licensing = {
   'app.lic.claim.asks':
     '<b>{name}</b> bittet darum, einen Anspruch auf <b>{record}</b> zu erfassen (auf Midnight geprüft).',
   'app.lic.claim.ifAccept':
-    'Wenn Sie annehmen, sieht jeder, der diesen Datensatz prüft, dass ein Anspruch besteht, bis {name} ihn aufhebt. Niemand sonst kann das. Der Datensatz wechselt dadurch nicht, und Sie können ihn weiter nutzen.',
+    'Wenn Sie annehmen, sieht jeder, der diesen Datensatz prüft, dass ein Anspruch vermerkt ist, bis {name} ihn aufhebt. Niemand sonst kann das. Der Datensatz wechselt dadurch nicht, und Sie können ihn weiter nutzen.',
   'app.lic.claim.accept': 'Anspruch annehmen',
   'app.lic.claim.reject': 'Ablehnen',
   'app.lic.claim.rejectQ':
     'Den Anspruch von {name} ablehnen? Er wird von Midnight entfernt. Es kann erneut gefragt werden.',
   'app.lic.claim.rejectYes': 'Ja, ablehnen',
   'app.lic.claim.how':
-    'Kreditgeber nutzen einen Anspruch, um zu zeigen, dass ein Datensatz ihnen verpfändet ist, damit er nicht unbemerkt zweimal verpfändet wird. Es ist keine rechtliche Eintragung: Ein Kreditgeber reicht seine eigenen Unterlagen weiterhin selbst ein. Die Bedingungen bleiben zwischen Ihnen; Midnight zeigt nur, dass ein Anspruch besteht und wer ihn aufheben kann. VeilCore zahlt die Netzwerkgebühr.',
+    'Kreditgeber nutzen einen Anspruch, damit jeder, der diesen Datensatz prüft, sieht, dass einer darauf vermerkt ist. Er verhindert nicht, dass dasselbe Material anderswo verpfändet wird, und ist keine rechtliche Eintragung: Ein Kreditgeber reicht seine eigenen Unterlagen weiterhin selbst ein. Die Bedingungen bleiben zwischen Ihnen; Midnight zeigt nur, dass ein Anspruch besteht und wer ihn aufheben kann. VeilCore zahlt die Netzwerkgebühr.',
   'app.lic.claim.inForce':
-    'Auf Midnight in Kraft. Nur {name} kann ihn aufheben. Jeder, der {record} prüft, sieht, dass ein Anspruch besteht.',
+    'Auf Midnight vermerkt. Nur {name} kann ihn aufheben. Jeder, der {record} prüft, sieht, dass ein Anspruch vermerkt ist.',
   'app.lic.claim.readError': 'Midnight konnte gerade nicht gelesen werden: {error}',
   'app.lic.claim.thisRecord': 'dieser Datensatz',
   'app.lic.steps.i.link': 'Einen Link erstellen und senden',
@@ -751,7 +768,7 @@ export const licensing = {
   'app.lic.next.l.file': 'Senden Sie Ihren Bericht, wenn der Zeitraum endet.',
   'app.lic.lend.title': 'Einen Anspruch als Kreditgeber erfassen',
   'app.lic.lend.intro':
-    'Sie geben einen Kredit gegen den Datensatz oder die Lizenz eines Züchters? Erfassen Sie auf Midnight, dass der Datensatz Ihnen verpfändet ist, damit er nicht unbemerkt zweimal verpfändet wird. Der Inhaber nimmt den Anspruch auf seinem eigenen Gerät an, und nur Sie können ihn aufheben. Es ist keine rechtliche Eintragung: Reichen Sie Ihre eigenen Unterlagen wie gewohnt ein.',
+    'Sie geben einen Kredit gegen den Datensatz oder die Lizenz eines Züchters? Vermerken Sie auf Midnight, dass Sie einen Anspruch auf den Datensatz haben, damit jeder, der ihn prüft, das sieht. Das verhindert nicht, dass dasselbe Material anderswo verpfändet wird, und ist keine rechtliche Eintragung: Reichen Sie Ihre eigenen Unterlagen wie gewohnt ein. Der Inhaber nimmt den Anspruch auf seinem eigenen Gerät an, und nur Sie können ihn aufheben.',
   'app.lic.lend.name': 'Ihr Name, wie Inhaber ihn sehen',
   'app.lic.lend.nameHelp':
     'Der Name Ihres Instituts. Inhaber sehen ihn neben Ihrem Schlüssel und prüfen, wer Sie sind, wie bei jedem Kredit.',
@@ -785,7 +802,7 @@ export const licensing = {
     'Diesen Anspruch zurückziehen, bevor der Inhaber antwortet? Dies wird auf Midnight erfasst.',
   'app.lic.lend.withdrawYes': 'Ja, zurückziehen',
   'app.lic.lend.inForce':
-    'Auf Midnight in Kraft. Jeder, der den Datensatz prüft, sieht, dass ein Anspruch besteht, bis Sie ihn aufheben.',
+    'Auf Midnight vermerkt. Jeder, der den Datensatz prüft, sieht, dass ein Anspruch vermerkt ist, bis Sie ihn aufheben.',
   'app.lic.lend.release': 'Aufheben (zurückgezahlt)',
   'app.lic.lend.releaseQ':
     'Diesen Anspruch aufheben? Wer den Datensatz prüft, sieht ihn dann nicht mehr. Dies wird auf Midnight erfasst und lässt sich nicht rückgängig machen.',
@@ -794,7 +811,7 @@ export const licensing = {
   'app.lic.lend.withdrawn': 'Zurückgezogen.',
   'app.lic.lend.gone': 'Nicht auf Midnight: Der Inhaber hat ihn abgelehnt, oder er ist noch nicht angekommen.',
   'app.lic.lend.notWaiting': 'Der Anspruch wartet nicht mehr. Es wurde nichts gesendet.',
-  'app.lic.lend.notInForce': 'Der Anspruch ist nicht in Kraft. Es wurde nichts gesendet.',
+  'app.lic.lend.notInForce': 'Der Anspruch ist nicht auf Midnight vermerkt. Es wurde nichts gesendet.',
   'app.lic.lend.badRecord':
     'Das ist kein Prüflink und kein On-Chain-Schlüssel. Bitten Sie den Inhaber um den Prüflink seines Datensatzes.',
   'app.lic.lend.ownRecord': 'Das ist Ihr eigener Kreditgeber-Schlüssel, kein Datensatz.',

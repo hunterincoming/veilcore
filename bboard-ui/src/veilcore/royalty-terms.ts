@@ -13,7 +13,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { LicenseTerms, Rights, UnitBasis } from './licenses';
-import { enT, type RecordKind, type Translator } from '../i18n/translate';
+import { enT, labelOr, type RecordKind, type Translator } from '../i18n/translate';
 import type { AppKey } from '../i18n/app/en';
 import { formatMoney, isDecimal, normaliseDecimal } from './money';
 
@@ -168,11 +168,40 @@ export const withDealCurrency = <T extends Partial<LicenseTerms>>(
 export const scheduleOf = (t: Partial<LicenseTerms> | undefined): Reporting | undefined => t?.reporting;
 
 /**
- * Cannabis records (design v3, 1 and 10): the territory is required, and the licensor's own
- * payment link isn't offered. A plant sealed before profiles existed was sealed as cannabis.
+ * Words that suggest cannabis or hemp in a record's species, in the five languages and the US
+ * statutory spelling. Only a hint: the license form asks the question itself (panel review), and
+ * this preselects its answer.
+ */
+const CANNABIS_HINT =
+  /cannabis|hemp|marijuana|marihuana|\bc\.\s*(sativa|indica|ruderalis)\b|大麻|ヘンプ|マリファナ|\bhanf|chanvre|c[aá]ñamo|canamo|ca[nñ]hamo/i;
+
+/**
+ * Whether a record looks like cannabis (design v3, 1 and 10): a hint for the license form's
+ * question, and, on licenses made before it was asked, what decides the cannabis rules. A plant
+ * sealed before profiles existed was sealed as cannabis.
  */
 export const isCannabisRecord = (r: { profile?: string; taxon?: string } | undefined): boolean =>
-  Boolean(r && (!r.profile || /cannabis|hemp|marijuana/i.test(r.taxon ?? '')));
+  Boolean(r && (!r.profile || CANNABIS_HINT.test(r.taxon ?? '')));
+
+/**
+ * Whether these terms are for cannabis, hemp or another controlled plant: the licensor's own
+ * answer, sealed with the terms; on older terms, the record's hint.
+ */
+export const isControlledTerms = (
+  t: { controlled?: boolean } | undefined,
+  record?: { profile?: string; taxon?: string },
+): boolean => (t?.controlled !== undefined ? t.controlled : isCannabisRecord(record));
+
+/**
+ * A governing law that names only a federal country, whose contracts are governed by each state
+ * or province ("United States" is no contract law at all): the form asks for the state.
+ */
+const FEDERAL_ONLY =
+  /^\s*(the\s+)?(united\s+states(\s+of\s+america)?|u\.?\s?s\.?(\s?a\.?)?|america|canada|australia|vereinigte\s+staaten(\s+von\s+amerika)?|estados\s+unidos(\s+de\s+am[eé]rica)?|[ée]tats-unis(\s+d['’]am[ée]rique)?|kanada|canad[aá]|australien|australie|アメリカ合衆国|アメリカ|米国|カナダ|オーストラリア)\s*$/i;
+
+/** What is wrong with a governing law, if anything: missing, or a federal country with no state. */
+export const lawProblem = (law: string | undefined): 'law' | 'lawState' | undefined =>
+  !law?.trim() ? 'law' : FEDERAL_ONLY.test(law) ? 'lawState' : undefined;
 
 // ---- presets -----------------------------------------------------------------------------------
 
@@ -242,18 +271,27 @@ export const regionOf = (locale: string | undefined): string | undefined => {
   }
 };
 
-/** A first guess at the deal's currency, from the browser's locale. Shown, and changeable. */
+/**
+ * A first guess at the deal's currency, from the browser's locale. Shown, and changeable. A
+ * region with no currency here gets US dollars, never its language's home currency: a Chilean or
+ * Peruvian Spanish browser is not in the euro area (panel review).
+ */
 export const currencyForLocale = (locale: string | undefined): string => {
   const region = regionOf(locale);
   if (region && EUROZONE.has(region)) return 'EUR';
   if (region && REGION_CURRENCY[region]) return REGION_CURRENCY[region];
+  if (region) return 'USD';
   return LANG_CURRENCY[(locale ?? 'en').slice(0, 2)] ?? 'USD';
 };
+
+/** Countries whose contract law is each state's or province's: no country-wide first guess. */
+const FEDERAL_REGIONS = new Set(['US', 'CA', 'AU']);
 
 /** A first guess at the governing law: the browser's country, in the reader's language. */
 export const lawForLocale = (locale: string | undefined, displayLocale?: string): string => {
   const region = regionOf(locale);
-  if (!region) return '';
+  // "United States" is not a contract law: the user names the state (panel review).
+  if (!region || FEDERAL_REGIONS.has(region)) return '';
   try {
     return new Intl.DisplayNames(displayLocale ? [displayLocale] : undefined, { type: 'region' }).of(region) ?? '';
   } catch {
@@ -374,7 +412,10 @@ export const termsToSeal = (t: LicenseTerms): LicenseTerms => {
 };
 
 /** What is missing before new terms can be saved (empty: ready). */
-export const termsProblems = (t: LicenseTerms, opts: { territoryRequired: boolean }): string[] => {
+export const termsProblems = (
+  t: LicenseTerms,
+  opts: { territoryRequired: boolean; controlledUnanswered?: boolean },
+): string[] => {
   const out: string[] = [];
   if (!t.licensee.trim()) out.push('licensee');
   const r = t.royalty;
@@ -383,27 +424,29 @@ export const termsProblems = (t: LicenseTerms, opts: { territoryRequired: boolea
     if (r.kind === 'per-unit' && !(isDecimal(r.amount) && Number(r.amount) > 0)) out.push('amount');
     if (r.kind === 'percent' && r.base === 'net' && r.deductionCapPct && !isDecimal(r.deductionCapPct)) out.push('cap');
     if (!t.currency || !/^[A-Z]{3,6}$/.test(t.currency)) out.push('currency');
-    if (!t.governingLaw?.trim()) out.push('law');
+    const law = lawProblem(t.governingLaw);
+    if (law) out.push(law);
     if (t.yearlyMinimum?.trim() && !isDecimal(t.yearlyMinimum)) out.push('minimum');
     const o = t.offspring?.rule;
     if (o && !isDecimal(o.kind === 'percent' ? o.rate : o.amount)) out.push('offspring');
   } else if (!t.royaltyAmount.trim()) out.push('rate');
   if (opts.territoryRequired && !t.territory.trim()) out.push('territory');
+  if (opts.controlledUnanswered) out.push('controlled');
   if (t.startDate && t.endDate && t.endDate < t.startDate) out.push('dates');
   return out;
 };
 
 // ---- words -------------------------------------------------------------------------------------
 
-export const unitLabel = (u: RoyaltyUnit, tr: Translator = enT): string => tr.t(`app.roy.unit.${u}` as AppKey);
-export const periodLabel = (p: Period, tr: Translator = enT): string => tr.t(`app.roy.every.${p}` as AppKey);
+export const unitLabel = (u: RoyaltyUnit, tr: Translator = enT): string => labelOr(tr, `app.roy.unit.${u}`, u);
+export const periodLabel = (p: Period, tr: Translator = enT): string => labelOr(tr, `app.roy.every.${p}`, p);
 
 /** A rule in a few words: "8% of gross sales", "$2.00 per cutting". */
 export const ruleText = (r: RoyaltyRule, currency: string, tr: Translator = enT): string => {
   if (r.kind === 'percent') {
     if (!r.base) return tr.t('app.roy.rule.pctOld', { rate: r.rate || '—' });
     if (r.base === 'gross') return tr.t('app.roy.rule.pctGross', { rate: r.rate || '—' });
-    const ded = (r.deductions ?? []).map((d) => tr.t(`app.roy.ded.${d}` as AppKey)).join(', ');
+    const ded = (r.deductions ?? []).map((d) => labelOr(tr, `app.roy.ded.${d}`, d)).join(', ');
     return r.deductionCapPct
       ? tr.t('app.roy.rule.pctNetCap', { rate: r.rate || '—', ded: ded || '—', cap: r.deductionCapPct })
       : tr.t('app.roy.rule.pctNet', { rate: r.rate || '—', ded: ded || '—' });
@@ -434,7 +477,7 @@ export const termsSentence = (t: LicenseTerms, tr: Translator): string => {
   parts.push(
     tr.t(t.exclusive ? 'app.roy.s.grantEx' : 'app.roy.s.grant', {
       who: names.licensee,
-      rights: tr.t(`app.roy.rights.${t.rights}` as AppKey),
+      rights: labelOr(tr, `app.roy.rights.${t.rights}`, t.rights),
       where: t.territory || tr.t('app.roy.s.anywhere'),
       from: t.startDate ? dateWords(t.startDate, tr) : '—',
       to: t.endDate ? dateWords(t.endDate, tr) : '—',
@@ -472,7 +515,7 @@ export const termsSentence = (t: LicenseTerms, tr: Translator): string => {
       }),
     );
   }
-  if (t.bankFees) parts.push(tr.t(`app.roy.s.fees.${t.bankFees}` as AppKey, names));
+  if (t.bankFees) parts.push(labelOr(tr, `app.roy.s.fees.${t.bankFees}`, t.bankFees, names));
   if (t.fxSource) parts.push(tr.t('app.roy.s.fx', { source: t.fxSource }));
   if (t.recordsYears)
     parts.push(

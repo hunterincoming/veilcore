@@ -31,7 +31,7 @@ import {
 import { dealParty, useDeal } from '../../veilcore/deal-client';
 import { RoyaltyLedger } from './RoyaltyLedger';
 import { getRecord } from '../../veilcore/records';
-import { hasOffspringRoyalty, isCannabisRecord } from '../../veilcore/royalty-terms';
+import { hasOffspringRoyalty, isControlledTerms } from '../../veilcore/royalty-terms';
 import { OffspringRoyalty } from './OffspringRoyalty';
 import { HandOnIssuer } from './HandOnIssuer';
 import {
@@ -465,7 +465,7 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
                 side="issuer"
                 terms={license.terms}
                 agreementType={license.type}
-                cannabis={isCannabisRecord(getRecord(license.recordId))}
+                cannabis={isControlledTerms(license.terms, getRecord(license.recordId))}
                 entries={deal.entries}
                 refresh={deal.refresh}
                 agreed={{
