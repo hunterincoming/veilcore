@@ -30,6 +30,66 @@ export const ask = {
   'app.ask.kind.plant': 'plante',
   'app.ask.kind.animal': 'animal',
   'app.ask.kind.strain': 'souche ou lignée',
+  // ---- ce que Demander sait faire (à la première ouverture, puis sous un lien) ----
+  'app.ask.can.title': 'Je peux :',
+  'app.ask.can.list':
+    'couper des boutures ou enregistrer des petits en une fois · montrer ce qui est dû · expliquer n’importe quel mot · trouver vos enregistrements · ouvrir n’importe quel écran déjà rempli',
+  'app.ask.can.listPlants':
+    'couper des boutures en une fois · montrer ce qui est dû · expliquer n’importe quel mot · trouver vos enregistrements · ouvrir n’importe quel écran déjà rempli',
+  'app.ask.can.never': 'Je ne signe et n’envoie jamais rien. C’est vous qui le faites.',
+  'app.ask.can.toggle': 'Que sait faire Demander ?',
+  // ---- l’astuce près du bouton, à la première visite ----
+  'app.ask.hint.plant': 'Essayez : couper 12 boutures de Blue Dream',
+  'app.ask.hint.animal': 'Essayez : enregistrer 3 veaux',
+  'app.ask.hint.dismiss': 'Masquer',
+  // ---- le modèle de langage sur cet appareil (facultatif) ----
+  'app.ask.privacyModel':
+    'Ce que vous tapez ici n’est pas envoyé. Le modèle de langage tourne sur cet appareil. Seul Enregistrer envoie.',
+  'app.ask.engine.model': 'Lu par le modèle de langage de cet appareil ({model}), vérifié selon les mêmes règles.',
+  'app.ask.engine.starting': 'Démarrage du modèle de langage sur cet appareil. Les Raccourcis répondent en attendant.',
+  'app.ask.engine.failed': 'Le modèle de langage de cet appareil n’a pas démarré, donc les Raccourcis répondent. {why}',
+  'app.ask.model.title': 'Modèle de langage sur cet appareil (facultatif)',
+  'app.ask.model.what':
+    'Demander marche déjà, hors ligne, avec les Raccourcis. Vous pouvez aussi télécharger un petit modèle de langage (Qwen3, Apache-2.0) qui tourne dans ce navigateur et lit ce que vous tapez. Ses réponses sont vérifiées selon les mêmes règles, et il ne peut rien faire que les Raccourcis ne puissent faire.',
+  'app.ask.model.pick': 'Quel modèle',
+  'app.ask.model.option': '{name} : environ {size}',
+  'app.ask.model.size': 'Téléchargement : {size}, gardé dans ce navigateur jusqu’à ce que vous le supprimiez.',
+  'app.ask.model.hf':
+    'Les fichiers viennent de Hugging Face. Hugging Face voit votre adresse IP, l’heure, quel modèle, et que la demande vient de veilcore.org. Rien de ce que vous tapez n’est envoyé, ni alors ni plus tard.',
+  'app.ask.model.check': 'Chaque fichier est comparé à une somme de contrôle intégrée à ce site avant d’être utilisé.',
+  'app.ask.model.download': 'Télécharger ({size})',
+  'app.ask.model.resume': 'Reprendre le téléchargement',
+  'app.ask.model.cancel': 'Annuler',
+  'app.ask.model.progress': '{done} sur {total}',
+  'app.ask.model.cancelled': 'Arrêté. Ce qui est téléchargé est gardé ; reprenez quand vous voulez.',
+  'app.ask.model.delete': 'Supprimer le modèle de ce navigateur',
+  'app.ask.model.deleted': 'Supprimé. Demander utilise les Raccourcis.',
+  'app.ask.model.stored': 'Téléchargé : {name}. Demander l’utilise après une réponse de test sur cet appareil.',
+  'app.ask.model.noRoom':
+    'Ce navigateur a environ {free} de libre et le modèle demande {size}. Demander utilise les Raccourcis.',
+  'app.ask.model.failed.network':
+    'Le téléchargement s’est arrêté (connexion). Demander utilise les Raccourcis. Vous pouvez reprendre.',
+  'app.ask.model.failed.mismatch':
+    'Un fichier ne correspondait pas à sa somme de contrôle, il n’a donc pas été gardé. Demander utilise les Raccourcis.',
+  'app.ask.model.failed.storage': 'Ce navigateur n’a pas gardé les fichiers. Demander utilise les Raccourcis.',
+  'app.ask.model.failed.policy':
+    'Ce navigateur n’applique pas les règles de sécurité propres au téléchargement, il ne démarre donc pas ici. Demander utilise les Raccourcis.',
+  'app.ask.model.why.policy': 'Ce navigateur n’applique pas les règles de sécurité propres au modèle.',
+  'app.ask.model.why.mismatch':
+    'Un fichier gardé ne correspondait pas à sa somme de contrôle ; supprimez le modèle et téléchargez-le à nouveau.',
+  'app.ask.model.why.notStored': 'Une partie du modèle manque ; reprenez le téléchargement.',
+  'app.ask.model.why.noGpu': 'Ce navigateur n’a pas WebGPU.',
+  'app.ask.model.why.noF16': 'La carte graphique de cet ordinateur ne peut pas faire tourner ce modèle.',
+  'app.ask.model.why.selfTest': 'Il s’est trompé à la réponse de test sur cet appareil.',
+  'app.ask.model.why.failed': 'Il s’est arrêté pendant le chargement.',
+  'app.ask.model.notHere.phone':
+    'Pour l’instant, le modèle de langage est pour les ordinateurs. Ici, Demander utilise les Raccourcis.',
+  'app.ask.model.notHere.noWebgpu':
+    'Ce navigateur ne peut pas faire tourner le modèle de langage (pas de WebGPU). Demander utilise les Raccourcis.',
+  'app.ask.model.notHere.noF16':
+    'La carte graphique de cet ordinateur ne peut pas faire tourner le modèle de langage. Demander utilise les Raccourcis.',
+  'app.ask.model.notHere.memory':
+    'Cet ordinateur a trop peu de mémoire pour le modèle de langage. Demander utilise les Raccourcis.',
   'app.ask.draft.opens': 'Ouvre : {screen}',
   'app.ask.screen.record': 'Créer un enregistrement ({kind})',
   'app.ask.screen.cross': 'Créer un enregistrement : un croisement ({kind})',

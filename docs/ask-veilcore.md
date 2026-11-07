@@ -8,8 +8,12 @@ Ask drafts; only you save, sign or send. It works with Wi-Fi off.
 
 ## What it is
 
-An **Ask** button on the record app's pages (「VeilCoreに聞く」 in Japanese; never "AI"). It opens
-a sheet: suggestion chips first, a text box second. There is no AI model. The engine is called
+An **Ask** button on the record app's pages (「VeilCoreに聞く」 in Japanese; never "AI"). It is a
+chat bubble at the bottom right. On a first visit a hint sits by it ("Try: cut 12 clones from
+Blue Dream", or "Try: record 3 calves" for someone whose records are mostly animals) until it is
+dismissed. It opens a sheet: on the first open, what Ask can do ("I can: …" and "I never sign
+or send anything. You do."), then folded under "What can Ask do?"; suggestion chips; a text
+box. By default there is no AI model (an optional on-device one is built but hidden: v2.1). The engine is called
 **Shortcuts**: fixed word lists in five languages (`bboard-ui/src/ask/shortcuts.ts`), built into
 the page, instant and offline.
 
@@ -48,9 +52,10 @@ from the contract's own `disclose()` calls and ledger writes ([The receipt](#the
 
 How that is kept true:
 
-- **Nothing is sent while Ask drafts.** Ask's code makes no request and touches no browser
-  storage (a unit test reads its sources for `fetch`, `WebSocket`, `localStorage` and the
-  like). `e2e/ask.spec.ts` counts every request the page makes while a draft is typed and
+- **Nothing is sent while Ask drafts.** Ask's code makes no request and keeps nothing in
+  browser storage but one flag, that the person has seen Ask (a unit test reads its sources for
+  `fetch`, `WebSocket`, `localStorage` and the like; the flag and the optional model's download
+  live apart in `src/ask-local/` and are tested there). `e2e/ask.spec.ts` counts every request the page makes while a draft is typed and
   answered, online and with the network off: none. The sheet's own file is fetched once, when
   the button is first pressed.
 - **The conversation is kept in memory only**, for as long as the page is open: never stored,
@@ -146,29 +151,86 @@ provider is in [partner-kit/mcp/README.md](../partner-kit/mcp/README.md).
 - **A live request counter** in the sheet: replaced by the fixed sentence and the browser test
   that proves it.
 
-## v2.1: an on-device model
+## v2.1: the on-device language model (optional, off by default)
 
-Shortcuts sits behind one interface (`bboard-ui/src/ask/engine.ts` `AskEngine`): text and the
-person's records in, a draft or something to show out. A model plugged in later answers in the
-same shape and is checked by the same reader, so it can do nothing Shortcuts can't.
+Status: BUILT on branch `ask-ondevice-model`, 7 November 2026, **hidden**. It is in the bundle
+only with `VITE_ASK_MODEL=on`, and offered only once `bboard-ui/src/ask-local/model-manifest.json`
+is pinned (`scripts/pin-model.mjs`, run on the maintainer's Mac: the weights host can't be
+reached from the build environment). It becomes offered by default only if
+`scripts/eval-ask.mjs` shows it clearly beats Shortcuts. Not on veilcore.org or the test site.
 
-The plan, not built:
+Shortcuts sits behind one interface (`bboard-ui/src/ask/engine.ts` `AskEngine`). The model
+answers through the same interface (`ask/model-engine.ts`) and is read by the same rules
+(`ask/model-output.ts`), so it can do nothing Shortcuts can't:
 
-- **Model:** a small open model (Qwen3 1.7B class, Apache-2.0) in the browser (WebLLM, in a
-  Web Worker), with its output constrained to the `AskResult` shape. Turned on only after a real
-  test answer passes on that device; otherwise Shortcuts.
-- **Desktop only first.** Phones are too weak for a useful model today, and the download is
-  1-2 GB.
-- **Self-hosted weights with their hashes in the bundle.** The weights are served from
-  VeilCore's own host, every file's SHA-256 is in the site's own code and checked before use,
-  and the Content Security Policy names that host (and the worker gets its own Trusted Types
-  policy). The bandwidth (1-2 GB per person who turns it on) is a cost for the founders to
-  decide on.
-- **A new npm dependency** (WebLLM) means a lockfile change made by hand with npm 11.6.2 and
-  reviewed entry by entry.
-- **Opt-in, with the size shown first**, cached with `navigator.storage.persist()`.
-- Not before it: voice (browser speech sends audio to Apple or Google), photo-to-draft,
-  a cloud model in a secure enclave, WebMCP, agent-to-agent licensing.
+- **No free-form text.** WebLLM holds the output to a JSON schema of Ask's own actions, kinds,
+  glossary words and, as parents, only the ids of the person's records whose names they typed
+  (given to the model as id and name, in a block marked as data). Qwen3's "thinking" is off.
+- **The provenance rule, as for Shortcuts.** A name, a search or a parent said back must appear
+  in what was typed; a count must be a number that was typed; Explain is the fixed glossary.
+  Anything else is dropped. An answer with nothing usable, an error, or 15 seconds with no
+  answer: Shortcuts answers. The draft then goes through `handoff.ts` like any other.
+- **A test answer first.** After every start, the model must turn "cut 3 clones from Test
+  Plant" into exactly that batch on this device, or Ask stays on Shortcuts and says why.
 
-Why it wasn't built now: the weights host can't be reached from the build environment, so it
-couldn't be tested, and the hosting cost is a decision for the founders.
+**Model:** Qwen3 1.7B or 0.6B (Apache-2.0), q4f16, in WebLLM 0.2.86 (pinned exactly;
+`docs/log/web-llm-lockfile.md`). q4f16 needs WebGPU's `shader-f16`; no q4f32 copy is pinned, so
+without it the model is not offered.
+
+**Desktop first.** Offered only on a computer-sized screen with a mouse or trackpad, WebGPU with
+`shader-f16`, and 8 GB of memory or more where the browser says. Phones: not until a real test
+generation passes on one and its memory is enough.
+
+**Where the files come from, and how they are checked.**
+
+- The weights come from Hugging Face, from the model folder **at a pinned commit**
+  (`resolve/<commit>/`, never `main`). `scripts/pin-model.mjs` downloads that commit, checks it
+  is WebLLM 0.2.86's format (`tensor-cache.json`), and writes every file's size and SHA-256 into
+  the manifest, which is compiled into the bundle.
+- The model library (`.wasm`) is not fetched from GitHub: the copies built for 0.2.86, from
+  `mlc-ai/binary-mlc-llm-libs` at a pinned commit, are served from this site
+  (`bboard-ui/public/ask-model/`), with their SHA-256 in the manifest.
+- The download (its own worker) fetches each file itself, checks its SHA-256, and only then
+  stores it where WebLLM reads it (the Cache API). A file that doesn't match stops the download
+  and is not kept. Every stored file is checked again before every start; WebLLM checks the
+  library, the chat config and the tokenizer against the same hashes.
+
+**Content Security Policy.** The page's policy is unchanged for the model (its `connect-src`
+stays this site and the registry); it gains only the Trusted Types name for the two worker
+addresses. Each worker file has its own policy, on its own route
+(`scripts/ask-model-csp.mjs`, `scripts/vercel-config.mjs`), one header each:
+
+- the **download worker** may fetch only the pinned model folders and Hugging Face's
+  file-storage host they redirect to, nothing on this site and no other host;
+- the **engine worker** (WebLLM) may fetch only this site.
+
+Each worker checks, before anything else, that its own policy is the one in force (it tries
+`eval`, which both refuse, and reads the policy the browser reports). A browser that doesn't
+apply a worker's own policy gets no model.
+
+**What the download screen says** (all five languages; in Japanese 「端末内の言語モデル」, never
+"AI"): what the model is, its real size, that it is kept until deleted, and:
+
+> The files come from Hugging Face. Hugging Face sees your IP address, the time, which model, and that the request comes from veilcore.org. Nothing you type is sent, then or later.
+
+Cancel, resume (stored files are not fetched again), delete, and a storage check before it
+starts. Any failure says what happened and Ask uses Shortcuts.
+
+**"Ask sends nothing" stays testable.** The model runs in this browser; typing still sends
+nothing. With the model on, the privacy line reads:
+
+> Typing here sends nothing. The language model runs on this device. Only Save sends.
+
+The download worker is the only code in Ask that fetches, and it lives apart
+(`bboard-ui/src/ask-local/`), outside the scan of Ask's own code; its own tests check it
+fetches only pinned addresses. `e2e/ask-model.spec.ts` loads the real WebLLM 0.2.86 in its
+worker under the production policies in headless Chromium, with stub files from a local
+stand-in for Hugging Face; the only failure allowed is "no WebGPU" (headless has none). With
+the model stored and the network off, asking makes no request. `scripts/eval-ask.mjs` also
+counts requests while it asks its questions on a real GPU.
+
+**The one thing Ask stores:** a flag that the person has seen Ask (`veilcore.ask.seen.v1`, set
+when the hint by the button is dismissed or Ask is opened). Never what was typed.
+
+Not before it: voice (browser speech sends audio to Apple or Google), photo-to-draft, a cloud
+model, WebMCP, agent-to-agent licensing.

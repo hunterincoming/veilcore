@@ -30,6 +30,68 @@ export const ask = {
   'app.ask.kind.plant': 'planta',
   'app.ask.kind.animal': 'animal',
   'app.ask.kind.strain': 'cepa o línea',
+  // ---- lo que puede hacer Preguntar (al abrir por primera vez, luego bajo un enlace) ----
+  'app.ask.can.title': 'Puedo:',
+  'app.ask.can.list':
+    'cortar esquejes o registrar crías de una vez · mostrar lo que vence · explicar cualquier palabra · encontrar sus registros · abrir cualquier pantalla ya rellenada',
+  'app.ask.can.listPlants':
+    'cortar esquejes de una vez · mostrar lo que vence · explicar cualquier palabra · encontrar sus registros · abrir cualquier pantalla ya rellenada',
+  'app.ask.can.never': 'Nunca firmo ni envío nada. Eso lo hace usted.',
+  'app.ask.can.toggle': '¿Qué puede hacer Preguntar?',
+  // ---- la pista junto al botón, en la primera visita ----
+  'app.ask.hint.plant': 'Pruebe: cortar 12 esquejes de Blue Dream',
+  'app.ask.hint.animal': 'Pruebe: registrar 3 terneros',
+  'app.ask.hint.dismiss': 'Cerrar',
+  // ---- el modelo de lenguaje en este dispositivo (opcional) ----
+  'app.ask.privacyModel':
+    'Lo que escribe aquí no se envía. El modelo de lenguaje funciona en este dispositivo. Solo Guardar envía.',
+  'app.ask.engine.model':
+    'Leído por el modelo de lenguaje de este dispositivo ({model}), comprobado con las mismas reglas.',
+  'app.ask.engine.starting':
+    'Iniciando el modelo de lenguaje en este dispositivo. Los Atajos responden hasta que esté listo.',
+  'app.ask.engine.failed':
+    'El modelo de lenguaje de este dispositivo no se inició, así que responden los Atajos. {why}',
+  'app.ask.model.title': 'Modelo de lenguaje en este dispositivo (opcional)',
+  'app.ask.model.what':
+    'Preguntar ya funciona, sin conexión, con Atajos. También puede descargar un modelo de lenguaje pequeño (Qwen3, Apache-2.0) que funciona en este navegador y lee lo que escribe. Sus respuestas se comprueban con las mismas reglas, y no puede hacer nada que los Atajos no puedan.',
+  'app.ask.model.pick': 'Qué modelo',
+  'app.ask.model.option': '{name}: unos {size}',
+  'app.ask.model.size': 'Descarga: {size}, guardada en este navegador hasta que la borre.',
+  'app.ask.model.hf':
+    'Los archivos vienen de Hugging Face. Hugging Face ve su dirección IP, la hora, qué modelo y que la petición viene de veilcore.org. Nada de lo que escribe se envía, ni entonces ni después.',
+  'app.ask.model.check':
+    'Cada archivo se compara con una suma de verificación incorporada en este sitio antes de usarse.',
+  'app.ask.model.download': 'Descargar ({size})',
+  'app.ask.model.resume': 'Reanudar la descarga',
+  'app.ask.model.cancel': 'Cancelar',
+  'app.ask.model.progress': '{done} de {total}',
+  'app.ask.model.cancelled': 'Detenida. Lo descargado se conserva; reanude cuando quiera.',
+  'app.ask.model.delete': 'Borrar el modelo de este navegador',
+  'app.ask.model.deleted': 'Borrado. Preguntar usa los Atajos.',
+  'app.ask.model.stored': 'Descargado: {name}. Preguntar lo usa tras una respuesta de prueba en este dispositivo.',
+  'app.ask.model.noRoom':
+    'Este navegador tiene unos {free} libres y el modelo necesita {size}. Preguntar usa los Atajos.',
+  'app.ask.model.failed.network': 'La descarga se detuvo (conexión). Preguntar usa los Atajos. Puede reanudarla.',
+  'app.ask.model.failed.mismatch':
+    'Un archivo no coincidía con su suma de verificación, así que no se guardó. Preguntar usa los Atajos.',
+  'app.ask.model.failed.storage': 'Este navegador no guardó los archivos. Preguntar usa los Atajos.',
+  'app.ask.model.failed.policy':
+    'Este navegador no aplica las reglas de seguridad propias de la descarga, así que no se inicia aquí. Preguntar usa los Atajos.',
+  'app.ask.model.why.policy': 'Este navegador no aplica las reglas de seguridad propias del modelo.',
+  'app.ask.model.why.mismatch':
+    'Un archivo guardado no coincidía con su suma de verificación; borre el modelo y descárguelo de nuevo.',
+  'app.ask.model.why.notStored': 'Falta parte del modelo; reanude la descarga.',
+  'app.ask.model.why.noGpu': 'Este navegador no tiene WebGPU.',
+  'app.ask.model.why.noF16': 'Los gráficos de este ordenador no pueden ejecutar este modelo.',
+  'app.ask.model.why.selfTest': 'Falló la respuesta de prueba en este dispositivo.',
+  'app.ask.model.why.failed': 'Se detuvo al cargar.',
+  'app.ask.model.notHere.phone': 'Por ahora el modelo de lenguaje es para ordenadores. Aquí Preguntar usa los Atajos.',
+  'app.ask.model.notHere.noWebgpu':
+    'Este navegador no puede ejecutar el modelo de lenguaje (sin WebGPU). Preguntar usa los Atajos.',
+  'app.ask.model.notHere.noF16':
+    'Los gráficos de este ordenador no pueden ejecutar el modelo de lenguaje. Preguntar usa los Atajos.',
+  'app.ask.model.notHere.memory':
+    'Este ordenador tiene muy poca memoria para el modelo de lenguaje. Preguntar usa los Atajos.',
   'app.ask.draft.opens': 'Abre: {screen}',
   'app.ask.screen.record': 'Crear un registro ({kind})',
   'app.ask.screen.cross': 'Crear un registro: un cruce ({kind})',

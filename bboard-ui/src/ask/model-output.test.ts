@@ -9,6 +9,7 @@ import type { AskContext, AskResult } from './engine';
 import { modelEngine, selfTest, type ModelAsk } from './model-engine';
 import { modelMessages, modelSchema, readModelAnswer, recordsForModel } from './model-output';
 import { interpret } from './shortcuts';
+import { hintForAnimals } from './hint';
 
 const rec = (id: string, strainName: string, animal = false) =>
   ({ id, strainName, ...(animal ? { profile: ANIMAL_PROFILE } : {}) }) as unknown as StrainRecord;
@@ -156,5 +157,16 @@ describe('modelEngine: Shortcuts answers when the model can’t', () => {
     expect(await selfTest(model('{"action":"clones","count":3,"parents":["VEIL-00000001"]}'))).toBe(true);
     expect(await selfTest(model('{"action":"clones","count":2,"parents":["VEIL-00000001"]}'))).toBe(false);
     expect(await selfTest(model('{"action":"record"}'))).toBe(false);
+  });
+});
+
+describe('the hint by the bubble', () => {
+  it('gives the calves example only where animals are offered and most records are animals', () => {
+    const a = { profile: ANIMAL_PROFILE };
+    const p = {};
+    expect(hintForAnimals([], true)).toBe(false);
+    expect(hintForAnimals([a, a, p], true)).toBe(true);
+    expect(hintForAnimals([a, p], true)).toBe(false);
+    expect(hintForAnimals([a, a, a], false)).toBe(false);
   });
 });
