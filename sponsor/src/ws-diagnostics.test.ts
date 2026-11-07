@@ -1,12 +1,14 @@
 // The indexer-socket close log (ws-diagnostics.ts): against a real WebSocket server that closes
 // as Blockfrost does, through the wallet SDK's own graphql-ws client and compression wrapper.
 import { afterEach, describe, expect, it } from 'vitest';
-import { WebSocketServer } from 'ws';
+import { WebSocket as Ws, WebSocketServer } from 'ws';
+import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import { createClient } from 'graphql-ws';
 import { makeDeflateWebSocket } from '../../node_modules/@midnightntwrk/wallet-sdk-indexer-client/dist/effect/DeflateWebSocket.js';
 import {
   DEFLATE_PROTOCOL,
   diagnosingWebSocket,
+  midnightJsWebSocket,
   offeredProtocols,
   safeUrl,
   subscribedOperations,
@@ -185,5 +187,57 @@ describe('Blockfrost: the plain protocol only', () => {
     const plain = ['graphql-transport-ws'];
     expect(offeredProtocols('wss://midnight-mainnet.blockfrost.io/ws', plain)).toBe(plain);
     expect(offeredProtocols('wss://midnight-mainnet.blockfrost.io/ws', DEFLATE_PROTOCOL)).toEqual(['graphql-transport-ws']);
+  });
+
+  describe('midnight-js 5 (dials with the ws package unless given a class)', () => {
+    /** Records what each socket offered and whether a subscribe got through (which needs the ack delivered). */
+    const recording = async () => {
+      const seen: { offered: string; subscribes: number }[] = [];
+      const wss = new WebSocketServer({
+        port: 0,
+        handleProtocols: (p) => (p.has(DEFLATE_PROTOCOL) ? DEFLATE_PROTOCOL : 'graphql-transport-ws'),
+      });
+      servers.push(wss);
+      wss.on('connection', (sock, req) => {
+        const s = { offered: String(req.headers['sec-websocket-protocol']), subscribes: 0 };
+        seen.push(s);
+        if (sock.protocol === DEFLATE_PROTOCOL) return void setTimeout(() => sock.close(1011, 'unexpected response'), 20);
+        sock.on('message', (raw) => {
+          const m = JSON.parse(String(raw)) as { type: string };
+          if (m.type === 'connection_init') sock.send(JSON.stringify({ type: 'connection_ack' }));
+          if (m.type === 'subscribe') s.subscribes++;
+        });
+      });
+      await new Promise((r) => wss.once('listening', r));
+      return { port: (wss.address() as { port: number }).port, seen };
+    };
+    const wsToLocal = (port: number) =>
+      class extends Ws {
+        constructor(url: string | URL, protocols?: string | string[]) {
+          super(String(url).replace(/^wss:\/\/[^/]+/, `ws://127.0.0.1:${port}`), protocols);
+        }
+      };
+    const BF = 'wss://midnight-mainnet.blockfrost.io/api/v0/ws?project_id=mainnetSECRETPROJECTID';
+
+    it('to Blockfrost: the plain protocol only, and the subscription gets through', async () => {
+      const { port, seen } = await recording();
+      const lines: string[] = [];
+      const p = indexerPublicDataProvider(
+        'https://midnight-mainnet.blockfrost.io/api/v0?project_id=x',
+        BF,
+        midnightJsWebSocket(BF, wsToLocal(port) as never, (_l, msg) => void lines.push(msg)) as never,
+      );
+      const sub = p.contractEventsObservable({ contractAddress: 'a'.repeat(64) }).subscribe({ error: () => undefined });
+      for (let i = 0; i < 250 && (seen[0]?.subscribes ?? 0) === 0; i++) await new Promise((r) => setTimeout(r, 20));
+      sub.unsubscribe();
+      await Promise.resolve(p.dispose()).catch(() => undefined);
+      expect(seen[0]).toEqual({ offered: 'graphql-transport-ws', subscribes: 1 });
+      expect(lines.filter((m) => /compression off for Blockfrost/.test(m))).toHaveLength(1);
+    });
+
+    it('anywhere else: the library default, unchanged', () => {
+      expect(midnightJsWebSocket('wss://indexer.preview.midnight.network/api/v4/graphql/ws', Ws as never)).toBeUndefined();
+      expect(midnightJsWebSocket('ws://127.0.0.1:8088/api/v4/graphql/ws', Ws as never)).toBeUndefined();
+    });
   });
 });

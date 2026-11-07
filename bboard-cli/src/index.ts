@@ -8,6 +8,7 @@ import { createHash } from 'node:crypto';
 import { type Interface } from 'node:readline/promises';
 import { Buffer } from 'node:buffer';
 import { WebSocket } from 'ws';
+import { indexerWebSocket, usePlainForBlockfrost } from '../../api/src/indexer-websocket';
 import {
   VeilcoreAPI,
   type VeilcoreDerivedState,
@@ -85,6 +86,9 @@ import {
 
 // @ts-expect-error: It's needed to enable WebSocket usage through apollo
 globalThis.WebSocket = WebSocket;
+// The wallet SDK dials with the global WebSocket: to Blockfrost, the plain protocol only
+// (api/src/indexer-websocket.ts).
+usePlainForBlockfrost();
 
 const C = pureCircuits;
 
@@ -1431,7 +1435,11 @@ export const run = async (config: Config, testEnv: TestEnvironment, logger: Logg
     });
     logger.info(`Private state: ${store.dir}`);
     const zkConfigProvider = new NodeZkConfigProvider<VeilcoreCircuitKeys>(config.zkConfigPath);
-    const publicDataProvider = indexerPublicDataProvider(envConfiguration.indexer, envConfiguration.indexerWS);
+    const publicDataProvider = indexerPublicDataProvider(
+      envConfiguration.indexer,
+      envConfiguration.indexerWS,
+      indexerWebSocket(envConfiguration.indexerWS, WebSocket) as never,
+    );
     const providers: VeilcoreProviders = {
       privateStateProvider: stores.main,
       publicDataProvider,

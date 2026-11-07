@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { midnightConfig, setNetworkId } from '../../api/src/network-id.js';
+import { indexerWebSocket } from '../../api/src/indexer-websocket.js';
 import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import { type MidnightProvider, type PublicDataProvider, type WalletProvider } from '@midnight-ntwrk/midnight-js-types';
@@ -113,7 +114,16 @@ export const connect = (o: ConnectOptions): Connection => {
         'secrets, hidden field values): use only one you run yourself, over a private network.',
     );
   setNetworkId(o.network);
-  const publicDataProvider = o.publicDataProvider ?? indexerPublicDataProvider(endpoints.indexer, endpoints.indexerWS);
+  // midnight-js dials with the `ws` package unless given a class, offering Blockfrost the
+  // compressed protocol it refuses: to Blockfrost, the global WebSocket offering the plain
+  // protocol only (api/src/indexer-websocket.ts). Any other indexer: the library default.
+  const publicDataProvider =
+    o.publicDataProvider ??
+    indexerPublicDataProvider(
+      endpoints.indexer,
+      endpoints.indexerWS,
+      indexerWebSocket(endpoints.indexerWS, globalThis.WebSocket) as never,
+    );
   const keys = o.keys ?? { url: DEFAULT_KEYS_URL };
   const veilcoreZk = new VerifiedZkConfigProvider<VeilcoreCircuitKeys>('veilcore', keys);
   const claimsZk = new VerifiedZkConfigProvider<ClaimsCircuitKeys>('veilcore-claims', keys);

@@ -59,6 +59,7 @@ import {
   sendMaintenanceUpdate,
 } from '../../../scripts/committee/submit.mjs';
 import { MAINNET_VEILCORE_ADDRESS } from '../../../api/src/deploy-guard';
+import { indexerWebSocket, usePlainForBlockfrost } from '../../../api/src/indexer-websocket';
 import { endpointsFor } from '../../../partner-kit/src/network';
 import {
   type Config,
@@ -78,6 +79,12 @@ import { syncWallet } from '../wallet-utils.js';
 
 // @ts-expect-error: the indexer client needs a global WebSocket, as in index.ts
 globalThis.WebSocket = WebSocket;
+// To Blockfrost, the plain protocol only (api/src/indexer-websocket.ts), as in index.ts.
+usePlainForBlockfrost();
+
+/** midnight-js's indexer reader, offering Blockfrost the plain protocol only. */
+const indexerReader = (indexer: string, indexerWS: string) =>
+  indexerPublicDataProvider(indexer, indexerWS, indexerWebSocket(indexerWS, WebSocket) as never);
 
 type Network = 'mainnet' | 'preprod' | 'undeployed';
 type Command = 'show' | 'install' | 'request' | 'submit';
@@ -233,7 +240,7 @@ const readOnlyIndexer = (network: Network) => {
     network === 'undeployed'
       ? endpointsFor('undeployed')
       : endpointsFor(network, {}, { blockfrostProjectId: blockfrostProjectIdFor(network) });
-  return indexerPublicDataProvider(e.indexer, e.indexerWS);
+  return indexerReader(e.indexer, e.indexerWS);
 };
 
 const describeAuthority = (a: AuthorityView, cards: readonly KeyCard[] = []): string[] => {
@@ -375,7 +382,7 @@ const openWallet = async (
     const zk = new NodeZkConfigProvider<string>(config.zkConfigPath);
     return {
       providers: {
-        publicDataProvider: indexerPublicDataProvider(env.indexer, env.indexerWS),
+        publicDataProvider: indexerReader(env.indexer, env.indexerWS),
         proofProvider: httpClientProofProvider(env.proofServer, zk),
         walletProvider: wallet,
         midnightProvider: wallet,

@@ -6,11 +6,11 @@
 // through Blockfrost those codes say what happened (4004/4005/4006 the upstream indexer
 // dropped, 4429 too many subscribe messages from one address, 1013 send queue full).
 //
-// This wraps the process's WebSocket class (the one the wallet SDK and midnight-js open
-// sockets with) to LOOK, and changes nothing it does: same constructor arguments, same
-// events, same sends. For each socket it notes the GraphQL operations subscribed on it and
-// how many subscribe messages were sent; when the socket closes other than normally, one log
-// line gives the code, the reason, those operations, which wallet they belong to, how long the
+// This wraps the process's WebSocket class (the one the wallet SDK opens sockets with;
+// midnight-js is given its own, midnightJsWebSocket) to LOOK, and changes nothing it does:
+// same constructor arguments, same events, same sends (except to Blockfrost: offeredProtocols).
+// For each socket it notes the GraphQL operations subscribed on it and how many subscribe
+// messages were sent; when the socket closes other than normally, one log line gives the code, the reason, those operations, which wallet they belong to, how long the
 // socket lived, and the host and path of the URL. The query string (where the Blockfrost
 // project id is) is never logged.
 // SPDX-License-Identifier: Apache-2.0
@@ -133,8 +133,35 @@ export const diagnosingWebSocket = <B extends WsClass>(Base: B, log: Log = defau
       });
     }
   }
+  copyHandlerAccessors(Base, DiagnosingWebSocket);
   return DiagnosingWebSocket as unknown as B;
 };
+
+/**
+ * Put `Base`'s event-handler accessors (onmessage and the rest) on `Sub`'s own prototype.
+ * midnight-js 5's DeflateWebSocket reads `onmessage` from its base's OWN prototype only: given
+ * a plain subclass it finds nothing, and every message (the connection_ack first) is dropped.
+ */
+const copyHandlerAccessors = (Base: WsClass, Sub: WsClass): void => {
+  for (const name of ['onopen', 'onmessage', 'onclose', 'onerror']) {
+    for (let p: object | null = Base.prototype as object; p !== null; p = Object.getPrototypeOf(p) as object | null) {
+      const d = Object.getOwnPropertyDescriptor(p, name);
+      if (d) {
+        Object.defineProperty(Sub.prototype, name, d);
+        break;
+      }
+    }
+  }
+};
+
+/**
+ * The WebSocket class to give midnight-js's indexerPublicDataProvider (its third argument).
+ * In Node midnight-js otherwise dials with the `ws` package directly, never the global one,
+ * so installWsDiagnostics does not reach it. To Blockfrost: `Base` with the plain protocol
+ * only and the close log. Anywhere else: undefined, the library's own default.
+ */
+export const midnightJsWebSocket = <B extends WsClass>(url: string, Base: B, log: Log = defaultLog): B | undefined =>
+  isBlockfrost(url) ? diagnosingWebSocket(Base, log) : undefined;
 
 /** Put the diagnosing WebSocket in place of the global one (before the wallet opens any socket). */
 export const installWsDiagnostics = (log: Log = defaultLog): void => {

@@ -10,6 +10,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { WebSocket } from 'ws';
 import { createUnprovenCallTx } from '@midnight-ntwrk/midnight-js-contracts';
 import {
   createMidnightProviderFromHandlers,
@@ -22,6 +23,7 @@ import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client
 import type { AnchorChain, Landing, PreparedAnchor } from './anchorer.js';
 import type { SealChain, SealView } from './sealer.js';
 import { lookupCall } from './lookup.js';
+import { midnightJsWebSocket } from './ws-diagnostics.js';
 import { fromSerialized, readContractState } from './contract-state.js';
 import type { FacadeWallet } from './wallet.js';
 
@@ -114,7 +116,9 @@ export class MidnightAnchorChain implements AnchorChain, SealChain {
     /** Tests only: stand-ins for the indexer and the proof server. */
     overrides: { publicData?: unknown; prover?: unknown } = {},
   ) {
-    this.publicData = (overrides.publicData as ReturnType<typeof indexerPublicDataProvider>) ?? indexerPublicDataProvider(indexer, indexerWS);
+    this.publicData = (overrides.publicData as ReturnType<typeof indexerPublicDataProvider>) ??
+      // To Blockfrost, the plain protocol only: midnight-js otherwise dials with `ws` as is (ws-diagnostics.ts).
+      indexerPublicDataProvider(indexer, indexerWS, midnightJsWebSocket(indexerWS, WebSocket) as never);
     // compactc 0.31 writes compiler/contract-info.json (runtime 0.16: a ledger 8 contract) but no
     // integrity manifest; the keys are compared with the chain's before any job runs (contractCheck).
     this.zk = new NodeZkConfigProvider<'anchorBatch' | 'sealRevocations'>(artifactsDir, { verify: 'require-if-present' });

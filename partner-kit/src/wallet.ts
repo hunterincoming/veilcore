@@ -49,6 +49,7 @@ import { type Endpoints, type Network, isNetwork } from './network.js';
 import { type SavedWalletState, WalletProgressFile } from './wallet-progress.js';
 import { scrubTerminal, urlSecrets } from './terminal.js';
 import { assertProofServer } from './connect.js';
+import { isBlockfrost, usePlainForBlockfrost } from '../../api/src/indexer-websocket.js';
 
 type Keystore = { getPublicKey(): unknown; signData(payload: Uint8Array): unknown };
 
@@ -221,6 +222,11 @@ export class SeedWallet implements WalletProvider, MidnightProvider {
       feeBlocksMargin: 5,
     };
     const config = configurationFor(o.network, o.endpoints);
+    // The wallet SDK dials the indexer with the global WebSocket and offers Blockfrost the
+    // compressed protocol, which it has refused since the Ledger 9 fork: wrap the global so
+    // Blockfrost is offered the plain protocol only (api/src/indexer-websocket.ts). Any other
+    // host gets exactly what it got before.
+    if (isBlockfrost(o.endpoints.indexerWS)) usePlainForBlockfrost();
     // Wallet SDK 2: the keystore names its signature kind.
     const keystore = createKeystore({ kind: 'schnorr', secret: seeds.unshielded }, o.network) as unknown as Keystore;
     const unshieldedConfig = {
