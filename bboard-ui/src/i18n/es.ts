@@ -306,6 +306,9 @@ export const es: Strings = {
   'm.live.lic.main': 'Desactivado hasta una última prueba completa.',
   'm.live.lic.test': 'Sí, con transacciones reales: regalías, pagos, traspaso de una licencia.',
   'm.live.lic.not': 'En veilcore.org, tras una última prueba completa.',
+  // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
+  'm.live.lic.testNext':
+    'Sí para las licencias, con transacciones reales. Declaraciones de regalías y pagos: construidos, y activos aquí cuando hayan funcionado de principio a fin en esta red.',
   // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
   'm.live.lic.next':
     'Construido. Se activa con el próximo despliegue de veilcore.org, cuando una licencia real haya funcionado de principio a fin en la red principal.',

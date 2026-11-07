@@ -416,6 +416,9 @@ export const en = {
   'm.live.lic.main': 'Switched off until a final test run.',
   'm.live.lic.test': 'Yes, with real transactions: royalties, payments, handing a license on.',
   'm.live.lic.not': 'On veilcore.org, after a final test run.',
+  // The test-site cell until royalties v2 has run there (config/copy.ts ROYALTIES_RUN_ON_TEST).
+  'm.live.lic.testNext':
+    'Yes for licenses, with real transactions. Royalty statements and payments: built, and called live here once they have worked end to end on this network.',
   // Licenses on in code, on a build that isn't veilcore.org's (the test site, the demo): the main-network cell.
   'm.live.lic.next':
     'Built. Goes live with the next veilcore.org deploy, once a real license has worked end to end on the main network.',

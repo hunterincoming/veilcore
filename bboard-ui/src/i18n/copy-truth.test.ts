@@ -431,6 +431,10 @@ describe("what's live where", () => {
     expect(home).toMatch(/LICENSES_ON_SITE\s*\?\s*'m\.live\.lic\.live'\s*:\s*'m\.live\.lic\.next'/);
     expect(e['m.live.lic.next']).not.toMatch(/^Yes/);
     expect(e['m.live.lic.next']).toMatch(/next veilcore\.org deploy/);
+    // The test-site cell doesn't say "Yes" for royalties until v2 has run there.
+    expect(home).toMatch(/row === 'lic' && col === 'test' && !ROYALTIES_RUN_ON_TEST\s*\?\s*'m\.live\.lic\.testNext'/);
+    expect(e['m.live.lic.testNext']).toMatch(/^Yes for licenses/);
+    expect(e['m.live.lic.testNext']).toMatch(/Royalty statements and payments: built/);
     expect(e['m.live.dna.main']).toMatch(/not dated/);
     // Lab reports are on on veilcore.org and the test site alike (LAB_RESULTS_ENABLED, 16 Oct).
     expect(rows.find((r) => r.row === 'results')?.has).toEqual([labResultsEnabledFor('mainnet'), true, false]);
