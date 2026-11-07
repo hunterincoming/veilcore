@@ -10,7 +10,7 @@
 
 import type { License, LicenseTerms } from '../veilcore/licenses';
 import type { StrainRecord } from '../veilcore/records';
-import { dueSteps, ledgerOf, type Ledger } from '../veilcore/royalty-ledger';
+import { dueSteps, ledgerOf, upcomingPeriods, type Ledger } from '../veilcore/royalty-ledger';
 import { addDays } from '../veilcore/royalty-periods';
 import { dealEntriesReadHere, dealParty } from '../veilcore/deal-client';
 
@@ -25,13 +25,16 @@ export type DueItem = {
   readonly from?: string;
   readonly to?: string;
   readonly overdue: boolean;
+  /** A practice agreement (not on chain): its dates only, never overdue (no report can be sent). */
+  readonly practice?: boolean;
 };
 
 /**
  * Where a license's royalties stand, as far as this page knows:
  * - 'ledger': its deal's messages (reports, answers, payments, receipts), as read here;
  * - 'unread': it has a deal channel this page hasn't read yet;
- * - 'schedule': a practice agreement, not on chain: no messages, so read as a deal with none yet.
+ * - 'schedule': a practice agreement, not on chain: only the dates still to come in its terms,
+ *   marked practice and never overdue (nothing can be reported under it, so nothing is late).
  */
 export type DealState =
   | { readonly kind: 'ledger'; readonly ledger: Ledger }
@@ -67,12 +70,35 @@ export const dueItems = (
     const deal = stateOf(l);
     if (deal.kind === 'unread') {
       if (terms.reporting) out.push({ kind: 'check', date: today, licenseId: l.id, name, overdue: false });
+    } else if (deal.kind === 'ledger') {
+      // The license page's own steps (royalty-ledger.ts dueSteps): due and overdue exactly as it shows them.
+      for (const d of dueSteps(terms, deal.ledger, today)) item(d.kind, d.date, d.period, d.overdue);
     } else {
-      // The license page's own steps (royalty-ledger.ts dueSteps): due and overdue exactly as it
-      // shows them. A practice agreement (not on chain) has no messages: read as a deal with none
-      // yet, as a real license whose channel is empty is, so a step past its date stays, overdue.
-      const ledger = deal.kind === 'ledger' ? deal.ledger : ledgerOf([]);
-      for (const d of dueSteps(terms, ledger, today)) item(d.kind, d.date, d.period, d.overdue);
+      // A practice agreement: the dates still to come, labelled practice, never overdue.
+      for (const p of upcomingPeriods(terms, today).slice(0, 2)) {
+        if (p.reportDue >= today)
+          out.push({
+            kind: 'report',
+            date: p.reportDue,
+            licenseId: l.id,
+            name,
+            from: p.from,
+            to: p.to,
+            overdue: false,
+            practice: true,
+          });
+        if (p.paymentDue >= today)
+          out.push({
+            kind: 'payment',
+            date: p.paymentDue,
+            licenseId: l.id,
+            name,
+            from: p.from,
+            to: p.to,
+            overdue: false,
+            practice: true,
+          });
+      }
     }
     if (/^\d{4}-\d{2}-\d{2}$/.test(terms.endDate ?? '') && terms.endDate >= today)
       out.push({ kind: 'ends', date: terms.endDate, licenseId: l.id, name, overdue: false });
