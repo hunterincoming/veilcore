@@ -2,11 +2,19 @@
 //
 //   check_record(link)          a record's public check, from its check link (record-check):
 //                               asks VeilCore's registry the record's id and proof code, as
-//                               the check page does. Nothing private: a check link is meant
-//                               to be shared.
+//                               the check page does, and looks the date stamp up on Midnight
+//                               itself. Nothing private: a check link is meant to be shared.
+//                               `acceptable` is true only when nothing contradicts the record
+//                               AND its date was checked on Midnight here; a date the registry
+//                               merely reports, or no date, is named in `missing` (panel
+//                               review, S2).
 //   check_document(link, path)  whether a file on this computer is byte for byte one of the
 //                               files sealed in the document record the link names. The file
 //                               is read here and never sent anywhere; the answer is yes or no.
+//                               Only a file under the allowed folder (VEILCORE_MCP_ROOT, else
+//                               the folder the server was started in), and only a path given
+//                               in the call: a link that suggests where to look is refused, so
+//                               a planted link can't turn this into a file oracle (S3).
 //   draft_link(kind, preset, count)
 //                               a veilcore.org link that opens the logging screen with only
 //                               the kind of record, the preset and how many. Names, parents
@@ -19,7 +27,8 @@ import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { lstat, realpath } from 'node:fs/promises';
 import path from 'node:path';
-import { acceptable, checkRecord, type CheckOptions } from '../../record-check/src/check.js';
+import { acceptable, datedOnChain, whatIsMissing, type CheckOptions } from '../../record-check/src/check.js';
+import { checkRecord, type ChainOptions } from '../../record-check/src/node.js';
 
 export const DEFAULT_ORIGIN = 'https://veilcore.org';
 /** The bulk import's row limit (bboard-ui veilcore/bulk-import.ts MAX_ROWS): the most a batch makes. */
@@ -43,7 +52,14 @@ export type ToolContext = {
   readonly origin?: string;
   readonly registry?: string;
   readonly fetch?: CheckOptions['fetch'];
-  /** When set (VEILCORE_MCP_ROOT), check_document reads only files inside this folder. */
+  /** For tests: the date stamp look-up, in place of Midnight's indexer. */
+  readonly checkAnchor?: CheckOptions['checkAnchor'];
+  /** How the date stamp is looked up on Midnight (the indexer, a second one, a Blockfrost id). */
+  readonly chain?: ChainOptions;
+  /**
+   * check_document reads only files inside this folder: VEILCORE_MCP_ROOT, or, unset, the
+   * folder the server was started in. There is no "anywhere" setting.
+   */
   readonly root?: string;
 };
 
@@ -60,7 +76,7 @@ export const TOOLS: readonly ToolDefinition[] = [
     name: 'check_record',
     title: 'Check a VeilCore record',
     description:
-      'Check a VeilCore record from its check link: whether the registry has it, whether its proof code matches the link, its date stamp, lab signatures and what none of this shows. Sends the record id and proof code in the link to VeilCore’s public registry. A record shows prior possession by a date.',
+      'Check a VeilCore record from its check link: whether the registry has it, whether its proof code matches the link, its date stamp (looked up on Midnight itself), lab signatures and what none of this shows. Sends the record id and proof code in the link to VeilCore’s public registry, and asks a Midnight indexer about the date stamp. `acceptable` is true only when nothing contradicts the record and its date was checked on Midnight; otherwise `missing` says what is lacking, such as a date the registry only reports. A record shows prior possession by a date.',
     inputSchema: {
       type: 'object',
       properties: { link: { type: 'string', description: 'The record’s check link (https://veilcore.org/verify/…).' } },
@@ -73,12 +89,15 @@ export const TOOLS: readonly ToolDefinition[] = [
     name: 'check_document',
     title: 'Check a file against a sealed document',
     description:
-      'Whether a file on this computer is, byte for byte, one of the files sealed in the document record a document check link names. The file is read on this computer and sent nowhere; the answer is only yes or no. It does not check the document’s date: open the link in a browser for that.',
+      'Whether a file on this computer is, byte for byte, one of the files sealed in the document record a document check link names. The file is read on this computer and sent nowhere; the answer is only yes or no (no, too, when there is no readable file at that path). Only a file inside the allowed folder (VEILCORE_MCP_ROOT, or the folder the server was started in), and only a path the person gives: a link that suggests where to look is refused. It does not check the document’s date: open the link in a browser for that.',
     inputSchema: {
       type: 'object',
       properties: {
         link: { type: 'string', description: 'The document check link (https://veilcore.org/check-document#d=…).' },
-        path: { type: 'string', description: 'The file to check, on this computer.' },
+        path: {
+          type: 'string',
+          description: 'The file to check, on this computer: a path the person gave, inside the allowed folder.',
+        },
       },
       required: ['link', 'path'],
       additionalProperties: false,
@@ -144,13 +163,18 @@ type DocumentFile = { name: string; sha256: string; size: number };
 
 /** The sealed files a document check link names (`#d=` base64url of {"v":1,"fields":{…}}). */
 export const documentFilesOf = (link: string): DocumentFile[] => {
-  let hash: string;
+  let url: URL;
   try {
-    hash = new URL(link).hash;
+    url = new URL(link);
   } catch {
     throw new ToolInputError('That is not a link.');
   }
-  const d = new URLSearchParams(hash.replace(/^#/, '')).get('d');
+  const hash = url.hash;
+  const params = new URLSearchParams(hash.replace(/^#/, ''));
+  // A link that says where to look for the file is refused: a document link never does, and
+  // one that does is written to make this tool read a file the person didn't name (S3).
+  for (const [k] of [...url.searchParams, ...params]) if (PATH_HINT.test(k)) throw new ToolInputError(SUGGESTS_PATH);
+  const d = params.get('d');
   if (!d || !/^[A-Za-z0-9_-]+$/.test(d)) throw new ToolInputError('That is not a document check link (no #d=).');
   let parsed: unknown;
   try {
@@ -161,7 +185,15 @@ export const documentFilesOf = (link: string): DocumentFile[] => {
   const fields = (parsed as { v?: unknown; fields?: unknown } | null)?.fields as Record<string, unknown> | undefined;
   if ((parsed as { v?: unknown }).v !== 1 || !fields || fields.profile !== DOCUMENT_PROFILE)
     throw new ToolInputError('That link is not for a document record.');
+  if (suggestsPath(parsed) || suggestsPath(fields)) throw new ToolInputError(SUGGESTS_PATH);
   const files = Array.isArray(fields.files) ? fields.files : [];
+  for (const f of files) {
+    if (!f || typeof f !== 'object') continue;
+    if (suggestsPath(f)) throw new ToolInputError(SUGGESTS_PATH);
+    const name = (f as { name?: unknown }).name;
+    // A sealed file's name is a name, never a path.
+    if (typeof name === 'string' && /[\\/]|^~|^\.\.?$/.test(name)) throw new ToolInputError(SUGGESTS_PATH);
+  }
   const out = files.filter(
     (f): f is DocumentFile =>
       !!f &&
@@ -177,23 +209,43 @@ export const documentFilesOf = (link: string): DocumentFile[] => {
 
 const inside = (dir: string, p: string) => p === dir || p.startsWith(dir.endsWith(path.sep) ? dir : dir + path.sep);
 
+/** Keys a link might use to say where a file is: none belongs in a document link. */
+const PATH_HINT =
+  /^(path|paths|file|filepath|file_path|filename|dir|directory|folder|location|local|open|at|cwd|root)$/i;
+const SUGGESTS_PATH =
+  'That link says where to look for the file. A document check link never does: give the file’s path yourself, from a folder this server may read.';
+const suggestsPath = (o: unknown): boolean =>
+  !!o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).some((k) => PATH_HINT.test(k));
+
+/** The folder check_document may read: VEILCORE_MCP_ROOT, else where the server was started. */
+export const allowedRoot = (root?: string): string => path.resolve(root ?? process.cwd());
+
 /**
- * SHA-256 of a file on this computer, read as a stream. Refuses a symbolic link, anything that
- * isn't a plain file, the system's pseudo-files (/proc, /sys, /dev), anything outside `root`
- * when one is set, and more than MAX_FILE_BYTES however large the file says it is.
+ * SHA-256 of a file on this computer, read as a stream. Refuses anything outside the allowed
+ * folder (allowedRoot: there is always one), a symbolic link, the system's pseudo-files (/proc,
+ * /sys, /dev), and more than MAX_FILE_BYTES however large the file says it is. A path with no
+ * plain file at it gives undefined, which check_document answers exactly as a file that doesn't
+ * match: the answer never says whether a path exists (S3).
  */
-export const fileSha256 = async (file: string, root?: string): Promise<{ sha256: string; size: number }> => {
+export const fileSha256 = async (
+  file: string,
+  root?: string,
+): Promise<{ sha256: string; size: number } | undefined> => {
   const abs = path.resolve(file);
+  const rootAbs = allowedRoot(root);
+  const r = await realpath(rootAbs).catch(() => undefined);
+  if (!r) throw new ToolInputError('The folder this server may read does not exist.');
+  // Judged on the path as given, before anything is read: outside the folder, nothing is looked at.
+  if (!inside(rootAbs, abs) && !inside(r, abs))
+    throw new ToolInputError('That file is outside the folder this server may read.');
+  if (SYSTEM_DIRS.some((d) => inside(d, abs))) throw new ToolInputError('That is a system file, not a document.');
   const l = await lstat(abs).catch(() => undefined);
-  if (!l) throw new ToolInputError('No file at that path.');
+  if (!l) return undefined;
   if (l.isSymbolicLink()) throw new ToolInputError('That path is a link to another file: give the file itself.');
-  if (!l.isFile()) throw new ToolInputError('No file at that path.');
+  if (!l.isFile()) return undefined;
   const real = await realpath(abs);
   if (SYSTEM_DIRS.some((d) => inside(d, real))) throw new ToolInputError('That is a system file, not a document.');
-  if (root) {
-    const r = await realpath(path.resolve(root)).catch(() => undefined);
-    if (!r || !inside(r, real)) throw new ToolInputError('That file is outside the folder this server may read.');
-  }
+  if (!inside(r, real)) throw new ToolInputError('That file is outside the folder this server may read.');
   if (l.size > MAX_FILE_BYTES) throw new ToolInputError('That file is too large to check here.');
   const h = createHash('sha256');
   let size = 0;
@@ -220,17 +272,29 @@ export const callTool = async (
 ): Promise<Record<string, unknown>> => {
   switch (name) {
     case 'check_record': {
+      // The date stamp is looked up on Midnight itself, never taken from the registry's report.
       const check = await checkRecord(str(args, 'link', 4000), {
         ...(ctx.registry ? { registry: ctx.registry } : {}),
         ...(ctx.fetch ? { fetch: ctx.fetch } : {}),
+        ...(ctx.checkAnchor ? { checkAnchor: ctx.checkAnchor } : { chain: ctx.chain ?? {} }),
       });
-      return { acceptable: acceptable(check), summary: check.summary, check };
+      const nothingContradicts = acceptable(check);
+      const onChain = datedOnChain(check);
+      return {
+        acceptable: nothingContradicts && onChain,
+        nothingContradicts,
+        datedOnChain: onChain,
+        missing: whatIsMissing(check),
+        summary: check.summary,
+        check,
+      };
     }
     case 'check_document': {
       const files = documentFilesOf(str(args, 'link'));
       const mine = await fileSha256(str(args, 'path', 4096), ctx.root);
-      // Yes or no only: never the file's hash, name or size, nor the record's files.
-      return { match: files.some((f) => f.sha256 === mine.sha256 && f.size === mine.size) };
+      // Yes or no only: never the file's hash, name or size, nor the record's files, nor
+      // whether there is a file at that path.
+      return { match: !!mine && files.some((f) => f.sha256 === mine.sha256 && f.size === mine.size) };
     }
     case 'draft_link':
       return { link: draftLink(ctx.origin ?? DEFAULT_ORIGIN, args.kind, args.preset, args.count) };

@@ -17,7 +17,7 @@ export const licensing = {
   'app.lic.fee.note': 'VeilCore fee ({pct}% of deal value): calculated, not collected.',
   'app.lic.rights.cultivate': 'Cultivate only',
   'app.lic.rights.cultivate+propagate': 'Cultivate + propagate',
-  'app.lic.rights.full-transfer': 'Full transfer',
+  'app.lic.rights.full-transfer': 'Assignment of whatever rights the holder has',
   'app.lic.rights.breed': 'Breed only',
   'app.lic.rights.breed+collect': 'Breed + collect',
   'app.lic.rights.breed+sell': 'Breed, collect + sell',
@@ -27,6 +27,7 @@ export const licensing = {
   'app.lic.state.draft': 'Draft',
   'app.lic.state.sent': 'Sent, waiting for counter-signature',
   'app.lic.state.active': 'Marked active',
+  'app.lic.state.activeOffChain': 'Marked active here, not on Midnight',
   'app.lic.state.expired': 'Expired',
   'app.lic.state.revoked': 'Revoked',
   'app.lic.type.license': 'License agreement',
@@ -170,7 +171,8 @@ export const licensing = {
   'app.lic.f.rightsHelp': 'What the licensee is allowed to do with the genetics.',
   'app.lic.f.r.cultivate': 'Cultivate only',
   'app.lic.f.r.propagate': 'Cultivate + propagate (cuttings or seed)',
-  'app.lic.f.r.full': 'Full transfer of rights',
+  'app.lic.f.r.full':
+    'Assignment of whatever rights the holder has (a registered right is assigned with its own office)',
   'app.lic.f.r.breed': 'Breed with their own animals only',
   'app.lic.f.r.breed+collect': 'Breed + collect semen or embryos for their own use',
   'app.lic.f.r.breed+sell': 'Breed, collect + sell semen, embryos or breeding stock',
@@ -419,7 +421,7 @@ export const licensing = {
   'app.lic.off.nameIt': 'Name it',
   'app.lic.off.waitName': 'Waiting for them to name their record of this plant.',
   'app.lic.off.theirRecord': 'Their record: <b>{name}</b> {key} · {state}',
-  'app.lic.off.inForce': 'in force on Midnight',
+  'app.lic.off.inForce': 'recorded on Midnight',
   'app.lic.off.proposed': 'proposed, waiting for the licensee to accept',
   'app.lic.off.notYet': 'not on Midnight yet',
   'app.lic.off.checking': 'checking…',
@@ -578,9 +580,22 @@ export const licensing = {
   'app.lic.inv.whenMatches': 'When it matches theirs, they send you the terms and this page moves on by itself.',
   'app.lic.inv.waitLicensor': 'Waiting for the licensor’s page to answer. Your code shows here once it does.',
   'app.lic.inv.takeOverTerms': 'The terms you take the license over on (the same as the current holder’s):',
+  'app.lic.other': 'Other: {value}',
   // What a license here is and isn't (shown where terms are set and agreed).
   'app.lic.evidenceNote':
-    'A license here is a signed, dated record of what you both agreed, not legal advice. Some courts have refused to enforce cannabis agreements, so have your own lawyer review anything that matters.',
+    'A license here is a signed, dated record of what you both agreed, not legal advice. Have your own lawyer review anything that matters.',
+  'app.lic.controlled.q': 'Is this cannabis, hemp or another controlled plant?',
+  'app.lic.controlled.yes': 'Yes',
+  'app.lic.controlled.no': 'No',
+  'app.lic.controlled.hint': 'This record’s species looks like cannabis, so Yes is picked. Change it if that’s wrong.',
+  'app.lic.controlled.courts': 'Some courts have refused to enforce cannabis agreements.',
+  'app.lic.controlled.border':
+    'Moving cannabis or its plant material across a state or national border is a crime in most places, even between two US states where it is legal in both. Keep the territory to where you both may lawfully grow and sell it, and don’t ship across borders.',
+  'app.lic.controlled.japan':
+    'In Japan, growing, selling or using cannabis without a license is a crime. Don’t use this for a deal in Japan.',
+  'app.lic.controlled.regulator': 'A royalty on sales may need to be disclosed to the licensee’s cannabis regulator.',
+  'app.lic.inv.revokeNote':
+    'The licensor can switch this license off on Midnight at any time, whatever your terms say. Switching it off doesn’t end the contract between you: your signed terms are your evidence if they do.',
   'app.lic.inv.iAgree': 'I agree to these terms',
   'app.lic.inv.agree': 'Agree',
   'app.lic.inv.waitHandOn':
@@ -667,7 +682,7 @@ export const licensing = {
     'This claim link is incomplete. Open it again exactly as you got it, including everything after the #.',
   'app.lic.claim.notHeld': 'This device doesn’t hold the record.',
   'app.lic.claim.notWaiting': 'The claim is no longer waiting. Nothing was sent.',
-  'app.lic.claim.hInForce': 'A claim is in force on your record',
+  'app.lic.claim.hInForce': 'A claim is recorded on your record',
   'app.lic.claim.h': 'A claim on your record',
   'app.lic.claim.from':
     'From: <b>{name}</b> (their words; check who they are as you would for any loan) · their on-chain key {key}',
@@ -678,15 +693,15 @@ export const licensing = {
     'Midnight shows no claim like this waiting on <b>{record}</b>: it was withdrawn, rejected, or never made. Nothing to do.',
   'app.lic.claim.asks': '<b>{name}</b> asks to record a claim on <b>{record}</b> (checked on Midnight).',
   'app.lic.claim.ifAccept':
-    'If you accept, anyone who checks this record sees a claim is in force, until {name} releases it. Only they can. It doesn’t move the record or stop you using it.',
+    'If you accept, anyone who checks this record sees a claim is recorded on it, until {name} releases it. Only they can. It doesn’t move the record or stop you using it.',
   'app.lic.claim.accept': 'Accept the claim',
   'app.lic.claim.reject': 'Reject it',
   'app.lic.claim.rejectQ': 'Reject {name}’s claim? It is cleared from Midnight. They can ask again.',
   'app.lic.claim.rejectYes': 'Yes, reject it',
   'app.lic.claim.how':
-    'Lenders use a claim to show a record is pledged to them, so it can’t quietly be pledged twice. It is not a legal filing: a lender still files its own paperwork. The terms stay between you; Midnight shows only that a claim exists and who can release it. VeilCore pays the network fee.',
+    'Lenders use a claim so that anyone checking this record sees one is recorded against it. It doesn’t stop the same material being pledged elsewhere, and it is not a legal filing: a lender still files its own paperwork. The terms stay between you; Midnight shows only that a claim exists and who can release it. VeilCore pays the network fee.',
   'app.lic.claim.inForce':
-    'In force on Midnight. Only {name} can release it. Anyone checking {record} sees a claim is in force.',
+    'Recorded on Midnight. Only {name} can release it. Anyone checking {record} sees a claim is recorded on it.',
   'app.lic.claim.readError': 'Couldn’t read Midnight just now: {error}',
   'app.lic.claim.thisRecord': 'this record',
   // ---- steps (steps.ts, hand-on.ts) ----
@@ -725,7 +740,7 @@ export const licensing = {
   'app.lic.next.l.file': 'Send your report when the period ends.',
   'app.lic.lend.title': 'Record a claim as a lender',
   'app.lic.lend.intro':
-    "Lending against a breeder's record or license? Record on Midnight that the record is pledged to you, so it can't quietly be pledged twice. The holder accepts it from their own device, and only you can release it. It isn't a legal filing: file your own paperwork as usual.",
+    "Lending against a breeder's record or license? Record on Midnight that you hold a claim on the record, so anyone checking it sees one is recorded. It doesn't stop the same material being pledged elsewhere, and it isn't a legal filing: file your own paperwork as usual. The holder accepts it from their own device, and only you can release it.",
   'app.lic.lend.name': 'Your name, as holders will see it',
   'app.lic.lend.nameHelp':
     "Your institution's name. Holders see it beside your key and check who you are the way they would for any loan.",
@@ -757,7 +772,7 @@ export const licensing = {
   'app.lic.lend.withdrawQ': 'Withdraw this claim before the holder answers? This goes on Midnight.',
   'app.lic.lend.withdrawYes': 'Yes, withdraw it',
   'app.lic.lend.inForce':
-    'In force on Midnight. Anyone checking the record sees a claim is in force until you release it.',
+    'Recorded on Midnight. Anyone checking the record sees a claim is recorded on it until you release it.',
   'app.lic.lend.release': 'Release it (repaid)',
   'app.lic.lend.releaseQ':
     "Release this claim? Anyone checking the record will no longer see it. This goes on Midnight and can't be undone.",
@@ -766,7 +781,7 @@ export const licensing = {
   'app.lic.lend.withdrawn': 'Withdrawn.',
   'app.lic.lend.gone': "Not on Midnight: the holder rejected it, or it hasn't landed yet.",
   'app.lic.lend.notWaiting': 'The claim is no longer waiting. Nothing was sent.',
-  'app.lic.lend.notInForce': "The claim isn't in force. Nothing was sent.",
+  'app.lic.lend.notInForce': "The claim isn't recorded on Midnight. Nothing was sent.",
   'app.lic.lend.badRecord': "That isn't a check link or an on-chain key. Ask the holder for their record's check link.",
   'app.lic.lend.ownRecord': 'That is your own lender key, not a record.',
   'app.lic.lend.fromCheck.title': 'Lending against this record?',

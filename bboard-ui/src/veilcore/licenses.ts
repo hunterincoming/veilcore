@@ -22,7 +22,7 @@ import {
 } from './api-store';
 import { beneficiaryId, onVaultChange, useVaultNeedsBackup, vaultKeyIfAny, vaultNeedsBackup } from './vault';
 import { BACKUP_FIRST_REASON } from './api-store';
-import { enT, forKind, type RecordKind, type Translator } from '../i18n/translate';
+import { enT, forKind, labelOr, type RecordKind, type Translator } from '../i18n/translate';
 import type { AppKey } from '../i18n/app/en';
 import {
   currencyOf,
@@ -88,6 +88,12 @@ export type LicenseTerms = RoyaltyTermsFields & {
    * animals and strains could be licensed, unchanged.
    */
   subject?: Exclude<RecordKind, 'plant'>;
+  /**
+   * The licensor's answer to "Is this cannabis, hemp or another controlled plant?", sealed with
+   * the terms so the licensee's page shows the same warnings. Absent on terms made before it was
+   * asked (the record's species then decides, royalty-terms.ts isControlledTerms).
+   */
+  controlled?: boolean;
   // shared across every agreement type
   licensee: string; // the counterparty (licensee / receiving lab / receiving breeder)
   startDate: string;
@@ -702,7 +708,7 @@ export const feeNote = (tr: Translator = enT): string => tr.t('app.lic.fee.note'
 export const FEE_NOTE = feeNote();
 
 // display helpers: each in the reader's language (English by default, for the tests and files)
-export const rightsLabel = (r: Rights, tr: Translator = enT): string => tr.t(`app.lic.rights.${r}` as AppKey);
+export const rightsLabel = (r: Rights, tr: Translator = enT): string => labelOr(tr, `app.lic.rights.${r}`, r);
 export const stateLabel = (s: LicenseState, tr: Translator = enT): string => tr.t(`app.lic.state.${s}` as AppKey);
 export const RIGHTS_LABEL = Object.fromEntries(
   [...new Set(Object.values(RIGHTS_FOR).flat())].map((r) => [r, rightsLabel(r)]),
@@ -740,7 +746,7 @@ export const hasVeilcoreFee = (type: AgreementType, terms?: LicenseTerms): boole
   return false;
 };
 
-export const agreementLabel = (t: AgreementType, tr: Translator = enT): string => tr.t(`app.lic.type.${t}` as AppKey);
+export const agreementLabel = (t: AgreementType, tr: Translator = enT): string => labelOr(tr, `app.lic.type.${t}`, t);
 export const agreementTagline = (t: AgreementType, tr: Translator = enT): string =>
   tr.t(`app.lic.tagline.${t}` as AppKey);
 export const AGREEMENT_LABEL: Record<AgreementType, string> = {
@@ -762,7 +768,7 @@ export const AGREEMENT_TAGLINE: Record<AgreementType, string> = {
   'breeder-share': agreementTagline('breeder-share'),
 };
 
-export const labPurposeLabel = (p: LabPurpose, tr: Translator = enT): string => tr.t(`app.lic.purpose.${p}` as AppKey);
+export const labPurposeLabel = (p: LabPurpose, tr: Translator = enT): string => labelOr(tr, `app.lic.purpose.${p}`, p);
 export const LAB_PURPOSE_LABEL: Record<LabPurpose, string> = {
   'tissue-culture': labPurposeLabel('tissue-culture'),
   propagation: labPurposeLabel('propagation'),
@@ -816,7 +822,7 @@ const royaltyRows = (t: LicenseTerms, tr: Translator): { k: string; v: string }[
         v: tr.t('app.roy.row.paymentValue', { n: tr.tp('app.roy.days', s.paymentDueDays) }),
       },
     );
-  if (t.bankFees) rows.push({ k: tr.t('app.roy.row.fees'), v: tr.t(`app.roy.fees.${t.bankFees}` as AppKey) });
+  if (t.bankFees) rows.push({ k: tr.t('app.roy.row.fees'), v: labelOr(tr, `app.roy.fees.${t.bankFees}`, t.bankFees) });
   if (t.fxSource) rows.push({ k: tr.t('app.roy.row.fx'), v: t.fxSource });
   if (t.recordsYears)
     rows.push({
@@ -834,7 +840,11 @@ const royaltyRows = (t: LicenseTerms, tr: Translator): { k: string; v: string }[
 
 /** A royalty's basis in words ('per unit sold'); anything else as it was saved. */
 export const basisLabel = (b: string | undefined, tr: Translator = enT): string =>
-  b !== undefined && ALL_BASES.includes(b) ? tr.t(`app.lic.basis.${b}` as AppKey) : (b ?? '');
+  b !== undefined && ALL_BASES.includes(b)
+    ? tr.t(`app.lic.basis.${b}` as AppKey)
+    : b
+      ? tr.t('app.lic.other', { value: b })
+      : '';
 
 /**
  * The plain-language term rows for an agreement, computed once and reused by the

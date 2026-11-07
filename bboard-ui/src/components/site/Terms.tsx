@@ -67,7 +67,7 @@ const SECTIONS: readonly Section[] = [
     id: 'chain',
     title: 'What can’t be undone',
     body: [
-      'What goes on Midnight, and the fingerprints dated in our batches (also on Bitcoin, through OpenTimestamps), can’t be changed or removed by anyone, us included. Only fingerprints and commitments go there, never your genetics, your terms or your name.',
+      'What goes on Midnight, and the fingerprints dated in our batches (also on Bitcoin, through OpenTimestamps), can’t be changed or removed by anyone, us included. Your genetics, your terms and your name never go there. What does go there, permanently and publicly, is what each step’s receipt lists before you take it: fingerprints and commitments; a record’s key and its date stamp; which records are linked as parent and child; that a record has a license, an obligation or a claim recorded against it, and when that changed; a lab’s public key when it signs a certificate; a value you choose to prove exactly, in full; and, for a royalty paid in NIGHT on a test network, the amount and the addresses.',
     ],
   },
   {

@@ -5,9 +5,9 @@ import type { AppTranslation } from '../../translate';
 
 export const receipt = {
   'app.receipt.title': 'この操作でMidnightに載るもの',
-  'app.receipt.public': 'Midnightで公開されるもの：',
+  'app.receipt.public': 'Midnightで公開されるもの（永久に残り、VeilCoreを含め誰にも消せません）：',
   'app.receipt.private': '非公開のままのもの：',
-  'app.receipt.when': 'Midnightに記録された日時',
+  'app.receipt.when': 'Midnightに記録された日時。上記はすべて永久に残ります。',
   'app.receipt.fact.yourRecord': 'あなたの記録の鍵から作ったコード（記録そのものではありません）',
   'app.receipt.fact.recovery': 'バックアップ用シークレットから作ったコード（シークレットそのものではありません）',
   'app.receipt.fact.newKey': '記録の新しい鍵から作ったコード',
@@ -27,11 +27,13 @@ export const receipt = {
   'app.receipt.fact.otherCertificate': '2つ目の証明書の証明コード',
   'app.receipt.fact.certKind': '証明書の種類',
   'app.receipt.fact.line': '証明書のどの行か',
-  'app.receipt.fact.value': 'その行の値（全体）。これは公開されます。',
+  'app.receipt.fact.value':
+    'その行の値（全体）。これは公開され、永久に残り、取り消せません。こうして公開された遺伝的な結果（一致率、マーカー、血統登録番号）は、ずっとあなたに結び付けられる可能性があります。',
   'app.receipt.fact.limit': '選んだ基準値（実際の数値ではありません）',
   'app.receipt.fact.comparison': 'その基準値以上か以下か',
   'app.receipt.fact.mask': '変更してよい行',
-  'app.receipt.fact.labKey': '検査機関の公開IDコード',
+  'app.receipt.fact.labKey':
+    '検査機関の公開鍵：どの検査機関が署名したか。検査機関はこの鍵を自身のウェブサイトに掲載するため、検査機関名が公になります。',
   'app.receipt.fact.signatureCheck': '検査機関が本当に発行したことを示す数値',
   'app.receipt.fact.batch': '記録のまとまり全体のコード1つ',
   'app.receipt.fact.timeLimit': 'ライセンス一覧の期限時刻',
@@ -41,10 +43,11 @@ export const receipt = {
   'app.receipt.fact.licenseLink': 'このライセンスが対象の記録に結び付いていること、そして有効かどうか',
   'app.receipt.fact.licenseList': '公開ライセンス一覧が変わったこと',
   'app.receipt.fact.licenseCount': 'この記録のライセンスの数',
-  'app.receipt.fact.parentLink': 'この2つの記録が親と子として結び付いていること',
+  'app.receipt.fact.parentLink':
+    'この2つの記録が親と子として永久に結び付くこと。この結び付きは取り消せず、親自身の親もそれ以降変更できません。',
   'app.receipt.fact.obligationLink': 'この義務があの記録に結び付いていること',
   'app.receipt.fact.obligationCount': 'この記録の義務の数',
-  'app.receipt.stay.genetics': '遺伝情報とDNAファイルがこの端末から出ることはありません。',
+  'app.receipt.stay.genetics': '遺伝情報とDNAファイルが鍵のかからない形でこの端末から出ることはありません。',
   'app.receipt.stay.locked': '名前とメモはあなたの鍵でロックされてレジストリに送られます。レジストリは読めません。',
   'app.receipt.stay.kind':
     'レジストリに見えるのは、記録の種類、証明コードとそれに結び付いたコード、そして記録同士のつながり（どこから来たか、何に置き換えられたか）です。記録を訂正したときは、どの欄がいつから変わったかも見えます。',

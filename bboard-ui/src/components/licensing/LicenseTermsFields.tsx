@@ -14,7 +14,7 @@ import {
   type UnitBasis,
 } from '../../veilcore/licenses';
 import { useT } from '../../i18n/app';
-import { forKind, type RecordKind } from '../../i18n/translate';
+import { forKind, labelOr, type RecordKind } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
 
 export type SetTerm = <K extends keyof LicenseTerms>(k: K, v: LicenseTerms[K]) => void;
@@ -75,7 +75,7 @@ export const LicenseTermsFields: React.FC<{ terms: LicenseTerms; set: SetTerm }>
       >
         {rights.map((r) => (
           <MenuItem key={r} value={r}>
-            {tr.t(rightOptionKey(r))}
+            {labelOr(tr, rightOptionKey(r), r)}
           </MenuItem>
         ))}
       </TextField>

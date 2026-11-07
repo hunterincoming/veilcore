@@ -51,7 +51,7 @@ import { MidnightPayoutForm, OnChainPaymentCheck, PayOnMidnight } from './OnChai
 import { methodWords, reusedPayments, tokenOfMethod } from '../../veilcore/onchain-pay';
 import { ONCHAIN_PAYMENTS } from '../../config/copy';
 import { rich, useT } from '../../i18n/app';
-import { forKind, type Translator } from '../../i18n/translate';
+import { forKind, labelOr, type Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
 import {
   balanceOwed,
@@ -170,6 +170,7 @@ export const RoyaltyLedger: React.FC<{
                   method: l.paid.method,
                   reference: l.paid.reference,
                   at: l.paid.at,
+                  seq: l.paid.seq,
                 },
               ]
             : [],
@@ -772,7 +773,7 @@ const ReportForm: React.FC<{
             {(rule.deductions ?? []).map((d) => (
               <TextField
                 key={d}
-                label={tr.t('app.roy.r.deduction', { what: tr.t(`app.roy.ded.${d}` as AppKey), currency })}
+                label={tr.t('app.roy.r.deduction', { what: labelOr(tr, `app.roy.ded.${d}`, d), currency })}
                 value={ded[d] ?? ''}
                 onChange={(e) => setDed({ ...ded, [d]: e.target.value.replace(/[^0-9.]/g, '').slice(0, 16) })}
                 slotProps={{ htmlInput: { inputMode: 'decimal' } }}
@@ -1005,7 +1006,7 @@ const ReportCard: React.FC<{
   const color =
     st === 'received'
       ? 'success'
-      : st === 'fix'
+      : st === 'fix' || st === 'short'
         ? 'error'
         : st === 'to-pay'
           ? 'warning'
@@ -1075,6 +1076,15 @@ const ReportCard: React.FC<{
             ref: r.paid.reference,
           })}
         </Typography>
+      )}
+      {r.paid && r.short !== undefined && (
+        <Alert severity="warning" variant="outlined" data-short-payment="">
+          {tr.t('app.roy.c.short', {
+            paid: formatMoney(r.paid.amount, r.paid.currency, tr.locale),
+            owed: formatMoney(toPayOf(r, s.taxWithheld ?? '0'), s.currency, tr.locale),
+            left: formatMoney(r.short, s.currency, tr.locale),
+          })}
+        </Alert>
       )}
       {r.received && (
         <Typography variant="body2" color="success.main">
@@ -1206,13 +1216,19 @@ const ReportCard: React.FC<{
             sx={{ alignSelf: 'flex-start' }}
             data-confirm-received=""
           >
-            {tr.t('app.roy.c.confirm', { amount: formatMoney(r.paid.amount, r.paid.currency, tr.locale) })}
+            {r.short !== undefined
+              ? tr.t('app.roy.c.confirmShort', {
+                  amount: formatMoney(r.paid.amount, r.paid.currency, tr.locale),
+                  left: formatMoney(r.short, s.currency, tr.locale),
+                })
+              : tr.t('app.roy.c.confirm', { amount: formatMoney(r.paid.amount, r.paid.currency, tr.locale) })}
           </Button>
         </Stack>
       )}
 
       {/* A reminder on a report waiting for the other side. */}
-      {((side === 'licensee' && (st === 'waiting' || st === 'paid')) || (side === 'issuer' && st === 'to-pay')) && (
+      {((side === 'licensee' && (st === 'waiting' || st === 'paid')) ||
+        (side === 'issuer' && (st === 'to-pay' || st === 'short'))) && (
         <Button
           size="small"
           variant="text"
@@ -1226,7 +1242,7 @@ const ReportCard: React.FC<{
               periodFrom: s.periodFrom,
               periodTo: s.periodTo,
               statementSig: s.signature,
-              ...(st === 'to-pay' && period ? { dueOn: period.paymentDue } : {}),
+              ...((st === 'to-pay' || st === 'short') && period ? { dueOn: period.paymentDue } : {}),
               asOf: today,
             })
           }
@@ -1235,7 +1251,7 @@ const ReportCard: React.FC<{
         </Button>
       )}
 
-      {(st === 'to-pay' || st === 'paid' || st === 'received' || st === 'nothing-due') && (
+      {(st === 'to-pay' || st === 'short' || st === 'paid' || st === 'received' || st === 'nothing-due') && (
         <Button
           size="small"
           variant="outlined"
@@ -1408,7 +1424,7 @@ const PayPanel: React.FC<{
             <CopyValue label={tr.t('app.roy.pay.reference')} value={reference} tr={tr} mono />
             {terms.bankFees && (
               <Typography variant="body2" color="text.secondary">
-                {tr.t(`app.roy.s.fees.${terms.bankFees}` as AppKey)}
+                {labelOr(tr, `app.roy.s.fees.${terms.bankFees}`, terms.bankFees)}
               </Typography>
             )}
           </>

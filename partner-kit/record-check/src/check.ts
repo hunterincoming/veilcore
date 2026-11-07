@@ -691,6 +691,53 @@ export const acceptable = (c: RecordCheck | null, o: { allowTestNetwork?: boolea
   c.dated.status !== 'proof-fails' &&
   (o.allowTestNetwork === true || c.dated.testNetwork !== true);
 
+/** Whether the date stamp was looked up on Midnight here, and bore the registry's report out. */
+export const datedOnChain = (c: RecordCheck | null): boolean => !!c && c.dated.status === 'checked-on-chain';
+
+/**
+ * What keeps an answer from being one to rely on, in plain words: anything that contradicts the
+ * record (as `acceptable` judges), and a date that was not looked up on Midnight. Empty when the
+ * record checks out and its date was checked on the chain itself. For a tool or an agent that
+ * acts on the answer (veilcore-mcp), which must never read a date only the registry reports as
+ * a date (panel review, S2).
+ */
+export const whatIsMissing = (c: RecordCheck | null, o: { allowTestNetwork?: boolean } = {}): string[] => {
+  if (!c) return ['no answer from the registry'];
+  const out: string[] = [];
+  if (!c.recordExists) out.push('the registry does not have this record');
+  if (c.fingerprintMatches === false) out.push('the proof code in the link does not match the record');
+  if (c.linkLooksCut) out.push('the link looks cut short: ask for the whole link');
+  if (c.disclosedFieldsMatch === false) out.push('the fields shown in the link do not match the record');
+  if (c.keyBound.keyInLink === 'does-not-match') out.push('the key in the link is not the record’s own key');
+  const d = c.dated;
+  switch (d.status) {
+    case 'checked-on-chain':
+      break;
+    case 'reported':
+      out.push('the date is only the registry’s word: it was not looked up on Midnight');
+      break;
+    case 'not-confirmed':
+      out.push(`the date stamp the registry reports was not confirmed on Midnight: ${d.reason}`);
+      break;
+    case 'proof-fails':
+      out.push('the registry’s inclusion proof does not check out for this record');
+      break;
+    case 'not-looked-up':
+    case 'not-checked':
+      out.push(`the date stamp could not be looked up on Midnight: ${d.reason}`);
+      break;
+    case 'no-date-stamp':
+      out.push('in a batch that has no date stamp yet, so the record has no date');
+      break;
+    case 'not-in-a-batch':
+      out.push('not in a batch yet, so the record has no date');
+      break;
+  }
+  if (d.testNetwork === true && o.allowTestNetwork !== true)
+    out.push('dated on a test network, which can be reset: no evidential weight');
+  return out;
+};
+
 /** What the summary says about the name (round 6, CONTRACT.md #33, #37): the page's words. */
 export const nameSentence = (
   p: Pick<RecordCheck, 'nameCheck' | 'nameByHolder' | 'nameInLink' | 'nameConflict'>,

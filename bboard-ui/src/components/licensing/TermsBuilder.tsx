@@ -36,6 +36,7 @@ import {
   applyPreset,
   currencyForLocale,
   isCannabisRecord,
+  lawProblem,
   lawForLocale,
   PRESETS_FOR,
   ruleOf,
@@ -44,7 +45,7 @@ import {
   unitDefinitionText,
   type PresetId,
 } from '../../veilcore/royalty-terms';
-import { LicenseTermsStep, MoneyTermsFields } from './RoyaltyTermsForm';
+import { ControlledQuestion, ControlledWarnings, LicenseTermsStep, MoneyTermsFields } from './RoyaltyTermsForm';
 import type { AppKey } from '../../i18n/app/en';
 
 /** The browser's own locale (navigator.language), for a first guess at currency and law. */
@@ -132,7 +133,14 @@ const TermsBuilderFor: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const [details, setDetails] = useState(Boolean(prior) || (type === 'license' && presets.length === 1));
   const [t, setT] = useState<LicenseTerms>(() => {
     const start = prior?.terms ?? emptyTermsFor(type, kind);
-    const named = { ...start, licensor: start.licensor ?? record.bredBy ?? '' };
+    const named = {
+      ...start,
+      licensor: start.licensor ?? record.bredBy ?? '',
+      // A plant license asks whether it is cannabis; the record's species preselects Yes.
+      ...(type === 'license' && kind === 'plant' && start.controlled === undefined && isCannabisRecord(record)
+        ? { controlled: true }
+        : {}),
+    };
     if (type === 'breeder-share')
       return {
         ...named,
@@ -150,7 +158,11 @@ const TermsBuilderFor: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const [busy, setBusy] = useState(false);
   const set: SetTerm = (k, v) => setT((p) => ({ ...p, [k]: v }));
   const blocked = useAgreementsWaitForBackup();
-  const cannabis = kind === 'plant' && isCannabisRecord(record);
+  // Cannabis or another controlled plant: asked of every plant license (panel review), never
+  // left to the species field, which only preselects the answer.
+  const askControlled = type === 'license' && kind === 'plant';
+  const hinted = askControlled && isCannabisRecord(record);
+  const cannabis = askControlled && t.controlled === true;
   const pick = (id: PresetId) => {
     setPreset(id);
     setT((p) => applyPreset(id, p, { kind, ...guess, tr }));
@@ -188,10 +200,13 @@ const TermsBuilderFor: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const problems =
     type === 'license'
       ? preset
-        ? termsProblems(t, { territoryRequired: cannabis })
+        ? termsProblems(t, {
+            territoryRequired: true,
+            controlledUnanswered: askControlled && t.controlled === undefined,
+          })
         : ['preset']
-      : shareMoney && !t.governingLaw?.trim()
-        ? ['law']
+      : shareMoney && lawProblem(t.governingLaw)
+        ? [lawProblem(t.governingLaw)!]
         : t.licensee.trim()
           ? []
           : ['licensee'];
@@ -262,6 +277,12 @@ const TermsBuilderFor: React.FC<{ record: StrainRecord }> = ({ record }) => {
           {tr.t('app.lic.evidenceNote')}
         </Typography>
       )}
+      {askControlled && (
+        <Stack spacing={1.5} sx={{ mb: 3 }}>
+          <ControlledQuestion value={t.controlled} onChange={(v) => set('controlled', v)} hinted={hinted} tr={tr} />
+          {cannabis && <ControlledWarnings tr={tr} />}
+        </Stack>
+      )}
 
       {type === 'license' ? (
         <Stack spacing={2.5}>
@@ -273,7 +294,6 @@ const TermsBuilderFor: React.FC<{ record: StrainRecord }> = ({ record }) => {
             onPick={!prior && presets.length > 1 ? pick : undefined}
             details={details}
             setDetails={setDetails}
-            cannabis={cannabis}
           />
         </Stack>
       ) : (
