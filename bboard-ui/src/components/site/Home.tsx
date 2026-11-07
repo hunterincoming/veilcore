@@ -29,7 +29,7 @@ import { FOUNDERS_MAIL, RoleLine, SDK_REPO, SiteShell, X_HANDLE } from './SiteSh
 import { FoldGroup, FoldItem, FoldPoint, usePhone } from './Fold';
 import { hasRecordsHere } from './returning';
 import { IS_MAINNET, MAINNET_CLAIMS_ADDRESS, MAINNET_CONTRACT_ADDRESS, explorerFor } from '../../config/network';
-import { AGREEMENTS_LIVE } from '../../config/copy';
+import { AGREEMENTS_LIVE, ROYALTIES_RUN_ON_TEST } from '../../config/copy';
 
 const APP_REPO = 'https://github.com/hunterincoming/veilcore';
 /** The public test site (docs/test-site.md). It goes live with this release. */
@@ -319,9 +319,12 @@ const cellKey = (row: string, col: string) =>
       ? LICENSES_ON_SITE
         ? 'm.live.lic.live'
         : 'm.live.lic.next'
-      : CLAIMS_ON_SITE && row === 'claims' && col !== 'not'
-        ? 'm.live.claims.live'
-        : `m.live.${row}.${col}`) as Parameters<ReturnType<typeof useI18n>['t']>[0];
+      : // The test site: licenses are there; royalties say "Yes" only once v2 has run there.
+        row === 'lic' && col === 'test' && !ROYALTIES_RUN_ON_TEST
+        ? 'm.live.lic.testNext'
+        : CLAIMS_ON_SITE && row === 'claims' && col !== 'not'
+          ? 'm.live.claims.live'
+          : `m.live.${row}.${col}`) as Parameters<ReturnType<typeof useI18n>['t']>[0];
 
 const LiveWhere: React.FC<{ phone: boolean }> = ({ phone }) => {
   const { t } = useI18n();

@@ -6,7 +6,9 @@ on the test network (test.veilcore.org): the licence steps of the test run
 on veilcore.org with the next deploy, once a real licence has worked end to end on mainnet;
 until then nothing here is called live on veilcore.org. Royalties v2 (section 4) is built and
 not yet run on any network: its steps in the test run go through on test.veilcore.org before the
-mainnet site deploy. Paying in NIGHT on Midnight itself stays on test networks
+mainnet site deploy. Until they have, the home page's test-site cell says royalties are built,
+not live (`ROYALTIES_RUN_ON_TEST` in `bboard-ui/src/config/copy.ts`, turned on by a reviewed
+commit after that run). Paying in NIGHT on Midnight itself stays on test networks
 (`ONCHAIN_PAYMENTS`). Owner: hunter@veilcore.org. This page says
 what the website does with VeilCore's contract once agreements are live, who does what, and
 what VeilCore never does. The switch is in one reviewed place, below.
