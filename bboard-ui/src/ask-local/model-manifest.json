@@ -1,0 +1,41 @@
+{
+  "pinned": false,
+  "webllm": "0.2.86",
+  "libs": {
+    "repo": "mlc-ai/binary-mlc-llm-libs",
+    "commit": "146ed9cd4b4062e967b017fd2291f7106b50599f",
+    "folder": "web-llm-models/v0_2_86/base",
+    "servedFrom": "/ask-model/v0_2_86/"
+  },
+  "redirectHosts": [],
+  "models": [
+    {
+      "id": "Qwen3-1.7B-q4f16_1-MLC",
+      "repo": "mlc-ai/Qwen3-1.7B-q4f16_1-MLC",
+      "commit": "",
+      "lib": {
+        "file": "Qwen3-1.7B-q4f16_1_cs1k-webgpu.wasm",
+        "bytes": 6386879,
+        "sha256": "f13c5ceb34a7c2fc75b09744aed8013e89cf198b423c4fd24a6ef6d648267083"
+      },
+      "requiredFeatures": ["shader-f16"],
+      "vramMB": 2036.66,
+      "contextWindow": 4096,
+      "files": []
+    },
+    {
+      "id": "Qwen3-0.6B-q4f16_1-MLC",
+      "repo": "mlc-ai/Qwen3-0.6B-q4f16_1-MLC",
+      "commit": "",
+      "lib": {
+        "file": "Qwen3-0.6B-q4f16_1_cs1k-webgpu.wasm",
+        "bytes": 6358805,
+        "sha256": "19a1721867a481806adef35de0e0d0f2f4ff00a0c2e80d65b175fa55f21649c9"
+      },
+      "requiredFeatures": ["shader-f16"],
+      "vramMB": 1403.34,
+      "contextWindow": 4096,
+      "files": []
+    }
+  ]
+}
