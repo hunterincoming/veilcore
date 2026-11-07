@@ -461,8 +461,7 @@ export const fr: Strings = {
   'm.faq.4link1': 'Ce que la démo conserve →',
   'm.faq.4link2': "Guide d'intégration →",
   'm.faq.6q': 'Combien ça coûte ?',
-  'm.faq.6a':
-    "Créer un enregistrement sur ce site ne coûte rien aujourd'hui. Vérifier un enregistrement est gratuit, toujours.",
+  'm.faq.6a': 'Gratuit. Créer un enregistrement sur ce site et vérifier n’importe quel enregistrement sont gratuits.',
   'm.demo.lede':
     "Sans inscription, sans portefeuille. C'est une version de test : utilisez des informations fictives. Les enregistrements sont datés par lots sur Midnight ; les licences et les accords de laboratoire sont simulés, et les associations de rapports ADN ne sont pas encore datées.",
   'm.demo.privacy': 'Ce que la démo conserve →',

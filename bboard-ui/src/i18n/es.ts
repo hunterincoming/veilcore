@@ -457,7 +457,7 @@ export const es: Strings = {
   'm.faq.4link1': 'Lo que guarda la demo →',
   'm.faq.4link2': 'Guía de integración →',
   'm.faq.6q': '¿Cuánto cuesta?',
-  'm.faq.6a': 'Crear un registro en este sitio no cuesta nada hoy. Comprobar un registro es gratis, siempre.',
+  'm.faq.6a': 'Gratis. Crear un registro en este sitio y comprobar cualquier registro son gratis.',
   'm.demo.lede':
     'Sin registro, sin billetera. Es una versión de prueba, así que use datos inventados. Los registros se fechan por lotes en Midnight; las licencias y los acuerdos de laboratorio son simulados, y las vinculaciones de informes de ADN todavía no se fechan.',
   'm.demo.privacy': 'Lo que guarda la demo →',

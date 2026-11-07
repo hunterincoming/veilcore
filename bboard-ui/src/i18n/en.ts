@@ -249,7 +249,7 @@ export const en = {
   'm.faq.4link1': 'What the demo keeps →',
   'm.faq.4link2': 'Integration guide →',
   'm.faq.6q': 'What does it cost?',
-  'm.faq.6a': 'Making a record on this site costs nothing today. Checking a record is free, always.',
+  'm.faq.6a': 'Free. Making a record on this site and checking any record are both free.',
 
   'm.demo.label': 'Demo',
   'm.demo.title1': 'Try the',
