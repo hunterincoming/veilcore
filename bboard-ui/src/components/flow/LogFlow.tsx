@@ -80,6 +80,7 @@ import {
   nextStageDraft,
   nextStageNamePlaceholder,
   nextStageStart,
+  parseDraft,
   saveDraft,
   sealInputOf,
   stampProblem,
@@ -165,7 +166,11 @@ const LogFlowFor: React.FC<{ nextOf?: string; handoff?: Handoff }> = ({ nextOf, 
     if (!nextOf) {
       const plain = loadDraft();
       if (prefill) {
-        if (plain) return { kind: 'replace', draft: prefill.draft, other: plain };
+        // The saved draft may be this very prefill: React can run this twice (a render it
+        // throws away, then the real one) and the first run saved it below. That is not
+        // another draft to ask about.
+        if (plain && JSON.stringify(plain) !== JSON.stringify(parseDraft(JSON.stringify(prefill.draft))))
+          return { kind: 'replace', draft: prefill.draft, other: plain };
         saveDraft(prefill.draft);
         return { kind: 'ready', draft: prefill.draft, resumed: false };
       }

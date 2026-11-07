@@ -156,3 +156,11 @@ jobs:
         run: |
           npm run e2e:build
           npm run e2e
+
+      # A browser test that fails only here: print what the page showed (Playwright's text
+      # snapshot of it), so the cause can be read from the log.
+      - name: What the page showed, for a failed browser test
+        if: failure()
+        working-directory: bboard-ui
+        run: |
+          find test-results -name error-context.md -print -exec cat {} \; 2>/dev/null | head -400 || true
