@@ -28,6 +28,7 @@
 //   licensor: approve (approveTransfer). The new holder's page sees it live on chain.
 // SPDX-License-Identifier: Apache-2.0
 
+import { latestOf } from './deal-order';
 import type { HandOnInvite, OnChainLicense } from './licenses';
 import type { Step } from '../components/licensing/steps';
 import { enT, type Translator } from '../i18n/translate';
@@ -97,7 +98,14 @@ export const afterHandOn = (oc: OnChainLicense, approveTx: string | undefined, a
   };
 };
 
-type Entry = { readonly type: string; readonly mine: boolean; readonly from?: string; readonly at: number };
+type Entry = {
+  readonly type: string;
+  readonly mine: boolean;
+  readonly from?: string;
+  readonly at: number;
+  readonly seq?: number;
+  readonly signature?: string;
+};
 
 /**
  * The licensor's latest signed 'handon' on the current holder's channel, if any, and if the
@@ -106,9 +114,12 @@ type Entry = { readonly type: string; readonly mine: boolean; readonly from?: st
 export const handOnOffered = <E extends Entry & { newLicense?: string; to?: string }>(
   entries: readonly E[] | undefined,
 ): (E & { newLicense: string; to: string }) | undefined => {
-  const latest = [...(entries ?? [])]
-    .filter((e) => (e.type === 'handon' || e.type === 'handon-off') && !e.mine && e.from === 'issuer' && !!e.newLicense)
-    .sort((a, b) => b.at - a.at)[0];
+  // The latest in the registry's order (deal-order.ts), never by the sender's clock.
+  const latest = latestOf(
+    (entries ?? []).filter(
+      (e) => (e.type === 'handon' || e.type === 'handon-off') && !e.mine && e.from === 'issuer' && !!e.newLicense,
+    ),
+  );
   return latest?.type === 'handon' && latest.to ? (latest as E & { newLicense: string; to: string }) : undefined;
 };
 
@@ -117,9 +128,9 @@ export const handOnAsked = (
   entries: readonly (Entry & { type: string })[] | undefined,
   startedAt?: number,
 ): { to: string; note?: string; at: number } | undefined => {
-  const ask = [...(entries ?? [])]
-    .filter((e) => e.type === 'handon-ask' && !e.mine && e.from === 'licensee')
-    .sort((a, b) => b.at - a.at)[0] as (Entry & { to?: unknown; note?: unknown }) | undefined;
+  const ask: (Entry & { to?: unknown; note?: unknown }) | undefined = latestOf(
+    (entries ?? []).filter((e) => e.type === 'handon-ask' && !e.mine && e.from === 'licensee'),
+  );
   if (!ask || typeof ask.to !== 'string' || (startedAt && ask.at <= startedAt)) return undefined;
   return { to: ask.to, at: ask.at, ...(typeof ask.note === 'string' ? { note: ask.note } : {}) };
 };
