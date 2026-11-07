@@ -27,6 +27,7 @@ import { slotInput, type ClaimMaterial } from '../claims-input';
 import { signatureParts, type LabSignature } from '../lab-attest';
 import { verifyRecordSignature } from '../../../../contract/src/attest';
 import { fromSerialized } from '../../../../contract/src/contract-state';
+import { assertNotPaused } from './paused';
 
 const hexOf = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
 
@@ -80,6 +81,7 @@ const claimCall = async (
 ): Promise<ClaimReceipt> => {
   const why = claimsNotReady();
   if (why && !opts.deps) throw new Error(why);
+  if (!opts.deps) assertNotPaused();
   const contractAddress = opts.contract ?? CLAIMS_CONTRACT ?? '';
   const progress = opts.progress ?? (() => undefined);
   let sentAs: string | undefined;

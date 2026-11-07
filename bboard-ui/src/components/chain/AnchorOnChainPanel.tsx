@@ -18,6 +18,7 @@ import { networkWords } from '../../i18n/network-words';
 import { useKeyStamp } from './useKeyStamp';
 import { ChainStatusLine, TxLine } from './ChainStatusLine';
 import { RecordKeysPanel } from './RecordKeysPanel';
+import { DatingPausedNotice } from '../DatingPausedNotice';
 
 export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId }) => {
   useRecords();
@@ -111,9 +112,10 @@ export const AnchorOnChainPanel: React.FC<{ recordId: string }> = ({ recordId })
             ) : (
               <>
                 <RecordKeysPanel record={record} />
+                <DatingPausedNotice on={stamp.paused} />
                 <Button
                   variant="contained"
-                  disabled={stamp.busy || !keys.backedUpAt}
+                  disabled={stamp.busy || !keys.backedUpAt || stamp.paused}
                   onClick={() => void anchor()}
                   sx={{ alignSelf: 'flex-start' }}
                 >

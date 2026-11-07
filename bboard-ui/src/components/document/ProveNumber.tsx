@@ -18,6 +18,8 @@ import { useT } from '../../i18n/app';
 import type { Translator } from '../../i18n/translate';
 import { slotWords } from './NumbersFields';
 import { keyShort } from '../../veilcore/lab-key-text';
+import { DatingPausedNotice } from '../DatingPausedNotice';
+import { DATING_PAUSED } from '../../veilcore/chain/paused';
 
 type How = 'at-most' | 'at-least' | 'exactly';
 
@@ -188,8 +190,13 @@ export const ProveNumber: React.FC<{ record: StrainRecord; labSignatureOk?: bool
           <Typography variant="body2" color="text.secondary">
             {t('app.claim.leak')} {t('app.claim.computer')}
           </Typography>
+          <DatingPausedNotice on={DATING_PAUSED} />
           <Box>
-            <Button variant="contained" disabled={busy || bound === undefined || !meets} onClick={() => void prove()}>
+            <Button
+              variant="contained"
+              disabled={busy || bound === undefined || !meets || DATING_PAUSED}
+              onClick={() => void prove()}
+            >
               {busy ? t('app.claim.going') : t('app.claim.go')}
             </Button>
           </Box>

@@ -16,6 +16,7 @@ import { useRecordT } from '../../i18n/app';
 import { ChainStatusLine } from './ChainStatusLine';
 import { proveLinkParams } from '../../veilcore/prove-link';
 import { nameLinkParams, verifyPath } from '../../veilcore/verify-link';
+import { DatingPausedNotice } from '../DatingPausedNotice';
 
 export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?: string }> = ({
   recordId,
@@ -85,9 +86,10 @@ export const ProveOwnershipPanel: React.FC<{ recordId: string; initialChallenge?
               size="small"
               fullWidth
             />
+            <DatingPausedNotice on={call.paused} />
             <Button
               variant="contained"
-              disabled={!valid || call.busy}
+              disabled={!valid || call.busy || call.paused}
               onClick={() => void prove()}
               sx={{ alignSelf: 'flex-start' }}
             >

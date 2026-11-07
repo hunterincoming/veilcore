@@ -29,6 +29,7 @@ import { CHAIN_CONTRACT, chainNotReady, type BrowserCircuit } from './config';
 import { makeProviders, PRIVATE_STATE_ID, type Hooks } from './providers';
 import { setProverProgress } from './prover';
 import { browserCallDeps, type CallDeps } from './prover-choice';
+import { assertNotPaused } from './paused';
 
 export type ChainReceipt = {
   readonly circuit: BrowserCircuit;
@@ -96,6 +97,7 @@ const call = async (
 ): Promise<ChainReceipt> => {
   const why = chainNotReady();
   if (why && !opts.deps) throw new Error(why);
+  if (!opts.deps) assertNotPaused();
   const contractAddress = CHAIN_CONTRACT ?? '';
   const progress = opts.progress ?? (() => undefined);
   let sentAs: string | undefined;

@@ -22,6 +22,7 @@ import { dnaPairBinding, newPairingSalt, pairingEvidence } from '../../veilcore/
 import { useChainCall } from './useChainCall';
 import { ChainStatusLine, TxLine } from './ChainStatusLine';
 import { InEnglishNote, useT } from '../../i18n/app';
+import { DatingPausedNotice } from '../DatingPausedNotice';
 
 const download = (name: string, text: string): void => {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -169,9 +170,10 @@ export const PairDnaOnChainPanel: React.FC<{ recordId: string }> = ({ recordId }
             {t('app.pair.chain.earlier')}
           </Alert>
         )}
+        <DatingPausedNotice on={call.paused} />
         <Button
           variant="outlined"
-          disabled={call.busy || !CHAIN_CONTRACT}
+          disabled={call.busy || !CHAIN_CONTRACT || call.paused}
           onClick={() => void pair()}
           sx={{ alignSelf: 'flex-start' }}
         >
