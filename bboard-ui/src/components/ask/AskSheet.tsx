@@ -151,7 +151,9 @@ export default function AskSheet({
             <CloseIcon />
           </IconButton>
         </Stack>
-        <Collapse in={canShown} unmountOnExit>
+        {/* flexShrink 0: in the sheet's scrolling column a Collapse (min-height 0) would otherwise be
+          squeezed under the text below it once the sheet is taller than the screen. */}
+        <Collapse in={canShown} unmountOnExit sx={{ flexShrink: 0 }}>
           <Box data-ask-can="" sx={{ bgcolor: 'action.hover', borderRadius: 2, borderTopLeftRadius: 4, p: 1.5 }}>
             <Typography variant="body2" sx={{ fontWeight: 700 }}>
               {t('app.ask.can.title')}
