@@ -72,7 +72,7 @@ export const ask = {
   'app.ask.explain.pick': 'Pick a word:',
   'app.ask.term.priorPossession': 'Prior possession',
   'app.ask.def.priorPossession':
-    'A record shows that you held something by a date: it was sealed then, and its proof code was dated on Midnight. That is all it claims.',
+    'A record shows you held this record by a date: it was sealed then, and its proof code was dated on Midnight. It doesn’t show you had the material, or who bred it. That is all it claims.',
   'app.ask.term.proofCode': 'Proof code',
   'app.ask.def.proofCode':
     'A short code made from a sealed record. Anyone can check a record against it, and it shows nothing of what is in the record.',
@@ -84,7 +84,7 @@ export const ask = {
     'Your record’s proof code goes on Midnight in a batch with others. The batch’s date is the date your record existed by.',
   'app.ask.term.license': 'License',
   'app.ask.def.license':
-    'An agreement that lets someone use your genetics on terms you both agreed to. Midnight records that it exists and is live; the terms stay between you.',
+    'An agreement that lets someone use the genetics in your record on terms you both agreed to. Midnight records that it exists and is live; the terms stay between you.',
   'app.ask.term.royaltyReport': 'Royalty report',
   'app.ask.def.royaltyReport':
     'What a licensee sends each period under the terms: how much they sold or grew, and what that comes to.',

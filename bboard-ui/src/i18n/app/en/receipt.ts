@@ -5,9 +5,9 @@
 
 export const receipt = {
   'app.receipt.title': 'What this puts on Midnight',
-  'app.receipt.public': 'Goes public on Midnight:',
+  'app.receipt.public': 'Goes public on Midnight, permanently (nobody, VeilCore included, can remove it):',
   'app.receipt.private': 'Stays private:',
-  'app.receipt.when': 'The date and time it lands on Midnight',
+  'app.receipt.when': 'The date and time it lands on Midnight. Everything above stays there permanently.',
   'app.receipt.fact.yourRecord': 'A code made from your record’s key (not the record)',
   'app.receipt.fact.recovery': 'A code made from your backup secret (not the secret)',
   'app.receipt.fact.newKey': 'A code made from the record’s new key',
@@ -27,11 +27,13 @@ export const receipt = {
   'app.receipt.fact.otherCertificate': 'The second certificate’s proof code',
   'app.receipt.fact.certKind': 'Which kind of certificate it is',
   'app.receipt.fact.line': 'Which line of the certificate',
-  'app.receipt.fact.value': 'The value on that line, in full. This is public.',
+  'app.receipt.fact.value':
+    'The value on that line, in full. This is public and permanent: it can’t be taken back. A genetic result (a match, a marker, a herdbook number) published this way can be linked to you for good.',
   'app.receipt.fact.limit': 'The limit you chose (not your actual number)',
   'app.receipt.fact.comparison': 'Whether it is at least or at most that limit',
   'app.receipt.fact.mask': 'Which lines were allowed to change',
-  'app.receipt.fact.labKey': 'The lab’s public ID code',
+  'app.receipt.fact.labKey':
+    'The lab’s public key: which lab signed it. Labs list this key on their own websites, so it names the lab publicly.',
   'app.receipt.fact.signatureCheck': 'Numbers that show the lab really issued it',
   'app.receipt.fact.batch': 'One code for a whole batch of records',
   'app.receipt.fact.timeLimit': 'A time limit for the license list',
@@ -41,10 +43,11 @@ export const receipt = {
   'app.receipt.fact.licenseLink': 'That this license is tied to the licensed record, and whether it is live',
   'app.receipt.fact.licenseList': 'That the public license list changed',
   'app.receipt.fact.licenseCount': 'How many licenses this record has',
-  'app.receipt.fact.parentLink': 'That these two records are linked as parent and child',
+  'app.receipt.fact.parentLink':
+    'That these two records are linked as parent and child, for good: a link can’t be undone, and the parent’s own parents are then fixed.',
   'app.receipt.fact.obligationLink': 'That this obligation is tied to that record',
   'app.receipt.fact.obligationCount': 'How many obligations this record has',
-  'app.receipt.stay.genetics': 'Genetics and DNA files never leave this device.',
+  'app.receipt.stay.genetics': 'Genetics and DNA files never leave this device unlocked.',
   'app.receipt.stay.locked': 'Name and notes go to the registry locked with your key. It can’t read them.',
   'app.receipt.stay.kind':
     'The registry sees the kind of record, its proof code and the codes tied to it, and links between records (where one came from, what replaced it). When a record is corrected, it also sees which fields changed and from when.',

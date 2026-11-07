@@ -23,7 +23,7 @@ on a Midnight **test network**. Ask is not on veilcore.org yet: say "on the test
 | 0:08 | Type `cut 6 clones from Blue Dream #12`, tap Go. | "Plain words, five languages. It found my plant and the number." |
 | 0:15 | Tap **Open it**. Point at the highlighted fields. | "It opens the real screen with the fields marked. I check them; nothing is saved yet." |
 | 0:22 | Next → save the backup (open the saved copy) → **Save 6 records**. | "Each clone names its parent inside its own locked record. Six records, one Save." |
-| 0:35 | Open one clone's page. Scroll to an on-chain step (Prove you hold it, or the seal screen of a new record) and point at **What this puts on Midnight**. | "Before anything goes on Midnight, it says exactly what becomes public, read from the contract itself. My genetics never leave this device." |
+| 0:35 | Open one clone's page. Scroll to an on-chain step (Prove you hold it, or the seal screen of a new record) and point at **What this puts on Midnight**. | "Before anything goes on Midnight, it says exactly what becomes public, read from the contract itself. My genetics never leave this device unlocked." |
 | 0:45 | Ask → **What's due**. | "From the agreement's terms in this browser: the next report and payment." |
 | 0:52 | Tap **Add to my calendar**, then **Share a reminder**. | "The reminder only says how many are due. No names, no amounts." |
 | 0:60 | | "Drafts on your device. You save. That's Ask." |
