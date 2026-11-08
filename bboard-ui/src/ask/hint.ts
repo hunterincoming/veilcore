@@ -37,7 +37,18 @@ type HintRecord = Pick<StrainRecord, 'id' | 'strainName'> & {
   readonly profile?: string;
   readonly loggedAt?: number;
   readonly receivedFrom?: string;
+  readonly receivedFromCommitment?: string;
+  readonly receivedAt?: number;
+  readonly transferId?: string;
 };
+
+/**
+ * A record that came from someone else, by any of the marks a received record carries
+ * (records.ts receivedFields): the source's id, its commitment (which can come without the id,
+ * transfers.ts custodySubject), when it arrived, or its transfer.
+ */
+const isReceivedRecord = (r: HintRecord): boolean =>
+  Boolean(r.receivedFrom || r.receivedFromCommitment || r.receivedAt || r.transferId);
 export type HintKind = 'clones' | 'calves';
 
 /** The example to show, or undefined. `render` writes it in the person's language. */
@@ -47,7 +58,7 @@ export const hintExample = (
   render: (kind: HintKind, name: string) => string,
 ): { readonly kind: HintKind; readonly name: string; readonly text: string } | undefined => {
   const named = records.filter(
-    (r) => !r.receivedFrom && (r.strainName ?? '').trim().length >= 2 && (r.strainName ?? '').length <= 60,
+    (r) => !isReceivedRecord(r) && (r.strainName ?? '').trim().length >= 2 && (r.strainName ?? '').length <= 60,
   );
   const animals = named.filter(isAnimal);
   const plants = named.filter((r) => !isAnimal(r) && !isStrain(r));

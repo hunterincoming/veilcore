@@ -234,6 +234,14 @@ describe('the hint by the bubble', () => {
     expect(hintExample([plant('Gelato', 1), theirs], true, r)).toMatchObject({ kind: 'clones', name: 'Gelato' });
     const calf = { ...animal('Cow 9', 9), receivedFrom: 'b2'.repeat(32) };
     expect(hintExample([animal('Daisy', 1), calf], true, r)).toMatchObject({ kind: 'calves', name: 'Daisy' });
+    // Every mark a received record can carry on its own: the source's commitment without its
+    // id (transfers.ts custodySubject allows that), when it arrived, its transfer.
+    for (const mark of [
+      { receivedFromCommitment: 'c3'.repeat(32) },
+      { receivedAt: 1_780_000_000_000 },
+      { transferId: 'TR-1' },
+    ])
+      expect(hintExample([plant('Gelato', 1), { ...plant('Their name', 9), ...mark }], true, r)?.name).toBe('Gelato');
   });
 
   it('a name that would send the example elsewhere is passed over; every hint shown reads as that batch, in all five languages', async () => {
