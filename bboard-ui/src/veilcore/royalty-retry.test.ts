@@ -20,7 +20,7 @@ const fakeRegistry = () => {
   const posts: string[] = [];
   const lose: ('answer' | 'request')[] = [];
   const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status });
-  const fetch = vi.fn(async (url: string, init?: { body?: string }) => {
+  const answerTo = (url: string, init?: { body?: string }): Response => {
     const path = new URL(url, 'http://x').pathname;
     const body = JSON.parse(init?.body ?? '{}') as Record<string, unknown>;
     let m: RegExpMatchArray | null;
@@ -44,7 +44,8 @@ const fakeRegistry = () => {
       return json(200, { messages: list.filter((x) => x.seq > (body.after as number)) });
     }
     return json(404, { error: 'not here' });
-  });
+  };
+  const fetch = vi.fn((url: string, init?: { body?: string }) => Promise.resolve().then(() => answerTo(url, init)));
   return { fetch, deals, posts, lose };
 };
 
