@@ -171,6 +171,13 @@ export const royalties = {
   'app.roy.howI':
     'Chaque période : l’autre partie envoie un rapport, vous l’acceptez ou demandez une correction, elle paie, vous confirmez la réception.',
   'app.roy.none': 'Pas encore de rapport.',
+  'app.roy.noLock':
+    'Ce navigateur ne garde pas ce dont VeilCore a besoin pour envoyer depuis un seul onglet à la fois : rien n’a été envoyé.',
+  'app.roy.alreadyThereOn':
+    'Ce rapport est déjà là : un rapport avec exactement les mêmes chiffres pour cette période a été envoyé le {date}, donc rien de nouveau n’a été envoyé. Pour en envoyer un autre pour la même période, ajoutez une note qui dit à quoi il sert.',
+  'app.roy.alreadyThere':
+    'Ce rapport est déjà là : un rapport avec exactement les mêmes chiffres pour cette période a déjà été envoyé, donc rien de nouveau n’a été envoyé. Pour en envoyer un autre pour la même période, ajoutez une note qui dit à quoi il sert.',
+  'app.roy.sendsSame': 'Réessayer envoie le même message signé : il ne peut pas être compté deux fois.',
   'app.roy.home.l.running': 'Cette période se termine bientôt. Votre rapport pour {period} sera dû le',
   'app.roy.home.l.report': 'Votre rapport pour {period} est dû le',
   'app.roy.home.l.answer': 'Le rapport {n} attend la réponse de {licensor}.',

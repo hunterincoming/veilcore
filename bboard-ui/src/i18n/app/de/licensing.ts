@@ -500,6 +500,9 @@ export const licensing = {
   'app.lic.real.needAnchor':
     'Um diesen Datensatz wirklich zu lizenzieren, richten Sie zuerst auf seiner Seite den Nachweis ein, dass Sie ihn halten. Die Lizenz wird mit dem eigenen Schlüssel des Datensatzes ausgestellt.',
   'app.lic.real.openRecord': 'Datensatz öffnen',
+  'app.lic.real.inviteUnsure':
+    'Wir konnten nicht feststellen, ob der Link erstellt wurde: Es kam keine eindeutige Antwort. Falls doch, kann ihn niemand nutzen, weil er diese Seite nie erreicht hat, und er läuft nach 30 Tagen von selbst ab. Bis dahin hält der VeilCore-Server den eingegebenen Namen und die On-Chain-Identität dieses Datensatzes dazu. Erstellen Sie nur dann einen neuen Link, wenn Sie ihn noch brauchen.',
+  'app.lic.real.inviteAgain': 'Neuen Link erstellen',
   'app.lic.real.notAccepted': 'Die andere Seite hat noch nicht angenommen.',
   'app.lic.real.keyChanged':
     'Der Schlüssel dieses Datensatzes hat sich seit der Annahme geändert. Es wurde nichts gesendet: Beginnen Sie mit einem neuen Link von vorn.',

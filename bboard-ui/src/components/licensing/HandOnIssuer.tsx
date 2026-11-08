@@ -14,6 +14,9 @@ import { useDeal, type DealEntry, type DealParty } from '../../veilcore/deal-cli
 import {
   commitHashOf,
   createInvite,
+  InviteOutcomeUnknown,
+  inviteUnsure,
+  setInviteUnsure,
   getInvite,
   handOnPath,
   licenseCode,
@@ -63,6 +66,13 @@ export const HandOnIssuer: React.FC<{
   const [label, setLabel] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  /** The last invite may or may not have been made: another is made only when asked. */
+  const [unsure, setUnsureHere] = useState(() => inviteUnsure(`${license.id}.hand-on`));
+  const setUnsure = (on: boolean) => {
+    setInviteUnsure(`${license.id}.hand-on`, on);
+    setUnsureHere(on);
+  };
+  const starting = useRef(false);
   const [code, setCode] = useState<string>();
   const [codeChecked, setCodeChecked] = useState(false);
   /** What the chain shows the current holder proposed: the code-checked commitment, another, or nothing. */
@@ -151,8 +161,12 @@ export const HandOnIssuer: React.FC<{
   }, [h, oc.commitment, oc.issuerRecord, license.id, tr]);
 
   const start = async () => {
+    // One invite per tap: a second tap before the first answers makes nothing.
+    if (starting.current) return;
+    starting.current = true;
     setBusy(true);
     setError(undefined);
+    setUnsure(false);
     try {
       const inv = await createInvite(oc.identity, label);
       setOnChain(license.id, (c) => ({
@@ -167,8 +181,10 @@ export const HandOnIssuer: React.FC<{
       }));
       setOpen(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      if (e instanceof InviteOutcomeUnknown) setUnsure(true);
+      else setError(e instanceof Error ? e.message : String(e));
     } finally {
+      starting.current = false;
       setBusy(false);
     }
   };
@@ -280,13 +296,27 @@ export const HandOnIssuer: React.FC<{
               slotProps={{ htmlInput: { maxLength: 80 } }}
             />
             <Stack direction="row" spacing={1.5}>
-              <Button variant="contained" disabled={busy || !label.trim()} onClick={() => void start()}>
+              <Button variant="contained" disabled={busy || unsure || !label.trim()} onClick={() => void start()}>
                 {tr.t('app.lic.proof.make')}
               </Button>
               <Button color="inherit" onClick={() => setOpen(false)}>
                 {tr.t('app.lic.hi.notNow')}
               </Button>
             </Stack>
+            {unsure && (
+              <Alert
+                severity="warning"
+                variant="outlined"
+                data-invite-unsure=""
+                action={
+                  <Button color="inherit" disabled={busy} onClick={() => void start()}>
+                    {tr.t('app.lic.real.inviteAgain')}
+                  </Button>
+                }
+              >
+                {tr.t('app.lic.real.inviteUnsure')}
+              </Alert>
+            )}
             <HowItWorks>{tr.t('app.lic.hi.how')}</HowItWorks>
           </Stack>
         )}

@@ -495,6 +495,9 @@ export const licensing = {
   'app.lic.real.needAnchor':
     'To license this record for real, first set up proof you hold it on its page. The license is issued from the record’s own key.',
   'app.lic.real.openRecord': 'Open the record',
+  'app.lic.real.inviteUnsure':
+    'We couldn’t tell whether the link was made: no clear answer came back. If it was, nobody can use it, because it never reached this page, and it runs out by itself in 30 days. Until then VeilCore’s server keeps the name you typed and this record’s on-chain identity with it. Make a new link only if you still need one.',
+  'app.lic.real.inviteAgain': 'Make a new link',
   'app.lic.real.notAccepted': 'They have not accepted yet.',
   'app.lic.real.keyChanged':
     'This record’s key changed since they accepted. Nothing was sent: start over with a new link.',

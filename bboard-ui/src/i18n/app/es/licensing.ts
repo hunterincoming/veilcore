@@ -492,6 +492,9 @@ export const licensing = {
   'app.lic.real.needAnchor':
     'Para licenciar este registro de verdad, primero configure en su página la prueba de que lo tiene. La licencia se emite desde la propia clave del registro.',
   'app.lic.real.openRecord': 'Abrir el registro',
+  'app.lic.real.inviteUnsure':
+    'No pudimos saber si se creó el enlace: no llegó una respuesta clara. Si se creó, nadie puede usarlo, porque nunca llegó a esta página, y caduca por sí solo en 30 días. Hasta entonces, el servidor de VeilCore guarda con él el nombre que escribió y la identidad on-chain de este registro. Cree un enlace nuevo solo si todavía lo necesita.',
+  'app.lic.real.inviteAgain': 'Crear un enlace nuevo',
   'app.lic.real.notAccepted': 'Todavía no la aceptaron.',
   'app.lic.real.keyChanged':
     'La clave de este registro cambió desde que la aceptaron. No se envió nada: empiece de nuevo con un enlace nuevo.',

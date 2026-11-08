@@ -27,6 +27,7 @@ import { inflateSync, strFromU8, unzipSync } from 'fflate';
 import { allRecords, createRecords, type ParentRef, type StrainRecord } from './records';
 import { loadLedger, saveLedger, type Ledger } from './bulk-import-ledger';
 import { forgetKeys, keysFor } from './record-keys';
+import { TabLockUnavailable, withTabLock } from './tab-lock';
 import { sealAnimalRecord, sealRecord } from './seal-record';
 import { isAnimal, isCalendarDate, type AnimalDetails, type AnimalSex } from './animal-profile';
 import type { SaveRefusal } from './store';
@@ -1599,10 +1600,40 @@ export type SealProgress = { readonly done: number; readonly total: number };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** The lock every tab takes around a batch: the ledger is read, written and sent under it. */
+export const LEDGER_LOCK = 'veilcore.bulk-ledger';
+
+const STOPPED = 'Stopped. Pick it up again any time.';
+
+/** How long a batch waits for the registry before it is kept to send again (it may have landed). */
+export const COMMIT_MS = 120_000;
+
+/** The registry's answer, or after `ms` the same as no answer: kept here, sent again as the same records. */
+const answerIn = (p: Promise<CommitResult>, ms: number): Promise<CommitResult> =>
+  new Promise((resolve, reject) => {
+    const t = setTimeout(() => resolve({ stored: [], refused: [], retry: "Couldn't reach VeilCore's server." }), ms);
+    p.then(
+      (r) => {
+        clearTimeout(t);
+        resolve(r);
+      },
+      (e: unknown) => {
+        clearTimeout(t);
+        reject(e instanceof Error ? e : new Error(String(e)));
+      },
+    );
+  });
+
 /**
  * Seal the ready rows, in batches. Safe to call again with the same rows at any point
  * (after a closed tab, a lost connection): sealed rows are skipped, and a row with a
  * record waiting in the ledger is sent as that record, never as a new one.
+ *
+ * Each batch runs under one lock that every tab of the site shares (tab-lock.ts: the browser's
+ * Web Locks, or a lease in localStorage where there are none), from reading the ledger to
+ * writing what the registry answered. Without it, a second tab (BatchFlow and the import page
+ * both seal) could write over this tab's waiting record, and a crash before the answer would
+ * then seal a new record for a row whose first one may have landed: two records for one row.
  */
 export const sealRows = async (
   rows: readonly PreparedRow[],
@@ -1611,6 +1642,8 @@ export const sealRows = async (
     batchSize?: number;
     /** Between batches, so the registry's read limit (30 a minute) is never reached. */
     gapMs?: number;
+    /** How long to wait for the registry (COMMIT_MS). */
+    commitMs?: number;
     onProgress?: (p: SealProgress) => void;
     shouldStop?: () => boolean;
   } = {},
@@ -1625,80 +1658,96 @@ export const sealRows = async (
   report();
 
   for (let at = 0; at < todo.length; at += size) {
-    if (opts.shouldStop?.()) return { outcomes, stopped: 'Stopped. Pick it up again any time.' };
+    if (opts.shouldStop?.()) return { outcomes, stopped: STOPPED };
     if (at > 0 && gap > 0) await sleep(gap);
-    const ledger = loadLedger();
-    const inSet = new Map(allRecords().map((r) => [recordRowHash(r), r] as const));
-    const batch: StrainRecord[] = [];
-    const hashOf = new Map<string, string>();
-    for (const row of todo.slice(at, at + size)) {
-      const entry = ledger.rows[row.hash];
-      if (entry?.state === 'sealed') {
-        outcomes[row.hash] = { state: 'sealed', recordId: entry.recordId, fingerprint: entry.fingerprint };
-        continue;
+    // Read again inside the lock: what another tab wrote while this one waited counts.
+    const stopped = await withTabLock(LEDGER_LOCK, async (held): Promise<string | undefined> => {
+      const ledger = loadLedger();
+      const inSet = new Map(allRecords().map((r) => [recordRowHash(r), r] as const));
+      const batch: StrainRecord[] = [];
+      const hashOf = new Map<string, string>();
+      /** Records sealed new for this batch (not ones sent before and sent again). */
+      const fresh: string[] = [];
+      for (const row of todo.slice(at, at + size)) {
+        const entry = ledger.rows[row.hash];
+        if (entry?.state === 'sealed') {
+          outcomes[row.hash] = { state: 'sealed', recordId: entry.recordId, fingerprint: entry.fingerprint };
+          continue;
+        }
+        if (entry?.state === 'pending' && entry.record && keysFor(entry.recordId)) {
+          // Sent before and not confirmed: the same record again.
+          batch.push(entry.record);
+          hashOf.set(entry.recordId, row.hash);
+          continue;
+        }
+        const found = inSet.get(row.hash);
+        if (found?.recordFingerprint) {
+          ledger.rows[row.hash] = {
+            recordId: found.id,
+            fingerprint: found.recordFingerprint,
+            state: 'sealed',
+            at: Date.now(),
+          };
+          outcomes[row.hash] = { state: 'sealed', recordId: found.id, fingerprint: found.recordFingerprint };
+          continue;
+        }
+        try {
+          const record = await sealRowRecord(row.fields);
+          ledger.rows[row.hash] = {
+            recordId: record.id,
+            fingerprint: record.recordFingerprint,
+            state: 'pending',
+            at: Date.now(),
+            record,
+          };
+          batch.push(record);
+          hashOf.set(record.id, row.hash);
+          fresh.push(record.id);
+        } catch (e) {
+          outcomes[row.hash] = { state: 'refused', reason: e instanceof Error ? e.message : String(e) };
+        }
       }
-      if (entry?.state === 'pending' && entry.record && keysFor(entry.recordId)) {
-        // Sent before and not confirmed: the same record again.
-        batch.push(entry.record);
-        hashOf.set(entry.recordId, row.hash);
-        continue;
+      // Another tab took the lock while this one sealed (a slowed background tab's lease ran
+      // out): nothing of this batch is written or sent, and the records sealed for it are
+      // dropped with their keys (never sent, so they name nothing). Picked up again later.
+      if (!held()) {
+        for (const id of fresh) forgetKeys(id);
+        return STOPPED;
       }
-      const found = inSet.get(row.hash);
-      if (found?.recordFingerprint) {
-        ledger.rows[row.hash] = {
-          recordId: found.id,
-          fingerprint: found.recordFingerprint,
-          state: 'sealed',
-          at: Date.now(),
-        };
-        outcomes[row.hash] = { state: 'sealed', recordId: found.id, fingerprint: found.recordFingerprint };
-        continue;
-      }
-      try {
-        const record = await sealRowRecord(row.fields);
-        ledger.rows[row.hash] = {
-          recordId: record.id,
-          fingerprint: record.recordFingerprint,
-          state: 'pending',
-          at: Date.now(),
-          record,
-        };
-        batch.push(record);
-        hashOf.set(record.id, row.hash);
-      } catch (e) {
-        outcomes[row.hash] = { state: 'refused', reason: e instanceof Error ? e.message : String(e) };
-      }
-    }
-    // Written down before anything is sent: a closed tab from here on loses nothing.
-    saveLedger(ledger);
+      // Written down before anything is sent: a closed tab from here on loses nothing.
+      saveLedger(ledger);
 
-    if (batch.length) {
-      const result = await commit(batch);
-      const after = loadLedger();
-      for (const id of result.stored) {
-        const h = hashOf.get(id);
-        if (!h) continue;
-        const e = after.rows[h] ?? ledger.rows[h];
-        after.rows[h] = { recordId: id, fingerprint: e.fingerprint, state: 'sealed', at: Date.now() };
-        outcomes[h] = { state: 'sealed', recordId: id, fingerprint: e.fingerprint };
+      if (batch.length) {
+        const result = await answerIn(commit(batch), opts.commitMs ?? COMMIT_MS);
+        const after = loadLedger();
+        for (const id of result.stored) {
+          const h = hashOf.get(id);
+          if (!h) continue;
+          const e = after.rows[h] ?? ledger.rows[h];
+          after.rows[h] = { recordId: id, fingerprint: e.fingerprint, state: 'sealed', at: Date.now() };
+          outcomes[h] = { state: 'sealed', recordId: id, fingerprint: e.fingerprint };
+        }
+        for (const r of result.refused) {
+          const h = hashOf.get(r.id);
+          if (!h) continue;
+          // Refused by id: never stored, so its keys name nothing.
+          forgetKeys(r.id);
+          delete after.rows[h];
+          outcomes[h] = { state: 'refused', reason: r.reason };
+        }
+        saveLedger(after);
+        if (result.retry) {
+          report();
+          return `${result.retry} The last ${batch.length === 1 ? 'row was' : `${batch.length} rows were`} kept here and will be sent again, as the same records.`;
+        }
       }
-      for (const r of result.refused) {
-        const h = hashOf.get(r.id);
-        if (!h) continue;
-        // Refused by id: never stored, so its keys name nothing.
-        forgetKeys(r.id);
-        delete after.rows[h];
-        outcomes[h] = { state: 'refused', reason: r.reason };
-      }
-      saveLedger(after);
-      if (result.retry) {
-        report();
-        return {
-          outcomes,
-          stopped: `${result.retry} The last ${batch.length === 1 ? 'row was' : `${batch.length} rows were`} kept here and will be sent again, as the same records.`,
-        };
-      }
-    }
+      return undefined;
+    }).catch((e: unknown) => {
+      // This browser can't hold the lock: nothing is sealed or sent rather than risk two tabs.
+      if (e instanceof TabLockUnavailable) return STOPPED;
+      throw e;
+    });
+    if (stopped !== undefined) return { outcomes, stopped };
     done = Math.min(todo.length, at + size);
     report();
   }
