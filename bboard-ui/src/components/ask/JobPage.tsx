@@ -1,13 +1,15 @@
 // "Do it for me": a job's page (/ask/job/:id). One finished result to check, phone first
-// (design v2, 3):
-//   1. Only you can answer (first: the only part to act on);
-//   2. What I made, one line per item;
+// (design v2, 3; both reviews of 8 Nov 2026):
+//   1. Only you can answer (first: the only part to act on), the backup among it, opened here;
+//   2. What I made, one line per item, each young or clone folded under "Each one";
 //   3. When you approve: what can't be undone, and what goes public, folded;
-//   4. the backup, when new keys need it (a checked file);
-//   5. a bar that stays at the bottom: Approve, Change something, Discard. Approve says what is
-//      left ("Answer 2 questions to approve") and stays off until "Can't be undone" has been seen.
-// Approve sends the hash of the plan this tab drew (ask-job/store.ts approveJob). Opened from a
-// link rather than from Ask or Home, the job is shown read-only. No Ask bubble here
+//   4. a bar that stays at the bottom: Approve, Change something, Discard. Approve says what is
+//      left ("Save your backup to approve") and stays off until "Can't be undone" has been on
+//      screen in full, above the bar. The bar steps aside while the backup is being saved.
+// Approve sends the hash of the plan this tab drew (ask-job/store.ts approveJob). What this tab
+// drew stays on screen: a change made in another tab is said, never swapped in unseen. Report
+// figures are drawn from the plan itself, saved one after another, and Approve waits for them.
+// Opened from a link rather than from Ask or Home, the job is read-only. No Ask bubble here
 // (AskLauncher.tsx). Any name the other side wrote is plain text marked "named by them".
 // SPDX-License-Identifier: Apache-2.0
 
@@ -29,34 +31,45 @@ import { Link as RouterLink, useLocation, useNavigate, useParams } from 'react-r
 import { AppHeader } from '../AppHeader';
 import { ScreenHeading } from '../flow/FlowFrame';
 import { BackupStep } from '../flow/BackupStep';
+import { sexWords } from '../flow/AnimalForm';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import { useT, type Translator } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
 import { useRecords, type StrainRecord } from '../../veilcore/records';
 import { useRecordKeys } from '../../veilcore/record-keys';
+import { loadLedger } from '../../veilcore/bulk-import';
 import { heldLicense } from '../../veilcore/held-licenses';
-import { reportLines } from '../../veilcore/royalty-ledger';
-import { currencyOf, ruleOf, offspringOf, unitLabel } from '../../veilcore/royalty-terms';
+import { currencyOf, ruleOf, offspringOf, unitLabel, localDay } from '../../veilcore/royalty-terms';
 import { sumAmounts, currencyDigits } from '../../veilcore/money';
-import type { LicenseTerms } from '../../veilcore/licenses';
 import { localStamp } from '../../veilcore/time';
 import { childNames, suggestTags } from '../../ask/batch';
 import { HANDOFF_STATE_KEY } from '../../ask/handoff';
-import { approveJob, discardJob, getJob, onJobsChange, planHash, type Job, type Step } from '../../ask-job/store';
+import {
+  approveJob,
+  discardJob,
+  getJob,
+  onJobsChange,
+  anyStarted,
+  type Figures,
+  type Job,
+  type Step,
+} from '../../ask-job/store';
 import {
   attachFile,
   backupDone,
   batchPlanOf,
   changeBatch,
+  dealTerms,
   heldIds,
   questionsOf,
+  reportAmounts,
   setFigures,
   stampTomorrow,
   type Prepared,
 } from '../../ask-job/prepare';
 import { reportIndex, tryAgain } from '../../ask-job/run';
 import { runnerTick } from '../../ask-job/start';
-import { JOB_STATE_KEY, jobWords } from '../../ask-job/words';
+import { JOB_STATE_KEY, jobTitle, jobWords } from '../../ask-job/words';
 
 /** A job's page: the result to check while it waits for approval, its progress after. */
 export const JobPage: React.FC = () => {
@@ -89,7 +102,7 @@ export const JobPage: React.FC = () => {
         ) : job.state === 'ready' ? (
           <JobResult job={job} fromApp={fromApp} />
         ) : (
-          <JobProgress job={job} />
+          <JobProgress job={job} fromApp={fromApp} />
         )}
       </Box>
     </Box>
@@ -119,40 +132,37 @@ const Line: React.FC<React.PropsWithChildren> = ({ children }) => (
 const nameOf = (records: readonly StrainRecord[], id: string | undefined): string =>
   (id && records.find((r) => r.id === id)?.strainName) || '';
 
-/** The title a job is shown under. */
-const titleOf = (job: Job, records: readonly StrainRecord[], tr: Translator): string => {
-  const s = job.spec;
-  if (job.kind === 'batch' && s)
-    return s.preset === 'clones'
-      ? tr.tp('app.job.title.clones', s.count, { name: nameOf(records, job.refs.parentId) })
-      : tr.tp('app.job.title.offspring', s.count, {
-          name: nameOf(records, job.refs.damId) || nameOf(records, job.refs.sireId) || (s.sireCode ?? ''),
-        });
-  if (job.kind === 'import') return tr.t('app.job.title.import');
-  if (job.kind === 'due') return tr.tp('app.job.title.due', job.refs.reports?.length ?? 0);
-  return tr.t('app.job.title.ready', { name: nameOf(records, job.refs.recordId) });
-};
-
 /** A report's figures as the sheet holds them while they are typed. */
 type Draft = { quantity: string; offspring: string; nothing: boolean };
+const draftOf = (f: Figures | undefined): Draft => ({
+  quantity: f?.quantity ?? '',
+  offspring: f?.offspring ?? '',
+  nothing: !!f?.nothing,
+});
+const figuresOf = (d: Draft): Figures =>
+  d.nothing
+    ? { nothing: true }
+    : { quantity: d.quantity.trim(), ...(d.offspring.trim() ? { offspring: d.offspring.trim() } : {}) };
+const sameDraft = (a: Draft, f: Figures | undefined): boolean => {
+  const b = draftOf(f);
+  return (
+    a.nothing === b.nothing && (a.nothing || (a.quantity.trim() === b.quantity && a.offspring.trim() === b.offspring))
+  );
+};
 
-/** What a report comes to from its figures (before any top-up to a yearly minimum). */
-const owedOf = (terms: LicenseTerms, type: string, from: string, d: Draft | undefined): string | undefined =>
-  d
-    ? reportLines(
-        terms,
-        d.nothing ? { quantity: '0', offspring: '0' } : { quantity: d.quantity || '0', offspring: d.offspring || '0' },
-        {
-          type,
-          periodFrom: from,
-        },
-      )?.total
-    : undefined;
+/** A total per currency: "USD 350.05", or "USD 10.00 + EUR 5.00". */
+const totalOf = (list: readonly { amount?: string; currency?: string }[]): string => {
+  const by = new Map<string, string[]>();
+  for (const x of list) if (x.amount && x.currency) by.set(x.currency, [...(by.get(x.currency) ?? []), x.amount]);
+  return [...by.entries()].map(([c, l]) => `${c} ${sumAmounts(l, currencyDigits(c)) ?? ''}`).join(' + ');
+};
 
 const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, fromApp }) => {
   // What this tab drew stays on screen: a change made in another tab is said, never swapped in
   // under the person's thumb. Approve sends the hash of what is shown.
   const [job, setShown] = useState(latest);
+  const shownRef = useRef(job);
+  shownRef.current = job;
   const [changedElsewhere, setChangedElsewhere] = useState(false);
   const ownHashes = useRef(new Set<string>([latest.hash]));
   useEffect(() => {
@@ -171,49 +181,67 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
   const [busy, setBusy] = useState(false);
   const [seen, setSeen] = useState(false);
   const [publicOpen, setPublicOpen] = useState(false);
+  const [eachOpen, setEachOpen] = useState(false);
+  const [confirmChange, setConfirmChange] = useState(false);
   const [backupTick, setBackupTick] = useState(0);
-  // The backup step stays on screen until its own finish button, so its check is seen.
-  const [inBackup, setInBackup] = useState(() => job.backupNeeded && !backupDone(job));
+  // The file picked just now: its name is shown here, never kept in the job.
+  const [fileName, setFileName] = useState<string>();
+  // The backup step, opened from "Only you can answer" or the bar; the bar steps aside meanwhile.
+  const [inBackup, setInBackup] = useState(false);
   const permanent = useRef<HTMLElement>(null);
-  // The hash of exactly what this tab draws: what Approve sends.
-  const rendered = planHash(job);
+  const bar = useRef<HTMLDivElement>(null);
+  const [barHeight, setBarHeight] = useState(0);
   void backupTick;
-  const questions = questionsOf(job, words);
   const readOnly = !fromApp;
+  const questions = questionsOf(job, words);
+  const asks = questions.filter((q) => q !== 'backup');
 
+  // The bar's height, so "Can't be undone" counts as seen only when it is all above the bar.
+  useEffect(() => {
+    const el = bar.current;
+    if (!el) return;
+    const measure = () => setBarHeight(el.getBoundingClientRect().height);
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [inBackup, readOnly]);
   useEffect(() => {
     const el = permanent.current;
-    if (!el) return;
+    if (!el || seen) return;
     if (typeof IntersectionObserver === 'undefined') {
       setSeen(true);
       return;
     }
-    const io = new IntersectionObserver((es) => {
-      if (es.some((e) => e.isIntersecting)) setSeen(true);
-    });
+    const io = new IntersectionObserver(
+      (es) => {
+        if (es.some((e) => e.isIntersecting && e.intersectionRatio >= 0.99)) setSeen(true);
+      },
+      { threshold: [0.99, 1], rootMargin: `0px 0px -${Math.ceil(barHeight)}px 0px` },
+    );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [barHeight, seen, inBackup]);
 
-  const refusal = (r: Prepared) => {
+  const refusal = (r: Prepared | void) => {
+    if (!r) return;
     if ('job' in r) {
       ownHashes.current.add(r.job.hash);
+      shownRef.current = r.job;
       setShown(r.job);
-    }
-    if ('refused' in r) {
-      setError(t(`app.job.no.${r.refused}` as AppKey, { n: r.words ?? '' }));
-      setDetail(r.words && r.refused !== 'tooManyReports' ? r.words : undefined);
-    } else {
       setError(undefined);
       setDetail(undefined);
+      return;
     }
+    setError(t(`app.job.no.${r.refused}` as AppKey, { n: r.words ?? '' }));
+    setDetail(r.words && r.refused !== 'tooManyReports' ? r.words : undefined);
   };
   const act = async (f: () => Promise<Prepared | void>) => {
     if (busy || readOnly) return;
     setBusy(true);
     try {
-      const r = await f();
-      if (r) refusal(r);
+      refusal(await f());
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -221,88 +249,150 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
     }
   };
 
+  // ---- reports: drawn from the plan, saved one after another, never dropped ----
+  const reports = job.refs.reports ?? [];
+  const [drafts, setDrafts] = useState<Record<string, Draft>>(() =>
+    Object.fromEntries(reports.map((_, i) => [`report${i}`, draftOf(job.figures?.[`report${i}`])])),
+  );
+  // A different plan on screen (shown from another tab): its own figures, not this tab's.
+  const shownHash = useRef(job.hash);
+  useEffect(() => {
+    if (shownHash.current === job.hash) return;
+    shownHash.current = job.hash;
+    setDrafts((d) =>
+      Object.fromEntries(
+        reports.map((_, i) => {
+          const k = `report${i}`;
+          // A draft this tab is still saving stays; anything else is the plan's.
+          return [k, saving.current > 0 && d[k] ? d[k] : draftOf(job.figures?.[k])];
+        }),
+      ),
+    );
+  }, [job.hash]);
+  const queue = useRef<Promise<void>>(Promise.resolve());
+  const saving = useRef(0);
+  const [savingCount, setSavingCount] = useState(0);
+  const commit = (key: string, d: Draft) => {
+    if (readOnly) return;
+    setDrafts((x) => ({ ...x, [key]: d }));
+    saving.current += 1;
+    setSavingCount(saving.current);
+    queue.current = queue.current.then(async () => {
+      try {
+        refusal(await setFigures(shownRef.current, key, figuresOf(d)));
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        saving.current -= 1;
+        setSavingCount(saving.current);
+      }
+    });
+  };
+  const draftFigures = Object.fromEntries(Object.entries(drafts).map(([k, d]) => [k, figuresOf(d)]));
+  const shownAmounts = reportAmounts(job, draftFigures);
+  const unsaved = reports.some(
+    (_, i) => !sameDraft(drafts[`report${i}`] ?? draftOf(undefined), job.figures?.[`report${i}`]),
+  );
+  // What Approve sends: the amounts in the plan itself.
+  const approvedTotal = totalOf(reports.map((_, i) => job.figures?.[`report${i}`] ?? {}));
+
   // ---- what each kind of job shows ----
   const plan = job.kind === 'batch' ? batchPlanOf(job, words) : undefined;
   const ids = heldIds(job);
   const count = job.kind === 'batch' ? (job.spec?.count ?? 0) : job.kind === 'import' ? (job.sheet?.ready ?? 0) : 0;
   const recordName = nameOf(records, job.refs.recordId);
-  const reports = job.refs.reports ?? [];
-  const [drafts, setDrafts] = useState<Record<string, Draft>>(() =>
-    Object.fromEntries(
-      reports.map((_, i) => {
-        const f = job.figures?.[`report${i}`];
-        return [`report${i}`, { quantity: f?.quantity ?? '', offspring: f?.offspring ?? '', nothing: !!f?.nothing }];
-      }),
-    ),
-  );
-  const totals = useMemo(() => {
-    const by = new Map<string, string[]>();
-    reports.forEach((ref, i) => {
-      const h = heldLicense(ref.inviteId);
-      if (!h?.agreement) return;
-      const terms = h.agreement.terms as unknown as LicenseTerms;
-      const owed = owedOf(terms, h.agreement.type, ref.periodFrom, job.figures?.[`report${i}`] as Draft | undefined);
-      const c = currencyOf(terms);
-      if (owed) by.set(c, [...(by.get(c) ?? []), owed]);
-    });
-    return [...by.entries()].map(([c, list]) => `${c} ${sumAmounts(list, currencyDigits(c)) ?? ''}`).join(' + ');
-  }, [job]);
-
   const approveLabel =
     job.kind === 'batch' || job.kind === 'import'
       ? tp('app.job.btn.records', count)
       : job.kind === 'due'
-        ? tp('app.job.btn.reports', reports.length, { total: totals || '0' })
+        ? tp('app.job.btn.reports', reports.length, { total: approvedTotal || '0' })
         : job.steps.length
           ? t('app.job.btn.stamp', { name: recordName })
           : t('app.job.btn.ready');
   const empty = (job.kind === 'batch' || job.kind === 'import') && ids.length === 0 && !questions.includes('file');
-  const canApprove = !readOnly && questions.length === 0 && seen && !busy && !empty;
-  const left = questions.length
-    ? tp('app.job.left.questions', questions.length)
-    : !seen
-      ? t('app.job.left.scroll')
-      : t('app.job.left.ready');
+  const canApprove =
+    !readOnly &&
+    questions.length === 0 &&
+    seen &&
+    !busy &&
+    !empty &&
+    !unsaved &&
+    // A change from another tab is said at the top; Approve still sends only the plan shown here,
+    // and the store refuses it if that isn't the plan any more (compare-and-set).
+    savingCount === 0;
+  const left = asks.length
+    ? tp('app.job.left.questions', asks.length)
+    : questions.includes('backup')
+      ? t('app.job.left.backup')
+      : unsaved || savingCount
+        ? t('app.job.left.saving')
+        : !seen
+          ? t('app.job.left.scroll')
+          : t('app.job.left.ready');
 
   const approve = () =>
     act(async () => {
-      const r = await approveJob(job.id, rendered);
+      const r = await approveJob(job.id, job.hash);
       if ('refused' in r) return { refused: r.refused };
       void runnerTick();
     });
   const discard = () => act(() => discardJob(job.id));
+  // Batches only: the full form, with everything here carried over (sexes, IDs, the sire's code,
+  // tags, the lot, the date). Other jobs are changed right here.
   const change = () =>
     act(async () => {
+      const s = job.spec;
+      if (job.kind !== 'batch' || !s) return;
       await discardJob(job.id);
-      if (job.kind === 'batch' && job.spec) {
-        const parents = [job.refs.parentId, job.refs.sireId, job.refs.damId].filter((x): x is string => !!x);
-        void navigate('/new', {
-          state: {
-            [HANDOFF_STATE_KEY]: {
-              v: 1,
-              source: 'ask',
-              kind: job.spec.preset === 'clones' ? 'plant' : 'animal',
-              preset: job.spec.preset,
-              count: job.spec.count,
-              parents,
+      const parents = [job.refs.parentId, job.refs.sireId, job.refs.damId].filter((x): x is string => !!x);
+      const sexes = Array.from({ length: s.count }, (_, i) =>
+        i < (s.males ?? 0) ? 'male' : i < (s.males ?? 0) + (s.females ?? 0) ? 'female' : '',
+      );
+      void navigate('/new', {
+        state: {
+          [HANDOFF_STATE_KEY]: {
+            v: 1,
+            source: 'ask',
+            kind: s.preset === 'clones' ? 'plant' : 'animal',
+            preset: s.preset,
+            count: s.count,
+            parents,
+            details: {
+              sexes,
+              ...(s.ids?.length ? { ids: s.ids } : s.individualId ? { ids: [s.individualId] } : {}),
+              ...(s.idScheme ? { idScheme: s.idScheme } : {}),
+              ...(s.firstTag ? { firstTag: s.firstTag } : {}),
+              ...(s.lotName ? { lotName: s.lotName } : {}),
+              ...(s.sireCode ? { sireCode: s.sireCode, semen: !!s.ai } : {}),
+              ...(plan?.date ? { date: plan.date } : {}),
             },
           },
-        });
-      } else if (job.kind === 'import') void navigate('/records/import');
-      else if (job.kind === 'ready' && job.refs.recordId) void navigate(`/record/${job.refs.recordId}`);
-      else void navigate('/licenses');
+        },
+      });
     });
 
-  const names = plan ? childNames(plan.baseName, plan.count, 1) : [];
-  const ledgerNames = useMemo(
-    () => ids.map((rid) => records.find((r) => r.id === rid)?.strainName).filter(Boolean),
-    [ids.join(','), records],
-  );
-  const shownNames = ledgerNames.length ? (ledgerNames as string[]) : names;
+  const shownNames = useMemo(() => {
+    const fromLedger = ids.map((rid) => loadLedger().rows && records.find((r) => r.id === rid)?.strainName);
+    const ledgerRows = loadLedger().rows;
+    const held = (job.refs.rowHashes ?? []).map((h) => ledgerRows[h]?.record?.strainName).filter(Boolean) as string[];
+    return held.length
+      ? held
+      : fromLedger.filter(Boolean).length
+        ? (fromLedger as string[])
+        : plan
+          ? childNames(plan.baseName, plan.count, 1)
+          : [];
+  }, [ids.join(','), records, job.hash]);
+
+  const backupBlock = job.backupNeeded && !readOnly && (inBackup || !backupDone(job));
+  const openBackup = () => {
+    setInBackup(true);
+    setTimeout(() => document.querySelector('[data-job-block="backup"]')?.scrollIntoView({ block: 'start' }), 50);
+  };
 
   return (
     <Stack spacing={3} sx={{ pb: 2 }} data-job-kind={job.kind}>
-      <ScreenHeading>{titleOf(job, records, tr)}</ScreenHeading>
+      <ScreenHeading>{t('app.job.title', { what: jobTitle(job, records, tr) })}</ScreenHeading>
       {changedElsewhere && (
         <Alert
           severity="warning"
@@ -312,6 +402,7 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
             <Button
               color="inherit"
               onClick={() => {
+                shownRef.current = latest;
                 setShown(latest);
                 setChangedElsewhere(false);
                 setError(undefined);
@@ -330,9 +421,15 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
           {t('app.job.readOnly')}
         </Alert>
       )}
+      {error && (
+        <Alert severity="error" variant="outlined" role="alert" data-job-error="">
+          {error}
+          {detail && <Box sx={{ mt: 0.5 }}>{detail}</Box>}
+        </Alert>
+      )}
 
-      {/* 1. Only you can answer */}
-      {questions.length > 0 && (
+      {/* 1. Only you can answer, the backup among it */}
+      {(questions.length > 0 || job.kind === 'due' || backupBlock) && (
         <Block title={t('app.job.answer.title')} data="answer">
           {questions.includes('bredBy') && (
             <Answer
@@ -359,112 +456,146 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
             />
           )}
           {questions.includes('file') && (
-            <FilePick disabled={readOnly || busy} onFile={(f) => act(() => attachFile(job, f))} />
+            <FilePick
+              disabled={readOnly || busy}
+              onFile={(f) =>
+                act(async () => {
+                  const r = await attachFile(job, f);
+                  if ('job' in r) setFileName(f.name);
+                  return r;
+                })
+              }
+            />
           )}
-          {questions.includes('figures') && <Typography variant="body2">{t('app.job.made.title')}</Typography>}
-          {questions.includes('backup') && <Typography variant="body2">{t('app.job.answer.backup')}</Typography>}
-        </Block>
-      )}
-      {job.kind === 'batch' &&
-        job.spec?.preset === 'offspring' &&
-        !job.spec.individualId &&
-        (job.spec.count ?? 0) > 1 && (
-          <IdsPaste
-            count={job.spec.count}
-            value={job.spec.ids ?? []}
-            disabled={readOnly || busy}
-            onUse={(list) => act(() => changeBatch(job, { ids: list }, words))}
-          />
-        )}
-      {job.kind === 'due' && (
-        <Block title={t('app.job.answer.title')} data="reports">
-          {reports.map((ref, i) => {
-            const key = `report${i}`;
-            const h = heldLicense(ref.inviteId);
-            if (!h?.agreement) return null;
-            const terms = h.agreement.terms as unknown as LicenseTerms;
-            const rule = ruleOf(terms);
-            const off = offspringOf(terms);
-            const d = drafts[key] ?? { quantity: '', offspring: '', nothing: false };
-            const from = tr.date(`${ref.periodFrom}T12:00:00`);
-            const to = tr.date(`${ref.periodTo}T12:00:00`);
-            const owed = owedOf(terms, h.agreement.type, ref.periodFrom, d);
-            const commit = (next: Draft) => {
-              setDrafts({ ...drafts, [key]: next });
-              void act(() =>
-                setFigures(
-                  job,
-                  key,
-                  next.nothing
-                    ? { nothing: true }
-                    : {
-                        quantity: next.quantity.trim(),
-                        ...(next.offspring.trim() ? { offspring: next.offspring.trim() } : {}),
-                      },
-                ),
-              );
-            };
-            return (
-              <Paper key={key} variant="outlined" sx={{ p: 1.5 }} data-job-report={i}>
-                <Stack spacing={1}>
-                  <Typography variant="subtitle2">{t('app.job.made.report', { from, to })}</Typography>
-                  {/* The licensor's words for the agreement: theirs, never next to the button. */}
-                  <Typography variant="caption" color="text.secondary" data-named-by="">
-                    {t('app.job.made.namedBy', { label: h.label })}
-                  </Typography>
-                  {rule && (
-                    <TextField
-                      size="small"
-                      label={
-                        rule.kind === 'percent'
-                          ? t('app.job.report.sales', { from, to, currency: currencyOf(terms) })
-                          : t('app.job.report.units', { from, to }) + ` (${unitLabel(rule.unit, tr)})`
-                      }
-                      value={d.quantity}
-                      disabled={readOnly || d.nothing}
-                      inputMode="decimal"
-                      onChange={(e) => setDrafts({ ...drafts, [key]: { ...d, quantity: e.target.value.slice(0, 20) } })}
-                      onBlur={() => commit(d)}
-                      slotProps={{ htmlInput: { 'data-job-figure': i, inputMode: 'decimal' } }}
-                    />
-                  )}
-                  {off && (
-                    <TextField
-                      size="small"
-                      label={t('app.job.report.offspring')}
-                      value={d.offspring}
-                      disabled={readOnly || d.nothing}
-                      onChange={(e) =>
-                        setDrafts({ ...drafts, [key]: { ...d, offspring: e.target.value.slice(0, 20) } })
-                      }
-                      onBlur={() => commit(d)}
-                    />
-                  )}
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={d.nothing}
-                        disabled={readOnly}
-                        onChange={(e) => commit({ ...d, nothing: e.target.checked })}
-                        data-job-nothing={i}
+          {job.kind === 'batch' && job.spec?.preset === 'offspring' && !job.spec.individualId && job.spec.count > 1 && (
+            <IdsPaste
+              count={job.spec.count}
+              value={job.spec.ids ?? []}
+              disabled={readOnly || busy}
+              onUse={(list) => act(() => changeBatch(job, { ids: list }, words))}
+            />
+          )}
+          {job.kind === 'due' &&
+            reports.map((ref, i) => {
+              const key = `report${i}`;
+              const h = heldLicense(ref.inviteId);
+              const terms = dealTerms(ref.inviteId, ref.currency);
+              if (!h?.agreement || !terms) return null;
+              const rule = ruleOf(terms);
+              const off = offspringOf(terms);
+              const d = drafts[key] ?? draftOf(undefined);
+              const from = tr.date(`${ref.periodFrom}T12:00:00`);
+              const to = tr.date(`${ref.periodTo}T12:00:00`);
+              const a = shownAmounts[i];
+              const cur = currencyOf(terms);
+              return (
+                <Paper key={key} variant="outlined" sx={{ p: 1.5 }} data-job-report={i}>
+                  <Stack spacing={1}>
+                    <Typography variant="subtitle2">{t('app.job.made.report', { from, to })}</Typography>
+                    {ref.dueOn && (
+                      <Typography variant="caption" color={ref.dueOn < localDay() ? 'error' : 'text.secondary'}>
+                        {t(ref.dueOn < localDay() ? 'app.job.report.overdue' : 'app.job.report.due', {
+                          date: tr.date(`${ref.dueOn}T12:00:00`),
+                        })}
+                      </Typography>
+                    )}
+                    {/* The licensor's words for the agreement: theirs, never next to the button. */}
+                    <Typography variant="caption" color="text.secondary" data-named-by="">
+                      {t('app.job.made.namedBy', { label: h.label })}
+                    </Typography>
+                    {rule && (
+                      <TextField
+                        size="small"
+                        label={
+                          rule.kind === 'percent'
+                            ? t('app.job.report.sales', { from, to, currency: cur })
+                            : `${t('app.job.report.units', { from, to })} (${unitLabel(rule.unit, tr)})`
+                        }
+                        value={d.quantity}
+                        disabled={readOnly || d.nothing}
+                        onChange={(e) =>
+                          setDrafts({ ...drafts, [key]: { ...d, quantity: e.target.value.slice(0, 20) } })
+                        }
+                        onBlur={() => commit(key, d)}
+                        slotProps={{ htmlInput: { 'data-job-figure': i, inputMode: 'decimal' } }}
                       />
-                    }
-                    label={t('app.job.report.nothing')}
-                  />
-                  {owed && (
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                      {t('app.job.report.owed', { amount: `${currencyOf(terms)} ${owed}` })}
-                    </Typography>
-                  )}
-                  {terms.yearlyMinimum && (
-                    <Typography variant="caption" color="text.secondary">
-                      {t('app.job.report.topUp')}
-                    </Typography>
-                  )}
-                </Stack>
-              </Paper>
-            );
-          })}
+                    )}
+                    {off && (
+                      <TextField
+                        size="small"
+                        label={t('app.job.report.offspring')}
+                        value={d.offspring}
+                        disabled={readOnly || d.nothing}
+                        onChange={(e) =>
+                          setDrafts({ ...drafts, [key]: { ...d, offspring: e.target.value.slice(0, 20) } })
+                        }
+                        onBlur={() => commit(key, d)}
+                      />
+                    )}
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={d.nothing}
+                          disabled={readOnly}
+                          onChange={(e) => commit(key, { ...d, nothing: e.target.checked })}
+                          data-job-nothing={i}
+                        />
+                      }
+                      label={t('app.job.report.nothing')}
+                    />
+                    {a && (
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }} data-job-owed={i}>
+                          {t('app.job.report.owed', { amount: `${a.currency} ${a.amount}` })}
+                        </Typography>
+                        {rule?.kind === 'percent' && !d.nothing && (
+                          <Typography variant="caption" color="text.secondary" component="div">
+                            {t('app.job.report.rate', {
+                              rate: rule.rate,
+                              currency: a.currency,
+                              base: d.quantity || '0',
+                            })}
+                          </Typography>
+                        )}
+                        {(Number(a.topUp) || 0) > 0 && (
+                          <Typography variant="caption" color="text.secondary" component="div">
+                            {t('app.job.report.topUp', { amount: `${a.currency} ${a.topUp}` })}
+                          </Typography>
+                        )}
+                      </Box>
+                    )}
+                  </Stack>
+                </Paper>
+              );
+            })}
+          {backupBlock && !inBackup && (
+            <Stack spacing={1} data-job-question="backup">
+              <Typography variant="body2">
+                {job.kind === 'ready' ? t('app.job.backup.ready') : tp('app.job.backup.records', count || 1)}
+              </Typography>
+              <Button variant="contained" onClick={openBackup} sx={{ alignSelf: 'flex-start' }} data-job-backup-open="">
+                {t('app.job.btn.backup')}
+              </Button>
+            </Stack>
+          )}
+          {backupBlock && inBackup && (
+            <Box data-job-block="backup">
+              <BackupStep
+                title={t('app.ask.batch.backupTitle')}
+                finishLabel={t('app.job.backup.finish')}
+                headingComponent="h2"
+                onDone={() => {
+                  setInBackup(false);
+                  setBackupTick((n) => n + 1);
+                }}
+              />
+            </Box>
+          )}
+          {job.backupNeeded && !backupBlock && !readOnly && (
+            <Alert severity="success" variant="outlined">
+              {t('app.job.backup.done')}
+            </Alert>
+          )}
         </Block>
       )}
 
@@ -482,38 +613,53 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
                 </Line>
               )}
               {job.spec.preset === 'clones' ? (
-                <Line>
-                  {t('app.job.made.cutFrom', {
-                    name: plan.parent?.strainName ?? '',
-                    date: tr.date(`${job.frozen.today}T12:00:00`),
-                  })}
-                </Line>
+                <>
+                  <Line>
+                    {t('app.job.made.cutFrom', {
+                      name: plan.parent?.strainName ?? '',
+                      date: tr.date(`${plan.date}T12:00:00`),
+                    })}
+                  </Line>
+                  {job.spec.lotName && <Line>{t('app.job.made.lot', { lot: job.spec.lotName })}</Line>}
+                  {job.spec.firstTag && (
+                    <Line>
+                      {t('app.job.made.tags', {
+                        first: job.spec.firstTag,
+                        last: suggestTags(job.spec.firstTag, job.spec.count).at(-1) ?? job.spec.firstTag,
+                      })}
+                    </Line>
+                  )}
+                </>
               ) : (
                 <>
-                  <Line>{t('app.job.made.born', { date: tr.date(`${job.frozen.today}T12:00:00`) })}</Line>
+                  <Line>{t('app.job.made.born', { date: tr.date(`${plan.date}T12:00:00`) })}</Line>
                   {plan.dam && <Line>{t('app.job.made.dam', { name: plan.dam.strainName })}</Line>}
-                  {plan.sire && <Line>{t('app.job.made.sire', { name: plan.sire.strainName })}</Line>}
-                  {job.spec.sireCode && !plan.sire && (
+                  {plan.sire ? (
+                    <Line>{t('app.job.made.sire', { name: plan.sire.strainName })}</Line>
+                  ) : job.spec.sireCode ? (
                     <Line>{t('app.job.made.sireTyped', { code: job.spec.sireCode })}</Line>
+                  ) : (
+                    <Line>{t('app.job.made.noSire')}</Line>
                   )}
+                  {plan.sire && plan.semenCode && <Line>{t('app.job.made.semen', { code: plan.semenCode })}</Line>}
                   <Line>
                     {t('app.job.made.sexes', {
                       m: String(job.spec.males ?? 0),
                       f: String(job.spec.females ?? 0),
-                      u: String(job.spec.count - (job.spec.males ?? 0) - (job.spec.females ?? 0)),
                     })}
+                    {job.spec.count - (job.spec.males ?? 0) - (job.spec.females ?? 0) > 0 &&
+                      ` · ${t('app.job.made.unstated', {
+                        u: String(job.spec.count - (job.spec.males ?? 0) - (job.spec.females ?? 0)),
+                      })}`}
                   </Line>
                   {(() => {
-                    const list = job.spec.ids?.length
-                      ? job.spec.ids
-                      : job.spec.individualId
-                        ? [job.spec.individualId]
-                        : [];
-                    const missing = job.spec.count - list.filter(Boolean).length;
+                    const list = plan.children?.map((c) => c?.individualId ?? '') ?? [];
+                    const given = list.filter(Boolean);
+                    const missing = job.spec.count - given.length;
                     return (
                       <>
-                        {list.length > 0 && (
-                          <Line>{t('app.job.made.ids', { first: list[0], last: list[list.length - 1] })}</Line>
+                        {given.length > 0 && (
+                          <Line>{t('app.job.made.ids', { first: given[0], last: given[given.length - 1] })}</Line>
                         )}
                         {missing > 0 && <Line>{tp('app.job.made.noIds', missing)}</Line>}
                       </>
@@ -521,19 +667,11 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
                   })()}
                 </>
               )}
-              {job.spec.firstTag && (
-                <Line>
-                  {t('app.job.made.tags', {
-                    first: job.spec.firstTag,
-                    last: suggestTags(job.spec.firstTag, job.spec.count).at(-1) ?? job.spec.firstTag,
-                  })}
-                </Line>
-              )}
             </>
           )}
           {job.kind === 'import' && job.sheet && (
             <>
-              <Line>{t('app.job.made.file', { file: job.sheet.fileName })}</Line>
+              {fileName && <Line>{t('app.job.made.file', { file: fileName })}</Line>}
               <Line>{tp('app.job.made.importReady', job.sheet.ready)}</Line>
               {job.sheet.fix.length > 0 && (
                 <Line>
@@ -562,6 +700,34 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
             </Line>
           )}
         </Box>
+        {job.kind === 'batch' && plan && shownNames.length > 1 && (
+          <>
+            <Link
+              component="button"
+              type="button"
+              variant="body2"
+              onClick={() => setEachOpen(!eachOpen)}
+              sx={{ alignSelf: 'flex-start', minHeight: 44 }}
+              data-job-each=""
+            >
+              {t('app.job.made.each')}
+            </Link>
+            <Collapse in={eachOpen} unmountOnExit>
+              <Box component="ol" sx={{ m: 0, pl: 3 }}>
+                {shownNames.map((n, i) => {
+                  const c = plan.children?.[i];
+                  return (
+                    <Typography component="li" variant="body2" key={n}>
+                      {plan.preset === 'clones'
+                        ? `${n}${c?.tag ? ` · ${c.tag}` : ''}`
+                        : `${n} · ${sexWords(c?.sex, tr)} · ${c?.individualId || t('app.job.made.noId')}`}
+                    </Typography>
+                  );
+                })}
+              </Box>
+            </Collapse>
+          </>
+        )}
       </Block>
 
       {/* 3. When you approve */}
@@ -598,7 +764,12 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
         </Link>
         <Collapse in={publicOpen} unmountOnExit>
           {job.kind === 'ready' && job.steps.length ? (
-            <DisclosureReceipt circuits={['anchor']} dense />
+            <Stack spacing={1}>
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                {t('app.job.approve.publicStamp')}
+              </Typography>
+              <DisclosureReceipt circuits={['anchor']} dense />
+            </Stack>
           ) : (
             <Typography variant="body2">
               {job.kind === 'due' ? t('app.job.approve.publicReports') : t('app.job.approve.publicRecords')}
@@ -613,42 +784,10 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
         </Typography>
       </Block>
 
-      {/* 4. The backup, when new keys need it */}
-      {job.backupNeeded && !readOnly && (
-        <Box data-job-block="backup">
-          {backupDone(job) && !inBackup ? (
-            <Alert severity="success" variant="outlined">
-              {t('app.job.backup.done')}
-            </Alert>
-          ) : (
-            <>
-              <Alert severity="warning" variant="outlined" sx={{ mb: 2 }}>
-                {job.kind === 'ready' ? t('app.job.backup.ready') : tp('app.job.backup.records', count || 1)}
-              </Alert>
-              <BackupStep
-                title={t('app.ask.batch.backupTitle')}
-                finishLabel={t('app.job.backup.finish')}
-                headingComponent="h2"
-                onDone={() => {
-                  setInBackup(false);
-                  setBackupTick((n) => n + 1);
-                }}
-              />
-            </>
-          )}
-        </Box>
-      )}
-
-      {error && (
-        <Alert severity="error" variant="outlined" role="alert" data-job-error="">
-          {error}
-          {detail && <Box sx={{ mt: 0.5 }}>{detail}</Box>}
-        </Alert>
-      )}
-
-      {/* 5. The bar: always in reach at the bottom of the screen */}
-      {!readOnly && (
+      {/* 4. The bar: always in reach at the bottom of the screen, aside while the backup is saved */}
+      {!readOnly && !inBackup && (
         <Paper
+          ref={bar}
           elevation={6}
           data-approve-bar=""
           sx={{ position: 'sticky', bottom: 0, zIndex: 2, p: 1.5, borderRadius: 0, mx: { xs: -2, sm: 0 } }}
@@ -657,20 +796,51 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
             <Typography variant="body2" sx={{ fontWeight: 700 }} data-approve-left="">
               {left}
             </Typography>
-            <Button
-              variant="contained"
-              size="large"
-              fullWidth
-              disabled={!canApprove}
-              onClick={() => void approve()}
-              data-job-approve=""
-            >
-              {approveLabel}
-            </Button>
-            <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between' }}>
-              <Button color="inherit" disabled={busy} onClick={() => void change()} sx={{ minHeight: 44 }}>
-                {t('app.job.btn.change')}
+            {!asks.length && questions.includes('backup') ? (
+              <Button variant="contained" size="large" fullWidth onClick={openBackup} data-job-backup-bar="">
+                {t('app.job.btn.backup')}
               </Button>
+            ) : (
+              <Button
+                variant="contained"
+                size="large"
+                fullWidth
+                disabled={!canApprove}
+                onClick={() => void approve()}
+                data-job-approve=""
+              >
+                {approveLabel}
+              </Button>
+            )}
+            {confirmChange && (
+              <Alert
+                severity="info"
+                variant="outlined"
+                action={
+                  <Button color="inherit" onClick={() => void change()} sx={{ minHeight: 44 }} data-job-change-go="">
+                    {t('app.job.btn.change')}
+                  </Button>
+                }
+              >
+                {t('app.job.changeConfirm')}
+              </Alert>
+            )}
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ justifyContent: job.kind === 'batch' ? 'space-between' : 'flex-end' }}
+            >
+              {job.kind === 'batch' && (
+                <Button
+                  color="inherit"
+                  disabled={busy}
+                  onClick={() => setConfirmChange(!confirmChange)}
+                  sx={{ minHeight: 44 }}
+                  data-job-change=""
+                >
+                  {t('app.job.btn.change')}
+                </Button>
+              )}
               <Button
                 color="inherit"
                 disabled={busy}
@@ -790,33 +960,50 @@ const FilePick: React.FC<{ disabled: boolean; onFile: (f: File) => void }> = ({ 
 
 // ---- after approval ----------------------------------------------------------------------------
 
-const JobProgress: React.FC<{ job: Job }> = ({ job }) => {
+/** "in 2 min (12:47 AM)" within the hour, else the date and time. */
+const whenText = (ms: number, tr: Translator): string => {
+  const min = Math.max(1, Math.round((ms - Date.now()) / 60_000));
+  const time = tr.date(ms, { hour: 'numeric', minute: '2-digit' });
+  return min <= 60 ? tr.t('app.job.when.soon', { n: String(min), time }) : localStamp(ms, tr.locale);
+};
+
+const JobProgress: React.FC<{ job: Job; fromApp: boolean }> = ({ job, fromApp }) => {
   const tr = useT();
   const { t, tp } = tr;
   const records = useRecords();
   const recordName = nameOf(records, job.refs.recordId);
   const count = job.kind === 'batch' ? (job.spec?.count ?? 0) : (job.sheet?.ready ?? 0);
+  const newIds = heldIds(job);
+  const reportOf = (s: Step) => job.refs.reports?.[reportIndex(s.id)];
   const stepText = (s: Step) =>
     s.kind === 'records'
       ? tp('app.job.step.records', count)
       : s.kind === 'stamp'
         ? t('app.job.step.stamp', { name: recordName })
-        : (() => {
-            const ref = job.refs.reports?.[reportIndex(s.id)];
-            return t('app.job.step.report', {
-              from: ref ? tr.date(`${ref.periodFrom}T12:00:00`) : '',
-              to: ref ? tr.date(`${ref.periodTo}T12:00:00`) : '',
-            });
-          })();
+        : t('app.job.step.report', {
+            from: reportOf(s) ? tr.date(`${reportOf(s)!.periodFrom}T12:00:00`) : '',
+            to: reportOf(s) ? tr.date(`${reportOf(s)!.periodTo}T12:00:00`) : '',
+          });
+  const waitingStep = (s: Step) => s.state === 'waiting' || (s.state === 'todo' && !!s.nextTryAt);
   const stateText = (s: Step) =>
-    s.state === 'waiting' || (s.state === 'todo' && s.nextTryAt)
-      ? t('app.job.state.waiting', { when: localStamp(s.nextTryAt ?? Date.now(), tr.locale) })
+    waitingStep(s)
+      ? t('app.job.state.waiting', { when: whenText(s.nextTryAt ?? Date.now(), tr) })
       : t(`app.job.state.${s.state}` as AppKey);
-  const heading = t(`app.job.progress.${job.state}` as AppKey);
+  const waiting = (job.state === 'running' || job.state === 'approved') && job.steps.some(waitingStep);
+  const heading = t(waiting ? 'app.job.progress.waiting' : (`app.job.progress.${job.state}` as AppKey));
+  // Young saved without their IDs: Home will remind the person (AddIds.tsx).
+  const missingIds =
+    job.kind === 'batch' && job.spec?.preset === 'offspring'
+      ? newIds.filter((id) => {
+          const r = records.find((x) => x.id === id);
+          return r && !r.refId;
+        }).length
+      : 0;
+  const amountWhy = (why?: string) => (why?.startsWith('amount:') ? why.slice('amount:'.length) : undefined);
   return (
     <Stack spacing={2.5} data-job-progress={job.state}>
       <ScreenHeading>{heading}</ScreenHeading>
-      <Typography variant="body1">{titleOf(job, records, tr).replace(/^[^:：]*[:：]\s*/, '')}</Typography>
+      <Typography variant="body1">{jobTitle(job, records, tr)}</Typography>
       <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
         {job.steps.map((s) => (
           <Typography component="li" variant="body2" key={s.id} data-job-step={s.kind} data-job-step-state={s.state}>
@@ -825,25 +1012,47 @@ const JobProgress: React.FC<{ job: Job }> = ({ job }) => {
         ))}
       </Box>
       {job.steps.map((s) =>
-        s.state === 'needsYou' ? (
+        s.state === 'needsYou' && s.why === 'lapsed' ? (
+          <Alert key={s.id} severity="warning" variant="outlined" data-job-needs="lapsed">
+            {t('app.job.needs.lapsed')}
+            {fromApp && (
+              <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap' }}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => void tryAgain(job.id, s.id).then(() => runnerTick())}
+                >
+                  {t('app.job.sendNow')}
+                </Button>
+                {!anyStarted(job) && (
+                  <Button size="small" onClick={() => void discardJob(job.id)}>
+                    {t('app.job.btn.discard')}
+                  </Button>
+                )}
+              </Stack>
+            )}
+          </Alert>
+        ) : s.state === 'needsYou' && s.why === 'stuck' ? (
+          <Alert key={s.id} severity="warning" variant="outlined" data-job-needs="stuck">
+            {t('app.job.needs.stuck')}
+          </Alert>
+        ) : s.state === 'needsYou' ? (
           <Alert key={s.id} severity="warning" variant="outlined" data-job-needs={s.kind}>
             {s.kind === 'report' ? t('app.job.needs.report') : t('app.job.needs.stamp')}
             {s.why && s.why !== 'may-have-gone' && <Box sx={{ mt: 0.5 }}>{t('app.job.why', { why: s.why })}</Box>}
             <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap' }}>
-              <Button
-                variant="contained"
-                size="small"
-                onClick={() => void tryAgain(job.id, s.id).then(() => runnerTick())}
-                data-job-try-again=""
-              >
-                {t('app.job.tryAgain')}
-              </Button>
-              {s.kind === 'report' ? (
+              {s.kind === 'report' && fromApp && (job.state === 'running' || job.state === 'approved') && (
                 <Button
+                  variant="contained"
                   size="small"
-                  component={RouterLink}
-                  to={`/license-invite/${job.refs.reports?.[reportIndex(s.id)]?.inviteId ?? ''}`}
+                  onClick={() => void tryAgain(job.id, s.id).then(() => runnerTick())}
+                  data-job-try-again=""
                 >
+                  {t('app.job.tryAgain')}
+                </Button>
+              )}
+              {s.kind === 'report' ? (
+                <Button size="small" component={RouterLink} to={`/license-invite/${reportOf(s)?.inviteId ?? ''}`}>
                   {t('app.job.openAgreement')}
                 </Button>
               ) : (
@@ -853,14 +1062,22 @@ const JobProgress: React.FC<{ job: Job }> = ({ job }) => {
               )}
             </Stack>
           </Alert>
+        ) : s.state === 'failed' && amountWhy(s.why) ? (
+          <Alert key={s.id} severity="error" variant="outlined" data-job-failed="amount">
+            {t('app.job.failed.amount', { amount: amountWhy(s.why)! })}
+          </Alert>
         ) : s.state === 'failed' && s.why ? (
           <Alert key={s.id} severity="error" variant="outlined" data-job-failed={s.kind}>
             {t('app.job.why', { why: s.why })}
           </Alert>
+        ) : s.state === 'todo' && s.why && s.kind === 'records' ? (
+          <Alert key={s.id} severity="info" variant="outlined" data-job-retry={s.kind}>
+            {tp('app.job.wait.records', count)}
+            <Box sx={{ mt: 0.5 }}>{t('app.job.approve.offline')}</Box>
+          </Alert>
         ) : s.state === 'todo' && s.why ? (
           <Alert key={s.id} severity="info" variant="outlined" data-job-retry={s.kind}>
             {t('app.job.approve.offline')}
-            <Box sx={{ mt: 0.5 }}>{t('app.job.why', { why: s.why })}</Box>
           </Alert>
         ) : null,
       )}
@@ -873,12 +1090,19 @@ const JobProgress: React.FC<{ job: Job }> = ({ job }) => {
                 ? t('app.job.done.already')
                 : t('app.job.done.reports')
               : t('app.job.done.ready', { name: recordName })}
+          {missingIds > 0 && <Box sx={{ mt: 0.5 }}>{tp('app.job.done.ids', missingIds)}</Box>}
         </Alert>
       )}
       {job.state === 'discarded' && <Typography variant="body2">{t('app.job.discarded')}</Typography>}
-      <Button component={RouterLink} to="/records" variant="outlined" sx={{ alignSelf: 'flex-start' }}>
-        {t('app.job.toRecords')}
-      </Button>
+      {job.state === 'done' && (job.kind === 'batch' || job.kind === 'import') && newIds[0] ? (
+        <Button component={RouterLink} to={`/record/${newIds[0]}`} variant="outlined" sx={{ alignSelf: 'flex-start' }}>
+          {t('app.job.openNew')}
+        </Button>
+      ) : (
+        <Button component={RouterLink} to="/records" variant="outlined" sx={{ alignSelf: 'flex-start' }}>
+          {t('app.job.toRecords')}
+        </Button>
+      )}
     </Stack>
   );
 };

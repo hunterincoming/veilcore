@@ -341,16 +341,23 @@ deterministic. Every record name in the browser is masked first, received ones t
 someone else chose can't split the text; values bind only to the person's own records. At most
 3 clauses, split on joining words in the five languages, Japanese て-form and 「、」 included.
 Each clause's reader must use every word but a fixed list of fillers: a leftover word or any
-negation refuses the whole plan. The hint's example, unedited, never starts a job. Every value
+negation refuses the whole plan ("no tag yet" is read as IDs to follow, not a negation). A name
+two of the person's own records share is refused. A refusal says what it understood, which words
+it couldn't use, and offers a shorter sentence made only from the words typed (or "get <their
+record> ready to license" in their language) for them to send. The hint's example, unedited,
+never starts a job. `src/ask/plan-phrases.test.ts` holds the users' review phrasings, in five
+languages. Every value
 carries its source (typed span, own record, the frozen rule "today", or the person on the result
 screen); `provenanceHolds` checks it in the tests. The optional on-device model is not used to
 plan jobs.
 
 **Nothing is sent while a job is got ready**, except for "What's due": each agreement's messages
 are read fresh from the deal channel (reads with the deal's write token, never the holder key),
-never from what a page read earlier. Records are sealed here and held for the backup (the
-bulk-import ledger's `held` state); sealing needs this browser's vault key already here, and
-without it Ask says "Open VeilCore once with a connection first." `e2e/ask-job.spec.ts` counts
+never from what a page read earlier, and what each report will come to (the top-up to a yearly
+minimum included) is fixed in the plan from that read. Jobs are never got ready on a check or
+prove page. Records are sealed here and held for the backup (the bulk-import ledger's `held`
+state, each row marked with its job, never shared between jobs); sealing needs this browser's
+vault key already here (read locally, no request), and without it Ask says "Open VeilCore once with a connection first." `e2e/ask-job.spec.ts` counts
 the requests while a batch is got ready, online and with the network off: none.
 
 **Approve** sends the hash of the plan the page drew. In one IndexedDB transaction the job is
@@ -362,8 +369,11 @@ bubble on a job's page.
 
 **The runner** (`src/ask-job/run.ts`) carries out approved jobs only, only where the page may
 send the holder's requests and the tab is visible (never on `/prove` or `/verify`, the same rule
-as the stamp background), one runner across tabs. Each step is written as running before it
-sends. Records are sent from the ledger as themselves (a resend is the same records); a report is
+as the stamp background; a records send also stops between batches if the page changes), one
+runner across tabs, its lease checked before each step. Each step is written as running before it
+sends, and nothing is sent unless the ledger's `pending` write succeeded. A report is signed only
+if it comes to exactly the amount and currency Approve showed; otherwise nothing is signed and the
+page says the new amount. Records are sent from the ledger as themselves (a resend is the same records); a report is
 read for fresh and signed once (`deal-client.ts sayOnce`), so a retry after a lost answer finds
 it and sends no second one; a stamp goes through the existing stamp path, its queue entry
 marked as started by the approved job, with the stamp queue's "may have gone out" stop. An
@@ -377,10 +387,16 @@ unknown outcome stops and asks. There is no automatic rollback.
   request that a batch is rebuilt from (counts, a sire's code, a first tag) and the answers given
   on the result screen. A report's typed figures are kept only until that report is sent.
 - never holds the request as typed, tokens, secrets, or a copy of what another store keeps.
-- expiry is checked on every read: a job not done within 72 hours of being made stops and needs a
-  new review (records already on their way still finish: a resend is the same records); any job
-  is deleted 7 days after it ends. Records it held and never sent are dropped then, through
-  `dropHeld`, which deletes only `held` rows of that job's own hashes.
+- expiry is checked on every read. A job waiting for approval expires 72 hours after it was made
+  (a report job at the end of its earliest report's due day, if sooner). An approved job that has
+  started, or whose records are `pending`, never lapses; 30 days after approval it stops for the
+  person to look at. An approved records job not sent by its deadline asks ("Send now" or
+  "Discard") and never loses its records; an approved report or stamp job not started expires.
+  Any job is deleted 7 days after it ends. Held records are dropped, through `dropHeld` (only
+  `held` rows of that job), only for a job whose records step never started; a job's stamps not
+  yet made leave the stamp queue when it ends.
+- young saved without IDs are listed on Home from the records themselves ("Bella's litter (6):
+  add IDs"), not from the job, with a box to paste a column; each ID is saved as a correction.
 
 Also on the device while a job waits: its records in the bulk-import ledger as `held` rows, and
 their new keys. A backup made while a job waits holds those keys, for records that may never be

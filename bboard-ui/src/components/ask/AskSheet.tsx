@@ -54,7 +54,8 @@ import type { EngineState } from './useAskEngine';
 import { planJob, type PlanResult } from '../../ask/plan';
 // Part of the sheet's own file, so a job can be got ready with no signal (the barn).
 import { prepareJob, type Refusal } from '../../ask-job/prepare';
-import { JOB_STATE_KEY, jobWords } from '../../ask-job/words';
+import { JOB_STATE_KEY, jobWords, readySentence } from '../../ask-job/words';
+import { holderRequestsPaused } from '../../veilcore/holder-guard';
 
 // The optional on-device model: its files only in a build with VITE_ASK_MODEL (vite.config.ts
 // makes it a constant, so without it these imports, the workers and WebLLM are left out).
@@ -83,6 +84,7 @@ const CAN: readonly AppKey[] = [
   'app.ask.can.3',
   'app.ask.can.4',
   'app.ask.can.5',
+  'app.job.can',
 ];
 
 const KINDS: readonly DraftKind[] = [
@@ -254,27 +256,30 @@ export default function AskSheet({
           </Typography>
         )}
         {chips(CHIPS)}
-        <Box>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={doIt}
-                onChange={(e) => {
-                  setDoIt(e.target.checked);
-                  // The job's page, fetched now while there may be a signal: it opens offline too.
-                  if (e.target.checked) void import('./JobPage').catch(() => undefined);
-                }}
-                data-ask-doit=""
-              />
-            }
-            label={t('app.job.mode')}
-          />
-          {doIt && (
-            <Typography variant="body2" color="text.secondary">
-              {t('app.job.modeHelp')}
-            </Typography>
-          )}
-        </Box>
+        {/* Never on a check or prove page: a job isn't got ready there (holder-guard.ts). */}
+        {!holderRequestsPaused() && (
+          <Box>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={doIt}
+                  onChange={(e) => {
+                    setDoIt(e.target.checked);
+                    // The job's page, fetched now while there may be a signal: it opens offline too.
+                    if (e.target.checked) void import('./JobPage').catch(() => undefined);
+                  }}
+                  data-ask-doit=""
+                />
+              }
+              label={t('app.job.mode')}
+            />
+            {doIt && (
+              <Typography variant="body2" color="text.secondary">
+                {t('app.job.modeHelp')}
+              </Typography>
+            )}
+          </Box>
+        )}
         <Box
           component="form"
           onSubmit={(e) => {
@@ -309,7 +314,18 @@ export default function AskSheet({
                   </Typography>
                 )}
                 {turn.job ? (
-                  <JobTurn id={turn.id} plan={turn.job} onClose={onClose} chips={chips} />
+                  <JobTurn
+                    id={turn.id}
+                    plan={turn.job}
+                    onClose={onClose}
+                    chips={chips}
+                    onUse={(text) => {
+                      // Made only from what the person typed and their own record names: a
+                      // sentence they send themselves, not the hint's.
+                      setText(text.slice(0, ASK_MAX_CHARS));
+                      setTimeout(() => input.current?.focus(), 0);
+                    }}
+                  />
                 ) : (
                   <Answer result={turn.result} records={records} onClose={onClose} chips={chips} />
                 )}
@@ -352,7 +368,9 @@ const JobTurn: React.FC<{
   plan: PlanResult;
   onClose: () => void;
   chips: (a: readonly AskAction[]) => React.ReactNode;
-}> = ({ id, plan, onClose, chips }) => {
+  /** Put a sentence in the box, for the person to send. */
+  onUse: (text: string) => void;
+}> = ({ id, plan, onClose, chips, onUse }) => {
   const tr = useT();
   const { t } = tr;
   const navigate = useNavigate();
@@ -380,15 +398,50 @@ const JobTurn: React.FC<{
       live = false;
     };
   }, [id]);
-  if (plan.type === 'refuse')
+  if (plan.type === 'refuse') {
+    // What it understood, what it couldn't use, and a sentence that works, for the person to send.
+    const sentences = (plan.suggest ?? []).map((s) => ('text' in s ? s.text : readySentence(tr, s.ready)));
     return (
       <Card data="job-refused">
+        {plan.understood && (
+          <Typography variant="body2" data-job-understood="">
+            {t('app.job.understood', { text: plan.understood })}
+          </Typography>
+        )}
         <Typography variant="body2" data-job-refused={plan.why}>
           {t(`app.job.no.${plan.why}` as AppKey, { words: (plan.words ?? []).join(' ') })}
         </Typography>
-        {chips(plan.closest)}
+        {sentences.length > 0 && (
+          <Stack spacing={1}>
+            {sentences.map((text) => (
+              <Button
+                key={text}
+                variant="outlined"
+                onClick={() => onUse(text)}
+                sx={{ alignSelf: 'flex-start', textTransform: 'none', textAlign: 'left' }}
+                data-job-use=""
+              >
+                {t('app.job.use', { text })}
+              </Button>
+            ))}
+          </Stack>
+        )}
+        {plan.why === 'notFound' && (
+          <Button
+            variant="outlined"
+            onClick={() => {
+              onClose();
+              void navigate('/new');
+            }}
+            sx={{ alignSelf: 'flex-start' }}
+          >
+            {t('app.job.newRecord')}
+          </Button>
+        )}
+        {!sentences.length && plan.why !== 'notFound' && chips(plan.closest)}
       </Card>
     );
+  }
   if (!out || 'id' in out)
     return (
       <Card data="job-working">

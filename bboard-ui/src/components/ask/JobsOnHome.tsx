@@ -1,7 +1,9 @@
-// "Do it for me" on Home: a job waiting to be checked, one being done or needing the person, a
-// record got ready to license ("Blue Dream: ready to license", or "ready tomorrow" while its
-// stamp waits), and young saved without their IDs ("Add 6 IDs"). One line and one button each,
-// like Pick up where you left off (PickUp.tsx); nothing when there's nothing. A stamp still
+// "Do it for me" on Home: each job by what it is ("Check: 3 Blue Dream clones", "Needs you: 3
+// reports to send"), a record got ready to license ("Blue Dream: ready to license", or "ready
+// tomorrow" while its stamp is held for tomorrow), and young saved without their IDs ("Bella's
+// litter (6): add IDs", which opens a paste-a-column box: AddIds.tsx). The IDs line comes from the
+// records themselves, not from a job, so it lasts until the IDs are added. One line and one button
+// each, like Pick up where you left off (PickUp.tsx); nothing when there's nothing. A stamp still
 // waiting is listed there already ("1 stamp waiting"), from the stamp queue.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -12,9 +14,10 @@ import { useT } from '../../i18n/app';
 import { useRecords } from '../../veilcore/records';
 import { useRecordKeys } from '../../veilcore/record-keys';
 import { useAgreementsWaitForBackup } from '../../veilcore/licenses';
-import { loadLedger } from '../../veilcore/bulk-import';
+import { localDay } from '../../veilcore/royalty-terms';
 import { listJobs, onJobsChange, type Job } from '../../ask-job/store';
-import { JOB_STATE_KEY } from '../../ask-job/words';
+import { JOB_STATE_KEY, jobTitle } from '../../ask-job/words';
+import { AddIds, littersWithoutIds, type Litter } from './AddIds';
 
 const useJobs = (): Job[] => {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -32,23 +35,30 @@ const useJobs = (): Job[] => {
 };
 
 export const JobsOnHome: React.FC = () => {
-  const { t, tp } = useT();
+  const tr = useT();
+  const { t, tp } = tr;
   const navigate = useNavigate();
   const jobs = useJobs();
   const records = useRecords();
   useRecordKeys();
   const waitsForBackup = useAgreementsWaitForBackup();
+  const [litter, setLitter] = useState<Litter>();
   const lines: { key: string; text: string; go: () => void }[] = [];
   const openJob = (j: Job) => () => void navigate(`/ask/job/${j.id}`, { state: { [JOB_STATE_KEY]: j.id } });
   const name = (id?: string) => records.find((r) => r.id === id)?.strainName ?? '';
   for (const j of jobs) {
-    if (j.state === 'ready') lines.push({ key: j.id, text: t('app.job.home.check'), go: openJob(j) });
+    const what = jobTitle(j, records, tr);
+    if (j.state === 'ready') lines.push({ key: j.id, text: t('app.job.home.check', { what }), go: openJob(j) });
     else if (j.state === 'approved' || j.state === 'running')
       lines.push({
         key: j.id,
-        text: j.steps.some((s) => s.state === 'needsYou') ? t('app.job.home.needs') : t('app.job.home.running'),
+        text: j.steps.some((s) => s.state === 'needsYou')
+          ? t('app.job.home.needs', { what })
+          : t('app.job.home.running', { what }),
         go: openJob(j),
       });
+    else if (j.state === 'stopped' && j.steps.some((s) => s.state === 'needsYou'))
+      lines.push({ key: j.id, text: t('app.job.home.needs', { what }), go: openJob(j) });
     if (
       j.kind === 'ready' &&
       j.refs.recordId &&
@@ -72,21 +82,14 @@ export const JobsOnHome: React.FC = () => {
           go: () => void navigate(`/record/${id}`),
         });
     }
-    if (j.kind === 'batch' && j.spec?.preset === 'offspring' && j.state === 'done') {
-      const rows = loadLedger().rows;
-      const ids = (j.refs.rowHashes ?? []).flatMap((h) => (rows[h] ? [rows[h].recordId] : []));
-      const missing = ids.filter((id) => {
-        const r = records.find((x) => x.id === id);
-        return r && !r.refId;
-      });
-      if (missing.length)
-        lines.push({
-          key: `${j.id}-ids`,
-          text: tp('app.job.home.ids', missing.length),
-          go: () => void navigate(`/record/${missing[0]}`),
-        });
-    }
   }
+  const litters = littersWithoutIds(records, localDay());
+  for (const l of litters.slice(0, 3))
+    lines.push({
+      key: `ids-${l.key}`,
+      text: tp('app.job.home.ids', l.young.length, { dam: l.dam }),
+      go: () => setLitter(l),
+    });
   if (!lines.length) return null;
   return (
     <Paper variant="outlined" sx={{ p: 2 }} data-home-jobs="">
@@ -105,6 +108,7 @@ export const JobsOnHome: React.FC = () => {
           </Stack>
         ))}
       </Stack>
+      {litter && <AddIds litter={litter} onClose={() => setLitter(undefined)} />}
     </Paper>
   );
 };
