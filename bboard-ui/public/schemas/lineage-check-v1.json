@@ -1,0 +1,11 @@
+{
+  "id": "veilcore/schema/lineage-check/v1",
+  "title": "A laboratory's check that one sample is consistent with descent from one or two named parents by a stated genotyping method. Slot 0 is the call: 1 consistent, 0 excluded. Slot 1 is the number of markers compared, slots 2 and 3 the conflicts with the first and the second parent named. Which records were compared (by their proof codes), the method and the panel are in the laboratory's signed result statement (veilcore/lab-result/v2); no genotype is in either. Consistent with descent is not proof of descent. The laboratory signs the record. Published by VeilCore (veilcore.org).",
+  "slots": [
+    { "slot": 0, "type": "uint", "path": "lineage.consistent", "scale": 1, "comparable": true },
+    { "slot": 1, "type": "uint", "path": "lineage.compared", "scale": 1, "comparable": false },
+    { "slot": 2, "type": "uint", "path": "lineage.conflictsFirst", "scale": 1, "comparable": false },
+    { "slot": 3, "type": "uint", "path": "lineage.conflictsSecond", "scale": 1, "comparable": false }
+  ],
+  "k": 1
+}

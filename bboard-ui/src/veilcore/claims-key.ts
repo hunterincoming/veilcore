@@ -128,6 +128,20 @@ export const bindingHash = (keyText: string, aboutProofCode: string, reportAttes
   return toHex(sha256(cat(KEY_TAG, fromHex(keyText), fromHex(aboutProofCode), enc.encode(reportAttestationId))));
 };
 
+const RESULT_TAG = enc.encode('veilcore:lab-result-binding:v2\0');
+
+/**
+ * A lab result v2's binding (lab-result.ts): this key, on this result, about the record it was
+ * tested from. A v2 result names its sample's record inside what the lab signed, so its binding
+ * stands on its own rather than on a report signature; withdrawing the binding withdraws the
+ * name. Its own tag, so it can never be read as a v1 binding or the other way round.
+ */
+export const resultBindingHash = (keyText: string, aboutProofCode: string): string => {
+  if (!/^[0-9a-f]{128}$/.test(keyText) || !/^[0-9a-f]{64}$/.test(aboutProofCode))
+    throw new Error('a claims key and a proof code');
+  return toHex(sha256(cat(RESULT_TAG, fromHex(keyText), fromHex(aboutProofCode))));
+};
+
 const ownerMessage = (attesterPublicKeyHex: string): Uint8Array => {
   if (!/^[0-9a-f]{64}$/.test(attesterPublicKeyHex)) throw new Error('an Ed25519 public key');
   return sha256(cat(OWNER_TAG, fromHex(attesterPublicKeyHex)));
@@ -193,6 +207,12 @@ export const findBinding = <A extends BindingCandidate>(
   | { readonly kind: 'conflict' }
   | { readonly kind: 'none' } => {
   const keyText = claimsKeyText(key);
+  let v2Hash: string | undefined;
+  try {
+    v2Hash = resultBindingHash(keyText, aboutProofCode);
+  } catch {
+    v2Hash = undefined;
+  }
   const reports = aboutAttestations.filter(
     (r) =>
       r.type === 'laboratory-report' &&
@@ -218,15 +238,17 @@ export const findBinding = <A extends BindingCandidate>(
     )
     .map((a) => ({
       a,
+      // A v2 result's binding stands on its own (resultBindingHash); a v1 one on a report it names.
+      v2: a.documentHash === v2Hash,
       report: reports.find(
         (r) => r.attester.publicKey === a.attester.publicKey && hashFor(r.attestationId) === a.documentHash,
       ),
     }))
-    .filter((m) => m.report !== undefined);
+    .filter((m) => m.v2 || m.report !== undefined);
   const labs = new Set(matched.map((m) => m.a.attester.publicKey));
   if (labs.size > 1) return { kind: 'conflict' };
   if (matched.length === 0) return { kind: 'none' };
   const standing = (x: unknown) => x === null || x === undefined;
-  const live = matched.find((m) => standing(m.a.retraction) && standing(m.report?.retraction));
+  const live = matched.find((m) => standing(m.a.retraction) && (m.v2 || standing(m.report?.retraction)));
   return live ? { kind: 'bound', attestation: live.a } : { kind: 'retracted', attestation: matched[0].a };
 };

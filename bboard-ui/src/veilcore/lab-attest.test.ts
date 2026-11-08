@@ -250,6 +250,11 @@ describe('on veilcore.org', () => {
     expect(src('../components/flow/LabResults.tsx')).toContain('LAB_SIGNING_ENABLED && file && kind &&');
     expect(src('../components/flow/LabResults.tsx')).toContain('if (numbersBytes && LAB_SIGNING_ENABLED)');
     expect(src('../App.tsx')).not.toContain('/lab"');
-    expect(src('../veilcore/field-set.ts')).toContain('LAB_SIGNING_ENABLED ? Object.keys(SCHEMAS) : []');
+    expect(src('../veilcore/field-set.ts')).toMatch(/LAB_SCHEMAS: readonly string\[\] = LAB_SIGNING_ENABLED\s*\?/);
+    expect(src('../veilcore/field-set.ts')).toMatch(/RESULT_CALL_SCHEMAS\.includes\(id\)\)\s*: \[\]/);
+    // Lab results v2 (lab-result.ts): the lab's tools sign nothing on mainnet, and the delivery
+    // flow's result box is inside the same switch.
+    expect(src('../components/lab/LabResultsPage.tsx')).toContain('!LAB_SIGNING_ENABLED ? (');
+    expect(src('../components/flow/LabResults.tsx')).toContain('if (LAB_SIGNING_ENABLED && withResult)');
   });
 });

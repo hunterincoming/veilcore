@@ -49,6 +49,44 @@ VeilCore says exactly what it can check and nothing more.
    dated match). A withdrawn binding, two labs claiming one key, or none: the numbers read as the
    holder's own.
 
+## Version 2: a result bound to its sample (7 November 2026)
+
+Status: built, on the test network only (the same `LAB_SIGNING_ENABLED` switch). Specified in the
+SDK's SPEC 11.12 (draft), with 63 vectors computed there from the text alone; this app checks
+them (`lab-result.test.ts`).
+
+Version 1 names the plant only by a name the lab typed; the link to the record lived in the
+registry binding, outside what the lab signed. Version 2 keeps the same record, signature and
+claims contract, and adds a **result statement** inside what is signed: the tested record's
+proof code, the sample ID, the lab's accession number, the method and its version, the panel and
+its version, QC figures, the dates tested and received, the call, and optionally an earlier result
+of the lab's it replaces (re-test, correction or retraction). The statement's canonical bytes are
+a `lab-result.json` entry in the record's `files`, so the signature covers it; its call is in the
+field set too (`/schemas/pathogen-v1.json`, `genetic-match`, `lineage-check`, `dna-mark`,
+`lab-retraction`), so a holder can prove "not detected" or "consistent" on Midnight without
+showing the rest. Code: `veilcore/lab-result.ts`.
+
+- **Kinds:** numbers under a form; a pathogen or viroid test (HLVd first: target, method, detected
+  or not, optional Ct, sample type); a comparison "sample A matches record B by method M"; a
+  parentage check "child C consistent with parents A and B by method M"; a DNA mark; a withdrawal.
+  Comparisons name records by proof code only: no genotype is in the result or anywhere else.
+- **DNA marks:** the sequence is sealed as SHA-256 of a tag, a 32-byte salt and the sequence. The
+  lab downloads an opening file (sequence and salt) and keeps it; VeilCore never has it. The check
+  page shows the seal, and in a dispute checks an opening against it. VeilCore doesn't mark, test or
+  watch for DNA.
+- **Where a lab signs:** with a report on a delivery (`LabResults.tsx`, which now makes version 2),
+  or on `/lab/results`: one result, or a CSV of up to 100 rows (pathogen, comparison or parentage),
+  each row its own signed result. Each result is kept as a record the lab holds, so it is dated in
+  the next hourly batch, and the lab posts a binding naming its key on it
+  (`claims-key.ts resultBindingHash`; it stands on its own, without a report signature). A result
+  that replaces one of the lab's own withdraws that one's binding. The lab gets a result file to
+  hand over, and a summary CSV for its LIMS.
+- **Checking:** `/check-lab-result` checks a result file in the browser (form, binding, call,
+  signature), looks up only the lab's binding to print its name, and shows "replaced by" only for a
+  later result signed by the same key. The page reads the holder's own records only when asked
+  (that sends the holder key), and then offers to add the result to the record it was tested from.
+- Version 1 results keep checking exactly as before.
+
 ## The forms (public, at `/schemas/`)
 
 - `variety-similarity/v1`: similarity to ONE named variety (% × 100), markers compared, markers

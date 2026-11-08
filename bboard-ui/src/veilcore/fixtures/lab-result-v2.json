@@ -1,0 +1,2434 @@
+{
+  "spec": "SPEC 11.12, laboratory results version 2",
+  "schemas": {
+    "veilcore/schema/pathogen/v1": {
+      "id": "veilcore/schema/pathogen/v1",
+      "title": "One pathogen or viroid test of one sample (HLVd, a virus, a bacterium), as a laboratory reports it. Slot 0 is the call: 1 detected, 0 not detected. Slot 1 is the cycle threshold (Ct) when the method gives one, times 100. Which target, which method and which sample are in the laboratory's signed result statement (veilcore/lab-result/v2), not here. The laboratory signs the record. Published by VeilCore (veilcore.org).",
+      "slots": [
+        {
+          "slot": 0,
+          "type": "uint",
+          "path": "pathogen.detected",
+          "scale": 1,
+          "comparable": true
+        },
+        {
+          "slot": 1,
+          "type": "uint",
+          "path": "pathogen.ct",
+          "scale": 100,
+          "comparable": false
+        }
+      ],
+      "k": 1
+    },
+    "veilcore/schema/genetic-match/v1": {
+      "id": "veilcore/schema/genetic-match/v1",
+      "title": "A laboratory's comparison of one sample with one other record by a stated genotyping method. Slot 0 is the call: 1 the genotypes match, 0 they do not. Slot 1 is the number of markers compared, slot 2 the number that differ. Which records were compared (by their proof codes), the method and the panel are in the laboratory's signed result statement (veilcore/lab-result/v2); no genotype is in either. The laboratory signs the record. Published by VeilCore (veilcore.org).",
+      "slots": [
+        {
+          "slot": 0,
+          "type": "uint",
+          "path": "match.matches",
+          "scale": 1,
+          "comparable": true
+        },
+        {
+          "slot": 1,
+          "type": "uint",
+          "path": "match.compared",
+          "scale": 1,
+          "comparable": false
+        },
+        {
+          "slot": 2,
+          "type": "uint",
+          "path": "match.differing",
+          "scale": 1,
+          "comparable": false
+        }
+      ],
+      "k": 1
+    },
+    "veilcore/schema/lineage-check/v1": {
+      "id": "veilcore/schema/lineage-check/v1",
+      "title": "A laboratory's check that one sample is consistent with descent from one or two named parents by a stated genotyping method. Slot 0 is the call: 1 consistent, 0 excluded. Slot 1 is the number of markers compared, slots 2 and 3 the conflicts with the first and the second parent named. Which records were compared (by their proof codes), the method and the panel are in the laboratory's signed result statement (veilcore/lab-result/v2); no genotype is in either. Consistent with descent is not proof of descent. The laboratory signs the record. Published by VeilCore (veilcore.org).",
+      "slots": [
+        {
+          "slot": 0,
+          "type": "uint",
+          "path": "lineage.consistent",
+          "scale": 1,
+          "comparable": true
+        },
+        {
+          "slot": 1,
+          "type": "uint",
+          "path": "lineage.compared",
+          "scale": 1,
+          "comparable": false
+        },
+        {
+          "slot": 2,
+          "type": "uint",
+          "path": "lineage.conflictsFirst",
+          "scale": 1,
+          "comparable": false
+        },
+        {
+          "slot": 3,
+          "type": "uint",
+          "path": "lineage.conflictsSecond",
+          "scale": 1,
+          "comparable": false
+        }
+      ],
+      "k": 1
+    },
+    "veilcore/schema/dna-mark/v1": {
+      "id": "veilcore/schema/dna-mark/v1",
+      "title": "A laboratory's record that it looked for a DNA mark in a sample. Slot 0 is the call: 1 the mark was found, 0 it was not. The mark's sequence is never here: the laboratory's signed result statement (veilcore/lab-result/v2) carries only a salted SHA-256 of it, and the sequence is shown only when a dispute needs it. The laboratory signs the record. Published by VeilCore (veilcore.org).",
+      "slots": [
+        {
+          "slot": 0,
+          "type": "uint",
+          "path": "mark.found",
+          "scale": 1,
+          "comparable": true
+        }
+      ],
+      "k": 1
+    },
+    "veilcore/schema/lab-retraction/v1": {
+      "id": "veilcore/schema/lab-retraction/v1",
+      "title": "A laboratory withdraws one of its own earlier results. Slot 0 is always 1. Which result is withdrawn, and why, are in the laboratory's signed result statement (veilcore/lab-result/v2). The laboratory signs the record. Published by VeilCore (veilcore.org).",
+      "slots": [
+        {
+          "slot": 0,
+          "type": "uint",
+          "path": "retraction.withdrawn",
+          "scale": 1,
+          "comparable": true
+        }
+      ],
+      "k": 1
+    },
+    "veilcore/schema/seed-quality/v1": {
+      "id": "veilcore/schema/seed-quality/v1",
+      "title": "Seed quality, as on a seed analysis certificate. Each number is the percentage times 100 (98.50 % is 9850). Published by VeilCore (veilcore.org).",
+      "slots": [
+        {
+          "slot": 0,
+          "type": "uint",
+          "path": "seed.germination",
+          "unit": "%",
+          "scale": 100,
+          "comparable": true
+        },
+        {
+          "slot": 1,
+          "type": "uint",
+          "path": "seed.pureSeed",
+          "unit": "%",
+          "scale": 100,
+          "comparable": true
+        },
+        {
+          "slot": 2,
+          "type": "uint",
+          "path": "seed.otherCropSeed",
+          "unit": "%",
+          "scale": 100,
+          "comparable": true
+        },
+        {
+          "slot": 3,
+          "type": "uint",
+          "path": "seed.weedSeed",
+          "unit": "%",
+          "scale": 100,
+          "comparable": true
+        },
+        {
+          "slot": 4,
+          "type": "uint",
+          "path": "seed.inertMatter",
+          "unit": "%",
+          "scale": 100,
+          "comparable": true
+        },
+        {
+          "slot": 5,
+          "type": "uint",
+          "path": "seed.moisture",
+          "unit": "%",
+          "scale": 100,
+          "comparable": false
+        }
+      ],
+      "k": 1
+    }
+  },
+  "labStatements": [
+    {
+      "name": "pathogen, not detected, the least a result carries",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      },
+      "canonical": "{\"accession\":\"LAB-26-1187\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"pathogen\",\"method\":{\"id\":\"RT-qPCR HLVd SOP-14\",\"version\":\"3\"},\"result\":{\"detected\":false,\"sampleType\":\"leaf\",\"target\":\"HLVd\"},\"sampleId\":\"S-0412\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-05\"}",
+      "sha256": "3eb40091a6df62b818852f6428d10ef28f993b466d0f3e32416a9e67923fe89c",
+      "size": 314
+    },
+    {
+      "name": "pathogen, detected, with Ct, QC, received and a panel",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "received": "2026-11-03",
+        "panel": {
+          "id": "Viroid panel",
+          "version": "2026.1"
+        },
+        "qc": [
+          {
+            "name": "Internal control Ct",
+            "value": "24.1"
+          },
+          {
+            "name": "Extraction blank",
+            "value": "passed"
+          }
+        ],
+        "result": {
+          "target": "HLVd",
+          "sampleType": "root",
+          "detected": true,
+          "ct": "31.5"
+        }
+      },
+      "canonical": "{\"accession\":\"LAB-26-1187\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"pathogen\",\"method\":{\"id\":\"RT-qPCR HLVd SOP-14\",\"version\":\"3\"},\"panel\":{\"id\":\"Viroid panel\",\"version\":\"2026.1\"},\"qc\":[{\"name\":\"Internal control Ct\",\"value\":\"24.1\"},{\"name\":\"Extraction blank\",\"value\":\"passed\"}],\"received\":\"2026-11-03\",\"result\":{\"ct\":\"31.5\",\"detected\":true,\"sampleType\":\"root\",\"target\":\"HLVd\"},\"sampleId\":\"S-0412\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-05\"}",
+      "sha256": "b31424350fdeee27fa42c6d6ad9a2b8af7c6db501dad1faaed8d9076e4c4d617",
+      "size": 496
+    },
+    {
+      "name": "a comparison with another record, by proof code",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "SNP genotyping",
+          "version": "4"
+        },
+        "tested": "2026-11-05",
+        "kind": "match",
+        "panel": {
+          "id": "CannSNP90",
+          "version": "2.1"
+        },
+        "result": {
+          "other": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "matches": true,
+          "compared": 90,
+          "differing": 0
+        }
+      },
+      "canonical": "{\"accession\":\"LAB-26-1187\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"match\",\"method\":{\"id\":\"SNP genotyping\",\"version\":\"4\"},\"panel\":{\"id\":\"CannSNP90\",\"version\":\"2.1\"},\"result\":{\"compared\":90,\"differing\":0,\"matches\":true,\"other\":\"b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\"},\"sampleId\":\"S-0412\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-05\"}",
+      "sha256": "e54a8009eaa873abfbc1f8ab52e3d1a94ad420ca1b34c8e3494671c40817344a",
+      "size": 414
+    },
+    {
+      "name": "a parentage check against two parents",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "SNP parentage",
+          "version": "1"
+        },
+        "tested": "2026-11-05",
+        "kind": "lineage",
+        "result": {
+          "parents": [
+            "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+            "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+          ],
+          "consistent": true,
+          "compared": 88,
+          "conflicts": [
+            0,
+            1
+          ]
+        }
+      },
+      "canonical": "{\"accession\":\"LAB-26-1187\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"lineage\",\"method\":{\"id\":\"SNP parentage\",\"version\":\"1\"},\"result\":{\"compared\":88,\"conflicts\":[0,1],\"consistent\":true,\"parents\":[\"b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\"c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3\"]},\"sampleId\":\"S-0412\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-05\"}",
+      "sha256": "b38cf8a536a3c44b47955e34230af7a3e64b6d1bbee55fe44c375c597e47d430",
+      "size": 450
+    },
+    {
+      "name": "a parentage check against one parent, excluded",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "lineage",
+        "result": {
+          "parents": [
+            "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+          ],
+          "consistent": false
+        }
+      },
+      "canonical": "{\"accession\":\"LAB-26-1187\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"lineage\",\"method\":{\"id\":\"RT-qPCR HLVd SOP-14\",\"version\":\"3\"},\"result\":{\"consistent\":false,\"parents\":[\"b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\"]},\"sampleId\":\"S-0412\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-05\"}",
+      "sha256": "fcc31db02eaa43fa92541cfb15e321922734870e51f4966b475778e6ba661eba",
+      "size": 358
+    },
+    {
+      "name": "a DNA mark, sealed, with the lab’s name for it",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "Mark PCR",
+          "version": "1"
+        },
+        "tested": "2026-11-05",
+        "kind": "dna-mark",
+        "result": {
+          "seal": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "found": true,
+          "label": "Line mark 7"
+        }
+      },
+      "canonical": "{\"accession\":\"LAB-26-1187\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"dna-mark\",\"method\":{\"id\":\"Mark PCR\",\"version\":\"1\"},\"result\":{\"found\":true,\"label\":\"Line mark 7\",\"seal\":\"d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4\"},\"sampleId\":\"S-0412\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-05\"}",
+      "sha256": "28c9dc001e4b8e1c7ef439e805a3ca4ba760feb016a036b4bcaf042cba5fb248",
+      "size": 359
+    },
+    {
+      "name": "a withdrawal of an earlier result",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "retraction",
+        "replaces": {
+          "result": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "reason": "retraction"
+        }
+      },
+      "canonical": "{\"accession\":\"LAB-26-1187\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"retraction\",\"method\":{\"id\":\"RT-qPCR HLVd SOP-14\",\"version\":\"3\"},\"replaces\":{\"reason\":\"retraction\",\"result\":\"b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\"},\"sampleId\":\"S-0412\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-05\"}",
+      "sha256": "1ba28419a668bfb1e5c658c232a4096c05e7a23c3c428e5af6f90ebf51414048",
+      "size": 363
+    },
+    {
+      "name": "a re-test that replaces an earlier result",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        },
+        "replaces": {
+          "result": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+          "reason": "re-test"
+        }
+      },
+      "canonical": "{\"accession\":\"LAB-26-1187\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"pathogen\",\"method\":{\"id\":\"RT-qPCR HLVd SOP-14\",\"version\":\"3\"},\"replaces\":{\"reason\":\"re-test\",\"result\":\"c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3\"},\"result\":{\"detected\":false,\"sampleType\":\"leaf\",\"target\":\"HLVd\"},\"sampleId\":\"S-0412\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-05\"}",
+      "sha256": "7e2177a517048c6fc3abe1ba2bd5b4057a94d2f1957c50a926d33636e8403616",
+      "size": 422
+    },
+    {
+      "name": "numbers under a published form",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "numbers",
+        "result": {
+          "form": "veilcore/schema/seed-quality/v1"
+        }
+      },
+      "canonical": "{\"accession\":\"LAB-26-1187\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"numbers\",\"method\":{\"id\":\"RT-qPCR HLVd SOP-14\",\"version\":\"3\"},\"result\":{\"form\":\"veilcore/schema/seed-quality/v1\"},\"sampleId\":\"S-0412\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-05\"}",
+      "sha256": "07242e8dcb5b89ff3aa4df853db8a5879b34d7e843fa69dd43d7b1960aa33822",
+      "size": 301
+    },
+    {
+      "name": "text is NFC before it is hashed: a decomposed É hashes as the composed one",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "Échantillon-1",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "feuille",
+          "detected": false
+        }
+      },
+      "canonical": "{\"accession\":\"LAB-26-1187\",\"format\":\"veilcore/lab-result/v2\",\"kind\":\"pathogen\",\"method\":{\"id\":\"RT-qPCR HLVd SOP-14\",\"version\":\"3\"},\"result\":{\"detected\":false,\"sampleType\":\"feuille\",\"target\":\"HLVd\"},\"sampleId\":\"Échantillon-1\",\"subject\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"tested\":\"2026-11-05\"}",
+      "sha256": "04d99ec413fab580d7bafc224508c8cc29acac461f1b009649aba00db0074149",
+      "size": 325
+    }
+  ],
+  "labStatementRefusals": [
+    {
+      "name": "an older format",
+      "statement": {
+        "format": "veilcore/lab-result/v1",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      }
+    },
+    {
+      "name": "a field the format doesn’t have",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        },
+        "notes": "x"
+      }
+    },
+    {
+      "name": "no method",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      }
+    },
+    {
+      "name": "a kind the format doesn’t have",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "potency",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      }
+    },
+    {
+      "name": "a subject in upper case",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      }
+    },
+    {
+      "name": "a sample ID with a space at the end",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412 ",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      }
+    },
+    {
+      "name": "an empty accession number",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      }
+    },
+    {
+      "name": "a method without its version",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      }
+    },
+    {
+      "name": "a panel with an empty version",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        },
+        "panel": {
+          "id": "P",
+          "version": ""
+        }
+      }
+    },
+    {
+      "name": "a date tested that isn’t a date",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-02-30",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      }
+    },
+    {
+      "name": "received after tested",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        },
+        "received": "2026-11-06"
+      }
+    },
+    {
+      "name": "an empty QC list (omitted, not empty)",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        },
+        "qc": []
+      }
+    },
+    {
+      "name": "a QC name repeated",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        },
+        "qc": [
+          {
+            "name": "a",
+            "value": "1"
+          },
+          {
+            "name": "a",
+            "value": "2"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Ct with three decimals",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false,
+          "ct": "31.255"
+        }
+      }
+    },
+    {
+      "name": "Ct of 100",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false,
+          "ct": "100"
+        }
+      }
+    },
+    {
+      "name": "detected written as text",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": "no"
+        }
+      }
+    },
+    {
+      "name": "a comparison with the sample’s own record",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "match",
+        "result": {
+          "other": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+          "matches": true
+        }
+      }
+    },
+    {
+      "name": "more markers differing than compared",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "match",
+        "result": {
+          "other": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "matches": false,
+          "compared": 5,
+          "differing": 6
+        }
+      }
+    },
+    {
+      "name": "a parent named twice",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "lineage",
+        "result": {
+          "parents": [
+            "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+            "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+          ],
+          "consistent": true
+        }
+      }
+    },
+    {
+      "name": "conflicts for fewer parents than named",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "lineage",
+        "result": {
+          "parents": [
+            "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+            "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+          ],
+          "consistent": true,
+          "conflicts": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "a mark seal that isn’t a hash",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "dna-mark",
+        "result": {
+          "seal": "xyz",
+          "found": true
+        }
+      }
+    },
+    {
+      "name": "a withdrawal that carries a result",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "retraction",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        },
+        "replaces": {
+          "result": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "reason": "retraction"
+        }
+      }
+    },
+    {
+      "name": "a withdrawal that names nothing",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "retraction"
+      }
+    },
+    {
+      "name": "a re-test given the reason retraction",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        },
+        "replaces": {
+          "result": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "reason": "retraction"
+        }
+      }
+    },
+    {
+      "name": "a reason the format doesn’t have",
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        },
+        "replaces": {
+          "result": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "reason": "because"
+        }
+      }
+    }
+  ],
+  "labBindings": [
+    {
+      "name": "pathogen, not detected",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "9eea08c843ee416d9b8f99af91379750db2b339fd7f455db25669a4480506871",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "3eb40091a6df62b818852f6428d10ef28f993b466d0f3e32416a9e67923fe89c",
+            "size": 314
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      },
+      "values": [
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": true
+    },
+    {
+      "name": "pathogen, detected, Ct 31.5 is 3150",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "9eea08c843ee416d9b8f99af91379750db2b339fd7f455db25669a4480506871",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "b31424350fdeee27fa42c6d6ad9a2b8af7c6db501dad1faaed8d9076e4c4d617",
+            "size": 496
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "received": "2026-11-03",
+        "panel": {
+          "id": "Viroid panel",
+          "version": "2026.1"
+        },
+        "qc": [
+          {
+            "name": "Internal control Ct",
+            "value": "24.1"
+          },
+          {
+            "name": "Extraction blank",
+            "value": "passed"
+          }
+        ],
+        "result": {
+          "target": "HLVd",
+          "sampleType": "root",
+          "detected": true,
+          "ct": "31.5"
+        }
+      },
+      "values": [
+        "1",
+        "3150",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": true
+    },
+    {
+      "name": "a comparison",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "09a438c80ecc3692851565945b4ec2cd0b0005891e9a41cf58569938b1f9a329",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "e54a8009eaa873abfbc1f8ab52e3d1a94ad420ca1b34c8e3494671c40817344a",
+            "size": 414
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "SNP genotyping",
+          "version": "4"
+        },
+        "tested": "2026-11-05",
+        "kind": "match",
+        "panel": {
+          "id": "CannSNP90",
+          "version": "2.1"
+        },
+        "result": {
+          "other": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "matches": true,
+          "compared": 90,
+          "differing": 0
+        }
+      },
+      "values": [
+        "1",
+        "90",
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": true
+    },
+    {
+      "name": "a parentage check, two parents",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "427b345e5d01e42c70b648ce119638b53467e3285dd8e0857f9ac7667213fb6d",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "b38cf8a536a3c44b47955e34230af7a3e64b6d1bbee55fe44c375c597e47d430",
+            "size": 450
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "SNP parentage",
+          "version": "1"
+        },
+        "tested": "2026-11-05",
+        "kind": "lineage",
+        "result": {
+          "parents": [
+            "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+            "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+          ],
+          "consistent": true,
+          "compared": 88,
+          "conflicts": [
+            0,
+            1
+          ]
+        }
+      },
+      "values": [
+        "1",
+        "88",
+        "0",
+        "1",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": true
+    },
+    {
+      "name": "a parentage check, one parent, nothing optional",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "427b345e5d01e42c70b648ce119638b53467e3285dd8e0857f9ac7667213fb6d",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "fcc31db02eaa43fa92541cfb15e321922734870e51f4966b475778e6ba661eba",
+            "size": 358
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "lineage",
+        "result": {
+          "parents": [
+            "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+          ],
+          "consistent": false
+        }
+      },
+      "values": [
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": true
+    },
+    {
+      "name": "a DNA mark",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "2be010b0d708a6d05bc0ae40b262b146022d295ef9e061bd69d911b5ed056628",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "28c9dc001e4b8e1c7ef439e805a3ca4ba760feb016a036b4bcaf042cba5fb248",
+            "size": 359
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "Mark PCR",
+          "version": "1"
+        },
+        "tested": "2026-11-05",
+        "kind": "dna-mark",
+        "result": {
+          "seal": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "found": true,
+          "label": "Line mark 7"
+        }
+      },
+      "values": [
+        "1",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": true
+    },
+    {
+      "name": "a withdrawal",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "51aa2b1d191f6cb3a20d2ec8d86e2eb76f72d60c9d97b140e00b8489f465ea43",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "1ba28419a668bfb1e5c658c232a4096c05e7a23c3c428e5af6f90ebf51414048",
+            "size": 363
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "retraction",
+        "replaces": {
+          "result": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "reason": "retraction"
+        }
+      },
+      "values": [
+        "1",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": true
+    },
+    {
+      "name": "numbers under their own form",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "3b0210c847e45a38a521e776a9c0f541a8022434c2de8f716becb5a31ce0b8bd",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "07242e8dcb5b89ff3aa4df853db8a5879b34d7e843fa69dd43d7b1960aa33822",
+            "size": 301
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "numbers",
+        "result": {
+          "form": "veilcore/schema/seed-quality/v1"
+        }
+      },
+      "values": [
+        "9650",
+        "9800",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": true
+    },
+    {
+      "name": "the statement changed after sealing",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "9eea08c843ee416d9b8f99af91379750db2b339fd7f455db25669a4480506871",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "3eb40091a6df62b818852f6428d10ef28f993b466d0f3e32416a9e67923fe89c",
+            "size": 314
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-9999",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      },
+      "values": [
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    },
+    {
+      "name": "the statement file’s size is wrong",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "9eea08c843ee416d9b8f99af91379750db2b339fd7f455db25669a4480506871",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "3eb40091a6df62b818852f6428d10ef28f993b466d0f3e32416a9e67923fe89c",
+            "size": 315
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      },
+      "values": [
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    },
+    {
+      "name": "two statement files",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "9eea08c843ee416d9b8f99af91379750db2b339fd7f455db25669a4480506871",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "3eb40091a6df62b818852f6428d10ef28f993b466d0f3e32416a9e67923fe89c",
+            "size": 314
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "size": 314
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      },
+      "values": [
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    },
+    {
+      "name": "no statement file",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "9eea08c843ee416d9b8f99af91379750db2b339fd7f455db25669a4480506871",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      },
+      "values": [
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    },
+    {
+      "name": "not a lab report",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "9eea08c843ee416d9b8f99af91379750db2b339fd7f455db25669a4480506871",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "3eb40091a6df62b818852f6428d10ef28f993b466d0f3e32416a9e67923fe89c",
+            "size": 314
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "certificate-of-analysis"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      },
+      "values": [
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    },
+    {
+      "name": "dated another day than tested",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "9eea08c843ee416d9b8f99af91379750db2b339fd7f455db25669a4480506871",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "3eb40091a6df62b818852f6428d10ef28f993b466d0f3e32416a9e67923fe89c",
+            "size": 314
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-06",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      },
+      "values": [
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    },
+    {
+      "name": "under another kind’s form",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "09a438c80ecc3692851565945b4ec2cd0b0005891e9a41cf58569938b1f9a329",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "3eb40091a6df62b818852f6428d10ef28f993b466d0f3e32416a9e67923fe89c",
+            "size": 314
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      },
+      "values": [
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    },
+    {
+      "name": "the call in the field set disagrees",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "9eea08c843ee416d9b8f99af91379750db2b339fd7f455db25669a4480506871",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "3eb40091a6df62b818852f6428d10ef28f993b466d0f3e32416a9e67923fe89c",
+            "size": 314
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      },
+      "values": [
+        "1",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    },
+    {
+      "name": "a number the statement doesn’t have",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "9eea08c843ee416d9b8f99af91379750db2b339fd7f455db25669a4480506871",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "3eb40091a6df62b818852f6428d10ef28f993b466d0f3e32416a9e67923fe89c",
+            "size": 314
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      },
+      "values": [
+        "0",
+        "3100",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    },
+    {
+      "name": "no field set",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "3eb40091a6df62b818852f6428d10ef28f993b466d0f3e32416a9e67923fe89c",
+            "size": 314
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      },
+      "values": [
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    },
+    {
+      "name": "numbers under a call form",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "9eea08c843ee416d9b8f99af91379750db2b339fd7f455db25669a4480506871",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "1773a76d161f9226063d78f38d8157e241d8f0d97863c566b1882f12b2440a9e",
+            "size": 297
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "numbers",
+        "result": {
+          "form": "veilcore/schema/pathogen/v1"
+        }
+      },
+      "values": [
+        "1",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    },
+    {
+      "name": "a statement in a record not of the document profile",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "9eea08c843ee416d9b8f99af91379750db2b339fd7f455db25669a4480506871",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "3eb40091a6df62b818852f6428d10ef28f993b466d0f3e32416a9e67923fe89c",
+            "size": 314
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Example Plant Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/plant-variety/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      },
+      "values": [
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    }
+  ],
+  "markSeals": [
+    {
+      "name": "the shortest mark, a zero salt",
+      "sequence": "ACGTACGTAC",
+      "salt": "0000000000000000000000000000000000000000000000000000000000000000",
+      "seal": "389b8eb3f0dcfdc256d2018dac75208d8053879ac91801b753fe60f65fc41e7c"
+    },
+    {
+      "name": "a 40-letter mark",
+      "sequence": "ACGTTGCAACGTTGCAGGCCTTAAGGCCTTAAACGTACGT",
+      "salt": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+      "seal": "1b2b592ec70d07ab662ca93cb9a1b3afe10e555965300381a0b03600c07b7c11"
+    },
+    {
+      "name": "the same mark, another salt, another seal",
+      "sequence": "ACGTTGCAACGTTGCAGGCCTTAAGGCCTTAAACGTACGT",
+      "salt": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+      "seal": "2f7d4fcf6d6d1311d378dc83f1115cf7c220cfe6c104662f106cfae51988b59e"
+    }
+  ],
+  "markRefusals": [
+    {
+      "name": "nine letters",
+      "sequence": "ACGTACGTA",
+      "salt": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "name": "lower case",
+      "sequence": "acgtacgtac",
+      "salt": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "name": "an ambiguity code",
+      "sequence": "ACGTNACGTA",
+      "salt": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "name": "white space inside",
+      "sequence": "ACGTA CGTAC",
+      "salt": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "name": "a short salt",
+      "sequence": "ACGTACGTAC",
+      "salt": "00000000000000000000000000000000000000000000000000000000000000"
+    }
+  ]
+}

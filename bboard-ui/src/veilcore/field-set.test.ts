@@ -32,6 +32,11 @@ describe('a field set on a document', () => {
   it('the published schemas are the ones served, and their ids are the vectors’', async () => {
     expect(Object.keys(SCHEMAS).sort()).toEqual([
       'veilcore/schema/animal-parentage/v1',
+      'veilcore/schema/dna-mark/v1',
+      'veilcore/schema/genetic-match/v1',
+      'veilcore/schema/lab-retraction/v1',
+      'veilcore/schema/lineage-check/v1',
+      'veilcore/schema/pathogen/v1',
       'veilcore/schema/potency/v1',
       'veilcore/schema/seed-quality/v1',
       'veilcore/schema/variety-identity/v1',
@@ -39,7 +44,8 @@ describe('a field set on a document', () => {
     ]);
     expect(await schemaIdHex('veilcore/schema/potency/v1')).toBe(withSet.fieldSet!.schemaId);
     expect(schemaPath('veilcore/schema/potency/v1')).toBe('/schemas/potency-v1.json');
-    expect(fs.existsSync(path.join(dir, '../../public', schemaPath('veilcore/schema/seed-quality/v1')))).toBe(true);
+    for (const id of Object.keys(SCHEMAS))
+      expect(fs.existsSync(path.join(dir, '../../public', schemaPath(id)))).toBe(true);
   });
 
   it('the holder’s copy makes the root the vectors computed from the spec', async () => {

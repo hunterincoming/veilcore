@@ -1,5 +1,5 @@
 // Numbers a lab signs with its report (docs/lab-signing.md), against a real registry: the lab
-// adds them when sending, the breeder opens the report, adds them as a record, and that record's
+// adds them when sending, as a lab result v2 bound to the delivery's record, the breeder opens the report, adds them as a record, and that record's
 // page names the lab through the lab's own binding, in the wording every page uses. All records
 // and files are practice data.
 // SPDX-License-Identifier: Apache-2.0
@@ -65,14 +65,27 @@ test('a lab signs numbers with its report; the breeder adds them; the record nam
   await (await chooser).setFiles({ name: 'germination.pdf', mimeType: 'application/pdf', buffer: report });
   await lab.getByLabel('Other lab report', { exact: true }).check();
   const box = lab.locator('[data-lab-numbers]');
-  await expect(box).toContainText('Numbers from this report, signed by you');
+  await expect(box).toContainText('A signed result with this report');
+  // A lab result v2 (lab-result.ts): bound to the delivery's record, with the sample and the method.
+  await box.locator('[data-with-result] input').check();
+  await box.getByLabel(/Sample ID/).fill('S-0412');
+  await box.getByLabel(/Your accession number/).fill('GT-2026-0412');
+  await box.getByLabel('Method or SOP').fill('ISTA germination');
+  await box.getByLabel('Method version').fill('2026');
   await box.getByLabel('Which numbers').click();
   // A lab is offered the genetic forms; a holder typing their own numbers never is.
   await expect(lab.getByRole('option', { name: 'Genetic similarity to one named variety' })).toBeVisible();
   await expect(lab.getByRole('option', { name: 'Animal parentage (SNP, ICAR)' })).toBeVisible();
+  // The calls of the other kinds are filled from their own forms, never offered as numbers.
+  await expect(lab.getByRole('option', { name: /Pathogen or viroid test/ })).toHaveCount(0);
   await lab.getByRole('option', { name: 'Seed quality' }).click();
   await box.getByLabel('Germination').fill('96');
   await box.getByLabel(/Name of this result/).fill('GT-2026-0412');
+  if (process.env.E2E_SHOTS) {
+    await lab.setViewportSize({ width: 360, height: 800 });
+    await box.screenshot({ path: `${process.env.E2E_SHOTS}/lab-delivery-result.png` });
+    await lab.setViewportSize({ width: 390, height: 844 });
+  }
   await lab.getByRole('button', { name: /Sign, lock and send/ }).click();
   await expect(lab.getByRole('heading', { name: /^Sent$/ })).toBeVisible();
   expectNoErrors(labErrors);
@@ -85,8 +98,10 @@ test('a lab signs numbers with its report; the breeder adds them; the record nam
     .getByRole('button', { name: 'Open' })
     .click();
   const nums = breeder.locator('[data-lab-numbers-in]');
-  await expect(nums).toContainText('Numbers the lab signed with this report (Seed quality)');
+  await expect(nums).toContainText('The lab’s signed result with this report (Numbers under a published form)');
   await expect(nums).toContainText('Germination: 96.00');
+  await expect(nums.locator('[data-lab-result-facts]')).toContainText('ISTA germination, version 2026');
+  await expect(nums.locator('[data-lab-result-facts]')).toContainText('S-0412');
   await nums.locator('[data-lab-numbers-add]').click();
   await nums.getByRole('link', { name: 'Open the record with these numbers' }).click();
 
@@ -96,6 +111,7 @@ test('a lab signs numbers with its report; the breeder adds them; the record nam
   await expect(panel).toContainText('Signed by a key named “E2E Lab” (name not checked)');
   await expect(breeder.locator('[data-held-numbers]')).toContainText('Germination: 96.00');
   await expect(breeder.getByRole('heading', { name: 'GT-2026-0412' })).toBeVisible();
+  await expect(breeder.locator('[data-lab-result-panel]')).toContainText('GT-2026-0412');
   expectNoErrors(breederErrors);
   await breederCtx.close();
   await labCtx.close();

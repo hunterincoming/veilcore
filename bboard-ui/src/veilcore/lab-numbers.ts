@@ -24,6 +24,7 @@ import { makeFieldSet, SCHEMAS, type HeldFieldSet } from './field-set';
 import { newNonce } from './commitment';
 import { claimsKeyFor } from './claims-key';
 import { readLabSignature, signLabRequest, type LabSignature } from './lab-attest';
+import type { LabResultBundle } from './lab-result';
 
 const HEX64 = /^[0-9a-f]{64}$/;
 
@@ -104,7 +105,7 @@ export const makeLabNumbers = async (
  * the breeder's record (a field the lab added, like a claimed Midnight call or a correction, would
  * otherwise ride along into it).
  */
-const committedOnly = (r: LabNumbersRecord): LabNumbersRecord => {
+export const committedOnly = (r: LabNumbersRecord): LabNumbersRecord => {
   const d = r.document;
   return {
     profile: r.profile,
@@ -166,12 +167,20 @@ export const labNumbersProblem = (
   return undefined;
 };
 
-export const readLabNumbers = async (text: string): Promise<LabNumbers> => {
+/**
+ * The numbers in an opened report, checked: version 1 exactly as before; version 2 (a result
+ * bound to the record it was tested from, lab-result.ts) checked by its own rules too.
+ */
+export const readLabNumbers = async (text: string): Promise<LabNumbers | LabResultBundle> => {
   let o: Record<string, unknown>;
   try {
     o = JSON.parse(text) as Record<string, unknown>;
   } catch {
     throw new Error('The numbers in this report can’t be read.');
+  }
+  if (o?.kind === 'veilcore-lab-numbers' && o.v === 2) {
+    const { readLabResult } = await import('./lab-result');
+    return readLabResult(o);
   }
   const raw = o?.record as LabNumbersRecord | undefined;
   if (
