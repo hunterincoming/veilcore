@@ -157,7 +157,12 @@ const PHRASES: [string, string, string?][] = [
   ["Bella a eu 6 chiots hier", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"date\":\"yesterday\"}", "fr"],
   // German "hier" is "here": never yesterday (verification V2).
   ["Bella hat hier 6 Welpen geworfen", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"date\":\"today\"}", "de"],
-  ["Bella hat hier 6 Welpen geworfen", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"date\":\"today\"}"],
+  // In any other language "hier" could be either: it asks which day, offering both (W5).
+  ["Bella hat hier 6 Welpen geworfen", "REFUSE whichDay words=[\"hier\"] sug=[{\"text\":\"Bella hat yesterday 6 Welpen geworfen\"},{\"text\":\"Bella hat today 6 Welpen geworfen\"}]"],
+  ["Bella a eu 6 chiots hier", "REFUSE whichDay words=[\"hier\"] sug=[{\"text\":\"Bella a eu 6 chiots yesterday\"},{\"text\":\"Bella a eu 6 chiots today\"}]", "en"],
+  ["Bella a eu 6 chiots hier", "REFUSE whichDay words=[\"hier\"] sug=[{\"text\":\"Bella a eu 6 chiots ayer\"},{\"text\":\"Bella a eu 6 chiots hoy\"}]", "es"],
+  ["Bella a eu 6 chiots hier", "REFUSE whichDay words=[\"hier\"] sug=[{\"text\":\"Bella a eu 6 chiots 昨日\"},{\"text\":\"Bella a eu 6 chiots 今日\"}]", "ja"],
+  ["Bella a eu 6 chiots hier soir", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"date\":\"yesterday\"}", "en"],
   ["Bellaが昨日子犬を6匹産んだ", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"date\":\"yesterday\"}"],
   ["Daisy hat Zwillinge gekalbt", "PLAN batch {\"preset\":\"offspring\",\"count\":2,\"dam\":\"#5\",\"date\":\"today\"}"],
   ["Daisy parió gemelos", "PLAN batch {\"preset\":\"offspring\",\"count\":2,\"dam\":\"#5\",\"date\":\"today\"}"],
@@ -182,6 +187,6 @@ describe('the users’ review phrasings, and their five-language forms', () => {
       // A suggestion is only ever something that plans, made from the words typed.
       if (r.type === 'refuse')
         for (const s of r.suggest ?? [])
-          if ('text' in s) expect(planJob(s.text, { records, animals: true }).type, s.text).toBe('plan');
+          if ('text' in s) expect(planJob(s.text, { records, animals: true, lang }).type, s.text).toBe('plan');
     });
 });
