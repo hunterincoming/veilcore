@@ -46,6 +46,7 @@ export const job = {
   'app.job.no.readyNow': 'That record is ready to license already.',
   'app.job.no.file': 'That file couldn’t be used.',
   'app.job.no.changed': 'This job changed in another tab. Check it again.',
+  'app.job.no.whichDay': '“{words}” is yesterday in French and “here” in German. Which day do you mean?',
   'app.job.no.notReady': 'This job isn’t waiting for approval any more.',
   'app.job.no.expired': 'This job is more than 72 hours old. Ask again to make a new one.',
   'app.job.no.gone': 'This job isn’t in this browser any more.',
@@ -193,6 +194,10 @@ export const job = {
   'app.job.wait.records.one': 'Nothing is lost: your record is kept here and goes out as soon as you’re back online.',
   'app.job.wait.records.other':
     'Nothing is lost: your {count} records are kept here and go out as soon as you’re back online.',
+  'app.job.wait.cantCheck':
+    'Nothing is lost: your records are kept here. VeilCore’s server couldn’t be asked which of them it already has, so nothing was sent again. I’ll ask again soon.',
+  'app.job.wait.notNoted':
+    'Nothing is lost: your records are kept here. This browser couldn’t note which of them VeilCore’s server already has, so nothing was sent again. I’ll try again soon.',
   'app.job.done.records.one': '{count} record saved.',
   'app.job.done.records.other': '{count} records saved.',
   'app.job.done.ids.one': 'Home will remind you to add {count} ID.',
@@ -246,4 +251,8 @@ export const job = {
     '{name} already has {id}, but the column says {typed} there. Check the order of the column.',
   'app.job.ids.no.tooMany':
     'That’s {n} IDs for {count} young still without one. Paste only the IDs still missing, in order, or the whole column again.',
+  'app.job.ids.no.elsewhere': '{id} is already the ID of {name}, another of your animals. Check the column.',
+  'app.job.ids.no.blank':
+    'Row {row} is empty. To leave a young without an ID, paste a row for each of the {count} young, in order, with that row empty.',
+  'app.job.ids.no.comma': '“{id}” has a comma in it. Paste one ID a row.',
 };

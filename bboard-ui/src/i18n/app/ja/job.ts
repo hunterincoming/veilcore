@@ -49,6 +49,8 @@ export const job = {
   'app.job.no.readyNow': 'その記録はすでにライセンスできる状態です。',
   'app.job.no.file': 'そのファイルは使えませんでした。',
   'app.job.no.changed': 'この作業は別のタブで変更されました。もう一度確認してください。',
+  'app.job.no.whichDay':
+    '「{words}」はフランス語では「昨日」、ドイツ語では「ここ」という意味です。どちらの日のことですか？',
   'app.job.no.notReady': 'この作業はもう承認を待っていません。',
   'app.job.no.expired': 'この作業は72時間を過ぎています。もう一度依頼して作り直してください。',
   'app.job.no.gone': 'この作業はもうこのブラウザにありません。',
@@ -184,6 +186,10 @@ export const job = {
   'app.job.when.on': '{date}',
   'app.job.wait.records.other':
     '何も失われていません。記録{count}件はここに保存されていて、オンラインに戻りしだい送信します。',
+  'app.job.wait.cantCheck':
+    '記録はこの端末に保存されたままです。VeilCoreのサーバーにどれが届いているか確認できなかったため、何も再送信していません。まもなくもう一度確認します。',
+  'app.job.wait.notNoted':
+    '記録はこの端末に保存されたままです。VeilCoreのサーバーにどれが届いているかをこのブラウザに記録できなかったため、何も再送信していません。まもなくもう一度試します。',
   'app.job.done.records.other': '記録{count}件を保存しました。',
   'app.job.done.ids.other': '番号{count}件の追加をホームでお知らせします。',
   'app.job.done.reports': '報告を送りました。ライセンス元は各契約のページで返答します。',
@@ -230,4 +236,8 @@ export const job = {
   'app.job.ids.no.differs': '{name}はすでに{id}ですが、列のその行は{typed}です。列の順番を確認してください。',
   'app.job.ids.no.tooMany':
     '番号が{n}件ありますが、番号のない子は{count}件です。まだない番号だけを順番どおりに貼り付けるか、列全体をもう一度貼り付けてください。',
+  'app.job.ids.no.elsewhere': '{id}は、あなたの別の動物「{name}」の番号です。列を確認してください。',
+  'app.job.ids.no.blank':
+    '{row}行目が空です。番号のない子を残すときは、{count}件の子それぞれに1行ずつ、順番どおりに貼り付け、その行を空にしてください。',
+  'app.job.ids.no.comma': '「{id}」にカンマが含まれています。1行に1つの番号を貼り付けてください。',
 } satisfies Partial<AppTranslation>;

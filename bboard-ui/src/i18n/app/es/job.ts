@@ -54,6 +54,7 @@ export const job = {
   'app.job.no.readyNow': 'Ese registro ya está listo para dar en licencia.',
   'app.job.no.file': 'No se pudo usar ese archivo.',
   'app.job.no.changed': 'Esta tarea cambió en otra pestaña. Revísela de nuevo.',
+  'app.job.no.whichDay': '«{words}» es ayer en francés y «aquí» en alemán. ¿Qué día quiere decir?',
   'app.job.no.notReady': 'Esta tarea ya no espera su aprobación.',
   'app.job.no.expired': 'Esta tarea tiene más de 72 horas. Vuelva a pedirla para crear una nueva.',
   'app.job.no.gone': 'Esta tarea ya no está en este navegador.',
@@ -208,6 +209,10 @@ export const job = {
     'No se pierde nada: su registro queda guardado aquí y sale en cuanto vuelva a estar en línea.',
   'app.job.wait.records.other':
     'No se pierde nada: sus {count} registros quedan guardados aquí y salen en cuanto vuelva a estar en línea.',
+  'app.job.wait.cantCheck':
+    'No se pierde nada: sus registros se guardan aquí. No se pudo preguntar al servidor de VeilCore cuáles tiene ya, así que no se volvió a enviar nada. Volveré a preguntar pronto.',
+  'app.job.wait.notNoted':
+    'No se pierde nada: sus registros se guardan aquí. Este navegador no pudo anotar cuáles tiene ya el servidor de VeilCore, así que no se volvió a enviar nada. Lo volveré a intentar pronto.',
   'app.job.done.records.one': '{count} registro guardado.',
   'app.job.done.records.other': '{count} registros guardados.',
   'app.job.done.ids.one': 'La página de inicio le recordará añadir {count} identificación.',
@@ -261,4 +266,8 @@ export const job = {
     '{name} ya tiene {id}, pero la columna pone {typed} en esa fila. Revise el orden de la columna.',
   'app.job.ids.no.tooMany':
     'Son {n} identificaciones para {count} crías que aún no tienen. Pegue solo las que faltan, en orden, o la columna entera de nuevo.',
+  'app.job.ids.no.elsewhere': '{id} ya es la identificación de {name}, otro de sus animales. Revise la columna.',
+  'app.job.ids.no.blank':
+    'La fila {row} está vacía. Para dejar una cría sin identificación, pegue una fila por cada una de las {count} crías, en orden, con esa fila vacía.',
+  'app.job.ids.no.comma': '«{id}» tiene una coma. Pegue una identificación por fila.',
 } satisfies Partial<AppTranslation>;

@@ -343,7 +343,8 @@ someone else chose can't split the text; values bind only to the person's own re
 Each clause's reader must use every word but a fixed list of fillers: a leftover word or any
 negation refuses the whole plan ("no tag yet" is read as IDs to follow, not a negation). A word
 that means different things in two languages is read in the person's language only: "hier" is
-yesterday in French and "here" in German. A name
+yesterday in French and "here" in German, and in any other language Ask asks which day, offering
+the sentence with each. A name
 two of the person's own records share is refused. A refusal says what it understood, which words
 it couldn't use, and offers a shorter sentence made only from the words typed (or "get <their
 record> ready to license" in their language) for them to send. The hint's example, unedited,
@@ -377,7 +378,10 @@ sends, and nothing is sent unless the ledger's `pending` write succeeded. A repo
 if it comes to exactly the amount and currency Approve showed; otherwise nothing is signed and the
 page says the new amount. Records are sent from the ledger as themselves (a resend is the same records), and rows sent
 before with no answer are looked up on the server first: one it holds is marked saved and never
-sent again, and if the server can't be asked, nothing is sent until it can; a report is
+sent again. If the server can't be asked (no holder key in this browser counts as that), or what
+it holds can't be written down here, nothing is sent until it can, and the page says which. A
+record sent before and refused when sent again keeps its key and its row: the first send may
+have landed. A report is
 read for fresh and signed once (`deal-client.ts sayOnce`), so a retry after a lost answer finds
 it and sends no second one; a stamp goes through the existing stamp path, its queue entry
 marked as started by the approved job, with the stamp queue's "may have gone out" stop. An
@@ -403,9 +407,11 @@ unknown outcome stops and asks. There is no automatic rollback.
   made leave the stamp queue when it ends.
 - young saved without IDs are listed on Home from the records themselves ("Bella's litter (6):
   add IDs"), not from the job, with a box to paste a column; each ID is saved as a correction.
-  Young that already have an ID are listed with it: a whole column pasted again must agree with
-  them row by row, a shorter one goes on the young still without one and may not repeat a saved
-  ID, and anything else is refused (`src/ask-job/ids.ts`).
+  Every cell keeps its place, an empty one meaning "no ID for this one". Young that already have
+  an ID are listed with it: a column with a row for every young goes row by row and must agree
+  with them; a shorter one goes on the young still without one, in order, and may have no empty
+  row. An ID already in the litter, on another of the person's animals, or twice in the column
+  is refused, and so is anything else that doesn't line up (`src/ask-job/ids.ts`).
 
 Also on the device while a job waits: its records in the bulk-import ledger as `held` rows, and
 their new keys. A backup made while a job waits holds those keys, for records that may never be

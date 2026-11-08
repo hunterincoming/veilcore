@@ -56,6 +56,7 @@ export const job = {
   'app.job.no.readyNow': 'Cet enregistrement est déjà prêt pour une licence.',
   'app.job.no.file': 'Ce fichier n’a pas pu être utilisé.',
   'app.job.no.changed': 'Cette tâche a changé dans un autre onglet. Vérifiez-la à nouveau.',
+  'app.job.no.whichDay': '« {words} » veut dire hier en français et « ici » en allemand. De quel jour parlez-vous ?',
   'app.job.no.notReady': 'Cette tâche n’attend plus votre validation.',
   'app.job.no.expired': 'Cette tâche a plus de 72 heures. Refaites la demande pour en créer une nouvelle.',
   'app.job.no.gone': 'Cette tâche n’est plus dans ce navigateur.',
@@ -211,6 +212,10 @@ export const job = {
     'Rien n’est perdu : votre enregistrement est gardé ici et part dès que vous êtes de nouveau en ligne.',
   'app.job.wait.records.other':
     'Rien n’est perdu : vos {count} enregistrements sont gardés ici et partent dès que vous êtes de nouveau en ligne.',
+  'app.job.wait.cantCheck':
+    'Rien n’est perdu : vos enregistrements sont gardés ici. Le serveur de VeilCore n’a pas pu dire lesquels il a déjà, donc rien n’a été renvoyé. Je redemanderai bientôt.',
+  'app.job.wait.notNoted':
+    'Rien n’est perdu : vos enregistrements sont gardés ici. Ce navigateur n’a pas pu noter lesquels le serveur de VeilCore a déjà, donc rien n’a été renvoyé. Je réessaierai bientôt.',
   'app.job.done.records.one': '{count} enregistrement créé.',
   'app.job.done.records.other': '{count} enregistrements créés.',
   'app.job.done.ids.one': 'L’accueil vous rappellera d’ajouter {count} identifiant.',
@@ -264,4 +269,8 @@ export const job = {
     '{name} a déjà {id}, mais la colonne indique {typed} à cette ligne. Vérifiez l’ordre de la colonne.',
   'app.job.ids.no.tooMany':
     'Cela fait {n} identifiants pour {count} petits qui n’en ont pas encore. Collez seulement ceux qui manquent, dans l’ordre, ou toute la colonne à nouveau.',
+  'app.job.ids.no.elsewhere': '{id} est déjà l’identifiant de {name}, un autre de vos animaux. Vérifiez la colonne.',
+  'app.job.ids.no.blank':
+    'La ligne {row} est vide. Pour laisser un petit sans identifiant, collez une ligne pour chacun des {count} petits, dans l’ordre, avec cette ligne vide.',
+  'app.job.ids.no.comma': '« {id} » contient une virgule. Collez un identifiant par ligne.',
 } satisfies Partial<AppTranslation>;

@@ -69,6 +69,7 @@ import {
   type Prepared,
 } from '../../ask-job/prepare';
 import { reportIndex, tryAgain } from '../../ask-job/run';
+import { CANT_CHECK, NOT_NOTED } from '../../ask-job/whys';
 import { runnerTick } from '../../ask-job/start';
 import { JOB_STATE_KEY, jobTitle, jobWords } from '../../ask-job/words';
 
@@ -1108,8 +1109,14 @@ const JobProgress: React.FC<{ job: Job; fromApp: boolean }> = ({ job, fromApp })
             {t('app.job.why', { why: s.why })}
           </Alert>
         ) : s.state === 'todo' && s.why && s.kind === 'records' ? (
+          // The real reason it waits (W6): the server couldn't be checked, or this browser couldn't
+          // note what it has; otherwise no connection.
           <Alert key={s.id} severity="info" variant="outlined" data-job-retry={s.kind}>
-            {tp('app.job.wait.records', count)}
+            {s.why === CANT_CHECK
+              ? t('app.job.wait.cantCheck')
+              : s.why === NOT_NOTED
+                ? t('app.job.wait.notNoted')
+                : tp('app.job.wait.records', count)}
           </Alert>
         ) : s.state === 'todo' && s.why ? (
           <Alert key={s.id} severity="info" variant="outlined" data-job-retry={s.kind}>

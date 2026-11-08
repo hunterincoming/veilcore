@@ -59,6 +59,7 @@ export const job = {
   'app.job.no.readyNow': 'Dieser Datensatz ist schon lizenzbereit.',
   'app.job.no.file': 'Diese Datei ließ sich nicht verwenden.',
   'app.job.no.changed': 'Dieser Auftrag wurde in einem anderen Tab geändert. Prüfen Sie ihn noch einmal.',
+  'app.job.no.whichDay': '„{words}“ heißt auf Französisch gestern und auf Deutsch hier. Welchen Tag meinen Sie?',
   'app.job.no.notReady': 'Dieser Auftrag wartet nicht mehr auf Freigabe.',
   'app.job.no.expired': 'Dieser Auftrag ist älter als 72 Stunden. Fragen Sie noch einmal, um einen neuen zu erstellen.',
   'app.job.no.gone': 'Dieser Auftrag ist nicht mehr in diesem Browser.',
@@ -216,6 +217,10 @@ export const job = {
     'Nichts geht verloren: Ihr Datensatz bleibt hier und geht hinaus, sobald Sie wieder online sind.',
   'app.job.wait.records.other':
     'Nichts geht verloren: Ihre {count} Datensätze bleiben hier und gehen hinaus, sobald Sie wieder online sind.',
+  'app.job.wait.cantCheck':
+    'Nichts geht verloren: Ihre Datensätze sind hier gespeichert. Der Server von VeilCore konnte nicht gefragt werden, welche er schon hat, also wurde nichts erneut gesendet. Ich frage bald wieder.',
+  'app.job.wait.notNoted':
+    'Nichts geht verloren: Ihre Datensätze sind hier gespeichert. Dieser Browser konnte nicht festhalten, welche der Server von VeilCore schon hat, also wurde nichts erneut gesendet. Ich versuche es bald wieder.',
   'app.job.done.records.one': '{count} Datensatz gespeichert.',
   'app.job.done.records.other': '{count} Datensätze gespeichert.',
   'app.job.done.ids.one': 'Die Startseite erinnert Sie, {count} Kennnummer zu ergänzen.',
@@ -269,4 +274,9 @@ export const job = {
     '{name} hat bereits {id}, die Spalte nennt dort aber {typed}. Prüfen Sie die Reihenfolge der Spalte.',
   'app.job.ids.no.tooMany':
     'Das sind {n} Kennnummern für {count} Jungtiere ohne Kennnummer. Fügen Sie nur die noch fehlenden der Reihe nach ein oder die ganze Spalte erneut.',
+  'app.job.ids.no.elsewhere':
+    '{id} ist bereits die Kennnummer von {name}, einem anderen Ihrer Tiere. Prüfen Sie die Spalte.',
+  'app.job.ids.no.blank':
+    'Zeile {row} ist leer. Um ein Jungtier ohne Kennnummer zu lassen, fügen Sie für jedes der {count} Jungtiere der Reihe nach eine Zeile ein, diese Zeile leer.',
+  'app.job.ids.no.comma': '„{id}“ enthält ein Komma. Fügen Sie eine Kennnummer pro Zeile ein.',
 } satisfies Partial<AppTranslation>;
