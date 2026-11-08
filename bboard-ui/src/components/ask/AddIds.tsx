@@ -22,8 +22,8 @@ import {
 } from '@mui/material';
 import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
-import { correctionWaitsForBackup, issueCorrection } from '../../veilcore/records';
-import { assignIds, idsOf, type Litter } from '../../ask-job/ids';
+import { correctionWaitsForBackup, issueCorrection, useRecords } from '../../veilcore/records';
+import { assignIds, idsOf, otherIds, type Litter } from '../../ask-job/ids';
 
 export { littersWithoutIds, type Litter } from '../../ask-job/ids';
 
@@ -36,8 +36,10 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
   const [error, setError] = useState<string>();
   // Saved in this box already: never saved twice if a later one fails.
   const [saved, setSaved] = useState<ReadonlySet<string>>(new Set());
+  const records = useRecords();
   const ids = idsOf(text);
-  const plan = ids.length ? assignIds(litter, ids) : { pairs: [] };
+  const typed = ids.filter(Boolean).length;
+  const plan = ids.length ? assignIds(litter, ids, otherIds(records, litter)) : { pairs: [] };
   const pairs = 'pairs' in plan ? plan.pairs : [];
   const refusal = 'why' in plan ? plan : undefined;
   const newId = new Map(pairs.map(([r, id]) => [r.id, id] as const));
@@ -101,7 +103,7 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
             minRows={4}
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, 20_000))}
-            helperText={t('app.job.answer.idsCount', { n: String(ids.length), count: String(litter.missing.length) })}
+            helperText={t('app.job.answer.idsCount', { n: String(typed), count: String(litter.missing.length) })}
             slotProps={{ htmlInput: { 'data-add-ids-paste': '' } }}
           />
           <Alert severity="info" variant="outlined">
@@ -119,6 +121,7 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
                 ...('name' in refusal ? { name: refusal.name } : {}),
                 ...('typed' in refusal ? { typed: refusal.typed } : {}),
                 ...('n' in refusal ? { n: String(refusal.n), count: String(refusal.count) } : {}),
+                ...('row' in refusal ? { row: String(refusal.row), count: String(litter.young.length) } : {}),
               })}
             </Alert>
           )}
