@@ -84,6 +84,13 @@ export const fakeRegistry = () => {
      * row in the same save marked `supersededBy` that refused correction.
      */
     oneCorrection: false,
+    /**
+     * A correction is permanent, so the link to it is too (veilcore-api PR #8): a row that drops
+     * or changes a record's `supersededBy` this registry holds is refused by id with code
+     * "supersededby-locked" (checked before "already-corrected": a second device re-linking a
+     * record to its own correction gets this for the record, and that for the correction).
+     */
+    lockSupersededBy: false,
   };
   let n = 0;
 
@@ -196,6 +203,19 @@ export const fakeRegistry = () => {
           const rev = typeof r.rev === 'number' && Number.isSafeInteger(r.rev) ? r.rev : null;
           const dating = path === '/api/records' ? t.get(r.id) : undefined;
           if (misbehave.rejectIds.has(r.id)) rejected.push({ id: r.id, reason: 'refused for this test' });
+          else if (
+            misbehave.lockSupersededBy &&
+            path === '/api/records' &&
+            typeof t.get(r.id)?.supersededBy === 'string' &&
+            t.get(r.id)!.holder === holder &&
+            t.get(r.id)!.supersededBy !== r.supersededBy
+          )
+            rejected.push({
+              id: r.id,
+              reason: `this record's correction is ${String(t.get(r.id)!.supersededBy)}, and a correction is permanent; nothing was changed`,
+              code: 'supersededby-locked',
+              status: 409,
+            });
           else if (refusedCorrection) rejected.push(alreadyCorrected(r.id, refusedCorrection));
           else if (
             dating?.bodyPending === true &&

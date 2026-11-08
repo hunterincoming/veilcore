@@ -17,7 +17,7 @@ export const sealed = {
   'app.sealed.correctNeedsConnection':
     '記録の訂正には接続が必要です。VeilCoreはまず、別のタブや別の端末で訂正されていないかを確認します。何も変更していません。オンラインのときにもう一度お試しください。',
   'app.sealed.correctionConnectionLost':
-    'この訂正の保存中に接続が切れたため、後で送るためにここには保存していません。オンラインのときにもう一度お試しください。届いていた場合は、その訂正に移動します。',
+    'この訂正の保存中に接続が切れたため、後で送るためにここには保存していません。訂正が届いたかどうかをVeilCoreで確認できるまで、この記録は保存しません。オンラインになると、届いていた場合は記録に表示されます。',
   'app.sealed.locked.title.other': 'ロックされた記録 {count}件',
   'app.sealed.locked.pageTitle': 'この記録はロックされています',
   'app.sealed.locked.text':
@@ -146,6 +146,8 @@ export const sealed = {
   'app.sealed.refuse.backupFirstNew': 'まだ何も保存していません。先にバックアップを保存して確認してください',
   'app.sealed.refuse.olderCopy':
     'VeilCoreには別のタブや端末で保存された新しいコピーがすでにあるため、この変更は保存されませんでした。新しいコピーを表示しています。必要なら、もう一度変更してください',
+  'app.sealed.refuse.supersededByLocked':
+    '別のタブまたは別の端末ですでに訂正されており、訂正は取り消せないため、この変更は保存されませんでした。VeilCoreから読み直しました。変更するには最新版を開いてください',
   'app.sealed.unsaved.backup':
     'ロックしたコピーはまだアップロードされていません。バックアップを保存して確認してください。記録の日付はこれを待ちません。',
   'app.sealed.unsaved.key':

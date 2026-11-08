@@ -251,6 +251,141 @@ describe('a record is corrected once', () => {
     });
   });
 
+  describe('a correction whose answer was lost leaves the record unsure until the registry is read', () => {
+    /** The correction's save is carried out, and its answer lost (or, with `stored: false`, never sent). */
+    const dropOnce = (stored: boolean) => {
+      let once = true;
+      reg.misbehave.fault = (method, path) =>
+        once && method === 'PUT' && path === '/api/records' ? ((once = false), stored ? 'lose' : 'fail') : undefined;
+    };
+    const onRegistry = (id: string) => rows().find((r) => r.id === id);
+
+    it('stored, then a change to the record before any sync: the link stays, the change is kept, and it is correctable', async () => {
+      const { A, rec } = await saved();
+      dropOnce(true);
+      const a = await tryFix(A, rec.id, form({ notes: 'x' }), 'typo');
+      expect(a.err).toBe(A.m.records.CORRECTION_CONNECTION_LOST());
+      const C = correctionsOf(rec.id)[0]?.id;
+      expect(C).toBeDefined();
+      expect(onRegistry(rec.id)?.supersededBy).toBe(C);
+      // The verifier's sequence: a change to the record itself before the next sync.
+      const before = reg.sent.length;
+      await A.run(() => A.m.records.pairDna(rec.id, 'ab'.repeat(32), 'report.txt'));
+      await new Promise((r) => setTimeout(r, 200));
+      // Not saved while unsure, so the registry's link is never dropped.
+      expect(recordWritesSince(before)).toEqual([]);
+      expect(onRegistry(rec.id)?.supersededBy).toBe(C);
+      // The next read settles it: the record points to the correction, and the change is kept.
+      await A.run(() => A.m.records.hydrate());
+      await new Promise((r) => setTimeout(r, 200));
+      expect(await A.run(() => A.m.records.getRecord(rec.id)?.supersededBy)).toBe(C);
+      expect(await A.run(() => A.m.records.getRecord(rec.id)?.dnaFingerprint)).toBe('ab'.repeat(32));
+      expect(onRegistry(rec.id)?.supersededBy).toBe(C);
+      expect(await A.run(() => A.m.records.latestVersionOf(rec.id))).toBe(C);
+      // And it goes on: the same change again is that correction; another is refused with the way to it.
+      expect((await tryFix(A, rec.id, form({ notes: 'x' }), 'typo')).ok).toBe(C);
+      const other = await tryFix(A, rec.id, form({ notes: 'y' }), 'typo');
+      expect(other.err).toBe(A.m.records.ALREADY_CORRECTED());
+      expect(other.latestId).toBe(C);
+      // The correction itself can be corrected.
+      expect((await tryFix(A, C, form({ notes: 'z' }), 'again')).ok).toBeDefined();
+      expect(correctionsOf(rec.id).map((r) => r.id)).toEqual([C]);
+    });
+
+    it('not stored, then a change before any sync: the record is as it was, with the change, and correctable', async () => {
+      const { A, rec } = await saved();
+      dropOnce(false);
+      const a = await tryFix(A, rec.id, form({ notes: 'x' }), 'typo');
+      // A save that never left looks the same here as one whose answer was lost: unsure too.
+      expect(a.err).toBe(A.m.records.CORRECTION_CONNECTION_LOST());
+      expect(correctionsOf(rec.id)).toHaveLength(0);
+      await A.run(() => A.m.records.pairDna(rec.id, 'ab'.repeat(32), 'report.txt'));
+      await A.run(() => A.m.records.hydrate());
+      await new Promise((r) => setTimeout(r, 200));
+      expect(onRegistry(rec.id)?.supersededBy).toBeUndefined();
+      expect(await A.run(() => A.m.records.getRecord(rec.id)?.dnaFingerprint)).toBe('ab'.repeat(32));
+      const b = await tryFix(A, rec.id, form({ notes: 'x' }), 'typo');
+      expect(b.ok).toBeDefined();
+      expect(onRegistry(rec.id)?.supersededBy).toBe(b.ok);
+    });
+
+    it('stored, then an unrelated record saved before any sync: the link stays', async () => {
+      const { A, rec } = await saved();
+      dropOnce(true);
+      await tryFix(A, rec.id, form({ notes: 'x' }), 'typo');
+      const C = correctionsOf(rec.id)[0]?.id;
+      const other = await pup(A);
+      await A.run(() => A.m.records.createRecordSaved({ ...other, strainName: 'Other pup' } as never));
+      expect(onRegistry(rec.id)?.supersededBy).toBe(C);
+      expect(reg.records.has(other.id)).toBe(true);
+    });
+  });
+
+  it('a save on its way that never answers: the correction waits a while, then says it needs a connection', async () => {
+    const { A, rec } = await saved();
+    await A.run(() => {
+      A.m.records.SAVES_WAIT.ms = 300;
+    });
+    let hang = true;
+    vi.stubGlobal('fetch', (url: string, init?: RequestInit) =>
+      hang && init?.method === 'PUT' && new URL(url).pathname === '/api/records'
+        ? ((hang = false), new Promise<Response>(() => {}))
+        : reg.fetch(url, init),
+    );
+    await A.run(() => A.m.records.pairDna(rec.id, 'ab'.repeat(32), 'report.txt')); // its save never answers
+    const t0 = Date.now();
+    const a = await tryFix(A, rec.id, form({ notes: 'x' }), 'typo');
+    expect(a.err).toBe(A.m.records.CORRECT_NEEDS_CONNECTION());
+    expect(Date.now() - t0).toBeLessThan(5_000);
+    expect(correctionsOf(rec.id)).toHaveLength(0);
+    expect(await A.run(() => A.m.records.SAVES_WAIT.ms)).toBe(300);
+  });
+
+  it('the registry keeps a record’s link to its correction for good (code "supersededby-locked"): said, and read again', async () => {
+    const { A, rec, backup } = await saved();
+    reg.misbehave.lockSupersededBy = true;
+    // A stale device still holds the record as it was before another device corrected it.
+    const P = await device('P', backup);
+    const c = await tryFix(A, rec.id, form({ notes: 'x' }), 'typo');
+    // P never read since. A save of its stale copy (it pairs a DNA report) would drop the link.
+    await P.run(() => P.m.records.pairDna(rec.id, 'ab'.repeat(32), 'report.txt'));
+    await new Promise((r) => setTimeout(r, 300));
+    expect(rows().find((r) => r.id === rec.id)?.supersededBy).toBe(c.ok);
+    const problem = await P.run(() => P.m.saveStatus.saveProblemNow());
+    const said = JSON.stringify(problem);
+    // Refused for one of the registry's two reasons for a stale copy (this one, or older-copy).
+    expect(said).toMatch(/supersededByLocked|olderCopy|corrected already|newer copy/);
+    // Read again: P now shows the record corrected, with its latest version.
+    expect(await P.run(() => P.m.records.getRecord(rec.id)?.supersededBy)).toBe(c.ok);
+  });
+
+  it('api-store says "supersededby-locked" in the app’s words', async () => {
+    const { A, rec } = await saved();
+    reg.misbehave.fault = (method, path, body) =>
+      method === 'PUT' && path === '/api/records'
+        ? new Response(
+            JSON.stringify({
+              ok: false,
+              rejected: (JSON.parse(body) as { id: string }[]).map((r) => ({
+                id: r.id,
+                reason: 'this record’s correction is C, and a correction is permanent',
+                code: 'supersededby-locked',
+                status: 409,
+              })),
+              notWritten: [],
+            }),
+            { headers: { 'content-type': 'application/json' } },
+          )
+        : undefined;
+    const result = await A.run(async () => {
+      const r = A.m.records.getRecord(rec.id)!;
+      return A.m.api.apiStore.save(A.m.records.RECORDS_KEY, [{ ...r, licenseIds: ['LIC-2'] }]);
+    });
+    expect(result.refused).toEqual([
+      expect.objectContaining({ id: rec.id, words: 'app.sealed.refuse.supersededByLocked' }),
+    ]);
+  });
+
   describe('the very same correction', () => {
     it('chain R → B → C: R with B’s change and reason again gives C, the latest, not B', async () => {
       const { A, rec, backup } = await saved();
@@ -292,9 +427,13 @@ describe('a record is corrected once', () => {
   });
 
   describe('the registry refuses a second correction (code "already-corrected")', () => {
-    it('two devices read before either saved: the second is refused by the registry, taken back and said', async () => {
+    const raceRefused = async (lockedLink: boolean) => {
       const { rec, backup } = await saved();
       reg.misbehave.oneCorrection = true;
+      // With the link locked and no rev check before it, the record's own row is refused as
+      // "supersededby-locked" beside the correction's "already-corrected", in the one save.
+      reg.misbehave.lockSupersededBy = lockedLink;
+      reg.misbehave.ignoreRev = lockedLink;
       const P = await device('P', backup);
       const L = await device('L', backup);
       // P's read answers as the registry was before L saved: the moment both have read and
@@ -326,6 +465,22 @@ describe('a record is corrected once', () => {
         ),
       ).toEqual([b.ok, rec.id].sort());
       expect(await P.run(() => P.m.records.getRecord(rec.id)?.supersededBy)).toBe(b.ok);
+    };
+
+    it('two devices read before either saved: the second is refused by the registry, taken back and said', () =>
+      raceRefused(false));
+
+    it('… and when the registry refuses the record’s new link too ("supersededby-locked"): said the same way', async () => {
+      const codes: string[] = [];
+      const real = reg.fetch;
+      vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
+        const res = await real(url, init);
+        if (init?.method === 'PUT')
+          codes.push(...[...(await res.clone().text()).matchAll(/"code":"([^"]+)"/g)].map((m) => m[1]));
+        return res;
+      });
+      await raceRefused(true);
+      expect(codes).toEqual(expect.arrayContaining(['already-corrected', 'supersededby-locked']));
     });
 
     it('api-store says the registry’s refusal in the app’s words', async () => {

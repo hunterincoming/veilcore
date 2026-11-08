@@ -23,8 +23,13 @@ beforeAll(() => {
     // that lost the record.
     const path = new URL(String(url)).pathname;
     if (method === 'PUT') {
+      // An older copy than the one held is not taken (the registry's rev check, CONTRACT.md
+      // #20): two saves on their way at once can arrive in either order.
       if (path === '/api/records' && typeof init?.body === 'string')
-        for (const r of JSON.parse(init.body) as { id: string }[]) held.set(r.id, r);
+        for (const r of JSON.parse(init.body) as { id: string; rev?: number }[]) {
+          const have = held.get(r.id) as { rev?: number } | undefined;
+          if (!have || (r.rev ?? 0) >= (have.rev ?? 0)) held.set(r.id, r);
+        }
       return Promise.resolve(new Response(JSON.stringify({ ok: true }), { status: 200 }));
     }
     const rows = path === '/api/records' ? [...held.values()] : [];
