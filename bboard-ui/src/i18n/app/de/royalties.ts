@@ -170,6 +170,7 @@ export const royalties = {
   'app.roy.howI':
     'Je Zeitraum: Die andere Seite sendet einen Bericht, Sie nehmen ihn an oder bitten um Korrektur, sie zahlt, Sie bestätigen den Eingang.',
   'app.roy.none': 'Noch keine Berichte.',
+  'app.roy.sendsSame': 'Ein erneuter Versuch sendet dieselbe signierte Nachricht, sie kann also nicht doppelt zählen.',
   'app.roy.home.l.running': 'Dieser Zeitraum endet bald. Ihr Bericht für {period} wird fällig am',
   'app.roy.home.l.report': 'Ihr Bericht für {period} ist fällig am',
   'app.roy.home.l.answer': 'Bericht {n} wartet auf die Antwort von {licensor}.',

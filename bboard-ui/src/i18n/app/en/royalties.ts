@@ -176,6 +176,7 @@ export const royalties = {
   'app.roy.howI':
     'Each period: they send a report, you accept it or ask them to fix it, they pay you, you confirm it arrived.',
   'app.roy.none': 'No reports yet.',
+  'app.roy.sendsSame': 'Trying again sends the same signed message, so it can’t be counted twice.',
   'app.roy.home.l.running': 'This period ends soon. Your report for {period} will be due on',
   'app.roy.home.l.report': 'Your report for {period} is due on',
   'app.roy.home.l.answer': 'Report {n} is waiting for {licensor} to answer.',

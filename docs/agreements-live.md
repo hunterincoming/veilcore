@@ -88,7 +88,12 @@ holds or moves anyone's money.
      licensor added invoice details), a CSV and a calendar file are on both sides.
    - *Messages and the checker.* Reports keep the top-level basis, quantity, currency and
      amount owed, with `lines` that add up to it; one first answer, one "paid", one
-     "received" per report, as `veilcore-records` checkDealRecord reads them. New message
+     "received" per report, as `veilcore-records` checkDealRecord reads them. Two reports
+     from the licensee that say exactly the same thing (all but the signed time and the
+     report's id; the period is part of it) are one report, and an answer or payment naming
+     either counts for the first. Each royalty message is signed once and kept, encrypted, in
+     the browser until the registry has it: trying again after a lost answer sends that same
+     message, and the deal is read first so nothing already there is sent again. New message
      types (`invoice-details`, `notice`) are filed as unread by the published checker. Payout
      and invoice-details messages never go into a lender pack. Payment details are encrypted
      on VeilCore's servers, which can't read them; copies a user downloads include them.

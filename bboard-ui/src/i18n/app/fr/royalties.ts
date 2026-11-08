@@ -171,6 +171,7 @@ export const royalties = {
   'app.roy.howI':
     'Chaque période : l’autre partie envoie un rapport, vous l’acceptez ou demandez une correction, elle paie, vous confirmez la réception.',
   'app.roy.none': 'Pas encore de rapport.',
+  'app.roy.sendsSame': 'Réessayer envoie le même message signé : il ne peut pas être compté deux fois.',
   'app.roy.home.l.running': 'Cette période se termine bientôt. Votre rapport pour {period} sera dû le',
   'app.roy.home.l.report': 'Votre rapport pour {period} est dû le',
   'app.roy.home.l.answer': 'Le rapport {n} attend la réponse de {licensor}.',

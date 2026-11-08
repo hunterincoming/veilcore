@@ -162,6 +162,7 @@ export const royalties = {
   'app.roy.howL': '期間ごとに：あなたが報告を送り、相手が承認か修正依頼をし、あなたが支払い、相手が受領を確認します。',
   'app.roy.howI': '期間ごとに：相手が報告を送り、あなたが承認か修正依頼をし、相手が支払い、あなたが受領を確認します。',
   'app.roy.none': 'まだ報告はありません。',
+  'app.roy.sendsSame': 'もう一度試すと、同じ署名済みのメッセージが送られます。二重に数えられることはありません。',
   'app.roy.home.l.running': 'この期間はまもなく終わります。{period}の報告期限は',
   'app.roy.home.l.report': '{period}の報告期限は',
   'app.roy.home.l.answer': '報告{n}は{licensor}の回答待ちです。',

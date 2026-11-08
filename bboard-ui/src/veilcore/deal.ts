@@ -302,10 +302,16 @@ const DOMAIN = 'veilcore/deal-message/v1\n';
 /** What goes to the registry: the IV and the ciphertext, base64url. */
 export type Sealed = { readonly iv: string; readonly ct: string };
 
+/**
+ * This side's signature on a message, hex. Ed25519 is deterministic: the same message (its
+ * signed time included) always has the same signature, which is how a resent copy is known.
+ */
+export const signMessage = (m: DealMessage, mySecret: string): string =>
+  hex(ed25519.sign(utf8(DOMAIN + canonical(m)), bytes(mySecret)));
+
 /** Sign with this side's key, then encrypt for the channel. */
 export const sealMessage = async (m: DealMessage, mySecret: string, keys: DealKeys): Promise<Sealed> => {
-  const body = canonical(m);
-  const sig = hex(ed25519.sign(utf8(DOMAIN + body), bytes(mySecret)));
+  const sig = signMessage(m, mySecret);
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const ct = new Uint8Array(
     await crypto.subtle.encrypt(

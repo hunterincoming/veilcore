@@ -7,10 +7,13 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import type { OnChainLicense } from './licenses';
 import { isNumber, isObject, isString, readJson } from './json';
 import { dealOrder } from './deal-order';
+import { contentOf } from './deal-content';
+import { withTabLock } from './tab-lock';
 import {
   dealKeys,
   openMessage,
   sealMessage,
+  signMessage,
   writeTokenHash,
   type DealBody,
   type DealKeys,
@@ -134,6 +137,128 @@ export const say = async (p: DealParty, body: DealBody): Promise<{ seq: number; 
   if (!isObject(out) || !isNumber(out.seq) || !isString(out.fingerprint))
     throw new Error('Unexpected answer from the registry.');
   return { seq: out.seq, fingerprint: out.fingerprint };
+};
+
+// ---- money messages: signed once, sent at most once --------------------------------------------
+//
+// say() signs with the time of each call, so a report sent again after a lost answer was a
+// second signed report, and a page that read both could count what is owed twice. sayOnce
+// signs a message once and keeps it, sealed, until the registry has it; sending it again
+// sends that same message (the same signature, which the reader shows once). Before a resend,
+// and before any report, it reads the deal fresh and sends nothing if it is already there.
+// One tab at a time per deal (tab-lock.ts), so a second tab or a second tap waits, then finds
+// it sent. What is kept is the ciphertext and the signature only, never the message in clear.
+
+const OUTBOX_KEY = 'veilcore.deal-outbox.v1';
+/** How long a message that landed is remembered: a second tap or tab in that time sends nothing. */
+export const LANDED_MS = 10 * 60_000;
+/** How long a message signed and not yet confirmed is kept, to be sent again as it was. */
+export const KEEP_MS = 30 * 86_400_000;
+
+type Kept = {
+  readonly iv: string;
+  readonly ct: string;
+  readonly signature: string;
+  readonly madeAt: number;
+  readonly landedAt?: number;
+};
+
+/** In memory when the browser keeps nothing: still one message per tab. */
+let outboxHere: Record<string, Kept> = {};
+
+const isKept = (v: unknown): v is Kept =>
+  isObject(v) && isString(v.iv) && isString(v.ct) && isString(v.signature) && isNumber(v.madeAt);
+
+const readOutbox = (now: number): Record<string, Kept> => {
+  let box: Record<string, unknown> = outboxHere;
+  try {
+    const raw = localStorage.getItem(OUTBOX_KEY);
+    if (raw) {
+      const v = JSON.parse(raw) as unknown;
+      if (isObject(v)) box = v;
+    }
+  } catch {
+    /* nothing kept, or unreadable: what this tab has */
+  }
+  const out: Record<string, Kept> = {};
+  for (const [k, v] of Object.entries(box))
+    if (isKept(v) && (v.landedAt ? now - v.landedAt < LANDED_MS : now - v.madeAt < KEEP_MS)) out[k] = v;
+  return out;
+};
+
+const writeOutbox = (box: Record<string, Kept>): void => {
+  outboxHere = box;
+  try {
+    localStorage.setItem(OUTBOX_KEY, JSON.stringify(box));
+  } catch {
+    /* kept in this tab only */
+  }
+};
+
+const hexOf = (b: ArrayBuffer): string =>
+  Array.from(new Uint8Array(b), (x) => x.toString(16).padStart(2, '0')).join('');
+
+/** Which message this is, by what it says: the deal, the side, and the body without its id. */
+const outboxKeyOf = async (dealId: string, side: DealSide, body: DealBody): Promise<string> =>
+  hexOf(
+    await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(`veilcore/deal-outbox/v1\n${dealId}\n${side}\n${contentOf(body)}`),
+    ),
+  );
+
+export type SayOnceResult = {
+  readonly signature: string;
+  /** It was already there (sent from another tab, or by a send whose answer was lost): nothing sent now. */
+  readonly already: boolean;
+};
+
+/** For the tests: forget what this tab kept. */
+export const __resetOutboxForTests = (): void => {
+  outboxHere = {};
+};
+
+/**
+ * Sign once, encrypt and leave a message, and never twice for what it says: for the royalty
+ * messages (a report, an answer, "I paid", "received", reminders and payout details), where a
+ * second copy could be counted. A failure leaves the signed message kept: trying again sends it.
+ */
+export const sayOnce = async (p: DealParty, body: DealBody, now: () => number = Date.now): Promise<SayOnceResult> => {
+  const keys = await connect(p);
+  const key = await outboxKeyOf(keys.dealId, p.side, body);
+  const landed = (signature: string, already: boolean): SayOnceResult => {
+    const box = readOutbox(now());
+    const k = box[key];
+    if (k) writeOutbox({ ...box, [key]: { ...k, landedAt: now() } });
+    return { signature, already };
+  };
+  return withTabLock(`veilcore.deal-send.${keys.dealId}`, async () => {
+    // Read inside the lock: what another tab kept or sent while this one waited counts.
+    const box = readOutbox(now());
+    let kept = box[key];
+    if (kept?.landedAt) return { signature: kept.signature, already: true };
+    const again = !!kept;
+    if (!kept) {
+      const m = { ...body, from: p.side, at: now() } as DealMessage;
+      const sealed = await sealMessage(m, p.mySecret, keys);
+      kept = { iv: sealed.iv, ct: sealed.ct, signature: signMessage(m, p.mySecret), madeAt: now() };
+      // Kept before it is sent: a lost answer from here on is sent again as this same message.
+      writeOutbox({ ...box, [key]: kept });
+    }
+    if (again || body.type === 'statement') {
+      const there = await readAll(p);
+      const want = body.type === 'statement' ? contentOf(body) : undefined;
+      if (
+        there.some((e) => e.signature === kept.signature) ||
+        (want !== undefined && there.some((e) => e.mine && e.type === 'statement' && contentOf(e) === want))
+      )
+        return landed(kept.signature, true);
+    }
+    const out = await post(`/deals/${keys.dealId}/messages`, { iv: kept.iv, ct: kept.ct, token: keys.writeToken });
+    if (!isObject(out) || !isNumber(out.seq) || !isString(out.fingerprint))
+      throw new Error('Unexpected answer from the registry.');
+    return landed(kept.signature, false);
+  });
 };
 
 /** Every message of the deal that opens and checks out, oldest first. Anything else is left out. */
