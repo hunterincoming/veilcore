@@ -39,6 +39,7 @@ import {
   createInvite,
   getInvite,
   headNow,
+  InviteOutcomeUnknown,
   invitePath,
   licenseCode,
   licenseStatusNow,
@@ -71,6 +72,9 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
   const [label, setLabel] = useState(license.terms.licensee ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  /** The last invite may or may not have been made: another is made only when asked. */
+  const [unsure, setUnsure] = useState(false);
+  const sending = useRef(false);
   const [codeChecked, setCodeChecked] = useState(false);
   const [code, setCode] = useState<string>();
   const call = useChainCall<ChainReceipt>();
@@ -220,8 +224,12 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
   };
 
   const send = async () => {
+    // One invite per tap: a second tap before the first answers makes nothing.
+    if (sending.current) return;
+    sending.current = true;
     setBusy(true);
     setError(undefined);
+    setUnsure(false);
     try {
       const inv = await createInvite(keys.anchor!.identity, label);
       setOnChain(license.id, () => ({
@@ -233,8 +241,10 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
         invitedAt: Date.now(),
       }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      if (e instanceof InviteOutcomeUnknown) setUnsure(true);
+      else setError(e instanceof Error ? e.message : String(e));
     } finally {
+      sending.current = false;
       setBusy(false);
     }
   };
@@ -336,12 +346,26 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
               <Button
                 variant="contained"
                 size="large"
-                disabled={blocked || busy || !label.trim()}
+                disabled={blocked || busy || unsure || !label.trim()}
                 onClick={() => void send()}
                 sx={{ alignSelf: 'flex-start' }}
               >
                 {tr.t('app.lic.proof.make')}
               </Button>
+              {unsure && (
+                <Alert
+                  severity="warning"
+                  variant="outlined"
+                  data-invite-unsure=""
+                  action={
+                    <Button color="inherit" disabled={blocked || busy} onClick={() => void send()}>
+                      {tr.t('app.lic.real.inviteAgain')}
+                    </Button>
+                  }
+                >
+                  {tr.t('app.lic.real.inviteUnsure')}
+                </Alert>
+              )}
               <HowItWorks>{tr.t('app.lic.real.how')}</HowItWorks>
             </Stack>
           )}

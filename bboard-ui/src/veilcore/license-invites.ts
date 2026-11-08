@@ -112,22 +112,52 @@ export type IssuerInvite = {
 };
 
 /**
+ * Thrown by createInvite when the invite may or may not have been made: the request went out and
+ * no clear answer came back (no connection, a server error, an answer without an id). The
+ * registry makes the invite's id, so there is nothing to look up; and it has no way to list or
+ * withdraw a holder's invites. A page says so plainly and makes another only when asked: an
+ * invite made without its answer can't be opened by anyone (its link never reached this page)
+ * and runs out by itself (30 days), but it does hold the label and the record's identity.
+ */
+export class InviteOutcomeUnknown extends Error {
+  constructor() {
+    super('The invite may or may not have been made: no clear answer came back from the registry.');
+    this.name = 'InviteOutcomeUnknown';
+  }
+}
+
+/**
  * The issuer invites a licensee to a license on the record with this on-chain identity.
- * Returns what the issuer keeps; the link is inviteLink(...).
+ * Returns what the issuer keeps; the link is inviteLink(...). A refusal (the registry said no:
+ * nothing was made) throws its reason; an unclear outcome throws InviteOutcomeUnknown.
  */
 export const createInvite = async (identity: string, label: string): Promise<IssuerInvite> => {
   const id = identity.trim().toLowerCase();
   if (!HEX64.test(id)) throw new Error('This record has no on-chain identity yet.');
   const acceptToken = newAnswerToken();
   const issuerToken = newAnswerToken();
-  const out = await post('/license-invites', {
+  const body = JSON.stringify({
     identity: id,
     label: label.trim(),
     acceptTokenHash: await answerTokenHash(acceptToken),
     issuerTokenHash: await answerTokenHash(issuerToken),
   });
-  if (!isObject(out) || !isString(out.id) || !INVITE_ID.test(out.id))
-    throw new Error('The registry did not answer as expected.');
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}/license-invites`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body,
+    });
+  } catch {
+    // It may have reached the registry before the connection went.
+    throw new InviteOutcomeUnknown();
+  }
+  // A 4xx is the registry refusing before it made anything; a 5xx may come after.
+  if (res.status >= 400 && res.status < 500) throw new Error(await errorOf(res));
+  if (!res.ok) throw new InviteOutcomeUnknown();
+  const out = await readJson(res).catch(() => undefined);
+  if (!isObject(out) || !isString(out.id) || !INVITE_ID.test(out.id)) throw new InviteOutcomeUnknown();
   return { inviteId: out.id, acceptToken, issuerToken };
 };
 
