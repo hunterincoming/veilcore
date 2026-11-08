@@ -30,6 +30,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { FeeBudget } from './limits.js';
+import { describeError, field, hasName, messageOf } from './error-chain.js';
 
 export type Batch = { readonly batchId: string; readonly root: string; readonly sealedAt: number; readonly anchored: boolean };
 
@@ -150,6 +151,11 @@ export type AnchorOutcomeCode =
 /** How often main.ts runs the job: a batch can't be sealed more often than this. */
 export const ANCHOR_TICK_MINUTES = 5;
 
+/** After a refusal the network says is final: the first wait, the longest, and the slack (refused). */
+const REFUSAL_BACKOFF_MIN_MS = ANCHOR_TICK_MINUTES * 60_000;
+const REFUSAL_BACKOFF_MAX_MS = 60 * 60_000;
+const TICK_SLACK_MS = 60_000;
+
 /** What anyone may see: no error text, no transaction or batch in flight. */
 export type PublicAnchorerStatus = {
   readonly enabled: true;
@@ -173,6 +179,8 @@ export type AnchorerStatus = {
   readonly consecutiveFailures: number;
   readonly alert: boolean;
   readonly inFlight?: { readonly batchId: string; readonly txId: string; readonly stage: string };
+  /** Operator only: after a final refusal, when the next try may run. */
+  readonly nextTryAt?: string;
 };
 
 const norm = (h: string): string => h.toLowerCase().replace(/^0x/, '');
@@ -185,6 +193,9 @@ export class Anchorer {
   /** Batches this process recorded, and their roots: never anchored again. */
   private readonly recordedBatches = new Set<string>();
   private readonly recordedRoots = new Set<string>();
+  /** After a final refusal: how long the last wait was, and when the next try may run (refused). */
+  private refusalBackoffMs = 0;
+  private nextTryAt = 0;
 
   constructor(
     private readonly config: AnchorerConfig,
@@ -209,6 +220,7 @@ export class Anchorer {
       consecutiveFailures: this.failures,
       alert: this.failures >= 3,
       inFlight: a ? { batchId: a.batchId, txId: a.txId, stage: a.stage } : undefined,
+      ...(this.nextTryAt > this.now() ? { nextTryAt: new Date(this.nextTryAt).toISOString() } : {}),
     };
   }
 
@@ -252,12 +264,16 @@ export class Anchorer {
       const saved = this.store.load();
       if (saved) return await this.resume(saved);
 
+      // After a refusal the network says is final, wait longer each time (refusalBackoff).
+      if (this.now() < this.nextTryAt) {
+        return this.done('not-sent', `refused by the network last time; next try after ${new Date(this.nextTryAt).toISOString()}`, 'neither');
+      }
       const target = await this.pickBatch();
       if (!target) return this.done('idle', 'nothing to anchor', true);
       if ('refused' in target) return this.done('bad-batch', target.refused, false);
       return await this.anchor(target);
     } catch (e) {
-      return this.done('error', `error: ${e instanceof Error ? e.message : String(e)}`, false);
+      return this.done('error', `error: ${messageOf(e)}`, false);
     }
   }
 
@@ -303,7 +319,29 @@ export class Anchorer {
     return vet(sealed);
   }
 
+  /** What a submit threw, redacted, in one line. Never throws. */
+  private logSubmitError(txId: string, notSent: boolean, e: unknown): void {
+    try {
+      this.log('warn', 'anchoring: submit threw', { txId, notSent, error: describeError(e) });
+    } catch {
+      // logging must never change what happens
+    }
+  }
+
+  /**
+   * A refusal: retryable ones (the indexer is behind, error 171) keep the normal tick. A final
+   * one waits 5 minutes, then 10, 20, 40, and at most 60, from the start of the run that was
+   * refused; an anchored batch resets it. Kept in memory only: a restart tries again at once.
+   */
+  private refused(retryable: boolean, startedAt: number): void {
+    if (retryable) return;
+    this.refusalBackoffMs = this.refusalBackoffMs === 0 ? REFUSAL_BACKOFF_MIN_MS : Math.min(this.refusalBackoffMs * 2, REFUSAL_BACKOFF_MAX_MS);
+    // A little early, so a run that took a while does not miss the tick it was meant for.
+    this.nextTryAt = startedAt + this.refusalBackoffMs - TICK_SLACK_MS;
+  }
+
   private async anchor(target: { batchId: string; root: string }): Promise<string> {
+    const startedAt = this.now();
     if (!usableRoot(target.root)) {
       return this.done('bad-batch', `batch ${target.batchId} has an unusable root; not anchored`, false);
     }
@@ -358,15 +396,21 @@ export class Anchorer {
       try {
         await prepared.submit();
       } catch (e) {
-        if (e instanceof Error && e.name === 'NotSentError') {
+        // The fee hold and the saved attempt first; only then the diagnostics, which cannot
+        // throw (error-chain.ts) and are guarded anyway, so they can never skip either.
+        const notSent = hasName(e, 'NotSentError');
+        if (notSent) {
           this.budget.release(hold.id);
           this.store.clear();
+          this.refused(field(e, 'retryable') === true, startedAt);
+          this.logSubmitError(prepared.txId, true, e);
           await prepared.abandon().catch(() => undefined);
-          return { outcome: this.done('not-sent', `not sent (${e.message}); will try again`, false) };
+          return { outcome: this.done('not-sent', `not sent (${messageOf(e)}); will try again`, false) };
         }
         // It may have reached the network: count the fee, keep the attempt, look it up next time.
         this.budget.settle(hold.id, prepared.fee);
         this.store.save({ ...attempt, stage: 'sent' });
+        this.logSubmitError(prepared.txId, false, e);
         return { outcome: this.done('maybe-sent', `sending ${prepared.txId} may have failed; will look it up`, false) };
       }
       this.budget.settle(hold.id, prepared.fee);
@@ -384,10 +428,10 @@ export class Anchorer {
 
     // 'sending' after a restart means it may or may not have gone out: same as 'sent'.
     const deadline = this.now() + (justSent ? this.config.waitForLandingMs : 0);
-    let landing = await this.chain.lookup(a.txId);
+    let landing = await this.lookup(a.txId);
     while (landing.state === 'unknown' && this.now() < deadline) {
       await this.sleep(this.config.pollMs);
-      landing = await this.chain.lookup(a.txId);
+      landing = await this.lookup(a.txId);
     }
 
     if (landing.state === 'failed') {
@@ -400,7 +444,9 @@ export class Anchorer {
         this.store.clear();
         return this.done('expired', `anchorBatch ${a.txId} never landed and has expired; will build a new one`, false);
       }
-      return this.done('waiting', `waiting for ${a.txId} to land`, true);
+      // Not a success: a transaction that never lands must still reach the alert (maybe-sent, then
+      // waiting, then expired, again and again, reset the count on every waiting before).
+      return this.done('waiting', `waiting for ${a.txId} to land`, 'neither');
     }
 
     // Landed. Check the chain says what we meant before telling the registry anything.
@@ -428,6 +474,25 @@ export class Anchorer {
     return this.record(verified);
   }
 
+  /** One indexer lookup, logged: the state it found, or why it failed (redacted). Throws as before. */
+  private async lookup(txId: string): Promise<Landing> {
+    let landing: Landing;
+    try {
+      landing = await this.chain.lookup(txId);
+    } catch (e) {
+      this.log('warn', 'anchoring: lookup failed', { txId, error: describeError(e) });
+      throw e;
+    }
+    this.log('info', 'anchoring: lookup', {
+      txId,
+      state: landing.state,
+      ...(landing.state === 'landed'
+        ? { blockHeight: landing.blockHeight, hasRoot: landing.lastBatchRoot !== undefined, hasSeq: landing.batchSeq !== undefined }
+        : {}),
+    });
+    return landing;
+  }
+
   private async record(a: Attempt): Promise<string> {
     await this.registry.recordAnchor(a.batchId, {
       chain: 'midnight',
@@ -441,6 +506,8 @@ export class Anchorer {
     this.recordedBatches.add(a.batchId);
     this.recordedRoots.add(norm(a.root));
     this.status_.lastAnchoredBatch = a.batchId;
+    this.refusalBackoffMs = 0;
+    this.nextTryAt = 0;
     this.log('info', 'anchoring: recorded', {
       batchId: a.batchId,
       txHash: a.txHash,
