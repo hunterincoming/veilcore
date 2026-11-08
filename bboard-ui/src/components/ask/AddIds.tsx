@@ -28,8 +28,8 @@ import {
   ALREADY_CORRECTED,
   allRecords,
   correctionWaitsForBackup,
-  hydrate,
   issueCorrection,
+  refresh,
   useRecords,
 } from '../../veilcore/records';
 import { saveIds } from '../../ask-job/save-ids';
@@ -68,12 +68,20 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
       // Read afresh and checked again before each correction (save-ids.ts): another device may
       // have saved since this screen was drawn.
       const r = await saveIds(litter, values, pairs, scheme, t('app.job.ids.reason'), {
-        hydrate,
+        refresh,
         allRecords,
         issueCorrection,
       });
-      if ('changed' in r) setError(t('app.job.ids.changed'));
+      if ('offline' in r) setError(t('app.job.ids.offline'));
+      else if ('changed' in r) setError(t('app.job.ids.changed'));
       else if ('gone' in r) setError(t('app.job.ids.gone', { name: r.gone }));
+      else if (r.clashes?.length)
+        // Saved, but another device saved one of these IDs on another animal the same moment: said loudly.
+        setError(
+          r.clashes
+            .map((c) => t('app.job.ids.clash', { id: c.id, names: c.names.join(tr.lang === 'ja' ? '、' : ', ') }))
+            .join(' '),
+        );
       else onClose();
     } catch (e) {
       const m = e instanceof Error ? e.message : String(e);

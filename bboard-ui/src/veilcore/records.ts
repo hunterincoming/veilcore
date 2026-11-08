@@ -508,6 +508,15 @@ onVaultChange(() => {
 
 /** Re-fetch from the registry. Used on start, after a claim, and by the sync below. */
 export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> => {
+  await refresh(opts);
+};
+
+/**
+ * hydrate, saying whether the registry answered: true when what is shown is its set now; false
+ * when it couldn't, and what is shown is this browser's copy. Saving IDs needs the first
+ * (ask-job/save-ids.ts): a check made on this browser's copy alone can miss another device's.
+ */
+export const refresh = async (opts: { resave?: boolean } = {}): Promise<boolean> => {
   const before = records;
   try {
     records = await store.load(RECORDS_KEY, isStrainRecord);
@@ -518,7 +527,7 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
     loadedOnce = true;
     if (before.length === 0) records = Object.values(outboxRecords()).filter(isStrainRecord);
     if (first || (before.length === 0 && records.length)) notify();
-    return;
+    return false;
   }
   // A record's secrets sealed with it (round 4, F5): kept here when this browser has none for
   // it, as after restoring the vault key on a new device or a wiped browser.
@@ -558,6 +567,7 @@ export const hydrate = async (opts: { resave?: boolean } = {}): Promise<void> =>
     syncedOnce = true;
     void resendGrants();
   }
+  return true;
 };
 
 /** disclosure.ts syncGrants over this set: never from a record that doesn't match its fingerprint. */

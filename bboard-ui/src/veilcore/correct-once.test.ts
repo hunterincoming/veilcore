@@ -147,7 +147,7 @@ describe('two devices can’t put one ID on two pups (X6)', () => {
     // B presses Save: the records are read afresh, T4 is now pup 6's, nothing is sent.
     const r = await B.run(() =>
       saveIds(litter, values, shown.pairs, 'Microchip', 'ID added', {
-        hydrate: B.m.records.hydrate,
+        refresh: B.m.records.refresh,
         allRecords: B.m.records.allRecords,
         issueCorrection: B.m.records.issueCorrection,
       }),
@@ -179,7 +179,7 @@ describe('two devices can’t put one ID on two pups (X6)', () => {
       const shown = await b.run(() => checkNow(litter, values, b.m.records.allRecords()));
       return b.run(() =>
         saveIds(litter, values, shown.pairs, 'Microchip', 'ID added', {
-          hydrate: b.m.records.hydrate,
+          refresh: b.m.records.refresh,
           allRecords: b.m.records.allRecords,
           issueCorrection: b.m.records.issueCorrection,
         }),
@@ -198,5 +198,103 @@ describe('two devices can’t put one ID on two pups (X6)', () => {
     const again = await B.run(() => B.m.records.issueCorrection(p1.id, edits as never, 'ID added'));
     expect(again?.refId).toBe('W1');
     expect(liveCorrectionsOf(p1.id)).toHaveLength(1);
+  });
+});
+
+describe('saving IDs needs the registry’s answer (X6b)', () => {
+  const twoDevices = async (tag: string) => {
+    const A = await browser(`A-${tag}`);
+    const mk = async (name: string) =>
+      A.run(async () => {
+        const { ANIMAL_PROFILE } = await import('./animal-profile');
+        const fields: Record<string, unknown> = {
+          nonce: A.m.commitment.newNonce(),
+          strainName: name,
+          bredBy: 'Kennel Nord',
+          dateCreated: '2026-11-01',
+          notes: '',
+          loggedAt: Date.UTC(2026, 10, 1),
+          refId: '',
+          taxon: 'Canis familiaris',
+          profile: ANIMAL_PROFILE,
+          animal: { breed: 'Border Collie', idScheme: '', sex: 'female', herd: '' },
+          parents: [{ name: 'Bella', role: 'dam', individualId: 'BELLA-1' }],
+        };
+        return {
+          id: `VEIL-${randomBytes(16).toString('hex').toUpperCase()}`,
+          ...fields,
+          recordFingerprint: await A.m.commitment.fingerprintRecord(fields as never),
+          licenseIds: [],
+        };
+      });
+    const p4 = await mk('Bella pup 4');
+    const p6 = await mk('Bella pup 6');
+    await A.run(async () => {
+      A.m.holder.holderKey();
+      A.m.vault.mintVault();
+      A.m.vault.markVaultBackedUp();
+      await A.m.records.createRecordSaved(p4 as never);
+      await A.m.records.createRecordSaved(p6 as never);
+      await A.m.backup.checkBackup(fileOf(JSON.stringify(A.m.backup.backupContents())));
+    });
+    const B = await browser(`B-${tag}`, { map: new Map(A.storage) });
+    await B.run(() => B.m.records.hydrate());
+    const animal = { breed: 'Border Collie', herd: '', sex: 'female', idScheme: 'Microchip' };
+    const t4OnP6 = () => A.run(() => A.m.records.issueCorrection(p6.id, { refId: 'T4', animal } as never, 'ID added'));
+    const { saveIds, checkNow } = await import('../ask-job/save-ids');
+    const litter = await B.run(() => ({ young: [p4.id, p6.id].map((id) => B.m.records.getRecord(id)!) }));
+    const values = { [p4.id]: 'T4' };
+    const shown = await B.run(() => checkNow(litter, values, B.m.records.allRecords()));
+    const api = {
+      refresh: () => B.run(() => B.m.records.refresh()),
+      allRecords: () => B.m.records.allRecords(),
+      issueCorrection: (id: string, e: Partial<import('./records').StrainRecord>, r: string) =>
+        B.run(() => B.m.records.issueCorrection(id, e, r)),
+    };
+    const save = () => B.run(() => saveIds(litter, values, shown.pairs, 'Microchip', 'ID added', api));
+    return { p4, p6, t4OnP6, save, api, litter, values, shown, saveIds };
+  };
+
+  for (const [label, fail] of [
+    [
+      'offline',
+      () =>
+        (reg.misbehave.fault = (m: string, path: string) =>
+          m === 'GET' && path === '/api/records' ? 'fail' : undefined),
+    ],
+    [
+      'a 502 on the read',
+      () =>
+        (reg.misbehave.fault = (m: string, path: string) =>
+          m === 'GET' && path === '/api/records' ? new Response('bad gateway', { status: 502 }) : undefined),
+    ],
+    ['a 429 on the read', () => (reg.misbehave.refuseGets = 1)],
+  ] as const)
+    it(`${label}: nothing is saved, and B is told; nothing is kept to send later`, async () => {
+      const d = await twoDevices(label.replace(/\W/g, ''));
+      await d.t4OnP6();
+      fail();
+      expect(await d.save()).toEqual({ offline: true, saved: 0 });
+      reg.misbehave.fault = null;
+      reg.misbehave.refuseGets = 0;
+      expect(liveCorrectionsOf(d.p4.id)).toHaveLength(0);
+      // Online again: the check finds T4 on pup 6, and nothing for pup 4 was ever queued.
+      expect(await d.save()).toEqual({ changed: true, saved: 0 });
+      expect(liveCorrectionsOf(d.p4.id)).toHaveLength(0);
+    });
+
+  it('two devices saving in the same second: the read after saving names both animals', async () => {
+    const d = await twoDevices('race');
+    // A's save lands between B's read and B's send.
+    const racing = {
+      ...d.api,
+      issueCorrection: async (id: string, e: Partial<import('./records').StrainRecord>, r: string) => {
+        await d.t4OnP6();
+        return d.api.issueCorrection(id, e, r);
+      },
+    };
+    const r = await d.saveIds(d.litter, d.values, d.shown.pairs, 'Microchip', 'ID added', racing);
+    expect(r).toMatchObject({ saved: 1, clashes: [{ id: 'T4' }] });
+    expect('clashes' in r && r.clashes?.[0].names.slice().sort()).toEqual(['Bella pup 4', 'Bella pup 6']);
   });
 });
