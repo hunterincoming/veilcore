@@ -214,7 +214,7 @@ describe('refusals', () => {
   });
 
   it('a name it can’t find, or no count, is refused rather than guessed', () => {
-    expect(refused('cut 3 clones off Purple Haze').why).toMatch(/leftover|noRecord/);
+    expect(refused('cut 3 clones off Purple Haze').why).toBe('notFound');
     expect(refused('cut clones off Blue Dream').why).toBe('count');
   });
 });

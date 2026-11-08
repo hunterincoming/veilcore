@@ -53,19 +53,26 @@ export type Cat =
   | 'money'
   | 'notJob'
   | 'stamp'
-  | 'every';
+  | 'every'
+  | 'yesterday'
+  | 'lot'
+  | 'codeWord'
+  | 'dogWord'
+  | 'readyCore'
+  | 'first'
+  | 'idAny';
 
 // prettier-ignore
 const WORDS: Record<Cat, readonly string[]> = {
-  filler: ['the', 'a', 'an', 'my', 'our', 'please', 'pls', 'me', 'just', 'some', 'i', 'we', 'have', 've', "i've", 'existing', 'in',
+  filler: ['しました', 'します', 'してください', 'the', 'a', 'an', 'my', 'our', 'please', 'pls', 'me', 'just', 'some', 'i', 'we', 'have', 've', "i've", 'existing', 'in',
     'der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem', 'mein', 'meine', 'meinen', 'meiner', 'meines', 'bitte', 'mir', 'ich', 'wir', 'habe', 'vorhandene', 'bestehende',
     'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'mi', 'mis', 'por', 'favor', 'yo', 'he', 'existentes',
     'le', 'les', "l'", 'une', 'mon', 'ma', 'mes', "s'il", 'vous', 'plaît', 'plait', 'svp', 'je', "j'", 'nous', 'ai', 'existants', 'existantes',
     'を', 'の', 'は', 'が', 'も', 'ください', 'お願いします', 'ね', 'よ', 'て', 'た', 'です', 'ます', '私', '自分'],
-  today: ['today', 'heute', 'hoy', "aujourd'hui", '今日', '本日'],
+  today: ['this morning', 'tonight', 'this evening', 'heute morgen', 'esta mañana', 'ce matin', '今朝', 'today', 'heute', 'hoy', "aujourd'hui", '今日', '本日'],
   new: ['new', 'neue', 'neuen', 'nuevos', 'nuevas', 'nouveaux', 'nouvelles', '新しい'],
   cloneNoun: ['clone', 'clones', 'cutting', 'cuttings', 'cuts', 'klon', 'klone', 'klonen', 'steckling', 'stecklinge', 'clon', 'esqueje', 'esquejes', 'bouture', 'boutures', 'クローン', '挿し木', '挿し穂'],
-  cloneVerb: ['cut', 'take', 'took', 'taken', 'make', 'made', 'log', 'record', 'add', 'took', 'pulled', 'schneide', 'schneiden', 'geschnitten', 'nimm', 'nehmen', 'genommen', 'mache', 'mach', 'erfasse',
+  cloneVerb: ['取りました', '切りました', '作りました', '記録しました', 'cut', 'take', 'took', 'taken', 'make', 'made', 'log', 'record', 'add', 'took', 'pulled', 'schneide', 'schneiden', 'geschnitten', 'nimm', 'nehmen', 'genommen', 'mache', 'mach', 'erfasse',
     'corta', 'cortar', 'corté', 'cortado', 'toma', 'tomar', 'tomé', 'saca', 'sacar', 'registra', 'coupe', 'couper', 'coupé', 'prends', 'prendre', 'pris', 'fais', 'faire', 'enregistre',
     '取って', '取る', '取った', '切って', '切る', '切った', '作って', '作る', '記録して', '記録'],
   from: ['from', 'off', 'of', 'von', 'vom', 'aus', 'de', 'del', 'desde', 'du', 'sur', 'から'],
@@ -75,16 +82,16 @@ const WORDS: Record<Cat, readonly string[]> = {
   ai: ['ai', 'a.i.', 'ki', 'ia', 'i.a.', '人工授精'],
   bull: ['bull', 'sire', 'stier', 'bulle', 'bullen', 'vater', 'toro', 'semental', 'padre', 'taureau', 'père', '種牛', '父'],
   male: ['male', 'males', 'boy', 'boys', 'buck', 'bucks', 'ram', 'rams', 'colt', 'colts', 'rüde', 'rüden', 'männlich', 'männliche', 'macho', 'machos', 'mâle', 'mâles', 'オス', '雄', '牡'],
-  female: ['female', 'females', 'girl', 'girls', 'heifer', 'heifers', 'doe', 'does', 'ewe', 'ewes', 'filly', 'fillies', 'hündin', 'hündinnen', 'weiblich', 'weibliche', 'färse', 'hembra', 'hembras', 'novilla', 'femelle', 'femelles', 'génisse', 'メス', '雌', '牝'],
+  female: ['bitch', 'bitches', 'female', 'females', 'girl', 'girls', 'heifer', 'heifers', 'doe', 'does', 'ewe', 'ewes', 'filly', 'fillies', 'hündin', 'hündinnen', 'weiblich', 'weibliche', 'färse', 'hembra', 'hembras', 'novilla', 'femelle', 'femelles', 'génisse', 'メス', '雌', '牝'],
   idTag: ['tag', 'tags', 'ear tag', 'ohrmarke', 'etikett', 'crotal', 'etiqueta', 'boucle', 'étiquette', 'タグ', '耳標'],
   idChip: ['chip', 'chips', 'microchip', 'microchips', 'mikrochip', 'transponder', 'puce', 'puces', 'マイクロチップ', 'チップ'],
-  later: ['to follow', 'later', 'follow', 'coming', 'folgen', 'später', 'después', 'más tarde', 'plus tard', 'suivre', '後で', 'あとで'],
+  later: ['yet', 'noch', 'todavía', 'aún', 'encore', 'まだ', 'to follow', 'later', 'follow', 'coming', 'folgen', 'später', 'después', 'más tarde', 'plus tard', 'suivre', '後で', 'あとで'],
   offNoun: ['pup', 'pups', 'puppy', 'puppies', 'calf', 'calves', 'foal', 'foals', 'lamb', 'lambs', 'kid', 'kids', 'piglet', 'piglets', 'kitten', 'kittens', 'young', 'offspring', 'litter',
     'welpe', 'welpen', 'kalb', 'kälber', 'fohlen', 'lamm', 'lämmer', 'ferkel', 'kitz', 'kitze', 'jungtiere', 'nachwuchs', 'wurf',
     'cachorro', 'cachorros', 'ternero', 'terneros', 'potro', 'potros', 'cordero', 'corderos', 'lechón', 'lechones', 'cría', 'crías', 'camada',
     'chiot', 'chiots', 'veau', 'veaux', 'poulain', 'poulains', 'agneau', 'agneaux', 'porcelet', 'porcelets', 'chaton', 'chatons', 'portée', 'petits',
     '子犬', '仔犬', '子牛', '仔牛', '仔馬', '子馬', '子羊', '仔羊', '子豚', '仔豚', '子猫', '仔猫', '子'],
-  offVerb: ['whelped', 'calved', 'foaled', 'lambed', 'kidded', 'farrowed', 'born', 'had', 'has', 'gave birth', 'delivered',
+  offVerb: ['parido', 'ha', '産みました', '生まれました', '出産しました', '分娩しました', 'whelped', 'calved', 'foaled', 'lambed', 'kidded', 'farrowed', 'born', 'had', 'has', 'gave birth', 'delivered',
     'gekalbt', 'abgekalbt', 'geworfen', 'gefohlt', 'geboren', 'hatte', 'hat', 'bekam',
     'parió', 'nacieron', 'nacidos', 'tuvo',
     'vêlé', 'mis bas', 'mise bas', 'nés', 'né', 'eu', 'a eu',
@@ -93,18 +100,18 @@ const WORDS: Record<Cat, readonly string[]> = {
   dueWord: ['due', 'owe', 'owed', 'overdue', 'report', 'reports', 'royalty', 'royalties', 'fällig', 'bericht', 'berichte', 'abrechnung', 'abrechnungen', 'lizenzgebühren',
     'informe', 'informes', 'regalías', 'vence', 'pendiente', 'pendientes', 'rapport', 'rapports', 'redevances', 'déclaration', 'déclarations', 'échéance', 'dû', 'dus',
     '報告', '報告書', '期限', 'ロイヤリティ'],
-  dueVerb: ["what's", 'what', 'whats', 'is', 'are', 'send', 'file', 'do', 'draft', 'show', 'all', 'was', 'ist', 'sind', 'sende', 'schicke', 'erstelle', 'alle',
+  dueVerb: ['mach', 'mache', 'schick', 'haz', 'fais', '見せて', '見せ', '出して', '送ってください', "what's", 'what', 'whats', 'is', 'are', 'send', 'file', 'do', 'draft', 'show', 'all', 'was', 'ist', 'sind', 'sende', 'schicke', 'erstelle', 'alle',
     'qué', 'que', 'hay', 'envía', 'enviar', 'prepara', 'todos', 'quels', 'quoi', 'envoie', 'envoyer', 'prépare', 'tous', 'est',
     '送って', '送る', '作って', '出して', '何', 'ある', '全部'],
-  importVerb: ['add', 'bring', 'import', 'load', 'upload', 'füge', 'hinzu', 'importiere', 'importieren', 'lade', 'übernimm', 'añade', 'agrega', 'importa', 'importar', 'sube', 'carga',
+  importVerb: ['追加しました', '取り込みました', 'add', 'bring', 'import', 'load', 'upload', 'füge', 'hinzu', 'importiere', 'importieren', 'lade', 'übernimm', 'añade', 'agrega', 'importa', 'importar', 'sube', 'carga',
     'ajoute', 'importe', 'importer', 'charge', 'インポート', '取り込んで', '取り込む', '追加して', '追加'],
   importNoun: ['mothers', 'moms', 'plants', 'genetics', 'collection', 'records', 'strains', 'cultivars', 'library', 'stock', 'spreadsheet', 'file', 'csv',
     'mutterpflanzen', 'pflanzen', 'genetik', 'sammlung', 'tabelle', 'datei', 'madres', 'plantas', 'genética', 'colección', 'hoja', 'archivo',
     'mères', 'plantes', 'génétique', 'fichier', 'tableur', '母株', '株', '遺伝資源', 'コレクション', 'ファイル', '植物'],
   animalNoun: ['herd', 'animals', 'cows', 'cattle', 'dogs', 'horses', 'herde', 'tiere', 'kühe', 'rebaño', 'animales', 'vacas', 'troupeau', 'animaux', 'vaches', '群れ', '動物', '牛'],
-  readyWord: ['ready', 'prepare', 'prepara', 'prépare', 'get', 'set', 'bereit', 'fertig', 'lizenzbereit', 'vorbereiten', 'bereite', 'vor', 'lista', 'listo', 'preparar', 'deja', 'prête', 'prêt', 'préparer', 'rends',
+  readyWord: ['make', 'mach', 'mache', 'ready', 'prepare', 'prepara', 'prépare', 'get', 'set', 'bereit', 'fertig', 'lizenzbereit', 'vorbereiten', 'bereite', 'vor', 'lista', 'listo', 'preparar', 'deja', 'prête', 'prêt', 'préparer', 'rends',
     '準備', 'できるように', '準備して'],
-  licenseWord: ['lizenzbereit', 'license', 'licensing', 'licensed', 'lizenz', 'lizenzieren', 'lizenzvergabe', 'licencia', 'licenciar', 'licencier', 'ライセンス'],
+  licenseWord: ['licensable', 'lizenzierbar', 'lizenzierung', 'lizenzbereit', 'license', 'licensing', 'licensed', 'lizenz', 'lizenzieren', 'lizenzvergabe', 'licencia', 'licenciar', 'licencier', 'ライセンス'],
   to: ['to', 'for', 'zur', 'zum', 'für', 'para', 'pour', 'à', 'en', 'に', 'で', 'できる', 'する'],
   pronoun: ['it', 'them', 'her', 'him', 'es', 'sie', 'ihn', 'lo', 'los', 'la', 'las', 'le', 'les', 'それ', 'それら'],
   and: ['and', 'und', 'y', 'et', 'と'],
@@ -113,6 +120,13 @@ const WORDS: Record<Cat, readonly string[]> = {
   notJob: ['prove', 'proof', 'transfer', 'hand on', 'revoke', 'delete', 'remove', 'correct', 'beweise', 'übertrage', 'widerrufe', 'lösche', 'prueba', 'transfiere', 'revoca', 'borra', 'elimina',
     'prouve', 'transfère', 'révoque', 'supprime', 'efface', '証明', '譲渡', '取り消し', '削除'],
   stamp: ['stamp', 'stamps', 'anchor', 'stempel', 'sello', 'sellar', 'tampon', 'horodate', 'スタンプ'],
+  yesterday: ['yesterday', 'last night', 'gestern', 'ayer', 'anoche', 'hier', 'hier soir', '昨日', '昨夜'],
+  lot: ['lot', 'charge', 'lote', 'ロット'],
+  codeWord: ['naab', 'semex', 'code', 'stud', 'nr', 'nr.', 'no.', '番号'],
+  dogWord: ['dog', 'dogs'],
+  readyCore: ['bereite', 'ready', 'bereit', 'fertig', 'lizenzbereit', 'lizenzierbar', 'lista', 'listo', 'prête', 'prêt', 'licensable', '準備', 'できるように', '準備して', 'vorbereiten', 'preparar', 'prepara', 'prépare', 'préparer', 'prepare'],
+  first: ['at', 'with', 'first', 'starting', 'start', 'erste', 'ersten', 'ab', 'primera', 'primer', 'desde', 'première', 'premier', 'à partir de', '最初'],
+  idAny: ['id', 'ids', 'kennung', 'kennungen', 'kennnummer', 'kennnummern', 'identificación', 'identificaciones', 'identifiant', 'identifiants', '個体識別番号'],
   every: ['every', 'all of', 'jeden', 'jede', 'cada', 'chaque', '全ての', 'すべての'],
 };
 
@@ -132,7 +146,7 @@ for (const [cat, list] of Object.entries(WORDS) as [Cat, readonly string[]][])
   }
 
 /** Japanese words, longest first, for cutting a run with no spaces. */
-const JA = [...CATS.keys()].filter((w) => CJK.test(w)).sort((a, b) => b.length - a.length);
+const JA = [...CATS.keys(), '双子', '三つ子'].filter((w) => CJK.test(w)).sort((a, b) => b.length - a.length);
 
 /** て-form verbs: a clause ends after one when more follows (取って、… or 取ってライセンス). */
 const TE = new Set([
@@ -226,9 +240,48 @@ const JOIN_WORDS = new Set([
   'それから',
 ]);
 
+/**
+ * Numbers said in words, in the five languages ("twenty clones", "twins"), up to twenty. Words
+ * that are also an article ("a", "un", "une", "ein", "uno", "una") are not numbers here.
+ */
+// prettier-ignore
+export const NUMBER_WORDS: Readonly<Record<string, number>> = {
+  two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12,
+  thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20,
+  twins: 2, triplets: 3, zwei: 2, drei: 3, vier: 4, fünf: 5, sechs: 6, sieben: 7, acht: 8, neun: 9, zehn: 10,
+  elf: 11, zwölf: 12, zwanzig: 20, zwillinge: 2, drillinge: 3, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6,
+  siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, veinte: 20, gemelos: 2, mellizos: 2, trillizos: 3,
+  deux: 2, trois: 3, quatre: 4, cinq: 5, sept: 7, huit: 8, neuf: 9, dix: 10, onze: 11, douze: 12, vingt: 20,
+  jumeaux: 2, jumelles: 2, triplés: 3, '双子': 2, '三つ子': 3,
+};
+/** Words that are a number of young by themselves: "twins", "triplets". */
+const BIRTH_NUMBERS = new Set([
+  'twins',
+  'triplets',
+  'zwillinge',
+  'drillinge',
+  'gemelos',
+  'mellizos',
+  'trillizos',
+  'jumeaux',
+  'jumelles',
+  'triplés',
+  '双子',
+  '三つ子',
+]);
+
 const word = (w: string, at: number): Token => {
-  const cats = CATS.get(w) ?? new Set<Cat>();
-  const n = /^\d{1,6}$/.test(w) ? Number(w) : undefined;
+  const cats = new Set<Cat>(CATS.get(w) ?? []);
+  if (BIRTH_NUMBERS.has(w)) cats.add('offNoun');
+  // "x20", "×20": a count.
+  const times = /^[x×](\d{1,4})$/.exec(w);
+  const n = /^\d{1,6}$/.test(w)
+    ? Number(w)
+    : times
+      ? Number(times[1])
+      : Object.hasOwn(NUMBER_WORDS, w)
+        ? NUMBER_WORDS[w]
+        : undefined;
   const join = JOIN_WORDS.has(w);
   return {
     w,
@@ -314,6 +367,19 @@ export const tokenize = (typed: string, records: readonly StrainRecord[]): Read 
       tokens.push({ ...word(two, a.at), end: b.end });
       i += 1;
     } else tokens.push(a);
+  }
+  // "no tag yet", "kein Chip", "sin chip", "pas encore de puce": not a negation of the job, but
+  // IDs to come. A negation counts as that only right before an ID word (a "de" or "encore"
+  // between, in French), and the ID word is then read as "to follow".
+  for (let i = 0; i < tokens.length; i++) {
+    if (!tokens[i].cats.has('negation')) continue;
+    let j = i + 1;
+    while (j < tokens.length && j - i <= 3 && ['de', 'd', "d'", 'encore', 'pas', 'yet', 'any'].includes(tokens[j].w))
+      j++;
+    const id = tokens[j];
+    if (!id || !(id.cats.has('idTag') || id.cats.has('idChip') || id.cats.has('idAny'))) continue;
+    for (let k = i; k < j; k++) tokens[k] = { ...tokens[k], cats: new Set<Cat>(['later']), unknown: undefined };
+    tokens[j] = { ...id, cats: new Set<Cat>([...id.cats, 'later']) };
   }
   const masked = [...text].map((c, i) => (found.some((f) => i >= f.at && i < f.end) ? ' ' : c)).join('');
   const negated = tokens.some((t) => t.cats.has('negation')) || JA_NEGATION.test(masked);
