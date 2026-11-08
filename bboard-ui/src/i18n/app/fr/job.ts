@@ -85,6 +85,8 @@ export const job = {
   'app.job.answer.ids': 'Identifiants (facultatif) : collez une colonne, un par ligne, dans l’ordre',
   'app.job.answer.idsLater': 'Pas encore d’identifiants ? Laissez vide : l’accueil vous le rappellera.',
   'app.job.answer.idsCount': '{n} sur {count} collés.',
+  'app.job.answer.idsTooMany':
+    'Cela fait {n} lignes pour {count} petits. Collez une ligne par petit, dans l’ordre ; laissez vide la ligne d’un petit sans identifiant.',
   'app.job.answer.file': 'Choisissez le fichier de votre collection (CSV ou Excel).',
   'app.job.answer.filePick': 'Choisir un fichier',
   'app.job.answer.use': 'Utiliser',
@@ -262,15 +264,34 @@ export const job = {
   'app.job.ids.save.other': 'Enregistrer {count} identifiants',
   'app.job.ids.reason': 'Identifiant ajouté',
   'app.job.ids.already': 'déjà {id}',
-  'app.job.ids.no.twice': '{id} figure deux fois dans la colonne. Vérifiez la colonne.',
-  'app.job.ids.no.taken':
-    '{id} est déjà sur {name}. Collez seulement les identifiants qui manquent, dans l’ordre, ou toute la colonne à nouveau.',
-  'app.job.ids.no.differs':
-    '{name} a déjà {id}, mais la colonne indique {typed} à cette ligne. Vérifiez l’ordre de la colonne.',
-  'app.job.ids.no.tooMany':
-    'Cela fait {n} identifiants pour {count} petits qui n’en ont pas encore. Collez seulement ceux qui manquent, dans l’ordre, ou toute la colonne à nouveau.',
-  'app.job.ids.no.elsewhere': '{id} est déjà l’identifiant de {name}, un autre de vos animaux. Vérifiez la colonne.',
-  'app.job.ids.no.blank':
-    'La ligne {row} est vide. Pour laisser un petit sans identifiant, collez une ligne pour chacun des {count} petits, dans l’ordre, avec cette ligne vide.',
-  'app.job.ids.no.comma': '« {id} » contient une virgule. Collez un identifiant par ligne.',
+  'app.job.ids.no.twice': '{id} est dans deux cases.',
+  'app.job.ids.no.taken': '{id} est déjà l’identifiant de {name}.',
+  'app.job.ids.no.elsewhere': '{id} est déjà l’identifiant de {name}, un autre de vos animaux.',
+  'app.job.ids.help':
+    'Saisissez ou scannez l’identifiant de chaque petit dans sa propre case. Entrée ou Tab d’un scanner passe à la case vide suivante. Vous pouvez aussi coller une colonne dans une case : elle remplit cette case et celles du dessous.',
+  'app.job.ids.schemeNeeded': 'Indiquez à quelle numérotation appartiennent ces identifiants.',
+  'app.job.ids.preview': 'Ce qui sera enregistré',
+  'app.job.ids.previewNone': 'Rien pour l’instant : saisissez, scannez ou collez un identifiant dans une case.',
+  'app.job.ids.pair': '{name} reçoit {id}',
+  'app.job.ids.fix.one': 'Corrigez d’abord la case marquée en rouge.',
+  'app.job.ids.fix.other': 'Corrigez d’abord les {count} cases marquées en rouge.',
+  'app.job.ids.paste.columns':
+    'C’est plus d’une colonne. Copiez seulement la colonne des identifiants et collez à nouveau. Rien n’a été rempli.',
+  'app.job.ids.paste.header':
+    '« {id} » ressemble à un en-tête de colonne, pas à un identifiant. Copiez les identifiants sans l’en-tête et collez à nouveau. Rien n’a été rempli.',
+  'app.job.ids.paste.invisible':
+    'La ligne {line} ne contient que des caractères invisibles. Copiez à nouveau les identifiants ou saisissez-les. Rien n’a été rempli.',
+  'app.job.ids.paste.stopped.one': 'Arrêté à {name} : il a déjà un identifiant, donc 1 ligne n’a pas été utilisée.',
+  'app.job.ids.paste.stopped.other':
+    'Arrêté à {name} : il a déjà un identifiant, donc {count} lignes n’ont pas été utilisées.',
+  'app.job.ids.paste.over.one': 'Plus de lignes que de cases : 1 ligne n’a pas été utilisée.',
+  'app.job.ids.paste.over.other': 'Plus de lignes que de cases : {count} lignes n’ont pas été utilisées.',
+  'app.job.ids.no.invisible':
+    'Elle contient des caractères invisibles. Videz-la et saisissez ou scannez l’identifiant à nouveau.',
+  'app.job.wait.noKey':
+    'Vos enregistrements sont gardés ici, mais ce navigateur n’a pas la clé sous laquelle le serveur de VeilCore les connaît, donc rien n’a été renvoyé. Restaurez votre sauvegarde pour continuer.',
+  'app.job.wait.full':
+    'Rien n’est perdu : vos enregistrements sont gardés ici. Le stockage de cet appareil est plein, donc rien n’a été envoyé. Libérez un peu d’espace ; je réessaierai.',
+  'app.job.wait.local':
+    'Rien n’est perdu : vos enregistrements sont gardés ici. Ils n’ont pas pu être enregistrés depuis cette page pour l’instant, donc rien n’a été envoyé. Je réessaierai bientôt.',
 } satisfies Partial<AppTranslation>;

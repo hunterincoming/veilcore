@@ -83,6 +83,8 @@ export const job = {
   'app.job.answer.ids': 'Identificaciones (opcional): pegue una columna, una por línea, en orden',
   'app.job.answer.idsLater': '¿Aún sin identificaciones? Déjelo vacío: la página de inicio se lo recordará.',
   'app.job.answer.idsCount': '{n} de {count} pegadas.',
+  'app.job.answer.idsTooMany':
+    'Son {n} líneas para {count} crías. Pegue una línea por cría, en orden; deje vacía la línea de una cría sin identificación.',
   'app.job.answer.file': 'Elija el archivo con su colección (CSV o Excel).',
   'app.job.answer.filePick': 'Elegir un archivo',
   'app.job.answer.use': 'Usar esto',
@@ -259,15 +261,33 @@ export const job = {
   'app.job.ids.save.other': 'Guardar {count} identificaciones',
   'app.job.ids.reason': 'Identificación añadida',
   'app.job.ids.already': 'ya {id}',
-  'app.job.ids.no.twice': '{id} aparece dos veces en la columna. Revise la columna.',
-  'app.job.ids.no.taken':
-    '{id} ya está en {name}. Pegue solo las identificaciones que faltan, en orden, o la columna entera de nuevo.',
-  'app.job.ids.no.differs':
-    '{name} ya tiene {id}, pero la columna pone {typed} en esa fila. Revise el orden de la columna.',
-  'app.job.ids.no.tooMany':
-    'Son {n} identificaciones para {count} crías que aún no tienen. Pegue solo las que faltan, en orden, o la columna entera de nuevo.',
-  'app.job.ids.no.elsewhere': '{id} ya es la identificación de {name}, otro de sus animales. Revise la columna.',
-  'app.job.ids.no.blank':
-    'La fila {row} está vacía. Para dejar una cría sin identificación, pegue una fila por cada una de las {count} crías, en orden, con esa fila vacía.',
-  'app.job.ids.no.comma': '«{id}» tiene una coma. Pegue una identificación por fila.',
+  'app.job.ids.no.twice': '{id} está en dos casillas.',
+  'app.job.ids.no.taken': '{id} ya es la identificación de {name}.',
+  'app.job.ids.no.elsewhere': '{id} ya es la identificación de {name}, otro de sus animales.',
+  'app.job.ids.help':
+    'Escriba o escanee la identificación de cada cría en su propia casilla. El Intro o el Tab de un escáner pasa a la siguiente casilla vacía. También puede pegar una columna en una casilla: rellena esa casilla y las de debajo.',
+  'app.job.ids.schemeNeeded': 'Indique a qué numeración pertenecen estas identificaciones.',
+  'app.job.ids.preview': 'Lo que se guardará',
+  'app.job.ids.previewNone': 'Nada todavía: escriba, escanee o pegue una identificación en una casilla.',
+  'app.job.ids.pair': '{name} recibe {id}',
+  'app.job.ids.fix.one': 'Corrija primero la casilla marcada en rojo.',
+  'app.job.ids.fix.other': 'Corrija primero las {count} casillas marcadas en rojo.',
+  'app.job.ids.paste.columns':
+    'Eso es más de una columna. Copie solo la columna de identificaciones y péguela de nuevo. No se rellenó nada.',
+  'app.job.ids.paste.header':
+    '«{id}» parece un encabezado de columna, no una identificación. Copie las identificaciones sin el encabezado y péguelas de nuevo. No se rellenó nada.',
+  'app.job.ids.paste.invisible':
+    'La línea {line} solo tiene caracteres invisibles. Copie de nuevo las identificaciones o escríbalas. No se rellenó nada.',
+  'app.job.ids.paste.stopped.one': 'Se detuvo en {name}: ya tiene identificación, así que 1 línea no se usó.',
+  'app.job.ids.paste.stopped.other':
+    'Se detuvo en {name}: ya tiene identificación, así que {count} líneas no se usaron.',
+  'app.job.ids.paste.over.one': 'Más líneas que casillas: 1 línea no se usó.',
+  'app.job.ids.paste.over.other': 'Más líneas que casillas: {count} líneas no se usaron.',
+  'app.job.ids.no.invisible': 'Contiene caracteres invisibles. Vacíela y escriba o escanee la identificación de nuevo.',
+  'app.job.wait.noKey':
+    'Sus registros se guardan aquí, pero este navegador no tiene la clave con la que el servidor de VeilCore los conoce, así que no se volvió a enviar nada. Restaure su copia de seguridad para continuar.',
+  'app.job.wait.full':
+    'No se pierde nada: sus registros se guardan aquí. El almacenamiento de este dispositivo está lleno, así que no se envió nada. Libere algo de espacio; lo volveré a intentar.',
+  'app.job.wait.local':
+    'No se pierde nada: sus registros se guardan aquí. No se pudieron guardar desde esta página ahora mismo, así que no se envió nada. Lo volveré a intentar pronto.',
 } satisfies Partial<AppTranslation>;

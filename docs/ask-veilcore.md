@@ -344,7 +344,7 @@ Each clause's reader must use every word but a fixed list of fillers: a leftover
 negation refuses the whole plan ("no tag yet" is read as IDs to follow, not a negation). A word
 that means different things in two languages is read in the person's language only: "hier" is
 yesterday in French and "here" in German, and in any other language Ask asks which day, offering
-the sentence with each. A name
+the sentence with each that plans (with another day word said too, that day is used). A name
 two of the person's own records share is refused. A refusal says what it understood, which words
 it couldn't use, and offers a shorter sentence made only from the words typed (or "get <their
 record> ready to license" in their language) for them to send. The hint's example, unedited,
@@ -378,8 +378,9 @@ sends, and nothing is sent unless the ledger's `pending` write succeeded. A repo
 if it comes to exactly the amount and currency Approve showed; otherwise nothing is signed and the
 page says the new amount. Records are sent from the ledger as themselves (a resend is the same records), and rows sent
 before with no answer are looked up on the server first: one it holds is marked saved and never
-sent again. If the server can't be asked (no holder key in this browser counts as that), or what
-it holds can't be written down here, nothing is sent until it can, and the page says which. A
+sent again. If the server can't be asked, or what it holds can't be written down here, or this
+browser has no holder key (restore the backup), nothing is sent until it can, and the page says
+which; it also tells full storage and a failure here apart from no connection. A
 record sent before and refused when sent again keeps its key and its row: the first send may
 have landed. A report is
 read for fresh and signed once (`deal-client.ts sayOnce`), so a retry after a lost answer finds
@@ -394,7 +395,9 @@ unknown outcome stops and asks. There is no automatic rollback.
   invite ids and periods, the report ids made at prepare. Also the few values typed in the
   request that a batch is rebuilt from (counts, a sire's code, a first tag) and the answers given
   on the result screen. A report's typed figures are kept only until that report is sent.
-- never holds the request as typed, tokens, secrets, or a copy of what another store keeps.
+- never holds the request as typed, tokens, secrets, or a copy of what another store keeps, but
+  the parent's name as shown when the job was made, so its title still says it while the
+  records can't be read.
 - expiry is checked on every read. A job waiting for approval expires 72 hours after it was made
   (a report job at the end of its earliest report's due day, if sooner). An approved records job
   never ends by itself and never loses its records: not sent by its deadline, it asks ("Send
@@ -407,11 +410,18 @@ unknown outcome stops and asks. There is no automatic rollback.
   made leave the stamp queue when it ends.
 - young saved without IDs are listed on Home from the records themselves ("Bella's litter (6):
   add IDs"), not from the job, with a box to paste a column; each ID is saved as a correction.
-  Every cell keeps its place, an empty one meaning "no ID for this one". Young that already have
-  an ID are listed with it: a column with a row for every young goes row by row and must agree
-  with them; a shorter one goes on the young still without one, in order, and may have no empty
-  row. An ID already in the litter, on another of the person's animals, or twice in the column
-  is refused, and so is anything else that doesn't line up (`src/ask-job/ids.ts`).
+  Each young has its own box, labelled with its birth order, name and sex; one that has an ID
+  shows it, read-only. The person types or scans into each box (a scanner's Enter or Tab moves to
+  the next empty box), so an ID can only go on the young whose box it is in. A paste is a
+  shortcut: it fills its box and the boxes below, one line each, only when it is plainly one
+  column (a line with a tab, after one trailing tab, is refused, and so are a heading and a line
+  of invisible characters), and it stops at a young that has an ID and says so. Before Save,
+  each young is listed with the ID it will get; a box that breaks a rule (the same ID twice, one
+  already in the litter or on another of the person's animals, invisible characters) says why
+  under it, and Save waits. A save that stops part way keeps what was saved; Save again sends
+  only the rest (`src/ask-job/ids.ts`). The IDs pasted on a litter's result screen are read the
+  same way: one line a young, in place, refused unless plainly one column no longer than the
+  litter.
 
 Also on the device while a job waits: its records in the bulk-import ledger as `held` rows, and
 their new keys. A backup made while a job waits holds those keys, for records that may never be

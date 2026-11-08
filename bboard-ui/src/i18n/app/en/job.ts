@@ -75,6 +75,8 @@ export const job = {
   'app.job.answer.ids': 'IDs (optional): paste a column, one per line, in order',
   'app.job.answer.idsLater': 'No IDs yet? Leave it empty: Home will remind you.',
   'app.job.answer.idsCount': '{n} of {count} pasted.',
+  'app.job.answer.idsTooMany':
+    'That’s {n} lines for {count} young. Paste one line for each, in order; leave a line empty for a young with no ID yet.',
   'app.job.answer.file': 'Pick the file with your collection (CSV or Excel).',
   'app.job.answer.filePick': 'Pick a file',
   'app.job.answer.use': 'Use this',
@@ -244,15 +246,32 @@ export const job = {
   'app.job.ids.save.other': 'Save {count} IDs',
   'app.job.ids.reason': 'ID added',
   'app.job.ids.already': 'already {id}',
-  'app.job.ids.no.twice': '{id} is in the column twice. Check the column.',
-  'app.job.ids.no.taken':
-    '{id} is already on {name}. Paste only the IDs still missing, in order, or the whole column again.',
-  'app.job.ids.no.differs':
-    '{name} already has {id}, but the column says {typed} there. Check the order of the column.',
-  'app.job.ids.no.tooMany':
-    'That’s {n} IDs for {count} young still without one. Paste only the IDs still missing, in order, or the whole column again.',
-  'app.job.ids.no.elsewhere': '{id} is already the ID of {name}, another of your animals. Check the column.',
-  'app.job.ids.no.blank':
-    'Row {row} is empty. To leave a young without an ID, paste a row for each of the {count} young, in order, with that row empty.',
-  'app.job.ids.no.comma': '“{id}” has a comma in it. Paste one ID a row.',
+  'app.job.ids.no.twice': '{id} is in two boxes.',
+  'app.job.ids.no.taken': '{id} is already {name}’s ID.',
+  'app.job.ids.no.elsewhere': '{id} is already the ID of {name}, another of your animals.',
+  'app.job.ids.help':
+    'Type or scan each young’s ID in its own box. A scanner’s Enter or Tab moves to the next empty box. You can also paste one column into a box: it fills that box and the ones below.',
+  'app.job.ids.schemeNeeded': 'Say which numbering these IDs belong to.',
+  'app.job.ids.preview': 'What will be saved',
+  'app.job.ids.previewNone': 'Nothing yet: type, scan or paste an ID into a box.',
+  'app.job.ids.pair': '{name} gets {id}',
+  'app.job.ids.fix.one': 'Fix the box marked in red first.',
+  'app.job.ids.fix.other': 'Fix the {count} boxes marked in red first.',
+  'app.job.ids.paste.columns':
+    'That’s more than one column. Copy just the column of IDs and paste again. Nothing was filled.',
+  'app.job.ids.paste.header':
+    '“{id}” looks like a column heading, not an ID. Copy the IDs without the heading and paste again. Nothing was filled.',
+  'app.job.ids.paste.invisible':
+    'Line {line} holds only invisible characters. Copy the IDs again, or type them. Nothing was filled.',
+  'app.job.ids.paste.stopped.one': 'Stopped at {name}: it already has an ID, so 1 line wasn’t used.',
+  'app.job.ids.paste.stopped.other': 'Stopped at {name}: it already has an ID, so {count} lines weren’t used.',
+  'app.job.ids.paste.over.one': 'More lines than boxes: 1 line wasn’t used.',
+  'app.job.ids.paste.over.other': 'More lines than boxes: {count} lines weren’t used.',
+  'app.job.ids.no.invisible': 'This holds invisible characters. Clear it and type or scan the ID again.',
+  'app.job.wait.noKey':
+    'Your records are kept here, but this browser doesn’t have the key VeilCore’s server knows them by, so nothing was sent again. Restore your backup to continue.',
+  'app.job.wait.full':
+    'Nothing is lost: your records are kept here. This device’s storage is full, so nothing was sent. Free some space; I’ll try again.',
+  'app.job.wait.local':
+    'Nothing is lost: your records are kept here. They couldn’t be saved from this page just now, so nothing was sent. I’ll try again soon.',
 };

@@ -69,7 +69,8 @@ import {
   type Prepared,
 } from '../../ask-job/prepare';
 import { reportIndex, tryAgain } from '../../ask-job/run';
-import { CANT_CHECK, NOT_NOTED } from '../../ask-job/whys';
+import { waitWords } from '../../ask-job/whys';
+import { readColumn, type PasteRefusal } from '../../ask-job/ids';
 import { runnerTick } from '../../ask-job/start';
 import { JOB_STATE_KEY, jobTitle, jobWords } from '../../ask-job/words';
 
@@ -911,11 +912,14 @@ const IdsPaste: React.FC<{
 }> = ({ count, value, disabled, onUse }) => {
   const { t } = useT();
   const [text, setText] = useState(value.join('\n'));
-  const list = text
-    .split(/\r?\n|\t/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, count);
+  // One line a young, in place: an empty line is "no ID for this one", never a shift; anything
+  // that isn't plainly one column, or longer than the litter, is refused (ask-job/ids.ts).
+  const col = readColumn(text);
+  const refusal: PasteRefusal | undefined = Array.isArray(col) ? undefined : col;
+  const lines = Array.isArray(col) ? col : [];
+  const tooMany = lines.length > count;
+  const list = refusal || tooMany ? [] : lines;
+  const typed = list.filter(Boolean).length;
   return (
     <Stack spacing={1} data-job-ids="">
       <TextField
@@ -925,15 +929,24 @@ const IdsPaste: React.FC<{
         value={text}
         disabled={disabled}
         onChange={(e) => setText(e.target.value.slice(0, 20_000))}
+        error={!!refusal || tooMany}
         helperText={
-          list.length
-            ? t('app.job.answer.idsCount', { n: String(list.length), count: String(count) })
-            : t('app.job.answer.idsLater')
+          refusal
+            ? t(`app.job.ids.paste.${refusal.why}` as AppKey, {
+                ...('id' in refusal ? { id: refusal.id } : {}),
+                ...('line' in refusal ? { line: String(refusal.line) } : {}),
+              })
+            : tooMany
+              ? t('app.job.answer.idsTooMany', { n: String(lines.length), count: String(count) })
+              : typed
+                ? t('app.job.answer.idsCount', { n: String(typed), count: String(count) })
+                : t('app.job.answer.idsLater')
         }
+        slotProps={{ htmlInput: { 'data-job-ids-paste': '' } }}
       />
       <Button
         variant="outlined"
-        disabled={disabled || list.join('\n') === value.join('\n')}
+        disabled={disabled || !!refusal || tooMany || list.join('\n') === value.join('\n')}
         onClick={() => onUse(list)}
         sx={{ alignSelf: 'flex-start' }}
       >
@@ -1109,14 +1122,11 @@ const JobProgress: React.FC<{ job: Job; fromApp: boolean }> = ({ job, fromApp })
             {t('app.job.why', { why: s.why })}
           </Alert>
         ) : s.state === 'todo' && s.why && s.kind === 'records' ? (
-          // The real reason it waits (W6): the server couldn't be checked, or this browser couldn't
-          // note what it has; otherwise no connection.
-          <Alert key={s.id} severity="info" variant="outlined" data-job-retry={s.kind}>
-            {s.why === CANT_CHECK
-              ? t('app.job.wait.cantCheck')
-              : s.why === NOT_NOTED
-                ? t('app.job.wait.notNoted')
-                : tp('app.job.wait.records', count)}
+          // The real reason it waits (W6, S5): ask-job/whys.ts waitWords.
+          <Alert key={s.id} severity="info" variant="outlined" data-job-retry={s.kind} data-job-wait={waitWords(s.why)}>
+            {waitWords(s.why) === 'records'
+              ? tp('app.job.wait.records', count)
+              : t(`app.job.wait.${waitWords(s.why)}` as AppKey)}
           </Alert>
         ) : s.state === 'todo' && s.why ? (
           <Alert key={s.id} severity="info" variant="outlined" data-job-retry={s.kind}>

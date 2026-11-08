@@ -76,6 +76,8 @@ export const job = {
   'app.job.answer.ids': '個体識別番号（任意）：1行に1つずつ、順に列を貼り付け',
   'app.job.answer.idsLater': 'まだ番号がない場合は空のままで。ホームでお知らせします。',
   'app.job.answer.idsCount': '{count}件中{n}件を貼り付けました。',
+  'app.job.answer.idsTooMany':
+    '{count}件の子に対して{n}行あります。子ごとに1行ずつ順番に貼り付けてください。番号のまだない子の行は空にしてください。',
   'app.job.answer.file': 'コレクションのファイル（CSVまたはExcel）を選んでください。',
   'app.job.answer.filePick': 'ファイルを選ぶ',
   'app.job.answer.use': 'これを使う',
@@ -230,14 +232,30 @@ export const job = {
   'app.job.ids.save.other': '番号{count}件を保存',
   'app.job.ids.reason': '番号を追加',
   'app.job.ids.already': '登録済み {id}',
-  'app.job.ids.no.twice': '{id}が列に2回あります。列を確認してください。',
-  'app.job.ids.no.taken':
-    '{id}はすでに{name}に登録されています。まだない番号だけを順番どおりに貼り付けるか、列全体をもう一度貼り付けてください。',
-  'app.job.ids.no.differs': '{name}はすでに{id}ですが、列のその行は{typed}です。列の順番を確認してください。',
-  'app.job.ids.no.tooMany':
-    '番号が{n}件ありますが、番号のない子は{count}件です。まだない番号だけを順番どおりに貼り付けるか、列全体をもう一度貼り付けてください。',
-  'app.job.ids.no.elsewhere': '{id}は、あなたの別の動物「{name}」の番号です。列を確認してください。',
-  'app.job.ids.no.blank':
-    '{row}行目が空です。番号のない子を残すときは、{count}件の子それぞれに1行ずつ、順番どおりに貼り付け、その行を空にしてください。',
-  'app.job.ids.no.comma': '「{id}」にカンマが含まれています。1行に1つの番号を貼り付けてください。',
+  'app.job.ids.no.twice': '{id}が2つの欄にあります。',
+  'app.job.ids.no.taken': '{id}はすでに{name}の番号です。',
+  'app.job.ids.no.elsewhere': '{id}は、あなたの別の動物「{name}」の番号です。',
+  'app.job.ids.help':
+    '子ごとに、それぞれの欄へ番号を入力するかスキャンしてください。スキャナーのEnterやTabで次の空欄に移ります。1列を欄に貼り付けることもできます。その欄から下の欄へ順に入ります。',
+  'app.job.ids.schemeNeeded': 'これらの番号がどの番号体系のものかを入力してください。',
+  'app.job.ids.preview': '保存される内容',
+  'app.job.ids.previewNone': 'まだありません。欄に番号を入力、スキャン、または貼り付けてください。',
+  'app.job.ids.pair': '{name}：{id}',
+  'app.job.ids.fix.other': '先に赤く表示された{count}件の欄を直してください。',
+  'app.job.ids.paste.columns':
+    '2列以上あります。番号の列だけをコピーして、もう一度貼り付けてください。何も入力していません。',
+  'app.job.ids.paste.header':
+    '「{id}」は番号ではなく列の見出しのようです。見出しを除いて番号をコピーし、もう一度貼り付けてください。何も入力していません。',
+  'app.job.ids.paste.invisible':
+    '{line}行目には見えない文字しかありません。番号をもう一度コピーするか、入力してください。何も入力していません。',
+  'app.job.ids.paste.stopped.other': '{name}で止めました。すでに番号があるため、{count}行は使っていません。',
+  'app.job.ids.paste.over.other': '欄より行が多いため、{count}行は使っていません。',
+  'app.job.ids.no.invisible':
+    '見えない文字が含まれています。欄を空にして、番号をもう一度入力するかスキャンしてください。',
+  'app.job.wait.noKey':
+    '記録はこの端末に保存されたままですが、このブラウザには、VeilCoreのサーバーがこれらの記録を識別するための鍵がないため、何も再送信していません。続けるにはバックアップを復元してください。',
+  'app.job.wait.full':
+    '記録はこの端末に保存されたままです。この端末の保存領域がいっぱいのため、何も送信していません。空き容量を増やしてください。もう一度試します。',
+  'app.job.wait.local':
+    '記録はこの端末に保存されたままです。いまはこのページから保存できなかったため、何も送信していません。まもなくもう一度試します。',
 } satisfies Partial<AppTranslation>;

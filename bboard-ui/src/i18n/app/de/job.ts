@@ -88,6 +88,8 @@ export const job = {
   'app.job.answer.ids': 'Kennnummern (freiwillig): eine Spalte einfügen, eine pro Zeile, in Reihenfolge',
   'app.job.answer.idsLater': 'Noch keine Kennnummern? Lassen Sie es leer: Die Startseite erinnert Sie.',
   'app.job.answer.idsCount': '{n} von {count} eingefügt.',
+  'app.job.answer.idsTooMany':
+    'Das sind {n} Zeilen für {count} Jungtiere. Fügen Sie eine Zeile pro Jungtier ein, der Reihe nach; lassen Sie die Zeile eines Jungtiers ohne Kennnummer leer.',
   'app.job.answer.file': 'Wählen Sie die Datei mit Ihrer Sammlung (CSV oder Excel).',
   'app.job.answer.filePick': 'Datei wählen',
   'app.job.answer.use': 'Übernehmen',
@@ -267,16 +269,35 @@ export const job = {
   'app.job.ids.save.other': '{count} Kennnummern speichern',
   'app.job.ids.reason': 'Kennnummer ergänzt',
   'app.job.ids.already': 'bereits {id}',
-  'app.job.ids.no.twice': '{id} steht zweimal in der Spalte. Prüfen Sie die Spalte.',
-  'app.job.ids.no.taken':
-    '{id} ist bereits bei {name} gespeichert. Fügen Sie nur die noch fehlenden Kennnummern der Reihe nach ein oder die ganze Spalte erneut.',
-  'app.job.ids.no.differs':
-    '{name} hat bereits {id}, die Spalte nennt dort aber {typed}. Prüfen Sie die Reihenfolge der Spalte.',
-  'app.job.ids.no.tooMany':
-    'Das sind {n} Kennnummern für {count} Jungtiere ohne Kennnummer. Fügen Sie nur die noch fehlenden der Reihe nach ein oder die ganze Spalte erneut.',
-  'app.job.ids.no.elsewhere':
-    '{id} ist bereits die Kennnummer von {name}, einem anderen Ihrer Tiere. Prüfen Sie die Spalte.',
-  'app.job.ids.no.blank':
-    'Zeile {row} ist leer. Um ein Jungtier ohne Kennnummer zu lassen, fügen Sie für jedes der {count} Jungtiere der Reihe nach eine Zeile ein, diese Zeile leer.',
-  'app.job.ids.no.comma': '„{id}“ enthält ein Komma. Fügen Sie eine Kennnummer pro Zeile ein.',
+  'app.job.ids.no.twice': '{id} steht in zwei Feldern.',
+  'app.job.ids.no.taken': '{id} ist bereits die Kennnummer von {name}.',
+  'app.job.ids.no.elsewhere': '{id} ist bereits die Kennnummer von {name}, einem anderen Ihrer Tiere.',
+  'app.job.ids.help':
+    'Geben oder scannen Sie die Kennnummer jedes Jungtiers in sein eigenes Feld. Enter oder Tab eines Scanners springt zum nächsten leeren Feld. Sie können auch eine Spalte in ein Feld einfügen: Sie füllt dieses Feld und die darunter.',
+  'app.job.ids.schemeNeeded': 'Geben Sie an, zu welcher Nummerierung diese Kennnummern gehören.',
+  'app.job.ids.preview': 'Was gespeichert wird',
+  'app.job.ids.previewNone': 'Noch nichts: Geben, scannen oder fügen Sie eine Kennnummer in ein Feld ein.',
+  'app.job.ids.pair': '{name} bekommt {id}',
+  'app.job.ids.fix.one': 'Korrigieren Sie zuerst das rot markierte Feld.',
+  'app.job.ids.fix.other': 'Korrigieren Sie zuerst die {count} rot markierten Felder.',
+  'app.job.ids.paste.columns':
+    'Das ist mehr als eine Spalte. Kopieren Sie nur die Spalte mit den Kennnummern und fügen Sie sie erneut ein. Nichts wurde ausgefüllt.',
+  'app.job.ids.paste.header':
+    '„{id}“ sieht nach einer Spaltenüberschrift aus, nicht nach einer Kennnummer. Kopieren Sie die Kennnummern ohne Überschrift und fügen Sie sie erneut ein. Nichts wurde ausgefüllt.',
+  'app.job.ids.paste.invisible':
+    'Zeile {line} enthält nur unsichtbare Zeichen. Kopieren Sie die Kennnummern erneut oder geben Sie sie ein. Nichts wurde ausgefüllt.',
+  'app.job.ids.paste.stopped.one':
+    'Bei {name} angehalten: Es hat schon eine Kennnummer, also wurde 1 Zeile nicht verwendet.',
+  'app.job.ids.paste.stopped.other':
+    'Bei {name} angehalten: Es hat schon eine Kennnummer, also wurden {count} Zeilen nicht verwendet.',
+  'app.job.ids.paste.over.one': 'Mehr Zeilen als Felder: 1 Zeile wurde nicht verwendet.',
+  'app.job.ids.paste.over.other': 'Mehr Zeilen als Felder: {count} Zeilen wurden nicht verwendet.',
+  'app.job.ids.no.invisible':
+    'Hier stehen unsichtbare Zeichen. Leeren Sie das Feld und geben oder scannen Sie die Kennnummer erneut.',
+  'app.job.wait.noKey':
+    'Ihre Datensätze sind hier gespeichert, aber diesem Browser fehlt der Schlüssel, unter dem der Server von VeilCore sie kennt, also wurde nichts erneut gesendet. Stellen Sie Ihre Sicherung wieder her, um fortzufahren.',
+  'app.job.wait.full':
+    'Nichts geht verloren: Ihre Datensätze sind hier gespeichert. Der Speicher dieses Geräts ist voll, also wurde nichts gesendet. Schaffen Sie etwas Platz; ich versuche es erneut.',
+  'app.job.wait.local':
+    'Nichts geht verloren: Ihre Datensätze sind hier gespeichert. Sie konnten gerade nicht von dieser Seite aus gespeichert werden, also wurde nichts gesendet. Ich versuche es bald erneut.',
 } satisfies Partial<AppTranslation>;
