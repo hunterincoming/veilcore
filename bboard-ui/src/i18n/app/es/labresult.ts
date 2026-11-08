@@ -248,4 +248,8 @@ export const labresult = {
   'app.lr.claim.choose': 'Elegir el archivo de resultado del laboratorio',
   'app.lr.claim.same': 'El archivo de resultado es del mismo resultado firmado que esta prueba:',
   'app.lr.claim.otherResult': 'Ese archivo es de otro resultado, no del que trata esta prueba.',
+  'app.lr.tools.markLeave':
+    'El archivo de secuencia de la marca no está guardado. Si sale ahora se pierde para siempre, y el sello nunca podrá abrirse en una disputa. ¿Salir de todos modos?',
+  'app.lr.problem.ctMissing':
+    'Un resultado detectado sin Ct (Undetermined, N/A, >40) se contradice. Compruebe que las columnas de resultado y Ct no estén mezcladas.',
 } satisfies Partial<AppTranslation>;

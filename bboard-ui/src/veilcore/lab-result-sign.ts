@@ -14,7 +14,14 @@ import type { AttesterProfile } from './attester-keys';
 import { attestRecord, retract } from './attester-keys';
 import { bindingIdSuffix, claimsKeyFor, resultBindingHash } from './claims-key';
 import { fingerprintRecord } from './commitment';
-import { makeLabResult, problemOf, type LabResultBundle, type LabResultInput, type ProblemCode } from './lab-result';
+import {
+  makeLabResult,
+  problemOf,
+  unboundToName,
+  type LabResultBundle,
+  type LabResultInput,
+  type ProblemCode,
+} from './lab-result';
 import { createRecords, newRecordId, setLabResultBinding, type NewRecordInput, type StrainRecord } from './records';
 
 export type SignedResult =
@@ -30,7 +37,12 @@ export type SignedResult =
        * For a result that replaces one of the lab's own: whether that one's name was withdrawn,
        * and why not when it wasn't (the result isn't in this browser, or the registry refused).
        */
-      readonly withdrew?: { readonly code: string; readonly ok: boolean; readonly error?: string };
+      readonly withdrew?: {
+        readonly code: string;
+        readonly ok: boolean;
+        readonly error?: string;
+        readonly nothingToWithdraw?: boolean;
+      };
     }
   | { readonly ok: false; readonly code: ProblemCode; readonly message: string };
 
@@ -84,11 +96,13 @@ export const withdrawReplaced = async (
   attester: AttesterProfile,
   bundle: LabResultBundle,
   mine: readonly StrainRecord[],
-): Promise<{ code: string; ok: boolean; error?: string }> => {
+): Promise<{ code: string; ok: boolean; error?: string; nothingToWithdraw?: boolean }> => {
   const rep = bundle.statement.replaces!;
-  const old = mine.find((r) => r.labSignature?.record === rep.result && r.labResult?.bindingId);
-  if (!old?.labResult?.bindingId || old.labSignature?.key !== bundle.signature.key)
-    return { code: rep.result, ok: false, error: 'not in this browser' };
+  const old = mine.find((r) => r.labSignature?.record === rep.result && r.labSignature?.key === bundle.signature.key);
+  if (!old?.labResult) return { code: rep.result, ok: false, error: 'not in this browser' };
+  // It never got the lab's name (the rate limit): there is nothing to withdraw, and
+  // "Add your lab's name" leaves it out from now on (unboundToName).
+  if (!old.labResult.bindingId) return { code: rep.result, ok: true, nothingToWithdraw: true };
   const out = await retract(
     attester,
     old.labResult.bindingId,
@@ -105,16 +119,15 @@ export const nameUnbound = async (
   attester: AttesterProfile,
   records: readonly StrainRecord[],
 ): Promise<{ named: number; left: number; error?: string }> => {
+  const todo = unboundToName(records);
   let named = 0;
-  for (const [i, r] of records.entries()) {
-    if (!r.labResult || r.labResult.bindingId || !r.labSignature) continue;
-    const out = await bindResult(attester, r.labSignature.record, r.labResult.statement.subject, () =>
+  for (const r of todo) {
+    const out = await bindResult(attester, r.labSignature!.record, r.labResult!.statement.subject, () =>
       Promise.resolve(),
     );
-    if (out.attestationId) {
-      setLabResultBinding(r.id, out.attestationId);
-      named++;
-    } else return { named, left: records.length - i, ...(out.error ? { error: out.error } : {}) };
+    if (!out.attestationId) return { named, left: todo.length - named, ...(out.error ? { error: out.error } : {}) };
+    setLabResultBinding(r.id, out.attestationId);
+    named++;
   }
   return { named, left: 0 };
 };

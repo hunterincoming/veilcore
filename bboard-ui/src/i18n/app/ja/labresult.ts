@@ -243,4 +243,8 @@ export const labresult = {
   'app.lr.claim.choose': 'ラボの結果ファイルを選ぶ',
   'app.lr.claim.same': '結果ファイルは、この証明と同じ署名済みの結果のものです：',
   'app.lr.claim.otherResult': 'そのファイルは別の結果のもので、この証明の結果ではありません。',
+  'app.lr.tools.markLeave':
+    'マークの配列ファイルが保存されていません。今離れると完全に失われ、紛争で封印を開くことは二度とできません。それでも離れますか？',
+  'app.lr.problem.ctMissing':
+    '検出の結果にCt値がない（Undetermined、N/A、>40）のは矛盾しています。結果とCt値の列が入れ替わっていないか確認してください。',
 } satisfies Partial<AppTranslation>;

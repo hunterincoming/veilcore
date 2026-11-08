@@ -408,4 +408,38 @@ describe('review fixes', () => {
     const ref = { ...o, record: { ...o.record, refId: 'LAB-0000' } };
     await expect(readLabResult(ref)).rejects.toMatchObject({ code: 'file' });
   });
+
+  it('two results naming each other replace neither, and a record naming two labs is refused', async () => {
+    const lab = await generateKeypair();
+    const a = await makeLabResult(lab.privateKey, pathogen);
+    const b = await makeLabResult(lab.privateKey, {
+      ...pathogen,
+      statement: { ...pathogen.statement, replaces: { result: a.commitment, reason: 're-test' } },
+    });
+    // A third, same day, naming b, and b names a: a is replaced, b is replaced by c.
+    const c = await makeLabResult(lab.privateKey, {
+      ...pathogen,
+      statement: { ...pathogen.statement, replaces: { result: b.commitment, reason: 'correction' } },
+    });
+    expect(replacedBy([a.bundle, b.bundle, c.bundle]).size).toBe(2);
+    // Mutual: build b' naming a, and a' naming b' is impossible to sign (codes), so check the rule directly.
+    const mutualA = {
+      ...a.bundle,
+      statement: { ...a.bundle.statement, replaces: { result: b.commitment, reason: 're-test' as const } },
+    };
+    expect(replacedBy([mutualA, b.bundle]).size).toBe(0);
+    const o = copy(a.bundle);
+    const twoLabs = { ...o, record: { ...o.record, document: { ...o.record.document, issuer: 'Another Lab' } } };
+    await expect(readLabResult(twoLabs)).rejects.toMatchObject({ code: 'file' });
+  });
+
+  it('reads a proof code only when the cell is one code, or a link ending in one', async () => {
+    const { proofCodeOf } = await import('./lab-result-draft');
+    expect(proofCodeOf(A.toUpperCase())).toBe(A);
+    expect(proofCodeOf(`https://veilcore.org/verify/VEIL-1?fp=${A}`)).toBe(A);
+    expect(proofCodeOf(`${A} ${B}`)).toBeUndefined();
+    expect(proofCodeOf(`${A},${B}`)).toBeUndefined();
+    expect(proofCodeOf(`code ${A}`)).toBeUndefined();
+    expect(proofCodeOf(`https://x.example/${A}/${B}`)).toBeUndefined();
+  });
 });

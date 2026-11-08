@@ -25,7 +25,13 @@ import { LAB_SIGNING_ENABLED } from '../../config/network';
 import { loadAttester } from '../../veilcore/attester-keys';
 import { claimsKeyFor } from '../../veilcore/claims-key';
 import { useRecords, type StrainRecord } from '../../veilcore/records';
-import { RESULT_KINDS, resultsFile, type ProblemCode, type MarkOpening } from '../../veilcore/lab-result';
+import {
+  RESULT_KINDS,
+  resultsFile,
+  unboundToName,
+  type ProblemCode,
+  type MarkOpening,
+} from '../../veilcore/lab-result';
 import { emptyDraft, today, tryDraft, type ResultDraft } from '../../veilcore/lab-result-draft';
 import {
   CSV_KINDS,
@@ -54,17 +60,33 @@ type Done = {
   readonly unsigned?: readonly Extract<CsvRow, { ok: false }>[];
 };
 
-/** Leaving the page with a mark's sequence file not yet saved loses it for good: the browser asks first. */
-const useLeaveGuard = (on: boolean) => {
+/**
+ * Leaving the page with a mark's sequence file not yet saved loses it for good. Closing or
+ * reloading the tab asks (beforeunload); so does any link in the app, the header's included: the
+ * click is caught before the router sees it, and goes ahead only if the person says so.
+ */
+export const useLeaveGuard = (on: boolean, question: string) => {
   useEffect(() => {
     if (!on) return;
     const stop = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       e.returnValue = '';
     };
+    const click = (e: MouseEvent) => {
+      const a = (e.target as Element | null)?.closest?.('a[href]');
+      if (!a || a.hasAttribute('download')) return;
+      if (!window.confirm(question)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
     window.addEventListener('beforeunload', stop);
-    return () => window.removeEventListener('beforeunload', stop);
-  }, [on]);
+    window.addEventListener('click', click, true);
+    return () => {
+      window.removeEventListener('beforeunload', stop);
+      window.removeEventListener('click', click, true);
+    };
+  }, [on, question]);
 };
 
 const SignedPanel: React.FC<{ done: Done; onAgain: () => void }> = ({ done, onAgain }) => {
@@ -75,7 +97,7 @@ const SignedPanel: React.FC<{ done: Done; onAgain: () => void }> = ({ done, onAg
   const names = resultFileNames(ok.map((r) => r.bundle.statement));
   const [saved, setSaved] = useState<ReadonlySet<string>>(new Set());
   const unsavedMarks = [...done.openings.keys()].filter((c) => !saved.has(c));
-  useLeaveGuard(unsavedMarks.length > 0);
+  useLeaveGuard(unsavedMarks.length > 0, t('app.lr.tools.markLeave'));
   const one = (i: number) => download(JSON.stringify(ok[i].bundle, null, 2), names[i]);
   const zipAll = async () => {
     const { zipSync, strToU8 } = await import('fflate');
@@ -458,7 +480,7 @@ const CsvResults: React.FC<{ records: ReturnType<typeof useRecords>; onDone: (d:
 /** Results this lab signed and kept whose name couldn't be posted yet (rate limit, offline): post it now. */
 const NameUnbound: React.FC<{ records: readonly StrainRecord[] }> = ({ records }) => {
   const { t } = useT();
-  const unbound = records.filter((r) => r.labResult && !r.labResult.bindingId);
+  const unbound = unboundToName(records);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string>();
   if (unbound.length === 0 && !note) return null;

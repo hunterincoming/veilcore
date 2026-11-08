@@ -135,6 +135,16 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   await expect(lab.locator('[data-mark-keep]')).toBeVisible({ timeout: 60_000 });
   // The sequence file exists only here: nothing else can be signed until it is saved.
   await expect(lab.locator('[data-sign-another]')).toBeDisabled();
+  // An in-app link asks first too; saying no keeps the page and the unsaved sequence file.
+  let asked = '';
+  lab.once('dialog', (d) => {
+    asked = d.message();
+    void d.dismiss();
+  });
+  await lab.getByRole('link', { name: 'Check a result file' }).click();
+  await expect.poll(() => asked).toContain('sequence file isn’t saved');
+  await expect(lab).toHaveURL(/\/lab\/results/);
+  await expect(lab.locator('[data-mark-keep]')).toHaveAttribute('data-mark-keep', 'unsaved');
   const openingFile = await download(lab, () => lab.locator('[data-mark-download]').click());
   await expect(lab.locator('[data-mark-keep]')).toHaveAttribute('data-mark-keep', 'saved');
   const markFile = await download(lab, () => lab.locator('[data-result-download]').click());

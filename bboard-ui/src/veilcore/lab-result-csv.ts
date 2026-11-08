@@ -258,7 +258,10 @@ export const readResultsCsv = (text: string, kind: CsvKind, d: CsvDefaults, now 
     let result: LabResultStatement['result'];
     if (kind === 'pathogen') {
       const raw = get('ct').replace(',', '.');
-      const ct = NO_CT.has(raw.toLowerCase().replace(/\s+/g, '')) || /^>\s*\d/.test(raw) ? '' : raw;
+      const noCt = NO_CT.has(raw.toLowerCase().replace(/\s+/g, '')) || /^>\s*\d/.test(raw);
+      // "Detected" with "Undetermined" contradicts itself: most likely a mixed-up column.
+      if (call && raw !== '' && noCt) return no('ctMissing', 'A detected result has no Ct.');
+      const ct = noCt ? '' : raw;
       result = {
         target: named.target,
         sampleType: or('sampleType', d.sampleType),
@@ -280,7 +283,9 @@ export const readResultsCsv = (text: string, kind: CsvKind, d: CsvDefaults, now 
       };
     } else {
       const named2 = get('parents')
-        ? get('parents').split(/[\s;|]+/)
+        ? get('parents')
+            .split(/[\s;|,]+/)
+            .filter((p) => p !== '')
         : [get('parent1'), get('parent2')].filter((p) => p !== '');
       const parents = named2.map(proofCodeOf);
       if (parents.length === 0 || parents.some((p) => !p))

@@ -263,4 +263,8 @@ export const labresult = {
   'app.lr.claim.choose': 'Choose the lab’s result file',
   'app.lr.claim.same': 'The result file is for the same signed result as this claim:',
   'app.lr.claim.otherResult': 'That file is for a different result, not the one this claim is about.',
+  'app.lr.tools.markLeave':
+    'The mark’s sequence file isn’t saved. If you leave now it is lost for good, and the seal can never be opened in a dispute. Leave anyway?',
+  'app.lr.problem.ctMissing':
+    'A detected result with no Ct (Undetermined, N/A, >40) contradicts itself. Check that the result and Ct columns aren’t mixed up.',
 };

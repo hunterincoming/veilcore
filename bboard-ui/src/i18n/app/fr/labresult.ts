@@ -251,4 +251,8 @@ export const labresult = {
   'app.lr.claim.choose': 'Choisir le fichier de résultat du laboratoire',
   'app.lr.claim.same': 'Le fichier de résultat porte sur le même résultat signé que cette preuve :',
   'app.lr.claim.otherResult': 'Ce fichier porte sur un autre résultat, pas sur celui de cette preuve.',
+  'app.lr.tools.markLeave':
+    'Le fichier de séquence de la marque n’est pas enregistré. Si vous partez maintenant, il est perdu pour de bon, et le sceau ne pourra jamais être ouvert en cas de litige. Partir quand même ?',
+  'app.lr.problem.ctMissing':
+    'Un résultat détecté sans Ct (Undetermined, N/A, >40) se contredit. Vérifiez que les colonnes du résultat et du Ct ne sont pas inversées.',
 } satisfies Partial<AppTranslation>;

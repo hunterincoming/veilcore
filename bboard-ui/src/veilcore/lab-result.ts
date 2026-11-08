@@ -143,6 +143,7 @@ export const PROBLEM_CODES = [
   'future',
   'duplicate',
   'csvResult',
+  'ctMissing',
 ] as const;
 export type ProblemCode = (typeof PROBLEM_CODES)[number];
 
@@ -575,6 +576,7 @@ export const checkBinding = (record: LabResultRecord, statement: LabResultStatem
   if (about.length !== 1 || about[0].name !== statement.sampleId || about[0].recordId !== undefined)
     fail('file', 'The record doesn’t name the sample the result names.');
   if (record.refId !== statement.accession) fail('file', 'The record’s reference isn’t the accession number.');
+  if (d?.issuer !== record.bredBy) fail('file', 'The record names two different labs.');
   const schema = schemaForResult(statement);
   if (record.fieldSet?.schema !== schema) fail('calls', 'The signed numbers aren’t under the result’s form.');
   if (statement.kind === 'numbers') {
@@ -700,11 +702,37 @@ export const replacedBy = (
       keyOf.get(rep.result) === r.signature.key &&
       rep.result !== resultCode(r) &&
       old.statement.subject === r.statement.subject &&
-      r.statement.tested >= old.statement.tested
+      r.statement.tested >= old.statement.tested &&
+      // Two results naming each other replace neither.
+      old.statement.replaces?.result !== resultCode(r)
     )
       out.set(rep.result, { by: resultCode(r), reason: rep.reason });
   }
   return out;
+};
+
+/** A kept result, as the lab's records hold it (records.ts StrainRecord): only what naming needs. */
+type HeldResult = {
+  readonly labSignature?: { readonly record: string; readonly key: string };
+  readonly labResult?: { readonly statement: LabResultStatement; readonly bindingId?: string };
+};
+
+/**
+ * The lab's results that still need its name: kept, signed, not yet bound, and not replaced or
+ * withdrawn since by a later result of the same key (naming one of those would put the lab's
+ * name back on a result it no longer stands behind).
+ */
+export const unboundToName = <R extends HeldResult>(records: readonly R[]): R[] => {
+  const replaced = new Set(
+    records.flatMap((r) => {
+      const rep = r.labResult?.statement.replaces;
+      const old = rep && records.find((o) => o.labSignature?.record === rep.result);
+      return rep && old && old.labSignature?.key === r.labSignature?.key ? [rep.result] : [];
+    }),
+  );
+  return records.filter(
+    (r) => r.labResult && r.labSignature && !r.labResult.bindingId && !replaced.has(r.labSignature.record),
+  );
 };
 
 export { HEX64 as RESULT_CODE_PATTERN };

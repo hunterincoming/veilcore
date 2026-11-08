@@ -176,4 +176,35 @@ describe('a lab’s CSV of results', () => {
     expect(s).toContain('not detected,RT-qPCR 3');
     expect(s).toContain('not signed: inconclusive,L-9,S-9,HLVd');
   });
+
+  // Verification N1: a cell with two codes was read as its first one, silently dropping a parent.
+  it('reads a parents cell with two codes, however separated, and refuses a cell that holds two subjects', () => {
+    for (const cell of [`"${B},${C}"`, `"${B} ${C}"`, `"${B}; ${C}"`]) {
+      const r = rowsOf(
+        readResultsCsv(`subject,sample,accession,parents,result\n${A},S,L,${cell},consistent\n`, 'lineage', d, NOW),
+      );
+      expect(r[0], cell).toMatchObject({ ok: true, statement: { result: { parents: [B, C] } } });
+    }
+    const two = rowsOf(readResultsCsv(`subject,sample,accession,result\n"${A} ${B}",S,L,nd\n`, 'pathogen', d, NOW));
+    expect(two[0]).toMatchObject({ ok: false, code: 'subject' });
+    const parent = rowsOf(
+      readResultsCsv(`subject,sample,accession,parent 1,result\n${A},S,L,"${B},${C}",consistent\n`, 'lineage', d, NOW),
+    );
+    expect(parent[0]).toMatchObject({ ok: false, code: 'parents' });
+  });
+
+  // Verification N3: "detected" with "Undetermined" is a mixed-up column, not a result.
+  it('refuses a detected result whose Ct says nothing crossed the threshold', () => {
+    const r = rowsOf(
+      readResultsCsv(
+        `subject,sample,accession,result,ct\n${A},S,L,detected,Undetermined\n${A},S2,L2,detected,\n`,
+        'pathogen',
+        d,
+        NOW,
+      ),
+    );
+    expect(r[0]).toMatchObject({ ok: false, code: 'ctMissing' });
+    // A detected result with the Ct cell left empty is the lab's choice not to report one.
+    expect(r[1]).toMatchObject({ ok: true });
+  });
 });

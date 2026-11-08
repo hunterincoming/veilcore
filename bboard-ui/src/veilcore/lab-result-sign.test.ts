@@ -29,7 +29,7 @@ vi.mock('./records', () => {
   };
 });
 
-const { signResults, recordInputFor, withdrawReplaced } = await import('./lab-result-sign');
+const { signResults, recordInputFor, withdrawReplaced, nameUnbound } = await import('./lab-result-sign');
 const { makeLabResult, readLabResult } = await import('./lab-result');
 const { committedOnly } = await import('./lab-numbers');
 
@@ -143,5 +143,30 @@ describe('signing a run', () => {
     };
     const back = await readLabResult(JSON.parse(JSON.stringify(again)) as Record<string, unknown>);
     expect(back.signature.record).toBe(bundle.signature.record);
+  });
+
+  // Verification N2: a result replaced while it was still unnamed must never get the lab's name back.
+  it('"Add your lab’s name" leaves out results a later one replaced, and counts what is left right', async () => {
+    const first = await makeLabResult(lab.privateKey, { labName: 'E2E Lab', statement: statement('S1') });
+    const retest = await makeLabResult(lab.privateKey, {
+      labName: 'E2E Lab',
+      statement: { ...statement('S1'), replaces: { result: first.commitment, reason: 're-test' } },
+    });
+    const other = await makeLabResult(lab.privateKey, { labName: 'E2E Lab', statement: statement('S2') });
+    const rec = async (b: typeof first.bundle, id: string) => ({ ...(await recordInputFor(b)), id }) as never;
+    const held = [await rec(first.bundle, 'r1'), await rec(retest.bundle, 'r2'), await rec(other.bundle, 'r3')];
+    const out = await nameUnbound(attester, held);
+    expect(out).toEqual({ named: 2, left: 0 });
+    expect(calls.attest).toEqual([retest.commitment, other.commitment]);
+    // Its withdrawal had nothing to withdraw: not "not in this browser".
+    expect(await withdrawReplaced(attester, retest.bundle, held)).toEqual({
+      code: first.commitment,
+      ok: true,
+      nothingToWithdraw: true,
+    });
+    // The registry refuses the second: one named, one left (not "every record after it").
+    calls.attest = [];
+    attestAnswer = (n) => (n === 1 ? { attestationId: 'att_1' } : { error: 'too many requests' });
+    expect(await nameUnbound(attester, held)).toMatchObject({ named: 1, left: 1 });
   });
 });

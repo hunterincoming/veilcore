@@ -99,12 +99,19 @@ export const emptyDraft = (kind: ResultKind = 'pathogen'): ResultDraft => ({
   reason: '',
 });
 
-/** A proof code as pasted: 64 hex in any case, alone or at the end of a check link. */
+/**
+ * A proof code as pasted: 64 hex in any case, alone, or as the one code at the end of a check
+ * link. A cell holding two codes, or a code inside other text, is not read: a result signed about
+ * the wrong record (or with one parent of two) can't be unsigned.
+ */
 export const proofCodeOf = (v: string): string | undefined => {
   const t = v.trim();
   if (/^[0-9a-fA-F]{64}$/.test(t)) return t.toLowerCase();
-  const m = /(?:^|[^0-9a-fA-F])([0-9a-fA-F]{64})(?:[^0-9a-fA-F]|$)/.exec(t);
-  return m?.[1].toLowerCase();
+  const codes = [...t.matchAll(/(?:^|[^0-9a-fA-F])([0-9a-fA-F]{64})(?=[^0-9a-fA-F]|$)/g)].map((m) =>
+    m[1].toLowerCase(),
+  );
+  const link = /^(https?:\/\/|\/)\S+$/i.test(t);
+  return link && codes.length === 1 ? codes[0] : undefined;
 };
 
 const bad = (code: ProblemCode, message: string): never => {

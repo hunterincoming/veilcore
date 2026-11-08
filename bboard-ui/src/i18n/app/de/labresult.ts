@@ -252,4 +252,8 @@ export const labresult = {
   'app.lr.claim.choose': 'Ergebnisdatei des Labors auswählen',
   'app.lr.claim.same': 'Die Ergebnisdatei gehört zu demselben signierten Ergebnis wie dieser Nachweis:',
   'app.lr.claim.otherResult': 'Diese Datei gehört zu einem anderen Ergebnis, nicht zu dem dieses Nachweises.',
+  'app.lr.tools.markLeave':
+    'Die Sequenzdatei der Markierung ist nicht gespeichert. Wenn Sie jetzt gehen, ist sie endgültig verloren, und das Siegel lässt sich in keinem Streitfall mehr öffnen. Trotzdem gehen?',
+  'app.lr.problem.ctMissing':
+    'Ein nachgewiesenes Ergebnis ohne Ct (Undetermined, N/A, >40) widerspricht sich. Prüfen Sie, ob die Spalten für Ergebnis und Ct vertauscht sind.',
 } satisfies Partial<AppTranslation>;

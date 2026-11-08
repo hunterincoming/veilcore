@@ -1,8 +1,10 @@
 // The page that checks a lab result file (/check-lab-result; veilcore/lab-result.ts). Everything is
 // checked in this browser: the statement's form, its binding into the record the lab signed, the
-// call in the field set, and the signature the claims contract would accept. Only the lab's key
-// is looked up at the registry, for the lab's own binding naming it (claims-key.ts findBinding),
-// printed in the wording every page uses for signers. Nothing in the file is sent.
+// call in the field set, and the signature the claims contract would accept. Nothing is sent
+// unless the checker asks: "Find the lab's name" sends the result's code (in the file) to the
+// registry for the lab's own binding naming its key (claims-key.ts findBinding), printed in the
+// wording every page uses for signers; "Find the record…" reads the checker's own records, which
+// sends their holder key. Test network only, like lab signing.
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useRef, useState } from 'react';

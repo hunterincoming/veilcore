@@ -2625,6 +2625,76 @@
       "bound": false
     },
     {
+      "name": "the record’s issuer isn’t its holder (two lab names)",
+      "fields": {
+        "about": [
+          {
+            "name": "S-0412"
+          }
+        ],
+        "fieldSchema": "9eea08c843ee416d9b8f99af91379750db2b339fd7f455db25669a4480506871",
+        "fieldSetRoot": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "files": [
+          {
+            "name": "report.pdf",
+            "sha256": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+            "size": 51234
+          },
+          {
+            "name": "lab-result.json",
+            "sha256": "3eb40091a6df62b818852f6428d10ef28f993b466d0f3e32416a9e67923fe89c",
+            "size": 314
+          }
+        ],
+        "holder": "Example Plant Lab",
+        "issued": "2026-11-05",
+        "issuer": "Another Lab",
+        "loggedAt": 1793000000000,
+        "nonce": "0707070707070707070707070707070707070707070707070707070707070707",
+        "notes": "",
+        "profile": "veilcore/profile/document/v1",
+        "reference": "LAB-26-1187",
+        "title": "LAB-26-1187",
+        "type": "lab-report"
+      },
+      "statement": {
+        "format": "veilcore/lab-result/v2",
+        "subject": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sampleId": "S-0412",
+        "accession": "LAB-26-1187",
+        "method": {
+          "id": "RT-qPCR HLVd SOP-14",
+          "version": "3"
+        },
+        "tested": "2026-11-05",
+        "kind": "pathogen",
+        "result": {
+          "target": "HLVd",
+          "sampleType": "leaf",
+          "detected": false
+        }
+      },
+      "values": [
+        "0",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "bound": false
+    },
+    {
       "name": "under another kind’s form",
       "fields": {
         "about": [
