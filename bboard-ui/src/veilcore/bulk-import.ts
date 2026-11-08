@@ -1605,6 +1605,31 @@ export const LEDGER_LOCK = 'veilcore.bulk-ledger';
 
 const STOPPED = 'Stopped. Pick it up again any time.';
 
+/** Said for a row a job would have to seal anew: its kept record isn't in this browser any more. */
+export const NOT_KEPT = 'This record isn’t kept in this browser any more, so it wasn’t sent.';
+
+/**
+ * Forget records held for a backup and never sent: only rows whose state is `held` and whose
+ * hash is in `hashes` (one job's own), with their keys. A pending or sealed row is never
+ * touched: it may be on the registry, and its key is the only way to open it. Under the ledger's
+ * lock, so it never crosses a batch being sent from another tab. Returns how many were dropped.
+ */
+export const dropHeld = (hashes: readonly string[]): Promise<number> =>
+  withTabLock(LEDGER_LOCK, async (held) => {
+    const ledger = loadLedger();
+    const gone: string[] = [];
+    for (const h of new Set(hashes)) {
+      const e = ledger.rows[h];
+      if (e?.state !== 'held') continue;
+      gone.push(e.recordId);
+      delete ledger.rows[h];
+    }
+    if (!gone.length || !held()) return 0;
+    if (!saveLedger(ledger)) return 0;
+    for (const id of gone) forgetKeys(id);
+    return gone.length;
+  });
+
 /** How long a batch waits for the registry before it is kept to send again (it may have landed). */
 export const COMMIT_MS = 120_000;
 
@@ -1646,9 +1671,13 @@ export const sealRows = async (
     commitMs?: number;
     onProgress?: (p: SealProgress) => void;
     shouldStop?: () => boolean;
+    /** Send only records already sealed and kept in the ledger; seal none new (a job's records). */
+    onlyKept?: boolean;
   } = {},
 ): Promise<SealResult> => {
   const commit = opts.commit ?? registryCommit;
+  // Sealing for the backup sends nothing: its rows are written as held.
+  const holding = commit === holdForBackup;
   const size = opts.batchSize ?? 50;
   const gap = opts.gapMs ?? 2500;
   const todo = rows.filter((r) => r.status === 'ready');
@@ -1674,10 +1703,18 @@ export const sealRows = async (
           outcomes[row.hash] = { state: 'sealed', recordId: entry.recordId, fingerprint: entry.fingerprint };
           continue;
         }
-        if (entry?.state === 'pending' && entry.record && keysFor(entry.recordId)) {
-          // Sent before and not confirmed: the same record again.
+        if ((entry?.state === 'pending' || entry?.state === 'held') && entry.record && keysFor(entry.recordId)) {
+          // Held for the backup, or sent before and not confirmed: the same record again. Held
+          // only while nothing is sent (holdForBackup); about to be sent, it is pending from here
+          // on, so dropHeld never takes away a record that may have landed.
+          if (!holding) ledger.rows[row.hash] = { ...entry, state: 'pending' };
           batch.push(entry.record);
           hashOf.set(entry.recordId, row.hash);
+          continue;
+        }
+        if (opts.onlyKept) {
+          // A job sends only the records it showed (ask-job/run.ts): never one sealed new here.
+          outcomes[row.hash] = { state: 'refused', reason: NOT_KEPT };
           continue;
         }
         const found = inSet.get(row.hash);
@@ -1696,7 +1733,7 @@ export const sealRows = async (
           ledger.rows[row.hash] = {
             recordId: record.id,
             fingerprint: record.recordFingerprint,
-            state: 'pending',
+            state: holding ? 'held' : 'pending',
             at: Date.now(),
             record,
           };
