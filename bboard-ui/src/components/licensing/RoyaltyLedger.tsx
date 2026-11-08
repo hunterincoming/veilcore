@@ -29,6 +29,7 @@ import {
   Typography,
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
+import { TabLockUnavailable } from '../../veilcore/tab-lock';
 import { downloadDealRecord, sayOnce, type DealEntry, type DealParty } from '../../veilcore/deal-client';
 import { publicOf, type DealSide, type StatementLine } from '../../veilcore/deal';
 import {
@@ -145,6 +146,7 @@ export const RoyaltyLedger: React.FC<{
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const [notice, setNotice] = useState<string>();
   const [form, setForm] = useState<
     { kind: 'report'; period?: RoyaltyPeriod; replaces?: Report } | { kind: 'payout' } | { kind: 'invoice' }
   >();
@@ -191,13 +193,20 @@ export const RoyaltyLedger: React.FC<{
     sending.current = true;
     setBusy(true);
     setError(undefined);
+    setNotice(undefined);
     try {
-      await sayOnce(party, body);
+      const r = await sayOnce(party, body);
+      // A report that says the same as one already there is that report (royalty-ledger.ts):
+      // say so, rather than look as if a second one went.
+      if (r.already && body.type === 'statement')
+        setNotice(
+          r.sentAt ? tr.t('app.roy.alreadyThereOn', { date: when(r.sentAt, tr) }) : tr.t('app.roy.alreadyThere'),
+        );
       setForm(undefined);
       refresh();
       return true;
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e instanceof TabLockUnavailable ? tr.t('app.roy.noLock') : e instanceof Error ? e.message : String(e));
       return false;
     } finally {
       sending.current = false;
@@ -333,6 +342,11 @@ export const RoyaltyLedger: React.FC<{
         </Box>
 
         <HowToRead tr={tr} />
+        {notice && (
+          <Alert severity="info" variant="outlined" data-already-there="" onClose={() => setNotice(undefined)}>
+            {notice}
+          </Alert>
+        )}
         {error && (
           <Alert severity="error" variant="outlined" data-send-error="">
             {error} {tr.t('app.roy.sendsSame')}

@@ -4,7 +4,15 @@
 // SPDX-License-Identifier: Apache-2.0
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as deal from './deal';
-import { LANDED_MS, __resetOutboxForTests, readAll, sayOnce, type DealEntry, type DealParty } from './deal-client';
+import {
+  LANDED_MS,
+  RESIGN_MS,
+  __resetOutboxForTests,
+  readAll,
+  sayOnce,
+  type DealEntry,
+  type DealParty,
+} from './deal-client';
 import { balanceOwed, ledgerOf, stateOf } from './royalty-ledger';
 
 const H = (c: string) => c.repeat(64);
@@ -98,6 +106,8 @@ beforeEach(async () => {
 afterEach(() => vi.unstubAllGlobals());
 
 const reports = async (p: DealParty) => ledgerOf(await readAll(p)).reports;
+/** This deal's kept messages, in this browser. */
+const BOX = `veilcore.deal-outbox.v1.${H('c')}.${H('d')}`;
 
 describe('a report sent again after a lost answer', () => {
   it('the registry kept it and the answer was lost: trying again sends nothing new', async () => {
@@ -115,7 +125,7 @@ describe('a report sent again after a lost answer', () => {
     reg.lose.push('request');
     await expect(sayOnce(licensee, report())).rejects.toThrow();
     expect(reg.posts).toHaveLength(0);
-    const kept = JSON.parse(local.get('veilcore.deal-outbox.v1')!) as Record<string, { ct: string; signature: string }>;
+    const kept = JSON.parse(local.get(BOX)!) as Record<string, { ct: string; signature: string }>;
     const [first] = Object.values(kept);
     const again = await sayOnce(licensee, report());
     expect(again).toEqual({ signature: first.signature, already: false });
@@ -123,7 +133,7 @@ describe('a report sent again after a lost answer', () => {
     const [r] = await reports(issuer);
     expect(r.statement.signature).toBe(first.signature);
     // Nothing kept in clear: the amount is only inside the ciphertext.
-    expect(local.get('veilcore.deal-outbox.v1')).not.toContain('25.00');
+    expect(local.get(BOX)).not.toContain('25.00');
   });
 
   it('an answer, a payment and a confirmation sent again count once too', async () => {
@@ -309,5 +319,127 @@ describe('payout details and reminders', () => {
       'B',
       'A',
     ]);
+  });
+});
+
+describe('latest wins: payout details, invoice details and reminders', () => {
+  const payout = (account: string): deal.DealBody => ({ type: 'payout', method: 'bank', account, currency: 'USD' });
+  const invoice = (legalName: string): deal.DealBody => ({ type: 'invoice-details', legalName });
+  const newestOf = async (type: string) => {
+    const mine = (await readAll(licensee)).filter((e) => e.type === type);
+    const last = mine[mine.length - 1] as unknown as Record<string, unknown> | undefined;
+    return last?.account ?? last?.legalName;
+  };
+
+  for (const [what, make, type] of [
+    ['payout details', payout, 'payout'],
+    ['invoice details', invoice, 'invoice-details'],
+  ] as const)
+    for (const lost of ['answer', 'request'] as const)
+      it(`${what}: A (its ${lost} lost), then B, then A again: A is the newest`, async () => {
+        reg.lose.push(lost);
+        await expect(sayOnce(issuer, make('A'))).rejects.toThrow();
+        // Not tried again: B instead, which lands, and drops the A that was kept.
+        await sayOnce(issuer, make('B'));
+        expect(await newestOf(type)).toBe('B');
+        const back = await sayOnce(issuer, make('A'));
+        expect(back.already).toBe(false);
+        expect(await newestOf(type)).toBe('A');
+        expect(JSON.parse(local.get(BOX) ?? '{}')).toEqual({});
+      });
+
+  it('A then B in another tab while A waits to be sent again: A goes again, as the newest', async () => {
+    reg.lose.push('answer');
+    await expect(sayOnce(issuer, payout('A'))).rejects.toThrow();
+    // The other tab: B lands. This tab's kept A is still there (it kept it before B landed).
+    const keptA = local.get(BOX)!;
+    await sayOnce(issuer, payout('B'));
+    local.set(BOX, keptA);
+    const back = await sayOnce(issuer, payout('A'));
+    expect(back.already).toBe(false);
+    expect(await newestOf('payout')).toBe('A');
+  });
+
+  it('a reminder sent again after a lost answer is one reminder', async () => {
+    const remind: deal.DealBody = {
+      type: 'notice',
+      kind: 'reminder',
+      about: 'report',
+      periodFrom: '2026-01-01',
+      periodTo: '2026-01-31',
+      asOf: '2026-02-20',
+    };
+    reg.lose.push('answer');
+    await expect(sayOnce(issuer, remind)).rejects.toThrow();
+    expect((await sayOnce(issuer, remind)).already).toBe(true);
+    expect((await readAll(licensee)).filter((e) => e.type === 'notice')).toHaveLength(1);
+  });
+});
+
+describe('what is kept, and for how long', () => {
+  it('each deal keeps its own: a message kept for one deal survives a send on another', async () => {
+    const other: DealParty = { ...licensee, commitment: H('e') };
+    const otherIssuer: DealParty = { ...issuer, commitment: H('e') };
+    await readAll(otherIssuer);
+    reg.lose.push('request');
+    await expect(sayOnce(licensee, report())).rejects.toThrow();
+    await sayOnce(other, report());
+    expect(Object.keys(JSON.parse(local.get(BOX)!) as object)).toHaveLength(1);
+    expect(local.get(`veilcore.deal-outbox.v1.${H('e')}.${H('d')}`)).toBeDefined();
+    // Sent again: the very message kept for the first deal.
+    const kept = Object.values(JSON.parse(local.get(BOX)!) as Record<string, { ct: string }>)[0];
+    await sayOnce(licensee, report());
+    expect(reg.posts).toContain(kept.ct);
+  });
+
+  it('a kept message that never arrived is signed again after a day, not sent with its old time', async () => {
+    let now = at('2026-02-02');
+    reg.lose.push('request');
+    await expect(sayOnce(licensee, report(), () => now)).rejects.toThrow();
+    const kept = Object.values(JSON.parse(local.get(BOX)!) as Record<string, { ct: string; signature: string }>)[0];
+    now += RESIGN_MS + 1;
+    const sent = await sayOnce(licensee, report(), () => now);
+    expect(sent.signature).not.toBe(kept.signature);
+    expect(reg.posts).not.toContain(kept.ct);
+    const [r] = await reports(issuer);
+    expect(r.statement.at).toBe(now);
+  });
+
+  it('the key a message is kept under is not a plain hash of what it says', async () => {
+    reg.lose.push('request');
+    await expect(sayOnce(licensee, report())).rejects.toThrow();
+    const [k] = Object.keys(JSON.parse(local.get(BOX)!) as object);
+    const { contentOf } = await import('./deal-content');
+    const plain = Array.from(
+      new Uint8Array(
+        await crypto.subtle.digest(
+          'SHA-256',
+          new TextEncoder().encode(`veilcore/deal-outbox/v1\nlicensee\n${contentOf(report())}`),
+        ),
+      ),
+      (b) => b.toString(16).padStart(2, '0'),
+    ).join('');
+    expect(k).toMatch(/^[0-9a-f]{64}$/);
+    expect(k).not.toBe(plain);
+  });
+});
+
+describe('a second report that says the same', () => {
+  it('is not sent, and says when the one there was sent', async () => {
+    await sayOnce(licensee, report());
+    const again = await sayOnce(licensee, report(), () => Date.now() + LANDED_MS * 2);
+    expect(again.already).toBe(true);
+    expect(typeof again.sentAt).toBe('number');
+    // With a note saying what it is for, it is another report.
+    await sayOnce(licensee, { ...report(), note: 'Second batch of cuttings' } as deal.DealBody);
+    expect(await reports(issuer)).toHaveLength(2);
+  });
+
+  it('a field this app does not know counts, as in the published checker: two reports', async () => {
+    await sayOnce(licensee, report());
+    // A client of its own adds a field named like one a page adds (`mine`): signed, it is part of what it says.
+    await sayOnce(licensee, { ...report(), mine: false } as unknown as deal.DealBody);
+    expect(reg.posts).toHaveLength(2);
+    expect(await reports(issuer)).toHaveLength(2);
   });
 });

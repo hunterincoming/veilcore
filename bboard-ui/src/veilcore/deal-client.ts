@@ -7,7 +7,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import type { OnChainLicense } from './licenses';
 import { isNumber, isObject, isString, readJson } from './json';
 import { dealOrder } from './deal-order';
-import { contentOf } from './deal-content';
+import { contentOf, entryContent, noteSigned } from './deal-content';
 import { withTabLock } from './tab-lock';
 import {
   dealKeys,
@@ -32,6 +32,9 @@ export type DealEntry = DealMessage & {
   readonly mine: boolean;
 };
 
+/** How long a request to the deal channel waits: a hung one would hold the deal's lock (sayOnce). */
+export const POST_MS = 30_000;
+
 const post = async (path: string, body: unknown): Promise<unknown> => {
   let res: Response;
   try {
@@ -40,6 +43,9 @@ const post = async (path: string, body: unknown): Promise<unknown> => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
       cache: 'no-store',
+      ...(typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+        ? { signal: AbortSignal.timeout(POST_MS) }
+        : {}),
     });
   } catch {
     throw new Error('Could not reach the VeilCore registry. Check your connection and try again.');
@@ -147,37 +153,57 @@ export const say = async (p: DealParty, body: DealBody): Promise<{ seq: number; 
 // sends that same message (the same signature, which the reader shows once). Before a resend,
 // and before any report, it reads the deal fresh and sends nothing if it is already there.
 // One tab at a time per deal (tab-lock.ts), so a second tab or a second tap waits, then finds
-// it sent. What is kept is the ciphertext and the signature only, never the message in clear.
+// it sent.
+//
+// Two kinds of message:
+//   - ONCE: a report, an answer, "I paid", "received". The first one stands, so a copy is never
+//     wanted: one already there is not sent again.
+//   - latest wins: payout details, invoice details, reminders, credentials. One already there
+//     counts as sent only while it is still the newest of its kind from this side; after A, then
+//     B, going back to A sends A again, so A is the newest. When one lands, every other kept
+//     message of its kind for this deal is dropped: it was replaced before it went.
+//
+// What is kept, per deal (its own storage entry, so deals never write over each other): the
+// ciphertext, the signature, the kind and when it was made, under a key that is an HMAC with the
+// deal's write token, so the key alone says nothing about what the message says.
 
-const OUTBOX_KEY = 'veilcore.deal-outbox.v1';
+const OUTBOX_PREFIX = 'veilcore.deal-outbox.v1.';
 /**
  * How long a report, an answer, "I paid" or "received" that landed is remembered: a second tap
- * or tab in that time sends nothing. Other messages (payout details, reminders) are forgotten
- * once they land, so the same details can be sent again after a change in between.
+ * or tab in that time sends nothing.
  */
 export const LANDED_MS = 10 * 60_000;
 const ONCE: ReadonlySet<DealBody['type']> = new Set(['statement', 'reply', 'paid', 'received']);
 /** How long a message signed and not yet confirmed is kept, to be sent again as it was. */
 export const KEEP_MS = 30 * 86_400_000;
+/**
+ * A kept message older than this that is not in the deal is signed again with the time now, not
+ * sent with its old signed time (it can't still be on its way).
+ */
+export const RESIGN_MS = 86_400_000;
 
 type Kept = {
   readonly iv: string;
   readonly ct: string;
   readonly signature: string;
+  readonly type: string;
   readonly madeAt: number;
   readonly landedAt?: number;
 };
 
 /** In memory when the browser keeps nothing: still one message per tab. */
-let outboxHere: Record<string, Kept> = {};
+const outboxHere = new Map<string, Record<string, Kept>>();
 
 const isKept = (v: unknown): v is Kept =>
-  isObject(v) && isString(v.iv) && isString(v.ct) && isString(v.signature) && isNumber(v.madeAt);
+  isObject(v) && isString(v.iv) && isString(v.ct) && isString(v.signature) && isString(v.type) && isNumber(v.madeAt);
 
-const readOutbox = (now: number): Record<string, Kept> => {
-  let box: Record<string, unknown> = outboxHere;
+/** The storage entry of one deal's kept messages. */
+const outboxName = (p: DealParty): string => `${OUTBOX_PREFIX}${p.commitment}.${p.issuerRecord}`;
+
+const readOutbox = (name: string, now: number): Record<string, Kept> => {
+  let box: Record<string, unknown> = outboxHere.get(name) ?? {};
   try {
-    const raw = localStorage.getItem(OUTBOX_KEY);
+    const raw = localStorage.getItem(name);
     if (raw) {
       const v = JSON.parse(raw) as unknown;
       if (isObject(v)) box = v;
@@ -191,79 +217,119 @@ const readOutbox = (now: number): Record<string, Kept> => {
   return out;
 };
 
-const writeOutbox = (box: Record<string, Kept>): void => {
-  outboxHere = box;
+const writeOutbox = (name: string, box: Record<string, Kept>): void => {
+  outboxHere.set(name, box);
   try {
-    localStorage.setItem(OUTBOX_KEY, JSON.stringify(box));
+    if (Object.keys(box).length === 0) localStorage.removeItem(name);
+    else localStorage.setItem(name, JSON.stringify(box));
   } catch {
     /* kept in this tab only */
   }
 };
 
+/** Forget what is kept for a deal (a license this browser no longer keeps). */
+export const forgetDealOutbox = (p: Pick<DealParty, 'commitment' | 'issuerRecord'>): void =>
+  writeOutbox(`${OUTBOX_PREFIX}${p.commitment}.${p.issuerRecord}`, {});
+
 const hexOf = (b: ArrayBuffer): string =>
   Array.from(new Uint8Array(b), (x) => x.toString(16).padStart(2, '0')).join('');
 
-/** Which message this is, by what it says: the deal, the side, and the body without its id. */
-const outboxKeyOf = async (dealId: string, side: DealSide, body: DealBody): Promise<string> =>
-  hexOf(
-    await crypto.subtle.digest(
-      'SHA-256',
-      new TextEncoder().encode(`veilcore/deal-outbox/v1\n${dealId}\n${side}\n${contentOf(body)}`),
+/** Which message this is, by what it says: an HMAC with the deal's write token of the side and the body without its id. */
+const outboxKeyOf = async (writeToken: string, side: DealSide, body: DealBody): Promise<string> => {
+  const k = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(writeToken),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  return hexOf(
+    await crypto.subtle.sign(
+      'HMAC',
+      k,
+      new TextEncoder().encode(`veilcore/deal-outbox/v1\n${side}\n${contentOf(body)}`),
     ),
   );
+};
 
 export type SayOnceResult = {
   readonly signature: string;
   /** It was already there (sent from another tab, or by a send whose answer was lost): nothing sent now. */
   readonly already: boolean;
+  /** When `already`: when the one there reached the registry (or was made here), ms since 1970. */
+  readonly sentAt?: number;
 };
 
 /** For the tests: forget what this tab kept. */
 export const __resetOutboxForTests = (): void => {
-  outboxHere = {};
+  outboxHere.clear();
 };
 
 /**
  * Sign once, encrypt and leave a message, and never twice for what it says: for the royalty
- * messages (a report, an answer, "I paid", "received", reminders and payout details), where a
- * second copy could be counted. A failure leaves the signed message kept: trying again sends it.
+ * messages (a report, an answer, "I paid", "received", reminders, payout and invoice details),
+ * where a second copy could be counted, or an older one stand in for a newer one. A failure leaves
+ * the signed message kept: trying again sends it.
  */
 export const sayOnce = async (p: DealParty, body: DealBody, now: () => number = Date.now): Promise<SayOnceResult> => {
   const keys = await connect(p);
-  const key = await outboxKeyOf(keys.dealId, p.side, body);
-  const landed = (signature: string, already: boolean): SayOnceResult => {
-    const box = readOutbox(now());
+  const name = outboxName(p);
+  const key = await outboxKeyOf(keys.writeToken, p.side, body);
+  const once = ONCE.has(body.type);
+  /** It is there: remembered for a few minutes (ONCE), or dropped with every other of its kind. */
+  const landed = (signature: string, already: boolean, sentAt?: number): SayOnceResult => {
+    const box = readOutbox(name, now());
     const k = box[key];
-    if (k && ONCE.has(body.type)) writeOutbox({ ...box, [key]: { ...k, landedAt: now() } });
-    else if (k) {
-      const rest = { ...box };
-      delete rest[key];
-      writeOutbox(rest);
-    }
-    return { signature, already };
+    if (once) {
+      if (k) writeOutbox(name, { ...box, [key]: { ...k, landedAt: now() } });
+    } else writeOutbox(name, Object.fromEntries(Object.entries(box).filter(([, v]) => v.type !== body.type)));
+    return { signature, already, ...(already && sentAt !== undefined ? { sentAt } : {}) };
   };
   return withTabLock(`veilcore.deal-send.${keys.dealId}`, async () => {
     // Read inside the lock: what another tab kept or sent while this one waited counts.
-    const box = readOutbox(now());
-    let kept = box[key];
-    if (kept?.landedAt) return { signature: kept.signature, already: true };
-    const again = !!kept;
-    if (!kept) {
+    const box = readOutbox(name, now());
+    let kept: Kept | undefined = box[key];
+    if (kept?.landedAt) return { signature: kept.signature, already: true, sentAt: kept.landedAt };
+    const sign = async (): Promise<Kept> => {
       const m = { ...body, from: p.side, at: now() } as DealMessage;
       const sealed = await sealMessage(m, p.mySecret, keys);
-      kept = { iv: sealed.iv, ct: sealed.ct, signature: signMessage(m, p.mySecret), madeAt: now() };
+      const k: Kept = {
+        iv: sealed.iv,
+        ct: sealed.ct,
+        signature: signMessage(m, p.mySecret),
+        type: body.type,
+        madeAt: now(),
+      };
       // Kept before it is sent: a lost answer from here on is sent again as this same message.
-      writeOutbox({ ...box, [key]: kept });
-    }
-    if (again || body.type === 'statement') {
+      writeOutbox(name, { ...readOutbox(name, now()), [key]: k });
+      return k;
+    };
+    if (kept || once) {
       const there = await readAll(p);
       const want = body.type === 'statement' ? contentOf(body) : undefined;
-      if (
-        there.some((e) => e.signature === kept.signature) ||
-        (want !== undefined && there.some((e) => e.mine && e.type === 'statement' && contentOf(e) === want))
-      )
-        return landed(kept.signature, true);
+      const sameReport =
+        want !== undefined
+          ? there.find((e) => e.mine && e.type === 'statement' && entryContent(e) === want)
+          : undefined;
+      if (sameReport) return landed(sameReport.signature, true, sameReport.receivedAt || undefined);
+      const found = kept ? there.find((e) => e.signature === kept!.signature) : undefined;
+      if (found) {
+        // Latest wins: there, but a newer one of its kind from this side came after it.
+        const newer = !once && there.some((e) => e.mine && e.type === body.type && e.seq > found.seq);
+        if (!newer) return landed(found.signature, true, found.receivedAt || undefined);
+        kept = undefined;
+      } else if (once && !kept) {
+        // A report, answer or payment from this side already there with the same words, made
+        // in another browser: the first one stands.
+        const same = contentOf(body);
+        const twin = there.find((e) => e.mine && e.type === body.type && entryContent(e) === same);
+        if (twin) return landed(twin.signature, true, twin.receivedAt || undefined);
+      } else if (kept && now() - kept.madeAt > RESIGN_MS) {
+        // Not there after a day: it isn't on its way. Signed again with today's time.
+        kept = undefined;
+      }
     }
+    if (!kept) kept = await sign();
     const out = await post(`/deals/${keys.dealId}/messages`, { iv: kept.iv, ct: kept.ct, token: keys.writeToken });
     if (!isObject(out) || !isNumber(out.seq) || !isString(out.fingerprint))
       throw new Error('Unexpected answer from the registry.');
@@ -294,15 +360,20 @@ export const readAll = async (p: DealParty): Promise<DealEntry[]> => {
       // A replayed copy carries the same signature: shown once.
       if (!o || seen.has(o.signature)) continue;
       seen.add(o.signature);
-      all.push({
-        ...o.message,
-        seq: raw.seq,
-        // Worked out here, never taken from the registry (review round 3, L1).
-        fingerprint: await fingerprintOf(raw.iv, raw.ct),
-        receivedAt: isNumber(raw.receivedAt) ? raw.receivedAt : 0,
-        signature: o.signature,
-        mine: o.mine,
-      });
+      all.push(
+        noteSigned(
+          {
+            ...o.message,
+            seq: raw.seq,
+            // Worked out here, never taken from the registry (review round 3, L1).
+            fingerprint: await fingerprintOf(raw.iv, raw.ct),
+            receivedAt: isNumber(raw.receivedAt) ? raw.receivedAt : 0,
+            signature: o.signature,
+            mine: o.mine,
+          },
+          o.message,
+        ),
+      );
     }
     if (list.length < 200) break;
   }

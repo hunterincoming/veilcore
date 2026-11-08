@@ -23,7 +23,7 @@
 
 import type { DealEntry } from './deal-client';
 import { dealOrder } from './deal-order';
-import { contentOf } from './deal-content';
+import { entryContent } from './deal-content';
 import type { DealBody, StatementLine } from './deal';
 import type { LicenseTerms } from './licenses';
 import {
@@ -103,7 +103,7 @@ export const ledgerOf = (entries: readonly DealEntry[]): Ledger => {
   for (const e of sorted) {
     if (e.type !== 'statement' || e.from !== 'licensee') continue;
     // The same report signed again (its period is in what it says): the first one stands.
-    const same = contentOf(e);
+    const same = entryContent(e);
     const first = byContent.get(same);
     if (first) {
       bySig.set(e.signature, first);

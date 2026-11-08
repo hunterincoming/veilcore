@@ -176,6 +176,11 @@ export const royalties = {
   'app.roy.howI':
     'Each period: they send a report, you accept it or ask them to fix it, they pay you, you confirm it arrived.',
   'app.roy.none': 'No reports yet.',
+  'app.roy.noLock': 'This browser won’t keep what VeilCore needs to send from one tab at a time, so nothing was sent.',
+  'app.roy.alreadyThereOn':
+    'This report is already there: one with exactly the same figures for this period was sent on {date}, so nothing new was sent. To send another for the same period, add a note that says what it is for.',
+  'app.roy.alreadyThere':
+    'This report is already there: one with exactly the same figures for this period was sent, so nothing new was sent. To send another for the same period, add a note that says what it is for.',
   'app.roy.sendsSame': 'Trying again sends the same signed message, so it can’t be counted twice.',
   'app.roy.home.l.running': 'This period ends soon. Your report for {period} will be due on',
   'app.roy.home.l.report': 'Your report for {period} is due on',
