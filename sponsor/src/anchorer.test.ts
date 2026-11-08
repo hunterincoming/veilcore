@@ -397,3 +397,18 @@ describe('anchoring diagnostics (what the log says, never a secret)', () => {
     expect(String(failed?.extra?.error)).toBe('Error: the indexer answered 502 [hex 64]');
   });
 });
+
+describe('a transaction that never lands', () => {
+  it('reaches the alert: waiting no longer resets the failure count', async () => {
+    const s = setup();
+    s.registry.pending = 12;
+    s.chain.submitFails = 'maybe';
+    expect(await s.anchorer.runOnce()).toMatch(/may have failed/); // 1
+    expect(await s.anchorer.runOnce()).toMatch(/waiting for tx-1/); // still 1
+    expect(s.anchorer.status().consecutiveFailures).toBe(1);
+    s.advance(41 * 60_000);
+    expect(await s.anchorer.runOnce()).toMatch(/never landed and has expired/); // 2
+    expect(await s.anchorer.runOnce()).toMatch(/may have failed/); // 3
+    expect(s.anchorer.status()).toMatchObject({ alert: true, consecutiveFailures: 3 });
+  });
+});

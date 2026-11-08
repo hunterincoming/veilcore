@@ -408,7 +408,9 @@ export class Anchorer {
         this.store.clear();
         return this.done('expired', `anchorBatch ${a.txId} never landed and has expired; will build a new one`, false);
       }
-      return this.done('waiting', `waiting for ${a.txId} to land`, true);
+      // Not a success: a transaction that never lands must still reach the alert (maybe-sent, then
+      // waiting, then expired, again and again, reset the count on every waiting before).
+      return this.done('waiting', `waiting for ${a.txId} to land`, 'neither');
     }
 
     // Landed. Check the chain says what we meant before telling the registry anything.
