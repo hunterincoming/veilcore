@@ -12,6 +12,12 @@ export const sealed = {
     'Dieser Datensatz passt nicht zu seinem Prüfcode: Er wurde möglicherweise nach dem Versiegeln geändert. Er wird nicht erneut gespeichert, gesendet oder geteilt.',
   'app.sealed.alreadyCorrected':
     'Dieser Datensatz wurde bereits korrigiert, in einem anderen Tab oder auf einem anderen Gerät. Öffnen Sie die neueste Fassung, um sie zu korrigieren.',
+  'app.sealed.correctedSameWay':
+    'Dieser Datensatz wurde bereits auf dieselbe Weise korrigiert, in einem anderen Tab oder auf einem anderen Gerät. Ihre Begründung wurde nicht mit gespeichert. Öffnen Sie die neueste Fassung, um sie anzusehen.',
+  'app.sealed.correctNeedsConnection':
+    'Zum Korrigieren eines Datensatzes ist eine Verbindung nötig: VeilCore prüft zuerst, dass er nicht in einem anderen Tab oder auf einem anderen Gerät korrigiert wurde. Es wurde nichts geändert. Versuchen Sie es erneut, wenn Sie online sind.',
+  'app.sealed.correctionConnectionLost':
+    'Die Verbindung brach ab, während diese Korrektur gespeichert wurde, daher wird sie hier nicht zum späteren Senden aufbewahrt. Versuchen Sie es erneut, wenn Sie online sind: Falls sie angekommen ist, werden Sie zu ihr geführt.',
   'app.sealed.locked.title.one': '{count} verschlossener Datensatz',
   'app.sealed.locked.title.other': '{count} verschlossene Datensätze',
   'app.sealed.locked.pageTitle': 'Dieser Datensatz ist verschlossen',

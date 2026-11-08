@@ -410,6 +410,12 @@ export const plant = {
   'app.plant.fix.field.attestations': 'attestations',
   'app.plant.fix.field.sealedAt': 'sealed date',
   'app.plant.fix.field.holder': 'holder',
+  // CorrectRecord.tsx FIELD_LABEL: the envelope's names for a record's name, species and the rest
+  'app.plant.fix.field.name': 'name',
+  'app.plant.fix.field.taxon': 'species',
+  'app.plant.fix.field.designation': 'designation',
+  'app.plant.fix.field.breed': 'breed',
+  'app.plant.fix.field.herd': 'herd or farm',
   'app.plant.fix.c.cosmetic.cosmetic':
     'Nothing downstream is affected. Offspring keep their ancestry checks, and any agreements stand.',
   'app.plant.fix.c.cosmetic.material':

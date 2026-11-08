@@ -4,6 +4,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const local = new Map<string, string>();
 const sent: string[] = [];
+/** What the stand-in registry holds, by id. */
+const held = new Map<string, unknown>();
 
 beforeAll(() => {
   vi.stubGlobal('localStorage', {
@@ -16,8 +18,17 @@ beforeAll(() => {
       `${String(url)}\n${JSON.stringify(init?.headers ?? {})}\n${typeof init?.body === 'string' ? init.body : ''}`,
     );
     const method = init?.method ?? 'GET';
-    if (method === 'PUT') return Promise.resolve(new Response(JSON.stringify({ ok: true }), { status: 200 }));
-    return Promise.resolve(new Response(JSON.stringify([]), { status: 200 }));
+    // Keeps the records it is sent and gives them back, as the registry does: a correction reads
+    // the registry first (records.ts issueCorrection), and an empty answer would be a registry
+    // that lost the record.
+    const path = new URL(String(url)).pathname;
+    if (method === 'PUT') {
+      if (path === '/api/records' && typeof init?.body === 'string')
+        for (const r of JSON.parse(init.body) as { id: string }[]) held.set(r.id, r);
+      return Promise.resolve(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    }
+    const rows = path === '/api/records' ? [...held.values()] : [];
+    return Promise.resolve(new Response(JSON.stringify(rows), { status: 200 }));
   });
 });
 // Since round 3 (L1) nothing is sealed and sent before the key is in a checked backup: as a holder does first.

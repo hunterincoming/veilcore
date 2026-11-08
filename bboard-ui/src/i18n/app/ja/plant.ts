@@ -393,6 +393,11 @@ export const plant = {
   'app.plant.fix.field.attestations': '証明',
   'app.plant.fix.field.sealedAt': '封印日',
   'app.plant.fix.field.holder': '保有者',
+  'app.plant.fix.field.name': '名前',
+  'app.plant.fix.field.taxon': '種',
+  'app.plant.fix.field.designation': '株番号',
+  'app.plant.fix.field.breed': '品種',
+  'app.plant.fix.field.herd': '牧場・農場',
   'app.plant.fix.c.cosmetic.cosmetic': '後続には何も影響しません。子孫の系統確認はそのままで、契約も有効なままです。',
   'app.plant.fix.c.cosmetic.material':
     '素材は変わっていないので、子孫には影響しません。ただし、条件が変更箇所に関係する可能性があるため、この記録について契約を結んでいる相手には知らせる必要があります。',

@@ -319,6 +319,29 @@ const real = async (): Promise<Setup> => {
   return { batchRoot: (ev.batch as { root: string }).root, evidence: {}, ots: false };
 };
 
+/**
+ * Technical details open and laid out: the section has finished opening, and `button` has
+ * stayed in one place for a moment. Panels in it (the record's keys, its date on Midnight) fill
+ * in as their data arrives and move what is below them; a click while the button moves lands
+ * between mouse-down and mouse-up on different places, and nothing opens.
+ */
+const untilSettled = async (page: Page, button: Locator) => {
+  await expect(page.locator('#record-technical-details.MuiCollapse-entered')).toHaveCount(1);
+  await button.scrollIntoViewIfNeeded();
+  let last = '';
+  await expect
+    .poll(
+      async () => {
+        const now = JSON.stringify(await button.boundingBox());
+        const same = now === last;
+        last = now;
+        return same;
+      },
+      { intervals: [300] },
+    )
+    .toBe(true);
+};
+
 const openPlant = async (page: Page, setup: Setup, id: string) => {
   await page.addInitScript(
     ({ holder, keys, vault }) => {
@@ -734,7 +757,9 @@ test.describe('evidence bundle', () => {
     await page.getByRole('button', { name: 'Technical details' }).click();
     await expect(page.getByText('Evidence bundle', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Export record' })).toBeVisible();
-    await page.getByRole('button', { name: 'Download evidence bundle' }).last().click();
+    const bundleButton = page.getByRole('button', { name: 'Download evidence bundle' }).last();
+    await untilSettled(page, bundleButton);
+    await bundleButton.click();
     const dialog = page.getByRole('dialog', { name: 'Download evidence bundle' });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole('checkbox')).toHaveCount(0);

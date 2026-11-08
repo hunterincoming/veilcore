@@ -580,6 +580,11 @@ const noteSent = (rk: string, rev: number, hash: string): void => {
 };
 /** The code the registry gives a row it refused as an older copy than the one it holds. */
 export const OLDER_COPY = 'older-copy';
+/**
+ * The code the registry gives a second correction of a record it holds a correction of already
+ * (veilcore-api corrections.js: one correction per holder and record, a unique index).
+ */
+export const ALREADY_CORRECTED_CODE = 'already-corrected';
 
 const hashOf = async (v: Record<string, unknown>): Promise<string> =>
   Array.from(
@@ -988,6 +993,12 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
           publicRevs.set(revKey(kind, r.id), storedRev);
         }
         refused.push({ id: r.id, reason: r.reason, words: 'app.sealed.refuse.olderCopy' });
+        continue;
+      }
+      // A record is corrected once: another tab or device saved a correction of it first.
+      // Said as that, in the page's language (records.ts issueCorrection reads `words`).
+      if (r.code === ALREADY_CORRECTED_CODE) {
+        refused.push({ id: r.id, reason: r.reason, words: 'app.sealed.alreadyCorrected' });
         continue;
       }
       refused.push({ id: r.id, reason: r.reason });

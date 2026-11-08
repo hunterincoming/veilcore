@@ -12,6 +12,12 @@ export const sealed = {
     'Cet enregistrement ne correspond pas à son code de preuve : il a peut-être été modifié après avoir été scellé. Il ne sera plus enregistré, envoyé ni partagé.',
   'app.sealed.alreadyCorrected':
     'Cet enregistrement a déjà été corrigé, dans un autre onglet ou sur un autre appareil. Ouvrez la dernière version pour la corriger.',
+  'app.sealed.correctedSameWay':
+    'Cet enregistrement a déjà été corrigé de la même façon, dans un autre onglet ou sur un autre appareil. Votre motif n’a pas été enregistré avec la correction. Ouvrez la dernière version pour la voir.',
+  'app.sealed.correctNeedsConnection':
+    'Corriger un enregistrement demande une connexion : VeilCore vérifie d’abord qu’il n’a pas été corrigé dans un autre onglet ou sur un autre appareil. Rien n’a été modifié. Réessayez une fois en ligne.',
+  'app.sealed.correctionConnectionLost':
+    'La connexion a été coupée pendant l’enregistrement de cette correction : elle n’est donc pas gardée ici pour être envoyée plus tard. Réessayez une fois en ligne : si elle est arrivée, vous y serez conduit.',
   'app.sealed.locked.title.one': '{count} enregistrement verrouillé',
   'app.sealed.locked.title.other': '{count} enregistrements verrouillés',
   'app.sealed.locked.pageTitle': 'Cet enregistrement est verrouillé',

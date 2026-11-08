@@ -77,6 +77,13 @@ export const fakeRegistry = () => {
      * carrying it out; a Response is answered instead.
      */
     fault: null as ((method: string, path: string, body: string) => 'lose' | 'fail' | Response | undefined) | null,
+    /**
+     * A record is corrected once, as the registry refuses it (veilcore-api corrections.js, a
+     * unique index per holder and corrected record): a second correction of a record this
+     * holder holds a correction of is refused by id with code "already-corrected", and so is a
+     * row in the same save marked `supersededBy` that refused correction.
+     */
+    oneCorrection: false,
   };
   let n = 0;
 
@@ -162,12 +169,34 @@ export const fakeRegistry = () => {
         const notWritten: string[] = [];
         const items = JSON.parse(body) as Row[];
         const theirKid = items.map((r) => (r.sealed as { kid?: string } | undefined)?.kid).find(Boolean);
+        const correctionOf = (r: Row) => (r.supersedes as { recordId?: string } | undefined)?.recordId;
+        /** Second corrections in this save: id → the record and the correction held already. */
+        const second = new Map<string, { recordId: string; correctionId: string }>();
+        if (misbehave.oneCorrection && path === '/api/records')
+          for (const r of items) {
+            const of = correctionOf(r);
+            if (!of) continue;
+            const held = [...records.values()].find(
+              (x) => x.holder === holder && x.id !== r.id && correctionOf(x) === of,
+            );
+            if (held) second.set(r.id, { recordId: of, correctionId: held.id });
+          }
+        const alreadyCorrected = (id: string, c: { recordId: string; correctionId: string }) => ({
+          id,
+          reason: `already corrected: record ${c.recordId} already has a correction here (${c.correctionId}). A record is corrected once, so correct ${c.correctionId} instead; nothing was changed`,
+          code: 'already-corrected',
+          status: 409,
+          ...c,
+        });
         for (const r of items) {
+          const refusedCorrection =
+            second.get(r.id) ?? (typeof r.supersededBy === 'string' ? second.get(r.supersededBy) : undefined);
           const s = r.sealed as { kid?: string } | undefined;
           const heldRev = typeof t.get(r.id)?.rev === 'number' ? (t.get(r.id)!.rev as number) : null;
           const rev = typeof r.rev === 'number' && Number.isSafeInteger(r.rev) ? r.rev : null;
           const dating = path === '/api/records' ? t.get(r.id) : undefined;
           if (misbehave.rejectIds.has(r.id)) rejected.push({ id: r.id, reason: 'refused for this test' });
+          else if (refusedCorrection) rejected.push(alreadyCorrected(r.id, refusedCorrection));
           else if (
             dating?.bodyPending === true &&
             dating.holder === holder &&

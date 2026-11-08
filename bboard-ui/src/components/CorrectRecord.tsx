@@ -30,13 +30,11 @@ import EditIcon from '@mui/icons-material/EditOutlined';
 import { useNavigate } from 'react-router-dom';
 import { previewCorrection, type CorrectionPreview } from '../veilcore/corrections';
 import {
-  ALREADY_CORRECTED,
+  CorrectionRefused,
   allRecords,
   correctionWaitsForBackup,
-  hydrate,
   integrityOf,
   issueCorrection,
-  latestVersionOf,
   type StrainRecord,
 } from '../veilcore/records';
 import { INK_COLOR } from '../config/theme';
@@ -46,7 +44,19 @@ import type { AppKey } from '../i18n/app/en';
 import { SCHEMES, idShapeHint, sexWords } from './flow/AnimalForm';
 import { line } from '../ask/batch';
 
+// The names previewCorrection gives (veilcore-records diffRecords: the envelope's paths), each in
+// the page's words; a strain's or an animal's own words come from useRecordT. Never a raw path.
 const FIELD_LABEL: Record<string, AppKey> = {
+  'subject.name': 'app.plant.fix.field.name',
+  'subject.originator': 'app.plant.fix.field.breederName',
+  'subject.taxon': 'app.plant.fix.field.taxon',
+  'subject.internalDesignation': 'app.plant.fix.field.internalReference',
+  'subject.claimedCreationDate': 'app.plant.fix.field.claimedCreationDate',
+  'profileData.method': 'app.plant.fix.field.breedingMethod',
+  'profileData.designation': 'app.plant.fix.field.designation',
+  'profileData.breed': 'app.plant.fix.field.breed',
+  'profileData.herd': 'app.plant.fix.field.herd',
+  'profileData.taxon': 'app.plant.fix.field.taxon',
   'profileData.cultivarName': 'app.plant.fix.field.cultivarName',
   'profileData.breederName': 'app.plant.fix.field.breederName',
   'profileData.breedingMethod': 'app.plant.fix.field.breedingMethod',
@@ -111,8 +121,11 @@ export const CorrectRecord: React.FC<{
   const [reason, setReason] = useState('');
   const [preview, setPreview] = useState<CorrectionPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
-  /** Refused: corrected already, in another tab or on another device. Its latest version is the one to correct. */
-  const [correctedAlready, setCorrectedAlready] = useState(false);
+  /**
+   * Refused: corrected already, in another tab or on another device. Its latest version (this
+   * id) is the one to open, and to correct.
+   */
+  const [latestId, setLatestId] = useState<string | null>(null);
   // An error is said at the foot of a long form: brought into view, or on a phone the holder
   // sees only Cancel and nothing seems to happen.
   const errorRef = useRef<HTMLDivElement>(null);
@@ -145,7 +158,7 @@ export const CorrectRecord: React.FC<{
   const reset = () => {
     setOpen(false);
     setError(null);
-    setCorrectedAlready(false);
+    setLatestId(null);
     setPreview(null);
     setReason('');
     setName(record.strainName);
@@ -322,20 +335,20 @@ export const CorrectRecord: React.FC<{
                 ref={errorRef}
                 severity="error"
                 variant="outlined"
-                {...(correctedAlready ? { 'data-fix-corrected-already': '' } : {})}
+                {...(latestId ? { 'data-fix-corrected-already': '' } : {})}
               >
                 {error}
                 {/* Under the words, not beside them: beside, a phone squeezes them into a column. */}
-                {correctedAlready && (
+                {latestId && (
                   <Box sx={{ mt: 1.5 }}>
                     <Button
                       variant="outlined"
                       color="inherit"
                       sx={{ minHeight: 44 }}
                       onClick={() => {
-                        const latest = latestVersionOf(record.id);
+                        const to = latestId;
                         reset();
-                        void navigate(`/record/${latest}`);
+                        void navigate(`/record/${to}`);
                       }}
                     >
                       {t('app.plant.fix.openLatest')}
@@ -348,7 +361,7 @@ export const CorrectRecord: React.FC<{
         </DialogContent>
         <DialogActions>
           <Button onClick={reset}>{t('app.common.cancel')}</Button>
-          {correctedAlready ? null : !preview ? (
+          {latestId ? null : !preview ? (
             <Button variant="contained" onClick={check} disabled={!dirty || needsScheme}>
               {t('app.plant.fix.check')}
             </Button>
@@ -364,14 +377,8 @@ export const CorrectRecord: React.FC<{
                 }
                 setBusy(true);
                 setError(null);
-                // The records as they are now, right before saving: another tab or device may
-                // have corrected this one since the page was opened (a record is corrected once).
-                // A registry that can't answer now leaves this browser's copy, checked as it is.
-                try {
-                  await hydrate({ resave: false });
-                } catch {
-                  /* checked against this browser's copy */
-                }
+                // issueCorrection asks the registry first, and makes nothing when it can't answer
+                // or says this record was corrected already (a record is corrected once).
                 try {
                   const corrected = await issueCorrection(
                     record.id,
@@ -386,10 +393,11 @@ export const CorrectRecord: React.FC<{
                   // here, where the holder is looking, instead of navigating to a
                   // correction that does not exist.
                   setBusy(false);
-                  if (e instanceof Error && e.message === ALREADY_CORRECTED()) {
-                    // Said in the page's language, with the way to the version to correct.
-                    setCorrectedAlready(true);
-                    setError(t('app.sealed.alreadyCorrected'));
+                  if (e instanceof CorrectionRefused) {
+                    // Said in the page's language; when corrected already, with the way to the
+                    // latest version.
+                    setLatestId(e.latestId ?? null);
+                    setError(t(e.key));
                     return;
                   }
                   setError(e instanceof Error ? e.message : t('app.plant.fix.notSaved'));

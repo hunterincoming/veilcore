@@ -12,6 +12,12 @@ export const sealed = {
     'この記録は証明コードと一致しません。封印後に変更された可能性があります。今後、保存・送付・共有はされません。',
   'app.sealed.alreadyCorrected':
     'この記録は、別のタブまたは別の端末ですでに訂正されています。訂正するには最新版を開いてください。',
+  'app.sealed.correctedSameWay':
+    'この記録は、別のタブまたは別の端末で、すでに同じ内容に訂正されています。あなたの訂正理由は保存されていません。最新版を開いて確認してください。',
+  'app.sealed.correctNeedsConnection':
+    '記録の訂正には接続が必要です。VeilCoreはまず、別のタブや別の端末で訂正されていないかを確認します。何も変更していません。オンラインのときにもう一度お試しください。',
+  'app.sealed.correctionConnectionLost':
+    'この訂正の保存中に接続が切れたため、後で送るためにここには保存していません。オンラインのときにもう一度お試しください。届いていた場合は、その訂正に移動します。',
   'app.sealed.locked.title.other': 'ロックされた記録 {count}件',
   'app.sealed.locked.pageTitle': 'この記録はロックされています',
   'app.sealed.locked.text':

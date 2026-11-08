@@ -400,6 +400,11 @@ export const plant = {
   'app.plant.fix.field.attestations': 'atestaciones',
   'app.plant.fix.field.sealedAt': 'fecha de sellado',
   'app.plant.fix.field.holder': 'titular',
+  'app.plant.fix.field.name': 'nombre',
+  'app.plant.fix.field.taxon': 'especie',
+  'app.plant.fix.field.designation': 'designación',
+  'app.plant.fix.field.breed': 'raza',
+  'app.plant.fix.field.herd': 'rebaño o granja',
   'app.plant.fix.c.cosmetic.cosmetic':
     'No se afecta nada más adelante. La descendencia conserva sus comprobaciones de ascendencia, y los acuerdos siguen vigentes.',
   'app.plant.fix.c.cosmetic.material':

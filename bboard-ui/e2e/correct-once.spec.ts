@@ -41,6 +41,8 @@ const WORDS = {
     refused:
       'This record was corrected already, in another tab or on another device. Open the latest version to correct it.',
     openLatest: 'Open the latest version',
+    offline:
+      'Correcting a record needs a connection: VeilCore first checks it wasn’t corrected in another tab or on another device. Nothing was changed. Try again when you’re online.',
   },
   ja: {
     fix: '間違いを直す',
@@ -51,16 +53,21 @@ const WORDS = {
     issue: '訂正を発行する',
     refused: 'この記録は、別のタブまたは別の端末ですでに訂正されています。訂正するには最新版を開いてください。',
     openLatest: '最新版を開く',
+    offline:
+      '記録の訂正には接続が必要です。VeilCoreはまず、別のタブや別の端末で訂正されていないかを確認します。何も変更していません。オンラインのときにもう一度お試しください。',
   },
 } as const;
 
+/** The stand-in registry can't be reached while `down` (its records can't be read). */
+type Net = { down: boolean };
+
 /** A tab in `ctx`, sending everything to the shared stand-in registry `held`. */
-const tab = async (ctx: BrowserContext, held: { records: Rec[] }, vault: string): Promise<Page> => {
+const tab = async (ctx: BrowserContext, held: { records: Rec[] }, vault: string, net: Net): Promise<Page> => {
   const page = await ctx.newPage();
   await page.setViewportSize(PHONE);
   await holdVaultKey(page, vault);
   await isolate(page, {
-    'GET /api/records': (route) => json(route, 200, held.records),
+    'GET /api/records': (route) => (net.down ? route.abort('internetdisconnected') : json(route, 200, held.records)),
     'PUT /api/records': (route, _url, body) => {
       const refusal = plainRowRefusal(body);
       if (refusal) return json(route, 400, { error: refusal });
@@ -82,6 +89,9 @@ const fillFix = async (page: Page, w: (typeof WORDS)[keyof typeof WORDS], name: 
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel(w.name).fill(name);
   await dialog.getByRole('button', { name: w.check }).click();
+  // What changed, in words: never a raw field path such as subject.name.
+  await expect(dialog.locator('.MuiChip-root').first()).toBeVisible();
+  await expect(dialog).not.toContainText(/subject\.|profileData\./);
   await dialog.getByLabel(w.why).fill(why);
   return dialog;
 };
@@ -91,6 +101,7 @@ for (const lang of ['en', 'ja'] as const) {
     test.setTimeout(240_000);
     const w = WORDS[lang];
     const held = { records: [] as Rec[] };
+    const net: Net = { down: false };
     const vault = newVaultKey();
     const ctx = await browser.newContext({ acceptDownloads: true });
     await ctx.addInitScript((h) => {
@@ -99,7 +110,7 @@ for (const lang of ['en', 'ja'] as const) {
     }, randomBytes(32).toString('hex'));
 
     // Tab A logs a plant (in English).
-    const A = await tab(ctx, held, vault);
+    const A = await tab(ctx, held, vault, net);
     const errorsA = watch(A);
     await A.goto('/new?lang=en');
     await startPlant(A);
@@ -116,7 +127,7 @@ for (const lang of ['en', 'ja'] as const) {
     const id = held.records[0].id;
 
     // Both tabs open the record and fill in the form.
-    const B = await tab(ctx, held, vault);
+    const B = await tab(ctx, held, vault, net);
     const errorsB = watch(B);
     await B.goto(`/record/${id}?lang=${lang}`);
     await expect(B.getByRole('heading', { name: 'Harbour Mist' })).toBeVisible();
@@ -162,10 +173,26 @@ for (const lang of ['en', 'ja'] as const) {
     await B.goto(`/record/${id}?lang=${lang}`);
     await expect(B.getByText(w.seeLatest, { exact: true })).toBeVisible();
     await expect(B.getByText(w.fix, { exact: true })).toHaveCount(0);
+    await B.getByText(w.seeLatest, { exact: true }).scrollIntoViewIfNeeded();
     if (dir) await B.screenshot({ path: `${dir}/correct-once-record-${lang}-360.png` });
     await B.getByText(w.seeLatest, { exact: true }).click();
     await expect(B).toHaveURL(new RegExp(`/record/${fromA.id}`));
     await expect(B.getByText(w.fix, { exact: true })).toBeVisible();
+
+    // Offline, the latest version can't be corrected: VeilCore can't be asked whether another
+    // tab or device corrected it first. Said in the form; nothing is made, kept or sent.
+    net.down = true;
+    const formOffline = await fillFix(B, w, 'Harbour Mist C', 'typo (offline)');
+    await formOffline.getByRole('button', { name: w.issue }).click();
+    const offline = formOffline.getByRole('alert');
+    await expect(offline).toContainText(w.offline);
+    await expect(offline).toBeInViewport();
+    await expect(offline.getByRole('button', { name: w.openLatest })).toHaveCount(0);
+    if (dir) await B.screenshot({ path: `${dir}/correct-once-offline-${lang}-360.png` });
+    await expect(B).toHaveURL(new RegExp(`/record/${fromA.id}`));
+    expect(held.records).toHaveLength(2);
+    expect(await B.evaluate(() => localStorage.getItem('veilcore.outbox.v1') ?? '')).not.toContain('Harbour Mist C');
+    net.down = false;
 
     expectNoErrors(errorsA);
     expectNoErrors(errorsB);

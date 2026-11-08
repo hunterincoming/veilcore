@@ -12,6 +12,12 @@ export const sealed = {
     'Este registro no coincide con su código de prueba: puede haberse cambiado después de sellarlo. No se volverá a guardar, enviar ni compartir.',
   'app.sealed.alreadyCorrected':
     'Este registro ya se corrigió, en otra pestaña o en otro dispositivo. Abra la versión más reciente para corregirla.',
+  'app.sealed.correctedSameWay':
+    'Este registro ya se corrigió de la misma manera, en otra pestaña o en otro dispositivo. Su motivo no se guardó con la corrección. Abra la versión más reciente para verla.',
+  'app.sealed.correctNeedsConnection':
+    'Para corregir un registro hace falta conexión: VeilCore comprueba primero que no se haya corregido en otra pestaña o en otro dispositivo. No se cambió nada. Vuelva a intentarlo cuando tenga conexión.',
+  'app.sealed.correctionConnectionLost':
+    'La conexión se cortó mientras se guardaba esta corrección, así que no se guarda aquí para enviarla después. Vuelva a intentarlo cuando tenga conexión: si llegó, se le llevará a ella.',
   'app.sealed.locked.title.one': '{count} registro bloqueado',
   'app.sealed.locked.title.other': '{count} registros bloqueados',
   'app.sealed.locked.pageTitle': 'Este registro está bloqueado',

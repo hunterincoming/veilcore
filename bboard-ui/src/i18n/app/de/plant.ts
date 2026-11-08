@@ -407,6 +407,11 @@ export const plant = {
   'app.plant.fix.field.attestations': 'Bestätigungen',
   'app.plant.fix.field.sealedAt': 'Versiegelungsdatum',
   'app.plant.fix.field.holder': 'Inhaber',
+  'app.plant.fix.field.name': 'Name',
+  'app.plant.fix.field.taxon': 'Art',
+  'app.plant.fix.field.designation': 'Bezeichnung',
+  'app.plant.fix.field.breed': 'Rasse',
+  'app.plant.fix.field.herd': 'Herde oder Betrieb',
   'app.plant.fix.c.cosmetic.cosmetic':
     'Nichts Nachgelagertes ist betroffen. Nachkommen behalten ihre Abstammungsprüfungen, und Vereinbarungen bleiben bestehen.',
   'app.plant.fix.c.cosmetic.material':

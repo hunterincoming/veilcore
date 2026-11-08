@@ -13,6 +13,12 @@ export const sealed = {
     'This record doesn’t match its proof code: it may have been changed since it was sealed. It won’t be saved again, sent or shared.',
   'app.sealed.alreadyCorrected':
     'This record was corrected already, in another tab or on another device. Open the latest version to correct it.',
+  'app.sealed.correctedSameWay':
+    'This record was already corrected the same way, in another tab or on another device. Your reason wasn’t saved with it. Open the latest version to see it.',
+  'app.sealed.correctNeedsConnection':
+    'Correcting a record needs a connection: VeilCore first checks it wasn’t corrected in another tab or on another device. Nothing was changed. Try again when you’re online.',
+  'app.sealed.correctionConnectionLost':
+    'The connection dropped while this correction was being saved, so it isn’t kept here to send later. Try again when you’re online: if it did arrive, you’ll be taken to it.',
   // LockedRecords.tsx (Home and a locked record's page)
   'app.sealed.locked.title.one': '{count} locked record',
   'app.sealed.locked.title.other': '{count} locked records',

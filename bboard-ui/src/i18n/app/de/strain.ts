@@ -173,6 +173,7 @@ export const strain = {
   'app.strain.v.app.plant.f.method': 'Herstellungsweg',
   'app.strain.v.app.plant.f.statedDate': 'Angegebenes Herstellungs- oder Isolierungsdatum (Angabe des Inhabers)',
   'app.strain.v.app.plant.fix.field.cultivarName': 'Name des Stammes',
+  'app.strain.v.app.plant.fix.field.name': 'Name des Stammes',
   'app.strain.v.app.plant.fix.field.breederName': 'hergestellt oder isoliert von',
   'app.strain.v.app.plant.fix.field.breedingMethod': 'Herstellungsweg',
   'app.strain.v.app.verify.field.breeding-method': 'Herstellungsweg',
