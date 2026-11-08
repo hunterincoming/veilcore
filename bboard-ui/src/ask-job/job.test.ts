@@ -214,7 +214,25 @@ describe('expiry and deletion, on every read', () => {
     expect(dropped).toEqual([['h1', 'h2']]);
   });
 
-  it('a job stuck 30 days after approval stops, visibly, its started rows kept', async () => {
+  it('approved, lapsed, then 30 days on: nothing dropped, never deleted, and Send now still sends (V1)', async () => {
+    const j = await putJob(job({ state: 'approved', approvedAt: T0 }));
+    clock = T0 + JOB_TTL_MS;
+    expect((await getJob(j.id, clock))?.steps[0].why).toBe('lapsed');
+    for (const later of [JOB_STUCK_MS, JOB_STUCK_MS + JOB_KEEP_MS, 3 * JOB_STUCK_MS]) {
+      clock = T0 + later;
+      const k = await getJob(j.id, clock);
+      expect([k?.state, k?.steps[0].state, k?.steps[0].why]).toEqual(['running', 'needsYou', 'lapsed']);
+    }
+    expect(dropped).toEqual([]);
+    await tryAgain(j.id, 'records', clock);
+    const d = deps({});
+    await runJobs(d);
+    expect(d.calls).toEqual(['records']);
+    expect((await getJob(j.id, clock))?.state).toBe('done');
+    expect(dropped).toEqual([]);
+  });
+
+  it('a records job sent but not confirmed for 30 days asks; its rows are kept, and Send now goes on', async () => {
     const j = await putJob(
       job({
         state: 'running',
@@ -224,11 +242,35 @@ describe('expiry and deletion, on every read', () => {
     );
     clock = T0 + JOB_STUCK_MS;
     const k = await getJob(j.id, clock);
+    expect([k?.state, k?.steps[0].state, k?.steps[0].why]).toEqual(['running', 'needsYou', 'stuck']);
+    // Never ends by itself, never deleted, never dropped.
+    clock += 3 * JOB_KEEP_MS;
+    expect((await getJob(j.id, clock))?.steps[0].why).toBe('stuck');
+    expect(dropped).toEqual([]);
+    // Send now: it runs again, and isn't stuck again at once.
+    await tryAgain(j.id, 'records', clock);
+    expect((await getJob(j.id, clock))?.steps[0].state).toBe('todo');
+    const d = deps({});
+    await runJobs(d);
+    expect(d.calls).toEqual(['records']);
+    expect((await getJob(j.id, clock))?.state).toBe('done');
+  });
+
+  it('a report job still going 30 days after approval stops, visibly', async () => {
+    const j = await putJob(
+      job({
+        kind: 'due',
+        state: 'running',
+        approvedAt: T0,
+        refs: { reports: [{ inviteId: 'i', periodFrom: '2026-07-01', periodTo: '2026-09-30', statementId: 's' }] },
+        steps: [{ id: 'report0', kind: 'report', state: 'todo', started: true, nextTryAt: T0 + 1 }],
+      }),
+    );
+    clock = T0 + JOB_STUCK_MS;
+    const k = await getJob(j.id, clock);
     expect([k?.state, k?.steps[0].state, k?.steps[0].why]).toEqual(['stopped', 'needsYou', 'stuck']);
     clock += JOB_KEEP_MS;
     expect(await getJob(j.id, clock)).toBeUndefined();
-    // Started: never dropped, even when the job is deleted (B2).
-    expect(dropped).toEqual([]);
   });
 
   it('a job’s stamps not yet made go with it when it expires or is discarded (S7)', async () => {

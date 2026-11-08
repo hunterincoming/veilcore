@@ -256,25 +256,37 @@ export const editIn = (
 
 export type Sweep = 'keep' | 'expire' | 'lapse' | 'stuck' | 'delete';
 
+/** A records job whose records aren't all sent: it never ends by itself, so its records are never lost (V1). */
+export const keepsRecords = (j: Job): boolean =>
+  (j.kind === 'batch' || j.kind === 'import') && j.steps.some((s) => s.kind === 'records' && s.state !== 'done');
+
+const asks = (j: Job, why: string): boolean => j.steps.some((s) => s.state === 'needsYou' && s.why === why);
+
 /**
- * What a read finds due (design v2, 4, and the security review's S1, S2):
+ * What a read finds due (design v2, 4, and the security review's S1, S2, and the verification's V1):
  *   - a job waiting for approval expires at its deadline, and its held rows go;
- *   - an approved job that has started (something may have gone out, or its rows are `pending` in
- *     the ledger) never lapses: it keeps going until it is done, then 30 days after approval it
- *     stops for the person to look at ('stuck'), its rows kept;
- *   - an approved job not started by its deadline: a records job asks the person ('lapse': send
- *     now, or discard) and never loses its records; a report or stamp job expires (nothing went);
+ *   - an approved records job never ends by itself and never loses its records. Not started by
+ *     its deadline, it asks ('lapse': send now, or discard). Started (something may have gone
+ *     out, or its rows are `pending` in the ledger), it keeps going, and 30 days after approval
+ *     (or after the person last tapped Send now) it asks ('stuck': send now, which checks the
+ *     server first). Either way it waits for the person;
+ *   - a report or stamp job not started by its deadline expires (nothing went); started, it
+ *     keeps going until done, and 30 days on it stops for the person to look at ('stuck');
  *   - any ended job is deleted 7 days after it ended.
  */
 export const sweepOf = (j: Job, now: number, rowsPending = false): Sweep => {
   if (isEnded(j)) return now >= (j.endedAt ?? j.createdAt) + JOB_KEEP_MS ? 'delete' : 'keep';
   if (j.state === 'ready') return now >= deadlineOf(j) ? 'expire' : 'keep';
-  if (now >= (j.approvedAt ?? j.createdAt) + JOB_STUCK_MS) return 'stuck';
-  if (anyStarted(j) || rowsPending || j.resumedAt) return 'keep';
-  if (now < deadlineOf(j)) return 'keep';
-  if (j.kind === 'batch' || j.kind === 'import')
-    return j.steps.some((s) => s.state === 'needsYou' && s.why === 'lapsed') ? 'keep' : 'lapse';
-  return 'expire';
+  const since = Math.max(j.approvedAt ?? j.createdAt, j.resumedAt ?? 0);
+  const started = anyStarted(j) || rowsPending;
+  if (keepsRecords(j)) {
+    if (asks(j, 'lapsed') || asks(j, 'stuck')) return 'keep';
+    if (!started) return now >= (j.resumedAt ? since + JOB_STUCK_MS : deadlineOf(j)) ? 'lapse' : 'keep';
+    return now >= since + JOB_STUCK_MS ? 'stuck' : 'keep';
+  }
+  if (now >= since + JOB_STUCK_MS) return 'stuck';
+  if (started || j.resumedAt) return 'keep';
+  return now < deadlineOf(j) ? 'keep' : 'expire';
 };
 
 /** A job stopped at its deadline: steps not done stay undone (one that may have gone out still says so), typed figures go. */
@@ -299,17 +311,30 @@ export const lapsed = (j: Job): Job =>
     ),
   });
 
-/** 30 days after approval and still not done: stopped, for the person to look at. */
+/**
+ * 30 days on and still not done. A records job asks and goes on (its records kept: send now
+ * checks the server first); any other job stops, for the person to look at.
+ */
 export const stuck = (j: Job, now: number): Job =>
-  withHash({
-    ...j,
-    state: 'stopped',
-    endedAt: now,
-    figures: undefined,
-    steps: j.steps.map((s) =>
-      s.state === 'done' ? s : { ...s, state: 'needsYou', why: 'stuck', nextTryAt: undefined },
-    ),
-  });
+  keepsRecords(j)
+    ? withHash({
+        ...j,
+        state: 'running',
+        steps: j.steps.map((s) =>
+          s.kind === 'records' && s.state !== 'done'
+            ? { ...s, state: 'needsYou', why: 'stuck', nextTryAt: undefined }
+            : s,
+        ),
+      })
+    : withHash({
+        ...j,
+        state: 'stopped',
+        endedAt: now,
+        figures: undefined,
+        steps: j.steps.map((s) =>
+          s.state === 'done' ? s : { ...s, state: 'needsYou', why: 'stuck', nextTryAt: undefined },
+        ),
+      });
 
 // ---- where jobs are kept ----------------------------------------------------------------------
 
@@ -428,12 +453,14 @@ export const setStoreHooks = (h: Partial<StoreHooks>): void => {
 };
 
 /**
- * What goes with a job that ends without its records sent: its held rows (only if its records step
- * never started: B2) and its stamps not yet made (S7).
+ * What goes with a job that ends: its stamps not yet made (S7), and its held rows only when the
+ * person never approved it, or discarded it. An approved job's records are never dropped by
+ * themselves (V1), and records that started going never at all (B2).
  */
 const letGo = async (j: Job): Promise<void> => {
   hooks.forgetStamps(j.id);
-  if (j.refs.rowHashes?.length && !recordsStarted(j)) await hooks.dropHeld(j.refs.rowHashes, j.id);
+  const mayDrop = !j.approvedAt || j.state === 'discarded';
+  if (j.refs.rowHashes?.length && mayDrop && !recordsStarted(j)) await hooks.dropHeld(j.refs.rowHashes, j.id);
 };
 
 const listeners = new Set<() => void>();
@@ -482,7 +509,7 @@ export const listJobs = async (now = Date.now()): Promise<Job[]> => {
             : again === 'stuck'
               ? stuck(cur, now)
               : cur;
-      return { put: next, out: { job: next, ended: again === 'expire' || again === 'stuck' } };
+      return { put: next, out: { job: next, ended: isEnded(next) } };
     });
     if (kept.ended) await letGo(kept.job ?? j);
     if (kept.job) out.push(kept.job);

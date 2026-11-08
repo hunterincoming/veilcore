@@ -166,9 +166,9 @@ export const runJobs = async (deps: RunDeps): Promise<void> => {
 };
 
 /** The person tapped "Try again" on a step that stopped for them: it runs on the next pass. */
-export const tryAgain = (id: string, stepId: string): Promise<Job | undefined> =>
+export const tryAgain = (id: string, stepId: string, now = Date.now()): Promise<Job | undefined> =>
   updateJob(id, (j) =>
     j.state === 'running' || j.state === 'approved'
-      ? setStep({ ...j, resumedAt: Date.now() }, stepId, { state: 'todo', why: undefined, nextTryAt: undefined })
+      ? setStep({ ...j, resumedAt: now }, stepId, { state: 'todo', why: undefined, nextTryAt: undefined })
       : undefined,
   );

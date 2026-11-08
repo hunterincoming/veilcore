@@ -2,7 +2,8 @@
 // preconditions fresh right before it sends.
 //
 //   records  the job's own rows, sent from the bulk-import ledger as the records it showed
-//            (sealRows onlyKept): never one sealed new. Under the ledger's lock.
+//            (sealRows onlyKept): never one sealed new. Under the ledger's lock. Rows sent before
+//            with no answer are looked up on the server first: one there is never sent again.
 //   report   the agreement read fresh (readAll), not from what a page read earlier. A report
 //            from this side for the period already there: done, nothing sent. Otherwise the
 //            report is built from the terms and the figures typed (royalty-ledger buildStatement)
@@ -12,7 +13,8 @@
 //            with its "may have gone out" stop.
 // SPDX-License-Identifier: Apache-2.0
 
-import { sealRows, NOT_KEPT, type PreparedRow, type RowFields } from '../veilcore/bulk-import';
+import { anyPending, markLanded, sealRows, NOT_KEPT, type PreparedRow, type RowFields } from '../veilcore/bulk-import';
+import { registryRecordCodes } from '../veilcore/api-store';
 import { heldLicense, type HeldLicense } from '../veilcore/held-licenses';
 import { readAll, sayOnce, type DealParty } from '../veilcore/deal-client';
 import { buildStatement, ledgerOf, liveReports } from '../veilcore/royalty-ledger';
@@ -34,6 +36,9 @@ import type { Job } from './store';
 
 const MINUTE = 60_000;
 
+/** Said when records sent before can't be looked up on the server: nothing is sent until they can. */
+export const CANT_CHECK = 'Couldn’t check VeilCore’s server for the records sent before, so nothing was sent again.';
+
 /** The job's rows as sealRows takes them: by hash only; the records are the ledger's. */
 export const keptRows = (hashes: readonly string[]): PreparedRow[] =>
   hashes.map((hash, i) => ({ line: i + 1, cells: [], fields: {} as RowFields, hash, status: 'ready', problems: [] }));
@@ -41,6 +46,12 @@ export const keptRows = (hashes: readonly string[]): PreparedRow[] =>
 export const sendRecords = async (job: Job): Promise<StepOutcome> => {
   const hashes = job.refs.rowHashes ?? [];
   if (!hashes.length) return { kind: 'failed', why: NOT_KEPT };
+  // Sent before with no answer: they may be on the server. Asked first, so none goes twice.
+  if (anyPending(hashes)) {
+    const onRegistry = await registryRecordCodes();
+    if (onRegistry === 'unknown') return { kind: 'retry', at: Date.now() + MINUTE, why: CANT_CHECK };
+    await markLanded(hashes, onRegistry);
+  }
   // Stops between batches when this page may no longer send (moved to a check or prove page,
   // or hidden): the rest goes on the next pass, as the same records.
   const r = await sealRows(keptRows(hashes), { onlyKept: true, gapMs: 2500, shouldStop: () => !pageMaySend() });

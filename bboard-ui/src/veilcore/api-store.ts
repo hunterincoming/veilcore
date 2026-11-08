@@ -1161,6 +1161,21 @@ export const registryKids = async (k: string): Promise<Set<string> | 'unknown'> 
   return kids;
 };
 
+/**
+ * The records the registry holds for this holder, asked afresh: each id with its proof code, or
+ * 'unknown' when it can't answer. No holder key here: none (nothing was ever sent from here).
+ */
+export const registryRecordCodes = async (): Promise<Map<string, string> | 'unknown'> => {
+  const k = holderKeyIfAny();
+  if (!k) return new Map();
+  const rows = await readWholeSet('records', k);
+  if (!rows) return 'unknown';
+  const out = new Map<string, string>();
+  for (const r of rows)
+    if (isObject(r) && isString(r.id)) out.set(r.id, isString(r.recordFingerprint) ? r.recordFingerprint : '');
+  return out;
+};
+
 export type VaultOutcome = 'have' | 'made' | 'locked' | 'unknown' | 'cant-store';
 
 /** Inside the lock: re-read the key, ask the registry afresh, and make one only if that is safe. */

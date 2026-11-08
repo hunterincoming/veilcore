@@ -1637,6 +1637,31 @@ export const dropHeld = (hashes: readonly string[], job?: string): Promise<numbe
     return Promise.resolve(gone.length);
   });
 
+/** Whether any of these rows were sent before with no answer (`pending`): they may be on the registry. */
+export const anyPending = (hashes: readonly string[]): boolean => {
+  const rows = loadLedger().rows;
+  return hashes.some((h) => rows[h]?.state === 'pending');
+};
+
+/**
+ * Rows sent before with no answer (`pending`) that the registry turns out to hold, the same
+ * record (same id and proof code): written as sealed, so they are never sent again. Under the
+ * ledger's lock. Returns how many.
+ */
+export const markLanded = (hashes: readonly string[], onRegistry: ReadonlyMap<string, string>): Promise<number> =>
+  withTabLock(LEDGER_LOCK, (held) => {
+    const ledger = loadLedger();
+    let n = 0;
+    for (const h of new Set(hashes)) {
+      const e = ledger.rows[h];
+      if (e?.state !== 'pending' || onRegistry.get(e.recordId) !== e.fingerprint) continue;
+      ledger.rows[h] = { recordId: e.recordId, fingerprint: e.fingerprint, state: 'sealed', at: Date.now() };
+      n++;
+    }
+    if (!n || !held() || !saveLedger(ledger)) return Promise.resolve(0);
+    return Promise.resolve(n);
+  });
+
 /** How long a batch waits for the registry before it is kept to send again (it may have landed). */
 export const COMMIT_MS = 120_000;
 
