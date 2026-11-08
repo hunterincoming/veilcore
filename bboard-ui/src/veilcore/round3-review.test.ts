@@ -820,20 +820,24 @@ describe('L2 with the registry’s public rev (record-rev-v1)', () => {
 
   it('two changes to one record in quick succession, the second sent before the first is answered: both kept, nothing refused', async () => {
     const { phone, mother } = await twoDevices('revquick');
-    const problem = await phone.run(async () => {
+    await phone.run(() => {
       phone.m.records.pairDna(mother.id, fp(10), 'quick-1.pdf');
       phone.m.records.pairDna(mother.id, fp(11), 'quick-2.pdf');
-      await settle(250);
-      return phone.m.saveStatus.saveProblemNow();
+      return Promise.resolve();
     });
-    expect(problem?.refused ?? []).toEqual([]);
-    const reload = await browser('revquick-reload', {}, phone.name);
-    expect(
-      await reload.run(async () => {
+    // Until both saves are answered: a fixed pause was too short on a loaded machine (CI).
+    let kept: string | undefined;
+    for (let i = 0; i < 50 && kept !== 'quick-2.pdf'; i++) {
+      await settle(100);
+      const reload = await browser(`revquick-reload-${i}`, {}, phone.name);
+      kept = await reload.run(async () => {
         await reload.m.records.hydrate();
         return reload.m.records.getRecord(mother.id)?.dnaFileName;
-      }),
-    ).toBe('quick-2.pdf');
+      });
+    }
+    expect(kept).toBe('quick-2.pdf');
+    const problem = await phone.run(() => Promise.resolve(phone.m.saveStatus.saveProblemNow()));
+    expect(problem?.refused ?? []).toEqual([]);
   });
 
   it('a public rev changed on the server: the sealed one counts, the page says so, and the row is saved again above both', async () => {
