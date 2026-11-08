@@ -162,6 +162,10 @@ const PHRASES: [string, string, string?][] = [
   ["Bella a eu 6 chiots hier", "REFUSE whichDay words=[\"hier\"] sug=[{\"text\":\"Bella a eu 6 chiots yesterday\"},{\"text\":\"Bella a eu 6 chiots today\"}]", "en"],
   ["Bella a eu 6 chiots hier", "REFUSE whichDay words=[\"hier\"] sug=[{\"text\":\"Bella a eu 6 chiots ayer\"},{\"text\":\"Bella a eu 6 chiots hoy\"}]", "es"],
   ["Bella a eu 6 chiots hier", "REFUSE whichDay words=[\"hier\"] sug=[{\"text\":\"Bella a eu 6 chiots 昨日\"},{\"text\":\"Bella a eu 6 chiots 今日\"}]", "ja"],
+  // Another day word too: that day, "hier" left over; offered only sentences that plan (S6).
+  ["Bella hat hier gestern 6 Welpen geworfen", "REFUSE leftover words=[\"hier\"] sug=[{\"text\":\"Bella hat gestern 6 Welpen geworfen\"}]", "en"],
+  ["Bella a eu 6 chiots hier blah", "REFUSE whichDay words=[\"hier\"] sug=[]", "en"],
+  ["Bella a eu 6 chiots hier hier", "REFUSE whichDay words=[\"hier\"] sug=[]", "en"],
   ["Bella a eu 6 chiots hier soir", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"date\":\"yesterday\"}", "en"],
   ["Bellaが昨日子犬を6匹産んだ", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"date\":\"yesterday\"}"],
   ["Daisy hat Zwillinge gekalbt", "PLAN batch {\"preset\":\"offspring\",\"count\":2,\"dam\":\"#5\",\"date\":\"today\"}"],
@@ -189,4 +193,25 @@ describe('the users’ review phrasings, and their five-language forms', () => {
         for (const s of r.suggest ?? [])
           if ('text' in s) expect(planJob(s.text, { records, animals: true, lang }).type, s.text).toBe('plan');
     });
+});
+
+describe('“which day?” only ever offers sentences that plan (S6)', () => {
+  const said = [
+    'Bella a eu 6 chiots hier',
+    'Bella hat hier 6 Welpen geworfen',
+    'hier Bella had 6 pups',
+    'Daisy calved hier, sire Bull 44',
+    'coupe 20 boutures de Gelato hier',
+    'Bella hat hier gestern 6 Welpen geworfen',
+    'Bella a eu 6 chiots hier blah',
+    'hier hier',
+  ];
+  for (const lang of ['en', 'es', 'ja', undefined])
+    for (const text of said)
+      it(`${text} (${lang ?? 'no language'})`, () => {
+        const r = planJob(text, { records, animals: true, lang });
+        if (r.type === 'refuse' && r.why === 'whichDay')
+          for (const s of r.suggest ?? [])
+            if ('text' in s) expect(planJob(s.text, { records, animals: true, lang }).type, s.text).toBe('plan');
+      });
 });

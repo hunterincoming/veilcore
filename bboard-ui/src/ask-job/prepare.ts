@@ -296,6 +296,7 @@ const prepareBatch = async (
   words: Words,
 ): Promise<Prepared> => {
   for (const id of [plan.parent?.v, plan.sire?.v, plan.dam?.v]) if (id && !own(id)) return { refused: 'records' };
+  const parentName = own(plan.parent?.v ?? plan.dam?.v ?? plan.sire?.v ?? '')?.strainName;
   const spec: BatchSpec = {
     preset: plan.preset,
     count: plan.count.v,
@@ -314,6 +315,7 @@ const prepareBatch = async (
       ...(plan.parent ? { parentId: plan.parent.v } : {}),
       ...(plan.sire ? { sireId: plan.sire.v } : {}),
       ...(plan.dam ? { damId: plan.dam.v } : {}),
+      ...(parentName ? { parentName } : {}),
     },
     spec,
     backupNeeded: true,

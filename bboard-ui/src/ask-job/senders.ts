@@ -33,11 +33,11 @@ import { holdStamp } from '../veilcore/chain/stamp-background';
 import { stampsLookUsed, tomorrowAt } from './capacity';
 import type { Senders, StepOutcome } from './run';
 import type { Job } from './store';
-import { CANT_CHECK, NOT_NOTED } from './whys';
+import { CANT_CHECK, NOT_NOTED, NO_KEY } from './whys';
 
 const MINUTE = 60_000;
 
-export { CANT_CHECK, NOT_NOTED };
+export { CANT_CHECK, NOT_NOTED, NO_KEY };
 
 /** The job's rows as sealRows takes them: by hash only; the records are the ledger's. */
 export const keptRows = (hashes: readonly string[]): PreparedRow[] =>
@@ -50,6 +50,8 @@ export const sendRecords = async (job: Job): Promise<StepOutcome> => {
   if (anyPending(hashes)) {
     const onRegistry = await registryRecordCodes();
     if (onRegistry === 'unknown') return { kind: 'retry', at: Date.now() + MINUTE, why: CANT_CHECK };
+    // Nothing to ask with until the backup brings the key back: looked at again now and then.
+    if (onRegistry === 'no-key') return { kind: 'retry', at: Date.now() + 10 * MINUTE, why: NO_KEY };
     if ((await markLanded(hashes, onRegistry)) === 'not-written')
       return { kind: 'retry', at: Date.now() + MINUTE, why: NOT_NOTED };
   }

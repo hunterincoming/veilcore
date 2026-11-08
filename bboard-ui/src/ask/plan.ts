@@ -275,7 +275,9 @@ const dateOf = (
   // "hier": French yesterday, German here (said in passing: nothing to do with the date). In any
   // other language it could be either, so it asks which day, offering both (verification W5).
   const hier = c.find((t) => has(t, 'hier'));
-  if (hier && lang !== 'fr' && lang !== 'de') {
+  const otherDay = c.some((t) => has(t, 'yesterday') || has(t, 'today'));
+  // Another day said too: that day, and "hier" left unused (the reader then refuses the word).
+  if (hier && lang !== 'fr' && lang !== 'de' && !otherDay) {
     const [y, d] = DAY_WORDS[lang ?? 'en'] ?? DAY_WORDS.en;
     const swap = (w: string) => `${read.cased.slice(0, hier.at)}${w}${read.cased.slice(hier.end)}`;
     return refuse('whichDay', read.text, {
@@ -690,6 +692,12 @@ const plan = (typedText: string, ctx: PlanContext, opts: { fromHint?: boolean },
   }
   const [g] = groups;
   const out = readGroup(kinds[0], g, ctx, read);
+  // "Which day?": only the sentences that plan are offered (S6).
+  if ('type' in out && out.type === 'refuse' && out.why === 'whichDay') {
+    const { suggest: offered, ...rest } = out;
+    const planned = (offered ?? []).filter((x) => 'text' in x && again(x.text)?.type === 'plan');
+    return planned.length ? { ...rest, suggest: planned } : rest;
+  }
   if ('type' in out) return out;
   if ('left' in out) {
     const words = said(read, out.left);

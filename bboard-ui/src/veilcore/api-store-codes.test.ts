@@ -5,14 +5,14 @@ import { describe, expect, it, vi } from 'vitest';
 import { registryRecordCodes } from './api-store';
 
 describe('what the server holds, asked before a resend', () => {
-  it('no holder key here: unknown, and no request', async () => {
+  it('no holder key here: no-key (never "none"), and no request', async () => {
     const fetched: string[] = [];
     vi.stubGlobal('localStorage', { getItem: () => null, setItem: () => undefined, removeItem: () => undefined });
     vi.stubGlobal('fetch', (url: string) => {
       fetched.push(url);
       return Promise.reject(new TypeError('offline'));
     });
-    expect(await registryRecordCodes()).toBe('unknown');
+    expect(await registryRecordCodes()).toBe('no-key');
     expect(fetched).toEqual([]);
   });
 });

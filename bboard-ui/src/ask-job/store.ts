@@ -142,6 +142,9 @@ export type Job = {
     readonly parentId?: string;
     readonly sireId?: string;
     readonly damId?: string;
+    /** The parent's name as shown when the job was made: the title still says it while the
+     * records can't be read (verification S8). The person's own word, on this device only. */
+    readonly parentName?: string;
     readonly recordId?: string;
     readonly reports?: readonly ReportRef[];
   };

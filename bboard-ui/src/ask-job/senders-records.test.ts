@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const calls: string[] = [];
 let pending = true;
-let onRegistry: Map<string, string> | 'unknown' = new Map();
+let onRegistry: Map<string, string> | 'unknown' | 'no-key' = new Map();
 let landed: number | 'not-written' = 1;
 vi.mock('../veilcore/api-store', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../veilcore/api-store')>()),
@@ -28,7 +28,7 @@ vi.mock('../veilcore/bulk-import', async (importOriginal) => ({
   },
 }));
 
-import { CANT_CHECK, NOT_NOTED, sendRecords } from './senders';
+import { CANT_CHECK, NOT_NOTED, NO_KEY, sendRecords } from './senders';
 import type { Job } from './store';
 
 const job = { refs: { rowHashes: ['h1', 'h2'] } } as unknown as Job;
@@ -50,6 +50,12 @@ describe('sending a job’s records again', () => {
     onRegistry = 'unknown';
     const out = await sendRecords(job);
     expect(out).toMatchObject({ kind: 'retry', why: CANT_CHECK });
+    expect(calls).toEqual(['ask']);
+  });
+
+  it('no holder key here: nothing is sent, and it says to restore the backup (W7, S5)', async () => {
+    onRegistry = 'no-key';
+    expect(await sendRecords(job)).toMatchObject({ kind: 'retry', why: NO_KEY });
     expect(calls).toEqual(['ask']);
   });
 

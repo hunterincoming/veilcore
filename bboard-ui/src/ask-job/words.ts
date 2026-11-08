@@ -28,9 +28,15 @@ export const jobTitle = (job: Job, records: readonly StrainRecord[], tr: Transla
   const s = job.spec;
   if (job.kind === 'batch' && s)
     return s.preset === 'clones'
-      ? tr.tp('app.job.what.clones', s.count, { name: nameOf(records, job.refs.parentId) })
+      ? tr.tp('app.job.what.clones', s.count, {
+          name: nameOf(records, job.refs.parentId) || (job.refs.parentName ?? ''),
+        })
       : tr.tp('app.job.what.offspring', s.count, {
-          name: nameOf(records, job.refs.damId) || nameOf(records, job.refs.sireId) || (s.sireCode ?? ''),
+          name:
+            nameOf(records, job.refs.damId) ||
+            nameOf(records, job.refs.sireId) ||
+            job.refs.parentName ||
+            (s.sireCode ?? ''),
         });
   if (job.kind === 'import') return tr.t('app.job.what.import');
   if (job.kind === 'due') return tr.tp('app.job.what.due', job.refs.reports?.length ?? 0);
