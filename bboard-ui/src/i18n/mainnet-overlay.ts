@@ -184,13 +184,20 @@ export const CADENCE_SWAPS: readonly (readonly [string, string])[] = [
   ['バッチが自動で日付確定され、', 'バッチがMidnightで日付確定され、'],
 ];
 
-/** The overlay without a cadence claim, while the scheduled job hasn't run on mainnet. */
-export const withoutCadence = (o: Strings, scheduledRan = SCHEDULED_ANCHORING_RUN_ON_MAINNET): Strings =>
-  scheduledRan
-    ? o
-    : Object.fromEntries(
-        Object.entries(o).map(([k, v]) => [
-          k,
-          typeof v === 'string' ? CADENCE_SWAPS.reduce((t, [a, b]) => t.split(a).join(b), v) : v,
-        ]),
-      );
+/** "By hand", in each language: false once the scheduled job has run, on any build. */
+const BY_HAND = /by hand|von Hand|a mano|à la main|手作業/;
+
+/**
+ * The overlay without a cadence claim while the scheduled job hasn't run on mainnet. Once it has,
+ * "automatically" stays and only "by hand" goes (a build without the sponsor's browser calls
+ * still has its batches dated by the job).
+ */
+export const withoutCadence = (o: Strings, scheduledRan = SCHEDULED_ANCHORING_RUN_ON_MAINNET): Strings => {
+  const swaps = scheduledRan ? CADENCE_SWAPS.filter(([a]) => BY_HAND.test(a)) : CADENCE_SWAPS;
+  return Object.fromEntries(
+    Object.entries(o).map(([k, v]) => [
+      k,
+      typeof v === 'string' ? swaps.reduce((t, [a, b]) => t.split(a).join(b), v) : v,
+    ]),
+  );
+};

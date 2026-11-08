@@ -50,15 +50,16 @@ Build fingerprints: [docs/fingerprints.md](docs/fingerprints.md).
 
 ## Where it stands
 
-- **Works on veilcore.org:** sealing records; batches dated on Midnight's main network (the
-  first batches were anchored by hand, and the site claims no schedule until the scheduled job
-  has run there: `SCHEDULED_ANCHORING_RUN_ON_MAINNET` in `bboard-ui/src/config/copy.ts`; the
+- **Works on veilcore.org:** sealing records; batches anchored on Midnight's main network automatically (the
+  first batches were anchored by hand; the scheduled job first dated one on its own on
+  8 November 2026: `SCHEDULED_ANCHORING_RUN_ON_MAINNET` in `bboard-ui/src/config/copy.ts`; the
   first batch, `B-20261011-FE71`, is also stamped on Bitcoin, blocks 971004 and 971005); proving a record by link; dating a DNA report pairing from the browser; lab receipts
   and reports signed with the lab's own key; choosing what a record's check page shows; check
   pages that read the date from Midnight themselves. No wallet needed: VeilCore's fee service
   pays the network fee for what the browser sends.
-- **Licenses and royalties: built and switched on in code; they go live on veilcore.org with the
-  next deploy, once a real license has worked end to end on mainnet.** A breeder licenses a record to a grower
+- **Licenses and royalties: live on veilcore.org.** On 8 November 2026 a license was accepted
+  and a royalty report sent, answered, marked paid and confirmed received, end to end on
+  mainnet. Handing a license on has not been tried on mainnet yet. A breeder licenses a record to a grower
   with real transactions: two devices, a 6-digit code read
   aloud, a private signed channel per deal for terms and royalty statements, payment straight
   from payer to payee or through a payment partner (VeilCore never holds money; paying in NIGHT
@@ -216,14 +217,13 @@ Midnight's tooling.
 **What the web app sends to the chain.** On both sites the browser proves and sends its own
 transactions (a record key's date stamp, proving a record by link, dating a DNA pairing) and
 a fee service pays the network fee, so nobody needs a wallet. The same service anchors batches
-on a schedule; on test.veilcore.org that has run, and on veilcore.org the site claims no
-schedule until it has run there once (`SCHEDULED_ANCHORING_RUN_ON_MAINNET`). On
+on a schedule, on both sites; on veilcore.org it first ran on its own on 8 November 2026
+(`SCHEDULED_ANCHORING_RUN_ON_MAINNET`). On
 test.veilcore.org (preprod) this was first run end to
 end on 12 and 13 October 2026 ([`docs/no-wallet-run-12oct.md`](docs/no-wallet-run-12oct.md));
 on veilcore.org (mainnet) it went live on 19 October and was checked by hand on 20 October
 ([`docs/mainnet-sponsor.md`](docs/mainnet-sponsor.md)). Licenses run with real transactions on
-the test network; on veilcore.org, licenses and royalties are switched on in code and go live with
-the next deploy, once a real license has worked end to end on mainnet
+the test network; on veilcore.org, a license and a royalty report went through end to end on 8 November 2026
 ([`docs/agreements-live.md`](docs/agreements-live.md)).
 
 **The CLI** in `bboard-cli/` talks to a deployed contract. Its smoke test

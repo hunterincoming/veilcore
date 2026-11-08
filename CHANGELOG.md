@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Dating again after the fork; licences and royalties on veilcore.org (8 Nov 2026)
+
+- The mainnet sponsor uses proof server 9.0.1 (`proof-server-ledger9`), pinned by digest
+  `sha256:90e36a14…2f37`. There is no 9.0.0 image; every place that named it now says 9.0.1.
+- The scheduled anchoring job dated a batch on mainnet on its own (`B-20261108-0AF6`, block
+  3370721). `SCHEDULED_ANCHORING_RUN_ON_MAINNET` is on: veilcore.org says batches are anchored
+  automatically, and names no interval.
+- A licence and a royalty report (sent, answered, paid, received) worked end to end on
+  veilcore.org. `ROYALTIES_RUN_ON_MAINNET` is on: the home page's veilcore.org cell says "Yes",
+  and that handing a licence on hasn't been tried there yet. In all five languages.
+
 ### Where it came from, and real batches (7 Nov 2026)
 
 - A plant logged as a landrace or heirloom, or as material received from a breeder, a seed
