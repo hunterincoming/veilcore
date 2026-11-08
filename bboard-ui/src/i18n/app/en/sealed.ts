@@ -11,6 +11,8 @@ export const sealed = {
   // RecordDetail.tsx, Step5ProveDisclosure.tsx, SendToLab.tsx
   'app.sealed.mismatch':
     'This record doesn’t match its proof code: it may have been changed since it was sealed. It won’t be saved again, sent or shared.',
+  'app.sealed.alreadyCorrected':
+    'This record was corrected already, in another tab or on another device. Close this and open it again to see the correction.',
   // LockedRecords.tsx (Home and a locked record's page)
   'app.sealed.locked.title.one': '{count} locked record',
   'app.sealed.locked.title.other': '{count} locked records',

@@ -1752,6 +1752,13 @@ export const correctionWaitsForBackup = (id: string): boolean =>
  * Severity comes from the SDK, classified by which field changed. It is not a parameter
  * here, deliberately: a caller who could set it would set it to cosmetic.
  */
+/** Whether a record already says what these edits would make it say. */
+const sameEdits = (r: StrainRecord, edits: Partial<StrainRecord>): boolean =>
+  Object.entries(edits).every(([k, v]) => JSON.stringify((r as Record<string, unknown>)[k]) === JSON.stringify(v));
+
+/** Said when a record has been corrected already: its correction is the one to correct. */
+export const ALREADY_CORRECTED = (): string => enT.t('app.sealed.alreadyCorrected');
+
 export const issueCorrection = async (
   originalId: string,
   edits: Partial<StrainRecord>,
@@ -1759,6 +1766,15 @@ export const issueCorrection = async (
 ): Promise<StrainRecord | undefined> => {
   const before = getRecord(originalId);
   if (!before) return undefined;
+  // Corrected already (another tab, another device, or an earlier try whose answer was lost): a
+  // record is corrected once, so its correction is the record to correct. The same change
+  // again is that correction, nothing new; any other is refused (never two live corrections of
+  // one record).
+  if (before.supersededBy) {
+    const live = getRecord(before.supersededBy);
+    if (live && sameEdits(live, edits)) return live;
+    throw new Error(enT.t('app.sealed.alreadyCorrected'));
+  }
   // Made from the original's fields, so never from ones that don't match its fingerprint.
   if (integrityOf(originalId) === 'mismatch') throw new Error(enT.t('app.sealed.mismatch'));
   // A correction is two saves the registry must both take: never of a record saved before

@@ -10,6 +10,8 @@ export const sealed = {
   'app.sealed.refuse.mismatch': 'no coincide con su código de prueba, así que no se guardó',
   'app.sealed.mismatch':
     'Este registro no coincide con su código de prueba: puede haberse cambiado después de sellarlo. No se volverá a guardar, enviar ni compartir.',
+  'app.sealed.alreadyCorrected':
+    'Este registro ya se corrigió, en otra pestaña o en otro dispositivo. Cierre esto y vuelva a abrirlo para ver la corrección.',
   'app.sealed.locked.title.one': '{count} registro bloqueado',
   'app.sealed.locked.title.other': '{count} registros bloqueados',
   'app.sealed.locked.pageTitle': 'Este registro está bloqueado',

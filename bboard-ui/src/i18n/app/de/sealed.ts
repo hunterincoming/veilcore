@@ -10,6 +10,8 @@ export const sealed = {
   'app.sealed.refuse.mismatch': 'er passt nicht zu seinem Prüfcode und wurde daher nicht gespeichert',
   'app.sealed.mismatch':
     'Dieser Datensatz passt nicht zu seinem Prüfcode: Er wurde möglicherweise nach dem Versiegeln geändert. Er wird nicht erneut gespeichert, gesendet oder geteilt.',
+  'app.sealed.alreadyCorrected':
+    'Dieser Datensatz wurde bereits korrigiert, in einem anderen Tab oder auf einem anderen Gerät. Schließen Sie dies und öffnen Sie ihn erneut, um die Korrektur zu sehen.',
   'app.sealed.locked.title.one': '{count} verschlossener Datensatz',
   'app.sealed.locked.title.other': '{count} verschlossene Datensätze',
   'app.sealed.locked.pageTitle': 'Dieser Datensatz ist verschlossen',
