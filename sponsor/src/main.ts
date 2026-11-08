@@ -39,6 +39,7 @@ import { forkLogFields, readFork, type Era, type ForkReading } from "./fork.js";
 import { protocolVersionToLedger } from "@midnight-ntwrk/midnight-js-protocol";
 import { log, scrubOutput } from "./log.js";
 import { installWsDiagnostics, midnightJsWebSocket } from "./ws-diagnostics.js";
+import { redact } from "./error-chain.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -388,7 +389,7 @@ const main = async (): Promise<void> => {
           .runOnce()
           .catch(
             (e: unknown) =>
-              `failed: ${e instanceof Error ? e.message : String(e)}`,
+              `failed: ${redact(e instanceof Error ? e.message : String(e))}`,
           );
         log("info", `anchoring: ${outcome}`);
       }
@@ -398,7 +399,7 @@ const main = async (): Promise<void> => {
           .catch((e: unknown) =>
             log(
               "warn",
-              `sealing: ${e instanceof Error ? e.message : String(e)}`,
+              `sealing: ${redact(e instanceof Error ? e.message : String(e))}`,
             ),
           );
     } finally {

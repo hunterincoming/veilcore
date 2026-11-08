@@ -30,6 +30,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { FeeBudget } from './limits.js';
+import { describeError, redact } from './error-chain.js';
 
 export type Batch = { readonly batchId: string; readonly root: string; readonly sealedAt: number; readonly anchored: boolean };
 
@@ -257,7 +258,7 @@ export class Anchorer {
       if ('refused' in target) return this.done('bad-batch', target.refused, false);
       return await this.anchor(target);
     } catch (e) {
-      return this.done('error', `error: ${e instanceof Error ? e.message : String(e)}`, false);
+      return this.done('error', `error: ${redact(e instanceof Error ? e.message : String(e))}`, false);
     }
   }
 
@@ -358,6 +359,13 @@ export class Anchorer {
       try {
         await prepared.submit();
       } catch (e) {
+        // What the network or the wallet SDK actually said, redacted (error-chain.ts): the
+        // outcome below is only a code and a txId.
+        this.log('warn', 'anchoring: submit threw', {
+          txId: prepared.txId,
+          notSent: e instanceof Error && e.name === 'NotSentError',
+          error: describeError(e),
+        });
         if (e instanceof Error && e.name === 'NotSentError') {
           this.budget.release(hold.id);
           this.store.clear();
@@ -384,10 +392,10 @@ export class Anchorer {
 
     // 'sending' after a restart means it may or may not have gone out: same as 'sent'.
     const deadline = this.now() + (justSent ? this.config.waitForLandingMs : 0);
-    let landing = await this.chain.lookup(a.txId);
+    let landing = await this.lookup(a.txId);
     while (landing.state === 'unknown' && this.now() < deadline) {
       await this.sleep(this.config.pollMs);
-      landing = await this.chain.lookup(a.txId);
+      landing = await this.lookup(a.txId);
     }
 
     if (landing.state === 'failed') {
@@ -426,6 +434,25 @@ export class Anchorer {
     };
     this.store.save(verified);
     return this.record(verified);
+  }
+
+  /** One indexer lookup, logged: the state it found, or why it failed (redacted). Throws as before. */
+  private async lookup(txId: string): Promise<Landing> {
+    let landing: Landing;
+    try {
+      landing = await this.chain.lookup(txId);
+    } catch (e) {
+      this.log('warn', 'anchoring: lookup failed', { txId, error: describeError(e) });
+      throw e;
+    }
+    this.log('info', 'anchoring: lookup', {
+      txId,
+      state: landing.state,
+      ...(landing.state === 'landed'
+        ? { blockHeight: landing.blockHeight, hasRoot: landing.lastBatchRoot !== undefined, hasSeq: landing.batchSeq !== undefined }
+        : {}),
+    });
+    return landing;
   }
 
   private async record(a: Attempt): Promise<string> {

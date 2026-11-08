@@ -327,3 +327,73 @@ describe('anchoring job (mocked registry and chain)', () => {
     expect(s.anchorer.status()).toMatchObject({ alert: false, consecutiveFailures: 0, lastAnchoredBatch: 'B-1' });
   });
 });
+
+describe('anchoring diagnostics (what the log says, never a secret)', () => {
+  const SEED = '0123456789abcdef'.repeat(4);
+  const withLog = () => {
+    const s = setup();
+    const lines: { level: string; msg: string; extra?: Record<string, unknown> }[] = [];
+    // The same anchorer, with a log that keeps the extra fields.
+    const a = new Anchorer(
+      {
+        network: 'preprod',
+        contractAddress: 'ef'.repeat(32),
+        sealEveryMs: 60 * 60_000,
+        sealAtPending: 10,
+        landingGraceMs: 10 * 60_000,
+        waitForLandingMs: 0,
+        pollMs: 1,
+        maxFeeSpecks: 5_000n,
+      },
+      s.registry,
+      s.chain,
+      s.store,
+      (job) => job(),
+      s.budget,
+      () => Date.now(),
+      () => Promise.resolve(),
+      (level, msg, extra) => lines.push({ level, msg, extra }),
+    );
+    return { ...s, a, lines };
+  };
+
+  it('a submit that may have been sent logs the error chain, redacted, in one line', async () => {
+    const s = withLog();
+    s.registry.pending = 12;
+    // Effect's FiberFailure shape: no `cause`, the real error under a symbol.
+    const inner = Object.assign(new Error(`1010: Invalid Transaction: Custom error: 154 ${SEED}`), { code: 1010 });
+    const outer = Object.assign(new Error('Transaction submission error'), { name: '(FiberFailure) SubmissionError' });
+    (outer as unknown as Record<symbol, unknown>)[Symbol.for('effect/Runtime/FiberFailure/Cause')] = { _tag: 'Fail', error: inner };
+    s.chain.prepare = (root: string) =>
+      Chain.prototype.prepare.call(s.chain, root).then((p) => ({ ...p, submit: () => Promise.reject(outer) }));
+    expect(await s.a.runOnce()).toMatch(/may have failed/);
+    const line = s.lines.find((l) => l.msg === 'anchoring: submit threw');
+    expect(line?.extra).toMatchObject({ txId: 'tx-1', notSent: false });
+    const text = String(line?.extra?.error);
+    expect(text).toContain('Custom error: 154 [hex 64] [code 1010]');
+    expect(text).not.toContain(SEED);
+    expect(text.length).toBeLessThanOrEqual(500);
+    expect(JSON.stringify(s.lines)).not.toContain(SEED);
+  });
+
+  it('a NotSentError is logged too, marked not sent', async () => {
+    const s = withLog();
+    s.registry.pending = 12;
+    s.chain.submitFails = 'not-sent';
+    await s.a.runOnce();
+    expect(s.lines.find((l) => l.msg === 'anchoring: submit threw')?.extra).toMatchObject({ notSent: true, error: 'NotSentError: stale' });
+  });
+
+  it('logs every lookup’s state, and a lookup that fails', async () => {
+    const s = withLog();
+    s.registry.pending = 12;
+    await s.a.runOnce();
+    expect(s.lines.filter((l) => l.msg === 'anchoring: lookup').map((l) => l.extra?.state)).toEqual(['landed']);
+    s.store.save({ batchId: 'B-9', root: ROOT, txId: 'tx-x', ttl: new Date(Date.now() + 60_000).toISOString(), seqBefore: '5', stage: 'sent' });
+    s.chain.lookup = () => Promise.reject(new Error(`the indexer answered 502 ${SEED}`));
+    expect(await s.a.runOnce()).toMatch(/^error:/);
+    const failed = s.lines.find((l) => l.msg === 'anchoring: lookup failed');
+    expect(failed?.extra).toMatchObject({ txId: 'tx-x' });
+    expect(String(failed?.extra?.error)).toBe('Error: the indexer answered 502 [hex 64]');
+  });
+});

@@ -23,6 +23,7 @@
 
 import type { Landing, PreparedAnchor } from './anchorer.js';
 import type { FeeBudget } from './limits.js';
+import { describeError, redact } from './error-chain.js';
 
 /** The contract's own numbers (veilcore.compact SEAL_INTERVAL, SEAL_SLACK), in seconds. */
 export const SEAL_INTERVAL_S = 600n;
@@ -105,7 +106,7 @@ export class Sealer {
       } catch (e) {
         this.budget.release(hold.id);
         // The contract refused it here (someone sealed first, or the clock disagrees): nothing sent.
-        return this.done('not-sent', `not built: ${e instanceof Error ? e.message : String(e)}`);
+        return this.done('not-sent', `not built: ${redact(e instanceof Error ? e.message : String(e))}`);
       }
       if (typeof prepared.fee !== 'bigint' || prepared.fee < 0n || prepared.fee > hold.amount) {
         this.budget.release(hold.id);
@@ -124,6 +125,11 @@ export class Sealer {
       try {
         await prepared.submit();
       } catch (e) {
+        this.log('warn', 'sealing: submit threw', {
+          txId: prepared.txId,
+          notSent: e instanceof Error && e.name === 'NotSentError',
+          error: describeError(e),
+        });
         if (e instanceof Error && e.name === 'NotSentError') {
           this.budget.release(hold.id);
           this.store.clear();
@@ -140,7 +146,14 @@ export class Sealer {
   }
 
   private async resume(a: SealAttempt): Promise<SealOutcome> {
-    const landing = await this.chain.lookupSeal(a.txId);
+    let landing: Landing;
+    try {
+      landing = await this.chain.lookupSeal(a.txId);
+    } catch (e) {
+      this.log('warn', 'sealing: lookup failed', { txId: a.txId, error: describeError(e) });
+      throw e;
+    }
+    this.log('info', 'sealing: lookup', { txId: a.txId, state: landing.state });
     if (landing.state === 'landed') {
       this.store.clear();
       return this.done('sealed', `sealRevocations ${a.txId} landed`);
