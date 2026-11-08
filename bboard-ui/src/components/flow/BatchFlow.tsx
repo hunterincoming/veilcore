@@ -282,7 +282,7 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
       const made = batchRows({ ...plan, start: firstFreeStart(plan, takenRows(all), takenNames(all)) });
       const result = await sealRows(made, { commit: holdForBackup, batchSize: made.length, gapMs: 0 });
       // Not kept (full storage), or held by a job: nothing was sealed for this batch.
-      if (result.stopped && result.stopped !== HELD_FOR_BACKUP) {
+      if (result.stopped && !result.stopped.startsWith(HELD_FOR_BACKUP)) {
         setError(result.stopped);
         return;
       }

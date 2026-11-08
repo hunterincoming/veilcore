@@ -244,7 +244,7 @@ const hold = async (rows: PreparedRow[], job: string): Promise<{ ok: true } | { 
   const refused = Object.values(r.outcomes).find((o) => o.state === 'refused');
   if (refused?.state === 'refused') return { refused: 'records', words: refused.reason };
   if (Object.values(r.outcomes).some((o) => o.state === 'sealed')) return { refused: 'already' };
-  if (r.stopped && r.stopped !== HELD_FOR_BACKUP) return { refused: 'records', words: r.stopped };
+  if (r.stopped && !r.stopped.startsWith(HELD_FOR_BACKUP)) return { refused: 'records', words: r.stopped };
   return { ok: true };
 };
 

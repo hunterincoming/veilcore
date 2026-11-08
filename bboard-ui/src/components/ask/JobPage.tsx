@@ -429,7 +429,7 @@ const JobResult: React.FC<{ job: Job; fromApp: boolean }> = ({ job: latest, from
       )}
 
       {/* 1. Only you can answer, the backup among it */}
-      {(questions.length > 0 || job.kind === 'due' || backupBlock) && (
+      {(questions.length > 0 || job.kind === 'due' || (job.backupNeeded && !readOnly)) && (
         <Block title={t('app.job.answer.title')} data="answer">
           {questions.includes('bredBy') && (
             <Answer

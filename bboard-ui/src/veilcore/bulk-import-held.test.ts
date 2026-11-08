@@ -6,6 +6,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   HELD_ELSEWHERE,
+  HELD_FOR_BACKUP,
   NOT_KEPT,
   NOT_WRITTEN,
   dropHeld,
@@ -171,5 +172,12 @@ describe('held rows belong to a job (review L10)', () => {
         'job-a',
       ),
     ).toBe(2);
+  });
+});
+
+describe('what a batch held for its backup says', () => {
+  it('starts with HELD_FOR_BACKUP, whatever sealRows adds after it', async () => {
+    const out = await sealRows(batchRows(plan(2)), { commit: holdForBackup, batchSize: 10, gapMs: 0 });
+    expect(out.stopped?.startsWith(HELD_FOR_BACKUP)).toBe(true);
   });
 });
