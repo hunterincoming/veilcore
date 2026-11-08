@@ -26,10 +26,19 @@ export type SignedResult =
       /** Whether the lab's name binding was posted; a checker names the lab only when it was. */
       readonly bound: boolean;
       readonly bindError?: string;
+      /**
+       * For a result that replaces one of the lab's own: whether that one's name was withdrawn,
+       * and why not when it wasn't (the result isn't in this browser, or the registry refused).
+       */
+      readonly withdrew?: { readonly code: string; readonly ok: boolean; readonly error?: string };
     }
   | { readonly ok: false; readonly code: ProblemCode; readonly message: string };
 
 const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+const TOO_MANY = /too many requests/i;
+/** The registry's answer when its write limit is reached: binding more now only waits. */
+export const isRateLimited = (error: string | undefined): boolean => !!error && TOO_MANY.test(error);
 
 /** Post the lab's binding for one result; once more after a minute when the registry says "too many". */
 export const bindResult = async (
@@ -48,7 +57,7 @@ export const bindResult = async (
       bindingIdSuffix(k, attester.keypair.publicKey),
     );
   let out = await post();
-  if (out.error && /too many requests/i.test(out.error)) {
+  if (isRateLimited(out.error)) {
     await wait(61_000);
     out = await post();
   }
@@ -66,6 +75,49 @@ export const recordInputFor = async (bundle: LabResultBundle): Promise<NewRecord
   parents: [],
   photoFingerprints: [],
 });
+
+/**
+ * Withdraw the lab's name from the result a new one replaces: only one of this lab's own, by the
+ * same key, held in this browser with its binding. Says what happened, so a failure is shown.
+ */
+export const withdrawReplaced = async (
+  attester: AttesterProfile,
+  bundle: LabResultBundle,
+  mine: readonly StrainRecord[],
+): Promise<{ code: string; ok: boolean; error?: string }> => {
+  const rep = bundle.statement.replaces!;
+  const old = mine.find((r) => r.labSignature?.record === rep.result && r.labResult?.bindingId);
+  if (!old?.labResult?.bindingId || old.labSignature?.key !== bundle.signature.key)
+    return { code: rep.result, ok: false, error: 'not in this browser' };
+  const out = await retract(
+    attester,
+    old.labResult.bindingId,
+    rep.reason === 'retraction' ? 'issued-in-error' : 'superseded',
+  );
+  return out.error ? { code: rep.result, ok: false, error: out.error } : { code: rep.result, ok: true };
+};
+
+/**
+ * Post the lab's name on results it signed and kept but couldn't name yet (the registry's write
+ * limit, or offline). Stops at the first "too many" and says how many are left.
+ */
+export const nameUnbound = async (
+  attester: AttesterProfile,
+  records: readonly StrainRecord[],
+): Promise<{ named: number; left: number; error?: string }> => {
+  let named = 0;
+  for (const [i, r] of records.entries()) {
+    if (!r.labResult || r.labResult.bindingId || !r.labSignature) continue;
+    const out = await bindResult(attester, r.labSignature.record, r.labResult.statement.subject, () =>
+      Promise.resolve(),
+    );
+    if (out.attestationId) {
+      setLabResultBinding(r.id, out.attestationId);
+      named++;
+    } else return { named, left: records.length - i, ...(out.error ? { error: out.error } : {}) };
+  }
+  return { named, left: 0 };
+};
 
 /**
  * Sign every input, keep them as records in one save, post each binding, and withdraw the
@@ -103,6 +155,9 @@ export const signResults = async (
   }
   const out: SignedResult[] = [];
   let done = 0;
+  // After the registry has refused twice in a row for its write limit, the rest are signed and
+  // kept but not named yet: "Add your lab's name" on /lab/results posts them later.
+  let limited = false;
   for (const m of made) {
     if (!('input' in m)) {
       out.push(m);
@@ -113,20 +168,15 @@ export const signResults = async (
       out.push({ ok: false, code: 'unreadable', message: refused });
       continue;
     }
-    const b = await bindResult(attester, m.commitment, m.bundle.statement.subject, wait);
+    const b = limited
+      ? { error: 'too many requests; not tried' }
+      : await bindResult(attester, m.commitment, m.bundle.statement.subject, wait);
+    if (isRateLimited(b.error)) limited = true;
     const recordId = m.input.id ?? '';
     if (b.attestationId) setLabResultBinding(recordId, b.attestationId);
-    // A result that replaces one of this lab's own: that one's name binding is withdrawn.
-    const rep = m.bundle.statement.replaces;
-    if (rep && b.attestationId) {
-      const old = mine.find((r) => r.labSignature?.record === rep.result && r.labResult?.bindingId);
-      if (old?.labResult?.bindingId && old.labSignature?.key === m.bundle.signature.key)
-        await retract(
-          attester,
-          old.labResult.bindingId,
-          rep.reason === 'retraction' ? 'issued-in-error' : 'superseded',
-        );
-    }
+    // A result that replaces one of this lab's own: that one's name is withdrawn, whether or not
+    // this one's name could be posted (a withdrawal must never be left undone by a rate limit).
+    const withdrew = m.bundle.statement.replaces ? await withdrawReplaced(attester, m.bundle, mine) : undefined;
     out.push({
       ok: true,
       bundle: m.bundle,
@@ -134,6 +184,7 @@ export const signResults = async (
       recordId,
       bound: !!b.attestationId,
       ...(b.error ? { bindError: b.error } : {}),
+      ...(withdrew ? { withdrew } : {}),
     });
     onProgress?.(++done, toKeep.length);
   }

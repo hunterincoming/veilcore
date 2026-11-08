@@ -53,6 +53,16 @@ export const ResultFacts: React.FC<{ statement: LabResultStatement; code?: strin
       <Fact label={t('app.lr.f.kind')}>{kindWords(s.kind, tr)}</Fact>
       <Fact label={t('app.lr.f.call')}>
         <b data-lab-result-call="">{callWords(s, tr)}</b>
+        {/* A bare "same genotype" is the overread; the counts go right beside it. */}
+        {s.kind === 'match' && (r as MatchResult).compared !== undefined && (
+          <span data-lab-result-counts="">
+            {' '}
+            {t('app.lr.f.counts', {
+              compared: String((r as MatchResult).compared),
+              differing: String((r as MatchResult).differing ?? '?'),
+            })}
+          </span>
+        )}
       </Fact>
       {s.kind === 'pathogen' && (
         <>
@@ -66,12 +76,18 @@ export const ResultFacts: React.FC<{ statement: LabResultStatement; code?: strin
           <Fact label={t('app.lr.f.other')} mono>
             {(r as MatchResult).other}
           </Fact>
+          {(r as MatchResult).otherSampleId !== undefined && (
+            <Fact label={t('app.lr.f.otherSampleId')}>{seen((r as MatchResult).otherSampleId!)}</Fact>
+          )}
           {(r as MatchResult).compared !== undefined && (
             <Fact label={t('app.lr.f.compared')}>{String((r as MatchResult).compared)}</Fact>
           )}
           {(r as MatchResult).differing !== undefined && (
             <Fact label={t('app.lr.f.differing')}>{String((r as MatchResult).differing)}</Fact>
           )}
+          <Typography variant="body2" color="text.secondary">
+            {t('app.lr.note.match')}
+          </Typography>
         </>
       )}
       {s.kind === 'lineage' && (
@@ -126,6 +142,9 @@ export const ResultFacts: React.FC<{ statement: LabResultStatement; code?: strin
           {code}
         </Fact>
       )}
+      <Typography variant="body2" color="text.secondary" data-lab-result-current="">
+        {t('app.lr.note.current', { tested: s.tested })}
+      </Typography>
       <Typography variant="body2" color="text.secondary">
         {t('app.lr.note.never')}
       </Typography>

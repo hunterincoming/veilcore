@@ -3,14 +3,30 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
-import { Box, Button, MenuItem, Stack, TextField, Typography } from '@mui/material';
-import { REPLACE_REASONS, type ProblemCode, type ResultKind } from '../../veilcore/lab-result';
+import { Autocomplete, Box, Button, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { QC_MAX, REPLACE_REASONS, type ProblemCode, type ResultKind } from '../../veilcore/lab-result';
 import type { ResultDraft, YesNo } from '../../veilcore/lab-result-draft';
 import { LAB_SCHEMAS, numbersOf } from '../../veilcore/field-set';
 import { NumbersFields } from '../document/NumbersFields';
 import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
 import { kindWords } from './ResultFacts';
+
+/**
+ * Targets a cannabis or hop TC lab tests for most, by the name most labs report. Free text stays
+ * allowed; the list only keeps "HLVd", "HpLVd" and "Hop latent viroid" from becoming three targets.
+ */
+export const COMMON_TARGETS = ['HLVd', 'CBCVd', 'TMV', 'ToMV', 'ToBRFV', 'LChV', 'BCTV', 'AMV', 'ArMV'] as const;
+
+/** The run and QC details a pathogen lab reports first (ISO/IEC 17025 traceability). */
+const QPCR_DETAILS = [
+  'Ct cut-off',
+  'Limit of detection',
+  'Internal control Ct',
+  'Positive control',
+  'Negative control',
+  'Run ID',
+];
 
 /** An earlier result of this lab's, to name in "replaces". */
 export type MyResult = { readonly code: string; readonly label: string };
@@ -123,7 +139,15 @@ export const ResultForm: React.FC<{
       )}
       {d.kind === 'pathogen' && (
         <>
-          {field('target', 'app.lr.form.target')}
+          <Autocomplete
+            freeSolo
+            options={COMMON_TARGETS}
+            value={d.target}
+            onInputChange={(_, v) => set('target', v)}
+            renderInput={(params) => (
+              <TextField {...params} label={t('app.lr.form.target')} error={problem === 'target'} />
+            )}
+          />
           {field('sampleType', 'app.lr.form.sampleType')}
           {yesNo('detected', 'app.lr.call.detected', 'app.lr.call.notDetected')}
           {field('ct', 'app.lr.form.ct', { slotProps: { htmlInput: { inputMode: 'decimal', 'data-field': 'ct' } } })}
@@ -135,6 +159,7 @@ export const ResultForm: React.FC<{
             {t('app.lr.form.compareIntro')}
           </Typography>
           {field('other', 'app.lr.form.other')}
+          {field('otherSampleId', 'app.lr.form.otherSampleId')}
           {yesNo('matches', 'app.lr.call.match', 'app.lr.call.noMatch')}
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             {field('compared', 'app.lr.form.compared', { error: problem === 'counts' })}
@@ -233,7 +258,23 @@ export const ResultForm: React.FC<{
               </Button>
             </Stack>
           ))}
-          {d.qc.length < 8 && (
+          {d.kind === 'pathogen' && d.qc.length === 0 && (
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() =>
+                set(
+                  'qc',
+                  QPCR_DETAILS.map((name) => ({ name, value: '' })),
+                )
+              }
+              sx={{ alignSelf: 'flex-start', minHeight: 40 }}
+              data-qc-usual=""
+            >
+              {t('app.lr.form.qcUsual')}
+            </Button>
+          )}
+          {d.qc.length < QC_MAX && (
             <Button
               size="small"
               variant="outlined"

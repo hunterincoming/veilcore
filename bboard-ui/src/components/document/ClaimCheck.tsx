@@ -16,12 +16,18 @@ import { claimWords } from './ProveNumber';
 import { schemaWords } from './NumbersFields';
 import { keyShort } from '../../veilcore/lab-key-text';
 import { signerLabel, type ResolvedAttestation } from '../../veilcore/attesters';
+import { RESULT_CALL_SCHEMAS } from '../../veilcore/field-set';
+import { ClaimResultFile } from '../lab/ClaimResultFile';
+import { withdrawnWords } from '../lab/signer-words';
 
 export const ClaimCheck: React.FC = () => {
   const tr = useT();
   const { t } = tr;
   const { hash } = useLocation();
   const link = readClaimLink(hash);
+  // A claim on a lab result v2's call proves the call only (SPEC 11.12): what was tested for, or
+  // compared, is in the lab's result file, which the checker can add beside it.
+  const isCall = !!link && RESULT_CALL_SCHEMAS.includes(link.schema);
   const [verdict, setVerdict] = useState<ClaimVerdict>();
   useEffect(() => {
     // A new link starts unchecked: the last link's "Proved on Midnight" must never show under
@@ -132,7 +138,7 @@ export const ClaimCheck: React.FC = () => {
                             tr,
                           ).text
                         : verdict.lab.signer?.kind === 'retracted'
-                          ? t('app.claim.check.labWithdrawn')
+                          ? withdrawnWords(verdict.lab.signer, isCall, tr)
                           : verdict.lab.signer?.kind === 'conflict'
                             ? t('app.claim.check.labConflict')
                             : t('app.claim.check.labUnidentified')}
@@ -156,6 +162,7 @@ export const ClaimCheck: React.FC = () => {
                 )}
               </Paper>
             )}
+            {isCall && <ClaimResultFile record={link.record} />}
             <Paper sx={{ p: { xs: 2.5, md: 3 } }}>
               <Typography variant="overline" sx={{ display: 'block', mb: 1 }}>
                 {t('app.claim.check.record')}

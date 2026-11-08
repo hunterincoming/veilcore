@@ -70,8 +70,10 @@ export type PathogenResult = {
   readonly ct?: string;
 };
 export type MatchResult = {
-  /** The proof code of the record the sample was compared with. */
+  /** The proof code the other sample was sent under. */
   readonly other: string;
+  /** That sample's ID, when the lab has it. */
+  readonly otherSampleId?: string;
   readonly matches: boolean;
   readonly compared?: number;
   readonly differing?: number;
@@ -137,6 +139,10 @@ export const PROBLEM_CODES = [
   'issued',
   'calls',
   'signature',
+  'inconclusive',
+  'future',
+  'duplicate',
+  'csvResult',
 ] as const;
 export type ProblemCode = (typeof PROBLEM_CODES)[number];
 
@@ -156,9 +162,13 @@ const fail = (code: ProblemCode, message: string): never => {
 
 const HEX64 = /^[0-9a-f]{64}$/;
 const CONTROL = /\p{Cc}/u;
+/** Format characters (bidi controls, zero-width spaces): two values that look the same must be the same. */
+const FORMAT = /\p{Cf}/u;
+/** A mark label that could be the sequence itself: ten or more of A, C, G, T in a row. */
+const SEQUENCE_RUN = /[ACGT]{10,}/i;
 const CT = /^(0|[1-9]\d?)(\.\d{1,2})?$/;
 export const LINE_MAX = 200;
-export const QC_MAX = 8;
+export const QC_MAX = 12;
 export const QC_LINE_MAX = 60;
 /** Counts are whole numbers up to a billion: a panel, not a genome. */
 export const COUNT_MAX = 1_000_000_000;
@@ -167,7 +177,22 @@ const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'obj
 
 /** One line: text, 1 to `max` characters, no control characters, no space at either end. */
 export const isLine = (v: unknown, max = LINE_MAX): v is string =>
-  typeof v === 'string' && v !== '' && Array.from(v).length <= max && !CONTROL.test(v) && v === v.trim();
+  typeof v === 'string' &&
+  v !== '' &&
+  Array.from(v).length <= max &&
+  !CONTROL.test(v) &&
+  !FORMAT.test(v) &&
+  v === v.trim();
+
+/**
+ * A date tested later than tomorrow on this computer's calendar: almost always a typo. Refused
+ * where a lab types or imports one; never when checking a result (a check doesn't depend on a clock).
+ */
+export const isFutureDate = (date: string, now = new Date()): boolean => {
+  const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const tomorrow = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+  return date > tomorrow;
+};
 
 export const isCalendarDate = (v: unknown): v is string => {
   if (typeof v !== 'string') return false;
@@ -204,8 +229,10 @@ const resultProblem = (kind: ResultKind, subject: string, r: unknown): void => {
         fail('ct', 'Ct is a number under 100 with at most two decimals.');
       return;
     case 'match':
-      if (!onlyKeys(r, ['other', 'matches'], ['compared', 'differing']))
+      if (!onlyKeys(r, ['other', 'matches'], ['otherSampleId', 'compared', 'differing']))
         fail('result', 'The result isn’t in its form.');
+      if (r.otherSampleId !== undefined && !isLine(r.otherSampleId))
+        fail('sampleId', 'The other sample’s ID is one line.');
       if (typeof r.other !== 'string' || !HEX64.test(r.other) || r.other === subject)
         fail('other', 'Name the other record by its proof code, not the same one.');
       if (typeof r.matches !== 'boolean') fail('result', 'Say whether they match.');
@@ -243,7 +270,8 @@ const resultProblem = (kind: ResultKind, subject: string, r: unknown): void => {
       if (!onlyKeys(r, ['seal', 'found'], ['label'])) fail('result', 'The result isn’t in its form.');
       if (typeof r.seal !== 'string' || !HEX64.test(r.seal)) fail('seal', 'The mark’s seal is 64 hex characters.');
       if (typeof r.found !== 'boolean') fail('result', 'Say whether the mark was found.');
-      if (r.label !== undefined && !isLine(r.label)) fail('label', 'The mark’s name is one line.');
+      if (r.label !== undefined && (!isLine(r.label) || SEQUENCE_RUN.test(r.label)))
+        fail('label', 'The mark’s name is one line, and not the sequence.');
       return;
   }
 };
@@ -543,6 +571,10 @@ export const checkBinding = (record: LabResultRecord, statement: LabResultStatem
   if (entries.length !== 1 || entries[0].sha256 !== want.sha256 || entries[0].size !== want.size)
     fail('file', 'The result statement isn’t the one the lab signed.');
   if (record.dateCreated !== statement.tested) fail('issued', 'The record’s date isn’t the date tested.');
+  const about = d?.about ?? [];
+  if (about.length !== 1 || about[0].name !== statement.sampleId || about[0].recordId !== undefined)
+    fail('file', 'The record doesn’t name the sample the result names.');
+  if (record.refId !== statement.accession) fail('file', 'The record’s reference isn’t the accession number.');
   const schema = schemaForResult(statement);
   if (record.fieldSet?.schema !== schema) fail('calls', 'The signed numbers aren’t under the result’s form.');
   if (statement.kind === 'numbers') {
@@ -656,10 +688,20 @@ export const replacedBy = (
   all: readonly LabResultBundle[],
 ): Map<string, { readonly by: string; readonly reason: ReplaceReason }> => {
   const keyOf = new Map(all.map((r) => [resultCode(r), r.signature.key]));
+  const byCode = new Map(all.map((r) => [resultCode(r), r]));
   const out = new Map<string, { by: string; reason: ReplaceReason }>();
   for (const r of all) {
     const rep = r.statement.replaces;
-    if (rep && keyOf.get(rep.result) === r.signature.key && rep.result !== resultCode(r))
+    const old = byCode.get(rep?.result ?? '');
+    // Same key, same record tested, and not tested before the one it replaces (SPEC 11.12).
+    if (
+      rep &&
+      old &&
+      keyOf.get(rep.result) === r.signature.key &&
+      rep.result !== resultCode(r) &&
+      old.statement.subject === r.statement.subject &&
+      r.statement.tested >= old.statement.tested
+    )
       out.set(rep.result, { by: resultCode(r), reason: rep.reason });
   }
   return out;

@@ -359,3 +359,53 @@ describe('the SDK’s lab result vectors (SPEC 11.12)', () => {
     for (const m of v.markRefusals) expect(() => markSeal(m.sequence, m.salt), m.name).toThrow();
   });
 });
+
+describe('review fixes', () => {
+  const ok = { format: LAB_RESULT_FORMAT, ...pathogen.statement } as LabResultStatement;
+
+  it('refuses invisible format characters and a mark label that is a sequence; takes the other sample’s ID', () => {
+    expect(() => checkedStatement({ ...ok, sampleId: 'S-04​12' })).toThrow(
+      expect.objectContaining({ code: 'sampleId' }),
+    );
+    expect(() => checkedStatement({ ...ok, accession: 'L‮1' })).toThrow(expect.objectContaining({ code: 'accession' }));
+    expect(() =>
+      checkedStatement({
+        ...ok,
+        kind: 'dna-mark',
+        result: { seal: 'd4'.repeat(32), found: true, label: 'mark acgtacgtac' },
+      }),
+    ).toThrow(expect.objectContaining({ code: 'label' }));
+    expect(
+      checkedStatement({ ...ok, kind: 'match', result: { other: B, otherSampleId: 'REF-7', matches: true } }),
+    ).toBeTruthy();
+  });
+
+  it('counts a replacement only for the same record tested, and not by an earlier test', async () => {
+    const lab = await generateKeypair();
+    const first = await makeLabResult(lab.privateKey, pathogen);
+    const mk = (statement: LabResultInput['statement']) => makeLabResult(lab.privateKey, { labName: 'L', statement });
+    const otherRecord = await mk({
+      ...pathogen.statement,
+      subject: B,
+      replaces: { result: first.commitment, reason: 're-test' },
+    });
+    const earlier = await mk({
+      ...pathogen.statement,
+      tested: '2026-11-04',
+      received: '2026-11-03',
+      replaces: { result: first.commitment, reason: 'correction' },
+    });
+    expect(replacedBy([first.bundle, otherRecord.bundle]).size).toBe(0);
+    expect(replacedBy([first.bundle, earlier.bundle]).size).toBe(0);
+  });
+
+  it('refuses a record whose about or reference disagrees with the statement', async () => {
+    const lab = await generateKeypair();
+    const { bundle } = await makeLabResult(lab.privateKey, pathogen);
+    const o = copy(bundle);
+    const about = { ...o, record: { ...o.record, document: { ...o.record.document, about: [{ name: 'S-9999' }] } } };
+    await expect(readLabResult(about)).rejects.toMatchObject({ code: 'file' });
+    const ref = { ...o, record: { ...o.record, refId: 'LAB-0000' } };
+    await expect(readLabResult(ref)).rejects.toMatchObject({ code: 'file' });
+  });
+});

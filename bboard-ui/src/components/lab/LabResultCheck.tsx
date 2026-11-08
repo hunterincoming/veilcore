@@ -27,17 +27,24 @@ import { signerLabel, type ResolvedAttestation } from '../../veilcore/attesters'
 import { createRecord, useRecords, useRecordsLoaded } from '../../veilcore/records';
 import { keyShort } from '../../veilcore/lab-key-text';
 import { ResultFacts } from './ResultFacts';
+import { withdrawnWords } from './signer-words';
+import { LAB_SIGNING_ENABLED } from '../../config/network';
 
 const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-6)}`;
 
 type Read = { ok: true; bundle: LabResultBundle } | { ok: false; code: ProblemCode; message: string };
 
 /** Whose key signed it, from the lab's own binding at the registry, checked here. */
-const useSigner = (b: LabResultBundle): LabSigner | undefined => {
+/**
+ * Whose key signed it, from the lab's own binding at the registry, checked here. Looked up only
+ * when the checker asks: the lookup sends the result's code to the registry.
+ */
+const useSigner = (b: LabResultBundle, asked: boolean): LabSigner | undefined => {
   const [s, setS] = useState<LabSigner>();
   useEffect(() => {
     let live = true;
     setS(undefined);
+    if (!asked) return;
     void (async () => {
       try {
         const [{ attestationsFor }, { findBinding }, { keyFromHex }] = await Promise.all([
@@ -55,7 +62,7 @@ const useSigner = (b: LabResultBundle): LabSigner | undefined => {
     return () => {
       live = false;
     };
-  }, [b]);
+  }, [b, asked]);
   return s;
 };
 
@@ -117,7 +124,8 @@ const OneChecked: React.FC<{
 }> = ({ bundle: b, replaced, inFile }) => {
   const tr = useT();
   const { t } = tr;
-  const signer = useSigner(b);
+  const [lookUp, setLookUp] = useState(false);
+  const signer = useSigner(b, lookUp);
   const all = useRecords();
   const code = resultCode(b);
   const loaded = useRecordsLoaded();
@@ -132,13 +140,14 @@ const OneChecked: React.FC<{
     const { startRecordSync } = await import('../../veilcore/records');
     startRecordSync();
   };
-  const who =
-    signer === undefined
+  const who = !lookUp
+    ? ''
+    : signer === undefined
       ? t('app.lr.check.looking')
       : signer.kind === 'bound'
         ? signerLabel(signer.attestation as ResolvedAttestation, 'Signed by', Date.now(), tr).text
         : signer.kind === 'retracted'
-          ? t('app.claim.check.labWithdrawn')
+          ? withdrawnWords(signer, true, tr)
           : signer.kind === 'conflict'
             ? t('app.claim.check.labConflict')
             : t('app.claim.check.labUnidentified');
@@ -153,9 +162,35 @@ const OneChecked: React.FC<{
     }
   };
   return (
-    <Paper sx={{ p: { xs: 2, md: 3 } }} data-lab-result-checked="" data-signer={signer?.kind ?? 'checking'}>
-      <Alert severity={signer?.kind === 'bound' ? 'success' : 'info'} variant="outlined" sx={{ mb: 2 }}>
-        {who} {t('app.attest.signedBy', { key: keyShort(b.signature.key) })}
+    <Paper
+      sx={{ p: { xs: 2, md: 3 } }}
+      data-lab-result-checked=""
+      data-signer={signer?.kind ?? (lookUp ? 'checking' : 'not-asked')}
+    >
+      <Alert
+        severity={signer?.kind === 'bound' ? 'success' : signer?.kind === 'retracted' ? 'warning' : 'info'}
+        variant="outlined"
+        sx={{ mb: 2 }}
+        data-lab-name={signer?.kind ?? (lookUp ? 'looking' : 'not-asked')}
+      >
+        {who ? `${who} ` : ''}
+        {t('app.attest.signedBy', { key: keyShort(b.signature.key) })}
+        {!lookUp && (
+          <Box sx={{ mt: 1 }}>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              {t('app.lr.check.nameText')}
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => setLookUp(true)}
+              sx={{ minHeight: 40 }}
+              data-lab-name-find=""
+            >
+              {t('app.lr.check.nameFind')}
+            </Button>
+          </Box>
+        )}
       </Alert>
       {replaced && (
         <Alert severity="warning" variant="outlined" sx={{ mb: 2 }} data-replaced-by="">
@@ -257,37 +292,50 @@ export const LabResultCheck: React.FC = () => {
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
           {t('app.lr.check.intro')}
         </Typography>
-        <Button variant="contained" size="large" onClick={() => pick.current?.click()} sx={{ mb: 3, minHeight: 48 }}>
-          {t('app.lr.check.choose')}
-        </Button>
-        <input
-          ref={pick}
-          type="file"
-          hidden
-          data-result-input=""
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            e.target.value = '';
-            setRead(undefined);
-            if (f) void f.text().then(readResultsText).then(setRead);
-          }}
-        />
-        <Stack spacing={2.5}>
-          {(read ?? []).map((r, i) =>
-            r.ok ? (
-              <OneChecked
-                key={resultCode(r.bundle)}
-                bundle={r.bundle}
-                replaced={replaced.get(resultCode(r.bundle))}
-                inFile={inFile}
-              />
-            ) : (
-              <Alert key={`bad${i}`} severity="error" variant="outlined" data-lab-result-bad={r.code}>
-                {t('app.lr.check.bad', { problem: t(`app.lr.problem.${r.code}` as AppKey) })}
-              </Alert>
-            ),
-          )}
-        </Stack>
+        {!LAB_SIGNING_ENABLED ? (
+          <Alert severity="info" variant="outlined" data-lab-results-off="">
+            {t('app.lr.tools.testOnly')}
+          </Alert>
+        ) : (
+          <>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => pick.current?.click()}
+              sx={{ mb: 3, minHeight: 48 }}
+            >
+              {t('app.lr.check.choose')}
+            </Button>
+            <input
+              ref={pick}
+              type="file"
+              hidden
+              data-result-input=""
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                e.target.value = '';
+                setRead(undefined);
+                if (f) void f.text().then(readResultsText).then(setRead);
+              }}
+            />
+            <Stack spacing={2.5}>
+              {(read ?? []).map((r, i) =>
+                r.ok ? (
+                  <OneChecked
+                    key={resultCode(r.bundle)}
+                    bundle={r.bundle}
+                    replaced={replaced.get(resultCode(r.bundle))}
+                    inFile={inFile}
+                  />
+                ) : (
+                  <Alert key={`bad${i}`} severity="error" variant="outlined" data-lab-result-bad={r.code}>
+                    {t('app.lr.check.bad', { problem: t(`app.lr.problem.${r.code}` as AppKey) })}
+                  </Alert>
+                ),
+              )}
+            </Stack>
+          </>
+        )}
       </Container>
     </Box>
   );

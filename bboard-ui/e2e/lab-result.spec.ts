@@ -102,7 +102,7 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
 
   // One pathogen result: HLVd not detected, bound to the breeder's record.
   const form = lab.locator('[data-result-form]');
-  await form.getByLabel(/Proof code of the record the sample came from/).fill(subject.toUpperCase());
+  await form.getByLabel(/Proof code the sender gave for this sample/).fill(subject.toUpperCase());
   await form.getByLabel(/Sample ID/).fill('S-0412');
   await form.getByLabel('Your accession number').fill('LAB-26-1187');
   await form.getByLabel('Method or SOP').fill('RT-qPCR HLVd SOP-14');
@@ -123,7 +123,7 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   // A DNA mark: its sequence sealed, and an opening the lab keeps.
   await lab.getByRole('button', { name: 'Sign another' }).click();
   await choose(lab, 'What kind of result', 'DNA mark');
-  await form.getByLabel(/Proof code of the record the sample came from/).fill(subject);
+  await form.getByLabel(/Proof code the sender gave for this sample/).fill(subject);
   await form.getByLabel(/Sample ID/).fill('S-0413');
   await form.getByLabel('Your accession number').fill('LAB-26-1188');
   await form.getByLabel('Method or SOP').fill('Mark PCR');
@@ -133,7 +133,10 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   await shot(lab, 'lab-mark-form');
   await lab.getByRole('button', { name: 'Sign this result' }).click();
   await expect(lab.locator('[data-mark-keep]')).toBeVisible({ timeout: 60_000 });
+  // The sequence file exists only here: nothing else can be signed until it is saved.
+  await expect(lab.locator('[data-sign-another]')).toBeDisabled();
   const openingFile = await download(lab, () => lab.locator('[data-mark-download]').click());
+  await expect(lab.locator('[data-mark-keep]')).toHaveAttribute('data-mark-keep', 'saved');
   const markFile = await download(lab, () => lab.locator('[data-result-download]').click());
   expect(readFileSync(markFile, 'utf8')).not.toContain('ACGTACGTACGTTGCAACGT');
   expect(readFileSync(openingFile, 'utf8')).toContain('ACGTACGTACGTTGCAACGT');
@@ -158,13 +161,22 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
     ].join('\n'),
   );
   await lab.locator('[data-csv-input]').setInputFiles(csvPath);
-  await expect(csvBox).toContainText('2 ready to sign, 1 with a problem.');
+  await expect(csvBox).toContainText('2 ready to sign. 1 won’t be signed');
   await expect(csvBox.locator('[data-csv-bad="4"]')).toContainText('Line 4');
   await shot(lab, 'lab-csv');
   await lab.getByRole('button', { name: 'Sign 2 results' }).click();
   await expect(lab.getByRole('heading', { name: 'Signed and kept: 2' })).toBeVisible({ timeout: 90_000 });
   await shot(lab, 'lab-csv-signed');
-  const resultsFile = await download(lab, () => lab.locator('[data-result-download]').click());
+  // Each result is its own file, for its own client: one per row, or all of them as a zip of
+  // separate files. The one-file archive is for the lab's records and says so.
+  await expect(lab.locator('[data-row-download]')).toHaveCount(2);
+  const secondRow = await download(lab, () => lab.locator('[data-row-download]').nth(1).click());
+  const zip = await download(lab, () => lab.locator('[data-result-download]').click());
+  expect(readFileSync(zip).subarray(0, 2).toString('latin1')).toBe('PK');
+  const resultsFile = await download(lab, () => lab.locator('[data-result-archive]').click());
+  // The summary lists the row that wasn't signed, so it isn't forgotten.
+  const summary = await download(lab, () => lab.getByRole('button', { name: /summary for your LIMS/ }).click());
+  expect(readFileSync(summary, 'utf8')).toContain('not signed: line 4');
   // The lab's own list now holds all four, each a record it holds.
   await expect(lab.locator('[data-my-results]')).toContainText('LAB-C-2');
   expectNoErrors(labErrors);
@@ -173,11 +185,14 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   await breeder.goto('/check-lab-result');
   await breeder.locator('[data-result-input]').setInputFiles(pathogenFile);
   const checked = breeder.locator('[data-lab-result-checked]');
+  // Nothing is looked up until the checker asks: the lookup sends the result's code.
+  await expect(checked).toHaveAttribute('data-signer', 'not-asked');
+  await checked.locator('[data-lab-name-find]').click();
   await expect(checked).toHaveAttribute('data-signer', 'bound', { timeout: 20_000 });
   await expect(checked).toContainText('Signed by a key named “E2E Lab” (name not checked)');
   await expect(checked.locator('[data-lab-result-call]')).toHaveText('Not detected');
   await expect(checked).toContainText('RT-qPCR HLVd SOP-14, version 3');
-  await expect(checked).toContainText('VeilCore didn’t test this sample');
+  await expect(checked).toContainText('VeilCore didn’t take or test this sample');
   await shot(breeder, 'lab-check');
   // The page reads the breeder's records only when asked (the sync sends the holder key).
   await checked.locator('[data-lab-result-find]').click();
@@ -199,7 +214,13 @@ test('a lab signs results bound to a record; the breeder checks them, adds one, 
   await breeder.goto('/check-lab-result');
   await breeder.locator('[data-result-input]').setInputFiles(resultsFile);
   await expect(breeder.locator('[data-lab-result-checked]')).toHaveCount(2);
-  await expect(breeder.locator('[data-lab-result-checked]').nth(1)).toContainText('No match');
+  await expect(breeder.locator('[data-lab-result-checked]').nth(1)).toContainText('Different genotype at the markers compared');
+  await expect(breeder.locator('[data-lab-result-checked]').nth(1)).toContainText('(90 markers compared, 31 differ)');
+  // The second row's own file holds that one result only.
+  await breeder.goto('/check-lab-result');
+  await breeder.locator('[data-result-input]').setInputFiles(secondRow);
+  await expect(breeder.locator('[data-lab-result-checked]')).toHaveCount(1);
+  await expect(breeder.locator('[data-lab-result-checked]')).toContainText('LAB-C-2');
 
   // A result changed after signing is refused, by name.
   const changed = JSON.parse(readFileSync(pathogenFile, 'utf8')) as { statement: { sampleId: string } };

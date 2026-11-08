@@ -4,7 +4,7 @@
 // file. Test network only, like every lab signature (LAB_SIGNING_ENABLED).
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import {
   Alert,
@@ -24,7 +24,7 @@ import { OPEN_SIGNING_KEY_EVENT } from '../AttesterSetup';
 import { LAB_SIGNING_ENABLED } from '../../config/network';
 import { loadAttester } from '../../veilcore/attester-keys';
 import { claimsKeyFor } from '../../veilcore/claims-key';
-import { useRecords } from '../../veilcore/records';
+import { useRecords, type StrainRecord } from '../../veilcore/records';
 import { RESULT_KINDS, resultsFile, type ProblemCode, type MarkOpening } from '../../veilcore/lab-result';
 import { emptyDraft, today, tryDraft, type ResultDraft } from '../../veilcore/lab-result-draft';
 import {
@@ -42,21 +42,49 @@ import { decodeText } from '../../veilcore/bulk-import';
 import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
 import { ResultForm, type MyResult } from './ResultForm';
-import { download } from './download';
+import { download, resultFileNames } from './download';
 import { ResultFacts, callWords, kindWords } from './ResultFacts';
 
 const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-6)}`;
 
-const fileSafe = (s: string) => s.replace(/[^A-Za-z0-9._-]+/g, '_').slice(0, 60) || 'result';
+/** What was signed in the last run, the sequence files a mark result left to keep, and the rows not signed. */
+type Done = {
+  readonly results: readonly SignedResult[];
+  readonly openings: ReadonlyMap<string, MarkOpening>;
+  readonly unsigned?: readonly Extract<CsvRow, { ok: false }>[];
+};
 
-/** What was signed in the last run, and the openings a mark result left to keep. */
-type Done = { readonly results: readonly SignedResult[]; readonly openings: ReadonlyMap<string, MarkOpening> };
+/** Leaving the page with a mark's sequence file not yet saved loses it for good: the browser asks first. */
+const useLeaveGuard = (on: boolean) => {
+  useEffect(() => {
+    if (!on) return;
+    const stop = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', stop);
+    return () => window.removeEventListener('beforeunload', stop);
+  }, [on]);
+};
 
 const SignedPanel: React.FC<{ done: Done; onAgain: () => void }> = ({ done, onAgain }) => {
   const tr = useT();
   const { t } = tr;
   const ok = done.results.filter((r): r is Extract<SignedResult, { ok: true }> => r.ok);
   const bad = done.results.filter((r): r is Extract<SignedResult, { ok: false }> => !r.ok);
+  const names = resultFileNames(ok.map((r) => r.bundle.statement));
+  const [saved, setSaved] = useState<ReadonlySet<string>>(new Set());
+  const unsavedMarks = [...done.openings.keys()].filter((c) => !saved.has(c));
+  useLeaveGuard(unsavedMarks.length > 0);
+  const one = (i: number) => download(JSON.stringify(ok[i].bundle, null, 2), names[i]);
+  const zipAll = async () => {
+    const { zipSync, strToU8 } = await import('fflate');
+    const files: Record<string, Uint8Array> = {};
+    ok.forEach((r, i) => (files[names[i]] = strToU8(JSON.stringify(r.bundle, null, 2))));
+    download(zipSync(files), 'lab-results-one-file-each.zip', 'application/zip');
+  };
+  const notBound = ok.filter((r) => !r.bound);
+  const withdrawFailed = ok.filter((r) => r.withdrew && !r.withdrew.ok);
   return (
     <Stack spacing={2} data-lab-signed-run="">
       <Typography variant="h5" component="h2" tabIndex={-1} data-screen-heading="">
@@ -65,43 +93,65 @@ const SignedPanel: React.FC<{ done: Done; onAgain: () => void }> = ({ done, onAg
       <Typography variant="body2" color="text.secondary">
         {t('app.lr.tools.signedText')}
       </Typography>
-      {ok.length === 1 && <ResultFacts statement={ok[0].bundle.statement} code={ok[0].code} />}
-      {ok.length > 1 && (
-        <Stack spacing={0.5}>
-          {ok.map((r) => (
-            <Typography key={r.code} variant="body2" data-signed-row="">
-              {r.bundle.statement.accession} · {r.bundle.statement.sampleId} ·{' '}
-              <b>{callWords(r.bundle.statement, tr)}</b>
-            </Typography>
-          ))}
-        </Stack>
-      )}
-      {ok.map((r) =>
-        r.bound ? null : (
-          <Alert key={`b${r.code}`} severity="warning" variant="outlined">
-            {r.bundle.statement.accession}: {t('app.lr.tools.notBound', { error: r.bindError ?? '' })}
-          </Alert>
-        ),
-      )}
-      {ok.length > 0 && ok.every((r) => r.bound) && (
-        <Alert severity="success" variant="outlined">
-          {t('app.lr.tools.bound')}
-        </Alert>
-      )}
       {[...done.openings.entries()].map(([code, o]) => (
-        <Alert key={`m${code}`} severity="warning" variant="outlined" data-mark-keep="">
+        <Alert
+          key={`m${code}`}
+          severity={saved.has(code) ? 'success' : 'warning'}
+          variant="outlined"
+          data-mark-keep={saved.has(code) ? 'saved' : 'unsaved'}
+        >
           {t('app.lr.tools.markKeep')}
           <Box>
             <Button
               size="small"
               variant="contained"
               sx={{ mt: 1, minHeight: 40 }}
-              onClick={() => download(JSON.stringify(o, null, 2), `mark-opening-${code.slice(0, 12)}.json`)}
+              onClick={() => {
+                download(JSON.stringify(o, null, 2), `mark-sequence-${code.slice(0, 12)}.json`);
+                setSaved(new Set([...saved, code]));
+              }}
               data-mark-download=""
             >
               {t('app.lr.tools.markDownload')}
             </Button>
           </Box>
+        </Alert>
+      ))}
+      {ok.length === 1 && <ResultFacts statement={ok[0].bundle.statement} code={ok[0].code} />}
+      {ok.length > 1 && (
+        <Stack spacing={0.75}>
+          {ok.map((r, i) => (
+            <Stack key={r.code} direction="row" spacing={1} sx={{ alignItems: 'center' }} data-signed-row="">
+              <Typography variant="body2" sx={{ flex: 1, overflowWrap: 'anywhere' }}>
+                {r.bundle.statement.accession} · {r.bundle.statement.sampleId}
+                {r.bundle.statement.kind === 'pathogen'
+                  ? ` · ${(r.bundle.statement.result as { target: string }).target}`
+                  : ''}{' '}
+                · <b>{callWords(r.bundle.statement, tr)}</b>
+              </Typography>
+              <Button size="small" onClick={() => one(i)} sx={{ minHeight: 40, flexShrink: 0 }} data-row-download="">
+                {t('app.lr.tools.downloadOne')}
+              </Button>
+            </Stack>
+          ))}
+        </Stack>
+      )}
+      {notBound.length > 0 && (
+        <Alert severity="warning" variant="outlined" data-not-bound={notBound.length}>
+          {t('app.lr.tools.notBound', { n: String(notBound.length), error: notBound[0].bindError ?? '' })}
+        </Alert>
+      )}
+      {ok.length > 0 && notBound.length === 0 && (
+        <Alert severity="success" variant="outlined">
+          {t('app.lr.tools.bound')}
+        </Alert>
+      )}
+      {withdrawFailed.map((r) => (
+        <Alert key={`w${r.code}`} severity="error" variant="outlined" data-withdraw-failed="">
+          {t('app.lr.tools.withdrawFailed', {
+            code: short(r.withdrew!.code),
+            error: r.withdrew!.error ?? '',
+          })}
         </Alert>
       ))}
       {bad.map((r, i) => (
@@ -110,45 +160,53 @@ const SignedPanel: React.FC<{ done: Done; onAgain: () => void }> = ({ done, onAg
           {r.code === 'unreadable' ? ` ${r.message}` : ''}
         </Alert>
       ))}
+      {(done.unsigned?.length ?? 0) > 0 && (
+        <Alert severity="warning" variant="outlined" data-unsigned={done.unsigned!.length}>
+          {t('app.lr.tools.unsigned', { n: String(done.unsigned!.length) })}
+        </Alert>
+      )}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
         {ok.length === 1 && (
-          <Button
-            variant="contained"
-            onClick={() =>
-              download(
-                JSON.stringify(ok[0].bundle, null, 2),
-                `${fileSafe(ok[0].bundle.statement.accession)}.veilcore-result.json`,
-              )
-            }
-            sx={{ minHeight: 44 }}
-            data-result-download=""
-          >
+          <Button variant="contained" onClick={() => one(0)} sx={{ minHeight: 44 }} data-result-download="">
             {t('app.lr.tools.download')}
           </Button>
         )}
         {ok.length > 1 && (
-          <Button
-            variant="contained"
-            onClick={() =>
-              download(
-                JSON.stringify(resultsFile(ok.map((r) => r.bundle)), null, 2),
-                'lab-results.veilcore-results.json',
-              )
-            }
-            sx={{ minHeight: 44 }}
-            data-result-download=""
-          >
+          <Button variant="contained" onClick={() => void zipAll()} sx={{ minHeight: 44 }} data-result-download="">
             {t('app.lr.tools.downloadAll')}
           </Button>
         )}
-        {ok.length > 0 && (
+        {ok.length > 1 && (
           <Button
             variant="outlined"
             onClick={() =>
               download(
-                resultsSummaryCsv(
-                  ok.map((r) => ({ statement: r.bundle.statement, code: r.code, recordId: r.recordId })),
-                ),
+                JSON.stringify(resultsFile(ok.map((r) => r.bundle)), null, 2),
+                'lab-results-archive-not-to-send.json',
+              )
+            }
+            sx={{ minHeight: 44 }}
+            data-result-archive=""
+          >
+            {t('app.lr.tools.archive')}
+          </Button>
+        )}
+        {(ok.length > 0 || (done.unsigned?.length ?? 0) > 0) && (
+          <Button
+            variant="outlined"
+            onClick={() =>
+              download(
+                resultsSummaryCsv([
+                  ...ok.map((r) => ({ statement: r.bundle.statement, code: r.code, recordId: r.recordId })),
+                  ...(done.unsigned ?? []).map((u) => ({
+                    unsigned: {
+                      sampleId: u.sampleId,
+                      accession: u.accession,
+                      target: u.target,
+                      why: `line ${u.line}: ${t(`app.lr.problem.${u.code}` as AppKey)}`,
+                    },
+                  })),
+                ]),
                 'lab-results-summary.csv',
                 'text/csv',
               )
@@ -158,10 +216,15 @@ const SignedPanel: React.FC<{ done: Done; onAgain: () => void }> = ({ done, onAg
             {t('app.lr.tools.summary')}
           </Button>
         )}
-        <Button onClick={onAgain} sx={{ minHeight: 44 }}>
+        <Button onClick={onAgain} disabled={unsavedMarks.length > 0} sx={{ minHeight: 44 }} data-sign-another="">
           {t('app.lr.tools.another')}
         </Button>
       </Stack>
+      {unsavedMarks.length > 0 && (
+        <Typography variant="body2" color="warning.main">
+          {t('app.lr.tools.markFirst')}
+        </Typography>
+      )}
     </Stack>
   );
 };
@@ -275,7 +338,7 @@ const CsvResults: React.FC<{ records: ReturnType<typeof useRecords>; onDone: (d:
         records,
         (done, total) => setProgress({ done, total }),
       );
-      onDone({ results, openings: new Map() });
+      onDone({ results, openings: new Map(), unsigned: bad });
     } catch (e) {
       setError(t('app.lr.tools.failed', { error: e instanceof Error ? e.message : String(e) }));
     } finally {
@@ -345,8 +408,14 @@ const CsvResults: React.FC<{ records: ReturnType<typeof useRecords>; onDone: (d:
         }}
       />
       {read && 'error' in read && (
-        <Alert severity="warning" variant="outlined">
-          {t(read.error === 'empty' ? 'app.lr.csv.empty' : 'app.lr.csv.columns')}
+        <Alert severity="warning" variant="outlined" data-csv-refused={read.error}>
+          {read.error === 'tooMany'
+            ? t('app.lr.csv.tooMany', {
+                rows: String(read.rows),
+                n: String(CSV_MAX_ROWS),
+                next: String(read.lastLine + 1),
+              })
+            : t(read.error === 'empty' ? 'app.lr.csv.empty' : 'app.lr.csv.columns')}
         </Alert>
       )}
       {read && !('error' in read) && (
@@ -354,14 +423,12 @@ const CsvResults: React.FC<{ records: ReturnType<typeof useRecords>; onDone: (d:
           <Typography variant="body1" data-csv-ready={ready.length}>
             {t('app.lr.csv.ready', { ok: String(ready.length), bad: String(bad.length) })}
           </Typography>
-          {read.tooMany && (
-            <Alert severity="info" variant="outlined">
-              {t('app.lr.csv.tooMany', { n: String(CSV_MAX_ROWS) })}
-            </Alert>
-          )}
-          {bad.slice(0, 20).map((r) => (
+          {bad.map((r) => (
             <Typography key={r.line} variant="body2" color="warning.main" data-csv-bad={r.line}>
-              {t('app.lr.csv.row', { line: String(r.line), problem: t(`app.lr.problem.${r.code}` as AppKey) })}
+              {t('app.lr.csv.row', {
+                line: String(r.line),
+                problem: t(`app.lr.problem.${r.code === 'result' ? 'csvResult' : r.code}` as AppKey),
+              })}
             </Typography>
           ))}
           {ready.length > 0 && (
@@ -385,6 +452,45 @@ const CsvResults: React.FC<{ records: ReturnType<typeof useRecords>; onDone: (d:
         </Alert>
       )}
     </Stack>
+  );
+};
+
+/** Results this lab signed and kept whose name couldn't be posted yet (rate limit, offline): post it now. */
+const NameUnbound: React.FC<{ records: readonly StrainRecord[] }> = ({ records }) => {
+  const { t } = useT();
+  const unbound = records.filter((r) => r.labResult && !r.labResult.bindingId);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string>();
+  if (unbound.length === 0 && !note) return null;
+  const go = async () => {
+    const attester = loadAttester();
+    if (!attester) return;
+    setBusy(true);
+    try {
+      const { nameUnbound } = await import('../../veilcore/lab-result-sign');
+      const out = await nameUnbound(attester, unbound);
+      setNote(
+        out.left
+          ? t('app.lr.tools.nameLeft', { named: String(out.named), left: String(out.left), error: out.error ?? '' })
+          : t('app.lr.tools.nameDone', { named: String(out.named) }),
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Box sx={{ mb: 1.5 }} data-name-unbound={unbound.length}>
+      {unbound.length > 0 && (
+        <Button variant="outlined" disabled={busy} onClick={() => void go()} sx={{ minHeight: 44 }}>
+          {t('app.lr.tools.nameRetry', { n: String(unbound.length) })}
+        </Button>
+      )}
+      {note && (
+        <Typography variant="body2" sx={{ mt: 1 }}>
+          {note}
+        </Typography>
+      )}
+    </Box>
   );
 };
 
@@ -450,6 +556,7 @@ export const LabResultsPage: React.FC = () => {
             <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
               {t('app.lr.tools.yours')}
             </Typography>
+            <NameUnbound records={mineRecords} />
             {mineRecords.length === 0 ? (
               <Typography variant="body2" color="text.secondary">
                 {t('app.lr.tools.none')}

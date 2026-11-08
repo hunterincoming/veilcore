@@ -255,6 +255,8 @@ describe('on veilcore.org', () => {
     // Lab results v2 (lab-result.ts): the lab's tools sign nothing on mainnet, and the delivery
     // flow's result box is inside the same switch.
     expect(src('../components/lab/LabResultsPage.tsx')).toContain('!LAB_SIGNING_ENABLED ? (');
+    // The check page offers adding and publishing a result: not on mainnet either (review, 8 Nov).
+    expect(src('../components/lab/LabResultCheck.tsx')).toContain('!LAB_SIGNING_ENABLED ? (');
     expect(src('../components/flow/LabResults.tsx')).toContain('if (LAB_SIGNING_ENABLED && withResult)');
   });
 });

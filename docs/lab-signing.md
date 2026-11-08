@@ -67,24 +67,46 @@ field set too (`/schemas/pathogen-v1.json`, `genetic-match`, `lineage-check`, `d
 showing the rest. Code: `veilcore/lab-result.ts`.
 
 - **Kinds:** numbers under a form; a pathogen or viroid test (HLVd first: target, method, detected
-  or not, optional Ct, sample type); a comparison "sample A matches record B by method M"; a
-  parentage check "child C consistent with parents A and B by method M"; a DNA mark; a withdrawal.
-  Comparisons name records by proof code only: no genotype is in the result or anywhere else.
+  or not, optional target Ct, sample type, run and QC details such as the Ct cut-off, limit of
+  detection, controls and run ID); a genotype comparison "a sample sent under record A gave the same
+  calls as a sample sent under record B, at the markers compared, by method M"; a parentage check
+  "the sample is consistent with the parents named"; a DNA mark; a withdrawal. Records are named by
+  proof code only: no genotype is in the result or anywhere else. The record named is the one the
+  sender gave for the sample: the lab didn't see where the sample was taken.
+  A pooled sample (several plantlets in one test, routine for TC labs) names the one record the
+  sender gave for the pool.
+- **What a claim on Midnight shows:** only the call and counts ("not detected", "same genotype").
+  What was tested for, or compared, is in the result file. The claim check (`/check-claim`) says so
+  for these forms and lets the checker choose the result file, which is checked against the claim's
+  record and not sent. Putting the target and the compared records into the field set was weighed
+  and not done: each would need its own claim on Midnight (one more transaction per identifier,
+  against the 10 a day a browser may make) and text slots the claims path doesn't take.
 - **DNA marks:** the sequence is sealed as SHA-256 of a tag, a 32-byte salt and the sequence. The
-  lab downloads an opening file (sequence and salt) and keeps it; VeilCore never has it. The check
-  page shows the seal, and in a dispute checks an opening against it. VeilCore doesn't mark, test or
-  watch for DNA.
-- **Where a lab signs:** with a report on a delivery (`LabResults.tsx`, which now makes version 2),
-  or on `/lab/results`: one result, or a CSV of up to 100 rows (pathogen, comparison or parentage),
-  each row its own signed result. Each result is kept as a record the lab holds, so it is dated in
-  the next hourly batch, and the lab posts a binding naming its key on it
-  (`claims-key.ts resultBindingHash`; it stands on its own, without a report signature). A result
-  that replaces one of the lab's own withdraws that one's binding. The lab gets a result file to
-  hand over, and a summary CSV for its LIMS.
-- **Checking:** `/check-lab-result` checks a result file in the browser (form, binding, call,
-  signature), looks up only the lab's binding to print its name, and shows "replaced by" only for a
-  later result signed by the same key. The page reads the holder's own records only when asked
-  (that sends the holder key), and then offers to add the result to the record it was tested from.
+  lab downloads a sequence file (sequence and salt) and keeps it; VeilCore never has it. Nothing
+  else can be signed, and leaving the page asks first, until it is saved. The check page shows the
+  seal, and in a dispute checks the sequence file against it. A match shows the lab sealed that
+  sequence by the result's date, not that a disputed plant carries it. VeilCore doesn't mark, test
+  or watch for DNA.
+- **Where a lab signs:** with a report on a delivery (`LabResults.tsx`, which now makes version 2;
+  a corrected report's result names the result it corrects), or on `/lab/results`: one result, or a
+  CSV of up to 100 rows (pathogen, comparison or parentage), each row its own signed result. A file
+  with more rows is refused whole, never cut short. The CSV takes qPCR exports as they come
+  ("Undetermined" or "N/A" for no Ct, QuantStudio and CFX column names, a panel of targets per
+  sample); a Ct with more than two decimals, an inconclusive result or an ambiguous date is refused,
+  not rounded or guessed. Each result is kept as a record the lab holds, so it is dated in the next
+  hourly batch, and the lab posts a binding naming its key on it (`claims-key.ts resultBindingHash`;
+  it stands on its own, without a report signature). After the registry refuses twice for its write
+  limit the run stops posting names; "Add your lab's name" posts them later. A result that replaces
+  one of the lab's own withdraws that one's binding, whether or not its own name posted, and a
+  withdrawal that fails is shown. The lab gets one file per result (per row, or a zip of separate
+  files: no file holds two clients' results), an archive for its own records, and a summary CSV for
+  its LIMS that also lists the rows not signed.
+- **Checking:** `/check-lab-result` (test network only, like signing) checks a result file in the
+  browser (form, binding, call, signature). It looks up the lab's name only when asked, since that
+  sends the result's code to the registry, and shows "replaced by" only for a later result signed by
+  the same key, about the same record, not tested earlier. A replaced result reads as replaced, not
+  as unsigned. The page reads the holder's own records only when asked (that sends the holder key),
+  and then offers to add the result to the record it was sent under.
 - Version 1 results keep checking exactly as before.
 
 ## The forms (public, at `/schemas/`)

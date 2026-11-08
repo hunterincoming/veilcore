@@ -104,6 +104,8 @@ import {
   wasOpened,
   rememberBinding,
   bindingFor,
+  rememberResultCode,
+  resultCodeFor,
   type ResultState,
   type ResultSummary,
 } from '../../veilcore/lab-results';
@@ -1102,11 +1104,20 @@ export const SendResultsPanel: React.FC<{
       // with the claims key its own attester key makes, then binds that key to the result.
       let numbersBytes: Uint8Array | undefined;
       let bindingId: string | undefined;
+      let resultCode: string | undefined;
       try {
         if (LAB_SIGNING_ENABLED && withResult) {
           // Only a report signature bound to the record can be checked by anyone (lab-doc.ts).
           if (!salt) throw new Error(t('app.labnums.oldCode'));
-          const d = tryDraft({ ...res, subject }, attester.displayName ?? '');
+          // A corrected report's result names the result it corrects (SPEC 11.12, replaces).
+          const earlier =
+            replacing?.attestationId && !res.replaces.trim()
+              ? resultCodeFor(transferId, replacing.attestationId)
+              : undefined;
+          const d = tryDraft(
+            { ...res, subject, ...(earlier ? { replaces: earlier, reason: 'correction' as const } : {}) },
+            attester.displayName ?? '',
+          );
           if (!d.ok) {
             setResProblem(d.code);
             throw new Error(t(`app.lr.problem.${d.code}` as AppKey));
@@ -1123,6 +1134,7 @@ export const SendResultsPanel: React.FC<{
           if (bound.error || !bound.attestationId)
             throw new Error(t('app.lab.out.notRecorded', { error: bound.error ?? t('app.lab.out.noAnswer') }));
           bindingId = bound.attestationId;
+          resultCode = made.commitment;
           numbersBytes = new TextEncoder().encode(JSON.stringify({ ...made.bundle, about: subject }));
         }
       } catch (e) {
@@ -1160,6 +1172,7 @@ export const SendResultsPanel: React.FC<{
         }
       }
       if (bindingId) rememberBinding(transferId, signed.attestationId, bindingId);
+      if (resultCode) rememberResultCode(transferId, signed.attestationId, resultCode);
       setSent(true);
       setScreen((n) => n + 1);
       labChanged();

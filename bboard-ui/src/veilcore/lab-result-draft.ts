@@ -7,6 +7,7 @@ import { numbersOf, type TypedNumbers } from './field-set';
 import {
   LAB_RESULT_FORMAT,
   checkedStatement,
+  isFutureDate,
   newMarkOpening,
   problemOf,
   sequenceOk,
@@ -42,6 +43,7 @@ export type ResultDraft = {
   readonly detected: YesNo;
   readonly ct: string;
   readonly other: string;
+  readonly otherSampleId: string;
   readonly matches: YesNo;
   readonly compared: string;
   readonly differing: string;
@@ -81,6 +83,7 @@ export const emptyDraft = (kind: ResultKind = 'pathogen'): ResultDraft => ({
   detected: '',
   ct: '',
   other: '',
+  otherSampleId: '',
   matches: '',
   compared: '',
   differing: '',
@@ -153,6 +156,7 @@ export const draftToInput = (d: ResultDraft, labName: string): { input: LabResul
       const differing = count(d.differing);
       result = {
         other: code(d.other, 'other'),
+        ...(d.otherSampleId.trim() ? { otherSampleId: d.otherSampleId.trim() } : {}),
         matches: call(d.matches),
         ...(compared !== undefined ? { compared } : {}),
         ...(differing !== undefined ? { differing } : {}),
@@ -187,7 +191,8 @@ export const draftToInput = (d: ResultDraft, labName: string): { input: LabResul
       result = undefined;
       break;
   }
-  const qc = d.qc.map((q) => ({ name: q.name.trim(), value: q.value.trim() })).filter((q) => q.name || q.value);
+  // A detail with no value (an unfilled row of the usual ones) isn't signed.
+  const qc = d.qc.map((q) => ({ name: q.name.trim(), value: q.value.trim() })).filter((q) => q.value);
   const panel = d.panel.trim();
   const panelVersion = d.panelVersion.trim();
   const replaces = d.replaces.trim();
@@ -208,6 +213,7 @@ export const draftToInput = (d: ResultDraft, labName: string): { input: LabResul
       : {}),
   };
   checkedStatement({ format: LAB_RESULT_FORMAT, ...statement });
+  if (isFutureDate(statement.tested)) bad('future', 'The date tested is after tomorrow.');
   return {
     input: { labName, title: d.title.trim(), statement, ...(values ? { values } : {}) },
     ...(opening ? { opening } : {}),

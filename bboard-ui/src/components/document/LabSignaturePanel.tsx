@@ -19,6 +19,7 @@ import type { LabSigner } from '../../veilcore/claim-link';
 import { useT } from '../../i18n/app';
 import { Fact } from './DocumentParts';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
+import { withdrawnWords } from '../lab/signer-words';
 
 type Held = DocumentRecordLike & { readonly fieldSet: HeldFieldSet };
 
@@ -97,7 +98,7 @@ export const LabSignaturePanel: React.FC<{
     signer?.kind === 'bound'
       ? signerLabel(signer.attestation as ResolvedAttestation, 'Signed by', Date.now(), tr).text
       : signer?.kind === 'retracted'
-        ? t('app.claim.check.labWithdrawn')
+        ? withdrawnWords(signer, !!record.labResult, tr)
         : signer?.kind === 'conflict'
           ? t('app.claim.check.labConflict')
           : signer
