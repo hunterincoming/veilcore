@@ -17,6 +17,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  Collapse,
   LinearProgress,
   MenuItem,
   Stack,
@@ -42,6 +43,7 @@ import {
   guessAnimalMapping,
   type AnimalFieldKey,
   FIELDS,
+  PASSPORT_FIELDS,
   HEADER_SCAN,
   KEY_STAMPS_PER_DAY,
   MAX_ROWS,
@@ -102,6 +104,12 @@ const FIELD_KEY: Record<FieldKey, AppKey> = {
   bredBy: 'app.import.field.bredBy',
   dateCreated: 'app.import.field.dateCreated',
   notes: 'app.import.field.notes',
+  genus: 'app.import.field.genus',
+  sampStat: 'app.import.field.sampStat',
+  collSrc: 'app.import.field.collSrc',
+  origCty: 'app.import.field.origCty',
+  acqDate: 'app.import.field.acqDate',
+  puid: 'app.import.field.puid',
 };
 
 /** An animal list's column names (bulk-import.ts ANIMAL_FIELDS), in the page's language. */
@@ -499,6 +507,39 @@ const Columns: React.FC<{
     return checkRows(sheet, { ...mapping, dateOrder: 'auto' }, { existing: [] }).ambiguousDates > 0;
   }, [sheet, dateColumn, !!animal]);
   const detected = dateOrderFor(sheet, { ...mapping, dateOrder: 'auto' });
+  // A genebank's passport sheet (MCPD): its columns open by themselves when the file has them.
+  const passportFound = PASSPORT_FIELDS.some((f) => (mapping.columns[f] ?? null) !== null);
+  const [passport, setPassport] = useState(passportFound);
+  const passportId = useId();
+  const columnSelect = (f: FieldKey) => {
+    const col = mapping.columns[f] ?? null;
+    return (
+      <TextField
+        key={f}
+        select
+        label={t(FIELD_KEY[f])}
+        required={f === 'strainName'}
+        value={col === null ? '' : String(col)}
+        onChange={(e) => setColumn(f, e.target.value)}
+        helperText={
+          col !== null && sampleOf(sheet, col)
+            ? t('app.import.cols.example', { v: sampleOf(sheet, col) })
+            : f === 'parents'
+              ? t('app.import.cols.twoParents')
+              : undefined
+        }
+        fullWidth
+        data-plant-column={f}
+      >
+        <MenuItem value="">{f === 'strainName' ? t('app.import.cols.pick') : t('app.import.cols.notInFile')}</MenuItem>
+        {sheet.headers.map((h, i) => (
+          <MenuItem key={i} value={String(i)}>
+            {h}
+          </MenuItem>
+        ))}
+      </TextField>
+    );
+  };
 
   return (
     <Stack spacing={2.5}>
@@ -570,37 +611,33 @@ const Columns: React.FC<{
           />
         </>
       )}
-      {!animal &&
-        FIELDS.map((f) => {
-          const col = mapping.columns[f];
-          return (
-            <TextField
-              key={f}
-              select
-              label={t(FIELD_KEY[f])}
-              required={f === 'strainName'}
-              value={col === null ? '' : String(col)}
-              onChange={(e) => setColumn(f, e.target.value)}
-              helperText={
-                col !== null && sampleOf(sheet, col)
-                  ? t('app.import.cols.example', { v: sampleOf(sheet, col) })
-                  : f === 'parents'
-                    ? t('app.import.cols.twoParents')
-                    : undefined
-              }
-              fullWidth
-            >
-              <MenuItem value="">
-                {f === 'strainName' ? t('app.import.cols.pick') : t('app.import.cols.notInFile')}
-              </MenuItem>
-              {sheet.headers.map((h, i) => (
-                <MenuItem key={i} value={String(i)}>
-                  {h}
-                </MenuItem>
-              ))}
-            </TextField>
-          );
-        })}
+      {!animal && FIELDS.map(columnSelect)}
+      {!animal && (
+        <Box data-passport-columns={passport ? 'open' : 'closed'}>
+          <Button
+            variant="text"
+            onClick={() => setPassport(!passport)}
+            aria-expanded={passport}
+            aria-controls={passportId}
+            sx={{ px: 0, minHeight: 44 }}
+          >
+            {passport ? t('app.origin.import.hide') : t('app.origin.import.show')}
+          </Button>
+          <Collapse in={passport} id={passportId}>
+            <Stack spacing={2.5} sx={{ pt: 1 }}>
+              <Box>
+                <Typography variant="subtitle2" component="h2">
+                  {t('app.origin.import.title')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t('app.origin.import.help')}
+                </Typography>
+              </Box>
+              {PASSPORT_FIELDS.map(columnSelect)}
+            </Stack>
+          </Collapse>
+        </Box>
+      )}
       <TextField
         label={animal ? t('app.animal.import.breeder') : t('app.import.cols.bredBy')}
         value={mapping.bredByDefault}

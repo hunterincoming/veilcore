@@ -18,6 +18,8 @@ import {
   detectDateOrder,
   emptyMapping,
   guessMapping,
+  FIELDS,
+  PASSPORT_FIELDS,
   importedRecordIds,
   isDateFormat,
   keyStampDays,
@@ -313,7 +315,12 @@ describe('reading an .xlsx', () => {
 // ── Columns and values ──────────────────────────────────────────────────────────────────
 
 describe('guessing which column is which', () => {
-  const cols = (headers: string[]) => guessMapping(headers).columns;
+  /** The plant columns guessed; a sheet with no MCPD descriptor names maps no passport column. */
+  const cols = (headers: string[]) => {
+    const c = guessMapping(headers).columns;
+    for (const f of PASSPORT_FIELDS) expect(c[f], f).toBeNull();
+    return Object.fromEntries(FIELDS.map((f) => [f, c[f]]));
+  };
 
   it('a tissue-culture lab’s accession log', () => {
     expect(

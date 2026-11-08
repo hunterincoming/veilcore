@@ -61,6 +61,7 @@ import {
 import { Link as RouterLink, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import VerifiedIcon from '@mui/icons-material/VerifiedOutlined';
 import { loadFingerprintCircuit, MAX_FINGERPRINT_BYTES, shortFingerprint } from '../veilcore/commitment';
+import { DatedNotOrigin } from '../components/verify/DatedNotOrigin';
 import { DISCLOSURE_FIELDS, LEGACY_NAME, toDisclosureKey, labelOf } from '../veilcore/disclosure';
 import { proofFor, type ProofState } from '../veilcore/proofs';
 import {
@@ -598,6 +599,7 @@ export const VerifyPage: React.FC = () => {
             ),
           })}
         </Typography>
+        <DatedNotOrigin center />
 
         {loading ? (
           <Paper sx={{ p: 6, textAlign: 'center' }}>

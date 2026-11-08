@@ -102,4 +102,4 @@ export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';
 export const OPERATOR = 'VeilCore’s founders, until VeilCore is incorporated';
 
 /** The date the terms of use last changed: change it with them. */
-export const TERMS_UPDATED = '27 October 2026';
+export const TERMS_UPDATED = '7 November 2026';

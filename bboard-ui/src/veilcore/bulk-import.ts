@@ -31,6 +31,7 @@ import { sealAnimalRecord, sealRecord } from './seal-record';
 import { isAnimal, isCalendarDate, type AnimalDetails, type AnimalSex } from './animal-profile';
 import type { SaveRefusal } from './store';
 import { nameLinkParams, verifyPath } from './verify-link';
+import { LANDRACE_METHOD, acqDateOf, originNotes } from './origin-notes';
 
 // ── Limits ─────────────────────────────────────────────────────────────────────────────
 
@@ -728,7 +729,16 @@ export const FIELDS = [
   'dateCreated',
   'notes',
 ] as const;
-export type FieldKey = (typeof FIELDS)[number];
+
+/**
+ * A genebank passport sheet's columns (FAO/Bioversity Multi-Crop Passport Descriptors v2.1),
+ * beyond the ones above: ACCENAME is the name, ACCENUMB the ID and SPECIES the species. GENUS is
+ * put in front of the species; the rest are sealed in the notes, each under its own label
+ * (origin-notes.ts), so the record's fingerprint is computed exactly as for any other plant.
+ */
+export const PASSPORT_FIELDS = ['genus', 'sampStat', 'collSrc', 'origCty', 'acqDate', 'puid'] as const;
+export type PassportFieldKey = (typeof PASSPORT_FIELDS)[number];
+export type FieldKey = (typeof FIELDS)[number] | PassportFieldKey;
 
 export const FIELD_LABELS: Record<FieldKey, string> = {
   strainName: 'Plant or line name',
@@ -739,6 +749,25 @@ export const FIELD_LABELS: Record<FieldKey, string> = {
   bredBy: 'Bred by',
   dateCreated: 'Date (your own note)',
   notes: 'Notes',
+  genus: 'Genus (GENUS)',
+  sampStat: 'Biological status (SAMPSTAT)',
+  collSrc: 'Collecting source (COLLSRC)',
+  origCty: 'Country of origin (ORIGCTY)',
+  acqDate: 'Date received (ACQDATE)',
+  puid: 'Permanent ID or DOI (PUID)',
+};
+
+/** MCPD descriptor names, exactly as a passport sheet heads its columns, and the field each fills. */
+const MCPD_HEADERS: Readonly<Record<string, FieldKey>> = {
+  ACCENAME: 'strainName',
+  ACCENUMB: 'refId',
+  GENUS: 'genus',
+  SPECIES: 'taxon',
+  SAMPSTAT: 'sampStat',
+  COLLSRC: 'collSrc',
+  ORIGCTY: 'origCty',
+  ACQDATE: 'acqDate',
+  PUID: 'puid',
 };
 
 export type DateOrder = 'auto' | 'mdy' | 'dmy';
@@ -767,6 +796,12 @@ export const emptyMapping = (): Mapping => ({
     bredBy: null,
     dateCreated: null,
     notes: null,
+    genus: null,
+    sampStat: null,
+    collSrc: null,
+    origCty: null,
+    acqDate: null,
+    puid: null,
   },
   bredByDefault: '',
   dateOrder: 'auto',
@@ -799,7 +834,14 @@ const FATHER = / (father|male|pollen|sire|paternal|pollen parent|parent 2|parent
 export const guessMapping = (headers: string[]): Mapping => {
   const m = emptyMapping();
   const columns = { ...m.columns };
+  // A passport sheet (MCPD) first: its descriptor names say exactly which column is which.
   headers.forEach((h, i) => {
+    const f = MCPD_HEADERS[h.trim().toUpperCase()];
+    if (f && columns[f] === null) columns[f] = i;
+  });
+  const taken = new Set(Object.values(columns).filter((c): c is number => c !== null));
+  headers.forEach((h, i) => {
+    if (taken.has(i)) return;
     const w = words(h);
     // A column naming both parents ("Parentage (Mother x Father)") holds both: it is the
     // parents column, not the second parent's because "father" is in its name (round 2).
@@ -1042,7 +1084,9 @@ export const normalizeDate = (value: string, order?: 'mdy' | 'dmy'): { value: st
   return { value: v, ambiguous: false };
 };
 
-const cellOf = (row: SheetRow, col: number | null) => (col === null ? '' : (row.cells[col] ?? ''));
+/** A cell, or '' for a column not in the file (null), or not in a mapping kept from before it existed. */
+const cellOf = (row: SheetRow, col: number | null | undefined) =>
+  col === null || col === undefined ? '' : (row.cells[col] ?? '');
 
 /** The order the date column uses, from the mapping or, on auto, from its values. */
 export const dateOrderFor = (sheet: Sheet, mapping: Mapping): 'mdy' | 'dmy' | undefined =>
@@ -1100,14 +1144,28 @@ export const rowFields = (
     name,
   }));
   const date = normalizeDate(cellOf(row, c.dateCreated), order);
+  // A passport sheet's columns (MCPD): the genus before the species, the rest into the notes.
+  const sampStat = oneLine(cellOf(row, c.sampStat));
+  const notes = originNotes(
+    {
+      country: oneLine(cellOf(row, c.origCty)),
+      received: acqDateOf(oneLine(cellOf(row, c.acqDate))),
+      doi: oneLine(cellOf(row, c.puid)),
+      sampStat,
+      collSrc: oneLine(cellOf(row, c.collSrc)),
+    },
+    multiLine(cellOf(row, c.notes)),
+  );
   return {
     strainName: oneLine(cellOf(row, c.strainName)),
     refId: oneLine(cellOf(row, c.refId)),
-    taxon: oneLine(cellOf(row, c.taxon)),
+    taxon: [oneLine(cellOf(row, c.genus)), oneLine(cellOf(row, c.taxon))].filter(Boolean).join(' '),
     parents,
     bredBy: oneLine(cellOf(row, c.bredBy)) || oneLine(mapping.bredByDefault),
     dateCreated: date.value,
-    notes: multiLine(cellOf(row, c.notes)),
+    notes,
+    // MCPD SAMPSTAT 300 is "traditional cultivar / landrace": said in "How it was made" too.
+    ...(sampStat === '300' ? { breedingMethod: LANDRACE_METHOD } : {}),
     dateAmbiguous: date.ambiguous,
   };
 };

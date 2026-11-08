@@ -21,6 +21,7 @@ import { geneticsLabel } from '../../veilcore/disclosure';
 import { useT } from '../../i18n/app';
 import { networkWords } from '../../i18n/network-words';
 import { LanguageBar } from '../../i18n/LanguagePicker';
+import { DatedNotOrigin } from './DatedNotOrigin';
 
 const Note: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <Typography
@@ -62,6 +63,7 @@ export const VerifyExample: React.FC = () => {
           <Typography variant="subtitle2">{t('app.verify.ex.title')}</Typography>
           <Typography variant="body2">{t('app.verify.ex.intro')}</Typography>
         </Alert>
+        <DatedNotOrigin />
 
         <Paper sx={{ p: { xs: 3, md: 4 } }}>
           <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2 }}>

@@ -12,6 +12,14 @@ import { parseStageHeader, stageNotes } from '../stage/stage-notes';
 import { enT, type Translator } from '../../i18n/translate';
 import { animalDraftHasContent, parseAnimalDraft, type AnimalDraft, type LogKind } from './animal-draft';
 import { parseStrainDraft, strainDraftHasContent, type StrainDraft } from './strain-draft';
+import {
+  LANDRACE_METHOD,
+  originHasContent,
+  originNotes,
+  parseOrigin,
+  type Origin,
+  type OriginSource,
+} from '../../veilcore/origin-notes';
 
 export const DRAFT_KEY = 'veilcore.log-draft.v1';
 
@@ -42,7 +50,30 @@ export type Draft = {
   animal?: AnimalDraft;
   /** What was typed on the strain form (strain-draft.ts). */
   strain?: StrainDraft;
+  /**
+   * "Where is it from?": bred by the holder, received, or a landrace or heirloom. Absent: worked
+   * out from "How it was made" (originSourceOf). Anything but 'bred' makes "Bred by" optional
+   * and opens the "Where it came from" step.
+   */
+  source?: OriginSource;
+  /** What the "Where it came from" step holds (veilcore/origin-notes.ts): sealed in the notes. */
+  origin?: Origin;
 };
+
+/** Where the plant is from: as chosen, else a landrace when "How it was made" says so, else bred. */
+export const originSourceOf = (d: Pick<Draft, 'source' | 'breedingMethod'>): OriginSource =>
+  d.source ?? (d.breedingMethod === LANDRACE_METHOD ? 'landrace' : 'bred');
+
+/** "Bred by" is needed only for the holder's own breeding: a landrace or received material has none to give. */
+export const breederRequired = (d: Pick<Draft, 'source' | 'breedingMethod'>): boolean => originSourceOf(d) === 'bred';
+
+/** Whether the "Where it came from" step is offered, and its answers sealed. */
+export const originApplies = (d: Pick<Draft, 'source' | 'breedingMethod' | 'stageOf'>): boolean =>
+  !d.stageOf && originSourceOf(d) !== 'bred';
+
+/** What the first screen needs before "Next": a name, and who bred it when the holder did. */
+export const plantReady = (d: Draft): boolean =>
+  Boolean(d.strainName.trim() && (!breederRequired(d) || d.bredBy.trim()));
 
 /** Today on the person's own calendar, not UTC: at 9pm in New Jersey it is still today. */
 export const today = (): string => {
@@ -76,7 +107,9 @@ export const draftHasContent = (d: Draft): boolean =>
     d.notes.trim() ||
     d.stage?.trim() ||
     d.selectedFor?.trim() ||
-    d.photos.length,
+    d.photos.length ||
+    (d.source && d.source !== 'bred') ||
+    originHasContent(d.origin),
   );
 
 const str = (v: unknown, max = 2000): string => (typeof v === 'string' ? v.slice(0, max) : '');
@@ -129,6 +162,8 @@ export const parseDraft = (raw: string | null): Draft | undefined => {
       ...(v.kind === 'animal' || v.kind === 'plant' || v.kind === 'strain' ? { kind: v.kind } : {}),
       ...(v.animal !== undefined && parseAnimalDraft(v.animal) ? { animal: parseAnimalDraft(v.animal) } : {}),
       ...(v.strain !== undefined && parseStrainDraft(v.strain) ? { strain: parseStrainDraft(v.strain) } : {}),
+      ...(v.source === 'bred' || v.source === 'received' || v.source === 'landrace' ? { source: v.source } : {}),
+      ...(parseOrigin(v.origin) ? { origin: parseOrigin(v.origin) } : {}),
     };
     return draftHasContent(d) ? d : undefined;
   } catch {
@@ -138,13 +173,19 @@ export const parseDraft = (raw: string | null): Draft | undefined => {
 
 /**
  * What a draft is sealed as (seal-record.ts): text trimmed, photos as their fingerprints only.
- * A next stage's two answers go first in the notes, one line each (stage-notes.ts).
+ * A next stage's two answers go first in the notes, one line each (stage-notes.ts); for a
+ * landrace or received material, the "Where it came from" lines next (origin-notes.ts). What the
+ * step held is sealed only while the step is offered: switching back to "I bred it" drops it.
  */
 export const sealInputOf = (draft: Draft): SealInput => ({
   strainName: draft.strainName.trim(),
   bredBy: draft.bredBy.trim(),
   dateCreated: draft.dateCreated,
-  notes: stageNotes(draft.stage, draft.selectedFor, draft.notes),
+  notes: stageNotes(
+    draft.stage,
+    draft.selectedFor,
+    originApplies(draft) ? originNotes(draft.origin, draft.notes) : draft.notes,
+  ),
   parents: draft.parents,
   breedingMethod: draft.breedingMethod,
   photoFingerprints: draft.photos.map((p) => p.fingerprint),
