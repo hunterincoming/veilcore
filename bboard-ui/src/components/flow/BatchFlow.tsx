@@ -8,7 +8,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React, { useEffect, useId, useMemo, useState, useSyncExternalStore } from 'react';
-import { Alert, Box, Button, LinearProgress, Link, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import {
+  Alert,
+  Autocomplete,
+  Box,
+  Button,
+  LinearProgress,
+  Link,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { AppHeader } from '../AppHeader';
 import { BackupStep } from './BackupStep';
@@ -17,7 +28,8 @@ import { today } from './log-flow-state';
 import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
 import { allRecords, useRecords, type StrainRecord } from '../../veilcore/records';
-import { isAnimal } from '../../veilcore/animal-profile';
+import { ANIMAL_SEXES, isAnimal, type AnimalSex } from '../../veilcore/animal-profile';
+import { SCHEMES, idShapeHint, sexWords } from './AnimalForm';
 import { isStrain } from '../../veilcore/strain-profile';
 import { holderKey } from '../../veilcore/holder';
 import { makeVaultIfSafe } from '../../veilcore/api-store';
@@ -30,22 +42,30 @@ import {
   type SealProgress,
 } from '../../veilcore/bulk-import';
 import {
+  EDIT_MAX,
   batchProblems,
   batchRows,
+  breederOptional,
   childNames,
   firstFreeStart,
+  firstRepeat,
   isReceived,
   ownDefaults,
+  suggestTags,
   UNLIKELY_YOUNG,
   unlikelyYoung,
   type BatchPlan,
   type BatchPreset,
+  type ChildDetails,
 } from '../../ask/batch';
 import { MAX_BATCH, type Handoff } from '../../ask/handoff';
 import { sireAndDam } from '../../ask/prefill';
 import { AskFilledBanner } from '../ask/AskFill';
 
 type Screen = 'review' | 'backup' | 'saving' | 'done';
+
+/** The sire picker's value for "Not on VeilCore: type the sire". Never a record id. */
+const TYPED = '__typed__';
 const STEP: Record<Screen, number> = { review: 1, backup: 2, saving: 3, done: 3 };
 
 /** Whether the browser says it is online (it can be wrong the other way: a save still says so). */
@@ -117,6 +137,22 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
   const taxon = taxonTyped ?? defaults.taxon;
   const [date, setDate] = useState(today());
   const count = /^\d{1,4}$/.test(countText.trim()) ? Number(countText.trim()) : NaN;
+  // A sire not on VeilCore (a stud's bull, by artificial insemination): typed in, with his semen code.
+  const [sireName, setSireName] = useState('');
+  const [sireTypedId, setSireTypedId] = useState('');
+  const [semenCode, setSemenCode] = useState('');
+  const typing = preset === 'offspring' && sireId === TYPED;
+  // Each child's own details, by its place in the batch, and the ID scheme they share.
+  const [edits, setEdits] = useState<Record<number, ChildDetails>>({});
+  const [idScheme, setIdScheme] = useState('');
+  const [lotName, setLotName] = useState('');
+  const [firstTag, setFirstTag] = useState('');
+  const shown = Number.isFinite(count) ? Math.min(count, MAX_BATCH) : 0;
+  const tags = suggestTags(firstTag, shown);
+  const children: ChildDetails[] = Array.from({ length: shown }, (_, i) =>
+    preset === 'clones' ? { tag: edits[i]?.tag ?? tags[i] } : { ...edits[i], born: edits[i]?.born ?? '' },
+  );
+  const editChild = (i: number, d: ChildDetails) => setEdits({ ...edits, [i]: { ...edits[i], ...d } });
   const unnumbered: BatchPlan = {
     preset,
     count,
@@ -127,13 +163,31 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
     ...(parent ? { parent } : {}),
     ...(sire ? { sire } : {}),
     ...(dam ? { dam } : {}),
+    ...(typing ? { typedSire: { name: sireName, individualId: sireTypedId }, semenCode } : {}),
+    ...(preset === 'offspring' ? { idScheme } : { lotName }),
+    children,
   };
   // Numbered past any child already made: the same clones again, or a second litter the same day,
   // are new records, never the old ones said to be saved again.
   const taken = useMemo(() => takenRows(records), [records]);
   const start = useMemo(
     () => firstFreeStart(unnumbered, taken),
-    [taken, preset, count, baseName, date, bredBy, taxon, parentId, sireId, damId],
+    [
+      taken,
+      preset,
+      count,
+      baseName,
+      date,
+      bredBy,
+      taxon,
+      parentId,
+      sireId,
+      damId,
+      sireName,
+      sireTypedId,
+      semenCode,
+      lotName,
+    ],
   );
   const plan: BatchPlan = { ...unnumbered, start };
   const problems = batchProblems(plan);
@@ -254,26 +308,61 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
             ) : (
               <>
                 {(['sire', 'dam'] as const).map((role) => (
-                  <TextField
-                    key={role}
-                    select
-                    {...mark(role)}
-                    label={t(role === 'sire' ? 'app.animal.sire' : 'app.animal.dam')}
-                    value={role === 'sire' ? sireId : damId}
-                    slotProps={{ select: { sx: { whiteSpace: 'normal', overflowWrap: 'anywhere' } } }}
-                    onChange={(e) => (role === 'sire' ? setSireId : setDamId)(e.target.value)}
-                    helperText={animals.length ? undefined : t('app.ask.batch.noAnimals')}
-                    fullWidth
-                  >
-                    <MenuItem value="">{t('app.ask.batch.notListed')}</MenuItem>
-                    {animals
-                      .filter((r) => r.id !== (role === 'sire' ? damId : sireId))
-                      .map((r) => (
-                        <MenuItem key={r.id} value={r.id}>
-                          {r.strainName || r.refId}
+                  <React.Fragment key={role}>
+                    <TextField
+                      select
+                      {...mark(role)}
+                      label={t(role === 'sire' ? 'app.animal.sire' : 'app.animal.dam')}
+                      value={role === 'sire' ? sireId : damId}
+                      slotProps={{ select: { sx: { whiteSpace: 'normal', overflowWrap: 'anywhere' } } }}
+                      onChange={(e) => (role === 'sire' ? setSireId : setDamId)(e.target.value)}
+                      helperText={
+                        animals.length || (role === 'sire' && typing) ? undefined : t('app.ask.batch.noAnimals')
+                      }
+                      fullWidth
+                    >
+                      <MenuItem value="">{t('app.ask.batch.notListed')}</MenuItem>
+                      {role === 'sire' && (
+                        <MenuItem value={TYPED} data-sire-typed-option="">
+                          {t('app.batch.sireTyped')}
                         </MenuItem>
-                      ))}
-                  </TextField>
+                      )}
+                      {animals
+                        .filter((r) => r.id !== (role === 'sire' ? damId : sireId))
+                        .map((r) => (
+                          <MenuItem key={r.id} value={r.id}>
+                            {r.strainName || r.refId}
+                          </MenuItem>
+                        ))}
+                    </TextField>
+                    {role === 'sire' && typing && (
+                      <Stack
+                        spacing={2.5}
+                        data-sire-typed=""
+                        sx={{ pl: 2, borderLeft: '3px solid', borderColor: 'divider' }}
+                      >
+                        <TextField
+                          label={t('app.batch.sireName')}
+                          value={sireName}
+                          onChange={(e) => setSireName(e.target.value.slice(0, 200))}
+                          fullWidth
+                        />
+                        <TextField
+                          label={t('app.batch.sireId')}
+                          value={sireTypedId}
+                          onChange={(e) => setSireTypedId(e.target.value.slice(0, 200))}
+                          fullWidth
+                        />
+                        <TextField
+                          label={t('app.batch.semenCode')}
+                          value={semenCode}
+                          onChange={(e) => setSemenCode(e.target.value.slice(0, 100))}
+                          helperText={t('app.batch.semenCodeHelp')}
+                          fullWidth
+                        />
+                      </Stack>
+                    )}
+                  </React.Fragment>
                 ))}
               </>
             )}
@@ -297,10 +386,17 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
               fullWidth
             />
             <TextField
-              label={preset === 'clones' ? t('app.log.bredBy') : t('app.animal.breeder')}
+              label={
+                preset === 'clones'
+                  ? breederOptional(plan)
+                    ? t('app.origin.breederIfKnown')
+                    : t('app.log.bredBy')
+                  : t('app.animal.breeder')
+              }
               value={bredBy}
               onChange={(e) => setBredByTyped(e.target.value.slice(0, 200))}
-              required
+              required={!breederOptional(plan)}
+              helperText={breederOptional(plan) ? t('app.origin.breederHelp') : undefined}
               fullWidth
             />
             <TextField
@@ -332,6 +428,143 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
               slotProps={{ inputLabel: { shrink: true } }}
               fullWidth
             />
+            {preset === 'clones' && names.length > 0 && (
+              <Box data-batch-lot="">
+                <Typography variant="subtitle2" component="h2">
+                  {t('app.batch.lot.title')}
+                </Typography>
+                <Stack spacing={2.5} sx={{ pt: 1.5 }}>
+                  <TextField
+                    label={t('app.batch.lot.name')}
+                    value={lotName}
+                    onChange={(e) => setLotName(e.target.value.slice(0, 180))}
+                    helperText={t('app.batch.lot.nameHelp')}
+                    fullWidth
+                  />
+                  <Typography variant="body2" sx={{ fontWeight: 700 }} data-batch-lot-count={names.length}>
+                    {tr.tp('app.batch.lot.count', names.length)}
+                  </Typography>
+                  <Typography variant="subtitle2" component="h3">
+                    {t('app.batch.tags.title')}
+                  </Typography>
+                  <TextField
+                    label={t('app.batch.tags.first')}
+                    value={firstTag}
+                    onChange={(e) => setFirstTag(e.target.value.slice(0, 200))}
+                    helperText={t('app.batch.tags.help')}
+                    fullWidth
+                  />
+                  {names.length <= EDIT_MAX &&
+                    firstTag.trim() !== '' &&
+                    names.map((n, i) => (
+                      <TextField
+                        key={i}
+                        size="small"
+                        label={t('app.batch.tag', { name: n })}
+                        value={children[i]?.tag ?? ''}
+                        onChange={(e) => editChild(i, { tag: e.target.value.slice(0, 200) })}
+                        fullWidth
+                        slotProps={{ htmlInput: { 'data-clone-tag': i } }}
+                      />
+                    ))}
+                  {problems.includes('dupTag') && (
+                    <Alert severity="error" variant="outlined" data-batch-dup="">
+                      {t('app.batch.dupTag', { tag: firstRepeat(children.map((c) => c.tag)) ?? '' })}
+                    </Alert>
+                  )}
+                </Stack>
+              </Box>
+            )}
+            {preset === 'offspring' && names.length > 0 && (
+              <Box data-batch-each="">
+                <Typography variant="subtitle2" component="h2">
+                  {t('app.batch.each.title')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {names.length <= EDIT_MAX
+                    ? t('app.batch.each.help')
+                    : t('app.batch.tooManyToEdit', { max: EDIT_MAX })}
+                </Typography>
+                {names.length <= EDIT_MAX && (
+                  <Stack spacing={2} sx={{ pt: 1.5 }}>
+                    <Autocomplete<string, false, false, true>
+                      freeSolo
+                      options={SCHEMES.map((k) => t(k))}
+                      inputValue={idScheme}
+                      onInputChange={(_, v) => setIdScheme(v.slice(0, 200))}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label={t('app.animal.idScheme')}
+                          required={children.some((c) => (c.individualId ?? '').trim())}
+                          error={problems.includes('scheme')}
+                          helperText={
+                            problems.includes('scheme') ? t('app.animal.need.scheme') : t('app.batch.schemeHelp')
+                          }
+                        />
+                      )}
+                    />
+                    {names.map((n, i) => {
+                      const c = children[i] ?? {};
+                      const id = c.individualId ?? '';
+                      return (
+                        <Box
+                          key={i}
+                          data-batch-child={i}
+                          sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1.5 }}
+                        >
+                          <Typography variant="body2" sx={{ fontWeight: 700, mb: 1, overflowWrap: 'anywhere' }}>
+                            {n}
+                          </Typography>
+                          <Stack spacing={1.5}>
+                            <TextField
+                              size="small"
+                              label={t('app.batch.each.id')}
+                              value={id}
+                              onChange={(e) => editChild(i, { individualId: e.target.value.slice(0, 200) })}
+                              helperText={t(idShapeHint(id, idScheme, (k) => t(k)) ?? 'app.batch.each.idHelp')}
+                              fullWidth
+                              slotProps={{ htmlInput: { 'data-child-id': i } }}
+                            />
+                            {/* Stacked on a phone: side by side, the date is cut off at 360px. */}
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                              <TextField
+                                select
+                                size="small"
+                                label={t('app.animal.sex')}
+                                value={c.sex ?? 'unknown'}
+                                onChange={(e) => editChild(i, { sex: e.target.value as AnimalSex })}
+                                sx={{ flex: 1, minWidth: 0 }}
+                              >
+                                {ANIMAL_SEXES.map((x) => (
+                                  <MenuItem key={x} value={x}>
+                                    {sexWords(x, tr)}
+                                  </MenuItem>
+                                ))}
+                              </TextField>
+                              <TextField
+                                size="small"
+                                type="date"
+                                label={t('app.batch.each.born')}
+                                value={c.born || date}
+                                onChange={(e) => editChild(i, { born: e.target.value })}
+                                slotProps={{ inputLabel: { shrink: true }, htmlInput: { 'data-child-born': i } }}
+                                sx={{ flex: 1, minWidth: 0 }}
+                              />
+                            </Stack>
+                          </Stack>
+                        </Box>
+                      );
+                    })}
+                    {problems.includes('dupId') && (
+                      <Alert severity="error" variant="outlined" data-batch-dup="">
+                        {t('app.batch.dupId', { id: firstRepeat(children.map((c) => c.individualId)) ?? '' })}
+                      </Alert>
+                    )}
+                  </Stack>
+                )}
+              </Box>
+            )}
             {names.length > 0 && problems.length === 0 && (
               <Box data-batch-children={names.length}>
                 <Typography variant="subtitle2" component="h2">
@@ -381,10 +614,14 @@ export const BatchFlow: React.FC<{ handoff: Handoff }> = ({ handoff }) => {
             </Button>
             <Typography id={hintId} variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
               {problems.includes('parent')
-                ? t(preset === 'clones' ? 'app.ask.batch.needParent' : 'app.ask.batch.needParents')
-                : problems.length
-                  ? t('app.ask.batch.needAll')
-                  : t('app.ask.batch.needsConnection')}
+                ? typing
+                  ? t('app.batch.needSire')
+                  : t(preset === 'clones' ? 'app.ask.batch.needParent' : 'app.ask.batch.needParents')
+                : problems.includes('scheme')
+                  ? t('app.animal.need.scheme')
+                  : problems.length
+                    ? t('app.ask.batch.needAll')
+                    : t('app.ask.batch.needsConnection')}
             </Typography>
           </Stack>
         );

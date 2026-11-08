@@ -13,10 +13,12 @@
 import React, { useState } from 'react';
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   Chip,
   Dialog,
+  MenuItem,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -30,8 +32,9 @@ import { previewCorrection, type CorrectionPreview } from '../veilcore/correctio
 import { correctionWaitsForBackup, integrityOf, issueCorrection, type StrainRecord } from '../veilcore/records';
 import { INK_COLOR } from '../config/theme';
 import { useRecordT } from '../i18n/app';
-import { isAnimal } from '../veilcore/animal-profile';
+import { ANIMAL_SEXES, isAnimal, type AnimalSex } from '../veilcore/animal-profile';
 import type { AppKey } from '../i18n/app/en';
+import { SCHEMES, idShapeHint, sexWords } from './flow/AnimalForm';
 
 const FIELD_LABEL: Record<string, AppKey> = {
   'profileData.cultivarName': 'app.plant.fix.field.cultivarName',
@@ -44,6 +47,9 @@ const FIELD_LABEL: Record<string, AppKey> = {
   attestations: 'app.plant.fix.field.attestations',
   sealedAt: 'app.plant.fix.field.sealedAt',
   holder: 'app.plant.fix.field.holder',
+  'profileData.sex': 'app.plant.fix.field.sex',
+  'profileData.individualId': 'app.plant.fix.field.individualId',
+  'profileData.idScheme': 'app.plant.fix.field.idScheme',
 };
 
 /** corrections.ts's consequence for these severities, in the page's language (the same English). */
@@ -54,8 +60,11 @@ export const CorrectRecord: React.FC<{
   /** Draw the opener yourself (the plant page's action list); default is a button. */
   trigger?: (open: () => void) => React.ReactNode;
 }> = ({ record, trigger }) => {
-  // An animal's correction: its name, breeder or holder, and notes (animal-profile.ts).
-  const { t } = useRecordT(record);
+  // An animal's correction: its name, breeder or holder, notes, and its sex and individual ID
+  // (animal-profile.ts): a herd book corrects these after a DNA parentage result, and a batch of
+  // young is often sealed before every ear tag is in. Never the sealed original: a new record.
+  const tr = useRecordT(record);
+  const { t } = tr;
   const animal = isAnimal(record);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -64,6 +73,23 @@ export const CorrectRecord: React.FC<{
   const [bredBy, setBredBy] = useState(record.bredBy);
   const [method, setMethod] = useState(record.breedingMethod ?? '');
   const [notes, setNotes] = useState(record.notes ?? '');
+  const [sex, setSex] = useState<AnimalSex>(record.animal?.sex ?? 'unknown');
+  const [individualId, setIndividualId] = useState(record.refId ?? '');
+  const [idScheme, setIdScheme] = useState(record.animal?.idScheme ?? '');
+  /** As the profile seals them: one line, trimmed; a scheme only beside an ID. */
+  const oneLine = (v: string) => v.replace(/\s+/g, ' ').trim();
+  const animalEdits: Partial<StrainRecord> = animal
+    ? {
+        refId: oneLine(individualId),
+        animal: {
+          breed: record.animal?.breed ?? '',
+          herd: record.animal?.herd ?? '',
+          sex,
+          idScheme: oneLine(individualId) ? oneLine(idScheme) : '',
+        },
+      }
+    : {};
+  const needsScheme = animal && !!oneLine(individualId) && !oneLine(idScheme);
   const [reason, setReason] = useState('');
   const [preview, setPreview] = useState<CorrectionPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -75,13 +101,18 @@ export const CorrectRecord: React.FC<{
     bredBy,
     breedingMethod: method,
     notes,
+    ...animalEdits,
   };
 
   const dirty =
     name !== record.strainName ||
     bredBy !== record.bredBy ||
     method !== (record.breedingMethod ?? '') ||
-    notes !== (record.notes ?? '');
+    notes !== (record.notes ?? '') ||
+    (animal &&
+      (sex !== (record.animal?.sex ?? 'unknown') ||
+        oneLine(individualId) !== (record.refId ?? '') ||
+        (oneLine(individualId) ? oneLine(idScheme) : '') !== (record.animal?.idScheme ?? '')));
 
   const check = () => setPreview(previewCorrection(record, edited));
 
@@ -94,6 +125,9 @@ export const CorrectRecord: React.FC<{
     setBredBy(record.bredBy);
     setMethod(record.breedingMethod ?? '');
     setNotes(record.notes ?? '');
+    setSex(record.animal?.sex ?? 'unknown');
+    setIndividualId(record.refId ?? '');
+    setIdScheme(record.animal?.idScheme ?? '');
   };
 
   return (
@@ -151,6 +185,55 @@ export const CorrectRecord: React.FC<{
               }}
               fullWidth
             />
+            {animal && (
+              <>
+                <TextField
+                  select
+                  label={t('app.animal.sex')}
+                  value={sex}
+                  onChange={(e) => {
+                    setSex(e.target.value as AnimalSex);
+                    setPreview(null);
+                  }}
+                  fullWidth
+                  data-fix-sex=""
+                >
+                  {ANIMAL_SEXES.map((x) => (
+                    <MenuItem key={x} value={x}>
+                      {sexWords(x, tr)}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  label={t('app.animal.individualId')}
+                  value={individualId}
+                  onChange={(e) => {
+                    setIndividualId(e.target.value.slice(0, 200));
+                    setPreview(null);
+                  }}
+                  helperText={t(idShapeHint(individualId, idScheme, (k) => t(k)) ?? 'app.batch.each.idHelp')}
+                  fullWidth
+                />
+                <Autocomplete<string, false, false, true>
+                  freeSolo
+                  options={SCHEMES.map((k) => t(k))}
+                  inputValue={idScheme}
+                  onInputChange={(_, v) => {
+                    setIdScheme(v.slice(0, 200));
+                    setPreview(null);
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={t('app.animal.idScheme')}
+                      required={!!oneLine(individualId)}
+                      error={needsScheme}
+                      helperText={needsScheme ? t('app.animal.need.scheme') : undefined}
+                    />
+                  )}
+                />
+              </>
+            )}
             {!animal && (
               <TextField
                 label={t('app.plant.f.method')}
@@ -212,7 +295,7 @@ export const CorrectRecord: React.FC<{
         <DialogActions>
           <Button onClick={reset}>{t('app.common.cancel')}</Button>
           {!preview ? (
-            <Button variant="contained" onClick={check} disabled={!dirty}>
+            <Button variant="contained" onClick={check} disabled={!dirty || needsScheme}>
               {t('app.plant.fix.check')}
             </Button>
           ) : (
@@ -230,7 +313,7 @@ export const CorrectRecord: React.FC<{
                 try {
                   const corrected = await issueCorrection(
                     record.id,
-                    { strainName: name, bredBy, breedingMethod: method, notes },
+                    { strainName: name, bredBy, breedingMethod: method, notes, ...animalEdits },
                     reason.trim(),
                   );
                   setBusy(false);

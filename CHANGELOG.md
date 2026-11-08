@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Where it came from, and real batches (7 Nov 2026)
+
+- A plant logged as a landrace or heirloom, or as material received from a breeder, a seed
+  bank or a collection, no longer needs a breeder: "Bred by" becomes "Breeder, if known",
+  optional, with no "your name" placeholder. A "Where it came from" step asks for the source in
+  the holder's own words, a collection or community name, the country of origin, the date
+  received, and permit, SMTA, IRCC and GLIS DOI numbers, all optional. They are sealed in the
+  record's notes as labelled lines (`bboard-ui/src/veilcore/origin-notes.ts`): no new sealed
+  field, no new profile version, and no record hashes any differently.
+- Every check page says: "A date shows who held this record first, not who bred it or where it
+  came from."
+- The bulk import maps a genebank passport sheet's MCPD columns by name (ACCENAME, ACCENUMB,
+  GENUS, SPECIES, SAMPSTAT, COLLSRC, ORIGCTY, ACQDATE, PUID); SAMPSTAT 300 is sealed as
+  "Landrace / heirloom".
+- The terms of use ask nobody to register other people's traditional varieties as their own
+  breeding.
+- Record offspring: each young animal's sex, ID and date of birth before Save; a sire not on
+  VeilCore typed in, with an optional semen code for artificial insemination. An animal's sex
+  and individual ID can be corrected afterwards, as a new record that supersedes the sealed one.
+- Cut clones: a lot name and size sealed in each clone's notes, and a plant tag for each clone,
+  numbered on from the first. Clones of a plant logged with no breeder need none either.
+- All new words in English, German, Spanish, French and Japanese.
+
 ### Midnight's Ledger 9 fork: midnight-js 5 (6 Nov 2026)
 
 - Mainnet moved to Midnight Ledger 9 on 6 November 2026. The site, sponsor, client API,

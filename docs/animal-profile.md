@@ -101,8 +101,12 @@ name, date, photos, DNA report and key keeps working. What is sealed, and what a
   use these words. Offspring nobody logs are not detected.
 - **No "next generation" row.** An animal's offspring is another animal logged with it as
   sire or dam.
-- **A correction** changes an animal's name, breeder or notes; its ID, sex, sire and dam
+- **A correction** changes an animal's name, breeder, notes, sex, or individual ID and its
+  scheme: a new record that supersedes the sealed one, which stays as it is. Its sire and dam
   can't be corrected from the page yet.
+- **A batch of young** ("Record offspring") takes each one's sex, ID and date of birth before
+  Save, and a sire not on VeilCore typed in, with an optional semen code for artificial
+  insemination (sealed in each young animal's notes as "Sire semen code: …").
 
 ## What it doesn't show
 
