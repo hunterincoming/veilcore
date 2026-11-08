@@ -213,4 +213,38 @@ describe('what a batch held for its backup says', () => {
     expect(sent).toEqual([rows.slice(1).map((r) => loadLedger().rows[r.hash].recordId)]);
     expect(anyPending(hashes)).toBe(false);
   });
+
+  it('found on the server but not written down: says so, and the rows stay pending (W3)', async () => {
+    const rows = batchRows(plan(2));
+    await sealRows(rows, { commit: holdForBackup, batchSize: 10, gapMs: 0 });
+    await sealRows(rows, { commit: lost, gapMs: 0 });
+    const first = loadLedger().rows[rows[0].hash];
+    const real = localStorage.setItem.bind(localStorage);
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => local.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        if (k === LEDGER_KEY) throw new Error('full');
+        real(k, v);
+      },
+      removeItem: (k: string) => void local.delete(k),
+    });
+    const hashes = rows.map((r) => r.hash);
+    expect(await markLanded(hashes, new Map([[first.recordId, first.fingerprint]]))).toBe('not-written');
+    expect(rows.map((r) => loadLedger().rows[r.hash].state)).toEqual(['pending', 'pending']);
+    // Nothing found: nothing to write, nothing refused.
+    expect(await markLanded(hashes, new Map())).toBe(0);
+  });
+
+  it('a record sent before and refused when sent again keeps its key and its row (W3, W7)', async () => {
+    const rows = batchRows(plan(2));
+    await sealRows(rows, { commit: holdForBackup, batchSize: 10, gapMs: 0 });
+    await sealRows(rows, { commit: lost, gapMs: 0 });
+    const ids = rows.map((r) => loadLedger().rows[r.hash].recordId);
+    const refuseAll: Committer = (b) =>
+      Promise.resolve({ stored: [], refused: b.map((r) => ({ id: r.id, reason: 'older copy' })) });
+    const r = await sealRows(rows, { commit: refuseAll, gapMs: 0 });
+    expect(Object.values(r.outcomes).map((o) => o.state)).toEqual(['refused', 'refused']);
+    expect(rows.map((x) => loadLedger().rows[x.hash]?.state)).toEqual(['pending', 'pending']);
+    expect(ids.every((id) => keysFor(id))).toBe(true);
+  });
 });

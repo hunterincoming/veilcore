@@ -33,11 +33,11 @@ import { holdStamp } from '../veilcore/chain/stamp-background';
 import { stampsLookUsed, tomorrowAt } from './capacity';
 import type { Senders, StepOutcome } from './run';
 import type { Job } from './store';
+import { CANT_CHECK, NOT_NOTED } from './whys';
 
 const MINUTE = 60_000;
 
-/** Said when records sent before can't be looked up on the server: nothing is sent until they can. */
-export const CANT_CHECK = 'Couldn’t check VeilCore’s server for the records sent before, so nothing was sent again.';
+export { CANT_CHECK, NOT_NOTED };
 
 /** The job's rows as sealRows takes them: by hash only; the records are the ledger's. */
 export const keptRows = (hashes: readonly string[]): PreparedRow[] =>
@@ -50,7 +50,8 @@ export const sendRecords = async (job: Job): Promise<StepOutcome> => {
   if (anyPending(hashes)) {
     const onRegistry = await registryRecordCodes();
     if (onRegistry === 'unknown') return { kind: 'retry', at: Date.now() + MINUTE, why: CANT_CHECK };
-    await markLanded(hashes, onRegistry);
+    if ((await markLanded(hashes, onRegistry)) === 'not-written')
+      return { kind: 'retry', at: Date.now() + MINUTE, why: NOT_NOTED };
   }
   // Stops between batches when this page may no longer send (moved to a check or prove page,
   // or hidden): the rest goes on the next pass, as the same records.

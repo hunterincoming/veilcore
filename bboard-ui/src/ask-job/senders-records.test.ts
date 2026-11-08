@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const calls: string[] = [];
 let pending = true;
 let onRegistry: Map<string, string> | 'unknown' = new Map();
+let landed: number | 'not-written' = 1;
 vi.mock('../veilcore/api-store', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../veilcore/api-store')>()),
   registryRecordCodes: () => {
@@ -19,7 +20,7 @@ vi.mock('../veilcore/bulk-import', async (importOriginal) => ({
   anyPending: () => pending,
   markLanded: () => {
     calls.push('mark');
-    return Promise.resolve(1);
+    return Promise.resolve(landed);
   },
   sealRows: () => {
     calls.push('send');
@@ -27,7 +28,7 @@ vi.mock('../veilcore/bulk-import', async (importOriginal) => ({
   },
 }));
 
-import { CANT_CHECK, sendRecords } from './senders';
+import { CANT_CHECK, NOT_NOTED, sendRecords } from './senders';
 import type { Job } from './store';
 
 const job = { refs: { rowHashes: ['h1', 'h2'] } } as unknown as Job;
@@ -36,6 +37,7 @@ beforeEach(() => {
   calls.length = 0;
   pending = true;
   onRegistry = new Map();
+  landed = 1;
 });
 
 describe('sending a job’s records again', () => {
@@ -55,5 +57,11 @@ describe('sending a job’s records again', () => {
     pending = false;
     await sendRecords(job);
     expect(calls).toEqual(['send']);
+  });
+
+  it('found on the server but not written down here: nothing is sent (W3)', async () => {
+    landed = 'not-written';
+    expect(await sendRecords(job)).toMatchObject({ kind: 'retry', why: NOT_NOTED });
+    expect(calls).toEqual(['ask', 'mark']);
   });
 });

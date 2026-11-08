@@ -1646,10 +1646,15 @@ export const anyPending = (hashes: readonly string[]): boolean => {
 /**
  * Rows sent before with no answer (`pending`) that the registry turns out to hold, the same
  * record (same id and proof code): written as sealed, so they are never sent again. Under the
- * ledger's lock. Returns how many.
+ * ledger's lock. Returns how many, or 'not-written' when some were found but this browser
+ * couldn't write that down (the lock lost, or storage refused): then nothing may be sent for
+ * them, or they would go again (verification W3).
  */
-export const markLanded = (hashes: readonly string[], onRegistry: ReadonlyMap<string, string>): Promise<number> =>
-  withTabLock(LEDGER_LOCK, (held) => {
+export const markLanded = (
+  hashes: readonly string[],
+  onRegistry: ReadonlyMap<string, string>,
+): Promise<number | 'not-written'> =>
+  withTabLock(LEDGER_LOCK, (held): Promise<number | 'not-written'> => {
     const ledger = loadLedger();
     let n = 0;
     for (const h of new Set(hashes)) {
@@ -1658,7 +1663,8 @@ export const markLanded = (hashes: readonly string[], onRegistry: ReadonlyMap<st
       ledger.rows[h] = { recordId: e.recordId, fingerprint: e.fingerprint, state: 'sealed', at: Date.now() };
       n++;
     }
-    if (!n || !held() || !saveLedger(ledger)) return Promise.resolve(0);
+    if (!n) return Promise.resolve(0);
+    if (!held() || !saveLedger(ledger)) return Promise.resolve('not-written');
     return Promise.resolve(n);
   });
 
@@ -1731,6 +1737,8 @@ export const sealRows = async (
       const hashOf = new Map<string, string>();
       /** Records sealed new for this batch (not ones sent before and sent again). */
       const fresh: string[] = [];
+      /** Rows sent before with no answer, sent again now: they may be on the registry. */
+      const resent = new Set<string>();
       for (const row of todo.slice(at, at + size)) {
         const entry = ledger.rows[row.hash];
         if (entry?.state === 'sealed') {
@@ -1743,6 +1751,7 @@ export const sealRows = async (
           continue;
         }
         if ((entry?.state === 'pending' || entry?.state === 'held') && entry.record && keysFor(entry.recordId)) {
+          if (entry.state === 'pending') resent.add(row.hash);
           // Held for the backup, or sent before and not confirmed: the same record again. Held
           // only while nothing is sent (holdForBackup); about to be sent, it is pending from here
           // on, so dropHeld never takes away a record that may have landed.
@@ -1819,10 +1828,13 @@ export const sealRows = async (
         for (const r of result.refused) {
           const h = hashOf.get(r.id);
           if (!h) continue;
-          // Refused by id: never stored, so its keys name nothing.
+          outcomes[h] = { state: 'refused', reason: r.reason };
+          // Sent before with no answer: the first send may have landed (a resend can be refused
+          // as an older copy of it), so its keys and its row are kept (verification W3, W7).
+          if (resent.has(h)) continue;
+          // Refused by id, and never sent before: never stored, so its keys name nothing.
           forgetKeys(r.id);
           delete after.rows[h];
-          outcomes[h] = { state: 'refused', reason: r.reason };
         }
         saveLedger(after);
         if (result.retry) {

@@ -1163,11 +1163,12 @@ export const registryKids = async (k: string): Promise<Set<string> | 'unknown'> 
 
 /**
  * The records the registry holds for this holder, asked afresh: each id with its proof code, or
- * 'unknown' when it can't answer. No holder key here: none (nothing was ever sent from here).
+ * 'unknown' when it can't answer. Asked only about records sent from here before, so no holder
+ * key here (lost, or a private window's) is 'unknown' too, never "none" (verification W7).
  */
 export const registryRecordCodes = async (): Promise<Map<string, string> | 'unknown'> => {
   const k = holderKeyIfAny();
-  if (!k) return new Map();
+  if (!k) return 'unknown';
   const rows = await readWholeSet('records', k);
   if (!rows) return 'unknown';
   const out = new Map<string, string>();
