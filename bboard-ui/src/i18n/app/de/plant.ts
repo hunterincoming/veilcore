@@ -42,6 +42,8 @@ export const plant = {
   'app.plant.action.familyTree': 'Stammbaum',
   'app.plant.action.freshBackup': 'Eine neue Sicherungskopie speichern',
   'app.plant.action.fix': 'Einen Fehler korrigieren',
+  'app.plant.action.seeLatest': 'Bereits korrigiert: neueste Fassung öffnen',
+  'app.plant.fix.openLatest': 'Neueste Fassung öffnen',
   'app.plant.agreements': 'Vereinbarungen',
   'app.plant.openAgreement': 'Vereinbarung {id} öffnen',
   'app.plant.unnamedCounterparty': 'unbenannte Gegenpartei',

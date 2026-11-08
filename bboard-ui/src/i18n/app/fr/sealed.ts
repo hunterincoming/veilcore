@@ -10,6 +10,8 @@ export const sealed = {
   'app.sealed.refuse.mismatch': 'il ne correspond pas à son code de preuve, donc il n’a pas été enregistré',
   'app.sealed.mismatch':
     'Cet enregistrement ne correspond pas à son code de preuve : il a peut-être été modifié après avoir été scellé. Il ne sera plus enregistré, envoyé ni partagé.',
+  'app.sealed.alreadyCorrected':
+    'Cet enregistrement a déjà été corrigé, dans un autre onglet ou sur un autre appareil. Ouvrez la dernière version pour la corriger.',
   'app.sealed.locked.title.one': '{count} enregistrement verrouillé',
   'app.sealed.locked.title.other': '{count} enregistrements verrouillés',
   'app.sealed.locked.pageTitle': 'Cet enregistrement est verrouillé',

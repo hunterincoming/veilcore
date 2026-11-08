@@ -1769,6 +1769,28 @@ export const updateReceivedNotes = (id: string, notes: ReceivedNotes): StrainRec
 export const correctionWaitsForBackup = (id: string): boolean =>
   rowStateOf(RECORDS_KEY, id) === 'legacy' || (!!vaultKeyIfAny() && vaultNeedsBackup());
 
+/** Whether a record already says what these edits would make it say. */
+const sameEdits = (r: StrainRecord, edits: Partial<StrainRecord>): boolean =>
+  Object.entries(edits).every(([k, v]) => JSON.stringify((r as Record<string, unknown>)[k]) === JSON.stringify(v));
+
+/** Said when a record has been corrected already: its correction is the one to correct. */
+export const ALREADY_CORRECTED = (): string => enT.t('app.sealed.alreadyCorrected');
+
+/**
+ * The latest version of a record this browser has: the end of its corrections (each record is
+ * corrected once, so a chain), or the record itself. Never loops on a bad chain.
+ */
+export const latestVersionOf = (id: string): string => {
+  const seen = new Set<string>();
+  let at = id;
+  for (;;) {
+    seen.add(at);
+    const next = getRecord(at)?.supersededBy;
+    if (!next || seen.has(next) || !getRecord(next)) return at;
+    at = next;
+  }
+};
+
 /**
  * Issue a correction.
  *
@@ -1786,6 +1808,15 @@ export const issueCorrection = async (
 ): Promise<StrainRecord | undefined> => {
   const before = getRecord(originalId);
   if (!before) return undefined;
+  // Corrected already (another tab, another device, or an earlier try whose answer was lost): a
+  // record is corrected once, so its correction is the record to correct. The same change
+  // again is that correction, nothing new; any other is refused (never two live corrections of
+  // one record).
+  if (before.supersededBy) {
+    const live = getRecord(before.supersededBy);
+    if (live && sameEdits(live, edits)) return live;
+    throw new Error(ALREADY_CORRECTED());
+  }
   // Made from the original's fields, so never from ones that don't match its fingerprint.
   if (integrityOf(originalId) === 'mismatch') throw new Error(enT.t('app.sealed.mismatch'));
   // A correction is two saves the registry must both take: never of a record saved before

@@ -42,6 +42,8 @@ export const plant = {
   'app.plant.action.familyTree': 'Arbre généalogique',
   'app.plant.action.freshBackup': 'Enregistrer une nouvelle copie de secours',
   'app.plant.action.fix': 'Corriger une erreur',
+  'app.plant.action.seeLatest': 'Déjà corrigé : ouvrir la dernière version',
+  'app.plant.fix.openLatest': 'Ouvrir la dernière version',
   'app.plant.agreements': 'Contrats',
   'app.plant.openAgreement': 'Ouvrir le contrat {id}',
   'app.plant.unnamedCounterparty': 'cocontractant sans nom',

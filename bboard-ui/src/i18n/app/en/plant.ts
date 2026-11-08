@@ -39,6 +39,9 @@ export const plant = {
   'app.plant.action.familyTree': 'Family tree',
   'app.plant.action.freshBackup': 'Save a fresh backup',
   'app.plant.action.fix': 'Fix a mistake',
+  // RecordDetail.tsx, CorrectRecord.tsx: a record corrected already (in another tab or device)
+  'app.plant.action.seeLatest': 'Corrected already: open the latest version',
+  'app.plant.fix.openLatest': 'Open the latest version',
   'app.plant.agreements': 'Agreements',
   'app.plant.openAgreement': 'Open agreement {id}',
   'app.plant.unnamedCounterparty': 'unnamed counterparty',

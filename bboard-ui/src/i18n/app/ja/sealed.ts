@@ -10,6 +10,8 @@ export const sealed = {
   'app.sealed.refuse.mismatch': '証明コードと一致しないため、保存していません',
   'app.sealed.mismatch':
     'この記録は証明コードと一致しません。封印後に変更された可能性があります。今後、保存・送付・共有はされません。',
+  'app.sealed.alreadyCorrected':
+    'この記録は、別のタブまたは別の端末ですでに訂正されています。訂正するには最新版を開いてください。',
   'app.sealed.locked.title.other': 'ロックされた記録 {count}件',
   'app.sealed.locked.pageTitle': 'この記録はロックされています',
   'app.sealed.locked.text':

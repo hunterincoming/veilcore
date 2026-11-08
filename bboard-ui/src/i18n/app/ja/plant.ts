@@ -38,6 +38,8 @@ export const plant = {
   'app.plant.action.familyTree': '系統図',
   'app.plant.action.freshBackup': '新しいバックアップを保存する',
   'app.plant.action.fix': '間違いを直す',
+  'app.plant.action.seeLatest': '訂正済み：最新版を開く',
+  'app.plant.fix.openLatest': '最新版を開く',
   'app.plant.agreements': '契約',
   'app.plant.openAgreement': '契約 {id} を開く',
   'app.plant.unnamedCounterparty': '名前のない相手方',
