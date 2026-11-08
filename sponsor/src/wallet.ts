@@ -46,7 +46,7 @@ import type { UnboundTx } from '@midnight-ntwrk/midnight-js-types';
 import type { SealedTx } from './policy.js';
 import { NotSentError, type PayingWallet } from './sponsor.js';
 import { log } from './log.js';
-import { chainText } from './error-chain.js';
+import { errorChain, type ErrorLink } from './error-chain.js';
 import { StallTracker, type SyncPart } from './sync-stall.js';
 
 type Keystore = ReturnType<typeof createKeystore>;
@@ -77,23 +77,30 @@ export const deriveRoleSeeds = (seedHex: string): RoleSeeds => {
 };
 
 /**
- * The node's "1010: Invalid Transaction": never admitted, so it cannot land.
+ * The link of an error chain that is the node's "1010: Invalid Transaction", or undefined.
  *
- * Read from the whole cause chain (error-chain.ts). The wallet SDK's submitTransaction
- * rejects with Effect's FiberFailure ("Transaction submission error", no `cause`); the node's
- * "1010: Invalid Transaction: Custom error: N" is two links further down, inside the Effect
- * Cause. Reading only `message` and `cause` missed it, so every refusal was taken for "may
- * have been sent".
+ * Read link by link (error-chain.ts). The wallet SDK's submitTransaction rejects with Effect's
+ * FiberFailure ("Transaction submission error", no `cause`); the node's answer is further down,
+ * inside the Effect Cause. Reading only `message` and `cause` missed it, so every refusal was
+ * taken for "may have been sent". "1010" and "Invalid Transaction" must be in the same link
+ * (a WebSocket close code 1010 elsewhere in the chain is not a refusal).
  */
+const refusalLink = (e: unknown): ErrorLink | undefined =>
+  errorChain(e).find(
+    (l) =>
+      /\b1010\b.*Invalid Transaction|Invalid Transaction.*\b1010\b/i.test(l.message) ||
+      (l.code === '1010' && /Invalid Transaction/i.test(l.message)),
+  );
+
+/** The node's "1010: Invalid Transaction": never admitted, so it cannot land. The custom error number, or 'none'. */
 export const nodeRefusal = (e: unknown): string | undefined => {
-  const text = e instanceof Error || (typeof e === 'object' && e !== null) ? chainText(e) : String(e);
-  if (!/\b1010\b.*Invalid Transaction|Invalid Transaction.*\b1010\b/i.test(text)) return undefined;
-  return /Custom error:\s*(\d+)/i.exec(text)?.[1] ?? 'none';
+  const l = refusalLink(e);
+  if (l === undefined) return undefined;
+  return /Custom error:\s*(\d+)/i.exec(l.message)?.[1] ?? 'none';
 };
 
 /** Custom error 171, OutOfDustValidityWindow: the indexer is behind. Wait, then rebuild. */
-export const isStaleDustTime = (e: unknown): boolean =>
-  /Custom error:\s*171\b/i.test(typeof e === 'object' && e !== null ? chainText(e) : String(e));
+export const isStaleDustTime = (e: unknown): boolean => nodeRefusal(e) === '171';
 
 const isStrictlyComplete = (progress: unknown): boolean =>
   typeof progress === 'object' &&

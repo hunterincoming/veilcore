@@ -23,7 +23,7 @@
 
 import type { Landing, PreparedAnchor } from './anchorer.js';
 import type { FeeBudget } from './limits.js';
-import { describeError, redact } from './error-chain.js';
+import { describeError, hasName, messageOf } from './error-chain.js';
 
 /** The contract's own numbers (veilcore.compact SEAL_INTERVAL, SEAL_SLACK), in seconds. */
 export const SEAL_INTERVAL_S = 600n;
@@ -106,7 +106,7 @@ export class Sealer {
       } catch (e) {
         this.budget.release(hold.id);
         // The contract refused it here (someone sealed first, or the clock disagrees): nothing sent.
-        return this.done('not-sent', `not built: ${redact(e instanceof Error ? e.message : String(e))}`);
+        return this.done('not-sent', `not built: ${messageOf(e)}`);
       }
       if (typeof prepared.fee !== 'bigint' || prepared.fee < 0n || prepared.fee > hold.amount) {
         this.budget.release(hold.id);
@@ -125,18 +125,24 @@ export class Sealer {
       try {
         await prepared.submit();
       } catch (e) {
-        this.log('warn', 'sealing: submit threw', {
-          txId: prepared.txId,
-          notSent: e instanceof Error && e.name === 'NotSentError',
-          error: describeError(e),
-        });
-        if (e instanceof Error && e.name === 'NotSentError') {
+        // The fee hold and the saved attempt first, then the diagnostics (which cannot throw,
+        // and are guarded anyway): logging never changes what happens to the money.
+        const notSent = hasName(e, 'NotSentError');
+        if (notSent) {
           this.budget.release(hold.id);
           this.store.clear();
-          await prepared.abandon().catch(() => undefined);
-          return this.done('not-sent', `not sent (${e.message}); next run`);
+        } else {
+          this.budget.settle(hold.id, prepared.fee);
         }
-        this.budget.settle(hold.id, prepared.fee);
+        try {
+          this.log('warn', 'sealing: submit threw', { txId: prepared.txId, notSent, error: describeError(e) });
+        } catch {
+          // logging must never change what happens
+        }
+        if (notSent) {
+          await prepared.abandon().catch(() => undefined);
+          return this.done('not-sent', `not sent (${messageOf(e)}); next run`);
+        }
         return this.done('maybe-sent', `sending ${prepared.txId} may have failed; will look it up`);
       }
       this.budget.settle(hold.id, prepared.fee);

@@ -7,7 +7,7 @@ import type { Landing, PreparedAnchor } from './anchorer.js';
 const T0 = 1_800_000_000_000; // ms
 const nowS = BigInt(T0 / 1000);
 
-const setup = (view: Partial<SealView> = {}, opts: { fee?: bigint; landing?: Landing; submitFails?: 'not-sent' | 'unknown' } = {}) => {
+const setup = (view: Partial<SealView> = {}, opts: { fee?: bigint; landing?: Landing; submitFails?: 'not-sent' | 'unknown' | 'unreadable' } = {}) => {
   const sent: string[] = [];
   const bounds: bigint[] = [];
   let saved: SealAttempt | undefined;
@@ -25,6 +25,12 @@ const setup = (view: Partial<SealView> = {}, opts: { fee?: bigint; landing?: Lan
         submit: () => {
           if (opts.submitFails === 'not-sent') return Promise.reject(Object.assign(new Error('nope'), { name: 'NotSentError' }));
           if (opts.submitFails === 'unknown') return Promise.reject(new Error('connection reset'));
+          if (opts.submitFails === 'unreadable') {
+            const throwing = () => {
+              throw new Error('getter');
+            };
+            return Promise.reject(new Proxy({}, { get: throwing, getPrototypeOf: throwing, has: throwing, ownKeys: throwing }));
+          }
           sent.push(txId);
           return Promise.resolve();
         },
@@ -96,5 +102,12 @@ describe('sealing revocations', () => {
     expect(await notSent.sealer.runOnce()).toBe('not-sent');
     expect(notSent.saved()).toBeUndefined();
     expect(notSent.budget.unspent()).toBe(10_000n);
+  });
+
+  it('an error that throws on every read: maybe-sent, the fee settled, nothing left held', async () => {
+    const s = setup({}, { submitFails: 'unreadable' });
+    expect(await s.sealer.runOnce()).toBe('maybe-sent');
+    expect(s.budget.unspent()).toBe(9_000n);
+    expect(s.saved()?.txId).toBe('tx1');
   });
 });
