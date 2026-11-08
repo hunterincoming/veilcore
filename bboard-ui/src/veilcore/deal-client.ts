@@ -150,8 +150,13 @@ export const say = async (p: DealParty, body: DealBody): Promise<{ seq: number; 
 // it sent. What is kept is the ciphertext and the signature only, never the message in clear.
 
 const OUTBOX_KEY = 'veilcore.deal-outbox.v1';
-/** How long a message that landed is remembered: a second tap or tab in that time sends nothing. */
+/**
+ * How long a report, an answer, "I paid" or "received" that landed is remembered: a second tap
+ * or tab in that time sends nothing. Other messages (payout details, reminders) are forgotten
+ * once they land, so the same details can be sent again after a change in between.
+ */
 export const LANDED_MS = 10 * 60_000;
+const ONCE: ReadonlySet<DealBody['type']> = new Set(['statement', 'reply', 'paid', 'received']);
 /** How long a message signed and not yet confirmed is kept, to be sent again as it was. */
 export const KEEP_MS = 30 * 86_400_000;
 
@@ -229,7 +234,12 @@ export const sayOnce = async (p: DealParty, body: DealBody, now: () => number = 
   const landed = (signature: string, already: boolean): SayOnceResult => {
     const box = readOutbox(now());
     const k = box[key];
-    if (k) writeOutbox({ ...box, [key]: { ...k, landedAt: now() } });
+    if (k && ONCE.has(body.type)) writeOutbox({ ...box, [key]: { ...k, landedAt: now() } });
+    else if (k) {
+      const rest = { ...box };
+      delete rest[key];
+      writeOutbox(rest);
+    }
     return { signature, already };
   };
   return withTabLock(`veilcore.deal-send.${keys.dealId}`, async () => {

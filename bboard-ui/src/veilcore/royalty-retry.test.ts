@@ -293,3 +293,21 @@ describe('the ledger: the same report twice is one report', () => {
     expect(ledgerOf(entries).reports).toHaveLength(2);
   });
 });
+
+describe('payout details and reminders', () => {
+  it('a lost answer is sent again as the same message; once landed, the same details can go again later', async () => {
+    const payout = (account: string): deal.DealBody => ({ type: 'payout', method: 'bank', account, currency: 'USD' });
+    reg.lose.push('answer');
+    await expect(sayOnce(issuer, payout('A'))).rejects.toThrow();
+    expect((await sayOnce(issuer, payout('A'))).already).toBe(true);
+    await sayOnce(issuer, payout('B'));
+    // Back to A after B: sent, so A is the newest.
+    expect((await sayOnce(issuer, payout('A'))).already).toBe(false);
+    const entries = await readAll(licensee);
+    expect(entries.filter((e) => e.type === 'payout').map((e) => (e.type === 'payout' ? e.account : ''))).toEqual([
+      'A',
+      'B',
+      'A',
+    ]);
+  });
+});
