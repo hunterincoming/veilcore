@@ -92,13 +92,17 @@ const doIt = async (page: Page, text: string) => {
 /** Scroll to "Can't be undone" so Approve turns on, then approve. */
 /** The backup step on a job's page: saved, checked, and back to the job. */
 const backup = async (page: Page) => {
+  // Asked first, among what only the person can answer; the bar steps aside while it is saved.
+  await page.locator('[data-job-backup-open]').click();
+  await expect(page.locator('[data-approve-bar]')).toHaveCount(0);
   await saveAndCheckBackup(page);
   await page.getByRole('button', { name: 'Back to the job' }).click();
   await expect(page.getByText('Backup checked.')).toBeVisible();
 };
 
 const approve = async (page: Page, label: RegExp | string) => {
-  await page.locator('[data-job-permanent]').scrollIntoViewIfNeeded();
+  // Scrolled until it is all above the bar: only then does Approve turn on.
+  await page.locator('[data-job-permanent]').evaluate((el) => el.scrollIntoView({ block: 'center' }));
   const button = page.locator('[data-job-approve]');
   await expect(button).toHaveText(label);
   await expect(button).toBeEnabled();
@@ -114,7 +118,7 @@ const bringInPlants = async (page: Page, held: Held, shots = false) => {
   await doIt(page, 'add my 2 mothers');
   await expect(page).toHaveURL(/\/ask\/job\/[0-9a-f]{32}$/);
   await expect(page.locator('[data-job-page="ready"]')).toBeVisible();
-  await expect(page.locator('[data-approve-left]')).toHaveText('Answer 2 questions to approve');
+  await expect(page.locator('[data-approve-left]')).toHaveText('Answer 1 question to approve');
   await page.locator('[data-job-file]').setInputFiles({
     name: 'mothers.csv',
     mimeType: 'text/csv',
@@ -123,8 +127,10 @@ const bringInPlants = async (page: Page, held: Held, shots = false) => {
   const made = page.locator('[data-job-block="made"]');
   await expect(made).toContainText('2 ready');
   await expect(made).toContainText('1 needs a fix (row 4)');
+  // The backup is all that's left: the bar says so, and offers it.
+  await expect(page.locator('[data-approve-left]')).toHaveText('Save your backup to approve');
+  await expect(page.locator('[data-job-backup-bar]')).toBeVisible();
   if (shots) await shot(page, '3-import-result', true);
-  await expect(page.locator('[data-job-approve]')).toBeDisabled();
   await backup(page);
   await approve(page, 'Approve: save 2 records');
   await expect(page.locator('[data-job-done]')).toHaveText('2 records saved.', { timeout: 60_000 });
@@ -176,7 +182,7 @@ test('bring in a collection, then cut clones: got ready with no request, online 
   await expect(page.locator('[data-job-kind="batch"]')).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check this: 3 Blue Dream clones');
   const made = page.locator('[data-job-block="made"]');
-  await expect(made).toContainText('3 records, sealed here and not sent: Blue Dream clone 1 to Blue Dream clone 3');
+  await expect(made).toContainText('3 records, ready here and not sent yet: Blue Dream clone 1 to Blue Dream clone 3');
   await expect(made).toContainText('Plant tags 1A4-0099 to 1A4-0101');
   await page.waitForTimeout(1000);
   expect(requests, requests.join('\n')).toEqual([]);
@@ -186,11 +192,12 @@ test('bring in a collection, then cut clones: got ready with no request, online 
   await expect(page.locator('[data-ask-open]')).toHaveCount(0);
   const bar = page.locator('[data-approve-bar]');
   await expect(bar).toBeInViewport();
-  await expect(page.locator('[data-job-approve]')).toBeDisabled();
+  await expect(page.locator('[data-approve-left]')).toHaveText('Save your backup to approve');
 
   context.off('request', count);
 
   await backup(page);
+  await page.locator('[data-job-permanent]').evaluate((el) => el.scrollIntoView({ block: 'center' }));
   await shot(page, '5-clones-approve-bar');
   await approve(page, 'Approve: save 3 records');
   await expect(page.locator('[data-job-done]')).toHaveText('3 records saved.', { timeout: 60_000 });
@@ -274,7 +281,10 @@ test('a litter with its sexes and IDs pasted; an edit in another tab leaves the 
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check this: 3 young from Bella');
   const made = page.locator('[data-job-block="made"]');
   await expect(made).toContainText('Dam: Bella');
-  await expect(made).toContainText('2 male, 1 female, 0 not stated');
+  await expect(made).toContainText('Male: 2 · Female: 1');
+  await expect(made).not.toContainText('not stated');
+  await expect(made).toContainText('Sire: not given (add it later)');
+  await expect(made).toContainText('Bella pup 1 to Bella pup 3');
   await expect(made).toContainText('No IDs yet for 3: Home will ask for them.');
   await shot(page, '7-litter-result', true);
   const jobUrl = page.url();
@@ -285,7 +295,7 @@ test('a litter with its sexes and IDs pasted; an edit in another tab leaves the 
   await other.goto('/records');
   await other
     .locator('[data-home-job]')
-    .filter({ hasText: 'A job is ready for you to check.' })
+    .filter({ hasText: /^Check: / })
     .getByRole('button')
     .click();
   await expect(other).toHaveURL(jobUrl);
@@ -296,10 +306,11 @@ test('a litter with its sexes and IDs pasted; an edit in another tab leaves the 
   // The first tab still shows what it drew, and says the job changed.
   await expect(page.locator('[data-job-changed]')).toContainText('This job changed in another tab. Check it again.');
   await expect(made).toContainText('No IDs yet for 3');
-  // Its held records were replaced by the other tab's: Approve stays off, and nothing is sent.
+  // Its held records were replaced by the other tab's: Approve can't be pressed, and nothing is sent.
   const before = held.puts.length;
   await page.locator('[data-job-permanent]').scrollIntoViewIfNeeded();
-  await expect(page.locator('[data-job-approve]')).toBeDisabled();
+  await expect(page.locator('[data-job-approve]:enabled')).toHaveCount(0);
+  await page.evaluate(() => window.scrollTo(0, 0));
   await shot(page, '8-stale-tab');
   await page.waitForTimeout(2000);
   expect(held.puts.length).toBe(before);
@@ -483,7 +494,7 @@ test('what’s due: three reports drafted, a figure typed in each, a stale tab r
   await other.goto('/records');
   await other
     .locator('[data-home-job]')
-    .filter({ hasText: 'A job is ready for you to check.' })
+    .filter({ hasText: /^Check: / })
     .getByRole('button')
     .click();
   await expect(other).toHaveURL(jobUrl);
@@ -493,6 +504,7 @@ test('what’s due: three reports drafted, a figure typed in each, a stale tab r
   await expect(page.locator('[data-job-changed]')).toBeVisible();
   await approve(page, 'Approve: send 3 reports, USD 350.05 owed in total');
   await expect(page.locator('[data-job-error]')).toContainText('This job changed in another tab. Check it again.');
+  await page.evaluate(() => window.scrollTo(0, 0));
   await shot(page, '8b-stale-tab-refused');
   await page.waitForTimeout(2000);
   expect(messages).toHaveLength(0);
@@ -555,7 +567,7 @@ test('get a record ready to license; an approved job sends nothing on a check or
   // On a check page and a prove page: no request from the job, however long it waits.
   const puts: string[] = [];
   const count = (r: Request) => {
-    if (r.method() !== 'GET') puts.push(`${r.method()} ${r.url()}`);
+    if (r.method() !== 'GET' || r.url().includes('/deals')) puts.push(`${r.method()} ${r.url()}`);
   };
   context.on('request', count);
   await page.goto(`/verify/${plantId(held, setup.vault, 'Blue Dream')}`);
@@ -571,6 +583,11 @@ test('get a record ready to license; an approved job sends nothing on a check or
     Date.now = () => real() + 120_000;
   });
   await page.waitForTimeout(20_000);
+  // No "Do it for me" on a prove page: the switch isn't there.
+  await page.locator('[data-ask-open]').click();
+  await expect(page.locator('[data-ask-sheet]')).toBeVisible();
+  await expect(page.locator('[data-ask-doit]')).toHaveCount(0);
+  await page.keyboard.press('Escape');
   context.off('request', count);
   expect(
     puts.filter((p) => /\/api\/records|\/deals|sponsor/.test(p)),
@@ -580,5 +597,37 @@ test('get a record ready to license; an approved job sends nothing on a check or
   // Back on the app's pages, the records go.
   await page.goto('/records');
   await expect.poll(() => held.records.length, { timeout: 120_000 }).toBe(4);
+  expectNoErrors(errors);
+});
+
+test('with a holder key and no vault key, getting a job ready asks nothing of the registry', async ({
+  page,
+  context,
+}) => {
+  const errors = watch(page);
+  await page.addInitScript((h) => {
+    localStorage.setItem('veilcore.holder.v1', h);
+    localStorage.setItem('veilcore.role.v1', 'breeder');
+    localStorage.setItem('veilcore.ask.seen.v1', 'dismissed');
+  }, randomBytes(32).toString('hex'));
+  await isolate(page, {
+    'GET /api/records': (route) => json(route, 200, []),
+    'GET /api/licenses': (route) => json(route, 200, []),
+    'GET /transfers/sent': (route) => json(route, 200, { transfers: [] }),
+  });
+  await page.goto('/records');
+  await openAsk(page);
+  await page.locator('[data-ask-doit] input').check();
+  await page.waitForTimeout(1500);
+  const requests: string[] = [];
+  const count = (r: Request) => {
+    if (new URL(r.url()).port !== SITE_PORT) requests.push(`${r.method()} ${r.url()}`);
+  };
+  context.on('request', count);
+  await doIt(page, 'import my herd');
+  await expect(page.locator('[data-job-refused="vault"]')).toHaveText('Open VeilCore once with a connection first.');
+  await page.waitForTimeout(1000);
+  context.off('request', count);
+  expect(requests, requests.join('\n')).toEqual([]);
   expectNoErrors(errors);
 });

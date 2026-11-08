@@ -21,6 +21,7 @@ const CAN = [
   'Explain words like “proof code”',
   'Find your records',
   'Fill in a new record for you to check and save',
+  'Do it for me: I get a whole job ready; you approve it once.',
 ];
 
 for (const [label, viewport] of [
