@@ -386,7 +386,23 @@ test('Add IDs on a phone: one box per young; a whole litter scanned with Tab+Ent
   await doIt(page, 'Bella whelped 6 pups');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check this: 6 young from Bella');
   await backup(page);
-  await approve(page, 'Approve: save 6 records');
+  // By keyboard alone: Tab from the top of the page, through the six ID boxes (a person's Tab
+  // moves on), to Approve, and Enter presses it (X7).
+  await page.locator('[data-job-permanent]').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  await expect(page.locator('[data-job-approve]')).toBeEnabled();
+  // From the top: a click on the page's heading puts the keyboard's starting point there.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.getByRole('heading', { level: 1 }).click();
+  const onApprove = () => page.evaluate(() => !!document.activeElement?.hasAttribute('data-job-approve'));
+  let passedBoxes = 0;
+  for (let i = 0; i < 200 && !(await onApprove()); i++) {
+    await page.keyboard.press('Tab');
+    if (await page.evaluate(() => !!document.activeElement?.hasAttribute('data-id-box'))) passedBoxes++;
+  }
+  expect(passedBoxes).toBe(6);
+  expect(await onApprove()).toBe(true);
+  await expect(page.locator('[data-job-approve]')).toHaveText('Approve: save 6 records');
+  await page.keyboard.press('Enter');
   await expect(page.locator('[data-job-done]')).toHaveText('6 records saved.Home will remind you to add 6 IDs.', {
     timeout: 60_000,
   });
@@ -417,6 +433,10 @@ test('Add IDs on a phone: one box per young; a whole litter scanned with Tab+Ent
     expect(await filled()).toEqual(chips);
     await expect(boxes.nth(5)).toBeFocused();
     await expect(box.locator('[data-id-pair]')).toHaveCount(6);
+    // A double beep on the last pup: the second scan is taken back, with a note, never appended.
+    await scan(page, '985112000000007', gap);
+    expect(await filled()).toEqual(chips);
+    await expect(box.locator('[data-id-paste-note="doubleScan"]')).toBeInViewport();
     // Cancel with IDs typed asks first: keep editing keeps them; discard closes.
     await box.locator('[data-add-ids-cancel]').click();
     await expect(box.locator('[data-add-ids-discard]')).toContainText('Discard the IDs you typed? They aren’t saved.');
@@ -458,8 +478,13 @@ test('Add IDs on a phone: one box per young; a whole litter scanned with Tab+Ent
   expect(await filled()).toEqual([...chips.slice(0, 3), '', '', '']);
   await shot(page, 'ids-over-en');
 
-  // Saved: each ID on the pup whose box it was in.
-  await box.locator('[data-add-ids-save]').click();
+  // Saved by keyboard alone: a person's Tab from the last box reaches Save, and Enter presses it.
+  await boxes.nth(5).click();
+  await page.waitForTimeout(100);
+  const onSave = () => page.evaluate(() => !!document.activeElement?.hasAttribute('data-add-ids-save'));
+  for (let i = 0; i < 20 && !(await onSave()); i++) await page.keyboard.press('Tab');
+  expect(await onSave()).toBe(true);
+  await page.keyboard.press('Enter');
   await expect(box).toHaveCount(0, { timeout: 60_000 });
   await expect
     .poll(() => openRecordRows(held.records, setup.vault).filter((r) => r.refId && !r.supersededBy).length, {

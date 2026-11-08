@@ -262,6 +262,12 @@ export const job = {
   'app.job.ids.no.twice': '{id} est dans deux cases.',
   'app.job.ids.no.taken': '{id} est déjà l’identifiant de {name}.',
   'app.job.ids.no.elsewhere': '{id} est déjà l’identifiant de {name}, un autre de vos animaux.',
+  'app.job.ids.changed':
+    'Quelque chose a changé sur un autre appareil ou dans un autre onglet depuis l’affichage, donc rien de plus n’a été enregistré. Vérifiez les cases, puis enregistrez à nouveau.',
+  'app.job.ids.paste.spaces':
+    'Cela ressemble à plusieurs identifiants de formes différentes séparés par des espaces, donc on ne peut pas savoir lequel est lequel. Rien n’a été rempli. Collez-les en colonne, ou saisissez chacun dans sa case.',
+  'app.job.ids.paste.doubleScan':
+    'Un scan est arrivé dans une case qui a déjà un identifiant, donc il n’a pas été utilisé. Pour scanner à nouveau ce petit, videz d’abord sa case.',
   'app.job.ids.gone': 'L’enregistrement de {name} n’est plus là. Fermez ceci et rouvrez-le.',
   'app.job.ids.keep': 'Continuer',
   'app.job.ids.discard': 'Abandonner',

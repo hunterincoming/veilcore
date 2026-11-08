@@ -110,8 +110,8 @@ export const otherIds = (records: readonly StrainRecord[], rows: readonly IdRow[
 const INVISIBLE =
   // eslint-disable-next-line no-control-regex -- control characters are exactly what it looks for
   /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\u00AD\u180E\u200B-\u200F\u2028-\u202E\u2060-\u2064\u206A-\u206F\uFEFF]/;
-/** A list typed on one line ("A1, A2" or "A1; A2"): several IDs where one box takes one. */
-const LIST = /[,;]/;
+/** A list typed on one line ("A1, A2", "A1; A2", or with Japanese commas 「、」「，」): several IDs where one box takes one. */
+const LIST = /[,;、，；]/;
 
 const same = (a: string, b: string) => a.toUpperCase() === b.toUpperCase();
 
@@ -157,7 +157,11 @@ export type PasteRefusal =
   | { readonly why: 'invisible'; readonly line: number }
   | { readonly why: 'comma'; readonly line: number }
   | { readonly why: 'over'; readonly n: number; readonly count: number }
-  | { readonly why: 'startsAt'; readonly id: string; readonly name: string };
+  | { readonly why: 'startsAt'; readonly id: string; readonly name: string }
+  /** Several IDs put in one box at once, with spaces, that can't be told apart from one ID. */
+  | { readonly why: 'spaces' }
+  /** A scan into a box that already had an ID: taken back. */
+  | { readonly why: 'doubleScan' };
 
 export type Pasted = {
   readonly values: Record<string, string>;
@@ -246,6 +250,8 @@ export const looksLikeHeading = (first: string, below: readonly string[] = [], s
   if (!LETTER.test(w)) return false;
   const shapes = new Set(rest.map(shapeOf));
   if (rest.length >= 2 && shapes.size === 1 && !shapes.has(shapeOf(first.trim()))) return true;
+  // Over a single ID: a word of three letters or more in a line of another shape ("Tag2026" over A1).
+  if (rest.length === 1 && shapeOf(first.trim()) !== shapeOf(rest[0]) && /\p{L}{3,}/u.test(first)) return true;
   return /\s/.test(first.trim()) && !rest.some((l) => /\s/.test(l));
 };
 
@@ -304,4 +310,17 @@ export const pasteInto = (
     }
   }
   return { values: next, filled };
+};
+
+/**
+ * Text put into an empty box all at once without a paste event (a phone's clipboard chip, an
+ * input method), split where it holds several IDs: words that each have a digit and share one
+ * shape ("M1 M2 M3", "985112000000001 985112000000002") are a column; a word without a digit
+ * means one ID written with spaces ("UK 123456 700001"), so it is left whole (undefined); words
+ * with digits of different shapes can't be told apart: 'unclear'.
+ */
+export const splitInsert = (text: string): string[] | 'unclear' | undefined => {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length < 2 || words.some((w) => !DIGIT.test(w))) return undefined;
+  return new Set(words.map(shapeOf)).size === 1 ? words : 'unclear';
 };

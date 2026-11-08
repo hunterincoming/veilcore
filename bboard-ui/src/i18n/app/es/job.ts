@@ -259,6 +259,12 @@ export const job = {
   'app.job.ids.no.twice': '{id} está en dos casillas.',
   'app.job.ids.no.taken': '{id} ya es la identificación de {name}.',
   'app.job.ids.no.elsewhere': '{id} ya es la identificación de {name}, otro de sus animales.',
+  'app.job.ids.changed':
+    'Algo cambió en otro dispositivo o en otra pestaña desde que se mostró esto, así que no se guardó nada más. Revise las casillas y guarde de nuevo.',
+  'app.job.ids.paste.spaces':
+    'Parecen varias identificaciones de formas distintas separadas por espacios, así que no se puede saber cuál es cuál. No se rellenó nada. Péguelas como columna o escriba cada una en su casilla.',
+  'app.job.ids.paste.doubleScan':
+    'Un escaneo entró en una casilla que ya tiene identificación, así que no se usó. Para volver a escanear esta cría, vacíe antes su casilla.',
   'app.job.ids.gone': 'El registro de {name} ya no está aquí. Cierre esto y vuelva a abrirlo.',
   'app.job.ids.keep': 'Seguir editando',
   'app.job.ids.discard': 'Descartar',

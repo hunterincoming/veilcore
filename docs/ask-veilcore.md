@@ -414,19 +414,29 @@ unknown outcome stops and asks. There is no automatic rollback.
   Each young has its own box (`src/components/ask/IdBoxes.tsx`), labelled with its birth order,
   name and sex, read from the records as they are now on every render: a young that has an ID,
   given here or in another tab or device, shows it, read-only. The person types or scans into
-  each box. Inside a box Tab and Enter never leave the boxes or press a button: a filled box moves
-  on to the next empty one, the last stays put, and the second key of a scanner's pair is
-  swallowed. A paste is a shortcut: it fills its box and the boxes below, one line each, only
+  each box. A scanner is told from a hand by timing: a Tab or Enter within 60 ms of the last
+  character typed into the box is a scanner's. A scanner's key never leaves the boxes or presses
+  a button: a filled box moves on to the next empty one, the last stays put, the second key of
+  its pair is swallowed, and a scan into a box a scan already filled (a double beep) is taken
+  back with a note. A person's Tab moves focus as anywhere, so the buttons (Save, "Use these
+  IDs", Approve) are reached by keyboard; a person's Enter in a filled box moves to the next
+  empty one. Several IDs put into an empty box at once without a paste (a phone's clipboard
+  chip: "M1 M2 M3") are read as a pasted column when they share a shape, and refused when they
+  can't be told apart. A paste is a shortcut: it fills its box and the boxes below, one line each, only
   when it plainly lines up. More than one column, a list on one line (comma or semicolon), a
   heading, invisible or control characters, more lines than boxes from there down, or a first
-  line that is an ID a young already has are refused with nothing filled; it stops at a young
+  line that is an ID a young already has, are refused with nothing filled (Japanese commas count as
+commas, and a heading over a single ID is caught too); it stops at a young
   that has an ID and says so, and an empty line never clears what was typed. Before Save, each
   young is listed with the ID it will get; a box that breaks a rule (the same ID twice, one
   already in the litter or on another of the person's animals) says why under it, and Save
-  waits. Records are read afresh before Save, the boxes are locked while it runs, and a record
-  is corrected once (`records.ts issueCorrection` refuses a record that has a correction
-  already, unless the change is that correction's own): two tabs can't give one pup two IDs or
-  one ID to two pups. Cancel with IDs typed asks first. The IDs on a litter's result screen use
+  waits. The boxes are locked while Save runs. Right before each correction the records are read
+  afresh, the boxes rebuilt and every check run again (`src/ask-job/save-ids.ts`): if anything
+  differs from what the person saw (another device put that ID on another pup meanwhile),
+  nothing more is sent and the screen says so. And a record is corrected once
+  (`records.ts issueCorrection` refuses a record that has a correction already, unless the
+  change is that correction's own, compared field by field). So two tabs or devices can't give
+  one pup two IDs, or one ID to two pups. Cancel with IDs typed asks first. The IDs on a litter's result screen use
   the same boxes, before Approve ("Use these IDs" puts them in the plan, bound to its hash), and
   the made block lists each young with its ID (`src/ask-job/ids.ts`).
 

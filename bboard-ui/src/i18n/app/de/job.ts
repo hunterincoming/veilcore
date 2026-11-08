@@ -267,6 +267,12 @@ export const job = {
   'app.job.ids.no.twice': '{id} steht in zwei Feldern.',
   'app.job.ids.no.taken': '{id} ist bereits die Kennnummer von {name}.',
   'app.job.ids.no.elsewhere': '{id} ist bereits die Kennnummer von {name}, einem anderen Ihrer Tiere.',
+  'app.job.ids.changed':
+    'Seit dies angezeigt wurde, hat sich auf einem anderen Gerät oder in einem anderen Tab etwas geändert, daher wurde nichts weiter gespeichert. Prüfen Sie die Felder und speichern Sie erneut.',
+  'app.job.ids.paste.spaces':
+    'Das sieht nach mehreren Kennnummern unterschiedlicher Form mit Leerzeichen dazwischen aus, daher ist nicht zu erkennen, welche welche ist. Nichts wurde ausgefüllt. Fügen Sie sie als Spalte ein oder geben Sie jede in ihr eigenes Feld ein.',
+  'app.job.ids.paste.doubleScan':
+    'Ein Scan kam in ein Feld, das schon eine Kennnummer hat, daher wurde er nicht verwendet. Um dieses Jungtier erneut zu scannen, leeren Sie zuerst sein Feld.',
   'app.job.ids.gone': 'Der Datensatz von {name} ist nicht mehr da. Schließen Sie dies und öffnen Sie es erneut.',
   'app.job.ids.keep': 'Weiter bearbeiten',
   'app.job.ids.discard': 'Verwerfen',

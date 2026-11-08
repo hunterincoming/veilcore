@@ -230,6 +230,12 @@ export const job = {
   'app.job.ids.no.twice': '{id}が2つの欄にあります。',
   'app.job.ids.no.taken': '{id}はすでに{name}の番号です。',
   'app.job.ids.no.elsewhere': '{id}は、あなたの別の動物「{name}」の番号です。',
+  'app.job.ids.changed':
+    '表示してから別の端末か別のタブで変更があったため、これ以上は保存していません。欄を確認して、もう一度保存してください。',
+  'app.job.ids.paste.spaces':
+    '形の違う複数の番号がスペースで区切られているようで、どれがどれか判断できません。何も入力していません。列として貼り付けるか、それぞれの欄に入力してください。',
+  'app.job.ids.paste.doubleScan':
+    'すでに番号のある欄にスキャンが入ったため、使っていません。この子をもう一度スキャンするには、先に欄を空にしてください。',
   'app.job.ids.gone': '{name}の記録が見つかりません。いったん閉じて開き直してください。',
   'app.job.ids.keep': '編集を続ける',
   'app.job.ids.discard': '破棄',

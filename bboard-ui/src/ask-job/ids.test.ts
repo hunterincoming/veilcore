@@ -11,6 +11,7 @@ import {
   pasteInto,
   readColumn,
   rowsOfLitter,
+  splitInsert,
   type IdRow,
   type Pasted,
 } from './ids';
@@ -186,5 +187,26 @@ describe('the boxes come from the records as they are now (X2)', () => {
     });
     // The pup's own corrections are not "another animal".
     expect(otherIds(now, rows).size).toBe(0);
+  });
+});
+
+describe('round 5: lists, headings over one ID, and several IDs put in at once', () => {
+  it('Japanese commas are a list too', () => {
+    expect(pasteInto(six, 'p1', 'A1、A2', {})).toEqual({ why: 'comma', line: 1 });
+    expect(checkBoxes(six, { p1: 'A1，A2' }).errors).toEqual({ p1: { why: 'comma' } });
+  });
+
+  it('a heading over a single ID: refused', () => {
+    expect(pasteInto(six, 'p1', 'Tag2026\nA1', {})).toEqual({ why: 'header', id: 'Tag2026' });
+    expect(pasteInto(six, 'p1', 'Chips\n985112000000001', {})).toEqual({ why: 'header', id: 'Chips' });
+    expect(boxes(pasteInto(six, 'p1', 'UK1\nUK22', {}))).toEqual(['p1=UK1', 'p2=UK22']);
+  });
+
+  it('several IDs put in at once with spaces: a column when they share a shape, unclear when not, one ID with a word', () => {
+    expect(splitInsert('M1 M2 M3')).toEqual(['M1', 'M2', 'M3']);
+    expect(splitInsert('985112000000001 985112000000002')).toEqual(['985112000000001', '985112000000002']);
+    expect(splitInsert('A1 B22')).toBe('unclear');
+    expect(splitInsert('UK 123456 700001')).toBeUndefined();
+    expect(splitInsert('A1')).toBeUndefined();
   });
 });

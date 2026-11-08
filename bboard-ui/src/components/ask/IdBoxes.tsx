@@ -2,22 +2,29 @@
 // screen before Approve (JobPage.tsx) both use it, so the rules are the same in both.
 //
 // Each box is labelled with what is known of its young (birth order, name, sex); a young that has
-// an ID shows it, read-only. The person types or scans. Inside a box, Tab and Enter never leave
-// the boxes or press a button (verification X3): a filled box moves on to the next empty box, and
-// the last one stays put; the second key of a scanner's Tab+Enter (or Enter+Tab), landing in the
-// empty box just moved to, is swallowed. A paste fills its box and the boxes below, one line
-// each, only when it plainly lines up; otherwise nothing is filled and the reason sits right
-// under that box. Under the boxes, each young with the ID it will get.
+// an ID shows it, read-only. The person types or scans. A scanner is told from a hand by timing
+// (verification X3, X7): a Tab or Enter within SCANNER_MS of the last character typed into the
+// box is a scanner's. A scanner's key never leaves the boxes or presses a button: a filled box
+// moves on to the next empty box, the last one stays put, and the second key of its Tab+Enter
+// (or Enter+Tab), landing in the empty box just moved to, is swallowed. A scan into a box that
+// already has an ID (a double beep, a 7th scan) is taken back, with a note. A person's Tab moves
+// focus as anywhere else, on to the buttons; a person's Enter in a filled box moves to the next
+// empty one. A paste fills its box and the boxes below, one line each, only when it plainly lines
+// up, and so does text put in all at once without a paste (a phone's clipboard chip: "M1 M2 M3");
+// otherwise nothing is filled and the reason sits right under that box. Under the boxes, each
+// young with the ID it will get.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Stack, TextField, Typography } from '@mui/material';
 import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
-import { pasteInto, type BoxError, type IdRow, type PasteRefusal, type Pasted } from '../../ask-job/ids';
+import { pasteInto, splitInsert, type BoxError, type IdRow, type PasteRefusal, type Pasted } from '../../ask-job/ids';
 
 /** A key a scanner ends a scan with, pressed in an empty box this soon after a move: swallowed. */
 const SCAN_GAP_MS = 300;
+/** A Tab or Enter this soon after the last character typed into the box: a scanner's, not a hand's. */
+const SCANNER_MS = 60;
 
 export const IdBoxes: React.FC<{
   rows: readonly IdRow[];
@@ -35,30 +42,97 @@ export const IdBoxes: React.FC<{
   const movedAt = useRef(0);
   const [note, setNote] = useState<{ at: string; note: Pasted | PasteRefusal }>();
   const open = rows.filter((r) => !r.saved);
+  // A note is brought into view when it is said: on a phone it may sit below the fold.
+  const noteRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    noteRef.current?.scrollIntoView?.({ block: 'nearest' });
+  }, [note]);
 
   const valueOf = (key: string) => (inputs.current.get(key)?.value ?? values[key] ?? '').trim();
+  // Per box: when its last character came (the event's own time, so a busy page doesn't blur it),
+  // and the ID a scanner finished in it, if one did.
+  const lastChar = useRef(new Map<string, number>());
+  const scanned = useRef(new Map<string, string>());
   const focus = (key: string | undefined) => {
     if (!key) return;
     inputs.current.get(key)?.focus();
-    movedAt.current = Date.now();
+    movedAt.current = performance.now();
   };
   const onKey = (key: string) => (e: React.KeyboardEvent) => {
-    if ((e.key !== 'Enter' && e.key !== 'Tab') || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return;
-    // Never out of the boxes, never onto a button: a scanner's next key would press it.
-    e.preventDefault();
-    const after = open.slice(open.findIndex((r) => r.key === key) + 1);
-    if (!valueOf(key)) {
-      // An empty box: the second key of a scanner's pair is swallowed; a Tab of a hand moves on.
-      if (e.key === 'Tab' && Date.now() - movedAt.current >= SCAN_GAP_MS) focus(after[0]?.key);
+    const at = e.timeStamp || performance.now();
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      lastChar.current.set(key, at);
       return;
     }
-    focus(after.find((r) => !valueOf(r.key))?.key);
+    if ((e.key !== 'Enter' && e.key !== 'Tab') || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return;
+    const scanner = at - (lastChar.current.get(key) ?? -Infinity) <= SCANNER_MS;
+    const after = open.slice(open.findIndex((r) => r.key === key) + 1);
+    const value = valueOf(key);
+    if (!value) {
+      // The second key of a scanner's pair, in the empty box it was just moved to: swallowed.
+      if (at - movedAt.current < SCAN_GAP_MS) e.preventDefault();
+      // A hand's Tab moves on as anywhere; Enter in an empty box does nothing.
+      else if (e.key === 'Enter') e.preventDefault();
+      return;
+    }
+    // The second key of a scanner's pair, in the box the first one stayed in (the last box): swallowed.
+    if (!scanner && at - movedAt.current < SCAN_GAP_MS) {
+      e.preventDefault();
+      return;
+    }
+    if (scanner) {
+      // A scanner's key never leaves the boxes nor presses a button.
+      e.preventDefault();
+      lastChar.current.delete(key);
+      movedAt.current = at;
+      const before = scanned.current.get(key);
+      if (before && value !== before) {
+        // A scan into a box a scan had filled already (a double beep, one scan too many): taken back.
+        onValues({ ...values, [key]: before });
+        setNote({ at: key, note: { why: 'doubleScan' } });
+        return;
+      }
+      scanned.current.set(key, value);
+      focus(after.find((r) => !valueOf(r.key))?.key);
+      return;
+    }
+    // A hand: Enter moves to the next empty box; Tab moves focus as anywhere.
+    scanned.current.delete(key);
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      focus(after.find((r) => !valueOf(r.key))?.key);
+    }
   };
   const onPaste = (key: string) => (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const r = pasteInto(rows, key, e.clipboardData.getData('text'), values, scheme);
+    paste(key, e.clipboardData.getData('text'));
+  };
+  const paste = (key: string, text: string) => {
+    const r = pasteInto(rows, key, text, values, scheme);
     setNote({ at: key, note: r });
     if ('values' in r) onValues(r.values);
+  };
+  const onChange = (key: string, next: string) => {
+    const before = values[key] ?? '';
+    // Several IDs put in an empty box at once, with no paste event (a phone's clipboard chip, an
+    // input method): read as a pasted column, or refused if it can't be told (S1).
+    if (!before.trim() && next.length - before.length > 1) {
+      const split = splitInsert(next);
+      if (split === 'unclear') {
+        onValues({ ...values, [key]: '' });
+        setNote({ at: key, note: { why: 'spaces' } });
+        return;
+      }
+      if (split) {
+        paste(key, split.join('\n'));
+        return;
+      }
+    }
+    // Changed other than by adding to it (cleared, edited by hand): no longer the scanned ID.
+    const was = scanned.current.get(key);
+    if (was !== undefined && !next.startsWith(was)) scanned.current.delete(key);
+    onValues({ ...values, [key]: next.slice(0, 200) });
+    setNote(undefined);
   };
   const noteText = (n: Pasted | PasteRefusal): string | undefined =>
     'why' in n
@@ -96,10 +170,7 @@ export const IdBoxes: React.FC<{
                 <TextField
                   label={label}
                   value={values[r.key] ?? ''}
-                  onChange={(e) => {
-                    onValues({ ...values, [r.key]: e.target.value.slice(0, 200) });
-                    setNote(undefined);
-                  }}
+                  onChange={(e) => onChange(r.key, e.target.value)}
                   onKeyDown={onKey(r.key)}
                   onPaste={onPaste(r.key)}
                   disabled={disabled}
@@ -119,6 +190,7 @@ export const IdBoxes: React.FC<{
               )}
               {said && note && (
                 <Alert
+                  ref={noteRef}
                   severity={'why' in note.note ? 'warning' : 'info'}
                   variant="outlined"
                   role="alert"

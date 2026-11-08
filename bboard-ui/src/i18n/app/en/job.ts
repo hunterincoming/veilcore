@@ -244,6 +244,12 @@ export const job = {
   'app.job.ids.no.twice': '{id} is in two boxes.',
   'app.job.ids.no.taken': '{id} is already {name}’s ID.',
   'app.job.ids.no.elsewhere': '{id} is already the ID of {name}, another of your animals.',
+  'app.job.ids.changed':
+    'Something changed on another device or in another tab since this was shown, so nothing more was saved. Check the boxes, then save again.',
+  'app.job.ids.paste.spaces':
+    'That looks like several IDs with spaces between them, of different shapes, so it can’t be told which is which. Nothing was filled. Paste them as a column, or type each in its own box.',
+  'app.job.ids.paste.doubleScan':
+    'A scan came into a box that already has an ID, so it wasn’t used. To scan this young again, clear its box first.',
   'app.job.ids.gone': '{name}’s record isn’t here any more. Close this and open it again.',
   'app.job.ids.keep': 'Keep editing',
   'app.job.ids.discard': 'Discard',

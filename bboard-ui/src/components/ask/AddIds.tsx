@@ -26,11 +26,13 @@ import {
 import { useT } from '../../i18n/app';
 import {
   ALREADY_CORRECTED,
+  allRecords,
   correctionWaitsForBackup,
   hydrate,
   issueCorrection,
   useRecords,
 } from '../../veilcore/records';
+import { saveIds } from '../../ask-job/save-ids';
 import { checkBoxes, otherIds, rowsOfLitter, type Litter } from '../../ask-job/ids';
 import { IdBoxes } from './IdBoxes';
 
@@ -63,26 +65,16 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
     setBusy(true);
     setError(undefined);
     try {
-      // What other tabs and devices did meanwhile, before anything is corrected.
-      await hydrate();
-      for (const [row, id] of pairs) {
-        if (!row.record) continue;
-        const fixed = await issueCorrection(
-          row.record.id,
-          {
-            refId: id,
-            animal: {
-              breed: row.record.animal?.breed ?? '',
-              herd: row.record.animal?.herd ?? '',
-              sex: row.record.animal?.sex ?? 'unknown',
-              idScheme: scheme.trim(),
-            },
-          },
-          t('app.job.ids.reason'),
-        );
-        if (!fixed) throw new Error(t('app.job.ids.gone', { name: row.name }));
-      }
-      onClose();
+      // Read afresh and checked again before each correction (save-ids.ts): another device may
+      // have saved since this screen was drawn.
+      const r = await saveIds(litter, values, pairs, scheme, t('app.job.ids.reason'), {
+        hydrate,
+        allRecords,
+        issueCorrection,
+      });
+      if ('changed' in r) setError(t('app.job.ids.changed'));
+      else if ('gone' in r) setError(t('app.job.ids.gone', { name: r.gone }));
+      else onClose();
     } catch (e) {
       const m = e instanceof Error ? e.message : String(e);
       setError(m === ALREADY_CORRECTED() ? t('app.sealed.alreadyCorrected') : m);
@@ -130,11 +122,6 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
               {t('app.sealed.correctBackupFirst')}
             </Alert>
           )}
-          {error && (
-            <Alert severity="error" variant="outlined" role="alert" data-add-ids-error="">
-              {error}
-            </Alert>
-          )}
         </Stack>
       </DialogContent>
       {/* Where the buttons are, so it is in view on a phone. */}
@@ -159,7 +146,19 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
           </Stack>
         </DialogActions>
       ) : (
-        <DialogActions>
+        <DialogActions sx={{ flexWrap: 'wrap', gap: 1 }}>
+          {/* Here, by the buttons, so it is in view on a phone. */}
+          {error && (
+            <Alert
+              severity="error"
+              variant="outlined"
+              role="alert"
+              sx={{ flexBasis: '100%', m: 0 }}
+              data-add-ids-error=""
+            >
+              {error}
+            </Alert>
+          )}
           <Button onClick={close} disabled={busy} sx={{ minHeight: 44 }} data-add-ids-cancel="">
             {t('app.common.cancel')}
           </Button>
