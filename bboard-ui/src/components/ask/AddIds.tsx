@@ -1,13 +1,17 @@
 // "Add IDs" for a litter or a calf crop saved without them (users' review, problem 3). Driven by
 // the records, not by a job, so the reminder lasts until the IDs exist: microchips go in at 6 to 8
-// weeks, long after a job is deleted. The young of one dam born the same day are one group; the
-// person pastes a column (from a scanner or a spreadsheet), one ID per young in order, and each is
-// saved as a correction (records.ts issueCorrection): a new record that replaces the old, which
-// stays on file. Nothing is saved until "Save". Young that already have an ID are listed with it,
-// and a column that doesn't line up with them is refused, never guessed at (ask-job/ids.ts).
+// weeks, long after a job is deleted.
+//
+// One box per young, labelled with what the record already says (birth order, name, sex) and any
+// ID it has, read-only. The person types or scans into each box; a scanner's Enter or Tab moves to
+// the next empty box. A paste is only a shortcut: it fills its box and the boxes below, one line
+// each, only when it is plainly one column, never past a young that has an ID (ask-job/ids.ts).
+// Each young is shown with the ID it will get before Save, and a box that breaks a rule says why
+// right under it. Each ID is saved as a correction (records.ts issueCorrection), permanent; a save
+// that stops part way keeps what was saved, and Save again sends only the rest.
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Alert,
   Box,
@@ -23,34 +27,96 @@ import {
 import { useT } from '../../i18n/app';
 import type { AppKey } from '../../i18n/app/en';
 import { correctionWaitsForBackup, issueCorrection, useRecords } from '../../veilcore/records';
-import { assignIds, idsOf, otherIds, type Litter } from '../../ask-job/ids';
+import {
+  checkBoxes,
+  otherIds,
+  pasteInto,
+  savedIdOf,
+  type BoxError,
+  type Litter,
+  type PasteRefusal,
+  type Pasted,
+} from '../../ask-job/ids';
 
 export { littersWithoutIds, type Litter } from '../../ask-job/ids';
+
+/** A key a scanner ends a scan with, pressed in an empty box this soon after a move: swallowed. */
+const SCAN_GAP_MS = 300;
 
 export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litter, onClose }) => {
   const tr = useT();
   const { t, tp } = tr;
-  const [scheme, setScheme] = useState(litter.young[0]?.animal?.idScheme ?? '');
-  const [text, setText] = useState('');
+  const records = useRecords();
+  const [scheme, setScheme] = useState(litter.young.find((r) => r.animal?.idScheme)?.animal?.idScheme ?? '');
+  const [values, setValues] = useState<Record<string, string>>({});
+  // Saved from this box (a save that stopped part way): shown as saved, never sent again.
+  const [savedHere, setSavedHere] = useState<ReadonlyMap<string, string>>(new Map());
+  // What the last paste said, under the box it landed in.
+  const [pasteNote, setPasteNote] = useState<{ at: string; note: Pasted | PasteRefusal }>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  // Saved in this box already: never saved twice if a later one fails.
-  const [saved, setSaved] = useState<ReadonlySet<string>>(new Set());
-  const records = useRecords();
-  const ids = idsOf(text);
-  const typed = ids.filter(Boolean).length;
-  const plan = ids.length ? assignIds(litter, ids, otherIds(records, litter)) : { pairs: [] };
-  const pairs = 'pairs' in plan ? plan.pairs : [];
-  const refusal = 'why' in plan ? plan : undefined;
-  const newId = new Map(pairs.map(([r, id]) => [r.id, id] as const));
+  const inputs = useRef(new Map<string, HTMLInputElement>());
+  const movedAt = useRef(0);
+
+  const { pairs, errors } = checkBoxes(litter, values, savedHere, otherIds(records, litter));
+  const blocked = Object.keys(errors).length > 0;
   const waits = litter.young.some((r) => correctionWaitsForBackup(r.id));
+  const open = litter.young.filter((r) => !savedIdOf(r, savedHere));
+
+  const errorText = (e: BoxError): string =>
+    t(`app.job.ids.no.${e.why}` as AppKey, {
+      ...('id' in e ? { id: e.id } : {}),
+      ...('name' in e ? { name: e.name } : {}),
+    });
+  const pasteText = (n: Pasted | PasteRefusal): string | undefined =>
+    'why' in n
+      ? t(`app.job.ids.paste.${n.why}` as AppKey, {
+          ...('id' in n ? { id: n.id } : {}),
+          ...('line' in n ? { line: String(n.line) } : {}),
+        })
+      : n.stopped
+        ? tp('app.job.ids.paste.stopped', n.stopped.left, { name: n.stopped.name })
+        : n.over
+          ? tp('app.job.ids.paste.over', n.over)
+          : undefined;
+
+  /** The next young after `id` whose box is empty, if any. */
+  const nextEmpty = (id: string): string | undefined => {
+    const at = open.findIndex((r) => r.id === id);
+    return open.slice(at + 1).find((r) => !(values[r.id] ?? '').trim())?.id;
+  };
+  const focus = (id: string | undefined) => {
+    if (!id) return false;
+    inputs.current.get(id)?.focus();
+    movedAt.current = Date.now();
+    return true;
+  };
+  // A scanner ends each scan with Enter, Tab, or both: a filled box moves on to the next empty one;
+  // the second key of a pair, landing in that empty box at once, is swallowed.
+  const onKey = (id: string) => (e: React.KeyboardEvent) => {
+    if ((e.key !== 'Enter' && e.key !== 'Tab') || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return;
+    // Read from the box itself: a scanner's keys come faster than a render.
+    const filled = !!(inputs.current.get(id)?.value ?? values[id] ?? '').trim();
+    if (!filled) {
+      if (e.key === 'Enter' || Date.now() - movedAt.current < SCAN_GAP_MS) e.preventDefault();
+      return;
+    }
+    if (focus(nextEmpty(id))) e.preventDefault();
+    else if (e.key === 'Enter') e.preventDefault();
+  };
+  const onPaste = (id: string) => (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const r = pasteInto(litter, id, e.clipboardData.getData('text'), values, savedHere, scheme);
+    setPasteNote({ at: id, note: r });
+    if ('values' in r) setValues(r.values);
+  };
+
   const save = async () => {
     setBusy(true);
     setError(undefined);
+    const done = new Map(savedHere);
     try {
-      const done = new Set(saved);
       for (const [r, id] of pairs) {
-        if (done.has(r.id)) continue;
         await issueCorrection(
           r.id,
           {
@@ -64,8 +130,8 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
           },
           t('app.job.ids.reason'),
         );
-        done.add(r.id);
-        setSaved(new Set(done));
+        done.set(r.id, id);
+        setSavedHere(new Map(done));
       }
       onClose();
     } catch (e) {
@@ -74,55 +140,109 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
       setBusy(false);
     }
   };
+
+  const sexOf = (r: (typeof litter.young)[number]) =>
+    r.animal?.sex === 'male' || r.animal?.sex === 'female' ? t(`app.animal.sex.${r.animal.sex}`) : '';
+
   return (
     <Dialog open onClose={busy ? undefined : onClose} fullWidth data-add-ids="">
-      <DialogTitle>{tp('app.job.ids.title', litter.missing.length, { dam: litter.dam })}</DialogTitle>
+      <DialogTitle>{tp('app.job.ids.title', open.length, { dam: litter.dam })}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ pt: 1 }}>
-          <Typography variant="body2">{tr.date(`${litter.born}T12:00:00`)}</Typography>
-          <Box component="ol" sx={{ m: 0, pl: 3 }}>
-            {litter.young.map((r) => (
-              <Typography component="li" variant="body2" key={r.id} data-add-ids-row="">
-                {r.strainName}
-                {r.refId?.trim()
-                  ? ` · ${t('app.job.ids.already', { id: r.refId.trim() })}`
-                  : newId.has(r.id)
-                    ? ` · ${newId.get(r.id)}`
-                    : ''}
-              </Typography>
-            ))}
-          </Box>
+          <Typography variant="body2">
+            {tr.date(`${litter.born}T12:00:00`)} · {t('app.job.ids.help')}
+          </Typography>
           <TextField
             label={t('app.animal.idScheme')}
             value={scheme}
             onChange={(e) => setScheme(e.target.value.slice(0, 200))}
+            size="small"
+            required
+            error={!!pairs.length && !scheme.trim()}
+            helperText={pairs.length && !scheme.trim() ? t('app.job.ids.schemeNeeded') : undefined}
+            slotProps={{ htmlInput: { 'data-add-ids-scheme': '' } }}
           />
-          <TextField
-            label={t('app.job.answer.ids')}
-            multiline
-            minRows={4}
-            value={text}
-            onChange={(e) => setText(e.target.value.slice(0, 20_000))}
-            helperText={t('app.job.answer.idsCount', { n: String(typed), count: String(litter.missing.length) })}
-            slotProps={{ htmlInput: { 'data-add-ids-paste': '' } }}
-          />
+          <Stack spacing={1.25} component="ol" sx={{ m: 0, p: 0, listStyle: 'none' }}>
+            {litter.young.map((r, i) => {
+              const saved = savedIdOf(r, savedHere);
+              const label = [`${i + 1}. ${r.strainName}`, sexOf(r)].filter(Boolean).join(' · ');
+              const err = errors[r.id];
+              const note = pasteNote?.at === r.id ? pasteText(pasteNote.note) : undefined;
+              return (
+                <Box component="li" key={r.id} data-add-ids-young={i + 1}>
+                  {saved ? (
+                    <Typography variant="body2" sx={{ py: 1 }} data-add-ids-saved="">
+                      {label}: <strong>{t('app.job.ids.already', { id: saved })}</strong>
+                    </Typography>
+                  ) : (
+                    <TextField
+                      label={label}
+                      value={values[r.id] ?? ''}
+                      onChange={(e) => {
+                        setValues({ ...values, [r.id]: e.target.value.slice(0, 200) });
+                        setPasteNote(undefined);
+                      }}
+                      onKeyDown={onKey(r.id)}
+                      onPaste={onPaste(r.id)}
+                      error={!!err}
+                      helperText={err ? errorText(err) : undefined}
+                      fullWidth
+                      size="small"
+                      inputRef={(el: HTMLInputElement | null) => {
+                        if (el) inputs.current.set(r.id, el);
+                        else inputs.current.delete(r.id);
+                      }}
+                      slotProps={{
+                        htmlInput: { 'data-add-ids-box': r.id, autoComplete: 'off', spellCheck: false },
+                        formHelperText: { role: err ? 'alert' : undefined },
+                      }}
+                    />
+                  )}
+                  {note && (
+                    <Alert
+                      severity={'why' in pasteNote!.note ? 'warning' : 'info'}
+                      variant="outlined"
+                      role="alert"
+                      sx={{ mt: 0.75 }}
+                      data-add-ids-paste-note={'why' in pasteNote!.note ? pasteNote!.note.why : 'stopped'}
+                    >
+                      {note}
+                    </Alert>
+                  )}
+                </Box>
+              );
+            })}
+          </Stack>
+          {/* What Save will do: each young next to the ID it will get. */}
+          <Box data-add-ids-preview="">
+            <Typography variant="subtitle2" component="h3">
+              {t('app.job.ids.preview')}
+            </Typography>
+            {pairs.length ? (
+              <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
+                {pairs.map(([r, id]) => (
+                  <Typography component="li" variant="body2" key={r.id} data-add-ids-pair="">
+                    {t('app.job.ids.pair', { name: r.strainName, id })}
+                  </Typography>
+                ))}
+              </Box>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                {t('app.job.ids.previewNone')}
+              </Typography>
+            )}
+            {blocked && (
+              <Typography variant="body2" color="error" sx={{ mt: 0.5 }} data-add-ids-blocked="">
+                {tp('app.job.ids.fix', Object.keys(errors).length)}
+              </Typography>
+            )}
+          </Box>
           <Alert severity="info" variant="outlined">
             {t('app.job.ids.permanent')}
           </Alert>
           {waits && (
             <Alert severity="warning" variant="outlined">
               {t('app.sealed.correctBackupFirst')}
-            </Alert>
-          )}
-          {refusal && (
-            <Alert severity="warning" variant="outlined" role="alert" data-add-ids-refused={refusal.why}>
-              {t(`app.job.ids.no.${refusal.why}` as AppKey, {
-                ...('id' in refusal ? { id: refusal.id } : {}),
-                ...('name' in refusal ? { name: refusal.name } : {}),
-                ...('typed' in refusal ? { typed: refusal.typed } : {}),
-                ...('n' in refusal ? { n: String(refusal.n), count: String(refusal.count) } : {}),
-                ...('row' in refusal ? { row: String(refusal.row), count: String(litter.young.length) } : {}),
-              })}
             </Alert>
           )}
           {error && (
@@ -138,7 +258,7 @@ export const AddIds: React.FC<{ litter: Litter; onClose: () => void }> = ({ litt
         </Button>
         <Button
           variant="contained"
-          disabled={busy || waits || !pairs.length || !!refusal || !scheme.trim()}
+          disabled={busy || waits || blocked || !pairs.length || !scheme.trim()}
           onClick={() => void save()}
           sx={{ minHeight: 44 }}
           data-add-ids-save=""

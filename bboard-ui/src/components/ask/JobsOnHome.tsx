@@ -98,7 +98,14 @@ export const JobsOnHome: React.FC = () => {
       </Typography>
       <Stack spacing={1.25}>
         {lines.map((l) => (
-          <Stack key={l.key} direction="row" spacing={1.5} sx={{ alignItems: 'center' }} data-home-job="">
+          <Stack
+            key={l.key}
+            direction="row"
+            spacing={1.5}
+            sx={{ alignItems: 'center' }}
+            data-home-job=""
+            data-home-ids={l.key.startsWith('ids-') ? '' : undefined}
+          >
             <Typography variant="body2" sx={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
               {l.text}
             </Typography>

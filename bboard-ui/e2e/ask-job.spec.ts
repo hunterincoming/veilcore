@@ -336,6 +336,139 @@ test('a litter with its sexes and IDs pasted; an edit in another tab leaves the 
   expectNoErrors(errors);
 });
 
+/** A paste into a box, as the browser hands it to the page. */
+const pasteText = (page: Page, selector: string, text: string) =>
+  page.locator(selector).evaluate((el, t) => {
+    const data = new DataTransfer();
+    data.setData('text/plain', t);
+    el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
+  }, text);
+
+/** A scanner: the ID typed fast, then Tab and Enter. */
+const scan = async (page: Page, id: string) => {
+  await page.keyboard.type(id, { delay: 5 });
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Enter');
+};
+
+test('Add IDs on a phone: one box per young; three scanned into a litter of six, checked, saved on the right pups; two columns refused', async ({
+  page,
+}) => {
+  test.setTimeout(300_000);
+  const errors = watch(page);
+  const held = newHeld();
+  const setup = { holder: randomBytes(32).toString('hex'), vault: newVaultKey() };
+  await standIn(page, held, setup);
+  await page.goto('/records');
+  await doIt(page, 'import my herd');
+  await page.locator('[data-job-file]').setInputFiles({
+    name: 'herd.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from(
+      'Name,Species,Breed,Sex,Date of birth,Breeder\nBella,Dog,Border Collie,female,2023-04-05,Kennel Nord\n',
+    ),
+  });
+  await expect(page.locator('[data-job-block="made"]')).toContainText('1 ready');
+  await backup(page);
+  await approve(page, 'Approve: save 1 record');
+  await expect(page.locator('[data-job-done]')).toBeVisible({ timeout: 60_000 });
+  await page.goto('/records');
+  await doIt(page, 'Bella whelped 6 pups');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Check this: 6 young from Bella');
+  await backup(page);
+  await approve(page, 'Approve: save 6 records');
+  await expect(page.locator('[data-job-done]')).toHaveText('6 records saved.Home will remind you to add 6 IDs.', {
+    timeout: 60_000,
+  });
+  await expect.poll(() => held.records.length, { timeout: 30_000 }).toBe(7);
+
+  // Home: the litter without IDs. On a phone.
+  await page.setViewportSize({ width: 360, height: 740 });
+  await page.goto('/records');
+  const line = page.locator('[data-home-ids]');
+  await expect(line).toContainText('Bella’s litter (6): add IDs');
+  await line.getByRole('button').click();
+  const box = page.locator('[data-add-ids]');
+  await expect(box.getByRole('heading', { level: 2 })).toHaveText('Add IDs: Bella’s 6 young');
+  await expect(box.locator('[data-add-ids-young]')).toHaveCount(6);
+  const scheme = box.locator('[data-add-ids-scheme]');
+  if (!(await scheme.inputValue())) await scheme.fill('Microchip');
+
+  // Scanned: each scan ends with Tab then Enter, and lands in the next empty box, never two on.
+  const boxes = box.locator('[data-add-ids-box]');
+  await boxes.nth(0).click();
+  for (const n of [1, 2, 3]) await scan(page, `98511200000000${n}`);
+  expect(await boxes.evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value))).toEqual([
+    '985112000000001',
+    '985112000000002',
+    '985112000000003',
+    '',
+    '',
+    '',
+  ]);
+  await expect(boxes.nth(3)).toBeFocused();
+  // What Save will do, young by young.
+  await expect(box.locator('[data-add-ids-pair]')).toHaveText([
+    'Bella pup 1 gets 985112000000001',
+    'Bella pup 2 gets 985112000000002',
+    'Bella pup 3 gets 985112000000003',
+  ]);
+  await expect(box.locator('[data-add-ids-save]')).toHaveText('Save 3 IDs');
+  await box.locator('[data-add-ids-preview]').scrollIntoViewIfNeeded();
+  await shot(page, 'ids-scan-en');
+
+  // Two columns pasted into box 4: refused, nothing filled, the reason under that box, in view.
+  await pasteText(page, '[data-add-ids-box] >> nth=3', '985112000000004\tGB-44\n985112000000005\tGB-45');
+  const note = box.locator('[data-add-ids-paste-note="columns"]');
+  await expect(note).toHaveText(
+    'That’s more than one column. Copy just the column of IDs and paste again. Nothing was filled.',
+  );
+  await expect(note).toBeInViewport();
+  expect(await boxes.nth(3).inputValue()).toBe('');
+  expect(await boxes.nth(4).inputValue()).toBe('');
+  await expect(box.locator('[data-add-ids-pair]')).toHaveCount(3);
+  await shot(page, 'ids-columns-en');
+
+  // Saved: each ID on the pup whose box it was in.
+  await box.locator('[data-add-ids-save]').click();
+  await expect(box).toHaveCount(0, { timeout: 60_000 });
+  await expect
+    .poll(() => openRecordRows(held.records, setup.vault).filter((r) => r.refId && !r.supersededBy).length, {
+      timeout: 30_000,
+    })
+    .toBe(3);
+  const tagged: Record<string, string> = Object.fromEntries(
+    openRecordRows(held.records, setup.vault)
+      .filter((r) => r.refId && !r.supersededBy)
+      .map((r) => [String(r.strainName), String(r.refId)]),
+  );
+  expect(tagged).toEqual({
+    'Bella pup 1': '985112000000001',
+    'Bella pup 2': '985112000000002',
+    'Bella pup 3': '985112000000003',
+  });
+  await expect(line).toContainText('Bella’s litter (3): add IDs');
+
+  // In Japanese: the saved IDs shown read-only, a scan, then two columns refused.
+  await page.evaluate(() => localStorage.setItem('veilcore.lang', 'ja'));
+  await page.reload();
+  await line.getByRole('button').click();
+  await expect(box.locator('[data-add-ids-saved]')).toHaveCount(3);
+  await expect(boxes).toHaveCount(3);
+  if (!(await scheme.inputValue())) await scheme.fill('Microchip');
+  await boxes.nth(0).click();
+  await scan(page, '985112000000004');
+  await expect(boxes.nth(1)).toBeFocused();
+  await expect(box.locator('[data-add-ids-pair]')).toHaveText(['Bella pup 4：985112000000004']);
+  await box.locator('[data-add-ids-preview]').scrollIntoViewIfNeeded();
+  await shot(page, 'ids-scan-ja');
+  await pasteText(page, '[data-add-ids-box] >> nth=1', 'A\tB\nC\tD');
+  await expect(box.locator('[data-add-ids-paste-note="columns"]')).toBeInViewport();
+  await shot(page, 'ids-columns-ja');
+  await page.evaluate(() => localStorage.setItem('veilcore.lang', 'en'));
+  expectNoErrors(errors);
+});
+
 test('a mid-job failure says what is safe; a crash mid-send resumes with the same records', async ({
   page,
   context,

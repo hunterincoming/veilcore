@@ -1,115 +1,143 @@
-// "Add IDs": a pasted column never puts an ID on the wrong young (verification V5, W1, W4).
+// "Add IDs": one box per young, so an ID can only go on the young whose box it is in. A paste
+// fills boxes downwards, one line each, and only when it is plainly one column (verification V5,
+// W1, W4, X1, S1 to S4).
 // SPDX-License-Identifier: Apache-2.0
 import { describe, expect, it } from 'vitest';
-import { assignIds, idsOf, otherIds } from './ids';
+import { checkBoxes, looksLikeHeading, otherIds, pasteInto, readColumn, type Pasted } from './ids';
 import { ANIMAL_PROFILE } from '../veilcore/animal-profile';
 import type { StrainRecord } from '../veilcore/records';
 
-const pup = (n: number, refId = ''): StrainRecord =>
-  ({ id: `p${n}`, strainName: `Bella pup ${n}`, refId }) as StrainRecord;
-const litter = (young: StrainRecord[]) => ({ young, missing: young.filter((r) => !r.refId) });
-const names = (r: ReturnType<typeof assignIds>) =>
-  'pairs' in r ? r.pairs.map(([y, id]) => `${y.strainName}=${id}`) : r;
-const fresh6 = litter([1, 2, 3, 4, 5, 6].map((n) => pup(n)));
-const saved3 = () => litter([pup(1, 'A1'), pup(2, 'A2'), pup(3, 'A3'), pup(4), pup(5), pup(6)]);
+const animal = (id: string, name: string, refId = '', extra: Record<string, unknown> = {}): StrainRecord =>
+  ({
+    id,
+    strainName: name,
+    refId,
+    taxon: 'Canis familiaris',
+    profile: ANIMAL_PROFILE,
+    animal: { breed: '', idScheme: '', sex: 'female', herd: '' },
+    licenseIds: [],
+    ...extra,
+  }) as unknown as StrainRecord;
+const pup = (n: number, refId = '') => animal(`p${n}`, `Bella pup ${n}`, refId);
+const litter = (young: StrainRecord[]) => ({ young });
+const six = litter([1, 2, 3, 4, 5, 6].map((n) => pup(n)));
+const withSaved = litter([pup(1), pup(2, 'A2'), pup(3), pup(4), pup(5), pup(6)]);
 
-describe('the pasted column, cell by cell', () => {
-  it('keeps an empty cell in its place, splits a row at its tabs, and drops only empty lines at the end', () => {
-    expect(idsOf('A1\n\nA3\r\nA4\n\n')).toEqual(['A1', '', 'A3', 'A4']);
-    expect(idsOf('A1\t\tA3')).toEqual(['A1', '', 'A3']);
-    expect(idsOf('\nA5\nA6')).toEqual(['', 'A5', 'A6']);
-    expect(idsOf('US,123')).toEqual(['US,123']);
+/** The boxes a paste left, as "pup=ID" for every box with something in it. */
+const boxes = (r: ReturnType<typeof pasteInto>) =>
+  'values' in r ? Object.entries(r.values).map(([id, v]) => `${id}=${v}`) : r;
+
+describe('a paste fills the box it lands in and the boxes below, one line each', () => {
+  it('one column from the first box', () => {
+    expect(boxes(pasteInto(six, 'p1', 'A1\nA2\nA3', {}))).toEqual(['p1=A1', 'p2=A2', 'p3=A3']);
+  });
+
+  it('from a lower box: the boxes above are untouched', () => {
+    expect(boxes(pasteInto(six, 'p4', 'A4\r\nA5', { p1: 'X1' }))).toEqual(['p1=X1', 'p4=A4', 'p5=A5']);
+  });
+
+  it('an empty line leaves its own box empty, nothing moves up; empty lines at the end go', () => {
+    expect(boxes(pasteInto(six, 'p1', 'A1\n\nA3\n\n', {}))).toEqual(['p1=A1', 'p2=', 'p3=A3']);
+  });
+
+  it('a scanner’s trailing tab on each line is one column (A1⇥⏎A2⇥⏎A3⇥⏎)', () => {
+    expect(boxes(pasteInto(six, 'p1', 'A1\t\nA2\t\nA3\t\n', {}))).toEqual(['p1=A1', 'p2=A2', 'p3=A3']);
+  });
+
+  it('two columns, a 3×2 grid, or a leading empty column: refused, nothing filled (X1)', () => {
+    expect(pasteInto(six, 'p1', 'A1\tM1\nA2\tM2\nA3\tM3', {})).toEqual({ why: 'columns' });
+    expect(pasteInto(six, 'p1', '\tA1\n\tA2\n\tA3', {})).toEqual({ why: 'columns' });
+    expect(pasteInto(six, 'p1', 'A1\t\tA3', {})).toEqual({ why: 'columns' });
+  });
+
+  it('a heading on the first line: refused (S3)', () => {
+    expect(pasteInto(six, 'p1', 'Tag\nA1\nA2', {})).toEqual({ why: 'header', id: 'Tag' });
+    expect(pasteInto(six, 'p1', 'Ohrmarke:\nDE01', {})).toEqual({ why: 'header', id: 'Ohrmarke:' });
+    expect(pasteInto(six, 'p1', '耳標\n001', {})).toEqual({ why: 'header', id: '耳標' });
+    expect(pasteInto(six, 'p1', 'Chip ID\n985112\n985113', {}, new Map(), 'Chip ID')).toEqual({
+      why: 'header',
+      id: 'Chip ID',
+    });
+    // A heading no list knows: words over a column of numbers.
+    expect(pasteInto(six, 'p1', 'Welpen Marke\n276098\n276099', {})).toEqual({ why: 'header', id: 'Welpen Marke' });
+    expect(looksLikeHeading('A1', 'A2')).toBe(false);
+  });
+
+  it('a line of invisible characters only: refused, with the line (S4)', () => {
+    expect(pasteInto(six, 'p1', 'A1\n\u200B\nA3', {})).toEqual({ why: 'invisible', line: 2 });
+  });
+
+  it('never into a young that has an ID: it stops there and says so (S2)', () => {
+    const r = pasteInto(withSaved, 'p1', 'X1\nZ2\nX3', {}) as Pasted;
+    expect(r.filled).toEqual(['p1']);
+    expect(r.stopped).toEqual({ name: 'Bella pup 2', left: 2 });
+    expect(r.values).toEqual({ p1: 'X1' });
+  });
+
+  it('more lines than boxes below: the rest is said, not used', () => {
+    const r = pasteInto(six, 'p5', 'A5\nA6\nA7', {}) as Pasted;
+    expect(r.filled).toEqual(['p5', 'p6']);
+    expect(r.over).toBe(1);
   });
 });
 
-describe('which young each pasted ID goes on', () => {
-  it('a fresh litter: in order', () => {
-    expect(names(assignIds(fresh6, idsOf('A1\nA2')))).toEqual(['Bella pup 1=A1', 'Bella pup 2=A2']);
+describe('what Save will do, box by box', () => {
+  it('each young next to the ID it will get, in birth order; empty boxes are left as they are', () => {
+    const { pairs, errors } = checkBoxes(six, { p3: ' A3 ', p1: 'A1' });
+    expect(pairs.map(([r, id]) => `${r.strainName}=${id}`)).toEqual(['Bella pup 1=A1', 'Bella pup 3=A3']);
+    expect(errors).toEqual({});
   });
 
-  it('a blank row in the middle of a whole column: that young gets nothing, the rest stay in place (W1)', () => {
-    expect(names(assignIds(fresh6, idsOf('A1\n\nA3\nA4\nA5\nA6')))).toEqual([
-      'Bella pup 1=A1',
-      'Bella pup 3=A3',
-      'Bella pup 4=A4',
-      'Bella pup 5=A5',
-      'Bella pup 6=A6',
-    ]);
+  it('the same ID in two boxes: both refused, by box', () => {
+    const { pairs, errors } = checkBoxes(six, { p1: 'A1', p2: 'a1', p3: 'A3' });
+    expect(errors).toEqual({ p1: { why: 'twice', id: 'A1' }, p2: { why: 'twice', id: 'a1' } });
+    expect(pairs.map(([r]) => r.id)).toEqual(['p3']);
   });
 
-  it('a blank row in a shorter column: which young it skips can’t be told, so it is refused (W1)', () => {
-    expect(assignIds(fresh6, idsOf('A1\n\nA3\nA4'))).toEqual({ why: 'blank', row: 2 });
+  it('an ID a young of the litter already has: refused (W4)', () => {
+    expect(checkBoxes(withSaved, { p3: 'a2' }).errors).toEqual({ p3: { why: 'taken', id: 'a2', name: 'Bella pup 2' } });
   });
 
-  it('tab-separated cells with an empty one: refused when short, in place when whole (W1)', () => {
-    expect(assignIds(fresh6, idsOf('A1\t\tA3'))).toEqual({ why: 'blank', row: 2 });
-    expect(names(assignIds(fresh6, idsOf('A1\t\tA3\tA4\tA5\tA6')))).toEqual([
-      'Bella pup 1=A1',
-      'Bella pup 3=A3',
-      'Bella pup 4=A4',
-      'Bella pup 5=A5',
-      'Bella pup 6=A6',
-    ]);
-  });
-
-  it('an empty line at the end is not a row (W1)', () => {
-    expect(names(assignIds(fresh6, idsOf('A1\nA2\n\n')))).toEqual(['Bella pup 1=A1', 'Bella pup 2=A2']);
-  });
-
-  it('only the rest, after 3 of 6 were saved: in order; with an empty first row, refused (W1)', () => {
-    expect(names(assignIds(saved3(), idsOf('A4\nA5\nA6')))).toEqual([
-      'Bella pup 4=A4',
-      'Bella pup 5=A5',
-      'Bella pup 6=A6',
-    ]);
-    expect(assignIds(saved3(), idsOf('\nA5\nA6'))).toEqual({ why: 'blank', row: 1 });
-  });
-
-  it('after a save that stopped at 3 of 6, the whole column again goes row by row, not shifted', () => {
-    expect(names(assignIds(saved3(), idsOf('A1\nA2\nA3\nA4\nA5\nA6')))).toEqual([
-      'Bella pup 4=A4',
-      'Bella pup 5=A5',
-      'Bella pup 6=A6',
-    ]);
-    // Rows already saved may be left empty; a blank where one is missing leaves it so.
-    expect(names(assignIds(saved3(), idsOf('\n\n\nA4\n\nA6')))).toEqual(['Bella pup 4=A4', 'Bella pup 6=A6']);
-  });
-
-  it('the whole column in another order than the IDs saved: refused', () => {
-    const l = litter([pup(1, 'A1'), pup(2, 'A2'), pup(3), pup(4)]);
-    expect(assignIds(l, idsOf('A2\nA1\nA3\nA4'))).toEqual({
-      why: 'differs',
-      id: 'A1',
-      name: 'Bella pup 1',
-      typed: 'A2',
-    });
-    expect(assignIds(l, idsOf('\n\nA1\nA4'))).toEqual({ why: 'taken', id: 'A1', name: 'Bella pup 1' });
-  });
-
-  it('a shorter column that repeats an ID already saved: refused', () => {
-    expect(assignIds(saved3(), idsOf('A1\nA2\nA3'))).toEqual({ why: 'taken', id: 'A1', name: 'Bella pup 1' });
-    expect(assignIds(saved3(), idsOf('a1\nA5'))).toEqual({ why: 'taken', id: 'A1', name: 'Bella pup 1' });
-  });
-
-  it('more IDs than young still without one, one ID twice, or a comma in a cell: refused', () => {
-    const l = litter([pup(1, 'A1'), pup(2), pup(3)]);
-    expect(assignIds(l, idsOf('B1\nB2\nB3\nB4'))).toEqual({ why: 'tooMany', n: 4, count: 2 });
-    expect(assignIds(l, idsOf('B1\nb1'))).toEqual({ why: 'twice', id: 'b1' });
-    expect(assignIds(l, idsOf('B1, B2'))).toEqual({ why: 'comma', id: 'B1, B2' });
-  });
-
-  it('an ID another of the person’s animals already has: refused (W4)', () => {
-    const rex = {
-      id: 'rex',
-      strainName: 'Rex',
-      refId: 'TAG-9',
-      taxon: 'Canis familiaris',
-      profile: ANIMAL_PROFILE,
-      animal: { breed: '', idScheme: '', sex: 'male', herd: '' },
-      licenseIds: [],
-    } as unknown as StrainRecord;
-    const others = otherIds([rex, ...fresh6.young], fresh6);
+  it('an ID another of the person’s animals has: refused (W4)', () => {
+    const rex = animal('rex', 'Rex', 'TAG-9');
+    const others = otherIds([rex, ...six.young], six);
     expect(others).toEqual(new Map([['TAG-9', 'Rex']]));
-    expect(assignIds(fresh6, idsOf('A1\ntag-9'), others)).toEqual({ why: 'elsewhere', id: 'tag-9', name: 'Rex' });
+    expect(checkBoxes(six, { p1: 'tag-9' }, new Map(), others).errors).toEqual({
+      p1: { why: 'elsewhere', id: 'tag-9', name: 'Rex' },
+    });
+  });
+
+  it('invisible characters in a box: refused (S4)', () => {
+    expect(checkBoxes(six, { p1: 'A1\u200B' }).errors).toEqual({ p1: { why: 'invisible' } });
+  });
+
+  it('a retry after a save that stopped part way: the IDs saved from this box are no one else’s (S1)', () => {
+    // Pup 1 was saved as a correction: its old record replaced by one with the ID.
+    const after = [
+      animal('p1', 'Bella pup 1', '', { supersededBy: 'p1b' }),
+      animal('p1b', 'Bella pup 1', 'A1', { supersedes: { recordId: 'p1' } }),
+      ...six.young.slice(1),
+    ];
+    const saved = new Map([['p1', 'A1']]);
+    const { pairs, errors } = checkBoxes(six, { p1: 'A1', p2: 'A2' }, saved, otherIds(after, six));
+    expect(errors).toEqual({});
+    // Pup 1 is saved: its box isn't sent again.
+    expect(pairs.map(([r, id]) => `${r.id}=${id}`)).toEqual(['p2=A2']);
+    // And its ID still can't go on another pup.
+    expect(checkBoxes(six, { p2: 'A1' }, saved, otherIds(after, six)).errors).toEqual({
+      p2: { why: 'taken', id: 'A1', name: 'Bella pup 1' },
+    });
+  });
+});
+
+describe('the job page’s pasted column (readColumn): one line a young, in place', () => {
+  it('an empty line stays in its place; a scanner’s trailing tab is dropped', () => {
+    expect(readColumn('A1\n\nA3\n')).toEqual(['A1', '', 'A3']);
+    expect(readColumn('A1\t\nA2\t\n')).toEqual(['A1', 'A2']);
+  });
+  it('more than one column, a heading, or invisible characters: refused', () => {
+    expect(readColumn('A1\tM1\nA2\tM2')).toEqual({ why: 'columns' });
+    expect(readColumn('Ear tag\nUK123')).toEqual({ why: 'header', id: 'Ear tag' });
+    expect(readColumn('A1\nA\u200B2')).toEqual({ why: 'invisible', line: 2 });
   });
 });
