@@ -208,9 +208,13 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   const recordUrl = page.url();
   for (const path of ['/licenses', '/backup', '/records/import']) {
     await page.goto(path);
-    await expect(page.locator('[data-ask-open]')).toBeVisible();
+    // On a phone the bubble itself stays off a form being filled in, the import included (hint.ts formScreen).
+    if (path === '/records/import') await expect(page.locator('[data-screen-heading]').first()).toBeVisible();
+    else await expect(page.locator('[data-ask-open]')).toBeVisible();
     await expect(hint, path).toHaveCount(0);
   }
+  await page.goto('/records/import');
+  await expect(page.locator('[data-ask-open]')).toHaveCount(0);
   await page.goto(recordUrl);
   await expect(hint).toHaveText(`Try: cut 6 clones from ${name}`);
   // In the page's own flow, after its content: it covers nothing (the evidence line included).
@@ -220,7 +224,8 @@ test('the receipt before the key date stamp, then 3 clones from Ask saved with t
   await page.setViewportSize({ width: 360, height: 740 });
   await hint.scrollIntoViewIfNeeded();
   if (process.env.ASK_SHOTS) await page.screenshot({ path: `${process.env.ASK_SHOTS}/fix-hint-inline-360.png` });
-  if (process.env.ASK_SHOTS) await page.screenshot({ path: `${process.env.ASK_SHOTS}/fix-hint-record-360-full.png`, fullPage: true });
+  if (process.env.ASK_SHOTS)
+    await page.screenshot({ path: `${process.env.ASK_SHOTS}/fix-hint-record-360-full.png`, fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await hint.getByRole('button', { name: 'Dismiss' }).click();
   await expect(hint).toHaveCount(0);

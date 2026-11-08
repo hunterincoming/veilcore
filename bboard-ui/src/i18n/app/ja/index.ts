@@ -40,6 +40,7 @@ import { attest } from './attest';
 import { start } from './start';
 import { receipt } from './receipt';
 import { ask } from './ask';
+import { origin } from './origin';
 
 export const appJa: AppTranslation = {
   ...common,
@@ -68,4 +69,5 @@ export const appJa: AppTranslation = {
   ...start,
   ...receipt,
   ...ask,
+  ...origin,
 };

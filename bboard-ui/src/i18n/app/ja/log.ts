@@ -41,7 +41,6 @@ export const log = {
   'app.log.eg': '例：{v}',
   'app.log.egNextSelection': '例：{name}、次の選抜',
   'app.log.bredBy': '育成者',
-  'app.log.bredByPlaceholder': 'お名前または事業者名',
   'app.log.whenMade': '作出した日（あなた自身のメモ）',
   'app.log.whenMadeHelp':
     '公開される日付スタンプはネットワークから得られます。これはあなたが人に伝える日付にすぎません。',
@@ -66,7 +65,6 @@ export const log = {
   'app.log.notes': 'メモ',
   'app.log.nextCheck': '次へ：確認する',
   'app.log.readingYourPhotos': '写真を読み込んでいます…',
-  'app.log.nameAndBreeder': '必要なのは名前と育成者だけです。',
   'app.log.reviewTitle': 'これで合っていますか？',
   'app.log.fixNow': '直すなら今です。',
   'app.log.k.plant': '植物または系統',

@@ -169,7 +169,7 @@ export const ask = {
   'app.ask.batch.offspringIntro': 'One new record for each young animal, each linked to its sire and dam.',
   'app.ask.batch.cutFrom': 'Cut from',
   'app.ask.batch.noPlants': 'Log the plant first: clones are cut from one of your records.',
-  'app.ask.batch.noAnimals': 'Log the sire or dam first: offspring are linked to your own records.',
+  'app.ask.batch.noAnimals': 'Pick a sire or dam from your records, or type the sire.',
   'app.ask.batch.notListed': 'None',
   'app.ask.batch.howManyClones': 'How many clones',
   'app.ask.batch.howManyYoung': 'How many young',

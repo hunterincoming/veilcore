@@ -41,6 +41,7 @@ const SECTIONS: readonly Section[] = [
     body: [
       'Use VeilCore only for what is lawful where you and the other party are. That includes the laws on cannabis and other controlled plants, on moving plant or animal material, on plant variety rights, and on taxes. You are responsible for knowing them.',
       'Record and license only what you have the right to. Don’t put other people’s personal details into a record without a lawful reason to.',
+      'Don’t register other people’s traditional varieties, landraces or breeds as your own breeding. If you record material a community, a seed bank or another breeder kept or bred, name its breeder only if you know them, leave the breeder empty if you don’t, and say where it came from.',
       'Keep your backup file safe. Your keys are made in your browser and we don’t have them, so we can’t recover a record, a license or a deal you lose the keys to.',
     ],
   },

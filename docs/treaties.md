@@ -43,11 +43,23 @@ treaties, so where VeilCore stands has to be plain. Not legal advice.
   or source of genetic resources an invention is based on. A dated record of where material
   came from, made at the time, is evidence for that disclosure.
 
-None of this needs a new field type. The number goes in the record's notes, and the
-permit or agreement itself can be kept as a document record (`docs/document-profile.md`)
-about the plant or animal record: fingerprinted on the device, dated, and shown only when the
-holder chooses. Typed fields that check the formats (IRCC, SMTA, GLIS DOI) are a possible later
-step, after a lawyer and a user have asked for them.
+None of this needs a new field type. When a plant is logged as received material or as a
+landrace or heirloom, "Bred by" becomes optional ("Breeder, if known") and a "Where it came
+from" step asks for the source in the holder's own words, plus a collection or community name,
+the country of origin, the date received, and a permit, SMTA, IRCC and GLIS DOI number. They
+are sealed in the record's notes as labelled lines (`bboard-ui/src/veilcore/origin-notes.ts`),
+so no record hashes any differently and no profile version changes; the app checks no format.
+A genebank's passport sheet (MCPD: ACCENAME, ACCENUMB, GENUS, SPECIES, SAMPSTAT, COLLSRC,
+ORIGCTY, ACQDATE, PUID, DONORNAME, DONORCODE, INSTCODE, COLLSITE, MLSSTAT, ANCEST) imports
+through `/records/import` the same way, each code sealed with its meaning; wild, weedy and
+traditional rows (SAMPSTAT 1xx, 2xx, 300) never take the sheet-wide default breeder. The permit or agreement
+itself can be kept as a document record (`docs/document-profile.md`) about the plant or animal
+record: fingerprinted on the device, dated, and shown only when the holder chooses.
+
+Every line is the holder's own statement; VeilCore checks none of it. Every check page says:
+"The date shows the holder had this record by then. It doesn't show who bred it or where it came
+from." The terms of use ask nobody to register other people's traditional varieties as
+their own breeding.
 
 ## Words to use and to avoid
 

@@ -316,7 +316,9 @@ export const RecordDetail: React.FC = () => {
             ? record.senderName
               ? t('app.home.receivedFromNamed', { name: record.senderName, id: record.receivedFrom })
               : t('app.home.receivedFrom', { name: record.receivedFrom })
-            : t('app.plant.bredByName', { name: record.bredBy })}
+            : record.bredBy
+              ? t('app.plant.bredByName', { name: record.bredBy })
+              : t('app.origin.breederNotStated')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ ...CODE_TEXT, overflowWrap: 'anywhere' }}>
           {record.id}
@@ -594,7 +596,7 @@ export const RecordDetail: React.FC = () => {
                       <StrainFields record={record} />
                     ) : (
                       <>
-                        <Field label={t('app.log.bredBy')}>{record.bredBy}</Field>
+                        <Field label={t('app.log.bredBy')}>{record.bredBy || t('app.origin.notStated')}</Field>
                         {record.taxon && <Field label={t('app.log.species')}>{record.taxon}</Field>}
                         {record.breedingMethod && (
                           <Field label={t('app.plant.f.method')}>

@@ -28,9 +28,14 @@ import {
   Chip,
   CircularProgress,
   Collapse,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
   LinearProgress,
   Link,
   MenuItem,
+  Radio,
+  RadioGroup,
   Stack,
   TextField,
   Typography,
@@ -80,10 +85,14 @@ import {
   nextStageDraft,
   nextStageNamePlaceholder,
   nextStageStart,
+  originApplies,
+  originSourceOf,
   parseDraft,
+  plantReady,
   saveDraft,
   sealInputOf,
   stampProblem,
+  today,
   unsavedPlantLine,
 } from './log-flow-state';
 import { animalParentOptionsOf, parentOptionsOf, strainParentOptionsOf } from '../stage/record-kinds';
@@ -94,14 +103,20 @@ import { HANDOFF_STATE_KEY, isBatch, readHandoff, type Handoff } from '../../ask
 import { prefillOf, type Prefill } from '../../ask/prefill';
 import { BatchFlow } from './BatchFlow';
 import { allRecords } from '../../veilcore/records';
+import { LANDRACE_METHOD, ORIGIN_SOURCES, emptyOrigin, type OriginSource } from '../../veilcore/origin-notes';
+import { OriginReviewLine, OriginStep } from './OriginStep';
 // SEAL_EACH_STAGE, STAGE_PROMPT and SELECTED_PROMPT (stage-notes.ts) are shown here in the
 // visitor's language: app.log.sealEachStage, app.log.stagePrompt, app.log.selectedPrompt.
 
-type Screen = 'plant' | 'review' | 'stamp' | 'report' | 'backup';
+type Screen = 'plant' | 'origin' | 'review' | 'stamp' | 'report' | 'backup';
 
-/** The counter. The lab report is optional, so it is not counted. */
+/**
+ * The counter. The lab report is optional, so it is not counted; nor is "Where it came from",
+ * offered only for a landrace or received material, every field of it optional.
+ */
 export const STEP: Record<Screen, number | 'optional'> = {
   plant: 1,
+  origin: 'optional',
   review: 2,
   stamp: 3,
   report: 'optional',
@@ -347,6 +362,16 @@ const LogFlowFor: React.FC<{ nextOf?: string; handoff?: Handoff }> = ({ nextOf, 
             startOver={nextParent ? () => nextStageDraft(nextParent) : emptyDraft}
             namePlaceholder={nextParent ? nextStageNamePlaceholder(nextParent, tr) : undefined}
             parentOptions={parentOptionsOf(records)}
+            onNext={() => setScreen(originApplies(draft) ? 'origin' : 'review')}
+          />
+        );
+      case 'origin':
+        return (
+          <OriginStep
+            step={step}
+            origin={draft.origin ?? emptyOrigin()}
+            setOrigin={(o) => setDraft({ ...draft, origin: o })}
+            onBack={() => setScreen('plant')}
             onNext={() => setScreen('review')}
           />
         );
@@ -356,6 +381,7 @@ const LogFlowFor: React.FC<{ nextOf?: string; handoff?: Handoff }> = ({ nextOf, 
             step={step}
             draft={{ ...draft, kind }}
             onChange={() => setScreen('plant')}
+            onChangeOrigin={() => setScreen('origin')}
             onSealed={(id) => {
               clearDraft(nextOf);
               setRecordId(id);
@@ -506,7 +532,23 @@ const PlantForm: React.FC<{
   const [more, setMore] = useState(hasMore);
   const [reading, setReading] = useState(false);
   const photoRef = useRef<HTMLInputElement>(null);
-  const ready = Boolean(draft.strainName.trim() && draft.bredBy.trim()) && !reading;
+  const ready = plantReady(draft) && !reading;
+  // Who it is from (veilcore/origin-notes.ts): only the holder's own breeding needs a breeder.
+  const source = originSourceOf(draft);
+  const ownBreeding = source === 'bred';
+  const sourceId = useId();
+  const setSource = (v: OriginSource) =>
+    setDraft({
+      ...draft,
+      source: v,
+      // A landrace is said once: "How it was made" follows, when it says nothing yet.
+      ...(v === 'landrace' && !draft.breedingMethod ? { breedingMethod: LANDRACE_METHOD } : {}),
+      ...(v !== 'landrace' && draft.breedingMethod === LANDRACE_METHOD ? { breedingMethod: '' } : {}),
+      // "When you made it" means nothing for a family heirloom or seed received: today is not
+      // filled in for them (the date is the holder's own note, optional).
+      ...(v !== 'bred' && draft.dateCreated === today() ? { dateCreated: '' } : {}),
+      ...(v === 'bred' && !draft.dateCreated ? { dateCreated: today() } : {}),
+    });
   const moreId = useId();
   const hintId = useId();
   // A next stage (components/stage): the plant it follows, linked as its parent.
@@ -572,16 +614,42 @@ const PlantForm: React.FC<{
         onChange={(e) => set('strainName', e.target.value)}
         fullWidth
       />
+      {!stageOf && (
+        <FormControl data-origin-source={source}>
+          {/* Ink, focused or not: the theme's focus colour is too light for a label on cream. */}
+          <FormLabel id={sourceId} sx={{ color: 'text.primary', '&.Mui-focused': { color: 'text.primary' } }}>
+            {t('app.origin.source.label')}
+          </FormLabel>
+          <RadioGroup
+            aria-labelledby={sourceId}
+            value={source}
+            onChange={(e) => setSource(e.target.value as OriginSource)}
+          >
+            {ORIGIN_SOURCES.map((v) => (
+              <FormControlLabel
+                key={v}
+                value={v}
+                control={<Radio />}
+                label={t(`app.origin.source.${v}`)}
+                sx={{ minHeight: 44, alignItems: 'center' }}
+              />
+            ))}
+          </RadioGroup>
+        </FormControl>
+      )}
+      {/* No placeholder: a suggested "your name" nudges someone logging a community's landrace
+          to name themselves as its breeder (ethics panel, 7 Nov 2026). */}
       <TextField
-        label={t('app.log.bredBy')}
-        required
-        placeholder={t('app.log.bredByPlaceholder')}
+        label={ownBreeding ? t('app.log.bredBy') : t('app.origin.breederIfKnown')}
+        required={ownBreeding}
+        helperText={ownBreeding ? undefined : t('app.origin.breederHelp')}
         value={draft.bredBy}
         onChange={(e) => set('bredBy', e.target.value)}
         fullWidth
+        slotProps={{ htmlInput: { 'data-bred-by': ownBreeding ? 'required' : 'optional' } }}
       />
       <TextField
-        label={t('app.log.whenMade')}
+        label={ownBreeding ? t('app.log.whenMade') : t('app.origin.dateNote')}
         type="date"
         value={draft.dateCreated}
         onChange={(e) => set('dateCreated', e.target.value)}
@@ -725,7 +793,11 @@ const PlantForm: React.FC<{
       </Button>
       {!ready && (
         <Typography id={hintId} variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-          {reading ? t('app.log.readingYourPhotos') : t('app.log.nameAndBreeder')}
+          {reading
+            ? t('app.log.readingYourPhotos')
+            : ownBreeding
+              ? t('app.origin.needNameAndBreeder')
+              : t('app.origin.needName')}
         </Typography>
       )}
     </Stack>
@@ -763,12 +835,13 @@ const Line: React.FC<{ k: string; v: string; empty?: boolean; onChange: () => vo
   </Stack>
 );
 
-const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSealed: (id: string) => void }> = ({
-  step,
-  draft,
-  onChange,
-  onSealed,
-}) => {
+const Review: React.FC<{
+  step: string;
+  draft: Draft;
+  onChange: () => void;
+  onChangeOrigin: () => void;
+  onSealed: (id: string) => void;
+}> = ({ step, draft, onChange, onChangeOrigin, onSealed }) => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const animal = draft.kind === 'animal' && draft.animal ? draft.animal : undefined;
@@ -837,8 +910,20 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
       ) : (
         <Box>
           <Line k={t('app.log.k.plant')} v={draft.strainName} onChange={onChange} action={change} />
-          <Line k={t('app.log.bredBy')} v={draft.bredBy} onChange={onChange} action={change} />
-          <Line k={t('app.log.k.made')} v={draft.dateCreated} onChange={onChange} action={change} />
+          <Line
+            k={originSourceOf(draft) === 'bred' ? t('app.log.bredBy') : t('app.origin.breederIfKnown')}
+            v={draft.bredBy.trim() || t('app.origin.notStated')}
+            empty={!draft.bredBy.trim()}
+            onChange={onChange}
+            action={draft.bredBy.trim() ? change : t('app.common.add')}
+          />
+          <Line
+            k={originSourceOf(draft) === 'bred' ? t('app.log.k.made') : t('app.origin.dateNote')}
+            v={draft.dateCreated || t('app.origin.notStated')}
+            empty={!draft.dateCreated}
+            onChange={onChange}
+            action={draft.dateCreated ? change : t('app.common.add')}
+          />
           <Line
             k={t('app.log.k.more')}
             v={extras.length ? extras.join(' · ') : t('app.log.noneAdded')}
@@ -846,6 +931,7 @@ const Review: React.FC<{ step: string; draft: Draft; onChange: () => void; onSea
             onChange={onChange}
             action={extras.length ? change : t('app.common.add')}
           />
+          {originApplies(draft) && <OriginReviewLine origin={draft.origin} onChange={onChangeOrigin} />}
         </Box>
       )}
       <Alert icon={<LockIcon />} severity="info" variant="outlined">

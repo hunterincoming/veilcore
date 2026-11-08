@@ -33,6 +33,14 @@ export const agreementScreen = (pathname: string): boolean =>
   /^\/(license|license-invite|prove-license)\/[^/]+(\/.*)?$/.test(pathname) ||
   /^\/(claim|lender)\/?$/.test(pathname);
 
+/**
+ * A form a person fills in on a phone: logging a record (its first screen, "Where it came from",
+ * a batch), a document, an import. Ask's drafts open these; over them the bubble would sit on a
+ * choice or a field (user review, 7 Nov 2026: it covered the landrace option), so on a phone it
+ * stays off them, as on an agreement's screens.
+ */
+export const formScreen = (pathname: string): boolean => /^\/(new|documents\/new|records\/import)\/?$/.test(pathname);
+
 type HintRecord = Pick<StrainRecord, 'id' | 'strainName'> & {
   readonly profile?: string;
   readonly loggedAt?: number;

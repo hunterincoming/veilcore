@@ -10,6 +10,7 @@ import { Alert, Box, CircularProgress, Container, Paper, Stack, Typography } fro
 import { anchoredFingerprintOf, readClaimLink, type ClaimVerdict } from '../../veilcore/claim-link';
 import { Wordmark } from '../Wordmark';
 import { LanguageBar } from '../../i18n/LanguagePicker';
+import { DatedNotOrigin } from '../verify/DatedNotOrigin';
 import { useT } from '../../i18n/app';
 import { DocumentDate, Fact } from './DocumentParts';
 import { claimWords } from './ProveNumber';
@@ -64,6 +65,7 @@ export const ClaimCheck: React.FC = () => {
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
           {t('app.claim.check.intro')}
         </Typography>
+        <DatedNotOrigin />
         {!link ? (
           <Alert severity="error" variant="outlined" data-claim-link="bad">
             {t('app.claim.check.bad')}

@@ -134,7 +134,7 @@ const ParentFields: React.FC<{
   );
 };
 
-const SCHEMES = [
+export const SCHEMES = [
   'app.animal.scheme.jp',
   'app.animal.scheme.earTag',
   'app.animal.scheme.microchip',

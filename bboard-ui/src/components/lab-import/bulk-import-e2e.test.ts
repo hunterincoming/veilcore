@@ -95,6 +95,19 @@ describe('importing a 25-row accession log, end to end', () => {
       bredBy: 4,
       dateCreated: 5,
       notes: 6,
+      // A genebank passport sheet's columns (MCPD): none in this file.
+      genus: null,
+      sampStat: null,
+      collSrc: null,
+      origCty: null,
+      acqDate: null,
+      puid: null,
+      donorName: null,
+      donorCode: null,
+      instCode: null,
+      collSite: null,
+      mlsStat: null,
+      ancest: null,
     });
     const checked = tab.bi.checkRows(sheet, mapping, { existing: tab.records.allRecords() });
     expect(checked).toMatchObject({ ready: 25, already: 0, problems: 0, blocked: undefined });
