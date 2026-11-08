@@ -60,6 +60,7 @@ import { dnaTieSentence } from '../../veilcore/dna-tie';
 import type { StrainRecord } from '../../veilcore/records';
 import type { SavedReport } from '../../veilcore/saved-report';
 import { PickUp } from './PickUp';
+import { JobsOnHome } from '../ask/JobsOnHome';
 import { keysOnlyHere } from './keys-only-here';
 
 /**
@@ -304,6 +305,9 @@ export const AppHome: React.FC = () => {
             </Paper>
           )}
           <LoadNoticeBar />
+
+          {/* Ask's "Do it for me" jobs: one to check, one being done, a record got ready to license. */}
+          <JobsOnHome />
 
           {!labOnly && <OldLinksNote records={records} />}
           <LockedRecords />

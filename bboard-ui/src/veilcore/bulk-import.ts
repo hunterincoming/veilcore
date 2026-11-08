@@ -1615,7 +1615,7 @@ export const NOT_KEPT = 'This record isn’t kept in this browser any more, so i
  * lock, so it never crosses a batch being sent from another tab. Returns how many were dropped.
  */
 export const dropHeld = (hashes: readonly string[]): Promise<number> =>
-  withTabLock(LEDGER_LOCK, async (held) => {
+  withTabLock(LEDGER_LOCK, (held) => {
     const ledger = loadLedger();
     const gone: string[] = [];
     for (const h of new Set(hashes)) {
@@ -1624,10 +1624,9 @@ export const dropHeld = (hashes: readonly string[]): Promise<number> =>
       gone.push(e.recordId);
       delete ledger.rows[h];
     }
-    if (!gone.length || !held()) return 0;
-    if (!saveLedger(ledger)) return 0;
+    if (!gone.length || !held() || !saveLedger(ledger)) return Promise.resolve(0);
     for (const id of gone) forgetKeys(id);
-    return gone.length;
+    return Promise.resolve(gone.length);
   });
 
 /** How long a batch waits for the registry before it is kept to send again (it may have landed). */

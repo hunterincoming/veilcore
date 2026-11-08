@@ -104,7 +104,7 @@ const WORDS: Record<Cat, readonly string[]> = {
   animalNoun: ['herd', 'animals', 'cows', 'cattle', 'dogs', 'horses', 'herde', 'tiere', 'kühe', 'rebaño', 'animales', 'vacas', 'troupeau', 'animaux', 'vaches', '群れ', '動物', '牛'],
   readyWord: ['ready', 'prepare', 'prepara', 'prépare', 'get', 'set', 'bereit', 'fertig', 'lizenzbereit', 'vorbereiten', 'bereite', 'vor', 'lista', 'listo', 'preparar', 'deja', 'prête', 'prêt', 'préparer', 'rends',
     '準備', 'できるように', '準備して'],
-  licenseWord: ['lizenzbereit', 'license', 'licence', 'licensing', 'licensed', 'lizenz', 'lizenzieren', 'lizenzvergabe', 'licencia', 'licenciar', 'licencier', 'ライセンス'],
+  licenseWord: ['lizenzbereit', 'license', 'licensing', 'licensed', 'lizenz', 'lizenzieren', 'lizenzvergabe', 'licencia', 'licenciar', 'licencier', 'ライセンス'],
   to: ['to', 'for', 'zur', 'zum', 'für', 'para', 'pour', 'à', 'en', 'に', 'で', 'できる', 'する'],
   pronoun: ['it', 'them', 'her', 'him', 'es', 'sie', 'ihn', 'lo', 'los', 'la', 'las', 'le', 'les', 'それ', 'それら'],
   and: ['and', 'und', 'y', 'et', 'と'],
@@ -170,7 +170,13 @@ export type Token = {
 
 /** NFKC, lower case, curly quotes plain, capped: as Shortcuts reads text (shortcuts.ts normalize). */
 export const normalizeText = (s: string): string =>
-  s.slice(0, ASK_MAX_CHARS).normalize('NFKC').replace(/[’‘]/g, "'").toLowerCase();
+  s
+    .slice(0, ASK_MAX_CHARS)
+    .normalize('NFKC')
+    .replace(/[’‘]/g, "'")
+    .toLowerCase()
+    // The British spelling reads as the American one: same length, so spans stay put.
+    .replace(/licenc(e|ing)/g, 'licens$1');
 
 /**
  * Every record name in the text, whole names only, longest first, each found once: masked as one

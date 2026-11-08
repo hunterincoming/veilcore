@@ -300,3 +300,19 @@ describe('the runner', () => {
     expect(order.map((s) => s.id)).toEqual(['a', 'b']);
   });
 });
+
+describe('the words', () => {
+  it('Japanese never says "AI", and the mode is まとめて準備', async () => {
+    const { job: ja } = await import('../i18n/app/ja/job');
+    const { ask } = await import('../i18n/app/ja/ask');
+    for (const [k, v] of Object.entries({ ...ja, ...ask })) expect(/\bAI\b|ＡＩ/.test(v), `${k}: ${v}`).toBe(false);
+    expect(ja['app.job.mode']).toBe('まとめて準備');
+  });
+
+  it('the job record is never in a backup: backup.ts reads no IndexedDB', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const src = fs.readFileSync(path.join(__dirname, '../veilcore/backup.ts'), 'utf8');
+    expect(src).not.toMatch(/indexedDB|veilcore\.ask\.job/);
+  });
+});

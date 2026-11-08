@@ -152,6 +152,7 @@ describe('the other jobs', () => {
       'prepara Blue Dream para licenciar',
       'prépare Blue Dream pour licence',
       'Blue Dreamをライセンスできるように準備して',
+      'get Blue Dream ready to licence',
     ])
       expect(plan(t), t).toMatchObject({ type: 'plan', plan: { job: 'ready', record: { v: blue.id } } });
   });
