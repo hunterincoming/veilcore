@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Lab results v2: the lab's name link is salted (8 Nov 2026, test network)
+
+- The binding a lab posts to put its name on a result no longer gives away which record it
+  tested. It was a hash of the lab's key and the record's proof code; the key is in every result
+  file, so anyone with a list of proof codes could match them. It now also covers a random salt
+  made for each result and kept in the signed statement (SDK SPEC 11.12, `bindingSalt`). A checker
+  gets the salt in the result file, or on a claim link, and still sees the lab's name.
+- Results signed before this still check, without the lab's name; the check page and the
+  record page say so and don't look the name up. A lab that wants its name on one signs it again.
+
 ### Where it came from, and real batches (7 Nov 2026)
 
 - A plant logged as a landrace or heirloom, or as material received from a breeder, a seed
