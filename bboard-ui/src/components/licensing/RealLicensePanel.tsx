@@ -40,6 +40,8 @@ import {
   getInvite,
   headNow,
   InviteOutcomeUnknown,
+  inviteUnsure,
+  setInviteUnsure,
   invitePath,
   licenseCode,
   licenseStatusNow,
@@ -73,7 +75,11 @@ export const RealLicensePanel: React.FC<{ license: License; blocked: boolean; on
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   /** The last invite may or may not have been made: another is made only when asked. */
-  const [unsure, setUnsure] = useState(false);
+  const [unsure, setUnsureHere] = useState(() => inviteUnsure(license.id));
+  const setUnsure = (on: boolean) => {
+    setInviteUnsure(license.id, on);
+    setUnsureHere(on);
+  };
   const sending = useRef(false);
   const [codeChecked, setCodeChecked] = useState(false);
   const [code, setCode] = useState<string>();

@@ -15,6 +15,8 @@ import {
   commitHashOf,
   createInvite,
   InviteOutcomeUnknown,
+  inviteUnsure,
+  setInviteUnsure,
   getInvite,
   handOnPath,
   licenseCode,
@@ -65,7 +67,11 @@ export const HandOnIssuer: React.FC<{
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   /** The last invite may or may not have been made: another is made only when asked. */
-  const [unsure, setUnsure] = useState(false);
+  const [unsure, setUnsureHere] = useState(() => inviteUnsure(`${license.id}.hand-on`));
+  const setUnsure = (on: boolean) => {
+    setInviteUnsure(`${license.id}.hand-on`, on);
+    setUnsureHere(on);
+  };
   const starting = useRef(false);
   const [code, setCode] = useState<string>();
   const [codeChecked, setCodeChecked] = useState(false);

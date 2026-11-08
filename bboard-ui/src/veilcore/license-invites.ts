@@ -126,6 +126,29 @@ export class InviteOutcomeUnknown extends Error {
   }
 }
 
+const UNSURE_PREFIX = 'veilcore.invite-unsure.v1.';
+
+/**
+ * Whether the last link made for this (a license id, or a hand-on of one) may or may not exist:
+ * kept in this browser, so a reload still says so and still asks before making another.
+ */
+export const inviteUnsure = (what: string): boolean => {
+  try {
+    return localStorage.getItem(UNSURE_PREFIX + what) !== null;
+  } catch {
+    return false;
+  }
+};
+
+export const setInviteUnsure = (what: string, unsure: boolean): void => {
+  try {
+    if (unsure) localStorage.setItem(UNSURE_PREFIX + what, String(Date.now()));
+    else localStorage.removeItem(UNSURE_PREFIX + what);
+  } catch {
+    /* this tab still shows it */
+  }
+};
+
 /**
  * The issuer invites a licensee to a license on the record with this on-chain identity.
  * Returns what the issuer keeps; the link is inviteLink(...). A refusal (the registry said no:
@@ -148,6 +171,7 @@ export const createInvite = async (identity: string, label: string): Promise<Iss
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body,
+      cache: 'no-store',
     });
   } catch {
     // It may have reached the registry before the connection went.
