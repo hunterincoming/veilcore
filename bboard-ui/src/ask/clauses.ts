@@ -55,6 +55,7 @@ export type Cat =
   | 'stamp'
   | 'every'
   | 'yesterday'
+  | 'hier'
   | 'lot'
   | 'codeWord'
   | 'dogWord'
@@ -120,7 +121,9 @@ const WORDS: Record<Cat, readonly string[]> = {
   notJob: ['prove', 'proof', 'transfer', 'hand on', 'revoke', 'delete', 'remove', 'correct', 'beweise', 'übertrage', 'widerrufe', 'lösche', 'prueba', 'transfiere', 'revoca', 'borra', 'elimina',
     'prouve', 'transfère', 'révoque', 'supprime', 'efface', '証明', '譲渡', '取り消し', '削除'],
   stamp: ['stamp', 'stamps', 'anchor', 'stempel', 'sello', 'sellar', 'tampon', 'horodate', 'スタンプ'],
-  yesterday: ['yesterday', 'last night', 'gestern', 'ayer', 'anoche', 'hier', 'hier soir', '昨日', '昨夜'],
+  yesterday: ['yesterday', 'last night', 'gestern', 'ayer', 'anoche', 'hier soir', '昨日', '昨夜'],
+  // French "yesterday", German "here": yesterday only when the person's language is French (plan.ts dateOf).
+  hier: ['hier'],
   lot: ['lot', 'charge', 'lote', 'ロット'],
   codeWord: ['naab', 'semex', 'code', 'stud', 'nr', 'nr.', 'no.', '番号'],
   dogWord: ['dog', 'dogs'],

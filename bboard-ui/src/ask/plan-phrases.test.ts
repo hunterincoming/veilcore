@@ -48,7 +48,7 @@ const summary = (r: PlanResult): string => {
 };
 
 // prettier-ignore
-const PHRASES: [string, string][] = [
+const PHRASES: [string, string, string?][] = [
   ["Bella had 6 pups: 4 dogs, 2 bitches", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"males\":4,\"females\":2,\"date\":\"today\"}"],
   ["Bella whelped 6 pups, 4 dogs 2 bitches", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"males\":4,\"females\":2,\"date\":\"today\"}"],
   ["Bella whelped 6", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"date\":\"today\"}"],
@@ -154,7 +154,10 @@ const PHRASES: [string, string][] = [
   ["Daisy calved, no chip yet", "PLAN batch {\"preset\":\"offspring\",\"count\":1,\"dam\":\"#5\",\"idScheme\":\"Microchip\",\"idsLater\":true,\"date\":\"today\"}"],
   ["Bella hatte gestern 6 Welpen", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"date\":\"yesterday\"}"],
   ["Bella parió ayer 6 cachorros", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"date\":\"yesterday\"}"],
-  ["Bella a eu 6 chiots hier", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"date\":\"yesterday\"}"],
+  ["Bella a eu 6 chiots hier", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"date\":\"yesterday\"}", "fr"],
+  // German "hier" is "here": never yesterday (verification V2).
+  ["Bella hat hier 6 Welpen geworfen", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"date\":\"today\"}", "de"],
+  ["Bella hat hier 6 Welpen geworfen", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"date\":\"today\"}"],
   ["Bellaが昨日子犬を6匹産んだ", "PLAN batch {\"preset\":\"offspring\",\"count\":6,\"dam\":\"#4\",\"date\":\"yesterday\"}"],
   ["Daisy hat Zwillinge gekalbt", "PLAN batch {\"preset\":\"offspring\",\"count\":2,\"dam\":\"#5\",\"date\":\"today\"}"],
   ["Daisy parió gemelos", "PLAN batch {\"preset\":\"offspring\",\"count\":2,\"dam\":\"#5\",\"date\":\"today\"}"],
@@ -171,9 +174,9 @@ const PHRASES: [string, string][] = [
 ];
 
 describe('the users’ review phrasings, and their five-language forms', () => {
-  for (const [text, want] of PHRASES)
-    it(text, () => {
-      const r = planJob(text, { records, animals: true });
+  for (const [text, want, lang] of PHRASES)
+    it(`${text}${lang ? ` (${lang})` : ''}`, () => {
+      const r = planJob(text, { records, animals: true, lang });
       expect(summary(r)).toBe(want);
       if (r.type === 'plan') expect(provenanceHolds(r.plan, r.text, records)).toBe(true);
       // A suggestion is only ever something that plans, made from the words typed.

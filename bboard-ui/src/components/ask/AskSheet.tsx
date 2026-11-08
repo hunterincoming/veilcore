@@ -158,7 +158,7 @@ export default function AskSheet({
       add({
         text: typed,
         result: { type: 'miss', closest: [] },
-        job: planJob(typed, { records, animals: ANIMAL_RECORDS_ENABLED }, { fromHint }),
+        job: planJob(typed, { records, animals: ANIMAL_RECORDS_ENABLED, lang: tr.lang }, { fromHint }),
       });
       return;
     }

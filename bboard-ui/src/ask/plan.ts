@@ -129,6 +129,8 @@ export type PlanContext = {
   readonly records: readonly StrainRecord[];
   /** Whether the site offers animal records. */
   readonly animals: boolean;
+  /** The person's language (en, de, es, fr, ja): "hier" is yesterday only in French. */
+  readonly lang?: string;
 };
 
 const CLOSEST: Partial<Record<RefuseWhy, readonly AskAction[]>> = {
@@ -180,6 +182,7 @@ const DETAIL: readonly Cat[] = [
   'later',
   'today',
   'yesterday',
+  'hier',
   'offNoun',
   'bull',
   'by',
@@ -255,8 +258,10 @@ const keepGroups = (read: Read, groups: readonly (readonly Token[])[]): string =
 
 type ReaderOut = { plan: JobPlan; used: Set<Token> } | Refusal | { left: Token[] };
 
-const dateOf = (c: readonly Token[], used: Set<Token>): Val<'today' | 'yesterday'> | Refusal => {
-  const y = c.filter((t) => has(t, 'yesterday'));
+const dateOf = (c: readonly Token[], used: Set<Token>, lang?: string): Val<'today' | 'yesterday'> | Refusal => {
+  // "hier": French yesterday, German here (said in passing: nothing to do with the date).
+  for (const t of c) if (has(t, 'hier') && lang !== 'fr') used.add(t);
+  const y = c.filter((t) => has(t, 'yesterday') || (lang === 'fr' && has(t, 'hier')));
   const tod = c.filter((t) => has(t, 'today'));
   for (const t of [...y, ...tod]) used.add(t);
   if (y.length && tod.length) return refuse('count', '');
@@ -295,7 +300,7 @@ const readClones = (c: readonly Token[], ctx: PlanContext, read: Read): ReaderOu
       used.add(t);
     } else if (has(t, 'cloneNoun', 'cloneVerb', 'from', 'counter', 'new', 'to', 'and')) used.add(t);
   }
-  const date = dateOf(c, used);
+  const date = dateOf(c, used, ctx.lang);
   if ('type' in date) return date;
   const left = leftovers(read, c, used);
   if (left.length) return { left };
@@ -439,7 +444,7 @@ const readOffspring = (c: readonly Token[], ctx: PlanContext, read: Read): Reade
       used.add(t);
     } else if (has(t, 'offNoun', 'offVerb', 'counter', 'and', 'from', 'to', 'new', 'cloneVerb')) used.add(t);
   }
-  const date = dateOf(c, used);
+  const date = dateOf(c, used, ctx.lang);
   if ('type' in date) return date;
   const left = leftovers(read, c, used);
   if (left.length) return { left };
