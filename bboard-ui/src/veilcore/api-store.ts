@@ -585,6 +585,11 @@ export const OLDER_COPY = 'older-copy';
  * (veilcore-api corrections.js: one correction per holder and record, a unique index).
  */
 export const ALREADY_CORRECTED_CODE = 'already-corrected';
+/**
+ * The code the registry gives a row that would remove or change a record's `supersededBy` it
+ * holds already: a correction is permanent, so the link to it is too (veilcore-api, PR #8).
+ */
+export const SUPERSEDED_BY_LOCKED_CODE = 'supersededby-locked';
 
 const hashOf = async (v: Record<string, unknown>): Promise<string> =>
   Array.from(
@@ -999,6 +1004,13 @@ const sealAndSave = async (key: string, value: readonly unknown[], k: string): P
       // Said as that, in the page's language (records.ts issueCorrection reads `words`).
       if (r.code === ALREADY_CORRECTED_CODE) {
         refused.push({ id: r.id, reason: r.reason, words: 'app.sealed.alreadyCorrected' });
+        continue;
+      }
+      // This copy of the record drops or changes the link to its correction, which the registry
+      // keeps for good. Said as that; the save is answered by reading the set again (records.ts
+      // saveAll), which shows the record corrected, with its latest version.
+      if (r.code === SUPERSEDED_BY_LOCKED_CODE) {
+        refused.push({ id: r.id, reason: r.reason, words: 'app.sealed.refuse.supersededByLocked' });
         continue;
       }
       refused.push({ id: r.id, reason: r.reason });

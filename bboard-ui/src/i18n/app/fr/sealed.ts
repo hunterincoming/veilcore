@@ -17,7 +17,7 @@ export const sealed = {
   'app.sealed.correctNeedsConnection':
     'Corriger un enregistrement demande une connexion : VeilCore vérifie d’abord qu’il n’a pas été corrigé dans un autre onglet ou sur un autre appareil. Rien n’a été modifié. Réessayez une fois en ligne.',
   'app.sealed.correctionConnectionLost':
-    'La connexion a été coupée pendant l’enregistrement de cette correction : elle n’est donc pas gardée ici pour être envoyée plus tard. Réessayez une fois en ligne : si elle est arrivée, vous y serez conduit.',
+    'La connexion a été coupée pendant l’enregistrement de cette correction : elle n’est donc pas gardée ici pour être envoyée plus tard. Cet enregistrement n’est plus enregistré tant que VeilCore ne peut pas dire si la correction est arrivée ; une fois en ligne, l’enregistrement l’affiche si c’est le cas.',
   'app.sealed.locked.title.one': '{count} enregistrement verrouillé',
   'app.sealed.locked.title.other': '{count} enregistrements verrouillés',
   'app.sealed.locked.pageTitle': 'Cet enregistrement est verrouillé',
@@ -169,6 +169,8 @@ export const sealed = {
     'rien n’a encore été enregistré. Enregistrez d’abord une copie de secours et vérifiez-la',
   'app.sealed.refuse.olderCopy':
     'VeilCore a déjà une copie plus récente, enregistrée depuis un autre onglet ou un autre appareil, donc cette modification n’a pas été enregistrée. La copie plus récente est affichée maintenant ; refaites la modification si vous la voulez toujours',
+  'app.sealed.refuse.supersededByLocked':
+    'il a déjà été corrigé, dans un autre onglet ou sur un autre appareil, et une correction ne peut pas être annulée, donc cette modification n’a pas été enregistrée. Il a été relu depuis VeilCore ; ouvrez sa dernière version pour le modifier',
   'app.sealed.unsaved.backup':
     'Copie verrouillée pas encore envoyée — enregistrez et vérifiez votre copie de secours. La date de votre enregistrement n’attend pas cela.',
   'app.sealed.unsaved.key':

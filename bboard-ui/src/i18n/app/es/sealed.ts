@@ -17,7 +17,7 @@ export const sealed = {
   'app.sealed.correctNeedsConnection':
     'Para corregir un registro hace falta conexión: VeilCore comprueba primero que no se haya corregido en otra pestaña o en otro dispositivo. No se cambió nada. Vuelva a intentarlo cuando tenga conexión.',
   'app.sealed.correctionConnectionLost':
-    'La conexión se cortó mientras se guardaba esta corrección, así que no se guarda aquí para enviarla después. Vuelva a intentarlo cuando tenga conexión: si llegó, se le llevará a ella.',
+    'La conexión se cortó mientras se guardaba esta corrección, así que no se guarda aquí para enviarla después. Este registro no se vuelve a guardar hasta que VeilCore pueda decir si la corrección llegó; cuando tenga conexión, el registro la mostrará si llegó.',
   'app.sealed.locked.title.one': '{count} registro bloqueado',
   'app.sealed.locked.title.other': '{count} registros bloqueados',
   'app.sealed.locked.pageTitle': 'Este registro está bloqueado',
@@ -163,6 +163,8 @@ export const sealed = {
   'app.sealed.refuse.backupFirstNew': 'todavía no se guardó nada. Guarde una copia de seguridad y compruébela primero',
   'app.sealed.refuse.olderCopy':
     'VeilCore ya tiene una copia más reciente, guardada desde otra pestaña u otro dispositivo, así que este cambio no se guardó. Ahora se muestra la copia más reciente; vuelva a hacer el cambio si todavía lo quiere',
+  'app.sealed.refuse.supersededByLocked':
+    'ya se corrigió, en otra pestaña o en otro dispositivo, y una corrección no se puede deshacer, así que este cambio no se guardó. Se volvió a leer desde VeilCore; abra la versión más reciente para cambiarlo',
   'app.sealed.unsaved.backup':
     'Copia bloqueada aún sin subir: guarde y compruebe su copia de seguridad. La fecha de su registro no espera por esto.',
   'app.sealed.unsaved.key':
