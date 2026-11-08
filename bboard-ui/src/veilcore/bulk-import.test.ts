@@ -2,7 +2,7 @@
 // columns, checking rows, sealing them exactly as the logging flow does, picking up after a
 // closed tab without sealing a row twice, the results file, and the key date stamp queue.
 // SPDX-License-Identifier: Apache-2.0
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { strToU8, zipSync } from 'fflate';
 import {
   importStampsOn,
@@ -63,6 +63,11 @@ beforeEach(() => {
     throw new Error('these tests never reach the network');
   });
   __resetRecordKeysForTests();
+});
+// A test that takes Web Locks away (or adds them) gives them back: Node 24 has its own.
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 const fileOf = (bytes: Uint8Array | string, name: string) => {
@@ -646,7 +651,11 @@ describe('sealing many rows', () => {
   it('a tab whose lease ran out while it sealed writes and sends nothing, and drops the keys it made', async () => {
     const reg = registry();
     const rows = prepared().slice(0, 3);
-    // No Web Locks: the lease. Sealing takes long (a slowed tab); another tab takes the lease.
+    // No Web Locks: the lease. Node 24 (CI) has navigator.locks built in, so it is taken away
+    // here (and given back after each test). Sealing takes long (a slowed tab); another tab
+    // takes the lease.
+    vi.stubGlobal('navigator', {});
+    expect((globalThis.navigator as { locks?: unknown }).locks).toBeUndefined();
     const realNow = Date.now;
     let skew = 0;
     vi.spyOn(Date, 'now').mockImplementation(() => realNow() + skew);
